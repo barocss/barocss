@@ -38,7 +38,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "SECTION_DIMENSIONS",
+      "category": "PARAMETER",
       "messageIncludes": "[SECTION_DIMENSIONS] a wall 15 leaves no bore in 40 × 30"
     }
   },

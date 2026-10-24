@@ -17,6 +17,7 @@ Changes the feature tree one step at a time. Faces and edges by name ("n1.top", 
 | `features.command` | `run_command` | command, values?, faces?, edges?, bodies?, point? — a studio command as the toolbar runs it |
 | `features.add` | `add_features` | features: [node] — raw feature nodes (sketches, extrudes, revolves, sweeps, lofts, …) |
 | `features.edit` | `edit_feature` | index, values? \| feature? |
+| `features.parameters` | `set_parameters` | add?, set?, rename?, bind?, remove? — named parameters; bind a feature's value to one |
 | `features.load_rows` | `load_rows` | kind, file, part?, feature? — rows from the person’s conversation file |
 | `features.delete` | `delete_feature` | index |
 | `features.material` | `set_material` | material, bodies?, part? — what bodies are made of |

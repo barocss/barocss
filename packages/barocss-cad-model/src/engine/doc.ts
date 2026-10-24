@@ -432,8 +432,8 @@ export interface PrintPreviewSettings {
   version: 1;
   /** Zero-based layer index, independent of the current display's layer count. */
   layer?: number;
-  /** Millimetres; absent keeps the existing 0.2 mm estimate. */
-  layerMM?: number;
+  /** The layer height, mm; absent keeps the existing 0.2 mm estimate. */
+  layerHeight?: number;
   supports?: boolean;
   printed?: boolean;
 }
@@ -466,9 +466,9 @@ export interface StudioDoc {
    * How it is machined (CNC7b, O102; versioned): the shop's stock list — loaded by the user, none built in (D121's
    * pattern) — and the allowance per face (mm; unset, an estimate of 1 mm is taken and said).
    */
-  machining?: { version: 1; stock?: StockRow[]; allowanceMM?: number };
+  machining?: { version: 1; stock?: StockRow[]; allowance?: number };
   /** IM8b (O108): casting's pattern — the faces machined after casting (by name), and the user's own machining allowance (mm a face) and shrinkage (a ratio, mm/mm); unset, the table's. */
-  casting?: { version: 1; machined?: string[]; machiningAllowanceMM?: number; shrink?: number; /** IM8c (O109): where the metal comes in (a point on the part, mm), the person's: hot spots are fed from it. */ gate?: [number, number, number] };
+  casting?: { version: 1; machined?: string[]; machiningAllowance?: number; shrink?: number; /** IM8c (O109): where the metal comes in (a point on the part, mm), the person's: hot spots are fed from it. */ gate?: [number, number, number] };
   /** FRb (O116): how frames are cut — the shop's stock lengths (loaded by the user, none built in) and the saw's kerf (mm; unset, an estimate is taken and said). */
   /** R12c.2 (D155): fit tables the user loads (none built in), cylindrical faces' classes by face name, declared hole–shaft pairs (engine/fits.ts). */
   fits?: import('./fits').StudioFits;
@@ -490,7 +490,7 @@ export interface StudioDoc {
   castingRules?: { version: 1; rows: import('./castingRuleRows').StudioCastingRuleRow[] };
   /** The person's mount rows (O14): how a motor, servo or bearing unit fixes to a face, from their datasheet file. */
   mounts?: { version: 1; rows: import('./mountRows').StudioMountRow[] };
-  frames?: { version: 1; stock?: FrameStockRow[]; kerfMM?: number; /** Shared material accounting, explicitly chosen; no automatic policy migration. */ beadOwnership?: BeadOwnership; /** FRc (O117): the user's section library — none built in (D122); a frame's section may name a row. */ sections?: FrameSectionRow[]; /** FRd1 (O118): the person's welds, by joint id (frames/welds.ts) — kind, size (mm), all round, the bore welded or not (theirs alone), notes; unset, the rule's. */ welds?: { joint: string; kind?: 'fillet' | 'butt'; sizeMM?: number; allRound?: boolean; inner?: boolean; notes?: string }[] };
+  frames?: { version: 1; stock?: FrameStockRow[]; kerf?: number; /** Shared material accounting, explicitly chosen; no automatic policy migration. */ beadOwnership?: BeadOwnership; /** FRc (O117): the user's section library — none built in (D122); a frame's section may name a row. */ sections?: FrameSectionRow[]; /** FRd1 (O118): the person's welds, by joint id (frames/welds.ts) — kind, size (mm), all round, the bore welded or not (theirs alone), notes; unset, the rule's. */ welds?: { joint: string; kind?: 'fillet' | 'butt'; size?: number; allRound?: boolean; inner?: boolean; notes?: string }[] };
   /** Saved sets of parameter values by name (a configuration applies its set). */
   configurations?: Record<string, Record<string, number>>;
   /** O11: the assembly's inputs, their bindings and its variants (engine/schema/variability; assembly/variability). */

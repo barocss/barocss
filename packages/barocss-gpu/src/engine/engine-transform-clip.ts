@@ -16,7 +16,7 @@ export class EngineTransformClipError extends BarocssError {
     this.name = 'EngineTransformClipError';
   }
 }
-export interface EngineTransformKeyV0 { timeSeconds: number; translation: Vec3; rotationXYZW: Quat; scale: Vec3 }
+export interface EngineTransformKeyV0 { time: number; translation: Vec3; rotationXYZW: Quat; scale: Vec3 }
 export interface EngineTransformTrackV0 { nodeId: string; keys: EngineTransformKeyV0[] }
 export interface EngineTransformClipV0 {
   format: 'barocss-gpu-engine-transform-clip'; version: 0; id: string; sceneId: string;
@@ -24,7 +24,7 @@ export interface EngineTransformClipV0 {
   rotationOrder: 'xyzw'; interpolation: 'linear-trs-shortest-path-nlerp'; tracks: EngineTransformTrackV0[];
 }
 export interface EngineTransformClipRequestV0 {
-  format: 'barocss-gpu-engine-transform-clip-request'; version: 0; timeSeconds: number;
+  format: 'barocss-gpu-engine-transform-clip-request'; version: 0; time: number;
 }
 export interface SampledEngineTransformClip {
   readonly originalScene: EngineSceneV0;
@@ -67,11 +67,11 @@ function array(input: unknown, minimum: number, maximum: number): unknown[] {
   return Array.from({ length }, (_, i) => Object.getOwnPropertyDescriptor(input, String(i))!.value);
 }
 function request(input: unknown): EngineTransformClipRequestV0 {
-  const data = ownRecord(input, ['format', 'version', 'timeSeconds']);
+  const data = ownRecord(input, ['format', 'version', 'time']);
   check(data.format === 'barocss-gpu-engine-transform-clip-request' && data.version === 0,
     CODE.VERSION, 'Only transform clip request0 is supported');
   return Object.freeze({ format: 'barocss-gpu-engine-transform-clip-request', version: 0,
-    timeSeconds: number(data.timeSeconds, 0, 3600, 'Request time') });
+    time: number(data.time, 0, 3600, 'Request time') });
 }
 function clip(input: unknown): EngineTransformClipV0 {
   const data = ownRecord(input, ['format', 'version', 'id', 'sceneId', 'coordinateSystem',
@@ -92,16 +92,16 @@ function clip(input: unknown): EngineTransformClipV0 {
   const tracks = rows.map(row => {
     let previous: number | undefined;
     const keys = array(row.input, 1, 32).map(input => {
-      const data = ownRecord(input, ['timeSeconds', 'translation', 'rotationXYZW', 'scale']);
-      const timeSeconds = number(data.timeSeconds, 0, 3600, 'Key time');
-      check(previous === undefined || timeSeconds > previous && timeSeconds - previous >= 1e-6,
+      const data = ownRecord(input, ['time', 'translation', 'rotationXYZW', 'scale']);
+      const time = number(data.time, 0, 3600, 'Key time');
+      check(previous === undefined || time > previous && time - previous >= 1e-6,
         CODE.RANGE, 'Key times require strict increasing order and separation of at least 1e-6 seconds');
-      previous = timeSeconds;
+      previous = time;
       const translation = vector(data.translation, -1000, 1000, 'Local translation');
       const rotationXYZW = quaternion(data.rotationXYZW);
       const scale = vector(data.scale, .01, 100, 'Local scale');
       for (const value of [translation, rotationXYZW, scale]) Object.freeze(value);
-      return Object.freeze({ timeSeconds, translation, rotationXYZW, scale });
+      return Object.freeze({ time, translation, rotationXYZW, scale });
     });
     Object.freeze(keys); return Object.freeze({ nodeId: row.nodeId, keys });
   });
@@ -133,13 +133,13 @@ function literal(key: EngineTransformKeyV0): LocalTransform {
 function sample(track: EngineTransformTrackV0, time: number): LocalTransform {
   const keys = track.keys, first = keys[0], last = keys[keys.length - 1];
   // Exact keys precede arithmetic and retain original coefficients and sign bits.
-  if (time <= first.timeSeconds) return literal(first);
-  if (time >= last.timeSeconds) return literal(last);
+  if (time <= first.time) return literal(first);
+  if (time >= last.time) return literal(last);
   for (let i = 1; i < keys.length; i++) {
     const rightKey = keys[i];
-    if (time === rightKey.timeSeconds) return literal(rightKey);
-    if (time < rightKey.timeSeconds) {
-      const leftKey = keys[i - 1], alpha = (time - leftKey.timeSeconds) / (rightKey.timeSeconds - leftKey.timeSeconds);
+    if (time === rightKey.time) return literal(rightKey);
+    if (time < rightKey.time) {
+      const leftKey = keys[i - 1], alpha = (time - leftKey.time) / (rightKey.time - leftKey.time);
       check(Number.isFinite(alpha) && alpha >= 0 && alpha <= 1, CODE.RANGE, 'Derived segment ratio is invalid');
       const translation = leftKey.translation.map((n, index) => number(n + (rightKey.translation[index] - n) * alpha,
         -1000, 1000, 'Derived local translation')) as [number, number, number];
@@ -173,7 +173,7 @@ export function sampleEngineTransformClip(sceneInput: unknown, clipInput: unknow
         'Tracks require unique current group or mesh IDs');
       seen.add(track.nodeId);
     }
-    const transforms = new Map(originalClip.tracks.map(track => [track.nodeId, sample(track, originalRequest.timeSeconds)]));
+    const transforms = new Map(originalClip.tracks.map(track => [track.nodeId, sample(track, originalRequest.time)]));
     const candidate = { ...originalScene, nodes: originalScene.nodes.map(node => ({ ...node,
       ...(transforms.get(node.id) ?? {}) })) };
     const sampledScene = scene(candidate, CODE.FRAME);

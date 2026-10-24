@@ -27,12 +27,12 @@ const printer = ts.createPrinter({ removeComments: true });
 function shape(text, names) { const file = ts.createSourceFile('types.ts', text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   return Object.fromEntries(file.statements.filter(n => (ts.isInterfaceDeclaration(n) || ts.isTypeAliasDeclaration(n)) && names.includes(n.name.text)).map(n => [n.name.text, printer.printNode(ts.EmitHint.Unspecified, n, file)])); }
 const oldTypes = ['SceneParameterCode', 'SceneParameterDiagnostic', 'SceneParameterDeclaration', 'ParameterizedAffineSceneAst', 'SceneParameter', 'CompiledParameterizedAffineSceneSource'];
-const parameterDTS = await readFile(resolve(pkg, 'dist/scene-parameter-source.d.ts'), 'utf8');
+const parameterDTS = await readFile(resolve(pkg, 'dist/scene/scene-parameter-source.d.ts'), 'utf8');
 const beforeTypes = shape(parentFile('src/scene-parameter-source.ts'), oldTypes); assert.equal(Object.keys(beforeTypes).length, 6); assert.deepEqual(shape(parameterDTS, oldTypes), beforeTypes);
 function literalSignature(text) { const file = ts.createSourceFile('literal-signature.ts', text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS), fn = file.statements.find(n => ts.isFunctionDeclaration(n) && n.name?.text === 'compileParameterizedAffineSceneSource');
   assert.ok(fn); return { name: fn.name.text, parameters: fn.parameters.map(p => printer.printNode(ts.EmitHint.Unspecified, p, file)), result: printer.printNode(ts.EmitHint.Unspecified, fn.type, file) }; }
 assert.deepEqual(literalSignature(parameterDTS), literalSignature(parentFile('src/scene-parameter-source.ts')));
-const indexDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), productDTS = await readFile(resolve(pkg, 'dist/scene-product-source.d.ts'), 'utf8');
+const indexDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), productDTS = await readFile(resolve(pkg, 'dist/scene/scene-product-source.d.ts'), 'utf8');
 const newTypes = ['MultiplicativeAffineSceneAst', 'CompiledMultiplicativeAffineSceneSource'];
 for (const name of ['compileMultiplicativeAffineSceneSource', ...newTypes]) { assert.ok(new RegExp('\\b' + name + '\\b').test(indexDTS)); assert.ok(new RegExp('\\b' + name + '\\b').test(productDTS)); }
 for (const name of ['compileSceneParameterData', 'finishSceneParameterSource']) assert.ok(!new RegExp('\\b' + name + '\\b').test(indexDTS));
@@ -91,7 +91,7 @@ for (const provider of providers) {
     const record = { provider: provider.label, name: c.name, sourcePath, literalPath, resultPath, digest: hash(signed(result)), files, uses: result.parameters.reduce((sum, p) => sum + p.uses.length, 0) };
     retained.push({ result, digest: record.digest, files }); records.push(record); coldCases.push(record); accepted++;
   }
-  const changed = clone(retained[0].result.scene); for (const o of changed.objects) { o.radius = 1.5; o.scaleXYZ = [.5625, .5, 1]; o.rotateDegrees = [22.5, 0, 22.5]; }
+  const changed = clone(retained[0].result.scene); for (const o of changed.objects) { o.radius = 1.5; o.scaleXYZ = [.5625, .5, 1]; o.rotation = [22.5, 0, 22.5]; }
   changed.objects[0].translate = [-1.5, 0, 0]; changed.objects[1].translate = [1.5, 0, 0]; assert.deepEqual(retained[1].result.scene, changed);
   const old = gpu.compileParameterizedAffineSceneSource(literal), fresh = gpu.compileMultiplicativeAffineSceneSource(literal); assert.deepEqual(fresh.scene, old.scene); assert.deepEqual(fresh.shaders, old.shaders); assert.equal(fresh.parameters.length, 0); accepted++;
   let oldRefusal; try { gpu.compileParameterizedAffineSceneSource(original); } catch (e) { oldRefusal = e; } assert.ok(oldRefusal instanceof gpu.SceneParameterSourceError); assert.equal(oldRefusal.code, 'TYPE');

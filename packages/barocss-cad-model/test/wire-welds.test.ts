@@ -17,7 +17,7 @@ function scene(tag: number) {
   const { id: _id, ...frame } = c.input.partDocument.features.find(n => n.kind === 'frame')!; void _id;
   const doc = { ...withNode(emptyDoc(), frame as ModelNode), parameters: { wireWeldTest: tag } };
   const joint = weldList(doc, ok(doc).bodies).joints.find(j => j.kind === 'butt')!; assert.ok(joint);
-  const weld = (sizeMM?: number): StudioDoc => ({ ...doc, frames: { version: 1, welds: [{ joint: joint.id, ...(sizeMM === undefined ? {} : { sizeMM }) }] } });
+  const weld = (size?: number): StudioDoc => ({ ...doc, frames: { version: 1, welds: [{ joint: joint.id, ...(size === undefined ? {} : { size }) }] } });
   return { doc, joint: joint.id, weld };
 }
 function facts(e: EvalResult) {
@@ -30,7 +30,7 @@ function beadVolume(doc: StudioDoc, joint: string): number {
 
 test('REVIEW-M3 wire T: direct and transported evaluation keep 3 bodies and the 360 mm3 bead; stock stays local', () => {
   const s = scene(1), welded = s.weld(3);
-  const doc: StudioDoc = { ...welded, frames: { ...welded.frames!, sections: [{ id: 'unused', section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, estimate: true }], stock: [{ id: 'shop', lengthMM: 6000, source: 'test' }], kerfMM: 2 } };
+  const doc: StudioDoc = { ...welded, frames: { ...welded.frames!, sections: [{ id: 'unused', section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, estimate: true }], stock: [{ id: 'shop', lengthMM: 6000, source: 'test' }], kerf: 2 } };
   assert.equal(ok(doc).bodies.length, 3); assert.ok(Math.abs(beadVolume(doc, s.joint) - 360) < 1e-6);
   const packet = structuredClone(new WireSender().pack(doc)), back = new WireReceiver().unpack(packet);
   assert.deepEqual(back.frames, { version: 1, sections: doc.frames!.sections, welds: doc.frames!.welds });

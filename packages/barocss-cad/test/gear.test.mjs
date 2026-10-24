@@ -123,7 +123,7 @@ test('a meshing gear (R6a.4b, D56): placed beside its driver and turned to mesh 
   const g1 = (rotation, extra = {}) => ({ id: 'g1', kind: 'spur-gear', module: 2, teeth: 18, faceWidth: 4, thicknessReduction: 0.05, rotation, center: [5, 3], ...extra });
   const g2 = (mesh, extra = {}) => ({ id: 'g2', kind: 'spur-gear', module: 2, teeth: 18, faceWidth: 4, thicknessReduction: 0.05, mesh: { gear: 'g1', ...mesh }, ...extra });
   // Turned and off the X axis: the Boolean intersection of the two solids is empty.
-  assert.throws(() => evaluateCadPart(D([g1(7), g2({ direction: 30 }), { id: 'i', kind: 'intersect', target: 'g1', tool: 'g2' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([g1(7), g2({ direction: 30 }), { id: 'i', kind: 'intersect', target: 'g1', tool: 'g2' }])).output('i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
   // The driver stays an output; the follower stands at the nominal centre distance along 30°.
   for (const turn of [0, 7, 13.25]) {
     const r = evaluateCadPart(D([g1(turn), g2({ direction: 30 })])), p1 = r.output('g1').gearPlacement, p2 = r.output('g2').gearPlacement;
@@ -139,8 +139,8 @@ test('a meshing gear (R6a.4b, D56): placed beside its driver and turned to mesh 
   const c = checkPlacedSpurGears(r.output('g1').gearPlacement, r.output('g2').gearPlacement);
   close(c.relativePhaseDeg, 10, 1e-9, 'phase'); assert.equal(c.sweep.interference, true);
   // Another module, a gear that is not one, faces apart along the axis.
-  assert.throws(() => evaluateCadPart(D([g1(0), g2({}, { module: 3 })])), e => e.code === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([g1(0), { id: 's', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 3 }, { id: 'c', kind: 'extrude', sketch: 's', height: 3 }, { ...g2({}), mesh: { gear: 'c' } }])), e => e.code === 'REFERENCE' && /not a spur gear/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([g1(0), g2({}, { module: 3 })])), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([g1(0), { id: 's', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 3 }, { id: 'c', kind: 'extrude', sketch: 's', height: 3 }, { ...g2({}), mesh: { gear: 'c' } }])), e => (e.details?.category ?? e.code) === 'REFERENCE' && /not a spur gear/.test(e.message));
   const apart = { ...r.output('g2').gearPlacement, from: 10 };
   assert.throws(() => checkPlacedSpurGears(r.output('g1').gearPlacement, apart), e => e instanceof GearError && e.code === 'MATE_INCOMPATIBLE');
 });

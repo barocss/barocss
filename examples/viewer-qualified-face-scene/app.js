@@ -129,7 +129,7 @@ let treeIsoCurveReport=null;
 let treeTangentFirstCapture=null,treeTangentAngleReport=null,treeTangentProjections={first:null,second:null,angle:null},treeTangentHidden={first:false,second:false};
 let treeNormalFirstCapture=null,treeNormalAngleReport=null,treeNormalProjections={first:null,second:null,angle:null},treeNormalHidden={first:false,second:false};
 const colors=[[.9,.3,.2],[.25,.8,.4],[.25,.45,.95],[.95,.7,.2],[.3,.8,.9],[.85,.35,.75]];
-const camera={eye:[2,1.5,3.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10},mmToSceneUnit=.12,background=[.02,.03,.04],translateScene=[-.6,-.6,-.7];
+const camera={eye:[2,1.5,3.2],target:[0,0,0],up:[0,1,0],fovY:45,near:.01,far:10},mmToSceneUnit=.12,background=[.02,.03,.04],translateScene=[-.6,-.6,-.7];
 const pixelInfo=async()=>({hash:hash(await viewer.readPixels())});
 const display=value=>status.textContent=typeof value==='string'?value:JSON.stringify(value,null,2);
 function clearInspection(){inspectionReport=null;inspectionFace=null;inspection.textContent='';}

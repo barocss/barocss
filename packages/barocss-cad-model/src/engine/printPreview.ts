@@ -7,11 +7,11 @@ export function checkPrintPreview(value: unknown, where = 'printPreview'): Probl
   if (value === undefined) return [];
   const bad = (reason: string) => [problem('PRINT_PREVIEW_INPUT', `${where}: ${reason}`)];
   if (!record(value)) return bad('expected an object with version: 1');
-  const extra = Object.keys(value).find(k => !['version', 'layer', 'layerMM', 'supports', 'printed'].includes(k));
+  const extra = Object.keys(value).find(k => !['version', 'layer', 'layerHeight', 'supports', 'printed'].includes(k));
   if (extra !== undefined) return bad(`unknown field ${extra}`);
   if (value.version !== 1) return bad('version must be 1');
   if (value.layer !== undefined && (typeof value.layer !== 'number' || !Number.isSafeInteger(value.layer) || value.layer < 0)) return bad('layer must be a zero-based nonnegative safe integer');
-  if (value.layerMM !== undefined && (typeof value.layerMM !== 'number' || !Number.isFinite(value.layerMM) || value.layerMM <= 0)) return bad('layerMM must be a finite number greater than 0 mm');
+  if (value.layerHeight !== undefined && (typeof value.layerHeight !== 'number' || !Number.isFinite(value.layerHeight) || value.layerHeight <= 0)) return bad('layerHeight must be a finite number greater than 0 mm');
   for (const k of ['supports', 'printed']) if (value[k] !== undefined && typeof value[k] !== 'boolean') return bad(`${k} must be boolean`);
   return [];
 }

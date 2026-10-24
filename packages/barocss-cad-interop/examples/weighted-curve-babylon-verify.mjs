@@ -66,7 +66,7 @@ try {
     const line = display.meshes[0];
     assert.ok(line instanceof LinesMesh);
     assert.equal(line.metadata.barocss.curveId, owned.curve.id);
-    assert.equal(line.metadata.barocss.coordinateSystem, 'right-handed-y-up');
+    assert.equal(line.metadata.barocss.coordinateSystem, 'right-handed-z-up');
     assert.deepEqual(line.metadata.barocss.nativeParameters, neutral.curves[0].sample.parameters);
     assert.deepEqual(Array.from(line.getVerticesData('position')), Array.from(neutral.curves[0].positions));
     assert.ok(neutral.curves[0].sample.pointsMM.length <= 4096);

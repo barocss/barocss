@@ -80,6 +80,7 @@ import { sheetOperation } from './part-sheet.js';
 import { frameOperation } from './part-frame.js';
 import { checkExpected, expectOf, type CadPartNameSignature } from './part-expect.js';
 import { KernelError } from '../core/barocss-error.js';
+import { refusalCodeOf, type CadRefusalCode } from '../core/error-codes.js';
 
 export type CadPartDim = number | { readonly parameter: string };
 export type CadPartAxis = 'x' | 'y' | 'z';
@@ -569,8 +570,16 @@ export interface CadPartBeadSharing {
   /** Complete active endpoint manifest for this frame; membership is not a geometric component. */
   readonly joints: readonly (BeadJointRef & { readonly leg: CadPartDim })[];
 }
+/**
+ * A part-model refusal. Its `code` is the specific bracketed code of its message where it has one (`[FIT_TABLE_MISS]
+ * …`), else its category; the category is in `details.category` either way (R7.3a batch 2, D278).
+ */
 export class CadPartError extends KernelError {
-  constructor(readonly code: CadPartErrorCode, readonly feature: string | null, detail: string, readonly sharedComponent?: BeadSharedComponent) { super(`${feature ? feature + ': ' : ''}${detail}`.slice(0, 1024)); this.name = 'CadPartError'; }
+  declare readonly code: CadPartErrorCode | CadRefusalCode;
+  declare readonly details: { readonly category: CadPartErrorCode };
+  constructor(category: CadPartErrorCode, readonly feature: string | null, detail: string, readonly sharedComponent?: BeadSharedComponent) {
+    super(`${feature ? feature + ': ' : ''}${detail}`.slice(0, 1024), { code: refusalCodeOf(detail) ?? category, details: { category } }); this.name = 'CadPartError';
+  }
 }
 export interface CadPartOutput {
   /** The feature id, or `id/k` for one part of a multi-part feature. */
@@ -1902,7 +1911,7 @@ function frameCorners(v: unknown, points: readonly Point[], pairs: readonly (rea
   if (extra) fail('INPUT', `corners has no ${extra}`);
   const taggedDimension = (v: unknown, name: string, tag: 'GAP_SIZE' | 'NOTCH_CUTTER'): number => {
     try { return dim(v as CadPartDim, name); }
-    catch (cause) { if (cause instanceof CadPartError) fail(cause.code, `[${tag}] ${cause.message}`); throw cause; }
+    catch (cause) { if (cause instanceof CadPartError) fail(cause.details.category, `[${tag}] ${cause.message}`); throw cause; }
   };
   const gapOf = (v: unknown, name: string): number => { const g = taggedDimension(v, name, 'GAP_SIZE'); if (!(g >= 0)) fail('PARAMETER', '[GAP_SIZE] gap must be finite and nonnegative'); return g; };
   const gap = c.gap === undefined ? 0 : gapOf(c.gap, 'corners.gap');

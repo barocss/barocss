@@ -209,7 +209,7 @@ test('placed: the part model\'s ring (z 40) and a pinion (z 24) inside it (spur-
   const a0 = evaluateCadPart(D(feats(0, 30))).output('p').gearPlacement.rotation, a7 = evaluateCadPart(D(feats(7, 30))).output('p').gearPlacement.rotation;
   close(a7 - a0, 40 / 24 * 7 * Math.PI / 180, 1e-12, 'z2/z1 the same way');
   // The exact Boolean intersection of the placed solids, apart from the sweep: none meshed, some half a pitch off.
-  assert.throws(() => evaluateCadPart(D([...feats(7, 30), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([...feats(7, 30), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
   if (SURVEY) { const off = evaluateCadPart(D([...feats(0, 0, 9), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i'); assert.ok(brepMassProperties(off.brep, 1).volumeMM3 > 1, 'a phase off: the teeth overlap'); }
   // Unshifted (x2 0), the ring's tip corners run into the rack-cut pinion's root fillet: the sweep crosses (formMargin
   // −2.25 mm along the line of action — elsewhere a negative formMargin passes clear: it is no verdict).
@@ -227,14 +227,14 @@ test('placed: the part model\'s ring (z 40) and a pinion (z 24) inside it (spur-
     const hit = evaluateCadPart(D([...pose(0.25, 0, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i');
     assert.ok(checkBrep(hit.brep, { strict: true }).valid, 'a body is valid under the strict check');
     assert.ok(brepMassProperties(hit.brep, 1).volumeMM3 > 1e-4, 'the solids overlap where the sweep says');
-  } catch (e) { if (!(e.code === 'GEOMETRY' && /graze within .* the sliver between them cannot be built/.test(e.message))) throw e; }
-  for (const [x2, red] of SURVEY ? [[0.25, 0.05], [0.5, 0]] : []) assert.throws(() => evaluateCadPart(D([...pose(x2, red, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
+  } catch (e) { if (!((e.details?.category ?? e.code) === 'GEOMETRY' && /graze within .* the sliver between them cannot be built/.test(e.message))) throw e; }
+  for (const [x2, red] of SURVEY ? [[0.25, 0.05], [0.5, 0]] : []) assert.throws(() => evaluateCadPart(D([...pose(x2, red, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
   const offCheck = checkPlacedInternalGears(evaluateCadPart(D(feats(0, 0, 9))).output('r').internalGearPlacement, evaluateCadPart(D(feats(0, 0, 9))).output('p').gearPlacement, { mode: 'verdict' });
   assert.equal(offCheck.sweep.interference, true);
   // Refusals in the part model: another module, a feature that is no gear.
-  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], module: 2.5 }])).output('p'), e => e.code === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 30, faceWidth: 5, rim: 90 }])).output('r'), e => e.code === 'CAPABILITY' && /UNSUPPORTED_PROFILE_SHIFT/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 40, faceWidth: 5, rim: 100, generator: 'internal-gear@2' }])).output('r'), e => e.code === 'CAPABILITY');
+  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], module: 2.5 }])).output('p'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 30, faceWidth: 5, rim: 90 }])).output('r'), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /UNSUPPORTED_PROFILE_SHIFT/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 40, faceWidth: 5, rim: 100, generator: 'internal-gear@2' }])).output('r'), e => (e.details?.category ?? e.code) === 'CAPABILITY');
   // A helical ring and pinion, both right-handed, in the part model: placed, clear.
   const h = evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', normalModule: 2, helixAngle: 15, hand: 'right', teeth: 50, faceWidth: 6, rim: 130, thicknessReduction: 0.05 }, { id: 'p', kind: 'spur-gear', normalModule: 2, helixAngle: 15, hand: 'right', teeth: 20, faceWidth: 6, thicknessReduction: 0.05, mesh: { gear: 'r', direction: 45 }, generator: 'spur-gear@1' }]));
   assert.equal(checkPlacedInternalGears(h.output('r').internalGearPlacement, h.output('p').gearPlacement, { mode: 'verdict' }).sweep.interference, false);

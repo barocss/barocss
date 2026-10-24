@@ -4029,7 +4029,7 @@ try {
       const tools = await page.locator('.chat-tool').allInnerTexts();
       assert.ok(tools.some(t => t.includes('features.frame_stock')) && tools.at(-1).includes('query.cutlist'), tools.slice(-3).join(' | '));
       await page.click('[aria-label="Close chat"]');
-      await page.waitForFunction(() => window.__studioDoc.frames?.stock?.length === 2 && window.__studioDoc.frames.kerfMM === 3, null, { timeout: 30000 }); await idle();
+      await page.waitForFunction(() => window.__studioDoc.frames?.stock?.length === 2 && window.__studioDoc.frames.kerf === 3, null, { timeout: 30000 }); await idle();
       // (A member selected: its properties carry the cut list's button. FR4b, run before, leaves one selected; alone, this step picks it.)
       if (!await page.locator('[aria-label="Show the cut list"]').count()) { await page.locator('.outliner .ol', { hasText: /^Frame/ }).first().click(); await page.waitForSelector('[aria-label="Show the cut list"]', { timeout: 15000 }); }
       await page.click('[aria-label="Show the cut list"]');
@@ -8169,7 +8169,7 @@ try {
     await snap('g23-print-middle');
     // (Saved: the layer settings are the document's; a new part, the download opened: the same layer, the same height.)
     const saved = await saveAndReopen('saved-g23-print.bcad', 5);
-    assert.deepEqual([saved.printPreview?.layer, saved.printPreview?.layerMM, saved.printPreview?.printed], [mid, 0.5, false], JSON.stringify(saved.printPreview));
+    assert.deepEqual([saved.printPreview?.layer, saved.printPreview?.layerHeight, saved.printPreview?.printed], [mid, 0.5, false], JSON.stringify(saved.printPreview));
     const reopened = await at([mid, coarse.count]);
     assert.deepEqual([reopened.z, reopened.top, reopened.printed], [middle.z, middle.top, false]);
     await preview('None');
@@ -8198,7 +8198,7 @@ try {
     const sum = (b, ...ps) => ps.reduce((n, p) => n + b.passes[p], 0);
     for (const mode of modes) {
       const c = costs[mode], keys = c.bodies.map(b => b.key).sort();
-      console.log(`  O10 (${renderer}) ${mode}: ${c.bodies.length} bodies, ${c.bodies.reduce((n, b) => n + b.draws, 0)} body draws, ${c.bodies.reduce((n, b) => n + b.triangles, 0)} triangles, ${c.bodies.reduce((n, b) => n + b.lines, 0)} lines; scene ${c.scene.draws} draws; ${c.cpuMs.toFixed(2)} ms CPU; b0 ${JSON.stringify(by(mode, 'b0').passes)}`);
+      console.log(`  O10 (${renderer}) ${mode}: ${c.bodies.length} bodies, ${c.bodies.reduce((n, b) => n + b.draws, 0)} body draws, ${c.bodies.reduce((n, b) => n + b.triangles, 0)} triangles, ${c.bodies.reduce((n, b) => n + b.lines, 0)} lines; scene ${c.scene.draws} draws; ${c.cpuTime.toFixed(2)} ms CPU; b0 ${JSON.stringify(by(mode, 'b0').passes)}`);
       assert.deepEqual([c.renderer, c.mode], [renderer, mode], JSON.stringify([c.renderer, c.mode]));
       // (A copy's key is its instance's id and its body's key as the studio evaluates the instance's part.)
       assert.deepEqual(keys.map(k => k.split('/')[0]), ['b0', 'b1', ...[1, 2, 3, 4, 5, 6, 7, 8].map(i => `i${i}`)], keys.join(','));

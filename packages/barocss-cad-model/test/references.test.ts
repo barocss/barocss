@@ -12,6 +12,8 @@ import { captureSignatures, refreshSignatures, verifyReferences } from '../src/e
 // edit, verified on open by the one matcher.
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function bodiesOf(doc: StudioDoc) { const r = await evaluate(doc); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies; }
+/** The bodies an opened document's check starts from, as the studio's verifyOpened: none when a stored name moved (O19, REFERENCE_MOVED). */
+async function openedBodies(doc: StudioDoc) { const r = await evaluate(doc); if (!r.ok && r.error.code === 'REFERENCE_MOVED') return []; assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies; }
 
 test('signatures: written with a reference from the bodies it was picked on; a re-matched one is not refreshed', async () => {
   const box = rectanglePart(10, 10, 5), bodies = await bodiesOf(box);
@@ -44,7 +46,7 @@ for (const file of readdirSync(a1).filter(f => f.endsWith('.json'))) {
       assert.ok(!r.isError, r.content); doc = r.state.doc;
       doc = (readStudioDoc(JSON.stringify(doc)) as { doc: StudioDoc }).doc; // saved and reopened
     }
-    const v = await verifyReferences(doc, await bodiesOf(doc), evaluate);
+    const v = await verifyReferences(doc, await openedBodies(doc), evaluate);
     assert.deepEqual(v.changes, c.expect.changes);
     assert.deepEqual(v.problems.map(p => ({ where: p.where, name: p.name, candidates: p.candidates })), c.expect.problems ?? []);
     for (const [i, why] of Object.entries(c.expect.held ?? {})) assert.deepEqual([v.doc.nodes[Number(i)].suppressed, v.doc.nodes[Number(i)].held], [true, why]);

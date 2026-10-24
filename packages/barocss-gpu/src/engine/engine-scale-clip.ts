@@ -15,7 +15,7 @@ export class EngineScaleClipError extends BarocssError {
     this.name = 'EngineScaleClipError';
   }
 }
-export interface EngineScaleKeyV0 { timeSeconds: number; scale: Vec3 }
+export interface EngineScaleKeyV0 { time: number; scale: Vec3 }
 export interface EngineScaleTrackV0 { nodeId: string; keys: EngineScaleKeyV0[] }
 export interface EngineScaleClipV0 {
   format: 'barocss-gpu-engine-scale-clip'; version: 0; id: string; sceneId: string;
@@ -23,7 +23,7 @@ export interface EngineScaleClipV0 {
   interpolation: 'linear'; tracks: EngineScaleTrackV0[];
 }
 export interface EngineScaleClipRequestV0 {
-  format: 'barocss-gpu-engine-scale-clip-request'; version: 0; timeSeconds: number;
+  format: 'barocss-gpu-engine-scale-clip-request'; version: 0; time: number;
 }
 export interface SampledEngineScaleClip {
   readonly originalScene: EngineSceneV0;
@@ -66,11 +66,11 @@ function array(input: unknown, minimum: number, maximum: number): unknown[] {
   return Array.from({ length }, (_, i) => Object.getOwnPropertyDescriptor(input, String(i))!.value);
 }
 function request(input: unknown): EngineScaleClipRequestV0 {
-  const data = ownRecord(input, ['format', 'version', 'timeSeconds']);
+  const data = ownRecord(input, ['format', 'version', 'time']);
   check(data.format === 'barocss-gpu-engine-scale-clip-request' && data.version === 0,
     CODE.VERSION, 'Only scale clip request0 is supported');
   return Object.freeze({ format: 'barocss-gpu-engine-scale-clip-request', version: 0,
-    timeSeconds: number(data.timeSeconds, 0, 3600, 'Request time') });
+    time: number(data.time, 0, 3600, 'Request time') });
 }
 function clip(input: unknown): EngineScaleClipV0 {
   const data = ownRecord(input, ['format', 'version', 'id', 'sceneId', 'coordinateSystem',
@@ -91,13 +91,13 @@ function clip(input: unknown): EngineScaleClipV0 {
   const tracks = rows.map(row => {
     let previous: number | undefined;
     const keys = array(row.input, 1, 32).map(input => {
-      const data = ownRecord(input, ['timeSeconds', 'scale']);
-      const timeSeconds = number(data.timeSeconds, 0, 3600, 'Key time');
-      check(previous === undefined || timeSeconds > previous && timeSeconds - previous >= 1e-6,
+      const data = ownRecord(input, ['time', 'scale']);
+      const time = number(data.time, 0, 3600, 'Key time');
+      check(previous === undefined || time > previous && time - previous >= 1e-6,
         CODE.RANGE, 'Key times require strict increasing order and separation of at least1e-6 seconds');
-      previous = timeSeconds;
+      previous = time;
       const scale = array(data.scale, 3, 3).map(n => number(n, .01, 100, 'Local scale')) as [number, number, number];
-      Object.freeze(scale); return Object.freeze({ timeSeconds, scale });
+      Object.freeze(scale); return Object.freeze({ time, scale });
     });
     Object.freeze(keys); return Object.freeze({ nodeId: row.nodeId, keys });
   });
@@ -108,13 +108,13 @@ function clip(input: unknown): EngineScaleClipV0 {
 function sample(track: EngineScaleTrackV0, time: number): Vec3 {
   const keys = track.keys, first = keys[0], last = keys[keys.length - 1];
   // Literal keys precede arithmetic so exact endpoints retain their original coefficients.
-  if (time <= first.timeSeconds) return [...first.scale];
-  if (time >= last.timeSeconds) return [...last.scale];
+  if (time <= first.time) return [...first.scale];
+  if (time >= last.time) return [...last.scale];
   for (let i = 1; i < keys.length; i++) {
     const right = keys[i];
-    if (time === right.timeSeconds) return [...right.scale];
-    if (time < right.timeSeconds) {
-      const left = keys[i - 1], alpha = (time - left.timeSeconds) / (right.timeSeconds - left.timeSeconds);
+    if (time === right.time) return [...right.scale];
+    if (time < right.time) {
+      const left = keys[i - 1], alpha = (time - left.time) / (right.time - left.time);
       check(Number.isFinite(alpha) && alpha >= 0 && alpha <= 1, CODE.RANGE, 'Derived segment ratio is invalid');
       return left.scale.map((n, index) => number(n + (right.scale[index] - n) * alpha,
         .01, 100, 'Derived local scale')) as [number, number, number];
@@ -139,7 +139,7 @@ export function sampleEngineScaleClip(sceneInput: unknown, clipInput: unknown,
         'Tracks require unique current group or mesh IDs');
       seen.add(track.nodeId);
     }
-    const scales = new Map(originalClip.tracks.map(track => [track.nodeId, sample(track, originalRequest.timeSeconds)]));
+    const scales = new Map(originalClip.tracks.map(track => [track.nodeId, sample(track, originalRequest.time)]));
     const candidate = { ...originalScene, nodes: originalScene.nodes.map(node => ({ ...node,
       scale: scales.get(node.id) ?? node.scale })) };
     const sampledScene = scene(candidate, CODE.FRAME);

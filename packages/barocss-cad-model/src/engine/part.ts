@@ -9,7 +9,8 @@ import { CadPartError, evaluateCadPart, type CadPartSnapshot, type BearingReport
 import { bearingContextOf, bearingDependencyKey, bearingHousingRef, bearingHousingTarget, withBearingContext } from './bearingContext';
 import { bearingInExternalHousing } from './bearingHousing';
 import { mirrorCage, sprocketPitchDiameter, timingPitchDiameter } from '@barocss/cad';
-import type { BendTable, BeadSharedComponent, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartSection } from '@barocss/cad';
+import type { BendTable, BeadSharedComponent, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartNameSignature, CadPartSection } from '@barocss/cad';
+import type { Sig } from './references';
 import { frameGeometry, holeCentres, bevelSpiral, prefixDoc, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
 import { bodyNodeOf, featureId, nodeIndexOf, serialOf, withIds } from './ids';
 import { keyClasses } from './fits';
@@ -69,6 +70,24 @@ function libraryRow(rowId: string): CadPartSection {
 }
 /** A frame's override for the kernel: its sketch section by feature id. */
 function kernelOverride(o: FrameOverride): CadPartFrameOverride { const { section, ...rest } = o; return { ...rest, ...(section ? { section: kernelSection(section, id) } : {}) }; }
+
+/**
+ * O19 (the kernel's D277): what each stored name of a fillet, chamfer, shell or draft looked like when it was picked
+ * (`node.sigs`, engine/references.ts), for the kernel to check what the name builds on now: a name that moved to other
+ * geometry is refused (REFERENCE_MOVED), never built on another edge or face. Only the names the feature uses go, and
+ * only those whose signature is their own: one taken from a display edge or face that carried several of the kernel's
+ * names (`n`: a closed rim of several edges, merged faces) describes them together — the kernel's piece is elsewhere
+ * on it — so it goes unchecked rather than refuse a good fillet (R10.2a's tee).
+ */
+function expectOf(node: { sigs?: Record<string, Sig> }, names: readonly string[]): { expect?: Record<string, CadPartNameSignature> } {
+  const sigs = node.sigs; if (!sigs) return {};
+  let out: Record<string, CadPartNameSignature> | undefined;
+  for (const name of names) {
+    const s = sigs[name]; if (!s || (s.n ?? 1) > 1) continue;
+    (out ??= {})[name] = { kind: s.k as CadPartNameSignature['kind'], at: s.p, dir: s.d ?? null, size: s.s, ...(s.r !== undefined ? { radius: s.r } : {}) };
+  }
+  return out ? { expect: out } : {};
+}
 export function featureOf(node: ModelNode, index: number, nodes?: readonly ModelNode[]): CadPartFeature {
   if (nodes) current = nodes;
   const at = { id: id(index) };
@@ -99,8 +118,8 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'import': return { ...at, kind: 'import', step: node.step, ...((node.solids ?? 1) > 1 ? { each: true } : {}) };
     case 'mesh': return { ...at, kind: 'mesh', ...meshArrays(node.repair ? { blob: node.repair.result } : node), ...(node.repair ? repaired(node.repair) : {}), ...(node.representation ? { representation: node.representation } : {}), ...((node.pieces ?? 1) > 1 ? { each: true } : {}) };
     case 'thread': return { ...at, kind: 'thread', diameter: node.diameter, pitch: node.pitch, center: node.center, seat: node.seat, ...(node.length !== undefined ? { length: node.length } : {}), ...(node.hex ? { hex: node.hex } : {}), ...(node.form ? { form: node.form } : {}) };
-    case 'shell': return { ...at, kind: 'shell', target: ref(node.parent), thickness: node.thickness, open: node.open };
-    case 'chamfer': return { ...at, kind: 'chamfer', target: ref(node.parent), edges: node.edges, distance: node.distance };
+    case 'shell': return { ...at, kind: 'shell', target: ref(node.parent), thickness: node.thickness, open: node.open, ...expectOf(node, node.open) };
+    case 'chamfer': return { ...at, kind: 'chamfer', target: ref(node.parent), edges: node.edges, distance: node.distance, ...expectOf(node, node.edges) };
     case 'sheet-base': return { ...at, kind: 'sheet-base', sketch: id(node.sketch), thickness: node.thickness, bendRadius: node.bendRadius, ...sheetK(node), ...(node.reverse ? { reverse: true } : {}) };
     case 'sheet-corner-relief': return { ...at, kind: 'sheet-corner-relief', target: ref(node.parent), corner: node.edges[0], shape: node.shape, size: node.size };
     case 'sheet-flange': return { ...at, kind: 'sheet-flange', target: ref(node.parent), edge: node.edges[0], length: node.length, ...(node.angleDegrees !== undefined ? { angleDegrees: node.angleDegrees } : {}), ...(node.bendRadius !== undefined ? { bendRadius: node.bendRadius } : {}), ...(node.measure ? { measure: node.measure } : {}), ...(node.position ? { position: node.position } : {}), ...(node.offsets ? { offsets: node.offsets } : {}), ...(node.relief ? { relief: node.relief } : {}) };
@@ -229,9 +248,9 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       return { ...at, kind: 'spur-gear', ...modules, teeth: node.teeth, faceWidth: node.faceWidth, generator: node.generator, ...own, ...(node.toolTipRadius !== undefined ? { toolTipRadius: node.toolTipRadius } : {}), ...(node.profileShift ? { profileShift: node.profileShift } : {}), ...(node.bore !== undefined ? { bore: node.bore } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
     }
     case 'sew': return { ...at, kind: 'sew', surfaces: node.surfaces, ...(node.tolerance !== undefined ? { tolerance: node.tolerance } : {}) };
-    case 'draft': return { ...at, kind: 'draft', target: ref(node.parent), faces: node.faces, angleDegrees: node.angleDegrees };
+    case 'draft': return { ...at, kind: 'draft', target: ref(node.parent), faces: node.faces, angleDegrees: node.angleDegrees, ...expectOf(node, node.faces) };
     case 'split-face': return { ...at, kind: 'split-face', target: ref(node.parent), face: node.face, pull: node.pull, ...(node.names ? { names: node.names } : {}) } as CadPartFeature;
-    case 'fillet': return { ...at, kind: 'fillet', target: ref(node.parent), edges: node.edges, ...(node.radii ? { radii: node.radii.map(p => ({ at: p.at, radius: p.radius })) } : { radius: node.radius }), ...(node.section ? { section: node.section } : {}) };
+    case 'fillet': return { ...at, kind: 'fillet', target: ref(node.parent), edges: node.edges, ...(node.radii ? { radii: node.radii.map(p => ({ at: p.at, radius: p.radius })) } : { radius: node.radius }), ...(node.section ? { section: node.section } : {}), ...expectOf(node, node.edges) };
   }
 }
 
@@ -306,7 +325,7 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
 // An unbounded shared failure propagates. Reasons remain on the authored joints (`beadRefusal`).
 // A record with no kind set on a mitre or a cap (a groove or a corner weld by default) is no bead:
 // the kernel's BEAD_KIND there is kept quiet.
-type WeldRecordLike = { joint: string; kind?: 'fillet' | 'butt'; sizeMM?: number; inner?: boolean };
+type WeldRecordLike = { joint: string; kind?: 'fillet' | 'butt'; size?: number; inner?: boolean };
 export interface BeadFeature { key: string; joint: string; quiet: boolean; feature: Extract<CadPartFeature, { kind: 'weld-bead' }> }
 /**
  * A joint's bead feature id: `bead_` and, for a member's end, the joint id; for a plate's seam, the plate's key — the
@@ -320,7 +339,7 @@ export function beadIdOf(joint: string): string {
 export function beadsOf(doc: StudioDoc, gone: ReadonlySet<number> = new Set()): BeadFeature[] {
   const out: BeadFeature[] = [], nodes = doc.nodes, records = (doc.frames?.welds ?? []) as readonly WeldRecordLike[], input = canonical(modelContent(doc));
   for (const r of records) {
-    if (r.kind === 'butt' || r.sizeMM === undefined) continue;
+    if (r.kind === 'butt' || r.size === undefined) continue;
     let feature: Record<string, unknown> | null = null, owner = -1, plate = -1;
     const end = /^(.+)\.(start|end)$/.exec(r.joint);
     if (end) {
@@ -335,7 +354,7 @@ export function beadsOf(doc: StudioDoc, gone: ReadonlySet<number> = new Set()): 
       feature = { frame: featureId(nodes, n.frame), on: n.kind === 'gusset' ? { gusset: featureId(nodes, at.node) } : { cap: featureId(nodes, at.node) } };
     }
     if (owner < 0 || gone.has(owner) || (plate >= 0 && gone.has(plate)) || nodes[owner]?.suppressed) continue;
-    const f = { id: beadIdOf(r.joint), kind: 'weld-bead', ...feature, leg: r.sizeMM } as BeadFeature['feature'];
+    const f = { id: beadIdOf(r.joint), kind: 'weld-bead', ...feature, leg: r.size } as BeadFeature['feature'];
     // (A plate's seams share one bead: its first record's.)
     if (out.some(x => x.feature.id === f.id)) continue;
     // Keep the full authored evaluation context even when retry removes failed Kernel features.

@@ -9,7 +9,7 @@ const extrude = (id, sketch, height, from) => ({ id, kind: 'extrude', sketch, he
 const pi = Math.PI;
 const volume = o => o.massProperties(1).volumeMM3;
 const close = (a, b, rel = 1e-9) => Math.abs(a - b) <= rel * Math.max(1, Math.abs(b));
-const refused = (doc, code, pattern) => assert.throws(() => evaluateCadPart(doc), e => e instanceof CadPartError && e.code === code && pattern.test(e.message), pattern.source);
+const refused = (doc, code, pattern) => assert.throws(() => evaluateCadPart(doc), e => e instanceof CadPartError && (e.details?.category ?? e.code) === code && pattern.test(e.message), pattern.source);
 
 test('features evaluate on the B-rep with exact volumes; every output is valid with unique names', () => {
   const cases = [
@@ -428,7 +428,7 @@ test('refusals name the feature and the reason', () => {
   refused(D([...plate, { id: 'x', kind: 'split', target: 'a', axis: 'z', at: 9 }]), 'SELECTION', /does not cross/);
   refused(D([rect('s', 0, 0, { parameter: 'w' }, 10)]), 'PARAMETER', /unknown parameter w/);
   refused(D([rect('s', 0, 0, 10, 10), rect('s', 0, 0, 5, 5)]), 'FORMAT', /duplicate feature id/);
-  assert.throws(() => loadCadPart('{'), e => e instanceof CadPartError && e.code === 'FORMAT');
+  assert.throws(() => loadCadPart('{'), e => e instanceof CadPartError && (e.details?.category ?? e.code) === 'FORMAT');
 });
 
 test('mass properties: closed form for upright bodies agrees with mesh integration; STL is well formed', () => {
@@ -667,7 +667,7 @@ test('hole: a 90° countersink is cut with the hole, along any axis and from eit
     assert.equal(checkBrep(csk.brep).issues.length, 0);
     assert.ok(csk.brep.faces.some(f => /^h\.countersink-/.test(f.name ?? '')), 'the cone faces are the hole’s');
   }
-  assert.throws(() => evaluateCadPart(D([...cube, { id: 'h', kind: 'hole', target: 'b', center: [20, 20], radius: 3, countersink: 6 }])), e => e instanceof CadPartError && e.code === 'INPUT');
+  assert.throws(() => evaluateCadPart(D([...cube, { id: 'h', kind: 'hole', target: 'b', center: [20, 20], radius: 3, countersink: 6 }])), e => e instanceof CadPartError && (e.details?.category ?? e.code) === 'INPUT');
 });
 
 test('cylinder walls touching at a point from inside: built in either order, the volume the exact one', () => {

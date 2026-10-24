@@ -41,8 +41,8 @@ test('R12c.7 a frame member on a table\'s size: its volume A·L by the rounded t
   near(vol(one.brep), A(40, 40, 3, 6, 3) * 300, 1e-6 * 133200, 'A·L 40x40x3'); near(vol(two.brep), A(60, 40, 4, 8, 4) * 300, 1e-6 * 300000, 'A·L 60x40x4');
   assert.match(one.member.section, /^rhs-a 40x40x3, an estimate: rect-tube 40 × 40 × 3/);
   assert.match(two.member.section, /^rhs-a 60x40x4 \(a test row with its own source\): rect-tube 60 × 40 × 4/);
-  assert.throws(() => m('50x50x5'), e => e.code === 'PARAMETER' && /\[SECTION_TABLE_MISS\] section: the section table rhs-a has no size 50x50x5/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'm', kind: 'frame-member', section: { kind: 'table', table: { ...RHS, estimate: undefined }, size: '40x40x3' }, start: [0, 0, 0], end: [0, 0, 300] }])).output('m'), e => e.code === 'PARAMETER' && /\[SECTION_TABLE\] section table rhs-a size 40x40x3: cite its source/.test(e.message));
+  assert.throws(() => m('50x50x5'), e => (e.details?.category ?? e.code) === 'PARAMETER' && /\[SECTION_TABLE_MISS\] section: the section table rhs-a has no size 50x50x5/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([{ id: 'm', kind: 'frame-member', section: { kind: 'table', table: { ...RHS, estimate: undefined }, size: '40x40x3' }, start: [0, 0, 0], end: [0, 0, 300] }])).output('m'), e => (e.details?.category ?? e.code) === 'PARAMETER' && /\[SECTION_TABLE\] section table rhs-a size 40x40x3: cite its source/.test(e.message));
 });
 
 test('R12c.7 connector rows checked: a source or an estimate, shapes, a body no larger than its opening, a keep-out', () => {
@@ -80,11 +80,11 @@ test('R12c.7 refusals: a square-cornered body in a stadium opening overlaps the 
   let A = 0; const N = 20000, h = (4.125 - a) / N; for (let i = 0; i < N; i++) { const x = a + i * h; A += h / 6 * (f(x) + 4 * f(x + h / 2) + f(x + h)); }
   const want = 2 * A * 6.2;
   assert.throws(() => evaluateCadPart(D([...PANEL, { id: 'o', kind: 'connector-opening', target: 'p', face: 'p.top', row: sq, center: [20, 10, 10] }, { id: 'b', kind: 'connector-body', opening: 'o' }])).output('b'), e => {
-    const m = /\[CONNECTOR_FIT\] the body overlaps the panel by ([\d.]+) mm³/.exec(e.message); return e.code === 'GEOMETRY' && m && Math.abs(Number(m[1]) - want) < 1e-5;
+    const m = /\[CONNECTOR_FIT\] the body overlaps the panel by ([\d.]+) mm³/.exec(e.message); return (e.details?.category ?? e.code) === 'GEOMETRY' && m && Math.abs(Number(m[1]) - want) < 1e-5;
   }, String(want));
-  assert.throws(() => evaluateCadPart(D([...PANEL, { id: 'o', kind: 'connector-opening', target: 'p', face: 'p.top', row: U1, center: [2, 10, 10] }])).output('o'), e => e.code === 'GEOMETRY' && /\[CONNECTOR_PLACEMENT\] the opening runs off the face/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([...PANEL, { id: 'o', kind: 'connector-opening', target: 'p', face: 'p.top', row: U1, center: [2, 10, 10] }])).output('o'), e => (e.details?.category ?? e.code) === 'GEOMETRY' && /\[CONNECTOR_PLACEMENT\] the opening runs off the face/.test(e.message));
   assert.throws(() => evaluateCadPart(D([...PANEL, { id: 'o', kind: 'connector-opening', target: 'p', face: 'p.top', row: U1, center: [20, 10, 9] }])).output('o'), e => /off the face's plane/.test(e.message));
   const cyl = [{ id: 'cs', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10 }, { id: 'c', kind: 'extrude', sketch: 'cs', height: 20 }];
   assert.throws(() => evaluateCadPart(D([...cyl, { id: 'o', kind: 'connector-opening', target: 'c', face: 'c.side0', row: U1, center: [10, 0, 10] }])).output('o'), e => /\[CONNECTOR_PLACEMENT\] c\.side0 is not flat/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([...PANEL, { id: 'o', kind: 'connector-opening', target: 'p', face: 'p.top', row: { ...U1, source: undefined }, center: [20, 10, 10] }])).output('o'), e => e.code === 'INPUT' && /\[INVALID_INPUT\]/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([...PANEL, { id: 'o', kind: 'connector-opening', target: 'p', face: 'p.top', row: { ...U1, source: undefined }, center: [20, 10, 10] }])).output('o'), e => (e.details?.category ?? e.code) === 'INPUT' && /\[INVALID_INPUT\]/.test(e.message));
 });

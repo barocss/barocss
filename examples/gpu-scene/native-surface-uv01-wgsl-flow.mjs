@@ -47,7 +47,7 @@ const parentRuntime = ast.statements.filter(node => ts.isExportDeclaration(node)
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }];
 for (const provider of providers) provider.gpu = await import(pathToFileURL(provider.path).href);
 const namespace = Object.keys(providers[0].gpu).sort(); assert.ok(['lowerNativeSurfaceUV01MaterialWGSL'].sort().every(x => namespace.includes(x))); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
-const dts = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDTS = await readFile(resolve(pkg, 'dist/native-surface-uv01-material-wgsl.d.ts'), 'utf8');
+const dts = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDTS = await readFile(resolve(pkg, 'dist/native/uv01/native-surface-uv01-material-wgsl.d.ts'), 'utf8');
 for (const name of ['lowerNativeSurfaceUV01MaterialWGSL', 'LoweredNativeSurfaceUV01MaterialWGSL']) { assert.ok(new RegExp('\\b' + name + '\\b').test(dts)); assert.ok(new RegExp('\\b' + name + '\\b').test(leafDTS)); }
 
 const literal = value => Math.fround(value).toExponential(8) + 'f';

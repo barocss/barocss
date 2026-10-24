@@ -9,19 +9,19 @@ import { WireSender, WireReceiver } from '../src/engine/wireDoc';
 test('shop rows inherit by id, retain row references and local settings, and never change authored input', () => {
   const inherited = { id: 'shared', kind: 'block' as const, size: [100, 80, 20] as [number, number, number], source: 'shop A' };
   const local = { ...inherited, size: [120, 90, 30] as [number, number, number], source: 'shop B' };
-  const parent: StudioDoc = { ...emptyDoc(), machining: { version: 1, stock: [inherited], allowanceMM: 9 }, frames: { version: 1, kerfMM: 7, beadOwnership: { version: 1, policy: 'equal-length' } } };
-  const child: StudioDoc = { ...emptyDoc(), machining: { version: 1, stock: [local], allowanceMM: 2 } };
+  const parent: StudioDoc = { ...emptyDoc(), machining: { version: 1, stock: [inherited], allowance: 9 }, frames: { version: 1, kerf: 7, beadOwnership: { version: 1, policy: 'equal-length' } } };
+  const child: StudioDoc = { ...emptyDoc(), machining: { version: 1, stock: [local], allowance: 2 } };
   const before = JSON.stringify({ parent, child });
   const view = resolveShopRows(child, parent);
   assert.equal(view.doc.machining?.stock?.[0], local);
-  assert.equal(view.doc.machining?.allowanceMM, 2);
+  assert.equal(view.doc.machining?.allowance, 2);
   assert.equal(view.doc.frames, undefined);
   assert.deepEqual(view.provenance, [{ kind: 'machining-stock', id: 'shared', origin: 'override', fileSourceStatus: 'not-recorded' }]);
   assert.equal(resolveShopRows(child, parent), view);
   assert.equal(JSON.stringify({ parent, child }), before);
   const plain = emptyDoc(), inheritedView = resolveShopRows(plain, parent);
   assert.equal(inheritedView.doc.machining?.stock?.[0], inherited);
-  assert.equal(inheritedView.doc.machining?.allowanceMM, undefined);
+  assert.equal(inheritedView.doc.machining?.allowance, undefined);
   assert.equal(plain.machining, undefined);
 });
 
@@ -67,9 +67,9 @@ test('mutations persist local row edits only and refuse removal of inherited row
   assert.ok('doc' in unrelated);
   if ('doc' in unrelated) { assert.equal(unrelated.doc.machining, undefined); assert.equal(unrelated.doc.process, 'cnc-turning'); }
   const override = { ...parent.machining!.stock![0], source: 'local' };
-  const edited = restoreAuthoredShopRows({ ...view, machining: { version: 1, stock: [override], allowanceMM: 2 } }, view);
+  const edited = restoreAuthoredShopRows({ ...view, machining: { version: 1, stock: [override], allowance: 2 } }, view);
   assert.ok('doc' in edited);
-  if ('doc' in edited) { assert.equal(edited.doc.machining?.stock?.[0], override); assert.equal(edited.doc.machining?.allowanceMM, 2); }
+  if ('doc' in edited) { assert.equal(edited.doc.machining?.stock?.[0], override); assert.equal(edited.doc.machining?.allowance, 2); }
   const removed = restoreAuthoredShopRows({ ...view, machining: { version: 1, stock: [] } }, view);
   assert.ok('error' in removed && removed.error.includes('[SHOP_ROW_INHERITED_REMOVE]'));
 });

@@ -43,7 +43,7 @@ test('actual Model summary is reused across lazy layers; absent height/direction
 });
 
 test('source/direction changes produce a new actual summary and rigid bed transform', { timeout: 30000 }, async t => {
-  const f = await workerFixture(t), a = await f.send(job()), b = await f.send(job({ request: 2, sourceKey: 2, direction: [1, 0, 0], layerMM: 0.5 }));
+  const f = await workerFixture(t), a = await f.send(job()), b = await f.send(job({ request: 2, sourceKey: 2, direction: [1, 0, 0], layerHeight: 0.5 }));
   assert.notEqual(a.display.summaryKey, b.display.summaryKey); assert.equal(b.display.summary.count, 4);
   assert.equal(b.display.summary.directionSource, 'given'); assert.deepEqual(b.display.summary.layerMM, { mm: 0.5, basis: 'set' });
   const m = b.display.summary.modelToBed; assert.deepEqual([m[2], m[6], m[10]], [1, 0, 0]);
@@ -54,7 +54,7 @@ test('superseded queued requests cannot publish an old layer; invalid inputs yie
   const f = await workerFixture(t), seen = []; f.worker.on('message', value => seen.push(value));
   const next = once(f.worker, 'message'); f.worker.postMessage({ batch: [job({ request: 10 }), job({ request: 11, layer: 3 })] });
   const [reply] = await next; assert.equal(reply.request, 11); assert.equal(reply.display.layer.k, 3);
-  for (const bad of [{ direction: [0, 0, 0] }, { layerMM: 0 }, { layer: -1 }, { meshes: [] }]) {
+  for (const bad of [{ direction: [0, 0, 0] }, { layerHeight: 0 }, { layer: -1 }, { meshes: [] }]) {
     const reply = await f.send(job({ request: 12 + seen.length, ...bad })); assert.equal(typeof reply.error, 'string'); assert.equal('display' in reply, false);
   }
   assert.equal(seen.some(value => value.request === 10), false);

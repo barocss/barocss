@@ -22,15 +22,15 @@ function cameraBasis(camera, width, height) {
   const eye = tuple(camera.eye, 'camera.eye');
   const target = tuple(camera.target, 'camera.target');
   const up = tuple(camera.up, 'camera.up');
-  const { fovYDegrees, near, far } = camera;
-  if (!Number.isFinite(fovYDegrees) || !(fovYDegrees > 0 && fovYDegrees < 180)
+  const { fovY, near, far } = camera;
+  if (!Number.isFinite(fovY) || !(fovY > 0 && fovY < 180)
     || !Number.isFinite(near) || !Number.isFinite(far) || !(near > 0 && far > near)) {
-    throw new TypeError('camera perspective must have valid fovYDegrees, near and far');
+    throw new TypeError('camera perspective must have valid fovY, near and far');
   }
   const forward = normalize(target.map((component, axis) => component - eye[axis]));
   const right = normalize(cross(forward, up));
   return { eye, forward, right, up: cross(right, forward), near, far,
-    tangent: Math.tan(fovYDegrees * Math.PI / 360), aspect: width / height };
+    tangent: Math.tan(fovY * Math.PI / 360), aspect: width / height };
 }
 
 function toCamera(pointM, scale, basis) {

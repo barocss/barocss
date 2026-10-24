@@ -12,9 +12,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const bundle = path.resolve(here, '../dist/index.js'), gpuDist = path.resolve(here, '../dist'), cadDist = path.resolve(here, '../../barocss-cad/dist');
-// (The bundle keeps CAD external, G18: the page maps @barocss/cad to CAD's built entry. The facades are served unbundled:
-// /gpu/… (api/ and what it imports) from this package's dist, /cad/… — the kernel and its api/ — from CAD's.)
+const gpuDist = path.resolve(here, '../dist'), cadDist = path.resolve(here, '../../barocss-cad/dist');
+// (gpu's dist is served as built, one module graph for its entries: /gpu/index.js, /gpu/api/… and what they import; the
+// page maps @barocss/cad to CAD's built entry, and /cad/… — the kernel and its api/ — comes from CAD's dist.)
 const page = `<!doctype html><meta charset="utf-8"><script type="importmap">{"imports":{"@barocss/cad":"/cad/index.js"}}</script><style>body{margin:0}canvas{display:block;width:320px;height:240px}</style><canvas id="c"></canvas>`;
 const js = (res, body) => { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(body); };
 
@@ -25,7 +25,6 @@ async function open(t) {
   const server = createServer(async (req, res) => {
     if (req.url === '/favicon.ico') { res.writeHead(204); res.end(); return; }
     if (req.url === '/') { res.writeHead(200, { 'content-type': 'text/html' }); res.end(page); return; }
-    if (req.url === '/gpu.js') { js(res, await readFile(bundle)); return; }
     // (The facade's modules and what they import from the package's own dist — core/barocss-error.js since R7.3a.)
     if (/^\/gpu\/[\w./-]+\.js$/.test(req.url) && !req.url.includes('..')) { js(res, await readFile(path.join(gpuDist, req.url.slice(5)))); return; }
     if (/^\/cad\/[\w./-]+\.js$/.test(req.url) && !req.url.includes('..')) { js(res, await readFile(path.join(cadDist, req.url.slice(5)))); return; }
@@ -46,7 +45,7 @@ test('a facade-built part shows through show() in a real Viewer, Z-up, at its ow
   const { p, errors, close } = opened;
   try {
     const r = await p.evaluate(async () => {
-      const gpu = await import('/gpu.js');
+      const gpu = await import('/gpu/index.js');
       const { scene, show } = await import('/gpu/api/index.js');
       const { part } = await import('/cad/api/index.js');
       const bracket = part('bracket').box({ w: 80, d: 40, h: 10 }).hole(b => b.faces().facing('+z'), { d: 8, x: 20, y: 20 }).fillet(b => b.edges().along('z'), { radius: 2 });
@@ -83,7 +82,7 @@ test('show() draws a material by id, the display lines and a top view', { timeou
   const { p, errors, close } = opened;
   try {
     const r = await p.evaluate(async () => {
-      const gpu = await import('/gpu.js');
+      const gpu = await import('/gpu/index.js');
       const { scene, show } = await import('/gpu/api/index.js');
       const { part } = await import('/cad/api/index.js');
       const plate = part('plate').box({ w: 80, d: 40, h: 10 }).hole(b => b.faces().facing('+z'), { d: 16, x: 20, y: 20 });

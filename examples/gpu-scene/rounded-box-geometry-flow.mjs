@@ -28,7 +28,7 @@ const namespace = Object.keys(providers[0][1]).sort(); assert.deepEqual(namespac
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['prepareRoundedBoxGeometry', 'RoundedBoxGeometrySourceV0', 'PreparedRoundedBoxGeometry'])
   assert(new RegExp('\\b' + name + '\\b').test(declaration), 'Actual public DTS ' + name);
-const leafDeclaration = await readFile(resolve(pkg, 'dist/rounded-box-geometry.d.ts'), 'utf8');
+const leafDeclaration = await readFile(resolve(pkg, 'dist/geometry/rounded-box-geometry.d.ts'), 'utf8');
 assert(/prepareRoundedBoxGeometry\(input:\s*unknown\):\s*PreparedRoundedBoxGeometry/.test(leafDeclaration));
 for (const field of ['sizeXYZ', 'cornerRadius', 'segments']) assert(new RegExp('\\b' + field + ':').test(leafDeclaration));
 const hash = value => createHash('sha256').update(value).digest('hex');
@@ -174,7 +174,7 @@ try {
     assert.equal(edited.source.id, first.source.id); assert.notDeepEqual(edited.prepared.geometry.positions, first.prepared.geometry.positions); assert.equal(first.source.segments, 2); accepted++;
     const nullInput = Object.assign(Object.create(null), source([2, 4, 6], .25, 2, 'rounded_box_null')); verify(gpu.prepareRoundedBoxGeometry(nullInput), nullInput); accepted++;
     const sceneInput = { format: 'barocss-gpu-engine-scene', version: 0, id: 'rounded_box_instances', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
-      background: [.02, .04, .06], camera: { eye: [0, 4, 9], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: .1, far: 100 },
+      background: [.02, .04, .06], camera: { eye: [0, 4, 9], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: .1, far: 100 },
       geometries: [first.prepared.geometry], materials: [{ id: 'rounded_box_material', type: 'unlit', colorSpace: 'linear', color: [.2, .4, .6] }],
       nodes: [[-2, 0, 0], [2, 0, 0]].map((translation, i) => ({ id: 'rounded_box_' + i, type: 'mesh', parentId: null, geometryId: first.source.id,
         materialId: 'rounded_box_material', translation, rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true })) };

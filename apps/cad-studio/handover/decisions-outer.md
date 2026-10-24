@@ -8740,3 +8740,224 @@ word, and the coordinator approved those words (r7.7a-rename-proposal.md in the 
   - the affected model files 85/85 (toolset, tool-contract, chat-outputs, clearance, cam, print, a9, shop-context,
     sheet, pipe, sweep, o20) and studio cnc-cam and robot 29/29;
   - tsc (model, studio); eslint 0 errors.
+
+## R7.7a step 3 — StudioDoc's own stored fields without unit suffixes (2026-10-24)
+
+The owner widened R7.7 to stored fields (4b0413599): the documents are unreleased, so the rename happens in place,
+with no alias and no migration. Values are unchanged.
+
+| stored field | old | new |
+|---|---|---|
+| print preview | `printPreview.layerMM` | `layerHeight` (`layer` is the shown layer's index) |
+| machining | `machining.allowanceMM` | `allowance` |
+| casting | `casting.machiningAllowanceMM` | `machiningAllowance` |
+| frames | `frames.kerfMM` | `kerf` |
+| weld records | `frames.welds[].sizeMM` (WeldRecord; part.ts gives it to the bead as its leg) | `size` |
+| datums | `datums[].residualMM` | `residual` |
+
+- The set_* tool arguments were already `allowance`, `kerf` and `size`.
+- printPreview's validator text now reads `layerHeight must be …`.
+- **Studio:**
+  - the GPU lane's print state, which mirrors the stored field and printLayers' options: PrintOptions, PrintRequest,
+    PrintPanel, printSettings, usePrintLayers and print.worker, with layerMM → layerHeight and limitDeg →
+    overhangLimit;
+  - ReferencesPanel reads `residual`.
+  - ClearancePanel's `nearMM` prop is UI state and isn't touched.
+- browser-flow.mjs: two assertions now read `frames.kerf` and `printPreview.layerHeight`.
+- No fixture, sample or .bcad carries these fields, so nothing is regenerated.
+- **Left for the later steps:**
+  - step 2: the fit-table rows (`upToMM`, `overMM`, kernel row types);
+  - step 4: results such as nesting's `kerfMM` per bar, a weld joint's `weld.sizeMM`, KeepoutResult, robot/loop's
+    `residualMM` and print layers' `layerMM: { mm }`.
+- **Verified (T1):** tsc (model, studio); eslint 0 errors. The affected tests and the full suites run in the scratch
+  check together with O19's wiring.
+
+## O19 — a stored edge or face name checked against what it named: refused, or matched again, never built on another (2026-10-24)
+
+The API lane found it in R7.4b, finding 4. The kernel's half is D277 (78a84d506): `expect` on fillet, chamfer, shell
+and draft, refusing `[REFERENCE_MOVED]`.
+- **Cause.** A sketch without sideTags (what commands and add_features write) names its walls by position. A vertex
+  inserted upstream renumbers them, and a fillet's stored `side1|side2` rounded another corner, silently. The node
+  carried `sigs`, but only the edit tool's rematch compared them; a document edited elsewhere skipped that.
+- **part.ts.** Each fillet, chamfer, shell and draft passes `expect`: its used names' signatures from `node.sigs`. The
+  compact `{ k, p, d, s, r }` becomes the kernel's `{ kind, at, dir, size, radius }`, and only the names the feature
+  uses go, by name (`expectOf`, at module level). A node without sigs passes none, as before.
+- **The agent's tools** (`chat/toolKit.ts` accept). An evaluation refused REFERENCE_MOVED runs `verifyReferences`, the
+  open path's matcher.
+  - **One clear match:** it is taken, marked re-matched until confirmed. The result carries `rematched` [{ where, was,
+    now }] and a note.
+  - **None or several:** refused with `references` [{ where, name, candidates }], the part unchanged.
+- **The studio's open** (App.tsx verifyOpened, a call site named to the coordinator). A document whose evaluation is
+  refused REFERENCE_MOVED is verified too, with no final bodies, so its moved names are substituted and marked, or the
+  feature is held with its candidates. Before this, an evaluation that failed skipped the check.
+- **Test:** test/o19-stored-names.test.ts, 4 tests:
+  - the sigs are written;
+  - the vertex insert is refused REFERENCE_MOVED; without sigs the same document rounds another corner;
+  - a 12 × 10 dimension change keeps building, with the fillet on its corner;
+  - through add_features on the moved document, the name is matched again (marked) and the fillet stays on its
+    corner.
+
+  With expectOf returning nothing, tests 2 and 4 fail.
+- **Verified (T1):** o19 4/4; tsc (model, studio); eslint. The full suites and the fingerprint run in the scratch check.
+- **Full check** (68c66bd66, scratch):
+  - cad-model 1065/1066, studio 286/286, docs samples 36/36.
+  - The one failure is conformance a1-refs-gone (references.test). Its harness required the opened document to build
+    before verifying. With `expect`, the gone edge's document is refused REFERENCE_MOVED (the kernel: "it is a line
+    edge now, was curve"). The harness now starts the check with no bodies on REFERENCE_MOVED, as the studio's
+    verifyOpened does. The case's expectations are unchanged and pass: the fillet is held, and the rest builds to the
+    same volume. references, rematch and o19: 17/17.
+- **The fingerprint is ddec05e2…, and O19 moved none of it:** its 152 records equal those of the commit before
+  (51bf8b294) one by one. No recorded document carries sigs that moved.
+  - Against the old tip (8f822fed9's), two records differ, both from step 1 and step 3:
+    - `toolset`: step 1's tool descriptions;
+    - frk-weldment-table.calls.json's STEP text hash: step 3's weld `size` renames the document's canonical JSON, so
+      the source revision the STEP header names is a new hash. The geometry is the same (bodies, B-reps and STL
+      unchanged).
+
+## O21 — the agent can make, set, rename, bind and remove named parameters; one core for the panel, the tools and the facade (2026-10-24)
+
+The API lane found it in R7.4d's design: no v2 action created or set a named parameter. The design was approved by
+the coordinator before code.
+- **Core,** in engine/parameters.ts. Each is verb(doc, …) → doc, pure, with refusals coded (PARAMETER_CODES) and the
+  facade's texts kept:
+  - `withParameters(doc, edits)` sets existing parameters, with PARAMETER_UNKNOWN and VALUE. It is the same as the
+    kernel facade's.
+  - `addParameters(doc, values)`: PARAMETER_NAME, PARAMETER_EXISTS, VALUE.
+  - `renameParameter(doc, from, to)` renames the nodes' references and the configurations, and keeps the order.
+  - `removeParameter(doc, name)`: each use keeps its value, and the configurations stay as they are, as the panel
+    did.
+  - `bindParameter(doc, { feature: index | id, value: edit_feature's key, parameter })` goes through editFields'
+    bind. It refuses PARAMETER_UNBINDABLE, the facade's code for the same refusal, when the value isn't written as it
+    is to one place, and NO_FEATURE for a feature that isn't there.
+  - `parameterUses` and `referencesRenamed` move from the studio's ParametersPanel.
+- **The studio's ParametersPanel** calls these and keeps its own checks and words (its toasts), so its behaviour is
+  unchanged. One difference: a rename in a document with no configurations no longer writes an empty
+  `configurations: {}`.
+- **The agent:**
+  - `features.parameters`, backed by set_parameters. It takes add, set, rename, bind, remove (and because), applied in
+    that order, all or nothing, then evaluated by accept, so a value that doesn't build is refused with the part
+    unchanged. The result lists each parameter with its value and uses.
+  - The contract classes it ALTERS (not idempotent), BATCHABLE and MUTATORS.
+- **tools-v2.json is re-recorded with one additive value,** `parameters` in features' action enum
+  (UPDATE_TOOL_CONTRACT=1, no breaking change).
+- **Per turn:** 23,682 characters (tools/list 15,440 + system prompt 8,242; cap 25,000).
+- **Docs:** the tool table (_tools.md) and the refusal table are regenerated, and check:docs passes (596 labels).
+- **Follow-ups:**
+  - configurations (named parameter sets) through the agent;
+  - the API lane moves its adapter's withParameters and binding onto these.
+- **Test:** test/o21-parameters.test.ts, 3 tests:
+  - the core functions and their refusals (texts pinned);
+  - bind, rename and remove;
+  - through set_parameters: add, bind and set give a 40 × 20 × 8 volume; a refusal anywhere applies nothing; T = 0
+    is refused by the evaluation.
+- **Verified (T1):** o21 3/3, toolset 9/9, tool-contract; tsc (model, studio); eslint 0 errors.
+
+## RS2 (core) — a robot's motions: poseAt and duration on Check path's timing; robot.motions saved in degrees (2026-10-24)
+
+The owner asked for more robot samples and joint motion ("로봇 관련해서 좀 더 다양한 샘플, 예제를 만들어봐야하지 않아? 관절 움직임
+같은거라던가?"). The contract was settled by the coordinator with the GPU lane.
+- **robot/motion.ts:**
+  - `poseAt(tree, path, t)` → joint values by key at t (s, clamped). It interpolates in joint space between waypoints
+    on ccd's timePath: one profile per segment on the tightest joint, so every joint starts and stops together within
+    its limits. It is the same timing sweepTimed checks, so what plays is what Check path certified. Gear followers
+    aren't in the values; FK resolves them.
+  - `duration(path)` → s, timed over the keys the waypoints name. It needs no tree, because a joint no waypoint names
+    never moves; ccd's `timeSegments(keys, path)` is split out of timePath for it.
+  - `checkPath(tree, path)` → Problem[]:
+    - JOINT_UNKNOWN;
+    - JOINT_MIMIC (a gear follower: give its leader);
+    - JOINT_LIMIT (a waypoint past lower or upper; straight segments between waypoints inside the limits stay inside);
+    - LIMITS_MISSING or LIMITS_BAD, PATH_TOO_SHORT.
+  - `timedPathOf(tree, motion)` and `motionOf(tree, path)` convert a saved motion's degrees to the radians path poseAt
+    and sweepTimed take, and back ("Save as motion").
+- **The stored field:** `robot.motions: [{ name, path: { waypoints, profile?, limits? } }]`.
+  - It is in the document's units (conventions §2): degrees for a turning joint and mm for a slide; limits as
+    `{ velocity, acceleration, jerk? }` per key or `default`.
+  - readRobot reads it and drops anything malformed. `motionNamed` refuses MOTION_UNKNOWN.
+  - set_joints and withFrames keep motions when they rewrite the robot settings. Before the fix, an emptied frames
+    list would have dropped the settings whole.
+- **Test:** test/rs2-motion.test.ts, 4 tests:
+  - the 2R chain's trapezoid against its closed form (v 1, a 2 over 1 rad: 1.5 s; s = t² at 0.25 s, 0.5 at 0.75 s;
+    clamped at both ends);
+  - three waypoints, each met at its segment's end;
+  - checkPath's refusals;
+  - degrees ⇄ radians and robot.motions read back.
+- **Verified (T1):** rs2 4/4; tsc; eslint 0 errors.
+
+## RS1 — eight sample robots, ready to open, each with a demo motion (2026-10-24)
+
+The coordinator approved the place and format: `packages/barocss-cad-model/samples/robots/<id>.bcad`, as plain JSON
+(no mesh data), with `index.json` [{ id, title, about, file }] for the GPU lane's Samples list. The package already
+exports `./samples/*`.
+- **The generator:** `scripts/robot-samples.ts`, run with `node scripts/robot-samples.mjs`.
+  - It builds each robot from blocks with holes, joined by the studio's mates: a turn is a hole concentric plus a face
+    coincident, and a slide is two square face pairs coincident.
+  - Four start from the kernel's RM conformance robots: chain-2r, arm-6r, four-bar and urdf-gears.
+  - There is no rows data (rule b).
+  - Every moving joint gets an estimated rating, which the exports need: turns 2 N·m and 180°/s, slides 50 N and
+    100 mm/s.
+  - Each sample has one demo motion in robot.motions, in degrees or mm.
+- **The samples:**
+
+| id | what | joints | motion |
+|---|---|---|---|
+| arm-2r | 2R planar arm | turn, turn (±150°), 40 mm apart | wave |
+| scara | SCARA | turn, turn, slide (±40 mm), turn | pick |
+| arm-6r | 6R arm | six turns (Z Y Y Z Y Z) | reach |
+| gantry-ppp | Cartesian gantry | slides X (0–200), Y (0–120), Z (±40) | box |
+| pan-tilt | pan-tilt camera head | pan Z (±170°), tilt X (±60°), a sensor frame `camera` | look around |
+| gripper | gear-coupled gripper | the left finger turns (±30°); the right one follows it, multiplier −1 | grip |
+| four-bar | four-bar linkage | crank, coupler, rocker (one loop) | crank |
+| gear-joint | gear-driven joint | 20 : 30, the follower at −2/3 | turn |
+
+- **The gripper's coupling.** A rack and pinion between two sliding fingers isn't a coupling the joint tree knows:
+  gear couplings tie two turning joints on one link by their spur gears. So the fingers pivot on two meshing 20-tooth
+  gears. A parallel-jaw gripper (rack and pinion, or a linkage) is a follow-up.
+- **Test:** test/rs1-samples.test.ts, 6 tests:
+  - the files equal what the script writes, and match index.json;
+  - each joint tree (types, the followers' multipliers, the camera frame), with no problems, and its motion passes
+    checkPath with a duration > 0;
+  - FK at 20 poses per open-chain sample against the chain's product of exponentials, written in the test from the
+    home axes (Rodrigues), to 1e-9 mm;
+  - by hand: the gantry's ram moves by (10, 20, −5), and the 2R's elbow is at 20 + 40 cos q;
+  - the four-bar's loop closes through its motion's angles, the pins within 1e-9 mm;
+  - MJCF (all eight) and URDF (the seven open chains) exported and read back by our readers, FK through the files
+    equal to ours to 1e-12 m;
+  - check_urdf on every URDF, and MuJoCo 3.3.0's mj_kinematics of every MJCF against our reader's, to 1e-9. Both
+    ran here; the test skips when neither is installed. The helper is `scripts/robot-fk-oracle.py`, which reads JSON
+    and writes JSON, and nothing is committed from it.
+- The fingerprint doesn't read samples/ (its roots are the fixtures and conformance), so nothing in it moves.
+- **Verified (T1):** rs1 6/6, rs2 4/4; tsc; eslint 0 errors.
+
+## O19 fix — a display edge or face carrying several kernel names: its shared signature is not sent as expect (2026-10-24)
+
+The coordinator's full flow at 7c8c6c038 was 286/288. Steps 176 (R10.2a) and 183 (R10.4b), the pipe tee's junction
+fillets round a closed curve loop, were refused "The kernel could not build this" (volume NaN). They passed at
+1f43a0818.
+- **Cause, reproduced in node:**
+  - The junction is one display edge carrying the kernel's eight names (`n1.side0#1|n3.side0#2#4` … `#1#4`), its two
+    ends at the same point (35, 0, 10).
+  - signaturesOf gave all eight names that edge's one signature: at = the midpoint of its ends.
+  - In the kernel each name is its own piece of the loop. Only the piece whose midpoint is nearest (35, 0, 10) built;
+    the other six were refused REFERENCE_MOVED, the named piece 3 to 9 mm away and another clearly nearer.
+  - The flow picks its name by iterating, so it hit one of the six.
+  - Merged faces (`a+b`, one signature for each name) are the same case for shell and draft.
+- **The fix:**
+  - The Signature of a display element that carries more than one kernel name records `shared` (the count), stored as
+    `n` in the Sig.
+  - expectOf (part.ts) doesn't send those signatures, because they describe the rim or the merged faces together, not
+    that name.
+  - matchSignature doesn't read `n`, so re-matching on open is unchanged.
+- **The trade-off, for now:** closed rims and merged faces get no kernel check, while single-name edges and faces keep
+  it. The vertex-insert refusal holds.
+- **Follow-up (logged):** signatures per kernel name, taken from each piece's own geometry, so that a display element
+  carries one signature per name. That would restore the check for rims and merged faces.
+- **The kernel lane** had started a distance-to-samples change in part-expect.ts. The coordinator asked it to drop
+  that unless it has a failing single-name closed-loop case: on its own it wouldn't fix this case, because `at` would
+  still be nearer a different piece.
+- **Test:** o19 test 5, the tee filleted by each of its eight names, builds to the same volume, each name's sig marked
+  `n: 8`. It fails without the fix.
+- **Verified:**
+  - o19 5/5, references and rematch 13/13;
+  - tsc; eslint;
+  - FLOW_ONLY '^R10\.(2a|4b)' on port 52391: steps 1, 176 and 183 ok.

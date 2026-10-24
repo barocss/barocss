@@ -14,7 +14,7 @@ export interface Datum {
   of?: { reference: string; face?: string; vertex?: Vec3 };
   origin: Vec3; normal?: Vec3; xAxis?: Vec3; direction?: Vec3; radius?: number;
   /** The largest distance of the face's vertices from the fitted plane or cylinder (mm). */
-  residualMM?: number;
+  residual?: number;
 }
 export type KeepoutShape = { kind: 'box'; size: Vec3 } | { kind: 'cylinder'; radius: number; height: number };
 export interface Keepout {

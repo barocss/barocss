@@ -12,7 +12,7 @@ const root = fileURLToPath(new URL('../../../', import.meta.url)), temporary = a
 let api;
 try {
   const outfile = join(temporary, 'analysis.mjs');
-  await build({ stdin: { contents: 'export * from "./apps/cad-studio/src/viewport/clearanceAnalysis.ts"; export * from "./apps/cad-studio/src/viewport/instanceEvaluation.ts"; export {clearancePairLabel} from "./apps/cad-studio/src/viewport/ClearancePanel.tsx"; export {CLEARANCE_MAP_VERSION} from "./packages/barocss-cad-model/src/team/clearanceMap.ts"; export {emptyDoc,rectanglePart,withNode,placedDoc,placementOf} from "./packages/barocss-cad-model/src/engine/doc.ts"; export {evaluatePart,evaluatePlaced} from "./packages/barocss-cad-model/src/engine/evaluate.ts"; export {evaluationKey} from "./packages/barocss-cad-model/src/engine/evalMemo.ts";', resolveDir: root }, outfile, bundle: true, platform: 'node', format: 'esm', logLevel: 'silent', alias: { '@barocss/gpu/viewer': resolve(root, 'packages/barocss-gpu/src/viewer/index.ts'), '@barocss/gpu': resolve(root, 'packages/barocss-gpu/src'), '@barocss/cad-model': resolve(root, 'packages/barocss-cad-model/src'), '@barocss/cad': resolve(root, 'packages/barocss-cad/src') } });
+  await build({ stdin: { contents: 'export * from "./apps/cad-studio/src/viewport/clearanceAnalysis.ts"; export * from "./apps/cad-studio/src/viewport/instanceEvaluation.ts"; export {clearancePairLabel} from "./apps/cad-studio/src/viewport/ClearancePanel.tsx"; export {CLEARANCE_MAP_VERSION} from "./packages/barocss-cad-model/src/team/clearanceMap.ts"; export {emptyDoc,rectanglePart,withNode,placedDoc} from "./packages/barocss-cad-model/src/engine/doc.ts"; export {placementOf} from "./packages/barocss-cad-model/src/engine/placement.ts"; export {evaluatePart,evaluatePlaced} from "./packages/barocss-cad-model/src/engine/evaluate.ts"; export {evaluationKey} from "./packages/barocss-cad-model/src/engine/evalMemo.ts";', resolveDir: root }, outfile, bundle: true, platform: 'node', format: 'esm', logLevel: 'silent', alias: { '@barocss/gpu/viewer': resolve(root, 'packages/barocss-gpu/src/viewer/index.ts'), '@barocss/gpu': resolve(root, 'packages/barocss-gpu/src'), '@barocss/cad-model': resolve(root, 'packages/barocss-cad-model/src'), '@barocss/cad': resolve(root, 'packages/barocss-cad/src') } });
   api = await import(pathToFileURL(outfile).href);
 } finally { await rm(temporary, { recursive: true, force: true }); }
 
@@ -196,7 +196,7 @@ test('near overlay vertices retain the exact independent band fields instead of 
     assert.deepEqual(Array.from(shown.model).slice(12, 15), index === 0 ? [10, 0, 0] : [0, 20, 0]);
   }
   const display = api.clearanceDisplay(current, bodies, 19, 'bands');
-  assert.equal(display.request, 19); assert.equal(display.stage, 'bands'); assert.equal(display.revision, current.revision); assert.equal(display.version, api.CLEARANCE_MAP_VERSION); assert.equal(display.nearMM, 1); assert.equal(display.pairs, current.pairs);
+  assert.equal(display.request, 19); assert.equal(display.stage, 'bands'); assert.equal(display.revision, current.revision); assert.equal(display.version, api.CLEARANCE_MAP_VERSION); assert.equal(display.near, 1); assert.equal(display.pairs, current.pairs);
   assert.equal(display.overlays[0].field, a.field); assert.equal(display.overlays[1].field, b.field); assert.equal(snapshot({ current, bodies }), before);
 });
 

@@ -268,7 +268,7 @@ test('O155 stock and frame-stock rows leave by name: remove drops listed ids; an
   assert.equal((await call('set_stock', { remove: ['B1'] })).isError, false);
   assert.deepEqual(doc.machining?.stock?.map(r => r.id), ['R30']);
   assert.equal((await call('set_frame_stock', { remove: ['S6'], kerf: 3 })).isError, false);
-  assert.deepEqual([doc.frames?.stock?.map(r => r.id), doc.frames?.kerfMM], [['S4'], 3]);
+  assert.deepEqual([doc.frames?.stock?.map(r => r.id), doc.frames?.kerf], [['S4'], 3]);
   const unknown = await call('set_stock', { remove: ['B9'] }), before = doc;
   assert.equal(unknown.isError, true); assert.match(JSON.parse(unknown.content).error, /\[STOCK_ROW_UNKNOWN\] no row "B9" to remove \(rows: R30\)/); assert.equal(doc, before);
   assert.match(JSON.parse((await call('set_frame_stock', { remove: ['S6'] })).content).error, /\[FRAME_STOCK_UNKNOWN\] no row "S6" to remove \(rows: S4\)/);

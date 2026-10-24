@@ -15,7 +15,7 @@ export class EngineRotationClipError extends BarocssError {
     this.name = 'EngineRotationClipError';
   }
 }
-export interface EngineRotationKeyV0 { timeSeconds: number; rotationXYZW: Quat }
+export interface EngineRotationKeyV0 { time: number; rotationXYZW: Quat }
 export interface EngineRotationTrackV0 { nodeId: string; keys: EngineRotationKeyV0[] }
 export interface EngineRotationClipV0 {
   format: 'barocss-gpu-engine-rotation-clip'; version: 0; id: string; sceneId: string;
@@ -23,7 +23,7 @@ export interface EngineRotationClipV0 {
   rotationOrder: 'xyzw'; interpolation: 'shortest-path-nlerp'; tracks: EngineRotationTrackV0[];
 }
 export interface EngineRotationClipRequestV0 {
-  format: 'barocss-gpu-engine-rotation-clip-request'; version: 0; timeSeconds: number;
+  format: 'barocss-gpu-engine-rotation-clip-request'; version: 0; time: number;
 }
 export interface SampledEngineRotationClip {
   readonly originalScene: EngineSceneV0;
@@ -66,11 +66,11 @@ function array(input: unknown, minimum: number, maximum: number): unknown[] {
   return Array.from({ length }, (_, i) => Object.getOwnPropertyDescriptor(input, String(i))!.value);
 }
 function request(input: unknown): EngineRotationClipRequestV0 {
-  const data = ownRecord(input, ['format', 'version', 'timeSeconds']);
+  const data = ownRecord(input, ['format', 'version', 'time']);
   check(data.format === 'barocss-gpu-engine-rotation-clip-request' && data.version === 0,
     CODE.VERSION, 'Only rotation clip request0 is supported');
   return Object.freeze({ format: 'barocss-gpu-engine-rotation-clip-request', version: 0,
-    timeSeconds: number(data.timeSeconds, 0, 3600, 'Request time') });
+    time: number(data.time, 0, 3600, 'Request time') });
 }
 function clip(input: unknown): EngineRotationClipV0 {
   const data = ownRecord(input, ['format', 'version', 'id', 'sceneId', 'coordinateSystem',
@@ -91,13 +91,13 @@ function clip(input: unknown): EngineRotationClipV0 {
   const tracks = rows.map(row => {
     let previous: number | undefined;
     const keys = array(row.input, 1, 32).map(input => {
-      const data = ownRecord(input, ['timeSeconds', 'rotationXYZW']);
-      const timeSeconds = number(data.timeSeconds, 0, 3600, 'Key time');
-      check(previous === undefined || timeSeconds > previous && timeSeconds - previous >= 1e-6,
+      const data = ownRecord(input, ['time', 'rotationXYZW']);
+      const time = number(data.time, 0, 3600, 'Key time');
+      check(previous === undefined || time > previous && time - previous >= 1e-6,
         CODE.RANGE, 'Key times require strict increasing order and separation of at least1e-6 seconds');
-      previous = timeSeconds;
+      previous = time;
       const rotationXYZW = quaternion(data.rotationXYZW);
-      Object.freeze(rotationXYZW); return Object.freeze({ timeSeconds, rotationXYZW });
+      Object.freeze(rotationXYZW); return Object.freeze({ time, rotationXYZW });
     });
     Object.freeze(keys); return Object.freeze({ nodeId: row.nodeId, keys });
   });
@@ -120,13 +120,13 @@ function normalize(value: Quat): Quat {
 function sample(track: EngineRotationTrackV0, time: number): Quat {
   const keys = track.keys, first = keys[0], last = keys[keys.length - 1];
   // Literal endpoints precede normalization and preserve original coefficients/sign bits.
-  if (time <= first.timeSeconds) return [...first.rotationXYZW];
-  if (time >= last.timeSeconds) return [...last.rotationXYZW];
+  if (time <= first.time) return [...first.rotationXYZW];
+  if (time >= last.time) return [...last.rotationXYZW];
   for (let i = 1; i < keys.length; i++) {
     const rightKey = keys[i];
-    if (time === rightKey.timeSeconds) return [...rightKey.rotationXYZW];
-    if (time < rightKey.timeSeconds) {
-      const leftKey = keys[i - 1], alpha = (time - leftKey.timeSeconds) / (rightKey.timeSeconds - leftKey.timeSeconds);
+    if (time === rightKey.time) return [...rightKey.rotationXYZW];
+    if (time < rightKey.time) {
+      const leftKey = keys[i - 1], alpha = (time - leftKey.time) / (rightKey.time - leftKey.time);
       check(Number.isFinite(alpha) && alpha >= 0 && alpha <= 1, CODE.RANGE, 'Derived segment ratio is invalid');
       const left = normalize(leftKey.rotationXYZW), right = normalize(rightKey.rotationXYZW);
       const dot = left.reduce((sum, n, index) => sum + n * right[index], 0);
@@ -155,7 +155,7 @@ export function sampleEngineRotationClip(sceneInput: unknown, clipInput: unknown
         'Tracks require unique current group or mesh IDs');
       seen.add(track.nodeId);
     }
-    const rotations = new Map(originalClip.tracks.map(track => [track.nodeId, sample(track, originalRequest.timeSeconds)]));
+    const rotations = new Map(originalClip.tracks.map(track => [track.nodeId, sample(track, originalRequest.time)]));
     const candidate = { ...originalScene, nodes: originalScene.nodes.map(node => ({ ...node,
       rotationXYZW: rotations.get(node.id) ?? node.rotationXYZW })) };
     const sampledScene = scene(candidate, CODE.FRAME);

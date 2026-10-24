@@ -97,7 +97,7 @@ test('FRc the palette: with a library, the member command offers "From your libr
 });
 
 test('FRc the engine worker gets the section library: a frame on a row, sent over the wire, evaluates to the same bodies (the studio evaluates off the main thread); the stock list stays behind; the caches\' keys follow an edited row', async () => {
-  const doc: StudioDoc = { ...lib(L({ kind: 'library', id: 'R40' })), frames: { version: 1, sections: [ROW], stock: [{ id: 'S6', lengthMM: 6000, source: 'a test value' }], kerfMM: 2 } };
+  const doc: StudioDoc = { ...lib(L({ kind: 'library', id: 'R40' })), frames: { version: 1, sections: [ROW], stock: [{ id: 'S6', lengthMM: 6000, source: 'a test value' }], kerf: 2 } };
   const there = new WireReceiver().unpack(new WireSender().pack(doc));
   assert.deepEqual(there.frames, { version: 1, sections: [ROW] });
   const a = await bodiesOf(doc), b = await bodiesOf(there);

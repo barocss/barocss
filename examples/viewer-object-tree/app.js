@@ -39,8 +39,8 @@ function translationValue(text, axis) {
   const trimmed = text.trim();
   if (!decimal.test(trimmed)) throw new Error(axis + ' must be a complete decimal in mm.');
   const value = Number(trimmed);
-  if (!Number.isFinite(value) || Math.abs(value) > VIEWER_POSE_LIMITS.translationMm)
-    throw new Error(axis + ' must be finite and within ±' + VIEWER_POSE_LIMITS.translationMm + ' mm.');
+  if (!Number.isFinite(value) || Math.abs(value) > VIEWER_POSE_LIMITS.translation)
+    throw new Error(axis + ' must be finite and within ±' + VIEWER_POSE_LIMITS.translation + ' mm.');
   return value;
 }
 function yawValue(text) {
@@ -188,7 +188,7 @@ function translationEditor(state, selected, revision, epoch) {
   const { pose } = selectedPose(state, selected.ref);
   const yaw = acceptedYaw(pose.rotationXYZW);
   const uniformScale = acceptedUniformScale(pose.scale);
-  const acceptedTranslationText = pose.translationMm.map(String);
+  const acceptedTranslationText = pose.translation.map(String);
   // Show a stable decimal while retaining the original quaternion when this draft is unchanged.
   const acceptedYawText = String(Number(yaw.toPrecision(12)));
   const acceptedScaleText = String(uniformScale);
@@ -233,7 +233,7 @@ function translationEditor(state, selected, revision, epoch) {
       acceptedYaw(pose.rotationXYZW);
       acceptedUniformScale(pose.scale);
       const translation = inputs.map((input, axis) => input.value === acceptedTranslationText[axis]
-        ? pose.translationMm[axis] : translationValue(input.value, 'XYZ'[axis]));
+        ? pose.translation[axis] : translationValue(input.value, 'XYZ'[axis]));
       const rotation = yawInput.value === acceptedYawText ? pose.rotationXYZW : (() => {
         const radians = yawValue(yawInput.value) * Math.PI / 180;
         return [0, Math.sin(radians / 2), 0, Math.cos(radians / 2)];
@@ -554,11 +554,11 @@ moveHandle.addEventListener('pointerup', event => {
     const camera = accepted.camera, depth = drag.projection.depthScene;
     const backward = unit(camera.eye.map((value, index) => value - camera.target[index]));
     const right = unit(cross(camera.up, backward)), up = cross(backward, right);
-    const tangent = Math.tan(camera.fovYDegrees * Math.PI / 360);
+    const tangent = Math.tan(camera.fovY * Math.PI / 360);
     const horizontal = 2 * depth * tangent * (canvas.width / canvas.height) * dx / rect.width;
     const vertical = -2 * depth * tangent * dy / rect.height;
     const { motion, index, pose } = selectedPose(accepted, drag.ref);
-    const translation = pose.translationMm.map((value, axis) => value
+    const translation = pose.translation.map((value, axis) => value
       + (right[axis] * horizontal + up[axis] * vertical) / accepted.mmToSceneUnit);
     const targetId = motion.bindings[index].targetId;
     const poses = motion.frame.poses.map(value => value.targetId === targetId

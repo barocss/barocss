@@ -17,8 +17,8 @@ export function PrintPanel({ options, onOptions, onDirection, state, reason }: {
     <label>Direction <select aria-label="Print direction" value={!options.direction ? 'default' : direction >= 0 ? String(direction) : 'custom'} onChange={e => onDirection(e.target.value === 'default' ? undefined : directions[Number(e.target.value)].value)}>
       <option value="default">Default +Z</option>{directions.map((x, i) => <option key={x.label} value={i}>{x.label}</option>)}{direction < 0 && options.direction && <option value="custom" disabled>Given [{options.direction.join(', ')}]</option>}
     </select></label>
-    <label style={{ marginLeft: 8 }}><input type="checkbox" aria-label="Set layer height" checked={options.layerMM !== undefined} onChange={e => onOptions({ layerMM: e.target.checked ? 0.2 : undefined })} /> Set height</label>
-    <input aria-label="Print layer height (mm)" type="number" min="0.001" step="0.05" disabled={options.layerMM === undefined} value={options.layerMM ?? 0.2} style={{ width: 64 }} onChange={e => { const n = e.target.valueAsNumber; if (Number.isFinite(n) && n > 0) onOptions({ layerMM: n }); }} /> mm
+    <label style={{ marginLeft: 8 }}><input type="checkbox" aria-label="Set layer height" checked={options.layerHeight !== undefined} onChange={e => onOptions({ layerHeight: e.target.checked ? 0.2 : undefined })} /> Set height</label>
+    <input aria-label="Print layer height (mm)" type="number" min="0.001" step="0.05" disabled={options.layerHeight === undefined} value={options.layerHeight ?? 0.2} style={{ width: 64 }} onChange={e => { const n = e.target.valueAsNumber; if (Number.isFinite(n) && n > 0) onOptions({ layerHeight: n }); }} /> mm
     <div><label>Layer <input aria-label="Print layer" type="range" min={0} max={max} step={1} value={shown} disabled={!state.count || !!reason} onChange={e => onOptions({ layer: e.target.valueAsNumber })} /></label> {shown + 1}</div>
     <label><input type="checkbox" aria-label="Printed up to layer" checked={options.printed} onChange={e => onOptions({ printed: e.target.checked })} /> Printed up to layer</label>
     <label style={{ marginLeft: 8 }}><input type="checkbox" aria-label="Print supports" checked={options.supports} onChange={e => onOptions({ supports: e.target.checked })} /> Supports</label>
@@ -27,6 +27,6 @@ export function PrintPanel({ options, onOptions, onDirection, state, reason }: {
     </div>}
     {/* (G12c: compact — the colours as chips, NOT FOR PRODUCTION shown; the estimate's terms and notes behind Details.) */}
     <div className="legend-chips"><span className="legend-chip"><i style={{ background: '#3cc8e0' }} />contours</span><span className="legend-chip"><i style={{ background: '#f0a030' }} />overhang</span><span className="legend-chip"><i style={{ background: '#4caf7d' }} />support</span><span className="nfp-chip">NOT FOR PRODUCTION</span></div>
-    <details className="panel-details"><summary>Details</summary>Display mesh estimate · {options.layerMM === undefined ? '0.2 mm layer height is estimated' : 'Layer height set'} · Not production-ready. Preview caps select bodies, not original faces. Layer settings are included when you save the document.</details>
+    <details className="panel-details"><summary>Details</summary>Display mesh estimate · {options.layerHeight === undefined ? '0.2 mm layer height is estimated' : 'Layer height set'} · Not production-ready. Preview caps select bodies, not original faces. Layer settings are included when you save the document.</details>
   </div>;
 }

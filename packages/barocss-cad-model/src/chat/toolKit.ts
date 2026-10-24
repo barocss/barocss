@@ -10,7 +10,7 @@ import { changeOf, factsOf } from './observe';
 import type { Transactions } from './transactions';
 import { expectedOf, runCheck } from './spec';
 import type { Policy } from '../engine/schema/spec';
-import { captureSignatures, refreshSignatures } from '../engine/references';
+import { captureSignatures, refreshSignatures, verifyReferences } from '../engine/references';
 import { documentBeadOwnershipError } from '../frames/beadOwnership';
 import { r3Signed as r3 } from '../util/round';
 import { isObj } from '../util/guards';
@@ -81,8 +81,19 @@ export async function accept(state: ChatState, next: StudioDoc, evaluate: Evalua
   if (ownershipError) return fail(state, ownershipError);
   // (References written by this change get their signatures from the bodies they were picked on, engine/references.ts.)
   next = captureSignatures(next, state.bodies);
-  const r = await evaluate(next);
+  let r = await evaluate(next);
   if (!r) return fail(state, 'The evaluation was superseded; try again.');
+  // (O19: a stored name the kernel found on other geometry than it named — REFERENCE_MOVED — is matched again by its
+  // signature, as on open: one clear match is taken, marked re-matched until confirmed; none or several, refused with
+  // the candidates. Never built on the other edge.)
+  if (!r.ok && r.error.code === 'REFERENCE_MOVED') {
+    const v = await verifyReferences(next, [], evaluate);
+    if (v.problems.length || !v.changes.length) return fail(state, `${r.error.title}. ${r.error.hint}`, { detail: r.error.detail, references: v.problems.map(p => ({ where: p.where, name: p.name, candidates: p.candidates })), kept: 'the part is unchanged' });
+    const again = await evaluate(v.doc);
+    if (!again) return fail(state, 'The evaluation was superseded; try again.');
+    if (again.ok) { next = v.doc; r = again; extra = { ...extra, rematched: v.changes.map(c => ({ where: c.where, was: c.was, now: c.now })), note_rematched: 'these stored names had moved to other geometry and were matched again by it; check them' }; }
+    else r = again;
+  }
   if (!r.ok) return fail(state, `${r.error.title}. ${r.error.hint}`, { detail: r.error.detail, kept: 'the part is unchanged' });
   // (A change breaking a hard requirement that passed at the last check is refused, unless it says why.)
   const broken: string[] = [];

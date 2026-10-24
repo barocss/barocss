@@ -31,7 +31,7 @@ try {
     background: [0.035, 0.065, 0.105] });
   viewer.loadModelSet(modelSet);
   viewer.setView({ eye: [0.9, 0.85, 1.35], target: [0.35, 0.25, 0.25], up: [0, 1, 0],
-    fovYDegrees: 45, near: 0.01, far: 10 });
+    fovY: 45, near: 0.01, far: 10 });
   const present = (state, running, resetting = false) => {
     if (resetting) {
       viewer.setFluidFrame(null);

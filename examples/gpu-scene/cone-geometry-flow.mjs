@@ -28,7 +28,7 @@ const namespace = Object.keys(providers[0][1]).sort(); assert.deepEqual(namespac
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['prepareConeGeometry', 'ConeGeometrySourceV0', 'PreparedConeGeometry'])
   assert(new RegExp('\\b' + name + '\\b').test(declaration), 'Actual public DTS ' + name);
-const leafDeclaration = await readFile(resolve(pkg, 'dist/cone-geometry.d.ts'), 'utf8');
+const leafDeclaration = await readFile(resolve(pkg, 'dist/geometry/cone-geometry.d.ts'), 'utf8');
 assert(/prepareConeGeometry\(input:\s*unknown\):\s*PreparedConeGeometry/.test(leafDeclaration));
 for (const field of ['radius', 'height', 'radialSegments', 'heightSegments']) assert(new RegExp(field + ':\\s*number').test(leafDeclaration));
 
@@ -165,7 +165,7 @@ try {
     assert.equal(first.source.radius, 1); accepted++;
     const nullInput = Object.assign(Object.create(null), source(1, 3, 4, 1, 'cone_null')); verify(gpu.prepareConeGeometry(nullInput), nullInput); accepted++;
     const sceneInput = { format: 'barocss-gpu-engine-scene', version: 0, id: 'cone_instances', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
-      background: [.02, .04, .06], camera: { eye: [0, 3, 8], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: .1, far: 100 },
+      background: [.02, .04, .06], camera: { eye: [0, 3, 8], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: .1, far: 100 },
       geometries: [first.prepared.geometry], materials: [{ id: 'cone_material', type: 'unlit', colorSpace: 'linear', color: [.2, .4, .6] }],
       nodes: [[0, 0, 0], [4, 0, -2]].map((translation, i) => ({ id: 'cone_' + i, type: 'mesh', parentId: null, geometryId: first.source.id,
         materialId: 'cone_material', translation, rotationXYZW: [0, 0, 0, 1], scale: i ? [1, 2, .5] : [1, 1, 1], visible: true })) };

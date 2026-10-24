@@ -53,14 +53,14 @@ export function projectViewerQualifiedFacePoint(scene: QualifiedFaceSceneV0, inp
   const camera = scene.camera;
   finiteVector(camera.eye); finiteVector(camera.target); finiteVector(camera.up);
   check(Number.isFinite(camera.near) && Number.isFinite(camera.far)
-    && camera.near > 0 && camera.far > camera.near && Number.isFinite(camera.fovYDegrees)
-    && camera.fovYDegrees > 0 && camera.fovYDegrees < 180, 'accepted camera clipping/FOV data are invalid');
+    && camera.near > 0 && camera.far > camera.near && Number.isFinite(camera.fovY)
+    && camera.fovY > 0 && camera.fovY < 180, 'accepted camera clipping/FOV data are invalid');
   const backward = unit(subtract(camera.eye, camera.target));
   const forward = backward.map(value => -value) as Vec3;
   const right = unit(cross(camera.up, backward)), up = cross(backward, right);
   const offset = subtract(point.pointScene, camera.eye), depthScene = dot(offset, forward);
   if (depthScene <= 0 || depthScene < camera.near || depthScene > camera.far) return null;
-  const tangent = Math.tan(camera.fovYDegrees * Math.PI / 360), aspect = backingWidth / backingHeight;
+  const tangent = Math.tan(camera.fovY * Math.PI / 360), aspect = backingWidth / backingHeight;
   const horizontal = depthScene * tangent * aspect, vertical = depthScene * tangent;
   check(Number.isFinite(tangent) && tangent > 0 && Number.isFinite(aspect) && aspect > 0
     && Number.isFinite(horizontal) && horizontal > 0 && Number.isFinite(vertical) && vertical > 0,

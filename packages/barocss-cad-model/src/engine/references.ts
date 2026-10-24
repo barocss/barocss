@@ -28,11 +28,12 @@ import { matchSignature, rankAlike, signaturesOf, type Signature } from './remat
 import type { Vec3 } from './mesh';
 
 /** A stored signature (rounded: positions to 1e-6 mm, directions to 1e-9, sizes to 1e-6). */
-export interface Sig { k: string; p: Vec3; d?: Vec3; s: number; r?: number }
+/** `n`: the kernel names its display face or edge carried together, when more than one (Signature's `shared`). */
+export interface Sig { k: string; p: Vec3; d?: Vec3; s: number; r?: number; n?: number }
 const round = (x: number, q: number) => Math.round(x / q) * q;
 const r3 = (v: Vec3, q: number): Vec3 => [round(v[0], q), round(v[1], q), round(v[2], q)];
-export const toSig = (s: Signature): Sig => ({ k: s.kind, p: r3(s.at, 1e-6), ...(s.dir ? { d: r3(s.dir, 1e-9) } : {}), s: round(s.size, 1e-6), ...(s.radius !== undefined ? { r: round(s.radius, 1e-9) } : {}) });
-export const fromSig = (s: Sig): Signature => ({ kind: s.k, at: s.p, dir: s.d ?? null, size: s.s, ...(s.r !== undefined ? { radius: s.r } : {}) });
+export const toSig = (s: Signature): Sig => ({ k: s.kind, p: r3(s.at, 1e-6), ...(s.dir ? { d: r3(s.dir, 1e-9) } : {}), s: round(s.size, 1e-6), ...(s.radius !== undefined ? { r: round(s.radius, 1e-9) } : {}), ...(s.shared !== undefined ? { n: s.shared } : {}) });
+export const fromSig = (s: Sig): Signature => ({ kind: s.k, at: s.p, dir: s.d ?? null, size: s.s, ...(s.r !== undefined ? { radius: s.r } : {}), ...(s.n !== undefined ? { shared: s.n } : {}) });
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 type Tables = (part: string) => FaceTable | undefined;

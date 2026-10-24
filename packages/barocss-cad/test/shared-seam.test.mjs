@@ -60,7 +60,7 @@ const expectedPair = { frame: 'f', joints: [{ member: 4, end: 'start' }, { membe
 function refusal(doc, tag = 'BEAD_SHARED_CONTEXT', component = expectedPair) {
   let caught;
   assert.throws(() => evaluateCadPart(doc), e => {
-    assert.ok(e instanceof CadPartError); assert.equal(e.code, 'PARAMETER'); assert.ok(e.message.includes(`[${tag}]`), e.message);
+    assert.ok(e instanceof CadPartError); assert.equal(e.details?.category ?? e.code, 'PARAMETER'); assert.ok(e.message.includes(`[${tag}]`), e.message);
     assert.deepEqual(e.sharedComponent, component); caught = e; return true;
   });
   return caught;
@@ -168,7 +168,7 @@ test('isolated 360 T and ordinary gussets retain their actual quantities; gusset
   const gusset = { id: 'g', kind: 'gusset', frame: 'f', point: 1, legs: [120, 100], thickness: 5, clip: 15 }, w = { id: 'w', kind: 'weld-bead', frame: 'f', on: { gusset: 'g' }, leg: 3 };
   const s = evaluateCadPart({ ...document([]), features: [f, gusset, w] }), g = s.output('w');
   near(g.bead.volumeMM3, 1710, 1710, 'gusset actual'); near(g.bead.nominalVolumeMM3, 1710, 1710, 'gusset nominal'); assert.deepEqual(g.bead.sharedSeams, []);
-  for (const on of [{ gusset: 'g' }, { cap: 'c' }]) assert.throws(() => evaluateCadPart({ ...document([]), features: [f, gusset, { id: 'c', kind: 'end-cap', frame: 'f', member: 0, end: 'start', fit: 'over', thickness: 4 }, { ...w, on, sharing: manifest([]) }] }), e => e.code === 'PARAMETER' && e.message.includes('[BEAD_SHARED_UNSUPPORTED]'));
+  for (const on of [{ gusset: 'g' }, { cap: 'c' }]) assert.throws(() => evaluateCadPart({ ...document([]), features: [f, gusset, { id: 'c', kind: 'end-cap', frame: 'f', member: 0, end: 'start', fit: 'over', thickness: 4 }, { ...w, on, sharing: manifest([]) }] }), e => (e.details?.category ?? e.code) === 'PARAMETER' && e.message.includes('[BEAD_SHARED_UNSUPPORTED]'));
 });
 
 test('structured refusal data is complete independently of the bounded message text', () => {

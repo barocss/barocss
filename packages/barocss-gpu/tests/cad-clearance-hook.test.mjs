@@ -14,6 +14,8 @@ try {
   const outfile = join(temporary, 'hook.mjs');
   await build({ stdin: { contents: 'export {useClearanceAnalysis} from "./apps/cad-studio/src/viewport/useClearanceAnalysis.ts"; export {putKnownBlob} from "./packages/barocss-cad-model/src/engine/blobs.ts";', resolveDir: root }, outfile, bundle: true, platform: 'node', format: 'esm', logLevel: 'silent',
     alias: { '@barocss/cad-model': resolve(root, 'packages/barocss-cad-model/src'), '@barocss/cad': resolve(root, 'packages/barocss-cad/src') },
+    // (The studio's modules read Vite's import.meta.env; bundled here without Vite, a production stand-in.)
+    define: { 'import.meta.env.DEV': 'false' },
     plugins: [{ name: 'hook-recorder', setup(builder) {
       builder.onResolve({ filter: /^react$/ }, () => ({ path: 'react', namespace: 'recorder' }));
       builder.onLoad({ filter: /.*/, namespace: 'recorder' }, () => ({ contents: 'export const useRef=(...a)=>globalThis.__g22Hooks.useRef(...a),useState=(...a)=>globalThis.__g22Hooks.useState(...a),useMemo=(...a)=>globalThis.__g22Hooks.useMemo(...a),useEffect=(...a)=>globalThis.__g22Hooks.useEffect(...a);' }));
@@ -46,7 +48,7 @@ function fixture() {
     cleanup() { for (const slot of slots) slot?.cleanup?.(); globalThis.Worker = oldWorker; globalThis.__g22Hooks = oldHooks; },
   };
 }
-const output = (request, extra = {}) => ({ version: 'clearance-map-v1', request, revision: 'pose-' + request, nearMM: 1, stage: 'ready', pairs: [], overlays: [{ id: 'old-surface' }], ...extra });
+const output = (request, extra = {}) => ({ version: 'clearance-map-v1', request, revision: 'pose-' + request, near: 1, stage: 'ready', pairs: [], overlays: [{ id: 'old-surface' }], ...extra });
 
 test('pose/source change hides old output before effects; wrong version and old request cannot refill it', () => {
   const f = fixture();

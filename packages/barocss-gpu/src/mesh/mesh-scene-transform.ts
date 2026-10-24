@@ -4,7 +4,7 @@ import type {Vec3} from '../scene/scene.js';
 
 /** Display pose in the original packet's declared Y-up XYZ millimetres. */
 export interface MeshSceneTransform {
-  translationMm:Vec3;
+  translation:Vec3;
   rotationXYZW:[number,number,number,number];
   scale:Vec3;
 }
@@ -29,20 +29,20 @@ function vector(input:unknown,count:number,label:string):number[] {
   });
 }
 export function prepareSceneTransform(input:unknown):MeshSceneTransform {
-  const keys=['translationMm','rotationXYZW','scale'];
+  const keys=['translation','rotationXYZW','scale'];
   requireValue(input!==null&&typeof input==='object'&&Object.getPrototypeOf(input)===Object.prototype,'Mesh scene transform must be plain data');
   const actual=Reflect.ownKeys(input);
   requireValue(actual.length===keys.length&&actual.every(k=>typeof k==='string'&&keys.includes(k)),'Mesh scene transform has missing or unsupported fields');
   const data:Record<string,unknown>={};
   for(const key of keys){const d=Object.getOwnPropertyDescriptor(input,key);requireValue(d&&'value'in d&&d.enumerable,'Mesh scene transform fields must be own data');data[key]=d.value;}
-  const translationMm=vector(data.translationMm,3,'translationMm') as [number, number, number];
+  const translation=vector(data.translation,3,'translation') as [number, number, number];
   const scale=vector(data.scale,3,'scale') as [number, number, number];
   const rotationXYZW=vector(data.rotationXYZW,4,'rotationXYZW') as MeshSceneTransform['rotationXYZW'];
-  requireValue(translationMm.every(n=>Math.abs(n)<=10000),'Display translation exceeds ±10000 mm');
+  requireValue(translation.every(n=>Math.abs(n)<=10000),'Display translation exceeds ±10000 mm');
   requireValue(scale.every(n=>n>=.001&&n<=100),'Display scale must be in [0.001,100]');
   requireValue(rotationXYZW.every(n=>Math.abs(n)<=1)&&Math.abs(Math.hypot(...rotationXYZW)-1)<=1e-9,'Display rotation must be a unit XYZW quaternion within 1e-9');
-  for(const owned of [translationMm,scale,rotationXYZW])Object.freeze(owned);
-  return Object.freeze({translationMm,rotationXYZW,scale});
+  for(const owned of [translation,scale,rotationXYZW])Object.freeze(owned);
+  return Object.freeze({translation,rotationXYZW,scale});
 }
 export function displayBounds(positions:ArrayLike<number>):MeshSceneBounds {
   const min:[number,number,number]=[Infinity,Infinity,Infinity],max:[number,number,number]=[-Infinity,-Infinity,-Infinity];
@@ -68,7 +68,7 @@ export function prepareSceneMesh(packetInput:unknown,optionsInput:unknown,transf
     const normal=rotate(packet.normals[i]/pose.scale[0],packet.normals[i+1]/pose.scale[1],packet.normals[i+2]/pose.scale[2]),length=Math.hypot(...normal);
     requireValue(Number.isFinite(length)&&length>0,'Transformed normal is unsafe');
     for(let axis=0;axis<3;axis++){
-      const converted=convertMeshCoordinate(pose.translationMm[axis]+point[axis],options.mmToSceneUnit,options.translate[axis],
+      const converted=convertMeshCoordinate(pose.translation[axis]+point[axis],options.mmToSceneUnit,options.translate[axis],
         'Transformed GPU positions must be finite and within 1000 scene units');
       positions64.push(converted);normals64.push(normal[axis]/length);
     }

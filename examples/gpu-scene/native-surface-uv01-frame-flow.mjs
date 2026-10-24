@@ -60,7 +60,7 @@ for (const provider of providers) provider.gpu = await import(pathToFileURL(prov
 const additions = ['prepareNativeSurfaceUV01Frame', 'NativeSurfaceUV01FrameError', 'NativeSurfaceUV01FrameDiagnosticCode'];
 const namespace = Object.keys(providers[0].gpu).sort();
 assert.ok(additions.every(x => namespace.includes(x))); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
-const dts = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDts = await readFile(resolve(pkg, 'dist/native-surface-uv01-frame.d.ts'), 'utf8');
+const dts = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDts = await readFile(resolve(pkg, 'dist/native/uv01/native-surface-uv01-frame.d.ts'), 'utf8');
 for (const name of [...additions, 'NativeSurfaceUV01FrameRequest', 'NativeSurfaceUV01FrameEntry', 'NativeSurfaceUV01FrameOptions', 'NativeSurfaceUV01FrameDraw', 'NativeSurfaceUV01FrameResources', 'PreparedNativeSurfaceUV01Frame']) {
   assert.ok(new RegExp('\\b' + name + '\\b').test(dts), name); assert.ok(new RegExp('\\b' + name + '\\b').test(leafDts), name);
 }
@@ -77,8 +77,8 @@ const materialSources = [
 ];
 const width = 320, height = 180;
 const geometry = source => ({ format: 'barocss-gpu-native-surface-uv01-request', version: 0, sourceVersion: 0, source, surfaceId: 'plane_nonunit', countU: 5, countV: 3, revision: 7 });
-const options = { mmToSceneUnit: .125, translate: [1, -2, .5], background: [.1, .2, .3], camera: { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 2, 0], fovYDegrees: 60, near: .1, far: 100 }, lighting: { direction: [2, -3, 6], ambientStrength: .2, directionalStrength: .6 } };
-const transforms = [{ translationMm: [4, -2, 8], rotationXYZW: [0, 0, 1, 0], scale: [2, 3, 4] }, { translationMm: [-4, 2, -8], rotationXYZW: [1, 0, 0, 0], scale: [2, 3, 4] }];
+const options = { mmToSceneUnit: .125, translate: [1, -2, .5], background: [.1, .2, .3], camera: { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 2, 0], fovY: 60, near: .1, far: 100 }, lighting: { direction: [2, -3, 6], ambientStrength: .2, directionalStrength: .6 } };
+const transforms = [{ translation: [4, -2, 8], rotationXYZW: [0, 0, 1, 0], scale: [2, 3, 4] }, { translation: [-4, 2, -8], rotationXYZW: [1, 0, 0, 0], scale: [2, 3, 4] }];
 const indices = []; for (let u = 0; u < 4; u++) for (let v = 0; v < 2; v++) { const a = u * 3 + v, b = a + 3; indices.push(a, b, a + 1, b, b + 1, a + 1); }
 function f32Bytes(values) { const bytes = new Uint8Array(values.length * 4), view = new DataView(bytes.buffer); values.forEach((value, index) => view.setFloat32(index * 4, value, true)); return bytes; }
 function close(actual, expected, label) { assert.equal(actual.length, expected.length, label); actual.forEach((value, index) => assert.ok(Math.abs(value - expected[index]) <= 1e-6 * Math.max(1, Math.abs(expected[index])), label + ':' + index)); }
@@ -104,7 +104,7 @@ function verify(result, input, variant) {
       const U = u / 4, V = v / 2, p = [sizeX * U, 3 * V, i ? U + V : 0]; native.push(...p);
       raw.push(expectedDomain.u[0] + U * (expectedDomain.u[1] - expectedDomain.u[0]), expectedDomain.v[0] + V * (expectedDomain.v[1] - expectedDomain.v[0])); uv.push(U, V);
       const rotated = i ? [p[0] * 2, -p[1] * 3, -p[2] * 4] : [-p[0] * 2, -p[1] * 3, p[2] * 4];
-      world.push(...rotated.map((n, axis) => .125 * (transforms[i].translationMm[axis] + n) + options.translate[axis]));
+      world.push(...rotated.map((n, axis) => .125 * (transforms[i].translation[axis] + n) + options.translate[axis]));
       worldNormals.push(...unnormalized.map(n => n / normalLength));
     }
     assert.deepEqual(packet.parameters, raw); close(packet.positions, native, 'authentic native points'); assert.deepEqual(g.normalizedParameters, uv); assert.deepEqual(Array.from(g.uv01), uv);

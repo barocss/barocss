@@ -20,8 +20,8 @@ const snapshot = value => JSON.stringify(value, (_key, v) => ArrayBuffer.isView(
 const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-5, `${actual} expected ${expected}`);
 const close = (actual, expected) => { assert.equal(actual.length, expected.length); actual.forEach((v, i) => near(v, expected[i])); };
 const used = mesh => [...new Set(mesh.indices)].map(i => Array.from(mesh.positions.slice(i * 3, i * 3 + 3)));
-function display(bodies, { direction, layerMM = 0.5, k = 0, printed = false } = {}) {
-  const model = api.printLayers(bodies.map(b => b.mesh), { layerMM, ...(direction ? { direction } : {}) });
+function display(bodies, { direction, layerHeight = 0.5, k = 0, printed = false } = {}) {
+  const model = api.printLayers(bodies.map(b => b.mesh), { layerHeight, ...(direction ? { direction } : {}) });
   const { layer, ...summary } = model;
   return { request: 1, summaryKey: 1, summary, layer: layer(k), supportMesh: api.extrudePrintSupport(summary.supportColumns), topMM: Math.min(summary.heightMM, (k + 1) * summary.layerMM.mm), supports: true, printed };
 }

@@ -72,8 +72,8 @@ function primitive(d: Draw, n: number): { key: string; build: () => PreparedTria
 /** Translation, then X, Y and Z rotation (applied in that order to the object), as the scene language reads them. */
 function placement(d: Draw): Mat4 {
   let m = translation(d.translate as V3);
-  if ('rotateDegrees' in d) {
-    const [x, y, z] = d.rotateDegrees.map(a => (a * Math.PI) / 180);
+  if ('rotation' in d) {
+    const [x, y, z] = d.rotation.map(a => (a * Math.PI) / 180);
     m = multiply(m, multiply(rotation([0, 0, 1], z), multiply(rotation([0, 1, 0], y), rotation([1, 0, 0], x))));
   }
   return m;

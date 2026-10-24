@@ -22,8 +22,9 @@ const { parseFlowDpr, flowDisplayMatches } = helpers(flowFile, 'const flowDpr ='
 const all = [...benchCaseNames(412)], section = all.filter(name => /^section:/i.test(name));
 const passing = names => names.map(name => ({ name, ok: true }));
 
-test('unfiltered bench requires all 17 distinct named cases, including both ghost paths', () => {
-  assert.equal(all.length, 17); assert.equal(new Set(all).size, 17);
+test('unfiltered bench requires all 19 distinct named cases, including both ghost paths', () => {
+  // (17, then G-R49's two rows: typing in the HUD and placing a shape.)
+  assert.equal(all.length, 19); assert.equal(new Set(all).size, 19);
   assert.ok(all.includes('cloud: 412 workspace voxels, orbit 60'));
   assert.ok(all.includes('ghosted: 120 brackets, orbit 60 (sorted)'));
   assert.ok(all.includes('ghosted: 120 brackets, orbit 60 (order-independent)'));
@@ -139,7 +140,8 @@ test('query readback follows the submitted command buffer and stays with its mea
   const bad = encode(); bad.encoder.values = [200n, 100n]; d.queue.submit([bad]); bad.encoder.read.release(); await window.__benchDrain();
   assert.equal(contract.benchGpuTiming(window.__bench).valid, false);
   assert.equal(window.__bench.gpuMS, 0, 'invalid delta is not added or converted to its absolute value');
-  assert.deepEqual([...window.__bench.timingErrors[0].values], ['200', '100']);
+  // (G8: a reversed pair — a begin stamp left unwritten — leaves that submit unstamped, counted, not a timing error.)
+  assert.equal(window.__bench.unstamped, 1); assert.equal(window.__bench.timingErrors.length, 0);
   window.__benchReset();
   const lost = encode(); d.queue.submit([lost]); lost.encoder.read.reject(new Error('map failed')); await window.__benchDrain();
   assert.equal(contract.benchGpuTiming(window.__bench).valid, false);

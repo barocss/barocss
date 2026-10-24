@@ -21,7 +21,7 @@ const namespace = Object.keys(providers[0].gpu).sort(), runtimeAdditions = ['pre
 for (const name of ['ownRecord', 'copyGpuData', 'freezeGpuData', 'normalized']) assert.ok(!namespace.includes(name));
 
 
-const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDTS = await readFile(resolve(pkg, 'dist/native-directional-lights.d.ts'), 'utf8');
+const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDTS = await readFile(resolve(pkg, 'dist/native/lights/native-directional-lights.d.ts'), 'utf8');
 const fourTypes = ['NativeDirectionalLightV0', 'NativeDirectionalLightsV0', 'NativeDirectionalLightExecution', 'PreparedNativeDirectionalLights'];
 for (const name of [...runtimeAdditions, ...fourTypes]) { assert.ok(new RegExp('\\b' + name + '\\b').test(publicDTS)); assert.ok(new RegExp('\\b' + name + '\\b').test(leafDTS)); }
 assert.ok(/type\s+NativeDirectionalLightsDiagnosticCode\b/.test(leafDTS));

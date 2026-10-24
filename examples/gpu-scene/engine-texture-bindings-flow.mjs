@@ -19,7 +19,7 @@ const clone=value=>JSON.parse(json(value));
 function numberBitsHash(values){const digest=createHash('sha256'),buffer=Buffer.alloc(65536),view=new DataView(buffer.buffer,buffer.byteOffset,buffer.byteLength);let used=0;for(const value of values){view.setFloat64(used,value,true);used+=8;if(used===buffer.length){digest.update(buffer);used=0;}}if(used)digest.update(buffer.subarray(0,used));return digest.digest('hex');}
 function scene(){
  const node=(id,materialId,x)=>({id,type:'mesh',parentId:null,translation:[x,-0,0],rotationXYZW:[0,0,0,1],scale:[1,1,1],visible:true,geometryId:'triangle',materialId});
- return{format:'barocss-gpu-engine-scene',version:0,id:'texture_scene',coordinateSystem:'right-handed-y-up',positionUnit:'scene',background:[0,.1,.2],camera:{eye:[0,0,6],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100},
+ return{format:'barocss-gpu-engine-scene',version:0,id:'texture_scene',coordinateSystem:'right-handed-y-up',positionUnit:'scene',background:[0,.1,.2],camera:{eye:[0,0,6],target:[0,0,0],up:[0,1,0],fovY:45,near:.01,far:100},
   geometries:[{format:'barocss-gpu-triangle-geometry',version:0,id:'triangle',coordinateSystem:'right-handed-y-up',positionUnit:'scene',winding:'ccw',positions:[-0,0,0,1,0,0,0,1,0],normals:[0,0,1,0,0,1,0,0,1],uvs:[-0,0,1,0,0,1],indices:[-0,1,2]}],
   materials:[{id:'white',type:'unlit',colorSpace:'linear',color:[1,1,1]},{id:'tint',type:'unlit',colorSpace:'linear',color:[.25,.5,.75]}],nodes:[node('left','white',-1),node('right','tint',1)]};
 }

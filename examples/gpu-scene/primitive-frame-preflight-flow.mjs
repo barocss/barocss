@@ -42,7 +42,7 @@ const namespace = Object.keys(providers[0][1]).sort(); assert.deepEqual(namespac
 const declarationPath = resolve(gpuRoot, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['preparePrimitiveSceneFrame', 'PrimitiveSceneFrameProfile', 'PrimitiveSceneCpuFrameV0', 'PreparedPrimitiveSceneFrameEntry', 'PreparedPrimitiveSceneFrame'])
   assert(new RegExp('\\b' + name + '\\b').test(declaration), 'Actual public DTS ' + name);
-const leafDeclaration = await readFile(resolve(gpuRoot, 'dist/primitive-frame-preflight.d.ts'), 'utf8');
+const leafDeclaration = await readFile(resolve(gpuRoot, 'dist/mesh/primitive-frame-preflight.d.ts'), 'utf8');
 assert(/preparePrimitiveSceneFrame\(input:\s*unknown,\s*profile\?:\s*PrimitiveSceneFrameProfile\):\s*PreparedPrimitiveSceneFrame/.test(leafDeclaration));
 const fixturePath = resolve(repo, 'examples/gpu-scene/fixtures/material-authoring.native.source0.css');
 const fixtureBytes = await readFile(fixturePath), originalFixture = fixtureBytes.toString('utf8');
@@ -67,10 +67,10 @@ const shaderSources = [
   '@shader #second { @uniform amount:float(-1,1,-.5); @fragment { color:mix(#FEDCBA,#654321,clamp(amount,0,1)); } }',
 ];
 const options = { mmToSceneUnit: .05, translate: [0, 0, 0], background: [.05, .07, .1],
-  camera: { eye: [0, 1.3, 4], target: [0, .06, 0], up: [0, 1, 0], fovYDegrees: 45, near: .01, far: 10 },
+  camera: { eye: [0, 1.3, 4], target: [0, .06, 0], up: [0, 1, 0], fovY: 45, near: .01, far: 10 },
   lighting: { ambientStrength: .4, directionalStrength: .5, direction: [0, 2, 1] } };
 function entry(asset, index) { return { kind: 'surface', packet: clone(asset.packet), ref: clone(asset.ref), color: [.7, .5, .3],
-  transform: { translationMm: [index % 2 ? 20 : -20, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, index === 1 ? .5 : 1, 1] } }; }
+  transform: { translation: [index % 2 ? 20 : -20, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, index === 1 ? .5 : 1, 1] } }; }
 const bufferHashes = primitives => primitives.map(p => Object.fromEntries(['positions', 'normals', 'indices'].filter(name => p[name]).map(name => {
   const view = p[name]; return [name, hash(Buffer.from(view.buffer, view.byteOffset, view.byteLength))];
 })));
@@ -79,7 +79,7 @@ function frozen(value) {
 }
 function expectedArrays(p) {
   const packet = p.entry.packet, pose = p.entry.transform;
-  const positions = packet.positions.map((n, i) => Math.fround((n * pose.scale[i % 3] + pose.translationMm[i % 3]) * .05));
+  const positions = packet.positions.map((n, i) => Math.fround((n * pose.scale[i % 3] + pose.translation[i % 3]) * .05));
   const normals = [];
   for (let i = 0; i < packet.normals.length; i += 3) {
     const local = packet.normals.slice(i, i + 3).map((n, axis) => n / pose.scale[axis]);

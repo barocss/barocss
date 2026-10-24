@@ -48,7 +48,8 @@
   },
   "expect": {
     "error": {
-      "code": "GEOMETRY",
+      "code": "SHEET_CROSSES_ITSELF",
+      "category": "GEOMETRY",
       "messageIncludes": "[SHEET_CROSSES_ITSELF]"
     }
   },

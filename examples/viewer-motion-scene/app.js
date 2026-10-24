@@ -36,7 +36,7 @@ function describe(message = '') {
     `Native model: ${state.native?.model.name ?? 'none'}`,
     `Surfaces: ${state.surfaces.map(ref => ref.surfaceId).join(', ')}`,
     `Motion time: ${state.motion?.frame.timeSeconds ?? 'reset'} s`,
-    `Display translations: ${state.motion?.displayPoses.map(pose => pose.translationMm.join(',')).join(' | ') ?? 'identity'}`,
+    `Display translations: ${state.motion?.displayPoses.map(pose => pose.translation.join(',')).join(' | ') ?? 'identity'}`,
     `Selected: ${state.selected?.surfaceId ?? 'none'}`,
     `Camera target: ${state.camera.target.map(value => value.toFixed(3)).join(', ')}`,
     message,

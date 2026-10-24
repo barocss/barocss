@@ -9,8 +9,8 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const bundle = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist/index.js');
-// (The bundle keeps CAD external, G18: the page maps @barocss/cad to CAD's built entry, served beside it.)
+const gpuDist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist');
+// (gpu's dist is served as built, one module graph for every entry; the page maps @barocss/cad to CAD's built entry.)
 const cadDist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../barocss-cad/dist');
 const page = `<!doctype html><meta charset="utf-8"><script type="importmap">{"imports":{"@barocss/cad":"/cad/index.js"}}</script><style>body{margin:0}canvas{display:block;width:320px;height:240px}</style><canvas id="c"></canvas>`;
 
@@ -20,7 +20,7 @@ test('CSS scenes show on the viewer', { timeout: 120000 }, async t => {
   const server = createServer(async (req, res) => {
     if (req.url === '/favicon.ico') { res.writeHead(204); res.end(); return; }
     if (req.url === '/') { res.writeHead(200, { 'content-type': 'text/html' }); res.end(page); return; }
-    if (req.url === '/gpu.js') { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(await readFile(bundle)); return; }
+    if (/^\/gpu\/[\w./-]+\.js$/.test(req.url) && !req.url.includes('..')) { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(await readFile(path.join(gpuDist, req.url.slice(5)))); return; }
     if (/^\/cad\/[\w./-]+\.js$/.test(req.url) && !req.url.includes('..')) { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(await readFile(path.join(cadDist, req.url.slice(5)))); return; }
     res.writeHead(404); res.end();
   });
@@ -33,7 +33,7 @@ test('CSS scenes show on the viewer', { timeout: 120000 }, async t => {
     await p.goto(`http://127.0.0.1:${server.address().port}/`);
     if (!await p.evaluate(async () => !!(await navigator.gpu?.requestAdapter()))) { t.skip('no WebGPU adapter'); return; }
     const r = await p.evaluate(async () => {
-      const gpu = await import('/gpu.js');
+      const gpu = await import('/gpu/index.js');
       const viewer = await gpu.createViewer(document.getElementById('c'), { pixelRatio: 1, controls: false });
       const screen = q => { const m = viewer.camera.viewProjection(viewer.aspect), c = [0, 1, 3].map(k => m[k] * q[0] + m[4 + k] * q[1] + m[8 + k] * q[2] + m[12 + k]); return [(c[0] / c[2] * 0.5 + 0.5) * 320, (0.5 - c[1] / c[2] * 0.5) * 240]; };
       const pixel = (img, [x, y]) => { const i = (Math.round(y) * img.width + Math.round(x)) * 4; return [...img.data.slice(i, i + 3)]; };

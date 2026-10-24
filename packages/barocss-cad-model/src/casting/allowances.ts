@@ -46,7 +46,7 @@ export function shrinkByDimension(doc: StudioDoc, profile: ProcessProfile, famil
 }
 /** The machining allowance for a family at the part's size: the user's, else the table's (none past its last band). */
 export function machiningOf(doc: StudioDoc, profile: ProcessProfile, family: CastFamily, sizeMM: number): Allowance<MachiningAllowance> {
-  const set = doc.casting?.machiningAllowanceMM;
+  const set = doc.casting?.machiningAllowance;
   if (typeof set === 'number') return { ok: true, mm: set, basis: 'set', band: 'yours', label: 'your allowance', page: null };
   const cls = machiningClassOf(family), row = profile.allowances?.machining.find(m => m.class === cls);
   if (!row) return { ok: false, why: `no ${profile.label.toLowerCase()} machining allowance for ${cls === 'nonferrous' ? 'a non-ferrous metal' : `cast ${cls}`} was read from a public page: set yours (set_casting allowance)` };

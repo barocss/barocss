@@ -25,7 +25,7 @@ async function weldScene(): Promise<{ doc: StudioDoc; next: (doc: StudioDoc) => 
   const { id: _kernelId, ...node } = scene.input.partDocument.features.find(n => n.kind === 'frame')!; void _kernelId;
   const doc = withNode(emptyDoc(), node as ModelNode), e = await evaluate(doc); assert.ok(e.ok);
   const joint = weldList(doc, e.bodies).joints.find(j => j.kind === 'butt')!; assert.ok(joint);
-  return { doc, next: d => ({ ...d, frames: { version: 1, welds: [{ joint: joint.id, sizeMM: 3 }] } }) };
+  return { doc, next: d => ({ ...d, frames: { version: 1, welds: [{ joint: joint.id, size: 3 }] } }) };
 }
 const placed = (doc: StudioDoc): StudioDoc => ({ ...emptyDoc(), instances: [{ id: 'p1', name: 'Member', doc, position: [0, 0, 0], rotation: [0, 0, 0] }] });
 async function reviewed(doc: StudioDoc, cite: Result) {
@@ -99,7 +99,7 @@ test('REVIEW-M2 other evaluation/domain rows invalidate model and revision pins;
   const process = stamp(doc, [], { id: 'dfm', kind: 'dfm', subject: 'base', run: 'R1', status: 'ok' });
   for (const patch of [
     { print: { direction: [1, 0, 0] } }, { mould: { version: 1, pull: [1, 0, 0] } },
-    { machining: { version: 1, allowanceMM: 2 } }, { casting: { version: 1, shrink: 0.01 } },
+    { machining: { version: 1, allowance: 2 } }, { casting: { version: 1, shrink: 0.01 } },
   ] satisfies Partial<StudioDoc>[]) {
     const next = { ...doc, ...patch };
     assert.deepEqual((await freshnessOf(process, next, evaluate)).changed, ['process']);

@@ -100,7 +100,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "RADIUS_EXCEEDS_FACE",
+      "category": "PARAMETER",
       "messageIncludes": "[RADIUS_EXCEEDS_FACE]"
     }
   },

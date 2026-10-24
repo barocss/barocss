@@ -27,7 +27,7 @@ const namespace = Object.keys(providers[0][1]).sort(); assert.deepEqual(namespac
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['prepareTorusGeometry', 'TorusGeometrySourceV0', 'PreparedTorusGeometry'])
   assert(new RegExp('\\b' + name + '\\b').test(declaration), 'Actual public DTS ' + name);
-const leafDeclaration = await readFile(resolve(pkg, 'dist/torus-geometry.d.ts'), 'utf8');
+const leafDeclaration = await readFile(resolve(pkg, 'dist/geometry/torus-geometry.d.ts'), 'utf8');
 assert(/prepareTorusGeometry\(input:\s*unknown\):\s*PreparedTorusGeometry/.test(leafDeclaration));
 for (const field of ['majorRadius', 'minorRadius', 'majorSegments', 'minorSegments'])
   assert(new RegExp(field + ':\\s*number').test(leafDeclaration));
@@ -161,7 +161,7 @@ try {
     const nullInput = Object.assign(Object.create(null), source(2, .5, 4, 4, 'torus_null'));
     verify(gpu.prepareTorusGeometry(nullInput), nullInput); accepted++;
     const sceneInput = { format: 'barocss-gpu-engine-scene', version: 0, id: 'torus_instances', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
-      background: [.02, .04, .06], camera: { eye: [0, 5, 12], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: .1, far: 100 },
+      background: [.02, .04, .06], camera: { eye: [0, 5, 12], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: .1, far: 100 },
       geometries: [first.prepared.geometry], materials: [{ id: 'torus_material', type: 'unlit', colorSpace: 'linear', color: [.2, .4, .6] }],
       nodes: [[0, 0, 0], [6, 1, 0]].map((translation, i) => ({ id: 'ring_' + i, type: 'mesh', parentId: null, geometryId: first.source.id,
         materialId: 'torus_material', translation, rotationXYZW: [0, 0, 0, 1], scale: [1, i ? .5 : 1, 1], visible: true })) };

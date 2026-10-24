@@ -126,7 +126,7 @@ export class BaroCADBabylonLoader {
         line.metadata = { barocss: {
           role: 'curve-display-line', format: 'barocad-source-preview', sourceVersion: 0,
           modelName: native.model.name, curveId: curve.curveId,
-          lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up',
+          lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up',
           nativeParameters: [...curve.sample.parameters],
           nativeIntervals: curve.sample.segments.map(segment => [...segment.domain]),
           sampleReport: curve.sample.report,

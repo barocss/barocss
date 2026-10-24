@@ -45,7 +45,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "EDGE_NOT_SHEET",
+      "category": "PARAMETER",
       "messageIncludes": "[EDGE_NOT_SHEET] b.side0|b.side1"
     }
   },

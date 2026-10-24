@@ -95,9 +95,9 @@ async function depthProof(){load('three');const entries=clone(viewer.getState().
   const cap=native.faceRanges.find(face=>face.kind==='top-cap'),triangle=cap.triangles[0].vertexIndices;
   const point=[0,1,2].map(axis=>triangle.reduce((sum,index)=>sum+native.mesh.positionsMM[index*3+axis],0)/3*mmToSceneUnit);
   const normal=unit(native.mesh.normals.slice(cap.vertexStart*3,cap.vertexStart*3+3));
-  const camera={eye:point.map((n,i)=>n+normal[i]*3),target:point,up:[0,1,0],fovYDegrees:45,near:.01,far:20};
+  const camera={eye:point.map((n,i)=>n+normal[i]*3),target:point,up:[0,1,0],fovY:45,near:.01,far:20};
   viewer.setView(camera);const forward=unit(subtract(camera.target,camera.eye)),right=unit(cross(forward,camera.up)),up=cross(right,forward);
-  const tangent=Math.tan(camera.fovYDegrees*Math.PI/360),px=Math.floor(canvas.width/2)+.5,py=Math.floor(canvas.height/2)+.5;
+  const tangent=Math.tan(camera.fovY*Math.PI/360),px=Math.floor(canvas.width/2)+.5,py=Math.floor(canvas.height/2)+.5;
   const direction=unit(forward.map((n,i)=>n+right[i]*(px/canvas.width*2-1)*tangent*canvas.width/canvas.height+up[i]*(py/canvas.height*2-1)*tangent));
   const distances=entries.map(entry=>{const p=entry.native.mesh.positionsMM.map(n=>n*mmToSceneUnit),indices=entry.native.mesh.indices;let closest=Infinity;
     for(let i=0;i<indices.length;i+=3){const distance=rayTriangle(camera.eye,direction,...indices.slice(i,i+3).map(index=>p.slice(index*3,index*3+3)));

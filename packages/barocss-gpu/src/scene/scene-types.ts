@@ -13,7 +13,7 @@ export interface SceneObject {
 }
 export interface RotatedSceneObject extends SceneObject {
   /** Local right-handed degrees; X then Y then Z. */
-  rotateDegrees: Vec3;
+  rotation: Vec3;
 }
 export interface CylinderSceneObject extends Omit<RotatedSceneObject, 'type'> {
   type: 'cylinder';

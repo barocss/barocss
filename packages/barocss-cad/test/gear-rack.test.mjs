@@ -56,7 +56,7 @@ test('gear and rack checks: at r + x m no backlash, the teeth touching over the 
 test('a rack meshing with a gear in the part model (R6a.5b): under it at r + x m, slid to mesh; the exact Boolean of the two is empty; the gear turned, the rack travels r per radian; the placed check at phase 0 and clear; a rack facing away refused', () => {
   const g = rot => ({ id: 'g', kind: 'spur-gear', module: 2, teeth: 18, faceWidth: 4, thicknessReduction: 0.05, rotation: rot, center: [5, 3] });
   const k = (mesh = {}) => ({ id: 'k', kind: 'spur-rack', module: 2, teeth: 12, faceWidth: 4, height: 8, thicknessReduction: 0.05, mesh: { gear: 'g', ...mesh } });
-  assert.throws(() => evaluateCadPart(D([g(7), k({ direction: 30 }), { id: 'i', kind: 'intersect', target: 'g', tool: 'k' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([g(7), k({ direction: 30 }), { id: 'i', kind: 'intersect', target: 'g', tool: 'k' }])).output('i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
   const r0 = evaluateCadPart(D([g(0), k()])).output('k').rackPlacement;
   for (const turn of [0, 7, 13.25]) {
     const r = evaluateCadPart(D([g(turn), k()])), gp = r.output('g').gearPlacement, kp = r.output('k').rackPlacement;
@@ -70,7 +70,7 @@ test('a rack meshing with a gear in the part model (R6a.5b): under it at r + x m
   // Turned half round about the pitch line's normal: the teeth face away.
   const away = { ...off.output('k').rackPlacement, angle: off.output('k').rackPlacement.angle + Math.PI };
   assert.throws(() => checkPlacedSpurRack(off.output('g').gearPlacement, away), e => e instanceof GearError && e.code === 'MATE_INCOMPATIBLE' && /face away/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([g(0), { ...k(), module: 3 }])), e => e.code === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([g(0), { ...k(), module: 3 }])), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
   // A rack on its own: along its angle from its origin.
   const free = evaluateCadPart(D([{ id: 'k', kind: 'spur-rack', module: 2, teeth: 5, faceWidth: 4, height: 8, origin: [1, 2], angle: 90, from: 3 }])).output('k');
   assert.ok(free.validate().valid); const box = free.massProperties(1).centroidMM; assert.ok(Math.abs(box[2] - 5) < 1e-9 && box[0] > 1 && box[1] > 2, String(box));

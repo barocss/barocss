@@ -35,7 +35,7 @@ const converted = prepareMesh(literal, options);
 assert.equal(converted.packet.revision, 7);
 const compiledMesh=compileGpu({kind:'mesh',packet:literal,options});assert(compiledMesh.ok);assert.equal(compiledMesh.ast,null);assert.equal(compiledMesh.ir.pipeline,'indexed-mesh');assert.deepEqual(compiledMesh.execution.mesh.positions,converted.positions);compiledMesh.execution.mesh.positions[0]=999;assert.notEqual(compiledMesh.ir.draws[0].packet.positions[0],999);assert.equal(compileGpu({kind:'scene',source:'invalid'}).ok,false);
 assert.equal(Object.hasOwn(converted.options, 'camera'), false);
-const camera = { eye: [4,3,6], target: [0,0,0], up: [0,1,0], fovYDegrees: 45, near: .01, far: 100 };
+const camera = { eye: [4,3,6], target: [0,0,0], up: [0,1,0], fovY: 45, near: .01, far: 100 };
 const viewed = prepareMesh(literal, { ...options, camera });
 assert.deepEqual(viewed.packet, converted.packet);
 camera.eye[0] = 999;

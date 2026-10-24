@@ -35,7 +35,7 @@ const declarationsPath = resolve(pkg, published.types);
 const declarations = await readFile(declarationsPath, 'utf8');
 for (const name of ['evaluateAuthoredMaterial', 'AuthoredMaterialEvaluationError', 'AuthoredMaterialEvaluationDiagnosticCode', 'AuthoredMaterialRequest', 'AuthoredMaterialSample'])
   assert(new RegExp('\\b' + name + '\\b').test(declarations), 'Actual public declaration: ' + name);
-const evaluationDeclarationPath = resolve(pkg, 'dist/material-evaluation.d.ts');
+const evaluationDeclarationPath = resolve(pkg, 'dist/material/material-evaluation.d.ts');
 const evaluationDeclaration = await readFile(evaluationDeclarationPath, 'utf8');
 assert(/evaluateAuthoredMaterial\(input:\s*unknown\):\s*AuthoredMaterialSample/.test(evaluationDeclaration));
 assert(/readonly code:\s*AuthoredMaterialEvaluationDiagnosticCode/.test(evaluationDeclaration));

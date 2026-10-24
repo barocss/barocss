@@ -12,6 +12,7 @@ import { meshSelection } from './select';
 import { bodiesOf } from './core';
 import { addMateDoc, addPartDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, placePartDoc, problemsOf, variabilityDoc, variantDoc } from './assemblyCore';
 import { part as studioPart, StudioPart } from './part';
+import { Robot } from './robot';
 
 // (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)
 type XYZ = [number, number, number];
@@ -111,6 +112,9 @@ export class Assembly {
 
   /** Each frame's world pose at the solved pose (O12). */
   framePoses(): { name: string; link: string; kind?: 'tool' | 'sensor'; position: Vec3; rotation: Vec3 }[] { return framePosesOf(this.#doc); }
+
+  /** The assembly read as a robot (RS5): its joints, poses, paths, inertia and exports. */
+  robot(): Robot { return new Robot(this.#doc); }
 
   /** Every part's display triangles where it stands (`base/<body>`, `<part id>/<body>`), in the common mesh shape. */
   meshes(): MeshData[] { return assemblyMeshes(this.#doc); }

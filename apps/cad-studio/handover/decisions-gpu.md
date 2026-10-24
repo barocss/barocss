@@ -3395,3 +3395,145 @@ The coordinator's plan from the classification (`gpu-throws-classified.md` in th
   - 49 is the `.barocad` import; 46 is STEP and its refusal of a bad .step.
 - **Runs**: studio tsc 0, eslint 0 on App.tsx. Not run: studio unit (the change is in App's open path, which only the
   flow reaches); WebGL2 (renderer-independent).
+
+## G-R59 — R7.3d follow-up: cad-interop's curve metadata and its examples are `right-handed-z-up`; the axis-box basis question returned (roadmap R7.3d, 2026-10-24)
+
+- **The interop curve metadata** (the coordinator's go): CAD curve samples in mm, put into Three, Babylon and pixi3d
+  geometry with no axis change. That's CAD's Z-up data under a Y-up label, the packet's mislabel again.
+  - `'right-handed-y-up'` → `'right-handed-z-up'` in: three.ts, babylon.ts (the curve lines), three-uniform-curve,
+    babylon-uniform-curve, babylon-selected-uniform-curve, pixi3d-selected-uniform-curve; and the test
+    selected-uniform-curve-pixi3d.
+  - In the examples that check these labels: curve-parameterization-three (verify and html), host-replacement-flow,
+    host-replacement-babylon-flow, weighted-curve-babylon (verify and html), the xy-angle-arc and
+    source-curve-control-polygon checkpoints. Also multi-section-loft-babylon (verify and html),
+    native-surface-curvature-babylon-verify and sdk-entry-checkpoint-verify: these check the *surface* mesh's metadata,
+    which R7.3d renamed (babylon.ts:113) but whose example checks it missed.
+  - The `-scene-units` labels (cloth, particles) are untouched.
+- **Runs**: interop tsc 0, build, `pnpm test` passes, test:babylon (with gpu's cad-dist hook) passes,
+  selected-uniform-curve-pixi3d.test passes.
+  - **Not run, and can't be as they stand**: the example verifies and checkpoints. They need a demo's output directory
+    (`<CAD-947-demo-output-directory>`, `--output EVIDENCE_DIR`) or a TypeScript loader for interop's src
+    (ERR_MODULE_NOT_FOUND on src/*.js, ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX). This predates the change: it's the state
+    G-R40 triaged for the gpu-scene flows. Their edits are the same literal as src's.
+- **axis-box-boolean-buffers: returned to the coordinator, not changed.** Its `basis: 'authored-xyz-matches-rhyup'` is
+  not its own.
+  - It's the host assertion used in about 150 places across cad-interop (the Three, Babylon and pixi3d hosts) and
+    barocss-viewer: "map authored XYZ unchanged into the host's right-handed Y-up frame".
+  - Its output is scaled into scene units by mmToSceneUnit, like the engine scene. So its `coordinateSystem` names the
+    host scene's frame, not the CAD data's.
+  - Renaming only axis-box's basis would split one assertion into two spellings. A rename of the assertion itself is
+    one change across all three packages, and it's the coordinator's call.
+  - **The coordinator's answer**: option (a), leave axis-box as it is. The basis is the Y-up hosts' assertion and the
+    output is in scene units.
+
+## G-R60 — R7.7c, part 1: no unit suffixes in gpu's names; the stored formats renamed in place (roadmap R7.7c, 2026-10-24)
+
+The owner, conventions §2: no unit suffixes in names, stored formats included ("저장된 문서 필드도 단위 접미사를 빼줘.
+아직 배포 전이니 최신 스키마로 바꾸고 픽스처를 다시 만들면 돼."). Renamed in place with no alias. Pinned evidence JSON
+is untouched as history. The coordinator settled the scope:
+- **A, options and results**:
+  - FrameStats `cpuMs` → `cpuTime` (ms, in its doc). The studio's `frameCost` row field follows (FrameCost and its
+    tracker), and so do gpuRenderer.ts:719, RebuildPanel's totals line (a read; outer's panel, in the agreed list) and
+    the flow's O10 log line.
+  - accessSampleSet(…, `stepMM`) → `step` (mm, in its doc). Positional, so the studio's useGpuMaps is unchanged.
+  - perspectiveReversed(`fovYRadians`, …) → `fovY` (radians, in its doc).
+- **B, gpu's data formats** (word-level, every use; tsc then checked for collisions):
+  - `rotateDegrees` → `rotation`: the scene objects, the SDF IR, source-scene bounds. In gpu-data, the raw local
+    became `given` so it doesn't meet the new field's name.
+  - `fovYDegrees` → `fovY`: MeshCamera, the engine scene's camera, the frustum. It's used by 64 files: gpu tests,
+    31 gpu-scene flows, barocss-viewer, and the viewer and physics examples that build MeshCameras.
+  - `translationMm` → `translation`: the mesh scene transform and the engine scene's node transform. Also
+    barocss-viewer's DrawnPose and pose data, and the examples that build them.
+  - gpu's four engine clip formats: `timeSeconds` → `time`, with their flows and the README.
+- **Not renamed**:
+  - `pointsMM` and `positionsMM` come from cad's previews and results. They pair with the kernel's R7.7b, as R7.3d did.
+  - `mmToSceneUnit` is a conversion factor's name, not a suffix on a quantity.
+  - The `…Bytes` counts name what they count.
+  - The facade's `fovYDeg` is the API lane's (R7.7d).
+  - barocss-viewer's own ViewerPoseFrame.timeSeconds and the physics examples' timeSeconds are unowned research
+    formats outside R7.7, as the coordinator ruled.
+  - The print fields (layerMM, limitDeg) are outer's R7.7a step 3.
+  - ClearancePanel's `nearMM` and the clearance worker's `job.nearMM` are part 2, after outer's step 3.
+- **Fixtures**: no JSON fixture held these fields. Every use was in code (.ts, .mjs, .js) or the gpu README.
+- **Runs**: tsc 0 in gpu, studio, barocss-viewer and cad-interop; eslint 0 (gpu; the studio's three files); gpu unit
+  204/204, consumer 3/3, gpu-scene flows 65/65, test:browser 29/29 on hardware; studio unit 286/286; FLOW_ONLY
+  `^O10 (frame costs|Rebuild)` on WebGPU passes (the frame costs' "ms CPU" read through cpuTime).
+
+## G-R61 — One copy of each class across gpu's entries: dist/index.js is tsc's output, not a bundle (pre-publication, 2026-10-24)
+
+- **The finding** (G-R57): `build:library` ran tsc, which emits every module, and then esbuild overwrote dist/index.js
+  with a bundle of src/index.ts. So `@barocss/gpu` had its own copies of Viewer, ViewerError, BarocssError and every
+  other class, while `@barocss/gpu/viewer` and `@barocss/gpu/api` used tsc's modules. `instanceof` across the entries
+  failed for a consumer.
+- **The fix**: `build:library` is `tsc -p tsconfig.build.json` alone. dist/index.js is tsc's index, importing the same
+  modules as the viewer and api entries. The exports map's paths are unchanged (`.`, `./source`, `./viewer`, `./api`,
+  types beside them). `@barocss/cad` stays an external import, as it was. No package, dependency or lockfile change:
+  esbuild came from the workspace root.
+- **Checks of the fix**:
+  - test:consumer, against `pnpm pack`'s tarball with publishConfig applied: the consumer now also imports the three
+    entries and checks `viewer.ViewerError === main.ViewerError`, `viewer.Viewer === main.Viewer`,
+    `api.BarocssError === main.BarocssError`, and that a viewer entry's ViewerError is the main entry's BarocssError.
+  - barocss-error.test asserts the same within the workspace.
+- **The browser harnesses**: scene-viewer, compute-thickness, compute-access and uv-repeating served the bundle as
+  `/gpu.js`. They now serve gpu's dist as built under `/gpu/…` and import `/gpu/index.js`, as api-show already did. That
+  file is the API lane's; I changed only its route and comment, and the coordinator saw the change.
+- **Found by building into a clean dist** (`rm -rf dist` first): 33 gpu-scene flows read files that no build makes any
+  more. That was hidden by stale leftovers in this worktree's dist.
+  - 32 flows read flat `dist/<leaf>.d.ts|js` paths from before R2d's folders, written either as a literal or as
+    `'dist/' + leaf + '.d.ts'`. Each now names the file where it is built: the literals rewritten where the name is
+    unique under dist (all were), and `builtDeclaration(leaf)` finds a leaf by name.
+  - material-discrete-selection compared the parent commit's declarations with a stale mesh-material.d.ts from before
+    R7.3a. Its pin now takes the one intended change, `MeshMaterialError extends BarocssError` (G-R51). Every other byte
+    stays equal.
+  - source-scene-bounds wanted a cold, separate instance by re-importing the entry with a query. That reloads only the
+    entry of an unbundled graph. For the emitted package its cold copy is now the emitted graph bundled into one file,
+    with every module fresh. The check that the two are different instances stays.
+  - The coordinator's window may also have passed on stale files, if its dist was never cleaned.
+- **Runs** (clean dist): gpu tsc 0, eslint 0, unit 204/204, test:consumer 3/3 (the packed tarball), gpu-scene flows
+  65/65, test:browser 29/29 on hardware and 29/29 on SwiftShader.
+
+## G-R62 — R7.7c, part 2: the clearance preview's `nearMM` is `near` (roadmap R7.7c, 2026-10-24)
+
+- After outer's R7.7a step 3 (merge 7c8c6c038; the print fields are `layerHeight` and `overhangLimit`, outer's).
+- **Renamed**:
+  - ClearancePanel's `nearMM` prop → `near`.
+  - The clearance worker's request `job.nearMM` → `job.near`. Its call to the core is now `{ near: job.near }`; the
+    core option was already `near`.
+  - The ClearanceDisplay field → `near`, documented "in mm". clearanceAnalysis, useClearanceAnalysis and App's state
+    follow (`clearanceNear`, `setClearanceNear`).
+  - gpu's clearance test fixtures, and cad-clearance-app-flow's check that the UI state isn't saved into the document
+    (`clearanceNear`).
+  - None of these is stored: a document never carried them, and that check says so.
+- **Left, for the outer lane**: cad-model's clearance map result carries `near: { mm }`, a unit as a field name
+  (clearanceAnalysis reads `map.near.mm`). It's outer's core shape.
+- **Runs**: tsc 0 in the studio, gpu, cad-model, barocss-viewer and cad-interop; eslint 0 on the six studio files; gpu
+  unit 204/204; studio unit 286/286; FLOW_ONLY `^G22 clearance` passes on WebGPU and WebGL2 (283).
+  - **Pre-existing, not from this change**: three of the four cad-clearance tests in packages/barocss-gpu/tests fail
+    before running. They're outside gpu's test script, so nothing ran them. cad-clearance-analysis bundles against
+    cad-model's `placementOf`, which is no longer exported from engine/doc.ts. cad-clearance-hook's bundle reads
+    `import.meta.env.DEV` without Vite. cad-clearance-gpu and cad-clearance-overlay-gl pass. Whether to repair or retire
+    them is the coordinator's call.
+
+## G-R63 — gpu's dormant tests repaired and in the test script: 204 → 301 (2026-10-24)
+
+- **What was dormant**: 15 test files in packages/barocss-gpu/tests were in no script. 14 test real code: the studio
+  viewport's clearance, print and display modules, and the bench's runner. The 15th, viewer-costs-browser, is the
+  browser bench's own harness and stays out.
+- **Repairs**:
+  - cad-clearance-analysis bundled `placementOf` from cad-model's engine/doc.ts. It now comes from engine/placement.ts,
+    where it lives.
+  - cad-clearance-hook bundled studio code that reads Vite's `import.meta.env.DEV`. esbuild is given
+    `define: { 'import.meta.env.DEV': 'false' }`, a production stand-in.
+  - The five cad-print tests used the print *options'* old names. Outer's R7.7a step 3 renamed them to `layerHeight` and
+    `overhangLimit`, and they follow. The print *result* still says `layerMM: { mm }` and `limitDeg: { deg }`, outer's
+    results step; those reads are kept.
+  - browser-runner-contract:
+    - It counted 17 bench cases. The bench has had 19 since G-R49's HUD and placing rows.
+    - It expected a reversed timestamp pair to be a timing error. Since G8 such a submit is counted `unstamped`, which
+      is G8's rule for Chrome/Metal's unwritten begin stamp. The check now asserts that rule.
+    - No limit was loosened: the case set is the bench's own list, and the reversed pair is still kept out of the GPU
+      average.
+- **Retired**: none.
+- **Now in `test`**: browser-runner-contract, cad-clearance-analysis, -clip, -gpu, -hook, -overlay-gl,
+  cad-display-browser-fixture, cad-display-browser-runner, cad-print-hook, -overlay, -projection, -settings, -worker,
+  cad-silhouette. gpu's unit run is 301/301 (was 204) and takes about 3 s.

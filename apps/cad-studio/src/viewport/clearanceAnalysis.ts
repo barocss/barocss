@@ -71,5 +71,5 @@ export function clearanceOverlays(map: ClearanceMap, bodies: readonly PlacedBody
   return overlays;
 }
 export function clearanceDisplay(map: ClearanceMap, bodies: readonly PlacedBody[], request: number, stage: ClearanceDisplay['stage']): ClearanceDisplay {
-  return { version: map.version, request, revision: map.revision, nearMM: map.near.mm, stage, pairs: map.pairs, overlays: clearanceOverlays(map, bodies) };
+  return { version: map.version, request, revision: map.revision, near: map.near.mm, stage, pairs: map.pairs, overlays: clearanceOverlays(map, bodies) };
 }

@@ -66,7 +66,7 @@ test('IM8b machining allowance by band (inches × 25.4): non-ferrous 100 mm 2.28
     assert.ok(near(m.mm, mm, 1e-9) && m.band === band, `${family} ${size}: ${JSON.stringify(m)}`);
   }
   const past = machiningOf(doc, SAND, 'aluminium', 1100); assert.ok(!past.ok && /past the table's last band \(40 in\)/.test(past.why));
-  const yours = machiningOf({ ...doc, casting: { version: 1, machiningAllowanceMM: 1.5 } }, SAND, 'aluminium', 1100); assert.ok(yours.ok && yours.mm === 1.5 && yours.basis === 'set');
+  const yours = machiningOf({ ...doc, casting: { version: 1, machiningAllowance: 1.5 } }, SAND, 'aluminium', 1100); assert.ok(yours.ok && yours.mm === 1.5 && yours.basis === 'set');
 });
 
 test('IM8b in the report: an A356 block 100 × 60 × 20, top machined — shrink 1.012917 and 2.286 mm on one face, each with its page; none marked n/a; a face not on the part fails; die casting\'s shrinkage unknown', async () => {
@@ -99,7 +99,7 @@ test('IM8b refusals by name: set_casting with a face not on the part, a negative
     const r = await dispatchTool(s, 'set_casting', args as Record<string, unknown>, evaluate); assert.ok(r.isError); assert.match(JSON.parse(r.content).error, re);
   }
   const set = await dispatchTool(s, 'features', { action: 'casting', machined: ['n1.top', 'n1.top'], allowance: 1.5 }, evaluate);
-  assert.ok(!set.isError, set.content); assert.deepEqual(set.state.doc.casting, { version: 1, machined: ['n1.top'], machiningAllowanceMM: 1.5 });
+  assert.ok(!set.isError, set.content); assert.deepEqual(set.state.doc.casting, { version: 1, machined: ['n1.top'], machiningAllowance: 1.5 });
   const two = withNode(withNode(cast(b, 'a356'), { kind: 'sketch', profile: 'rectangle', min: [200, 0], max: [210, 10] }), { kind: 'extrude', sketch: 2, height: 5 } as never);
   for (const [d, code] of [[two, 'PATTERN_ONE_BODY'], [cast(b, 'al6061'), 'PATTERN_MATERIAL'], [cast(b, 'a380', undefined, 'die-casting'), 'PATTERN_NOT_CASTING']] as const) {
     const p = await patternOf(d, bodiesOf(d), evaluate); assert.ok(!p.ok && p.code === code, JSON.stringify(p));

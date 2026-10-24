@@ -4,6 +4,7 @@
  */
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readdirSync } from 'node:fs';
 import { resolve, dirname, isAbsolute } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -13,6 +14,8 @@ import ts from 'typescript';
 assert.equal(Number(process.versions.node.split('.')[0]), 22); assert.equal(process.argv.length, 4); assert.equal(process.argv[2], '--output'); assert.ok(isAbsolute(process.argv[3]));
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '../..'), output = resolve(process.argv[3]); await mkdir(output, { recursive: false });
 const parent = '1b58b3885b2f12acdac294215b1c73a3342212d9', pkg = resolve(repo, 'packages/barocss-gpu'), manifest = JSON.parse(await readFile(resolve(pkg, 'package.json'), 'utf8'));
+// (The package's built files live in folders since R2d: a leaf's declaration found by its name under dist/.)
+const builtDeclaration = leaf => { const name = leaf + '.d.ts', hit = readdirSync(resolve(pkg, 'dist'), { recursive: true }).find(p => p === name || p.endsWith('/' + name)); assert.ok(hit, 'built ' + name); return resolve(pkg, 'dist', hit); };
 const hash = v => createHash('sha256').update(v).digest('hex'), parentFile = name => execFileSync('git', ['show', parent + ':packages/barocss-gpu/' + name], { cwd: repo, encoding: 'utf8' });
 const oldBarrel = parentFile('src/index.ts'), oldFile = ts.createSourceFile('parent-barrel.ts', oldBarrel, ts.ScriptTarget.Latest, true);
 const parentRuntime = oldFile.statements.filter(n => ts.isExportDeclaration(n) && !n.isTypeOnly && n.exportClause && ts.isNamedExports(n.exportClause))
@@ -27,8 +30,8 @@ const printer = ts.createPrinter({ removeComments: true });
 function types(text, names) { const f = ts.createSourceFile('types.ts', text, ts.ScriptTarget.Latest, true); return Object.fromEntries(f.statements.filter(n => (ts.isTypeAliasDeclaration(n) || ts.isInterfaceDeclaration(n)) && names.includes(n.name.text)).map(n => [n.name.text, printer.printNode(ts.EmitHint.Unspecified, n, f)])); }
 function signature(text, name) { const f = ts.createSourceFile('signature.ts', text, ts.ScriptTarget.Latest, true), fn = f.statements.find(n => ts.isFunctionDeclaration(n) && n.name?.text === name); assert.ok(fn); return { parameters: fn.parameters.map(n => printer.printNode(ts.EmitHint.Unspecified, n, f)), result: printer.printNode(ts.EmitHint.Unspecified, fn.type, f) }; }
 for (const [leaf, names, runtime] of [['scene-parameter-source', ['SceneParameterCode', 'SceneParameterDiagnostic', 'SceneParameterDeclaration', 'ParameterizedAffineSceneAst', 'SceneParameter', 'CompiledParameterizedAffineSceneSource'], 'compileParameterizedAffineSceneSource'], ['scene-product-source', ['MultiplicativeAffineSceneAst', 'CompiledMultiplicativeAffineSceneSource'], 'compileMultiplicativeAffineSceneSource'], ['scene-arithmetic-source', ['ArithmeticAffineSceneAst', 'CompiledArithmeticAffineSceneSource'], 'compileArithmeticAffineSceneSource']]) {
-  const before = parentFile('src/' + leaf + '.ts'), after = await readFile(resolve(pkg, 'dist/' + leaf + '.d.ts'), 'utf8'); assert.equal(Object.keys(types(before, names)).length, names.length); assert.deepEqual(types(after, names), types(before, names)); assert.deepEqual(signature(after, runtime), signature(before, runtime)); }
-const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), repeatDTS = await readFile(resolve(pkg, 'dist/scene-finite-repeat-source.d.ts'), 'utf8'), parameterDTS = await readFile(resolve(pkg, 'dist/scene-parameter-source.d.ts'), 'utf8');
+  const before = parentFile('src/' + leaf + '.ts'), after = await readFile(builtDeclaration(leaf), 'utf8'); assert.equal(Object.keys(types(before, names)).length, names.length); assert.deepEqual(types(after, names), types(before, names)); assert.deepEqual(signature(after, runtime), signature(before, runtime)); }
+const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), repeatDTS = await readFile(resolve(pkg, 'dist/scene/scene-finite-repeat-source.d.ts'), 'utf8'), parameterDTS = await readFile(resolve(pkg, 'dist/scene/scene-parameter-source.d.ts'), 'utf8');
 const newTypes = ['SceneRepeatDeclaration', 'SceneGenerationRecord', 'FiniteRepeatAffineSceneAst', 'CompiledFiniteRepeatAffineSceneSource'];
 for (const name of newTypes) { assert.ok(new RegExp('\\b' + name + '\\b').test(publicDTS)); assert.ok(new RegExp('\\b' + name + '\\b').test(repeatDTS + parameterDTS)); }
 for (const name of ['compileSceneParameterData', 'finishSceneParameterSource', 'lowerAffineSceneAst']) { assert.ok(!namespace.includes(name)); assert.ok(!new RegExp('\\b' + name + '\\b').test(publicDTS)); }

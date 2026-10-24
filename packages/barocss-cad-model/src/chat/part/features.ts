@@ -23,6 +23,7 @@ import { mountRowsOf } from '../../engine/mountRows';
 import { mountAxis } from '../../app/mounts';
 import { firstProblem, isRefusal } from '../../engine/refusal';
 import { REFERENCE_CODES } from '../../engine/schema/references';
+import { addParameters, bindParameter, parameterUses, PARAMETER_CODES, removeParameter, renameParameter, withParameters, type Binding } from '../../engine/parameters';
 
 /** Commands the chat can run (the ones that build; sketch-mode and measure UI actions are tools of their own). */
 // (Loft takes sketches picked in the studio, Align a face clicked there; chat writes a loft node with
@@ -248,7 +249,7 @@ async function setStockTool(state: ChatState, args: Record<string, unknown>, eva
   // (O155: rows merge by id (O150), so a row leaves only by name; an id not on the list is refused, listing the list.)
   const kept = removeRows(loaded.doc.machining?.stock, remove, 'STOCK_ROW_UNKNOWN');
   if ('error' in kept) return fail(state, kept.error);
-  const machining = { ...loaded.doc.machining, version: 1 as const, ...(remove.length ? { stock: kept.rows } : {}), ...(args.allowance !== undefined ? { allowanceMM: args.allowance as number } : {}) };
+  const machining = { ...loaded.doc.machining, version: 1 as const, ...(remove.length ? { stock: kept.rows } : {}), ...(args.allowance !== undefined ? { allowance: args.allowance as number } : {}) };
   const doc = args.allowance === undefined && !remove.length ? loaded.doc : { ...loaded.doc, machining };
   return accept(state, doc, evaluate, 'Stock and machining allowance');
 }
@@ -262,9 +263,32 @@ async function setCastingTool(state: ChatState, args: Record<string, unknown>): 
   if (missing.length) return fail(state, `[CASTING_FACE] not a face of the part: ${missing.join(', ')}. Use the names from the last result or query.summary.`);
   if (allowance !== undefined && !inRange(allowance, 0, 100)) return fail(state, `[CASTING_ALLOWANCE] allowance is mm a machined face, 0 to 100: ${JSON.stringify(allowance)}.`);
   if (shrink !== undefined && !inRange(shrink, 0, 0.1)) return fail(state, `[CASTING_SHRINK] shrink is a ratio (mm/mm), 0 to 0.1 (0.013 is 1.3 %): ${JSON.stringify(shrink)}.`);
-  const was = state.doc.casting ?? { version: 1 as const }, casting = { ...was, version: 1 as const, ...(machined !== undefined ? { machined: [...new Set(machined as string[])] } : {}), ...(allowance !== undefined ? { machiningAllowanceMM: allowance as number } : {}), ...(shrink !== undefined ? { shrink: shrink as number } : {}), ...(gate !== undefined ? { gate: [...(gate as number[])] as [number, number, number] } : {}) };
+  const was = state.doc.casting ?? { version: 1 as const }, casting = { ...was, version: 1 as const, ...(machined !== undefined ? { machined: [...new Set(machined as string[])] } : {}), ...(allowance !== undefined ? { machiningAllowance: allowance as number } : {}), ...(shrink !== undefined ? { shrink: shrink as number } : {}), ...(gate !== undefined ? { gate: [...(gate as number[])] as [number, number, number] } : {}) };
   const doc = { ...state.doc, casting };
-  return { state: { ...state, doc }, content: json({ ok: true, machined: casting.machined ?? [], allowance: casting.machiningAllowanceMM ?? null, shrink: casting.shrink ?? null, gate: casting.gate ?? null }), isError: false, changed: true, summary: `casting: ${casting.machined?.length ?? 0} machined face${casting.machined?.length === 1 ? '' : 's'}` };
+  return { state: { ...state, doc }, content: json({ ok: true, machined: casting.machined ?? [], allowance: casting.machiningAllowance ?? null, shrink: casting.shrink ?? null, gate: casting.gate ?? null }), isError: false, changed: true, summary: `casting: ${casting.machined?.length ?? 0} machined face${casting.machined?.length === 1 ? '' : 's'}` };
+}
+/**
+ * O21: the part's named parameters, all or nothing — added, given values, renamed, bound to a feature's value, removed
+ * (engine/parameters.ts, in that order) — then evaluated: a value that does not build is refused, the part unchanged.
+ */
+async function setParametersTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+  const { add, set, rename, bind, remove } = args;
+  if (add === undefined && set === undefined && rename === undefined && bind === undefined && remove === undefined) return fail(state, 'Give add, set, rename, bind, remove or any of them.');
+  const numbers = (v: unknown): v is Record<string, number> => isObj(v) && Object.values(v).every(x => typeof x === 'number');
+  if ((add !== undefined && !numbers(add)) || (set !== undefined && !numbers(set))) return fail(state, '[VALUE] add and set are {name: value} with numbers.');
+  if (rename !== undefined && !(isObj(rename) && Object.values(rename).every(x => typeof x === 'string'))) return fail(state, '[VALUE] rename is {from: to}.');
+  if (remove !== undefined && !(Array.isArray(remove) && remove.every(x => typeof x === 'string'))) return fail(state, '[VALUE] remove is a list of names.');
+  if (bind !== undefined && !(Array.isArray(bind) && bind.every(b => isObj(b) && (typeof b.feature === 'number' || typeof b.feature === 'string') && typeof b.value === 'string' && typeof b.parameter === 'string'))) return fail(state, '[VALUE] bind is [{feature: index or id, value: the value\'s key as edit_feature names it, parameter}].');
+  let doc = state.doc;
+  try {
+    if (add) doc = addParameters(doc, add as Record<string, number>);
+    if (set) doc = withParameters(doc, set as Record<string, number>);
+    for (const [from, to] of Object.entries((rename ?? {}) as Record<string, string>)) doc = renameParameter(doc, from, to);
+    for (const b of (bind ?? []) as Binding[]) doc = bindParameter(doc, b);
+    for (const name of (remove ?? []) as string[]) doc = removeParameter(doc, name);
+  } catch (e) { if (isRefusal(e, ...PARAMETER_CODES)) return fail(state, e.message, { kept: 'the part is unchanged' }); throw e; }
+  const parameters = Object.entries(doc.parameters).map(([name, value]) => ({ name, value, uses: parameterUses(doc.nodes, name) }));
+  return accept(state, doc, evaluate, `parameters: ${[add && `${Object.keys(add).length} added`, set && `${Object.keys(set).length} set`, rename && `${Object.keys(rename).length} renamed`, bind && `${(bind as unknown[]).length} bound`, remove && `${(remove as unknown[]).length} removed`].filter(Boolean).join(', ')}`, { parameters });
 }
 async function setFrameStockTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
   const asked = rowsAsked(args, 'kerf');
@@ -275,7 +299,7 @@ async function setFrameStockTool(state: ChatState, args: Record<string, unknown>
   if ('error' in loaded) return fail(state, loaded.error);
   const kept = removeRows(loaded.doc.frames?.stock, remove, 'FRAME_STOCK_UNKNOWN');
   if ('error' in kept) return fail(state, kept.error);
-  const frames = { ...loaded.doc.frames, version: 1 as const, ...(remove.length ? { stock: kept.rows } : {}), ...(args.kerf !== undefined ? { kerfMM: args.kerf as number } : {}) };
+  const frames = { ...loaded.doc.frames, version: 1 as const, ...(remove.length ? { stock: kept.rows } : {}), ...(args.kerf !== undefined ? { kerf: args.kerf as number } : {}) };
   const doc = args.kerf === undefined && !remove.length ? loaded.doc : { ...loaded.doc, frames };
   return accept(state, doc, evaluate, 'Frame stock and saw kerf');
 }
@@ -314,7 +338,7 @@ async function setWeldsTool(state: ChatState, args: Record<string, unknown>, eva
     if (o.size !== undefined && !inRange(o.size, 0, 50, true)) return fail(state, `[WELD_FIELD] weld ${k} (${joint}): size is mm, above 0 and below 50.`);
     if (o.allRound !== undefined && typeof o.allRound !== 'boolean') return fail(state, `[WELD_FIELD] weld ${k} (${joint}): allRound is true or false.`);
     if (o.notes !== undefined && typeof o.notes !== 'string') return fail(state, `[WELD_FIELD] weld ${k} (${joint}): notes is text.`);
-    good.push({ joint, ...(o.kind ? { kind: o.kind as WeldRecord['kind'] } : {}), ...(o.size !== undefined ? { sizeMM: o.size as number } : {}), ...(o.allRound !== undefined ? { allRound: o.allRound as boolean } : {}), ...(o.inner !== undefined ? { inner: o.inner as boolean } : {}), ...(typeof o.notes === 'string' && o.notes.trim() ? { notes: o.notes.trim() } : {}) });
+    good.push({ joint, ...(o.kind ? { kind: o.kind as WeldRecord['kind'] } : {}), ...(o.size !== undefined ? { size: o.size as number } : {}), ...(o.allRound !== undefined ? { allRound: o.allRound as boolean } : {}), ...(o.inner !== undefined ? { inner: o.inner as boolean } : {}), ...(typeof o.notes === 'string' && o.notes.trim() ? { notes: o.notes.trim() } : {}) });
   }
   if (new Set(good.map(r => r.joint)).size !== good.length) return fail(state, '[WELD_FIELD] two welds for one joint.');
   const welds = [...was.filter(r => !remove.includes(r.joint) && !good.some(g => g.joint === r.joint)), ...good];
@@ -329,4 +353,4 @@ async function setWeldsTool(state: ChatState, args: Record<string, unknown>, eva
 }
 
 /** The feature group's handlers, by v1 tool name (R3). */
-export const FEATURE_HANDLERS: Readonly<Record<string, PartHandler>> = { run_command: runCommandTool, add_features: addFeaturesTool, edit_feature: editFeatureTool, delete_feature: deleteFeatureTool, set_material: setMaterialTool, load_rows: loadRowsTool, set_stock: setStockTool, set_casting: setCastingTool, set_frame_stock: setFrameStockTool, set_frame_sections: setFrameSectionsTool, set_welds: setWeldsTool };
+export const FEATURE_HANDLERS: Readonly<Record<string, PartHandler>> = { run_command: runCommandTool, add_features: addFeaturesTool, edit_feature: editFeatureTool, delete_feature: deleteFeatureTool, set_material: setMaterialTool, load_rows: loadRowsTool, set_stock: setStockTool, set_casting: setCastingTool, set_frame_stock: setFrameStockTool, set_parameters: setParametersTool, set_frame_sections: setFrameSectionsTool, set_welds: setWeldsTool };

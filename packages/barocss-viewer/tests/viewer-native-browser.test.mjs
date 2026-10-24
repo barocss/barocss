@@ -109,7 +109,7 @@ test('native light and UV01 viewers and the native appearance draw on WebGPU', {
       viewer.loadQualifiedFaceScene({ version: 0, basis: 'authored-xyz-matches-rhyup', countU: 9, countV: 9,
         assets: request.assets.map((a, i) => ({ ...a, color: [[0.9, 0.3, 0.2], [0.2, 0.7, 0.3], [0.2, 0.4, 0.9], [0.9, 0.8, 0.2], [0.7, 0.3, 0.8], [0.3, 0.8, 0.8]][i] })),
         // The Faces span 0–10 mm (one scene unit per mm here).
-        camera: { eye: [22, 18, 30], target: [5, 5, 5], up: [0, 1, 0], fovYDegrees: 45, near: 0.1, far: 200 }, translateScene: [0, 0, 0] });
+        camera: { eye: [22, 18, 30], target: [5, 5, 5], up: [0, 1, 0], fovY: 45, near: 0.1, far: 200 }, translateScene: [0, 0, 0] });
       out.faces = lit(await viewer.readPixels(), bgOf(seed));
       out.facePick = (() => { for (let y = 4; y < 120; y += 4) for (let x = 4; x < 160; x += 4) { const h = viewer.pickQualifiedFace({ xCss: x, yCss: y }); if (h) return h.sourceId ?? true; } return null; })();
       viewer.dispose();
@@ -120,7 +120,7 @@ test('native light and UV01 viewers and the native appearance draw on WebGPU', {
         sphereSource: '@scene mixed_depth { version:1; background:#101820; sphere #original_sphere; } #original_sphere { radius:0.5; color:#ff0000; translate:0 0 0; rotate-x:0deg; rotate-y:0deg; rotate-z:0deg; }',
         nativeSource: '@model rational_native { version:0; length-unit:mm; @surface #original_panel { type:nurbs; degree-u:1; degree-v:1; knots-u:[-2,-2,5,5]; knots-v:[-0,-0,11,11]; control-points:[[[-1000,-1000,0],[-1000,1000,0]],[[1000,-1000,0],[1000,1000,0]]]; weights:[[1,1.2],[0.7,1]]; } }',
         native: { sourceVersion: 0, countU: 17, countV: 17 }, surface: { modelId: 'rational_native', surfaceId: 'original_panel' },
-        surfaceColor: [0.1, 0.2, 1], nativeTranslateScene: [0, 0, -0.75], camera: { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: 0.01, far: 20 },
+        surfaceColor: [0.1, 0.2, 1], nativeTranslateScene: [0, 0, -0.75], camera: { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: 0.01, far: 20 },
         basis: 'authored-xyz-matches-rhyup' });
       const mixed = await mixedViewer.readPixels(), at = (x, y) => [...mixed.slice((y * 160 + x) * 4, (y * 160 + x) * 4 + 3)];
       out.mixedCentre = at(80, 60); out.mixedPanel = at(97, 60);

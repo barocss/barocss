@@ -13,7 +13,7 @@ import { printLayers } from '../src/print/layers';
 test('G23: preview-only JSON Save/Open preserves omissions, zero and false without creating print.direction', async () => {
   const values: PrintPreviewSettings[] = [
     { version: 1 }, { version: 1, layer: 0 }, { version: 1, supports: false, printed: false },
-    { version: 1, layer: Number.MAX_SAFE_INTEGER, layerMM: 0.15, supports: true, printed: true },
+    { version: 1, layer: Number.MAX_SAFE_INTEGER, layerHeight: 0.15, supports: true, printed: true },
   ];
   for (const value of values) {
     assert.equal(firstProblem(checkPrintPreview(value)), null);
@@ -30,10 +30,10 @@ test('G23: preview-only JSON Save/Open preserves omissions, zero and false witho
 test('G23: absent preview fields retain the existing default direction and 0.2 mm estimate', () => {
   const doc: StudioDoc = { ...rectanglePart(4, 3, 2), printPreview: { version: 1, layer: 0, supports: false } };
   const read = readStudioDoc(JSON.stringify(doc)); assert.ok('doc' in read);
-  assert.equal('layerMM' in read.doc.printPreview!, false); assert.equal('printed' in read.doc.printPreview!, false);
+  assert.equal('layerHeight' in read.doc.printPreview!, false); assert.equal('printed' in read.doc.printPreview!, false);
   assert.equal('print' in read.doc, false);
   const evaluated = evaluateDoc(read.doc, 1); assert.ok(evaluated.ok);
-  const layers = printLayers(evaluated.bodies.map(b => b.mesh), { layerHeight: read.doc.printPreview?.layerMM, direction: read.doc.print?.direction });
+  const layers = printLayers(evaluated.bodies.map(b => b.mesh), { layerHeight: read.doc.printPreview?.layerHeight, direction: read.doc.print?.direction });
   assert.deepEqual(layers.layerMM, { mm: 0.2, basis: 'estimate' });
   assert.equal(layers.directionSource, 'default'); assert.deepEqual(layers.direction, [0, 0, 1]);
 });
@@ -53,7 +53,7 @@ test('G23: version, safe layer index, finite positive thickness and boolean flag
   const invalid: unknown[] = [
     null, [], 1, 'preview', {}, { version: 0 }, { version: 2 }, { version: '1' },
     ...[-1, 0.5, Number.MAX_SAFE_INTEGER + 1, NaN, Infinity, '0', null].map(layer => ({ version: 1, layer })),
-    ...[0, -0.1, NaN, Infinity, '0.2', null].map(layerMM => ({ version: 1, layerMM })),
+    ...[0, -0.1, NaN, Infinity, '0.2', null].map(layerHeight => ({ version: 1, layerHeight })),
     ...['supports', 'printed'].flatMap(key => [0, 1, 'false', null].map(value => ({ version: 1, [key]: value }))),
     { version: 1, direction: [0, 0, 1] },
   ];
@@ -65,7 +65,7 @@ test('G23: version, safe layer index, finite positive thickness and boolean flag
     const file = await readStudioFile(new TextEncoder().encode(text));
     assert.ok('error' in file && file.error.startsWith('[PRINT_PREVIEW_INPUT] printPreview:'), text);
   }
-  for (const layerMM of [Number.MIN_VALUE, Number.MAX_VALUE]) assert.equal(firstProblem(checkPrintPreview({ version: 1, layer: 0, layerMM })), null, 'no unrequested thickness bounds');
+  for (const layerHeight of [Number.MIN_VALUE, Number.MAX_VALUE]) assert.equal(firstProblem(checkPrintPreview({ version: 1, layer: 0, layerHeight })), null, 'no unrequested thickness bounds');
 });
 
 test('G23: placed documents and pending revisions use the same read refusal without filling missing controls', () => {
@@ -87,7 +87,7 @@ test('G23: chunked BCAD Save/Open carries preview values and uses the same valid
   const doc: StudioDoc = { ...withNode(emptyDoc(), mesh), printPreview: { version: 1, layer: 0, supports: false, printed: true } };
   const bytes = encodeStudioFile(doc); assert.ok(isContainer(bytes));
   const read = await readStudioFile(bytes); assert.ok('doc' in read, JSON.stringify(read));
-  assert.deepEqual(read.doc.printPreview, doc.printPreview); assert.equal('layerMM' in read.doc.printPreview!, false); assert.equal('print' in read.doc, false);
+  assert.deepEqual(read.doc.printPreview, doc.printPreview); assert.equal('layerHeight' in read.doc.printPreview!, false); assert.equal('print' in read.doc, false);
   const invalid = encodeStudioFile({ ...doc, printPreview: { version: 1, layer: -1 } });
   assert.ok(isContainer(invalid));
   const refused = await readStudioFile(invalid);

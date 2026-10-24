@@ -42,7 +42,7 @@ try {
   viewer.loadModelSet(set);
   const originalSource = set.entries[0].result.source;
   const camera = { eye: [0.35, 0.65, 2], target: [0.35, 0.5, 0], up: [0, 1, 0],
-    fovYDegrees: 45, near: 0.01, far: 10 };
+    fovY: 45, near: 0.01, far: 10 };
   viewer.setView(camera);
   const nativeOnly = hash(await viewer.readPixels());
   const ref = { kind: 'surface', ...viewer.getState().surfaces[0] };

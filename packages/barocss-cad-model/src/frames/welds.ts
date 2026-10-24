@@ -23,7 +23,7 @@ import { beadAccounting, type BeadAccounting } from './beadAccounting';
 
 type Vec3 = [number, number, number];
 export type WeldKind = 'fillet' | 'butt';
-export interface WeldRecord { joint: string; kind?: WeldKind; sizeMM?: number; allRound?: boolean; /** Whether the end face's inner loop (a tube's bore) is welded too: the person's alone, never a default. */ inner?: boolean; notes?: string }
+export interface WeldRecord { joint: string; kind?: WeldKind; size?: number; allRound?: boolean; /** Whether the end face's inner loop (a tube's bore) is welded too: the person's alone, never a default. */ inner?: boolean; notes?: string }
 export interface WeldJoint {
   /** Stable while the frame's members are: `<body>.<end>` (a mitre by its first member's end). */
   readonly id: string;
@@ -210,9 +210,9 @@ function withWeld(doc: StudioDoc, bodies: readonly BodyResult[], j: Bare, r: Wel
   // (A mitre's default is a groove (butt) weld; a cap, flush with its member, a corner weld — also no fillet: FRk2.)
   const kind: WeldKind = r?.kind ?? (j.kind === 'mitre' || j.kind === 'cap' ? 'butt' : 'fillet');
   const estimate = walls.length === j.meets.length + 1 ? Math.min(...walls) : null;
-  if (r?.sizeMM === undefined && estimate !== null) notes.push('sizes unset are the thinner wall of the two members: an estimate (a rule of thumb, not a calculation)');
-  if (r?.sizeMM === undefined && estimate === null) notes.push('a member with no wall (a sketch or T-slot section) gives no size estimate: set one');
-  const sizeMM = r?.sizeMM ?? estimate, sizeBasis = r?.sizeMM !== undefined ? 'set' as const : estimate !== null ? 'estimate' as const : 'none' as const;
+  if (r?.size === undefined && estimate !== null) notes.push('sizes unset are the thinner wall of the two members: an estimate (a rule of thumb, not a calculation)');
+  if (r?.size === undefined && estimate === null) notes.push('a member with no wall (a sketch or T-slot section) gives no size estimate: set one');
+  const sizeMM = r?.size ?? estimate, sizeBasis = r?.size !== undefined ? 'set' as const : estimate !== null ? 'estimate' as const : 'none' as const;
   const { innerMM, ...rest } = j, welded = innerMM === null ? null : r?.inner ?? null;
   if (innerMM !== null && welded === null) notes.push('an end with an inner loop (a tube\'s bore): whether it is welded is yours to say (features.welds inner), none assumed');
   return { ...rest, seamBasis: own.straight ? 'exact' : 'mesh', innerLoop: innerMM === null ? null : { mm: innerMM, welded }, weldMM: r6(j.seamMM + (welded ? innerMM! : 0)), weld: { kind, sizeMM, sizeBasis, allRound: r?.allRound ?? true, ...(r?.notes ? { notes: r.notes } : {})  }, ...beadOf(doc, bodies, j.id) };
