@@ -133,10 +133,8 @@ the integration tip is `b54bae6d8`.
   - the R7.3b follow-up: `bodyMass` inertia in g·mm².
 
 **GPU (GPU 줄).**
-- **On branch, not yet merged:**
-  - G13, the robot frames drawn as RGB triads with names (`6cf398188`, `4b4acd4cb`);
-  - the proposal ghost's volume chips stacked (`b0d5619b4`).
-  - Their full flow was running when this was written.
+- **Merged** at `37d06c9bf`: G13, the robot frames drawn as RGB triads with name chips (G-R50); and the proposal ghost's
+  volume chips stacked. The full flow passes 287/287 on both renderers.
 - **Then:**
   - R7.3a for gpu, in two batches:
     1. the 33 classes and 21 `{ ok:false }` returns onto a BarocssError of the same shape, defined in gpu, since gpu
@@ -203,8 +201,7 @@ The R7 decisions are made. The conventions §1–§12 and R7's steps were approv
      across;
    - install the tools in §2.
 4. **Start the coordinator first,** then each lane in its own worktree (§1), with the first messages in §7.
-5. **The coordinator** then merges any lane branch that's ahead (GPU's G13 first), runs check:docs, and continues the
-   "Order now" queues.
+5. **The coordinator** then merges any lane branch that's ahead, runs check:docs, and continues the "Order now" queues.
 
 ## 7. Messages
 
@@ -249,7 +246,7 @@ Open each in the worktree named in §1.
 > You are the barocss GPU lane, continuing from another account. Read
 > apps/cad-studio/handover/notes/claude-resume-2026-10-24/README.md (§4, GPU), then
 > ../claude-resume-2026-10-23/common.md, apps/cad-studio/handover/api-conventions.md (§6 and §10) and your
-> decisions-gpu.md tail (G-R49 onward). If G13's checkpoint isn't sent yet, finish its full flow and send it. Then do
+> decisions-gpu.md tail (G-R49 onward). G13 is merged. Do
 > R7.3a for gpu in two batches, then R7.3c, R7.3d (with the kernel, through the coordinator) and G14. Send checkpoints
 > to the coordinator session.
 
