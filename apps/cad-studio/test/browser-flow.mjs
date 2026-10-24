@@ -8545,6 +8545,44 @@ try {
     await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
     await page.click('.mode button:text-is("Model")');
   });
+  await check('G15b studio light: Softboxes and the Cyclorama from the Render panel light the part (kept as the environment\'s studio, its strength), an image replaces them, Sky and ground again none', async () => {
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-machined-steel');
+    await page.click('.render-panel [role="tab"]:text-is("Scene")');
+    const env = () => page.evaluate(() => window.__studioDoc.render.environment);
+    const gpu = renderer === 'webgpu';
+    // (Step 48 left an image: Sky and ground first, the image gone.)
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', '');
+    await page.waitForFunction(() => !window.__studioDoc.render.environment.map && !window.__studioDoc.render.environment.studio);
+    const mean = async () => { await idle(); await page.waitForTimeout(700); const f = await page.evaluate(() => window.__studioFrame(48)); return f.reduce((a, b) => a + b, 0) / f.length; };
+    const sky = gpu ? await mean() : 0;
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', 'softbox');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.kind === 'softbox');
+    assert.deepEqual((await env()).studio, { kind: 'softbox', intensity: 1 });
+    const softbox = gpu ? await mean() : 0; if (gpu) await snap('g15b-softbox');
+    await page.evaluate(() => { const el = document.querySelector('.render-panel [aria-label="Environment strength"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '2'); el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.intensity === 2);
+    const brighter = gpu ? await mean() : 0;
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', 'cyclorama');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.kind === 'cyclorama' && window.__studioDoc.render.environment.studio.intensity === 2);
+    if (gpu) await snap('g15b-cyclorama');
+    // An image replaces the studio (its strength kept); Sky and ground drops both.
+    await page.setInputFiles('.render-panel [aria-label="Environment image"]', join(root, 'test/fixtures/sky.png'));
+    await page.waitForFunction(() => /^data:image/.test(window.__studioDoc.render.environment.map?.image ?? '') && !window.__studioDoc.render.environment.studio, null, { timeout: 5000 });
+    assert.equal((await env()).map.intensity, 2);
+    assert.equal(await page.inputValue('.render-panel [aria-label="Studio environment"]'), 'image');
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', '');
+    await page.waitForFunction(() => !window.__studioDoc.render.environment.map && !window.__studioDoc.render.environment.studio);
+    if (gpu) {
+      console.log(`  G15b: frame mean sky ${sky.toFixed(1)}, softbox ${softbox.toFixed(1)}, ×2 ${brighter.toFixed(1)}`);
+      assert.ok(Math.abs(softbox - sky) > 1, 'the softbox room lights the part differently');
+      assert.ok(brighter > softbox + 0.5, `twice as strong, brighter: ${softbox.toFixed(1)} → ${brighter.toFixed(1)}`);
+    }
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
+    await page.click('.mode button:text-is("Model")');
+  });
 } finally {
   await browser.close(); await server.close();
 }
