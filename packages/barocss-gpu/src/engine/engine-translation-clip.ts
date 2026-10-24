@@ -96,7 +96,7 @@ function clip(input: unknown): EngineTranslationClipV0 {
       check(previous === undefined || timeSeconds > previous && timeSeconds - previous >= 1e-6,
         CODE.RANGE, 'Key times require strict increasing order and separation of at least1e-6 seconds');
       previous = timeSeconds;
-      const translation = array(data.translation, 3, 3).map(n => number(n, -1000, 1000, 'Local translation')) as Vec3;
+      const translation = array(data.translation, 3, 3).map(n => number(n, -1000, 1000, 'Local translation')) as [number, number, number];
       Object.freeze(translation); return Object.freeze({ timeSeconds, translation });
     });
     Object.freeze(keys); return Object.freeze({ nodeId: row.nodeId, keys });
@@ -117,7 +117,7 @@ function sample(track: EngineTranslationTrackV0, time: number): Vec3 {
       const left = keys[i - 1], alpha = (time - left.timeSeconds) / (right.timeSeconds - left.timeSeconds);
       check(Number.isFinite(alpha) && alpha >= 0 && alpha <= 1, CODE.RANGE, 'Derived segment ratio is invalid');
       return left.translation.map((n, index) => number(n + (right.translation[index] - n) * alpha,
-        -1000, 1000, 'Derived local translation')) as Vec3;
+        -1000, 1000, 'Derived local translation')) as [number, number, number];
     }
   }
   throw new EngineTranslationClipError(CODE.RANGE, 'No admitted segment contains request time');

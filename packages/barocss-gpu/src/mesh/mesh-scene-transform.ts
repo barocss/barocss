@@ -35,8 +35,8 @@ export function prepareSceneTransform(input:unknown):MeshSceneTransform {
   requireValue(actual.length===keys.length&&actual.every(k=>typeof k==='string'&&keys.includes(k)),'Mesh scene transform has missing or unsupported fields');
   const data:Record<string,unknown>={};
   for(const key of keys){const d=Object.getOwnPropertyDescriptor(input,key);requireValue(d&&'value'in d&&d.enumerable,'Mesh scene transform fields must be own data');data[key]=d.value;}
-  const translationMm=vector(data.translationMm,3,'translationMm') as Vec3;
-  const scale=vector(data.scale,3,'scale') as Vec3;
+  const translationMm=vector(data.translationMm,3,'translationMm') as [number, number, number];
+  const scale=vector(data.scale,3,'scale') as [number, number, number];
   const rotationXYZW=vector(data.rotationXYZW,4,'rotationXYZW') as MeshSceneTransform['rotationXYZW'];
   requireValue(translationMm.every(n=>Math.abs(n)<=10000),'Display translation exceeds ±10000 mm');
   requireValue(scale.every(n=>n>=.001&&n<=100),'Display scale must be in [0.001,100]');
@@ -45,7 +45,7 @@ export function prepareSceneTransform(input:unknown):MeshSceneTransform {
   return Object.freeze({translationMm,rotationXYZW,scale});
 }
 export function displayBounds(positions:ArrayLike<number>):MeshSceneBounds {
-  const min:Vec3=[Infinity,Infinity,Infinity],max:Vec3=[-Infinity,-Infinity,-Infinity];
+  const min:[number,number,number]=[Infinity,Infinity,Infinity],max:[number,number,number]=[-Infinity,-Infinity,-Infinity];
   for(let i=0;i<positions.length;i++){const axis=i%3;min[axis]=Math.min(min[axis],positions[i]);max[axis]=Math.max(max[axis],positions[i]);}
   return{min,max};
 }

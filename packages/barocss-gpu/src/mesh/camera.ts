@@ -1,14 +1,15 @@
+import type { Vec3 } from '../core/geometry-types.js';
 /** Mesh presentation camera. Eye and target use scene units; up is dimensionless. */
 export interface MeshCamera {
-  eye: [number, number, number];
-  target: [number, number, number];
-  up: [number, number, number];
+  eye: Vec3;
+  target: Vec3;
+  up: Vec3;
   fovYDegrees: number;
   near: number;
   far: number;
 }
 
-type Triple = [number, number, number];
+type Triple = Vec3;
 const DEFAULT_CAMERA: MeshCamera = {
   eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: 0.01, far: 100,
 };
@@ -26,7 +27,7 @@ function vector(input: unknown, label: string, limit: number): Triple {
       && Number.isFinite(descriptor.value) && Math.abs(descriptor.value) <= limit, `${label} must contain bounded finite JSON numbers`);
     result.push(descriptor.value);
   }
-  return result as Triple;
+  return result as [number, number, number];
 }
 function dot(a: Triple, b: Triple): number { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
 function cross(a: Triple, b: Triple): Triple {
@@ -35,11 +36,11 @@ function cross(a: Triple, b: Triple): Triple {
 // Scaling first avoids overflow for large, finite dimensionless up vectors.
 function normalized(a: Triple): Triple {
   const scale = Math.max(...a.map(Math.abs));
-  const scaled = a.map((n) => n / scale) as Triple, length = Math.hypot(...scaled);
-  return scaled.map((n) => n / length) as Triple;
+  const scaled = a.map((n) => n / scale) as [number, number, number], length = Math.hypot(...scaled);
+  return scaled.map((n) => n / length) as [number, number, number];
 }
 function matrices(camera: MeshCamera, aspect: number): { view: Float32Array; projection: Float32Array } {
-  const backward = normalized(camera.eye.map((n, i) => n - camera.target[i]) as Triple);
+  const backward = normalized(camera.eye.map((n, i) => n - camera.target[i]) as [number, number, number]);
   const up = normalized(camera.up), sideCross = cross(up, backward);
   requireValue(Math.hypot(...sideCross) >= 1e-6, 'Camera forward and up axes are singular');
   const right = normalized(sideCross), vertical = cross(backward, right);
@@ -64,7 +65,7 @@ function matrices(camera: MeshCamera, aspect: number): { view: Float32Array; pro
     const clip = Math.fround(Math.fround(projection[10] * z) + projection[14]);
     requireValue(Math.abs(clip / -z - expected) <= 1e-3, 'Camera Float32 clipping endpoints are ill-conditioned');
   }
-  const axes = [0, 1, 2].map((row) => [view[row], view[4 + row], view[8 + row]] as Triple);
+  const axes = [0, 1, 2].map((row) => [view[row], view[4 + row], view[8 + row]] as [number, number, number]);
   requireValue(axes.every((axis) => Math.abs(dot(axis, axis) - 1) <= 1e-5)
     && Math.abs(dot(axes[0], axes[1])) <= 1e-5 && Math.abs(dot(axes[1], axes[2])) <= 1e-5
     && Math.abs(dot(axes[0], axes[2])) <= 1e-5 && dot(cross(axes[0], axes[1]), axes[2]) > 0.99999,

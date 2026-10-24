@@ -10,4 +10,4 @@ export type { Light, DirectionalLight, PointLight, SpotLight, Environment, Color
 export type { Box3 } from './bounds.js';
 export { boxCenter, boxRadius } from './bounds.js';
 export { identity, multiply, translation, rotation, lookAt, invert } from './math.js';
-export type { Mat4, Vec3 as ViewerVec3 } from './math.js';
+export type { Mat3, Mat4, Vec3 } from '../core/geometry-types.js';

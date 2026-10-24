@@ -3138,3 +3138,30 @@ The work stopped here for the owner's move to another place.
   core/packet.ts and its seven preview builders, gpu's mesh-packet.ts, gpu-compiler and kernel-face-preview), which is
   Z-up data. The same tag also sits in packages/barocss-cad-interop (its packet, three and babylon hosts, which are Y-up
   engines), packages/barocss-viewer, the physics examples and pinned evidence JSON. The scope is the coordinator's call.
+
+## G-R53 — R7.3c: gpu's Vec3, Mat3 and Mat4 in one declaration, readonly at the boundary (roadmap R7.3c, 2026-10-24)
+
+- **One declaration**: `src/core/geometry-types.ts`, in api-conventions.md §10.2's shapes:
+  - `Vec3 = readonly [number, number, number]`;
+  - `Mat3`: 9 numbers, row-major, its columns the frame's axes;
+  - `Mat4 = Float64Array`, column-major.
+- **Before**: two exported Vec3s, viewer/math.ts's readonly one (exported as `ViewerVec3`) and scene-types.ts's mutable
+  one (the main entry's `Vec3`), plus scene-viewer's local `V3` and inline `[number, number, number]` in the public
+  mesh packet, the mesh camera, capHatchAxes and the SDF render IR. No Mat3.
+- **After**:
+  - viewer/math.ts and scene-types.ts re-export the core types. scene-viewer's `V3` is the core `Vec3`.
+  - The main entry exports `Vec3` (now readonly), `Mat3` and `Mat4`. The viewer entry exports the same three under the
+    same names. `ViewerVec3` is gone, with no alias; nothing in the repository used it.
+  - Readonly `Vec3` in the public types: MeshPacket's `bounds`; MeshOptions' and the coplanar boolean options'
+    `translate`; MeshCamera's `eye`, `target` and `up`; capHatchAxes' `u` and `v`; the SDF IR's `translate`, `size`,
+    `rotateDegrees`, `start` and `end`. Colours stay `RGB`, a mutable triple: they are not geometry.
+  - Inside gpu, values being built stay mutable: 58 `number[] as Vec3` casts read `as [number, number, number]`, and
+    the growing min/max accumulators are typed mutable (engine-scene, triangle-geometry, mesh-scene-transform,
+    primitive-frame-preflight, source-scene-bounds' `GrowingBox`). A readonly Vec3 accepts them.
+- **No runtime change**: the built `dist/index.js` and every emitted `.js` are byte-identical to batch 2's (`cmp`). The
+  only new file is the type-only `dist/core/geometry-types.js`. So the browser tests and flows were not rerun.
+- **Runs**: gpu tsc 0, eslint 0, unit 198/198. Studio tsc 0 and cad-model tsc 0 against the new declarations; neither
+  changed.
+- **Not done, for the other lanes** (§10.2 says "where they cross a package"): cad's `Vector3` (section-properties) and
+  its api/ Vec3s (the API lane's), and cad-model's eight `Vec3`/`V3`/`Mat3` declarations, are the kernel's, the API
+  lane's and the outer lane's.

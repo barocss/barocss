@@ -1,5 +1,6 @@
 import { validateMeshCamera } from './camera.js';
 import type { MeshCamera } from './camera.js';
+import type { Vec3 } from '../core/geometry-types.js';
 import { validateMeshLighting } from './mesh-lighting.js';
 import type { MeshLighting } from './mesh-lighting.js';
 
@@ -15,7 +16,7 @@ export interface PreviewPacket {
   normals: number[];
   indices: number[];
   parameters: number[];
-  bounds: { min: [number, number, number]; max: [number, number, number] };
+  bounds: { min: Vec3; max: Vec3 };
 }
 
 /** Explicit host conversion and opaque normalized RGB; no camera fitting or inferred units. */
@@ -23,7 +24,7 @@ export interface MeshOptions {
   camera?: MeshCamera;
   lighting?: MeshLighting;
   mmToSceneUnit: number;
-  translate: [number, number, number];
+  translate: Vec3;
   color: [number, number, number];
   background: [number, number, number];
 }

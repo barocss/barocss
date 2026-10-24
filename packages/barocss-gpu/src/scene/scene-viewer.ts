@@ -12,10 +12,11 @@ import { prepareRoundedBoxGeometry } from '../geometry/rounded-box-geometry.js';
 import { prepareTorusGeometry } from '../geometry/torus-geometry.js';
 import type { PreparedTriangleGeometry } from '../geometry/triangle-geometry.js';
 import type { Geometry, Mesh, Viewer } from '../viewer/viewer.js';
+import type { Vec3 } from '../core/geometry-types.js';
 import { multiply, rotation, translation, type Mat4 } from '../viewer/math.js';
 
 type Draw = Extract<GpuRenderIR, { pipeline: 'sdf' }>['draws'][number];
-type V3 = [number, number, number];
+type V3 = Vec3;
 
 export interface SceneViewOptions {
   /** Tessellation: segments around a curved primitive (default 48). */
