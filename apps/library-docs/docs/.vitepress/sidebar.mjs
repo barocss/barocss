@@ -45,7 +45,7 @@ export const sidebar = [
       { text: 'B-rep, robustness and refusals', link: '/packages/cad/robustness', lane: 'kernel' },
       { text: 'Exchange formats', link: '/packages/cad/formats', lane: 'kernel' },
       { text: '@barocss/cad-model', link: '/packages/cad-model/', lane: 'outer' },
-      { text: 'Object API (experimental)', link: '/packages/cad-model/api', lane: 'outer' },
+      { text: 'Object API (experimental)', link: '/packages/api', lane: 'outer' },
       { text: '@barocss/gpu', link: '/packages/gpu/', lane: 'GPU' },
     ],
   },
