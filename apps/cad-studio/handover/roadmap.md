@@ -45,15 +45,31 @@ The six dedicated Works are separate; the older Codex worktrees are not their wo
 The worktrees above are under `/Users/user/github/barocss/barocss/.claude/worktrees/`. Integration remains
 `barocss-cad-gpu-review-efbb2c`, branch `review/cad-gpu-engine-2026-10-14`.
 
+**Fixed R7 preparation base:** `c9cd4a8caa98b51570e7e02aaa94d637a523061d`, branch
+`codex/cad-r7-preparation-20261024`, worktree `codex-r7-preparation-20261024` under the worktree directory above.
+This isolated base combines adopted product code `af40fbbe87be51232c85c9a7be41a3c7c1d11c4e` and kernel
+`a9d777a7ebdd2e0fc09b2a11689182f41a0c95bc`. It is preparation only, not consumer-qualified or product-adopted.
+The owner's direct Kernel-chat request on 2026-10-24 authorizes fixing this base and preparing consumer migrations.
+The base's `notes/r7-window-2026-10-24/README.md`, `ownership.json` and `field-map.json` fix the 354 contextual
+renames, MMGS contracts, final spring rule and exact shared-file leases.
+
+Outer/API/Docs/Drawings were instructed to preserve the current direct task's source on its original branch first,
+then use their existing worktrees with `codex/cad-r7-{outer,api,docs,drawings}-20261024` branches at that exact base.
+Do not carry P2 or unrelated feature WIP into those branches. Coordinator retains browser-flow; Outer receives
+explicit App/chat/node-bench/mesh-bench leases; Docs owns its candidate generators/text; Drawings owns its omitted
+consumers. GPU receives a read-only consumer-impact review under the owner's no-render-code-change instruction.
+Final qualification occurs on an isolated assembled consumer aggregate; source-ready patches are not product
+acceptance. No preparation branch is merged into product while any required consumer checkpoint is unqualified.
+
 **R7.3b/R7.7b: HOLD.** Do not merge the kernel checkpoint alone. The window starts only when all five participants
 have immutable compatible checkpoints and their required checks are recorded:
 
-- Kernel: R7.3b/R7.7b qualification at `93c4f1e91` is in progress. Native-split's known Node-version assertion is a
-  recorded failure, not a green full suite. The rename map and MMGS value conversions both need consumer review.
-- Outer: O24(c) is adopted, but R7.7a steps 2/4 remain a proposal. The consumer migration is not ready.
-- API: R7.7d is not ready. P2 checkpoint `7a30ddcac` is preserved on its lane; its product check still exits 1.
-- Docs: the ordinary docs checkpoint is adopted; R7 sample/field/unit migration has not started and needs the fixed
-  coordinated source checkpoint. An ordinary docs pass does not establish R7 readiness.
+- Kernel: immutable source `a9d777a7e` is qualified with limits. The known Node-version assertion failure, six skips,
+  three strict-fingerprint refusal-name differences and two old RB TODOs remain explicit. Contract review is assigned.
+- Outer: R7.7a steps 2/4 are assigned at the fixed base after preserving O24(b). No verified migration receipt yet.
+- API: R7.7d is assigned at the fixed base after preserving P2. P2 product adoption stays held; no verified R7 receipt yet.
+- Docs: R7 sample/field/unit migration is assigned after preserving the owner's Boolean diagram work. Ordinary docs
+  passes do not establish R7 readiness; no verified R7 consumer receipt yet.
 - Drawings: its owned consumers still read the old spring report fields in `drawing/elementTables.ts` and
   `drawing/auto.ts`, and `tessellateBrep(...).positionsMM` in `drawing/section.ts`. Outer's migration proposal excludes
   these owned files. Drawings needs its own compatible R7 consumer checkpoint in the same window.
