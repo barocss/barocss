@@ -10,7 +10,7 @@ import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { rotationMatrix } from '../engine/placement';
 import type { JointTree } from './joints';
-import { applyTo, forwardKinematics } from './fk';
+import { applyTo, forwardKinematics, rootOf } from './fk';
 import { linkFrames, linkInertia, type Mat3, type V3 } from './inertia';
 import { pathOf } from './sweep';
 import { onSegment, sCurve, trapezoid, type Profile, type ProfileKind, type Segment } from './profile';
@@ -72,7 +72,8 @@ export function gravityTorques(tree: JointTree, masses: ReadonlyMap<string, Link
   }
   const generalized: Record<string, number> = {};
   for (const j of tree.joints) if (j.type !== 'fixed' && !j.mimic && j.key in torques) generalized[j.key] = torques[j.key];
-  for (const j of tree.joints) if (j.mimic && j.mimic.joint in generalized && j.key in torques) generalized[j.mimic.joint] += j.mimic.multiplier * torques[j.key];
+  // (A follower's share into its root joint by virtual work, × its rate there: a gear's multiplier, a cam's lift rate.)
+  for (const j of tree.joints) if (j.mimic && j.key in torques) { const r = rootOf(tree, j.key, fk.values); if (r.key in generalized) generalized[r.key] += r.rate * torques[j.key]; }
   if (!links.length && !joints.length) return { torques, generalized };
   return { torques, generalized, notReady: { code: 'ROBOT_NOT_READY', links, joints, message: `not reached from the base yet: ${[...links.map(l => `link ${l}`), ...joints.map(k => `joint ${k}`)].join(', ')} — their torques are not given (a part not yet mated, or a joint mid-edit)` } };
 }
@@ -122,6 +123,9 @@ function posed(tree: JointTree, bodies: ReadonlyMap<string, LinkBody>, q: Readon
 }
 /** A joint's rate in SI (radians, or a slide's mm in metres); a follower's from its leader. */
 function jointRate(j: JointTree['joints'][number], m: Readonly<Record<string, number>>): number {
+  // (A cam's follower moves with its lobe's lift, whose rate changes along the move: its accelerations need the lift's
+  // second derivative, not taken yet — refused rather than run as linear.)
+  if (j.cam) throw refusal('CAM_UNSUPPORTED', `${j.key} follows a cam (${j.cam.mate}): motion torques through a cam are not worked out yet`);
   const v = j.mimic ? j.mimic.multiplier * (m[j.mimic.joint] ?? 0) : m[j.key] ?? 0;
   return j.type === 'prismatic' ? v * 1e-3 : v;
 }
@@ -173,7 +177,7 @@ export const coordinates = (tree: JointTree) => tree.joints.filter(j => j.type !
  */
 export function massMatrix(tree: JointTree, bodies: ReadonlyMap<string, LinkBody>, q: Readonly<Record<string, number>>): { keys: string[]; M: number[][] } {
   const { joint, link } = posed(tree, bodies, q), keys = coordinates(tree), n = keys.length, M = keys.map(() => new Array(n).fill(0));
-  const col = (j: (typeof tree.joints)[number]) => (j.mimic ? { k: keys.indexOf(j.mimic.joint), s: j.mimic.multiplier } : { k: keys.indexOf(j.key), s: 1 });
+  const values = posed(tree, bodies, q).values, col = (j: (typeof tree.joints)[number]) => { if (!j.mimic) return { k: keys.indexOf(j.key), s: 1 }; const r = rootOf(tree, j.key, values); return { k: keys.indexOf(r.key), s: r.rate }; };
   for (const l of tree.links) {
     const L = link.get(l.id)!; if (!(L.m > 0)) continue;
     const Jv = keys.map(() => [0, 0, 0] as V3), Jw = keys.map(() => [0, 0, 0] as V3);

@@ -99,6 +99,9 @@
 | `[BRANCH_NAME]` | `versions` | a branch's name is 1 to 63 letters, digits, spaces and . _ / - (starting with a letter or digit), got … |
 | `[BRANCH_UNKNOWN]` | `versions` | there is no branch “…” (branches: …) |
 | `[BRANCH_UNSAVED]` | `versions` | the document has changes since the last version of “…”: make a version first, or discard them |
+| `[CAM_IN_LOOP]` | `robot` | … follows a cam (…) and moves a closed loop: a loop through a cam is not closed yet |
+| `[CAM_PROFILE_UNSUPPORTED]` | `robot` | …: ….… is a flat face neither along the cam's axis nor across it: no lift is read from it |
+| `[CAM_UNSUPPORTED]` | `robot` | … follows a cam (…): motion torques through a cam are not worked out yet |
 | `[CAP_PICK]` | `app` | … |
 | `[CASTING_ALLOWANCE]` | `chat/part` | allowance is mm a machined face, 0 to 100: …. |
 | `[CASTING_FACE]` | `casting`, `chat/part` | marked machined but not on the part: … |
@@ -198,7 +201,7 @@
 | `[LIMITS_MISSING]` | `robot` | joint … has no … limits above 0 |
 | `[LOFT_SECTIONS]` | `app` | … |
 | `[LOOP_MATE_UNSUPPORTED]` | `robot` | … (… between ….… and ….…) closes a loop, and no loop closure holds that mate yet: concentric round faces, coincident, distance or angle between flat faces, … |
-| `[LOOP_OPEN]` | `api`, `robot` | the robot has a closed loop (…); a motion's poses do not close it yet, so it is not played or checked |
+| `[LOOP_OPEN]` | `api` | the robot has a closed loop (…); a motion's poses do not close it yet, so it is not played or checked |
 | `[LOOP_PASSIVE]` | `robot` | the loop… … degree… of freedom: give … of …, and the rest are solved (… given) |
 | `[MATERIAL_UNKNOWN]` | `chat/part` | "…" is not a material here; materials: …. |
 | `[MATE_BOTH_FIXED]` | `assembly` | Both parts are fixed (the base part and grounded parts never move): one of them must be free. |

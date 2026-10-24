@@ -56,7 +56,7 @@ export function checkPath(tree: JointTree, path: TimedPath): Problem[] {
   for (const [i, w] of path.waypoints.entries()) for (const [key, v] of Object.entries(w)) {
     const j = byKey.get(key);
     if (!j || j.type === 'fixed') { out.push(problem('JOINT_UNKNOWN', `waypoint ${i}: no moving joint ${key} (joints: ${tree.joints.filter(x => x.type !== 'fixed' && !x.mimic).map(x => x.key).join(', ') || 'none'})`)); continue; }
-    if (j.mimic) { out.push(problem('JOINT_MIMIC', `waypoint ${i}: ${key} follows ${j.mimic.joint} (gears): give ${j.mimic.joint} instead`)); continue; }
+    if (j.mimic) { out.push(problem('JOINT_MIMIC', `waypoint ${i}: ${key} follows ${j.mimic.joint} (${j.cam ? 'a cam' : 'gears'}): give ${j.mimic.joint} instead`)); continue; }
     if ((j.limit?.lower !== undefined && v < j.limit.lower - 1e-12) || (j.limit?.upper !== undefined && v > j.limit.upper + 1e-12)) out.push(problem('JOINT_LIMIT', `waypoint ${i}: ${key} = ${v} is outside its limits ${j.limit?.lower ?? '−∞'} to ${j.limit?.upper ?? '∞'}`));
   }
   if (!out.length) try { timePath(tree, path); } catch (e) { if (e instanceof Error && /^\[LIMITS_(MISSING|BAD)\]/.test(e.message)) out.push(problem(e.message.startsWith('[LIMITS_BAD]') ? 'LIMITS_BAD' : 'LIMITS_MISSING', e.message.replace(/^\[\w+\] /, ''))); else throw e; }

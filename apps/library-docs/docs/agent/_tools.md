@@ -108,6 +108,7 @@ Parts placed and mated with the base part; changes to it are proposed. A part to
 | `assembly.delete_part` | `delete_part` | part |
 | `assembly.add_mate` | `add_mate` | kind, a, b, distance?, angle?, flip? |
 | `assembly.edit_mate` | `edit_mate` | id, distance?, angle?, flip? |
+| `assembly.lock` | `lock_part` | part, to — fixed to it where they stand |
 | `assembly.delete_mate` | `delete_mate` | id |
 | `assembly.inputs` | `set_inputs` | inputs: {name: {type, default, bindings, unit?, min?, max?, choices?} \| null} |
 | `assembly.variants` | `set_variants` | variants?: {name: {input: value} \| null}, active? |

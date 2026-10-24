@@ -6,7 +6,7 @@ import { emptyDoc, type PartInstance, type StudioDoc } from '../engine/doc';
 import { coded, refusal, type CadModelCode } from '../engine/refusal';
 import { nextFreeId } from '../util/ids';
 import { tablesFor } from './faces';
-import { BASE, KIND_LABEL, kindsFor, mateRefusal, solveAssembly, type Mate, type MateKind, type Vec3 } from './mates';
+import { BASE, KIND_LABEL, kindsFor, lockRel, mateRefusal, solveAssembly, type Mate, type MateKind, type Vec3 } from './mates';
 import { readRobot, type JointTree, type RobotSettings } from '../robot/joints';
 import type { FrameSettings } from '../robot/frames';
 
@@ -77,6 +77,25 @@ export function addMate(doc: StudioDoc, o: AddMateOptions): Mated {
   const mate: Mate = { id: nextFreeId('m', new Set(mates.map(m => m.id))), kind, a: { part: a.part, face: a.face }, b: { part: b.part, face: b.face },
     ...(kind === 'distance' ? { distance: Number(o.distance) } : {}), ...(kind === 'angle' ? { angle: Number(o.angle) } : {}), ...(kind !== 'concentric' && o.flip ? { flip: true } : {}), ...(kind === 'concentric' && typeof o.flip === 'boolean' ? { flip: o.flip } : {}) };
   return mated(doc, mate, [...mates, mate]);
+}
+
+/**
+ * PG-8, lock_part: `part` locked to `to` where they stand (the studio's Lock): a `lock` mate keeping part's placement in
+ * to's own coordinates (its faces unused). Refused: an unknown part, a part locked to itself, both fixed (MATE_BOTH_FIXED),
+ * a lock the solver cannot keep (MATE_UNMET); a fixed `part` and a free `to` swap, as add_mate swaps them.
+ */
+export function lockPart(doc: StudioDoc, o: { part: string; to: string }): Mated {
+  const instances = doc.instances ?? [], mates = doc.mates ?? [];
+  for (const p of [o.part, o.to]) if (!partDocOf(doc, p)) throw refusal('NO_PART', `No part "${p}"; parts: ${partList(doc)}.`);
+  if (o.part === o.to) throw refusal('MATE_SAME_PART', 'A part is locked to another part, not to itself.');
+  const fixed = (p: string) => p === BASE || !!instances.find(i => i.id === p)?.grounded;
+  let [a, b] = [o.to, o.part];
+  if (fixed(b)) { if (fixed(a)) throw refusal('MATE_BOTH_FIXED', 'Both parts are fixed (the base part and grounded parts never move): one of them must be free.'); [a, b] = [b, a]; }
+  const at = (p: string) => instances.find(i => i.id === p) ?? null;
+  const mate: Mate = { id: nextFreeId('m', new Set(mates.map(m => m.id))), kind: 'lock', a: { part: a, face: '' }, b: { part: b, face: '' }, rel: lockRel(a === BASE ? null : at(a), at(b)!) };
+  const list = [...mates, mate], r = solveAssembly(instances, list, tablesFor(doc), instances), problem = r.problems.find(p => p.mate === mate.id);
+  if (problem) throw refusal('MATE_UNMET', problem.reason, { mate: mate.id });
+  return { ...solveDoc({ ...doc, instances: r.instances, mates: list }, instances), mate, freedom: r.freedom[b] };
 }
 
 export interface EditMateOptions { id: string; distance?: number; angle?: number; flip?: boolean }
