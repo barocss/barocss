@@ -6,7 +6,7 @@ import { copyCadPreviewPacket, encodeCadPreviewGlb, prepareCadPreviewMesh } from
 function square(surfaceId = 'plate', height = 0) {
   return {
     version: 0, surfaceId, revision: 7, lengthUnit: 'mm',
-    coordinateSystem: 'right-handed-y-up', winding: 'ccw',
+    coordinateSystem: 'right-handed-z-up', winding: 'ccw',
     positions: [0, 0, height, 1000, 0, height, 0, 1000, height, 1000, 1000, height],
     normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
     indices: [0, 1, 2, 1, 3, 2],

@@ -10,7 +10,8 @@ import type { Duty } from '../robot/harness';
 import { materialData } from '../library/materials';
 import { assemblyBodies, bomView, checkAssembly } from '../team/assembly';
 import { prng, type Call, type Evaluate, type Outcome, type Params, type Rung } from './core';
-import { boxOf, cylindersOf, holds, near } from './measure';
+import { cylindersOf, holds, near } from './measure';
+import { boundsOf } from '../engine/bounds';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 
@@ -55,7 +56,7 @@ export const RUNG12: Rung = {
   async check({ doc }, p, evaluate) {
     const want = boxes12(p), insts = doc.instances ?? [], placed = await assemblyBodies(doc, evaluate), Q = num(p, 'Q'), z = num(p, 'tb') + num(p, 'zc');
     // (Each part the brief names, matched by where it is — not by its name or id.)
-    const match = want.map(w => insts.find(i => sameBox(boxOf(placed.get(i.id) ?? []), w.min, w.max))?.id ?? null);
+    const match = want.map(w => insts.find(i => { const b = placed.get(i.id); return !!b?.length && sameBox(boundsOf(b), w.min, w.max); })?.id ?? null);
     const tree = await treeOfDoc(doc, [], evaluate), shaft = match[4];
     const moving = tree.joints.filter(j => j.type !== 'fixed'), sj = moving[0];
     const onAxis = !!sj && Math.abs(Math.abs(sj.axis[0]) - 1) <= 1e-9 && Math.abs(sj.origin[1] - Q / 2) <= 1e-6 && Math.abs(sj.origin[2] - z) <= 1e-6;

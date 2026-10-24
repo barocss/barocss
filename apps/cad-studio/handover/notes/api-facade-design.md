@@ -399,7 +399,7 @@ patterns, `.union()`, `.subtract()` and `.intersect()`, since TS has no operator
 These come later, each with the same oracle:
 - **More of the assembly:** editing a placed part in place, deletes and edits, library parts, joints (R7.5 built the
   rest; see its section).
-- **More part features:** split, mirror, parameters.
+- **More part features:** parameters (see the createCadModel map).
 - **Rows:** reading a person's rows file. Under rows rule (b) the facade never writes rows.
 
 ## How it maps onto the core
@@ -542,6 +542,62 @@ Slice 1 covers `rectangle().extrude`, `hole`, the edge queries, `massProperties`
 no recipe limit: they take any count, angle or factor the core allows instead of the fixed sets. cad's facade is the
 one that replaces `createCadModel`. Its tests move onto `@barocss/cad/api` once each step lands, and then R7.3
 retires modeling.ts.
+
+## createCadModel's tests, mapped (R7.3d prep, 2026-10-24)
+
+- **What's there:** `cad.model()` (createCadModel, src/modeling.ts) has 36 `test/modeling*.test.mjs` files with 323
+  cases, plus 79 helper `.mjs` files (fixtures, native and cold helpers) and 23 evidence folders.
+- **What most of it tests:** the old API itself, not modelling. That means its input admission (exact own fields, no
+  getters, proxies), its 25-provider isolation, its codec, ownership and the "terminal" rules of its bounded recipes,
+  the reuse of earlier work (`recomputation`), and native evidence bundles. Those retire with it, and nothing in the
+  facade stands for them.
+- **The modelling underneath it** is covered case by case in `test/api-legacy-coverage.test.mjs` (11/11). Each case
+  builds the same shape both ways and compares volume and centroid. The old side is its massProperties where it measures
+  that family, and a closed form where it doesn't (circle, hole, mitre).
+
+| Old capability (test files using it) | Facade | Case |
+|---|---|---|
+| `rectangle().extrude(h)`, `{ from }` (29) | `box({ w, d, h, z })` | rectangle extrude |
+| `polygon`, `loop`, `circle` (15, 12, 8) | `sketch().polygon / moveTo…close / circle`, `extrude`; `cylinder` | polygon, loop and circle |
+| `hole({ center, radius })` (17) | `hole(face, { d, x, y })` | through hole |
+| `union`, `cut`, `intersect` (8, 14, 11) | `union`, `subtract`, `intersect`, a tool by callback or name | union, cut and intersect |
+| `edges({ parallelTo, at }).one()` + `chamfer`, chains (22, 21) | `chamfer(b => b.edges().along('z').where(…), { distance })`, twice | chamfer chain |
+| `translate`, `rotate` (quarter turns, pivot) (11, 10) | `moved(Location)`; a pivot as move · turn · move back; any angle | translate and rotate |
+| `mirror` (8) | `mirror({ plane, at })`, the image joined with the original as the v2 command has it; the image alone by `split` | mirror and scale |
+| `scale` (½, 2) (15) | `scale({ factor, pivot })`, any factor the kernel takes | mirror and scale |
+| `linearPattern`, `circularPattern` (counts 2–4, quarter turns) (6, 5) | `linearPattern`, `circularPattern`, any count; the copies joined | patterns (and seven copies at 360/7°) |
+| `split({ axis, at })`, the mitre (21, 4) | `split({ axis, at })`, `split({ normal, at })`, each side a body | split and mitre |
+| `massProperties`, `exportStl` (1, 1) | `mass({ density })` in MMGS, `stl()` | mass and STL |
+| `save()` / cold open (15) | `.doc`, `part(name, doc)` | save and open |
+
+- **New for this map:** `split`, `mirror` and `scale` are facade verbs now, in both backends, on the v2 commands. The
+  kernel's hand-written oracle and the agent's are in the api-verbs tests.
+  - A mirror plane off the origin is written as the studio writes it: move, mirror, move back.
+  - A scale pivot defaults to the origin in both cores (not the studio's body centre).
+- **No facade equivalent, and whether to keep it:**
+  - **Parameters and dimension expressions** (`parameter`, `dimension.add/scale`, `withParameters`; 25 and 12 files):
+    worth keeping. It's design in code: a dimension named once and re-evaluated with new values. Both documents already
+    hold `{ parameter }` dimensions, but the studio's commands take numbers. So it needs a design: parameters on the
+    part, verbs that take `{ parameter }`, and the studio backend writing the node's own dimension. Proposed as a next
+    facade item.
+  - **Named features and `withSuppression`** (1 file, plus the named chamfer): keep it, with parameters. It's the node's
+    `suppressed` flag. Low priority.
+  - **`constrainedPolygon`** (fixed, horizontal, vertical, parallelTo; 12 files): not needed for the retirement, since
+    a solved polygon is a polygon. Constraints belong to the studio's sketch solver (outer lane). A facade sketch could
+    later be solved through it.
+  - **`cut(tool, { axis })`**, a cut in two pieces (1 file): an old-only recipe, the same as `subtract` then `split`.
+    Drop it.
+  - **The pattern copies as separate bodies,** which the old API hands back one by one: the facade joins them, as the
+    studio's default does. Separate copies are the studio's `result: 'separate'` (duplicate nodes); the kernel has no
+    duplicate. Drop it unless a case needs it.
+  - **The old mirror without the original:** `mirror` then `split`, or the kernel's `keep: false`. Drop it.
+- **Found on the way** (sent to the coordinator for the outer lane): the studio's split and mirror commands drop the
+  agent's `at`. Their `derive` moves it to the body's middle or its face whenever the axis or plane is given with it,
+  so run_command `split { axis: 'x', at: 2 }` splits at the middle. The facade's studio backend applies the given
+  values after derive. Its agent-oracle case uses the values the agent path keeps, and a test of its own shows the
+  given `at` is kept.
+- **The retirement itself** is the kernel lane's commit: modeling.ts, its tests, fixtures and evidence. This map and the
+  coverage test are what it checks against.
 
 ## Out of scope
 

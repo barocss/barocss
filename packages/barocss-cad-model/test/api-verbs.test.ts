@@ -7,7 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { part, sketch, Plane, Location, BarocssError, type StudioPart } from '../src/api';
 import { prefixDoc, type StudioDoc } from '../src/engine/doc';
-import { evaluateDoc, stepFor } from '../src/engine/evaluate';
+import { evaluateDoc, exportStudioStep } from '../src/engine/evaluate';
 import { bodyMass } from '../src/app/mass';
 import { runTool, type ChatState } from '../src/chat/tools';
 
@@ -108,6 +108,20 @@ const CASES: Case[] = [
       outputs: { b1: { node: 1, side: 'solid' }, b3: { node: 3, side: 'solid' } }, nextId: 4,
     } as StudioDoc),
   },
+  {
+    // A block mirrored across its +X face, x = 10 (kept, joined), scaled ×2 about (1, 2, 3), and split across its middle,
+    // x = 19, into two bodies. (Those values because the agent's mirror and split commands move `at` to the face and the
+    // middle when the plane or axis is given with it — the outer lane's to fix; the facade keeps the `at` it is given,
+    // tested below.)
+    name: 'mirrored',
+    built: () => part('mirrored').box({ w: 10, d: 10, h: 10 }).mirror({ plane: 'yz', at: 10 }).scale({ factor: 2, pivot: [1, 2, 3] }).split({ axis: 'x', at: 19 }),
+    agent: [
+      ['run_command', { command: 'box', values: { w: 10, d: 10, h: 10, x: 0, y: 0, z: 0 } }],
+      ['run_command', { command: 'mirror', bodies: ['b1'], values: { plane: 'yz', at: 10 } }],
+      ['run_command', { command: 'scale', bodies: ['b4'], values: { factor: 2, px: 1, py: 2, pz: 3 } }],
+      ['run_command', { command: 'split', bodies: ['b5'], values: { axis: 'x', at: 19 } }],
+    ],
+  },
 ];
 
 async function agentDoc(calls: Call[]): Promise<StudioDoc> {
@@ -124,7 +138,7 @@ async function agentDoc(calls: Call[]): Promise<StudioDoc> {
   } finally { if (was === undefined) delete process.env.CAD_AUTONOMY; else process.env.CAD_AUTONOMY = was; }
 }
 
-// (stepFor stamps the export's time in FILE_NAME; the two runs are compared without it.)
+// (exportStudioStep stamps the export's time in FILE_NAME; the two runs are compared without it.)
 const unstamped = (text: string) => text.replace(/'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d'/g, "'stamp'");
 
 for (const c of CASES) {
@@ -141,8 +155,7 @@ for (const c of CASES) {
       const m = bodyMass(body, 1.2)!, expected = { volumeMM3: body.volumeMM3, massG: m.massG, centroidMM: m.centroid, inertiaGMM2: m.inertia.map(row => row.map(v => v * 1000)) };
       assert.equal(JSON.stringify(p.body(body.key).mass({ density: 1.2 })), JSON.stringify(expected));
     }
-    const core = stepFor(doc, c.name);
-    assert.ok('text' in core);
+    const core = exportStudioStep(doc, { name: c.name });
     assert.equal(unstamped(p.step()), unstamped(core.text));
   });
 }
@@ -232,4 +245,13 @@ test('material(id): what set_material writes; the meshes carry the id and the di
   assert.deepEqual(two.meshes().map(m => m.material), [undefined, 'steel']);
   assert.throws(() => two.body('b1').mass(), e => e instanceof BarocssError && e.code === 'MATERIAL_UNKNOWN');
   assert.throws(() => part().box({ w: 1, d: 1, h: 1 }).material('unobtainium'), e => e instanceof BarocssError && e.code === 'MATERIAL_UNKNOWN');
+});
+
+test('mirror and split keep the `at` they are given (the studio commands\' derive would move it to the face or the middle)', () => {
+  const m = part('m').box({ w: 10, d: 10, h: 10 }).mirror({ plane: 'yz', at: 12 });
+  assert.deepEqual(m.doc.nodes.slice(2).map(n => (n as { offset?: number[] }).offset ?? null), [[-12, 0, 0], null, [12, 0, 0]]);
+  assert.ok(Math.abs(m.mass({ density: 1 }).centroidMM[0] - 12) < 1e-9);
+  const p = part('m').box({ w: 10, d: 10, h: 10 }).split({ axis: 'x', at: 2 });
+  assert.deepEqual(p.doc.nodes[2], { kind: 'split', parent: { node: 1, side: 'solid' }, axis: 'x', at: 2, id: 'n2' });
+  assert.deepEqual(p.bodies().map(b => Math.round(p.body(b).mass({ density: 1 }).volumeMM3)), [200, 800]);
 });

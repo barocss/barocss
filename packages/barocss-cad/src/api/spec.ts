@@ -23,6 +23,9 @@ export type FeatureSpec =
   | { readonly command: 'linear-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
   | { readonly command: 'circular-pattern'; readonly values: { readonly axis: AxisName; readonly count: number; readonly span: number; readonly px: number; readonly py: number } }
   | { readonly command: 'move'; readonly values: { readonly x: number; readonly y: number; readonly z: number } }
+  | { readonly command: 'mirror'; readonly values: { readonly plane: 'yz' | 'xz' | 'xy'; readonly at: number } }
+  | { readonly command: 'scale'; readonly values: { readonly factor: number; readonly px: number; readonly py: number; readonly pz: number } }
+  | { readonly command: 'split'; readonly values: { readonly axis: AxisName; readonly at: number } | { readonly axis: 'n'; readonly nx: number; readonly ny: number; readonly nz: number; readonly at: number } }
   | { readonly command: 'rotate'; readonly values: { readonly axis: AxisName; readonly angle: number; readonly px: number; readonly py: number; readonly pz: number } };
 
 /**
@@ -52,6 +55,13 @@ export interface LinearPatternOptions { axis: AxisName; spacing: number; count: 
  * quarter turns, so the copies are 2 to 4 and no span or axis position is taken.
  */
 export interface CircularPatternOptions { axis?: AxisName; count: number; span?: number; px?: number; py?: number }
+
+/** `mirror`: a mirrored copy, joined, across a coordinate plane — yz (across X), xz or xy — through `at` on its axis (0: the origin). */
+export interface MirrorOptions { plane: 'yz' | 'xz' | 'xy'; at?: number }
+/** `scale`: the body scaled uniformly by `factor` about `pivot` (the origin unless given). */
+export interface ScaleOptions { factor: number; pivot?: readonly [number, number, number] }
+/** `split`: the body cut in two across the plane `axis` = at, or with `normal` any plane normal·p = at (x + y = at for [1, 1, 0]: a mitre). */
+export type SplitOptions = { axis: AxisName; at: number } | { normal: readonly [number, number, number]; at: number };
 
 const positive = (name: string, v: number) => { if (!(Number.isFinite(v) && v > 0)) throw refuse('VALUE', `${name} must be a positive number of mm, not ${v}`); return v; };
 const finite = (name: string, v: number) => { if (!Number.isFinite(v)) throw refuse('VALUE', `${name} must be a number of mm, not ${v}`); return v; };
@@ -120,4 +130,26 @@ export function moveSpec(offset: readonly [number, number, number]): FeatureSpec
 /** A turn about an axis through the origin (a Location's). */
 export function rotateSpec(axis: AxisName, angle: number): FeatureSpec {
   return { command: 'rotate', values: { axis, angle: degrees('angle', angle), px: 0, py: 0, pz: 0 } };
+}
+
+export function mirrorSpec(o: MirrorOptions): FeatureSpec {
+  if (o.plane !== 'yz' && o.plane !== 'xz' && o.plane !== 'xy') throw refuse('VALUE', `a mirror plane is yz, xz or xy, not ${String(o.plane)}`);
+  return { command: 'mirror', values: { plane: o.plane, at: finite('at', o.at ?? 0) } };
+}
+
+/** A uniform scale about a pivot (the origin unless given, in both cores: the studio's own default, the body's centre, is not taken). */
+export function scaleSpec(o: ScaleOptions): FeatureSpec {
+  const p = o.pivot ?? [0, 0, 0];
+  if (!(Number.isFinite(o.factor) && o.factor > 0)) throw refuse('VALUE', `factor must be a positive number, not ${o.factor}`);
+  return { command: 'scale', values: { factor: o.factor, px: finite('pivot x', p[0]), py: finite('pivot y', p[1]), pz: finite('pivot z', p[2]) } };
+}
+
+export function splitSpec(o: SplitOptions): FeatureSpec {
+  const at = finite('at', o.at);
+  if ('normal' in o) {
+    const [nx, ny, nz] = o.normal.map((v, k) => finite(`normal ${'xyz'[k]}`, v));
+    if (!(Math.hypot(nx, ny, nz) > 1e-9)) throw refuse('VALUE', 'a split plane\'s normal must not be zero');
+    return { command: 'split', values: { axis: 'n', nx, ny, nz, at } };
+  }
+  return { command: 'split', values: { axis: axisName(o.axis), at } };
 }

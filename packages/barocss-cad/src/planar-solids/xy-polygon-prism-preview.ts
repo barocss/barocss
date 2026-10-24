@@ -84,7 +84,7 @@ export function buildXYPolygonPrismPreview(request: XYPolygonPrismPreviewRequest
   const bounds: { min: Point; max: Point } = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] };
   for (let i = 0; i < positions.length; i += 3) for (let axis = 0; axis < 3; axis++) { bounds.min[axis] = Math.min(bounds.min[axis], positions[i + axis]); bounds.max[axis] = Math.max(bounds.max[axis], positions[i + axis]); }
   check(positions.length / 3 <= 378 && indices.length / 3 <= 248 && positions.every(p => Number.isFinite(p) && Math.abs(p) <= 10000), '$packet', 'generated prism exceeds bounded coordinates/counts');
-  const packet: PreviewPacket = { version: 0, surfaceId: meshId, revision: data.revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw', positions, normals, indices, parameters, bounds };
+  const packet: PreviewPacket = { version: 0, surfaceId: meshId, revision: data.revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', winding: 'ccw', positions, normals, indices, parameters, bounds };
   validatePreviewPacket(packet);
   const volume = region.areaMM2 * distance, area = 2 * region.areaMM2 + perimeter * distance;
   check([perimeter, volume, area].every(Number.isFinite), '$report', 'nonfinite floating construction metrics');

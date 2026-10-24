@@ -23,9 +23,10 @@ import { MOTOR_FIELDS, MOTORS, readCatalogue, REDUCER_FIELDS, REDUCERS, sizeActu
 import type { ProfileKind } from '../robot/profile';
 import { placeBody } from '../engine/evaluate';
 import { tablesFor } from '../assembly/faces';
-import { solveDoc } from './assembly';
+import { checkFramesOn, solveDoc, withFrames } from '../assembly/edit';
 import { jointTreeOf, readRobot, type JointSettings, type JointTree, type RobotSettings } from '../robot/joints';
 import { r6 } from '../util/round';
+import { isRefusal } from '../engine/refusal';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'set_frames', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques', 'motion_torques', 'size_actuators']);
@@ -221,12 +222,9 @@ async function setFrames(doc: StudioDoc, bodies: readonly BodyResult[], args: Re
     did.push(`${frames[name] ? 'replaced' : 'added'} ${name} on ${g.link}`);
     frames[name] = { link: g.link, ...(g.position !== undefined ? { position: g.position as number[] } : {}), ...(g.rotation !== undefined ? { rotation: g.rotation as number[] } : {}), ...(g.kind ? { kind: g.kind as 'tool' | 'sensor' } : {}) };
   }
-  const { frames: _f, ...rest } = was; void _f;
-  const next: RobotSettings = { ...rest, ...(Object.keys(frames).length ? { frames } : {}) }, tree = await treeOfDoc({ ...doc, robot: next }, bodies, evaluate);
-  const named = new Set(Object.keys(args.frames)), bad = tree.problems.find(p => p.frame !== undefined && named.has(p.frame));
-  if (bad) return { error: bad.message };
-  const robot = next.base || next.joints || next.frames ? next : undefined, out = { ...doc };
-  if (robot) out.robot = robot; else delete out.robot;
+  // (The write and the tree's check are the core's, assembly/edit.ts; the call's shape is checked above, in its order.)
+  const out = withFrames(doc, args.frames as Record<string, FrameSettings | null>), tree = await treeOfDoc(out, bodies, evaluate);
+  try { checkFramesOn(tree, Object.keys(args.frames)); } catch (e) { if (isRefusal(e)) return { error: e.message }; throw e; }
   return { doc: out, content: { ok: true, did: did.join(', '), frames: (tree.frames ?? []).map(f => ({ frame: f.name, link: f.link, ...(f.kind ? { kind: f.kind } : {}), position: f.o.map(r6), rotation: eulerOf(f.R).map(r6) })) }, changed: true, summary: `frames: ${did.join(', ')}` };
 }
 const FRAME_FIELDS = ['link', 'position', 'rotation', 'kind'];

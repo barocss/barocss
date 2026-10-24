@@ -14012,3 +14012,152 @@ codes; a part-model refusal caught as a BarocssError.
 - cad-model 1047/1047, its R4 fingerprint byte-identical to the unchanged tip's (152 documents, `d1f8bb3c…`); studio
   tsc 0 and 286/286; the api, error and public-api tests 30/30.
 - No refusal text changed: the docs table stays. No flow: nothing studio-visible.
+
+## D273 — K16: a ruling along another face's edge leaves no slit up a cylinder's wall (2026-10-24)
+
+**Finding (D271's check, 20261024 #96 r.a.b; and 24#165's root).** A cylinder r 3 whose wall touches a box's edge along
+a ruling (x = −2, y = 2): two lumps touching along a line, each a body of its own (D204). The union's cylinder body failed
+the strict check in both orders ("its loops cross or touch"): the wall's loop ran up the ruling and straight back, one
+edge used twice in a row.
+
+**Cause (`stitch`, `src/brep/analytic-boolean.ts`).** The box's face x = −2 cuts the wall in its rulings; one lies on that
+face's edge, where the wall is outside the box on both sides, so the cut divides nothing. D201's `unspike` takes such a
+spur out, but only on planar pieces, because a periodic face meets its seam both ways (a cone's even one after the other,
+at its apex).
+
+**Fix.** `unspike` also runs on cylinder pieces, keeping an edge on the cylinder's seam (θ = ref ± π, within 100
+tolerances along the wall: `onCylinderSeam`). Other curved pieces, the NURBS ones with poles and apexes, are left as
+they were.
+
+**Results:** 24#96's node builds both ways, valid and watertight, its volume within the ray oracle's bound. 24#165's root,
+refused one way and invalid the other, builds both ways too. And an RB TODO since D186 (K9): the oracle corpus's
+`cylinder-box-graze-x45-in0_000001-difference`, a box edge 1 nm into a cylinder's wall. The lens's two traced curves had
+stitched into one edge used both ways, one after the other, by the wall's face (D186 refused it, typed). That is the same
+spur, now taken out: the body builds with the lens dropped, as K9's note asked, and RB judges it OK against its oracle
+(IMPROVEMENT; its entry leaves `robustness/todo.json`).
+
+## D274 — K16: a face's cusp, two curves tangent inside each other at a vertex, is its shape, not a touch (2026-10-24)
+
+**Finding (D271's check, 20261024 #165 r.a, 20261023 #170 r.a.a).** Unions of a rounded box and a cylinder or a cone's
+base tangent inside one of its corner fillets. A planar cap between them closes to a zero-angle point at the tangency (a
+cusp: the loop turns back, both curves leaving the vertex tangent, on one side). The strict check reported the cap's
+loop touching itself there, in both orders.
+
+**Cause (`ringsCross`, `src/brep/brep-check-geometry.ts`).** The check runs on chords. Near a cusp, the flatter curve's
+last chord cuts the other curve about κ₁/κ₂ of a chord from the vertex (a third, for r 1 inside r 3), at every sampling.
+So D191's confirmation on chords 8 times finer finds it again, scaled down: the contact is the chords', not the curves'.
+
+**Fix.** At a ring vertex where the chords in and out are within about 8° of opposite (a cusp), a contact between
+segments on either side of it, both within four chords of it, is its shape. Contacts farther away, or on one side, are
+reported as before.
+
+**The oracle, independent of the check's chords** (the coordinator's condition):
+- **Analytic, from the inputs:** each cusp's two circles are internally tangent, with exactly one common point.
+  |c₁ − c₂| = r₁ − r₂: in #165 the cylinder's (−1, 1) r 3 and the fillet's (−1, 3) r 1; in #170 the cone base's
+  (0, 1) r 3 and the fillet's (0, −1) r 1. Both distances are 2.
+- **Dense:** the two exact edge curves at each cusp, 4 000 samples each. The least separation over d² (d the distance
+  from the vertex, within half the shorter curve) is 0.3334 in #165 (both orders, and at 24#165's root). That is the
+  tangency's (κ₂ − κ₁)/2 = 1/3. In #170 it is 0.3095, at d 0.71. A real touch or crossing drives it to 0 or below.
+- **Volume:** each node's body, both ways, within the fuzz's ray oracle bound (256² × 6 lattice), in its test.
+
+## D275 — K16: a union whose parts touch along a line from outside each other is refused, typed (2026-10-24)
+
+**Finding (D271's check, 20261023 #114 r.a, 20261024 #51 r.c).** Two parts tangent from outside along a line, joined
+elsewhere through a third part: the body touches itself along that line, not a manifold solid. Its cap passed the point
+twice, at two distinct vertices ("two solids touching at a point keep two vertices"), so every edge was used once each
+way, and the result was returned failing the strict check, in both orders.
+- In #114, two of a linear pattern's cones tangent from outside, under the analytic Boolean.
+- In #51, upright cylinders r 2 and r 3, 5 apart, under the prismatic solids.
+
+**Fix: typed refusals at the node,** GEOMETRY.
+- **Analytic Boolean (`stitch`):** a planar piece whose loops pass one point (within the vertex merge radius) at two
+  vertices refuses: "the result touches itself at (…): a face's boundary passes that point twice; the inputs touch along
+  a line there". Every such face failed the strict check, so no valid result is refused.
+- **Prismatic solids (`prismatic-solid.ts`):** a cap passing one point at two vertices refuses where the solid lies on
+  both sides of the tangent line: more than half of 16 points on a circle about it (radius 1e-4 of the extent) inside the
+  cap's region. A figure eight: "the solid touches itself along the vertical line at (…): two of its walls meet there
+  from outside each other". Where the solid lies on neither side, it is D195's crescent (a disc tangent inside a disc, a
+  wall tangent inside a hole) and kept as one body; its tests pass unchanged.
+
+**Tests** (`test/commute-k16-findings.test.mjs`, three, each failing before):
+- D273: 24#96's node and 24#165's root build both ways;
+- D274: #165's and #170's nodes build both ways;
+- D275: #114's and #51's nodes refuse both ways.
+Each body is valid and watertight, its volume within the oracle's bound.
+
+**Checks for D273–D275 (K16 checkpoint 3, T2, in a scratch worktree at 43ccf24df with the change):**
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1702/1709, 6 skipped; the one failure is the native-split demo's Node-version assertion.
+  Names against R7.3a's run: +4, D273's, D274's and D275's tests and an API-lane test merged since; none gone.
+- RB: no NEW; IMPROVEMENT graze-x45-in0_000001-difference (above); 2 TODOs left. Properties pass.
+- Commutativity (`rb:commute`): SAME 2 418, BOTH-REFUSED 37, ONE-SIDED 1 (24:125, TODO), DIFFER, EMPTY-SIDED and BROKEN 0.
+  The six fixed findings leave `robustness/commute-todo.json`.
+- Fingerprint: 869 cases, `dbc1ad33…` (from `4e3603b7…`). Six lines:
+  - refused → valid: 24:165, 24:96, the graze-x45 1 nm case;
+  - valid → refused: 23:114. Its root was valid, a later union covering the line its inner union touched itself along.
+    The inner union is not a manifold solid, and D275 refuses it at the node. Building the root would need that
+    intermediate held as a non-manifold body, D195's later item (c);
+  - two refusals' messages changed (23:131 and 24:4, another failure named first).
+- Fuzz (200 cases a seed): 20261025 OK 189 / REFUSED 11; 20261026 191 / 9; 20261023 189 / 11 (23:114, above);
+  20261024 193 / 7. That is 39 → 38. No WRONG, INVALID, CRASH, TIMEOUT or APPROX.
+- At the commit's parent (f796435f2, with the API lane's split/mirror/scale verbs): cad build and lint, the api, the
+  api-legacy-coverage, the K16 findings', prismatic-solid and rb tests 51/51.
+- cad-model 1048/1048, studio 286/286. No bracketed refusal text: the docs table stays. No flow: nothing studio-visible.
+
+## D276 — K16's closing record: the self-union gone, the commutativity check, the fuzz at its end, what is open (2026-10-24)
+
+**What K16 did** (D260's finding: the Boolean features united their first tool part with itself):
+- D266: a fit's nominal size is judged to 1e-6 mm, as it is named (r12c-fits' dependency on the rebuild).
+- D267: an open chain's point an ulp short of its end lies at its end (r10-b's; every foot builds and matches the
+  section oracle).
+- D268: the fix landed, `tool.slice(1).reduce(…)`.
+  - The flat DXF's "49 vs 52" was a misread byte diff; its fixtures were regenerated by ezdxf.
+  - About −18 to −25 % time on the corpus documents with Boolean features (453 → 249 Booleans).
+- D269, D270: the two valid bodies the order change exposed. 24#154 was a march past a pole; 23#110 a pinched face with
+  holes and a boundary point met twice ulps apart.
+- D271: the coordinator's addition, the commutativity check over the fuzz's trees (`rb:commute`). Its first run found
+  7 findings: 1 one-sided, and 6 where a node's body failed the strict check, intermediate bodies the fuzz's root
+  judgement never saw.
+- D272: R7.3a batch 1, between the checkpoints (no kernel behaviour changed).
+- D273–D275: the six fixed by cause.
+  - D273: a slit up a cylinder's wall. It also builds the RB TODO graze-x45 1 nm case.
+  - D274: a cusp was the strict check's false contact. Its oracle is analytic tangency plus the exact curves'
+    separation/d².
+  - D275: parts touching along a line from outside each other are refused, typed, in the analytic Boolean and the
+    prismatic solids; D195's crescents are kept.
+
+**Final fuzz** (`scripts/rb/fuzz.mjs`, 200 cases a seed, at 43ccf24df + D273–D275):
+
+| Seed | OK (empty) | APPROX | REFUSED | WRONG | INVALID | CRASH | TIMEOUT | At K16's start (D265) |
+|---|---|---|---|---|---|---|---|---|
+| 20261025 | 189 (37) | 0 | 11 | 0 | 0 | 0 | 0 | OK 185, REFUSED 15 |
+| 20261026 | 191 (27) | 0 | 9 | 0 | 0 | 0 | 0 | OK 191, REFUSED 9 |
+| 20261023 | 189 (31) | 0 | 11 | 0 | 0 | 0 | 0 | OK 189, REFUSED 11 |
+| 20261024 | 193 (31) | 0 | 7 | 0 | 0 | 0 | 0 | OK 190, REFUSED 10 |
+
+KNOWN is 0 throughout. 38 refusals remain over the four seeds, against 45 at K16's start (54 at K15's).
+
+**The commutativity check at the end:** 2 456 union and intersection nodes. SAME 2 418, BOTH-REFUSED 37, ONE-SIDED 1
+(24:125, TODO), no DIFFER, EMPTY-SIDED or BROKEN.
+
+**The fingerprint chain** (`scripts/r5-fingerprint.mjs`):
+
+| Point | Cases | sha256 | Change |
+|---|---|---|---|
+| K16's start (K15 checkpoint 3) | 866 | `6fe8417d…` | — |
+| Checkpoint 1 (D266–D267) | 866 | `17c1d5c4…` | 20 fillet/shell lines, areas ≤ 3e-8, volumes ≤ 1.8e-11 |
+| Checkpoint 2 (D268–D270) | 869 | `4e3603b7…` | 354 lines (every Boolean feature's tool), volumes ≤ 3.6e-8; 23:13 refused → valid, 23:9 valid → refused; 3 added |
+| R7.3a batch 1 (D272) | 869 | `4e3603b7…` | byte-identical |
+| Checkpoint 3 (D273–D275) | 869 | `dbc1ad33…` | 6 lines: 24:165, 24:96 and graze-x45 1 nm refused → valid; 23:114 valid → refused; 2 messages |
+
+The kernel suite ends at 1702/1709 (6 skipped), the one failure being the native-split demo's Node-version assertion.
+
+**Open:**
+
+| Case | What is known | Record |
+|---|---|---|
+| 24:125 r.b | one-sided: A ∪ B builds a strictly valid body whose planar face the tessellation cannot triangulate (ear clipping's leftover ring runs back along a line, a hole's bridge lying on the boundary); B ∪ A builds 140.71 mm³. A typed refusal, at the tessellation | D271, this record |
+| 23:114's root | valid → refused: its inner union touches itself along a line (D275); a later union covered the line. Needs a non-manifold intermediate (D195's item (c)) | D275 |
+| 23:9 | valid → refused under D268; near-degenerate, its nudges refuse 4/4 at the old tip too | D268 |
+| a body united with itself | `B ∪ B` of 25#49's inner body refused, an edge used 5 times | D260 |
+| 26#34, 25#190, 25#170's nudges, D239's 25 and 110 nudges | unchanged from K15's end; K16's step 5 was not taken | D265 |

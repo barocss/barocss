@@ -5,7 +5,7 @@
 import { settleShape } from '@barocss/cad-model/sketch/settle';
 import { commitDimension, type Polygon } from '@barocss/cad-model/sketch/rules';
 import { profileOf } from '@barocss/cad-model/sketch/loops';
-import { evaluateDoc, stepFor } from '@barocss/cad-model/engine/evaluate';
+import { evaluateDoc, exportStudioStep } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, leafBodies, prefixDoc, rectanglePart, starterDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { deleteFeature } from '@barocss/cad-model/chat/features';
 import { faceTableOf, ORIGIN_PLANES } from '@barocss/cad-model/assembly/faces';
@@ -13,6 +13,9 @@ import { BASE, lockRel, solveAssembly, type FaceTable, type Mate } from '@barocs
 import { defaultDrawing } from '@barocss/cad-model/drawing/types';
 import { toleranceText } from '@barocss/cad-model/drawing/sheet';
 import type { P2 } from '@barocss/cad-model/sketch/profile';
+
+/** The STEP file, or the refusal's words, as the probe reports them (R7.3c: exportStudioStep throws). */
+const stepOr = (doc: StudioDoc, name: string): ReturnType<typeof exportStudioStep> | { error: string } => { try { return exportStudioStep(doc, { name }); } catch (e) { return { error: e instanceof Error ? e.message : String(e) }; } };
 
 type Row = { id: string; area: string; name: string; ok: boolean; expected?: unknown; actual?: unknown };
 const rows: Row[] = [];
@@ -122,17 +125,17 @@ run('Q14', CO, 'a drawing dimension on a kept feature survives a delete, renamed
 // ---- D2 edges: three solids, one solid with solids set, a cavity body.
 const boxes = (n: number) => { let d = emptyDoc(); for (let i = 0; i < n; i++) d = add(d, { kind: 'sketch', profile: 'rectangle', min: [i * 20, 0], max: [i * 20 + 10, 10] }, { kind: 'extrude', sketch: 2 * i, height: 5 + i }); return prefixDoc(d, d.nodes.length); };
 run('Q15', CO, 'three solids open as three bodies with their own volumes, in file order', () => {
-  const t = stepFor(boxes(3), 'three'); if ('error' in t) return { ok: false, actual: t.error };
+  const t = stepOr(boxes(3), 'three'); if ('error' in t) return { ok: false, actual: t.error };
   const d = withNode(emptyDoc(), { kind: 'import', name: 'three', step: t.text, solids: 3 }), r = evaluateDoc(d, 3);
   return { ok: r.ok && r.bodies.map(b => Math.round(b.volumeMM3 ?? 0)).join() === '500,600,700' && leafBodies(d.nodes).length === 3, actual: r.ok ? r.bodies.map(b => [b.key, b.volumeMM3]) : r.error };
 });
 run('Q16', CO, 'a one-solid file marked solids 2 (stale) is reported, not silently one body under two names', () => {
-  const t = stepFor(boxes(1), 'one'); if ('error' in t) return { ok: false, actual: t.error };
+  const t = stepOr(boxes(1), 'one'); if ('error' in t) return { ok: false, actual: t.error };
   const d = withNode(emptyDoc(), { kind: 'import', name: 'one', step: t.text, solids: 2 }), r = evaluateDoc(d, 4);
   return { ok: !r.ok || r.bodies.length === 1, expected: 'one body or a refusal', actual: r.ok ? { bodies: r.bodies.map(b => b.key), leaf: leafBodies(d.nodes) } : r.error.title };
 });
 run('Q17', CO, 'union of two solids of one file (part0 ∪ part1 moved to overlap)', () => {
-  const t = stepFor(boxes(2), 'two'); if ('error' in t) return { ok: false, actual: t.error };
+  const t = stepOr(boxes(2), 'two'); if ('error' in t) return { ok: false, actual: t.error };
   let d = withNode(emptyDoc(), { kind: 'import', name: 'two', step: t.text, solids: 2 });
   d = add(d, { kind: 'translate', parent: { node: 0, side: 'part1' }, offset: [-15, 0, 0] }, { kind: 'union', left: { node: 0, side: 'part0' }, right: { node: 1, side: 'solid' } });
   const v = vol(d);

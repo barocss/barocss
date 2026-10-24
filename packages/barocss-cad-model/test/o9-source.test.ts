@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, stepFor } from '../src/engine/evaluate';
+import { evaluateDoc, exportStudioStep } from '../src/engine/evaluate';
 import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
 import { threeMfModelOf } from '../src/print/export3mf';
 import { write3mf } from '../src/print/threemf';
@@ -23,8 +23,7 @@ const DATE = new Date('2026-10-23T00:00:00Z');
 let seq = 0; const uuid = () => `00000000-0000-4000-8000-${String(++seq).padStart(12, '0')}`;
 
 test('O9: STEP names its source revision in FILE_DESCRIPTION; exported twice, the same bytes but the time stamp; another part, another source', () => {
-  const a = stepFor(plate, 'p'), b = stepFor(plate, 'p'), c = stepFor(holed, 'p');
-  assert.ok('text' in a && 'text' in b && 'text' in c);
+  const a = exportStudioStep(plate, { name: 'p' }), b = exportStudioStep(plate, { name: 'p' }), c = exportStudioStep(holed, { name: 'p' });
   assert.equal(a.source, revisionOf(plate));
   assert.ok(a.text.includes(`FILE_DESCRIPTION(('BaroCSS CAD part','source revision ${revisionOf(plate)}'),'2;1');`), a.text.slice(0, 200));
   const stamped = (t: string) => t.replace(/^FILE_NAME\(.*$/m, '');

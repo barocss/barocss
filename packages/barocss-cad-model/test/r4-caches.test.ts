@@ -2,13 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { brepsFor, evaluateDoc, forgetPlacedOutputs, stepFor } from '../src/engine/evaluate';
+import { brepsFor, evaluateDoc, forgetPlacedOutputs, exportStudioStep } from '../src/engine/evaluate';
 import { readStudioFile } from '../src/engine/container';
 import type { PartInstance, StudioDoc } from '../src/engine/doc';
 import { emptyDoc } from '../src/engine/doc';
 import { build } from '../src/rb9/core';
 
-// R4 C4's rule (#2188 M1): a cache is checked against a full re-evaluation on the same fixtures. stepFor and brepsFor
+// R4 C4's rule (#2188 M1): a cache is checked against a full re-evaluation on the same fixtures. exportStudioStep and brepsFor
 // now build each placed copy through its last snapshot (the kernel's withDocument); here every export with the kept
 // snapshots equals the export from nothing (forgetPlacedOutputs first) — after a copy is moved, turned or its part
 // edited too — byte for byte.
@@ -17,7 +17,7 @@ const repo = resolve(import.meta.dirname, '../../..');
 const json = (v: unknown) => JSON.stringify(v, (_k, x: unknown) => ArrayBuffer.isView(x) ? Array.from(x as unknown as ArrayLike<number>) : x);
 const body = (t: string) => t.replace(/FILE_NAME\([^;]*;/, '');
 const read = async (f: string) => { const r = await readStudioFile(new Uint8Array(readFileSync(resolve(repo, f)))); assert.ok('doc' in r, f); return r.doc; };
-function exports(doc: StudioDoc) { const s = stepFor(doc, 'p'); return json({ step: 'error' in s ? s : body(s.text), breps: brepsFor(doc), made: brepsFor(doc, { made: true }) }); }
+function exports(doc: StudioDoc) { const s = exportStudioStep(doc, { name: 'p' }); return json({ step: body(s.text), breps: brepsFor(doc), made: brepsFor(doc, { made: true }) }); }
 function fromNothing(doc: StudioDoc) { forgetPlacedOutputs(); return exports(doc); }
 const moved = (doc: StudioDoc, k: number, at: [number, number, number], turn: [number, number, number]): StudioDoc => ({ ...doc, instances: doc.instances!.map((i, j) => j === k ? { ...i, position: at, rotation: turn } : i) });
 

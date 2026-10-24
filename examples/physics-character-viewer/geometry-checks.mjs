@@ -81,7 +81,7 @@ function inspectPacket(packet) {
   return {
     count, triangles: indices.length / 3, normalError, minimumArea, minimumOutwardDot, f32Error,
     schema: packet.version === 0 && packet.revision === 0 && packet.lengthUnit === 'mm'
-      && packet.coordinateSystem === 'right-handed-y-up' && packet.winding === 'ccw'
+      && packet.coordinateSystem === 'right-handed-z-up' && packet.winding === 'ccw'
       && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(packet.surfaceId),
     arrays: [positions, normals, indices, parameters].every(dense) && Number.isInteger(count)
       && normals.length === positions.length && parameters.length === count * 2 && indices.length % 3 === 0,

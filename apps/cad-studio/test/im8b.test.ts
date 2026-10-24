@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { evaluateDoc, stepFor, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { evaluateDoc, exportStudioStep, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { encodeStudioFile } from '@barocss/cad-model/engine/container';
 import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { withLook } from '@barocss/cad-model/app/bodies';
@@ -88,7 +88,7 @@ test('IM8b the pattern: the block with 2.286 mm on its top, scaled 1 + 0.155/12 
   const want = { min: [50 - 50 * f, 30 - 30 * f, 10 - 10 * f], max: [50 + 50 * f, 30 + 30 * f, 10 + 12.286 * f] };
   for (const k of [0, 1, 2]) assert.ok(near(p.file.pattern.min[k], want.min[k], 1e-5) && near(p.file.pattern.max[k], want.max[k], 1e-5), JSON.stringify(p.file.pattern));
   assert.deepEqual([p.file.shrink.factor, p.file.shrink.band, p.file.machining!.mm, p.file.machining!.faces], [1.012917, 'up to 4 ft', 2.286, ['n1.top']]);
-  const step = stepFor(p.doc, 'pattern'); assert.ok(!('error' in step)); assert.match(step.text, /^ISO-10303-21;/);
+  const step = exportStudioStep(p.doc, { name: 'pattern' }); assert.match(step.text, /^ISO-10303-21;/);
   const back = evaluateDoc(withNode(emptyDoc(), { kind: 'import', name: 'pattern', step: step.text } as never), 1); assert.ok(back.ok);
   assert.ok(near(back.bodies[0].volumeMM3!, exact, 1e-6 * exact), `STEP read back: ${back.bodies[0].volumeMM3}`);
 });

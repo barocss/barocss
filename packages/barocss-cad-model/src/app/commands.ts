@@ -78,6 +78,15 @@ export function patchValues(cmd: Command, ctx: Ctx, values: Values, patch: Value
   return cmd.derive ? cmd.derive(ctx, next, Object.keys(patch)) : next;
 }
 /**
+ * The values a caller gave all at once (the agent's run_command, the facade's verbs), each kept as given; the others
+ * recomputed from them (O20). patchValues takes a patch as the studio sets it, one value (or a placement) at a
+ * time, where a derived value may follow it; given together, a derived value must never replace a given one — a
+ * split's given `at` was moved to the body's middle because its `axis` was given too.
+ */
+export function givenValues(cmd: Command, ctx: Ctx, values: Values, given: Values): Values {
+  return { ...patchValues(cmd, ctx, values, given), ...given };
+}
+/**
  * A value dragged in the viewport: an arrow at `at` along `dir`; the value becomes start + mm × `scale`
  * (default 1), in steps of `step` (default 1), held between `min` and `max`.
  */

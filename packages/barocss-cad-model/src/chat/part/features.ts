@@ -1,6 +1,6 @@
 // The v2 `features` group's handlers (R3, moved verbatim from chat/tools.ts's runPartTool): the feature tree's
 // commands, raw nodes, edits and deletes, materials, and the person's rows (stock, frame stock, sections, welds).
-import { commandById, commands, patchValues, shownFields, type Ctx, type Values } from '../../app/commands';
+import { commandById, commands, givenValues, shownFields, type Ctx, type Values } from '../../app/commands';
 import { editFields } from '../../app/editFields';
 import { featureLabel, prefixDoc, withNode, type ModelNode, type StudioDoc } from '../../engine/doc';
 import { loadPersonRows } from '../rows';
@@ -145,7 +145,7 @@ async function runCommandTool(state: ChatState, args: Record<string, unknown>, e
   const given = isObj(args.values) ? args.values : {};
   const bad = Object.keys(given).filter(k => !fields.some(f => f.key === k));
   if (bad.length) return fail(state, `${cmd.label} has no value ${bad.map(k => `"${k}"`).join(', ')}; its values are ${fields.map(f => `${f.key} (${f.label})`).join(', ') || 'none'}.`);
-  const values: Values = patchValues(cmd, ctx, cmd.defaults?.(ctx) ?? {}, Object.fromEntries(Object.entries(given).map(([k, v]) => [k, typeof v === 'number' ? v : String(v)])));
+  const values: Values = givenValues(cmd, ctx, cmd.defaults?.(ctx) ?? {}, Object.fromEntries(Object.entries(given).map(([k, v]) => [k, typeof v === 'number' ? v : String(v)])));
   const why = checkValues(fields, values);
   if (why) return fail(state, `${cmd.label}: ${why}`);
   // (A command's own refusal — its build throws it — comes back as the tool's, the part unchanged; O14's typed ones among them.)

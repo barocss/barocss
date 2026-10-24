@@ -70,7 +70,7 @@ function verify(result, fixture) {
   assert.equal(surface.kind, 'surface'); assert.equal(surface.id, 'plane_nonunit'); assert.equal(surface.degreeU, 1); assert.equal(surface.degreeV, 1);
   assert.deepEqual(surface.weights, [[1, 1], [1, 1]]); assert.ok(Object.is(surface.controlPoints[0][0][2], -0), 'Original native control coefficient sign');
   assert.deepEqual(result.domain, fixture.domain); assert.equal(packet.surfaceId, r.surfaceId); assert.equal(packet.revision, r.revision === 0 ? 0 : r.revision);
-  assert.equal(packet.lengthUnit, 'mm'); assert.equal(packet.coordinateSystem, 'right-handed-y-up'); assert.equal(packet.winding, 'ccw');
+  assert.equal(packet.lengthUnit, 'mm'); assert.equal(packet.coordinateSystem, 'right-handed-z-up'); assert.equal(packet.winding, 'ccw');
   assert.deepEqual(report.grid, { countU: r.countU, countV: r.countV }); assert.equal(report.vertexCount, n); assert.equal(report.triangleCount, 2 * (r.countU - 1) * (r.countV - 1));
   assert.equal(report.probeCount, 5 * (r.countU - 1) * (r.countV - 1)); assert.equal(report.certified, false); assert.equal(report.normalMethod, 'area-weighted-incident-triangle');
   assert.equal(packet.parameters.length, 2 * n); assert.equal(packet.positions.length, 3 * n); assert.equal(packet.normals.length, 3 * n); assert.equal(packet.indices.length, 3 * report.triangleCount);

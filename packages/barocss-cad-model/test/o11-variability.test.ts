@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
-import { brepsFor, evaluateDoc, forgetSnapshots, stepFor } from '../src/engine/evaluate';
+import { brepsFor, evaluateDoc, forgetSnapshots, exportStudioStep } from '../src/engine/evaluate';
 import { rectanglePart, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { bomView, deriveBom } from '../src/team/assembly';
 import { assemblyPlacedBodies, clearanceMap } from '../src/team/clearanceMap';
@@ -22,8 +22,8 @@ let revision = 1;
 const evaluate = async (d: StudioDoc) => evaluateDoc(d, revision++);
 async function record(doc: StudioDoc): Promise<string> {
   const e = evaluateDoc(doc, revision++); assert.ok(e.ok, e.ok ? '' : e.error.title);
-  const s = stepFor(doc, 'p');
-  return json({ bodies: e.bodies, step: 'error' in s ? s : s.text.replace(/FILE_NAME\([^;]*;/, '').replace(/FILE_DESCRIPTION\([^;]*;/, ''), breps: brepsFor(doc), bom: deriveBom(await bomView(doc, evaluate)).lines,
+  const s = exportStudioStep(doc, { name: 'p' });
+  return json({ bodies: e.bodies, step: s.text.replace(/FILE_NAME\([^;]*;/, '').replace(/FILE_DESCRIPTION\([^;]*;/, ''), breps: brepsFor(doc), bom: deriveBom(await bomView(doc, evaluate)).lines,
     ...(doc.instances?.length ? { clearance: json({ ...clearanceMap(await assemblyPlacedBodies(doc, evaluate)), timing: undefined }) } : {}) });
 }
 const fresh = async (doc: StudioDoc) => { forgetSnapshots(); return record(doc); };
