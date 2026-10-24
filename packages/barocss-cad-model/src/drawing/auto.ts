@@ -18,7 +18,7 @@
 import type { BrepProjection, ProjectedEdge } from '@barocss/cad';
 import { fmtMM, pitchCircle, resolveDimension, roundIn, snapPoints, type SnapPoint } from './dimensions';
 import type { SheetLayout } from './views';
-import { isSectionRef, sectionLetter, type DimPoint, type DimView, type DrawingDimension, type DrawingSettings, type DrawingViews, type SectionRef, type ViewId, type XY } from './types';
+import { baseViewOf, isSectionRef, type DimPoint, type DimView, type DrawingDimension, type DrawingSettings, type DrawingViews, type SectionRef, type ViewId, type XY } from './types';
 import { placementOf, type SheetSection } from './sheet';
 import type { PartElement } from './elementCallouts';
 import { nextFreeId } from '../util/ids';
@@ -246,7 +246,7 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
   for (const p of keyPlans(views, layout, elements, report, sections)) (planned[p.dim.view] ??= []).push(p);
   // (A section's dimensions are read from its projection, as a view's are from the view's.)
   const dimViews: Partial<Record<DimView, BrepProjection>> = { ...views, ...Object.fromEntries(sections.map(x => [`section:${x.id}`, x.projection])) };
-  const base = (v: DimView): ViewId => isSectionRef(v) ? sections.find(x => x.id === sectionLetter(v))?.view ?? 'front' : v;
+  const base = (v: DimView): ViewId => baseViewOf(v, sections, settings.details);
   for (const id of ORTHO) {
     // (A view not shown (R14.3) gets nothing; a hole that shows round only there is the issue list's VIEW_NEEDED.)
     if (layout.views[id].hidden) continue;

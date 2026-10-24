@@ -5,16 +5,30 @@ import type { BrepProjection } from '@barocss/cad';
 import type { DrawingScope } from './scope';
 import type { Sig } from '../engine/references';
 import { isVec3 } from '../util/guards';
+import { readDetails, type DrawingDetail } from './detail';
+export type { DrawingDetail };
 
 export type ViewId = 'front' | 'top' | 'right' | 'iso';
 export const VIEW_IDS: readonly ViewId[] = ['front', 'top', 'right', 'iso'];
 /** O148 X2: where a dimension sits — a view, or a section by its letter (`section:A`). */
 export type SectionRef = `section:${string}`;
-export type DimView = ViewId | SectionRef;
+/** DR-1: a detail view by its letter (`detail:B`). */
+export type DetailRef = `detail:${string}`;
+export type DimView = ViewId | SectionRef | DetailRef;
 export const isSectionRef = (v: string): v is SectionRef => /^section:[A-Z]{1,2}$/.test(v);
 export const sectionLetter = (v: SectionRef) => v.slice(8);
-/** A dimension's view read from a file: a view, or a section's letter. */
-export const isDimView = (v: unknown): v is DimView => typeof v === 'string' && ((VIEW_IDS as readonly string[]).includes(v) || isSectionRef(v));
+export const isDetailRef = (v: string): v is DetailRef => /^detail:[A-Z]{1,2}$/.test(v);
+export const detailLetter = (v: DetailRef) => v.slice(7);
+/** One of the four views (not a section's or a detail's). */
+export const isViewId = (v: string): v is ViewId => (VIEW_IDS as readonly string[]).includes(v);
+/** The view whose axes a view, a section or a detail is drawn in (a section's view; a detail's parent's); unknown: the front. */
+export function baseViewOf(v: DimView, sections: readonly { id: string; view: ViewId }[], details: readonly { id: string; view: DimView }[] = []): ViewId {
+  if (isDetailRef(v)) { const d = details.find(x => x.id === detailLetter(v)); return d && !isDetailRef(d.view) ? baseViewOf(d.view, sections) : 'front'; }
+  if (isSectionRef(v)) return sections.find(x => x.id === sectionLetter(v))?.view ?? 'front';
+  return v;
+}
+/** A dimension's view read from a file: a view, a section's letter or a detail's. */
+export const isDimView = (v: unknown): v is DimView => typeof v === 'string' && (isViewId(v) || isSectionRef(v) || isDetailRef(v));
 // (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
 import type { Vec3 } from '../engine/vec3';
 export type { Vec3 };
@@ -113,6 +127,8 @@ export interface DrawingSettings {
    * (`sectionsOf`); one section A on the front is written back as `section`, so such files stay as they were.
    */
   sections?: DrawingSection[];
+  /** DR-1: detail views, each a circle on a view or a section drawn larger (detail.ts). Letters share the sections' namespace. */
+  details?: DrawingDetail[];
   /** The title block's part name (default: the file name). */
   title?: string;
   /** The drawing's revision (A, B, … or 01), shown in the title block's REV cell (default: -). */
@@ -160,9 +176,9 @@ export function withSections(s: DrawingSettings, list: readonly DrawingSection[]
   if (list.length === 1 && list[0].id === 'A' && list[0].view === 'front' && !list[0].dir) return { ...rest, section: { y: list[0].at } };
   return { ...rest, sections: list.map(x => ({ ...x })) };
 }
-/** The next free section letter (A, B, … Z; then AA, AB, …). */
-export function nextSectionId(list: readonly DrawingSection[]): string {
-  const used = new Set(list.map(x => x.id));
+/** The next free section letter (A, B, … Z; then AA, AB, …); `also`: letters taken otherwise (DR-1: the details'). */
+export function nextSectionId(list: readonly DrawingSection[], also: Iterable<string> = []): string {
+  const used = new Set([...list.map(x => x.id), ...also]);
   for (let k = 0; ; k++) { const id = k < 26 ? String.fromCharCode(65 + k) : String.fromCharCode(64 + Math.floor(k / 26)) + String.fromCharCode(65 + k % 26); if (!used.has(id)) return id; }
 }
 export type RoomSide = 'above' | 'below' | 'left' | 'right';
@@ -193,6 +209,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(r.balloons === true ? { balloons: true } : {}),
     ...(r.section && typeof r.section.y === 'number' && Number.isFinite(r.section.y) ? { section: { y: r.section.y } } : {}),
     ...(readSections(r.sections) ? { sections: readSections(r.sections)! } : {}),
+    ...(readDetails(r.details) ? { details: readDetails(r.details)! } : {}),
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
     ...(typeof r.revision === 'string' && r.revision ? { revision: r.revision.slice(0, 6) } : {}),
     ...(typeof r.revisedModel === 'string' ? { revisedModel: r.revisedModel } : {}),

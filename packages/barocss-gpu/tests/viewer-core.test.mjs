@@ -7,7 +7,7 @@ import { Camera } from '../dist/viewer/camera.js';
 import { orbit, pan, zoom } from '../dist/viewer/controls.js';
 import { boxInFrustum, frustumPlanes, screenRect, transformBox } from '../dist/viewer/bounds.js';
 import { clippedRay, clippedRayFull, fillVertexColors, keptBy, localPlane, nearestSegment, prepareGeometry, prepareScalars, rayTriangles, regionEntry, segmentInstances, vertexColors } from '../dist/viewer/geometry.js';
-import { packFrame, packOutput, parseColor } from '../dist/viewer/lights.js';
+import { packFrame, packOutput, parseColor, whiteBalance } from '../dist/viewer/lights.js';
 import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_POINT, surfaceWGSL } from '../dist/viewer/shaders.js';
 import { clipBox, Viewer } from '../dist/viewer/viewer.js';
 
@@ -454,6 +454,15 @@ test('outline reach: a box\'s screen rectangle holds every point of it the camer
   const u = new Float32Array(packOutput({}, [[1, 0, 0]], 2, null, null, [10, 20, 30, 40]));
   assert.deepEqual([...u.slice(-4)], [10, 20, 30, 40]);
   assert.deepEqual([...new Float32Array(packOutput({}, [[1, 0, 0]])).slice(-4)], [-1e9, -1e9, 1e9, 1e9]);
+  // G15d.1: AgX is tone map 2; the grading (balance and contrast, lift and saturation, gamma and on, gain) and the
+  // vignette (amount, clear radius, fade end) just before the outline box; off, all zeros.
+  assert.equal(new Uint32Array(packOutput({ toneMapping: 'agx' }), 4, 1)[0], 2);
+  const g = new Float32Array(packOutput({ grading: { temperature: 0.5, contrast: 1.2, saturation: 0.8, lift: [0.1, 0, 0], gamma: [1, 1.1, 1], gain: [1, 1, 0.9] }, vignette: { amount: 0.4, size: 0.2, softness: 0.5 } })).slice(-24, -4);
+  const wb = whiteBalance(0.5, 0);
+  assert.ok(close([...g], [...wb, 1.2, 0.1, 0, 0, 0.8, 1, 1.1, 1, 1, 1, 1, 0.9, 0, 0.4, 0.2, 0.7, 0], 1e-6));
+  assert.ok(Math.abs(0.2126 * wb[0] + 0.7152 * wb[1] + 0.0722 * wb[2] - 1) < 1e-9 && wb[0] > wb[2], 'warm: red over blue, luminance kept');
+  assert.ok([...new Float32Array(packOutput({})).slice(-24, -4)].every(x => x === 0), 'no post: zeros');
+  assert.ok([...new Float32Array(packOutput({ vignette: { amount: 0 } })).slice(-8, -4)].every(x => x === 0), 'amount 0: no vignette');
 });
 
 // Exercise pickNow's real readback-to-metadata path. Only the GPU transport is mocked: the cap and triangle

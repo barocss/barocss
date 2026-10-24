@@ -161,7 +161,7 @@ The part's 2D drawing; a drawing change is always the user's, so make it as ops 
 | `drawing.auto` | `auto_dimension` | layout? |
 | `drawing.fix` | `fix_drawing` | codes? |
 | `drawing.accept` | `accept_tolerances` | ids?, mode? |
-| `drawing.set` | `set_drawing` | scope?: {kind: part, part?: instance id} \| {kind: assembly}; sheet?, scale?, projection?, front?, views?, tolerancing?, title?, weldSymbols?, balloons?, sections?: [{id,view,at}], tables?: [{id,from: bom\|cut-list\|weld-list,title?,at?,corner?,whole?}]; lists replace ([] clears), omitted keeps; all changes need user approval |
+| `drawing.set` | `set_drawing` | scope?: {kind: part, part?: instance id} \| {kind: assembly}; sheet?, scale?, projection?, front?, views?, tolerancing?, title?, weldSymbols?, balloons?, sections?: [{id,view,at}], details?: [{id,view,center,radius,scale?,at?}], tables?: [{id,from: bom\|cut-list\|weld-list,title?,at?,corner?,whole?}]; lists replace ([] clears), omitted keeps; all changes need user approval |
 
 ### `subd`: SubD
 

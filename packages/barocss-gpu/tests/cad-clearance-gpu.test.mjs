@@ -46,7 +46,7 @@ function fixture() {
     viewer, canvas: { clientWidth: 320, clientHeight: 200 }, displayMode: { requested: 'shaded-with-edges', effective: 'shaded-with-edges', supported: true },
     theme: { base: [0.7, 0.7, 0.8], edge: [0.1, 0.1, 0.1], ao: 0.9, shadow: 0.45 }, aoEnabled: true, settings: null, analysis: null, scalarMaps: null, direct: [], proposalMeshes: [], mould: null,
     bodies: [{ result: { key: 'native', mesh }, surface: native, edges: edge, highlight: null, state: '', painted: null, runs: { vertexCount: 3, byFace: new Map([[0, [0, 3]]]) } }],
-    instances: [], instanceDisplayMode: 'shaded-with-edges', instanceFaces: [], instanceSelection: [], instanceMeshes: new Map(), instanceTiles: new WeakMap(), instancePainted: new WeakMap(), shapes: new Map(),
+    instances: [], instanceDisplayMode: 'shaded-with-edges', instanceFaces: [], instanceSelection: [], contactLinks: new Set(), instanceMeshes: new Map(), instanceTiles: new WeakMap(), instancePainted: new WeakMap(), shapes: new Map(),
     hatchLines: new Map(), maps: new Map(), shaders: new Map(), clip: { planes: [{ normal: [0, 1, 0], offset: -100 }], bodies: true, cutout: false, hatch: 2 },
   });
   renderer.bounds = () => null;
