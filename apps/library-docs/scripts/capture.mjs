@@ -339,6 +339,25 @@ const steps = [
     await shot('studio/drawings', 'detail-view', 'studio/drawings: a detail view');
     await page.click('.mode button:text-is("Model")');
   }],
+  ['studio/drawings: a broken view', async () => {
+    await fresh();
+    await newPart(); await press('b'); await hudReady();
+    await field('Width X').fill('500'); await field('Depth Y').fill('20'); await field('Height Z').fill('20'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 500×20×20/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: WAIT }); await idle(); await press('Escape');
+    await page.click('.mode button:text-is("Drawing")'); await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 2 * WAIT });
+    await page.click('[aria-label="Add break"]');
+    await page.waitForFunction(() => !!window.__studioDrawing?.()?.breaks?.front, null, { timeout: 2 * WAIT });
+    await page.fill('[aria-label="Break 1 from"]', '100'); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.drawing?.breaks?.[0]?.from === 100, null, { timeout: 2 * WAIT });
+    await page.fill('[aria-label="Break 1 to"]', '400'); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.drawing?.breaks?.[0]?.to === 400, null, { timeout: 2 * WAIT });
+    // (Without the isometric view, which is never broken, Auto reaches the larger scale the break allows.)
+    await page.uncheck('[aria-label="Isometric view"]');
+    await page.click('[aria-label="Auto-dimension"]'); await page.waitForFunction(() => window.__studioDrawing().dimensions.length > 1, null, { timeout: 2 * WAIT });
+    await page.evaluate(() => document.querySelectorAll('.toast:not([role="dialog"]) button').forEach(b => b.click())); await page.waitForTimeout(600);
+    await shot('studio/drawings', 'broken-view', 'studio/drawings: a broken view');
+    await page.click('.mode button:text-is("Model")');
+  }],
   ['studio/robots: the Joints card', async () => {
     await fresh();
     const c = JSON.parse(readFileSync(join(studio, '../../packages/barocss-cad/conformance/rm/chain-2r/case.json'), 'utf8'));
