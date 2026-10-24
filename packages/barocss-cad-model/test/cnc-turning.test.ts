@@ -29,11 +29,11 @@ const SHAFT: [number, number][] = [[0, 0], [10, 0], [10, 20], [6, 20], [6, 30], 
 test('CNC6 a stepped shaft revolved: its axis Y, every surface turned; Ø20 × 52; a groove 10 wide and 2 deep; the least outside Ø12; a point of 2·atan(8/12) = 67.38° — all pass', async () => {
   const s = await build([], 'al6061', shaft(SHAFT)), tu = turningOf(s.doc, s.bodies, holesOf(s.bodies));
   assert.ok(tu.axis && near(Math.abs(tu.axis.a[1]), 1, 1e-9));
-  assert.ok(near(tu.turnedMM2, tu.area, 1e-9) && tu.offAxis.length === 0, JSON.stringify(tu.offAxis));
+  assert.ok(near(tu.turnedArea, tu.area, 1e-9) && tu.offAxis.length === 0, JSON.stringify(tu.offAxis));
   assert.ok(near(tu.diameter, 20) && near(tu.length, 52), `${tu.diameter} ${tu.length}`);
   assert.deepEqual(tu.grooves.map(g => [+g.width.toFixed(9), +g.depth.toFixed(9)]), [[10, 2]]);
-  assert.ok(near(tu.minOuterDiameterMM!, 12));
-  assert.equal(tu.points.length, 1); assert.ok(near(tu.points[0].includedDeg, 2 * Math.atan(8 / 12) * 180 / Math.PI, 1e-4), String(tu.points[0].includedDeg));
+  assert.ok(near(tu.minOuterDiameter!, 12));
+  assert.equal(tu.points.length, 1); assert.ok(near(tu.points[0].includedAngle, 2 * Math.atan(8 / 12) * 180 / Math.PI, 1e-4), String(tu.points[0].includedAngle));
   const r = report(s);
   assert.deepEqual(['size', 'turning', 'diameter', 'groove', 'holes', 'point', 'corners'].map(id => r[id].status), ['pass', 'pass', 'pass', 'pass', 'pass', 'pass', 'pass']);
   assert.ok(!('access' in r) && !('setups' in r), 'a lathe\'s access is its turning');
@@ -51,7 +51,7 @@ test('CNC6 mutants on the shaft: a groove 1 wide — in steel warned (under 1.2)
 test('CNC6 a cylinder with a flat: its 12 × 30 = 360 mm² not turned (planar, exact) — warned, milled by live tools; a radial hole Ø1.5 in it — in steel warned (under 2), in aluminium not (1); on the axis Ø0.8 — warned (under 1)', async () => {
   const flat = [cmd('cylinder', { r: 10, h: 30, x: 0, y: 0, z: 0 }), cmd('box', { w: 10, d: 30, h: 40, x: 8, y: -15, z: -5 }), cmd('difference', {}, { bodies: ['b1', 'b3'] })] as [string, Record<string, unknown>][];
   let s = await build(flat), tu = turningOf(s.doc, s.bodies, holesOf(s.bodies));
-  assert.ok(near(tu.area - tu.turnedMM2, 2 * Math.sqrt(100 - 64) * 30, 1e-6), String(tu.area - tu.turnedMM2));
+  assert.ok(near(tu.area - tu.turnedArea, 2 * Math.sqrt(100 - 64) * 30, 1e-6), String(tu.area - tu.turnedArea));
   assert.equal(report(s).turning.status, 'warn'); assert.match(report(s).turning.message, /^360 mm² not turned/);
   const radial = [...flat, cmd('hole', { d: 1.5, x: 0, y: 15 }, { faces: [{ normal: [1, 0, 0], pick: 'max' }] })] as [string, Record<string, unknown>][];
   s = await build(radial, 'steel'); tu = turningOf(s.doc, s.bodies, holesOf(s.bodies));
