@@ -19,8 +19,9 @@ The facades are for code. The agent keeps working through its JSON tools, and th
   - Typed arrays appear only in mesh data.
 - **Each method adds to the document** and calls the core, and computes no geometry of its own. Each package's facade
   reaches its core through one adapter.
-- **One set of units.** Inputs are in millimetres, degrees and g/cm³, so no option names a unit. Results are in
-  millimetres and grams.
+- **Modeling units.** Lengths are in millimetres, angles in degrees and density in g/cm³. Mass results use
+  millimetres and grams. Robot metadata and export payloads have separate
+  [unit contracts](/studio/robots#robot-unit-boundaries).
 - **Results are plain data.** Mass results contain `volume` in mm³, `mass` in g, `centroid` in mm and
   `inertia` in g·mm² about the centre of mass. A numeric `density` is in g/cm³.
 - **The agent's words.** The modelling verbs are the agent's v2 command names, and their options are that command's
