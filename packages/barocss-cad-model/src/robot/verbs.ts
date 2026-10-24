@@ -16,7 +16,7 @@ import { exportUrdf, withoutCams, type UrdfResult } from './urdf';
 import { exportMjcf, type MjcfClosure, type MjcfResult } from './mjcf';
 import { closeLoops, closureOfDoc, loopCloserOf, loopResidual, type LoopCloser } from './loop';
 import { sweepLinks, sweepPath, type SweepLink, type SweepResult } from './sweep';
-import { gravityTorques, linkBodies, linkMasses, moveTorques, STANDARD_GRAVITY, type MoveLimits } from './dynamics';
+import { gravityTorques, linkBodies, linkMasses, moveTorques, type MoveLimits } from './dynamics';
 import { sizeActuators, sizeCoupled, type Motor, type Reducer } from './actuators';
 import type { ProfileKind } from './profile';
 import { jointTreeOf, readRobot, type JointSettings, type JointTree, type RobotSettings } from './joints';
@@ -24,7 +24,8 @@ import { r6 } from '../util/round';
 import { refusal, refused } from '../engine/refusal';
 import { checkPath, duration, motionNamed, poseAt, timedPathOf, type Motion, type MotionPath } from './motion';
 import { CCD_TOLERANCE, sweepTimed, timeAt, timePath, type TimedPath } from './ccd';
-import { pathClearanceJson, timedClearanceJson } from './reports';
+import { gravityIn, gravityJson, moveJson, PUBLIC_GRAVITY, pathClearanceJson, timedClearanceJson } from './reports';
+import { moveArgs } from './native/duty';
 import { jointValuesIn, jointValuesOut } from './units';
 export { jointValuesIn, jointValuesOut } from './units';
 
@@ -92,7 +93,6 @@ export function sweepOf(view: RobotView, from: Readonly<Record<string, number>>,
     reply: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), minClearance: pathClearanceJson(r.minClearance), samples: r.samples, pairs: r.pairs.length, skipped: r.skipped, designed: r.designed },
     summary: r.clear ? `clear (${r.samples} steps)` : `contact ${r.contact!.links.join('–')} at s ${r6(r.contact!.s)}` };
 }
-const sig10 = (v: number) => Number(v.toPrecision(10)) + 0;
 /** link_inertia's links: each link's mass, centre and inertia in its frame. */
 export function inertiaOf(view: RobotView, t: JointTree = treeOf(view)): LinkInertia[] {
   return treeInertia(t, partsOf(view));
@@ -104,19 +104,25 @@ export function gravityRawOf(view: RobotView, values: Readonly<Record<string, nu
 export function moveRawOf(view: RobotView, mv: Move, t: JointTree = treeOf(view), g?: readonly [number, number, number]) {
   return moveTorques(t, linkBodies(t, partsOf(view)), mv.from, mv.to, mv.profile, mv.limits, g as [number, number, number] | undefined);
 }
-/** gravity_torques' reply: the torque each joint holds against g at the values. */
-export function gravityOf(view: RobotView, values: Readonly<Record<string, number>>, g: readonly [number, number, number], t: JointTree = treeOf(view)) {
-  const masses = linkMasses(t, partsOf(view)), r = gravityTorques(t, masses, values, g as [number, number, number]), sig = (v: number) => Number(v.toPrecision(12)) + 0;
-  const units = Object.fromEntries(t.joints.map(j => [j.key, j.type === 'prismatic' ? 'N' : 'N·m']));
-  return { torques: Object.fromEntries(Object.entries(r.torques).map(([k, v]) => [k, sig(v)])), generalized: Object.fromEntries(Object.entries(r.generalized).map(([k, v]) => [k, sig(v)])), units, gravity_m_s2: Math.hypot(...g) };
+/** gravity_torques' canonical reply; values are degree/mm and optional g is mm/s². */
+export function gravityOf(view: RobotView, args: Record<string, unknown>, t: JointTree = treeOf(view)) {
+  const keys = new Set(t.joints.map(j => j.key)), given = (args.values ?? {}) as Record<string, unknown>;
+  if (!given || typeof given !== 'object' || Array.isArray(given) || Object.values(given).some(v => typeof v !== 'number' || !Number.isFinite(v))) throw refusal('BAD_VALUES', '"values" is {joint key: number}.');
+  const bad = Object.keys(given).filter(k => !keys.has(k)); if (bad.length) throw refusal('BAD_VALUES', `No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.`);
+  const g = args.g === undefined ? [0, 0, -PUBLIC_GRAVITY] : args.g;
+  if (!Array.isArray(g) || g.length !== 3 || g.some(x => typeof x !== 'number' || !Number.isFinite(x))) throw refusal('BAD_VALUES', '"g" is [x, y, z] in mm/s².');
+  const siG = gravityIn(g as [number, number, number]);
+  return gravityJson(t, gravityRawOf(view, jointValuesIn(t, given as Record<string, number>), siG, t), siG);
 }
 /** A move as motion_torques and size_actuators take it: from and to by key, its profile, each moving joint's limits. */
 export interface Move { from: Record<string, number>; to: Record<string, number>; profile: ProfileKind; limits: (k: string) => MoveLimits }
-/** motion_torques' reply: the torques of a straight move under its profile (RNEA). */
-export function movesOf(view: RobotView, mv: Move, t: JointTree = treeOf(view)) {
-  const m = moveTorques(t, linkBodies(t, partsOf(view)), mv.from, mv.to, mv.profile, mv.limits);
-  const unit = (k: string) => (t.joints.find(j => j.key === k)!.type === 'prismatic' ? 'N' : 'N·m');
-  return { profile: m.kind, duration_s: sig10(m.duration), joints: Object.fromEntries(Object.entries(m.joints).map(([k, j]) => [k, { [`peak_${unit(k) === 'N' ? 'N' : 'N_m'}`]: sig10(j.peak), [`rms_${unit(k) === 'N' ? 'N' : 'N_m'}`]: sig10(j.rms), at_s: sig10(j.atPeak), distance: sig10(j.distance), v_peak: sig10(j.vPeak), a_peak: sig10(j.aPeak), j_peak: sig10(j.jPeak) }])), sampling: m.sampling, gravity_m_s2: STANDARD_GRAVITY };
+/** motion_torques' canonical reply; move poses/limits are degree/mm and optional g is mm/s². */
+export function movesOf(view: RobotView, args: Record<string, unknown>, t: JointTree = treeOf(view)) {
+  const mv = moveArgs(t, args); if ('error' in mv) throw refusal('BAD_VALUES', mv.error);
+  const g = args.g === undefined ? [0, 0, -PUBLIC_GRAVITY] : args.g;
+  if (!Array.isArray(g) || g.length !== 3 || g.some(x => typeof x !== 'number' || !Number.isFinite(x))) throw refusal('BAD_VALUES', '"g" is [x, y, z] in mm/s².');
+  const siG = gravityIn(g as [number, number, number]);
+  return moveJson(t, moveRawOf(view, mv, t, siG), siG);
 }
 /** size_actuators' sizing (and, coupled, its rounds): the motor and reducer each joint needs for the move. */
 export function sizeOf(view: RobotView, mv: Move, so: { motors: readonly Motor[]; reducers: readonly Reducer[]; dwell?: number; life?: number; inertiaRatio?: number; estop?: number; g?: V3 }, coupled: boolean, t: JointTree = treeOf(view)) {
