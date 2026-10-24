@@ -16,7 +16,7 @@ import { BRIEF_TOOL_NAMES, runBriefTool } from './brief';
 import { QUESTION_TOOL_NAMES, runQuestionTool } from './questions';
 import { DRAFT_TOOL_NAMES, runDraftTool } from './drafts';
 import { runStandardsTool, STANDARDS_TOOL_NAMES } from '../standards/provenance';
-import { datumPlane, readReferences, REFERENCE_TOOL_NAMES, referenceNameIn, ReferenceError, runReferenceTool } from './references';
+import { datumPlane, readReferences, REFERENCE_TOOL_NAMES, referenceNameIn, runReferenceTool } from './references';
 import { ASSEMBLY_TOOL_NAMES, runAssemblyTool, solveDoc } from './assembly';
 import { resolveNames, type NameSelection } from './names';
 import { approvalOf } from './proposals';
@@ -33,6 +33,8 @@ import { HISTORY_HANDLERS, moveOpsWith } from './part/history';
 import { ASSEMBLY_CHANGES, PROPOSAL_HANDLERS, acceptProposalWith, autonomy, changesPart, previewProposalWith, proposalNeededAtL2, proposalOfWith, rebaseProposalWith, type Decider } from './part/proposals';
 import { BATCHABLE, MUTATORS, PART_SCOPED, describe, unknownArguments } from './toolDefinitions';
 import { isObj, isVec3 } from '../util/guards';
+import { isRefusal } from '../engine/refusal';
+import { REFERENCE_CODES } from '../engine/schema/references';
 // ./outputs is loaded on first use: it reaches team/bundle → baseline → assembly → parts, which import this
 // module, so a static import closes a cycle that leaves `commands` undefined here at load.
 let outputsModule: Promise<typeof import('./outputs')> | undefined;
@@ -158,7 +160,7 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
     let plane: DocPlane | undefined;
     const pl = args.plane as Record<string, unknown> | undefined;
     if (pl !== undefined) {
-      if (isObj(pl) && typeof pl.datum === 'string') { try { plane = datumPlane(readReferences(state.doc.references), pl.datum); } catch (e) { return fail(state, e instanceof ReferenceError ? e.message : String(e)); } }
+      if (isObj(pl) && typeof pl.datum === 'string') { try { plane = datumPlane(readReferences(state.doc.references), pl.datum); } catch (e) { return fail(state, isRefusal(e, ...REFERENCE_CODES) ? e.message : String(e)); } }
       else if (isObj(pl) && [pl.origin, pl.normal, pl.xAxis].every(isVec3)) plane = { origin: pl.origin as Vec3T, normal: pl.normal as Vec3T, xAxis: pl.xAxis as Vec3T };
       else return fail(state, '"plane" is {datum: id} or {origin, normal, xAxis}.');
     }

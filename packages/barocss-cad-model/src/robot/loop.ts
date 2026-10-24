@@ -11,6 +11,7 @@ import type { Joint, JointTree, Loop } from './joints';
 import { rotationMatrix } from '../engine/placement';
 import { tablesFor } from '../assembly/faces';
 import { solveDoc } from '../chat/assembly';
+import { refusal } from '../engine/refusal';
 
 export interface Closure {
   /** The loop's two parts (links), and the pin both share at the solved pose (world, mm) and its axis. */
@@ -19,7 +20,6 @@ export interface Closure {
   branch: 1 | -1;
 }
 export type LoopCode = 'NOT_PLANAR' | 'NOT_ONE_LOOP' | 'NO_CLOSURE' | 'BRANCH_FLIP' | 'NO_PIN';
-export class LoopError extends Error { constructor(public code: LoopCode, message: string) { super(`[${code}] ${message}`); this.name = 'LoopError'; } }
 export interface Closed { q: Record<string, number>; residualMM: number; branch: 1 | -1; iterations: number }
 
 const RESIDUAL_MM = 1e-12, MAX_ITER = 60;
@@ -43,17 +43,17 @@ export function branchAt(tree: JointTree, c: Closure, q: Readonly<Record<string,
 export function closureOf(tree: JointTree, a: string, b: string, pin: readonly number[], axis: readonly number[]): Closure {
   const c: Closure = { a, b, point: [pin[0], pin[1], pin[2]], axis: [axis[0], axis[1], axis[2]], branch: 1 };
   const { onA, onB } = loopJoints(tree, c), all = [...onA, ...onB];
-  if (onA.length + onB.length !== 3) throw new LoopError('NOT_ONE_LOOP', `a planar loop has three moving joints round it besides its pin; this one has ${onA.length + onB.length}`);
-  for (const j of all) { const d = j.axis[0] * axis[0] + j.axis[1] * axis[1] + j.axis[2] * axis[2]; if ((j.type !== 'revolute' && j.type !== 'continuous') || Math.abs(Math.abs(d) - 1) > 1e-9) throw new LoopError('NOT_PLANAR', `${j.key} is not a turn about the pin's axis direction`); }
+  if (onA.length + onB.length !== 3) throw refusal('NOT_ONE_LOOP', `a planar loop has three moving joints round it besides its pin; this one has ${onA.length + onB.length}`);
+  for (const j of all) { const d = j.axis[0] * axis[0] + j.axis[1] * axis[1] + j.axis[2] * axis[2]; if ((j.type !== 'revolute' && j.type !== 'continuous') || Math.abs(Math.abs(d) - 1) > 1e-9) throw refusal('NOT_PLANAR', `${j.key} is not a turn about the pin's axis direction`); }
   c.branch = branchAt(tree, c, {});
   return c;
 }
 /** The loop's closure in a document's assembly: the pin is the loop's concentric mate's axis, where it meets the pair's flat mate. */
 export function closureOfDoc(doc: StudioDoc, tree: JointTree, loop: Loop): Closure {
   const solved = solveDoc(doc).doc, tables = tablesFor(solved), mates = (solved.mates ?? []).filter(m => loop.mates.includes(m.id)), conc = mates.find(m => m.kind === 'concentric');
-  if (!conc) throw new LoopError('NO_PIN', `the loop ${loop.parts.join('–')} has no concentric mate to close on`);
+  if (!conc) throw refusal('NO_PIN', `the loop ${loop.parts.join('–')} has no concentric mate to close on`);
   const side = conc.a, f = tables(side.part)?.[side.face];
-  if (!f || f.kind !== 'cylinder') throw new LoopError('NO_PIN', `${side.part}.${side.face} is not a round face`);
+  if (!f || f.kind !== 'cylinder') throw refusal('NO_PIN', `${side.part}.${side.face} is not a round face`);
   const inst = (solved.instances ?? []).find(i => i.id === side.part), R = inst ? rotationMatrix(inst.rotation) : [1, 0, 0, 0, 1, 0, 0, 0, 1], t = inst ? inst.position : [0, 0, 0];
   const p = [0, 1, 2].map(i => R[i * 3] * f.point[0] + R[i * 3 + 1] * f.point[1] + R[i * 3 + 2] * f.point[2] + t[i]), n = [0, 1, 2].map(i => R[i * 3] * f.axis[0] + R[i * 3 + 1] * f.axis[1] + R[i * 3 + 2] * f.axis[2]);
   const [a, b] = loop.parts;
@@ -67,7 +67,7 @@ const JTJ = new Float64Array(4), JTR = new Float64Array(2);
  */
 export function closeLoop(tree: JointTree, c: Closure, driver: string, value: number, from: Readonly<Record<string, number>> = {}): Closed {
   const { onA, onB } = loopJoints(tree, c), all = [...onA, ...onB];
-  if (!all.some(j => j.key === driver)) throw new LoopError('NOT_ONE_LOOP', `${driver} is not a joint round the loop`);
+  if (!all.some(j => j.key === driver)) throw refusal('NOT_ONE_LOOP', `${driver} is not a joint round the loop`);
   const unknown = all.filter(j => j.key !== driver), q: Record<string, number> = { ...from, [driver]: value };
   for (const j of unknown) q[j.key] ??= 0;
   let res = Infinity, it = 0;
@@ -90,8 +90,8 @@ export function closeLoop(tree: JointTree, c: Closure, driver: string, value: nu
     const k = Math.min(1, (Math.PI / 4) / Math.max(Math.abs(d0), Math.abs(d1), 1e-300));
     q[unknown[0].key] -= k * d0; q[unknown[1].key] -= k * d1;
   }
-  if (!(res <= 1e-9)) throw new LoopError('NO_CLOSURE', `${driver} at ${value} rad: the loop does not close (its pin ${res.toExponential(3)} mm apart after ${it} steps)`);
+  if (!(res <= 1e-9)) throw refusal('NO_CLOSURE', `${driver} at ${value} rad: the loop does not close (its pin ${res.toExponential(3)} mm apart after ${it} steps)`);
   const branch = branchAt(tree, c, q);
-  if (branch !== c.branch) throw new LoopError('BRANCH_FLIP', `${driver} at ${value} rad closes on the other branch: not the one the linkage was assembled in`);
+  if (branch !== c.branch) throw refusal('BRANCH_FLIP', `${driver} at ${value} rad closes on the other branch: not the one the linkage was assembled in`);
   return { q, residualMM: res, branch, iterations: it };
 }

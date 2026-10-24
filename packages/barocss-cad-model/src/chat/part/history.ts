@@ -4,7 +4,7 @@
 import type { ModelNode } from '../../engine/doc';
 import { bodyKeyFor, featureId, nodeIndexOf } from '../../engine/ids';
 import { v1Call } from '../groups';
-import { parse, runScript, SCRIPT_VERSION, ScriptError, type ScriptHost, type ScriptRun } from '../script';
+import { parse, runScript, SCRIPT_CODES, SCRIPT_VERSION, type ScriptHost, type ScriptRun } from '../script';
 import { changeOf, factsOf } from '../observe';
 import { newTransactions, OP_IDS, treeDiff, type TreeDiff } from '../transactions';
 import { canonical } from '../../util/revision';
@@ -17,6 +17,7 @@ import { BATCHABLE, takesArgument } from '../toolDefinitions';
 import { CHAT_COMMANDS } from './features';
 import { type ChatState, type Evaluate, type ToolOutcome, type PartRun, type PartHandler, because, json, CHECKPOINTS, accept, fail } from '../toolKit';
 import { isObj } from '../../util/guards';
+import { isRefusal } from '../../engine/refusal';
 
 /** Ops run in order on a copy, each on what the one before left: the result, or the first refusal (nothing applied). */
 export interface OpsRun { cur: ChatState; results: Record<string, unknown>[]; ops: Op[]; /** The feature ids in order before each op kept (O133: what its indices name). */ orders: string[][]; diff: TreeDiff; change: Record<string, unknown>; broken: Record<string, unknown>[] }
@@ -81,8 +82,8 @@ async function runScriptOn(dispatch: PartRun, state: ChatState, source: unknown,
   const host = new ScriptOn(dispatch, state, rememberedEvaluate(evaluate), because);
   let run: ScriptRun;
   try { run = await runScript(parse(source), host); } catch (e) {
-    if (!(e instanceof ScriptError)) throw e;
-    return { fail: fail(state, `${e.message}${e.code === 'REFUSED' ? '' : '.'} Nothing was applied.`, { code: `script_${e.code.toLowerCase()}`, line: e.line, col: e.col, kept: 'nothing was applied' }) };
+    if (!isRefusal(e, ...SCRIPT_CODES)) throw e;
+    return { fail: fail(state, `${e.message}${e.code === 'REFUSED' ? '' : '.'} Nothing was applied.`, { code: `script_${e.code.toLowerCase()}`, line: e.details?.line, col: e.details?.col, kept: 'nothing was applied' }) };
   }
   const cur = host.cur, diff = treeDiff(state.doc, cur.doc), change = changeOf(factsOf(state.doc, state.bodies), factsOf(cur.doc, cur.bodies));
   const refs = await verifyReferences(cur.doc, cur.bodies, evaluate), broken = [...refs.problems.map(p => ({ where: p.where, name: p.name, ...(p.candidates.length ? { could_be: p.candidates } : { gone: true }) })), ...refs.changes.map(c => ({ where: c.where, name: c.was, now: c.now }))];

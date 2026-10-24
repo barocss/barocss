@@ -5,7 +5,8 @@ import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { chordOf } from '../src/chat/references';
 import { marchingTetrahedra } from '@barocss/cad';
-import { cavityField, enclosedVoids, hollowWork, HollowError, planHollow } from '../src/print/hollow';
+import { cavityField, enclosedVoids, hollowWork, planHollow } from '../src/print/hollow';
+import { isRefusal } from '../src/engine/refusal';
 
 // AM7a (O53): SDF voxel hollowing with drains. The cavity φ = depth − t > 0 meshed by marching tetrahedra and subtracted
 // from the exact body; a drain from the bottom into each cavity. Wall thickness against the target; every cavity
@@ -18,7 +19,7 @@ async function part(calls: [string, object][]): Promise<{ doc: StudioDoc; bodies
   const e = await evaluate(s.doc); assert.ok(e.ok); return { doc: s.doc, bodies: e.bodies };
 }
 const boxOf = (w: number, d: number, h: number, x = 0) => ['run_command', { command: 'box', values: { w, d, h, x, y: 0, z: 0 } }] as [string, object];
-const code = (f: () => unknown) => { try { f(); return 'none'; } catch (e) { return e instanceof HollowError ? e.code : String(e); } };
+const code = (f: () => unknown) => { try { f(); return 'none'; } catch (e) { return isRefusal(e) ? e.code : String(e); } };
 /** Distance along a ray from p in direction u to the nearest triangle of a mesh (positions, indices). */
 function rayTo(P: ArrayLike<number>, I: ArrayLike<number>, p: number[], u: number[]): number {
   let best = Infinity;

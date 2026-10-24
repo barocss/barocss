@@ -7,7 +7,8 @@ import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { interference, massProperties } from '../src/analysis/analysis';
 import { threeMfModelOf } from '../src/print/export3mf';
 import { cavityField, planHollow } from '../src/print/hollow';
-import { awayFromZero, gyroid, gyroidFraction, gyroidGradient, latticeField, LatticeError, mixedTetrahedra, planLattice, weldTau } from '../src/print/lattice';
+import { awayFromZero, gyroid, gyroidFraction, gyroidGradient, latticeField, mixedTetrahedra, planLattice, weldTau } from '../src/print/lattice';
+import { isRefusal } from '../src/engine/refusal';
 
 // AM7b (O57): a gyroid lattice infill, a separate mesh body inside an exactly hollowed part. Its solid fraction against the
 // gyroid's own f(k) within the derived ε_MT + ε_mix + 4σ; the solid one component, nothing loose; every empty region
@@ -22,7 +23,7 @@ async function hollowBox(w: number, d: number, hgt: number, t: number, drain = 3
 }
 // (The coarse case for the kernel's intersection: its mesh Boolean takes minutes past a few thousand triangles.)
 const COARSE = { w: 24, d: 24, h: 18, t: 3, drain: 6, L: 12, k: 0.8, vox: 3 };
-const code = (f: () => unknown) => { try { f(); return 'none'; } catch (e) { return e instanceof LatticeError ? e.code : String(e); } };
+const code = (f: () => unknown) => { try { f(); return 'none'; } catch (e) { return isRefusal(e) ? e.code : String(e); } };
 const area = (m: { positions: ArrayLike<number>; indices: ArrayLike<number> }) => { let A = 0; const P = m.positions, I = m.indices; for (let t = 0; t < I.length; t += 3) { const a = I[t] * 3, b = I[t + 1] * 3, c = I[t + 2] * 3, u = [P[b] - P[a], P[b + 1] - P[a + 1], P[b + 2] - P[a + 2]], v = [P[c] - P[a], P[c + 1] - P[a + 1], P[c + 2] - P[a + 2]]; A += Math.hypot(u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]) / 2; } return A; };
 
 test('the solid fraction on whole cells: a 24 × 24 × 12 cavity of 6 mm cells, k 0.6 — the lattice over the cavity is f(k) within ε_MT + ε_mix + 4σ', () => {

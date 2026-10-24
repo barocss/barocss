@@ -9,8 +9,11 @@
 import type { LoopSegment } from '../engine/doc';
 import { readUnderlay, UNDERLAY_TOP, type Underlay } from './dxfUnderlay';
 import { MM_PER_FOOT, MM_PER_INCH } from '../util/units';
+import { refusal, type BarocssError } from '../engine/refusal';
 
 export type DxfReadCode = 'DXF_MALFORMED' | 'DXF_UNSUPPORTED' | 'DXF_OPEN' | 'DXF_NESTED' | 'DXF_EMPTY' | 'DWG_NOT_READ';
+/** The codes a DXF read refuses with (a caller that turns them into its own answer). */
+export const DXF_READ_CODES: readonly DxfReadCode[] = ['DXF_MALFORMED', 'DXF_UNSUPPORTED', 'DXF_OPEN', 'DXF_NESTED', 'DXF_EMPTY', 'DWG_NOT_READ'];
 /** AutoCAD's DWG version tags (the file's first six bytes) and their releases. */
 const DWG_RELEASES: Record<string, string> = { AC1009: 'R11/R12', AC1012: 'R13', AC1014: 'R14', AC1015: '2000', AC1018: '2004', AC1021: '2007', AC1024: '2010', AC1027: '2013', AC1032: '2018' };
 /** The release of a DWG file from its first bytes (`AC10xx`), or null when it is not one. */
@@ -20,10 +23,9 @@ export function dwgRelease(head: string): string | null {
 /** What to do with a DWG (O61: DWG is not read; every producer saves DXF). */
 export const DWG_ROUTES = 'Save it as DXF from the program that made it (AutoCAD and its family: Save As → DXF), or convert it with the free ODA File Converter (DWG to DXF, one file or a folder at once), then add the DXF.';
 /** The refusal for a DWG file, typed (O61). */
-export function dwgRefusal(head: string): DxfReadError | null {
-  const r = dwgRelease(head); return r ? new DxfReadError('DWG_NOT_READ', `this is a DWG file (AutoCAD ${r}), and the studio reads DXF, not DWG. ${DWG_ROUTES}`) : null;
+export function dwgRefusal(head: string): BarocssError | null {
+  const r = dwgRelease(head); return r ? refusal('DWG_NOT_READ', `this is a DWG file (AutoCAD ${r}), and the studio reads DXF, not DWG. ${DWG_ROUTES}`) : null;
 }
-export class DxfReadError extends Error { constructor(public code: DxfReadCode, message: string) { super(`[${code}] ${message}`); this.name = 'DxfReadError'; } }
 type P = [number, number];
 /** An edge: a line, or an arc from a to b about c, counter-clockwise when ccw. */
 type Edge = { a: P; b: P; c?: P; ccw?: boolean };
@@ -48,16 +50,16 @@ const GEOMETRY = new Set(['LINE', 'ARC', 'CIRCLE', 'LWPOLYLINE', 'POLYLINE']);
 export function pairsOf(text: string): [number, string][] {
   const lines = text.replace(/\r\n?/g, '\n').split('\n');
   if (lines.length && lines[lines.length - 1] === '') lines.pop();
-  if (lines.length % 2) throw new DxfReadError('DXF_MALFORMED', 'an odd number of lines: a group code without its value');
+  if (lines.length % 2) throw refusal('DXF_MALFORMED', 'an odd number of lines: a group code without its value');
   const out: [number, string][] = [];
   for (let i = 0; i < lines.length; i += 2) {
     const code = Number(lines[i].trim());
-    if (!Number.isInteger(code)) throw new DxfReadError('DXF_MALFORMED', `line ${i + 1}: "${lines[i].trim().slice(0, 20)}" is not a group code`);
+    if (!Number.isInteger(code)) throw refusal('DXF_MALFORMED', `line ${i + 1}: "${lines[i].trim().slice(0, 20)}" is not a group code`);
     out.push([code, lines[i + 1].trim()]);
   }
   return out;
 }
-const num = (v: string, what: string): number => { const x = Number(v); if (!Number.isFinite(x)) throw new DxfReadError('DXF_MALFORMED', `${what}: "${v.slice(0, 20)}" is not a number`); return x; };
+const num = (v: string, what: string): number => { const x = Number(v); if (!Number.isFinite(x)) throw refusal('DXF_MALFORMED', `${what}: "${v.slice(0, 20)}" is not a number`); return x; };
 /** A bulge's arc between two points (bulge = tan(θ/4), positive counter-clockwise). */
 function bulgeEdge(a: P, b: P, bulge: number): Edge {
   if (Math.abs(bulge) < 1e-12) return { a, b };
@@ -73,10 +75,10 @@ function readEntities(pairs: [number, string][]): { edges: Edge[]; circles: { c:
   let units = 0, declared = false;
   for (let i = 0; i + 1 < pairs.length; i++) if (pairs[i][0] === 9 && pairs[i][1] === '$INSUNITS' && pairs[i + 1][0] === 70) { units = num(pairs[i + 1][1], '$INSUNITS'); declared = true; }
   const u = UNITS[units];
-  if (declared && units !== 0 && !u) throw new DxfReadError('DXF_UNSUPPORTED', `$INSUNITS ${units}: only inches, feet, millimetres, centimetres and metres are read`);
+  if (declared && units !== 0 && !u) throw refusal('DXF_UNSUPPORTED', `$INSUNITS ${units}: only inches, feet, millimetres, centimetres and metres are read`);
   const unit = { declared: declared && units !== 0, name: u ? u[0] : 'millimetres (none declared)', toMM: u ? u[1] : 1 };
   const start = pairs.findIndex((p, i) => p[0] === 2 && p[1] === 'ENTITIES' && pairs[i - 1]?.[0] === 0 && pairs[i - 1]?.[1] === 'SECTION');
-  if (start < 0) throw new DxfReadError('DXF_MALFORMED', 'no ENTITIES section: not a DXF drawing');
+  if (start < 0) throw refusal('DXF_MALFORMED', 'no ENTITIES section: not a DXF drawing');
   const edges: Edge[] = [], circles: { c: P; r: number }[] = [], ignored: Record<string, number> = {};
   let i = start + 1, entities = 0;
   const k = unit.toMM;
@@ -90,30 +92,30 @@ function readEntities(pairs: [number, string][]): { edges: Edge[]; circles: { c:
     if (ANNOTATION.has(type)) { ignored[type] = (ignored[type] ?? 0) + 1; continue; }
     // (Splines, ellipses, blocks and text: the underlay's, never the profile's, O68.)
     if (UNDERLAY_TOP.has(type)) continue;
-    if (!GEOMETRY.has(type)) throw new DxfReadError('DXF_UNSUPPORTED', `a ${type} entity: the drawing reader takes LINE, ARC, CIRCLE, LWPOLYLINE and POLYLINE as the profile, and SPLINE, ELLIPSE, INSERT, TEXT and MTEXT as an underlay to trace over`);
-    const g = (code: number, d?: number) => { const v = body.find(p => p[0] === code); if (!v) { if (d !== undefined) return d; throw new DxfReadError('DXF_MALFORMED', `a ${type} without its group ${code}`); } return num(v[1], `${type} group ${code}`); };
-    if (body.some(p => p[0] === 30 && Math.abs(Number(p[1])) > 1e-9) || body.some(p => p[0] === 230 && Math.abs(Number(p[1]) - 1) > 1e-9)) throw new DxfReadError('DXF_UNSUPPORTED', `a ${type} off the XY plane (a Z, or an extrusion other than +Z): the drawing reader is 2D`);
+    if (!GEOMETRY.has(type)) throw refusal('DXF_UNSUPPORTED', `a ${type} entity: the drawing reader takes LINE, ARC, CIRCLE, LWPOLYLINE and POLYLINE as the profile, and SPLINE, ELLIPSE, INSERT, TEXT and MTEXT as an underlay to trace over`);
+    const g = (code: number, d?: number) => { const v = body.find(p => p[0] === code); if (!v) { if (d !== undefined) return d; throw refusal('DXF_MALFORMED', `a ${type} without its group ${code}`); } return num(v[1], `${type} group ${code}`); };
+    if (body.some(p => p[0] === 30 && Math.abs(Number(p[1])) > 1e-9) || body.some(p => p[0] === 230 && Math.abs(Number(p[1]) - 1) > 1e-9)) throw refusal('DXF_UNSUPPORTED', `a ${type} off the XY plane (a Z, or an extrusion other than +Z): the drawing reader is 2D`);
     if (type === 'LINE') edges.push({ a: [g(10) * k, g(20) * k], b: [g(11) * k, g(21) * k] });
     else if (type === 'CIRCLE') circles.push({ c: [g(10) * k, g(20) * k], r: g(40) * k });
     else if (type === 'ARC') { const c: P = [g(10) * k, g(20) * k], r = g(40) * k; edges.push({ a: arcPoint(c, r, g(50)), b: arcPoint(c, r, g(51)), c, ccw: true }); }
     else if (type === 'LWPOLYLINE') {
       const closed = (g(70, 0) & 1) === 1, pts: P[] = [], bulges: number[] = [];
       for (const [code, v] of body) { if (code === 10) { pts.push([num(v, 'LWPOLYLINE x') * k, 0]); bulges.push(0); } else if (code === 20 && pts.length) pts[pts.length - 1][1] = num(v, 'LWPOLYLINE y') * k; else if (code === 42 && pts.length) bulges[bulges.length - 1] = num(v, 'LWPOLYLINE bulge'); }
-      if (pts.length < 2) throw new DxfReadError('DXF_MALFORMED', 'an LWPOLYLINE of fewer than two vertices');
+      if (pts.length < 2) throw refusal('DXF_MALFORMED', 'an LWPOLYLINE of fewer than two vertices');
       for (let j = 0; j + 1 < pts.length; j++) edges.push(bulgeEdge(pts[j], pts[j + 1], bulges[j]));
       if (closed) edges.push(bulgeEdge(pts[pts.length - 1], pts[0], bulges[pts.length - 1]));
     } else {
       // POLYLINE: its VERTEX entities follow, up to SEQEND.
       const closed = (g(70, 0) & 1) === 1, pts: P[] = [], bulges: number[] = [];
-      if ((g(70, 0) & (8 | 16 | 64)) !== 0) throw new DxfReadError('DXF_UNSUPPORTED', 'a 3D polyline or polygon mesh: the drawing reader is 2D');
+      if ((g(70, 0) & (8 | 16 | 64)) !== 0) throw refusal('DXF_UNSUPPORTED', 'a 3D polyline or polygon mesh: the drawing reader is 2D');
       while (i < pairs.length && pairs[i][0] === 0 && pairs[i][1] === 'VERTEX') {
         i++; const v: [number, string][] = [];
         while (i < pairs.length && pairs[i][0] !== 0) v.push(pairs[i++]);
         const x = v.find(p => p[0] === 10), y = v.find(p => p[0] === 20), b = v.find(p => p[0] === 42);
-        if (!x || !y) throw new DxfReadError('DXF_MALFORMED', 'a VERTEX without its position');
+        if (!x || !y) throw refusal('DXF_MALFORMED', 'a VERTEX without its position');
         pts.push([num(x[1], 'VERTEX x') * k, num(y[1], 'VERTEX y') * k]); bulges.push(b ? num(b[1], 'VERTEX bulge') : 0);
       }
-      if (pts.length < 2) throw new DxfReadError('DXF_MALFORMED', 'a POLYLINE of fewer than two vertices');
+      if (pts.length < 2) throw refusal('DXF_MALFORMED', 'a POLYLINE of fewer than two vertices');
       for (let j = 0; j + 1 < pts.length; j++) edges.push(bulgeEdge(pts[j], pts[j + 1], bulges[j]));
       if (closed) edges.push(bulgeEdge(pts[pts.length - 1], pts[0], bulges[pts.length - 1]));
     }
@@ -164,7 +166,7 @@ export function readDxfSketch(text: string): DxfSketch {
   if (!edges.length && !circles.length) {
     // (Nothing for a profile: an underlay alone to trace over, when there is one.)
     if (shown) return { regions: [], holes: [], unit, ignored, entities, underlay };
-    throw new DxfReadError('DXF_EMPTY', `no profile geometry (${entities} entities${Object.keys(ignored).length ? `, left out: ${Object.entries(ignored).map(([t, n]) => `${n} ${t}`).join(', ')}` : ''})`);
+    throw refusal('DXF_EMPTY', `no profile geometry (${entities} entities${Object.keys(ignored).length ? `, left out: ${Object.entries(ignored).map(([t, n]) => `${n} ${t}`).join(', ')}` : ''})`);
   }
   let size = 0; for (const e of edges) size = Math.max(size, Math.abs(e.a[0]), Math.abs(e.a[1]), Math.abs(e.b[0]), Math.abs(e.b[1])); for (const c of circles) size = Math.max(size, Math.abs(c.c[0]) + c.r, Math.abs(c.c[1]) + c.r);
   const tol = 1e-6 * Math.max(1, size), same = (p: P, q: P) => Math.abs(p[0] - q[0]) <= tol && Math.abs(p[1] - q[1]) <= tol;
@@ -176,7 +178,7 @@ export function readDxfSketch(text: string): DxfSketch {
       const end = chain[chain.length - 1].b;
       if (same(end, chain[0].a)) break;
       const k = left.findIndex(e => same(e.a, end) || same(e.b, end));
-      if (k < 0) throw new DxfReadError('DXF_OPEN', `the profile is not closed at (${end[0].toPrecision(6)}, ${end[1].toPrecision(6)}) mm: an edge ends there with nothing joining it${underlay.counts.SPLINE || underlay.counts.ELLIPSE || underlay.left.SPLINE ? ` (the drawing's splines and ellipses are shown as underlay only: a profile takes lines, arcs and circles)` : ''}`);
+      if (k < 0) throw refusal('DXF_OPEN', `the profile is not closed at (${end[0].toPrecision(6)}, ${end[1].toPrecision(6)}) mm: an edge ends there with nothing joining it${underlay.counts.SPLINE || underlay.counts.ELLIPSE || underlay.left.SPLINE ? ` (the drawing's splines and ellipses are shown as underlay only: a profile takes lines, arcs and circles)` : ''}`);
       const e = left.splice(k, 1)[0];
       chain.push(same(e.a, end) ? { ...e, a: end } : { a: end, b: e.a, ...(e.c ? { c: e.c, ccw: !e.ccw } : {}) });
     }
@@ -194,7 +196,7 @@ export function readDxfSketch(text: string): DxfSketch {
   measured.forEach((l, i) => {
     const d = depthOf(i), loop: DxfLoop = { segments: toSegments(l.edges), area: Math.abs(l.area), box: l.box, ...(l.circle ? { circle: l.circle } : {}) };
     if (d === 0) regions.push(loop); else if (d === 1) holes.push(loop);
-    else throw new DxfReadError('DXF_NESTED', `a loop inside a hole (at (${l.box[0].toPrecision(6)}, ${l.box[1].toPrecision(6)}) mm): an island in a hole is a sketch of its own`);
+    else throw refusal('DXF_NESTED', `a loop inside a hole (at (${l.box[0].toPrecision(6)}, ${l.box[1].toPrecision(6)}) mm): an island in a hole is a sketch of its own`);
   });
   regions.sort((a, b) => b.area - a.area);
   return { regions, holes, unit, ignored, entities, underlay };

@@ -12,9 +12,9 @@ import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import { refOf } from '../app/bodyRef';
 import { marchingTetrahedra, nearestDistance2, rayHit, triangleBvh, voxelDepth, voxelInsideFlags, voxelNode, type TriangleBvh, type VoxelField } from '@barocss/cad';
 import { sha256Hex } from '../util/sha256';
+import { refusal } from '../engine/refusal';
 
 export type HollowCode = 'CURVED_BODY' | 'ONE_BODY' | 'DIRECTION_NOT_AXIS' | 'NOTHING_TO_HOLLOW' | 'GRID_TOO_FINE' | 'BAD_VALUES' | 'DRAIN_NO_ROOM' | 'BOOLEAN_REFUSED';
-export class HollowError extends Error { constructor(public code: HollowCode, message: string) { super(`[${code}] ${message}`); this.name = 'HollowError'; } }
 /** `route`: 'auto' (the kernel's exact closed shell first, the voxel cavity when it refuses) or 'voxel' (the voxel cavity only). */
 export interface HollowOptions { t: number; h?: number; drain?: number; route?: 'auto' | 'voxel' }
 /** `route`: which made the cavity — the kernel's exact shell (R11), or the voxel cavity — and `why` the voxel route ran. `wall`: measured against t. */
@@ -37,7 +37,7 @@ export function cavityField(m: DisplayMesh, t: number, h: number): Grid {
   const lo = m.bounds.min, hi = m.bounds.max;
   const o: Vec3 = [lo[0] - 2 * h + OFFSETS[0] * h, lo[1] - 2 * h + OFFSETS[1] * h, lo[2] - 2 * h + OFFSETS[2] * h];
   const n: [number, number, number] = [0, 1, 2].map(k => Math.ceil((hi[k] - o[k] + 2 * h) / h) + 1) as [number, number, number];
-  if (n[0] * n[1] * n[2] > MAX_NODES) throw new HollowError('GRID_TOO_FINE', `${n.join(' × ')} nodes at h ${h} mm, over ${MAX_NODES}: take h ≥ ${(+(h * Math.cbrt(n[0] * n[1] * n[2] / MAX_NODES)).toFixed(3))} mm`);
+  if (n[0] * n[1] * n[2] > MAX_NODES) throw refusal('GRID_TOO_FINE', `${n.join(' × ')} nodes at h ${h} mm, over ${MAX_NODES}: take h ≥ ${(+(h * Math.cbrt(n[0] * n[1] * n[2] / MAX_NODES)).toFixed(3))} mm`);
   const inside = voxelInsideFlags(m.positions, m.indices, o, h, n), depth = voxelDepth(m.positions, m.indices, o, h, n, t + 2 * h, inside), phi = new Float64Array(n[0] * n[1] * n[2]).fill(-t);
   for (let id = 0; id < phi.length; id++) if (inside[id]) phi[id] = depth[id] - t;
   return { o, h, n, phi };
@@ -120,26 +120,26 @@ export const hollowWork = { fields: 0 };
 /** A curved body refused for a mesh cavity, with why the voxel route was taken. */
 function curvedRefusal(body: BodyResult, why: string): void {
   const curved = body.mesh.faces.filter(f => f.kind === 'curved' && !f.facet).length;
-  if (curved) throw new HollowError('CURVED_BODY', `the part has ${curved} curved face${curved > 1 ? 's' : ''} and ${why}: a mesh cavity in a curved body needs the kernel's mixed facet–analytic Booleans (F3)`);
+  if (curved) throw refusal('CURVED_BODY', `the part has ${curved} curved face${curved > 1 ? 's' : ''} and ${why}: a mesh cavity in a curved body needs the kernel's mixed facet–analytic Booleans (F3)`);
 }
 /** The hollowing's features appended: the cavity mesh, its difference from the body, a drain into each cavity. */
 export function planHollow(doc: StudioDoc, bodies: readonly BodyResult[], o: HollowOptions): { doc: StudioDoc; report: HollowReport } {
-  if (bodies.length !== 1) throw new HollowError('ONE_BODY', `hollowing takes a part of one body; this one has ${bodies.length}`);
+  if (bodies.length !== 1) throw refusal('ONE_BODY', `hollowing takes a part of one body; this one has ${bodies.length}`);
   const t = o.t, h = o.h ?? t / 4, drain = o.drain ?? 4;
-  if (!(t > 0 && h > 0 && h <= t / 2 + 1e-12 && drain > 0)) throw new HollowError('BAD_VALUES', `a wall t > 0, a voxel 0 < h ≤ t/2 and a drain Ø > 0 (t ${t}, h ${h}, drain ${drain})`);
+  if (!(t > 0 && h > 0 && h <= t / 2 + 1e-12 && drain > 0)) throw refusal('BAD_VALUES', `a wall t > 0, a voxel 0 < h ≤ t/2 and a drain Ø > 0 (t ${t}, h ${h}, drain ${drain})`);
   const d = doc.print?.direction ?? [0, 0, 1], up = d.findIndex(x => Math.abs(x) > 1e-9);
-  if (up < 0 || d.some((x, i) => i !== up && Math.abs(x) > 1e-9)) throw new HollowError('DIRECTION_NOT_AXIS', `the print direction (${d.join(', ')}) is not along X, Y or Z`);
+  if (up < 0 || d.some((x, i) => i !== up && Math.abs(x) > 1e-9)) throw refusal('DIRECTION_NOT_AXIS', `the print direction (${d.join(', ')}) is not along X, Y or Z`);
   const body = bodies[0];
   // (The voxel route asked for on a curved body: refused before any voxel work — the field is not built.)
   if (o.route === 'voxel') curvedRefusal(body, 'the voxel route was asked for');
   hollowWork.fields++;
   const g = cavityField(body.mesh, t, h), comps = cavityComponents(g, up);
-  if (!comps.length) throw new HollowError('NOTHING_TO_HOLLOW', `no point of the part is deeper than the wall (${t} mm): it is thinner than ${2 * t} mm everywhere`);
+  if (!comps.length) throw refusal('NOTHING_TO_HOLLOW', `no point of the part is deeper than the wall (${t} mm): it is thinner than ${2 * t} mm everywhere`);
   // (The drains: from the part's bottom (min along up) to each cavity's lowest node, its column inside the bottom.)
   const [a, b] = [0, 1, 2].filter(x => x !== up), floor = body.mesh.bounds.min[up], drains: HollowReport['drains'] = [];
   for (const c of comps) {
     const p = voxelNode(g, c.lowest), inFoot = [a, b].every(x => p[x] - drain / 2 >= body.mesh.bounds.min[x] - 1e-9 && p[x] + drain / 2 <= body.mesh.bounds.max[x] + 1e-9);
-    if (!inFoot) throw new HollowError('DRAIN_NO_ROOM', `a drain of Ø${drain} at (${p.map(v => +v.toFixed(2)).join(', ')}) does not fit inside the part's bottom`);
+    if (!inFoot) throw refusal('DRAIN_NO_ROOM', `a drain of Ø${drain} at (${p.map(v => +v.toFixed(2)).join(', ')}) does not fit inside the part's bottom`);
     drains.push({ at: [p[0], p[1], p[2]], depth: p[up] - floor });
   }
   // (The route: the kernel's exact closed shell (R11: shellPart, its general shell and offsets, nothing opened) first — the
@@ -166,7 +166,7 @@ export function planHollow(doc: StudioDoc, bodies: readonly BodyResult[], o: Hol
       if (r.ok) { done = d; error = Math.max(error, e); break; }
       why = JSON.stringify(r.error).slice(0, 300);
     }
-    if (!done) throw new HollowError('BOOLEAN_REFUSED', `a cavity (${piece.indices.length / 3} triangles) could not be taken from the part even simplified to h/10: ${why}; a coarser h makes a smaller cavity mesh`);
+    if (!done) throw refusal('BOOLEAN_REFUSED', `a cavity (${piece.indices.length / 3} triangles) could not be taken from the part even simplified to h/10: ${why}; a coarser h makes a smaller cavity mesh`);
     out = done; ref = { node: out.nodes.length - 1, side: 'solid' };
   }
   }

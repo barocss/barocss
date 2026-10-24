@@ -8,6 +8,7 @@
 import { composeInto, forwardKinematics, invert, type Motion } from './fk';
 import { frameOf } from './frames';
 import type { Joint, JointTree } from './joints';
+import { refusal } from '../engine/refusal';
 
 export const IK_POSITION_TOL_M = 1e-4;
 export const IK_ANGLE_TOL_RAD = 1e-3;
@@ -27,7 +28,6 @@ export interface IkResult {
   errorM: number; errorRad: number; singular: boolean; sigmaMin: number; sigmaMax: number;
 }
 export type IkCode = 'NO_LINK' | 'NO_JOINTS' | 'NO_FRAME';
-export class IkError extends Error { constructor(public code: IkCode, message: string) { super(`[${code}] ${message}`); this.name = 'IkError'; } }
 
 /** The joints from the base to a link, base first. */
 export function pathTo(tree: JointTree, link: string): Joint[] {
@@ -163,23 +163,23 @@ function randomSeed(p: Problem): Record<string, number> {
  */
 export function frameTarget(tree: JointTree, name: string, pose: Motion, mode?: 'pose' | 'position'): IkTarget {
   const f = frameOf(tree, name);
-  if (!f) throw new IkError('NO_FRAME', `no frame ${name} on the tree (frames: ${(tree.frames ?? []).map(x => x.name).join(', ') || 'none'})`);
+  if (!f) throw refusal('NO_FRAME', `no frame ${name} on the tree (frames: ${(tree.frames ?? []).map(x => x.name).join(', ') || 'none'})`);
   const M: Motion = { R: Float64Array.from(f.R), t: Float64Array.from(f.o) };
   return { link: f.link, motion: composeInto({ R: new Float64Array(9), t: new Float64Array(3) }, pose, invert(M)), tool: f.o, ...(mode ? { mode } : {}) };
 }
 /** A frame's link and origin as a tool point (the workspace map's, a probe's), or NO_FRAME. */
 export function frameTool(tree: JointTree, name: string): { link: string; tool: readonly number[] } {
   const f = frameOf(tree, name);
-  if (!f) throw new IkError('NO_FRAME', `no frame ${name} on the tree (frames: ${(tree.frames ?? []).map(x => x.name).join(', ') || 'none'})`);
+  if (!f) throw refusal('NO_FRAME', `no frame ${name} on the tree (frames: ${(tree.frames ?? []).map(x => x.name).join(', ') || 'none'})`);
   return { link: f.link, tool: f.o };
 }
 
 /** The joint values that bring `target.link` to `target.motion` at its tool point, from `start` (absent: 0) and up to 15 seeds. */
 export function solveIk(tree: JointTree, target: IkTarget, start: Readonly<Record<string, number>> = {}): IkResult {
   const path = pathTo(tree, target.link);
-  if (target.link !== tree.base && !path.length) throw new IkError('NO_LINK', `no link ${target.link} on the tree`);
+  if (target.link !== tree.base && !path.length) throw refusal('NO_LINK', `no link ${target.link} on the tree`);
   const keys = unknownsOf(path);
-  if (!keys.length) throw new IkError('NO_JOINTS', `nothing moves ${target.link}`);
+  if (!keys.length) throw refusal('NO_JOINTS', `nothing moves ${target.link}`);
   const tool = target.tool ?? path[path.length - 1].origin, m = target.motion;
   const xs: [number, number, number] = [m.R[0] * tool[0] + m.R[1] * tool[1] + m.R[2] * tool[2] + m.t[0], m.R[3] * tool[0] + m.R[4] * tool[1] + m.R[5] * tool[2] + m.t[1], m.R[6] * tool[0] + m.R[7] * tool[1] + m.R[8] * tool[2] + m.t[2]];
   const p: Problem = { tree, path, keys, link: target.link, tool, target: m, xs, rows: target.mode === 'position' ? 3 : 6 };
@@ -208,7 +208,7 @@ export function jacobianConditioning(tree: JointTree, link: string, q: Readonly<
 export interface ToolProbe { problem: Problem; n: number }
 export function toolProbe(tree: JointTree, link: string, tool?: readonly number[]): ToolProbe {
   const path = pathTo(tree, link), keys = unknownsOf(path);
-  if (!keys.length) throw new IkError('NO_JOINTS', `nothing moves link ${link}`);
+  if (!keys.length) throw refusal('NO_JOINTS', `nothing moves link ${link}`);
   const t = tool ?? path[path.length - 1].origin, D = forwardKinematics(tree, {}).motions.get(link)!;
   return { problem: { tree, path, keys, link, tool: t, target: D, xs: [0, 0, 0], rows: 3 }, n: keys.length };
 }
