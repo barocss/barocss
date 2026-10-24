@@ -61,7 +61,7 @@ export interface PrintabilityReport {
     readonly stock?: StockResult };
   readonly mould?: { readonly finish: string | null; readonly draftMin: number | null; readonly draftRecommended: number | null; readonly bodies: readonly { body: string; material: string | null; wall: readonly [number, number] | null; wallNote?: string; shrink: number | null }[];
     /** IM2: each face's exact draft and class (with a pull and a finish). */
-    readonly draft?: readonly { body: string; face: string; cls: string; min_deg: number; max_deg: number; steepest_deg: number; side: string; below_mm2: number; area: number; isocline_points?: number }[];
+    readonly draft?: readonly { body: string; face: string; cls: string; min: number; max: number; steepest: number; side: string; belowArea: number; area: number; isocline_points?: number }[];
     /** IM5: the parting line — each face's half, the straddling faces to split, the loops. */
     readonly parting?: Record<string, unknown>;
     /** IM4: each body's walls — the nominal, the thinnest and thick sections, ribs, bosses, fillets, sharp inside corners. */
@@ -304,7 +304,7 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
     ...(parting ? { parting: { faces: parting.faces.map(f => ({ face: f.face, half: f.half, basis: f.basis })), split: parting.split.map(x => ({ face: x.face, isocline_mm: r6(x.isoclineMM) })), loops: parting.loops.map(l => ({ closed: l.closed, length_mm: r6(l.length), range_mm: l.rangeMM.map(r6), flat: l.flat, points: l.points.length })) } } : {}),
     walls: wr.map(w => ({ body: w.body, nominal_mm: w.nominal === null ? null : r6(w.nominal), thinnest_mm: w.thinnestMM === null ? null : r6(w.thinnestMM), thick95_mm: w.thick95MM === null ? null : r6(w.thick95MM), ribs: w.ribs.map(r => ({ faces: r.faces, thickness_mm: r6(r.thickness) })), bosses: w.bosses.map(b => ({ outer: b.outer, inner: b.inner, wall_mm: r6(b.wall) })), fillets: w.fillets.map(f => ({ face: f.face, radius_mm: r6(f.radius) })), sharp_corners: w.sharp.length, thick: w.thick ? { faces: w.thick.faces, area: r6(w.thick.area), max_mm: r6(w.thick.max) } : null })),
     ...(regions ? { undercuts: regions.map(r => ({ body: r.body, faces: r.faces, area: r6(r.area), centroid: r.centroid.map(r6) as Vec3, side_action: r.sideAction, best_share: r6(r.best.clearShare) })) } : {}),
-    ...(field ? { draft: field.map(f => ({ body: f.body, face: f.face, cls: f.cls, min_deg: r6(f.minDeg), max_deg: r6(f.max), steepest_deg: r6(f.steepestDeg), side: f.side, below_mm2: r6(f.belowMM2), area: r6(f.area), ...(f.isocline ? { isocline_points: f.isocline.length } : {}) })) } : {}) } };
+    ...(field ? { draft: field.map(f => ({ body: f.body, face: f.face, cls: f.cls, min: r6(f.minDeg), max: r6(f.max), steepest: r6(f.steepestDeg), side: f.side, belowArea: r6(f.belowMM2), area: r6(f.area), ...(f.isocline ? { isocline_points: f.isocline.length } : {}) })) } : {}) } };
 }
 
 function rule(id: string, level: 'feasible' | 'recommended', met: boolean, message: string, value: number, limit: number, unitName: string, source: string, entities?: string[]): PrintRule {
