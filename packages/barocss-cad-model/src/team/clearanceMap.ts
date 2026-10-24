@@ -54,7 +54,7 @@ export interface ClearanceMap {
   pairs: ClearancePair[];
   /** How many overlaps wait for their Boolean. */
   pending: number;
-  timing: { pruneMS: number; clearanceMS: number; bandMS: number };
+  timing: { pruneTime: number; clearanceTime: number; bandTime: number };
 }
 /** A filled overlap: its pair, the map's revision and the pair's pose key it was worked out for. */
 export interface OverlapFill { a: string; b: string; revision: string; pose: string; overlap: NonNullable<ClearancePair['overlap']> }
@@ -190,7 +190,7 @@ export function clearanceMap(bodies: readonly PlacedBody[], o: { near?: number; 
     pairs.push(pair);
   }
   const t2 = performance.now();
-  return { version: CLEARANCE_MAP_VERSION, revision: hashOf(pairs.map(p => p.pose.length), ...pairs.map(p => Array.from(p.pose, ch => ch.charCodeAt(0)))), near: { value: near, source: 'input' }, pairs, pending: pairs.filter(p => p.overlap && 'pending' in p.overlap).length, timing: { pruneMS: t1 - t0, clearanceMS: t2 - t1 - bandMS, bandMS } };
+  return { version: CLEARANCE_MAP_VERSION, revision: hashOf(pairs.map(p => p.pose.length), ...pairs.map(p => Array.from(p.pose, ch => ch.charCodeAt(0)))), near: { value: near, source: 'input' }, pairs, pending: pairs.filter(p => p.overlap && 'pending' in p.overlap).length, timing: { pruneTime: (t1 - t0) / 1000, clearanceTime: (t2 - t1 - bandMS) / 1000, bandTime: bandMS / 1000 } };
 }
 
 /**

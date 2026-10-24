@@ -23,7 +23,7 @@ const nativeMesh = () => ({ positions: new Float32Array([0, 0, 0, 9, 0, 0, 0, 9,
 const body = (key, placement = pose()) => ({ key, mesh: nativeMesh(), brep: null, pose: placement });
 const band = () => ({ positions: new Float32Array([0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0]), indices: new Uint32Array([0, 1, 2, 0, 2, 3]), field: new Float32Array([0, 0.25, 1, 2]) });
 const pair = (changes = {}) => ({ a: 'arm/body', b: 'base/body', state: 'contact', minGap: 0, closest: { a: [0, 0, 0], b: [0, 0, 0], faceA: 'native-37', faceB: 'native-37' }, pose: 'a-pose.b-pose', overlap: { pending: true }, ...changes });
-const map = (pairs = [pair()]) => ({ version: api.CLEARANCE_MAP_VERSION, revision: 'current-revision', near: { value: 1, source: 'input' }, pairs, pending: pairs.filter(p => p.overlap && 'pending' in p.overlap).length, timing: { pruneMS: 0, clearanceMS: 0, bandMS: 0 } });
+const map = (pairs = [pair()]) => ({ version: api.CLEARANCE_MAP_VERSION, revision: 'current-revision', near: { value: 1, source: 'input' }, pairs, pending: pairs.filter(p => p.overlap && 'pending' in p.overlap).length, timing: { pruneTime: 0, clearanceTime: 0, bandTime: 0 } });
 const fill = (changes = {}) => ({ a: 'arm/body', b: 'base/body', revision: 'current-revision', pose: 'a-pose.b-pose', overlap: { volume: 2, mesh: nativeMesh() }, ...changes });
 const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-6, `${actual} expected ${expected}`);
 
