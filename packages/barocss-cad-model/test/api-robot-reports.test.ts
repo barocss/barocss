@@ -5,8 +5,6 @@ import { Robot, part, BarocssError } from '../src/api';
 import type { StudioDoc } from '../src/engine/doc';
 
 const close = (actual: number, expected: number) => assert.ok(Math.abs(actual - expected) <= 1e-9, `${actual} != ${expected}`);
-// Reports use ten significant figures. Round the independent physical result, not an internal API result.
-const reported = (value: number) => Number(value.toPrecision(10));
 const cube = () => part('cube').box({ w: 10, d: 10, h: 10 }).material('al6061');
 
 test('public robot inertia of a 10 mm cube is 2.7 g and 45 g mm2, without SI aliases', t => {
@@ -57,7 +55,7 @@ test('a 90 degree arm reports the independent holding moment in N mm, including 
   for (const gravity of [9806.65, 9810]) {
     const result = gravity === 9806.65 ? r.gravity({ [joint.key]: 90 }) : r.gravity({ [joint.key]: 90 }, [0, 0, -gravity]);
     t.diagnostic(JSON.stringify({ gravity, result }));
-    const expected = reported(-mass * gravity / 1e6 * 20);
+    const expected = -mass * gravity / 1e6 * 20;
     assert.equal(result.units[joint.key], 'N·mm');
     close(result.torques[joint.key], expected); close(result.generalized[joint.key], expected);
   }
@@ -78,7 +76,7 @@ test('a vertical 10 mm cube slide reports force in N, without the turning moment
     const result = gravity === 9806.65 ? r.gravity({ [joint.key]: 20 }) : r.gravity({ [joint.key]: 20 }, [0, 0, -gravity]);
     t.diagnostic(JSON.stringify({ gravity, result }));
     assert.equal(result.units[joint.key], 'N');
-    close(result.torques[joint.key], reported(2.7 * gravity / 1e6));
-    close(result.generalized[joint.key], reported(2.7 * gravity / 1e6));
+    close(result.torques[joint.key], 2.7 * gravity / 1e6);
+    close(result.generalized[joint.key], 2.7 * gravity / 1e6);
   }
 });
