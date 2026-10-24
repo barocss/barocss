@@ -162,7 +162,7 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       if (!profile?.additive) return { unknown: profile ? `${profile.label} is not printing: no overhang limit` : 'no printing process is chosen' };
       const limit = profile.thresholds.maxOverhangDeg.value, table = faceTableOf(doc);
       const reports = bodiesOf(bodies, q.body).map(b => overhangOf(b.mesh, table, limit, q.direction));
-      const total = reports.reduce((n, r) => n + r.totalMM2, 0), names = reports.flatMap(r => r.faces.map(f => f.name));
+      const total = reports.reduce((n, r) => n + r.overhangArea, 0), names = reports.flatMap(r => r.faces.map(f => f.name));
       return { x: total, entities: names.slice(0, 20), hint: `past ${limit}° from the vertical (${profile.label})${reports.some(r => r.approximate) ? '; curved faces by their display triangles: accurate to the chord error' : ''}` };
     }
     case 'hole_alignment': {

@@ -193,7 +193,7 @@ async function printabilityOf(doc: StudioDoc, all: readonly BodyResult[], evalua
       const fits = a1 <= b1 && a2 <= b2 && all[2] <= printer.buildMM[2];
       rules.push({ id: 'bed-fit', level: 'feasible', status: fits ? 'pass' : 'fail', message: `the part (${all.map(x => +x.toFixed(2)).join(' × ')} mm) within ${printer.label}`, value: Math.max(a1 / b1, a2 / b2, all[2] / printer.buildMM[2]), limit: 1, unit: 'ratio', source: printer.source });
     }
-    const overArea = per.reduce((n, x) => n + x.over.totalMM2, 0);
+    const overArea = per.reduce((n, x) => n + x.over.overhangArea, 0);
     rules.push({ id: 'overhang', level: 'recommended', status: overArea > 0 ? 'warn' : 'pass', message: `the area past ${t('maxOverhangDeg').value}° from the vertical needs support${per.some(x => x.over.approximate) ? ' (curved faces to the chord error)' : ''}`, value: overArea, unit: 'mm²', source: t('maxOverhangDeg').source, entities: per.flatMap(x => x.over.faces.map(f => f.name)).slice(0, 20) });
     rules.push(warpRule(per, profile));
     rules.push(tipRule(per, profile));
@@ -321,7 +321,7 @@ function warpRule(per: readonly Per[], profile: ProcessProfile): PrintRule {
   let worst: { key: string; w: number } | null = null, unknownWhy = '';
   for (const x of per) {
     if (x.material?.warpRisk === undefined) { unknownWhy = x.material ? `${x.material.label} has no warp risk` : 'the body\'s material is not set'; continue; }
-    const box = x.ext[0] * x.ext[1], solid = box > 0 ? Math.min(1, x.over.bedMM2 / box) : 0;
+    const box = x.ext[0] * x.ext[1], solid = box > 0 ? Math.min(1, x.over.contactArea / box) : 0;
     const w = x.material.warpRisk * (Math.max(x.ext[0], x.ext[1]) / lref.value) * solid;
     if (!worst || w > worst.w) worst = { key: x.key, w };
   }
@@ -333,7 +333,7 @@ function tipRule(per: readonly Per[], profile: ProcessProfile): PrintRule {
   const ratio = profile.thresholds.tipRatio;
   if (!ratio) return { id: 'tip', level: 'recommended', status: 'n/a', message: 'tipping', why: `${profile.label} does not tip: the part lies in powder` };
   let worst: { key: string; r: number } | null = null;
-  for (const x of per) { const r = x.over.bedMM2 > 0 ? x.ext[2] / Math.sqrt(x.over.bedMM2) : Infinity; if (!worst || r > worst.r) worst = { key: x.key, r }; }
+  for (const x of per) { const r = x.over.contactArea > 0 ? x.ext[2] / Math.sqrt(x.over.contactArea) : Infinity; if (!worst || r > worst.r) worst = { key: x.key, r }; }
   if (!worst) return { id: 'tip', level: 'recommended', status: 'unknown', message: 'tipping', why: 'no body' };
   return { id: 'tip', level: 'recommended', status: worst.r > ratio.value ? 'warn' : 'pass', message: worst.r === Infinity ? 'nothing flat rests on the bed: a brim, a raft or another orientation' : 'height over √(bed contact): tall on a small foot may lift or tip — a brim or another orientation', value: worst.r, limit: ratio.value, unit: 'ratio', source: ratio.source, entities: [worst.key] };
 }
