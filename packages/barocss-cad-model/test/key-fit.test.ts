@@ -21,9 +21,9 @@ function run(doc: StudioDoc, id: string, pick: { bodies?: number[]; face?: strin
   return c.build!(ctx, { ...c.defaults!(ctx), ...values });
 }
 const TABLE = { id: 'keys', rows: [
-  { class: 'N9', over: 3, upTo: 6, upperUM: 0, lowerUM: -30, estimate: true },
-  { class: 'JS9', over: 3, upTo: 6, upperUM: 15, lowerUM: -15, estimate: true },
-  { class: 'h9', over: 3, upTo: 6, upperUM: 0, lowerUM: -30, estimate: true },
+  { class: 'N9', over: 3, upTo: 6, upper: 0, lower: -0.03, estimate: true },
+  { class: 'JS9', over: 3, upTo: 6, upper: 0.015, lower: -0.015, estimate: true },
+  { class: 'h9', over: 3, upTo: 6, upper: 0, lower: -0.03, estimate: true },
 ] };
 function setup() {
   let doc = cmd('shaft').build!(blank, cmd('shaft').defaults!(blank));

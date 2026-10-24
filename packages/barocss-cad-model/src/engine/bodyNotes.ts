@@ -310,12 +310,12 @@ export function glandNotes(g: NonNullable<CadPartSnapshot['outputs'][number]['gl
 }
 /** A bearing's report as lines (R12c.4, D158). */
 export function bearingNotes(b: NonNullable<CadPartSnapshot['outputs'][number]['bearing']>): { text: string; warning?: boolean }[] {
-  const mm = (x: number) => +x.toFixed(4), um = (x: number) => `${x > 0 ? '+' : ''}${+x.toFixed(3)}`, out: { text: string; warning?: boolean }[] = [];
+  const mm = (x: number) => +x.toFixed(4), um = (x: number) => `${x > 0 ? '+' : ''}${+(x * 1000).toFixed(3)}`, out: { text: string; warning?: boolean }[] = [];
   out.push({ text: `Bearing ${b.designation ?? b.row}: Ø${mm(b.bore)} × Ø${mm(b.outside)} × ${mm(b.width)}, corners r ${mm(b.chamfer)} (${b.estimate ? 'an estimate' : `your row, ${b.source}`})`, ...(b.estimate ? { warning: true } : {}) });
   if (b.seat) out.push({ text: `On step ${b.seat.step} from ${mm(b.seat.from)} to ${mm(b.seat.to)}, against the Ø${mm(b.seat.shoulder)} shoulder${b.seat.shoulderFillet ? ` (fillet r ${mm(b.seat.shoulderFillet)})` : ''}; ${b.seat.located ? `its other side by ${b.seat.located}` : 'its other side not located'}; no overlap with the shaft` });
   // (FRk8a, D181: the housing's shoulder from its faces, at the bearing's start or end; none is said by the kernel's warning.)
   if (b.housing) { const sh = b.housing.shoulder; out.push({ text: `In the housing's Ø${mm(b.housing.bore)} bore${sh ? ` against its Ø${mm(sh.diameter)} shoulder at the bearing's ${sh.at}` : ''}${b.housing.covered ? '' : ' (not covering it)'}; no overlap` }); }
-  const fit = (what: string, f: NonNullable<typeof b.shaftFit>) => ({ text: `${what} ${f.limit.class}: ${mm(f.limit.min)} to ${mm(f.limit.max)}${f.kind ? ` — ${f.kind} ${um(f.clearanceMinUM!)} to ${um(f.clearanceMaxUM!)} µm with the ring` : ' (the ring\'s tolerance is not in its row)'}${f.limit.estimate ? ', an estimate' : ''}`, ...(f.limit.estimate ? { warning: true } : {}) });
+  const fit = (what: string, f: NonNullable<typeof b.shaftFit>) => ({ text: `${what} ${f.limit.class}: ${mm(f.limit.min)} to ${mm(f.limit.max)}${f.kind ? ` — ${f.kind} ${um(f.clearanceMin!)} to ${um(f.clearanceMax!)} µm with the ring` : ' (the ring\'s tolerance is not in its row)'}${f.limit.estimate ? ', an estimate' : ''}`, ...(f.limit.estimate ? { warning: true } : {}) });
   if (b.shaftFit) out.push(fit('Shaft seat', b.shaftFit));
   if (b.housingFit) out.push(fit('Housing seat', b.housingFit));
   for (const w of b.warnings) out.push({ text: w, warning: true });
@@ -331,8 +331,8 @@ export function shaftPartNotes(o: CadPartSnapshot['outputs'][number]): { text: s
     if (k.hub) out.push({ text: `In the hub's keyway: ${mm(k.hub.keywayPlay)} play in its width, ${mm(k.hub.topClearance)} under its floor` });
     else out.push({ text: 'No hub keyway given: the key\'s top clearance is not checked', warning: true });
     // (O138: the width fits from the classes on the key's, the seat's and the keyway's sides — the user's tables.)
-    const um = (x: number) => `${x > 0 ? '+' : x < 0 ? '−' : ''}${mm(Math.abs(x) / 1000)}`;
-    for (const [where, f] of [['seat', k.seatFit], ['hub\'s keyway', k.hubFit]] as const) if (f) out.push({ text: `Width fit in the ${where}: ${f.hole.class}/${f.shaft.class} at ${mm(k.width)} mm — ${f.kind}, ${um(f.clearanceMinUM)} to ${um(f.clearanceMaxUM)} mm clearance${f.estimate ? ' (an estimate)' : ''}`, ...(f.estimate ? { warning: true } : {}) });
+    const deviation = (x: number) => `${x > 0 ? '+' : x < 0 ? '−' : ''}${mm(Math.abs(x))}`;
+    for (const [where, f] of [['seat', k.seatFit], ['hub\'s keyway', k.hubFit]] as const) if (f) out.push({ text: `Width fit in the ${where}: ${f.hole.class}/${f.shaft.class} at ${mm(k.width)} mm — ${f.kind}, ${deviation(f.clearanceMin)} to ${deviation(f.clearanceMax)} mm clearance${f.estimate ? ' (an estimate)' : ''}`, ...(f.estimate ? { warning: true } : {}) });
   }
   if (o.keyway) { const w = o.keyway; out.push({ text: `Keyway ${mm(w.width)} wide, ${mm(w.depth)} deep in the Ø${mm(2 * w.boreRadius)} bore (its floor ${mm(w.floorRadius)} from the axis), ${mm(w.to - w.from)} long at ${mm(w.angle)}°` }); }
   if (o.ring) { const r = o.ring; out.push({ text: `Retaining ring ${mm(r.thickness)} thick, Ø${mm(r.innerDiameter)} to Ø${mm(r.outerDiameter)} in groove ${r.groove}: ${mm(r.axialPlay)} axial play` }); if (r.estimate) out.push({ text: 'The ring\'s sizes are an estimate: your ring\'s row gives them', warning: true }); else if (r.source) out.push({ text: `Its groove checked against your ring row (${r.source})` }); }

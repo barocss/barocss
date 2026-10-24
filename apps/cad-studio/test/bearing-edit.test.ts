@@ -17,7 +17,7 @@ import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepar
 const selection = { faces: [], edges: [], bodies: [] };
 // A row written into the test document: a fixture for the edit session, not rows an agent loaded (rule (b) governs those).
 const row = { id: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, raMax: 1, source: 'A9-7 test fixture row' };
-const fit = { id: 'seat', rows: [{ class: 'H7', over: 30, upTo: 50, lowerUM: 0, upperUM: 25, estimate: true }] };
+const fit = { id: 'seat', rows: [{ class: 'H7', over: 30, upTo: 50, lower: 0, upper: 0.025, estimate: true }] };
 const instance = (id: string, doc: StudioDoc, position: [number, number, number] = [0, 0, 0]): PartInstance => ({ id, name: id, doc, position, rotation: [0, 0, 0] });
 const command = (id: string) => commands.find(c => c.id === id)!;
 type Bearing = Extract<ModelNode, { kind: 'bearing' }>;

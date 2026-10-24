@@ -18,8 +18,8 @@ import { dispatchTool } from '../src/chat/tools';
 // Source checkpoint cases. Execute only under the assigned A9-7 lease.
 const blank: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 const cmd = (id: string) => commands.find(c => c.id === id)!;
-const row = { id: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, raMax: 1, outsideDeviationUM: [0, -11] as [number, number], source: 'A9-7 supplied test row' };
-const fit = { id: 'H7-test', rows: [{ class: 'H7', over: 30, upTo: 50, lowerUM: 0, upperUM: 25, estimate: true }] };
+const row = { id: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, raMax: 1, outsideDeviation: [0, -0.011] as [number, number], source: 'A9-7 supplied test row' };
+const fit = { id: 'H7-test', rows: [{ class: 'H7', over: 30, upTo: 50, lower: 0, upper: 0.025, estimate: true }] };
 function instance(id: string, doc: StudioDoc, position: [number, number, number] = [0, 0, 0]): PartInstance {
   return { id, name: id, doc, position, rotation: [0, 0, 0] };
 }
@@ -49,7 +49,7 @@ test('A9-7 current assembly views are idempotent, keep parent rows read-only, an
   assert.equal(found.housing!.bore, 47); assert.equal(found.housing!.covered, true);
   assert.equal(found.source, row.source); assert.equal(found.estimate, false);
   assert.equal(found.housingFit!.limit.class, 'H7'); assert.equal(found.housingFit!.limit.estimate, true);
-  assert.deepEqual([found.housingFit!.clearanceMinUM, found.housingFit!.clearanceMaxUM], [0, 36]);
+  assert.deepEqual([found.housingFit!.clearanceMin, found.housingFit!.clearanceMax], [0 / 1000 - 0 / 1000, 25 / 1000 - -11 / 1000]);
   assert.equal(JSON.stringify(root), before);
   const restored = restoreAuthoredShopRows({ ...own, parameters: { edited: 1 } }, own);
   assert.ok('doc' in restored);
