@@ -45,7 +45,7 @@ export function thicknessMap(doc: StudioDoc, body: BodyResult, limits: Thickness
   const w = wallSamples(body), values = new Float32Array(w.local.length);
   for (let t = 0; t < values.length; t++) values[t] = Number.isFinite(w.local[t]) ? w.local[t] : NaN;
   const report = wallsOf(doc, [body], limits.ratio)[0], nominal = report?.nominal ?? 1, limit = nominal / limits.ratio;
-  const hi = Math.max(2 * nominal, report?.thick95MM ?? 0, 1e-6), thin = Math.max(limits.minWallMM ?? 0, limits.materialLowMM ?? 0);
+  const hi = Math.max(2 * nominal, report?.thick95 ?? 0, 1e-6), thin = Math.max(limits.minWallMM ?? 0, limits.materialLowMM ?? 0);
   // (Hard edges at the thresholds: two stops a hair apart.)
   const eps = 1e-6 * hi, stops: [number, string][] = [];
   if (thin > 0 && thin < nominal) stops.push([0, '#d7301f'], [thin, '#d7301f'], [thin + eps, '#c2e699']);
@@ -72,7 +72,7 @@ export function thicknessMap(doc: StudioDoc, body: BodyResult, limits: Thickness
 export function draftLimits(doc: StudioDoc, bodies: readonly BodyResult[]): { minDeg: number; recDeg: number | null } | null {
   const profile = processProfile(doc.process);
   if (!profile) return null;
-  if (profile.id === 'injection') { const f = doc.mould?.finish ? profile.finishes?.find(x => x.id === doc.mould!.finish) : undefined; return f ? { minDeg: f.draftMinDeg, recDeg: f.draftRecDeg ?? null } : null; }
+  if (profile.id === 'injection') { const f = doc.mould?.finish ? profile.finishes?.find(x => x.id === doc.mould!.finish) : undefined; return f ? { minDeg: f.draftMin, recDeg: f.draftRecommended ?? null } : null; }
   if (profile.id === 'die-casting' || profile.id === 'sand-casting') { const c = castingDraftLimits(doc, bodies, profile); return c ? { minDeg: c.minDeg, recDeg: c.recDeg } : null; }
   return null;
 }
