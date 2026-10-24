@@ -11,6 +11,7 @@ import { BASE } from '@barocss/cad-model/assembly/mates';
 import { faceRuns, paintFaces, type FaceRuns, type Painted } from './facePaint';
 import { movedCopy, topologyKey } from './instanceGeometry';
 import { contourTriangles } from './silhouette';
+import { postOf } from './post';
 import { clipClearanceGeometry, type ClearanceDisplay } from './clearanceDisplay';
 import type { PrintDisplay } from './printDisplay';
 import { PrintOverlayGeometry } from './printOverlayGeometry';
@@ -679,7 +680,7 @@ export class GpuRenderer implements ViewRenderer {
           : { kind: 'spot', position: l.position, direction: l.direction, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range, angle: l.angle, penumbra: l.penumbra });
       const e = r.environment;
       const envMap = e.map ? this.imageTexture(e.map.image) : null;
-      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ambientOcclusion: e.occlusion && !this.interacting ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false, ...(envMap ? { map: envMap, mapIntensity: e.map!.intensity } : {}) };
+      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ...postOf(e.post), ambientOcclusion: e.occlusion && !this.interacting ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false, ...(envMap ? { map: envMap, mapIntensity: e.map!.intensity } : {}) };
     } else {
       v.lights = this.lights(camera);
       v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: 0.4, ambientOcclusion: this.aoEnabled && !this.interacting && !lineOnly ? { radius: Math.max(1, size * 0.045), strength: this.theme.ao } : false };

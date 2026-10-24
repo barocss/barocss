@@ -8455,6 +8455,45 @@ try {
     assert.equal(r.frames, 31, 'the 1 s turntable at 30 a second'); assert.ok(r.spread > 3, 'not one colour');
     await page.click('.mode button:text-is("Model")');
   });
+  await check('G15d.1 post: AgX, a warm grade, contrast, saturation and a vignette from the Render panel\'s Post section — kept in the document, the frame darker at its corners and warmer; neutral again, dropped', async () => {
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await page.click('.render-panel [role="tab"]:text-is("Scene")');
+    const env = () => page.evaluate(() => window.__studioDoc.render.environment);
+    const N = 9, frame = async () => { await idle(); await page.waitForTimeout(500); return page.evaluate(n => window.__studioFrame(n), N); };
+    // (Corners: the grid's four corner samples, the background's; warmth: red over blue across the whole grid.)
+    const corners = f => [0, N - 1, N * (N - 1), N * N - 1].map(k => (f[3 * k] + f[3 * k + 1] + f[3 * k + 2]) / 3);
+    const warmth = f => { let t = 0; for (let k = 0; k < N * N; k++) t += f[3 * k] - f[3 * k + 2]; return t / (N * N); };
+    const slide = async (label, v) => { await page.evaluate(([l, x]) => { const el = document.querySelector(`.render-panel [aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [label, v]); };
+    assert.equal((await env()).post, undefined, 'no post until one is set');
+    const gpu = renderer === 'webgpu', before = gpu ? await frame() : null;
+    await slide('Vignette', 0.8);
+    await page.waitForFunction(() => window.__studioDoc.render.environment.post?.vignette === 0.8);
+    const vignetted = gpu ? await frame() : null;
+    await page.selectOption('.render-panel [aria-label="Colour grade"]', 'warm');
+    await slide('Contrast', 1.2); await slide('Saturation', 1.3);
+    await page.selectOption('.render-panel [aria-label="Tone mapping"]', 'agx');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.toneMapping === 'agx' && window.__studioDoc.render.environment.post?.saturation === 1.3);
+    assert.deepEqual((await env()).post, { grade: 'warm', contrast: 1.2, saturation: 1.3, vignette: 0.8 });
+    await page.locator('.render-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-g15d1-post-panel.png`) });
+    if (gpu) {
+      const warm = await frame(); await snap('g15d1-post');
+      const c0 = corners(before), c1 = corners(vignetted);
+      console.log(`  G15d.1: corners ${c0.map(Math.round)} → ${c1.map(Math.round)}; warmth ${warmth(before).toFixed(1)} → ${warmth(warm).toFixed(1)}`);
+      assert.ok(c1.every((c, i) => c < c0[i] - 8), `the vignette darkens every corner: ${c0.map(Math.round)} → ${c1.map(Math.round)}`);
+      assert.ok(warmth(warm) > warmth(vignetted) + 4, `the warm grade lifts red over blue: ${warmth(vignetted).toFixed(1)} → ${warmth(warm).toFixed(1)}`);
+    }
+    // Undo takes the tone map back; neutral again (each control to its default), the post leaves the document.
+    await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.toneMapping === 'aces');
+    await page.selectOption('.render-panel [aria-label="Colour grade"]', 'neutral');
+    await slide('Contrast', 1); await slide('Saturation', 1); await slide('Vignette', 0);
+    await page.waitForFunction(() => window.__studioDoc.render.environment.post === undefined, null, { timeout: 5000 });
+    if (gpu) {
+      const back = await frame();
+      assert.ok(corners(back).every((c, i) => Math.abs(c - corners(before)[i]) < 4), 'neutral: the frame as before');
+    }
+    await page.click('.mode button:text-is("Model")');
+  });
 } finally {
   await browser.close(); await server.close();
 }

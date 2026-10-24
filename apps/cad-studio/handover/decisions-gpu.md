@@ -3640,3 +3640,50 @@ is untouched as history. The coordinator settled the scope:
   - FLOW_ONLY `^(RS|render a part)` (1, 48, 289–292): all pass on WebGPU and on WebGL2.
 - **Runs**: studio tsc 0, eslint 0, unit 287/287 (webm.test.ts: header, DocType, codec, pixel size, clusters,
   block bytes).
+
+## G-R67 — G15d.1: AgX, colour grading and a vignette, and the Render panel's Post section (roadmap G15d.1, 2026-10-24)
+
+- **The output pass** (`packages/barocss-gpu`, `viewer/shaders/output.ts`, `viewer/lights.ts`):
+  - `Environment.toneMapping: 'agx'` beside ACES and none. This is Sobotka's AgX in its common fitted form: an inset
+    matrix, log2 between −12.47 and +4.03 stops, a polynomial sigmoid, an outset matrix, then 2.2 back to linear.
+    Bright saturated colour turns towards white instead of clipping. Our own WGSL; no LUT.
+  - `Environment.grading` (`ColorGrading`), applied in this order:
+    - white balance (`whiteBalance(temperature, tint)`: channel gains with the luminance kept);
+    - lift, gamma and gain per channel;
+    - saturation around Rec. 709 luminance;
+    - contrast around mid grey (0.46) in the encoded image.
+  - `Environment.vignette`: an amount, a clear radius and a fade. It is round, with the frame's aspect kept.
+  - Grading and the vignette apply after tone mapping, over the scene and the background, before the outlines (which
+    stay UI colours). The background is still not tone-mapped, as before.
+  - When they are off, the block's slots are zeros and the pass skips them (a uniform branch). The output block grows by
+    80 bytes, and `outlineRect` stays last.
+- **The studio**:
+  - `viewport/post.ts` holds the grades (neutral; warm studio, which is amber with warm-lifted shadows; cool daylight).
+    `postOf` maps the settings' post to the viewer's grading and vignette. Neutral gives nothing.
+  - The Render panel's Scene tab has a **POST** section: Exposure and Tone map (moved here, with the same aria labels),
+    then Tone map with AgX ("Soft highlights (AgX)"), Grade, Contrast, Saturation and Vignette. Each change is one
+    undoable edit. When everything is back to neutral, the post leaves the document.
+- **Cross-lane change** (named to the coordinator before it was made; no answer when committed, so it is a commit of
+  its own that can be dropped or handed on):
+  - `packages/barocss-cad-model/src/engine/render.ts`: `toneMapping` gains `'agx'`, and there is an optional
+    `post: RenderPost` (grade, contrast 0.5–1.5, saturation 0–2, vignette 0–1). It is read with clamps; when absent
+    there is no post. There is no schema bump (doc-schema-tracks-latest).
+- **Tests**:
+  - gpu unit 301/301. That includes `viewer-core`'s layout checks, plus RS2's `contactLinks` added to two studio-renderer
+    fixtures, which had failed 13 tests since b7869913d.
+  - gpu browser `viewer-post-browser` (new, in test:browser) passes on hardware and on SwiftShader. At ×6 exposure:
+    - none: 255,49,49;
+    - ACES: 253,40,40;
+    - AgX: 255,131,131.
+    The vignette's corner is 59 against 104 at the edge; warm gives 137,126,114 on grey; saturation 0 turns red grey;
+    contrast keeps mid grey within 6.
+  - cad-model render 5/5. Studio unit 288/288 (post.test.ts).
+  - Flow 293 (new) passes on WebGPU and WebGL2 (where the document checks run). On WebGPU:
+    - the corners go from 62,62,25,25 to 38,38,13,13 with the vignette;
+    - warmth (red − blue) goes from −2.3 to 26.1;
+    - neutral again gives the frame as before.
+- **Bench** (new rows `render: orbit 60` and `render: orbit 60, post on (AgX, warm grade, vignette)`, LOADED, load
+  28–37):
+  - DPR 1: 1.03 → 1.06 ms of GPU a submit (output 0.71 → 0.75).
+  - DPR 2 (a 2880×1800 page, more than 1440p): 3.29 → 3.46 ms (output 2.37 → 2.46).
+  - Both are far under the 16.7 ms Render orbit target. Modelling is unchanged (the post is off).
