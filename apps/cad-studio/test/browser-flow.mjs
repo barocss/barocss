@@ -8616,6 +8616,81 @@ try {
     await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
     await page.click('.mode button:text-is("Model")');
   });
+
+  // ---- CG6: a project folder, versions, restore, autosave (DA-4, DA-5) ---------------------------------------------
+  await check('CG6 project: open a folder, save into it, two versions, compare, restore the first; autosave kept in the project and offered back after a reload', async () => {
+    // (The folder picker is a native dialog a headless browser cannot drive: it hands back a real directory handle from
+    // the browser's private file system instead — the same handle calls a picked folder answers.)
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-flow-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const files = () => page.evaluate(async name => {
+      const out = [], walk = async (d, at) => { for await (const [n, h] of d.entries()) { if (h.kind === 'directory') await walk(h, `${at}${n}/`); else out.push(`${at}${n}`); } };
+      await walk(await (await navigator.storage.getDirectory()).getDirectoryHandle(name), ''); return out.filter(f => !f.endsWith('.crswap')).sort();
+    }, folder);
+    const card = page.locator('[aria-label="Versions panel"]');
+    const versions = () => card.locator('ul[aria-label="Versions"] > li').evaluateAll(ls => ls.map(l => l.getAttribute('aria-label').slice(8)));
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''));
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click();
+    await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    assert.match(await card.locator('[aria-label="Project"]').innerText(), new RegExp(`${folder}\\s*· folder`));
+    // A version saves the document into the folder and keeps it.
+    await card.locator('[aria-label="Version name"]').fill('First'); await card.locator('[aria-label="Make version"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 1, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['First']);
+    const first = await files();
+    assert.ok(first.includes('Untitled.bcad') && first.includes('.barocss/versions/Untitled.bcad.json') && first.filter(f => f.startsWith('.barocss/snapshots/')).length === 1, first.join(', '));
+    // A second box; Save writes into the folder (no download); a second version.
+    await press('b'); await hudReady(); await field('At X').fill('48'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    let downloads = 0; const count = () => { downloads++; }; page.on('download', count);
+    await page.click('[aria-label="Save"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Unsaved changes"]'), null, { timeout: 5000 });
+    page.off('download', count); assert.equal(downloads, 0, 'saved into the project, not downloaded');
+    await card.locator('[aria-label="Version name"]').fill('Second'); await card.locator('[aria-label="Make version"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 2, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['Second', 'First']);
+    // Compare the first with the working document: the second box's two features, added.
+    await card.locator('[aria-label="Compare First"]').click();
+    const compared = await card.locator('[aria-label="Compared changes"]').innerText();
+    assert.match(compared, /added sketch n2/); assert.match(compared, /added extrude n3/);
+    await page.waitForTimeout(1500); await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-cg6-compare.png`) });
+    await card.locator('[aria-label="Compare First"]').click();
+    // Restore the first: one box again, the history kept (both versions listed), the work unsaved.
+    await card.locator('[aria-label="Restore First"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.deepEqual(await versions(), ['Second', 'First']);
+    await page.waitForSelector('[aria-label="Unsaved changes"]');
+    // Autosave: kept in the project a moment after the change (the restored work: one box); after a reload, the folder
+    // reopened and the work offered back.
+    const autosaved = () => page.evaluate(async name => {
+      try {
+        const d = await (await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getDirectoryHandle('.barocss')).getDirectoryHandle('autosave');
+        return JSON.parse(await (await (await d.getFileHandle('Untitled.bcad')).getFile()).text()).nodes.length;
+      } catch { return null; }
+    }, folder);
+    for (let k = 0; k < 40 && await autosaved() !== 2; k++) await page.waitForTimeout(250);
+    assert.equal(await autosaved(), 2, 'the autosave holds the restored work (one box)');
+    expectLoad(); await page.reload(); await idle();
+    if (await page.locator('[aria-label="Recover unsaved work"]').count()) await page.click('[aria-label="Recover unsaved work"] button:text-is("Discard")');
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator(`[aria-label="Reopen ${folder}"]`).click();
+    await card.locator('[aria-label="Open Untitled.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
+    // (The log is read after the document opens.)
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 2, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['Second', 'First'], 'the versions read back from the folder');
+    assert.equal(await autosaved(), 2, 'the autosave still holds the restored work after the reopen');
+    await card.locator('[aria-label="Autosaved work"]').waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Restore autosaved work"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}b-cg6-versions.png`) });
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
 } finally {
   await browser.close(); await server.close();
 }
