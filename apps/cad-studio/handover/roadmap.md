@@ -361,6 +361,7 @@ evidence files.
 - **New part resets the camera** (G14, G-R54/G-R56): a new part keeps the last part's saved view today, so flow steps 74 and 270 depend on what ran before; a user-visible change, so later. · ko: 새 부품을 만들면 시점을 기본값으로 (흐름 순서 의존 해소, 화면 동작 변화라 나중에)
 - **After G25, when need is measured:** occlusion culling, progressive photoreal rendering, turntable and explode video. · ko: 가려진 물체 생략, 점진 사실적 렌더링, 회전·분해 영상 (필요가 확인되면)
 - **Publication:** gpu's entries — **done** (merge 9f66ec3e4, G-R61: tsc-only build, one module graph, a tarball consumer test) — (`@barocss/gpu` was one bundle, `@barocss/gpu/viewer` unbundled tsc output, so each has its own Viewer, ViewerError and BarocssError and `instanceof` fails across them; GPU lane, after R7.7c: bundles with the shared core external, a consumer test), the cad-model package build, the docs inventory (`check:docs` drift for @barocss/gpu), the A6.5 legal review, release. Only when the owner asks. · ko: cad-model 패키지 빌드, 문서 목록, 법률 검토, 릴리스 (오너가 요청할 때만)
+- **A gallery site of prompts and their results** (owner, 2026-10-24: planned, not now): users' prompts with the models the AI made, renders and per-element scores; the AI evaluation stores its runs gallery-ready in ~/.cache/barocss-ai-eval/ (prompt, .bcad, a render, score.json, an index) so the site can read them. · ko: 사용자 프롬프트와 결과물을 모은 갤러리 사이트 (나중에)
 - **After the whole roadmap:** the full spec and conformance suite, and a fresh-AI reimplementation test (owner's experiment). · ko: 전체 명세와 적합성 시험, 새 AI가 다시 구현해 보는 실험
 
 ## Waiting on the owner
