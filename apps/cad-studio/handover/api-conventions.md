@@ -39,10 +39,12 @@ isn't in `.doc`. The agent stays on the JSON v2 tools.
     2. the agent's tool arguments (`nearMM`, `layerMM`, `toolMM`, `limitDeg` → `near`, `layer`, `tool`, `limit`);
     3. the core functions' options (the kernel's `distanceMM`, `radiusMM` …);
     4. rows file fields (`lengthMM`, `boreMM`, `insideDiameterMM` …), with the sample rows and the validators;
-    5. result names (`volumeMM3`, `massG`, `centroidMM`, `inertiaGMM2` …).
+    5. result names (`volumeMM3`, `massG`, `centroidMM`, `inertiaGMM2` …);
+    6. documents' stored fields (the part document's `rotationDeg`, `lengthMM`, `upToMM`, `startDeg` …, the studio
+       document's and gpu's scene formats alike). The documents are unreleased and track the latest schema, so the
+       fields are renamed in place, with no version bump, alias or migration, and the fixtures and conformance cases
+       are regenerated (owner, 2026-10-24).
     A name that would read ambiguously without its unit gets a clearer word, never the unit back.
-  - **Documents' stored fields** (the part document's `rotationDeg`, `lengthMM`, `upToMM` …): waiting on the owner.
-    Until decided, saved fields keep their names.
   - Today cad's mass properties are in kg and kg/m³ (`massKG`, `inertiaCentroidKgM2`, density in kg/m³), while
     cad-model's are in g and g/cm³. R7.3 moves cad's public results to MMGS.
 - **Ids and names** follow the document's existing rules. A face or edge reference that the core resolves stays
