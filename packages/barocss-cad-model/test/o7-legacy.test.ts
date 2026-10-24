@@ -82,7 +82,17 @@ test('O7a: the legacy fixtures are all there, each with its expectation', () => 
 
 for (const name of names) test(`O7: ${name} with the sample rows (fastener sizes, casting rules) loaded by the person opens as the pre-O7 studio opened it`, async () => {
   const want = JSON.parse(readFileSync(expectedFile, 'utf8'))[name];
-  assert.deepEqual(await opened(withSampleRows(withSampleRows(await read(name)), 'casting-rules')), want);
+  // R7: read only the historical observation name. The frozen oracle and saved documents stay byte-for-byte intact.
+  // Every original numeric value and every other observation still participates in the strict comparison.
+  const canonicalWant = { ...want, tapped: want.tapped.map((row: Record<string, unknown>) => {
+    assert.ok('tapMM' in row && !('tapDiameter' in row));
+    const { tapMM, ...rest } = row, current = { ...rest, tapDiameter: tapMM };
+    assert.ok(!('tapMM' in current)); assert.equal(current.tapDiameter, tapMM);
+    return current;
+  }) };
+  const got = await opened(withSampleRows(withSampleRows(await read(name)), 'casting-rules'));
+  assert.ok(got.tapped.every((row: Record<string, unknown>) => !('tapMM' in row) && 'tapDiameter' in row));
+  assert.deepEqual(got, canonicalWant);
 });
 
 test('O7: without rows, the fixtures read as having no data — no fastener thread or edit steps, no tap drill, each position tolerance an estimate', async () => {
@@ -92,7 +102,7 @@ test('O7: without rows, the fixtures read as having no data — no fastener thre
     assert.deepEqual(got.bodies, was.bodies, `${name}: the same bodies (the shapes are the document's own nodes)`);
     assert.ok((got.fastenerSteps as unknown[][]).every(x => !x.length), `${name}: no fastener steps`);
     assert.ok((got.instances as { threads: unknown[]; fastenerSteps: unknown[][] }[]).every(i => !i.threads.length && i.fastenerSteps.every(x => !x.length)), `${name}: placed fasteners unsized`);
-    assert.ok((got.tapped as { tapMM: number | null }[]).every(t => t.tapMM === null), `${name}: no tap drill`);
+    assert.ok((got.tapped as { tapDiameter: number | null }[]).every(t => t.tapDiameter === null), `${name}: no tap drill`);
     const d = got.drawing as unknown as { suggestedUntoleranced: { kind: string; estimate: boolean; message: string }[] } | string;
     if (typeof d !== 'string') assert.ok(d.suggestedUntoleranced.filter(x => x.kind.startsWith('hole') || x.kind === 'position').every(x => x.estimate), `${name}: ${JSON.stringify(d.suggestedUntoleranced)}`);
   }
