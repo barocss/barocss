@@ -685,3 +685,5 @@ export type { GussetReport, EndCapReport, WeldmentSeam, BeadReport, BeadJointRef
 export { BarocssError, type Problem, type RefusalWhere } from './core/barocss-error.js';
 // O19: a stored name's signature, for a fillet's, chamfer's, shell's or draft's `expect` (D277).
 export type { CadPartNameSignature } from './part/part-expect.js';
+// R7.3a batch 2: one list of the kernel's codes (D278).
+export { CAD_ERROR_CODES, CAD_REFUSAL_CODES, refusalCodeOf, type CadErrorCode, type CadRefusalCode } from './core/error-codes.js';

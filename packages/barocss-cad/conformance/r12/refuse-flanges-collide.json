@@ -54,7 +54,8 @@
   },
   "expect": {
     "error": {
-      "code": "GEOMETRY",
+      "code": "FLANGES_COLLIDE",
+      "category": "GEOMETRY",
       "messageIncludes": "[FLANGES_COLLIDE] the flange on b.side1|b.top runs into the sheet"
     }
   },

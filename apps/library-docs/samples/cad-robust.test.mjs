@@ -23,13 +23,15 @@ test('refusals: a fillet too large for its walls, an edge that is not there', ()
   // #region refusals
   const tooLarge = refusal(part([...block('a', [0, 0], [10, 10]),
     { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side0|a.top'], radius: 50 }]));
-  assert.equal(tooLarge.code, 'PARAMETER');
+  assert.equal(tooLarge.code, 'RADIUS_EXCEEDS_FACE');         // the specific code its message carries
+  assert.equal(tooLarge.details.category, 'PARAMETER');       // and the kind of refusal it is
   assert.equal(tooLarge.feature, 'f');
   assert.match(tooLarge.message, /\[RADIUS_EXCEEDS_FACE\] edge a\.side0\|a\.top: fillet 50 mm is too large for walls of 10 and 10 mm/);
 
   const missing = refusal(part([...block('a', [0, 0], [10, 10]),
     { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side9|a.top'], radius: 1 }]));
-  assert.equal(missing.code, 'SELECTION');
+  assert.equal(missing.code, 'SELECTION');                   // no specific code: the category
+  assert.equal(missing.details.category, 'SELECTION');
   assert.match(missing.message, /no edge named a\.side9\|a\.top; edges: a\.bottom\|a\.side0, /);   // and the edges there are
   // #endregion refusals
 });

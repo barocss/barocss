@@ -260,7 +260,8 @@
   },
   "expect": {
     "error": {
-      "code": "CAPABILITY",
+      "code": "WALL_TOO_THIN",
+      "category": "CAPABILITY",
       "messageIncludes": "[WALL_TOO_THIN]"
     }
   },

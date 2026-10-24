@@ -7,7 +7,7 @@ import { evaluateCadPart, flatPattern, lookupBend, rowKFactor, bendTableProblem 
 // BA) for its BA; interpolation by hand from the rows' K = (BA/θ − R)/T.
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const out = features => evaluateCadPart(D(features)).outputs.at(-1);
-const refused = (features, code, pattern) => assert.throws(() => out(features), e => e.code === code && pattern.test(e.message), String(pattern));
+const refused = (features, code, pattern) => assert.throws(() => out(features), e => (e.details?.category ?? e.code) === code && pattern.test(e.message), String(pattern));
 const close = (a, b, tol, what) => assert.ok(Math.abs(a - b) <= tol * Math.max(1, Math.abs(b)), `${what}: ${a} vs ${b}`);
 const OSSB = (th, R, T) => (R + T) * Math.tan(th / 2);
 const T = 2, R = 3, A = 50, B = 35;

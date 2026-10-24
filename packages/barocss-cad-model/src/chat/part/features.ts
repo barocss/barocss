@@ -23,6 +23,7 @@ import { mountRowsOf } from '../../engine/mountRows';
 import { mountAxis } from '../../app/mounts';
 import { firstProblem, isRefusal } from '../../engine/refusal';
 import { REFERENCE_CODES } from '../../engine/schema/references';
+import { addParameters, bindParameter, parameterUses, PARAMETER_CODES, removeParameter, renameParameter, withParameters, type Binding } from '../../engine/parameters';
 
 /** Commands the chat can run (the ones that build; sketch-mode and measure UI actions are tools of their own). */
 // (Loft takes sketches picked in the studio, Align a face clicked there; chat writes a loft node with
@@ -266,6 +267,29 @@ async function setCastingTool(state: ChatState, args: Record<string, unknown>): 
   const doc = { ...state.doc, casting };
   return { state: { ...state, doc }, content: json({ ok: true, machined: casting.machined ?? [], allowance: casting.machiningAllowance ?? null, shrink: casting.shrink ?? null, gate: casting.gate ?? null }), isError: false, changed: true, summary: `casting: ${casting.machined?.length ?? 0} machined face${casting.machined?.length === 1 ? '' : 's'}` };
 }
+/**
+ * O21: the part's named parameters, all or nothing — added, given values, renamed, bound to a feature's value, removed
+ * (engine/parameters.ts, in that order) — then evaluated: a value that does not build is refused, the part unchanged.
+ */
+async function setParametersTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
+  const { add, set, rename, bind, remove } = args;
+  if (add === undefined && set === undefined && rename === undefined && bind === undefined && remove === undefined) return fail(state, 'Give add, set, rename, bind, remove or any of them.');
+  const numbers = (v: unknown): v is Record<string, number> => isObj(v) && Object.values(v).every(x => typeof x === 'number');
+  if ((add !== undefined && !numbers(add)) || (set !== undefined && !numbers(set))) return fail(state, '[VALUE] add and set are {name: value} with numbers.');
+  if (rename !== undefined && !(isObj(rename) && Object.values(rename).every(x => typeof x === 'string'))) return fail(state, '[VALUE] rename is {from: to}.');
+  if (remove !== undefined && !(Array.isArray(remove) && remove.every(x => typeof x === 'string'))) return fail(state, '[VALUE] remove is a list of names.');
+  if (bind !== undefined && !(Array.isArray(bind) && bind.every(b => isObj(b) && (typeof b.feature === 'number' || typeof b.feature === 'string') && typeof b.value === 'string' && typeof b.parameter === 'string'))) return fail(state, '[VALUE] bind is [{feature: index or id, value: the value\'s key as edit_feature names it, parameter}].');
+  let doc = state.doc;
+  try {
+    if (add) doc = addParameters(doc, add as Record<string, number>);
+    if (set) doc = withParameters(doc, set as Record<string, number>);
+    for (const [from, to] of Object.entries((rename ?? {}) as Record<string, string>)) doc = renameParameter(doc, from, to);
+    for (const b of (bind ?? []) as Binding[]) doc = bindParameter(doc, b);
+    for (const name of (remove ?? []) as string[]) doc = removeParameter(doc, name);
+  } catch (e) { if (isRefusal(e, ...PARAMETER_CODES)) return fail(state, e.message, { kept: 'the part is unchanged' }); throw e; }
+  const parameters = Object.entries(doc.parameters).map(([name, value]) => ({ name, value, uses: parameterUses(doc.nodes, name) }));
+  return accept(state, doc, evaluate, `parameters: ${[add && `${Object.keys(add).length} added`, set && `${Object.keys(set).length} set`, rename && `${Object.keys(rename).length} renamed`, bind && `${(bind as unknown[]).length} bound`, remove && `${(remove as unknown[]).length} removed`].filter(Boolean).join(', ')}`, { parameters });
+}
 async function setFrameStockTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
   const asked = rowsAsked(args, 'kerf');
   if ('error' in asked) return fail(state, asked.error);
@@ -329,4 +353,4 @@ async function setWeldsTool(state: ChatState, args: Record<string, unknown>, eva
 }
 
 /** The feature group's handlers, by v1 tool name (R3). */
-export const FEATURE_HANDLERS: Readonly<Record<string, PartHandler>> = { run_command: runCommandTool, add_features: addFeaturesTool, edit_feature: editFeatureTool, delete_feature: deleteFeatureTool, set_material: setMaterialTool, load_rows: loadRowsTool, set_stock: setStockTool, set_casting: setCastingTool, set_frame_stock: setFrameStockTool, set_frame_sections: setFrameSectionsTool, set_welds: setWeldsTool };
+export const FEATURE_HANDLERS: Readonly<Record<string, PartHandler>> = { run_command: runCommandTool, add_features: addFeaturesTool, edit_feature: editFeatureTool, delete_feature: deleteFeatureTool, set_material: setMaterialTool, load_rows: loadRowsTool, set_stock: setStockTool, set_casting: setCastingTool, set_frame_stock: setFrameStockTool, set_parameters: setParametersTool, set_frame_sections: setFrameSectionsTool, set_welds: setWeldsTool };

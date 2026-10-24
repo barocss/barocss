@@ -35,8 +35,12 @@ export const CCD_TOLERANCE = 1e-9;
 
 /** The segments' timing: each one's normalised profile over distance 1, its limits the tightest joint's. */
 export function timePath(tree: JointTree, path: TimedPath): TimedSegment[] {
+  return timeSegments(tree.joints.filter(j => j.type !== 'fixed' && !j.mimic).map(j => j.key), path);
+}
+/** timePath over the joints `keys` (a joint the waypoints never move adds nothing: RS2's duration times its own keys). */
+export function timeSegments(keys: readonly string[], path: TimedPath): TimedSegment[] {
   if (path.waypoints.length < 2) throw refusal('PATH_TOO_SHORT', 'a path needs at least two waypoints');
-  const keys = tree.joints.filter(j => j.type !== 'fixed' && !j.mimic).map(j => j.key), out: TimedSegment[] = [];
+  const out: TimedSegment[] = [];
   let t = 0;
   for (let k = 0; k + 1 < path.waypoints.length; k++) {
     const from = path.waypoints[k], to = path.waypoints[k + 1];

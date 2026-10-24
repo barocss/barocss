@@ -130,7 +130,7 @@ test('R12c.1b part model: the `spring` kind with type extension or torsion, plac
   assert.equal(e.spring.type, 'extension'); assert.equal(e.spring.dimensions.shearModulusEstimate, true); assert.equal(e.spring.dimensions.initialTensionN, 4);
   assert.equal(t.spring.type, 'torsion'); assert.equal(t.spring.dimensions.youngsModulusEstimate, true);
   const eb = brepBounds(e.brep); assert.ok(eb.min[2] < 5 && eb.max[2] > 5 + e.spring.dimensions.bodyLengthMM && Math.abs((eb.min[0] + eb.max[0]) / 2 - 40) < 2, 'its coil from z 5 about (40, 0), the hooks beyond');
-  const refused = (f, c, tag) => assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'spring', wire: 2, diameter: 20, activeCoils: 6, ...f }])), err => err.code === c && err.message.includes(`[${tag}]`), tag);
+  const refused = (f, c, tag) => assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'spring', wire: 2, diameter: 20, activeCoils: 6, ...f }])), err => (err.details?.category ?? err.code) === c && err.message.includes(`[${tag}]`), tag);
   refused({ type: 'extension', loopAngle: 300 }, 'GEOMETRY', 'LEG_OVERLAP');
   refused({ type: 'torsion', ends: 'open' }, 'INPUT', 'INVALID_INPUT');
 });

@@ -43,7 +43,7 @@ export type CadModelCode =
   // team
   | 'NO_RUN'
   // robot motion, actuators and the readers of the exports
-  | 'LIMITS_BAD' | 'LIMITS_MISSING' | 'PATH_TOO_SHORT' | 'ACTUATOR_INPUT' | 'MODEL_READ' | 'XML_MALFORMED'
+  | 'LIMITS_BAD' | 'LIMITS_MISSING' | 'PATH_TOO_SHORT' | 'JOINT_UNKNOWN' | 'JOINT_MIMIC' | 'JOINT_LIMIT' | 'MOTION_UNKNOWN' | 'ACTUATOR_INPUT' | 'MODEL_READ' | 'XML_MALFORMED'
   // files
   | 'MESH_NOT_LOADED' | 'CONTAINER_NEWER' | 'CONTAINER_DAMAGED'
   // sketch export
@@ -51,6 +51,8 @@ export type CadModelCode =
   // exports
   | 'NO_BODY'
   // the assembly's edits (assembly/edit.ts)
+  // parameters (engine/parameters.ts; the facade's codes)
+  | 'PARAMETER_UNKNOWN' | 'PARAMETER_NAME' | 'PARAMETER_EXISTS' | 'PARAMETER_UNBINDABLE' | 'VALUE' | 'NO_FEATURE'
   | 'NO_PART' | 'PART_MATED' | 'MATE_KIND' | 'MATE_SAME_PART' | 'MATE_BOTH_FIXED' | 'MATE_FACE_UNKNOWN' | 'MATE_FACES' | 'MATE_UNMET' | 'NO_MATE'
   // the studio's commands (a pick, a value)
   | 'ALIGN_PICK' | 'ALIGN_TURN' | 'HOLE_SIZE' | 'HOLE_PATTERN' | 'DRAFT_PICK' | 'DRAFT_ANGLE' | 'FILLET_CHAIN' | 'DECIMATE_KEEP'

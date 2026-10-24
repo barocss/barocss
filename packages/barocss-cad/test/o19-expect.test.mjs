@@ -16,7 +16,7 @@ test('O19: a fillet whose stored edge name moved to another corner after an upst
   assert.ok(volume(square(original, { expect: { 'n1.side1|n1.side2': corner } })) > 0, 'the corner it named builds');
   // (Without `expect` the name builds where it now points: the silent move O19 is about.)
   assert.ok(volume(square(inserted, {})) > 0);
-  assert.throws(() => evaluateCadPart(square(inserted, { expect: { 'n1.side1|n1.side2': corner } })), e => e.name === 'CadPartError' && e.code === 'REFERENCE' && e.feature === 'n2'
+  assert.throws(() => evaluateCadPart(square(inserted, { expect: { 'n1.side1|n1.side2': corner } })), e => e.name === 'CadPartError' && e.code === 'REFERENCE_MOVED' && e.details.category === 'REFERENCE' && e.feature === 'n2'
     && e.message === 'n2: [REFERENCE_MOVED] fillet edge n1.side1|n1.side2 is no longer the edge it named (was at (40, 40, 5), now at (40, 0, 5); n1.side2|n1.side3 is at (40, 40, 5))');
 });
 
@@ -31,9 +31,9 @@ test('O19: a stored name now another kind of geometry refuses; a shell\'s open f
   const top = { kind: 'plane', at: [20, 15, 10], dir: [0, 0, 1], size: 1200 };
   assert.ok(volume(box([{ id: 's', kind: 'shell', target: 'n1', thickness: 1, open: ['n1.top'], expect: { 'n1.top': top } }])) > 0);
   assert.throws(() => evaluateCadPart(box([{ id: 's', kind: 'shell', target: 'n1', thickness: 1, open: ['n1.top'], expect: { 'n1.top': { ...top, dir: [0, 0, -1] } } }])),
-    e => e.code === 'REFERENCE' && /^s: \[REFERENCE_MOVED\] shell face n1.top is no longer the face it named .*it faces another way\)$/.test(e.message));
+    e => e.code === 'REFERENCE_MOVED' && /^s: \[REFERENCE_MOVED\] shell face n1.top is no longer the face it named .*it faces another way\)$/.test(e.message));
   assert.throws(() => evaluateCadPart(box([{ id: 'c', kind: 'chamfer', target: 'n1', edges: ['n1.side0|n1.top'], distance: 1, expect: { 'n1.side0|n1.top': { kind: 'curve', at: [20, 0, 10], dir: null, size: 40 } } }])),
-    e => e.code === 'REFERENCE' && /it is a line edge now, was curve\)$/.test(e.message));
+    e => e.code === 'REFERENCE_MOVED' && /it is a line edge now, was curve\)$/.test(e.message));
 });
 
 test('O19: expect is checked as data: only the feature\'s own names, each a signature', () => {

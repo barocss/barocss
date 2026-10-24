@@ -112,7 +112,7 @@ export function withFrames(doc: StudioDoc, frames: Readonly<Record<string, Frame
     all[name] = { link: f.link, ...(f.position !== undefined ? { position: [...f.position] } : {}), ...(f.rotation !== undefined ? { rotation: [...f.rotation] } : {}), ...(f.kind ? { kind: f.kind } : {}) };
   }
   const { frames: _f, ...rest } = was; void _f;
-  const next: RobotSettings = { ...rest, ...(Object.keys(all).length ? { frames: all } : {}) }, robot = next.base || next.joints || next.frames ? next : undefined, out = { ...doc };
+  const next: RobotSettings = { ...rest, ...(Object.keys(all).length ? { frames: all } : {}) }, robot = next.base || next.joints || next.frames || next.motions ? next : undefined, out = { ...doc };
   if (robot) out.robot = robot; else delete out.robot;
   return out;
 }

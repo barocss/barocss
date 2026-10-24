@@ -177,6 +177,9 @@
 | `[INPUT_RANGE]` | `assembly` | … = …: true or false |
 | `[INPUT_TARGET]` | `assembly` | …: … has no parameter … |
 | `[INPUT_TYPE]` | `assembly`, `chat` | … (…) cannot drive … |
+| `[JOINT_LIMIT]` | `robot` | waypoint …: … = … is outside its limits … to … |
+| `[JOINT_MIMIC]` | `robot` | waypoint …: … follows … (gears): give … instead |
+| `[JOINT_UNKNOWN]` | `robot` | waypoint …: no moving joint … (joints: …) |
 | `[LIBRARY_ID]` | `library` | … is a built-in library: give yours another id |
 | `[LIBRARY_UNKNOWN]` | `library` | No library … (libraries: …) |
 | `[LIMITS_BAD]` | `robot` | a trapezoid needs velocity and acceleration limits above 0 |
@@ -193,6 +196,7 @@
 | `[MERGE_SUPERSEDED]` | `chat` | The evaluation was superseded while the chat turn was merged. |
 | `[MESH_NOT_LOADED]` | `engine` | the mesh data …… is not loaded: it cannot be saved |
 | `[MODEL_READ]` | `robot` | …: … numbers expected, got "…" |
+| `[MOTION_UNKNOWN]` | `robot` | no motion … (motions: …) |
 | `[MOUNT_FACE]` | `app` | select the flat face the mount goes on |
 | `[MOUNT_RANGE]` | `app`, `engine` | mount row …: its bearing …'s bore Ø… is not its shaft Ø… |
 | `[MOUNT_ROW]` | `app`, `engine` | mount row … names bearing row …, not loaded — load your bearing rows |
@@ -208,6 +212,7 @@
 | `[NO_CLOSURE]` | `robot` | … at … rad: the loop does not close (its pin … mm apart after … steps) |
 | `[NO_DRAFT]` | `chat` | no draft dimension …; … |
 | `[NO_ECR]` | `team` | no ECR …; ECRs: … |
+| `[NO_FEATURE]` | `engine` | no feature … (features 0–…) |
 | `[NO_FRAME]` | `robot` | no frame … on the tree (frames: …) |
 | `[NO_JOINTS]` | `robot` | nothing moves link … |
 | `[NO_LATTICE]` | `print` | no lattice is left in the cavity at L …, k … |
@@ -230,6 +235,10 @@
 | `[OUTPUT_FAILED]` | `chat` | … |
 | `[OUTPUT_INPUT]` | `chat` | … |
 | `[OUTPUT_STALE]` | `chat` | Expected document revision …, current …. |
+| `[PARAMETER_EXISTS]` | `engine` | there is a parameter … already; set its value instead |
+| `[PARAMETER_NAME]` | `engine` | a parameter's name starts with a letter and has letters, digits and _ (up to 32), not … |
+| `[PARAMETER_UNBINDABLE]` | `engine` | feature …'s … can't take a parameter (its values that can are …) |
+| `[PARAMETER_UNKNOWN]` | `engine` | no parameter …; the parameters are … |
 | `[PART_MATED]` | `assembly` | … mate… move …; delete … first, or fix the other part. |
 | `[PATH_TOO_SHORT]` | `robot` | a path needs at least two waypoints |
 | `[PRIMITIVE_SIZE]` | `app` | The tube radius must be smaller than the ring radius. |
@@ -267,6 +276,7 @@
 | `[TRIM_CURVE]` | `engine` | The curve does not close: trim by a closed curve (a loop). |
 | `[UNDRAINED]` | `print` | the lattice leaves empty regions undrained after … drains: take a larger cell or a finer voxel |
 | `[UNKNOWN_ARGUMENT]` | `chat` | … takes no …: its arguments are ….… |
+| `[VALUE]` | `api`, `chat/part`, `engine` | …: a joint's value is a number (degrees, or mm for a slide), not … |
 | `[VARIANT_UNKNOWN]` | `assembly`, `chat` | no variant … (variants: …) |
 | `[WELD_FIELD]` | `chat/part` | weld … (…): no field "…" (joint, kind, size, allRound, inner, notes). |
 | `[WELD_JOINT_UNKNOWN]` | `chat/part` | weld …: no joint "…" (joints: …). Use weld_list's ids. |

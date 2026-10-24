@@ -60,7 +60,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "MEMBER_DUPLICATE",
+      "category": "PARAMETER",
       "messageIncludes": "[MEMBER_DUPLICATE] segments 0 and 1 join the same two points"
     }
   },

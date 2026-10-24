@@ -10,7 +10,7 @@ import { tessellateBrep } from '../dist/brep/brep-tessellate.js';
 // Oracles in closed form: the sharp-join inset of a polyhedron, every face's plane moved in by the wall.
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const out = features => evaluateCadPart(D(features)).outputs.at(-1);
-const refused = (features, code, pattern) => assert.throws(() => out(features), e => e.code === code && pattern.test(e.message), String(pattern));
+const refused = (features, code, pattern) => assert.throws(() => out(features), e => (e.details?.category ?? e.code) === code && pattern.test(e.message), String(pattern));
 const xz = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
 const mesh = (P, I) => ({ id: 'm', kind: 'mesh', positions: [...P], indices: [...I], representation: 'facets' });
 const shell = (P, I, t, open) => [mesh(P, I), { id: 'sh', kind: 'shell', target: 'm', thickness: t, ...(open ? { open } : {}) }];

@@ -50,8 +50,8 @@ What isn't supported, or is refused, gathered from the other pages. Each item li
   - A loop in the mates keeps one path.
   - Revolute and prismatic joints need their limits, effort and velocity before they export.
     ([Robots](/studio/robots))
-- **Unsupported cases.** The kernel refuses a case it doesn't support yet with `CAPABILITY`, rather than building an
-  approximate body. ([B-rep, robustness and refusals](/packages/cad/robustness))
+- **Unsupported cases.** The kernel refuses a case it doesn't support yet, in the category `CAPABILITY`, rather than
+  building an approximate body. ([B-rep, robustness and refusals](/packages/cad/robustness))
 - **Part documents.** The kernel's `loadCadPart` reads a part document of at most 4 MiB.
 - **Mass.** A few curved bodies' mass properties fall back to the tessellation, and say so, with an error bound.
   ([@barocss/cad](/packages/cad/))

@@ -97,7 +97,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "CONTACT_LEAVES_FACE",
+      "category": "PARAMETER",
       "messageIncludes": "[CONTACT_LEAVES_FACE]"
     }
   },

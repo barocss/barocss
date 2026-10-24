@@ -12,7 +12,7 @@ const out = features => evaluateCadPart(D(features)).outputs.at(-1);
 const vol = features => out(features).massProperties(1).volumeMM3;
 const yz = { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] }, xz = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
 const fillet = (target, edges, radius) => ({ id: 'f', kind: 'fillet', target, edges, radius });
-const refused = (features, code, typed) => assert.throws(() => evaluateCadPart(D(features)), e => e.code === code && e.message.includes(`[${typed}]`), typed);
+const refused = (features, code, typed) => assert.throws(() => evaluateCadPart(D(features)), e => (e.details?.category ?? e.code) === code && e.message.includes(`[${typed}]`), typed);
 
 const TAU = 2 * Math.PI;
 const short = (a, c, b) => ((a[0] - c[0]) * (b[1] - c[1]) - (a[1] - c[1]) * (b[0] - c[0])) > 0 ? 'ccw' : 'cw';
@@ -140,8 +140,8 @@ test('R10.1 typed refusals: TANGENT_FACES, RADIUS_EXCEEDS_FACE (planes, translat
   refused([...dShaft, fillet('d', [flat], 5)], 'PARAMETER', 'RADIUS_EXCEEDS_CURVATURE');
   // (NOT_ANALYTIC_PAIR's cases — two crossing rods' saddle, an oblique groove's rim — are built since by the rolling ball,
   // R10.2a and R10.2b, D89 and D90: test/r10-2.test.mjs and r10-2b.test.mjs.)
-  assert.throws(() => evaluateCadPart(D([...rodOnPlate, { id: 'f', kind: 'chamfer', target: 'u', edges: [junction], distance: 1 }])), e => e.code === 'CAPABILITY' && /chamfers along horizontal edges need planar faces/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([...coneBody, { id: 'f', kind: 'chamfer', target: 'r', edges: [ringEdge(coneBody, 'r.side1#1', 'r.side2#1')], distance: 1 }])), e => e.code === 'CAPABILITY' && /chamfers along a circle between curved faces/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([...rodOnPlate, { id: 'f', kind: 'chamfer', target: 'u', edges: [junction], distance: 1 }])), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /chamfers along horizontal edges need planar faces/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([...coneBody, { id: 'f', kind: 'chamfer', target: 'r', edges: [ringEdge(coneBody, 'r.side1#1', 'r.side2#1')], distance: 1 }])), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /chamfers along a circle between curved faces/.test(e.message));
 });
 
 test('R10.1 names: the fillet face is f.face and every other face and edge keeps its name as the radius changes; a sketch-tagged rod keeps its tagged wall names', () => {

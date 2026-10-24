@@ -246,18 +246,18 @@ test('the part model: a pinion and its mate by mesh — the same apex, the axes 
   // The exact Boolean, apart from the sweep — the one Boolean the default suite keeps for bevel gears (a small pair, 13/13
   // 4 wide: about 11 s, the 16/20 pair's 20 s in the survey, D135).
   const small = phase => [{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 13, mateTeeth: 13, faceWidth: 4, thicknessReduction: 0.05 }, { id: 'w', kind: 'bevel-gear', module: 2, teeth: 13, mateTeeth: 13, faceWidth: 4, thicknessReduction: 0.05, mesh: { gear: 'p', phase } }];
-  assert.throws(() => evaluateCadPart(D([...small(0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([...small(0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
   if (SURVEY) {
-    assert.throws(() => evaluateCadPart(D([...base(0, 0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
+    assert.throws(() => evaluateCadPart(D([...base(0, 0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
     // (4° off. At 6° the analytic Boolean failed — a non-manifold result where the inputs touched along an edge, D134 — until
     // D150 fixed a general face's domain map across C0 knots; that pair is test/d150-bevel-pair.test.mjs's.)
     const off = evaluateCadPart(D([...base(0, 0, 4), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'); assert.ok(brepMassProperties(off.brep, 1).volumeMM3 > 1, 'a phase off: the teeth overlap');
   }
   // Refusals in the part model.
-  assert.throws(() => evaluateCadPart(D([base(0, 0)[0], { ...base(0, 0)[1], mateTeeth: 17 }])).output('w'), e => e.code === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 12, mateTeeth: 40, faceWidth: 6 }])).output('p'), e => e.code === 'CAPABILITY' && /undercut/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 20, mateTeeth: 40, faceWidth: 6, generator: 'bevel-gear@1' }])).output('p'), e => e.code === 'CAPABILITY');
-  assert.throws(() => evaluateCadPart(D([{ id: 'p', kind: 'spur-gear', module: 2, teeth: 20, faceWidth: 6 }, { ...base(0, 0)[1], mesh: { gear: 'p' } }])).output('w'), e => e.code === 'REFERENCE');
+  assert.throws(() => evaluateCadPart(D([base(0, 0)[0], { ...base(0, 0)[1], mateTeeth: 17 }])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 12, mateTeeth: 40, faceWidth: 6 }])).output('p'), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /undercut/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 20, mateTeeth: 40, faceWidth: 6, generator: 'bevel-gear@1' }])).output('p'), e => (e.details?.category ?? e.code) === 'CAPABILITY');
+  assert.throws(() => evaluateCadPart(D([{ id: 'p', kind: 'spur-gear', module: 2, teeth: 20, faceWidth: 6 }, { ...base(0, 0)[1], mesh: { gear: 'p' } }])).output('w'), e => (e.details?.category ?? e.code) === 'REFERENCE');
   // STEP: the volume and the names back.
   const { brep } = bevelGear({ moduleMM: 2, teeth: 20, mateTeeth: 40, faceWidthMM: 10, boreDiameterMM: 12 }, { id: 'b' }), back = importStep(exportStep([brep], { name: 'bevel' }));
   close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip'); assert.ok(back.faces.some(f => f.name === 'b.heel')); assert.equal(checkBrep(back).valid, true);

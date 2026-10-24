@@ -78,7 +78,8 @@
   },
   "expect": {
     "error": {
-      "code": "CAPABILITY",
+      "code": "SHELL_REGIONS_SHARP",
+      "category": "CAPABILITY",
       "messageIncludes": "[SHELL_REGIONS_SHARP]"
     }
   },

@@ -1,4 +1,4 @@
-import { CadAstError } from './source-ast.js';
+import { CadAstError, type CadAstCode } from './source-ast.js';
 import type { CadModelAst, CadAstDeclaration, CadAstValue, CadSourceRange } from './source-ast.js';
 import type { Curve, Surface, Point } from '../types.js';
 import { validateCurve, validateSurface } from '../core/math.js';
@@ -44,7 +44,7 @@ function raw(value: CadAstValue): unknown {
   throw new CadAstError('TYPE', 'Resolved numeric values are required', value.range);
 }
 const zeroRange = (): CadSourceRange => ({ start: 0, end: 0, line: 1, column: 1, endLine: 1, endColumn: 1 });
-function nativeCode(message: string): string {
+function nativeCode(message: string): CadAstCode {
   if (/^Degree /i.test(message)) return 'DEGREE';
   if (/knot|domain|multiplicity/i.test(message)) return 'KNOTS';
   if (/weight/i.test(message)) return 'WEIGHTS';
