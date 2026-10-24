@@ -76,8 +76,10 @@ have immutable compatible checkpoints and their required checks are recorded:
 - GPU: approved compatibility `1205fbe91` covers19 initial consumer/test files plus4 matching test/fixture leases. Lane Studio types49→0, related native103/103, WebGPU/WebGL2 flows6/6 each pass. Latest direct owner instruction keeps that checkpoint idle until aggregate results; no extra eb4 GPU run or rendering optimization is claimed.
 
 The isolated qualification branch is `codex/cad-r7-qualification-20261025` in the preparation worktree.
-Latest isolated preparation is `86e1cb1c9c0b697ee45e5a179b5673a5504d4902` (actual later tip in git log).
+Latest isolated preparation is `bea3c37b4aad41e729708402eab662c38e3e6d88` (actual later tip in git log).
 It assembles the residual contracts, Drawing baseline0f56, Docs B1d38, Outer angular552e/public reports c327/native SI6b1, API B1d22, Kernel storedb567/d788/native SIdfb/fit19b and Split oraclef932. Shared browser-flow migration4b709 remains WIP NOT VERIFIED until its real flows run.
+Current checkpoint review (2026-10-25): Outer fit `8fc47f3fe` is assembled as a dependency, with focused Model70/70 and Studio27/27 PASS; actual Model types still FAIL7 and Studio types FAIL6, all in the pending Drawing fit consumer. Drawing and Docs now consume exact common assembly `869045aa7bb3cb49257ca730eb7f5088721edc90`. Kernel T-slot `e6ddaeabb` changes numeric `sizeMM` to `cellSize` without changing the row label `size` or geometry; build/types/lint and18 focused tests pass. Its Outer projection remains pending. API P1 timing `43115cc7c` changes public report durations to seconds; P1 4/4 and actual no-sweep CLI serialization pass at Node22.22.0. Full build-report/treeTime runtime and sweep are NOT RUN. Outer now owns the explicitly leased private worker SI envelope, stale-source rejection and actual Studio Save/Open-to-export byte checks. Kernel continues the separately scoped public wallTime/preview field checkpoint. These lane results do not qualify the assembled SHA.
+
 It is **NOT QUALIFIED** and remains outside product. Current docs check FAIL is the generated tools reference drifting
 from the new public angular description; preserve the failure and regenerate once with the matching completed producer.
 
