@@ -1,0 +1,5 @@
+{
+  "//": "build:library's emit (the declarations and dist/api's unbundled modules; esbuild then writes dist/index.js as the bundle). tsconfig.json is noEmit, so a bare tsc only checks and cannot overwrite the bundle with unbundled output.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "noEmit": false }
+}
