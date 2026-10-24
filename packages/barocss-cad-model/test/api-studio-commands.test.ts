@@ -55,7 +55,8 @@ test('rows from a person\'s file, then a fastener from them: what load_rows and 
   // (The same file twice: the same bytes — the build stays deterministic.)
   assert.equal(JSON.stringify(part('b').loadRows('fastener-sizes', SIZES).doc), JSON.stringify(part('b').loadRows('fastener-sizes', SIZES).doc));
   // (Without the rows, the command's own refusal.)
-  assert.throws(() => part('b').fastener({ kind: 'hex-bolt', size: 'M8', length: '60', x: 0, y: 0, z: 0 }), e => e instanceof BarocssError);
+  // (…its code the core's own, passed through: §6.)
+  assert.throws(() => part('b').fastener({ kind: 'hex-bolt', size: 'M8', length: '60', x: 0, y: 0, z: 0 }), e => e instanceof BarocssError && e.code === 'FASTENER_SIZE_ROW');
 });
 
 test('a Boolean\'s tool callback takes several verbs: the body it makes is the one they act on', () => {

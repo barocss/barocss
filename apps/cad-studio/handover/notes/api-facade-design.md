@@ -781,6 +781,29 @@ functions, its results byte-equal to what the agent's robot tools return. It fee
   - `sdf` and `usd` equal the core exports;
   - four typed refusals.
 
+**As built, part 2 (2026-10-24):**
+- **robotCore now calls the outer lane's sync robot verbs** (robot/verbs.ts: `treeOf`, `poseOf`, `sweepOf`,
+  `inertiaOf`, `gravityOf`, `urdfOf`, `mjcfOf`, `withJoints`), the very functions the tools call. It builds their
+  `RobotView` at once, from its own evaluation. Its own code is now only the call's checks (as the tool's) and SDF/USD,
+  which have no tool.
+- **A path is RS2's `MotionPath`,** in degrees and mm, with a profile and limits: `path(waypoints, { profile?, limits? })`.
+  - `poseAt(t)` is `poseAt(tree, timedPathOf(tree, path), t)`, answered in degrees and mm, so `pose(path.poseAt(t))`
+    places the links.
+  - `duration()` and `problems()` are `checkPath`'s problems. A path with a problem refuses `poseAt` with the
+    problem's code (`LIMITS_MISSING` …).
+- **Motions:** `motion(name)` reads `robot.motions`, and `withMotion(name, path)` saves a path there, replacing one of
+  the same name.
+  - No agent action writes motions yet. When RS3's waypoint action lands, `withMotion` is to match its write byte for
+    byte.
+- **test/api-robot.test.ts, 7/7:**
+  - `poseAt` against the core's, converted to degrees, at a third of the way;
+  - the path's end is its last waypoint;
+  - `duration` against the core's;
+  - motions saved, read back and replaced;
+  - `LIMITS_MISSING`, `MOTION_UNKNOWN` and `JOINT_UNKNOWN`.
+- **Parameters** moved onto O21's core (engine/parameters.ts): `bindParameter`, `withParameters`, `addParameters`. The
+  facade's binding table stays as its own (which options of a verb take a parameter, and where).
+
 **The oracle:**
 - For each verb, the reply is byte-equal to `runRobotTool`'s content (through `dispatchTool`) on the same document.
   The documents are RS1's sample robots once they land; until then, the arm-6r fixture (packages/barocss-cad/conformance/rm/arm-6r).
