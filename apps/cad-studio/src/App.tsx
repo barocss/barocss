@@ -727,7 +727,7 @@ export function App() {
     let live = true; setBusy(true);
     engine.evaluate(evaluated, revision.current++).then(result => {
       if (!live || !result) return;
-      setBusy(false); setLastMs(result.ms);
+      setBusy(false); setLastMs(result.wallTime * 1000);
       if (result.ok) {
         // What is selected stays selected where it still is: faces, edges and bodies by their persistent names.
         const prev = bodiesRef.current;

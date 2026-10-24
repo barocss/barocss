@@ -73,3 +73,29 @@ test('stale evaluation replies still advance mesh slots but cannot replace or ac
   worker.reply({ ...result, revision: 2 }, 1); const accepted = await p2; assert.ok(accepted?.ok);
   assert.ok(nativeSIOfBody(accepted.bodies[0]).ok);
 });
+
+test('client keeps public seconds through real mesh clones, refusals, lost meshes and restart cancellation', async () => {
+  const { client, worker } = setup(), doc = rectanglePart(11, 20, 5), result = eager(1);
+  const asked = client.part(doc, 1); worker.reply(result);
+  const received = await asked;
+  assert.equal(received.wallTime, result.wallTime); assert.equal('ms' in received, false);
+
+  const invalid = rectanglePart(11, 20, 5), extrude = invalid.nodes.find(n => n.kind === 'extrude');
+  assert.ok(extrude?.kind === 'extrude'); extrude.sketch = 999;
+  const refusal = evaluatePart(invalid, 2); assert.equal(refusal.ok, false);
+  const refused = client.part(invalid, 2); worker.reply(refusal);
+  assert.deepEqual(await refused, refusal);
+
+  // A sender that remembers an unreceived mesh produces a real missing-token refusal at the client.
+  const lost = client.part(doc, 3), unreceived = eager(3);
+  worker.sender.pack(worker.sent.at(-1)!.nativeSource.slot, unreceived);
+  worker.reply(unreceived);
+  const missing = await lost;
+  assert.equal(missing.ok, false); assert.equal(missing.wallTime, 0); assert.equal('ms' in missing, false);
+  if (!missing.ok) assert.equal(missing.error.title, 'Evaluation lost');
+
+  const pending = client.part(doc, 4); client.restart();
+  const cancelled = await pending;
+  assert.equal(cancelled.ok, false); assert.equal(cancelled.wallTime, 0); assert.equal('ms' in cancelled, false);
+  if (!cancelled.ok) assert.equal(cancelled.error.title, 'Stopped');
+});

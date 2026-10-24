@@ -93,12 +93,13 @@ export interface BodyResult {
   /** A sheet-metal body's rules (R12.3, D119: the studio writes them into a flange's relief, the kernel defaulting none). */
   sheet?: { thickness: number; bendRadius: number; kFactor?: number; bendTable?: string };
 }
+/** Elapsed seconds for the evaluation's measured interval, before worker transfer. */
 export type EvalResult =
   // (`faceTable`: the part's flat and round faces from the B-rep just built — the face table the requirement checks,
   // print rules and mates read, kept so they do not evaluate the part again; PERF3 A1.)
   // (`rebuild`: the part's own evaluation as the kernel profiled it — evaluateDoc only; O10.)
-  | { ok: true; revision: number; bodies: BodyResult[]; ms: number; faceTable?: FaceTable; shopRows?: readonly ShopTreeProvenance[]; rebuild?: RebuildData }
-  | { ok: false; revision: number; error: FriendlyError; ms: number };
+  | { ok: true; revision: number; bodies: BodyResult[]; wallTime: number; faceTable?: FaceTable; shopRows?: readonly ShopTreeProvenance[]; rebuild?: RebuildData }
+  | { ok: false; revision: number; error: FriendlyError; wallTime: number };
 
 /** The main evaluation's rebuild (O10): the features built again and those reused, and each one's own cost (D228). */
 export interface RebuildData { evaluated: readonly string[]; reused: readonly string[]; profile: Readonly<Record<string, CadPartFeatureProfile>> }
@@ -245,14 +246,14 @@ const rebuildOf = (s: CadPartSnapshot): RebuildData | undefined => s.profile && 
 
 /** A failed evaluation: its refusal in words, and the time it took (every evaluation's catch). */
 function failed(revision: number, cause: unknown, t0: number): EvalResult {
-  return { ok: false, revision, error: friendlyCause(cause), ms: performance.now() - t0 };
+  return { ok: false, revision, error: friendlyCause(cause), wallTime: (performance.now() - t0) / 1000 };
 }
 /** A part's bodies from its snapshot, its face table remembered (evaluateDoc's and evaluatePart's one path; R4 C3). */
 function partResult(doc: StudioDoc, snapshot: CadPartSnapshot, revision: number, quality: number, shopRows: readonly ShopTreeProvenance[], t0: number): Extract<EvalResult, { ok: true }> {
   const counts = new Map<ModelNode, number>(); // (each frame's member count once this evaluation)
   const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality, counts)), doc, snapshot.outputs);
   const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
-  return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable, shopRows };
+  return { ok: true, revision, bodies, wallTime: (performance.now() - t0) / 1000, faceTable, shopRows };
 }
 /** The document with its parameter-bound skeletons solved for its parameters now (O140; the same document when none moved); their refusal thrown. */
 function skeletonsNow(doc: StudioDoc): StudioDoc { return resolveSkeletons(doc).doc; }
@@ -275,7 +276,7 @@ export function rebuildFromScratch(doc: StudioDoc, revision: number): EvalResult
   const t0 = performance.now();
   try {
     const snapshot = partSnapshot(skeletonsNow(doc), part => evaluateCadPart(part, undefined, PROFILED));
-    return { ok: true, revision, bodies: [], ms: performance.now() - t0, rebuild: rebuildOf(snapshot) };
+    return { ok: true, revision, bodies: [], wallTime: (performance.now() - t0) / 1000, rebuild: rebuildOf(snapshot) };
   } catch (cause) {
     return failed(revision, cause, t0);
   }
@@ -300,7 +301,7 @@ export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8, s
   try {
     const last = lastPreview[slot], snapshot = partSnapshot(doc, part => last ? reevaluate(last, { document: part }) : evaluateCadPart(part, undefined, PREVIEW)); lastPreview[slot] = snapshot;
     const bodies: BodyResult[] = snapshot.outputs.map(o => ({ ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), volume: null, mass: null }));
-    return { ok: true, revision, bodies, ms: performance.now() - t0 };
+    return { ok: true, revision, bodies, wallTime: (performance.now() - t0) / 1000 };
   } catch (cause) {
     lastPreview[slot] = null;
     return failed(revision, cause, t0);
@@ -364,7 +365,7 @@ export function evaluatePlaced(placed: StudioDoc, base: StudioDoc, place: { m: n
       if (!at || origin.outputs.length !== snapshot.outputs.length || !samePlacedBody(o.brep, at.brep, place.m, place.t)) return { ...bodyOf(o, placed, revision, quality), ...(at ? keyed(at.id, base.nodes) : {}) };
       return placeBody(bodyOf(at, base, revision, quality), place.m, place.t);
     });
-    return { ok: true, revision, bodies, ms: performance.now() - t0 };
+    return { ok: true, revision, bodies, wallTime: (performance.now() - t0) / 1000 };
   } catch (cause) {
     return failed(revision, cause, t0);
   }
