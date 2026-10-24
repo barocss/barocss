@@ -1,7 +1,7 @@
 // The object facade (`@barocss/cad-model/api`): one bracket three ways — the StudioDoc written by hand, the agent's
 // run_command calls, and the facade — all one document byte for byte; its mass and STEP the core's, a part never changed
-// by a method, a body's material, parameters, configurations and suppression, an assembly placed, mated, varied and
-// framed, and the refusals typed. The Object API
+// by a method, a body's material, parameters, configurations and suppression, the studio's own commands (gears, a
+// spring, a fastener from a person's rows), an assembly placed, mated, varied and framed, and the refusals typed. The Object API
 // page includes the #region blocks. Run: pnpm test:samples
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,6 +11,8 @@ import { part, assembly, Location, param, BarocssError } from '@barocss/cad-mode
 import { evaluateDoc, exportStudioStep } from '@barocss/cad-model/engine/evaluate';
 import { bodyMass } from '@barocss/cad-model/app/mass';
 import { runTool } from '@barocss/cad-model/chat/tools';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 /** STEP text with its FILE_NAME line (the export's time stamp) set aside. */
 const unstamped = text => text.replace(/^FILE_NAME\(.*$/m, '');
@@ -192,4 +194,34 @@ test('suppression: a feature switched off by its id, and back', () => {
   assert.ok(near(volume(sharp), 80 * 40 * 10));              // the unrounded plate
   assert.equal(JSON.stringify(sharp.suppressed('n2', false).doc), JSON.stringify(p.doc));   // back, byte for byte
   // #endregion suppression
+});
+
+test('the studio\'s own commands: a gear pair and a spring', () => {
+  // #region gears
+  // A module-1.5 spur gear of 20 teeth, 10 wide, with a Ø20 bore; then a 40-tooth gear meshing with it along +X.
+  const pair = part('pair')
+    .gear({ m: 1.5, teeth: 20, b: 10, bore: 20 })
+    .gearMesh({ teeth: 40, dir: 0, bore: 16 });
+  const [pinion, wheel] = pair.bodies();
+  const centre = pair.body(wheel).mass({ density: 1 }).centroidMM;
+  assert.ok(Math.abs(centre[0] - 1.5 * (20 + 40) / 2) < 1e-6);   // the centre distance, m (z1 + z2) / 2 = 45
+
+  const spring = part('spring').spring({ type: 'compression', d: 2.5, D: 18, n: 5, p: 6, ends: 'closed-ground', hand: 'right' });
+  // #endregion gears
+  assert.notEqual(pinion, wheel);
+  assert.equal(spring.bodies().length, 1);
+});
+
+test('rows from a person\'s file, then a fastener from them', () => {
+  // #region fastener
+  // The fastener sizes cad-model ships as a sample; your own file loads the same way. None is built in.
+  const sizes = { name: 'fastener-sizes.json',
+    text: readFileSync(resolve(import.meta.dirname, '../../../packages/barocss-cad-model/samples/rows/fastener-sizes.json'), 'utf8') };
+  assert.throws(() => part('bolt').fastener({ kind: 'hex-bolt', size: 'M8', length: '60' }),
+    e => e instanceof BarocssError && e.message.includes('[FASTENER_SIZE_ROW] no fastener sizes loaded'));   // no rows: refused
+  const bolt = part('bolt')
+    .loadRows('fastener-sizes', sizes)        // its receipt names the file, as the studio's Library writes it
+    .fastener({ kind: 'hex-bolt', size: 'M8', length: '60' });
+  assert.equal(bolt.bodies().length, 1);
+  // #endregion fastener
 });

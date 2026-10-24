@@ -33,6 +33,13 @@ write metres and radians.
   shows the gravity torques at the current pose. Right after an edit, these wait until the masses are worked out.
 - **Paths.** **Add waypoint** records poses. **Check path** sweeps the robot along them and reports the first
   collision, with continuous collision between samples.
+- **Playing the path.** **Play motion** plays the same path in time: from home, through the waypoints, to the pose
+  shown. Each joint moves at its velocity limit, or at 1 rad/s or 100 mm/s when it has none.
+  - **Pause motion** holds it. The **Motion time** scrubber sets the pose at a time, **Loop motion** repeats it, and
+    **Motion speed** plays it at 0.25× to 2×.
+  - The first contact on the way is reported as "Contact *link* – *link* at t … s". From then on the two links are
+    marked: outlined on WebGPU, tinted on WebGL2.
+  - Nothing is saved. Moving a slider, **Home** or a change to the waypoints stops it.
 - **Workspace.** **Workspace** (Map workspace) samples the reachable space and draws it as voxels, with a summary and the samples.
   **Download workspace** saves it.
 
