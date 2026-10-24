@@ -3513,3 +3513,27 @@ is untouched as history. The coordinator settled the scope:
     cad-model's `placementOf`, which is no longer exported from engine/doc.ts. cad-clearance-hook's bundle reads
     `import.meta.env.DEV` without Vite. cad-clearance-gpu and cad-clearance-overlay-gl pass. Whether to repair or retire
     them is the coordinator's call.
+
+## G-R63 — gpu's dormant tests repaired and in the test script: 204 → 301 (2026-10-24)
+
+- **What was dormant**: 15 test files in packages/barocss-gpu/tests were in no script. 14 test real code: the studio
+  viewport's clearance, print and display modules, and the bench's runner. The 15th, viewer-costs-browser, is the
+  browser bench's own harness and stays out.
+- **Repairs**:
+  - cad-clearance-analysis bundled `placementOf` from cad-model's engine/doc.ts. It now comes from engine/placement.ts,
+    where it lives.
+  - cad-clearance-hook bundled studio code that reads Vite's `import.meta.env.DEV`. esbuild is given
+    `define: { 'import.meta.env.DEV': 'false' }`, a production stand-in.
+  - The five cad-print tests used the print *options'* old names. Outer's R7.7a step 3 renamed them to `layerHeight` and
+    `overhangLimit`, and they follow. The print *result* still says `layerMM: { mm }` and `limitDeg: { deg }`, outer's
+    results step; those reads are kept.
+  - browser-runner-contract:
+    - It counted 17 bench cases. The bench has had 19 since G-R49's HUD and placing rows.
+    - It expected a reversed timestamp pair to be a timing error. Since G8 such a submit is counted `unstamped`, which
+      is G-R22's rule for Chrome/Metal's unwritten begin stamp. The check now asserts that rule.
+    - No limit was loosened: the case set is the bench's own list, and the reversed pair is still kept out of the GPU
+      average.
+- **Retired**: none.
+- **Now in `test`**: browser-runner-contract, cad-clearance-analysis, -clip, -gpu, -hook, -overlay-gl,
+  cad-display-browser-fixture, cad-display-browser-runner, cad-print-hook, -overlay, -projection, -settings, -worker,
+  cad-silhouette. gpu's unit run is 301/301 (was 204) and takes about 3 s.
