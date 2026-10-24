@@ -192,3 +192,30 @@ merges.
   conflict with `main (3)` and `thick (5)`; answered for thick, T is 5. New part empties the card's versions; a mesh
   (block-cm.stl, cm) made a version writes a second .bcad and leaves Untitled.bcad byte-identical; a box added and
   compared with the mesh's version gives `method: 'faces'`, faces tinted. The whole studio suite 298/298.
+
+## DA-7 — placed parts referenced by their path in a project (2026-10-24)
+
+- **What**: `src/storage/linked.ts`; the card's **Insert** and **Check**; App.tsx's `insertPart(file, source)`.
+  - A document of the project placed in another (**Insert** beside it in the card) is inserted as any part is — its
+    own copy in the assembly, so a .bcad stays whole on its own — with `part.source` = `./<path>`. A part inserted
+    from disk keeps its bare file name, so a project link is never confused with it. No schema change: `source` was
+    already "the file it came from"; the instance panel shows "From ./arm.bcad".
+  - When an assembly is opened from the project (and on **Check**), each linked definition's file is read: one that
+    differs from the part as placed is offered through the existing path, `offerRevision` → **Revision waiting** →
+    **Accept Rev B** / **Keep Rev A** (assembly/definitions.ts), named `./<path>` so accepting keeps the link. A file
+    already waiting as the same content is not offered again; a file the project no longer has is named
+    ("Not in the project any more"). Nothing changes until the person accepts.
+  - App.tsx (approved scope): `insertPart(file, source = file.name)`; `useProject`'s `onLinked` commits the waiting
+    revisions as one undoable step and says which; the card's `onInsert` reads the document and inserts it with
+    `./<path>`.
+- **Why**: the owner's "multi-part projects with their placed parts referenced by path", on the shared-definition and
+  revision model the studio already has, so linking is a check, not a new kind of reference the kernel or the container
+  must resolve.
+- **Oracle**: storage test (memory store): the file as placed offers nothing; saved with a fillet it is offered once
+  (rev B, name `./parts/arm.bcad`, both copies untouched), not again while waiting, and accepted both copies take it
+  with the link kept, after which nothing is offered; a removed file is named missing; a bare-name source is left
+  alone. Flow step "CG6 linked parts" (WebGPU): arm.bcad saved; assembly.bcad with arm inserted (`./arm.bcad`); arm
+  opened, a second box, saved; assembly opened: "Newer files for 1 placed part", the placed part still one box, Rev B
+  waiting; accepted: two boxes, the link kept; Check offers nothing more.
+- **Not covered yet**: renaming a document in the project (its links then read as missing); a linked part's own
+  versions are not consulted (the file as saved is what is offered).

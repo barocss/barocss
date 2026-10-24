@@ -8801,6 +8801,52 @@ try {
     await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
   });
 
+  await check('CG6 linked parts: a part inserted from the project names its file; saved again with a second box, the assembly opened offers it as Revision waiting, accepted the link stays', async () => {
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-linked-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const card = page.locator('[aria-label="Versions panel"]');
+    const named = async name => { await page.fill('.doc-tab input', name); };
+    const saveIn = async () => { await page.click('[aria-label="Save"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Unsaved changes"]'), null, { timeout: 5000 }); };
+    // The part, arm.bcad: one box.
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await named('arm');
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click(); await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    await saveIn();
+    // The assembly: arm.bcad inserted from the project, saved as assembly.bcad.
+    await page.click('[aria-label="New part"]'); await named('assembly');
+    await card.locator('[aria-label="Insert arm.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.instances?.length === 1, null, { timeout: 15000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].part.source), './arm.bcad');
+    await saveIn();
+    assert.match(await card.locator('[aria-label="Project documents"]').innerText(), /arm\.bcad[\s\S]*assembly\.bcad/);
+    // The part opened, a second box added, saved.
+    await card.locator('[aria-label="Open arm.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && !window.__studioDoc.instances?.length, null, { timeout: 15000 });
+    await press('b'); await hudReady(); await field('At X').fill('48'); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
+    await saveIn();
+    // The assembly opened: the newer file waits, the placed part unchanged until accepted.
+    await card.locator('[aria-label="Open assembly.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.instances?.length === 1 && !!window.__studioDoc.pendingParts, null, { timeout: 15000 });
+    assert.match(await page.locator('.toast').innerText(), /Newer files for 1 placed part/);
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].doc.nodes.length), 2);
+    assert.equal(await page.evaluate(() => Object.values(window.__studioDoc.pendingParts)[0].name), './arm.bcad');
+    await page.locator('.ol.instance').first().click(); await page.waitForSelector('[aria-label="Revision waiting"]');
+    await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-cg6-linked.png`) });
+    await page.click('[aria-label="Instance"] button:text-is("Accept Rev B")');
+    await page.waitForFunction(() => window.__studioDoc.instances[0].doc.nodes.length === 4 && !window.__studioDoc.pendingParts, null, { timeout: 15000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].part.source), './arm.bcad', 'the link stays');
+    // Checked again: the file is the part as placed, nothing more offered.
+    await page.keyboard.press('Escape');
+    await card.locator('[aria-label="Check placed parts"]').click(); await page.waitForTimeout(500);
+    assert.equal(await page.evaluate(() => window.__studioDoc.pendingParts), undefined);
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
   await check('G15b studio light: Softboxes and the Cyclorama from the Render panel light the part (kept as the environment\'s studio, its strength), an image replaces them, Sky and ground again none', async () => {
     await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
     await page.click('.render-panel [role="tab"]:text-is("Appearance")');
