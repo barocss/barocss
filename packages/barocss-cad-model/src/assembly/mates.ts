@@ -71,6 +71,8 @@ export function kindsFor(a: MateFace, b: MateFace): MateKind[] {
   return out;
 }
 
+const axialFace = (f: MateFace): MateFace => f.kind === 'cone' || f.kind === 'circle' || f.kind === 'line' ? { kind: 'cylinder', point: f.point, axis: f.axis, radius: 0, outer: true } : f;
+
 /**
  * A mate's two faces as the solver and the joint tree take them (O24 c): the kinds that read only a line become a
  * round face of radius 0 on it — concentric with a cone, a circular or a straight edge (a cone: its apex on its axis);
@@ -78,9 +80,8 @@ export function kindsFor(a: MateFace, b: MateFace): MateKind[] {
  * kind is the one solved (`as`). Two spheres concentric and a sphere tangent to a face stay spheres.
  */
 export function solvedFaces(kind: MateKind, a: MateFace, b: MateFace): { as: MateKind; a: MateFace; b: MateFace } {
-  const line = (f: MateFace): MateFace => f.kind === 'cone' || f.kind === 'circle' || f.kind === 'line' ? { kind: 'cylinder', point: f.point, axis: f.axis, radius: 0, outer: true } : f;
-  if (kind === 'concentric') return { as: kind, a: line(a), b: line(b) };
-  if (kind === 'coincident' && (a.kind === 'line' || b.kind === 'line')) return { as: a.kind === 'line' && b.kind === 'line' ? 'concentric' : 'tangent', a: line(a), b: line(b) };
+  if (kind === 'concentric') return { as: kind, a: axialFace(a), b: axialFace(b) };
+  if (kind === 'coincident' && (a.kind === 'line' || b.kind === 'line')) return { as: a.kind === 'line' && b.kind === 'line' ? 'concentric' : 'tangent', a: axialFace(a), b: axialFace(b) };
   return { as: kind, a, b };
 }
 
@@ -139,8 +140,8 @@ const degBetween = (c: number) => Math.acos(Math.max(-1, Math.min(1, c))) / DEG;
 export function mateRefusal(mate: Mate, fa: MateFace | undefined, fb: MateFace | undefined): string | null {
   if (!fa || !fb) return 'One of its faces is no longer on the part (a feature was edited or removed).';
   const kinds = kindsFor(fa, fb);
-  if (!kinds.includes(mate.kind)) return mate.kind === 'concentric' ? 'Concentric needs two faces or edges with an axis (a hole, a pin, a cone, a circular or straight edge), or two spheres.'
-    : mate.kind === 'tangent' ? 'Tangent needs a round face or a sphere, and a flat face; or two round faces.' : mate.kind === 'cam' ? 'Cam needs a face of the cam (its lobe) and the follower\'s flat face.'
+  if (!kinds.includes(mate.kind)) return mate.kind === 'concentric' ? 'Concentric needs two round faces, cones or edges with an axis; or two spheres.'
+    : mate.kind === 'tangent' ? 'Tangent needs a round face, and a flat or another round face; or a sphere and a flat face.' : mate.kind === 'cam' ? 'Cam needs a face of the cam (its lobe) and the follower\'s flat face.'
     : mate.kind === 'coincident' ? 'Coincident needs two flat faces, a straight edge and a flat face, or two straight edges.' : `${KIND_LABEL[mate.kind]} needs two flat faces.`;
   if (mate.kind === 'distance' && !Number.isFinite(mate.distance ?? NaN)) return 'Enter a distance.';
   if (mate.kind === 'angle' && !(Number.isFinite(mate.angle ?? NaN) && mate.angle! >= 0 && mate.angle! <= 180)) return 'Enter an angle from 0° to 180°.';
@@ -334,6 +335,7 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
   }
   // 2. Position: each mate asks g·t = h along one direction (flat faces) or two (an axis); the move is the
   // smallest from where the part stands. A mate whose demand the earlier ones already fix differently is refused.
+  accepted.push(...terms.filter(t => t.fixed.kind === 'sphere' || t.moving.kind === 'sphere'));
   const t0: Vec3 = [...inst.position] as Vec3;
   const basis: { q: Vec3; s: number }[] = [], refused: Term[] = [];
   for (const term of accepted) {

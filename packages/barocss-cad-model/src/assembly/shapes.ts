@@ -55,15 +55,19 @@ function solve4(A: number[][], b: number[]): number[] | null {
 }
 /** A sphere through the points (least squares on |p|² = 2c·p + k), or null when they are not on one. */
 function sphereThrough(pts: readonly Vec3[]): { c: Vec3; r: number } | null {
+  // Centre and scale the fit: a translation must not change the conditioning of |p|².
+  const origin = pts[0], size = Math.max(...pts.map(p => len(sub(p, origin))));
+  if (!(size > 0)) return null;
+  const local = pts.map(p => scale(sub(p, origin), 1 / size));
   const A = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], b = [0, 0, 0, 0];
-  for (const p of pts) {
+  for (const p of local) {
     const row = [2 * p[0], 2 * p[1], 2 * p[2], 1], y = dot(p, p);
     for (let i = 0; i < 4; i++) { b[i] += row[i] * y; for (let j = 0; j < 4; j++) A[i][j] += row[i] * row[j]; }
   }
   const x = solve4(A, b); if (!x) return null;
-  const c: Vec3 = [x[0], x[1], x[2]], r2 = x[3] + dot(c, c);
+  const centre: Vec3 = [x[0], x[1], x[2]], r2 = x[3] + dot(centre, centre);
   if (!(r2 > 0)) return null;
-  const r = Math.sqrt(r2), tol = tolFor(r);
+  const c = addTo(origin, scale(centre, size)), r = Math.sqrt(r2) * size, tol = tolFor(r);
   for (const p of pts) if (Math.abs(len(sub(p, c)) - r) > tol) return null;
   return { c, r };
 }
@@ -79,10 +83,10 @@ function circleThrough(a: P, b: P, c: P): { c: Vec3; n: Vec3; r: number } | null
 function ringOf(pts: readonly Vec3[]): { c: Vec3; n: Vec3 | null; r: number } | null {
   let span = 0;
   for (const p of pts) span = Math.max(span, len(sub(p, pts[0])));
-  if (span <= tolFor(len(pts[0]))) return { c: pts[0], n: null, r: 0 };
+  if (span <= tolFor(span)) return { c: pts[0], n: null, r: 0 };
   const k = pts.length, circ = circleThrough(pts[0], pts[Math.floor(k / 3)], pts[Math.floor(2 * k / 3)]);
   if (!circ) return null;
-  const tol = tolFor(circ.r + len(circ.c));
+  const tol = tolFor(circ.r);
   for (const p of pts) if (Math.abs(len(sub(p, circ.c)) - circ.r) > tol || Math.abs(dot(sub(p, circ.c), circ.n)) > tol) return null;
   return circ;
 }
@@ -134,7 +138,7 @@ export function edgePoints(edge: Brep['edges'][number]): Vec3[] {
 }
 /** An edge as a mate reads it: a straight one (start, direction, length) or a circular one (centre, normal, radius, an arc's ends). */
 export function edgeShape(pts: readonly Vec3[], closed: boolean): MateFace | null {
-  const a = pts[0], b = pts[pts.length - 1], d = sub(b, a), l = len(d), tol = tolFor(Math.max(l, len(a)));
+  const a = pts[0], b = pts[pts.length - 1], d = sub(b, a), l = len(d), tol = tolFor(l);
   let straight = !closed && l > tol;
   for (let k = 1; straight && k < pts.length - 1; k++) straight = len(cross(sub(pts[k], a), d)) / l <= tol;
   if (straight) return { kind: 'line', point: snap(a), axis: snapUnit(d), length: clean(l) };
@@ -147,40 +151,64 @@ export function edgeKey(name: string): string | null {
   const sides = name.split('|').map(s => s.replace(/(#\d+)+$/, ''));
   return sides.length === 2 && sides[0] === sides[1] ? null : sides.join('|');
 }
+const samePoint = (a: Vec3, b: Vec3, tol: number) => len(sub(a, b)) <= tol;
 /** Two pieces of one edge name that are one circle or one line (merged), or null when they are not. */
 export function mergeEdges(x: MateFace, y: MateFace): MateFace | null {
   if (x.kind === 'circle' && y.kind === 'circle') {
-    const tol = tolFor(x.radius + len(x.point));
+    const tol = tolFor(x.radius);
     if (len(sub(x.point, y.point)) > tol || Math.abs(x.radius - y.radius) > tol || Math.abs(Math.abs(dot(x.axis, y.axis)) - 1) > 1e-9) return null;
-    return { kind: 'circle', point: x.point, axis: x.axis, radius: x.radius };
+    if (!x.ends || !y.ends) return null; // Keep ambiguous overlaps under their individual names.
+    const ends = dot(x.axis, y.axis) < 0 ? [y.ends[1], y.ends[0]] : y.ends;
+    let joined: [Vec3, Vec3];
+    if (samePoint(x.ends[1], ends[0], tol)) joined = [x.ends[0], ends[1]];
+    else if (samePoint(ends[1], x.ends[0], tol)) joined = [ends[0], x.ends[1]];
+    else return null;
+    return { kind: 'circle', point: x.point, axis: x.axis, radius: x.radius, ...(samePoint(joined[0], joined[1], tol) ? {} : { ends: joined }) };
   }
   if (x.kind === 'line' && y.kind === 'line') {
-    const tol = tolFor(x.length + len(x.point));
+    const tol = tolFor(Math.max(x.length, y.length));
     if (Math.abs(Math.abs(dot(x.axis, y.axis)) - 1) > 1e-9 || len(cross(sub(y.point, x.point), x.axis)) > tol) return null;
-    const ends = [0, x.length, dot(sub(y.point, x.point), x.axis), dot(addTo(y.point, scale(y.axis, y.length)), x.axis) - dot(x.point, x.axis)], lo = Math.min(...ends), hi = Math.max(...ends);
+    const a = dot(sub(y.point, x.point), x.axis), b = a + dot(y.axis, x.axis) * y.length;
+    if (Math.min(a, b) > x.length + tol || Math.max(a, b) < -tol) return null;
+    const ends = [0, x.length, a, b], lo = Math.min(...ends), hi = Math.max(...ends);
     return { kind: 'line', point: snap(addTo(x.point, scale(x.axis, lo))), axis: x.axis, length: clean(hi - lo) };
   }
   return null;
 }
 
 /** A loop's points in order (each coedge's edge points, reversed when it runs backward). */
-export function loopPoints(brep: Brep, loop: Brep['loops'][number], coedges: ReadonlyMap<string, Brep['coedges'][number]>, edgePts: ReadonlyMap<string, Vec3[]>): Vec3[] {
-  const out: Vec3[] = [];
+export function loopCurves(loop: Brep['loops'][number], coedges: ReadonlyMap<string, Brep['coedges'][number]>, edgePts: ReadonlyMap<string, Vec3[]>): Vec3[][] {
+  const out: Vec3[][] = [];
   for (const cid of loop.coedges) {
     const c = coedges.get(cid)!, pts = edgePts.get(c.edge) ?? [];
-    if (c.sense === 'forward') for (const p of pts) out.push(p); else for (let k = pts.length - 1; k >= 0; k--) out.push(pts[k]);
+    out.push(c.sense === 'forward' ? pts : [...pts].reverse());
   }
   return out;
 }
 /** A flat region's area and first moment about the origin, from its loops' points (outer loops add, inner ones take away). */
-export function planeMoment(loops: readonly { pts: readonly Vec3[]; outer: boolean }[], n: Vec3): { area: number; moment: Vec3 } {
+export function planeMoment(loops: readonly { curves: readonly Vec3[][]; outer: boolean }[], n: Vec3): { area: number; moment: Vec3 } | null {
   let area = 0, moment: Vec3 = [0, 0, 0];
   for (const l of loops) {
     let a = 0, m: Vec3 = [0, 0, 0];
-    const p0 = l.pts[0];
-    for (let k = 1; k + 1 < l.pts.length; k++) {
-      const t = dot(cross(sub(l.pts[k], p0), sub(l.pts[k + 1], p0)), n) / 2;
-      a += t; m = addTo(m, scale(addTo(addTo(p0, l.pts[k]), l.pts[k + 1]), t / 3));
+    const pts = l.curves.flat(), p0 = pts[0];
+    for (let k = 1; k + 1 < pts.length; k++) {
+      const t = dot(cross(sub(pts[k], p0), sub(pts[k + 1], p0)), n) / 2;
+      a += t; m = addTo(m, scale(addTo(addTo(p0, pts[k]), pts[k + 1]), t / 3));
+    }
+    for (const curve of l.curves) {
+      const shape = edgeShape(curve, len(sub(curve[0], curve[curve.length - 1])) <= 1e-7);
+      if (!shape) return null; // A general curve has no certified area centroid here.
+      if (shape.kind !== 'circle') continue;
+      // Replace each circular polyline's fan by its analytic sector, including its first moment.
+      let theta = 0, fanArea = 0, fanMoment: Vec3 = [0, 0, 0];
+      for (let k = 0; k + 1 < curve.length; k++) {
+        const u = sub(curve[k], shape.point), v = sub(curve[k + 1], shape.point), cr = dot(n, cross(u, v));
+        theta += Math.atan2(cr, dot(u, v)); fanArea += cr / 2;
+        fanMoment = addTo(fanMoment, scale(addTo(u, v), cr / 6));
+      }
+      const delta = shape.radius ** 2 * theta / 2 - fanArea;
+      const sectorMoment = scale(cross(n, sub(curve[0], curve[curve.length - 1])), shape.radius ** 2 / 3);
+      a += delta; m = addTo(m, addTo(scale(shape.point, delta), sub(sectorMoment, fanMoment)));
     }
     // (A loop's sense is its own: outer loops count positive, inner ones negative, whichever way they run.)
     const s = (l.outer ? 1 : -1) * (a < 0 ? -1 : 1);

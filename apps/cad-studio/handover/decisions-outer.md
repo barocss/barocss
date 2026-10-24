@@ -9380,3 +9380,42 @@ around it with a finer mesh and running-fit seats. Our core now takes the seat a
 - **Verified (T1):** pg6 2/2, o24a-cam 5/5; robot*, rs1–3, o22, o24a, pg*, tool-contract, toolset, assembly, mates,
   clearance, o11, o12, api-assembly and rb9 169/169 before the cycle checks; tsc; eslint 0 errors. The per-turn size is
   24,097.
+
+## O24 (c) — inherited reference-table WIP verified and corrected (2026-10-24, Codex Outer)
+
+- Inherited baseline: `64fb17a2ff824aee80d266adfcdce6071f0fef34` (WIP, not proof). Its parent is
+  `6b95379a309cbef9d3e4868158e880cb62fb595c`. No merge or rebase was performed.
+- Retained the reference table for spherical/conical faces, straight/circular edges, persistent signatures,
+  solver/tree/loop consumers and MatePanel labels. Added focused tests and updated the agent's descriptions.
+- Fixed spherical constraints being omitted from the position solve. A sphere tangent to a plane now moves its
+  centre to the radius offset; two concentric spheres hold their centres and leave three turns free.
+- Fixed edge merging: an open arc keeps its endpoints; disconnected arcs and separated collinear segments retain
+  individual names. Classification tolerance depends on local shape size, not distance from the origin. The sphere
+  fit is centred and scaled before solving. Numerical tolerances were not relaxed.
+- Flat-face centres use analytic circular-sector area and first-moment corrections, including off-centre holes.
+  A boundary curve outside the line/circle classifier leaves the optional centre absent. O24(b) must refuse a
+  requested centre in that case instead of using an arbitrary plane origin.
+- Added `test/o24c-references.test.ts` (7 tests): native revolved sphere/cone closed forms, box edges and cylinder
+  rims/spans; open/disconnected edges; translated geometry; circular-hole area centroid; solved mates/freedom and
+  typed refusal; v2 assembly add-mate, signature capture, Save/Open/reference verification and a ball joint tree.
+- Checks: CAD/GPU builds PASS; model/Studio types PASS; changed-area eslint PASS. The broad affected suite passed
+  189/189 before the final description/refusal compatibility edits and extra translation test. The final focused
+  suite passed 45/45, including all 7 O24(c) tests; Studio assembly-linked-faces/chat passed 25/25. The tool budget is
+  24,410 characters (13 tools, tools/list 16,168 + prompt 8,242), under 25,000.
+- Actual browser/file check: real Chromium/WebGPU opened a generated `.bcad` assembly, checked three solved mate
+  placements, all four new reference labels and the mate editor, with no page errors. Screenshot inspected. This is
+  scripted feature evidence; full integration, direct viewport edge/vertex picking and owner acceptance are not
+  established by it. Browser sources remained unchanged during the run.
+- First failures retained externally: inherited tests 51/54 (new optional fields and expanded refusal text); new
+  tests 1/5 (arc/translation/sphere-position defects and an unsupported tangent-tree expectation); Studio 24/25
+  (refusal wording); translated native probe outside the kernel's coordinate domain; browser probe using `.barocad`
+  for a `.bcad` document. The latter two were probe errors, corrected without changing product limits.
+- Limits: classification uses the approved finite-sample NURBS checks, not an arbitrary-surface equivalence proof.
+  A sphere/plane tangent is a valid assembly mate, but its five-DOF tree remains typed MOTION_UNSUPPORTED. Unsupported
+  loop mates still refuse LOOP_MATE_UNSUPPORTED. Connectors, direct vertex references and O24(d)/(e) are not added.
+- External artifacts only: `/Users/user/.cache/barocss-preserved/2026-10-24-codex-outer-o24c/` contains logs, native
+  fixtures, the browser probe/result and screenshot. No logs, screenshots or generated evidence are committed.
+- Next: O24(b), mate connectors, using this table; then (d), then (e). PG-4/5/6/8 implementations and their current
+  focused tests were checked, not repeated as new development. The R7.7a steps 2/4 migration proposal names owned,
+  shared and Drawings paths separately. It waits for the coordinator's exact kernel baseline and window; this lane
+  did not adopt the breaking kernel branch. Coordinator owns roadmap updates and generated agent/refusal tables.

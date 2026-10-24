@@ -2,7 +2,7 @@
 // straight and circular edges (O24 c), in the part's own coordinates, from the kernel's B-rep (not the display mesh,
 // which is single precision).
 import { evaluateCadPart, faceGeometry, type Brep } from '@barocss/cad';
-import { curvedFace, edgeKey, edgePoints, edgeShape, loopPoints, mergeEdges, planeMoment } from './shapes';
+import { curvedFace, edgeKey, edgePoints, edgeShape, loopCurves, mergeEdges, planeMoment } from './shapes';
 import { withBeadRetry } from '../engine/part';
 import { contentKey } from '../engine/evalMemo';
 import type { StudioDoc } from '../engine/doc';
@@ -51,6 +51,7 @@ export function faceTableFrom(outputs: readonly { readonly brep: Brep }[]): Face
   // Every part's origin planes (in its own coordinates) mate like flat faces.
   const table: FaceTable = { ...ORIGIN_PLANES };
   const moments = new Map<string, { area: number; moment: Vec3 }>(), spans = new Map<string, [number, number]>(), edges = new Map<string, { raw: string; shape: MateFace }[]>();
+  const noCentre = new Set<string>();
   for (const o of outputs) {
     const b = o.brep, loops = new Map(b.loops.map(l => [l.id, l])), coedges = new Map(b.coedges.map(c => [c.id, c])), edgePts = new Map<string, Vec3[]>();
     for (const e of b.edges) edgePts.set(e.id, edgePoints(e));
@@ -66,14 +67,15 @@ export function faceTableFrom(outputs: readonly { readonly brep: Brep }[]): Face
       }
       const entry = table[name];
       if (!entry || entry.kind === 'sphere' || name.startsWith('origin:')) continue;
-      const rings: { pts: Vec3[]; outer: boolean }[] = [];
-      for (const id of f.loops) { const l = loops.get(id)!; rings.push({ pts: loopPoints(b, l, coedges, edgePts), outer: l.kind === 'outer' }); }
+      const rings: { curves: Vec3[][]; outer: boolean }[] = [];
+      for (const id of f.loops) { const l = loops.get(id)!; rings.push({ curves: loopCurves(l, coedges, edgePts), outer: l.kind === 'outer' }); }
       if (entry.kind === 'plane') {
         const m = planeMoment(rings, entry.normal), had = moments.get(name);
+        if (!m) { noCentre.add(name); continue; }
         moments.set(name, had ? { area: had.area + m.area, moment: [had.moment[0] + m.moment[0], had.moment[1] + m.moment[1], had.moment[2] + m.moment[2]] } : m);
       } else if (entry.kind === 'cylinder' || entry.kind === 'cone') {
         let [lo, hi] = spans.get(name) ?? [Infinity, -Infinity];
-        for (const r of rings) for (const p of r.pts) { const t = (p[0] - entry.point[0]) * entry.axis[0] + (p[1] - entry.point[1]) * entry.axis[1] + (p[2] - entry.point[2]) * entry.axis[2]; lo = Math.min(lo, t); hi = Math.max(hi, t); }
+        for (const r of rings) for (const curve of r.curves) for (const p of curve) { const t = (p[0] - entry.point[0]) * entry.axis[0] + (p[1] - entry.point[1]) * entry.axis[1] + (p[2] - entry.point[2]) * entry.axis[2]; lo = Math.min(lo, t); hi = Math.max(hi, t); }
         spans.set(name, [lo, hi]);
       }
     }
@@ -82,7 +84,7 @@ export function faceTableFrom(outputs: readonly { readonly brep: Brep }[]): Face
       if (key && shape) (edges.get(key) ?? edges.set(key, []).get(key)!).push({ raw: e.name!, shape });
     }
   }
-  for (const [name, m] of moments) { const f = table[name]; if (f.kind === 'plane' && Math.abs(m.area) > 1e-12) table[name] = { ...f, centre: snap([m.moment[0] / m.area, m.moment[1] / m.area, m.moment[2] / m.area]) }; }
+  for (const [name, m] of moments) { const f = table[name]; if (f.kind === 'plane' && !noCentre.has(name) && Math.abs(m.area) > 1e-12) table[name] = { ...f, centre: snap([m.moment[0] / m.area, m.moment[1] / m.area, m.moment[2] / m.area]) }; }
   for (const [name, sp] of spans) { const f = table[name]; if ((f.kind === 'cylinder' || f.kind === 'cone') && sp[0] <= sp[1]) table[name] = { ...f, span: [clean(sp[0]), clean(sp[1])] }; }
   // (An edge's pieces: one entry when they are one circle or one line, else each by its own name.)
   for (const [key, pieces] of edges) {
