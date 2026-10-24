@@ -3530,7 +3530,7 @@ is untouched as history. The coordinator settled the scope:
   - browser-runner-contract:
     - It counted 17 bench cases. The bench has had 19 since G-R49's HUD and placing rows.
     - It expected a reversed timestamp pair to be a timing error. Since G8 such a submit is counted `unstamped`, which
-      is G-R22's rule for Chrome/Metal's unwritten begin stamp. The check now asserts that rule.
+      is G8's rule for Chrome/Metal's unwritten begin stamp. The check now asserts that rule.
     - No limit was loosened: the case set is the bench's own list, and the reversed pair is still kept out of the GPU
       average.
 - **Retired**: none.
