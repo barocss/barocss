@@ -397,7 +397,7 @@ function printViewportProps(source: Props, projection: ReturnType<typeof project
 export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sourceProps, ref) {
   countRender('Viewport');
   const projection = useMemo(() => sourceProps.printDisplay ? projectPrintBodies(sourceProps.bodies, sourceProps.printDisplay) : null,
-    [sourceProps.bodies, sourceProps.printDisplay?.summaryKey, sourceProps.printDisplay?.topMM, sourceProps.printDisplay?.printed]);
+    [sourceProps.bodies, sourceProps.printDisplay?.summaryKey, sourceProps.printDisplay?.top, sourceProps.printDisplay?.printed]);
   const printSel = useMemo(() => projection ? printSelection(sourceProps.selection, projection) : null, [sourceProps.selection, projection]);
   const printColors = useMemo(() => projection ? printFaceColors(sourceProps.faceColors, projection) : undefined, [sourceProps.faceColors, projection]);
   const props = useMemo(() => projection ? printViewportProps(sourceProps, projection, printSel!, printColors) : sourceProps.printActive ? { ...sourceProps, bodies: NO_BODIES, selection: NO_SELECTION, gizmo: null, handles: NO_HANDLES, profiles: NO_PROFILES, threads: undefined, underlays: undefined, cloud: null, poles: undefined } : sourceProps, [sourceProps, projection, printSel, printColors]);
@@ -423,7 +423,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     if (print && hit.face && mesh.faces.some(face => face.index === hit.face!.face && face.id === 'section-cap')) return null;
     let best: Vec3 | null = null, d0 = 7;
     // (Each edge's two ends in turn: no pair array an edge, a pointer move at a time; PERF3 C17.)
-    for (const e of mesh.edges) for (let k = 0; k < 2; k++) { const p = k ? e.b : e.a; if (print?.printed && p[2] > print.topMM + 1e-7) continue; const q = camera.current.project(p as Vec3, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = [...p] as Vec3; } }
+    for (const e of mesh.edges) for (let k = 0; k < 2; k++) { const p = k ? e.b : e.a; if (print?.printed && p[2] > print.top + 1e-7) continue; const q = camera.current.project(p as Vec3, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = [...p] as Vec3; } }
     return best ? { body: bi, at: best } : null;
   };
   const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | 'tool' | null; x: number; y: number; moved: boolean; x0?: number; y0?: number;
