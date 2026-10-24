@@ -63,3 +63,21 @@ test('O19: through the agent\'s tools, the moved name is matched again by its si
   const prism = 10 * 10 * 6 + (10 * 2) / 2 * 6;
   assert.ok(Math.abs(r.state.bodies[0].volumeMM3! - (prism - (1 - Math.PI / 4) * 4 * 6)) < 1e-6, String(r.state.bodies[0].volumeMM3));
 });
+
+test('O19 (R10.2a\'s regression): a closed junction rim the display shows as one edge with eight names — filleted by any of them, it builds; its signature, shared by the eight, is not sent to the kernel', async () => {
+  // (The flow's pipe-tee.bcad, as it is opened: its nodes carry their ids.)
+  const tee = { ...emptyDoc(), nextId: 5, nodes: [
+    { id: 'n0', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n1', kind: 'extrude', sketch: 0, height: 60 },
+    { id: 'n2', kind: 'sketch', profile: 'circle', center: [30, 0], radius: 5 }, { id: 'n3', kind: 'extrude', sketch: 2, height: 25 },
+    { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] as ModelNode[] } as StudioDoc;
+  const s = await stateOf(tee), rim = s.bodies[0].mesh.edges.find(e => e.names.some(n => n.includes('n1.side0') && n.includes('n3.side0')))!;
+  assert.equal(rim.names.length, 8, 'one display edge, the kernel\'s eight pieces');
+  const volumes = new Set<number>();
+  for (const name of rim.names) {
+    const doc = captureSignatures(withNode(tee, { kind: 'fillet', parent: { node: 4, side: 'solid' }, edges: [name], radius: 2 } as ModelNode), s.bodies);
+    assert.equal((doc.nodes[5] as { sigs: Record<string, { n?: number }> }).sigs[name].n, 8, 'marked shared');
+    const r = await evaluate(doc); assert.ok(r.ok, `${name}: ${!r.ok && r.error.detail}`);
+    volumes.add(Math.round(r.bodies[0].volumeMM3! * 1e6));
+  }
+  assert.equal(volumes.size, 1, 'the whole loop filleted, whichever name');
+});
