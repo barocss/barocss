@@ -43,10 +43,10 @@ export class Robot {
     return new Robot(withMotion(this.#doc, name, path.motion));
   }
 
-  /** `assembly.inertia` (link_inertia): each link's mass, centre of mass and inertia. */
+  /** `assembly.inertia`: each link's mass in g, centroid in mm and inertia in g·mm². */
   inertia() { return inertiaOf(this.#doc); }
 
-  /** `assembly.gravity` (gravity_torques): the static torque each joint holds at joint values (degrees, or mm), `g` in m/s². */
+  /** `assembly.gravity`: joint values in degrees/mm, g in mm/s² (default down 9806.65); replies in N·mm for turns, N for slides. */
   gravity(values: Readonly<Record<string, number>> = {}, g?: readonly [number, number, number]) { return gravityOf(this.#doc, coreValues(treeOf(this.#doc), values), g); }
 
   /** `assembly.urdf` and `assembly.mjcf`: the robot as URDF or MJCF, checked — the tools' replies, each file's data beside it. */
