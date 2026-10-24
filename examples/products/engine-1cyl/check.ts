@@ -11,6 +11,9 @@
 //   sweep      no two parts touch anywhere through the cycle: pair by pair, certified between the poses (below)
 //   masses     every part has a material and a mass; the engine's mass in range
 //   balance    the crank's counterweights: the balance factor in range
+//   outputs    every made part has a process, its manufacturability report, a dimensioned drawing without errors and,
+//              cast, its pattern's inputs; machined, its CAM package (or a typed wait for a person's stock list); the
+//              assembly's BOM lists every part, its mass the parts' own
 //
 // Run: node examples/products/engine-1cyl/run.mjs --check <doc.bcad>
 import { readFileSync } from 'node:fs';
@@ -27,6 +30,9 @@ import { solveDoc } from '../../../packages/barocss-cad-model/src/assembly/edit'
 import { tablesFor } from '../../../packages/barocss-cad-model/src/assembly/faces';
 import { BASE, type MateFace } from '../../../packages/barocss-cad-model/src/assembly/mates';
 import { rotationMatrix } from '../../../packages/barocss-cad-model/src/engine/placement';
+import { madeBodies } from '../../../packages/barocss-cad-model/src/engine/elements';
+import { bodiesOf } from '../../../packages/barocss-cad-model/src/api/core';
+import { drawingOf, manufacturabilityOf, outputOf } from '../../../packages/barocss-cad-model/src/api/outputs';
 
 type V3 = [number, number, number];
 
@@ -47,8 +53,13 @@ export interface EngineFigures {
   strokeMM?: number; boreMM?: number; displacementCC?: number; crankRadiusMM?: number;
   massKg?: number; reciprocatingG?: number; rotatingG?: number; counterweightGMM?: number; balanceFactor?: number;
   camRatio?: number; minClearanceMM?: number; cycleSteps?: number; maxLoopResidualMM?: number;
+  drawings?: number; dimensions?: number; reports?: number; findings?: number; camPackages?: number; camWaiting?: number; bomLines?: number;
 }
-export interface EngineCheck { ok: boolean; checks: Check[]; figures: EngineFigures; ms: number }
+/** What the outputs check made of each made part (its report's failing rules are findings, said, not the check's failure). */
+export interface PartOutputs { part: string; process: string | null; dimensions: number; drawingErrors: string[]; findings: string[]; cam?: 'made' | 'waiting' | string }
+/** An output file, when the check is asked to keep them (`files`): its path under the outputs' folder and its bytes or text. */
+export interface OutputFile { path: string; data: string | Uint8Array }
+export interface EngineCheck { ok: boolean; checks: Check[]; figures: EngineFigures; parts?: PartOutputs[]; files?: OutputFile[]; ms: number }
 
 // ── parts, by name ──
 interface Role { role: string; min: number; test: (name: string) => boolean }
@@ -384,7 +395,7 @@ const timed = <T>(checks: Check[], id: string, run: () => { ok: boolean; detail:
 };
 
 /** The checks over a document (a StudioDoc whose instances are the engine's parts, as Save writes it). */
-export function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?: number } = {}): EngineCheck {
+export async function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?: number; outputs?: boolean; files?: boolean } = {}): Promise<EngineCheck> {
   const t0 = performance.now(), checks: Check[] = [], figures: EngineFigures = {}, step = o.stepDeg ?? BRIEF.stepDeg;
   const instances = doc.instances ?? [], named = (role: Role) => instances.filter(i => role.test(i.name.toLowerCase()));
 
@@ -494,12 +505,79 @@ export function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?: numb
     return { ok, detail: `balance factor ${r3(bf)} (counterweights ${r3(U)} g·mm; turning ${r3(rot)} g, reciprocating ${r3(recip)} g at ${r3(crankR)} mm)${ok ? '' : `: outside ${BRIEF.balanceFactor.join('–')}`}` };
   });
 
-  return { ok: checks.every(c => c.ok), checks, figures, ms: Math.round(performance.now() - t0) };
+  // outputs
+  let parts: PartOutputs[] | undefined, files: OutputFile[] | undefined;
+  if (o.outputs !== false) {
+    const t1 = performance.now(), r = await outputsOf(doc, masses, o.files ? (files = []) : null);
+    parts = r.parts;
+    Object.assign(figures, r.figures);
+    checks.push({ id: 'outputs', ok: !r.problems.length, detail: r.problems.length ? r.problems.slice(0, 6).join('; ') : r.detail, ms: Math.round(performance.now() - t1) });
+  }
+
+  return { ok: checks.every(c => c.ok), checks, figures, ...(parts ? { parts } : {}), ...(files ? { files } : {}), ms: Math.round(performance.now() - t0) };
+}
+
+// ── outputs: each made part's, and the assembly's BOM ──
+const CAST_PROCESSES = new Set(['die-casting', 'sand-casting']), MACHINED = new Set(['cnc-milling', 'cnc-turning']);
+const message = (e: unknown) => e instanceof Error ? e.message : String(e);
+const codeOf = (e: unknown) => (e as { code?: string })?.code;
+const jsonText = (v: unknown) => JSON.stringify(v, null, 1) + '\n';
+/** An output tool's first file's text (bom.json, purchase.csv, cam-package.json). */
+const fileText = (content: Record<string, unknown>) => ((content.files as { text?: string }[] | undefined)?.[0]?.text) ?? jsonText(content);
+async function partOutputs(name: string, d: StudioDoc, files: OutputFile[] | null): Promise<{ out: PartOutputs; problems: string[] }> {
+  const problems: string[] = [], out: PartOutputs = { part: name, process: d.process ?? null, dimensions: 0, drawingErrors: [], findings: [] };
+  if (!d.process) problems.push(`${name}: no process (the Library panel's Process)`);
+  try {
+    const report = await manufacturabilityOf(d);
+    files?.push({ path: `${name}/manufacturability.json`, data: jsonText(report) });
+    out.findings = report.rules.filter(r => r.status === 'fail').map(r => `${r.id}: ${r.message}`);
+    if (CAST_PROCESSES.has(d.process ?? '') && !d.casting?.machined?.length) problems.push(`${name}: cast, with no pattern inputs (set_casting: its machined faces)`);
+  } catch (e) { problems.push(`${name}: no manufacturability report — ${message(e)}`); }
+  try {
+    const dr = drawingOf(d);
+    files?.push({ path: `${name}/drawing.svg`, data: dr.svg }, { path: `${name}/drawing.dxf`, data: dr.dxf }, { path: `${name}/drawing.pdf`, data: dr.pdf });
+    out.dimensions = (dr.sheet.dimensions as unknown[] | undefined)?.length ?? 0;
+    out.drawingErrors = dr.issues.filter(i => i.severity === 'error').map(i => `${i.code}: ${i.message}`);
+    if (!out.dimensions) problems.push(`${name}: its drawing has no dimensions (auto_dimension)`);
+    if (out.drawingErrors.length) problems.push(`${name}: drawing errors — ${out.drawingErrors.join('; ')}`);
+  } catch (e) { problems.push(`${name}: no drawing — ${message(e)}`); }
+  if (MACHINED.has(d.process ?? '')) {
+    try { const c = await outputOf(d, 'output_cam_package'); out.cam = 'made'; files?.push({ path: `${name}/cam-package.json`, data: fileText(c) }); } catch (e) {
+      files?.push({ path: `${name}/cam-package.refused.txt`, data: `${message(e)}\n` });
+      // (No stock is built in: the shop's list comes from a person's file — rows rule b. Without one the package waits.)
+      if (codeOf(e) === 'STOCK_NONE_LOADED') out.cam = 'waiting';
+      else { out.cam = message(e); problems.push(`${name}: no CAM package — ${message(e)}`); }
+    }
+  }
+  return { out, problems };
+}
+async function outputsOf(doc: StudioDoc, masses: readonly PartMass[], files: OutputFile[] | null) {
+  const problems: string[] = [], parts: PartOutputs[] = [];
+  // (The BOM first: a part it lists whole as bought — a fastener, a catalogue part — is bought, not made here.)
+  let lines = 0, bought = new Set<string>();
+  try {
+    const content = await outputOf(doc, 'output_bom'), bom = content.bom as { lines: { parts: string[]; kind?: string; source: string | null }[]; totalMassG: number };
+    files?.push({ path: 'bom.json', data: fileText(content) }, { path: 'purchase.csv', data: fileText(await outputOf(doc, 'output_purchase_csv')) });
+    bought = new Set(bom.lines.filter(l => l.kind !== undefined || l.source !== null).flatMap(l => l.parts.filter(x => !x.includes(':'))));
+    lines = bom.lines.length;
+    const listed = new Set(bom.lines.flatMap(l => l.parts.map(x => x.split(':')[0])));
+    const missing = (doc.instances ?? []).filter(i => !listed.has(i.id)).map(i => i.name);
+    if (missing.length) problems.push(`the BOM leaves out ${missing.join(', ')}`);
+    const total = masses.reduce((s, m) => s + m.g, 0);
+    if (Math.abs(bom.totalMassG - total) > 0.01 * total) problems.push(`the BOM's mass ${r3(bom.totalMassG)} g is not the parts' ${r3(total)} g`);
+  } catch (e) { problems.push(`no BOM — ${message(e)}`); }
+  const made = [{ id: BASE, name: 'base', doc }, ...(doc.instances ?? []).map(i => ({ id: i.id, name: i.name, doc: i.doc }))]
+    .filter(p => !bought.has(p.id) && p.doc.nodes.length && madeBodies(p.doc.nodes, bodiesOf(p.doc)).length);
+  for (const p of made) { const r = await partOutputs(p.name, p.doc, files); parts.push(r.out); problems.push(...r.problems); }
+  const findings = parts.reduce((n, p) => n + p.findings.length, 0), waiting = parts.filter(p => p.cam === 'waiting').map(p => p.part);
+  const figures: EngineFigures = { drawings: parts.length, dimensions: parts.reduce((n, p) => n + p.dimensions, 0), reports: parts.length, findings, camPackages: parts.filter(p => p.cam === 'made').length, camWaiting: waiting.length, bomLines: lines };
+  const detail = `${parts.length} made parts, each with its process, report and a dimensioned drawing (${figures.dimensions} dimensions); the BOM, ${lines} lines${findings ? `; ${findings} failing manufacturability rules, as findings: ${parts.filter(p => p.findings.length).map(p => `${p.part} (${p.findings.map(f => f.split(':')[0]).join(', ')})`).join(', ')}` : ''}${waiting.length ? `; CAM waits for a person's stock list (set_stock; PG-9): ${waiting.join(', ')}` : ''}`;
+  return { problems, parts, figures, detail };
 }
 
 // (node run.mjs --check <doc.bcad>: the checks over a saved document, their report on stdout; exit 1 when one fails.)
 if (process.argv[1]?.endsWith('check.mjs')) {
-  const r = checkEngine(JSON.parse(readFileSync(process.argv[2], 'utf8')) as StudioDoc, { sweep: !process.argv.includes('--no-sweep') });
+  const r = await checkEngine(JSON.parse(readFileSync(process.argv[2], 'utf8')) as StudioDoc, { sweep: !process.argv.includes('--no-sweep'), outputs: !process.argv.includes('--no-outputs') });
   console.log(JSON.stringify(r, null, 1));
   process.exitCode = r.ok ? 0 : 1;
 }

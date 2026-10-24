@@ -64,6 +64,33 @@ axis, a flat mate as its distance).
 **Workaround.** `check.ts` closes every loop at each crank angle by damped Gauss–Newton on the loop's mates, starting
 from the previous pose. The worst residual over 720° is about 1e-10 mm.
 
+## PG-9: no sample stock list for CAM
+
+`output_cam_package` needs a stock list: block sizes and bars, loaded from a person's file by `set_stock` (rows rule b).
+None ships with the samples, unlike `casting-rules.json` and `fastener-sizes.json`. Every machined part's package is
+therefore refused with `[STOCK_NONE_LOADED] no block stock loaded: load the shop's list (set_stock); none is built in`.
+
+**Expected.** A sample stock list, like the casting rules: a shop's block and bar sizes, each row with its source, which
+a person loads.
+
+**Owner.** The owner, for the decision and its source (like PG-2).
+
+**Workaround.** The outputs check accepts the typed wait and names the parts waiting.
+
+## PG-10: the BOM names the base part's own bodies by key
+
+In `bom/core.ts`, `bomViewOf` lists the base part's bodies as `{ name: b.key }`. A body the studio's Rename named (its
+look's name) still shows as `b14` in the BOM and the purchase list. A placed part's line takes its instance name.
+
+**Repro.** `assembly('kit', part('bracket').box(…).named('bracket'))` gives `bom().bom.lines` an item `b2`, not
+`bracket`.
+
+**Expected.** The base's bodies listed by their names, as the studio shows them.
+
+**Owner.** Outer lane (bom).
+
+**Workaround.** None in the build; the line reads `b14`.
+
 ## Lock: the agent can't lock parts
 
 The studio's Lock (`app/assembly/useAssembly.ts`) writes a `lock` mate with `rel`, the part's placement in the other

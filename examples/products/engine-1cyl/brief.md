@@ -48,6 +48,22 @@ Mate the parts so that the crank's turn drives everything:
 The camshaft turns in its own bearing, and the timing gears mesh at 2:1 (camshaft at half the crank's speed). Lock
 everything that is fastened. Assemble at top or bottom dead centre.
 
+## Manufacture
+
+Make each part ready for its maker:
+
+- Give it its process (the Library panel's Process): cast parts in A356 by die casting, with their pull; turned and
+  milled parts by `cnc-turning` or `cnc-milling`.
+- For a cast part:
+  - load the casting rules a person gives you, `packages/barocss-cad-model/samples/rows/casting-rules.json`;
+  - set the pattern's inputs (set_casting): the faces machined after casting (bores, seats, joint faces), the gate,
+    your shrinkage.
+- Give it a dimensioned drawing (auto_dimension).
+- Mark bought what is bought: the fasteners already are, and mark the springs.
+
+The outputs are each part's drawing (SVG, DXF and PDF), its manufacturability report, the CAM package of each machined
+part, the BOM and the purchase list.
+
 ## What the checks require
 
 | check | requirement |
@@ -59,6 +75,7 @@ everything that is fastened. Assemble at top or bottom dead centre.
 | sweep | no two parts touch anywhere through the 720° cycle |
 | masses | every part has a material and a mass; the engine's modelled parts weigh 3–12 kg dry |
 | balance | balance factor 0.4–0.8: the counterweights carry all of the rod's turning share (⅔ of the rod) plus that fraction of the reciprocating mass (piston, pin, rings, ⅓ of the rod) |
+| outputs | every made part has a process, a manufacturability report, and a drawing with dimensions and no error. A cast part also has its pattern's inputs (machined faces). A machined part also has its CAM package, or the typed wait for a person's stock list. The BOM lists every part, and its mass matches the parts' own. A rule failing in a part's report is listed as a finding, not a check failure |
 
 ## Known limits of the tools today
 
@@ -73,3 +90,5 @@ The checks allow for these.
   - a joint's parent and child seated on a flat mate (the rod on its web).
 
   Everything else is certified between the 5° poses.
+- No stock list ships as sample rows, so a CAM package waits for a person's list (set_stock) and is refused with
+  STOCK_NONE_LOADED. The check accepts that wait and names the parts waiting.
