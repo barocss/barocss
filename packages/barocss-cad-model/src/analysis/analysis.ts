@@ -99,7 +99,7 @@ export async function section(doc: StudioDoc, bodies: readonly BodyResult[], eva
     const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
     const m = half?.mesh;
     if (m) for (let v = 0; v < m.faceOfVertex.length; v++) if (faces.some(f => f.index === m.faceOfVertex[v])) for (let q = 0; q < 3; q++) { lo[q] = Math.min(lo[q], m.positions[v * 3 + q]); hi[q] = Math.max(hi[q], m.positions[v * 3 + q]); }
-    return { body: c.body, cut_area_mm2: r3(faces.reduce((a, f) => a + f.area, 0)), regions: faces.length, ...(faces.length ? { box: { min: v3(lo), max: v3(hi) } } : {}) };
+    return { body: c.body, cutArea: r3(faces.reduce((a, f) => a + f.area, 0)), regions: faces.length, ...(faces.length ? { box: { min: v3(lo), max: v3(hi) } } : {}) };
   });
 }
 
