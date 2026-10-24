@@ -31,6 +31,7 @@ isn't in `.doc`. The agent stays on the JSON v2 tools.
   - Lengths are in mm. Angles in documents and options are in degrees.
   - Mass is in g. Density is in g/cm³, the way materials are quoted.
   - Volume is in mm³, area in mm², and inertia in g·mm².
+  - Force is in N, moment in N·mm, stiffness in N/mm, and stress and moduli in MPa (R7.7b, 2026-10-24).
   - **No unit suffixes in names** (owner, 2026-10-24, widened the same day from the facades' options to everything):
     every quantity is in the units above, so names don't repeat them — `w`, `d`, `h`, `r`, `deg`, `distance`,
     `radius`, `volume`, `mass`, `centroid`, `inertia`, `density`, not `wMM`, `volumeMM3`, `massG`, `inertiaGMM2`. This
@@ -45,6 +46,7 @@ isn't in `.doc`. The agent stays on the JSON v2 tools.
        fields are renamed in place, with no version bump, alias or migration, and the fixtures and conformance cases
        are regenerated (owner, 2026-10-24).
     A name that would read ambiguously without its unit gets a clearer word, never the unit back.
+    `…Percent` stays: it is a scale (0–100 rather than 0–1), not a unit, and a bare `fill` would be ambiguous.
   - Today cad's mass properties are in kg and kg/m³ (`massKG`, `inertiaCentroidKgM2`, density in kg/m³), while
     cad-model's are in g and g/cm³. R7.3 moves cad's public results to MMGS.
 - **Ids and names** follow the document's existing rules. A face or edge reference that the core resolves stays
