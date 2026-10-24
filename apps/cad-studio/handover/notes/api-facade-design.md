@@ -19,6 +19,83 @@ The facade earns its place in three ways:
 - edges and faces are picked by typed selectors instead of copied names;
 - refusals arrive as one typed error.
 
+## Three packages, one set of rules (owner, 2026-10-24)
+
+The owner asked for this: "cad-model 만 api 가 있는거야? 다른건 어떻게 되는거야? 제대로 해줘". So each of the three
+packages gets an object API, and all three follow the same rules. The first slice above is cad-model's. The kernel's
+and gpu's come next, and they wait for the coordinator to confirm the paths.
+
+| Package | Entry | Over its core | For |
+|---|---|---|---|
+| cad (the kernel) | `@barocss/cad/api` | `CadPartDocument` (`format: 'barocss-cad-part'`, string feature ids, `target`) and `evaluateCadPart` → `CadPartSnapshot` / `CadPartOutput` | people using the kernel alone; it replaces `createCadModel` |
+| cad-model | `@barocss/cad-model/api` | `StudioDoc` (numeric node indices, `parent` body refs) and `evaluateDoc`, `bodyMass`, `stepFor` | studio-level design in code: materials, rows, assemblies, variants, BOM, drawings |
+| gpu | `@barocss/gpu/api` | `Viewer` (`add`, `clear`, `fit`, `setBackground` …, viewer/viewer.ts) and its `GeometryInput` and `Material` data | putting parts on screen |
+
+**The rules, the same in all three:**
+- **Immutable objects.** Every method returns a new object.
+- **One plain-JSON accessor.** cad's and cad-model's parts have `.doc`, the document a person or the agent could have
+  written by hand. gpu's scene has `.data`. Typed arrays appear only in mesh payloads (conventions §2).
+- **Results are plain data from the core, in MMGS,** with the unit in the name: `volumeMM3`, `massG`, `centroidMM`,
+  `inertiaGMM2`. The kernel's mass is in kg and kg/m³ today, so cad's adapter converts until R7.3 moves the core.
+- **Errors:** one `BarocssError { code, message, where?, details? }`, with core refusals passed through with their codes.
+- **The same verbs.**
+  - cad's part and cad-model's part share `box`, `cylinder`, `hole`, `fillet`, `chamfer`, `union`, `subtract`, `mass`,
+    `step` and `meshes`. cad-model's part adds the studio layer: material, rows, instances.
+- **The same selectors.** `edges().along('z')`, `faces().facing('+z')`, `on`, `sortBy`, `first`/`last` and `names()` are
+  one shared selector module over a common edge/face record.
+  - cad fills that record from the B-rep (each `BrepEdge.name`, and its curve as a line or not).
+  - cad-model fills it from the display mesh, as it does now.
+  - Both hand back persistent names.
+- **Each package has one adapter** (`src/api/core.ts`), the only place its facade calls the core. R7.3 switches each
+  package there.
+- **Only gpu's `Viewer` holds state,** because it owns a canvas and GPU resources (conventions §3). gpu's facade
+  describes a scene immutably and presents it through a Viewer. It doesn't move or change any Viewer method.
+
+**How the three fit together:**
+```ts
+import { part } from '@barocss/cad/api';
+import { scene } from '@barocss/gpu/api';
+
+const bracket = part('bracket').box(80, 40, 10).hole({ at: [20, 20], diameterMM: 8 })
+  .fillet(b => b.edges().along('z'), 2);
+bracket.mass('al6061');                  // MMGS
+bracket.step();
+
+const view = scene().add(bracket.meshes(), { color: '#c8ccd2' }).light('sun');
+view.data;                               // plain description
+await view.showIn(viewer);               // viewer.clear(), viewer.add(...) per mesh, lights, fit()
+```
+- `part().meshes()`, in cad and in cad-model, returns `{ key, positions, normals, indices }` per body. That structurally
+  matches gpu's `GeometryInput`, so neither package imports the other.
+- In cad, the meshes come from the kernel's tessellation of each output. In cad-model, they come from `BodyResult.mesh`.
+
+**The kernel facade's mapping** (to be checked with the kernel lane through the coordinator):
+- `box(w, d, h)` is a rectangle `sketch` feature plus an `extrude` feature, with ids the facade assigns in feature
+  order (`sketch1`, `extrude1` …).
+- `hole` is a `hole` feature with `target` set to the current output.
+- `fillet` is a `fillet` feature with `target` and `edges` set to the B-rep's persistent names.
+- Results come from `evaluateCadPart(doc).outputs[0]`, through the adapter:
+  - `massProperties(density)`, converted to MMGS;
+  - `exportStep`;
+  - `exportStl`.
+- The oracle is the same as cad-model's: `.doc` equals a hand-written CadPartDocument byte for byte, and the results
+  equal the kernel's on it.
+
+**gpu's facade** is one immutable `Scene`:
+- the methods are `add(meshes, material?)`, `light(kind, options?)`, `camera(options)` and `background(value)`;
+- `.data` is the plain description;
+- `showIn(viewer)` presents it through today's Viewer methods only.
+- **The oracle:** `.data` round-trips through JSON, apart from the mesh arrays. A browser check through the gpu lane's
+  harness shows the bracket drawn, with the viewer's `sceneBounds()` equal to the part's bounds.
+
+**Order:**
+1. cad's slice (the same bracket);
+2. gpu's slice (the scene and `showIn`);
+3. the shared selector module;
+4. growth in both part facades;
+5. assemblies (cad-model);
+6. the docs samples.
+
 ## The same bracket, three ways
 
 An 80 × 40 × 10 block, a Ø8 hole through it at (20, 20), and its four vertical edges rounded R2. All three give the
@@ -192,7 +269,7 @@ without a recipe limit: any count, angle or factor the core allows instead of th
 - Anything WASM.
 - Writing rows. Under rows rule (b) the facade only reads a person's rows file.
 - The studio. The facade is a library API, and the studio keeps using the core directly.
-- gpu. Its classes (`Viewer`, `Camera` …) are already stateful objects. A gpu facade, if any, is a later question.
+- Changing gpu's `Viewer`, `Camera` and other classes. gpu's facade presents a scene through them as they are.
 
 ## The first slice, as built
 
