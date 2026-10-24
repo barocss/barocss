@@ -35,6 +35,7 @@ import type { SceneError } from '../scene/scene-types.js';
 import type { SceneViewError } from '../scene/scene-viewer.js';
 import type { SourceSceneBoundsError } from '../scene/source-scene-bounds.js';
 import type { ViewerError } from '../viewer/scene.js';
+import type { SceneCode } from '../api/refusal.js';
 
 export type GpuErrorCode =
   | InstanceType<typeof AxisBoxBooleanBufferError>['code']
@@ -72,7 +73,8 @@ export type GpuErrorCode =
   | InstanceType<typeof SceneViewError>['code']
   | InstanceType<typeof SourceSceneBoundsError>['code']
   | InstanceType<typeof ViewerError>['code']
-  | 'MESH_INVALID' | 'LIGHT_INVALID';
+  // (The facade's own, from its declaration: R7.5b's finding 8 — the union and the refusal table can't drift.)
+  | SceneCode;
 
 /** The codes that are not upper-snake: `never`, which tsc checks below (a lower-case or hyphenated code fails the build). */
 export type NonUpperSnakeGpuErrorCode<T extends string = GpuErrorCode> =

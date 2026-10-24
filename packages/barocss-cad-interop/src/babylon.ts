@@ -110,7 +110,7 @@ export class BaroCADBabylonLoader {
           format: 'barocad-source-preview', sourceVersion: 0,
           modelName: native.model.name, surfaceId: surface.surfaceId,
           revision: surface.mesh.revision, lengthUnit: 'mm',
-          coordinateSystem: 'right-handed-y-up',
+          coordinateSystem: 'right-handed-z-up',
           nativeParameters: Float32Array.from(surface.mesh.parameters),
         } };
         owned.set(mesh, null);

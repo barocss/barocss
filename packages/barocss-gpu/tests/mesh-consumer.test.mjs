@@ -64,7 +64,7 @@ viewer.setSize(320, 240);
 parseScene({ code: 'alert(1)' });
 // @ts-expect-error canvas is required
 createViewer('canvas');
-const packet = { version: 0 as const, surfaceId: 'patch', revision: 0, lengthUnit: 'mm' as const, coordinateSystem: 'right-handed-y-up' as const, winding: 'ccw' as const, positions: [-1,-1,0,-1,1,0,1,-1,0,1,1,0], normals: [0,0,1,0,0,1,0,0,1,0,0,1], indices: [0,2,1,2,3,1], parameters: [0,0,0,1,1,0,1,1], bounds: { min: [-1,-1,0] as [number,number,number], max: [1,1,0] as [number,number,number] } };
+const packet = { version: 0 as const, surfaceId: 'patch', revision: 0, lengthUnit: 'mm' as const, coordinateSystem: 'right-handed-z-up' as const, winding: 'ccw' as const, positions: [-1,-1,0,-1,1,0,1,-1,0,1,1,0], normals: [0,0,1,0,0,1,0,0,1,0,0,1], indices: [0,2,1,2,3,1], parameters: [0,0,0,1,1,0,1,1], bounds: { min: [-1,-1,0] as [number,number,number], max: [1,1,0] as [number,number,number] } };
 const options = { mmToSceneUnit: 1, translate: [0,0,0] as [number,number,number], color: [1,0,0] as [number,number,number], background: [0,0,0] as [number,number,number] };
 const prepared = prepareMesh(packet, options);
 const mesh = viewer.add({ positions: prepared.positions, normals: prepared.normals, indices: prepared.indices }, { material: { color: options.color } });
