@@ -51,10 +51,8 @@ and gpu's come next, and they wait for the coordinator to confirm the paths.
   - **Planned (growth):** `cylinder`, `chamfer`, `union`, `subtract`, `intersect`, `split`, patterns, sketches, a body
     chooser, and placements.
   - cad-model's part adds the studio layer: materials, rows, instances, assemblies.
-  - `mass` differs in its argument today:
-    - cad takes `mass(densityGPerCm3)`, a number, because the kernel has no material library;
-    - cad-model takes `mass(material)`, a library id;
-    - the next growth step makes them `mass({ densityGPerCm3 })` and `mass(material | { densityGPerCm3 })`.
+  - `mass` reads the same in both: cad takes `mass({ densityGPerCm3 })`, because the kernel has no material library.
+    cad-model takes `mass(material | { densityGPerCm3 })`.
 - **The same selectors.** `edges().along('z')`, `faces().facing('+z')`, `on`, `sortBy`, `first`/`last` and `names()` are
   one shared selector module over a common edge/face record.
   - cad fills that record from the B-rep (each `BrepEdge.name`, and its curve as a line or not).
@@ -242,9 +240,8 @@ These come later, in this order, each with the same oracle:
     cad-model from its display mesh.
   - Without it, `edges().along('z')` on a holed plate also picks the hole's half-cylinder joints, and the kernel refuses
     the fillet with TANGENT_FACES, since there's no corner to round.
-- **Pending argument shape (next growth step):** cad's `mass(densityGPerCm3)` becomes `mass({ densityGPerCm3 })`, and
-  cad-model's accepts `mass(material | { densityGPerCm3 })`. The verb then reads the same in both, and a bare number
-  can't be mistaken for a material id.
+- **The mass argument (done in R7.4a):** cad takes `mass({ densityGPerCm3 })`, and cad-model takes
+  `mass(material | { densityGPerCm3 })`, so a bare number can't be mistaken for a material id.
 
 ## Stable ids and names (the FeatureScript point)
 
