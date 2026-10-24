@@ -73,7 +73,7 @@ export interface BomLine {
   /** A frame member's line (O169): its cut-list row's section and long-point length; `parts` `base:body` each. */
   member?: { section: string; length: number };
 }
-export interface Bom { lines: BomLine[]; totalQty: number; /** Valid body subtotal when beadAccounting is incomplete; not an approvable total. */ totalMassG: number; /** O179: how far the total may be off (g; null: unknown), when any of it is from the mesh. */ totalMassBound?: number | null; beadAccounting?: BeadAccounting; /** The bought elements counted (their mass is their parts'). */ elementQty?: number; /** The plates counted (FRk1; their mass is their parts'). */ plateQty?: number }
+export interface Bom { lines: BomLine[]; totalQty: number; /** Valid body subtotal when beadAccounting is incomplete; not an approvable total. */ totalMass: number; /** O179: how far the total may be off (g; null: unknown), when any of it is from the mesh. */ totalMassBound?: number | null; beadAccounting?: BeadAccounting; /** The bought elements counted (their mass is their parts'). */ elementQty?: number; /** The plates counted (FRk1; their mass is their parts'). */ plateQty?: number }
 /** The BOM agent's view from evaluations given at once (O147: the chat's drawings build it synchronously). */
 export function bomViewOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => EvalResult | null): BomView {
   doc = resolveShopTree(doc);
@@ -152,5 +152,5 @@ export function deriveBom(view: BomView): Bom {
   // (O179: the total's bound, when any mass in it is partly from the mesh: the parts' and the base part's.)
   const bounded = [...view.parts.map(p => p.massBound), view.base?.massBound].filter(b => b !== undefined);
   const totalBound = bounded.length ? { totalMassBound: bounded.some(b => b === null) ? null : r6(bounded.reduce((t: number, b) => t + (b as number), 0)) } : {};
-  return { lines, totalQty: view.parts.length, totalMassG: r6(view.parts.reduce((s, p) => s + p.mass, 0) + (view.base?.mass ?? 0)), ...totalBound, ...(view.beadAccounting ? { beadAccounting: view.beadAccounting } : {}), ...(view.elements?.length ? { elementQty: view.elements.length } : {}), ...(view.plates?.length ? { plateQty: view.plates.length } : {}) };
+  return { lines, totalQty: view.parts.length, totalMass: r6(view.parts.reduce((s, p) => s + p.mass, 0) + (view.base?.mass ?? 0)), ...totalBound, ...(view.beadAccounting ? { beadAccounting: view.beadAccounting } : {}), ...(view.elements?.length ? { elementQty: view.elements.length } : {}), ...(view.plates?.length ? { plateQty: view.plates.length } : {}) };
 }

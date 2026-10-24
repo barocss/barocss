@@ -53,7 +53,7 @@ test('the BOM agent on a built view: derived lines (identical parts on one line)
   assert.equal(bom.totalQty, 3); assert.deepEqual(checkBom(view, bom), []);
   assert.ok(Object.isFrozen(view) === false && !JSON.stringify(view).includes('function'), 'a plain view');
   // (Seeded defects: a part dropped, a quantity wrong, a part twice, a total off.)
-  const dropped = { ...bom, lines: bom.lines.slice(0, 1) }, qty = { ...bom, lines: bom.lines.map(l => ({ ...l, qty: l.qty + 1 })) }, twice = { ...bom, lines: [...bom.lines, bom.lines[0]] }, total = { ...bom, totalMassG: bom.totalMassG + 1 };
+  const dropped = { ...bom, lines: bom.lines.slice(0, 1) }, qty = { ...bom, lines: bom.lines.map(l => ({ ...l, qty: l.qty + 1 })) }, twice = { ...bom, lines: [...bom.lines, bom.lines[0]] }, total = { ...bom, totalMass: bom.totalMass + 1 };
   assert.match(checkBom(view, dropped).join(), /p2 \(board\) is on 0 lines/); assert.match(checkBom(view, qty).join(), /quantity 2, 1 parts/);
   assert.match(checkBom(view, twice).join(), /p1 \(bracket\) is on 2 lines/); assert.match(checkBom(view, total).join(), /total mass/);
   // (A library part: its line names the library, version, part and variant; a BOM without it is refused.)

@@ -139,7 +139,7 @@ export function checkBom(view: BomView, bom: Bom): string[] {
   for (const id of seen.keys()) if (!view.parts.some(p => p.id === id)) out.push(`${id} is not in the assembly`);
   const qty = view.parts.length, mass = r6(view.parts.reduce((s, p) => s + p.mass, 0) + (view.base?.mass ?? 0));
   if (bom.totalQty !== qty) out.push(`total quantity ${bom.totalQty}, the assembly has ${qty} parts`);
-  if (Math.abs(bom.totalMassG - mass) > 1e-6 * Math.max(1, mass)) out.push(`total mass ${bom.totalMassG} g, the assembly weighs ${mass} g`);
+  if (Math.abs(bom.totalMass - mass) > 1e-6 * Math.max(1, mass)) out.push(`total mass ${bom.totalMass} g, the assembly weighs ${mass} g`);
   for (const l of lines) { const lib = view.parts.find(p => p.id === l.parts[0])?.library; if (lib && l.source !== lib) out.push(`${l.item}: a library part with no source (${lib})`); }
   return out;
 }
