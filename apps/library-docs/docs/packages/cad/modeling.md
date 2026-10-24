@@ -45,6 +45,13 @@ The kinds, by family:
 
 Fillets and chamfers pick edges by these names, so a selection survives parameter edits that keep the topology.
 
+### Boolean algorithms
+
+`union`, `difference` and `intersect` select solid material from a target and a tool. Their implementation depends on
+the input representation: height-wise 2D arrangements, rational polyhedral operations, trimmed-surface intersections,
+or a mixed mesh path. See [Boolean operations](/packages/cad/robustness#boolean-operations) for a tested example,
+the algorithm stages, tolerances and refusal conditions.
+
 ## Evaluating
 
 ```ts

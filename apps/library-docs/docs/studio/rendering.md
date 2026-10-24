@@ -53,6 +53,8 @@ An appearance is a look, not a material: a body's mass comes from its material, 
   - **Exposure**.
   - **Tone map**: **Filmic (ACES)**, **Soft highlights (AgX)** or **None**.
   - **Grade**: **Neutral**, **Warm studio** or **Cool daylight**, with **Contrast**, **Saturation** and **Vignette**.
+  - **Bloom** spreads light from bright areas past their edges, as a glow. The slider controls its strength; 0 turns
+    it off. The glow is added before tone mapping, so bright reflections can bloom while the surface stays unchanged.
 
 ![The Lights tab](/shots/studio/rendering/lights.png)
 

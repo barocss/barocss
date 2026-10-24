@@ -3,11 +3,54 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, CadPartError } from '@barocss/cad';
+// #region boolean-import
+import { part as cadPart } from '@barocss/cad/api';
+// #endregion boolean-import
 
 const part = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 /** A 10 mm high block from min to max: a rectangle sketch and its extrude. */
 const block = (id, min, max) => [{ id: `${id}s`, kind: 'sketch', profile: 'rectangle', min, max }, { id, kind: 'extrude', sketch: `${id}s`, height: 10 }];
 const refusal = doc => { try { evaluateCadPart(doc); } catch (e) { if (e instanceof CadPartError) return e; throw e; } assert.fail('refused'); };
+
+// #region integer-mesh-volume
+// Independent volume check for this integer-coordinate, planar example only.
+// Each oriented triangle contributes det(a, b, c) / 6, the signed volume to the origin.
+function integerMeshVolume(p) {
+  let six = 0n;
+  for (const mesh of p.meshes()) {
+    const P = [];
+    for (const x of mesh.positions) {
+      assert.ok(Number.isSafeInteger(x));
+      P.push(BigInt(x));
+    }
+    for (let t = 0; t < mesh.indices.length; t += 3) {
+      const a = 3 * mesh.indices[t], b = 3 * mesh.indices[t + 1], c = 3 * mesh.indices[t + 2];
+      six += P[a] * (P[b + 1] * P[c + 2] - P[b + 2] * P[c + 1])
+        - P[a + 1] * (P[b] * P[c + 2] - P[b + 2] * P[c])
+        + P[a + 2] * (P[b] * P[c + 1] - P[b + 1] * P[c]);
+    }
+  }
+  assert.equal(six % 6n, 0n);
+  return Number((six < 0n ? -six : six) / 6n);
+}
+// #endregion integer-mesh-volume
+
+test('Boolean set operations: two overlapping cubes have union 1500, difference 500 and intersection 500 mm³', () => {
+  // #region boolean-operations
+  const target = cadPart('overlap').box({ w: 10, d: 10, h: 10 });
+  const tool = p => p.box({ w: 10, d: 10, h: 10, x: 5 });
+
+  const joined = target.union(tool);
+  const cut = target.subtract(tool);       // the document's difference
+  const common = target.intersect(tool);
+
+  assert.equal(integerMeshVolume(joined), 1500);
+  assert.equal(integerMeshVolume(cut), 500);
+  assert.equal(integerMeshVolume(common), 500);
+  assert.equal(integerMeshVolume(target), 1000); // the input is unchanged
+  // #endregion boolean-operations
+  for (const p of [joined, cut, common]) assert.equal(evaluateCadPart(p.doc).outputs[0].validate().valid, true);
+});
 
 test('two blocks touching along an edge: one output, two separate valid bodies', () => {
   // #region touching

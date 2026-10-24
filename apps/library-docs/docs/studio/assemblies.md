@@ -26,18 +26,35 @@ To add one, pick a face that stays, then a face on the part to move.
 
 | Mate | What it holds |
 |---|---|
-| **Coincident** | Two flat faces on one plane |
+| **Coincident** | Two flat faces on one plane, a straight edge on a plane, or two straight edges on one line |
 | **Distance** | Two flat faces at a distance |
 | **Angle** | Two flat faces at an angle |
-| **Concentric** | Two round faces on one axis |
-| **Tangent** | A round face touching a flat face or another round face |
+| **Concentric** | Axes aligned for cylinders, cones, circular edges or straight edges; or two spheres with one centre |
+| **Tangent** | A cylinder touching a plane or another cylinder; or a sphere touching a plane |
 | **Lock** | One part fixed to another |
 | **Cam** | A follower's flat face riding a cam's lobe, from a face of the cam: see [Robots](/studio/robots#the-joint-tree) |
 
-Only the kinds a pair of faces admits are offered (two flat faces: coincident, distance, angle; two round faces:
-concentric, tangent; a flat and a round face: tangent; **Cam** last, whenever the moving face is flat), and **Mate flip** turns the moving part to face the other way. The
-panel's **Freedom** line says what the picked part can still do: fixed in place, placed by typed numbers, or the
-motion its mates leave free. A mate that can't be solved is refused, and **Mate refused** says why.
+Only compatible kinds are admitted. **Cam** is also admitted when the moving face is flat. **Mate flip** changes the
+side or orientation for the chosen kind. The panel's **Freedom** line says what the picked part can still do: fixed
+in place, placed by typed numbers, or the motion its mates leave free. A mate that can't be solved is refused, and
+**Mate refused** says why.
+
+### Face and edge references
+
+The reference table includes planar, cylindrical, spherical and conical faces, plus straight and circular edges.
+The mate editor labels them as a sphere or socket, cone or conical seat, straight edge, arc edge or circular edge.
+The agent reads the table with `assembly.get` and `faces_of`, then passes the persistent name in each mate end's
+`face` field to `assembly.add_mate`. Edge names join their two face names with `|`. This does not add direct vertex
+references or a new viewport edge-picking workflow.
+
+A cone or edge supplies an axis for a concentric mate; it does not impose contact along its whole shape. Two
+concentric spheres share a centre and retain three rotations. A sphere tangent to a plane retains three rotations
+and two slides. Unsupported pairs, such as a cone tangent to a circular edge, are refused with `MATE_FACES`.
+
+Spheres, cones and edges are classified from the B-rep with finite geometric samples and tolerance checks. This is
+not a proof that every arbitrary NURBS surface has one of those shapes. Stored signatures are checked on reopening.
+An assembly mate can be valid while its motion is unsupported: a sphere/plane tangent is refused by the motion tree
+with `MOTION_UNSUPPORTED`; unsupported loop mates use `LOOP_MATE_UNSUPPORTED`.
 
 The agent locks a part with `assembly.lock` (`part`, `to`): a lock mate that keeps the part where it stands in the
 other's coordinates, proposed for you to accept as its other assembly changes are.

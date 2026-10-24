@@ -55,6 +55,9 @@ fastener sizes you have loaded; without them they are refused with `[FASTENER_SI
 Two bodies that touch only along an edge or at a point stay two bodies after a union; the manufacturing checks warn
 that they only touch, and exports keep them as separate pieces.
 
+See [Boolean operations](/packages/cad/robustness#boolean-operations) for the set rules, a tested example, and how the
+kernel chooses and runs its prismatic, polyhedral, curved-surface or mixed mesh algorithm.
+
 ## Machine elements
 
 **Spur gear** (and helical), **Meshing gear**, **Gear rack**, **Cam**, **Shaft**, **Key**, **Keyway**,
