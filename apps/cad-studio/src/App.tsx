@@ -19,6 +19,7 @@ import { rejectProposal, stripHistory } from '@barocss/cad-model/chat/proposals'
 import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import type { ProposalPart } from '@barocss/cad-model/chat/tools';
 import { candidatesFor, captureSignatures, confirmReference, markedReferences, verifyReferences, type Problem as RefProblem } from '@barocss/cad-model/engine/references';
+import { matchesNativeMassPatch } from '@barocss/cad-model/engine/nativeMassWire';
 import { evaluateDoc, placedMassFields, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
@@ -204,7 +205,7 @@ function sameMeshes(a: readonly BodyResult[], b: readonly BodyResult[]): boolean
 function withMasses(bodies: BodyResult[], got: ReadonlyMap<number, MassFields>): BodyResult[] {
   let out: BodyResult[] | null = null;
   for (let i = 0; i < bodies.length; i++) {
-    const b = bodies[i], f = b.massRef !== undefined ? got.get(b.massRef) : undefined; if (!f) continue;
+    const b = bodies[i], f = b.massRef !== undefined ? got.get(b.massRef) : undefined; if (!f || !matchesNativeMassPatch(b, f)) continue;
     const { massRef: _ref, massPlace, ...rest } = b; void _ref;
     (out ??= bodies.slice())[i] = { ...rest, ...placedMassFields(f, massPlace ?? []) };
   }
@@ -880,7 +881,7 @@ export function App() {
     p => (p === BASE ? bodies : instanceBodies.get(p)?.bodies ?? []).flatMap(b => (b.gear ? [b.gear] : []))), [doc, assembly.problems, assembly.tables, bodies, instanceBodies]);
   // (Every placed part evaluated with its bodies: until then the robot's masses, exports and sweeps wait, RM6 — a part
   // not yet evaluated is not massless.)
-  const robotReady = massReady && (doc.instances ?? []).every(i => instanceEvaluationCurrent(instanceBodies.get(i.id), i, instanceSources.get(i.id)));
+  const robotReady = fresh && !busy && massReady && (doc.instances ?? []).every(i => instanceEvaluationCurrent(instanceBodies.get(i.id), i, instanceSources.get(i.id)));
   // Each link's mass properties (RM3): the bodies as placed (world), so each part's placement is the identity here.
   const linkInertias = useMemo(() => !jointTree || !robotReady ? undefined : treeInertia(jointTree, p => {
     if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] };
