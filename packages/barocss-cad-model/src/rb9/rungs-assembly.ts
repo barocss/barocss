@@ -4,6 +4,7 @@
 import { robotCheckOfDoc, robotOfDoc, treeOfDoc, urdfOfDoc } from '../chat/robot';
 import { forwardKinematics } from '../robot/fk';
 import { treeInertia } from '../robot/inertia';
+import { jointSettingsOut } from '../robot/units';
 import { readUrdf, urdfFk } from '../robot/urdfCheck';
 import { workspaceMap } from '../robot/workspace';
 import type { Duty } from '../robot/harness';
@@ -100,7 +101,8 @@ const arm2 = (p: Params, o: { l2?: number; effort?: number; elbowFixed?: boolean
   if (o.steel !== false) c.push({ tool: 'set_material', args: { part: 'p3', material: 'steel' } });
   if (o.payload !== false) c.push(mate('coincident', ['p2', 'n1.top'], ['p3', 'n1.bottom']), mate('distance', ['p2', 'origin:yz'], ['p3', 'origin:yz'], { distance: l2 }), mate('distance', ['p2', 'origin:xz'], ['p3', 'origin:xz'], { distance: 0 }));
   const rating = o.rated === false ? { lower: -2.5, upper: 2.5 } : { lower: -2.5, upper: 2.5, effort: e, velocity: 5 };
-  c.push({ tool: 'set_joints', args: { joints: { [J1]: rating, [J2]: rating } } });
+  const publicRating = jointSettingsOut('revolute', rating);
+  c.push({ tool: 'set_joints', args: { joints: { [J1]: publicRating, [J2]: publicRating } } });
   if (o.elbowFixed) c.push(mate('angle', ['p1', 'n1.side0'], ['p2', 'n1.side0'], { angle: 0 }));
   return c;
 };
