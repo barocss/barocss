@@ -228,8 +228,8 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'draft',
-    description: 'Draft of a body\'s walls against a pull direction (default +Z), from exact normals — flat and curved faces: each wall\'s least angle in degrees (negative: facing against the pull), its range and class (drafted, steep, straddle: n·d takes both signs, a parting line crosses it), and those under min_deg (default 1).',
-    input_schema: { type: 'object', properties: { body: { type: 'string' }, pull: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 }, min_deg: { type: 'number' } }, additionalProperties: false },
+    description: 'Draft of a body\'s walls against a pull direction (default +Z), from exact normals — flat and curved faces: each wall\'s least angle in degrees (negative: facing against the pull), its range and class (drafted, steep, straddle: n·d takes both signs, a parting line crosses it), and those under draftMin (default 1).',
+    input_schema: { type: 'object', properties: { body: { type: 'string' }, pull: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 }, draftMin: { type: 'number' } }, additionalProperties: false },
   },
   {
     name: 'set_requirements',
