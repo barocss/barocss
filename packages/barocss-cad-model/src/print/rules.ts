@@ -44,7 +44,7 @@ export interface PrintabilityReport {
   /** IM8a (O106): the casting material's family, its tolerance where read, the faces under the draft limits. */
   readonly casting?: CastingSummary;
   /** CNC1 (O84): the material's family, the general tolerance (sourced) and its class (named, not copied). */
-  readonly machining?: { readonly family: 'metal' | 'plastic' | null; readonly material: string | null; readonly tolerance: { mm: number; feasibleMM: number; source: string }; readonly toleranceClass: { name: string; note: string; source: string } | null;
+  readonly machining?: { readonly family: 'metal' | 'plastic' | null; readonly material: string | null; readonly tolerance: { value: number; feasibleLimit: number; source: string }; readonly toleranceClass: { name: string; note: string; source: string } | null;
     /** CNC2 (O85): the holes found (steps, open ends, reaches) and the tapped holes matched to them. */
     readonly holes?: readonly Hole[]; readonly tapped?: readonly TappedHole[];
     /** CNC3 (O86): the inside corners, sharp edges, cavity floors and thin standing walls. */
