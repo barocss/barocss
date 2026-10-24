@@ -53,7 +53,8 @@ function timestampSample(values, used, passes) {
   if (!Number.isInteger(used) || used < 2 || used > 32 || used % 2 || used !== passes * 2 || values.length !== used) {
     return { valid: false, reason: 'missing-or-unused-query-slots' };
   }
-  let ns = 0n;
+  const pairs = [];
+  let sum = 0n;
   for (let i = 0; i < used; i += 2) {
     const start = values[i], end = values[i + 1];
     // Validate each pass's own pair. Different passes can have overlapping timestamp intervals.
@@ -61,10 +62,20 @@ function timestampSample(values, used, passes) {
       return { valid: false, reason: 'invalid-or-reversed-timestamp-pair', pair: i / 2 };
     }
     if (start === 0n && end === 0n) return { valid: false, reason: 'unused-or-unavailable-timestamp', pair: i / 2 };
-    ns += end - start;
-    if (ns > BigInt(Number.MAX_SAFE_INTEGER)) return { valid: false, reason: 'timestamp-duration-not-exactly-representable' };
+    sum += end - start;
+    if (sum > BigInt(Number.MAX_SAFE_INTEGER)) return { valid: false, reason: 'timestamp-duration-not-exactly-representable' };
+    pairs.push([start, end]);
   }
-  return { valid: true, ms: Number(ns) / 1e6 };
+  // (G15d.2: the GPU's time is the union of the passes' intervals, not their sum. On Chrome/Metal a pass that reads the
+  // one before it is stamped from when it was queued, so its interval holds its wait: nine dependent bloom passes summed
+  // to 34 ms a frame at 1440×900 where the frame's span grew 0.1 ms. `sumMS` keeps the old figure.)
+  pairs.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+  let ns = 0n, from = pairs[0][0], to = pairs[0][1];
+  for (let i = 1; i < pairs.length; i++) {
+    if (pairs[i][0] > to) { ns += to - from; from = pairs[i][0]; to = pairs[i][1]; } else if (pairs[i][1] > to) to = pairs[i][1];
+  }
+  ns += to - from;
+  return { valid: true, ms: Number(ns) / 1e6, sumMS: Number(sum) / 1e6 };
 }
 
 function benchGpuTiming(b) {

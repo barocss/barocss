@@ -60,7 +60,10 @@ test('bench retains pick parity and supports filters matching a dynamic workspac
 
 test('timestamp queries require exact used/read/pass counts and ordered nonempty pairs', () => {
   assert.equal(timestampSample([100n, 1100n, 1200n, 3200n], 4, 2).ms, 0.003);
-  assert.equal(timestampSample([100n, 200n, 150n, 250n], 4, 2).ms, 0.0002, 'overlapping passes keep their own nonnegative durations');
+  // (G15d.2: overlapping passes count once — the union of their intervals; their own durations' sum is kept as sumMS.)
+  assert.equal(timestampSample([100n, 200n, 150n, 250n], 4, 2).ms, 0.00015, 'overlapping passes: their union');
+  assert.equal(timestampSample([100n, 200n, 150n, 250n], 4, 2).sumMS, 0.0002, 'overlapping passes keep their own nonnegative durations');
+  assert.equal(timestampSample([150n, 250n, 100n, 400n, 500n, 600n], 6, 3).ms, 0.0004, 'a pass inside another, then a disjoint one');
   assert.equal(timestampSample([100n, 100n], 2, 1).valid, true, 'positive equal timestamps can quantize to zero elapsed');
   for (const [values, used, passes] of [
     [[], 0, 0], [[100n, 200n], 4, 2], [[100n, 200n, 0n, 0n], 4, 2],
