@@ -1370,7 +1370,9 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           if (op === 'union') return one(left.slice(1).reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), left[0].solid));
           return { kind: 'solid', parts: target };
         }
-        const joined = tool.reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), tool[0].solid);
+        // (The tool's parts joined from the first over the rest: over all of them, every such feature began with
+        // tool[0] ∪ tool[0], a Boolean of a body with itself, D260/D268.)
+        const joined = tool.slice(1).reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), tool[0].solid);
         // Unions merge every target part into one; difference and intersection act on each part.
         if (op === 'union') return one(target.reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), joined));
         // (A sheet's holes and cuts: still the sheet, its rules carried on; R12.2, D117.)
