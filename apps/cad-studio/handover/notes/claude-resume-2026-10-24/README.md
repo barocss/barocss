@@ -98,6 +98,10 @@ continue the barocss CAD work: the coordinator and all five lanes.
 
 ## 4. Each lane's state and next work
 
+**Superseded for the queues:** since 2026-10-24 (later), the roadmap's "Order now" table is the live queue per lane.
+The owner approved the API conventions and R7's steps (R7.3a–R7.6). The notes below record the state when this
+hand-over was first written.
+
 **Kernel (커널 줄).** The brief is `../claude-resume-2026-10-23/kernel-k15.md` (method in `kernel-k14.md`).
 - **K15 is in progress:** K14's open robust refusals.
 - **Committed:** D257, `43f6a1bc7`, the orientation pair.
