@@ -54,3 +54,33 @@ test('FRk3 tables refuse missing I fields, unknown fields, invalid values and mi
     assert.ok('error' in r); assert.match(r.error, /cite its source/);
   }
 });
+
+// Synthetic geometry fixtures only. These rows do not establish human or catalogue provenance.
+const slotDimensions = { cellSize: 20, opening: 6.2, lip: 1.8, undercut: 11, depth: 6.1, bore: 4.2 };
+const slotTable = (cells: 1 | 2, provenance: { source: string } | { estimate: true }) => table('tslot', { ...slotDimensions, cells, ...(cells === 1 ? { openSlots: 4 } : {}), ...provenance });
+
+test('FRk3 R7 T-slot importer maps cellSize once and preserves label, source and estimate without a result alias', () => {
+  for (const cells of [1, 2] as const) for (const provenance of [{ source: 'Synthetic geometry fixture only' }, { estimate: true }] as const) {
+    const input = slotTable(cells, provenance), before = structuredClone(input), converted = rows(input)[0];
+    const { cellSize, ...dimensions } = slotDimensions;
+    const expected = { kind: 'tslot', size: cellSize, ...dimensions, cells, ...(cells === 1 ? { openSlots: 4 } : {}) };
+    assert.equal(converted.id, 'user:one'); assert.equal(converted.name, 'User sizes one');
+    assert.deepEqual(converted.section, expected);
+    assert.equal(Object.hasOwn(converted.section, 'cellSize'), false);
+    assert.equal(Object.hasOwn(converted.section, 'sizeMM'), false);
+    if ('source' in provenance) { assert.equal(converted.source, provenance.source); assert.equal(converted.estimate, undefined); }
+    else { assert.equal(converted.estimate, true); assert.equal(converted.source, undefined); }
+    assert.deepEqual(input, before);
+    assert.deepEqual(JSON.parse(JSON.stringify(converted.section)), expected);
+  }
+});
+
+test('FRk3 R7 one- and two-cell T-slot tables build real library frame members with independent volume', () => {
+  for (const cells of [1, 2] as const) {
+    const slots = cells === 1 ? 4 : 6;
+    // Square cell envelopes less rectangular/45-degree slots and circular bores; then 300 mm extrusion.
+    const area = cells * 20 * 20 - slots * (6.2 * 6.1 + (11 - 6.2) ** 2 / 4) - cells * Math.PI * 4.2 ** 2 / 4;
+    const expected = area * 300, actual = volume(slotTable(cells, { estimate: true }));
+    assert.ok(Math.abs(actual - expected) < 1e-9 * expected, `${cells} cells: ${actual} vs ${expected}`);
+  }
+});
