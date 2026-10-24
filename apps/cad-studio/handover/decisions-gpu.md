@@ -3373,3 +3373,25 @@ The coordinator's plan from the classification (`gpu-throws-classified.md` in th
   words.
 - After batch 3, gpu's src keeps 40 plain throws: 28 invariants or unreachable and 12 wrapped as causes. That's by
   design.
+
+## G-R58 — Open reads `.barocad` as the only curve and surface source; another file is named with what Open reads (owner, 2026-10-24)
+
+- **The owner**: ".barocad 하나만 우리는 가지고 있어도 될 것 같아." `.cad` is a generic extension other CAD programs
+  use. The studio took such a file for our source, parsed it, and failed.
+- **The change** (App.tsx):
+  - The Model file input's accept list drops `.cad`.
+  - open() takes only `/\.barocad$/i` as a source, and strips only that from the name.
+  - A file whose extension Open doesn't read is now refused before the model reader is tried. Before, it reached
+    readStudioFile and failed with the reader's words. The toast says "Can't open <name>", with `OPEN_READS`: "Open reads
+    models (.bcad, .json), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your
+    part is unchanged."
+  - A file without an extension is still tried as a model, as before.
+- **Nothing else reads or writes `.cad`**: not in the studio's src or test, cad-model's src, or the fixtures (lid,
+  study and warp are `.barocad`). The one mention is apps/library-docs/docs/studio/files.md:21, which lists `.cad`
+  beside `.barocad`. That's for the docs lane.
+- **Flow**: a new step, the last (288, so no other step's number moves). It checks the accept list, opens
+  `bracket.cad`, and expects the toast's name and words and the part unchanged.
+  - FLOW_ONLY `^(Open: a \.cad|import a \.barocad source|open a STEP file)` on WebGPU: 46, 49 and 288 pass.
+  - 49 is the `.barocad` import; 46 is STEP and its refusal of a bad .step.
+- **Runs**: studio tsc 0, eslint 0 on App.tsx. Not run: studio unit (the change is in App's open path, which only the
+  flow reaches); WebGL2 (renderer-independent).

@@ -8275,6 +8275,19 @@ try {
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top'))); await page.waitForTimeout(300); await snap('light-selected');
     await press('h'); await hudReady(); await page.waitForTimeout(300); await snap('light-command'); await press('Escape');
   });
+
+  // (Last, so no step's number moves.) Owner 2026-10-24: `.barocad` is our only curve and surface source; `.cad` is other
+  // programs' extension and is not read as one.
+  await check('Open: a .cad file is not taken for our source — the file named with what Open reads, the part unchanged; .barocad still offered', async () => {
+    assert.equal(await page.locator('input[aria-label="Model file"]').getAttribute('accept'), '.bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.dwg');
+    const before = JSON.stringify(await doc());
+    const file = join(out, 'bracket.cad'); (await import('node:fs')).writeFileSync(file, 'ISO-10303-21; another program\'s file');
+    await page.locator('input[aria-label="Model file"]').setInputFiles(file);
+    await page.waitForFunction(() => /Can’t open bracket\.cad/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 10000 });
+    assert.match(await page.locator('.toast').innerText(), /Open reads models \(\.bcad, \.json\), STEP \(\.step, \.stp\), STL, OBJ, IGES \(\.igs, \.iges\) and \.barocad curve and surface sources\. Your part is unchanged\./);
+    assert.equal(JSON.stringify(await doc()), before, 'the part is unchanged');
+    await page.click('.toast [aria-label="Dismiss"]');
+  });
 } finally {
   await browser.close(); await server.close();
 }
