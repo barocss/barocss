@@ -328,9 +328,9 @@ async function main(out: string) {
     try {
       const p = make(), built = performance.now() - t0, m = partMass(p), r = (v: number) => Math.round(v * 1000) / 1000;
       writeFileSync(join(out, 'parts', `${name}.bcad`), JSON.stringify(p.doc));
-      report.push({ part: name, features: p.doc.nodes.length, bodies: p.bodies().length, volume: r(m.volume), mass: r(m.mass), centroid: m.centroid.map(r), ms: Math.round(built) });
+      report.push({ part: name, features: p.doc.nodes.length, bodies: p.bodies().length, volume: r(m.volume), mass: r(m.mass), centroid: m.centroid.map(r), duration: Math.round(built) / 1000 });
     } catch (e) {
-      report.push({ part: name, error: e instanceof Error ? e.message : String(e), ms: Math.round(performance.now() - t0) });
+      report.push({ part: name, error: e instanceof Error ? e.message : String(e), duration: Math.round(performance.now() - t0) / 1000 });
     }
   }
   const t0 = performance.now(); let asm: Assembly | null = null;
@@ -340,8 +340,8 @@ async function main(out: string) {
     // (The assembly beside this file, committed: the build regenerates it byte for byte — engine.test.mjs.)
     writeFileSync(join(import.meta.dirname, 'engine.bcad'), JSON.stringify(asm.doc));
     const t1 = performance.now(), r = asm.robot(), tree = r.joints();
-    report.push({ assembly: 'engine-1cyl', parts: asm.parts().length, mates: asm.doc.mates?.length ?? 0, problems: asm.problems(), ms: Math.round(built),
-      joints: tree.joints.map(j => ({ key: j.key, type: j.type, parent: j.parent, child: j.child })), loops: tree.loops.map(l => l.parts), couplings: tree.couplings.length, treeProblems: tree.problems.map(p => p.code), treeMs: Math.round(performance.now() - t1) });
+    report.push({ assembly: 'engine-1cyl', parts: asm.parts().length, mates: asm.doc.mates?.length ?? 0, problems: asm.problems(), duration: Math.round(built) / 1000,
+      joints: tree.joints.map(j => ({ key: j.key, type: j.type, parent: j.parent, child: j.child })), loops: tree.loops.map(l => l.parts), couplings: tree.couplings.length, treeProblems: tree.problems.map(p => p.code), treeTime: Math.round(performance.now() - t1) / 1000 });
   }
   if (asm) {
     // (The checks, keeping the outputs they make: each made part's drawing, report and CAM package, the BOM and the
