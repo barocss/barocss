@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import { ownRecord } from '../mesh/gpu-data.js';
 import { prepareEngineScene } from './engine-scene.js';
 import type { EngineSceneV0 } from './engine-scene.js';
@@ -8,9 +9,9 @@ export const EngineScaleClipDiagnosticCode = Object.freeze({
   RANGE: 'RANGE', SCENE: 'SCENE', FRAME: 'FRAME',
 } as const);
 export type EngineScaleClipDiagnosticCode = typeof EngineScaleClipDiagnosticCode[keyof typeof EngineScaleClipDiagnosticCode];
-export class EngineScaleClipError extends Error {
+export class EngineScaleClipError extends BarocssError {
   constructor(readonly code: EngineScaleClipDiagnosticCode, detail: string, cause?: unknown) {
-    super(('Engine scale clip: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
+    super(code, ('Engine scale clip: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
     this.name = 'EngineScaleClipError';
   }
 }

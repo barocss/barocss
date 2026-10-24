@@ -2,6 +2,7 @@
 // color: #4090e0; }`), then show each object as a mesh with its transform and colour. The scene is
 // right-handed Y-up; its primitives are tessellated by the package's geometry builders (shared between
 // objects of the same shape).
+import { BarocssError } from '../core/barocss-error.js';
 import { compileGpu, type GpuCompileResult, type GpuDiagnostic, type GpuRenderIR } from '../mesh/gpu-compiler.js';
 import { prepareBoxGeometry } from '../geometry/box-geometry.js';
 import { prepareSphereGeometry } from '../geometry/sphere-geometry.js';
@@ -36,8 +37,8 @@ export interface SceneView {
   dispose(): void;
 }
 
-export class SceneViewError extends Error {
-  constructor(readonly diagnostics: GpuDiagnostic[]) { super(diagnostics.map(d => `${d.code}: ${d.message}`).join('; ') || 'Scene refused'); this.name = 'SceneViewError'; }
+export class SceneViewError extends BarocssError {
+  constructor(readonly diagnostics: GpuDiagnostic[]) { super('scene-view', diagnostics.map(d => `${d.code}: ${d.message}`).join('; ') || 'Scene refused'); this.name = 'SceneViewError'; }
 }
 
 /** Source 1 (rotation and the further primitives) when its header says so. */

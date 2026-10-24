@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import { ownRecord, freezeGpuData } from '../mesh/gpu-data.js';
 import { prepareEngineScene } from './engine-scene.js';
 import type { PreparedEngineScene } from './engine-scene.js';
@@ -10,9 +11,9 @@ export const EngineMaterialBindingsDiagnosticCode = Object.freeze({
 } as const);
 export type EngineMaterialBindingsDiagnosticCode =
   typeof EngineMaterialBindingsDiagnosticCode[keyof typeof EngineMaterialBindingsDiagnosticCode];
-export class EngineMaterialBindingsError extends Error {
+export class EngineMaterialBindingsError extends BarocssError {
   constructor(readonly code: EngineMaterialBindingsDiagnosticCode, detail: string, cause?: unknown) {
-    super(('Engine material bindings: ' + detail).slice(0, 1024),
+    super(code, ('Engine material bindings: ' + detail).slice(0, 1024),
       cause === undefined ? undefined : { cause });
     this.name = 'EngineMaterialBindingsError';
   }

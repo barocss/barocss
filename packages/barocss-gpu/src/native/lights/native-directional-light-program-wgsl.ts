@@ -1,3 +1,4 @@
+import { BarocssError } from '../../core/barocss-error.js';
 import { copyGpuData, freezeGpuData } from '../../mesh/gpu-data.js';
 import { prepareNativeDirectionalLights } from './native-directional-lights.js';
 import type { NativeDirectionalLightsV0 } from './native-directional-lights.js';
@@ -9,9 +10,9 @@ import { directionalLightProgramWGSLBody } from './directional-light-program-wgs
 import type { Vec3, RGB } from '../../scene/scene-types.js';
 
 export type NativeDirectionalLightProgramWGSLCode = 'INPUT' | 'LIGHTS' | 'MATERIAL' | 'REPRESENTATION' | 'BUDGET';
-export class NativeDirectionalLightProgramWGSLError extends Error {
+export class NativeDirectionalLightProgramWGSLError extends BarocssError {
   constructor(readonly code: NativeDirectionalLightProgramWGSLCode, detail: string, cause?: unknown) {
-    super(('Native directional light WGSL program: ' + detail).slice(0, 1024),
+    super(code, ('Native directional light WGSL program: ' + detail).slice(0, 1024),
       arguments.length > 2 ? { cause } : undefined);
     this.name = 'NativeDirectionalLightProgramWGSLError';
   }

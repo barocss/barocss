@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import { compileGpu } from '../mesh/gpu-compiler.js';
 import { compileAffineSceneSource } from './affine-scene-source.js';
 import type { AffineScene2, AffineSceneObject2 } from './affine-scene-source.js';
@@ -10,9 +11,9 @@ export const SourceSceneBoundsDiagnosticCode = Object.freeze({
   SELECTION: 'SELECTION', NUMERICAL: 'NUMERICAL',
 } as const);
 export type SourceSceneBoundsDiagnosticCode = typeof SourceSceneBoundsDiagnosticCode[keyof typeof SourceSceneBoundsDiagnosticCode];
-export class SourceSceneBoundsError extends Error {
+export class SourceSceneBoundsError extends BarocssError {
   constructor(readonly code: SourceSceneBoundsDiagnosticCode, detail: string, cause?: unknown) {
-    super(('Source scene bounds: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
+    super(code, ('Source scene bounds: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
     this.name = 'SourceSceneBoundsError';
   }
 }

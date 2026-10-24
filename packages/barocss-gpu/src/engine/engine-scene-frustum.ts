@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import { ownRecord } from '../mesh/gpu-data.js';
 import { prepareEngineScene } from './engine-scene.js';
 import type { EngineSceneV0 } from './engine-scene.js';
@@ -7,9 +8,9 @@ export const EngineSceneFrustumDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', RANGE: 'RANGE', SCENE: 'SCENE', NUMERICAL: 'NUMERICAL',
 } as const);
 export type EngineSceneFrustumDiagnosticCode = typeof EngineSceneFrustumDiagnosticCode[keyof typeof EngineSceneFrustumDiagnosticCode];
-export class EngineSceneFrustumError extends Error {
+export class EngineSceneFrustumError extends BarocssError {
   constructor(readonly code: EngineSceneFrustumDiagnosticCode, detail: string, cause?: unknown) {
-    super(('Engine scene frustum: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
+    super(code, ('Engine scene frustum: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
     this.name = 'EngineSceneFrustumError';
   }
 }

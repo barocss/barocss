@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import { freezeGpuData } from '../mesh/gpu-data.js';
 import { EngineTextureBindingsError, prepareEngineTextureBindings } from '../engine/engine-texture-bindings.js';
 import type { EngineTextureBindingsV0, PreparedEngineTexture, PreparedEngineTextureBindings } from '../engine/engine-texture-bindings.js';
@@ -12,9 +13,9 @@ export const EngineUVTextureMaterialBindingsDiagnosticCode = Object.freeze({
 export type EngineUVTextureMaterialBindingsDiagnosticCode =
   typeof EngineUVTextureMaterialBindingsDiagnosticCode[keyof typeof EngineUVTextureMaterialBindingsDiagnosticCode];
 
-export class EngineUVTextureMaterialBindingsError extends Error {
+export class EngineUVTextureMaterialBindingsError extends BarocssError {
   constructor(readonly code: EngineUVTextureMaterialBindingsDiagnosticCode, detail: string, ...cause: [] | [unknown]) {
-    super(('Engine UV texture material bindings: ' + detail).slice(0, 1024),
+    super(code, ('Engine UV texture material bindings: ' + detail).slice(0, 1024),
       cause.length ? { cause: cause[0] } : undefined);
     this.name = 'EngineUVTextureMaterialBindingsError';
   }

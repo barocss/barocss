@@ -1,12 +1,13 @@
+import { BarocssError } from '../../core/barocss-error.js';
 import { validateNativeSurfaceUV01MaterialIR, lowerNativeSurfaceUV01Material, MeshMaterialError } from '../../material/mesh-material.js';
 import type { NativeSurfaceUV01MaterialIR, LoweredNativeSurfaceUV01Material } from '../../material/mesh-material.js';
 import { prepareNativeSurfaceUV01Geometry, NativeSurfaceUV01GeometryError } from './native-surface-uv01-geometry.js';
 import type { NativeSurfaceUV01GeometryRequest, PreparedNativeSurfaceUV01Geometry } from './native-surface-uv01-geometry.js';
 
 export type NativeSurfaceUV01BindingCode = 'INPUT' | 'MATERIAL' | 'UNIFORM' | 'GEOMETRY';
-export class NativeSurfaceUV01BindingError extends Error {
+export class NativeSurfaceUV01BindingError extends BarocssError {
  constructor(readonly code: NativeSurfaceUV01BindingCode, message: string, readonly start = 0, readonly end = 0, cause?: unknown) {
-  super(message.slice(0, 1024), cause === undefined ? undefined : { cause });
+  super(code, message.slice(0, 1024), cause === undefined ? undefined : { cause });
   this.name = 'NativeSurfaceUV01BindingError';
  }
 }

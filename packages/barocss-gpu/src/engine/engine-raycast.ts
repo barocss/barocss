@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import { ownRecord } from '../mesh/gpu-data.js';
 import { prepareEngineScene, EngineSceneError } from './engine-scene.js';
 import type { PreparedEngineScene } from './engine-scene.js';
@@ -7,10 +8,10 @@ export const EngineRaycastDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', BUDGET: 'BUDGET', SCENE: 'SCENE', RAY: 'RAY', NUMERICAL: 'NUMERICAL',
 } as const);
 export type EngineRaycastDiagnosticCode = typeof EngineRaycastDiagnosticCode[keyof typeof EngineRaycastDiagnosticCode];
-export class EngineRaycastError extends Error {
+export class EngineRaycastError extends BarocssError {
   readonly code: EngineRaycastDiagnosticCode;
   constructor(code: EngineRaycastDiagnosticCode, detail: string, cause?: unknown) {
-    super(('Engine raycast: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
+    super(code, ('Engine raycast: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
     this.name = 'EngineRaycastError'; this.code = code;
   }
 }

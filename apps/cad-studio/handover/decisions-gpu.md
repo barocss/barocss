@@ -3025,3 +3025,40 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - Full flow at 4b4acd4cb (scratch): **WebGPU 287/287, WebGL2 287/287**.
   - The full bench: every row ok but section on GPU's GPU time (8.8 ms a submit against 6; the G14 item). Pose is App 3,
     4.6 ms, as before: the frames don't render the App.
+
+## G-R51 — R7.3a in progress: gpu's errors onto BarocssError, batch 1 of 2 (roadmap R7.3a, 2026-10-24)
+
+The work stopped here for the owner's move to another place. Batch 1 is committed; batch 2 is not started.
+
+- **Done (batch 1, no message or code changed)**:
+  - `src/core/barocss-error.ts`: gpu's `BarocssError`, in api-conventions.md §6's shape `{ code, message, where?,
+    details? }`, with `cause`, and `Problem` `{ code, message, where? }`. gpu imports neither cad nor cad-model, so this
+    is its own class of that name and shape.
+  - Each of gpu's 35 error classes extends it. Each keeps its class name (the tests' `instanceof` and `assert.throws`,
+    about 200 references), its `code` and its message unchanged.
+    - The three without a code get one each, one to one: GPUError `gpu`, SceneError `scene`, SceneViewError
+      `scene-view`.
+    - `instanceof BarocssError` now catches any refusal of the package.
+  - `src/core/error-codes.ts`: `GpuErrorCode`, the union of every class's `code` type plus the facade's
+    `MESH_INVALID` and `LIGHT_INVALID`, so the docs' refusal table can be read from types.
+  - `src/api/refusal.ts` (the API lane's facade) uses the core class. `refuse()` still writes the `[CODE] …` message.
+  - Exported from the main entry: `BarocssError`, `Problem`, `GpuErrorCode`. `UpdateResult`'s error is a BarocssError.
+  - `tests/barocss-error.test.mjs` is in the test script: each exported error class is a BarocssError, keeping its
+    name, code and message.
+- **Not done (batch 2, next)**, as the coordinator split it:
+  - The codes in upper-snake (`webgpu-unavailable` → `WEBGPU_UNAVAILABLE` …, the three above too).
+  - Messages prefixed `[CODE] `.
+  - gpu's tests and examples/gpu-scene updated in the same commits. The studio matched no gpu code or class at batch 1
+    (checked: none in apps/cad-studio/src or test); recheck at the time and list each studio site changed.
+- **Left open, for the coordinator**: the `{ ok: false, diagnostics }` compile results are kept as data results.
+  - They are mesh-material, scene-viewer and gpu-compiler. Their diagnostics already carry `code` and `message`, with
+    source positions.
+  - Whether they become `check…` functions returning `Problem[]`, or throws, is not decided. Either changes their
+    callers.
+- **Checks at the commit**: gpu tsc 0 and eslint 0; gpu unit 195/195, its earlier 193 plus the new error test's two; the
+  build; studio tsc 0. gpu's test:browser results are in the commit message.
+- **Then**, from the coordinator's queue:
+  - R7.3c: gpu's Vec3, Mat3 and Mat4 at the package boundary (§10.2).
+  - R7.3d: the `right-handed-y-up` tag renamed, with the kernel lane (§10.1).
+  - G14, measure then decide: section's GPU time 8.8 ms against 6; the copies dropped on a rebuild with identical
+    meshes (O18); the step-48 order dependency.
