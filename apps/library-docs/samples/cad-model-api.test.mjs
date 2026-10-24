@@ -1,11 +1,12 @@
 // The object facade (`@barocss/cad-model/api`): one bracket three ways — the StudioDoc written by hand, the agent's
 // run_command calls, and the facade — all one document byte for byte; its mass and STEP the core's, a part never changed
-// by a method, a body's material, an assembly placed, mated, varied and framed, and the refusals typed. The Object API
+// by a method, a body's material, parameters, configurations and suppression, an assembly placed, mated, varied and
+// framed, and the refusals typed. The Object API
 // page includes the #region blocks. Run: pnpm test:samples
 import test from 'node:test';
 import assert from 'node:assert/strict';
 // #region import
-import { part, assembly, Location, BarocssError } from '@barocss/cad-model/api';
+import { part, assembly, Location, param, BarocssError } from '@barocss/cad-model/api';
 // #endregion import
 import { evaluateDoc, exportStudioStep } from '@barocss/cad-model/engine/evaluate';
 import { bodyMass } from '@barocss/cad-model/app/mass';
@@ -143,4 +144,52 @@ test('an assembly: a pin placed, mated into a plate\'s bore, an input with a var
   // #endregion assembly
   assert.deepEqual(fixture.problems(), []);
   assert.throws(() => fixture.addPart('pin', pin), e => e instanceof BarocssError && e.code === 'NAME_TAKEN');
+});
+
+// An 80 × 40 × 10 plate, its width W and its corners' radius R parameters, its four vertical edges rounded R.
+const plate = () => part('plate').parameter('W', 80).parameter('R', 2)
+  .box({ w: param('W'), d: 40, h: 10 })
+  .fillet(body => body.edges().along('z'), { radius: param('R') });
+/** The plate's volume at width w and corner radius r. */
+const plateVolume = (w, r) => w * 40 * 10 - 4 * (r ** 2 - Math.PI * r ** 2 / 4) * 10;
+const volume = p => p.mass({ density: 1 }).volumeMM3;
+const near = (a, b) => Math.abs(a - b) < 1e-9 * b;
+
+test('parameters: bound as the studio\'s editor binds them, edited by withParameters', () => {
+  // #region parameters
+  const p = plate();
+  assert.deepEqual(p.parameters(), { W: 80, R: 2 });
+  assert.deepEqual(p.doc.nodes[0].max, [{ parameter: 'W' }, 40]);    // the sketch's far corner follows W
+  assert.deepEqual(p.doc.nodes[2].radius, { parameter: 'R' });      // the fillet's radius follows R
+
+  const narrow = p.withParameters({ W: 60, R: 3 });
+  assert.ok(near(volume(narrow), plateVolume(60, 3)));               // the shape built with the new numbers
+  assert.deepEqual(narrow.doc.nodes[2].edges, p.doc.nodes[2].edges); // the same named edges
+  // #endregion parameters
+  assert.throws(() => p.withParameters({ H: 1 }), e => e instanceof BarocssError && e.code === 'PARAMETER_UNKNOWN');
+  // A hole's diameter is stored as a radius, so it can't follow a parameter: refused, never baked in.
+  assert.throws(() => p.parameter('D', 4).hole(b => b.faces().facing('+z'), { d: param('D'), x: 20, y: 20 }),
+    e => e instanceof BarocssError && e.code === 'PARAMETER_UNBINDABLE');
+});
+
+test('configurations: saved sets of parameter values', () => {
+  // #region configurations
+  const p = plate().configuration('wide')                   // the current values, as the panel's Save
+    .withParameters({ W: 60 }).configuration('narrow');
+  assert.deepEqual(p.configurations(), { wide: { W: 80, R: 2 }, narrow: { W: 60, R: 2 } });
+  const wide = p.withConfiguration('wide');                 // its values applied, as the panel's Apply
+  assert.deepEqual(wide.parameters(), { W: 80, R: 2 });
+  // #endregion configurations
+  assert.ok(near(volume(wide), plateVolume(80, 2)));
+  assert.throws(() => p.withConfiguration('tall'), e => e instanceof BarocssError && e.code === 'CONFIGURATION_UNKNOWN');
+});
+
+test('suppression: a feature switched off by its id, and back', () => {
+  // #region suppression
+  const p = plate();
+  assert.deepEqual(p.features().map(f => [f.id, f.kind]), [['n0', 'sketch'], ['n1', 'extrude'], ['n2', 'fillet']]);
+  const sharp = p.suppressed('n2');                          // as the History panel's toggle writes it
+  assert.ok(near(volume(sharp), 80 * 40 * 10));              // the unrounded plate
+  assert.equal(JSON.stringify(sharp.suppressed('n2', false).doc), JSON.stringify(p.doc));   // back, byte for byte
+  // #endregion suppression
 });
