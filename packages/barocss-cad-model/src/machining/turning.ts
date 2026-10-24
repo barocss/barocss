@@ -94,7 +94,7 @@ export function turningOf(doc: StudioDoc, bodies: readonly BodyResult[], holes: 
   for (const h of holes) {
     const along = Math.abs(dot(h.axis, a)), kind: TurnedHole['kind'] = along > 1 - 1e-9 ? (Math.hypot(...radial(h.point, c, a)) <= 1e-6 ? 'on-axis' : 'axial') : along < 1e-9 ? 'radial' : 'angled';
     turnedHoles.push({ kind, diameter: h.steps[0].diameter, faces: h.steps[0].faces });
-    if (kind === 'on-axis') idGrooves += h.steps.filter(s => s.reachMM === null).length;
+    if (kind === 'on-axis') idGrooves += h.steps.filter(s => s.reach === null).length;
   }
   return { axis: { c, a }, area: area, turnedArea: turned, offAxis: [...off.entries()].map(([face, A]) => ({ face, area: A })).sort((x, y) => y.area - x.area),
     diameter: 2 * rMax, length: hi - lo, minOuterDiameter: outer.length ? 2 * Math.min(...outer.map(s => s.r)) : null, grooves, idGrooves, holes: turnedHoles, points };
