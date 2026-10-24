@@ -72,6 +72,48 @@ samples run in Node:
 
 The package README is the language's full reference.
 
+## Errors
+
+gpu refuses with its own `BarocssError`, of the same shape as the other packages': a `code`, and a message that starts
+with it in brackets. gpu imports neither cad package, so the class is its own. Each error class is one of these, and
+some codes are shared by several classes, so tell refusals apart by `code`.
+
+- **The viewer's input** is refused with a `ViewerError`:
+
+  | Code | What it refuses |
+  |---|---|
+  | `GEOMETRY_INVALID` | Geometry input: positions, indices, topology counts, normals, faces, edges, UVs, labels, colours and their range, scalar fields |
+  | `INSTANCES_INVALID` | Instance transforms or colours of the wrong length, or instancing a mesh that isn't triangles |
+  | `TRANSFORM_INVALID` | A transform that isn't 16 numbers |
+  | `COLOR_MAP_INVALID` | A colour map with fewer than two stops, or stops that don't rise |
+  | `COLOR_INVALID` | A colour that isn't hex, when a frame is drawn |
+  | `MATERIAL_INVALID` | A shader material with more than 16 parameters, when a frame is drawn |
+  | `CLIP_INVALID` | Too many clip planes, or a plane without a normal or a finite offset |
+  | `TEXTURE_INVALID` | A texture without a size, or data that isn't width × height RGBA |
+  | `SIZE_INVALID` | A backing size under 1 × 1 |
+  | `MATRIX_SINGULAR` | Inverting a matrix that has no inverse |
+
+  When it can't start or draw, it refuses with `WEBGPU_UNAVAILABLE`, `NO_ADAPTER`, `NO_CONTEXT`, `SHADER`,
+  `PIPELINE`, `DEVICE_LOST` or `DISPOSED`.
+- **The package entry's inputs** are refused with a `GpuInputError`, with the same words as before its code. Where it
+  wraps a check, its cause is that check's own error:
+
+  | Code | Entry |
+  |---|---|
+  | `SCENE_INVALID` | `parseScene`, `compileScene` |
+  | `MESH_PACKET_INVALID` | `validatePreviewPacket` |
+  | `MESH_OPTIONS_INVALID` | `validateMeshOptions` |
+  | `MESH_INVALID` | `prepareMesh` |
+  | `CAMERA_INVALID` | `validateMeshCamera`, `prepareCamera` |
+  | `FACE_PREVIEW_INVALID` | `prepareKernelFacePreview`, `resolveKernelFaceReference` |
+  | `PRIMITIVE_FRAME_INVALID` | `preparePrimitiveSceneFrame` |
+  | `BOOLEAN_BUFFERS_INVALID` | `prepareCoplanarBooleanBuffers`, `prepareBooleanShellBuffers` |
+  | `GPU_BVH_DEPTH` | A hierarchy too deep for a GPU analysis (`computeExperimental`) |
+
+- **Compiling the language** doesn't throw: `compileGpu` and `materialShader` return `{ ok: false, diagnostics }`, each
+  diagnostic with its code and where it is.
+- **The object facade's** codes are on [Object API](/packages/api#scenes).
+
 ## WebGPU and WebGL2
 
 The studio keeps one interface over two renderers:
