@@ -5,6 +5,7 @@ import { Part, refuse, type Density } from '@barocss/cad/api';
 import type { StudioDoc } from '../engine/doc';
 import { MATERIALS } from '../library/materials';
 import type { MassResult } from './core';
+import { bodiesOf } from './core';
 import { studioBackend } from './studio';
 
 export class StudioPart extends Part<StudioDoc> {
@@ -17,5 +18,14 @@ export class StudioPart extends Part<StudioDoc> {
   }
 }
 
-/** A new, empty studio part. */
-export function part(name = 'part'): StudioPart { return new StudioPart(studioBackend, name, studioBackend.empty()); }
+/**
+ * A new studio part, empty — or continuing from a StudioDoc of your own (a saved one, or another part's `.doc`): it is
+ * evaluated once, and the part's verbs add to it.
+ */
+export function part(name = 'part', doc?: StudioDoc): StudioPart {
+  if (doc === undefined) return new StudioPart(studioBackend, name, studioBackend.empty());
+  if (doc?.format !== 'barocss-cad-model') throw refuse('VALUE', 'a studio part continues from a StudioDoc (format barocss-cad-model)');
+  const own = structuredClone(doc);
+  if (own.nodes.length) bodiesOf(own);
+  return new StudioPart(studioBackend, name, own);
+}
