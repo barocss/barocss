@@ -12,7 +12,7 @@ import { boundsOf } from '../engine/bounds';
 
 export type Allowance<T> = ({ ok: true } & T) | { ok: false; why: string };
 export interface ShrinkAllowance { readonly ratio: number; readonly basis: 'table' | 'set'; readonly band: string; readonly label: string; readonly page: string | null }
-export interface MachiningAllowance { readonly mm: number; readonly basis: 'table' | 'set'; readonly band: string; readonly label: string; readonly page: string | null }
+export interface MachiningAllowance { readonly value: number; readonly basis: 'table' | 'set'; readonly band: string; readonly label: string; readonly page: string | null }
 export interface MachinedFace { readonly name: string; readonly body: string; readonly flat: boolean }
 
 /** An allowance found, without its `ok`. */
@@ -47,13 +47,13 @@ export function shrinkByDimension(doc: StudioDoc, profile: ProcessProfile, famil
 /** The machining allowance for a family at the part's size: the user's, else the table's (none past its last band). */
 export function machiningOf(doc: StudioDoc, profile: ProcessProfile, family: CastFamily, size: number): Allowance<MachiningAllowance> {
   const set = doc.casting?.machiningAllowance;
-  if (typeof set === 'number') return { ok: true, mm: set, basis: 'set', band: 'yours', label: 'your allowance', page: null };
+  if (typeof set === 'number') return { ok: true, value: set, basis: 'set', band: 'yours', label: 'your allowance', page: null };
   const cls = machiningClassOf(family), row = profile.allowances?.machining.find(m => m.class === cls);
   if (!row) return { ok: false, why: `no ${profile.label.toLowerCase()} machining allowance for ${cls === 'nonferrous' ? 'a non-ferrous metal' : `cast ${cls}`} was read from a public page: set yours (set_casting allowance)` };
   const inch = size / MM_PER_INCH, k = row.bands.findIndex(b => inch <= b.upToIn + 1e-12);
   if (k < 0) return { ok: false, why: `the part's ${r6(size)} mm is past the table's last band (${row.bands.at(-1)!.upToIn} in): set yours (set_casting allowance)` };
   const b = row.bands[k];
-  return { ok: true, mm: r6(b.in * MM_PER_INCH), basis: 'table', band: bandWords(k ? row.bands[k - 1].upToIn : null, b.upToIn, 'in'), label: row.label, page: row.page.url };
+  return { ok: true, value: r6(b.in * MM_PER_INCH), basis: 'table', band: bandWords(k ? row.bands[k - 1].upToIn : null, b.upToIn, 'in'), label: row.label, page: row.page.url };
 }
 /** The faces marked machined, each found on a body or not, and whether it is flat (the ones an allowance goes on). */
 export function machinedFaces(doc: StudioDoc, bodies: readonly BodyResult[]): { found: MachinedFace[]; missing: string[] } {
