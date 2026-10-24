@@ -423,7 +423,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   };
   const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | 'tool' | null; x: number; y: number; moved: boolean; x0?: number; y0?: number;
     /** A gizmo drag: what was hit, the pointer's start and last points, and what it means so far. */
-    hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; value2?: number; start2?: number; origin?: Vec3; factor?: number }>({ mode: null, x: 0, y: 0, moved: false });
+    hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; value2?: number; start2?: number; origin?: Vec3; handleAt?: Vec3; factor?: number }>({ mode: null, x: 0, y: 0, moved: false });
   /** The gizmo handle under the pointer, drawn brighter. */
   const gizmoHot = useRef<GizmoHit | null>(null);
   // While the camera moves (orbit, pan, zoom), frames leave out ambient occlusion; 180 ms after the last
@@ -964,10 +964,13 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     d.x = x; d.y = y;
     if (hit.kind === 'handle') {
       const hd = p.handles?.[hit.index]; if (!hd) return;
-      // An arc adds up the angle swept round its centre step by step; an arrow measures mm along it.
-      if (hd.plane) { const [u, v] = dragIn(d.from!, [x, y], hd.at, hd.dir, hd.plane.dir2, P); d.value = hd.toValue(d.start!, u); d.value2 = hd.plane.toValue2(d.start2!, v); hd.onDrag(d.value, done, d.value2); return; }
+      // An arc adds up the angle swept round its centre step by step; an arrow measures mm along it — from the handle where
+      // the drag began (G14: a handle drawn where its value now is, as SceneViewport's section handles are in each frame,
+      // would measure each step from a moved point, and the release from another: its value one snap off the last shown).
+      const at0 = d.handleAt ?? hd.at;
+      if (hd.plane) { const [u, v] = dragIn(d.from!, [x, y], at0, hd.dir, hd.plane.dir2, P); d.value = hd.toValue(d.start!, u); d.value2 = hd.plane.toValue2(d.start2!, v); hd.onDrag(d.value, done, d.value2); return; }
       if (hd.arc) { d.turned = (d.turned ?? 0) + dragAbout(d.last!, [x, y], hd.arc.centre, hd.arc.axis, P); d.last = [x, y]; d.value = hd.toValue(d.start!, d.turned); }
-      else d.value = hd.toValue(d.start!, dragAlong(d.from!, [x, y], hd.at, hd.dir, P));
+      else d.value = hd.toValue(d.start!, dragAlong(d.from!, [x, y], at0, hd.dir, P));
       hd.onDrag(d.value, done); return;
     }
     if (!g) return;
@@ -997,7 +1000,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     const hit = e.button === 0 && !propsRef.current.sketch ? gizmoHit(x, y) : null;
     if (hit) {
       const hd = hit.kind === 'handle' ? propsRef.current.handles![hit.index] : undefined;
-      drag.current = { mode: 'gizmo', x, y, moved: false, hit, from: [x, y], last: [x, y], turned: 0, start: hd?.value, start2: hd?.plane?.value2, origin: propsRef.current.gizmo ? [...propsRef.current.gizmo.origin] as Vec3 : undefined };
+      drag.current = { mode: 'gizmo', x, y, moved: false, hit, from: [x, y], last: [x, y], turned: 0, start: hd?.value, start2: hd?.plane?.value2, handleAt: hd ? [...hd.at] as Vec3 : undefined, origin: propsRef.current.gizmo ? [...propsRef.current.gizmo.origin] as Vec3 : undefined };
       return;
     }
     if (e.button === 2 && !e.shiftKey) drag.current = { mode: 'orbit', x, y, moved: false };
