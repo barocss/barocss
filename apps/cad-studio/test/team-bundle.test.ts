@@ -51,7 +51,10 @@ test('a complete bundle: the document, the approved baseline, sourced materials,
   assert.equal(b.manifest.baseline?.id, 'BL1');
   const mats = JSON.parse(new TextDecoder().decode(b.files.get(BUNDLE_FILES.materials))).materials;
   assert.deepEqual(mats.map((m: { part: string; material: string; basis: string }) => [m.part, m.material, m.basis]), [['p1', 'al6061', 'body'], ['p2', 'al6061', 'body']]);
-  assert.match(mats[0].sources.densityGPerCm3, /^S-DENS: BaroCSS typical density/);
+  assert.match(mats[0].sources.density, /^S-DENS: BaroCSS typical density/);
+  assert.ok(mats.every((m: { density: number; sources: Record<string, string> }) => m.density === 2.7 && !('densityGPerCm3' in m) && !('densityGPerCm3' in m.sources)));
+  assert.match(mats[0].sources.elasticModulus, /^S-TYP:/); assert.match(mats[0].sources.yieldStress, /^S-TYP:/);
+  assert.ok(!('elasticModulusMPa' in mats[0].sources) && !('yieldMPa' in mats[0].sources));
   const results = JSON.parse(new TextDecoder().decode(b.files.get(BUNDLE_FILES.results))).results;
   assert.deepEqual(results.map((r: { result: { kind: string; part?: string } }) => `${r.result.kind}${r.result.part ? ` ${r.result.part}` : ''}`), ['bom', 'mass p1', 'mass p2']);
   assert.ok(results.every((r: { freshness: { state: string } }) => r.freshness.state === 'current'));
@@ -76,7 +79,7 @@ test('an incomplete bundle, each gap listed and never complete: a file deleted, 
   const del = await verifyBundle(reader(without(BUNDLE_FILES.results)), evaluate);
   assert.deepEqual([del.complete, del.missing], [false, ['results.json: missing']]); assert.equal(del.manifestSaidComplete, true, 'the manifest said complete: the read-back does not take its word');
   // (A file edited: a material's density.)
-  const ed = await verifyBundle(reader(edited(BUNDLE_FILES.materials, t => t.replace('"densityGPerCm3": 2.7', '"densityGPerCm3": 7.85'))), evaluate);
+  const ed = await verifyBundle(reader(edited(BUNDLE_FILES.materials, t => t.replace('"density": 2.7', '"density": 7.85'))), evaluate);
   assert.deepEqual([ed.complete, ed.intact, ed.changed], [false, false, ['materials.json: its digest is not the manifest\'s']]);
   // (The document swapped for another with the manifest's file digest rewritten: its revision is not the pinned one.)
   const other = encodeStudioFile({ ...doc, parameters: { ...doc.parameters, w: 99 } }), sw = new Map(b.files); sw.set(BUNDLE_FILES.document, other);

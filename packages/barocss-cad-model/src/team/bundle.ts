@@ -27,7 +27,7 @@ export interface Manifest {
   files: BundleFile[];
   missing: string[]; stale: string[]; complete: boolean;
 }
-export interface MaterialEntry { part: string; body: string; material: string | null; label: string | null; densityGPerCm3: number | null; basis: 'body' | 'brief' | 'default'; sources: Record<string, string> }
+export interface MaterialEntry { part: string; body: string; material: string | null; label: string | null; density: number | null; basis: 'body' | 'brief' | 'default'; sources: Record<string, string> }
 export interface BundleCheck { complete: boolean; intact: boolean; missing: string[]; changed: string[]; stale: string[]; manifestSaidComplete: boolean | null }
 
 /** A document's revision digest: the SHA-256 of its revision fields (what A7's revision reads). */
@@ -45,12 +45,12 @@ export async function materialsOf(doc: StudioDoc, evaluate: Evaluate): Promise<M
     for (const b of bodies) {
       const own = lookOf(d, b).material, id = own ?? briefMaterial(d), m = materialData(id), sources: Record<string, string> = {};
       if (m) for (const [field, s] of Object.entries(m.sources)) sources[field] = `${s}: ${MATERIALS_DATA.sources[s] ?? '?'}`;
-      out.push({ part, body: b.key, material: id ?? null, label: m?.label ?? null, densityGPerCm3: m?.densityGPerCm3 ?? null, basis: own ? 'body' : id ? 'brief' : 'default', sources });
+      out.push({ part, body: b.key, material: id ?? null, label: m?.label ?? null, density: m?.density ?? null, basis: own ? 'body' : id ? 'brief' : 'default', sources });
     }
   }
   return out;
 }
-const materialGaps = (ms: readonly MaterialEntry[]) => ms.filter(m => !m.sources.densityGPerCm3).map(m => `material source: ${m.part}/${m.body} (${m.basis === 'default' ? 'none set: the default, assumed' : `${m.material}: not in the material library`})`);
+const materialGaps = (ms: readonly MaterialEntry[]) => ms.filter(m => !m.sources.density).map(m => `material source: ${m.part}/${m.body} (${m.basis === 'default' ? 'none set: the default, assumed' : `${m.material}: not in the material library`})`);
 /** The standard results a bundle carries when none are given: the BOM, each part's mass and requirements. */
 export async function standardResults(doc: StudioDoc, evaluate: Evaluate, run = 'B1'): Promise<Result[]> {
   const out: Result[] = [await bomResult(doc, evaluate, run)];

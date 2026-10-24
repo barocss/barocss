@@ -12,6 +12,53 @@ const bodies = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.
 const plate = (t: number, process: string | null = 'injection') => ({ ...rectanglePart(60, 40, t), ...(process ? { process } : {}) });
 const top = (t: number, x: number, y: number) => ({ body: { node: 1, side: 'solid' as const }, face: 'n1.top', point: [x, y, t] as [number, number, number], normal: [0, 0, 1] as [number, number, number] });
 
+test('canonical material fields retain density, modulus, yield and field sources without old aliases', async () => {
+  const { MATERIALS_DATA, MATERIALS, materialData, checkMaterials } = await import('../src/library/materials');
+  assert.deepEqual(checkMaterials(MATERIALS_DATA), []);
+  assert.equal(MATERIALS_DATA.materials.length, 18);
+  assert.deepEqual(MATERIALS.slice(0, 8).map(m => [m.id, m.density]), [['al6061', 2.7], ['steel', 7.85], ['ss304', 8], ['brass', 8.5], ['ti64', 4.43], ['abs', 1.04], ['pla', 1.24], ['pa12', 1.01]]);
+  for (const [id, density, modulus, yieldStress] of [['al6061', 2.7, 68900, 276], ['steel', 7.85, 200000, 250], ['abs', 1.04, 2200, 40]] as const) {
+    const m = materialData(id)!;
+    assert.deepEqual([m.density, m.elasticModulus, m.yieldStress], [density, modulus, yieldStress]);
+    assert.equal(m.sources.density, 'S-DENS');
+    assert.equal(m.sources.elasticModulus, 'S-TYP'); assert.equal(m.sources.yieldStress, 'S-TYP');
+  }
+  for (const m of [...MATERIALS_DATA.materials, ...MATERIALS]) {
+    for (const old of ['densityGPerCm3', 'gPerCm3', 'elasticModulusMPa', 'yieldMPa']) assert.ok(!(old in m), `${m.id}.${old}`);
+  }
+  for (const m of MATERIALS_DATA.materials) {
+    for (const old of ['densityGPerCm3', 'elasticModulusMPa', 'yieldMPa']) assert.ok(!(old in m.sources));
+  }
+});
+
+test('canonical material context resolves actual values and sources; old quantity paths remain unknown', async () => {
+  const { materialData, materialContext } = await import('../src/library/materials');
+  const m = materialData('abs')!;
+  for (const [field, value, source] of [['density', 1.04, 'S-DENS'], ['elasticModulus', 2200, 'S-TYP'], ['yieldStress', 40, 'S-TYP']] as const) {
+    assert.deepEqual(materialContext(`material.${field}`, m, undefined), { value, source });
+  }
+  for (const old of ['densityGPerCm3', 'gPerCm3', 'elasticModulusMPa', 'yieldMPa']) assert.ok('unknown' in materialContext(`material.${old}`, m, undefined));
+  assert.ok('unknown' in materialContext('material.density', undefined, undefined));
+  const lib = libraryById('enclosure')!, paths = [...lib.parts.values()].flatMap(p => Object.values(p.part.context ?? {}).flatMap(c => c.from ?? []));
+  assert.ok(paths.includes('material.elasticModulus')); assert.ok(paths.includes('material.yieldStress'));
+  assert.ok(!paths.includes('material.elasticModulusMPa') && !paths.includes('material.yieldMPa'));
+});
+
+test('canonical material validation rejects legacy-only keys and keeps positivity and source requirements', async () => {
+  const { MATERIALS_DATA, checkMaterials } = await import('../src/library/materials');
+  const legacy = structuredClone(MATERIALS_DATA) as unknown as { materials: Record<string, unknown>[] };
+  for (const m of legacy.materials) for (const [old, key] of [['densityGPerCm3', 'density'], ['elasticModulusMPa', 'elasticModulus'], ['yieldMPa', 'yieldStress']]) { m[old] = m[key]; delete m[key]; }
+  assert.ok(checkMaterials(legacy as unknown as typeof MATERIALS_DATA).length > 0);
+  for (const value of [0, -1, NaN, Infinity]) {
+    const bad = structuredClone(MATERIALS_DATA) as unknown as { materials: Record<string, unknown>[] };
+    bad.materials[0].density = value;
+    assert.ok(checkMaterials(bad as unknown as typeof MATERIALS_DATA).some(p => p.startsWith('al6061.density:')));
+  }
+  const unsourced = structuredClone(MATERIALS_DATA) as unknown as { materials: { sources: Record<string, string> }[] };
+  delete unsourced.materials[0].sources.elasticModulus;
+  assert.ok(checkMaterials(unsourced as unknown as typeof MATERIALS_DATA).includes('al6061.elasticModulus: no source'));
+});
+
 test('the screw boss: M2–M5 with and without gussets build valid; without gussets its volume the closed form; its rules read the wall', () => {
   const lib = libraryById('enclosure')!;
   for (const v of ['M2', 'M2.5', 'M3', 'M4', 'M5']) for (const ribs of [0, 4]) {
@@ -137,7 +184,7 @@ test('R6b.7 materials and process profiles: the data checked (every value source
   const { registerLibrary } = await import('../src/library/libraries');
   const { withLook } = await import('../src/app/bodies');
   assert.deepEqual(checkMaterials(MATERIALS_DATA), []);
-  assert.deepEqual(MATERIALS.slice(0, 8).map(m => [m.id, m.gPerCm3]), [['al6061', 2.7], ['steel', 7.85], ['ss304', 8], ['brass', 8.5], ['ti64', 4.43], ['abs', 1.04], ['pla', 1.24], ['pa12', 1.01]]);
+  assert.deepEqual(MATERIALS.slice(0, 8).map(m => [m.id, m.density]), [['al6061', 2.7], ['steel', 7.85], ['ss304', 8], ['brass', 8.5], ['ti64', 4.43], ['abs', 1.04], ['pla', 1.24], ['pa12', 1.01]]);
   assert.ok(MATERIALS_DATA.materials.every(m => m.estimate && Object.keys(m.sources).length >= 5));
   assert.deepEqual(MATERIALS_DATA.profiles.map(p => p.id), ['injection', 'fdm', 'sla', 'sls', 'mjf', 'cnc-milling', 'cnc-turning', 'die-casting', 'sand-casting']);
   // The same M3 boss on a 1.2 mm wall: moulding warns (sink, a thick boss wall); FDM does not; no process: unknown.

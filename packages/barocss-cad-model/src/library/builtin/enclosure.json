@@ -1058,14 +1058,14 @@
      "unit": "MPa",
      "description": "the material's elastic modulus",
      "from": [
-      "material.elasticModulusMPa"
+      "material.elasticModulus"
      ]
     },
     "ys": {
      "unit": "MPa",
      "description": "the material's yield strength",
      "from": [
-      "material.yieldMPa"
+      "material.yieldStress"
      ]
     },
     "mu": {
