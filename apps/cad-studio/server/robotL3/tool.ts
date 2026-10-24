@@ -1,3 +1,4 @@
+import { isRefusal } from '@barocss/cad-model/engine/refusal';
 // O15 (RD10's L3 run, O46's protocol): `robot_check`, RD9's harness as a chat tool for that run only. It is listed and
 // allowed only when the run sets CAD_ROBOT_L3=1, so every other turn, the toolset guard and the per-turn budget are as
 // they were. It checks the robot as the turn has it with the joints' ratings and the duty passed (each absent: the last
@@ -52,8 +53,9 @@ export async function robotCheckCall(doc: StudioDoc, bodies: readonly BodyResult
   if (ratings === undefined) { try { ratings = jointsPath ? JSON.parse(readFileSync(jointsPath, 'utf8')) : {}; } catch { ratings = {}; } }
   const bad = ratingsProblem(ratings); if (bad) return { text: JSON.stringify({ ok: false, error: `joints: ${bad}` }), isError: true };
   doc = withRatings(doc, ratings as Ratings);
-  const report = await robotCheckOfDoc(doc, bodies, evaluate as never, raw as PublicDuty);
-  if ('error' in report) return { text: JSON.stringify({ ok: false, error: `duty: ${report.error}` }), isError: true };
+  let report: Awaited<ReturnType<typeof robotCheckOfDoc>>;
+  try { report = await robotCheckOfDoc(doc, bodies, evaluate as never, raw as PublicDuty); }
+  catch (e) { if (isRefusal(e, 'BAD_VALUES')) return { text: JSON.stringify({ ok: false, error: `duty: ${e.message}` }), isError: true }; throw e; }
   // Preserve validated public numbers: a second duty projection can round a pose by one ULP.
   if (path) writeFileSync(path, JSON.stringify(raw, null, 1) + '\n');
   if (jointsPath) writeFileSync(jointsPath, JSON.stringify(ratings, null, 1) + '\n');

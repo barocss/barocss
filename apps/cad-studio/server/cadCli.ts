@@ -1,3 +1,4 @@
+import { isRefusal } from '@barocss/cad-model/engine/refusal';
 // The CLI (A5.4, O12): a part built by a script (run_script, A5.2) for batch work and CI, written as .bcad, STEP and
 // STL, its requirements checked. The same tool layer as the chat and cad-mcp; the person running it is the author, so
 // no autonomy gate applies (the script is theirs). Exit codes: 0 done, 1 the script or a tool refused, 2 usage,
@@ -361,8 +362,9 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     if ('error' in s) return failed(s.error);
     let raw: unknown;
     try { raw = JSON.parse(readFileSync(resolve(rest[1]), 'utf8')); } catch (e) { return failed(`${rest[1]}: ${e instanceof Error ? e.message : String(e)}`, 2); }
-    const r = await robotCheckOfDoc(s.doc, s.bodies, evaluate, raw as PublicDuty);
-    if ('error' in r) return failed(`${rest[1]}: ${r.error}`, 2);
+    let r: Awaited<ReturnType<typeof robotCheckOfDoc>>;
+    try { r = await robotCheckOfDoc(s.doc, s.bodies, evaluate, raw as PublicDuty); }
+    catch (e) { if (isRefusal(e, 'BAD_VALUES')) return failed(`${rest[1]}: ${e.message}`, 2); throw e; }
     say(io.stdout, r);
     return r.ok ? 0 : 1;
   }
@@ -376,8 +378,9 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     if ('error' in s) return failed(s.error);
     let raw: unknown;
     try { raw = JSON.parse(readFileSync(resolve(files[1]), 'utf8')); } catch (e) { return failed(`${files[1]}: ${e instanceof Error ? e.message : String(e)}`, 2); }
-    const result = await robotSizeOfDoc(s.doc, s.bodies, evaluate, raw as PublicDuty);
-    if ('error' in result) return failed(`${files[1]}: ${result.error}`, 2);
+    let result: Awaited<ReturnType<typeof robotSizeOfDoc>>;
+    try { result = await robotSizeOfDoc(s.doc, s.bodies, evaluate, raw as PublicDuty); }
+    catch (e) { if (isRefusal(e, 'BAD_VALUES')) return failed(`${files[1]}: ${e.message}`, 2); throw e; }
     const { sized: published, doc } = result, out = resolve(rest[oi + 1]), dutyOut = out.replace(/\.bcad$/i, '') + '.duty.json';
     writeAtomic(out, encodeStudioFile(doc)); writeAtomic(dutyOut, JSON.stringify(published.duty, null, 1) + '\n');
     say(io.stdout, { ok: published.ok, rounds: published.rounds, trace: published.trace, ...(published.stopped ? { stopped: published.stopped } : {}), least: published.report.least, wrote: [out, dutyOut] });

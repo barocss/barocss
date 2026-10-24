@@ -1,3 +1,4 @@
+import { BarocssError } from '../src/engine/refusal';
 import { checkDesign as canonicalCheckDesign } from '../src/robot/harness';
 import { sizeDesign as canonicalSizeDesign } from '../src/robot/sizer';
 import { sizeDesign as nativeSizeDesign } from '../src/robot/native/sizer';
@@ -81,9 +82,19 @@ test('default core check and size accept only canonical Duty and project native 
   assert.equal(range.value, 30); assert.equal(range.unit, 'degree');
   const sized = canonicalSizeDesign(tree, bodies, null, input, { maxRounds: 0, ...catalogue }); assert.ok(!('error' in sized));
   assert.deepEqual(sized, sizedJson(nativeSizeDesign(tree, bodies, null, native, { maxRounds: 0, ...catalogue })));
-  for (const bad of [{ ...input, life_h: 2 }, { ...input, clearance_mm: .25 }, { ...input, serviceLife: Infinity }, { ...input, moves: [{ ...input.moves[0], dwell_s: .5 }] }]) {
-    assert.deepEqual(canonicalCheckDesign(tree, bodies, null, bad, catalogue), readDuty(tree, bad));
-    assert.deepEqual(canonicalSizeDesign(tree, bodies, null, bad, { maxRounds: 0, ...catalogue }), readDuty(tree, bad));
+  const invalid = [
+    [{ ...input, life_h: 2 }, 'No duty field life_h.'],
+    [{ ...input, clearance_mm: .25 }, 'No duty field clearance_mm.'],
+    [{ ...input, serviceLife: Infinity }, '"serviceLife" is a number above 0'],
+    [{ ...input, moves: [{ ...input.moves[0], dwell_s: .5 }] }, 'move 0: no field dwell_s.'],
+  ] as const;
+  for (const [bad, text] of invalid) {
+    const beforeBad = structuredClone(bad);
+    assert.deepEqual(readDuty(tree, bad), { error: text }, 'native decoder result stays unchanged');
+    const typed = (error: unknown) => { assert.ok(error instanceof BarocssError); assert.equal(error.code, 'BAD_VALUES'); assert.equal(error.message, `[BAD_VALUES] ${text}`); return true; };
+    assert.throws(() => canonicalCheckDesign(tree, bodies, null, bad, catalogue), typed);
+    assert.throws(() => canonicalSizeDesign(tree, bodies, null, bad, { maxRounds: 0, ...catalogue }), typed);
+    assert.deepEqual(bad, beforeBad);
   }
   assert.deepEqual(input, before);
 });

@@ -20,7 +20,7 @@ import { checkFramesOn, withFrames } from '../assembly/edit';
 import { readRobot, type JointSettings, type JointTree } from '../robot/joints';
 import { r6 } from '../util/round';
 import { jointSettingsOut, jointTreeOut, jointValuesIn, jointValuesOut } from '../robot/units';
-import { isRefusal, type BarocssError } from '../engine/refusal';
+import { isRefusal, refusal, type BarocssError } from '../engine/refusal';
 import { checkMotion, gravityRawOf, inertiaOf, mjcfOf, moveRawOf, partsOf, playMotion, poseOf, robotViewOf, setPose, sizeOf, sweepLinksOf, sweepOf, treeOf, urdfOf, viewWith, withJoints, withWaypoint, type RobotView } from '../robot/verbs';
 
 import { gravityIn, gravityJson, inertiaJson, moveJson, PUBLIC_GRAVITY, sizeOptionsIn, sizingJson, harnessJson, sizedJson, type PublicDuty } from '../robot/reports';
@@ -293,13 +293,13 @@ export async function nativeRobotSizeOfDoc(doc: StudioDoc, bodies: readonly Body
 /** Canonical document check: validate public seconds/degrees/mm once, then project the original native report. */
 export async function robotCheckOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, duty: PublicDuty) {
   const tree = await treeOfDoc(doc, bodies, evaluate), native = readDuty(tree, duty);
-  if ('error' in native) return native;
+  if ('error' in native) throw refusal('BAD_VALUES', native.error);
   return harnessJson(tree, await nativeRobotCheckOfDoc(doc, bodies, evaluate, native));
 }
 /** Canonical document sizing; stored ratings are written from the native tree before projection. */
 export async function robotSizeOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, duty: PublicDuty, o: { maxRounds?: number } = {}) {
   const tree = await treeOfDoc(doc, bodies, evaluate), native = readDuty(tree, duty);
-  if ('error' in native) return native;
+  if ('error' in native) throw refusal('BAD_VALUES', native.error);
   const result = await nativeRobotSizeOfDoc(doc, bodies, evaluate, native, o);
   return { ...result, sized: sizedJson(result.sized) };
 }
