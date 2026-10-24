@@ -72,6 +72,11 @@ What isn't supported, or is refused, gathered from the other pages. Each item li
 
 - **Auto-dimension** works on a part's sheet. An assembly's sheet keeps its BOM table and balloons.
   ([Drawings](/studio/drawings))
+- **Section forms.** Removed and revolved sections cannot also be half or offset. An aligned section can be removed,
+  but cannot be revolved. Turning the drawing with any of these four forms is refused with `SECTION_KIND`.
+- **Section placement.** A removed section with no free room reports `SECTION_NO_ROOM`. A revolved section with no
+  view to receive it reports `SECTION_NO_VIEW` and is not drawn. Neither has an automatic fix.
+  ([Removed and revolved sections](/studio/drawings#removed-and-revolved-sections))
 
 ## The agent
 
