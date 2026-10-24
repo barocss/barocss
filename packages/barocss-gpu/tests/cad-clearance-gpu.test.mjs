@@ -29,7 +29,7 @@ function overlay(changes = {}) {
   const model = identity(); model[12] = 4; model[13] = 3; model[14] = 2;
   return { id: 'band', bodyKey: 'part/body', positions: new Float32Array([-2, -2, 0, 2, -2, 0, 0, 2, 0]), normals: new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1]), indices: new Uint32Array([0, 1, 2]), colors: new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]), field: new Float32Array([0.1, 0.2, 0.3]), model, state: 'near', hatched: false, opacity: 0.6, ...changes };
 }
-const display = (overlays, clip) => ({ version: 'clearance-map-v1', request: 7, revision: 'pose-v7', nearMM: 2, stage: 'ready', pairs: [], overlays, ...(clip ? { clip } : {}) });
+const display = (overlays, clip) => ({ version: 'clearance-map-v1', request: 7, revision: 'pose-v7', near: 2, stage: 'ready', pairs: [], overlays, ...(clip ? { clip } : {}) });
 const state = (displayMode, isolatedInstances) => ({ displayMode, isolatedInstances, hoverFace: null, hoverEdge: null, selectedFaces: [], selectedEdges: [], selectedBodies: [], offsets: new Map(), ghostBodies: new Set(), hiddenBodies: new Set() });
 const camera = () => ({ target: [0, 0, 0], fovY: Math.PI / 4, ortho: false, eye: () => [5, 5, 5], basis: () => ({ right: [1, 0, 0], up: [0, 1, 0], forward: [0, 0, -1] }) });
 function fixture() {

@@ -463,7 +463,7 @@ export function App() {
   // refuse each other. The dock's switch chooses it, G12e.)
   const [previewMode, setPreviewMode] = useState<PreviewMode>('none');
   const clearanceEnabled = previewMode === 'clearance';
-  const [clearanceNearMM, setClearanceNearMM] = useState(1);
+  const [clearanceNear, setClearanceNear] = useState(1);
   const printEnabled = previewMode === 'print';
   // (G23 CNC: the material-removal preview, session only.)
   const camEnabled = previewMode === 'cnc';
@@ -2307,7 +2307,7 @@ export function App() {
     : sketch || previewBodies || active || ghost || assembly.draft || cageEd.overlay || skel.tool ? 'Pending · finish the current edit to classify its geometry.'
     : viewAnalysis || scalarMaps?.length || mouldShown || directShown.length ? 'Assembly clearance requires the ordinary solid view.'
     : !fresh || !clearanceReady ? 'Pending · waiting for the current source geometry.' : undefined;
-  const clearanceResult = useClearanceAnalysis(clearanceEnabled && !clearanceReason, clearanceDoc, clearanceNearMM, clearanceMotions, clearanceVisibleKeys, clearanceVisibleInstances);
+  const clearanceResult = useClearanceAnalysis(clearanceEnabled && !clearanceReason, clearanceDoc, clearanceNear, clearanceMotions, clearanceVisibleKeys, clearanceVisibleInstances);
   const clearanceClip = useMemo(() => section && !sketch ? { planes: sectionPlanes(section), cutout: section.mode === 'cutout' } : undefined, [section, sketch]);
   const clearanceDisplay = useMemo(() => {
     if (!clearanceResult) return null;
@@ -2383,7 +2383,7 @@ export function App() {
   // an overlay toggle at the section's header, their status under the panel.)
   const previewPanel = previewMode === 'print' ? <PrintPanel options={printOptions} onOptions={commitPrintPreview} onDirection={commitPrintDirection} state={printState} reason={printReason} />
     : previewMode === 'cnc' ? <CamPanel options={camOptions} onOptions={patchCam} state={camState} reason={camReason} />
-    : previewMode === 'clearance' ? <ClearancePanel nearMM={clearanceNearMM} onNear={setClearanceNearMM} display={clearanceDisplay} reason={clearanceReason} labels={clearanceLabels} />
+    : previewMode === 'clearance' ? <ClearancePanel near={clearanceNear} onNear={setClearanceNear} display={clearanceDisplay} reason={clearanceReason} labels={clearanceLabels} />
     : previewMode === 'analysis' ? <AnalysisPanel analysis={analysis} onAnalysis={setAnalysis} map={mapKind} onMap={k => { setMapHover(null); setMouldSpread(0); setMapKind(k); }}
       printing={!!printing} pull={!!doc.mould?.pull} mapsReason={viewBackend === 'webgl2' ? 'The analysis maps are drawn with WebGPU; this browser draws with WebGL2.' : undefined} />
     : null;

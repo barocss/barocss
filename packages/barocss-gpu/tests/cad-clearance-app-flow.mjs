@@ -87,7 +87,7 @@ export async function runClearanceAppFlow({ page, backend, result, out, root, ap
   const savedDoc = JSON.parse(await doc()), [download] = await Promise.all([page.waitForEvent('download'), page.getByLabel('Save', { exact: true }).click()]);
   const saved = join(out, backend + '-clearance-saved.bcad'); await download.saveAs(saved);
   assert.deepEqual(JSON.parse(await readFile(saved, 'utf8')), savedDoc);
-  for (const key of ['clearance', 'clearanceEnabled', 'clearanceNearMM']) assert.equal(Object.hasOwn(savedDoc, key), false);
+  for (const key of ['clearance', 'clearanceEnabled', 'clearanceNear']) assert.equal(Object.hasOwn(savedDoc, key), false);
   await page.getByLabel('New part', { exact: true }).click(); await ready(null, null, 0);
   await open(saved); await ready('near', 0.5); assert.deepEqual(JSON.parse(await doc()), savedDoc, 'Open retains the complete saved document, placements and references'); rows.push(await capture('reopened'));
   await toggle.uncheck(); await page.waitForFunction(() => window.__studioClearance?.() === null);
