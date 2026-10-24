@@ -16,6 +16,10 @@ and writes it (`@barocss/cad-model/engine/doc` and `engine/container`).
 
   Reading checks each array's SHA-256 against its name before using it.
 - **Both open.** Either kind opens. A plain JSON file's inline mesh arrays are read as they are.
+- **What isn't opened.** A container that can't be trusted is refused, with its code in front:
+  - `[CONTAINER_DAMAGED]` for a file cut short, a malformed mesh chunk, a chunk that doesn't match its hash, or no
+    document, for example `[CONTAINER_DAMAGED] This model file could not be read: the file is cut short.`;
+  - `[CONTAINER_NEWER]` for a container version newer than this cad-studio reads.
 
 ## Schema version
 

@@ -9,6 +9,13 @@ page lists the codes refusals carry.
   starts with a more specific code in brackets.
 - **In the document model and the agent's tools**, a message that starts with a code in brackets, such as
   `[FASTENER_SIZE_ROW] no row for M6 — load your fastener sizes …`.
+  - An operation throws a `BarocssError` (from `@barocss/cad/api`) with that `code`, and the message is
+    `[CODE] ` followed by the words.
+  - A row validator returns a list of problems, each `{ code, message }`, rather than throwing.
+- **In `@barocss/gpu`**, every error class is gpu's own `BarocssError` of the same shape: an upper-snake `code`, such as
+  `INPUT`, `BUDGET`, `WEBGPU_UNAVAILABLE` or `DEVICE_LOST`, and a message that starts with it in brackets. A code
+  belongs to its class, not to the package: `INPUT` is the code of many classes. So gpu's codes aren't in the tables
+  below.
 - **In a tool result**, `isError: true` with the message, and sometimes a `code` field the agent acts on:
   - `needs_proposal`: the change goes past the autonomy level, so the agent should propose it;
   - `needs_approval`: the change is the person's to make (the assembly, mates, the drawing, the robot or a locked
