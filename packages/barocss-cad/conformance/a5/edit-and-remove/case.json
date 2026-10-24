@@ -5,7 +5,7 @@
  "script": "const b = box({w: 80, d: 40, h: 8})\nconst c = cylinder({r: 4, h: 20, x: 100, y: 0})\nremove(c)\nedit(b, {h: 5})",
  "expect": {
   "features": 2,
-  "volume_mm3": 16000,
+  "volume": 16000,
   "tol": 0.01,
   "source": "80\u00b740\u00b75"
  }
