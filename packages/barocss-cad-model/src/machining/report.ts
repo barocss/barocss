@@ -67,7 +67,7 @@ export function machinability(doc: StudioDoc, all: readonly BodyResult[], profil
   if (stock.ok) { const c = stock.choice; rules.push({ id: 'stock', level: 'recommended', status: 'pass', message: `stock ${c.row.id}: ${c.row.kind === 'block' ? c.size.join(' × ') : `Ø${c.size[0]} × ${c.size[1]}`} mm (${c.row.source}), ${c.allowance.mm} mm a face${c.allowance.basis === 'estimate' ? ' (an estimate: set yours)' : ''}`, value: c.row.kind === 'block' ? c.size.reduce((p, x) => p * x, 1) : c.size[0], unit: c.row.kind === 'block' ? 'mm³' : 'mm' }); }
   else rules.push({ id: 'stock', level: 'recommended', status: stock.code === 'STOCK_NONE_FITS' ? 'warn' : 'unknown', message: `${stock.code}: ${stock.message}`, ...(stock.code === 'STOCK_NONE_FITS' ? {} : { why: stock.message }) });
   const classes = profile.toleranceClasses;
-  return { process: profile.id, direction: null, rules, machining: { family, material: id, tolerance: { mm: t('tolMM').value, feasibleMM: t('tolFeasibleMM').value, source: t('tolMM').page?.url ?? t('tolMM').source },
+  return { process: profile.id, direction: null, rules, machining: { family, material: id, tolerance: { value: t('tolMM').value, feasibleLimit: t('tolFeasibleMM').value, source: t('tolMM').page?.url ?? t('tolMM').source },
     toleranceClass: classes && family ? { name: classes[family], note: 'the class named; its values are the standard\'s, not copied here', source: classes.page.url } : null, holes, tapped, ...(cavities ? { cavities } : {}), ...(access ? { access } : {}), ...(turning ? { turning } : {}), drawing, ...(features ? { features } : {}), stock } };
 }
 

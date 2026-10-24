@@ -37,7 +37,7 @@ test('CNC1 an aluminium block 100 × 60 × 20, milled: a metal, its walls and si
   for (const id of ['hole-depth', 'hole-size', 'thread', 'corners', 'pocket', 'feature', 'tall', 'text', 'access', 'setups']) assert.equal(by[id].status, 'pass', by[id].message);
   assert.equal(by.setups.value, 2);
   assert.equal(by.drawing.status, 'pass'); assert.match(by.drawing.message, /the standard ±0\.125 mm holds/);
-  assert.deepEqual([r.machining!.family, r.machining!.tolerance.mm, r.machining!.toleranceClass!.name], ['metal', 0.125, 'ISO 2768-1 f']);
+  assert.deepEqual([r.machining!.family, r.machining!.tolerance.value, r.machining!.toleranceClass!.name], ['metal', 0.125, 'ISO 2768-1 f']);
 });
 
 test('CNC1 walls by family: a metal box 0.6 thick warned (under 0.8), 0.4 failed (under 0.5); in ABS 1.2 warned (under 1.5), 0.9 failed (under 1.0), and ISO 2768-1 m named', async () => {
