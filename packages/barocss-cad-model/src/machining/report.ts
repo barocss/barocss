@@ -36,11 +36,11 @@ export function machinability(doc: StudioDoc, all: readonly BodyResult[], profil
   rules.push(family ? { id: 'material', level: 'feasible', status: 'pass', message: `${m!.label}: a ${family}, machined to ${family === 'metal' ? 'metal' : 'plastic'} limits` }
     : { id: 'material', level: 'feasible', status: 'unknown', message: 'the material (its family sets the limits)', why: mixed ? 'the bodies are of different materials' : 'the material is not set (set_material, or the brief\'s stated material): none is assumed' });
   // Walls: the thinnest (the inward ray, IM4's walls) against the family's feasible and recommended least.
-  const walls = wallsOf(doc, bodies, 0.6), thin = walls.filter(w => w.thinnestMM !== null).sort((a, b) => a.thinnestMM! - b.thinnestMM!)[0];
+  const walls = wallsOf(doc, bodies, 0.6), thin = walls.filter(w => w.thinnest !== null).sort((a, b) => a.thinnest! - b.thinnest!)[0];
   if (!thin) rules.push({ id: 'wall', level: 'feasible', status: 'unknown', message: 'the thinnest wall', why: 'no wall measured' });
-  else if (!family) rules.push({ id: 'wall', level: 'feasible', status: 'unknown', message: `the thinnest wall, ${r3(thin.thinnestMM!)} mm`, why: 'its limits are a metal\'s or a plastic\'s: the material is not set' });
+  else if (!family) rules.push({ id: 'wall', level: 'feasible', status: 'unknown', message: `the thinnest wall, ${r3(thin.thinnest!)} mm`, why: 'its limits are a metal\'s or a plastic\'s: the material is not set' });
   else {
-    const min = t(family === 'metal' ? 'wallMetalMin' : 'wallPlasticMin'), rec = t(family === 'metal' ? 'wallMetalRec' : 'wallPlasticRec'), w = thin.thinnestMM!;
+    const min = t(family === 'metal' ? 'wallMetalMin' : 'wallPlasticMin'), rec = t(family === 'metal' ? 'wallMetalRec' : 'wallPlasticRec'), w = thin.thinnest!;
     rules.push({ id: 'wall', level: w < min.value - 1e-9 ? 'feasible' : 'recommended', status: w < min.value - 1e-9 ? 'fail' : w < rec.value - 1e-9 ? 'warn' : 'pass',
       message: `the thinnest wall, ${r3(w)} mm, against a ${family}'s ${min.value} mm feasible and ${rec.value} mm recommended`, value: r3(w), limit: w < min.value - 1e-9 ? min.value : rec.value, unit: 'mm', source: min.source, entities: [thin.body] });
   }
