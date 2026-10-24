@@ -17,8 +17,8 @@ export function sectionTableRows(table: unknown): { rows: FrameSectionRow[] } | 
     // FRk3: use the kernel's checked section spec for flanged rows. This keeps I's explicit zero fields and
     // a legacy channel's absent optional fields intact; neither a catalogue size nor a slope is inferred here.
     const flanged = t.kind === 'i-beam' || t.kind === 'channel' ? lookupSection(t, size) : undefined;
-    // (A T-slot's own size dimension is `sizeMM` in a table: the row's name is `size`.)
-    const section = (flanged && 'spec' in flanged ? flanged.spec : t.kind === 'tslot' ? (() => { const { size, ...rest } = dims; return { kind: t.kind, size: size, ...rest }; })() : { kind: t.kind, ...dims }) as FrameSectionRow['section'];
+    // A T-slot row's cellSize is its numeric section size; the string row name stays size.
+    const section = (flanged && 'spec' in flanged ? flanged.spec : t.kind === 'tslot' ? (() => { const { cellSize, ...rest } = dims; return { kind: t.kind, size: cellSize, ...rest }; })() : { kind: t.kind, ...dims }) as FrameSectionRow['section'];
     const src = source ?? (estimate ? undefined : t.source);
     return { id: `${t.id}:${size}`, name: `${label} ${size}`, section, ...(src ? { source: src } : { estimate: true as const }) };
   }) };
