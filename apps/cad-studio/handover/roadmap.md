@@ -173,7 +173,7 @@ Each product is built end to end — parts, assembly, mates and motion, mass, in
 
 | # | Lane | Product | What it tests |
 |---|---|---|---|
-| P1 | API (builds), gaps to their owners | **A single-cylinder four-stroke engine**: crankshaft (with counterweights), connecting rod, piston with rings and pin, finned cylinder block, head with valves and ports, camshaft, cam followers, crankcase halves, fasteners | complex solids (fin patterns, fillets, sweeps, shells), the slider-crank and the cam train as a mechanism (a closed loop, gear-timed cam 2:1), interference through a cycle, masses and balance, drawings, the BOM, CNC and casting reports |
+| P1 | API (builds), gaps to their owners | **Milestone 1 done** (merge of `7f58931d9`: 21 parts, 9.2 s); milestone 2 (assembly and motion) next. **A single-cylinder four-stroke engine**: crankshaft (with counterweights), connecting rod, piston with rings and pin, finned cylinder block, head with valves and ports, camshaft, cam followers, crankcase halves, fasteners | complex solids (fin patterns, fillets, sweeps, shells), the slider-crank and the cam train as a mechanism (a closed loop, gear-timed cam 2:1), interference through a cycle, masses and balance, drawings, the BOM, CNC and casting reports |
 | P2 | API, gaps to owners | **An electronics enclosure**: a handheld device's two-part moulded housing with bosses, snap fits, ribs, a battery bay, connector openings from connector rows, a heat sink with fins, the board as a sized placeholder | thin walls, draft, moulding DFM, connector rows, fits between halves, an exploded assembly |
 | P3 | API, gaps to owners | **A large machine**: a gantry CNC router — a welded frame, linear rails, carriages, a gantry, motor mounts from mount rows, ball screws, many fasteners (hundreds of parts) | scale (opening, evaluation and display time with hundreds of parts), frames and the cut list, mounts, the BOM at size, the drawing set |
 | P4 | API (+ outer for sizing), gaps to owners | **A real 6-axis robot arm**: link castings, joint housings for strain-wave gearboxes, motor mounts, bearings, a cable path, a tool flange | robot-size and robot-check on real link masses, motion (RS2), URDF/MJCF read back, manufacturing outputs of each link |
@@ -182,6 +182,9 @@ Gaps found (PG-n, added as they're found):
 
 | # | Lane | Gap | Found in |
 |---|---|---|---|
+| PG-1 | API | **done** (`f7f82af77`): a Boolean's tool callback with several verbs (fins patterned in the tool) refused BODY_AMBIGUOUS; StudioPart lacked gear, gearMesh, spring, fastener and loadRows | P1 parts |
+| PG-2 | owner | Rows missing from the shipped samples: the spark plug's M14 × 1.25 thread, the main bearings (stand-ins: a plain plug hole, bushings marked as stand-ins in the BOM) — needs a person-supplied rows file | P1 parts |
+| PG-3 | kernel (measure first) | The engine head (45 features: fins, dome, ports, seats, guides) evaluates in 5.0 s and the valve spring in 1.85 s; profile before P3's hundreds of parts | P1 parts |
 
 ### Photoreal rendering G15 (owner, 2026-10-24)
 
@@ -365,6 +368,7 @@ evidence files.
 - Permissions and budgets: RD3 PDFs, RB6/RB8 downloads, live-model runs, the A6.5 legal review. · ko: 허락과 예산: RD3 PDF, RB6/RB8 다운로드, 실제 모델 실행, 법률 검토
 - The 3MF slicer check (open the exported 3MF in PrusaSlicer or Bambu). · ko: 3MF를 슬라이서(PrusaSlicer, Bambu)에서 열어 확인
 - Dimension expressions (`W/2 + 3`) in documents: today a value is a number or `{ parameter }`, neither document stores an expression; adding one is a schema change for the kernel and the studio. · ko: 문서에 치수 식(W/2+3 같은)을 저장할지 (지금은 숫자나 매개변수 이름만)
+- P1's rows (PG-2): a rows file for the spark plug thread (M14 × 1.25) and the engine's main bearings, from a source the owner supplies; until then stand-ins. · ko: 엔진용 행 파일 (점화 플러그 M14×1.25 나사, 메인 베어링) — 사람이 준 자료 필요
 - A built-in display look per material id (al6061's colour, …) in gpu, or scenes keep registering their own looks (today: none; O75 keeps look ids apart from material ids; R7.5b finding 10; the GPU lane recommends none in gpu: looks stay with the app or the person). · ko: 재료 id마다 기본 표시 모양(색)을 gpu에 둘지, 장면이 직접 등록할지
 
 ## Off the roadmap (owner decisions)
