@@ -105,5 +105,30 @@ test('G22 at scale: 120 boxes, 12 × 10, x-neighbours overlapping 2 mm and y-nei
   const count = (s: string) => map.pairs.filter(p => p.state === s).length;
   assert.deepEqual([count('contact'), map.pending], [110, 110]);
   assert.ok(count('near') > 0 && map.pairs.length < 7140 / 10, `${map.pairs.length} candidate pairs`);
-  assert.ok(map.timing.pruneMS >= 0 && map.timing.clearanceMS >= 0 && map.timing.bandMS >= 0);
+  assert.ok(map.timing.pruneTime >= 0 && map.timing.clearanceTime >= 0 && map.timing.bandTime >= 0);
+});
+
+
+test('G22 timing publishes seconds from the same clock intervals with and without eager bands', async t => {
+  const bodies = await assemblyPlacedBodies(asm(box(20, 20, 10), inst('p', box(20, 20, 10), [21, 0, 0])), evaluate);
+  const timed = (bands: boolean, timestamps: number[]) => {
+    let calls = 0;
+    const clock = t.mock.method(performance, 'now', () => {
+      assert.ok(calls < timestamps.length, 'the original measurement sites call the clock only as supplied');
+      return timestamps[calls++];
+    });
+    let map: ReturnType<typeof clearanceMap>;
+    try { map = clearanceMap(bodies, { near: 1.5, bands }); }
+    finally { clock.mock.restore(); }
+    assert.equal(calls, timestamps.length);
+    assert.equal(map.pairs.length, 1); assert.ok(Math.abs(map.pairs[0].minGap - 1) < 1e-6);
+    return map;
+  };
+  // Clock values are milliseconds; expected public intervals are independent seconds, without rounding.
+  const eager = timed(true, [100.25, 110.75, 120.125, 450.625, 2300.875]);
+  assert.deepEqual(eager.timing, { pruneTime: 0.0105, clearanceTime: 1.859625, bandTime: 0.3305 });
+  assert.ok(eager.pairs[0].band!.a.indices.length > 0 && eager.pairs[0].band!.b.indices.length > 0);
+  const lazy = timed(false, [500.125, 750.625, 1751.875]);
+  assert.deepEqual(lazy.timing, { pruneTime: 0.2505, clearanceTime: 1.00125, bandTime: 0 });
+  assert.equal(lazy.pairs[0].band, undefined);
 });
