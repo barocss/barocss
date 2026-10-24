@@ -7,7 +7,7 @@ import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { tablesFor } from '../src/assembly/faces';
 import { rotationMatrix } from '../src/engine/placement';
-import { solveDoc } from '../src/chat/assembly';
+import { solveDoc } from '../src/assembly/edit';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { MATERIALS } from '../src/library/materials';
 import { jointTreeOf } from '../src/robot/joints';

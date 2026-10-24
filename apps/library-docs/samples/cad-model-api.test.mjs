@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 // #region import
 import { part, BarocssError } from '@barocss/cad-model/api';
 // #endregion import
-import { evaluateDoc, stepFor } from '@barocss/cad-model/engine/evaluate';
+import { evaluateDoc, exportStudioStep } from '@barocss/cad-model/engine/evaluate';
 import { bodyMass } from '@barocss/cad-model/app/mass';
 import { runTool } from '@barocss/cad-model/chat/tools';
 
@@ -73,8 +73,7 @@ test('one bracket three ways: the document by hand, the agent\'s commands and th
   assert.equal(mass.massG, core.massG);
   assert.deepEqual(mass.centroidMM, core.centroid);
   assert.equal(JSON.stringify(bracket.mass({ densityGPerCm3: 2.7 })), JSON.stringify(mass));
-  const coreStep = stepFor(raw, 'bracket');
-  assert.ok('text' in coreStep);
+  const coreStep = exportStudioStep(raw, { name: 'bracket' });
   assert.equal(unstamped(step), unstamped(coreStep.text));
   assert.equal(meshes.length, 1);
   assert.equal(meshes[0].positions.length, meshes[0].normals.length);

@@ -6,7 +6,9 @@
 import type { DisplayMesh } from '../engine/mesh';
 import type { FaceTable } from '../assembly/mates';
 
-export type Vec3 = [number, number, number];
+// (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
+import type { Vec3 } from '../engine/vec3';
+export type { Vec3 };
 export interface OverhangFace { readonly name: string; readonly areaMM2: number; readonly worstDeg: number; readonly exact: boolean }
 export interface OverhangReport {
   readonly direction: Vec3; readonly limitDeg: number;

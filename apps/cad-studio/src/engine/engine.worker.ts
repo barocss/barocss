@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import { brepsFor, deferMasses, evaluateDoc, evaluatePart, evaluatePlaced, evaluatePreview, evaluateVolumes, massOfRef, shareMeshes, stepFor, stlFor, type BodyResult, type EvalResult, type PartSlot } from '@barocss/cad-model/engine/evaluate';
+import { brepsFor, deferMasses, evaluateDoc, evaluatePart, evaluatePlaced, evaluatePreview, evaluateVolumes, massOfRef, shareMeshes, exportStudioStep, stlFor, type BodyResult, type EvalResult, type PartSlot } from '@barocss/cad-model/engine/evaluate';
 import { MeshSender } from '@barocss/cad-model/engine/meshWire';
 import { projectViews } from '@barocss/cad-model/drawing/project';
 import { sectionsCut } from '@barocss/cad-model/drawing/section';
@@ -9,6 +9,11 @@ import { mouldView } from './mouldView';
 import { proposalDiffFor } from '@barocss/cad-model/chat/proposalDiff';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { diagnoseMesh, repairMesh, stepMeshes, stepSizeProblem, stepTessellatedChars, type MeshRepairSteps } from '@barocss/cad';
+
+/** The STEP reply over the wire: the file, or the refusal's words (R7.3c: exportStudioStep throws; the wire keeps `{ error }`). */
+function stepReply(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessellated' | 'planar'): ReturnType<typeof exportStudioStep> | { error: string } {
+  try { return exportStudioStep(doc, { name, ...(meshes ? { meshes } : {}) }); } catch (e) { return { error: e instanceof Error ? e.message : String(e) }; }
+}
 
 export type WorkerRequest =
   | { type: 'evaluate'; id: number; doc: WireDoc; revision: number }
@@ -132,7 +137,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     if (drawing.ok && request.options?.sections?.length) drawing.sections = sectionsCut(request.doc, request.options.sections, request.options.orientation, made);
     (self as unknown as Worker).postMessage({ id: request.id, drawing });
   } else if (request.type === 'step') {
-    (self as unknown as Worker).postMessage({ id: request.id, step: stepFor(request.doc, request.name, request.meshes) });
+    (self as unknown as Worker).postMessage({ id: request.id, step: stepReply(request.doc, request.name, request.meshes) });
   } else {
     const bytes = stlFor(request.doc, request.key);
     (self as unknown as Worker).postMessage({ id: request.id, bytes }, bytes ? [bytes.buffer] : []);

@@ -7,7 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { part, sketch, Plane, Location, BarocssError, type StudioPart } from '../src/api';
 import { prefixDoc, type StudioDoc } from '../src/engine/doc';
-import { evaluateDoc, stepFor } from '../src/engine/evaluate';
+import { evaluateDoc, exportStudioStep } from '../src/engine/evaluate';
 import { bodyMass } from '../src/app/mass';
 import { runTool, type ChatState } from '../src/chat/tools';
 
@@ -124,7 +124,7 @@ async function agentDoc(calls: Call[]): Promise<StudioDoc> {
   } finally { if (was === undefined) delete process.env.CAD_AUTONOMY; else process.env.CAD_AUTONOMY = was; }
 }
 
-// (stepFor stamps the export's time in FILE_NAME; the two runs are compared without it.)
+// (exportStudioStep stamps the export's time in FILE_NAME; the two runs are compared without it.)
 const unstamped = (text: string) => text.replace(/'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d'/g, "'stamp'");
 
 for (const c of CASES) {
@@ -141,8 +141,7 @@ for (const c of CASES) {
       const m = bodyMass(body, 1.2)!, expected = { volumeMM3: body.volumeMM3, massG: m.massG, centroidMM: m.centroid, inertiaGMM2: m.inertia.map(row => row.map(v => v * 1000)) };
       assert.equal(JSON.stringify(p.body(body.key).mass({ densityGPerCm3: 1.2 })), JSON.stringify(expected));
     }
-    const core = stepFor(doc, c.name);
-    assert.ok('text' in core);
+    const core = exportStudioStep(doc, { name: c.name });
     assert.equal(unstamped(p.step()), unstamped(core.text));
   });
 }

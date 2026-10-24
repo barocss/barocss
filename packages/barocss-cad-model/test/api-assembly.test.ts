@@ -8,7 +8,7 @@ import { part, assembly, Location, BarocssError, type Assembly } from '../src/ap
 import { placedDoc, type StudioDoc } from '../src/engine/doc';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { variantOf } from '../src/assembly/variability';
-import { solveDoc } from '../src/chat/assembly';
+import { solveDoc } from '../src/assembly/edit';
 import { treeOfDoc } from '../src/chat/robot';
 import { eulerOf } from '../src/engine/placement';
 import { dispatchTool, type ChatState } from '../src/chat/tools';

@@ -15,7 +15,7 @@ export function fromEvaluation(error: FriendlyError): BarocssError {
   return new BarocssError(code, error.detail || error.title, 'evaluate', { friendly: error });
 }
 
-/** A core refusal from an export, written as a sentence (stepFor's `{ error }`). */
+/** A core refusal from an export, written as a sentence (exportStudioStep's thrown words). */
 export function fromExport(message: string): BarocssError {
   return new BarocssError(bracketedCode(message) ?? 'EXPORT', message, 'export');
 }
