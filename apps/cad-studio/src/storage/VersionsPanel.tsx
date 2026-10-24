@@ -18,6 +18,8 @@ import { NativeSelect } from '@/components/ui/native-select';
 const KIND = { folder: 'folder', browser: 'in this browser', memory: 'in memory', cloud: 'cloud' } as const;
 const when = (at: string) => new Date(at).toLocaleString();
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation();
+/** A conflict side's value, when it is one short value (a parameter's number, a name). */
+const shown = (v: unknown) => v === undefined ? ' (deleted)' : typeof v === 'number' || typeof v === 'boolean' || (typeof v === 'string' && v.length <= 24) ? ` (${String(v)})` : '';
 
 /** One line per change, as a person reads it. */
 export function changeLines(c: DocChanges): string[] {
@@ -93,7 +95,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
     </form>
     {!log && <div className="py-0.5 text-[11px] text-muted-foreground" role="status">No versions yet: Make version saves the document and keeps this state.</div>}
     <ul className="m-0 list-none p-0" aria-label="Versions">{list.map(v => <li key={v.id} className={ROW} aria-label={`Version ${v.name ?? v.id}`}>
-      <span title={`${v.id}${v.note ? ` · ${v.note}` : ''}`}>{v.name ?? <span className="text-muted-foreground">{when(v.at)}</span>}{v.parents.length > 1 && <span className="text-muted-foreground"> · merge</span>}</span>
+      <span title={`${v.id} · ${when(v.at)}${v.note ? ` · ${v.note}` : ''}`}>{v.name ?? <span className="text-muted-foreground">{v.parents.length > 1 ? v.note ?? 'merge' : when(v.at)}</span>}{v.name && v.parents.length > 1 && <span className="text-muted-foreground"> · merge</span>}</span>
       {v.id === head && <span className="shrink-0 rounded-full border border-[var(--accent)] px-1.5 text-[10px] leading-4 text-[var(--accent)]">latest</span>}
       <Button variant="ghost" size="xs" aria-label={`Compare ${v.name ?? v.id}`} onClick={() => onCompare(comparing === v.id ? null : { id: v.id, doc: log!.snapshots[v.snapshot] })}>{comparing === v.id ? 'Hide' : 'Compare'}</Button>
       <Button variant="ghost" size="xs" aria-label={`Restore ${v.name ?? v.id}`} onClick={() => { const d = project.restore(v.id); if (d) onOpen(d); }}>Restore</Button>
@@ -123,7 +125,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
           <div title={c.message}>{c.message.replace(/^\[[A-Z_]+\] /, '')}</div>
           {(['ours', 'theirs'] as const).map(side => <label key={side} className="mr-2 inline-flex items-center gap-1">
             <input type="radio" name={c.where} aria-label={`${c.where} ${side}`} checked={answers[c.where] === side} onChange={() => setAnswers({ ...answers, [c.where]: side })} />
-            {side === 'ours' ? log.current : (mergeFrom || others[0]?.name)}</label>)}
+            {side === 'ours' ? log.current : (mergeFrom || others[0]?.name)}{shown(c[side])}</label>)}
         </div>)}
         <Button variant="default" aria-label="Merge with these answers" disabled={conflicts.some(c => !answers[c.where])} onClick={() => void merge({ ...answers })}>Merge with these answers</Button>
       </div>}
