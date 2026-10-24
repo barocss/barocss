@@ -263,6 +263,7 @@ Placed parts are instances, each with its own document, and mates relate their f
     order;
   - `frames({ name: { link, at?, kind? } | null })` is `set_frames`. The link is a part by name, and `at` is a Location
     in that part's own coordinates.
+  - `lock(name, to?)` fixes a placed part to another part, the base by default, at its current placement.
 - **Its results are plain data:**
   - `parts()`;
   - `placements()`: each placed part's id, name, `position` (mm), `rotation` (degrees) and grounding;
@@ -271,8 +272,60 @@ Placed parts are instances, each with its own document, and mates relate their f
   - `framePoses()`: each frame's world pose, as `position` and `rotation`;
   - `meshes()`: `base/<body>` and `<part>/<body>`, each part where it stands;
   - `part(name)`: a placed part as a studio part, in its own coordinates.
+- **`robot()`** gives the assembly's joints, kinematics, motion checks and robot exports. See [Robots](/studio/robots)
+  for the supported joints and motion limits.
 - **Not yet in the facade:** editing a placed part in place; deleting or editing parts and mates; library parts;
-  joints and kinematics; an assembly's STEP and BOM.
+  an assembly's STEP.
+
+## Manufacturing inputs and outputs
+
+The studio part can set its manufacturing inputs and produce the same outputs as the agent's tools. These methods
+call the studio core. They keep its typed refusals.
+
+| Method | What it writes or returns |
+|---|---|
+| `process(id, { pull? })` | The part's process and, for a casting, its pull direction |
+| `casting(options)` | The pattern inputs, including machined faces, gate and shrinkage |
+| `drawingSettings(options)` | The drawing settings |
+| `autoDimension()` | Dimensions added by the drawing core |
+| `bought()` | The part's bodies marked as bought |
+| `named(name)` | The chosen body's display name |
+| `drawing()` | The sheet, its issues, and SVG, DXF and PDF files |
+| `await manufacturability(options?)` | The process report, as `check_printability` returns it |
+| `await camPackage(options?)` | The 2.5D CAM preview reply from `output_cam_package`, not for production |
+
+An assembly also has `drawingSettings(options)` and `drawing()`. Its `await bom()` returns the `output_bom` reply;
+`await purchaseCsv(withMade?)` returns the `output_purchase_csv` reply. The purchase list leaves out made parts
+unless `withMade` is true.
+
+A report can contain failed rules. Receiving it does not mean the part passed its checks. A CAM package needs stock
+rows from a person's file; without them it refuses with `STOCK_NONE_LOADED`. No stock table is built in.
+
+### Product example: single-cylinder engine
+
+The repository's `examples/products/engine-1cyl/` uses the studio facade to build a single-cylinder four-stroke engine.
+Its merged milestone 3 includes manufacturing inputs, dimensioned drawings, reports, the BOM and the purchase list.
+The saved assembly is `engine.bcad`. `build.ts` constructs it; `check.ts` checks a saved document, regardless of how
+it was built. `engine.test.mjs` checks the saved build and includes a negative case with the piston's bore mate removed.
+
+The example's checks cover parts, assembly constraints, the slider-crank cycle, timing, sweep, masses, balance and
+outputs. Its unit tests omit the sweep; the full runner includes it. These are scripted checks. They do not establish
+live-agent or manufacturing acceptance.
+
+The example still has limits:
+
+- **Missing rows (PG-2).** The spark-plug thread and main bearings need rows from a source the owner supplies.
+  The plain plug hole and bearing stand-ins do not establish a catalogue fit.
+- **Evaluation cost (PG-3).** The engine head and valve spring still need profiling.
+- **Example workarounds.** Although the core now supports cam mates, locked-gear coupling, running-fit contact and
+  closed-loop motions, this saved example still builds gears into their shafts, parks its followers and uses its own
+  cycle and sweep checks. Those newer core features do not by themselves verify a rebuilt engine.
+- **CAM waits (PG-9).** No stock list ships with the example. The output check accepts `STOCK_NONE_LOADED` as a
+  named wait, so a passing check can still have no CAM package.
+- **Base-body names (PG-10).** The BOM still lists the base part's bodies by key, even when their display names are set.
+
+See [Shop rows](/studio/rows), [Manufacturing](/studio/manufacturing) and [BOM and quotes](/studio/bom) for the inputs
+these outputs need.
 
 ## Errors
 
