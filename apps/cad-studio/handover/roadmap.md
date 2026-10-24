@@ -111,10 +111,10 @@ bounded next tasks at that exact base and preserve their previous checkpoints.
 | Work | Active scope | Dependency / completion condition |
 |---|---|---|
 | Kernel | Completed producer checkpoints preserved; P02 lease returned | Read-only P06/P07 exact file and value plan; final thirteen-step run waits for immutable aggregate |
-| Outer | P04/P05 reviewed and assembled; leases returned | Read-only P08/P10–P13 minimal family plans; preserve numbers, refusals, source and tolerance |
-| API | Duty4806 reviewed/assembled; seventeen-file lease returned | Read-only R03/R04 same-interval seconds plan; native file attributes remain separate |
-| Docs | Source-ready a8b and returned metadata sample | Generate tools/refusals once after final matching producers, then same-SHA samples/scenes/build |
-| Drawings | Fit3c78 and weld998 source-ready; leases returned | Final immutable aggregate tests and actual flow; no repeated readiness checks |
+| Outer | P04/P05 complete; new twelve-file lease for P08→P11→P12→P13 in separate checkpoints | P10 maxOffset waits for API R03 spec.ts; preserve numeric values, tolerances, frozen fixtures and schema refusal rules |
+| API | Duty4806 complete; new five-file lease for R03 validation duration then R04 3MF stats duration | Preserve original rounded/unrounded intervals, native 3MF bytes and fixed inputs; no new performance campaign |
+| Docs | Source-ready a8b and returned metadata sample; read-only R01 draft-row ownership map | Generate tools/refusals once after final matching producers, then same-SHA samples/scenes/build |
+| Drawings | Fit3c78 and weld998 complete; read-only R09 physical image-width input map | R09 groups implementation waits for Outer P13; final immutable aggregate tests and actual flow |
 | GPU | Print/CAM mechanical consumers assembled; feature ancestry separate | Read-only P09 clearance-map actual producer/worker/UI consumer plan |
 | Coordinator | Serial reviewed preparation, shared browser-flow, contracts | Close remaining families; freeze one SHA; run full required suites and actual flows before R7 product window |
 
