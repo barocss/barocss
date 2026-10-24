@@ -48,7 +48,7 @@ test('IM1 a shelled ABS box 60 × 40 × 25, walls 1.8, pulled along +Z with a PM
   assert.ok(parting);
   assert.equal(walls!.length, 1);
   assert.deepEqual(under, []);
-  assert.deepEqual(mould, { finish: 'pm-t1', minDraftDeg: 3, recDraftDeg: 3, bodies: [{ body: r.mould!.bodies[0].body, material: 'abs', wall: [1.143, 3.556], shrink: 0.002 }] });
+  assert.deepEqual(mould, { finish: 'pm-t1', draftMin: 3, draftRecommended: 3, bodies: [{ body: r.mould!.bodies[0].body, material: 'abs', wall: [1.143, 3.556], shrink: 0.002 }] });
   assert.ok(draft!.some(f => f.cls === 'steep'), 'its walls undrafted');
   // (O78: the draft field now — a shelled box's walls have none: warned against PM-T1's 3°; undercuts still IM3's.)
   assert.equal(by.draft.status, 'warn'); assert.equal(by.draft.limit, 3);
@@ -90,5 +90,5 @@ test('IM1 through the agent\'s tools: the brief states injection and ABS; check_
   const v2 = JSON.parse((await dispatchTool(s, 'query', { action: 'manufacturability', direction: [0, 0, 1], finish: 'smooth' }, evaluate)).content);
   assert.deepEqual(v2, v1); assert.equal(v1.process, 'injection');
   assert.deepEqual(v1.rules.filter((x: { status: string }) => x.status === 'pass').map((x: { id: string }) => x.id), ['pull', 'finish', 'wall', 'wall-material', 'wall-uniform', 'sink', 'size', 'undercut', 'parting', 'tooling']);
-  assert.equal(v1.mould.minDraftDeg, 0.5); assert.equal(v1.mould.recDraftDeg, 1); assert.equal(v1.mould.bodies[0].material, 'abs');
+  assert.equal(v1.mould.draftMin, 0.5); assert.equal(v1.mould.draftRecommended, 1); assert.equal(v1.mould.bodies[0].material, 'abs');
 });
