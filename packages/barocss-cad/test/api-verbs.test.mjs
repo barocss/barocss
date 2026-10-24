@@ -140,3 +140,13 @@ test('the growth\'s refusals are typed, the facade\'s own before the kernel\'s',
   const k = refusal(() => part().box({ wMM: 10, dMM: 10, hMM: 10 }).chamfer(b => b.edges().along('z'), { distanceMM: 6 }));
   assert.ok(k instanceof BarocssError); assert.equal(k.where, 'evaluate'); assert.equal(k.details?.feature, 'chamfer1');
 });
+
+test('the meshes carry their display lines: the selectable edges as segment pairs, seams and tangent joints left out', () => {
+  // (A box: its 12 edges, one segment each.)
+  const [box] = part().box({ wMM: 10, dMM: 20, hMM: 30 }).meshes();
+  assert.equal(box.lines.length, 12 * 6);
+  // (A cylinder: its two rims only — the seam and the halves' tangent joints are no lines a person sees.)
+  const [cyl] = part().cylinder({ rMM: 5, hMM: 10 }).meshes(), z = [];
+  for (let k = 2; k < cyl.lines.length; k += 3) z.push(cyl.lines[k]);
+  assert.ok(cyl.lines.length > 0 && z.every(v => v === 0 || v === 10), 'every line point on the bottom or top rim');
+});

@@ -10,5 +10,5 @@ export {
 } from './spec.js';
 export { Plane, Location, Sketch, SketchStart, SketchPath, sketch, type PlaneData, type PoseData, type SketchData, type LoopSegment, type Vec2 } from './sketch.js';
 export type { MassResult, MeshData } from './core.js';
-export { BodyQuery, EdgeQuery, FaceQuery, brepSelection, type AxisName, type Direction, type EdgeInfo, type FaceInfo, type Vec3 } from './select.js';
+export { BodyQuery, EdgeQuery, FaceQuery, brepSelection, brepLines, type AxisName, type Direction, type EdgeInfo, type FaceInfo, type Vec3 } from './select.js';
 export { BarocssError, bracketedCode, refuse, type FacadeCode, type RefusalWhere } from './refusal.js';
