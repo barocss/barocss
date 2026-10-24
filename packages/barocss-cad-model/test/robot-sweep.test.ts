@@ -133,9 +133,9 @@ test('the 6R arm against a dense sweep with the exact mesh test: no contact the 
 
 test('the sweep_path tool; the conformance case (rm/sweep-post: the first contact from the plane\'s closed form)', async () => {
   const doc = armAndPost(), r = await evaluate(doc); assert.ok(r.ok);
-  const out = await dispatchTool({ doc, bodies: r.bodies }, 'sweep_path', { to: { 'base~a': 2 } }, evaluate), j = JSON.parse(out.content);
+  const out = await dispatchTool({ doc, bodies: r.bodies }, 'sweep_path', { to: { 'base~a': 2 * 180 / Math.PI } }, evaluate), j = JSON.parse(out.content);
   assert.ok(!out.isError && !out.changed && j.clear === false && j.contact.links.includes('post'), out.content);
-  assert.ok(Math.abs(j.contact.values['base~a'] - firstContactInPlane(2)) < 1e-4);
+  assert.ok(Math.abs(j.contact.values['base~a'] * Math.PI / 180 - firstContactInPlane(2)) < 1e-4);
   assert.ok((await dispatchTool({ doc, bodies: r.bodies }, 'sweep_path', { to: { nope: 1 } }, evaluate)).isError);
   const dir = join(CASES, 'sweep-post');
   if (process.env.UPDATE_RM_FIXTURES) {

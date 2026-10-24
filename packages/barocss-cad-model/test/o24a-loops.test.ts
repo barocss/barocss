@@ -105,7 +105,7 @@ test('O24 (a) PG-7, the agent: forward_kinematics and set_pose close the slider-
   const { dispatchTool } = await import('../src/chat/tools');
   const s = sliderCrank(0), r = await evaluate(s.doc); assert.ok(r.ok);
   const tree = await treeOfDoc(s.doc, r.bodies, evaluate), crank = tree.joints.find(j => j.child === 'crank')!.key, state = { doc: s.doc, bodies: r.bodies };
-  const fk = await dispatchTool(state, 'forward_kinematics', { values: { [crank]: Math.PI / 3 } }, evaluate);
+  const fk = await dispatchTool(state, 'forward_kinematics', { values: { [crank]: 60 } }, evaluate);
   assert.ok(!fk.isError, fk.content);
   const j = JSON.parse(fk.content);
   assert.deepEqual(j.loops.drivers, [crank]); assert.ok(j.loops.residual_mm <= 1e-9); assert.equal(j.loops.solved.length, 3);
