@@ -28,7 +28,7 @@ const supportMesh = () => ({
   indices: Uint32Array.of(0, 2, 1, 0, 3, 2, 4, 5, 6, 4, 6, 7, 0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7),
   faces: [], faceOfVertex: new Float32Array(8).fill(-1), edges: [], edgeLines: new Float32Array(), edgeOfSegment: new Float32Array(), bounds: { min: [0, 0, 0], max: [4, 4, 4] },
 });
-const display = () => ({ request: 3, summaryKey: 7, summary: { version: 'print-layers-v1', direction: [1, 0, 0], directionSource: 'given', modelToBed: [0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 5, 1], layerMM: { mm: 1, basis: 'set' }, limitDeg: { deg: 45, basis: 'estimate' }, count: 4, heightMM: 4, supportColumns: [], supportVolumeMM3: 8, basis: 'display mesh' }, layer: layer(), supportMesh: supportMesh(), topMM: 1, supports: true, printed: false });
+const display = () => ({ request: 3, summaryKey: 7, summary: { version: 'print-layers-v1', direction: [1, 0, 0], directionSource: 'given', modelToBed: [0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 5, 1], layerHeight: { value: 1, basis: 'set' }, overhangLimit: { value: 45, basis: 'estimate' }, count: 4, height: 4, supportColumns: [], supportVolume: 8, basis: 'display mesh' }, layer: layer(), supportMesh: supportMesh(), top: 1, supports: true, printed: false });
 const snapshot = value => JSON.stringify(value, (_key, v) => ArrayBuffer.isView(v) ? Array.from(v) : v);
 const byName = values => new Map(values.map(value => [value.name, value]));
 
@@ -63,7 +63,7 @@ test('summary, full support and unchanged layer drawings retain resource identit
   const geometry = new PrintOverlayGeometry(), input = display(), before = snapshot(input), first = byName(geometry.update(input));
   assert.equal(first.get('supports').positions, input.supportMesh.positions);
   assert.equal(first.get('supports').indices, input.supportMesh.indices);
-  const second = byName(geometry.update({ ...input, request: 4, layer: layer(1), topMM: 2 }));
+  const second = byName(geometry.update({ ...input, request: 4, layer: layer(1), top: 2 }));
   assert.equal(second.get('bed'), first.get('bed')); assert.equal(second.get('supports'), first.get('supports'));
   assert.notEqual(second.get('contours'), first.get('contours'));
   const off = byName(geometry.update({ ...input, supports: false }));
@@ -94,7 +94,7 @@ test('GPU additions have no native authority; lazy layer and support toggles reu
   }
   f.renderer.setPrintDisplay({ ...input, supports: false });
   assert.equal(f.meshes.length, first.size); assert.equal(first.get('print:supports').visible, false);
-  f.renderer.setPrintDisplay({ ...input, layer: layer(1), topMM: 2 });
+  f.renderer.setPrintDisplay({ ...input, layer: layer(1), top: 2 });
   assert.equal(first.get('print:supports').removed, undefined); assert.equal(first.get('print:bed').removed, undefined); assert.equal(first.get('print:contours').removed, true);
   assert.equal(f.renderer.viewer.clipPlanes, f.planes); assert.equal(snapshot(input), before);
   const alive = [...f.renderer.print.meshes.values()]; f.renderer.setPrintDisplay(null);
