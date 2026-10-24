@@ -7,7 +7,7 @@ export { BarocssError };
 export type RefusalWhere = 'facade' | 'show';
 
 /** gpu's facade's own codes. */
-export type SceneCode = 'MESH_INVALID' | 'LIGHT_INVALID';
+export type SceneCode = 'MESH_INVALID' | 'LIGHT_INVALID' | 'MATERIAL_UNKNOWN' | 'MATERIAL_INVALID' | 'CAMERA_INVALID';
 
 /** A facade refusal: its message bracketed with its code, as the conventions write it. */
 export const refuse = (code: SceneCode, message: string, where: RefusalWhere = 'facade') => new BarocssError(code, `[${code}] ${message.replace(`[${code}] `, '')}`, { where });
