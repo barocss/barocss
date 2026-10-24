@@ -34,11 +34,10 @@ const wire = new WireReceiver(), meshesOut = new MeshSender();
 // (The kept meshes are handed out as they are; the sender copies only what the client does not hold.)
 shareMeshes(true);
 
-// O18 (P): the part's and the placed parts' evaluations reply without their bodies' mass properties (deferMasses); then,
-// a few bodies a tick, the worker works them out and posts them by mass ref, unplaced (the client places them by each
-// body's massPlace). A newer evaluation of the part drops the part's queued ones (its own reply queues what it still
-// needs), so an edit's reply never waits for an old evaluation's masses; the placed parts' stay queued (an unchanged
-// copy is not evaluated again).
+// O18 (P): the part's evaluation replies without its bodies' mass properties (deferMasses); then, a few bodies a tick,
+// the worker works them out and posts them by mass ref, unplaced (the client places them by each body's massPlace — the
+// path a placed part would take, kept ready). A newer evaluation of the part drops the part's queued ones (its own reply
+// queues what it still needs), so an edit's reply never waits for an old evaluation's masses.
 export type MassReply = { masses: { ref: number; fields: Pick<BodyResult, 'volumeMM3' | 'massG' | 'centroid' | 'inertia' | 'volumeBasis'> }[] };
 /** How long one tick works out masses before it yields to the next request (one body at least). */
 const MASS_TICK_MS = 30;
@@ -46,12 +45,12 @@ const MASS_TICK_MS = 30;
  *  stopped once started, so an edit made right after a reply goes first. */
 const MASS_IDLE_MS = 200;
 let lastRequestAt = 0;
-const partMasses: number[] = [], placedMasses: number[] = [];
+const partMasses: number[] = [];
 let massTicking = false;
 function queueMasses(queue: number[], result: EvalResult): void {
   if (!result.ok) return;
   for (const b of result.bodies) if (b.massRef !== undefined && !queue.includes(b.massRef)) queue.push(b.massRef);
-  if (!massTicking && (partMasses.length || placedMasses.length)) { massTicking = true; setTimeout(massTick, MASS_IDLE_MS); }
+  if (!massTicking && partMasses.length) { massTicking = true; setTimeout(massTick, MASS_IDLE_MS); }
 }
 function massTick(): void {
   // (A request came in the meantime: wait until the worker has been idle for MASS_IDLE_MS.)
@@ -60,11 +59,11 @@ function massTick(): void {
   massTicking = false;
   const t0 = performance.now(), out: MassReply['masses'] = [];
   while (performance.now() - t0 < MASS_TICK_MS) {
-    const ref = partMasses.shift() ?? placedMasses.shift(); if (ref === undefined) break;
+    const ref = partMasses.shift(); if (ref === undefined) break;
     const fields = massOfRef(ref); if (fields) out.push({ ref, fields });
   }
   if (out.length) (self as unknown as Worker).postMessage({ masses: out } satisfies MassReply);
-  if (partMasses.length || placedMasses.length) { massTicking = true; setTimeout(massTick, 0); }
+  if (partMasses.length) { massTicking = true; setTimeout(massTick, 0); }
 }
 self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   lastRequestAt = performance.now();
@@ -96,14 +95,16 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const proposed = event.data.type === 'proposalDiff' ? wire.unpack(event.data.proposed) : null;
   const request = { ...event.data, doc };
   if (request.type === 'evaluate' || request.type === 'part' || request.type === 'placed' || request.type === 'preview' || request.type === 'section') {
-    const deferred = request.type === 'evaluate' || request.type === 'placed';
+    // (The part's own evaluation only: a placed part's bodies patched after its reply leave the WebGPU renderer's copies
+    // out of the frame it draws — O10's frame costs — so placed parts keep their masses inline for now.)
+    const deferred = request.type === 'evaluate';
     if (request.type === 'evaluate') partMasses.length = 0;
     deferMasses(deferred);
     let result: EvalResult;
     try { result = request.type === 'placed' ? evaluatePlaced(request.doc, base!, request.place, request.revision) : request.type === 'part' ? evaluatePart(request.doc, request.revision, 8, request.slot) : request.type === 'preview' || request.type === 'section' ? evaluatePreview(request.doc, request.revision, 8, request.type) : evaluateDoc(request.doc, request.revision); } finally { deferMasses(false); }
     const out = meshesOut.pack(replySlot(request), result);
     (self as unknown as Worker).postMessage({ id: request.id, result: out.result }, out.transfer);
-    if (deferred) queueMasses(request.type === 'evaluate' ? partMasses : placedMasses, result);
+    if (deferred) queueMasses(partMasses, result);
   } else if (request.type === 'mould') {
     // (The part's bodies as evaluated, then the view; the halves' meshes sent in a slot of their own.)
     const part = evaluateDoc(request.doc, request.revision);
