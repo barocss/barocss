@@ -149,7 +149,7 @@
 | `[FRAME_LINK_MISSING]` | `chat`, `robot` | frame …: "link" is the part it is on ("base" or a part id) |
 | `[FRAME_LINK_STALE]` | `robot` | frame …: … is not a link of the robot as it stands (not joined to the base link). Mate it, put the frame on a link, or remove it (set_frames {"…": null}) |
 | `[FRAME_MEMBER]` | `app` | Give the member a start and an end apart. |
-| `[FRAME_NAME]` | `api`, `chat`, `robot` | no frame … to remove (frames: …) |
+| `[FRAME_NAME]` | `api`, `assembly`, `chat`, `robot` | no frame … to remove (frames: …) |
 | `[FRAME_NOTCH]` | `app` | Give the notch an existing joint point number. |
 | `[FRAME_PART_IN_USE]` | `frames` | … holds the sketch… … that … follow…: give those frames their own points, or delete them, first. |
 | `[FRAME_POSE]` | `chat`, `robot` | frame …: {link, position?, rotation?, kind?} |
@@ -182,6 +182,12 @@
 | `[LIMITS_MISSING]` | `robot` | joint … has no … limits above 0 |
 | `[LOFT_SECTIONS]` | `app` | … |
 | `[MATERIAL_UNKNOWN]` | `chat/part` | "…" is not a material here; materials: …. |
+| `[MATE_BOTH_FIXED]` | `assembly` | Both parts are fixed (the base part and grounded parts never move): one of them must be free. |
+| `[MATE_FACES]` | `assembly` | …… |
+| `[MATE_FACE_UNKNOWN]` | `assembly` | … |
+| `[MATE_KIND]` | `assembly` | "kind" is one of …. |
+| `[MATE_SAME_PART]` | `assembly` | Both faces are on the same part; mate faces of two different parts. |
+| `[MATE_UNMET]` | `assembly` | … |
 | `[MERGE_MISSING]` | `chat` | The merged part names …, which it does not have. |
 | `[MERGE_SUPERSEDED]` | `chat` | The evaluation was superseded while the chat turn was merged. |
 | `[MESH_NOT_LOADED]` | `engine` | the mesh data …… is not loaded: it cannot be saved |
@@ -196,6 +202,7 @@
 | `[NOT_PLANAR]` | `robot` | … is not a turn about the pin's axis direction |
 | `[NOT_READ]` | `chat` | … could not be read: … |
 | `[NO_BASELINE]` | `team` | no baseline …; baselines: … |
+| `[NO_BODY]` | `engine` | … |
 | `[NO_CHANGE]` | `app`, `team` | It is already there. |
 | `[NO_CLOSURE]` | `robot` | … at … rad: the loop does not close (its pin … mm apart after … steps) |
 | `[NO_DRAFT]` | `chat` | no draft dimension …; … |
@@ -204,6 +211,8 @@
 | `[NO_JOINTS]` | `robot` | nothing moves link … |
 | `[NO_LATTICE]` | `print` | no lattice is left in the cavity at L …, k … |
 | `[NO_LINK]` | `robot` | no link … on the tree |
+| `[NO_MATE]` | `assembly` | No mate "…"; mates: …. |
+| `[NO_PART]` | `assembly` | No part "…" to copy; parts: …. |
 | `[NO_PIN]` | `robot` | the loop … has no concentric mate to close on |
 | `[NO_PRINTER]` | `print` | choose a printer first: the split is for its build volume |
 | `[NO_RANGE]` | `robot` | slide … has no limits: its range is not known |
@@ -220,6 +229,7 @@
 | `[OUTPUT_FAILED]` | `chat` | … |
 | `[OUTPUT_INPUT]` | `chat` | … |
 | `[OUTPUT_STALE]` | `chat` | Expected document revision …, current …. |
+| `[PART_MATED]` | `assembly` | … mate… move …; delete … first, or fix the other part. |
 | `[PATH_TOO_SHORT]` | `robot` | a path needs at least two waypoints |
 | `[PRIMITIVE_SIZE]` | `app` | The tube radius must be smaller than the ring radius. |
 | `[PRINT_PREVIEW_INPUT]` | `engine` | …: … |
