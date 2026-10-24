@@ -24,7 +24,7 @@ function shapeOf(doc: StudioDoc, evaluated: boolean): string {
  * A body's mass from its exact volume and its material's density (O169): its own massG is the default material's.
  * (V · ρ · 1e-3, not app/mass's massGOf V · ρ / 1000: the two round differently, and the BOM keeps its own.)
  */
-const exactMass = (doc: StudioDoc, b: BodyResult): number | null => { const m = MATERIALS.find(x => x.id === materialIdOf(doc, b)); return b.volume === null || !m ? b.mass : r6(b.volume * m.gPerCm3 * 1e-3); };
+const exactMass = (doc: StudioDoc, b: BodyResult): number | null => { const m = MATERIALS.find(x => x.id === materialIdOf(doc, b)); return b.volume === null || !m ? b.mass : r6(b.volume * m.density * 1e-3); };
 const massOf = (doc: StudioDoc, bodies: readonly BodyResult[]) => (massProperties(doc, bodies) as { mass: number }[]).reduce((s, x) => s + x.mass, 0);
 /** O179: a mass found partly from the mesh — its bound (g; null when a tessellated body has none) — or nothing when exact. */
 /** O8: how many solids a part comes as, when a body of it is in several (lumps touching or apart): nothing otherwise. */

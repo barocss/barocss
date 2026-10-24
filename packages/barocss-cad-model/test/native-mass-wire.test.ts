@@ -23,11 +23,11 @@ test('eager structuredClone binds only the exact source/body/fields; public MMGS
   const ordinary = linkInertia('base', 'base', doc, [clone], frame);
   assert.ok(receiveNativeMass(clone, structuredClone(envelope), source));
   assert.deepEqual(nativeSIOfBody(clone), nativeSIOfBody(body));
-  const steel = MATERIALS.find(m => m.gPerCm3 > 7)!;
+  const steel = MATERIALS.find(m => m.density > 7)!;
   const raw = nativeSIOfBody(clone); assert.ok(raw.ok);
   const materialDoc = { ...doc, bodies: { [clone.key]: { material: steel.id } } };
   const withMaterial = nativeLinkInertia('base', 'base', materialDoc, [clone], frame);
-  assert.deepEqual(withMaterial.inertia.inertia, raw.inertia.flat().map(x => x * (steel.gPerCm3 / raw.density) + 0), 'one density ratio after transfer');
+  assert.deepEqual(withMaterial.inertia.inertia, raw.inertia.flat().map(x => x * (steel.density / raw.density) + 0), 'one density ratio after transfer');
   assert.equal(publicMass(clone), before);
   assert.deepEqual(linkInertia('base', 'base', doc, [clone], frame), ordinary);
   assert.deepEqual(nativeLinkInertia('base', 'base', doc, [clone], frame).basis, [{ link: 'base', body: clone.key, mode: 'raw-native-si' }]);

@@ -48,7 +48,7 @@ test('IM6 a complete package: an ABS block drafted 3°, 1000 of them stated, PM-
   assert.deepEqual([r.material, r.finish, r.pull, r.quantity], [{ id: 'abs', label: 'ABS', basis: 'body' }, { id: 'pm-t1', label: 'Light bead blast (PM-T1)', minDraftDeg: 3 }, [0, 0, 1], 1000]);
   assert.deepEqual(r.part.size, [60, 40, 25]);
   assert.ok(Math.abs(r.part.volume - volume) <= 1e-6 * volume, `${r.part.volume} vs ${volume}`);
-  assert.ok(Math.abs(r.part.mass! - volume * materialData('abs')!.densityGPerCm3 / 1000) <= 2e-3, String(r.part.mass));
+  assert.ok(Math.abs(r.part.mass! - volume * materialData('abs')!.density / 1000) <= 2e-3, String(r.part.mass));
   assert.deepEqual([r.tolerance, r.shrink, r.limits], [{ mm: 0.08, perMM: 0.002, source: 'https://www.protolabs.com/services/injection-molding/' }, 0.002, { largestPartMM: [751, 480, 203] }]);
   assert.match(new TextDecoder().decode(q.files.get(QUOTE_FILES.step)!), /^ISO-10303-21;/);
   const md = new TextDecoder().decode(q.files.get(QUOTE_FILES.page)!);

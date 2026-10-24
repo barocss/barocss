@@ -23,7 +23,8 @@ export interface MaterialData {
   readonly id: string; readonly label: string; readonly family: 'metal' | 'polymer';
   /** A casting alloy's family (IM8a); none for a material not cast here (a wrought alloy, a polymer). */
   readonly castFamily?: CastFamily;
-  readonly densityGPerCm3: number; readonly elasticModulusMPa: number; readonly yieldMPa: number; readonly allowableStrain: number; readonly shrink: number;
+  /** Density in g/cm³; elastic modulus and yield stress in MPa. */
+  readonly density: number; readonly elasticModulus: number; readonly yieldStress: number; readonly allowableStrain: number; readonly shrink: number;
   /** Its coefficient of friction against itself (a snap-fit's push-on and pull-off forces). */
   readonly friction: number;
   /** How prone it is to warp as it cools, 0–1 (printing; AM1). */
@@ -54,7 +55,7 @@ export interface MaterialsData { readonly format: 'barocss-materials'; readonly 
 
 const WEB = 'W-WEB', DERIVED = 'W-DERIVED';
 const pageOk = (w: WebSource | undefined) => !!w && /^https:\/\/[^\s]+$/.test(w.url) && /^\d{4}-\d{2}-\d{2}$/.test(w.read) && w.label.trim().length > 0;
-const NUMERIC = ['densityGPerCm3', 'elasticModulusMPa', 'yieldMPa', 'allowableStrain', 'shrink', 'friction'] as const;
+const NUMERIC = ['density', 'elasticModulus', 'yieldStress', 'allowableStrain', 'shrink', 'friction'] as const;
 /** The data checked: every number finite and not negative (density, modulus and yield above 0), every source id known. */
 export function checkMaterials(d: MaterialsData): string[] {
   const problems: string[] = [];
@@ -106,7 +107,7 @@ export function checkMaterials(d: MaterialsData): string[] {
 }
 export const MATERIALS_DATA = materialsJson as unknown as MaterialsData;
 /** The materials a body can be made of (a body's look names one; the part has a default), by density for mass. */
-export const MATERIALS = MATERIALS_DATA.materials.map(m => ({ id: m.id, label: m.label, gPerCm3: m.densityGPerCm3 }));
+export const MATERIALS = MATERIALS_DATA.materials.map(m => ({ id: m.id, label: m.label, density: m.density }));
 /** A material by id (the first, aluminium, for none or an unknown one). */
 export const materialOf = (id: string | undefined) => MATERIALS.find(m => m.id === id) ?? MATERIALS[0];
 export const materialData = (id: string | undefined): MaterialData | undefined => MATERIALS_DATA.materials.find(m => m.id === id);

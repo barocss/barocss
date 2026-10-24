@@ -26,7 +26,7 @@ export function materialFact(doc: StudioDoc, b: BodyResult): { material: string;
 /** Mass properties of bodies: volume, area, mass (its material's density), centroid, inertia about it, box. */
 export function massProperties(doc: StudioDoc, bodies: readonly BodyResult[]): Record<string, unknown>[] {
   return bodies.map(b => {
-    const mat = materialFact(doc, b), rho = materialOf(materialIdOf(doc, b)).gPerCm3;
+    const mat = materialFact(doc, b), rho = materialOf(materialIdOf(doc, b)).density;
     // (The kernel's inertia is for aluminium, 2.70 g/cm³: scaled to the body's density — as (x · ρ) / 2.7, an order kept
     // apart from app/mass's x · (ρ / 2.7), which rounds differently.)
     const inertia = b.inertia?.map(row => row.map(x => Number((x * rho / KERNEL_DENSITY).toPrecision(6))));
@@ -48,7 +48,7 @@ export function massBoundOf(doc: StudioDoc, bodies: readonly BodyResult[]): numb
   for (const b of bodies) {
     if (!b.volumeBasis) continue;
     if (b.volumeBasis.bound === null) return null;
-    g += massGOf(b.volumeBasis.bound, materialOf(materialIdOf(doc, b)).gPerCm3);
+    g += massGOf(b.volumeBasis.bound, materialOf(materialIdOf(doc, b)).density);
   }
   return g;
 }

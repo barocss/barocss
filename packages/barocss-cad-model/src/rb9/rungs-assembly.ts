@@ -61,7 +61,7 @@ export const RUNG12: Rung = {
     const moving = tree.joints.filter(j => j.type !== 'fixed'), sj = moving[0];
     const onAxis = !!sj && Math.abs(Math.abs(sj.axis[0]) - 1) <= 1e-9 && Math.abs(sj.origin[1] - Q / 2) <= 1e-6 && Math.abs(sj.origin[2] - z) <= 1e-6;
     const gate = await checkAssembly(doc, evaluate), bom = await bomView(doc, evaluate);
-    const rho = materialData('al6061')!.densityGPerCm3 / 1000, steel = materialData('steel')!.densityGPerCm3 / 1000, bore = Math.PI * (num(p, 'ds') / 2 + FC) ** 2, [bw, bd, bh, c, ct] = ['bw', 'bd', 'bh', 'c', 'ct'].map(k => num(p, k));
+    const rho = materialData('al6061')!.density / 1000, steel = materialData('steel')!.density / 1000, bore = Math.PI * (num(p, 'ds') / 2 + FC) ** 2, [bw, bd, bh, c, ct] = ['bw', 'bd', 'bh', 'c', 'ct'].map(k => num(p, k));
     const mass = rho * (num(p, 'P') * Q * num(p, 'tb') + 2 * (bw * bd * bh - bore * bw) + ct * c * c) + steel * Math.PI * (num(p, 'ds') / 2) ** 2 * (num(p, 'xb') + bw - 1 - num(p, 'xa'));
     const out: Outcome[] = [
       holds('parts', insts.length === 5 && bom.parts.length === 5 && bom.parts.every(x => x.mass > 0), [insts.length, bom.parts.length], 'five parts, five BOM rows with their masses'),
@@ -86,7 +86,7 @@ export const RUNG12: Rung = {
 // ——— 14. the 2-axis arm (the owner's rung): two turns about vertical axes, a payload at the tip, sized for a duty
 // (Bars on a base plate, as RM's chain-2r: each turns on a bore over the one below; the payload a steel block 40 × 40 on
 // the forearm's tip bore, as tall as its mass needs — its material set with set_material, O73.)
-const LP = (m: number) => m * 1e6 / (materialData('steel')!.densityGPerCm3 * 1600);
+const LP = (m: number) => m * 1e6 / (materialData('steel')!.density * 1600);
 const J1 = 'base~p1', J2 = 'p1~p2';
 const dutyOf = (p: Params): Duty => ({ moves: [{ from: {}, to: { [J1]: num(p, 'q1'), [J2]: num(p, 'q2') }, profile: 'trapezoid', limits: { velocity: num(p, 'v'), acceleration: num(p, 'acc') }, dwell_s: 0.5 }], life_h: 20000 });
 const arm2 = (p: Params, o: { l2?: number; effort?: number; elbowFixed?: boolean; payload?: boolean; rated?: boolean; steel?: boolean } = {}): Call[] => {

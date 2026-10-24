@@ -112,7 +112,7 @@ test('closed form: the holding torques at the shoulder-horizontal pose, g Σ m d
   const parts: { id: string; m: number; c: number[] }[] = [];
   for (const inst of solveDoc(doc).doc.instances!) {
     // (Mass by volume × density, unrounded: mass_properties gives grams to 3 decimals.)
-    const b = await bodiesOf(inst.doc), mp = b.map(x => ({ mass_g: x.volume! * materialOf(materialIdOf(inst.doc, x)).gPerCm3 / 1000 })), vol = b.reduce((s, x) => s + x.volume!, 0);
+    const b = await bodiesOf(inst.doc), mp = b.map(x => ({ mass_g: x.volume! * materialOf(materialIdOf(inst.doc, x)).density / 1000 })), vol = b.reduce((s, x) => s + x.volume!, 0);
     const c = [0, 1, 2].map(i => b.reduce((s, x) => s + x.volume! * x.centroid![i], 0) / vol);
     parts.push({ id: inst.id, m: mp.reduce((s, x) => s + x.mass_g, 0) / 1000, c: [c[0] + inst.position[0], c[1] + inst.position[1], c[2] + inst.position[2]] });
   }
