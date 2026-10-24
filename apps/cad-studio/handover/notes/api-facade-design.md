@@ -205,6 +205,17 @@ These come later, in this order, each with the same oracle:
   - orderings are `sortBy(axis)`, plus `first(n)` and `last(n)`;
   - read-outs are `names()`, `list()` and `count`.
   - `groupBy` (build123d's `group_by`) comes when a sample needs it.
+- **What a selector offers, deliberately:** the corners a person could pick in the studio, and nothing else.
+  - Seams are left out: an edge both of whose uses are on one face, such as a cylinder's seam line.
+  - Tangent joints are left out: two faces meeting smoothly, with their normals at the edge's middle within 20°, such as
+    a hole's two half-cylinders.
+  - It's the studio display's own rule (cad-model engine/mesh.ts), applied by cad's `brepSelection` and inherited by
+    cad-model from its display mesh.
+  - Without it, `edges().along('z')` on a holed plate also picks the hole's half-cylinder joints, and the kernel refuses
+    the fillet with TANGENT_FACES, since there's no corner to round.
+- **Pending argument shape (next growth step):** cad's `mass(densityGPerCm3)` becomes `mass({ densityGPerCm3 })`, and
+  cad-model's accepts `mass(material | { densityGPerCm3 })`. The verb then reads the same in both, and a bare number
+  can't be mistaken for a material id.
 
 ## Stable ids and names (the FeatureScript point)
 
