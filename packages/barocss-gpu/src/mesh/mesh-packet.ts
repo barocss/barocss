@@ -10,7 +10,7 @@ export interface PreviewPacket {
   surfaceId: string;
   revision: number;
   lengthUnit: 'mm';
-  coordinateSystem: 'right-handed-y-up';
+  coordinateSystem: 'right-handed-z-up';
   winding: 'ccw';
   positions: number[];
   normals: number[];
@@ -96,7 +96,7 @@ export function validatePreviewPacket(input: unknown): PreviewPacket {
   requireValue(typeof value.surfaceId === 'string' && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value.surfaceId), 'surfaceId must be a CAD ASCII identifier');
   requireValue(typeof value.revision === 'number' && Number.isInteger(value.revision) && value.revision >= 0 && value.revision <= 2147483647,
     'revision must be an integer in 0..2147483647');
-  requireValue(value.lengthUnit === 'mm' && value.coordinateSystem === 'right-handed-y-up' && value.winding === 'ccw',
+  requireValue(value.lengthUnit === 'mm' && value.coordinateSystem === 'right-handed-z-up' && value.winding === 'ccw',
     'Packet units, coordinate system and winding must match preview v0');
   const positions = array(value.positions, 12, 4096 * 3, 'positions');
   requireValue(positions.length % 3 === 0, 'positions requires XYZ triples');
@@ -121,7 +121,7 @@ export function validatePreviewPacket(input: unknown): PreviewPacket {
   // Freeze only owned copies, never caller arrays or objects.
   const result: PreviewPacket = {
     version: 0, surfaceId: value.surfaceId, revision: value.revision, lengthUnit: 'mm',
-    coordinateSystem: 'right-handed-y-up', winding: 'ccw',
+    coordinateSystem: 'right-handed-z-up', winding: 'ccw',
     positions: positions.slice(), normals: normals.slice(), indices: indices.slice(), parameters: parameters.slice(),
     bounds: { min: [...min], max: [...max] },
   };

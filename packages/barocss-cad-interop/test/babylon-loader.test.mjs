@@ -33,7 +33,7 @@ for (const [index, mesh] of parsed.meshes.entries()) {
   assert.ok(mesh instanceof Mesh);
   assert.equal(mesh.metadata.barocss.modelName, 'native_loader_demo');
   assert.equal(mesh.metadata.barocss.surfaceId, preview.surfaceId);
-  assert.equal(mesh.metadata.barocss.coordinateSystem, 'right-handed-y-up');
+  assert.equal(mesh.metadata.barocss.coordinateSystem, 'right-handed-z-up');
   assert.equal(mesh.metadata.barocss.lengthUnit, 'mm');
   assert.notEqual(mesh.metadata.barocss.nativeParameters, preview.mesh.parameters);
   assert.deepEqual(Array.from(mesh.metadata.barocss.nativeParameters), Array.from(preview.mesh.parameters));

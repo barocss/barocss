@@ -3218,6 +3218,45 @@ The work stopped here for the owner's move to another place.
   - **Decision proposed**: close the item. Keep the work-round: it also saves the App's re-render on a mass patch. If a
     full window shows the copies missing again, its O10 steps will catch it.
 
+## G-R55 — R7.3d, gpu and interop side: the CAD packet's tag is `right-handed-z-up`; GpuErrorCode takes the facade's codes (roadmap R7.3d, 2026-10-24)
+
+- **Scope, as the coordinator settled it**: the mm mesh packet from CAD only. Its tag was `right-handed-y-up`, which
+  is wrong for CAD's data (Z up, §10.1); it becomes `right-handed-z-up`, with no alias. gpu's primitive geometries,
+  the engine scene, the SDF render IR, the cloth and particle layers and the pinned evidence JSON keep
+  `right-handed-y-up`: they are scene units with a real Y up (cylinder-geometry is "a generic Y-axis mesh").
+- **gpu** (489a29d36, the README in dc39326fd and 540df6a71):
+  - mesh-packet.ts (the PreviewPacket type, its validator and its copy) and kernel-face-preview.ts (the packet it builds).
+  - gpu-compiler.ts: the render IR's frame is per variant now. The SDF IRs are `right-handed-y-up`, the indexed-mesh IR
+    (a CAD packet) is `right-handed-z-up`.
+  - The README's packet example and IR line.
+  - Tests and fixtures that build packets: tests/mesh-fixtures, mesh-packet, mesh-consumer, gpu-compiler-consumer,
+    fixtures/original-compiler.json's packet. examples/gpu-scene: mesh-fixtures.mjs, mesh-flat-packet.json and
+    native-surface-uv01-geometry-flow's packet check. examples/cad-nurbs/preview-flat-packet.json.
+- **barocss-cad-interop** (assigned to this lane for the rename only): its packet reader (packet.ts), native-face.ts's
+  packet and babylon.ts's surface-mesh metadata, which copies the packet's frame. Its curve lineage (three, babylon,
+  pixi3d curves) is not a packet and keeps its label. Tests: interop.test's packet, babylon-loader's metadata check.
+- **barocss-viewer**: unchanged. It passes cad's packets through gpu's validator and writes no packet tag itself; its
+  `frame: 'right-handed-y-up'` is another field.
+- **The physics examples** (3541c0e48, assigned by the coordinator): physics-character-viewer's capsule-mesh, terrain and
+  geometry-checks, and the rigid-hinge viewer's meshes.mjs, built packets with the old tag, which gpu now refuses. Only
+  the literals changed; `node --check` on each.
+- **The kernel's side**: cad's core/packet.ts, core/preview.ts, z-axis-revolve-preview.ts, the seven planar-solids
+  preview builders, the README's three lines, and the fixtures/tests that build packets (tessellation.test,
+  modeling-box-cut-fixture, modeling-union-fixture, stored-circle-prism-solid-fixture, modeling-circle-native). It is a
+  patch for the kernel lane, `r73d-kernel-packet-tag.patch` in the lanes' shared notes folder (16 files, 22 lines;
+  `git apply --check` clean). The two sides land together: gpu now refuses a y-up packet, and native-surface-uv01's
+  frame pack compares cad's packet type with gpu's, which tsc rejects until both are renamed.
+- **GpuErrorCode** (the API lane's R7.5b finding 8): `| SceneCode` from src/api/refusal.ts, a type-only import, in
+  place of the hand-written `'MESH_INVALID' | 'LIGHT_INVALID'`. The facade's MATERIAL_UNKNOWN, MATERIAL_INVALID and
+  CAMERA_INVALID reach the union, and the union and the refusal table can't drift.
+- **Runs**, with the kernel patch applied locally (then reverted, not committed by this lane): cad tsc 0 and its three
+  packet suites (construction, stored-circle-prism-solid, tessellation) 28/28. gpu tsc 0, eslint 0, unit 201/201,
+  test:consumer 3/3, gpu-scene flows 65/65 (after native-surface-uv01-geometry's check), test:browser 29/29 on
+  hardware. Interop `pnpm test` passes. `test:babylon` passes with gpu's cad-dist hook
+  (`node --import ../barocss-gpu/tests/cad-dist.mjs test/babylon-loader.test.mjs`); its own script fails before running
+  anything, because `@barocss/cad` resolves to TypeScript sources (G-R40's cause, which this change didn't introduce).
+  Studio tsc 0: the studio, cad-model and the docs don't use the packet path.
+
 ## G-R56 — G14 (b): a handle drag measured from where it began; the release no longer moves the section handle (roadmap G14, 2026-10-24)
 
 - **Cause** (G-R54's cause 2): Viewport's handle drag measured each step with `dragAlong(from, pointer, hd.at, …)` and

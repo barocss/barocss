@@ -44,7 +44,7 @@ function packetFor(id) {
   quad(base[3],base[2],base[1],base[0]);
   const min=[Infinity,Infinity,Infinity],max=[-Infinity,-Infinity,-Infinity];
   for(let i=0;i<positions.length;i++){const axis=i%3;min[axis]=Math.min(min[axis],positions[i]);max[axis]=Math.max(max[axis],positions[i]);}
-  const packet={version:0,surfaceId:'sphere_witness_'+id,revision:0,lengthUnit:'mm',coordinateSystem:'right-handed-y-up',
+  const packet={version:0,surfaceId:'sphere_witness_'+id,revision:0,lengthUnit:'mm',coordinateSystem:'right-handed-z-up',
     winding:'ccw',positions,normals,indices,parameters,bounds:{min,max}};
   validatePreviewPacket(packet);
   return {modelId:'recorded_'+id,packet};
