@@ -3,6 +3,7 @@
 // calls evaluateCadPart or an output's methods directly.
 import { evaluateCadPart, CadPartError, type CadPartDocument, type CadPartOutput } from '../part/part-model.js';
 import { tessellateBrep } from '../brep/brep-tessellate.js';
+import { exportStep } from '../io/step.js';
 import { brepSelection, type BodyQuery } from './select.js';
 import { BarocssError, bracketedCode, refuse } from './refusal.js';
 
@@ -41,9 +42,10 @@ export function massOf(output: CadPartOutput, gPerCm3: number): MassResult {
   };
 }
 
-/** An output as one STEP AP214 file. */
-export function stepOf(output: CadPartOutput, name: string): string {
-  try { return output.exportStep({ name }); } catch (e) { throw new BarocssError(bracketedCode(String(e)) ?? 'EXPORT', e instanceof Error ? e.message : String(e), 'export'); }
+/** The outputs as one STEP AP214 file: one through its own export, several as the kernel writes a list of bodies. */
+export function stepOf(outputs: readonly CadPartOutput[], name: string): string {
+  if (!outputs.length) throw refuse('NO_BODY', 'the part has no body to export');
+  try { return outputs.length === 1 ? outputs[0].exportStep({ name }) : exportStep(outputs.map(o => o.brep), { name }); } catch (e) { throw new BarocssError(bracketedCode(String(e)) ?? 'EXPORT', e instanceof Error ? e.message : String(e), 'export'); }
 }
 
 /** An output as binary STL (its display tessellation). */
