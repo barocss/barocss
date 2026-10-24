@@ -10,3 +10,4 @@ export { Plane, Location, Sketch, sketch, type PlaneData, type PoseData, type Sk
 export type {
   BoxOptions, CylinderOptions, ExtrudeOptions, RevolveOptions, HoleOptions, FilletOptions, ChamferOptions, ShellOptions, LinearPatternOptions, CircularPatternOptions, Density, Tool,
 } from '@barocss/cad/api';
+export { assembly, Assembly, type MateEnd, type MateOptions, type FrameOptions } from './assembly';
