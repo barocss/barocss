@@ -20,7 +20,7 @@ export interface DisplayFace { index: number; id: string; name: string; kind: 'p
   /** A freeform curved face (a NURBS or SubD patch, its curvature varying inside a triangle; O59): its B-rep faces, measured on request. */
   freeform?: string[];
   /** A freeform face's chord depth (mm), measured against its exact surface at sampled points by measureChords (O59). */
-  chordMM?: number }
+  chordDepth?: number }
 export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null; names: string[] }
 export interface DisplayMesh {
   positions: Float32Array; normals: Float32Array; faceOfVertex: Float32Array; indices: Uint32Array;
@@ -173,20 +173,20 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
 }
 
 /** Whether a mesh has a freeform face not yet measured (chordOf takes it as unbounded until measureChords runs). */
-export const unmeasured = (m: DisplayMesh): boolean => m.faces.some(f => f.freeform !== undefined && f.chordMM === undefined);
+export const unmeasured = (m: DisplayMesh): boolean => m.faces.some(f => f.freeform !== undefined && f.chordDepth === undefined);
 /**
  * Each freeform face's chord depth measured against its exact surface (O59), from the B-rep the mesh was made of: the
  * B-rep tessellated again at the mesh's quality (the same triangles), then sampledChord on each of its faces. The mesh's
- * faces get `chordMM`; a rigid placement of the mesh keeps it (depth is invariant).
+ * faces get `chordDepth`; a rigid placement of the mesh keeps it (depth is invariant).
  */
 export function measureChords(m: DisplayMesh, brep: Brep): void {
   if (!unmeasured(m)) return;
   const mesh = tessellateBrep(brep, { segmentsPerQuarter: m.quality ?? 8 }), meshFace = new Map(mesh.faces.map(f => [f.faceId, f])), faceById = new Map(brep.faces.map(f => [f.id, f]));
   for (const f of m.faces) {
-    if (!f.freeform || f.chordMM !== undefined) continue;
+    if (!f.freeform || f.chordDepth !== undefined) continue;
     let c = 0;
     for (const id of f.freeform) { const bf = faceById.get(id), mf = meshFace.get(id); c = bf && mf ? Math.max(c, sampledChord(bf, mf, mesh)) : Infinity; if (c === Infinity) break; }
-    f.chordMM = c;
+    f.chordDepth = c;
   }
 }
 

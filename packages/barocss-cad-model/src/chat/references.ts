@@ -207,7 +207,7 @@ export function chordOf(mesh: DisplayMesh): number {
   for (const f of mesh.faces) {
     if (f.kind !== 'curved' || f.facet) continue;
     if (f.analytic) curved[f.index] = 1;
-    else if (f.freeform && f.chordMM !== undefined) { curved[f.index] = 1; s = Math.max(s, f.chordMM); }
+    else if (f.freeform && f.chordDepth !== undefined) { curved[f.index] = 1; s = Math.max(s, f.chordDepth); }
     else s = Infinity;
   }
   // (A freeform face not yet measured: unbounded, and not kept, so measureChords can still decide it.)
