@@ -145,10 +145,13 @@ These omissions were found after the354-row inventory; that inventory is not a c
 |---|---|---|
 | T-slot row sizeMM | cellSize | mm unchanged; row size remains its string name. Kernel producer then Outer table converter and fixtures. Remove the sizeMM whitelist; no alias. |
 | CadPartFeatureProfile.ms | wallTime | seconds, retain original measured elapsed milliseconds and divide1000; Kernel producer, Outer rebuild/worker/UI consumers. |
+| EvalResult.ms | wallTime | seconds, same evaluation interval divided1000 once, success and failure. This is a public engine subpath and worker result; API Work owns the explicit temporary producer/consumer lease. Rebuild evaluationTime then passes through wallTime, while human ms display multiplies1000. |
 | DecimateReport.ms | wallTime | seconds, divide1000; keep measurement sites, geometry and numeric bounds. |
 | ApproximationReport.maxSampledDeviationMM | maxSampledDeviation | mm unchanged; Kernel producer and exact GPU tessellation consumers. |
 | P1 Check/EngineCheck.ms | duration | seconds, existing rounded-ms resolution divided1000; API-owned P1 reports only. |
 | P1 treeMs | treeTime | seconds, divide1000; preserve P1 physical outputs and scope, no new sweep campaign. |
+| OrientResult.ms and orient_for_print.ms | wallTime | seconds for the existing elapsed interval; preserve the tool's millisecond rounding resolution before dividing1000. Separate Outer mechanical/print checkpoint, not the API EvalResult lease. |
+| orient_for_print support_mm3/overhang_mm2/height_mm/contact_mm2 | supportVolume/overhangArea/height/contactArea | same mm-based values and existing public rounding; preserve scoring, candidate choice and direction. |
 | Public coupling g1/g2.rotation | rotation | raw internal GearPlacement radians to detached public degrees. Outer shared projection; no independent API helper. |
 
 RevolveOptions.deg is a natural option name explicitly allowed by api-conventions section2; do not rename it through
@@ -159,3 +162,56 @@ one-time mm-to-µm formatting; this does not change the public fit JSON's mm con
 P1 timing verification uses the existing --check --no-sweep flow and existing regressions. Its full files:true build
 report runtime is NOT RUN here; do not add a sweep, new execution option or test seam to turn this rename into a
 product campaign. Existing manufacturing findings and person-row waits remain.
+
+## Follow-up ownership and qualification prerequisites (2026-10-25)
+
+The T-slot Model importer temporary Kernel lease is complete at1d832089f and returned to Outer.
+The API Work now has a temporary EvalResult time lease at944c49d1f90c4b656d265f1dab662573d58a0db0.
+Its submitted12-file plan covers the producer, mesh wire, client/worker synthesized failures, Rebuild projection,
+App display and matching tests. Outer excludes those time fields while implementing B2. The lease is returned
+after its immutable checkpoint. Other telemetry fields are not renamed through an unscoped substitution.
+
+B2 preserves the approved dimensionless names inertia_ratio_max and joint_limits. Its public harness projector
+converts unrounded margin values and limits before applying the established public rounding. A private WeakMap
+may retain those values at the existing atMost/range/actuator/sweep construction sites. Core JSON, arithmetic,
+rounding, decisions, normalized margins, source and tolerances stay unchanged. Untracked clones do not silently
+acquire unrounded provenance. Sized.trace.change remains explicitly labelled human text.
+
+Package-consumer qualification must use the actual archive produced from the current package metadata and
+strictly compare the packed name/version/private fields with that source. Retain no-runtime-dependencies,
+all runtime and external TypeScript assertions, and the existing compiler flags and DOM libraries. Run external
+consumers in their actual scratch context; do not import unrelated repository ambient types. Do not create
+an archive under an obsolete name or alter package metadata to satisfy a stale test. Only the explicitly leased
+consumer driver and its matching metadata/archive/context helpers may change. Keep each original failure.
+These are implementation and verification assignments, not completed gates or product adoption.
+
+## Public clearance and viewport follow-up (2026-10-25)
+
+The same public quantity contract applies to structured worker and viewport DTOs. A transient value is not an
+exception merely because it is not saved in a document. The following mechanical projections preserve numeric
+values, original rounding, geometry, decisions, cache dependencies and human display units:
+
+| Boundary | Canonical field | Meaning / owner |
+|---|---|---|
+| sweep_path.min_clearance | minClearance | {value,fraction,links}: mm clearance and dimensionless path coordinate; Outer shared projector. |
+| check_path.min_clearance | minClearance | {value,time,links}: mm clearance and time in seconds; do not substitute fraction for time. |
+| reference residual_mm | residual | mm unchanged, original twelve-significant-digit formatter; stored datum and fitting unchanged. |
+| public keepout overlap_mm3 / clearance_mm | overlap / clearance | mm³ / mm unchanged; core KeepoutResult and App raw use stay unchanged. |
+| public keepout required_mm / chord_tolerance_mm | requiredClearance / chordTolerance | mm unchanged; keep historical conformance oracle names and verdict thresholds. |
+| PrintDisplay.topMM | top | mm unchanged; GPU owns the display, worker, panel, projection, overlay and Viewport consumers plus matching tests. Root owns the browser-flow probe. |
+
+The PrintDisplay change is distinct from the Model PrintLayers producer but must be reconciled in this R7
+window. It does not authorize a new clipping formula, cache algorithm, shader optimization or threshold. Retain
+support geometry and the original displayed mm values. GPU consumes the exact Model producer on a branch
+without G14/DoF/G15c feature ancestry. Root reconciles its shared browser getter after those exact producers.
+
+The API L3 temporary five-file lease covers server robotL3 tool/main and three matching tests. Project the original
+harness before serialization, validate canonical duty with readDuty, and preserve validated canonical numbers
+rather than repeatedly converting and rounding them. keepsBrief retains strict life, poses and dwell comparisons
+and its existing limits allowance. Preserve the original initial physical ratings of1rad/s and1Nm through the
+shared settings adapter. No live model or new budget campaign is required for this contract migration.
+
+The packaged numerical-v0 XYArc consumer still uses its actual centerMM/radiusMM report. That explicitly leased
+legacy consumer correction is not closure of R7.3d retirement or a permanent exception for active public DTOs.
+Final qualification remains on one immutable assembled SHA with Node22.23.3. Focused results below that boundary
+remain scoped evidence, and P2 remains held.

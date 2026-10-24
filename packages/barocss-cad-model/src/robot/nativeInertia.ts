@@ -24,7 +24,7 @@ export function nativeLinkInertia(link: string, part: string, doc: StudioDoc | n
       notes.push(`${link}/${b.key}: native SI provenance unavailable (${raw.reason}); existing MMGS round-trip inertia used.`);
       return undefined;
     }
-    const density = materialOf(materialIdOf(doc, b)).gPerCm3, ratio = density / raw.density;
+    const density = materialOf(materialIdOf(doc, b)).density, ratio = density / raw.density;
     basis.push({ link, body: b.key, mode: 'raw-native-si' });
     return raw.inertia.flat().map(x => x * ratio) as Mat3;
   });

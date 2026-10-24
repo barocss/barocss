@@ -49,7 +49,7 @@ export function rebuildReport(doc: StudioDoc, result: EvalResult, options: { pro
     if (!slowest || f.wallTime > slowest.wallTime) slowest = f;
   }
   const mates = options.problems ? options.problems.map(p => ({ mate: p.mate, reason: p.reason })) : mateProblems(doc);
-  return { revision: revisionOf(doc), evaluation: result.revision, basis: options.basis ?? 'last evaluation', evaluationTime: result.ms / 1000, features, built, builtTime, slowest: slowest?.id ?? null, reused: kept.size, mates, loops: loopsOf(doc, mates), limits: REBUILD_LIMITS };
+  return { revision: revisionOf(doc), evaluation: result.revision, basis: options.basis ?? 'last evaluation', evaluationTime: result.wallTime, features, built, builtTime, slowest: slowest?.id ?? null, reused: kept.size, mates, loops: loopsOf(doc, mates), limits: REBUILD_LIMITS };
 }
 
 /** The mates that cannot be met, as the studio's solver refuses them. */

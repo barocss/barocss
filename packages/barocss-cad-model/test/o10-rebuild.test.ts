@@ -46,7 +46,7 @@ test('O10: every feature built on a first evaluation; an edit to the hole builds
 });
 
 test('O10: a failed evaluation has no rebuild report', () => {
-  assert.equal(rebuildReport(starterDoc(), { ok: false, revision: 1, error: { title: 'x', detail: 'x' } as never, ms: 0 }), null);
+  assert.equal(rebuildReport(starterDoc(), { ok: false, revision: 1, error: { title: 'x', detail: 'x' } as never, wallTime: 0 }), null);
 });
 
 test('O10: mates in a loop are listed with the parts they join; a mate that can be met is not', () => {

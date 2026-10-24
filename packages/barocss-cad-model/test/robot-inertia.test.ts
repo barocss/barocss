@@ -59,9 +59,9 @@ test('a cylinder\'s analytic inertia; another material scales mass and inertia b
   const s = await build([['run_command', { command: 'cylinder', values: { r: 10, h: 30, x: 0, y: 0, z: 0 } }]]), m = Math.PI * 100 * 30 * RHO * 1e-6;
   const l = linkInertia('L', 'base', s.doc, s.bodies, AT_PART);
   assert.ok(close([l.inertia[0], l.inertia[4], l.inertia[8]], [m * (3 * 100 + 900) / 12e6, m * (3 * 100 + 900) / 12e6, m * 100 / 2e6], 1e-12));
-  const steel = MATERIALS.find(x => Math.abs(x.gPerCm3 - RHO) > 1)!, key = s.bodies[0].key;
+  const steel = MATERIALS.find(x => Math.abs(x.density - RHO) > 1)!, key = s.bodies[0].key;
   const heavy = linkInertia('L', 'base', { ...s.doc, bodies: { [key]: { material: steel.id } } } as StudioDoc, s.bodies, AT_PART);
-  assert.ok(Math.abs(heavy.massKg / l.massKg - steel.gPerCm3 / RHO) < 1e-12 && Math.abs(heavy.inertia[8] / l.inertia[8] - steel.gPerCm3 / RHO) < 1e-12);
+  assert.ok(Math.abs(heavy.massKg / l.massKg - steel.density / RHO) < 1e-12 && Math.abs(heavy.inertia[8] / l.inertia[8] - steel.density / RHO) < 1e-12);
   assert.deepEqual([heavy.bodies[0].material, heavy.bodies[0].assumed, heavy.issues], [steel.label, false, []]);
 });
 

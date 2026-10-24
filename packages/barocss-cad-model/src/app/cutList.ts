@@ -23,9 +23,9 @@ export function partCutList(doc: StudioDoc, bodies: readonly BodyResult[], fallb
   const pieces = members.map(b => {
     const mat = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? base;
     names[b.key] = bodyName(doc, b);
-    return { ...b.cutPiece!, id: b.key, material: mat.label, density: mat.gPerCm3 };
+    return { ...b.cutPiece!, id: b.key, material: mat.label, density: mat.density };
   });
-  return { ...cutList(pieces, { density: base.gPerCm3, material: base.label }), names, densityEstimate: true };
+  return { ...cutList(pieces, { density: base.density, material: base.label }), names, densityEstimate: true };
 }
 
 /** An end's cut as a table cell: square, `MITRE 45`, `MITRE 30 / BEVEL 10`, or what finishes it (`COPE`, `TRIM`). */

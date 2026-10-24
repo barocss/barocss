@@ -7,7 +7,7 @@ import type { DisplayMesh } from '../src/engine/mesh';
 
 // PERF3 B12 (D82): evaluation replies carry only the meshes the client does not hold; the client puts back the rest.
 const mesh = (n: number): DisplayMesh => ({ positions: new Float32Array(3 * n).fill(n), normals: new Float32Array(3 * n), faceOfVertex: new Float32Array(n), indices: new Uint32Array(3), faces: [], edgeLines: new Float32Array(6), edgeOfSegment: new Float32Array(2), edges: [], bounds: { min: [0, 0, 0], max: [1, 1, 1] } } as unknown as DisplayMesh);
-const result = (...meshes: DisplayMesh[]): EvalResult => ({ ok: true, revision: 1, ms: 0, bodies: meshes.map((m, i) => ({ key: `b${i}`, mesh: m, volume: i, mass: null } as never)) });
+const result = (...meshes: DisplayMesh[]): EvalResult => ({ ok: true, revision: 1, wallTime: 0, bodies: meshes.map((m, i) => ({ key: `b${i}`, mesh: m, volume: i, mass: null } as never)) });
 const bytes = (t: readonly unknown[]) => t.reduce((n: number, b) => n + (b as ArrayBuffer).byteLength, 0);
 
 test('B12 protocol: a mesh sent once in a slot goes back as a token; the client gives the same mesh back; slots apart; a refusal forgets the slot; a token not held is an error', () => {
@@ -37,7 +37,7 @@ test('B12 protocol: a mesh sent once in a slot goes back as a token; the client 
   assert.equal(out.transfer.length, 6);
   get.unpack('evaluate', out.result);
   // A refusal empties the slot on both sides.
-  const fail: EvalResult = { ok: false, revision: 2, ms: 0, error: { title: 'x', hint: '', detail: '' } as never };
+  const fail: EvalResult = { ok: false, revision: 2, wallTime: 0, error: { title: 'x', hint: '', detail: '' } as never };
   get.unpack('evaluate', send.pack('evaluate', fail).result);
   out = send.pack('evaluate', result(A));
   assert.equal(out.transfer.length, 6);
