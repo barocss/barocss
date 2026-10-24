@@ -105,7 +105,7 @@ test('G6 the renderer: a body\'s field set once per map and cleared; the mould\'
 test('G6 the draft map (O-G6\'s draftSamples): a box along +Z — its walls 0°, its top +90°, its bottom −90°; marks at ± the finish\'s least draft; none without a finish', () => {
   const d = holedPlate(), [b] = bodiesOf(d), limits = draftLimits(d, [b])!;
   const finish = processProfile('injection')!.finishes!.find(f => f.id === 'smooth')!;
-  assert.deepEqual(limits, { minDeg: finish.draftMin, recDeg: finish.draftRecommended ?? null });
+  assert.deepEqual(limits, { draftMin: finish.draftMin, draftRecommended: finish.draftRecommended ?? null });
   const m = draftMap(d, b, [0, 0, 1], limits), P = b.mesh.positions, N = b.mesh.normals;
   assert.equal(m.per, 'vertex'); assert.equal(m.values.length, P.length / 3);
   let walls = 0, tops = 0, bottoms = 0;
