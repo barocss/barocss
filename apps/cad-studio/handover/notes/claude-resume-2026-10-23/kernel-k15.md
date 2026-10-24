@@ -12,7 +12,7 @@ Same as kernel-k14.md. You own `packages/barocss-cad/**` and commit directly on 
 1. common.md.
 2. kernel-k14.md: the method, verification and report format, which K15 keeps.
 3. decisions.md:
-   - D245–D254, K14;
+   - D245–D256, K14, with D256 its closing record (the final fuzz table and what is open);
    - D254 above all, which diagnoses what's left;
    - D196, the triage method;
    - D239's open nudge findings.
@@ -21,7 +21,7 @@ Same as kernel-k14.md. You own `packages/barocss-cad/**` and commit directly on 
 
 - The fingerprint is `cf100676`, over 861 cases.
 - The kernel suite is 1663/1670. The one failure is the native-split Node assertion. Test names are saved per checkpoint.
-- The fuzz has APPROX, from D249. All four seeds (20261023–20261026) have no findings. Refusals are 11/13/18/13.
+- The fuzz has APPROX, from D249. All four seeds (20261023–20261026) have no findings. Refusals are 11/13/17/13 (D256). 25#148 was fixed in D255.
 
 ## Queue
 
@@ -31,7 +31,7 @@ Take the cases in this order, smallest shrunk tree first within each step, with 
    builds a face over a 354° arc against its loop. One cause is likely, so check 26#115 against it.
 2. **26#184:** the copies' union leaves 13 edges each used once, in a tilted cylinder's end plane. Rings meet at
    points 0.07 mm apart.
-3. **25#49 and 25#148:** shrink and diagnose them first.
+3. **25#49:** micro edges along a ruling, from a near-tangency (D256).
 4. **The second causes of 25#170 and 26#34 as fuzzed.**
 5. **25#190,** the march beside a pole (D250). Two remedies have already failed. Try a third only if it keeps #154
    and D238's 25.

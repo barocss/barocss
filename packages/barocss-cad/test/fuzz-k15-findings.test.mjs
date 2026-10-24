@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { checkBrep, evaluateCadPart, tessellateBrep } from '../dist/index.js';
+import { oracle } from '../scripts/rb/fuzz-oracle.mjs';
+import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
+
+const leaf = (kind, dims, rot, move) => ({ leaf: { kind, ...dims, rot: rot.map(([axis, deg]) => ({ axis, deg })), move } });
+/** Mesh edges (by position) not used exactly twice. */
+function openEdges(mesh) {
+  const P = mesh.positionsMM, uses = new Map();
+  for (let t = 0; t < mesh.indices.length; t += 3) for (let k = 0; k < 3; k++) {
+    const a = mesh.indices[t + k], b = mesh.indices[t + (k + 1) % 3], ka = `${P[3 * a]},${P[3 * a + 1]},${P[3 * a + 2]}`, kb = `${P[3 * b]},${P[3 * b + 1]},${P[3 * b + 2]}`, e = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
+    uses.set(e, (uses.get(e) ?? 0) + 1);
+  }
+  return [...uses.values()].filter(n => n !== 2).length;
+}
+function check(name, tree, method) {
+  const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), m = o.massProperties(1), q = oracle(tree, 256, 6);
+  assert.equal(o.validate().valid, true, `${name}: valid`);
+  assert.equal(openEdges(tessellateBrep(o.brep, { segmentsPerQuarter: 8 })), 0, `${name}: watertight`);
+  if (method) assert.equal(m.method, method, name);
+  assert.ok(Math.abs(m.volumeMM3 - q.volumeMM3) <= 3 * q.e + 1e-9, `${name}: ${m.volumeMM3} vs the oracle ${q.volumeMM3} ± ${q.e}`);
+  return o;
+}
+
+test('checker: a face wrapping most of its full-turn surface, its gap beside the domain\'s middle, keeps its sense (L4 fuzz 20261025 #62, D257)', () => {
+  // (The cylinder piece crossed its frame's ±π cut, so its surface spans the whole turn and the face's 6° gap lies at
+  // u 0.31. The sense check took the normal at the domain's middle, 68° from the gap: the loop's vector area, which
+  // points away from the gap, came out against it.)
+  const piece = { op: 'difference', a: leaf('cyl', { r: 2.5, h: 6.5 }, [['x', 222.022], ['y', 71.768]], [2, -1.5, -1.5]), b: leaf('box', { w: 3.5, d: 6.5, h: 3.5 }, [], [0.5, -2, 0]) };
+  const o = check('(a tilted cylinder less a box) in a linear pattern of 3, then of 2', { pattern: { kind: 'linear', axis: 'y', spacing: 8.505, count: 2 }, child: { pattern: { kind: 'linear', axis: 'y', spacing: 3.859, count: 3 }, child: piece } }, 'quadrature');
+  // A loop that does run the wrong way is still found: each face turned over is refused, apart from the wrapping one,
+  // whose vector area agrees with its normal at the domain's middle only when it is wrong (open: D257).
+  const passed = [];
+  for (const f of o.brep.faces) {
+    const flipped = { ...o.brep, faces: o.brep.faces.map(g => g === f ? { ...g, sense: g.sense === 'forward' ? 'reversed' : 'forward' } : g) };
+    if (!checkBrep(flipped).issues.some(i => i.startsWith(`orientation: face ${f.id} `))) passed.push(f.id);
+  }
+  assert.equal(o.brep.faces.length, 37);
+  assert.deepEqual(passed, ['n0_body0/s0/f23']);
+});

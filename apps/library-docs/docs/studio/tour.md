@@ -43,6 +43,8 @@ and the dock at the right.
 - **The inspector**, under the Browser:
   - It shows what is picked, such as `SELECTION · FACE`, with its measurements and the actions that apply to it.
   - With nothing picked, it shows the part's mass, centre of mass and bounds.
+  - After an edit, the shape updates first. The mass, volume and centre of mass follow a moment later and read `…`
+    until they arrive, never 0 or the previous values.
   - It also holds the command that is running, and the panels for measuring, joints and mates.
 - **The heads-up display (HUD)** shows a running command's fields and a status: `preview` while the result is shown,
   or `refused` with the reason.

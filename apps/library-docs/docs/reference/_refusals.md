@@ -20,7 +20,6 @@
 | `[BUTT_ON_CURVED_MEMBER]` | `part` | a butt cannot use a curved member as a planar face |
 | `[BUTT_ON_OPEN_SIDE]` | `part` | …: its end spans … to … mm along the through member's section …, but the side …… of that section has material only at …: a gap would be left (trim it to the … |
 | `[CAP_END]` | `part` | member …'s … is cut by a …: a cap sits on a square end |
-| `[CODE]` | `frame-sheet` | — |
 | `[CORNER_ANGLE]` | `part` | point …: member … runs along member … |
 | `[CORNER_NOT_A_JOINT]` | `part` | point …: no member ends there |
 | `[CORNER_NOT_CLEAR]` | `part` | the relief at … meets more than the plate's corner |
@@ -45,8 +44,8 @@
 | `[RADIUS_EXCEEDS_FACE]` | `part` | edge …: chamfer … mm is too large for walls of … and … mm |
 | `[RELIEF_REQUIRED]` | `part` | the flange on … ends inside the edge: give its relief — { kind: 'rectangular' \| 'obround', width, depth } or { kind: 'none' } |
 | `[SECTION_DIMENSIONS]` | `frame-sheet` | … |
-| `[SECTION_TABLE]` | `features`, `part` | … |
-| `[SECTION_TABLE_MISS]` | `features`, `part` | …: … |
+| `[SECTION_TABLE]` | `part` | … |
+| `[SECTION_TABLE_MISS]` | `part` | …: … |
 | `[SEGMENT_ZERO_LENGTH]` | `part` | a member runs from its start to its end: they are … mm apart |
 | `[SHEET_CROSSES_ITSELF]` | `frame-sheet` | the sheet's section meets itself: … and … near (…, …) |
 | `[SHEET_IN_PIECES]` | `part` | the flange on … and its reliefs leave the sheet in … pieces: move it, or its neighbour, further from the corner |

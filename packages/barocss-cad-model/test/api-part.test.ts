@@ -2,7 +2,7 @@
 // equal the core functions' on that document byte for byte.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { part, ApiRefusal } from '../src/api/index';
+import { part, BarocssError } from '../src/api';
 import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
 import { evaluateDoc, stepFor } from '../src/engine/evaluate';
 import { bodyMass } from '../src/app/mass';
@@ -16,7 +16,7 @@ function handWritten(): StudioDoc {
 
 const bracket = () => part('bracket')
   .box(80, 40, 10)
-  .hole({ at: [20, 20], diameter: 8 })
+  .hole({ at: [20, 20], diameterMM: 8 })
   .fillet(body => body.edges().along('z'), 2);
 
 // (stepFor stamps the export's time in FILE_NAME; the two runs are compared without it.)
@@ -30,7 +30,9 @@ test('its mass and STEP are the core functions\' on that document, byte for byte
   const doc = handWritten(), r = evaluateDoc(doc, 7);
   assert.ok(r.ok);
   const body = r.bodies[0], props = bodyMass(body, 2.7)!;
-  assert.equal(JSON.stringify(bracket().mass('al6061')), JSON.stringify({ volumeMM3: body.volumeMM3, massG: props.massG, centroid: props.centroid, inertia: props.inertia }));
+  // (MMGS: the core's inertia is in kg·mm² today, the facade's in g·mm², api-conventions.md §2.)
+  const expected = { volumeMM3: body.volumeMM3, massG: props.massG, centroidMM: props.centroid, inertiaGMM2: props.inertia.map(row => row.map(v => v * 1000)) };
+  assert.equal(JSON.stringify(bracket().mass('al6061')), JSON.stringify(expected));
   const core = stepFor(doc, 'bracket');
   assert.ok('text' in core);
   assert.equal(unstamped(bracket().step()), unstamped(core.text));
@@ -38,7 +40,7 @@ test('its mass and STEP are the core functions\' on that document, byte for byte
 
 test('every method returns a new part and leaves the old one as it was', () => {
   const block = part('b').box(80, 40, 10), before = JSON.stringify(block.doc);
-  const holed = block.hole({ at: [20, 20], diameter: 8 });
+  const holed = block.hole({ at: [20, 20], diameterMM: 8 });
   assert.equal(JSON.stringify(block.doc), before);
   assert.notEqual(JSON.stringify(holed.doc), before);
   // (`.doc` is a copy: changing it changes nothing in the part.)
@@ -47,7 +49,7 @@ test('every method returns a new part and leaves the old one as it was', () => {
 });
 
 test('typed selectors read the core\'s edges and faces by their names', () => {
-  const holed = part().box(80, 40, 10).hole({ at: [20, 20], diameter: 8 });
+  const holed = part().box(80, 40, 10).hole({ at: [20, 20], diameterMM: 8 });
   const body = holed.select();
   assert.deepEqual(body.edges().along('z').names(), ['n1.side0|n1.side1', 'n1.side0|n1.side3', 'n1.side1|n1.side2', 'n1.side2|n1.side3']);
   assert.deepEqual(body.faces().facing('+z').names(), ['n1.top']);
@@ -60,15 +62,18 @@ test('typed selectors read the core\'s edges and faces by their names', () => {
 
 test('refusals are typed: the facade\'s own, and the core\'s passed through with its code', () => {
   const refusal = (f: () => unknown) => { try { f(); } catch (e) { return e; } assert.fail('no refusal'); };
-  const e1 = refusal(() => part().hole({ at: [0, 0], diameter: 4 }));
-  assert.ok(e1 instanceof ApiRefusal); assert.equal(e1.code, 'NO_BODY'); assert.equal(e1.where, 'facade');
+  const e1 = refusal(() => part().hole({ at: [0, 0], diameterMM: 4 }));
+  assert.ok(e1 instanceof BarocssError); assert.equal(e1.code, 'NO_BODY'); assert.equal(e1.where, 'facade');
   const e2 = refusal(() => part().box(10, 10, 10).fillet(b => b.edges().along('z').where(() => false), 1));
-  assert.ok(e2 instanceof ApiRefusal); assert.equal(e2.code, 'SELECTION_EMPTY');
+  assert.ok(e2 instanceof BarocssError); assert.equal(e2.code, 'SELECTION_EMPTY');
   const e3 = refusal(() => part().box(10, 10, 10).mass('unobtainium'));
-  assert.ok(e3 instanceof ApiRefusal); assert.equal(e3.code, 'MATERIAL_UNKNOWN');
+  assert.ok(e3 instanceof BarocssError); assert.equal(e3.code, 'MATERIAL_UNKNOWN');
   // A fillet larger than its walls: the kernel refuses it, and the facade passes its code and words on.
   const e4 = refusal(() => part().box(10, 10, 10).fillet(b => b.edges().along('z'), 8).mass('al6061'));
-  assert.ok(e4 instanceof ApiRefusal); assert.equal(e4.where, 'evaluate');
-  assert.ok(e4.friendly, 'the core\'s own words are kept');
+  assert.ok(e4 instanceof BarocssError); assert.equal(e4.where, 'evaluate');
+  // (The core's code, when it gave one, is the refusal's: the kernel's bracketed code, or its error's kind.)
+  const given = (e4.details?.friendly as { code?: string } | undefined)?.code;
+  assert.ok(given, 'the core gave a code'); assert.equal(e4.code, given); assert.notEqual(e4.code, 'EVALUATION');
+  assert.ok(e4.details?.friendly, 'the core\'s own words are kept');
   assert.match(e4.message, /^\[[A-Z_]+\] /);
 });

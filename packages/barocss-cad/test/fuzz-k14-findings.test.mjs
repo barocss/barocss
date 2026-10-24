@@ -75,3 +75,11 @@ test('analytic Boolean: coplanar pieces joined keep a piece whose ring its face\
   const tree = { pattern: { kind: 'circular', axis: 'z', deg: 42.553, count: 2, pivot: [-1.676, 0.052, 0] }, child: { op: 'union', a: leaf('hbox', { w: 4.068, d: 4.757, h: 4.846, t: 0.979, open: false }, [], [-1.18, -0.846, -1.263]), b: leaf('sphere', { r: 3.382 }, [['y', 230.956]], [1.486, -1.115, -0.023]) } };
   check('a closed shelled box ∪ a ball, twice', tree, 'quadrature');
 });
+
+test('curves: loose ends a traced curve\'s tolerance apart, or from a traced segment, join there (L4 fuzz 20261025 #148, D255)', () => {
+  // (A box less (a cylinder ∩ a ball): the cylinder's rulings in the box's face, clipped against its traced trim with the
+  // ball, ended 1e-4 short of the ball's arc that goes on there, and the ball's arc 1e-4 short of that trim: neither face
+  // was divided, an edge used once.)
+  const tree = { op: 'difference', a: leaf('box', { w: 5.475, d: 6.17, h: 5.025 }, [['x', 253.346]], [2.391, -2.406, 2.043]), b: { op: 'intersect', a: leaf('cyl', { r: 2.604, h: 6.96 }, [['x', 64.373]], [0.686, -1.385, -1.555]), b: leaf('sphere', { r: 3.147 }, [], [2.471, -2.206, -0.044]) } };
+  check('a box less a cylinder ∩ a ball', tree, 'quadrature');
+});

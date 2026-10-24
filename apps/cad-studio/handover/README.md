@@ -121,6 +121,9 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | K14 step 3: coplanar pieces joined with their rings closed as their face's arrangement closed them (20261026 #112, #34 shrunk, #194) | D252 | done (T2) |
 | K14 checkpoint 2: counts and the robust refusals' state; checkpoint 1's two centroid bits came from D246 | D253 | done (T2: kernel 1663/1670, names +3, RB no NEW, fingerprint cf100676 (138 refused → valid; 27 lines ≤ 7e-10 relative), cad-model 1017, studio 285) |
 | K14 stopped at the fix budget (7 causes): the next robust refusals diagnosed — 26#184 (rings meeting 0.07 mm apart at a tilted end plane), 25#62 (the face stitched over a 354° arc), 26#115, 25#49, 25#148, 25#190; D239's nudge findings and s2#112 not reached | D254 | done (diagnosis only) |
+| K14: loose ends a traced curve's tolerance apart join there — two loose ends within 100 tolerances, an exact cut's end onto a traced segment within 100 (20261025 #148 builds) | D255 | done (T2: kernel 1664/1671, names +1, RB no NEW, fingerprint cf100676 unchanged, cad-model 1020, studio 286) |
+| K14 closing record: the final fuzz table (54 refusals left over four seeds, no findings), the open robust refusals with their causes, the fingerprint chain b6e18fab → 01ad424b → cf100676 | D256 | done |
+| K15: 25#62, 26#115 — a face wrapping most of its full-turn surface (a cylinder wall over 354°, its gap beside the domain's middle) is judged by its loop's winding in its domain where its vector area disagrees with the middle's normal; 20261024 #185 builds too | D257 | done (T2: kernel 1665/1672, names +1, RB no NEW, fingerprint 863 cases 1cd931ee (two corpus cases added; 24:185 refused → valid), fuzz refusals 16/12/11/12, cad-model 1025, studio 286) |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 

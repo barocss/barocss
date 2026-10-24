@@ -1,0 +1,195 @@
+{
+  "id": "fuzz-20261025-62",
+  "about": "L4 fuzz robust refusal (seed 20261025, case 62), shrunk: (a tilted cylinder less a box) in a linear pattern of 3, then of 2. A cylinder piece wrapping 354° of its full-turn surface, its gap beside the domain's middle, was refused as 'sense disagrees with its outer loop' before D257: the sense check's normal at the domain's middle lay 68° from the gap. Now one body.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n3s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 2.5
+        },
+        {
+          "id": "n3b",
+          "kind": "extrude",
+          "sketch": "n3s",
+          "height": 6.5
+        },
+        {
+          "id": "n3r0",
+          "kind": "rotate",
+          "target": "n3b",
+          "axis": "x",
+          "angleDegrees": 222.022,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n3r1",
+          "kind": "rotate",
+          "target": "n3r0",
+          "axis": "y",
+          "angleDegrees": 71.768,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n3",
+          "kind": "translate",
+          "target": "n3r1",
+          "offset": [
+            2,
+            -1.5,
+            -1.5
+          ]
+        },
+        {
+          "id": "n4s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            3.5,
+            6.5
+          ]
+        },
+        {
+          "id": "n4b",
+          "kind": "extrude",
+          "sketch": "n4s",
+          "height": 3.5
+        },
+        {
+          "id": "n4",
+          "kind": "translate",
+          "target": "n4b",
+          "offset": [
+            0.5,
+            -2,
+            0
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "difference",
+          "target": "n3",
+          "tool": "n4"
+        },
+        {
+          "id": "n1",
+          "kind": "linear-pattern",
+          "target": "n2",
+          "axis": "y",
+          "spacing": 3.859,
+          "count": 3
+        },
+        {
+          "id": "n0",
+          "kind": "linear-pattern",
+          "target": "n1",
+          "axis": "y",
+          "spacing": 8.505,
+          "count": 2
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 555.0020815592248,
+          "relTol": 0.0001,
+          "absTol": 0.055500208155922486
+        },
+        "centroidMM": {
+          "value": [
+            -0.3368518596283387,
+            8.817199432296349,
+            -2.3243341975857668
+          ],
+          "absTol": 0.0024288642591961847
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 7.08e-3 mm³, centroid e 1.94e-4 mm",
+  "fuzz": {
+    "seed": 20261025,
+    "k": 62,
+    "status": "REFUSED",
+    "tree": {
+      "pattern": {
+        "kind": "linear",
+        "axis": "y",
+        "spacing": 8.505,
+        "count": 2
+      },
+      "child": {
+        "pattern": {
+          "kind": "linear",
+          "axis": "y",
+          "spacing": 3.859,
+          "count": 3
+        },
+        "child": {
+          "op": "difference",
+          "a": {
+            "leaf": {
+              "kind": "cyl",
+              "r": 2.5,
+              "h": 6.5,
+              "rot": [
+                {
+                  "axis": "x",
+                  "deg": 222.022
+                },
+                {
+                  "axis": "y",
+                  "deg": 71.768
+                }
+              ],
+              "move": [
+                2,
+                -1.5,
+                -1.5
+              ]
+            }
+          },
+          "b": {
+            "leaf": {
+              "kind": "box",
+              "w": 3.5,
+              "d": 6.5,
+              "h": 3.5,
+              "rot": [],
+              "move": [
+                0.5,
+                -2,
+                0
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

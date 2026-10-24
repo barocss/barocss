@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { deferMasses, evaluateDoc, evaluatePlaced, forgetSnapshots, massOfRef, type BodyResult } from '../src/engine/evaluate';
+import { deferMasses, evaluateDoc, evaluatePlaced, forgetSnapshots, massOfRef, placedMassFields, type BodyResult } from '../src/engine/evaluate';
 import { cylinderPart, emptyDoc, placedBase, placedDoc, rectanglePart, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { placementOf } from '../src/engine/placement';
 
@@ -31,6 +31,8 @@ test('O18: a deferred body\'s mass on request equals the eager evaluation\'s, a 
   assert.deepEqual(asked, eager);
   assert.equal(deferred[0].massPlace?.length, 1, 'the placement kept for the mass');
   assert.notDeepEqual(JSON.parse(asked[0]).centroid, [0, 0, 15], 'moved with its copy');
+  // (The studio's way: the worker sends the fields unplaced, the client places them by the body's massPlace.)
+  assert.equal(fields(placedMassFields(massOfRef(deferred[0].massRef!)!, deferred[0].massPlace!)), eager[0]);
 });
 
 test('O18: a B-rep whose mass is known keeps it inline; deferMasses off changes nothing', () => {
