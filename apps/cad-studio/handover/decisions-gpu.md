@@ -3023,5 +3023,5 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - G12's step checks that the WebGL2 chips' boxes are apart.
 - **Runs**:
   - Full flow at 4b4acd4cb (scratch): **WebGPU 287/287, WebGL2 287/287**.
-  - The full bench: every row ok but section on GPU's GPU time (8.6 ms a submit against 6; the G14 item). Pose is App 3,
+  - The full bench: every row ok but section on GPU's GPU time (8.8 ms a submit against 6; the G14 item). Pose is App 3,
     4.6 ms, as before: the frames don't render the App.
