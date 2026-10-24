@@ -196,7 +196,7 @@ test('near overlay vertices retain the exact independent band fields instead of 
     assert.deepEqual(Array.from(shown.model).slice(12, 15), index === 0 ? [10, 0, 0] : [0, 20, 0]);
   }
   const display = api.clearanceDisplay(current, bodies, 19, 'bands');
-  assert.equal(display.request, 19); assert.equal(display.stage, 'bands'); assert.equal(display.revision, current.revision); assert.equal(display.version, api.CLEARANCE_MAP_VERSION); assert.equal(display.nearMM, 1); assert.equal(display.pairs, current.pairs);
+  assert.equal(display.request, 19); assert.equal(display.stage, 'bands'); assert.equal(display.revision, current.revision); assert.equal(display.version, api.CLEARANCE_MAP_VERSION); assert.equal(display.near, 1); assert.equal(display.pairs, current.pairs);
   assert.equal(display.overlays[0].field, a.field); assert.equal(display.overlays[1].field, b.field); assert.equal(snapshot({ current, bodies }), before);
 });
 

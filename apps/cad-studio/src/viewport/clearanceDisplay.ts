@@ -20,7 +20,8 @@ export interface ClearanceDisplay {
   version: typeof CLEARANCE_MAP_VERSION;
   request: number;
   revision: string;
-  nearMM: number;
+  /** The near band, in mm. */
+  near: number;
   stage: 'evaluating' | 'map' | 'bands' | 'overlaps' | 'ready' | 'error';
   pairs: readonly ClearancePair[];
   overlays: readonly ClearanceOverlay[];

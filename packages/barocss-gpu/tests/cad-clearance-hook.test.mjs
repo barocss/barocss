@@ -46,7 +46,7 @@ function fixture() {
     cleanup() { for (const slot of slots) slot?.cleanup?.(); globalThis.Worker = oldWorker; globalThis.__g22Hooks = oldHooks; },
   };
 }
-const output = (request, extra = {}) => ({ version: 'clearance-map-v1', request, revision: 'pose-' + request, nearMM: 1, stage: 'ready', pairs: [], overlays: [{ id: 'old-surface' }], ...extra });
+const output = (request, extra = {}) => ({ version: 'clearance-map-v1', request, revision: 'pose-' + request, near: 1, stage: 'ready', pairs: [], overlays: [{ id: 'old-surface' }], ...extra });
 
 test('pose/source change hides old output before effects; wrong version and old request cannot refill it', () => {
   const f = fixture();
