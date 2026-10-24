@@ -18,6 +18,7 @@ import { STANDARD_GRAVITY } from '../robot/dynamics';
 import { readRobot, type JointSettings, type JointTree, type RobotSettings } from '../robot/joints';
 import { checkPath, duration, motionNamed, poseAt, timedPathOf, type Motion, type MotionPath } from '../robot/motion';
 import { inertiaJson } from '../chat/robot';
+import { problem, type Problem } from '../engine/refusal';
 import { bodiesOf } from './core';
 
 /** A tool's refusal in its words: its bracketed code, else ROBOT. */
@@ -138,18 +139,40 @@ export function usdOf(doc: StudioDoc, name: string) {
   return r;
 }
 
+/**
+ * O22's LOOP_OPEN, as check_path and play_motion refuse it (robot/verbs.ts playable): a motion names joint values and
+ * nothing closes a loop along it yet, so a looped robot's motion is refused, not checked clear or posed open.
+ */
+function loopOpen(tree: JointTree): Problem<'LOOP_OPEN'> | null {
+  return tree.loops.length ? problem('LOOP_OPEN', `the robot has a closed loop (${tree.loops.map(l => l.parts.join('–')).join(', ')}); a motion's poses do not close it yet, so it is not played or checked`) : null;
+}
+/** A path's refusal on a looped robot (LOOP_OPEN). */
+export function refuseLoop(tree: JointTree): void {
+  const p = loopOpen(tree);
+  if (p) throw new BarocssError(p.code, p.message, 'evaluate', { loops: tree.loops.map(l => l.parts) });
+}
+
 /** A saved motion's joint values at time t (s), in the facade's units — degrees for a turning joint, mm for a slide (RS2's poseAt). */
 export function poseAtOf(doc: StudioDoc, path: MotionPath, t: number): Record<string, number> {
   if (typeof t !== 'number' || !Number.isFinite(t)) throw new BarocssError('VALUE', `[VALUE] a time is a number of seconds, not ${String(t)}`, 'facade');
-  const tree = treeOf(doc), timed = timedPathOf(tree, path), turning = new Set(tree.joints.filter(j => j.type === 'revolute' || j.type === 'continuous').map(j => j.key));
+  const tree = treeOf(doc);
+  refuseLoop(tree);
+  const timed = timedPathOf(tree, path), turning = new Set(tree.joints.filter(j => j.type === 'revolute' || j.type === 'continuous').map(j => j.key));
   const problems = checkPath(tree, timed);
   if (problems.length) throw new BarocssError(problems[0].code, problems[0].message, 'evaluate', { problems });
   return Object.fromEntries(Object.entries(poseAt(tree, timed, t)).map(([k, v]) => [k, turning.has(k) ? v * 180 / Math.PI : v]));
 }
 /** How long a motion takes (s), as poseAt times it. */
-export const durationOf = (doc: StudioDoc, path: MotionPath) => duration(timedPathOf(treeOf(doc), path));
-/** What is wrong with a motion on this robot (RS2's checkPath): unknown or following joints, limits passed or missing. */
-export const problemsOf = (doc: StudioDoc, path: MotionPath) => checkPath(treeOf(doc), timedPathOf(treeOf(doc), path));
+export function durationOf(doc: StudioDoc, path: MotionPath): number {
+  const tree = treeOf(doc);
+  refuseLoop(tree);
+  return duration(timedPathOf(tree, path));
+}
+/** What is wrong with a motion on this robot (RS2's checkPath): unknown or following joints, limits passed or missing; a closed loop (LOOP_OPEN) first. */
+export function problemsOf(doc: StudioDoc, path: MotionPath): Problem[] {
+  const tree = treeOf(doc), open = loopOpen(tree);
+  return [...(open ? [open] : []), ...checkPath(tree, timedPathOf(tree, path))];
+}
 /** A saved motion by name (MOTION_UNKNOWN names the ones there). */
 export const motionOf = (doc: StudioDoc, name: string): Motion => motionNamed(readRobot(doc.robot).motions, name);
 

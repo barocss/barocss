@@ -905,3 +905,24 @@ R7.4b, R7.5 and R7.5b are committed and their checks pass.
     before the browser test;
   - stepFor and exportStep stamp the time, so tests mask FILE_NAME's stamp;
   - the studio backend sets no autonomy; the run_command comparison test sets `CAD_AUTONOMY=3` and restores it.
+
+### P1, the single-cylinder engine (examples/products/engine-1cyl/, milestone 2)
+
+- **The files:**
+  - `build.ts`: the parts and `engine()`, the assembly at top dead centre, on the facade.
+  - `check.ts`: `checkEngine(doc)` over any StudioDoc, with the checks parts, solves, cycle, timing, sweep, masses and
+    balance.
+  - `brief.md`: the text P1-L3's AI gets.
+  - `gaps.md`: PG-4 to PG-7 and the lock gap, with repros.
+  - `engine.bcad`: the assembly, committed.
+  - `engine.test.mjs`: the byte pin, the checks, and one negative case.
+- **Run:**
+  - `node examples/products/engine-1cyl/run.mjs <out>` builds everything and writes `report.json` with the checks.
+  - `run.mjs --check <doc.bcad> [--no-sweep]` runs the checks alone.
+  - `node --test examples/products/engine-1cyl/engine.test.mjs` runs the tests.
+  - All are heavy, so take the gate first.
+- **Changing `build.ts`:** rerun `run.mjs` (it rewrites `engine.bcad`) and commit both files together. The mates name
+  faces by their persistent names, so a new feature before a mated one moves its id. Print the part's
+  `tablesFor(doc)('base')` and re-pick the face.
+- **Next, milestone 3:** the outputs — drawings, the BOM (with stand-ins marked), the CAM package and the casting
+  reports — and an `outputs` check in `check.ts`.

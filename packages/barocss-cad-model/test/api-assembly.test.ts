@@ -11,6 +11,7 @@ import { variantOf } from '../src/assembly/variability';
 import { solveDoc } from '../src/assembly/edit';
 import { treeOfDoc } from '../src/chat/robot';
 import { eulerOf } from '../src/engine/placement';
+import { lockRel } from '../src/assembly/mates';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 
 // A 60 × 40 × 8 plate with a Ø10 bore at (20, 20); a Ø10 pin 30 long, placed off to the side, then mated into the bore
@@ -119,4 +120,27 @@ test('the assembly\'s refusals are typed: the facade\'s own, and the core\'s pas
   // A concentric mate between flat faces: the core's refusal (assembly/edit.ts addMate), passed through as it is.
   const e = refusal(() => two().addMate('concentric', { part: 'base', face: b => b.faces().facing('+z') }, { part: 'pin', face: b => b.faces().facing('-z') }));
   assert.ok(e instanceof BarocssError); assert.equal(e.code, 'MATE_FACES');
+});
+
+// (The studio's Lock, as app/assembly/useAssembly.ts writes it: a `lock` mate numbered past the others, its `rel` the
+// part's placement in the other's own coordinates — the agent's add_mate writes no `rel`, so the facade writes it here.)
+test('lock: the studio\'s Lock — the mate it writes, the part carried along when the other moves, a fixed joint', () => {
+  const two = assembly('pair', plate())
+    .addPart('pin', pin(), { at: Location.of({ position: [100, 0, 0], rotation: [0, 0, 30] }) })
+    .addPart('cap', part('cap').box({ w: 10, d: 10, h: 4 }), { at: Location.at([95, -5, 30]) });
+  const locked = two.lock('cap', 'pin').lock('pin'), doc = locked.doc, [p1, p2] = doc.instances!;
+  assert.deepEqual(doc.mates, [
+    { id: 'm1', kind: 'lock', a: { part: 'p1', face: '' }, b: { part: 'p2', face: '' }, rel: lockRel(p1, p2) },
+    { id: 'm2', kind: 'lock', a: { part: 'base', face: '' }, b: { part: 'p1', face: '' }, rel: lockRel(null, p1) },
+  ]);
+  assert.deepEqual(locked.problems(), []);
+  // (Moved, the pin takes the cap with it: the cap stays where it was in the pin's own coordinates.)
+  const moved = two.lock('cap', 'pin').place('pin', { at: Location.at([0, 50, 0]) }).doc, [q1, q2] = moved.instances!;
+  assert.deepEqual(q1.position, [0, 50, 0]);
+  const rel = lockRel(q1, q2), was = lockRel(p1, p2);
+  for (let k = 0; k < 3; k++) { assert.ok(Math.abs(rel.position[k] - was.position[k]) < 1e-9); assert.ok(Math.abs(rel.rotation[k] - was.rotation[k]) < 1e-9); }
+  assert.deepEqual(locked.robot().joints().joints.map(j => [j.key, j.type]).sort(), [['base~p1', 'fixed'], ['p1~p2', 'fixed']]);
+  assert.throws(() => two.lock('base', 'pin'), e => e instanceof BarocssError && e.code === 'VALUE');
+  assert.throws(() => two.lock('pin', 'pin'), e => e instanceof BarocssError && e.code === 'VALUE');
+  assert.throws(() => two.lock('nut'), e => e instanceof BarocssError && e.code === 'PART_UNKNOWN');
 });

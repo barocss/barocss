@@ -107,6 +107,7 @@
 | `[CONTAINER_NEWER]` | `engine` | this file was saved by a newer cad-studio (container version …; this one reads …) |
 | `[CURVED_BODY]` | `print` | the part has … curved face… and …: a mesh cavity in a curved body needs the kernel's mixed facet–analytic Booleans (F3) |
 | `[DATUM_FIT]` | `chat` | … is not flat: its vertices are up to … mm off the best plane (at most … mm) |
+| `[DEAD_POINT]` | `robot` | at … the loop reaches a dead point (its passive joints lose a degree of freedom): past it the linkage would change branch |
 | `[DECIDED]` | `team` | … is already … |
 | `[DECIMATE_KEEP]` | `app` | Keep between 1 and 99% of the triangles. |
 | `[DIRECTION_NOT_AXIS]` | `print` | the print direction (…) is not along X, Y or Z |
@@ -181,14 +182,16 @@
 | `[INPUT_TARGET]` | `assembly` | …: … has no parameter … |
 | `[INPUT_TYPE]` | `assembly`, `chat` | … (…) cannot drive … |
 | `[JOINT_LIMIT]` | `robot` | waypoint …: … = … is outside its limits … to … |
-| `[JOINT_MIMIC]` | `robot` | waypoint …: … follows … (gears): give … instead |
+| `[JOINT_MIMIC]` | `robot` | … follows another joint: give its leader |
 | `[JOINT_UNKNOWN]` | `robot` | waypoint …: no moving joint … (joints: …) |
 | `[LIBRARY_ID]` | `library` | … is a built-in library: give yours another id |
 | `[LIBRARY_UNKNOWN]` | `library` | No library … (libraries: …) |
 | `[LIMITS_BAD]` | `robot` | a trapezoid needs velocity and acceleration limits above 0 |
 | `[LIMITS_MISSING]` | `robot` | joint … has no … limits above 0 |
 | `[LOFT_SECTIONS]` | `app` | … |
-| `[LOOP_OPEN]` | `robot` | the robot has a closed loop (…); a motion's poses do not close it yet, so it is not played or checked |
+| `[LOOP_MATE_UNSUPPORTED]` | `robot` | … (… between ….… and ….…) closes a loop, and no loop closure holds that mate yet: concentric round faces, coincident, distance or angle between flat faces, … |
+| `[LOOP_OPEN]` | `api`, `robot` | the robot has a closed loop (…); a motion's poses do not close it yet, so it is not played or checked |
+| `[LOOP_PASSIVE]` | `robot` | the loop… … degree… of freedom: give … of …, and the rest are solved (… given) |
 | `[MATERIAL_UNKNOWN]` | `chat/part` | "…" is not a material here; materials: …. |
 | `[MATE_BOTH_FIXED]` | `assembly` | Both parts are fixed (the base part and grounded parts never move): one of them must be free. |
 | `[MATE_FACES]` | `assembly` | …… |

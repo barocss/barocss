@@ -4,7 +4,8 @@
 // frames (O12), the placed parts' meshes. A core refusal is the core's BarocssError, passed through as it is (§7).
 import { BarocssError, bracketedCode, type Vec3 } from '@barocss/cad/api';
 import { emptyDoc, placedDoc, type StudioDoc } from '../engine/doc';
-import { BASE, type MateKind } from '../assembly/mates';
+import { BASE, lockRel, solveAssembly, type Mate, type MateKind } from '../assembly/mates';
+import { tablesFor } from '../assembly/faces';
 import { variantOf } from '../assembly/variability';
 import { runVariabilityTool } from '../chat/variability';
 import { treeOf } from './robotCore';
@@ -34,6 +35,22 @@ export function placePartDoc(doc: StudioDoc, id: string, o: { position?: XYZ; ro
 export function addMateDoc(doc: StudioDoc, kind: MateKind, a: { part: string; face: string }, b: { part: string; face: string }, o: { distance?: number; angle?: number; flip?: boolean }): { doc: StudioDoc; id: string } {
   const r = addMate(doc, { kind, a, b, ...o });
   return { doc: r.doc, id: r.mate.id };
+}
+
+/**
+ * A part locked where it stands to another (or the base part): the studio's Lock (app/assembly/useAssembly.ts) — its
+ * placement in the other's own coordinates kept as the mate's `rel`, the mate numbered as the studio numbers it — solved,
+ * or the solver's reason refused. (The agent's add_mate writes no `rel` for a lock; the outer lane may take this into
+ * assembly/edit.ts.)
+ */
+export function lockDoc(doc: StudioDoc, part: string, to: string): { doc: StudioDoc; id: string } {
+  const instances = doc.instances ?? [], mates = doc.mates ?? [], b = instances.find(i => i.id === part)!, a = to === BASE ? null : instances.find(i => i.id === to)!;
+  const used = new Set(mates.map(m => m.id));
+  let n = mates.length + 1; while (used.has(`m${n}`)) n++;
+  const mate: Mate = { id: `m${n}`, kind: 'lock', a: { part: to, face: '' }, b: { part, face: '' }, rel: lockRel(a ?? null, b) };
+  const r = solveAssembly(instances, [...mates, mate], tablesFor(doc), instances), problem = r.problems.find(p => p.mate === mate.id);
+  if (problem) throw fromTool(problem.reason);
+  return { doc: { ...doc, instances: r.instances, mates: [...mates, mate] }, id: mate.id };
 }
 
 /** set_inputs and set_variants (O11): the variability written, every variant regenerated to check it. */
