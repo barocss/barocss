@@ -92,7 +92,7 @@ export function prepareKernelFacePreview(dtoInput:unknown,optionsInput:KernelFac
   }
   const min:[number,number,number]=[Infinity,Infinity,Infinity],max:[number,number,number]=[-Infinity,-Infinity,-Infinity];
   for(let i=0;i<positions.length;i++) {const axis=i%3;min[axis]=Math.min(min[axis],positions[i]);max[axis]=Math.max(max[axis],positions[i]);}
-  const packet=validatePreviewPacket({version:0,surfaceId:settings.displayId,revision:settings.packetRevision,lengthUnit:'mm',coordinateSystem:'right-handed-y-up',winding:'ccw',positions,normals,parameters,indices,bounds:{min,max}});
+  const packet=validatePreviewPacket({version:0,surfaceId:settings.displayId,revision:settings.packetRevision,lengthUnit:'mm',coordinateSystem:'right-handed-z-up',winding:'ccw',positions,normals,parameters,indices,bounds:{min,max}});
   const result=freezeGpuData({packet,context:ownedContext,faces});preparedResults.add(result);return result;
 }
 /** Resolve a serialized face ref only into the exact prepared result that owns it. */

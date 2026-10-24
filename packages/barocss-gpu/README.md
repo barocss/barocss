@@ -361,7 +361,7 @@ The identical GPU/CAD JSON-compatible contract is:
 ```js
 {
   version: 0, surfaceId: 'surface', revision: 0,
-  lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw',
+  lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', winding: 'ccw',
   positions: [/* flat XYZ in mm */], normals: [/* flat unit XYZ */],
   indices: [/* triangle indices */], parameters: [/* flat CAD-domain UV */],
   bounds: { min: [/* XYZ */], max: [/* XYZ */] }
@@ -436,7 +436,7 @@ producer; `prepareMesh` and the original validators remain supported.
 Success returns `{ok:true, ast, ir, execution, diagnostics:[]}`. Scene execution is
 `{kind:'sdf', scene, shaders}`; mesh execution is `{kind:'indexed-mesh', mesh}` and
 has `ast:null`. IR uses `schema:'barocss-gpu-render-ir'`, `schemaVersion:1`,
-`pipeline:'sdf'|'indexed-mesh'`, name, right-handed-y-up coordinates, background and
+`pipeline:'sdf'|'indexed-mesh'`, name, its frame (right-handed-y-up for sdf, right-handed-z-up for indexed-mesh: CAD's), background and
 resolved draws. SDF dimensions remain full extents in dimensionless scene units.
 Mesh packet data retains native mm/UV/winding/revision/ID provenance; conversion
 is explicit in options. These are alternative backends, not mixed depth rendering.

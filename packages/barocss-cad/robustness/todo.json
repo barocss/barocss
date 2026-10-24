@@ -1,11 +1,5 @@
 [
   {
-    "case": "corpus/oracle/cylinder-box-graze-x45-in0_000001-difference.json",
-    "stage": "evaluate",
-    "status": "WRONG",
-    "note": "D25 (RB5, first item), D186 (K9): a box edge 1 nm (the tolerance) into the cylinder's wall. The lens's two traced curves lie within the tolerance of each other and stitched into one edge used both ways by the wall's face, so its loops crossed (strict L0) and the body measured 534 mm³ against 253.12 — a wrong body returned. Since D186 the analytic Boolean checks such a result strictly and refuses it, typed (GEOMETRY: the inputs graze within the merge radius and the sliver between them cannot be built): no wrong body. Building the touching result (the lens dropped) is open. K9 (D187 notes, open): as the 10 nm item — the lens dropped would give the oracle's body."
-  },
-  {
     "case": "corpus/oracle/cylinder-box-graze-x45-in0_00001-difference.json",
     "stage": "evaluate",
     "status": "WRONG",

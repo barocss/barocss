@@ -153,7 +153,7 @@ export function tessellateXYCirclePrismShell(input: XYCirclePrismShellBundle, in
   for (let i = 0; i < positions.length; i += 3) for (let axis = 0; axis < 3; axis++) {
     bounds.min[axis] = Math.min(bounds.min[axis], positions[i + axis]); bounds.max[axis] = Math.max(bounds.max[axis], positions[i + axis]);
   }
-  const packet: PreviewPacket = { version: 0, surfaceId: meshId, revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw', positions, normals, indices, parameters, bounds };
+  const packet: PreviewPacket = { version: 0, surfaceId: meshId, revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', winding: 'ccw', positions, normals, indices, parameters, bounds };
   validatePreviewPacket(packet);
   const edgePaths: XYCirclePrismShellEdgePath[] = [], edgeProvenance: XYCirclePrismShellEdgeProvenance[] = [], chordDeviationByEdge: XYCirclePrismShellPreviewReport['chordDeviationByEdge'] = [];
   for (const edge of bundle.topology.edges) {

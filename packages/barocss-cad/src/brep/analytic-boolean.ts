@@ -1960,17 +1960,35 @@ function splitTouchingEdges(loops: { edge: string; sense: string; index: number 
     for (const u of second) { u.use.edge = copy.id; u.use.index = k; }
   }
 }
-/** A loop's uses of one edge out and straight back (consecutive, either sense first, round its end) taken out, again until none (or `keep` uses are left). */
-function unspike(ring: { index: number; sense: string }[], keep: number): void {
+/**
+ * A loop's uses of one edge out and straight back (consecutive, either sense first, round its end) taken out, again until
+ * none (or `keep` uses are left). With a cylinder's face, an edge on its seam stays: the face meets it both ways.
+ */
+function unspike(ring: { index: number; sense: string }[], keep: number, seamOf?: { surf: Surf }, edges?: readonly { mid: P3 }[], tol = 0): void {
   for (let again = true; again && ring.length >= Math.max(2, keep);) {
     again = false;
     for (let i = 0; i < ring.length && ring.length >= Math.max(2, keep); i++) {
       const j = (i + 1) % ring.length;
       if (ring[i].index !== ring[j].index || ring[i].sense === ring[j].sense) continue;
+      if (seamOf && edges && onCylinderSeam(seamOf, edges[ring[i].index].mid, tol)) continue;
       if (j > i) ring.splice(i, 2); else { ring.splice(i, 1); ring.splice(0, 1); }
       again = true; break;
     }
   }
+}
+/** A point a face's loops pass at two distinct vertices (within `tol` of each other), or null. */
+function twicePassed(rings: readonly (readonly { index: number; sense: string }[])[], edgeList: readonly { vertices: readonly [string, string] }[], vertexList: readonly { id: string; point: P3 }[], tol: number): P3 | null {
+  const ids = new Set<string>();
+  for (const ring of rings) for (const u of ring) { const v = edgeList[u.index].vertices; ids.add(u.sense === 'forward' ? v[0] : v[1]); }
+  const pts = vertexList.filter(v => ids.has(v.id)).map(v => v.point);
+  for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) if (len(sub(pts[i], pts[j])) <= tol) return pts[i];
+  return null;
+}
+/** Whether x lies on a cylinder face's seam (θ = ref ± π), within 100 tolerances along its wall. */
+function onCylinderSeam(f: { surf: Surf }, x: P3, tol: number): boolean {
+  const s = f.surf; if (s.kind !== 'cylinder') return false;
+  const d = sub(x, s.c), th = Math.atan2(dot(d, s.e2), dot(d, s.e1));
+  return (Math.PI - Math.abs(wrap(th - s.ref))) * s.r <= 100 * tol;
 }
 function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0, names?: readonly (string | undefined)[], edgeFitToleranceMM?: number): Brep {
   // Vertices merge a little more loosely than curves are fitted: an edge meeting a surface it touches
@@ -2028,11 +2046,14 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
   })));
   // (A planar piece's loop that runs out along an edge and straight back along it — a cut ending inside the face, the tip
   // it cut off too small to keep — bounds nothing there: both uses go, and the edge with them; a hole that is nothing
-  // else — a slit where a body touches the face along a line — goes whole. Planes only: a seam of a periodic face is met
-  // both ways, a cone's even one after the other at its apex. L4 fuzz seed 20261024 #41, 20261023 #149, D201.)
+  // else — a slit where a body touches the face along a line — goes whole. Planes, and cylinders off their seam: a seam
+  // of a periodic face is met both ways, a cone's even one after the other at its apex. L4 fuzz seed 20261024 #41,
+  // 20261023 #149, D201. On a cylinder: a ruling lying along another face's edge cut the wall there and divided nothing,
+  // a slit up the wall; the commutativity check's 20261024 #96, D273.)
   loops.forEach((ls, pi) => {
-    if (pieces[pi].face.surf.kind !== 'plane') return;
-    ls.forEach((ring, k) => unspike(ring, k > 0 ? 0 : 3));
+    const f = pieces[pi].face;
+    if (f.surf.kind !== 'plane' && f.surf.kind !== 'cylinder') return;
+    ls.forEach((ring, k) => unspike(ring, k > 0 ? 0 : 3, f.surf.kind === 'cylinder' ? f : undefined, edges, tol));
     for (let k = ls.length - 1; k > 0; k--) if (!ls[k].length) ls.splice(k, 1);
   });
   // (Two lumps touching along a curve: one edge used by four faces, two of each lump. Its uses are paired by lump —
@@ -2121,6 +2142,11 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
   const edgeList = edges.map((e, i) => ({ id: e.id, curve: nurbs(e.k, e.id, P[e.v[0]], P[e.v[1]], fitTol, edgeFitToleranceMM !== undefined), vertices: [vertexAt(e.v[0], i), vertexAt(e.v[1], i)] as [string, string],
     name: [...new Set((uses.get(i) ?? []).map(u => faceNames[u.piece]))].sort().join('|') }));
   nameEdges(edgeList);
+  // (A planar face whose boundary passes one point at two vertices: two of the inputs touch along a line there, apart,
+  // and the body they make touches itself along it — not a manifold solid, though every edge is used once each way. Its
+  // face's loops touch there: refused, typed, rather than returned failing the strict check. The commutativity check's
+  // 20261024 #51 and 20261023 #114, D275.)
+  loops.forEach((ls, pi) => { if (pieces[pi].face.surf.kind === 'plane') { const at = twicePassed(ls, edgeList, vertexList, 20 * tol); if (at) throw new BrepError('GEOMETRY', `analytic Boolean: the result touches itself at (${at.map(x => +x.toFixed(4))}): a face's boundary passes that point twice; the inputs touch along a line there`); } });
   const surface = (pi: number): { surface: Surface; sense: 'forward' | 'reversed' } => {
     const p = pieces[pi], s = p.face.surf, pts: XY[] = [];
     if (s.kind === 'nurbs') return { surface: s.S, sense: s.sense * p.out > 0 ? 'forward' : 'reversed' };

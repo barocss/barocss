@@ -83,7 +83,7 @@ export function tessellateXYPolygonRegion(curve: Curve, options: XYPolygonPrevie
   const origin: Point = [...region.boundsMM.min], width = region.boundsMM.max[0] - origin[0], height = region.boundsMM.max[1] - origin[1];
   check(width > 0 && height > 0 && Number.isFinite(width) && Number.isFinite(height), '$parameterization', 'nonzero bounded XY extents required');
   const positions = points.flat(), normals = points.flatMap(() => [0, 0, 1]), parameters = points.flatMap(p => [(p[0] - origin[0]) / width, (p[1] - origin[1]) / height]);
-  const packet: PreviewPacket = { version: 0, surfaceId: o.meshId, revision: o.revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw', positions, normals, indices, parameters,
+  const packet: PreviewPacket = { version: 0, surfaceId: o.meshId, revision: o.revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', winding: 'ccw', positions, normals, indices, parameters,
     bounds: { min: [Math.min(...points.map(p => p[0])), Math.min(...points.map(p => p[1])), Math.min(...points.map(p => p[2]))], max: [Math.max(...points.map(p => p[0])), Math.max(...points.map(p => p[1])), Math.max(...points.map(p => p[2]))] } };
   check(points.length <= 64 && indices.length / 3 <= 61 && indices.length / 3 === (n === 3 ? 3 : n - 2), '$packet', 'fixed vertex/triangle bounds violated');
   validatePreviewPacket(packet);

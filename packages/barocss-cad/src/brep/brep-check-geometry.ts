@@ -240,14 +240,26 @@ function sampledRings(face: BrepFace, maps: Maps, mapper: Mapper, curveSamples: 
  * solids make them), or a hole touching its outer loop there. Decided by the vertex's identity, never by nearness, and
  * only where the two passes do not cross there (their rays do not alternate about it) and the segments do not run
  * along each other. A vertex passed three times or more stays a touch. (D194: L4 fuzz 35 and 149.)
+ *
+ * Nor is a cusp: a vertex where the loop turns back on itself, its two curves leaving it tangent on one side (a wall
+ * tangent inside a rounded corner, a circle inside another). The curves meet only there, but the chords of the flatter
+ * one cut the other a third of a chord or so from the vertex at every sampling, so a contact between segments on
+ * either side of a cusp, both within four chords of it, is its shape. (D274: the commutativity check's 20261024 #165 and
+ * 20261023 #170.)
  */
 function ringsCross(rings: readonly XY[][], marks: readonly (readonly (string | null)[])[]): string | null {
-  const segs: Seg[] = [], passes = new Map<string, { prev: XY; at: XY; next: XY }[]>();
+  const segs: Seg[] = [], passes = new Map<string, { prev: XY; at: XY; next: XY }[]>(), cusps: Cusp[] = [];
   rings.forEach((raw, ri) => {
     const r: XY[] = [], ids: (string | null)[] = [];
     for (let k = 0; k < raw.length; k++) {
       const p = raw[k], q = raw[(k + raw.length - 1) % raw.length];
       if (raw.length < 2 || p[0] !== q[0] || p[1] !== q[1]) { r.push(p); ids.push(marks[ri][k]); }
+    }
+    // (A vertex the loop turns back at: its chords in and out within about 8° of opposite.)
+    if (r.length >= 3) for (let k = 0; k < r.length; k++) {
+      if (ids[k] === null) continue;
+      const p = r[(k + r.length - 1) % r.length], at = r[k], q = r[(k + 1) % r.length], hin = dist2d(p, at), hout = dist2d(at, q);
+      if ((at[0] - p[0]) * (q[0] - at[0]) + (at[1] - p[1]) * (q[1] - at[1]) < -0.99 * hin * hout) cusps.push({ ring: ri, k, n: r.length, at, reach: 4 * Math.max(hin, hout) });
     }
     for (let k = 0; k < r.length; k++) {
       const a = r[k], b = r[(k + 1) % r.length], va = ids[k], vb = ids[(k + 1) % r.length];
@@ -259,11 +271,23 @@ function ringsCross(rings: readonly XY[][], marks: readonly (readonly (string | 
   for (let i = 0; i < segs.length; i++) for (let j = i + 1; j < segs.length && segs[j].lo <= segs[i].hi; j++) {
     const s = segs[i], t = segs[j];
     if (s.ring === t.ring && (Math.abs(s.k - t.k) <= 1 || Math.abs(s.k - t.k) === s.n - 1)) continue;
-    if (meet(s.a, s.b, t.a, t.b) && !pinch(s, t, passes)) return `ring ${s.ring} segment ${s.k} and ring ${t.ring} segment ${t.k}`;
+    if (meet(s.a, s.b, t.a, t.b) && !pinch(s, t, passes) && !cuspShape(s, t, cusps)) return `ring ${s.ring} segment ${s.k} and ring ${t.ring} segment ${t.k}`;
   }
   return null;
 }
 interface Seg { a: XY; b: XY; va: string | null; vb: string | null; ring: number; k: number; n: number; lo: number; hi: number }
+interface Cusp { ring: number; k: number; n: number; at: XY; reach: number }
+/** Whether segments s and t lie on either side of one of the cusps, both within its reach (see ringsCross). */
+function cuspShape(s: Seg, t: Seg, cusps: readonly Cusp[]): boolean {
+  for (const c of cusps) {
+    if (c.ring !== s.ring || c.ring !== t.ring) continue;
+    if (Math.max(dist2d(s.a, c.at), dist2d(s.b, c.at), dist2d(t.a, c.at), dist2d(t.b, c.at)) > c.reach) continue;
+    // (Segment k runs from point k: those after the cusp, within half the ring of it, start at or past it.)
+    const after = (x: Seg) => (x.k - c.k + c.n) % c.n < c.n / 2;
+    if (after(s) !== after(t)) return true;
+  }
+  return false;
+}
 /** Whether segments s and t meet only at an end both have at one B-rep vertex, passed twice without crossing there. */
 function pinch(s: Seg, t: Seg, passes: ReadonlyMap<string, readonly { prev: XY; at: XY; next: XY }[]>): boolean {
   const v = s.va !== null && (s.va === t.va || s.va === t.vb) ? s.va : s.vb !== null && (s.vb === t.va || s.vb === t.vb) ? s.vb : null;

@@ -203,7 +203,7 @@ export function provePreview(preview, parent) {
   assert.equal(report.limits.evaluationComparisonMM, 1e-7);
   assert.ok(maximumSampledBoundsDifferenceMM <= report.limits.evaluationComparisonMM, 'sampled evaluator bounds use only the existing preview tolerance');
   for (const r of [report, report.native]) { assert.equal(r.solid, false); assert.equal(r.topologyCertified, false); assert.equal(r.periodic, false); assert.equal(r.candidateClosedShell, true); }
-  assert.equal(packet.coordinateSystem, 'right-handed-y-up');
+  assert.equal(packet.coordinateSystem, 'right-handed-z-up');
   for (const [i, range] of faceRanges.entries()) {
     assert.equal(range.faceId, parent.bundle.topology.faces[i].id);
     if (i < 2) {
@@ -220,7 +220,7 @@ export function provePreview(preview, parent) {
     for (const use of p.uses) { assert.equal(use.sampledUVs.length, p.sampledParameters.length); assert.ok(use.pcurve.curve.controlPoints.length > 0); }
   }
   return { report, packetSHA256: dataHash(packet), completePreviewSHA256: dataHash(preview), sampledBoundsMM: sampledBounds, exactParentBoundsMM: parent.report.boundsMM, maximumSampledBoundsDifferenceMM,
-    observedBasis: 'Existing right-handed-y-up label; unchanged authored XYZ positions/normals. A later consumer must choose its basis policy explicitly.',
+    observedBasis: 'Existing right-handed-z-up label; unchanged authored XYZ positions/normals. A later consumer must choose its basis policy explicitly.',
     meshIsSolidProof: false, rendererOrEditorExecuted: false };
 }
 

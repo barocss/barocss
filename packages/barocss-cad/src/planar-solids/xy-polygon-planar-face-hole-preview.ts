@@ -171,7 +171,7 @@ export function tessellateXYPolygonPlanarFaceWithHole(input: XYPolygonPlanarFace
   check(decomposition.length <= 11 && positions.length / 3 <= 264 && indices.length / 3 <= 132 && indices.length >= 6, '$packet', 'fixed display slab/vertex/triangle bounds violated');
   const bounds: { min: Point; max: Point } = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] };
   for (let i = 0; i < positions.length; i += 3) for (let axis = 0; axis < 3; axis++) { bounds.min[axis] = Math.min(bounds.min[axis], positions[i + axis]); bounds.max[axis] = Math.max(bounds.max[axis], positions[i + axis]); }
-  const packet: PreviewPacket = { version: 0, surfaceId: options.meshId, revision: options.revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw', positions, normals, indices, parameters, bounds };
+  const packet: PreviewPacket = { version: 0, surfaceId: options.meshId, revision: options.revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', winding: 'ccw', positions, normals, indices, parameters, bounds };
   validatePreviewPacket(packet);
   const nativeMM2 = native.areasMM2.net, comparisonMM2 = 1e-8 + 1e-12 * Math.max(1, nativeMM2), differenceMM2 = meshMM2 - nativeMM2;
   check(Number.isFinite(meshMM2) && Math.abs(differenceMM2) <= comparisonMM2, '$area', 'actual mesh/native net area mismatch exceeds reported display comparison');

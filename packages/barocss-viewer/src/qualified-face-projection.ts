@@ -13,26 +13,28 @@ export interface ViewerQualifiedFacePointProjection {
   occlusion: 'not-tested';
 }
 type Vec3 = [number, number, number];
+/** A vector only read (gpu's readonly Vec3 passes as one, R7.3c). */
+type ReadVec3 = readonly [number, number, number];
 function check(value: unknown, message: string): asserts value {
   if (!value) throw new RangeError('Qualified Face projection: ' + message);
 }
-function finiteVector(value: Vec3): Vec3 {
+function finiteVector<T extends ReadVec3>(value: T): T {
   check(value.every(Number.isFinite), 'camera or point intermediate is not finite');
   return value;
 }
-function subtract(a: Vec3, b: Vec3): Vec3 {
+function subtract(a: ReadVec3, b: ReadVec3): Vec3 {
   return finiteVector([a[0] - b[0], a[1] - b[1], a[2] - b[2]]);
 }
-function cross(a: Vec3, b: Vec3): Vec3 {
+function cross(a: ReadVec3, b: ReadVec3): Vec3 {
   return finiteVector([a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
     a[0] * b[1] - a[1] * b[0]]);
 }
-function unit(value: Vec3): Vec3 {
+function unit(value: ReadVec3): Vec3 {
   const length = Math.hypot(...finiteVector(value));
   check(Number.isFinite(length) && length > 0, 'camera basis is degenerate or not finite');
   return finiteVector(value.map(component => component / length) as Vec3);
 }
-function dot(a: Vec3, b: Vec3): number {
+function dot(a: ReadVec3, b: ReadVec3): number {
   const value = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
   check(Number.isFinite(value), 'camera projection dot product is not finite');
   return value;

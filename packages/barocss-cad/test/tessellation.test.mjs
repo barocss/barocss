@@ -137,7 +137,7 @@ function checkPacket(result, surface, countU, countV, oracle) {
   assert.equal(packet.surfaceId, surface.id);
   assert.equal(packet.revision, 19);
   assert.equal(packet.lengthUnit, 'mm');
-  assert.equal(packet.coordinateSystem, 'right-handed-y-up');
+  assert.equal(packet.coordinateSystem, 'right-handed-z-up');
   assert.equal(packet.winding, 'ccw');
   assert.equal(packet.positions.length, count * 3);
   assert.equal(packet.normals.length, count * 3);
@@ -264,7 +264,7 @@ test('shared asymmetric flat literal replays without a GPU or native geometry de
   const { packet, report } = tessellateSurface(flat, { countU: 2, countV: 2, revision: 7 });
   assert.deepEqual(packet, {
     version: 0, surfaceId: 'flat_patch', revision: 7, lengthUnit: 'mm',
-    coordinateSystem: 'right-handed-y-up', winding: 'ccw',
+    coordinateSystem: 'right-handed-z-up', winding: 'ccw',
     positions: [1, 2, 2, 2, 9, 2, 7, 3, 2, 8, 10, 2],
     normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
     indices: [0, 2, 1, 2, 3, 1], parameters: [-2, 4, -2, 6, 3, 4, 3, 6],
