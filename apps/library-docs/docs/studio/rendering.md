@@ -7,8 +7,10 @@ camera. It can also add props and animate the part.
 - **WebGPU only.** It draws with the studio's WebGPU viewer. On WebGL2 the panel says rendering needs WebGPU, and the
   view stays the modelling look.
 
-Click **Render** in the top bar to open it. The **Render** panel has four tabs: **Appearance**, **Lights**, **Scene**
-and **Source**.
+Click **Render** in the top bar to open it. The **Render** panel, in the dock, has four tabs: **Appearance**, **Lights**,
+**Scene** and **Source**.
+
+![The Render workspace: the part in a brass appearance, the Render panel in the dock and the timeline under the viewport](/shots/studio/rendering/appearance.jpg)
 
 ## Appearance
 
@@ -38,6 +40,8 @@ An appearance is a look, not a material: a body's mass comes from its material, 
   - **Tone map**: **Filmic (ACES)** or **None**.
   - **Edges**, **Grid**, **Ground** and **Occlusion**.
 
+![The Lights tab](/shots/studio/rendering/lights.png)
+
 ## Camera
 
 - **Save this view** keeps the camera with the document, and **Go to saved view** returns to it.
@@ -54,6 +58,8 @@ The **Source** tab holds two texts, both in the language of [@barocss/gpu](/pack
 - **MATERIALS · @SHADER**: `@shader` materials, each a colour expression with its uniforms. **Add material** starts
   one.
 
+![The Source tab: the props and the materials](/shots/studio/rendering/source.png)
+
 ## Timeline and turntable
 
 The timeline animates the bodies:
@@ -61,6 +67,8 @@ The timeline animates the bodies:
 - **Time** scrubs and plays; **Duration** sets the length.
 - **Turntable** turns the camera round the part.
 - For a selected body, **Set key** keeps its offset at the current time. A key can be jumped to or removed.
+
+![The timeline: play, the time and its length, and Turntable](/shots/studio/rendering/timeline.png)
 
 ## Exporting an image
 

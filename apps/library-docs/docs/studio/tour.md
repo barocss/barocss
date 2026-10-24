@@ -2,7 +2,7 @@
 
 ## The layout
 
-![The studio with the starter plate](/shots/studio/tour/layout.jpg)
+![The studio with the starter plate: the chat folded to its strip at the left, the Tools rail, the viewport with the history and view bar, and the dock at the right with the Browser, the inspector and Preview & analysis](/shots/studio/tour/layout.jpg)
 
 The studio has three columns: the chat at the left, the stage in the centre (the top bar, the viewport and its bars),
 and the dock at the right.

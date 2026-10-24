@@ -15,6 +15,8 @@ Open **Parameters** in the top bar:
 - **Delete one.** Each feature that used it keeps its value as a plain number.
 - **Where it's used.** Each parameter shows how many features use it, as `1×`.
 
+![The Parameters panel in the dock: the parameter C used once, and the configurations small and large](/shots/studio/parameters/panel.jpg)
+
 ## Binding a value
 
 Bind a feature's value in its editor: click the feature in the history or the **Browser**, then pick a parameter from the **ƒ** list next
@@ -22,6 +24,8 @@ to the value, and **Apply**.
 
 - While bound, the value follows the parameter and can't be typed.
 - Pick **ƒ** again to unbind it. The value stays as it is.
+
+![A chamfer's Distance bound to the parameter C in the feature editor](/shots/studio/parameters/bind.png)
 
 The agent can change parameter values too. At the default autonomy, a change to parameter values applies directly
 when every hard requirement still passes. Adding or removing a parameter is a proposal. See
