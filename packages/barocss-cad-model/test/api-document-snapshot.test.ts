@@ -54,7 +54,8 @@ test('Assembly document and placement getters cannot expose its stored document'
   copy.instances![0].position[0] = 100;
   copy.robot!.joints!.hinge.upper = 100;
   const placements = assembly.placements();
-  (placements[0].position as number[])[0] = 100;
+  assert.equal(Reflect.set(placements[0].position, '0', 100), true);
+  assert.equal(placements[0].position[0], 100);
   assert.deepEqual(assembly.doc, input);
   assert.equal(assembly.placements()[0].position[0], 10);
   assert.notEqual(assembly.doc, assembly.doc);
