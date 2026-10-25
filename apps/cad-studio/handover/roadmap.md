@@ -113,7 +113,7 @@ validation are different results and must remain separate.
 
 ## Order now (2026-10-26)
 
-The latest completed checkpoint is local product merge `28b3331c28dfa618f3bfa9948d779442843e4b9f`.
+The material-input capture checkpoint is local product merge `28b3331c28dfa618f3bfa9948d779442843e4b9f`.
 It preserves the density used at the original mass calculation separately from the catalogue row's declared
 value, material identifiers, fallback and declared source details. An actually applied inertia callback is
 labelled separately. These fields are recorded inputs and declarations, not authenticated or measured material.
@@ -125,11 +125,14 @@ records stay historical even when their full document and explicit inputs match.
 a new result. Producer code identity, catalogue authenticity and measured physical accuracy are not established.
 Older records with no material metadata remain without it; current catalogue values are not filled in.
 
-The current source batch adds a separate typed material preview and a read-only Studio section. It keeps the
-existing record reader, primary preview, full unknown report and document/input matching unchanged. Invalid
-optional metadata is refused by the new getter only, and the panel isolates that display error. This batch is
-not yet runtime-validated or adopted. Finish the complete source review, then check public file/calculation
-flows and captures in Chrome before the scoped numerical, consumer, lint and documentation checks.
+The separate typed material preview and read-only Studio section keep the existing record reader, primary
+preview, full unknown report and document/input matching unchanged. Invalid optional metadata is refused by
+the new getter only, and the panel isolates that display error. At source `869879273`, desktop Chrome checks
+covered calculation, real download/Open, historical status and synthetic missing, malformed and differing
+metadata. Six captures were directly inspected. The nine new tests, Model/Studio consumer types and changed
+production-file lint passed. Synthetic metadata is display evidence, not a real changed-density calculation.
+The integration receipt records the subsequent documentation and product adoption gates; source checks alone
+do not establish those gates.
 
 The foundation corrections, axis-inertia query, positive-principal-axis draft and Drawing input corrections
 are adopted. The product CAD library was freshly built at `b77c0a08`; its 818 output files matched the candidate.
