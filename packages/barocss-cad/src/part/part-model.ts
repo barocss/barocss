@@ -1511,17 +1511,19 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'loft': {
       const list = f.sections as unknown;
       if (!Array.isArray(list) || list.length < 2 || list.length > CadPartLimits.copies) fail('INPUT', 'sections must list 2 to 64 sections');
-      if (list.some(sec => isRecord(sec) && sec.frame !== undefined)) {
+      if ((list as unknown[]).some(sec => isRecord(sec) && sec.frame !== undefined)) {
         if (f.smooth !== undefined && typeof f.smooth !== 'boolean') fail('INPUT', 'smooth must be true or false');
-        const framed = list.map((sec, i) => {
+        const framed = (list as unknown[]).map((sec, i) => {
           if (!isRecord(sec) || typeof sec.sketch !== 'string' || sec.frame === undefined || sec.z !== undefined) return fail('INPUT', `sections[${i}] must name a sketch and frame, without z`);
           const sketch = ref(sec.sketch, 'sketch').result;
           if (sketch.kind !== 'sketch') return fail('REFERENCE', `${sec.sketch} is not a sketch`);
           if (sketch.regions?.length || sketch.holes?.length) return fail('CAPABILITY', 'oriented loft sections need one loop without holes');
           return { profile: sketch.outer, frame: sec.frame as unknown as LoftSectionFrame, tags: sketch.tags };
         });
-        const { brep, mass } = loftSolid({ id: at, name: at, sections: framed, smooth: f.smooth === true, ...(framed[0].tags ? { sideTags: framed[0].tags.outer } : {}) });
-        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] };
+        return () => {
+          const { brep, mass } = loftSolid({ id: at, name: at, sections: framed, smooth: f.smooth === true, ...(framed[0].tags ? { sideTags: framed[0].tags.outer } : {}) });
+          return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] };
+        };
       }
       const sections = (list as unknown[]).map((sec, i) => {
         if (!isRecord(sec) || typeof sec.sketch !== 'string') return fail('INPUT', `sections[${i}] must name a sketch`);
