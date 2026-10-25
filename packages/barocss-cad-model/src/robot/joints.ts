@@ -113,6 +113,7 @@ function mateRows(m: Mate, fa: MateFace, fb: MateFace, L: number): Row[] {
     if (m.kind === 'angle') { const c = cross(fb.normal, n); return len(c) > 1e-9 ? [[c[0], c[1], c[2], 0, 0, 0]] : [dirRow(n, t1), dirRow(n, t2)]; }
     return [dirRow(n, t1), dirRow(n, t2), pointRow(fb.point, n, L)];
   }
+  // Ball's derived sphere pair uses these same three point rows, without a directional row.
   // (O24 c: two spheres concentric hold the centres together; a sphere tangent to a face, its centre a radius off it.)
   if (fa.kind === 'sphere' && fb.kind === 'sphere') return ([[1, 0, 0], [0, 1, 0], [0, 0, 1]] as Vec3[]).map(e => pointRow(fb.point, e, L));
   if (fa.kind === 'sphere' || fb.kind === 'sphere') { const plane = (fa.kind === 'plane' ? fa : fb) as Extract<MateFace, { kind: 'plane' }>, ball = (fa.kind === 'sphere' ? fa : fb); return [pointRow(ball.point, plane.normal, L)]; }
@@ -232,8 +233,8 @@ export function jointTree(input: TreeInput): JointTree {
     if (m.kind === 'cam') continue;
     if (failed.has(m.id)) { problems.push({ code: 'MATE_PROBLEM', message: `${m.id} is not met (${(input.mateProblems ?? []).find(p => p.mate === m.id)!.reason}): it makes no joint.`, mates: [m.id] }); continue; }
     if (!placed.has(m.a.part) || !placed.has(m.b.part) || m.a.part === m.b.part) continue;
-    // A fastened joint must resolve its persistent references before six fixed rows can be admitted.
-    if (m.kind === 'fastened') {
+    // Explicit connector joints resolve persistent references before any fixed or point rows are admitted.
+    if (m.kind === 'fastened' || m.kind === 'ball') {
       const why = mateRefusal(m, input.tables(m.a.part)?.[m.a.face], input.tables(m.b.part)?.[m.b.face]);
       if (why) { failed.add(m.id); problems.push({ code: 'MATE_PROBLEM', message: `${m.id} is not met (${why}): it makes no joint.`, mates: [m.id] }); continue; }
     }
