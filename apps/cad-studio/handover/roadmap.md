@@ -113,38 +113,35 @@ validation are different results and must remain separate.
 
 ## Order now (2026-10-26)
 
-The latest completed static-experiment API checkpoint is the local product merge
-`90c826e61e213884e74d725c84c06cd7f96ec593`. The earlier static-calculation panel was adopted at
-`6d55aebb72f5ac29872b303c638cd4ffb396a230`.
-The foundation corrections, axis-inertia query, positive-principal-axis draft and Drawing input corrections are
-adopted. The product CAD library was freshly built at `b77c0a08`; its 818 output files matched the candidate.
-A selected test connected a planar box B-rep mass result to the axis-inertia query and independent box formulas.
-This used an authored density, not a measured material or a forward-dynamics solver.
+The latest completed checkpoint is local product merge `28b3331c28dfa618f3bfa9948d779442843e4b9f`.
+It preserves the density used at the original mass calculation separately from the catalogue row's declared
+value, material identifiers, fallback and declared source details. An actually applied inertia callback is
+labelled separately. These fields are recorded inputs and declarations, not authenticated or measured material.
+The focused 26 tests, Model consumer types, changed-file lint and a real Chrome calculation/download were
+checked at their original source. Documentation/site checks and the mandatory product docs check passed.
 
-The direct-file engine History scroll and Save/New/Open flow was checked in desktop Chrome. Saved and reopened
-documents matched the complete input document. Project/OPFS saving was outside that check. Original failures,
-tool-control failures, numerical checks and limited visual results remain separate evidence.
+Independent schema-one JSON records and their Studio Download/Open controls are already adopted. Imported
+records stay historical even when their full document and explicit inputs match. Explicit calculation creates
+a new result. Producer code identity, catalogue authenticity and measured physical accuracy are not established.
+Older records with no material metadata remain without it; current catalogue values are not filled in.
 
-Stage 1 has a bounded static gravity holding-torque API for one connected open revolute or continuous joint.
-It requires explicit pose, gravity and known moving-body material, and refuses nested moving-part occurrences.
-Its result is bound to the complete document and explicit inputs. The panel leaves the document and viewport
-pose unchanged. Original numerical, consumer and public-UI checks retain their exact source scopes.
+The current source batch adds a separate typed material preview and a read-only Studio section. It keeps the
+existing record reader, primary preview, full unknown report and document/input matching unchanged. Invalid
+optional metadata is refused by the new getter only, and the panel isolates that display error. This batch is
+not yet runtime-validated or adopted. Finish the complete source review, then check public file/calculation
+flows and captures in Chrome before the scoped numerical, consumer, lint and documentation checks.
 
-Independent versioned JSON records now preserve a past report and provide a validated preview and full-input
-matching. A matching imported record is still historical: it is not recalculated or authenticated. Producer code,
-material-catalogue revision and real measured provenance are not established. Studio document Save remains separate.
+The foundation corrections, axis-inertia query, positive-principal-axis draft and Drawing input corrections
+are adopted. The product CAD library was freshly built at `b77c0a08`; its 818 output files matched the candidate.
+A selected planar box test connected B-rep mass data to independent axis-inertia formulas with authored density.
+The direct-file engine History scroll and Save/New/Open flow preserved the complete document in desktop Chrome;
+Project/OPFS saving was outside that check. Original failures and limited visual evidence remain separate.
 
-The record file controls were checked in desktop Chrome at source `bd3b89a8a`: real downloads and file Open,
-historical Match and Stale labels, unchanged past JSON after form edits, explicit recalculation, and malformed or
-unsupported-file refusal with previous input and result preserved. The changed Studio type check and panel-only
-lint passed. The initial development-server import failure was preserved; a normal same-port server restart
-restored loading without source changes. Its original cause remains unknown. File-read race ordering was reviewed
-in source but was not controlled in the browser. The integration receipt records the later product adoption gate.
-
-This does not complete Stage 1 or add free-motion prediction. Finish the current record UI documentation and
-adoption, then define explicit producer, catalogue and unit provenance for comparing a saved experiment with a
-current calculation. Establish Physics ownership and the mass, coordinate-frame, unit and fixed-pivot contract
-before implementing a pendulum solver. Do not infer measured accuracy from these numerical and UI checks.
+Stage 1 still covers a bounded static holding-torque calculation for one connected open revolute or continuous
+joint with explicit pose, gravity and known material. Nested moving-part occurrences remain refused. This is
+not free-motion prediction or completion of Stage 1. Establish Physics ownership and the mass, coordinate-frame,
+unit and fixed-pivot contract before implementing a pendulum solver. Do not infer measured accuracy from the
+current numerical, input-consistency, recorded-source or UI checks.
 
 ## Historical lane order (2026-10-25, owner: "필요한 것들 로드맵에 추가 해서 진행해줘")
 
