@@ -11,13 +11,24 @@ import { buildProfileLoop, capSurface, type ProfileSegmentInput } from './extrud
 import { solidMassFromIntegrals, type MassProperties } from '../brep/solid-mass.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { gauss } from '../core/quadrature.js';
+import { orientedLoftSolid } from './oriented-loft.js';
 
 type XY = [number, number];
 type Piece = { readonly kind: 'line'; readonly a: XY; readonly b: XY } | { readonly kind: 'arc'; readonly c: XY; readonly r: number; readonly t0: number; readonly dt: number };
 /** One span of a piece as a Bézier curve in the plane: control points and weights. */
 interface Bezier { readonly p: readonly XY[]; readonly w: readonly number[] }
 
-export interface LoftSectionInput { readonly profile: readonly ProfileSegmentInput[]; readonly z: number }
+/** Explicit world-space section frame. Coordinates are mm; the perpendicular unit axes include twist. */
+export interface LoftSectionFrame {
+  readonly origin: readonly [number, number, number];
+  readonly xAxis: readonly [number, number, number];
+  readonly yAxis: readonly [number, number, number];
+}
+/** Use z throughout for the legacy path, or two explicit frames with affine-corresponding convex polygons. */
+export type LoftSectionInput = { readonly profile: readonly ProfileSegmentInput[] } & (
+  | { readonly z: number; readonly frame?: never }
+  | { readonly frame: LoftSectionFrame; readonly z?: never }
+);
 export interface LoftInput {
   readonly id: string; readonly sections: readonly LoftSectionInput[];
   /** Names faces `${name}.bottom`, `.top` and `.side${i}` (two sections, or smooth) or `.s${k}.side${i}`. */
@@ -57,8 +68,9 @@ function at(b: Bezier, s: number): [XY, XY] {
 }
 
 export function loftSolid(input: LoftInput): { brep: Brep; mass: (density: number) => MassProperties } {
+  if (input.sections.some(s => s.frame !== undefined)) return orientedLoftSolid(input);
   const fail = (detail: string): never => { throw new BrepError('INPUT', `loft: ${detail}`); };
-  const S = input.sections;
+  const S = input.sections as readonly { readonly profile: readonly ProfileSegmentInput[]; readonly z: number }[];
   if (S.length < 2) fail('needs at least two sections');
   for (let k = 1; k < S.length; k++) if (!(S[k].z > S[k - 1].z)) fail(`section ${k} must lie above section ${k - 1}`);
 

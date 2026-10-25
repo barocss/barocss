@@ -637,7 +637,7 @@ export type { PrismaticCapSource } from './features/prismatic-solid.js';
 export { transformBrep, quarterTurn } from './brep/brep-transform.js';
 export type { BrepAffine } from './brep/brep-transform.js';
 export { prismaticMassProperties, brepMassProperties, brepSurfaceArea, combineMassProperties, solidMassFromIntegrals, solidMassError, isSolidMassError } from './brep/solid-mass.js';
-export { loftSolid, type LoftInput, type LoftSectionInput } from './features/loft.js';
+export { loftSolid, type LoftInput, type LoftSectionInput, type LoftSectionFrame } from './features/loft.js';
 export { generalShell } from './blend/general-shell.js';
 export { revolutionOf, type Revolution } from './nurbs/surfaces/surface-revolution.js';
 export type { MassProperties } from './brep/solid-mass.js';
