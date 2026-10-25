@@ -30,7 +30,12 @@ const UNIT_TOL = 1e-9;
 /** A sketch plane (build123d's Plane): XY, XZ or YZ through the origin, offset along its normal, or any of your own. */
 export class Plane {
   readonly origin: Vec3; readonly normal: Vec3; readonly xAxis: Vec3;
-  private constructor(origin: Vec3, normal: Vec3, xAxis: Vec3) { this.origin = origin; this.normal = normal; this.xAxis = xAxis; Object.freeze(this); }
+  private constructor(origin: Vec3, normal: Vec3, xAxis: Vec3) {
+    this.origin = Object.freeze([...origin] as [number, number, number]);
+    this.normal = Object.freeze([...normal] as [number, number, number]);
+    this.xAxis = Object.freeze([...xAxis] as [number, number, number]);
+    Object.freeze(this);
+  }
 
   /** The XY plane: sketch X along X, sketch Y along Y, solids grow along +Z. A sketch on it stores no plane. */
   static readonly XY = new Plane([0, 0, 0], [0, 0, 1], [1, 0, 0]);
@@ -70,7 +75,11 @@ export interface PoseData { readonly position: Vec3; readonly rotation: Vec3 }
 /** A placement (build123d's Location), the documents' Pose: a turn about X, then Y, then Z, through the origin, then a move. */
 export class Location {
   readonly position: Vec3; readonly rotation: Vec3;
-  private constructor(position: Vec3, rotation: Vec3) { this.position = position; this.rotation = rotation; Object.freeze(this); }
+  private constructor(position: Vec3, rotation: Vec3) {
+    this.position = Object.freeze([...position] as [number, number, number]);
+    this.rotation = Object.freeze([...rotation] as [number, number, number]);
+    Object.freeze(this);
+  }
 
   /** Where nothing moves. */
   static readonly IDENTITY = new Location([0, 0, 0], [0, 0, 0]);
@@ -102,7 +111,7 @@ export type SketchData = (
 /** A finished, closed profile on a plane, ready for `extrude` or `revolve`. */
 export class Sketch {
   readonly #data: SketchData;
-  constructor(data: SketchData) { this.#data = data; }
+  constructor(data: SketchData) { this.#data = structuredClone(data); }
   /** The plain profile (a copy), as the sketch node stores it. */
   get data(): SketchData { return structuredClone(this.#data); }
 }

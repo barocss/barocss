@@ -54,7 +54,7 @@ const PARAMETER_NAME = /^[A-Za-z_][A-Za-z0-9_]{0,31}$/;
  * document is evaluated by whoever uses it.
  */
 export function withParameters<D extends { readonly parameters: Readonly<Record<string, number>> }>(doc: D, edits: Readonly<Record<string, number>>): D {
-  const unknown = Object.keys(edits).filter(k => !(k in doc.parameters));
+  const unknown = Object.keys(edits).filter(k => !Object.prototype.hasOwnProperty.call(doc.parameters, k));
   if (unknown.length) throw refuse('PARAMETER_UNKNOWN', `no parameter ${unknown.join(', ')}; the parameters are ${Object.keys(doc.parameters).join(', ') || 'none'}`);
   for (const [k, v] of Object.entries(edits)) if (typeof v !== 'number' || !Number.isFinite(v)) throw refuse('VALUE', `${k} takes a number, not ${String(v)}`);
   return { ...doc, parameters: { ...doc.parameters, ...edits } };
@@ -79,7 +79,7 @@ export class Part<D> {
   protected readonly backend: PartBackend<D>;
   readonly #doc: D;
   readonly #focus: string | null;
-  constructor(backend: PartBackend<D>, name: string, doc: D, focus: string | null = null) { this.backend = backend; this.name = name; this.#doc = doc; this.#focus = focus; }
+  constructor(backend: PartBackend<D>, name: string, doc: D, focus: string | null = null) { this.backend = backend; this.name = name; this.#doc = backend.copy(doc); this.#focus = focus; }
 
   /** The plain document (a copy: changing it changes nothing here). */
   get doc(): D { return this.backend.copy(this.#doc); }
@@ -223,7 +223,7 @@ export class Part<D> {
     const params = this.backend.parameters(this.#doc), out = { ...options } as Record<string, unknown>, bound: { option: string; parameter: string }[] = [];
     for (const [k, v] of Object.entries(options)) {
       if (!isParam(v)) continue;
-      if (!(v.parameter in params)) throw refuse('PARAMETER_UNKNOWN', `no parameter ${v.parameter}; add it with parameter(name, value) (the parameters are ${Object.keys(params).join(', ') || 'none'})`);
+      if (!Object.prototype.hasOwnProperty.call(params, v.parameter)) throw refuse('PARAMETER_UNKNOWN', `no parameter ${v.parameter}; add it with parameter(name, value) (the parameters are ${Object.keys(params).join(', ') || 'none'})`);
       out[k] = params[v.parameter]; bound.push({ option: k, parameter: v.parameter });
     }
     const spec = build(out as Resolved<O>);

@@ -14,7 +14,7 @@ import { readUrdf } from '../robot/urdfCheck';
 import { readMjcf } from '../robot/mjcfCheck';
 import { exportSdf } from '../robot/sdf';
 import { exportUsd } from '../robot/usd';
-import { closureOfDoc } from '../robot/loop';
+import { closeLoops, closureOfDoc, loopCloserOf } from '../robot/loop';
 import type { MjcfClosure } from '../robot/mjcf';
 import { readRobot, type JointSettings, type JointTree, type RobotSettings } from '../robot/joints';
 import { checkPath, duration, motionNamed, poseAt, timedPathOf, type Motion, type MotionPath } from '../robot/motion';
@@ -149,12 +149,38 @@ export function refuseLoop(tree: JointTree): void {
   if (p) throw new BarocssError(p.code, p.message, 'evaluate', { loops: tree.loops.map(l => l.parts) });
 }
 
+// The saved-motion reader accepts finite rates. Check supplied fields before core timing can treat Infinity
+// as an unconstrained joint or carry NaN through profile arithmetic; absent recording limits stay absent.
+function motionInputs(tree: JointTree, path: MotionPath): void {
+  if (!path || typeof path !== 'object' || Array.isArray(path) || !Array.isArray(path.waypoints)) {
+    throw new BarocssError('VALUE', '[VALUE] a motion path has a waypoints array', 'facade');
+  }
+  if (Array.from(path.waypoints).some(w => !w || typeof w !== 'object' || Array.isArray(w))) {
+    throw new BarocssError('VALUE', '[VALUE] each waypoint is a record of joint values', 'facade');
+  }
+  path.waypoints.forEach(w => coreValues(tree, w));
+  if (path.limits !== undefined && (!path.limits || typeof path.limits !== 'object' || Array.isArray(path.limits))) {
+    throw new BarocssError('LIMITS_BAD', '[LIMITS_BAD] motion limits are a record of joint rate settings', 'facade');
+  }
+  for (const [key, limits] of Object.entries(path.limits ?? {})) {
+    if (!limits || typeof limits !== 'object' || Array.isArray(limits)) {
+      throw new BarocssError('LIMITS_BAD', `[LIMITS_BAD] ${key}: motion rates are an object`, 'facade');
+    }
+    for (const field of ['velocity', 'acceleration', 'jerk'] as const) {
+      const value = limits[field];
+      if (value !== undefined && (typeof value !== 'number' || !Number.isFinite(value))) {
+        throw new BarocssError('LIMITS_BAD', `[LIMITS_BAD] ${key}.${field}: a motion limit is a finite number`, 'facade');
+      }
+    }
+  }
+}
+
 /** A saved motion's joint values at time t (s), in the facade's units — degrees for a turning joint, mm for a slide (RS2's poseAt). */
 export function poseAtOf(doc: StudioDoc, path: MotionPath, t: number): Record<string, number> {
   if (typeof t !== 'number' || !Number.isFinite(t)) throw new BarocssError('VALUE', `[VALUE] a time is a number of seconds, not ${String(t)}`, 'facade');
   const tree = treeOf(doc);
+  motionInputs(tree, path);
   if (tree.loops.length) {
-    path.waypoints.forEach(w => coreValues(tree, w));
     return jointValuesOut(tree, motionPlaybackOf(viewOf(doc), path, t, tree).values);
   }
   const timed = timedPathOf(tree, path), turning = new Set(tree.joints.filter(j => j.type === 'revolute' || j.type === 'continuous').map(j => j.key));
@@ -165,18 +191,20 @@ export function poseAtOf(doc: StudioDoc, path: MotionPath, t: number): Record<st
 /** How long a motion takes (s), as poseAt times it. */
 export function durationOf(doc: StudioDoc, path: MotionPath): number {
   const tree = treeOf(doc);
+  motionInputs(tree, path);
   if (tree.loops.length) {
-    path.waypoints.forEach(w => coreValues(tree, w));
     return motionPlaybackOf(viewOf(doc), path, undefined, tree).duration;
   }
-  return duration(timedPathOf(tree, path));
+  const timed = timedPathOf(tree, path), problems = checkPath(tree, timed);
+  if (problems.length) throw new BarocssError(problems[0].code, problems[0].message, 'evaluate', { problems });
+  return duration(timed);
 }
 /** RS2 path findings, or the typed RS6 closure refusal. This is not a sweep/CCD or passive-limit certificate. */
 export function problemsOf(doc: StudioDoc, path: MotionPath): Problem[] {
   const tree = treeOf(doc);
-  if (!tree.loops.length) return checkPath(tree, timedPathOf(tree, path));
   try {
-    path.waypoints.forEach(w => coreValues(tree, w));
+    motionInputs(tree, path);
+    if (!tree.loops.length) return checkPath(tree, timedPathOf(tree, path));
     motionPlaybackOf(viewOf(doc), path, undefined, tree);
     return [];
   } catch (e) {
@@ -193,6 +221,16 @@ export const motionOf = (doc: StudioDoc, name: string): Motion => motionNamed(re
  */
 export function withMotion(doc: StudioDoc, name: string, path: MotionPath): StudioDoc {
   if (typeof name !== 'string' || !name.trim()) throw new BarocssError('VALUE', '[VALUE] a motion has a name', 'facade');
+  const tree = treeOf(doc);
+  motionInputs(tree, path);
+  const timed = timedPathOf(tree, path);
+  // Recording may have zero/one waypoint or no timing limits yet. Duplicate a lone waypoint only for the
+  // core's joint checks, so unknown keys, followers and joint bounds still use the target robot's tree.
+  const problems = checkPath(tree, timed.waypoints.length === 1 ? { ...timed, waypoints: [timed.waypoints[0], timed.waypoints[0]] } : timed)
+    .filter(p => p.code !== 'PATH_TOO_SHORT' && p.code !== 'LIMITS_MISSING');
+  if (problems.length) throw new BarocssError(problems[0].code, problems[0].message, 'evaluate', { problems });
+  const closer = loopCloserOf(doc, tree);
+  if (closer) timed.waypoints.forEach(w => closeLoops(tree, closer, w));
   const was = readRobot(doc.robot), motions = [...(was.motions ?? [])], at = motions.findIndex(m => m.name === name), motion: Motion = { name, path: structuredClone(path) };
   if (at >= 0) motions[at] = motion; else motions.push(motion);
   const robot: RobotSettings = { ...was, motions };

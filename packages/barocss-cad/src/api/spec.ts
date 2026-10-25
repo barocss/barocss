@@ -82,11 +82,20 @@ export interface ScaleOptions { factor: Dim; pivot?: readonly [number, number, n
 /** `split`: the body cut in two across the plane `axis` = at, or with `normal` any plane normal·p = at (x + y = at for [1, 1, 0]: a mitre). */
 export type SplitOptions = { axis: AxisName; at: Dim } | { normal: readonly [number, number, number]; at: Dim };
 
-const positive = (name: string, v: number) => { if (!(Number.isFinite(v) && v > 0)) throw refuse('VALUE', `${name} must be a positive number of mm, not ${v}`); return v; };
-const finite = (name: string, v: number) => { if (!Number.isFinite(v)) throw refuse('VALUE', `${name} must be a number of mm, not ${v}`); return v; };
-const degrees = (name: string, v: number) => { if (!Number.isFinite(v)) throw refuse('VALUE', `${name} must be a number of degrees, not ${v}`); return v; };
-const count = (v: number) => { if (!Number.isInteger(v) || v < 2) throw refuse('VALUE', `count must be a whole number of copies, at least 2, not ${v}`); return v; };
+const positive = (name: string, v: number) => { if (!(Number.isFinite(v) && v > 0)) throw refuse('VALUE', `${name} must be a positive number of mm, not ${String(v)}`); return v; };
+const finite = (name: string, v: number) => { if (!Number.isFinite(v)) throw refuse('VALUE', `${name} must be a number of mm, not ${String(v)}`); return v; };
+const degrees = (name: string, v: number) => { if (!Number.isFinite(v)) throw refuse('VALUE', `${name} must be a number of degrees, not ${String(v)}`); return v; };
+const count = (v: number) => { if (!Number.isInteger(v) || v < 2) throw refuse('VALUE', `count must be a whole number of copies, at least 2, not ${String(v)}`); return v; };
 const axisName = (v: unknown): AxisName => { if (v !== 'x' && v !== 'y' && v !== 'z') throw refuse('VALUE', `an axis is x, y or z, not ${String(v)}`); return v; };
+const tuple3 = (name: string, value: unknown): [number, number, number] => {
+  if (!Array.isArray(value) || value.length !== 3) throw refuse('VALUE', `${name} must be [x, y, z]`);
+  const component = (k: number): number => {
+    const v = value[k];
+    if (typeof v !== 'number' || !Number.isFinite(v)) throw refuse('VALUE', `${name} ${'xyz'[k]} must be a finite number, not ${String(v)}`);
+    return v;
+  };
+  return [component(0), component(1), component(2)];
+};
 const edgesOf = (edges: readonly string[], verb: string) => { if (!edges.length) throw refuse('SELECTION_EMPTY', `the selector picked no edge to ${verb}`); return edges; };
 const sketchData = (s: Sketch) => { if (!(s instanceof Sketch)) throw refuse('VALUE', 'give a finished sketch: sketch(plane)…close(), .rectangle(), .circle() or .polygon()'); return s.data; };
 
@@ -110,7 +119,8 @@ export function revolveSpec(s: Sketch, o: Resolved<RevolveOptions> = {}): Featur
 }
 
 export function holeSpec(face: string, o: Resolved<HoleOptions>): FeatureSpec {
-  const type = o.type ?? (o.depth !== undefined ? 'blind' : 'through');
+  const requestedType = o.type, type = requestedType === undefined ? (o.depth !== undefined ? 'blind' : 'through') : requestedType;
+  if (type !== 'through' && type !== 'blind') throw refuse('VALUE', `a hole's type is through or blind, not ${String(type)}`);
   if (type === 'blind' && o.depth === undefined) throw refuse('VALUE', 'a blind hole needs depth');
   return { command: 'hole', face, values: { type, d: positive('d', o.d), x: finite('x', o.x), y: finite('y', o.y), ...(type === 'blind' ? { depth: positive('depth', o.depth!) } : {}) } };
 }
@@ -143,12 +153,13 @@ export function circularPatternSpec(o: Resolved<CircularPatternOptions>): Featur
 }
 
 export function moveSpec(offset: readonly [number, number, number]): FeatureSpec {
-  return { command: 'move', values: { x: finite('x', offset[0]), y: finite('y', offset[1]), z: finite('z', offset[2]) } };
+  const [x, y, z] = tuple3('offset', offset);
+  return { command: 'move', values: { x, y, z } };
 }
 
 /** A turn about an axis through the origin (a Location's). */
 export function rotateSpec(axis: AxisName, angle: number): FeatureSpec {
-  return { command: 'rotate', values: { axis, angle: degrees('angle', angle), px: 0, py: 0, pz: 0 } };
+  return { command: 'rotate', values: { axis: axisName(axis), angle: degrees('angle', angle), px: 0, py: 0, pz: 0 } };
 }
 
 export function mirrorSpec(o: Resolved<MirrorOptions>): FeatureSpec {
@@ -158,15 +169,15 @@ export function mirrorSpec(o: Resolved<MirrorOptions>): FeatureSpec {
 
 /** A uniform scale about a pivot (the origin unless given, in both cores: the studio's own default, the body's centre, is not taken). */
 export function scaleSpec(o: Resolved<ScaleOptions>): FeatureSpec {
-  const p = o.pivot ?? [0, 0, 0];
-  if (!(Number.isFinite(o.factor) && o.factor > 0)) throw refuse('VALUE', `factor must be a positive number, not ${o.factor}`);
+  const p = tuple3('pivot', o.pivot === undefined ? [0, 0, 0] : o.pivot);
+  if (!(Number.isFinite(o.factor) && o.factor > 0)) throw refuse('VALUE', `factor must be a positive number, not ${String(o.factor)}`);
   return { command: 'scale', values: { factor: o.factor, px: finite('pivot x', p[0]), py: finite('pivot y', p[1]), pz: finite('pivot z', p[2]) } };
 }
 
 export function splitSpec(o: Resolved<SplitOptions>): FeatureSpec {
   const at = finite('at', o.at);
   if ('normal' in o) {
-    const [nx, ny, nz] = o.normal.map((v, k) => finite(`normal ${'xyz'[k]}`, v));
+    const [nx, ny, nz] = tuple3('normal', o.normal);
     if (!(Math.hypot(nx, ny, nz) > 1e-9)) throw refuse('VALUE', 'a split plane\'s normal must not be zero');
     return { command: 'split', values: { axis: 'n', nx, ny, nz, at } };
   }

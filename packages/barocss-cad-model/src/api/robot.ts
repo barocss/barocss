@@ -11,7 +11,7 @@ import type { MotionLimits, MotionPath } from '../robot/motion';
 
 export class Robot {
   readonly #doc: StudioDoc;
-  constructor(doc: StudioDoc) { this.#doc = doc; }
+  constructor(doc: StudioDoc) { this.#doc = structuredClone(doc); }
 
   /** The plain document (a copy): the assembly's, robot settings and all. */
   get doc(): StudioDoc { return structuredClone(this.#doc); }
@@ -31,7 +31,9 @@ export class Robot {
    */
   path(waypoints: readonly Readonly<Record<string, number>>[], o: { profile?: 'trapezoid' | 's-curve'; limits?: Record<string, MotionLimits> } = {}): RobotPath {
     if (!Array.isArray(waypoints) || waypoints.length < 2) throw refuse('VALUE', 'a path goes through at least two waypoints');
-    return new RobotPath(this.#doc, { waypoints: waypoints.map(w => ({ ...w })), ...(o.profile ? { profile: o.profile } : {}), ...(o.limits ? { limits: structuredClone(o.limits) } : {}) });
+    if (Array.from(waypoints).some(w => !w || typeof w !== 'object' || Array.isArray(w))) throw refuse('VALUE', 'each waypoint is a record of joint values');
+    if (!o || typeof o !== 'object' || Array.isArray(o)) throw refuse('VALUE', 'path options are an object');
+    return new RobotPath(this.#doc, { waypoints: waypoints.map(w => ({ ...w })), ...(o.profile ? { profile: o.profile } : {}), ...(o.limits !== undefined ? { limits: structuredClone(o.limits) } : {}) });
   }
 
   /** A motion saved in the robot settings, by name, as a path. */
@@ -61,7 +63,7 @@ export class Robot {
 export class RobotPath {
   readonly #doc: StudioDoc;
   readonly #motion: MotionPath;
-  constructor(doc: StudioDoc, motion: MotionPath) { this.#doc = doc; this.#motion = motion; }
+  constructor(doc: StudioDoc, motion: MotionPath) { this.#doc = structuredClone(doc); this.#motion = structuredClone(motion); }
 
   /** The path as the robot settings keep it (a copy): its waypoints, profile and limits, in degrees and mm. */
   get motion(): MotionPath { return structuredClone(this.#motion); }

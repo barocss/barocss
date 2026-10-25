@@ -33,7 +33,7 @@ export function massOf(body: BodyResult, density: number): MassResult {
 export function meshesOf(doc: StudioDoc): MeshData[] {
   return bodiesOf(doc).map(b => {
     const material = materialIdOf(doc, b);
-    return { key: b.key, positions: b.mesh.positions, normals: b.mesh.normals, indices: b.mesh.indices, lines: b.mesh.edgeLines, ...(material !== undefined ? { material } : {}) };
+    return { key: b.key, positions: b.mesh.positions.slice(), normals: b.mesh.normals.slice(), indices: b.mesh.indices.slice(), lines: b.mesh.edgeLines.slice(), ...(material !== undefined ? { material } : {}) };
   });
 }
 

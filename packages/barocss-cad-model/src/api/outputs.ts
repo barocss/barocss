@@ -35,18 +35,19 @@ const PULLS: readonly M3[] = [[0, 0, 1], [0, 0, -1], [0, 1, 0], [0, -1, 0], [1, 
  * a moulding, one of its profile's finishes (it sets the least draft).
  */
 export function withProcess(doc: StudioDoc, id: string | null, o: { pull?: Vec3; finish?: string } = {}): StudioDoc {
-  if (id !== null && !(PROCESSES as readonly string[]).includes(id)) throw refuse('VALUE', `no process '${id}'; the processes are ${PROCESSES.join(', ')}`);
+  if (id !== null && !(PROCESSES as readonly string[]).includes(id)) throw refuse('VALUE', `no process '${String(id)}'; the processes are ${PROCESSES.join(', ')}`);
   const next = { ...doc };
   if (id !== null) next.process = id; else delete next.process;
   if (next.printer && MATERIALS_DATA.printers.find(p => p.id === next.printer)?.process !== next.process) delete next.printer;
   if (o.pull !== undefined) {
+    if (!Array.isArray(o.pull) || o.pull.length !== 3 || ![0, 1, 2].every(k => typeof o.pull![k] === 'number' && Number.isFinite(o.pull![k]))) throw refuse('VALUE', 'a pull is a finite [x, y, z] tuple on one of the six axes');
     const pull = PULLS.find(p => p.every((x, k) => x === o.pull![k]));
     if (!pull) throw refuse('VALUE', `a pull is one of the six axes, ${PULLS.map(p => `[${p.join(', ')}]`).join(' ')}; not ${JSON.stringify(o.pull)}`);
     next.mould = { version: 1, ...doc.mould, pull: [pull[0], pull[1], pull[2]] };
   }
   if (o.finish !== undefined) {
     const finishes = processProfile(next.process)?.finishes ?? [];
-    if (!finishes.some(f => f.id === o.finish)) throw refuse('VALUE', finishes.length ? `no finish '${o.finish}' for ${next.process}; its finishes are ${finishes.map(f => f.id).join(', ')}` : `the process ${next.process ?? '(none)'} has no finishes: a finish is a moulding's`);
+    if (!finishes.some(f => f.id === o.finish)) throw refuse('VALUE', finishes.length ? `no finish '${String(o.finish)}' for ${next.process}; its finishes are ${finishes.map(f => f.id).join(', ')}` : `the process ${next.process ?? '(none)'} has no finishes: a finish is a moulding's`);
     next.mould = { version: 1, ...next.mould, finish: o.finish };
   }
   return next;

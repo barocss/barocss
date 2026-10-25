@@ -4,6 +4,7 @@
 // (CadQuery's ">Z"): every filter is a typed method. Each query is immutable: a filter returns a new query.
 import type { Brep } from '../brep/brep-core.js';
 import type { BrepMesh, BrepMeshFace } from '../brep/brep-tessellate.js';
+import { refuse } from './refusal.js';
 
 /** A point or direction, mm, Z up: the facades' one shape (api-conventions §10.2), the same tuple gpu's core/geometry-types.ts declares. */
 export type Vec3 = readonly [number, number, number];
@@ -32,14 +33,34 @@ export interface FaceInfo {
 }
 
 const AXIS_INDEX: Record<AxisName, 0 | 1 | 2> = { x: 0, y: 1, z: 2 };
+const checkedAxis = (axis: AxisName): AxisName => {
+  if (axis !== 'x' && axis !== 'y' && axis !== 'z') throw refuse('VALUE', `an axis is x, y or z, not ${String(axis)}`);
+  return axis;
+};
+const checkedCount = (count: number): number => {
+  if (!Number.isInteger(count) || count < 0) throw refuse('VALUE', `a selection count must be a non-negative integer, not ${String(count)}`);
+  return count;
+};
 // (A plane's normal along an axis within this cosine; a straight edge along an axis within this, as cad-model's mesh has it.)
 const ALONG = 1 - 1e-6, AXIS_TOL = 1e-9;
+
+// Snapshot caller data before freezing: no input record or tuple belongs to a query.
+const vector = (v: Vec3): Vec3 => Object.freeze([...v] as [number, number, number]);
+const edgeSnapshot = (e: EdgeInfo): EdgeInfo => Object.freeze({ ...e,
+  names: Object.freeze([...e.names]), a: vector(e.a), b: vector(e.b),
+  faces: Object.freeze([...e.faces] as [string, string]),
+});
+const faceSnapshot = (f: FaceInfo): FaceInfo => Object.freeze({ ...f,
+  normal: vector(f.normal), centroid: vector(f.centroid), edges: Object.freeze([...f.edges]),
+});
+const edgeSnapshots = (edges: readonly EdgeInfo[]): readonly EdgeInfo[] => Object.freeze(edges.map(edgeSnapshot));
+const faceSnapshots = (faces: readonly FaceInfo[]): readonly FaceInfo[] => Object.freeze(faces.map(faceSnapshot));
 
 /** A body's edges and faces, from the records its facade filled. */
 export class BodyQuery {
   readonly #edges: readonly EdgeInfo[];
   readonly #faces: readonly FaceInfo[];
-  constructor(edges: readonly EdgeInfo[], faces: readonly FaceInfo[]) { this.#edges = edges; this.#faces = faces; }
+  constructor(edges: readonly EdgeInfo[], faces: readonly FaceInfo[]) { this.#edges = edgeSnapshots(edges); this.#faces = faceSnapshots(faces); }
   /** Every edge of the body, in the core's order. */
   edges(): EdgeQuery { return new EdgeQuery(this.#edges); }
   /** Every face of the body, in the core's order. */
@@ -50,9 +71,9 @@ const midpoint = (e: EdgeInfo, i: 0 | 1 | 2) => (e.a[i] + e.b[i]) / 2;
 
 export class EdgeQuery {
   readonly #items: readonly EdgeInfo[];
-  constructor(items: readonly EdgeInfo[]) { this.#items = items; }
+  constructor(items: readonly EdgeInfo[]) { this.#items = edgeSnapshots(items); }
   /** Straight edges running along an axis. */
-  along(axis: AxisName): EdgeQuery { return new EdgeQuery(this.#items.filter(e => e.straight && e.axis === axis)); }
+  along(axis: AxisName): EdgeQuery { checkedAxis(axis); return new EdgeQuery(this.#items.filter(e => e.straight && e.axis === axis)); }
   straight(): EdgeQuery { return new EdgeQuery(this.#items.filter(e => e.straight)); }
   curved(): EdgeQuery { return new EdgeQuery(this.#items.filter(e => !e.straight)); }
   /** The edges on a face, given by its persistent name. */
@@ -61,11 +82,11 @@ export class EdgeQuery {
   where(test: (edge: EdgeInfo) => boolean): EdgeQuery { return new EdgeQuery(this.#items.filter(test)); }
   /** Sorted by the edge's midpoint along an axis, lowest first (stable: equal ones keep the core's order). */
   sortBy(axis: AxisName): EdgeQuery {
-    const i = AXIS_INDEX[axis];
+    const i = AXIS_INDEX[checkedAxis(axis)];
     return new EdgeQuery([...this.#items].sort((p, q) => midpoint(p, i) - midpoint(q, i)));
   }
-  first(count = 1): EdgeQuery { return new EdgeQuery(this.#items.slice(0, count)); }
-  last(count = 1): EdgeQuery { return new EdgeQuery(this.#items.slice(Math.max(0, this.#items.length - count))); }
+  first(count = 1): EdgeQuery { return new EdgeQuery(this.#items.slice(0, checkedCount(count))); }
+  last(count = 1): EdgeQuery { return new EdgeQuery(this.#items.slice(Math.max(0, this.#items.length - checkedCount(count)))); }
   get count(): number { return this.#items.length; }
   list(): readonly EdgeInfo[] { return this.#items; }
   /** The persistent names a feature stores, every name of every edge, in the query's order. */
@@ -75,9 +96,10 @@ export class EdgeQuery {
 export class FaceQuery {
   readonly #items: readonly FaceInfo[];
   readonly #edges: readonly EdgeInfo[];
-  constructor(items: readonly FaceInfo[], edges: readonly EdgeInfo[]) { this.#items = items; this.#edges = edges; }
+  constructor(items: readonly FaceInfo[], edges: readonly EdgeInfo[]) { this.#items = faceSnapshots(items); this.#edges = edgeSnapshots(edges); }
   /** Plane faces whose outward normal points that way. */
   facing(direction: Direction): FaceQuery {
+    if (direction !== '+x' && direction !== '-x' && direction !== '+y' && direction !== '-y' && direction !== '+z' && direction !== '-z') throw refuse('VALUE', `a face direction is +x, -x, +y, -y, +z or -z, not ${String(direction)}`);
     const i = AXIS_INDEX[direction[1] as AxisName], sign = direction[0] === '+' ? 1 : -1;
     return new FaceQuery(this.#items.filter(f => f.kind === 'plane' && f.normal[i] * sign >= ALONG), this.#edges);
   }
@@ -86,11 +108,11 @@ export class FaceQuery {
   where(test: (face: FaceInfo) => boolean): FaceQuery { return new FaceQuery(this.#items.filter(test), this.#edges); }
   /** Sorted by the face's centroid along an axis, lowest first (stable). */
   sortBy(axis: AxisName): FaceQuery {
-    const i = AXIS_INDEX[axis];
+    const i = AXIS_INDEX[checkedAxis(axis)];
     return new FaceQuery([...this.#items].sort((p, q) => p.centroid[i] - q.centroid[i]), this.#edges);
   }
-  first(count = 1): FaceQuery { return new FaceQuery(this.#items.slice(0, count), this.#edges); }
-  last(count = 1): FaceQuery { return new FaceQuery(this.#items.slice(Math.max(0, this.#items.length - count)), this.#edges); }
+  first(count = 1): FaceQuery { return new FaceQuery(this.#items.slice(0, checkedCount(count)), this.#edges); }
+  last(count = 1): FaceQuery { return new FaceQuery(this.#items.slice(Math.max(0, this.#items.length - checkedCount(count))), this.#edges); }
   get count(): number { return this.#items.length; }
   list(): readonly FaceInfo[] { return this.#items; }
   names(): string[] { return this.#items.map(f => f.name); }
