@@ -119,15 +119,24 @@ test('motions: saved under a name in the robot settings, read back, replaced by 
   assert.deepEqual(r.path([{ nope: 0 }, { nope: 1 }], { limits }).problems().map(p => p.code), ['JOINT_UNKNOWN', 'JOINT_UNKNOWN']);
 });
 
-// (O22's LOOP_OPEN, as check_path and play_motion refuse it: a looped robot's motion is not checked clear or posed open.)
-test('a looped robot\'s path is refused LOOP_OPEN: check, poseAt and duration throw it, problems lists it', () => {
+// RS6 playback closes the supported loop; the facade's sweep/CCD still refuses LOOP_OPEN.
+test('a looped robot plays in degrees on its assembled branch; its path check still refuses LOOP_OPEN', () => {
   const four = new Robot(JSON.parse(readFileSync(join(import.meta.dirname, '../samples/robots/four-bar.bcad'), 'utf8')) as StudioDoc);
   const path = four.path([{ 'base~crank': 0 }, { 'base~crank': 90 }], { limits: { 'base~crank': { velocity: 90, acceleration: 180 } } });
   const open = (e: unknown) => e instanceof BarocssError && e.code === 'LOOP_OPEN' && /closed loop/.test(e.message);
   assert.throws(() => path.check(), open);
-  assert.throws(() => path.poseAt(0.5), open);
-  assert.throws(() => path.duration(), open);
-  assert.equal(path.problems()[0].code, 'LOOP_OPEN');
+  assert.ok(Math.abs(path.duration() - 1.5) <= 1e-12, '90 degrees at 90 deg/s and 180 deg/s² takes 1.5 s');
+  const drivers = path.poseAt(0.5);
+  assert.deepEqual(Object.keys(drivers), ['base~crank']);
+  assert.ok(Math.abs(drivers['base~crank'] - 22.5) <= 1e-9, 'acceleration ramp: 180 * 0.5² / 2 degrees');
+  assert.deepEqual(path.problems(), []);
+  const tree = treeOf(four.doc), posed = four.pose(drivers), rad = Math.PI / 180;
+  const t2 = (60 + drivers['base~crank'] * Math.sign(tree.joints.find(j => j.key === 'base~crank')!.axis[2])) * rad;
+  // Freudenstein, with ground/crank/coupler/rocker lengths 60/20/70/50 mm, assembled circle-intersection branch.
+  const p = 3 - Math.cos(t2), q = -Math.sin(t2), r = 0.8 - 1.2 * Math.cos(t2);
+  const expected = Math.atan2(q, p) + Math.acos(-r / Math.hypot(p, q));
+  const actual = (75.22868402252183 + posed.values['base~rocker'] * Math.sign(tree.joints.find(j => j.key === 'base~rocker')!.axis[2])) * rad;
+  assert.ok(Math.abs(Math.atan2(Math.sin(actual - expected), Math.cos(actual - expected))) <= 1e-9, 'closed rocker angle, same assembled branch');
   // (An open chain plays as before.)
   assert.ok(!robot().path([{}, { [keys()[0]]: 10 }]).problems().some(p => p.code === 'LOOP_OPEN'));
 });

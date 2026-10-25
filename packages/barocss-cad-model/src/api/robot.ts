@@ -75,10 +75,10 @@ export class RobotPath {
     return w.slice(1).map((to, k) => sweepOf(this.#doc, w[k], to));
   }
 
-  /** What is wrong with the path on this robot (RS2's checkPath): unknown or following joints, limits passed or missing. */
+  /** RS2 path findings and RS6 closure refusals. Finite passive loop bounds and sweep/CCD remain unsupported. */
   problems() { return problemsOf(this.#doc, this.#motion); }
-  /** How long it takes (s), each segment one profile over its tightest joint. */
+  /** Seconds over the driver profiles; looped paths must close through their preceding segment seams. */
   duration(): number { return durationOf(this.#doc, this.#motion); }
-  /** The joint values at time t (s), degrees and mm — what pose() takes; refused, typed, when the path has a problem. */
+  /** Driver inputs at t (s), degrees/mm, for pose(). RS6 closes and checks the path prefix before returning them. */
   poseAt(t: number): Record<string, number> { return poseAtOf(this.#doc, this.#motion, t); }
 }

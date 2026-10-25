@@ -220,6 +220,28 @@ function closedAt(t: JointTree, closer: LoopCloser, path: TimedPath, times: read
   return times.map(at => { const q = poseAt(t, path, at), out = closeLoops(t, closer, q, prev); prev = out.q; return { ...q, ...out.q }; });
 }
 /**
+ * The facade's timed motion, using the same playable/closedAt path as RS6 playback. A seek replays preceding segment
+ * seams from the assembled pose, so a return leg keeps its previous solution instead of jumping from home to its end.
+ * Values remain the drivers that poseOf accepts; solved passive values are checked, never supplied as extra drivers.
+ * This does not sweep or certify passive joint bounds between poses; finite bounds on passive loop joints are refused.
+ */
+export function motionPlaybackOf(view: RobotView, motion: MotionPath, at?: number, t: JointTree = treeOf(view)) {
+  const path = playable(t, { name: 'path', path: motion }), T = duration(path), end = at === undefined ? T : Math.min(T, Math.max(0, at));
+  const closer = loopCloserOf(view.doc, t);
+  if (closer) {
+    const drivers = new Set(path.waypoints.flatMap(w => Object.keys(w)));
+    const bounded = t.joints.find(j => closer.all.includes(j.key) && !drivers.has(j.key) && (j.limit?.lower !== undefined || j.limit?.upper !== undefined));
+    if (bounded) throw refusal('LOOP_OPEN', `${bounded.key}: this facade does not yet certify finite passive joint limits along a closed motion`);
+    // An omitted driver value is zero, not permission to change which joints are passive at a segment seam.
+    const driven = { ...path, waypoints: path.waypoints.map(w => Object.fromEntries([...drivers].map(key => [key, w[key] ?? 0]))) };
+    const times = [0, ...timePath(t, driven).map(g => g.t0 + g.duration).filter(time => time <= end), end];
+    const poses = closedAt(t, closer, driven, times);
+    poses.forEach((q, k) => checkLimits(t, jointValuesOut(t, q), `at ${times[k]} s: `));
+    return { duration: T, values: poseAt(t, driven, end) };
+  }
+  return { duration: T, values: poseAt(t, path, end) };
+}
+/**
  * A looped motion swept (RS6): each timed segment cut into chords no more than 1° (1 mm) of its drivers apart, each chord
  * between two closed poses swept straight and certified (sweepPath, RM6); how far a chord's midpoint is from closing is
  * the chords' error, reported. The first contact's time is on its chord's profile.
