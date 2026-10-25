@@ -732,7 +732,7 @@ test('draft: X and Y pull survive save and load with the same geometry and mass'
 
 test('draft: unsupported pull encodings retain a typed INPUT refusal', () => {
   const box = [rect('s', 0, 0, 20, 20), extrude('e', 's', 10)];
-  for (const pull of [null, 'X', '+x', '-x', 'w', [1, 0, 0], 0]) {
+  for (const pull of [null, 'X', '+x', 'w', [1, 0, 0], 0]) {
     refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angle: 10, pull }]), 'INPUT', /pull must be x, y or z/);
   }
 });
@@ -745,6 +745,130 @@ test('draft: pull-normal faces, adjacent faces and a neutral plane above the fac
     refused(D([...box, { ...feature, faces: [c.face, 'e.bottom'] }]), 'CAPABILITY', /meet along an edge/);
     refused(D([...box, { ...feature, neutral: 1 }]), 'SELECTION', new RegExp(`neutral plane ${c.pull} = 1`));
   }
+});
+
+// Negative pulls use proper signed rotations; these reference boxes retain the same solver lift.
+const negativeDraftCases = [
+  { pull: '-x', positive: 'x', face: 'e.side0', axis: 0, neutral: 20, height: 20, width: 10,
+    reference: [rect('s', 0, -10, 20, 0), extrude('e', 's', 20, -20)], referenceFace: 'e.side3', inverse: [2, 0, 1], signs: [-1, 1, -1], normalFace: 'e.side1', adjacentFace: 'e.bottom' },
+  { pull: '-y', positive: 'y', face: 'e.side3', axis: 1, neutral: 20, height: 20, width: 10,
+    reference: [rect('s', 0, -20, 10, 0), extrude('e', 's', 20, -20)], referenceFace: 'e.side2', inverse: [1, 2, 0], signs: [-1, -1, 1], normalFace: 'e.side2', adjacentFace: 'e.bottom' },
+  { pull: '-z', positive: 'z', face: 'e.side0', axis: 2, neutral: 10, height: 10, width: 20,
+    reference: [rect('s', 0, -20, 20, 0), extrude('e', 's', 10, -10)], referenceFace: 'e.side2', inverse: [0, 1, 2], signs: [1, -1, -1], normalFace: 'e.top', adjacentFace: 'e.side1' },
+];
+const negativeDraftBox = () => [rect('s', 0, 0, 20, 20), extrude('e', 's', 10)];
+const negativeDraftFeature = (c, extra = {}) => ({ id: 'd', kind: 'draft', target: 'e', faces: [c.face], angle: 10, pull: c.pull, ...extra });
+function compareNegativeDraft(c, angle) {
+  const authored = D([...negativeDraftBox(), negativeDraftFeature(c, { angle })]), before = structuredClone(authored);
+  const out = outputOf(evaluateCadPart(authored), 'd');
+  const reference = outputOf(evaluateCadPart(D([...c.reference, { id: 'd', kind: 'draft', target: 'e', faces: [c.referenceFace], angle }])), 'd');
+  // Direct world sections: y>=k*(20-x), x>=k*(20-y), or y>=k*(10-z).
+  // Signed triangular integration gives V=4000-W*k*H^2/2, including angle<0.
+  const nominal = 4000 - c.width * Math.tan(angle * pi / 180) * c.height ** 2 / 2;
+  assert.ok(close(volume(out), nominal, 1e-6), `${c.pull} ${angle}: ${volume(out)} vs ${nominal}`);
+  const report = checkBrep(out.brep, { strict: true });
+  assert.equal(report.valid, true, JSON.stringify(report.issues));
+  assert.equal(out.brep.bodies.length, 1); assert.ok(out.brep.shells.every(s => s.closed));
+  const actual = massPropertiesOf(out), ref = massPropertiesOf(reference);
+  assert.ok(close(actual.mass, ref.mass));
+  draftVector(actual.centroid, c.inverse.map((k, i) => c.signs[i] * ref.centroid[k]));
+  // I_world=M^T I_q M: compare all nine entries, including signed products of inertia.
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+    const expected = c.signs[i] * c.signs[j] * ref.inertia[c.inverse[i]][c.inverse[j]];
+    assert.ok(close(actual.inertia[i][j], expected), `${c.pull} I${i}${j}: ${actual.inertia[i][j]} vs ${expected}`);
+  }
+  const actualBounds = draftBounds(out), refBounds = draftBounds(reference);
+  for (const key of ['min', 'max']) {
+    const expected = c.inverse.map((k, i) => c.signs[i] > 0 ? refBounds[key][k] : -refBounds[key === 'min' ? 'max' : 'min'][k]);
+    draftVector(actualBounds[key], expected);
+  }
+  // Nominal analytic COM/tensor omit the inherited lift; no 1e-9 nominal assertion is made.
+  assert.deepEqual(authored, before);
+}
+for (const c of negativeDraftCases) test(`draft: negative ${c.positive.toUpperCase()} pull follows its independent world wedge and signed Z reference`, () => {
+  compareNegativeDraft(c, 10);
+});
+
+test('draft: negative angles add the signed world wedge for all three negative pulls', () => {
+  for (const c of negativeDraftCases) compareNegativeDraft(c, -10);
+});
+
+test('draft: negative pull neutral uses the world maximum before and after translation', () => {
+  for (const c of negativeDraftCases) {
+    const base = outputOf(evaluateCadPart(D([...negativeDraftBox(), negativeDraftFeature(c, { neutral: c.neutral })])), 'd');
+    const offset = [0, 0, 0]; offset[c.axis] = 7;
+    const authored = D([...negativeDraftBox(), { id: 't', kind: 'translate', target: 'e', offset }, negativeDraftFeature(c, { target: 't', neutral: c.neutral + 7 })]);
+    const before = structuredClone(authored), explicit = outputOf(evaluateCadPart(authored), 'd');
+    const implicitDoc = structuredClone(authored); delete implicitDoc.features.at(-1).neutral;
+    const implicit = outputOf(evaluateCadPart(implicitDoc), 'd');
+    assert.deepEqual(explicit.brep, implicit.brep);
+    assert.deepEqual(massPropertiesOf(explicit), massPropertiesOf(implicit));
+    const a = massPropertiesOf(explicit), b = massPropertiesOf(base);
+    assert.ok(close(a.volume, b.volume)); assert.ok(close(a.mass, b.mass));
+    draftVector(a.centroid, b.centroid.map((v, i) => v + offset[i]));
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) assert.ok(close(a.inertia[i][j], b.inertia[i][j]));
+    const ab = draftBounds(explicit), bb = draftBounds(base);
+    for (const key of ['min', 'max']) draftVector(ab[key], bb[key].map((v, i) => v + offset[i]));
+    assert.deepEqual(authored, before);
+  }
+});
+
+test('draft: negative pull and authored world neutral survive save and load', () => {
+  for (const c of negativeDraftCases) {
+    const snapshot = evaluateCadPart(D([...negativeDraftBox(), negativeDraftFeature(c, { neutral: c.neutral })]));
+    const saved = saveCadPart(snapshot), feature = JSON.parse(saved).features.find(f => f.id === 'd');
+    assert.equal(feature.pull, c.pull); assert.equal(feature.neutral, c.neutral);
+    const again = loadCadPart(saved);
+    assert.deepEqual(again.document, snapshot.document);
+    assert.deepEqual(outputOf(again, 'd').brep, outputOf(snapshot, 'd').brep);
+    assert.deepEqual(massPropertiesOf(outputOf(again, 'd')), massPropertiesOf(outputOf(snapshot, 'd')));
+    assert.equal(saveCadPart(again), saved);
+  }
+});
+
+test('draft: negative pull caches reuse unchanged input and invalidate a changed positive pull', () => {
+  for (const c of negativeDraftCases) {
+    const doc = D([...negativeDraftBox(), negativeDraftFeature(c)]), before = structuredClone(doc);
+    const initial = evaluateCadPart(doc), same = reevaluate(initial, { document: structuredClone(doc) });
+    assert.ok(same.recomputation.reused.includes('d')); assert.ok(!same.recomputation.evaluated.includes('d'));
+    const positive = structuredClone(doc); positive.features.at(-1).pull = c.positive;
+    const positiveBefore = structuredClone(positive), plus = evaluateCadPart(positive), changed = reevaluate(plus, { document: doc });
+    assert.ok(changed.recomputation.evaluated.includes('d')); assert.ok(!changed.recomputation.reused.includes('d'));
+    assert.deepEqual(outputOf(changed, 'd').brep, outputOf(initial, 'd').brep);
+    assert.deepEqual(massPropertiesOf(outputOf(changed, 'd')), massPropertiesOf(outputOf(initial, 'd')));
+    assert.deepEqual(doc, before); assert.deepEqual(positive, positiveBefore);
+  }
+});
+
+test('draft: positive and default pull documents retain their values through the negative pull extension', () => {
+  for (const c of [...draftPullCases, { pull: 'z', face: 'e.side0' }]) {
+    const doc = D([...negativeDraftBox(), negativeDraftFeature(c)]), snapshot = evaluateCadPart(doc);
+    assert.equal(saveCadPart(snapshot), JSON.stringify(doc) + '\n');
+    const again = loadCadPart(saveCadPart(snapshot));
+    assert.deepEqual(outputOf(again, 'd').brep, outputOf(snapshot, 'd').brep);
+    assert.deepEqual(massPropertiesOf(outputOf(again, 'd')), massPropertiesOf(outputOf(snapshot, 'd')));
+  }
+  const implicitDoc = D([...negativeDraftBox(), { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angle: 10 }]);
+  const implicit = evaluateCadPart(implicitDoc), explicitDoc = structuredClone(implicitDoc); explicitDoc.features.at(-1).pull = 'z';
+  const explicit = evaluateCadPart(explicitDoc);
+  assert.equal(saveCadPart(implicit), JSON.stringify(implicitDoc) + '\n');
+  assert.ok(!Object.hasOwn(JSON.parse(saveCadPart(implicit)).features.at(-1), 'pull'));
+  assert.deepEqual(outputOf(implicit, 'd').brep, outputOf(explicit, 'd').brep);
+  assert.deepEqual(massPropertiesOf(outputOf(implicit, 'd')), massPropertiesOf(outputOf(explicit, 'd')));
+});
+
+test('draft: negative pulls preserve typed input, face, mesh and world neutral refusals', () => {
+  for (const c of negativeDraftCases) {
+    for (const pull of [null, 'X', '+x', '-X', '-w', 'w', [1, 0, 0], 0]) refused(D([...negativeDraftBox(), negativeDraftFeature(c, { pull })]), 'INPUT', /pull must be x, y or z/);
+    refused(D([...negativeDraftBox(), negativeDraftFeature(c, { faces: [c.normalFace] })]), 'CAPABILITY', /square to the pull/);
+    refused(D([...negativeDraftBox(), negativeDraftFeature(c, { faces: [c.face, c.adjacentFace] })]), 'CAPABILITY', /meet along an edge/);
+    refused(D([...negativeDraftBox(), negativeDraftFeature(c, { neutral: c.neutral - 1 })]), 'SELECTION', new RegExp(`neutral plane ${c.positive} = ${c.neutral - 1}`));
+  }
+  const box = outputOf(evaluateCadPart(D(negativeDraftBox())), 'e'), mesh = tessellateBrep(box.brep);
+  refused(D([{ id: 'm', kind: 'mesh', representation: 'facets', positions: Array.from(mesh.positions), indices: Array.from(mesh.indices) }, negativeDraftFeature(negativeDraftCases[0], { target: 'm' })]), 'CAPABILITY', /draft on mesh faces/);
+  const ring = [{ kind: 'arc', start: [12, 5], center: [10, 5], direction: 'ccw' }];
+  const side = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
+  refused(D([{ ...rect('s', 0, 0, 20, 10), plane: side, holes: [ring] }, extrude('w', 's', 3), negativeDraftFeature(negativeDraftCases[2], { target: 'w', faces: ['w.top'] })]), 'CAPABILITY', /without holes/);
 });
 
 test('hole: a 90° countersink is cut with the hole, along any axis and from either side', () => {
