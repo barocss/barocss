@@ -87,3 +87,81 @@ test('package source and emitted internal entries share the same mass module', (
   assert.equal(p.publishConfig.exports['./internal/native-si-mass'].import, './dist/internal/native-si-mass.js');
   assert.equal(readNativeSIInertia(solidMassFromIntegrals(cubeIntegrals, 2.7, 'closed-form')).ok, true);
 });
+
+
+test('native SI: pure translation preserves the integral tensor and density before MMGS rounding', () => {
+  const features = [
+    { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [6, 10] },
+    { id: 'e', kind: 'extrude', sketch: 's', height: 14 },
+  ], authored = structuredClone(features);
+  // Box 6*10*14: V=840, centroid=(3,5,7), central volume moments=(2520,7000,13720) mm^5.
+  for (const density of [1, 2.7, 7.85]) {
+    const plain = massPropertiesOf(part(features).outputs.at(-1), density), before = structuredClone(plain), originalSI = readNativeSIInertia(plain);
+    const k = (density * 1000) * 1e-15;
+    const expectedSI = [[k * (7000 + 13720), -k * 0, -k * 0], [-k * 0, k * (2520 + 13720), -k * 0], [-k * 0, -k * 0, k * (2520 + 7000)]];
+    assert.equal(originalSI.ok, true);
+    assert.equal(originalSI.inertia.length, 3); originalSI.inertia.forEach(row => assert.equal(row.length, 3));
+    expectedSI.forEach((row, i) => row.forEach((expected, j) => close(originalSI.inertia[i][j], expected, 1e-20)));
+    // rotate(0) retains the legacy identity RIRt arithmetic, including its public signed-zero behavior.
+    const legacy = massPropertiesOf(part([...features, { id: 'r', kind: 'rotate', target: 'e', axis: 'z', angle: 0 }]).outputs.at(-1), density);
+    const cases = [
+      { shifts: [[13, -17, 19]], total: [13, -17, 19] },
+      { shifts: [[0, 0, 0]], total: [0, 0, 0] },
+      { shifts: [[13, -17, 19], [-5, 7, -11]], total: [8, -10, 8] },
+    ];
+    for (const { shifts, total } of cases) {
+      const moves = shifts.map((offset, i) => ({ id: `t${i}`, kind: 'translate', target: i ? `t${i - 1}` : 'e', offset }));
+      const moved = massPropertiesOf(part([...features, ...moves]).outputs.at(-1), density), movedBefore = structuredClone(moved);
+      const result = readNativeSIInertia(moved);
+      assert.equal(result.ok, true); assert.equal(result.density, density);
+      assert.deepEqual(result.inertia, originalSI.inertia, 'translation keeps each SI tensor bit, including negative zero');
+      assert.equal(result.inertia.length, 3); result.inertia.forEach(row => assert.equal(row.length, 3));
+      expectedSI.forEach((row, i) => row.forEach((expected, j) => close(result.inertia[i][j], expected, 1e-20)));
+      assert.equal(readNativeSIInertia(moved), result, 'the translated result is cached');
+      close(moved.volume, 840); assert.equal(moved.volume, plain.volume); assert.equal(moved.mass, plain.mass); close(moved.mass, density * 840 / 1000); assert.equal(moved.method, plain.method);
+      moved.centroid.forEach((x, i) => close(x, [3, 5, 7][i] + total[i]));
+      assert.deepEqual(moved.inertia, legacy.inertia, 'public MMGS keeps the existing identity RIRt calculation');
+      const mmgs = density * 1e-3;
+      [20720, 16240, 9520].forEach((moment, i) => close(moved.inertia[i][i], mmgs * moment));
+      assert.deepEqual(Object.keys(moved).sort(), Object.keys(plain).sort());
+      assert.deepEqual(moved, movedBefore, 'private SI lookup does not change public properties');
+      for (const copy of [{ ...moved }, structuredClone(moved)]) assert.deepEqual(readNativeSIInertia(copy), { ok: false, code: 'NATIVE_SI_PROVENANCE_UNAVAILABLE', reason: 'untracked' });
+    }
+    assert.deepEqual(plain, before, 'source mass properties remain unchanged');
+    assert.deepEqual(readNativeSIInertia(plain).inertia, originalSI.inertia);
+  }
+  assert.deepEqual(features, authored, 'translation evaluation preserves the authored source');
+});
+
+test('native SI: rotation, identity rotation, scale and mirror remain unsupported after translation', () => {
+  for (const change of [
+    { kind: 'rotate', axis: 'z', angle: 0 },
+    { kind: 'rotate', axis: 'z', angle: 90 },
+    { kind: 'scale', factor: 1 },
+    { kind: 'scale', factor: 2 },
+    { kind: 'mirror', plane: 'yz' },
+  ]) {
+    const features = [rectangle, extrude, { ...change, id: 'x', target: 'e' }];
+    const source = massPropertiesOf(part(features).outputs.at(-1), 2.7);
+    assert.deepEqual(readNativeSIInertia(source), { ok: false, code: 'NATIVE_SI_PROVENANCE_UNAVAILABLE', reason: 'transformed' });
+    const moved = massPropertiesOf(part([...features, { id: 't', kind: 'translate', target: 'x', offset: [1, 2, 3] }]).outputs.at(-1), 2.7);
+    assert.deepEqual(readNativeSIInertia(moved), { ok: false, code: 'NATIVE_SI_PROVENANCE_UNAVAILABLE', reason: 'transformed' });
+  }
+});
+
+test('native SI: translating revolved and difference sources does not promote unsupported provenance', () => {
+  const features = [
+    { id: 's', kind: 'sketch', profile: 'polygon', points: [[10, 0], [20, 0], [20, 10], [10, 10]] },
+    { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' }, angle: 360 },
+  ];
+  // The closed shell uses shellRevolved -> massLess, whose provenance is explicitly 'difference'.
+  for (const { extra, target, reason } of [
+    { extra: [], target: 'r', reason: 'revolved' },
+    { extra: [{ id: 'h', kind: 'shell', target: 'r', thickness: 1 }], target: 'h', reason: 'difference' },
+  ]) {
+    const source = massPropertiesOf(part([...features, ...extra]).outputs.at(-1), 2.7);
+    assert.deepEqual(readNativeSIInertia(source), { ok: false, code: 'NATIVE_SI_PROVENANCE_UNAVAILABLE', reason });
+    const moved = massPropertiesOf(part([...features, ...extra, { id: 't', kind: 'translate', target, offset: [1, 2, 3] }]).outputs.at(-1), 2.7);
+    assert.deepEqual(readNativeSIInertia(moved), { ok: false, code: 'NATIVE_SI_PROVENANCE_UNAVAILABLE', reason: 'transformed' });
+  }
+});

@@ -29,7 +29,8 @@ const chatStatusOff: Plugin = { name: 'cad-studio-chat-status-off', configureSer
 export default defineConfig({
   // (G12b: Tailwind v4 for the shadcn/ui components; `@/` is src/, as components.json has it.)
   plugins: [tailwindcss(), chatStatusOff],
-  resolve: { alias: [{ find: /^@\//, replacement: resolve(import.meta.dirname, 'src') + '/' }] },
+  // Linked workspace dependencies must share the app's React dispatcher.
+  resolve: { alias: [{ find: /^@\//, replacement: resolve(import.meta.dirname, 'src') + '/' }], dedupe: ['react', 'react-dom'] },
   worker: { format: 'es' },
   server: { host: '127.0.0.1', port: 52020, strictPort: true, fs: { allow: [repo] }, proxy: { '/api/chat': chat } },
   preview: { proxy: { '/api/chat': chat } },

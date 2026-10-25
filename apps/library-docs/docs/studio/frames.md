@@ -26,6 +26,13 @@ section, and their joints are cut to fit.
 - **Line through:** which point of the section the path runs through.
 - **Roll:** the section's turn about the path.
 
+Start, end and preset positions use the document's X, Y and Z coordinates in mm. A preset's position is its
+starting corner; width extends along X, depth along Y and height along Z. Roll uses degrees about the member path,
+not a rotation of the whole skeleton.
+
+For **Picked edges**, every selected edge must be straight. This command copies their endpoints into the new
+skeleton; it does not create a live link to those edges.
+
 ## Sections
 
 A section is either typed or taken from your library:
@@ -45,6 +52,10 @@ A section is either typed or taken from your library:
 - the diagnosis says what is free, redundant or unmet;
 - add constraints and bind values to parameters;
 - **Apply** or **Cancel** the session.
+
+When a frame follows a placed part's sketch, the link identifies that instance and the sketch's stable feature ID.
+Its points use the sketch plane, then the instance's rotation and position. A frame inside a placed part can follow
+its own features, but cannot follow a sibling part's sketch. This link accepts straight sketch outlines, not curves.
 
 ## Gussets, end caps and welds
 

@@ -11,6 +11,7 @@ import { buildProfileLoop, capSurface, type ProfileSegmentInput } from './extrud
 import { solidMassFromIntegrals, type MassProperties } from '../brep/solid-mass.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { gauss } from '../core/quadrature.js';
+import type { LoftGuideFactory } from './loft-guide.js';
 import { orientedLoftSolid } from './oriented-loft.js';
 
 type XY = [number, number];
@@ -39,7 +40,7 @@ export interface LoftInput {
   readonly name: string;
   /** Through three or more sections: one smooth (C1) side per edge instead of a ruled side per span. */
   readonly smooth?: boolean;
-  /** One world-space seam guide for two identical-axis parallel circle/ellipse frames only. */
+  /** One world-space seam guide for two identical-axis parallel conic or admitted homothetic mixed-curve frames. */
   readonly guide?: {
     readonly kind: 'quadratic-bezier';
     readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]];
@@ -66,7 +67,7 @@ const bezier = (q: Piece): Bezier => {
 const quadratic = (b: Bezier, w: number): Bezier => b.p.length === 3 ? b : { p: [b.p[0], [(b.p[0][0] + b.p[1][0]) / 2, (b.p[0][1] + b.p[1][1]) / 2], b.p[1]], w: [1, w, 1] };
 const curve3 = (b: Bezier, z: number, id: string): Curve => ({ kind: 'curve', id, degree: b.p.length - 1, knots: b.p.length === 2 ? [0, 0, 1, 1] : [0, 0, 0, 1, 1, 1], controlPoints: b.p.map(p => [p[0], p[1], z] as Point), weights: [...b.w] });
 
-const G3 = gauss(3), G24 = gauss(24);
+const G3 = gauss(3), G4 = gauss(4), G24 = gauss(24);
 /** A rational Bézier's point and derivative at s. */
 function at(b: Bezier, s: number): [XY, XY] {
   const n = b.p.length - 1, B = n === 1 ? [1 - s, s] : [(1 - s) ** 2, 2 * s * (1 - s), s * s], dB = n === 1 ? [-1, 1] : [-2 * (1 - s), 2 - 4 * s, 2 * s];
@@ -77,7 +78,12 @@ function at(b: Bezier, s: number): [XY, XY] {
 }
 
 export function loftSolid(input: LoftInput): { brep: Brep; mass: (density: number) => MassProperties } {
-  if (input.guide !== undefined || input.sections.some(s => s.frame !== undefined || !Array.isArray(s.profile))) return orientedLoftSolid(input, loftSolid);
+  if (input.guide !== undefined || input.sections.some(s => s.frame !== undefined || !Array.isArray(s.profile))) return orientedLoftSolid(input, legacyLoft);
+  return legacyLoft(input);
+}
+
+/** Shared ruled builder; the optional guide factory is internal to admitted framed mixed lofts. */
+function legacyLoft(input: LoftInput, guideFactory?: LoftGuideFactory): ReturnType<typeof loftSolid> {
   const fail = (detail: string): never => { throw new BrepError('INPUT', `loft: ${detail}`); };
   const S = input.sections as readonly { readonly profile: readonly ProfileSegmentInput[]; readonly z: number }[];
   if (S.length < 2) fail('needs at least two sections');
@@ -98,7 +104,7 @@ export function loftSolid(input: LoftInput): { brep: Brep; mass: (density: numbe
   const tagged = taggedSides(src0, input.sideTags);
   // Turn each section to start nearest the previous one's start (directions about the centroids).
   const shape = (p: Piece[]) => { const pts = p.map(startOf), c = pts.reduce((m, q) => [m[0] + q[0] / n, m[1] + q[1] / n], [0, 0]), rms = Math.sqrt(pts.reduce((m, q) => m + (q[0] - c[0]) ** 2 + (q[1] - c[1]) ** 2, 0) / n) || 1; return pts.map(q => [(q[0] - c[0]) / rms, (q[1] - c[1]) / rms]); };
-  for (let k = 1; k < sections.length; k++) {
+  for (let k = 1; !guideFactory && k < sections.length; k++) {
     const a = shape(sections[k - 1]), b = shape(sections[k]);
     let best = 0, cost = Infinity;
     for (let sh = 0; sh < n; sh++) { const c = a.reduce((m, q, i) => m + (q[0] - b[(i + sh) % n][0]) ** 2 + (q[1] - b[(i + sh) % n][1]) ** 2, 0); if (c < cost - 1e-12) { cost = c; best = sh; } }
@@ -113,11 +119,12 @@ export function loftSolid(input: LoftInput): { brep: Brep; mass: (density: numbe
   const sideName = (k: number, i: number) => K === 1 ? `${nm}.${tagged ? tagged[i] : `side${i}`}` : `${nm}.s${k}.${tagged ? tagged[i] : `side${i}`}`;
   const vid = (k: number, i: number) => `v${k}_${i % n}`, rid = (k: number, i: number) => `r${k}_${i % n}`, lid = (k: number, i: number) => `l${k}_${i % n}`;
   const vertices = sections.flatMap((p, k) => p.map((q, i) => ({ id: vid(k, i), point: [...startOf(q), z[k]] as Point })));
+  const guide = guideFactory?.(vertices[0].point, vertices[n].point);
   const edges: { id: string; curve: Curve; vertices: [string, string]; name?: string }[] = [];
   sections.forEach((p, k) => p.forEach((q, i) => {
     const below = k > 0 ? sideName(k - 1, i) : `${nm}.bottom`, above = k < K ? sideName(k, i) : `${nm}.top`;
     edges.push({ id: rid(k, i), curve: curve3(piece(k, i), z[k], rid(k, i)), vertices: [vid(k, i), vid(k, i + 1)], name: [below, above].sort().join('|') });
-    if (k < K) edges.push({ id: lid(k, i), curve: lineCurve(lid(k, i), [...startOf(q), z[k]], [...startOf(sections[k + 1][i]), z[k + 1]]), vertices: [vid(k, i), vid(k + 1, i)], name: [sideName(k, (i + n - 1) % n), sideName(k, i)].sort().join('|') });
+    if (k < K) edges.push({ id: lid(k, i), curve: guide ? { kind: 'curve', id: lid(k, i), degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [vertices[i].point, guide.middle(vertices[i].point, vertices[n + i].point), vertices[n + i].point], weights: [1, 1, 1] } : lineCurve(lid(k, i), [...startOf(q), z[k]], [...startOf(sections[k + 1][i]), z[k + 1]]), vertices: [vid(k, i), vid(k + 1, i)], name: [sideName(k, (i + n - 1) % n), sideName(k, i)].sort().join('|') });
   }));
 
   // The sides: each a patch between a section's edge and the next one's, with the curves the mass uses.
@@ -132,9 +139,10 @@ export function loftSolid(input: LoftInput): { brep: Brep; mass: (density: numbe
       const nx = u[1] * v[2] - u[2] * v[1], ny = u[2] * v[0] - u[0] * v[2], nz = u[0] * v[1] - u[1] * v[0], nl = Math.hypot(nx, ny, nz);
       if (Math.abs(nx * d[0] + ny * d[1] + nz * d[2]) / nl > tol) { lo = quadratic(lo, 1); hi = quadratic(hi, 1); }
     }
+    if (guide && lo.w.some((w, j) => w !== hi.w[j])) fail('guided mixed curves need identical rational weights');
     spans.push({ lo, hi, z0: z[k], z1: z[k + 1] });
-    const surface: Surface = { kind: 'surface', id: `f${k}_${i}`, degreeU: lo.p.length - 1, degreeV: 1, knotsU: lo.p.length === 2 ? [0, 0, 1, 1] : [0, 0, 0, 1, 1, 1], knotsV: [0, 0, 1, 1],
-      controlPoints: lo.p.map((p, j) => [[p[0], p[1], z[k]], [hi.p[j][0], hi.p[j][1], z[k + 1]]]), weights: lo.w.map((w, j) => [w, hi.w[j]]) };
+    const surface: Surface = { kind: 'surface', id: `f${k}_${i}`, degreeU: lo.p.length - 1, degreeV: guide ? 2 : 1, knotsU: lo.p.length === 2 ? [0, 0, 1, 1] : [0, 0, 0, 1, 1, 1], knotsV: guide ? [0, 0, 0, 1, 1, 1] : [0, 0, 1, 1],
+      controlPoints: lo.p.map((p, j) => { const a: Point = [p[0], p[1], z[k]], b: Point = [hi.p[j][0], hi.p[j][1], z[k + 1]]; return guide ? [a, guide.middle(a, b), b] : [a, b]; }), weights: lo.w.map((w, j) => guide ? [w, w, w] : [w, hi.w[j]]) };
     faces.push({ id: `f${k}_${i}`, surface, sense: 'forward', name: sideName(k, i), loops: [{ kind: 'outer', uses: [
       { edge: rid(k, i), sense: 'forward' }, { edge: lid(k, i + 1), sense: 'forward' }, { edge: rid(k + 1, i), sense: 'reversed' }, { edge: lid(k, i), sense: 'reversed' }] }] });
   }
@@ -147,12 +155,16 @@ export function loftSolid(input: LoftInput): { brep: Brep; mass: (density: numbe
   const I = Array(10).fill(0) as number[];
   for (const { lo, hi, z0, z1 } of spans) {
     const h = z1 - z0;
-    G3.x.forEach((l, a) => {
-      const zz = z0 + l * h, wl = G3.w[a] * h;
+    // The translated Green integrands have degree at most seven in l: Gauss(4).
+    // The no-guide path keeps the original Gauss(3) arithmetic.
+    const G = guide ? G4 : G3;
+    G.x.forEach((l, a) => {
+      const zz = z0 + l * h, wl = G.w[a] * h, offset = guide?.offset(l);
       let A = 0, Sx = 0, Sy = 0, Sxx = 0, Syy = 0, Sxy = 0;
       G24.x.forEach((s, b) => {
         const [p0, d0] = at(lo, s), [p1, d1] = at(hi, s), ws = G24.w[b];
-        const x = (1 - l) * p0[0] + l * p1[0], y = (1 - l) * p0[1] + l * p1[1], dx = (1 - l) * d0[0] + l * d1[0], dy = (1 - l) * d0[1] + l * d1[1];
+        const baseX = (1 - l) * p0[0] + l * p1[0], baseY = (1 - l) * p0[1] + l * p1[1];
+        const x = offset ? baseX + offset[0] : baseX, y = offset ? baseY + offset[1] : baseY, dx = (1 - l) * d0[0] + l * d1[0], dy = (1 - l) * d0[1] + l * d1[1];
         A += ws * x * dy; Sx += ws * x * x / 2 * dy; Sy -= ws * y * y / 2 * dx; Sxx += ws * x ** 3 / 3 * dy; Syy -= ws * y ** 3 / 3 * dx; Sxy += ws * x * x * y / 2 * dy;
       });
       I[0] += wl * A; I[1] += wl * Sx; I[2] += wl * Sy; I[3] += wl * zz * A; I[4] += wl * Sxx; I[5] += wl * Syy; I[6] += wl * zz * zz * A; I[7] += wl * Sxy; I[8] += wl * zz * Sx; I[9] += wl * zz * Sy;

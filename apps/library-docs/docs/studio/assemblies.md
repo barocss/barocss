@@ -32,12 +32,69 @@ To add one, pick a face that stays, then a face on the part to move.
 | **Concentric** | Axes aligned for cylinders, cones, circular edges or straight edges; or two spheres with one centre |
 | **Tangent** | A cylinder touching a plane or another cylinder; or a sphere touching a plane |
 | **Lock** | One part fixed to another |
+| **Fastened** | Connector origins together, with their Z and X directions aligned by default; no free motion |
+| **Ball** | Connector origins together; three rotations remain free |
+| **Universal** | Connector origins together, with the fixed connector's Z perpendicular to the moving connector's X; two rotations remain free |
 | **Cam** | A follower's flat face riding a cam's lobe, from a face of the cam: see [Robots](/studio/robots#the-joint-tree) |
 
-Only compatible kinds are admitted. **Cam** is also admitted when the moving face is flat. **Mate flip** changes the
-side or orientation for the chosen kind. The panel's **Freedom** line says what the picked part can still do: fixed
+Only compatible kinds are admitted. **Cam** is also admitted when the moving face is flat. Where offered, **Mate flip** changes the
+side or orientation for the chosen kind. Ball and universal mates do not offer this option. The panel's **Freedom** line says what the picked part can still do: fixed
 in place, placed by typed numbers, or the motion its mates leave free. A mate that can't be solved is refused, and
 **Mate refused** says why.
+
+### Connector joints
+
+**Fastened**, **Ball** and **Universal** use a connector frame at each reference. Each frame supplies an origin
+and directions. Fastened aligns both frames by default; mate-level flip reverses Z while keeping X aligned.
+Ball aligns only their origins. Universal holds the origins together
+and keeps the fixed frame's Z direction perpendicular to the moving frame's X direction.
+
+Choose **Universal** when the connection must retain two rotations about axes attached to the two parts.
+Without a lock, the supported solve handles one universal mate on the moving part. Combining it with other mates
+on that part needs a coupled solve and is reported as an unmet mate. Do not treat that placement as solved.
+A lock keeps its captured placement; the universal mate is then checked at that placement.
+
+Universal does not accept a distance, alternate angle, pitch, ratio, relative pose, limits or mate-level flip.
+Ball also rejects those options. Fastened rejects the same options except flip. Unsupported options are refused
+with `VALUE`; they are not silently ignored. Connector settings and mate-level options are separate.
+
+A solved universal placement does not yet provide a robot joint. Its two-axis robot decomposition is unsupported,
+so it cannot be used as a supported robot motion or export. See [Robots](/studio/robots) for motion limits.
+
+#### Candidate Universal robot decomposition
+
+A candidate represents a single explicit Universal mate as two rotations, with axis keys `#0` for connector
+`a.Z` and `#1` for connector `b.X`. Its intermediate carrier is a logical link, not an assembly body or a mass row.
+This candidate is not integrated into the product and has not been verified by execution; the product limit above
+still applies. It uses per-axis limits and ratings and refuses pair-level settings, grounded endpoints, closed or
+coupled loops, and combinations with other mates. See
+[Candidate Universal robot joints](/studio/robots#candidate-universal-robot-joints).
+
+#### Candidate Cylindrical mate
+
+This candidate is not integrated into the product and has not been verified by execution. It aligns two connector
+Z axes in the same direction, leaving one rotation and one slide along that axis. It does not require the two
+connector origins to coincide along Z. Connector offsets use mm and turns use degrees, as described below.
+Omitted `at` selects the default connector. The saved mate keeps kind `cylindrical` and its persistent references;
+the derived concentric solve does not store its internal axis-sense flag on that mate.
+
+Mate-level `distance`, `angle`, `pitch`, `ratio`, `rel`, `limits` and `flip` are refused with `VALUE`.
+A connector's own flip remains separate. Combining it with another non-lock, non-cam mate on the moving part
+needs an unsupported coupled solve and is reported as unmet. Robot decomposition and robot export remain unsupported.
+
+### Connector settings
+
+For a mate kind that supports connectors, each reference can store connector settings in `at`.
+`point` selects a supported point on its geometry:
+`centre` on faces, `start` or `end` along a cylinder or cone's computed axis span, `apex` on a cone,
+and `start`, `mid` or `end` on a straight edge. An arc also supports these three points when its endpoints are known.
+The default is `mid` for a straight edge and `centre` for other geometry.
+
+Connector `flip` reverses local Z first. `turn` then rotates about that Z in degrees. Finally, `offset` moves the
+origin by three distances in mm along the resulting local X, Y and Z axes. These settings do not replace mate-level
+flip. Editing a connector keeps its reference's persistent name and signature; removing it removes only `at`.
+An unavailable point gives `CONNECTOR_POINT`. Missing computed face centres or axis spans give
+`CONNECTOR_UNAVAILABLE`; the solver does not substitute an arbitrary point.
 
 ### Face and edge references
 
@@ -46,6 +103,10 @@ The mate editor labels them as a sphere or socket, cone or conical seat, straigh
 The agent reads the table with `assembly.get` and `faces_of`, then passes the persistent name in each mate end's
 `face` field to `assembly.add_mate`. Edge names join their two face names with `|`. This does not add direct vertex
 references or a new viewport edge-picking workflow.
+
+The base part's plane and axis datums also appear under persistent names `datum:<id>`. A plane datum supplies a
+plane; an axis datum supplies an axis with its fitted radius, or zero when no radius is stored. Point datums are
+not mate targets. A datum connector's `centre` uses the datum origin when it has no face centre or axis span.
 
 A cone or edge supplies an axis for a concentric mate; it does not impose contact along its whole shape. Two
 concentric spheres share a centre and retain three rotations. A sphere tangent to a plane retains three rotations

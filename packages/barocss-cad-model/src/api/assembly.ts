@@ -31,7 +31,7 @@ const toVec = (v: readonly number[]): XYZ => [v[0], v[1], v[2]];
 export class Assembly {
   readonly name: string;
   readonly #doc: StudioDoc;
-  constructor(name: string, doc: StudioDoc) { this.name = name; this.#doc = doc; }
+  constructor(name: string, doc: StudioDoc) { this.name = name; this.#doc = structuredClone(doc); }
 
   /** The plain document (a copy). */
   get doc(): StudioDoc { return structuredClone(this.#doc); }

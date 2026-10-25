@@ -7,7 +7,41 @@ What isn't supported, or is refused, gathered from the other pages. Each item li
 - **Unreleased.** Everything is unreleased, at `0.0.0`: nothing is on npm, and APIs can change.
 - **No migrations.** Documents follow the latest schema. Older unreleased documents aren't migrated.
   ([The .bcad document](/reference/document))
-- **Not covered.** Electronics CAD (PCBs) and finite-element analysis aren't part of this stack.
+- **Not covered.** Electronics CAD (PCBs) remains outside the current scope.
+- **Planned engineering analyses.** Structural/FEM, thermal, fluid and broader CAE experiments are in the long-term
+  roadmap. The new solver capabilities and common experiment workflow are not implemented or accepted for use.
+
+## Planned physical experiments
+
+Each future experiment needs an explicit profile: supported geometry and joints, material and mass inputs, loads,
+units, assumptions and a validated operating range. A visual effect, motion playback or a passing source test does
+not establish physical prediction accuracy. Numerical verification and separate controlled measurements are needed
+before claiming a supported physical range.
+
+The first physical pendulum remains planned. Existing hinge and gravity inputs do not establish a supported CAD
+free-motion experiment. Pivot and centre-of-mass placement, pivot inertia, gravity moments and constraint reactions
+still need a consistent supported path. Model's required torque for prescribed motion is not forward prediction of
+free motion from initial conditions. This support gap is not a confirmed defect in the existing bounded profiles.
+
+The wider roadmap does not clear recorded manufacturing holds, missing material or stock inputs, or failed checks.
+
+## Candidate CAD input validation
+
+This candidate is not integrated into the product and has not been runtime-verified in this documentation work.
+It tightens input validation; it adds no supported geometry operations.
+
+- Selector `along` and `sortBy` accept only `x`, `y` or `z`. Face `facing` accepts only `+x`, `-x`, `+y`, `-y`,
+  `+z` or `-z`. Invalid values give `VALUE` rather than an accidental empty selection.
+- Selector `first(count)` and `last(count)` require a non-negative integer. Zero is allowed; negative, fractional
+  and non-finite counts give `VALUE`. This is separate from a pattern's copy count, which requires at least two.
+- `moved()` takes a `Location`. Its position and rotation use arrays of exactly three finite numbers, in mm and
+  degrees respectively. Scale pivots and split normals also require exactly three finite numeric components.
+  Malformed tuples give `VALUE`; the split normal must also have magnitude greater than `1e-9`.
+- The rotation command builder accepts only `x`, `y` or `z` and a finite angle in degrees. Invalid axes and angles
+  give `VALUE`.
+- Plane, Location, rectangle, circle and arc option inputs reject `null` with `VALUE`. `Location.of` defaults omitted
+  position or rotation to zero but rejects explicit `null`; `Location.at(undefined)` also gives `VALUE`.
+- Polygon point arrays cannot contain missing entries: sparse points give `VALUE` instead of being skipped.
 
 ## Sizes and rows
 
@@ -41,14 +75,27 @@ What isn't supported, or is refused, gathered from the other pages. Each item li
 
 - **Holes on a circle.** The first hole must sit away from the circle's centre.
   ([Part features](/studio/features))
+- **Guided lofts.** One quadratic Bezier guide supports exactly two full-circle or ellipse sections with identical
+  frame axes. Its endpoints must match the positive local X seams exactly, and its middle control must lie exactly
+  on the cap midplane. Polygon profiles, legacy `z` sections, `smooth: true` and multiple or general rails are refused.
+  ([Guided conic lofts](/packages/cad/robustness#guided-conic-lofts))
+- **Universal mates.** Without a lock, a universal mate combined with other mates on the moving part needs an
+  unsupported coupled solve and is reported as unmet. With a lock, it is checked at the captured placement.
+  A solved universal mate still has no supported two-axis robot decomposition or robot export.
+  ([Connector joints](/studio/assemblies#connector-joints))
 - **Frames.**
   - A positive weld gap together with a notch isn't supported.
   - Weld beads on oblique member ends are refused until there's an independent check for them.
   ([Frames and weldments](/studio/frames))
 - **Robots.**
-  - Motions such as a screw, or two turns about different axes, are refused.
-  - A loop in the mates keeps one path. The agent's motions close it; the studio's playback and **Check path**, and the
-    object API, don't yet.
+  - Robot joint decomposition does not support screw motion or a universal mate's two turns about body-attached axes.
+    This does not prevent a supported universal mate from being solved as an assembly placement.
+  - Supported looped motions can play and seek in Studio. The object API supports `duration()`, `poseAt(t)` and
+    `problems()` for these paths. Waypoints name driving joints only; passive-joint inputs give `LOOP_PASSIVE`.
+  - Studio's **Check path**, the object API's `check()` sweep/CCD, and single-joint preview still refuse looped motions
+    with `LOOP_OPEN`. Finite lower or upper bounds on passive loop joints also give `LOOP_OPEN`.
+  - Playback and an empty motion problem list do not certify collision clearance. The agent's `check_path` uses the
+    separate chord and residual contract. ([Closed-loop paths](/studio/robots#moving-it))
   - A cam's lobe is read only from flats and arcs along its axis, and the follower's face as an infinite plane. Motion
     torques and the robot exports don't take a cam.
   - The sweep checks a cam's seat and a running fit's round faces at its steps, not certified between them.

@@ -1,7 +1,7 @@
-// CG1.1c: exact conic sections on two parallel, identically oriented frames. The same
+// Exact conic sections on two or three parallel, identically oriented frames. The same
 // rational quarter-circle parameters and weights on both ends make each ruled side's
 // intermediate section an ellipse with positive linear radii. Its centre is linear without
-// a guide, or gains the admitted guide's transverse quadratic displacement. Strictly ordered
+// a guide, or gains the admitted two-section guide's transverse quadratic displacement. Strictly ordered
 // section planes and positive radii certify a simple closed solid.
 import { buildBrep, BrepError, lineCurve, type BrepFaceInput } from '../brep/brep-core.js';
 import { solidMassFromIntegrals } from '../brep/solid-mass.js';
@@ -47,15 +47,22 @@ function admit(profile: LoftSectionInput['profile']): Ellipse {
 
 /** Called after the shared explicit-frame admission. No curved support for the legacy z path. */
 export function curvedLoftSolid(input: LoftInput, frames: readonly Frame[]) {
-  if (!frames[0].u.every((x, c) => x === frames[1].u[c]) || !frames[0].v.every((x, c) => x === frames[1].v[c])) return fail('currently require identical xAxis and yAxis on both frames');
-  const delta = frames[1].origin.map((x, c) => x - frames[0].origin[c]) as Point;
-  const planeStep = dot(cross(frames[0].u, frames[0].v), delta);
-  if (!(planeStep > 1e-9 * Math.max(1, Math.hypot(...delta)))) throw new BrepError('GEOMETRY', 'loft: curved sections need certified positive plane separation');
+  const count = input.sections.length, K = count - 1;
+  if ((count !== 2 && count !== 3) || frames.length !== count) return fail('currently support exactly two or three sections');
+  if (input.smooth) return fail('currently support ruled sides, not smooth interpolation');
+  if (count === 3 && input.guide !== undefined) return fail('three sections currently require no guide');
+  if (frames.slice(1).some(f => !frames[0].u.every((x, c) => x === f.u[c]) || !frames[0].v.every((x, c) => x === f.v[c]))) return fail(count === 2 ? 'currently require identical xAxis and yAxis on both frames' : 'currently require identical xAxis and yAxis on all frames');
+  const planeSteps = frames.slice(1).map((f, k) => {
+    const delta = f.origin.map((x, c) => x - frames[k].origin[c]) as Point;
+    const planeStep = dot(cross(frames[0].u, frames[0].v), delta);
+    if (!(planeStep > 1e-9 * Math.max(1, Math.hypot(...delta)))) throw new BrepError('GEOMETRY', 'loft: curved sections need certified positive plane separation');
+    return planeStep;
+  });
   const sections = input.sections.map(s => admit(s.profile));
   const tags = input.sideTags;
   if (tags && (tags.length !== 1 || typeof tags[0] !== 'string' || !tags[0].length)) return fail('need one nonempty tag for the single conic contour');
-  const side = (i: number) => `${input.name}.${tags ? `side[${tags[0]}]#${i + 1}` : `side${i}`}`;
-  const vertex = (k: number, i: number) => `v${k}_${i % 4}`, ring = (k: number, i: number) => `r${k}_${i % 4}`, ruling = (i: number) => `l0_${i % 4}`;
+  const side = (k: number, i: number) => `${input.name}.${K === 1 ? '' : `s${k}.`}${tags ? `side[${tags[0]}]#${i + 1}` : `side${i}`}`;
+  const vertex = (k: number, i: number) => `v${k}_${i % 4}`, ring = (k: number, i: number) => `r${k}_${i % 4}`, ruling = (k: number, i: number) => `l${k}_${i % 4}`;
   // Reuse the existing exact, source-backed conic factory; affine scaling maps its rational
   // quadratic quarter circle to an ellipse without fitting, sampling or changing the weights.
   const unit = ([0, 1, 2, 3] as const).map(quadrant => buildXYArc({ kind: 'quarter-arc', id: `loft_quarter_${quadrant}`, center: [0, 0], radius: 1, quadrant }).curve);
@@ -64,19 +71,20 @@ export function curvedLoftSolid(input: LoftInput, frames: readonly Frame[]) {
   const positions = curves.map(row => row.map(q => q.controlPoints[0]));
   const guide = input.guide === undefined ? undefined : admitLoftGuide(input.guide, positions[0][0], positions[1][0], cross(frames[0].u, frames[0].v));
   const vertices = positions.flatMap((row, k) => row.map((p, i) => ({ id: vertex(k, i), point: p })));
-  const edges = curves.flatMap((row, k) => row.map((q, i) => ({ id: ring(k, i), curve: q, vertices: [vertex(k, i), vertex(k, i + 1)] as [string, string], name: [k ? `${input.name}.top` : `${input.name}.bottom`, side(i)].sort().join('|') })));
-  for (let i = 0; i < 4; i++) {
-    const lo = positions[0][i], hi = positions[1][i];
-    const curve: Curve = guide ? { kind: 'curve', id: ruling(i), degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [lo, guide.middle(lo, hi), hi], weights: [1, 1, 1] } : lineCurve(ruling(i), lo, hi);
-    edges.push({ id: ruling(i), curve, vertices: [vertex(0, i), vertex(1, i)], name: [side((i + 3) % 4), side(i)].sort().join('|') });
+  const edges = curves.flatMap((row, k) => row.map((q, i) => ({ id: ring(k, i), curve: q, vertices: [vertex(k, i), vertex(k, i + 1)] as [string, string], name: [k === K ? `${input.name}.top` : side(k, i), k === 0 ? `${input.name}.bottom` : side(k - 1, i)].sort().join('|') })));
+  for (let k = 0; k < K; k++) for (let i = 0; i < 4; i++) {
+    const lo = positions[k][i], hi = positions[k + 1][i];
+    const curve: Curve = guide ? { kind: 'curve', id: ruling(k, i), degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [lo, guide.middle(lo, hi), hi], weights: [1, 1, 1] } : lineCurve(ruling(k, i), lo, hi);
+    edges.push({ id: ruling(k, i), curve, vertices: [vertex(k, i), vertex(k + 1, i)], name: [side(k, (i + 3) % 4), side(k, i)].sort().join('|') });
   }
-  const faces: BrepFaceInput[] = unit.map((q, i) => ({ id: `f0_${i}`, name: side(i), sense: 'forward', surface: {
-    kind: 'surface', id: `f0_${i}`, degreeU: 2, degreeV: guide ? 2 : 1, knotsU: [...q.knots], knotsV: guide ? [0, 0, 0, 1, 1, 1] : [0, 0, 1, 1],
-    controlPoints: q.controlPoints.map((_, j) => { const lo = curves[0][i].controlPoints[j], hi = curves[1][i].controlPoints[j]; return guide ? [lo, guide.middle(lo, hi), hi] : [lo, hi]; }), weights: q.weights.map(w => guide ? [w, w, w] : [w, w]),
-  }, loops: [{ kind: 'outer', uses: [{ edge: ring(0, i), sense: 'forward' }, { edge: ruling(i + 1), sense: 'forward' }, { edge: ring(1, i), sense: 'reversed' }, { edge: ruling(i), sense: 'reversed' }] }] }));
-  for (const k of [0, 1]) {
+  const faces: BrepFaceInput[] = [];
+  for (let k = 0; k < K; k++) faces.push(...unit.map((q, i): BrepFaceInput => ({ id: `f${k}_${i}`, name: side(k, i), sense: 'forward', surface: {
+    kind: 'surface', id: `f${k}_${i}`, degreeU: 2, degreeV: guide ? 2 : 1, knotsU: [...q.knots], knotsV: guide ? [0, 0, 0, 1, 1, 1] : [0, 0, 1, 1],
+    controlPoints: q.controlPoints.map((_, j) => { const lo = curves[k][i].controlPoints[j], hi = curves[k + 1][i].controlPoints[j]; return guide ? [lo, guide.middle(lo, hi), hi] : [lo, hi]; }), weights: q.weights.map(w => guide ? [w, w, w] : [w, w]),
+  }, loops: [{ kind: 'outer', uses: [{ edge: ring(k, i), sense: 'forward' }, { edge: ruling(k, i + 1), sense: 'forward' }, { edge: ring(k + 1, i), sense: 'reversed' }, { edge: ruling(k, i), sense: 'reversed' }] }] })));
+  for (const k of [0, K]) {
     const s = sections[k], [x, y] = s.center, [rx, ry] = s.radii;
-    const cap = capSurface({ min: [x - rx - 1, y - ry - 1], max: [x + rx + 1, y + ry + 1] }, 0, k ? 'top' : 'bottom', k === 1);
+    const cap = capSurface({ min: [x - rx - 1, y - ry - 1], max: [x + rx + 1, y + ry + 1] }, 0, k ? 'top' : 'bottom', k === K);
     cap.controlPoints = cap.controlPoints.map(row => row.map(p => map(frames[k], [p[0], p[1]])));
     faces.push({ id: k ? 'top' : 'bottom', surface: cap, sense: 'forward', name: `${input.name}.${k ? 'top' : 'bottom'}`, loops: [{ kind: 'outer', uses: unit.map((_, i) => ({ edge: ring(k, k ? i : 3 - i), sense: k ? 'forward' as const : 'reversed' as const })) }] });
   }
@@ -87,13 +95,14 @@ export function curvedLoftSolid(input: LoftInput, frames: readonly Frame[]) {
   // the centre quadratic. Second volume moments have degree at most six (four without a
   // guide), still integrated to rounding by the existing Gauss(4), with no mesh mass.
   const I = Array(10).fill(0) as number[], G = gauss(4), u = frames[0].u, v = frames[0].v;
-  G.x.forEach((t, it) => {
-    const a = sections[0], b = sections[1], rx = a.radii[0] + t * (b.radii[0] - a.radii[0]), ry = a.radii[1] + t * (b.radii[1] - a.radii[1]);
-    const f: Frame = { origin: mix(frames[0].origin, frames[1].origin, t), u, v };
+  // Ordered section planes separate the spans; sum their world-space raw moments once.
+  for (let k = 0; k < K; k++) G.x.forEach((t, it) => {
+    const a = sections[k], b = sections[k + 1], rx = a.radii[0] + t * (b.radii[0] - a.radii[0]), ry = a.radii[1] + t * (b.radii[1] - a.radii[1]);
+    const f: Frame = { origin: mix(frames[k].origin, frames[k + 1].origin, t), u, v };
     const c = map(f, [a.center[0] + t * (b.center[0] - a.center[0]), a.center[1] + t * (b.center[1] - a.center[1])]);
     if (guide) { const d = guide.offset(t); for (let i = 0; i < 3; i++) c[i] += d[i]; }
     const second = (i: number, j: number) => c[i] * c[j] + rx * rx / 4 * u[i] * u[j] + ry * ry / 4 * v[i] * v[j];
-    const w = G.w[it] * planeStep * Math.PI * rx * ry;
+    const w = G.w[it] * planeSteps[k] * Math.PI * rx * ry;
     const moments = [1, ...c, second(0, 0), second(1, 1), second(2, 2), second(0, 1), second(0, 2), second(1, 2)];
     moments.forEach((m, i) => { I[i] += w * m; });
   });

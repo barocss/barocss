@@ -15,6 +15,14 @@ Open **Parameters** in the top bar:
 - **Delete one.** Each feature that used it keeps its value as a plain number.
 - **Where it's used.** Each parameter shows how many features use it, as `1×`.
 
+Parameter values are finite numbers. The panel does not evaluate a formula typed into a value field. Script
+expressions and library recipe expressions are separate features; a direct parameter binding stores a reference
+to one named value. The object facade's `param(name)` also names one parameter, not an expression.
+
+Invalid names, duplicate names and non-finite values are refused. A binding can also be refused when the selected
+field cannot store one parameter reference directly, such as a field that writes to several places or converts
+a diameter to a stored radius. Choose a field offered by the **ƒ** list instead.
+
 ![The Parameters panel in the dock: the parameter C used once, and the configurations small and large](/shots/studio/parameters/panel.jpg)
 
 ## Binding a value
@@ -38,6 +46,14 @@ Under **Configurations**:
 - **Save these values as…** names the current values, and **Save** keeps them as a configuration.
 - **Apply** a configuration to set all its values in one step. The panel marks the one the values match now.
 - A configuration can be deleted. Its values stay as they are.
+
+Applying a configuration changes the current numeric parameters; it does not create new parameters from names
+that have since been removed. It does not change feature suppression or replace assembly components.
+
+Feature suppression is a separate history setting: it disables a feature without deleting its definition.
+Assembly variants are separate again. Their declared inputs can drive part parameters, feature suppression,
+component choices or mate values in a derived document. Applying a saved parameter configuration is not the same
+operation as selecting an assembly variant. See [Assemblies](/studio/assemblies).
 
 ## What a parameter drives
 

@@ -45,7 +45,9 @@ export function addMateDoc(doc: StudioDoc, kind: MateKind, a: { part: string; fa
  * assembly/edit.ts.)
  */
 export function lockDoc(doc: StudioDoc, part: string, to: string): { doc: StudioDoc; id: string } {
-  const instances = doc.instances ?? [], mates = doc.mates ?? [], b = instances.find(i => i.id === part)!, a = to === BASE ? null : instances.find(i => i.id === to)!;
+  const instances = doc.instances ?? [], mates = doc.mates ?? [], b = instances.find(i => i.id === part), a = to === BASE ? null : instances.find(i => i.id === to);
+  if (!b) throw new BarocssError('NO_PART', `No part "${String(part)}" to lock; parts: ${instances.map(i => i.id).join(', ') || 'none'}.`, 'evaluate');
+  if (to !== BASE && !a) throw new BarocssError('NO_PART', `No part "${String(to)}"; parts: ${[BASE, ...instances.map(i => i.id)].join(', ')}.`, 'evaluate');
   const used = new Set(mates.map(m => m.id));
   let n = mates.length + 1; while (used.has(`m${n}`)) n++;
   const mate: Mate = { id: `m${n}`, kind: 'lock', a: { part: to, face: '' }, b: { part, face: '' }, rel: lockRel(a ?? null, b) };

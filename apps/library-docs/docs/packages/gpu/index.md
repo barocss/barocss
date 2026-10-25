@@ -8,6 +8,40 @@ The studio's WebGPU viewer, and a small CSS-shaped scene and material language. 
 - **In code.** `@barocss/gpu/api` describes a scene as an immutable object: a part's meshes, their materials, lights
   and a camera view. `show(viewer, scene)` puts it in the viewer below. See [Object API](/packages/api#scenes).
 
+### Scene geometry input candidate
+
+The API source candidate proposes the following input contract. It has not been validated or integrated
+into the product; this section does not confirm public support.
+
+In this candidate, `Scene.add()` uses the Viewer's CPU geometry validation. Ordinary lines use segment pairs.
+A contour uses `topology: 'lines'`, `contour: true` and triangle positions with normals, without edge ids. Its elements
+contain three vertices or indices. Labels use `topology: 'labels'`; an empty `positions` array and an empty label
+collection are allowed. Label text and world anchors come from `labels`. Empty positions for other topologies are
+refused with `MESH_INVALID`.
+
+The Scene retains the original geometry arrays. Validation does not replace them with prepared buffers or copy their
+contents. Treat these shared arrays as read-only. Before clearing the Viewer or changing its lights or background,
+`show()` applies the same geometry checks to every mesh, including meshes supplied through `new Scene(data)` and
+later changes to shared arrays. A geometry refusal leaves the Viewer untouched. This preflight does not provide
+rollback for material errors, device failures or other presentation errors, or establish browser validation results.
+
+The follow-up source candidate also copies value settings when a Scene is constructed and when its `data` is read:
+lights, background, camera vectors and supported nested material settings. Editing these copied settings does not
+edit the Scene. Geometry arrays stay shared, and Viewer-owned texture and shader resources retain their identity;
+this is not a deep copy of every resource.
+
+Material ids are resolved only from the Scene's own registered material entries. Standard camera names are resolved
+only from the view table's own entries; inherited object properties are not valid names. Invalid light kinds or
+required light vectors give `LIGHT_INVALID`. Invalid camera directions or up vectors give `CAMERA_INVALID`. These
+guards do not validate every light or material property. No performance measurements or runtime validation results
+are established for this candidate.
+
+Camera checks first scale finite, non-zero three-component vectors before normalization, including very large or
+subnormal components. Direct `new Scene(data)` camera settings use the same direction/up alignment threshold,
+projection choices and field-of-view range as `Scene.camera()`: perspective or orthographic, with finite `fovY`
+strictly between 0 and 180 degrees. Direct camera data must supply these fields; the constructor copies its vectors
+as supplied, while `Scene.camera()` stores normalized vectors and supplies its documented defaults.
+
 ## The viewer
 
 `@barocss/gpu/viewer` is one WebGPU renderer for a canvas. It:

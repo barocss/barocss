@@ -141,7 +141,7 @@ test('motions: a path timed and played, a saved motion read, a path saved as one
 
 test('every sample\'s demo motion swept; designed contact is not a collision', () => {
   // #region sweeps
-  // (The four-bar is left out: a motion's poses don't close its loop yet.)
+  // The four-bar plays with its loop closed; sweep/CCD is still refused for it.
   const LOOPED = ['four-bar'];
   for (const sample of read('index.json').filter(s => !LOOPED.includes(s.id))) {
     const [demo] = read(sample.file).robot.motions;
@@ -150,10 +150,13 @@ test('every sample\'s demo motion swept; designed contact is not a collision', (
   // The gripper's fingers mesh: their teeth are the coupling's to hold, so that pair is skipped, with why.
   const [segment] = open('gripper').motion('grip').check();
   assert.match(segment.skipped.find(p => p.links.join() === 'left,right').why, /^meshing gears/);
-  // A robot with a closed loop is refused, typed, rather than swept or played open.
+  // The first 60-degree move takes 7/6 s. At t=1 s, deceleration has 1/6 s left:
+  // 60 - (180 / 2) * (1 / 6) ** 2 = 57.5 degrees.
   const crank = open('four-bar').motion('crank');
   assert.throws(() => crank.check(), e => e.code === 'LOOP_OPEN');
-  assert.throws(() => crank.poseAt(1), e => e.code === 'LOOP_OPEN');
-  assert.equal(crank.problems()[0].code, 'LOOP_OPEN');
+  const drivers = crank.poseAt(1);
+  assert.deepEqual(Object.keys(drivers), ['base~crank']);
+  assert.ok(near(drivers['base~crank'], 57.5));
+  assert.deepEqual(crank.problems(), []);
   // #endregion sweeps
 });

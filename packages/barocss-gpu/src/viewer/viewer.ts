@@ -39,6 +39,11 @@ const backgroundOf = (b: BackgroundInput | undefined): Background => {
   return { top: c, bottom: c };
 };
 
+const pixelRatioOf = (ratio: number): number => {
+  if (!Number.isFinite(ratio) || ratio <= 0) throw new ViewerError('SIZE_INVALID', 'A pixel ratio must be finite and positive');
+  return ratio;
+};
+
 export interface ViewerOptions {
   /** 4× multisampling (default true). */
   antialias?: boolean;
@@ -304,7 +309,7 @@ export class Viewer {
     this.environment = options.environment ?? {};
     if (options.grid) this.grid = options.grid === true ? { visible: true } : { visible: true, ...options.grid };
     this.background = backgroundOf(options.background);
-    this.pixelRatio = options.pixelRatio ?? Math.min(2, (globalThis as { devicePixelRatio?: number }).devicePixelRatio ?? 1);
+    this.pixelRatio = pixelRatioOf(options.pixelRatio ?? Math.min(2, (globalThis as { devicePixelRatio?: number }).devicePixelRatio ?? 1));
     if (options.labelFont) this.atlas = new GlyphAtlas(options.labelFont);
   }
 
@@ -927,6 +932,7 @@ export class Viewer {
 
   /** Match the canvas backing store to its CSS size times the pixel ratio. */
   resize(pixelRatio = this.pixelRatio): void {
+    pixelRatio = pixelRatioOf(pixelRatio);
     const ratio = pixelRatio !== this.pixelRatio;
     if (ratio) for (const m of this.meshes) m.dirty = true;
     this.pixelRatio = pixelRatio;

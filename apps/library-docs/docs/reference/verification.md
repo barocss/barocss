@@ -1,7 +1,7 @@
 # How it is verified
 
-Each claim in these pages rests on a check that runs. This page describes those checks, from the kernel up to the
-studio in a browser.
+Claims about supported behaviour name their checks and limits. Planned work and source-only candidates are
+identified separately. This page describes checks from the kernel up to the studio in a browser.
 
 ## Unit and conformance tests
 
@@ -16,6 +16,16 @@ studio in a browser.
   their own, for the commands, the tools and their gates, drawings, manufacturing, robots and files.
 - **This site's samples** (`pnpm test:samples` in `apps/library-docs`) run every code sample the pages show, through
   the packages' sources and the real `cad-mcp` and `cad-cli`.
+
+The supported loop-motion tests separate driver timing and solved closure from collision checks. They compare
+four-bar and slider-crank poses with independent geometry and check typed refusals. A supported path's empty
+`problems()` result does not establish sweep or continuous collision clearance: the object API's looped `check()`
+still refuses with `LOOP_OPEN`. See [Robot code examples](/studio/robots#in-code) for playback and the separate contact-check
+boundary.
+
+The [guided conic loft](/packages/cad/robustness#guided-conic-lofts) tests define comparisons for authored guide
+controls, intermediate sections, mass properties, bounds, document round trips and rejected inputs. Their scope is
+one admitted quadratic guide on two circle or ellipse sections; it does not cover general or multiple rails.
 
 ## Unit and export comparisons
 
@@ -91,6 +101,8 @@ A result names its source SHA, selected checks, renderer and outcome. Keep their
 - After a bounded repair, a focused rerun verifies that repair. The earlier full-suite failure remains a separate
   result until the full suite is rerun.
 - A stopped or waiting run is incomplete. It supplies no completed pass result for the checks that did not finish.
+- Reading source or test definitions identifies the contract and intended checks. It supplies no new runtime pass
+  result. Record execution against the selected source SHA separately.
 - A passing browser flow covers the named renderer and steps. A successful capture that used no retry does not
   demonstrate recovery from a detached-element error.
 
@@ -109,6 +121,28 @@ Exports are read back by tools written by others:
 - **SDF:** not yet read back by an external validator. That waits for the owner's go-ahead.
 
 ## Verification tiers
+
+### Planned experiment evidence
+
+The planned shared experiment workflow, including the first physical pendulum, is not an implemented capability.
+For each future experiment, fix its intended use, predicted quantities, time range, assumptions, input sources
+and acceptance limits before running it. Its profile must distinguish physical models from authored virtual rules.
+
+| Stage | What it establishes |
+|---|---|
+| Source implementation | Input checks, supported model, units, design references and failure paths are implemented and reviewed. This supplies no execution result. |
+| Numerical verification | Independent formulas or reference solutions, time-step or mesh convergence, and conservation or joint errors check the calculation within its stated range. Record error and calculation cost together. |
+| Measured validation | Controlled, repeated measurements compare predictions with the intended physical use. State instrument and input uncertainty; keep calibration data separate from validation data. |
+| Product-flow acceptance | Users can define, save, reopen, run, cancel and compare an experiment tied to a design revision. Missing inputs, failures, incomplete runs and stale results remain visible. |
+
+Keep geometry approximation, numerical error, physical-model error and measurement uncertainty separate.
+A plausible animation or a passing software test does not establish physical predictive accuracy. Numerical
+verification does not replace measured validation, and product-flow acceptance does not widen the validated range.
+Preserve original inputs, settings, warnings and failed runs when comparing results.
+
+### Software check coverage
+
+The tiers below set software check coverage. They do not replace the four experiment stages above.
 
 Work is checked in tiers, recorded in the handover:
 

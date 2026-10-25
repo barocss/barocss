@@ -49,6 +49,50 @@ The package is public module by module. Import each module by its path; the pack
 | `util/` | Small shared helpers: unit factors, guards, ids, rounding, SHA-256 digests, the document revision |
 | `rb9/` | The AI scenario ladder: its rungs, a scripted agent, its measures and report |
 
+## Assembly and robot motions
+
+Use the `api/` facade's `assembly(...).robot()` to read an assembly as a robot. `robot.path(...)` takes at least
+two waypoints; `robot.motion(name)` reads a saved path. Joint inputs use degrees for turns and mm for slides.
+Velocity and acceleration limits use deg/s and deg/s², or mm/s and mm/s².
+
+For supported looped paths, supply driving-joint values only. `duration()` returns seconds. `poseAt(t)` returns
+the driving values at time `t` in seconds; pass them to `robot.pose(...)` to obtain solved passive-joint values
+and link placements. `problems()` returns `[]` for a supported, closable path or reports a typed refusal.
+Extra passive-joint waypoint inputs give `LOOP_PASSIVE`; finite passive loop-joint bounds remain unsupported.
+
+Timing and loop closure do not certify collision clearance. `RobotPath.check()` still refuses looped paths
+with `LOOP_OPEN`: its sweep and continuous collision checks do not follow the closed motion. See
+[Robots in code](/studio/robots#in-code) for the motion contract and
+[Moving it](/studio/robots#moving-it) for the agent's supported loop checks and playback limits.
+
+### Candidate input-contract changes
+
+The following changes are present in candidate source, but are not integrated into the product or
+verified by execution. They do not extend the supported motion contract above.
+
+- Direct `RobotPath` construction copies nested waypoints and limits; its getters return copies.
+- `Robot`, `RobotPath` and `Assembly` constructors also copy their input document. Changing that input later does
+  not change the stored snapshot. `Robot.doc` and `Assembly.doc` return copies, as do the path's motion getters.
+  Copying cost has not been measured. Inputs that cannot be cloned may fail at construction rather than later use.
+- Open-chain `duration()` checks the path on its robot's tree before timing it, as `poseAt()` does. Typed refusals
+  use the first finding's code and message, with the findings in `details.problems`.
+- `robot.withMotion(name, path)` checks the destination robot's tree, including paths from another robot.
+  It permits zero- or one-waypoint and untimed recording drafts; saving does not make them ready to play.
+  For loops, it checks closure at each saved waypoint separately. This does not certify the intervening path,
+  continuation through earlier seams, finite passive-joint bounds or sweep/CCD.
+- Motion waypoints must be records of finite numeric joint values. Malformed paths and path options give `VALUE`;
+  malformed limits or explicitly supplied non-finite `velocity`, `acceleration` or `jerk` give `LIMITS_BAD`.
+  Missing recording limits remain absent; this does not remove the draft allowance above or certify a whole path.
+- A studio part's `meshes()` returns copies of positions, normals, indices and lines. Editing those typed arrays
+  does not change the core's cached mesh data. Passing them to a GPU Scene still shares those returned arrays
+  with that Scene, as described in the [Scene input contract](/packages/gpu/#scene-geometry-input-candidate).
+- A process `pull` must have exactly three finite coordinates and match one of the existing six unit directions:
+  positive or negative X, Y or Z. Other vectors give `VALUE`; this does not add arbitrary pull directions.
+- Material lookup for an unknown body gives `NO_BODY`. Locking an unknown child or target gives `NO_PART`;
+  an unknown target is not treated as the base part.
+- Library-part options must be a non-null object, not an array, with a non-empty `face` string. `point` and an
+  optional `xDirection` each require exactly three finite numbers. Malformed inputs give `VALUE`.
+
 ## The studio document
 
 The document is a `barocss-cad-model` file, schema 3, in millimetres:

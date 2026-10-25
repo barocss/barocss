@@ -13,16 +13,24 @@ const letter = (x: unknown): x is string => typeof x === 'string' && /^[A-HJ-NPR
 const view = (x: unknown): x is ViewId => typeof x === 'string' && ['front', 'top', 'right', 'iso'].includes(x);
 const xy = (x: unknown): x is XY => Array.isArray(x) && x.length === 2 && x.every(v => typeof v === 'number' && Number.isFinite(v));
 const finite = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
+/** Authored tuples must contain every coordinate; keep the legacy saved-reader checks separate. */
+function authoredTuple(x: unknown, size: number): boolean {
+  if (!Array.isArray(x) || x.length !== size) return false;
+  for (let k = 0; k < size; k++) if (!Object.hasOwn(x, k) || !finite(x[k])) return false;
+  return true;
+}
+const authoredXY = (x: unknown): x is XY => authoredTuple(x, 2);
+const authoredVec3 = (x: unknown): x is Vec3 => authoredTuple(x, 3);
 const keys = (x: Record<string, unknown>, allowed: string[]) => Object.keys(x).every(k => allowed.includes(k));
-const signature = (x: unknown): boolean => record(x) && keys(x, ['k', 'p', 'd', 's', 'r', 'n']) && typeof x.k === 'string' && isVec3(x.p) && finite(x.s) &&
-  (x.d === undefined || isVec3(x.d)) && (x.r === undefined || finite(x.r)) && (x.n === undefined || finite(x.n));
-const edge = (x: unknown): boolean => record(x) && keys(x, ['edge', 'near', 'sig', 'was']) && label(x.edge) && isVec3(x.near) &&
+const signature = (x: unknown): boolean => record(x) && keys(x, ['k', 'p', 'd', 's', 'r', 'n']) && typeof x.k === 'string' && authoredVec3(x.p) && finite(x.s) &&
+  (x.d === undefined || authoredVec3(x.d)) && (x.r === undefined || finite(x.r)) && (x.n === undefined || finite(x.n));
+const edge = (x: unknown): boolean => record(x) && keys(x, ['edge', 'near', 'sig', 'was']) && label(x.edge) && authoredVec3(x.near) &&
   (x.sig === undefined || signature(x.sig)) && (x.was === undefined || typeof x.was === 'string');
 
 /** Strict authored input. Saved files use readDatums, which preserves the old edge-reader acceptance. */
 export function datumOk(x: unknown): x is DrawingDatum {
-  if (!record(x) || !keys(x, ['id', 'letter', 'view', 'place', 'edge', 'face']) || !label(x.id) || !letter(x.letter) || !view(x.view) || !xy(x.place) || (x.edge !== undefined) === (x.face !== undefined)) return false;
-  return x.face !== undefined ? record(x.face) && keys(x.face, ['face', 'near']) && label(x.face.face) && isVec3(x.face.near) : edge(x.edge);
+  if (!record(x) || !keys(x, ['id', 'letter', 'view', 'place', 'edge', 'face']) || !label(x.id) || !letter(x.letter) || !view(x.view) || !authoredXY(x.place) || (x.edge !== undefined) === (x.face !== undefined)) return false;
+  return x.face !== undefined ? record(x.face) && keys(x.face, ['face', 'near']) && label(x.face.face) && authoredVec3(x.face.near) : edge(x.edge);
 }
 
 /** Preserve duplicate ids/letters for the issue list; never silently remove an existing datum to make it unique. */
@@ -32,7 +40,13 @@ export function readDatums(raw: unknown): DrawingDatum[] {
     if (!record(d) || typeof d.id !== 'string' || !letter(d.letter) || !view(d.view) || !xy(d.place)) continue;
     // The previous file reader accepted any string edge name and a three-element near array, copying all EdgeRef metadata.
     if (record(d.edge) && typeof d.edge.edge === 'string' && Array.isArray(d.edge.near) && d.edge.near.length === 3) {
-      out.push({ id: d.id, letter: d.letter, view: d.view, place: [...d.place], edge: { ...d.edge, near: [...d.edge.near] } as EdgeRef });
+      out.push({ id: d.id, letter: d.letter, view: d.view, place: [...d.place], edge: {
+        ...d.edge, near: [...d.edge.near],
+        ...(record(d.edge.sig) ? { sig: { ...d.edge.sig,
+          ...(Array.isArray(d.edge.sig.p) ? { p: [...d.edge.sig.p] } : {}),
+          ...(Array.isArray(d.edge.sig.d) ? { d: [...d.edge.sig.d] } : {}),
+        } } : {}),
+      } as EdgeRef });
     } else if (datumOk(d) && d.face) {
       out.push({ id: d.id, letter: d.letter, view: d.view, place: [...d.place], face: { face: d.face.face, near: [...d.face.near] } });
     }
@@ -43,7 +57,7 @@ export function readDatums(raw: unknown): DrawingDatum[] {
 export function checkDatumOptions(args: Record<string, unknown>): Problem[] {
   if (!('datums' in args)) return [];
   const raw = args.datums;
-  if (!Array.isArray(raw) || raw.length > 200 || raw.some(d => !datumOk(d)) || new Set(raw.map(d => d.id)).size !== raw.length || new Set(raw.map(d => d.letter)).size !== raw.length)
+  if (!Array.isArray(raw) || raw.length > 200 || Array.from(raw).some((d, k) => !Object.hasOwn(raw, k) || !datumOk(d)) || new Set(raw.map(d => d.id)).size !== raw.length || new Set(raw.map(d => d.letter)).size !== raw.length)
     return [problem('DRAWING_OPTIONS', 'datums needs at most 200 unique ids and letters (A–Z excluding I, O, Q), a view and finite place[2], and exactly one edge {edge, near[3], sig?, was?} or face {face, near[3]} reference. No other keys.')];
   return [];
 }

@@ -38,6 +38,21 @@ A tool's key still works while a number box has focus; it leaves the box.
 A shape drawn inside another becomes a hole in it, so a rectangle with a circle inside extrudes as a plate with a
 bore. Shapes that overlap are refused.
 
+## Reusing a face and offsetting a shape
+
+When the sketch is on a selected face with zero plane offset and angle, the **FACE** section offers two choices:
+
+- **Use its outline** adds the face's outer boundary and holes as sketch shapes.
+- **As references** adds those edges as construction shapes. You can snap to them, but they do not form the profile.
+
+To draw a wall, close a shape and enter **Offset distance** in mm in the **OFFSET** section. Choose **Out** for an
+outward copy or **In** for an inward copy. The direction button determines the side; the distance supplies its magnitude.
+The current closed shape is used first; otherwise, the newest finished, non-construction closed shape is used.
+The original stays, and the region between the nested outlines forms the profile.
+
+With no closed shape, the studio reports **Nothing to offset**. An offset that collapses a shape or reverses an
+outline edge is refused as **Cannot offset**; reduce the distance. A refusal leaves the sketch as it was.
+
 ## Constraints and dimensions
 
 Pick points or edges with **Select**, then add a constraint from the panel: **Horizontal**, **Vertical**,

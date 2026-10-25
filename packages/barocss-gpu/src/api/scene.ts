@@ -8,7 +8,9 @@
 // R7.5b: materials by id (§10.6) — the scene's own looks, registered by the material id a part's body names (al6061);
 // a facade mesh's `lines` (its display edges as segment pairs) drawn as line geometry; a camera view kept to fit().
 import type { Viewer, BackgroundInput, Material } from '../viewer/viewer.js';
-import type { GeometryInput } from '../viewer/geometry.js';
+import { prepareGeometry, type GeometryInput } from '../viewer/geometry.js';
+import { ViewerError } from '../viewer/viewer-error.js';
+import { refusalText } from '../core/barocss-error.js';
 import type { Light } from '../viewer/lights.js';
 import type { Projection } from '../viewer/camera.js';
 import type { Vec3 } from '../core/geometry-types.js';
@@ -36,36 +38,74 @@ export type ViewName = keyof typeof VIEWS;
 /** Display lines drawn when `add` is asked for them with `true`: thin and dark, depth-tested. */
 export const LINE_MATERIAL: Material = { color: '#1d2126', unlit: true, lineWidth: 1 };
 
-const finiteAll = (a: ArrayLike<number>) => { for (let i = 0; i < a.length; i++) if (!Number.isFinite(a[i])) return false; return true; };
-
-function checkMesh(m: SceneMesh, k: number): void {
-  if (!m.positions || m.positions.length === 0 || m.positions.length % 3 !== 0) throw refuse('MESH_INVALID', `mesh ${m.key ?? k}: positions must be x, y, z per vertex`);
-  if (!finiteAll(m.positions)) throw refuse('MESH_INVALID', `mesh ${m.key ?? k}: a position is not a finite number`);
-  if (m.normals && m.normals.length !== m.positions.length) throw refuse('MESH_INVALID', `mesh ${m.key ?? k}: normals must be one per vertex`);
-  if (m.topology === 'lines' && !m.indices && m.positions.length % 6 !== 0) throw refuse('MESH_INVALID', `mesh ${m.key ?? k}: lines are segment pairs, two vertices each`);
-  const vertices = m.positions.length / 3;
-  if (m.indices) for (let i = 0; i < m.indices.length; i++) if (!(m.indices[i] >= 0 && m.indices[i] < vertices)) throw refuse('MESH_INVALID', `mesh ${m.key ?? k}: index ${m.indices[i]} is past its ${vertices} vertices`);
+function checkMesh(m: SceneMesh, k: number, where: 'facade' | 'show' = 'facade'): void {
+  if (!m.positions || (m.topology !== 'labels' && m.positions.length === 0)) throw refuse('MESH_INVALID', `mesh ${m.key ?? k}: positions must be x, y, z per vertex`, where);
+  // Use the Viewer's CPU input contract, including contour triangles and label anchors. The prepared buffers are
+  // discarded: Scene keeps the caller's original arrays, as CAD facade consumers require.
+  try { prepareGeometry(m); }
+  catch (error) {
+    if (!(error instanceof ViewerError && error.code === 'GEOMETRY_INVALID')) throw error;
+    throw refuse('MESH_INVALID', `mesh ${m.key ?? k}: ${refusalText(error)}`, where);
+  }
 }
 
 const unit3 = (v: readonly number[], name: string): Vec3 => {
-  const l = Array.isArray(v) && v.length === 3 && v.every(Number.isFinite) ? Math.hypot(v[0], v[1], v[2]) : 0;
-  if (!(l > 0)) throw refuse('CAMERA_INVALID', `the camera's ${name} is a non-zero [x, y, z]`);
-  return [v[0] / l, v[1] / l, v[2] / l];
+  const scale = Array.isArray(v) && v.length === 3 && v.every(Number.isFinite) ? Math.max(Math.abs(v[0]), Math.abs(v[1]), Math.abs(v[2])) : 0;
+  if (!(scale > 0)) throw refuse('CAMERA_INVALID', `the camera's ${name} is a non-zero [x, y, z]`);
+  const x = v[0] / scale, y = v[1] / scale, z = v[2] / scale, l = Math.hypot(x, y, z);
+  return [x / l, y / l, z / l];
 };
+
+// Only value settings are copied. Geometry arrays and Viewer-owned texture/shader resources keep their identity.
+const colorCopy = <T extends string | Vec3 | undefined>(c: T): T => (Array.isArray(c) ? [...c] : c) as T;
+function materialCopy(m: Material): Material {
+  return { ...m,
+    ...(m.color !== undefined ? { color: colorCopy(m.color) } : {}),
+    ...(m.lineDash ? { lineDash: [...m.lineDash] as [number, number] } : {}),
+    ...(m.lineHiddenDash ? { lineHiddenDash: [...m.lineHiddenDash] as [number, number] } : {}),
+    ...(m.pointBorder ? { pointBorder: { ...m.pointBorder, color: colorCopy(m.pointBorder.color) } } : {}),
+    ...(m.finish ? { finish: { ...m.finish, ...(m.finish.axis ? { axis: [...m.finish.axis] as Vec3 } : {}), ...(m.finish.origin ? { origin: [...m.finish.origin] as Vec3 } : {}) } } : {}),
+  };
+}
+function lightCopy(l: Light): Light {
+  if (!l || !['directional', 'point', 'spot'].includes(l.kind)) throw refuse('LIGHT_INVALID', 'a light is directional, point or spot');
+  const vector = (v: unknown, name: string): Vec3 => {
+    if (!Array.isArray(v) || v.length !== 3 || !v.every(Number.isFinite)) throw refuse('LIGHT_INVALID', `a light's ${name} is a finite [x, y, z]`);
+    return [v[0], v[1], v[2]];
+  };
+  return { ...l, ...(l.color !== undefined ? { color: colorCopy(l.color) } : {}),
+    ...(l.kind !== 'point' ? { direction: vector(l.direction, 'direction') } : {}),
+    ...(l.kind !== 'directional' ? { position: vector(l.position, 'position') } : {}),
+  } as Light;
+}
+function backgroundCopy(b: BackgroundInput): BackgroundInput {
+  if (b === null || typeof b !== 'object') return b; // Preserve the Viewer's handling of JS primitive input.
+  if ('top' in b && 'bottom' in b) return { top: colorCopy(b.top), bottom: colorCopy(b.bottom) };
+  return colorCopy(b);
+}
+function cameraCopy(c: SceneCamera): SceneCamera {
+  const direction = unit3(c.direction, 'direction'), up = unit3(c.up, 'up');
+  if (Math.abs(direction[0] * up[0] + direction[1] * up[1] + direction[2] * up[2]) > 1 - 1e-9) throw refuse('CAMERA_INVALID', 'the camera\'s up must not lie along its direction');
+  if (c.projection !== 'perspective' && c.projection !== 'orthographic') throw refuse('CAMERA_INVALID', `a projection is perspective or orthographic, not ${String(c.projection)}`);
+  if (!(Number.isFinite(c.fovY) && c.fovY > 0 && c.fovY < 180)) throw refuse('CAMERA_INVALID', `fovY is between 0 and 180, not ${String(c.fovY)}`);
+  return { ...c, direction: [...c.direction], up: [...c.up] };
+}
+function dataCopy(d: SceneData): SceneData {
+  return { ...d, meshes: d.meshes.map(m => ({ ...m, ...(m.material && typeof m.material !== 'string' ? { material: materialCopy(m.material) } : {}) })),
+    ...(d.materials ? { materials: Object.fromEntries(Object.entries(d.materials).map(([k, m]) => [k, materialCopy(m)])) } : {}),
+    ...(d.lights ? { lights: d.lights.map(lightCopy) } : {}),
+    ...(d.background !== undefined ? { background: backgroundCopy(d.background) } : {}),
+    ...(d.camera ? { camera: cameraCopy(d.camera) } : {}),
+  };
+}
 
 export class Scene {
   readonly #data: SceneData;
-  constructor(data: SceneData) { this.#data = data; }
+  constructor(data: SceneData) { this.#data = dataCopy(data); }
 
   /** The plain description (a shallow copy: the mesh arrays are shared, never changed by the scene). */
   get data(): SceneData {
-    const d = this.#data;
-    return {
-      frame: 'z-up', meshes: d.meshes.map(m => ({ ...m })),
-      ...(d.materials ? { materials: Object.fromEntries(Object.entries(d.materials).map(([k, m]) => [k, { ...m }])) } : {}),
-      ...(d.lights ? { lights: d.lights.map(l => ({ ...l })) } : {}), ...(d.background !== undefined ? { background: d.background } : {}),
-      ...(d.camera ? { camera: { ...d.camera, direction: [...d.camera.direction], up: [...d.camera.up] } } : {}),
-    };
+    return { ...dataCopy(this.#data), frame: 'z-up' };
   }
 
   /** A material registered under an id — a part's material id (al6061) or one of your own — for meshes to name. */
@@ -85,7 +125,7 @@ export class Scene {
     const lineLook = options.lines === true ? LINE_MATERIAL : options.lines || null;
     for (const m of list) {
       const { lines, material: named, ...geometry } = m;
-      const look = material ?? (named !== undefined && this.#data.materials?.[named] ? named : undefined);
+      const look = material ?? (named !== undefined && this.#data.materials && Object.hasOwn(this.#data.materials, named) ? named : undefined);
       const mesh: SceneMesh = look !== undefined ? { ...geometry, material: look } : { ...geometry };
       checkMesh(mesh, this.#data.meshes.length + out.length);
       out.push(mesh);
@@ -112,18 +152,18 @@ export class Scene {
    * up it keeps, +Z unless given), perspective (fovY 40) or orthographic. show() frames the scene from it.
    */
   camera(view: ViewName | { direction: readonly number[]; up?: readonly number[] }, options: { projection?: Projection; fovY?: number } = {}): Scene {
-    const v = typeof view === 'string' ? VIEWS[view] : view;
+    const v = typeof view === 'string' ? (Object.hasOwn(VIEWS, view) ? VIEWS[view] : undefined) : view;
     if (!v) throw refuse('CAMERA_INVALID', `a view is ${Object.keys(VIEWS).join(', ')} or { direction, up? }, not ${String(view)}`);
     const direction = unit3(v.direction, 'direction'), up = unit3(v.up ?? [0, 0, 1], 'up');
     if (Math.abs(direction[0] * up[0] + direction[1] * up[1] + direction[2] * up[2]) > 1 - 1e-9) throw refuse('CAMERA_INVALID', 'the camera\'s up must not lie along its direction');
     const projection = options.projection ?? 'perspective', fovY = options.fovY ?? 40;
     if (projection !== 'perspective' && projection !== 'orthographic') throw refuse('CAMERA_INVALID', `a projection is perspective or orthographic, not ${String(projection)}`);
-    if (!(Number.isFinite(fovY) && fovY > 0 && fovY < 180)) throw refuse('CAMERA_INVALID', `fovY is between 0 and 180, not ${fovY}`);
+    if (!(Number.isFinite(fovY) && fovY > 0 && fovY < 180)) throw refuse('CAMERA_INVALID', `fovY is between 0 and 180, not ${String(fovY)}`);
     return new Scene({ ...this.#data, camera: { direction, up, projection, fovY } });
   }
 
   #known(id: string): void {
-    if (!this.#data.materials?.[id]) throw refuse('MATERIAL_UNKNOWN', `no scene material ${id}; register it with material(id, look) first (materials: ${Object.keys(this.#data.materials ?? {}).join(', ') || 'none'})`);
+    if (!this.#data.materials || !Object.hasOwn(this.#data.materials, id)) throw refuse('MATERIAL_UNKNOWN', `no scene material ${id}; register it with material(id, look) first (materials: ${Object.keys(this.#data.materials ?? {}).join(', ') || 'none'})`);
   }
 }
 
@@ -137,6 +177,9 @@ export function scene(): Scene { return new Scene({ frame: 'z-up', meshes: [] })
  */
 export function show(viewer: Viewer, view: Scene): void {
   const data = view.data;
+  // A direct Scene constructor or a caller's later shared-array edits can bypass add(). Reject invalid geometry
+  // before touching the Viewer. Material/device failures during presentation retain their existing behavior.
+  data.meshes.forEach((m, k) => checkMesh(m, k, 'show'));
   viewer.clear();
   if (data.lights) viewer.lights = data.lights;
   if (data.background !== undefined) viewer.setBackground(data.background);

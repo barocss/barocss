@@ -306,8 +306,9 @@ export class Mesh {
   /** Copies of the mesh, each with its own transform (after the mesh's) and colour; null: a single mesh. */
   setInstances(input: InstancesInput | null): void {
     if (input && this.geometry.topology !== 'triangles') throw new ViewerError('INSTANCES_INVALID', 'Only triangle meshes can be instanced');
+    const next = input ? { ...packInstances(input), buffer: null, device: null } : null;
     this.instances?.buffer?.destroy();
-    this.instances = input ? { ...packInstances(input), buffer: null, device: null } : null;
+    this.instances = next;
     this.worldBox = undefined;
     this.owner.sceneMoved();
     this.owner.requestRender();

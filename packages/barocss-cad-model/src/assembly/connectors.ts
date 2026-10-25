@@ -37,6 +37,13 @@ export function validateUniversalOptions(kind: unknown, value: object): void {
   if (forbidden) throw refusal('VALUE', `A universal mate cannot carry ${forbidden}; its connector origins coincide and a.Z stays perpendicular to b.X, leaving two turns.`);
 }
 
+/** Cylindrical aligns connector Z axes; rotation and travel along Z have no mate-level limits in this slice. */
+export function validateCylindricalOptions(kind: unknown, value: object): void {
+  if (kind !== 'cylindrical') return;
+  const forbidden = ['distance', 'angle', 'pitch', 'ratio', 'rel', 'limits', 'flip'].find(key => Object.prototype.hasOwnProperty.call(value, key));
+  if (forbidden) throw refusal('VALUE', `A cylindrical mate cannot carry ${forbidden}; its connector Z axes align with one free turn and one free axial slide.`);
+}
+
 /** Validate boundary data and return an owned JSON value; no coercion or unknown fields. */
 export function readConnector(value: unknown): Connector {
   if (!value || typeof value !== 'object' || Array.isArray(value) || ![Object.prototype, null].includes(Object.getPrototypeOf(value))) throw refusal('CONNECTOR_INVALID', 'A connector is an object with point, offset, turn and flip.');
@@ -118,7 +125,7 @@ export function documentConnectorError(doc: unknown): string | null {
   const d = doc as Record<string, unknown>;
   for (const item of Array.isArray(d.mates) ? d.mates : []) {
     if (!item || typeof item !== 'object') continue;
-    try { validateFastenedOptions(item.kind, item); validateBallOptions(item.kind, item); validateUniversalOptions(item.kind, item); } catch (e) { if (isRefusal(e)) return e.message; throw e; }
+    try { validateFastenedOptions(item.kind, item); validateBallOptions(item.kind, item); validateUniversalOptions(item.kind, item); validateCylindricalOptions(item.kind, item); } catch (e) { if (isRefusal(e)) return e.message; throw e; }
     for (const side of ['a', 'b']) {
       const ref = item[side];
       if (!ref || typeof ref !== 'object' || ref.at === undefined) continue;

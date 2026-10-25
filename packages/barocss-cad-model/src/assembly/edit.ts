@@ -1,4 +1,4 @@
-import { readConnector, validateBallOptions, validateFastenedOptions, validateUniversalOptions, withConnector, type Connector } from './connectors';
+import { readConnector, validateBallOptions, validateFastenedOptions, validateUniversalOptions, validateCylindricalOptions, withConnector, type Connector } from './connectors';
 // R7.3c (api-conventions §3): the assembly's edits as core functions, verb(doc, options) → result — what the agent's
 // add_part, place_part, add_mate and edit_mate write, and set_frames' write. The tools (chat/assembly.ts,
 // chat/robot.ts) and the facade's assembly (api/assemblyCore.ts) call these. After a change the assembly is solved
@@ -73,12 +73,13 @@ export function addMate(doc: StudioDoc, o: AddMateOptions): Mated {
   validateFastenedOptions(kind, o);
   validateBallOptions(kind, o);
   validateUniversalOptions(kind, o);
+  validateCylindricalOptions(kind, o);
   let { a, b } = o;
   for (const r of [a, b]) if (!partDocOf(doc, r.part)) throw refusal('NO_PART', `No part "${r.part}"; parts: ${partList(doc)}.`);
   if (a.part === b.part) throw refusal('MATE_SAME_PART', 'Both faces are on the same part; mate faces of two different parts.');
   const fixed = (p: string) => p === BASE || !!instances.find(i => i.id === p)?.grounded;
   if (fixed(b.part)) { if (fixed(a.part)) throw refusal('MATE_BOTH_FIXED', 'Both parts are fixed (the base part and grounded parts never move): one of them must be free.'); [a, b] = [b, a]; }
-  const mate: Mate = { id: nextFreeId('m', new Set(mates.map(m => m.id))), kind, a: { ...(kind === 'fastened' || kind === 'ball' || kind === 'universal' ? a : {}), part: a.part, face: a.face, ...(a.at !== undefined ? { at: readConnector(a.at) } : {}) }, b: { ...(kind === 'fastened' || kind === 'ball' || kind === 'universal' ? b : {}), part: b.part, face: b.face, ...(b.at !== undefined ? { at: readConnector(b.at) } : {}) },
+  const mate: Mate = { id: nextFreeId('m', new Set(mates.map(m => m.id))), kind, a: { ...(kind === 'fastened' || kind === 'ball' || kind === 'universal' || kind === 'cylindrical' ? a : {}), part: a.part, face: a.face, ...(a.at !== undefined ? { at: readConnector(a.at) } : {}) }, b: { ...(kind === 'fastened' || kind === 'ball' || kind === 'universal' || kind === 'cylindrical' ? b : {}), part: b.part, face: b.face, ...(b.at !== undefined ? { at: readConnector(b.at) } : {}) },
     ...(kind === 'distance' ? { distance: Number(o.distance) } : {}), ...(kind === 'angle' ? { angle: Number(o.angle) } : {}), ...(kind !== 'concentric' && o.flip ? { flip: true } : {}), ...(kind === 'concentric' && typeof o.flip === 'boolean' ? { flip: o.flip } : {}) };
   return mated(doc, mate, [...mates, mate]);
 }
@@ -97,7 +98,7 @@ export function lockPart(doc: StudioDoc, o: { part: string; to: string }): Mated
   if (fixed(b)) { if (fixed(a)) throw refusal('MATE_BOTH_FIXED', 'Both parts are fixed (the base part and grounded parts never move): one of them must be free.'); [a, b] = [b, a]; }
   const at = (p: string) => instances.find(i => i.id === p) ?? null;
   const mate: Mate = { id: nextFreeId('m', new Set(mates.map(m => m.id))), kind: 'lock', a: { part: a, face: '' }, b: { part: b, face: '' }, rel: lockRel(a === BASE ? null : at(a), at(b)!) };
-  const list = [...mates, mate], r = solveAssembly(instances, list, tablesFor(doc), instances), problem = r.problems.find(p => p.mate === mate.id) ?? (list.some(m => m.kind === 'fastened' || m.kind === 'ball' || m.kind === 'universal') ? r.problems[0] : undefined);
+  const list = [...mates, mate], r = solveAssembly(instances, list, tablesFor(doc), instances), problem = r.problems.find(p => p.mate === mate.id) ?? (list.some(m => m.kind === 'fastened' || m.kind === 'ball' || m.kind === 'universal' || m.kind === 'cylindrical') ? r.problems[0] : undefined);
   if (problem) throw refusal('MATE_UNMET', problem.reason, { mate: mate.id });
   return { ...solveDoc({ ...doc, instances: r.instances, mates: list }, instances), mate, freedom: r.freedom[b] };
 }
@@ -110,6 +111,7 @@ export function editMate(doc: StudioDoc, o: EditMateOptions): Mated {
   validateFastenedOptions(old.kind, o);
   validateBallOptions(old.kind, o);
   validateUniversalOptions(old.kind, o);
+  validateCylindricalOptions(old.kind, o);
   if (o.connectors !== undefined && (!o.connectors || typeof o.connectors !== 'object' || Array.isArray(o.connectors) || Object.keys(o.connectors).some(k => k !== 'a' && k !== 'b'))) throw refusal('CONNECTOR_INVALID', 'connectors contains a and/or b; null removes a connector.');
   const mate: Mate = { ...old,
     ...(o.connectors?.a !== undefined ? { a: withConnector(old.a, o.connectors.a) } : {}),
@@ -125,7 +127,7 @@ function mated(doc: StudioDoc, mate: Mate, list: Mate[]): Mated {
   mateFacesOf(mate, { a: fa!, b: fb! }); // Preserve the connector refusal code at the editing boundary.
   const why = mateRefusal(mate, fa, fb);
   if (why) throw refusal('MATE_FACES', `${why}${fa && fb ? ` (these faces admit: ${mateKindsOf({ a: mate.a, b: mate.b }, { a: fa, b: fb }).join(', ')})` : ''}`);
-  const r = solveAssembly(instances, list, tables, instances), problem = r.problems.find(p => p.mate === mate.id) ?? (list.some(m => m.kind === 'fastened' || m.kind === 'ball' || m.kind === 'universal') ? r.problems[0] : undefined);
+  const r = solveAssembly(instances, list, tables, instances), problem = r.problems.find(p => p.mate === mate.id) ?? (list.some(m => m.kind === 'fastened' || m.kind === 'ball' || m.kind === 'universal' || m.kind === 'cylindrical') ? r.problems[0] : undefined);
   if (problem) throw refusal('MATE_UNMET', problem.reason, { mate: mate.id });
   return { ...solveDoc({ ...doc, instances: r.instances, mates: list }, instances), mate, freedom: r.freedom[mate.b.part] };
 }

@@ -8,7 +8,108 @@ Details and contracts live in the decision logs: `decisions.md` (kernel, D), `de
 `decisions-gpu.md` (GPU, G). Each lane's README §0 block says where that lane stands. How the work is run (lanes,
 coordinator, verification tiers) is in `notes/claude-resume-2026-10-23/`.
 
-**The goal (owner):** AI takes a brief to a manufacturable, buyable product. A9 is the first end-to-end run of that path.
+**The goal (owner, updated 2026-10-25):** Design objects and test selected real-world or virtual-world behaviour in one project. Define materials, joints, forces, environment and controls, predict bounded outcomes, and compare designs with controlled measurements where applicable. Extend support through explicit experiment profiles.
+
+The manufacturing objective is retained as a delivery track: AI takes a brief to a manufacturable, buyable product.
+A9 remains its first end-to-end run. This wider goal does not close A9, P2, actual fastening/material/stock decisions,
+manufacturing HOLD items or any recorded FAIL, interrupted run or uncompleted qualification.
+
+This top-level scope update supersedes earlier goal and CAE exclusion statements only. The lane queues and
+historical checkpoints below remain records; this patch does not adopt candidate source, change a past result,
+authorize a new runtime window, or automatically start a gallery, browser or manufacturing acceptance run.
+
+## Goal and staged expansion (2026-10-25)
+
+The long-term goal is one project in which users design an object, define an experiment, predict its behaviour,
+and compare the result with other designs or controlled measurements. Design, selection, experiment setup and
+result review stay connected in the same document and Canvas workflow. Experiment definitions and large result
+files belong to the project and refer to a design revision; they need not all be embedded in the CAD document.
+
+An experiment profile must distinguish real-world physical models from intentional virtual-world rules. A virtual
+effect is not evidence of physical accuracy. Each supported experiment has a bounded purpose, inputs and operating
+range. This roadmap does not claim that new solvers are implemented or authorize immediate solver dependencies.
+
+The existing goal of a manufacturable, buyable product remains a delivery track within this wider goal. Keep A9,
+P2, manufacturing checks and the recorded engineering input decisions. Their completion does not establish the
+accuracy of a dynamics, structural, thermal or fluid prediction.
+
+The shared foundation binds the project, stable design targets and assembly occurrences to a source revision,
+units and coordinate frames. CAD-to-solver boundaries must state conversions, mass and inertia reference frames,
+and approximation losses. Keep display geometry, collision proxies and mass models distinct. A changed source
+revision must make the validity of previous results clear.
+
+| Stage | User outcome | Required predecessor or contract | Exit condition |
+|---|---|---|---|
+| 0. Stabilize the current foundation | Save exact designs and reproduce existing supported behaviour | Complete the current API and Kernel corrections and their assigned impact checks; preserve original failures | Assigned impact checks and integration are complete; original failures remain visible. This is foundation evidence, not physical accuracy. |
+| 1. Establish shared experiments | Save targets, materials, mass, joints, loads, environment and requested outputs; rerun and compare | Stable target/occurrence IDs, revision, units, coordinates and explicit missing-input or unsupported-condition results | Missing and unsupported inputs are explicit; saved experiments rerun and compare against the bound design revision, with stale results identified. |
+| 2. Complete the first rigid-body experiment | Predict a physical pendulum's period, angle and static holding torque | Stage 1 and an explicitly supported pendulum profile: pivot and centre-of-mass placement, inertia about the pivot, gravity moments and constraint reactions; confirm Physics ownership before assigning implementation | Verify forward free motion from initial conditions separately from inverse-dynamics torque. Check independent period and torque references, time-step convergence, energy and joint errors; use separate measurements to establish the physical range. |
+| 3. Extend to mechanisms and robots | Predict linkage motion, loads, motor needs and supported contacts | Stage 2 plus explicit joint, loop and contact contracts; distinguish kinematics, dynamics and control | Check kinematics, dynamics and control separately; calibrate friction, contact, actuator saturation and sensor delay within the admitted range. |
+| 4. Add structural and thermal experiments | Predict deflection, stress, vibration, temperature and thermal expansion | Sourced material properties, loads, restraints and thermal boundary conditions; start with small reference problems | Start with reference cases such as a cantilever and one cooling solid; check mesh/time convergence and compare with measurements before expansion. |
+| 5. Add fluids, electrical and coupled experiments | Predict flow loads, motor current and heating, and interactions with deformation or control | Individually checked field solvers, compatible input/output units and time synchronization before coupling | Check each solver and then coupled conservation, exchange-period error and stability. Visual effects are not engineering flow or temperature predictions. |
+| 6. Connect measurements and design exploration | Compare sensor and simulated results, explore parameters and judge alternative designs | Recorded run provenance, measurement contracts and known validity ranges; separate calibration from validation data | Keep calibration and validation data separate, report uncertainty and compare alternatives within known ranges; no digital-twin claim without real inputs. |
+
+After the shared foundation, independent field work can proceed in parallel. Coupled experiments require both
+the individual models and their coupling to be checked. Preserve the existing historical entries below; use this
+sequence to place future work without treating source implementation as physical validation or product acceptance.
+
+### First implementation boundary
+
+First bind experiment targets, assembly occurrences and design revisions to sourced material, mass, full inertia,
+loads, constraints and requested outputs. Admit only a supported solver profile and report missing inputs or
+unsupported geometry and joints. Do not fill absent density or inertia with invented values. Convert CAD mm/g/degrees
+to solver units at one declared boundary, recording inertia axes, reference points and approximation losses.
+
+The new common experiment workflow and additional solver support are planned work, not implemented capabilities.
+Existing Physics sources have bounded admission conditions; they do not establish a general CAD assembly solver.
+Confirm Physics ownership and the actual hinge/gravity/inertia path before implementing the first pendulum.
+The supported profile must consistently relate the pivot-to-centre-of-mass offset, inertia about the pivot,
+gravity moment and constraint reactions. No new runtime dependency, WASM, public solver API or storage schema is
+approved by this roadmap update alone.
+
+Static source review has not established free-pendulum rotation for the fixed-support/dynamic-body hinge.
+In the inspected path, angular velocity is updated through torque, impulse and motor inputs. Accepting gravity,
+updating linear velocity and projecting joint-anchor positions and velocities do not by themselves establish
+gravity-driven angular motion about the pivot. This inference is limited to the no-contact, zero-command case
+with zero initial angular velocity; that case has not been executed or reproduced. It is a support question,
+not a confirmed defect in an admitted profile.
+
+Model's inverse-dynamics torque calculation for prescribed angles, velocities and accelerations is separate from
+forward free-motion prediction from an initial angle. Neither that torque result nor a UI animation completes
+the planned pendulum experiment. Physics ownership is still unconfirmed; this roadmap assigns no new solver work.
+
+## Completion gates for virtual experiments
+
+Use four separate gates for each bounded experiment. Record the supported inputs, predicted quantities, time range,
+assumptions and acceptance limits before execution. A gate applies only to the stated experiment profile and range.
+
+| Gate | Required evidence |
+|---|---|
+| Source implementation | The input checks, supported physical model, units, target references and failure paths are implemented and reviewed. Source existence is not an execution result. |
+| Numerical verification | Compare with independent analytic or reference solutions. Check time-step and mesh convergence where applicable, conservation or constraint errors, and computational cost. Retain the original inputs, solver version, settings, outputs and failed runs. Passing tests establishes only the checks performed. |
+| Measured validation | Compare predictions with controlled, repeated physical measurements for the intended use. State instrument uncertainty, input uncertainty, residual error and the supported operating range. Keep calibration data separate from validation data. Numerical verification does not replace this gate. |
+| Product-flow acceptance | A user can define, save, reopen, run, cancel and compare the experiment against its design revision. Missing inputs, unsupported conditions, failed or incomplete runs and stale results are visible. This gate does not widen the validated physical range. |
+
+Separate geometry approximation, discretization error, model error and input or measurement uncertainty. Report
+error and runtime together when changing a time step, mesh or solver setting. Distinguish an engineering physics
+profile from authored virtual-world rules. A plausible animation or a successful source test is not evidence of
+predictive accuracy.
+
+Keep every result bound to reproducible design inputs, material and mass-property sources, occurrence, revision,
+loads, constraints and solver settings. A change to these inputs must trigger an explicit validity or stale-result
+decision. Retain warnings, refusals, non-convergence, cancellations and the original FAIL records. Existing
+manufacturing holds remain in force until their own inputs and acceptance conditions are resolved.
+
+The first physical pendulum remains a planned experiment. Existing hinge, inertia and gravity sources do not yet
+establish a supported end-to-end CAD pendulum. Record unsupported combinations as implementation gaps before
+claiming period, angle or holding-torque predictions. This roadmap does not establish new solver APIs or a storage
+schema.
+
+## Reporting experiment progress
+
+Report the change, its physical or user effect, the evidence and limits, then the next roadmap step. State the
+current gate explicitly. Preserve commands, immutable source references and raw results with the evidence; do not
+use their presence as a substitute for the outcome. A source review, visual result, numerical PASS and measured
+validation are different results and must remain separate.
 
 ## Order now (2026-10-25, owner: "필요한 것들 로드맵에 추가 해서 진행해줘")
 
@@ -347,7 +448,7 @@ Order (agreed with the GPU lane, 2026-10-24): after RS2 — G15d.1, then G15a, G
 
 ### Toward commercial grade (2026-10-24; the owner's order: CG1, CG2, CG5, CG6 first)
 
-The owner asked "상용 수준으로 갈려면 로드맵에 더 많이 추가해야하는 것들이 있어?". Compared with SolidWorks, Fusion and Onshape, by what the studio's own docs list today. The owner: "CG1·CG2(모델링), CG5(도면), CG6(파일 저장·버전)부터 로드맵 순서에 넣고 진행해줘." Those four are ordered (below); the rest wait. FEM/CAE and PCB stay off the roadmap by earlier decisions.
+The owner asked "상용 수준으로 갈려면 로드맵에 더 많이 추가해야하는 것들이 있어?". Compared with SolidWorks, Fusion and Onshape, by what the studio's own docs list today. The owner: "CG1·CG2(모델링), CG5(도면), CG6(파일 저장·버전)부터 로드맵 순서에 넣고 진행해줘." Those four are ordered (below); the rest wait. FEM/CAE and PCB were excluded by earlier decisions. The 2026-10-25 experiment scope update moves structural, thermal, fluid and coupled-physics work into long-term staged planning; PCB remains deferred. No new solver implementation or dependency is implied.
 
 Order and owners: **CG1/CG2** — kernel (the geometry: loft with rails and non-parallel sections, boundary surfaces, variable/face fillets, draft from any direction and a parting line, rib, emboss and text, wrap, helical threads and helices, feature patterns, face move/delete/replace, thicken/offset/knit/trim/extend) right after the R7.3b + R7.7b window and before R7.3d; outer adds the studio commands and v2 actions per feature as the kernel lands it; GPU adds pickers where a new reference kind needs one. **CG5** (drawings) — the new drawings lane (session "CG5 도면 줄", branch claude/drawings-cg5, worktree cad-drawings-cg5, flow port 52791, decisions-drawings.md DR-n; it owns cad-model src/drawing/** and the Drawing workspace): DR-1 detail views (**done**, merge eea20c995) → DR-2 broken views (**done**, merge c5da2fa32) → DR-3 half and offset sections (**done**, merge 20085bd98) → DR-4 revolved and removed sections (**done**, merge `c8400355d`) → DR-5 title blocks and revision tables (**done**, native `4ec4053b9`) → DR-6 full GD&T (**partial**: DR-6a control characteristics/modifiers adopted at `c31386e9a`; face datums, targets and standalone/composite frames remain) → DR-7 ISO/ASME presets (style values only) and inch display → DR-8 drawing sets. **CG6** (storage and versions) — V1–V3, S1, S2 **done** (merge ad45714cc: the version log, compare, three-way merge; a project folder on disk or in the browser's private file system; the Project & versions card; Save and autosave into a project); S3 **done** (merge 1dd6254c9: branches and merge in the card, compare tint fallback, new parts detach from the project's file); S4 **done** (merge 93e70b1ba: placed parts linked to project files, changed ones offered through Revision waiting / Accept); agent version actions VA-1/VA-2 are also adopted (merge `df8761f1e`); sharing/comments and multi-user editing wait on the owner (a server, accounts, hosting); the docs lane writes "Projects and versions". The new data lane (session "CG6 데이터 줄", decisions-data.md DA-n, flow port 52891): a project folder on disk (File System Access, fallback), autosave, named versions with restore and compare, branches with typed merge conflicts; sharing/comments and multi-user later. Design first.
 
@@ -406,7 +507,7 @@ Acceptance cases:
 - Save/Open preserves geometry, frames, references, joint kinds, limits, drive inputs and motion. Check
   stale/deleted references and edits with atomic typed refusal; no silent replacement or independent blade fallback.
 - Keep geometric/kinematic acceptance separate from fatigue, strength, aerodynamics and airworthiness.
-  The existing CAE exclusions remain. Export a supported joint exactly, or return its existing typed refusal.
+  Those physical predictions require their own future solver profiles and validation under the experiment track; they are not RS7 acceptance evidence. Export a supported joint exactly, or return its existing typed refusal.
 
 
 ## Phase R: refactoring, once the current items close (owner, 2026-10-23)
@@ -594,8 +695,12 @@ P2 is a split follow-up, not a blanket hold on code. The last C run also reporte
 
 ## Off the roadmap (owner decisions)
 
-CAE (FEM, mesher, mould-fill; RD4–RD8 held), PCB/ECAD (deferred), DWG/SAT reading (deferred; DWG writing no-go),
-FRf2 sibling-part frames (refused). Standing:
+**Long-term experiment scope update (2026-10-25):** CAE, including structural/FEM, meshing, thermal, fluid and
+mould-fill work, moves from the earlier exclusion into bounded future stages. RD4–RD8 remain held until their
+scope and execution are explicitly assigned. No new solver is implemented by this change.
+
+PCB/ECAD (deferred), DWG/SAT reading (deferred; DWG writing no-go) and FRf2 sibling-part frames (refused) remain
+unchanged. Standing:
 - no WASM and no new runtime dependencies in the packages (cad, cad-model, gpu); the studio app's UI may use UI libraries (owner, 2026-10-24);
 - no standards text or built-in tables;
 - rows rule (b);

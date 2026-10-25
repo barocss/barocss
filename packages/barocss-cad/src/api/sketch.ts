@@ -16,6 +16,9 @@ const finite = (name: string, v: unknown): number => {
   if (typeof v !== 'number' || !Number.isFinite(v)) throw refuse('VALUE', `${name} must be a number, not ${String(v)}`);
   return v;
 };
+const record = (name: string, value: unknown): void => {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) throw refuse('VALUE', `${name} must be an options object`);
+};
 const vec2 = (name: string, v: Vec2): [number, number] => {
   if (!Array.isArray(v) || v.length !== 2) throw refuse('VALUE', `${name} must be a point [x, y] in mm`);
   return [finite(name, v[0]), finite(name, v[1])];
@@ -30,7 +33,12 @@ const UNIT_TOL = 1e-9;
 /** A sketch plane (build123d's Plane): XY, XZ or YZ through the origin, offset along its normal, or any of your own. */
 export class Plane {
   readonly origin: Vec3; readonly normal: Vec3; readonly xAxis: Vec3;
-  private constructor(origin: Vec3, normal: Vec3, xAxis: Vec3) { this.origin = origin; this.normal = normal; this.xAxis = xAxis; Object.freeze(this); }
+  private constructor(origin: Vec3, normal: Vec3, xAxis: Vec3) {
+    this.origin = Object.freeze([...origin] as [number, number, number]);
+    this.normal = Object.freeze([...normal] as [number, number, number]);
+    this.xAxis = Object.freeze([...xAxis] as [number, number, number]);
+    Object.freeze(this);
+  }
 
   /** The XY plane: sketch X along X, sketch Y along Y, solids grow along +Z. A sketch on it stores no plane. */
   static readonly XY = new Plane([0, 0, 0], [0, 0, 1], [1, 0, 0]);
@@ -41,6 +49,7 @@ export class Plane {
 
   /** A plane of your own; its normal and X axis unit vectors, square to each other. */
   static of(data: PlaneData): Plane {
+    record('plane', data);
     const o = vec3('origin', data.origin), n = vec3('normal', data.normal), x = vec3('xAxis', data.xAxis);
     if (Math.abs(Math.hypot(...n) - 1) > UNIT_TOL || Math.abs(Math.hypot(...x) - 1) > UNIT_TOL) throw refuse('VALUE', 'a plane\'s normal and X axis must be unit vectors');
     if (Math.abs(n[0] * x[0] + n[1] * x[1] + n[2] * x[2]) > UNIT_TOL) throw refuse('VALUE', 'a plane\'s X axis must lie in it, square to its normal');
@@ -70,14 +79,21 @@ export interface PoseData { readonly position: Vec3; readonly rotation: Vec3 }
 /** A placement (build123d's Location), the documents' Pose: a turn about X, then Y, then Z, through the origin, then a move. */
 export class Location {
   readonly position: Vec3; readonly rotation: Vec3;
-  private constructor(position: Vec3, rotation: Vec3) { this.position = position; this.rotation = rotation; Object.freeze(this); }
+  private constructor(position: Vec3, rotation: Vec3) {
+    this.position = Object.freeze([...position] as [number, number, number]);
+    this.rotation = Object.freeze([...rotation] as [number, number, number]);
+    Object.freeze(this);
+  }
 
   /** Where nothing moves. */
   static readonly IDENTITY = new Location([0, 0, 0], [0, 0, 0]);
   /** A placement of your own, either part left out at zero. */
-  static of(pose: Partial<PoseData>): Location { return new Location(vec3('position', pose.position ?? [0, 0, 0]), vec3('rotation', pose.rotation ?? [0, 0, 0])); }
+  static of(pose: Partial<PoseData>): Location {
+    record('location', pose);
+    return new Location(vec3('position', pose.position === undefined ? [0, 0, 0] : pose.position), vec3('rotation', pose.rotation === undefined ? [0, 0, 0] : pose.rotation));
+  }
   /** A move only. */
-  static at(position: Vec3): Location { return Location.of({ position }); }
+  static at(position: Vec3): Location { return Location.of({ position: vec3('position', position) }); }
 
   /** The plain pose, as an instance stores it. */
   get data(): { position: [number, number, number]; rotation: [number, number, number] } { return { position: [...this.position], rotation: [...this.rotation] }; }
@@ -102,7 +118,7 @@ export type SketchData = (
 /** A finished, closed profile on a plane, ready for `extrude` or `revolve`. */
 export class Sketch {
   readonly #data: SketchData;
-  constructor(data: SketchData) { this.#data = data; }
+  constructor(data: SketchData) { this.#data = structuredClone(data); }
   /** The plain profile (a copy), as the sketch node stores it. */
   get data(): SketchData { return structuredClone(this.#data); }
 }
@@ -120,17 +136,19 @@ export class SketchStart {
 
   /** A w × d rectangle with its least corner at (x, y) in the plane — the box command's profile. */
   rectangle(o: { w: number; d: number; x?: number; y?: number }): Sketch {
+    record('rectangle', o);
     const x = finite('x', o.x ?? 0), y = finite('y', o.y ?? 0);
     return onPlane(this.plane, { profile: 'rectangle', min: [x, y], max: [x + positive('w', o.w), y + positive('d', o.d)] }, 4);
   }
   /** A circle of radius r about (x, y) in the plane — the cylinder command's profile. */
   circle(o: { r: number; x?: number; y?: number }): Sketch {
+    record('circle', o);
     return onPlane(this.plane, { profile: 'circle', center: [finite('x', o.x ?? 0), finite('y', o.y ?? 0)], radius: positive('r', o.r) }, 1);
   }
   /** A closed polygon through the points (mm, in the plane), in order. */
   polygon(points: readonly Vec2[]): Sketch {
     if (!Array.isArray(points) || points.length < 3) throw refuse('VALUE', 'a polygon needs at least three points');
-    return onPlane(this.plane, { profile: 'polygon', points: points.map((p, k) => vec2(`point ${k + 1}`, p)) }, points.length);
+    return onPlane(this.plane, { profile: 'polygon', points: Array.from(points, (p, k) => vec2(`point ${k + 1}`, p)) }, points.length);
   }
   /** A path of lines and arcs from a point; `close()` finishes it. */
   moveTo(point: Vec2): SketchPath { return new SketchPath(this.plane, vec2('moveTo', point), [], vec2('moveTo', point)); }
@@ -145,6 +163,7 @@ export class SketchPath {
   lineTo(point: Vec2): SketchPath { return new SketchPath(this.#plane, this.#first, [...this.#segments, { kind: 'line', start: this.#at }], vec2('lineTo', point)); }
   /** An arc to the point round a centre, counter-clockwise unless `direction: 'cw'`. */
   arcTo(point: Vec2, o: { center: Vec2; direction?: 'ccw' | 'cw' }): SketchPath {
+    record('arc', o);
     const direction = o.direction ?? 'ccw';
     if (direction !== 'ccw' && direction !== 'cw') throw refuse('VALUE', `an arc's direction is ccw or cw, not ${String(direction)}`);
     return new SketchPath(this.#plane, this.#first, [...this.#segments, { kind: 'arc', start: this.#at, center: vec2('center', o.center), direction }], vec2('arcTo', point));

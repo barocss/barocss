@@ -143,10 +143,11 @@ test('O24 d universal: coupled mate combinations refuse atomically while a compa
   assert.deepEqual(r.doc, before);
 });
 
-test('O24 d universal: robot decomposition, robot limits and loop terms are unsupported, never fake fixed/free twists', () => {
+test('O24 d universal: pair-level robot limits and loop terms remain unsupported without a fake joint chain', () => {
   const r = addMate(source(), options()), tree = jointTree({ instances: r.doc.instances!, mates: r.doc.mates!, tables: tablesFor(r.doc), settings: { version: 1, joints: { 'base~p': { lower: -1, upper: 1, effort: 10, velocity: 1 } } } });
   assert.equal(tree.joints.length, 0); assert.equal(tree.links.filter(l => l.part === null).length, 0);
-  assert.ok(tree.problems.some(p => p.code === 'MOTION_UNSUPPORTED' && /two-axis robot decomposition is not supported/.test(p.message)));
+  assert.ok(tree.problems.some(p => p.code === 'MOTION_UNSUPPORTED' && p.mates?.includes(r.mate.id)
+    && /pair-level universal limits or ratings/.test(p.message) && /#0 a\.Z, #1 b\.X/.test(p.message)));
   const missing: Mate = { ...r.mate, a: { part: 'base', face: 'missing' } };
   const invalid = jointTree({ instances: r.doc.instances!, mates: [missing], tables: tablesFor(r.doc) });
   assert.equal(invalid.joints.length, 0); assert.ok(invalid.problems.some(p => p.code === 'MATE_PROBLEM'));

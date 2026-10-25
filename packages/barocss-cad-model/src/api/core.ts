@@ -33,7 +33,7 @@ export function massOf(body: BodyResult, density: number): MassResult {
 export function meshesOf(doc: StudioDoc): MeshData[] {
   return bodiesOf(doc).map(b => {
     const material = materialIdOf(doc, b);
-    return { key: b.key, positions: b.mesh.positions, normals: b.mesh.normals, indices: b.mesh.indices, lines: b.mesh.edgeLines, ...(material !== undefined ? { material } : {}) };
+    return { key: b.key, positions: b.mesh.positions.slice(), normals: b.mesh.normals.slice(), indices: b.mesh.indices.slice(), lines: b.mesh.edgeLines.slice(), ...(material !== undefined ? { material } : {}) };
   });
 }
 
@@ -44,7 +44,9 @@ export function stepOf(doc: StudioDoc, name: string): string {
 
 /** The material id a body names (its own, else the brief's), if any. */
 export function materialOf(doc: StudioDoc, key: string): string | undefined {
-  return materialIdOf(doc, bodiesOf(doc).find(b => b.key === key)!);
+  const body = bodiesOf(doc).find(b => b.key === key);
+  if (!body) throw refuse('NO_BODY', `the part has no body ${String(key)}`);
+  return materialIdOf(doc, body);
 }
 
 /** The document with a body's name set, as the studio's Rename writes it (its look's name): what the BOM and the drawings call it. */

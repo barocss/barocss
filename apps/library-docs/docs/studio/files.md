@@ -9,6 +9,9 @@ read. Both kinds open.
 
 Documents follow the latest schema. The studio is unreleased, so there is no migration between its versions.
 
+Keep a `.bcad` copy for later edits. Use an export for the receiving CAD system or slicer; it does not replace the
+saved document's feature history, mates and settings.
+
 With a project open, **Save** writes into the project's folder instead of downloading, and you can keep versions of
 the part. See [Projects and versions](/studio/projects).
 
@@ -36,6 +39,10 @@ isn't closed and clean goes through the **mesh repair** dialog before it opens:
   all on to start, each of which you can turn off;
 - **Check the repair** runs it and reports the triangles and area it adds and what is still open;
 - **Apply the repair** keeps it as a step on the mesh, which the badge in the **Browser** lets you change later.
+
+Keep the original exchange file before importing or repairing it. STEP opens as imported geometry, not the source
+system's feature history. Saving the imported result as `.bcad` keeps the edits made here; it does not recover that
+earlier history. A mesh import also requires the correct unit before its dimensions can be used.
 
 ![The mesh repair dialog for a cup with an open top: one hole, the repair steps and the checked repair's numbers](/shots/studio/files/mesh-repair.png)
 
@@ -85,6 +92,10 @@ is kept in the project instead.
 
 STL and USD get a `<name>.source.json` record beside them, and the URDF, MJCF and SDF zips hold a
 `robot.source.json`. See [Revisions and sources](/guide/concepts#revisions-and-sources).
+
+Keep source records beside the files they name when you send or archive an export. A source record identifies the
+input document revision and its canonical-content SHA-256; it is not a checksum of the exported file's bytes.
+After a document change, export again to produce files and source information for that revision.
 
 From the **Drawing** tab, **Export SVG**, **Export PDF** and **Export DXF** write the sheet, with DXF as 2000 or R12;
 see [Drawings](/studio/drawings). **Quote package** writes STEP, the manufacturability report and the request in one

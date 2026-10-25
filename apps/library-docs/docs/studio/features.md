@@ -19,6 +19,10 @@ their sizes. The HUD shows the fields, and the viewport shows handles you can dr
 | **Pipe** | Carries a finished sketch along a run, a bend and a run |
 | **Loft** | A solid through two or more sketches on parallel planes (<kbd>Shift</kbd>-click to pick them) |
 
+The CAD document format also supports one quadratic guide for a bounded circle or ellipse loft. This option requires
+exactly two explicit section frames with identical axes. See [Guided conic lofts](/packages/cad/robustness#guided-conic-lofts)
+for the input rules.
+
 ## Holes
 
 ![Hole with Copies set to On a circle: four holes previewed round the plate's centre](/shots/studio/features/holes-on-a-circle.jpg)

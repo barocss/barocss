@@ -1,11 +1,11 @@
-// O147 B2: item balloons — one a BOM line, on the assembly's iso view (the front view when the iso is not shown), its
+// O147 B2: item balloons — one a BOM line, on the assembly's iso view first, then another shown view, its
 // number the line's in the BOM table (the panel's and the purchase list's). Each leads to a visible edge of an instance
 // of its item, found by persistent name, so it follows the model as it changes: a placed part's edges are `<inst>/…`, an
 // element's are its node's faces (`<node>.…`, in a placed part `<inst>/<node>.…`), and a part's balloon points at an edge
 // of its own made shape, not at one of its bought elements. The tip is the middle of the longest visible piece of the
 // edge. Each is placed, as the weld symbols are (O119), along the view's side nearest its tip in GAP steps, then the
 // other sides, where its circle is clear of the views, the title block, the texts so far and the balloons before it;
-// none clear, at its nearest place, and the issue list says so. A line none of whose items shows an edge in the view
+// none clear, at its nearest place, and the issue list says so. A line none of whose items shows an edge in any shown view
 // has no balloon, and is said.
 import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
 import type { Bom } from '../bom/core';
@@ -20,7 +20,7 @@ const SIDES: readonly Side[] = ['left', 'right', 'top', 'bottom'];
 const alongOf = (side: Side) => side === 'left' || side === 'right' ? 1 : 0;
 
 export interface BalloonPlaced { readonly no: number; readonly item: string; readonly view: ViewId; readonly tip: XY; readonly edge: string; readonly at: XY }
-export interface Balloons { readonly groups: MarkGroup[]; readonly placed: readonly BalloonPlaced[]; /** Item numbers placed with no clear room. */ readonly unclear: readonly number[]; /** Item numbers with no visible edge in the view. */ readonly noEdge: readonly number[] }
+export interface Balloons { readonly groups: MarkGroup[]; readonly placed: readonly BalloonPlaced[]; /** Item numbers placed with no clear room. */ readonly unclear: readonly number[]; /** Item numbers with no visible edge in any shown view. */ readonly noEdge: readonly number[] }
 
 /** The base part's face names by body key (O177): what a `base:<body>` line's balloon points at. */
 export type BodyFaces = Readonly<Record<string, readonly string[]>>;
@@ -101,26 +101,27 @@ export function targetEdge(pr: BrepProjection, t: Target, elements: ReadonlyMap<
   return best && { name: best.name, mid: best.mid };
 }
 
-/** The balloons of the BOM's lines (numbered as the table is: 1… in its order) on the iso view, or the front view. */
+/** One balloon per BOM line: prefer iso, then front, top and right, using only shown views and visible target edges. */
 export function balloonMarks(layout: SheetLayout, views: DrawingViews, bom: Bom, taken: readonly Rect[], bodyFaces?: BodyFaces): Balloons {
   const bodies = faceSets(bodyFaces);
-  const view: ViewId = layout.views.iso.hidden ? 'front' : 'iso', v = layout.views[view], pr = views[view];
+  const order: readonly ViewId[] = ['iso', 'front', 'top', 'right'], shown = order.filter(view => !layout.views[view].hidden);
   const elements = new Map<string, Set<string>>();
   for (const l of bom.lines) if ((l.kind !== undefined && l.kind !== 'fastener') || l.plate) for (const id of l.parts) { const t = targetOf(l, id, bodies); (elements.get(t.inst) ?? elements.set(t.inst, new Set()).get(t.inst)!).add(t.node!); }
-  const found: { no: number; item: string; tip: XY; edge: string; side: Side }[] = [], noEdge: number[] = [];
+  const found: { no: number; item: string; view: ViewId; tip: XY; edge: string; side: Side }[] = [], noEdge: number[] = [];
   bom.lines.forEach((l, k) => {
-    for (const id of l.parts) {
-      const e = targetEdge(pr, targetOf(l, id, bodies), elements); if (!e) continue;
+    for (const view of shown) for (const id of l.parts) {
+      const v = layout.views[view], e = targetEdge(views[view], targetOf(l, id, bodies), elements); if (!e) continue;
       const tip = toSheet(v, e.mid);
-      found.push({ no: k + 1, item: l.item, tip, edge: e.name, side: sideOf(v, tip) });
+      found.push({ no: k + 1, item: l.item, view, tip, edge: e.name, side: sideOf(v, tip) });
       return;
     }
     noEdge.push(k + 1);
   });
   // (By side and along it, so neighbouring balloons' leaders do not cross; each the first clear place from its tip.)
-  found.sort((a, b) => SIDES.indexOf(a.side) - SIDES.indexOf(b.side) || a.tip[alongOf(a.side)] - b.tip[alongOf(b.side)]);
+  found.sort((a, b) => order.indexOf(a.view) - order.indexOf(b.view) || SIDES.indexOf(a.side) - SIDES.indexOf(b.side) || a.tip[alongOf(a.side)] - b.tip[alongOf(b.side)]);
   const groups: MarkGroup[] = [], placed: BalloonPlaced[] = [], unclear: number[] = [], mine: Rect[] = [];
   for (const f of found) {
+    const view = f.view, v = layout.views[view];
     let at: XY | null = null;
     for (const side of [f.side, ...SIDES.filter(x => x !== f.side)]) {
       for (let k = 0; k <= 2 * TRIES && !at; k++) {
