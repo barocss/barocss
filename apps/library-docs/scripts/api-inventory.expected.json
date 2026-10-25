@@ -231511,7 +231511,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "() => { links: { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; }[]; issues: { code: InertiaCode; message: string; }[]; }[]; }"
+                "type": "() => { links: { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; materialSnapshot?: { bodyMaterialId: string | null; inputMaterialId: string | null; resolvedMaterialId: string; fallback: \"none\" | \"unset\" | \"unknown-id\"; densityGPerCm3: number; catalogueDensityGPerCm3: number | null; libraryVersion: string; densitySourceId: string | null; densitySourceText: string | null; densityPage?: WebSource | undefined; rowEstimate: boolean | null; basis: \"builtin-catalogue-not-measured\"; } | undefined; inertiaSource?: \"mmgs-density-scaled\" | \"callback-override\" | undefined; }[]; issues: { code: InertiaCode; message: string; }[]; }[]; }"
               },
               {
                 "name": "joints",
@@ -234025,7 +234025,7 @@
                 "kind": "getter",
                 "optional": false,
                 "readonly": false,
-                "type": "{ profile: \"static-gravity-v1\"; binding: { document: string; revision: string; inputs: string; }; inputs: { values: Record<string, number>; gravity: [number, number, number]; }; units: { readonly angle: \"degree\"; readonly length: \"mm\"; readonly mass: \"g\"; readonly inertia: \"g·mm²\"; readonly gravity: \"mm/s²\"; readonly torque: \"N·mm\"; }; inertia: { links: { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; }[]; issues: { code: InertiaCode; message: string; }[]; }[]; }; result: { notReady?: { code: \"ROBOT_NOT_READY\"; links: string[]; joints: string[]; message: string; } | undefined; torques: { [k: string]: number; }; generalized: { [k: string]: number; }; units: { [k: string]: string; }; gravity: number; }; scope: { joint: string; occurrence: string | null; axis: { point: number[]; direction: number[]; }; coordinateFrame: string; }; assumptions: string[]; }"
+                "type": "{ profile: \"static-gravity-v1\"; binding: { document: string; revision: string; inputs: string; }; inputs: { values: Record<string, number>; gravity: [number, number, number]; }; units: { readonly angle: \"degree\"; readonly length: \"mm\"; readonly mass: \"g\"; readonly inertia: \"g·mm²\"; readonly gravity: \"mm/s²\"; readonly torque: \"N·mm\"; }; inertia: { links: { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; materialSnapshot?: { bodyMaterialId: string | null; inputMaterialId: string | null; resolvedMaterialId: string; fallback: \"none\" | \"unset\" | \"unknown-id\"; densityGPerCm3: number; catalogueDensityGPerCm3: number | null; libraryVersion: string; densitySourceId: string | null; densitySourceText: string | null; densityPage?: WebSource | undefined; rowEstimate: boolean | null; basis: \"builtin-catalogue-not-measured\"; } | undefined; inertiaSource?: \"mmgs-density-scaled\" | \"callback-override\" | undefined; }[]; issues: { code: InertiaCode; message: string; }[]; }[]; }; result: { notReady?: { code: \"ROBOT_NOT_READY\"; links: string[]; joints: string[]; message: string; } | undefined; torques: { [k: string]: number; }; generalized: { [k: string]: number; }; units: { [k: string]: string; }; gravity: number; }; scope: { joint: string; occurrence: string | null; axis: { point: number[]; direction: number[]; }; coordinateFrame: string; }; assumptions: string[]; }"
               }
             ],
             "indexSignatures": [],
@@ -238167,7 +238167,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "() => { links: { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; }[]; issues: { code: InertiaCode; message: string; }[]; }[]; }"
+                "type": "() => { links: { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; materialSnapshot?: { bodyMaterialId: string | null; inputMaterialId: string | null; resolvedMaterialId: string; fallback: \"none\" | \"unset\" | \"unknown-id\"; densityGPerCm3: number; catalogueDensityGPerCm3: number | null; libraryVersion: string; densitySourceId: string | null; densitySourceText: string | null; densityPage?: WebSource | undefined; rowEstimate: boolean | null; basis: \"builtin-catalogue-not-measured\"; } | undefined; inertiaSource?: \"mmgs-density-scaled\" | \"callback-override\" | undefined; }[]; issues: { code: InertiaCode; message: string; }[]; }[]; }"
               },
               {
                 "name": "joints",
@@ -241395,7 +241395,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "() => { links: { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; }[]; issues: { code: InertiaCode; message: string; }[]; }[]; }"
+                "type": "() => { links: { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; materialSnapshot?: { bodyMaterialId: string | null; inputMaterialId: string | null; resolvedMaterialId: string; fallback: \"none\" | \"unset\" | \"unknown-id\"; densityGPerCm3: number; catalogueDensityGPerCm3: number | null; libraryVersion: string; densitySourceId: string | null; densitySourceText: string | null; densityPage?: WebSource | undefined; rowEstimate: boolean | null; basis: \"builtin-catalogue-not-measured\"; } | undefined; inertiaSource?: \"mmgs-density-scaled\" | \"callback-override\" | undefined; }[]; issues: { code: InertiaCode; message: string; }[]; }[]; }"
               },
               {
                 "name": "joints",
@@ -241671,14 +241671,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(doc: StudioDoc) => { links: { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; }[]; issues: { code: InertiaCode; message: string; }[]; }[]; }",
+            "type": "(doc: StudioDoc) => { links: { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; materialSnapshot?: { bodyMaterialId: string | null; inputMaterialId: string | null; resolvedMaterialId: string; fallback: \"none\" | \"unset\" | \"unknown-id\"; densityGPerCm3: number; catalogueDensityGPerCm3: number | null; libraryVersion: string; densitySourceId: string | null; densitySourceText: string | null; densityPage?: WebSource | undefined; rowEstimate: boolean | null; basis: \"builtin-catalogue-not-measured\"; } | undefined; inertiaSource?: \"mmgs-density-scaled\" | \"callback-override\" | undefined; }[]; issues: { code: InertiaCode; message: string; }[]; }[]; }",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
               }
             ],
             "callSignatures": [
-              "(doc: StudioDoc) => { links: { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; }[]; issues: { code: InertiaCode; message: string; }[]; }[]; }"
+              "(doc: StudioDoc) => { links: { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; materialSnapshot?: { bodyMaterialId: string | null; inputMaterialId: string | null; resolvedMaterialId: string; fallback: \"none\" | \"unset\" | \"unknown-id\"; densityGPerCm3: number; catalogueDensityGPerCm3: number | null; libraryVersion: string; densitySourceId: string | null; densitySourceText: string | null; densityPage?: WebSource | undefined; rowEstimate: boolean | null; basis: \"builtin-catalogue-not-measured\"; } | undefined; inertiaSource?: \"mmgs-density-scaled\" | \"callback-override\" | undefined; }[]; issues: { code: InertiaCode; message: string; }[]; }[]; }"
             ]
           }
         }
@@ -263440,14 +263440,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(l: LinkInertia) => { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; }[]; issues: { code: InertiaCode; message: string; }[]; }",
+            "type": "(l: LinkInertia) => { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; materialSnapshot?: { bodyMaterialId: string | null; inputMaterialId: string | null; resolvedMaterialId: string; fallback: \"none\" | \"unset\" | \"unknown-id\"; densityGPerCm3: number; catalogueDensityGPerCm3: number | null; libraryVersion: string; densitySourceId: string | null; densitySourceText: string | null; densityPage?: WebSource | undefined; rowEstimate: boolean | null; basis: \"builtin-catalogue-not-measured\"; } | undefined; inertiaSource?: \"mmgs-density-scaled\" | \"callback-override\" | undefined; }[]; issues: { code: InertiaCode; message: string; }[]; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(l: LinkInertia) => { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; }[]; issues: { code: InertiaCode; message: string; }[]; }"
+              "(l: LinkInertia) => { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; materialSnapshot?: { bodyMaterialId: string | null; inputMaterialId: string | null; resolvedMaterialId: string; fallback: \"none\" | \"unset\" | \"unknown-id\"; densityGPerCm3: number; catalogueDensityGPerCm3: number | null; libraryVersion: string; densitySourceId: string | null; densitySourceText: string | null; densityPage?: WebSource | undefined; rowEstimate: boolean | null; basis: \"builtin-catalogue-not-measured\"; } | undefined; inertiaSource?: \"mmgs-density-scaled\" | \"callback-override\" | undefined; }[]; issues: { code: InertiaCode; message: string; }[]; }"
             ]
           }
         }
@@ -357137,7 +357137,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "{ key: string; material: string; assumed: boolean; massKg: number; }[]"
+                "type": "{ key: string; material: string; assumed: boolean; massKg: number; materialSnapshot?: { bodyMaterialId: string | null; inputMaterialId: string | null; resolvedMaterialId: string; fallback: \"none\" | \"unset\" | \"unknown-id\"; densityGPerCm3: number; catalogueDensityGPerCm3: number | null; libraryVersion: string; densitySourceId: string | null; densitySourceText: string | null; densityPage?: WebSource | undefined; rowEstimate: boolean | null; basis: \"builtin-catalogue-not-measured\"; } | undefined; inertiaSource?: \"mmgs-density-scaled\" | \"callback-override\" | undefined; }[]"
               },
               {
                 "name": "comM",
@@ -365078,14 +365078,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(l: LinkInertia) => { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; }[]; issues: { code: InertiaCode; message: string; }[]; }",
+            "type": "(l: LinkInertia) => { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; materialSnapshot?: { bodyMaterialId: string | null; inputMaterialId: string | null; resolvedMaterialId: string; fallback: \"none\" | \"unset\" | \"unknown-id\"; densityGPerCm3: number; catalogueDensityGPerCm3: number | null; libraryVersion: string; densitySourceId: string | null; densitySourceText: string | null; densityPage?: WebSource | undefined; rowEstimate: boolean | null; basis: \"builtin-catalogue-not-measured\"; } | undefined; inertiaSource?: \"mmgs-density-scaled\" | \"callback-override\" | undefined; }[]; issues: { code: InertiaCode; message: string; }[]; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(l: LinkInertia) => { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; }[]; issues: { code: InertiaCode; message: string; }[]; }"
+              "(l: LinkInertia) => { link: string; part: string | null; mass: number; centroid: number[]; inertia: number[][]; principal: { moments: number[]; axes: number[][]; }; frame: { origin: number[]; axes: number[][]; }; bodies: { mass: number; key: string; material: string; assumed: boolean; materialSnapshot?: { bodyMaterialId: string | null; inputMaterialId: string | null; resolvedMaterialId: string; fallback: \"none\" | \"unset\" | \"unknown-id\"; densityGPerCm3: number; catalogueDensityGPerCm3: number | null; libraryVersion: string; densitySourceId: string | null; densitySourceText: string | null; densityPage?: WebSource | undefined; rowEstimate: boolean | null; basis: \"builtin-catalogue-not-measured\"; } | undefined; inertiaSource?: \"mmgs-density-scaled\" | \"callback-override\" | undefined; }[]; issues: { code: InertiaCode; message: string; }[]; }"
             ]
           }
         }

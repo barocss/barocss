@@ -106,6 +106,15 @@ compatibility with the current producer code or material catalogue. Consistent f
 can pass these checks. `matches(doc, options)` compares the full canonical document and explicit inputs; if either
 canonical content differs, it returns false and the record is stale. A matching record does not establish a new result.
 
+When present, a counted body's optional `materialSnapshot` retains `bodyMaterialId`, `inputMaterialId`,
+`resolvedMaterialId` and `fallback` (`none`, `unset` or `unknown-id`) from the calculation.
+`densityGPerCm3` is the density used, in g/cm³; it can differ from the declared `catalogueDensityGPerCm3` (number or null).
+The catalogue 0.7.0 version, source ID/text/page and estimate fields describe the declared row; they do not certify the used density, authenticity or measured properties.
+`inertiaSource` distinguishes `mmgs-density-scaled` from an actually applied `callback-override`.
+The mass density does not establish the source of the callback's inertia tensor.
+Older schema 1 records can omit these fields: no current catalogue values are filled in. The full `report` remains `unknown`.
+These fields do not automatically extend the typed `preview` or Studio's displayed fields.
+
 In Studio's STATIC GRAVITY panel, use the Download button to export the displayed record as independent JSON.
 Use `Open gravity record` to load it as a historical record, not a recalculated result, even when document and inputs match.
 Opening a valid record fills the joint, angle and world XYZ gravity fields. Choose `Calculate holding torque` to calculate again.
