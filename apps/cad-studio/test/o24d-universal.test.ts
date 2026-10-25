@@ -98,7 +98,7 @@ test('O24 d universal UI: explicit Universal leaves two turns and preserves an a
     const tree = f.panel(api), select = find(tree, 'Edit mate type');
     assert.equal(select.props.value, 'universal'); assert.ok(walk(select).some(n => n.type === 'option' && n.props.value === 'universal'));
     assert.match(text(find(tree, 'Universal freedom')), /2 free turns.*Stays Z.*Moves X/);
-    assert.match(text(find(tree, 'Universal freedom')), /Limits and robot export are unavailable/);
+    assert.match(text(find(tree, 'Universal freedom')), /Mate connector limits are unavailable\. Robot motion uses two rotation axes and a logical intermediate link\. Coupled mates and closed loops are unsupported\./);
     assert.equal(find(tree, 'Edit mate flip'), undefined);
   } finally { f.cleanup(); }
 });

@@ -5,7 +5,8 @@
 //   no freedom → fixed; one turn → revolute (continuous without limits); one slide → prismatic;
 //   a turn and the slide along its axis → cylindrical, two turns and … → a chain of 1-DoF joints through dummy links
 //   (slides first, then the turn: planar = two slides and a turn; ball = three turns about one point);
-//   anything else (a screw motion, two turns on different axes, more) → MOTION_UNSUPPORTED, typed, never guessed.
+//   an explicit universal → its two connector-attached turns, not a free-twist approximation;
+//   anything else (a screw motion, other two-turn combinations, more) → MOTION_UNSUPPORTED, typed, never guessed.
 // A pair of parts joined twice round the graph is a loop: the tree keeps one path and reports the other as a loop with
 // its mates (closed loops are RM8's), never dropped. Two meshing spur gears on revolute joints of one carrier are a
 // coupled pair: the second mimics the first, ratio −z1/z2, from the kernel's checkPlacedSpurGears (D56).
@@ -215,6 +216,9 @@ export interface CamCoupling {
   /** The driver's and the follower's parts, the follower's contact face (world, at the solved pose), and for a cam the slab it covers along the cam's axis: the seat the sweep leaves to the mate (O22). */
   seat: { driver: string; follower: string; p: Vec3; n: Vec3; axis?: Vec3; slab?: [number, number] };
 }
+/** Universal's step indices name a.Z (#0) and b.X (#1), independent of the chosen robot base. */
+/** Cylindrical's indices name its axial slide (#0, mm) and axial turn (#1, radians). */
+type PairMotion = ReturnType<typeof motionOf> & { universal?: Mate; cylindrical?: Mate };
 
 /** The joint tree from the base link: links, joints (chains through dummy links), loops, gear couplings, issues. */
 export function jointTree(input: TreeInput): JointTree {
@@ -234,7 +238,7 @@ export function jointTree(input: TreeInput): JointTree {
     if (failed.has(m.id)) { problems.push({ code: 'MATE_PROBLEM', message: `${m.id} is not met (${(input.mateProblems ?? []).find(p => p.mate === m.id)!.reason}): it makes no joint.`, mates: [m.id] }); continue; }
     if (!placed.has(m.a.part) || !placed.has(m.b.part) || m.a.part === m.b.part) continue;
     // Explicit connector joints resolve persistent references before any fixed or point rows are admitted.
-    if (m.kind === 'fastened' || m.kind === 'ball' || m.kind === 'universal') {
+    if (m.kind === 'fastened' || m.kind === 'ball' || m.kind === 'universal' || m.kind === 'cylindrical') {
       const why = mateRefusal(m, input.tables(m.a.part)?.[m.a.face], input.tables(m.b.part)?.[m.b.face]);
       if (why) { failed.add(m.id); problems.push({ code: 'MATE_PROBLEM', message: `${m.id} is not met (${why}): it makes no joint.`, mates: [m.id] }); continue; }
     }
@@ -245,11 +249,37 @@ export function jointTree(input: TreeInput): JointTree {
   // The tree: grown from the base, each step taking the pair that leaves the least freedom (Prim's, weighted by the
   // pair's degrees of freedom; ties in the document's order), so a loose mate closes a loop rather than replacing a
   // joint. A pair met again is a loop.
-  const motions = new Map<string, ReturnType<typeof motionOf>>();
-  for (const [k, ms] of pairs) motions.set(k, pairMotion(ms, input.tables, placed, L));
+  const motions = new Map<string, PairMotion>();
+  for (const [k, ms] of pairs) {
+    const motion = pairMotion(ms, input.tables, placed, L);
+    if (motion.universal && settings.joints?.[k]) {
+      motions.set(k, { unsupported: 'pair-level universal limits or ratings; set each explicit axis key (#0 a.Z, #1 b.X) instead' });
+    } else if (motion.universal && [motion.universal.a.part, motion.universal.b.part].some(p => grounded.includes(p))) {
+      motions.set(k, { unsupported: 'an explicit universal with a grounded endpoint; the grounding constraint is not a free 2R chain' });
+    } else if (motion.cylindrical && settings.joints?.[k]) {
+      motions.set(k, { unsupported: 'pair-level cylindrical limits or ratings; set each explicit axis key (#0 axial slide, #1 axial turn) instead' });
+    } else if (motion.cylindrical && [motion.cylindrical.a.part, motion.cylindrical.b.part].some(p => grounded.includes(p))) {
+      motions.set(k, { unsupported: 'an explicit cylindrical with a grounded endpoint; the grounding constraint is not a free slide and turn chain' });
+    } else motions.set(k, motion);
+  }
   const weight = (k: string) => { const m = motions.get(k); return m === undefined ? 0 : 'steps' in m ? m.steps.length : 7; };
   const edges = [...pairs.keys()].map(k => k.split('~') as [string, string]);
   for (const g of grounded) if (!pairs.has(pairKey(BASE, g))) edges.push([BASE, g]);
+  // Explicit Universal and Cylindrical joints are admitted only as open serial pairs.
+  for (const [key, ms] of pairs) {
+    const connectorJoint = ms.find(m => m.kind === 'universal' || m.kind === 'cylindrical');
+    if (!connectorJoint) continue;
+    const [a, b] = key.split('~'), reached = new Set([a]), pending = [a];
+    for (let i = 0; i < pending.length; i++) for (const [x, y] of edges) {
+      if (pairKey(x, y) === key) continue;
+      const next = x === pending[i] ? y : y === pending[i] ? x : undefined;
+      if (next !== undefined && !reached.has(next)) { reached.add(next); pending.push(next); }
+    }
+    if (reached.has(b)) {
+      motions.set(key, { unsupported: `an explicit ${connectorJoint.kind} in a closed or coupled loop; loop decomposition is not supported` });
+      problems.push({ code: 'MOTION_UNSUPPORTED', message: `${key}: an explicit ${connectorJoint.kind} in a closed or coupled loop is not supported.`, parts: [a, b], mates: ms.map(m => m.id) });
+    }
+  }
   const parent = new Map<string, string>([[base, '']]), order = [base], used = new Set<string>();
   for (;;) {
     let best: [string, string] | null = null, bw = Infinity;
@@ -274,13 +304,19 @@ export function jointTree(input: TreeInput): JointTree {
     if ('unsupported' in motion) { problems.push({ code: 'MOTION_UNSUPPORTED', message: `${nameOf(child)} moves on ${nameOf(par)} in ${motion.unsupported}: no joint of the tree makes that.`, parts: [par, child], mates: mates.map(m => m.id) }); continue; }
     if (!motion.steps.length) { joints.push({ key, type: 'fixed', parent: par, child, origin: childAt, axis: [0, 0, 1], mates: mates.map(m => m.id) }); continue; }
     // One step: the joint itself; more: a chain through dummy links, the child at its end.
-    motion.steps.forEach((s, i) => {
-      const last = i === motion.steps.length - 1, k = motion.steps.length === 1 ? key : `${key}#${i}`;
+    const reverseConnector = motion.universal?.b.part === par || motion.cylindrical?.b.part === par;
+    const steps = motion.steps.map((s, index) => ({ ...s, index }));
+    if (reverseConnector) steps.reverse();
+    steps.forEach((s, i) => {
+      const last = i === steps.length - 1, k = steps.length === 1 ? key : `${key}#${s.index}`;
       const from = i === 0 ? par : `${child}__${i}`, to = last ? child : `${child}__${i + 1}`;
       if (!last) links.push({ id: to, part: null, name: `${nameOf(child)} (dummy ${i + 1})` });
-      const origin = s.point ? add(s.point, scale(s.axis, dot(sub(childAt, s.point), s.axis))) : childAt, limit = limitOf(k, s.type);
+      // This intermediate link is a logical carrier (part:null), never an assembly body or BOM/mass row.
+      // Reversing the parent takes (exp(Sa*a) exp(Sb*b))^-1, with stable keys and both signs reversed.
+      const axis = reverseConnector ? scale(s.axis, -1) : s.axis;
+      const origin = s.point ? motion.universal || motion.cylindrical ? s.point : add(s.point, scale(s.axis, dot(sub(childAt, s.point), s.axis))) : childAt, limit = limitOf(k, s.type);
       const type: JointType = s.type === 'prismatic' ? 'prismatic' : limit?.lower !== undefined || limit?.upper !== undefined ? 'revolute' : 'continuous';
-      joints.push({ key: k, type, parent: from, child: to, origin: origin.map(x => (Math.abs(x) < 1e-12 ? 0 : x)) as Vec3, axis: s.axis, ...(limit ? { limit } : {}), mates: mates.map(m => m.id) });
+      joints.push({ key: k, type, parent: from, child: to, origin: origin.map(x => (Math.abs(x) < 1e-12 ? 0 : x)) as Vec3, axis, ...(limit ? { limit } : {}), mates: mates.map(m => m.id) });
     });
   }
   // Loops: pairs with mates the tree did not take.
@@ -329,10 +365,36 @@ export function jointTree(input: TreeInput): JointTree {
 }
 
 /** A pair's free motion from its mates' rows at the solved pose (b relative to a; the same freedom either way round). */
-function pairMotion(mates: readonly Mate[], tables: TreeInput['tables'], placed: Map<string, Placed>, L: number): ReturnType<typeof motionOf> {
-  // A universal has two body-attached rotational axes. An instantaneous two-dimensional free-twist
-  // basis is not a finite joint chain. Until that decomposition is implemented, export no fake joints.
-  if (mates.some(m => m.kind === 'universal')) return { unsupported: 'an explicit universal (fixed connector Z and moving connector X); two-axis robot decomposition is not supported' };
+function pairMotion(mates: readonly Mate[], tables: TreeInput['tables'], placed: Map<string, Placed>, L: number): PairMotion {
+  const universal = mates.find(m => m.kind === 'universal');
+  if (universal) {
+    if (mates.length !== 1) return { unsupported: 'an explicit universal combined with other mates; coupled decomposition is not supported' };
+    const fa = tables(universal.a.part)?.[universal.a.face], fb = tables(universal.b.part)?.[universal.b.face];
+    const A = placed.get(universal.a.part), B = placed.get(universal.b.part);
+    if (!fa || !fb || !A || !B) return { unsupported: 'an explicit universal with unavailable connector geometry' };
+    // mateFacesOf resolves the actual connector options: a.Z and b.X, including local turn/flip/offset.
+    const sf = mateFacesOf(universal, { a: fa, b: fb }), a = worldFace(sf.a, A), b = worldFace(sf.b, B);
+    if (a.kind !== 'plane' || b.kind !== 'plane') return { unsupported: 'an explicit universal without two connector axes' };
+    if (![...a.point, ...b.point, ...a.normal, ...b.normal].every(Number.isFinite) || Math.abs(len(a.normal) - 1) > TOL || Math.abs(len(b.normal) - 1) > TOL) return { unsupported: 'an explicit universal with invalid or singular connector axes' };
+    if (len(sub(a.point, b.point)) > 1e-6 || Math.abs(dot(a.normal, b.normal)) > TOL) return { unsupported: 'an explicit universal whose solved connector origins do not coincide or whose axes are not perpendicular' };
+    // The existing space-frame FK composes these exact screws: a's turn carries b's moving axis.
+    return { universal, steps: [{ type: 'revolute', axis: a.normal, point: a.point }, { type: 'revolute', axis: b.normal, point: a.point }] };
+  }
+  const cylindrical = mates.find(m => m.kind === 'cylindrical');
+  if (cylindrical) {
+    if (mates.length !== 1) return { unsupported: 'an explicit cylindrical combined with other mates; coupled decomposition is not supported' };
+    const fa = tables(cylindrical.a.part)?.[cylindrical.a.face], fb = tables(cylindrical.b.part)?.[cylindrical.b.face];
+    const A = placed.get(cylindrical.a.part), B = placed.get(cylindrical.b.part);
+    if (!fa || !fb || !A || !B) return { unsupported: 'an explicit cylindrical with unavailable connector geometry' };
+    const sf = mateFacesOf(cylindrical, { a: fa, b: fb }), a = worldFace(sf.a, A), b = worldFace(sf.b, B);
+    if (a.kind !== 'cylinder' || b.kind !== 'cylinder') return { unsupported: 'an explicit cylindrical without two connector axes' };
+    if (![...a.point, ...b.point, ...a.axis, ...b.axis].every(Number.isFinite) || Math.abs(len(a.axis) - 1) > TOL || Math.abs(len(b.axis) - 1) > TOL) return { unsupported: 'an explicit cylindrical with invalid or singular connector axes' };
+    const delta = sub(b.point, a.point), acrossAxis = sub(delta, scale(a.axis, dot(delta, a.axis)));
+    if (len(sub(a.axis, b.axis)) > TOL || len(acrossAxis) > 1e-6) return { unsupported: 'an explicit cylindrical whose solved connector Z axes are not aligned on one same-sense line' };
+    // Only transverse separation is constrained. The actual home axial gap and twist remain in M_link.
+    // These exact same-axis screws commute, and the existing FK carries the rotation axis with the slide.
+    return { cylindrical, steps: [{ type: 'prismatic', axis: a.axis, point: a.point }, { type: 'revolute', axis: a.axis, point: a.point }] };
+  }
   const rows: Row[] = [];
   for (const m of mates) {
     if (m.kind === 'lock') { rows.push(...mateRows(m, null as never, null as never, L)); continue; }
