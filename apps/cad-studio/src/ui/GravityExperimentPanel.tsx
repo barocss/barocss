@@ -10,6 +10,7 @@ import { downloadBytes } from './files';
 
 type Options = Parameters<Robot['gravityExperiment']>[0];
 type Inputs = { joint: string; angle: string; x: string; y: string; z: string };
+type RecordEntry = { record: GravityExperimentRecord; historical: boolean; filename?: string };
 
 function optionsOf(input: Inputs): Options {
   const joint = input.joint.trim();
@@ -29,7 +30,8 @@ function optionsOf(input: Inputs): Options {
 /** A local, detached static calculation. It does not change the document or the viewport pose. */
 export function GravityExperimentPanel({ doc, joints }: { doc: StudioDoc; joints: readonly { key: string; type: string }[] }) {
   const [input, setInput] = useState<Inputs>({ joint: '', angle: '', x: '', y: '', z: '' });
-  const [entry, setEntry] = useState<{ record: GravityExperimentRecord; historical: boolean; filename?: string } | null>(null);
+  const [entry, setEntry] = useState<RecordEntry | null>(null);
+  const [pinned, setPinned] = useState<(RecordEntry & { preview: GravityExperimentRecord['preview'] }) | null>(null);
   const [prefilled, setPrefilled] = useState<string | null>(null);
   const [reading, setReading] = useState(false);
   const epoch = useRef(0), fileInput = useRef<HTMLInputElement>(null);
@@ -43,6 +45,21 @@ export function GravityExperimentPanel({ doc, joints }: { doc: StudioDoc; joints
     try { current = entry.record.matches(doc, options); } catch { /* Unmatchable inputs leave the old result stale. */ }
   }
   const preview = entry?.record.preview;
+  const recordedDocumentMatch = (record: GravityExperimentRecord, value: GravityExperimentRecord['preview']) => {
+    try {
+      return record.matches(doc, { values: { [value.joint]: value.angle }, gravity: value.gravity })
+        ? 'Matches current document at its recorded inputs.' : 'Different current document.';
+    } catch { return 'Document match unavailable.'; }
+  };
+  const comparisonMismatch = pinned && preview ? [
+    pinned.preview.joint !== preview.joint && 'joint',
+    pinned.preview.occurrence !== preview.occurrence && 'occurrence',
+    pinned.preview.coordinateFrame !== preview.coordinateFrame && 'coordinate frame',
+    !pinned.preview.axis.point.every((value, index) => value === preview.axis.point[index]) && 'axis origin',
+    !pinned.preview.axis.direction.every((value, index) => value === preview.axis.direction[index]) && 'axis direction',
+  ].filter(Boolean).join(', ') : '';
+  // Both typed previews use the record contract's degree/mm/mm/s²/N·mm units.
+  const torqueDifference = pinned && preview && !comparisonMismatch ? preview.torque - pinned.preview.torque : null;
   let materialPreview: GravityExperimentMaterialPreview | null = null;
   let materialUnavailable = false;
   if (entry) {
@@ -122,6 +139,11 @@ export function GravityExperimentPanel({ doc, joints }: { doc: StudioDoc; joints
     <Button type="button" variant="ghost" onClick={calculate}>Calculate holding torque</Button>
     <Button type="button" variant="ghost" disabled={!entry} onClick={download}>{entry?.historical ? 'Download historical record' : current && !failure ? 'Download calculation record' : 'Download previous calculation record'}</Button>
     <Button type="button" variant="ghost" onClick={() => { invalidateRead(); fileInput.current?.click(); }}>Open gravity record</Button>
+    <Button type="button" variant="ghost" disabled={!entry} onClick={() => {
+      invalidateRead();
+      if (entry) setPinned({ ...entry, preview: entry.record.preview });
+    }}>{pinned ? 'Replace pinned record' : 'Pin this record'}</Button>
+    <Button type="button" variant="ghost" disabled={!pinned} onClick={() => { invalidateRead(); setPinned(null); }}>Unpin record</Button>
     <input ref={fileInput} type="file" accept=".json,application/json" className="hidden" aria-label="Gravity record file" onChange={event => {
       const file = event.target.files?.[0];
       event.target.value = '';
@@ -131,6 +153,33 @@ export function GravityExperimentPanel({ doc, joints }: { doc: StudioDoc; joints
     {prefilled && <div className="muted">Inputs were loaded from the opened record: {prefilled}.</div>}
     {failure && <div className="hud-error" role="alert">{failure}</div>}
     <div className="muted" role="status">{status}</div>
+    {pinned && preview && entry && <details>
+      <summary>Compare records</summary>
+      <p className="muted">Pinned locally. Not saved in the document. Cleared when this panel is removed.</p>
+      <div className="flex flex-wrap gap-2">
+        {[
+          { label: 'Pinned record', record: pinned.record, value: pinned.preview, historical: pinned.historical, filename: pinned.filename },
+          { label: 'Current entry', record: entry.record, value: preview, historical: entry.historical, filename: entry.filename },
+        ].map(({ label, record, value, historical, filename }) => <div key={label} className="min-w-0 flex-1 basis-48 break-words" aria-label={label}>
+          <b>{label}</b>
+          <div className="muted">{historical ? 'Historical record; not recalculated.' : 'Calculated record.'}</div>
+          <div className="muted">{recordedDocumentMatch(record, value)}</div>
+          {historical && <div className="muted">Opened record: {filename}</div>}
+          <div className="kv muted">Joint: {value.joint}</div>
+          <div className="kv muted">Occurrence: {value.occurrence}</div>
+          <div className="kv muted">Angle: {value.angle} degree</div>
+          <div className="kv muted">Gravity XYZ: [{value.gravity.join(', ')}] mm/s²</div>
+          <div className="kv">Recorded torque: <b>{value.torque} N·mm</b></div>
+          <div className="muted">Coordinate frame: {value.coordinateFrame}</div>
+          <div className="muted">Axis origin XYZ: [{value.axis.point.join(', ')}] mm</div>
+          <div className="muted">Axis direction XYZ: [{value.axis.direction.join(', ')}]</div>
+        </div>)}
+      </div>
+      {comparisonMismatch ? <div className="muted">Torque difference not shown. Recorded {comparisonMismatch} differ.</div>
+        : torqueDifference !== null && Number.isFinite(torqueDifference) ? <div className="kv muted">Recorded torque difference (current − pinned): {torqueDifference} N·mm</div>
+        : <div className="muted">Torque difference not shown. The difference is outside the finite numeric range.</div>}
+      <p className="muted">Recorded values only. The difference does not establish a cause, accuracy, measured validation or producer compatibility.</p>
+    </details>}
     {preview && <div aria-label="Static gravity calculation result">
       <div className="kv muted">{entry?.historical ? 'Historical record; not recalculated.' : failure || !current ? 'Previous calculation result.' : 'Current calculation result.'}</div>
       {entry?.historical && <div className="kv muted">Opened record: {entry.filename}</div>}
