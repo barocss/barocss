@@ -207,4 +207,3 @@ test('O24 d universal UI: original Auto, Ball, Fastened and Lock paths preserve 
     } finally { f.cleanup(); }
   }
 });
-
