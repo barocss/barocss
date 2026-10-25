@@ -61,7 +61,7 @@ for (const f of shots) {
   if (bytes > SHOT_MAX) problems.push(`${link}: ${Math.round(bytes / 1024)} KB, over the 250 KB a shot`);
   if (!shown.has(link)) problems.push(`${link}: no page shows it`);
 }
-for (const script of ['agent-tools.mjs', 'refusals.mjs']) {
+for (const script of ['agent-tools.mjs', 'refusals.mjs', 'api-inventory.mjs']) {
   const r = spawnSync(process.execPath, [join(dirname(fileURLToPath(import.meta.url)), script), '--check'], { encoding: 'utf8' });
   if (r.status !== 0) problems.push((r.stderr || r.stdout || `${script} --check failed`).trim());
 }
