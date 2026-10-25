@@ -92,14 +92,14 @@ test('oriented loft: invalid frames and mixed position encodings cannot silently
   rejected(() => make(flat(0), { ...flat(3), origin: [1e8, 0, 3] }), 'INPUT', /coordinate range/);
 });
 
-test('oriented loft: unsupported nonparallel nonaffine, nonconvex, curved and multi-section shapes are explicit refusals', () => {
+test('oriented loft: unsupported nonparallel nonaffine, nonconvex, nonparallel conics and three-section polygons are explicit refusals', () => {
   const nonaffine = polygon([[0, 0], [2, 0], [3, 2], [0, 2]]);
   rejected(() => loftSolid(input([section(flat(0)), section(tilted, nonaffine)])), 'INPUT', /affine/);
   const concave = polygon([[0, 0], [2, 0], [1, 1], [2, 2], [0, 2]]);
   rejected(() => loftSolid(input([section(flat(0), concave), section(flat(3), concave)])), 'INPUT', /convex/);
   const circle = [{ kind: 'arc', start: [1, 0], center: [0, 0], direction: 'ccw' }];
   rejected(() => loftSolid(input([section(flat(0), circle), section(tilted, circle)])), 'INPUT', /identical xAxis/);
-  rejected(() => loftSolid(input([section(flat(0)), section(flat(3)), section(flat(6))])), 'INPUT', /exactly two/);
+  rejected(() => loftSolid(input([section(flat(0)), section(flat(3)), section(flat(6))])), 'INPUT', /three sections require one full-circle/);
   rejected(() => loftSolid({ ...input([section(flat(0)), section(flat(3))]), smooth: true }), 'INPUT', /ruled/);
 });
 
@@ -170,16 +170,13 @@ test('legacy loft: parallel profile+z retains its analytic solid and original su
   close(loftSolid(input([{ profile: curve, z: 0 }, { profile: curve, z: 3 }])).mass(1).volume, 3 * Math.PI);
 });
 
-test('legacy loft: ruled builder and smooth builder source bytes are preserved from product697b', () => {
-  // Source-integrity assertion, separate from the runtime geometry tests above. This is not
-  // a claim that a new full fingerprint or whole-kernel qualification has run.
+test('legacy loft: CG12b shared ruled source checkpoint and unchanged product697b smooth source', () => {
+  // Source integrity only. CG12b deliberately extends the ruled builder for the guide;
+  // its new checkpoint is not evidence of runtime equivalence or test execution.
   const source = readFileSync(new URL('../src/features/loft.ts', import.meta.url), 'utf8');
-  const start = source.indexOf('export function loftSolid('), end = source.indexOf('/**\n * A smooth loft:', start);
-  const legacy = source.slice(start, end)
-    .replace('  if (input.guide !== undefined || input.sections.some(s => s.frame !== undefined || !Array.isArray(s.profile))) return orientedLoftSolid(input, loftSolid);\n', '')
-    .replace('const S = input.sections as readonly { readonly profile: readonly ProfileSegmentInput[]; readonly z: number }[];', 'const S = input.sections;');
+  const start = source.indexOf('function legacyLoft('), end = source.indexOf('/**\n * A smooth loft:', start);
   const hash = s => createHash('sha256').update(s).digest('hex');
-  assert.equal(hash(legacy), '9c80ee4c38639905844b4cc2e80696a41470c4338bf7525a0b6160273a56e23b');
+  assert.equal(hash(source.slice(start, end)), '968b2f5c7eaaa8f71d43df74886cf73cfa3553e78ff4e123b07f5e73113c49b9');
   assert.equal(hash(source.slice(source.indexOf('function smoothLoft('))), 'ca109102536dc48ede03cd709718611cce3baae13fe888c893ae6f0cf91368df');
 });
 
@@ -263,13 +260,13 @@ test('curved loft: unsupported encodings, seam phases and shape families never f
   rejected(() => conic(circleProfile(2), splitCircle), 'INPUT', /one full-circle/);
 });
 
-test('curved loft: nonparallel, reversed, smooth and multisection inputs remain refused', () => {
+test('curved loft: nonparallel, reversed, smooth and four-section inputs remain refused', () => {
   const e = ellipseProfile(2, 1);
   rejected(() => conic(e, e, tilted), 'INPUT', /identical xAxis/);
   rejected(() => conic(e, e, flat(0)), 'GEOMETRY', /positive plane separation/);
   rejected(() => conic(e, e, flat(-3)), 'GEOMETRY', /positive plane separation/);
   rejected(() => loftSolid({ ...input([section(flat(0), e), section(flat(3), e)]), smooth: true }), 'INPUT', /ruled/);
-  rejected(() => loftSolid(input([section(flat(0), e), section(flat(3), e), section(flat(6), e)])), 'INPUT', /exactly two/);
+  rejected(() => loftSolid(input([section(flat(0), e), section(flat(3), e), section(flat(6), e), section(flat(9), e)])), 'INPUT', /exactly two/);
 });
 
 test('curved loft: inline ellipse document agrees with direct loft and survives save/read', () => {
@@ -545,12 +542,12 @@ test('quadratic guide: cap seams and middle normal coordinate cannot be snapped 
   for (const [value, detail] of cases) assert.throws(() => guided(value), e => e instanceof BrepError && e.code === 'INPUT' && e.message === `B-rep: loft: quadratic guide ${detail}`);
 });
 
-test('quadratic guide: unsupported polygon, mixed, nonparallel, legacy z, smooth and multisection paths refuse', () => {
-  for (const p of [square, stadium()]) rejected(() => loftSolid({ ...input([section(flat(0), p), section(flat(3), p)]), guide: rail() }), 'INPUT', /one full-circle/);
+test('quadratic guide: unsupported polygon, nonparallel, legacy z, smooth and multisection paths refuse', () => {
+  for (const p of [square]) rejected(() => loftSolid({ ...input([section(flat(0), p), section(flat(3), p)]), guide: rail() }), 'INPUT', /one full-circle/);
   rejected(() => loftSolid({ ...input([{ profile: circleProfile(1), z: 0 }, { profile: circleProfile(1), z: 3 }]), guide: rail() }), 'INPUT', /frame/);
   rejected(() => loftSolid({ ...input([section(flat(0), circleProfile(1)), section(tilted, circleProfile(1))]), guide: rail() }), 'INPUT', /identical xAxis/);
   rejected(() => loftSolid({ ...input([section(flat(0), circleProfile(1)), section(flat(3), circleProfile(1))]), smooth: true, guide: rail() }), 'INPUT', /ruled/);
-  rejected(() => loftSolid({ ...input([section(flat(0), circleProfile(1)), section(flat(3), circleProfile(1)), section(flat(6), circleProfile(1))]), guide: rail() }), 'INPUT', /exactly two/);
+  rejected(() => loftSolid({ ...input([section(flat(0), circleProfile(1)), section(flat(3), circleProfile(1)), section(flat(6), circleProfile(1))]), guide: rail() }), 'INPUT', /three-section conics do not support a guide/);
 });
 
 test('quadratic guide: direct and inline-ellipse documents agree and save/read the authored rail', () => {
@@ -579,4 +576,245 @@ test('quadratic guide: circle-sketch documents consume the guide and reject inva
   assert.throws(() => evaluateCadPart(missingFrame), e => e instanceof CadPartError && e.code === 'INPUT' && e.details.category === 'INPUT' && e.feature === 'L' && e.message === 'L: sections[0] need an explicit frame without z');
   assert.throws(() => guided(badGuide.features[2].guide), e => e instanceof BrepError && e.code === 'INPUT' && e.message === 'B-rep: loft: quadratic guide middle control must lie exactly on the cap midplane');
   assert.throws(() => evaluateCadPart(badGuide), e => e instanceof CadPartError && e.code === 'GEOMETRY' && e.details.category === 'GEOMETRY' && e.feature === 'L' && e.message === 'L: B-rep: loft: quadratic guide middle control must lie exactly on the cap midplane');
+});
+
+
+const mixedRail = () => rail([[-2, -1, 0], [0, -1, 1.5], [-2, -1, 3]]);
+const guidedMixed = (p = stadium(), q = p, guide = mixedRail(), a = flat(0), b = flat(3)) =>
+  loftSolid({ ...input([section(a, p), section(b, q)]), guide });
+
+test('mixed quadratic guide: independent stadium volume, centroid and actual rail bounds', () => {
+  const { brep, mass } = guidedMixed(), m = mass(1);
+  validMixed(brep); close(m.volume, 3 * (8 + Math.PI)); vector(m.centroid, [2 / 3, 0, 1.5]);
+  vector(guidedAxisBounds(brep).min, [-3, -1, 0]); vector(guidedAxisBounds(brep).max, [4, 1, 3]);
+  assert.equal(m.method, 'quadrature');
+  assert.deepEqual(brep.edges.find(e => e.id === 'l0_0').curve.controlPoints, mixedRail().controlPoints);
+  const plain = mixed().brep;
+  assert.deepEqual(brep.faces.map(f => f.name), plain.faces.map(f => f.name));
+  assert.deepEqual(brep.edges.map(e => [e.id, e.name, e.vertices]), plain.edges.map(e => [e.id, e.name, e.vertices]));
+  for (const id of ['bottom', 'top']) assert.deepEqual(brep.faces.find(f => f.id === id), plain.faces.find(f => f.id === id));
+});
+
+test('mixed quadratic guide: independent D-profile area and centroid', () => {
+  // Right diameter traversed upwards, then the exact left semicircle: A=pi/2, cx=-4/(3pi).
+  const d = [{ kind: 'line', start: [0, -1] }, { kind: 'arc', start: [0, 1], center: [0, 0], direction: 'ccw' }];
+  const g = rail([[0, -1, 0], [2, -1, 1.5], [0, -1, 3]]), { brep, mass } = guidedMixed(d, d, g);
+  assert.equal(checkBrep(brep, { strict: true }).valid, true);
+  close(mass(1).volume, 3 * Math.PI / 2); vector(mass(1).centroid, [2 / 3 - 4 / (3 * Math.PI), 0, 1.5]);
+  assert.deepEqual(brep.edges.find(e => e.id === 'l0_0').curve.controlPoints, g.controlPoints);
+});
+
+test('mixed quadratic guide: scaled translated stadium has independent volume, centroid and inertia', () => {
+  const p = stadium(), q = similarity(p, 2, [3, -2]);
+  const g = rail([[-2, -1, 0], [0.5, -2.5, 1.5], [-1, -4, 3]]), { brep, mass } = guidedMixed(p, q, g), m = mass(1);
+  const A = 8 + Math.PI, Qx = 16 + 17 * Math.PI / 4, Qy = 8 / 3 + Math.PI / 4;
+  validMixed(brep); close(m.volume, 7 * A); close(m.mass, 7 * A / 1000);
+  // Weighted t=17/28; weighted 4t(1-t)=23/35, for area A0*(1+t)^2.
+  vector(m.centroid, [51 / 28 + 23 / 35, -17 / 14, 51 / 28]);
+  // Independent section integrals: scale=1+t, centre=(7t-4t^2,-2t,3t), dz=3dt.
+  // Qx and Qy come from the rectangle and two semicircles. These are central volume moments (mm^5).
+  const XX = 93 / 5 * Qx + 11631 / 2800 * A, YY = 93 / 5 * Qy + 291 / 140 * A, ZZ = 2619 / 560 * A;
+  const XY = -153 / 56 * A, XZ = 459 / 112 * A, YZ = -873 / 280 * A;
+  // density=1 g/cm^3 gives 0.001 g/mm^3; centroidal inertia is g*mm^2, with negative products.
+  const expectedInertia = [[YY + ZZ, -XY, -XZ], [-XY, XX + ZZ, -YZ], [-XZ, -YZ, XX + YY]].map(row => row.map(x => x / 1000));
+  m.inertia.forEach((row, i) => vector(row, expectedInertia[i]));
+  assert.deepEqual(brep.edges.find(e => e.id === 'l0_0').curve.controlPoints, g.controlPoints);
+});
+
+test('mixed quadratic guide: every rational side carries the same quadratic displacement', () => {
+  const { brep } = guidedMixed(), plain = mixed().brep;
+  for (const f of brep.faces.filter(f => f.name.startsWith('L.side'))) {
+    const original = plain.faces.find(q => q.id === f.id);
+    assert.equal(f.surface.degreeV, 2);
+    assert.equal(f.surface.degreeU, original.surface.degreeU);
+    assert.deepEqual(f.surface.knotsV, [0, 0, 0, 1, 1, 1]);
+    f.surface.weights.forEach((row, j) => assert.deepEqual(row, Array(3).fill(original.surface.weights[j][0])));
+    for (const u of [0, 0.25, 0.5, 0.75, 1]) for (const t of [0, 0.25, 0.5, 0.75, 1]) {
+      const p = evaluateSurface(original.surface, u, t);
+      vector(evaluateSurface(f.surface, u, t), [p[0] + 4 * t * (1 - t), p[1], p[2]]);
+    }
+  }
+});
+
+test('mixed quadratic guide: straight rail preserves original mass and tagged names', () => {
+  const p = stadium(), guide = rail([[-2, -1, 0], [-2, -1, 1.5], [-2, -1, 3]]);
+  const a = guidedMixed(p, p, guide).mass(1), b = mixed().mass(1);
+  close(a.volume, b.volume); vector(a.centroid, b.centroid);
+  a.inertia.forEach((row, i) => vector(row, b.inertia[i]));
+  const { brep } = loftSolid({ ...input([section(flat(0), p), section(flat(3), p)]), guide: mixedRail(), sideTags: ['base', 'nose', 'top', 'tail'] });
+  assert.equal(checkBrep(brep, { strict: true }).valid, true);
+  assert.deepEqual(brep.faces.map(f => f.name).sort(), ['L.bottom', 'L.side[base]', 'L.side[nose]#1', 'L.side[nose]#2', 'L.side[tail]#1', 'L.side[tail]#2', 'L.side[top]', 'L.top']);
+});
+
+test('mixed quadratic guide: permuted rigid frame carries the authored world rail', () => {
+  const a = { origin: [0, 0, 0], xAxis: [0, 1, 0], yAxis: [0, 0, 1] }, b = { ...a, origin: [3, 0, 0] };
+  const g = rail([[0, -2, -1], [1.5, 0, -1], [3, -2, -1]]), { brep, mass } = guidedMixed(stadium(), stadium(), g, a, b);
+  validMixed(brep); vector(mass(1).centroid, [1.5, 2 / 3, 0]);
+  assert.deepEqual(brep.edges.find(e => e.id === 'l0_0').curve.controlPoints, g.controlPoints);
+});
+
+test('mixed quadratic guide: exact seam, midplane, rigid axes and homothety restrictions remain', () => {
+  const p = stadium(), g = mixedRail();
+  rejected(() => guidedMixed(p, p, rail()), 'INPUT', /first mixed-curve cap seams/);
+  rejected(() => guidedMixed(p, p, rail([[-2, -1, 0], [0, -1, 1.6], [-2, -1, 3]])), 'INPUT', /cap midplane/);
+  rejected(() => guidedMixed(p, p, { ...g, extra: true }), 'INPUT', /exactly kind/);
+  rejected(() => guidedMixed(p, p, [g]), 'INPUT', /one explicit guide/);
+  rejected(() => guidedMixed(p, p, g, flat(0), tilted), 'INPUT', /identical frame axes/);
+  const wrong = structuredClone(p); wrong[1].center[0] += 0.25;
+  assert.throws(() => guidedMixed(p, wrong), e => e instanceof BrepError);
+  rejected(() => guidedMixed(p, p, g, flat(0), flat(-3)), 'GEOMETRY', /positive plane separation/);
+  rejected(() => loftSolid({ ...input([section(flat(0), p), section(flat(3), p)]), guide: g, smooth: true }), 'INPUT', /ruled/);
+  rejected(() => loftSolid({ ...input([section(flat(0), p), section(flat(3), p), section(flat(6), p)]), guide: g }), 'INPUT', /three-section conics do not support a guide/);
+});
+
+test('mixed quadratic guide: mixed/conic dispatch refuses both section orders', () => {
+  for (const [profile, message] of [
+    [circleProfile(1), 'B-rep: loft: framed mixed curves need both lines and arcs on each section'],
+    [ellipseProfile(2, 1), 'B-rep: loft: curved sections currently need one full-circle arc or one inline ellipse on each end'],
+  ]) {
+    for (const profiles of [[stadium(), profile], [profile, stadium()]]) {
+      assert.throws(() => loftSolid({ ...input(profiles.map((p, i) => section(flat(3 * i), p))), guide: rail() }),
+        e => e instanceof BrepError && e.code === 'INPUT' && e.message === message);
+    }
+  }
+});
+
+test('mixed quadratic guide: direct and loop documents agree through JSON save/read', () => {
+  const p = stadium(), guide = mixedRail(), doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+    { id: 'a', kind: 'sketch', profile: 'loop', segments: p },
+    { id: 'b', kind: 'sketch', profile: 'loop', segments: p },
+    { id: 'L', kind: 'loft', sections: [{ sketch: 'a', frame: flat(0) }, { sketch: 'b', frame: flat(3) }], guide },
+  ] };
+  const snapshot = evaluateCadPart(doc), o = outputOf(snapshot, 'L'), direct = guidedMixed();
+  assert.deepEqual(o.brep, direct.brep); assert.deepEqual(massPropertiesOf(o), direct.mass(1));
+  const text = saveCadPart(snapshot); assert.deepEqual(JSON.parse(text), doc);
+  const again = outputOf(loadCadPart(text), 'L'); assert.deepEqual(again.brep, o.brep);
+  assert.deepEqual(massPropertiesOf(again), massPropertiesOf(o));
+  const bad = structuredClone(doc); bad.features[2].guide.controlPoints[1][2] = 1.6;
+  assert.throws(() => evaluateCadPart(bad), e => e instanceof CadPartError && e.code === 'GEOMETRY' && e.feature === 'L' && /cap midplane/.test(e.message));
+});
+
+test('mixed quadratic guide: clockwise normalization preserves an exact first seam', () => {
+  const src = stadium(), p = src.map((_, j) => {
+    const i = src.length - 1 - j, s = src[i], start = src[(i + 1) % src.length].start;
+    return s.kind === 'line' ? { ...s, start } : { ...s, start, direction: 'cw' };
+  });
+  const g = mixedRail(), { brep } = guidedMixed(p, p, g);
+  validMixed(brep);
+  assert.deepEqual(brep.edges.find(e => e.id === 'l0_0').curve.controlPoints, g.controlPoints);
+  assert.deepEqual(brep.faces.map(f => f.name), mixed(p, p).brep.faces.map(f => f.name));
+});
+
+test('mixed quadratic guide: clockwise arc-first seam lost by normalization has exact typed refusal', () => {
+  const p = [
+    { kind: 'arc', start: [0, 1], center: [0, 0], direction: 'cw' },
+    { kind: 'line', start: [1, 0] },
+    { kind: 'arc', start: [0, -1], center: [0, 0], direction: 'cw' },
+  ];
+  const g = rail([[0, 1, 0], [2, 1, 1.5], [0, 1, 3]]);
+  assert.throws(() => guidedMixed(p, p, g), e => e instanceof BrepError && e.code === 'INPUT' && e.message === 'B-rep: loft: framed mixed curves need the first authored seam to survive exact curve normalization');
+});
+
+test('mixed quadratic guide: an authored seam lost to exact arc normalization refuses', () => {
+  const p = [{ kind: 'arc', start: [0, 1], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, -1] }];
+  // The legacy arc factory evaluates cos(pi/2); its actual first X is not authored zero.
+  // This bounded extension refuses that seam instead of snapping it or silently rephasing.
+  rejected(() => guidedMixed(p, p, rail([[0, 1, 0], [2, 1, 1.5], [0, 1, 3]])), 'INPUT', /first authored seam/);
+});
+
+
+const threeConics = (profiles = [circleProfile(1), circleProfile(2), circleProfile(1)], frames = [flat(0), flat(3), flat(6)], extra = {}) =>
+  loftSolid({ ...input(profiles.map((profile, k) => section(frames[k], profile))), ...extra });
+function validThreeConics(brep) {
+  const report = checkBrep(brep, { strict: true });
+  assert.equal(report.valid, true, JSON.stringify(report.issues));
+  assert.equal(brep.vertices.length, 12); assert.equal(brep.edges.length, 20); assert.equal(brep.faces.length, 10);
+  assert.equal(brep.bodies.length, 1); assert.equal(brep.bodies[0].kind, 'solid');
+  assert.equal(brep.shells.length, 1); assert.equal(brep.shells[0].closed, true);
+  assert.equal(brep.shells[0].faces.length, 10);
+  assert.deepEqual(brep.faces.map(f => f.name).sort(), ['L.bottom', ...[0, 1].flatMap(k => [0, 1, 2, 3].map(i => `L.s${k}.side${i}`)), 'L.top']);
+  assert.deepEqual(brep.faces.filter(f => !f.name.includes('.side')).map(f => f.id).sort(), ['bottom', 'top']);
+  assert.equal(new Set(brep.edges.map(e => e.name)).size, 20);
+  for (let i = 0; i < 4; i++) {
+    const edge = brep.edges.find(e => e.id === `r1_${i}`), uses = brep.coedges.filter(c => c.edge === edge.id);
+    assert.equal(edge.name, `L.s0.side${i}|L.s1.side${i}`);
+    assert.deepEqual(uses.map(c => c.sense).sort(), ['forward', 'reversed']);
+  }
+}
+
+test('three conic sections: circular waist has independent mass, shared middle ring and physical bounds', () => {
+  const { brep, mass } = threeConics(), m = mass(2.7);
+  validThreeConics(brep);
+  // Two height-three frusta: each V=3*pi*(1+2+4)/3=7*pi, symmetric about z=3.
+  close(m.volume, 14 * Math.PI); close(m.mass, 14 * Math.PI * 2.7 / 1000);
+  vector(m.centroid, [0, 0, 3]); assert.equal(m.method, 'quadrature');
+  vector(bound(brep).min, [-2, -2, 0]); vector(bound(brep).max, [2, 2, 6]);
+  for (let i = 0; i < 4; i++) {
+    const middle = brep.edges.find(e => e.id === `r1_${i}`).curve;
+    for (const t of [0, 0.25, 0.5, 0.75, 1]) {
+      const p = evaluateCurve(middle, t); close(Math.hypot(p[0], p[1]), 2); close(p[2], 3);
+      vector(evaluateSurface(brep.faces.find(f => f.id === `f0_${i}`).surface, t, 1), p);
+      vector(evaluateSurface(brep.faces.find(f => f.id === `f1_${i}`).surface, t, 0), p);
+    }
+  }
+});
+
+test('three conic sections: translated ellipses on nonuniform spans have independent integrals', () => {
+  const profiles = [ellipseProfile(2, 1), ellipseProfile(3, 2, [2, -1]), ellipseProfile(1, 1, [4, 0])];
+  const { brep, mass } = threeConics(profiles, [flat(0), flat(2), flat(6)]);
+  validThreeConics(brep);
+  // A/pi=(2+t)*(1+t), dz=2dt; then A/pi=(3-2t)*(2-t), dz=4dt.
+  // The section centres are (2t,-t,2t), then (2+2t,-1+t,2+4t).
+  close(mass(1).volume, 61 * Math.PI / 3); vector(mass(1).centroid, [131 / 61, -75 / 122, 159 / 61]);
+});
+
+test('three conic sections: nonuniform circular spans and permuted axes preserve independent mass', () => {
+  const profiles = [circleProfile(1), circleProfile(2), circleProfile(1)];
+  const frames = [0, 2, 6].map(x => ({ origin: [x, 0, 0], xAxis: [0, 1, 0], yAxis: [0, 0, 1] }));
+  const { brep, mass } = threeConics(profiles, frames);
+  validThreeConics(brep); close(mass(1).volume, 14 * Math.PI); vector(mass(1).centroid, [39 / 14, 0, 0]);
+  vector(bound(brep).min, [0, -2, -2]); vector(bound(brep).max, [6, 2, 2]);
+});
+
+test('three conic sections: bounded admission rejects guides, smooth, mixed, polygon and invalid planes', () => {
+  const profiles = [circleProfile(1), circleProfile(2), circleProfile(1)], frames = [flat(0), flat(3), flat(6)];
+  const exactInput = (fn, message) => assert.throws(fn, e => e instanceof BrepError && e.code === 'INPUT' && e.message === message);
+  exactInput(() => threeConics(profiles, frames, { guide: rail() }), 'B-rep: loft: oriented sections three-section conics do not support a guide');
+  exactInput(() => threeConics(profiles, frames, { smooth: true }), 'B-rep: loft: oriented sections currently support ruled sides, not smooth interpolation');
+  exactInput(() => threeConics([profiles[0], stadium(), profiles[2]]), 'B-rep: loft: oriented sections three sections require one full-circle arc or one inline ellipse on each end');
+  exactInput(() => threeConics([square, square, square]), 'B-rep: loft: oriented sections three sections require one full-circle arc or one inline ellipse on each end');
+  rejected(() => threeConics(profiles, [flat(0), tilted, flat(6)]), 'INPUT', /identical xAxis/);
+  for (const bad of [[flat(0), flat(0), flat(6)], [flat(0), flat(3), flat(2)]]) rejected(() => threeConics(profiles, bad), 'GEOMETRY', /positive plane separation/);
+  const e = ellipseProfile(2, 1);
+  rejected(() => threeConics([e, ellipseProfile(0, 1), e]), 'INPUT', /positive radii/);
+  rejected(() => loftSolid(input([0, 3, 6, 9].map(z => section(flat(z), e)))), 'INPUT', /exactly two/);
+  exactInput(() => loftSolid(input([{ profile: profiles[0], z: 0 }, section(flat(3), profiles[1]), section(flat(6), profiles[2])])), 'B-rep: loft: oriented sections require frame on all three sections and no z');
+  exactInput(() => loftSolid(input([section(flat(0), e), { profile: e, z: 3 }, section(flat(6), e)])), 'B-rep: loft: oriented sections require frame on all three sections and no z');
+});
+
+test('three conic sections: circle sketches and inline ellipses agree with direct JSON save/read', () => {
+  const cases = [
+    { profiles: [circleProfile(1), circleProfile(2), circleProfile(1)], sketches: [1, 2, 1].map((radius, i) => ({ id: `s${i}`, kind: 'sketch', profile: 'circle', center: [0, 0], radius })) },
+    { profiles: [ellipseProfile(2, 1), ellipseProfile(3, 2), ellipseProfile(2, 1)] },
+  ];
+  for (const { profiles, sketches } of cases) {
+    const sections = profiles.map((profile, i) => ({ ...(sketches ? { sketch: `s${i}` } : { profile }), frame: flat(3 * i) }));
+    const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [...(sketches ?? []), { id: 'L', kind: 'loft', sections }] };
+    const snapshot = evaluateCadPart(doc), o = outputOf(snapshot, 'L'), direct = threeConics(profiles);
+    validThreeConics(o.brep); assert.deepEqual(o.brep, direct.brep); assert.deepEqual(massPropertiesOf(o), direct.mass(1));
+    const text = saveCadPart(snapshot); assert.deepEqual(JSON.parse(text), doc);
+    const again = outputOf(loadCadPart(text), 'L'); assert.deepEqual(again.brep, o.brep); assert.deepEqual(massPropertiesOf(again), massPropertiesOf(o));
+  }
+});
+
+test('three conic sections: existing two-section IDs, names and cap contracts remain', () => {
+  const { brep } = conic(circleProfile(1), circleProfile(2)); valid(brep);
+  assert.deepEqual(brep.vertices.map(v => v.id), [0, 1].flatMap(k => [0, 1, 2, 3].map(i => `v${k}_${i}`)));
+  assert.deepEqual(brep.faces.map(f => f.id), ['f0_0', 'f0_1', 'f0_2', 'f0_3', 'bottom', 'top']);
+  assert.equal(brep.edges.length, 12);
+  for (let i = 0; i < 4; i++) {
+    assert.equal(brep.edges.find(e => e.id === `r0_${i}`).name, `L.bottom|L.side${i}`);
+    assert.equal(brep.edges.find(e => e.id === `r1_${i}`).name, `L.side${i}|L.top`);
+    assert.equal(brep.edges.find(e => e.id === `l0_${i}`).name, [`L.side${(i + 3) % 4}`, `L.side${i}`].sort().join('|'));
+  }
 });

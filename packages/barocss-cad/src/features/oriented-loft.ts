@@ -10,7 +10,8 @@ import { solidMassFromIntegrals } from '../brep/solid-mass.js';
 import { gauss } from '../core/quadrature.js';
 import { buildProfileLoop, capSurface, ExtrudedProfileLimits, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import { curvedLoftSolid } from './curved-loft.js';
-import type { loftSolid, LoftInput, LoftSectionFrame } from './loft.js';
+import type { LoftInput, LoftSectionFrame } from './loft.js';
+import type { LoftLegacyBuilder } from './loft-guide.js';
 import { framedMixedLoftSolid } from './framed-mixed-loft.js';
 import type { Point } from '../types.js';
 
@@ -43,18 +44,30 @@ function frame(input: LoftSectionFrame | undefined): Basis {
   return { origin, u, v };
 }
 
-export function orientedLoftSolid(input: LoftInput, legacy: typeof loftSolid) {
+export function orientedLoftSolid(input: LoftInput, legacy: LoftLegacyBuilder) {
+  if (input.sections.length === 3) {
+    if (input.smooth) return fail('currently support ruled sides, not smooth interpolation');
+    if (input.guide !== undefined) return fail('three-section conics do not support a guide');
+    const S = input.sections;
+    if (S.some(s => s.z !== undefined || s.frame === undefined)) return fail('require frame on all three sections and no z');
+    if (!S.every(s => {
+      const p = s.profile;
+      return Array.isArray(p) ? p.length === 1 && p[0]?.kind === 'arc'
+        : p !== null && typeof p === 'object' && 'kind' in p && p.kind === 'ellipse';
+    })) return fail('three sections require one full-circle arc or one inline ellipse on each end');
+    return curvedLoftSolid(input, S.map(s => frame(s.frame)));
+  }
   if (input.sections.length !== 2) return fail('currently support exactly two sections');
   if (input.smooth) return fail('currently support ruled sides, not smooth interpolation');
   const S = input.sections;
   if (S.some(s => s.z !== undefined || s.frame === undefined)) return fail('require frame on both sections and no z');
   const frames = S.map(s => frame(s.frame));
-  // A guide is admitted only by the exact circle/ellipse path, never ignored by polygon/mixed paths.
-  if (input.guide !== undefined) return curvedLoftSolid(input, frames);
   if (S.every(s => Array.isArray(s.profile)) && S.some(s => {
     const p = s.profile as readonly ProfileSegmentInput[];
     return p.some(g => g.kind === 'line') && p.some(g => g.kind === 'arc');
   })) return framedMixedLoftSolid(input, frames, legacy);
+  // Polygon guides still refuse through the conic admission; no silent guide discard.
+  if (input.guide !== undefined) return curvedLoftSolid(input, frames);
   if (S.some(s => !Array.isArray(s.profile) || s.profile.some(g => g.kind === 'arc'))) return curvedLoftSolid(input, frames);
   const loops = S.map(s => buildProfileLoop(s.profile as readonly ProfileSegmentInput[]));
   const polygons = loops.map(loop => loop.segments.map(s => s.kind === 'line' ? [...s.start] as XY : fail('currently support straight polygon edges only')));

@@ -13,6 +13,7 @@
 //                    (fillet-section.ts) and extruded
 //   coaxial          (R10.1, fillets) circular edges between surfaces of revolution about the circle's axis
 //                    (planes square to it, cylinders, cones, spheres, tori): the meridian solved and revolved
+//                    Chamfers also admit the convex full small-cap rim of one solid conical frustum.
 //   chain ends       where the body ends beyond the edge (every other face there faces onward), the
 //                    tool runs past the end and the Boolean trims it; elsewhere it stops at the vertex
 //
@@ -442,7 +443,7 @@ function finishEdges(body: Brep, names: readonly string[], size: number, kind: E
     const tool = pair === 'planes' ? straightTool(e, uses, E0.x, E1.x, runs, size, kind, id, trim)
       : pair === 'translational' ? translationalTool(body, e, uses, E0.x, E1.x, runs, size, id, scaleMM)
       : pair === 'plane-cylinder' ? arcTool(body, e, uses, E0.x, closedCircle.has(e.id) ? E0.x : E1.x, run, size, kind, id, tol, scaleMM)
-      : coaxialTool(body, e, uses, E0.x, closedCircle.has(e.id) ? E0.x : E1.x, run, size, id, tol, scaleMM);
+      : coaxialTool(body, e, uses, E0.x, closedCircle.has(e.id) ? E0.x : E1.x, run, size, kind, id, tol, scaleMM, closedCircle.has(e.id));
     for (const [i, pl] of clipAt.entries()) if (pl && !(trim && trim[i])) {
       const end = i === 0 ? E0 : E1, kept = add(end.x, scale(end.out, 1e-3 * len(sub(E1.x, E0.x))));
       tool.brep = clipTool(tool.brep, pl.kind === 'plane' ? { kind: 'plane', o: end.x, n: pl.n } : pl, kept, 4 * scaleMM + 10, ends1[i] * 4 * size, id, `${id}_t`, { x: end.x, out: end.out, back: Math.min(0.45 * len(sub(E1.x, E0.x)), 4 * size) });
@@ -1028,7 +1029,7 @@ function pairOf(e: Brep['edges'][number], uses: Use[], straight: boolean, kind: 
   const axis = unit(cross(k.e1, k.e2)), onAxis = (c: Point, a: Point) => len(cross(a, axis)) < 1e-9 && len(cross(sub(c, k.c), axis)) <= 1e3 * tol;
   const coaxial = gs.every(g => g.kind === 'plane' ? Math.abs(dot(g.n, axis)) > 1 - 1e-9 : g.kind === 'cylinder' ? onAxis(g.c, g.a) : g.kind === 'revolution' && onAxis(g.R.c, g.R.a));
   if (!coaxial) return none(`edge ${e.name}: its faces are not surfaces of revolution about the circle's axis, and its chain is not closed; open general chains arrive with R10.2b`);
-  if (kind === 'chamfer') refuse('CAPABILITY', `edge ${e.name}: chamfers along a circle between curved faces other than a plane and a cylinder are not supported yet`);
+  if (kind === 'chamfer' && !(pl && gs.some(g => g.kind === 'revolution' && g.R.profile.kind === 'line' && Math.abs(g.R.profile.q[0] - g.R.profile.p[0]) > tol && Math.abs(g.R.profile.q[1] - g.R.profile.p[1]) > tol))) refuse('CAPABILITY', `edge ${e.name}: chamfers along a circle between curved faces other than a plane and a cylinder are not supported yet`);
   return 'coaxial';
 }
 /** The tool's faces named by the section's tags: the fillet arc's `${id}.face`, every other `${id}.tool`. */
@@ -1071,8 +1072,50 @@ function leastRho(profile: readonly ProfileSegmentInput[]): number {
   return least;
 }
 
+/** Admit only the small-cap rim of one solid frustum, independent of the detected profile axis's sign. */
+function coneTopChamfer(body: Brep, e: Brep['edges'][number], uses: Use[], P: Point, fullCircle: boolean, sides: { n: Point; w: Point }[], tol: number, scaleMM: number): void {
+  const scope = () => refuse('CAPABILITY', `[CONE_TOP_CHAMFER_SCOPE] edge ${e.name}: only a convex full-circle small-cap rim of one solid conical frustum is supported`);
+  const cap = uses.find(u => u.geometry.kind === 'plane'), cone = uses.find(u => u.geometry.kind === 'revolution');
+  if (!fullCircle || !cap || !cone || cap.geometry.kind !== 'plane' || cone.geometry.kind !== 'revolution' || cone.geometry.R.profile.kind !== 'line' || !convexAt(sides)) return scope();
+  if (body.bodies.length !== 1 || body.bodies[0].kind !== 'solid' || body.bodies[0].shells.length !== 1 || body.shells.length !== 1 || !body.shells[0].closed || body.loops.some(l => l.kind !== 'outer') || body.faces.some(f => f.loops.length !== 1)) return scope();
+  const circle = circleOf(e.curve)!, n = cap.geometry.n, centre = circle.c, er = unit(sub(P, centre)), R = circle.r, margin = 1e3 * tol;
+  const wc = sides[uses.indexOf(cone)].w, wp = sides[uses.indexOf(cap)].w, nc = normalOf(cone.geometry, P)!;
+  if (!(dot(nc, er) > 1e-9 && dot(nc, n) > 1e-9 && dot(wc, n) < -1e-9 && dot(wc, er) > 1e-9 && dot(wp, er) < -1 + 1e-9)) return scope();
+  const ends = (g: Extract<Geo, { kind: 'revolution' }>): XY[] => g.R.profile.kind === 'line' ? [g.R.profile.p, g.R.profile.q].map(p => [p[0], dot(sub(add(g.R.c, scale(g.R.a, p[1])), centre), n)] as XY).sort((a, b) => b[1] - a[1]) : [];
+  const [top, bottom] = ends(cone.geometry);
+  if (!(Math.abs(top[0] - R) <= margin && Math.abs(top[1]) <= margin && bottom[0] > R + margin && bottom[1] < -margin)) return scope();
+  let wallAngle = 0;
+  const capAngle = [0, 0], edgeById = new Map(body.edges.map(x => [x.id, x])), loopById = new Map(body.loops.map(x => [x.id, x])), coedgeById = new Map(body.coedges.map(x => [x.id, x]));
+  for (const face of body.faces) {
+    const g = geoOf(face, scaleMM);
+    if (g.kind === 'revolution') {
+      const ep = ends(g);
+      if (ep.length !== 2 || !g.R.patch || len(cross(g.R.a, n)) > 1e-9 || len(cross(sub(g.R.c, centre), n)) > margin || ep.some((p, i) => Math.abs(p[0] - [top, bottom][i][0]) > margin || Math.abs(p[1] - [top, bottom][i][1]) > margin) || !(dot(normalOf(g, P)!, er) > 0)) return scope();
+      wallAngle += g.R.patch.span;
+      continue;
+    }
+    if (g.kind !== 'plane') return scope();
+    const h = dot(sub(g.o, centre), n), k = Math.abs(h) <= margin ? 0 : Math.abs(h - bottom[1]) <= margin ? 1 : -1;
+    if (k < 0 || dot(g.n, n) * (k === 0 ? 1 : -1) < 1 - 1e-9) return scope();
+    const radius = k === 0 ? R : bottom[0], c = add(centre, scale(n, k === 0 ? 0 : bottom[1]));
+    // A disk may have several plane patches. Its only outer boundary is the full rim;
+    // shared straight seams must pass through the axis, never form a chord or a bore.
+    for (const cid of loopById.get(face.loops[0])!.coedges) {
+      const edge = edgeById.get(coedgeById.get(cid)!.edge)!, arc = circleOf(edge.curve);
+      if (arc) {
+        if (len(sub(arc.c, c)) > margin || Math.abs(arc.r - radius) > margin || len(cross(unit(cross(arc.e1, arc.e2)), n)) > 1e-9) return scope();
+        capAngle[k] += arc.spans.reduce((sum, s) => sum + s.phi, 0);
+      } else {
+        const ps = edge.curve.controlPoints;
+        if (edge.curve.degree !== 1 || ps.length !== 2 || ps.some(p => Math.abs(dot(sub(p, c), n)) > margin || len(sub(p, c)) > radius + margin) || len(cross(sub(ps[0], c), sub(ps[1], c))) > margin * radius) return scope();
+      }
+    }
+  }
+  if (Math.abs(wallAngle - TAU) > 1e-9 || capAngle.some(a => Math.abs(a - TAU) > 1e-9) || body.vertices.some(v => dot(sub(v.point, centre), n) > margin || dot(sub(v.point, centre), n) < bottom[1] - margin)) return scope();
+}
+
 /** R10.1 (b): a circular edge between surfaces of revolution about its axis — the meridian section, revolved. */
-function coaxialTool(body: Brep, e: Brep['edges'][number], uses: Use[], P: Point, Q: Point, reach: number[], size: number, id: string, tol: number, scaleMM: number): { brep: Brep; convex: boolean } {
+function coaxialTool(body: Brep, e: Brep['edges'][number], uses: Use[], P: Point, Q: Point, reach: number[], size: number, kind: EdgeFinishKind, id: string, tol: number, scaleMM: number, fullCircle: boolean): { brep: Brep; convex: boolean } {
   const circle = circleOf(e.curve)!, axis0 = unit(cross(circle.e1, circle.e2)), centre = circle.c;
   const off = (x: Point) => { const d = sub(x, centre); return sub(d, scale(axis0, dot(d, axis0))); };
   const [t0, t1] = curveDomain(e.curve), travel = unit(sub(evaluateCurve(e.curve, t0 + 1e-6 * (t1 - t0)), P));
@@ -1094,10 +1137,27 @@ function coaxialTool(body: Brep, e: Brep['edges'][number], uses: Use[], P: Point
     return { curve: { kind: 'line', p: X, d: w }, w, n };
   });
   // Grown outside the corner, but never across the axis (only the profile turns: the ball's far side may cross it).
-  let fs = filletSection(X, sec[0], sec[1], size, size * 0.5, e.name ?? e.id, scaleMM);
-  for (let k = 0; k < 8 && leastRho(fs.profile) < -1e-9 * R; k++) fs = filletSection(X, sec[0], sec[1], size, fs.g / 2, e.name ?? e.id, scaleMM);
-  if (leastRho(fs.profile) < -1e-9 * R) refuse('PARAMETER', `edge ${e.name}: the fillet reaches the axis`);
-  fitsFaces(body, e, uses, { kind: 'circle', c: centre, a: axis, er0, et0, sweep }, sec, X, fs.contacts, `a fillet of ${size} mm`, scaleMM, fs.convex);
+  let fs: Pick<ReturnType<typeof filletSection>, 'profile' | 'tags' | 'contacts' | 'convex' | 'g'>;
+  if (kind === 'chamfer') {
+    coneTopChamfer(body, e, uses, P, fullCircle, sides, tol, scaleMM);
+    const tooLarge = () => refuse('PARAMETER', `[CONE_TOP_CHAMFER_SIZE] edge ${e.name}: the distance must stay strictly inside both faces and away from the axis`);
+    if (!(Number.isFinite(size) && size > 0)) return tooLarge();
+    const contacts = sec.map(s => [R + size * s.w[0], size * s.w[1]] as XY) as [XY, XY], ch: Chart = { kind: 'circle', c: centre, a: axis, er0, et0, sweep };
+    if (contacts.some(c => c[0] <= 1e-9 * R)) return tooLarge();
+    sec.forEach((s, k) => {
+      const need = acrossOf(s, X, contacts[k]), limit = trueReach(body, uses[k].face.id, e, ch, s, X, scaleMM, true, { smooth: Infinity });
+      if (!(need < limit - 1e-6 * scaleMM)) tooLarge();
+    });
+    let g = size * 0.5, profile = cornerProfile(X, sec[0].w, sec[1].w, size, kind, g, e.name ?? e.id);
+    for (let k = 0; k < 8 && leastRho(profile) < -1e-9 * R; k++) { g /= 2; profile = cornerProfile(X, sec[0].w, sec[1].w, size, kind, g, e.name ?? e.id); }
+    if (leastRho(profile) <= 1e-9 * R) return tooLarge();
+    fs = { profile, tags: ['t0', 't1', 't2', 't3', 'f'], contacts, convex: true, g };
+  } else {
+    fs = filletSection(X, sec[0], sec[1], size, size * 0.5, e.name ?? e.id, scaleMM);
+    for (let k = 0; k < 8 && leastRho(fs.profile) < -1e-9 * R; k++) fs = filletSection(X, sec[0], sec[1], size, fs.g / 2, e.name ?? e.id, scaleMM);
+    if (leastRho(fs.profile) < -1e-9 * R) refuse('PARAMETER', `edge ${e.name}: the fillet reaches the axis`);
+  }
+  fitsFaces(body, e, uses, { kind: 'circle', c: centre, a: axis, er0, et0, sweep }, sec, X, fs.contacts, `a ${kind} of ${size} mm`, scaleMM, fs.convex);
   // Snap points within rounding of the axis onto it.
   const snap = (x: XY): XY => [Math.abs(x[0]) <= 1e-9 * R ? 0 : x[0], x[1]];
   const profile = fs.profile.map(s => s.kind === 'arc' ? { ...s, start: snap(s.start as XY), center: snap(s.center as XY) } : { ...s, start: snap(s.start as XY) }) as ProfileSegmentInput[];

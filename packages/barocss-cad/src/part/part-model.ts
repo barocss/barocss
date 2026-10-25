@@ -58,7 +58,7 @@ import { curveDomain, evaluateCurve } from '../core/math.js';
 import { planar, tessellateBrep } from '../brep/brep-tessellate.js';
 import { rayHit, triangleBvh } from '../mesh/triangle-bvh.js';
 import { combineMassProperties, prismaticMassProperties, brepMassProperties, brepSurfaceArea, isSolidMassError, type MassProperties } from '../brep/solid-mass.js';
-import { unsupportedNativeMass } from '../internal/native-si-mass-state.js';
+import { readNativeSIInertia, transferNativeMassBasis, unsupportedNativeMass } from '../internal/native-si-mass-state.js';
 import { glueAtSharedFace, withCavities } from '../brep/brep-glue.js';
 import { loftSolid, type LoftInput, type LoftSectionFrame, type LoftSectionInput } from '../features/loft.js';
 import { generalShell } from '../blend/general-shell.js';
@@ -1449,7 +1449,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     }
     case 'translate': {
       const target = solids(f.target, 'target'), o = xyz(f.offset as CadPartPoint3, 'offset');
-      return () => moveAll(target, [1, 0, 0, 0, 1, 0, 0, 0, 1], o);
+      return () => moveAll(target, [1, 0, 0, 0, 1, 0, 0, 0, 1], o, true);
     }
     case 'rotate': {
       const target = solids(f.target, 'target'), axis = axisOf(f.axis), deg = f.angle as number, pivot = f.pivot === undefined ? [0, 0, 0] as Point : xyz(f.pivot as CadPartPoint3, 'pivot');
@@ -3103,18 +3103,22 @@ function gussetBead(byMember: ReadonlyMap<number, Part>, gp: Part, frame: string
   const bead_: BeadReport = { frame, on: { gusset }, kind: 'fillet', leg: z, throat: z / Math.SQRT2, meets: [...G.members], seam: { length: length, flush: 0, exact: true }, volume: length * z * z / 2, nominalVolume: length * z * z / 2, sharedSeams: [], corner: 'mitred' };
   return { kind: 'solid', parts: [{ solid: bead!, bead: bead_ }] };
 }
-function moveAll(parts: readonly Part[], m: BrepAffine['matrix'], o: Point): Result {
+function moveAll(parts: readonly Part[], m: BrepAffine['matrix'], o: Point, preserveNativeSI = false): Result {
   return { kind: 'solid', parts: parts.map((p): Part => {
     const exact = p.mass ?? (p.solid.kind === 'upright' ? ((s: PrismaticSolid) => (d: number) => prismaticMassProperties(s, d))(p.solid.solid) : undefined);
-    return { solid: affine(p.solid, m, o), moved: { from: p, m, o }, ...(exact ? { mass: (d: number) => movedMass(exact(d), m, o) } : {}) };
+    return { solid: affine(p.solid, m, o), moved: { from: p, m, o }, ...(exact ? { mass: (d: number) => movedMass(exact(d), m, o, preserveNativeSI) } : {}) };
   }) };
 }
-function movedMass(p: MassProperties, m: BrepAffine['matrix'], o: Point): MassProperties {
+function movedMass(p: MassProperties, m: BrepAffine['matrix'], o: Point, preserveNativeSI = false): MassProperties {
   const k = Math.cbrt(Math.abs(m[0] * (m[4] * m[8] - m[5] * m[7]) - m[1] * (m[3] * m[8] - m[5] * m[6]) + m[2] * (m[3] * m[7] - m[4] * m[6]))), R = m.map(x => x / k);
   const c = p.centroid, I = p.inertia, k5 = k ** 5;
   const RIRt = [0, 1, 2].map(i => [0, 1, 2].map(j => { let sum = 0; for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) sum += R[3 * i + a] * I[a][b] * R[3 * j + b]; return sum * k5; })) as [[number, number, number], [number, number, number], [number, number, number]];
-  return unsupportedNativeMass({ volume: p.volume * k ** 3, mass: p.mass * k ** 3, method: p.method, inertia: RIRt,
+  const moved = unsupportedNativeMass({ volume: p.volume * k ** 3, mass: p.mass * k ** 3, method: p.method, inertia: RIRt,
     centroid: [0, 1, 2].map(i => m[3 * i] * c[0] + m[3 * i + 1] * c[1] + m[3 * i + 2] * c[2] + o[i]) as Point }, 'transformed');
+  // Only the translate feature may retain an existing integral basis: central moments do not
+  // change under translation. Identity rotations/scales and unsupported bases stay unsupported.
+  if (preserveNativeSI && m.every((x, i) => x === (i === 0 || i === 4 || i === 8 ? 1 : 0)) && readNativeSIInertia(p).ok) transferNativeMassBasis(p, moved);
+  return moved;
 }
 function rotation(axis: CadPartAxis, deg: number, pivot: Point): { m: BrepAffine['matrix']; o: Point } {
   let m: BrepAffine['matrix'];

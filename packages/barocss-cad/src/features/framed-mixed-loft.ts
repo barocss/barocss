@@ -5,7 +5,8 @@ import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
 import { combineMassProperties } from '../brep/solid-mass.js';
 import { unsupportedNativeMass } from '../internal/native-si-mass-state.js';
 import { buildProfileLoop, ExtrudedProfileLimits, type ProfileSegmentInput } from './extruded-profile-solid.js';
-import type { loftSolid, LoftInput } from './loft.js';
+import { admitLoftGuide, type LoftGuideFactory, type LoftLegacyBuilder } from './loft-guide.js';
+import type { LoftInput } from './loft.js';
 import type { Point } from '../types.js';
 
 type XY = [number, number];
@@ -14,7 +15,7 @@ const fail = (detail: string): never => { throw new BrepError('INPUT', `loft: fr
 const dot = (a: Point, b: Point) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const cross = (a: Point, b: Point): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 
-export function framedMixedLoftSolid(input: LoftInput, frames: readonly Frame[], legacy: typeof loftSolid) {
+export function framedMixedLoftSolid(input: LoftInput, frames: readonly Frame[], legacy: LoftLegacyBuilder) {
   const [a, b] = frames, u = a.u, v = a.v, n = cross(u, v);
   if (!u.every((x, c) => x === b.u[c]) || !v.every((x, c) => x === b.v[c])) return fail('need identical frame axes');
   // A mass rotation must actually be rigid. Refuse uncertified floating frames rather than
@@ -63,9 +64,32 @@ export function framedMixedLoftSolid(input: LoftInput, frames: readonly Frame[],
     if (!mapped(x.start, y.start) || (x.kind === 'arc' && (y.kind !== 'arc' || !mapped(x.center, y.center)))) return fail('have an uncertified in-plane frame translation');
     if (l.kind !== h.kind || (l.kind === 'arc' && (h.kind !== 'arc' || l.startAngle !== h.startAngle || l.sweep !== h.sweep))) return fail('lose arc correspondence under the frame translation');
   }
-  // No explicit frame remains in this call: it enters the unchanged legacy builder exactly
-  // once. Positive scale through the span preserves the simple admitted loop at every t.
-  const local = legacy({ id: input.id, name: input.name, sections: [{ profile: lo, z: 0 }, { profile: upper, z: height }], ...(input.sideTags ? { sideTags: input.sideTags } : {}) });
+  const worldPoint = (p: Point): Point => a.origin.map((x, c) => u[c] * p[0] + v[c] * p[1] + n[c] * p[2] + x) as Point;
+  const localVector = (p: Point): Point => [dot(p, u), dot(p, v), dot(p, n)];
+  const guideFactory: LoftGuideFactory | undefined = input.guide === undefined ? undefined : (start, end) => {
+    const startWorld = worldPoint(start), endWorld = worldPoint(end);
+    // Bind to the actual first legacy curve, without snapping a trigonometric endpoint
+    // or silently relocating the authored seam after clockwise normalization.
+    const authored = [worldPoint([...lo[0].start, 0]), worldPoint([...upper[0].start, height])];
+    if (!startWorld.every((x, c) => x === authored[0][c]) || !endWorld.every((x, c) => x === authored[1][c])) return fail('need the first authored seam to survive exact curve normalization');
+    const guide = admitLoftGuide(input.guide, startWorld, endWorld, n, 'endpoints must exactly match the first mixed-curve cap seams');
+    return {
+      middle: (lo: Point, hi: Point): Point => {
+        const target = guide.middle(worldPoint(lo), worldPoint(hi));
+        const local = localVector(target.map((x, c) => x - a.origin[c]) as Point);
+        if (!worldPoint(local).every((x, c) => x === target[c]) || local[2] !== (lo[2] + hi[2]) / 2) return fail('need an exact transverse guide transform');
+        return local;
+      },
+      offset: (t: number): Point => {
+        const d = localVector(guide.offset(t));
+        if (d[2] !== 0) return fail('need an exact transverse guide displacement');
+        return d;
+      },
+    };
+  };
+  // No explicit frame remains: the shared legacy builder runs once, with the optional guide.
+  // Positive scale through the span preserves the simple admitted loop at every t.
+  const local = legacy({ id: input.id, name: input.name, sections: [{ profile: lo, z: 0 }, { profile: upper, z: height }], ...(input.sideTags ? { sideTags: input.sideTags } : {}) }, guideFactory);
   const matrix: BrepAffine['matrix'] = [u[0], v[0], n[0], u[1], v[1], n[1], u[2], v[2], n[2]];
   const brep = transformBrep(local.brep, { matrix, offset: a.origin });
   const outside = (p: Point) => p.some(x => !Number.isFinite(x) || Math.abs(x) > ExtrudedProfileLimits.coordinateMM);
