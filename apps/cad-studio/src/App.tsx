@@ -2986,7 +2986,7 @@ export function App() {
           {p.candidates.map(n => <button key={n} className="ghost small" aria-label={`Use ${n}`} onClick={() => void settleRef(p.index, n)}>{n}</button>)}</div>)}
       </aside>}
       <Profiler id="history" onRender={onBlockRender}>{historyShown && <div className={'history' + (historyRows ? ' expanded' : '') + (historyLabels ? ' show-labels' : '')} role="group" aria-label="History" ref={historyBar}>
-        <button className="history-labels" aria-label="Show history step names" aria-pressed={historyLabels} title={historyLabels ? 'Hide step names' : 'Show step names'} onClick={() => setHistoryLabels(shown => !shown)}><Icon name="short_text" small /></button>
+        <button className="history-labels" aria-label="Show history step names" aria-pressed={historyLabels} title={historyLabels ? 'Hide step names' : 'Show step names'} onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') e.stopPropagation(); }} onClick={() => setHistoryLabels(shown => !shown)}><Icon name="short_text" small /></button>
         {doc.nodes.map((n, i) => innerSteps.has(i) ? null : n.kind === 'sketch' ? (freeSketches.includes(i) ? (
           // A finished sketch no feature uses yet: click picks it as a profile (Shift adds) and opens its editor.
           <button key={i} aria-label={featureLabel(n, i, doc.nodes)} className={'hs sketch' + (i >= markerAt ? ' rolled' : '') + (selection.sketches?.includes(i) ? ' picked' : '') + (editNode === i ? ' edit' : '')} title={`${featureLabel(n, i, doc.nodes)} · click to pick it as a profile (Shift: add) · double-click to roll back here`}
