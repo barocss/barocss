@@ -227632,7 +227632,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "(kind: \"ball\" | \"distance\" | \"angle\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"concentric\", a: MateEnd, b: MateEnd, options?: MateOptions) => Assembly"
+                "type": "(kind: \"ball\" | \"distance\" | \"angle\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"universal\" | \"concentric\", a: MateEnd, b: MateEnd, options?: MateOptions) => Assembly"
               },
               {
                 "name": "addPart",
@@ -232793,7 +232793,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "(kind: \"ball\" | \"distance\" | \"angle\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"concentric\", a: MateEnd, b: MateEnd, options?: MateOptions) => Assembly"
+                "type": "(kind: \"ball\" | \"distance\" | \"angle\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"universal\" | \"concentric\", a: MateEnd, b: MateEnd, options?: MateOptions) => Assembly"
               },
               {
                 "name": "addPart",
@@ -233897,7 +233897,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "(kind: \"ball\" | \"distance\" | \"angle\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"concentric\", a: MateEnd, b: MateEnd, options?: MateOptions) => Assembly"
+                "type": "(kind: \"ball\" | \"distance\" | \"angle\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"universal\" | \"concentric\", a: MateEnd, b: MateEnd, options?: MateOptions) => Assembly"
               },
               {
                 "name": "addPart",
@@ -248594,6 +248594,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./assembly/connectors",
+      "exportName": "validateUniversalOptions",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/connectors.ts",
+            "name": "validateUniversalOptions",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(kind: unknown, value: object) => void",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(kind: unknown, value: object) => void"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/connectors",
       "exportName": "withConnector",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -250552,11 +250583,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"ball\" | \"distance\" | \"angle\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"lock\" | \"concentric\"",
+            "type": "\"ball\" | \"distance\" | \"angle\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"universal\" | \"lock\" | \"concentric\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"coincident\" | \"concentric\" | \"distance\" | \"angle\" | \"tangent\" | \"lock\" | \"cam\" | \"fastened\" | \"ball\""
+                "definition": "\"coincident\" | \"concentric\" | \"distance\" | \"angle\" | \"tangent\" | \"lock\" | \"cam\" | \"fastened\" | \"ball\" | \"universal\""
               }
             ],
             "members": [
