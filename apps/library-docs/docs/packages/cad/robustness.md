@@ -19,6 +19,53 @@ surfaces; mesh inputs retain faceted faces. The Boolean algorithm depends on tha
   not a distance from the picked face; if omitted, it uses the body's minimum coordinate on that axis.
   Negative axes and arbitrary pull vectors are not supported by this document feature.
 
+### A draft calculated from its dimensions
+
+Calculated geometry; the diagram is not an API render.
+
+Start with a rectangle from `[0, 0]` to `[20, 20]` mm and extrude it 10 mm along +Z. The box occupies
+`0 ≤ x ≤ 20`, `0 ≤ y ≤ 20`, `0 ≤ z ≤ 10`. Its initial volume is 4000 mm³.
+
+The sketch has ID `s`, its extrusion has ID `e`, and the draft has its own ID `d`. The draft's `target: 'e'`
+selects the extrusion to modify; `faces: ['e.side0']` selects one of its faces. This is a kernel part-document
+input, not a new Studio control.
+
+```json
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    { "id": "s", "kind": "sketch", "profile": "rectangle", "min": [0, 0], "max": [20, 20] },
+    { "id": "e", "kind": "extrude", "sketch": "s", "height": 10 },
+    { "id": "d", "kind": "draft", "target": "e", "faces": ["e.side0"], "angle": 10, "pull": "z", "neutral": 0 }
+  ]
+}
+```
+
+The extrusion consumes sketch `s`; the draft consumes extrusion `e`. The final solid output is `d`, not a second
+independent copy of `e`.
+The first rectangle edge runs from `[0, 0]` to `[20, 0]`, so `e.side0` is the face at y = 0 with outward normal −Y.
+The positive draft removes material: the upper edge moves toward +Y, into the box. X coordinates do not change.
+
+![Calculated Y–Z section, not an API result](/diagrams/cad/draft-section.svg)
+
+For the ideal neutral plane z = 0, the drafted face is `y = z tan(10°)`. At z = 10 mm, its inward movement is
+`10 tan(10°) ≈ 1.763270 mm`. The remaining top width along Y is about 18.236730 mm.
+The removed triangular prism has volume `½ × 10 × 1.763269807 × 20 ≈ 176.326981 mm³`.
+The nominal remaining volume is about 3823.673019 mm³. These are calculated values, not values returned by an API call.
+
+The implementation shifts the cutting plane slightly below the specified neutral plane to avoid line-only contact.
+Here `R = √(20² + 20² + 10²) + 2 = 32 mm` and `lift = 10⁻⁶ R = 0.000032 mm`.
+Its cutting plane therefore follows `y = (z + 0.000032) tan(10°)`, not exactly the ideal hinge line.
+The source plane predicts about 0.000005642 mm inward movement at z = 0 and 1.763275450 mm at z = 10.
+Integrating this shifted plane gives about 3823.671891 mm³ before Boolean and numerical effects.
+Both volumes are analytical calculations. An evaluated kernel result also includes Boolean and numerical effects.
+
+The selected face must be planar, parallel to the pull direction and have no holes. This example changes only one
+face. It does not claim support for adjacent selected draft faces, arbitrary pull vectors or negative pull axes.
+
 ## Guided conic lofts
 
 A `loft` document feature can use one `guide` with `kind: 'quadratic-bezier'` and exactly three world-space

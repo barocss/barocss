@@ -19,6 +19,9 @@ Changing the drawing scope is refused with `DRAWING_SCOPE_REFERENCES` while the 
 datums, control frames or notes with leaders. Keep the scope, or remove those references explicitly first.
 A permitted scope change clears automatic dimensions; it does not transfer their references to the new part.
 
+Without an explicit scope, sheets with balloons or a BOM table use assembly scope. Other sheets use the base part. A part sheet normally draws made bodies only. Assembly scope keeps bought elements, and enabling
+balloons on a part sheet keeps those elements visible so the balloon can point to them.
+
 ### Title blocks and revision history
 
 - **Title block** chooses **Basic** or **Extended**. Basic keeps the original layout. Extended adds **Organization**,
@@ -38,6 +41,13 @@ A permitted scope change clears automatic dimensions; it does not transfer their
   It replaces the previous title block. Each revision record has `revision`, `date` (`YYYY-MM-DD`), `description`
   and optional `by`. The list replaces the history; `[]` clears it, and omission keeps it. To show it, include a table
   with `from: 'revisions'`. Invalid fields, dates, duplicate labels and multiline text are refused with `DRAWING_OPTIONS`.
+
+For authored revision history, supply a dense list with no empty slots. One invalid record refuses the update; it
+does not silently remove that record or clear the history. Revision labels allow 1–6 characters, descriptions
+1–120 and authors 1–60. Optional title-block fields allow 1–120 characters. Omit an optional field if unused; an
+explicit empty or whitespace-only value is refused. Text must be single-line. Leading and trailing spaces count
+toward the length limit and are retained. Dates must be real calendar dates in `YYYY-MM-DD` form. Saved-file readers filter invalid or duplicate records.
+An authored update must pass the stricter checks above.
 
 ## Sections
 
@@ -204,6 +214,12 @@ The sheet can carry the tables that the part's features need:
 - **Cut list table** for frames;
 - **Bend table** for sheet metal;
 - **Gland table**, **Spring data table** and **Element list table** for those features.
+
+A table column's `unit` is a header label, not a conversion: supply numbers in the unit you name. Numeric cells
+use up to two decimal places by default, dropping trailing zeros. `digits` accepts an integer from 0 to 6 and
+requests that many decimal places; very large numbers can still use exponent notation. A `null` cell shows an em dash.
+Table positions use sheet mm with Y increasing downward; `corner`
+selects which table corner sits on `at`. These positions do not use model coordinates or the model's scale.
 
 ## Export
 
