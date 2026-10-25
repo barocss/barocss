@@ -113,12 +113,19 @@ The catalogue 0.7.0 version, source ID/text/page and estimate fields describe th
 `inertiaSource` distinguishes `mmgs-density-scaled` from an actually applied `callback-override`.
 The mass density does not establish the source of the callback's inertia tensor.
 Older schema 1 records can omit these fields: no current catalogue values are filled in. The full `report` remains `unknown`.
-These fields do not automatically extend the typed `preview` or Studio's displayed fields.
+Each read of the separate `record.materialPreview` getter returns a detached typed copy of recorded material fields with link and body IDs.
+It returns `null` when `inertia.links` is absent. Missing per-body `materialSnapshot` or `inertiaSource` becomes `null`; empty bodies stay empty.
+For otherwise accepted records, material-field shape errors raise `VALUE` on getter access; `parse` keeps its existing finite-JSON checks.
+The existing `preview`, unknown `report`, `matches` and schema `1` remain unchanged.
+The getter does not fill missing fields from the current catalogue or certify authenticity, measured properties or current compatibility.
+Reading or displaying these historical fields does not recalculate the result or turn it into a new measurement.
 
 In Studio's STATIC GRAVITY panel, use the Download button to export the displayed record as independent JSON.
 Use `Open gravity record` to load it as a historical record, not a recalculated result, even when document and inputs match.
 Opening a valid record fills the joint, angle and world XYZ gravity fields. Choose `Calculate holding torque` to calculate again.
 An invalid file reports an error and preserves the previous record and input fields. These controls do not save or open a Studio document.
+Expand **Recorded material inputs** to read the recorded metadata. Missing metadata is marked **Not recorded**; invalid material metadata makes only this section unavailable.
+This does not change the existing Historical/Match/Stale status or the record operations.
 
 ### Input contracts
 

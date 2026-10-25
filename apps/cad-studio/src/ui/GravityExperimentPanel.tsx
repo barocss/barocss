@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { BarocssError, Robot } from '@barocss/cad-model/api';
-import { GravityExperimentRecord } from '@barocss/cad-model/api/experimentRecord';
+import { GravityExperimentRecord, type GravityExperimentMaterialPreview } from '@barocss/cad-model/api/experimentRecord';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
@@ -43,6 +43,11 @@ export function GravityExperimentPanel({ doc, joints }: { doc: StudioDoc; joints
     try { current = entry.record.matches(doc, options); } catch { /* Unmatchable inputs leave the old result stale. */ }
   }
   const preview = entry?.record.preview;
+  let materialPreview: GravityExperimentMaterialPreview | null = null;
+  let materialUnavailable = false;
+  if (entry) {
+    try { materialPreview = entry.record.materialPreview; } catch { materialUnavailable = true; }
+  }
   const invalidateRead = () => { epoch.current++; setReading(false); };
   const fail = (error: unknown) => {
     const refused = error instanceof BarocssError && (error.code === 'VALUE' || error.code === 'ROBOT');
@@ -138,6 +143,37 @@ export function GravityExperimentPanel({ doc, joints }: { doc: StudioDoc; joints
       <div className="kv muted">{preview.coordinateFrame}</div>
       <div className="kv muted">Positive angle follows the joint axis direction [{preview.axis.direction.join(', ')}] by the right-hand rule.</div>
       <ul className="muted">{preview.assumptions.map((assumption, index) => <li key={index}>{assumption}</li>)}</ul>
+      <details>
+        <summary>Recorded material inputs</summary>
+        <p className="muted">Recorded mass inputs and catalogue declarations. These do not establish agreement, authenticity, measured properties or native inertia provenance.</p>
+        {materialUnavailable ? <div className="muted">Recorded material inputs cannot be displayed.</div>
+          : materialPreview === null ? <div className="muted">Not recorded.</div>
+          : materialPreview.bodies.length === 0 ? <div className="muted">No body entries recorded.</div>
+          : materialPreview.bodies.map(({ link, body, materialSnapshot: snapshot, inertiaSource }, index) => <div key={index} className="min-w-0 break-words py-0.5">
+            <div className="kv muted">Recorded body: {link} / {body}</div>
+            {snapshot === null ? <div className="muted">Material snapshot: Not recorded.</div> : <>
+              <div className="kv muted">Used mass density: {snapshot.densityGPerCm3} g/cm³</div>
+              <div className="kv muted">Catalogue declaration density: {snapshot.catalogueDensityGPerCm3 === null ? 'Not recorded' : `${snapshot.catalogueDensityGPerCm3} g/cm³`}</div>
+              <div className="kv muted">Body material ID: {snapshot.bodyMaterialId === null ? 'Unset' : snapshot.bodyMaterialId === '' ? 'Empty ID' : snapshot.bodyMaterialId}</div>
+              <div className="kv muted">Input material ID: {snapshot.inputMaterialId === null ? 'Unset' : snapshot.inputMaterialId === '' ? 'Empty ID' : snapshot.inputMaterialId}</div>
+              <div className="kv muted">Resolved material ID: {snapshot.resolvedMaterialId}</div>
+              <div className="kv muted">Fallback: {snapshot.fallback}</div>
+              <div className="kv muted">Density source ID: {snapshot.densitySourceId === null ? 'Not recorded' : snapshot.densitySourceId === '' ? 'Empty string' : snapshot.densitySourceId}</div>
+              <div className="kv muted">Density source text: {snapshot.densitySourceText === null ? 'Not recorded' : snapshot.densitySourceText === '' ? 'Empty string' : snapshot.densitySourceText}</div>
+              {snapshot.densityPage ? <div className="muted">
+                <div>Source page URL: {snapshot.densityPage.url}</div>
+                <div>Source page read: {snapshot.densityPage.read}</div>
+                <div>Source page label: {snapshot.densityPage.label}</div>
+                {snapshot.densityPage.note !== undefined && <div>Source page note: {snapshot.densityPage.note}</div>}
+              </div> : <div className="muted">Source page: Not recorded.</div>}
+              <div className="kv muted">Library version: {snapshot.libraryVersion === '' ? 'Empty string' : snapshot.libraryVersion}</div>
+              <div className="kv muted">Catalogue row estimate: {snapshot.rowEstimate === null ? 'Not recorded' : String(snapshot.rowEstimate)}</div>
+              <div className="kv muted">Basis: {snapshot.basis}</div>
+            </>}
+            <div className="kv muted">Inertia source: {inertiaSource ?? 'Not recorded'}</div>
+            {inertiaSource === 'callback-override' && <div className="muted">The density records the mass input. It does not establish the callback inertia's native provenance.</div>}
+          </div>)}
+      </details>
     </div>}
     </details>
   </aside>;

@@ -234151,6 +234151,45 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./api/experimentRecord",
+      "exportName": "GravityExperimentMaterialPreview",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/experimentRecord.ts",
+            "name": "GravityExperimentMaterialPreview",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "{ bodies: { link: string; body: string; materialSnapshot: { bodyMaterialId: string | null; inputMaterialId: string | null; resolvedMaterialId: string; fallback: \"none\" | \"unset\" | \"unknown-id\"; densityGPerCm3: number; catalogueDensityGPerCm3: number | null; libraryVersion: string; densitySourceId: string | null; densitySourceText: string | null; densityPage?: { url: string; read: string; label: string; note?: string | undefined; } | undefined; rowEstimate: boolean | null; basis: \"builtin-catalogue-not-measured\"; } | null; inertiaSource: \"mmgs-density-scaled\" | \"callback-override\" | null; }[]; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "{\n    bodies: {\n        link: string;\n        body: string;\n        materialSnapshot: {\n            bodyMaterialId: string | null;\n            inputMaterialId: string | null;\n            resolvedMaterialId: string;\n            fallback: \"none\" | \"unset\" | \"unknown-id\";\n            densityGPerCm3: number;\n            catalogueDensityGPerCm3: number | null;\n            libraryVersion: string;\n            densitySourceId: string | null;\n            densitySourceText: string | null;\n            densityPage?: {\n                url: string;\n                read: string;\n                label: string;\n                note?: string;\n            };\n            rowEstimate: boolean | null;\n            basis: \"builtin-catalogue-not-measured\";\n        } | null;\n        inertiaSource: \"mmgs-density-scaled\" | \"callback-override\" | null;\n    }[];\n}"
+              }
+            ],
+            "members": [
+              {
+                "name": "bodies",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ link: string; body: string; materialSnapshot: { bodyMaterialId: string | null; inputMaterialId: string | null; resolvedMaterialId: string; fallback: \"none\" | \"unset\" | \"unknown-id\"; densityGPerCm3: number; catalogueDensityGPerCm3: number | null; libraryVersion: string; densitySourceId: string | null; densitySourceText: string | null; densityPage?: { url: string; read: string; label: string; note?: string | undefined; } | undefined; rowEstimate: boolean | null; basis: \"builtin-catalogue-not-measured\"; } | null; inertiaSource: \"mmgs-density-scaled\" | \"callback-override\" | null; }[]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/experimentRecord",
       "exportName": "GravityExperimentRecord",
       "space": "type+value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -234179,6 +234218,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(doc: StudioDoc, options: GravityExperimentOptions) => boolean"
+              },
+              {
+                "name": "materialPreview",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "GravityExperimentMaterialPreview | null"
               },
               {
                 "name": "preview",
