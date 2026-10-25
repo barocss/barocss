@@ -44,6 +44,7 @@ import { motionOf, timedPathOf } from '@barocss/cad-model/robot/motion';
 import { createValueStore, useStoreValue } from './state/valueStore';
 import { SceneViewport } from './viewport/SceneViewport';
 import { JointsPanelLive } from './ui/JointsPanelLive';
+import { GravityExperimentPanel } from './ui/GravityExperimentPanel';
 import { ExplodeButton } from './ui/ExplodeButton';
 import { useScenePoses } from './state/useScenePoses';
 import { CommandButtons, CommandStrip, commandStates } from './ui/ToolButton';
@@ -2719,6 +2720,7 @@ export function App() {
           if (r.notes.length) setToast({ title: 'USD written', hint: r.notes.join(' '), detail: '' });
         }}
         onBase={b => { pushUndo(); const robot = { ...(doc.robot ?? { version: 1 as const }) }; if (b === BASE) delete robot.base; else robot.base = b; setDoc({ ...doc, robot }); setDirty(true); }} />}
+      {!rendering && !drawing && !sketch && !measure && !instanceSel.length && <GravityExperimentPanel doc={doc} joints={jointTree?.joints ?? []} />}
       {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}
         onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}
       {!rendering && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <Suspense fallback={null}><DirectPanel direct={doc.direct} selected={directSel}

@@ -77,12 +77,15 @@ link-inertia and gravity calculation.
 The returned object's `report` getter gives a deep copy. Use `matches(doc, options)` to compare the complete captured
 document and explicit inputs with the current ones. If their canonical contents differ, `matches` returns false and the report is stale. This check
 does not rerun the calculation or certify integrity. The profile reports static holding torque, not free motion,
-contact, actuator suitability or physical validation. It adds no experiment storage schema or Studio control.
+contact, actuator suitability or physical validation. It adds no experiment storage schema.
+Studio's STATIC GRAVITY panel requires explicit joint, angle and world XYZ gravity inputs. Calculation leaves the viewport pose unchanged.
+Results stay local to the panel. Changed document or input contents mark them stale; a refused calculation can keep the previous result visible.
+This control calculates holding torque at a prescribed static pose; it does not simulate free motion.
 
-### Candidate input-contract changes
+### Input contracts
 
-The following changes are present in candidate source, but are not integrated into the product or
-verified by execution. They do not extend the supported motion contract above.
+Constructors, getters and operations follow the input rules below.
+These rules do not extend the supported motion contract above.
 
 - Direct `RobotPath` construction copies nested waypoints and limits; its getters return copies.
 - `Robot`, `RobotPath` and `Assembly` constructors also copy their input document. Changing that input later does
