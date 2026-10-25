@@ -10,11 +10,10 @@ import type { BeadSharedSeam } from '@barocss/cad';
 import { table } from './helpers/shared-bead-scene';
 import { WireSender } from '../src/engine/wireDoc';
 import { MeshReceiver, type WireResult } from '../src/engine/meshWire';
-import { evaluateDoc, placedMassFields, type BodyResult } from '../src/engine/evaluate';
+import { evaluateDoc, placedMassFields, type BodyResult, type PartSlot } from '../src/engine/evaluate';
 import { placedDoc, type PartInstance } from '../src/engine/doc';
 import { placementOf } from '../src/engine/placement';
 import { receiveNativeMass, receiveNativeMassPatch, matchesNativeMassPatch, type NativeMassSource, type MassFields } from '../src/engine/nativeMassWire';
-import type { WorkerRequest } from '../../../apps/cad-studio/src/engine/engine.worker';
 
 // The unmodified production handler runs in a real Node worker with structured clone and buffer transfer.
 // The adapter provides Web Worker's message surface only. This is not browser or UI evidence.
@@ -29,7 +28,11 @@ test('production worker preserves owned metadata through wire, new meshes, meshR
 globalThis.self={postMessage:(v,transfer)=>parentPort.postMessage(v,transfer)};
 await import('./production.mjs');
 parentPort.on('message',data=>self.onmessage({data}));parentPort.postMessage({ready:true});`);
-  type NativeRequest = Extract<WorkerRequest, { type: 'evaluate' | 'part' | 'placed' }>;
+  type NativeRequest = { id: number; revision: number; nativeSource: NativeMassSource; doc: ReturnType<WireSender['pack']> } & (
+    | { type: 'evaluate' }
+    | { type: 'part'; slot?: PartSlot }
+    | { type: 'placed'; base: ReturnType<WireSender['pack']>; place: ReturnType<typeof placementOf> }
+  );
   type RequestInput = { [K in NativeRequest['type']]: Omit<Extract<NativeRequest, { type: K }>, 'id' | 'revision' | 'nativeSource'> }[NativeRequest['type']];
   type Reply = { id: number; result: WireResult; nativeMass: unknown[] };
   type Patch = { ref: number; fields: MassFields; nativeMass: unknown };
