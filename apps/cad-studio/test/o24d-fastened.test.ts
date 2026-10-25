@@ -73,7 +73,7 @@ function fixture() {
   return { args, commits, original,
     render() { cursor = 0; return useAssembly(args); },
     async flush() { const pending = [...effects.values()]; effects.clear(); for (const effect of pending) effect(); await tick(); },
-    async ready() { this.render(); await this.flush(); const api = this.render(); await this.flush(); return api; },
+    async ready() { this.render(); await this.flush(); this.render(); await this.flush(); return this.render(); },
     async undo() { const last = history.pop(); assert.ok(last); args.doc = last; return this.ready(); },
     panel(api: Loose) { return MatePanel({ assembly: api, instances: args.doc.instances, instance: 'p', onRefused() {} }); },
     cleanup() { for (const slot of slots) slot?.cleanup?.(); shared.__fastenedHooks = previous; },
