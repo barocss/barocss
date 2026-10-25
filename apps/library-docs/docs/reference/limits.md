@@ -23,6 +23,9 @@ It tightens input validation; it adds no supported geometry operations.
   Malformed tuples give `VALUE`; the split normal must also have magnitude greater than `1e-9`.
 - The rotation command builder accepts only `x`, `y` or `z` and a finite angle in degrees. Invalid axes and angles
   give `VALUE`.
+- Plane, Location, rectangle, circle and arc option inputs reject `null` with `VALUE`. `Location.of` defaults omitted
+  position or rotation to zero but rejects explicit `null`; `Location.at(undefined)` also gives `VALUE`.
+- Polygon point arrays cannot contain missing entries: sparse points give `VALUE` instead of being skipped.
 
 ## Sizes and rows
 

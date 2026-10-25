@@ -88,6 +88,10 @@ verified by execution. They do not extend the supported motion contract above.
   with that Scene, as described in the [Scene input contract](/packages/gpu/#scene-geometry-input-candidate).
 - A process `pull` must have exactly three finite coordinates and match one of the existing six unit directions:
   positive or negative X, Y or Z. Other vectors give `VALUE`; this does not add arbitrary pull directions.
+- Material lookup for an unknown body gives `NO_BODY`. Locking an unknown child or target gives `NO_PART`;
+  an unknown target is not treated as the base part.
+- Library-part options must be a non-null object, not an array, with a non-empty `face` string. `point` and an
+  optional `xDirection` each require exactly three finite numbers. Malformed inputs give `VALUE`.
 
 ## The studio document
 
