@@ -759,7 +759,8 @@ export function App() {
   // `whole`: a new or opened document, nothing of the one before carried into it.)
   const commit = useCallback((next: StudioDoc, capture = true, whole = false) => {
     // Counted as the History bar shows them: sketches are part of the feature made from them.
-    const dropped = marker !== null ? doc.nodes.slice(marker).filter(n => n.kind !== 'sketch').length : 0;
+    const nextFeatureIds = marker !== null ? new Set(next.nodes.map((_, i) => featureId(next.nodes, i))) : null;
+    const dropped = marker !== null && nextFeatureIds ? doc.nodes.slice(marker).filter((n, i) => n.kind !== 'sketch' && !nextFeatureIds.has(featureId(doc.nodes, marker + i))).length : 0;
     pushUndo();
     // Commands build on the evaluated document, which follows the model only: what they leave as it was
     // there (every field but the model's own: engine/doc.ts carryOver) is the document's newest.
