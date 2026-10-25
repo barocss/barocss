@@ -174,7 +174,7 @@ export class GravityExperimentRecord {
   get preview(): GravityExperimentRecordPreview { return structuredClone(this.#preview); }
   /** Full equality only; this does not test current producer code or material catalogue compatibility. */
   matches(doc: StudioDoc, options: GravityExperimentOptions): boolean {
-    const binding = gravityExperimentBinding(doc, options), previous = record(own(this.#report, 'binding'), 'binding');
+    const binding = gravityExperimentBinding(doc, gravityExperimentInput(options)), previous = record(own(this.#report, 'binding'), 'binding');
     return binding.document === previous.document && binding.inputs === previous.inputs;
   }
 }
