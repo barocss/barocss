@@ -109,5 +109,5 @@ export function poseKinematics(jointTree: JointTree | null, values: Record<strin
 }
 /** The gear pairs at a pose (as the Joints card shows them). */
 export function gearLinesAt(jointTree: JointTree | null, jointFk: ReturnType<typeof poseKinematics>) {
-  return (jointTree?.couplings ?? []).map(c => { const at = gearPairAt(c, jointFk?.values ?? {}), home = gearPairAt(c, {}), d = Math.abs(at.phaseDeg - home.phaseDeg); return { leader: c.leader, follower: c.follower, multiplier: c.multiplier, held: Math.min(d, 360 / c.g2.spec.teeth - d) < 1e-6, backlash: at.backlash }; });
+  return (jointTree?.couplings ?? []).map(c => { const at = gearPairAt(c, jointFk?.values ?? {}), home = gearPairAt(c, {}), d = Math.abs(at.phase - home.phase); return { leader: c.leader, follower: c.follower, multiplier: c.multiplier, held: Math.min(d, 360 / c.g2.spec.teeth - d) < 1e-6, backlash: at.backlash }; });
 }

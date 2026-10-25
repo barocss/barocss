@@ -41,7 +41,7 @@ Reads the part without changing it.
 | `query.interference` | `interference` | bodies? — overlap and clearance |
 | `query.section` | `section` | axis, at |
 | `query.wall` | `wall_thickness` | body?, below? |
-| `query.draft` | `draft` | body?, pull?, min_deg? |
+| `query.draft` | `draft` | body?, pull?, draftMin? |
 | `query.fit_clearance` | `fit_clearance` | hole?, shaft?, hole_class?, shaft_class?, size? — a hole–shaft fit’s limits and clearance from your fit tables |
 | `query.rebuild` | `rebuild_report` | — each feature's build time and kernel calls; mate loops |
 | `query.welds` | `weld_list` | — the frame's weld joints, seams from the geometry, sizes yours or estimated |
@@ -123,18 +123,18 @@ Parts placed and mated with the base part; changes to it are proposed. A part to
 | `assembly.snap` | `snap_part` | a, b, offset? |
 | `assembly.joints` | `get_joints` | — the assembly as links and joints from its base link |
 | `assembly.frames` | `set_frames` | frames: {name: {link, position?, rotation?, kind?} \| null} — tool and sensor frames |
-| `assembly.pose` | `forward_kinematics` | values: {joint key: radians \| mm} — where each part is |
+| `assembly.pose` | `forward_kinematics` | values: {joint key: degrees \| mm} — where each part is |
 | `assembly.set_pose` | `set_pose` | values: {joint key: degrees \| mm} — the robot shown there, nothing stored |
 | `assembly.waypoint` | `set_waypoint` | motion, values?, at?, remove?, limits? — a stored motion's waypoints (degrees, mm) |
 | `assembly.check_path` | `check_path` | motion — a stored motion checked for contact along its timing |
 | `assembly.play` | `play_motion` | motion, samples? — a stored motion's poses over time |
-| `assembly.inertia` | `link_inertia` | — each link's mass, centre of mass and inertia (SI, link frame) |
+| `assembly.inertia` | `link_inertia` | — each link's mass, centre of mass and inertia (MMGS, link frame) |
 | `assembly.urdf` | `export_urdf` | name? — the robot as URDF, checked |
 | `assembly.mjcf` | `export_mjcf` | name? — the robot as a MuJoCo MJCF model, checked |
 | `assembly.sweep` | `sweep_path` | to, from? — a joint move checked for collisions, certified |
 | `assembly.gravity` | `gravity_torques` | values?, g? — the static torque each joint holds |
 | `assembly.move` | `motion_torques` | to, profile, limits, from?, joint_limits? — a move's peak and RMS torques |
-| `assembly.size` | `size_actuators` | to, profile, limits, from?, joint_limits?, dwell_s?, life_h?, estop_rad_s2?, coupled?, motors?, reducers? — a motor and reducer per joint, every value sourced |
+| `assembly.size` | `size_actuators` | to, profile, limits, from?, joint_limits?, dwell?, serviceLife?, stopDeceleration?, coupled?, motors?, reducers? — a motor and reducer per joint, every value sourced |
 | `assembly.set_joints` | `set_joints` | base?, joints?: {key: {lower?, upper?, effort?, velocity?} \| null} |
 
 ### `library`: Library
@@ -178,7 +178,7 @@ A SubD cage (features.command subd-box, subd-torus or subd-tube makes one), by i
 | Action | Handler | Arguments and notes |
 |---|---|---|
 | `subd.cage` | `subd_cage` | index |
-| `subd.select` | `subd_select` | index, what, normal?, within_deg?, box?, edge?, limit? |
+| `subd.select` | `subd_select` | index, what, normal?, withinAngle?, box?, edge?, limit? |
 | `subd.move` | `subd_move` | index, delta, vertices?, edges?, faces? |
 | `subd.extrude` | `subd_extrude` | index, faces? \| edges?, offset? \| distance? |
 | `subd.insert_loop` | `subd_insert_loop` | index, edge, t? |
@@ -195,5 +195,5 @@ A traced picture (a character, logo, icon) as solids.
 | Action | Handler | Arguments and notes |
 |---|---|---|
 | `image.layers` | `get_image_layers` | image? |
-| `image.extrude` | `extrude_image_layer` | width_mm, height, image?, layer?, base?, orientation?, at?, y? |
-| `image.inflate` | `inflate_image_layer` | width_mm, depth, image?, layer?, mode?, body_depth?, orientation?, at?, y? |
+| `image.extrude` | `extrude_image_layer` | width, height, image?, layer?, base?, orientation?, at?, y? |
+| `image.inflate` | `inflate_image_layer` | width, depth, image?, layer?, mode?, body_depth?, orientation?, at?, y? |

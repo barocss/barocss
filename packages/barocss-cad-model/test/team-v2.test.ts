@@ -4,8 +4,9 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { ANALYSIS_VIEW_KEYS, DFM_VIEW_KEYS, integrate, revisionOf, type ReviewerRole, type ReviewView } from '../src/team/team';
+import { ANALYSIS_VIEW_KEYS, DFM_VIEW_KEYS, integrate, revisionOf, verifierView, reviewView, type ReviewerRole, type ReviewView } from '../src/team/team';
 import { runScenario, runSummary, scriptedReviewer, type Scenario } from '../src/team/scripted';
+import type { KeepoutResult } from '../src/engine/schema/references';
 
 // A8.1 (O32–O33): multi-agent v2. Parallel read-only reviewers — DFM and Analysis — each on its own built, frozen view;
 // any rejection rejects, their findings in role order whichever ends first; the defects only they see; the Drafting
@@ -58,4 +59,20 @@ test('the reviewers are structurally read-only: each view its fixed keys, frozen
     assert.ok(!Object.values(v).some(x => typeof x === 'function'));
   }
   assert.equal(views.dfm.process, 'fdm');
+  // Projection-only mocks, not physical acceptance: retain the existing JSON treatment of JavaScript edge values.
+  const precise = 0.123456789012345, seed: KeepoutResult = { keepout: 'K1', body: 'b1', verdict: 'clear', overlap: 0, clearance: 2, requiredMM: 1, chordMM: precise, why: 'projection fixture' };
+  const keepouts: KeepoutResult[] = [seed, { ...seed, keepout: 'K2', chordMM: Infinity }, { ...seed, keepout: 'K3' }];
+  Reflect.deleteProperty(keepouts[2], 'chordMM'); // An absent JS value is omitted by JSON, rather than serialized as null.
+  const extra = { keepouts, print: null, spec: null }, view = verifierView(s.doc, [], extra);
+  const projected = view.keepouts as Record<string, unknown>[];
+  assert.deepEqual(Object.keys(projected[0]).sort(), ['body', 'chordTolerance', 'clearance', 'keepout', 'verdict']);
+  assert.equal(projected[0].chordTolerance, precise);
+  assert.notEqual(projected[0].chordTolerance, Number(precise.toPrecision(12)), 'Team retains its existing raw finite precision');
+  assert.equal(projected[1].chordTolerance, null);
+  assert.equal('chordTolerance' in projected[2], false);
+  assert.ok(Object.isFrozen(view) && Object.isFrozen(projected) && projected.every(row => Object.isFrozen(row) && !('chordMM' in row)));
+  assert.deepEqual(reviewView('analysis', s.doc, [], extra).keepouts, projected);
+  assert.equal(seed.chordMM, precise); assert.equal(keepouts[1].chordMM, Infinity);
+  assert.equal('chordMM' in keepouts[2], false); assert.equal(Object.isFrozen(seed), false);
+
 });

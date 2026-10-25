@@ -68,6 +68,7 @@ test('the four-bar from mates: three turns in the tree, the fourth pin its loop;
   for (let k = 1; k <= 360; k++) {
     const dq = sgn * (k * Math.PI / 180), t2 = FOUR_BAR.crank0 + k * Math.PI / 180;
     const r = closeLoop(tree, c, 'base~crank', dq, q); q = r.q;
+    assert.ok(!('residualMM' in r));
     // (The oracle: Freudenstein's branch at the crank's angle, and the coupler's length, by FK.)
     const want = freudenstein(20, 70, 50, 60, t2, 1)!;
     worstRad = Math.max(worstRad, Math.abs(wrap(rockerAngle(tree, c, q) - want)));
@@ -88,7 +89,7 @@ test('the other branch refused (BRANCH_FLIP); a non-Grashof linkage has no closu
   const sg = rock.axis[2] > 0 ? 1 : -1, sc = tree.joints.find(j => j.key === 'crank~coupler')!.axis[2] > 0 ? 1 : -1;
   const crossed = { 'base~rocker': sg * (t4x - t40), 'crank~coupler': sc * (Math.atan2(Cx[1] - B[1], Cx[0] - B[0]) - Math.atan2(C0[1] - B[1], C0[0] - B[0])) };
   assert.throws(() => closeLoop(tree, c, 'base~crank', 0, crossed), /BRANCH_FLIP/);
-  assert.equal(closeLoop(tree, c, 'base~crank', 0, {}).residualMM <= 1e-12, true);
+  assert.equal(closeLoop(tree, c, 'base~crank', 0, {}).residual <= 1e-12, true);
   // (A non-Grashof triple rocker, a 50, b 30, c 40, d 70: s + l = 100 > p + q = 90. Synthetic tree, the same planar loop.)
   const [a, b, cc, d] = [50, 30, 40, 70], th0 = Math.PI / 6, t4 = freudenstein(a, b, cc, d, th0, 1)!;
   assert.ok(Number.isFinite(t4), 'it assembles at 30°: |B − D| 36.6 mm, within |b − c| … b + c');
