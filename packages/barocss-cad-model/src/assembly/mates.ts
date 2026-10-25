@@ -5,7 +5,7 @@
 // stands, two by the frame they span — and the positions they demand are linear in the move, solved for the
 // smallest move from where it stands. A mate that disagrees with the ones before it is refused with the
 // reason; nothing is fitted or iterated, so a solved assembly stays put when it is solved again.
-import { connectorOf, validateBallOptions, validateFastenedOptions, type Connector } from './connectors';
+import { connectorOf, validateBallOptions, validateFastenedOptions, validateUniversalOptions, type Connector } from './connectors';
 import { isRefusal, refusal } from '../engine/refusal';
 import type { PartInstance } from '../engine/doc';
 import type { Sig } from '../engine/references';
@@ -15,7 +15,7 @@ import { axisAngle, clean, DEG, eulerOf, matMul, rotationMatrix, type Mat3 } fro
 // (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
 import type { Vec3 } from '../engine/vec3';
 export type { Vec3 };
-export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle' | 'tangent' | 'lock' | 'cam' | 'fastened' | 'ball';
+export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle' | 'tangent' | 'lock' | 'cam' | 'fastened' | 'ball' | 'universal';
 /** A face by its persistent B-rep name on a part: `base` (the document's own part) or an instance id. */
 /** `sig`: the face's geometry when it was picked; `was`: its name before a re-match (engine/references.ts). */
 export interface MateRef { part: string; face: string; at?: Connector; sig?: Sig; was?: string }
@@ -34,7 +34,7 @@ export interface MateRef { part: string; face: string; at?: Connector; sig?: Sig
  * same way by default, and flip opposes them.
  */
 export interface Mate {
-  /** fastened aligns persistent connector origins, Z and X (0 DoF); ball aligns only origins (3 free turns). Lock keeps the current relative pose. */
+  /** fastened aligns persistent connector origins, Z and X (0 DoF); ball aligns only origins (3 free turns). Universal holds origins and a.Z perpendicular to b.X (2 turns). Lock keeps the current relative pose. */
   id: string; kind: MateKind; a: MateRef; b: MateRef; distance?: number; angle?: number; flip?: boolean;
   /** `lock`: b's placement in a's own coordinates, kept as it was when locked (its faces are unused, ''). */
   rel?: { position: Vec3; rotation: Vec3 };
@@ -56,7 +56,7 @@ export type MateFace =
 export type FaceTable = Record<string, MateFace>;
 
 export const BASE = 'base';
-export const KIND_LABEL: Record<MateKind, string> = { coincident: 'Coincident', concentric: 'Concentric', distance: 'Distance', angle: 'Angle', tangent: 'Tangent', lock: 'Lock', cam: 'Cam', fastened: 'Fastened', ball: 'Ball' };
+export const KIND_LABEL: Record<MateKind, string> = { coincident: 'Coincident', concentric: 'Concentric', distance: 'Distance', angle: 'Angle', tangent: 'Tangent', lock: 'Lock', cam: 'Cam', fastened: 'Fastened', ball: 'Ball', universal: 'Universal' };
 export const mateLabel = (mate: Mate, index: number) => `${KIND_LABEL[mate.kind]} ${index + 1}`;
 
 /** A face or edge with an axis (a round face, a cone, a circular or straight edge): concentric reads its line. */
@@ -88,18 +88,21 @@ export function solvedFaces(kind: MateKind, a: MateFace, b: MateFace): { as: Mat
   return { as: kind, a, b };
 }
 
-/** Project connector frames to classic mate geometry; X is retained by connectorOf for O24(d). */
+/** Project connector frames to existing geometry rows. Universal reads a.Z and b.X, not both full frames. */
 export function mateFacesOf(mate: Mate, faces: { a: MateFace; b: MateFace }): ReturnType<typeof solvedFaces> {
   validateFastenedOptions(mate.kind, mate);
   validateBallOptions(mate.kind, mate);
+  validateUniversalOptions(mate.kind, mate);
   if ((mate.a.at || mate.b.at) && (mate.kind === 'cam' || mate.kind === 'lock')) throw refusal('CONNECTOR_KIND', 'Connectors support coincident, distance, angle, concentric and tangent mates.');
-  return solvedFaces(mate.kind, referenceFace(mate.a, faces.a, mate.kind), referenceFace(mate.b, faces.b, mate.kind));
+  return solvedFaces(mate.kind, referenceFace(mate.a, faces.a, mate.kind), referenceFace(mate.b, faces.b, mate.kind, true));
 }
-function referenceFace(ref: MateRef, face: MateFace, kind: MateKind): MateFace {
-  if (ref.at === undefined && kind !== 'fastened' && kind !== 'ball') return face;
+function referenceFace(ref: MateRef, face: MateFace, kind: MateKind, moving = false): MateFace {
+  if (ref.at === undefined && kind !== 'fastened' && kind !== 'ball' && kind !== 'universal') return face;
   const frame = connectorOf(face, { at: ref.at === undefined ? {} : ref.at, name: ref.face });
   // Use the existing point rows and free twists; a ball never constrains connector X or Z.
   if (kind === 'ball') return { kind: 'sphere', point: frame.point, radius: 0, outer: true };
+  // The two joint axes belong to opposite bodies: fixed connector Z and moving connector X.
+  if (kind === 'universal') return { kind: 'plane', point: frame.point, normal: moving ? frame.x : frame.normal };
   if (kind === 'fastened') return { kind: 'plane', point: frame.point, normal: frame.normal, x: frame.x };
   return kind === 'concentric' || kind === 'tangent'
     ? { kind: 'cylinder', point: frame.point, axis: frame.normal, radius: 0, outer: true }
@@ -173,7 +176,7 @@ export function mateRefusal(mate: Mate, fa: MateFace | undefined, fb: MateFace |
   if (!fa || !fb) return 'One of its faces is no longer on the part (a feature was edited or removed).';
   let pair: ReturnType<typeof mateFacesOf>;
   try { pair = mateFacesOf(mate, { a: fa, b: fb }); } catch (e) { if (isRefusal(e)) return e.message; throw e; }
-  if (mate.kind === 'fastened' || mate.kind === 'ball') return null;
+  if (mate.kind === 'fastened' || mate.kind === 'ball' || mate.kind === 'universal') return null;
   const kinds = kindsFor(pair.a, pair.b);
   if (!kinds.includes(pair.as)) return mate.kind === 'concentric' ? 'Concentric needs two round faces, cones or edges with an axis; or two spheres.'
     : mate.kind === 'tangent' ? 'Tangent needs a round face, and a flat or another round face; or a sphere and a flat face.' : mate.kind === 'cam' ? 'Cam needs a face of the cam (its lobe) and the follower\'s flat face.'
@@ -291,6 +294,14 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
   const dirs: { u: Vec3; v: Vec3; mate: Mate }[] = [], accepted: Term[] = [];
   let frame: Mat3 | null = null;
   const Rcur = rotationMatrix(inst.rotation);
+  // One explicit universal reuses the existing perpendicular-direction solve and three point rows.
+  // Combining it with other mates needs a coupled solve/rank analysis outside this slice; locks are
+  // checked separately at their captured pose by solveAssembly. Refuse instead of reporting false DoF.
+  const universals = terms.filter(t => t.mate.kind === 'universal');
+  if (universals.length && terms.length > 1) {
+    const rest = solveOne(inst, terms.filter(t => t.mate.kind !== 'universal'), label, partName);
+    return { ...rest, problems: [...rest.problems, ...universals.map(t => ({ mate: t.mate.id, reason: 'A universal combined with other mates needs an unsupported coupled solve.' }))] };
+  }
   // One ball anchor (including redundant mates on that same point) is a point-only joint. Distinct
   // anchors need a coupled rotational solve, which this analytic slice does not implement.
   const balls = terms.filter(t => t.mate.kind === 'ball');
@@ -302,8 +313,8 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
   // Mates with a set sense first; an axis either way round then takes the sense that fits them (or, when
   // both fit, the one nearer how the part stands).
   const free = (t: Term) => t.mate.kind === 'concentric' && t.mate.flip === undefined || roundPair(t);
-  // Angles and flat-to-round tangents hold a direction at an angle to another (a cone), not onto it: they come after.
-  const cone = (t: Term) => t.mate.kind === 'angle' || t.mate.kind === 'tangent' && !roundPair(t);
+  // Angles, universals and flat-to-round tangents hold a direction at an angle to another, not onto it: they come after.
+  const cone = (t: Term) => t.mate.kind === 'angle' || t.mate.kind === 'universal' || t.mate.kind === 'tangent' && !roundPair(t);
   // (A sphere's mates hold its centre only: no direction.)
   const turning = terms.filter(t => t.fixed.kind !== 'sphere' && t.moving.kind !== 'sphere');
   const angles = turning.filter(cone);
@@ -543,7 +554,7 @@ const roundPair = (t: Term) => t.mate.kind === 'tangent' && t.fixed.kind === 'cy
 function rowsOf(term: Term, R: Mat3): { g: Vec3; h: number }[] {
   const f = term.fixed, m = term.moving;
   if (term.mate.kind === 'angle') return [];
-  if (term.mate.kind === 'fastened') return ([[1, 0, 0], [0, 1, 0], [0, 0, 1]] as Vec3[]).map(e => ({ g: e, h: dot(e, f.point) - dot(e, apply(R, m.point)) }));
+  if (term.mate.kind === 'fastened' || term.mate.kind === 'universal') return ([[1, 0, 0], [0, 1, 0], [0, 0, 1]] as Vec3[]).map(e => ({ g: e, h: dot(e, f.point) - dot(e, apply(R, m.point)) }));
   if (term.mate.kind === 'tangent') {
     // The axis a radius off the face: in front of it (flip: behind).
     const side = term.mate.flip ? -1 : 1;
