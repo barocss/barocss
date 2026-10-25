@@ -8,6 +8,8 @@ import type { StudioDoc } from '../engine/doc';
 import type { JointSettings } from '../robot/joints';
 import { coreValues, durationOf, refuseLoop, gravityOf, inertiaOf, jointsOf, mjcfOf, motionOf, poseAtOf, poseOf, problemsOf, sdfOf, sweepOf, treeOf, urdfOf, usdOf, withJoints, withMotion } from './robotCore';
 import type { MotionLimits, MotionPath } from '../robot/motion';
+import { GravityExperiment } from './experiment';
+import type { GravityExperimentOptions } from './experimentInput';
 
 export class Robot {
   readonly #doc: StudioDoc;
@@ -50,6 +52,9 @@ export class Robot {
 
   /** `assembly.gravity`: joint values in degrees/mm, g in mm/s² (default down 9806.65); replies in N·mm for turns, N for slides. */
   gravity(values: Readonly<Record<string, number>> = {}, g?: readonly [number, number, number]) { return gravityOf(this.#doc, coreValues(treeOf(this.#doc), values), g); }
+
+  /** Bind one prescribed static holding-torque calculation to this document and explicit degree/mm/s² inputs. */
+  gravityExperiment(options: GravityExperimentOptions): GravityExperiment { return new GravityExperiment(this.#doc, options); }
 
   /** `assembly.urdf` and `assembly.mjcf`: the robot as URDF or MJCF, checked — the tools' replies, each file's data beside it. */
   urdf(name = 'robot') { return urdfOf(this.#doc, name); }

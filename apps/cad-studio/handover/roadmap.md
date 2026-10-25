@@ -111,10 +111,36 @@ current gate explicitly. Preserve commands, immutable source references and raw 
 use their presence as a substitute for the outcome. A source review, visual result, numerical PASS and measured
 validation are different results and must remain separate.
 
-## Order now (2026-10-25, owner: "필요한 것들 로드맵에 추가 해서 진행해줘")
+## Order now (2026-10-26)
 
-Each lane works its queue top to bottom. The coordinator merges every checkpoint, runs check:docs, and keeps this
-section current.
+The current local product is `f7eb767d9e874fb2dd38ba6f24f05cef825b0d50`.
+The foundation corrections, axis-inertia query, positive-principal-axis draft and Drawing input corrections are
+adopted. The product CAD library was freshly built at `b77c0a08`; its 818 output files matched the candidate.
+A new selected test connected an actual planar box B-rep mass result to the axis-inertia query and independent
+box formulas. This used an authored density, not a measured material or a forward-dynamics solver.
+
+The direct-file engine History scroll and Save/New/Open flow was checked in desktop Chrome. The saved and reopened
+documents matched the complete input document. Project/OPFS saving was outside that check. The draft and Drawing
+guides were then built, inspected in desktop Chrome and adopted with their product docs check. Original failures,
+tool-control failures, numerical checks and limited visual results remain separate evidence.
+
+The next source batch starts Stage 1 with one bounded experiment: static gravity holding torque at a specified
+pose of one connected open revolute or continuous joint. The API lane owns its facade and regression sources.
+Reuse the existing Model inertia and gravity calculations. Require explicit pose and gravity inputs, refuse
+missing or assumed moving-body materials and incomplete results, and bind a captured result to the complete
+document and inputs. A changed document, pose or gravity vector makes the old result stale. A revision label is
+not an integrity certificate. Preserve existing gravity behaviour and its units.
+
+This batch does not add a solver, free-motion prediction, a storage schema or a Studio experiment UI. It must first
+complete source review, then its focused numerical and consumer checks, public-surface documentation and local
+adoption. It does not complete all of Stage 1. Next connect the bounded result to user-visible input, stale and
+unsupported states; do not start the pendulum solver before its ownership and input contracts are established.
+
+## Historical lane order (2026-10-25, owner: "필요한 것들 로드맵에 추가 해서 진행해줘")
+
+The table below retains the earlier lane order and checkpoint narrative. Use the current delivery checkpoint
+above and the staged expansion for current priorities. The coordinator adopts each bounded checkpoint serially
+and runs the required product docs check.
 
 | Lane | Now | Next | Then |
 |---|---|---|---|
