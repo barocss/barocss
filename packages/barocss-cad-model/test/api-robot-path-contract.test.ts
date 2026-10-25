@@ -103,11 +103,17 @@ test('withMotion preserves empty, single-waypoint and untimed recording drafts',
 
 test('withMotion snapshots the saved path and replaces only the named motion', () => {
   const r = robot('scara'), path = r.path([{}, { 'base~arm1': 90 }], { limits: rates() });
+  const originalPick = r.doc.robot!.motions!.find(m => m.name === 'pick');
+  assert.ok(originalPick, 'the SCARA fixture already contains pick');
   const saved = r.withMotion('turn', path).withMotion('other', path);
   const replacement = r.path([{}, { 'base~arm1': 45 }], { limits: rates() });
   const next = saved.withMotion('turn', replacement), exported = next.doc;
-  exported.robot!.motions![0].path.waypoints[1]['base~arm1'] = -90;
-  assert.deepEqual(next.doc.robot!.motions!.map(m => m.name), ['turn', 'other']);
+  const exportedTurn = exported.robot!.motions!.find(m => m.name === 'turn');
+  assert.ok(exportedTurn, 'the exported copy contains the replaced turn');
+  exportedTurn.path.waypoints[1]['base~arm1'] = -90;
+  assert.deepEqual(next.doc.robot!.motions!.map(m => m.name), ['pick', 'turn', 'other']);
+  assert.deepEqual(next.doc.robot!.motions!.find(m => m.name === 'pick'), originalPick);
+  assert.deepEqual(saved.doc.robot!.motions!.find(m => m.name === 'pick'), originalPick);
   close(next.motion('turn').poseAt(100)['base~arm1'], 45);
   close(next.motion('other').duration(), 1.5);
   close(saved.motion('turn').poseAt(100)['base~arm1'], 90);
