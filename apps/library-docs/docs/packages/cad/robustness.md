@@ -14,6 +14,10 @@ surfaces; mesh inputs retain faceted faces. The Boolean algorithm depends on tha
   described below.
 - **Fillets and chamfers** roll a ball along the named edges, or cut them back, on the exact faces either side.
 - **Offsets.** `shell`, `thicken` and `draft` offset or tilt faces on their surfaces.
+  In a kernel part document, `draft` accepts `pull: 'x'`, `'y'` or `'z'` for the positive world coordinate axis.
+  Omitting `pull` selects +Z. `neutral` is the plane's coordinate in mm along that selected world axis,
+  not a distance from the picked face; if omitted, it uses the body's minimum coordinate on that axis.
+  Negative axes and arbitrary pull vectors are not supported by this document feature.
 
 ## Guided conic lofts
 

@@ -41,7 +41,8 @@ export function checkDrawingMetadata(args: Record<string, unknown>): Problem[] {
   }
   if ('revisions' in args) {
     const x = args.revisions;
-    if (!Array.isArray(x) || x.length > 50 || x.some(r => !revisionOk(r) || Object.keys(r).some(k => !['revision', 'date', 'description', 'by'].includes(k))) || new Set(x.map(r => r.revision)).size !== x.length) return [problem('DRAWING_OPTIONS', 'revisions needs at most 50 unique records: revision (1–6 characters), date (YYYY-MM-DD), description (1–120 characters), optional by (1–60 characters). Text must be single-line. No other keys.')];
+    // Authored history must contain every row; keep the saved reader's filtering separate.
+    if (!Array.isArray(x) || x.length > 50 || Array.from(x).some((r, k) => !Object.hasOwn(x, k) || !revisionOk(r) || Object.keys(r).some(key => !['revision', 'date', 'description', 'by'].includes(key))) || new Set(x.map(r => r.revision)).size !== x.length) return [problem('DRAWING_OPTIONS', 'revisions needs at most 50 unique records: revision (1–6 characters), date (YYYY-MM-DD), description (1–120 characters), optional by (1–60 characters). Text must be single-line. No other keys.')];
   }
   return [];
 }
