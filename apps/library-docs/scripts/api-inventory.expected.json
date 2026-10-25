@@ -227646,7 +227646,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "(kind: \"ball\" | \"distance\" | \"angle\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"universal\" | \"concentric\", a: MateEnd, b: MateEnd, options?: MateOptions) => Assembly"
+                "type": "(kind: \"ball\" | \"distance\" | \"angle\" | \"cylindrical\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"universal\" | \"concentric\", a: MateEnd, b: MateEnd, options?: MateOptions) => Assembly"
               },
               {
                 "name": "addPart",
@@ -232807,7 +232807,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "(kind: \"ball\" | \"distance\" | \"angle\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"universal\" | \"concentric\", a: MateEnd, b: MateEnd, options?: MateOptions) => Assembly"
+                "type": "(kind: \"ball\" | \"distance\" | \"angle\" | \"cylindrical\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"universal\" | \"concentric\", a: MateEnd, b: MateEnd, options?: MateOptions) => Assembly"
               },
               {
                 "name": "addPart",
@@ -233911,7 +233911,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "(kind: \"ball\" | \"distance\" | \"angle\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"universal\" | \"concentric\", a: MateEnd, b: MateEnd, options?: MateOptions) => Assembly"
+                "type": "(kind: \"ball\" | \"distance\" | \"angle\" | \"cylindrical\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"universal\" | \"concentric\", a: MateEnd, b: MateEnd, options?: MateOptions) => Assembly"
               },
               {
                 "name": "addPart",
@@ -248577,6 +248577,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./assembly/connectors",
+      "exportName": "validateCylindricalOptions",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/connectors.ts",
+            "name": "validateCylindricalOptions",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(kind: unknown, value: object) => void",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(kind: unknown, value: object) => void"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/connectors",
       "exportName": "validateFastenedOptions",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -250597,11 +250628,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"ball\" | \"distance\" | \"angle\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"universal\" | \"lock\" | \"concentric\"",
+            "type": "\"ball\" | \"distance\" | \"angle\" | \"cylindrical\" | \"cam\" | \"tangent\" | \"coincident\" | \"fastened\" | \"universal\" | \"lock\" | \"concentric\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"coincident\" | \"concentric\" | \"distance\" | \"angle\" | \"tangent\" | \"lock\" | \"cam\" | \"fastened\" | \"ball\" | \"universal\""
+                "definition": "\"coincident\" | \"concentric\" | \"distance\" | \"angle\" | \"tangent\" | \"lock\" | \"cam\" | \"fastened\" | \"ball\" | \"universal\" | \"cylindrical\""
               }
             ],
             "members": [
@@ -277275,6 +277306,37 @@
             ],
             "callSignatures": [
               "(pr: BrepProjection) => number"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/layout",
+      "exportName": "placeDimensionLabels",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/layout.ts",
+            "name": "placeDimensionLabels",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(initial: IssueContext) => { settings: DrawingSettings; left: DrawingIssue[]; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(initial: IssueContext) => { settings: DrawingSettings; left: DrawingIssue[]; }"
             ]
           }
         }
@@ -371429,7 +371491,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"origin\" | \"end\" | \"mid\" | \"quadrant\" | \"centre\"",
+            "type": "\"origin\" | \"end\" | \"mid\" | \"centre\" | \"quadrant\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",

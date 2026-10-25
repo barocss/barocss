@@ -52,6 +52,8 @@
 | `[COMPILATION]` | `core/error-codes.ts (declared)` | — |
 | `[CONDITION]` | `core/error-codes.ts (declared)` | — |
 | `[CONDITIONING]` | `core/error-codes.ts (declared)` | — |
+| `[CONE_TOP_CHAMFER_SCOPE]` | `blend` | edge …: only a convex full-circle small-cap rim of one solid conical frustum is supported |
+| `[CONE_TOP_CHAMFER_SIZE]` | `blend` | edge …: the distance must stay strictly inside both faces and away from the axis |
 | `[CONFLICT]` | `core/error-codes.ts (declared)` | — |
 | `[CONNECTED]` | `core/error-codes.ts (declared)` | — |
 | `[CONNECTOR_FIT]` | `core/error-codes.ts (declared)` | — |
@@ -409,7 +411,7 @@
 | `[JOINT_UNKNOWN]` | `robot` | waypoint …: no moving joint … (joints: …) |
 | `[LIBRARY_ID]` | `library` | … is a built-in library: give yours another id |
 | `[LIBRARY_UNKNOWN]` | `library` | No library … (libraries: …) |
-| `[LIMITS_BAD]` | `robot` | a trapezoid needs velocity and acceleration limits above 0 |
+| `[LIMITS_BAD]` | `api`, `robot` | motion limits are a record of joint rate settings |
 | `[LIMITS_MISSING]` | `robot` | joint … has no … limits above 0 |
 | `[LOFT_SECTIONS]` | `app` | … |
 | `[LOOP_MATE_UNSUPPORTED]` | `robot` | … (… between ….… and ….…) closes a loop, and no loop closure holds that mate yet: concentric round faces, edges, cones or spheres, coincident, distance or … |
