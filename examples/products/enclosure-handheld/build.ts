@@ -164,9 +164,10 @@ export const insert = () => part('insert-m3').cylinder({ r: 2, h: 5 }).subtract(
 let sizes: { name: string; text: string } | null = null;
 const SIZES = () => sizes ??= { name: 'fastener-sizes.json', text: readFileSync(join(import.meta.dirname, '../../../packages/barocss-cad-model/samples/rows/fastener-sizes.json'), 'utf8') };
 export const caseScrew = () => part('case-screw-m3x20').loadRows('fastener-sizes', SIZES()).fastener({ kind: 'socket-screw', size: 'M3', length: '20', joint: 'free', x: 0, y: 0, z: 0 }).material('steel');
-// No length 5 in the sample rows. Use explicit illustrative solids, not invented rows or a standards claim (PG-12).
-export const boardScrew = () => part('board-screw-m3x5').cylinder({ r: 1.5, h: 5, z: -5 })
-  .union(q => q.cylinder({ r: 2.5, h: 1.6 })).material('steel').named('board screw (unthreaded stand-in)').bought();
+// The approved sample has M3 capLengths 5. This cosmetic fastener is not a thread-performance claim (PG-12).
+export const boardScrew = () => part('board-screw-m3x5').loadRows('fastener-sizes', SIZES())
+  .fastener({ kind: 'socket-screw', size: 'M3', length: '5', joint: 'free', x: 0, y: 0, z: 0, model: 'cosmetic' })
+  .material('steel').named('board screw (sample socket M3x5)').bought();
 
 // ── the parts, built once each and timed ──
 export const PARTS: readonly [string, () => StudioPart][] = [
