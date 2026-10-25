@@ -65,7 +65,7 @@ export function MatePanel({ assembly, instances, instance, onRefused }: { assemb
         <div className="kv">1 · Stays <b>{draft.picks[0] ? refText(draft.picks[0].ref) : 'click a face'}</b></div>
         <div className="kv">2 · Moves <b>{draft.picks[1] ? refText(draft.picks[1].ref) : draft.picks[0] ? 'click a face on another part' : '—'}</b></div>
         {draft.error ? <div className="hud-error" role="status" aria-label="Mate refused"><div className="hud-error-title">Can’t mate these faces</div>{draft.error}</div>
-          : <div className="empty">Click a face on the part that stays, then one on the part to move: two flat faces (coincident, distance, angle), two round faces (concentric, tangent), or a flat and a round one (tangent). Flat faces end up flush and facing each other.</div>}
+          : <div className="empty">Click a face on the part that stays, then one on the part to move: two flat faces (coincident, distance, angle), two round faces (concentric, tangent), or a flat and a round one (tangent). Flat faces end up flush and facing each other. Fastened aligns connector origins, Z and X with no free motion.</div>}
         <div className="flex flex-wrap gap-1"><Button variant="ghost" onClick={assembly.cancel}>Cancel</Button></div>
       </div>}
       {mates.map((m, i) => {
@@ -90,6 +90,7 @@ function MateEditor({ mate, problem, tables, refText, onEdit, onDelete }: {
   const fa = tables.get(mate.a.part)?.[mate.a.face], fb = tables.get(mate.b.part)?.[mate.b.face];
   let kinds: MateKind[] = [mate.kind];
   if (fa && fb) { try { kinds = mateKindsOf({ a: mate.a, b: mate.b }, { a: fa, b: fb }); } catch { /* Keep the selected kind visible for an invalid saved connector. */ } }
+  if (mate.kind !== 'lock' && mate.kind !== 'cam' && !kinds.includes('fastened')) kinds = [...kinds, 'fastened'];
   return (
     <div className="mate-edit" style={{ display: 'grid', gap: 6, marginTop: 8 }}>
       <div className="kv">Stays <b>{refText(mate.a)}</b></div>
@@ -99,10 +100,12 @@ function MateEditor({ mate, problem, tables, refText, onEdit, onDelete }: {
       <label className={FIELD}><span>Type</span>
         <NativeSelect className={CONTROL} aria-label="Edit mate type" value={mate.kind} onChange={e => {
           const kind = e.target.value as MateKind;
+          if (kind === 'fastened') { onEdit({ kind }); return; }
           onEdit({ kind, distance: kind === 'distance' ? mate.distance ?? 0 : undefined, angle: kind === 'angle' ? mate.angle ?? 90 : undefined, ...(kind === 'concentric' ? { flip: undefined } : {}) });
         }}>{kinds.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</NativeSelect></label>
       {mate.kind === 'distance' && <NumberField label="Distance" value={mate.distance ?? 0} onCommit={v => onEdit({ distance: v })} />}
       {mate.kind === 'angle' && <NumberField label="Angle" unit="°" value={mate.angle ?? 0} onCommit={v => onEdit({ angle: v })} />}
+      {mate.kind === 'fastened' && <div className="empty" aria-label="Fastened freedom">0 DoF: the connector origins, Z and X stay aligned.</div>}
       {mate.kind === 'lock' ? <div className="empty">Moves with {refText(mate.a)} as one piece, where it stood when locked.</div>
         : mate.kind === 'concentric'
         ? <label className={FIELD}><span>Axes</span>

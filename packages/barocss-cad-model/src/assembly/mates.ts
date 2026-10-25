@@ -5,7 +5,7 @@
 // stands, two by the frame they span — and the positions they demand are linear in the move, solved for the
 // smallest move from where it stands. A mate that disagrees with the ones before it is refused with the
 // reason; nothing is fitted or iterated, so a solved assembly stays put when it is solved again.
-import { connectorOf, type Connector } from './connectors';
+import { connectorOf, validateFastenedOptions, type Connector } from './connectors';
 import { isRefusal, refusal } from '../engine/refusal';
 import type { PartInstance } from '../engine/doc';
 import type { Sig } from '../engine/references';
@@ -15,7 +15,7 @@ import { axisAngle, clean, DEG, eulerOf, matMul, rotationMatrix, type Mat3 } fro
 // (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
 import type { Vec3 } from '../engine/vec3';
 export type { Vec3 };
-export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle' | 'tangent' | 'lock' | 'cam';
+export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle' | 'tangent' | 'lock' | 'cam' | 'fastened';
 /** A face by its persistent B-rep name on a part: `base` (the document's own part) or an instance id. */
 /** `sig`: the face's geometry when it was picked; `was`: its name before a re-match (engine/references.ts). */
 export interface MateRef { part: string; face: string; at?: Connector; sig?: Sig; was?: string }
@@ -34,6 +34,7 @@ export interface MateRef { part: string; face: string; at?: Connector; sig?: Sig
  * same way by default, and flip opposes them.
  */
 export interface Mate {
+  /** fastened aligns both persistent connector origins, Z and X (0 DoF); lock keeps the current relative pose. */
   id: string; kind: MateKind; a: MateRef; b: MateRef; distance?: number; angle?: number; flip?: boolean;
   /** `lock`: b's placement in a's own coordinates, kept as it was when locked (its faces are unused, ''). */
   rel?: { position: Vec3; rotation: Vec3 };
@@ -46,7 +47,7 @@ export interface Mate {
  * face's `centre` is its area centroid; a round face's or a cone's `span` its extent along the axis from `point`.
  */
 export type MateFace =
-  | { kind: 'plane'; point: Vec3; normal: Vec3; centre?: Vec3 }
+  | { kind: 'plane'; point: Vec3; normal: Vec3; centre?: Vec3; /** Derived connector X for fastened only; never stored as a reference. */ x?: Vec3 }
   | { kind: 'cylinder'; point: Vec3; axis: Vec3; radius: number; outer: boolean; span?: [number, number] }
   | { kind: 'sphere'; point: Vec3; radius: number; outer: boolean }
   | { kind: 'cone'; point: Vec3; axis: Vec3; half: number; outer: boolean; span?: [number, number] }
@@ -55,7 +56,7 @@ export type MateFace =
 export type FaceTable = Record<string, MateFace>;
 
 export const BASE = 'base';
-export const KIND_LABEL: Record<MateKind, string> = { coincident: 'Coincident', concentric: 'Concentric', distance: 'Distance', angle: 'Angle', tangent: 'Tangent', lock: 'Lock', cam: 'Cam' };
+export const KIND_LABEL: Record<MateKind, string> = { coincident: 'Coincident', concentric: 'Concentric', distance: 'Distance', angle: 'Angle', tangent: 'Tangent', lock: 'Lock', cam: 'Cam', fastened: 'Fastened' };
 export const mateLabel = (mate: Mate, index: number) => `${KIND_LABEL[mate.kind]} ${index + 1}`;
 
 /** A face or edge with an axis (a round face, a cone, a circular or straight edge): concentric reads its line. */
@@ -89,12 +90,14 @@ export function solvedFaces(kind: MateKind, a: MateFace, b: MateFace): { as: Mat
 
 /** Project connector frames to classic mate geometry; X is retained by connectorOf for O24(d). */
 export function mateFacesOf(mate: Mate, faces: { a: MateFace; b: MateFace }): ReturnType<typeof solvedFaces> {
+  validateFastenedOptions(mate.kind, mate);
   if ((mate.a.at || mate.b.at) && (mate.kind === 'cam' || mate.kind === 'lock')) throw refusal('CONNECTOR_KIND', 'Connectors support coincident, distance, angle, concentric and tangent mates.');
   return solvedFaces(mate.kind, referenceFace(mate.a, faces.a, mate.kind), referenceFace(mate.b, faces.b, mate.kind));
 }
 function referenceFace(ref: MateRef, face: MateFace, kind: MateKind): MateFace {
-  if (ref.at === undefined) return face;
-  const frame = connectorOf(face, { at: ref.at, name: ref.face });
+  if (ref.at === undefined && kind !== 'fastened') return face;
+  const frame = connectorOf(face, { at: ref.at === undefined ? {} : ref.at, name: ref.face });
+  if (kind === 'fastened') return { kind: 'plane', point: frame.point, normal: frame.normal, x: frame.x };
   return kind === 'concentric' || kind === 'tangent'
     ? { kind: 'cylinder', point: frame.point, axis: frame.normal, radius: 0, outer: true }
     : { kind: 'plane', point: frame.point, normal: frame.normal };
@@ -135,7 +138,7 @@ function turnOnto(from: Vec3, to: Vec3): Mat3 {
 
 /** A face moved by a placement (R, t). */
 function placeFace(f: MateFace, R: Mat3, t: Vec3): MateFace {
-  return f.kind === 'plane' ? { kind: 'plane', point: add(apply(R, f.point), t), normal: apply(R, f.normal) }
+  return f.kind === 'plane' ? { kind: 'plane', point: add(apply(R, f.point), t), normal: apply(R, f.normal), ...(f.x ? { x: apply(R, f.x) } : {}) }
     : f.kind === 'sphere' ? { ...f, point: add(apply(R, f.point), t) }
     : { ...f, point: add(apply(R, f.point), t), axis: apply(R, f.axis) };
 }
@@ -167,6 +170,7 @@ export function mateRefusal(mate: Mate, fa: MateFace | undefined, fb: MateFace |
   if (!fa || !fb) return 'One of its faces is no longer on the part (a feature was edited or removed).';
   let pair: ReturnType<typeof mateFacesOf>;
   try { pair = mateFacesOf(mate, { a: fa, b: fb }); } catch (e) { if (isRefusal(e)) return e.message; throw e; }
+  if (mate.kind === 'fastened') return null;
   const kinds = kindsFor(pair.a, pair.b);
   if (!kinds.includes(pair.as)) return mate.kind === 'concentric' ? 'Concentric needs two round faces, cones or edges with an axis; or two spheres.'
     : mate.kind === 'tangent' ? 'Tangent needs a round face, and a flat or another round face; or a sphere and a flat face.' : mate.kind === 'cam' ? 'Cam needs a face of the cam (its lobe) and the follower\'s flat face.'
@@ -293,34 +297,42 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
   const turning = terms.filter(t => t.fixed.kind !== 'sphere' && t.moving.kind !== 'sphere');
   const angles = turning.filter(cone);
   for (const term of [...turning.filter(t => !free(t) && !cone(t)), ...turning.filter(free)]) {
-    const { u, v: v0 } = directionOf(term);
-    const misfit = (v: Vec3): string | null => {
-      if (frame) {
-        const off = len(sub(apply(frame, u), v));
-        return off > DIR_TOL ? `${dirs.map(d => label(d.mate)).filter((x, i, all) => all.indexOf(x) === i).join(' and ')}: they turn ${partName} so this face points ${fmtNum(degBetween(dot(apply(frame, u), v)))}° away from where it must.` : null;
+    const directions = term.mate.kind === 'fastened'
+      ? [{ u: (term.moving as Plane).normal, v: mul((term.fixed as Plane).normal, term.mate.flip ? -1 : 1) }, { u: (term.moving as Plane).x!, v: (term.fixed as Plane).x! }]
+      : [directionOf(term)];
+    const count = dirs.length;
+    const previousFrame: Mat3 | null = frame;
+    let rejected = false;
+    for (const { u, v: v0 } of directions) {
+      const misfit = (v: Vec3): string | null => {
+        if (frame) {
+          const off = len(sub(apply(frame, u), v));
+          return off > DIR_TOL ? `${dirs.map(d => label(d.mate)).filter((x, i, all) => all.indexOf(x) === i).join(' and ')}: they turn ${partName} so this face points ${fmtNum(degBetween(dot(apply(frame, u), v)))}° away from where it must.` : null;
+        }
+        const d = dirs.find(d => Math.abs(dot(u, d.u) - dot(v, d.v)) > DIR_TOL);
+        if (!d) return null;
+        // The same face (or a parallel one) already pointed by that mate: say how far this one would turn it.
+        const c = dot(u, d.u);
+        if (Math.abs(c) > 1 - DIR_TOL) {
+          const turn = fmtNum(degBetween(dot(v, d.v) * Math.sign(c)));
+          return d.mate.b.face === term.mate.b.face ? `${label(d.mate)}: it already sets which way this face of ${partName} points, and this mate would turn it ${turn}° from there.`
+            : `${label(d.mate)}: it already sets which way a face of ${partName} parallel to this one points, and this mate would turn them ${turn}° from there.`;
+        }
+        return `${label(d.mate)}: on ${partName} its face is ${fmtNum(degBetween(c))}° from that mate's face, but the faces they mate to are ${fmtNum(degBetween(dot(v, d.v)))}° apart.`;
+      };
+      let v = v0, conflict = misfit(v0);
+      if (free(term)) {
+        const back = mul(v0, -1), fitsBack = !misfit(back);
+        const nearer = dot(apply(frame ?? Rcur, u), v0) >= 0 ? v0 : back;
+        v = conflict ? back : fitsBack ? nearer : v0;
+        if (!conflict || fitsBack) conflict = null;
       }
-      const d = dirs.find(d => Math.abs(dot(u, d.u) - dot(v, d.v)) > DIR_TOL);
-      if (!d) return null;
-      // The same face (or a parallel one) already pointed by that mate: say how far this one would turn it.
-      const c = dot(u, d.u);
-      if (Math.abs(c) > 1 - DIR_TOL) {
-        const turn = fmtNum(degBetween(dot(v, d.v) * Math.sign(c)));
-        return d.mate.b.face === term.mate.b.face ? `${label(d.mate)}: it already sets which way this face of ${partName} points, and this mate would turn it ${turn}° from there.`
-          : `${label(d.mate)}: it already sets which way a face of ${partName} parallel to this one points, and this mate would turn them ${turn}° from there.`;
-      }
-      return `${label(d.mate)}: on ${partName} its face is ${fmtNum(degBetween(c))}° from that mate's face, but the faces they mate to are ${fmtNum(degBetween(dot(v, d.v)))}° apart.`;
-    };
-    let v = v0, conflict = misfit(v0);
-    if (free(term)) {
-      const back = mul(v0, -1), fitsBack = !misfit(back);
-      const nearer = dot(apply(frame ?? Rcur, u), v0) >= 0 ? v0 : back;
-      v = conflict ? back : fitsBack ? nearer : v0;
-      if (!conflict || fitsBack) conflict = null;
+      if (conflict) { problems.push({ mate: term.mate.id, reason: `Conflicts with ${conflict}` }); rejected = true; break; }
+      dirs.push({ u, v, mate: term.mate });
+      // Two independent directions fix the rotation: the frame they span on the part onto their partners' frame.
+      if (!frame && len(cross(u, dirs[0].u)) > 1e-6) frame = matMul(orthoFrame(dirs[0].v, v), transpose(orthoFrame(dirs[0].u, u)));
     }
-    if (conflict) { problems.push({ mate: term.mate.id, reason: `Conflicts with ${conflict}` }); continue; }
-    dirs.push({ u, v, mate: term.mate }); accepted.push(term);
-    // Two independent directions fix the rotation: the frame they span on the part onto their partners' frame.
-    if (!frame && len(cross(u, dirs[0].u)) > 1e-6) frame = matMul(orthoFrame(dirs[0].v, v), transpose(orthoFrame(dirs[0].u, u)));
+    if (rejected) { dirs.splice(count); frame = previousFrame; } else accepted.push(term);
   }
   // One direction (or parallel ones): the smallest turn from where the part stands.
   let R = frame ?? (dirs.length ? matMul(turnOnto(unit(apply(Rcur, dirs[0].u)), unit(dirs[0].v)), Rcur) : Rcur);
@@ -504,6 +516,7 @@ function placeRound(term: Term, R: Mat3, t: Vec3, held: Vec3[]): { t: Vec3; hold
 }
 
 type Cylinder = Extract<MateFace, { kind: 'cylinder' }>;
+type Plane = Extract<MateFace, { kind: 'plane' }>;
 /** Whether a flat mate's normals face the same way: flip, or the reverse when an origin plane is involved. */
 /** A frame, not a face of a B-rep: a part's origin planes, or a datum of its locked references (A6.3, O75) — no material side. */
 export const frameFace = (name: string) => name.startsWith('origin:') || name.startsWith('datum:');
@@ -519,6 +532,7 @@ const roundPair = (t: Term) => t.mate.kind === 'tangent' && t.fixed.kind === 'cy
 function rowsOf(term: Term, R: Mat3): { g: Vec3; h: number }[] {
   const f = term.fixed, m = term.moving;
   if (term.mate.kind === 'angle') return [];
+  if (term.mate.kind === 'fastened') return ([[1, 0, 0], [0, 1, 0], [0, 0, 1]] as Vec3[]).map(e => ({ g: e, h: dot(e, f.point) - dot(e, apply(R, m.point)) }));
   if (term.mate.kind === 'tangent') {
     // The axis a radius off the face: in front of it (flip: behind).
     const side = term.mate.flip ? -1 : 1;

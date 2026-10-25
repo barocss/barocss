@@ -13,7 +13,7 @@
 // (export, RM4, writes metres); joint values are 0 at the pose the mates solve to.
 import { checkPlacedSpurGears, spurGearDimensions, type GearPlacement } from '@barocss/cad';
 import type { PartInstance, StudioDoc } from '../engine/doc';
-import { BASE, mateFacesOf, type FaceTable, type Mate, type MateFace, type Vec3 } from '../assembly/mates';
+import { BASE, mateFacesOf, mateRefusal, type FaceTable, type Mate, type MateFace, type Vec3 } from '../assembly/mates';
 import { rotationMatrix } from '../engine/placement';
 import { add, cross, dot, len, sub } from '../engine/vec3';
 import { exportNames, checkFrame, readFrames, resolveFrame, type FrameCode, type FrameSettings, type ToolFrame } from './frames';
@@ -107,7 +107,7 @@ function worldFace(f: MateFace, at: Placed): MateFace {
 }
 /** The rows a mate puts on b's twist relative to a (both faces in the world). */
 function mateRows(m: Mate, fa: MateFace, fb: MateFace, L: number): Row[] {
-  if (m.kind === 'lock') return [0, 1, 2, 3, 4, 5].map(i => { const r = [0, 0, 0, 0, 0, 0] as Row; r[i] = 1; return r; });
+  if (m.kind === 'lock' || m.kind === 'fastened') return [0, 1, 2, 3, 4, 5].map(i => { const r = [0, 0, 0, 0, 0, 0] as Row; r[i] = 1; return r; });
   if (fa.kind === 'plane' && fb.kind === 'plane') {
     const n = fa.normal, [t1, t2] = across(n);
     if (m.kind === 'angle') { const c = cross(fb.normal, n); return len(c) > 1e-9 ? [[c[0], c[1], c[2], 0, 0, 0]] : [dirRow(n, t1), dirRow(n, t2)]; }
@@ -232,6 +232,11 @@ export function jointTree(input: TreeInput): JointTree {
     if (m.kind === 'cam') continue;
     if (failed.has(m.id)) { problems.push({ code: 'MATE_PROBLEM', message: `${m.id} is not met (${(input.mateProblems ?? []).find(p => p.mate === m.id)!.reason}): it makes no joint.`, mates: [m.id] }); continue; }
     if (!placed.has(m.a.part) || !placed.has(m.b.part) || m.a.part === m.b.part) continue;
+    // A fastened joint must resolve its persistent references before six fixed rows can be admitted.
+    if (m.kind === 'fastened') {
+      const why = mateRefusal(m, input.tables(m.a.part)?.[m.a.face], input.tables(m.b.part)?.[m.b.face]);
+      if (why) { failed.add(m.id); problems.push({ code: 'MATE_PROBLEM', message: `${m.id} is not met (${why}): it makes no joint.`, mates: [m.id] }); continue; }
+    }
     const k = pairKey(m.a.part, m.b.part); (pairs.get(k) ?? pairs.set(k, []).get(k)!).push(m);
   }
   // Grounded instances are fixed in the world: joined to the base by a fixed joint.
