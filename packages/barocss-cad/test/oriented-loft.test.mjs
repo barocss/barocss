@@ -592,7 +592,11 @@ test('mixed quadratic guide: independent stadium volume, centroid and actual rai
   const plain = mixed().brep;
   assert.deepEqual(brep.faces.map(f => f.name), plain.faces.map(f => f.name));
   assert.deepEqual(brep.edges.map(e => [e.id, e.name, e.vertices]), plain.edges.map(e => [e.id, e.name, e.vertices]));
-  for (const id of ['bottom', 'top']) assert.deepEqual(brep.faces.find(f => f.id === id), plain.faces.find(f => f.id === id));
+  for (const id of ['L/L.shell/bottom', 'L/L.shell/top']) {
+    const guided = brep.faces.find(f => f.id === id), original = plain.faces.find(f => f.id === id);
+    assert.ok(guided, `guided cap ${id} exists`); assert.ok(original, `original cap ${id} exists`);
+    assert.deepEqual(guided, original);
+  }
 });
 
 test('mixed quadratic guide: independent D-profile area and centroid', () => {
@@ -733,7 +737,7 @@ function validThreeConics(brep) {
   assert.equal(brep.shells.length, 1); assert.equal(brep.shells[0].closed, true);
   assert.equal(brep.shells[0].faces.length, 10);
   assert.deepEqual(brep.faces.map(f => f.name).sort(), ['L.bottom', ...[0, 1].flatMap(k => [0, 1, 2, 3].map(i => `L.s${k}.side${i}`)), 'L.top']);
-  assert.deepEqual(brep.faces.filter(f => !f.name.includes('.side')).map(f => f.id).sort(), ['bottom', 'top']);
+  assert.deepEqual(brep.faces.filter(f => !f.name.includes('.side')).map(f => f.id).sort(), ['L/L.shell/bottom', 'L/L.shell/top']);
   assert.equal(new Set(brep.edges.map(e => e.name)).size, 20);
   for (let i = 0; i < 4; i++) {
     const edge = brep.edges.find(e => e.id === `r1_${i}`), uses = brep.coedges.filter(c => c.edge === edge.id);
@@ -753,8 +757,8 @@ test('three conic sections: circular waist has independent mass, shared middle r
     const middle = brep.edges.find(e => e.id === `r1_${i}`).curve;
     for (const t of [0, 0.25, 0.5, 0.75, 1]) {
       const p = evaluateCurve(middle, t); close(Math.hypot(p[0], p[1]), 2); close(p[2], 3);
-      vector(evaluateSurface(brep.faces.find(f => f.id === `f0_${i}`).surface, t, 1), p);
-      vector(evaluateSurface(brep.faces.find(f => f.id === `f1_${i}`).surface, t, 0), p);
+      vector(evaluateSurface(brep.faces.find(f => f.id === `L/L.shell/f0_${i}`).surface, t, 1), p);
+      vector(evaluateSurface(brep.faces.find(f => f.id === `L/L.shell/f1_${i}`).surface, t, 0), p);
     }
   }
 });
@@ -810,7 +814,7 @@ test('three conic sections: circle sketches and inline ellipses agree with direc
 test('three conic sections: existing two-section IDs, names and cap contracts remain', () => {
   const { brep } = conic(circleProfile(1), circleProfile(2)); valid(brep);
   assert.deepEqual(brep.vertices.map(v => v.id), [0, 1].flatMap(k => [0, 1, 2, 3].map(i => `v${k}_${i}`)));
-  assert.deepEqual(brep.faces.map(f => f.id), ['f0_0', 'f0_1', 'f0_2', 'f0_3', 'bottom', 'top']);
+  assert.deepEqual(brep.faces.map(f => f.id), ['f0_0', 'f0_1', 'f0_2', 'f0_3', 'bottom', 'top'].map(id => `L/L.shell/${id}`));
   assert.equal(brep.edges.length, 12);
   for (let i = 0; i < 4; i++) {
     assert.equal(brep.edges.find(e => e.id === `r0_${i}`).name, `L.bottom|L.side${i}`);

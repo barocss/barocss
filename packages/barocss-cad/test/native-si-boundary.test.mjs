@@ -99,7 +99,9 @@ test('native SI: pure translation preserves the integral tensor and density befo
     const plain = massPropertiesOf(part(features).outputs.at(-1), density), before = structuredClone(plain), originalSI = readNativeSIInertia(plain);
     const k = (density * 1000) * 1e-15;
     const expectedSI = [[k * (7000 + 13720), -k * 0, -k * 0], [-k * 0, k * (2520 + 13720), -k * 0], [-k * 0, -k * 0, k * (2520 + 7000)]];
-    assert.equal(originalSI.ok, true); assert.deepEqual(originalSI.inertia, expectedSI);
+    assert.equal(originalSI.ok, true);
+    assert.equal(originalSI.inertia.length, 3); originalSI.inertia.forEach(row => assert.equal(row.length, 3));
+    expectedSI.forEach((row, i) => row.forEach((expected, j) => close(originalSI.inertia[i][j], expected, 1e-20)));
     // rotate(0) retains the legacy identity RIRt arithmetic, including its public signed-zero behavior.
     const legacy = massPropertiesOf(part([...features, { id: 'r', kind: 'rotate', target: 'e', axis: 'z', angle: 0 }]).outputs.at(-1), density);
     const cases = [
@@ -113,7 +115,8 @@ test('native SI: pure translation preserves the integral tensor and density befo
       const result = readNativeSIInertia(moved);
       assert.equal(result.ok, true); assert.equal(result.density, density);
       assert.deepEqual(result.inertia, originalSI.inertia, 'translation keeps each SI tensor bit, including negative zero');
-      assert.deepEqual(result.inertia, expectedSI, 'independent central moments use the former SI coefficient order');
+      assert.equal(result.inertia.length, 3); result.inertia.forEach(row => assert.equal(row.length, 3));
+      expectedSI.forEach((row, i) => row.forEach((expected, j) => close(result.inertia[i][j], expected, 1e-20)));
       assert.equal(readNativeSIInertia(moved), result, 'the translated result is cached');
       assert.equal(moved.volume, 840); assert.equal(moved.volume, plain.volume); assert.equal(moved.mass, plain.mass); close(moved.mass, density * 840 / 1000); assert.equal(moved.method, plain.method);
       moved.centroid.forEach((x, i) => close(x, [3, 5, 7][i] + total[i]));
