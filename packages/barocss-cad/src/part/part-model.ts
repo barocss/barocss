@@ -154,7 +154,7 @@ export type CadPartFeature = Base & (
    * `${id}.bottom`, `.top`, `.side${i}` (two sections) or `.s${k}.side${i}`. `smooth` (three or more
    * sections): one smooth side per edge through them all (C1), named `.side${i}`.
    */
-  /** CG1.1: two sections may instead use world frames; ruled convex polygon affine correspondence only. */
+  /** Two world frames: ruled convex polygons with affine correspondence, or identical frame axes. */
   | { readonly kind: 'loft'; readonly sections: readonly CadPartLoftSection[]; readonly smooth?: boolean }
   /**
    * A body read from a STEP file (its text); its faces keep their names, prefixed `${id}.`. `each`: every

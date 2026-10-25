@@ -92,15 +92,51 @@ test('oriented loft: invalid frames and mixed position encodings cannot silently
   rejected(() => make(flat(0), { ...flat(3), origin: [1e8, 0, 3] }), 'INPUT', /coordinate range/);
 });
 
-test('oriented loft: unsupported nonaffine, nonconvex, curved and multi-section shapes are explicit refusals', () => {
+test('oriented loft: unsupported nonparallel nonaffine, nonconvex, curved and multi-section shapes are explicit refusals', () => {
   const nonaffine = polygon([[0, 0], [2, 0], [3, 2], [0, 2]]);
-  rejected(() => loftSolid(input([section(flat(0)), section(flat(3), nonaffine)])), 'INPUT', /affine/);
+  rejected(() => loftSolid(input([section(flat(0)), section(tilted, nonaffine)])), 'INPUT', /affine/);
   const concave = polygon([[0, 0], [2, 0], [1, 1], [2, 2], [0, 2]]);
   rejected(() => loftSolid(input([section(flat(0), concave), section(flat(3), concave)])), 'INPUT', /convex/);
   const circle = [{ kind: 'arc', start: [1, 0], center: [0, 0], direction: 'ccw' }];
   rejected(() => loftSolid(input([section(flat(0), circle), section(flat(3), circle)])), 'INPUT', /straight polygon/);
   rejected(() => loftSolid(input([section(flat(0)), section(flat(3)), section(flat(6))])), 'INPUT', /exactly two/);
   rejected(() => loftSolid({ ...input([section(flat(0)), section(flat(3))]), smooth: true }), 'INPUT', /ruled/);
+});
+
+test('parallel polygon loft: non-affine trapezoid has independent volume, centroid and bounds', () => {
+  const trapezoid = polygon([[0, 0], [2, 0], [3, 2], [0, 2]]);
+  const { brep, mass } = loftSolid(input([section(flat(0)), section(flat(3), trapezoid)]));
+  valid(brep);
+  // At z=3t the width at y is 2+ty/2, 0<=y<=2. Integrate dx dy dz directly:
+  // A=4+t, integral(x dA)=4+2t+t^2/3, integral(y dA)=4+4t/3.
+  // This is not an affine image of the rectangle: only its upper-right corner moves.
+  const m = mass(2.7); close(m.volume, 27 / 2); close(m.mass, 27 / 2 * 2.7 / 1000);
+  vector(m.centroid, [92 / 81, 28 / 27, 14 / 9]);
+  assert.deepEqual(bound(brep), { min: [0, 0, 0], max: [3, 2, 3] });
+});
+
+test('parallel polygon loft: rulings preserve both authored non-affine section edges', () => {
+  const trapezoid = polygon([[0, 0], [2, 0], [3, 2], [0, 2]]);
+  const { brep } = loftSolid(input([section(flat(0)), section(flat(3), trapezoid)]));
+  const side = brep.faces.find(f => f.name === 'L.side1').surface;
+  vector(evaluateSurface(side, 0.25, 0), [2, 0.5, 0]);
+  vector(evaluateSurface(side, 0.25, 1), [2.25, 0.5, 3]);
+  vector(evaluateSurface(side, 0.25, 0.4), [2.1, 0.5, 1.2]);
+});
+
+test('parallel polygon loft: convex endpoints with a collapsing interior are refused', () => {
+  // The same convex upper trapezoid starts two vertices later. At t=1/2 several
+  // corresponding vertices coincide. Endpoint-only convexity would admit this invalid solid.
+  const shifted = polygon([[3, 2], [0, 2], [0, 0], [2, 0]]);
+  rejected(() => loftSolid(input([section(flat(0)), section(flat(3), shifted)])), 'GEOMETRY', /fold|separation/);
+});
+
+test('parallel polygon loft: general correspondence requires positive plane spacing and identical axes', () => {
+  const trapezoid = polygon([[0, 0], [2, 0], [3, 2], [0, 2]]);
+  rejected(() => loftSolid(input([section(flat(0)), section(flat(0), trapezoid)])), 'GEOMETRY', /separation/);
+  rejected(() => loftSolid(input([section(flat(3)), section(flat(0), trapezoid)])), 'GEOMETRY', /separation/);
+  const rotated = { origin: [2, 0, 3], xAxis: [0, 1, 0], yAxis: [-1, 0, 0] };
+  rejected(() => loftSolid(input([section(flat(0)), section(rotated, trapezoid)])), 'INPUT', /identical axes/);
 });
 
 test('oriented loft: degenerate and self-crossing profiles retain typed profile refusals', () => {

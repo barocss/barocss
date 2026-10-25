@@ -24,7 +24,7 @@ export interface LoftSectionFrame {
   readonly xAxis: readonly [number, number, number];
   readonly yAxis: readonly [number, number, number];
 }
-/** Use z throughout for the legacy path, or two explicit frames with affine-corresponding convex polygons. */
+/** Use z throughout, or two explicit convex polygon frames: affine correspondence, or identical axes. */
 export type LoftSectionInput = { readonly profile: readonly ProfileSegmentInput[] } & (
   | { readonly z: number; readonly frame?: never }
   | { readonly frame: LoftSectionFrame; readonly z?: never }
