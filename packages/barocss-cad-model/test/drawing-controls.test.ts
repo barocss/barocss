@@ -2,15 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CHARACTERISTICS, characteristicMarks, checkDrawingFrames, readFrames, type DrawingFrame } from '../src/drawing/controls';
 import { frameMarks, type Mark } from '../src/drawing/sheet';
-import { readDrawing, defaultDrawing } from '../src/drawing/types';
+import { readDrawing, defaultDrawing, type DrawingDatum, type Vec3 } from '../src/drawing/types';
 import { textCorners } from '../src/drawing/text';
 import { starterDoc } from '../src/engine/doc';
 import { drawingInputs, runDrawingTool } from '../src/chat/drawing';
 import { drawingIssues, issueContext } from '../src/drawing/issues';
-import { evaluatePart } from '../src/engine/evaluate';
+import { evaluatePart, brepsFor } from '../src/engine/evaluate';
 import { dispatchTool } from '../src/chat/tools';
 import { autoLayout } from '../src/drawing/layout';
 import { modelAnnotations } from '../src/drawing/annotations3d';
+import { checkDatumOptions, datumAnchor, datumsProperty } from '../src/drawing/datums';
+import { projectViews } from '../src/drawing/project';
+import { validate, type JsonSchema } from '../src/chat/contract';
 
 const frame: DrawingFrame = { id: 'f1', dim: 'd1', characteristic: 'position', value: 0.25, datums: ['A', 'B'] };
 const under = { kind: 'text' as const, at: [20, 30] as [number, number], text: '10', size: 3.5, anchor: 'start' as const };
@@ -93,4 +96,59 @@ test('3D annotations preserve a linear zone, the selected characteristic and all
   assert.deepEqual(lifted.frame!.cells.map(c => c.text), ['flatness', '0.25(M)(F)(T)(P)12', 'A(L)', 'B(M)']);
   assert.equal(lifted.arcs.length, 6, 'the six modifier circles; the flatness symbol is a polyline');
   assert.ok(lifted.lines.every(l => l.role === 'frame'));
+});
+
+
+test('saved edge datums retain ids, signatures, previous names and duplicate-letter diagnostics', () => {
+  const input = drawingInputs(starterDoc()); assert.ok(typeof input !== 'string');
+  const sig = { k: 'line', p: [0, 0, 0] as Vec3, d: [1, 0, 0] as Vec3, s: 64, n: 1 };
+  const d: DrawingDatum = { id: 'edge-a', letter: 'A', view: 'front', edge: { edge: input.views.front.edges[0].name, near: [0, 0, 0], sig, was: 'previous-edge' }, place: [-10, 42] };
+  const rows = [d, { ...d, letter: 'B' }, { ...d, id: 'duplicate-letter' }];
+  const settings = readDrawing({ ...defaultDrawing(), datums: JSON.parse(JSON.stringify(rows)) });
+  assert.deepEqual(settings.datums, rows);
+  assert.equal(settings.datums!.length, 3, 'saved duplicate ids and letters remain available to diagnostics');
+  const first = settings.datums![0]; assert.ok(first.edge); assert.deepEqual(first.edge.sig, sig); assert.equal(first.edge.was, 'previous-edge');
+  assert.equal(readDrawing({ datums: [{ ...d, id: '' }] }).datums![0].id, '', 'the old saved-reader id acceptance is unchanged');
+  assert.ok(drawingIssues(issueContext({ ...input, settings })).some(i => i.code === 'DATUM_TWICE'));
+});
+
+test('authored face and edge datums share schema metadata, refuse atomically, keep omitted data and clear explicitly', async () => {
+  const doc = starterDoc(), input = drawingInputs(doc); assert.ok(typeof input !== 'string');
+  const face = input.views.faces!.find(f => f.points.some(p => p.every(v => v === 0)))!; assert.ok(face);
+  const edge: DrawingDatum = { id: 'edge-a', letter: 'A', view: 'front', edge: { edge: input.views.front.edges[0].name, near: [0, 0, 0], sig: { k: 'line', p: [0, 0, 0], s: 64 }, was: 'previous-edge' }, place: [-10, 42] };
+  const d: DrawingDatum = { id: 'face-b', letter: 'B', view: 'top', face: { face: face.name, near: [0, 0, 0] }, place: [-10, 42] };
+  assert.deepEqual(validate(datumsProperty as JsonSchema, [edge, d]), []);
+  assert.deepEqual(Object.keys(datumsProperty.items.properties.edge.properties), ['edge', 'near', 'sig', 'was']);
+  assert.deepEqual(checkDatumOptions({ datums: [edge, d] }), []);
+  const original = { ...doc, drawing: { ...defaultDrawing(), datums: [edge] } }, before = JSON.stringify(original);
+  for (const datums of [null, [edge, edge], [edge, { ...d, id: edge.id }], [edge, { ...d, letter: edge.letter }], [{ ...d, edge: edge.edge }], [{ ...d, injected: true }], [{ ...edge, edge: { ...edge.edge, sig: { k: 'line', p: [0, 0], s: 64 } } }]]) {
+    assert.equal(checkDatumOptions({ datums })[0]?.code, 'DRAWING_OPTIONS');
+    const refused = runDrawingTool(original, 'set_drawing', { title: 'Must not apply', datums });
+    assert.ok('error' in refused && /DRAWING_OPTIONS/.test(refused.error)); assert.equal(JSON.stringify(original), before);
+  }
+  const kept = runDrawingTool(original, 'set_drawing', {}); assert.ok(!('error' in kept)); if ('error' in kept) return;
+  assert.deepEqual(kept.doc.drawing?.datums, [edge]);
+  const cleared = runDrawingTool(original, 'set_drawing', { datums: [] }); assert.ok(!('error' in cleared)); if ('error' in cleared) return;
+  assert.equal(cleared.doc.drawing?.datums, undefined);
+  const evaluate = async (source: typeof doc) => evaluatePart(source, 1), result = await evaluate(doc); assert.ok(result.ok); if (!result.ok) return;
+  const state = { doc, bodies: result.bodies }, described = await dispatchTool(state, 'describe', { tool: 'drawing', action: 'set' }, evaluate);
+  assert.deepEqual(JSON.parse(described.content).input.properties.datums, datumsProperty);
+  const changed = await dispatchTool(state, 'drawing', { action: 'set', datums: [edge, d] }, evaluate);
+  assert.ok(!changed.isError, changed.content); assert.deepEqual(changed.state.doc.drawing?.datums, [edge, d]);
+});
+
+test('face anchors keep exact occurrence prefixes and current plate vertices; missing, ambiguous and empty faces stay unresolved', () => {
+  const source = brepsFor(starterDoc()); assert.ok(!('error' in source)); if ('error' in source) return;
+  // Reuse the existing 64 × 32 × 8 starter plate twice: prefixes distinguish occurrences without creating new geometry.
+  const projected = projectViews([source.breps[0], source.breps[0]], ['left/', 'right/']); assert.ok(projected.ok); if (!projected.ok) return;
+  const views = projected.views, faces = views.faces!;
+  const face = faces.find(f => f.name.startsWith('right/') && f.points.some(p => p.every(v => v === 0)) && f.points.some(p => p[0] === 0 && p[1] === 0 && p[2] === 8))!; assert.ok(face);
+  assert.ok(faces.some(f => f.name === face.name.replace(/^right\//, 'left/')));
+  const d: DrawingDatum = { id: 'face-b', letter: 'B', view: 'top', face: { face: face.name, near: [0, 0, 0] }, place: [-10, 42] };
+  assert.deepEqual(datumAnchor(views, d), [0, 0, 0], 'independent original plate corner');
+  const current = { ...views, faces: faces.map(f => f === face ? { ...f, points: f.points.filter(p => p[2] === 8) } : f) };
+  assert.deepEqual(datumAnchor(current, d), [0, 0, 8], 'current upper boundary, not the obsolete origin hint');
+  assert.equal(datumAnchor({ ...views, faces: faces.filter(f => f !== face) }, d), null, 'left occurrence is not a fallback');
+  assert.equal(datumAnchor({ ...views, faces: [...faces, face] }, d), null);
+  assert.equal(datumAnchor({ ...views, faces: faces.map(f => f === face ? { ...f, points: [] } : f) }, d), null);
 });

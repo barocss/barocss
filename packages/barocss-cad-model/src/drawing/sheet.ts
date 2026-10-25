@@ -1,5 +1,6 @@
 // The sheet as a display list in sheet millimetres (y down): frame, title block, the projected views
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
+import { datumAnchor } from './datums';
 import { characteristicMarks, modifierMarks } from './controls';
 import { TITLE_FIELDS, TITLE_EXTRA_HEIGHT, revisionTableContent } from './metadata';
 import { weldSymbols, type WeldPlaced } from './welds';
@@ -845,6 +846,7 @@ export function basicBox(marks: readonly Mark[]): Mark[] {
 const DATUM_BOX = 6, DATUM_BASE = 3, DATUM_HEIGHT = 2.6;
 /** A datum feature symbol: its letter boxed at its place, a leader to a filled triangle on its edge (null: the edge is gone). */
 export function datumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingDatum): Mark[] | null {
+  if (d.face) return faceDatumMarks(layout, views, d);
   const v = layout.views[d.view], line = resolveLine(views[d.view], d.edge);
   if (!line) return null;
   const a = toSheet(v, line[0]), b = toSheet(v, line[1]), P = toSheet(v, d.place), ab = sub(b, a), l2 = dot2(ab, ab);
@@ -863,6 +865,18 @@ export function datumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingD
   const dir = sub(apex, P), m = Math.max(Math.abs(dir[0]), Math.abs(dir[1]));
   if (m > h + 0.5) marks.push({ kind: 'line', a: add(P, dir, h / m), b: apex, pen: 'thin', role: 'leader' });
   return marks;
+}
+
+/** A face datum attaches to that exact face's nearest current boundary vertex. */
+function faceDatumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingDatum): Mark[] | null {
+  const point = datumAnchor(views, d); if (!point) return null;
+  const pr = views[d.view], v = layout.views[d.view], F = toSheet(v, [dot3(point, pr.right), dot3(point, pr.up)]), P = toSheet(v, d.place);
+  const delta = sub(P, F), len = Math.hypot(...delta); if (len < DATUM_BOX) return null;
+  const n: XY = [delta[0] / len, delta[1] / len], e: XY = [-n[1], n[0]], base = add(F, n, DATUM_HEIGHT), h = DATUM_BOX / 2, reach = h / Math.max(Math.abs(n[0]), Math.abs(n[1]));
+  return [{ kind: 'fill', points: [F, add(base, e, DATUM_BASE / 2), add(base, e, -DATUM_BASE / 2)], head: { style: 'filled', tip: F, dir: [-n[0], -n[1]], length: DATUM_HEIGHT, width: DATUM_BASE } },
+    { kind: 'line', a: add(P, n, -reach), b: base, pen: 'thin', role: 'leader' },
+    { kind: 'polyline', points: [[P[0] - h, P[1] - h], [P[0] + h, P[1] - h], [P[0] + h, P[1] + h], [P[0] - h, P[1] + h], [P[0] - h, P[1] - h]], pen: 'thin', role: 'frame' },
+    { kind: 'text', at: [P[0], P[1] + 1.3], text: d.letter, size: TEXT, anchor: 'middle' }];
 }
 
 /** Sheet mm: a frame's height and its symbol and datum cells' widths. */
