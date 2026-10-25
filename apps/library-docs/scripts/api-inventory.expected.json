@@ -97542,6 +97542,56 @@
     {
       "package": "@barocss/cad",
       "subpath": ".",
+      "exportName": "MassInertiaAxis",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/brep/axis-inertia.ts",
+            "name": "MassInertiaAxis",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "MassInertiaAxis",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "direction",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "Vector3"
+              },
+              {
+                "name": "point",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "Vector3"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
       "exportName": "MassProperties",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -203618,6 +203668,42 @@
             ],
             "callSignatures": [
               "(half: Cage, axis: MirrorAxis, tolerance?: number) => Cage"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "momentOfInertiaAboutAxis",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/brep/axis-inertia.ts",
+            "name": "momentOfInertiaAboutAxis",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(props: MassProperties, axis: MassInertiaAxis) => number",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(props: MassProperties, axis: MassInertiaAxis) => number"
             ]
           }
         }

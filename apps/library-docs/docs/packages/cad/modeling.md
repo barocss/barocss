@@ -96,6 +96,21 @@ Each output is one body, or several with `bodyCount`, as a B-rep (`brep`).
 - **Sheet metal.** `flatPatternOf(output, { fixedFace, kFactor })` returns a sheet-metal flat pattern.
 - **Reports.** Gears, racks and other generated parts carry a report of their own, such as `gear`.
 
+### Moment of inertia about an axis
+
+Import `momentOfInertiaAboutAxis` and the `MassInertiaAxis` type from `@barocss/cad`. The function takes mass
+properties and an axis, and returns a number in g·mm². Supply a full 3 × 3 inertia tensor about the centre of mass
+in g·mm², positive finite mass in g and the centroid in mm. The axis requires a `point` in mm and a finite, nonzero
+`direction`. Use dense arrays of finite numbers: three components per vector and three rows of three for the tensor.
+Use the same XYZ frame for the axis and mass properties. The function normalizes the direction, so its magnitude
+does not change the axis.
+
+With unit direction `u` and offset `d = centroid − point`, the result is `uᵀ I_COM u + mass × |d × u|²`.
+The second term shifts the moment from the parallel axis through the centre of mass to the requested line.
+Invalid input arrays, non-finite arithmetic or a negative central inertia projection give `SOLID_MASS`.
+This query uses the supplied mass properties; it provides no frame or SI conversion, B-rep evaluation, motion
+simulation or physical validation.
+
 ### A numerical unit check
 
 For a 10 × 10 × 10 mm cube at density 2.7 g/cm³:
