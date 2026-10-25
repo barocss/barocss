@@ -106,6 +106,11 @@ compatibility with the current producer code or material catalogue. Consistent f
 can pass these checks. `matches(doc, options)` compares the full canonical document and explicit inputs; if either
 canonical content differs, it returns false and the record is stale. A matching record does not establish a new result.
 
+In Studio's STATIC GRAVITY panel, use the Download button to export the displayed record as independent JSON.
+Use `Open gravity record` to load it as a historical record, not a recalculated result, even when document and inputs match.
+Opening a valid record fills the joint, angle and world XYZ gravity fields. Choose `Calculate holding torque` to calculate again.
+An invalid file reports an error and preserves the previous record and input fields. These controls do not save or open a Studio document.
+
 ### Input contracts
 
 Constructors, getters and operations follow the input rules below.
