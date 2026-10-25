@@ -60,7 +60,7 @@ import { rayHit, triangleBvh } from '../mesh/triangle-bvh.js';
 import { combineMassProperties, prismaticMassProperties, brepMassProperties, brepSurfaceArea, isSolidMassError, type MassProperties } from '../brep/solid-mass.js';
 import { unsupportedNativeMass } from '../internal/native-si-mass-state.js';
 import { glueAtSharedFace, withCavities } from '../brep/brep-glue.js';
-import { loftSolid, type LoftSectionFrame, type LoftSectionInput } from '../features/loft.js';
+import { loftSolid, type LoftInput, type LoftSectionFrame, type LoftSectionInput } from '../features/loft.js';
 import { generalShell } from '../blend/general-shell.js';
 import { offsetCavity, offsetShell, smoothOffsetBody } from '../blend/offset-cavity.js';
 import { regionShell } from '../blend/region-shell.js';
@@ -155,7 +155,7 @@ export type CadPartFeature = Base & (
    * sections): one smooth side per edge through them all (C1), named `.side${i}`.
    */
   /** Two world frames: admitted convex polygon or circle/ellipse conic correspondence. */
-  | { readonly kind: 'loft'; readonly sections: readonly CadPartLoftSection[]; readonly smooth?: boolean }
+  | { readonly kind: 'loft'; readonly sections: readonly CadPartLoftSection[]; readonly smooth?: boolean; readonly guide?: LoftInput['guide'] }
   /**
    * A body read from a STEP file (its text); its faces keep their names, prefixed `${id}.`. `each`: every
    * solid of the file is its own part (`id/k`, in file order) instead of one body holding them all.
@@ -1511,7 +1511,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'loft': {
       const list = f.sections as unknown;
       if (!Array.isArray(list) || list.length < 2 || list.length > CadPartLimits.copies) fail('INPUT', 'sections must list 2 to 64 sections');
-      if ((list as unknown[]).some(sec => isRecord(sec) && (sec.frame !== undefined || Object.hasOwn(sec, 'profile')))) {
+      if (f.guide !== undefined || (list as unknown[]).some(sec => isRecord(sec) && (sec.frame !== undefined || Object.hasOwn(sec, 'profile')))) {
         if (f.smooth !== undefined && typeof f.smooth !== 'boolean') fail('INPUT', 'smooth must be true or false');
         const framed = (list as unknown[]).map((sec, i) => {
           if (!isRecord(sec) || sec.frame === undefined || sec.z !== undefined) return fail('INPUT', `sections[${i}] need an explicit frame without z`);
@@ -1526,7 +1526,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           return { profile: sketch.outer, frame: sec.frame as unknown as LoftSectionFrame, tags: sketch.tags };
         });
         return () => {
-          const { brep, mass } = loftSolid({ id: at, name: at, sections: framed, smooth: f.smooth === true, ...(framed[0].tags ? { sideTags: framed[0].tags.outer } : {}) });
+          const { brep, mass } = loftSolid({ id: at, name: at, sections: framed, smooth: f.smooth === true, ...(f.guide !== undefined ? { guide: f.guide as LoftInput['guide'] } : {}), ...(framed[0].tags ? { sideTags: framed[0].tags.outer } : {}) });
           return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] };
         };
       }

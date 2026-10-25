@@ -1,9 +1,9 @@
-// CG1 loft analytic fixtures. No guide rails, general curves, multi-span or smooth oriented claim.
+// CG1 loft analytic fixtures. One bounded conic guide only; no general/multiple rails or smooth claim.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { loftSolid, BrepError, checkBrep, evaluateSurface, evaluateCadPart, outputOf, massPropertiesOf, CadPartError, saveCadPart, loadCadPart } from '../dist/index.js';
+import { loftSolid, BrepError, checkBrep, evaluateCurve, evaluateSurface, evaluateCadPart, outputOf, massPropertiesOf, CadPartError, saveCadPart, loadCadPart } from '../dist/index.js';
 
 const polygon = points => points.map(start => ({ kind: 'line', start }));
 const square = polygon([[0, 0], [2, 0], [2, 2], [0, 2]]);
@@ -176,7 +176,7 @@ test('legacy loft: ruled builder and smooth builder source bytes are preserved f
   const source = readFileSync(new URL('../src/features/loft.ts', import.meta.url), 'utf8');
   const start = source.indexOf('export function loftSolid('), end = source.indexOf('/**\n * A smooth loft:', start);
   const legacy = source.slice(start, end)
-    .replace('  if (input.sections.some(s => s.frame !== undefined || !Array.isArray(s.profile))) return orientedLoftSolid(input, loftSolid);\n', '')
+    .replace('  if (input.guide !== undefined || input.sections.some(s => s.frame !== undefined || !Array.isArray(s.profile))) return orientedLoftSolid(input, loftSolid);\n', '')
     .replace('const S = input.sections as readonly { readonly profile: readonly ProfileSegmentInput[]; readonly z: number }[];', 'const S = input.sections;');
   const hash = s => createHash('sha256').update(s).digest('hex');
   assert.equal(hash(legacy), '9c80ee4c38639905844b4cc2e80696a41470c4338bf7525a0b6160273a56e23b');
@@ -435,4 +435,144 @@ test('framed mixed loft: existing loop documents evaluate and save/read without 
   assert.deepEqual(JSON.parse(saveCadPart(snapshot)), doc);
   const again = outputOf(loadCadPart(saveCadPart(snapshot)), 'L');
   assert.deepEqual(again.brep, o.brep); assert.deepEqual(massPropertiesOf(again), massPropertiesOf(o));
+});
+
+const rail = (controlPoints = [[1, 0, 0], [3, 0, 1.5], [1, 0, 3]]) => ({ kind: 'quadratic-bezier', controlPoints });
+const guided = (guide = rail(), a = circleProfile(1), b = a) => loftSolid({ ...input([section(flat(0), a), section(flat(3), b)]), guide });
+
+// For these axis-aligned conic fixtures, coordinate extrema occur on the four cardinal rails
+// or their cap endpoints. Each rail is polynomial quadratic: include its derivative roots.
+// This is a fixture-specific exact bound check, not the hull of its middle control points
+// (the supplied rail's middle X=3 while the actual solid's maximum X is only 2).
+function guidedAxisBounds(brep) {
+  const points = brep.vertices.map(v => v.point);
+  for (const e of brep.edges) {
+    const q = e.curve;
+    if (q.degree !== 2 || q.controlPoints.length !== 3 || !q.weights.every(w => w === 1)) continue;
+    for (let c = 0; c < 3; c++) {
+      const [a, b, d] = q.controlPoints.map(p => p[c]), denominator = a - 2 * b + d;
+      if (!denominator) continue;
+      const t = (a - b) / denominator;
+      if (t > 0 && t < 1) points.push(evaluateCurve(q, t));
+    }
+  }
+  return { min: [0, 1, 2].map(c => Math.min(...points.map(p => p[c]))), max: [0, 1, 2].map(c => Math.max(...points.map(p => p[c]))) };
+}
+
+test('quadratic guide: independent bent-cylinder volume, centroid, inertia and actual bounds', () => {
+  const { brep, mass } = guided(), m = mass(1);
+  valid(brep); close(m.volume, 3 * Math.PI); vector(m.centroid, [2 / 3, 0, 1.5]);
+  // Centre X=4t(1-t). Var(X centre)=4/45; add the disk's 1/4. Z variance=3/4.
+  vector(m.inertia[0], [m.mass, 0, 0]); vector(m.inertia[1], [0, 49 * m.mass / 45, 0]); vector(m.inertia[2], [0, 0, 53 * m.mass / 90]);
+  const box = guidedAxisBounds(brep); vector(box.min, [-1, -1, 0]); vector(box.max, [2, 1, 3]);
+});
+
+test('quadratic guide: seam and surface carry the exact authored Bezier controls', () => {
+  const g = rail(), args = { ...input([section(flat(0), circleProfile(1)), section(flat(3), circleProfile(1))]), guide: g };
+  const before = JSON.stringify(args), { brep } = loftSolid(args);
+  const seam = brep.edges.find(e => e.name === 'L.side0|L.side3').curve, side = brep.faces.find(f => f.name === 'L.side0').surface;
+  assert.equal(JSON.stringify(args), before); assert.equal(seam.degree, 2); assert.equal(side.degreeV, 2);
+  assert.deepEqual(seam.controlPoints, g.controlPoints); assert.deepEqual(side.controlPoints[0], g.controlPoints);
+  assert.deepEqual(seam.weights, [1, 1, 1]);
+  for (const t of [0, 0.25, 0.5, 0.75, 1]) {
+    vector(evaluateCurve(seam, t), [1 + 4 * t * (1 - t), 0, 3 * t]);
+    vector(evaluateSurface(side, 0, t), evaluateCurve(seam, t));
+  }
+});
+
+test('quadratic guide: intermediate sections stay circular and both original caps stay planar', () => {
+  const { brep } = guided(), points = [[2, 0, 1.5], [1, 1, 1.5], [0, 0, 1.5], [1, -1, 1.5]];
+  for (let i = 0; i < 4; i++) vector(evaluateSurface(brep.faces.find(f => f.name === `L.side${i}`).surface, 0, 0.5), points[i]);
+  for (const f of brep.faces.filter(f => f.name === 'L.bottom' || f.name === 'L.top')) for (const p of f.surface.controlPoints.flat()) close(p[2], f.name === 'L.top' ? 3 : 0);
+});
+
+test('quadratic guide: varying circular radii retain independent weighted centre and volume', () => {
+  const { brep, mass } = guided(rail([[2, 0, 0], [5, 0, 1.5], [4, 0, 3]]), circleProfile(2), circleProfile(4));
+  // A(t)=4pi(1+t)^2, centre X=4t(1-t). Weighted mean X=(23/15)/(7/3)=23/35.
+  valid(brep); close(mass(1).volume, 28 * Math.PI); vector(mass(1).centroid, [23 / 35, 0, 51 / 28]);
+  const box = guidedAxisBounds(brep); vector(box.min, [-4, -4, 0]); vector(box.max, [17 / 4, 4, 3]);
+});
+
+test('quadratic guide: exact ellipse uses the same transverse displacement and bounds', () => {
+  const e = ellipseProfile(2, 1), { brep, mass } = guided(rail([[2, 0, 0], [4, 0, 1.5], [2, 0, 3]]), e, e);
+  valid(brep); close(mass(1).volume, 6 * Math.PI); vector(mass(1).centroid, [2 / 3, 0, 1.5]);
+  const box = guidedAxisBounds(brep); vector(box.min, [-2, -1, 0]); vector(box.max, [3, 1, 3]);
+});
+
+test('quadratic guide: transverse Y displacement is not encoded as an extra section pose', () => {
+  const { brep, mass } = guided(rail([[1, 0, 0], [1, 3, 1.5], [1, 0, 3]]));
+  valid(brep); close(mass(1).volume, 3 * Math.PI); vector(mass(1).centroid, [0, 1, 1.5]);
+  const box = guidedAxisBounds(brep); vector(box.min, [-1, -1, 0]); vector(box.max, [1, 2.5, 3]);
+});
+
+test('quadratic guide: world controls work on a common axis-permuted frame', () => {
+  const a = { origin: [0, 0, 0], xAxis: [0, 1, 0], yAxis: [0, 0, 1] }, b = { ...a, origin: [3, 0, 0] };
+  const { brep, mass } = loftSolid({ ...input([section(a, circleProfile(1)), section(b, circleProfile(1))]), guide: rail([[0, 1, 0], [1.5, 3, 0], [3, 1, 0]]) });
+  valid(brep); close(mass(1).volume, 3 * Math.PI); vector(mass(1).centroid, [1.5, 2 / 3, 0]);
+  const box = guidedAxisBounds(brep); vector(box.min, [0, -1, -1]); vector(box.max, [3, 2, 1]);
+});
+
+test('quadratic guide: straight optional guide preserves the previous conic geometry and mass', () => {
+  const a = conic(circleProfile(1), circleProfile(1)), b = guided(rail([[1, 0, 0], [1, 0, 1.5], [1, 0, 3]]));
+  assert.deepEqual(b.mass(1), a.mass(1));
+  for (const f of a.brep.faces.filter(f => f.name.startsWith('L.side'))) {
+    const other = b.brep.faces.find(g => g.name === f.name);
+    for (const u of [0, 0.3, 1]) for (const v of [0, 0.4, 1]) vector(evaluateSurface(other.surface, u, v), evaluateSurface(f.surface, u, v));
+  }
+});
+
+test('quadratic guide: malformed guide objects and control tuples have exact typed diagnostics', () => {
+  const g = rail(), finite = 'needs finite three-component points within the existing coordinate range';
+  const cases = [
+    [null, 'must be one explicit guide object'], [[g, g], 'must be one explicit guide object'],
+    [{ ...g, kind: 'cubic-bezier' }, 'needs exactly kind quadratic-bezier and controlPoints'],
+    [{ ...g, weights: [1, 1, 1] }, 'needs exactly kind quadratic-bezier and controlPoints'],
+    [{ ...g, controlPoints: g.controlPoints.slice(0, 2) }, 'needs exactly three world control points'],
+    [{ ...g, controlPoints: [...g.controlPoints, [1, 0, 4]] }, 'needs exactly three world control points'],
+    [rail([[1, 0, 0], [3, 0], [1, 0, 3]]), finite], [rail([[1, 0, 0], [3, 0, 1.5, 0], [1, 0, 3]]), finite],
+    [rail([[1, 0, 0], [NaN, 0, 1.5], [1, 0, 3]]), finite], [rail([[1, 0, 0], [Infinity, 0, 1.5], [1, 0, 3]]), finite],
+    [rail([[1, 0, 0], ['3', 0, 1.5], [1, 0, 3]]), finite], [rail([[1, 0, 0], [10001, 0, 1.5], [1, 0, 3]]), finite],
+  ];
+  for (const [value, detail] of cases) assert.throws(() => guided(value), e => e instanceof BrepError && e.code === 'INPUT' && e.message === `B-rep: loft: quadratic guide ${detail}`);
+});
+
+test('quadratic guide: cap seams and middle normal coordinate cannot be snapped or ignored', () => {
+  const cases = [
+    [rail([[2, 0, 0], [3, 0, 1.5], [1, 0, 3]]), 'endpoints must exactly match the two cap +X seams'],
+    [rail([[1, 0, 0], [3, 0, 1.5], [2, 0, 3]]), 'endpoints must exactly match the two cap +X seams'],
+    [rail([[1, 0, 0], [3, 0, 1.6], [1, 0, 3]]), 'middle control must lie exactly on the cap midplane'],
+  ];
+  for (const [value, detail] of cases) assert.throws(() => guided(value), e => e instanceof BrepError && e.code === 'INPUT' && e.message === `B-rep: loft: quadratic guide ${detail}`);
+});
+
+test('quadratic guide: unsupported polygon, mixed, nonparallel, legacy z, smooth and multisection paths refuse', () => {
+  for (const p of [square, stadium()]) rejected(() => loftSolid({ ...input([section(flat(0), p), section(flat(3), p)]), guide: rail() }), 'INPUT', /one full-circle/);
+  rejected(() => loftSolid({ ...input([{ profile: circleProfile(1), z: 0 }, { profile: circleProfile(1), z: 3 }]), guide: rail() }), 'INPUT', /frame/);
+  rejected(() => loftSolid({ ...input([section(flat(0), circleProfile(1)), section(tilted, circleProfile(1))]), guide: rail() }), 'INPUT', /identical xAxis/);
+  rejected(() => loftSolid({ ...input([section(flat(0), circleProfile(1)), section(flat(3), circleProfile(1))]), smooth: true, guide: rail() }), 'INPUT', /ruled/);
+  rejected(() => loftSolid({ ...input([section(flat(0), circleProfile(1)), section(flat(3), circleProfile(1)), section(flat(6), circleProfile(1))]), guide: rail() }), 'INPUT', /exactly two/);
+});
+
+test('quadratic guide: direct and inline-ellipse documents agree and save/read the authored rail', () => {
+  const e = ellipseProfile(2, 1), g = rail([[2, 0, 0], [4, 0, 1.5], [2, 0, 3]]);
+  const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+    { id: 'L', kind: 'loft', sections: [{ profile: e, frame: flat(0) }, { profile: e, frame: flat(3) }], guide: g },
+  ] };
+  const snapshot = evaluateCadPart(doc), o = outputOf(snapshot, 'L'), direct = guided(g, e, e);
+  valid(o.brep); assert.deepEqual(massPropertiesOf(o), direct.mass(1)); assert.deepEqual(o.brep.faces.map(f => [f.name, f.surface]), direct.brep.faces.map(f => [f.name, f.surface]));
+  const text = saveCadPart(snapshot); assert.deepEqual(JSON.parse(text), doc);
+  const again = outputOf(loadCadPart(text), 'L'); assert.deepEqual(again.brep, o.brep); assert.deepEqual(massPropertiesOf(again), massPropertiesOf(o));
+});
+
+test('quadratic guide: circle-sketch documents consume the guide and reject invalid doc encodings', () => {
+  const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+    { id: 'a', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 1 },
+    { id: 'b', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 1 },
+    { id: 'L', kind: 'loft', sections: [{ sketch: 'a', frame: flat(0) }, { sketch: 'b', frame: flat(3) }], guide: rail() },
+  ] };
+  const snapshot = evaluateCadPart(doc), o = outputOf(snapshot, 'L'); valid(o.brep); vector(massPropertiesOf(o).centroid, [2 / 3, 0, 1.5]);
+  assert.deepEqual(JSON.parse(saveCadPart(snapshot)), doc); assert.deepEqual(outputOf(loadCadPart(saveCadPart(snapshot)), 'L').brep, o.brep);
+  const missingFrame = structuredClone(doc); missingFrame.features[2].sections = [{ sketch: 'a', z: 0 }, { sketch: 'b', z: 3 }];
+  const badGuide = structuredClone(doc); badGuide.features[2].guide.controlPoints[1][2] = 1.6;
+  for (const d of [missingFrame, badGuide]) assert.throws(() => evaluateCadPart(d), e => e instanceof CadPartError && (e.details?.category ?? e.code) === 'INPUT');
 });

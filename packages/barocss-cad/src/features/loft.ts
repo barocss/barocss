@@ -39,6 +39,11 @@ export interface LoftInput {
   readonly name: string;
   /** Through three or more sections: one smooth (C1) side per edge instead of a ruled side per span. */
   readonly smooth?: boolean;
+  /** One world-space seam guide for two identical-axis parallel circle/ellipse frames only. */
+  readonly guide?: {
+    readonly kind: 'quadratic-bezier';
+    readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]];
+  };
   /**
    * The first section's segment tags (R10a, D86): each side named `side[t]` by the segment of the first section it
    * runs from (several from one segment numbered `#k`), instead of by position.
@@ -72,7 +77,7 @@ function at(b: Bezier, s: number): [XY, XY] {
 }
 
 export function loftSolid(input: LoftInput): { brep: Brep; mass: (density: number) => MassProperties } {
-  if (input.sections.some(s => s.frame !== undefined || !Array.isArray(s.profile))) return orientedLoftSolid(input, loftSolid);
+  if (input.guide !== undefined || input.sections.some(s => s.frame !== undefined || !Array.isArray(s.profile))) return orientedLoftSolid(input, loftSolid);
   const fail = (detail: string): never => { throw new BrepError('INPUT', `loft: ${detail}`); };
   const S = input.sections as readonly { readonly profile: readonly ProfileSegmentInput[]; readonly z: number }[];
   if (S.length < 2) fail('needs at least two sections');

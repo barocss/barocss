@@ -1,12 +1,14 @@
 // CG1.1c: exact conic sections on two parallel, identically oriented frames. The same
 // rational quarter-circle parameters and weights on both ends make each ruled side's
-// intermediate section an ellipse with linearly interpolated centre and positive radii.
-// Strictly ordered section planes and positive radii certify a simple closed solid.
+// intermediate section an ellipse with positive linear radii. Its centre is linear without
+// a guide, or gains the admitted guide's transverse quadratic displacement. Strictly ordered
+// section planes and positive radii certify a simple closed solid.
 import { buildBrep, BrepError, lineCurve, type BrepFaceInput } from '../brep/brep-core.js';
 import { solidMassFromIntegrals } from '../brep/solid-mass.js';
 import { gauss } from '../core/quadrature.js';
 import { buildXYArc } from '../xy-arc.js';
 import { buildProfileLoop, capSurface, ExtrudedProfileLimits, type ProfileSegmentInput } from './extruded-profile-solid.js';
+import { admitLoftGuide } from './loft-guide.js';
 import type { LoftInput, LoftSectionInput } from './loft.js';
 import type { Curve, Point } from '../types.js';
 
@@ -60,12 +62,17 @@ export function curvedLoftSolid(input: LoftInput, frames: readonly Frame[]) {
   const curves = sections.map((s, k) => unit.map((q, i): Curve => ({ ...q, id: ring(k, i), knots: [...q.knots], weights: [...q.weights], controlPoints: q.controlPoints.map(p => map(frames[k], [s.center[0] + s.radii[0] * p[0], s.center[1] + s.radii[1] * p[1]])) })));
   if (curves.flat().some(q => q.controlPoints.some(p => p.some(x => !Number.isFinite(x) || Math.abs(x) > ExtrudedProfileLimits.coordinateMM)))) return fail('leave the existing modeling coordinate range');
   const positions = curves.map(row => row.map(q => q.controlPoints[0]));
+  const guide = input.guide === undefined ? undefined : admitLoftGuide(input.guide, positions[0][0], positions[1][0], cross(frames[0].u, frames[0].v));
   const vertices = positions.flatMap((row, k) => row.map((p, i) => ({ id: vertex(k, i), point: p })));
   const edges = curves.flatMap((row, k) => row.map((q, i) => ({ id: ring(k, i), curve: q, vertices: [vertex(k, i), vertex(k, i + 1)] as [string, string], name: [k ? `${input.name}.top` : `${input.name}.bottom`, side(i)].sort().join('|') })));
-  for (let i = 0; i < 4; i++) edges.push({ id: ruling(i), curve: lineCurve(ruling(i), positions[0][i], positions[1][i]), vertices: [vertex(0, i), vertex(1, i)], name: [side((i + 3) % 4), side(i)].sort().join('|') });
+  for (let i = 0; i < 4; i++) {
+    const lo = positions[0][i], hi = positions[1][i];
+    const curve: Curve = guide ? { kind: 'curve', id: ruling(i), degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [lo, guide.middle(lo, hi), hi], weights: [1, 1, 1] } : lineCurve(ruling(i), lo, hi);
+    edges.push({ id: ruling(i), curve, vertices: [vertex(0, i), vertex(1, i)], name: [side((i + 3) % 4), side(i)].sort().join('|') });
+  }
   const faces: BrepFaceInput[] = unit.map((q, i) => ({ id: `f0_${i}`, name: side(i), sense: 'forward', surface: {
-    kind: 'surface', id: `f0_${i}`, degreeU: 2, degreeV: 1, knotsU: [...q.knots], knotsV: [0, 0, 1, 1],
-    controlPoints: q.controlPoints.map((_, j) => [curves[0][i].controlPoints[j], curves[1][i].controlPoints[j]]), weights: q.weights.map(w => [w, w]),
+    kind: 'surface', id: `f0_${i}`, degreeU: 2, degreeV: guide ? 2 : 1, knotsU: [...q.knots], knotsV: guide ? [0, 0, 0, 1, 1, 1] : [0, 0, 1, 1],
+    controlPoints: q.controlPoints.map((_, j) => { const lo = curves[0][i].controlPoints[j], hi = curves[1][i].controlPoints[j]; return guide ? [lo, guide.middle(lo, hi), hi] : [lo, hi]; }), weights: q.weights.map(w => guide ? [w, w, w] : [w, w]),
   }, loops: [{ kind: 'outer', uses: [{ edge: ring(0, i), sense: 'forward' }, { edge: ruling(i + 1), sense: 'forward' }, { edge: ring(1, i), sense: 'reversed' }, { edge: ruling(i), sense: 'reversed' }] }] }));
   for (const k of [0, 1]) {
     const s = sections[k], [x, y] = s.center, [rx, ry] = s.radii;
@@ -73,15 +80,18 @@ export function curvedLoftSolid(input: LoftInput, frames: readonly Frame[]) {
     cap.controlPoints = cap.controlPoints.map(row => row.map(p => map(frames[k], [p[0], p[1]])));
     faces.push({ id: k ? 'top' : 'bottom', surface: cap, sense: 'forward', name: `${input.name}.${k ? 'top' : 'bottom'}`, loops: [{ kind: 'outer', uses: unit.map((_, i) => ({ edge: ring(k, k ? i : 3 - i), sense: k ? 'forward' as const : 'reversed' as const })) }] });
   }
+  if (guide && faces.some(f => f.surface.kind === 'surface' && f.surface.controlPoints.some(row => row.some(p => p.some(x => !Number.isFinite(x) || Math.abs(x) > ExtrudedProfileLimits.coordinateMM))))) return fail('guided surface leaves the existing modeling coordinate range');
   const id = input.id, brep = buildBrep({ source: { family: 'loft', id }, vertices, edges, bodies: [{ id, kind: 'solid', shells: [{ id: `${id}.shell`, faces, closed: true }] }] });
 
-  // Exact ellipse area moments in the common section basis. Radii and centres are linear in t;
-  // second volume moments have degree at most four. Gauss(4) integrates to rounding, no mesh.
+  // Exact ellipse area moments in the common section basis. Radii are linear; a guide makes
+  // the centre quadratic. Second volume moments have degree at most six (four without a
+  // guide), still integrated to rounding by the existing Gauss(4), with no mesh mass.
   const I = Array(10).fill(0) as number[], G = gauss(4), u = frames[0].u, v = frames[0].v;
   G.x.forEach((t, it) => {
     const a = sections[0], b = sections[1], rx = a.radii[0] + t * (b.radii[0] - a.radii[0]), ry = a.radii[1] + t * (b.radii[1] - a.radii[1]);
     const f: Frame = { origin: mix(frames[0].origin, frames[1].origin, t), u, v };
     const c = map(f, [a.center[0] + t * (b.center[0] - a.center[0]), a.center[1] + t * (b.center[1] - a.center[1])]);
+    if (guide) { const d = guide.offset(t); for (let i = 0; i < 3; i++) c[i] += d[i]; }
     const second = (i: number, j: number) => c[i] * c[j] + rx * rx / 4 * u[i] * u[j] + ry * ry / 4 * v[i] * v[j];
     const w = G.w[it] * planeStep * Math.PI * rx * ry;
     const moments = [1, ...c, second(0, 0), second(1, 1), second(2, 2), second(0, 1), second(0, 2), second(1, 2)];

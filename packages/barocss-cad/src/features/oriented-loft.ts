@@ -49,6 +49,8 @@ export function orientedLoftSolid(input: LoftInput, legacy: typeof loftSolid) {
   const S = input.sections;
   if (S.some(s => s.z !== undefined || s.frame === undefined)) return fail('require frame on both sections and no z');
   const frames = S.map(s => frame(s.frame));
+  // A guide is admitted only by the exact circle/ellipse path, never ignored by polygon/mixed paths.
+  if (input.guide !== undefined) return curvedLoftSolid(input, frames);
   if (S.every(s => Array.isArray(s.profile)) && S.some(s => {
     const p = s.profile as readonly ProfileSegmentInput[];
     return p.some(g => g.kind === 'line') && p.some(g => g.kind === 'arc');
