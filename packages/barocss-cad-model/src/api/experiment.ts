@@ -6,7 +6,7 @@ import { BarocssError } from './refusal';
 import { coreValues, gravityOf, inertiaOf, poseOf, treeOf } from './robotCore';
 import { gravityExperimentBinding, gravityExperimentInput, type GravityExperimentOptions } from './experimentInput';
 
-const unsupported = (message: string): never => { throw new BarocssError('ROBOT', message, 'evaluate'); };
+function unsupported(message: string): never { throw new BarocssError('ROBOT', message, 'evaluate'); }
 
 function reportOf(doc: StudioDoc, options: GravityExperimentOptions) {
   const inputs = gravityExperimentInput(options), binding = gravityExperimentBinding(doc, inputs);
