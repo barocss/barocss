@@ -47,9 +47,11 @@ export function drawingDocument(doc: StudioDoc, settings: DrawingSettings): Stud
 }
 export function changeDrawingScope(s: DrawingSettings, scope: DrawingScope): DrawingSettings {
   const [why] = checkDrawingScope(scope); if (why) throw refused(why);
+  // Snapshot the supported values, including fields the existing validator accepts through a prototype.
+  const nextScope: DrawingScope = scope.kind === 'part' ? { kind: 'part', ...(scope.part !== undefined ? { part: scope.part } : {}) } : { kind: 'assembly' };
   const previous = drawingScopeOf(s);
-  if (previous.kind === scope.kind && (previous.kind === 'assembly' || (scope.kind === 'part' && previous.part === scope.part))) return { ...s, scope };
+  if (previous.kind === scope.kind && (previous.kind === 'assembly' || (scope.kind === 'part' && previous.part === scope.part))) return { ...s, scope: nextScope };
   if (s.dimensions.some(d => !d.auto) || s.datums?.length || s.frames?.length || s.notes?.some(n => n.leader))
     throw refusal('DRAWING_SCOPE_REFERENCES', 'this sheet has manual model references; keep its scope or remove those references explicitly before changing scope');
-  return { ...s, scope, dimensions: [] };
+  return { ...s, scope: nextScope, dimensions: [] };
 }
