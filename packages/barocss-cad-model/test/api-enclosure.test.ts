@@ -1,6 +1,8 @@
 // P2 inherited facade contracts: compare document writes with the core, and display changes with known geometry.
 import test, { mock } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { part, assembly, Location, BarocssError } from '../src/api';
 import { bodiesOf } from '../src/api/core';
 import { addLibraryPartToBody } from '../src/library/libraries';
@@ -50,4 +52,23 @@ test('explode moves display geometry only; clearance matches the core output', a
     if ('error' in raw) return;
     assert.deepEqual(await a.clearance({ near: 2 }), raw.content);
   } finally { clock.mock.restore(); }
+});
+
+test('fastener length choices use the resolved kind and size from the shipped rows', () => {
+  const file = { name: 'fastener-sizes.json', text: readFileSync(join(import.meta.dirname, '../samples/rows/fastener-sizes.json'), 'utf8') };
+  const source = part('M3-fastener').loadRows('fastener-sizes', file), before = JSON.stringify(source.doc);
+  const values = { size: 'M3', joint: 'free', x: 0, y: 0, z: 0, model: 'cosmetic' };
+  for (const [kind, length] of [['socket-screw', '5'], ['socket-screw', '6'], ['hex-bolt', '6'], ['hex-bolt', '20']] as const) {
+    const made = source.fastener({ ...values, kind, length });
+    const feature = made.doc.nodes.find(node => 'made' in node && node.made?.command === 'fastener');
+    assert.ok(feature && 'made' in feature);
+    assert.equal(feature.made!.values.kind, kind);
+    assert.equal(feature.made!.values.size, 'M3');
+    assert.equal(feature.made!.values.length, length);
+    assert.equal(made.bodies().length, 1);
+    assert.ok(made.mass({ density: 1 }).volume > 0);
+  }
+  assert.throws(() => source.fastener({ ...values, kind: 'hex-bolt', length: '5' }),
+    error => error instanceof BarocssError && error.code === 'VALUE' && /length/i.test(error.message));
+  assert.equal(JSON.stringify(source.doc), before);
 });
