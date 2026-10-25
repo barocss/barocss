@@ -52,14 +52,15 @@ export function MatePanel({ assembly, instances, instance, onRefused }: { assemb
       {instance && !draft && <div className="kv" aria-label="Freedom">{instances.find(i => i.id === instance)?.name ?? instance} <b>{freedomText(instance)}</b></div>}
       {draft && <div className="mate-draft" style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
         <label className={FIELD}><span>Type</span>
-          <NativeSelect className={CONTROL} aria-label="Mate type" value={draft.kind} onChange={e => assembly.setDraft({ kind: e.target.value as MateKind | 'auto', ...(e.target.value === 'ball' ? { flip: false } : {}) })}>
+          <NativeSelect className={CONTROL} aria-label="Mate type" value={draft.kind} onChange={e => assembly.setDraft({ kind: e.target.value as MateKind | 'auto', ...(e.target.value === 'ball' || e.target.value === 'universal' ? { flip: false } : {}) })}>
             <option value="auto">Auto</option>
             {(Object.keys(KIND_LABEL) as MateKind[]).filter(k => k !== 'lock').map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}
           </NativeSelect></label>
         {draft.kind === 'distance' && <NumberField label="Distance" value={draft.distance} onCommit={v => assembly.setDraft({ distance: v })} />}
         {draft.kind === 'angle' && <NumberField label="Angle" unit="°" value={draft.angle} onCommit={v => assembly.setDraft({ angle: v })} />}
-        {draft.kind !== 'concentric' && draft.kind !== 'ball' && <label className="field check-row"><span>Flip</span>
+        {draft.kind !== 'concentric' && draft.kind !== 'ball' && draft.kind !== 'universal' && <label className="field check-row"><span>Flip</span>
           <input type="checkbox" className={TICK} aria-label="Mate flip" checked={draft.flip} onChange={e => assembly.setDraft({ flip: e.target.checked })} /></label>}
+        {draft.kind === 'universal' && <div className="empty" aria-label="Universal axes">2 free turns: Stays Z is perpendicular to Moves X. Origins coincide. Limits and robot export are unavailable.</div>}
         <PlanePicker instances={instances} onPick={assembly.pickFace} />
         <ReferencePicker instances={instances} tables={tables} onPick={assembly.pickFace} />
         <div className="kv">1 · Stays <b>{draft.picks[0] ? refText(draft.picks[0].ref) : 'click a face'}</b></div>
@@ -90,7 +91,7 @@ function MateEditor({ mate, problem, tables, refText, onEdit, onDelete }: {
   const fa = tables.get(mate.a.part)?.[mate.a.face], fb = tables.get(mate.b.part)?.[mate.b.face];
   let kinds: MateKind[] = [mate.kind];
   if (fa && fb) { try { kinds = mateKindsOf({ a: mate.a, b: mate.b }, { a: fa, b: fb }); } catch { /* Keep the selected kind visible for an invalid saved connector. */ } }
-  if (mate.kind !== 'lock' && mate.kind !== 'cam') kinds = [...kinds, ...(['fastened', 'ball'] as const).filter(k => !kinds.includes(k))];
+  if (mate.kind !== 'lock' && mate.kind !== 'cam') kinds = [...kinds, ...(['fastened', 'ball', 'universal'] as const).filter(k => !kinds.includes(k))];
   return (
     <div className="mate-edit" style={{ display: 'grid', gap: 6, marginTop: 8 }}>
       <div className="kv">Stays <b>{refText(mate.a)}</b></div>
@@ -100,13 +101,13 @@ function MateEditor({ mate, problem, tables, refText, onEdit, onDelete }: {
       <label className={FIELD}><span>Type</span>
         <NativeSelect className={CONTROL} aria-label="Edit mate type" value={mate.kind} onChange={e => {
           const kind = e.target.value as MateKind;
-          if (kind === 'fastened' || kind === 'ball') { onEdit({ kind }); return; }
+          if (kind === 'fastened' || kind === 'ball' || kind === 'universal') { onEdit({ kind }); return; }
           onEdit({ kind, distance: kind === 'distance' ? mate.distance ?? 0 : undefined, angle: kind === 'angle' ? mate.angle ?? 90 : undefined, ...(kind === 'concentric' ? { flip: undefined } : {}) });
         }}>{kinds.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</NativeSelect></label>
       {mate.kind === 'distance' && <NumberField label="Distance" value={mate.distance ?? 0} onCommit={v => onEdit({ distance: v })} />}
       {mate.kind === 'angle' && <NumberField label="Angle" unit="°" value={mate.angle ?? 0} onCommit={v => onEdit({ angle: v })} />}
       {mate.kind === 'fastened' && <div className="empty" aria-label="Fastened freedom">0 DoF: the connector origins, Z and X stay aligned.</div>}
-      {mate.kind === 'ball' ? <div className="empty" aria-label="Ball freedom">3 free turns: only the connector origins coincide.</div> : mate.kind === 'lock' ? <div className="empty">Moves with {refText(mate.a)} as one piece, where it stood when locked.</div>
+      {mate.kind === 'universal' ? <div className="empty" aria-label="Universal freedom">2 free turns: Stays Z is perpendicular to Moves X. Origins coincide. Limits and robot export are unavailable.</div> : mate.kind === 'ball' ? <div className="empty" aria-label="Ball freedom">3 free turns: only the connector origins coincide.</div> : mate.kind === 'lock' ? <div className="empty">Moves with {refText(mate.a)} as one piece, where it stood when locked.</div>
         : mate.kind === 'concentric'
         ? <label className={FIELD}><span>Axes</span>
           <NativeSelect className={CONTROL} aria-label="Mate axes" value={mate.flip === undefined ? 'either' : mate.flip ? 'reversed' : 'same'}

@@ -19,7 +19,7 @@ import { runStandardsTool, STANDARDS_TOOL_NAMES } from '../standards/provenance'
 import { datumPlane, readReferences, REFERENCE_TOOL_NAMES, referenceNameIn, runReferenceTool } from './references';
 import { ASSEMBLY_TOOL_NAMES, runAssemblyTool } from './assembly';
 import { solveDoc } from '../assembly/edit';
-import { validateBallOptions, validateFastenedOptions } from '../assembly/connectors';
+import { validateBallOptions, validateFastenedOptions, validateUniversalOptions } from '../assembly/connectors';
 import { resolveNames, type NameSelection } from './names';
 import { approvalOf } from './proposals';
 import type { Op } from '../engine/schema/proposals';
@@ -132,7 +132,7 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
   // O24(d): refuse explicit connector joints' forbidden raw fields before the generic unknown-argument gate.
   if (name === 'add_mate' || name === 'edit_mate') {
     const kind = name === 'add_mate' ? args.kind : state.doc.mates?.find(m => m.id === String(args.id))?.kind;
-    try { validateFastenedOptions(kind, args); validateBallOptions(kind, args); } catch (e) { if (isRefusal(e, 'VALUE')) return fail(state, e.message); throw e; }
+    try { validateFastenedOptions(kind, args); validateBallOptions(kind, args); validateUniversalOptions(kind, args); } catch (e) { if (isRefusal(e, 'VALUE')) return fail(state, e.message); throw e; }
   }
   const unknown = unknownArguments(name, args);
   if (unknown) return fail(state, unknown);

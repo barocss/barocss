@@ -234,7 +234,7 @@ export function jointTree(input: TreeInput): JointTree {
     if (failed.has(m.id)) { problems.push({ code: 'MATE_PROBLEM', message: `${m.id} is not met (${(input.mateProblems ?? []).find(p => p.mate === m.id)!.reason}): it makes no joint.`, mates: [m.id] }); continue; }
     if (!placed.has(m.a.part) || !placed.has(m.b.part) || m.a.part === m.b.part) continue;
     // Explicit connector joints resolve persistent references before any fixed or point rows are admitted.
-    if (m.kind === 'fastened' || m.kind === 'ball') {
+    if (m.kind === 'fastened' || m.kind === 'ball' || m.kind === 'universal') {
       const why = mateRefusal(m, input.tables(m.a.part)?.[m.a.face], input.tables(m.b.part)?.[m.b.face]);
       if (why) { failed.add(m.id); problems.push({ code: 'MATE_PROBLEM', message: `${m.id} is not met (${why}): it makes no joint.`, mates: [m.id] }); continue; }
     }
@@ -330,6 +330,9 @@ export function jointTree(input: TreeInput): JointTree {
 
 /** A pair's free motion from its mates' rows at the solved pose (b relative to a; the same freedom either way round). */
 function pairMotion(mates: readonly Mate[], tables: TreeInput['tables'], placed: Map<string, Placed>, L: number): ReturnType<typeof motionOf> {
+  // A universal has two body-attached rotational axes. An instantaneous two-dimensional free-twist
+  // basis is not a finite joint chain. Until that decomposition is implemented, export no fake joints.
+  if (mates.some(m => m.kind === 'universal')) return { unsupported: 'an explicit universal (fixed connector Z and moving connector X); two-axis robot decomposition is not supported' };
   const rows: Row[] = [];
   for (const m of mates) {
     if (m.kind === 'lock') { rows.push(...mateRows(m, null as never, null as never, L)); continue; }
