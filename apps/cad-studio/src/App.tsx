@@ -2357,8 +2357,9 @@ export function App() {
 
   const totalNodes = doc.nodes.length; const markerAt = marker ?? totalNodes;
   // (G12e: the history bar's whole chips — those past its room hidden, a "+n" chip opening the rest.)
-  const historyBar = useRef<HTMLDivElement>(null), [historyRows, setHistoryRows] = useState(false);
-  const { hidden: historyHidden, natural: historyNaturalNow } = useFitChips(historyBar, historyRows, [doc.nodes, markerAt, !!sketch, !!active, rendering, bottomRow.stacked, bottomRow.cramped]);
+  const historyBar = useRef<HTMLDivElement>(null), [historyRows, setHistoryRows] = useState(false), [historyLabels, setHistoryLabels] = useState(false);
+  const historyShown = !sketch && !active && !rendering;
+  const { hidden: historyHidden, natural: historyNaturalNow } = useFitChips(historyBar, historyRows, [doc.nodes, markerAt, !!sketch, !!active, rendering, historyLabels, bottomRow.stacked, bottomRow.cramped]);
   useEffect(() => setHistoryNatural(historyNaturalNow), [historyNaturalNow]);
   const sel1 = selection.faces[0] ? { kind: 'face' as const, body: bodies[selection.faces[0].body], face: bodies[selection.faces[0].body]?.mesh.faces[selection.faces[0].face] }
     : selection.edges[0] ? { kind: 'edge' as const, body: bodies[selection.edges[0].body], edge: bodies[selection.edges[0].body]?.mesh.edges[selection.edges[0].edge] } : null;
@@ -2845,7 +2846,7 @@ export function App() {
   const hud = active && <Hud store={activeStore} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null;
     setActive(a => { if (!a) return a; const values = patchValues(a.cmd, a.ctx, a.values, { [key]: value }); hudValues.current = values; return { ...a, values, preview: 'busy' }; }); }} onApply={apply} onCancel={cancel} />;
   return (
-    <div className={'studio' + (bottomRow.stacked ? ' history-stacked' : '') + (bottomRow.cramped ? ' stage-cramped' : '')} style={{ '--history-left': (browserPlacement === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT) + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px' } as CSSProperties}>
+    <div className={'studio' + (historyShown ? ' has-history' : '') + (bottomRow.stacked ? ' history-stacked' : '') + (bottomRow.cramped ? ' stage-cramped' : '')} style={{ '--history-left': (browserPlacement === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT) + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px' } as CSSProperties}>
       {/* (G12b: the top bar across the centre and the dock — the window less the chat column — the dock under it.) */}
       <Profiler id="topbar" onRender={onBlockRender}><header className="topbar">
         <span className="brand"><Icon name="deployed_code" className="accent" />barocss</span>
@@ -2984,20 +2985,20 @@ export function App() {
         {refProblems.map(p => <div key={'p' + p.index} className="ref"><span className="what">{p.where}: <b>{p.name}</b> {p.candidates.length ? 'could be any of these' : 'is gone; pick it again on the feature'}{p.node !== null ? ' (held until then)' : ''}</span>
           {p.candidates.map(n => <button key={n} className="ghost small" aria-label={`Use ${n}`} onClick={() => void settleRef(p.index, n)}>{n}</button>)}</div>)}
       </aside>}
-      <Profiler id="history" onRender={onBlockRender}>{!sketch && !active && !rendering && <div className={'card history' + (historyRows ? ' expanded' : '')} aria-label="History" ref={historyBar}>
-        <span className="card-title inline">HISTORY</span>
+      <Profiler id="history" onRender={onBlockRender}>{historyShown && <div className={'history' + (historyRows ? ' expanded' : '') + (historyLabels ? ' show-labels' : '')} role="group" aria-label="History" ref={historyBar}>
+        <button className="history-labels" aria-label="Show history step names" aria-pressed={historyLabels} title={historyLabels ? 'Hide step names' : 'Show step names'} onClick={() => setHistoryLabels(shown => !shown)}><Icon name="short_text" small /></button>
         {doc.nodes.map((n, i) => innerSteps.has(i) ? null : n.kind === 'sketch' ? (freeSketches.includes(i) ? (
           // A finished sketch no feature uses yet: click picks it as a profile (Shift adds) and opens its editor.
-          <button key={i} className={'hs sketch' + (i >= markerAt ? ' rolled' : '') + (selection.sketches?.includes(i) ? ' picked' : '') + (editNode === i ? ' edit' : '')} title={`${featureLabel(n, i, doc.nodes)} · click to pick it as a profile (Shift: add) · double-click to roll back here`}
+          <button key={i} aria-label={featureLabel(n, i, doc.nodes)} className={'hs sketch' + (i >= markerAt ? ' rolled' : '') + (selection.sketches?.includes(i) ? ' picked' : '') + (editNode === i ? ' edit' : '')} title={`${featureLabel(n, i, doc.nodes)} · click to pick it as a profile (Shift: add) · double-click to roll back here`}
             onClick={e => { pickProfile(i, e.shiftKey); setEditNode(i); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}
             onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i }); }}>
-            <Icon name="cad-sketch" small />{featureLabel(n, i, doc.nodes)}</button>) : null) : (
-          <button key={i} className={'hs' + (i >= markerAt ? ' rolled' : '') + (editNode === i ? ' edit' : '') + (n.suppressed ? ' suppressed' : '') + (n.rematched || n.held ? ' rematched' : '')} title={`${featureLabel(n, i, doc.nodes)}${n.held ? ` (held: ${n.held})` : n.suppressed ? ' (suppressed)' : ''}${n.rematched ? ` · matched again: ${Object.entries(n.rematched).map(([now, was]) => `${was} → ${now}`).join(', ')}` : ''} · click to edit · double-click to roll back here`}
+            <Icon name="cad-sketch" small />{historyLabels && <span className="hs-label">{featureLabel(n, i, doc.nodes)}</span>}</button>) : null) : (
+          <button key={i} aria-label={featureLabel(n, i, doc.nodes)} className={'hs' + (i >= markerAt ? ' rolled' : '') + (editNode === i ? ' edit' : '') + (n.suppressed ? ' suppressed' : '') + (n.rematched || n.held ? ' rematched' : '')} title={`${featureLabel(n, i, doc.nodes)}${n.held ? ` (held: ${n.held})` : n.suppressed ? ' (suppressed)' : ''}${n.rematched ? ` · matched again: ${Object.entries(n.rematched).map(([now, was]) => `${was} → ${now}`).join(', ')}` : ''} · click to edit · double-click to roll back here`}
             onClick={() => { setEditNode(i); setInstanceSel([]); setDirectSel([]); assembly.cancel(); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}
             onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i }); }}>
-            <Icon name={iconFor(n)} small />{featureLabel(n, i, doc.nodes)}</button>))}
+            <Icon name={iconFor(n)} small />{historyLabels && <span className="hs-label">{featureLabel(n, i, doc.nodes)}</span>}</button>))}
         {(historyHidden > 0 || historyRows) && <button className="hs-more" aria-label={historyRows ? 'Fewer history steps' : `${historyHidden} more history steps`} aria-expanded={historyRows}
-          title={historyRows ? 'Back to one row' : 'Show every step'} onClick={() => setHistoryRows(o => !o)}>{historyRows ? 'Less' : '+' + historyHidden}</button>}
+          title={historyRows ? 'Show fewer steps' : 'Show every step'} onClick={() => setHistoryRows(o => !o)}>{historyRows ? 'Less' : '+' + historyHidden}</button>}
         <button className="marker" aria-label="Roll forward to the end" title="Rollback marker · click to roll forward" onClick={() => setMarker(null)} />
         {marker !== null && <span className="muted">rolled back · {totalNodes - markerAt} hidden</span>}
       </div>}</Profiler>
