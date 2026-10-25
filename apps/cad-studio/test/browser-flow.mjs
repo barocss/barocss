@@ -3201,7 +3201,7 @@ try {
       await page.locator('.outliner .ol').first().click();
       await page.waitForFunction(() => /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 30000 });
       const props = await page.textContent('.props:not([aria-label$=" panel"])'), vol = Number(/Volume\s*([\d,.]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
-      assert.ok(Math.abs(vol / want.expect.outputs[0].volumeMM3.value - 1) < 1e-3, `${vol} mm³ shown`);
+      assert.ok(Math.abs(vol / want.expect.outputs[0].volume.value - 1) < 1e-3, `${vol} mm³ shown`);
       await page.click('.views button:text-is("Iso")'); await frameAll(); await page.waitForTimeout(800);
       await snap('clamp-agent');
       await page.click('.views button:text-is("Front")'); await frameAll(); await page.waitForTimeout(800);
@@ -3693,7 +3693,7 @@ try {
       // (The flats, in the box's order: 30 × 70 − BD and 100 + 2(25 − BD) × 70 + 2(25 − BD), BD = 2(R + T) − (π/2)(R + K·T) at T = R = 1.5, K 0.44.)
       for (const [name, flat, bends, circles, notes] of [['l-bracket', '30 × 67\\.393 mm, 1 bend', ['down', 1], 2, 1], ['pcb-enclosure', '144\\.786 × 114\\.786 mm, 4 bends', ['up', 4], 4, 4]]) {
         const { calls } = JSON.parse(fs.readFileSync(join(root, `../../packages/barocss-cad-model/test/fixtures/sheet-${name}.calls.json`), 'utf8'));
-        const want = JSON.parse(fs.readFileSync(join(root, `../../packages/barocss-cad/conformance/r12/accept-${name}.json`), 'utf8')).expect.outputs[0].volumeMM3.value;
+        const want = JSON.parse(fs.readFileSync(join(root, `../../packages/barocss-cad/conformance/r12/accept-${name}.json`), 'utf8')).expect.outputs[0].volume.value;
         await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
         await page.click('[aria-label="Chat"]');
         await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
@@ -3939,9 +3939,10 @@ try {
     await page.waitForSelector('[aria-label="Cut list"]');
     const rows = await page.locator('[aria-label="Cut list rows"] tbody tr').allInnerTexts();
     assert.equal(rows.length, 2);
-    assert.match(rows[0], /^1\s+2\s+rect-tube 40 × 40 × 3\s+Aluminium 6061\s+600\s+640\s+mitre 45°\s+mitre 45°\s+0\.719 kg$/);
-    assert.match(rows[1], /^2\s+2\s+rect-tube 40 × 40 × 3\s+Aluminium 6061\s+400\s+440\s+mitre 45°\s+mitre 45°\s+0\.48 kg$/);
-    assert.match(await page.textContent('[aria-label="Cut list"]'), /4 pieces in 2 rows · 2000 mm · 2\.398 kg[\s\S]*estimates — not your stock's/);
+    // Sharp tube area = 40² − 34² = 444 mm²; density 2.7 g/cm³ gives 719.28/479.52 g. CSV remains kg.
+    assert.match(rows[0], /^1\s+2\s+rect-tube 40 × 40 × 3\s+Aluminium 6061\s+600\s+640\s+mitre 45°\s+mitre 45°\s+719\.28 g$/);
+    assert.match(rows[1], /^2\s+2\s+rect-tube 40 × 40 × 3\s+Aluminium 6061\s+400\s+440\s+mitre 45°\s+mitre 45°\s+479\.52 g$/);
+    assert.match(await page.textContent('[aria-label="Cut list"]'), /4 pieces in 2 rows · 2000 mm · 2397\.6 g[\s\S]*estimates — not your stock's/);
     await page.locator('[aria-label="Cut list"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-cut-list.png`) });
     await snap('fr4a-cut-list');
     const download = page.waitForEvent('download'); download.catch(() => {});
@@ -6284,7 +6285,7 @@ try {
     await page.waitForSelector('[aria-label="Joint l2~l3 holding"]', { timeout: 30000 });
     for (const [k, v] of Object.entries(c.input.values)) await page.evaluate(([key, x]) => { const el = document.querySelector(`[aria-label="Joint ${key} value"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [k, v]);
     for (const [k, t] of Object.entries(c.expect.torques_N_m)) {
-      await page.waitForFunction(([key, want]) => document.querySelector(`[aria-label="Joint ${key} holding"]`)?.textContent === `holds ${want} N·m against gravity`, [k, String(Number(t.toPrecision(4)))], { timeout: 10000 })
+      await page.waitForFunction(([key, want]) => document.querySelector(`[aria-label="Joint ${key} holding"]`)?.textContent === `holds ${want} N·mm against gravity`, [k, String(Number((t * 1000).toPrecision(4)))], { timeout: 10000 })
         .catch(async e => { throw new Error(`${e.message.split('\n')[0]}: ${await page.locator(`[aria-label="Joint ${k} holding"]`).innerText()} vs ${t}`); });
     }
     await snap('rd1-holding');
@@ -8103,9 +8104,9 @@ try {
       assert.equal(bodies.length, expect.outputs.length, `${label}: ${bodies.length} bodies`);
       // (Each expected output found among the bodies by its volume, then its centroid checked.)
       for (const o of expect.outputs) {
-        const b = bodies.find(x => Math.abs(x.volume - o.volumeMM3.value) <= o.volumeMM3.relTol * o.volumeMM3.value);
-        assert.ok(b, `${label}: no body of ${o.volumeMM3.value} mm³ in ${JSON.stringify(bodies.map(x => x.volume))}`);
-        assert.ok(b.centroid && b.centroid.every((v, k) => Math.abs(v - o.centroidMM.value[k]) <= Math.max(o.centroidMM.absTol, 1e-6)), `${label}: centroid ${JSON.stringify(b.centroid)} vs ${JSON.stringify(o.centroidMM.value)}`);
+        const b = bodies.find(x => Math.abs(x.volume - o.volume.value) <= o.volume.relTol * o.volume.value);
+        assert.ok(b, `${label}: no body of ${o.volume.value} mm³ in ${JSON.stringify(bodies.map(x => x.volume))}`);
+        assert.ok(b.centroid && b.centroid.every((v, k) => Math.abs(v - o.centroid.value[k]) <= Math.max(o.centroid.absTol, 1e-6)), `${label}: centroid ${JSON.stringify(b.centroid)} vs ${JSON.stringify(o.centroid.value)}`);
       }
     };
     for (const name of ['notch-v-tee.json', 'notch-holesaw-tee.json']) {
