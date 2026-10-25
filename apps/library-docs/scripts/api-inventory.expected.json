@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "policyVersion": 1,
+  "status": "NOTGENERATED",
+  "reason": "Source-only preparation. Generate and review once at a later assigned immutable checkpoint; --check must fail this placeholder."
+}
