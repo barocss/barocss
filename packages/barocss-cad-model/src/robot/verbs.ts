@@ -222,12 +222,12 @@ function closedAt(t: JointTree, closer: LoopCloser, path: TimedPath, times: read
 /**
  * The facade's timed motion, using the same playable/closedAt path as RS6 playback. A seek replays preceding segment
  * seams from the assembled pose, so a return leg keeps its previous solution instead of jumping from home to its end.
- * Values remain the drivers that poseOf accepts; solved passive values are checked, never supplied as extra drivers.
+ * Values remain the drivers that poseOf accepts; closedValues also contains the already-solved native passive values.
  * This does not sweep or certify passive joint bounds between poses; finite bounds on passive loop joints are refused.
  */
-export function motionPlaybackOf(view: RobotView, motion: MotionPath, at?: number, t: JointTree = treeOf(view)) {
+export function motionPlaybackAt(doc: StudioDoc, t: JointTree, motion: MotionPath, at?: number) {
   const path = playable(t, { name: 'path', path: motion }), T = duration(path), end = at === undefined ? T : Math.min(T, Math.max(0, at));
-  const closer = loopCloserOf(view.doc, t);
+  const closer = loopCloserOf(doc, t);
   if (closer) {
     const drivers = new Set(path.waypoints.flatMap(w => Object.keys(w)));
     const bounded = t.joints.find(j => closer.all.includes(j.key) && !drivers.has(j.key) && (j.limit?.lower !== undefined || j.limit?.upper !== undefined));
@@ -237,9 +237,15 @@ export function motionPlaybackOf(view: RobotView, motion: MotionPath, at?: numbe
     const times = [0, ...timePath(t, driven).map(g => g.t0 + g.duration).filter(time => time <= end), end];
     const poses = closedAt(t, closer, driven, times);
     poses.forEach((q, k) => checkLimits(t, jointValuesOut(t, q), `at ${times[k]} s: `));
-    return { duration: T, values: poseAt(t, driven, end) };
+    return { duration: T, values: poseAt(t, driven, end), closedValues: poses[poses.length - 1] };
   }
-  return { duration: T, values: poseAt(t, path, end) };
+  const values = poseAt(t, path, end);
+  return { duration: T, values, closedValues: values };
+}
+/** The facade keeps its driver-only result; Studio may read the same calculation's closed native pose. */
+export function motionPlaybackOf(view: RobotView, motion: MotionPath, at?: number, t: JointTree = treeOf(view)) {
+  const { duration, values } = motionPlaybackAt(view.doc, t, motion, at);
+  return { duration, values };
 }
 /**
  * A looped motion swept (RS6): each timed segment cut into chords no more than 1° (1 mm) of its drivers apart, each chord
