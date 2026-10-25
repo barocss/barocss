@@ -531,8 +531,10 @@
 | Code | Declared or raised in | For example |
 |---|---|---|
 | `[BEARING_EDIT_SCOPE]` | `app` | … |
+| `[LOOP_OPEN]` | `state` | the closed motion needs its current document and joint tree |
 | `[STORAGE_CHANGED]` | `storage` | … changed since it was read |
 | `[STORAGE_DENIED]` | `storage` | the browser does not allow …: open the folder again to grant access |
 | `[STORAGE_MISSING]` | `storage` | the project has no … |
 | `[STORAGE_PATH]` | `storage` | a document's path ends in .bcad, outside …/ (got …) |
 | `[STORAGE_UNAVAILABLE]` | `storage` | this browser cannot write files here: export the project instead |
+| `[VALUE]` | `state` | …: a motion value must be finite |
