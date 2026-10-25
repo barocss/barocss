@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { momentOfInertiaAboutAxis, isSolidMassError } from '../dist/index.js';
+import { momentOfInertiaAboutAxis, isSolidMassError, evaluateCadPart, outputOf, brepMassProperties } from '../dist/index.js';
 
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) <= 1e-9, `${actual} != ${expected}`);
 // A uniform 12 g cuboid, 2 by 6 by 4 mm. Ic = m/12 times the sums of squared side lengths.
@@ -89,4 +89,30 @@ test('axis inertia: nonfinite intermediate calculations and overflow have typed 
   rejected({ ...cuboid(), mass: Number.MAX_VALUE }, { point: [1, 4, 3], direction: [0, 0, 1] }, 'parallel-axis mass product overflow');
   const inertia = Array.from({ length: 3 }, () => Array(3).fill(Number.MAX_VALUE));
   rejected({ ...cuboid(), inertia }, { point: [1, 2, 3], direction: [1, 1, 1] }, 'central quadratic form overflow');
+});
+
+test('axis inertia: public CAD box B-rep mass connects to COM and parallel axes in MMGS', () => {
+  const snapshot = evaluateCadPart({
+    format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {},
+    features: [
+      { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [2, 4] },
+      { id: 'e', kind: 'extrude', sketch: 's', height: 6 },
+    ],
+  });
+  // Authored fixture density, not a measured material: 2.5 g/cm^3 = 0.0025 g/mm^3.
+  const densityGPerCM3 = 2.5;
+  const props = brepMassProperties(outputOf(snapshot, 'e').brep, densityGPerCM3);
+  assert.equal(props.method, 'planar-exact');
+  close(props.volume, 48); close(props.mass, 0.12);
+  [1, 2, 3].forEach((expected, i) => close(props.centroid[i], expected));
+  // Independent box formula: Ic = m/12 * diag(4^2+6^2, 2^2+6^2, 2^2+4^2), in g mm^2.
+  const expectedTensor = [[0.52, 0, 0], [0, 0.4, 0], [0, 0, 0.2]];
+  expectedTensor.forEach((row, i) => row.forEach((expected, j) => close(props.inertia[i][j], expected)));
+  // Axis points and COM share the untransformed box XYZ frame, in mm.
+  for (const [direction, expected] of [[[1, 0, 0], 0.52], [[0, 1, 0], 0.4], [[0, 0, 1], 0.2]]) {
+    close(momentOfInertiaAboutAxis(props, { point: [1, 2, 3], direction }), expected);
+  }
+  // Parallel Z axis 3 mm from COM: 0.2 + 0.12 * 3^2 = 1.28 g mm^2.
+  close(momentOfInertiaAboutAxis(props, { point: [1, 5, 3], direction: [0, 0, 1] }), 1.28);
+  close(momentOfInertiaAboutAxis(props, { point: [1, 5, 3], direction: [0, 0, 7] }), 1.28);
 });
