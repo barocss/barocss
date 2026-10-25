@@ -1431,13 +1431,31 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       items.push(<g key={'proposal:' + side} aria-label={side === 'added' ? 'Material added' : 'Material removed'}><rect x={q[0] - tw / 2} y={y} width={tw} height={20} rx={4} style={{ fill }} />
         <text x={q[0]} y={y + 14} textAnchor="middle" className="dim-text" style={{ fill: '#ffffff' }}>{text}</text></g>);
     }
-    // G13: the frames' triads and names in the overlay where the renderer draws no lines (WebGL2).
-    if (props.frames?.length && !sk && !engineLines) for (const f of props.frames) {
-      const q = cam.project(f.o, w, h), ends = frameAxisEnds(f, props.frameSize ?? 25), kind = f.kind ?? 'tool';
-      items.push(<g key={'frame:' + f.name} aria-label={`Frame triad ${f.name}`}>
-        <rect x={q[0] + 8} y={q[1] - 22} width={f.name.length * 7 + 8} height={16} rx={3} style={{ fill: FRAME_CHIP[kind] }} />
-        <text x={q[0] + 12} y={q[1] - 10} className="dim-text" style={{ fill: '#121315' }}>{f.name}</text>
-        {FRAME_AXES.map(([axis, color]) => { const e = cam.project(ends[axis], w, h); return <line key={axis} x1={q[0]} y1={q[1]} x2={e[0]} y2={e[1]} style={{ stroke: color, strokeWidth: 2 }} />; })}</g>);
+    // G13: frame axes stay at their projected origins; names occupy separate screen-space chips (WebGL2).
+    if (props.frames?.length && !sk && !engineLines) {
+      const placed: { x: number; y: number; width: number }[] = [], leaders: React.ReactNode[] = [], labels: React.ReactNode[] = [];
+      const margin = 4, gap = 2, height = 16;
+      for (const f of props.frames) {
+        const q = cam.project(f.o, w, h), ends = frameAxisEnds(f, props.frameSize ?? 25), kind = f.kind ?? 'tool';
+        const width = f.name.length * 7 + 8, preferredX = q[0] + 8, preferredY = q[1] - 22;
+        const x = Math.max(margin, Math.min(Math.max(margin, w - margin - width), preferredX));
+        const clampY = (y: number) => Math.max(margin, Math.min(Math.max(margin, h - margin - height), y));
+        const overlappingX = placed.filter(b => x < b.x + b.width + gap && x + width + gap > b.x);
+        const candidates = [...new Set([clampY(preferredY), ...overlappingX.flatMap(b => [clampY(b.y - height - gap), clampY(b.y + height + gap)])])];
+        candidates.sort((a, b) => Math.abs(a - preferredY) - Math.abs(b - preferredY) || a - b);
+        // If the viewport cannot hold every chip, retain every name; no collision-free guarantee in that case.
+        const y = candidates.find(y => overlappingX.every(b => y + height + gap <= b.y || y >= b.y + height + gap)) ?? clampY(preferredY);
+        placed.push({ x, y, width });
+        items.push(<g key={'frame:' + f.name} aria-label={`Frame triad ${f.name}`}>
+          {FRAME_AXES.map(([axis, color]) => { const e = cam.project(ends[axis], w, h); return <line key={axis} x1={q[0]} y1={q[1]} x2={e[0]} y2={e[1]} style={{ stroke: color, strokeWidth: 2 }} />; })}</g>);
+        if (x !== preferredX || y !== preferredY) leaders.push(<line key={'frame-label-leader:' + f.name} aria-label={`Frame label leader ${f.name}`} x1={q[0]} y1={q[1]} x2={Math.max(x, Math.min(x + width, q[0]))} y2={Math.max(y, Math.min(y + height, q[1]))} style={{ stroke: FRAME_CHIP[kind], strokeWidth: 1 }} />);
+        labels.push(<g key={'frame-label:' + f.name} aria-label={`Frame label ${f.name}`}>
+          <rect x={x} y={y} width={width} height={height} rx={3} style={{ fill: FRAME_CHIP[kind] }} />
+          <text x={x + 4} y={y + 12} className="dim-text" style={{ fill: '#121315' }}>{f.name}</text>
+        </g>);
+      }
+      // All axes and leaders precede every opaque chip and text, so no line can paint over a frame name.
+      items.push(...leaders, ...labels);
     }
     if (props.tool) items.push(<g key="tool" className="vp-tool">{props.tool.marks(toolView())}</g>);
     const dr = drag.current;
