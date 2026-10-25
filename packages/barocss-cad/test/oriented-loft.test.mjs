@@ -396,7 +396,12 @@ test('framed mixed loft: nonuniform or reversed scales and reordered corresponde
     const at = q => [2 * q[0], q[1]];
     return s.kind === 'line' ? { ...s, start: at(s.start) } : { ...s, start: at(s.start), center: at(s.center) };
   });
-  rejected(() => mixed(p, nonuniform), 'INPUT', /uniform scale/);
+  // The first two starts imply scale=2, translation=(0,1). They match, but that
+  // similarity would move the first arc centre to (4,1), not this fixture's (4,0).
+  // Its arc-centre guard therefore runs before the later nonmatching start guard.
+  assert.deepEqual(nonuniform[0], { kind: 'line', start: [-4, -1] });
+  assert.deepEqual(nonuniform[1], { kind: 'arc', start: [4, -1], center: [4, 0], direction: 'ccw' });
+  rejected(() => mixed(p, nonuniform), 'INPUT', /^B-rep: loft: framed mixed curves need corresponding arc centres and directions$/);
   rejected(() => mixed(p, similarity(p, -1)), 'INPUT', /positive/);
   rejected(() => mixed(p, [...p.slice(2), ...p.slice(0, 2)]), 'INPUT', /scale|correspondence/);
 });
