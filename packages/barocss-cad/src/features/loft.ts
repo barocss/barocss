@@ -24,11 +24,15 @@ export interface LoftSectionFrame {
   readonly xAxis: readonly [number, number, number];
   readonly yAxis: readonly [number, number, number];
 }
-/** Use z throughout, or two explicit convex polygon frames: affine correspondence, or identical axes. */
-export type LoftSectionInput = { readonly profile: readonly ProfileSegmentInput[] } & (
+/** Polygon/arc loops keep their existing z path. Inline ellipses require an explicit frame. */
+export type LoftSectionInput = ({ readonly profile: readonly ProfileSegmentInput[] } & (
   | { readonly z: number; readonly frame?: never }
   | { readonly frame: LoftSectionFrame; readonly z?: never }
-);
+)) | {
+  /** Loft-only conic on identical-axis parallel frames; +X seam, clockwise normalized to ccw. */
+  readonly profile: { readonly kind: 'ellipse'; readonly center: readonly [number, number]; readonly radii: readonly [number, number]; readonly direction?: 'ccw' | 'cw' };
+  readonly frame: LoftSectionFrame; readonly z?: never;
+};
 export interface LoftInput {
   readonly id: string; readonly sections: readonly LoftSectionInput[];
   /** Names faces `${name}.bottom`, `.top` and `.side${i}` (two sections, or smooth) or `.s${k}.side${i}`. */
@@ -68,7 +72,7 @@ function at(b: Bezier, s: number): [XY, XY] {
 }
 
 export function loftSolid(input: LoftInput): { brep: Brep; mass: (density: number) => MassProperties } {
-  if (input.sections.some(s => s.frame !== undefined)) return orientedLoftSolid(input);
+  if (input.sections.some(s => s.frame !== undefined || !Array.isArray(s.profile))) return orientedLoftSolid(input);
   const fail = (detail: string): never => { throw new BrepError('INPUT', `loft: ${detail}`); };
   const S = input.sections as readonly { readonly profile: readonly ProfileSegmentInput[]; readonly z: number }[];
   if (S.length < 2) fail('needs at least two sections');

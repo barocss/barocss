@@ -4,11 +4,12 @@
 // certificate, not a sampled mesh-intersection test. CG1.1b also admits non-affine polygons on
 // frames with identical axes: every intermediate polygon must remain strictly convex, certified
 // by all edge/vertex orientation quadratics. The strictly ordered parallel planes cannot meet.
-// Curves and more than two planes stay out.
+// Circle/ellipse pairs use the separate exact conic path; general curves and more than two planes stay out.
 import { BrepError, buildBrep, lineCurve, type BrepFaceInput } from '../brep/brep-core.js';
 import { solidMassFromIntegrals } from '../brep/solid-mass.js';
 import { gauss } from '../core/quadrature.js';
-import { buildProfileLoop, capSurface, ExtrudedProfileLimits } from './extruded-profile-solid.js';
+import { buildProfileLoop, capSurface, ExtrudedProfileLimits, type ProfileSegmentInput } from './extruded-profile-solid.js';
+import { curvedLoftSolid } from './curved-loft.js';
 import type { LoftInput, LoftSectionFrame } from './loft.js';
 import type { Point } from '../types.js';
 
@@ -47,7 +48,8 @@ export function orientedLoftSolid(input: LoftInput) {
   const S = input.sections;
   if (S.some(s => s.z !== undefined || s.frame === undefined)) return fail('require frame on both sections and no z');
   const frames = S.map(s => frame(s.frame));
-  const loops = S.map(s => buildProfileLoop(s.profile));
+  if (S.some(s => !Array.isArray(s.profile) || s.profile.some(g => g.kind === 'arc'))) return curvedLoftSolid(input, frames);
+  const loops = S.map(s => buildProfileLoop(s.profile as readonly ProfileSegmentInput[]));
   const polygons = loops.map(loop => loop.segments.map(s => s.kind === 'line' ? [...s.start] as XY : fail('currently support straight polygon edges only')));
   const [lo, hi] = polygons, n = lo.length;
   if (n < 3 || hi.length !== n) return fail('need equal polygon edge counts of at least three');

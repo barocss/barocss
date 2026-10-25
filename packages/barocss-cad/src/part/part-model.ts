@@ -60,7 +60,7 @@ import { rayHit, triangleBvh } from '../mesh/triangle-bvh.js';
 import { combineMassProperties, prismaticMassProperties, brepMassProperties, brepSurfaceArea, isSolidMassError, type MassProperties } from '../brep/solid-mass.js';
 import { unsupportedNativeMass } from '../internal/native-si-mass-state.js';
 import { glueAtSharedFace, withCavities } from '../brep/brep-glue.js';
-import { loftSolid, type LoftSectionFrame } from '../features/loft.js';
+import { loftSolid, type LoftSectionFrame, type LoftSectionInput } from '../features/loft.js';
 import { generalShell } from '../blend/general-shell.js';
 import { offsetCavity, offsetShell, smoothOffsetBody } from '../blend/offset-cavity.js';
 import { regionShell } from '../blend/region-shell.js';
@@ -154,7 +154,7 @@ export type CadPartFeature = Base & (
    * `${id}.bottom`, `.top`, `.side${i}` (two sections) or `.s${k}.side${i}`. `smooth` (three or more
    * sections): one smooth side per edge through them all (C1), named `.side${i}`.
    */
-  /** Two world frames: ruled convex polygons with affine correspondence, or identical frame axes. */
+  /** Two world frames: admitted convex polygon or circle/ellipse conic correspondence. */
   | { readonly kind: 'loft'; readonly sections: readonly CadPartLoftSection[]; readonly smooth?: boolean }
   /**
    * A body read from a STEP file (its text); its faces keep their names, prefixed `${id}.`. `each`: every
@@ -527,11 +527,11 @@ export interface CadPartDocument {
   readonly parameters: Readonly<Record<string, number>>;
   readonly features: readonly CadPartFeature[];
 }
-export type CadPartLoftSection = { readonly sketch: string } & (
+export type CadPartLoftSection = ({ readonly sketch: string; readonly profile?: never } & (
   | { readonly z: CadPartDim; readonly frame?: never }
   /** An explicit world frame replaces the sketch's placement, keeping its local profile coordinates. */
   | { readonly frame: LoftSectionFrame; readonly z?: never }
-);
+)) | { readonly profile: Exclude<LoftSectionInput['profile'], readonly ProfileSegmentInput[]>; readonly frame: LoftSectionFrame; readonly sketch?: never; readonly z?: never };
 export type CadPartSweepStep = { readonly kind: 'straight'; readonly length: CadPartDim } | { readonly kind: 'bend'; readonly radius: CadPartDim; readonly angle: number; readonly toward: 'x' | '-x' | 'y' | '-y' };
 /**
  * A frame's corners (FR3a, D125): where exactly two members end at a skeleton point, `default` finishes them — `mitre`
@@ -1511,10 +1511,15 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'loft': {
       const list = f.sections as unknown;
       if (!Array.isArray(list) || list.length < 2 || list.length > CadPartLimits.copies) fail('INPUT', 'sections must list 2 to 64 sections');
-      if ((list as unknown[]).some(sec => isRecord(sec) && sec.frame !== undefined)) {
+      if ((list as unknown[]).some(sec => isRecord(sec) && (sec.frame !== undefined || Object.hasOwn(sec, 'profile')))) {
         if (f.smooth !== undefined && typeof f.smooth !== 'boolean') fail('INPUT', 'smooth must be true or false');
         const framed = (list as unknown[]).map((sec, i) => {
-          if (!isRecord(sec) || typeof sec.sketch !== 'string' || sec.frame === undefined || sec.z !== undefined) return fail('INPUT', `sections[${i}] must name a sketch and frame, without z`);
+          if (!isRecord(sec) || sec.frame === undefined || sec.z !== undefined) return fail('INPUT', `sections[${i}] need an explicit frame without z`);
+          if (Object.hasOwn(sec, 'profile')) {
+            if (Object.hasOwn(sec, 'sketch') || !isRecord(sec.profile) || sec.profile.kind !== 'ellipse') return fail('INPUT', `sections[${i}] must provide an ellipse profile or a sketch, never both`);
+            return { profile: sec.profile as unknown as Exclude<LoftSectionInput['profile'], readonly ProfileSegmentInput[]>, frame: sec.frame as unknown as LoftSectionFrame, tags: undefined };
+          }
+          if (typeof sec.sketch !== 'string') return fail('INPUT', `sections[${i}] must name a sketch or an inline ellipse profile`);
           const sketch = ref(sec.sketch, 'sketch').result;
           if (sketch.kind !== 'sketch') return fail('REFERENCE', `${sec.sketch} is not a sketch`);
           if (sketch.regions?.length || sketch.holes?.length) return fail('CAPABILITY', 'oriented loft sections need one loop without holes');
