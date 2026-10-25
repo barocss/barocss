@@ -113,7 +113,8 @@ validation are different results and must remain separate.
 
 ## Order now (2026-10-26)
 
-The current local product is `f7eb767d9e874fb2dd38ba6f24f05cef825b0d50`.
+The latest completed static-experiment API checkpoint is the local product merge
+`13dcd165382b58ad0f0d4e588d9e215ebcb06359`.
 The foundation corrections, axis-inertia query, positive-principal-axis draft and Drawing input corrections are
 adopted. The product CAD library was freshly built at `b77c0a08`; its 818 output files matched the candidate.
 A new selected test connected an actual planar box B-rep mass result to the axis-inertia query and independent
@@ -124,17 +125,23 @@ documents matched the complete input document. Project/OPFS saving was outside t
 guides were then built, inspected in desktop Chrome and adopted with their product docs check. Original failures,
 tool-control failures, numerical checks and limited visual results remain separate evidence.
 
-The next source batch starts Stage 1 with one bounded experiment: static gravity holding torque at a specified
-pose of one connected open revolute or continuous joint. The API lane owns its facade and regression sources.
-Reuse the existing Model inertia and gravity calculations. Require explicit pose and gravity inputs, refuse
-missing or assumed moving-body materials and incomplete results, and bind a captured result to the complete
-document and inputs. A changed document, pose or gravity vector makes the old result stale. A revision label is
-not an integrity certificate. Preserve existing gravity behaviour and its units.
+Stage 1 now has one bounded API: static gravity holding torque at a specified pose of one connected open
+revolute or continuous joint. It reuses Model inertia and gravity calculations, requires explicit pose and gravity,
+and refuses missing or assumed moving-body materials, incomplete results and nested moving-part occurrences.
+The captured result is bound to the complete document and inputs. A changed document, pose or gravity vector
+makes the result stale; a revision label is not an integrity certificate. Its focused numerical and consumer
+checks, public-surface documentation and local product docs check passed within their recorded scopes.
 
-This batch does not add a solver, free-motion prediction, a storage schema or a Studio experiment UI. It must first
-complete source review, then its focused numerical and consumer checks, public-surface documentation and local
-adoption. It does not complete all of Stage 1. Next connect the bounded result to user-visible input, stale and
-unsupported states; do not start the pendulum solver before its ownership and input contracts are established.
+The separate Studio panel source connects these inputs to a local result without changing the document or
+viewport pose. Desktop Chrome checks covered the independent rod holding-torque result, angle and gravity
+changes, a public document edit, missing input and nested-part refusal. Previous results remain visibly marked.
+The changed Studio consumer type check and two-file lint passed. Finish this slice's documentation and local
+adoption without repeating unchanged API, Kernel or browser checks.
+
+This does not complete Stage 1 or add free-motion prediction or an experiment storage schema. Next define the
+bounded durable experiment receipt and source-provenance contract needed to save, reopen and compare a run;
+page-local state is not a saved experiment. Establish Physics ownership and the mass, coordinate-frame, unit
+and fixed-pivot input contract before implementing the pendulum solver.
 
 ## Historical lane order (2026-10-25, owner: "필요한 것들 로드맵에 추가 해서 진행해줘")
 
