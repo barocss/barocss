@@ -25,6 +25,29 @@ export type GravityExperimentRecordPreview = {
   assumptions: string[];
 };
 
+/** Recorded material fields checked for display, not authenticated catalogue or measured evidence. */
+export type GravityExperimentMaterialPreview = {
+  bodies: {
+    link: string;
+    body: string;
+    materialSnapshot: {
+      bodyMaterialId: string | null;
+      inputMaterialId: string | null;
+      resolvedMaterialId: string;
+      fallback: 'none' | 'unset' | 'unknown-id';
+      densityGPerCm3: number;
+      catalogueDensityGPerCm3: number | null;
+      libraryVersion: string;
+      densitySourceId: string | null;
+      densitySourceText: string | null;
+      densityPage?: { url: string; read: string; label: string; note?: string };
+      rowEstimate: boolean | null;
+      basis: 'builtin-catalogue-not-measured';
+    } | null;
+    inertiaSource: 'mmgs-density-scaled' | 'callback-override' | null;
+  }[];
+};
+
 function fail(message: string): never { throw refuse('VALUE', `Gravity experiment record: ${message}`); }
 
 function plain(value: unknown, label: string): Record<string, unknown> {
@@ -103,6 +126,64 @@ function parsed(text: string, label: string): Json {
   return jsonCopy(value);
 }
 
+function materialSnapshot(value: Json): NonNullable<GravityExperimentMaterialPreview['bodies'][number]['materialSnapshot']> {
+  const snapshot = record(value, 'materialSnapshot');
+  const nullableString = (key: string): string | null => {
+    const value = own(snapshot, key);
+    return value === null ? null : string(value, key);
+  };
+  const fallback = own(snapshot, 'fallback');
+  if (fallback !== 'none' && fallback !== 'unset' && fallback !== 'unknown-id') fail('unsupported material fallback.');
+  const densityGPerCm3 = number(own(snapshot, 'densityGPerCm3'), 'densityGPerCm3');
+  if (!(densityGPerCm3 > 0)) fail('densityGPerCm3 must be positive.');
+  const declared = own(snapshot, 'catalogueDensityGPerCm3');
+  const catalogueDensityGPerCm3 = declared === null ? null : number(declared, 'catalogueDensityGPerCm3');
+  const rowEstimate = own(snapshot, 'rowEstimate');
+  if (rowEstimate !== null && typeof rowEstimate !== 'boolean') fail('rowEstimate must be boolean or null.');
+  if (own(snapshot, 'basis') !== 'builtin-catalogue-not-measured') fail('unsupported material basis.');
+  let densityPage: NonNullable<GravityExperimentMaterialPreview['bodies'][number]['materialSnapshot']>['densityPage'];
+  if (Object.hasOwn(snapshot, 'densityPage')) {
+    const page = record(snapshot.densityPage, 'densityPage');
+    densityPage = { url: string(own(page, 'url'), 'densityPage.url'), read: string(own(page, 'read'), 'densityPage.read'),
+      label: string(own(page, 'label'), 'densityPage.label'),
+      ...(Object.hasOwn(page, 'note') ? { note: string(page.note, 'densityPage.note') } : {}) };
+  }
+  return {
+    bodyMaterialId: nullableString('bodyMaterialId'), inputMaterialId: nullableString('inputMaterialId'),
+    resolvedMaterialId: named(own(snapshot, 'resolvedMaterialId'), 'resolvedMaterialId'), fallback,
+    densityGPerCm3, catalogueDensityGPerCm3, libraryVersion: string(own(snapshot, 'libraryVersion'), 'libraryVersion'),
+    densitySourceId: nullableString('densitySourceId'), densitySourceText: nullableString('densitySourceText'),
+    ...(densityPage ? { densityPage } : {}), rowEstimate, basis: 'builtin-catalogue-not-measured',
+  };
+}
+
+function materialPreviewOf(report: JsonRecord): GravityExperimentMaterialPreview | null {
+  const inertia = record(own(report, 'inertia'), 'inertia');
+  if (!Object.hasOwn(inertia, 'links')) return null;
+  const links = inertia.links;
+  if (!Array.isArray(links)) fail('inertia.links must be a dense array.');
+  const bodies: GravityExperimentMaterialPreview['bodies'] = [];
+  // jsonCopy already rejects sparse arrays and accessors before a report reaches this projection.
+  for (const value of links) {
+    const link = record(value, 'inertia link'), key = named(own(link, 'link'), 'link');
+    const counted = own(link, 'bodies');
+    if (!Array.isArray(counted)) fail('link bodies must be a dense array.');
+    for (const value of counted) {
+      const body = record(value, 'counted body'), bodyKey = named(own(body, 'key'), 'body key');
+      let inertiaSource: GravityExperimentMaterialPreview['bodies'][number]['inertiaSource'] = null;
+      if (Object.hasOwn(body, 'inertiaSource')) {
+        const source = body.inertiaSource;
+        if (source !== 'mmgs-density-scaled' && source !== 'callback-override') fail('unsupported inertiaSource.');
+        inertiaSource = source;
+      }
+      bodies.push({ link: key, body: bodyKey,
+        materialSnapshot: Object.hasOwn(body, 'materialSnapshot') ? materialSnapshot(body.materialSnapshot) : null,
+        inertiaSource });
+    }
+  }
+  return { bodies };
+}
+
 function validate(report: JsonRecord): GravityExperimentRecordPreview {
   if (own(report, 'profile') !== 'static-gravity-v1') fail('unsupported calculation profile.');
   const units = record(own(report, 'units'), 'units');
@@ -172,6 +253,8 @@ export class GravityExperimentRecord {
   }
   get report(): unknown { return jsonCopy(this.#report); }
   get preview(): GravityExperimentRecordPreview { return structuredClone(this.#preview); }
+  /** Optional recorded metadata only: no catalogue lookup, recalculation or validation of the full inertia report. */
+  get materialPreview(): GravityExperimentMaterialPreview | null { return materialPreviewOf(this.#report); }
   /** Full equality only; this does not test current producer code or material catalogue compatibility. */
   matches(doc: StudioDoc, options: GravityExperimentOptions): boolean {
     const binding = gravityExperimentBinding(doc, gravityExperimentInput(options)), previous = record(own(this.#report, 'binding'), 'binding');
