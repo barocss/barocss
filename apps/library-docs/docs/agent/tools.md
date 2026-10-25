@@ -65,6 +65,19 @@ it is proposed. See [Part features](/studio/features#machine-elements).
 - **All or nothing.** `features.batch` runs several calls all or nothing, and `dryRun` tries them without keeping
   them. `model.run` runs a whole script the same way.
 
+### Use the result for the next call
+
+An accepted part edit returns `ok: true`, `did`, `feature_count`, `facts` and `change`. Use these fields to check what
+changed before making another edit. Body details depend on `response_format` and the result's size; an omitted face
+list does not mean the body has no faces. Read the part summary before using a face or edge name you have not seen.
+
+A part-tool refusal returns `ok: false` and `error`; fields such as `code`, `detail` and `kept` appear when the handler
+supplies them. Do not assume every tool result has the object API's `code`, `where` and `details` error fields.
+Use an available code to select the response, and read the error text for the input to change. For `needs_proposal`
+or `needs_approval`, use the proposal workflow. For an invalid selection or value, ask `describe` for the action's
+`input` schema or the command's `selection` and `values`, then correct that input. An unknown tool, action, command
+or feature request to `describe` returns `error` with the available names; use those names rather than guessing.
+
 These calls come from `samples/agent-mcp.test.mjs`, which runs them through `cad-mcp` on a 60 × 40 × 8 plate:
 
 <<< @/../samples/agent-mcp.test.mjs#l2

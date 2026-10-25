@@ -163,11 +163,25 @@ them all.
 - A tolerance from your fit or fastener rows cites the row.
 - One without a row is an estimate and says so.
 
+### Datum references and control frames
+
+A datum stores one edge reference or one face reference. A face reference keeps the exact face name, including its
+assembly occurrence prefix. Its `near` point selects the nearest current boundary vertex of that face. A missing
+or ambiguous face stays unresolved; the drawing does not substitute another face or reuse the old point.
+
+Each datum has an `id` and a letter. A geometric control frame has its own `id`, refers to a dimension by `dim`,
+and names its datums by letter. Authored inputs require unique datum ids and letters, and at most one frame per
+dimension. These symbols and modifiers are annotations; they do not solve or verify the part's geometric tolerances.
+
 ## Issues
 
 **Drawing issues** lists what the sheet is missing or gets wrong: a feature with no dimension, a dimension that was
 lost after a model change, a feature a section would show better. Each issue can carry a **Fix**. **Fix all issues**
 applies them all, and **Issue count** shows how many are left.
+
+`DATUM_LOST` reports a datum with no current anchor in a visible view. `DATUM_TWICE` reports a repeated datum
+letter. `FRAME_LOST` reports a frame whose dimension is lost or missing, and `DATUM_UNDEFINED` reports a frame
+that names an undefined datum. The last issue has no automatic fix: define the datum or edit the frame.
 
 ## Tables and balloons
 
@@ -183,3 +197,6 @@ The sheet can carry the tables that the part's features need:
 
 - **Export SVG** and **Export PDF** write the sheet as shown.
 - **Export DXF** writes it as AutoCAD 2000 or R12, chosen in **DXF version**.
+
+Check **Drawing issues** as well as the exported sheet. The issue list reports unresolved references separately
+from the marks drawn on the sheet; an exported file alone does not establish that every annotation is resolved.

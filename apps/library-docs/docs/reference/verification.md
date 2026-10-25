@@ -17,6 +17,16 @@ studio in a browser.
 - **This site's samples** (`pnpm test:samples` in `apps/library-docs`) run every code sample the pages show, through
   the packages' sources and the real `cad-mcp` and `cad-cli`.
 
+The supported loop-motion tests separate driver timing and solved closure from collision checks. They compare
+four-bar and slider-crank poses with independent geometry and check typed refusals. A supported path's empty
+`problems()` result does not establish sweep or continuous collision clearance: the object API's looped `check()`
+still refuses with `LOOP_OPEN`. See [Robot code examples](/studio/robots#in-code) for playback and the separate contact-check
+boundary.
+
+The [guided conic loft](/packages/cad/robustness#guided-conic-lofts) tests define comparisons for authored guide
+controls, intermediate sections, mass properties, bounds, document round trips and rejected inputs. Their scope is
+one admitted quadratic guide on two circle or ellipse sections; it does not cover general or multiple rails.
+
 ## Unit and export comparisons
 
 Compare physical quantities in the same units. Modeling mass results use MMGS. The confirmed R7 contract also uses
@@ -91,6 +101,8 @@ A result names its source SHA, selected checks, renderer and outcome. Keep their
 - After a bounded repair, a focused rerun verifies that repair. The earlier full-suite failure remains a separate
   result until the full suite is rerun.
 - A stopped or waiting run is incomplete. It supplies no completed pass result for the checks that did not finish.
+- Reading source or test definitions identifies the contract and intended checks. It supplies no new runtime pass
+  result. Record execution against the selected source SHA separately.
 - A passing browser flow covers the named renderer and steps. A successful capture that used no retry does not
   demonstrate recovery from a detached-element error.
 

@@ -11,6 +11,22 @@ messages, easier to read.
   which write metres and radians as their formats expect.
 - **Z is up.** The XY plane is the ground, and the camera orbits about Z. **Top** looks down Z, and a box's
   **Height Z** grows upward.
+- **Density is in g/cm³** for modeling mass properties. Volume is in mm³, mass in g, and centroidal inertia in
+  g·mm². For a manual mass check, convert mm³ to cm³ before multiplying by density. The API already returns grams;
+  do not convert its mass again. See the [numerical unit check](/packages/cad/modeling#a-numerical-unit-check).
+
+## Face and edge names
+
+Selections use face and edge names, rather than display triangle numbers. A face name combines its feature and
+role; an edge name combines the names of its adjoining faces. These names let a fillet or chamfer follow parameter
+edits that keep the topology. Splitting, removing or replacing faces can change that topology, so a saved name alone
+does not guarantee the same selection. See [Names](/packages/cad/modeling#names).
+
+The Studio document stores geometry signatures with supported face and edge references. On open, it compares those
+signatures with the available geometry. A clear replacement is marked as re-matched for review. A missing or
+ambiguous match is reported; the affected feature can be held while the rest of the document builds. Review a
+re-matched selection, or pick the intended geometry again. This check concerns what a reference selects. It is
+separate from the document revision and export source records described below.
 
 ## Correct or refused
 
@@ -68,7 +84,7 @@ your loaded fastener sizes give a different M5 value, the part's notes say so an
   - **STL**, and the **URDF**, **MJCF**, **SDF** and **USD** robot exports, can't carry it in their bytes. They get a
     `.source.json` record beside them instead, which holds:
     - the revision;
-    - a SHA-256 of the content it covers;
+    - a SHA-256 of the same canonical input content used for the revision, rather than the exported file's bytes;
     - the files it describes;
     - for a robot, the values set by hand: the base link and the joints' limits and ratings.
 

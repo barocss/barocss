@@ -39,6 +39,27 @@ Some joints follow another instead of moving on their own:
 **Base link** chooses which link stays put. Angles are in degrees and lengths in millimetres in the card; exports
 write metres and radians.
 
+### Candidate Universal robot joints
+
+This candidate is not integrated into the product and has not been runtime-verified in this documentation work.
+The current joint support described above remains unchanged.
+
+The candidate represents one explicit Universal mate as two rotations about the connector axes. The pair's joint
+keys end in `#0` for connector A's Z axis and `#1` for connector B's X axis. These keys keep their meaning when
+the robot base changes. The axes come from the solved connector frames, including their local settings, rather
+than from fixed world directions. Changing the base can reverse their order and signs without renaming the keys.
+Set limits and ratings on each axis key in `doc.robot.joints`; pair-level settings are refused. Stored and public
+turn limits use degrees, velocity uses deg/s, and effort uses N·mm. The tree converts them to solver units.
+
+The two rotations use an intermediate logical carrier with `part: null`. It is not an assembly body or a BOM or
+mass row. The candidate feeds this chain into the existing forward-kinematics and generic export paths.
+
+It refuses a Universal combined with other mates on the same pair, a grounded endpoint, or a closed or coupled
+loop. Missing connector geometry, invalid axes, separated origins or axes that are not perpendicular also prevent
+the decomposition. Unsupported decomposition reports `MOTION_UNSUPPORTED`; an unresolved or unmet mate can
+instead report `MATE_PROBLEM` before decomposition. The explicit Cylindrical mate candidate still has no robot
+decomposition in this candidate; its assembly freedom does not establish robot or export support.
+
 ## Moving it
 
 ![The Joints card of a two-link arm: each joint with its slider](/shots/studio/robots/joints.jpg)
@@ -65,7 +86,8 @@ write metres and radians.
     chords at most 1° (or 1 mm) of the drivers apart and certifies each one. A chord's middle isn't closed exactly, and
     the reply says by how much, as `loops: {chords, chordResidual}`, with `chordResidual` in mm. A waypoint that gives
     a passive joint is
-    refused, `LOOP_PASSIVE`. The studio's **Check path** and playback don't close the loop yet.
+    refused, `LOOP_PASSIVE`. In Studio, **Play motion** and the time scrubber close supported looped motions too.
+    Studio's **Check path** still refuses a looped motion with `LOOP_OPEN`.
 - **Playing a motion.** **Play motion** plays the motion chosen in **Motion choice** in time. Its length shows before
   it plays.
   - The draft is the path above: from home, through the waypoints, to the pose shown. Each joint moves at its velocity
@@ -73,7 +95,11 @@ write metres and radians.
   - A saved motion plays as the document keeps it: its waypoints, profile and limits.
   - **Pause motion** holds it. The **Motion time** scrubber sets the pose at a time, **Loop motion** repeats it, and
     **Motion speed** plays it at 0.25× to 2×.
-  - The first contact on the way is reported as "Contact *link* – *link* at t … s". From then on the two links are
+  - For a supported looped motion, the driving joints follow the path and the passive joints are solved. Seeking
+    forward or backward keeps the assembled branch through earlier segment joins. A refused seek leaves the pose
+    and time unchanged. Playing a single joint's preview on a looped robot is still refused with `LOOP_OPEN`;
+    choose a supported motion in **Motion choice** instead.
+  - For an open-chain motion, the first contact on the way is reported as "Contact *link* – *link* at t … s". From then on the two links are
     marked: outlined on WebGPU, tinted on WebGL2.
   - Playing saves nothing. Moving a slider, **Home**, a change to the waypoints or another choice stops it.
 ![The pan-tilt head's saved motion "look around" chosen in Motion choice, paused partway, its camera frame drawn](/shots/studio/robots/saved-motion.jpg)
@@ -81,6 +107,8 @@ write metres and radians.
 - **Saving a motion.** With the draft chosen, name it in **Motion name** and **Save as motion** keeps it in the
   document, in degrees and millimetres, and chooses it. A motion of the same name is replaced. Saving is an undo step;
   the pose shown and the play state are never saved.
+  For a supported looped motion, **Add waypoint** and **Save as motion** keep only driving-joint values. The solved
+  passive-joint values stay in the preview and are worked out again when the motion plays.
 - **Workspace.** **Workspace** (Map workspace) samples the reachable space and draws it as voxels, with a summary and the samples.
   **Download workspace** saves it.
 
@@ -388,15 +416,25 @@ See [Unit and export comparisons](/reference/verification#unit-and-export-compar
 
 - **Motions:** a path timed and played, the sample's saved motion read, and a path saved as a motion.
   `path(waypoints, { profile?, limits? })` takes waypoints in degrees and millimetres, and limits per joint in deg/s
-  and deg/s² (or mm/s and mm/s²). `duration()` gives its length in seconds, `poseAt(t)` the joint values at a time in
-  degrees, and `problems()` what is wrong with it on this robot. `motion(name)` reads a saved motion, and
-  `withMotion(name, path)` returns a robot with the path saved.
+  and deg/s² (or mm/s and mm/s²). `duration()` gives its length in seconds. `poseAt(t)` returns the driving-joint
+  values at a time in degrees or mm; pass them to `robot.pose(...)` for the solved passive values and link placements.
+  `motion(name)` reads a saved motion, and `withMotion(name, path)` returns a robot with the path saved.
+  - Supported looped paths, including the sample four-bar's saved `crank` motion, can use `duration()`, `poseAt(t)`
+    and `problems()`. Supply driving joints only. Seeking keeps the assembled branch through preceding segment
+    joins; a later seek cannot skip an unreachable or dead-point part of the path.
+  - `problems()` returns `[]` for a supported, closable path, or lists its typed refusal. `duration()` and `poseAt(t)`
+    throw the typed refusal when the required path cannot close. Finite lower or upper bounds on passive loop joints
+    remain unsupported and give `LOOP_OPEN`. Extra passive-joint waypoint inputs give `LOOP_PASSIVE`.
+  - An empty problem list describes the motion's timing and closure. Collision checking along that motion is
+    separate. The four-bar example does not establish support for arbitrary mechanisms with several coupled loops.
 
 <<< @/../samples/robots.test.mjs#motions
 
-- **Every demo motion swept.** Each sample's own motion is clear, and the gripper's meshing fingers are skipped as
-  designed contact. The object API doesn't close loops yet, unlike the agent's tools, so the four-bar's motion is
-  refused with `LOOP_OPEN`: by `check()`, `poseAt()` and `duration()`, and listed first by `problems()`.
+- **Checking a motion for contact.** The open-chain samples' demo motions are clear, and the gripper's meshing
+  fingers are skipped as designed contact. For a looped motion, the object API's `check()` still refuses with
+  `LOOP_OPEN`: its sweep and continuous collision checks do not yet follow the closed motion. Use the agent's
+  `check_path` for the supported looped path, with the chord and residual contract described above. Studio's
+  **Check path** has the same `LOOP_OPEN` boundary. Playback alone does not certify collision clearance.
 
 <<< @/../samples/robots.test.mjs#sweeps
 

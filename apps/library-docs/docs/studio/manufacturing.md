@@ -1,7 +1,7 @@
 # Manufacturing
 
-A part is checked against the process you choose. The checks read the exact model, not the display mesh, and say
-what they can't judge instead of passing it.
+A part is checked against the process you choose. Rules use the model's geometry and measurements; some printing
+checks also use its mesh. A check says what it cannot judge instead of passing it.
 
 ## Choosing the process
 
@@ -16,10 +16,18 @@ With no process chosen, the rules are unknown. Printing also takes a **Printer**
 build volumes. Moulding and casting take a **Pull direction**, and moulding takes a **Mould finish**, which sets the
 least draft.
 
+Choose a material as well: machining uses its family to select wall limits, and missing material leaves those
+rules unknown. For printing, choose the build direction and printer before judging orientation and bed fit.
+The report names missing inputs; a generic printer profile is not a measurement of your machine.
+
 ## The manufacturability report
 
 Ask the agent to check the part. Its manufacturability query gives the report for the chosen process, for example
 "check this for milling". The report gives each rule `pass`, `warn`, `fail`, `unknown` or `n/a`, with the faces or features it is about:
+
+`pass` means that rule meets its stated limit. `warn` marks an unmet recommendation; `fail` marks an unmet feasible
+limit. `unknown` means required information or a measurement is missing. `n/a` means the rule does not apply.
+Read the rule's value, limit, source and reason before deciding what to change.
 
 | Process | What it checks |
 |---|---|
@@ -71,7 +79,14 @@ the cavity with a gyroid lattice as a separate mesh body. **Split to fit the bed
 into pieces joined by dowels or plugs. **Export 3MF** writes the bodies, materials, colours and print orientation for a
 slicer.
 
+Writing a 3MF file does not run or pass the manufacturability report. Check the report separately before sending
+the file to the slicer; exported bodies and orientation do not certify the print settings or machine program.
+
 ## Quote package
 
 **Quote package** in the library panel downloads the part as STEP, its manufacturability report and the request
 (material, finish, pull and quantity) in one zip. See [BOM and quotes](/studio/bom).
+
+This package is for injection moulding. It can contain open items, including missing request inputs, failed or
+unknown rules, or a failed STEP export. Read the package's `open` list and `complete` flag; a downloaded zip alone
+does not mean the request is complete.

@@ -9,6 +9,21 @@ What isn't supported, or is refused, gathered from the other pages. Each item li
   ([The .bcad document](/reference/document))
 - **Not covered.** Electronics CAD (PCBs) and finite-element analysis aren't part of this stack.
 
+## Candidate CAD input validation
+
+This candidate is not integrated into the product and has not been runtime-verified in this documentation work.
+It tightens input validation; it adds no supported geometry operations.
+
+- Selector `along` and `sortBy` accept only `x`, `y` or `z`. Face `facing` accepts only `+x`, `-x`, `+y`, `-y`,
+  `+z` or `-z`. Invalid values give `VALUE` rather than an accidental empty selection.
+- Selector `first(count)` and `last(count)` require a non-negative integer. Zero is allowed; negative, fractional
+  and non-finite counts give `VALUE`. This is separate from a pattern's copy count, which requires at least two.
+- `moved()` takes a `Location`. Its position and rotation use arrays of exactly three finite numbers, in mm and
+  degrees respectively. Scale pivots and split normals also require exactly three finite numeric components.
+  Malformed tuples give `VALUE`; the split normal must also have magnitude greater than `1e-9`.
+- The rotation command builder accepts only `x`, `y` or `z` and a finite angle in degrees. Invalid axes and angles
+  give `VALUE`.
+
 ## Sizes and rows
 
 - **No standards built in.** There are no built-in thread sizes, fastener catalogues, fit tables, bearings, casting
@@ -41,14 +56,27 @@ What isn't supported, or is refused, gathered from the other pages. Each item li
 
 - **Holes on a circle.** The first hole must sit away from the circle's centre.
   ([Part features](/studio/features))
+- **Guided lofts.** One quadratic Bezier guide supports exactly two full-circle or ellipse sections with identical
+  frame axes. Its endpoints must match the positive local X seams exactly, and its middle control must lie exactly
+  on the cap midplane. Polygon profiles, legacy `z` sections, `smooth: true` and multiple or general rails are refused.
+  ([Guided conic lofts](/packages/cad/robustness#guided-conic-lofts))
+- **Universal mates.** Without a lock, a universal mate combined with other mates on the moving part needs an
+  unsupported coupled solve and is reported as unmet. With a lock, it is checked at the captured placement.
+  A solved universal mate still has no supported two-axis robot decomposition or robot export.
+  ([Connector joints](/studio/assemblies#connector-joints))
 - **Frames.**
   - A positive weld gap together with a notch isn't supported.
   - Weld beads on oblique member ends are refused until there's an independent check for them.
   ([Frames and weldments](/studio/frames))
 - **Robots.**
-  - Motions such as a screw, or two turns about different axes, are refused.
-  - A loop in the mates keeps one path. The agent's motions close it; the studio's playback and **Check path**, and the
-    object API, don't yet.
+  - Robot joint decomposition does not support screw motion or a universal mate's two turns about body-attached axes.
+    This does not prevent a supported universal mate from being solved as an assembly placement.
+  - Supported looped motions can play and seek in Studio. The object API supports `duration()`, `poseAt(t)` and
+    `problems()` for these paths. Waypoints name driving joints only; passive-joint inputs give `LOOP_PASSIVE`.
+  - Studio's **Check path**, the object API's `check()` sweep/CCD, and single-joint preview still refuse looped motions
+    with `LOOP_OPEN`. Finite lower or upper bounds on passive loop joints also give `LOOP_OPEN`.
+  - Playback and an empty motion problem list do not certify collision clearance. The agent's `check_path` uses the
+    separate chord and residual contract. ([Closed-loop paths](/studio/robots#moving-it))
   - A cam's lobe is read only from flats and arcs along its axis, and the follower's face as an infinite plane. Motion
     torques and the robot exports don't take a cam.
   - The sweep checks a cam's seat and a running fit's round faces at its steps, not certified between them.

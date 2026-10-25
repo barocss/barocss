@@ -15,6 +15,49 @@ surfaces; mesh inputs retain faceted faces. The Boolean algorithm depends on tha
 - **Fillets and chamfers** roll a ball along the named edges, or cut them back, on the exact faces either side.
 - **Offsets.** `shell`, `thicken` and `draft` offset or tilt faces on their surfaces.
 
+## Guided conic lofts
+
+A `loft` document feature can use one `guide` with `kind: 'quadratic-bezier'` and exactly three world-space
+`controlPoints`, in mm. Each section must be a full circle or an inline ellipse. Use exactly two explicit frames
+with identical `xAxis` and `yAxis`, and positive separation along their common normal.
+
+Put `guide` on the `loft` feature beside `id`, `kind` and `sections`. Each section needs its own `frame` with
+`origin`, `xAxis` and `yAxis`. The axes must be perpendicular unit vectors. For a circle, use `sketch` to reference
+an existing circle sketch. For an inline ellipse, use `profile` with `kind: 'ellipse'`, `center` and two positive
+`radii`. Use either `sketch` or `profile` in each section, never both. These sections do not use `z`.
+
+The guide object accepts only `kind` and `controlPoints`. Each control point must contain exactly three finite numbers.
+
+The guide starts and ends at the sections' positive local X seams. Both endpoints must match exactly. Its middle
+control point must lie exactly on the plane halfway between the section planes. The kernel does not snap or project
+these points.
+
+The guide adds a quadratic transverse displacement to each intermediate section. The section stays circular or
+elliptical, with radii that vary linearly between the caps. The side surfaces retain exact rational conic curves and
+quadratic control points along the guide. Mass properties use section integrals, not the display mesh.
+
+For example, unit circles at Z = 0 and Z = 3 can use guide controls `[[1, 0, 0], [3, 0, 1.5], [1, 0, 3]]`.
+At the middle section, the circle centre is `[1, 0, 1.5]`. The guide's middle control point is not a point that
+the curve passes through.
+
+This option rejects polygon or mixed profiles, legacy `z` sections, differing frame axes, `smooth: true`, more than
+two sections, and multiple or general rails. All controls and generated surface controls must remain within the
+existing modeling coordinate range.
+
+### Candidate: three-section conic lofts
+
+A source candidate extends the unguided conic loft to three sections. It is not yet integrated into the product
+or verified by execution. The two-section guided contract above is unchanged.
+
+Each section is a full circle or inline ellipse on an explicit frame. All three frames must have identical
+`xAxis` and `yAxis`, with positive separation between each adjacent pair of planes. The candidate joins each
+adjacent pair with ruled sides. Both spans share the middle section's boundary; only the first and last sections
+have caps, forming one solid rather than two separately capped bodies.
+
+The three-section path rejects a guide, `smooth: true`, polygon or mixed profiles, and legacy `z` sections.
+It does not provide a general multi-section or smooth loft. In particular, adding a third section does not extend
+the quadratic guide to three sections.
+
 ## Boolean operations
 
 Let A be the target body and B the tool body. The operation selects the solid material to keep:
@@ -225,6 +268,23 @@ These are the current source paths under `packages/barocss-cad/src/`:
 | `brep/analytic-boolean.ts` | Surface cuts, face-domain splitting, classification and stitching |
 | `intersect/surface-intersection.ts` | Predictor/corrector intersection tracing |
 | `mesh/facet-boolean.ts` | Nearby mesh/native processing and reconstruction |
+
+## Candidate: small-cap conical chamfer
+
+A source candidate adds a chamfer to the complete outer rim where the smaller planar cap meets the conical wall
+of one solid frustum. It is not integrated into the product, and its execution checks have not been completed.
+Select a named edge on that closed circular rim. If the rim is represented by joined edge pieces, selecting one
+piece applies the finish around the complete circle; it does not request a partial chamfer.
+
+The distance is in mm, measured from the original corner along each adjoining face in the axial section. It must
+be finite and positive. Both contact points must stay strictly inside their faces, with clearance from the other
+cap and the rotation axis. A distance equal to a support limit is refused; reaching the axis is not allowed.
+
+This candidate excludes partial revolutions, the larger bottom rim, concave corners, hollow bodies and bodies that
+are not one closed solid frustum. Here “top” means the smaller cap relative to the frustum's axis, not world Z.
+The direct finishing operation reports an unsupported scope as `GEOMETRY` with `CONE_TOP_CHAMFER_SCOPE` in its
+message, and an inadmissible distance as `INPUT` with `CONE_TOP_CHAMFER_SIZE` in its message. These message tags do
+not replace the error's `code`. Other conical edges remain outside this candidate's supported scope.
 
 ## Strict validity and typed refusals
 

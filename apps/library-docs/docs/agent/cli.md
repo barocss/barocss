@@ -40,7 +40,8 @@ A session from `samples/agent-mcp.test.mjs`:
 node apps/cad-studio/scripts/cad-cli.mjs <command> …
 ```
 
-Or `pnpm cli <command> …` from `apps/cad-studio`. Each command prints JSON. The exit codes:
+Or `pnpm cli <command> …` from `apps/cad-studio`. Commands print JSON results; help, usage errors and some
+failures are plain text. Read stdout, stderr and the exit code together. The exit codes:
 
 | Code | Meaning |
 |---|---|
@@ -61,6 +62,14 @@ cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--
 - **Checks.** `--check` runs the part's requirements.
 - **Dry runs.** `--dry-run` writes nothing.
 - **Refusals.** A line the tools refuse is reported as `file:line:col`, with the refusal.
+
+`--doc` supplies the starting document; `-o` selects the document to write. Use a different output path to keep
+the input file. Outputs are written before `--check` reports a failed requirement, so exit 3 does not mean that
+nothing was written. A later export or write failure can also leave earlier output files in place.
+
+Before retrying, read the refusal and inspect the output paths. Correct the input or options, then use a fresh
+output path if you need to preserve the first result. `--dry-run` checks the script without writing its outputs;
+it does not prove that a later file export will succeed.
 
 From `samples/cli.test.mjs`:
 
@@ -99,3 +108,8 @@ Any agent that speaks MCP can drive a part through `cad-mcp`:
 - **Rows.** Rows an agent wrote itself are refused, as in the chat.
 
 The tool list it reads is the one the studio's chat reads. There is no separate, older list.
+
+Use the `describe` tool to discover an action's arguments, a modeling command's values or a feature
+kind's document fields before sending a change. This is tool discovery, not a separate `cad-cli describe`
+command. After an MCP failure, read its returned error and inspect the current document before retrying:
+earlier successful calls have already been saved.
