@@ -65,6 +65,15 @@ with `LOOP_OPEN`: its sweep and continuous collision checks do not follow the cl
 [Robots in code](/studio/robots#in-code) for the motion contract and
 [Moving it](/studio/robots#moving-it) for the agent's supported loop checks and playback limits.
 
+`robot.inertia()` returns `{ links }`. Each link's `mass` and counted `bodies[].mass` use g; `centroid` uses mm.
+`inertia` is a nested 3×3 matrix about the centre of mass, expressed in the link frame, in g·mm².
+The centroid uses that same link frame. `principal.moments` uses g·mm²; `frame.origin` uses mm in the part's coordinates.
+Check each link's `bodies` and `issues` before using its totals. A body is excluded with `NO_VOLUME` when `volume` is `null`, or centroid or inertia data is absent.
+If no bodies are counted or their total mass is not positive, `NO_BODY` accompanies an empty `bodies` list and zero mass and inertia.
+Other issues identify assumed materials or failed inertia checks; a returned total alone does not establish a usable model.
+`robot.gravity(values, g)` returns joint-keyed `torques` and `generalized`; read `units[key]` for N·mm on turns or N on slides.
+Its returned `gravity` is a magnitude in mm/s², not the input vector. See [Robot unit boundaries](/studio/robots#robot-unit-boundaries) for the full public unit contract.
+
 ### Static gravity experiment
 
 `robot.gravityExperiment({ values, gravity })` captures one prescribed static pose and its gravity holding-torque
@@ -73,6 +82,8 @@ there is no gravity default. The profile admits exactly one connected open revol
 loops or couplings. Nested part occurrences in the moving part are outside this profile. Every moving body needs an explicit known material and positive finite mass. The moving link must have resolved
 inertia with finite components and no reported issues. The report's torque uses N·mm. It uses the existing Model
 link-inertia and gravity calculation.
+
+In this report, `inputs.gravity` is the supplied document world XYZ vector in mm/s², while `result.gravity` is its scalar magnitude in mm/s².
 
 The returned object's `report` getter gives a deep copy. Use `matches(doc, options)` to compare the complete captured
 document and explicit inputs with the current ones. If their canonical contents differ, `matches` returns false and the report is stale. This check
