@@ -1,7 +1,7 @@
 // CG1.1: two affine-corresponding convex polygons on explicit planes. Each intermediate section
 // is planar. Positive det(A(t), B(t), D(q)) on the whole polygon and span separates every pair
 // of sections: P(s,q) lies strictly on the s-t side of the plane at t. This is an admission
-// certificate, not a sampled mesh-intersection test. CG1.2 also admits non-affine polygons on
+// certificate, not a sampled mesh-intersection test. CG1.1b also admits non-affine polygons on
 // frames with identical axes: every intermediate polygon must remain strictly convex, certified
 // by all edge/vertex orientation quadratics. The strictly ordered parallel planes cannot meet.
 // Curves and more than two planes stay out.
