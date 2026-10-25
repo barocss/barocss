@@ -287,7 +287,7 @@
 | `[BAD_REFERENCE]` | `chat` | a reference has a name. |
 | `[BAD_TRANSITION]` | `team` | … is still …: a baseline follows a decided one |
 | `[BAD_VALUE]` | `chat` | … is a size above 0 mm |
-| `[BAD_VALUES]` | `print`, `robot` | a wall t > 0, a voxel 0 < h ≤ t/2 and a drain Ø > 0 (t …, h …, drain …) |
+| `[BAD_VALUES]` | `chat`, `print`, `robot` | a wall t > 0, a voxel 0 < h ≤ t/2 and a drain Ø > 0 (t …, h …, drain …) |
 | `[BASELINE_FROZEN]` | `team` | … is …: it is never changed; draft a new baseline with … as its parent |
 | `[BEAD_ACCOUNTING_INCOMPLETE]` | `frames` | no complete welded-part quantity: … |
 | `[BEAD_SHARED_CONTEXT]` | `chat/part`, `frames` | frames.beadOwnership: expected {version:1, policy:"equal-length"} or null to remove it |
@@ -390,6 +390,7 @@
 | `[GONE]` | `chat` | …'s features are no longer in the part |
 | `[GRID_TOO_FINE]` | `print` | … nodes at h … mm, over …: take h ≥ … mm |
 | `[GUSSET_PICK]` | `app` | … |
+| `[HARNESS_RAW_PROVENANCE_UNAVAILABLE]` | `robot` | Project the original harness result before cloning or serializing it. |
 | `[HOLE_PATTERN]` | `app` | A hole pattern has 2 to 64 holes. |
 | `[HOLE_SIZE]` | `app` | The counterbore must be wider than the hole. |
 | `[ID_CLASH]` | `versions` | both branches added a different … item “…” |

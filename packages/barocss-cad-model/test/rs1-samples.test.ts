@@ -143,7 +143,7 @@ test('RS1: the four-bar closes its loop through its demo motion (the pins meet t
   let q: Record<string, number> = {};
   for (const deg of [20, 40, 60, 30, 0, -30, -60]) {
     const r = closeLoop(tree, c, 'base~crank', deg * Math.PI / 180, q); q = r.q;
-    assert.ok(r.residualMM <= 1e-9, `${deg}°: ${r.residualMM}`);
+    assert.ok(r.residual <= 1e-9, `${deg}°: ${r.residual}`);
   }
 });
 
