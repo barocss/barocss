@@ -229,12 +229,12 @@ The curve runs through space on two curved faces. Each cylinder needs its own an
 face domain. The final model retains cylindrical surfaces bounded by these spatial curves; the viewer displays triangles.
 
 For a general pair of smooth B-spline or NURBS faces, a single circle or ellipse formula may not exist. The kernel uses
-candidate patches, refinement and tracing as described in [Curved B-reps](#3-curved-b-reps-intersect-the-surfaces-and-trim-their-face-domains).
+candidate patches, refinement and tracing as described in [Curved B-reps](#_3-curved-b-reps-intersect-the-surfaces-and-trim-their-face-domains).
 A surface intersection point must lie on both surfaces: `Sₐ(u,v) = Sᵦ(s,t)`. Tracing uses both parameter pairs.
 The cross product of their surface normals gives a tangent direction when those normals are not parallel.
 Tangencies, small loops, seams and a curve leaving a trimmed domain need separate handling. Unsupported cases can refuse.
 
-For scanned or faceted shapes, use the [mixed mesh path](#4-mesh-with-a-native-tool-process-the-nearby-mesh).
+For scanned or faceted shapes, use the [mixed mesh path](#_4-mesh-with-a-native-tool-process-the-nearby-mesh).
 A dense scan has many candidate triangles; clipping the nearby region limits the work. A mesh cutter still has planar
 facets. Adding display triangles does not recover an exact cylinder or smooth surface from that mesh.
 
