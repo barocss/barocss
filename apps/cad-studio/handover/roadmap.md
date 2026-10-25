@@ -10,21 +10,21 @@ coordinator, verification tiers) is in `notes/claude-resume-2026-10-23/`.
 
 **The goal (owner):** AI takes a brief to a manufacturable, buyable product. A9 is the first end-to-end run of that path.
 
-## Order now (2026-10-24, owner: "로드맵 제대로 정해서 진행해줘")
+## Order now (2026-10-25, owner: "필요한 것들 로드맵에 추가 해서 진행해줘")
 
 Each lane works its queue top to bottom. The coordinator merges every checkpoint, runs check:docs, and keeps this
 section current.
 
 | Lane | Now | Next | Then |
 |---|---|---|---|
-| Kernel | R7.3b/R7.7b adopted in qualified batch `bd60b578b` from frozen `66395f7b0`; Kernel13 complete with recorded exceptions | PG-3 profiling source plan next; CG1/CG2 geometry follows the completed R7 window before R7.3d; separate bounded assignments | R7.3d and K17 in separate windows |
-| Outer | R7.7a consumers and O24(b) supplement adopted in `bd60b578b`; Model1287/Studio310 and native-worker/time replay pass at66395 | O24(d)/(e) after an explicit bounded assignment | RO diagnostic source-ready; cause UNKNOWN, optional runtime unassigned |
+| Kernel | R7.3b/R7.7b adopted in `bd60b578b`; CG1.1 non-parallel section loft implementation assigned from `697b31611` | CG1.2 guide rails and CG2 feature patterns; use the RS7 blade fixture as one consumer | PG-3 profiling remains prepared; R7.3d and K17 stay in separate windows |
+| Outer | O24(a)/(b)/(c) and RS6 core adopted; O24(d)-1 fastened implementation assigned from `697b31611` | O24(d) ball/universal/cylindrical, then RS6 Studio/API loop consumers and RS7 coupled loops; exact feature slices | O24(e) relations and CG4 flexible subassemblies/patterns; RO diagnostic remains optional |
 | GPU | G15d.2 bloom adopted (`621c7dc6f`, merge `cba255347`). G14 quiet section samples give mixed results (5.89 ms PASS, 7.43 ms FAIL against 6 ms); an excluded run ended above load 10. No new code checkpoint | Keep G14: separate surface/cap/output contributions before choosing an optimization; then G15d.3 → G15c → G15d.4 | G15-accept on the P1 engine |
-| API | R7.7d facade fields/units adopted in `bd60b578b`; P2 G/B/A/C source-ready and unmerged | P2 exact G4606 → R(original G production/B test) → B e663 → A f174 → C8eb; separate writer and review per phase | Merge each verified general checkpoint; P2 manufacturing acceptance remains separate |
-| Docs | R7 docs and Boolean/3D supplements adopted in `bd60b578b`; same66395 samples75, scenes, site175 and docs check pass | R7.6 part2 inventory drift policy: read-only plan ready, source lease unassigned | Preserve the owner preview and existing artifacts |
+| API | R7.7d adopted; P2 G4606 attempt0004 reviewed: matching3 and impact9 pass, types/lint pass; G still unmerged | R(original G production/B test) → B e663 → A f174 → C8eb; preserve the first three tooling failures | Merge each verified general checkpoint; RS6/RS7 facade consumers follow the P2 queue |
+| Docs | R7 docs adopted; R7.6 part2 five external source files returned, review and runtime pending | Inventory fixtures and baseline after source review; document RS7 from implemented features | Preserve the owner preview and existing artifacts |
 | Drawings (CG5) | DR-6a adopted; R7 Drawing consumers adopted in `bd60b578b`; DR-6b56d2 source-ready, runtime NOT RUN and unmerged | Actual hole-face probe after a separate exact-SHA writer assignment; then retained-selection browser case | DR-6 targets, standalone/composite; DR-7 and DR-8 later |
 | Data (CG6) | idle: VA-1/VA-2 done (merge df8761f1e); what is left (sharing, comments, multi-user) waits on the owner | — | — |
-| Coordinator | Same frozen66395 qualification reviewed; local noff `bd60b578b` adopted R7. Product check-docs34/0/47/3755KB/704 passes; foreign32 preserved | Finish roadmap record, then P2 G/R/B/A/C without an extra approval gap | Keep known exceptions, RO cause UNKNOWN and R7.3d outside this window; no release |
+| Coordinator | R7 adopted; P2 G scoped result reviewed; CG1.1 and O24(d)-1 code implementation assigned in the existing lanes | Keep the P2 R/B/A/C order. Run one runtime writer at a time. Review changed areas and merge each ready checkpoint | RS7 staged acceptance joins existing O24/RS6/CG work; keep recorded exceptions and owner input decisions |
 
 ## Codex lane ownership and R7 readiness (2026-10-24)
 
@@ -272,8 +272,8 @@ Moved out of Phase 0:
 | K17 | kernel | **A suppressed flag in the part document** (R7.4d): the studio's History toggle has `suppressed: true`, the kernel document has none, so the kernel facade refuses suppression (UNAVAILABLE). Low priority, after R7.3 |
 | O22 | outer | **done** (`111b2b8d9`, merge b15abb336: gear tooth zones and planar loop pins as designed contact, a real crash still reported; LOOP_OPEN for looped robots; every RS1 demo motion clear). **Designed contact isn't a collision in check path** (found by the docs lane in RS4): the samples' demo motions sweep clear for arm-2r, scara, arm-6r and pan-tilt, but gripper and gear-joint (meshing gears) and four-bar (the loop-closure pin) report contact from s 0, because the sweep skips only parent–child pairs; and gantry-ppp's ram really meets its X carriage (sample geometry). Exit: gear-meshed pairs and loop-closure pins treated as designed contact (as the clearance map's "designed"), a real crash between them still reported (tested); the gantry sample fixed; RS1's test requires every demo motion to pass check_path clear |
 | O23 | outer | **Saved motions' `default` limits converted** (found by the docs lane): timedPathOf/motionOf convert per-joint limits deg↔rad but `default` keeps k = 1, so the RS1 samples' demo motions (all on `default`) play ≈ 57× too fast; apply `default` per joint where used; tests: default ≡ per-joint duration, a default-limits round trip, a sample's duration pinned |
-| O24 | outer (+ kernel where geometry is needed, GPU for the studio's pickers) | **(a) design approved** (o24a-design.md: slider-crank closures with slides, cam–follower couplings in dependency order; exports with a cam refuse CAM_UNSUPPORTED unless leave_out: ['cam']); RS6 next after (a). **Joints and mates to commercial breadth** (owner, 2026-10-24: "관절,메이트 확장 넣어서 하자"). Today mates relate only flat faces, round faces and origin planes (coincident, distance, angle, concentric, tangent, lock), and the joint kind is read from the motion left free. Add, P1's needs first: (a) a slider-crank — a closed loop with a sliding joint — and a cam–follower relation; (b) mate connectors: a frame at any point, axis or vertex (an edge's midpoint, a hole's centre, a sketch point) to mate frames, as Onshape/Fusion do; (c) more references: edges, vertices, spherical and conical faces; (d) explicit joint kinds a person can pick (ball, universal, screw, pin-slot, planar, cylindrical), each with limits; (e) relations: rack–pinion (the parallel gripper), screw (turn → slide), gear across instances. Each with the agent's v2 actions (budget kept), URDF/MJCF where the format has it, and a refusal where it doesn't |
-| RS6 | outer (core), GPU (playback) | **Motions close their loops** (outer's finding in RS3): poseAt, the sweep and the studio's playback move a looped robot open-chain, so check_path and play refuse it (LOOP_OPEN) for now; close each pose's loop (closeLoop per sample), sweep the closed path, play it closed |
+| O24 | outer (+ kernel where geometry is needed, GPU for the studio's pickers) | **(a)/(b)/(c) adopted; (d)/(e) incomplete.** The first (d) code slice is fastened: connector origins and X/Z axes align, with 0 DoF. Existing Lock keeps its captured placement. Next, add ball, universal and cylindrical kinds needed by RS7; limits and typed refusals are part of each kind. Fastened alone does not close RS7. The existing cam export refusal stays. **Joints and mates to commercial breadth** (owner, 2026-10-24: "관절,메이트 확장 넣어서 하자"). Today mates relate only flat faces, round faces and origin planes (coincident, distance, angle, concentric, tangent, lock), and the joint kind is read from the motion left free. Add, P1's needs first: (a) a slider-crank — a closed loop with a sliding joint — and a cam–follower relation; (b) mate connectors: a frame at any point, axis or vertex (an edge's midpoint, a hole's centre, a sketch point) to mate frames, as Onshape/Fusion do; (c) more references: edges, vertices, spherical and conical faces; (d) explicit joint kinds a person can pick (ball, universal, screw, pin-slot, planar, cylindrical), each with limits; (e) relations: rack–pinion (the parallel gripper), screw (turn → slide), gear across instances. Each with the agent's v2 actions (budget kept), URDF/MJCF where the format has it, and a refusal where it doesn't |
+| RS6 | outer (core), GPU (playback), API (facade) | **Core adopted; general Studio/API consumers remain.** Close each sampled pose before path checks and playback. Replace the remaining consumer LOOP_OPEN limitation only for supported joint and loop types. RS7 adds coupled loops with several drive inputs, stable branch selection, limits and typed refusal at unreachable or singular poses. Independent closed-loop playback, saved-path round trips and both renderers must pass before consumer completion. Unsupported loops keep their refusal |
 | O25 | outer | **The agent can colour and finish bodies** (found by the AI evaluation, 2026-10-24): Codex runs on long prompts (the cathedral, a tractor) tried actions that don't exist (`appearance`, `color`) and wrote colours into part names instead ("black chevron tyre, yellow rim"); a v2 action that sets a body's appearance (a look-* preset, a colour, G15a's finish/clearcoat), the per-turn budget kept |
 | O26 | outer | **Headroom in the per-turn tool budget**: the agent's tools list plus prompt is at about 24,130 of the owner's 25,000 characters, with O25 (appearance), CG6's version actions, CG5's drawing steps and O24 (b)–(e) still to add. Make room without breaking v2: move long hints behind `describe`, shorten repeated text, measure per group; target ≤ 21,000 before the next additions, so each addition reports its cost against real headroom |
 | K10 | kernel | **done** D188–D196: RB5 fuzz harness; empty operands; six INVALID fixed; the KNOWN crescent; refusal triage |
@@ -295,6 +295,7 @@ The owner: "로봇 관련해서 좀 더 다양한 샘플, 예제를 만들어봐
 | RS3 | outer | **Design approved** (robot/verbs.ts: RobotView built once, sync verbs the tools and the facade share, byte-identical replies; set_pose, waypoint, check_path, play in degrees and mm; steps (a) verbs, (b) actions). **The agent moves the robot**: chat can set a joint, record a waypoint, run check path and play the path; first audit what the v2 actions already do, add only what's missing; the per-turn budget kept |
 | RS4 | docs | **Robot docs examples**: the robots page per sample (its joints, a pose, an export), shots of the samples and of playback; samples run under test:samples |
 | RS5 | API | **Part 1 done** (merge 183c8e51d: joints, setJoints, pose, path check, inertia, gravity, the four exports; byte-equal to the tools on arm-6r; replies still echo the tools' radians, for R7.7); poseAt and motions after RS2. **The robot on the facade**: assembly(...).robot() — joints(), pose(values) → frame and link poses, path(waypoints).check(), poseAt(t), exports — over the core functions, byte-equal to the tools; feeds RS4's samples |
+| RS7 | outer (mechanism), kernel (blade geometry), GPU (controls/playback), API and drawings/docs | **Added and authorized, 2026-10-25. Rotor head and swashplate integration example.** Build in the stages below. CG1.1 and O24(d)-1 implementation are assigned; the integrated example is not implemented or accepted yet |
 
 ### Real products (owner, 2026-10-24)
 
@@ -350,16 +351,55 @@ Order and owners: **CG1/CG2** — kernel (the geometry: loft with rails and non-
 
 | # | Area | Gap |
 |---|---|---|
-| CG1 | Modelling | Loft with guide rails and non-parallel sections; boundary surfaces; variable-radius and face fillets; draft along any pull direction and from a parting line; rib; emboss/deboss and text on faces; wrap; modelled (helical) threads beside cosmetic ones; helix and spiral curves |
+| CG1 | Modelling | CG1.1 non-parallel section loft (implementation assigned); CG1.2 guide rails, section scale and twist for RS7; boundary surfaces; variable-radius and face fillets; draft along any pull direction and from a parting line; rib; emboss/deboss and text on faces; wrap; modelled (helical) threads beside cosmetic ones; helix and spiral curves |
 | CG2 | Modelling | Feature patterns (a feature, not a body), patterns along a curve and fill patterns; move/delete/replace face on solids (direct editing); thicken and offset surfaces, knit, trim and extend (surface modelling) |
 | CG3 | Sketch | Splines with handles, conics, sketch text, sketch blocks; dimension expressions (waiting on the owner) |
-| CG4 | Assembly | Subassemblies (flexible), component patterns, assembly features (a cut across parts), a motion study (time-based drive with contacts and plots), large-assembly modes (P3 measures need) |
+| CG4 | Assembly | Subassemblies (flexible), component patterns with stable occurrence references (RS7.4), assembly features (a cut across parts), a motion study (time-based drive with contacts and plots), large-assembly modes (P3 measures need) |
 | CG5 | Drawings | Detail and broken views, more section types, title-block templates and revision tables, full GD&T frames with datum features, ISO/ASME presets, inch drawings |
 | CG6 | Data | Real file storage beyond the browser (a local folder or cloud), versions with branches and compare, sharing and comments, multi-user editing |
 | CG7 | Exchange | STEP AP242 assemblies with PMI in and out, glTF/USDZ export for web and AR, Parasolid x_t (reading only, if the owner wants it) |
 | CG8 | Manufacturing | Production CAM: toolpaths with a post-processor (G-code) beyond the preview's NOT FOR PRODUCTION; sheet-metal DXF nesting |
 | CG9 | Product | Units beyond MMGS for display (inch), a Korean UI, onboarding/tutorials, a desktop build, accessibility |
 | CG10 | Robustness | Healing of imported geometry; the kernel's open robust refusals (fuzz 38) toward zero; tolerant modelling |
+
+
+### RS7: rotor head and swashplate (owner, 2026-10-25)
+
+The owner asked to add the capabilities needed for the attached rotor-head image and develop them.
+Use O24, RS6 and CG1/CG2/CG4/CG5 for the shared features. RS7 is their integration example.
+The image gives a mechanism reference. It gives no dimensions, material data or load cases.
+Start with a declared synthetic three-blade example. Record all chosen dimensions and units.
+Do not treat the example as a copy of a known rotor or as a manufactured aircraft part.
+
+| Stage | Work and owner | Completion condition |
+|---|---|---|
+| RS7.1 | Outer: explicit connectors and O24(d) joint kinds | Fastened first; then ball, universal and cylindrical as the chosen mechanism needs. Record each allowed DoF, frame, limit and refusal. Keep old Lock and Auto behavior. Use independent joint fixtures before the assembly |
+| RS7.2 | Kernel: CG1 blade geometry; outer exposes each feature as it lands | CG1.1 supports sections in non-parallel planes. CG1.2 adds guide rails, section scale and twist for a blade. Check section interpolation, closed B-rep, mass, bounds and stable names. Keep independent analytic solids and malformed-input cases. CG2 feature patterns remain a separate feature |
+| RS7.3 | Outer: RS6 coupled loops; API/GPU: shared consumers | One assembly drives shaft azimuth, collective travel and two cyclic tilt inputs. Solve the pitch links and every blade together. Preserve the selected assembly branch through a complete turn and reversals. Do not pose blades separately to hide an open loop |
+| RS7.4 | Outer and GPU: CG4 assembly reuse and motion study | Repeat blade/grip/link subassemblies with stable instance references. Flexible occurrences retain their own joint state. Show each blade pitch against azimuth, play/pause and scrub through the shared core. Keep the existing poseStore render boundary |
+| RS7.5 | Coordinator with the lanes: integrated acceptance | Run the cases below at one immutable SHA, then Save/Open and replay the same stored assembly through Studio, facade and v2 actions. Check WebGPU and WebGL2. Report actual coverage and typed refusals separately |
+| RS7.6 | Drawings and API: existing CG5/output path | Produce assembly and part views, BOM, exploded view and required fit/datum annotations from the same document. Use declared sample data. Real bought-part rows and manufacturing acceptance keep the existing provenance gates |
+
+Execution starts with CG1.1 and O24(d)-1 in the existing Kernel and Outer worktrees.
+P2 R/B/A/C stays in its current order; its general API work is not replaced by RS7.
+Source work can proceed in separate lanes. Builds, tests and browser runs use one runtime writer.
+Use focused regressions for each feature. Run a full integration window when the required checkpoints are ready.
+CG1/CG2 remain ahead of R7.3d. A stage is complete only after its own code and required evidence are adopted.
+
+Acceptance cases:
+
+- At neutral cyclic, collective travel changes all three blade pitches with the declared symmetry.
+- At fixed collective, the two cyclic axes give the declared sign and phase of pitch over shaft azimuth.
+  Use an independent geometric oracle for the actual linkage. A small-angle sinusoid is only a labelled limit case.
+- Check a complete 0–360 degree turn, seam continuity, reverse playback, input extrema and repeated poses.
+  Check all closure residuals with the existing tolerance policy. Refuse unreachable, over-limit or singular input.
+- Keep designed bearing/hinge contact separate from an actual link or blade collision. A sampled clear path
+  does not prove continuous clearance unless the existing path checker supplies that proof.
+- Save/Open preserves geometry, frames, references, joint kinds, limits, drive inputs and motion. Check
+  stale/deleted references and edits with atomic typed refusal; no silent replacement or independent blade fallback.
+- Keep geometric/kinematic acceptance separate from fatigue, strength, aerodynamics and airworthiness.
+  The existing CAE exclusions remain. Export a supported joint exactly, or return its existing typed refusal.
+
 
 ## Phase R: refactoring, once the current items close (owner, 2026-10-23)
 
@@ -487,7 +527,8 @@ evidence files.
 - **O18** — Mass on request (the worker sends mass only when asked) · ko: 질량은 요청할 때만 계산 (열기 시간 단축)
 - **O23** — Saved motions' default limits converted per joint (samples played 57× too fast) · ko: 저장된 움직임의 기본 한계값 단위 변환 (샘플이 57배 빨리 재생되던 문제)
 - **O24** — Joints and mates to commercial breadth (mate connectors, edges/vertices/spheres/cones, joint kinds, rack–pinion/screw/cam, slider-crank) · ko: 관절·메이트를 상용 수준으로 (메이트 커넥터, 모서리·꼭짓점·구·원뿔 참조, 관절 종류, 랙·피니언/나사/캠, 크랭크-피스톤)
-- **RS6** — Motions close their loops · ko: 움직임 재생·검사에서 닫힌 고리 풀기
+- **RS6** — Motions close their loops; core adopted, general Studio/API consumers remain · ko: 폐루프 핵심 구현 채택, 스튜디오·API 소비 경로는 남음
+- **RS7** — Rotor head and swashplate: blade geometry, explicit joints, coupled loops, playback and outputs · ko: 로터 헤드·스와시플레이트 통합 예제 (블레이드·관절·폐루프·재생·출력)
 - **O26** — Headroom in the per-turn tool budget (24,130 of 25,000 → ≤ 21,000) · ko: 에이전트 도구 설명 글자 수 여유 확보 (24,130/25,000 → 21,000 이하)
 - **O25** — The agent can colour and finish bodies (an appearance action) · ko: 에이전트가 바디 색과 마감을 정할 수 있게 (외관 동작)
 - **O22** — Designed contact (meshing gears, loop pins) isn't a collision in check path; the gantry sample fixed · ko: 경로 검사에서 설계된 접촉(맞물린 기어, 고리 핀)은 충돌로 보지 않기; 갠트리 샘플 수정
