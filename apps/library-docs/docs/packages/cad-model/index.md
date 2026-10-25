@@ -77,10 +77,34 @@ link-inertia and gravity calculation.
 The returned object's `report` getter gives a deep copy. Use `matches(doc, options)` to compare the complete captured
 document and explicit inputs with the current ones. If their canonical contents differ, `matches` returns false and the report is stale. This check
 does not rerun the calculation or certify integrity. The profile reports static holding torque, not free motion,
-contact, actuator suitability or physical validation. It adds no experiment storage schema.
+contact, actuator suitability or physical validation. It does not change the Studio document schema.
 Studio's STATIC GRAVITY panel requires explicit joint, angle and world XYZ gravity inputs. Calculation leaves the viewport pose unchanged.
 Results stay local to the panel. Changed document or input contents mark them stale; a refused calculation can keep the previous result visible.
 This control calculates holding torque at a prescribed static pose; it does not simulate free motion.
+
+Call `record()` to keep an independent JSON record of the past calculation. Its envelope has format
+`barocss-gravity-experiment-record` and schema `1`. `toJSON()` returns an object; serialize it with
+`JSON.stringify()` and restore the text with `GravityExperimentRecord.parse()`. Studio document Save and Open
+are separate from this record JSON. With the supported `robot` and explicit `options` described above:
+
+```js
+import { GravityExperimentRecord } from '@barocss/cad-model/api/experimentRecord';
+
+const record = robot.gravityExperiment(options).record();
+const data = record.toJSON();
+const text = JSON.stringify(data);
+const restored = GravityExperimentRecord.parse(text);
+const preview = restored.preview; // Typed display fields, including torque in N·mm.
+const pastReport = restored.report; // unknown; the full past report.
+const inputsMatch = restored.matches(robot.doc, options);
+```
+
+`preview` and `report` return copies. Parsing rejects unsupported format, schema, calculation profile or units,
+non-finite JSON numbers, and invalid required structure or inconsistent bindings. It does not validate the complete
+inertia schema. A record describes a past calculation: parsing does not recalculate it, prove authenticity, or check
+compatibility with the current producer code or material catalogue. Consistent finite changes to numerical results
+can pass these checks. `matches(doc, options)` compares the full canonical document and explicit inputs; if either
+canonical content differs, it returns false and the record is stale. A matching record does not establish a new result.
 
 ### Input contracts
 
