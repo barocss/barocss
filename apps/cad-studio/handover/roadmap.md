@@ -114,34 +114,37 @@ validation are different results and must remain separate.
 ## Order now (2026-10-26)
 
 The latest completed static-experiment API checkpoint is the local product merge
-`13dcd165382b58ad0f0d4e588d9e215ebcb06359`.
+`90c826e61e213884e74d725c84c06cd7f96ec593`. The earlier static-calculation panel was adopted at
+`6d55aebb72f5ac29872b303c638cd4ffb396a230`.
 The foundation corrections, axis-inertia query, positive-principal-axis draft and Drawing input corrections are
 adopted. The product CAD library was freshly built at `b77c0a08`; its 818 output files matched the candidate.
-A new selected test connected an actual planar box B-rep mass result to the axis-inertia query and independent
-box formulas. This used an authored density, not a measured material or a forward-dynamics solver.
+A selected test connected a planar box B-rep mass result to the axis-inertia query and independent box formulas.
+This used an authored density, not a measured material or a forward-dynamics solver.
 
-The direct-file engine History scroll and Save/New/Open flow was checked in desktop Chrome. The saved and reopened
-documents matched the complete input document. Project/OPFS saving was outside that check. The draft and Drawing
-guides were then built, inspected in desktop Chrome and adopted with their product docs check. Original failures,
+The direct-file engine History scroll and Save/New/Open flow was checked in desktop Chrome. Saved and reopened
+documents matched the complete input document. Project/OPFS saving was outside that check. Original failures,
 tool-control failures, numerical checks and limited visual results remain separate evidence.
 
-Stage 1 now has one bounded API: static gravity holding torque at a specified pose of one connected open
-revolute or continuous joint. It reuses Model inertia and gravity calculations, requires explicit pose and gravity,
-and refuses missing or assumed moving-body materials, incomplete results and nested moving-part occurrences.
-The captured result is bound to the complete document and inputs. A changed document, pose or gravity vector
-makes the result stale; a revision label is not an integrity certificate. Its focused numerical and consumer
-checks, public-surface documentation and local product docs check passed within their recorded scopes.
+Stage 1 has a bounded static gravity holding-torque API for one connected open revolute or continuous joint.
+It requires explicit pose, gravity and known moving-body material, and refuses nested moving-part occurrences.
+Its result is bound to the complete document and explicit inputs. The panel leaves the document and viewport
+pose unchanged. Original numerical, consumer and public-UI checks retain their exact source scopes.
 
-The separate Studio panel source connects these inputs to a local result without changing the document or
-viewport pose. Desktop Chrome checks covered the independent rod holding-torque result, angle and gravity
-changes, a public document edit, missing input and nested-part refusal. Previous results remain visibly marked.
-The changed Studio consumer type check and two-file lint passed. Finish this slice's documentation and local
-adoption without repeating unchanged API, Kernel or browser checks.
+Independent versioned JSON records now preserve a past report and provide a validated preview and full-input
+matching. A matching imported record is still historical: it is not recalculated or authenticated. Producer code,
+material-catalogue revision and real measured provenance are not established. Studio document Save remains separate.
 
-This does not complete Stage 1 or add free-motion prediction or an experiment storage schema. Next define the
-bounded durable experiment receipt and source-provenance contract needed to save, reopen and compare a run;
-page-local state is not a saved experiment. Establish Physics ownership and the mass, coordinate-frame, unit
-and fixed-pivot input contract before implementing the pendulum solver.
+The record file controls were checked in desktop Chrome at source `bd3b89a8a`: real downloads and file Open,
+historical Match and Stale labels, unchanged past JSON after form edits, explicit recalculation, and malformed or
+unsupported-file refusal with previous input and result preserved. The changed Studio type check and panel-only
+lint passed. The initial development-server import failure was preserved; a normal same-port server restart
+restored loading without source changes. Its original cause remains unknown. File-read race ordering was reviewed
+in source but was not controlled in the browser. The integration receipt records the later product adoption gate.
+
+This does not complete Stage 1 or add free-motion prediction. Finish the current record UI documentation and
+adoption, then define explicit producer, catalogue and unit provenance for comparing a saved experiment with a
+current calculation. Establish Physics ownership and the mass, coordinate-frame, unit and fixed-pivot contract
+before implementing a pendulum solver. Do not infer measured accuracy from these numerical and UI checks.
 
 ## Historical lane order (2026-10-25, owner: "필요한 것들 로드맵에 추가 해서 진행해줘")
 

@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { BarocssError, Robot } from '@barocss/cad-model/api';
+import { GravityExperimentRecord } from '@barocss/cad-model/api/experimentRecord';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { CONTROL, FIELD } from './panelStyles';
+import { downloadBytes } from './files';
 
-type Experiment = ReturnType<Robot['gravityExperiment']>;
 type Options = Parameters<Robot['gravityExperiment']>[0];
 type Inputs = { joint: string; angle: string; x: string; y: string; z: string };
 
@@ -28,37 +29,76 @@ function optionsOf(input: Inputs): Options {
 /** A local, detached static calculation. It does not change the document or the viewport pose. */
 export function GravityExperimentPanel({ doc, joints }: { doc: StudioDoc; joints: readonly { key: string; type: string }[] }) {
   const [input, setInput] = useState<Inputs>({ joint: '', angle: '', x: '', y: '', z: '' });
-  const [experiment, setExperiment] = useState<Experiment | null>(null);
+  const [entry, setEntry] = useState<{ record: GravityExperimentRecord; historical: boolean; filename?: string } | null>(null);
+  const [prefilled, setPrefilled] = useState<string | null>(null);
+  const [reading, setReading] = useState(false);
+  const epoch = useRef(0), fileInput = useRef<HTMLInputElement>(null);
+  useEffect(() => () => { epoch.current++; }, []);
   const [failure, setFailure] = useState<string | null>(null);
   const [failureKind, setFailureKind] = useState<'Refused' | 'Failed' | null>(null);
   let options: Options | null = null;
   try { options = optionsOf(input); } catch { /* Incomplete fields remain explicit, without defaults. */ }
   let current = false;
-  if (experiment && options) {
-    try { current = experiment.matches(doc, options); } catch { /* Unmatchable inputs leave the old result stale. */ }
+  if (entry && options) {
+    try { current = entry.record.matches(doc, options); } catch { /* Unmatchable inputs leave the old result stale. */ }
   }
-  const report = experiment?.report;
+  const preview = entry?.record.preview;
+  const invalidateRead = () => { epoch.current++; setReading(false); };
+  const fail = (error: unknown) => {
+    const refused = error instanceof BarocssError && (error.code === 'VALUE' || error.code === 'ROBOT');
+    setFailureKind(refused ? 'Refused' : 'Failed');
+    setFailure(`${refused ? `Refused (${error.code})` : 'Operation failed'}: ${error instanceof Error ? error.message : String(error)}`);
+  };
   const change = (key: keyof Inputs, value: string) => {
+    invalidateRead();
+    setPrefilled(null);
     setInput(previous => ({ ...previous, [key]: value }));
     setFailure(null);
     setFailureKind(null);
   };
   const calculate = () => {
+    invalidateRead();
     try {
       const next = new Robot(doc).gravityExperiment(optionsOf(input));
-      setExperiment(next);
+      setEntry({ record: next.record(), historical: false });
       setFailure(null);
       setFailureKind(null);
     } catch (error) {
-      const refused = error instanceof BarocssError && (error.code === 'VALUE' || error.code === 'ROBOT');
-      setFailureKind(refused ? 'Refused' : 'Failed');
-      setFailure(`${refused ? `Refused (${error.code})` : 'Calculation failed'}: ${error instanceof Error ? error.message : String(error)}`);
+      fail(error);
     }
   };
-  const status = failure ? `${failureKind === 'Refused' ? 'Calculation refused.' : 'Calculation failed.'}` : report
+  const open = async (file: File) => {
+    const request = ++epoch.current;
+    setReading(true);
+    try {
+      const text = await file.text();
+      if (request !== epoch.current) return;
+      const record = GravityExperimentRecord.parse(text);
+      if (request !== epoch.current) return;
+      const loaded = record.preview;
+      setEntry({ record, historical: true, filename: file.name });
+      setInput({ joint: loaded.joint, angle: String(loaded.angle), x: String(loaded.gravity[0]), y: String(loaded.gravity[1]), z: String(loaded.gravity[2]) });
+      setPrefilled(file.name);
+      setFailure(null);
+      setFailureKind(null);
+    } catch (error) {
+      if (request === epoch.current) fail(error);
+    } finally {
+      if (request === epoch.current) setReading(false);
+    }
+  };
+  const download = () => {
+    if (!entry) return;
+    try {
+      const filename = entry.historical ? 'static-gravity-historical-record.json' : current && !failure ? 'static-gravity-calculation-record.json' : 'static-gravity-previous-record.json';
+      downloadBytes(new TextEncoder().encode(JSON.stringify(entry.record.toJSON(), null, 2)), filename, 'application/json');
+    } catch (error) { fail(error); }
+  };
+  const status = failure ? `${failureKind === 'Refused' ? 'Operation refused.' : 'Operation failed.'}` : entry?.historical
+    ? `Historical record; not recalculated. ${current ? 'Document and inputs match.' : 'Stale: document or inputs differ.'}` : preview
     ? (current ? 'Calculation complete. Inputs match this document.' : 'Stale result. The document or inputs changed. Calculate again.')
     : 'No calculation result.';
-  const shortStatus = failureKind ?? (report ? (current ? 'Complete' : 'Stale') : 'Not calculated');
+  const shortStatus = failureKind ?? (entry?.historical ? (current ? 'Historical · Match' : 'Historical · Stale') : preview ? (current ? 'Complete' : 'Stale') : 'Not calculated');
   return <aside className="card props min-w-0 break-words text-[11px]" aria-label="Static gravity experiment"
     onKeyDown={event => event.stopPropagation()} onKeyUp={event => event.stopPropagation()}>
     <details>
@@ -74,18 +114,30 @@ export function GravityExperimentPanel({ doc, joints }: { doc: StudioDoc; joints
       <Input className={CONTROL} type="number" step="any" aria-label="Gravity experiment angle (degree)" value={input.angle} onChange={event => change('angle', event.target.value)} /></label>
     {(['x', 'y', 'z'] as const).map(axis => <label className={FIELD} key={axis}><span>Gravity {axis.toUpperCase()} (mm/s²)</span>
       <Input className={CONTROL} type="number" step="any" aria-label={`Gravity ${axis.toUpperCase()} (mm/s²)`} value={input[axis]} onChange={event => change(axis, event.target.value)} /></label>)}
-    <Button variant="ghost" onClick={calculate}>Calculate holding torque</Button>
+    <Button type="button" variant="ghost" onClick={calculate}>Calculate holding torque</Button>
+    <Button type="button" variant="ghost" disabled={!entry} onClick={download}>{entry?.historical ? 'Download historical record' : current && !failure ? 'Download calculation record' : 'Download previous calculation record'}</Button>
+    <Button type="button" variant="ghost" onClick={() => { invalidateRead(); fileInput.current?.click(); }}>Open gravity record</Button>
+    <input ref={fileInput} type="file" accept=".json,application/json" className="hidden" aria-label="Gravity record file" onChange={event => {
+      const file = event.target.files?.[0];
+      event.target.value = '';
+      if (file) void open(file);
+    }} />
+    {reading && <div className="muted" role="status">Reading gravity record…</div>}
+    {prefilled && <div className="muted">Inputs were loaded from the opened record: {prefilled}.</div>}
     {failure && <div className="hud-error" role="alert">{failure}</div>}
     <div className="muted" role="status">{status}</div>
-    {report && <div aria-label="Static gravity calculation result">
-      <div className="kv muted">{failure || !current ? 'Previous calculation result.' : 'Current calculation result.'}</div>
-      <div className="kv">Static holding torque <b>{report.result.torques[report.scope.joint]} N·mm</b></div>
-      <div className="kv muted">Calculated joint: {report.scope.joint}</div>
-      <div className="kv muted">Calculated angle: {report.inputs.values[report.scope.joint]} degree</div>
-      <div className="kv muted">Calculated gravity XYZ: [{report.inputs.gravity.join(', ')}] mm/s²</div>
-      <div className="kv muted">{report.scope.coordinateFrame}</div>
-      <div className="kv muted">Positive angle follows the joint axis direction [{report.scope.axis.direction.join(', ')}] by the right-hand rule.</div>
-      <ul className="muted">{report.assumptions.map(assumption => <li key={assumption}>{assumption}</li>)}</ul>
+    {preview && <div aria-label="Static gravity calculation result">
+      <div className="kv muted">{entry?.historical ? 'Historical record; not recalculated.' : failure || !current ? 'Previous calculation result.' : 'Current calculation result.'}</div>
+      {entry?.historical && <div className="kv muted">Opened record: {entry.filename}</div>}
+      <div className="kv">Static holding torque <b>{preview.torque} N·mm</b></div>
+      <div className="kv muted">Recorded joint: {preview.joint}</div>
+      <div className="kv muted">Recorded occurrence: {preview.occurrence}</div>
+      <div className="kv muted">Axis origin XYZ: [{preview.axis.point.join(', ')}] mm</div>
+      <div className="kv muted">Recorded angle: {preview.angle} degree</div>
+      <div className="kv muted">Recorded gravity XYZ: [{preview.gravity.join(', ')}] mm/s²</div>
+      <div className="kv muted">{preview.coordinateFrame}</div>
+      <div className="kv muted">Positive angle follows the joint axis direction [{preview.axis.direction.join(', ')}] by the right-hand rule.</div>
+      <ul className="muted">{preview.assumptions.map((assumption, index) => <li key={index}>{assumption}</li>)}</ul>
     </div>}
     </details>
   </aside>;
