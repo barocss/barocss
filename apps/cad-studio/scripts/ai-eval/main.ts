@@ -10,7 +10,7 @@
 //   node scripts/ai-eval/ai-eval.mjs list                 the ladder
 import { execFile, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, join } from 'node:path';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
