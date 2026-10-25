@@ -574,5 +574,9 @@ test('quadratic guide: circle-sketch documents consume the guide and reject inva
   assert.deepEqual(JSON.parse(saveCadPart(snapshot)), doc); assert.deepEqual(outputOf(loadCadPart(saveCadPart(snapshot)), 'L').brep, o.brep);
   const missingFrame = structuredClone(doc); missingFrame.features[2].sections = [{ sketch: 'a', z: 0 }, { sketch: 'b', z: 3 }];
   const badGuide = structuredClone(doc); badGuide.features[2].guide.controlPoints[1][2] = 1.6;
-  for (const d of [missingFrame, badGuide]) assert.throws(() => evaluateCadPart(d), e => e instanceof CadPartError && (e.details?.category ?? e.code) === 'INPUT');
+  // Dispatch validation preserves INPUT. A producer BrepError is wrapped by the existing
+  // document evaluator as GEOMETRY; assert the same bad guide directly to keep that boundary.
+  assert.throws(() => evaluateCadPart(missingFrame), e => e instanceof CadPartError && e.code === 'INPUT' && e.details.category === 'INPUT' && e.feature === 'L' && e.message === 'L: sections[0] need an explicit frame without z');
+  assert.throws(() => guided(badGuide.features[2].guide), e => e instanceof BrepError && e.code === 'INPUT' && e.message === 'B-rep: loft: quadratic guide middle control must lie exactly on the cap midplane');
+  assert.throws(() => evaluateCadPart(badGuide), e => e instanceof CadPartError && e.code === 'GEOMETRY' && e.details.category === 'GEOMETRY' && e.feature === 'L' && e.message === 'L: B-rep: loft: quadratic guide middle control must lie exactly on the cap midplane');
 });
