@@ -660,6 +660,93 @@ test('draft: side faces turned about their line on the bottom, in (material off)
   refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.nope'], angle: 5 }]), 'REFERENCE', /no face e\.nope/);
 });
 
+const draftPullCases = [
+  { pull: 'x', face: 'e.side0', reference: [rect('s', 0, 0, 20, 10), extrude('e', 's', 20)], referenceFace: 'e.side3', inverse: [2, 0, 1] },
+  { pull: 'y', face: 'e.side3', reference: [rect('s', 0, 0, 10, 20), extrude('e', 's', 20)], referenceFace: 'e.side0', inverse: [1, 2, 0] },
+];
+const draftBounds = out => ({ min: [0, 1, 2].map(i => Math.min(...out.brep.vertices.map(v => v.point[i]))), max: [0, 1, 2].map(i => Math.max(...out.brep.vertices.map(v => v.point[i]))) });
+const draftVector = (actual, expected) => actual.forEach((x, i) => assert.ok(close(x, expected[i]), `${actual} vs ${expected}`));
+function compareDraftPull(c, angle) {
+  const box = [rect('s', 0, 0, 20, 20), extrude('e', 's', 10)], before = structuredClone(box);
+  const out = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: [c.face], angle, pull: c.pull }])), 'd');
+  const reference = outputOf(evaluateCadPart(D([...c.reference, { id: 'd', kind: 'draft', target: 'e', faces: [c.referenceFace], angle }])), 'd');
+  // Independent nominal wedge: pull height20, width10, depth20*tan10. The existing neutral lift remains.
+  const expected = 4000 - Math.sign(angle) * 0.5 * 20 * (20 * Math.tan(10 * pi / 180)) * 10;
+  assert.ok(close(volume(out), expected, 1e-6), `${c.pull} ${angle}: ${volume(out)} vs ${expected}`);
+  assert.deepEqual(checkBrep(out.brep).issues, []);
+  draftVector(massPropertiesOf(out).centroid, c.inverse.map(i => massPropertiesOf(reference).centroid[i]));
+  const actualBounds = draftBounds(out), referenceBounds = draftBounds(reference);
+  for (const key of ['min', 'max']) draftVector(actualBounds[key], c.inverse.map(i => referenceBounds[key][i]));
+  assert.deepEqual(box, before, 'draft does not mutate the authored source');
+}
+
+for (const c of draftPullCases) test(`draft: positive ${c.pull.toUpperCase()} pull removes the independent wedge and follows the permuted Z reference`, () => {
+  compareDraftPull(c, 10);
+});
+
+test('draft: negative angles add the independent wedge for positive X and Y pulls', () => {
+  for (const c of draftPullCases) compareDraftPull(c, -10);
+});
+
+test('draft: omitted pull and explicit Z preserve the existing geometry, names and mass arithmetic', () => {
+  const box = [rect('s', 0, 0, 20, 20), extrude('e', 's', 10)];
+  for (const angle of [10, -10]) {
+    const feature = { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angle };
+    const implicit = outputOf(evaluateCadPart(D([...box, feature])), 'd');
+    const explicit = outputOf(evaluateCadPart(D([...box, { ...feature, pull: 'z' }])), 'd');
+    assert.deepEqual(explicit.brep, implicit.brep);
+    assert.deepEqual(massPropertiesOf(explicit), massPropertiesOf(implicit));
+  }
+});
+
+test('draft: neutral is the selected world coordinate after translation, with the same default minimum', () => {
+  for (const c of draftPullCases) {
+    const box = [rect('s', 0, 0, 20, 20), extrude('e', 's', 10)], axis = c.pull === 'x' ? 0 : 1;
+    const offset = [0, 0, 0]; offset[axis] = 7;
+    const feature = { id: 'd', kind: 'draft', target: 'e', faces: [c.face], angle: 10, pull: c.pull };
+    const base = outputOf(evaluateCadPart(D([...box, { ...feature, neutral: 0 }])), 'd');
+    const translated = [...box, { id: 't', kind: 'translate', target: 'e', offset }], before = structuredClone(translated);
+    const explicit = outputOf(evaluateCadPart(D([...translated, { ...feature, target: 't', neutral: 7 }])), 'd');
+    const implicit = outputOf(evaluateCadPart(D([...translated, { ...feature, target: 't' }])), 'd');
+    assert.deepEqual(explicit.brep, implicit.brep);
+    assert.ok(close(volume(explicit), volume(base)));
+    draftVector(massPropertiesOf(explicit).centroid, massPropertiesOf(base).centroid.map((x, i) => x + offset[i]));
+    const bb = draftBounds(base), eb = draftBounds(explicit);
+    for (const key of ['min', 'max']) draftVector(eb[key], bb[key].map((x, i) => x + offset[i]));
+    assert.deepEqual(translated, before);
+  }
+});
+
+test('draft: X and Y pull survive save and load with the same geometry and mass', () => {
+  for (const c of draftPullCases) {
+    const snapshot = evaluateCadPart(D([rect('s', 0, 0, 20, 20), extrude('e', 's', 10), { id: 'd', kind: 'draft', target: 'e', faces: [c.face], angle: 10, pull: c.pull }]));
+    const saved = saveCadPart(snapshot);
+    assert.equal(JSON.parse(saved).features.find(f => f.id === 'd').pull, c.pull);
+    const again = loadCadPart(saved);
+    assert.deepEqual(again.document, snapshot.document);
+    const before = outputOf(snapshot, 'd'), after = outputOf(again, 'd');
+    assert.deepEqual(after.brep, before.brep);
+    assert.deepEqual(massPropertiesOf(after), massPropertiesOf(before));
+  }
+});
+
+test('draft: unsupported pull encodings retain a typed INPUT refusal', () => {
+  const box = [rect('s', 0, 0, 20, 20), extrude('e', 's', 10)];
+  for (const pull of [null, 'X', '+x', '-x', 'w', [1, 0, 0], 0]) {
+    refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angle: 10, pull }]), 'INPUT', /pull must be x, y or z/);
+  }
+});
+
+test('draft: pull-normal faces, adjacent faces and a neutral plane above the face stay typed refusals', () => {
+  const box = [rect('s', 0, 0, 20, 20), extrude('e', 's', 10)];
+  for (const c of draftPullCases) {
+    const feature = { id: 'd', kind: 'draft', target: 'e', faces: [c.face], angle: 10, pull: c.pull };
+    refused(D([...box, { ...feature, faces: [c.pull === 'x' ? 'e.side1' : 'e.side2'] }]), 'CAPABILITY', /square to the pull/);
+    refused(D([...box, { ...feature, faces: [c.face, 'e.bottom'] }]), 'CAPABILITY', /meet along an edge/);
+    refused(D([...box, { ...feature, neutral: 1 }]), 'SELECTION', new RegExp(`neutral plane ${c.pull} = 1`));
+  }
+});
+
 test('hole: a 90° countersink is cut with the hole, along any axis and from either side', () => {
   const cube = [rect('s', 0, 0, 40, 40), { id: 'b', kind: 'extrude', sketch: 's', height: 40 }];
   // The frustum beyond the cylinder: π t/3 (R² + R r + r²) − π r² t, t = R − r.
