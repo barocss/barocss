@@ -47,7 +47,7 @@ function apply(doc: StudioDoc, spec: FeatureSpec, body: string | null): StudioDo
   if (!avail.ok) { const code = bracketedCode(avail.reason); throw code ? new BarocssError(code, `${cmd.label} can't run: ${avail.reason}`, 'evaluate') : refuse('UNAVAILABLE', `${cmd.label} can't run: ${avail.reason}`); }
   // (The spec's own values win over what a command's derive works out from them, O20: givenValues.)
   const values: Values = givenValues(cmd, ctx, cmd.defaults?.(ctx) ?? {}, { ...spec.values });
-  const why = checkValues(cmd.fields?.(ctx) ?? [], values);
+  const why = checkValues(cmd.fields?.(ctx, values) ?? [], values);
   if (why) throw refuse('VALUE', `${cmd.label}: ${why}`);
   let next: StudioDoc;
   try { next = cmd.build!(ctx, values); } catch (e) {
