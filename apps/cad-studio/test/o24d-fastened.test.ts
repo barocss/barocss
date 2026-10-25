@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -14,11 +14,13 @@ type Hooks = { useRef: Loose; useState: Loose; useMemo: Loose; useCallback: Loos
 const shared = globalThis as typeof globalThis & { __fastenedHooks?: Hooks };
 const studio = process.cwd(), model = resolve(studio, '../../packages/barocss-cad-model/src');
 const { build } = createRequire(join(studio, 'package.json'))('esbuild') as typeof import('esbuild');
-const temporary = await mkdtemp(join(tmpdir(), 'cad-o24d-fastened-'));
+const artifacts = process.env.CAD_O24D_ARTIFACTS;
+if (artifacts) await mkdir(artifacts, { recursive: true });
+const temporary = await mkdtemp(join(artifacts || tmpdir(), 'cad-o24d-fastened-'));
 let useAssembly: (args: Loose) => Loose, MatePanel: (props: Loose) => Loose;
 try {
   const outfile = join(temporary, 'workflow.mjs');
-  await build({ stdin: { contents: `export { useAssembly } from './src/assembly/useAssembly'; export { MatePanel } from './src/ui/MatePanel';`, resolveDir: studio, loader: 'ts' }, outfile, bundle: true, platform: 'node', format: 'esm', jsx: 'automatic', logLevel: 'silent', define: { 'import.meta.env.DEV': 'false' },
+  const built = await build({ ...(artifacts ? { metafile: true } : {}), stdin: { contents: `export { useAssembly } from './src/assembly/useAssembly'; export { MatePanel } from './src/ui/MatePanel';`, resolveDir: studio, loader: 'ts' }, outfile, bundle: true, platform: 'node', format: 'esm', jsx: 'automatic', logLevel: 'silent', define: { 'import.meta.env.DEV': 'false' },
     plugins: [{ name: 'fastened-workflow-recorder', setup(builder) {
       // Pin Model imports to this checkout, independently of the shared node_modules symlinks.
       builder.onResolve({ filter: /^@barocss\/cad-model\// }, args => ({ path: resolve(model, args.path.slice('@barocss/cad-model/'.length) + '.ts') }));
@@ -33,8 +35,9 @@ try {
       }));
     } }],
   });
+  if (artifacts) await writeFile(join(temporary, 'metafile.json'), JSON.stringify(built.metafile, null, 2) + '\n', { flag: 'wx' });
   ({ useAssembly, MatePanel } = await import(pathToFileURL(outfile).href));
-} finally { await rm(temporary, { recursive: true, force: true }); }
+} finally { if (!artifacts) await rm(temporary, { recursive: true, force: true }); }
 
 const doc = (): Loose => ({ format: 'barocss-cad-model', schema: 3, units: 'mm', nodes: [], parameters: {}, outputs: {} });
 const plane = { kind: 'plane', point: [0, 0, 0], normal: [0, 0, 1] };
