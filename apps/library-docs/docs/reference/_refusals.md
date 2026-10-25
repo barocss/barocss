@@ -511,7 +511,7 @@
 | `[TRIM_CURVE]` | `engine` | The curve does not close: trim by a closed curve (a loop). |
 | `[UNDRAINED]` | `print` | the lattice leaves empty regions undrained after … drains: take a larger cell or a finer voxel |
 | `[UNKNOWN_ARGUMENT]` | `chat` | … takes no …: its arguments are ….… |
-| `[VALUE]` | `api`, `chat/part`, `engine`, `robot` | …: a joint's value is a number (degrees, or mm for a slide), not … |
+| `[VALUE]` | `api`, `assembly`, `chat/part`, `engine`, `robot` | …: a joint's value is a number (degrees, or mm for a slide), not … |
 | `[VARIANT_UNKNOWN]` | `assembly`, `chat` | no variant … (variants: …) |
 | `[VERSION_INPUT]` | `versions` | the time a version is made is an ISO 8601 text (got …) |
 | `[VERSION_KEY_COLLISION]` | `versions` | two different documents have the content key …: the version is not kept |
