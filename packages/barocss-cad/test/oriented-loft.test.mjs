@@ -176,7 +176,7 @@ test('legacy loft: ruled builder and smooth builder source bytes are preserved f
   const source = readFileSync(new URL('../src/features/loft.ts', import.meta.url), 'utf8');
   const start = source.indexOf('export function loftSolid('), end = source.indexOf('/**\n * A smooth loft:', start);
   const legacy = source.slice(start, end)
-    .replace('  if (input.sections.some(s => s.frame !== undefined || !Array.isArray(s.profile))) return orientedLoftSolid(input);\n', '')
+    .replace('  if (input.sections.some(s => s.frame !== undefined || !Array.isArray(s.profile))) return orientedLoftSolid(input, loftSolid);\n', '')
     .replace('const S = input.sections as readonly { readonly profile: readonly ProfileSegmentInput[]; readonly z: number }[];', 'const S = input.sections;');
   const hash = s => createHash('sha256').update(s).digest('hex');
   assert.equal(hash(legacy), '9c80ee4c38639905844b4cc2e80696a41470c4338bf7525a0b6160273a56e23b');
@@ -306,4 +306,128 @@ test('curved loft: document mixed encodings and malformed inline profiles retain
     const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: 'L', kind: 'loft', sections: [first, b] }] };
     assert.throws(() => evaluateCadPart(doc), e => e instanceof CadPartError && typeof e.code === 'string');
   }
+});
+
+// Rectangle [-2,2]×[-1,1] plus two radius-one semicircles. A=8+pi and centre=(0,0).
+const stadium = () => [
+  { kind: 'line', start: [-2, -1] },
+  { kind: 'arc', start: [2, -1], center: [2, 0], direction: 'ccw' },
+  { kind: 'line', start: [2, 1] },
+  { kind: 'arc', start: [-2, 1], center: [-2, 0], direction: 'ccw' },
+];
+const similarity = (p, scale, translation = [0, 0]) => p.map(s => {
+  const at = q => q.map((x, c) => x * scale + translation[c]);
+  return s.kind === 'line' ? { ...s, start: at(s.start) } : { ...s, start: at(s.start), center: at(s.center) };
+});
+const mixed = (lo = stadium(), hi = lo, a = flat(0), b = flat(3)) => loftSolid(input([section(a, lo), section(b, hi)]));
+function validMixed(brep) {
+  const report = checkBrep(brep, { strict: true });
+  assert.equal(report.valid, true, JSON.stringify(report.issues));
+  assert.ok(brep.shells.every(s => s.closed));
+  assert.deepEqual(brep.faces.map(f => f.name).sort(), ['L.bottom', ...Array.from({ length: 6 }, (_, i) => `L.side${i}`), 'L.top']);
+  assert.ok(brep.faces.some(f => f.surface.kind === 'surface' && f.surface.weights.flat().some(w => w !== 1)));
+  assert.ok(brep.faces.every(f => f.surface.kind === 'surface'));
+  assert.ok(brep.edges.every(e => e.name));
+  assert.equal(new Set(brep.edges.map(e => e.name)).size, brep.edges.length);
+}
+
+test('framed mixed loft: stadium extrusion has independent analytic volume and centroid', () => {
+  const { brep, mass } = mixed(), m = mass(2.7);
+  validMixed(brep); close(m.volume, 3 * (8 + Math.PI)); close(m.mass, 3 * (8 + Math.PI) * 2.7 / 1000);
+  vector(m.centroid, [0, 0, 1.5]);
+  vector(bound(brep).min, [-3, -1, 0]); vector(bound(brep).max, [3, 1, 3]);
+  assert.equal(m.method, 'quadrature');
+});
+
+test('framed mixed loft: positive uniform scale and translation have independent frustum moments', () => {
+  const lo = stadium(), hi = similarity(lo, 2, [3, -2]), { brep, mass } = mixed(lo, hi), m = mass(1);
+  // A(t)=(8+pi)*(1+t)^2; integral A/A0=7/3, integral t*A/A0=17/12.
+  // The section centre is (3t,-2t,3t), with weighted mean t=17/28.
+  validMixed(brep); close(m.volume, 7 * (8 + Math.PI)); vector(m.centroid, [51 / 28, -17 / 14, 51 / 28]);
+  vector(bound(brep).min, [-3, -4, 0]); vector(bound(brep).max, [9, 1, 3]);
+});
+
+test('framed mixed loft: frame displacement retains an oblique stadium prism', () => {
+  const { brep, mass } = mixed(stadium(), stadium(), flat(0), { ...flat(3), origin: [2, -1, 3] });
+  validMixed(brep); close(mass(1).volume, 3 * (8 + Math.PI)); vector(mass(1).centroid, [1, -0.5, 1.5]);
+});
+
+test('framed mixed loft: a tilted rigid common frame rotates the analytic solid', () => {
+  const a = { origin: [0, 0, 0], xAxis: [1, 0, 0], yAxis: [0, 0.6, 0.8] };
+  const b = { ...a, origin: [0, -0.8, 0.6] };
+  const { brep, mass } = mixed(stadium(), stadium(), a, b), m = mass(1);
+  validMixed(brep); close(m.volume, 8 + Math.PI); vector(m.centroid, [0, -0.4, 0.3]);
+  vector(bound(brep).min, [-3, -1.4, -0.8]); vector(bound(brep).max, [3, 0.6, 1.4]);
+});
+
+test('framed mixed loft: actual ruled surfaces interpolate the two line/arc sections', () => {
+  const lo = stadium(), hi = similarity(lo, 2, [3, -2]), { brep } = mixed(lo, hi);
+  for (const face of brep.faces.filter(f => f.name.startsWith('L.side'))) {
+    const a = evaluateSurface(face.surface, 0.5, 0), b = evaluateSurface(face.surface, 0.5, 1);
+    vector(evaluateSurface(face.surface, 0.5, 0.25), a.map((x, c) => 0.75 * x + 0.25 * b[c]));
+  }
+});
+
+test('framed mixed loft: identity frame reuses legacy geometry and mass without modifying inputs', () => {
+  const p = stadium(), before = JSON.stringify(p), framed = mixed(p, p);
+  const legacy = loftSolid(input([{ profile: p, z: 0 }, { profile: p, z: 3 }]));
+  assert.deepEqual(framed.brep, legacy.brep); assert.equal(JSON.stringify(p), before);
+  close(framed.mass(1).volume, legacy.mass(1).volume); vector(framed.mass(1).centroid, legacy.mass(1).centroid);
+  framed.mass(1).inertia.forEach((row, i) => vector(row, legacy.mass(1).inertia[i]));
+});
+
+test('framed mixed loft: segment tags stay attached to split semicircles', () => {
+  const p = stadium(), { brep } = loftSolid({ ...input([section(flat(0), p), section(flat(3), p)]), sideTags: ['base', 'nose', 'top', 'tail'] });
+  assert.equal(checkBrep(brep, { strict: true }).valid, true);
+  assert.deepEqual(brep.faces.map(f => f.name).sort(), ['L.bottom', 'L.side[base]', 'L.side[nose]#1', 'L.side[nose]#2', 'L.side[tail]#1', 'L.side[tail]#2', 'L.side[top]', 'L.top']);
+});
+
+test('framed mixed loft: clockwise contours preserve the same analytic region', () => {
+  const p = stadium(), reversed = p.map((_, j) => {
+    const i = p.length - 1 - j, s = p[i], start = p[(i + 1) % p.length].start;
+    return s.kind === 'line' ? { ...s, start } : { ...s, start, direction: 'cw' };
+  });
+  const { brep, mass } = mixed(reversed, reversed);
+  validMixed(brep); close(mass(1).volume, 3 * (8 + Math.PI)); vector(mass(1).centroid, [0, 0, 1.5]);
+});
+
+test('framed mixed loft: nonuniform or reversed scales and reordered correspondence are refused', () => {
+  const p = stadium(), nonuniform = p.map(s => {
+    const at = q => [2 * q[0], q[1]];
+    return s.kind === 'line' ? { ...s, start: at(s.start) } : { ...s, start: at(s.start), center: at(s.center) };
+  });
+  rejected(() => mixed(p, nonuniform), 'INPUT', /uniform scale/);
+  rejected(() => mixed(p, similarity(p, -1)), 'INPUT', /positive/);
+  rejected(() => mixed(p, [...p.slice(2), ...p.slice(0, 2)]), 'INPUT', /scale|correspondence/);
+});
+
+test('framed mixed loft: topology, direction and malformed contour failures remain typed', () => {
+  const p = stadium(), changed = structuredClone(p); changed[1].direction = 'cw';
+  for (const q of [changed, p.slice(0, 3), [{ ...p[0], start: [NaN, 0] }, ...p.slice(1)], circleProfile(1), square]) {
+    assert.throws(() => mixed(p, q), e => typeof e.code === 'string');
+  }
+});
+
+test('framed mixed loft: unsupported frame, spacing and position encodings are refused', () => {
+  const p = stadium();
+  rejected(() => mixed(p, p, flat(0), tilted), 'INPUT', /identical/);
+  rejected(() => mixed(p, p, flat(0), flat(0)), 'GEOMETRY', /positive plane separation/);
+  rejected(() => mixed(p, p, flat(0), flat(-1)), 'GEOMETRY', /positive plane separation/);
+  const uncertain = { origin: [0, 0, 0], xAxis: [1 + 1e-11, 0, 0], yAxis: [0, 1, 0] };
+  rejected(() => mixed(p, p, uncertain, { ...uncertain, origin: [0, 0, 3] }), 'INPUT', /rigid/);
+  rejected(() => loftSolid(input([section(flat(0), p), { profile: p, z: 3 }])), 'INPUT', /frame/);
+  rejected(() => loftSolid({ ...input([section(flat(0), p), section(flat(3), p)]), smooth: true }), 'INPUT', /ruled/);
+});
+
+test('framed mixed loft: existing loop documents evaluate and save/read without a schema extension', () => {
+  const p = stadium(), doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+    { id: 'a', kind: 'sketch', profile: 'loop', segments: p },
+    { id: 'b', kind: 'sketch', profile: 'loop', segments: p },
+    { id: 'L', kind: 'loft', sections: [{ sketch: 'a', frame: flat(0) }, { sketch: 'b', frame: flat(3) }] },
+  ] };
+  const snapshot = evaluateCadPart(doc), o = outputOf(snapshot, 'L');
+  validMixed(o.brep); close(massPropertiesOf(o).volume, 3 * (8 + Math.PI));
+  assert.deepEqual(JSON.parse(saveCadPart(snapshot)), doc);
+  const again = outputOf(loadCadPart(saveCadPart(snapshot)), 'L');
+  assert.deepEqual(again.brep, o.brep); assert.deepEqual(massPropertiesOf(again), massPropertiesOf(o));
 });

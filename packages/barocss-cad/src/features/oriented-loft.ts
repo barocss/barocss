@@ -10,7 +10,8 @@ import { solidMassFromIntegrals } from '../brep/solid-mass.js';
 import { gauss } from '../core/quadrature.js';
 import { buildProfileLoop, capSurface, ExtrudedProfileLimits, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import { curvedLoftSolid } from './curved-loft.js';
-import type { LoftInput, LoftSectionFrame } from './loft.js';
+import type { loftSolid, LoftInput, LoftSectionFrame } from './loft.js';
+import { framedMixedLoftSolid } from './framed-mixed-loft.js';
 import type { Point } from '../types.js';
 
 type XY = [number, number];
@@ -42,12 +43,16 @@ function frame(input: LoftSectionFrame | undefined): Basis {
   return { origin, u, v };
 }
 
-export function orientedLoftSolid(input: LoftInput) {
+export function orientedLoftSolid(input: LoftInput, legacy: typeof loftSolid) {
   if (input.sections.length !== 2) return fail('currently support exactly two sections');
   if (input.smooth) return fail('currently support ruled sides, not smooth interpolation');
   const S = input.sections;
   if (S.some(s => s.z !== undefined || s.frame === undefined)) return fail('require frame on both sections and no z');
   const frames = S.map(s => frame(s.frame));
+  if (S.every(s => Array.isArray(s.profile)) && S.some(s => {
+    const p = s.profile as readonly ProfileSegmentInput[];
+    return p.some(g => g.kind === 'line') && p.some(g => g.kind === 'arc');
+  })) return framedMixedLoftSolid(input, frames, legacy);
   if (S.some(s => !Array.isArray(s.profile) || s.profile.some(g => g.kind === 'arc'))) return curvedLoftSolid(input, frames);
   const loops = S.map(s => buildProfileLoop(s.profile as readonly ProfileSegmentInput[]));
   const polygons = loops.map(loop => loop.segments.map(s => s.kind === 'line' ? [...s.start] as XY : fail('currently support straight polygon edges only')));
