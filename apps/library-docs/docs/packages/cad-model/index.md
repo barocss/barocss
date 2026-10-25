@@ -65,6 +65,20 @@ with `LOOP_OPEN`: its sweep and continuous collision checks do not follow the cl
 [Robots in code](/studio/robots#in-code) for the motion contract and
 [Moving it](/studio/robots#moving-it) for the agent's supported loop checks and playback limits.
 
+### Static gravity experiment
+
+`robot.gravityExperiment({ values, gravity })` captures one prescribed static pose and its gravity holding-torque
+report. Supply exactly one joint angle in degrees and an explicit finite three-component gravity vector in mm/s²;
+there is no gravity default. The profile admits exactly one connected open revolute or continuous joint, with no
+loops or couplings. Nested part occurrences in the moving part are outside this profile. Every moving body needs an explicit known material and positive finite mass. The moving link must have resolved
+inertia with finite components and no reported issues. The report's torque uses N·mm. It uses the existing Model
+link-inertia and gravity calculation.
+
+The returned object's `report` getter gives a deep copy. Use `matches(doc, options)` to compare the complete captured
+document and explicit inputs with the current ones. If their canonical contents differ, `matches` returns false and the report is stale. This check
+does not rerun the calculation or certify integrity. The profile reports static holding torque, not free motion,
+contact, actuator suitability or physical validation. It adds no experiment storage schema or Studio control.
+
 ### Candidate input-contract changes
 
 The following changes are present in candidate source, but are not integrated into the product or
