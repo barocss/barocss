@@ -34,6 +34,20 @@ features:
 | [`@barocss/cad-model`](/packages/cad-model/) | The document model above the kernel: parts, assemblies, drawings, BOM, processes, robots and the agent's tools. |
 | [`@barocss/gpu`](/packages/gpu/) | The viewer the studio draws with: WebGPU scenes, materials, compute analyses and frame costs. |
 
+## From design to experiments
+
+The current pages cover CAD geometry, manufacturing reports and supported robot motion and load calculations.
+Read each feature's limits before using its results; a displayed motion or manufacturing check does not establish
+the accuracy of a physical simulation.
+
+The long-term goal adds experiments to the same project: define a supported profile, bind its inputs to a design
+revision, run it and compare results. That common input/result workflow is planned, not implemented or verified.
+A bounded physical pendulum is the first planned dynamics experiment; its hinge, gravity and inertia path still
+needs support confirmation. Structural, thermal and fluid experiments are later plans, not current solver support.
+
+See [Planned experiment evidence](/reference/verification#planned-experiment-evidence) for the separate implementation,
+numerical and measurement gates, and [Limits](/reference/limits#planned-physical-experiments) for the current boundaries.
+
 ## Status
 
 BaroCSS CAD is unreleased and developed locally. The packages are `0.0.0` versions, and the document schema tracks

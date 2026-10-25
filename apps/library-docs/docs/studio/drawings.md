@@ -15,6 +15,10 @@ so it follows every change; the dimensions and notes you add are kept with it.
 - Beside your REV, the title block's **SRC** line names the document revision the sheet was drawn from, in every
   export of the sheet. See [Revisions and sources](/guide/concepts#revisions-and-sources).
 
+Changing the drawing scope is refused with `DRAWING_SCOPE_REFERENCES` while the sheet has manual dimensions,
+datums, control frames or notes with leaders. Keep the scope, or remove those references explicitly first.
+A permitted scope change clears automatic dimensions; it does not transfer their references to the new part.
+
 ### Title blocks and revision history
 
 - **Title block** chooses **Basic** or **Extended**. Basic keeps the original layout. Extended adds **Organization**,
@@ -44,6 +48,9 @@ the plane is edge-on, and the cut faces hatched.
 - An aligned section follows an off-axis feature, for example a keyway in a tilted bore. Its plane is square to the
   feature's axis, and its cutting line is drawn inclined.
 - **Export section DXF** writes one section on its own.
+
+When setting sections through the agent, a changed or removed section with dimensions gives
+`DRAWING_SECTION_REFERENCES`. Remove those dimensions explicitly before changing the section definition.
 
 ### Half and offset sections
 
@@ -153,6 +160,11 @@ a larger scale.
 **Auto** under **Dimensions** (Auto-dimension) lays out the views with room, picks a scale and sheet that read cleanly, then adds the overall
 sizes, steps, hole positions and callouts. It replaces its own earlier dimensions and keeps yours. A dimension goes
 where both its ends are visible: in a section when the section shows more than the view.
+
+For authored drawing data, a dimension's `place` uses the view's model coordinates in mm. A note's `at` instead
+uses sheet mm, while its optional `leader.at` uses the view's model coordinates. Do not scale model coordinates
+to match the sheet: the drawing applies the view scale. A leader follows its view; a note's text position stays on
+the sheet.
 
 ## Tolerances
 

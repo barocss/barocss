@@ -7,7 +7,23 @@ What isn't supported, or is refused, gathered from the other pages. Each item li
 - **Unreleased.** Everything is unreleased, at `0.0.0`: nothing is on npm, and APIs can change.
 - **No migrations.** Documents follow the latest schema. Older unreleased documents aren't migrated.
   ([The .bcad document](/reference/document))
-- **Not covered.** Electronics CAD (PCBs) and finite-element analysis aren't part of this stack.
+- **Not covered.** Electronics CAD (PCBs) remains outside the current scope.
+- **Planned engineering analyses.** Structural/FEM, thermal, fluid and broader CAE experiments are in the long-term
+  roadmap. The new solver capabilities and common experiment workflow are not implemented or accepted for use.
+
+## Planned physical experiments
+
+Each future experiment needs an explicit profile: supported geometry and joints, material and mass inputs, loads,
+units, assumptions and a validated operating range. A visual effect, motion playback or a passing source test does
+not establish physical prediction accuracy. Numerical verification and separate controlled measurements are needed
+before claiming a supported physical range.
+
+The first physical pendulum remains planned. Existing hinge and gravity inputs do not establish a supported CAD
+free-motion experiment. Pivot and centre-of-mass placement, pivot inertia, gravity moments and constraint reactions
+still need a consistent supported path. Model's required torque for prescribed motion is not forward prediction of
+free motion from initial conditions. This support gap is not a confirmed defect in the existing bounded profiles.
+
+The wider roadmap does not clear recorded manufacturing holds, missing material or stock inputs, or failed checks.
 
 ## Candidate CAD input validation
 

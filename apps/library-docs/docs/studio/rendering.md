@@ -88,8 +88,17 @@ The timeline animates the bodies:
 - **Turntable** turns the camera round the part.
 - For a selected body, **Set key** keeps its offset at the current time. A key can be jumped to or removed.
 
+Time and duration use seconds; body offsets use mm. Positions interpolate linearly between keys and stay at the
+first or last offset outside their time range. Turntable changes the camera view.
+These are authored display motions, not gravity or contact solver results. Their playback does not establish
+physical behaviour; see [Experiment evidence](/reference/verification#planned-experiment-evidence).
+
 ![The timeline: play, the time and its length, and Turntable](/shots/studio/rendering/timeline.png)
 
 ## Exporting an image
 
 **Export image**, the camera button on the Render panel, downloads the view as a PNG. It needs WebGPU.
+
+The PNG records the displayed view, including its appearance and camera. Keep the editable `.bcad` document and
+any analysis results separately: an image does not carry the model history or establish manufacturing or physical
+validation. See [Files and exports](/studio/files).

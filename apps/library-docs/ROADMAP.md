@@ -1,6 +1,45 @@
 # Documentation roadmap (W1)
 
-## 진행 상황 (Progress, 2026-10-24)
+## Current goal and next documentation work (2026-10-25)
+
+Document a connected design and virtual-experiment workflow: define an object, materials, joints, loads,
+environment and controls; predict selected outcomes; and compare revisions or controlled measurements within
+an explicit experiment profile. Manufacturing remains a delivery track. This goal does not close A9 or P2,
+resolve required engineering inputs, or replace recorded FAIL, HOLD or incomplete results.
+
+Next writing items, in order:
+
+1. Keep implemented CAD, assembly, robot, drawing and row contracts aligned with their actual inputs, outputs,
+   units and refusal boundaries. Label unintegrated candidates separately from current support.
+2. Complete the frozen CAD API gallery only after its assigned native generation and review. Its source covers
+   24 cases and expects 25 product assets; those assets remain ungenerated. Preserve the frozen six-file source,
+   existing preview and original failures. This roadmap does not authorize generation or a runtime window.
+3. Once the experiment-profile owner and input contract are confirmed, explain target identity, occurrences,
+   revision, units, sourced mass and inertia, missing inputs, approximation losses and stale results.
+4. Document the first bounded pendulum experiment after its actual supported forward path is established.
+   Separate inverse torque calculation from free motion under gravity. Then extend to mechanisms, structural,
+   thermal, fluid and coupled experiments as their own profiles become supported and verified.
+
+Completion requires distinct checks. Text must match source contracts and state limits. API pictures must show
+the actual numeric inputs, operation and generated result; a teaching diagram or rendered shape alone does not
+prove numerical accuracy. Executable samples must have recorded results for the selected source, and site build,
+link and screen checks must cover the changed pages. Source review supplies no new execution PASS. Numerical
+verification uses independent references and convergence checks; measured validation needs controlled physical
+measurements with stated uncertainty. Neither screenshots nor passing samples replace measured validation.
+
+Structural/FEM, thermal, fluid and coupled physics are long-term planned documentation tracks. This does not
+bring the whole Physics package into the site's current reference scope or implement a new solver. Expand the
+documentation only after profile ownership, supported inputs and output contracts are fixed. New dependencies,
+WASM and Physics package edits need their own decisions. Existing execution holds and frozen gallery assets
+remain in force.
+
+## Historical planning and checkpoints
+
+The sections below preserve the original W1 plan and reports. Their page counts, sample counts, screenshot
+counts, gaps and future-tense steps describe those historical checkpoints, not the current site's measured state.
+Use the current section above for new work; retain earlier failures and evidence limits when recording results.
+
+## 진행 상황 (Historical progress, 2026-10-24)
 
 - **페이지.** 32쪽을 모두 썼습니다. "Being written" 표시는 0입니다. 추가하기로 한 Parameters와 Rendering, 그리고
   features의 빈 곳(판금 전개, SubD 케이지 편집, 그림에서 만들기)도 채웠습니다.
@@ -14,7 +53,7 @@
 - **남은 일.**
   - 다른 레인 파일에서 찾은 문구 문제(cad-cli usage, cad-model README, 예제 rows의 about)는 코디네이터에게 넘겼습니다.
 
-## 요약 (Korean summary for the owner)
+## 요약 (Historical Korean summary for the owner)
 
 - **대상.** BaroCSS CAD 문서 사이트(`apps/library-docs`)의 범위는 CAD 스택입니다: studio, agent,
   `@barocss/cad`, `@barocss/cad-model`, `@barocss/gpu`.
@@ -444,7 +483,7 @@ Package pages need runnable samples. So the first packages commit adds `apps/lib
 | A per-function API reference for cad-model | The package is public by module path at 0.x and changes often. The page gives a module map; a generated reference can follow the first release. |
 | v1 tool names | Removed. v2 is the only list a model reads. |
 | Work not merged into integration | It may still change. It is added when it merges. |
-| ECAD/PCB, FEM | Deferred by the owner (ECAD), or off the roadmap (FEM, with CAE as reference only). |
+| ECAD/PCB; structural/FEM and other engineering experiments | ECAD/PCB remains deferred. FEM, thermal, fluid and coupled experiments are long-term planned tracks under the current goal; profile ownership and input contracts must be confirmed before documentation expands. |
 | Live-model results (O15, `chat-live.mjs`) | Need the owner's permission to run. Pages use scripted tests instead. |
 | Install from npm | Unreleased. Pages install from the repository. |
 | Timings and frame rates | They vary by machine. Only the counts tests pin are given. |
