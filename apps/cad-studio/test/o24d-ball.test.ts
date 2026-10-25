@@ -116,7 +116,7 @@ test('O24 d ball UI: selecting Ball hides mate flip, clears its old draft value 
   const f = fixture();
   try {
     await f.ready(); f.render().start(); f.render().setDraft({ kind: 'fastened', flip: true });
-    let tree = f.panel(f.render()), select = find(tree, 'Mate type');
+    let tree = f.panel(f.render()); const select = find(tree, 'Mate type');
     assert.equal(walk(select).filter(n => n.type === 'option')[0].props.value, 'auto'); assert.ok(find(tree, 'Mate flip'));
     select.props.onChange({ target: { value: 'ball' } });
     tree = f.panel(f.render()); assert.equal(find(tree, 'Mate flip'), undefined);
