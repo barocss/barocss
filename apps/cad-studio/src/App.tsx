@@ -39,7 +39,7 @@ import { useGpuAccessMaps } from './viewport/useGpuMaps';
 import { countRender, onBlockRender } from './devRenders';
 import { OutlinerInstances } from './ui/OutlinerInstances';
 import { poseKinematics, useJoints } from './state/useJoints';
-import { draftPath, pathLimits, timedMotion } from './state/motion';
+import { draftPath, pathLimits, refuseMotionSweep, timedMotion } from './state/motion';
 import { motionOf, timedPathOf } from '@barocss/cad-model/robot/motion';
 import { createValueStore, useStoreValue } from './state/valueStore';
 import { SceneViewport } from './viewport/SceneViewport';
@@ -898,21 +898,32 @@ export function App() {
   // (R1c (3b): the App follows the pose and the explode factor in each frame only where it uses them itself — a CPU
   // section's copies, the clearance check; elsewhere SceneViewport and the Joints card do, not the App.)
   const posesInApp = clearanceEnabled || (!!section && !sketch && !gpuSection);
-  const { poseStore, setJointValues, jointPlaying, setJointPlaying, pathCheck, setPathCheck, jointWaypoints, setJointWaypoints, workspace, setWorkspace, jointFk,
+  const loopMotionContext = useMemo(() => jointTree?.loops.length ? { doc, tree: jointTree } : undefined, [doc, jointTree]);
+  const reportMotionError = useCallback((error: unknown) => {
+    setToast({ title: 'Motion refused', hint: error instanceof Error ? error.message : String(error), detail: '' });
+  }, [setToast]);
+  const { poseStore, jointInputStore, readJointInputs, setJointValues, jointPlaying, setJointPlaying, pathCheck, setPathCheck, jointWaypoints, setJointWaypoints, workspace, setWorkspace, jointFk,
     motionTime, motion, motionPlaying, setMotionPlaying, motionLoop, setMotionLoop, motionSpeed, setMotionSpeed, playMotion, scrubMotion, stopMotion, motionContact, setMotionContact, contactShown,
-    motionChoice, setMotionChoice, freezeMotion, showMotionAt } = useJoints(jointTree, posesInApp, doc.robot?.motions);
+    motionChoice, setMotionChoice, freezeMotion, showMotionAt } = useJoints(jointTree, posesInApp, doc.robot?.motions, loopMotionContext, reportMotionError);
   // (RS2: the saved motion chosen, its length before it plays — timed once per choice.)
-  const chosenDuration = useMemo(() => { const m = motionChoice === null || !jointTree ? undefined : doc.robot?.motions?.find(x => x.name === motionChoice); try { return m && jointTree ? timedMotion(timedPathOf(jointTree, m.path)).duration : undefined; } catch { return undefined; } }, [motionChoice, jointTree, doc.robot?.motions]);
+  const chosenMotion = useMemo<{ duration?: number; problem?: string }>(() => {
+    const m = motionChoice === null || !jointTree ? undefined : doc.robot?.motions?.find(x => x.name === motionChoice);
+    try { return m && jointTree ? { duration: timedMotion(timedPathOf(jointTree, m.path), loopMotionContext).duration } : {}; }
+    catch (error) { return { problem: error instanceof Error ? error.message : String(error) }; }
+  }, [motionChoice, jointTree, doc.robot?.motions, loopMotionContext]);
   // (RS2: a motion frozen is swept once, as Check path sweeps — the links as placed — for its first contact: the time of
   // impact and the two links, tinted from that time on as it plays.)
   useEffect(() => {
     if (!motion || !jointTree || !robotReady) { setMotionContact(null); return; }
     try {
+      refuseMotionSweep(jointTree);
       const links = sweepLinks(jointTree, p => p === BASE ? bodies : instanceBodies.get(p)?.bodies, pts => convexHull(pts).positions);
       const r = sweepTimed(jointTree, links, motion.path);
       setMotionContact(r.toi !== undefined && r.links ? { toi: r.toi, links: r.links } : null);
-    } catch { setMotionContact(null); }
-  }, [motion, jointTree, robotReady, bodies, instanceBodies, setMotionContact]);
+    } catch (error) {
+      setMotionContact(null); setToast({ title: 'Motion contact check refused', hint: error instanceof Error ? error.message : String(error), detail: '' });
+    }
+  }, [motion, jointTree, robotReady, bodies, instanceBodies, setMotionContact, setToast]);
   /** A robot part for the exports (RM4–RM9c): the bodies as placed, so each part's placement is the identity here. */
   const robotPartOf = (p: string) => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; };
   /** The tree's planar loops closed at their pins (RM8), those that are not left out (the exports note them). */
@@ -2624,15 +2635,19 @@ export function App() {
       })()}
       {!rendering && !sketch && !measure && jointTree && !assembly.draft && !instanceSel.length && <JointsPanelLive poseStore={poseStore} tree={jointTree} masses={jointMasses} instances={doc.instances ?? []}
         onValue={(k, v) => { stopMotion(); setJointPlaying(null); setJointValues(x => ({ ...x, [k]: v })); }} onHome={() => { stopMotion(); setJointPlaying(null); setJointValues({}); }} playing={jointPlaying} onPlay={k => { stopMotion(); setJointPlaying(k); }} links={linkInertias}
-        motionState={{ time: motionTime, motion, waypoints: jointWaypoints, playing: motionPlaying, loop: motionLoop, speed: motionSpeed,
+        motionState={{ time: motionTime, inputs: jointInputStore, context: loopMotionContext, motion, waypoints: jointWaypoints, playing: motionPlaying, loop: motionLoop, speed: motionSpeed,
           contact: contactShown && motionContact ? `Contact ${jointTree.links.find(x => x.id === motionContact.links[0])?.name ?? motionContact.links[0]} – ${jointTree.links.find(x => x.id === motionContact.links[1])?.name ?? motionContact.links[1]} at t ${motionContact.toi.toFixed(2)} s` : null,
-          chosenDuration,
+          chosenDuration: chosenMotion.duration, chosenProblem: chosenMotion.problem,
           controls: { onPlay: playMotion, onPause: () => setMotionPlaying(false), onTime: scrubMotion, onLoop: setMotionLoop, onSpeed: setMotionSpeed,
             onExportVideo: () => { const m = freezeMotion(); if (!m) return; setMotionPlaying(false); void recordVideo(m.duration, t => showMotionAt(m, t), `${fileName}-${motionChoice ?? 'motion'}.webm`); }, exporting: videoBusy,
             saved: (doc.robot?.motions ?? []).map(m => m.name), choice: motionChoice, onChoose: setMotionChoice,
             // (The draft kept in the document: replacing one of the same name; an undo step, the file dirty.)
             onSave: name => {
-              let path; try { path = motionOf(jointTree, draftPath(jointTree, jointWaypoints, poseStore.get())); } catch (e) { setToast({ title: 'Could not save the motion', hint: e instanceof Error ? e.message : String(e), detail: '' }); return; }
+              let path; try {
+                const draft = draftPath(jointTree, jointWaypoints, readJointInputs());
+                if (jointTree.loops.length) timedMotion(draft, loopMotionContext);
+                path = motionOf(jointTree, draft);
+              } catch (e) { setToast({ title: 'Could not save the motion', hint: e instanceof Error ? e.message : String(e), detail: '' }); return; }
               pushUndo(); const robot = { ...(doc.robot ?? { version: 1 as const }) };
               robot.motions = [...(robot.motions ?? []).filter(m => m.name !== name), { name, path }];
               setDoc({ ...doc, robot }); setDirty(true); setMotionChoice(name);
@@ -2644,7 +2659,14 @@ export function App() {
           void writeZip([{ name: 'robot.urdf', data: new TextEncoder().encode(r.urdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true })), { name: 'robot.source.json', data: sourceBytes(sourceRecord(doc, ['robot.urdf', ...r.files.map(f => f.path)], { robot: true })), deflate: true }]).then(z => downloadBytes(z, `${fileName}-urdf.zip`, 'application/zip'));
           if (r.notes.length) setToast({ title: 'URDF written', hint: r.notes.join(' '), detail: '' });
         }}
-        waypoints={jointWaypoints.length} onAddWaypoint={() => { const v = poseStore.get(), fk = poseKinematics(jointTree, v); setJointWaypoints(w => [...w, { ...(fk?.values ?? v) }]); }} onClearWaypoints={() => { setJointWaypoints([]); setPathCheck(null); }}
+        waypoints={jointWaypoints.length} onAddWaypoint={() => {
+          const v = readJointInputs();
+          try {
+            if (jointTree.loops.length) timedMotion(draftPath(jointTree, jointWaypoints, v), loopMotionContext);
+            const fk = jointTree.loops.length ? null : poseKinematics(jointTree, v);
+            setJointWaypoints(w => [...w, { ...(fk?.values ?? v) }]);
+          } catch (error) { reportMotionError(error); }
+        }} onClearWaypoints={() => { setJointWaypoints([]); setPathCheck(null); }}
         onWorkspace={(n, h, free) => {
           // (RM9b: the deepest link's joint point over the joints' ranges; a slide without limits refused, said so.)
           const depth = (l: string): number => { const j = jointTree.joints.find(x => x.child === l); return j ? 1 + depth(j.parent) : 0; }, end = jointTree.links.reduce((b, l) => depth(l.id) > depth(b.id) ? l : b, jointTree.links[0]).id;
@@ -2661,6 +2683,8 @@ export function App() {
         onWorkspaceHide={() => setWorkspace(null)}
         path={pathCheck} ready={robotReady}
         onCheckPath={() => {
+          try { refuseMotionSweep(jointTree); }
+          catch (error) { setToast({ title: 'Path check refused', hint: error instanceof Error ? error.message : String(error), detail: '' }); return; }
           // (RM6, RM9a: the timed path from the solved pose through the waypoints to the sliders', the links as placed; each
           // segment a trapezoid within the joints' velocity limits — 1 rad/s or 100 mm/s where none is set — and twice that
           // per second's acceleration; the whole path certified, or its time of impact.)
