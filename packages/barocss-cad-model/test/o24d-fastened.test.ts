@@ -15,7 +15,7 @@ import { jointTree } from '../src/robot/joints';
 import { loopTermsOf } from '../src/robot/loop';
 import { readUrdf, urdfFk } from '../src/robot/urdfCheck';
 import { readMjcf, mjcfFk } from '../src/robot/mjcfCheck';
-import { dispatchTool } from '../src/chat/tools';
+import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { treeOfDoc, urdfOfDoc, mjcfOfDoc } from '../src/chat/robot';
 
 // F0–F8 use hand-declared axes/points. No connector or solver call generates the expected frames.
@@ -206,4 +206,41 @@ test('O24 d: old connector and cam/lock refusals retain their original branches'
   const lock = lockPart(doc, { part: 'p', to: 'base' }).mate;
   assert.deepEqual(readStudioDoc(JSON.stringify({ ...doc, mates: [{ ...lock, a: { ...lock.a, at: {} } }] })), { error: '[CONNECTOR_KIND] A cam or lock mate cannot carry connectors.' });
   assert.deepEqual(doc, before);
+});
+
+test('O24 d: dispatcher VALUE precheck is geometry-free and preserves document, args, bodies and transaction checkpoints', async () => {
+  const doc = { ...source(), mates: [{ id: 'm', ...options() }] };
+  const state: ChatState = { doc, bodies: [], tx: { applied: ['old-op'], checkpoints: { before: doc } } };
+  const snapshot = structuredClone(state);
+  let evaluations = 0;
+  const noGeometry = async () => { evaluations++; throw new Error('Validation must finish before geometry'); };
+  for (const extra of [{ distance: 0 }, { angle: 0 }, { pitch: 0 }, { ratio: 0 }, { rel: {} }, { limits: {} }]) {
+    for (const action of ['add_mate', 'edit_mate']) {
+      const args = action === 'add_mate' ? { action, ...options(), ...extra } : { action, id: 'm', ...extra };
+      const originalArgs = structuredClone(args), r = await dispatchTool(state, 'assembly', args, noGeometry);
+      assert.ok(r.isError && !r.changed, r.content); assert.match(JSON.parse(r.content).error, /^\[VALUE\]/);
+      assert.equal(r.state, state); assert.equal(r.state.doc, doc); assert.equal(r.state.bodies, state.bodies); assert.equal(r.state.tx, state.tx);
+      assert.deepEqual(state, snapshot); assert.deepEqual(args, originalArgs);
+    }
+  }
+  assert.equal(evaluations, 0);
+  const unknown = await dispatchTool(state, 'assembly', { action: 'add_mate', ...options(), unrelated: 0 }, noGeometry);
+  assert.match(JSON.parse(unknown.content).error, /^\[UNKNOWN_ARGUMENT\]/); assert.equal(unknown.state, state);
+});
+
+test('O24 d: every old kind and unrelated tool retains the generic unknown-argument refusal before geometry', async () => {
+  let evaluations = 0;
+  const noGeometry = async () => { evaluations++; throw new Error('Unknown arguments must not evaluate'); };
+  for (const kind of ['coincident', 'concentric', 'distance', 'angle', 'tangent', 'lock', 'cam'] as const) {
+    const doc = { ...source(), mates: [{ id: 'm', ...options(), kind }] }, state: ChatState = { doc, bodies: [] };
+    for (const extra of [{ pitch: 0 }, { ratio: 0 }, { rel: {} }, { limits: {} }]) for (const action of ['add_mate', 'edit_mate']) {
+      const args = action === 'add_mate' ? { action, ...options(), kind, ...extra } : { action, id: 'm', ...extra };
+      const r = await dispatchTool(state, 'assembly', args, noGeometry);
+      assert.ok(r.isError && !r.changed, r.content); assert.match(JSON.parse(r.content).error, /^\[UNKNOWN_ARGUMENT\]/);
+      assert.equal(r.state, state); assert.equal(r.state.doc, doc);
+    }
+  }
+  const state: ChatState = { doc: source(), bodies: [] };
+  const r = await dispatchTool(state, 'assembly', { action: 'get', kind: 'fastened', limits: {} }, noGeometry);
+  assert.match(JSON.parse(r.content).error, /^\[UNKNOWN_ARGUMENT\]/); assert.equal(r.state, state); assert.equal(evaluations, 0);
 });
