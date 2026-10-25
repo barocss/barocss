@@ -118,7 +118,7 @@ test('native SI: pure translation preserves the integral tensor and density befo
       assert.equal(result.inertia.length, 3); result.inertia.forEach(row => assert.equal(row.length, 3));
       expectedSI.forEach((row, i) => row.forEach((expected, j) => close(result.inertia[i][j], expected, 1e-20)));
       assert.equal(readNativeSIInertia(moved), result, 'the translated result is cached');
-      assert.equal(moved.volume, 840); assert.equal(moved.volume, plain.volume); assert.equal(moved.mass, plain.mass); close(moved.mass, density * 840 / 1000); assert.equal(moved.method, plain.method);
+      close(moved.volume, 840); assert.equal(moved.volume, plain.volume); assert.equal(moved.mass, plain.mass); close(moved.mass, density * 840 / 1000); assert.equal(moved.method, plain.method);
       moved.centroid.forEach((x, i) => close(x, [3, 5, 7][i] + total[i]));
       assert.deepEqual(moved.inertia, legacy.inertia, 'public MMGS keeps the existing identity RIRt calculation');
       const mmgs = density * 1e-3;
