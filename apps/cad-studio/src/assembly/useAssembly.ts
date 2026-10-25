@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import type { PartInstance, StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { validateFastenedOptions } from '@barocss/cad-model/assembly/connectors';
 import { FaceClient } from './faceClient';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { BASE, mateKindsOf, lockRel, mateRefusal, solveAssembly, type FaceTable, type Freedom, type Mate, type MateKind, type MateRef, type Problem } from '@barocss/cad-model/assembly/mates';
@@ -135,7 +136,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     const why = mateRefusal(mate, fa, fb);
     if (why) return { ...d, picks: [d.picks[0]], error: why };
     const r = solve(instances, [...mates, mate]);
-    const problem = r.problems.find(p => p.mate === mate.id);
+    const problem = r.problems.find(p => p.mate === mate.id) ?? (mate.kind === 'fastened' ? r.problems[0] : undefined);
     if (r.pending) return { ...d, picks: [d.picks[0]], error: 'The parts’ faces are still being read. Click the face again in a moment.' };
     if (problem) return { ...d, picks: [d.picks[0]], error: problem.reason };
     commit(r.instances, [...mates, mate]); setSelected(mate.id);
@@ -184,10 +185,20 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
 
   const edit = (id: string, patch: Partial<Mate>): string | null => {
     if (facesPending()) return FACES_PENDING;
-    const next = mates.map(m => m.id === id ? { ...m, ...patch } : m), mate = next.find(m => m.id === id)!;
+    const old = mates.find(m => m.id === id);
+    if (!old) return 'This mate is no longer in the assembly.';
+    const mate = { ...old, ...patch };
+    try {
+      validateFastenedOptions(mate.kind, patch);
+      // Switching a classic mate to fastened drops only its old kind's scalar fields.
+      if (mate.kind === 'fastened' && old.kind !== 'fastened') { delete mate.distance; delete mate.angle; }
+      validateFastenedOptions(mate.kind, mate);
+    } catch (e) { return String(e instanceof Error ? e.message : e); }
+    const next = mates.map(m => m.id === id ? mate : m);
     const why = mateRefusal(mate, faceOf(mate.a), faceOf(mate.b));
     if (why) return why;
-    const r = solve(instances, next), problem = r.problems.find(p => p.mate === id);
+    const r = solve(instances, next), problem = r.problems.find(p => p.mate === id) ?? (next.some(m => m.kind === 'fastened') ? r.problems[0] : undefined);
+    if (mate.kind === 'fastened' && r.pending) return FACES_PENDING;
     if (problem) return problem.reason;
     commit(r.instances, next); return null;
   };
