@@ -367557,6 +367557,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./robot/verbs",
+      "exportName": "motionPlaybackAt",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/robot/verbs.ts",
+            "name": "motionPlaybackAt",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, t: JointTree, motion: MotionPath, at?: number | undefined) => { duration: number; values: Record<string, number>; closedValues: Record<string, number>; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, t: JointTree, motion: MotionPath, at?: number | undefined) => { duration: number; values: Record<string, number>; closedValues: Record<string, number>; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./robot/verbs",
       "exportName": "motionPlaybackOf",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
