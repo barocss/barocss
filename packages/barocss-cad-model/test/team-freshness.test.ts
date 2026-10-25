@@ -13,6 +13,9 @@ import { draftBaseline, moveBaseline } from '../src/team/baseline';
 import { userToken } from '../src/team/ecr';
 import { bomResult, currentOf, displayOf, dfmResult, drawingResult, emptyStore, freshnessOf, inertiaResult, keepoutResult, massResult, numericOf, openRun, passes, recordResult, requirementResults, stamp, summaryOf, type Freshness, type Result } from '../src/team/freshness';
 import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
+import { linkInertia } from '../src/robot/inertia';
+import { inertiaJson } from '../src/robot/reports';
+import { table as sharedBeadTable } from './helpers/shared-bead-scene';
 
 // A8.5b (O32's addendum, O39): every result stamped with what it read; read back current, stale (the changed input
 // named) or unresolved (a face gone, ambiguous, or renamed — never re-targeted; A1's own re-match failure carried in).
@@ -167,4 +170,64 @@ test('faces lost to a topology change: the result unresolved — gone, ambiguous
   const h = await freshnessOf(onMate, doc, evaluate);
   assert.equal(h.state, 'unresolved'); assert.deepEqual(h.unresolved.map(u => u.candidates), a1.expect.problems.map((p: { candidates: string[] }) => p.candidates));
   assert.match(h.unresolved[0].message, /^mate m1: "n1.top" could be n1.top or n3.top$/);
+});
+
+test('inertia Result projects the independent 10 mm cube once to public grams, millimetres and flat g mm² through actual carriers', async () => {
+  const cube = rectanglePart(10, 10, 10), evaluated = await evaluate(cube); assert.ok(evaluated.ok);
+  const identity: Parameters<typeof linkInertia>[4] = { origin: [0, 0, 0], R: [1, 0, 0, 0, 1, 0, 0, 0, 1] };
+  const raw = linkInertia('base', null, cube, evaluated.bodies, identity), rawBefore = structuredClone(raw);
+  // Native SI literals and the original r7-mmgs inertia tolerance remain independent of the public projector.
+  assert.ok(Math.abs(raw.massKg - 0.0027) <= 1e-12);
+  raw.comM.forEach(x => assert.ok(Math.abs(x - 0.005) <= 1e-15));
+  raw.inertia.forEach((x, k) => assert.ok(Math.abs(x - (k % 4 === 0 ? 45e-9 : 0)) <= 1e-18));
+  const quantities = () => evaluated.bodies.map(b => ({ volume: b.volume, mass: b.mass, centroid: b.centroid ? [...b.centroid] : null, inertia: b.inertia ? b.inertia.map(row => [...row]) : null }));
+  const bodyBefore = quantities(), opened = openRun(emptyStore(), 'inertia', 'base');
+  const result = await inertiaResult(cube, async () => evaluated, opened.run);
+  const projected = inertiaJson(raw);
+  // The independent physical oracle uses the existing r7-mmgs public tolerance; exact carrier checks retain all projected residuals.
+  projected.inertia.flat().forEach((x, k) => assert.ok(Math.abs(x - (k % 4 === 0 ? 45 : 0)) <= 1e-9));
+  const expected = { mass: 2.7, centroid: [5, 5, 5], inertia: projected.inertia.flat(), issues: ['MATERIAL_ASSUMED'] };
+  assert.equal(result.status, 'ok'); assert.equal(result.number, 2.7); assert.deepEqual(result.value, expected);
+  assert.deepEqual(result.value, { mass: projected.mass, centroid: projected.centroid, inertia: projected.inertia.flat(), issues: raw.issues.map(i => i.code) });
+  assert.deepEqual(expected.issues, raw.issues.map(i => i.code));
+  assert.deepEqual(raw, rawBefore); assert.deepEqual(quantities(), bodyBefore);
+  assert.deepEqual(linkInertia('base', null, cube, evaluated.bodies, identity), rawBefore);
+  const serialized = JSON.parse(JSON.stringify(result)) as Result, store = recordResult(opened.store, serialized);
+  const carried = currentOf(store, 'inertia', 'base'); assert.ok(carried && carried !== 'pending');
+  assert.deepEqual(carried.value, expected); assert.equal(numericOf(carried), 2.7);
+  assert.deepEqual(Object.keys(carried.value as object).sort(), ['centroid', 'inertia', 'issues', 'mass']);
+  for (const alias of ['massKg', 'comM', 'link', 'part', 'principal', 'frame', 'bodies']) assert.equal(Object.hasOwn(carried.value as object, alias), false);
+  const now = await freshnessOf(carried, cube, evaluate);
+  assert.equal(now.state, 'current'); assert.equal(displayOf(carried, now), 'inertia base: 2.7');
+  const steel = withLook(cube, evaluated.bodies[0], { material: 'steel' }), stale = await freshnessOf(carried, steel, evaluate);
+  assert.equal(stale.state, 'stale'); assert.deepEqual(stale.changed, ['material']);
+  assert.equal(displayOf(carried, stale), 'inertia base: STALE — material changed since; it was 2.7'); assert.equal(passes(carried, stale), false);
+  const tampered = { ...carried, fingerprint: { ...carried.fingerprint, inputs: { ...carried.fingerprint.inputs, material: '0'.repeat(64) } } };
+  const tamperedFreshness = await freshnessOf(tampered, cube, evaluate); assert.equal(tamperedFreshness.state, 'stale'); assert.deepEqual(tamperedFreshness.changed, ['material']);
+  assert.throws(() => recordResult(store, { ...carried, subject: 'p9' }), /NO_RUN/);
+  assert.equal(currentOf(store, 'inertia', 'p9'), null);
+  const next = openRun(store, 'inertia', 'base'), late = recordResult(next.store, serialized);
+  assert.equal(currentOf(late, 'inertia', 'base'), 'pending'); assert.equal(late.results.find(r => r.run === opened.run)!.late, true);
+  const latest = await inertiaResult(cube, async () => evaluated, next.run), finalStore = recordResult(late, latest);
+  const current = currentOf(finalStore, 'inertia', 'base'); assert.ok(current && current !== 'pending');
+  assert.equal(current.run, next.run); assert.deepEqual(current.value, expected); assert.equal(current.number, 2.7);
+});
+
+test('inertia Result egress keeps failure, null and incomplete bead states without projecting them to zero', async () => {
+  const cube = rectanglePart(10, 10, 10), evaluated = await evaluate(cube); assert.ok(evaluated.ok);
+  const nullEvaluation = await inertiaResult(cube, async () => null, 'R1');
+  const empty = await inertiaResult({ ...cube, nodes: [] }, evaluate, 'R1');
+  const noVolume = await inertiaResult(cube, async () => ({ ...evaluated, bodies: evaluated.bodies.map(b => ({ ...b, volume: null })) }), 'R1');
+  const shared = sharedBeadTable(), incompleteDoc: StudioDoc = { ...shared, frames: { ...shared.frames!, beadOwnership: undefined } };
+  const incomplete = await inertiaResult(incompleteDoc, evaluate, 'R1');
+  assert.match(nullEvaluation.why!, /does not evaluate/); assert.match(empty.why!, /no body/); assert.match(noVolume.why!, /no closed volume|no body/);
+  assert.equal(incomplete.status, 'unsupported'); assert.match(incomplete.why!, /BEAD_ACCOUNTING_INCOMPLETE/);
+  for (const [r, status] of [[nullEvaluation, 'failed'], [empty, 'failed'], [noVolume, 'failed'], [incomplete, 'unsupported']] as const) {
+    assert.deepEqual([r.status, r.number, r.value, r.verdict], [status, null, null, undefined]);
+    const opened = openRun(emptyStore(), 'inertia', 'base'), store = recordResult(opened.store, JSON.parse(JSON.stringify(r)) as Result);
+    const carried = currentOf(store, 'inertia', 'base'); assert.ok(carried && carried !== 'pending');
+    assert.deepEqual([carried.status, carried.number, carried.value], [status, null, null]); assert.equal(numericOf(carried), null);
+    const now: Freshness = { state: 'current', changed: [], unresolved: [] };
+    assert.equal(passes(carried, now), false); assert.doesNotMatch(displayOf(carried, now), /: 0\b|\(pass\)/);
+  }
 });
