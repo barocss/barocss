@@ -5,6 +5,7 @@ import { bodiesOf } from './core';
 import { BarocssError } from './refusal';
 import { coreValues, gravityOf, inertiaOf, poseOf, treeOf } from './robotCore';
 import { gravityExperimentBinding, gravityExperimentInput, type GravityExperimentOptions } from './experimentInput';
+import { GravityExperimentRecord } from './experimentRecord';
 
 function unsupported(message: string): never { throw new BarocssError('ROBOT', message, 'evaluate'); }
 
@@ -68,6 +69,10 @@ export class GravityExperiment {
     this.#report = reportOf(structuredClone(doc), options);
   }
   get report(): ReturnType<typeof reportOf> { return structuredClone(this.#report); }
+  /** An independent JSON record of this past calculation, without recalculating it. */
+  record(): GravityExperimentRecord {
+    return new GravityExperimentRecord({ format: 'barocss-gravity-experiment-record', schema: 1, report: this.#report });
+  }
   /** Equality of complete captured inputs, not a new evaluation or an integrity certificate. */
   matches(doc: StudioDoc, options: GravityExperimentOptions): boolean {
     const binding = gravityExperimentBinding(doc, gravityExperimentInput(options));
