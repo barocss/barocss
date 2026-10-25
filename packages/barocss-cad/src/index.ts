@@ -641,6 +641,8 @@ export { loftSolid, type LoftInput, type LoftSectionInput, type LoftSectionFrame
 export { generalShell } from './blend/general-shell.js';
 export { revolutionOf, type Revolution } from './nurbs/surfaces/surface-revolution.js';
 export type { MassProperties } from './brep/solid-mass.js';
+export { momentOfInertiaAboutAxis } from './brep/axis-inertia.js';
+export type { MassInertiaAxis } from './brep/axis-inertia.js';
 export { evaluateCadPart, loadCadPart, emptyCadPart, massPropertiesOf, surfaceAreaOf, checkOutput, exportStl, flatPatternOf, outputOf, reevaluate, saveCadPart, CadPartError, CadPartLimits, stepSizeProblem, type GearPlacement, type RackPlacement, FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES } from './part/part-model.js';
 export type { CadPartDocument, CadPartFeature, CadPartSnapshot, CadPartOutput, CadPartDim, CadPartAxis, CadPartLoopSegment, CadPartErrorCode, CadPartBeadSharing, CadPartLoftSection, CadPartSweepStep, CadPartSketchPlane, CadPartEvaluationOptions, CadPartProfileCalls, CadPartFeatureProfile, CadPartSection, CadPartFrameOverride, CadPartFrameSegment, CadPartFrameCorners, CadPartFrameNotch, CadPartFrameTrim } from './part/part-model.js';
 export { booleanAnalytic } from './brep/analytic-boolean.js';
