@@ -72,7 +72,7 @@ function at(b: Bezier, s: number): [XY, XY] {
 }
 
 export function loftSolid(input: LoftInput): { brep: Brep; mass: (density: number) => MassProperties } {
-  if (input.sections.some(s => s.frame !== undefined || !Array.isArray(s.profile))) return orientedLoftSolid(input);
+  if (input.sections.some(s => s.frame !== undefined || !Array.isArray(s.profile))) return orientedLoftSolid(input, loftSolid);
   const fail = (detail: string): never => { throw new BrepError('INPUT', `loft: ${detail}`); };
   const S = input.sections as readonly { readonly profile: readonly ProfileSegmentInput[]; readonly z: number }[];
   if (S.length < 2) fail('needs at least two sections');
