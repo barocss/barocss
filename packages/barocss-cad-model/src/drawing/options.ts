@@ -23,6 +23,8 @@ export const manufacturingDrawingProperties = {
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 const keys = (v: Record<string, unknown>, allowed: string[]) => Object.keys(v).every(k => allowed.includes(k));
+// Check each required index: Array.every alone skips holes in direct JavaScript input.
+const finiteTuple = (v: unknown, length: 2 | 3): boolean => Array.isArray(v) && v.length === length && finite(v[0]) && finite(v[1]) && (length === 2 || finite(v[2]));
 
 /** No coercion or partial acceptance, even when the caller bypasses the offered JSON schema. */
 export function checkManufacturingDrawing(args: Record<string, unknown>): Problem[] {
@@ -34,10 +36,10 @@ export function checkManufacturingDrawing(args: Record<string, unknown>): Proble
     if (!Array.isArray(args.sections)) return [problem('DRAWING_OPTIONS', 'sections must be an array.')];
     const ids = new Set<string>();
     for (const [index, s] of args.sections.entries()) {
-      if (record(s) && (s.half !== undefined || s.steps !== undefined || s.along !== undefined) && (s.dir !== undefined || (s.half !== undefined && s.steps !== undefined) || (s.half !== undefined && !halfOk(s.half)) || (s.steps !== undefined && !stepsOk(s.steps)) || (s.along !== undefined && (s.steps === undefined || !['horizontal', 'vertical'].includes(s.along as string))))) return [problem('DRAWING_OPTIONS', `sections[${index}]: a half {line: vertical|horizontal, at, cut: after|before} or steps [{past, at}] with past increasing (along: horizontal|vertical with steps), on a principal section (no dir), not both.`)];
+      if (record(s) && (s.half !== undefined || s.steps !== undefined || s.along !== undefined) && (s.dir !== undefined || (s.half !== undefined && s.steps !== undefined) || (s.half !== undefined && (!record(s.half) || !keys(s.half, ['line', 'at', 'cut']) || !halfOk(s.half))) || (s.steps !== undefined && (!Array.isArray(s.steps) || [...s.steps].some(st => !record(st) || !keys(st, ['past', 'at'])) || !stepsOk(s.steps))) || (s.along !== undefined && (s.steps === undefined || !['horizontal', 'vertical'].includes(s.along as string))))) return [problem('DRAWING_OPTIONS', `sections[${index}]: a half {line: vertical|horizontal, at, cut: after|before} or steps [{past, at}] with past increasing (along: horizontal|vertical with steps), on a principal section (no dir), not both.`)];
       // (DR-4: removed on a plain or aligned section, revolved on a plain principal one; neither with a half or steps, nor together.)
-      if (record(s) && (s.removed !== undefined || s.revolved !== undefined) && ((s.removed !== undefined && !removedOk(s.removed)) || (s.revolved !== undefined && s.revolved !== true && s.revolved !== false) || s.half !== undefined || s.steps !== undefined || (s.revolved === true && (s.dir !== undefined || s.removed !== undefined)))) return [problem('DRAWING_OPTIONS', `sections[${index}]: removed {at?: [sheet x, y], scale?: > 0} or revolved: true (no dir), not both, and neither with a half or steps.`)];
-      if (!record(s) || !keys(s, ['id', 'view', 'at', 'dir', 'half', 'steps', 'along', 'removed', 'revolved']) || typeof s.id !== 'string' || !/^[A-Z]{1,2}$/.test(s.id) || ids.has(s.id) || (typeof s.view !== 'string' || !['front', 'top', 'right'].includes(s.view)) || !finite(s.at) || (s.dir !== undefined && !sectionDirOk(s.dir))) return [problem('DRAWING_OPTIONS', `sections[${index}] needs a unique letter id, front/top/right view and finite at (an aligned section: dir, its plane's normal [x, y, z]), with no other keys.`)];
+      if (record(s) && (s.removed !== undefined || s.revolved !== undefined) && ((s.removed !== undefined && (!record(s.removed) || !keys(s.removed, ['at', 'scale']) || !removedOk(s.removed) || (s.removed.at !== undefined && !finiteTuple(s.removed.at, 2)))) || (s.revolved !== undefined && s.revolved !== true && s.revolved !== false) || s.half !== undefined || s.steps !== undefined || (s.revolved === true && (s.dir !== undefined || s.removed !== undefined)))) return [problem('DRAWING_OPTIONS', `sections[${index}]: removed {at?: [sheet x, y], scale?: > 0} or revolved: true (no dir), not both, and neither with a half or steps.`)];
+      if (!record(s) || !keys(s, ['id', 'view', 'at', 'dir', 'half', 'steps', 'along', 'removed', 'revolved']) || typeof s.id !== 'string' || !/^[A-Z]{1,2}$/.test(s.id) || ids.has(s.id) || (typeof s.view !== 'string' || !['front', 'top', 'right'].includes(s.view)) || !finite(s.at) || (s.dir !== undefined && (!finiteTuple(s.dir, 3) || !sectionDirOk(s.dir)))) return [problem('DRAWING_OPTIONS', `sections[${index}] needs a unique letter id, front/top/right view and finite at (an aligned section: dir, its plane's normal [x, y, z]), with no other keys.`)];
       ids.add(s.id);
     }
   }
@@ -45,7 +47,7 @@ export function checkManufacturingDrawing(args: Record<string, unknown>): Proble
     if (!Array.isArray(args.details)) return [problem('DRAWING_OPTIONS', 'details must be an array.')];
     const ids = new Set<string>(), sectionIds = new Set(Array.isArray(args.sections) ? (args.sections as { id?: unknown }[]).map(x => String(x?.id)) : []);
     for (const [index, d] of args.details.entries()) {
-      if (!record(d) || !keys(d, ['id', 'view', 'center', 'radius', 'scale', 'at']) || !detailOk(d) || ids.has(d.id) || sectionIds.has(d.id)) return [problem('DRAWING_OPTIONS', `details[${index}] needs a unique letter id (not a section's), view front/top/right or section:<letter>, center [x, y] and radius > 0 in that view's model mm; optional scale > 0 and at [x, y] on the sheet. No other keys.`)];
+      if (!record(d) || !keys(d, ['id', 'view', 'center', 'radius', 'scale', 'at']) || !finiteTuple(d.center, 2) || (d.at !== undefined && !finiteTuple(d.at, 2)) || !detailOk(d) || ids.has(d.id) || sectionIds.has(d.id)) return [problem('DRAWING_OPTIONS', `details[${index}] needs a unique letter id (not a section's), view front/top/right or section:<letter>, center [x, y] and radius > 0 in that view's model mm; optional scale > 0 and at [x, y] on the sheet. No other keys.`)];
       ids.add(d.id);
     }
   }
@@ -62,7 +64,7 @@ export function checkManufacturingDrawing(args: Record<string, unknown>): Proble
     if (!Array.isArray(args.tables)) return [problem('DRAWING_OPTIONS', 'tables must be an array.')];
     const ids = new Set<string>();
     for (const [index, t] of args.tables.entries()) {
-      if (!record(t) || !keys(t, ['id', 'from', 'title', 'at', 'corner', 'whole']) || typeof t.id !== 'string' || !t.id.trim() || ids.has(t.id) || (typeof t.from !== 'string' || !['bom', 'cut-list', 'weld-list', 'revisions'].includes(t.from)) || ('title' in t && typeof t.title !== 'string') || ('whole' in t && typeof t.whole !== 'boolean') || ('corner' in t && (typeof t.corner !== 'string' || !['top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(t.corner))) || ('at' in t && (!Array.isArray(t.at) || t.at.length !== 2 || !t.at.every(finite)))) return [problem('DRAWING_OPTIONS', `tables[${index}] needs a unique nonempty id and bom/cut-list/weld-list/revisions source; optional title, at[2], corner and whole must match the schema. No other keys.`)];
+      if (!record(t) || !keys(t, ['id', 'from', 'title', 'at', 'corner', 'whole']) || typeof t.id !== 'string' || !t.id.trim() || ids.has(t.id) || (typeof t.from !== 'string' || !['bom', 'cut-list', 'weld-list', 'revisions'].includes(t.from)) || ('title' in t && typeof t.title !== 'string') || ('whole' in t && typeof t.whole !== 'boolean') || ('corner' in t && (typeof t.corner !== 'string' || !['top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(t.corner))) || ('at' in t && !finiteTuple(t.at, 2))) return [problem('DRAWING_OPTIONS', `tables[${index}] needs a unique nonempty id and bom/cut-list/weld-list/revisions source; optional title, at[2], corner and whole must match the schema. No other keys.`)];
       ids.add(t.id);
     }
   }
@@ -84,8 +86,17 @@ export function withManufacturingDrawing(s: DrawingSettings, args: Record<string
     const list = args.sections as DrawingSection[];
     const changed = sectionsOf(s).filter(old => !list.some(n => sameSection(n, old)));
     if (s.dimensions.some(d => changed.some(c => d.view === `section:${c.id}`))) throw refusal('DRAWING_SECTION_REFERENCES', 'A changed or removed section has dimensions. Keep its definition or remove those dimensions explicitly first.');
-    // (DR-4: revolved false dropped; a removed one's options copied.)
-    next = withSections(next, list.map(x => { const { removed, revolved, ...rest } = x; return { ...rest, ...(removed ? { removed: { ...(removed.at ? { at: [removed.at[0], removed.at[1]] as [number, number] } : {}), ...(removed.scale !== undefined ? { scale: removed.scale } : {}) } } : {}), ...(revolved === true ? { revolved: true as const } : {}) }; }));
+    // Snapshot nested section inputs; revolved false stays dropped as in saved files.
+    next = withSections(next, list.map(x => {
+      const { dir, half, steps, removed, revolved, ...rest } = x;
+      return { ...rest,
+        ...(dir ? { dir: [dir[0], dir[1], dir[2]] as [number, number, number] } : {}),
+        ...(half ? { half: { line: half.line, at: half.at, cut: half.cut } } : {}),
+        ...(steps ? { steps: steps.map(st => ({ past: st.past, at: st.at })) } : {}),
+        ...(removed ? { removed: { ...(removed.at ? { at: [removed.at[0], removed.at[1]] as [number, number] } : {}), ...(removed.scale !== undefined ? { scale: removed.scale } : {}) } } : {}),
+        ...(revolved === true ? { revolved: true as const } : {}),
+      };
+    }));
   }
   // (DR-1: a detail's circle and parent are its dimensions' reference — changed or removed, refused while they have any;
   // its scale and place may change. Its parent section must be on the drawing.)

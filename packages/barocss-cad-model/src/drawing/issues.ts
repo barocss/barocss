@@ -267,9 +267,19 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   }
   // (FRd2, O119: a weld seen in no view has no symbol: said, the weld list holds it.)
   if (sheet.welds?.unshown.length) out.push({ code: 'WELD_NOT_SHOWN', severity: 'warning', message: `Weld${sheet.welds.unshown.length > 1 ? 's' : ''} ${sheet.welds.unshown.join(', ')}: no edge of the joint is visible in the front, top or right view, so no symbol is drawn. The weld list holds ${sheet.welds.unshown.length > 1 ? 'them' : 'it'}; a section or a detail view would show ${sheet.welds.unshown.length > 1 ? 'them' : 'it'}.` });
-  // (O147 B2: a balloon with no clear room, and a BOM line none of whose items shows an edge in the balloons' view.)
-  if (sheet.balloons?.unclear.length) { const u = sheet.balloons.unclear, many = u.length > 1; out.push({ code: 'BALLOON_NOT_CLEAR', severity: 'warning', message: `Balloon${many ? 's' : ''} ${u.join(', ')}: no clear room beside the ${sheet.balloons.placed[0]?.view ?? 'iso'} view, so ${many ? 'they sit' : 'it sits'} at the nearest place, over other marks. A larger sheet or a smaller scale gives room.` }); }
-  if (sheet.balloons?.noEdge.length) { const n = sheet.balloons.noEdge, many = n.length > 1; out.push({ code: 'BALLOON_NO_EDGE', severity: 'warning', message: `BOM line${many ? 's' : ''} ${n.join(', ')}: no edge of ${many ? 'their items is' : 'its item is'} visible in the ${settings.views && !settings.views.includes('iso') ? 'front' : 'iso'} view, so no balloon is drawn. The BOM table holds ${many ? 'them' : 'it'}.` }); }
+  // (O147 B2: a balloon with no clear room, and a BOM line none of whose items shows an edge in any shown base view.)
+  if (sheet.balloons?.unclear.length) {
+    const u = sheet.balloons.unclear, many = u.length > 1;
+    const views = [...new Set(sheet.balloons.placed.filter(p => u.includes(p.no)).map(p => p.view))];
+    const beside = views.length ? `the ${views.join(', ')} view${views.length > 1 ? 's' : ''}` : 'the assigned views';
+    out.push({ code: 'BALLOON_NOT_CLEAR', severity: 'warning', message: `Balloon${many ? 's' : ''} ${u.join(', ')}: no clear room beside ${beside}, so ${many ? 'they sit' : 'it sits'} at the nearest place, over other marks. A larger sheet or a smaller scale gives room.` });
+  }
+  if (sheet.balloons?.noEdge.length) {
+    const n = sheet.balloons.noEdge, many = n.length > 1;
+    const shown = (['iso', 'front', 'top', 'right'] as const).filter(view => !layout.views[view].hidden);
+    const where = shown.length ? `in the ${shown[0]} view${shown.length > 1 ? ` or any other shown base view (${shown.slice(1).join(', ')})` : ''}` : 'on this sheet because no base view is shown';
+    out.push({ code: 'BALLOON_NO_EDGE', severity: 'warning', message: `BOM line${many ? 's' : ''} ${n.join(', ')}: no edge of ${many ? 'their items is' : 'its item is'} visible ${where}, so no balloon is drawn. The BOM table holds ${many ? 'them' : 'it'}.` });
+  }
   // (DR-1: a detail whose parent is not on the sheet, whose circle holds nothing, or with no free room.)
   for (const m of sheet.detailsMissing ?? []) {
     const d = settings.details?.find(x => x.id === m.id), parent = d ? (d.view.startsWith('section:') ? `section ${d.view.slice(8)}–${d.view.slice(8)}` : `the ${d.view} view`) : 'its parent';
