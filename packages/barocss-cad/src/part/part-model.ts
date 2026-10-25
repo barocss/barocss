@@ -60,7 +60,7 @@ import { rayHit, triangleBvh } from '../mesh/triangle-bvh.js';
 import { combineMassProperties, prismaticMassProperties, brepMassProperties, brepSurfaceArea, isSolidMassError, type MassProperties } from '../brep/solid-mass.js';
 import { unsupportedNativeMass } from '../internal/native-si-mass-state.js';
 import { glueAtSharedFace, withCavities } from '../brep/brep-glue.js';
-import { loftSolid } from '../features/loft.js';
+import { loftSolid, type LoftSectionFrame } from '../features/loft.js';
 import { generalShell } from '../blend/general-shell.js';
 import { offsetCavity, offsetShell, smoothOffsetBody } from '../blend/offset-cavity.js';
 import { regionShell } from '../blend/region-shell.js';
@@ -154,6 +154,7 @@ export type CadPartFeature = Base & (
    * `${id}.bottom`, `.top`, `.side${i}` (two sections) or `.s${k}.side${i}`. `smooth` (three or more
    * sections): one smooth side per edge through them all (C1), named `.side${i}`.
    */
+  /** CG1.1: two sections may instead use world frames; ruled convex polygon affine correspondence only. */
   | { readonly kind: 'loft'; readonly sections: readonly CadPartLoftSection[]; readonly smooth?: boolean }
   /**
    * A body read from a STEP file (its text); its faces keep their names, prefixed `${id}.`. `each`: every
@@ -526,7 +527,11 @@ export interface CadPartDocument {
   readonly parameters: Readonly<Record<string, number>>;
   readonly features: readonly CadPartFeature[];
 }
-export interface CadPartLoftSection { readonly sketch: string; readonly z: CadPartDim }
+export type CadPartLoftSection = { readonly sketch: string } & (
+  | { readonly z: CadPartDim; readonly frame?: never }
+  /** An explicit world frame replaces the sketch's placement, keeping its local profile coordinates. */
+  | { readonly frame: LoftSectionFrame; readonly z?: never }
+);
 export type CadPartSweepStep = { readonly kind: 'straight'; readonly length: CadPartDim } | { readonly kind: 'bend'; readonly radius: CadPartDim; readonly angle: number; readonly toward: 'x' | '-x' | 'y' | '-y' };
 /**
  * A frame's corners (FR3a, D125): where exactly two members end at a skeleton point, `default` finishes them — `mitre`
@@ -1506,6 +1511,18 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'loft': {
       const list = f.sections as unknown;
       if (!Array.isArray(list) || list.length < 2 || list.length > CadPartLimits.copies) fail('INPUT', 'sections must list 2 to 64 sections');
+      if (list.some(sec => isRecord(sec) && sec.frame !== undefined)) {
+        if (f.smooth !== undefined && typeof f.smooth !== 'boolean') fail('INPUT', 'smooth must be true or false');
+        const framed = list.map((sec, i) => {
+          if (!isRecord(sec) || typeof sec.sketch !== 'string' || sec.frame === undefined || sec.z !== undefined) return fail('INPUT', `sections[${i}] must name a sketch and frame, without z`);
+          const sketch = ref(sec.sketch, 'sketch').result;
+          if (sketch.kind !== 'sketch') return fail('REFERENCE', `${sec.sketch} is not a sketch`);
+          if (sketch.regions?.length || sketch.holes?.length) return fail('CAPABILITY', 'oriented loft sections need one loop without holes');
+          return { profile: sketch.outer, frame: sec.frame as unknown as LoftSectionFrame, tags: sketch.tags };
+        });
+        const { brep, mass } = loftSolid({ id: at, name: at, sections: framed, smooth: f.smooth === true, ...(framed[0].tags ? { sideTags: framed[0].tags.outer } : {}) });
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] };
+      }
       const sections = (list as unknown[]).map((sec, i) => {
         if (!isRecord(sec) || typeof sec.sketch !== 'string') return fail('INPUT', `sections[${i}] must name a sketch`);
         const sketch = ref(sec.sketch, 'sketch').result;
