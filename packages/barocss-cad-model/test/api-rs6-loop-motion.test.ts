@@ -94,9 +94,17 @@ const transform = (m: { R: Float64Array; t: Float64Array }, p: readonly number[]
 
 test('RS6 slider-crank: 720 unwrapped degrees, a passive slide in mm and the closed-form wrist point', () => {
   const s = sliderCrank(), robot = new Robot(s.doc), tree = treeOf(s.doc);
-  const crank = tree.joints.find(j => j.child === 'crank')!, slide = tree.joints.find(j => j.child === 'piston' && j.type === 'prismatic')!;
+  const crank = tree.joints.find(j => j.child === 'crank')!;
+  // The concentric bore has a real slide and a separate turn: motionOf emits slides first, through a dummy link.
+  const bore = tree.joints.filter(j => j.mates.includes('bore')), slide = bore.find(j => j.type === 'prismatic');
   assert.equal(tree.loops.length, 1);
   assert.ok(slide, 'the fixture exposes the prismatic joint, not only a turn');
+  assert.deepEqual(bore.map(({ key, type, parent, child, mates }) => ({ key, type, parent, child, mates })), [
+    { key: 'piston~cylinder#0', type: 'prismatic', parent: 'cylinder', child: 'piston__1', mates: ['bore'] },
+    { key: 'piston~cylinder#1', type: 'continuous', parent: 'piston__1', child: 'piston', mates: ['bore'] },
+  ]);
+  assert.equal(tree.links.find(l => l.id === slide.child)?.part, null, 'the slide ends at the bore chain dummy, not the piston');
+  near(slide.axis[0], 1); near(slide.axis[1], 0); near(slide.axis[2], 0);
   const path = robot.path([{}, { [crank.key]: 360 }, { [crank.key]: 720 }], { limits });
   near(path.duration(), 9, 1e-12);
   near(path.poseAt(4.5)[crank.key], 360);
