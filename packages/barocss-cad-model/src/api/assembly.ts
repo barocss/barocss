@@ -136,8 +136,17 @@ export class Assembly {
   /** The assembly read as a robot (RS5): its joints, poses, paths, inertia and exports. */
   robot(): Robot { return new Robot(this.#doc); }
 
-  /** Every part's display triangles where it stands (`base/<body>`, `<part id>/<body>`), in the common mesh shape. */
-  meshes(): MeshData[] { return assemblyMeshes(this.#doc); }
+  /**
+   * Every part's display triangles where it stands (`base/<body>`, `<part id>/<body>`), in the common mesh shape —
+   * `explode` (the studio's Explode factor: 0.5, 1, 2) pushing each placed part out from the middle, for display only.
+   */
+  meshes(o: { explode?: number } = {}): MeshData[] {
+    if (o.explode !== undefined && !(typeof o.explode === 'number' && Number.isFinite(o.explode) && o.explode >= 0)) throw refuse('VALUE', `explode is a factor, 0 or more: ${String(o.explode)}`);
+    return assemblyMeshes(this.#doc, o.explode ?? 0);
+  }
+
+  /** output_clearance's reply: every pair of bodies within `near` (mm, default 1) — touching, near or designed — with its least gap and where. Async: the tool's own. */
+  clearance(o: { near?: number } = {}) { return outputOf(this.#doc, 'output_clearance', o.near === undefined ? {} : { near: o.near }); }
 
   // (A mate's end: the part's id, and the face's name as the face tables key it — a selector's one face, its `#k` and
   // the display's merged `a+b` taken back to the first name the part's table has.)

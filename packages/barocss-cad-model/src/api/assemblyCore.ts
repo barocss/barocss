@@ -12,7 +12,8 @@ import { treeOf } from './robotCore';
 import type { FrameSettings } from '../robot/frames';
 import { eulerOf } from '../engine/placement';
 import { addMate, addPart, checkFramesOn, placePart, solveDoc, withFrames } from '../assembly/edit';
-import { meshesOf, type MeshData } from './core';
+import { bodiesOf, meshesOf, type MeshData } from './core';
+import { explodeOffsets } from '../assembly/explode';
 
 // (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)
 type XYZ = [number, number, number];
@@ -80,10 +81,25 @@ export function framePosesOf(doc: StudioDoc) {
 /** The mates the solver cannot meet, with its reasons. */
 export const problemsOf = (doc: StudioDoc) => solveDoc(doc).problems;
 
-/** Every part's display triangles where it stands: the base part's bodies, then each placed part's (`<part>/<body>`). */
-export function assemblyMeshes(doc: StudioDoc): MeshData[] {
+/**
+ * Every part's display triangles where it stands: the base part's bodies, then each placed part's (`<part>/<body>`) —
+ * `explode` above 0 pushing each placed part out from the middle of everything as the studio's Explode does
+ * (assembly/explode.ts: display only, the placements and mates unchanged).
+ */
+export function assemblyMeshes(doc: StudioDoc, explode = 0): MeshData[] {
   const base = doc.nodes.length ? meshesOf(doc).map(m => ({ ...m, key: `${BASE}/${m.key}` })) : [];
-  return [...base, ...(doc.instances ?? []).filter(i => !i.hidden && i.doc.nodes.length).flatMap(i => meshesOf(placedDoc(i, doc)).map(m => ({ ...m, key: `${i.id}/${m.key}` })))];
+  const placed = (doc.instances ?? []).filter(i => !i.hidden && i.doc.nodes.length).map(i => ({ id: i.id, doc: placedDoc(i, doc) }));
+  const offsets = explode > 0 ? explodeOffsets(doc.nodes.length ? bodiesOf(doc) : [], placed.map(p => ({ id: p.id, bodies: bodiesOf(p.doc) })), explode) : null;
+  return [...base, ...placed.flatMap(p => meshesOf(p.doc).map(m => moved({ ...m, key: `${p.id}/${m.key}` }, offsets?.get(p.id))))];
+}
+
+// (A mesh's positions and lines moved by d — copies; none when there is no offset.)
+function moved(m: MeshData, d: readonly number[] | undefined): MeshData {
+  if (!d) return m;
+  const positions = new Float32Array(m.positions), lines = m.lines ? new Float32Array(m.lines) : undefined;
+  for (let i = 0; i < positions.length; i++) positions[i] += d[i % 3];
+  if (lines) for (let i = 0; i < lines.length; i++) lines[i] += d[i % 3];
+  return { ...m, positions, ...(lines ? { lines } : {}) };
 }
 
 export { BASE, emptyDoc };

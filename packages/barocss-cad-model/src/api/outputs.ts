@@ -10,7 +10,7 @@ import { BarocssError, bracketedCode, refuse, type Vec3 } from '@barocss/cad/api
 import type { StudioDoc } from '../engine/doc';
 import { evaluateDoc, type BodyResult, type EvalResult } from '../engine/evaluate';
 import { PROCESSES } from '../engine/schema/brief';
-import { MATERIALS_DATA } from '../library/materials';
+import { MATERIALS_DATA, processProfile } from '../library/materials';
 import { printability } from '../print/rules';
 import { drawingInputs, runDrawingTool } from '../chat/drawing';
 import { runOutputTool } from '../chat/outputs';
@@ -30,10 +30,11 @@ type M3 = [number, number, number];
 const PULLS: readonly M3[] = [[0, 0, 1], [0, 0, -1], [0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0]];
 
 /**
- * The Library panel's Process (and Pull): the part's process by id — a printer that is not for it dropped, as the panel
- * drops it — or none (null). The pull, for a casting or a moulding, is one of the six axes.
+ * The Library panel's Process (and Pull, and Finish): the part's process by id — a printer that is not for it dropped,
+ * as the panel drops it — or none (null). The pull, for a casting or a moulding, is one of the six axes; the finish, for
+ * a moulding, one of its profile's finishes (it sets the least draft).
  */
-export function withProcess(doc: StudioDoc, id: string | null, o: { pull?: Vec3 } = {}): StudioDoc {
+export function withProcess(doc: StudioDoc, id: string | null, o: { pull?: Vec3; finish?: string } = {}): StudioDoc {
   if (id !== null && !(PROCESSES as readonly string[]).includes(id)) throw refuse('VALUE', `no process '${id}'; the processes are ${PROCESSES.join(', ')}`);
   const next = { ...doc };
   if (id !== null) next.process = id; else delete next.process;
@@ -42,6 +43,11 @@ export function withProcess(doc: StudioDoc, id: string | null, o: { pull?: Vec3 
     const pull = PULLS.find(p => p.every((x, k) => x === o.pull![k]));
     if (!pull) throw refuse('VALUE', `a pull is one of the six axes, ${PULLS.map(p => `[${p.join(', ')}]`).join(' ')}; not ${JSON.stringify(o.pull)}`);
     next.mould = { version: 1, ...doc.mould, pull: [pull[0], pull[1], pull[2]] };
+  }
+  if (o.finish !== undefined) {
+    const finishes = processProfile(next.process)?.finishes ?? [];
+    if (!finishes.some(f => f.id === o.finish)) throw refuse('VALUE', finishes.length ? `no finish '${o.finish}' for ${next.process}; its finishes are ${finishes.map(f => f.id).join(', ')}` : `the process ${next.process ?? '(none)'} has no finishes: a finish is a moulding's`);
+    next.mould = { version: 1, ...next.mould, finish: o.finish };
   }
   return next;
 }
