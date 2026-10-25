@@ -7,7 +7,7 @@ import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { BASE } from '../assembly/mates';
 import { solveDoc } from '../assembly/edit';
-import { gravityRawOf as gravityRawVerb, inertiaOf as inertiaVerb, mjcfOf as mjcfVerb, partsOf, poseOf as poseVerb, sweepOf as sweepVerb, treeOf as treeVerb, urdfOf as urdfVerb, withJoints as jointsVerb, type RobotView } from '../robot/verbs';
+import { gravityRawOf as gravityRawVerb, inertiaOf as inertiaVerb, mjcfOf as mjcfVerb, motionPlaybackOf, partsOf, poseOf as poseVerb, sweepOf as sweepVerb, treeOf as treeVerb, urdfOf as urdfVerb, withJoints as jointsVerb, type RobotView } from '../robot/verbs';
 import { jointTreeOut, jointValuesIn, jointValuesOut } from '../robot/units';
 import { gravityIn, gravityJson, inertiaJson } from '../robot/reports';
 import { readUrdf } from '../robot/urdfCheck';
@@ -18,7 +18,7 @@ import { closureOfDoc } from '../robot/loop';
 import type { MjcfClosure } from '../robot/mjcf';
 import { readRobot, type JointSettings, type JointTree, type RobotSettings } from '../robot/joints';
 import { checkPath, duration, motionNamed, poseAt, timedPathOf, type Motion, type MotionPath } from '../robot/motion';
-import { problem, type Problem } from '../engine/refusal';
+import { isRefusal, problem, type Problem } from '../engine/refusal';
 import { bodiesOf } from './core';
 
 /** A tool's refusal in its words: its bracketed code, else ROBOT. */
@@ -138,11 +138,10 @@ export function usdOf(doc: StudioDoc, name: string) {
 }
 
 /**
- * O22's LOOP_OPEN, as check_path and play_motion refuse it (robot/verbs.ts playable): a motion names joint values and
- * nothing closes a loop along it yet, so a looped robot's motion is refused, not checked clear or posed open.
+ * The facade's sweep/CCD is outside its RS6 playback slice. Refuse it rather than sweep straight open-tree poses.
  */
 function loopOpen(tree: JointTree): Problem<'LOOP_OPEN'> | null {
-  return tree.loops.length ? problem('LOOP_OPEN', `the robot has a closed loop (${tree.loops.map(l => l.parts.join('–')).join(', ')}); a motion's poses do not close it yet, so it is not played or checked`) : null;
+  return tree.loops.length ? problem('LOOP_OPEN', `the robot has a closed loop (${tree.loops.map(l => l.parts.join('–')).join(', ')}); facade sweep/CCD does not yet check its closed motion`) : null;
 }
 /** A path's refusal on a looped robot (LOOP_OPEN). */
 export function refuseLoop(tree: JointTree): void {
@@ -154,7 +153,10 @@ export function refuseLoop(tree: JointTree): void {
 export function poseAtOf(doc: StudioDoc, path: MotionPath, t: number): Record<string, number> {
   if (typeof t !== 'number' || !Number.isFinite(t)) throw new BarocssError('VALUE', `[VALUE] a time is a number of seconds, not ${String(t)}`, 'facade');
   const tree = treeOf(doc);
-  refuseLoop(tree);
+  if (tree.loops.length) {
+    path.waypoints.forEach(w => coreValues(tree, w));
+    return jointValuesOut(tree, motionPlaybackOf(viewOf(doc), path, t, tree).values);
+  }
   const timed = timedPathOf(tree, path), turning = new Set(tree.joints.filter(j => j.type === 'revolute' || j.type === 'continuous').map(j => j.key));
   const problems = checkPath(tree, timed);
   if (problems.length) throw new BarocssError(problems[0].code, problems[0].message, 'evaluate', { problems });
@@ -163,13 +165,24 @@ export function poseAtOf(doc: StudioDoc, path: MotionPath, t: number): Record<st
 /** How long a motion takes (s), as poseAt times it. */
 export function durationOf(doc: StudioDoc, path: MotionPath): number {
   const tree = treeOf(doc);
-  refuseLoop(tree);
+  if (tree.loops.length) {
+    path.waypoints.forEach(w => coreValues(tree, w));
+    return motionPlaybackOf(viewOf(doc), path, undefined, tree).duration;
+  }
   return duration(timedPathOf(tree, path));
 }
-/** What is wrong with a motion on this robot (RS2's checkPath): unknown or following joints, limits passed or missing; a closed loop (LOOP_OPEN) first. */
+/** RS2 path findings, or the typed RS6 closure refusal. This is not a sweep/CCD or passive-limit certificate. */
 export function problemsOf(doc: StudioDoc, path: MotionPath): Problem[] {
-  const tree = treeOf(doc), open = loopOpen(tree);
-  return [...(open ? [open] : []), ...checkPath(tree, timedPathOf(tree, path))];
+  const tree = treeOf(doc);
+  if (!tree.loops.length) return checkPath(tree, timedPathOf(tree, path));
+  try {
+    path.waypoints.forEach(w => coreValues(tree, w));
+    motionPlaybackOf(viewOf(doc), path, undefined, tree);
+    return [];
+  } catch (e) {
+    if (isRefusal(e)) return [{ code: e.code, message: e.message }];
+    throw e;
+  }
 }
 /** A saved motion by name (MOTION_UNKNOWN names the ones there). */
 export const motionOf = (doc: StudioDoc, name: string): Motion => motionNamed(readRobot(doc.robot).motions, name);
