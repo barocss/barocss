@@ -214,7 +214,7 @@ export interface PairedSurfaceIntersectionBranchResult { // exact4
 }
 
 const CODE = PairedSurfaceIntersectionBranchDiagnosticCode;
-const TOLERANCE = CadNumericPolicy.linearToleranceMM;
+const TOLERANCE = CadNumericPolicy.linearTolerance;
 function counts(): DirectCounts {
   return { sourceCompilationCount: 0, selectedSurfaceValidationCount: 0, surfaceDomainCount: 0,
     stationStartCount: 0, stationCompletionCount: 0, correctionSolveCount: 0, acceptedCorrectionCount: 0,

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, tessellateBrep } from '../dist/index.js';
+import { evaluateCadPart, tessellateBrep, checkOutput, massPropertiesOf } from '../dist/index.js';
 import { oracle } from '../scripts/rb/fuzz-oracle.mjs';
 import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 
@@ -9,7 +9,7 @@ import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 const swapped = n => ({ ...n, a: n.b, b: n.a });
 /** Mesh edges (by position) not used exactly twice within one body. */
 function openEdges(o) {
-  const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), P = mesh.positionsMM, shellOf = new Map(o.brep.faces.map(f => [f.id, f.shell])), bodyOf = new Map(o.brep.shells.map(s => [s.id, s.body])), uses = new Map();
+  const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), P = mesh.positions, shellOf = new Map(o.brep.faces.map(f => [f.id, f.shell])), bodyOf = new Map(o.brep.shells.map(s => [s.id, s.body])), uses = new Map();
   for (const f of mesh.faces) for (let t = f.indexOffset; t < f.indexOffset + f.indexCount; t += 3) for (let k = 0; k < 3; k++) {
     const a = mesh.indices[t + k], b = mesh.indices[t + (k + 1) % 3], ka = `${P[3 * a]},${P[3 * a + 1]},${P[3 * a + 2]}`, kb = `${P[3 * b]},${P[3 * b + 1]},${P[3 * b + 2]}`, e = `${bodyOf.get(shellOf.get(f.faceId))}:${ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`}`;
     uses.set(e, (uses.get(e) ?? 0) + 1);
@@ -19,10 +19,10 @@ function openEdges(o) {
 function builds(name, node) {
   const q = oracle(node, 256, 6);
   for (const [order, n] of [['A ∪ B', node], ['B ∪ A', swapped(node)]]) {
-    const { document, root } = documentOf(n), o = evaluateCadPart(document).outputs.find(x => x.id === root), report = o.validate(), m = o.massProperties(1);
+    const { document, root } = documentOf(n), o = evaluateCadPart(document).outputs.find(x => x.id === root), report = checkOutput(o), m = massPropertiesOf(o);
     assert.equal(report.valid, true, `${name}, ${order}: ${report.issues[0]}`);
     assert.equal(openEdges(o), 0, `${name}, ${order}: watertight`);
-    assert.ok(Math.abs(m.volumeMM3 - q.volumeMM3) <= 3 * q.e + 1e-4 * q.volumeMM3, `${name}, ${order}: ${m.volumeMM3} vs the oracle ${q.volumeMM3} ± ${q.e}`);
+    assert.ok(Math.abs(m.volume - q.volumeMM3) <= 3 * q.e + 1e-4 * q.volumeMM3, `${name}, ${order}: ${m.volume} vs the oracle ${q.volumeMM3} ± ${q.e}`);
   }
 }
 function refuses(name, node, words) {

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { worm, wormDimensions, wormWheelSpec, checkWormPair, checkPlacedWormPair, spurGear, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
+import { worm, wormDimensions, wormWheelSpec, checkWormPair, checkPlacedWormPair, spurGear, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain, outputOf, checkOutput } from '../dist/index.js';
 
 // R12b.5 (D136): cylindrical worms (ZI, ZA) and their cylindrical wheel. Oracles written here, apart from gear-worm.ts:
 // the section's half-thickness by this file's own formulas (the involute of r1 cos α_t, or the Archimedean spiral of a
@@ -32,7 +32,7 @@ function sectionArea(G) {
   let flank = 0; for (let i = 0; i < 200; i++) { const ra = G.r0 + (G.ra - G.r0) * i / 200, rb = G.r0 + (G.ra - G.r0) * (i + 1) / 200; flank += Math.hypot(rb - ra, rb * G.psi(rb) - ra * G.psi(ra)); }
   return { A, P: G.z1 * (2 * flank + 2 * G.ra * G.psi(G.ra) + G.rf * (G.step - 2 * G.psi(G.r0))) };
 }
-const specOf = c => ({ axialModuleMM: c.m, starts: c.z1, diameterMM: c.d1, hand: c.hand ?? 'right', lengthMM: c.L, form: c.form ?? 'ZI', ...(c.bore ? { boreDiameterMM: c.bore } : {}), ...(c.red ? { toothThicknessReductionMM: c.red } : {}) });
+const specOf = c => ({ axialModule: c.m, starts: c.z1, diameter: c.d1, hand: c.hand ?? 'right', length: c.L, form: c.form ?? 'ZI', ...(c.bore ? { boreDiameter: c.bore } : {}), ...(c.red ? { toothThicknessReduction: c.red } : {}) });
 
 const CASES = [
   { m: 3, z1: 2, d1: 44, L: 60, form: 'ZI', bore: 12 },
@@ -46,11 +46,11 @@ test('the worm (refused at the previous HEAD: no worm): ZI and ZA, valid; K1\'s 
     const G = geom(c), t0 = performance.now(), { brep, report } = worm(specOf(c), { id: 'w' }), ms = performance.now() - t0, dm = report.dimensions;
     assert.equal(checkBrep(brep).valid, true, checkBrep(brep).issues?.[0]); assert.equal(brep.bodies.length, 1);
     assert.equal(report.generator, 'worm@0'); assert.equal(report.form, c.form);
-    close(dm.leadAngleDeg, deg(G.gamma), 1e-12, 'γ'); close(dm.leadMM, Math.PI * c.m * c.z1, 1e-12, 'lead'); close(dm.tipDiameterMM, 2 * G.ra, 1e-12, 'd_a1'); close(dm.rootDiameterMM, 2 * G.rf, 1e-12, 'd_f1');
-    if (c.m === 3 && c.z1 === 2) { close(dm.leadAngleDeg, 7.76517, 5e-6, "K1's γ"); assert.equal(dm.referenceDiameterMM, 44); assert.equal(dm.tipDiameterMM, 50); assert.equal(dm.rootDiameterMM, 36.5); }
+    close(dm.leadAngle, deg(G.gamma), 1e-12, 'γ'); close(dm.lead, Math.PI * c.m * c.z1, 1e-12, 'lead'); close(dm.tipDiameter, 2 * G.ra, 1e-12, 'd_a1'); close(dm.rootDiameter, 2 * G.rf, 1e-12, 'd_f1');
+    if (c.m === 3 && c.z1 === 2) { close(dm.leadAngle, 7.76517, 5e-6, "K1's γ"); assert.equal(dm.referenceDiameter, 44); assert.equal(dm.tipDiameter, 50); assert.equal(dm.rootDiameter, 36.5); }
     // (Budgets: more than five flank pieces go on several faces; up to 128 axial segments.)
     assert.equal(report.flankFaces, Math.ceil(report.flankPieces / 5)); assert.ok(report.twist.axialSegments <= 128);
-    const tw = report.twist.deviationMM, fit = report.profileDeviationMM + tw;
+    const tw = report.twist.deviation, fit = report.profileDeviation + tw;
     assert.ok(fit <= 1e-4 * c.m * Math.cos(G.gamma) + 1e-15 && tw <= 0.25e-4 * c.m * Math.cos(G.gamma) + 1e-15);
     let worst = 0, cyl = 0, pa = 0;
     const axial = [];
@@ -94,41 +94,41 @@ test('the worm (refused at the previous HEAD: no worm): ZI and ZA, valid; K1\'s 
       const resid = Math.max(...axial.map(q => Math.abs(q.z - mz - slope * (q.r - mr))));
       close(Math.abs(Math.atan(slope)), G.ax, 1e-4, 'ZA axial side at α_x'); assert.ok(resid <= 2 * fit / Math.sin(G.ax) + 1e-9, `ZA axial side straight within ${resid}`);
     }
-    const { A, P } = sectionArea(G), want = (A - (c.bore ? Math.PI * c.bore * c.bore / 4 : 0)) * c.L, got = brepMassProperties(brep, 1).volumeMM3;
+    const { A, P } = sectionArea(G), want = (A - (c.bore ? Math.PI * c.bore * c.bore / 4 : 0)) * c.L, got = brepMassProperties(brep, 1).volume;
     close(got, want, P * c.L * fit + 1e-7 * want, `${c.form} z1 ${c.z1} volume`);
-    t.diagnostic(`${c.form} m_x ${c.m} z1 ${c.z1} d1 ${c.d1} ${c.hand ?? 'right'} L ${c.L}: γ ${dm.leadAngleDeg.toFixed(5)}°, ${report.flankPieces} flank piece(s) on ${report.flankFaces} face(s) ${report.profileDeviationMM.toExponential(2)}, twist ${report.twist.turns.toFixed(3)} turns in ${report.twist.pieces} pieces / ${report.twist.axialSegments} segments ${tw.toExponential(2)}; sampled ${worst.toExponential(2)}, α_n off ${pa.toExponential(2)}; V ${got.toFixed(3)} vs ${want.toFixed(3)} (${((got - want) / want).toExponential(2)}); ${brep.faces.length} faces, ${ms.toFixed(0)} ms`);
+    t.diagnostic(`${c.form} m_x ${c.m} z1 ${c.z1} d1 ${c.d1} ${c.hand ?? 'right'} L ${c.L}: γ ${dm.leadAngle.toFixed(5)}°, ${report.flankPieces} flank piece(s) on ${report.flankFaces} face(s) ${report.profileDeviation.toExponential(2)}, twist ${report.twist.turns.toFixed(3)} turns in ${report.twist.pieces} pieces / ${report.twist.axialSegments} segments ${tw.toExponential(2)}; sampled ${worst.toExponential(2)}, α_n off ${pa.toExponential(2)}; V ${got.toFixed(3)} vs ${want.toFixed(3)} (${((got - want) / want).toExponential(2)}); ${brep.faces.length} faces, ${ms.toFixed(0)} ms`);
   }
 });
 
 test('refusals: ZN, ZK, ZC, double-enveloping, the pressure angle, the starts, a diameter with no root, a lead angle past 45°, the bore; a wheel straight, of the other hand, at another helix angle or module', () => {
-  const base = { axialModuleMM: 3, starts: 2, diameterMM: 44, hand: 'right', lengthMM: 60 };
+  const base = { axialModule: 3, starts: 2, diameter: 44, hand: 'right', length: 60 };
   const code = (spec, c, re) => assert.throws(() => worm({ ...base, ...spec }), e => isGearError(e) && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
   for (const f of ['ZN', 'ZK', 'ZC']) code({ form: f }, 'UNSUPPORTED_GEAR_KIND', new RegExp(f));
-  code({ envelope: 'double' }, 'UNSUPPORTED_GEAR_KIND', /double-enveloping/); code({ pressureAngleDeg: 14.5 }, 'UNSUPPORTED_GEAR_KIND'); code({ starts: 5 }, 'INVALID_INPUT');
-  code({ diameterMM: 7 }, 'INVALID_INPUT', /2\.5 m_x/); code({ starts: 4, diameterMM: 10, axialModuleMM: 3 }, 'UNSUPPORTED_GEAR_KIND', /45°/); code({ boreDiameterMM: 34 }, 'BORE_INTERSECTION', /at most Ø30\.500/); code({ hand: undefined }, 'INVALID_INPUT', /hand/);
-  const wh = wormWheelSpec(base, { teeth: 30, faceWidthMM: 20 });
-  for (const [g, re] of [[{ moduleMM: 3, teeth: 30, faceWidthMM: 20 }, /straight/], [{ ...wh, hand: 'left' }, /one hand/], [{ ...wh, helixAngleDeg: 8 }, /lead angle/], [{ ...wh, normalModuleMM: 3 }, /normal module/]])
+  code({ envelope: 'double' }, 'UNSUPPORTED_GEAR_KIND', /double-enveloping/); code({ pressureAngle: 14.5 }, 'UNSUPPORTED_GEAR_KIND'); code({ starts: 5 }, 'INVALID_INPUT');
+  code({ diameter: 7 }, 'INVALID_INPUT', /2\.5 m_x/); code({ starts: 4, diameter: 10, axialModule: 3 }, 'UNSUPPORTED_GEAR_KIND', /45°/); code({ boreDiameter: 34 }, 'BORE_INTERSECTION', /at most Ø30\.500/); code({ hand: undefined }, 'INVALID_INPUT', /hand/);
+  const wh = wormWheelSpec(base, { teeth: 30, faceWidth: 20 });
+  for (const [g, re] of [[{ module: 3, teeth: 30, faceWidth: 20 }, /straight/], [{ ...wh, hand: 'left' }, /one hand/], [{ ...wh, helixAngle: 8 }, /lead angle/], [{ ...wh, normalModule: 3 }, /normal module/]])
     assert.throws(() => checkWormPair(base, g, { mode: 'verdict' }), e => e.code === 'MATE_INCOMPATIBLE' && re.test(e.message), JSON.stringify(g));
 });
 
 test('the pair (K1\'s): the centre distance 67, ratio 15, the wheel d2 90; the mid-plane clear by j cos α_x / 2 (within the reported sag) and the sections ±b/3 clear; a phase off crosses; ZA and ZI', t => {
   for (const form of ['ZA', 'ZI']) {
-    const j = 0.1, w = { axialModuleMM: 3, starts: 2, diameterMM: 44, hand: 'right', lengthMM: 60, form, toothThicknessReductionMM: j / 2 }, wh = wormWheelSpec(w, { teeth: 30, faceWidthMM: 20, toothThicknessReductionMM: j / 2 }), G = geom({ m: 3, z1: 2, d1: 44, form });
+    const j = 0.1, w = { axialModule: 3, starts: 2, diameter: 44, hand: 'right', length: 60, form, toothThicknessReduction: j / 2 }, wh = wormWheelSpec(w, { teeth: 30, faceWidth: 20, toothThicknessReduction: j / 2 }), G = geom({ m: 3, z1: 2, d1: 44, form });
     const t0 = performance.now(), c = checkWormPair(w, wh), ms = performance.now() - t0;
-    close(c.centerDistanceMM, 67, 1e-12, "K1's a"); close(spurGear(wh).report.dimensions.referenceDiameterMM, 90, 1e-9, "K1's d2"); close(c.speedRatio, 15, 0, 'ratio');
-    assert.equal(c.interference, false); const mid = c.planes.find(p => p.offsetMM === 0), want = j * Math.cos(G.ax) / 2;
-    assert.ok(mid.minimumClearanceMM >= want - 1e-7 && mid.minimumClearanceMM <= want + c.chordSagMM + 1e-7, `${form} mid-plane ${mid.minimumClearanceMM} vs ${want}`);
-    for (const p of c.planes) assert.ok(p.minimumClearanceMM > 0);
-    const off = checkWormPair(w, wh, { relativePhaseDeg: 360 / 2 / 3, mode: 'verdict' }); assert.equal(off.interference, true);
+    close(c.centerDistance, 67, 1e-12, "K1's a"); close(spurGear(wh).report.dimensions.referenceDiameter, 90, 1e-9, "K1's d2"); close(c.speedRatio, 15, 0, 'ratio');
+    assert.equal(c.interference, false); const mid = c.planes.find(p => p.offset === 0), want = j * Math.cos(G.ax) / 2;
+    assert.ok(mid.minimumClearance >= want - 1e-7 && mid.minimumClearance <= want + c.chordSag + 1e-7, `${form} mid-plane ${mid.minimumClearance} vs ${want}`);
+    for (const p of c.planes) assert.ok(p.minimumClearance > 0);
+    const off = checkWormPair(w, wh, { relativePhase: 360 / 2 / 3, mode: 'verdict' }); assert.equal(off.interference, true);
     // Found (D136): a wheel whose root the basic rack generates (spur-gear@1, at m_n) has its form circle (Ø85.599) above
     // where the axial-module worm's crest reaches (a − ra1 = 42 mm): at no backlash a ZA worm's crest cuts its fillet;
     // the schematic root clears (touching), and 0.05 mm of backlash clears the generated one.
     if (form === 'ZA') {
-      const w0 = { ...w, toothThicknessReductionMM: 0 }, gen = { ...wh, toothThicknessReductionMM: 0, rootPolicy: 'generated' };
-      assert.equal(checkWormPair(w0, gen, { mode: 'verdict' }).interference, true); assert.equal(checkWormPair(w0, { ...wh, toothThicknessReductionMM: 0 }, { mode: 'verdict' }).interference, false);
-      assert.equal(checkWormPair({ ...w0, toothThicknessReductionMM: 0.025 }, { ...gen, toothThicknessReductionMM: 0.025 }, { mode: 'verdict' }).interference, false);
+      const w0 = { ...w, toothThicknessReduction: 0 }, gen = { ...wh, toothThicknessReduction: 0, rootPolicy: 'generated' };
+      assert.equal(checkWormPair(w0, gen, { mode: 'verdict' }).interference, true); assert.equal(checkWormPair(w0, { ...wh, toothThicknessReduction: 0 }, { mode: 'verdict' }).interference, false);
+      assert.equal(checkWormPair({ ...w0, toothThicknessReduction: 0.025 }, { ...gen, toothThicknessReduction: 0.025 }, { mode: 'verdict' }).interference, false);
     }
-    t.diagnostic(`${form} K1 pair j ${j}: planes ${c.planes.map(p => `${p.offsetMM.toFixed(2)} ${p.minimumClearanceMM.toFixed(6)}`).join(', ')} (j cos α_x/2 ${want.toFixed(6)}, sag ≤ ${c.chordSagMM.toExponential(1)}); mid-plane ε ${c.midPlaneContactRatio.toFixed(4)}; tips ${c.tipClearancesMM.map(x => x.toFixed(4)).join(', ')}; mesh zone ±${c.meshZoneHalfLengthMM.toFixed(3)}; ${ms.toFixed(0)} ms`);
+    t.diagnostic(`${form} K1 pair j ${j}: planes ${c.planes.map(p => `${p.offset.toFixed(2)} ${p.minimumClearance.toFixed(6)}`).join(', ')} (j cos α_x/2 ${want.toFixed(6)}, sag ≤ ${c.chordSag.toExponential(1)}); mid-plane ε ${c.midPlaneContactRatio.toFixed(4)}; tips ${c.tipClearances.map(x => x.toFixed(4)).join(', ')}; mesh zone ±${c.meshZoneHalfLength.toFixed(3)}; ${ms.toFixed(0)} ms`);
   }
 });
 
@@ -170,22 +170,22 @@ function clearance(Sa, Sb) {
 }
 
 test('the part model: K1\'s wheel (a helical spur gear at γ) and its worm by mesh — the worm square to it at 67 mm in its mid-plane, its axial module and diameter from the wheel; the two B-reps cut by planes square to the wheel\'s axis, clear as the pair check says, never crossing, a phase off crossing; checkPlacedWormPair; STEP', t => {
-  const j = 0.1, w0 = { axialModuleMM: 3, starts: 2, diameterMM: 44, hand: 'right', lengthMM: 60, form: 'ZA' }, wh = wormWheelSpec(w0, { teeth: 30, faceWidthMM: 20 });
+  const j = 0.1, w0 = { axialModule: 3, starts: 2, diameter: 44, hand: 'right', length: 60, form: 'ZA' }, wh = wormWheelSpec(w0, { teeth: 30, faceWidth: 20 });
   const feats = (rot, dir, phase = 0) => [
-    { id: 'g', kind: 'spur-gear', normalModule: wh.normalModuleMM, helixAngle: wh.helixAngleDeg, hand: 'right', teeth: 30, faceWidth: 20, thicknessReduction: j / 2, center: [10, 5], from: 2, rotation: rot },
+    { id: 'g', kind: 'spur-gear', normalModule: wh.normalModule, helixAngle: wh.helixAngle, hand: 'right', teeth: 30, faceWidth: 20, thicknessReduction: j / 2, center: [10, 5], from: 2, rotation: rot },
     { id: 'w', kind: 'worm', starts: 2, length: 60, form: 'ZA', thicknessReduction: j / 2, mesh: { gear: 'g', direction: dir, phase } }];
   const rows = [];
   for (const [rot, dir] of SURVEY ? [[0, -90], [5, 30], [-7, 200]] : [[5, 30]]) {
-    const M = evaluateCadPart(D(feats(rot, dir))), g = M.output('g'), w = M.output('w'), pw = w.wormPlacement, pg = g.gearPlacement;
+    const M = evaluateCadPart(D(feats(rot, dir))), g = outputOf(M, 'g'), w = outputOf(M, 'w'), pw = w.wormPlacement, pg = g.gearPlacement;
     // From the wheel: m_x 3, d1 44; square to it, 67 mm off, in its mid-plane.
-    close(pw.spec.axialModuleMM, 3, 1e-12, 'm_x from the wheel'); close(pw.spec.diameterMM, 44, 1e-9, 'd1 from the wheel'); assert.equal(pw.spec.hand, 'right');
+    close(pw.spec.axialModule, 3, 1e-12, 'm_x from the wheel'); close(pw.spec.diameter, 44, 1e-9, 'd1 from the wheel'); assert.equal(pw.spec.hand, 'right');
     const mid = pw.origin.map((x, i) => x + pw.axis[i] * 30), phi = dir * Math.PI / 180;
     close(Math.hypot(mid[0] - 10, mid[1] - 5), 67, 1e-9, 'a'); close(mid[2], 12, 1e-12, 'mid-plane'); close(pw.axis[2], 0, 1e-15, 'square'); close(Math.atan2(mid[1] - 5, mid[0] - 10), Math.atan2(Math.sin(phi), Math.cos(phi)), 1e-12, 'direction');
-    const chk = checkPlacedWormPair(pg, pw, { mode: 'verdict' }); assert.equal(chk.relativePhaseDeg, 0); assert.equal(chk.interference, false);
-    assert.equal(g.validate().valid, true); assert.equal(w.validate().valid, true);
+    const chk = checkPlacedWormPair(pg, pw, { mode: 'verdict' }); assert.equal(chk.relativePhase, 0); assert.equal(chk.interference, false);
+    assert.equal(checkOutput(g).valid, true); assert.equal(checkOutput(w).valid, true);
     const pair = checkWormPair(pw.spec, pg.spec), Mp = [10 + 45 * Math.cos(phi), 5 + 45 * Math.sin(phi), 12];
     for (const cOff of SURVEY ? [0, -20 / 3, 20 / 3] : [0, 20 / 3]) {
-      const A = planeSection(g.brep, 12 + cOff, Mp, 22), B = planeSection(w.brep, 12 + cOff, Mp, 22), r = clearance(A, B), want = pair.planes.find(p => Math.abs(p.offsetMM - cOff) < 1e-9).minimumClearanceMM;
+      const A = planeSection(g.brep, 12 + cOff, Mp, 22), B = planeSection(w.brep, 12 + cOff, Mp, 22), r = clearance(A, B), want = pair.planes.find(p => Math.abs(p.offset - cOff) < 1e-9).minimumClearance;
       assert.equal(r.crossed, false, `turn ${rot}° plane ${cOff}: the B-reps' sections cross`);
       // (The pair check's figure is the least over a worm pitch's turn; this is one pose — no nearer than it, and in the
       // mid-plane, where a ZA worm and the wheel are conjugate (the clearance the same at every turn), equal to it.
@@ -195,13 +195,13 @@ test('the part model: K1\'s wheel (a helical spur gear at γ) and its worm by me
     }
   }
   // A phase off: the B-reps' mid-plane sections cross.
-  const Mo = evaluateCadPart(D(feats(0, -90, 60))), Ao = planeSection(Mo.output('g').brep, 12, [10, 5 - 45, 12], 22), Bo = planeSection(Mo.output('w').brep, 12, [10, 5 - 45, 12], 22);
+  const Mo = evaluateCadPart(D(feats(0, -90, 60))), Ao = planeSection(outputOf(Mo, 'g').brep, 12, [10, 5 - 45, 12], 22), Bo = planeSection(outputOf(Mo, 'w').brep, 12, [10, 5 - 45, 12], 22);
   assert.equal(clearance(Ao, Bo).crossed, true, 'a phase off crosses');
   // Refusals in the part model: a straight wheel, a worm of the other hand.
-  assert.throws(() => evaluateCadPart(D([{ id: 'g', kind: 'spur-gear', module: 3, teeth: 30, faceWidth: 20 }, feats(0, 0)[1]])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /straight/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], hand: 'left' }])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'w', kind: 'worm', axialModule: 3, starts: 2, diameter: 44, hand: 'right', length: 60, form: 'ZK' }])).output('w'), e => (e.details?.category ?? e.code) === 'CAPABILITY');
-  const { brep } = worm({ ...w0, boreDiameterMM: 12 }, { id: 's' }), back = importStep(exportStep([brep], { name: 'worm' }));
-  close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip'); assert.ok(back.faces.some(f => f.name === 's.flankL#1')); assert.equal(checkBrep(back).valid, true);
+  assert.throws(() => outputOf(evaluateCadPart(D([{ id: 'g', kind: 'spur-gear', module: 3, teeth: 30, faceWidth: 20 }, feats(0, 0)[1]])), 'w'), e => (e.details?.category ?? e.code) === 'INPUT' && /straight/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], hand: 'left' }])), 'w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(D([{ id: 'w', kind: 'worm', axialModule: 3, starts: 2, diameter: 44, hand: 'right', length: 60, form: 'ZK' }])), 'w'), e => (e.details?.category ?? e.code) === 'CAPABILITY');
+  const { brep } = worm({ ...w0, boreDiameter: 12 }, { id: 's' }), back = importStep(exportStep([brep], { name: 'worm' }));
+  close(brepMassProperties(back, 1).volume, brepMassProperties(brep, 1).volume, 1e-6 * brepMassProperties(brep, 1).volume, 'round trip'); assert.ok(back.faces.some(f => f.name === 's.flankL#1')); assert.equal(checkBrep(back).valid, true);
   t.diagnostic(rows.join('; '));
 });

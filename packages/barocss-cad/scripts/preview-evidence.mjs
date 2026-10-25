@@ -36,7 +36,7 @@ export function writePreviewEvidence(api) {
     }
     artifacts.push({ name, fixture, revision: 7, grid: result.report.grid, normalMethod: result.report.normalMethod,
       vertices: result.report.vertexCount, triangles: result.report.triangleCount, probes: result.report.probeCount,
-      maxSampledDeviationMM: result.report.maxSampledDeviationMM, sourceHash: hash(source), nativeHash: hash(before), igesHash: hash(originalIGES), packetHash: hash(json(result.packet)), reportHash: hash(json(result.report)), samplesHash: hash(json(api.sampleSurface(surface, countU, countV))) });
+      maxSampledDeviationMM: result.report.maxSampledDeviation, sourceHash: hash(source), nativeHash: hash(before), igesHash: hash(originalIGES), packetHash: hash(json(result.packet)), reportHash: hash(json(result.report)), samplesHash: hash(json(api.sampleSurface(surface, countU, countV))) });
   }
   assert.ok(artifacts[1].maxSampledDeviationMM < artifacts[0].maxSampledDeviationMM);
   const report = { version: 0, base: '6e0dd51e524d7eb109db2e153e602d21d974d171', head: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(), evaluator: '@barocss/cad 0.0.0-private-experimental (extracted package)', consumer: { node: process.version }, artifacts,

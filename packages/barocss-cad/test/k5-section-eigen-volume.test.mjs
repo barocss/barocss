@@ -48,7 +48,7 @@ test('K5 sections: a rotation leaves the principal moments and turns their axis;
   near(Math.abs(Math.abs(L.angle) - Math.PI / 4), 0, 1e-12, 'L at 45°'); near(L.Ixx, L.Iyy, 1e-13, 'L symmetric');
   // FR's sections (D123): a sharp rectangular tube's area and centroid in their closed forms.
   const fr = frameSection({ kind: 'rect-tube', width: 60, height: 40, wall: 3, outerRadius: 0 }), [x0, y0] = fr.box.min, [x1, y1] = fr.box.max, poly = polygonSectionProperties([rect(x0, y0, x1, y1), rect(x0 + 3, y0 + 3, x1 - 3, y1 - 3)]);
-  near(poly.area, fr.areaMM2, 1e-13, 'FR area'); near(poly.centroid[0], fr.centroid[0], 1e-12, 'FR cx'); near(poly.centroid[1], fr.centroid[1], 1e-12, 'FR cy');
+  near(poly.area, fr.area, 1e-13, 'FR area'); near(poly.centroid[0], fr.centroid[0], 1e-12, 'FR cx'); near(poly.centroid[1], fr.centroid[1], 1e-12, 'FR cy');
 });
 
 test('K5 eigen: random symmetric matrices — AV = VΛ, VᵀV = I, ascending, trace and determinant; repeated and closed-form cases; in place the same', () => {

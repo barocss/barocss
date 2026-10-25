@@ -41,7 +41,7 @@ export function referenceDoc(ref: Reference): StudioDoc {
   if ('step' in ref.source) {
     let d: StudioDoc = { ...emptyDoc(), nodes: [{ id: ref.id, kind: 'import', name: ref.name, step: ref.source.step, ...(ref.solids && ref.solids > 1 ? { solids: ref.solids } : {}) } as ModelNode] };
     const unit = stepLengthUnit(ref.source.step), n = ref.solids ?? 1;
-    if (unit.toMM !== 1) for (let k = 0; k < n; k++) d = withNode(d, { kind: 'scale', parent: { node: 0, side: n > 1 ? `part${k}` as const : 'solid' }, factor: unit.toMM, pivot: [0, 0, 0] });
+    if (unit.to !== 1) for (let k = 0; k < n; k++) d = withNode(d, { kind: 'scale', parent: { node: 0, side: n > 1 ? `part${k}` as const : 'solid' }, factor: unit.to, pivot: [0, 0, 0] });
     return d;
   }
   return { ...emptyDoc(), nodes: [{ id: ref.id, kind: 'mesh', name: ref.name, unit: 'mm', positions: ref.source.mesh.positions, indices: ref.source.mesh.indices, representation: 'facets' } as ModelNode] };
@@ -207,7 +207,7 @@ export function chordOf(mesh: DisplayMesh): number {
   for (const f of mesh.faces) {
     if (f.kind !== 'curved' || f.facet) continue;
     if (f.analytic) curved[f.index] = 1;
-    else if (f.freeform && f.chordMM !== undefined) { curved[f.index] = 1; s = Math.max(s, f.chordMM); }
+    else if (f.freeform && f.chordDepth !== undefined) { curved[f.index] = 1; s = Math.max(s, f.chordDepth); }
     else s = Infinity;
   }
   // (A freeform face not yet measured: unbounded, and not kept, so measureChords can still decide it.)
@@ -272,11 +272,11 @@ export async function checkKeepouts(doc: StudioDoc, bodies: readonly BodyResult[
       let overlap = 0;
       if (!apart) {
         const p2 = withNode(probe.doc, { kind: 'intersect', left: refOf(b), right: { node: probe.node, side: 'solid' } });
-        const r2 = await evaluate(p2); overlap = r2?.ok ? r2.bodies.find(x => x.key === bodyKeyFor(p2.nodes, p2.nodes.length - 1))?.volumeMM3 ?? 0 : 0;
+        const r2 = await evaluate(p2); overlap = r2?.ok ? r2.bodies.find(x => x.key === bodyKeyFor(p2.nodes, p2.nodes.length - 1))?.volume ?? 0 : 0;
       }
       measureBody(doc, b);
-      const d = overlap > 1e-6 ? 0 : meshClearance(b.mesh.positions, b.mesh.indices, kb.mesh.positions, kIdx).distanceMM, chord = chordOf(b.mesh) + chordOf(kb.mesh), v = verdictOf(overlap, d, k.clearance, chord);
-      out.push({ keepout: k.id, body: b.key, verdict: v.verdict, overlapMM3: overlap, clearanceMM: overlap > 1e-6 ? null : d, requiredMM: k.clearance, chordMM: chord, why: v.why });
+      const d = overlap > 1e-6 ? 0 : meshClearance(b.mesh.positions, b.mesh.indices, kb.mesh.positions, kIdx).distance, chord = chordOf(b.mesh) + chordOf(kb.mesh), v = verdictOf(overlap, d, k.clearance, chord);
+      out.push({ keepout: k.id, body: b.key, verdict: v.verdict, overlap: overlap, clearance: overlap > 1e-6 ? null : d, requiredMM: k.clearance, chordMM: chord, why: v.why });
     }
   }
   return out;
@@ -290,22 +290,22 @@ export const newKeepoutId = (set: ReferenceSet) => nextId('K', set.keepouts);
 // ——— datums as subjects: a datum against a part face (measure, requirements)
 /** A datum against a face of the part: the angle between them, and the distance (a plane's to a parallel flat face or
  * to a point; an axis's to a cylinder's axis — their concentricity — or to a point; a point's to a plane or a point). */
-export function datumToFace(d: Datum, mesh: DisplayMesh, face: number): { distanceMM: number; angleDeg: number | null; what: string } {
+export function datumToFace(d: Datum, mesh: DisplayMesh, face: number): { distance: number; angle: number | null; what: string } {
   const f = mesh.faces[face], deg = (c: number) => Math.acos(Math.min(1, Math.abs(c))) * 180 / Math.PI;
   if (d.kind === 'plane') {
-    if (f.kind === 'plane') { const fit = fitPlane(mesh, face), a = deg(dot(fit.normal, d.normal!)); return { distanceMM: Math.abs(dot(sub(fit.origin, d.origin), d.normal!)), angleDeg: a, what: a < 1e-6 ? 'the distance between the parallel planes' : 'the distance from the datum plane to the face\'s centre (not parallel)' }; }
-    return { distanceMM: Math.abs(dot(sub(f.centroid, d.origin), d.normal!)), angleDeg: null, what: 'the distance from the datum plane to the face\'s centre' };
+    if (f.kind === 'plane') { const fit = fitPlane(mesh, face), a = deg(dot(fit.normal, d.normal!)); return { distance: Math.abs(dot(sub(fit.origin, d.origin), d.normal!)), angle: a, what: a < 1e-6 ? 'the distance between the parallel planes' : 'the distance from the datum plane to the face\'s centre (not parallel)' }; }
+    return { distance: Math.abs(dot(sub(f.centroid, d.origin), d.normal!)), angle: null, what: 'the distance from the datum plane to the face\'s centre' };
   }
   if (d.kind === 'axis') {
     if (f.kind === 'curved') {
       const c = fitCylinder(mesh, face), a = deg(dot(c.direction, d.direction!)), w = sub(c.origin, d.origin), along = dot(w, d.direction!);
-      return { distanceMM: Math.hypot(w[0] - along * d.direction![0], w[1] - along * d.direction![1], w[2] - along * d.direction![2]), angleDeg: a, what: 'the offset between the axes (concentricity)' };
+      return { distance: Math.hypot(w[0] - along * d.direction![0], w[1] - along * d.direction![1], w[2] - along * d.direction![2]), angle: a, what: 'the offset between the axes (concentricity)' };
     }
     const w = sub(f.centroid, d.origin), along = dot(w, d.direction!);
-    return { distanceMM: Math.hypot(w[0] - along * d.direction![0], w[1] - along * d.direction![1], w[2] - along * d.direction![2]), angleDeg: null, what: 'the distance from the axis to the face\'s centre' };
+    return { distance: Math.hypot(w[0] - along * d.direction![0], w[1] - along * d.direction![1], w[2] - along * d.direction![2]), angle: null, what: 'the distance from the axis to the face\'s centre' };
   }
-  if (f.kind === 'plane') { const fit = fitPlane(mesh, face); return { distanceMM: Math.abs(dot(sub(d.origin, fit.origin), fit.normal)), angleDeg: null, what: 'the distance from the point to the face\'s plane' }; }
-  return { distanceMM: Math.hypot(...sub(d.origin, f.centroid)), angleDeg: null, what: 'the distance from the point to the face\'s centre' };
+  if (f.kind === 'plane') { const fit = fitPlane(mesh, face); return { distance: Math.abs(dot(sub(d.origin, fit.origin), fit.normal)), angle: null, what: 'the distance from the point to the face\'s plane' }; }
+  return { distance: Math.hypot(...sub(d.origin, f.centroid)), angle: null, what: 'the distance from the point to the face\'s centre' };
 }
 /** A datum plane as a sketch plane (the part's coordinates). */
 export function datumPlane(set: ReferenceSet, id: string): DocPlane {
@@ -365,14 +365,14 @@ export async function referencesReport(doc: StudioDoc, evaluate: Evaluate) {
   const set = readReferences(doc.references), refs = [];
   for (const r of set.references) {
     let faces: unknown[] = [], problem: string | undefined;
-    try { const local = await referenceLocal(r, evaluate); faces = local.flatMap(b => b.mesh.faces.slice(0, 80).map(f => ({ name: f.name, kind: f.kind, ...(f.radius ? { radius: r9(f.radius) } : {}), area_mm2: r9(f.areaMM2) }))); } catch (e) { problem = e instanceof Error ? e.message : String(e); }
+    try { const local = await referenceLocal(r, evaluate); faces = local.flatMap(b => b.mesh.faces.slice(0, 80).map(f => ({ name: f.name, kind: f.kind, ...(f.radius ? { radius: r9(f.radius) } : {}), area: r9(f.area) }))); } catch (e) { problem = e instanceof Error ? e.message : String(e); }
     refs.push({ id: r.id, name: r.name, kind: 'step' in r.source ? 'step' : 'mesh', at: r.at, faces, ...(problem ? { problem } : {}) });
   }
   const problems = await verifyDatums(set, evaluate);
   return {
     references: refs, ...(problems.length ? { problems } : {}),
-    datums: set.datums.map(d => { const w = datumWorld(set, d); return { id: d.id, name: d.name, kind: d.kind, ...(d.of ? { of: d.of } : {}), origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residual !== undefined ? { residual_mm: r9(d.residual) } : {}) }; }),
-    keepouts: set.keepouts.map(k => ({ id: k.id, name: k.name, frame: k.frame, shape: k.shape, clearance_mm: k.clearance, ...(k.around ? { around: k.around } : {}) })),
+    datums: set.datums.map(d => { const w = datumWorld(set, d); return { id: d.id, name: d.name, kind: d.kind, ...(d.of ? { of: d.of } : {}), origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residual !== undefined ? { residual: r9(d.residual) } : {}) }; }),
+    keepouts: set.keepouts.map(k => ({ id: k.id, name: k.name, frame: k.frame, shape: k.shape, clearance: k.clearance, ...(k.around ? { around: k.around } : {}) })),
   };
 }
 /** Runs a reference tool. */
@@ -385,7 +385,7 @@ export async function runReferenceTool(doc: StudioDoc, bodies: readonly BodyResu
       const res = await checkKeepouts(doc, bodies, evaluate, { ...(typeof args.keepout === 'string' ? { keepout: args.keepout } : {}), ...(typeof args.body === 'string' ? { body: args.body } : {}) });
       const n = (v: number | null) => (v === null || !Number.isFinite(v) ? null : r9(v));
       const counts = { clear: res.filter(r => r.verdict === 'clear').length, violated: res.filter(r => r.verdict === 'violated').length, undecided: res.filter(r => r.verdict === 'undecided').length };
-      return { doc, content: { results: res.map(r => ({ keepout: r.keepout, body: r.body, verdict: r.verdict, overlap_mm3: n(r.overlapMM3), clearance_mm: n(r.clearanceMM), required_mm: r.requiredMM, chord_tolerance_mm: n(r.chordMM), why: r.why })), ...counts }, changed: false, summary: `${counts.clear} clear, ${counts.violated} violated, ${counts.undecided} undecided` };
+      return { doc, content: { results: res.map(r => ({ keepout: r.keepout, body: r.body, verdict: r.verdict, overlap: n(r.overlap), clearance: n(r.clearance), requiredClearance: r.requiredMM, chordTolerance: n(r.chordMM), why: r.why })), ...counts }, changed: false, summary: `${counts.clear} clear, ${counts.violated} violated, ${counts.undecided} undecided` };
     }
     if (name === 'add_reference') {
       if (typeof args.name !== 'string' || !args.name.trim()) return { error: '[BAD_REFERENCE] a reference has a name.' };
@@ -418,7 +418,7 @@ export async function runReferenceTool(doc: StudioDoc, bodies: readonly BodyResu
         else return { error: '[BAD_REFERENCE] kind is plane, axis or point.' };
       }
       const w = datumWorld({ ...set, datums: [...set.datums, d] }, d);
-      return { doc: put({ ...set, datums: [...set.datums, d] }), content: { ok: true, id, kind: d.kind, origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residual !== undefined ? { residual_mm: r9(d.residual) } : {}) }, changed: true, summary: `datum ${id} (${d.kind})` };
+      return { doc: put({ ...set, datums: [...set.datums, d] }), content: { ok: true, id, kind: d.kind, origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residual !== undefined ? { residual: r9(d.residual) } : {}) }, changed: true, summary: `datum ${id} (${d.kind})` };
     }
     if (name === 'add_keepout') {
       const id = newKeepoutId(set), label = typeof args.name === 'string' && args.name.trim() ? args.name.trim() : id, clearance = args.clearance === undefined ? 0 : args.clearance;
@@ -442,7 +442,7 @@ export async function runReferenceTool(doc: StudioDoc, bodies: readonly BodyResu
         if (typeof c.radius !== 'number' || !(c.radius > 0) || typeof c.height !== 'number' || !(c.height > 0)) return { error: '[BAD_KEEPOUT] a cylinder has a radius and height above 0.' };
         k = { id, name: label, frame: f, shape: { kind: 'cylinder', radius: c.radius, height: c.height }, clearance };
       }
-      return { doc: put({ ...set, keepouts: [...set.keepouts, k] }), content: { ok: true, id, frame: k.frame, shape: k.shape, clearance_mm: k.clearance }, changed: true, summary: `keep-out ${id}` };
+      return { doc: put({ ...set, keepouts: [...set.keepouts, k] }), content: { ok: true, id, frame: k.frame, shape: k.shape, clearance: k.clearance }, changed: true, summary: `keep-out ${id}` };
     }
     // delete_reference_item
     const iid = args.id;

@@ -18,7 +18,7 @@ export function ConnectorRows({ doc, onCommit, onError }: { doc: StudioDoc; onCo
     <div className="card-title" style={{ marginTop: 8 }}>CONNECTORS</div>
     {!rows.length && <RowsEmpty none="No connector rows" holds="JSON: the opening, the mating body, a keep-out; each citing its source or marked an estimate." />}
     {rows.map(r => <div key={r.id} className={ROW} aria-label={`Connector row ${r.id}`}>
-      <span title={r.source ?? 'an estimate'}><b>{r.name ?? r.id}</b> <span className="muted small">{r.opening.shape} {r.opening.widthMM} × {r.opening.heightMM}, {r.opening.depthMM} deep · {r.source ?? 'estimate'}</span></span>
+      <span title={r.source ?? 'an estimate'}><b>{r.name ?? r.id}</b> <span className="muted small">{r.opening.shape} {r.opening.width} × {r.opening.height}, {r.opening.depth} deep · {r.source ?? 'estimate'}</span></span>
       <Button variant="ghost" aria-label={`Remove connector row ${r.id}`} title="Remove the row" onClick={() => apply([], [r.id])}><Icon name="delete" small /></Button>
     </div>)}
     <div className="flex flex-wrap gap-1">

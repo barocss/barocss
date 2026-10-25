@@ -7,11 +7,11 @@ import { throatedWormWheel, exportStep, stepValidationProperties, sewSolid, tess
 // mesh (edges, planar faces by their edges, whole patches by their exact extremes). Oracles: the export's time against its
 // old cost; the box against an independent maximum of a bicubic face, which a mesh's vertices fall short of.
 
-const W = { axialModuleMM: 3, starts: 2, diameterMM: 44, hand: 'right', lengthMM: 60, form: 'ZA' };
-const meshBox = (brep, q) => { const P = tessellateBrep(brep, { segmentsPerQuarter: q }).positionsMM, lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity]; for (let i = 0; i < P.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], P[i + k]); hi[k] = Math.max(hi[k], P[i + k]); } return { lo, hi }; };
+const W = { axialModule: 3, starts: 2, diameter: 44, hand: 'right', length: 60, form: 'ZA' };
+const meshBox = (brep, q) => { const P = tessellateBrep(brep, { segmentsPerQuarter: q }).positions, lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity]; for (let i = 0; i < P.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], P[i + k]); hi[k] = Math.max(hi[k], P[i + k]); } return { lo, hi }; };
 
 test('D151: the 724-face throated wheel exports in a few seconds (was about 20 s), its box the mesh\'s (here every extreme is on an edge)', () => {
-  const { brep } = throatedWormWheel({ worm: W, teeth: 30, faceWidthMM: 20, boreDiameterMM: 20 }, { id: 's' });
+  const { brep } = throatedWormWheel({ worm: W, teeth: 30, faceWidth: 20, boreDiameter: 20 }, { id: 's' });
   assert.equal(brep.faces.length, 724);
   const t0 = performance.now(), text = exportStep([brep], { name: 'wheel' }), ms = performance.now() - t0;
   // (About 2.2 s alone: the mass and area quadrature 1.9 s of it, the box 0.1 s; the tessellation alone was 14 s, the export

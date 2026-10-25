@@ -239,7 +239,7 @@
    ],
    "fill": {
     "kind": "lines",
-    "angleDeg": 45,
+    "angle": 45,
     "spacing": 2.5
    },
    "layer": "HATCH"

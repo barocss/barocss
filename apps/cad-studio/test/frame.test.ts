@@ -33,7 +33,7 @@ test('D123 Structural member: each section kind from the palette, A·L by the te
   for (const [section, more, A, label] of cases) {
     const doc = cmd.build!(ctx, { ...d, section, ...more }), node = doc.nodes[0], [body] = bodiesOf(doc);
     assert.equal(node.kind, 'frame-member');
-    assert.ok(Math.abs(body.volumeMM3! / (A * L) - 1) < 1e-12, `${section}: ${body.volumeMM3} vs ${A * L}`);
+    assert.ok(Math.abs(body.volume! / (A * L) - 1) < 1e-12, `${section}: ${body.volume} vs ${A * L}`);
     assert.equal(featureLabel(node, 0, doc.nodes), label);
     const notes = body.notes!.map(n => n.text);
     assert.match(notes[0], new RegExp(`^Member: ${section} .* · section ${+A.toFixed(3)} mm² · length 300 mm$`));
@@ -64,19 +64,19 @@ test('D123 a member of a sketch section, saved and read back; the agent\'s run_c
   let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 20] });
   doc = withNode(doc, { kind: 'frame-member', section: { kind: 'sketch', sketch: 0 }, start: [0, 0, 0], end: [0, 0, 120], anchor: 'bottom-left' });
   const [body] = bodiesOf(doc);
-  assert.ok(Math.abs(body.volumeMM3! - 600 * 120) < 1e-9);
+  assert.ok(Math.abs(body.volume! - 600 * 120) < 1e-9);
   assert.match(body.notes![1].text, /the line runs along up, so y follows \+X/);
   const read = readStudioDoc(JSON.stringify(doc)); assert.ok('doc' in read, JSON.stringify(read)); assert.equal(read.doc.nodes[1].kind, 'frame-member');
   // The agent: the palette's command with its values, and a raw node with every dimension.
   const state: ChatState = { doc: emptyDoc(), bodies: [] };
   const r = await dispatchTool(state, 'run_command', { command: 'frame-member', values: { section: 'angle', a: 40, b: 40, th: 4, r1: 5, r2: 2.5, x0: 0, y0: 0, z0: 0, x1: 500, y1: 0, z1: 0 } }, evaluate);
   assert.ok(!r.isError, r.content);
-  assert.ok(Math.abs(r.state.bodies[0].volumeMM3! - (4 * 76 + SP * (25 - 12.5)) * 500) < 1e-9, String(r.state.bodies[0].volumeMM3));
+  assert.ok(Math.abs(r.state.bodies[0].volume! - (4 * 76 + SP * (25 - 12.5)) * 500) < 1e-9, String(r.state.bodies[0].volume));
   const node = { kind: 'frame-member', section: { kind: 'channel', height: 100, width: 50, web: 6, flange: 8.5, rootRadius: 8.5 }, start: [0, 0, 0], end: [0, 800, 0], roll: 90 };
   const a = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [node] }, evaluate);
   assert.ok(!a.isError, a.content);
   assert.deepEqual(noId(a.state.doc.nodes[0]), node);
-  assert.ok(Math.abs(a.state.bodies[0].volumeMM3! - (100 * 6 + 2 * 44 * 8.5 + 2 * SP * 8.5 ** 2) * 800) < 1e-8);
+  assert.ok(Math.abs(a.state.bodies[0].volume! - (100 * 6 + 2 * 44 * 8.5 + 2 * SP * 8.5 ** 2) * 800) < 1e-8);
   // A section missing a dimension, one the kernel refuses, an unknown kind: refused, nothing added.
   const miss = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [{ ...node, section: { kind: 'channel', height: 100, width: 50, web: 6, flange: 8.5 } }] }, evaluate);
   assert.ok(miss.isError && /a channel section needs \\"rootRadius/.test(miss.content), miss.content);
@@ -86,7 +86,7 @@ test('D123 a member of a sketch section, saved and read back; the agent\'s run_c
   const supported = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [{ ...node, section: ibe }] }, evaluate);
   assert.ok(!supported.isError, supported.content);
   assert.equal(supported.state.bodies.length, 1);
-  assert.ok(Math.abs(supported.state.bodies[0].volumeMM3! / ((2 * 60 * 8 + (100 - 16) * 6) * 800) - 1) < 1e-12);
+  assert.ok(Math.abs(supported.state.bodies[0].volume! / ((2 * 60 * 8 + (100 - 16) * 6) * 800) - 1) < 1e-12);
   assert.match(featureLabel(supported.state.doc.nodes[0], 0, supported.state.doc.nodes), /Member I\/H/);
   const unchanged: ChatState = { doc: emptyDoc(), bodies: [] }, before = JSON.stringify(unchanged.doc);
   const missing = await dispatchTool(unchanged, 'add_features', { features: [{ ...node, section: { kind: 'i-beam' } }] }, evaluate);
@@ -106,7 +106,7 @@ test('D124 Frame from the palette: a table skeleton (8 members), each its own bo
   assert.equal(featureLabel(node, 0, doc.nodes), 'Frame RHS 40×40×3 · 8 members');
   // Legs 700 along Z, then the top's rails 600, 400, 600, 400.
   const lengths = [700, 700, 700, 700, 600, 400, 600, 400];
-  bodies.forEach((b, k) => assert.ok(Math.abs(b.volumeMM3! / (A * lengths[k]) - 1) < 1e-12, `member ${k}: ${b.volumeMM3}`));
+  bodies.forEach((b, k) => assert.ok(Math.abs(b.volume! / (A * lengths[k]) - 1) < 1e-12, `member ${k}: ${b.volume}`));
   assert.equal(bodyName(doc, bodies[2]), 'Frame RHS 40×40×3 · 8 members · member 3');
   const notes = bodies[5].notes!.map(n => n.text);
   assert.equal(notes[0], 'Frame member 6 of 8: point 6 → point 7');
@@ -117,7 +117,7 @@ test('D124 Frame from the palette: a table skeleton (8 members), each its own bo
   let moved = doc.nodes;
   for (const p of [4, 5, 6, 7]) { const f = editFields(moved, 0).find(x => x.key === `p${p}.z`)!; if (f.kind === 'number') moved = f.set(moved, 900); }
   const longer = bodiesOf({ ...doc, nodes: moved });
-  assert.ok(Math.abs(longer[0].volumeMM3! / (A * 900) - 1) < 1e-12);
+  assert.ok(Math.abs(longer[0].volume! / (A * 900) - 1) < 1e-12);
 });
 
 test('D124 Frame on picked edges: a layout box\'s 12 edges, their corners shared (8 points), a member on each; saved and read back', () => {
@@ -132,7 +132,7 @@ test('D124 Frame on picked edges: a layout box\'s 12 edges, their corners shared
   assert.ok(node.kind === 'frame' && node.points.length === 8 && node.segments.length === 12);
   const A = Math.PI / 4 * (26.9 ** 2 - 22.3 ** 2), members = bodiesOf(doc).filter(b => b.ref?.node === doc.nodes.length - 1);
   assert.equal(members.length, 12);
-  assert.ok(Math.abs(members.reduce((s, b) => s + b.volumeMM3!, 0) / (A * 4 * (500 + 300 + 400)) - 1) < 1e-12);
+  assert.ok(Math.abs(members.reduce((s, b) => s + b.volume!, 0) / (A * 4 * (500 + 300 + 400)) - 1) < 1e-12);
   const read = readStudioDoc(JSON.stringify(doc)); assert.ok('doc' in read, JSON.stringify(read)); assert.equal(read.doc.nodes.at(-1)!.kind, 'frame');
   // Without edges picked, "edges" says what to do.
   assert.throws(() => cmd.build!({ doc: layout, bodies: lb, selection: none } as never, { ...d }), /Pick straight edges/);
@@ -146,7 +146,7 @@ test('D124 the agent\'s frame: a raw node with an override (the legs mirrored an
   assert.ok(!a.isError, a.content);
   assert.deepEqual(noId(a.state.doc.nodes[0]), node);
   assert.equal(a.state.bodies.length, 3);
-  assert.ok(Math.abs(a.state.bodies.reduce((s, b) => s + b.volumeMM3!, 0) / (A * 1300) - 1) < 1e-12);
+  assert.ok(Math.abs(a.state.bodies.reduce((s, b) => s + b.volume!, 0) / (A * 1300) - 1) < 1e-12);
   const refused = async (features: unknown[], re: RegExp) => { const state: ChatState = { doc: emptyDoc(), bodies: [] }, before = JSON.stringify(state.doc); const r = await dispatchTool(state, 'add_features', { features }, evaluate); assert.ok(r.isError && re.test(r.content), r.content); assert.equal(r.state, state); assert.equal(JSON.stringify(state.doc), before); };
   await refused([{ ...node, segments: [[0, 1], [0, 1]] }], /MEMBER_DUPLICATE/);
   await refused([{ ...node, segments: 'all' }], /1 to 256 \[from,to\], .*center:.*through:point.*no extra fields/);
@@ -160,7 +160,7 @@ test('D125 corners from the palette: a rectangle of sharp tubes mitred (A·L eac
   const A = 1600 - 34 * 34, doc = cmd.build!(ctx, { ...d, skeleton: 'rectangle', ro: 0 }), node = doc.nodes[0];
   assert.ok(node.kind === 'frame'); assert.deepEqual(node.corners, { default: 'mitre', multi: 'order', tee: 'butt' });
   const bodies = bodiesOf(doc), L = [600, 400, 600, 400];
-  bodies.forEach((b, k) => assert.ok(Math.abs(b.volumeMM3! / (A * L[k]) - 1) < 1e-12, `member ${k}: ${b.volumeMM3}`));
+  bodies.forEach((b, k) => assert.ok(Math.abs(b.volume! / (A * L[k]) - 1) < 1e-12, `member ${k}: ${b.volume}`));
   assert.ok(bodies[0].notes!.some(n => n.text === 'Ends: start mitre 45° with member 4; end mitre 45° with member 2'), JSON.stringify(bodies[0].notes));
   // A table: every top corner joins a leg and two rails — square, overlapping, said so.
   const table = bodiesOf(cmd.build!(ctx, { ...d, ro: 0, multi: 'none' }));
@@ -170,7 +170,7 @@ test('D125 corners from the palette: a rectangle of sharp tubes mitred (A·L eac
   assert.ok(f.kind === 'choice'); assert.deepEqual(f.options.map(o => o.value), ['default', 'mitre', 'butt:0', 'butt:1', 'cope:0', 'cope:1', 'none']);
   const butted = f.kind === 'choice' ? f.set(doc.nodes, 'butt:1') : doc.nodes, bb = bodiesOf({ ...doc, nodes: butted });
   assert.deepEqual((butted[0] as { corners?: unknown }).corners, { default: 'mitre', multi: 'order', tee: 'butt', at: [{ point: 1, kind: 'butt', through: 1 }] });
-  assert.ok(Math.abs(bb[0].volumeMM3! / (A * 580) - 1) < 1e-12 && Math.abs(bb[1].volumeMM3! / (A * 420) - 1) < 1e-12, `${bb[0].volumeMM3} ${bb[1].volumeMM3}`);
+  assert.ok(Math.abs(bb[0].volume! / (A * 580) - 1) < 1e-12 && Math.abs(bb[1].volume! / (A * 420) - 1) < 1e-12, `${bb[0].volume} ${bb[1].volume}`);
   if (f.kind === 'choice') assert.equal(f.get(butted), 'butt:1');
   // All corners butted from the frame's field; back to the default for that point.
   const all = editFields(doc.nodes, 0).find(x => x.key === 'corners')!;
@@ -194,8 +194,8 @@ test('D125 a frame on a sketch section inside an assembly instance: flattened, i
   // member 1 (along +Y) has its x along −X. With x̄ the section's centroid: member 0 runs on x̄ past the corner to cover
   // member 1, and member 1 ends on member 0's face 30 − x̄ from the corner: A(300 + x̄) + A(200 − 30 + x̄).
   const cx = (600 * 15 - 16 * Math.PI * 10) / A;
-  assert.ok(Math.abs(members[0].volumeMM3! / (A * (300 + cx)) - 1) < 1e-12, String(members[0].volumeMM3));
-  assert.ok(Math.abs(members[1].volumeMM3! / (A * (170 + cx)) - 1) < 1e-12, String(members[1].volumeMM3));
+  assert.ok(Math.abs(members[0].volume! / (A * (300 + cx)) - 1) < 1e-12, String(members[0].volume));
+  assert.ok(Math.abs(members[1].volume! / (A * (170 + cx)) - 1) < 1e-12, String(members[1].volume));
   const fid = frame.id!, names = new Set(members.flatMap(b => b.mesh.faces.map(f => f.name.replace(/#\d+$/, ''))));
   assert.ok([...names].every(n => n.startsWith(`${fid}.m`)) && names.has(`${fid}.m0.start`) && names.has(`${fid}.m1.start.butt`) && names.has(`${fid}.m1.hole0.side0`), [...names].join(' '));
   // The agent's corners: checked before the kernel sees them.
@@ -215,7 +215,7 @@ test('D126 the palette\'s table frame trims its corners in order (legs through, 
   const A = 1600 - 34 * 34, doc = cmd.build!(ctx, { ...d, ro: 0 }), node = doc.nodes[0];
   assert.ok(node.kind === 'frame'); assert.deepEqual(node.corners, { default: 'mitre', multi: 'order', tee: 'butt' });
   const bodies = bodiesOf(doc);
-  [720, 720, 720, 720, 560, 360, 560, 360].forEach((L, k) => assert.ok(Math.abs(bodies[k].volumeMM3! / (A * L) - 1) < 1e-12, `member ${k}: ${bodies[k].volumeMM3}`));
+  [720, 720, 720, 720, 560, 360, 560, 360].forEach((L, k) => assert.ok(Math.abs(bodies[k].volume! / (A * L) - 1) < 1e-12, `member ${k}: ${bodies[k].volume}`));
   assert.ok(bodies.every(b => !b.notes!.some(n => /left square and overlapping/.test(n.text))));
   assert.ok(bodies[4].notes!.some(n => /^Ends: start trimmed to member 1 \(2 in order\); end trimmed to member 2 \(2 in order\)$/.test(n.text)), JSON.stringify(bodies[4].notes));
   assert.ok(bodies[0].notes!.some(n => /end through, 20 mm past point 5 over member 5/.test(n.text)), JSON.stringify(bodies[0].notes));
@@ -228,7 +228,7 @@ test('D126 the palette\'s table frame trims its corners in order (legs through, 
   const tnode = { kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [0, 0, 400], [500, 0, 400]], segments: [[0, 1], [3, 2]], section: SH, corners: { tee: 'butt' }, trims: [{ member: 0, end: 'start', plane: { origin: [0, 0, 10], normal: [-0.2, 0, 1] } }] };
   const r = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [tnode] }, evaluate);
   assert.ok(!r.isError, r.content);
-  assert.ok(Math.abs(r.state.bodies[0].volumeMM3! / (A * 790) - 1) < 1e-12 && Math.abs(r.state.bodies[1].volumeMM3! / (A * 480) - 1) < 1e-12, `${r.state.bodies.map(b => b.volumeMM3)}`);
+  assert.ok(Math.abs(r.state.bodies[0].volume! / (A * 790) - 1) < 1e-12 && Math.abs(r.state.bodies[1].volume! / (A * 480) - 1) < 1e-12, `${r.state.bodies.map(b => b.volume)}`);
   assert.ok(r.state.bodies[0].notes!.some(n => /^Ends: start trimmed to a plane \(11\.31\d*° from square\)/.test(n.text)), JSON.stringify(r.state.bodies[0].notes));
   const refused = async (features: unknown[], re: RegExp) => { const x = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features }, evaluate); assert.ok(x.isError && re.test(x.content), x.content); };
   await refused([{ ...tnode, section: { ...SH, outerRadius: 6 }, trims: undefined }], /BUTT_ON_OPEN_SIDE/);
@@ -239,16 +239,16 @@ test('D126 the palette\'s table frame trims its corners in order (legs through, 
 test('D127 the cut list: the palette\'s mitred rectangle of sharp tubes — two rows of two, 600 and 400, 45° both ends, masses by the body\'s material (aluminium, an estimate); a body in steel is its own row; the agent\'s cut_list with its CSV', async () => {
   const cmd = commands.find(c => c.id === 'frame')!, ctx = { doc: emptyDoc(), bodies: [], selection: none } as never, d = cmd.defaults!(ctx);
   const A = 1600 - 34 * 34, doc = cmd.build!(ctx, { ...d, skeleton: 'rectangle', ro: 0 }), bodies = bodiesOf(doc);
-  const list = partCutList(doc, bodies, 'al6061')!, al = MATERIALS.find(m => m.id === 'al6061')!.gPerCm3 * 1000;
-  assert.deepEqual(list.rows.map(r => [r.quantity, Math.round(r.axisLengthMM * 1e9) / 1e9, r.ends.map(e => e.kind)]), [[2, 600, ['mitre', 'mitre']], [2, 400, ['mitre', 'mitre']]]);
-  assert.ok(Math.abs(list.rows[0].massKG / (al * A * 600e-9) - 1) < 1e-12);
+  const list = partCutList(doc, bodies, 'al6061')!, al = MATERIALS.find(m => m.id === 'al6061')!.density;
+  assert.deepEqual(list.rows.map(r => [r.quantity, Math.round(r.axisLength * 1e9) / 1e9, r.ends.map(e => e.kind)]), [[2, 600, ['mitre', 'mitre']], [2, 400, ['mitre', 'mitre']]]);
+  assert.ok(Math.abs(list.rows[0].mass / (al * A * 600e-3) - 1) < 1e-12);
   assert.equal(list.densityEstimate, true); assert.equal(list.rows[0].material, MATERIALS.find(m => m.id === 'al6061')!.label);
   assert.equal(cutText(list.rows[0].ends[0]), 'mitre 45°');
   // One member's body in steel: apart, by steel's density.
   const steel = MATERIALS.find(m => m.id === 'steel')!, mixed = withLook(doc, bodies[0], { material: 'steel' }), ml = partCutList(mixed, bodiesOf(mixed), 'al6061')!;
   // (In first-seen order: member 1 in steel, members 2 and 4 the 400s, member 3 the other 600.)
   assert.deepEqual(ml.rows.map(r => [r.quantity, r.material, r.pieces.length]), [[1, steel.label, 1], [2, MATERIALS.find(m => m.id === 'al6061')!.label, 2], [1, MATERIALS.find(m => m.id === 'al6061')!.label, 1]]);
-  assert.ok(Math.abs(ml.rows[0].massKG / (steel.gPerCm3 * 1000 * A * 600e-9) - 1) < 1e-12);
+  assert.ok(Math.abs(ml.rows[0].mass / (steel.density * A * 600e-3) - 1) < 1e-12);
   // The agent: read only, rows and totals, the CSV on asking; a part without members says so.
   const evaluate = async (x: StudioDoc) => evaluatePart(x, 1), r0 = await evaluate(doc); assert.ok(r0.ok);
   const r = await dispatchTool({ doc, bodies: r0.bodies }, 'cut_list', { csv: true }, evaluate);

@@ -15,7 +15,7 @@ const at = (c: Curve, s: number): Point => { const [a, b] = domain(c); return ev
 /** The one solid of `a` and `b` glued along a planar face they share, or null when they share none exactly. */
 export function glueAtSharedFace(a: Brep, b: Brep, source: Brep['source']): Brep | null {
   if (a.bodies.length !== 1 || b.bodies.length !== 1 || a.bodies[0].shells.length !== 1 || b.bodies[0].shells.length !== 1) return null;
-  const tol = 10 * Math.max(...a.vertices.map(v => v.toleranceMM), ...b.vertices.map(v => v.toleranceMM));
+  const tol = 10 * Math.max(...a.vertices.map(v => v.tolerance), ...b.vertices.map(v => v.tolerance));
   const plane = (f: BrepFace) => { try { const g = faceGeometry(f); return g.kind === 'plane' ? g : null; } catch { return null; } };
   const ctx = (x: Brep) => ({ loops: new Map(x.loops.map(l => [l.id, l])), coedges: new Map(x.coedges.map(c => [c.id, c])), edges: new Map(x.edges.map(e => [e.id, e])), vertices: new Map(x.vertices.map(v => [v.id, v])) });
   const A = ctx(a), B = ctx(b);
@@ -98,8 +98,8 @@ export function withCavities(outer: Brep, inner: Brep, source: Brep['source']): 
   };
   const ia = (s: string) => `a.${s}`, ib = (s: string) => `b.${s}`;
   // (Each entity keeps its tolerance: a cavity of fitted offsets has tolerant edges, D110.)
-  const verts = (x: Brep, id: (s: string) => string) => x.vertices.map(v => ({ id: id(v.id), point: v.point, toleranceMM: v.toleranceMM }));
-  const edgs = (x: Brep, id: (s: string) => string) => x.edges.map(e => ({ id: id(e.id), curve: e.curve, vertices: [id(e.vertices[0]), id(e.vertices[1])] as [string, string], toleranceMM: e.toleranceMM, ...(e.name === undefined ? {} : { name: e.name }) }));
+  const verts = (x: Brep, id: (s: string) => string) => x.vertices.map(v => ({ id: id(v.id), point: v.point, tolerance: v.tolerance }));
+  const edgs = (x: Brep, id: (s: string) => string) => x.edges.map(e => ({ id: id(e.id), curve: e.curve, vertices: [id(e.vertices[0]), id(e.vertices[1])] as [string, string], tolerance: e.tolerance, ...(e.name === undefined ? {} : { name: e.name }) }));
   return buildBrep({ source, vertices: [...verts(outer, ia), ...verts(inner, ib)], edges: [...edgs(outer, ia), ...edgs(inner, ib)],
     bodies: [{ id: outer.bodies[0].id, kind: 'solid', shells: [...inputs(outer, ia, false), ...inputs(inner, ib, true)] }] });
 }

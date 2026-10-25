@@ -21,7 +21,7 @@ import { evaluateTree } from '../assembly/instances';
 
 export type AssemblyCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE';
 export interface AssemblyFinding { code: AssemblyCode; message: string; entities?: string[] }
-export interface AssemblyCheck { verdict: 'pass' | 'fail' | 'undecided'; findings: AssemblyFinding[]; /** Valid body subtotal when beadAccounting is incomplete. */ massG: number; beadAccounting?: BeadAccounting }
+export interface AssemblyCheck { verdict: 'pass' | 'fail' | 'undecided'; findings: AssemblyFinding[]; /** Valid body subtotal when beadAccounting is incomplete. */ mass: number; beadAccounting?: BeadAccounting }
 
 /** Every part's bodies where the assembly places them (the base part's as they are). */
 export async function assemblyBodies(doc: StudioDoc, evaluate: Evaluate): Promise<Map<string, BodyResult[]>> {
@@ -31,7 +31,7 @@ export async function assemblyBodies(doc: StudioDoc, evaluate: Evaluate): Promis
   for (const inst of doc.instances ?? []) if (!inst.hidden) { const b = await placedBodies(inst, evaluate, doc); if (b.length) out.set(inst.id, b); }
   return out;
 }
-const massOf = (doc: StudioDoc, bodies: readonly BodyResult[]) => (massProperties(doc, bodies) as { mass_g: number }[]).reduce((s, x) => s + x.mass_g, 0);
+const massOf = (doc: StudioDoc, bodies: readonly BodyResult[]) => (massProperties(doc, bodies) as { mass: number }[]).reduce((s, x) => s + x.mass, 0);
 
 /** The whole assembly's gate: parts meeting, the patterns on every built part, the total mass. */
 export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise<AssemblyCheck> {
@@ -43,7 +43,7 @@ export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise
       const A = a.mesh.bounds, B = b.mesh.bounds, chord = chordOf(a.mesh) + chordOf(b.mesh);
       if ([0, 1, 2].some(k => A.max[k] < B.min[k] - chord - 1e-6 || B.max[k] < A.min[k] - chord - 1e-6)) continue;
       if (meshesMeet(a.mesh.positions, a.mesh.indices, b.mesh.positions, b.mesh.indices)) findings.push({ code: 'PARTS_MEET', message: `${ids[i]} and ${ids[j]} interpenetrate`, entities: [ids[i], ids[j]] });
-      else if (meshClearance(a.mesh.positions, a.mesh.indices, b.mesh.positions, b.mesh.indices).distanceMM <= chord) {
+      else if (meshClearance(a.mesh.positions, a.mesh.indices, b.mesh.positions, b.mesh.indices).distance <= chord) {
         // (Contact is the normal state of an assembly where it is declared: a hole pattern the two share, or a mate
         // between them — expected, named, passed. Undeclared touching is not decided by the meshes: held.)
         const why = declaredContact(doc, ids[i], ids[j]);
@@ -53,8 +53,8 @@ export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise
   }
   const ifc = readInterfaces(doc.interfaces);
   for (const p of ifc.holePatterns) for (const part of p.parts) { const b = parts.get(part); if (!b) continue; const off = holesOff(b, p); if (off.length) findings.push({ code: 'PATTERN_MISALIGNED', message: `${part} is off ${p.id} at ${off.map(o => `(${o.join(', ')})`).join(', ')}`, entities: [part] }); }
-  let massG = 0;
-  for (const [id, b] of parts) massG += massOf(id === 'base' ? doc : (doc.instances ?? []).find(i => i.id === id)!.doc, b);
+  let mass = 0;
+  for (const [id, b] of parts) mass += massOf(id === 'base' ? doc : (doc.instances ?? []).find(i => i.id === id)!.doc, b);
   const accountingRows: { scope: string; accounting?: BeadAccounting }[] = [];
   const inspect = async (d: StudioDoc, scope: string) => {
     const e = await evaluate(d); accountingRows.push({ scope, accounting: beadAccounting(d, e?.ok ? e.bodies : []) });
@@ -64,9 +64,9 @@ export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise
   const accounting = combineBeadAccounting(accountingRows);
   const incomplete = incompleteBeadReason(accounting);
   if (incomplete) findings.push({ code: 'BEAD_ACCOUNTING_INCOMPLETE', message: `${incomplete}; massG is a valid body subtotal only` });
-  if (!incomplete && ifc.budgets.massG !== undefined && massG > ifc.budgets.massG + 1e-9) findings.push({ code: 'OVER_TOTAL_BUDGET', message: `the assembly weighs ${Number(massG.toPrecision(6))} g, over its ${ifc.budgets.massG} g` });
+  if (!incomplete && ifc.budgets.mass !== undefined && mass > ifc.budgets.mass + 1e-9) findings.push({ code: 'OVER_TOTAL_BUDGET', message: `the assembly weighs ${Number(mass.toPrecision(6))} g, over its ${ifc.budgets.mass} g` });
   const deciding = findings.filter(f => f.code !== 'EXPECTED_CONTACT');
-  return { verdict: deciding.some(f => f.code !== 'PARTS_TOUCH' && f.code !== 'BEAD_ACCOUNTING_INCOMPLETE') ? 'fail' : deciding.length ? 'undecided' : 'pass', findings, massG, ...(accounting ? { beadAccounting: accounting } : {}) };
+  return { verdict: deciding.some(f => f.code !== 'PARTS_TOUCH' && f.code !== 'BEAD_ACCOUNTING_INCOMPLETE') ? 'fail' : deciding.length ? 'undecided' : 'pass', findings, mass, ...(accounting ? { beadAccounting: accounting } : {}) };
 }
 
 /** What declares two parts' contact: a hole pattern both share (its mating faces), or a mate between them; else null. */
@@ -118,7 +118,7 @@ export function checkBom(view: BomView, bom: Bom): string[] {
     onPlate.set(p, (onPlate.get(p) ?? 0) + 1);
     const x = plates.find(q => `${q.part}:${q.item}` === p);
     if (!x) out.push(`${l.item}: ${p} is no plate of the assembly`);
-    else if (x.kind !== l.plate.kind || x.thicknessMM !== l.plate.thicknessMM || x.areaMM2 !== l.plate.areaMM2 || x.material !== l.material) out.push(`${l.item}: ${p} is a ${x.kind} ${x.thicknessMM} mm, ${x.areaMM2} mm², not this line's`);
+    else if (x.kind !== l.plate.kind || x.thickness !== l.plate.thickness || x.area !== l.plate.area || x.material !== l.material) out.push(`${l.item}: ${p} is a ${x.kind} ${x.thickness} mm, ${x.area} mm², not this line's`);
   }
   for (const x of plates) if ((onPlate.get(`${x.part}:${x.item}`) ?? 0) !== 1) out.push(`${x.part}:${x.item} (${x.kind}) is on ${onPlate.get(`${x.part}:${x.item}`) ?? 0} plate lines, not one`);
   if (plates.length && bom.plateQty !== plates.length) out.push(`plates ${bom.plateQty ?? 0}, the assembly has ${plates.length}`);
@@ -129,7 +129,7 @@ export function checkBom(view: BomView, bom: Bom): string[] {
     onMember.set(p, (onMember.get(p) ?? 0) + 1);
     const r = rows.find(m => m.pieces.some(k => `base:${k}` === p));
     if (!r) out.push(`${l.item}: ${p} is no frame member of the base part`);
-    else if (r.section !== l.member.section || r.lengthMM !== l.member.lengthMM || r.material !== l.material) out.push(`${l.item}: ${p} is a ${r.section} × ${r.lengthMM}, not this line's`);
+    else if (r.section !== l.member.section || r.length !== l.member.length || r.material !== l.material) out.push(`${l.item}: ${p} is a ${r.section} × ${r.length}, not this line's`);
   }
   for (const r of rows) for (const k of r.pieces) if ((onMember.get(`base:${k}`) ?? 0) !== 1) out.push(`base:${k} (member) is on ${onMember.get(`base:${k}`) ?? 0} member lines, not one`);
   const others = view.base?.others ?? [];
@@ -137,9 +137,9 @@ export function checkBom(view: BomView, bom: Bom): string[] {
   for (const o of others) if (bom.lines.filter(l => !l.member && l.parts.includes(`base:${o.key}`)).length !== 1) out.push(`base:${o.key} is not on one line`);
   for (const p of view.parts) if ((seen.get(p.id) ?? 0) !== 1) out.push(`${p.id} (${p.name}) is on ${seen.get(p.id) ?? 0} lines, not one`);
   for (const id of seen.keys()) if (!view.parts.some(p => p.id === id)) out.push(`${id} is not in the assembly`);
-  const qty = view.parts.length, mass = r6(view.parts.reduce((s, p) => s + p.massG, 0) + (view.base?.massG ?? 0));
+  const qty = view.parts.length, mass = r6(view.parts.reduce((s, p) => s + p.mass, 0) + (view.base?.mass ?? 0));
   if (bom.totalQty !== qty) out.push(`total quantity ${bom.totalQty}, the assembly has ${qty} parts`);
-  if (Math.abs(bom.totalMassG - mass) > 1e-6 * Math.max(1, mass)) out.push(`total mass ${bom.totalMassG} g, the assembly weighs ${mass} g`);
+  if (Math.abs(bom.totalMass - mass) > 1e-6 * Math.max(1, mass)) out.push(`total mass ${bom.totalMass} g, the assembly weighs ${mass} g`);
   for (const l of lines) { const lib = view.parts.find(p => p.id === l.parts[0])?.library; if (lib && l.source !== lib) out.push(`${l.item}: a library part with no source (${lib})`); }
   return out;
 }

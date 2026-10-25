@@ -50,7 +50,7 @@ for (const file of readdirSync(a1).filter(f => f.endsWith('.json'))) {
     assert.deepEqual(v.changes, c.expect.changes);
     assert.deepEqual(v.problems.map(p => ({ where: p.where, name: p.name, candidates: p.candidates })), c.expect.problems ?? []);
     for (const [i, why] of Object.entries(c.expect.held ?? {})) assert.deepEqual([v.doc.nodes[Number(i)].suppressed, v.doc.nodes[Number(i)].held], [true, why]);
-    if (c.expect.volumeMM3 !== undefined) { const bodies = await bodiesOf(v.doc); assert.ok(Math.abs(bodies.reduce((a, b) => a + b.volumeMM3!, 0) - c.expect.volumeMM3) < 1e-6, 'the rest builds'); }
+    if (c.expect.volume !== undefined) { const bodies = await bodiesOf(v.doc); assert.ok(Math.abs(bodies.reduce((a, b) => a + b.volume!, 0) - c.expect.volume) < 1e-6, 'the rest builds'); }
     if (c.expect.mates) assert.deepEqual(v.doc.mates!.map(m => ({ face: m.a.face, ...(m.a.was ? { was: m.a.was } : {}) })), c.expect.mates);
   });
 }

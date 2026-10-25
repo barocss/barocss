@@ -11,38 +11,38 @@ import { firstProblem, problem, type Problem } from './refusal';
 
 export type MountType = 'motor' | 'servo' | 'bearing-unit';
 export type MountHoles =
-  /** Four holes on a square, `spacingMM` apart (a NEMA flange). */
-  | { pattern: 'square'; spacingMM: number; diameterMM: number }
+  /** Four holes on a square, `spacing` apart (a NEMA flange). */
+  | { pattern: 'square'; spacing: number; diameter: number }
   /** Four holes on a rectangle, [along, across] apart (a servo's tabs, a pillow block's base). */
-  | { pattern: 'rect'; spacingMM: [number, number]; diameterMM: number }
-  /** `count` holes on a circle of diameter `pcdMM`, the first at `startDeg` from the face's first axis. */
-  | { pattern: 'circle'; pcdMM: number; count: number; diameterMM: number; startDeg?: number };
-export const MOUNT_FIELDS = ['holes', 'pilotMM', 'pilotDepthMM', 'shaftMM', 'shaftOffsetMM', 'shaftHeightMM', 'bodyMM', 'clearanceMM', 'bearing'] as const;
+  | { pattern: 'rect'; spacing: [number, number]; diameter: number }
+  /** `count` holes on a circle of diameter `pcd`, the first at `start` from the face's first axis. */
+  | { pattern: 'circle'; pcd: number; count: number; diameter: number; start?: number };
+export const MOUNT_FIELDS = ['holes', 'pilot', 'pilotDepth', 'shaft', 'shaftOffset', 'shaftHeight', 'body', 'clearance', 'bearing'] as const;
 type MountField = typeof MOUNT_FIELDS[number];
 export interface StudioMountRow {
   id: string; type: MountType; designation?: string;
   holes: MountHoles;
   /** The register (spigot) on the mounting face, and how far it stands out (mm). */
-  pilotMM?: number; pilotDepthMM?: number;
+  pilot?: number; pilotDepth?: number;
   /** The shaft's diameter, where it stands from the pattern's centre ([along, across], mm), and its axis above the face. */
-  shaftMM: number; shaftOffsetMM?: [number, number]; shaftHeightMM: number;
+  shaft: number; shaftOffset?: [number, number]; shaftHeight: number;
   /** A servo's body ([along, across], mm), centred on the pattern: cut through the face. */
-  bodyMM?: [number, number];
+  body?: [number, number];
   /** Added all round to the pilot, shaft and body cut-outs (mm). */
-  clearanceMM: number;
-  /** A bearing unit's insert: a bearings row id (its bore must be shaftMM). */
+  clearance: number;
+  /** A bearing unit's insert: a bearings row id (its bore must be shaft). */
   bearing?: string;
   source?: string; estimate?: true;
   fieldSources?: Partial<Record<MountField, string>>;
   unchecked?: MountField[];
 }
 /** The limits a row is checked against (mm; a count of holes). */
-export const MOUNT_LIMITS = { holeMM: [1, 30], clearanceMM: [0, 5], circleCount: [2, 12], lengthMM: 2000 } as const;
+export const MOUNT_LIMITS = { hole: [1, 30], clearance: [0, 5], circleCount: [2, 12], length: 2000 } as const;
 const FIELDS: ReadonlySet<string> = new Set(['id', 'type', 'designation', ...MOUNT_FIELDS, 'source', 'estimate', 'fieldSources', 'unchecked']);
 const ALL_FIELDS: ReadonlySet<string> = new Set(MOUNT_FIELDS);
-const len = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v > 0 && v <= MOUNT_LIMITS.lengthMM;
+const len = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v > 0 && v <= MOUNT_LIMITS.length;
 const pair = (v: unknown, test: (x: unknown) => boolean): v is [number, number] => Array.isArray(v) && v.length === 2 && v.every(test);
-const finite = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= MOUNT_LIMITS.lengthMM;
+const finite = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= MOUNT_LIMITS.length;
 
 /** The refusal where mounts are needed and none are loaded. */
 export const NO_MOUNTS = '[MOUNT_ROW] no mount rows loaded — load your datasheet\'s mount rows (samples/rows/mounts.json is an example)';
@@ -52,16 +52,16 @@ export const noMountRow = (id: string, have: readonly string[]) => `[MOUNT_ROW] 
 /** The holes' centres about the pattern's centre ([along, across], mm), in order. */
 export function patternPoints(h: MountHoles): [number, number][] {
   if (h.pattern === 'circle') {
-    const r = h.pcdMM / 2, a0 = ((h.startDeg ?? 0) * Math.PI) / 180;
+    const r = h.pcd / 2, a0 = ((h.start ?? 0) * Math.PI) / 180;
     return Array.from({ length: h.count }, (_, i) => { const a = a0 + (2 * Math.PI * i) / h.count; return [r * Math.cos(a), r * Math.sin(a)]; });
   }
-  const [sx, sy] = h.pattern === 'square' ? [h.spacingMM, h.spacingMM] : h.spacingMM;
+  const [sx, sy] = h.pattern === 'square' ? [h.spacing, h.spacing] : h.spacing;
   return [[-sx / 2, -sy / 2], [sx / 2, -sy / 2], [sx / 2, sy / 2], [-sx / 2, sy / 2]];
 }
 
 /** What is wrong with a mount row: none, or its one problem (every one [MOUNT_RANGE], naming the row and the field). */
 export function checkMountRow(r: unknown): Problem[] {
-  if (!r || typeof r !== 'object' || Array.isArray(r)) return [problem('MOUNT_RANGE', 'a mount row is an object { id, type (motor | servo | bearing-unit), holes, pilotMM?, pilotDepthMM?, shaftMM, shaftOffsetMM?, shaftHeightMM, bodyMM?, clearanceMM, bearing?, source | estimate }')];
+  if (!r || typeof r !== 'object' || Array.isArray(r)) return [problem('MOUNT_RANGE', 'a mount row is an object { id, type (motor | servo | bearing-unit), holes, pilot?, pilotDepth?, shaft, shaftOffset?, shaftHeight, body?, clearance, bearing?, source | estimate }')];
   const o = r as Record<string, unknown>;
   if (typeof o.id !== 'string' || !o.id.trim()) return [problem('MOUNT_RANGE', 'a mount row needs an id')];
   const at = `mount row ${o.id}`;
@@ -69,44 +69,44 @@ export function checkMountRow(r: unknown): Problem[] {
   if (o.type !== 'motor' && o.type !== 'servo' && o.type !== 'bearing-unit') return [problem('MOUNT_RANGE', `${at}: type is motor, servo or bearing-unit`)];
   if (o.designation !== undefined && typeof o.designation !== 'string') return [problem('MOUNT_RANGE', `${at}: designation is text`)];
   const h = o.holes as Record<string, unknown> | undefined;
-  if (!h || typeof h !== 'object' || Array.isArray(h)) return [problem('MOUNT_RANGE', `${at}: holes is {pattern: square | rect | circle, …, diameterMM}`)];
-  const [dLo, dHi] = MOUNT_LIMITS.holeMM;
-  if (!(typeof h.diameterMM === 'number' && h.diameterMM >= dLo && h.diameterMM <= dHi)) return [problem('MOUNT_RANGE', `${at}: holes.diameterMM is ${dLo}–${dHi} mm`)];
-  const hd = h.diameterMM;
+  if (!h || typeof h !== 'object' || Array.isArray(h)) return [problem('MOUNT_RANGE', `${at}: holes is {pattern: square | rect | circle, …, diameter}`)];
+  const [dLo, dHi] = MOUNT_LIMITS.hole;
+  if (!(typeof h.diameter === 'number' && h.diameter >= dLo && h.diameter <= dHi)) return [problem('MOUNT_RANGE', `${at}: holes.diameter is ${dLo}–${dHi} mm`)];
+  const hd = h.diameter;
   let least: number;
-  if (h.pattern === 'square') { if (!len(h.spacingMM) || Object.keys(h).some(k => !['pattern', 'spacingMM', 'diameterMM'].includes(k))) return [problem('MOUNT_RANGE', `${at}: a square pattern is {spacingMM, diameterMM}`)]; least = h.spacingMM; }
-  else if (h.pattern === 'rect') { if (!pair(h.spacingMM, len) || Object.keys(h).some(k => !['pattern', 'spacingMM', 'diameterMM'].includes(k))) return [problem('MOUNT_RANGE', `${at}: a rect pattern is {spacingMM: [along, across], diameterMM}`)]; least = Math.min(...h.spacingMM); }
+  if (h.pattern === 'square') { if (!len(h.spacing) || Object.keys(h).some(k => !['pattern', 'spacing', 'diameter'].includes(k))) return [problem('MOUNT_RANGE', `${at}: a square pattern is {spacing, diameter}`)]; least = h.spacing; }
+  else if (h.pattern === 'rect') { if (!pair(h.spacing, len) || Object.keys(h).some(k => !['pattern', 'spacing', 'diameter'].includes(k))) return [problem('MOUNT_RANGE', `${at}: a rect pattern is {spacing: [along, across], diameter}`)]; least = Math.min(...h.spacing); }
   else if (h.pattern === 'circle') {
     const [cLo, cHi] = MOUNT_LIMITS.circleCount;
-    if (!len(h.pcdMM) || !(Number.isInteger(h.count) && (h.count as number) >= cLo && (h.count as number) <= cHi) || (h.startDeg !== undefined && !finite(h.startDeg)) || Object.keys(h).some(k => !['pattern', 'pcdMM', 'count', 'diameterMM', 'startDeg'].includes(k)))
-      return [problem('MOUNT_RANGE', `${at}: a circle pattern is {pcdMM, count (${cLo}–${cHi}), diameterMM, startDeg?}`)];
-    least = h.pcdMM * Math.sin(Math.PI / (h.count as number));
+    if (!len(h.pcd) || !(Number.isInteger(h.count) && (h.count as number) >= cLo && (h.count as number) <= cHi) || (h.start !== undefined && !finite(h.start)) || Object.keys(h).some(k => !['pattern', 'pcd', 'count', 'diameter', 'start'].includes(k)))
+      return [problem('MOUNT_RANGE', `${at}: a circle pattern is {pcd, count (${cLo}–${cHi}), diameter, start?}`)];
+    least = h.pcd * Math.sin(Math.PI / (h.count as number));
   } else return [problem('MOUNT_RANGE', `${at}: holes.pattern is square, rect or circle`)];
   if (!(least > hd)) return [problem('MOUNT_RANGE', `${at}: the holes (Ø${hd}) are closer than their diameter (${+least.toFixed(3)} mm apart)`)];
-  const [kLo, kHi] = MOUNT_LIMITS.clearanceMM;
-  if (!(typeof o.clearanceMM === 'number' && o.clearanceMM >= kLo && o.clearanceMM <= kHi)) return [problem('MOUNT_RANGE', `${at}: clearanceMM is ${kLo}–${kHi} mm`)];
-  const c = o.clearanceMM;
-  if (!len(o.shaftMM)) return [problem('MOUNT_RANGE', `${at}: shaftMM is the shaft's diameter, mm above 0`)];
-  if (!(typeof o.shaftHeightMM === 'number' && o.shaftHeightMM >= 0 && o.shaftHeightMM <= MOUNT_LIMITS.lengthMM)) return [problem('MOUNT_RANGE', `${at}: shaftHeightMM is the axis above the mounting face, mm, 0 or more`)];
-  if (o.shaftOffsetMM !== undefined && !pair(o.shaftOffsetMM, finite)) return [problem('MOUNT_RANGE', `${at}: shaftOffsetMM is [along, across], mm`)];
-  for (const k of ['pilotMM', 'pilotDepthMM'] as const) if (o[k] !== undefined && !len(o[k])) return [problem('MOUNT_RANGE', `${at}: ${k} is mm above 0`)];
-  if (o.pilotDepthMM !== undefined && o.pilotMM === undefined) return [problem('MOUNT_RANGE', `${at}: pilotDepthMM needs pilotMM`)];
-  if (o.pilotMM !== undefined && !((o.pilotMM as number) > (o.shaftMM as number))) return [problem('MOUNT_RANGE', `${at}: the pilot Ø${o.pilotMM} must be wider than the shaft Ø${o.shaftMM}`)];
-  if (o.bodyMM !== undefined && !pair(o.bodyMM, len)) return [problem('MOUNT_RANGE', `${at}: bodyMM is [along, across], mm`)];
-  if (o.type === 'servo' && o.bodyMM === undefined) return [problem('MOUNT_RANGE', `${at}: a servo row gives its body (bodyMM)`)];
-  if (o.type !== 'servo' && o.bodyMM !== undefined) return [problem('MOUNT_RANGE', `${at}: bodyMM is a servo's`)];
+  const [kLo, kHi] = MOUNT_LIMITS.clearance;
+  if (!(typeof o.clearance === 'number' && o.clearance >= kLo && o.clearance <= kHi)) return [problem('MOUNT_RANGE', `${at}: clearance is ${kLo}–${kHi} mm`)];
+  const c = o.clearance;
+  if (!len(o.shaft)) return [problem('MOUNT_RANGE', `${at}: shaft is the shaft's diameter, mm above 0`)];
+  if (!(typeof o.shaftHeight === 'number' && o.shaftHeight >= 0 && o.shaftHeight <= MOUNT_LIMITS.length)) return [problem('MOUNT_RANGE', `${at}: shaftHeight is the axis above the mounting face, mm, 0 or more`)];
+  if (o.shaftOffset !== undefined && !pair(o.shaftOffset, finite)) return [problem('MOUNT_RANGE', `${at}: shaftOffset is [along, across], mm`)];
+  for (const k of ['pilot', 'pilotDepth'] as const) if (o[k] !== undefined && !len(o[k])) return [problem('MOUNT_RANGE', `${at}: ${k} is mm above 0`)];
+  if (o.pilotDepth !== undefined && o.pilot === undefined) return [problem('MOUNT_RANGE', `${at}: pilotDepth needs pilot`)];
+  if (o.pilot !== undefined && !((o.pilot as number) > (o.shaft as number))) return [problem('MOUNT_RANGE', `${at}: the pilot Ø${o.pilot} must be wider than the shaft Ø${o.shaft}`)];
+  if (o.body !== undefined && !pair(o.body, len)) return [problem('MOUNT_RANGE', `${at}: body is [along, across], mm`)];
+  if (o.type === 'servo' && o.body === undefined) return [problem('MOUNT_RANGE', `${at}: a servo row gives its body (body)`)];
+  if (o.type !== 'servo' && o.body !== undefined) return [problem('MOUNT_RANGE', `${at}: body is a servo's`)];
   if (o.bearing !== undefined && (o.type !== 'bearing-unit' || typeof o.bearing !== 'string')) return [problem('MOUNT_RANGE', `${at}: bearing names a bearings row, for a bearing unit`)];
   // (The pilot's cut, with its clearance, must stay clear of the holes' inner edges; the shaft's, for a flange.)
-  const off = (o.shaftOffsetMM as [number, number] | undefined) ?? [0, 0], pts = patternPoints(h as unknown as MountHoles);
-  const cut = o.pilotMM !== undefined ? (o.pilotMM as number) : o.type !== 'servo' && o.shaftHeightMM === 0 ? (o.shaftMM as number) : 0;
+  const off = (o.shaftOffset as [number, number] | undefined) ?? [0, 0], pts = patternPoints(h as unknown as MountHoles);
+  const cut = o.pilot !== undefined ? (o.pilot as number) : o.type !== 'servo' && o.shaftHeight === 0 ? (o.shaft as number) : 0;
   if (cut) {
     const gap = Math.min(...pts.map(p => Math.hypot(p[0] - off[0], p[1] - off[1]))) - hd / 2 - (cut / 2 + c);
-    if (!(gap > 0)) return [problem('MOUNT_RANGE', `${at}: the ${o.pilotMM !== undefined ? 'pilot' : 'shaft'} cut (Ø${cut} + ${c} clearance) runs into the holes`)];
+    if (!(gap > 0)) return [problem('MOUNT_RANGE', `${at}: the ${o.pilot !== undefined ? 'pilot' : 'shaft'} cut (Ø${cut} + ${c} clearance) runs into the holes`)];
   }
   if (o.type === 'servo') {
-    const [bw, bh] = o.bodyMM as [number, number];
+    const [bw, bh] = o.body as [number, number];
     if (pts.some(p => Math.abs(p[0]) - hd / 2 < bw / 2 + c && Math.abs(p[1]) - hd / 2 < bh / 2 + c)) return [problem('MOUNT_RANGE', `${at}: the body's cut-out (${bw} × ${bh} + ${c} clearance) runs into the holes`)];
-    if (Math.abs(off[0]) + (o.shaftMM as number) / 2 > bw / 2 || Math.abs(off[1]) + (o.shaftMM as number) / 2 > bh / 2) return [problem('MOUNT_RANGE', `${at}: the shaft (offset ${off.join(', ')}) is outside the body`)];
+    if (Math.abs(off[0]) + (o.shaft as number) / 2 > bw / 2 || Math.abs(off[1]) + (o.shaft as number) / 2 > bh / 2) return [problem('MOUNT_RANGE', `${at}: the shaft (offset ${off.join(', ')}) is outside the body`)];
   }
   if (o.estimate !== undefined && o.estimate !== true) return [problem('MOUNT_RANGE', `${at}: estimate is true or left out`)];
   if (o.source !== undefined && typeof o.source !== 'string') return [problem('MOUNT_RANGE', `${at}: source is text (where the row is from)`)];

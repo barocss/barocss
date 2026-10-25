@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { part, param, withParameters, BarocssError } from '../dist/api/index.js';
-import { evaluateCadPart } from '../dist/index.js';
+import { evaluateCadPart, massPropertiesOf } from '../dist/index.js';
 
 // An 80 × 40 × 10 plate, its width W, a Ø8 hole at (X, 20), its four vertical edges rounded R.
 const plate = () => part('plate').parameter('W', 80).parameter('X', 20).parameter('R', 2)
@@ -21,7 +21,7 @@ const plateDoc = () => ({
     { id: 'fillet1', kind: 'fillet', target: 'hole1', edges: ['extrude1.side0|extrude1.side1', 'extrude1.side0|extrude1.side3', 'extrude1.side1|extrude1.side2', 'extrude1.side2|extrude1.side3'], radius: { parameter: 'R' } },
   ],
 });
-const look = p => { const m = p.mass({ density: 1 }); return { volume: m.volumeMM3, centroid: [...m.centroidMM] }; };
+const look = p => { const m = p.mass({ density: 1 }); return { volume: m.volume, centroid: [...m.centroid] }; };
 const near = (a, b) => {
   assert.ok(Math.abs(a.volume - b.volume) <= 1e-9 * b.volume, `volume ${a.volume} vs ${b.volume}`);
   a.centroid.forEach((v, k) => assert.ok(Math.abs(v - b.centroid[k]) <= 1e-9, `centroid ${a.centroid} vs ${b.centroid}`));
@@ -29,8 +29,8 @@ const near = (a, b) => {
 
 test('bound values: the hand-written CadPartDocument with { parameter } leaves, byte for byte, and the kernel\'s results on it', () => {
   assert.equal(JSON.stringify(plate().doc), JSON.stringify(plateDoc()));
-  const [output] = evaluateCadPart(plateDoc()).outputs, m = output.massProperties(1000);
-  near(look(plate()), { volume: m.volumeMM3, centroid: [...m.centroidMM] });
+  const [output] = evaluateCadPart(plateDoc()).outputs, m = massPropertiesOf(output, 1);
+  near(look(plate()), { volume: m.volume, centroid: [...m.centroid] });
 });
 
 test('withParameters: a function over the document, and the part at new values is the part built with them', () => {

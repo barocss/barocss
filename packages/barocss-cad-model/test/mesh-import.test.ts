@@ -14,7 +14,7 @@ test('an STL in centimetres opens as a solid in mm: welded, scaled, its flat fac
   assert.deepEqual(meshInMM(mesh, 'in').size, [101.6, 50.8, 25.4]);
   const doc = withNode(emptyDoc(), { kind: 'mesh', name: 'block', unit: 'cm', ...cm }), r = evaluateDoc(doc, 1);
   assert.ok(r.ok, r.ok ? '' : r.error.hint);
-  assert.ok(Math.abs(r.bodies[0].volumeMM3! - (40 * 20 - 10 * 10) * 10) < 1e-6);
+  assert.ok(Math.abs(r.bodies[0].volume! - (40 * 20 - 10 * 10) * 10) < 1e-6);
   assert.equal(featureLabel(doc.nodes[0], 0, doc.nodes), 'Mesh block');
 });
 
@@ -26,7 +26,7 @@ test('an STL imported as facet faces (F0): regions named by the node, flat ones 
   const faces = facets.bodies[0].mesh.faces;
   assert.ok(faces.every(f => /^n\d+\.region\d+$/.test(f.name)), faces.map(f => f.name).join());
   assert.equal(faces.length, 10); assert.ok(faces.every(f => f.kind === 'plane'));
-  assert.ok(Math.abs(facets.bodies[0].volumeMM3! - 7000) < 1e-6);
+  assert.ok(Math.abs(facets.bodies[0].volume! - 7000) < 1e-6);
   const planar = evaluateDoc(withNode(emptyDoc(), { kind: 'mesh', name: 'block', unit: 'cm', ...cm }), 2);
   assert.ok(planar.ok && planar.bodies[0].mesh.faces.every(f => /\.facet\d+$/.test(f.name)));
 });
@@ -40,5 +40,5 @@ test('a mesh node in pieces: each closed piece a body of its own, keyed b<k>_par
   assert.ok(r.ok, r.ok ? '' : r.error.hint);
   assert.deepEqual(r.bodies.map(b => b.key), ['b0_part0', 'b0_part1']);
   assert.ok(r.bodies[1].mesh.faces.every(f => /^n0\.part1\.region\d+$/.test(f.name)));
-  assert.ok(r.bodies.every(b => Math.abs(b.volumeMM3! - 7) < 1e-9));
+  assert.ok(r.bodies.every(b => Math.abs(b.volume! - 7) < 1e-9));
 });

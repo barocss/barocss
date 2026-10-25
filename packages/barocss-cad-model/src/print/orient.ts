@@ -13,8 +13,8 @@ import { overhangOf, type Vec3 } from './overhang';
 export interface OrientationTerms { readonly support: number; readonly overhang: number; readonly height: number; readonly contact: number }
 export interface OrientationWeights { readonly support: number; readonly overhang: number; readonly height: number; readonly contact: number }
 export const DEFAULT_WEIGHTS: OrientationWeights = { support: 2, overhang: 1, height: 0.5, contact: 0.5 };
-export interface OrientationScore { readonly index: number; readonly direction: Vec3; readonly score: number; readonly terms: OrientationTerms; readonly overhangMM2: number; readonly heightMM: number; readonly contactMM2: number; readonly supportMM3?: number }
-export interface OrientationResult { readonly best: OrientationScore; readonly top: readonly OrientationScore[]; readonly candidates: number; readonly weights: OrientationWeights; readonly ms: number }
+export interface OrientationScore { readonly index: number; readonly direction: Vec3; readonly score: number; readonly terms: OrientationTerms; readonly overhangArea: number; readonly height: number; readonly contactArea: number; readonly supportVolume?: number }
+export interface OrientationResult { readonly best: OrientationScore; readonly top: readonly OrientationScore[]; readonly candidates: number; readonly weights: OrientationWeights; readonly wallTime: number }
 
 /** 64 directions spread over the sphere (the golden-angle spiral), always the same. */
 export function fibonacciDirections(n = 64): Vec3[] {
@@ -24,8 +24,8 @@ export function fibonacciDirections(n = 64): Vec3[] {
 }
 const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 /** The deterministic order: the score, then the lower height, then the candidate's index. */
-function order(a: { score: number; heightMM: number; index: number }, b: { score: number; heightMM: number; index: number }): number {
-  return (Math.abs(a.score - b.score) > 1e-12 ? a.score - b.score : 0) || (Math.abs(a.heightMM - b.heightMM) > 1e-9 ? a.heightMM - b.heightMM : 0) || a.index - b.index;
+function order(a: { score: number; height: number; index: number }, b: { score: number; height: number; index: number }): number {
+  return (Math.abs(a.score - b.score) > 1e-12 ? a.score - b.score : 0) || (Math.abs(a.height - b.height) > 1e-9 ? a.height - b.height : 0) || a.index - b.index;
 }
 
 /**
@@ -34,9 +34,9 @@ function order(a: { score: number; heightMM: number; index: number }, b: { score
  * terms: w_s·support / (area·diag) + w_o·overhang / area + w_h·height / diag − w_c·contact / area — the support volume
  * only for the eight best by the rest (then its term added to theirs).
  */
-export function searchOrientation(mesh: DisplayMesh, table: FaceTable, limitDeg: number, weights: OrientationWeights = DEFAULT_WEIGHTS): OrientationResult {
+export function searchOrientation(mesh: DisplayMesh, table: FaceTable, limit: number, weights: OrientationWeights = DEFAULT_WEIGHTS): OrientationResult {
   const t0 = performance.now(), P = mesh.positions;
-  let area = 0; for (const f of mesh.faces) area += f.areaMM2;
+  let area = 0; for (const f of mesh.faces) area += f.area;
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (let i = 0; i < P.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], P[i + k]); hi[k] = Math.max(hi[k], P[i + k]); }
   const diag = Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) || 1;
@@ -44,19 +44,19 @@ export function searchOrientation(mesh: DisplayMesh, table: FaceTable, limitDeg:
   const cands: Vec3[] = [];
   const add = (d: Vec3) => { if (!cands.some(c => dot(c, d) > 1 - 1e-9)) cands.push(d); };
   for (const d of fibonacciDirections()) add(d);
-  [...mesh.faces].filter(f => f.kind === 'plane' && f.areaMM2 >= 0.01 * area).sort((a, b) => b.areaMM2 - a.areaMM2 || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)).slice(0, 32)
+  [...mesh.faces].filter(f => f.kind === 'plane' && f.area >= 0.01 * area).sort((a, b) => b.area - a.area || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)).slice(0, 32)
     .forEach(f => { const e = table[f.name.replace(/#\d+$/, '')], n = e && e.kind === 'plane' ? e.normal : f.normal; add([-n[0], -n[1], -n[2]]); });
   const cheap = cands.map((b, index) => {
-    const o = overhangOf(mesh, table, limitDeg, b);
+    const o = overhangOf(mesh, table, limit, b);
     let top = -Infinity, bottom = Infinity; for (let i = 0; i < P.length; i += 3) { const t = P[i] * b[0] + P[i + 1] * b[1] + P[i + 2] * b[2]; if (t > top) top = t; if (t < bottom) bottom = t; }
     const height = top - bottom;
-    const terms = { support: 0, overhang: o.totalMM2 / area, height: height / diag, contact: o.bedMM2 / area };
-    return { index, direction: b, overhangMM2: o.totalMM2, heightMM: height, contactMM2: o.bedMM2, terms, score: weights.overhang * terms.overhang + weights.height * terms.height - weights.contact * terms.contact, bottom };
+    const terms = { support: 0, overhang: o.overhangArea / area, height: height / diag, contact: o.contactArea / area };
+    return { index, direction: b, overhangArea: o.overhangArea, height: height, contactArea: o.contactArea, terms, score: weights.overhang * terms.overhang + weights.height * terms.height - weights.contact * terms.contact, bottom };
   });
   const short = [...cheap].sort(order).slice(0, 8);
   const bvh = triangleBvh(mesh.positions, mesh.indices), Ix = mesh.indices;
   const scored: OrientationScore[] = short.map(c => {
-    const b = c.direction, down = [-b[0], -b[1], -b[2]], s = Math.sin(limitDeg * Math.PI / 180);
+    const b = c.direction, down = [-b[0], -b[1], -b[2]], s = Math.sin(limit * Math.PI / 180);
     let support = 0;
     for (let t = 0; t < Ix.length; t += 3) {
       const a = 3 * Ix[t], e = 3 * Ix[t + 1], f = 3 * Ix[t + 2];
@@ -72,16 +72,16 @@ export function searchOrientation(mesh: DisplayMesh, table: FaceTable, limitDeg:
       support += (twice / 2) * -nb * Math.min(hit, toBed);
     }
     const terms = { ...c.terms, support: support / (area * diag) };
-    return { index: c.index, direction: b, overhangMM2: c.overhangMM2, heightMM: c.heightMM, contactMM2: c.contactMM2, supportMM3: support, terms, score: c.score + weights.support * terms.support };
+    return { index: c.index, direction: b, overhangArea: c.overhangArea, height: c.height, contactArea: c.contactArea, supportVolume: support, terms, score: c.score + weights.support * terms.support };
   });
   scored.sort(order);
-  return { best: scored[0], top: scored.slice(0, 3), candidates: cands.length, weights, ms: performance.now() - t0 };
+  return { best: scored[0], top: scored.slice(0, 3), candidates: cands.length, weights, wallTime: (performance.now() - t0) / 1000 };
 }
 
 /** The part's orientation: its largest body's search, with its printing process's limit and weights; why not, else. */
 export function orientPart(doc: import('../engine/doc').StudioDoc, bodies: readonly import('../engine/evaluate').BodyResult[], table: FaceTable, profile: import('../library/materials').ProcessProfile | undefined): OrientationResult | string {
   if (!profile?.additive) return profile ? `${profile.label} is not printing` : 'no printing process is chosen';
-  const body = [...bodies].sort((a, b) => (b.volumeMM3 ?? 0) - (a.volumeMM3 ?? 0))[0];
+  const body = [...bodies].sort((a, b) => (b.volume ?? 0) - (a.volume ?? 0))[0];
   if (!body) return 'no body';
   const w = (k: string, d: number) => profile.thresholds[k]?.value ?? d;
   void doc;

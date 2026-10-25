@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { part, sketch, Plane, Location, BarocssError } from '../dist/api/index.js';
-import { evaluateCadPart, exportStep } from '../dist/index.js';
+import { evaluateCadPart, exportStep, massPropertiesOf } from '../dist/index.js';
 
 const doc = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const tags = n => ({ outer: Array.from({ length: n }, (_, k) => `e${k + 1}`) });
@@ -26,7 +26,7 @@ const plateDoc = () => doc([
 const cup = () => part('cup').revolve(sketch(Plane.XZ).polygon([[0, 0], [20, 0], [20, 30], [0, 30]])).shell(b => b.faces().facing('+z'), { t: 2 });
 const cupDoc = () => doc([
   { id: 'sketch1', kind: 'sketch', profile: 'polygon', points: [[0, 0], [20, 0], [20, 30], [0, 30]], plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] }, sideTags: tags(4) },
-  { id: 'revolve1', kind: 'revolve', sketch: 'sketch1', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 },
+  { id: 'revolve1', kind: 'revolve', sketch: 'sketch1', axis: { origin: [0, 0], direction: 'y' }, angle: 360 },
   // (A full turn's top: the turned side e3, a disc in two halves.)
   { id: 'shell1', kind: 'shell', target: 'revolve1', thickness: 2, open: ['revolve1.side[e3]#1', 'revolve1.side[e3]#2'] },
 ]);
@@ -37,9 +37,9 @@ const ring = () => part('ring').box({ w: 10, d: 10, h: 5, x: 20 }).circularPatte
 const ringDoc = () => doc([
   { id: 'sketch1', kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [30, 10] },
   { id: 'extrude1', kind: 'extrude', sketch: 'sketch1', height: 5 },
-  { id: 'circular-pattern1', kind: 'circular-pattern', target: 'extrude1', axis: 'z', angleDegrees: 60, count: 6 },
+  { id: 'circular-pattern1', kind: 'circular-pattern', target: 'extrude1', axis: 'z', angle: 60, count: 6 },
   { id: 'linear-pattern1', kind: 'linear-pattern', target: 'circular-pattern1', axis: 'z', spacing: 10, count: 2 },
-  { id: 'rotate1', kind: 'rotate', target: 'linear-pattern1', axis: 'x', angleDegrees: 90 },
+  { id: 'rotate1', kind: 'rotate', target: 'linear-pattern1', axis: 'x', angle: 90 },
   { id: 'translate1', kind: 'translate', target: 'rotate1', offset: [0, 0, 5] },
 ]);
 
@@ -70,7 +70,7 @@ const tabsDoc = () => doc([
   { id: 'sketch1', kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, 0] }, { kind: 'arc', start: [30, 0], center: [30, 10], direction: 'ccw' }, { kind: 'line', start: [30, 20] }, { kind: 'line', start: [0, 20] }], plane: { origin: [0, 0, 5], normal: [0, 0, 1], xAxis: [1, 0, 0] }, sideTags: tags(4) },
   { id: 'extrude1', kind: 'extrude', sketch: 'sketch1', height: 6, draft: 3 },
   { id: 'sketch2', kind: 'sketch', profile: 'rectangle', min: [10, 0], max: [14, 6], plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] }, sideTags: tags(4) },
-  { id: 'revolve1', kind: 'revolve', sketch: 'sketch2', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 90 },
+  { id: 'revolve1', kind: 'revolve', sketch: 'sketch2', axis: { origin: [0, 0], direction: 'y' }, angle: 90 },
 ]);
 
 // A block mirrored across x = 12 (kept, joined), scaled ×2 about (1, 2, 3), and split across x = 20 into two bodies.
@@ -89,8 +89,8 @@ const mirroredDoc = () => doc([
 const CASES = [['plate', plate, plateDoc], ['cup', cup, cupDoc], ['ring', ring, ringDoc], ['pegged', pegged, peggedDoc], ['tabs', tabs, tabsDoc], ['mirrored', mirrored, mirroredDoc]];
 // (exportStep stamps the export's time in FILE_NAME; the two runs are compared without it.)
 const unstamped = text => text.replace(/'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d'/g, "'stamp'");
-// (MMGS, api-conventions.md §2, from the kernel's kg units: its density in kg/m³ is g/cm³ × 1000.)
-const mmgs = m => ({ volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroidMM: [...m.centroidMM], inertiaGMM2: m.inertiaCentroidKgM2.map(row => row.map(v => v * 1e9)) });
+// (The kernel's mass is MMGS since R7.3b: the facade's result shape over it, nothing converted.)
+const mmgs = m => ({ volume: m.volume, mass: m.mass, centroid: [...m.centroid], inertia: m.inertia.map(row => [...row]) });
 
 for (const [name, built, hand] of CASES) {
   test(`${name}: the facade writes the hand-written CadPartDocument, byte for byte`, () => {
@@ -99,8 +99,8 @@ for (const [name, built, hand] of CASES) {
   test(`${name}: its bodies, mass and STEP are the kernel's own on that document`, () => {
     const outputs = evaluateCadPart(hand()).outputs, p = built();
     assert.deepEqual(p.bodies(), outputs.map(o => o.id));
-    for (const o of outputs) assert.equal(JSON.stringify(p.body(o.id).mass({ density: 1.2 })), JSON.stringify(mmgs(o.massProperties(1200))));
-    const step = outputs.length === 1 ? outputs[0].exportStep({ name }) : exportStep(outputs.map(o => o.brep), { name });
+    for (const o of outputs) assert.equal(JSON.stringify(p.body(o.id).mass({ density: 1.2 })), JSON.stringify(mmgs(massPropertiesOf(o, 1.2))));
+    const step = outputs.length === 1 ? exportStep(outputs[0], { name }) : exportStep(outputs.map(o => o.brep), { name });
     assert.equal(unstamped(p.step()), unstamped(step));
   });
 }
@@ -111,7 +111,7 @@ test('a body chooser leaves the document as it was, and follows its body through
   const q = p.body('extrude2').fillet(b => b.edges().curved().sortBy('z').last(2), { radius: 1 });
   // (The peg's fillet replaced the peg: the choice is the fillet's body now, so the next verb acts on it.)
   assert.deepEqual(q.bodies(), ['extrude1', 'fillet1']);
-  assert.equal(q.mass({ density: 1 }).volumeMM3, q.body('fillet1').mass({ density: 1 }).volumeMM3);
+  assert.equal(q.mass({ density: 1 }).volume, q.body('fillet1').mass({ density: 1 }).volume);
 });
 
 test('Plane, Location and Sketch are immutable values with plain data', () => {

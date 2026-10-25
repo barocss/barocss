@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart } from '../dist/index.js';
+import { evaluateCadPart, massPropertiesOf, checkOutput } from '../dist/index.js';
 import { evaluateSurface } from '../dist/core/math.js';
 import { setRingStations } from '../dist/blend/rolling-ball.js';
 
@@ -27,23 +27,23 @@ const shapes = r => [
 test('R10.5b a box\'s top edge (convex, square planes) and a step\'s foot (concave), r 3: conics ρ 0.3–0.7 and G2 (tension 0.3–0.8) — the section between the corner and the exact curve × 40 to 1e-9; the circle\'s ρ the circular fillet\'s (1 − π/4) r² L', () => {
   const step = [...box, { id: 'q', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 15] }, { id: 'f0', kind: 'extrude', sketch: 'q', height: 10, from: 10 }, { id: 'u', kind: 'union', target: 'e', tool: 'f0' }];
   for (const [what, body, target, edgeAt, sign] of [['top edge', box, 'e', [0, 10], -1], ['step foot', step, 'u', [15, 10], 1]]) {
-    const o0 = out(body), v0 = o0.massProperties(1).volumeMM3, edge = at(o0.brep, ...edgeAt);
+    const o0 = out(body), v0 = massPropertiesOf(o0).volume, edge = at(o0.brep, ...edgeAt);
     for (const [label, section, curve] of shapes(3)) {
-      const o = out([...body, { id: 'f', kind: 'fillet', target, edges: [edge], radius: 3, section }]), got = sign * (o.massProperties(1).volumeMM3 - v0), exact = region(curve) * 40;
-      assert.equal(o.validate().valid, true, `${what}, ${label}`);
+      const o = out([...body, { id: 'f', kind: 'fillet', target, edges: [edge], radius: 3, section }]), got = sign * (massPropertiesOf(o).volume - v0), exact = region(curve) * 40;
+      assert.equal(checkOutput(o).valid, true, `${what}, ${label}`);
       assert.ok(Math.abs(got / exact - 1) < 1e-9, `${what}, ${label}: ${got} vs ${exact} (${got / exact - 1})`);
     }
   }
   const o0 = out(box), circle = out([...box, { id: 'f', kind: 'fillet', target: 'e', edges: [at(o0.brep, 0, 10)], radius: 3, section: shapes(3)[0][1] }]);
-  assert.ok(Math.abs((o0.massProperties(1).volumeMM3 - circle.massProperties(1).volumeMM3) / ((1 - Math.PI / 4) * 9 * 40) - 1) < 1e-9);
+  assert.ok(Math.abs((massPropertiesOf(o0).volume - massPropertiesOf(circle).volume) / ((1 - Math.PI / 4) * 9 * 40) - 1) < 1e-9);
 });
 
 test('R10.5b with a varying radius (D100): a box\'s top edge from r 1 to r 3, a parabola (ρ 0.5) and G2 — each section the shape at r(x), r² L / 6 and r² L / 10 integrated, to 1e-10', () => {
-  const v0 = out(box).massProperties(1).volumeMM3;
+  const v0 = massPropertiesOf(out(box)).volume;
   for (const [section, c] of [[{ kind: 'conic', rho: 0.5 }, 1 / 6], [{ kind: 'g2' }, 1 / 10]]) {
     const o = out([...box, { id: 'f', kind: 'fillet', target: 'e', edges: [at(out(box).brep, 0, 10)], radii: [{ at: [0, 0, 10], radius: 1 }, { at: [40, 0, 10], radius: 3 }], section }]);
-    const got = v0 - o.massProperties(1).volumeMM3, exact = c * 40 * (1 + 3 + 9) / 3;
-    assert.equal(o.validate().valid, true, section.kind);
+    const got = v0 - massPropertiesOf(o).volume, exact = c * 40 * (1 + 3 + 9) / 3;
+    assert.equal(checkOutput(o).valid, true, section.kind);
     assert.ok(Math.abs(got / exact - 1) < 1e-10, `${section.kind}: ${got} vs ${exact}`);
   }
 });
@@ -61,7 +61,7 @@ test('R10.5b G2 on a curved face: a groove\'s rim (a plate and a cylinder R 4) f
   };
   for (const [section, expect] of [[{ kind: 'g2' }, p => Math.abs(Math.hypot(p[1], p[2] - 10) - 4) < 1e-6 ? 0.25 : 0], [{ kind: 'circular' }, () => 1]]) {
     const o = out([...body, { id: 'f', kind: 'fillet', target: 'g', edges: [rim], radius: 1, section }]);
-    assert.equal(o.validate().valid, true, section.kind);
+    assert.equal(checkOutput(o).valid, true, section.kind);
     const faces = o.brep.faces.filter(f => /^f\.face/.test(f.name)).filter(f => { const x = evaluateSurface(f.surface, 0.5, 0.5)[0]; return x > 2 && x < 38; });
     assert.ok(faces.length > 0);
     for (const f of faces) for (const v of [0.25, 0.5, 0.75]) for (const u of [0, 1]) {
@@ -74,19 +74,19 @@ test('R10.5b G2 on a curved face: a groove\'s rim (a plate and a cylinder R 4) f
 test('R10.5b G2 and a conic round a boss\'s foot (a closed circle between a plate and a cylinder, both straight across): Pappus over the section — within the loft\'s own reported deviation × the fillet\'s area at its stations, and to 1e-8 of the fillet at 1024', () => {
   const R = 8, r = 2, boss = [{ id: 'as', kind: 'sketch', profile: 'rectangle', min: [-30, -30], max: [30, 30] }, { id: 'a', kind: 'extrude', sketch: 'as', height: 10 },
     { id: 'bs', kind: 'sketch', profile: 'circle', center: [0, 0], radius: R }, { id: 'b', kind: 'extrude', sketch: 'bs', height: 15, from: 10 }, { id: 'u', kind: 'union', target: 'a', tool: 'b' }];
-  const o0 = out(boss), v0 = o0.massProperties(1).volumeMM3, foot = o0.brep.edges.filter(e => /a\.top/.test(e.name) && /b\.side0/.test(e.name)).map(e => e.name);
+  const o0 = out(boss), v0 = massPropertiesOf(o0).volume, foot = o0.brep.edges.filter(e => /a\.top/.test(e.name) && /b\.side0/.test(e.name)).map(e => e.name);
   // (The loft is cubic along the circle through every other station: its sections are off the true ones by the
-  // deviation it reports, `sectionMM`; the fillet's area is under 2π (R + r) × the section's length.)
+  // deviation it reports, `section`; the fillet's area is under 2π (R + r) × the section's length.)
   const arc = curve => { let l = 0; for (let i = 1; i <= 20000; i++) { const p = curve((i - 1) / 20000), q = curve(i / 20000); l += Math.hypot(q[0] - p[0], q[1] - p[1]); } return l; };
   for (const [label, section, curve] of [['G2', { kind: 'g2' }, quartic(r, 0.5)], ['ρ 0.6', { kind: 'conic', rho: 0.6 }, conic(r, 1.5)]]) {
     const exact = 2 * Math.PI * moment(curve, R);
     for (const stations of [null, 1024]) {
       setRingStations(stations);
       try {
-        const o = out([...boss, { id: 'f', kind: 'fillet', target: 'u', edges: foot, radius: r, section }]), got = o.massProperties(1).volumeMM3 - v0, rep = o.fillet[0];
-        assert.equal(o.validate().valid, true, label);
+        const o = out([...boss, { id: 'f', kind: 'fillet', target: 'u', edges: foot, radius: r, section }]), got = massPropertiesOf(o).volume - v0, rep = o.fillet[0];
+        assert.equal(checkOutput(o).valid, true, label);
         if (stations) assert.ok(Math.abs(got / exact - 1) < 1e-8, `${label} at ${stations}: ${got} vs ${exact} (${got / exact - 1})`);
-        else assert.ok(Math.abs(got - exact) <= rep.sectionMM * 2 * Math.PI * (R + r) * arc(curve), `${label}: ${got} vs ${exact}, deviation ${rep.sectionMM}`);
+        else assert.ok(Math.abs(got - exact) <= rep.section * 2 * Math.PI * (R + r) * arc(curve), `${label}: ${got} vs ${exact}, deviation ${rep.section}`);
       } finally { setRingStations(null); }
     }
   }

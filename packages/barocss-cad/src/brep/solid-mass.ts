@@ -4,6 +4,7 @@
 // faces the chord error of the tessellation, reported). Bodies of facet faces and straight-edged planar faces
 // (mesh bodies) are integrated exactly from their triangles and loops, once per B-rep.
 import { regionMoments } from './curved-arrangement.js';
+import { recordIntegralMass, transferNativeMassBasis, unsupportedNativeMass } from '../internal/native-si-mass-state.js';
 import { planar, tessellateBrep } from './brep-tessellate.js';
 import { brepQuadratureIntegrals } from './brep-mass-quadrature.js';
 import { facetIntegrals } from '../mesh/facet-patch.js';
@@ -12,17 +13,20 @@ import type { PrismaticSolid } from '../features/prismatic-solid.js';
 import type { Point } from '../types.js';
 import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
-export interface SolidMassProperties {
-  readonly volumeMM3: number; readonly massKG: number; readonly centroidMM: Point;
-  /** About the centroid in kg·m², products of inertia stored as −∫xy dm. */
-  readonly inertiaCentroidKgM2: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]];
+/**
+ * A body's mass properties in MMGS (R7.3b, api-conventions §2): `volume` mm³, `mass` g, `centroid` mm, `inertia` g·mm²
+ * about the centroid, products of inertia stored as −∫xy dm. A density is in g/cm³.
+ */
+export interface MassProperties {
+  readonly volume: number; readonly mass: number; readonly centroid: Point;
+  readonly inertia: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]];
   /** `quadrature`: Gauss quadrature exact across and to rounding along smooth (rational) edges. */
   readonly method: 'closed-form' | 'planar-exact' | 'tessellated' | 'quadrature';
   /**
    * `tessellated` only (a curved body the quadrature could not integrate): an estimate of the volume's error, mm³ — the
    * change from a mesh of half the segments, which the chord error's square makes some three times the error itself.
    */
-  readonly volumeBoundMM3?: number;
+  readonly volumeBound?: number;
 }
 /** This module's refusal (R7.3a batch 2: the SolidMassError class folded, D279): a BarocssError, `details.source` 'solid-mass'. */
 export const solidMassError = (detail: string) => kernelRefusal('solid-mass', 'SOLID_MASS', 'Mass properties: ' + detail) as KernelError & { readonly code: 'SOLID_MASS' };
@@ -30,18 +34,21 @@ export const solidMassError = (detail: string) => kernelRefusal('solid-mass', 'S
 export const isSolidMassError = (e: unknown): e is KernelError & { readonly code: 'SOLID_MASS' } => isFrom<'SOLID_MASS'>(e, 'solid-mass');
 
 /** From volume integrals [V, ∫x, ∫y, ∫z, ∫x², ∫y², ∫z², ∫xy, ∫xz, ∫yz] in mm-powers. */
-export function solidMassFromIntegrals(I: readonly number[], density: number, method: SolidMassProperties['method']): SolidMassProperties {
+export function solidMassFromIntegrals(I: readonly number[], density: number, method: MassProperties['method']): MassProperties {
   if (!(typeof density === 'number' && Number.isFinite(density) && density > 0)) throw solidMassError('a positive finite density is required');
   const [V, X, Y, Z, XX, YY, ZZ, XY, XZ, YZ] = I;
   if (!(V > 0)) throw solidMassError('the solid has no positive volume');
-  const c: Point = [X / V, Y / V, Z / V], k = density * 1e-15;
+  const c: Point = [X / V, Y / V, Z / V], k = density * 1e-3;
   const xx = XX - V * c[0] * c[0], yy = YY - V * c[1] * c[1], zz = ZZ - V * c[2] * c[2];
   const xy = XY - V * c[0] * c[1], xz = XZ - V * c[0] * c[2], yz = YZ - V * c[1] * c[2];
-  return { volumeMM3: V, massKG: density * V * 1e-9, centroidMM: c, method,
-    inertiaCentroidKgM2: [[k * (yy + zz), -k * xy, -k * xz], [-k * xy, k * (xx + zz), -k * yz], [-k * xz, -k * yz, k * (xx + yy)]] };
+  // (g/cm³ is 1e-3 g/mm³: the mass in g, the inertia in g·mm².)
+  const props: MassProperties = { volume: V, mass: density * V * 1e-3, centroid: c, method,
+    inertia: [[k * (yy + zz), -k * xy, -k * xz], [-k * xy, k * (xx + zz), -k * yz], [-k * xz, -k * yz, k * (xx + yy)]] };
+  recordIntegralMass(props, density, [xx, yy, zz, xy, xz, yz]);
+  return props;
 }
 
-export function prismaticMassProperties(solid: PrismaticSolid, densityKgPerM3: number): SolidMassProperties {
+export function prismaticMassProperties(solid: PrismaticSolid, density: number): MassProperties {
   const I = Array(10).fill(0) as number[];
   for (const s of solid.slabs) {
     const h = s.z1 - s.z0, h2 = (s.z1 * s.z1 - s.z0 * s.z0) / 2, h3 = (s.z1 ** 3 - s.z0 ** 3) / 3;
@@ -50,7 +57,7 @@ export function prismaticMassProperties(solid: PrismaticSolid, densityKgPerM3: n
       I[0] += A * h; I[1] += Sx * h; I[2] += Sy * h; I[3] += A * h2; I[4] += Sxx * h; I[5] += Syy * h; I[6] += A * h3; I[7] += Sxy * h; I[8] += Sx * h2; I[9] += Sy * h2;
     }
   }
-  return solidMassFromIntegrals(I, densityKgPerM3, 'closed-form');
+  return solidMassFromIntegrals(I, density, 'closed-form');
 }
 
 /**
@@ -94,7 +101,7 @@ export function brepSurfaceArea(brep: Brep, options: { readonly segmentsPerQuart
   const q = options.quadratureSegments ?? 8, Q = q > 0 ? quadrature(brep, q) : null;
   if (Q && Q[10] > 0) return Q[10];
   const curved = brep.faces.some(f => f.surface.kind === 'surface' && (f.surface.degreeU > 1 || f.surface.degreeV > 1));
-  const mesh = tessellateBrep(brep, { segmentsPerQuarter: curved ? options.segmentsPerQuarter ?? 64 : 1 }), p = mesh.positionsMM, ix = mesh.indices;
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter: curved ? options.segmentsPerQuarter ?? 64 : 1 }), p = mesh.positions, ix = mesh.indices;
   let area = 0;
   for (let t = 0; t < ix.length; t += 3) {
     const a = 3 * ix[t], b = 3 * ix[t + 1], c = 3 * ix[t + 2], ux = p[b] - p[a], uy = p[b + 1] - p[a + 1], uz = p[b + 2] - p[a + 2], vx = p[c] - p[a], vy = p[c + 1] - p[a + 1], vz = p[c + 2] - p[a + 2];
@@ -110,25 +117,28 @@ export function brepSurfaceArea(brep: Brep, options: { readonly segmentsPerQuart
  * give the same value on both). Otherwise, or when that cannot integrate a face, tetrahedra from the
  * origin over the watertight tessellation (divergence theorem).
  */
-export function brepMassProperties(brep: Brep, densityKgPerM3: number, options: { readonly segmentsPerQuarter?: number; readonly quadratureSegments?: number } = {}): SolidMassProperties {
+export function brepMassProperties(brep: Brep, density: number, options: { readonly segmentsPerQuarter?: number; readonly quadratureSegments?: number } = {}): MassProperties {
   const poly = polyhedralIntegrals(brep);
-  if (poly && poly[0] > 0) return solidMassFromIntegrals(poly, densityKgPerM3, 'planar-exact');
+  if (poly && poly[0] > 0) return solidMassFromIntegrals(poly, density, 'planar-exact');
   const curved = brep.faces.some(f => f.surface.kind === 'surface' && (f.surface.degreeU > 1 || f.surface.degreeV > 1));
   const q = options.quadratureSegments ?? 8;
   if (curved && q > 0) {
     const Q = quadrature(brep, q);
-    if (Q && Q[0] > 0) return solidMassFromIntegrals(Q, densityKgPerM3, 'quadrature');
+    if (Q && Q[0] > 0) return solidMassFromIntegrals(Q, density, 'quadrature');
   }
   const segments = curved ? options.segmentsPerQuarter ?? 64 : 1, I = meshIntegrals(brep, segments);
-  if (!curved) return solidMassFromIntegrals(I, densityKgPerM3, 'planar-exact');
+  if (!curved) return solidMassFromIntegrals(I, density, 'planar-exact');
   // (Not silently: the chord error is the mesh's, and it is stated — the volume's change from half the segments, some
   // three times its error as the error falls with the square of the step. L4 fuzz 171, D200.)
   const half = meshIntegrals(brep, Math.max(1, Math.floor(segments / 2)));
-  return { ...solidMassFromIntegrals(I, densityKgPerM3, 'tessellated'), volumeBoundMM3: Math.abs(I[0] - half[0]) };
+  const mass = solidMassFromIntegrals(I, density, 'tessellated');
+  const result = { ...mass, volumeBound: Math.abs(I[0] - half[0]) };
+  transferNativeMassBasis(mass, result);
+  return result;
 }
 /** Volume integrals over a B-rep's watertight tessellation: tetrahedra from the origin (divergence theorem). */
 function meshIntegrals(brep: Brep, segmentsPerQuarter: number): number[] {
-  const mesh = tessellateBrep(brep, { segmentsPerQuarter }), p = mesh.positionsMM, ix = mesh.indices;
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter }), p = mesh.positions, ix = mesh.indices;
   const I = Array(10).fill(0) as number[];
   for (let t = 0; t < ix.length; t += 3) {
     const a = [p[ix[t] * 3], p[ix[t] * 3 + 1], p[ix[t] * 3 + 2]], b = [p[ix[t + 1] * 3], p[ix[t + 1] * 3 + 1], p[ix[t + 1] * 3 + 2]], c = [p[ix[t + 2] * 3], p[ix[t + 2] * 3 + 1], p[ix[t + 2] * 3 + 2]];
@@ -146,21 +156,21 @@ function meshIntegrals(brep: Brep, segmentsPerQuarter: number): number[] {
  * placed by a rotation (its columns: the frame's axes in world) and an offset (mm): masses add, centroids
  * average, each inertia turns with its piece (R I Rᵀ) and moves to the common centroid (parallel axes).
  */
-export function combineMassProperties(parts: readonly { readonly props: SolidMassProperties; readonly axes: readonly [Point, Point, Point]; readonly offset: Point }[]): SolidMassProperties {
+export function combineMassProperties(parts: readonly { readonly props: MassProperties; readonly axes: readonly [Point, Point, Point]; readonly offset: Point }[]): MassProperties {
   if (!parts.length) throw solidMassError('no pieces to combine');
   const world = parts.map(({ props, axes, offset }) => {
-    const R = [0, 1, 2].map(i => [axes[0][i], axes[1][i], axes[2][i]]), c = props.centroidMM;
+    const R = [0, 1, 2].map(i => [axes[0][i], axes[1][i], axes[2][i]]), c = props.centroid;
     const centroid = [0, 1, 2].map(i => offset[i] + R[i][0] * c[0] + R[i][1] * c[1] + R[i][2] * c[2]) as Point;
-    const I = props.inertiaCentroidKgM2, turned = [0, 1, 2].map(i => [0, 1, 2].map(j => { let v = 0; for (let p = 0; p < 3; p++) for (let q = 0; q < 3; q++) v += R[i][p] * I[p][q] * R[j][q]; return v; }));
-    return { m: props.massKG, v: props.volumeMM3, centroid, I: turned };
+    const I = props.inertia, turned = [0, 1, 2].map(i => [0, 1, 2].map(j => { let v = 0; for (let p = 0; p < 3; p++) for (let q = 0; q < 3; q++) v += R[i][p] * I[p][q] * R[j][q]; return v; }));
+    return { m: props.mass, v: props.volume, centroid, I: turned };
   });
   const M = world.reduce((a, w) => a + w.m, 0), V = world.reduce((a, w) => a + w.v, 0);
   const C = [0, 1, 2].map(k => world.reduce((a, w) => a + w.m * w.centroid[k], 0) / M) as Point;
   const I = [0, 1, 2].map(i => [0, 1, 2].map(j => world.reduce((a, w) => {
-    const d = [0, 1, 2].map(k => (w.centroid[k] - C[k]) * 1e-3), dd = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
+    const d = [0, 1, 2].map(k => w.centroid[k] - C[k]), dd = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
     return a + w.I[i][j] + w.m * ((i === j ? dd : 0) - d[i] * d[j]);
   }, 0))) as [[number, number, number], [number, number, number], [number, number, number]];
-  return { volumeMM3: V, massKG: M, centroidMM: C, inertiaCentroidKgM2: I, method: 'closed-form' };
+  return unsupportedNativeMass({ volume: V, mass: M, centroid: C, inertia: I, method: 'closed-form' }, 'combined');
 }
 
 // ---- Polyhedral bodies (PERF3 B9): facet faces and planar faces bounded by straight edges, the mesh bodies ----

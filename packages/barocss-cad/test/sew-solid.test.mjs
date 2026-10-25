@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, CadPartError } from '../dist/index.js';
+import { evaluateCadPart, checkBrep, CadPartError, massPropertiesOf } from '../dist/index.js';
 
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const clamped = d => [...Array(d + 1).fill(0), ...Array(d + 1).fill(1)];
@@ -15,7 +15,7 @@ const CUBE = [
 test('sew: six patches of a cube close into a 1000 mm³ solid', () => {
   const out = evaluateCadPart(D([{ id: 's', kind: 'sew', surfaces: CUBE }])).outputs[0];
   assert.equal(checkBrep(out.brep).issues.length, 0);
-  assert.ok(Math.abs(out.massProperties(1).volumeMM3 - 1000) < 1e-6);
+  assert.ok(Math.abs(massPropertiesOf(out).volume - 1000) < 1e-6);
   assert.equal(out.brep.faces.length, 6);
 });
 
@@ -25,7 +25,7 @@ test('sew: a domed lid on ruled walls keeps its exact curved surface (1000 + 200
   const surfaces = [S(2, 2, top), S(1, 1, [[[0, 0, 0], [0, 10, 0]], [[10, 0, 0], [10, 10, 0]]]), wall(top[0]), wall(top[2]), wall(top.map(r => r[0])), wall(top.map(r => r[2]))];
   const out = evaluateCadPart(D([{ id: 's', kind: 'sew', surfaces }])).outputs[0];
   assert.equal(out.representation, 'curved');
-  assert.ok(Math.abs(out.massProperties(1).volumeMM3 - 1200) < 1e-3, `${out.massProperties(1).volumeMM3}`);
+  assert.ok(Math.abs(massPropertiesOf(out).volume - 1200) < 1e-3, `${massPropertiesOf(out).volume}`);
 });
 
 test('sew: a cylinder from quarter walls and quarter discs (their centres poles) is π r² h', () => {
@@ -38,7 +38,7 @@ test('sew: a cylinder from quarter walls and quarter discs (their centres poles)
   }
   const out = evaluateCadPart(D([{ id: 's', kind: 'sew', surfaces }])).outputs[0];
   assert.equal(checkBrep(out.brep).issues.length, 0);
-  assert.ok(Math.abs(out.massProperties(1).volumeMM3 - Math.PI * r * r * hgt) < 0.05, `${out.massProperties(1).volumeMM3}`);
+  assert.ok(Math.abs(massPropertiesOf(out).volume - Math.PI * r * r * hgt) < 0.05, `${massPropertiesOf(out).volume}`);
 });
 
 test('sew: an open set, a gap wider than the tolerance and bad input are refused', () => {

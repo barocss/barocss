@@ -31,4 +31,4 @@ export type ReferenceCode = 'REFERENCE_LOCKED' | 'BAD_REFERENCE' | 'NO_REFERENCE
 /** The codes the references refuse with. */
 export const REFERENCE_CODES: readonly ReferenceCode[] = ['REFERENCE_LOCKED', 'BAD_REFERENCE', 'NO_REFERENCE', 'DATUM_FIT', 'BAD_KEEPOUT', 'NOT_READ'];
 export type Verdict = 'clear' | 'violated' | 'undecided';
-export interface KeepoutResult { keepout: string; body: string; verdict: Verdict; overlapMM3: number; clearanceMM: number | null; requiredMM: number; chordMM: number; why: string }
+export interface KeepoutResult { keepout: string; body: string; verdict: Verdict; overlap: number; clearance: number | null; requiredMM: number; chordMM: number; why: string }

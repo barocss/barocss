@@ -1,9 +1,9 @@
 { "id": "a9-fits", "rows": [
- { "class": "H7", "overMM": 18, "upToMM": 30, "upperUM": 21, "lowerUM": 0, "estimate": true },
- { "class": "H7", "overMM": 30, "upToMM": 50, "upperUM": 25, "lowerUM": 0, "estimate": true },
- { "class": "k5", "overMM": 18, "upToMM": 30, "upperUM": 11, "lowerUM": 2, "estimate": true },
- { "class": "k6", "overMM": 18, "upToMM": 30, "upperUM": 15, "lowerUM": 2, "estimate": true },
- { "class": "N9", "overMM": 3, "upToMM": 6, "upperUM": 0, "lowerUM": -30, "estimate": true },
- { "class": "JS9", "overMM": 3, "upToMM": 6, "upperUM": 15, "lowerUM": -15, "estimate": true },
- { "class": "h9", "overMM": 3, "upToMM": 6, "upperUM": 0, "lowerUM": -30, "estimate": true }
+ { "class": "H7", "over": 18, "upTo": 30, "upper": 0.021, "lower": 0, "estimate": true },
+ { "class": "H7", "over": 30, "upTo": 50, "upper": 0.025, "lower": 0, "estimate": true },
+ { "class": "k5", "over": 18, "upTo": 30, "upper": 0.011, "lower": 0.002, "estimate": true },
+ { "class": "k6", "over": 18, "upTo": 30, "upper": 0.015, "lower": 0.002, "estimate": true },
+ { "class": "N9", "over": 3, "upTo": 6, "upper": 0, "lower": -0.03, "estimate": true },
+ { "class": "JS9", "over": 3, "upTo": 6, "upper": 0.015, "lower": -0.015, "estimate": true },
+ { "class": "h9", "over": 3, "upTo": 6, "upper": 0, "lower": -0.03, "estimate": true }
 ] }

@@ -88,12 +88,12 @@ test('a stated library material is the bodies\' (mass no longer assumed); an ass
     s = (await call(s, 'set_brief', { fields: { material } })).state;
     const m = await mass(), json = JSON.stringify(m);
     assert.equal(m.assumed, assumed, `${material.value} ${material.basis}: ${json}`);
-    if (!assumed) assert.ok(Math.abs(m.mass_g - 1000 * 7.85 / 1000) < 1e-6, json);
+    if (!assumed) assert.ok(Math.abs(m.mass - 1000 * 7.85 / 1000) < 1e-6, json);
   }
   // (A body's own material still wins.)
   const key = s.bodies[0].key, own = { ...s.doc, bodies: { ...(s.doc.bodies ?? {}), [key]: { material: 'al6061' } } };
   const m = JSON.parse((await call({ ...s, doc: own }, 'mass_properties', {})).content).bodies[0];
-  assert.ok(Math.abs(m.mass_g - 2.7) < 1e-6, JSON.stringify(m));
+  assert.ok(Math.abs(m.mass - 2.7) < 1e-6, JSON.stringify(m));
 });
 
 test('the script\'s brief() and the v2 path (requirements.brief / requirements.gaps) do what set_brief and get_brief do', async () => {

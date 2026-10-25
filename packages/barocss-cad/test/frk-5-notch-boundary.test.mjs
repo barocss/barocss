@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, curveEvaluator } from '../dist/index.js';
+import { evaluateCadPart, curveEvaluator, checkOutput } from '../dist/index.js';
 
 const specimen = (notch, origin) => ({
   format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {},
@@ -19,7 +19,7 @@ for (const notch of [{ kind: 'holesaw', diameter: 52 }, { kind: 'v', depth: 20, 
   for (const origin of [[0, 0, 0], [1000, -2000, 3000]]) {
     test(`FRk5 ${notch.kind} final boundary lies on tube and cutter at origin ${origin}`, () => {
       const output = evaluateCadPart(specimen(notch, origin)).outputs[1];
-      assert.equal(output.validate().valid, true);
+      assert.equal(checkOutput(output).valid, true);
       const brep = output.brep, cutterFaces = brep.faces.filter(f => f.name?.includes('_notch1.'));
       assert.ok(cutterFaces.length > 0, 'retain the cutter face provenance');
       const loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c]));

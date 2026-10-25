@@ -44,9 +44,9 @@ export interface SurfaceRegionProvenance {
   boundaries: SurfaceRegionBoundaryChoice[]; fullDomainCopy: boolean; operations: SurfaceRegionSplitOperation[];
 }
 export interface SurfaceRegionObservation {
-  u: number; v: number; originalPointMM: Point; extractedPointMM: Point; pointDifferenceMM: number;
+  u: number; v: number; originalPoint: Point; extractedPoint: Point; pointDifference: number;
   originalD1: SurfaceRegionD1State; extractedD1: SurfaceRegionD1State;
-  duDifferenceMM: number | null; dvDifferenceMM: number | null;
+  duDifference: number | null; dvDifference: number | null;
 }
 export interface SurfaceRegionGuardObservation {
   originalU: number; originalV: number; extractedU: number; extractedV: number; originalGuardedAxes: ('u' | 'v')[];
@@ -60,9 +60,9 @@ export interface ExtractedSurfaceRegionReport {
   grids: { original: { u: number; v: number; total: number }; extracted: { u: number; v: number; total: number } };
   originalDomain: SurfaceRegionDomain; domain: SurfaceRegionDomain; operationCount: number;
   uParameters: number[]; vParameters: number[]; observations: SurfaceRegionObservation[]; guards: SurfaceRegionGuardObservation[];
-  maximumPointDifferenceMM: number; maximumRelativeDuDifference: number; maximumRelativeDvDifference: number;
+  maximumPointDifference: number; maximumRelativeDuDifference: number; maximumRelativeDvDifference: number;
   geometricValidity: 'not-certified'; topologyCertified: false; solid: false;
-  quality: { pointComparisonMM: 1e-7; relativeD1Comparison: 1e-7; localObservationsOnly: true;
+  quality: { pointComparison: 1e-7; relativeD1Comparison: 1e-7; localObservationsOnly: true;
     globalShapeErrorCertified: false; manufacturingToleranceCertified: false;
     derivativeSemantics: 'combined-native-d1-refusals-and-extracted-endpoints-distinct-no-unaffected-partial-or-g1-g2-claim' };
   limits: { maximumDegree: 3; maximumAxisPoles: 16; maximumTotalPoles: 256; maximumOperations: 4; maximumObservations: 128;
@@ -73,7 +73,7 @@ export interface ExtractedSurfaceRegionResult {
   original: Surface; options: SurfaceRegionOptions; surface: Surface; source: string; sourceVersion: 0; model: Model;
   originalSource: string; originalModel: Model; provenance: SurfaceRegionProvenance; report: ExtractedSurfaceRegionReport;
 }
-const POINT_TOLERANCE = CadNumericPolicy.linearToleranceMM;
+const POINT_TOLERANCE = CadNumericPolicy.linearTolerance;
 const D1_TOLERANCE = CadNumericPolicy.relativeComparison;
 const CODE = SurfaceRegionDiagnosticCode;
 function requireValue(condition: boolean, code: SurfaceRegionDiagnosticCode, detail: string): asserts condition {
@@ -310,8 +310,8 @@ export function extractSurfaceRegion(surfaceInput: Surface, inputOptions: Surfac
         && dvDifferenceMM <= D1_TOLERANCE * Math.max(1, scaleV), CODE.BINDING,
       'original/extracted native U/V partial observation exceeds local policy');
     }
-    observations.push({ u, v, originalPointMM, extractedPointMM, pointDifferenceMM,
-      originalD1, extractedD1, duDifferenceMM, dvDifferenceMM });
+    observations.push({ u, v, originalPoint: originalPointMM, extractedPoint: extractedPointMM, pointDifference: pointDifferenceMM,
+      originalD1, extractedD1, duDifference: duDifferenceMM, dvDifference: dvDifferenceMM });
   }
   const guards: SurfaceRegionGuardObservation[] = [];
   for (const observation of observations) {
@@ -344,7 +344,7 @@ export function extractSurfaceRegion(surfaceInput: Surface, inputOptions: Surfac
     boundaries, fullDomainCopy, operations,
   };
   const relativeDifference = (axis: 'u' | 'v', observation: SurfaceRegionObservation): number => {
-    const difference = axis === 'u' ? observation.duDifferenceMM : observation.dvDifferenceMM;
+    const difference = axis === 'u' ? observation.duDifference : observation.dvDifference;
     if (difference === null || observation.originalD1.status !== 'evaluated') return 0;
     return difference / Math.max(1, Math.hypot(...(axis === 'u' ? observation.originalD1.value.du : observation.originalD1.value.dv)));
   };
@@ -358,11 +358,11 @@ export function extractSurfaceRegion(surfaceInput: Surface, inputOptions: Surfac
       originalSurfaceId: original.id, surfaceId, degrees: { u: original.degreeU, v: original.degreeV },
       grids: { original: grid(original), extracted: grid(retained) }, originalDomain, domain: effectiveDomain,
       operationCount: operations.length, uParameters: parameters.u, vParameters: parameters.v, observations, guards,
-      maximumPointDifferenceMM: Math.max(...observations.map(observation => observation.pointDifferenceMM)),
+      maximumPointDifference: Math.max(...observations.map(observation => observation.pointDifference)),
       maximumRelativeDuDifference: Math.max(0, ...observations.map(observation => relativeDifference('u', observation))),
       maximumRelativeDvDifference: Math.max(0, ...observations.map(observation => relativeDifference('v', observation))),
       geometricValidity: 'not-certified', topologyCertified: false, solid: false,
-      quality: { pointComparisonMM: POINT_TOLERANCE, relativeD1Comparison: D1_TOLERANCE, localObservationsOnly: true,
+      quality: { pointComparison: POINT_TOLERANCE, relativeD1Comparison: D1_TOLERANCE, localObservationsOnly: true,
         globalShapeErrorCertified: false, manufacturingToleranceCertified: false,
         derivativeSemantics: 'combined-native-d1-refusals-and-extracted-endpoints-distinct-no-unaffected-partial-or-g1-g2-claim' },
       limits: { maximumDegree: 3, maximumAxisPoles: 16, maximumTotalPoles: 256, maximumOperations: 4, maximumObservations: 128,

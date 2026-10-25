@@ -27,7 +27,7 @@ test('actual shared geometry Save/fresh Open/re-edit and incremental wire preser
   const doc = table(), original = ok(doc), saved = await readStudioFile(encodeStudioFile(doc)); assert.ok('doc' in saved);
   assert.equal(canonical(doc), canonical(saved.doc)); assert.deepEqual(saved.doc.frames!.beadOwnership, policy);
   assert.equal(revisionOf(doc), revisionOf(saved.doc));
-  const facts = (d: StudioDoc) => ok(d).bodies.map(b => ({ key: b.key, volume: b.volumeMM3, centroid: b.centroid, inertia: b.inertia, element: b.element }));
+  const facts = (d: StudioDoc) => ok(d).bodies.map(b => ({ key: b.key, volume: b.volume, centroid: b.centroid, inertia: b.inertia, element: b.element }));
   assert.deepEqual(facts(saved.doc), facts(doc));
   const sender = new WireSender(), receiver = new WireReceiver(); receiver.unpack(structuredClone(sender.pack(doc)));
   const edits = [bad(), { ...doc, frames: { ...doc.frames!, beadOwnership: undefined } },
@@ -49,7 +49,7 @@ test('actual shared geometry Save/fresh Open/re-edit and incremental wire preser
   const reopen = await readStudioFile(encodeStudioFile(out.state.doc)); assert.ok('doc' in reopen);
   assert.equal(beadAccounting(reopen.doc, ok(reopen.doc).bodies)!.complete, false);
   const fixed = await dispatchTool({ doc: reopen.doc, bodies: ok(reopen.doc).bodies }, 'set_welds', { welds: [{ joint: 'b0_part4.start', size: 3 }] }, evaluate);
-  assert.equal(fixed.isError, false, fixed.content); assert.equal(beadAccounting(fixed.state.doc, fixed.state.bodies)!.ownedVolumeMM3, 2160);
+  assert.equal(fixed.isError, false, fixed.content); assert.equal(beadAccounting(fixed.state.doc, fixed.state.bodies)!.ownedVolume, 2160);
 });
 
 test('incomplete beads block whole mass/inertia/BOM/requirements/approval; selected body facts and valid subtotals survive', async () => {
@@ -67,14 +67,14 @@ test('incomplete beads block whole mass/inertia/BOM/requirements/approval; selec
   const tool = await dispatchTool({ doc, bodies: e.bodies }, 'mass_properties', {}, evaluate), data = JSON.parse(tool.content);
   assert.equal(data.beadAccounting.complete, false); assert.ok(data.bodies.length > 0, tool.content);
   const view = await bomView(doc, evaluate), bom = deriveBom(view);
-  assert.equal(view.beadAccounting!.complete, false); assert.equal(bom.beadAccounting!.ownedVolumeMM3, 1620);
+  assert.equal(view.beadAccounting!.complete, false); assert.equal(bom.beadAccounting!.ownedVolume, 1620);
   assert.deepEqual(checkBom(view, bom), []);
   assert.ok(checkBom(view, { ...bom, beadAccounting: undefined }).length);
   assert.equal(bom.lines.filter(l => l.kind === 'weld-bead').length, 0);
   const draft = draftBaseline(doc, bom, view), review = await moveBaseline(draft.doc, draft.baseline.id, 'review', userToken('t1'));
   await assert.rejects(() => moveBaseline(review.doc, draft.baseline.id, 'approved', userToken('t2'), evaluate), /RESULT_NOT_OK.*BEAD_ACCOUNTING_INCOMPLETE/);
   const gate = await checkAssembly(doc, evaluate); assert.equal(gate.verdict, 'undecided'); assert.equal(gate.beadAccounting!.complete, false);
-  assert.ok(gate.massG > 0); assert.equal(gate.findings[0].code, 'BEAD_ACCOUNTING_INCOMPLETE');
+  assert.ok(gate.mass > 0); assert.equal(gate.findings[0].code, 'BEAD_ACCOUNTING_INCOMPLETE');
   const assembly = { ...emptyDoc(), instances: [inst(table()), inst(doc, 'p2')] };
   const incomplete = await bomResult(assembly, evaluate, 'nested'); assert.equal(incomplete.status, 'unsupported'); assert.match(incomplete.why!, /p2/);
   const nested = { ...emptyDoc(), instances: [inst(assembly)] }, nestedView = await bomView(nested, evaluate), nestedBom = deriveBom(nestedView);
@@ -105,7 +105,7 @@ test('placed shared metadata transforms once, exact drawing/STEP geometry agrees
   const move = (p: readonly number[]) => [0, 1, 2].map(i => place.t[i] + p.reduce((s, v, k) => s + place.m[i * 3 + k] * v, 0));
   for (const b of source.bodies.filter(b => b.element?.kind === 'weld-bead')) {
     const out = moved.find(x => x.key === b.key)!; assert.ok(out.element?.kind === 'weld-bead' && b.element?.kind === 'weld-bead');
-    assert.deepEqual(out.element.report.sharedSeams[0].pathMM, b.element.report.sharedSeams[0].pathMM.map(move));
+    assert.deepEqual(out.element.report.sharedSeams[0].path, b.element.report.sharedSeams[0].path.map(move));
     assert.equal(out.element.report.sharedSeams[0].id, b.element.report.sharedSeams[0].id);
   }
   const send = new MeshSender(), receive = new MeshReceiver(), result = { ...source, bodies: moved };
@@ -123,6 +123,6 @@ test('placed shared metadata transforms once, exact drawing/STEP geometry agrees
   }
   assert.match(exportStudioStep(assembly, { name: 'Shared table' }).text, /^ISO-10303-21;/);
   const bom = deriveBom(await bomView(assembly, evaluate));
-  assert.equal(bom.beadAccounting!.sharedSeamCount, 8); assert.equal(bom.beadAccounting!.ownedVolumeMM3, 4320); assert.equal(bom.totalQty, 2);
+  assert.equal(bom.beadAccounting!.sharedSeamCount, 8); assert.equal(bom.beadAccounting!.ownedVolume, 4320); assert.equal(bom.totalQty, 2);
   assert.equal(bom.lines.some(l => l.kind === 'weld-bead'), false);
 });

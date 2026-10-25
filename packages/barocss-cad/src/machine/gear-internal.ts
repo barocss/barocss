@@ -15,52 +15,52 @@ import type { Point } from '../types.js';
 
 /** Version 0 of the internal gear's inputs (lengths in mm). */
 export interface InternalGearSpec {
-  /** A straight ring's module; a helical one's `normalModuleMM`, helix angle and hand (its pinion's hand: an internal pair is of one hand). */
-  readonly moduleMM?: number;
-  readonly normalModuleMM?: number;
-  readonly helixAngleDeg?: number;
+  /** A straight ring's module; a helical one's `normalModule`, helix angle and hand (its pinion's hand: an internal pair is of one hand). */
+  readonly module?: number;
+  readonly normalModule?: number;
+  readonly helixAngle?: number;
   readonly hand?: 'right' | 'left';
   readonly teeth: number;
-  readonly faceWidthMM: number;
+  readonly faceWidth: number;
   /** The rim's outer diameter. */
-  readonly rimDiameterMM: number;
+  readonly rimDiameter: number;
   /** 20° only in this stage. */
-  readonly pressureAngleDeg?: number;
+  readonly pressureAngle?: number;
   /** x2: the tip at r − (1 − x2) m, the spaces 2 x2 m tan α wider; from −0.5 to 0.75. */
   readonly profileShiftCoefficient?: number;
   /** Taken off the ring's teeth at the reference circle (its spaces that much wider): its share of a pair's backlash. */
-  readonly toothThicknessReductionMM?: number;
+  readonly toothThicknessReduction?: number;
   /** The largest deviation of a fitted flank from the involute; default 1e-4 m. */
-  readonly profileToleranceMM?: number;
+  readonly profileTolerance?: number;
   /** The least rim beyond the root circle; default 1 m (geometry only: not a strength check). */
-  readonly minimumRimMM?: number;
+  readonly minimumRim?: number;
   /**
    * The root (R12b.2b, D133): 'schematic-corner' (the default; internal-gear@0) or 'shaper-cut' (internal-gear@1): the
    * root a pinion-type `cutter` generates — its teeth z0, its shift x0 (default 0; its addendum 1.25 m + x0 m, its tooth
    * m(π/2 + 2 x0 tan α)), its tip radius (default 0.38 m, the basic rack's: an estimate for a cutter's). Straight rings only.
    */
   readonly rootPolicy?: 'schematic-corner' | 'shaper-cut';
-  readonly cutter?: { readonly teeth: number; readonly profileShiftCoefficient?: number; readonly tipRadiusMM?: number };
+  readonly cutter?: { readonly teeth: number; readonly profileShiftCoefficient?: number; readonly tipRadius?: number };
 }
 export interface InternalGearReport {
   readonly generator: 'internal-gear@0' | 'internal-gear@1';
   readonly dimensions: {
-    readonly referenceDiameterMM: number; readonly baseDiameterMM: number;
+    readonly referenceDiameter: number; readonly baseDiameter: number;
     /** The tip circle (inside) and the root circle (outside), the rim's outer diameter. */
-    readonly tipDiameterMM: number; readonly rootDiameterMM: number; readonly rimDiameterMM: number;
-    readonly circularPitchMM: number; readonly spaceWidthMM: number; readonly toothThicknessMM: number;
+    readonly tipDiameter: number; readonly rootDiameter: number; readonly rimDiameter: number;
+    readonly circularPitch: number; readonly spaceWidth: number; readonly toothThickness: number;
   };
   readonly profileShift: number;
   readonly helix?: SpurGearReport['helix'];
-  readonly flankPieces: number; readonly profileDeviationMM: number; readonly profileToleranceMM: number;
+  readonly flankPieces: number; readonly profileDeviation: number; readonly profileTolerance: number;
   readonly rootPolicy: 'schematic-corner' | 'shaper-cut'; readonly manufacturingValidated: false;
   /**
    * A shaper-cut root's (R12b.2b): the cutter (teeth, shift, tip radius), the cutting centre distance and pressure angle,
    * the diameter where the ring's involute ends at its root (the fillet's start) and whether the cutter's round crosses
    * the involute there, the fillet's pieces and measured deviation.
    */
-  readonly shaperRoot?: { readonly cutterTeeth: number; readonly cutterShift: number; readonly cutterTipRadiusMM: number; readonly cuttingCenterDistanceMM: number; readonly cuttingPressureAngleDeg: number;
-    readonly formDiameterMM: number; readonly crossing: boolean; readonly filletPieces: number; readonly filletDeviationMM: number };
+  readonly shaperRoot?: { readonly cutterTeeth: number; readonly cutterShift: number; readonly cutterTipRadius: number; readonly cuttingCenterDistance: number; readonly cuttingPressureAngle: number;
+    readonly formDiameter: number; readonly crossing: boolean; readonly filletPieces: number; readonly filletDeviation: number };
   readonly diagnostics: readonly GearDiagnostic[];
 }
 
@@ -124,7 +124,7 @@ function shaperOf(spec: InternalGearSpec, m: number, z2: number, r2: number, rb2
   const r0 = m * z0 / 2, rb0 = r0 * Math.cos(alpha), ra0 = r0 + (1.25 + x0) * m, psi0 = m * (Math.PI / 2 + 2 * x0 * Math.tan(alpha)) / (2 * r0) + inv(alpha);
   // (The tip radius: the toolmaker's; by default the basic rack's 0.38 m, or 80% of the largest the cutter's tip holds
   // when that is less — a pinion cutter's 1.25 m addendum leaves a narrow tip. Either way an estimate, said so.)
-  const rho = c.tipRadiusMM ?? Math.min(0.38 * m, 0.8 * largestTipRadius(rb0, ra0, psi0, m));
+  const rho = c.tipRadius ?? Math.min(0.38 * m, 0.8 * largestTipRadius(rb0, ra0, psi0, m));
   // The cutting distance, the cutter's tooth filling the ring's space on their pitch circles: z2 (ψ_s − inv α_c) =
   // z0 (ψ0 − inv α_c), so inv α_c = (z2 ψ_s − z0 ψ0)/(z2 − z0); a_c = m (z2 − z0) cos α / (2 cos α_c).
   const target = (z2 * psiS - z0 * psi0) / (z2 - z0);
@@ -185,12 +185,12 @@ function shaperOf(spec: InternalGearSpec, m: number, z2: number, r2: number, rb2
 
 /** The ring's space gear (D129): the spur machinery's gear at x2 + 0.25 and thickened to the ring's spaces. */
 function spaceSpecOf(spec: InternalGearSpec): SpurGearSpec {
-  const helical = spec.helixAngleDeg !== undefined && spec.helixAngleDeg !== 0;
-  const mn = (helical ? spec.normalModuleMM : spec.moduleMM) as number, cb = helical ? Math.cos(spec.helixAngleDeg! * Math.PI / 180) : 1, x2 = spec.profileShiftCoefficient ?? 0;
+  const helical = spec.helixAngle !== undefined && spec.helixAngle !== 0;
+  const mn = (helical ? spec.normalModule : spec.module) as number, cb = helical ? Math.cos(spec.helixAngle! * Math.PI / 180) : 1, x2 = spec.profileShiftCoefficient ?? 0;
   // (The shift's extra 0.25 thickens the tooth by 2·0.25·m_t tan α_n; that, less the ring's reduction, is taken off.)
-  const red = 0.5 * mn / cb * Math.tan(20 * Math.PI / 180) - (spec.toothThicknessReductionMM ?? 0);
-  return { ...(helical ? { normalModuleMM: spec.normalModuleMM, helixAngleDeg: spec.helixAngleDeg, hand: spec.hand } : { moduleMM: spec.moduleMM }), teeth: spec.teeth, faceWidthMM: spec.faceWidthMM,
-    ...(spec.pressureAngleDeg === undefined ? {} : { pressureAngleDeg: spec.pressureAngleDeg }), profileShiftCoefficient: x2 + 0.25, toothThicknessReductionMM: red, ...(spec.profileToleranceMM === undefined ? {} : { profileToleranceMM: spec.profileToleranceMM }) };
+  const red = 0.5 * mn / cb * Math.tan(20 * Math.PI / 180) - (spec.toothThicknessReduction ?? 0);
+  return { ...(helical ? { normalModule: spec.normalModule, helixAngle: spec.helixAngle, hand: spec.hand } : { module: spec.module }), teeth: spec.teeth, faceWidth: spec.faceWidth,
+    ...(spec.pressureAngle === undefined ? {} : { pressureAngle: spec.pressureAngle }), profileShiftCoefficient: x2 + 0.25, toothThicknessReduction: red, ...(spec.profileTolerance === undefined ? {} : { profileTolerance: spec.profileTolerance }) };
 }
 
 /** The ring's dimensions and input checks (refusals thrown, as gearError, in the ring's own terms). */
@@ -202,10 +202,10 @@ export function internalGearDimensions(spec: InternalGearSpec): {
   if (!(Number.isInteger(z) && z >= 8 && z <= 200)) throw gearError('INVALID_INPUT', 'an internal gear takes a whole number of teeth from 8 to 200');
   if (!Number.isFinite(x)) throw gearError('INVALID_INPUT', 'profileShiftCoefficient must be a number');
   if (!(x >= MIN_SHIFT && x <= MAX_SHIFT)) throw gearError('UNSUPPORTED_PROFILE_SHIFT', `an internal gear's profile shift ${x}: from ${MIN_SHIFT} to ${MAX_SHIFT} in this stage`);
-  const j = spec.toothThicknessReductionMM ?? 0;
-  if (!(Number.isFinite(j) && j >= 0)) throw gearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more');
+  const j = spec.toothThicknessReduction ?? 0;
+  if (!(Number.isFinite(j) && j >= 0)) throw gearError('INVALID_INPUT', 'toothThicknessReduction must be a number of mm, 0 or more');
   const space = spaceSpecOf(spec);
-  if (!((space.toothThicknessReductionMM ?? 0) >= 0)) throw gearError('INVALID_INPUT', `a thickness reduction of ${j} mm: at most ${(j + (space.toothThicknessReductionMM ?? 0)).toFixed(6)} mm in this stage (a quarter of the shift's tan α)`);
+  if (!((space.toothThicknessReduction ?? 0) >= 0)) throw gearError('INVALID_INPUT', `a thickness reduction of ${j} mm: at most ${(j + (space.toothThicknessReduction ?? 0)).toFixed(6)} mm in this stage (a quarter of the shift's tan α)`);
   let sd: ReturnType<typeof spurGearDimensions>;
   try { sd = spurGearDimensions(space); }
   catch (cause) {
@@ -223,10 +223,10 @@ export function internalGearDimensions(spec: InternalGearSpec): {
   if (!(ra >= rb)) throw gearError('UNSUPPORTED_PROFILE_SHIFT', `the ring's tip circle Ø${(2 * ra).toFixed(4)} falls inside its base circle Ø${(2 * rb).toFixed(4)} (${z} teeth${x ? ` at x = ${x}` : ''}): a shift of at least x = ${(1 - (r - rb) / mn).toFixed(3)} lifts it`);
   // (A shaper-cut ring's root is the cutter's: a_c + its tip radius ra0, D133.)
   const shaper = shaperCut ? shaperOf(spec, mn, z, r, rb, ra, sd.psi, sd.alpha) : undefined, rf = shaper ? shaper.rf : r + (1.25 + x) * mn;
-  const R = spec.rimDiameterMM / 2, rimMin = spec.minimumRimMM ?? mn;
-  if (!(Number.isFinite(R) && R > 0)) throw gearError('INVALID_INPUT', 'rimDiameterMM must be a number of mm above 0');
-  if (!(R >= rf + rimMin)) throw gearError('RIM_INTERSECTION', `a rim of Ø${spec.rimDiameterMM} mm leaves less than the ${rimMin} mm rim beyond the root circle (Ø${(2 * rf).toFixed(3)} mm): at least Ø${(2 * (rf + rimMin)).toFixed(3)} (a geometric margin, not a strength check)`);
-  return { r, rb, ra, rf, rim: R, mn, mt: sd.mt, alpha: sd.alpha, alphaN: sd.alphaN, beta: sd.beta, x, space, sd, spaceWidth: sd.toothThicknessMM, pitch: sd.circularPitchMM, ...(shaper ? { shaper } : {}) };
+  const R = spec.rimDiameter / 2, rimMin = spec.minimumRim ?? mn;
+  if (!(Number.isFinite(R) && R > 0)) throw gearError('INVALID_INPUT', 'rimDiameter must be a number of mm above 0');
+  if (!(R >= rf + rimMin)) throw gearError('RIM_INTERSECTION', `a rim of Ø${spec.rimDiameter} mm leaves less than the ${rimMin} mm rim beyond the root circle (Ø${(2 * rf).toFixed(3)} mm): at least Ø${(2 * (rf + rimMin)).toFixed(3)} (a geometric margin, not a strength check)`);
+  return { r, rb, ra, rf, rim: R, mn, mt: sd.mt, alpha: sd.alpha, alphaN: sd.alphaN, beta: sd.beta, x, space, sd, spaceWidth: sd.toothThickness, pitch: sd.circularPitch, ...(shaper ? { shaper } : {}) };
 }
 
 /** A curve turned by `a` radians about the origin (z kept). */
@@ -256,12 +256,12 @@ export function internalGear(spec: InternalGearSpec, options: { readonly id?: st
   const nameOf = (role: string, k: number) => role === 'tip' ? `${id}.root#${k}` : role === 'root' ? `${id}.tip#${k}` : role === 'flankR' ? `${id}.flankL#${k}` : `${id}.flankR#${k === 1 ? z : k - 1}`;
   const inner = prof.pieces.map(p => ({ name: nameOf(p.role, p.tooth), curve: reversed(turned(p.curve, -Math.PI / z)) })).reverse();
   const rim = [{ name: `${id}.rim#1`, curve: arcCurve('m', d.rim, 0, Math.PI) }, { name: `${id}.rim#2`, curve: arcCurve('m', d.rim, Math.PI, Math.PI) }];
-  const h = helixTwist(d.space, d.sd, prof.report.profileToleranceMM);
-  const brep = extrudedProfile(id, 'gear', rim, inner, spec.faceWidthMM, d.rim + 1, h?.twist, 0, true);
+  const h = helixTwist(d.space, d.sd, prof.report.profileTolerance);
+  const brep = extrudedProfile(id, 'gear', rim, inner, spec.faceWidth, d.rim + 1, h?.twist, 0, true);
   const report: InternalGearReport = {
     generator: 'internal-gear@0', profileShift: d.x,
-    dimensions: { referenceDiameterMM: 2 * d.r, baseDiameterMM: 2 * d.rb, tipDiameterMM: 2 * d.ra, rootDiameterMM: 2 * d.rf, rimDiameterMM: 2 * d.rim, circularPitchMM: d.pitch, spaceWidthMM: d.spaceWidth, toothThicknessMM: d.pitch - d.spaceWidth },
-    ...(h ? { helix: h.helix } : {}), flankPieces: prof.report.flankPieces, profileDeviationMM: prof.report.profileDeviationMM, profileToleranceMM: prof.report.profileToleranceMM,
+    dimensions: { referenceDiameter: 2 * d.r, baseDiameter: 2 * d.rb, tipDiameter: 2 * d.ra, rootDiameter: 2 * d.rf, rimDiameter: 2 * d.rim, circularPitch: d.pitch, spaceWidth: d.spaceWidth, toothThickness: d.pitch - d.spaceWidth },
+    ...(h ? { helix: h.helix } : {}), flankPieces: prof.report.flankPieces, profileDeviation: prof.report.profileDeviation, profileTolerance: prof.report.profileTolerance,
     rootPolicy: 'schematic-corner', manufacturingValidated: false,
     diagnostics: [{ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: 'the flanks meet the root arc at a corner: a schematic root, not the one the cutting tool (a pinion-type cutter) generates' }],
   };
@@ -297,8 +297,8 @@ function mirroredY(c: Curve): Curve { return { ...c, controlPoints: c.controlPoi
  * fillets `filletR#k` / `filletL#k` (by the ring's tooth k beside them; later faces `filletR2#k`).
  */
 function shaperCutRing(spec: InternalGearSpec, d: ReturnType<typeof internalGearDimensions>, id: string): { brep: Brep; report: InternalGearReport } {
-  const sh = d.shaper!, z = spec.teeth, rb = d.rb, psiS = d.sd.psi, tol = spec.profileToleranceMM ?? 1e-4 * d.mn;
-  if (!(Number.isFinite(tol) && tol > 0)) throw gearError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
+  const sh = d.shaper!, z = spec.teeth, rb = d.rb, psiS = d.sd.psi, tol = spec.profileTolerance ?? 1e-4 * d.mn;
+  if (!(Number.isFinite(tol) && tol > 0)) throw gearError('INVALID_INPUT', 'profileTolerance must be a number of mm above 0');
   // The involute, as few pieces as the tolerance asks (at most five), from the tip circle to the fillet's start.
   const t0 = Math.sqrt(Math.max(0, (d.ra / rb) ** 2 - 1)), t1 = Math.sqrt((sh.rStart / rb) ** 2 - 1);
   let N = 1, dev = flankDeviation(rb, t0, t1, 1);
@@ -328,13 +328,13 @@ function shaperCutRing(spec: InternalGearSpec, d: ReturnType<typeof internalGear
   }
   const inner = pieces.map(p => ({ name: p.name, curve: reversed(p.curve) })).reverse();
   const rim = [{ name: `${id}.rim#1`, curve: arcCurve('m', d.rim, 0, Math.PI) }, { name: `${id}.rim#2`, curve: arcCurve('m', d.rim, Math.PI, Math.PI) }];
-  const brep = extrudedProfile(id, 'gear', rim, inner, spec.faceWidthMM, d.rim + 1);
+  const brep = extrudedProfile(id, 'gear', rim, inner, spec.faceWidth, d.rim + 1);
   const report: InternalGearReport = {
     generator: 'internal-gear@1', profileShift: d.x,
-    dimensions: { referenceDiameterMM: 2 * d.r, baseDiameterMM: 2 * d.rb, tipDiameterMM: 2 * d.ra, rootDiameterMM: 2 * d.rf, rimDiameterMM: 2 * d.rim, circularPitchMM: d.pitch, spaceWidthMM: d.spaceWidth, toothThicknessMM: d.pitch - d.spaceWidth },
-    flankPieces: N, profileDeviationMM: dev, profileToleranceMM: tol, rootPolicy: 'shaper-cut', manufacturingValidated: false,
-    shaperRoot: { cutterTeeth: sh.z0, cutterShift: sh.x0, cutterTipRadiusMM: sh.rho, cuttingCenterDistanceMM: sh.ac, cuttingPressureAngleDeg: sh.alphaC * 180 / Math.PI, formDiameterMM: 2 * sh.rStart, crossing: sh.crossing, filletPieces: NF, filletDeviationMM: fdev },
-    diagnostics: spec.cutter?.tipRadiusMM === undefined ? [{ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: `the cutter's tip radius ${sh.rho.toFixed(4)} mm is an estimate for a pinion-type cutter's (the basic rack's 0.38 m, or 80% of the largest its tooth holds): give the toolmaker's` }] : [],
+    dimensions: { referenceDiameter: 2 * d.r, baseDiameter: 2 * d.rb, tipDiameter: 2 * d.ra, rootDiameter: 2 * d.rf, rimDiameter: 2 * d.rim, circularPitch: d.pitch, spaceWidth: d.spaceWidth, toothThickness: d.pitch - d.spaceWidth },
+    flankPieces: N, profileDeviation: dev, profileTolerance: tol, rootPolicy: 'shaper-cut', manufacturingValidated: false,
+    shaperRoot: { cutterTeeth: sh.z0, cutterShift: sh.x0, cutterTipRadius: sh.rho, cuttingCenterDistance: sh.ac, cuttingPressureAngle: sh.alphaC * 180 / Math.PI, formDiameter: 2 * sh.rStart, crossing: sh.crossing, filletPieces: NF, filletDeviation: fdev },
+    diagnostics: spec.cutter?.tipRadius === undefined ? [{ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: `the cutter's tip radius ${sh.rho.toFixed(4)} mm is an estimate for a pinion-type cutter's (the basic rack's 0.38 m, or 80% of the largest its tooth holds): give the toolmaker's` }] : [],
   };
   return { brep, report };
 }
@@ -368,18 +368,18 @@ function workingDistance(pinion: SpurGearSpec, ring: InternalGearSpec, p: Return
   return aRef * Math.cos(d.alpha) / Math.cos(w);
 }
 
-export interface InternalGearPairOptions { readonly centerDistanceMM?: number; readonly relativePhaseDeg?: number; readonly samples?: number; readonly mode?: 'report' | 'verdict' }
+export interface InternalGearPairOptions { readonly centerDistance?: number; readonly relativePhase?: number; readonly samples?: number; readonly mode?: 'report' | 'verdict' }
 export interface InternalGearPairCheck {
-  readonly centerDistanceMM: number; readonly nominalCenterDistanceMM: number;
-  readonly workingPressureAngleDeg: number;
+  readonly centerDistance: number; readonly nominalCenterDistance: number;
+  readonly workingPressureAngle: number;
   /** The pinion's and the ring's working pitch diameters, 2a z/(z2 − z1). */
-  readonly workingPitchDiametersMM: readonly [number, number];
+  readonly workingPitchDiameters: readonly [number, number];
   /** +z1/z2: the ring turns the same way as the pinion. */
   readonly speedRatio: number;
   /** The ring's space less the pinion's tooth on their working pitch circles; negative: the teeth jam. */
-  readonly backlashMM: number;
+  readonly backlash: number;
   /** The pinion's tip from the ring's root (rf2 − a − ra1), the ring's tip from the pinion's root (ra2 − a − rf1). */
-  readonly tipClearancesMM: readonly [number, number];
+  readonly tipClearances: readonly [number, number];
   /** The formula's [√(ra1² − rb1²) − √(ra2² − rb2²) + a sin α_w]/(π m_t cos α_t), and the path the usable flanks allow. */
   readonly idealContactRatio: number; readonly usableContactRatio: number;
   readonly axialContactRatio: number; readonly totalContactRatio: number;
@@ -396,8 +396,8 @@ export interface InternalGearPairCheck {
    * 4.8, D133). `interference` when either says so (the straight path clears a few small pairs K1's condition does
    * not); `sweepInterference` the path's alone.
    */
-  readonly interference: { readonly involuteMargin: number; readonly formMargin: number; readonly trochoidMargin: number; readonly trimming: { readonly possible: boolean; readonly interference: boolean; readonly leastClearanceMM: number; readonly atOffsetMM: number; readonly conditionMargin: number; readonly sweepInterference: boolean } };
-  readonly sweep: { readonly samples: number; readonly minimumClearanceMM: number; readonly atDegrees: number; readonly interference: boolean; readonly converged: boolean; readonly coarseMinimumMM: number };
+  readonly interference: { readonly involuteMargin: number; readonly formMargin: number; readonly trochoidMargin: number; readonly trimming: { readonly possible: boolean; readonly interference: boolean; readonly leastClearance: number; readonly atOffset: number; readonly conditionMargin: number; readonly sweepInterference: boolean } };
+  readonly sweep: { readonly samples: number; readonly minimumClearance: number; readonly at: number; readonly interference: boolean; readonly converged: boolean; readonly coarseMinimum: number };
   readonly diagnostics: readonly GearDiagnostic[];
 }
 
@@ -408,7 +408,7 @@ export interface InternalGearPairCheck {
  * the least clearance converged and refined, a crossing measured by its depth — as the external pairs (D55), cached.
  */
 export function checkInternalGearPair(pinion: SpurGearSpec, ring: InternalGearSpec, options: InternalGearPairOptions = {}): InternalGearPairCheck {
-  const key = JSON.stringify([pinion, ring, options.centerDistanceMM ?? null, options.relativePhaseDeg ?? 0, options.samples ?? 64, options.mode ?? 'report']);
+  const key = JSON.stringify([pinion, ring, options.centerDistance ?? null, options.relativePhase ?? 0, options.samples ?? 64, options.mode ?? 'report']);
   const kept = cache.get(key);
   if (kept) { cache.delete(key); cache.set(key, kept); return kept; }
   const out = pairCheck(pinion, ring, options);
@@ -447,8 +447,8 @@ function insideStar(P: { tooth: Float64Array; z: number }, A: Float64Array, thet
 function pairCheck(pinion: SpurGearSpec, ring: InternalGearSpec, options: InternalGearPairOptions): InternalGearPairCheck {
   const p = spurGearDimensions(pinion), d = internalGearDimensions(ring);
   compatible(p, d);
-  const z1 = pinion.teeth, z2 = ring.teeth, m = d.mt, alpha = d.alpha, a0 = workingDistance(pinion, ring, p, d), a = options.centerDistanceMM ?? a0;
-  if (!(Number.isFinite(a) && a > 0)) throw gearError('INVALID_INPUT', 'centerDistanceMM must be a number of mm above 0');
+  const z1 = pinion.teeth, z2 = ring.teeth, m = d.mt, alpha = d.alpha, a0 = workingDistance(pinion, ring, p, d), a = options.centerDistance ?? a0;
+  if (!(Number.isFinite(a) && a > 0)) throw gearError('INVALID_INPUT', 'centerDistance must be a number of mm above 0');
   const cw = m * (z2 - z1) / 2 * Math.cos(alpha) / a;
   if (!(cw < 1)) throw gearError('MATE_INCOMPATIBLE', `at ${a} mm no working pressure angle`);
   const alphaW = Math.acos(cw), rw1 = a * z1 / (z2 - z1), rw2 = a * z2 / (z2 - z1);
@@ -458,7 +458,7 @@ function pairCheck(pinion: SpurGearSpec, ring: InternalGearSpec, options: Intern
   const tips: [number, number] = [d.rf - a - p.ra, d.ra - a - p.rf];
   const L = a * Math.sin(alphaW), hi1 = Math.sqrt(p.ra ** 2 - p.rb ** 2), lo1 = Math.sqrt(Math.max(0, p.rs ** 2 - p.rb ** 2)), ringTip = Math.sqrt(d.ra ** 2 - d.rb ** 2) - L;
   const pb = Math.PI * m * Math.cos(alpha), ideal = (hi1 - ringTip) / pb, usable = Math.max(0, hi1 - Math.max(lo1, ringTip, 0)) / pb;
-  const epsB = Math.min(pinion.faceWidthMM, ring.faceWidthMM) * Math.abs(Math.sin(d.beta)) / (Math.PI * d.mn);
+  const epsB = Math.min(pinion.faceWidth, ring.faceWidth) * Math.abs(Math.sin(d.beta)) / (Math.PI * d.mn);
   // The conditions, transverse, at this distance.
   const aa1 = Math.acos(p.rb / p.ra), aa2 = Math.acos(d.rb / d.ra);
   const involuteMargin = z1 / z2 - (1 - Math.tan(aa2) / Math.tan(alphaW)), formMargin = ringTip - lo1;
@@ -468,7 +468,7 @@ function pairCheck(pinion: SpurGearSpec, ring: InternalGearSpec, options: Intern
   // (Touching is not crossing: the ring's outline is chords of its involutes, which stand into its spaces by up to their
   // sag — rb t δt²/8 at the end of its flank, δt the step in roll — so a pinion on the true involute can seem that far
   // into the ring's material at contact. A crossing no deeper is contact, 0.)
-  const phase = (options.relativePhaseDeg ?? 0) * Math.PI / 180, verdict = options.mode === 'verdict', touch = chordSag(d.sd) + 1e-9 * d.mn;
+  const phase = (options.relativePhase ?? 0) * Math.PI / 180, verdict = options.mode === 'verdict', touch = chordSag(d.sd) + 1e-9 * d.mn;
   const at = (theta: number) => { const c = clearanceAt(O, theta, theta * z1 / z2 + phase, a, verdict); return c < 0 && c >= -touch ? 0 : c; };
   // (The trimming condition, transverse: with the pinion's and the ring's tip pressure angles and α_w.)
   const qq = (Math.cos(aa1) / Math.cos(aa2)) ** 2, tt1 = Math.asin(Math.sqrt(Math.max(0, (1 - qq) / (1 - (z1 / z2) ** 2)))), tt2 = Math.asin(Math.sqrt(Math.max(0, (1 / qq - 1) / ((z2 / z1) ** 2 - 1))));
@@ -478,16 +478,16 @@ function pairCheck(pinion: SpurGearSpec, ring: InternalGearSpec, options: Intern
   if (involuteMargin < 0) diagnostics.push({ code: 'INVOLUTE_INTERFERENCE', severity: 'error', message: `involute interference: the ring's tip meets the pinion below its base circle (z1/z2 ${(z1 / z2).toFixed(4)} < 1 − tan α_a2 / tan α_w = ${(z1 / z2 - involuteMargin).toFixed(4)})` });
   if (trochoidMargin < 0) diagnostics.push({ code: 'TROCHOID_INTERFERENCE', severity: 'error', message: `trochoid interference: the pinion's tip strikes the ring's tooth as it leaves the mesh (margin ${trochoidMargin.toFixed(5)} rad; more teeth between them, or a shift, clears it)` });
   if (!trimming.possible) diagnostics.push({ code: 'TRIMMING_INTERFERENCE', severity: 'error', message: `radial assembly impossible: the pinion's tip circle Ø${(2 * p.ra).toFixed(4)} does not fit inside the ring's Ø${(2 * d.ra).toFixed(4)} — assemble it axially` });
-  else if (trimming.sweepInterference) diagnostics.push({ code: 'TRIMMING_INTERFERENCE', severity: 'error', message: `trimming interference: moved in radially, the teeth cross ${trimming.atOffsetMM.toFixed(4)} mm from the ring's centre — assemble it axially` });
-  else if (conditionMargin < 0) diagnostics.push({ code: 'TRIMMING_INTERFERENCE', severity: 'error', message: `trimming interference by the condition K1 tabulates (margin ${conditionMargin.toFixed(5)}; the straight radial path clears by ${trimming.leastClearanceMM.toFixed(4)} mm) — assemble it axially` });
-  const base = { centerDistanceMM: a, nominalCenterDistanceMM: a0, workingPressureAngleDeg: alphaW * 180 / Math.PI, workingPitchDiametersMM: [2 * rw1, 2 * rw2] as const, speedRatio: z1 / z2, backlashMM: backlash, tipClearancesMM: tips,
+  else if (trimming.sweepInterference) diagnostics.push({ code: 'TRIMMING_INTERFERENCE', severity: 'error', message: `trimming interference: moved in radially, the teeth cross ${trimming.atOffset.toFixed(4)} mm from the ring's centre — assemble it axially` });
+  else if (conditionMargin < 0) diagnostics.push({ code: 'TRIMMING_INTERFERENCE', severity: 'error', message: `trimming interference by the condition K1 tabulates (margin ${conditionMargin.toFixed(5)}; the straight radial path clears by ${trimming.leastClearance.toFixed(4)} mm) — assemble it axially` });
+  const base = { centerDistance: a, nominalCenterDistance: a0, workingPressureAngle: alphaW * 180 / Math.PI, workingPitchDiameters: [2 * rw1, 2 * rw2] as const, speedRatio: z1 / z2, backlash: backlash, tipClearances: tips,
     idealContactRatio: ideal, usableContactRatio: usable, axialContactRatio: epsB, totalContactRatio: usable + epsB, interference: { involuteMargin, formMargin, trochoidMargin, trimming } };
   if (verdict) {
     let least = Infinity, tAt = 0;
     for (let i = 0; i < N; i++) { const t = period * i / N, c = at(t); if (c < least) { least = c; tAt = t; } if (c < 0) break; }
     const crossed = least < 0;
     if (crossed) diagnostics.push({ code: 'SELF_INTERSECTION', severity: 'error', message: `the teeth cross at ${(tAt * 180 / Math.PI).toFixed(4)}° of the pinion (the depth: a report)` });
-    return { ...base, sweep: { samples: N, minimumClearanceMM: crossed ? -0 : least, atDegrees: tAt * 180 / Math.PI, interference: crossed, converged: false, coarseMinimumMM: least }, diagnostics };
+    return { ...base, sweep: { samples: N, minimumClearance: crossed ? -0 : least, at: tAt * 180 / Math.PI, interference: crossed, converged: false, coarseMinimum: least }, diagnostics };
   }
   let coarse = { c: Infinity, t: 0 }, fine = { c: Infinity, t: 0 };
   for (let i = 0; i < N; i++) { const t = period * i / N, c = at(t); if (c < coarse.c) coarse = { c, t }; }
@@ -499,7 +499,7 @@ function pairCheck(pinion: SpurGearSpec, ring: InternalGearSpec, options: Intern
   if (refined < 0) diagnostics.push({ code: 'SELF_INTERSECTION', severity: 'error', message: `the teeth cross by ${(-refined).toFixed(6)} mm at ${(tAt * 180 / Math.PI).toFixed(4)}° of the pinion` });
   if (!converged) diagnostics.push({ code: 'INVALID_INPUT', severity: 'warning', message: `the sweep did not settle (${N} samples: ${coarse.c.toExponential(3)}, ${2 * N}: ${fine.c.toExponential(3)} mm): more samples are needed` });
   if (usable + 1e-12 < ideal) diagnostics.push({ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: `the usable flanks give a contact ratio of ${usable.toFixed(4)}, below the ideal ${ideal.toFixed(4)}` });
-  return { ...base, sweep: { samples: N, minimumClearanceMM: refined, atDegrees: tAt * 180 / Math.PI, interference: refined < 0, converged, coarseMinimumMM: coarse.c }, diagnostics };
+  return { ...base, sweep: { samples: N, minimumClearance: refined, at: tAt * 180 / Math.PI, interference: refined < 0, converged, coarseMinimum: coarse.c }, diagnostics };
 }
 
 /** The largest sag of the space gear's sampled involute chords (`exactProfile`: 150 steps in roll from where the flank starts to the tip). */
@@ -512,8 +512,8 @@ function chordSag(g: ReturnType<typeof spurGearDimensions>): number {
  * ring space (the phase given), not turning. Starting concentric needs its tip circle inside the ring's. 48 offsets,
  * the least refined by golden section; a crossing deeper than rounding before the working distance is interference.
  */
-function radialInsertion(O: Outlines, a: number, phase: number, touch: number): { possible: boolean; interference: boolean; leastClearanceMM: number; atOffsetMM: number } {
-  if (!(O.ra1 < O.ra2)) return { possible: false, interference: true, leastClearanceMM: -0, atOffsetMM: 0 };
+function radialInsertion(O: Outlines, a: number, phase: number, touch: number): { possible: boolean; interference: boolean; leastClearance: number; atOffset: number } {
+  if (!(O.ra1 < O.ra2)) return { possible: false, interference: true, leastClearance: -0, atOffset: 0 };
   const N = 96, at = (s: number) => { const c = clearanceAt(O, 0, phase, s, false); return c < 0 && c >= -touch ? 0 : c; };
   const c = new Float64Array(N + 1);
   for (let i = 0; i <= N; i++) c[i] = at(a * i / N);
@@ -529,7 +529,7 @@ function radialInsertion(O: Outlines, a: number, phase: number, touch: number): 
     for (let it = 0; it < 40 && hi - lo > 1e-9 * a; it++) { if (f1 < f2) { hi = x2; x2 = x1; f2 = f1; x1 = hi - G * (hi - lo); f1 = at(x1); } else { lo = x1; x1 = x2; f1 = f2; x2 = lo + G * (hi - lo); f2 = at(x2); } }
     if (Math.min(f1, f2) < refined) { refined = Math.min(f1, f2); where = f1 < f2 ? x1 : x2; }
   }
-  return { possible: true, interference: refined < 0, leastClearanceMM: refined, atOffsetMM: where };
+  return { possible: true, interference: refined < 0, leastClearance: refined, atOffset: where };
 }
 
 /**
@@ -636,7 +636,7 @@ function deepest(X: Float64Array, Y: Float64Array, grid: Map<number, number[]>, 
 
 /** A ring as it stands: its axis along +Z through `center`, faces from `from` through b, turned by `rotation` (radians; tooth 1 on +X at 0). */
 export interface PlacedInternalGear { readonly spec: InternalGearSpec; readonly center: readonly [number, number]; readonly from: number; readonly rotation: number }
-export interface PlacedInternalGearPairCheck extends InternalGearPairCheck { readonly relativePhaseDeg: number; readonly faceOverlapMM: number }
+export interface PlacedInternalGearPairCheck extends InternalGearPairCheck { readonly relativePhase: number; readonly faceOverlap: number }
 
 /**
  * The pinion's turn inside a ring as placed (R12b.2a): at direction φ from the ring's centre, a pinion tooth on the
@@ -646,8 +646,8 @@ export function pinionTurnInside(ring: PlacedInternalGear, pinionTeeth: number, 
   return phi + (ring.rotation - Math.PI / ring.spec.teeth - phi) * ring.spec.teeth / pinionTeeth + phase;
 }
 /** The pair checks for a pinion inside a ring as placed: the centre distance and the relative phase from where they stand and how they are turned. */
-export function checkPlacedInternalGears(ring: PlacedInternalGear, pinion: { readonly spec: SpurGearSpec; readonly center: readonly [number, number]; readonly from: number; readonly rotation: number }, options: Omit<InternalGearPairOptions, 'centerDistanceMM' | 'relativePhaseDeg'> = {}): PlacedInternalGearPairCheck {
-  const overlap = Math.min(ring.from + ring.spec.faceWidthMM, pinion.from + pinion.spec.faceWidthMM) - Math.max(ring.from, pinion.from);
+export function checkPlacedInternalGears(ring: PlacedInternalGear, pinion: { readonly spec: SpurGearSpec; readonly center: readonly [number, number]; readonly from: number; readonly rotation: number }, options: Omit<InternalGearPairOptions, 'centerDistance' | 'relativePhase'> = {}): PlacedInternalGearPairCheck {
+  const overlap = Math.min(ring.from + ring.spec.faceWidth, pinion.from + pinion.spec.faceWidth) - Math.max(ring.from, pinion.from);
   if (!(overlap > 0)) throw gearError('MATE_INCOMPATIBLE', `the faces do not overlap along the axes (${overlap.toFixed(6)} mm)`);
   const dx = pinion.center[0] - ring.center[0], dy = pinion.center[1] - ring.center[1], a = Math.hypot(dx, dy);
   if (!(a > 0)) throw gearError('MATE_INCOMPATIBLE', 'the pinion stands on the ring\'s axis');
@@ -659,6 +659,6 @@ export function checkPlacedInternalGears(ring: PlacedInternalGear, pinion: { rea
   const raw = (rotR - Math.PI / z2 - phi) - (rotP - phi) * z1 / z2;
   let phase = ((raw % pitch) + pitch) % pitch; if (phase < 1e-9 * pitch || pitch - phase < 1e-9 * pitch) phase = 0;
   const phaseDeg = phase * 180 / Math.PI;
-  const check = checkInternalGearPair(pinion.spec, ring.spec, { ...options, centerDistanceMM: a, relativePhaseDeg: phaseDeg });
-  return { ...check, relativePhaseDeg: phaseDeg, faceOverlapMM: overlap };
+  const check = checkInternalGearPair(pinion.spec, ring.spec, { ...options, centerDistance: a, relativePhase: phaseDeg });
+  return { ...check, relativePhase: phaseDeg, faceOverlap: overlap };
 }

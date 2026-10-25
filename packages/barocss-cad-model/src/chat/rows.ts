@@ -70,12 +70,12 @@ export function loadPersonRows(doc: StudioDoc, kind: unknown, fileId: unknown, f
       // (FRb, O116: the same, for frame stock lengths.)
       const good: FrameStockRow[] = [];
       for (const [k, value] of raw.entries()) {
-        const r = value as Record<string, unknown>, id = typeof r.id === 'string' ? r.id : '', source = typeof r.source === 'string' ? r.source.trim() : '', length = r.lengthMM ?? r.length;
+        const r = value as Record<string, unknown>, id = typeof r.id === 'string' ? r.id : '', source = typeof r.source === 'string' ? r.source.trim() : '', length = r.length ?? r.length;
         if (!id || !source) return { error: `[FRAME_STOCK_ROW] row ${k}: an id and a source (where the length comes from: your shop, a page) are needed.` };
         if (!positive(length)) return { error: `[FRAME_STOCK_ROW] row ${k} (${id}): length is mm > 0.` };
         if (r.count !== undefined && !(Number.isInteger(r.count) && (r.count as number) > 0)) return { error: `[FRAME_STOCK_ROW] row ${k} (${id}): count is a whole number > 0 (unset: as many as needed).` };
         if (r.section !== undefined && !(typeof r.section === 'string' && r.section)) return { error: `[FRAME_STOCK_ROW] row ${k} (${id}): section is the cut list's section text (unset: any section).` };
-        good.push({ id, lengthMM: length, ...(r.count !== undefined ? { count: r.count as number } : {}), ...(r.section !== undefined ? { section: r.section as string } : {}), source });
+        good.push({ id, length: length, ...(r.count !== undefined ? { count: r.count as number } : {}), ...(r.section !== undefined ? { section: r.section as string } : {}), source });
       }
       if (new Set(good.map(r => r.id)).size !== good.length) return { error: '[FRAME_STOCK_ROW] two rows with one id.' };
       result = { doc: { ...doc, frames: { ...doc.frames, version: 1, stock: mergeById(doc.frames?.stock, good) } } }; break;

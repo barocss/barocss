@@ -47,7 +47,7 @@ parentPort.on('message',data=>self.onmessage({data}));parentPort.postMessage({re
     const first = await request(opened.doc), again = await request(opened.doc);
     assert.ok(first.wire.bodies.every(b => 'mesh' in b));
     assert.ok(again.wire.bodies.every(b => 'meshRef' in b));
-    const facts = (bodies: typeof direct.bodies) => bodies.map(b => ({ key: b.key, volume: b.volumeMM3, centroid: b.centroid, inertia: b.inertia, piece: b.cutPiece }));
+    const facts = (bodies: typeof direct.bodies) => bodies.map(b => ({ key: b.key, volume: b.volume, centroid: b.centroid, inertia: b.inertia, piece: b.cutPiece }));
     assert.deepEqual(facts(first.bodies), facts(direct.bodies)); assert.deepEqual(facts(again.bodies), facts(direct.bodies));
     assert.equal(first.bodies.length, 1); assert.equal(first.bodies[0].pieces ?? 1, 1);
     assert.ok(first.bodies[0].cutPiece?.curve);
@@ -55,7 +55,7 @@ parentPort.on('message',data=>self.onmessage({data}));parentPort.postMessage({re
     const edited = await dispatchTool({ doc: opened.doc, bodies: direct.bodies }, 'features', { action: 'edit', index: 0, values: { [key]: path === 'tangentbend' ? 40 : 10 } }, async doc => evaluateDoc(doc, 1));
     assert.equal(edited.isError, false, edited.content);
     const after = await request(edited.state.doc);
-    assert.notEqual(after.bodies[0].volumeMM3, first.bodies[0].volumeMM3);
+    assert.notEqual(after.bodies[0].volume, first.bodies[0].volume);
     assert.deepEqual(after.bodies[0].cutPiece, edited.state.bodies[0].cutPiece);
   }
 });

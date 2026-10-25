@@ -6,6 +6,7 @@
 // they came from.
 import type { CadPartFeature } from '../part/part-model.js';
 import { KernelError } from '../core/barocss-error.js';
+import { unitNamedField } from '../document/unit-named.js';
 
 export type CadLibraryErrorCode = 'FORMAT' | 'PARAMETER' | 'EXPRESSION' | 'REFERENCE' | 'RECIPE' | 'VERSION';
 export class CadLibraryError extends KernelError {
@@ -55,10 +56,10 @@ export interface CadLibraryInterface {
 export interface CadLibraryFitEnd { readonly part: string; readonly variant?: string; readonly params?: Readonly<Record<string, number>>; readonly interface: string }
 /**
  * A fit the library declares (LIB2): `b` placed by its interface onto `a`'s — frames facing, x along x — moved by
- * `offset` (in a's interface frame), and the overlap of the two at most `maxOverlapMM3` (default 1e-6: touching).
+ * `offset` (in a's interface frame), and the overlap of the two at most `maxOverlap` (default 1e-6: touching).
  */
 export interface CadLibraryFit {
-  readonly id: string; readonly a: CadLibraryFitEnd; readonly b: CadLibraryFitEnd; readonly offset?: readonly number[]; readonly maxOverlapMM3?: number; readonly description?: string;
+  readonly id: string; readonly a: CadLibraryFitEnd; readonly b: CadLibraryFitEnd; readonly offset?: readonly number[]; readonly maxOverlap?: number; readonly description?: string;
   /** Rules over both parts' values (R6b.3), `a_<parameter>` and `b_<parameter>`: a snap hook's undercut against its catch's ledge. */
   readonly checks?: readonly { readonly id: string; readonly expr: string; readonly value?: string; readonly message: string }[];
 }
@@ -312,8 +313,10 @@ export function loadCadLibrary(input: unknown): CadLibrary {
     if (!Array.isArray(m.fits)) throw new CadLibraryError('FORMAT', m.id as string, 'fits must be a list');
     const seen = new Set<string>();
     for (const fit of m.fits as unknown[]) {
-      if (!isRecord(fit) || typeof fit.id !== 'string' || !ID.test(fit.id)) throw new CadLibraryError('FORMAT', m.id as string, 'a fit is { id, a, b, offset?, maxOverlapMM3? }');
+      if (!isRecord(fit) || typeof fit.id !== 'string' || !ID.test(fit.id)) throw new CadLibraryError('FORMAT', m.id as string, 'a fit is { id, a, b, offset?, maxOverlap? }');
       const at = `${m.id}~${fit.id}`;
+      const named = unitNamedField(fit);
+      if (named) throw new CadLibraryError('FORMAT', at, `${named.path} is not a field: a length, angle or volume carries no unit in its name (R7.7b, D281) — it is ${named.field}`);
       if (seen.has(fit.id)) throw new CadLibraryError('FORMAT', at, 'a fit id appears twice'); seen.add(fit.id);
       const ends = (['a', 'b'] as const).map(side => {
         const e = fit[side];
@@ -325,7 +328,7 @@ export function loadCadLibrary(input: unknown): CadLibrary {
       });
       if (!(ends[0].accepts?.includes(ends[1].role) || ends[1].accepts?.includes(ends[0].role))) throw new CadLibraryError('REFERENCE', at, `${ends[0].role} and ${ends[1].role} do not accept each other`);
       if (fit.offset !== undefined && (!Array.isArray(fit.offset) || fit.offset.length !== 3 || fit.offset.some(x => typeof x !== 'number' || !Number.isFinite(x)))) throw new CadLibraryError('FORMAT', at, 'offset must be three numbers');
-      if (fit.maxOverlapMM3 !== undefined && !(typeof fit.maxOverlapMM3 === 'number' && fit.maxOverlapMM3 >= 0)) throw new CadLibraryError('FORMAT', at, 'maxOverlapMM3 must be a number, 0 or more');
+      if (fit.maxOverlap !== undefined && !(typeof fit.maxOverlap === 'number' && fit.maxOverlap >= 0)) throw new CadLibraryError('FORMAT', at, 'maxOverlap must be a number, 0 or more');
       if (fit.checks !== undefined) {
         if (!Array.isArray(fit.checks)) throw new CadLibraryError('FORMAT', at, 'checks must be a list');
         const both = [...Object.keys(parts.get((fit.a as { part: string }).part)!.part.parameters).map(k => `a_${k}`), ...Object.keys(parts.get((fit.b as { part: string }).part)!.part.parameters).map(k => `b_${k}`)];

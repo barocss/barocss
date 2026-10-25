@@ -143,5 +143,5 @@ test('revolve about a picked edge: a straight edge in the sketch plane becomes t
   // Built and evaluated: a ring about the X axis line through the origin (Pappus: area 42 × 2π × 16 mean radius).
   const next = revolveCommand.build!(ctx, onBottom as never), r = evaluateDoc(next, 6);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
-  assert.ok(Math.abs((r.bodies.at(-1)!.volumeMM3 ?? 0) - 42 * 2 * Math.PI * 16) < 1e-3, String(r.bodies.at(-1)!.volumeMM3));
+  assert.ok(Math.abs((r.bodies.at(-1)!.volume ?? 0) - 42 * 2 * Math.PI * 16) < 1e-3, String(r.bodies.at(-1)!.volume));
 });

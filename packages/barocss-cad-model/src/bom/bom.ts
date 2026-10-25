@@ -41,7 +41,7 @@ export function bomPanelDataOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => Eva
   for (const [part, d] of docs) {
     const e = evaluate(d); if (!e?.ok) continue;
     // (O169: by the document's materials, as a placed part's mass is — a body's own massG is the default material's.)
-    if (part === 'base') { baseMass = (massProperties(d, e.bodies) as { mass_g: number }[]).reduce((s, x) => s + x.mass_g, 0); baseBound = massBoundField(d, e.bodies); baseLumps = lumpsField(e.bodies); }
+    if (part === 'base') { baseMass = (massProperties(d, e.bodies) as { mass: number }[]).reduce((s, x) => s + x.mass, 0); baseBound = massBoundField(d, e.bodies); baseLumps = lumpsField(e.bodies); }
     for (const l of elementLines(d, e.bodies)) {
       if (l.bought || l.kind === 'gusset' || l.kind === 'end-cap') continue; // (plates: their own BOM lines, FRk1)
       const id = `${part}:${l.item}`, row = l.row?.id ?? null, m = made.find(x => x.kind === l.kind && x.size === l.size && x.row === row);
@@ -50,7 +50,7 @@ export function bomPanelDataOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => Eva
     }
   }
   // (A part with no placed parts: itself, one, as a line.)
-  if (single) view.parts.unshift({ id: 'base', name, material: null, massG: r6(baseMass), ...baseBound, ...baseLumps, library: null, shape: '' });
+  if (single) view.parts.unshift({ id: 'base', name, material: null, mass: r6(baseMass), ...baseBound, ...baseLumps, library: null, shape: '' });
   return { view, bom: deriveBom(view), made, single, ...(shopRows.some(p => p.rows.length) ? { shopRows } : {}) };
 }
 

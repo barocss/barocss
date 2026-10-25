@@ -106,7 +106,7 @@ const ringCommand: Command = {
   fields: ctx => [{ key: 'groove', label: 'Groove', kind: 'count', min: 1, max: Math.max(1, groovesOf(pickedShaft(ctx)?.node ?? { kind: 'shaft', steps: [], center: [0, 0], generator: 'shaft@0' }).length) },
     { key: 's', label: 'Thickness (estimate)', kind: 'mm', min: 0.05 }, { key: 'D', label: 'Outer Ø (estimate)', kind: 'mm', min: 0.5 },
     // (O139: the user's ring row it is checked against — none built in; none: an estimate.)
-    { key: 'row', label: 'Ring row', kind: 'choice', options: [...(ctx.doc.rings?.rows ?? []).map(r => ({ value: r.id, label: `${r.designation ?? r.id} · Ø${r.shaftDiameterMM} shaft, groove Ø${r.grooveDiameterMM} × ${r.grooveWidthMM}${r.estimate ? ' (estimate)' : ''}` })), { value: 'none', label: 'None (an estimate)' }] }],
+    { key: 'row', label: 'Ring row', kind: 'choice', options: [...(ctx.doc.rings?.rows ?? []).map(r => ({ value: r.id, label: `${r.designation ?? r.id} · Ø${r.shaftDiameter} shaft, groove Ø${r.grooveDiameter} × ${r.grooveWidth}${r.estimate ? ' (estimate)' : ''}` })), { value: 'none', label: 'None (an estimate)' }] }],
   defaults: ctx => {
     const s = pickedShaft(ctx), g = groovesOf(s?.node ?? { kind: 'shaft', steps: [], center: [0, 0], generator: 'shaft@0' })[0];
     // (The row for the first groove's sizes, when the person has one.)
@@ -160,7 +160,7 @@ const bearingCommand: Command = {
   available: ctx => !ctx.doc.bearings?.rows.length ? no('Load your bearing rows first (Library panel, BEARINGS): none is built in.') : pickedShaft(ctx) ? ok : no('Select a shaft (from the Shaft command).'),
   fields: ctx => {
     const rows = ctx.doc.bearings?.rows ?? [], classes = [...new Set((ctx.doc.fits?.tables ?? []).flatMap(t => t.rows.map(r => r.class)))];
-    return [{ key: 'row', label: 'Bearing row', kind: 'choice', options: rows.map(r => ({ value: r.id, label: `${r.designation ?? r.id} · Ø${r.boreMM} × Ø${r.outsideMM} × ${r.widthMM}${r.estimate ? ' (estimate)' : ''}` })) },
+    return [{ key: 'row', label: 'Bearing row', kind: 'choice', options: rows.map(r => ({ value: r.id, label: `${r.designation ?? r.id} · Ø${r.bore} × Ø${r.outside} × ${r.width}${r.estimate ? ' (estimate)' : ''}` })) },
       { key: 'step', label: 'On step', kind: 'count', min: 1, max: Math.max(1, pickedShaft(ctx)?.node.steps.length ?? 1) },
       { key: 'against', label: 'Against the shoulder at', kind: 'choice', options: [{ value: 'start', label: 'The step\'s start' }, { value: 'end', label: 'The step\'s end' }] },
       { key: 'housing', label: 'Housing', kind: 'choice', options: bearingHousingOptions(ctx.doc.nodes, ctx.bearingAssembly ?? (ctx.doc.instances?.length ? { root: ctx.doc, owner: 'base' } : undefined), bearingContextOf(ctx.doc)).filter(o => o.value !== String(pickedShaft(ctx)?.index)) },
@@ -171,7 +171,7 @@ const bearingCommand: Command = {
     // (The first step and side whose shoulder holds the first row's bore: else step 1 against its end.)
     const s = pickedShaft(ctx)?.node, row = ctx.doc.bearings?.rows[0], d = (x: { diameter: unknown }) => Number(x.diameter);
     let step = 1, against: 'start' | 'end' = 'end';
-    if (s && row) for (let k = 0; k < s.steps.length; k++) if (Math.abs(d(s.steps[k]) - row.boreMM) < 1e-6) { if (k > 0 && d(s.steps[k - 1]) > row.boreMM) { step = k + 1; against = 'start'; break; } if (k + 1 < s.steps.length && d(s.steps[k + 1]) > row.boreMM) { step = k + 1; against = 'end'; break; } }
+    if (s && row) for (let k = 0; k < s.steps.length; k++) if (Math.abs(d(s.steps[k]) - row.bore) < 1e-6) { if (k > 0 && d(s.steps[k - 1]) > row.bore) { step = k + 1; against = 'start'; break; } if (k + 1 < s.steps.length && d(s.steps[k + 1]) > row.bore) { step = k + 1; against = 'end'; break; } }
     return { row: row?.id ?? '', step, against, housing: 'none', sc: 'none', hc: 'none' };
   },
   build: (ctx, v) => withNode(ctx.doc, { kind: 'bearing', row: String(v.row), shaft: pickedShaft(ctx)!.index, step: Math.round(n(v, 'step')), against: v.against === 'start' ? 'start' : 'end', ...bearingHousingPatch(String(v.housing ?? 'none')), ...(v.sc !== 'none' && v.sc ? { shaftClass: String(v.sc) } : {}), ...(v.hc !== 'none' && v.hc ? { housingClass: String(v.hc) } : {}) }),

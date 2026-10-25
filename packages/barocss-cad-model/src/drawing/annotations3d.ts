@@ -44,7 +44,7 @@ export interface ModelAnnotation {
   /** The frame's compartments in order (the symbol's, the zone and value, each datum), and its box in plane coordinates [u0, v0, u1, v1]. */
   frame?: { characteristic: Characteristic; zone: 'diameter' | 'linear'; value: number; datums: string[]; dim: string; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; projected?: number; freeState?: boolean; tangentPlane?: boolean; cells: { text: string; symbol?: Characteristic }[]; box: [number, number, number, number] };
   datum?: { letter: string };
-  weld?: { joint: string; kind: 'fillet' | 'butt'; sizeMM: number | null; estimate: boolean; allRound: boolean; inner: boolean };
+  weld?: { joint: string; kind: 'fillet' | 'butt'; size: number | null; estimate: boolean; allRound: boolean; inner: boolean };
 }
 export interface ModelAnnotations { version: typeof MODEL_ANNOTATIONS_VERSION; items: ModelAnnotation[]; left: { id: string; why: string }[] }
 /** What the lifting needs of a built sheet: its views, layout, settings and the sheet; the frame's weld joints. */
@@ -101,7 +101,7 @@ function itemOf(i: AnnotationInputs, g: MarkGroup, view: DimView, v: ViewPlaceme
     const placed = i.sheet.welds?.placed.find(p => p.label === g.id), j = placed && i.welds?.find(x => x.id === placed.joint);
     if (!placed || !j) return null;
     targets = [{ at: [...j.at] as Vec3, edge: placed.edge, face: j.face }];
-    extra = { weld: { joint: j.id, kind: j.weld.kind, sizeMM: j.weld.sizeMM, estimate: j.weld.sizeBasis === 'estimate', allRound: j.weld.allRound, inner: j.innerLoop?.welded === true } };
+    extra = { weld: { joint: j.id, kind: j.weld.kind, size: j.weld.size, estimate: j.weld.sizeBasis === 'estimate', allRound: j.weld.allRound, inner: j.innerLoop?.welded === true } };
   }
   const plane = planeOf(i, view, pr, targets);
   const lines: Line3[] = [], arcs: Arc3[] = [], arrows: Head3[] = [], texts: Text3[] = [], role = ROLE_OF[g.role];

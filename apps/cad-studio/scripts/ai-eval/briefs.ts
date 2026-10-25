@@ -72,7 +72,7 @@ async function joints(j: Judged): Promise<{ key: string; type: string; child: st
   return r.error ? null : (r.joints ?? []).filter((x: { type: string }) => x.type !== 'fixed');
 }
 /** A part's largest solid alone (its made body beside bought ones), as a list. */
-const biggest = (b: BodyResult[] | null) => { const s = solids(b).sort((x, y) => (y.volumeMM3 ?? 0) - (x.volumeMM3 ?? 0)); return s.length ? [s[0]] : null; };
+const biggest = (b: BodyResult[] | null) => { const s = solids(b).sort((x, y) => (y.volume ?? 0) - (x.volume ?? 0)); return s.length ? [s[0]] : null; };
 const vertical = (a: number[]) => Math.abs(a[2]) > 0.999;
 const near = (a: number | undefined, b: number, tol: number) => typeof a === 'number' && Math.abs(a - b) <= tol;
 /** The horizontal distance between two vertical axes through their points. */
@@ -173,12 +173,12 @@ const MOTOR_PLATE: Brief = {
   files: [join(SAMPLE_ROWS, 'mounts.json')],
   async oracle(j) {
     // (The row's own numbers: 4 × Ø3.4 on a 31 mm square, the pilot Ø22 (+ its 0.5 clearance a side at most) through.)
-    const row = (json(join(SAMPLE_ROWS, 'mounts.json')).rows as { id: string; holes: { spacingMM: number; diameterMM: number }; pilotMM: number; clearanceMM: number }[]).find(r => r.id === 'nema17')!;
-    const base = 80 * 80 * 6 - 4 * PI * 2.75 ** 2 * 6 - 4 * PI * (row.holes.diameterMM / 2) ** 2 * 6;
-    const lo = base - PI * (row.pilotMM / 2 + row.clearanceMM) ** 2 * 6, hi = base - PI * (row.pilotMM / 2) ** 2 * 6, got = volumeOf(j.base);
+    const row = (json(join(SAMPLE_ROWS, 'mounts.json')).rows as { id: string; holes: { spacing: number; diameter: number }; pilot: number; clearance: number }[]).find(r => r.id === 'nema17')!;
+    const base = 80 * 80 * 6 - 4 * PI * 2.75 ** 2 * 6 - 4 * PI * (row.holes.diameter / 2) ** 2 * 6;
+    const lo = base - PI * (row.pilot / 2 + row.clearance) ** 2 * 6, hi = base - PI * (row.pilot / 2) ** 2 * 6, got = volumeOf(j.base);
     const mount = allNodes(j.doc).some(n => /nema17/.test(JSON.stringify(n)));
     return [rowsFrom('rows', j.doc, 'mounts.json'), evaluates('builds', j.base), oneSolid('solids', j.base), size('size', j.base, [80, 80, 6]),
-      check('volume', `volume between ${lo.toFixed(1)} and ${hi.toFixed(1)} mm³ (corner holes, the row's four Ø${row.holes.diameterMM} and its Ø${row.pilotMM} pilot through)`, got >= lo - 1 && got <= hi + 1, got, [lo, hi].map(v => +v.toFixed(1))),
+      check('volume', `volume between ${lo.toFixed(1)} and ${hi.toFixed(1)} mm³ (corner holes, the row's four Ø${row.holes.diameter} and its Ø${row.pilot} pilot through)`, got >= lo - 1 && got <= hi + 1, got, [lo, hi].map(v => +v.toFixed(1))),
       check('mount', 'a mount feature on the nema17 row', mount, mount)];
   },
 };
@@ -195,8 +195,8 @@ const BEARING_SHAFT: Brief = {
   async oracle(j) {
     const bearingNode = allNodes(j.doc).find(n => n.kind === 'bearing'), shaft = solids(j.base).filter(b => !/bearing/.test(JSON.stringify(b.element ?? {})));
     // (The shaft alone: π(10²·30 + 12.5²·40 + 10²·25); the 6204's envelope by Pappus, the kernel's case (A9): 19 800.65 mm³.)
-    const bearingBody = solids(j.base).find(b => Math.abs((b.volumeMM3 ?? 0) - 19800.6522) < 20);
-    const shaftBody = shaft.find(b => Math.abs((b.volumeMM3 ?? 0) - PI * (100 * 30 + 156.25 * 40 + 100 * 25)) < 0.003 * PI * 11750);
+    const bearingBody = solids(j.base).find(b => Math.abs((b.volume ?? 0) - 19800.6522) < 20);
+    const shaftBody = shaft.find(b => Math.abs((b.volume ?? 0) - PI * (100 * 30 + 156.25 * 40 + 100 * 25)) < 0.003 * PI * 11750);
     let against: Check;
     if (bearingBody && shaftBody) {
       // (Against the shoulder: one axial face of the bearing at the Ø25 step's end, along the shaft's longest axis.)
@@ -206,8 +206,8 @@ const BEARING_SHAFT: Brief = {
       against = check('against', 'the 6204 on the Ø20 × 30 seat, against the Ø25 shoulder (14 mm wide)', ok, [b0 - s0, b1 - s0].map(v => +v.toFixed(3)), 'the bearing from 16 to 30 along the shaft (or mirrored)');
     } else against = check('against', 'the 6204 on its seat against the shoulder', false, 'no shaft or bearing body to read');
     return [rowsFrom('rows-b', j.doc, 'bearings.json'), rowsFrom('rows-f', j.doc, 'fits.json'), evaluates('builds', j.base),
-      check('shaft', 'the shaft\'s volume π(10²·30 + 12.5²·40 + 10²·25) mm³ ±0.3 %', !!shaftBody, shaft.map(b => b.volumeMM3), +(PI * 11750).toFixed(3)),
-      check('bearing', 'a 6204 bearing body (19 800.65 mm³, the row\'s envelope)', !!bearingBody && /6204/.test(JSON.stringify(bearingNode ?? {})), bearingBody?.volumeMM3 ?? null, 19800.65),
+      check('shaft', 'the shaft\'s volume π(10²·30 + 12.5²·40 + 10²·25) mm³ ±0.3 %', !!shaftBody, shaft.map(b => b.volume), +(PI * 11750).toFixed(3)),
+      check('bearing', 'a 6204 bearing body (19 800.65 mm³, the row\'s envelope)', !!bearingBody && /6204/.test(JSON.stringify(bearingNode ?? {})), bearingBody?.volume ?? null, 19800.65),
       check('seat', 'the shaft seat class k5', /"k5"/.test(JSON.stringify(bearingNode ?? {})), bearingNode ? (bearingNode as { sc?: string }).sc ?? JSON.stringify(bearingNode).slice(0, 200) : null, 'k5'),
       against, hasMaterial('material', j.doc, /steel/, 'steel')];
   },

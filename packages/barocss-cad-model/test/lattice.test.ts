@@ -43,14 +43,14 @@ test('the solid fraction on whole cells: a 24 × 24 × 12 cavity of 6 mm cells, 
 });
 
 test('filled: the solid one component, nothing loose; every empty region drained (the two labyrinths); in the mass beside the exact shell', async () => {
-  const { doc, bodies } = await hollowBox(30, 30, 18, 3), shellVolume = bodies[0].volumeMM3!;
+  const { doc, bodies } = await hollowBox(30, 30, 18, 3), shellVolume = bodies[0].volume!;
   const { doc: out, report } = planLattice(doc, bodies, { cell: 6, k: 0.6, h: 0.5 }), e = await evaluate(out); assert.ok(e.ok, JSON.stringify(!e.ok && e).slice(0, 400));
   console.log(`AM7b fill: ${report.pieces} piece(s), ${report.dropped.count} dropped (${report.dropped.volume.toFixed(2)} mm³), ${report.drains.length} drain(s) added (${report.joined} joined), ${report.snapped} wall vertices snapped, ${report.triangles} triangles, lattice ${report.volume.toFixed(1)} mm³, ${report.mixed} mixed tets`);
   // (The lattice: the facet bodies, its pieces, their volumes its own; the shell: the B-rep, its drains added.)
   const lats = e.bodies.filter(b => b.family === 'faceted'), shell = e.bodies.find(b => b.family !== 'faceted')!;
-  assert.equal(lats.length, report.pieces); assert.ok(Math.abs(lats.reduce((s, b) => s + b.volumeMM3!, 0) - report.volume) <= 1e-6 * report.volume);
+  assert.equal(lats.length, report.pieces); assert.ok(Math.abs(lats.reduce((s, b) => s + b.volume!, 0) - report.volume) <= 1e-6 * report.volume);
   assert.ok(report.drains.length >= 1, 'a sheet gyroid leaves two labyrinths: at least one more drain');
-  assert.ok(shell.volumeMM3! < shellVolume, 'the new drains cut through the shell');
+  assert.ok(shell.volume! < shellVolume, 'the new drains cut through the shell');
   // (Each body's voxels at h/4, OR'd — one triangle soup's parity would flip where the lattice meets the shell's wall: the
   // solid one 6-connected component; every empty voxel reached from outside.)
   const hc = 0.25, lo = shell.mesh.bounds.min, hi = shell.mesh.bounds.max, o: [number, number, number] = [lo[0] - 0.8, lo[1] - 0.87, lo[2] - 0.91], n = [0, 1, 2].map(q => Math.ceil((hi[q] - o[q] + 0.8) / hc) + 1);
@@ -71,11 +71,11 @@ test('no overlap with the shell by the kernel\'s intersection, every piece touch
   console.log(`AM7b coarse: ${report.triangles} triangles, ${report.pieces} piece(s), ${report.dropped.count} dropped, ${report.drains.length} drain(s) added`);
   const e = await evaluate(out); assert.ok(e.ok, JSON.stringify(!e.ok && e).slice(0, 400));
   const shell = e.bodies.find(b => b.family !== 'faceted')!, pairs = await interference(out, e.bodies, evaluate);
-  assert.deepEqual(pairs.filter(p => 'overlap_mm3' in p), [], JSON.stringify(pairs));
+  assert.deepEqual(pairs.filter(p => 'overlap' in p), [], JSON.stringify(pairs));
   // (Each piece against the shell: touching — its wall vertices on the wall — and the pieces apart from one another.)
   const withShell = pairs.filter(p => p.a === shell.key || p.b === shell.key);
   assert.equal(withShell.length, report.pieces);
-  for (const p of withShell) assert.ok((p.clearance_mm as number) <= 1e-3, JSON.stringify(p));
+  for (const p of withShell) assert.ok((p.clearance as number) <= 1e-3, JSON.stringify(p));
   // (Refusals.)
   const plain = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'run_command', { command: 'box', values: { w: 30, d: 30, h: 18, x: 0, y: 0, z: 0 } }, evaluate), pe = await evaluate(plain.state.doc); assert.ok(pe.ok);
   assert.equal(code(() => planLattice(plain.state.doc, pe.bodies, { cell: 6, k: 0.6 })), 'NOT_HOLLOW');

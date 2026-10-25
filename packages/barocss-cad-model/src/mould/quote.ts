@@ -22,19 +22,19 @@ export interface QuoteRequest {
   format: 'barocss-quote-request'; version: 1;
   process: 'injection'; revision: string;
   material: { id: string; label: string; basis: 'body' | 'brief' } | null;
-  finish: { id: string; label: string; minDraftDeg: number } | null; pull: [number, number, number] | null; quantity: number | null;
+  finish: { id: string; label: string; draftMin: number } | null; pull: [number, number, number] | null; quantity: number | null;
   /** `volumeBasis` (O179): the volume is partly from the mesh — how far it and the mass may be off; an estimate. */
-  part: { sizeMM: [number, number, number]; volumeMM3: number; massG: number | null; bodies: number; volumeBasis?: { method: 'tessellated'; boundMM3: number | null; massBoundG: number | null } };
-  tolerance: { mm: number; perMM: number; source: string } | null; shrink: number | null;
-  limits: { largestPartMM: [number, number, number] } | null;
+  part: { size: [number, number, number]; volume: number; mass: number | null; bodies: number; volumeBasis?: { method: 'tessellated'; bound: number | null; massBound: number | null } };
+  tolerance: { value: number; perLength: number; source: string } | null; shrink: number | null;
+  limits: { largestPartSize: [number, number, number] } | null;
   note: string;
 }
 /** O179: the part's volume basis when any body's volume is from the mesh — the bodies' bounds summed (null: unknown). */
 function volumeBasisOfBodies(doc: StudioDoc, bodies: readonly BodyResult[]): { volumeBasis?: NonNullable<QuoteRequest['part']['volumeBasis']> } {
   const t = bodies.filter(b => b.volumeBasis);
   if (!t.length) return {};
-  const v = t.some(b => b.volumeBasis!.boundMM3 === null) ? null : r6(t.reduce((s, b) => s + b.volumeBasis!.boundMM3!, 0)), g = massBoundOf(doc, bodies);
-  return { volumeBasis: { method: 'tessellated', boundMM3: v, massBoundG: g === null ? null : r6(g) } };
+  const v = t.some(b => b.volumeBasis!.bound === null) ? null : r6(t.reduce((s, b) => s + b.volumeBasis!.bound!, 0)), g = massBoundOf(doc, bodies);
+  return { volumeBasis: { method: 'tessellated', bound: v, massBound: g === null ? null : r6(g) } };
 }
 export interface QuoteManifest { format: 'barocss-quote'; version: 1; files: { path: string; sha256: string; bytes: number }[]; open: string[]; complete: boolean }
 const ENC = new TextEncoder(), json = (v: unknown) => JSON.stringify(v, null, 1) + '\n', r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
@@ -47,11 +47,11 @@ function page(name: string, req: QuoteRequest, rep: PrintabilityReport, open: re
     `Revision \`${req.revision}\`. No price: prices are the moulder's.`, '',
     '| | |', '|---|---|',
     `| material | ${req.material ? `${req.material.label} (${req.material.basis === 'brief' ? 'the brief\'s, stated' : 'set on the body'})` : '**not set**'} |`,
-    `| finish | ${req.finish ? `${req.finish.label}: at least ${req.finish.minDraftDeg}° draft` : '**not set**'} |`,
+    `| finish | ${req.finish ? `${req.finish.label}: at least ${req.finish.draftMin}° draft` : '**not set**'} |`,
     `| pull | ${req.pull ? req.pull.join(', ') : '**not set**'} |`,
     `| quantity | ${req.quantity ?? '**not stated**'} |`,
-    `| part | ${req.part.sizeMM.join(' × ')} mm, ${req.part.volumeMM3} mm³${req.part.massG !== null ? `, ${req.part.massG} g` : ''}${req.part.volumeBasis ? ` (an estimate from the mesh: ± ${req.part.volumeBasis.boundMM3 ?? '?'} mm³${req.part.volumeBasis.massBoundG !== null && req.part.massG !== null ? `, ± ${req.part.volumeBasis.massBoundG} g` : ''})` : ''} |`,
-    `| tolerance | ${req.tolerance ? `±${req.tolerance.mm} mm + ${req.tolerance.perMM} mm/mm (${req.tolerance.source})` : '—'} |`,
+    `| part | ${req.part.size.join(' × ')} mm, ${req.part.volume} mm³${req.part.mass !== null ? `, ${req.part.mass} g` : ''}${req.part.volumeBasis ? ` (an estimate from the mesh: ± ${req.part.volumeBasis.bound ?? '?'} mm³${req.part.volumeBasis.massBound !== null && req.part.mass !== null ? `, ± ${req.part.volumeBasis.massBound} g` : ''})` : ''} |`,
+    `| tolerance | ${req.tolerance ? `±${req.tolerance.value} mm + ${req.tolerance.perLength} mm/mm (${req.tolerance.source})` : '—'} |`,
     `| shrink | ${req.shrink ?? 'no sourced value for this material'} |`, '',
     '## Manufacturability (IM1–IM5)', '', '| rule | status | |', '|---|---|---|', ...rep.rules.map(row), '',
     '## Open', '', ...(open.length ? open.map(o => `- ${o}`) : ['- nothing: the package is complete']), '',
@@ -75,17 +75,17 @@ export async function quotePackage(doc: StudioDoc, bodies: readonly BodyResult[]
   const own = !!id && bodies.every(b => lookOf(doc, b).material === id);
   const briefQty = doc.brief?.quantity?.basis === 'stated' && Number.isInteger(Number(doc.brief.quantity.value)) ? Number(doc.brief.quantity.value) : null;
   const { min: lo, max: hi } = boundsOf(bodies);
-  const mass = massProperties(doc, bodies) as { mass_g: number | null; assumed?: boolean }[];
+  const mass = massProperties(doc, bodies) as { mass: number | null; assumed?: boolean }[];
   const finish = rep.mould?.finish ? profile.finishes?.find(f => f.id === rep.mould!.finish) : undefined;
   const request: QuoteRequest = {
     format: 'barocss-quote-request', version: 1, process: 'injection', revision: documentRevision(doc),
     material: id && m ? { id, label: m.label, basis: own ? 'body' : 'brief' } : null,
-    finish: finish ? { id: finish.id, label: finish.label, minDraftDeg: finish.draftMinDeg } : null,
+    finish: finish ? { id: finish.id, label: finish.label, draftMin: finish.draftMin } : null,
     pull: rep.direction ? rep.direction.map(r6) as [number, number, number] : null, quantity: o.quantity ?? briefQty,
-    part: { sizeMM: [0, 1, 2].map(k => r6(hi[k] - lo[k])) as [number, number, number], volumeMM3: r6(bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0)), massG: id && m ? r6(mass.reduce((s, x) => s + (x.mass_g ?? 0), 0)) : null, bodies: bodies.length, ...volumeBasisOfBodies(doc, bodies) },
-    tolerance: t('tolMM') && t('tolResinMMPerMM') ? { mm: t('tolMM').value, perMM: t('tolResinMMPerMM').value, source: t('tolMM').page?.url ?? t('tolMM').source } : null,
+    part: { size: [0, 1, 2].map(k => r6(hi[k] - lo[k])) as [number, number, number], volume: r6(bodies.reduce((s, b) => s + (b.volume ?? 0), 0)), mass: id && m ? r6(mass.reduce((s, x) => s + (x.mass ?? 0), 0)) : null, bodies: bodies.length, ...volumeBasisOfBodies(doc, bodies) },
+    tolerance: t('tolMM') && t('tolResinMMPerMM') ? { value: t('tolMM').value, perLength: t('tolResinMMPerMM').value, source: t('tolMM').page?.url ?? t('tolMM').source } : null,
     shrink: m?.mouldShrink ?? null,
-    limits: t('maxPartLongMM') ? { largestPartMM: [t('maxPartLongMM').value, t('maxPartWideMM').value, t('maxPartDepthMM').value] } : null,
+    limits: t('maxPartLongMM') ? { largestPartSize: [t('maxPartLongMM').value, t('maxPartWideMM').value, t('maxPartDepthMM').value] } : null,
     note: 'a request for quote, not a price; every value from the part or a sourced page (see dfm.json for each rule\'s source)',
   };
   // What is still open: the request's gaps, the failing rules, the unknown ones.

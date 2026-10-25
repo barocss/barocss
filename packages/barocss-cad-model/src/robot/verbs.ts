@@ -11,12 +11,12 @@ import { solveDoc } from '../assembly/edit';
 import { eulerOf, rotationMatrix } from '../engine/placement';
 import { composeInto, forwardKinematics, gearPairAt } from './fk';
 import { framePoses } from './frames';
-import { treeInertia, type LinkInertia } from './inertia';
+import { treeInertia, type LinkInertia, type V3 } from './inertia';
 import { exportUrdf, withoutCams, type UrdfResult } from './urdf';
 import { exportMjcf, type MjcfClosure, type MjcfResult } from './mjcf';
 import { closeLoops, closureOfDoc, loopCloserOf, loopResidual, type LoopCloser } from './loop';
 import { sweepLinks, sweepPath, type SweepLink, type SweepResult } from './sweep';
-import { gravityTorques, linkBodies, linkMasses, moveTorques, STANDARD_GRAVITY, type MoveLimits } from './dynamics';
+import { gravityTorques, linkBodies, linkMasses, moveTorques, type MoveLimits } from './dynamics';
 import { sizeActuators, sizeCoupled, type Motor, type Reducer } from './actuators';
 import type { ProfileKind } from './profile';
 import { jointTreeOf, readRobot, type JointSettings, type JointTree, type RobotSettings } from './joints';
@@ -24,6 +24,10 @@ import { r6 } from '../util/round';
 import { refusal, refused } from '../engine/refusal';
 import { checkPath, duration, motionNamed, poseAt, timedPathOf, type Motion, type MotionPath } from './motion';
 import { CCD_TOLERANCE, sweepTimed, timeAt, timePath, type TimedPath } from './ccd';
+import { gravityIn, gravityJson, moveJson, PUBLIC_GRAVITY, pathClearanceJson, timedClearanceJson } from './reports';
+import { moveArgs } from './native/duty';
+import { jointValuesIn, jointValuesOut } from './units';
+export { jointValuesIn, jointValuesOut } from './units';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 /** A robot as its functions read it: the document, the base part's bodies, and each placed part's in its own coordinates. */
@@ -60,11 +64,11 @@ export function sweepLinksOf(view: RobotView, t: JointTree): SweepLink[] {
  * The values with the robot's loops closed (O24 a): the loop joints given are the drivers, the rest solved on the
  * loops' own mates (robot/loop.ts) — refused, typed, as closeLoops refuses. No loop: the values as they are.
  */
-export function closedValues(view: RobotView, values: Readonly<Record<string, number>>, t: JointTree = treeOf(view)): { values: Record<string, number>; closed: { drivers: string[]; solved: string[]; residual_mm: number } | null } {
+export function closedValues(view: RobotView, values: Readonly<Record<string, number>>, t: JointTree = treeOf(view)): { values: Record<string, number>; closed: { drivers: string[]; solved: string[]; residual: number } | null } {
   const c = loopCloserOf(view.doc, t);
   if (!c) return { values: { ...values }, closed: null };
   const drivers = Object.keys(values).filter(k => c.all.includes(k)), out = closeLoops(t, c, Object.fromEntries(drivers.map(k => [k, values[k]])));
-  return { values: { ...values, ...out.q }, closed: { drivers, solved: c.free.filter(k => !drivers.includes(k)), residual_mm: out.residualMM } };
+  return { values: { ...values, ...out.q }, closed: { drivers, solved: c.free.filter(k => !drivers.includes(k)), residual: out.residual } };
 }
 /** forward_kinematics' reply: each link and frame where the values put it (the loops closed), the gears' phase; `unknown`: keys no joint has. */
 export function poseOf(view: RobotView, given: Readonly<Record<string, number>>, t: JointTree = treeOf(view), close = true) {
@@ -77,38 +81,51 @@ export function poseOf(view: RobotView, given: Readonly<Record<string, number>>,
     const pose = composeInto({ R: new Float64Array(9), t: new Float64Array(3) }, m, M);
     return [{ link: l.id, name: l.name, position: [...pose.t].map(r), rotation: eulerOf([...pose.R] as never).map(r) }];
   });
-  const gears = t.couplings.map(c => { const at = gearPairAt(c, fk.values), home = gearPairAt(c, {}); return { leader: c.leader, follower: c.follower, phase_deg: r(at.phaseDeg), home_phase_deg: r(home.phaseDeg), held: Math.abs(at.phaseDeg - home.phaseDeg) < 1e-6, backlash_mm: r(at.backlashMM) }; });
+  const gears = t.couplings.map(c => { const at = gearPairAt(c, fk.values), home = gearPairAt(c, {}); return { leader: c.leader, follower: c.follower, phase: r(at.phase), homePhase: r(home.phase), held: Math.abs(at.phase - home.phase) < 1e-6, backlash: r(at.backlash) }; });
   // (O12: each tool and sensor frame where its link puts it.)
   const frames = [...framePoses(t, fk.motions)].map(([frame, p]) => ({ frame, link: t.frames!.find(f => f.name === frame)!.link, position: p.o.map(r), rotation: eulerOf(p.R).map(r) }));
-  return { unknown: fk.unknown, reply: { values: fk.values, links, ...(frames.length ? { frames } : {}), gears, out_of_limits: fk.outOfLimits, ...(closed ? { loops: { drivers: closed.drivers, solved: closed.solved, residual_mm: closed.residual_mm } } : {}) } };
+  return { unknown: fk.unknown, reply: { values: fk.values, links, ...(frames.length ? { frames } : {}), gears, out_of_limits: fk.outOfLimits, ...(closed ? { loops: { drivers: closed.drivers, solved: closed.solved, residual: closed.residual } } : {}) } };
 }
 /** sweep_path's reply: a straight joint move checked for contact between the links. */
 export function sweepOf(view: RobotView, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>, t: JointTree = treeOf(view)) {
   const r = sweepPath(t, sweepLinksOf(view, t), from, to);
-  return { reply: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), s: r6(r.minClearance.s), links: r.minClearance.links } : null, samples: r.samples, pairs: r.pairs.length, skipped: r.skipped, designed: r.designed },
+  return { ...(r.contact ? { rawContactValues: r.contact.values as Readonly<Record<string, number>> } : {}),
+    reply: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), minClearance: pathClearanceJson(r.minClearance), samples: r.samples, pairs: r.pairs.length, skipped: r.skipped, designed: r.designed },
     summary: r.clear ? `clear (${r.samples} steps)` : `contact ${r.contact!.links.join('–')} at s ${r6(r.contact!.s)}` };
 }
-const sig10 = (v: number) => Number(v.toPrecision(10)) + 0;
 /** link_inertia's links: each link's mass, centre and inertia in its frame. */
 export function inertiaOf(view: RobotView, t: JointTree = treeOf(view)): LinkInertia[] {
   return treeInertia(t, partsOf(view));
 }
-/** gravity_torques' reply: the torque each joint holds against g at the values. */
-export function gravityOf(view: RobotView, values: Readonly<Record<string, number>>, g: readonly [number, number, number], t: JointTree = treeOf(view)) {
-  const masses = linkMasses(t, partsOf(view)), r = gravityTorques(t, masses, values, g as [number, number, number]), sig = (v: number) => Number(v.toPrecision(12)) + 0;
-  const units = Object.fromEntries(t.joints.map(j => [j.key, j.type === 'prismatic' ? 'N' : 'N·m']));
-  return { torques: Object.fromEntries(Object.entries(r.torques).map(([k, v]) => [k, sig(v)])), generalized: Object.fromEntries(Object.entries(r.generalized).map(([k, v]) => [k, sig(v)])), units, gravity_m_s2: Math.hypot(...g) };
+/** Unrounded SI results for public projections. Core/native formatters retain their existing contracts. */
+export function gravityRawOf(view: RobotView, values: Readonly<Record<string, number>>, g: readonly [number, number, number], t: JointTree = treeOf(view)) {
+  return gravityTorques(t, linkMasses(t, partsOf(view)), values, g as [number, number, number]);
+}
+export function moveRawOf(view: RobotView, mv: Move, t: JointTree = treeOf(view), g?: readonly [number, number, number]) {
+  return moveTorques(t, linkBodies(t, partsOf(view)), mv.from, mv.to, mv.profile, mv.limits, g as [number, number, number] | undefined);
+}
+/** gravity_torques' canonical reply; values are degree/mm and optional g is mm/s². */
+export function gravityOf(view: RobotView, args: Record<string, unknown>, t: JointTree = treeOf(view)) {
+  const keys = new Set(t.joints.map(j => j.key)), given = (args.values ?? {}) as Record<string, unknown>;
+  if (!given || typeof given !== 'object' || Array.isArray(given) || Object.values(given).some(v => typeof v !== 'number' || !Number.isFinite(v))) throw refusal('BAD_VALUES', '"values" is {joint key: number}.');
+  const bad = Object.keys(given).filter(k => !keys.has(k)); if (bad.length) throw refusal('BAD_VALUES', `No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.`);
+  const g = args.g === undefined ? [0, 0, -PUBLIC_GRAVITY] : args.g;
+  if (!Array.isArray(g) || g.length !== 3 || g.some(x => typeof x !== 'number' || !Number.isFinite(x))) throw refusal('BAD_VALUES', '"g" is [x, y, z] in mm/s².');
+  const siG = gravityIn(g as [number, number, number]);
+  return gravityJson(t, gravityRawOf(view, jointValuesIn(t, given as Record<string, number>), siG, t), siG);
 }
 /** A move as motion_torques and size_actuators take it: from and to by key, its profile, each moving joint's limits. */
 export interface Move { from: Record<string, number>; to: Record<string, number>; profile: ProfileKind; limits: (k: string) => MoveLimits }
-/** motion_torques' reply: the torques of a straight move under its profile (RNEA). */
-export function movesOf(view: RobotView, mv: Move, t: JointTree = treeOf(view)) {
-  const m = moveTorques(t, linkBodies(t, partsOf(view)), mv.from, mv.to, mv.profile, mv.limits);
-  const unit = (k: string) => (t.joints.find(j => j.key === k)!.type === 'prismatic' ? 'N' : 'N·m');
-  return { profile: m.kind, duration_s: sig10(m.duration), joints: Object.fromEntries(Object.entries(m.joints).map(([k, j]) => [k, { [`peak_${unit(k) === 'N' ? 'N' : 'N_m'}`]: sig10(j.peak), [`rms_${unit(k) === 'N' ? 'N' : 'N_m'}`]: sig10(j.rms), at_s: sig10(j.atPeak), distance: sig10(j.distance), v_peak: sig10(j.vPeak), a_peak: sig10(j.aPeak), j_peak: sig10(j.jPeak) }])), sampling: m.sampling, gravity_m_s2: STANDARD_GRAVITY };
+/** motion_torques' canonical reply; move poses/limits are degree/mm and optional g is mm/s². */
+export function movesOf(view: RobotView, args: Record<string, unknown>, t: JointTree = treeOf(view)) {
+  const mv = moveArgs(t, args); if ('error' in mv) throw refusal('BAD_VALUES', mv.error);
+  const g = args.g === undefined ? [0, 0, -PUBLIC_GRAVITY] : args.g;
+  if (!Array.isArray(g) || g.length !== 3 || g.some(x => typeof x !== 'number' || !Number.isFinite(x))) throw refusal('BAD_VALUES', '"g" is [x, y, z] in mm/s².');
+  const siG = gravityIn(g as [number, number, number]);
+  return moveJson(t, moveRawOf(view, mv, t, siG), siG);
 }
 /** size_actuators' sizing (and, coupled, its rounds): the motor and reducer each joint needs for the move. */
-export function sizeOf(view: RobotView, mv: Move, so: { motors: readonly Motor[]; reducers: readonly Reducer[]; dwell?: number; life?: number; inertiaRatio?: number; estop?: number }, coupled: boolean, t: JointTree = treeOf(view)) {
+export function sizeOf(view: RobotView, mv: Move, so: { motors: readonly Motor[]; reducers: readonly Reducer[]; dwell?: number; life?: number; inertiaRatio?: number; estop?: number; g?: V3 }, coupled: boolean, t: JointTree = treeOf(view)) {
   const bodies = linkBodies(t, partsOf(view)), cs = coupled ? sizeCoupled(t, bodies, mv.from, mv.to, mv.profile, mv.limits, so) : null;
   return { sizing: cs ? cs.sizing : sizeActuators(t, bodies, mv.from, mv.to, mv.profile, mv.limits, so), coupled: cs };
 }
@@ -139,10 +156,6 @@ export function withJoints(doc: StudioDoc, o: { base?: string; joints?: Readonly
 // ── RS3: the agent moves the robot — degrees for a turning joint and mm for a slide, in and out (conventions §2) ──
 const DEG = Math.PI / 180;
 const turning = (t: JointTree, key: string) => { const j = t.joints.find(x => x.key === key); return j?.type === 'revolute' || j?.type === 'continuous'; };
-/** Values in the document's units (degrees, mm) as FK's (radians, mm). */
-export const jointValuesIn = (t: JointTree, v: Readonly<Record<string, number>>) => Object.fromEntries(Object.entries(v).map(([k, x]) => [k, turning(t, k) ? x * DEG : x]));
-/** FK's values (radians, mm) in the document's units (degrees, mm), to 1e-9. */
-export const jointValuesOut = (t: JointTree, v: Readonly<Record<string, number>>) => Object.fromEntries(Object.entries(v).map(([k, x]) => [k, Math.round((turning(t, k) ? x / DEG : x) * 1e9) / 1e9 + 0]));
 
 const round9 = (x: number) => Math.round(x * 1e9) / 1e9 + 0;
 /** Joint values (degrees, mm) past their joint's limits, refused in the same units (JOINT_LIMIT); `at` names where they are. */
@@ -241,21 +254,21 @@ function sweepClosed(view: RobotView, t: JointTree, closer: LoopCloser, path: Ti
 export function checkMotion(view: RobotView, name: string, t: JointTree = treeOf(view)) {
   const m = motionNamed(readRobot(view.doc.robot).motions, name), path = playable(t, m), closer = loopCloserOf(view.doc, t);
   if (closer) {
-    const r = sweepClosed(view, t, closer, path), contact = r.clear ? undefined : { t_s: r6(r.toi!), segment: r.segment!, links: r.links!, values: jointValuesOut(t, r.values ?? {}) };
-    return { motion: name, duration_s: r6(duration(path)), clear: r.clear, ...(contact ? { contact } : {}),
-      min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), t_s: r6(r.minClearance.t), links: r.minClearance.links } : null, samples: r.samples, skipped: r.skipped, designed: r.designed,
-      loops: { chords: r.chords, chord_residual_mm: Number(r.worst.toPrecision(3)) } };
+    const r = sweepClosed(view, t, closer, path), contact = r.clear ? undefined : { time: r6(r.toi!), segment: r.segment!, links: r.links!, values: jointValuesOut(t, r.values ?? {}) };
+    return { motion: name, duration: r6(duration(path)), clear: r.clear, ...(contact ? { contact } : {}),
+      minClearance: timedClearanceJson(r.minClearance), samples: r.samples, skipped: r.skipped, designed: r.designed,
+      loops: { chords: r.chords, chordResidual: Number(r.worst.toPrecision(3)) } };
   }
   const r = sweepTimed(t, sweepLinksOf(view, t), path);
-  const contact = r.clear ? undefined : { t_s: r6(r.toi!), segment: r.segment!, links: r.links!, values: jointValuesOut(t, r.values ?? {}) };
-  return { motion: name, duration_s: r6(duration(path)), clear: r.clear, ...(contact ? { contact } : {}),
-    min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), t_s: r6(r.minClearance.t), links: r.minClearance.links } : null, samples: r.samples, skipped: r.skipped, designed: r.designed };
+  const contact = r.clear ? undefined : { time: r6(r.toi!), segment: r.segment!, links: r.links!, values: jointValuesOut(t, r.values ?? {}) };
+  return { motion: name, duration: r6(duration(path)), clear: r.clear, ...(contact ? { contact } : {}),
+    minClearance: timedClearanceJson(r.minClearance), samples: r.samples, skipped: r.skipped, designed: r.designed };
 }
 /** play: a motion's poses at `samples` even times (poseAt, as the studio plays it): each time, the values (degrees, mm) and the links' placements. */
 export function playMotion(view: RobotView, name: string, samples = 30, t: JointTree = treeOf(view)) {
   const m = motionNamed(readRobot(view.doc.robot).motions, name), path = playable(t, m), T = duration(path), n = Math.max(2, Math.min(200, Math.round(samples)));
   // (RS6: a looped robot's poses closed along the motion, each from the one before.)
   const times = Array.from({ length: n }, (_, k) => (T * k) / (n - 1)), closer = loopCloserOf(view.doc, t), poses = closer ? closedAt(t, closer, path, times) : times.map(at => poseAt(t, path, at));
-  const frames = poses.map((q, k) => { const p = poseOf(view, q, t, false).reply; return { t_s: r6(times[k]), values: jointValuesOut(t, p.values), links: p.links }; });
-  return { motion: name, duration_s: r6(T), samples: frames };
+  const frames = poses.map((q, k) => { const p = poseOf(view, q, t, false).reply; return { time: r6(times[k]), values: jointValuesOut(t, p.values), links: p.links }; });
+  return { motion: name, duration: r6(T), samples: frames };
 }

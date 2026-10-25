@@ -179,13 +179,13 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
     { id: 'anchor', kind: 'fixed', pointId: 'p0', target: points[0] },
     ...hv.h.map((i): Constraint => ({ id: 'h' + i, kind: 'horizontal', segmentId: 's' + i })),
     ...hv.v.map((i): Constraint => ({ id: 'v' + i, kind: 'vertical', segmentId: 's' + i })),
-    ...Object.entries(c.lengths ?? {}).filter(([i]) => !bulges[+i]).map(([i, lengthMM]): Constraint => ({ id: 'l' + i, kind: 'length', segmentId: 's' + i, lengthMM })),
+    ...Object.entries(c.lengths ?? {}).filter(([i]) => !bulges[+i]).map(([i, length]): Constraint => ({ id: 'l' + i, kind: 'length', segmentId: 's' + i, length })),
     ...arcs.map((i): Constraint => ({ id: 'e' + i, kind: 'equal-length', segmentA: 'ra' + i, segmentB: 'rb' + i })),
-    ...Object.entries(c.radii ?? {}).filter(([i]) => bulges[+i]).map(([i, lengthMM]): Constraint => ({ id: 'r' + i, kind: 'length', segmentId: 'ra' + i, lengthMM })),
+    ...Object.entries(c.radii ?? {}).filter(([i]) => bulges[+i]).map(([i, length]): Constraint => ({ id: 'r' + i, kind: 'length', segmentId: 'ra' + i, length })),
     ...(c.equalRadii ?? []).filter(([a, b]) => bulges[a] && bulges[b]).map(([a, b]): Constraint => ({ id: `q${a}_${b}`, kind: 'equal-length', segmentA: 'ra' + a, segmentB: 'ra' + b })),
     ...(c.concentric ?? []).filter(([a, b]) => bulges[a] && bulges[b]).map(([a, b]): Constraint => ({ id: `o${a}_${b}`, kind: 'coincident', pointA: 'c' + a, pointB: 'c' + b })),
     ...(c.tangents ?? []).flatMap((j): Constraint[] => {
-      const t = tangentTarget(points, bulges, j); return t ? [{ id: 't' + j, kind: 'signed-angle', segmentA: t.a, segmentB: t.b, angleRad: t.target }] : [];
+      const t = tangentTarget(points, bulges, j); return t ? [{ id: 't' + j, kind: 'signed-angle', segmentA: t.a, segmentB: t.b, angle: t.target }] : [];
     }),
     ...extra.constraints,
   ];

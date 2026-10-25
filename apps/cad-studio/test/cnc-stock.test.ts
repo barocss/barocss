@@ -42,12 +42,12 @@ test('CNC7b a block: O100\'s plate (120 × 80 × 28 with its boss) — 122 × 82
   let s = await build([...PLATE, stockList(BLOCKS)]);
   let r = chooseStock(s.doc, s.bodies, 'cnc-milling');
   assert.ok(r.ok, JSON.stringify(r));
-  assert.deepEqual([r.choice.row.id, r.choice.size, r.choice.allowance], ['B30', [122, 82, 30], { mm: 1, basis: 'estimate' }]);
+  assert.deepEqual([r.choice.row.id, r.choice.size, r.choice.allowance], ['B30', [122, 82, 30], { value: 1, basis: 'estimate' }]);
   assert.deepEqual(r.choice.placement, { min: [-1, -1, -1], max: [121, 81, 29] });
   assert.equal(rule(s).status, 'pass'); assert.match(rule(s).message, /stock B30: 122 × 82 × 30 mm \(the shop\), 1 mm a face \(an estimate: set yours\)/);
   s = await build([['set_stock', { allowance: 2 }]], s.doc);
   r = chooseStock(s.doc, s.bodies, 'cnc-milling'); assert.ok(r.ok);
-  assert.deepEqual([r.choice.row.id, r.choice.size, r.choice.allowance.basis], ['B32', [125, 85, 32], 'set']);
+  assert.deepEqual([r.choice.row.id, r.choice.size, r.choice.allowance], ['B32', [125, 85, 32], { value: 2, basis: 'set' }]);
 });
 
 test('CNC7b none loaded — unknown, STOCK_NONE_LOADED (none built in); none fits — warned, STOCK_NONE_FITS, the size needed said', async () => {
@@ -58,7 +58,7 @@ test('CNC7b none loaded — unknown, STOCK_NONE_LOADED (none built in); none fit
 });
 
 test('CNC7b a bar: a turned shaft Ø20 × 52 — the thinnest bar ≥ Ø22 (Ø25 and Ø16 not taken), cut to 54 along its axis from y = −1; one too short refused', async () => {
-  const shaft = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'polygon', points: [[0, 0], [10, 0], [10, 52], [0, 52]] }), { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 } as never);
+  const shaft = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'polygon', points: [[0, 0], [10, 0], [10, 52], [0, 52]] }), { kind: 'revolve', sketch: 0, axis: 'y', angle: 360 } as never);
   let s = await build([stockList([{ id: 'R16', kind: 'bar', diameter: 16, source: 'the shop' }, { id: 'R25', kind: 'bar', diameter: 25, source: 'the shop' }, { id: 'R22', kind: 'bar', diameter: 22, maxLength: 1000, source: 'the shop' }])], shaft);
   const tu = turningOf(s.doc, s.bodies, holesOf(s.bodies)), r = chooseStock(s.doc, s.bodies, 'cnc-turning', tu);
   assert.ok(r.ok, JSON.stringify(r));
@@ -75,10 +75,10 @@ test('CNC7b a bar: a turned shaft Ø20 × 52 — the thinnest bar ≥ Ø22 (Ø25
 test('CNC7b the export: the stock as a body — the block 122 × 82 × 30 to 1e-6 mm³, the bar π·11²·54 within the chord; its STEP an ISO-10303-21 file', async () => {
   const s = await build([...PLATE, stockList(BLOCKS)]), r = chooseStock(s.doc, s.bodies, 'cnc-milling'); assert.ok(r.ok);
   const blk = evaluateDoc(stockDoc(r.choice), 1); assert.ok(blk.ok);
-  assert.ok(Math.abs(blk.bodies[0].volumeMM3! - 122 * 82 * 30) <= 1e-6, String(blk.bodies[0].volumeMM3));
+  assert.ok(Math.abs(blk.bodies[0].volume! - 122 * 82 * 30) <= 1e-6, String(blk.bodies[0].volume));
   const step = exportStudioStep(stockDoc(r.choice), { name: 'stock' }); assert.match(step.text, /^ISO-10303-21;/);
   const bar = stockDoc({ ...r.choice, placement: { start: [0, -1, 0], axis: [0, 1, 0], length: 54, diameter: 22 } }), be = evaluateDoc(bar, 1); assert.ok(be.ok);
-  const exact = Math.PI * 121 * 54; assert.ok(Math.abs(be.bodies[0].volumeMM3! - exact) / exact < 0.01, String(be.bodies[0].volumeMM3));
+  const exact = Math.PI * 121 * 54; assert.ok(Math.abs(be.bodies[0].volume! - exact) / exact < 0.01, String(be.bodies[0].volume));
 });
 
 test('CNC7b set_stock refuses by name: a row without a source, a block of two sides, two rows of one id, a negative allowance', async () => {
@@ -104,6 +104,6 @@ test('CNC7b cad-cli stock: the saved plate with a list given — exit 0, stock.j
   let r = cli(part, '-o', join(dir, 'out'), '--list', list);
   assert.equal(r.status, 0, r.stderr + r.stdout);
   const sj = JSON.parse(readFileSync(join(dir, 'out/stock.json'), 'utf8'));
-  assert.deepEqual([sj.row.id, sj.size, sj.allowance.basis], ['B30', [122, 82, 30], 'estimate']); assert.ok(existsSync(join(dir, 'out/stock.step')));
+  assert.deepEqual([sj.row.id, sj.size, sj.allowance], ['B30', [122, 82, 30], { value: 1, basis: 'estimate' }]); assert.ok(existsSync(join(dir, 'out/stock.step')));
   r = cli(part, '-o', join(dir, 'none')); assert.equal(r.status, 1); assert.match(r.stdout, /STOCK_NONE_LOADED/);
 });

@@ -15,8 +15,8 @@ explains why, and what uses each kind.
   all.
 - **Sources.** Every row names its `source`, or is marked `"estimate": true`. Where a kind requires a source, an
   estimate isn't enough.
-- **Units.** Most fields name their unit: `MM` is millimetres, `UM` micrometres, `Deg` degrees. Fastener sizes are in
-  millimetres.
+- **Units.** Public length fields use millimetres, including fit and bearing deviations. Angles use degrees.
+  Source labels keep the units printed by their source. The mount row fields are listed separately below.
 - **Validation.** A row is checked when it is loaded. A row with a missing or out-of-range value is refused, and the
   refusal says which row and why.
 - **Provenance.** Each loaded row keeps a receipt naming its file, its turn in the conversation and the file's SHA-256.
@@ -50,7 +50,7 @@ Bought screws, bolts, nuts and washers, as your supplier lists them:
 - `id`;
 - `kind`: `hex-bolt`, `socket-screw`, `csk-screw`, `hex-nut` or `washer`;
 - `size`, such as `M6`;
-- `lengthMM`, for screws and bolts;
+- `length`, for screws and bolts;
 - optional `designation`, `partNumber` and `supplier`;
 - `source` or `estimate`.
 
@@ -71,25 +71,27 @@ A `page` is `{ url, read, label }`: the address, the date read, and the page's o
 Fit tables. Each table has an `id`, optional `sources` (`{ id, label, url?, read?, note? }`) and `rows`. Each row is:
 
 - `class`: an ISO 286 class such as `H7` or `g6`;
-- `overMM` and `upToMM`: the size range, over < size ≤ up to;
-- `upperUM` and `lowerUM`: the deviations;
+- `over` and `upTo`: the size range, over < size ≤ up to;
+- `upper` and `lower`: the deviations in mm;
 - and `source` or `estimate`.
+
+If a source quotes a deviation in µm, divide it by 1000 before writing the row's mm value. Keep the source record.
 
 ### `bearings`
 
 - `id`, optional `designation`;
-- `boreMM`, `outsideMM`, `widthMM`, optional `chamferMM`;
-- the shoulder limits `daMinMM`, `daMaxMM`, `DaMaxMM`, `raMaxMM`;
-- the deviations `boreDeviationUM` and `outsideDeviationUM`, each `[upper, lower]`;
+- `bore`, `outside`, `width`, optional `chamfer`;
+- the shoulder limits `daMin`, `daMax`, `DaMax`, `raMax`;
+- the deviations `boreDeviation` and `outsideDeviation`, each `[upper, lower]` in mm;
 - `source` or `estimate`.
 
 ### `orings`
 
-`id`, optional `dash`, `insideDiameterMM`, `crossSectionMM`, and `source` or `estimate`.
+`id`, optional `dash`, `insideDiameter`, `crossSection`, and `source` or `estimate`.
 
 ### `rings`
 
-Retaining rings: `id`, optional `designation`, `shaftDiameterMM`, `grooveDiameterMM`, `grooveWidthMM`, and `source` or
+Retaining rings: `id`, optional `designation`, `shaftDiameter`, `grooveDiameter`, `grooveWidth`, and `source` or
 `estimate`.
 
 ### `drives`
@@ -98,20 +100,20 @@ Belts, chains and couplings, by `kind`:
 
 | `kind` | Required | Optional |
 |---|---|---|
-| `chain` | `pitchMM`, `rollerDiameterMM` | `innerWidthMM`, `plateHeightMM` |
-| `timing-belt` | `pitchMM`, `pitchLineOffsetMM`, `groove` | `thicknessMM` |
-| `v-belt` | `angleDeg`, `datumWidthMM`, `aboveDatumMM`, `belowDatumMM`, `spacingMM`, `edgeMM` | `thicknessMM` |
-| `flat-belt` | `widthMM`, `thicknessMM` | — |
-| `coupling` | `boreMM`, `outsideMM`, `lengthMM` | `type`, `boreStepMM`, `partNumber`, `supplier` |
+| `chain` | `pitch`, `rollerDiameter` | `innerWidth`, `plateHeight` |
+| `timing-belt` | `pitch`, `pitchLineOffset`, `groove` | `thickness` |
+| `v-belt` | `angle`, `datumWidth`, `aboveDatum`, `belowDatum`, `spacing`, `edge` | `thickness` |
+| `flat-belt` | `width`, `thickness` | — |
+| `coupling` | `bore`, `outside`, `length` | `type`, `boreStep`, `partNumber`, `supplier` |
 
 Each also has an `id`, and `source` or `estimate`.
 
 ### `connectors`
 
 - `id`, optional `name`;
-- `opening`: `{ shape, widthMM, heightMM, cornerRadiusMM?, depthMM }`, where `shape` is `stadium`, `rect` or `round`;
-- an optional mating `body` (the same section, with `lengthMM`);
-- an optional `keepOut`: `{ marginMM, depthMM }`;
+- `opening`: `{ shape, width, height, cornerRadius?, depth }`, where `shape` is `stadium`, `rect` or `round`;
+- an optional mating `body` (the same section, with `length`);
+- an optional `keepOut`: `{ margin, depth }`;
 - `source` or `estimate`.
 
 ### `sections`
@@ -124,27 +126,32 @@ I/H beam or a T-slot), by its dimensions.
 
 How a motor, a servo or a bearing unit fixes to a flat face, one row per model from its datasheet.
 
-| Field | Meaning (mm) |
+| Field | Meaning (mm; `start` in degrees) |
 |---|---|
 | `id`, `type`, `designation?` | The row; `type` is `motor`, `servo` or `bearing-unit` |
-| `holes` | The bolt pattern, with each hole's `diameterMM`: `{ pattern: "square", spacingMM }`, `{ pattern: "rect", spacingMM: [along, across] }`, or `{ pattern: "circle", pcdMM, count, startDeg? }` |
-| `pilotMM`, `pilotDepthMM` | The register on the mounting face, and how far it stands out |
-| `shaftMM`, `shaftOffsetMM`, `shaftHeightMM` | The shaft's diameter; where it stands from the pattern's centre, `[along, across]`; its axis above the face |
-| `bodyMM` | A servo's body, `[along, across]`, cut through the face. A servo requires it; other types may not have it |
-| `clearanceMM` | Added all round to the pilot, shaft and body cut-outs |
-| `bearing` | For a bearing unit, a `bearings` row id. Its bore must equal `shaftMM` |
+| `holes` | The bolt pattern, with each hole's `diameter`: `{ pattern: "square", spacing }`, `{ pattern: "rect", spacing: [along, across] }`, or `{ pattern: "circle", pcd, count, start? }` |
+| `pilot`, `pilotDepth` | The register diameter on the mounting face, and how far it stands out |
+| `shaft`, `shaftOffset`, `shaftHeight` | The shaft's diameter; where it stands from the pattern's centre, `[along, across]`; its axis above the face |
+| `body` | A servo's body cut-out sizes, `[along, across]`, through the face. A servo requires it; other types may not have it |
+| `clearance` | Added all round to the pilot, shaft and body cut-outs |
+| `bearing` | For a bearing unit, a `bearings` row id. Its bore must equal `shaft` |
 | `source` or `estimate`, `fieldSources`, `unchecked` | As for fastener sizes |
 
 The limits:
 
-- **Sizes.** A hole's diameter is 1 to 30 mm, `clearanceMM` is 0 to 5 mm, a circle has 2 to 12 holes, and lengths are
+- **Sizes.** A hole's diameter is 1 to 30 mm, `clearance` is 0 to 5 mm, a circle has 2 to 12 holes, and lengths are
   at most 2,000 mm.
 - **Holes.** They must be further apart than their diameter.
-- **Pilot and shaft.** A pilot must be wider than the shaft, and `pilotDepthMM` needs a `pilotMM`.
+- **Pilot and shaft.** A pilot must be wider than the shaft, and `pilotDepth` needs a `pilot`.
 - **Clearance.** The pilot's or shaft's cut, with its clearance, must stay clear of the holes.
 
 Each refusal is `[MOUNT_RANGE]`, and names the row and the field. A placed part uses the mount rows of the document it
 is placed in.
+
+The shipped mount example keeps its estimates, unchecked fields and field sources. This check reads those existing
+rows; it does not supply a new hardware row:
+
+<<< @/../samples/rows.test.mjs#mounts
 
 ### `stock`
 
@@ -155,14 +162,14 @@ Stock for machining, each with a `source`:
 
 ### `frame-stock`
 
-Stock lengths for frame members: `id`, `lengthMM`, optional `count` and `section`, and `source`.
+Stock lengths for frame members: `id`, `length`, optional `count` and `section`, and `source`.
 
 ### `bend`
 
 A sheet-metal bend table. It has an `id`, optional `material` and `sources`, and `rows`. Each row is:
 
-- `thicknessMM` and `radiusMM`, with optional `angleDegrees`;
-- one of `kFactor`, `allowanceMM` or `deductionMM`;
+- `thickness` and `radius`, with optional `angle`;
+- one of `kFactor`, `allowance` or `deduction`;
 - `source` or `estimate`.
 
 ## The shipped samples

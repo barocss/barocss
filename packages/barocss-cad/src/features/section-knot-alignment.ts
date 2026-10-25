@@ -41,9 +41,9 @@ export interface SectionKnotAlignmentReport {
   numericPolicy: { basis: 'object-is-knot-bits-with-numeric-sorted-max-multiplicity-union'; signedZero: 'numeric-equality-with-bit-disagreement-refuses';
     parameters: 'identity-original-domain-no-remapping'; untouched: 'original-id-and-coefficients-zero-refinement-work';
     weightInterpolation: 'actual630-denominator-weighted-independent-section-weights'; derivatives: 'actual-original-aligned-and-surface-states-no-invented-original-c0';
-    endpointPolicy: 'all-original-clamp-slot-bits-must-agree'; pointComparisonMM: 1e-7; relativeD1Comparison: 1e-7 };
+    endpointPolicy: 'all-original-clamp-slot-bits-must-agree'; pointComparison: 1e-7; relativeD1Comparison: 1e-7 };
   profile: { maximumSectionDegree: 3; maximumOriginalPoles: 16; maximumAlignedPoles: 16; maximumAlignedKnots: 20;
-    maximumSurfacePoles: 32; coordinateAbsMM: 10000; positiveWeights: [0.000001, 1000000]; degreeSpecificMaximumInsertedKnots: number };
+    maximumSurfacePoles: 32; coordinateAbs: 10000; positiveWeights: [0.000001, 1000000]; degreeSpecificMaximumInsertedKnots: number };
   quality: { constructionOnly: true; globalShapeErrorCertified: false; globalBinary64ErrorCertified: false; continuityCertified: false;
     solidCertified: false; manufacturingToleranceCertified: false; weightRepairSupported: false; ownership: 'independent-copied-cpu-data-gc' };
   budgetFailure: 'complete-preflight-and-atomic-no-partial-surface';
@@ -236,9 +236,9 @@ export function buildAlignedRationalRuledSurface(firstInput: Curve, secondInput:
     numericPolicy: { basis: 'object-is-knot-bits-with-numeric-sorted-max-multiplicity-union', signedZero: 'numeric-equality-with-bit-disagreement-refuses',
       parameters: 'identity-original-domain-no-remapping', untouched: 'original-id-and-coefficients-zero-refinement-work',
       weightInterpolation: 'actual630-denominator-weighted-independent-section-weights', derivatives: 'actual-original-aligned-and-surface-states-no-invented-original-c0',
-      endpointPolicy: 'all-original-clamp-slot-bits-must-agree', pointComparisonMM: 1e-7, relativeD1Comparison: 1e-7 },
+      endpointPolicy: 'all-original-clamp-slot-bits-must-agree', pointComparison: 1e-7, relativeD1Comparison: 1e-7 },
     profile: { maximumSectionDegree: 3, maximumOriginalPoles: 16, maximumAlignedPoles: 16, maximumAlignedKnots: 20, maximumSurfacePoles: 32,
-      coordinateAbsMM: 10000, positiveWeights: [1e-6, 1e6], degreeSpecificMaximumInsertedKnots: 15 - degree },
+      coordinateAbs: 10000, positiveWeights: [1e-6, 1e6], degreeSpecificMaximumInsertedKnots: 15 - degree },
     quality: { constructionOnly: true, globalShapeErrorCertified: false, globalBinary64ErrorCertified: false, continuityCertified: false,
       solidCertified: false, manufacturingToleranceCertified: false, weightRepairSupported: false, ownership: 'independent-copied-cpu-data-gc' },
     budgetFailure: 'complete-preflight-and-atomic-no-partial-surface',

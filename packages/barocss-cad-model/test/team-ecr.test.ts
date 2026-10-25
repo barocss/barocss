@@ -64,7 +64,7 @@ test('rejected, nothing changes; a stale ECR cannot be approved; an ECR with no 
   assert.equal(interfacesRevision(no.doc), before); assert.deepEqual([...no.leases.values()], [...leases.values()]); assert.equal(readEcrs(no.doc.ecrs).ecrs[0].status, 'rejected');
   assert.throws(() => openEcr(state.doc, 'architect', readInterfaces(state.doc.interfaces)), /NO_CHANGE/);
   // (Two ECRs on one base: the second goes stale once the first is approved.)
-  const a = openEcr(state.doc, 'architect', moved, { leases }), b = openEcr(a.doc, 'p1-agent', { ...readInterfaces(state.doc.interfaces), budgets: { ...readInterfaces(state.doc.interfaces).budgets, massG: 70 } }, { leases });
+  const a = openEcr(state.doc, 'architect', moved, { leases }), b = openEcr(a.doc, 'p1-agent', { ...readInterfaces(state.doc.interfaces), budgets: { ...readInterfaces(state.doc.interfaces).budgets, mass: 70 } }, { leases });
   assert.deepEqual(b.ecr.impact.parts, ['p1', 'p2'], 'the total budget touches every part');
   const first = decideEcr(b.doc, a.ecr.id, true, userToken('t'), leases);
   assert.throws(() => decideEcr(first.doc, b.ecr.id, true, userToken('t'), first.leases), /STALE_ECR/);

@@ -62,7 +62,7 @@ export interface CurvePlaneCoincidentClipResult {
   parent:CurveAffinePlaneIntersectionResult;options:CurvePlaneCoincidentClipOptions;source:string;sourceVersion:0;model:Model;
   spans:PlaneClipSpan[];contacts:PlaneClipContact[];pieces:PlaneClipPiece[];referencedEvents:CurvePlanePointEvent[];report:CurvePlaneCoincidentClipReport;
 }
-const LABEL='Own coincident Curve-plane interval clip',TOL=CadNumericPolicy.linearToleranceMM,WIDTH=1e-12;
+const LABEL='Own coincident Curve-plane interval clip',TOL=CadNumericPolicy.linearTolerance,WIDTH=1e-12;
 function check(c:boolean,detail:string):asserts c {if(!c)throw new Error((LABEL+': '+detail).slice(0,1024));}
 function finite(n:number):number {check(Number.isFinite(n),'finite native homogeneous/Gram arithmetic required');return n;}
 function snapshot(input:unknown,results=false):unknown {
@@ -102,7 +102,7 @@ function uvProvenance(provenance:CurveParameterSplitProvenance[]):PlaneClipUVSpl
   // Retain coefficient maps only. The inherited splitter's temporary mm source/report is not UV authority.
   return provenance.map(p=>({sourceCurveId:p.sourceCurveId,parameter:p.parameter,firstRefinedKnotIndex:p.firstRefinedKnotIndex,
     refinement:{kind:p.refinement.kind,insertions:p.refinement.insertions},lower:p.lower,upper:p.upper,
-    shared:{refinedPoleIndex:p.shared.refinedPoleIndex,lowerPoleIndex:p.shared.lowerPoleIndex,upperPoleIndex:p.shared.upperPoleIndex,pointUV:p.shared.pointMM,weight:p.shared.weight}}));
+    shared:{refinedPoleIndex:p.shared.refinedPoleIndex,lowerPoleIndex:p.shared.lowerPoleIndex,upperPoleIndex:p.shared.upperPoleIndex,pointUV:p.shared.point,weight:p.shared.weight}}));
 }
 /** Clip actual coincident spans; UV coefficients remain dimensionless binding artifacts. */
 export function clipCurvePlaneCoincidentIntervals(parentInput:CurveAffinePlaneIntersectionResult,inputOptions:CurvePlaneCoincidentClipOptions):CurvePlaneCoincidentClipResult {

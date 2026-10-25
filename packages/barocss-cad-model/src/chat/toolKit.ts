@@ -53,12 +53,12 @@ export function describeBodies(doc: StudioDoc, bodies: BodyResult[], detail: boo
     const ref = refOf(b), node = doc.nodes[ref.node], m = b.mesh;
     const out: Record<string, unknown> = {
       key: b.key, made_by: node ? `${ref.node}: ${featureLabel(node, ref.node, doc.nodes)}` : undefined, ...(b.idealModel ? { ideal_model: b.idealModel } : {}),
-      volume_mm3: b.volumeMM3 === null ? null : r3(b.volumeMM3), bounds: { min: v3(m.bounds.min), max: v3(m.bounds.max) },
+      volume: b.volume === null ? null : r3(b.volume), bounds: { min: v3(m.bounds.min), max: v3(m.bounds.max) },
       face_count: m.faces.length, edge_count: m.edges.length,
     };
     if (detail) {
       const from = (page - 1) * cap, pages = Math.max(1, Math.ceil(Math.max(m.faces.length, m.edges.length) / cap));
-      out.faces = m.faces.slice(from, from + cap).map(f => ({ name: f.name.split('+')[0], ...(f.name.includes('+') ? { also: f.name.split('+').slice(1) } : {}), kind: f.kind, normal: v3(f.normal), centre: v3(f.centroid), area_mm2: r3(f.areaMM2), ...(f.radius ? { radius: r3(f.radius) } : {}) }));
+      out.faces = m.faces.slice(from, from + cap).map(f => ({ name: f.name.split('+')[0], ...(f.name.includes('+') ? { also: f.name.split('+').slice(1) } : {}), kind: f.kind, normal: v3(f.normal), centre: v3(f.centroid), area: r3(f.area), ...(f.radius ? { radius: r3(f.radius) } : {}) }));
       out.edges = m.edges.slice(from, from + cap).map(e => ({ name: e.names[0], from: v3(e.a), to: v3(e.b), ...(e.straight ? { line: e.axis ? `along ${e.axis}` : 'oblique' } : { line: 'curve' }) }));
       if (pages > 1) out.page = { page, pages, note: `faces and edges ${from + 1}–${from + cap}; the next page: get_part_summary {"body": "${b.key}", "page": ${Math.min(pages, page + 1)}}` };
     }
@@ -107,16 +107,16 @@ export async function accept(state: ChatState, next: StudioDoc, evaluate: Evalua
   if (refresh) next = await refreshSignatures(next, r.bodies, evaluate);
   const entries = r.bodies.reduce((s, b) => s + b.mesh.faces.length + b.mesh.edges.length, 0);
   // On a big part, the bodies this change made (or changed) are still listed in full, when small enough.
-  const fresh = new Set(state.bodies.map(b => `${b.key}:${b.volumeMM3}`));
+  const fresh = new Set(state.bodies.map(b => `${b.key}:${b.volume}`));
   // (Compact facts after every change and what changed, A2.1; faces and edges in detail through inspect.)
   const facts = factsOf(next, r.bodies), change = changeOf(factsOf(state.doc, state.bodies), facts);
   const result = {
     ok: true, did: what, ...extra, feature_count: next.nodes.length, facts, change,
     ...(responseFormat === 'concise' ? {} : { bodies: entries <= DETAIL_LIMIT || responseFormat === 'detailed' ? describeBodies(next, r.bodies, true)
-      : r.bodies.map(b => describeBodies(next, [b], !fresh.has(`${b.key}:${b.volumeMM3}`) && b.mesh.faces.length + b.mesh.edges.length <= DETAIL_LIMIT)[0]),
+      : r.bodies.map(b => describeBodies(next, [b], !fresh.has(`${b.key}:${b.volume}`) && b.mesh.faces.length + b.mesh.edges.length <= DETAIL_LIMIT)[0]),
     ...(entries > DETAIL_LIMIT && responseFormat !== 'detailed' ? { note: 'faces and edges of other bodies: get_part_summary {"body": key}' } : {}) }),
   };
-  return { state: { ...state, doc: next, bodies: r.bodies }, content: json(result), isError: false, changed: true, summary: `${what} → ${r.bodies.length} bod${r.bodies.length === 1 ? 'y' : 'ies'}${r.bodies[0]?.volumeMM3 != null ? `, ${Math.round(r.bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0))} mm³` : ''}` };
+  return { state: { ...state, doc: next, bodies: r.bodies }, content: json(result), isError: false, changed: true, summary: `${what} → ${r.bodies.length} bod${r.bodies.length === 1 ? 'y' : 'ies'}${r.bodies[0]?.volume != null ? `, ${Math.round(r.bodies.reduce((s, b) => s + (b.volume ?? 0), 0))} mm³` : ''}` };
 }
 
 export function fail(state: ChatState, reason: string, extra: Record<string, unknown> = {}): ToolOutcome {

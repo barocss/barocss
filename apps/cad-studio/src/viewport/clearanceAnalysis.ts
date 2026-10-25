@@ -57,7 +57,7 @@ export function clearanceOverlays(map: ClearanceMap, bodies: readonly PlacedBody
     if (!body || !indices.length) return;
     const state = clearancePairState(pair), colors = new Float32Array(positions.length), base = palette[state];
     for (let vertex = 0; vertex < positions.length / 3; vertex++) {
-      const fraction = state === 'near' && field ? Math.min(1, Math.max(0, field[vertex] / map.near.mm)) : 0;
+      const fraction = state === 'near' && field ? Math.min(1, Math.max(0, field[vertex] / map.near.value)) : 0;
       colors.set([base[0], base[1] + fraction * 0.28, base[2]], vertex * 3);
     }
     overlays.push({ id: `${pair.a}|${pair.b}|${side}`, bodyKey: body.key, positions, indices, colors, normals: normalsOf(positions, indices), field,
@@ -66,10 +66,10 @@ export function clearanceOverlays(map: ClearanceMap, bodies: readonly PlacedBody
   for (const pair of map.pairs) {
     const a = bodies.find(body => body.key === pair.a), b = bodies.find(body => body.key === pair.b);
     if (pair.band) { add(pair, 'band-a', a, pair.band.a.positions, pair.band.a.indices, pair.band.a.field); add(pair, 'band-b', b, pair.band.b.positions, pair.band.b.indices, pair.band.b.field); }
-    if (pair.overlap && 'mesh' in pair.overlap && pair.overlap.volumeMM3 > 0) add(pair, 'overlap-a', a, pair.overlap.mesh.positions, pair.overlap.mesh.indices);
+    if (pair.overlap && 'mesh' in pair.overlap && pair.overlap.volume > 0) add(pair, 'overlap-a', a, pair.overlap.mesh.positions, pair.overlap.mesh.indices);
   }
   return overlays;
 }
 export function clearanceDisplay(map: ClearanceMap, bodies: readonly PlacedBody[], request: number, stage: ClearanceDisplay['stage']): ClearanceDisplay {
-  return { version: map.version, request, revision: map.revision, near: map.near.mm, stage, pairs: map.pairs, overlays: clearanceOverlays(map, bodies) };
+  return { version: map.version, request, revision: map.revision, near: map.near.value, stage, pairs: map.pairs, overlays: clearanceOverlays(map, bodies) };
 }

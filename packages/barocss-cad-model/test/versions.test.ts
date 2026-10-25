@@ -24,7 +24,7 @@ const box = (doc: StudioDoc, x: number, w: number, h: number) => withNode(withNo
 const fillet = (doc: StudioDoc, body: number, edge: string, radius: number) => withNode(doc, { kind: 'fillet', parent: { node: body, side: 'solid' }, edges: [edge], radius });
 const edit = (doc: StudioDoc, id: string, change: Partial<ModelNode>) => { const i = doc.nodes.findIndex(n => n.id === id); return replaceRange(doc, i, 1, [{ ...doc.nodes[i], ...change } as ModelNode]); };
 const eq = (a: StudioDoc, b: StudioDoc, why = 'the same document') => assert.equal(canonical(a), canonical(b), why);
-const volumes = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies.map(b => Math.round(b.volumeMM3! * 1000) / 1000).sort((x, y) => x - y); };
+const volumes = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies.map(b => Math.round(b.volume! * 1000) / 1000).sort((x, y) => x - y); };
 const code = (fn: () => unknown) => { try { fn(); } catch (e) { return (e as { code?: string }).code; } return null; };
 const ok = (log: VersionLog) => assert.deepEqual(checkVersions(log), [], 'checkVersions');
 const merged = (r: ReturnType<typeof mergeDocs>) => { assert.ok('doc' in r, JSON.stringify('conflicts' in r && r.conflicts.map(c => c.message))); return r; };

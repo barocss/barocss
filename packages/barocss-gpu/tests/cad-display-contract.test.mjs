@@ -24,7 +24,7 @@ const mesh = () => ({
   positions: new Float32Array([0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0]),
   normals: new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]),
   indices: new Uint32Array([0, 1, 2, 0, 2, 3]), faceOfVertex: new Float32Array([0, 0, 0, 0]),
-  faces: [{ index: 0, id: 'native-plane-0', name: 'Native plane', kind: 'plane', normal: [0, 0, 1], centroid: [0.5, 0.5, 0], areaMM2: 1 }],
+  faces: [{ index: 0, id: 'native-plane-0', name: 'Native plane', kind: 'plane', normal: [0, 0, 1], centroid: [0.5, 0.5, 0], area: 1 }],
   // Only two native edges, deliberately distinct from the two triangles and their diagonal.
   edgeLines: new Float32Array([0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0]), edgeOfSegment: new Float32Array([0, 0, 1, 1]),
   bounds: { min: [0, 0, 0], max: [1, 1, 1] },

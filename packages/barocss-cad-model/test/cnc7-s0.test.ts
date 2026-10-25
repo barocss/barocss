@@ -84,7 +84,7 @@ test('CNC7 S0 P1: floors classed by their walls — the pocket 30 × 20 bounded 
 });
 
 test('CNC7 S0 P2: holes from CNC2 as features — Ø6.6 through 20, Ø5 blind 10 deep; the boss a convex cylinder rising from the top — Ø12, 8 high', async () => {
-  const s = await build(PLATE), hs = holesOf(s.bodies).map(h => [+h.steps[0].diameterMM.toFixed(9), +(h.steps[0].toMM - h.steps[0].fromMM).toFixed(9), h.open[0] && h.open[1] ? 'through' : 'blind']).sort();
+  const s = await build(PLATE), hs = holesOf(s.bodies).map(h => [+h.steps[0].diameter.toFixed(9), +(h.steps[0].to - h.steps[0].from).toFixed(9), h.open[0] && h.open[1] ? 'through' : 'blind']).sort();
   assert.deepEqual(hs, [[5, 10, 'blind'], [6.6, 20, 'through']]);
   assert.deepEqual(bossesOf(s.bodies[0]).map(b => [+b.diameter.toFixed(9), +b.height.toFixed(9)]), [[12, 8]]);
 });

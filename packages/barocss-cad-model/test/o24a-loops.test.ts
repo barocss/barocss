@@ -1,3 +1,4 @@
+import { closedValues, jointValuesIn, robotViewOf } from '../src/robot/verbs';
 // O24 (a), PG-7: loops closed on their own mates — the engine's slider-crank (the piston on the rod's small end by a
 // concentric-only wrist pin, a slide and a turn; in its bore by a concentric-only mate: the loop) against its closed
 // form, whichever of the two the tree leaves out; the four-bar against the pin closer; the refusals.
@@ -66,7 +67,8 @@ for (const [e, boreFirst] of [[0, false], [5, false], [5, true]] as const) {
     let q: Record<string, number> = {}, worst = 0, lo = Infinity, hi = -Infinity;
     for (let deg = 0; deg <= 720; deg += 5) {
       const out = closeLoops(tree, c, { [crank]: (deg * Math.PI) / 180 }, q); q = out.q;
-      assert.ok(out.residualMM <= 1e-9, `${deg}°: ${out.residualMM}`);
+      assert.ok(out.residual <= 1e-9, `${deg}°: ${out.residual}`);
+      assert.ok(!('residualMM' in out));
       const fk = forwardKinematics(tree, q), P = at(fk.motions.get('crank')!, s.P0), W = at(fk.motions.get('piston')!, s.W0);
       const x = P[0] + Math.sqrt(s.L * s.L - (s.yb - P[1]) ** 2);
       worst = Math.max(worst, Math.abs(W[0] - x), Math.abs(W[1] - s.yb), Math.abs(W[2] - s.W0[2]));
@@ -105,10 +107,14 @@ test('O24 (a) PG-7, the agent: forward_kinematics and set_pose close the slider-
   const { dispatchTool } = await import('../src/chat/tools');
   const s = sliderCrank(0), r = await evaluate(s.doc); assert.ok(r.ok);
   const tree = await treeOfDoc(s.doc, r.bodies, evaluate), crank = tree.joints.find(j => j.child === 'crank')!.key, state = { doc: s.doc, bodies: r.bodies };
-  const fk = await dispatchTool(state, 'forward_kinematics', { values: { [crank]: Math.PI / 3 } }, evaluate);
+  const fk = await dispatchTool(state, 'forward_kinematics', { values: { [crank]: 60 } }, evaluate);
   assert.ok(!fk.isError, fk.content);
   const j = JSON.parse(fk.content);
-  assert.deepEqual(j.loops.drivers, [crank]); assert.ok(j.loops.residual_mm <= 1e-9); assert.equal(j.loops.solved.length, 3);
+  assert.deepEqual(j.loops.drivers, [crank]); assert.ok(j.loops.residual <= 1e-9); assert.equal(j.loops.solved.length, 3);
+  assert.ok(!('residualMM' in j.loops) && !('residual_mm' in j.loops));
+  const raw = closedValues(await robotViewOf(s.doc, r.bodies, evaluate), jointValuesIn(tree, { [crank]: 60 }), tree);
+  assert.ok(raw.closed); assert.equal(raw.closed.residual, j.loops.residual);
+  assert.ok(!('residual_mm' in raw.closed) && !('residualMM' in raw.closed));
   // (The piston's placement: moved along X only, by the closed form's x(60°) − x(0°).)
   const piston = j.links.find((l: { link: string }) => l.link === 'piston'), P = [30 + 30 * Math.cos(Math.PI / 3), 30 + 30 * Math.sin(Math.PI / 3) * Math.sign(tree.joints.find(x => x.key === crank)!.axis[2])];
   const x = P[0] + Math.sqrt(70 * 70 - (30 - P[1]) ** 2), x0 = 130;
@@ -147,7 +153,7 @@ test('RS6: play_motion closes the slider-crank\'s loop at every sample — the p
   }
   const check = JSON.parse((await dispatchTool(s, 'check_path', { motion: 'turn' }, evaluate)).content);
   assert.equal(check.clear, true, JSON.stringify(check).slice(0, 400));
-  assert.equal(check.loops.chords, 360); assert.ok(check.loops.chord_residual_mm < 0.01, `${check.loops.chord_residual_mm}`);
+  assert.equal(check.loops.chords, 360); assert.ok(check.loops.chordResidual < 0.01, `${check.loops.chordResidual}`);
   // (A waypoint names the driver: one giving a passive loop joint is refused, as pose refuses it.)
   const rod = tree.joints.find(j => j.child === 'rod')!.key, bad = await dispatchTool(s, 'set_waypoint', { motion: 'turn', values: { [crank]: 90, [rod]: 10 } }, evaluate);
   assert.ok(bad.isError); assert.match(bad.content, /\[LOOP_PASSIVE\]/);

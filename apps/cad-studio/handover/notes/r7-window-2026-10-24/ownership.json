@@ -1,0 +1,171 @@
+{
+  "artifact_type": "ownership-contract",
+  "product_adoption": "HOLD",
+  "work_base": "the immutable commit containing this contract; use the exact SHA supplied by coordinator",
+  "outer": {
+    "branch": "codex/cad-r7-outer-20261024",
+    "owned": [
+      "packages/barocss-cad-model/src/** excluding api/**, drawing/** and engine/render.ts",
+      "matching non-API/non-Drawing/non-render model tests and source rows",
+      "Studio assembly/model command and non-GPU/non-Drawing consumers"
+    ],
+    "candidate_paths": [
+      "packages/barocss-cad-model/src/engine/bodyNotes.ts",
+      "packages/barocss-cad-model/src/engine/elements.ts",
+      "packages/barocss-cad-model/test/gear-acceptance.test.ts",
+      "packages/barocss-cad-model/src/engine/evaluate.ts",
+      "packages/barocss-cad-model/src/engine/part.ts",
+      "packages/barocss-cad-model/src/frames/welds.ts",
+      "packages/barocss-cad-model/src/app/cutList.ts",
+      "packages/barocss-cad-model/src/app/driveCommands.ts",
+      "packages/barocss-cad-model/src/chat/part/query.ts",
+      "packages/barocss-cad-model/test/r12c-acceptance.test.ts",
+      "packages/barocss-cad-model/src/chat/spec.ts",
+      "packages/barocss-cad-model/src/engine/fits.ts",
+      "packages/barocss-cad-model/src/rb9/rungs-sheet.ts",
+      "packages/barocss-cad-model/src/app/shaftCommands.ts",
+      "packages/barocss-cad-model/src/engine/mesh.ts",
+      "packages/barocss-cad-model/src/sketch/terms.ts",
+      "packages/barocss-cad-model/test/enclosure.test.ts",
+      "packages/barocss-cad-model/test/frk4-model.test.ts",
+      "packages/barocss-cad-model/test/shared-bead-worker.test.ts",
+      "packages/barocss-cad-model/test/shop-rows.test.ts",
+      "packages/barocss-cad-model/src/app/primitives.ts",
+      "packages/barocss-cad-model/src/io/dxf.ts",
+      "packages/barocss-cad-model/src/robot/joints.ts",
+      "packages/barocss-cad-model/test/dxf.test.ts",
+      "packages/barocss-cad-model/test/fields.test.ts",
+      "packages/barocss-cad-model/src/app/glandCommands.ts",
+      "packages/barocss-cad-model/src/bom/core.ts",
+      "packages/barocss-cad-model/src/engine/direct.ts",
+      "packages/barocss-cad-model/src/library/sharing.ts",
+      "packages/barocss-cad-model/test/bearing-housing-context.test.ts",
+      "packages/barocss-cad-model/test/bearing-housing.test.ts",
+      "packages/barocss-cad-model/test/frame-acceptance.test.ts",
+      "packages/barocss-cad-model/test/primitives.test.ts",
+      "packages/barocss-cad-model/test/shared-bead.test.ts",
+      "packages/barocss-cad-model/test/sheet-acceptance.test.ts",
+      "packages/barocss-cad-model/test/volume-basis.test.ts",
+      "packages/barocss-cad-model/src/app/editFields.ts",
+      "packages/barocss-cad-model/src/robot/fk.ts",
+      "packages/barocss-cad-model/src/robot/sweep.ts",
+      "packages/barocss-cad-model/src/sketch/profile.ts",
+      "packages/barocss-cad-model/test/cageEdit.test.ts",
+      "packages/barocss-cad-model/test/frk-acceptance.test.ts",
+      "packages/barocss-cad-model/src/app/mounts.ts",
+      "packages/barocss-cad-model/src/team/clearanceMap.ts",
+      "packages/barocss-cad-model/test/frk3-editor.test.ts",
+      "packages/barocss-cad-model/test/frk5-editor.test.ts",
+      "packages/barocss-cad-model/test/library.test.ts",
+      "packages/barocss-cad-model/test/robot-ccd.test.ts",
+      "packages/barocss-cad-model/test/robot-sweep.test.ts",
+      "packages/barocss-cad-model/test/shared-bead-lifecycle.test.ts",
+      "packages/barocss-cad-model/test/sheet.test.ts",
+      "packages/barocss-cad-model/src/analysis/analysis.ts",
+      "packages/barocss-cad-model/src/chat/proposalDiff.ts",
+      "packages/barocss-cad-model/src/chat/references.ts",
+      "packages/barocss-cad-model/src/frames/beadAccounting.ts",
+      "packages/barocss-cad-model/src/frames/nesting.ts",
+      "packages/barocss-cad-model/src/rb9/rungs-enclosure.ts",
+      "packages/barocss-cad-model/src/team/assembly.ts",
+      "packages/barocss-cad-model/test/bearing.test.ts",
+      "packages/barocss-cad-model/test/bom-panel.test.ts",
+      "packages/barocss-cad-model/test/elements.test.ts",
+      "packages/barocss-cad-model/test/engine.test.ts",
+      "packages/barocss-cad-model/test/fr-s0.test.ts",
+      "packages/barocss-cad-model/test/g12-s0.test.ts",
+      "packages/barocss-cad-model/test/helpers/gear-moments.ts",
+      "packages/barocss-cad-model/test/o14-mounts.test.ts",
+      "packages/barocss-cad-model/test/o22-designed-contact.test.ts",
+      "packages/barocss-cad-model/test/tool-contract.test.ts",
+      "apps/cad-studio/src/ui/CutListDialog.tsx",
+      "apps/cad-studio/src/ui/DriveRows.tsx",
+      "apps/cad-studio/src/ui/MeshRepairPanel.tsx",
+      "apps/cad-studio/src/ui/BearingRows.tsx",
+      "apps/cad-studio/src/ui/ConnectorRows.tsx",
+      "apps/cad-studio/src/ui/FlatPatternDialog.tsx",
+      "apps/cad-studio/test/frame.test.ts",
+      "apps/cad-studio/src/ui/ORingRows.tsx",
+      "apps/cad-studio/test/bearing-edit.test.ts",
+      "apps/cad-studio/test/mesh-repair-corpus.test.ts"
+    ],
+    "explicit_shared_leases": [
+      "apps/cad-studio/src/App.tsx",
+      "apps/cad-studio/test/chat.test.ts",
+      "apps/cad-studio/test/bench/node-bench.ts",
+      "apps/cad-studio/test/bench/mesh-bench.ts"
+    ],
+    "required_contracts": [
+      "engine/evaluate.ts free functions and MMGS",
+      "app/mass.ts g*mm^2 and parallel-axis consistency",
+      "row validators/results/options and callers; no invented rows"
+    ]
+  },
+  "api": {
+    "branch": "codex/cad-r7-api-20261024",
+    "owned": [
+      "packages/barocss-cad/src/api/**",
+      "packages/barocss-cad-model/src/api/**",
+      "packages/barocss-cad/test/api-*.test.mjs",
+      "packages/barocss-cad-model/test/api-*.test.ts",
+      "examples/products/engine-1cyl/**"
+    ],
+    "excluded": [
+      "examples/products/enclosure-handheld/**",
+      "all P2 WIP ancestry and unqualified facade deltas"
+    ],
+    "required_contracts": [
+      "MassResult volume/mass/centroid/inertia MMGS",
+      "selectors area without unit suffix",
+      "no duplicate inertia/density conversions"
+    ]
+  },
+  "docs": {
+    "branch": "codex/cad-r7-docs-20261024",
+    "owned": [
+      "apps/library-docs/** including samples, generators and their generated text"
+    ],
+    "required_contracts": [
+      "replace removed result/snapshot methods",
+      "MMGS examples and preserved independent oracles",
+      "regenerate tool/refusal text after the matching consumer aggregate; record the three kernel refusal-name changes"
+    ]
+  },
+  "drawings": {
+    "branch": "codex/cad-r7-drawings-20261024",
+    "owned": [
+      "packages/barocss-cad-model/src/drawing/**",
+      "packages/barocss-cad-model/test/drawing*.test.ts",
+      "packages/barocss-cad-model/test/fit-drawing.test.ts",
+      "packages/barocss-cad-model/test/tolerance.test.ts",
+      "packages/barocss-cad-model/test/annotations3d.test.ts",
+      "apps/cad-studio/src/ui/DrawingWorkspace.tsx",
+      "apps/cad-studio/src/ui/drawing/**",
+      "apps/cad-studio/src/ui/useDrawingSheet.ts"
+    ],
+    "first_consumers": [
+      "packages/barocss-cad-model/src/drawing/elementTables.ts",
+      "packages/barocss-cad-model/src/drawing/auto.ts",
+      "packages/barocss-cad-model/src/drawing/tables.ts",
+      "packages/barocss-cad-model/src/drawing/elementCallouts.ts",
+      "packages/barocss-cad-model/src/drawing/section.ts"
+    ]
+  },
+  "gpu": {
+    "branch": "codex/cad-r7-gpu-20261024",
+    "owned": [
+      "packages/barocss-gpu/**",
+      "apps/cad-studio/src/viewport/**",
+      "Studio Render/viewport UI and matching tests"
+    ],
+    "instruction": "First return a scoped consumer-impact review. Change only a demonstrated R7 dependency. Legacy y-up retirement is R7.3d and is not part of this window."
+  },
+  "coordinator": {
+    "owned": [
+      "apps/cad-studio/test/browser-flow.mjs",
+      "shared handover/roadmap/policy",
+      "root/workspace/lock if a demonstrated compatibility requirement arises"
+    ],
+    "instruction": "No new dependencies; hold browser-flow exact patch proposals and aggregate them serially. Do not touch leases assigned above."
+  }
+}

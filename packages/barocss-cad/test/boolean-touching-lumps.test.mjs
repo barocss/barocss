@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, tessellateBrep, checkBrep } from '../dist/index.js';
+import { evaluateCadPart, tessellateBrep, checkBrep, massPropertiesOf, outputOf } from '../dist/index.js';
 import { oracle } from '../scripts/rb/fuzz-oracle.mjs';
 import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 
@@ -8,7 +8,7 @@ const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', pa
 const leaf = (kind, dims, rot, move) => ({ leaf: { kind, ...dims, rot: rot.map(([axis, deg]) => ({ axis, deg })), move } });
 /** Each body of an output: its face-name prefixes (the features its faces come from) and its mesh volume; strict validity; watertight body by body. */
 function lumps(o) {
-  const b = o.brep, mesh = tessellateBrep(b, { segmentsPerQuarter: 16 }), P = mesh.positionsMM, shellBody = new Map(b.shells.map(s => [s.id, s.body]));
+  const b = o.brep, mesh = tessellateBrep(b, { segmentsPerQuarter: 16 }), P = mesh.positions, shellBody = new Map(b.shells.map(s => [s.id, s.body]));
   assert.equal(checkBrep(b, { strict: true }).valid, true, checkBrep(b, { strict: true }).issues[0]);
   return b.bodies.map(body => {
     const faces = new Set(b.faces.filter(f => shellBody.get(f.shell) === body.id).map(f => f.id)), uses = new Map();
@@ -37,7 +37,7 @@ test('Booleans: lumps touching along a line are separate bodies, numbered as lum
   const by = w => Object.fromEntries(w.lumps.map(l => [l.from.includes('f') ? 'shell' : 'can', l.volume]));
   const [x, y] = ways.map(by);
   for (const k of ['shell', 'can']) assert.ok(Math.abs(x[k] - y[k]) <= 1e-9 * x[k], `${k}: ${x[k]} vs ${y[k]}`);
-  const q = oracle(ways[0].tree, 192, 6), V = ways[0].o.massProperties(1).volumeMM3;
+  const q = oracle(ways[0].tree, 192, 6), V = massPropertiesOf(ways[0].o).volume;
   assert.ok(Math.abs(V - q.volumeMM3) <= 3 * q.e + 1e-6, `${V} vs the oracle ${q.volumeMM3} ± ${q.e}`);
 });
 
@@ -45,14 +45,14 @@ test('Booleans: upright lumps touching along an edge or at a point are separate 
   const box = (id, min, max, z0, h) => [{ id: `${id}s`, kind: 'sketch', profile: 'rectangle', min, max, plane: { origin: [0, 0, z0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id, kind: 'extrude', sketch: `${id}s`, height: h }];
   const cases = [
     // Two copies of a 5 × 4 × 2 box turned 120° about a corner on the axis: they share that corner's edge. 40 + 40.
-    ['pattern corner on the axis', D([...box('b', [0, 0], [5, 4], 0, 2), { id: 'p', kind: 'circular-pattern', target: 'b', axis: 'z', angleDegrees: 120, count: 2, pivot: [0, 0, 0] }]), 'p', 80],
+    ['pattern corner on the axis', D([...box('b', [0, 0], [5, 4], 0, 2), { id: 'p', kind: 'circular-pattern', target: 'b', axis: 'z', angle: 120, count: 2, pivot: [0, 0, 0] }]), 'p', 80],
     // A box and a cylinder r 2 tangent to its side along a line (L4 fuzz 92): 2 × 3 × 4 + π · 4 · 8.
     ['cylinder along a side', D([...box('b', [0, -2], [2, 1], -2, 4), { id: 'cs', kind: 'sketch', profile: 'circle', center: [-2, -2], radius: 2, plane: { origin: [0, 0, -5], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'c', kind: 'extrude', sketch: 'cs', height: 8 }, { id: 'u', kind: 'union', target: 'b', tool: 'c' }]), 'u', 24 + 32 * Math.PI],
     // Two boxes meeting at a corner: 10 × 10 × 5 twice.
     ['corner to corner', D([...box('a', [0, 0], [10, 10], 0, 5), ...box('b', [10, 10], [20, 20], 5, 5), { id: 'u', kind: 'union', target: 'a', tool: 'b' }]), 'u', 1000],
   ];
   for (const [name, doc, out, exact] of cases) {
-    const o = evaluateCadPart(doc).output(out), l = lumps(o), V = o.massProperties(1).volumeMM3;
+    const o = outputOf(evaluateCadPart(doc), out), l = lumps(o), V = massPropertiesOf(o).volume;
     assert.equal(o.bodyCount, 2, name);
     assert.ok(Math.abs(V - exact) <= 1e-9 * exact, `${name}: ${V} vs ${exact}`);
     assert.ok(Math.abs(l[0].volume + l[1].volume - exact) <= 1e-2 * exact, `${name}: mesh ${l[0].volume} + ${l[1].volume}`);

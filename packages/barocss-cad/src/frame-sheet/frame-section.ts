@@ -18,7 +18,7 @@ export type FrameSectionSpec =
 export interface FrameSection {
   readonly outer: readonly ProfileSegmentInput[]; readonly outerNames: readonly string[];
   readonly holes: readonly (readonly ProfileSegmentInput[])[]; readonly holeNames: readonly (readonly string[])[];
-  readonly areaMM2: number; readonly centroid: XY; readonly box: { readonly min: XY; readonly max: XY };
+  readonly area: number; readonly centroid: XY; readonly box: { readonly min: XY; readonly max: XY };
   /** A short description, `rect-tube 40 × 40 × 3, ro 6, ri 3 (concentric)`. */
   readonly label: string;
   /**
@@ -77,7 +77,7 @@ function rectTube(s: Extract<FrameSectionSpec, { kind: 'rect-tube' }>): FrameSec
   if (ri > ro) refuse(`an inner radius ${fmt(ri)} past the outer ${fmt(ro)} thins the wall at the corners`);
   const out = roundedRect(b / 2, h / 2, ro, ''), bore = roundedRect(b / 2 - t, h / 2 - t, ri, 'bore.'), k = 4 - Math.PI;
   return { outer: out.segments, outerNames: out.names, holes: [bore.segments], holeNames: [bore.names],
-    areaMM2: b * h - k * ro * ro - ((b - 2 * t) * (h - 2 * t) - k * ri * ri), centroid: [0, 0], box: { min: [-b / 2, -h / 2], max: [b / 2, h / 2] },
+    area: b * h - k * ro * ro - ((b - 2 * t) * (h - 2 * t) - k * ri * ri), centroid: [0, 0], box: { min: [-b / 2, -h / 2], max: [b / 2, h / 2] },
     label: `rect-tube ${fmt(b)} × ${fmt(h)} × ${fmt(t)}${ro ? `, ro ${fmt(ro)}, ri ${fmt(ri)}${s.innerRadius === undefined ? ' (concentric)' : ''}` : s.innerRadius !== undefined ? `, ri ${fmt(ri)}` : ''}`,
     ...(s.innerRadius === undefined ? { derived: { innerRadius: ro ? 'concentric: ro − t' : 'sharp: 0, as the outer corners' } } : {}) };
 }
@@ -89,7 +89,7 @@ function roundTube(s: Extract<FrameSectionSpec, { kind: 'round-tube' }>): FrameS
   if (!(t < R)) refuse(`a wall ${fmt(t)} leaves no bore in Ø${fmt(s.diameter)}`);
   const r = R - t;
   return { outer: [{ kind: 'arc', start: [R, 0], center: [0, 0], direction: 'ccw' }], outerNames: ['outside'], holes: [[{ kind: 'arc', start: [r, 0], center: [0, 0], direction: 'ccw' }]], holeNames: [['bore']],
-    areaMM2: Math.PI * (R * R - r * r), centroid: [0, 0], box: { min: [-R, -R], max: [R, R] }, label: `round-tube Ø${fmt(s.diameter)} × ${fmt(t)}` };
+    area: Math.PI * (R * R - r * r), centroid: [0, 0], box: { min: [-R, -R], max: [R, R] }, label: `round-tube Ø${fmt(s.diameter)} × ${fmt(t)}` };
 }
 
 /**
@@ -115,7 +115,7 @@ function angle(s: Extract<FrameSectionSpec, { kind: 'angle' }>): FrameSection {
   const A = a * t + t * (b - t) + s1 - 2 * s2;
   const Mx = a * t * a / 2 + t * (b - t) * t / 2 + s1 * (t + c1) - s2 * (a - c2) - s2 * (t - c2);
   const My = a * t * t / 2 + t * (b - t) * (t + b) / 2 + s1 * (t + c1) - s2 * (t - c2) - s2 * (b - c2);
-  return { outer: L.segments, outerNames: L.names, holes: [], holeNames: [], areaMM2: A, centroid: [Mx / A, My / A], box: { min: [0, 0], max: [a, b] },
+  return { outer: L.segments, outerNames: L.names, holes: [], holeNames: [], area: A, centroid: [Mx / A, My / A], box: { min: [0, 0], max: [a, b] },
     label: `angle ${fmt(a)} × ${fmt(b)} × ${fmt(t)}${r1 || r2 ? `, r1 ${fmt(r1)}, r2 ${fmt(r2)}` : ''}` };
 }
 
@@ -138,7 +138,7 @@ function channel(s: Extract<FrameSectionSpec, { kind: 'channel' }>): FrameSectio
   line(L, [tw + r, h - tf], 'inside.top'); line(L, [b, h - tf], 'tip.top'); line(L, [b, h], 'top'); line(L, [0, h], 'back');
   const S = spandrelArea(r), c = spandrelReach(r), A = h * tw + 2 * (b - tw) * tf + 2 * S;
   const Mx = h * tw * tw / 2 + 2 * (b - tw) * tf * (tw + b) / 2 + 2 * S * (tw + c);
-  return { outer: L.segments, outerNames: L.names, holes: [], holeNames: [], areaMM2: A, centroid: [Mx / A, h / 2], box: { min: [0, 0], max: [b, h] },
+  return { outer: L.segments, outerNames: L.names, holes: [], holeNames: [], area: A, centroid: [Mx / A, h / 2], box: { min: [0, 0], max: [b, h] },
     label: `channel ${fmt(h)} × ${fmt(b)} × ${fmt(tw)}/${fmt(tf)}${r ? `, r ${fmt(r)}` : ''}` };
 }
 
@@ -213,7 +213,7 @@ function flanged(s: Extract<FrameSectionSpec, { kind: 'i-beam' | 'channel' }>): 
     area += A;
     mx += c[0] * A + r ** 3 * (Math.sin(start + theta) - Math.sin(start)) / 3;
   }
-  return { outer: loop.segments, outerNames: loop.names, holes: [], holeNames: [], areaMM2: area,
+  return { outer: loop.segments, outerNames: loop.names, holes: [], holeNames: [], area: area,
     centroid: isI ? [0, 0] : [mx / area, h / 2], box: isI ? { min: [-B, -H], max: [B, H] } : { min: [0, 0], max: [b, h] },
     label: `${s.kind} ${fmt(h)} × ${fmt(b)} × ${fmt(w)}/${fmt(f)}, root ${fmt(root)}, toe ${fmt(toe)}, slope ${fmt(slope)} (flange at overhang midpoint)` };
 }
@@ -270,7 +270,7 @@ function tslot(s: Extract<FrameSectionSpec, { kind: 'tslot' }>): FrameSection {
   for (let k = 0; k < cells; k++) { holes.push([{ kind: 'arc', start: [k * a + rb, 0], center: [k * a, 0], direction: 'ccw' }]); holeNames.push([`core${k}`]); Mx += disk * k * a; }
   const box = a * a * cells, A = box - slotArea - cells * disk;
   const centroid: XY = [(box * (xr - a / 2) / 2 - Mx) / A, (0 - My) / A];
-  return { outer: L.segments, outerNames: L.names, holes, holeNames, areaMM2: A, centroid, box: { min: [-a / 2, -a / 2], max: [xr, a / 2] },
+  return { outer: L.segments, outerNames: L.names, holes, holeNames, area: A, centroid, box: { min: [-a / 2, -a / 2], max: [xr, a / 2] },
     label: `tslot ${fmt(a)}${cells === 2 ? ` × ${fmt(2 * a)}` : ''}, ${slots.length} slot${slots.length === 1 ? '' : 's'}` };
 }
 
@@ -321,16 +321,16 @@ function take(min: XY, max: XY, x: number, y: number): void { min[0] = Math.min(
 /** A member as built (FR1, D123): its section, where its line runs and the section's frame in the part. */
 export interface FrameMemberReport {
   /** Circular spine or tangent bend: dimensions in evaluated part coordinates; developed length follows the section centroid. */
-  readonly curve?: { readonly kind: 'arc' | 'bend'; readonly center: readonly [number, number, number]; readonly axis: readonly [number, number, number]; readonly radiusMM: number; readonly centroidRadiusMM: number; readonly angleDegrees: number; readonly startTangent: readonly [number, number, number]; readonly endTangent: readonly [number, number, number]; readonly developedLengthMM: number; readonly straightLengthsMM: readonly [number, number]; readonly segmentIndices: readonly number[] };
+  readonly curve?: { readonly kind: 'arc' | 'bend'; readonly center: readonly [number, number, number]; readonly axis: readonly [number, number, number]; readonly radius: number; readonly centroidRadius: number; readonly angle: number; readonly startTangent: readonly [number, number, number]; readonly endTangent: readonly [number, number, number]; readonly developedLength: number; readonly straightLengths: readonly [number, number]; readonly segmentIndices: readonly number[] };
 
   /** The section kind and its description (`rect-tube 40 × 40 × 3, ro 6`; a sketch section: `sketch <id>`). */
   readonly sectionKind: string; readonly section: string;
   /** Its area and centroid in the section's own XY (closed forms; a sketch section's by its prism's exact mass). */
-  readonly areaMM2: number; readonly centroid: XY;
+  readonly area: number; readonly centroid: XY;
   /** The section's dimensions derived by a geometric rule, and how (`FrameSection.derived`). */
   readonly derived?: Readonly<Record<string, string>>;
   /** The section's point on the member's line (`anchor`), and how far the section is moved from it (`offset`, in its XY). */
-  readonly anchor: FrameAnchor; readonly offset: XY; readonly rollDegrees: number;
+  readonly anchor: FrameAnchor; readonly offset: XY; readonly roll: number;
   /** The section turned over across its own y axis (FR2, D124). */
   readonly mirrored?: true;
   /** Its section symmetric about its own x or y through its centroid, so a reversed piece is the same piece (FR4a, D127). */
@@ -338,7 +338,7 @@ export interface FrameMemberReport {
   /** A frame's member (FR2, D124): its index and the skeleton points it runs from and to. */
   readonly frame?: { readonly member: number; readonly from: number; readonly to: number };
   /** The member's line, its length, its direction (the extrusion's) and the section's x and y in the part. */
-  readonly start: readonly [number, number, number]; readonly end: readonly [number, number, number]; readonly lengthMM: number;
+  readonly start: readonly [number, number, number]; readonly end: readonly [number, number, number]; readonly length: number;
   readonly axis: readonly [number, number, number]; readonly xAxis: readonly [number, number, number]; readonly yAxis: readonly [number, number, number];
   /** The up reference was along the member, so the section's y came from this one instead. */
   readonly upFallback?: readonly [number, number, number];
@@ -352,17 +352,17 @@ export interface FrameMemberReport {
  * One end of a frame's member at a corner (FR3a, D125): `square` (no corner, or one left as it is), `mitre` (cut on the
  * plane halfway between the two members), `butt` (ended on the face of the member that runs through), `through` (run on
  * past the corner to cover the other member); FR3b (D126): `cope` (ended on the other member's envelope), `trim` (an
- * ordered trim's later member, or trimmed to a plane or a body). `point` the skeleton point; `with` the other member; `angleDegrees` the
- * cut from square; `plane` the cut's (its normal pointing away from the member); `extendedMM` how far a through member
+ * ordered trim's later member, or trimmed to a plane or a body). `point` the skeleton point; `with` the other member; `angle` the
+ * cut from square; `plane` the cut's (its normal pointing away from the member); `extended` how far a through member
  * runs past the point.
  */
-export type FrameNotchReport = { readonly kind: 'holesaw'; readonly diameterMM: number; readonly offsetMM: number } | { readonly kind: 'v'; readonly depthMM: number; readonly angleDegrees: number };
+export type FrameNotchReport = { readonly kind: 'holesaw'; readonly diameter: number; readonly offset: number } | { readonly kind: 'v'; readonly depth: number; readonly angle: number };
 export interface FrameEndReport {
   /** Complete authored clearance g (each mitre plane is moved g/2). */
-  readonly gapMM?: number;
+  readonly gap?: number;
   readonly notch?: FrameNotchReport;
   readonly end: 'start' | 'end'; readonly point: number; readonly kind: 'square' | 'mitre' | 'butt' | 'through' | 'cope' | 'trim' | 'notch';
-  readonly with?: number; readonly angleDegrees?: number; readonly extendedMM?: number;
+  readonly with?: number; readonly angle?: number; readonly extended?: number;
   /** An ordered trim (FR3b): this member's place in the order (1 for the second) and the members it is trimmed to. */
   readonly rank?: number; readonly against?: readonly number[];
   readonly plane?: { readonly origin: readonly [number, number, number]; readonly normal: readonly [number, number, number] };

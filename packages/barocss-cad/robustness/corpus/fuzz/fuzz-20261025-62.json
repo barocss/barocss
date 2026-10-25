@@ -29,7 +29,7 @@
           "kind": "rotate",
           "target": "n3b",
           "axis": "x",
-          "angleDegrees": 222.022,
+          "angle": 222.022,
           "pivot": [
             0,
             0,
@@ -41,7 +41,7 @@
           "kind": "rotate",
           "target": "n3r0",
           "axis": "y",
-          "angleDegrees": 71.768,
+          "angle": 71.768,
           "pivot": [
             0,
             0,
@@ -115,12 +115,12 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 555.0020815592248,
           "relTol": 0.0001,
           "absTol": 0.055500208155922486
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -0.3368518596283387,
             8.817199432296349,

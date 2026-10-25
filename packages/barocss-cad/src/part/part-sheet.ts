@@ -25,8 +25,8 @@ export function sheetOperation(f: CadPartFeature & Record<string, unknown>, t: T
         const { outer, frame, regions, holes, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
         if (regions?.length) fail('CAPABILITY', 'a sheet\'s base takes one outer loop (holes allowed) yet');
         if (f.reverse !== undefined && typeof f.reverse !== 'boolean') fail('INPUT', 'reverse must be true or false');
-        const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, ...rules, fixedFace: `${at}.top`, bends: [] };
-        return () => withSheet(placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, ...(holes ? { holes } : {}), ...(tags ? { sideTags: tags } : {}), heightMM: T, fromMM: f.reverse ? -T : 0, tag: at }) }))(), report);
+        const report: SheetReport = { thickness: T, bendRadius: R, ...rules, fixedFace: `${at}.top`, bends: [] };
+        return () => withSheet(placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, ...(holes ? { holes } : {}), ...(tags ? { sideTags: tags } : {}), height: T, from: f.reverse ? -T : 0, tag: at }) }))(), report);
       }
       const list = f.path as unknown;
       if (!Array.isArray(list) || list.length < 2 || list.length > CadPartLimits.copies) fail('INPUT', 'path must list 2 to 64 points');
@@ -36,12 +36,12 @@ export function sheetOperation(f: CadPartFeature & Record<string, unknown>, t: T
       let section: ReturnType<typeof contourFlangeSection>;
       try { section = contourFlangeSection(path, f.side as 'left' | 'right', T, R, at); }
       catch (cause) { if (isSheetMetalError(cause)) fail(cause.code, cause.message); throw cause; }
-      const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, ...rules, fixedFace: `${at}.leg0.a`, bends: section!.bends.map(b => {
+      const report: SheetReport = { thickness: T, bendRadius: R, ...rules, fixedFace: `${at}.leg0.a`, bends: section!.bends.map(b => {
         const angle = Math.abs(b.angle), k = bendK(rules, T, R, angle, `bend${b.vertex}`, fail);
-        return { name: `${at}.bend${b.vertex}`, inner: b.inner, outer: b.outer, radiusMM: R, angleDegrees: angle * 180 / Math.PI, axis: { origin: framed(frame, [b.center[0], b.center[1], 0]), direction: frame ? [frame.m[2], frame.m[5], frame.m[8]] as Point : [0, 0, 1] as Point },
-          allowanceMM: bendAllowance(angle, R, T, k.kFactor), setbackMM: outsideSetback(angle, R, T), deductionMM: bendDeduction(angle, R, T, k.kFactor), kFactor: k.kFactor, ...(k.use ? { table: k.use } : {}) };
+        return { name: `${at}.bend${b.vertex}`, inner: b.inner, outer: b.outer, radius: R, angle: angle * 180 / Math.PI, axis: { origin: framed(frame, [b.center[0], b.center[1], 0]), direction: frame ? [frame.m[2], frame.m[5], frame.m[8]] as Point : [0, 0, 1] as Point },
+          allowance: bendAllowance(angle, R, T, k.kFactor), setback: outsideSetback(angle, R, T), deduction: bendDeduction(angle, R, T, k.kFactor), kFactor: k.kFactor, ...(k.use ? { table: k.use } : {}) };
       }) };
-      return () => withSheet(placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer: section!.segments, heightMM: width, fromMM: 0, tag: at, names: { outer: section!.names, bottom: `${at}.front`, top: `${at}.back` } }) }))(), report);
+      return () => withSheet(placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer: section!.segments, height: width, from: 0, tag: at, names: { outer: section!.names, bottom: `${at}.front`, top: `${at}.back` } }) }))(), report);
     }
     case 'sheet-corner-relief': {
       const parts = solids(f.target, 'target');
@@ -58,9 +58,9 @@ export function sheetOperation(f: CadPartFeature & Record<string, unknown>, t: T
       if (parts.length !== 1) fail('SELECTION', 'a flange takes one sheet body');
       const p = parts[0], sheet = p.sheet;
       if (!sheet) return fail('CAPABILITY', '[NOT_A_SHEET] the target is not sheet metal: made by a sheet feature (its holes and cuts carry it; moves, patterns and unions do not)');
-      const T = sheet.thicknessMM, R = f.bendRadius === undefined ? sheet.bendRadiusMM : dim(f.bendRadius as CadPartDim, 'bendRadius', true), L = dim(f.length as CadPartDim, 'length', true);
-      const deg = f.angleDegrees === undefined ? 90 : f.angleDegrees;
-      if (typeof deg !== 'number' || !Number.isFinite(deg)) fail('INPUT', 'angleDegrees must be a number');
+      const T = sheet.thickness, R = f.bendRadius === undefined ? sheet.bendRadius : dim(f.bendRadius as CadPartDim, 'bendRadius', true), L = dim(f.length as CadPartDim, 'length', true);
+      const deg = f.angle === undefined ? 90 : f.angle;
+      if (typeof deg !== 'number' || !Number.isFinite(deg)) fail('INPUT', 'angle must be a number');
       if (!((deg as number) > 1e-6 && (deg as number) < 180 - 1e-6)) fail('PARAMETER', `[BEND_ANGLE] a flange bends between 0 and 180° (not ${deg}°: 180° is a hem, not supported yet)`);
       const measure = f.measure ?? 'outer', position = f.position ?? 'material-inside';
       if (measure !== 'outer' && measure !== 'inner' && measure !== 'tangent') fail('INPUT', 'measure must be outer, inner or tangent');

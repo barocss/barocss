@@ -11,7 +11,7 @@ import { part, sketch } from '../dist/api/index.js';
 
 // (Volume and centroid: the old API's at 1 g/cm³, and the facade's.)
 const old = (snapshot, name) => { const q = snapshot.massProperties(name, { densityKgPerM3: 1000 }); return { volume: q.volumeMM3, centroid: [...q.centroidMM] }; };
-const now = p => { const q = p.mass({ density: 1 }); return { volume: q.volumeMM3, centroid: [...q.centroidMM] }; };
+const now = p => { const q = p.mass({ density: 1 }); return { volume: q.volume, centroid: [...q.centroid] }; };
 // (Two kernels' algorithms — the old one's exact convex and integer-cell solvers, the facade's B-rep — agree to rounding.)
 const near = (a, b, what, centroidMM = 1e-9) => {
   const tol = 1e-9 * Math.max(1, Math.abs(a.volume));
@@ -114,8 +114,8 @@ test('split across an axis and a mitre (21 test files) — split({ axis, at }) a
 test('mass properties and STL (1 test file each) — mass({ density }) and stl()', () => {
   const m = cad.model(), p = rect(m, [0, 0], [30, 20]).extrude(10), s = m.build({ p }), q = s.massProperties('p', { densityKgPerM3: 2700 });
   const f = part().box({ w: 30, d: 20, h: 10 }).mass({ density: 2.7 });
-  assert.ok(Math.abs(f.massG - q.massKG * 1000) <= 1e-9 * f.massG);
-  q.inertiaCentroidKgM2.forEach((row, i) => row.forEach((v, j) => assert.ok(Math.abs(f.inertiaGMM2[i][j] - v * 1e9) <= 1e-6 * Math.max(1, Math.abs(f.inertiaGMM2[i][j])))));
+  assert.ok(Math.abs(f.mass - q.massKG * 1000) <= 1e-9 * f.mass);
+  q.inertiaCentroidKgM2.forEach((row, i) => row.forEach((v, j) => assert.ok(Math.abs(f.inertia[i][j] - v * 1e9) <= 1e-6 * Math.max(1, Math.abs(f.inertia[i][j])))));
   // (A box: 12 triangles, binary STL's 84-byte header and 50 bytes each.)
   const stl = part().box({ w: 30, d: 20, h: 10 }).stl(), e = s.exportStl('p');
   assert.equal(new DataView(stl.buffer, stl.byteOffset).getUint32(80, true), e.triangleCount);

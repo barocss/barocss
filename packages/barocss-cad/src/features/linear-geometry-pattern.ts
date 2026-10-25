@@ -181,7 +181,7 @@ export function buildLinearGeometryPattern(originalInput: Curve | Surface, optio
     originalD1AttemptCount += report.originalD1AttemptCount; targetD1AttemptCount += report.targetD1AttemptCount;
     derivativeComparisonCount += report.derivativeComparisonCount; derivativeRefusalCount += report.derivativeRefusalCount;
     originalRefusals += report.derivativeSourceRefusalCounts.original; targetRefusals += report.derivativeSourceRefusalCounts.target;
-    maximumPointDifferenceMM = Math.max(maximumPointDifferenceMM, report.maximumPointDifferenceMM);
+    maximumPointDifferenceMM = Math.max(maximumPointDifferenceMM, report.maximumPointDifference);
     if (report.maximumRelativeDerivativeDifference !== null) maximumRelativeDerivativeDifference = Math.max(maximumRelativeDerivativeDifference ?? 0, report.maximumRelativeDerivativeDifference);
     if (report.maximumRelativeCrossDifference !== null) maximumRelativeCrossDifference = Math.max(maximumRelativeCrossDifference ?? 0, report.maximumRelativeCrossDifference);
     members.push({ index: plan.index, geometryId: plan.geometryId, translationMM: plan.translationMM, observationCount: report.observationCount,

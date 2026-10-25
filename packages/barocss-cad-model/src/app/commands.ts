@@ -268,7 +268,7 @@ function oriented(cmd: Command): Command {
       if (!t) return doc;
       // Every body it makes turns (a bolt's nut and washer too); the last node's, the one remembered, last.
       const last = doc.nodes.length - 1, made = leafBodies(doc.nodes).filter(r => r.node >= ctx.doc.nodes.length && r.side === 'solid').map(r => r.node).sort((a, b) => (a === last ? 1 : 0) - (b === last ? 1 : 0));
-      return made.reduce((d, node) => withNode(d, { kind: 'rotate', parent: { node, side: 'solid' }, axis: t.axis, angleDegrees: t.deg, pivot: base(ctx, v) }), doc);
+      return made.reduce((d, node) => withNode(d, { kind: 'rotate', parent: { node, side: 'solid' }, axis: t.axis, angle: t.deg, pivot: base(ctx, v) }), doc);
     },
     handles: cmd.handles && ((ctx, v) => {
       const hs = cmd.handles!(ctx, v), up = String(v.up ?? '+z'), t = TURNS[up]; if (!t) return hs;
@@ -453,7 +453,7 @@ const allCommands: Command[] = [
       const d = draftOf(ctx); if (typeof d === 'string') throw refusal('DRAFT_PICK', d);
       const deg = Number(v.deg); if (!(deg !== 0 && Math.abs(deg) < 45)) throw refusal('DRAFT_ANGLE', 'A draft angle is not 0 and below 45° in size.');
       if (d.extrude !== null) return { ...ctx.doc, nodes: ctx.doc.nodes.map((n, i) => i === d.extrude && n.kind === 'extrude' ? { ...n, draft: deg } : n) };
-      return withNode(ctx.doc, { kind: 'draft', parent: refOf(d.body), faces: d.faces, angleDegrees: deg });
+      return withNode(ctx.doc, { kind: 'draft', parent: refOf(d.body), faces: d.faces, angle: deg });
     },
   },
   {
@@ -557,7 +557,7 @@ const allCommands: Command[] = [
       { key: 'px', label: 'Pivot X', kind: 'mm' }, { key: 'py', label: 'Pivot Y', kind: 'mm' }, { key: 'pz', label: 'Pivot Z', kind: 'mm' }],
     // About the axis through the body's centre (where the gizmo sits); nothing turned until typed or dragged.
     defaults: ctx => { const c = centreOf(oneBody(ctx)); return { axis: 'z', angle: 0, px: c[0], py: c[1], pz: c[2] }; },
-    build: (ctx, v) => withNode(ctx.doc, { kind: 'rotate', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angleDegrees: Number(v.angle), pivot: [Number(v.px), Number(v.py), Number(v.pz)] }),
+    build: (ctx, v) => withNode(ctx.doc, { kind: 'rotate', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angle: Number(v.angle), pivot: [Number(v.px), Number(v.py), Number(v.pz)] }),
   },
   {
     id: 'scale', label: 'Scale', icon: 'cad-scale', hint: 'Grow or shrink a body about its centre: drag the gizmo’s cube or type the factor', group: 'modify', keywords: 'resize enlarge shrink factor',
@@ -657,12 +657,12 @@ const allCommands: Command[] = [
         // Each copy a body of its own, turned about the axis by its share of the spread.
         const body = refOf(oneBody(ctx)!), z = v.axis === 'z', step = z ? (span >= 360 ? 360 / n : span / (n - 1)) : 90;
         let doc = ctx.doc;
-        for (let c = 1; c < (z ? n : Math.min(4, n)); c++) doc = duplicateBody(doc, body, copy => ({ kind: 'rotate', parent: copy, axis: v.axis as Axis, angleDegrees: Math.round(step * c * 1e6) / 1e6, ...(z && (pivot[0] || pivot[1]) ? { pivot } : {}) })).doc;
+        for (let c = 1; c < (z ? n : Math.min(4, n)); c++) doc = duplicateBody(doc, body, copy => ({ kind: 'rotate', parent: copy, axis: v.axis as Axis, angle: Math.round(step * c * 1e6) / 1e6, ...(z && (pivot[0] || pivot[1]) ? { pivot } : {}) })).doc;
         return doc;
       }
       return withNode(ctx.doc, v.axis === 'z'
-        ? { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: 'z', angleDegrees: Math.round((span >= 360 ? 360 / n : span / (n - 1)) * 1e6) / 1e6, count: n, ...(pivot[0] || pivot[1] ? { pivot } : {}) }
-        : { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angleDegrees: 90, count: Math.min(4, n) });
+        ? { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: 'z', angle: Math.round((span >= 360 ? 360 / n : span / (n - 1)) * 1e6) / 1e6, count: n, ...(pivot[0] || pivot[1] ? { pivot } : {}) }
+        : { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angle: 90, count: Math.min(4, n) });
     },
   },
   {

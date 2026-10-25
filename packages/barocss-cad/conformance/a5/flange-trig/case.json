@@ -5,7 +5,7 @@
  "script": "const f = cylinder({r: 30, h: 10, x: 0, y: 0})\nconst n = 6\nfor (const i of range(n)) {\n  const a = 360 / n * i\n  hole(f.top, {d: 6, x: 20 * cos(a), y: 20 * sin(a)})\n}",
  "expect": {
   "features": 8,
-  "volume_mm3": 26577.874,
+  "volume": 26577.874,
   "tol": 0.5,
   "source": "\u03c0\u00b730\u00b2\u00b710 \u2212 6\u00b7\u03c0\u00b73\u00b2\u00b710 (closed form); the tolerance covers the cylinder as the kernel builds it"
  }

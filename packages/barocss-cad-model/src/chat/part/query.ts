@@ -19,9 +19,9 @@ import { isObj } from '../../util/guards';
 import { variabilityView } from '../variability';
 
 /** D155: a fit's limits as a result shows them (each row's deviations, sizes, table and row, estimate and source). */
-export const fitView = (l: FitLimits) => ({ kind: l.kind, clearanceMinUM: l.clearanceMinUM, clearanceMaxUM: l.clearanceMaxUM, estimate: l.estimate,
-  hole: { class: l.hole.class, nominalMM: l.hole.nominalMM, upperUM: l.hole.upperUM, lowerUM: l.hole.lowerUM, minMM: l.hole.minMM, maxMM: l.hole.maxMM, table: l.hole.table, row: l.hole.row, estimate: l.hole.estimate, ...(l.hole.source ? { source: l.hole.source } : {}) },
-  shaft: { class: l.shaft.class, nominalMM: l.shaft.nominalMM, upperUM: l.shaft.upperUM, lowerUM: l.shaft.lowerUM, minMM: l.shaft.minMM, maxMM: l.shaft.maxMM, table: l.shaft.table, row: l.shaft.row, estimate: l.shaft.estimate, ...(l.shaft.source ? { source: l.shaft.source } : {}) } });
+export const fitView = (l: FitLimits) => ({ kind: l.kind, clearanceMin: l.clearanceMin, clearanceMax: l.clearanceMax, estimate: l.estimate,
+  hole: { class: l.hole.class, nominal: l.hole.nominal, upper: l.hole.upper, lower: l.hole.lower, min: l.hole.min, max: l.hole.max, table: l.hole.table, row: l.hole.row, estimate: l.hole.estimate, ...(l.hole.source ? { source: l.hole.source } : {}) },
+  shaft: { class: l.shaft.class, nominal: l.shaft.nominal, upper: l.shaft.upper, lower: l.shaft.lower, min: l.shaft.min, max: l.shaft.max, table: l.shaft.table, row: l.shaft.row, estimate: l.shaft.estimate, ...(l.shaft.source ? { source: l.shaft.source } : {}) } });
 
 async function getPartSummaryTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
   // Big parts (lofted figures) have hundreds of faces: list them for one body at a time, the rest by count.
@@ -50,7 +50,7 @@ async function measureTool(state: ChatState, args: Record<string, unknown>): Pro
     const f = resolveNames(state.bodies, { faces: [r[0]] }).selection.faces[0];
     if (!f) return fail(state, `No face ${r[0]} on the part.`);
     const m = datumToFace(datumWorld(set, d0), state.bodies[f.body].mesh, f.face);
-    return { state, content: json({ label: `${args.a} to ${r[0]}`, distance: Number(m.distanceMM.toPrecision(12)), ...(m.angleDeg !== null ? { angle_deg: Number(m.angleDeg.toPrecision(9)) } : {}), what: m.what }), isError: false, changed: false, summary: `${args.a} to ${r[0]}` };
+    return { state, content: json({ label: `${args.a} to ${r[0]}`, distance: Number(m.distance.toPrecision(12)), ...(m.angle !== null ? { angle: Number(m.angle.toPrecision(9)) } : {}), what: m.what }), isError: false, changed: false, summary: `${args.a} to ${r[0]}` };
   }
   const names: string[] = [], resolved: Resolved[] = [];
   for (const s of [args.a ?? '', ...(args.b === undefined ? [] : [args.b])]) {
@@ -71,7 +71,7 @@ async function measureTool(state: ChatState, args: Record<string, unknown>): Pro
   const mesh = (i: number) => state.bodies[picks[i].body].mesh;
   const out = picks.length === 1 ? measureItem(mesh(0), picks[0].pick) : (() => {
     const m = measureBetween(mesh(0), picks[0].pick, mesh(1), picks[1].pick);
-    return { distance: r3(m.distance), from: v3(m.a), to: v3(m.b), ...(m.angle === undefined ? {} : { angle_deg: r3(m.angle) }), ...(m.normalDistance === undefined ? {} : { normal_distance: r3(m.normalDistance) }) };
+    return { distance: r3(m.distance), from: v3(m.a), to: v3(m.b), ...(m.angle === undefined ? {} : { angle: r3(m.angle) }), ...(m.normalDistance === undefined ? {} : { normalDistance: r3(m.normalDistance) }) };
   })();
   return { state, content: json(resolved.length ? { ...out, resolved } : out), isError: false, changed: false, summary: json(out) };
 }
@@ -79,7 +79,7 @@ async function weldListTool(state: ChatState): Promise<ToolOutcome> {
   // (FRd1, O118: read only — each joint, its seam from the geometry and its weld, the person's or the rule's.)
   const w = weldList(state.doc, state.bodies);
   if (!w.joints.length && !w.orphaned.length) return fail(state, 'The part has no weld joints: frame members meeting at a corner, a butt or a face.');
-  return { state, content: json({ joints: w.joints.map((j, k) => ({ label: `W${k + 1}`, ...j })), totals: w.totals, orphaned: w.orphaned, notes: w.notes }), isError: false, changed: false, summary: `${w.totals.count} welds, ${w.totals.seamMM} mm of seam` };
+  return { state, content: json({ joints: w.joints.map((j, k) => ({ label: `W${k + 1}`, ...j })), totals: w.totals, orphaned: w.orphaned, notes: w.notes }), isError: false, changed: false, summary: `${w.totals.count} welds, ${w.totals.seamLength} mm of seam` };
 }
 async function fitClearanceTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
   // (D155: a hole and a shaft — two faces with their classes, or two classes at a size — their limits from the user's
@@ -94,7 +94,7 @@ async function fitClearanceTool(state: ChatState, args: Record<string, unknown>)
       const h = find(args.hole), sh = find(args.shaft);
       if (!h || !sh) return fail(state, `[FIT_FACE] no face ${!h ? args.hole : args.shaft} on the part (names from query.summary).`);
       const c = checkFit(tables, { ...h, class: hc }, { ...sh, class: sc });
-      return { state, content: json({ ...fitView(c.limits), offsetMM: c.offsetMM, lengthMM: c.lengthMM, marginMM: c.marginMM, mmc: c.mmc, lmc: c.lmc, contradicted: c.contradicted, message: c.message }), isError: false, changed: false, summary: `${hc}/${sc}: ${c.limits.kind}, ${c.limits.clearanceMinUM} … ${c.limits.clearanceMaxUM} µm` };
+      return { state, content: json({ ...fitView(c.limits), offset: c.offset, length: c.length, margin: c.margin, mmc: c.mmc, lmc: c.lmc, contradicted: c.contradicted, message: c.message }), isError: false, changed: false, summary: `${hc}/${sc}: ${c.limits.kind}, ${c.limits.clearanceMin} … ${c.limits.clearanceMax} mm` };
     }
     if (typeof args.hole_class === 'string' && typeof args.shaft_class === 'string' && typeof args.size === 'number') {
       const l = fitLimits(tables, args.hole_class, args.shaft_class, args.size);
@@ -114,7 +114,7 @@ async function massPropertiesTool(state: ChatState, args: Record<string, unknown
 async function rebuildReportTool(state: ChatState): Promise<ToolOutcome> {
   const report = rebuildReport(state.doc, rebuildFromScratch(state.doc, 0), { basis: 'from scratch' });
   if (!report) return fail(state, 'The part does not evaluate, so it has no rebuild to report.');
-  return { state, content: json(report), isError: false, changed: false, summary: `${report.built} features built in ${report.builtMs.toFixed(1)} ms (${report.evaluationMs.toFixed(0)} ms in all)${report.loops.length ? `; ${report.loops.length} mate loop${report.loops.length === 1 ? '' : 's'}` : ''}` };
+  return { state, content: json(report), isError: false, changed: false, summary: `${report.built} features built in ${(report.builtTime * 1000).toFixed(1)} ms (${(report.evaluationTime * 1000).toFixed(0)} ms in all)${report.loops.length ? `; ${report.loops.length} mate loop${report.loops.length === 1 ? '' : 's'}` : ''}` };
 }
 async function interferenceTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
   const out = await interference(state.doc, state.bodies, evaluate, strings(args.bodies));
@@ -135,7 +135,7 @@ async function wallThicknessOrDraft(name: string, state: ChatState, args: Record
     return { state, content: json({ ...out, note: 'on the display mesh: good to its chord error on curved walls' }), isError: false, changed: false, summary: `wall of ${b.key}` };
   }
   const pull = Array.isArray(args.pull) && args.pull.length === 3 ? args.pull.map(Number) as [number, number, number] : [0, 0, 1] as [number, number, number];
-  const out = draftAnalysis(state.doc, b, pull, args.min_deg === undefined ? 1 : Number(args.min_deg));
+  const out = draftAnalysis(state.doc, b, pull, args.draftMin === undefined ? 1 : Number(args.draftMin));
   return { state, content: json(out), isError: false, changed: false, summary: `draft of ${b.key}` };
 }
 const wallThicknessTool = (state: ChatState, args: Record<string, unknown>) => wallThicknessOrDraft('wall_thickness', state, args);
@@ -147,7 +147,7 @@ async function cutListTool(state: ChatState, args: Record<string, unknown>): Pro
   // (FRb, O116: with stock lengths loaded, the pieces nested into them; else the result says how to load them.)
   const rows = list.rows.map(r => ({ ...r, names: r.pieces.map(k => list.names[k] ?? k) })), nest = nestCutList(state.doc, list);
   const nesting = nest.ok ? nest.nesting : { error: `[${nest.code}] ${nest.message}` };
-  return { state, content: json({ rows, totals: list.totals, densities: 'estimates (the materials library\'s)', nesting, ...(args.csv === true ? { csv: cutListCsv(list) } : {}) }), isError: false, changed: false, summary: `${list.totals.quantity} pieces in ${list.rows.length} rows${nest.ok ? `; ${nest.nesting.totals.bars} bars, ${nest.nesting.totals.wasteMM} mm waste` : ''}` };
+  return { state, content: json({ rows, totals: list.totals, densities: 'estimates (the materials library\'s)', nesting, ...(args.csv === true ? { csv: cutListCsv(list) } : {}) }), isError: false, changed: false, summary: `${list.totals.quantity} pieces in ${list.rows.length} rows${nest.ok ? `; ${nest.nesting.totals.bars} bars, ${nest.nesting.totals.waste} mm waste` : ''}` };
 }
 
 /** The query group's handlers, by v1 tool name (R3). */

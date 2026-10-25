@@ -24,16 +24,16 @@ export function printLoopSegments(loops: readonly LayerLoop[], z: number): Float
 }
 
 /** Clip and cap the supplied full extrusion with G19; all resulting faces remain display-only. */
-export function clipPrintSupport(mesh: DisplayMesh, topMM?: number): Pick<DisplayMesh, 'positions' | 'normals' | 'indices'> {
-  if (topMM === undefined) return mesh;
-  if (!Number.isFinite(topMM)) throw new Error('Print overlay: invalid printed height');
-  return clipMeshSection(mesh, axisSection({ axis: 'z', at: topMM, keep: 'negative' }), 'print-support-cap')
+export function clipPrintSupport(mesh: DisplayMesh, top?: number): Pick<DisplayMesh, 'positions' | 'normals' | 'indices'> {
+  if (top === undefined) return mesh;
+  if (!Number.isFinite(top)) throw new Error('Print overlay: invalid printed height');
+  return clipMeshSection(mesh, axisSection({ axis: 'z', at: top, keep: 'negative' }), 'print-support-cap')
     ?? { positions: new Float32Array(), normals: new Float32Array(), indices: new Uint32Array() };
 }
 
 /** A stable bed origin/grid reference. Its extent is display-only, never a printer specification. */
 function bedReference(summary: PrintSummary): PrintDrawing {
-  let extent = Math.max(20, summary.heightMM);
+  let extent = Math.max(20, summary.height);
   for (const column of summary.supportColumns) for (const coordinate of column.footprint) extent = Math.max(extent, Math.abs(coordinate));
   extent = Math.ceil(extent / 10) * 10;
   const p: number[] = [];
@@ -72,7 +72,7 @@ export class PrintOverlayGeometry {
       ];
       this.layer = layer;
     }
-    const top = display.printed ? display.topMM : undefined;
+    const top = display.printed ? display.top : undefined;
     if (this.supportMesh !== display.supportMesh || this.supportTop !== top) {
       const mesh = clipPrintSupport(display.supportMesh, top);
       this.support = { name: 'supports', positions: mesh.positions, normals: mesh.normals, indices: mesh.indices, color: [0.34, 0.8, 0.43], opacity: 0.3 };

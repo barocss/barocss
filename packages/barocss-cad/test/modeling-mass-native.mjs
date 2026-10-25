@@ -60,16 +60,16 @@ try {
   flow.initialBodiesSHA256 = dataHash(initial.bodies); flow.initialBodySHA256 = dataHash(initial.bodies.part.native);
   artifact('initial.cad-model.json', initial.save(), 'unchanged accepted authored baseline', true);
   const before = hold(initial), acceptedResults = [];
-  const plate = stage('massQueries', '1 plate density2700', () => initial.massProperties('plate', { densityKgPerM3: 2700 }), '02-plate.mass.json');
+  const plate = stage('massQueries', '1 plate density2700', () => initial.massProperties('plate', { density: 2700 }), '02-plate.mass.json');
   flow.plate = proveMass(plate, initial, 'plate', 'plate'); acceptedResults.push([plate, dataHash(plate)]); unchanged(initial, before);
-  const pocket = stage('massQueries', '2 pocket density2700', () => initial.massProperties('part', { densityKgPerM3: 2700 }), '03-pocket.mass.json');
+  const pocket = stage('massQueries', '2 pocket density2700', () => initial.massProperties('part', { density: 2700 }), '03-pocket.mass.json');
   flow.pocket = proveMass(pocket, initial, 'part', 'pocket'); acceptedResults.push([pocket, dataHash(pocket)]); unchanged(initial, before);
-  const doubled = stage('massQueries', '3 same pocket density5400', () => initial.massProperties('part', { densityKgPerM3: 5400 }), '04-doubled.mass.json');
+  const doubled = stage('massQueries', '3 same pocket density5400', () => initial.massProperties('part', { density: 5400 }), '04-doubled.mass.json');
   flow.doubled = proveMass(doubled, initial, 'part', 'pocket', 5400); acceptedResults.push([doubled, dataHash(doubled)]);
   exactData(doubled.details.native.boolean, pocket.details.native.boolean); exactData(doubled.details.exact.centroidMM, pocket.details.exact.centroidMM);
   unchanged(initial, before);
   let caught;
-  try { stage('massQueries', '4 genuine positive mass underflow refusal', () => initial.massProperties('part', { densityKgPerM3: Number.MIN_VALUE }), '05-underflow.mass.json'); }
+  try { stage('massQueries', '4 genuine positive mass underflow refusal', () => initial.massProperties('part', { density: Number.MIN_VALUE }), '05-underflow.mass.json'); }
   catch (error) { caught = error; }
   assert.ok(caught instanceof CadModelError); assert.equal(caught.code, 'NATIVE'); assert.equal(caught.operation, 'massProperties');
   assert.ok(caught.cause instanceof AxisBoxSolidMassError); assert.equal(caught.cause.code, 'REPRESENTABILITY');
@@ -79,13 +79,13 @@ try {
   const window = stage('modelCalls', '2 same original snapshot depth8 recovery', () => initial.withParameters({ depth: 8 }), '06-window.snapshot.json');
   work(window, [0, 1, 2], [3, 4], initial); assert.equal(window.bodies.part.native.report.volumeMM3, 5120);
   const windowBefore = hold(window);
-  const windowMass = stage('massQueries', '5 through-window density2700', () => window.massProperties('part', { densityKgPerM3: 2700 }), '07-window.mass.json');
+  const windowMass = stage('massQueries', '5 through-window density2700', () => window.massProperties('part', { density: 2700 }), '07-window.mass.json');
   flow.window = proveMass(windowMass, window, 'part', 'window'); unchanged(window, windowBefore); unchanged(initial, before);
   for (const [result, hash] of acceptedResults) assert.equal(dataHash(result), hash);
   assert.equal(flow.modelCalls, 2); assert.equal(flow.massQueries, 5); assert.equal(flow.returnedLedgers.prisms.length, 3);
   assert.equal(flow.returnedLedgers.differences.length, 2); assert.equal(flow.returnedLedgers.mass.length, 4);
   flow.status = 'passed'; flow.completedAt = new Date().toISOString(); flow.wallElapsedMS = performance.now() - started; write();
   console.log(signedData({ status: flow.status, modelCalls: 2, massQueries: 5, tessellations: 0, nativeElapsedMS: flow.nativeElapsedMS,
-    plate: { volumeMM3: plate.volumeMM3, massKG: plate.massKG }, pocket: { volumeMM3: pocket.volumeMM3, massKG: pocket.massKG, centroidMM: pocket.centroidMM },
-    window: { volumeMM3: windowMass.volumeMM3, massKG: windowMass.massKG }, refusal: caught.cause.code }));
+    plate: { volumeMM3: plate.volumeMM3, mass: plate.mass }, pocket: { volumeMM3: pocket.volumeMM3, mass: pocket.mass, centroidMM: pocket.centroidMM },
+    window: { volumeMM3: windowMass.volumeMM3, mass: windowMass.mass }, refusal: caught.cause.code }));
 } catch (error) { flow.status = 'failed'; flow.failure = errorData(error); flow.failedAt = new Date().toISOString(); write(); throw error; }

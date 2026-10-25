@@ -121,11 +121,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 294576.1011528471,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -141,8 +141,8 @@
           }
         ],
         "member": {
-          "areaMM2": 420.82300164692447,
-          "lengthMM": 700,
+          "area": 420.82300164692447,
+          "length": 700,
           "centroid": [
             0,
             0
@@ -169,11 +169,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 294576.1011528471,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             600,
             0,
@@ -189,8 +189,8 @@
           }
         ],
         "member": {
-          "areaMM2": 420.82300164692447,
-          "lengthMM": 700,
+          "area": 420.82300164692447,
+          "length": 700,
           "centroid": [
             0,
             0
@@ -217,11 +217,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 294576.1011528471,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             600,
             400,
@@ -237,8 +237,8 @@
           }
         ],
         "member": {
-          "areaMM2": 420.82300164692447,
-          "lengthMM": 700,
+          "area": 420.82300164692447,
+          "length": 700,
           "centroid": [
             0,
             0
@@ -265,11 +265,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 294576.1011528471,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             400,
@@ -285,8 +285,8 @@
           }
         ],
         "member": {
-          "areaMM2": 420.82300164692447,
-          "lengthMM": 700,
+          "area": 420.82300164692447,
+          "length": 700,
           "centroid": [
             0,
             0
@@ -313,11 +313,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 252493.8009881547,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             300,
             0,
@@ -333,8 +333,8 @@
           }
         ],
         "member": {
-          "areaMM2": 420.82300164692447,
-          "lengthMM": 600,
+          "area": 420.82300164692447,
+          "length": 600,
           "centroid": [
             0,
             0
@@ -356,11 +356,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 168329.20065876978,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             600,
             200,
@@ -376,8 +376,8 @@
           }
         ],
         "member": {
-          "areaMM2": 420.82300164692447,
-          "lengthMM": 400,
+          "area": 420.82300164692447,
+          "length": 400,
           "centroid": [
             0,
             0
@@ -399,11 +399,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 252493.8009881547,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             300,
             400,
@@ -419,8 +419,8 @@
           }
         ],
         "member": {
-          "areaMM2": 420.82300164692447,
-          "lengthMM": 600,
+          "area": 420.82300164692447,
+          "length": 600,
           "centroid": [
             0,
             0
@@ -442,11 +442,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 168329.20065876978,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             200,
@@ -462,8 +462,8 @@
           }
         ],
         "member": {
-          "areaMM2": 420.82300164692447,
-          "lengthMM": 400,
+          "area": 420.82300164692447,
+          "length": 400,
           "centroid": [
             0,
             0
@@ -485,11 +485,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 252493.8009881547,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             300,
             0,
@@ -505,8 +505,8 @@
           }
         ],
         "member": {
-          "areaMM2": 420.82300164692447,
-          "lengthMM": 600,
+          "area": 420.82300164692447,
+          "length": 600,
           "centroid": [
             0,
             0
@@ -528,11 +528,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 168329.20065876978,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             600,
             200,
@@ -548,8 +548,8 @@
           }
         ],
         "member": {
-          "areaMM2": 420.82300164692447,
-          "lengthMM": 400,
+          "area": 420.82300164692447,
+          "length": 400,
           "centroid": [
             0,
             0
@@ -571,11 +571,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 252493.8009881547,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             300,
             400,
@@ -591,8 +591,8 @@
           }
         ],
         "member": {
-          "areaMM2": 420.82300164692447,
-          "lengthMM": 600,
+          "area": 420.82300164692447,
+          "length": 600,
           "centroid": [
             0,
             0
@@ -614,11 +614,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 168329.20065876978,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             200,
@@ -634,8 +634,8 @@
           }
         ],
         "member": {
-          "areaMM2": 420.82300164692447,
-          "lengthMM": 400,
+          "area": 420.82300164692447,
+          "length": 400,
           "centroid": [
             0,
             0

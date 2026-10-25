@@ -101,7 +101,7 @@ function uvProvenance(provenance:CurveParameterSplitProvenance[]):CurveLineUVSpl
   // Retain coefficient maps only. The inherited splitter's temporary mm source/report is not UV authority.
   return provenance.map(p=>({sourceCurveId:p.sourceCurveId,parameter:p.parameter,firstRefinedKnotIndex:p.firstRefinedKnotIndex,
     refinement:{kind:p.refinement.kind,insertions:p.refinement.insertions},lower:p.lower,upper:p.upper,
-    shared:{refinedPoleIndex:p.shared.refinedPoleIndex,lowerPoleIndex:p.shared.lowerPoleIndex,upperPoleIndex:p.shared.upperPoleIndex,pointUV:p.shared.pointMM,weight:p.shared.weight}}));
+    shared:{refinedPoleIndex:p.shared.refinedPoleIndex,lowerPoleIndex:p.shared.lowerPoleIndex,upperPoleIndex:p.shared.upperPoleIndex,pointUV:p.shared.point,weight:p.shared.weight}}));
 }
 
 function multiply(a:number,b:number):number {const value=finite(a*b);check(a===0||b===0||value!==0,'nonzero homogeneous product underflowed to zero');return value;}

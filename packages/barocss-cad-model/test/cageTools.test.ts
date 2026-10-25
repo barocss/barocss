@@ -23,7 +23,7 @@ function sound(s: ChatState): number {
   const node = s.doc.nodes[subdIndex(s)] as Subd, b = subdBrep(fullCage({ cage: node.cage, ...(node.mirror ? { mirror: node.mirror } : {}) }));
   assert.equal(checkBrep(b).valid, true, checkBrep(b).issues[0]);
   assert.equal(validateCage(fullCage({ cage: node.cage, ...(node.mirror ? { mirror: node.mirror } : {}) })).valid, true);
-  return s.bodies.reduce((v, x) => v + (x.volumeMM3 ?? 0), 0);
+  return s.bodies.reduce((v, x) => v + (x.volume ?? 0), 0);
 }
 
 test('R8.2 the tools listed for the agent; subd_cage and subd_select read without changing the part', async () => {
@@ -35,6 +35,24 @@ test('R8.2 the tools listed for the agent; subd_cage and subd_select read withou
   assert.equal(top.count, 4); assert.ok(top.faces.every((f: any) => f.normal[2] > 0.99 && Math.abs(f.centre[2] - 16) < 1e-9));
   const corner = parse((await dispatchTool(s, 'subd_select', { index: i, what: 'faces', normal: [0, 0, 1], box: { min: [0, 0, 0] } }, evaluate)).content);
   assert.equal(corner.count, 1);
+  const before = JSON.stringify(s.doc), tilted = [Math.sin(Math.PI / 18), 0, Math.cos(Math.PI / 18)];
+  for (const tool of ['subd_select', 'subd']) {
+    const args = { index: i, what: 'faces', normal: [0, 0, 1], ...(tool === 'subd' ? { action: 'select' } : {}) };
+    const picked = await dispatchTool(s, tool, { ...args, withinAngle: 5 }, evaluate);
+    assert.ok(!picked.isError && !picked.changed, picked.content);
+    assert.deepEqual(parse(picked.content), top); assert.equal(picked.state.doc, s.doc);
+    const defaultTilt = await dispatchTool(s, tool, { ...args, normal: tilted }, evaluate);
+    assert.ok(!defaultTilt.isError && !defaultTilt.changed, defaultTilt.content);
+    assert.deepEqual(parse(defaultTilt.content), top); assert.equal(defaultTilt.state.doc, s.doc);
+    const narrowTilt = await dispatchTool(s, tool, { ...args, normal: tilted, withinAngle: 5 }, evaluate);
+    assert.ok(!narrowTilt.isError && !narrowTilt.changed, narrowTilt.content);
+    assert.deepEqual(parse(narrowTilt.content), { ok: true, faces: [], count: 0 }); assert.equal(narrowTilt.state.doc, s.doc);
+    const refused = await dispatchTool(s, tool, { ...args, within_deg: 5 }, evaluate);
+    assert.ok(refused.isError && !refused.changed, refused.content);
+    assert.match(parse(refused.content).error, /\[UNKNOWN_ARGUMENT\].*"within_deg"/);
+    assert.match(parse(refused.content).error, /withinAngle/); assert.equal(refused.state.doc, s.doc);
+  }
+  assert.equal(JSON.stringify(s.doc), before);
   assert.match(parse((await dispatchTool(s, 'subd_cage', { index: 5 }, evaluate)).content).error, new RegExp(`no feature 5; the SubD features are ${i}`));
 });
 

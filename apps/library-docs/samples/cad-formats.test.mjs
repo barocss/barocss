@@ -2,7 +2,7 @@
 // same way twice. The formats page includes the #region blocks. Run: pnpm test:samples
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, writeDxf } from '@barocss/cad';
+import { evaluateCadPart, writeDxf, exportStep, massPropertiesOf, checkOutput } from '@barocss/cad';
 
 const plate = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {},
   features: [
@@ -14,12 +14,12 @@ const plate = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters:
 test('STEP out and back: the same volume, strictly valid', () => {
   // #region step
   const [body] = evaluateCadPart(plate).outputs;
-  const step = body.exportStep({ name: 'plate' });          // exact B-rep, AP214
+  const step = exportStep(body, { name: 'plate' });          // exact B-rep, AP214
   const back = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {},
     features: [{ id: 'i', kind: 'import', step }] });       // a STEP file as a feature
   const [read] = back.outputs;
-  assert.ok(Math.abs(read.massProperties(2700).volumeMM3 - body.massProperties(2700).volumeMM3) < 1e-6);
-  assert.equal(read.validate().valid, true);
+  assert.ok(Math.abs(massPropertiesOf(read, 2.7).volume - massPropertiesOf(body, 2.7).volume) < 1e-6);
+  assert.equal(checkOutput(read).valid, true);
   // #endregion step
   assert.match(step, /FILE_DESCRIPTION\(\('BaroCSS CAD part'\)/);
 });

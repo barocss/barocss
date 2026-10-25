@@ -59,7 +59,8 @@ export interface Report {
 export type Outcome = { status: 'pass' | 'fail' | 'unknown'; measured?: unknown; delta?: number; entities?: string[]; why?: string; hint?: string };
 export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 export interface Validation {
-  mutants: { built: number; tried: number; ms: number; labels: string[] };
+  /** Mutant evaluation duration in seconds, at the existing 1 ms resolution. */
+  mutants: { built: number; tried: number; duration: number; labels: string[] };
   vacuous: { req_id: string; why: string }[]; unverified: { req_id: string; why: string }[]; invariant: { req_id: string; reason: string }[];
 }
 // ---- the iteration policy, kept by the tools (A3.2) ------------------------------------------------------------

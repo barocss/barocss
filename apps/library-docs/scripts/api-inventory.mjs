@@ -18,9 +18,9 @@ const out = resolve(process.argv[2] ?? join(tmpdir(), 'barocss-api-inventory'));
 
 const tsFiles = dir => readdirSync(dir).flatMap(n => { const p = join(dir, n); return statSync(p).isDirectory() ? tsFiles(p) : /\.ts$/.test(n) && !/\.d\.ts$/.test(n) ? [p] : []; });
 const PACKAGES = [
-  { name: '@barocss/cad', root: 'packages/barocss-cad/src', entries: ['index.ts'] },
+  { name: '@barocss/cad', root: 'packages/barocss-cad/src', entries: ['index.ts', 'api/index.ts'] },
   { name: '@barocss/cad-model', root: 'packages/barocss-cad-model/src', entries: null },
-  { name: '@barocss/gpu', root: 'packages/barocss-gpu/src', entries: ['index.ts', 'viewer/index.ts'] },
+  { name: '@barocss/gpu', root: 'packages/barocss-gpu/src', entries: ['index.ts', 'viewer/index.ts', 'api/index.ts'] },
 ];
 for (const p of PACKAGES) p.files = (p.entries ?? tsFiles(join(repo, p.root)).map(f => relative(join(repo, p.root), f)).sort()).map(e => join(repo, p.root, e));
 

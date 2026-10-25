@@ -138,11 +138,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 1000,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             5,
             5,
@@ -158,7 +158,7 @@
           }
         ],
         "faceNamePattern": "^box\\.patch\\d+$",
-        "areaMM2": {
+        "area": {
           "value": 600,
           "relTol": 1e-12
         }

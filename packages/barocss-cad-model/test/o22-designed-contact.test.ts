@@ -40,7 +40,7 @@ test('O22 gears: two bare meshing gears are no contact (left out, said so); an a
   // (Closed form: the arm's edge, 2 mm off its centre line, reaches the right gear's tip circle (centre 40 mm off) when
   // 40 sin φ − 2 = ra, φ the arm's angle off the line between the centres: a turn of 90° − φ. A tooth there or a gap
   // decides the last fraction, so the contact is no sooner than that and within a tooth's pitch angle.)
-  const ra = spurGearDimensions({ moduleMM: 2, teeth: 20, faceWidthMM: 8 }).ra, turn = Math.PI / 2 - Math.asin((ra + 2) / 40), at = -into.contact!.values['base~left'];
+  const ra = spurGearDimensions({ module: 2, teeth: 20, faceWidth: 8 }).ra, turn = Math.PI / 2 - Math.asin((ra + 2) / 40), at = -into.contact!.values['base~left'];
   assert.ok(at >= turn - 1e-6 && at <= turn + (2 * Math.PI) / 20, `${at} vs ${turn}`);
 });
 
@@ -54,7 +54,7 @@ test('O22 loop pin: the four-bar\'s stacked coupler and rocker are no contact (l
   // (A 4 × 4 mm post 12 mm tall on the rocker, 7 mm into the coupler's slab.)
   const posted = withBox(f, 'rocker', [30, 0], [34, 4], 12);
   const away = await sweep(posted, { 'base~crank': 1 });
-  assert.equal(away.clear, true, JSON.stringify(away)); assert.ok(away.min_clearance!.mm > 1, 'it passes the post');
+  assert.equal(away.clear, true, JSON.stringify(away)); assert.ok(away.minClearance!.value > 1, 'it passes the post');
   assert.match(pairOf(away.designed, 'coupler', 'rocker')!.why, /only what both fill along it checked$/);
   const into = await sweep(posted, { 'base~crank': -1 });
   assert.equal(into.clear, false); assert.deepEqual([...into.contact!.links].sort(), ['coupler', 'rocker']); assert.ok(into.contact!.s > 0, 'not at the start');
@@ -66,7 +66,7 @@ test('O22 loop pin: the four-bar\'s stacked coupler and rocker are no contact (l
 test('O22 → RS6: check_path and play_motion close a robot\'s loop along its motion (the four-bar; LOOP_OPEN retired)', async () => {
   const doc = open('four-bar'), r = await evaluate(doc); assert.ok(r.ok);
   const check = JSON.parse((await dispatchTool({ doc, bodies: r.bodies }, 'check_path', { motion: 'crank' }, evaluate)).content);
-  assert.equal(check.clear, true, JSON.stringify(check).slice(0, 300)); assert.ok(check.loops.chords >= 240 && check.loops.chord_residual_mm < 1e-2, JSON.stringify(check.loops));
+  assert.equal(check.clear, true, JSON.stringify(check).slice(0, 300)); assert.ok(check.loops.chords >= 240 && check.loops.chordResidual < 1e-2, JSON.stringify(check.loops));
   const play = JSON.parse((await dispatchTool({ doc, bodies: r.bodies }, 'play_motion', { motion: 'crank', samples: 5 }, evaluate)).content);
   assert.ok(play.samples.some((f: { values: Record<string, number> }) => Math.abs(f.values['base~rocker']) > 1), 'the rocker follows the crank');
 });

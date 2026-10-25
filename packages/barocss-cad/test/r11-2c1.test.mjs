@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, evaluateSurfaceCurvature, nurbsOf } from '../dist/index.js';
+import { evaluateCadPart, checkBrep, evaluateSurfaceCurvature, nurbsOf, massPropertiesOf } from '../dist/index.js';
 import { evaluateSurfaceD1 } from '../dist/core/derivatives.js';
 import { evaluateCurve } from '../dist/core/math.js';
 import { tessellateBrep } from '../dist/brep/brep-tessellate.js';
@@ -24,7 +24,7 @@ function patchBand(f, t) {
   for (let a = 0; a + 1 < ku.length; a++) for (let c = 0; c + 1 < kv.length; c++) for (let su = 0; su < 2; su++) for (let sv = 0; sv < 2; sv++) for (const [x, wx] of GL8) for (const [y, wy] of GL8) {
     const hu = (ku[a + 1] - ku[a]) / 2, hv = (kv[c + 1] - kv[c]) / 2, u = ku[a] + hu * (su + (x + 1) / 2), v = kv[c] + hv * (sv + (y + 1) / 2), r = evaluateSurfaceCurvature(S, u, v), d = evaluateSurfaceD1(S, u, v);
     const J = Math.hypot(...cross(d.du, d.dv)) * hu * hv / 4 * wx * wy;
-    A += J; V += (t + sg * r.meanCurvaturePerMM * t * t + r.gaussianCurvaturePerMM2 * t ** 3 / 3) * J;
+    A += J; V += (t + sg * r.meanCurvaturePer * t * t + r.gaussianCurvaturePer * t ** 3 / 3) * J;
   }
   return { A, V };
 }
@@ -58,11 +58,11 @@ test('R11.2c-1 a filleted pipe tee shelled with its three ends opened: the kept 
         else if (/^b\.side0/.test(face.name)) { const a = cylinderArea(body, face, branch, r); A += a; V += a * (t - t * t / (2 * r)); }
         else { const x = patchBand(face, t); A += x.A; V += x.V; }
       }
-      const o = out(shell(R, r, f, t)), report = checkBrep(o.brep, { strict: true }), m = o.massProperties(1), what = `R ${R} r ${r} f ${f} t ${t}`;
+      const o = out(shell(R, r, f, t)), report = checkBrep(o.brep, { strict: true }), m = massPropertiesOf(o), what = `R ${R} r ${r} f ${f} t ${t}`;
       assert.equal(report.valid, true, `${what}: ${report.issues}`);
       assert.equal(o.brep.shells.length, 1, what);
       assert.equal(m.method, 'quadrature', what);
-      assert.ok(Math.abs(m.volumeMM3 - V) <= A * 1e-6 * 60, `${what}: ${m.volumeMM3} vs ${V} (${(m.volumeMM3 - V) / V})`);
+      assert.ok(Math.abs(m.volume - V) <= A * 1e-6 * 60, `${what}: ${m.volume} vs ${V} (${(m.volume - V) / V})`);
       // The kept faces keep their names; the hollow's are named after them; no end face is left.
       const names = o.brep.faces.map(x => x.name);
       for (const n of ENDS) assert.ok(!names.includes(n), `${what}: ${n}`);

@@ -48,6 +48,11 @@ async function agentDoc(calls = AGENT): Promise<StudioDoc> {
   for (const [tool, args] of calls) {
     const r = await dispatchTool(s, tool, args, evaluate);
     assert.ok(!r.isError, `${tool} ${JSON.stringify(args)}: ${r.content}`);
+    if (tool === 'add_part' || tool === 'add_mate') {
+      const reply = JSON.parse(r.content);
+      for (const row of reply.parts) { assert.deepEqual(row.rotation, [0, 0, 0]); assert.ok(!('rotation_deg' in row)); }
+      if (tool === 'add_mate') { assert.deepEqual(reply.moved.rotation, [0, 0, 0]); assert.ok(!('rotation_deg' in reply.moved)); }
+    }
     s = r.state;
     const e = evaluateDoc(s.doc, 1);
     if (e.ok) s = { ...s, bodies: e.bodies };
@@ -56,7 +61,15 @@ async function agentDoc(calls = AGENT): Promise<StudioDoc> {
 }
 
 test('the assembly facade writes what the agent\'s assembly tools write, byte for byte', async () => {
-  assert.equal(JSON.stringify(fixture().doc), JSON.stringify(await agentDoc()));
+  const doc = await agentDoc();
+  assert.equal(JSON.stringify(fixture().doc), JSON.stringify(doc));
+  const before = JSON.stringify(doc), e = evaluateDoc(doc, 1); assert.ok(e.ok);
+  const changed = await dispatchTool({ doc, bodies: e.bodies }, 'delete_mate', { id: 'm2' }, evaluate);
+  assert.ok(!changed.isError && changed.changed, changed.content);
+  const rows = JSON.parse(changed.content).parts;
+  assert.equal(rows.length, 1);
+  assert.deepEqual(rows[0].rotation, [0, 0, 0]); assert.ok(!('rotation_deg' in rows[0]));
+  assert.equal(JSON.stringify(doc), before);
 });
 
 test('its placements, unmet mates, variant, frame poses and meshes are the core\'s on that document', async () => {
@@ -78,16 +91,25 @@ test('its placements, unmet mates, variant, frame poses and meshes are the core\
   assert.deepEqual(Buffer.from(meshes[1].positions.buffer), Buffer.from(placed.bodies[0].mesh.positions.buffer));
 });
 
-test('every method returns a new assembly; a part reads back as a studio part in its own coordinates', () => {
+test('every method returns a new assembly; a part reads back as a studio part in its own coordinates', async () => {
   const one = assembly('a', plate()), before = JSON.stringify(one.doc);
   const two = one.addPart('pin', pin());
   assert.equal(JSON.stringify(one.doc), before);
   assert.deepEqual(two.parts(), [{ id: 'base', name: 'base' }, { id: 'p1', name: 'pin' }]);
   assert.equal(JSON.stringify(two.part('pin').doc.nodes), JSON.stringify(pin().doc.nodes));
-  assert.equal(two.part('pin').mass('al6061').volumeMM3, pin().mass('al6061').volumeMM3);
+  assert.equal(two.part('pin').mass('al6061').volume, pin().mass('al6061').volume);
   // (place: moved and grounded, as place_part writes it.)
   const moved = two.place('pin', { at: Location.of({ position: [5, 0, 0], rotation: [0, 0, 90] }), grounded: true });
   assert.deepEqual(moved.placements(), [{ part: 'p1', name: 'pin', position: [5, 0, 0], rotation: [0, 0, 90], grounded: true }]);
+  const placed = await dispatchTool({ doc: two.doc, bodies: [] }, 'place_part', { part: 'p1', position: [5, 0, 0], rotation: [0, 0, 90], grounded: true }, evaluate);
+  assert.ok(!placed.isError && placed.changed, placed.content);
+  assert.equal(JSON.stringify(placed.state.doc), JSON.stringify(moved.doc));
+  const placedRow = JSON.parse(placed.content).parts[0];
+  assert.deepEqual(placedRow.rotation, [0, 0, 90]); assert.ok(!('rotation_deg' in placedRow));
+  const described = await dispatchTool(placed.state, 'get_assembly', {}, evaluate);
+  assert.ok(!described.isError && !described.changed, described.content);
+  const instance = JSON.parse(described.content).instances[0];
+  assert.deepEqual(instance.rotation, [0, 0, 90]); assert.ok(!('rotation_deg' in instance));
 });
 
 test('the assembly\'s refusals are typed: the facade\'s own, and the core\'s passed through with its code', () => {
@@ -124,11 +146,15 @@ test('the assembly\'s refusals are typed: the facade\'s own, and the core\'s pas
 
 // (The studio's Lock, as app/assembly/useAssembly.ts writes it: a `lock` mate numbered past the others, its `rel` the
 // part's placement in the other's own coordinates — the agent's add_mate writes no `rel`, so the facade writes it here.)
-test('lock: the studio\'s Lock — the mate it writes, the part carried along when the other moves, a fixed joint', () => {
+test('lock: the studio\'s Lock — the mate it writes, the part carried along when the other moves, a fixed joint', async () => {
   const two = assembly('pair', plate())
     .addPart('pin', pin(), { at: Location.of({ position: [100, 0, 0], rotation: [0, 0, 30] }) })
     .addPart('cap', part('cap').box({ w: 10, d: 10, h: 4 }), { at: Location.at([95, -5, 30]) });
   const locked = two.lock('cap', 'pin').lock('pin'), doc = locked.doc, [p1, p2] = doc.instances!;
+  const described = await dispatchTool({ doc: two.doc, bodies: [] }, 'get_assembly', {}, evaluate);
+  assert.ok(!described.isError && !described.changed, described.content);
+  const instance = JSON.parse(described.content).instances[0];
+  assert.deepEqual(instance.rotation, [0, 0, 30]); assert.ok(!('rotation_deg' in instance));
   assert.deepEqual(doc.mates, [
     { id: 'm1', kind: 'lock', a: { part: 'p1', face: '' }, b: { part: 'p2', face: '' }, rel: lockRel(p1, p2) },
     { id: 'm2', kind: 'lock', a: { part: 'base', face: '' }, b: { part: 'p1', face: '' }, rel: lockRel(null, p1) },

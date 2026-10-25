@@ -41,10 +41,10 @@ export interface SurfaceAxisReversalProvenance {
 }
 export interface SurfaceAxisReversalObservation {
   u:number; v:number; originalU:number; originalV:number;
-  originalPointMM:Point; reversedPointMM:Point; pointDifferenceMM:number;
+  originalPoint:Point; reversedPoint:Point; pointDifference:number;
   originalD1:SurfaceAxisReversalD1State; reversedD1:SurfaceAxisReversalD1State;
-  expectedDuMM:Point|null; expectedDvMM:Point|null;
-  duDifferenceMM:number|null; dvDifferenceMM:number|null;
+  expectedDu:Point|null; expectedDv:Point|null;
+  duDifference:number|null; dvDifference:number|null;
 }
 export interface SurfaceAxisReversalGuardObservation {
   axis:'u'|'v'; originalAuthoredU:number; originalAuthoredV:number;
@@ -58,9 +58,9 @@ export interface ReversedSurfaceAxisReport {
   originalSurfaceId:string; surfaceId:string; axis:'u'|'v'; domain:SurfaceAxisReversalDomain;
   grid:{u:number;v:number;total:number}; stripCount:number;
   observations:SurfaceAxisReversalObservation[]; guards:SurfaceAxisReversalGuardObservation[];
-  maximumPointDifferenceMM:number; maximumRelativeDuDifference:number; maximumRelativeDvDifference:number;
+  maximumPointDifference:number; maximumRelativeDuDifference:number; maximumRelativeDvDifference:number;
   geometricValidity:'not-certified';topologyCertified:false;solid:false;
-  quality:{pointComparisonMM:1e-7;relativeD1Comparison:1e-7;localObservationsOnly:true;globalShapeErrorCertified:false;
+  quality:{pointComparison:1e-7;relativeD1Comparison:1e-7;localObservationsOnly:true;globalShapeErrorCertified:false;
     manufacturingToleranceCertified:false;coefficientAndWeightBitsPreserved:true;nonselectedKnotBitsPreserved:true;
     generatedInteriorKnotBitsCertified:false;doubleReversalBitsCertified:false;
     derivativeSemantics:'authored-mapped-reflected-combined-d1-states-distinct-no-g1-g2-claim'};
@@ -73,7 +73,7 @@ export interface ReversedSurfaceAxisResult {
   originalSource:string;originalModel:Model;provenance:SurfaceAxisReversalProvenance;report:ReversedSurfaceAxisReport;
 }
 
-const POINT_TOLERANCE = CadNumericPolicy.linearToleranceMM;
+const POINT_TOLERANCE = CadNumericPolicy.linearTolerance;
 const D1_TOLERANCE = CadNumericPolicy.relativeComparison;
 const CODE = SurfaceAxisReversalDiagnosticCode;
 function requireValue(condition: boolean, code: SurfaceAxisReversalDiagnosticCode, detail: string): asserts condition {
@@ -271,8 +271,8 @@ export function reverseSurfaceAxis(surfaceInput:Surface,inputOptions:SurfaceAxis
         requireValue(duDifferenceMM<=D1_TOLERANCE*Math.max(1,scaleU)&&dvDifferenceMM<=D1_TOLERANCE*Math.max(1,scaleV),CODE.BINDING,'mapped Surface partial sign exceeds local policy');
       }
     }
-    observations.push({u:output.u,v:output.v,originalU:mapped.u,originalV:mapped.v,originalPointMM,reversedPointMM,pointDifferenceMM,
-      originalD1,reversedD1,expectedDuMM,expectedDvMM,duDifferenceMM,dvDifferenceMM});
+    observations.push({u:output.u,v:output.v,originalU:mapped.u,originalV:mapped.v,originalPoint: originalPointMM,reversedPoint: reversedPointMM,pointDifference: pointDifferenceMM,
+      originalD1,reversedD1,expectedDu: expectedDuMM,expectedDv: expectedDvMM,duDifference: duDifferenceMM,dvDifference: dvDifferenceMM});
   }
   const guards:SurfaceAxisReversalGuardObservation[]=[];
   const addGuard=(guardAxis:'u'|'v',authored:{u:number;v:number},mapped:{u:number;v:number},output:{u:number;v:number}):void=>{
@@ -293,7 +293,7 @@ export function reverseSurfaceAxis(surfaceInput:Surface,inputOptions:SurfaceAxis
   }
   const originalFile=sourceSurface(original,'surface_reverse_original'),file=sourceSurface(surface,surfaceId);
   const relative=(axisName:'u'|'v',observation:SurfaceAxisReversalObservation):number=>{
-    const difference=axisName==='u'?observation.duDifferenceMM:observation.dvDifferenceMM;
+    const difference=axisName==='u'?observation.duDifference:observation.dvDifference;
     if(difference===null||observation.originalD1.status!=='evaluated') return 0;
     return difference/Math.max(1,Math.hypot(...(axisName==='u'?observation.originalD1.value.du:observation.originalD1.value.dv)));
   };
@@ -304,10 +304,10 @@ export function reverseSurfaceAxis(surfaceInput:Surface,inputOptions:SurfaceAxis
     model:file.model,originalSource:originalFile.source,originalModel:originalFile.model,provenance,report:{
       family:'own-native-surface-parameter-axis-reversal',dto:{schema:'barocss-native-surface-axis-reversal',version:0,lengthUnit:'mm',frame:'authored-xyz-no-axis-conversion',representation:'native-surface-not-face-topology'},
       originalSurfaceId:original.id,surfaceId,axis,domain,grid:dimensions,stripCount:strips.length,observations,guards,
-      maximumPointDifferenceMM:Math.max(...observations.map(value=>value.pointDifferenceMM)),
+      maximumPointDifference:Math.max(...observations.map(value=>value.pointDifference)),
       maximumRelativeDuDifference:Math.max(0,...observations.map(value=>relative('u',value))),maximumRelativeDvDifference:Math.max(0,...observations.map(value=>relative('v',value))),
       geometricValidity:'not-certified',topologyCertified:false,solid:false,
-      quality:{pointComparisonMM:POINT_TOLERANCE,relativeD1Comparison:D1_TOLERANCE,localObservationsOnly:true,globalShapeErrorCertified:false,manufacturingToleranceCertified:false,
+      quality:{pointComparison:POINT_TOLERANCE,relativeD1Comparison:D1_TOLERANCE,localObservationsOnly:true,globalShapeErrorCertified:false,manufacturingToleranceCertified:false,
         coefficientAndWeightBitsPreserved:true,nonselectedKnotBitsPreserved:true,generatedInteriorKnotBitsCertified:false,doubleReversalBitsCertified:false,
         derivativeSemantics:'authored-mapped-reflected-combined-d1-states-distinct-no-g1-g2-claim'},
       limits:{maximumDegree:3,maximumAxisPoles:16,maximumTotalPoles:256,maximumStrips:16,maximumObservations:128,maximumGuardRecords:256,

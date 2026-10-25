@@ -1,3 +1,4 @@
+import { readDuty } from '@barocss/cad-model/robot/native/duty';
 // O15, RD10's L3 run (O46's protocol, the owner's go-ahead 2026-10-23): a model sizes arm-3r from O48's undersized start
 // with RD9's harness as its tool (robot_check, listed for this run only), through the real chat server and cad-mcp, as a
 // chat turn runs. Each run is independent: a fresh folder, the same start, the byte-identical prompt, no session resumed.
@@ -17,8 +18,10 @@ import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { encodeStudioFile } from '@barocss/cad-model/engine/container';
-import { robotSizeOfDoc } from '@barocss/cad-model/chat/robot';
-import type { Duty } from '@barocss/cad-model/robot/harness';
+import { nativeRobotSizeOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
+import type { NativeDuty } from '@barocss/cad-model/robot/native/duty';
+import { dutyJson, type PublicDuty } from '@barocss/cad-model/robot/reports';
+import { jointSettingsOut } from '@barocss/cad-model/robot/units';
 import { createChatServer } from '../chatServer';
 import { withRatings } from './tool';
 import { turnEventsOf } from '../turnEvents';
@@ -28,21 +31,21 @@ export const MODEL = 'claude-opus-5-5';
 const RUN_BUDGET_USD = 8, TOTAL_BUDGET_USD = 25, WALL_MS = Number(process.env.CAD_ROBOT_L3_WALL_MS) || 30 * 60 * 1000, ORIGIN = 'http://robot-l3.localhost';
 const P1 = { 'base~l1': 1, 'l1~l2': 0.9, 'l2~l3': 0.6 }, P2 = { 'base~l1': -0.8, 'l1~l2': -1, 'l2~l3': -0.7 };
 /** O48's brief: arm-3r between two poses, 0.5 s dwells, 20 000 h, at 6 rad/s and 60 rad/s². */
-const BRIEF: Duty = { moves: [{ from: {}, to: P1, profile: 'trapezoid', limits: { velocity: 6, acceleration: 60 }, dwell_s: 0.5 }, { from: P1, to: P2, profile: 'trapezoid', limits: { velocity: 6, acceleration: 60 }, dwell_s: 0.5 }], life_h: 20000 };
+const BRIEF: NativeDuty = { moves: [{ from: {}, to: P1, profile: 'trapezoid', limits: { velocity: 6, acceleration: 60 }, dwell_s: 0.5 }, { from: P1, to: P2, profile: 'trapezoid', limits: { velocity: 6, acceleration: 60 }, dwell_s: 0.5 }], life_h: 20000 };
 const on = (ratio: number) => ({ motor: 'maxon-608131', reducer: `hd-csg-14-${ratio}-2a-r-bb-lw` });
 
 /** O48's undersized start: ratings 1 rad/s and 1 N·m, every joint on 100:1. */
-export function start(conformance: string): { doc: StudioDoc; duty: Duty } {
+export function start(conformance: string): { doc: StudioDoc; duty: NativeDuty } {
   const r = readStudioDoc(readFileSync(join(conformance, 'rd/arm-3r/robot.bcad'), 'utf8'));
   if (!('doc' in r)) throw new Error(r.error);
-  const joints = Object.fromEntries(Object.entries(r.doc.robot!.joints!).map(([k, v]) => [k, { ...v, velocity: 1, effort: 1 }]));
+  const joints = Object.fromEntries(Object.entries(r.doc.robot!.joints!).map(([k, v]) => [k, { ...v, ...jointSettingsOut('revolute', { velocity: 1, effort: 1 }) }]));
   return { doc: { ...r.doc, robot: { version: 1, joints } }, duty: { ...BRIEF, actuators: { 'base~l1': on(100), 'l1~l2': on(100), 'l2~l3': on(100) } } };
 }
 
 /** The brief as the model reads it: byte-identical across runs (its sha256 recorded). */
-export function prompt(duty: Duty): string {
+export function prompt(duty: PublicDuty): string {
   return [
-    'Size this robot arm (arm-3r: three turning joints base~l1, l1~l2, l2~l3; a 1.7 kg payload locked on l3) for its duty, so that every margin of robot_check is above 0.',
+    'Size this robot arm (arm-3r: three turning joints base~l1, l1~l2, l2~l3; a 1700 g payload locked on l3) for its duty, so that every margin of robot_check is above 0.',
     'Its joint ratings and its actuators are too small for the duty. You may change: the joints\' ratings (robot_check\'s "joints": velocity, effort), the actuators (a motor and a reducer per joint, in the duty\'s "actuators"; assembly.size lists the pairs that suit a move), and the motion profile (the moves\' "limits").',
     'Do not change the arm\'s geometry, the poses ("from", "to"), the dwells or the life.',
     'Check with robot_check, passing the ratings and the duty you chose; the last design you check is the one judged. When every margin is above 0, stop and say what you changed.',
@@ -51,13 +54,13 @@ export function prompt(duty: Duty): string {
 }
 
 const sha = (s: string | Uint8Array) => createHash('sha256').update(s).digest('hex');
-/** Whether the duty the run saved keeps the brief's own terms: the same moves' poses, profiles and dwells, the same life. */
-export function keepsBrief(saved: Duty, brief: Duty): string | null {
-  if (saved.life_h !== brief.life_h) return `the life changed (${saved.life_h} h, the brief's ${brief.life_h} h)`;
+/** Compare validated public inputs without reprojecting their poses. Limits and profiles remain selectable. */
+export function keepsBrief(saved: PublicDuty, brief: PublicDuty): string | null {
+  if (saved.serviceLife !== brief.serviceLife) return `the life changed (${saved.serviceLife} s, the brief's ${brief.serviceLife} s)`;
   if (saved.moves.length !== brief.moves.length) return 'the moves changed';
   for (const [i, m] of saved.moves.entries()) {
     const b = brief.moves[i];
-    if (JSON.stringify(m.from) !== JSON.stringify(b.from) || JSON.stringify(m.to) !== JSON.stringify(b.to) || m.dwell_s !== b.dwell_s) return `move ${i}'s poses or dwell changed`;
+    if (JSON.stringify(m.from) !== JSON.stringify(b.from) || JSON.stringify(m.to) !== JSON.stringify(b.to) || m.dwell !== b.dwell) return `move ${i}'s poses or dwell changed`;
   }
   return null;
 }
@@ -70,9 +73,12 @@ export interface RunRecord {
 }
 
 /** One run in its own folder through a fresh chat server: the record, and the part and duty it left (in `dir`). */
-async function oneRun(k: number, o: { claude: string; mcpScript: string; cli: string; conformance: string; dir: string; scripted?: (s: { doc: StudioDoc; duty: Duty }) => Promise<string>; costEnv?: string }): Promise<RunRecord> {
-  const s = start(o.conformance), text = prompt(s.duty), dutyPath = join(o.dir, 'duty.json'), logPath = join(o.dir, 'checks.jsonl');
-  writeFileSync(dutyPath, JSON.stringify(s.duty, null, 1) + '\n'); writeFileSync(logPath, '');
+async function oneRun(k: number, o: { claude: string; mcpScript: string; cli: string; conformance: string; dir: string; scripted?: (s: { doc: StudioDoc; duty: NativeDuty }) => Promise<string>; costEnv?: string }): Promise<RunRecord> {
+  const s = start(o.conformance), evaluate = async (d: StudioDoc) => evaluatePart(d, 1), initial = await evaluate(s.doc);
+  if (!initial.ok) throw new Error('the start does not evaluate');
+  const tree = await treeOfDoc(s.doc, initial.bodies, evaluate), brief = dutyJson(tree, s.duty);
+  const text = prompt(brief), dutyPath = join(o.dir, 'duty.json'), logPath = join(o.dir, 'checks.jsonl');
+  writeFileSync(dutyPath, JSON.stringify(brief, null, 1) + '\n'); writeFileSync(logPath, '');
   const env = { CAD_ROBOT_L3: '1', CAD_ROBOT_L3_DUTY: dutyPath, CAD_ROBOT_L3_LOG: logPath, CAD_MAX_BUDGET_USD: String(RUN_BUDGET_USD), ...(o.costEnv ? { CAD_SCRIPTED_COST_USD: o.costEnv } : {}) };
   const was = Object.fromEntries(Object.keys(env).map(key => [key, process.env[key]]));
   Object.assign(process.env, env);
@@ -100,7 +106,8 @@ async function oneRun(k: number, o: { claude: string; mcpScript: string; cli: st
   try { ratings = JSON.parse(readFileSync(join(o.dir, 'duty.joints.json'), 'utf8')); } catch { /* none passed */ }
   const doc: StudioDoc = withRatings(done?.doc ?? s.doc, ratings), part = join(o.dir, 'sized.bcad'); writeFileSync(part, encodeStudioFile(doc));
   writeFileSync(join(o.dir, 'transcript.txt'), raw);
-  const saved = JSON.parse(readFileSync(dutyPath, 'utf8')) as Duty, changedBrief = keepsBrief(saved, BRIEF);
+  const saved: unknown = JSON.parse(readFileSync(dutyPath, 'utf8')), parsed = readDuty(tree, saved);
+  const changedBrief = 'error' in parsed ? `invalid duty: ${parsed.error}` : keepsBrief(saved as PublicDuty, brief);
   // (Asynchronous: a blocking spawn here held the event loop, and with it the chat server's kill of a timed-out CLI.)
   const fresh = await new Promise<{ status: number | null; stdout: string }>(res => execFile(process.execPath, [o.cli, 'robot-check', part, dutyPath], { encoding: 'utf8', maxBuffer: 64 << 20 }, (e, stdout) => res({ status: e ? (typeof e.code === 'number' ? e.code : null) : 0, stdout })));
   let report: { ok?: boolean; least?: unknown; margins?: { ok: boolean }[] } = {};
@@ -116,14 +123,15 @@ async function oneRun(k: number, o: { claude: string; mcpScript: string; cli: st
 }
 
 /** The scripted dry run's calls: the sizer's own answer, as a model would make it. */
-async function sizerScript(s: { doc: StudioDoc; duty: Duty }): Promise<string> {
+export async function sizerScript(s: { doc: StudioDoc; duty: NativeDuty }): Promise<string> {
   const evaluate = async (d: StudioDoc) => evaluatePart(d, 1), e = await evaluate(s.doc);
   if (!e.ok) throw new Error('the start does not evaluate');
-  const { sized, doc } = await robotSizeOfDoc(s.doc, e.bodies, evaluate, s.duty);
+  const tree = await treeOfDoc(s.doc, e.bodies, evaluate);
+  const { sized, doc } = await nativeRobotSizeOfDoc(s.doc, e.bodies, evaluate, s.duty);
   const joints = Object.fromEntries(Object.entries(doc.robot!.joints!).map(([k, v]) => [k, { velocity: v.velocity, effort: v.effort }]));
   return `script ${JSON.stringify({ calls: [
-    { tool: 'robot_check', args: { duty: s.duty } },
-    { tool: 'robot_check', args: { joints, duty: sized.duty } },
+    { tool: 'robot_check', args: { duty: dutyJson(tree, s.duty) } },
+    { tool: 'robot_check', args: { joints, duty: dutyJson(sized.tree, sized.duty) } },
   ] })}`;
 }
 

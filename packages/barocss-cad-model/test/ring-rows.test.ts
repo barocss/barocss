@@ -15,7 +15,7 @@ function ring(doc: StudioDoc, values: Record<string, number | string> = {}) {
   assert.ok(c.available(ctx).ok);
   return { doc: c.build!(ctx, { ...c.defaults!(ctx), ...values }), defaults: c.defaults!(ctx) };
 }
-const ROW = { id: 'DIN471-20', designation: '20 × 1.2', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3, source: 'the maker\'s sheet' };
+const ROW = { id: 'DIN471-20', designation: '20 × 1.2', shaftDiameter: 20, grooveDiameter: 19, grooveWidth: 1.3, source: 'the maker\'s sheet' };
 const notesOf = (doc: StudioDoc) => { const r = evaluateDoc(doc, 2); assert.ok(r.ok, r.ok ? '' : r.error.detail); return r.bodies.find(b => b.ref && doc.nodes[b.ref.node].kind === 'retaining-ring')!.notes!.map(n => n.text); };
 
 test('a ring row loaded: the Retaining ring command offers it for the groove\'s sizes, the ring cites it — not an estimate', () => {
@@ -32,7 +32,7 @@ test('a ring row loaded: the Retaining ring command offers it for the groove\'s 
 
 test('ring rows refused: a row for another groove (the kernel\'s RING_FIT), a row gone (RING_ROW_UNKNOWN), a bad row, a used row removed', () => {
   const shaft = cmd('shaft').build!(blank, cmd('shaft').defaults!(blank));
-  const other = editRingRows(shaft, [{ ...ROW, id: 'wide', grooveWidthMM: 1.6 }]); assert.ok('doc' in other);
+  const other = editRingRows(shaft, [{ ...ROW, id: 'wide', grooveWidth: 1.6 }]); assert.ok('doc' in other);
   const r1 = evaluateDoc(ring(other.doc, { row: 'wide' }).doc, 3);
   assert.ok(!r1.ok && /RING_FIT.*groove 1\.6 mm wide/.test(r1.error.detail), r1.ok ? 'built' : r1.error.detail);
   const withRow = editRingRows(shaft, [ROW]); assert.ok('doc' in withRow);
@@ -40,7 +40,7 @@ test('ring rows refused: a row for another groove (the kernel\'s RING_FIT), a ro
   const r2 = evaluateDoc(gone, 4);
   assert.ok(!r2.ok && /\[RING_ROW_UNKNOWN\].*"DIN471-20"/.test(r2.error.detail), r2.ok ? 'built' : r2.error.detail);
   assert.match(String((editRingRows(used, [], ['DIN471-20']) as { error: string }).error), /used by a retaining ring/);
-  assert.match(String(checkRingRow({ id: 'x', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3 })[0]?.message), /cite its source or say estimate: true/);
-  assert.match(String(checkRingRow({ ...ROW, grooveDiameterMM: 21 })[0]?.message), /below the shaft's/);
+  assert.match(String(checkRingRow({ id: 'x', shaftDiameter: 20, grooveDiameter: 19, grooveWidth: 1.3 })[0]?.message), /cite its source or say estimate: true/);
+  assert.match(String(checkRingRow({ ...ROW, grooveDiameter: 21 })[0]?.message), /below the shaft's/);
   assert.match(String(checkRingRow({ ...ROW, thickness: 1 })[0]?.message), /unknown field thickness/);
 });

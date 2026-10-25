@@ -53,14 +53,14 @@ export const RUNG9: Rung = {
     const cable = cyl.find(c => Math.abs(c.r - 4) <= 1e-9 && parallel(c.a, [0, 1, 0]) && axisDistance(c, [w / 2, 0, 12]) <= 1e-9 && Math.abs(c.zMax - c.zMin - t) <= 1e-4);
     // (The board's component space, from its top: a keep-out the studio's own check measures, 1 mm clearance asked.)
     const [ox, oy] = [(w - num(p, 'a')) / 2, (d - num(p, 'b')) / 2];
-    const ko = await onCopy(doc, bodies, evaluate, [['add_keepout', { name: 'components', box: { frame: { origin: [ox, oy, t + hs + BOARD], normal: [0, 0, 1], xAxis: [1, 0, 0] }, size: [num(p, 'a'), num(p, 'b'), num(p, 'c')] }, clearance: 1 }], ['check_keepouts', {}]]) as { results?: { verdict: string; clearance_mm?: number }[] };
+    const ko = await onCopy(doc, bodies, evaluate, [['add_keepout', { name: 'components', box: { frame: { origin: [ox, oy, t + hs + BOARD], normal: [0, 0, 1], xAxis: [1, 0, 0] }, size: [num(p, 'a'), num(p, 'b'), num(p, 'c')] }, clearance: 1 }], ['check_keepouts', {}]]) as { results?: { verdict: string; clearance?: number }[] };
     // (The vents: the right wall cut at mid-thickness loses n slots — between their obround and rectangular areas.)
-    const sec = await onCopy(doc, bodies, evaluate, [['section', { axis: 'x', at: w - t / 2 }]]) as { cut?: { body: string; cut_area_mm2: number }[] };
-    const area = sec.cut ? sec.cut.reduce((s, x) => s + x.cut_area_mm2, 0) : null, n = num(p, 'n'), sl = num(p, 'sl'), lost = area === null ? null : d * h - area;
+    const sec = await onCopy(doc, bodies, evaluate, [['section', { axis: 'x', at: w - t / 2 }]]) as { cut?: { body: string; cutArea: number }[] };
+    const area = sec.cut ? sec.cut.reduce((s, x) => s + x.cutArea, 0) : null, n = num(p, 'n'), sl = num(p, 'sl'), lost = area === null ? null : d * h - area;
     const wall = await studioChecks(doc, evaluate, [{ id: 'min-wall', source: `FDM walls ≥ ${fdm.minWall.value} mm`, hard: true, check: { op: '>=', query: { fn: 'min_wall' }, value: fdm.minWall.value } } as never], { process: 'fdm' });
     const out: Outcome[] = [boxIs('box', bodies, [w, d, h]), holds('solids', bodies.length === 1, bodies.length, 'one solid'),
       holds('standoffs', standoffs.every(Boolean), standoffs.map(Boolean), `four Ø${2 * r} standoffs ${hs} tall on the board's holes`),
-      holds('components', !!ko.results?.length && ko.results.every(x => x.verdict === 'clear'), ko.results?.map(x => [x.verdict, x.clearance_mm]) ?? ko, 'the board\'s component space clear by 1 mm'),
+      holds('components', !!ko.results?.length && ko.results.every(x => x.verdict === 'clear'), ko.results?.map(x => [x.verdict, x.clearance]) ?? ko, 'the board\'s component space clear by 1 mm'),
       holds('cable', !!cable, null, 'a Ø8 hole through the front wall at its middle, 12 up'),
       holds('vents', lost !== null && lost >= n * (SW * (sl - SW) + Math.PI * SW * SW / 4) - 1e-3 && lost <= n * sl * SW + 1e-3, lost, `${n} slots through the right wall (${(n * (SW * (sl - SW) + Math.PI * SW * SW / 4)).toFixed(2)} … ${(n * sl * SW).toFixed(2)} mm² cut)`), ...wall];
     return out;
@@ -132,16 +132,16 @@ export const RUNG8: Rung = {
       }));
     });
     const need = (y - G) * b - 1e-3;
-    const fit = await onCopy(doc, bodies, evaluate, [['interference', {}]]) as { pairs?: { overlap_mm3?: number }[] };
+    const fit = await onCopy(doc, bodies, evaluate, [['interference', {}]]) as { pairs?: { overlap?: number }[] };
     // (Each hook clear of the box by the fit gap: its own triangles against the body they do not belong to.)
-    const gaps = hooks.map(h => { const pm = partMesh(bodies, h.n.prefix), other = bodies.find(x => !x.mesh.faces.some(f => f.name.startsWith(`${h.n.prefix}_`))); return pm && other ? meshClearance(pm.p, pm.i, other.mesh.positions, other.mesh.indices).distanceMM : null; });
+    const gaps = hooks.map(h => { const pm = partMesh(bodies, h.n.prefix), other = bodies.find(x => !x.mesh.faces.some(f => f.name.startsWith(`${h.n.prefix}_`))); return pm && other ? meshClearance(pm.p, pm.i, other.mesh.positions, other.mesh.indices).distance : null; });
     const flex = await studioChecks(doc, evaluate, hooks.flatMap(h => ['strain', 'yield'].map(check => ({ id: `${h.id}.${check}`, source: `${h.id} ${check}`, hard: true, check: { op: '<=', query: { fn: 'library_check', feature: h.id, check }, value: 1 } } as never))));
     return [boxIs('box', bodies, [W, D, H + tl]), holds('solids', bodies.length === 2, bodies.length, 'two solids: the box and its lid'),
       holds('hooks', hooks.length === 2 * hookYs(p).length, hooks.length, `${2 * hookYs(p).length} snap hooks`),
       holds('flex', flex.length > 0 && flex.every(x => x.pass), flex.map(x => [x.id, x.measured]), 'each hook\'s root strain within the material\'s allowable strain and yield (the brief\'s material)'),
       holds('latched', latch.length > 0 && latch.every(a => a !== null && a >= need), latch, `each hook's catch under a ledge, ≥ ${need.toFixed(3)} mm² overlapping within ${2 * G} mm`),
       holds('clearance', gaps.length > 0 && gaps.every(g => g !== null && g >= G - 1e-4), gaps.map(g => g === null ? null : +g.toFixed(5)), `each hook ≥ ${G} mm (the FDM fit gap) from the box`),
-      holds('fits', !!fit.pairs && fit.pairs.every(x => x.overlap_mm3 === undefined), fit.pairs ?? fit, 'the lid and the box do not overlap')];
+      holds('fits', !!fit.pairs && fit.pairs.every(x => x.overlap === undefined), fit.pairs ?? fit, 'the lid and the box do not overlap')];
   },
   mutants: [
     { id: 'no-material', target: 'flex', why: 'the brief without the stated material: the hooks\' strain unknown', calls: p => snapBox(p, { material: false }) },

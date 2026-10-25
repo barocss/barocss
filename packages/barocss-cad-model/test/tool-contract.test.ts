@@ -74,7 +74,7 @@ test('every read tool’s result matches its output schema and changes nothing',
   const wl = await dispatchTool({ doc: fr, bodies: r3.bodies }, 'weld_list', {}, evaluate);
   assert.ok(!wl.isError && !wl.changed, wl.content); assert.deepEqual(validate(outputSchemaOf('weld_list')!, JSON.parse(wl.content)), [], 'weld_list'); seen.add('weld_list');
   // (A hole–shaft fit, D155: two classes at a size from a test table.)
-  const fitted = { ...fr, fits: { version: 1 as const, tables: [{ id: 't', rows: [{ class: 'H7', overMM: 10, upToMM: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', overMM: 10, upToMM: 18, upperUM: -6, lowerUM: -17, estimate: true }] }] } };
+  const fitted = { ...fr, fits: { version: 1 as const, tables: [{ id: 't', rows: [{ class: 'H7', over: 10, upTo: 18, upper: 0.018, lower: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upper: -0.006, lower: -0.017, estimate: true }] }] } };
   const fc = await dispatchTool({ doc: fitted, bodies: r3.bodies }, 'fit_clearance', { hole_class: 'H7', shaft_class: 'g6', size: 12 }, evaluate);
   assert.ok(!fc.isError && !fc.changed, fc.content); assert.deepEqual(validate(outputSchemaOf('fit_clearance')!, JSON.parse(fc.content)), [], 'fit_clearance'); seen.add('fit_clearance');
   // Every read tool with an output schema was run here.

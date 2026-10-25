@@ -13,7 +13,7 @@ import { bomPanelDataOf } from '../src/bom/bom';
 // post (flush sides) 360, the clipped gusset's two seams (105 + 85)·z² = 1710; each the joint's bead, with its leg and
 // throat. A mitre set to fillet and an oblique brace are refused by the kernel — said on the joint and in the weld
 // list, the part still evaluates; a mitre's or a cap's record with no kind is no bead, quietly. Beads weigh, no BOM line.
-const conf = (name: string) => JSON.parse(readFileSync(resolve(import.meta.dirname, '../../barocss-cad/conformance/frk', `${name}.json`), 'utf8')) as { input: { partDocument: { features: Record<string, unknown>[] } }; expect: { outputs: { volumeMM3: { value: number } }[] } };
+const conf = (name: string) => JSON.parse(readFileSync(resolve(import.meta.dirname, '../../barocss-cad/conformance/frk', `${name}.json`), 'utf8')) as { input: { partDocument: { features: Record<string, unknown>[] } }; expect: { outputs: { volume: { value: number } }[] } };
 const ok = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.detail); return r; };
 /** The scene's frame (and gusset) as studio nodes, from the conformance case's features. */
 function scene(name: string): StudioDoc {
@@ -35,15 +35,15 @@ test('5b: the kernel\'s frk scenes from records — a rail\'s bead on the 80 pos
     const welded = withWelds(doc, [{ joint: j.id, size: 3 }]), r = ok(welded);
     const bead = r.bodies.find(b => b.key === beadIdOf(j.id))!;
     assert.ok(bead && bead.element?.kind === 'weld-bead', `${name}: the bead's body`);
-    assert.ok(Math.abs(bead.volumeMM3! - want) < 1e-9 * want, `${name}: ${bead.volumeMM3}`);
-    assert.ok(Math.abs(bead.volumeMM3! - conf(name).expect.outputs[2].volumeMM3.value) < 1e-9 * want, 'the kernel\'s own case');
+    assert.ok(Math.abs(bead.volume! - want) < 1e-9 * want, `${name}: ${bead.volume}`);
+    assert.ok(Math.abs(bead.volume! - conf(name).expect.outputs[2].volume.value) < 1e-9 * want, 'the kernel\'s own case');
     const jj = weldList(welded, r.bodies).joints.find(x => x.id === j.id)!;
-    assert.ok(jj.bead && !('refused' in jj.bead) && jj.bead.legMM === 3 && Math.abs(jj.bead.throatMM - 3 / Math.SQRT2) < 1e-6 && Math.abs(jj.bead.volumeMM3 - want) < 1e-6, JSON.stringify(jj.bead));
+    assert.ok(jj.bead && !('refused' in jj.bead) && jj.bead.leg === 3 && Math.abs(jj.bead.throat - 3 / Math.SQRT2) < 1e-6 && Math.abs(jj.bead.volume - want) < 1e-6, JSON.stringify(jj.bead));
     // (A bead weighs; it is no BOM line.)
     const bom = bomPanelDataOf(welded, d => evaluateDoc(d, 1), 'frame');
     assert.ok(!bom.bom.lines.some(l => /bead/.test(l.item)), 'no BOM line for a bead');
     // (Its volume in the part's bodies: what the part's mass is summed over.)
-    assert.ok(r.bodies.reduce((t, b) => t + (b.volumeMM3 ?? 0), 0) - ok(doc).bodies.reduce((t, b) => t + (b.volumeMM3 ?? 0), 0) > want - 1e-6);
+    assert.ok(r.bodies.reduce((t, b) => t + (b.volume ?? 0), 0) - ok(doc).bodies.reduce((t, b) => t + (b.volume ?? 0), 0) > want - 1e-6);
   }
   // (The gusset: its two seam joints, a bead each — together the kernel's one bead of 1710.)
   const doc = scene('bead-gusset'), joints = weldList(doc, ok(doc).bodies).joints.filter(x => x.kind === 'gusset');
@@ -52,7 +52,7 @@ test('5b: the kernel\'s frk scenes from records — a rail\'s bead on the 80 pos
   const beads = weldList(welded, r.bodies).joints.filter(x => x.kind === 'gusset').map(x => x.bead);
   assert.ok(beads.every(b => b && !('refused' in b)), JSON.stringify(beads));
   // (Both joints name the one gusset: the kernel welds all its seams in one bead, so one feature — the first joint's — and both read it.)
-  const vol = (beads[0] as { volumeMM3: number }).volumeMM3;
+  const vol = (beads[0] as { volume: number }).volume;
   assert.ok(Math.abs(vol - 1710) < 1e-6, String(vol));
 });
 

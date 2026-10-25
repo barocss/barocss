@@ -18,7 +18,7 @@ export function RingRows({ doc, onCommit, onError }: { doc: StudioDoc; onCommit(
     <div className="card-title" style={{ marginTop: 8 }}>RINGS</div>
     {!rows.length && <RowsEmpty none="No ring rows" holds="JSON: shaftDiameterMM, grooveDiameterMM, grooveWidthMM; each citing its source or marked an estimate." />}
     {rows.map(r => <div key={r.id} className={ROW} aria-label={`Ring row ${r.id}`}>
-      <span title={r.source ?? 'an estimate'}><b>{r.designation ?? r.id}</b> <span className="muted small">Ø{r.shaftDiameterMM} shaft · groove Ø{r.grooveDiameterMM} × {r.grooveWidthMM} · {r.source ?? 'estimate'}</span></span>
+      <span title={r.source ?? 'an estimate'}><b>{r.designation ?? r.id}</b> <span className="muted small">Ø{r.shaftDiameter} shaft · groove Ø{r.grooveDiameter} × {r.grooveWidth} · {r.source ?? 'estimate'}</span></span>
       <Button variant="ghost" aria-label={`Remove ring row ${r.id}`} title="Remove the row" onClick={() => apply([], [r.id])}><Icon name="delete" small /></Button>
     </div>)}
     <div className="flex flex-wrap gap-1">

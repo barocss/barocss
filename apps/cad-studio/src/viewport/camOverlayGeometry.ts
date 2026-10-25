@@ -117,7 +117,7 @@ export class CamOverlayGeometry {
       const world = camSetupToWorld(display.setup.frame);
       this.fixed = [{ name: 'stock', positions: camStockWire(display.package.stock), topology: 'lines', color: [0.67, 0.76, 0.87], opacity: 0.8, width: 1.2 }, ...paths(display, world, Infinity)];
       // (The machine axes at the setup's origin, x red, y green, z blue: the tool's axis.)
-      const length = Math.max(5, display.package.tool.diameterMM * 2);
+      const length = Math.max(5, display.package.tool.diameter * 2);
       for (let k = 0; k < 3; k++) {
         const axis = [0, 0, 0, 0, 0, 0]; axis[3 + k] = length;
         this.fixed.push({ name: 'axis:' + 'xyz'[k], positions: camToWorld(axis, world), topology: 'lines', color: k === 0 ? [0.95, 0.25, 0.25] : k === 1 ? [0.25, 0.9, 0.35] : [0.3, 0.55, 1], opacity: 1, width: 2 });
@@ -138,7 +138,7 @@ export class CamOverlayGeometry {
       this.active = { name: 'active:' + move.kind, positions: camToWorld([...move.a, ...move.b], this.world), topology: 'lines', color: [1, 0.95, 0.68], opacity: 1, width: 3 };
       this.activeIndex = index;
     }
-    const t = display.package.tool, toolKey = `${t.kind}|${t.diameterMM}|${t.cornerMM}|${t.fluteMM}|${t.shankMM}`;
+    const t = display.package.tool, toolKey = `${t.kind}|${t.diameter}|${t.cornerRadius}|${t.fluteLength}|${t.shankDiameter}`;
     if (this.toolKey !== toolKey) { this.toolLocal = camToolGeometry(t); this.toolKey = toolKey; this.pose = ''; }
     // (The tool's tip at the program's position, its axis the machine +Z: its local mesh moved there, then to world.)
     const p = display.position, pose = `${key}|${p[0]}|${p[1]}|${p[2]}`;

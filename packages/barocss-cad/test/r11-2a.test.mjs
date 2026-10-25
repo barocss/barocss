@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, evaluateSurfaceCurvature, nurbsOf } from '../dist/index.js';
+import { evaluateCadPart, checkBrep, evaluateSurfaceCurvature, nurbsOf, massPropertiesOf } from '../dist/index.js';
 import { evaluateSurfaceD1 } from '../dist/core/derivatives.js';
 import { derivativesForTest } from '../dist/blend/offset-cavity.js';
 import { evaluateSurfaceD2 } from '../dist/core/second-derivatives.js';
@@ -38,7 +38,7 @@ function steiner(b) {
     for (let a = 0; a + 1 < ku.length; a++) for (let c = 0; c + 1 < kv.length; c++) for (const [x, wx] of GL8) for (const [y, wy] of GL8) {
       const hu = ku[a + 1] - ku[a], hv = kv[c + 1] - kv[c], u = ku[a] + hu * (x + 1) / 2, v = kv[c] + hv * (y + 1) / 2, r = evaluateSurfaceCurvature(S, u, v), d = evaluateSurfaceD1(S, u, v);
       const J = Math.hypot(...cross(d.du, d.dv)) * hu * hv / 4 * wx * wy;
-      A += J; M += -sg * r.meanCurvaturePerMM * J; K += r.gaussianCurvaturePerMM2 * J;
+      A += J; M += -sg * r.meanCurvaturePer * J; K += r.gaussianCurvaturePer * J;
     }
   }
   return { A, M, K };
@@ -54,7 +54,7 @@ test('R11.2a the route\'s own derivatives (the faces checked once) are the kerne
       const S = nurbsOf(f), sg = f.sense === 'forward' ? 1 : -1, U = S.knotsU, V = S.knotsV;
       for (const [x, y] of [[0.13, 0.37], [0.61, 0.29], [0.9, 0.77]]) {
         const u = U[0] + (U.at(-1) - U[0]) * x, v = V[0] + (V.at(-1) - V[0]) * y, a = evaluateSurfaceD2(S, u, v), m = derivativesForTest(f, u, v), r = evaluateSurfaceCurvature(S, u, v);
-        const k = Math.max(-sg * r.principalCurvaturesPerMM[0], -sg * r.principalCurvaturesPerMM[1]);
+        const k = Math.max(-sg * r.principalCurvaturesPer[0], -sg * r.principalCurvaturesPer[1]);
         for (const [p, q] of [['point', 'P'], ['du', 'Su'], ['dv', 'Sv'], ['duu', 'Suu'], ['duv', 'Suv'], ['dvv', 'Svv']]) worst = Math.max(worst, Math.hypot(...a[p].map((z, i) => z - m[q][i])) / (1 + Math.hypot(...a[p])));
         worst = Math.max(worst, Math.abs(k - m.convex) / (1 + Math.abs(k)));
       }
@@ -65,14 +65,14 @@ test('R11.2a the route\'s own derivatives (the faces checked once) are the kerne
 
 test('R11.2a SubD bodies shelled closed: their cavity Steiner\'s, within the area times the fit\'s target (refused on HEAD: freeform faces)', () => {
   for (const [name, cage, ts] of [['cube', CUBE, [0.5, 1.47]], ['torus 8 × 6', torusCage(8, 6), [2]], ['torus 16 × 8 (faces of 13 spans: cells past the pole cap)', torusCage(16, 8), [1]], ['membrane in a rim', wheel(6, 4.5), [0.5]]]) {
-    const body = out([{ id: 's', kind: 'subd', cage }]), b = body.brep, V = body.massProperties(1).volumeMM3, { A, M, K } = steiner(b), target = 1e-6 * sizeOf(b);
+    const body = out([{ id: 's', kind: 'subd', cage }]), b = body.brep, V = massPropertiesOf(body).volume, { A, M, K } = steiner(b), target = 1e-6 * sizeOf(b);
     for (const t of ts) {
       const o = out([{ id: 's', kind: 'subd', cage }, { id: 'sh', kind: 'shell', target: 's', thickness: t }]), report = checkBrep(o.brep, { strict: true });
       assert.equal(report.valid, true, `${name} t ${t}: ${report.issues}`);
       assert.equal(o.brep.shells.length, 2, `${name} t ${t}: one cavity`);
-      const m = o.massProperties(1), exact = A * t - M * t * t + K / 3 * t ** 3;
+      const m = massPropertiesOf(o), exact = A * t - M * t * t + K / 3 * t ** 3;
       assert.equal(m.method, 'quadrature', `${name} t ${t}`);
-      assert.ok(Math.abs(m.volumeMM3 - exact) <= A * target, `${name} t ${t}: ${m.volumeMM3} vs ${exact} (${(m.volumeMM3 - exact) / exact})`);
+      assert.ok(Math.abs(m.volume - exact) <= A * target, `${name} t ${t}: ${m.volume} vs ${exact} (${(m.volume - exact) / exact})`);
     }
   }
 });

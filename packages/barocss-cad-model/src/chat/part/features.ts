@@ -157,7 +157,7 @@ async function runCommandTool(state: ChatState, args: Record<string, unknown>, e
   if (cmd.id === 'mount') {
     const row = mountRowsOf(state.doc).get(String(values.row))!, f = selection.faces[0], face = state.bodies[f.body].mesh.faces[f.face], k = [0, 1, 2].find(i => Math.abs(Math.abs(face.normal[i]) - 1) < 1e-6)!;
     const mount = { row: row.id, ...(row.designation ? { designation: row.designation } : {}), type: row.type, ...(row.source ? { source: row.source } : { estimate: true }), ...(row.unchecked?.length ? { unchecked: row.unchecked } : {}),
-      axis: mountAxis(row, face, face.centroid[k], Number(values.x), Number(values.y), Number(values.turn ?? 0)), shaftMM: row.shaftMM };
+      axis: mountAxis(row, face, face.centroid[k], Number(values.x), Number(values.y), Number(values.turn ?? 0)), shaft: row.shaft };
     return accept(state, next, evaluate, `${cmd.label} ${json(shown)}`, { ...(sel.resolved.length ? { resolved: sel.resolved } : {}), mount, added: next.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, next.nodes)}`) });
   }
   return accept(state, next, evaluate, `${cmd.label} ${json(shown)}`, { ...(sel.resolved.length ? { resolved: sel.resolved } : {}), added: next.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, next.nodes)}`) });

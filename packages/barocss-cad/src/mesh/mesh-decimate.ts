@@ -4,7 +4,7 @@
 // distance to every plane it gathered); each vertex's cheapest collapse is kept in an indexed min-heap.
 //
 // What the mesh's attributes say is kept: open boundaries, groups (per triangle: a repair's fill patches, a facet
-// body's regions) and creases (a dihedral angle past `featureDegrees`) are feature lines. A feature line's vertices
+// body's regions) and creases (a dihedral angle past `feature`) are feature lines. A feature line's vertices
 // slide only along it (both ends on it and the edge itself a feature), a vertex off it collapses onto it (placed at
 // the feature vertex), corners and ends of feature lines never move; penalty planes through each feature edge, square
 // to its triangles, hold the line where it was. A collapse is made only when the mesh stays a manifold (the link
@@ -17,12 +17,12 @@ import { meshDistance } from './mesh-distance.js';
 export interface DecimateOptions {
   /** Stop at this many triangles or fewer. */
   readonly targetTriangles?: number;
-  /** Or at this share of the triangles (0–1); with neither, as far as `maxErrorMM` lets it go. */
+  /** Or at this share of the triangles (0–1); with neither, as far as `maxError` lets it go. */
   readonly ratio?: number;
   /** Make no collapse whose quadric bound (the square root of its cost) passes this (mm). */
-  readonly maxErrorMM?: number;
+  readonly maxError?: number;
   /** A dihedral angle past this (degrees, default 40) makes an edge a crease, kept as a feature line. */
-  readonly featureDegrees?: number;
+  readonly feature?: number;
   /** Per triangle, a group (any integer); edges between groups are feature lines, and every triangle keeps its group. */
   readonly groups?: ArrayLike<number>;
   /** Measure the distance between the original and the result (default true). */
@@ -36,10 +36,11 @@ export interface DecimateReport {
   /** Why it stopped: the target reached, the error bound reached, or nothing left that it may collapse. */
   readonly stoppedBy: 'target' | 'error' | 'exhausted';
   /** The largest quadric bound of a collapse made (mm): no vertex is further than it from any plane it gathered. */
-  readonly boundMM: number;
+  readonly bound: number;
   /** Measured (when asked): from the original to the result, from the result to the original, the larger, and the RMS of both. */
-  readonly distance?: { readonly toResultMaxMM: number; readonly toOriginalMaxMM: number; readonly hausdorffMM: number; readonly rmsMM: number; readonly samples: number };
-  readonly ms: number;
+  readonly distance?: { readonly toResultMax: number; readonly toOriginalMax: number; readonly hausdorff: number; readonly rms: number; readonly samples: number };
+  /** Wall time in seconds, from the existing measurement interval. */
+  readonly wallTime: number;
 }
 export interface DecimateResult { readonly positions: Float64Array; readonly indices: Uint32Array; readonly groups: Int32Array | null; readonly report: DecimateReport }
 
@@ -74,7 +75,7 @@ export function decimateMesh(positions: ArrayLike<number>, indices: ArrayLike<nu
   const t0 = performance.now(), nv = positions.length / 3, nt = indices.length / 3;
   if (!Number.isInteger(nv) || !Number.isInteger(nt)) throw new RangeError('decimate: three numbers a vertex, three vertices a triangle');
   const target = options.targetTriangles !== undefined ? Math.max(0, Math.floor(options.targetTriangles)) : options.ratio !== undefined ? Math.max(0, Math.floor(options.ratio * nt)) : 0;
-  const maxCost = options.maxErrorMM !== undefined ? options.maxErrorMM * options.maxErrorMM : Infinity;
+  const maxCost = options.maxError !== undefined ? options.maxError * options.maxError : Infinity;
   const P = Float64Array.from(positions), T = Uint32Array.from(indices);
   const G = options.groups ? Int32Array.from(options.groups) : null;
   if (G && G.length !== nt) throw new RangeError('decimate: one group a triangle');
@@ -83,7 +84,7 @@ export function decimateMesh(positions: ArrayLike<number>, indices: ArrayLike<nu
   const scale = Math.max(1e-9, hi0 - lo0);
   const s: State = {
     P, T, G, nv, nt, alive: new Uint8Array(nt).fill(1), vAlive: new Uint8Array(nv), head: new Int32Array(nv).fill(-1), next: new Int32Array(3 * nt).fill(-1),
-    Q: new Float64Array(10 * nv), cosFeature: Math.cos((options.featureDegrees ?? 40) * Math.PI / 180), tiny2: (scale * 1e-9) ** 2,
+    Q: new Float64Array(10 * nv), cosFeature: Math.cos((options.feature ?? 40) * Math.PI / 180), tiny2: (scale * 1e-9) ** 2,
     best: new Int32Array(nv).fill(-1), at: new Float64Array(3 * nv), cost: new Float64Array(nv).fill(Infinity), heap: new Int32Array(nv), pos: new Int32Array(nv).fill(-1), size: 0,
     mark: new Int32Array(nv), stamp: 0, ring: new Int32Array(64), ringN: 0, ringR: new Int32Array(64), ringU: new Int32Array(64), fdeg: new Int8Array(nv).fill(-1),
     N: new Float64Array(3 * nt), R: new Float64Array(3 * nv), slot: new Int32Array(nv), fCount: new Int32Array(64), fN: new Float64Array(6 * 64), fG: new Int32Array(64), fFeat: new Uint8Array(64), flips: 0, topology: 0,
@@ -130,11 +131,11 @@ export function decimateMesh(positions: ArrayLike<number>, indices: ArrayLike<nu
   const measured = options.measure === false ? undefined : (() => {
     const a = meshDistance(positions, indices, outP, outT), b = meshDistance(outP, outT, positions, indices);
     const samples = a.samples + b.samples;
-    return { toResultMaxMM: a.maxMM, toOriginalMaxMM: b.maxMM, hausdorffMM: Math.max(a.maxMM, b.maxMM), rmsMM: Math.sqrt((a.sumSq + b.sumSq) / samples), samples };
+    return { toResultMax: a.max, toOriginalMax: b.max, hausdorff: Math.max(a.max, b.max), rms: Math.sqrt((a.sumSq + b.sumSq) / samples), samples };
   })();
   return {
     positions: outP, indices: outT, groups: outG,
-    report: { trianglesBefore: nt, trianglesAfter: triangles, verticesBefore: nv, verticesAfter: m, collapses, refused: { flip: s.flips, topology: s.topology }, stoppedBy, boundMM: bound, ...(measured ? { distance: measured } : {}), ms: performance.now() - t0 },
+    report: { trianglesBefore: nt, trianglesAfter: triangles, verticesBefore: nv, verticesAfter: m, collapses, refused: { flip: s.flips, topology: s.topology }, stoppedBy, bound: bound, ...(measured ? { distance: measured } : {}), wallTime: (performance.now() - t0) / 1000 },
   };
 }
 

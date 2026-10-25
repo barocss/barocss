@@ -18,10 +18,10 @@
           "row": {
             "kind": "chain",
             "id": "chain-a",
-            "pitchMM": 12.7,
-            "rollerDiameterMM": 8.51,
-            "innerWidthMM": 7.75,
-            "plateHeightMM": 11.8,
+            "pitch": 12.7,
+            "rollerDiameter": 8.51,
+            "innerWidth": 7.75,
+            "plateHeight": 11.8,
             "estimate": true
           },
           "teeth": 17,

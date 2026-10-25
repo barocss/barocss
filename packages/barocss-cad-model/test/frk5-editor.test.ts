@@ -48,18 +48,18 @@ test('FRk5 existing Frame command/property edit keeps the gap through Save/Open,
   const raw = made.state.doc.nodes[0]; assert.ok(raw.kind === 'frame'); assert.equal(raw.corners?.gap, 2);
   const f = editFields(made.state.doc.nodes, 0).find(f => f.key === 'gap'); assert.ok(f?.kind === 'number');
   const edited = await dispatchTool(made.state, 'features', { action: 'edit', index: 0, values: { gap: 3 } }, evaluate);
-  assert.equal(edited.isError, false, edited.content); assert.notEqual(edited.state.bodies[1].volumeMM3, made.state.bodies[1].volumeMM3);
+  assert.equal(edited.isError, false, edited.content); assert.notEqual(edited.state.bodies[1].volume, made.state.bodies[1].volume);
   const file = await readStudioFile(encodeStudioFile(edited.state.doc)); assert.ok('doc' in file); assert.deepEqual(file.doc.nodes, edited.state.doc.nodes);
   const bound = { ...file.doc, parameters: { g: 3 } }, bind = editFields(bound.nodes, 0, bound.parameters).find(f => f.key === 'gap') as BindableField, nodes = bind.bind(bound.nodes, 'g'); assert.ok(nodes);
-  const next = await evaluate({ ...bound, nodes, parameters: { g: 4 } }); assert.ok(next.ok); assert.notEqual(next.bodies[1].volumeMM3, edited.state.bodies[1].volumeMM3);
-  for (const b of next.bodies) { assert.ok(b.cutPiece); near(b.cutPiece.volumeMM3, b.volumeMM3!); }
+  const next = await evaluate({ ...bound, nodes, parameters: { g: 4 } }); assert.ok(next.ok); assert.notEqual(next.bodies[1].volume, edited.state.bodies[1].volume);
+  for (const b of next.bodies) { assert.ok(b.cutPiece); near(b.cutPiece.volume, b.volume!); }
 });
 
 test('FRk5 per-point gap override has an independent T-butt length oracle; unsupported cutter leaves state unchanged', async () => {
   const made = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'features', { action: 'add', features: [{ ...tee, corners: { tee: 'butt', gap: 2, at: [{ point: 3, kind: 'butt', through: 0, gap: 4 }] } }] }, evaluate);
   assert.equal(made.isError, false, made.content);
   const rail = made.state.bodies.find(b => b.cutPiece?.id.endsWith('/1')); assert.ok(rail?.cutPiece);
-  near(rail.volumeMM3!, (1600 - 34 * 34) * (500 - 20 - 4)); near(rail.cutPiece.axisLengthMM, 476);
+  near(rail.volume!, (1600 - 34 * 34) * (500 - 20 - 4)); near(rail.cutPiece.axisLength, 476);
   const bad = { ...tee, corners: { at: [{ point: 3, kind: 'cope', through: 0, notch: { kind: 'holesaw', diameter: 2 } }] } };
   const refused = await dispatchTool(made.state, 'features', { action: 'edit', index: 0, feature: bad }, evaluate);
   assert.equal(refused.isError, true); assert.equal(refused.state, made.state);
@@ -79,12 +79,12 @@ test('FRk5 positive authored gap never creates a contact bead; zero-gap re-edit 
     assert.equal(result.bodies.filter(b => b.cutPiece).length, 2, 'bead refusal preserves both members');
     const list = weldList(doc, result.bodies), joint = list.joints.find(j => j.id === record.joint); assert.ok(joint);
     if (gap > 0) {
-      assert.equal(joint.gapMM, gap); assert.equal(joint.contact, 'clearance');
+      assert.equal(joint.gap, gap); assert.equal(joint.contact, 'clearance');
       assert.ok(list.notes.some(note => note.includes('not in contact')));
-      assert.equal(list.totals.beads?.complete, false); assert.equal(list.totals.beads?.ownedVolumeMM3, 0);
+      assert.equal(list.totals.beads?.complete, false); assert.equal(list.totals.beads?.ownedVolume, 0);
       assert.deepEqual(list.totals.beads?.refusedJointIds, [record.joint]);
     } else {
-      assert.equal(joint.gapMM, undefined); assert.equal(joint.contact, undefined); assert.equal(list.totals.beads?.complete, true);
+      assert.equal(joint.gap, undefined); assert.equal(joint.contact, undefined); assert.equal(list.totals.beads?.complete, true);
     }
 
   }
@@ -100,15 +100,15 @@ test('FRk5 existing Frame notch choice edits its actual cutter through the commo
     const node = made.state.doc.nodes[0]; assert.ok(node.kind === 'frame'); const finish = node.corners?.at?.[0]; assert.ok(finish); assert.equal(finish.point, 3); assert.equal(finish.notch?.kind, notch);
     const field = editFields(made.state.doc.nodes, 0).find(f => f.key === key); assert.ok(field?.kind === 'number');
     const changed = await dispatchTool(made.state, 'features', { action: 'edit', index: 0, values: { [key]: value } }, evaluate);
-    assert.equal(changed.isError, false, changed.content); assert.notEqual(changed.state.bodies[1].volumeMM3, made.state.bodies[1].volumeMM3);
+    assert.equal(changed.isError, false, changed.content); assert.notEqual(changed.state.bodies[1].volume, made.state.bodies[1].volume);
     const file = await readStudioFile(encodeStudioFile(changed.state.doc)); assert.ok('doc' in file); assert.deepEqual(file.doc.nodes, changed.state.doc.nodes);
-    const result = await evaluate(file.doc); assert.ok(result.ok); assert.equal(result.bodies[1].volumeMM3, changed.state.bodies[1].volumeMM3);
+    const result = await evaluate(file.doc); assert.ok(result.ok); assert.equal(result.bodies[1].volume, changed.state.bodies[1].volume);
     const list = weldList(file.doc, result.bodies);
     assert.ok(list.notes.some(note => note.includes('no planar weld seam is inferred')));
     assert.ok(!list.joints.some(j => j.body === result.bodies[1].key), 'a cutter notch is not a fabricated planar weld seam');
 
     const bound = { ...file.doc, parameters: { cutter: value } }, bind = editFields(bound.nodes, 0, bound.parameters).find(f => f.key === key) as BindableField, nodes = bind.bind(bound.nodes, 'cutter'); assert.ok(nodes);
-    const after = await evaluate({ ...bound, nodes, parameters: { cutter: value + 1 } }); assert.ok(after.ok); assert.notEqual(after.bodies[1].volumeMM3, result.bodies[1].volumeMM3);
+    const after = await evaluate({ ...bound, nodes, parameters: { cutter: value + 1 } }); assert.ok(after.ok); assert.notEqual(after.bodies[1].volume, result.bodies[1].volume);
   }
 });
 

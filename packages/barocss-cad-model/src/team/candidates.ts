@@ -37,13 +37,13 @@ export interface CandidateRequest {
 /** What a candidate's or a reopened document's state says: its facts, and each requirement's verdict and measure. */
 export interface Evidence {
   revision: string; token: number;
-  facts: { solids: number; volume_mm3: number; bbox: { min: number[]; max: number[] } | null };
+  facts: { solids: number; volume: number; bbox: { min: number[]; max: number[] } | null };
   verdicts: Record<string, { status: string; measured?: number }>;
   gates?: GateResult[];
 }
 export type CandidateStatus = 'pending' | 'built' | 'failed' | 'cancelled' | 'timed_out' | 'accepted' | 'refused';
 interface Candidate { id: string; operationId: string; token: number; base: string; ops: Op[]; dependsOn: string[]; budget: Partial<Record<BudgetName, number>>; startedAt: number; deadline: number | null; status: CandidateStatus; state?: ChatState; evidence?: Evidence; code?: BoardCode; message?: string }
-export interface Outcome { seq: number; op: string; operationId: string; candidate?: string; ok: boolean; code?: BoardCode; message?: string; duplicate?: true; revision: string; token: number; volume_mm3: number | null; evidence?: Evidence }
+export interface Outcome { seq: number; op: string; operationId: string; candidate?: string; ok: boolean; code?: BoardCode; message?: string; duplicate?: true; revision: string; token: number; volume: number | null; evidence?: Evidence }
 /** A document read back by a fresh reader: its evidence, or why it could not be read. */
 export type Reopen = (bytes: Uint8Array) => Promise<Evidence | { error: string }>;
 
@@ -53,7 +53,7 @@ const clone = <T>(v: T): T => structuredClone(v);
 export async function evidenceOf(doc: StudioDoc, bodies: ChatState['bodies'], evaluate: Evaluate, token: number): Promise<Evidence> {
   const f = factsOf(doc, bodies), spec = await checkSpec(doc, bodies, evaluate), verdicts: Evidence['verdicts'] = {};
   for (const [id, o] of spec.outcomes) verdicts[id] = { status: o.status, ...(typeof o.measured === 'number' ? { measured: r9(o.measured) } : {}) };
-  return { revision: revisionOf(doc), token, facts: { solids: f.solids, volume_mm3: r9(f.volume_mm3), bbox: f.bbox ? { min: f.bbox.min.map(r9), max: f.bbox.max.map(r9) } : null }, verdicts };
+  return { revision: revisionOf(doc), token, facts: { solids: f.solids, volume: r9(f.volume), bbox: f.bbox ? { min: f.bbox.min.map(r9), max: f.bbox.max.map(r9) } : null }, verdicts };
 }
 /** A fresh reader in this process: the saved bytes parsed as the studio opens a file, evaluated again. */
 export function inProcessReopen(evaluate: Evaluate): Reopen {
@@ -68,7 +68,7 @@ export function inProcessReopen(evaluate: Evaluate): Reopen {
 /** Where two evidences differ: facts to 1e-9 (relative, for the volume), each verdict, each measure within its check's tolerance. */
 export function replayDiff(live: Evidence, back: Evidence, tolerances: Readonly<Record<string, number>>): { code: 'REPLAY_FACTS_DIFFER' | 'REPLAY_VERDICT_DIFFERS'; message: string } | null {
   const a = live.facts, b = back.facts;
-  if (a.solids !== b.solids || Math.abs(a.volume_mm3 - b.volume_mm3) > 1e-9 * Math.max(1, Math.abs(a.volume_mm3)) || JSON.stringify(a.bbox) !== JSON.stringify(b.bbox))
+  if (a.solids !== b.solids || Math.abs(a.volume - b.volume) > 1e-9 * Math.max(1, Math.abs(a.volume)) || JSON.stringify(a.bbox) !== JSON.stringify(b.bbox))
     return { code: 'REPLAY_FACTS_DIFFER', message: `read back, the part is not the one accepted: ${JSON.stringify(b)} against ${JSON.stringify(a)}` };
   for (const id of new Set([...Object.keys(live.verdicts), ...Object.keys(back.verdicts)])) {
     const x = live.verdicts[id], y = back.verdicts[id];
@@ -94,9 +94,9 @@ export class CandidateBoard {
   tick(n = 1): void { this.now += n; }
 
   /** The accepted part's volume (mm³), null with no body. */
-  volume(): number | null { const v = this.accepted.bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0); return this.accepted.bodies.length ? r9(v) : null; }
+  volume(): number | null { const v = this.accepted.bodies.reduce((s, b) => s + (b.volume ?? 0), 0); return this.accepted.bodies.length ? r9(v) : null; }
   private record(op: string, operationId: string, o: Partial<Outcome> & { ok: boolean }): Outcome {
-    const out: Outcome = { seq: ++this.seq, op, operationId, ...o, revision: revisionOf(this.accepted.doc), token: this.token, volume_mm3: this.volume() } as Outcome;
+    const out: Outcome = { seq: ++this.seq, op, operationId, ...o, revision: revisionOf(this.accepted.doc), token: this.token, volume: this.volume() } as Outcome;
     this.outcomes.push(out); this.done.set(operationId, out); return out;
   }
   /** A second delivery of an operation: its first outcome, said to be a duplicate — never run again. */

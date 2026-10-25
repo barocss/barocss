@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart } from '../dist/index.js';
+import { evaluateCadPart, checkOutput, massPropertiesOf } from '../dist/index.js';
 
 // D98: the wedge chamfer's ends (a straight edge between two planes). A filling (concave) wedge stopped square at its
 // ends, adding material past an oblique end face; a cutting (convex) one ran d past both ends, notching a wall there.
@@ -24,8 +24,8 @@ test('D98 the concave wedge chamfer at oblique ends: a step\'s foot (ends at 0°
     const body = step(deg, round), o0 = out(body), inner = at(o0.brep, 15, 10);
     for (const d of [2, 5]) {
       const o = out([...body, chamfer(round ? 'g' : 'u', inner, d)]), what = `${deg}°, rounded ${round}, d ${d}`;
-      assert.equal(o.validate().valid, true, what);
-      const got = o.massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3;
+      assert.equal(checkOutput(o).valid, true, what);
+      const got = massPropertiesOf(o).volume - massPropertiesOf(o0).volume;
       assert.ok(Math.abs(got / (d * d / 2 * 40) - 1) < 1e-12, `${what}: ${got}`);
     }
   }
@@ -37,11 +37,11 @@ test('D98 a rib running into a wall (square, and the wall\'s face turned 10°): 
       { id: 'r', kind: 'sketch', profile: 'rectangle', min: [0, 10], max: [50, 20] }, { id: 're', kind: 'extrude', sketch: 'r', height: 5, from: 5 },
       { id: 'w', kind: 'sketch', profile: 'polygon', points: [[40, 0], [60, 0], [60, 30], [40 + 30 * t, 30]] }, { id: 'we', kind: 'extrude', sketch: 'w', height: 20, from: 5 },
       { id: 'u1', kind: 'union', target: 'pe', tool: 're' }, { id: 'u', kind: 'union', target: 'u1', tool: 'we' }];
-    const o0 = out(body), v0 = o0.massProperties(1).volumeMM3;
+    const o0 = out(body), v0 = massPropertiesOf(o0).volume;
     // (The section's centroid at y = 20 ∓ 2/3: the top's triangle inside the rib, the foot's outside it.)
     for (const [what, z, sign, cy] of [['top', 10, -1, 20 - 2 / 3], ['foot', 5, 1, 20 + 2 / 3]]) {
-      const o = out([...body, chamfer('u', at(o0.brep, 20, z), 2)]), exact = 2 * (40 + cy * t), got = sign * (o.massProperties(1).volumeMM3 - v0);
-      assert.equal(o.validate().valid, true, `${deg}° ${what}`);
+      const o = out([...body, chamfer('u', at(o0.brep, 20, z), 2)]), exact = 2 * (40 + cy * t), got = sign * (massPropertiesOf(o).volume - v0);
+      assert.equal(checkOutput(o).valid, true, `${deg}° ${what}`);
       assert.ok(Math.abs(got / exact - 1) < 1e-12, `${deg}° ${what}: ${got} vs ${exact}`);
     }
   }

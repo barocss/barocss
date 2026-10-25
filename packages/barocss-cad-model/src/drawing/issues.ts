@@ -199,7 +199,7 @@ function textOf(sheet: Sheet, id: string): string { const r = sheet.dimensions.f
 // The list
 
 export interface IssueContext {
-  views: DrawingViews; layout: SheetLayout; settings: DrawingSettings; sheet: Sheet; callout: (edge: string, diameterMM?: number) => string | null;
+  views: DrawingViews; layout: SheetLayout; settings: DrawingSettings; sheet: Sheet; callout: (edge: string, diameter?: number) => string | null;
   /** O7: the document's fastener sizes, which position tolerances read (none loaded: each an estimate). */
   fastenerSizes?: FastenerSizes;
   /** O148 X2: the sections cut for the sheet (for Auto-dimension's fix). */
@@ -207,7 +207,7 @@ export interface IssueContext {
   /** O148 X3: the part's machine elements (a keyseat's shaft, a keyway's axis): the section a hidden dimension needs. */
   elements?: readonly PartElement[];
   /** D155: why a diameter dimension's fit class has no limits at its size (drawing/fits.ts fitMiss), or null. */
-  fitMiss?: (edge: string, diameterMM: number) => string | null;
+  fitMiss?: (edge: string, diameter: number) => string | null;
   /** FRf2 (O125): frames following a placed part's sketch that changed since linked, in words. */
   followedChanged?: readonly string[];
   /** The sheet built again for other settings (O67: a table's sheet or scale fix is offered only when that sheet clears it). */
@@ -704,7 +704,7 @@ function accepted(d: DrawingDimension): DrawingDimension {
 }
 
 /** What a sheet is built from, to build it again after a fix. */
-export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; /** O7: the document's fastener sizes. */ fastenerSizes?: FastenerSizes; /** The part's machine elements (O145): Auto layout's leader notes for keys and pins. */ elements?: readonly PartElement[]; callout: (edge: string, diameterMM?: number) => string | null; fitMiss?: (edge: string, diameterMM: number) => string | null; followedChanged?: readonly string[]; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; /** O148 X1: the sections cut (each with its projection; those the settings list are drawn). */ sections?: readonly SheetSection[] }
+export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; /** O7: the document's fastener sizes. */ fastenerSizes?: FastenerSizes; /** The part's machine elements (O145): Auto layout's leader notes for keys and pins. */ elements?: readonly PartElement[]; callout: (edge: string, diameter?: number) => string | null; fitMiss?: (edge: string, diameter: number) => string | null; followedChanged?: readonly string[]; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; /** O148 X1: the sections cut (each with its projection; those the settings list are drawn). */ sections?: readonly SheetSection[] }
 
 /** The context of a sheet built from its inputs (its layout from the settings, the sections' extents with it). */
 export function issueContext(i: SheetInputs): IssueContext {

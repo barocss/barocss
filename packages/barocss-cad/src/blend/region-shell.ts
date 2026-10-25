@@ -77,8 +77,8 @@ function voidSolid(b: Brep, shellId: string, id: string): Brep {
   const edges = b.edges.filter(e => usedEdges.has(e.id)), usedVerts = new Set(edges.flatMap(e => [...e.vertices]));
   return buildBrep({
     source: { family: 'shell', id },
-    vertices: b.vertices.filter(v => usedVerts.has(v.id)).map(v => ({ id: v.id, point: v.point, toleranceMM: v.toleranceMM })),
-    edges: edges.map(e => ({ id: e.id, curve: e.curve, vertices: [e.vertices[0], e.vertices[1]] as [string, string], toleranceMM: e.toleranceMM, ...(e.name === undefined ? {} : { name: e.name }) })),
+    vertices: b.vertices.filter(v => usedVerts.has(v.id)).map(v => ({ id: v.id, point: v.point, tolerance: v.tolerance })),
+    edges: edges.map(e => ({ id: e.id, curve: e.curve, vertices: [e.vertices[0], e.vertices[1]] as [string, string], tolerance: e.tolerance, ...(e.name === undefined ? {} : { name: e.name }) })),
     bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_s`, closed: true, faces: faces.map(f => ({ id: f.id, surface: f.surface as Surface, sense: (f.sense === 'forward' ? 'reversed' : 'forward') as 'forward' | 'reversed', ...(f.name === undefined ? {} : { name: f.name }),
       loops: f.loops.map(lid => { const l = loops.get(lid)!; return { kind: l.kind, uses: [...l.coedges].reverse().map(cid => { const c = coedges.get(cid)!; return { edge: c.edge, sense: (c.sense === 'forward' ? 'reversed' : 'forward') as 'forward' | 'reversed' }; }) }; }) })) }] }],
   });
@@ -119,7 +119,7 @@ function partsOf(body: Brep, open: ReadonlySet<string>) {
   const groups = new Map<string, BrepFace[]>();
   for (const f of kept) groups.set(find(f.id), [...(groups.get(find(f.id)) ?? []), f]);
   // The body's points (its tessellation's, on its faces) for the bounding test.
-  const P = tessellateBrep(body, { segmentsPerQuarter: 8 }).positionsMM;
+  const P = tessellateBrep(body, { segmentsPerQuarter: 8 }).positions;
   const bounds = (n: Point, o: Point) => { const tol = 1e-6 * size; for (let i = 0; i < P.length; i += 3) if ((P[i] - o[0]) * n[0] + (P[i + 1] - o[1]) * n[1] + (P[i + 2] - o[2]) * n[2] > tol) return false; return true; };
   const bands: { n: Point; o: Point; faces: BrepFace[] }[] = [], regions: Set<string>[] = [], bandOf = new Map<string, number>(), regionOf = new Map<string, number>(), crossed = new Set<string>();
   for (const fs of groups.values()) {

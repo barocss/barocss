@@ -12,7 +12,7 @@ test('finish: a fillet or chamfer up to the wall fits; a larger one is refused, 
   for (const [kind, size, volume] of [['fillet', 4, 16384 * 2 - (16 - 4 * Math.PI) * 32 - 16384], ['fillet', 16, 32 * (512 - 256 + 64 * Math.PI)], ['chamfer', 16, 12288]] as const) {
     const r = finish(kind, size); assert.ok(r.ok, `${kind} ${size}: ${!r.ok && r.error.detail}`);
     assert.deepEqual(r.bodies[0].mesh.bounds.min, [0, 0, 0]);
-    assert.ok(Math.abs(r.bodies[0].volumeMM3! - volume) / volume < 3e-4, `${kind} ${size}: ${r.bodies[0].volumeMM3} vs ${volume}`);
+    assert.ok(Math.abs(r.bodies[0].volume! - volume) / volume < 3e-4, `${kind} ${size}: ${r.bodies[0].volume} vs ${volume}`);
   }
   for (const [kind, size] of [['fillet', 16.5], ['fillet', 20], ['chamfer', 17], ['chamfer', 20]] as const) {
     const r = finish(kind, size); assert.ok(!r.ok, `${kind} ${size} accepted`);

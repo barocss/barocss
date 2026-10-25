@@ -112,14 +112,14 @@
           "row": {
             "id": "6204",
             "designation": "6204",
-            "boreMM": 20,
-            "outsideMM": 47,
-            "widthMM": 14,
-            "chamferMM": 1,
-            "daMinMM": 25,
-            "daMaxMM": 26.5,
-            "DaMaxMM": 42,
-            "raMaxMM": 1,
+            "bore": 20,
+            "outside": 47,
+            "width": 14,
+            "chamfer": 1,
+            "daMin": 25,
+            "daMax": 26.5,
+            "DaMax": 42,
+            "raMax": 1,
             "source": "B1 (D139): the NSK 6204 page"
           },
           "shaft": "s",
@@ -133,11 +133,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 30394.35914476687,
           "relTol": 1e-09
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -154,11 +154,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 42270.129154050665,
           "relTol": 1e-09
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -175,11 +175,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 19800.652218059236,
           "relTol": 1e-09
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,

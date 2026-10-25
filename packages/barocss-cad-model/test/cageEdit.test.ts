@@ -7,7 +7,7 @@ import { commitDrag, dragged, fullCage, openRun, pickCage, previewLevels, previe
 // R8.2 (D81): the cage-editing session — picking, selection with loops, dragging and extruding on a drag, the
 // operations, the session's own undo, the mirror. Every step's cage is valid and the kernel builds it.
 const sound = (s: CageSession) => { const v = validationOf(s); assert.equal(v.valid, true, JSON.stringify(v)); const b = subdBrep(fullCage(s)); assert.equal(checkBrep(b).valid, true, checkBrep(b).issues[0]); return b; };
-const vol = (s: CageSession) => brepMassProperties(subdBrep(fullCage(s)), 1).volumeMM3;
+const vol = (s: CageSession) => brepMassProperties(subdBrep(fullCage(s)), 1).volume;
 /** Looking down −Z from above, 10 px a mm, y up the screen. */
 const project = (p: [number, number, number]): [number, number, number] => [400 + 10 * p[0], 300 - 10 * p[1], -p[2]];
 
@@ -59,7 +59,7 @@ test('mirror across X: the box of 2 quads across halved (its plane ring kept on 
   assert.equal(s.cage.positions[3 * plane[0]], 0); sound(s);
   const side = s.cage.faces.findIndex(f => f.some(v => s.cage.positions[3 * v] === 0) && f.every(v => s.cage.positions[3 * v + 2] === 16));
   s = commitDrag({ ...s, sel: { vertices: [], edges: [], faces: [side] } }, [0, 0, 5], true); sound(s);
-  const full = fullCage(s); assert.ok(brepMassProperties(subdBrep(full), 1).centroidMM[0] === 0 || Math.abs(brepMassProperties(subdBrep(full), 1).centroidMM[0]) < 1e-9);
+  const full = fullCage(s); assert.ok(brepMassProperties(subdBrep(full), 1).centroid[0] === 0 || Math.abs(brepMassProperties(subdBrep(full), 1).centroid[0]) < 1e-9);
   s = runOp(s, 'mirror-off'); assert.equal(s.mirror, undefined); sound(s);
   assert.throws(() => runOp(startSession(0, boxCage(30, 20, 16, 1, [0, 0, 0])), 'mirror-x'), /crosses the X plane/);
 });

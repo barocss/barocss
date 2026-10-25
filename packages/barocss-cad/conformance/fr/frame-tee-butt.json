@@ -64,11 +64,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 355200,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -84,8 +84,8 @@
           }
         ],
         "member": {
-          "areaMM2": 444,
-          "lengthMM": 800,
+          "area": 444,
+          "length": 800,
           "centroid": [
             0,
             0
@@ -94,11 +94,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 213120,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             260,
             0,
@@ -114,8 +114,8 @@
           }
         ],
         "member": {
-          "areaMM2": 444,
-          "lengthMM": 500,
+          "area": 444,
+          "length": 500,
           "centroid": [
             0,
             0
@@ -130,7 +130,7 @@
               "end": "end",
               "kind": "butt",
               "point": 2,
-              "angleDegrees": 0
+              "angle": 0
             }
           ],
           "absTol": 1e-9

@@ -63,7 +63,7 @@ test('one bracket three ways: the document by hand, the agent\'s commands and th
     .hole(body => body.faces().facing('+z'), { d: 8, x: 20, y: 20 })
     .fillet(body => body.edges().along('z'), { radius: 2 });
 
-  const mass = bracket.mass('al6061');      // or mass({ density: 2.7 }): { volumeMM3, massG, centroidMM, inertiaGMM2 }
+  const mass = bracket.mass('al6061');      // or mass({ density: 2.7 }): { volume, mass, centroid, inertia }
   const step = bracket.step();              // STEP AP214 text
   const meshes = bracket.meshes();          // [{ key, positions, normals, indices }], one a body
   // #endregion bracket
@@ -72,9 +72,9 @@ test('one bracket three ways: the document by hand, the agent\'s commands and th
   const r = evaluateDoc(raw, 1);
   assert.ok(r.ok);
   const core = bodyMass(r.bodies[0], 2.7);
-  assert.equal(mass.volumeMM3, r.bodies[0].volumeMM3);
-  assert.equal(mass.massG, core.massG);
-  assert.deepEqual(mass.centroidMM, core.centroid);
+  assert.equal(mass.volume, r.bodies[0].volume);
+  assert.equal(mass.mass, core.mass);
+  assert.deepEqual(mass.centroid, core.centroid);
   assert.equal(JSON.stringify(bracket.mass({ density: 2.7 })), JSON.stringify(mass));
   const coreStep = exportStudioStep(raw, { name: 'bracket' });
   assert.equal(unstamped(step), unstamped(coreStep.text));
@@ -154,7 +154,7 @@ const plate = () => part('plate').parameter('W', 80).parameter('R', 2)
   .fillet(body => body.edges().along('z'), { radius: param('R') });
 /** The plate's volume at width w and corner radius r. */
 const plateVolume = (w, r) => w * 40 * 10 - 4 * (r ** 2 - Math.PI * r ** 2 / 4) * 10;
-const volume = p => p.mass({ density: 1 }).volumeMM3;
+const volume = p => p.mass({ density: 1 }).volume;
 const near = (a, b) => Math.abs(a - b) < 1e-9 * b;
 
 test('parameters: bound as the studio\'s editor binds them, edited by withParameters', () => {
@@ -203,7 +203,7 @@ test('the studio\'s own commands: a gear pair and a spring', () => {
     .gear({ m: 1.5, teeth: 20, b: 10, bore: 20 })
     .gearMesh({ teeth: 40, dir: 0, bore: 16 });
   const [pinion, wheel] = pair.bodies();
-  const centre = pair.body(wheel).mass({ density: 1 }).centroidMM;
+  const centre = pair.body(wheel).mass({ density: 1 }).centroid;
   assert.ok(Math.abs(centre[0] - 1.5 * (20 + 40) / 2) < 1e-6);   // the centre distance, m (z1 + z2) / 2 = 45
 
   const spring = part('spring').spring({ type: 'compression', d: 2.5, D: 18, n: 5, p: 6, ends: 'closed-ground', hand: 'right' });

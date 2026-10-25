@@ -164,7 +164,7 @@ function buildFastener(doc: StudioDoc, v: Values, sizes: FastenerSizes): { doc: 
       // to just under the socket.
       const plane = { origin: [x, y, z] as [number, number, number], normal: [0, -1, 0] as [number, number, number], xAxis: [1, 0, 0] as [number, number, number] };
       const hp = add({ kind: 'sketch', profile: 'polygon', points: [[0, 0], [size.cdk / 2, 0], [size.d / 2, -size.ck], [0, -size.ck]], plane });
-      const cone = add({ kind: 'revolve', sketch: hp, axis: 'y', angleDegrees: 360 });
+      const cone = add({ kind: 'revolve', sketch: hp, axis: 'y', angle: 360 });
       const sp = add({ kind: 'sketch', profile: 'polygon', points: hexagon(x, y, size.csocket) });
       const socket = add({ kind: 'extrude', sketch: sp, height: size.ck * 0.6 + 0.5, from: z - size.ck * 0.6 });
       const head = add({ kind: 'difference', parent: { node: cone, side: 'solid' }, tool: { node: socket, side: 'solid' } });

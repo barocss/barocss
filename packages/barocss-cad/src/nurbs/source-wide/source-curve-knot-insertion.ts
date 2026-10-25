@@ -47,9 +47,9 @@ type D1State = { status: 'evaluated'; value: CurveD1Result } |
   { status: 'refused-c0'; name: string; reason: string; value: null };
 type Observation = {
   parameter: number;
-  originalPointMM: Point;
-  refinedPointMM: Point;
-  pointDifferenceMM: number;
+  originalPoint: Point;
+  refinedPoint: Point;
+  pointDifference: number;
   originalD1: D1State;
   refinedD1: D1State;
   relativeDerivativeDifference: number | null;
@@ -88,7 +88,7 @@ export interface SourceCurveKnotInsertionReport {
   sourceSizes: { original: Size; candidate: Size };
   fileSizes: { request: Size; result: Size };
   observations: Observation[];
-  maximumPointDifferenceMM: number;
+  maximumPointDifference: number;
   maximumRelativeDerivativeDifference: number;
   directCounts: {
     originalCompileCount: 1; candidateCompileCount: 1;
@@ -117,9 +117,9 @@ export interface SourceCurveKnotInsertionReport {
   limits: {
     maximumDegree: 5; maximumOriginalPoles: 63; maximumRefinedPoles: 64;
     maximumKnots: 70; maximumInsertions: 1; maximumObservations: 128;
-    maximumPatches: 3; maximumModelObjects: 16; coordinateAbsMM: 10000;
+    maximumPatches: 3; maximumModelObjects: 16; coordinateAbs: 10000;
     minimumWeight: 0.000001; maximumWeight: 1000000;
-    maximumReplacementLiteralCharacters: 512; maximumPointDifferenceMM: 1e-7;
+    maximumReplacementLiteralCharacters: 512; maximumPointDifference: 1e-7;
     maximumRelativeDerivativeDifference: 1e-7; sourceUTF16: 262144;
     sourceUTF8: 262144; maximumFileUTF16: 2097152; maximumFileUTF8: 2097152;
     ownValues: 1048576; ownDepth: 64; arrayElements: 8192; recordFields: 64;
@@ -499,7 +499,7 @@ export function insertSourceCurveKnot(input: SourceCurveKnotInsertionRequest): S
       check(Number.isFinite(relativeDerivativeDifference) && relativeDerivativeDifference <= 1e-7,
         CODE.BINDING, 'Actual native relative derivative difference exceeds1e-7');
     }
-    return { parameter, originalPointMM, refinedPointMM, pointDifferenceMM,
+    return { parameter, originalPoint: originalPointMM, refinedPoint: refinedPointMM, pointDifference: pointDifferenceMM,
       originalD1, refinedD1, relativeDerivativeDifference };
   });
   check(curveD0Count === 2 * observations.length && curveD1AttemptCount === 2 * observations.length &&
@@ -521,7 +521,7 @@ export function insertSourceCurveKnot(input: SourceCurveKnotInsertionRequest): S
     knot: request.knot, priorMultiplicity, refinedMultiplicity, patchCount: 3,
     sourceSizes: { original: originalSize, candidate: candidateSize },
     fileSizes: { request: requestSize, result: { utf16: 0, utf8: 0 } }, observations,
-    maximumPointDifferenceMM: Math.max(...observations.map(value => value.pointDifferenceMM)),
+    maximumPointDifference: Math.max(...observations.map(value => value.pointDifference)),
     maximumRelativeDerivativeDifference: Math.max(0, ...observations.map(value => value.relativeDerivativeDifference ?? 0)),
     directCounts: {
       originalCompileCount: 1, candidateCompileCount: 1, coefficientInsertionCallCount: 1,
@@ -545,9 +545,9 @@ export function insertSourceCurveKnot(input: SourceCurveKnotInsertionRequest): S
     limits: {
       maximumDegree: 5, maximumOriginalPoles: 63, maximumRefinedPoles: 64,
       maximumKnots: 70, maximumInsertions: 1, maximumObservations: 128, maximumPatches: 3,
-      maximumModelObjects: 16, coordinateAbsMM: 10000, minimumWeight: 0.000001,
+      maximumModelObjects: 16, coordinateAbs: 10000, minimumWeight: 0.000001,
       maximumWeight: 1000000, maximumReplacementLiteralCharacters: 512,
-      maximumPointDifferenceMM: 1e-7, maximumRelativeDerivativeDifference: 1e-7,
+      maximumPointDifference: 1e-7, maximumRelativeDerivativeDifference: 1e-7,
       sourceUTF16: 262144, sourceUTF8: 262144, maximumFileUTF16: 2097152, maximumFileUTF8: 2097152,
       ownValues: 1048576, ownDepth: 64, arrayElements: 8192, recordFields: 64,
       keyCharacters: 128, stringCharacters: 262144, identifierCharacters: 48,

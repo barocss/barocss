@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, loadCadPart, booleanAnalytic, curveDomain, evaluateCurve, CadPartError } from '../dist/index.js';
+import { evaluateCadPart, loadCadPart, booleanAnalytic, curveDomain, evaluateCurve, CadPartError, outputOf, massPropertiesOf, checkOutput, saveCadPart, reevaluate } from '../dist/index.js';
 
 const section = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 };
 const frame = () => ({ id: 'f', kind: 'frame', points: [[0, 0, 0], [400, 0, 0], [400, 300, 0], [0, 300, 0], [0, 0, 300], [400, 0, 300], [400, 300, 300], [0, 300, 300]], segments: [[0, 4], [1, 5], [2, 6], [3, 7], [4, 5], [5, 6], [6, 7], [7, 4]], section, corners: { multi: 'order' } });
@@ -10,7 +10,7 @@ const pair = () => [bead(4, 'start'), bead(7, 'end')];
 const manifest = beads => ({ version: 1, policy: 'equal-length', joints: beads.map(b => ({ ...b.on, leg: b.leg })) });
 const document = (beads = all(), f = frame(), sharing = manifest(beads)) => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [f, ...beads.map(b => ({ ...b, ...(sharing === null ? {} : { sharing }) }))] });
 const near = (got, want, scale, label) => assert.ok(Math.abs(got - want) <= 1e-12 * scale, `${label}: ${got} vs ${want}`);
-const density = 7850;
+const density = 7.85; // g/cm³
 
 // Independent exact triangle moments. No production report, mass or tensor supplies the oracle.
 function moments(prisms) {
@@ -23,7 +23,7 @@ function moments(prisms) {
   const V = pieces.reduce((s, p) => s + p.V, 0), C = [0, 1, 2].map(i => pieces.reduce((s, p) => s + p.V * p.c[i], 0) / V);
   const S = [0, 1, 2].map(i => [0, 1, 2].map(j => pieces.reduce((s, p) => s + p.V * (p.cov[i][j] + (p.c[i] - C[i]) * (p.c[j] - C[j])), 0)));
   const trace = S[0][0] + S[1][1] + S[2][2];
-  return { volumeMM3: V, centroidMM: C, inertiaCentroidKgM2: S.map((row, i) => row.map((v, j) => density * 1e-15 * ((i === j ? trace : 0) - v))) };
+  return { volume: V, centroid: C, inertiaCentroid: S.map((row, i) => row.map((v, j) => density * 1e-3 * ((i === j ? trace : 0) - v))) };
 }
 const local = [
   [{ vertices: [[0, 0, -3], [3, 0, 0], [0, 0, 0]], d: [0, -1, 0], h: 40 }, { vertices: [[0, 0, 0], [3, 0, 0], [0, 3, 0]], d: [0, 0, 1], h: 20 }],
@@ -40,20 +40,20 @@ function checkMoments(s, move = p => p, rotate = p => p) {
     const dir = p => p.map((_, i) => corner.x[i] * p[0] + corner.y[i] * p[1] + (i === 2 ? p[2] : 0));
     const point = p => dir(p).map((v, i) => v + corner.o[i]);
     const expected = moments(local[owner].map(p => ({ ...p, vertices: p.vertices.map(v => move(point(v))), d: rotate(dir(p.d)) })));
-    const out = s.output(corner.ids[owner]), actual = out.massProperties(density), label = out.id;
-    near(actual.volumeMM3, expected.volumeMM3, 270, `${label} volume`);
-    near(actual.massKG, 270 * density * 1e-9, 0.003, `${label} mass`);
-    actual.centroidMM.forEach((v, k) => near(v, expected.centroidMM[k], 400, `${label} centroid ${k}`));
-    const scale = Math.max(...expected.inertiaCentroidKgM2.flat().map(Math.abs));
-    actual.inertiaCentroidKgM2.forEach((row, i) => row.forEach((v, j) => near(v, expected.inertiaCentroidKgM2[i][j], scale, `${label} inertia ${i}${j}`)));
+    const out = outputOf(s, corner.ids[owner]), actual = massPropertiesOf(out, density), label = out.id;
+    near(actual.volume, expected.volume, 270, `${label} volume`);
+    near(actual.mass, 270 * density * 1e-3, 3, `${label} mass`);
+    actual.centroid.forEach((v, k) => near(v, expected.centroid[k], 400, `${label} centroid ${k}`));
+    const scale = Math.max(...expected.inertiaCentroid.flat().map(Math.abs));
+    actual.inertia.forEach((row, i) => row.forEach((v, j) => near(v, expected.inertiaCentroid[i][j], scale, `${label} inertia ${i}${j}`)));
     const seam = out.bead.sharedSeams[0];
     assert.deepEqual(seam.ownedInterval, owner === 0 ? [0, 0.5] : [0.5, 1]);
-    assert.deepEqual(seam.joints, corner.ids.map(id => s.output(id).bead.on));
+    assert.deepEqual(seam.joints, corner.ids.map(id => outputOf(s, id).bead.on));
     assert.equal(seam.id, JSON.stringify(['shared-seam-v1', 'f', seam.joints]));
     const path = [move(corner.o), move(corner.o.map((x, k) => x + (k === 2 ? 40 : 0)))];
-    seam.pathMM.forEach((p, i) => p.forEach((v, j) => near(v, path[i][j], 400, `${label} path ${i}${j}`)));
-    near(seam.lengthMM, 40, 40, `${label} length`); near(seam.nominalSharedVolumeMM3, 180, 180, `${label} nominal shared`); near(seam.ownedSharedVolumeMM3, 90, 90, `${label} owned shared`);
-    assert.ok(out.validate().valid);
+    seam.path.forEach((p, i) => p.forEach((v, j) => near(v, path[i][j], 400, `${label} path ${i}${j}`)));
+    near(seam.length, 40, 40, `${label} length`); near(seam.nominalSharedVolume, 180, 180, `${label} nominal shared`); near(seam.ownedSharedVolume, 90, 90, `${label} owned shared`);
+    assert.ok(checkOutput(out).valid);
   }
 }
 const expectedPair = { frame: 'f', joints: [{ member: 4, end: 'start' }, { member: 7, end: 'end' }] };
@@ -70,15 +70,15 @@ test('A9 actual owned B-reps match independent volume, centroid and all nine ine
   const s = evaluateCadPart(document()); checkMoments(s);
   const outputs = s.outputs.filter(o => o.bead);
   for (let a = 0; a < outputs.length; a++) for (let b = a + 1; b < outputs.length; b++) assert.equal(booleanAnalytic(outputs[a].brep, outputs[b].brep, 'intersection').bodies.length, 0);
-  checkMoments(loadCadPart(s.save()));
+  checkMoments(loadCadPart(saveCadPart(s)));
 });
 
 test('participant/manifest order and feature names do not change semantic ids, geometry or moments', () => {
   const doc = document(), reversed = { ...doc, features: [doc.features[0], ...doc.features.slice(1).reverse().map(b => ({ ...b, sharing: { ...b.sharing, joints: [...b.sharing.joints].reverse() } }))] };
   const first = evaluateCadPart(doc), second = evaluateCadPart(reversed); checkMoments(second);
-  for (const w of second.outputs.filter(o => o.bead)) assert.deepEqual(w.bead.sharedSeams, first.output(w.id).bead.sharedSeams);
+  for (const w of second.outputs.filter(o => o.bead)) assert.deepEqual(w.bead.sharedSeams, outputOf(first, w.id).bead.sharedSeams);
   const renamed = evaluateCadPart({ ...doc, features: doc.features.map(f => f.kind === 'weld-bead' ? { ...f, id: `renamed_${f.id}` } : f) });
-  for (const w of first.outputs.filter(o => o.bead)) assert.deepEqual(renamed.output(`renamed_${w.id}`).bead.sharedSeams, w.bead.sharedSeams);
+  for (const w of first.outputs.filter(o => o.bead)) assert.deepEqual(outputOf(renamed, `renamed_${w.id}`).bead.sharedSeams, w.bead.sharedSeams);
 });
 
 test('proper 30-degree rotation and translation move actual moments and the oriented path once', () => {
@@ -109,7 +109,7 @@ test('unequal legs, inner, curved and oblique shared components refuse without r
   refusal(document([bead(4, 'start', { leg: 2 }), bead(7, 'end')]), 'BEAD_SHARED_UNSUPPORTED');
   refusal(document([bead(4, 'start', { inner: true }), bead(7, 'end')]), 'BEAD_SHARED_UNSUPPORTED');
   const curved = frame(); curved.overrides = [4, 7].map(member => ({ member, section: { ...section, outerRadius: 6 } })); refusal(document(pair(), curved), 'BEAD_SHARED_UNSUPPORTED');
-  const oblique = frame(); oblique.points[5][2] = 330; assert.notEqual(evaluateCadPart(document([], oblique)).output('f/4').member.axis[2], 0); refusal(document(pair(), oblique), 'BEAD_SHARED_UNSUPPORTED');
+  const oblique = frame(); oblique.points[5][2] = 330; assert.notEqual(outputOf(evaluateCadPart(document([], oblique)), 'f/4').member.axis[2], 0); refusal(document(pair(), oblique), 'BEAD_SHARED_UNSUPPORTED');
 });
 
 test('partial and multiple actual boundary runs are outside the complete single-run contract', () => {
@@ -134,22 +134,22 @@ test('atomic retry removes exactly the failed component and rebuilds the remaini
   const error = refusal(doc, 'BEAD_SHARED_UNSUPPORTED'), removed = new Set(error.sharedComponent.joints.map(j => `${j.member}:${j.end}`));
   const remaining = beads.filter(b => !removed.has(`${b.on.member}:${b.on.end}`)), retried = evaluateCadPart(document(remaining));
   assert.deepEqual(retried.outputs.filter(o => o.bead).map(o => o.id), remaining.map(b => b.id));
-  for (const b of remaining) near(retried.output(b.id).bead.volumeMM3, 270, 270, b.id);
+  for (const b of remaining) near(outputOf(retried, b.id).bead.volume, 270, 270, b.id);
   assert.equal(new Set(retried.outputs.flatMap(o => o.bead?.sharedSeams.map(s => s.id) ?? [])).size, 3);
-  const isolated = evaluateCadPart(document([bead(4, 'start')])).output('w4start'); near(isolated.bead.volumeMM3, 360, 360, 'an authored peer removal is a new isolated input'); assert.deepEqual(isolated.bead.sharedSeams, []);
+  const isolated = outputOf(evaluateCadPart(document([bead(4, 'start')])), 'w4start'); near(isolated.bead.volume, 360, 360, 'an authored peer removal is a new isolated input'); assert.deepEqual(isolated.bead.sharedSeams, []);
 });
 
 test('peer/leg/policy changes invalidate cached owned results while unchanged documents reuse them', () => {
-  const doc = document(), s = evaluateCadPart(doc), unchanged = s.withDocument(doc); assert.equal(unchanged.recomputation.reused.length, 9);
+  const doc = document(), s = evaluateCadPart(doc), unchanged = reevaluate(s, { document: doc }); assert.equal(unchanged.recomputation.reused.length, 9);
   const edited = structuredClone(doc); edited.features.find(f => f.id === 'w7end').leg = 2;
   const ctx = manifest(edited.features.filter(f => f.kind === 'weld-bead')); edited.features.filter(f => f.kind === 'weld-bead').forEach(f => { f.sharing = ctx; });
-  assert.throws(() => s.withDocument(edited), e => e.message.includes('[BEAD_SHARED_UNSUPPORTED]') && e.sharedComponent.joints.length === 2);
-  assert.throws(() => s.withDocument(document(all(), frame(), null)), e => e.message.includes('[BEAD_SHARED_CONTEXT]'));
-  const kept = all().filter(b => b.id !== 'w7end'), next = s.withDocument(document(kept)); near(next.output('w4start').bead.volumeMM3, 360, 360, 'removed peer invalidates');
+  assert.throws(() => reevaluate(s, { document: edited }), e => e.message.includes('[BEAD_SHARED_UNSUPPORTED]') && e.sharedComponent.joints.length === 2);
+  assert.throws(() => reevaluate(s, { document: document(all(), frame(), null) }), e => e.message.includes('[BEAD_SHARED_CONTEXT]'));
+  const kept = all().filter(b => b.id !== 'w7end'), next = reevaluate(s, { document: document(kept) }); near(outputOf(next, 'w4start').bead.volume, 360, 360, 'removed peer invalidates');
   const changedFrame = frame(); changedFrame.overrides = [{ member: 4, section: { ...section, height: 30 } }];
-  assert.throws(() => s.withDocument(document(all(), changedFrame)), e => e.message.includes('[BEAD_SHARED_UNSUPPORTED]') && e.sharedComponent.joints.length === 2);
+  assert.throws(() => reevaluate(s, { document: document(all(), changedFrame) }), e => e.message.includes('[BEAD_SHARED_UNSUPPORTED]') && e.sharedComponent.joints.length === 2);
   const paramBeads = all().map(b => b.id === 'w7end' ? { ...b, leg: { parameter: 'leg' } } : b), paramDoc = { ...document(paramBeads), parameters: { leg: 3 } };
-  const param = evaluateCadPart(paramDoc); assert.throws(() => param.withParameters({ leg: 2 }), e => e.message.includes('[BEAD_SHARED_UNSUPPORTED]') && e.sharedComponent.joints.length === 2);
+  const param = evaluateCadPart(paramDoc); assert.throws(() => reevaluate(param, { parameters: { leg: 2 } }), e => e.message.includes('[BEAD_SHARED_UNSUPPORTED]') && e.sharedComponent.joints.length === 2);
 });
 
 test('an invalid peer leg refuses only its actual component even when unrelated features evaluate first', () => {
@@ -157,17 +157,17 @@ test('an invalid peer leg refuses only its actual component even when unrelated 
   const beads = [...wrong.filter(b => !['w4start', 'w7end'].includes(b.id)), ...wrong.filter(b => ['w4start', 'w7end'].includes(b.id))];
   const error = refusal(document(beads));
   const remaining = beads.filter(b => !error.sharedComponent.joints.some(j => j.member === b.on.member && j.end === b.on.end));
-  const s = evaluateCadPart(document(remaining)); for (const b of remaining) near(s.output(b.id).bead.volumeMM3, 270, 270, b.id);
+  const s = evaluateCadPart(document(remaining)); for (const b of remaining) near(outputOf(s, b.id).bead.volume, 270, 270, b.id);
 });
 
 test('isolated 360 T and ordinary gussets retain their actual quantities; gusset/cap sharing is refused', () => {
   const tee = { id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [500, 0, 400], [0, 0, 400]], segments: [[0, 1], [2, 3]], section, corners: { tee: 'butt' } };
-  const t = evaluateCadPart(document([bead(1, 'end')], tee)).output('w1end');
-  near(t.bead.volumeMM3, 360, 360, 'isolated T actual'); near(t.bead.nominalVolumeMM3, 360, 360, 'isolated T nominal'); assert.deepEqual(t.bead.sharedSeams, []);
+  const t = outputOf(evaluateCadPart(document([bead(1, 'end')], tee)), 'w1end');
+  near(t.bead.volume, 360, 360, 'isolated T actual'); near(t.bead.nominalVolume, 360, 360, 'isolated T nominal'); assert.deepEqual(t.bead.sharedSeams, []);
   const f = { id: 'f', kind: 'frame', points: [[600, 0, 0], [0, 0, 0], [0, 0, 600]], segments: [[0, 1], [1, 2]], section, corners: { default: 'mitre' } };
   const gusset = { id: 'g', kind: 'gusset', frame: 'f', point: 1, legs: [120, 100], thickness: 5, clip: 15 }, w = { id: 'w', kind: 'weld-bead', frame: 'f', on: { gusset: 'g' }, leg: 3 };
-  const s = evaluateCadPart({ ...document([]), features: [f, gusset, w] }), g = s.output('w');
-  near(g.bead.volumeMM3, 1710, 1710, 'gusset actual'); near(g.bead.nominalVolumeMM3, 1710, 1710, 'gusset nominal'); assert.deepEqual(g.bead.sharedSeams, []);
+  const s = evaluateCadPart({ ...document([]), features: [f, gusset, w] }), g = outputOf(s, 'w');
+  near(g.bead.volume, 1710, 1710, 'gusset actual'); near(g.bead.nominalVolume, 1710, 1710, 'gusset nominal'); assert.deepEqual(g.bead.sharedSeams, []);
   for (const on of [{ gusset: 'g' }, { cap: 'c' }]) assert.throws(() => evaluateCadPart({ ...document([]), features: [f, gusset, { id: 'c', kind: 'end-cap', frame: 'f', member: 0, end: 'start', fit: 'over', thickness: 4 }, { ...w, on, sharing: manifest([]) }] }), e => (e.details?.category ?? e.code) === 'PARAMETER' && e.message.includes('[BEAD_SHARED_UNSUPPORTED]'));
 });
 

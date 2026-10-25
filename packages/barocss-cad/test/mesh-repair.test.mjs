@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { diagnoseMesh, repairMesh, selfIntersections, facetBrepFromTriangles, facetBrepsFromTriangles, checkBrep, evaluateCadPart, CadPartError, DEFAULT_REPAIR } from '../dist/index.js';
+import { diagnoseMesh, repairMesh, selfIntersections, facetBrepFromTriangles, facetBrepsFromTriangles, checkBrep, evaluateCadPart, CadPartError, DEFAULT_REPAIR, outputOf, massPropertiesOf } from '../dist/index.js';
 
 // M3 (R3.4): the broken set — a hole, flipped triangles, a fin, floaters, degenerate and duplicate triangles, crossing
 // shells, an open sheet — each diagnosed, repaired by explicit steps, with the report it should give.
@@ -44,10 +44,10 @@ test('a square hole in the flat top: found (8 rim edges, 20 mm), filled flat —
   const cut = I.slice(); cut.splice(6 * 1, 6); cut.splice(6 * 2, 6); // top cells (1,0) and (2,0) → a 10 × 5 hole
   const d = diagnoseMesh(P, cut);
   assert.equal(d.holes.length, 1); assert.equal(d.closed, false);
-  assert.ok(Math.abs(d.holes[0].perimeterMM - 30) < 1e-9, String(d.holes[0].perimeterMM));
+  assert.ok(Math.abs(d.holes[0].perimeter - 30) < 1e-9, String(d.holes[0].perimeter));
   const r = repairMesh(P, cut);
   assert.deepEqual([r.report.holesFilled, r.report.holesLeft, r.report.closed], [1, 0, true]);
-  assert.ok(Math.abs(r.report.filledAreaMM2 - 50) < 1e-9, String(r.report.filledAreaMM2));
+  assert.ok(Math.abs(r.report.filledArea - 50) < 1e-9, String(r.report.filledArea));
   assert.ok(Math.abs(volumeOf(r.positions, r.indices) - 1000) < 1e-9, 'a planar fill closes it exactly');
   // Built with its fill groups, the patch is a face of its own (named so), and the body is a valid solid.
   const b = facetBrepFromTriangles(r.positions, r.indices, { id: 'm', groups: r.fill });
@@ -117,7 +117,7 @@ test('floaters under 1% of the largest piece dropped (count and volume); bigger 
   const d = diagnoseMesh(Q, J);
   assert.deepEqual([d.pieces, d.floaters], [5, 3]);
   const r = repairMesh(Q, J);
-  assert.deepEqual([r.report.floatersRemoved, +r.report.floaterVolumeMM3.toFixed(9)], [3, 3]);
+  assert.deepEqual([r.report.floatersRemoved, +r.report.floaterVolume.toFixed(9)], [3, 3]);
   assert.equal(facetBrepsFromTriangles(r.positions, r.indices).length, 2);
   const keep = repairMesh(Q, J, { ...DEFAULT_REPAIR, floaters: false });
   assert.equal(keep.report.floatersRemoved, 0);
@@ -147,8 +147,8 @@ test('an open sheet in a part: no mass and no Booleans, each refused with its re
   const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
   assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'mesh', positions: P, indices: I, representation: 'facets' }])), /encloses nothing|not closed/);
   const snap = evaluateCadPart(D([{ id: 's', kind: 'mesh', positions: P, indices: I, representation: 'facets', open: true }]));
-  assert.equal(snap.output('s').brep.bodies[0].kind, 'sheet');
-  assert.throws(() => snap.output('s').massProperties(1), /encloses no volume/);
+  assert.equal(outputOf(snap, 's').brep.bodies[0].kind, 'sheet');
+  assert.throws(() => massPropertiesOf(outputOf(snap, 's')), /encloses no volume/);
   assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'mesh', positions: P, indices: I, representation: 'facets', open: true }, { id: 'h', kind: 'hole', target: 's', center: [5, 5], radius: 1 }])), /need a closed solid: this mesh is open/);
 });
 

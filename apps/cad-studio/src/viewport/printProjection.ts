@@ -63,7 +63,7 @@ export function projectPrintBodies(bodies: readonly BodyResult[], display: Print
   const motion = motionOf(display.summary.modelToBed), faces: number[][] = [], edges: number[][] = [];
   const shown = bodies.map(body => {
     // posedBody explicitly copies positions, normals and edge lines before Model placeBody can change them.
-    const moved = posedBody(body, motion), mesh = display.printed ? clipMeshSection(moved.mesh, { mode: 'plane', planes: [{ normal: [0, 0, -1], offset: -display.topMM }] }, 'Printed top') : moved.mesh;
+    const moved = posedBody(body, motion), mesh = display.printed ? clipMeshSection(moved.mesh, { mode: 'plane', planes: [{ normal: [0, 0, -1], offset: -display.top }] }, 'Printed top') : moved.mesh;
     if (!mesh) { faces.push([]); edges.push([]); return { ...moved, mesh: emptyMesh() }; }
     const faceMap = faceSources(body.mesh, mesh); faces.push(faceMap); edges.push(edgeSources(body.mesh, mesh, faceMap));
     return { ...moved, mesh };

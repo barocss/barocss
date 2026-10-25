@@ -15,17 +15,17 @@ export interface DraftFace {
   body: string; face: string; kind: 'plane' | 'cylinder' | 'surface' | 'facets';
   cls: DraftClass;
   /** The least and the greatest draft over the face's samples (degrees, signed by n·d). */
-  minDeg: number; maxDeg: number;
+  min: number; max: number;
   /** The least |draft| (degrees): the steepest sample. */
-  steepestDeg: number;
+  steepest: number;
   /** Which way it releases: + along the pull, − against it, ± both (straddling), 0 neither (a wall along the pull, n·d 0 throughout). */
   side: '+' | '-' | '±' | '0';
   /** Its area, and the area whose triangle centres' exact |draft| is under the minimum (the display mesh's triangles). */
-  areaMM2: number; belowMM2: number;
+  area: number; belowArea: number;
   /** Straddling: points of its isocline n·d = 0, on the exact surface (one per mesh edge it crosses). */
   isocline?: Vec3[];
 }
-export interface DraftField { pull: Vec3; minDeg: number; faces: DraftFace[]; method: string }
+export interface DraftField { pull: Vec3; draftMin: number; faces: DraftFace[]; method: string }
 const DEG = 180 / Math.PI, SIGN = 1e-12, GRID = 24;
 
 type Surf = Parameters<typeof closestPointOnSurface>[0];
@@ -96,7 +96,7 @@ export function draftField(doc: StudioDoc, bodies: readonly BodyResult[], pull: 
   try { breps = partBreps(doc); } catch { /* no B-rep: planes and cylinders still exact; the rest the triangles' */ }
   const faces: DraftFace[] = [];
   for (const body of bodies) faces.push(...bodyField(body, breps.find(x => x.key === body.key)?.brep, d, minDeg, sinMin));
-  return { pull: d, minDeg, faces, method: 'exact normals: planes and cylinders from their exact geometry, other faces projected onto the B-rep\'s NURBS (Gauss–Newton), facet faces their triangles\'; samples the display mesh\'s vertices and triangle centres; the area under the minimum by triangle centres' };
+  return { pull: d, draftMin: minDeg, faces, method: 'exact normals: planes and cylinders from their exact geometry, other faces projected onto the B-rep\'s NURBS (Gauss–Newton), facet faces their triangles\'; samples the display mesh\'s vertices and triangle centres; the area under the minimum by triangle centres' };
 }
 
 function bodyField(body: BodyResult, brep: Brep | undefined, d: Vec3, minDeg: number, sinMin: number): DraftFace[] {
@@ -127,8 +127,8 @@ function bodyField(body: BodyResult, brep: Brep | undefined, d: Vec3, minDeg: nu
   for (const df of m.faces) {
     const f = df.index; if (!(area[f] > 0)) continue;
     const N = normals.get(f)!, pos = hi[f] > SIGN, neg = lo[f] < -SIGN, cls: DraftClass = pos && neg ? 'straddle' : steep[f] < sinMin - 1e-12 ? 'steep' : 'drafted';
-    const face: DraftFace = { body: body.key, face: df.name.split('+')[0], kind: N.kind, cls, minDeg: Math.asin(Math.max(-1, Math.min(1, lo[f]))) * DEG, maxDeg: Math.asin(Math.max(-1, Math.min(1, hi[f]))) * DEG,
-      steepestDeg: Math.asin(Math.min(1, steep[f])) * DEG, side: pos && neg ? '±' : pos ? '+' : neg ? '-' : '0', areaMM2: area[f], belowMM2: below[f] };
+    const face: DraftFace = { body: body.key, face: df.name.split('+')[0], kind: N.kind, cls, min: Math.asin(Math.max(-1, Math.min(1, lo[f]))) * DEG, max: Math.asin(Math.max(-1, Math.min(1, hi[f]))) * DEG,
+      steepest: Math.asin(Math.min(1, steep[f])) * DEG, side: pos && neg ? '±' : pos ? '+' : neg ? '-' : '0', area: area[f], belowArea: below[f] };
     if (cls === 'straddle' && N.kind !== 'facets') face.isocline = isoclineOf(m, f, N, vdot, d);
     out.push(face);
   }

@@ -23,7 +23,7 @@ const used = mesh => [...new Set(mesh.indices)].map(i => Array.from(mesh.positio
 function display(bodies, { direction, layerHeight = 0.5, k = 0, printed = false } = {}) {
   const model = api.printLayers(bodies.map(b => b.mesh), { layerHeight, ...(direction ? { direction } : {}) });
   const { layer, ...summary } = model;
-  return { request: 1, summaryKey: 1, summary, layer: layer(k), supportMesh: api.extrudePrintSupport(summary.supportColumns), topMM: Math.min(summary.heightMM, (k + 1) * summary.layerMM.mm), supports: true, printed };
+  return { request: 1, summaryKey: 1, summary, layer: layer(k), supportMesh: api.extrudePrintSupport(summary.supportColumns), top: Math.min(summary.height, (k + 1) * summary.layerHeight.value), supports: true, printed };
 }
 function volume(mesh) {
   let sum = 0;
@@ -50,7 +50,7 @@ test('actual Model +X bed transform is applied once without changing shared sour
 
 test('printed top uses layer upper boundary, preserves removed-body ordinals and gives cap triangles no native authority', () => {
   const bodies = [api.boxBody('removed', [2, 2, 2], [0, 0, 10]), api.boxBody('kept', [2, 2, 2], [-10, 0, 1]), api.boxBody('cut', [4, 4, 4], [10, 0, 2])], before = snapshot(bodies);
-  const d = display(bodies, { k: 4, printed: true }); near(d.layer.z, 2.25); near(d.topMM, 2.5);
+  const d = display(bodies, { k: 4, printed: true }); near(d.layer.z, 2.25); near(d.top, 2.5);
   const out = api.projectPrintBodies(bodies, d); assert.equal(out.bodies.length, 3); assert.deepEqual(out.bodies.map(b => b.key), ['removed', 'kept', 'cut']);
   assert.equal(out.bodies[0].mesh.indices.length, 0); assert.equal(out.bodies[0].mesh.positions.length, 0); assert.deepEqual(out.faceSources[0], []); assert.deepEqual(out.edgeSources[0], []);
   assert.ok(out.bodies[1].mesh.indices.length > 0); close(out.bodies[1].mesh.bounds.max, [-9, 1, 2]);

@@ -132,7 +132,7 @@ export function measureItem(mesh: DisplayMesh, pick: MeasurePick): MeasureItem {
   if (pick.vertex) return { label: `Point ${pick.vertex.map(v => Math.round(v * 1000) / 1000).join(', ')}` };
   if (pick.face !== undefined) {
     const f = mesh.faces[pick.face];
-    return { label: f.kind === 'plane' ? 'Planar face' : 'Curved face', area: f.areaMM2, ...(f.radius ? { radius: f.radius } : {}) };
+    return { label: f.kind === 'plane' ? 'Planar face' : 'Curved face', area: f.area, ...(f.radius ? { radius: f.radius } : {}) };
   }
   const { segs } = primitives(mesh, pick), e = mesh.edges[pick.edge!];
   const length = segs.reduce((acc, [a, b]) => acc + len(sub(b, a)), 0);

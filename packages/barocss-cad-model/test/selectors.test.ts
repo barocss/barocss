@@ -48,10 +48,14 @@ test('selectors in the tools: a fillet on edges said by their faces, a measure b
   assert.ok(!r.isError, r.content);
   const out = parse(r.content);
   assert.deepEqual(out.resolved.map((x: { names: string[] }) => x.names.length), [1]);
-  assert.ok(Math.abs(r.state.bodies[0].volumeMM3! - (40 * 20 * 8 - (4 - Math.PI) * 20)) < 1e-3);
+  assert.ok(Math.abs(r.state.bodies[0].volume! - (40 * 20 * 8 - (4 - Math.PI) * 20)) < 1e-3);
   r = await runTool(s, 'measure', { a: { feature: 1, role: 'top' }, b: { normal: [0, 0, -1] } }, evaluate);
   assert.ok(!r.isError, r.content);
-  assert.equal(parse(r.content).normal_distance, 8); assert.deepEqual(parse(r.content).resolved.map((x: { names: string[] }) => x.names[0]), ['n1.top', 'n1.bottom']);
+  assert.equal(parse(r.content).normalDistance, 8); assert.deepEqual(parse(r.content).resolved.map((x: { names: string[] }) => x.names[0]), ['n1.top', 'n1.bottom']);
+  assert.equal('normal_distance' in parse(r.content), false);
+  const rightAngle = await runTool(s, 'measure', { a: 'n1.top', b: 'n1.side0' }, evaluate);
+  assert.ok(!rightAngle.isError, rightAngle.content);
+  assert.equal(parse(rightAngle.content).angle, 90); assert.equal('angle_deg' in parse(rightAngle.content), false);
   r = await runTool(s, 'select', { faces: [{ feature: 1, role: 'side', all: true }] }, evaluate);
   assert.ok(!r.isError, r.content); assert.equal(parse(r.content).selected.faces.length, 4);
   r = await runTool(s, 'run_command', { command: 'fillet', edges: [{ between: [{ feature: 1, role: 'side' }, { feature: 1, role: 'top' }] }], values: { radius: 1 } }, evaluate);

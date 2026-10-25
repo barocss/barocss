@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { evaluateCadPart, faceGeometry, loadCadLibrary, instantiateLibraryPart } from '../dist/index.js';
+import { evaluateCadPart, faceGeometry, loadCadLibrary, instantiateLibraryPart, outputOf, massPropertiesOf, checkOutput, reevaluate } from '../dist/index.js';
 
 // FR1 (D123): structural sections and a straight member. Oracles, none of them the section module's: each kind's area by
 // the textbook decomposition written here (rectangles, quarter-disk spandrels, slots, bores); its centroid by Green's
@@ -97,13 +97,13 @@ const CASES = [
 test('FR1 sections: each kind along an oblique 3D line — V = A·L by the textbook area (1e-12), its exact mass, valid, one body; the report\'s area and centroid by Green\'s theorem', () => {
   const p0 = [10, -20, 5], p1 = [310, 140, 205], L = Math.hypot(...sub(p1, p0));
   for (const [name, section, A, c] of CASES) {
-    const o = run([member(section, p0, p1)]).output('m'), mp = o.massProperties(7850);
-    near(mp.volumeMM3, A * L, 1e-12, `${name} volume`); near(o.member.areaMM2, A, 1e-12, `${name} area`);
-    assert.equal(mp.method, 'closed-form', name); assert.equal(o.bodyCount, 1, name); assert.ok(o.validate().valid, name);
+    const o = outputOf(run([member(section, p0, p1)]), 'm'), mp = massPropertiesOf(o, 7.85);
+    near(mp.volume, A * L, 1e-12, `${name} volume`); near(o.member.area, A, 1e-12, `${name} area`);
+    assert.equal(mp.method, 'closed-form', name); assert.equal(o.bodyCount, 1, name); assert.ok(checkOutput(o).valid, name);
     near(o.member.centroid[0], c[0], 1e-12, `${name} centroid x`); near(o.member.centroid[1], c[1], 1e-12, `${name} centroid y`);
     // Anchored at its centroid (the default): the body's centre of mass is the line's midpoint.
-    mp.centroidMM.forEach((x, k) => near(x, (p0[k] + p1[k]) / 2, 1e-12, `${name} centre of mass`));
-    near(o.member.lengthMM, L, 1e-15, name);
+    mp.centroid.forEach((x, k) => near(x, (p0[k] + p1[k]) / 2, 1e-12, `${name} centre of mass`));
+    near(o.member.length, L, 1e-15, name);
   }
 });
 
@@ -111,10 +111,10 @@ test('FR1 the T-slot section against the tslot-20 library part (its own 3D Boole
   const lib = loadCadLibrary(JSON.parse(readFileSync(resolve(import.meta.dirname, '../../barocss-cad-model/src/library/builtin/tslot-20.json'), 'utf8')));
   for (const [cells, open] of [[1, 1], [1, 2], [1, 3], [1, 4], [2, 6]]) {
     const inst = instantiateLibraryPart(lib, 'profile', { params: { cells, openSlots: Math.min(open, 4), L: 250 } });
-    const want = evaluateCadPart(D(inst.features)).outputs.filter(o => inst.outputs.includes(o.feature)).reduce((s, o) => s + o.massProperties(1).volumeMM3, 0);
-    const m = run([member({ kind: 'tslot', size: 20, cells, ...(cells === 1 ? { openSlots: open } : {}), ...SLOT }, [0, 0, 0], [0, 0, 250], { anchor: 'origin' })]).output('m');
-    near(m.massProperties(1).volumeMM3, want, 1e-12, `cells ${cells}, ${open} slots`);
-    near(m.member.areaMM2 * 250, want, 1e-12, `cells ${cells}, ${open} slots, area`);
+    const want = evaluateCadPart(D(inst.features)).outputs.filter(o => inst.outputs.includes(o.feature)).reduce((s, o) => s + massPropertiesOf(o).volume, 0);
+    const m = outputOf(run([member({ kind: 'tslot', size: 20, cells, ...(cells === 1 ? { openSlots: open } : {}), ...SLOT }, [0, 0, 0], [0, 0, 250], { anchor: 'origin' })]), 'm');
+    near(massPropertiesOf(m).volume, want, 1e-12, `cells ${cells}, ${open} slots`);
+    near(m.member.area * 250, want, 1e-12, `cells ${cells}, ${open} slots, area`);
   }
 });
 
@@ -122,59 +122,59 @@ test('FR1 placement: the anchor\'s point on the line, the section moved by the o
   const s = { kind: 'rect-tube', width: 60, height: 30, wall: 3, outerRadius: 0 };
   // Along +X, up +Z: the section's y is +Z and its x is y × u = +Y. Anchored top-right on the line: the body below and behind it.
   const bounds = o => { const v = o.brep.vertices.map(x => x.point); return [0, 1, 2].map(k => [Math.min(...v.map(p => p[k])), Math.max(...v.map(p => p[k]))]); };
-  let o = run([member(s, [0, 0, 0], [500, 0, 0], { anchor: 'top-right' })]).output('m');
+  let o = outputOf(run([member(s, [0, 0, 0], [500, 0, 0], { anchor: 'top-right' })]), 'm');
   assert.deepEqual(bounds(o), [[0, 500], [-60, 0], [-30, 0]]);
   assert.deepEqual([o.member.xAxis, o.member.yAxis, o.member.axis], [[0, 1, 0], [0, 0, 1], [1, 0, 0]]);
   // Bottom-left, moved by (5, −2): the box corner at (5, −2) from the line (the section's x is +Y, its y +Z).
-  o = run([member(s, [0, 0, 0], [500, 0, 0], { anchor: 'bottom-left', offset: [5, -2] })]).output('m');
+  o = outputOf(run([member(s, [0, 0, 0], [500, 0, 0], { anchor: 'bottom-left', offset: [5, -2] })]), 'm');
   assert.deepEqual(bounds(o), [[0, 500], [5, 65], [-2, 28]]);
   // Roll 90°: x turns to +Z, y to −Y (exact for quarter turns).
-  o = run([member(s, [0, 0, 0], [500, 0, 0], { roll: 90 })]).output('m');
+  o = outputOf(run([member(s, [0, 0, 0], [500, 0, 0], { roll: 90 })]), 'm');
   assert.deepEqual(bounds(o), [[0, 500], [-15, 15], [-30, 30]]); assert.deepEqual(o.member.xAxis, [0, 0, 1]);
   // Roll 30°: the wide sides' normals are ±y of the report, which is turned 30° from +Z about +X.
-  o = run([member(s, [0, 0, 0], [500, 0, 0], { roll: 30 })]).output('m');
+  o = outputOf(run([member(s, [0, 0, 0], [500, 0, 0], { roll: 30 })]), 'm');
   near(o.member.yAxis[2], Math.cos(Math.PI / 6), 1e-15, 'roll 30 y·z'); near(o.member.yAxis[1], -Math.sin(Math.PI / 6), 1e-15, 'roll 30 y·y');
   const wide = o.brep.faces.filter(f => f.name === 'm.top' || f.name === 'm.bottom').map(f => faceGeometry(f).n);
   for (const n of wide) near(Math.abs(dot(n, o.member.yAxis)), 1, 1e-15, 'wide side normal');
   // A vertical member: up is along it, so +X gives the section's y (x = y × u = −Y); the report says so.
-  o = run([member(s, [0, 0, 0], [0, 0, 300])]).output('m');
+  o = outputOf(run([member(s, [0, 0, 0], [0, 0, 300])]), 'm');
   assert.deepEqual(o.member.upFallback, [1, 0, 0]); assert.deepEqual(o.member.yAxis, [1, 0, 0]); assert.deepEqual(o.member.xAxis, [0, -1, 0]);
   assert.equal(o.representation, 'upright');
   // The centroidal line: through the centroid, parallel to the member (an angle anchored at its heel).
   const ang = { kind: 'angle', legX: 50, legY: 30, thickness: 5, rootRadius: 6, toeRadius: 3 }, c = greenSection(angleLoop(50, 30, 5, 6, 3)).c;
-  o = run([member(ang, [0, 0, 0], [0, 400, 0], { anchor: 'origin' })]).output('m');
+  o = outputOf(run([member(ang, [0, 0, 0], [0, 400, 0], { anchor: 'origin' })]), 'm');
   const x = o.member.xAxis, y = o.member.yAxis;
   [0, 1, 2].forEach(k => near(o.member.centroidLine.start[k], c[0] * x[k] + c[1] * y[k], 1e-12, 'centroid line'));
-  o.massProperties(1).centroidMM.forEach((v, k) => near(v, (o.member.centroidLine.start[k] + o.member.centroidLine.end[k]) / 2, 1e-12, 'centre of mass on the centroidal line'));
+  massPropertiesOf(o).centroid.forEach((v, k) => near(v, (o.member.centroidLine.start[k] + o.member.centroidLine.end[k]) / 2, 1e-12, 'centre of mass on the centroidal line'));
 });
 
 test('FR1 a rectangular tube\'s bore radius left out is derived, concentric with its corners (ro − t), and said so in the report and the label; given, nothing is derived', () => {
   const s = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 6 };
-  let m = run([member(s, [0, 0, 0], [100, 0, 0])]).output('m').member;
+  let m = outputOf(run([member(s, [0, 0, 0], [100, 0, 0])]), 'm').member;
   assert.deepEqual(m.derived, { innerRadius: 'concentric: ro − t' }); assert.equal(m.section, 'rect-tube 40 × 40 × 3, ro 6, ri 3 (concentric)');
-  m = run([member({ ...s, innerRadius: 2 }, [0, 0, 0], [100, 0, 0])]).output('m').member;
+  m = outputOf(run([member({ ...s, innerRadius: 2 }, [0, 0, 0], [100, 0, 0])]), 'm').member;
   assert.equal(m.derived, undefined); assert.equal(m.section, 'rect-tube 40 × 40 × 3, ro 6, ri 2');
-  m = run([member({ ...s, outerRadius: 0 }, [0, 0, 0], [100, 0, 0])]).output('m').member;
+  m = outputOf(run([member({ ...s, outerRadius: 0 }, [0, 0, 0], [100, 0, 0])]), 'm').member;
   assert.deepEqual(m.derived, { innerRadius: 'sharp: 0, as the outer corners' }); assert.equal(m.section, 'rect-tube 40 × 40 × 3');
   // (No other kind derives a dimension.)
-  assert.equal(run([member({ kind: 'round-tube', diameter: 30, wall: 2 }, [0, 0, 0], [100, 0, 0])]).output('m').member.derived, undefined);
+  assert.equal(outputOf(run([member({ kind: 'round-tube', diameter: 30, wall: 2 }, [0, 0, 0], [100, 0, 0])]), 'm').member.derived, undefined);
 });
 
 test('FR1 faces by the section\'s roles and the ends; a sketch section (holes allowed) by its sides; dimensions by parameter', () => {
   const names = o => [...new Set(o.brep.faces.map(f => f.name.replace(/#\d+$/, '')))].sort();
-  assert.deepEqual(names(run([member({ kind: 'channel', height: 80, width: 40, web: 5, flange: 8, rootRadius: 7 }, [0, 0, 0], [0, 0, 100])]).output('m')),
+  assert.deepEqual(names(outputOf(run([member({ kind: 'channel', height: 80, width: 40, web: 5, flange: 8, rootRadius: 7 }, [0, 0, 0], [0, 0, 100])]), 'm')),
     ['m.back', 'm.bottom', 'm.end', 'm.inside.bottom', 'm.inside.top', 'm.root.bottom', 'm.root.top', 'm.start', 'm.tip.bottom', 'm.tip.top', 'm.top', 'm.web']);
-  assert.deepEqual(names(run([member({ kind: 'round-tube', diameter: 30, wall: 2 }, [0, 0, 0], [100, 0, 0])]).output('m')), ['m.bore', 'm.end', 'm.outside', 'm.start']);
+  assert.deepEqual(names(outputOf(run([member({ kind: 'round-tube', diameter: 30, wall: 2 }, [0, 0, 0], [100, 0, 0])]), 'm')), ['m.bore', 'm.end', 'm.outside', 'm.start']);
   // A sketch: a 30 × 20 plate with a Ø8 hole, anchored at its centroid: A·L, the line through the centroid.
   const sk = { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 20], holes: [[{ kind: 'arc', start: [14, 10], center: [10, 10], direction: 'ccw' }]] };
-  const o = run([sk, { ...member({ kind: 'sketch', sketch: 's' }, [0, 0, 0], [0, 250, 0]) }]).output('m'), A = 600 - 16 * Math.PI, cx = (600 * 15 - 16 * Math.PI * 10) / A;
-  near(o.massProperties(1).volumeMM3, A * 250, 1e-12, 'sketch section'); near(o.member.centroid[0], cx, 1e-12, 'sketch centroid'); near(o.member.centroid[1], 10, 1e-12, 'sketch centroid y');
+  const o = outputOf(run([sk, { ...member({ kind: 'sketch', sketch: 's' }, [0, 0, 0], [0, 250, 0]) }]), 'm'), A = 600 - 16 * Math.PI, cx = (600 * 15 - 16 * Math.PI * 10) / A;
+  near(massPropertiesOf(o).volume, A * 250, 1e-12, 'sketch section'); near(o.member.centroid[0], cx, 1e-12, 'sketch centroid'); near(o.member.centroid[1], 10, 1e-12, 'sketch centroid y');
   assert.ok(names(o).includes('m.start') && names(o).includes('m.end') && names(o).some(n => /^m\.side\d$/.test(n)), names(o).join(' '));
   // Parameters: the tube's wall and the line's end.
   const s = run([member({ kind: 'rect-tube', width: 40, height: 40, wall: { parameter: 't' }, outerRadius: { parameter: 'ro' } }, [0, 0, 0], [{ parameter: 'L' }, 0, 0])], { t: 3, ro: 6, L: 300 });
-  near(s.output('m').massProperties(1).volumeMM3, rectTubeArea(40, 40, 3, 6) * 300, 1e-12, 'by parameter');
-  const s2 = s.withParameters({ t: 2, ro: 4, L: 450 });
-  near(s2.output('m').massProperties(1).volumeMM3, rectTubeArea(40, 40, 2, 4) * 450, 1e-12, 'parameters changed');
+  near(massPropertiesOf(outputOf(s, 'm')).volume, rectTubeArea(40, 40, 3, 6) * 300, 1e-12, 'by parameter');
+  const s2 = reevaluate(s, { parameters: { t: 2, ro: 4, L: 450 } });
+  near(massPropertiesOf(outputOf(s2, 'm')).volume, rectTubeArea(40, 40, 2, 4) * 450, 1e-12, 'parameters changed');
 });
 
 test('FR1 refusals by name: SECTION_DIMENSIONS for each kind, SEGMENT_ZERO_LENGTH; a T-slot without its open slots, an unknown kind, a bad anchor', () => {

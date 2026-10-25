@@ -61,7 +61,7 @@ export interface ConvexLineLoopClipResult {
   edgeResults:CoplanarCurveLineIntersectionResult[];spans:ConvexLoopClipSpan[];contacts:ConvexLoopClipContact[];pieces:ConvexLoopClipPiece[];
   outsideIntervals:{spanId:string;domain:[number,number];midpoint:number;halfspaces:number[]}[];report:ConvexLineLoopClipReport;
 }
-const LABEL='Own convex native Line loop clip',TOL=CadNumericPolicy.linearToleranceMM;
+const LABEL='Own convex native Line loop clip',TOL=CadNumericPolicy.linearTolerance;
 function check(c:boolean,detail:string):asserts c {if(!c)throw new Error((LABEL+': '+detail).slice(0,1024));}
 function finite(n:number):number {check(Number.isFinite(n),'finite native homogeneous/Gram arithmetic required');return n;}
 function snapshot(input:unknown,results=false):unknown {
@@ -90,7 +90,7 @@ function uvProvenance(provenance:CurveParameterSplitProvenance[]):ConvexLoopUVSp
   // Retain coefficient maps only. The inherited splitter's temporary mm source/report is not UV authority.
   return provenance.map(p=>({sourceCurveId:p.sourceCurveId,parameter:p.parameter,firstRefinedKnotIndex:p.firstRefinedKnotIndex,
     refinement:{kind:p.refinement.kind,insertions:p.refinement.insertions},lower:p.lower,upper:p.upper,
-    shared:{refinedPoleIndex:p.shared.refinedPoleIndex,lowerPoleIndex:p.shared.lowerPoleIndex,upperPoleIndex:p.shared.upperPoleIndex,pointUV:p.shared.pointMM,weight:p.shared.weight}}));
+    shared:{refinedPoleIndex:p.shared.refinedPoleIndex,lowerPoleIndex:p.shared.lowerPoleIndex,upperPoleIndex:p.shared.upperPoleIndex,pointUV:p.shared.point,weight:p.shared.weight}}));
 }
 
 

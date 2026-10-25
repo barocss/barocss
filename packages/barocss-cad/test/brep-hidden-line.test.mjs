@@ -77,7 +77,7 @@ test('a cylinder seen along its axis has no silhouette; seen side on, its rims a
 });
 
 test('a torus seen along its axis: both silhouette circles visible, nothing hidden', () => {
-  const torus = part([{ id: 'n0', kind: 'sketch', profile: 'circle', center: [20, 0], radius: 5 }, { id: 'n1', kind: 'revolve', sketch: 'n0', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }]);
+  const torus = part([{ id: 'n0', kind: 'sketch', profile: 'circle', center: [20, 0], radius: 5 }, { id: 'n1', kind: 'revolve', sketch: 'n0', axis: { origin: [0, 0], direction: 'y' }, angle: 360 }]);
   const pr = projectBrepHiddenLines(torus, { toward: [0, -1, 0], up: [0, 0, 1] });
   assert.equal(pieces(pr, false).length, 0);
   const radii = pieces(pr, true).flatMap(c => c.kind === 'polyline' ? c.points : c.kind === 'line' ? [c.a, c.b] : []).map(p => Math.hypot(p[0], p[1]));

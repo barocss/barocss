@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { decimateMesh, meshDistance, evaluateCadPart, CadPartError } from '../dist/index.js';
+import { decimateMesh, meshDistance, evaluateCadPart, CadPartError, outputOf, checkOutput, massPropertiesOf } from '../dist/index.js';
 
 // R9 (M4, D85): QEM decimation — feature lines kept (open edges, groups, creases), never a fold or a broken manifold,
 // the distance measured both ways.
@@ -56,7 +56,7 @@ test('R9 a gridded box (1 200 triangles) decimates to its 12: the corners exactl
   assert.deepEqual([r.report.trianglesAfter, r.report.verticesAfter, r.report.stoppedBy], [12, 8, 'exhausted']);
   assert.deepEqual([...pointSet(r.positions)].sort(), ['0,0,0', '0,0,10', '0,10,0', '0,10,10', '10,0,0', '10,0,10', '10,10,0', '10,10,10']);
   assert.ok(Math.abs(closedVolume(r.positions, r.indices) - 1000) < 1e-9);
-  assert.ok(r.report.distance.hausdorffMM < 1e-12 && r.report.boundMM < 1e-12, JSON.stringify(r.report.distance));
+  assert.ok(r.report.distance.hausdorff < 1e-12 && r.report.bound < 1e-12, JSON.stringify(r.report.distance));
 });
 
 test('R9 a sphere (20 480 triangles, r 10): to a tenth and a fiftieth — closed, wound as before, near the original (measured both ways, the same as meshDistance finds); the same result every run', () => {
@@ -67,10 +67,10 @@ test('R9 a sphere (20 480 triangles, r 10): to a tenth and a fiftieth — closed
     assert.ok(r.report.trianglesAfter <= Math.floor(ratio * 20480) && r.report.trianglesAfter >= Math.floor(ratio * 20480) - 1); assert.equal(r.report.stoppedBy, 'target');
     const v = closedVolume(r.positions, r.indices);
     assert.ok(v > 0 && Math.abs(v / v0 - 1) < 0.02, `${v} vs ${v0}`);
-    assert.ok(d.hausdorffMM < within, `${ratio}: ${d.hausdorffMM} mm`);
-    assert.equal(d.toResultMaxMM, meshDistance(s.positions, s.indices, r.positions, r.indices).maxMM);
-    assert.equal(d.toOriginalMaxMM, meshDistance(r.positions, r.indices, s.positions, s.indices).maxMM);
-    assert.ok(d.rmsMM < d.hausdorffMM && d.samples > 0);
+    assert.ok(d.hausdorff < within, `${ratio}: ${d.hausdorff} mm`);
+    assert.equal(d.toResultMax, meshDistance(s.positions, s.indices, r.positions, r.indices).max);
+    assert.equal(d.toOriginalMax, meshDistance(r.positions, r.indices, s.positions, s.indices).max);
+    assert.ok(d.rms < d.hausdorff && d.samples > 0);
   }
   const a = decimateMesh(s.positions, s.indices, { ratio: 0.1, measure: false }), b = decimateMesh(s.positions, s.indices, { ratio: 0.1, measure: false });
   assert.deepEqual([...a.positions], [...b.positions]); assert.deepEqual([...a.indices], [...b.indices]);
@@ -90,11 +90,11 @@ function inward(P, I) {
 test('R9 a noisy sphere (each vertex off by up to ±2.5%): as a scan (no crease angle) to a twentieth — closed, every triangle facing out, within 0.6 mm; with the 40° crease angle the noise is creases: it stops early, nothing turned past 95°', () => {
   const s = icosphere(10, 5, 0.05);
   assert.equal(inward(s.positions, s.indices).n, 0);
-  const r = decimateMesh(s.positions, s.indices, { ratio: 0.05, featureDegrees: 180 });
+  const r = decimateMesh(s.positions, s.indices, { ratio: 0.05, feature: 180 });
   assert.ok(r.report.trianglesAfter <= 1024 && r.report.stoppedBy === 'target');
   assert.ok(closedVolume(r.positions, r.indices) > 0.9 * closedVolume(s.positions, s.indices));
   assert.equal(inward(r.positions, r.indices).n, 0);
-  assert.ok(r.report.distance.hausdorffMM < 0.6, String(r.report.distance.hausdorffMM));
+  assert.ok(r.report.distance.hausdorff < 0.6, String(r.report.distance.hausdorff));
   assert.ok(r.report.refused.flip > 0, 'folds were refused');
   const c = decimateMesh(s.positions, s.indices, { ratio: 0.05 });
   assert.equal(c.report.stoppedBy, 'exhausted'); assert.ok(c.report.trianglesAfter > 10000);
@@ -135,8 +135,8 @@ test('R9 an open sheet keeps its boundary: flat, two triangles and its four corn
 });
 
 test('R9 stopped by an error bound: no collapse past it (its quadric bound), said so', () => {
-  const s = icosphere(10, 5), r = decimateMesh(s.positions, s.indices, { maxErrorMM: 0.05 });
-  assert.equal(r.report.stoppedBy, 'error'); assert.ok(r.report.boundMM <= 0.05);
+  const s = icosphere(10, 5), r = decimateMesh(s.positions, s.indices, { maxError: 0.05 });
+  assert.equal(r.report.stoppedBy, 'error'); assert.ok(r.report.bound <= 0.05);
   assert.ok(r.report.trianglesAfter < 20480 && r.report.trianglesAfter > 200, String(r.report.trianglesAfter));
   assert.throws(() => decimateMesh([0, 0], [0, 1, 2]), RangeError);
 });
@@ -144,13 +144,25 @@ test('R9 stopped by an error bound: no collapse past it (its quadric bound), sai
 test('R9 the decimate feature: a gridded mesh box as far as it goes (its 12 triangles), its faces keeping their names, a valid solid with its report; refused on an exact body and without a target', () => {
   const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
   const b = gridBox(10), mesh = { id: 'm', kind: 'mesh', positions: b.positions, indices: b.indices, representation: 'facets' };
-  const src = evaluateCadPart(D([mesh])).output('m'), out = evaluateCadPart(D([mesh, { id: 'd', kind: 'decimate', target: 'm', triangles: 4 }])).output('d');
-  assert.equal(out.validate().valid, true);
+  const src = outputOf(evaluateCadPart(D([mesh])), 'm'), out = outputOf(evaluateCadPart(D([mesh, { id: 'd', kind: 'decimate', target: 'm', triangles: 4 }])), 'd');
+  assert.equal(checkOutput(out).valid, true);
   assert.deepEqual(out.brep.faces.map(f => f.name).sort(), src.brep.faces.map(f => f.name).sort());
-  assert.ok(Math.abs(out.massProperties(1).volumeMM3 - 1000) < 1e-9);
+  assert.ok(Math.abs(massPropertiesOf(out).volume - 1000) < 1e-9);
   assert.equal(out.decimate.trianglesAfter, 12); assert.equal(out.representation, 'faceted');
   const refused = (features, code, msg) => assert.throws(() => evaluateCadPart(D(features)), e => e instanceof CadPartError && e.code === code && msg.test(e.message));
   refused([{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { id: 'e', kind: 'extrude', sketch: 's', height: 5 }, { id: 'd', kind: 'decimate', target: 'e', ratio: 0.5 }], 'CAPABILITY', /mesh body/);
   refused([mesh, { id: 'd', kind: 'decimate', target: 'm' }], 'INPUT', /triangles, ratio or maxError/);
   refused([mesh, { id: 'd', kind: 'decimate', target: 'm', ratio: 1.5 }], 'INPUT', /ratio/);
+});
+
+test('R7 decimation wallTime is seconds and preserves a triangle when no collapse is requested', t => {
+  let next = 2000;
+  const clock = t.mock.method(performance, 'now', () => { const value = next; next += 500; return value; });
+  const positions = [0, 0, 0, 1, 0, 0, 0, 1, 0], indices = [0, 1, 2];
+  const result = decimateMesh(positions, indices, { targetTriangles: 1, measure: false });
+  assert.equal(clock.mock.callCount(), 2);
+  assert.equal(result.report.wallTime, 0.5);
+  assert.equal(Object.hasOwn(result.report, 'ms'), false);
+  assert.deepEqual(Array.from(result.positions), positions); assert.deepEqual(Array.from(result.indices), indices);
+  assert.equal(JSON.parse(JSON.stringify(result.report)).wallTime, 0.5);
 });

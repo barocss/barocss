@@ -30,7 +30,7 @@ test('Shaft (R12c.3a): the command\'s default — Ø20 × 30 keyed, Ø25 × 40, 
   const R = 10, b = 6, t1 = 3.5, l = 18, h = R - t1, F = (x: number) => (x * Math.sqrt(R * R - x * x) + R * R * Math.asin(x / R)) / 2, A = F(b / 2) - F(-b / 2) - b * h;
   const disc = simpson(u => 2 * (b / 2) ** 2 * Math.cos(u) ** 2 * (Math.sqrt(R * R - (b / 2 * Math.sin(u)) ** 2) - h), -Math.PI / 2, Math.PI / 2);
   const want = pap - ((l - b) * A + disc), body = r.ok ? r.bodies[0] : null!;
-  assert.ok(Math.abs(body.volumeMM3! - want) <= 1e-6 * want, `${body.volumeMM3} vs ${want}`);
+  assert.ok(Math.abs(body.volume! - want) <= 1e-6 * want, `${body.volume} vs ${want}`);
   const notes = body.notes!.map(n => n.text);
   assert.ok(notes.some(t => t === 'Shaft 95 mm: Ø20 from 0 to 30; Ø25 from 30 to 70; Ø20 from 70 to 95'), JSON.stringify(notes));
   assert.ok(notes.some(t => /^Keyseat 1 \(step 1, end-mill\): 6 wide, 3\.5 deep \(floor 6\.5 from the axis\), 18 long from 6, at 0°$/.test(t)), JSON.stringify(notes));

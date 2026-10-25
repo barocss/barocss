@@ -15,7 +15,7 @@ import { boundsOf, triangleArea2 } from './facet-patch.js';
 
 export interface FacetBrepOptions extends MeshBrepOptions {
   /** Neighbouring triangles whose normals turn by less than this (degrees) are one region; default 30. */
-  readonly creaseDegrees?: number;
+  readonly crease?: number;
   /** At most this many regions (a noisy scan is smoothed, then merged, to stay under it); default 1000. */
   readonly maximumRegions?: number;
   /**
@@ -62,11 +62,11 @@ export function facetBrepsFromTriangles(positions: ArrayLike<number>, indices: A
   });
 }
 /** How many closed pieces the mesh is in, and each one's triangle count and enclosed volume (|V|), in file order. */
-export function facetPieces(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: FacetBrepOptions = {}): { triangles: number; volumeMM3: number }[] {
+export function facetPieces(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: FacetBrepOptions = {}): { triangles: number; volume: number }[] {
   const m = welded(positions, indices, options), nt = m.I.length / 3, pieces = componentsOf(m.across, nt);
-  const out = Array.from({ length: pieces.count }, () => ({ triangles: 0, volumeMM3: 0 }));
-  for (let t = 0; t < nt; t++) { const o = out[pieces.of[t]]; o.triangles++; o.volumeMM3 += det3(m.P, m.I[3 * t], m.I[3 * t + 1], m.I[3 * t + 2]) / 6; }
-  for (const o of out) o.volumeMM3 = Math.abs(o.volumeMM3);
+  const out = Array.from({ length: pieces.count }, () => ({ triangles: 0, volume: 0 }));
+  for (let t = 0; t < nt; t++) { const o = out[pieces.of[t]]; o.triangles++; o.volume += det3(m.P, m.I[3 * t], m.I[3 * t + 1], m.I[3 * t + 2]) / 6; }
+  for (const o of out) o.volume = Math.abs(o.volume);
   return out;
 }
 
@@ -78,7 +78,7 @@ function welded(positions: ArrayLike<number>, indices: ArrayLike<number> | null,
   if (count > limit) throw meshBrepError(`the mesh has ${count} triangles, more than the ${limit} read`);
   let size = 0;
   for (let i = 0; i < positions.length; i++) { const x = positions[i]; if (!Number.isFinite(x)) throw meshBrepError('the mesh has a coordinate that is not a finite number'); if (Math.abs(x) > size) size = Math.abs(x); }
-  const weld = options.weldMM ?? Math.max(1e-9, size * 1e-6);
+  const weld = options.weldDistance ?? Math.max(1e-9, size * 1e-6);
   const { P, remap } = weldVertices(positions, n, weld);
   const nv = P.length / 3;
   // Triangles without the degenerate ones (a repeated corner, or no area at the weld size).
@@ -104,7 +104,7 @@ function pieceBrep(id: string, P: Float64Array, I: Uint32Array, G: Int32Array | 
     for (let t = 0; t < nt; t++) vol += det3(P, I[3 * t], I[3 * t + 1], I[3 * t + 2]);
     if (vol < 0) { for (let t = 0; t < nt; t++) { const b = I[3 * t + 1]; I[3 * t + 1] = I[3 * t + 2]; I[3 * t + 2] = b; } across = adjacency(I, nv, false); }
   }
-  const region = regions(P, I, across, G, Math.cos((options.creaseDegrees ?? 30) * Math.PI / 180), options.maximumRegions ?? 1000);
+  const region = regions(P, I, across, G, Math.cos((options.crease ?? 30) * Math.PI / 180), options.maximumRegions ?? 1000);
   return assemble(id, P, I, across, region, G, open, prefix, options.groupName);
 }
 

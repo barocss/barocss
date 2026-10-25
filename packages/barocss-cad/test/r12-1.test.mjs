@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, faceGeometry, importStep, checkBrep, brepMassProperties } from '../dist/index.js';
+import { evaluateCadPart, faceGeometry, importStep, checkBrep, brepMassProperties, checkOutput, massPropertiesOf, exportStep } from '../dist/index.js';
 
 // R12.1 (D116): sheet rules, the base flange and the contour flange. Oracles are the virtual-sharp relations, written
 // here from the textbook definitions and not from the kernel's construction: a leg measured to a corner of the path
@@ -29,16 +29,16 @@ test('R12.1 contour flange: an L at any angle, its path the outer or the inner s
   for (const deg of [30, 60, 90, 120, 150, 170]) for (const side of ['left', 'right']) {
     const th = deg * Math.PI / 180, path = [[0, 0], [A, 0], [A + B * Math.cos(th), B * Math.sin(th)]];
     const o = out([contour(path, side)]), outerPath = side === 'left';
-    assert.equal(o.validate().valid, true, `${deg}° ${side}`);
+    assert.equal(checkOutput(o).valid, true, `${deg}° ${side}`);
     assert.equal(o.representation, 'upright');
     // The bend deduction at K = ½ where the path is the outer skin (its corner the outer virtual sharp); the inner
     // setback 2R·tan(θ/2) less the arc where it is the inner skin.
     const mid = outerPath ? A + B - (2 * (R + T) * Math.tan(th / 2) - th * (R + T / 2)) : A + B - 2 * R * Math.tan(th / 2) + th * (R + T / 2);
-    assert.ok(Math.abs(o.massProperties(1).volumeMM3 / (W * T * mid) - 1) < 1e-12, `${deg}° ${side}: ${o.massProperties(1).volumeMM3 / (W * T * mid) - 1}`);
+    assert.ok(Math.abs(massPropertiesOf(o).volume / (W * T * mid) - 1) < 1e-12, `${deg}° ${side}: ${massPropertiesOf(o).volume / (W * T * mid) - 1}`);
     assert.deepEqual([...o.brep.faces.map(f => f.name)].sort(), ['c.back', 'c.bend1.inner', 'c.bend1.outer', 'c.end', 'c.front', 'c.leg0.a', 'c.leg0.b', 'c.leg1.a', 'c.leg1.b', 'c.start']);
     const [bend] = o.sheet.bends;
     assert.equal(o.sheet.bends.length, 1);
-    assert.ok(Math.abs(bend.angleDegrees - deg) < 1e-9);
+    assert.ok(Math.abs(bend.angle - deg) < 1e-9);
     for (const [name, r] of [[bend.inner, R], [bend.outer, R + T]]) {
       const g = faceGeometry(o.brep.faces.find(f => f.name === name)), c = bend.axis.origin, a = bend.axis.direction;
       assert.equal(g.kind, 'cylinder');
@@ -61,42 +61,42 @@ test('R12.1 contour flange: several bends turning both ways (a hat, a zed, a cha
   ];
   for (const { path, side } of cases) {
     const o = out([contour(path, side, { thickness: T, bendRadius: R, width: 25 })]), V = 25 * T * middleLength(path, side, T, R);
-    assert.equal(o.validate().valid, true);
-    assert.ok(Math.abs(o.massProperties(1).volumeMM3 / V - 1) < 1e-12, `${JSON.stringify(path)} ${side}`);
+    assert.equal(checkOutput(o).valid, true);
+    assert.ok(Math.abs(massPropertiesOf(o).volume / V - 1) < 1e-12, `${JSON.stringify(path)} ${side}`);
     assert.equal(o.sheet.bends.length, path.length - 2);
   }
   // The channel on the XZ plane (its normal −Y): the same volume, its bends' axes along −Y, a STEP round trip whole.
   const plane = { origin: [0, 5, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] }, path = cases[3].path;
   const o = out([contour(path, 'left', { thickness: T, bendRadius: R, width: 25, plane })]);
-  assert.ok(Math.abs(o.massProperties(1).volumeMM3 / (25 * T * middleLength(path, 'left', T, R)) - 1) < 1e-12);
+  assert.ok(Math.abs(massPropertiesOf(o).volume / (25 * T * middleLength(path, 'left', T, R)) - 1) < 1e-12);
   for (const b of o.sheet.bends) { assert.deepEqual(b.axis.direction, [0, -1, 0]); assert.equal(b.axis.origin[1], 5); }
   assert.ok(o.brep.faces.every(f => f.surface.kind !== 'surface' || faceGeometry(f).kind !== 'other'));
-  const back = importStep(o.exportStep());
+  const back = importStep(exportStep(o));
   assert.equal(checkBrep(back, { strict: true }).valid, true);
-  assert.ok(Math.abs(brepMassProperties(back, 1).volumeMM3 / o.massProperties(1).volumeMM3 - 1) < 1e-9);
+  assert.ok(Math.abs(brepMassProperties(back, 1).volume / massPropertiesOf(o).volume - 1) < 1e-9);
 });
 
 test('R12.1 sheet rules: the report gives each bend\'s allowance, setback and deduction by their definitions', () => {
   const T = 2, R = 3, K = 0.4;
   for (const deg of [45, 90, 135]) {
     const th = deg * Math.PI / 180, o = out([contour([[0, 0], [30, 0], [30 + 25 * Math.cos(th), 25 * Math.sin(th)]], 'left', { kFactor: K })]), [b] = o.sheet.bends;
-    assert.deepEqual({ t: o.sheet.thicknessMM, r: o.sheet.bendRadiusMM, k: o.sheet.kFactor }, { t: T, r: R, k: K });
-    assert.equal(b.name, 'c.bend1'); assert.equal(b.radiusMM, R);
-    assert.ok(Math.abs(b.allowanceMM - th * (R + K * T)) < 1e-12);
-    assert.ok(Math.abs(b.setbackMM - (R + T) * Math.tan(th / 2)) < 1e-12);
-    assert.ok(Math.abs(b.deductionMM - (2 * (R + T) * Math.tan(th / 2) - th * (R + K * T))) < 1e-12);
+    assert.deepEqual({ t: o.sheet.thickness, r: o.sheet.bendRadius, k: o.sheet.kFactor }, { t: T, r: R, k: K });
+    assert.equal(b.name, 'c.bend1'); assert.equal(b.radius, R);
+    assert.ok(Math.abs(b.allowance - th * (R + K * T)) < 1e-12);
+    assert.ok(Math.abs(b.setback - (R + T) * Math.tan(th / 2)) < 1e-12);
+    assert.ok(Math.abs(b.deduction - (2 * (R + T) * Math.tan(th / 2) - th * (R + K * T))) < 1e-12);
   }
 });
 
 test('R12.1 base flange: a plate from a closed sketch, holes kept, T thick either way; no bends', () => {
   const T = 1.2, sketch = { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [80, 50], holes: [[{ kind: 'arc', start: [45, 25], center: [40, 25], direction: 'ccw' }]] };
   for (const reverse of [false, true]) {
-    const o = out([sketch, { id: 'b', kind: 'sheet-base', sketch: 's', thickness: T, bendRadius: 1.2, kFactor: 0.45, ...(reverse ? { reverse } : {}) }]), m = o.massProperties(1);
-    assert.equal(o.validate().valid, true);
-    assert.ok(Math.abs(m.volumeMM3 / ((4000 - 25 * Math.PI) * T) - 1) < 1e-12);
-    assert.ok(Math.abs(m.centroidMM[2] - (reverse ? -T / 2 : T / 2)) < 1e-12);
+    const o = out([sketch, { id: 'b', kind: 'sheet-base', sketch: 's', thickness: T, bendRadius: 1.2, kFactor: 0.45, ...(reverse ? { reverse } : {}) }]), m = massPropertiesOf(o);
+    assert.equal(checkOutput(o).valid, true);
+    assert.ok(Math.abs(m.volume / ((4000 - 25 * Math.PI) * T) - 1) < 1e-12);
+    assert.ok(Math.abs(m.centroid[2] - (reverse ? -T / 2 : T / 2)) < 1e-12);
     assert.deepEqual([...new Set(o.brep.faces.map(f => f.name.replace(/#\d+$/, '')))].sort(), ['b.bottom', 'b.hole0.side0', 'b.side0', 'b.side1', 'b.side2', 'b.side3', 'b.top']);
-    assert.deepEqual(o.sheet, { thicknessMM: T, bendRadiusMM: 1.2, kFactor: 0.45, fixedFace: 'b.top', bends: [] });
+    assert.deepEqual(o.sheet, { thickness: T, bendRadius: 1.2, kFactor: 0.45, fixedFace: 'b.top', bends: [] });
   }
 });
 
@@ -111,7 +111,7 @@ test('R12.1 refusals: a corner in line or folded back, a leg too short for its b
   refused([contour([[0, 0], [20, 0], [20, 10], [5, 10], [5, -5]], 'right')], 'GEOMETRY', /\[SHEET_CROSSES_ITSELF\] the sheet's section meets itself: leg0.a and leg3.a near \(5, 0\)/);
   refused([contour([[0, 0], [30, 0], [30, 20], [0, 20], [0, 2]], 'left')], 'GEOMETRY', /\[SHEET_CROSSES_ITSELF\] the sheet's section meets itself: leg3.a and leg0.b near \(0, 2\)/);
   // A millimetre short of touching: built.
-  assert.equal(out([contour([[0, 0], [30, 0], [30, 20], [0, 20], [0, 3]], 'left')]).validate().valid, true);
+  assert.equal(checkOutput(out([contour([[0, 0], [30, 0], [30, 20], [0, 20], [0, 3]], 'left')])).valid, true);
   refused([contour([[0, 0], [20, 0], [20, 10]], 'left', { kFactor: 1.2 })], 'PARAMETER', /kFactor must be a number from 0 to 1/);
   refused([contour([[0, 0], [20, 0], [20, 10]], 'up')], 'INPUT', /side must be left or right/);
   refused([contour([[0, 0]], 'left')], 'INPUT', /path must list 2 to 64 points/);
@@ -119,5 +119,5 @@ test('R12.1 refusals: a corner in line or folded back, a leg too short for its b
   refused([{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10], regions: [[{ kind: 'line', start: [20, 0] }, { kind: 'line', start: [30, 0] }, { kind: 'line', start: [30, 10] }]] }, { id: 'b', kind: 'sheet-base', sketch: 's', thickness: 1, bendRadius: 1, kFactor: 0.5 }], 'CAPABILITY', /one outer loop/);
   // A straight path is a flat strip (no bend): allowed.
   const strip = out([contour([[0, 0], [30, 0]], 'left')]);
-  assert.ok(Math.abs(strip.massProperties(1).volumeMM3 - 30 * 2 * 40) < 1e-9 && strip.sheet.bends.length === 0);
+  assert.ok(Math.abs(massPropertiesOf(strip).volume - 30 * 2 * 40) < 1e-9 && strip.sheet.bends.length === 0);
 });

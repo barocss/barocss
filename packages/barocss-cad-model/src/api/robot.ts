@@ -1,8 +1,8 @@
 // RS5 (cad-model's facade): an assembly read as a robot — its joint tree, a pose, a path checked for collisions, its
 // inertia and gravity torques, and the four exports — as an immutable object over the same StudioDoc. Its verbs carry
 // the v2 `assembly` actions' names (api-conventions §12): joints, set_joints, pose, sweep, inertia, gravity, urdf, mjcf;
-// each reply is the agent's tool's, byte for byte (./robotCore). A path is RS2's motion: poseAt plays it in time. Joint values go in as the facade's units (§2): degrees
-// for a turning joint, mm for a slide; the replies are the tools' own (their `values` the core's: radians, mm).
+// each reply uses the agent's core tools (./robotCore). A path is RS2's motion: poseAt plays it in time. Pose joint
+// values use the facade's units (§2), in and out: degrees for a turning joint, mm for a slide.
 import { refuse } from '@barocss/cad/api';
 import type { StudioDoc } from '../engine/doc';
 import type { JointSettings } from '../robot/joints';
@@ -16,13 +16,13 @@ export class Robot {
   /** The plain document (a copy): the assembly's, robot settings and all. */
   get doc(): StudioDoc { return structuredClone(this.#doc); }
 
-  /** `assembly.joints` (get_joints): the assembly as links and joints from its base link. */
+  /** `assembly.joints`: the public tree, with turning limits/velocity in degrees and degree/s, effort in N·mm; slides in mm and N. */
   joints() { return jointsOf(this.#doc); }
 
-  /** `assembly.set_joints`: the base link and joints' limits and ratings (null removes one's) — a new robot. */
+  /** `assembly.set_joints`: store public degree/mm limits and ratings unchanged (null removes one's) — a new robot. */
   setJoints(o: { base?: string; joints?: Record<string, Partial<JointSettings> | null> }): Robot { return new Robot(withJoints(this.#doc, o)); }
 
-  /** `assembly.pose` (forward_kinematics): where each link and frame is at joint values (degrees, or mm for a slide). */
+  /** `assembly.pose` (forward_kinematics): each link and frame, with joint values in degrees (or mm for a slide), in and out. */
   pose(values: Readonly<Record<string, number>> = {}) { return poseOf(this.#doc, coreValues(treeOf(this.#doc), values)); }
 
   /**
@@ -43,10 +43,10 @@ export class Robot {
     return new Robot(withMotion(this.#doc, name, path.motion));
   }
 
-  /** `assembly.inertia` (link_inertia): each link's mass, centre of mass and inertia. */
+  /** `assembly.inertia`: each link's mass in g, centroid in mm and inertia in g·mm². */
   inertia() { return inertiaOf(this.#doc); }
 
-  /** `assembly.gravity` (gravity_torques): the static torque each joint holds at joint values (degrees, or mm), `g` in m/s². */
+  /** `assembly.gravity`: joint values in degrees/mm, g in mm/s² (default down 9806.65); replies in N·mm for turns, N for slides. */
   gravity(values: Readonly<Record<string, number>> = {}, g?: readonly [number, number, number]) { return gravityOf(this.#doc, coreValues(treeOf(this.#doc), values), g); }
 
   /** `assembly.urdf` and `assembly.mjcf`: the robot as URDF or MJCF, checked — the tools' replies, each file's data beside it. */
@@ -67,7 +67,7 @@ export class RobotPath {
   get motion(): MotionPath { return structuredClone(this.#motion); }
   get waypoints(): readonly Readonly<Record<string, number>>[] { return this.motion.waypoints; }
 
-  /** `assembly.sweep` (sweep_path) between each two waypoints in turn: one reply a segment. */
+  /** `assembly.sweep` between each two waypoints: one reply per segment, contact joint values in degrees/mm. */
   check() {
     const tree = treeOf(this.#doc);
     refuseLoop(tree);

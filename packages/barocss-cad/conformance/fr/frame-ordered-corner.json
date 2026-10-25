@@ -68,11 +68,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 142080,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             140,
             0,
@@ -88,8 +88,8 @@
           }
         ],
         "member": {
-          "areaMM2": 444,
-          "lengthMM": 300,
+          "area": 444,
+          "length": 300,
           "centroid": [
             0,
             0
@@ -110,11 +110,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 124320,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             160,
@@ -130,8 +130,8 @@
           }
         ],
         "member": {
-          "areaMM2": 444,
-          "lengthMM": 300,
+          "area": 444,
+          "length": 300,
           "centroid": [
             0,
             0
@@ -152,11 +152,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 124320,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -172,8 +172,8 @@
           }
         ],
         "member": {
-          "areaMM2": 444,
-          "lengthMM": 300,
+          "area": 444,
+          "length": 300,
           "centroid": [
             0,
             0

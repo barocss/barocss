@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, tessellateBrep, checkBrep } from '../dist/index.js';
+import { evaluateCadPart, tessellateBrep, checkBrep, outputOf, massPropertiesOf } from '../dist/index.js';
 import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
@@ -24,15 +24,15 @@ test('analytic Boolean: a piece whose middle lies on a plane that only touches i
 test('analytic Boolean: two lumps that only touch where a piece is re-judged are two bodies, either way round (D205)', () => {
   // A box and a cylinder r 2 tangent to its face y = 0 from outside, both turned 30° about x: half the cylinder's wall has
   // its middle on the line of touch. Refused before; now the two bodies of D204's contract, 8 · 3 · 8 + π · 4 · 4 mm³.
-  const doc = (a, b) => D([{ id: 'bs', kind: 'sketch', profile: 'rectangle', min: [-8, 0], max: [0, 3] }, { id: 'b0', kind: 'extrude', sketch: 'bs', height: 8, from: -2 }, { id: 'b', kind: 'rotate', target: 'b0', axis: 'x', angleDegrees: 30, pivot: [0, 0, 0] },
-    { id: 'cs', kind: 'sketch', profile: 'circle', center: [-2, -2], radius: 2 }, { id: 'c0', kind: 'extrude', sketch: 'cs', height: 4, from: 1 }, { id: 'c', kind: 'rotate', target: 'c0', axis: 'x', angleDegrees: 30, pivot: [0, 0, 0] },
+  const doc = (a, b) => D([{ id: 'bs', kind: 'sketch', profile: 'rectangle', min: [-8, 0], max: [0, 3] }, { id: 'b0', kind: 'extrude', sketch: 'bs', height: 8, from: -2 }, { id: 'b', kind: 'rotate', target: 'b0', axis: 'x', angle: 30, pivot: [0, 0, 0] },
+    { id: 'cs', kind: 'sketch', profile: 'circle', center: [-2, -2], radius: 2 }, { id: 'c0', kind: 'extrude', sketch: 'cs', height: 4, from: 1 }, { id: 'c', kind: 'rotate', target: 'c0', axis: 'x', angle: 30, pivot: [0, 0, 0] },
     { id: 'u', kind: 'union', target: a, tool: b }]);
   const exact = 8 * 3 * 8 + 16 * Math.PI;
   for (const [a, b] of [['b', 'c'], ['c', 'b']]) {
-    const o = evaluateCadPart(doc(a, b)).output('u'), m = o.massProperties(1), names = o.brep.faces.filter(f => o.brep.shells.find(s => s.id === f.shell).body === 'u_body0').map(f => f.name.split('.')[0]);
+    const o = outputOf(evaluateCadPart(doc(a, b)), 'u'), m = massPropertiesOf(o), names = o.brep.faces.filter(f => o.brep.shells.find(s => s.id === f.shell).body === 'u_body0').map(f => f.name.split('.')[0]);
     assert.equal(o.bodyCount, 2, `${a} ∪ ${b}`);
     assert.equal(checkBrep(o.brep, { strict: true }).valid, true);
-    assert.ok(Math.abs(m.volumeMM3 - exact) <= 1e-9 * exact, `${a} ∪ ${b}: ${m.volumeMM3} vs ${exact}`);
+    assert.ok(Math.abs(m.volume - exact) <= 1e-9 * exact, `${a} ∪ ${b}: ${m.volume} vs ${exact}`);
     // (The tool's lump first, as for lumps apart: D204.)
     assert.ok(names.every(n => n.startsWith(b === 'c' ? 'c' : 'b')), `${a} ∪ ${b}: body0 ${names}`);
     const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: 8 });

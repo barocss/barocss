@@ -19,10 +19,11 @@ import { add, cross, dot, len, sub } from '../engine/vec3';
 import { exportNames, checkFrame, readFrames, resolveFrame, type FrameCode, type FrameSettings, type ToolFrame } from './frames';
 import { readMotions, type Motion } from './motion';
 import { camFacesOf, camLiftOf, camValue, type CamFace, type CamLift } from './cam';
+import { jointSettingsIn } from './units';
 
 export const ROBOT_VERSION = 1;
 export type JointType = 'fixed' | 'revolute' | 'continuous' | 'prismatic';
-/** A joint's limits and ratings, as the person sets them (radians or mm; N·m or N; rad/s or mm/s). */
+/** Latest stored/public limits and ratings: degrees or mm; N·mm or N; degree/s or mm/s. */
 export interface JointSettings { lower?: number; upper?: number; effort?: number; velocity?: number }
 /** The robot settings a document keeps (`doc.robot`, versioned): the base link, and each joint's settings by its key. */
 /** `frames` (O12): named tool and sensor frames on links, kept beside the joints (robot/frames.ts). */
@@ -38,6 +39,7 @@ export interface Joint {
   key: string; type: JointType; parent: string; child: string;
   /** A point on the axis (the child's origin projected onto it) and the axis, world frame, mm. */
   origin: Vec3; axis: Vec3;
+  /** Solver limits and ratings: radians or mm; N·m or N; rad/s or mm/s. */
   limit?: { lower?: number; upper?: number; effort?: number; velocity?: number };
   /** The mates this pair's joint is made of. */
   mates: string[];
@@ -50,7 +52,7 @@ export type RobotCode = 'NOT_CONNECTED' | 'MOTION_UNSUPPORTED' | 'BASE_UNKNOWN' 
 export interface RobotIssue { code: RobotCode; message: string; parts?: string[]; mates?: string[]; joint?: string; frame?: string }
 export interface Loop { parts: [string, string]; mates: string[]; freedom: number; message: string }
 export interface Coupling {
-  leader: string; follower: string; multiplier: number; centerDistanceMM: number; nominalCenterDistanceMM: number; backlashMM: number; contactRatio: number;
+  leader: string; follower: string; multiplier: number; centerDistance: number; nominalCenterDistance: number; backlash: number; contactRatio: number;
   /** The two gears in their common frame (Z on the first's axis), and how each joint's positive turn reads about that Z (RM2: the pair at any pose). */
   g1: GearPlacement; g2: GearPlacement; s1: 1 | -1; s2: 1 | -1;
 }
@@ -257,7 +259,7 @@ export function jointTree(input: TreeInput): JointTree {
   const links: Link[] = order.map(p => ({ id: p, part: p, name: nameOf(p) })), joints: Joint[] = [];
   for (const p of parts) if (!parent.has(p)) problems.push({ code: 'NOT_CONNECTED', message: `${nameOf(p)} is joined to no other part by mates and is not fixed: it is not in the robot.`, parts: [p] });
 
-  const limitOf = (key: string): Joint['limit'] => { const s = settings.joints?.[key]; return s ? { ...s } : undefined; };
+  const limitOf = (key: string, type: JointType): Joint['limit'] => { const s = settings.joints?.[key]; return s ? jointSettingsIn(type, s) : undefined; };
   for (const child of order.slice(1)) {
     const par = parent.get(child)!, key = pairKey(par, child), mates = pairs.get(key) ?? [];
     const childAt = placed.get(child)!.t;
@@ -270,7 +272,7 @@ export function jointTree(input: TreeInput): JointTree {
       const last = i === motion.steps.length - 1, k = motion.steps.length === 1 ? key : `${key}#${i}`;
       const from = i === 0 ? par : `${child}__${i}`, to = last ? child : `${child}__${i + 1}`;
       if (!last) links.push({ id: to, part: null, name: `${nameOf(child)} (dummy ${i + 1})` });
-      const origin = s.point ? add(s.point, scale(s.axis, dot(sub(childAt, s.point), s.axis))) : childAt, limit = limitOf(k);
+      const origin = s.point ? add(s.point, scale(s.axis, dot(sub(childAt, s.point), s.axis))) : childAt, limit = limitOf(k, s.type);
       const type: JointType = s.type === 'prismatic' ? 'prismatic' : limit?.lower !== undefined || limit?.upper !== undefined ? 'revolute' : 'continuous';
       joints.push({ key: k, type, parent: from, child: to, origin: origin.map(x => (Math.abs(x) < 1e-12 ? 0 : x)) as Vec3, axis: s.axis, ...(limit ? { limit } : {}), mates: mates.map(m => m.id) });
     });
@@ -357,14 +359,14 @@ function gearCouplings(joints: Joint[], placed: Map<string, Placed>, gearsOf: (p
       return { spec: g.g.spec, center: [dot(d, x), dot(d, y)], from: dot(d, z), rotation: g.g.rotation + turn };
     };
     const g1 = frame(A), g2 = frame(B), dist = Math.hypot(g2.center[0] - g1.center[0], g2.center[1] - g1.center[1]);
-    const tips = (spurGearDimensions(g1.spec).tipDiameterMM + spurGearDimensions(g2.spec).tipDiameterMM) / 2;
+    const tips = (spurGearDimensions(g1.spec).tipDiameter + spurGearDimensions(g2.spec).tipDiameter) / 2;
     if (!(dist < tips)) continue;
     if (dot(A.axis, B.axis) < 0) { notes.push({ code: 'GEAR_NOT_COUPLED', message: `${A.j.key} and ${B.j.key}: their gears face opposite ways (not coupled yet).` }); continue; }
     if (A.j.parent !== B.j.parent) { notes.push({ code: 'GEAR_NOT_COUPLED', message: `${A.j.key} and ${B.j.key}: their gears mesh but turn on different links, so their angles are not tied.` }); continue; }
     try {
       const c = checkPlacedSpurGears(g1, g2, { mode: 'verdict' }), multiplier = -g1.spec.teeth / g2.spec.teeth;
       B.j.mimic = { joint: A.j.key, multiplier, offset: 0 };
-      out.push({ leader: A.j.key, follower: B.j.key, multiplier, centerDistanceMM: c.centerDistanceMM, nominalCenterDistanceMM: c.nominalCenterDistanceMM, backlashMM: c.backlashMM, contactRatio: c.usableContactRatio,
+      out.push({ leader: A.j.key, follower: B.j.key, multiplier, centerDistance: c.centerDistance, nominalCenterDistance: c.nominalCenterDistance, backlash: c.backlash, contactRatio: c.usableContactRatio,
         g1, g2, s1: dot(A.j.axis, z) < 0 ? -1 : 1, s2: dot(B.j.axis, z) < 0 ? -1 : 1 });
     } catch (cause) { notes.push({ code: 'GEAR_NOT_COUPLED', message: `${A.j.key} and ${B.j.key}: ${cause instanceof Error ? cause.message.replace(/^gear: /, '') : String(cause)}` }); }
   }

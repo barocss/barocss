@@ -162,11 +162,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 26602.824007886553,
           "relTol": 1e-08
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -0.1035835,
             0,
@@ -196,11 +196,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 16645.77427537775,
           "relTol": 1e-08
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -0.2168334,
             0,
@@ -224,11 +224,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 601.6460032938488,
           "relTol": 1e-08
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             9.5,
             0,
@@ -253,11 +253,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 202.63272615654165,
           "relTol": 1e-08
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -281,11 +281,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 314.1592653589793,
           "relTol": 1e-08
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,

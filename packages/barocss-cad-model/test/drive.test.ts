@@ -15,9 +15,9 @@ import { runTool, type ChatState } from '../src/chat/tools';
 
 const blank: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 const cmd = (id: string) => commands.find(c => c.id === id)!;
-const CHAIN = { kind: 'chain', id: 'chain-a', pitchMM: 12.7, rollerDiameterMM: 8.51, innerWidthMM: 7.75, plateHeightMM: 11.8, estimate: true };
-const FLAT = { kind: 'flat-belt', id: 'flat-a', widthMM: 40, thicknessMM: 3, estimate: true };
-const COUPLING = { kind: 'coupling', id: 'sleeve-a', type: 'rigid sleeve', boreMM: [12, 14], outsideMM: 30, lengthMM: 40, boreStepMM: 18, partNumber: 'TEST-1', supplier: 'a test supplier', estimate: true };
+const CHAIN = { kind: 'chain', id: 'chain-a', pitch: 12.7, rollerDiameter: 8.51, innerWidth: 7.75, plateHeight: 11.8, estimate: true };
+const FLAT = { kind: 'flat-belt', id: 'flat-a', width: 40, thickness: 3, estimate: true };
+const COUPLING = { kind: 'coupling', id: 'sleeve-a', type: 'rigid sleeve', bore: [12, 14], outside: 30, length: 40, boreStep: 18, partNumber: 'TEST-1', supplier: 'a test supplier', estimate: true };
 const rows = (doc: StudioDoc, add: unknown[]) => (editDriveRows(doc, add) as { doc: StudioDoc }).doc;
 const L = (R1: number, R2: number, C: number) => { const c = (R1 - R2) / C; return 2 * Math.sqrt(C * C - (R1 - R2) ** 2) + 2 * R1 * (Math.PI - Math.acos(c)) + 2 * R2 * Math.acos(c); };
 function build(doc: StudioDoc, id: string, values: Record<string, string | number>, selection: number[] = []) {
@@ -40,7 +40,7 @@ test('Sprocket (R12c.6b): no rows, no sprocket; the user\'s chain row — the co
   assert.deepEqual([s.row, s.teeth, s.tip, s.width, s.seat, s.bore], ['chain-a', 17, 75, 7, 8.8, 20]);
   assert.equal(featureLabel(s, 0, doc.nodes), 'Sprocket z17 for chain-a, tip Ø75');
   const b = bodyOf(doc, 'sprocket')[0], notes = b.notes!.map(n => n.text);
-  assert.ok(Math.abs(b.volumeMM3! - 21697.230025) <= 2e-5 * 21697.23, String(b.volumeMM3));
+  assert.ok(Math.abs(b.volume! - 21697.230025) <= 2e-5 * 21697.23, String(b.volume));
   assert.ok(notes.includes('Sprocket z17 for chain chain-a (an estimate): pitch 12.7, roller Ø8.51; pitch Ø69.1158'), JSON.stringify(notes));
   assert.ok(notes.some(t => /^Tooth form pivot-clearance \(derived here, not ISO 606's\): seats Ø8\.8, root Ø60\.3158, flanks r 8\.3 about the neighbouring seats, tip Ø75 \(pointed at Ø78\.6287\)$/.test(t)), JSON.stringify(notes));
   assert.ok(notes.includes('A roller turning out of its seat clears the teeth by 0.145 mm (measured on the built teeth)'), JSON.stringify(notes));
@@ -59,7 +59,7 @@ test('Belt or chain (R12c.6b): two sprockets picked — the chain on them, the s
   assert.ok(Math.abs(L(R1, R2, moved.center[0]) - 58 * 12.7) < 1e-6 && moved.center[1] === 0, JSON.stringify(moved.center));
   assert.equal(featureLabel(belt, 2, doc.nodes), 'chain-a on features 1 and 2');
   const b = bodyOf(doc, 'belt')[0], notes = b.notes!.map(n => n.text);
-  assert.ok(Math.abs(b.volumeMM3! - 58 * 12.7 * 11.8 * 7.75) < 1e-6 * 67362, String(b.volumeMM3));
+  assert.ok(Math.abs(b.volume! - 58 * 12.7 * 11.8 * 7.75) < 1e-6 * 67362, String(b.volume));
   assert.ok(notes.some(t => /^Chain chain-a \(an estimate\): length 736\.6 mm on pitch radii 34\.5579 and 68\.821 at 203\.0146; wraps/.test(t)), JSON.stringify(notes));
   assert.ok(notes.some(t => /^58 pitches: 58 links .*chordal effect\) is not modelled$/.test(t)), JSON.stringify(notes));
   assert.match(String((deleteFeature(doc, 0) as { error?: string }).error), /used by feature/);
@@ -71,11 +71,11 @@ test('Pulleys and a flat belt (R12c.6b): two flat pulleys, the belt on R = d/2 +
   doc = build(doc, 'pulley', { d: 50, w: 50, bore: 12, x: 150, y: 0, z: 0 });
   doc = build(doc, 'belt-drive', {}, [0, 1]);
   const belt = bodyOf(doc, 'belt')[0];
-  assert.ok(Math.abs(belt.volumeMM3! - L(41.5, 26.5, 150) * 3 * 40) < 1e-6 * 60000, String(belt.volumeMM3));
+  assert.ok(Math.abs(belt.volume! - L(41.5, 26.5, 150) * 3 * 40) < 1e-6 * 60000, String(belt.volume));
   assert.ok(bodyOf(doc, 'pulley')[0].notes!.some(n => n.text === 'Flat pulley Ø80, 50 wide, for belt flat-a (an estimate)'));
   doc = build(doc, 'coupling', { x: 0, y: 80, z: 0 });
   const k = bodyOf(doc, 'coupling')[0], kn = k.notes!.map(n => n.text);
-  assert.ok(Math.abs(k.volumeMM3! - Math.PI * ((225 - 36) * 18 + (225 - 49) * 22)) < 1e-6 * 22852, String(k.volumeMM3));
+  assert.ok(Math.abs(k.volume! - Math.PI * ((225 - 36) * 18 + (225 - 49) * 22)) < 1e-6 * 22852, String(k.volume));
   assert.ok(kn.includes('Coupling sleeve-a (rigid sleeve) (an estimate): Ø30 × 40, bores Ø12 and Ø14 stepped at 18; its envelope only') && kn.includes('Bought: part TEST-1 from a test supplier'), JSON.stringify(kn));
   const gone = evaluateDoc({ ...doc, drives: { version: 1, rows: [COUPLING as never] } }, 5);
   assert.ok(!gone.ok && gone.error.title === 'A drive element names a row that is not in your drive rows', gone.ok ? 'built' : gone.error.detail);

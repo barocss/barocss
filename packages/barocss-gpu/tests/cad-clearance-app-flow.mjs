@@ -36,7 +36,7 @@ export async function runClearanceAppFlow({ page, backend, result, out, root, ap
   const ready = async (state, gap, count = 1) => {
     await page.waitForFunction(({ state, gap, count }) => {
       const d = window.__studioClearance?.();
-      return d?.stage === 'ready' && d.pairs.length === count && (!count || d.pairs.every(p => p.state === state && Math.abs(p.minGapMM - gap) < 1e-5 && !(p.overlap && ('pending' in p.overlap || 'refused' in p.overlap))));
+      return d?.stage === 'ready' && d.pairs.length === count && (!count || d.pairs.every(p => p.state === state && Math.abs(p.minGap - gap) < 1e-5 && !(p.overlap && ('pending' in p.overlap || 'refused' in p.overlap))));
     }, { state, gap, count });
     await settle();
   };
@@ -44,7 +44,7 @@ export async function runClearanceAppFlow({ page, backend, result, out, root, ap
     const file = join(out, backend + '-clearance-' + name + '.png'); await page.screenshot({ path: file });
     const data = await page.evaluate(() => {
       const d = window.__studioClearance();
-      return { request: d.request, revision: d.revision, stage: d.stage, pairs: d.pairs.map(p => ({ a: p.a, b: p.b, pose: p.pose, state: p.state, minGapMM: p.minGapMM, volumeMM3: p.overlap?.volumeMM3 })), overlays: d.overlays.map(o => ({ id: o.id, bodyKey: o.bodyKey, state: o.state, model: Array.from(o.model), fieldCount: o.field?.length, vertexCount: o.positions.length / 3 })), clip: d.clip };
+      return { request: d.request, revision: d.revision, stage: d.stage, pairs: d.pairs.map(p => ({ a: p.a, b: p.b, pose: p.pose, state: p.state, minGap: p.minGap, volume: p.overlap?.volume })), overlays: d.overlays.map(o => ({ id: o.id, bodyKey: o.bodyKey, state: o.state, model: Array.from(o.model), fieldCount: o.field?.length, vertexCount: o.positions.length / 3 })), clip: d.clip };
     });
     return { file, ...data };
   };
@@ -73,7 +73,7 @@ export async function runClearanceAppFlow({ page, backend, result, out, root, ap
   assert.match(await page.getByRole('status').filter({ hasText: 'No candidate pairs' }).innerText(), /within the 1 mm band/);
   await change('X', 0, 30, 'position', 0); await ready('touching', 0); rows.push(await capture('touching'));
   await change('X', 0, 29.5, 'position', 0); await ready('overlap', 0);
-  const overlap = await capture('overlap'); assert.ok(Math.abs(overlap.pairs[0].volumeMM3 - 36) < 1e-5); rows.push(overlap);
+  const overlap = await capture('overlap'); assert.ok(Math.abs(overlap.pairs[0].volume - 36) < 1e-5); rows.push(overlap);
   await change('Z', 1, 90, 'rotation', 2); await change('X', 0, 42.5, 'position', 0); await ready('near', 0.5);
   const rotated = await capture('rotated-near'); assert.notEqual(rotated.pairs[0].pose, near.pairs[0].pose); rows.push(rotated);
   await page.locator('[aria-label="Instance"]').getByRole('button', { name: 'Hide', exact: true }).click();

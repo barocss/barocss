@@ -27,12 +27,12 @@ export interface ScalarMap {
 export type MapKind = 'thickness' | 'draft' | 'access';
 
 /** Where the thickness map's thresholds come from (the moulding rules'): the process's thinnest wall and adjacent-wall ratio, the material's range's low end. */
-export interface ThicknessLimits { minWallMM: number | null; materialLowMM: number | null; ratio: number }
+export interface ThicknessLimits { minWall: number | null; materialMin: number | null; ratio: number }
 
 /** The limits for a part's bodies by its process and their materials (IM4's rules, as the outer lane named them, O-G6). */
 export function thicknessLimits(doc: StudioDoc, body: BodyResult): ThicknessLimits {
-  const profile = processProfile(doc.process), id = materialIdOf(doc, body), range = id && doc.process === 'injection' ? materialData(id)?.wallMM?.injection : undefined;
-  return { minWallMM: profile?.thresholds.minWall?.value ?? null, materialLowMM: range ? range[0] : null, ratio: profile?.thresholds.adjacentWallRatio?.value ?? 0.6 };
+  const profile = processProfile(doc.process), id = materialIdOf(doc, body), range = id && doc.process === 'injection' ? materialData(id)?.wall?.injection : undefined;
+  return { minWall: profile?.thresholds.minWall?.value ?? null, materialMin: range ? range[0] : null, ratio: profile?.thresholds.adjacentWallRatio?.value ?? 0.6 };
 }
 
 /**
@@ -44,8 +44,8 @@ export function thicknessLimits(doc: StudioDoc, body: BodyResult): ThicknessLimi
 export function thicknessMap(doc: StudioDoc, body: BodyResult, limits: ThicknessLimits = thicknessLimits(doc, body)): ScalarMap {
   const w = wallSamples(body), values = new Float32Array(w.local.length);
   for (let t = 0; t < values.length; t++) values[t] = Number.isFinite(w.local[t]) ? w.local[t] : NaN;
-  const report = wallsOf(doc, [body], limits.ratio)[0], nominal = report?.nominalMM ?? 1, limit = nominal / limits.ratio;
-  const hi = Math.max(2 * nominal, report?.thick95MM ?? 0, 1e-6), thin = Math.max(limits.minWallMM ?? 0, limits.materialLowMM ?? 0);
+  const report = wallsOf(doc, [body], limits.ratio)[0], nominal = report?.nominal ?? 1, limit = nominal / limits.ratio;
+  const hi = Math.max(2 * nominal, report?.thick95 ?? 0, 1e-6), thin = Math.max(limits.minWall ?? 0, limits.materialMin ?? 0);
   // (Hard edges at the thresholds: two stops a hair apart.)
   const eps = 1e-6 * hi, stops: [number, string][] = [];
   if (thin > 0 && thin < nominal) stops.push([0, '#d7301f'], [thin, '#d7301f'], [thin + eps, '#c2e699']);
@@ -54,8 +54,8 @@ export function thicknessMap(doc: StudioDoc, body: BodyResult, limits: Thickness
   if (limit < hi) stops.push([limit, '#fd8d3c'], [limit + eps, '#7b3294'], [hi, '#7b3294']);
   else stops.push([hi, '#fd8d3c']);
   const thresholds: ScalarMap['thresholds'] = [];
-  if (limits.minWallMM !== null) thresholds.push({ value: limits.minWallMM, label: 'the process\'s thinnest' });
-  if (limits.materialLowMM !== null) thresholds.push({ value: limits.materialLowMM, label: 'the material\'s range' });
+  if (limits.minWall !== null) thresholds.push({ value: limits.minWall, label: 'the process\'s thinnest' });
+  if (limits.materialMin !== null) thresholds.push({ value: limits.materialMin, label: 'the material\'s range' });
   thresholds.push({ value: nominal, label: 'nominal' }, { value: limit, label: `thick (nominal / ${limits.ratio})` });
   return {
     body: body.key, per: 'triangle', values, unit: 'mm', range: [0, hi],
@@ -69,11 +69,11 @@ export function thicknessMap(doc: StudioDoc, body: BodyResult, limits: Thickness
  * its surface finish (none without a finish set: the rule is unknown), a casting's from its alloy's family
  * (`castingDraftLimits`); null otherwise.
  */
-export function draftLimits(doc: StudioDoc, bodies: readonly BodyResult[]): { minDeg: number; recDeg: number | null } | null {
+export function draftLimits(doc: StudioDoc, bodies: readonly BodyResult[]): { draftMin: number; draftRecommended: number | null } | null {
   const profile = processProfile(doc.process);
   if (!profile) return null;
-  if (profile.id === 'injection') { const f = doc.mould?.finish ? profile.finishes?.find(x => x.id === doc.mould!.finish) : undefined; return f ? { minDeg: f.draftMinDeg, recDeg: f.draftRecDeg ?? null } : null; }
-  if (profile.id === 'die-casting' || profile.id === 'sand-casting') { const c = castingDraftLimits(doc, bodies, profile); return c ? { minDeg: c.minDeg, recDeg: c.recDeg } : null; }
+  if (profile.id === 'injection') { const f = doc.mould?.finish ? profile.finishes?.find(x => x.id === doc.mould!.finish) : undefined; return f ? { draftMin: f.draftMin, draftRecommended: f.draftRecommended ?? null } : null; }
+  if (profile.id === 'die-casting' || profile.id === 'sand-casting') { const c = castingDraftLimits(doc, bodies, profile); return c ? { draftMin: c.draftMin, draftRecommended: c.draftRecommended } : null; }
   return null;
 }
 
@@ -82,8 +82,8 @@ export function draftLimits(doc: StudioDoc, bodies: readonly BodyResult[]): { mi
  * (`draftSamples`). With a least draft m: red where |draft| < m, + light to dark green from m to 2m, − light to dark blue,
  * saturating past ±2m, marks at ±m; without one (no finish, no casting alloy) only the diverging map, ±10°.
  */
-export function draftMap(doc: StudioDoc, body: BodyResult, pull: readonly number[], limits: { minDeg: number; recDeg: number | null } | null): ScalarMap {
-  const values = draftSamples(doc, body, pull), m = limits?.minDeg ?? 0, eps = 1e-6;
+export function draftMap(doc: StudioDoc, body: BodyResult, pull: readonly number[], limits: { draftMin: number; draftRecommended: number | null } | null): ScalarMap {
+  const values = draftSamples(doc, body, pull), m = limits?.draftMin ?? 0, eps = 1e-6;
   const stops: [number, string][] = m > 0
     ? [[-2 * m, '#08519c'], [-m, '#9ecae1'], [-m + eps, '#d7301f'], [m - eps, '#d7301f'], [m, '#a1d99b'], [2 * m, '#006d2c']]
     : [[-10, '#08519c'], [0, '#f0f0f0'], [10, '#006d2c']];

@@ -41,7 +41,7 @@ test('GJK: the distance between convex sets equals the polytopes\' brute-force d
   for (let k = 0; k < 60; k++) {
     const cloud = (cx: number) => Float64Array.from({ length: 60 }, (_, i) => (i % 3 === 0 ? cx : 0) + (rand() - 0.5) * 10);
     const a = cloud(0), b = cloud(4 + rand() * 12), ha = convexHull(a), hb = convexHull(b);
-    const brute = meshesMeet(ha.positions, ha.indices, hb.positions, hb.indices) ? 0 : meshClearance(ha.positions, ha.indices, hb.positions, hb.indices).distanceMM;
+    const brute = meshesMeet(ha.positions, ha.indices, hb.positions, hb.indices) ? 0 : meshClearance(ha.positions, ha.indices, hb.positions, hb.indices).distance;
     assert.ok(Math.abs(convexDistance(a, b) - brute) < 1e-8, `${k}: ${convexDistance(a, b)} vs ${brute}`);
   }
 });
@@ -126,16 +126,16 @@ test('the 6R arm against a dense sweep with the exact mesh test: no contact the 
     // (Where it stopped, the two links are within the tolerance: a true contact, not a false alarm.)
     const fk = forwardKinematics(tree, r.contact.values), [A, B] = r.contact.links, pose = (id: string) => { const l = links.find(x => x.link === id)!, m = fk.motions.get(id)!, p = new Float64Array(l.positions.length); for (let i = 0; i < p.length; i += 3) { const v = applyTo(m, [l.positions[i], l.positions[i + 1], l.positions[i + 2]]); p[i] = v[0]; p[i + 1] = v[1]; p[i + 2] = v[2]; } return { p, i: l.indices }; };
     const a = pose(A), b = pose(B);
-    assert.ok(meshesMeet(a.p, a.i, b.p, b.i) || meshClearance(a.p, a.i, b.p, b.i).distanceMM < 1e-5, JSON.stringify(r.contact));
+    assert.ok(meshesMeet(a.p, a.i, b.p, b.i) || meshClearance(a.p, a.i, b.p, b.i).distance < 1e-5, JSON.stringify(r.contact));
   }
   assert.equal(r.pairs.length, 21 - 6, 'every pair of the seven links but the six parent–child ones');
 });
 
 test('the sweep_path tool; the conformance case (rm/sweep-post: the first contact from the plane\'s closed form)', async () => {
   const doc = armAndPost(), r = await evaluate(doc); assert.ok(r.ok);
-  const out = await dispatchTool({ doc, bodies: r.bodies }, 'sweep_path', { to: { 'base~a': 2 } }, evaluate), j = JSON.parse(out.content);
+  const out = await dispatchTool({ doc, bodies: r.bodies }, 'sweep_path', { to: { 'base~a': 2 * 180 / Math.PI } }, evaluate), j = JSON.parse(out.content);
   assert.ok(!out.isError && !out.changed && j.clear === false && j.contact.links.includes('post'), out.content);
-  assert.ok(Math.abs(j.contact.values['base~a'] - firstContactInPlane(2)) < 1e-4);
+  assert.ok(Math.abs(j.contact.values['base~a'] * Math.PI / 180 - firstContactInPlane(2)) < 1e-4);
   assert.ok((await dispatchTool({ doc, bodies: r.bodies }, 'sweep_path', { to: { nope: 1 } }, evaluate)).isError);
   const dir = join(CASES, 'sweep-post');
   if (process.env.UPDATE_RM_FIXTURES) {

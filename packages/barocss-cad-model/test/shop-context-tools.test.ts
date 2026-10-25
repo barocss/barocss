@@ -50,7 +50,7 @@ test('A9-8 drawing, parent-change freshness, local override BOM and real contain
   const doc = assembly(), settings = { ...readDrawing(undefined), scope: { kind: 'part' as const, part: 'p' } };
   const inputs = drawingInputs(doc, settings); assert.ok(typeof inputs !== 'string', String(inputs));
   const own = evaluatePart(resolveShopRows(doc.instances![0].doc, doc).doc, 1); assert.ok(own.ok);
-  const local = evaluatePart(drawingDocument(doc, settings), 1); assert.ok(local.ok); assert.equal(local.bodies[0].volumeMM3, own.bodies[0].volumeMM3);
+  const local = evaluatePart(drawingDocument(doc, settings), 1); assert.ok(local.ok); assert.equal(local.bodies[0].volume, own.bodies[0].volume);
   const mass = await massResult(doc, evaluate, 'test', 'p'); assert.equal(mass.status, 'ok');
   const parentChanged: StudioDoc = { ...doc, frames: { version: 1, sections: [row(50)] } };
   assert.equal((await freshnessOf(mass, parentChanged, evaluate)).state, 'stale');

@@ -31,11 +31,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 1603.12372182,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -62,7 +62,7 @@
           "b.seat",
           "b.thread"
         ],
-        "areaMM2": {
+        "area": {
           "value": 1274.616073813,
           "relTol": 1e-9
         }

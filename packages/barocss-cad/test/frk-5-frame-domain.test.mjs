@@ -31,7 +31,7 @@ test('FRk5 frame integration is invariant to a cylinder surface knot-domain chan
   }
   const first = brepMassProperties(brep, 1), second = brepMassProperties(changed, 1);
   assert.equal(first.method, 'quadrature'); assert.equal(second.method, 'quadrature');
-  near(first.volumeMM3, Math.PI * (15 ** 2 - 13 ** 2) * 70, 1e-9, 'independent tilted-annulus volume control');
-  near(second.volumeMM3, first.volumeMM3, 1e-12, 'knot coordinates cannot change physical volume');
+  near(first.volume, Math.PI * (15 ** 2 - 13 ** 2) * 70, 1e-9, 'independent tilted-annulus volume control');
+  near(second.volume, first.volume, 1e-12, 'knot coordinates cannot change physical volume');
   // No change to the FRk5 notch comparison tolerances is made by this regression.
 });

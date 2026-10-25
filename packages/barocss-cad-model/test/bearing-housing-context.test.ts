@@ -18,8 +18,8 @@ import { dispatchTool } from '../src/chat/tools';
 // Source checkpoint cases. Execute only under the assigned A9-7 lease.
 const blank: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 const cmd = (id: string) => commands.find(c => c.id === id)!;
-const row = { id: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, raMaxMM: 1, outsideDeviationUM: [0, -11] as [number, number], source: 'A9-7 supplied test row' };
-const fit = { id: 'H7-test', rows: [{ class: 'H7', overMM: 30, upToMM: 50, lowerUM: 0, upperUM: 25, estimate: true }] };
+const row = { id: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, raMax: 1, outsideDeviation: [0, -0.011] as [number, number], source: 'A9-7 supplied test row' };
+const fit = { id: 'H7-test', rows: [{ class: 'H7', over: 30, upTo: 50, lower: 0, upper: 0.025, estimate: true }] };
 function instance(id: string, doc: StudioDoc, position: [number, number, number] = [0, 0, 0]): PartInstance {
   return { id, name: id, doc, position, rotation: [0, 0, 0] };
 }
@@ -46,10 +46,10 @@ test('A9-7 current assembly views are idempotent, keep parent rows read-only, an
   assert.equal(resolveShopTree(view), view);
   for (const i of view.instances!) assert.equal(resolveShopTree(i.doc), i.doc);
   const own = scoped(root), found = report(own);
-  assert.equal(found.housing!.boreMM, 47); assert.equal(found.housing!.covered, true);
+  assert.equal(found.housing!.bore, 47); assert.equal(found.housing!.covered, true);
   assert.equal(found.source, row.source); assert.equal(found.estimate, false);
   assert.equal(found.housingFit!.limit.class, 'H7'); assert.equal(found.housingFit!.limit.estimate, true);
-  assert.deepEqual([found.housingFit!.clearanceMinUM, found.housingFit!.clearanceMaxUM], [0, 36]);
+  assert.deepEqual([found.housingFit!.clearanceMin, found.housingFit!.clearanceMax], [0 / 1000 - 0 / 1000, 25 / 1000 - -11 / 1000]);
   assert.equal(JSON.stringify(root), before);
   const restored = restoreAuthoredShopRows({ ...own, parameters: { edited: 1 } }, own);
   assert.ok('doc' in restored);
@@ -121,7 +121,7 @@ test('A9-7 memoized actual evaluations reuse only current dependencies; removed 
   assert.notEqual(modelInput(good), modelInput(moved));
   const removed = evaluatePart(scoped({ ...root, bearings: { version: 1, rows: [] } }), 3);
   assert.ok(!removed.ok); assert.match(removed.error.detail, /row.*6204|6204.*row/i);
-  const changedOwn = { ...root.instances![1].doc, bearings: { version: 1 as const, rows: [{ ...row, outsideMM: 48 }] } };
+  const changedOwn = { ...root.instances![1].doc, bearings: { version: 1 as const, rows: [{ ...row, outside: 48 }] } };
   const overridden = { ...root, instances: root.instances!.map(i => i.id === 'p2' ? { ...i, doc: changedOwn } : i) };
   const result = evaluatePart(scoped(overridden), 4); assert.ok(!result.ok); assert.match(result.error.detail, /no Ø48 bore/);
 });

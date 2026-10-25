@@ -5,7 +5,7 @@ import { readFileSync,writeFileSync,mkdirSync } from 'node:fs';
 import { join,resolve } from 'node:path';
 
 /** Use the driver's one extracted archive; no checkout import or second pack. */
-export async function verifyRectangleFeatureConsumer({api,destination,temp,require}) {
+export async function verifyRectangleFeatureConsumer({api,destination,temp,require,archive}) {
   assert.equal(typeof api.evaluateAxisRectangleFeatureDocument,'function');
   const document={format:'barocss-axis-rectangle-feature',version:0,id:'packed_doc',lengthUnit:'mm',parameters:['_rect_ox','_rect_oy','_rect_w','_rect_h','_rect_d'].map((id,i)=>({id,type:'length',valueMM:[4,-3,7,5,6][i]})),profile:{id:'footprint',kind:'xy-rectangle',originX:'_rect_ox',originY:'_rect_oy',width:'_rect_w',height:'_rect_h'},feature:{id:'extrusion',kind:'axis-rectangle-extrude',profileId:'footprint',bodyId:'body',distance:'_rect_d'}};
   writeFileSync(join(temp,'rectangle-feature-runtime.mjs'),`import assert from 'node:assert/strict';
@@ -28,7 +28,7 @@ editAxisRectangleFeatureDocument(document,[{parameterId:'_rect_w',valueMM:'8mm'}
 `);
   execFileSync(process.execPath,[require.resolve('typescript/bin/tsc'),'--noEmit','--strict','--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext',join(temp,'rectangle-feature-types.ts')],{stdio:'inherit'});
   const result=api.evaluateAxisRectangleFeatureDocument(document),serialized=api.serializeAxisRectangleFeatureDocument(document),reopened=api.evaluateAxisRectangleFeatureDocument(JSON.parse(serialized));assert.deepEqual(reopened,result);const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
-  const record={producer:'Actual extracted public @barocss/cad ESM/types archive',archiveSHA256:hash(readFileSync(join(temp,'barocss-cad-0.0.0-private-experimental.tgz'))),indexSHA256:hash(readFileSync(join(destination,'dist/index.js'))),authoringSHA256:hash(serialized),serializedBytes:Buffer.byteLength(serialized),sourceSHA256:hash(result.evaluation.source),bindings:result.bindings,solidReport:result.evaluation.solidReport,editedWidth:{volumeMM3:240,areaMM2:236},editedDistance:{volumeMM3:400,areaMM2:340},wholeSolidInterchange:false};
+  const record={producer:'Actual extracted public @barocss/cad ESM/types archive',archiveSHA256:hash(readFileSync(archive)),indexSHA256:hash(readFileSync(join(destination,'dist/index.js'))),authoringSHA256:hash(serialized),serializedBytes:Buffer.byteLength(serialized),sourceSHA256:hash(result.evaluation.source),bindings:result.bindings,solidReport:result.evaluation.solidReport,editedWidth:{volumeMM3:240,areaMM2:236},editedDistance:{volumeMM3:400,areaMM2:340},wholeSolidInterchange:false};
   if(process.env.BAROCSS_CAD_RECTANGLE_FEATURE_EVIDENCE){const folder=resolve(process.env.BAROCSS_CAD_RECTANGLE_FEATURE_EVIDENCE);mkdirSync(folder,{recursive:true});writeFileSync(join(folder,'consumer-report.json'),JSON.stringify(record,null,2)+'\n');writeFileSync(join(folder,'packed-feature-document.json'),serialized);writeFileSync(join(folder,'packed-feature-evaluation.json'),JSON.stringify(result,null,2)+'\n');}
   console.log('Packed feature document ESM/types, actual edit/reopen source2, atomic final batch and signedzero JSON passed');return record;
 }

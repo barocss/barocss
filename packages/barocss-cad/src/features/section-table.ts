@@ -21,7 +21,7 @@ const DIMS: Record<SectionTableKind, { readonly req: readonly string[]; readonly
   tslot: { req: ['size', 'cells', 'opening', 'lip', 'undercut', 'depth', 'bore'], opt: ['openSlots'] },
 };
 const num = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
-/** A row as the section's spec (its dimensions; a T-slot's size is its `size` dimension, the row's name is `size` too: see `sizeMM`). */
+/** A row as the section's spec: a T-slot row's numeric `cellSize` becomes the spec's `size`; its row name stays `size`. */
 function specOf(kind: SectionTableKind, r: SectionTableRow): FrameSectionSpec {
   const n = (k: string) => r[k] as number;
   switch (kind) {
@@ -30,7 +30,7 @@ function specOf(kind: SectionTableKind, r: SectionTableRow): FrameSectionSpec {
     case 'angle': return { kind, legX: n('legX'), legY: n('legY'), thickness: n('thickness'), rootRadius: n('rootRadius'), toeRadius: n('toeRadius') };
     case 'channel': return { kind, height: n('height'), width: n('width'), web: n('web'), flange: n('flange'), rootRadius: n('rootRadius'), ...(r.toeRadius !== undefined ? { toeRadius: n('toeRadius') } : {}), ...(r.flangeSlope !== undefined ? { flangeSlope: n('flangeSlope') } : {}) };
     case 'i-beam': return { kind, height: n('height'), width: n('width'), web: n('web'), flange: n('flange'), rootRadius: n('rootRadius'), toeRadius: n('toeRadius'), flangeSlope: n('flangeSlope') };
-    case 'tslot': return { kind, size: n('sizeMM'), cells: n('cells') as 1 | 2, openSlots: n('cells') === 1 ? n('openSlots') : 6, opening: n('opening'), lip: n('lip'), undercut: n('undercut'), depth: n('depth'), bore: n('bore') };
+    case 'tslot': return { kind, size: n('cellSize'), cells: n('cells') as 1 | 2, openSlots: n('cells') === 1 ? n('openSlots') : 6, opening: n('opening'), lip: n('lip'), undercut: n('undercut'), depth: n('depth'), bore: n('bore') };
   }
 }
 /** Why a section table is not one, or null. */
@@ -44,15 +44,15 @@ export function sectionTableProblem(t: unknown): string | null {
   if (o.source !== undefined && typeof o.source !== 'string') return `${at}: source must be text`;
   if (o.source !== undefined && o.estimate === true) return `${at}: cite its source or say estimate: true — not both`;
   if (!Array.isArray(o.rows) || !o.rows.length) return `${at}: rows must list at least one size`;
-  // (A T-slot's dimension `size` would clash with the row's name: in a table it is `sizeMM`.)
-  const d = DIMS[kind], req = kind === 'tslot' ? d.req.map(k => k === 'size' ? 'sizeMM' : k) : d.req, seen = new Set<string>();
+  // (A T-slot's numeric cell size is `cellSize`; `size` remains the row's string name.)
+  const d = DIMS[kind], req = kind === 'tslot' ? d.req.map(k => k === 'size' ? 'cellSize' : k) : d.req, seen = new Set<string>();
   for (const [i, row] of (o.rows as unknown[]).entries()) {
     if (typeof row !== 'object' || row === null || Array.isArray(row)) return `${at}: rows[${i}] must be { size, …dimensions }`;
     const r = row as Record<string, unknown>, rat = `${at} size ${String(r.size)}`;
     if (typeof r.size !== 'string' || !r.size.trim()) return `${at}: rows[${i}] needs a size (its name, e.g. "40x40x3")`;
     if (seen.has(r.size)) return `${at}: size ${r.size} is listed twice`;
     seen.add(r.size);
-    for (const k of Object.keys(r)) if (!['size', 'source', 'estimate', ...req, ...d.opt].includes(k)) return `${rat}: unknown field ${k}`;
+    for (const k of Object.keys(r)) if (!['size', 'source', 'estimate', ...req, ...d.opt].includes(k)) return `${rat}: unknown field ${k}${kind === 'tslot' && k === 'sizeMM' ? ' (use cellSize for the cell size in mm)' : ''}`;
     for (const k of [...req, ...d.opt]) if (r[k] !== undefined && !(num(r[k]) && (r[k] as number) >= 0)) return `${rat}: ${k} must be a number, 0 or more`;
     for (const k of req) if (r[k] === undefined && !(kind === 'tslot' && k === 'openSlots')) return `${rat}: ${k} is missing`;
     if (kind === 'tslot' && r.cells === 1 && r.openSlots === undefined) return `${rat}: openSlots (0 to 4) must be given for one cell`;

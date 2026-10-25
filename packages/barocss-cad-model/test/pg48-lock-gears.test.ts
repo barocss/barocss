@@ -52,7 +52,7 @@ test('PG-4: gears locked to their shafts couple as the shafts\' own gear bodies 
   const c = tree.couplings[0], leader = tree.joints.find(j => j.key === c.leader)!, follower = tree.joints.find(j => j.key === c.follower)!;
   assert.deepEqual([leader.child, follower.child].sort(), ['s1', 's2']);
   assert.ok(Math.abs(c.multiplier + (leader.child === 's1' ? 20 / 40 : 40 / 20)) < 1e-12, `${c.multiplier}`);
-  assert.ok(Math.abs(c.centerDistanceMM - 45) < 1e-9);
+  assert.ok(Math.abs(c.centerDistance - 45) < 1e-9);
   // (Unlocked, the gears stand free: no coupling, as before.)
   const r0 = await evaluate(unlocked()); assert.ok(r0.ok);
   assert.equal((await treeOfDoc(unlocked(), r0.bodies, evaluate)).couplings.length, 0);

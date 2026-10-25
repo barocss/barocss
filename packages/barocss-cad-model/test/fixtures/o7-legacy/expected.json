@@ -279,11 +279,11 @@
    {
     "node": "n3",
     "thread": "M6×1",
-    "sizeMM": 6,
-    "pitchMM": 1,
+    "size": 6,
+    "pitch": 1,
     "tapMM": 5,
-    "boreMM": 5,
-    "lengthMM": 10,
+    "bore": 5,
+    "length": 10,
     "faces": [
      "n3.side0"
     ]
@@ -1772,11 +1772,11 @@
    {
     "node": "n2",
     "thread": "M6×1",
-    "sizeMM": 6,
-    "pitchMM": 1,
+    "size": 6,
+    "pitch": 1,
     "tapMM": 5,
-    "boreMM": 5,
-    "lengthMM": 12,
+    "bore": 5,
+    "length": 12,
     "faces": [
      "n2.side0"
     ]
@@ -1784,11 +1784,11 @@
    {
     "node": "n3",
     "thread": "M3×0.5",
-    "sizeMM": 3,
-    "pitchMM": 0.5,
+    "size": 3,
+    "pitch": 0.5,
     "tapMM": 2.5,
-    "boreMM": 2.5,
-    "lengthMM": 20,
+    "bore": 2.5,
+    "length": 20,
     "faces": [
      "n3.side0"
     ]
@@ -1796,11 +1796,11 @@
    {
     "node": "n4",
     "thread": "M10×1.5",
-    "sizeMM": 10,
-    "pitchMM": 1.5,
+    "size": 10,
+    "pitch": 1.5,
     "tapMM": 8.5,
-    "boreMM": 8.5,
-    "lengthMM": 15,
+    "bore": 8.5,
+    "length": 15,
     "faces": [
      "n4.side0"
     ]

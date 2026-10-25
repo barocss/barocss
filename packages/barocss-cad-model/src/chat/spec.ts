@@ -86,12 +86,12 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
     case 'bbox': { const k = 'xyz'.indexOf(q.axis); return facts.bbox ? { x: facts.bbox.max[k] - facts.bbox.min[k], hint: `the overall ${q.axis} size` } : { unknown: 'no body' }; }
     case 'volume': {
       const incomplete = !q.body ? incompleteBeadReason(beadAccounting(doc, bodies)) : null;
-      return incomplete ? { unknown: incomplete } : { x: facts.volume_mm3 };
+      return incomplete ? { unknown: incomplete } : { x: facts.volume };
     }
     case 'mass': {
       const incomplete = !q.body ? incompleteBeadReason(beadAccounting(doc, bodies)) : null;
       if (incomplete) return { unknown: incomplete };
-      return facts.mass_assumed ? { unknown: `the material of ${facts.materials.filter(m => m.assumed).map(m => m.body).join(', ')} is not set: its mass is assumed (aluminium); set the material first` } : { x: facts.mass_g };
+      return facts.mass_assumed ? { unknown: `the material of ${facts.materials.filter(m => m.assumed).map(m => m.body).join(', ')} is not set: its mass is assumed (aluminium); set the material first` } : { x: facts.mass };
     }
     case 'count_solids': return { x: facts.solids };
     case 'count_faces_of_kind': return { x: bodiesOf(bodies, q.body).reduce((n, b) => n + b.mesh.faces.filter(f => f.kind === q.kind).length, 0) };
@@ -108,24 +108,24 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       return { x: q.fn === 'radius' ? f.radius : 2 * f.radius, entities: [a.name] };
     }
     case 'min_wall': {
-      const walls = bodiesOf(bodies, q.body).map(b => wallThickness(b)) as { thinnest_mm: number | null; face?: string }[];
-      const thin = walls.filter(w => w.thinnest_mm !== null).sort((x, y) => x.thinnest_mm! - y.thinnest_mm!)[0];
-      return thin ? { x: thin.thinnest_mm!, ...(thin.face ? { entities: [thin.face] } : {}), hint: 'the thinnest wall (display mesh)' } : { unknown: 'no wall measured' };
+      const walls = bodiesOf(bodies, q.body).map(b => wallThickness(b)) as { thinnest: number | null; face?: string }[];
+      const thin = walls.filter(w => w.thinnest !== null).sort((x, y) => x.thinnest! - y.thinnest!)[0];
+      return thin ? { x: thin.thinnest!, ...(thin.face ? { entities: [thin.face] } : {}), hint: 'the thinnest wall (display mesh)' } : { unknown: 'no wall measured' };
     }
     case 'draft_min': {
       // (IM2, O78: every wall's exact draft — flat and curved; a straddling face's least is 0.)
-      const walls = bodiesOf(bodies, q.body).flatMap(b => draftAnalysis(doc, b, q.pull ?? [0, 0, 1]).walls as { face: string; draft_deg: number }[]);
+      const walls = bodiesOf(bodies, q.body).flatMap(b => draftAnalysis(doc, b, q.pull ?? [0, 0, 1]).walls as { face: string; draft: number }[]);
       if (!walls.length) return { unknown: 'no walls along the pull to judge' };
-      const worst = [...walls].sort((x, y) => x.draft_deg - y.draft_deg)[0];
-      return { x: worst.draft_deg, entities: [worst.face], hint: 'the least drafted wall (exact normals)' };
+      const worst = [...walls].sort((x, y) => x.draft - y.draft)[0];
+      return { x: worst.draft, entities: [worst.face], hint: 'the least drafted wall (exact normals)' };
     }
     case 'keepout': {
       const res = await checkKeepouts(doc, bodiesOf(bodies, q.body), evaluate, { keepout: q.keepout });
       if (!res.length) return { unknown: `no keep-out ${q.keepout} (or no body)` };
-      const enters = res.filter(r => r.overlapMM3 > 1e-6);
-      if (enters.length) { const v = Math.max(...enters.map(r => r.overlapMM3)); return { x: -v, entities: enters.map(r => r.body), hint: `${enters.map(r => r.body).join(', ')} enter${enters.length === 1 ? 's' : ''} ${q.keepout} by ${r4(v)} mm³ (measured as minus that; exact)` }; }
-      const near = res.reduce((a, b) => ((b.clearanceMM ?? Infinity) < (a.clearanceMM ?? Infinity) ? b : a));
-      return { x: near.clearanceMM!, chord: near.chordMM, entities: [near.body], hint: `${near.body} is ${r4(near.clearanceMM!)} mm from ${q.keepout} (meshes exact; chord tolerance ${r4(near.chordMM)} mm)` };
+      const enters = res.filter(r => r.overlap > 1e-6);
+      if (enters.length) { const v = Math.max(...enters.map(r => r.overlap)); return { x: -v, entities: enters.map(r => r.body), hint: `${enters.map(r => r.body).join(', ')} enter${enters.length === 1 ? 's' : ''} ${q.keepout} by ${r4(v)} mm³ (measured as minus that; exact)` }; }
+      const near = res.reduce((a, b) => ((b.clearance ?? Infinity) < (a.clearance ?? Infinity) ? b : a));
+      return { x: near.clearance!, chord: near.chordMM, entities: [near.body], hint: `${near.body} is ${r4(near.clearance!)} mm from ${q.keepout} (meshes exact; chord tolerance ${r4(near.chordMM)} mm)` };
     }
     case 'datum_distance': {
       const set = readReferences(doc.references), d = set.datums.find(x => x.id === q.datum);
@@ -135,12 +135,12 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       const f = resolveNames(bodies as BodyResult[], { faces: [names[0]] }).selection.faces[0];
       if (!f) return { unknown: `no face ${names[0]}` };
       const m = datumToFace(datumWorld(set, d), bodies[f.body].mesh, f.face);
-      return { x: m.distanceMM, entities: [names[0]], hint: `${m.what}${m.angleDeg !== null ? `; at ${r4(m.angleDeg)}°` : ''}` };
+      return { x: m.distance, entities: [names[0]], hint: `${m.what}${m.angle !== null ? `; at ${r4(m.angle)}°` : ''}` };
     }
     case 'clearance': {
-      const pairs = await interference(doc, bodies, evaluate, [q.a, q.b]) as { overlap_mm3?: number; clearance_mm?: number }[];
+      const pairs = await interference(doc, bodies, evaluate, [q.a, q.b]) as { overlap?: number; clearance?: number }[];
       if (!pairs.length) return { unknown: `bodies ${q.a} and ${q.b} are not both there` };
-      return pairs[0].overlap_mm3 ? { x: -pairs[0].overlap_mm3, entities: [q.a, q.b], hint: `they overlap by ${pairs[0].overlap_mm3} mm³ (measured as minus that)` } : { x: pairs[0].clearance_mm!, entities: [q.a, q.b] };
+      return pairs[0].overlap ? { x: -pairs[0].overlap, entities: [q.a, q.b], hint: `they overlap by ${pairs[0].overlap} mm³ (measured as minus that)` } : { x: pairs[0].clearance!, entities: [q.a, q.b] };
     }
     case 'gear_center_distance': case 'gear_backlash': case 'gear_contact_ratio': case 'gear_clearance': return gearPair(doc, bodies, q);
     case 'print_rule': {
@@ -154,23 +154,23 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       // (R7, D79: the SubD caps' largest distance from the limit surface; at: crease — only those at crease, corner or boundary vertices.)
       const subs = bodiesOf(bodies, q.body).filter(b => b.subd);
       if (!subs.length) return { unknown: q.body ? `${q.body} is not a SubD body with caps` : 'no SubD body with caps (its cage is regular everywhere: exact, no deviation)' };
-      const worst = subs.reduce((a, b) => (q.at === 'crease' ? b.subd!.creaseDeviationMM > a.subd!.creaseDeviationMM : b.subd!.maxDeviationMM > a.subd!.maxDeviationMM) ? b : a), s = worst.subd!, x = q.at === 'crease' ? s.creaseDeviationMM : s.maxDeviationMM;
-      return { x, entities: [worst.key], hint: `${+(100 * x / s.sizeMM).toPrecision(2)}% of its size (${s.caps} caps at ${s.irregularVertices} irregular ${s.irregularVertices === 1 ? 'vertex' : 'vertices'}); warned past 0.2% at crease, corner or boundary vertices` };
+      const worst = subs.reduce((a, b) => (q.at === 'crease' ? b.subd!.creaseDeviation > a.subd!.creaseDeviation : b.subd!.maxDeviation > a.subd!.maxDeviation) ? b : a), s = worst.subd!, x = q.at === 'crease' ? s.creaseDeviation : s.maxDeviation;
+      return { x, entities: [worst.key], hint: `${+(100 * x / s.size).toPrecision(2)}% of its size (${s.caps} caps at ${s.irregularVertices} irregular ${s.irregularVertices === 1 ? 'vertex' : 'vertices'}); warned past 0.2% at crease, corner or boundary vertices` };
     }
     case 'overhang_area': {
       const profile = processProfile(doc.process);
       if (!profile?.additive) return { unknown: profile ? `${profile.label} is not printing: no overhang limit` : 'no printing process is chosen' };
       const limit = profile.thresholds.maxOverhangDeg.value, table = faceTableOf(doc);
       const reports = bodiesOf(bodies, q.body).map(b => overhangOf(b.mesh, table, limit, q.direction));
-      const total = reports.reduce((n, r) => n + r.totalMM2, 0), names = reports.flatMap(r => r.faces.map(f => f.name));
+      const total = reports.reduce((n, r) => n + r.overhangArea, 0), names = reports.flatMap(r => r.faces.map(f => f.name));
       return { x: total, entities: names.slice(0, 20), hint: `past ${limit}° from the vertical (${profile.label})${reports.some(r => r.approximate) ? '; curved faces by their display triangles: accurate to the chord error' : ''}` };
     }
     case 'hole_alignment': {
       const r = holeAlignment(doc, q.board, q.features);
       if (typeof r === 'string') return { unknown: r };
-      if (r.unmatched.length || r.maxOffsetMM === null) return { unknown: `no hole of ${q.board} runs parallel to ${r.unmatched.join(', ')}` };
-      const worst = r.pairs.reduce((a, b) => (b.offsetMM ?? 0) > (a.offsetMM ?? 0) ? b : a);
-      return { x: r.maxOffsetMM, entities: r.pairs.map(p => p.feature), hint: `${r.pairs.length} axes against ${r.holes} holes; the worst ${worst.feature} off ${worst.hole} by ${+r.maxOffsetMM.toFixed(4)} mm` };
+      if (r.unmatched.length || r.maxOffset === null) return { unknown: `no hole of ${q.board} runs parallel to ${r.unmatched.join(', ')}` };
+      const worst = r.pairs.reduce((a, b) => (b.offset ?? 0) > (a.offset ?? 0) ? b : a);
+      return { x: r.maxOffset, entities: r.pairs.map(p => p.feature), hint: `${r.pairs.length} axes against ${r.holes} holes; the worst ${worst.feature} off ${worst.hole} by ${+r.maxOffset.toFixed(4)} mm` };
     }
     case 'library_check': {
       const i = nodeIndexOf(doc.nodes, q.feature), node = i >= 0 ? doc.nodes[i] : undefined;
@@ -200,15 +200,15 @@ function gearPair(doc: StudioDoc, bodies: readonly BodyResult[], q: Extract<Quer
   if (b1.rack && b2.rack) return { unknown: 'two racks do not mesh' };
   const mode = q.fn === 'gear_clearance' ? 'report' : 'verdict';
   // (A gear and a rack, either way round: the rack's checks — the centre distance is the gear axis's from its pitch line.)
-  let c: { centerDistanceMM: number; nominalCenterDistanceMM: number; backlashMM: number; usableContactRatio: number; idealContactRatio: number; sweep: { minimumClearanceMM: number; interference: boolean; atDegrees: number } };
+  let c: { centerDistance: number; nominalCenterDistance: number; backlash: number; usableContactRatio: number; idealContactRatio: number; sweep: { minimumClearance: number; interference: boolean; at: number } };
   try { c = b1.gear && b2.gear ? checkPlacedSpurGears(b1.gear, b2.gear, { mode }) : checkPlacedSpurRack((b1.gear ?? b2.gear)!, (b1.rack ?? b2.rack)!, { mode }); }
   catch (cause) { return { unknown: cause instanceof Error ? cause.message.replace(/^gear: /, '') : String(cause) }; }
   const entities = [q.a, q.b];
   switch (q.fn) {
-    case 'gear_center_distance': return { x: c.centerDistanceMM, entities, hint: `nominal ${r4(c.nominalCenterDistanceMM)} mm` };
-    case 'gear_backlash': return { x: c.backlashMM, entities, hint: 'circumferential, on the working pitch circles' };
+    case 'gear_center_distance': return { x: c.centerDistance, entities, hint: `nominal ${r4(c.nominalCenterDistance)} mm` };
+    case 'gear_backlash': return { x: c.backlash, entities, hint: 'circumferential, on the working pitch circles' };
     case 'gear_contact_ratio': return { x: c.usableContactRatio, entities, hint: `the usable flanks (ideal ${c.idealContactRatio.toFixed(4)})` };
-    default: return { x: c.sweep.minimumClearanceMM, entities, hint: c.sweep.interference ? `the teeth cross at ${c.sweep.atDegrees.toFixed(2)}° (measured as minus the depth)` : 'the least clearance over a tooth period' };
+    default: return { x: c.sweep.minimumClearance, entities, hint: c.sweep.interference ? `the teeth cross at ${c.sweep.at.toFixed(2)}° (measured as minus the depth)` : 'the least clearance over a tooth period' };
   }
 }
 
@@ -314,7 +314,7 @@ export async function validateSuite(doc: StudioDoc, bodies: readonly BodyResult[
       applies.set(req.id, (applies.get(req.id) ?? 0) + 1); if (o.status === 'pass') passes.set(req.id, (passes.get(req.id) ?? 0) + 1);
     }
   }
-  const out: Validation = { mutants: { built, tried: mutants.length, ms: Math.round(performance.now() - t), labels: mutants.map(m => m.label) }, vacuous: [], unverified: [], invariant: [] };
+  const out: Validation = { mutants: { built, tried: mutants.length, duration: Math.round(performance.now() - t) / 1000, labels: mutants.map(m => m.label) }, vacuous: [], unverified: [], invariant: [] };
   for (const req of doc.requirements ?? []) {
     if (outcomes.get(req.id)?.status !== 'pass') continue;
     const n = applies.get(req.id) ?? 0, p = passes.get(req.id) ?? 0;

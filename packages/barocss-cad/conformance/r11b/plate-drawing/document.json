@@ -671,8 +671,8 @@
     151
    ],
    "radius": 4.000000000000001,
-   "startDeg": 0,
-   "endDeg": 180,
+   "start": 0,
+   "end": 180,
    "layer": "VISIBLE"
   },
   {
@@ -682,8 +682,8 @@
     151
    ],
    "radius": 4.000000000000001,
-   "startDeg": -179.99999999999994,
-   "endDeg": 0,
+   "start": -179.99999999999994,
+   "end": 0,
    "layer": "VISIBLE"
   },
   {
@@ -948,7 +948,7 @@
      135.55887450304573,
      86.13809573402366
     ],
-    "angleDeg": 0
+    "angle": 0
    },
    "block": [
     {
@@ -1060,7 +1060,7 @@
      145.55887450304573,
      106.13809573402366
     ],
-    "angleDeg": 90
+    "angle": 90
    },
    "block": [
     {
@@ -1143,7 +1143,7 @@
      ],
      "height": 3.5,
      "text": "8",
-     "rotationDeg": 90,
+     "rotation": 90,
      "align": "left",
      "style": "BC_TEXT",
      "layer": "TEXT"
@@ -1156,7 +1156,7 @@
      ],
      "height": 2.5,
      "text": "+0.05",
-     "rotationDeg": 90,
+     "rotation": 90,
      "align": "left",
      "style": "BC_TEXT",
      "layer": "TEXT"
@@ -1169,7 +1169,7 @@
      ],
      "height": 2.5,
      "text": "-0.1",
-     "rotationDeg": 90,
+     "rotation": 90,
      "align": "left",
      "style": "BC_TEXT",
      "layer": "TEXT"
@@ -1281,7 +1281,7 @@
      ],
      "height": 3.5,
      "text": "32.98",
-     "rotationDeg": 14.036,
+     "rotation": 14.036,
      "align": "left",
      "style": "BC_TEXT",
      "layer": "TEXT"
@@ -1485,7 +1485,7 @@
      ],
      "height": 3.5,
      "text": "R4",
-     "rotationDeg": 45,
+     "rotation": 45,
      "align": "left",
      "style": "BC_TEXT",
      "layer": "TEXT"
@@ -1536,8 +1536,8 @@
       98.13809573402366
      ],
      "radius": 5.8309518948453,
-     "startDeg": 0,
-     "endDeg": 90,
+     "start": 0,
+     "end": 90,
      "layer": "THIN"
     },
     {
@@ -1885,7 +1885,7 @@
    ],
    "fill": {
     "kind": "lines",
-    "angleDeg": -45,
+    "angle": -45,
     "spacing": 2.5,
     "origin": [
      0,

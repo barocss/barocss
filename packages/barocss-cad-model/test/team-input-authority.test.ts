@@ -48,7 +48,7 @@ for (const scope of ['base', 'placed'] as const) for (const change of ['section'
     } else {
       const a = await evaluate(own), b = await evaluate(scene.next(own)); assert.ok(a.ok && b.ok);
       assert.equal(a.bodies.length, 2); assert.equal(b.bodies.length, 3);
-      assert.ok(Math.abs(b.bodies.reduce((v, x) => v + x.volumeMM3!, 0) - a.bodies.reduce((v, x) => v + x.volumeMM3!, 0) - 360) < 1e-6);
+      assert.ok(Math.abs(b.bodies.reduce((v, x) => v + x.volume!, 0) - a.bodies.reduce((v, x) => v + x.volume!, 0) - 360) < 1e-6);
       assert.ok(after.number! > before.number!);
     }
     const inertia = await inertiaResult(doc, evaluate, 'R1', part);

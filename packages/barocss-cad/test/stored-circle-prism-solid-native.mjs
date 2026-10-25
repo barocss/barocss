@@ -179,7 +179,7 @@ try {
     tessellateXYCirclePrismShell, evaluateSurfaceD1, StoredCirclePrismSolidError } = api;
   const build = which => { const f = CASES[which]; return stage('parentBuilds', which + ' original native parent', () =>
     buildXYCirclePrismShell({ kind: 'circle', id: 'solid1655_' + which + '_ring', center: [...f.center], radius: f.radius },
-      { shellId: 'solid1655_' + which, heightMM: f.heightMM })); };
+      { shellId: 'solid1655_' + which, height: f.height })); };
 
   const parentA = build('A'); originalArtifact('A', parentA); flow.AParent = proveParent(parentA, 'A'); write();
   const parentAHash = dataHash(parentA), inputA = clone(parentA), inputAText = signedData(inputA);
@@ -239,7 +239,7 @@ try {
   }
 
   // Caller edits are after all frozen geometry calls and cannot affect owned results.
-  inputA.profile.source = 'caller changed its own source after qualification'; inputB.report.centerMM[0] = 99;
+  inputA.profile.source = 'caller changed its own source after qualification'; inputB.report.center[0] = 99;
   assert.equal(dataHash(A), aHash); assert.equal(dataHash(B), bHash); deepFrozen(A); deepFrozen(B);
   assert.throws(() => { A.certificate.arithmetic.operations++; }, TypeError);
   assert.throws(() => { A.parent.bundle.topology.loops[2].uses[1].sense = 'reverse'; }, TypeError);

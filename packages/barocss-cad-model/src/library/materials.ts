@@ -23,18 +23,19 @@ export interface MaterialData {
   readonly id: string; readonly label: string; readonly family: 'metal' | 'polymer';
   /** A casting alloy's family (IM8a); none for a material not cast here (a wrought alloy, a polymer). */
   readonly castFamily?: CastFamily;
-  readonly densityGPerCm3: number; readonly elasticModulusMPa: number; readonly yieldMPa: number; readonly allowableStrain: number; readonly shrink: number;
+  /** Density in g/cm³; elastic modulus and yield stress in MPa. */
+  readonly density: number; readonly elasticModulus: number; readonly yieldStress: number; readonly allowableStrain: number; readonly shrink: number;
   /** Its coefficient of friction against itself (a snap-fit's push-on and pull-off forces). */
   readonly friction: number;
   /** How prone it is to warp as it cools, 0–1 (printing; AM1). */
   readonly warpRisk?: number;
   /** A living-hinge material's (polypropylene's) allowable strain and thickness range; others have none. */
   readonly livingHingeStrain?: number; readonly livingHingeTMin?: number; readonly livingHingeTMax?: number;
-  readonly wallMM?: Readonly<Record<string, readonly [number, number]>>; readonly processes: readonly string[];
+  readonly wall?: Readonly<Record<string, readonly [number, number]>>; readonly processes: readonly string[];
   /** Its moulding shrink (mm/mm) where a page gives it (IM1, O77); the generic `shrink` stays the family's estimate. */
   readonly mouldShrink?: number;
   readonly estimate: boolean;
-  /** Each field's source id; a per-process wall range as `wallMM.<process>`, before `wallMM`. */
+  /** Each field's source id; a per-process wall range as `wall.<process>`, before `wall`. */
   readonly sources: Readonly<Record<string, string>>;
   /** The page each W-WEB value is from (IM1, O77): by its field's key, as in `sources`. */
   readonly pages?: Readonly<Record<string, WebSource>>;
@@ -43,18 +44,18 @@ export interface MaterialData {
 export interface WebSource { readonly url: string; readonly read: string; readonly label: string; readonly note?: string }
 export interface ProcessThreshold { readonly value: number; readonly unit: string; readonly source: string; readonly description: string; readonly page?: WebSource }
 /** A moulded surface finish (IM1, O77): the least draft it takes, and the recommended. */
-export interface MouldFinish { readonly id: string; readonly label: string; readonly draftMinDeg: number; readonly draftRecDeg?: number; readonly source: string; readonly page?: WebSource }
+export interface MouldFinish { readonly id: string; readonly label: string; readonly draftMin: number; readonly draftRecommended?: number; readonly source: string; readonly page?: WebSource }
 /** A process: its rules' thresholds; `additive` for the printing processes (AM1: overhang, bridge, hole, gap, escape holes); a moulding process's finishes. */
 /** A machining process's general tolerance classes by material family (CNC1, O84): named, their values not copied. */
 export interface ToleranceClasses { readonly metal: string; readonly plastic: string; readonly page: WebSource }
 export interface ProcessProfile { readonly id: string; readonly label: string; readonly thresholds: Readonly<Record<string, ProcessThreshold>>; readonly allowances?: CastingAllowances; readonly additive?: boolean; readonly finishes?: readonly MouldFinish[]; readonly toleranceClasses?: ToleranceClasses }
 /** A printer (AM1, D72): its process, build volume (X, Y, Z mm), layer, nozzle and bed — a generic one of its class, or the user's. */
-export interface PrinterProfile { readonly id: string; readonly label: string; readonly process: string; readonly buildMM: readonly [number, number, number]; readonly layerMM: number; readonly nozzleMM?: number; readonly heatedBed?: boolean; readonly source: string }
+export interface PrinterProfile { readonly id: string; readonly label: string; readonly process: string; readonly buildVolume: readonly [number, number, number]; readonly layerHeight: number; readonly nozzleDiameter?: number; readonly heatedBed?: boolean; readonly source: string }
 export interface MaterialsData { readonly format: 'barocss-materials'; readonly version: 1; readonly libraryVersion: string; readonly license: string; readonly provenance: string; readonly sources: Readonly<Record<string, string>>; readonly materials: readonly MaterialData[]; readonly profiles: readonly ProcessProfile[]; readonly printers: readonly PrinterProfile[] }
 
 const WEB = 'W-WEB', DERIVED = 'W-DERIVED';
 const pageOk = (w: WebSource | undefined) => !!w && /^https:\/\/[^\s]+$/.test(w.url) && /^\d{4}-\d{2}-\d{2}$/.test(w.read) && w.label.trim().length > 0;
-const NUMERIC = ['densityGPerCm3', 'elasticModulusMPa', 'yieldMPa', 'allowableStrain', 'shrink', 'friction'] as const;
+const NUMERIC = ['density', 'elasticModulus', 'yieldStress', 'allowableStrain', 'shrink', 'friction'] as const;
 /** The data checked: every number finite and not negative (density, modulus and yield above 0), every source id known. */
 export function checkMaterials(d: MaterialsData): string[] {
   const problems: string[] = [];
@@ -65,7 +66,7 @@ export function checkMaterials(d: MaterialsData): string[] {
     for (const k of NUMERIC) { const v = m[k]; if (!(Number.isFinite(v) && v >= 0) || (k !== 'shrink' && k !== 'allowableStrain' && k !== 'friction' && !(v > 0))) problems.push(`${m.id}.${k}: ${v}`); }
     for (const [field, s] of Object.entries(m.sources)) if (!(s in d.sources)) problems.push(`${m.id}.${field}: unknown source ${s}`);
     for (const k of NUMERIC) if (!(k in m.sources)) problems.push(`${m.id}.${k}: no source`);
-    for (const [p, [lo, hi]] of Object.entries(m.wallMM ?? {})) if (!(lo > 0 && hi > lo)) problems.push(`${m.id}.wallMM.${p}: ${lo}–${hi}`);
+    for (const [p, [lo, hi]] of Object.entries(m.wall ?? {})) if (!(lo > 0 && hi > lo)) problems.push(`${m.id}.wall.${p}: ${lo}–${hi}`);
     if (m.castFamily !== undefined && (!CAST_FAMILIES.includes(m.castFamily) || m.family !== 'metal')) problems.push(`${m.id}.castFamily: ${m.castFamily}`);
   }
   // (Printing processes carry every printing threshold; printers name a known process, a positive build volume and layer.)
@@ -75,7 +76,7 @@ export function checkMaterials(d: MaterialsData): string[] {
   for (const pr of d.printers ?? []) {
     if (prn.has(pr.id)) problems.push(`printer ${pr.id} twice`); prn.add(pr.id);
     if (!pids.has(pr.process) || !d.profiles.find(p => p.id === pr.process)!.additive) problems.push(`printer ${pr.id}: ${pr.process} is not a printing process`);
-    if (!(pr.buildMM.length === 3 && pr.buildMM.every(v => v > 0) && pr.layerMM > 0)) problems.push(`printer ${pr.id}: its build volume or layer`);
+    if (!(pr.buildVolume.length === 3 && pr.buildVolume.every(v => v > 0) && pr.layerHeight > 0)) problems.push(`printer ${pr.id}: its build volume or layer`);
     if (!(pr.source in d.sources)) problems.push(`printer ${pr.id}: unknown source ${pr.source}`);
   }
   for (const p of d.profiles) for (const [k, t] of Object.entries(p.thresholds)) {
@@ -88,7 +89,7 @@ export function checkMaterials(d: MaterialsData): string[] {
   }
   // (IM1: a web value names its page; a finish its least draft.)
   for (const p of d.profiles) for (const f of p.finishes ?? []) {
-    if (!(f.draftMinDeg >= 0 && f.draftMinDeg < 45) || (f.draftRecDeg !== undefined && !(f.draftRecDeg >= f.draftMinDeg))) problems.push(`${p.id}.finish ${f.id}: its draft`);
+    if (!(f.draftMin >= 0 && f.draftMin < 45) || (f.draftRecommended !== undefined && !(f.draftRecommended >= f.draftMin))) problems.push(`${p.id}.finish ${f.id}: its draft`);
     if (!(f.source in d.sources) || (f.source === WEB && !pageOk(f.page))) problems.push(`${p.id}.finish ${f.id}: its source`);
   }
   for (const m of d.materials) for (const [k, src] of Object.entries(m.sources)) if (src === WEB && !pageOk(m.pages?.[k])) problems.push(`${m.id}.${k}: a web value needs its page (url, read, label)`);
@@ -106,7 +107,7 @@ export function checkMaterials(d: MaterialsData): string[] {
 }
 export const MATERIALS_DATA = materialsJson as unknown as MaterialsData;
 /** The materials a body can be made of (a body's look names one; the part has a default), by density for mass. */
-export const MATERIALS = MATERIALS_DATA.materials.map(m => ({ id: m.id, label: m.label, gPerCm3: m.densityGPerCm3 }));
+export const MATERIALS = MATERIALS_DATA.materials.map(m => ({ id: m.id, label: m.label, density: m.density }));
 /** A material by id (the first, aluminium, for none or an unknown one). */
 export const materialOf = (id: string | undefined) => MATERIALS.find(m => m.id === id) ?? MATERIALS[0];
 export const materialData = (id: string | undefined): MaterialData | undefined => MATERIALS_DATA.materials.find(m => m.id === id);
@@ -123,8 +124,8 @@ export function materialContext(path: string, material: MaterialData | undefined
     if (!material) return { unknown: 'the body\'s material is not set' };
     if (field === 'wallMin' || field === 'wallMax') {
       if (!profile) return { unknown: 'no process is chosen' };
-      const w = material.wallMM?.[profile.id];
-      return w ? { value: w[field === 'wallMin' ? 0 : 1], source: material.sources[`wallMM.${profile.id}`] ?? material.sources.wallMM } : { unknown: `${material.label} has no wall range for ${profile.label}` };
+      const w = material.wall?.[profile.id];
+      return w ? { value: w[field === 'wallMin' ? 0 : 1], source: material.sources[`wall.${profile.id}`] ?? material.sources.wall } : { unknown: `${material.label} has no wall range for ${profile.label}` };
     }
     const v = (material as unknown as Record<string, unknown>)[field];
     if (typeof v === 'number') return { value: v, source: material.sources[field] ?? '?' };

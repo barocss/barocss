@@ -51,7 +51,7 @@ function features(p, id) {
   const body = p.tilt ? `${id}0` : id, out = p.kind === 'box'
     ? [{ id: `${id}s`, kind: 'sketch', profile: 'rectangle', min: [p.x, p.y], max: [p.x + p.w, p.y + p.d] }, { id: body, kind: 'extrude', sketch: `${id}s`, height: p.h, from: p.z0 }]
     : [{ id: `${id}s`, kind: 'sketch', profile: 'circle', center: [p.x, p.y], radius: p.r }, { id: body, kind: 'extrude', sketch: `${id}s`, height: p.h, from: p.z0 }];
-  if (p.tilt) out.push({ id, kind: 'rotate', target: body, axis: p.tilt.axis, angleDegrees: p.tilt.angle, pivot: [0, 0, 0] });
+  if (p.tilt) out.push({ id, kind: 'rotate', target: body, axis: p.tilt.axis, angle: p.tilt.angle, pivot: [0, 0, 0] });
   return out;
 }
 /** Smaller versions of a primitive: integer coordinates, halved sizes, moved to the origin. */
@@ -79,7 +79,7 @@ let lastTol = 1e-9;
 function volumeOf(cad, doc) {
   try {
     let tol = 1e-9, v = 0;
-    for (const o of cad.evaluateCadPart(doc).outputs) { const m = o.massProperties(1); v += m.volumeMM3; tol = Math.max(tol, METHOD_TOL[m.method] ?? 2e-3); }
+    for (const o of cad.evaluateCadPart(doc).outputs) { const m = cad.massPropertiesOf(o); v += m.volume; tol = Math.max(tol, METHOD_TOL[m.method] ?? 2e-3); }
     lastTol = tol; return v;
   } catch (cause) { if (cause?.name && !['TypeError', 'RangeError', 'ReferenceError', 'Error'].includes(cause.name)) return 'skip'; throw cause; }
 }
@@ -111,7 +111,7 @@ export function properties(cad) {
     } },
     { name: 'rigid motions exact in binary64 (quarter turns, power-of-two moves) keep the volume of A∪B', ...pairs, prop: v => {
       const base = volumeOf(cad, op(v, 'union')); if (base === 'skip') return 'skip';
-      const moved = volumeOf(cad, D([...op(v, 'union').features, { id: 'R', kind: 'rotate', target: 'X', axis: 'z', angleDegrees: 90 }, { id: 'T', kind: 'translate', target: 'R', offset: [8, -4, 0.5] }, { id: 'Q', kind: 'rotate', target: 'T', axis: 'x', angleDegrees: 180 }]));
+      const moved = volumeOf(cad, D([...op(v, 'union').features, { id: 'R', kind: 'rotate', target: 'X', axis: 'z', angle: 90 }, { id: 'T', kind: 'translate', target: 'R', offset: [8, -4, 0.5] }, { id: 'Q', kind: 'rotate', target: 'T', axis: 'x', angle: 180 }]));
       if (moved === 'skip') return 'skip';
       const tol = Math.max(tolOf(cad, [op(v, 'union')]), lastTol);
       return close(moved, base, base, tol) || { base, moved, tol };
@@ -188,13 +188,13 @@ export function properties(cad) {
       let outputs; try { outputs = cad.evaluateCadPart(D(c.features)).outputs; } catch (cause) { if (cause?.name && !['TypeError', 'RangeError', 'ReferenceError', 'Error'].includes(cause.name)) return 'skip'; throw cause; }
       if (c.volume <= 0) return outputs.length === 0 || { outputs: outputs.length, exact: 0 };
       if (outputs.length !== 1) return { outputs: outputs.length, exact: c.volume };
-      const m = outputs[0].massProperties(1), tol = Math.max(VOLUME_TOL.relTol * c.volume, VOLUME_TOL.absTol), off = Math.hypot(...m.centroidMM.map((x, k) => x - c.centroid[k]));
-      return (Math.abs(m.volumeMM3 - c.volume) <= tol && off <= Math.max(1e-6, 1e-11 / c.volume)) || { volume: m.volumeMM3, exact: c.volume, centroidOff: off, method: m.method };
+      const m = cad.massPropertiesOf(outputs[0]), tol = Math.max(VOLUME_TOL.relTol * c.volume, VOLUME_TOL.absTol), off = Math.hypot(...m.centroid.map((x, k) => x - c.centroid[k]));
+      return (Math.abs(m.volume - c.volume) <= tol && off <= Math.max(1e-6, 1e-11 / c.volume)) || { volume: m.volume, exact: c.volume, centroidOff: off, method: m.method };
     } },
     { name: 'mass by quadrature and by a finer and finer tessellation agree (the chord error falls)', ...pairs, prop: v => {
       let o; try { o = cad.evaluateCadPart(op(v, 'union')).outputs; } catch (cause) { if (cause?.name && !['TypeError', 'RangeError', 'ReferenceError', 'Error'].includes(cause.name)) return 'skip'; throw cause; }
       for (const out of o) {
-        const exact = out.massProperties(1).volumeMM3, coarse = cad.brepMassProperties(out.brep, 1, { quadratureSegments: 0, segmentsPerQuarter: 8 }).volumeMM3, fine = cad.brepMassProperties(out.brep, 1, { quadratureSegments: 0, segmentsPerQuarter: 32 }).volumeMM3;
+        const exact = cad.massPropertiesOf(out).volume, coarse = cad.brepMassProperties(out.brep, 1, { quadratureSegments: 0, segmentsPerQuarter: 8 }).volume, fine = cad.brepMassProperties(out.brep, 1, { quadratureSegments: 0, segmentsPerQuarter: 32 }).volume;
         const ec = Math.abs(coarse - exact), ef = Math.abs(fine - exact);
         if (!(ef <= ec + 1e-9 * exact && ef <= 2e-3 * exact)) return { exact, coarse, fine };
       }

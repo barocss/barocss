@@ -43,7 +43,7 @@ export function arcEntity(center: DxfXY, u: DxfXY, v: DxfXY, t0: number, t1: num
     const radius = Math.sqrt(uu), base = Math.atan2(u[1], u[0]);
     if (whole) return { type: 'circle', center, radius, layer };
     // Counter-clockwise with t when u × v > 0; clockwise arcs are written from their far end.
-    return cross > 0 ? { type: 'arc', center, radius, startDeg: degOf(base + t0), endDeg: degOf(base + t1), layer } : { type: 'arc', center, radius, startDeg: degOf(base - t1), endDeg: degOf(base - t0), layer };
+    return cross > 0 ? { type: 'arc', center, radius, start: degOf(base + t0), end: degOf(base + t1), layer } : { type: 'arc', center, radius, start: degOf(base - t1), end: degOf(base - t0), layer };
   }
   // Principal axes: p(t) = c + A cos(t − ts) + B sin(t − ts), A ⊥ B.
   const ts = 0.5 * Math.atan2(2 * uv, uu - vv), cs = Math.cos(ts), sn = Math.sin(ts);
@@ -77,11 +77,11 @@ function markEntities(m: Mark, H: number, out: DxfEntity[], solidFills: boolean)
       return;
     }
     case 'text':
-      out.push({ type: 'text', at: up(H, m.at), height: m.size, text: m.text, ...(m.angle ? { rotationDeg: m.angle } : {}), align: m.anchor === 'middle' ? 'center' : m.anchor === 'end' ? 'right' : 'left', style: m.bold ? 'BC_BOLD' : 'BC_TEXT', layer: 'TEXT' });
+      out.push({ type: 'text', at: up(H, m.at), height: m.size, text: m.text, ...(m.angle ? { rotation: m.angle } : {}), align: m.anchor === 'middle' ? 'center' : m.anchor === 'end' ? 'right' : 'left', style: m.bold ? 'BC_BOLD' : 'BC_TEXT', layer: 'TEXT' });
       return;
     case 'hatch':
       // The sheet's lines run at 45° down the page: −45° in y-up coordinates, the family through the sheet's top left corner (its origin).
-      out.push({ type: 'hatch', loops: m.rings.map(r => ({ points: r.map(p => up(H, p)) })), fill: { kind: 'lines', angleDeg: -m.angle, spacing: m.spacing, origin: [0, H] }, layer: 'HATCH' });
+      out.push({ type: 'hatch', loops: m.rings.map(r => ({ points: r.map(p => up(H, p)) })), fill: { kind: 'lines', angle: -m.angle, spacing: m.spacing, origin: [0, H] }, layer: 'HATCH' });
       return;
   }
 }
@@ -102,7 +102,7 @@ function dimensionEntity(r: Extract<Resolved, { ok: true }>, v: ViewPlacement, g
     const A = toSheet(v, r.a), B = toSheet(v, r.b), o = r.dim.orient;
     const d: XY = o === 'horizontal' ? [1, 0] : o === 'vertical' ? [0, 1] : unit([B[0] - A[0], B[1] - A[1]]), n: XY = [-d[1], d[0]];
     const k = (place[0] - B[0]) * n[0] + (place[1] - B[1]) * n[1], line = up(H, [B[0] + n[0] * k, B[1] + n[1] * k]);
-    geometry = o === 'aligned' ? { kind: 'aligned', p1: up(H, A), p2: up(H, B), line } : { kind: 'linear', p1: up(H, A), p2: up(H, B), line, angleDeg: o === 'horizontal' ? 0 : 90 };
+    geometry = o === 'aligned' ? { kind: 'aligned', p1: up(H, A), p2: up(H, B), line } : { kind: 'linear', p1: up(H, A), p2: up(H, B), line, angle: o === 'horizontal' ? 0 : 90 };
   } else if (r.kind === 'angle') {
     // View coordinates are y up, as the DXF's: the rays' directions carry over.
     const X = up(H, toSheet(v, r.vertex)), R = Math.hypot(place[0] - toSheet(v, r.vertex)[0], place[1] - toSheet(v, r.vertex)[1]), half = r.value * Math.PI / 360;
@@ -152,6 +152,6 @@ export function sectionDxfDocument(section: { projection: BrepProjection; rings:
   const entities: DxfEntity[] = [];
   for (const e of section.projection.edges) for (const p of e.pieces) if (p.visible) entities.push(curveEntity(p.curve, e.tangent ? 'THIN' : 'VISIBLE'));
   // (O148: a body a HATCH, each at its own angle as on the sheet; one body as always.)
-  for (const g of hatchGroups(section.rings, section.ringBodies)) entities.push({ type: 'hatch', loops: g.rings.map(r => ({ points: r.map(p => [p[0], p[1]] as DxfXY) })), fill: { kind: 'lines', angleDeg: g.angle, spacing: g.spacing }, layer: 'HATCH' });
+  for (const g of hatchGroups(section.rings, section.ringBodies)) entities.push({ type: 'hatch', loops: g.rings.map(r => ({ points: r.map(p => [p[0], p[1]] as DxfXY) })), fill: { kind: 'lines', angle: g.angle, spacing: g.spacing }, layer: 'HATCH' });
   return { units: 'mm', linetypes: DXF_LINETYPES, layers: DXF_LAYERS, entities };
 }

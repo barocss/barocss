@@ -1,3 +1,5 @@
+import { gravityOf, movesOf, robotViewOf } from '../src/robot/verbs';
+import { BarocssError } from '../src/engine/refusal';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -178,10 +180,10 @@ test('peak and RMS torque of a joint with no gravity load, against the closed fo
 
 test('the motion_torques tool on the planar 2R; the conformance case (rm/move-2r: closed-form profile, the Lagrangian\'s peak)', async () => {
   const { doc, tree, bodies, evaluated } = await planar2R(), [k1, k2] = coordinates(tree), to = { [k1]: 1.2, [k2]: -0.8 };
-  const out = await dispatchTool({ doc, bodies: evaluated }, 'motion_torques', { to, profile: 's-curve', limits: { velocity: 1, acceleration: 4, jerk: 40 } }, evaluate), j = JSON.parse(out.content);
-  assert.ok(!out.isError && !out.changed && j.profile === 's-curve' && j.joints[k1].peak_N_m > 0, out.content);
+  const out = await dispatchTool({ doc, bodies: evaluated }, 'motion_torques', { to: Object.fromEntries(Object.entries(to).map(([k, v]) => [k, v * 180 / Math.PI])), profile: 's-curve', limits: { velocity: 180 / Math.PI, acceleration: 4 * 180 / Math.PI, jerk: 40 * 180 / Math.PI } }, evaluate), j = JSON.parse(out.content);
+  assert.ok(!out.isError && !out.changed && j.profile === 's-curve' && j.joints[k1].peak > 0, out.content);
   const ref = moveTorques(tree, bodies, {}, to, 's-curve', () => ({ velocity: 1, acceleration: 4, jerk: 40 }));
-  assert.ok(Math.abs(j.duration_s - ref.duration) < 1e-9 && Math.abs(j.joints[k1].peak_N_m - ref.joints[k1].peak) < 1e-9);
+  assert.ok(Math.abs(j.duration - ref.duration) < 1e-9 && Math.abs(j.joints[k1].peak / 1000 - ref.joints[k1].peak) < 1e-9);
   assert.ok((await dispatchTool({ doc, bodies: evaluated }, 'motion_torques', { to, profile: 's-curve', limits: { velocity: 1, acceleration: 4 } }, evaluate)).isError, 'an S-curve without jerk');
   const dir = join(CASES, 'move-2r');
   if (process.env.UPDATE_RM_FIXTURES) {
@@ -203,4 +205,61 @@ test('the motion_torques tool on the planar 2R; the conformance case (rm/move-2r
   for (const [k, v] of Object.entries(c.expect.peak_N_m) as [string, number][]) assert.ok(Math.abs(mm.joints[k].peak - v) <= c.expect.tol_rel * v, `${k}: ${mm.joints[k].peak} vs ${v}`);
   // (The sampler's peak is never below the dense closed-form sampling's: it refines, it does not miss.)
   for (const [k, v] of Object.entries(c.expect.peak_N_m) as [string, number][]) assert.ok(mm.joints[k].peak >= v * (1 - 1e-12));
+});
+
+test('direct canonical motion reply uses degree, mm, Nmm, N and seconds on real planar and cylindrical robots', async () => {
+  const { doc, tree, bodies, evaluated } = await planar2R(), view = await robotViewOf(doc, evaluated, evaluate), [k1, k2] = coordinates(tree);
+  const args = { to: { [k1]: 1.2 * 180 / Math.PI, [k2]: -0.8 * 180 / Math.PI }, profile: 's-curve', limits: { velocity: 180 / Math.PI, acceleration: 4 * 180 / Math.PI, jerk: 40 * 180 / Math.PI } };
+  const before = structuredClone(args), docBefore = JSON.stringify(doc), reply = movesOf(view, args, tree);
+  // The path's closed form: 1.2 / 1 + 1 / 4 + 4 / 40 = 1.55 seconds.
+  assert.ok(Math.abs(reply.duration - 1.55) < 1e-9); assert.equal(reply.gravity, 9806.65);
+  assert.equal(reply.joints[k1].distance, 68.75493542); assert.equal(reply.joints[k2].distance, -45.83662361);
+  assert.equal(reply.joints[k1].peakVelocity, 57.29577951);
+  for (const key of [k1, k2]) {
+    assert.equal(reply.joints[key].unit, 'N·mm');
+    assert.ok(Number.isFinite(reply.joints[key].at) && reply.joints[key].at >= 0 && reply.joints[key].at <= reply.duration);
+    for (const old of ['peak_N_m', 'rms_N_m', 'at_s', 'v_peak', 'a_peak', 'j_peak']) assert.equal(old in reply.joints[key], false);
+  }
+  for (const old of ['duration_s', 'gravity_m_s2']) assert.equal(old in reply, false);
+  const tool = await dispatchTool({ doc, bodies: evaluated }, 'motion_torques', args, evaluate); assert.ok(!tool.isError, tool.content);
+  assert.deepEqual(reply, JSON.parse(tool.content));
+  for (const g of [undefined, [0, 0, -9810]] as const) {
+    const shown = movesOf(view, { ...args, ...(g ? { g } : {}) }, tree);
+    const native = moveTorques(tree, bodies, {}, { [k1]: 1.2, [k2]: -0.8 }, 's-curve', () => ({ velocity: 1, acceleration: 4, jerk: 40 }), g ? [0, 0, -9.81] : undefined);
+    for (const key of [k1, k2]) {
+      assert.ok(Math.abs(shown.joints[key].peak / 1000 - native.joints[key].peak) < 1e-9);
+      assert.ok(Math.abs(shown.joints[key].rms / 1000 - native.joints[key].rms) < 1e-9);
+    }
+    assert.equal(shown.gravity, g ? 9810 : 9806.65);
+  }
+  const cylinder = JSON.parse(readFileSync(join(CASES, 'cylindrical', 'case.json'), 'utf8')).input.document as StudioDoc;
+  const cr = await robotOf(cylinder), cv = await robotViewOf(cylinder, cr.evaluated, evaluate), slide = cr.tree.joints.find(j => j.type === 'prismatic')!.key;
+  const sliding = movesOf(cv, { to: { [slide]: 12 }, profile: 'trapezoid', limits: { velocity: 6, acceleration: 12 }, g: [0, 0, -9810] }, cr.tree);
+  assert.equal(sliding.duration, 2.5); assert.equal(sliding.gravity, 9810);
+  assert.equal(sliding.joints[slide].unit, 'N'); assert.equal(sliding.joints[slide].distance, 12);
+  assert.equal(sliding.joints[slide].peakVelocity, 6); assert.equal(sliding.joints[slide].peakAcceleration, 12);
+  const force = gravityOf(cv, { values: { [slide]: 12 }, g: [0, 0, -9810] }, cr.tree);
+  assert.equal(force.units[slide], 'N'); assert.ok(force.torques[slide] > 0);
+  assert.deepEqual(args, before); assert.equal(JSON.stringify(doc), docBefore);
+});
+
+test('direct canonical motion reply throws BAD_VALUES with the original move parser and gravity messages', async () => {
+  const { doc, tree, evaluated } = await planar2R(), view = await robotViewOf(doc, evaluated, evaluate), [key] = coordinates(tree);
+  const valid = { to: { [key]: 45 }, profile: 'trapezoid', limits: { velocity: 45, acceleration: 90 } };
+  const cases: [Record<string, unknown>, string][] = [
+    [{ ...valid, from: [] }, '"from" and "to" are {joint key: number}.'],
+    [{ ...valid, to: { [key]: Infinity } }, '"from" and "to" are {joint key: number}.'],
+    [{ ...valid, to: { absent: 1 } }, 'No joint absent; joints: base~l1, l1~l2.'],
+    [{ ...valid, profile: 'bad' }, '"profile" is "trapezoid" or "s-curve".'],
+    [{ ...valid, limits: undefined }, `${key}: give its limits (velocity and acceleration above 0) in "limits" or "joint_limits" — none is assumed.`],
+    [{ ...valid, profile: 's-curve' }, `${key}: an S-curve needs a jerk limit.`],
+    ...[null, [0, 0], [0, 0, NaN], [0, 0, 'bad']].map(g => [{ ...valid, g }, '"g" is [x, y, z] in mm/s².'] satisfies [Record<string, unknown>, string]),
+  ];
+  const docBefore = JSON.stringify(doc);
+  for (const [args, message] of cases) {
+    const before = structuredClone(args);
+    assert.throws(() => movesOf(view, args, tree), e => e instanceof BarocssError && e.code === 'BAD_VALUES' && e.message === `[BAD_VALUES] ${message}`);
+    assert.deepEqual(args, before);
+  }
+  assert.equal(JSON.stringify(doc), docBefore);
 });

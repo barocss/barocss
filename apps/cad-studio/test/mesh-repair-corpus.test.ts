@@ -38,7 +38,7 @@ test('M0 broken set: each defect found and repaired as expected', () => {
   { // Three small boxes beside it: floaters, dropped with their volume.
     const { d, r } = run('broken-shells');
     assert.deepEqual([d.pieces, d.floaters], [4, 3]);
-    assert.deepEqual([r.report.floatersRemoved, +r.report.floaterVolumeMM3.toFixed(6)], [3, 24]);
+    assert.deepEqual([r.report.floatersRemoved, +r.report.floaterVolume.toFixed(6)], [3, 24]);
   }
   { // A box through the wall: crossings found, not repaired.
     const { d, r } = run('broken-selfintersect');
@@ -59,10 +59,10 @@ test('a repair as a recorded step on the mesh node: the import kept, the result 
   assert.equal(blobRefs(doc).size, 5, 'the import and the result side by side');
   const e = evaluateDoc(doc, 1); assert.ok(e.ok, e.ok ? '' : e.error.hint);
   assert.ok(e.bodies[0].mesh.faces.some(x => /\.fill0\.region\d+$/.test(x.name)), 'the fill is a face of its own');
-  assert.ok(Math.abs(e.bodies[0].volumeMM3! - volumeOf(r.positions, r.indices)) < 1e-6);
+  assert.ok(Math.abs(e.bodies[0].volume! - volumeOf(r.positions, r.indices)) < 1e-6);
   const back = await readStudioFile(encodeStudioFile(doc)); assert.ok('doc' in back, JSON.stringify(back));
   const e2 = evaluateDoc(back.doc, 2); assert.ok(e2.ok);
-  assert.ok(Math.abs(e2.bodies[0].volumeMM3! - e.bodies[0].volumeMM3!) < 1e-9);
+  assert.ok(Math.abs(e2.bodies[0].volume! - e.bodies[0].volume!) < 1e-9);
   // Without the record: the mesh as imported, which is open — refused, not faked closed.
   const asImported = evaluateDoc(withNode(emptyDoc(), base), 3);
   assert.ok(!asImported.ok);

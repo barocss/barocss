@@ -70,11 +70,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 2822.9534848028948,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             24.99999999999998,
             -7.5,
@@ -114,30 +114,30 @@
           "h.start"
         ],
         "sheet": {
-          "thicknessMM": 1.5,
-          "bendRadiusMM": 2,
+          "thickness": 1.5,
+          "bendRadius": 2,
           "kFactor": 0.44,
           "absTol": 1e-9,
           "bends": [
             {
               "name": "h.bend1",
-              "angleDegrees": 90,
-              "allowanceMM": 4.178318229274425
+              "angle": 90,
+              "allowance": 4.178318229274425
             },
             {
               "name": "h.bend2",
-              "angleDegrees": 90,
-              "allowanceMM": 4.178318229274425
+              "angle": 90,
+              "allowance": 4.178318229274425
             },
             {
               "name": "h.bend3",
-              "angleDegrees": 90,
-              "allowanceMM": 4.178318229274425
+              "angle": 90,
+              "allowance": 4.178318229274425
             },
             {
               "name": "h.bend4",
-              "angleDegrees": 90,
-              "allowanceMM": 4.178318229274425
+              "angle": 90,
+              "allowance": 4.178318229274425
             }
           ]
         }

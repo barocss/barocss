@@ -20,7 +20,7 @@ export interface SurfaceSplitRefinementProvenance {
 }
 export interface SurfaceSplitSharedCoefficients {
   refinedAxisPoleIndex: number; lowerAxisPoleIndex: number; upperAxisPoleIndex: number;
-  coefficients: { varyingPoleIndex: number; pointMM: Point; weight: number }[];
+  coefficients: { varyingPoleIndex: number; point: Point; weight: number }[];
   lowerBoundary: 'u-max' | 'v-max'; upperBoundary: 'u-min' | 'v-min';
   lowerDirection: 'increasing' | 'decreasing'; upperDirection: 'increasing' | 'decreasing';
 }
@@ -36,10 +36,10 @@ export interface SurfaceParameterSplitReport {
   cutEndpoints: { requested: number; lower: number; upper: number; negativeZero: { requested: boolean; lower: boolean; upper: boolean } };
   selectedAxisKnotGuards: { original: boolean; refined: boolean; lowerEndpoint: boolean; upperEndpoint: boolean };
   derivativeSemantics: 'native-guards-unchanged'; shared: SurfaceSplitSharedCoefficients;
-  observations: { side: 'lower' | 'upper'; surfaceId: string; u: number; v: number; originalPointMM: Point; childPointMM: Point; differenceMM: number }[];
-  maximumObservedDifferenceMM: number; authority: 'original-surface-coefficients'; geometricValidity: 'not-certified'; topologyCertified: false; solid: false;
+  observations: { side: 'lower' | 'upper'; surfaceId: string; u: number; v: number; originalPoint: Point; childPoint: Point; difference: number }[];
+  maximumObservedDifference: number; authority: 'original-surface-coefficients'; geometricValidity: 'not-certified'; topologyCertified: false; solid: false;
   limits: { maximumGridAxis: 16; maximumPoles: 256; maximumDegree: 3; authoredIdCharacters: 48;
-    snapshotValues: 4096; snapshotDepth: 8; arrayElements: 64; recordFields: 8; stringCharacters: 128; maximumObservations: 128; observationComparisonMM: 1e-7 };
+    snapshotValues: 4096; snapshotDepth: 8; arrayElements: 64; recordFields: 8; stringCharacters: 128; maximumObservations: 128; observationComparison: 1e-7 };
 }
 type SurfaceDomain = { u: [number, number]; v: [number, number] };
 export interface SurfaceParameterSplitResult {
@@ -157,14 +157,14 @@ export function splitSurfaceAtParameter(input: Surface, options: SurfaceParamete
       check(sameData(axis === 'u' ? child.surface.knotsV : child.surface.knotsU, nonselected), 'nonselected knot bits must remain');
     }
     const shared: SurfaceSplitSharedCoefficients = { refinedAxisPoleIndex: common, lowerAxisPoleIndex: common, upperAxisPoleIndex: 0,
-      coefficients: Array.from({ length: refinedGrid[other] }, (_, varyingPoleIndex) => ({ varyingPoleIndex, pointMM: copyCadData(axis === 'u' ? refined.controlPoints[common][varyingPoleIndex] : refined.controlPoints[varyingPoleIndex][common]), weight: axis === 'u' ? refined.weights[common][varyingPoleIndex] : refined.weights[varyingPoleIndex][common] })),
+      coefficients: Array.from({ length: refinedGrid[other] }, (_, varyingPoleIndex) => ({ varyingPoleIndex, point: copyCadData(axis === 'u' ? refined.controlPoints[common][varyingPoleIndex] : refined.controlPoints[varyingPoleIndex][common]), weight: axis === 'u' ? refined.weights[common][varyingPoleIndex] : refined.weights[varyingPoleIndex][common] })),
       lowerBoundary: axis === 'u' ? 'u-max' : 'v-max', upperBoundary: axis === 'u' ? 'u-min' : 'v-min', lowerDirection: axis === 'u' ? 'increasing' : 'decreasing', upperDirection: axis === 'u' ? 'decreasing' : 'increasing' };
     const [min, max] = originalDomain[other], mid = midpoint(min, max), perpendicular = mid > min && mid < max ? [min, mid, max] : [min, max];
     const observations = ([{ side: 'lower' as const, surface: lower, domain: lowerDomain }, { side: 'upper' as const, surface: upper, domain: upperDomain }]).flatMap(child =>
       samples(axis === 'u' ? child.surface.knotsU : child.surface.knotsV, child.domain[axis]).flatMap(parameter => perpendicular.map(fixed => {
         const u = axis === 'u' ? parameter : fixed, v = axis === 'u' ? fixed : parameter, originalPointMM = evaluateSurface(original, u, v), childPointMM = evaluateSurface(child.surface, u, v), differenceMM = Math.hypot(...childPointMM.map((n, i) => n - originalPointMM[i]));
         check(Number.isFinite(differenceMM) && differenceMM <= 1e-7, 'local original/child point observation exceeds 1e-7 mm');
-        return { side: child.side, surfaceId: child.surface.id, u, v, originalPointMM, childPointMM, differenceMM };
+        return { side: child.side, surfaceId: child.surface.id, u, v, originalPoint: originalPointMM, childPoint: childPointMM, difference: differenceMM };
       })));
     check(observations.length <= 128, 'native observation bound exceeded');
     const lowerCut = lowerDomain[axis][1], upperCut = upperDomain[axis][0];
@@ -174,9 +174,9 @@ export function splitSurfaceAtParameter(input: Surface, options: SurfaceParamete
         grids: { original: grid(original), refined: refinedGrid, lower: grid(lower), upper: grid(upper) }, domains: { original: originalDomain, refined: refinedDomain, lower: lowerDomain, upper: upperDomain },
         cutEndpoints: { requested: parameter, lower: lowerCut, upper: upperCut, negativeZero: { requested: Object.is(parameter, -0), lower: Object.is(lowerCut, -0), upper: Object.is(upperCut, -0) } },
         selectedAxisKnotGuards: { original: guarded(originalKnots, degree, originalDomain[axis], parameter), refined: guarded(knots, degree, refinedDomain[axis], parameter), lowerEndpoint: guarded(axis === 'u' ? lower.knotsU : lower.knotsV, degree, lowerDomain[axis], parameter), upperEndpoint: guarded(axis === 'u' ? upper.knotsU : upper.knotsV, degree, upperDomain[axis], parameter) },
-        derivativeSemantics: 'native-guards-unchanged', shared, observations, maximumObservedDifferenceMM: Math.max(...observations.map(o => o.differenceMM)), authority: 'original-surface-coefficients',
+        derivativeSemantics: 'native-guards-unchanged', shared, observations, maximumObservedDifference: Math.max(...observations.map(o => o.difference)), authority: 'original-surface-coefficients',
         geometricValidity: 'not-certified', topologyCertified: false, solid: false,
-        limits: { maximumGridAxis: 16, maximumPoles: 256, maximumDegree: 3, authoredIdCharacters: 48, snapshotValues: 4096, snapshotDepth: 8, arrayElements: 64, recordFields: 8, stringCharacters: 128, maximumObservations: 128, observationComparisonMM: 1e-7 } } });
+        limits: { maximumGridAxis: 16, maximumPoles: 256, maximumDegree: 3, authoredIdCharacters: 48, snapshotValues: 4096, snapshotDepth: 8, arrayElements: 64, recordFields: 8, stringCharacters: 128, maximumObservations: 128, observationComparison: 1e-7 } } });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'invalid original Surface/split options';
     throw new Error((message.startsWith(LABEL) ? message : LABEL + ': ' + message).slice(0, 1024), { cause: error });

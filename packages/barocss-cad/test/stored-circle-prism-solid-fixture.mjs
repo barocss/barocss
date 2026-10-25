@@ -4,9 +4,9 @@ import { createHash } from 'node:crypto';
 // These helpers inspect data and do independent arithmetic. None invokes a CAD
 // constructor, evaluator, compiler, qualifier, validator or tessellator.
 export const CASES = Object.freeze({
-  A: { center: [2, -3], radius: 4, heightMM: 6, bounds: { min: [-2, -7, 0], max: [6, 1, 6] } },
-  B: { center: [-0, .25], radius: .5, heightMM: 1.5, bounds: { min: [-.5, -.25, 0], max: [.5, .75, 1.5] } },
-  C: { center: [.2, .2], radius: .1, heightMM: .3 },
+  A: { center: [2, -3], radius: 4, height: 6, bounds: { min: [-2, -7, 0], max: [6, 1, 6] } },
+  B: { center: [-0, .25], radius: .5, height: 1.5, bounds: { min: [-.5, -.25, 0], max: [.5, .75, 1.5] } },
+  C: { center: [.2, .2], radius: .1, height: .3 },
 });
 export const DIRECT_COUNTS = Object.freeze({ parentReconstructionCalls: 1, wholeModelCompilations: 1,
   capUseCount: 2, capPoleCompositions: 18, wallUseCount: 4, cornerCount: 6, germCount: 6 });
@@ -76,8 +76,8 @@ export function proveParent(parent, which) {
   const expected = CASES[which], report = parent.report, topology = parent.bundle.topology;
   exactData(parent.bundle.construction.profile.center, expected.center);
   assert.equal(parent.bundle.construction.profile.radius, expected.radius);
-  assert.equal(parent.bundle.construction.heightMM, expected.heightMM);
-  exactData(report.centerMM, expected.center);
+  assert.equal(parent.bundle.construction.height, expected.height);
+  exactData(report.center, expected.center);
   for (const original of [report, parent.baseFace.report]) {
     assert.equal(original.solid, false); assert.equal(original.topologyCertified, false);
     assert.equal(original.periodic, false); assert.equal(original.geometricValidity, 'not-certified');
@@ -91,15 +91,15 @@ export function proveParent(parent, which) {
   assert.deepEqual([topology.vertices.length, topology.edges.length, topology.loops.flatMap(l => l.uses).length,
     topology.faces.length, topology.loops.length], [2, 3, 6, 3, 3]);
   assert.equal(parent.bundle.geometry.objects.length, 6);
-  if (expected.bounds) exactData(report.boundsMM, expected.bounds);
+  if (expected.bounds) exactData(report.bounds, expected.bounds);
   if (which === 'A') assert.equal(report.referenceVolumeMM3, 96 * Math.PI, 'reference value only, not certified volume');
   if (which === 'B') {
     assert.ok(Object.is(parent.bundle.construction.profile.center[0], -0));
-    assert.ok(Object.is(parent.report.centerMM[0], -0));
-    assert.ok(Object.is(parent.profile.report.centerMM[0], -0));
+    assert.ok(Object.is(parent.report.center[0], -0));
+    assert.ok(Object.is(parent.profile.report.center[0], -0));
     assert.ok(Object.is(parent.profile.curve.controlPoints[2][0], +0), 'native centerX+0 is positive zero');
   }
-  return { boundsMM: report.boundsMM, originalReport: report, referenceValuesAreNotCertifiedMass: true };
+  return { bounds: report.bounds, originalReport: report, referenceValuesAreNotCertifiedMass: true };
 }
 function rotatedCycle(actual, expected) {
   assert.equal(actual.length, expected.length);
@@ -123,7 +123,7 @@ export function proveQualification(result, parent, which, requireFrozen = true) 
   assert.equal(c.geometryAuthority, 'stored-coefficient-mathematical-model');
   for (const field of ['solid', 'topologyCertified', 'embeddedStoredGeometryCertified']) assert.equal(c[field], true);
   assert.deepEqual([c.materialComponentCount, c.genus, c.vertexCount, c.edgeCount, c.edgeUseCount, c.faceCount, c.loopCount, c.eulerCharacteristic], [1, 0, 2, 3, 6, 3, 3, 2]);
-  for (const field of ['volumeMM3', 'areaMM2', 'mass', 'massKG', 'referenceVolumeMM3']) assert.equal(Object.hasOwn(c, field), false);
+  for (const field of ['volumeMM3', 'areaMM2', 'mass', 'mass', 'referenceVolumeMM3']) assert.equal(Object.hasOwn(c, field), false);
   exactData(c.directCounts, DIRECT_COUNTS);
   assert.deepEqual(Object.keys(c.arithmetic).sort(), ['floatConversions', 'floatSearchSteps', 'gcdSteps', 'maximumObservedBits', 'operations']);
   for (const count of Object.values(c.arithmetic)) assert.ok(Number.isSafeInteger(count) && count >= 0);
@@ -147,7 +147,7 @@ export function proveQualification(result, parent, which, requireFrozen = true) 
     assert.equal(proof.faceId, topology.faces[i].id); assert.equal(proof.useId, topology.loops[i].uses[0].id);
     assert.equal(proof.normalSign, i === 0 ? -1 : 1); assert.equal(proof.poleCompositionCount, 9);
   }
-  exactData(c.wallProof, { faceId: topology.faces[2].id, seamEdgeId: seam.id, heightMM: CASES[which].heightMM });
+  exactData(c.wallProof, { faceId: topology.faces[2].id, seamEdgeId: seam.id, height: CASES[which].height });
   const germ = (edge, endpointIndex) => ({ edgeId: edge.id, endpointIndex });
   const expectedCycles = [[germ(bottom, 0), germ(bottom, 1), germ(seam, 0)], [germ(top, 1), germ(top, 0), germ(seam, 1)]];
   assert.equal(c.vertexLinks.length, 2);
@@ -197,9 +197,9 @@ export function provePreview(preview, parent) {
   exactData(report.native, parent.report);
   const sampledBounds = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] };
   for (let i = 0; i < packet.positions.length; i++) { const axis = i % 3, value = packet.positions[i]; assert.ok(Number.isFinite(value)); sampledBounds.min[axis] = Math.min(sampledBounds.min[axis], value); sampledBounds.max[axis] = Math.max(sampledBounds.max[axis], value); }
-  exactData(packet.bounds, sampledBounds); exactData(report.boundsMM, sampledBounds);
-  exactData(parent.report.boundsMM, CASES.A.bounds, 'stored parent bounds remain exact');
-  const maximumSampledBoundsDifferenceMM = Math.max(...['min', 'max'].flatMap(side => sampledBounds[side].map((value, axis) => Math.abs(value - parent.report.boundsMM[side][axis]))));
+  exactData(packet.bounds, sampledBounds); exactData(report.bounds, sampledBounds);
+  exactData(parent.report.bounds, CASES.A.bounds, 'stored parent bounds remain exact');
+  const maximumSampledBoundsDifferenceMM = Math.max(...['min', 'max'].flatMap(side => sampledBounds[side].map((value, axis) => Math.abs(value - parent.report.bounds[side][axis]))));
   assert.equal(report.limits.evaluationComparisonMM, 1e-7);
   assert.ok(maximumSampledBoundsDifferenceMM <= report.limits.evaluationComparisonMM, 'sampled evaluator bounds use only the existing preview tolerance');
   for (const r of [report, report.native]) { assert.equal(r.solid, false); assert.equal(r.topologyCertified, false); assert.equal(r.periodic, false); assert.equal(r.candidateClosedShell, true); }
@@ -219,7 +219,7 @@ export function provePreview(preview, parent) {
     assert.equal(p.sampledParameters.length, i < 2 ? 17 : 2);
     for (const use of p.uses) { assert.equal(use.sampledUVs.length, p.sampledParameters.length); assert.ok(use.pcurve.curve.controlPoints.length > 0); }
   }
-  return { report, packetSHA256: dataHash(packet), completePreviewSHA256: dataHash(preview), sampledBoundsMM: sampledBounds, exactParentBoundsMM: parent.report.boundsMM, maximumSampledBoundsDifferenceMM,
+  return { report, packetSHA256: dataHash(packet), completePreviewSHA256: dataHash(preview), sampledBoundsMM: sampledBounds, exactParentBoundsMM: parent.report.bounds, maximumSampledBoundsDifferenceMM,
     observedBasis: 'Existing right-handed-z-up label; unchanged authored XYZ positions/normals. A later consumer must choose its basis policy explicitly.',
     meshIsSolidProof: false, rendererOrEditorExecuted: false };
 }
@@ -233,10 +233,10 @@ export function shapeOnlyResult() {
   const surface = id => ({ kind: 'surface', id, degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: [[[0, 0, 0], [0, 1, 0]], [[1, 0, 0], [1, 1, 0]]], weights: [[1, 1], [1, 1]] });
   const model = objects => ({ name: 'shape_only', version: 0, lengthUnit: 'mm', objects });
   const construction = { kind: 'circle', id: 'shape_only_ring', center: [-0, .25], radius: .5 };
-  const boundsMM = { min: [-.5, -.25, 0], max: [.5, .75, 0] }, domain = { u: [0, 1], v: [0, 1] };
+  const bounds = { min: [-.5, -.25, 0], max: [.5, .75, 0] }, domain = { u: [0, 1], v: [0, 1] };
   const flags = { periodic: false, geometricValidity: 'not-certified', topologyCertified: false, solid: false };
   const profile = { source: 'SHAPE_ONLY_NOT_COMPILED', sourceVersion: 0, model: model([curve('ring')]), curve: curve('ring'),
-    report: { kind: 'circle', plane: 'xy', lengthUnit: 'mm', centerMM: [-0, .25], radiusMM: .5, startQuadrant: 0, spanCount: 4, controlPointCount: 9,
+    report: { kind: 'circle', plane: 'xy', lengthUnit: 'mm', center: [-0, .25], radius: .5, startQuadrant: 0, spanCount: 4, controlPointCount: 9,
       parameterDomain: { min: 0, max: 4 }, endpointClosed: true, periodic: false, regionCertified: false, solid: false } };
   const pcurve = () => ({ coordinateSystem: 'uv', domain: [0, 4], curve: curve('uv') });
   const vertex = id => ({ id, point: [0, 0, 0] });
@@ -244,7 +244,7 @@ export function shapeOnlyResult() {
   const use = (id, edgeId, sense) => ({ id, edgeId, sense, pcurve: pcurve() });
   const baseReport = { trimFamily: 'xy-circle-planar-face-v0', sourceCurveId: 'ring', faceId: 'bottom', surfaceId: 'plane', outerLoopId: 'bottom_loop',
     edgeId: 'bottom_edge', pcurveId: 'uv', seamVertexId: 'bottom_vertex', nativeDomain: [0, 4], uvDomain: [0, 4], surfaceDomain: domain,
-    centerMM: [-0, .25], radiusMM: .5, boundsMM, vertexCount: 1, edgeCount: 1, loopUseCount: 1, nativeObjectCount: 2, referenceDiskAreaMM2: 1, incidenceValid: true, ...flags,
+    center: [-0, .25], radius: .5, bounds, vertexCount: 1, edgeCount: 1, loopUseCount: 1, nativeObjectCount: 2, referenceDiskAreaMM2: 1, incidenceValid: true, ...flags,
     limits: { authoredIdCharacters: 64, derivedIdCharacters: 80, snapshotValues: 8192, snapshotDepth: 10, arrayElements: 64, recordFields: 12,
       stringCharacters: 128, evaluationComparisonMM: 1e-7, derivativeComparisonRelative: 1e-9, planeToleranceMM: 1e-7, boundaryToleranceMM: 1e-7 } };
   const baseFace = { profile: clone(profile), bundle: { construction: clone(construction), geometry: model([curve('ring'), surface('plane')]),
@@ -259,13 +259,13 @@ export function shapeOnlyResult() {
   const topology = { version: 0, kind: 'xy-circle-prism-shell', id: 'shell', sourceCurveId: 'ring', vertices: [vertex('bottom_vertex'), vertex('top_vertex')],
     edges: [edge('bottom_edge', ['bottom_vertex', 'bottom_vertex']), edge('top_edge', ['top_vertex', 'top_vertex']), edge('seam_edge', ['bottom_vertex', 'top_vertex'])], faces, loops };
   const geometry = model([curve('ring'), curve('top_ring'), curve('seam'), surface('plane'), surface('top_plane'), surface('wall_surface')]);
-  const report = { trimFamily: 'xy-circle-prism-shell-v0', sourceCurveId: 'ring', shellId: 'shell', heightMM: 1.5, centerMM: [-0, .25], radiusMM: .5, baseFaceReport: clone(baseReport),
+  const report = { trimFamily: 'xy-circle-prism-shell-v0', sourceCurveId: 'ring', shellId: 'shell', height: 1.5, center: [-0, .25], radius: .5, baseFaceReport: clone(baseReport),
     geometryIds: { bottomCurveId: 'ring', topCurveId: 'top_ring', seamCurveId: 'seam', bottomSurfaceId: 'plane', topSurfaceId: 'top_plane', wallSurfaceId: 'wall_surface' },
     domains: { bottomCurve: [0, 4], topCurve: [0, 4], seamCurve: [0, 1], bottomSurface: clone(domain), topSurface: clone(domain), wallSurface: { u: [0, 4], v: [0, 1] } },
-    vertexCount: 2, edgeCount: 3, edgeUseCount: 6, faceCount: 3, loopCount: 3, nativeObjectCount: 6, boundsMM: clone(boundsMM),
+    vertexCount: 2, edgeCount: 3, edgeUseCount: 6, faceCount: 3, loopCount: 3, nativeObjectCount: 6, bounds: clone(bounds),
     edgeIncidence: topology.edges.map(e => ({ edgeId: e.id, uses: loops.flatMap(l => l.uses.filter(u => u.edgeId === e.id).map(u => ({ faceId: l.faceId, loopId: l.id, useId: u.id, sense: u.sense }))) })),
     loopObservations: loops.map(l => ({ loopId: l.id, faceId: l.faceId, useCount: l.uses.length, closed: true })),
-    normalObservations: faces.flatMap((f, i) => Array.from({ length: i === 2 ? 4 : 1 }, () => ({ faceId: f.id, surfaceId: f.surfaceId, uv: [.5, .5], pointMM: [0, 0, 0], normal: [0, 0, 1] }))),
+    normalObservations: faces.flatMap((f, i) => Array.from({ length: i === 2 ? 4 : 1 }, () => ({ faceId: f.id, surfaceId: f.surfaceId, uv: [.5, .5], point: [0, 0, 0], normal: [0, 0, 1] }))),
     referenceVolumeMM3: 1, referenceLateralAreaMM2: 1, referenceBoundaryAreaMM2: 1, incidenceValid: true, candidateClosedShell: true, ...flags,
     limits: { authoredIdCharacters: 48, derivedIdCharacters: 80, snapshotValues: 32768, snapshotDepth: 14, arrayElements: 128, recordFields: 24, stringCharacters: 128, evaluationComparisonMM: 1e-7 } };
   const germ = (edgeId, endpointIndex) => ({ edgeId, endpointIndex });
@@ -277,8 +277,8 @@ export function shapeOnlyResult() {
     planarFaces: faces.slice(0, 2).map((f, i) => ({ faceId: f.id, normalSign: i ? 1 : -1, useId: loops[i].uses[0].id, poleCompositionCount: 9 })),
     ringProof: { bottomEdgeId: 'bottom_edge', topEdgeId: 'top_edge', storedMiddleWeight: Math.SQRT1_2,
       quadrants: Array.from({ length: 4 }, (_, index) => ({ index, derivativeNumeratorsX: Array.from({ length: 3 }, fraction), derivativeNumeratorsY: Array.from({ length: 3 }, fraction) })) },
-    wallProof: { faceId: 'wall', seamEdgeId: 'seam_edge', heightMM: 1.5 }, vertexLinks,
+    wallProof: { faceId: 'wall', seamEdgeId: 'seam_edge', height: 1.5 }, vertexLinks,
     faceAdjacency: faces.map(f => ({ faceId: f.id, adjacentFaceIds: faces.filter(a => a !== f).map(a => a.id) })),
     arithmetic: { operations: 1, gcdSteps: 0, floatSearchSteps: 0, floatConversions: 0, maximumObservedBits: 1 }, directCounts: { ...DIRECT_COUNTS } };
-  return { parent: { profile, baseFace, bundle: { construction: { profile: construction, shellId: 'shell', heightMM: 1.5 }, geometry, topology }, report }, world: { source: 'SHAPE_ONLY_NOT_COMPILED', model: clone(geometry) }, certificate };
+  return { parent: { profile, baseFace, bundle: { construction: { profile: construction, shellId: 'shell', height: 1.5 }, geometry, topology }, report }, world: { source: 'SHAPE_ONLY_NOT_COMPILED', model: clone(geometry) }, certificate };
 }

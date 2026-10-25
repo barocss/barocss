@@ -15,8 +15,7 @@ const read = file => JSON.parse(readFileSync(resolve(samples, file), 'utf8'));
 /** A sample robot: its document (a plain-JSON .bcad) opened as a studio part, the assembly read as a robot. */
 const open = id => assembly(id, part(id, read(`${id}.bcad`))).robot();
 // #endregion open
-/** The pose's joint values come back in radians, as the agent's tool replies. */
-const deg = rad => rad * 180 / Math.PI;
+/** Public joint values are degrees for turns and mm for slides. Internal robot math stays in radians. */
 const near = (a, b, tol = 1e-9) => Math.abs(a - b) < tol;
 const link = (pose, id) => pose.links.find(l => l.link === id);
 
@@ -83,7 +82,7 @@ test('the gripper: the right finger follows the left one through their gears', (
   const [coupling] = gripper.joints().couplings;
   assert.deepEqual([coupling.leader, coupling.follower, coupling.multiplier], ['base~left', 'base~right', -1]);
   const pose = gripper.pose({ 'base~left': 25 });           // only the leader is given
-  assert.ok(near(deg(pose.values['base~right']), -25));
+  assert.ok(near(pose.values['base~right'], -25));
   assert.equal(pose.gears[0].held, true);                   // the teeth stay in mesh
   // #endregion gripper
 });
@@ -103,7 +102,7 @@ test('the four-bar linkage: a closed loop', () => {
 test('the gear-driven joint: 20 teeth driving 30', () => {
   // #region gear-joint
   const pose = open('gear-joint').pose({ 'base~g1': 30 });
-  assert.ok(near(deg(pose.values['base~g2']), -20));        // two thirds as far, the other way
+  assert.ok(near(pose.values['base~g2'], -20));        // two thirds as far, the other way
   // #endregion gear-joint
 });
 

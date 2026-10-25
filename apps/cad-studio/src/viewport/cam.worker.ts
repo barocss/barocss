@@ -16,13 +16,13 @@ let held: { key: number; doc: StudioDoc; bodies: BodyResult[] } | null = null;
 function check(job: CamRequest): void {
   if (!Number.isSafeInteger(job.setup) || job.setup < 0) throw new Error('CNC setup index must be a nonnegative safe integer.');
   if (!Number.isFinite(job.progress) || job.progress < 0) throw new Error('CNC progress must be finite and nonnegative.');
-  if (!Number.isFinite(job.cellMM) || job.cellMM <= 0) throw new Error('CNC grid pitch must be finite and positive.');
+  if (!Number.isFinite(job.cellPitch) || job.cellPitch <= 0) throw new Error('CNC grid pitch must be finite and positive.');
   if (job.tool?.kind !== undefined && !['flat', 'ball', 'bull'].includes(job.tool.kind)) throw new Error('CNC tool profile is unsupported.');
-  for (const key of ['diameterMM', 'fluteMM', 'shankMM'] as const) {
+  for (const key of ['diameter', 'fluteLength', 'shankDiameter'] as const) {
     const value = job.tool?.[key];
     if (value !== undefined && !(Number.isFinite(value) && value > 0)) throw new Error(`CNC ${key} must be finite and positive.`);
   }
-  const corner = job.tool?.cornerMM;
+  const corner = job.tool?.cornerRadius;
   if (corner !== undefined && !(Number.isFinite(corner) && corner >= 0)) throw new Error('CNC corner radius must be finite and nonnegative.');
 }
 
@@ -43,8 +43,8 @@ function run(job: CamRequest): void {
     const setup = info.setups[job.setup];
     if (!setup) throw new Error(info.setups.length ? 'The selected CNC setup is unavailable; choose one of the setups given.' : 'The Model gave no CNC moves for this part. Read the skipped-feature reasons.');
     if (!setup.moves.length) throw new Error('The selected CNC setup has no moves.');
-    const currentField = JSON.stringify([packageKey, job.setup, job.cellMM]);
-    if (!field || currentField !== fieldKey) { field = new CamHeightfield(info.stock, setup, info.tool, job.cellMM, camPartMeshes(held.doc, held.bodies)); fieldKey = currentField; }
+    const currentField = JSON.stringify([packageKey, job.setup, job.cellPitch]);
+    if (!field || currentField !== fieldKey) { field = new CamHeightfield(info.stock, setup, info.tool, job.cellPitch, camPartMeshes(held.doc, held.bodies)); fieldKey = currentField; }
     const progress = Math.min(job.progress, setup.moves.length), removal = field.evaluate(progress);
     const index = Math.min(Math.floor(progress), setup.moves.length - 1), move = setup.moves[index], fraction = progress >= setup.moves.length ? 1 : progress - index;
     const position: [number, number, number] = [move.a[0] + (move.b[0] - move.a[0]) * fraction, move.a[1] + (move.b[1] - move.a[1]) * fraction, move.a[2] + (move.b[2] - move.a[2]) * fraction];

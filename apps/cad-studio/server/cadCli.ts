@@ -1,3 +1,4 @@
+import { isRefusal } from '@barocss/cad-model/engine/refusal';
 // The CLI (A5.4, O12): a part built by a script (run_script, A5.2) for batch work and CI, written as .bcad, STEP and
 // STL, its requirements checked. The same tool layer as the chat and cad-mcp; the person running it is the author, so
 // no autonomy gate applies (the script is theirs). Exit codes: 0 done, 1 the script or a tool refused, 2 usage,
@@ -37,7 +38,8 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
-import { readDuty, robotCheckOfDoc, robotSizeOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { robotCheckOfDoc, robotSizeOfDoc } from '@barocss/cad-model/chat/robot';
+import type { PublicDuty } from '@barocss/cad-model/robot/reports';
 import { sourceBytes, sourceName, sourceRecord } from '@barocss/cad-model/team/source';
 
 /** A STEP file for the CLI's reports: the text, or the refusal's words (R7.3c: exportStudioStep throws). */
@@ -303,7 +305,7 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     if ('error' in step) return failed(`the pattern's STEP: ${step.error}`);
     writeAtomic(join(dir, 'pattern.json'), new TextEncoder().encode(JSON.stringify(p.file, null, 1) + '\n'));
     writeAtomic(join(dir, 'pattern.step'), new TextEncoder().encode(step.text));
-    say(io.stdout, { ok: true, factor: p.file.shrink.factor, machining: p.file.machining?.mm ?? null, wrote: [join(dir, 'pattern.json'), join(dir, 'pattern.step')] });
+    say(io.stdout, { ok: true, factor: p.file.shrink.factor, machining: p.file.machining?.value ?? null, wrote: [join(dir, 'pattern.json'), join(dir, 'pattern.step')] });
     return 0;
   }
   if (cmd === 'mould') {
@@ -327,7 +329,7 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const dir = resolve(rest[oi + 1]); mkdirSync(dir, { recursive: true });
     const step = stepOrError(halves.doc, 'mould');
     if ('error' in step) return failed(`the halves' STEP: ${step.error}`);
-    const vol = (bs: readonly { volumeMM3?: number | null }[]) => Math.round(bs.reduce((t, b) => t + (b.volumeMM3 ?? 0), 0) * 1e3) / 1e3;
+    const vol = (bs: readonly { volume?: number | null }[]) => Math.round(bs.reduce((t, b) => t + (b.volume ?? 0), 0) * 1e3) / 1e3;
     const shown = withoutLoops(plan.plan);
     const json = { format: 'barocss-mould', version: 1, ...shown, split: sp?.split ?? [], halves: { plus: { label: 'moves along the pull (B side, usually the core)', lumps: halves.plus.length, volume_mm3: vol(halves.plus) }, minus: { label: 'fixed (A side, usually the cavity)', lumps: halves.minus.length, volume_mm3: vol(halves.minus) } },
       lumps: halves.lumps.map(l => ({ key: l.body.key, half: l.half, basis: l.basis, volume_mm3: vol([l.body]) })), margin: { mm: margin, basis: mi >= 0 ? 'set' : 'estimate' } };
@@ -360,9 +362,9 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     if ('error' in s) return failed(s.error);
     let raw: unknown;
     try { raw = JSON.parse(readFileSync(resolve(rest[1]), 'utf8')); } catch (e) { return failed(`${rest[1]}: ${e instanceof Error ? e.message : String(e)}`, 2); }
-    const duty = readDuty(await treeOfDoc(s.doc, s.bodies, evaluate), raw);
-    if ('error' in duty) return failed(`${rest[1]}: ${duty.error}`, 2);
-    const r = await robotCheckOfDoc(s.doc, s.bodies, evaluate, duty);
+    let r: Awaited<ReturnType<typeof robotCheckOfDoc>>;
+    try { r = await robotCheckOfDoc(s.doc, s.bodies, evaluate, raw as PublicDuty); }
+    catch (e) { if (isRefusal(e, 'BAD_VALUES')) return failed(`${rest[1]}: ${e.message}`, 2); throw e; }
     say(io.stdout, r);
     return r.ok ? 0 : 1;
   }
@@ -376,12 +378,13 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     if ('error' in s) return failed(s.error);
     let raw: unknown;
     try { raw = JSON.parse(readFileSync(resolve(files[1]), 'utf8')); } catch (e) { return failed(`${files[1]}: ${e instanceof Error ? e.message : String(e)}`, 2); }
-    const duty = readDuty(await treeOfDoc(s.doc, s.bodies, evaluate), raw);
-    if ('error' in duty) return failed(`${files[1]}: ${duty.error}`, 2);
-    const { sized, doc } = await robotSizeOfDoc(s.doc, s.bodies, evaluate, duty), out = resolve(rest[oi + 1]), dutyOut = out.replace(/\.bcad$/i, '') + '.duty.json';
-    writeAtomic(out, encodeStudioFile(doc)); writeAtomic(dutyOut, JSON.stringify(sized.duty, null, 1) + '\n');
-    say(io.stdout, { ok: sized.ok, rounds: sized.rounds, trace: sized.trace, ...(sized.stopped ? { stopped: sized.stopped } : {}), least: sized.report.least, wrote: [out, dutyOut] });
-    return sized.ok ? 0 : 1;
+    let result: Awaited<ReturnType<typeof robotSizeOfDoc>>;
+    try { result = await robotSizeOfDoc(s.doc, s.bodies, evaluate, raw as PublicDuty); }
+    catch (e) { if (isRefusal(e, 'BAD_VALUES')) return failed(`${files[1]}: ${e.message}`, 2); throw e; }
+    const { sized: published, doc } = result, out = resolve(rest[oi + 1]), dutyOut = out.replace(/\.bcad$/i, '') + '.duty.json';
+    writeAtomic(out, encodeStudioFile(doc)); writeAtomic(dutyOut, JSON.stringify(published.duty, null, 1) + '\n');
+    say(io.stdout, { ok: published.ok, rounds: published.rounds, trace: published.trace, ...(published.stopped ? { stopped: published.stopped } : {}), least: published.report.least, wrote: [out, dutyOut] });
+    return published.ok ? 0 : 1;
   }
   if (cmd === 'check') {
     if (rest.length !== 1) return usage('check takes one .bcad file');

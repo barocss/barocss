@@ -18,22 +18,22 @@ const close = (a: number, b: number, rel = 2e-3) => assert.ok(Math.abs(a - b) <=
 
 test('primitive solids: sizes and volumes as asked, standing on At Z at the centre', () => {
   const sphere = make('sphere', { r: 10, x: 5, y: 6, z: 2 });
-  close(sphere.volumeMM3!, 4 / 3 * Math.PI * 1000);
+  close(sphere.volume!, 4 / 3 * Math.PI * 1000);
   assert.deepEqual(sphere.mesh.bounds.min.map(Math.round), [-5, -4, 2]);
   assert.deepEqual(sphere.mesh.bounds.max.map(Math.round), [15, 16, 22]);
-  close(make('cone', { r: 10, rt: 0, h: 20 }).volumeMM3!, Math.PI * 100 * 20 / 3);
-  close(make('cone', { r: 10, rt: 4, h: 20 }).volumeMM3!, Math.PI * 20 / 3 * (100 + 40 + 16));
+  close(make('cone', { r: 10, rt: 0, h: 20 }).volume!, Math.PI * 100 * 20 / 3);
+  close(make('cone', { r: 10, rt: 4, h: 20 }).volume!, Math.PI * 20 / 3 * (100 + 40 + 16));
   const torus = make('torus', { R: 20, r: 5, z: 0 });
-  close(torus.volumeMM3!, 2 * Math.PI * Math.PI * 20 * 25);
+  close(torus.volume!, 2 * Math.PI * Math.PI * 20 * 25);
   assert.deepEqual([torus.mesh.bounds.min[2], torus.mesh.bounds.max[2]].map(Math.round), [0, 10]);
-  close(make('tube', { r: 10, ri: 6, h: 24 }).volumeMM3!, Math.PI * (100 - 36) * 24);
+  close(make('tube', { r: 10, ri: 6, h: 24 }).volume!, Math.PI * (100 - 36) * 24);
   const wedge = make('wedge', { w: 32, d: 16, h: 16, x: 0, y: 0, z: 0 });
-  close(wedge.volumeMM3!, 32 * 16 / 2 * 16);
+  close(wedge.volume!, 32 * 16 / 2 * 16);
   assert.deepEqual([...wedge.mesh.bounds.min, ...wedge.mesh.bounds.max].map(Math.round), [0, 0, 0, 32, 16, 16]);
   const hex = make('prism', { n: 6, s: 16, h: 10, x: 0, y: 0 });
-  close(hex.volumeMM3!, 2 * Math.sqrt(3) * 64 * 10);
+  close(hex.volume!, 2 * Math.sqrt(3) * 64 * 10);
   assert.deepEqual([hex.mesh.bounds.min[1], hex.mesh.bounds.max[1]].map(v => Math.round(v * 1000) / 1000), [-8, 8]);
-  close(make('prism', { n: 12, s: 20, h: 5 }).volumeMM3!, 12 * Math.tan(Math.PI / 12) * 100 * 5);
+  close(make('prism', { n: 12, s: 20, h: 5 }).volume!, 12 * Math.tan(Math.PI / 12) * 100 * 5);
 });
 
 test('primitive sizes that cannot be made say why', () => {
@@ -52,9 +52,9 @@ test('a placed shape edits as itself later: its command, values, arrows and puck
   const next = edit.build!(ectx, { ...edit.defaults!(ectx), r: 15, x: 30 });
   assert.equal(next.nodes.length, 2);
   assert.deepEqual([(next.nodes[1] as { made: { values: Values } }).made.values.r, (next.nodes[1] as { made: { values: Values } }).made.values.x], [15, 30]);
-  close((evaluateDoc(next, 2) as { bodies: BodyResult[] }).bodies[0].volumeMM3!, 4 / 3 * Math.PI * 15 ** 3);
+  close((evaluateDoc(next, 2) as { bodies: BodyResult[] }).bodies[0].volume!, 4 / 3 * Math.PI * 15 ** 3);
   // Changed by hand since (the revolve's angle): its own fields instead.
-  const hand = { ...doc, nodes: [doc.nodes[0], { ...doc.nodes[1], angleDegrees: 180 } as ModelNode] };
+  const hand = { ...doc, nodes: [doc.nodes[0], { ...doc.nodes[1], angle: 180 } as ModelNode] };
   assert.notEqual(editCommand(1, hand.nodes)?.label, 'Edit Sphere');
 });
 
@@ -95,7 +95,7 @@ test('SubD torus (SD1, D51): a subd node from a regular cage — a smooth ring n
   const ring = make('subd-torus', { R: 20, r: 6, nu: 16, nv: 8, x: 0, y: 0, z: 0 });
   // The limit over the cage's vertices sits at the radii (across the tube within 1 − cu of r): near a true torus.
   const exact = 2 * Math.PI * Math.PI * 20 * 36;
-  assert.ok(Math.abs(ring.volumeMM3! / exact - 1) < 0.03, `${ring.volumeMM3} vs ${exact}`);
+  assert.ok(Math.abs(ring.volume! / exact - 1) < 0.03, `${ring.volume} vs ${exact}`);
   assert.ok(Math.abs(ring.mesh.bounds.max[2] - 12) < 0.05 && Math.abs(ring.mesh.bounds.min[2]) < 0.05, JSON.stringify(ring.mesh.bounds));
   const cmd = commands.find(c => c.id === 'subd-torus')!, doc = cmd.build!(ctx, { ...cmd.defaults!(ctx), nu: 24, nv: 12 });
   const node = doc.nodes[0] as Extract<ModelNode, { kind: 'subd' }>;
@@ -115,7 +115,7 @@ test('Spur gear (R6a, issue #2167, D54; R12b.1a, D130): a gear node from the com
   // (The m 2 z 20 generated profile's exact area, 1237.1969 mm² — by the kernel test's own envelope and involute,
   // test/gear-generated-root.test.mjs — × 10, less the Ø8 bore; within what the measured fits allow, 40 flanks and
   // fillets each moved by at most its deviation (1.4e-4 and 1.5e-4 mm) over its length (2.5m, 3m) × 10: 0.32 mm³.)
-  assert.ok(Math.abs(g.volumeMM3! - (12371.969 - Math.PI * 16 * 10)) < 0.32, String(g.volumeMM3));
+  assert.ok(Math.abs(g.volume! - (12371.969 - Math.PI * 16 * 10)) < 0.32, String(g.volume));
   // (The display names faces by their base names: 20 tips, 20 left flanks, the fillets.)
   assert.equal(g.mesh.faces.filter(f => f.name === 'n0.tip').length, 20); assert.equal(g.mesh.faces.filter(f => f.name === 'n0.flankL').length, 20);
   assert.ok(g.mesh.faces.some(f => f.name === 'n0.filletL') && !g.mesh.faces.some(f => f.name === 'n0.rootL'));
@@ -129,7 +129,7 @@ test('Spur gear (R6a, issue #2167, D54; R12b.1a, D130): a gear node from the com
   assert.ok(root && rho && root.kind === 'choice' && rho.kind === 'number');
   assert.equal(rho.kind === 'number' && rho.get(doc.nodes), 0.76);
   const schematic = root.kind === 'choice' ? root.set(doc.nodes, 'spur-gear@0') : doc.nodes, s = evaluateDoc({ ...doc, nodes: schematic }, 4);
-  assert.ok(s.ok && Math.abs(s.bodies[0].volumeMM3! - (12261.057 - Math.PI * 16 * 10)) < 0.05);
+  assert.ok(s.ok && Math.abs(s.bodies[0].volume! - (12261.057 - Math.PI * 16 * 10)) < 0.05);
   assert.ok(s.ok && s.bodies[0].notes?.some(n => n.warning && /Schematic root: not the cutting tool's, not validated for manufacturing/.test(n.text)));
   // An undercut pinion (12 teeth): built as the rack cuts it, said so; the schematic root refuses it, naming the shift.
   const twelve = evaluateDoc({ ...doc, nodes: [{ ...node, teeth: 12 }] }, 3);
@@ -200,13 +200,13 @@ test('Internal gear (R12b.2a, D132): a ring from the command (x2 0.5 by default)
   // (R12b.2b, D133: cut by a 24-tooth pinion-type cutter. The m 2 z 60 ring at x2 0.5 in Ø140 × 10: πR² less its 60
   // spaces — the involute, the cutter round's envelope, the root a_c + ra0 — by the kernel test's own construction,
   // test/gear-internal-shaper.test.mjs: 36927.4805 mm³, within what the flank and fillet fits allow, 1.04 mm³.)
-  assert.ok(Math.abs(g.volumeMM3! - 36927.4805) < 1.04, String(g.volumeMM3));
+  assert.ok(Math.abs(g.volume! - 36927.4805) < 1.04, String(g.volume));
   // (The default shift said as one: not a standard, D132.)
   assert.ok(g.notes?.some(n => /^Profile shift 0\.5 \(default: clears rack-cut pinions; see D132\): Internal: reference Ø120, tip Ø118 \(inside\), root Ø126\.837, base Ø112\.7631, rim Ø140 mm/.test(n.text)) && g.notes?.some(n => /^Root cut by a 24-tooth pinion-type cutter, tip radius 0\.5895 mm, at 36\.9185 mm/.test(n.text)) && g.notes?.some(n => n.warning && /estimate for a pinion-type cutter/.test(n.text)), JSON.stringify(g.notes));
   // The Root field to Schematic: the R12b.2a ring, its volume (3684.5980 mm² × 10 by the kernel test's own outline) and warning.
   const rf = editFields(one.nodes, 0).find(f => f.key === 'root')!, sch = rf.kind === 'choice' ? rf.set(one.nodes, 'internal-gear@0') : one.nodes, rs = evaluateDoc({ ...one, nodes: sch }, 8);
   assert.equal((sch[0] as typeof node).cutter, undefined);
-  assert.ok(rs.ok && Math.abs(rs.bodies[0].volumeMM3! - 36845.980) < 0.6 && rs.bodies[0].notes?.some(n => n.warning && /Schematic root/.test(n.text)));
+  assert.ok(rs.ok && Math.abs(rs.bodies[0].volume! - 36845.980) < 0.6 && rs.bodies[0].notes?.some(n => n.warning && /Schematic root/.test(n.text)));
   assert.equal(g.mesh.faces.filter(f => f.name === 'n0.tip').length, 60);
   // A shift given in the editor is the user's own: the default's flag goes, the note says it plainly.
   const sf = editFields(one.nodes, 0).find(f => f.key === 'shift')!, own = sf.kind === 'number' ? sf.set(one.nodes, 0.3) : one.nodes, ro = evaluateDoc({ ...one, nodes: own }, 7);
@@ -253,7 +253,7 @@ test('Bevel gear (R12b.3, D134): a straight bevel pinion from the command (m 2, 
   assert.ok(Math.abs(g.mesh.bounds.min[2]) < 1e-6, String(g.mesh.bounds.min[2]));
   // (The volume by the kernel test's own construction, test/gear-bevel.test.mjs: (R³ − (R − b)³)/3 × the section's area on
   // the unit sphere, less the Ø8 bore between the spheres — 9785.1487 mm³; the flanks' fit allows about 0.02.)
-  assert.ok(Math.abs(g.volumeMM3! - 9785.1487) < 0.02, String(g.volumeMM3));
+  assert.ok(Math.abs(g.volume! - 9785.1487) < 0.02, String(g.volume));
   assert.ok(g.notes?.some(n => /^Straight bevel, spherical involute: reference Ø40 at the heel, pitch cone 26\.5651° \(shaft angle 90°\), cone distance 44\.7214 mm \(toe 34\.7214\)/.test(n.text))
     && g.notes?.some(n => /^Tredgold's virtual spur gear: 22\.36 teeth \(an estimate/.test(n.text)) && g.notes?.some(n => n.warning && /Schematic root/.test(n.text)), JSON.stringify(g.notes));
   assert.equal(g.mesh.faces.filter(f => f.name === 'n0.tip').length, 20);
@@ -268,7 +268,7 @@ test('Bevel gear (R12b.3, D134): a straight bevel pinion from the command (m 2, 
   const k = r2.ok ? r2.bodies.find(b => b.ref?.node === 1)! : null!;
   assert.ok(k.notes!.some(n => /^Meshes with n0: the same apex, shaft angle 90°, ratio 20:40, backlash 0 mm at the heel, contact ratio 1\.714 \(spherical; Tredgold's estimate 1\.712\)/.test(n.text)) && k.notes!.some(n => /^Clear over a full tooth period on the heel sphere/.test(n.text)), JSON.stringify(k.notes));
   // (54305.1392 mm³ by the same construction for the z 40 gear with its Ø8 bore.)
-  assert.ok(Math.abs(k.volumeMM3! - 54305.1392) < 0.05, String(k.volumeMM3));
+  assert.ok(Math.abs(k.volume! - 54305.1392) < 0.05, String(k.volume));
   assert.deepEqual(editFields(two.nodes, 1).map(f => f.key), ['b', 'bore', 'ds', 'dir', 'ph']);
   // The pinion's teeth edited: the mate follows (40 for 18), clear still.
   const zf = editFields(two.nodes, 0).find(f => f.key === 'z')!, z18 = zf.kind === 'number' ? zf.set(two.nodes, 18) : two.nodes, r3 = evaluateDoc({ ...two, nodes: z18 }, 3);
@@ -290,7 +290,7 @@ test('Spiral bevel gear (R12b.4, D135): an ideal model, said so — K1\'s spiral
   assert.equal(featureLabel(node, 0, one.nodes), 'Spiral bevel gear m3 z20/40 (ideal model)');
   const g = r1.ok ? r1.bodies[0] : null!;
   // (41367.3882 mm³ by the kernel test's construction, test/gear-bevel-spiral.test.mjs: the α_t section's area — a turn keeps it on every sphere.)
-  assert.ok(Math.abs(g.volumeMM3! - 41367.3882) < 0.05, String(g.volumeMM3));
+  assert.ok(Math.abs(g.volume! - 41367.3882) < 0.05, String(g.volume));
   assert.ok(g.notes![0].warning && /^Ideal model: a spiral bevel gear in line contact — the conjugate of its mate on every sphere about the apex, not a face-milled or face-hobbed tooth \(no crowning, no machine settings\)/.test(g.notes![0].text), JSON.stringify(g.notes));
   assert.ok(g.notes!.some(n => /^Spiral β_m 35° left hand on a 60 mm cutter radius: β 30\.7328° at the toe to 39\.9648° at the heel; transverse α_t 23\.9568°/.test(n.text)) && g.notes!.some(n => /^Spiral bevel, spherical involute/.test(n.text)), JSON.stringify(g.notes));
   assert.match(g.idealModel!, /ideal spiral bevel gear \(line contact\)/);
@@ -305,7 +305,7 @@ test('Spiral bevel gear (R12b.4, D135): an ideal model, said so — K1\'s spiral
   assert.ok(k.notes!.some(n => /^Spiral β_m 35° right hand on a 60 mm cutter radius/.test(n.text)) && k.notes!.some(n => /contact ratio 1\.544 \(spherical; Tredgold's estimate 1\.543\) \+ face 1\.760 = 3\.304/.test(n.text))
     && k.notes!.some(n => /^Clear over a full tooth period on 5 spheres from the toe to the heel/.test(n.text)) && k.notes!.some(n => /^Axial thrust: n0 driving clockwise seen from its apex is pushed toward its apex, this gear away from its own/.test(n.text)), JSON.stringify(k.notes));
   // (221439.7348 mm³ by the same construction for the z 40 gear with its Ø20 bore.)
-  assert.ok(Math.abs(k.volumeMM3! - 221439.7348) < 0.2, String(k.volumeMM3));
+  assert.ok(Math.abs(k.volume! - 221439.7348) < 0.2, String(k.volume));
   // The cutter radius left 0: the mean cone distance, an estimate — said so.
   const est = cmd.build!(ctx, { ...cmd.defaults!(ctx), m: 3, teeth: 20, mate: 40, b: 20, bore: 10, spiral: 35, hand: 'left', rc: 0, x: 0, y: 0, z: 0 }), r3 = evaluateDoc(est, 3);
   assert.deepEqual((est.nodes[0] as typeof node).spiral, { angle: 35, hand: 'left', cutterRadius: 57.082, cutterEstimate: true });
@@ -326,7 +326,7 @@ test('Worm gear pair (R12b.5, D136): K1\'s pair from the command (m_x 3, double 
   assert.equal(featureLabel(worm, 1, doc.nodes), 'Worm ZI m_x3 ×2 Ø44');
   const w = r.ok ? r.bodies.find(b => b.ref?.node === 1)! : null!;
   // (The worm's volume by the kernel test's construction, test/gear-worm.test.mjs: (π rf² + 2 ∫ 2ψ r dr − π 6²) × 66 = 92741.95 mm³, within its fits.)
-  assert.ok(Math.abs(w.volumeMM3! - 92741.95) < 0.6, String(w.volumeMM3));
+  assert.ok(Math.abs(w.volume! - 92741.95) < 0.6, String(w.volume));
   assert.ok(w.notes!.some(n => /^Worm ZI \(involute helicoid\): reference Ø44, tip Ø50, root Ø36\.5 \(q 14\.6667\); lead angle γ 7\.7652°, lead 18\.8496 mm/.test(n.text))
     && w.notes!.some(n => /^Meshes with n0: crossed at 90°, centre distance 67 mm, ratio 30:2 \(15:1\), backlash 0 mm along the worm's axis, mid-plane contact ratio 1\.800/.test(n.text)) && w.notes!.some(n => /^Clear over an axial pitch in the wheel's mid-plane and ±6\.6667 mm/.test(n.text)), JSON.stringify(w.notes));
   // The wheel's teeth to 40: the worm follows (ratio 40:2, 87 mm apart), clear; the worm's form to ZA, clear.
@@ -347,7 +347,7 @@ test('Throated worm wheel (R12b.6, D137): K1\'s pair from the Worm gear pair com
   assert.equal(featureLabel(wheel, 0, doc.nodes), 'Throated worm wheel m_x3 z30'); assert.equal(featureLabel(worm, 1, doc.nodes), 'Worm ZA m_x3 ×2 Ø44');
   const g = r.ok ? r.bodies.find(b => b.ref?.node === 0)! : null!, w = r.ok ? r.bodies.find(b => b.ref?.node === 1)! : null!;
   // (123789.333 mm³ by the kernel test's construction, test/gear-worm-wheel.test.mjs: its sections' areas integrated along the face, less the Ø20 bore.)
-  assert.ok(Math.abs(g.volumeMM3! - 123789.333) < 0.3, String(g.volumeMM3));
+  assert.ok(Math.abs(g.volume! - 123789.333) < 0.3, String(g.volume));
   assert.ok(g.notes!.some(n => /^Throated worm wheel, cut by a hob of its ZA worm's thread: reference Ø90, throat Ø96 \(its surface radius 19\), root Ø82\.5, centre distance 67 mm/.test(n.text)), JSON.stringify(g.notes));
   assert.ok(w.notes!.some(n => /^Meshes with n0, enveloping it: crossed at 90°, centre distance 67 mm, ratio 30:2 \(15:1\)/.test(n.text)) && w.notes!.some(n => /^In contact along lines across the face/.test(n.text)), JSON.stringify(w.notes));
 });
@@ -363,12 +363,12 @@ test('Gear rack (R6a.5b, D58): on its own (the basic rack on a bar, its exact vo
   // between the root line, the flank and the arc, ρ²(cot(45° + α/2) − (π/2 − α)/2).)
   const corner = 0.76 ** 2 * (1 / Math.tan(Math.PI / 4 + Math.PI / 18) - (Math.PI / 2 - Math.PI / 9) / 2);
   assert.equal((alone.nodes[0] as Extract<ModelNode, { kind: 'rack' }>).generator, 'spur-rack@1');
-  close(ra.ok ? ra.bodies[0].volumeMM3! : 0, (10 * p * 7.5 + 10 * tooth + 20 * corner) * 10, 1e-9);
+  close(ra.ok ? ra.bodies[0].volume! : 0, (10 * p * 7.5 + 10 * tooth + 20 * corner) * 10, 1e-9);
   assert.ok(ra.ok && ra.bodies[0].notes!.some(n => /^Length 62\.8319 mm, pitch 6\.2832 mm/.test(n.text)));
   assert.ok(ra.ok && ra.bodies[0].notes!.some(n => /^Root fillets 0\.76 mm \(the basic rack's\): the straight flank ends 1\.9999 mm below the pitch line/.test(n.text)) && !ra.bodies[0].notes!.some(n => /Schematic root/.test(n.text)));
   // The Root field to Schematic (spur-rack@0): R6a's corners, its volume to 1e-9 as before, its warning.
   const rootField = editFields(alone.nodes, 0).find(f => f.key === 'root')!, sharp = rootField.kind === 'choice' ? rootField.set(alone.nodes, 'spur-rack@0') : alone.nodes, rs = evaluateDoc({ ...alone, nodes: sharp }, 6);
-  close(rs.ok ? rs.bodies[0].volumeMM3! : 0, (10 * p * 7.5 + 10 * tooth) * 10, 1e-9);
+  close(rs.ok ? rs.bodies[0].volume! : 0, (10 * p * 7.5 + 10 * tooth) * 10, 1e-9);
   assert.ok(rs.ok && rs.bodies[0].notes!.some(n => n.warning && /Schematic root/.test(n.text)));
   const one = gear.build!(ctx, { ...gear.defaults!(ctx), m: 2, teeth: 20, b: 10, bore: 8, x: 0, y: 0, z: 0 }), r1 = evaluateDoc(one, 2);
   assert.ok(r1.ok);
@@ -423,15 +423,15 @@ test('Helical gear (R6a.5c, D59–D60): β 20° right hand from the command — 
 
 test('SubD box (SD2, D78): a box cage, its eight corners extraordinary — one body of G1 caps and exact patches inside the box, rounder with fewer quads; editable as values', () => {
   const box = make('subd-box', { w: 30, d: 20, h: 16, n: 3, x: 0, y: 0, z: 0 });
-  const v3 = box.volumeMM3!;
+  const v3 = box.volume!;
   assert.ok(v3 < 30 * 20 * 16 && v3 > 0.6 * 30 * 20 * 16, String(v3));
   const b = box.mesh.bounds;
   // (Inside its box, touching its sides: a flat cage face's middle has a flat limit.)
   assert.ok([0, 1, 2].every(k => b.min[k] >= [-15, -10, 0][k] - 1e-9 && b.max[k] <= [15, 10, 16][k] + 1e-9), JSON.stringify(b));
   assert.ok(box.mesh.faces.some(f => /^n0\.cap/.test(f.name)) && box.mesh.faces.some(f => /^n0\.patch/.test(f.name)), box.mesh.faces.map(f => f.name).slice(0, 6).join(' '));
   // More quads along a side: closer to the box.
-  assert.ok(make('subd-box', { w: 30, d: 20, h: 16, n: 6, x: 0, y: 0, z: 0 }).volumeMM3! > v3);
-  assert.ok(make('subd-box', { w: 30, d: 20, h: 16, n: 1, x: 0, y: 0, z: 0 }).volumeMM3! < v3);
+  assert.ok(make('subd-box', { w: 30, d: 20, h: 16, n: 6, x: 0, y: 0, z: 0 }).volume! > v3);
+  assert.ok(make('subd-box', { w: 30, d: 20, h: 16, n: 1, x: 0, y: 0, z: 0 }).volume! < v3);
   const cmd = commands.find(c => c.id === 'subd-box')!, node = cmd.build!(ctx, { ...cmd.defaults!(ctx), n: 2 }).nodes[0] as Extract<ModelNode, { kind: 'subd' }>;
   assert.deepEqual([node.cage.faces.length, node.cage.positions.length / 3], [24, 26]);
 });
@@ -440,7 +440,7 @@ test('SubD tube (D84): a thick-walled tube open at both ends from a regular cage
   const { checkBrep, subdBrep } = await import('@barocss/cad');
   const tube = make('subd-tube', { r: 20, ri: 17, h: 40, nu: 24, nh: 7, x: 0, y: 0, z: 0 }), full = Math.PI * (20 * 20 - 17 * 17) * 40;
   // (Its rims round without holding loops: some of the wall's volume lost there.)
-  assert.ok(tube.volumeMM3! < full && tube.volumeMM3! > 0.85 * full, `${tube.volumeMM3} vs ${full}`);
+  assert.ok(tube.volume! < full && tube.volume! > 0.85 * full, `${tube.volume} vs ${full}`);
   const b = tube.mesh.bounds;
   assert.ok(b.max[0] <= 20 + 1e-6 && b.max[0] > 19.5 && b.min[2] >= -1e-9 && b.max[2] <= 40 + 1e-9, JSON.stringify(b));
   assert.ok(tube.mesh.faces.every(f => /^n0\.patch\d+$/.test(f.name)), 'regular everywhere: no caps');
@@ -459,7 +459,7 @@ test('SubD caps shown (D79): the box\'s notes give the caps and their deviation 
   const box = make('subd-box', { w: 30, d: 20, h: 16, n: 3, x: 0, y: 0, z: 0 });
   assert.equal(box.notes?.length, 1, JSON.stringify(box.notes));
   assert.match(box.notes![0].text, /^Caps: G1 at 8 irregular vertices \(24 caps, 1 Catmull–Clark step\); max deviation from the limit surface [\d.]+ mm \([\d.]+% of its size\)$/);
-  assert.ok(box.subd && box.subd.maxDeviationMM > 0 && box.subd.maxDeviationMM < 0.01 && box.subd.creaseDeviationMM === 0, JSON.stringify(box.subd));
+  assert.ok(box.subd && box.subd.maxDeviation > 0 && box.subd.maxDeviation < 0.01 && box.subd.creaseDeviation === 0, JSON.stringify(box.subd));
   // A half star of 4 quads round a boundary vertex: its caps past 0.2% of its size, warned.
   const positions = [0, 0, 0]; for (let k = 0; k <= 8; k++) { const a = Math.PI * k / 8; positions.push(10 * Math.cos(a), 10 * Math.sin(a), 0.4 * Math.sin(2 * a)); }
   const half = withNode(emptyDoc(), { kind: 'subd', name: 'half star', cage: { positions, faces: [0, 1, 2, 3].map(k => [0, 1 + 2 * k, 2 + 2 * k, 3 + 2 * k]) } } as ModelNode);
@@ -468,7 +468,7 @@ test('SubD caps shown (D79): the box\'s notes give the caps and their deviation 
   assert.ok(b.notes!.some(n => n.warning && /At crease, corner or boundary vertices the caps are [\d.]+ mm from the limit \([\d.]+% of its size, past 0\.2%\)[\s\S]*even angles \(to do: the limit's own characteristic map\)/.test(n.text)), JSON.stringify(b.notes));
   const query = (doc: typeof half, bodies: BodyResult[], at?: 'crease') => runCheck(doc, bodies, (async () => evaluateDoc(doc, 1)) as never, { op: '<=', query: { fn: 'subd_deviation', ...(at ? { at } : {}) }, value: 0.05 });
   const q = await query(half, r.ok ? r.bodies : [], 'crease');
-  assert.equal(q.status, 'fail'); assert.ok(Math.abs((q.measured as number) - b.subd!.creaseDeviationMM) < 1e-4, JSON.stringify(q)); // (measured to 4 places)
+  assert.equal(q.status, 'fail'); assert.ok(Math.abs((q.measured as number) - b.subd!.creaseDeviation) < 1e-4, JSON.stringify(q)); // (measured to 4 places)
   const cmd = commands.find(c => c.id === 'subd-box')!, boxDoc = cmd.build!(ctx, { ...cmd.defaults!(ctx) }), rb = evaluateDoc(boxDoc, 1);
   assert.equal((await query(boxDoc, rb.ok ? rb.bodies : [])).status, 'pass');
   const torus = commands.find(c => c.id === 'subd-torus')!.build!(ctx, { ...commands.find(c => c.id === 'subd-torus')!.defaults!(ctx) }), rt = evaluateDoc(torus, 1);

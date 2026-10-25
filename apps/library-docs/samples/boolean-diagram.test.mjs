@@ -28,7 +28,7 @@ test('diagram: all three displayed operations match the kernel for overlapping, 
       const tool = p => shape === 'box' ? p.box({ w: 10, d: 10, h: 10, x }) : p.cylinder({ r: 3, h: 10, x, y: 5 });
       for (const [operation, method] of [['union', 'union'], ['difference', 'subtract'], ['intersect', 'intersect']]) {
         const result = a[method](tool);
-        const actual = result.bodies().length ? result.mass({ density: 1 }).volumeMM3 : 0;
+        const actual = result.bodies().length ? result.mass({ density: 1 }).volume : 0;
         assert.equal(numberLabel(g.areas[operation] * HEIGHT), numberLabel(actual), `${shape} x=${x} ${operation}`);
       }
     }

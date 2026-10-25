@@ -25,12 +25,61 @@ const PLATE_MM3 = 80 * 40 * 8 - 3 * Math.PI * 2.5 ** 2 * 8;
 /** A spawned cad-mcp: requests answered in order, then closed. */
 function client(args: string[]) {
   const child = spawn(process.execPath, [join(root, 'scripts/cad-mcp.mjs'), ...args], { stdio: ['pipe', 'pipe', 'pipe'] });
-  const waiting = new Map<number, (m: Record<string, any>) => void>(); let id = 0, stderr = '';
-  child.stderr.on('data', d => { stderr += d; });
-  createInterface({ input: child.stdout }).on('line', line => { const m = JSON.parse(line); waiting.get(m.id)?.(m); });
-  const request = (method: string, params?: unknown) => new Promise<Record<string, any>>(res => { const n = ++id; waiting.set(n, res); child.stdin.write(JSON.stringify({ jsonrpc: '2.0', id: n, method, params }) + '\n'); });
+  const waiting = new Map<number, { resolve: (m: Record<string, any>) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout> }>();
+  let id = 0, stderr = '', closing = false, failure: Error | null = null, closePromise: Promise<number> | undefined;
+  const fail = (e: Error) => {
+    failure ??= e;
+    for (const pending of waiting.values()) { clearTimeout(pending.timer); pending.reject(e); }
+    waiting.clear();
+  };
+  const onError = (e: Error) => fail(e);
+  const onExit = (code: number | null, signal: NodeJS.Signals | null) => { if (!closing) fail(new Error(`cad-mcp exited before close (${code ?? signal}): ${stderr}`)); };
+  const onStderr = (d: Buffer) => { stderr += d; };
+  child.on('error', onError); child.on('exit', onExit); child.stdin.on('error', onError); child.stderr.on('data', onStderr);
+  const lines = createInterface({ input: child.stdout });
+  lines.on('line', line => {
+    let m: Record<string, any>;
+    try { m = JSON.parse(line); } catch { fail(new Error(`cad-mcp sent invalid JSON: ${line}`)); return; }
+    const pending = waiting.get(m.id);
+    if (pending) { waiting.delete(m.id); clearTimeout(pending.timer); pending.resolve(m); }
+  });
+  const closed = new Promise<number>(resolve => child.once('close', code => {
+    fail(new Error(`cad-mcp closed (${code}): ${stderr}`));
+    lines.close(); child.off('error', onError); child.off('exit', onExit); child.stdin.off('error', onError); child.stderr.off('data', onStderr);
+    resolve(code ?? -1);
+  }));
+  const request = (method: string, params?: unknown) => new Promise<Record<string, any>>((resolve, reject) => {
+    if (failure || closing) { reject(failure ?? new Error('cad-mcp client is closing')); return; }
+    const n = ++id, timer = setTimeout(() => { waiting.delete(n); reject(new Error(`cad-mcp ${method} #${n} timed out after 30 s: ${stderr}`)); }, 30_000);
+    waiting.set(n, { resolve, reject, timer });
+    child.stdin.write(JSON.stringify({ jsonrpc: '2.0', id: n, method, params }) + '\n', error => { if (error) fail(error); });
+  });
   const call = async (name: string, args: object = {}) => (await request('tools/call', { name, arguments: args })).result as { content: { text: string }[]; isError: boolean };
-  const close = () => new Promise<number>(res => { child.on('close', c => res(c ?? -1)); child.stdin.end(); });
+  const close = () => closePromise ??= (async () => {
+    const before = failure; closing = true;
+    if (!child.stdin.destroyed && !child.stdin.writableEnded) child.stdin.end();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const code = await Promise.race([closed, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error(`cad-mcp close timed out after 10 s: ${stderr}`)), 10_000); })]);
+      if (before) throw before;
+      return code;
+    } catch (error) {
+      if (child.exitCode === null && child.signalCode === null) {
+        child.kill('SIGTERM');
+        const killTimer = setTimeout(() => child.kill('SIGKILL'), 2_000);
+        let cleanupTimer: ReturnType<typeof setTimeout> | undefined;
+        try {
+          await Promise.race([closed, new Promise<never>((_, reject) => {
+            cleanupTimer = setTimeout(() => {
+              child.kill('SIGKILL'); child.stdin.destroy(); child.stdout.destroy(); child.stderr.destroy();
+              reject(new Error(`cad-mcp did not close after forced termination: ${stderr}`));
+            }, 4_000);
+          })]);
+        } finally { clearTimeout(killTimer); clearTimeout(cleanupTimer); }
+      }
+      throw error;
+    } finally { clearTimeout(timer); }
+  })();
   return { request, call, close, stderr: () => stderr };
 }
 const facts = (r: { content: { text: string }[] }) => JSON.parse(r.content[0].text).facts;
@@ -38,30 +87,34 @@ const facts = (r: { content: { text: string }[] }) => JSON.parse(r.content[0].te
 test('cad-mcp --doc: spawned as a client would, a script run and saved; a second session reopens the same part', async () => {
   const d = dir(), part = join(d, 'part.bcad');
   const a = client(['--doc', part]);
-  const init = (await a.request('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '0' } })).result!;
-  assert.equal(init.serverInfo.version, 'barocss-cad-tools-v2');
-  assert.deepEqual(((await a.request('tools/list')).result!.tools as { name: string }[]).map(t => t.name), TOOLS_V2.map(t => t.name));
-  assert.ok(!existsSync(part), 'a new part: no file until the first change');
-  const built = await a.call('model', { source: PLATE });
-  assert.equal(built.isError, false, built.content[0].text);
-  assert.ok(existsSync(part), 'saved on the change');
-  const saved = readFileSync(part);
-  // A read changes nothing on disk.
-  await a.call('query', { action: 'summary' });
-  assert.deepEqual(readFileSync(part), saved);
-  const before = facts(built);
-  assert.equal(await a.close(), 0, a.stderr());
-  assert.ok(!readdirSync(d).some(f => f.endsWith('.tmp')), 'no temporary file left');
-  // Reopened: the same features and facts; the file as it was.
-  const read = await readStudioFile(new Uint8Array(readFileSync(part)));
-  assert.ok('doc' in read && read.doc.nodes.length === 5, JSON.stringify(read).slice(0, 200));
-  const b = client(['--doc', part]);
-  await b.request('initialize', { protocolVersion: '2025-06-18' });
-  const again = JSON.parse((await b.call('query', { action: 'summary' })).content[0].text);
-  assert.deepEqual(again.facts, before);
-  assert.ok(Math.abs(again.facts.volume_mm3 - PLATE_MM3) < 0.01);
-  assert.equal(await b.close(), 0);
-  assert.deepEqual(readFileSync(part), saved, 'reopening without a change leaves the file as it was');
+  try {
+    const init = (await a.request('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '0' } })).result!;
+    assert.equal(init.serverInfo.version, 'barocss-cad-tools-v2');
+    assert.deepEqual(((await a.request('tools/list')).result!.tools as { name: string }[]).map(t => t.name), TOOLS_V2.map(t => t.name));
+    assert.ok(!existsSync(part), 'a new part: no file until the first change');
+    const built = await a.call('model', { source: PLATE });
+    assert.equal(built.isError, false, built.content[0].text);
+    assert.ok(existsSync(part), 'saved on the change');
+    const saved = readFileSync(part);
+    // A read changes nothing on disk.
+    await a.call('query', { action: 'summary' });
+    assert.deepEqual(readFileSync(part), saved);
+    const before = facts(built);
+    assert.equal(await a.close(), 0, a.stderr());
+    assert.ok(!readdirSync(d).some(f => f.endsWith('.tmp')), 'no temporary file left');
+    // Reopened: the same features and facts; the file as it was.
+    const read = await readStudioFile(new Uint8Array(readFileSync(part)));
+    assert.ok('doc' in read && read.doc.nodes.length === 5, JSON.stringify(read).slice(0, 200));
+    const b = client(['--doc', part]);
+    try {
+      await b.request('initialize', { protocolVersion: '2025-06-18' });
+      const again = JSON.parse((await b.call('query', { action: 'summary' })).content[0].text);
+      assert.deepEqual(again.facts, before);
+      assert.ok(Math.abs(again.facts.volume - PLATE_MM3) < 0.01);
+      assert.equal(await b.close(), 0);
+      assert.deepEqual(readFileSync(part), saved, 'reopening without a change leaves the file as it was');
+    } finally { await b.close(); }
+  } finally { await a.close(); }
 });
 
 test('cad-mcp on a container with mesh blobs: a change saved with its blobs, the file read back whole', async () => {
@@ -70,15 +123,17 @@ test('cad-mcp on a container with mesh blobs: a change saved with its blobs, the
   const d = dir(), part = join(d, 'mesh.bcad');
   writeFileSync(part, encodeStudioFile(withNode(emptyDoc(), node)));
   const c = client(['--doc', part, '--autonomy', '4']);
-  await c.request('initialize', {});
-  const r = await c.call('model', { source: 'box({w: 10, d: 10, h: 10, x: 200, y: 0, z: 0})' });
-  assert.equal(r.isError, false, r.content[0].text);
-  assert.equal(await c.close(), 0, c.stderr());
-  const bytes = new Uint8Array(readFileSync(part));
-  assert.ok(isContainer(bytes), 'still a container, its blobs inside');
-  const back = await readStudioFile(bytes);
-  assert.ok('doc' in back, JSON.stringify(back));
-  assert.deepEqual(back.doc.nodes.map(n => n.kind), ['mesh', 'sketch', 'extrude']);
+  try {
+    await c.request('initialize', {});
+    const r = await c.call('model', { source: 'box({w: 10, d: 10, h: 10, x: 200, y: 0, z: 0})' });
+    assert.equal(r.isError, false, r.content[0].text);
+    assert.equal(await c.close(), 0, c.stderr());
+    const bytes = new Uint8Array(readFileSync(part));
+    assert.ok(isContainer(bytes), 'still a container, its blobs inside');
+    const back = await readStudioFile(bytes);
+    assert.ok('doc' in back, JSON.stringify(back));
+    assert.deepEqual(back.doc.nodes.map(n => n.kind), ['mesh', 'sketch', 'extrude']);
+  } finally { await c.close(); }
 });
 
 test('cad-mcp options: local .bcad files only, the flags, the usage', async () => {
@@ -123,7 +178,7 @@ test('cad-cli run: a script to .bcad, STEP and STL; check; refusals write nothin
   writeFileSync(script, `${PLATE}\nrequirements([{id: "R1", source: "80 long", hard: true, check: {op: "==", query: {fn: "bbox", axis: "x"}, value: 80, tol: 0.1}}])`);
   const r = await cli(['run', script, '-o', join(d, 'plate.bcad'), '--step', join(d, 'plate.step'), '--stl', join(d, 'plate.stl'), '--check']);
   assert.equal(r.code, 0, r.err);
-  assert.ok(r.json.ok && r.json.calls === 5 && Math.abs(r.json.facts.volume_mm3 - PLATE_MM3) < 0.01, r.out);
+  assert.ok(r.json.ok && r.json.calls === 5 && Math.abs(r.json.facts.volume - PLATE_MM3) < 0.01, r.out);
   assert.deepEqual([r.json.checks.summary.pass, r.json.checks.summary.hard_failing], [1, 0]);
   assert.match(readFileSync(join(d, 'plate.step'), 'latin1'), /^ISO-10303-21;/);
   const stl = readFileSync(join(d, 'plate.stl'));

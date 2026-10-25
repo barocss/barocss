@@ -121,7 +121,7 @@ export function confirmDimension(doc: StudioDoc, key: string, value: number | un
 export function draftsReport(doc: StudioDoc) {
   const open = unconfirmed(doc);
   return {
-    drafts: liveDrafts(doc).map(d => ({ id: d.id, from: d.from, features: d.nodes, ...(d.note ? { note: d.note } : {}), dims: d.dims.map(x => ({ key: `${d.id}.${x.name}`, label: x.label, value_mm: x.value, basis: x.basis, confirmed: !!x.confirmed })) })),
+    drafts: liveDrafts(doc).map(d => ({ id: d.id, from: d.from, features: d.nodes, ...(d.note ? { note: d.note } : {}), dims: d.dims.map(x => ({ key: `${d.id}.${x.name}`, label: x.label, value: x.value, basis: x.basis, confirmed: !!x.confirmed })) })),
     unconfirmed: open.map(u => u.key),
     assumptions: unitAssumptions(doc),
     note: open.length ? `a draft: ${open.length} dimension${open.length === 1 ? '' : 's'} not confirmed by the user — ask about the ones that matter (ask_user, blocks {dimension}), or say they are assumed` : 'every draft dimension is confirmed',
@@ -158,6 +158,6 @@ export function runDraftTool(doc: StudioDoc, name: string, args: Record<string, 
     const r = withDrawingDraft(doc, args.dxf, typeof args.name === 'string' && args.name ? args.name : 'drawing', plane);
     const shown = Object.keys(r.underlay.counts).length ? { underlay: r.underlay.counts } : {}, left = { ...r.ignored, ...Object.fromEntries(Object.entries(r.underlay.left).map(([t, x]) => [t, x.count])) };
     if (!r.draft) return { doc: r.doc, content: { ok: true, draft: null, unit: r.unit, ...shown, note: 'no closed profile: the drawing is an underlay to trace over (its splines, ellipses, blocks and text), not geometry', ...(Object.keys(left).length ? { left_out: left } : {}) }, changed: true, summary: `drawing as an underlay (${Object.entries(r.underlay.counts).map(([t, n]) => `${n} ${t}`).join(', ')})` };
-    return { doc: r.doc, content: { ok: true, draft: r.draft.id, feature: r.draft.nodes[0], unit: r.unit, dims: r.draft.dims.map(x => ({ key: `${r.draft!.id}.${x.name}`, value_mm: x.value })), ...shown, ...(Object.keys(left).length ? { left_out: left } : {}) }, changed: true, summary: `drawing ${r.draft.id}: ${r.draft.dims.length} dimensions to confirm` };
+    return { doc: r.doc, content: { ok: true, draft: r.draft.id, feature: r.draft.nodes[0], unit: r.unit, dims: r.draft.dims.map(x => ({ key: `${r.draft!.id}.${x.name}`, value: x.value })), ...shown, ...(Object.keys(left).length ? { left_out: left } : {}) }, changed: true, summary: `drawing ${r.draft.id}: ${r.draft.dims.length} dimensions to confirm` };
   } catch (e) { if (isRefusal(e, ...DXF_READ_CODES)) return { error: e.message }; throw e; }
 }

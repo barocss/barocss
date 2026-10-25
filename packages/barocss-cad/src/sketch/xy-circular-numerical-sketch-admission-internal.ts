@@ -92,7 +92,7 @@ export function admit(input: unknown): XYCircularNumericalSketchDocumentV0 {
   const constraints = list(d.constraints, 0, 32, '$.constraints').map((v, i): XYCircularNumericalSketchConstraint => {
     const p = '$.constraints[' + i + ']'; check(v !== null && typeof v === 'object' && !Array.isArray(v), 'INVALID_DOCUMENT', 'Constraint record required', p);
     const k = (v as Record<string, unknown>).kind;
-    const fields = k === 'fixed' ? ['pointId', 'target'] : k === 'coincident' ? ['pointA', 'pointB'] : k === 'horizontal' || k === 'vertical' ? ['segmentId'] : k === 'length' ? ['segmentId', 'lengthMM'] : k === 'signed-angle' ? ['segmentA', 'segmentB', 'angleRad'] : k === 'radius' ? ['circleId', 'radiusMM'] : k === 'line-circle-tangent' ? ['segmentId', 'circleId', 'side'] : null;
+    const fields = k === 'fixed' ? ['pointId', 'target'] : k === 'coincident' ? ['pointA', 'pointB'] : k === 'horizontal' || k === 'vertical' ? ['segmentId'] : k === 'length' ? ['segmentId', 'length'] : k === 'signed-angle' ? ['segmentA', 'segmentB', 'angle'] : k === 'radius' ? ['circleId', 'radiusMM'] : k === 'line-circle-tangent' ? ['segmentId', 'circleId', 'side'] : null;
     check(fields !== null, 'UNSUPPORTED', 'Unsupported constraint kind', p);
     const a = record(v, ['id', 'kind', ...fields], p), name = unique(a.id, p);
     rows += k === 'fixed' || k === 'coincident' ? 2 : 1; check(rows <= 64, 'LIMIT', 'At most 64 scalar residuals', p);
@@ -101,9 +101,9 @@ export function admit(input: unknown): XYCircularNumericalSketchDocumentV0 {
     if (k === 'fixed') return { id: name, kind: k, pointId: ref(a.pointId, pointIds, p), target: xy(a.target, p) };
     if (k === 'coincident') return { id: name, kind: k, pointA: ref(a.pointA, pointIds, p), pointB: ref(a.pointB, pointIds, p) };
     if (k === 'horizontal' || k === 'vertical') return { id: name, kind: k, segmentId: ref(a.segmentId, segmentIds, p) };
-    if (k === 'length') { check(typeof a.lengthMM === 'number' && a.lengthMM >= .001 && a.lengthMM <= 20000 * Math.SQRT2, 'UNSUPPORTED', 'Length must be [0.001,20000sqrt(2)] mm', p); return { id: name, kind: k, segmentId: ref(a.segmentId, segmentIds, p), lengthMM: a.lengthMM }; }
-    check(typeof a.angleRad === 'number' && a.angleRad > -Math.PI && a.angleRad <= Math.PI, 'UNSUPPORTED', 'Signed angle must be (-pi,pi] radians', p);
-    return { id: name, kind: 'signed-angle', segmentA: ref(a.segmentA, segmentIds, p), segmentB: ref(a.segmentB, segmentIds, p), angleRad: a.angleRad };
+    if (k === 'length') { check(typeof a.length === 'number' && a.length >= .001 && a.length <= 20000 * Math.SQRT2, 'UNSUPPORTED', 'Length must be [0.001,20000sqrt(2)] mm', p); return { id: name, kind: k, segmentId: ref(a.segmentId, segmentIds, p), length: a.length }; }
+    check(typeof a.angle === 'number' && a.angle > -Math.PI && a.angle <= Math.PI, 'UNSUPPORTED', 'Signed angle must be (-pi,pi] radians', p);
+    return { id: name, kind: 'signed-angle', segmentA: ref(a.segmentA, segmentIds, p), segmentB: ref(a.segmentB, segmentIds, p), angle: a.angle };
   });
   const branchGuards = list(d.branchGuards, 0, 16, '$.branchGuards').map((v, i): XYCircularNumericalSketchBranchGuard => {
     const p = '$.branchGuards[' + i + ']'; check(v !== null && typeof v === 'object' && !Array.isArray(v), 'INVALID_DOCUMENT', 'Guard record required', p);

@@ -46,7 +46,7 @@ export const contractChanges = (a: StudioDoc, b: StudioDoc) => CONTRACT_FIELDS.f
 async function overlaps(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate): Promise<Map<string, number>> {
   const out = new Map<string, number>();
   if (bodies.length < 2) return out;
-  for (const r of await interference(doc, bodies, evaluate) as { a: string; b: string; overlap_mm3?: number }[]) if (r.overlap_mm3) out.set(`${r.a}|${r.b}`, r.overlap_mm3);
+  for (const r of await interference(doc, bodies, evaluate) as { a: string; b: string; overlap?: number }[]) if (r.overlap) out.set(`${r.a}|${r.b}`, r.overlap);
   return out;
 }
 /** The process the DFM gate checks: the brief's stated one, else the part's. */
@@ -121,7 +121,7 @@ export function verifierView(doc: StudioDoc, bodies: readonly BodyResult[], extr
   const view = {
     revision: revisionOf(doc), brief: doc.brief ?? null, requirements: doc.requirements ?? [],
     facts: factsOf(doc, bodies), mass: massProperties(doc, bodies), boxes: bodies.map(b => ({ body: b.key, min: b.mesh.bounds.min, max: b.mesh.bounds.max })),
-    keepouts: extra.keepouts.map(k => ({ keepout: k.keepout, body: k.body, verdict: k.verdict, clearanceMM: k.clearanceMM, chordMM: k.chordMM })),
+    keepouts: extra.keepouts.map(k => ({ keepout: k.keepout, body: k.body, verdict: k.verdict, clearance: k.clearance, chordTolerance: k.chordMM })),
     printability: extra.print ? extra.print.rules.map(r => ({ id: r.id, status: r.status, message: r.message })) : null,
     checks: extra.spec ? { summary: extra.spec.summary, failures: extra.spec.failures, unknowns: extra.spec.unknowns } : null,
   };

@@ -10,7 +10,7 @@ const bracket = () => part('bracket').box({ w: 80, d: 40, h: 10 })
   .fillet(b => b.edges().along('z'), { radius: 2 });
 // (The part as it was before its last `n` features, to look at the body a later feature's names were picked on.)
 const before = (doc, n) => part('before', { ...doc, features: doc.features.slice(0, doc.features.length - n) });
-const volume = p => p.mass({ density: 1 }).volumeMM3;
+const volume = p => p.mass({ density: 1 }).volume;
 
 test('a dimension edit upstream: the stored names pick the same edges, moved with it', () => {
   const was = bracket(), edited = was.doc;

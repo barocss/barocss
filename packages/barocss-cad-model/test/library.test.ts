@@ -19,12 +19,12 @@ test('the built-in T-slot 20 series: loaded; every part builds valid in each var
   for (const [part, variant, slots] of [['profile', '2020', 4], ['profile', '2020', 1], ['profile', '2040', 6], ['slot-nut-m5'], ['end-cap'], ['angle-bracket']] as [string, string?, number?][]) {
     const doc = insertLibraryPart(emptyDoc(), 'tslot-20', part, { ...(variant ? { variant } : {}), ...(variant === '2020' && slots === 1 ? { params: { openSlots: 1 } } : {}) });
     const [b] = bodiesOf(doc);
-    assert.ok(b.volumeMM3! > 0, part);
+    assert.ok(b.volume! > 0, part);
     const node = doc.nodes[0] as LibraryNode;
     if (part === 'profile') assert.equal(node.interfaces.filter(i => i.role === 't-slot').length, slots, `${variant} slots`);
     assert.ok(node.warnings.some(w => /is an estimate/.test(w)), 'estimates said');
   }
-  for (const r of checkFits(lib)) { assert.equal(r.ok, true, `${r.id}: overlap ${r.overlapMM3}, contact ${r.contact}`); assert.equal(r.overlapMM3, 0); assert.equal(r.contact, true); }
+  for (const r of checkFits(lib)) { assert.equal(r.ok, true, `${r.id}: overlap ${r.overlap}, contact ${r.contact}`); assert.equal(r.overlap, 0); assert.equal(r.contact, true); }
 });
 
 test('LIB3: a library part kept with the document — saved and reopened without the library it evaluates the same; with it, a newer version regenerates it (values given kept, the rest the library\'s); estimates on the body', () => {
@@ -40,7 +40,7 @@ test('LIB3: a library part kept with the document — saved and reopened without
   const reopened = (read as { doc: StudioDoc }).doc;
   assert.equal((reopened.nodes[0] as LibraryNode).library.library, 'not-installed');
   const after = bodiesOf(reopened)[0];
-  assert.ok(Math.abs(after.volumeMM3! - before.volumeMM3!) < 1e-9 && after.mesh.faces.length === before.mesh.faces.length);
+  assert.ok(Math.abs(after.volume! - before.volume!) < 1e-9 && after.mesh.faces.length === before.mesh.faces.length);
   assert.equal(regenerateLibraryNode(reopened.nodes[0] as LibraryNode), null, 'no library: kept as it is');
   // A newer version of the library: the slot opening 6.0 instead of 6.2 — regenerated, L still 250.
   const v2 = JSON.parse(JSON.stringify(libraryById('tslot-20')!.manifest));
@@ -54,8 +54,8 @@ test('LIB3: a library part kept with the document — saved and reopened without
     // (Each slot's section: the opening 2ho × tl, the 45° taper (2hu + 2ho)/2 × (hu − ho), the channel 2ho × (ds − dt);
     // ho 3.1 → 3.0 takes 43.58 → 42.85 mm², four slots over 250 mm.)
     const slotArea = (ho: number) => { const hu = 5.5, tl = 1.8, ds = 6.1, dt = tl + hu - ho; return 2 * ho * tl + (hu + ho) * (hu - ho) + 2 * ho * (ds - dt); };
-    const v = bodiesOf({ ...mine, nodes: [re] })[0].volumeMM3!;
-    assert.ok(Math.abs(v - before.volumeMM3! - 4 * (slotArea(3.1) - slotArea(3.0)) * 250) < 1e-6, String(v - before.volumeMM3!));
+    const v = bodiesOf({ ...mine, nodes: [re] })[0].volume!;
+    assert.ok(Math.abs(v - before.volume! - 4 * (slotArea(3.1) - slotArea(3.0)) * 250) < 1e-6, String(v - before.volume!));
     // Its face names hold (same prefix, same recipe): a mate on them would survive.
     assert.ok(re.interfaces.find(i => i.id === 'slot-t1')!.faces!.plane === n0.interfaces.find(i => i.id === 'slot-t1')!.faces!.plane);
   } finally { unregisterLibrary('tslot-20-test'); }

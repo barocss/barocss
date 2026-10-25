@@ -26,7 +26,7 @@ export interface FaceInfo {
   readonly kind: 'plane' | 'curved';
   readonly normal: Vec3; readonly centroid: Vec3;
   /** Its area (mm²), where the facade's core gives one. */
-  readonly areaMM2?: number;
+  readonly area?: number;
   /** The edges that bound it, by their index in the body's edge list. */
   readonly edges: readonly number[];
 }
@@ -112,7 +112,7 @@ const unit = (v: readonly number[]): [number, number, number] => {
 const TANGENT_COS = Math.cos(Math.PI / 9);
 
 function normalAt(mesh: BrepMesh, face: BrepMeshFace, x: number, y: number, z: number): [number, number, number] | null {
-  const P = mesh.positionsMM, N = mesh.normals;
+  const P = mesh.positions, N = mesh.normals;
   if (face.kind === 'facet') return null;
   for (let v = face.vertexOffset; v < face.vertexOffset + face.vertexCount; v++) if (P[v * 3] === x && P[v * 3 + 1] === y && P[v * 3 + 2] === z) return [N[v * 3], N[v * 3 + 1], N[v * 3 + 2]];
   return null;
@@ -149,8 +149,8 @@ function shown(uses: readonly string[] | undefined, mesh: BrepMesh, meshFace: Re
 export function brepLines(brep: Brep, mesh: BrepMesh): Float32Array {
   const uses = usesOf(brep), meshFace = new Map(mesh.faces.map(f => [f.faceId, f])), out: number[] = [];
   for (const e of mesh.edges) {
-    if (!shown(uses.get(e.edgeId), mesh, meshFace, e.pointsMM)) continue;
-    const P = e.pointsMM;
+    if (!shown(uses.get(e.edgeId), mesh, meshFace, e.points)) continue;
+    const P = e.points;
     for (let k = 0; k + 5 < P.length; k += 3) out.push(P[k], P[k + 1], P[k + 2], P[k + 3], P[k + 4], P[k + 5]);
   }
   return Float32Array.from(out);
@@ -161,7 +161,7 @@ export function brepSelection(brep: Brep, mesh: BrepMesh): BodyQuery {
   const vertex = new Map(brep.vertices.map(v => [v.id, v.point]));
   const faceUses = usesOf(brep);
   const edges: EdgeInfo[] = [], edgesOfFace = new Map<string, number[]>();
-  const meshFace = new Map(mesh.faces.map(f => [f.faceId, f])), meshEdge = new Map(mesh.edges.map(e => [e.edgeId, e.pointsMM]));
+  const meshFace = new Map(mesh.faces.map(f => [f.faceId, f])), meshEdge = new Map(mesh.edges.map(e => [e.edgeId, e.points]));
   for (const e of brep.edges) {
     const uses = faceUses.get(e.id) ?? [];
     if (!shown(uses, mesh, meshFace, meshEdge.get(e.id))) continue;
@@ -172,7 +172,7 @@ export function brepSelection(brep: Brep, mesh: BrepMesh): BodyQuery {
     edges.push({ names: [e.name ?? e.id], straight, axis, a: [a[0], a[1], a[2]], b: [b[0], b[1], b[2]], faces: [faceName.get(uses[0])!, faceName.get(uses[1])!] });
     for (const f of uses) { const l = edgesOfFace.get(f); if (l) l.push(k); else edgesOfFace.set(f, [k]); }
   }
-  const P = mesh.positionsMM, N = mesh.normals;
+  const P = mesh.positions, N = mesh.normals;
   const faces: FaceInfo[] = mesh.faces.map(f => {
     const v0 = f.vertexOffset * 3, centroid: [number, number, number] = [0, 0, 0];
     for (let v = f.vertexOffset; v < f.vertexOffset + f.vertexCount; v++) { centroid[0] += P[v * 3]; centroid[1] += P[v * 3 + 1]; centroid[2] += P[v * 3 + 2]; }

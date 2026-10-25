@@ -42,11 +42,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 255405.576397669,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             250,
             0,
@@ -63,8 +63,8 @@
         ],
         "faceNamePattern": "^m\\.(start|end|core[01]|(top|bottom|left|right)\\.\\d|(t1|t2|r|b1|b2|l)\\.(lip[01]|under[01]|taper[01]|wall[01]|floor))$",
         "member": {
-          "areaMM2": 510.811152795338,
-          "lengthMM": 500,
+          "area": 510.811152795338,
+          "length": 500,
           "centroid": [
             10,
             0

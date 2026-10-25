@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { facetBrepFromTriangles, splitFacetBrep, brepMassProperties, checkBrep, evaluateCadPart } from '../dist/index.js';
+import { facetBrepFromTriangles, splitFacetBrep, brepMassProperties, checkBrep, evaluateCadPart, checkOutput, massPropertiesOf, outputOf } from '../dist/index.js';
 
 // F1 (R4, D50): a facet body split by a plane on its own triangles, each side closed by an exact planar cap.
-const vol = b => brepMassProperties(b, 1).volumeMM3;
+const vol = b => brepMassProperties(b, 1).volume;
 /** A cube of side 10 at the origin, each face an n × n grid of quads. */
 function cube(n) {
   const P = [], I = [], key = new Map(), v = (x, y, z) => { const k = `${x},${y},${z}`; if (!key.has(k)) { key.set(k, P.length / 3); P.push(x, y, z); } return key.get(k); };
@@ -76,26 +76,26 @@ test('part model: a mesh body splits on its own triangles past the explode limit
   const { P, I } = torus(20, 5, 160, 80);
   const mesh = { id: 'm', kind: 'mesh', positions: P, indices: I, representation: 'facets' };
   const r = evaluateCadPart(D([mesh, { id: 'c', kind: 'split', target: 'm', axis: 'z', at: 1 }]));
-  assert.equal(r.outputs.length, 2); assert.ok(r.outputs.every(o => o.representation === 'faceted' && o.validate().valid));
-  const V = evaluateCadPart(D([mesh])).outputs[0].massProperties(1).volumeMM3, sum = r.outputs.reduce((s, o) => s + o.massProperties(1).volumeMM3, 0);
+  assert.equal(r.outputs.length, 2); assert.ok(r.outputs.every(o => o.representation === 'faceted' && checkOutput(o).valid));
+  const V = massPropertiesOf(evaluateCadPart(D([mesh])).outputs[0]).volume, sum = r.outputs.reduce((s, o) => s + massPropertiesOf(o).volume, 0);
   assert.ok(Math.abs(sum - V) < 1e-9 * V);
-  assert.ok(r.outputs[0].massProperties(1).centroidMM[2] < 1 && r.outputs[1].massProperties(1).centroidMM[2] > 1);
+  assert.ok(massPropertiesOf(r.outputs[0]).centroid[2] < 1 && massPropertiesOf(r.outputs[1]).centroid[2] > 1);
   const flipped = evaluateCadPart(D([mesh, { id: 'c', kind: 'split', target: 'm', normal: [0, 0, -2], at: -2 }]));
-  assert.ok(flipped.outputs[0].massProperties(1).centroidMM[2] > 1, 'normal −z: the side it points to first');
+  assert.ok(massPropertiesOf(flipped.outputs[0]).centroid[2] > 1, 'normal −z: the side it points to first');
   const oblique = evaluateCadPart(D([mesh, { id: 'c', kind: 'split', target: 'm', normal: [1, 1, 1], at: 4 }]));
-  assert.ok(Math.abs(oblique.outputs.reduce((s, o) => s + o.massProperties(1).volumeMM3, 0) - V) < 1e-9 * V);
+  assert.ok(Math.abs(oblique.outputs.reduce((s, o) => s + massPropertiesOf(o).volume, 0) - V) < 1e-9 * V);
   assert.throws(() => evaluateCadPart(D([mesh, { id: 'c', kind: 'split', target: 'm', normal: [1, 1, 0], at: 40 }])), e => e.code === 'SELECTION');
 });
 
 test('oblique split of planar and curved bodies (D50): the tool is two tetrahedra on one exact plane, no longer a rotated box the exact Boolean refused', () => {
   const box = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { id: 'b', kind: 'extrude', sketch: 's', height: 10 }];
   const r = evaluateCadPart(D([...box, { id: 'o', kind: 'split', target: 'b', normal: [1, 1, 1], at: 12 }]));
-  assert.deepEqual(r.outputs.map(o => +o.massProperties(1).volumeMM3.toFixed(9)), [284, 716]);
+  assert.deepEqual(r.outputs.map(o => +massPropertiesOf(o).volume.toFixed(9)), [284, 716]);
   assert.ok(r.outputs[0].brep.faces.some(f => f.name === 'o.cut.top') && r.outputs[1].brep.faces.some(f => f.name === 'o.cut.bottom'));
   const slab = evaluateCadPart(D([...box, { id: 'c', kind: 'split', target: 'b', axis: 'z', at: 4 }, { id: 'o', kind: 'split', target: 'c/0', normal: [1, 1, 1], at: 5 }]));
-  assert.ok(Math.abs(slab.output('o/0').massProperties(1).volumeMM3 - 124 / 6) < 1e-9);
+  assert.ok(Math.abs(massPropertiesOf(outputOf(slab, 'o/0')).volume - 124 / 6) < 1e-9);
   const holed = evaluateCadPart(D([...box, { id: 'h', kind: 'hole', target: 'b', center: [5, 5], radius: 2, depth: 20 }, { id: 'o', kind: 'split', target: 'h', normal: [1, 0, 1], at: 9 }]));
-  assert.ok(Math.abs(holed.outputs.reduce((s, o) => s + o.massProperties(1).volumeMM3, 0) - (1000 - 40 * Math.PI)) < 1e-6);
+  assert.ok(Math.abs(holed.outputs.reduce((s, o) => s + massPropertiesOf(o).volume, 0) - (1000 - 40 * Math.PI)) < 1e-6);
 });
 
 test('PERF3 B10: a plane square to an axis puts the cut points exactly on it (the section loops and both caps\' corners have its coordinate to the bit); an oblique plane interpolates as before', () => {

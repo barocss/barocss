@@ -21,7 +21,7 @@ export interface SewSolidRequest {
   readonly id?: string;
   readonly surfaces: readonly Surface[];
   /** Edges and corners closer than this (mm) are one; default 1e-3 of the surfaces' size, at least 1e-6. */
-  readonly toleranceMM?: number;
+  readonly tolerance?: number;
 }
 
 
@@ -86,7 +86,7 @@ export function sewSolid(req: SewSolidRequest): Brep {
   if (surfaces.length < 2) throw sewError('sewing needs two or more surfaces');
   let size = 0;
   for (const s of surfaces) for (const row of s.controlPoints) for (const p of row) for (const x of p) size = Math.max(size, Math.abs(x));
-  const tol = req.toleranceMM ?? Math.max(1e-6, size * 1e-3);
+  const tol = req.tolerance ?? Math.max(1e-6, size * 1e-3);
   if (!(tol > 0)) throw sewError('the tolerance must be positive');
   // Corners welded within the tolerance; each face's loop a → b → c → d over (u0, v0) (u1, v0) (u1, v1)
   // (u0, v1): counter-clockwise about ∂u × ∂v.
@@ -158,7 +158,7 @@ export function sewSolid(req: SewSolidRequest): Brep {
   const used = new Set<string>(); for (const e of edges) { used.add(e.vertices[0]); used.add(e.vertices[1]); }
   const vertices: { id: string; point: Point }[] = [];
   for (let c = 0; c < corners.points.length; c++) if (used.has(`${id}_v${c}`)) vertices.push({ id: `${id}_v${c}`, point: corners.points[c] });
-  const brep = buildBrep({ source: { family: 'sew', id }, toleranceMM: tol, vertices, edges, bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_shell`, faces, closed: true }] }] });
+  const brep = buildBrep({ source: { family: 'sew', id }, tolerance: tol, vertices, edges, bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_shell`, faces, closed: true }] }] });
   assertValidBrep(brep);
   return brep;
 }

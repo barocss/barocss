@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assertValidBrep, checkBrep, evaluateCadPart, tessellateBrep } from '../dist/index.js';
+import { assertValidBrep, checkBrep, evaluateCadPart, tessellateBrep, massPropertiesOf, checkOutput } from '../dist/index.js';
 import { oracle } from '../scripts/rb/fuzz-oracle.mjs';
 import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 import { intersectSegments } from '../dist/brep/curved-arrangement.js';
@@ -8,7 +8,7 @@ import { intersectSegments } from '../dist/brep/curved-arrangement.js';
 const leaf = (kind, dims, rot, move) => ({ leaf: { kind, ...dims, rot: rot.map(([axis, deg]) => ({ axis, deg })), move } });
 /** Mesh edges (by position) not used exactly twice. */
 function openEdges(mesh) {
-  const P = mesh.positionsMM, uses = new Map();
+  const P = mesh.positions, uses = new Map();
   for (let t = 0; t < mesh.indices.length; t += 3) for (let k = 0; k < 3; k++) {
     const a = mesh.indices[t + k], b = mesh.indices[t + (k + 1) % 3], ka = `${P[3 * a]},${P[3 * a + 1]},${P[3 * a + 2]}`, kb = `${P[3 * b]},${P[3 * b + 1]},${P[3 * b + 2]}`, e = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
     uses.set(e, (uses.get(e) ?? 0) + 1);
@@ -16,11 +16,11 @@ function openEdges(mesh) {
   return [...uses.values()].filter(n => n !== 2).length;
 }
 function check(name, tree, method) {
-  const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), m = o.massProperties(1), q = oracle(tree, 256, 6);
-  assert.equal(o.validate().valid, true, `${name}: valid`);
+  const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), m = massPropertiesOf(o), q = oracle(tree, 256, 6);
+  assert.equal(checkOutput(o).valid, true, `${name}: valid`);
   assert.equal(openEdges(tessellateBrep(o.brep, { segmentsPerQuarter: 8 })), 0, `${name}: watertight`);
   if (method) assert.equal(m.method, method, name);
-  assert.ok(Math.abs(m.volumeMM3 - q.volumeMM3) <= 3 * q.e + 1e-9, `${name}: ${m.volumeMM3} vs the oracle ${q.volumeMM3} ± ${q.e}`);
+  assert.ok(Math.abs(m.volume - q.volumeMM3) <= 3 * q.e + 1e-9, `${name}: ${m.volume} vs the oracle ${q.volumeMM3} ± ${q.e}`);
   return o;
 }
 

@@ -15,19 +15,19 @@ import { personRowsRefusal, rowEntries, validRowSupplies, type RowKind } from '.
 // sheet.test and connector.test respectively.
 const fixtures: { kind: RowKind; payload: unknown }[] = [
   { kind: 'fits', payload: { id: 'shop-fits', rows: [
-    { class: 'H7', overMM: 10, upToMM: 18, upperUM: 18, lowerUM: 0, estimate: true },
-    { class: 'g6', overMM: 10, upToMM: 18, upperUM: -6, lowerUM: -17, estimate: true }] } },
-  { kind: 'bearings', payload: [{ id: '6204', designation: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, boreDeviationUM: [0, -10], source: 'B1 (D139)' }] },
-  { kind: 'orings', payload: [{ id: '214', dash: '2-214', insideDiameterMM: 24.99, crossSectionMM: 3.53, source: 'O1 (D139)' }] },
-  { kind: 'rings', payload: [{ id: 'DIN471-20', designation: '20 × 1.2', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3, source: "the maker's sheet" }] },
-  { kind: 'drives', payload: [{ kind: 'chain', id: 'chain-a', pitchMM: 12.7, rollerDiameterMM: 8.51, innerWidthMM: 7.75, plateHeightMM: 11.8, estimate: true }] },
+    { class: 'H7', over: 10, upTo: 18, upper: 0.018, lower: 0, estimate: true },
+    { class: 'g6', over: 10, upTo: 18, upper: -0.006, lower: -0.017, estimate: true }] } },
+  { kind: 'bearings', payload: [{ id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, boreDeviation: [0, -0.01], source: 'B1 (D139)' }] },
+  { kind: 'orings', payload: [{ id: '214', dash: '2-214', insideDiameter: 24.99, crossSection: 3.53, source: 'O1 (D139)' }] },
+  { kind: 'rings', payload: [{ id: 'DIN471-20', designation: '20 × 1.2', shaftDiameter: 20, grooveDiameter: 19, grooveWidth: 1.3, source: "the maker's sheet" }] },
+  { kind: 'drives', payload: [{ kind: 'chain', id: 'chain-a', pitch: 12.7, rollerDiameter: 8.51, innerWidth: 7.75, plateHeight: 11.8, estimate: true }] },
   { kind: 'sections', payload: [{ id: 'R40', name: 'RHS 40', section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, source: 'a test value' }] },
   { kind: 'stock', payload: [{ id: 'B1', kind: 'block', size: [125, 85, 25], source: "the test's list" }] },
-  { kind: 'frame-stock', payload: [{ id: 'a', lengthMM: 6000, count: 4, section: 'RHS', source: 'the shop' }] },
+  { kind: 'frame-stock', payload: [{ id: 'a', length: 6000, count: 4, section: 'RHS', source: 'the shop' }] },
   { kind: 'bend', payload: { id: 'shop-2mm', sources: [{ id: 'shop', label: "the shop's test bends" }], rows: [
-    { thicknessMM: 2, radiusMM: 3, angleDegrees: 90, deductionMM: 4.2, source: 'shop' },
-    { thicknessMM: 2, radiusMM: 3, angleDegrees: 120, kFactor: 0.42, estimate: true }] } },
-  { kind: 'connectors', payload: [{ id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, body: { shape: 'stadium', widthMM: 8.25, heightMM: 2.4, lengthMM: 6.51 }, keepOut: { marginMM: 1, depthMM: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' }] },
+    { thickness: 2, radius: 3, angle: 90, deduction: 4.2, source: 'shop' },
+    { thickness: 2, radius: 3, angle: 120, kFactor: 0.42, estimate: true }] } },
+  { kind: 'connectors', payload: [{ id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', width: 8.34, height: 2.56, depth: 6.2 }, body: { shape: 'stadium', width: 8.25, height: 2.4, length: 6.51 }, keepOut: { margin: 1, depth: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' }] },
 ];
 const conversation = '0123456789abcdef01234567';
 const sheet = () => withNode(emptyDoc(), { kind: 'sheet-contour', path: [[0, 0], [50, 0], [50, 35]], side: 'left', width: 20, thickness: 2, bendRadius: 3, kFactor: 0.5 });
@@ -67,7 +67,7 @@ test('A9-9 a copied context or suppliedBy claim cannot authorize rows; malformed
   assert.match(personRowsRefusal(before, invented, context) ?? '', /ROWS_NOT_FROM_PERSON/, 'a trusted file alone does not authorize rows before its loader runs');
   assert.throws(() => receivePersonRowFiles(conversation, [{ name: 'bad.json', text: '{', turn: 1 }], 1));
   assert.throws(() => receivePersonRowFiles(conversation, [{ name: 'claim.json', text: '[]', turn: 1, suppliedBy: 'person' } as never], 1));
-  const invalid = supplied('bad-bearing.json', [{ id: '6204', boreMM: 20, outsideMM: 10, widthMM: 14, source: 'B1 (D139)' }]);
+  const invalid = supplied('bad-bearing.json', [{ id: '6204', bore: 20, outside: 10, width: 14, source: 'B1 (D139)' }]);
   assert.ok('error' in loadPersonRows(before, 'bearings', invalid.files[0].id, undefined, invalid));
   assert.equal(JSON.stringify(before), snapshot);
 });
@@ -222,9 +222,9 @@ test('P2 stock and frame stock merge by id: a placed part keeps its inherited ro
   const names = ['base-stock.json', 'base-frame-stock.json', 'part-stock.json', 'part-frame-stock.json', 'base-stock-more.json'];
   const payloads = [
     [{ id: 'B1', kind: 'block', size: [310, 210, 16], source: 'base list' }],
-    [{ id: 'S6', lengthMM: 6000, source: 'base list' }],
+    [{ id: 'S6', length: 6000, source: 'base list' }],
     [{ id: 'B2', kind: 'block', size: [125, 85, 25], source: 'part list' }],
-    [{ id: 'S4', lengthMM: 4000, source: 'part list' }],
+    [{ id: 'S4', length: 4000, source: 'part list' }],
     [{ id: 'R30', kind: 'bar', diameter: 30, source: 'base list' }],
   ];
   const context = receivePersonRowFiles(conversation, names.map((name, i) => ({ name, text: JSON.stringify(payloads[i]), turn: i + 1 })), names.length);
@@ -253,7 +253,7 @@ test('O155 stock and frame-stock rows leave by name: remove drops listed ids; an
   const names = ['stock.json', 'frame-stock.json', 'part-stock.json'];
   const payloads = [
     [{ id: 'B1', kind: 'block', size: [310, 210, 16], source: 'base list' }, { id: 'R30', kind: 'bar', diameter: 30, source: 'base list' }],
-    [{ id: 'S6', lengthMM: 6000, source: 'base list' }, { id: 'S4', lengthMM: 4000, source: 'base list' }],
+    [{ id: 'S6', length: 6000, source: 'base list' }, { id: 'S4', length: 4000, source: 'base list' }],
     [{ id: 'B2', kind: 'block', size: [125, 85, 25], source: 'part list' }],
   ];
   const context = receivePersonRowFiles(conversation, names.map((name, i) => ({ name, text: JSON.stringify(payloads[i]), turn: i + 1 })), names.length);

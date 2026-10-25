@@ -23,7 +23,7 @@ test('O10: every feature built on a first evaluation; an edit to the hole builds
     assert.deepEqual([f.node, f.label], [i, featureLabel(n, i, doc.nodes)]);
   }
   for (const f of r.features) {
-    assert.ok(Number.isFinite(f.ms) && f.ms >= 0, f.id);
+    assert.ok(Number.isFinite(f.wallTime) && f.wallTime >= 0, f.id);
     assert.deepEqual(Object.keys(f.calls).sort(), ['booleans', 'finishes', 'planarBooleans', 'shells', 'sweeps', 'tessellations']);
   }
   const holeAt = doc.nodes.findIndex(n => n.kind === 'hole'), hole = featureId(doc.nodes, holeAt), body = featureId(doc.nodes, doc.nodes.findIndex(n => n.kind === 'extrude'));
@@ -46,7 +46,7 @@ test('O10: every feature built on a first evaluation; an edit to the hole builds
 });
 
 test('O10: a failed evaluation has no rebuild report', () => {
-  assert.equal(rebuildReport(starterDoc(), { ok: false, revision: 1, error: { title: 'x', detail: 'x' } as never, ms: 0 }), null);
+  assert.equal(rebuildReport(starterDoc(), { ok: false, revision: 1, error: { title: 'x', detail: 'x' } as never, wallTime: 0 }), null);
 });
 
 test('O10: mates in a loop are listed with the parts they join; a mate that can be met is not', () => {
@@ -73,7 +73,7 @@ test('O10: from scratch — every body feature built even right after a warm eva
   assert.equal(cold.basis, 'from scratch');
   assert.equal(cold.reused, 0);
   assert.deepEqual(cold.features.filter(f => f.state !== 'input').map(f => f.state), cold.features.filter(f => f.state !== 'input').map(() => 'built'));
-  assert.ok(cold.built >= 2 && cold.evaluationMs >= cold.builtMs - 1e-9);
+  assert.ok(cold.built >= 2 && cold.evaluationTime >= cold.builtTime - 1e-12);
   // (The main evaluation still reuses what it built: the cold build did not replace its snapshot.)
   const warm = rebuildReport(doc, evaluateDoc(doc, 3))!;
   assert.deepEqual([warm.basis, warm.built, warm.reused], ['last evaluation', 0, cold.built]);

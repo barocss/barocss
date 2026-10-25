@@ -99,7 +99,7 @@ for (const f of findings) {
   if (save) {
     const dir = join(pkg, 'robustness/corpus/fuzz'); mkdirSync(dir, { recursive: true });
     const expect = s.status === 'WRONG' && s.detail?.startsWith('empty') || s.oracle.volumeMM3 <= s.tolV ? { outputs: [] }
-      : { outputs: [{ volumeMM3: { value: s.oracle.volumeMM3, relTol: s.tolV / s.oracle.volumeMM3, absTol: s.tolV }, centroidMM: { value: s.oracle.centroidMM, absTol: s.tolC } }] };
+      : { outputs: [{ volume: { value: s.oracle.volumeMM3, relTol: s.tolV / s.oracle.volumeMM3, absTol: s.tolV }, centroid: { value: s.oracle.centroidMM, absTol: s.tolC } }] };
     writeFileSync(join(dir, `fuzz-${seed}-${f.k}.json`), JSON.stringify({ id: `fuzz-${seed}-${f.k}`, about: `L4 fuzz finding (seed ${seed}, case ${f.k}): ${f.status} — ${String(s.detail ?? f.detail).slice(0, 240)}`,
       input: { partDocument: s.document }, expect, oracle: `scripts/rb/fuzz-oracle.mjs: z rays, a turned ${s.oracle.n}² lattice at ${s.oracle.K} shifts, e ${s.oracle.e.toExponential(2)} mm³, centroid e ${s.oracle.eCentroid.toExponential(2)} mm`, fuzz: { seed, k: f.k, status: s.status, tree: f.smallest } }, null, 2) + '\n');
   }

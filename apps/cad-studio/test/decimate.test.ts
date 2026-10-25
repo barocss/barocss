@@ -27,7 +27,7 @@ test('D85 Simplify mesh on a 6 400-triangle organic torus: offered for a mesh bo
   assert.equal(featureLabel(node, 1, next.nodes), 'Simplify mesh to 25%');
   const [before] = bodies, [after] = bodiesOf(next);
   assert.deepEqual([...new Set(after.mesh.faces.map(f => f.name))].sort(), [...new Set(before.mesh.faces.map(f => f.name))].sort());
-  assert.ok(Math.abs(after.volumeMM3! / before.volumeMM3! - 1) < 0.01, `${after.volumeMM3} vs ${before.volumeMM3}`);
+  assert.ok(Math.abs(after.volume! / before.volume! - 1) < 0.01, `${after.volume} vs ${before.volume}`);
   const notes = after.notes!.map(n => n.text);
   assert.match(notes[0], /^Simplified: 6,400 → 1,600 triangles \(stopped at the asked count\)$/);
   assert.match(notes[1], /^Measured distance from the original: at most [\d.]+ mm/);

@@ -42,10 +42,12 @@ page lists the codes refusals carry.
 The `PARAMETER`, `REFERENCE` and `SELECTION` examples are from this site's samples
 (`samples/cad-robust.test.mjs`, `samples/cad-part.test.mjs`).
 
-## Every bracketed code
+## Declared codes and literal messages
 
 These tables are generated from the sources by `scripts/refusals.mjs`, and the docs check fails if they fall behind.
-For each code they give the folders that raise it and one of its messages as written: `…` stands for a value filled in
+For each code they give its declaration or the folders that raise it, with a literal message when available.
+The kernel list also includes `CAD_ERROR_CODES`; a declared code without a literal example shows `—`.
+For a message, `…` stands for a value filled in
 when it is raised. A code raised in several places has more messages than the one shown.
 
 <!--@include: ./_refusals.md-->

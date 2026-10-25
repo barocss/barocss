@@ -86,7 +86,7 @@ export function frameOperation(f: CadPartFeature & Record<string, unknown>, t: T
             const [A, B] = ends;
             for (const E of ends) plan.report[E.member] = plan.report[E.member].filter(r => r.end !== endName(E.end));
             if (dot(A.inward, B.inward) < -1 + 1e-9) {
-              for (const E of ends) plan.report[E.member].push({ end: endName(E.end), point, kind: 'mitre', with: E === A ? B.member : A.member, angleDegrees: 0, plane: { origin: points[point], normal: E.inward } });
+              for (const E of ends) plan.report[E.member].push({ end: endName(E.end), point, kind: 'mitre', with: E === A ? B.member : A.member, angle: 0, plane: { origin: points[point], normal: E.inward } });
             } else mitre(plan, A, B, A.P, B.P, A.inward, B.inward, points[point], point, fail);
           }
           return { kind: 'solid', parts: paths.flatMap(path => {

@@ -87,11 +87,11 @@ function cast(b: FacetBvh, ox: number, oy: number, oz: number, dx: number, dy: n
 }
 
 /**
- * Whether a point is inside, outside or on a facet body (all its faces facets), to `toleranceMM` (default 1e-9
+ * Whether a point is inside, outside or on a facet body (all its faces facets), to `tolerance` (default 1e-9
  * of the body's size): three clean rays' parities vote; a point on a triangle is on the body.
  */
-export function classifyPointInFacets(brep: Brep, point: Point | readonly number[], toleranceMM?: number): FacetPointClass {
-  const b = facetBvh(brep), tol = toleranceMM ?? 1e-9 * b.size;
+export function classifyPointInFacets(brep: Brep, point: Point | readonly number[], tolerance?: number): FacetPointClass {
+  const b = facetBvh(brep), tol = tolerance ?? 1e-9 * b.size;
   let inside = 0, outside = 0;
   for (const d of DIRECTIONS) {
     const h = cast(b, point[0], point[1], point[2], d[0], d[1], d[2], tol);

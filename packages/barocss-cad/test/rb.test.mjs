@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as cad from '../dist/index.js';
@@ -45,7 +45,44 @@ test('robustness: a prismatic crescent\'s touch along its tangent line is KNOWN,
     assert.ok(rows.every(r => /:(OK|KNOWN)$/.test(r)), `${name}: ${rows}`);
   }
   // Only a prismatic solid's: the same body from any other source is not one.
-  const brep = cad.evaluateCadPart(cases[0][1]).output('d').brep;
+  const brep = cad.outputOf(cad.evaluateCadPart(cases[0][1]), 'd').brep;
   assert.ok(crescentContacts(brep));
   assert.equal(crescentContacts({ ...brep, source: { ...brep.source, family: 'analytic-boolean' } }), null);
+});
+
+
+test('robustness expectations use the current volume and centroid fields and reject wrong values', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'rb-expect-')), file = join(dir, 'box.json');
+  const document = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+    { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { id: 'e', kind: 'extrude', sketch: 's', height: 5 }] };
+  const check = (volume, centroid) => {
+    writeFileSync(file, JSON.stringify({ input: { partDocument: document }, expect: { outputs: [{
+      volume: { value: volume, relTol: 1e-9 }, centroid: { value: centroid, absTol: 1e-9 },
+    }] } }));
+    return runCase(cad, file, () => {}).find(r => r.stage === 'expect');
+  };
+  try {
+    assert.equal(check(500, [5, 5, 2.5]).status, 'OK');
+    const volume = check(600, [5, 5, 2.5]);
+    assert.equal(volume.status, 'WRONG'); assert.match(volume.detail, /volume/);
+    const centroid = check(500, [5, 5, 3.5]);
+    assert.equal(centroid.status, 'WRONG'); assert.match(centroid.detail, /centroid/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('robustness STEP validation properties are checked and a wrong volume is detected', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'rb-gvp-')), file = join(dir, 'box.step');
+  const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+    { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { id: 'e', kind: 'extrude', sketch: 's', height: 5 }] };
+  try {
+    const step = cad.exportStep(cad.outputOf(cad.evaluateCadPart(doc), 'e').brep);
+    writeFileSync(file, step);
+    const valid = runCase(cad, file, () => {}).find(r => r.stage === 'gvp');
+    assert.equal(valid.status, 'OK'); assert.notEqual(valid.detail, 'no validation properties');
+    const wrong = step.replace(/VOLUME_MEASURE\([^)]+\)/, 'VOLUME_MEASURE(1000.)');
+    assert.notEqual(wrong, step, 'the test must change a validation value');
+    writeFileSync(file, wrong);
+    const invalid = runCase(cad, file, () => {}).find(r => r.stage === 'gvp');
+    assert.equal(invalid.status, 'WRONG'); assert.match(invalid.detail, /volume off/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });

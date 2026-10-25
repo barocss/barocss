@@ -28,9 +28,9 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
       const m = helical ? dim(f.normalModule as CadPartDim, 'normalModule', true) : dim(f.module as CadPartDim, 'module', true), b = dim(f.faceWidth as CadPartDim, 'faceWidth', true);
       const bore = f.bore === undefined ? 0 : dim(f.bore as CadPartDim, 'bore'), red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
       if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
-      const spec: SpurGearSpec = { ...(helical ? { normalModuleMM: m, helixAngleDeg: f.helixAngle as number, hand: f.hand as 'right' | 'left' } : { moduleMM: m }), teeth: f.teeth as number, faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red,
-        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileShift === undefined ? {} : { profileShiftCoefficient: f.profileShift as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }),
-        ...(generatedRoot ? { rootPolicy: 'generated' as const, ...(f.toolTipRadius === undefined ? {} : { toolTipRadiusMM: dim(f.toolTipRadius as CadPartDim, 'toolTipRadius', true) }) } : {}) };
+      const spec: SpurGearSpec = { ...(helical ? { normalModule: m, helixAngle: f.helixAngle as number, hand: f.hand as 'right' | 'left' } : { module: m }), teeth: f.teeth as number, faceWidth: b, boreDiameter: bore, toothThicknessReduction: red,
+        ...(f.pressureAngle === undefined ? {} : { pressureAngle: f.pressureAngle as number }), ...(f.profileShift === undefined ? {} : { profileShiftCoefficient: f.profileShift as number }), ...(f.profileTolerance === undefined ? {} : { profileTolerance: f.profileTolerance as number }),
+        ...(generatedRoot ? { rootPolicy: 'generated' as const, ...(f.toolTipRadius === undefined ? {} : { toolTipRadius: dim(f.toolTipRadius as CadPartDim, 'toolTipRadius', true) }) } : {}) };
       // Where it stands: its own centre, plane and turn, or beside the gear it meshes with.
       let place: GearPlacement;
       const mesh = f.mesh as Record<string, unknown> | undefined;
@@ -92,9 +92,9 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
       const m = helical ? dim(f.normalModule as CadPartDim, 'normalModule', true) : dim(f.module as CadPartDim, 'module', true), b = dim(f.faceWidth as CadPartDim, 'faceWidth', true), rim = dim(f.rim as CadPartDim, 'rim', true);
       const red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
       if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
-      const spec: InternalGearSpec = { ...(helical ? { normalModuleMM: m, helixAngleDeg: f.helixAngle as number, hand: f.hand as 'right' | 'left' } : { moduleMM: m }), teeth: f.teeth as number, faceWidthMM: b, rimDiameterMM: rim, toothThicknessReductionMM: red,
-        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileShift === undefined ? {} : { profileShiftCoefficient: f.profileShift as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }),
-        ...(shaperCut ? { rootPolicy: 'shaper-cut' as const, cutter: { teeth: cut!.teeth as number, ...(cut!.shift === undefined ? {} : { profileShiftCoefficient: cut!.shift as number }), ...(cut!.tipRadius === undefined ? {} : { tipRadiusMM: dim(cut!.tipRadius as CadPartDim, 'cutter.tipRadius', true) }) } } : {}) };
+      const spec: InternalGearSpec = { ...(helical ? { normalModule: m, helixAngle: f.helixAngle as number, hand: f.hand as 'right' | 'left' } : { module: m }), teeth: f.teeth as number, faceWidth: b, rimDiameter: rim, toothThicknessReduction: red,
+        ...(f.pressureAngle === undefined ? {} : { pressureAngle: f.pressureAngle as number }), ...(f.profileShift === undefined ? {} : { profileShiftCoefficient: f.profileShift as number }), ...(f.profileTolerance === undefined ? {} : { profileTolerance: f.profileTolerance as number }),
+        ...(shaperCut ? { rootPolicy: 'shaper-cut' as const, cutter: { teeth: cut!.teeth as number, ...(cut!.shift === undefined ? {} : { profileShiftCoefficient: cut!.shift as number }), ...(cut!.tipRadius === undefined ? {} : { tipRadius: dim(cut!.tipRadius as CadPartDim, 'cutter.tipRadius', true) }) } } : {}) };
       const place: PlacedInternalGear = { spec, center: f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), from: f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), rotation: ((f.rotation as number | undefined) ?? 0) * Math.PI / 180 };
       return () => {
         let made: ReturnType<typeof internalGear>;
@@ -114,9 +114,9 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
       // (A spiral one, R12b.4: its angle and hand as given — the kernel refuses what it cannot take — its cutter radius a length.)
       const spr = f.spiral as Record<string, unknown> | undefined;
       if (spr !== undefined && !isRecord(spr)) fail('INPUT', 'spiral must be { angle, hand, cutterRadius }');
-      const spec: BevelGearSpec = { moduleMM: m, teeth: f.teeth as number, mateTeeth: f.mateTeeth as number, ...(f.shaftAngle === undefined ? {} : { shaftAngleDeg: f.shaftAngle as number }), faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red,
-        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }),
-        ...(spr === undefined ? {} : { spiral: { angleDeg: spr.angle as number, hand: spr.hand as 'right' | 'left', cutterRadiusMM: dim(spr.cutterRadius as CadPartDim, 'spiral.cutterRadius', true) } }) };
+      const spec: BevelGearSpec = { module: m, teeth: f.teeth as number, mateTeeth: f.mateTeeth as number, ...(f.shaftAngle === undefined ? {} : { shaftAngle: f.shaftAngle as number }), faceWidth: b, boreDiameter: bore, toothThicknessReduction: red,
+        ...(f.pressureAngle === undefined ? {} : { pressureAngle: f.pressureAngle as number }), ...(f.profileTolerance === undefined ? {} : { profileTolerance: f.profileTolerance as number }),
+        ...(spr === undefined ? {} : { spiral: { angle: spr.angle as number, hand: spr.hand as 'right' | 'left', cutterRadius: dim(spr.cutterRadius as CadPartDim, 'spiral.cutterRadius', true) } }) };
       const mesh = f.mesh as Record<string, unknown> | undefined;
       let place: BevelGearPlacement;
       if (mesh !== undefined) {
@@ -158,10 +158,10 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
       if (wd && !wd.beta) fail('INPUT', `[MATE_INCOMPATIBLE] ${String(mesh!.gear)} is straight: a worm's wheel is helical, at the worm's lead angle`);
       // (A throated wheel's worm: the one its hob was, R12b.6.)
       const tw = throated?.spec.worm;
-      const mx = f.axialModule !== undefined ? dim(f.axialModule as CadPartDim, 'axialModule', true) : tw ? tw.axialModuleMM : wd ? wd.mn / Math.cos(wd.beta) : dim(undefined as unknown as CadPartDim, 'axialModule', true);
-      const d1 = f.diameter !== undefined ? dim(f.diameter as CadPartDim, 'diameter', true) : tw ? tw.diameterMM : wd ? z1 * mx / Math.tan(Math.abs(wd.beta)) : dim(undefined as unknown as CadPartDim, 'diameter', true);
+      const mx = f.axialModule !== undefined ? dim(f.axialModule as CadPartDim, 'axialModule', true) : tw ? tw.axialModule : wd ? wd.mn / Math.cos(wd.beta) : dim(undefined as unknown as CadPartDim, 'axialModule', true);
+      const d1 = f.diameter !== undefined ? dim(f.diameter as CadPartDim, 'diameter', true) : tw ? tw.diameter : wd ? z1 * mx / Math.tan(Math.abs(wd.beta)) : dim(undefined as unknown as CadPartDim, 'diameter', true);
       const hand = (f.hand as 'right' | 'left' | undefined) ?? (tw ? tw.hand : wd ? (wd.beta > 0 ? 'right' : 'left') : undefined);
-      const spec: WormSpec = { axialModuleMM: mx, starts: z1, diameterMM: d1, hand: hand as 'right' | 'left', lengthMM: L, ...(f.form === undefined ? {} : { form: f.form as WormSpec['form'] }), boreDiameterMM: bore, toothThicknessReductionMM: red, ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }) };
+      const spec: WormSpec = { axialModule: mx, starts: z1, diameter: d1, hand: hand as 'right' | 'left', length: L, ...(f.form === undefined ? {} : { form: f.form as WormSpec['form'] }), boreDiameter: bore, toothThicknessReduction: red, ...(f.profileTolerance === undefined ? {} : { profileTolerance: f.profileTolerance as number }) };
       let place: WormPlacement;
       try {
         if (wheel || throated) {
@@ -188,8 +188,8 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
       if (!isRecord(ww)) fail('INPUT', 'worm must be { axialModule, starts, diameter, hand }');
       const b = dim(f.faceWidth as CadPartDim, 'faceWidth', true), bore = f.bore === undefined ? 0 : dim(f.bore as CadPartDim, 'bore'), red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
       if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
-      const spec: ThroatedWheelSpec = { worm: { axialModuleMM: dim(ww!.axialModule as CadPartDim, 'worm.axialModule', true), starts: ww!.starts as number, diameterMM: dim(ww!.diameter as CadPartDim, 'worm.diameter', true), hand: ww!.hand as 'right' | 'left', lengthMM: 1, form: 'ZA' },
-        teeth: f.teeth as number, faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red, ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }) };
+      const spec: ThroatedWheelSpec = { worm: { axialModule: dim(ww!.axialModule as CadPartDim, 'worm.axialModule', true), starts: ww!.starts as number, diameter: dim(ww!.diameter as CadPartDim, 'worm.diameter', true), hand: ww!.hand as 'right' | 'left', length: 1, form: 'ZA' },
+        teeth: f.teeth as number, faceWidth: b, boreDiameter: bore, toothThicknessReduction: red, ...(f.profileTolerance === undefined ? {} : { profileTolerance: f.profileTolerance as number }) };
       const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center');
       const place: PlacedThroatedWheel = { spec, center: [c[0], c[1]], from: f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), rotation: ((f.rotation as number | undefined) ?? 0) * Math.PI / 180 };
       return () => {
@@ -215,7 +215,7 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
       if (mesh !== undefined && !g) fail('REFERENCE', `${String(mesh.gear)} is not a spur gear`);
       // Its helix: its own (normalModule, helixAngle, hand); meshing, the gear's angle with the opposite hand (the rack
       // as the z → ∞ gear of an external pair), a contrary one given refused.
-      const gHelix = g?.spec.helixAngleDeg ? { angle: g.spec.helixAngleDeg, hand: g.spec.hand === 'right' ? 'left' as const : 'right' as const } : null;
+      const gHelix = g?.spec.helixAngle ? { angle: g.spec.helixAngle, hand: g.spec.hand === 'right' ? 'left' as const : 'right' as const } : null;
       const ownAngle = f.helixAngle as number | undefined, ownHand = f.hand as 'right' | 'left' | undefined;
       if (g && ((ownAngle ?? 0) !== 0 || ownHand !== undefined) && (!gHelix || ownAngle !== gHelix.angle || (ownHand ?? gHelix.hand) !== gHelix.hand))
         fail('INPUT', `[MATE_INCOMPATIBLE] the rack's helix must be ${gHelix ? `${gHelix.angle}° ${gHelix.hand}-hand (the gear's angle, the opposite hand)` : 'none (the gear is straight)'} to mesh with ${String(mesh!.gear)}`);
@@ -223,8 +223,8 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
       if (helix && f.module !== undefined) fail('INPUT', 'a helical rack takes normalModule (the normal module), not module');
       const mGiven = helix ? f.normalModule : f.module;
       const m = mGiven !== undefined ? dim(mGiven as CadPartDim, helix ? 'normalModule' : 'module', true) : g ? spurGearDimensions(g.spec).mn : dim(undefined as unknown as CadPartDim, 'module', true);
-      const spec: SpurRackSpec = { ...(helix ? { normalModuleMM: m, helixAngleDeg: helix.angle, hand: helix.hand } : { moduleMM: m }), teeth: f.teeth as number, faceWidthMM: b, heightMM: H, toothThicknessReductionMM: red, ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }),
-        ...(filletedRoot ? { rootPolicy: 'filleted' as const, ...(f.rootFillet === undefined ? {} : { rootFilletRadiusMM: dim(f.rootFillet as CadPartDim, 'rootFillet', true) }) } : {}) };
+      const spec: SpurRackSpec = { ...(helix ? { normalModule: m, helixAngle: helix.angle, hand: helix.hand } : { module: m }), teeth: f.teeth as number, faceWidth: b, height: H, toothThicknessReduction: red, ...(f.pressureAngle === undefined ? {} : { pressureAngle: f.pressureAngle as number }),
+        ...(filletedRoot ? { rootPolicy: 'filleted' as const, ...(f.rootFillet === undefined ? {} : { rootFilletRadius: dim(f.rootFillet as CadPartDim, 'rootFillet', true) }) } : {}) };
       let place: RackPlacement;
       if (mesh !== undefined) {
         const gd = spurGearDimensions(g!.spec);

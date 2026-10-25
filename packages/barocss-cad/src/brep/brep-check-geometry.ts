@@ -111,8 +111,8 @@ function descend(at: (u: number, v: number) => Point, U: readonly number[], V: r
 export function strictGeometry(brep: Brep, maps: Maps, size: number, add: (kind: string, detail: string) => void): StrictGeometry {
   let maximumEdgeSurfaceGapMM = 0;
   const cap = TOLERANCE_CAP * Math.max(1, size);
-  for (const e of brep.edges) if (e.toleranceMM > cap) add('tolerance', `edge ${e.id} tolerance ${e.toleranceMM} mm is past the cap ${cap} mm`);
-  for (const v of brep.vertices) if (v.toleranceMM > cap) add('tolerance', `vertex ${v.id} tolerance ${v.toleranceMM} mm is past the cap ${cap} mm`);
+  for (const e of brep.edges) if (e.tolerance > cap) add('tolerance', `edge ${e.id} tolerance ${e.tolerance} mm is past the cap ${cap} mm`);
+  for (const v of brep.vertices) if (v.tolerance > cap) add('tolerance', `vertex ${v.id} tolerance ${v.tolerance} mm is past the cap ${cap} mm`);
   for (const face of brep.faces) {
     // (A lens: one loop of two edges between the same two vertices, the curves within a hundredth of their chord of
     // each other all along, and across one of them a face tangent to it — a seam between patches of one smooth surface
@@ -130,12 +130,12 @@ export function strictGeometry(brep: Brep, maps: Maps, size: number, add: (kind:
       const ring: XY[] = [], mark: (string | null)[] = [];
       for (const cid of loop.coedges) {
         const c = maps.coedges.get(cid), e = c && maps.edges.get(c.edge); if (!c || !e) continue;
-        faceTol = Math.max(faceTol, e.toleranceMM);
+        faceTol = Math.max(faceTol, e.tolerance);
         const start = c.sense === 'forward' ? e.vertices[0] : e.vertices[1];
         const at = curveEvaluator(e.curve), [t0, t1] = curveDomain(e.curve), line = e.curve.degree === 1 && e.curve.controlPoints.length === 2, n = line ? SAMPLES_LINE : SAMPLES_CURVE;
         // Edges stay within their own tolerance of the surface, or 1e-6 of the model where that is larger
         // (traced intersections are fitted to that).
-        const limit = Math.max(10 * e.toleranceMM, 1e-6 * Math.max(1, size));
+        const limit = Math.max(10 * e.tolerance, 1e-6 * Math.max(1, size));
         let last: Point | null = null, hint: XY | null = null;
         for (let k = 0; k < n; k++) {
           const f = k / (n - 1), t = c.sense === 'forward' ? t0 + (t1 - t0) * f : t1 - (t1 - t0) * f, p = at(t), q = mapper.uv(p, hint), gap = mapper.gap(p, q);

@@ -1180,7 +1180,7 @@ function selfTouch(result: Brep, x: P3, n: P3, tol: number): boolean {
 }
 /** Mesh edges (by position) not used exactly twice within one body's triangles, at 8 segments a quarter: how many. */
 function openByBody(brep: Brep): number {
-  const mesh = tessellateBrep(brep, { segmentsPerQuarter: 8 }), P = mesh.positionsMM, shellBody = new Map(brep.shells.map(s => [s.id, s.body])), faceBody = new Map(brep.faces.map(f => [f.id, shellBody.get(f.shell)])), uses = new Map<string, number>();
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter: 8 }), P = mesh.positions, shellBody = new Map(brep.shells.map(s => [s.id, s.body])), faceBody = new Map(brep.faces.map(f => [f.id, shellBody.get(f.shell)])), uses = new Map<string, number>();
   for (const f of mesh.faces) for (let t = f.indexOffset; t < f.indexOffset + f.indexCount; t += 3) for (let k = 0; k < 3; k++) {
     const i = mesh.indices[t + k], j = mesh.indices[t + (k + 1) % 3], a = `${P[3 * i]},${P[3 * i + 1]},${P[3 * i + 2]}`, b = `${P[3 * j]},${P[3 * j + 1]},${P[3 * j + 2]}`, key = `${faceBody.get(f.faceId)}|${a < b ? a + '|' + b : b + '|' + a}`;
     uses.set(key, (uses.get(key) ?? 0) + 1);
@@ -1326,10 +1326,10 @@ export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
 /** Each Boolean's pieces and their classes (debugging and tests; unset in use). */
 let booleanTrace: ((pieces: { face: string; solid: number; where: string; at: P3; area: number; cuts: number; ends: P3[][]; ring: P3[][]; raw: unknown }[]) => void) | null = null;
 export function setBooleanTrace(f: typeof booleanTrace): void { booleanTrace = f; }
-export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean; /** A tighter fit for newly created parametric boundary edges only; topology tolerances stay unchanged. */ readonly edgeFitToleranceMM?: number; /** b's faces (ids) that meet a's faces named in `contactWith` (base names) only along their own edges lying on them (a fillet tool's contact faces and the faces it rounds, D89). */ readonly contactFaces?: readonly string[]; readonly contactWith?: readonly string[] } = {}): Brep {
+export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean; /** A tighter fit for newly created parametric boundary edges only; topology tolerances stay unchanged. */ readonly edgeFitTolerance?: number; /** b's faces (ids) that meet a's faces named in `contactWith` (base names) only along their own edges lying on them (a fillet tool's contact faces and the faces it rounds, D89). */ readonly contactFaces?: readonly string[]; readonly contactWith?: readonly string[] } = {}): Brep {
   return analyticBoolean(a, b, operation, options, true);
 }
-type AnalyticOptions = { readonly id?: string; readonly exactEdges?: boolean; /** A tighter fit for newly created parametric boundary edges only; topology tolerances stay unchanged. */ readonly edgeFitToleranceMM?: number; /** b's faces (ids) that meet a's faces named in `contactWith` (base names) only along their own edges lying on them (a fillet tool's contact faces and the faces it rounds, D89). */ readonly contactFaces?: readonly string[]; readonly contactWith?: readonly string[] };
+type AnalyticOptions = { readonly id?: string; readonly exactEdges?: boolean; /** A tighter fit for newly created parametric boundary edges only; topology tolerances stay unchanged. */ readonly edgeFitTolerance?: number; /** b's faces (ids) that meet a's faces named in `contactWith` (base names) only along their own edges lying on them (a fillet tool's contact faces and the faces it rounds, D89). */ readonly contactFaces?: readonly string[]; readonly contactWith?: readonly string[] };
 function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: AnalyticOptions, rejudge: boolean): Brep {
   // (An operation not named exactly is refused: it would otherwise fall through to another one's selection.)
   if (operation !== 'union' && operation !== 'intersection' && operation !== 'difference') throw new BrepError('INPUT', `analytic Boolean: operation must be union, intersection or difference, not ${String(operation)}`);
@@ -1337,8 +1337,8 @@ function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, 
   for (const br of [a, b]) if (br.faces.some(isFacetFace)) throw new BrepError('GEOMETRY', 'analytic Boolean: faceted (mesh) faces are not supported yet');
   let scale = 1; for (const br of [a, b]) for (const v of br.vertices) for (const x of v.point) scale = Math.max(scale, Math.abs(x));
   const tol = linearToleranceMM(scale) * 10, span = 4 * scale + 1;
-  if (options.edgeFitToleranceMM !== undefined && !(Number.isFinite(options.edgeFitToleranceMM) && options.edgeFitToleranceMM > 0)) throw new BrepError('INPUT', 'analytic Boolean: edge fit tolerance must be positive and finite');
-  const edgeFit = options.edgeFitToleranceMM === undefined ? undefined : Math.min(tol / 4, options.edgeFitToleranceMM);
+  if (options.edgeFitTolerance !== undefined && !(Number.isFinite(options.edgeFitTolerance) && options.edgeFitTolerance > 0)) throw new BrepError('INPUT', 'analytic Boolean: edge fit tolerance must be positive and finite');
+  const edgeFit = options.edgeFitTolerance === undefined ? undefined : Math.min(tol / 4, options.edgeFitTolerance);
   const A = facesOf(a, 0, tol), B = facesOf(b, 1, tol);
   // 1. Cuts.
   const contact = new Set(options.contactFaces ?? []), rounded = new Set((options.contactWith ?? []).map(baseName));
@@ -1383,7 +1383,7 @@ function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, 
   const kept: Piece[] = pieces.flatMap(p => { const k = keep(p); if (!k) return [];
     return [{ face: p.face, out: k === 'flip' ? -1 : 1, key: p.key, region: k === 'flip' ? { outer: reverse(p.region.outer), holes: p.region.holes.map(reverse) } : p.region }]; });
   // (A tolerant input's — a fitted offset's, D110, D113 — pieces keep its tolerance: the result is tolerant as its worst.)
-  const inputTol = Math.max(0, ...[a, b].flatMap(x => [...x.edges.map(e => e.toleranceMM), ...x.vertices.map(v => v.toleranceMM)]));
+  const inputTol = Math.max(0, ...[a, b].flatMap(x => [...x.edges.map(e => e.tolerance), ...x.vertices.map(v => v.tolerance)]));
   const result = stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false, inputTol, undefined, edgeFit);
   if (!touches.length) return touchChecked(result, touchedAt);
   // (A piece re-judged where a surface only touches it leaves the result's boundary touching there. Two lumps meeting
@@ -1514,7 +1514,7 @@ function isoclineCuts(f: GFace, d: P3, tol: number, span: number): SourcedCut[] 
   // (n·d ≈ 0 all over: a general wall along the pull, a ruled sweep of the pull.)
   let most = 0; for (let i = 1; i < 8; i++) for (let j = 1; j < 8; j++) { const u = s.U[0] + (s.U[1] - s.U[0]) * i / 8, v = s.V[0] + (s.V[1] - s.V[0]) * j / 8; most = Math.max(most, Math.abs(dot(nurbsNormal(s, [u, v]), d))); }
   if (most <= 1e-9) throw splitError('GEOMETRY', 'WALL', 'the face lies along the pull (n·d = 0 throughout): no isocline divides it');
-  surfaceIsoclines(s.S, d, { toleranceMM: tol / 4 }).forEach((line, source) => {
+  surfaceIsoclines(s.S, d, { tolerance: tol / 4 }).forEach((line, source) => {
     const P = line.uv, M = line.closed ? P.length : P.length - 1;
     if (M < 1) return;
     const uvAt = (t: number): XY => {
@@ -1686,7 +1686,7 @@ function splitFace(brep: Brep, ref: string, options: FaceSplitOptions, cutsOf: (
   const others = F.flatMap((g, i) => i === index ? [] : [{ face: g, region: g.region, out: 1 as const, key: to3(g, regionInteriorPoint(g.region) ?? segAtAny(g.region.outer[0], 0)) }]);
   const all: Piece[] = [...others, ...groups.flat()];
   const faceNames = [...brep.faces.filter((_, i) => i !== index).map(x => x.name), ...pieces.flatMap(p => p.faces)];
-  const inputTol = Math.max(0, ...brep.edges.map(e => e.toleranceMM), ...brep.vertices.map(v => v.toleranceMM));
+  const inputTol = Math.max(0, ...brep.edges.map(e => e.tolerance), ...brep.vertices.map(v => v.tolerance));
   return { brep: stitch(all, options.id ?? 'split', tol, true, inputTol, faceNames), pieces };
 }
 
@@ -1990,7 +1990,7 @@ function onCylinderSeam(f: { surf: Surf }, x: P3, tol: number): boolean {
   const d = sub(x, s.c), th = Math.atan2(dot(d, s.e2), dot(d, s.e1));
   return (Math.PI - Math.abs(wrap(th - s.ref))) * s.r <= 100 * tol;
 }
-function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0, names?: readonly (string | undefined)[], edgeFitToleranceMM?: number): Brep {
+function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0, names?: readonly (string | undefined)[], edgeFitTolerance?: number): Brep {
   // Vertices merge a little more loosely than curves are fitted: an edge meeting a surface it touches
   // (a double root, as where a fillet meets a sloping side) lands within √ε of its true point.
   const set = new PointSet3(20 * tol);
@@ -2004,8 +2004,8 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
   // Curves of no length (a domain side at a pole) are not edges.
   const point = (k: Curve3) => [0.25, 0.5, 0.75, 1].every(u => len(sub(pointOf(k, u), startOf(k))) <= tol);
   // (A piece of an input edge's own curve stays that curve: no fit, D90.)
-  const fitTol = edgeFitToleranceMM ?? tol / 4;
-  const rings = pieces.map(p => [p.region.outer, ...p.region.holes].map(r => r.flatMap(g => { const k = curve3Of(p.face, g); return point(k) ? [] : open(exactEdges && k.kind === 'param' && k.exact ? exactly(k, tol * 1e-3) : k).flatMap(x => x.kind === 'param' && x.src ? [x] : fitPieces(x, fitTol, 0, edgeFitToleranceMM !== undefined)); })));
+  const fitTol = edgeFitTolerance ?? tol / 4;
+  const rings = pieces.map(p => [p.region.outer, ...p.region.holes].map(r => r.flatMap(g => { const k = curve3Of(p.face, g); return point(k) ? [] : open(exactEdges && k.kind === 'param' && k.exact ? exactly(k, tol * 1e-3) : k).flatMap(x => x.kind === 'param' && x.src ? [x] : fitPieces(x, fitTol, 0, edgeFitTolerance !== undefined)); })));
   for (const ps of rings) for (const ring of ps) for (const k of ring) { set.add(startOf(k)); set.add(endOf(k)); }
   const P = set.points;
   // Consecutive pieces of one ring meet at one vertex: a traced curve's end lands within its tracing
@@ -2139,7 +2139,7 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
     [...list].sort((x, y) => { const a = pieces[x].key, b = pieces[y].key; return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; }).forEach((i, k) => { faceNames[i] = `${n}#${k + 1}`; });
   }
   if (names) names.forEach((n, i) => { if (n !== undefined) faceNames[i] = n; });
-  const edgeList = edges.map((e, i) => ({ id: e.id, curve: nurbs(e.k, e.id, P[e.v[0]], P[e.v[1]], fitTol, edgeFitToleranceMM !== undefined), vertices: [vertexAt(e.v[0], i), vertexAt(e.v[1], i)] as [string, string],
+  const edgeList = edges.map((e, i) => ({ id: e.id, curve: nurbs(e.k, e.id, P[e.v[0]], P[e.v[1]], fitTol, edgeFitTolerance !== undefined), vertices: [vertexAt(e.v[0], i), vertexAt(e.v[1], i)] as [string, string],
     name: [...new Set((uses.get(i) ?? []).map(u => faceNames[u.piece]))].sort().join('|') }));
   nameEdges(edgeList);
   // (A planar face whose boundary passes one point at two vertices: two of the inputs touch along a line there, apart,
@@ -2173,7 +2173,7 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
     edges: edgeList.filter((_, i) => uses.has(i)),
     bodies: bodies.map((bd, k) => ({ id: `${id}_body${k}`, kind: 'solid' as const, shells: [bd.outer, ...bd.cavities].map((g, si) => ({ id: 's' + si, closed: true,
       faces: g.members.map(pi => ({ id: 'f' + pi, name: faceNames[pi], ...surface(pi), loops: loops[pi].map((uses2, li) => ({ kind: li === 0 ? 'outer' as const : 'inner' as const, uses: uses2.map(u => ({ edge: u.edge, sense: u.sense })) })) })) })) })),
-    toleranceMM: Math.max(tol, inputTol) });
+    tolerance: Math.max(tol, inputTol) });
   // Solids that touch at a vertex give a non-manifold result; refuse it plainly (as for edges).
   const report = checkBrep(result);
   if (!report.valid) throw new BrepError('TOPOLOGY', `analytic Boolean: the result is not a manifold solid (the inputs touch along an edge or at a vertex): ${report.issues[0]}`, report);

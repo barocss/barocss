@@ -35,7 +35,7 @@ export interface OwnPlateHolePreviewReport {
   limits: { maximumFaces: 64; maximumVertices: 4096; maximumTriangles: 7938; maximumCornerRayIterations: 56; localBindingComparisonMM: 1e-7 };
 }
 export interface OwnPlateHolePreviewResult { mesh: OwnNativeFaceMesh; provenance: OwnPlateHolePreviewFaceProvenance[]; report: OwnPlateHolePreviewReport }
-const LABEL = 'Own plate hole preview', TOL = CadNumericPolicy.linearToleranceMM;
+const LABEL = 'Own plate hole preview', TOL = CadNumericPolicy.linearTolerance;
 function check(condition: boolean, detail: string): asserts condition { if (!condition) throw new Error((LABEL + ': ' + detail).slice(0, 1024)); }
 function snapshot(input: unknown, sourceStrings = false): unknown {
   let remaining = 131072;

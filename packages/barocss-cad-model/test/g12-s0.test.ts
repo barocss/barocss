@@ -14,7 +14,7 @@ const plate = (h = 10) => withNode(withNode(emptyDoc(), { kind: 'sketch', profil
 const unite = (doc: StudioDoc): Brep | null => { const bs = partBreps(doc).map(b => b.brep); if (!bs.length) return null; let u = bs[0]; for (const b of bs.slice(1)) u = booleanAnalytic(u, b, 'union'); return u; };
 /** The volume of a − b (0 when nothing is left), or the refusal's text. */
 function minus(a: Brep, b: Brep): number | string {
-  try { const r = booleanAnalytic(a, b, 'difference'); return r.bodies.length ? brepMassProperties(r, 1).volumeMM3 : 0; }
+  try { const r = booleanAnalytic(a, b, 'difference'); return r.bodies.length ? brepMassProperties(r, 1).volume : 0; }
   catch (e) { return String(e instanceof Error ? e.message : e).slice(0, 160); }
 }
 const sides = (before: StudioDoc, after: StudioDoc) => { const A = unite(before)!, B = unite(after)!; return { removed: minus(A, B), added: minus(B, A) }; };
@@ -43,7 +43,7 @@ test('G12 S0 P3: the plate\'s extrude made 15 — added the slab 40 · 30 · 5, 
 
 test('G12 S0 P4: the faces — the hole adds n2.* faces; the plate\'s top and bottom keep their names, their areas change (π · 9 less): "changed" by geometry, not by name', () => {
   const before = plate(), after = withNode(before, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [20, 15], radius: 3 } as never);
-  const fa = (d: StudioDoc) => { const r = evaluateDoc(d, 1); assert.ok(r.ok); return new Map(r.bodies.flatMap(b => b.mesh.faces.map(f => [f.name, f.areaMM2] as const))); };
+  const fa = (d: StudioDoc) => { const r = evaluateDoc(d, 1); assert.ok(r.ok); return new Map(r.bodies.flatMap(b => b.mesh.faces.map(f => [f.name, f.area] as const))); };
   const a = fa(before), b = fa(after);
   const added = [...b.keys()].filter(k => !a.has(k)), removed = [...a.keys()].filter(k => !b.has(k)), changed = [...b.keys()].filter(k => a.has(k) && Math.abs(a.get(k)! - b.get(k)!) > 1e-6);
   console.log('P4', JSON.stringify({ added, removed, changed }));

@@ -11,7 +11,7 @@ import { partBreps, type BodyResult } from '../engine/evaluate';
 import { bodyMesh, type DisplayFace, type DisplayMesh } from '../engine/mesh';
 import { proposalParts, type ProposalPart } from './tools';
 
-export interface Material { mesh: DisplayMesh; volumeMM3: number }
+export interface Material { mesh: DisplayMesh; volume: number }
 export interface ChangedFace { name: string; kind: 'added' | 'removed' | 'changed' }
 export interface ProposalDiff {
   /** The material the proposal adds, and the material it takes away (null: none). */
@@ -30,7 +30,7 @@ export interface Side { doc: StudioDoc; bodies: readonly BodyResult[] }
 export const diffWork = { booleans: 0 };
 const QUALITY = 8;
 /** A face's geometry, rounded past single precision: equal when the face did not change. */
-const geometryOf = (f: DisplayFace) => JSON.stringify([+f.areaMM2.toPrecision(9), f.centroid.map(v => +v.toFixed(5)), f.exact ? Object.values(f.exact).map(x => Array.isArray(x) ? x.map(v => +v.toFixed(9)) : +(+x).toFixed(9)) : null]);
+const geometryOf = (f: DisplayFace) => JSON.stringify([+f.area.toPrecision(9), f.centroid.map(v => +v.toFixed(5)), f.exact ? Object.values(f.exact).map(x => Array.isArray(x) ? x.map(v => +v.toFixed(9)) : +(+x).toFixed(9)) : null]);
 function facesOf(bodies: readonly BodyResult[]): Map<string, string> {
   const out = new Map<string, string[]>();
   for (const b of bodies) for (const f of b.mesh.faces) { const list = out.get(f.name) ?? []; list.push(geometryOf(f)); out.set(f.name, list); }
@@ -49,7 +49,7 @@ const unite = (doc: StudioDoc): Brep | null => {
   let u = bs[0]; for (let k = 1; k < bs.length; k++) { diffWork.booleans++; u = booleanAnalytic(u, bs[k], 'union'); }
   return u;
 };
-const material = (r: Brep | null): Material | null => r && r.bodies.length ? { mesh: bodyMesh(r, 0, QUALITY), volumeMM3: brepMassProperties(r, 1).volumeMM3 } : null;
+const material = (r: Brep | null): Material | null => r && r.bodies.length ? { mesh: bodyMesh(r, 0, QUALITY), volume: brepMassProperties(r, 1).volume } : null;
 const minus = (a: Brep, b: Brep) => { diffWork.booleans++; return material(booleanAnalytic(a, b, 'difference')); };
 
 /** What the proposal (`proposed`) adds to and takes from the base part (`base`). */

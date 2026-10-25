@@ -15,8 +15,8 @@ export type XYNumericalSketchConstraint =
   | { id: string; kind: 'fixed'; pointId: string; target: XYPoint }
   | { id: string; kind: 'coincident'; pointA: string; pointB: string }
   | { id: string; kind: 'horizontal' | 'vertical'; segmentId: string }
-  | { id: string; kind: 'length'; segmentId: string; lengthMM: number }
-  | { id: string; kind: 'signed-angle'; segmentA: string; segmentB: string; angleRad: number }
+  | { id: string; kind: 'length'; segmentId: string; length: number }
+  | { id: string; kind: 'signed-angle'; segmentA: string; segmentB: string; angle: number }
   /** |segmentA| − |segmentB| = 0: arc radii, equal sides. */
   | { id: string; kind: 'equal-length'; segmentA: string; segmentB: string };
 export type XYNumericalSketchBranchGuard =
@@ -33,8 +33,8 @@ export interface XYNumericalSketchResidual { constraintId: string; component: st
 export interface XYNumericalSketchReport {
   numericalRank: number; rankThreshold: number; localDegreesOfFreedom: number; fullyConstrainedLocally: boolean;
   unknownCount: number; scalarResidualCount: number; residuals: XYNumericalSketchResidual[]; objective: number; iterations: number; evaluations: number;
-  termination: 'residual-tolerances-met'; tolerances: { linearMM: number; angularRad: number; rankRelative: number };
-  limits: { points: number; segments: number; constraints: number; scalarResiduals: number; unknowns: number; branchGuards: number; coordinateAbsMM: number; minimumSegmentMM: number; iterations: number; evaluations: number };
+  termination: 'residual-tolerances-met'; tolerances: { linear: number; angular: number; rankRelative: number };
+  limits: { points: number; segments: number; constraints: number; scalarResiduals: number; unknowns: number; branchGuards: number; coordinateAbs: number; minimumSegment: number; iterations: number; evaluations: number };
   quality: { arithmetic: 'binary64-local-numerical'; objectiveNormalization: 'linear/1mm-angular/1rad-sum-squares'; rank: 'column-pivoted-householder-qr-local-not-exact-or-global';
     branch: 'authored-guards-on-seed-and-accepted-iterates'; rootSelection: 'seed-dependent-no-global-closest-root-guarantee'; constraints: 'authored-order-points-xy-order';
     damping: 'initial1e-3-accept/3-floor1e-12-reject*10-ceiling1e12'; nativeGeometry: 'degree1-xy-z-zero'; ownership: 'copied-cpu-data-gc-no-renderer-resources';

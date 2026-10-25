@@ -246,7 +246,7 @@ function sideBrep(P: Float64Array, T: number[], G: number[], s: Soup, id: string
   const I = new Uint32Array(T.length);
   for (let i = 0; i < T.length; i++) { const v = T[i]; if (used[v] < 0) { used[v] = Q.length / 3; Q.push(P[3 * v], P[3 * v + 1], P[3 * v + 2]); } I[i] = used[v]; }
   try {
-    const pieces = facetBrepsFromTriangles(Q, I, { id, groups: G, groupName, maximumTriangles: Infinity, weldMM: weld, open: s.open });
+    const pieces = facetBrepsFromTriangles(Q, I, { id, groups: G, groupName, maximumTriangles: Infinity, weldDistance: weld, open: s.open });
     return pieces.length === 1 ? pieces[0] : mergeBreps(pieces, { family: 'mesh', id });
   } catch (cause) {
     if (isMeshBrepError(cause)) throw new BrepError('GEOMETRY', `facet split: a side does not close (${cause.message})`);

@@ -39,7 +39,7 @@ export function MeshRepairPanel(p: MeshRepairPanelProps) {
     d.floaters ? `${d.floaters} tiny piece${d.floaters > 1 ? 's' : ''}` : '',
     d.selfIntersections ? `crosses itself in ${d.selfIntersections} place${d.selfIntersections > 1 ? 's' : ''} (not repaired: Booleans will refuse it)` : '',
   ].filter(Boolean);
-  const holes = [...d.holes].sort((a, b) => b.perimeterMM - a.perimeterMM);
+  const holes = [...d.holes].sort((a, b) => b.perimeter - a.perimeter);
   const toggleHole = (i: number, on: boolean) => { const next = new Set(skip); if (on) next.delete(i); else next.add(i); set({ fill: { ...fill, skip: [...next].sort((a, b) => a - b) } }); };
   const r = p.report;
   return <div className="toast card recovery mesh-repair" role="dialog" aria-label="Mesh repair">
@@ -54,7 +54,7 @@ export function MeshRepairPanel(p: MeshRepairPanelProps) {
         <label><input type="checkbox" className={TICK} aria-label="Fill holes" checked={!!fill} onChange={e => set({ fill: e.currentTarget.checked ? {} : false })} /> Fill holes{d.holes.length ? ` (${d.holes.length})` : ''} — a guess at the surface, shown after</label>
         {fill && d.holes.length > 0 && <div className="repair-holes">
           {holes.slice(0, LISTED).map(h => <label key={h.index}><input type="checkbox" className={TICK} aria-label={`Fill hole ${h.index + 1}`} checked={!skip.has(h.index)} onChange={e => toggleHole(h.index, e.currentTarget.checked)} />
-            Hole {h.index + 1}: {h.edges} edges, {fmt(h.perimeterMM)} mm round</label>)}
+            Hole {h.index + 1}: {h.edges} edges, {fmt(h.perimeter)} mm round</label>)}
           {holes.length > LISTED && <span className="muted">and {holes.length - LISTED} smaller</span>}
           <label><input type="checkbox" className={TICK} aria-label="Coarser fill" checked={(fill.coarseness ?? 1) > 1} onChange={e => set({ fill: { ...fill, coarseness: e.currentTarget.checked ? 2 : 1 } })} /> Coarser fill (half the rim's resolution)</label>
         </div>}
@@ -64,8 +64,8 @@ export function MeshRepairPanel(p: MeshRepairPanelProps) {
         Repair: {[
           r.welded ? `${r.welded} corners welded` : '', r.degenerateRemoved + r.duplicatesRemoved ? `${r.degenerateRemoved + r.duplicatesRemoved} triangles dropped` : '',
           r.finsRemoved ? `${r.finsRemoved} fin${r.finsRemoved > 1 ? 's' : ''} (${r.finTriangles} triangles) dropped` : '', r.flipped ? `${r.flipped} triangles turned` : '',
-          r.holesFilled ? `${r.holesFilled} hole${r.holesFilled > 1 ? 's' : ''} filled with ${r.fillTriangles.toLocaleString('en-US')} triangles (${fmt(r.filledAreaMM2)} mm² added, the largest ${fmt(r.largestFilledPerimeterMM)} mm round)` : '',
-          r.floatersRemoved ? `${r.floatersRemoved} tiny piece${r.floatersRemoved > 1 ? 's' : ''} (${fmt(r.floaterVolumeMM3)} mm³) dropped` : '',
+          r.holesFilled ? `${r.holesFilled} hole${r.holesFilled > 1 ? 's' : ''} filled with ${r.fillTriangles.toLocaleString('en-US')} triangles (${fmt(r.filledArea)} mm² added, the largest ${fmt(r.largestFilledPerimeter)} mm round)` : '',
+          r.floatersRemoved ? `${r.floatersRemoved} tiny piece${r.floatersRemoved > 1 ? 's' : ''} (${fmt(r.floaterVolume)} mm³) dropped` : '',
         ].filter(Boolean).join('; ') || 'nothing to change'}.{' '}
         {r.closed ? 'Closed: it opens as a solid.' : `Still open${r.holesLeft ? ` (${r.holesLeft} hole${r.holesLeft > 1 ? 's' : ''} left)` : ''}${r.nonManifoldEdgesLeft ? `, ${r.nonManifoldEdgesLeft} edges of more than two triangles left` : ''}: it opens as a sheet — no volume, no Booleans.`}
       </div>}

@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 import { brepsFor, deferMasses, evaluateDoc, evaluatePart, evaluatePlaced, evaluatePreview, evaluateVolumes, massOfRef, shareMeshes, exportStudioStep, stlFor, type BodyResult, type EvalResult, type PartSlot } from '@barocss/cad-model/engine/evaluate';
+import { nativeMassEnvelope, type NativeMassEnvelope, type NativeMassSource } from '@barocss/cad-model/engine/nativeMassWire';
 import { MeshSender } from '@barocss/cad-model/engine/meshWire';
 import { projectViews } from '@barocss/cad-model/drawing/project';
 import { sectionsCut } from '@barocss/cad-model/drawing/section';
@@ -16,11 +17,11 @@ function stepReply(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessellated'
 }
 
 export type WorkerRequest =
-  | { type: 'evaluate'; id: number; doc: WireDoc; revision: number }
-  | { type: 'part'; id: number; doc: WireDoc; revision: number; slot?: PartSlot }
+  | { type: 'evaluate'; id: number; doc: WireDoc; revision: number; nativeSource: NativeMassSource }
+  | { type: 'part'; id: number; doc: WireDoc; revision: number; slot?: PartSlot; nativeSource: NativeMassSource }
   /** A part's bodies' volumes, no meshes (a clash probe, PERF3 B12). */
   | { type: 'volumes'; id: number; doc: WireDoc }
-  | { type: 'placed'; id: number; doc: WireDoc; base: WireDoc; place: { m: number[]; t: [number, number, number] }; revision: number }
+  | { type: 'placed'; id: number; doc: WireDoc; base: WireDoc; place: { m: number[]; t: [number, number, number] }; revision: number; nativeSource: NativeMassSource }
   | { type: 'preview'; id: number; doc: WireDoc; revision: number }
   | { type: 'section'; id: number; doc: WireDoc; revision: number }
   /** The mould's parting loops, and its halves when asked (G6: the tooling's Booleans, off the main thread). */
@@ -43,18 +44,18 @@ shareMeshes(true);
 // the worker works them out and posts them by mass ref, unplaced (the client places them by each body's massPlace — the
 // path a placed part would take, kept ready). A newer evaluation of the part drops the part's queued ones (its own reply
 // queues what it still needs), so an edit's reply never waits for an old evaluation's masses.
-export type MassReply = { masses: { ref: number; fields: Pick<BodyResult, 'volumeMM3' | 'massG' | 'centroid' | 'inertia' | 'volumeBasis'> }[] };
+export type MassReply = { masses: { ref: number; fields: Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'>; nativeMass: NativeMassEnvelope }[] };
 /** How long one tick works out masses before it yields to the next request (one body at least). */
 const MASS_TICK_MS = 30;
 /** How long the worker waits with no request before it starts on masses: one body's (a spring's quadrature, ~2 s) cannot be
  *  stopped once started, so an edit made right after a reply goes first. */
 const MASS_IDLE_MS = 200;
 let lastRequestAt = 0;
-const partMasses: number[] = [];
+const partMasses: { ref: number; source: NativeMassSource }[] = [];
 let massTicking = false;
-function queueMasses(queue: number[], result: EvalResult): void {
+function queueMasses(result: EvalResult, source: NativeMassSource): void {
   if (!result.ok) return;
-  for (const b of result.bodies) if (b.massRef !== undefined && !queue.includes(b.massRef)) queue.push(b.massRef);
+  for (const b of result.bodies) if (b.massRef !== undefined && !partMasses.some(m => m.ref === b.massRef)) partMasses.push({ ref: b.massRef, source });
   if (!massTicking && partMasses.length) { massTicking = true; setTimeout(massTick, MASS_IDLE_MS); }
 }
 function massTick(): void {
@@ -64,8 +65,9 @@ function massTick(): void {
   massTicking = false;
   const t0 = performance.now(), out: MassReply['masses'] = [];
   while (performance.now() - t0 < MASS_TICK_MS) {
-    const ref = partMasses.shift(); if (ref === undefined) break;
-    const fields = massOfRef(ref); if (fields) out.push({ ref, fields });
+    const item = partMasses.shift(); if (!item) break;
+    const { ref, source } = item, fields = massOfRef(ref);
+    if (fields) out.push({ ref, fields, nativeMass: nativeMassEnvelope(source, fields, ref) });
   }
   if (out.length) (self as unknown as Worker).postMessage({ masses: out } satisfies MassReply);
   if (partMasses.length) { massTicking = true; setTimeout(massTick, 0); }
@@ -108,15 +110,16 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     let result: EvalResult;
     try { result = request.type === 'placed' ? evaluatePlaced(request.doc, base!, request.place, request.revision) : request.type === 'part' ? evaluatePart(request.doc, request.revision, 8, request.slot) : request.type === 'preview' || request.type === 'section' ? evaluatePreview(request.doc, request.revision, 8, request.type) : evaluateDoc(request.doc, request.revision); } finally { deferMasses(false); }
     const out = meshesOut.pack(replySlot(request), result);
-    (self as unknown as Worker).postMessage({ id: request.id, result: out.result }, out.transfer);
-    if (deferred) queueMasses(partMasses, result);
+    const nativeMass = 'nativeSource' in request && result.ok ? result.bodies.map(b => nativeMassEnvelope(request.nativeSource, b)) : [];
+    (self as unknown as Worker).postMessage({ id: request.id, result: out.result, nativeMass }, out.transfer);
+    if (deferred && 'nativeSource' in request) queueMasses(result, request.nativeSource);
   } else if (request.type === 'mould') {
     // (The part's bodies as evaluated, then the view; the halves' meshes sent in a slot of their own.)
     const part = evaluateDoc(request.doc, request.revision);
     let view: ReturnType<typeof mouldView> = null, why: string | null = null;
     // (The wire carries what evaluation reads: the mould's settings come with the request.)
     try { view = part.ok ? mouldView({ ...request.doc, mould: request.mould }, part.bodies, request.halves) : null; } catch (e) { why = e instanceof Error ? e.message : String(e); }
-    const halves = view?.halves, out = meshesOut.pack('mould', { ok: true, revision: request.revision, ms: 0, bodies: halves ? [...halves.plus, ...halves.minus] : [] });
+    const halves = view?.halves, out = meshesOut.pack('mould', { ok: true, revision: request.revision, wallTime: 0, bodies: halves ? [...halves.plus, ...halves.minus] : [] });
     (self as unknown as Worker).postMessage({ id: request.id, result: out.result, mould: view && { pull: view.pull, loops: view.loops, why: view.why, plus: halves?.plus.length ?? 0, halves: !!halves }, why: why ?? (part.ok ? null : 'the part does not evaluate') }, out.transfer);
   } else if (request.type === 'proposalDiff') {
     // (G12: both sides evaluated in part slots of their own — the base in 'read', the proposal in 'agent', where its
@@ -126,8 +129,8 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     let d: ReturnType<typeof proposalDiffFor> | null = null, why: string | null = null;
     try { d = proposalDiffFor(request.key, { doc: request.doc, bodies: a.bodies }, { doc: proposed!, bodies: b.bodies }); } catch (e) { why = e instanceof Error ? e.message : String(e); }
     const sides = d ? [d.added, d.removed] : [], bodies = sides.flatMap((m, i) => m ? [{ ...a.bodies[0], key: i ? 'removed' : 'added', mesh: m.mesh }] : []);
-    const out = meshesOut.pack('proposalDiff', { ok: true, revision: request.revision, ms: 0, bodies });
-    (self as unknown as Worker).postMessage({ id: request.id, result: out.result, diff: d && { added: d.added ? d.added.volumeMM3 : null, removed: d.removed ? d.removed.volumeMM3 : null, changedFaces: d.changedFaces, method: d.method, why: d.why ?? null }, why }, out.transfer);
+    const out = meshesOut.pack('proposalDiff', { ok: true, revision: request.revision, wallTime: 0, bodies });
+    (self as unknown as Worker).postMessage({ id: request.id, result: out.result, diff: d && { added: d.added ? d.added.volume : null, removed: d.removed ? d.removed.volume : null, changedFaces: d.changedFaces, method: d.method, why: d.why ?? null }, why }, out.transfer);
   } else if (request.type === 'volumes') {
     (self as unknown as Worker).postMessage({ id: request.id, volumes: evaluateVolumes(request.doc) });
   } else if (request.type === 'drawing') {

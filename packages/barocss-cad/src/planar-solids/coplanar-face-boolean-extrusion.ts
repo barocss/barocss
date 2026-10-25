@@ -90,7 +90,7 @@ export interface CoplanarFaceBooleanExtrusionResult {
   sources: { id: string; source: string; sourceVersion: 0; model: Model; objectIds: string[] }[]; report: CoplanarFaceBooleanExtrusionReport;
 }
 
-const CODE = CoplanarFaceBooleanExtrusionDiagnosticCode, TOLERANCE = CadNumericPolicy.linearToleranceMM;
+const CODE = CoplanarFaceBooleanExtrusionDiagnosticCode, TOLERANCE = CadNumericPolicy.linearTolerance;
 function check(condition: boolean, code: CoplanarFaceBooleanExtrusionDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new CoplanarFaceBooleanExtrusionError(code, detail);
 }

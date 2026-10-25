@@ -30,7 +30,7 @@ export function brepFromExtrudedProfile(solid: ExtrudedProfileSolidResult): Brep
     return { id: f.id, surface: f.surface, sense: senseFromLoop(f.surface, uses.map(u => ({ curve: edges.get(u.edge)!.curve, sense: u.sense }))), loops: [{ kind: 'outer', uses }] };
   });
   return buildBrep({ source: { family: 'extruded-profile', id: solid.id },
-    vertices: solid.vertices.map(v => ({ id: v.id, point: v.pointMM })), edges: solid.edges.map(e => ({ id: e.id, curve: e.curve, vertices: e.vertexIds })),
+    vertices: solid.vertices.map(v => ({ id: v.id, point: v.point })), edges: solid.edges.map(e => ({ id: e.id, curve: e.curve, vertices: e.vertexIds })),
     bodies: [{ id: solid.id, kind: 'solid', shells: [{ id: 'shell', faces, closed: true }] }] });
 }
 

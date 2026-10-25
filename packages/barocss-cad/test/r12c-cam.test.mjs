@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { camLaw, camLawPeaks, camMotion, camProfile, discCam, CAM_LAWS, isCamError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
+import { camLaw, camLawPeaks, camMotion, camProfile, discCam, CAM_LAWS, isCamError, checkBrep, brepMassProperties, evaluateCadPart, outputOf } from '../dist/index.js';
 
 // R12c.6a (D160): disc cams and followers. Oracles written here, apart from the kernel's code:
 // - the laws: f(0) = 0, f(1) = 1, f' and f'' against central differences of f, the peaks against dense sampling; the
@@ -17,7 +17,7 @@ import { camLaw, camLawPeaks, camMotion, camProfile, discCam, CAM_LAWS, isCamErr
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want} (±${abs})`);
 const code = c => e => isCamError(e) && e.code === c;
 const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
-const S0 = { baseRadiusMM: 20, follower: 'roller', rollerRadiusMM: 5, thicknessMM: 10, segments: [{ angleDeg: 120, to: 8, law: 'cycloidal' }, { angleDeg: 60 }, { angleDeg: 120, to: 0, law: 'cycloidal' }, { angleDeg: 60 }] };
+const S0 = { baseRadius: 20, follower: 'roller', rollerRadius: 5, thickness: 10, segments: [{ angle: 120, to: 8, law: 'cycloidal' }, { angle: 60 }, { angle: 120, to: 0, law: 'cycloidal' }, { angle: 60 }] };
 const TAU = 2 * Math.PI;
 /** The test's own laws (the textbook forms), on u ∈ [0, 1]. */
 const LAW = {
@@ -28,7 +28,7 @@ const LAW = {
 /** s(θ) of a program (θ radians), positions scaled by k; central differences for s', s''. */
 function motion(segs, k = 1, law = (name, u) => LAW[name](u)) {
   const list = []; let a = 0, p = 0;
-  for (const g of segs) { const b = a + g.angleDeg * Math.PI / 180, to = g.to === undefined ? p : g.to * k; list.push({ a, b, p0: p, p1: to, law: g.law }); a = b; p = to; }
+  for (const g of segs) { const b = a + g.angle * Math.PI / 180, to = g.to === undefined ? p : g.to * k; list.push({ a, b, p0: p, p1: to, law: g.law }); a = b; p = to; }
   const s = th => { th = ((th % TAU) + TAU) % TAU; const g = list.find(x => th >= x.a && th < x.b) ?? list[list.length - 1]; return g.p1 === g.p0 ? g.p0 : g.p0 + (g.p1 - g.p0) * law(g.law, (th - g.a) / (g.b - g.a)); };
   const h = 1e-4, s1 = th => (s(th + h) - s(th - h)) / (2 * h), s2 = th => (s(th + h) - 2 * s(th) + s(th - h)) / (h * h);
   return { s, s1, s2, list };
@@ -97,21 +97,21 @@ test('R12c.6a S0\'s cam: base 20, roller 5, cycloidal rise 8 over 120°, dwells 
   // The polar formula on r = R_p + s (dense), against the report.
   let rho = Infinity;
   for (let i = 0; i < 36000; i++) { const th = TAU * i / 36000, r = Rp + M.s(th), r1 = M.s1(th), r2 = M.s2(th), den = r * r + 2 * r1 * r1 - r * r2; if (den > 0) rho = Math.min(rho, (r * r + r1 * r1) ** 1.5 / den); }
-  near(report.curvature.leastPitchRadiusMM, rho, 1e-5, 'least ρ'); near(rho, 23.690158, 1e-5, 'S0\'s figure');
-  near(report.curvature.leastProfileRadiusMM, rho - 5, 1e-5, 'the profile\'s least radius');
+  near(report.curvature.leastPitchRadius, rho, 1e-5, 'least ρ'); near(rho, 23.690158, 1e-5, 'S0\'s figure');
+  near(report.curvature.leastProfileRadius, rho - 5, 1e-5, 'the profile\'s least radius');
   // Norton (e = 0): tan φ = s'/(R_p + s).
   let phi = 0; for (let i = 0; i < 36000; i++) { const th = TAU * i / 36000; phi = Math.max(phi, Math.abs(Math.atan(M.s1(th) / (Rp + M.s(th))))); }
-  near(report.pressureAngle.maxDeg, phi * 180 / Math.PI, 1e-5, 'pressure angle');
-  assert.deepEqual([report.pressureAngle.limitDeg, report.pressureAngle.limitEstimate, report.warnings.length], [30, true, 0]);
+  near(report.pressureAngle.max, phi * 180 / Math.PI, 1e-5, 'pressure angle');
+  assert.deepEqual([report.pressureAngle.limit, report.pressureAngle.limitEstimate, report.warnings.length], [30, true, 0]);
   // The exact profile (the pitch point less r_r along the outward normal) by Green: ½∮(x dy − y dx).
   const P = th => [(Rp + M.s(th)) * Math.sin(th), (Rp + M.s(th)) * Math.cos(th)];
   const prof = th => { const e = 1e-6, a = P(th - e), c = P(th + e), dx = c[0] - a[0], dy = c[1] - a[1], n = Math.hypot(dx, dy), p = P(th); return [p[0] + 5 * dy / n, p[1] - 5 * dx / n]; };
   let area = 0; const G = 40000;
   for (let i = 0; i < G; i++) { const th = TAU * i / G, p = prof(th), e = 1e-5, a = prof(th - e), c = prof(th + e); area += 0.5 * (p[0] * (c[1] - a[1]) - p[1] * (c[0] - a[0])) / (2 * e) * TAU / G; }
   // (Clockwise in θ: the area's sign turned.)
-  const V = brepMassProperties(brep, 1).volumeMM3;
-  near(V, -area * 10, TAU * 35 * report.profileDeviationMM * 10 + 1e-3, 'volume');
-  assert.ok(report.profileDeviationMM <= report.profileToleranceMM && report.profileToleranceMM === 2e-3);
+  const V = brepMassProperties(brep, 1).volume;
+  near(V, -area * 10, TAU * 35 * report.profileDeviation * 10 + 1e-3, 'volume');
+  assert.ok(report.profileDeviation <= report.profileTolerance && report.profileTolerance === 2e-3);
   assert.equal(report.profilePieces, brep.faces.filter(f => /#\d+$/.test(f.name)).length);
   // The lift on the built solid's own curves: the roller's centre on x = 0 the highest y touching any profile point.
   const pts = builtProfile(brep);
@@ -121,8 +121,8 @@ test('R12c.6a S0\'s cam: base 20, roller 5, cycloidal rise 8 over 120°, dwells 
     for (const q of pts) { const c = Math.cos(th), sn = Math.sin(th), X = c * q[0] - sn * q[1], Y = sn * q[0] + c * q[1]; if (Math.abs(X) <= 5) y = Math.max(y, Y + Math.sqrt(25 - X * X)); }
     worst = Math.max(worst, Math.abs(y - Rp - M.s(th)));
   }
-  assert.ok(worst <= report.profileDeviationMM / Math.cos(phi) + 5e-5, `lift ${worst}`);
-  assert.ok(report.sweep.deviation <= report.profileDeviationMM / Math.cos(phi) + 1e-9 && report.sweep.samples === 720, JSON.stringify(report.sweep));
+  assert.ok(worst <= report.profileDeviation / Math.cos(phi) + 5e-5, `lift ${worst}`);
+  assert.ok(report.sweep.deviation <= report.profileDeviation / Math.cos(phi) + 1e-9 && report.sweep.samples === 720, JSON.stringify(report.sweep));
   // Faces: the motions by kind, the ends.
   const names = new Set(brep.faces.map(f => f.name.replace(/#\d+$/, '')));
   assert.deepEqual([...names].sort(), ['c.dwell1', 'c.dwell2', 'c.face0', 'c.face1', 'c.return1', 'c.rise1']);
@@ -131,47 +131,47 @@ test('R12c.6a S0\'s cam: base 20, roller 5, cycloidal rise 8 over 120°, dwells 
 });
 
 test('R12c.6a an offset roller follower: Norton\'s pressure angle with the offset, the pitch curve\'s ρ by finite differences, a warning above a given limit', () => {
-  const e = 6, spec = { ...S0, offsetMM: e, pressureAngleLimitDeg: 20 }, { report } = camProfile(spec), M = motion(S0.segments), d = Math.sqrt(625 - 36);
+  const e = 6, spec = { ...S0, offset: e, pressureAngleLimit: 20 }, { report } = camProfile(spec), M = motion(S0.segments), d = Math.sqrt(625 - 36);
   let phi = 0, at = 0; for (let i = 0; i < 36000; i++) { const th = TAU * i / 36000, p = Math.atan((M.s1(th) - e) / (M.s(th) + d)); if (Math.abs(p) > phi) { phi = Math.abs(p); at = th; } }
-  near(report.pressureAngle.maxDeg, phi * 180 / Math.PI, 1e-5, 'Norton'); near(report.pressureAngle.atDeg, at * 180 / Math.PI, 0.02, 'where');
+  near(report.pressureAngle.max, phi * 180 / Math.PI, 1e-5, 'Norton'); near(report.pressureAngle.at, at * 180 / Math.PI, 0.02, 'where');
   const lc = leastConvex(th => rotBack([e, d + M.s(th)], th));
-  near(report.curvature.leastPitchRadiusMM, lc.rho, 1e-4, 'ρ (finite differences)');
+  near(report.curvature.leastPitchRadius, lc.rho, 1e-4, 'ρ (finite differences)');
   assert.ok(report.warnings.some(w => w.code === 'PRESSURE_ANGLE' && /reaches 26\.\d+° .* above 20°$/.test(w.message)), JSON.stringify(report.warnings));
   assert.equal(report.pressureAngle.limitEstimate, false);
 });
 
 test('R12c.6a a flat-faced translating follower (3-4-5 rise, modified-trapezoid return): ρ = r_b + s + s\'\', the contact at s\' along the face, the pressure angle 0, the face width checked', () => {
-  const segs = [{ angleDeg: 120, to: 8, law: 'polynomial-345' }, { angleDeg: 60 }, { angleDeg: 120, to: 0, law: 'modified-trapezoid' }, { angleDeg: 60 }];
-  const spec = { baseRadiusMM: 20, follower: 'flat', thicknessMM: 10, faceWidthMM: 15, segments: segs }, { brep, report } = discCam(spec, { id: 'f' });
+  const segs = [{ angle: 120, to: 8, law: 'polynomial-345' }, { angle: 60 }, { angle: 120, to: 0, law: 'modified-trapezoid' }, { angle: 60 }];
+  const spec = { baseRadius: 20, follower: 'flat', thickness: 10, faceWidth: 15, segments: segs }, { brep, report } = discCam(spec, { id: 'f' });
   assert.equal(checkBrep(brep).valid, true);
   const M = motion(segs, 1, (n, u) => n === 'modified-trapezoid' ? camLaw(n, u)[0] : LAW[n](u));
   let rho = Infinity; for (let i = 0; i < 36000; i++) { const th = TAU * i / 36000; rho = Math.min(rho, 20 + M.s(th) + M.s2(th)); }
-  near(report.curvature.leastProfileRadiusMM, rho, 2e-4, 'ρ = r_b + s + s\'\'');
+  near(report.curvature.leastProfileRadius, rho, 2e-4, 'ρ = r_b + s + s\'\'');
   // The contact's travel: 15/8·8/β on the rise, −2·8/β on the return.
-  const be = TAU / 3; near(report.faceContactMM[1], 15 / 8 * 8 / be, 1e-6, 'contact +'); near(report.faceContactMM[0], -2 * 8 / be, 1e-6, 'contact −');
-  assert.equal(report.pressureAngle.maxDeg, 0);
+  const be = TAU / 3; near(report.faceContact[1], 15 / 8 * 8 / be, 1e-6, 'contact +'); near(report.faceContact[0], -2 * 8 / be, 1e-6, 'contact −');
+  assert.equal(report.pressureAngle.max, 0);
   assert.ok(report.warnings.some(w => w.code === 'FACE_WIDTH' && /-7\.639437 to 7\.161972 mm about the follower's line, off a face 15 mm wide/.test(w.message)), JSON.stringify(report.warnings));
   // The lift on the built profile: the face the highest point.
   const pts = builtProfile(brep); let worst = 0;
   for (let i = 0; i < 360; i++) { const th = TAU * i / 360; let y = -Infinity; for (const q of pts) y = Math.max(y, Math.sin(th) * q[0] + Math.cos(th) * q[1]); worst = Math.max(worst, Math.abs(y - 20 - M.s(th))); }
-  assert.ok(worst <= report.profileDeviationMM + 2e-5, `lift ${worst}`);
+  assert.ok(worst <= report.profileDeviation + 2e-5, `lift ${worst}`);
 });
 
 test('R12c.6a an oscillating roller follower: the pressure angle through Kennedy\'s instant centre, ρ by finite differences, the arm\'s angle found on the built profile', () => {
-  const segs = [{ angleDeg: 120, to: 15, law: 'cycloidal' }, { angleDeg: 60 }, { angleDeg: 120, to: 0, law: 'harmonic' }, { angleDeg: 60 }];
-  const spec = { baseRadiusMM: 20, follower: 'roller', motion: 'oscillating', rollerRadiusMM: 5, pivotDistanceMM: 50, armLengthMM: 40, thicknessMM: 10, segments: segs };
+  const segs = [{ angle: 120, to: 15, law: 'cycloidal' }, { angle: 60 }, { angle: 120, to: 0, law: 'harmonic' }, { angle: 60 }];
+  const spec = { baseRadius: 20, follower: 'roller', motion: 'oscillating', rollerRadius: 5, pivotDistance: 50, armLength: 40, thickness: 10, segments: segs };
   const { brep, report } = discCam(spec, { id: 'o' }), k = Math.PI / 180, M = motion(segs, k), a = 50, l = 40;
-  const psi0 = Math.acos((a * a + l * l - 625) / (2 * a * l)); near(report.restAngleDeg, psi0 / k, 1e-6, 'ψ0');
+  const psi0 = Math.acos((a * a + l * l - 625) / (2 * a * l)); near(report.restAngle, psi0 / k, 1e-6, 'ψ0');
   const C = th => { const ps = psi0 + M.s(th); return [a - l * Math.cos(ps), l * Math.sin(ps)]; };
   let phi = 0;
   for (let i = 0; i < 36000; i++) {
     const th = TAU * i / 36000, w = M.s1(th), I = [a * w / (1 + w), 0], c = C(th), n = [c[0] - I[0], c[1] - I[1]], ps = psi0 + M.s(th), u = [Math.sin(ps), Math.cos(ps)];
     phi = Math.max(phi, Math.acos((n[0] * u[0] + n[1] * u[1]) / Math.hypot(n[0], n[1])));
   }
-  near(report.pressureAngle.maxDeg, phi / k, 1e-4, 'Kennedy');
-  near(report.curvature.leastPitchRadiusMM, leastConvex(th => rotBack(C(th), th)).rho, 1e-4, 'ρ');
+  near(report.pressureAngle.max, phi / k, 1e-4, 'Kennedy');
+  near(report.curvature.leastPitchRadius, leastConvex(th => rotBack(C(th), th)).rho, 1e-4, 'ρ');
   assert.equal(report.warnings.filter(w => w.code === 'ACCELERATION_STEP').length, 2, 'the harmonic return at its dwells');
-  assert.ok(report.sweep.deviation * l * k <= report.profileDeviationMM / Math.cos(phi) + 1e-9, JSON.stringify(report.sweep));
+  assert.ok(report.sweep.deviation <= report.profileDeviation / Math.cos(phi) + 1e-9, JSON.stringify(report.sweep));
   // The arm's angle on the built curves: the largest ψ near the law's at which the roller touches a profile point.
   const pts = builtProfile(brep); let worst = 0;
   for (let i = 0; i < 360; i += 3) {
@@ -184,51 +184,51 @@ test('R12c.6a an oscillating roller follower: the pressure angle through Kennedy
     }
     worst = Math.max(worst, Math.abs(got - want) * l);
   }
-  assert.ok(worst <= report.profileDeviationMM / Math.cos(phi) + 5e-5, `arm ${worst}`);
+  assert.ok(worst <= report.profileDeviation / Math.cos(phi) + 5e-5, `arm ${worst}`);
 });
 
 test('R12c.6a an oscillating flat-faced follower: the contact the instant centre\'s foot on the face, ρ by finite differences of those points; the face through the pivot has pressure angle 0, offset c has atan(c/t)', () => {
-  const segs = [{ angleDeg: 120, to: 10, law: 'cycloidal' }, { angleDeg: 60 }, { angleDeg: 120, to: 0, law: 'polynomial-345' }, { angleDeg: 60 }], k = Math.PI / 180, a = 60;
+  const segs = [{ angle: 120, to: 10, law: 'cycloidal' }, { angle: 60 }, { angle: 120, to: 0, law: 'polynomial-345' }, { angle: 60 }], k = Math.PI / 180, a = 60;
   for (const c of [0, 5]) {
-    const spec = { baseRadiusMM: 20, follower: 'flat', motion: 'oscillating', pivotDistanceMM: a, faceOffsetMM: c, thicknessMM: 10, boreDiameterMM: 10, segments: segs };
+    const spec = { baseRadius: 20, follower: 'flat', motion: 'oscillating', pivotDistance: a, faceOffset: c, thickness: 10, boreDiameter: 10, segments: segs };
     const { brep, report } = discCam(spec, { id: 'q' }), M = motion(segs, k), psi0 = Math.asin((20 + c) / a);
     assert.equal(checkBrep(brep).valid, true);
     // The contact (world): the foot from I = (a s'/(1 + s'), 0) on the line n·X = a sin ψ − c, n = (sin ψ, cos ψ).
     const Kw = th => { const w = M.s1(th), ps = psi0 + M.s(th), n = [Math.sin(ps), Math.cos(ps)], I = [a * w / (1 + w), 0], t = a * Math.sin(ps) - c - (n[0] * I[0] + n[1] * I[1]); return [I[0] + t * n[0], I[1] + t * n[1]]; };
     const along = th => { const ps = psi0 + M.s(th), K = Kw(th); return -Math.cos(ps) * (K[0] - a) + Math.sin(ps) * K[1]; };
     let lo = Infinity, hi = -Infinity; for (let i = 0; i < 36000; i++) { const t = along(TAU * i / 36000); lo = Math.min(lo, t); hi = Math.max(hi, t); }
-    near(report.faceContactMM[0], lo, 1e-4, `contact from the pivot (c ${c})`); near(report.faceContactMM[1], hi, 1e-4, `contact to (c ${c})`);
-    near(report.curvature.leastProfileRadiusMM, leastConvex(th => rotBack(Kw(th), th)).rho, 2e-3, `ρ (c ${c})`);
-    near(report.pressureAngle.maxDeg, Math.atan(c / lo) / k, 1e-5, `pressure angle (c ${c})`);
-    assert.ok(report.sweep.deviationMM <= 10 * report.profileDeviationMM, JSON.stringify(report.sweep));
+    near(report.faceContact[0], lo, 1e-4, `contact from the pivot (c ${c})`); near(report.faceContact[1], hi, 1e-4, `contact to (c ${c})`);
+    near(report.curvature.leastProfileRadius, leastConvex(th => rotBack(Kw(th), th)).rho, 2e-3, `ρ (c ${c})`);
+    near(report.pressureAngle.max, Math.atan(c / lo) / k, 1e-5, `pressure angle (c ${c})`);
+    assert.ok(report.sweep.deviation <= 10 * report.profileDeviation, JSON.stringify(report.sweep));
   }
 });
 
 test('R12c.6a refusals: uniform motion\'s corner, a roller larger than the pitch curve\'s convex radius, a flat face with ρ ≤ 0 (CAM_UNDERCUT); a program off 360° or not back at 0, a motion with no law, an offset past the prime circle, a bore through the base circle (INVALID_INPUT)', () => {
-  const uni = { ...S0, segments: [{ angleDeg: 120, to: 8, law: 'uniform' }, { angleDeg: 60 }, { angleDeg: 120, to: 0, law: 'cycloidal' }, { angleDeg: 60 }] };
+  const uni = { ...S0, segments: [{ angle: 120, to: 8, law: 'uniform' }, { angle: 60 }, { angle: 120, to: 0, law: 'cycloidal' }, { angle: 60 }] };
   assert.throws(() => camProfile(uni), e => code('CAM_UNDERCUT')(e) && /velocity steps by -3\.819719 mm\/rad at 120° \(the uniform law's end\)/.test(e.message));
   // A big roller on a small base: the polar formula's least ρ (11.8433) below r_r 15.
-  const big = { ...S0, baseRadiusMM: 6, rollerRadiusMM: 15, segments: [{ angleDeg: 60, to: 20, law: 'cycloidal' }, { angleDeg: 60, to: 0, law: 'cycloidal' }, { angleDeg: 240 }] }, M = motion(big.segments);
+  const big = { ...S0, baseRadius: 6, rollerRadius: 15, segments: [{ angle: 60, to: 20, law: 'cycloidal' }, { angle: 60, to: 0, law: 'cycloidal' }, { angle: 240 }] }, M = motion(big.segments);
   let rho = Infinity; for (let i = 0; i < 36000; i++) { const th = TAU * i / 36000, r = 21 + M.s(th), r1 = M.s1(th), r2 = M.s2(th), den = r * r + 2 * r1 * r1 - r * r2; if (den > 0) rho = Math.min(rho, (r * r + r1 * r1) ** 1.5 / den); }
   assert.throws(() => camProfile(big), e => code('CAM_UNDERCUT')(e) && new RegExp(`falls to ${rho.toFixed(4)}\\d* mm at .*r_r 15`).test(e.message), String(rho));
   // A flat face on a fast rise: min(r_b + s + s'') < 0.
-  const fast = { baseRadiusMM: 10, follower: 'flat', thicknessMM: 5, segments: [{ angleDeg: 40, to: 12, law: 'cycloidal' }, { angleDeg: 40, to: 0, law: 'cycloidal' }, { angleDeg: 280 }] };
+  const fast = { baseRadius: 10, follower: 'flat', thickness: 5, segments: [{ angle: 40, to: 12, law: 'cycloidal' }, { angle: 40, to: 0, law: 'cycloidal' }, { angle: 280 }] };
   assert.throws(() => camProfile(fast), e => code('CAM_UNDERCUT')(e) && /ρ = h \+ h_ββ -\d/.test(e.message));
   const bad = (f, re) => assert.throws(() => camProfile({ ...S0, ...f }), e => code('INVALID_INPUT')(e) && re.test(e.message), String(re));
-  bad({ segments: [{ angleDeg: 120, to: 8, law: 'cycloidal' }, { angleDeg: 120, to: 0, law: 'cycloidal' }] }, /turn the cam 240°, not 360°/);
-  bad({ segments: [{ angleDeg: 180, to: 8, law: 'cycloidal' }, { angleDeg: 180, to: 2, law: 'cycloidal' }] }, /ends at 2, not back at 0/);
-  bad({ segments: [{ angleDeg: 180, to: 8 }, { angleDeg: 180, to: 0, law: 'cycloidal' }] }, /segment 1: a motion needs a law/);
-  bad({ segments: [{ angleDeg: 180, to: -1, law: 'cycloidal' }, { angleDeg: 180, to: 0, law: 'cycloidal' }] }, /below 0/);
-  bad({ offsetMM: 25 }, /past the prime circle/);
-  bad({ boreDiameterMM: 40 }, /at most Ø38/);
-  bad({ motion: 'oscillating', pivotDistanceMM: 50, armLengthMM: 10 }, /never reaches the prime circle/);
+  bad({ segments: [{ angle: 120, to: 8, law: 'cycloidal' }, { angle: 120, to: 0, law: 'cycloidal' }] }, /turn the cam 240°, not 360°/);
+  bad({ segments: [{ angle: 180, to: 8, law: 'cycloidal' }, { angle: 180, to: 2, law: 'cycloidal' }] }, /ends at 2, not back at 0/);
+  bad({ segments: [{ angle: 180, to: 8 }, { angle: 180, to: 0, law: 'cycloidal' }] }, /segment 1: a motion needs a law/);
+  bad({ segments: [{ angle: 180, to: -1, law: 'cycloidal' }, { angle: 180, to: 0, law: 'cycloidal' }] }, /below 0/);
+  bad({ offset: 25 }, /past the prime circle/);
+  bad({ boreDiameter: 40 }, /at most Ø38/);
+  bad({ motion: 'oscillating', pivotDistance: 50, armLength: 10 }, /never reaches the prime circle/);
 });
 
 test('R12c.6a part model: the `cam` kind placed and turned, its report on the output; refusals with their codes; camMotion reads the law', () => {
   const f = { id: 'k', kind: 'cam', base: 20, roller: 5, follower: 'roller', thickness: 10, bore: 8, center: [30, -5], from: 2, rotation: 90, segments: [{ angle: 120, to: 8, law: 'cycloidal' }, { angle: 60 }, { angle: 120, to: 0, law: 'cycloidal' }, { angle: 60 }] };
-  const out = evaluateCadPart(D([f])).output('k');
-  assert.equal(out.cam.generator, 'cam@0'); near(out.cam.curvature.leastPitchRadiusMM, 23.690158, 1e-6, 'ρ');
-  const V = brepMassProperties(out.brep, 1).volumeMM3, V0 = brepMassProperties(discCam(S0).brep, 1).volumeMM3;
+  const out = outputOf(evaluateCadPart(D([f])), 'k');
+  assert.equal(out.cam.generator, 'cam@0'); near(out.cam.curvature.leastPitchRadius, 23.690158, 1e-6, 'ρ');
+  const V = brepMassProperties(out.brep, 1).volume, V0 = brepMassProperties(discCam(S0).brep, 1).volume;
   near(V, V0 - Math.PI * 16 * 10, 1e-3, 'the bore');
   assert.ok(out.brep.faces.some(x => x.name === 'k.bore#1') && out.brep.faces.some(x => x.name === 'k.rise1#1'));
   const refused = (g, c, tag) => assert.throws(() => evaluateCadPart(D([{ ...f, ...g }])), e => (e.details?.category ?? e.code) === c && e.message.includes(`[${tag}]`), tag);

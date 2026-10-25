@@ -32,7 +32,7 @@ test('CNC2 hole depth: blind Ø5 drilled 20, 30 and 32 deep — 4, 6 and 6.4 × 
   for (const [depth, status] of [[20, 'pass'], [30, 'warn'], [32, 'fail']] as const) {
     const s = await at(depth), [h] = holesOf(s.bodies), r = rule(report(s), 'hole-depth');
     assert.deepEqual(h.open, [false, true], 'blind: open at the top only');
-    assert.ok(near(h.steps[0].diameterMM, 5) && Math.abs(h.steps[0].reachMM! - depth) <= 1e-9, JSON.stringify(h.steps));
+    assert.ok(near(h.steps[0].diameter, 5) && Math.abs(h.steps[0].reach! - depth) <= 1e-9, JSON.stringify(h.steps));
     assert.equal(r.status, status, r.message); assert.ok(Math.abs(r.value! - depth / 5) <= 1e-3, String(r.value));
   }
   // (Mutant: the profile's maximum moved to 7 — 6.4 is now warned, not failed; the recommended to 7 too — passed.)
@@ -45,7 +45,7 @@ test('CNC2 a through hole counterbored: Ø6.6 through 20 with Ø11 × 6 at the t
   const s = await build([block(20), cmd('hole', { type: 'counterbore', d: 6.6, cd: 11, ch: 6, x: 20, y: 15 }, { faces: ['n1.top'] })]);
   const hs = holesOf(s.bodies); assert.equal(hs.length, 1); const [h] = hs;
   assert.deepEqual(h.open, [true, true]); assert.equal(h.counterbore, true);
-  assert.deepEqual(h.steps.map(x => [+x.diameterMM.toFixed(9), +x.reachMM!.toFixed(9)]), [[6.6, 14], [11, 6]]);
+  assert.deepEqual(h.steps.map(x => [+x.diameter.toFixed(9), +x.reach!.toFixed(9)]), [[6.6, 14], [11, 6]]);
   const r = report(s);
   assert.equal(rule(r, 'hole-depth').status, 'pass'); assert.ok(Math.abs(rule(r, 'hole-depth').value! - 14 / 6.6) <= 1e-3);
   assert.equal(rule(r, 'hole-size').status, 'pass'); assert.match(rule(r, 'hole-size').message, /1 counterbored/);
@@ -78,7 +78,7 @@ test('CNC2 threads: M6 blind 12 on its tap drill Ø5 passes; through 20 warned (
   const tapped = async (thread: string, tend: string, h = 30) => build([block(h), cmd('hole', { type: 'tapped', thread, tend, depth: 12, x: 20, y: 15 }, { faces: ['n1.top'] })]);
   let s = await tapped('M6', 'blind');
   const [x] = tappedHoles(s.doc, holesOf(s.bodies));
-  assert.deepEqual([x.thread, x.tapMM, +x.boreMM!.toFixed(9), +x.lengthMM!.toFixed(9)], ['M6×1', 6 - 1, 5, 12]);
+  assert.deepEqual([x.thread, x.tapDiameter, +x.bore!.toFixed(9), +x.length!.toFixed(9)], ['M6×1', 6 - 1, 5, 12]);
   assert.equal(rule(report(s), 'thread').status, 'pass', rule(report(s), 'thread').message);
   s = await tapped('M6', 'through', 20);
   assert.equal(rule(report(s), 'thread').status, 'warn'); assert.match(rule(report(s), 'thread').message, /20 mm long, over 3 × d \(18 mm\)/);
@@ -93,7 +93,7 @@ test('CNC2 threads: M6 blind 12 on its tap drill Ø5 passes; through 20 warned (
 test('CNC2 no straight reach: an internal groove (Ø16 behind the Ø10 bore) and a sealed void — reached from neither end, said to be CNC4\'s access; no holes — passes', async () => {
   let s = await build([cmd('box', { w: 40, d: 40, h: 30, x: 0, y: 0, z: 0 }), cmd('hole', { d: 10, x: 20, y: 20 }, { faces: ['n1.top'] }), cmd('cylinder', { r: 8, h: 4, x: 20, y: 20, z: 13 }), cmd('difference', {}, { bodies: ['b2', 'b4'] })]);
   const [h] = holesOf(s.bodies);
-  assert.deepEqual(h.steps.map(x => [+x.diameterMM.toFixed(9), x.reachMM === null ? null : +x.reachMM.toFixed(9)]), [[10, 30], [16, null]]);
+  assert.deepEqual(h.steps.map(x => [+x.diameter.toFixed(9), x.reach === null ? null : +x.reach.toFixed(9)]), [[10, 30], [16, null]]);
   let r = rule(report(s), 'hole-depth'); assert.equal(r.status, 'unknown'); assert.match(r.why!, /CNC4/);
   s = await build([cmd('box', { w: 40, d: 40, h: 30, x: 0, y: 0, z: 0 }), cmd('cylinder', { r: 5, h: 10, x: 20, y: 20, z: 10 }), cmd('difference', {}, { bodies: ['b1', 'b3'] })]);
   assert.deepEqual(holesOf(s.bodies)[0].open, [false, false]);

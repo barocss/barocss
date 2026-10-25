@@ -82,7 +82,7 @@ try {
   // The preflight inspected actual parsed input without labeling it frozen.
   // Only the recomputed certificate is returned by validation and frozen above.
   const certificateBytes = signedData(certificate);
-  artifact.certificate.arithmetic.operations++; artifact.parent.report.centerMM[0] = 99; artifact.world.source = 'caller-owned mutation after validation';
+  artifact.certificate.arithmetic.operations++; artifact.parent.report.center[0] = 99; artifact.world.source = 'caller-owned mutation after validation';
   assert.equal(signedData(certificate), certificateBytes); deepFrozen(certificate);
   assert.throws(() => { certificate.vertexLinks[0].germs[0].endpointIndex = 1; }, TypeError);
   assert.equal(readFileSync(file, 'utf8'), text);

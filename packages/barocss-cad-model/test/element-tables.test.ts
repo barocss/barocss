@@ -37,14 +37,14 @@ function shaftScene(): StudioDoc {
   const tube = cmd('tube'); doc = tube.build!({ ...blank, doc }, { ...tube.defaults!(blank), r: 20, ri: 10, h: 22, x: 0, y: 0, z: 4 });
   doc = run(doc, 'keyway', { face: `n${doc.nodes.length - 1}.hole0.side0` }, { b: 6, t2: 2.8 });
   doc = run(doc, 'key', { bodies: [0] }, { h: 6 });
-  const t = editRingRows(doc, [{ id: 'r20', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3, source: 'the maker\'s sheet' }]); assert.ok('doc' in t);
+  const t = editRingRows(doc, [{ id: 'r20', shaftDiameter: 20, grooveDiameter: 19, grooveWidth: 1.3, source: 'the maker\'s sheet' }]); assert.ok('doc' in t);
   doc = run(t.doc, 'retaining-ring', { bodies: [0] });
   return run(doc, 'pin', { bodies: [0] });
 }
 const spring = () => { const c = cmd('spring'); return c.build!(blank, { ...c.defaults!(blank), x: 0, y: 0, z: 0, F: 20 }); };
 function gland(): StudioDoc {
   const c = cmd('cylinder'); let doc = c.build!(blank, { ...c.defaults!(blank), r: 15.5, h: 20, x: 0, y: 0, z: 0 });
-  doc = (editORingRows(doc, [{ id: '214', dash: '2-214', insideDiameterMM: 24.99, crossSectionMM: 3.53, source: 'O1 (D139)' }]) as { doc: StudioDoc }).doc;
+  doc = (editORingRows(doc, [{ id: '214', dash: '2-214', insideDiameter: 24.99, crossSection: 3.53, source: 'O1 (D139)' }]) as { doc: StudioDoc }).doc;
   return run(doc, 'oring-gland', { face: 'n1.side0' }, { seal: 31.1, dg: 25.5, w: 4.7, at: 6 });
 }
 

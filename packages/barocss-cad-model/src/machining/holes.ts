@@ -11,7 +11,7 @@ import { rayHit, triangleBvh } from '@barocss/cad';
 import { fastenerSizesOf } from '../engine/fastenerSizeRows';
 
 type Vec3 = readonly [number, number, number] | readonly number[];
-export interface HoleStep { readonly faces: readonly string[]; readonly diameterMM: number; readonly fromMM: number; readonly toMM: number; readonly reachMM: number | null }
+export interface HoleStep { readonly faces: readonly string[]; readonly diameter: number; readonly from: number; readonly to: number; readonly reach: number | null }
 export interface Hole {
   readonly body: string;
   /** A point on the axis and its unit direction; positions along it are from that point. */
@@ -22,7 +22,7 @@ export interface Hole {
   readonly open: readonly [boolean, boolean];
   readonly counterbore: boolean;
 }
-export interface TappedHole { readonly node: string; readonly thread: string; readonly sizeMM: number; readonly pitchMM: number; readonly tapMM: number | null; readonly boreMM: number | null; readonly lengthMM: number | null; readonly faces: readonly string[] }
+export interface TappedHole { readonly node: string; readonly thread: string; readonly size: number; readonly pitch: number; readonly tapDiameter: number | null; readonly bore: number | null; readonly length: number | null; readonly faces: readonly string[] }
 
 const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 interface Piece { face: number; c: number[]; a: number[]; r: number }
@@ -93,7 +93,7 @@ export function holesOf(bodies: readonly BodyResult[]): Hole[] {
         // straight tool reaches — CNC4's access.)
         const fromLow = open[0] && !radii.some(q => q.r < s.r - 1e-9 && q.lo < s.lo - 1e-6), fromHigh = open[1] && !radii.some(q => q.r < s.r - 1e-9 && q.hi > s.hi + 1e-6);
         const reach = Math.min(fromLow ? s.hi - T0 : Infinity, fromHigh ? T1 - s.lo : Infinity);
-        return { faces: [...new Set(s.faces.map(f => m.faces[f].name))], diameterMM: 2 * s.r, fromMM: s.lo, toMM: s.hi, reachMM: Number.isFinite(reach) ? reach : null };
+        return { faces: [...new Set(s.faces.map(f => m.faces[f].name))], diameter: 2 * s.r, from: s.lo, to: s.hi, reach: Number.isFinite(reach) ? reach : null };
       });
       // (A counterbore: a wider step that reaches an open end.)
       const counterbore = radii.length > 1 && radii.slice(1).some(s => (open[0] && s.lo <= T0 + 1e-6) || (open[1] && s.hi >= T1 - 1e-6));
@@ -111,8 +111,8 @@ export function tappedHoles(doc: StudioDoc, holes: readonly Hole[]): TappedHole[
     const id = (n as { id?: string }).id, t = /^M([\d.]+)×([\d.]+)/.exec(n.thread); if (!id || !t) continue;
     const d = Number(t[1]), size = sizes[`M${t[1]}`], mine = holes.flatMap(h => h.steps.filter(s => s.faces.some(f => f.split('.')[0] === id)));
     // (Patterned copies are several bores of one node: each its own, the worst read.)
-    const bore = mine.length ? mine.reduce((w, s) => (size && Math.abs(s.diameterMM - size.tap) > Math.abs(w.diameterMM - size.tap)) ? s : w) : null;
-    out.push({ node: id, thread: n.thread, sizeMM: d, pitchMM: Number(t[2]), tapMM: size ? size.tap : null, boreMM: bore ? bore.diameterMM : null, lengthMM: mine.length ? Math.max(...mine.map(s => s.toMM - s.fromMM)) : null, faces: [...new Set(mine.flatMap(s => s.faces))] });
+    const bore = mine.length ? mine.reduce((w, s) => (size && Math.abs(s.diameter - size.tap) > Math.abs(w.diameter - size.tap)) ? s : w) : null;
+    out.push({ node: id, thread: n.thread, size: d, pitch: Number(t[2]), tapDiameter: size ? size.tap : null, bore: bore ? bore.diameter : null, length: mine.length ? Math.max(...mine.map(s => s.to - s.from)) : null, faces: [...new Set(mine.flatMap(s => s.faces))] });
   }
   return out;
 }

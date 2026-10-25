@@ -48,9 +48,13 @@ test('O15: robot_check is not listed, allowed or callable without CAD_ROBOT_L3; 
 });
 
 test('O15: a run that changed the brief\'s own terms (the life, a pose, a dwell) is no pass', () => {
-  const brief = { moves: [{ from: {}, to: { a: 1 }, profile: 'trapezoid' as const, limits: { velocity: 6, acceleration: 60 }, dwell_s: 0.5 }], life_h: 20000 };
-  assert.equal(keepsBrief({ ...brief, moves: [{ ...brief.moves[0], limits: { velocity: 3, acceleration: 30 } }] }, brief), null, 'a slower profile is the model\'s to choose');
-  assert.match(keepsBrief({ ...brief, life_h: 10 }, brief) ?? '', /the life changed/);
+  const brief = { moves: [{ from: {}, to: { a: 57.295779513 }, profile: 'trapezoid' as const, joint_limits: { a: { velocity: 343.77467707849394, acceleration: 3437.7467707849396 } }, dwell: 0.5 }], serviceLife: 72000000 };
+  assert.equal(keepsBrief({ ...brief, moves: [{ ...brief.moves[0], joint_limits: { a: { velocity: 171.88733853924697, acceleration: 1718.8733853924698 } } }] }, brief), null, 'a slower profile is the model\'s to choose');
+  assert.equal(keepsBrief({ ...brief, moves: [{ ...brief.moves[0], profile: 's-curve' }] }, brief), null, 'the existing profile selection remains allowed');
+  assert.equal(keepsBrief(structuredClone(brief), brief), null);
+  assert.match(keepsBrief({ ...brief, serviceLife: 10 }, brief) ?? '', /the life changed/);
   assert.match(keepsBrief({ ...brief, moves: [{ ...brief.moves[0], to: { a: 0.5 } }] }, brief) ?? '', /poses or dwell changed/);
-  assert.match(keepsBrief({ ...brief, moves: [{ ...brief.moves[0], dwell_s: 0 }] }, brief) ?? '', /poses or dwell changed/);
+  assert.match(keepsBrief({ ...brief, moves: [{ ...brief.moves[0], to: { a: 57.29577951300001 } }] }, brief) ?? '', /poses or dwell changed/, 'one ULP is still a change');
+  assert.match(keepsBrief({ ...brief, moves: [{ ...brief.moves[0], dwell: 0 }] }, brief) ?? '', /poses or dwell changed/);
+  assert.match(keepsBrief({ ...brief, moves: [] }, brief) ?? '', /the moves changed/);
 });

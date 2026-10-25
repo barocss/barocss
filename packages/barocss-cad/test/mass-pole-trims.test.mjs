@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart } from '../dist/index.js';
+import { evaluateCadPart, massPropertiesOf, outputOf } from '../dist/index.js';
 
 // A cone (r 3, h 4, apex up) less what lies past the plane x = −1: the plane trims its apex face along a hyperbola.
 const R1 = 3, H = 4, d = 1;
 const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
   { id: 'cs', kind: 'sketch', profile: 'loop', segments: [[0, 0], [R1, 0], [0, H]].map(start => ({ kind: 'line', start })), plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } },
-  { id: 'cone', kind: 'revolve', sketch: 'cs', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 },
+  { id: 'cone', kind: 'revolve', sketch: 'cs', axis: { origin: [0, 0], direction: 'y' }, angle: 360 },
   { id: 'bs', kind: 'sketch', profile: 'rectangle', min: [-d, -5], max: [6, 5] }, { id: 'box', kind: 'extrude', sketch: 'bs', height: 6 },
   { id: 'i', kind: 'intersect', target: 'cone', tool: 'box' }] };
 /** The cone's volume less its part past x = −d: ∫ of the circle segment's area over z (Gauss–Legendre, 4000 panels). */
@@ -21,7 +21,7 @@ function exact() {
 test('mass: a face reaching its pole takes the strips of its trims away from the pole (D192)', () => {
   // (Before D192 the apex face kept its whole hyperbola's chord error, extrapolated as the square of the step: 5.3e-4
   // of the volume off. Now 5e-10, the closed form's own panels.)
-  const m = evaluateCadPart(doc).output('i').massProperties(1), V = exact();
+  const m = massPropertiesOf(outputOf(evaluateCadPart(doc), 'i')), V = exact();
   assert.equal(m.method, 'quadrature');
-  assert.ok(Math.abs(m.volumeMM3 - V) <= 1e-8 * V, `${m.volumeMM3} vs ${V}`);
+  assert.ok(Math.abs(m.volume - V) <= 1e-8 * V, `${m.volume} vs ${V}`);
 });

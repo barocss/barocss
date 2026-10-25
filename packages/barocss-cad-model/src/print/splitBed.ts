@@ -95,7 +95,7 @@ export function planBedSplit(doc: StudioDoc, bodies: readonly BodyResult[], o: S
   if (!printer) throw refusal('NO_PRINTER', 'choose a printer first: the split is for its build volume');
   const count = o.count ?? 2, fit = o.fit ?? processProfile(doc.process ?? printer.process)?.thresholds.fitGap?.value ?? NaN, wall = o.wall ?? 2;
   if (!(o.d > 0 && o.length > 0 && Number.isInteger(count) && count >= 1 && count <= 8 && fit > 0 && wall >= 0)) throw refusal('BAD_CONNECTOR', `a connector needs d > 0, length > 0, 1–8 a cut, fit > 0 and wall ≥ 0 (d ${o.d}, length ${o.length}, count ${count}, fit ${fit}, wall ${wall})`);
-  const up = upAxis(doc), bed = printer.buildMM, body = bodies[0], ext = extentOf(body.mesh);
+  const up = upAxis(doc), bed = printer.buildVolume, body = bodies[0], ext = extentOf(body.mesh);
   if (fitsBed(ext, up, bed)) throw refusal('NOT_NEEDED', `the part (${ext.map(r2).join(' × ')} mm) fits ${printer.label} as it is`);
   // (The axis: the build axis when it is too tall, else the longer in-plane one; the fewest even pieces that fit.)
   const flat = [0, 1, 2].filter(k => k !== up), k = ext[up] > bed[2] + 1e-9 ? up : ext[flat[0]] >= ext[flat[1]] ? flat[0] : flat[1];

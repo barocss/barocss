@@ -18,7 +18,7 @@
 // Run: node examples/products/engine-1cyl/run.mjs --check <doc.bcad>
 import { readFileSync } from 'node:fs';
 import type { StudioDoc } from '../../../packages/barocss-cad-model/src/engine/doc';
-import { part } from '../../../packages/barocss-cad-model/src/api';
+import { BarocssError, part } from '../../../packages/barocss-cad-model/src/api';
 import { viewOf } from '../../../packages/barocss-cad-model/src/api/robotCore';
 import { treeOf, sweepLinksOf } from '../../../packages/barocss-cad-model/src/robot/verbs';
 import { convexDistance, meshClearance, spurGearDimensions, triangleBvh, type TriangleBvh } from '@barocss/cad';
@@ -38,28 +38,29 @@ type V3 = [number, number, number];
 
 /** The brief's numbers (brief.md): what the checks hold a design to. */
 export const BRIEF = {
-  displacementCC: [110, 135] as const,
+  displacement: [110000, 135000] as const,
   /** The counterweights' share of the reciprocating mass, on top of all the turning mass. */
   balanceFactor: [0.4, 0.8] as const,
   /** The modelled parts together, dry. */
-  massKg: [3, 12] as const,
+  mass: [3000, 12000] as const,
   /** The camshaft's turns per crank turn. */
   camRatio: 0.5,
-  stepDeg: 5,
+  step: 5,
 };
 
-export interface Check { id: string; ok: boolean; detail: string; ms: number }
+/** Durations are seconds, retaining the clock's existing millisecond rounding. */
+export interface Check { id: string; ok: boolean; detail: string; duration: number }
 export interface EngineFigures {
-  strokeMM?: number; boreMM?: number; displacementCC?: number; crankRadiusMM?: number;
-  massKg?: number; reciprocatingG?: number; rotatingG?: number; counterweightGMM?: number; balanceFactor?: number;
-  camRatio?: number; minClearanceMM?: number; cycleSteps?: number; maxLoopResidualMM?: number;
+  stroke?: number; bore?: number; displacement?: number; crankRadius?: number;
+  mass?: number; reciprocating?: number; rotating?: number; counterweightMoment?: number; balanceFactor?: number;
+  camRatio?: number; minClearance?: number; cycleSteps?: number; maxLoopResidual?: number;
   drawings?: number; dimensions?: number; reports?: number; findings?: number; camPackages?: number; camWaiting?: number; bomLines?: number;
 }
 /** What the outputs check made of each made part (its report's failing rules are findings, said, not the check's failure). */
 export interface PartOutputs { part: string; process: string | null; dimensions: number; drawingErrors: string[]; findings: string[]; cam?: 'made' | 'waiting' | string }
 /** An output file, when the check is asked to keep them (`files`): its path under the outputs' folder and its bytes or text. */
 export interface OutputFile { path: string; data: string | Uint8Array }
-export interface EngineCheck { ok: boolean; checks: Check[]; figures: EngineFigures; parts?: PartOutputs[]; files?: OutputFile[]; ms: number }
+export interface EngineCheck { ok: boolean; checks: Check[]; figures: EngineFigures; parts?: PartOutputs[]; files?: OutputFile[]; duration: number }
 
 // ── parts, by name ──
 interface Role { role: string; min: number; test: (name: string) => boolean }
@@ -97,8 +98,9 @@ function worldFace(doc: StudioDoc, tables: ReturnType<typeof tablesFor>, part: s
   const f = tables(part)?.[face];
   if (!f) return undefined;
   const inst = (doc.instances ?? []).find(i => i.id === part), R = inst ? rotationMatrix(inst.rotation) : [1, 0, 0, 0, 1, 0, 0, 0, 1], t = inst ? inst.position : [0, 0, 0];
-  return f.kind === 'plane' ? { kind: 'plane', point: placed(R, t, f.point), normal: placed(R, [0, 0, 0], f.normal) }
-    : { ...f, point: placed(R, t, f.point), axis: placed(R, [0, 0, 0], f.axis) };
+  if (f.kind === 'plane') return { kind: 'plane', point: placed(R, t, f.point), normal: placed(R, [0, 0, 0], f.normal) };
+  if (f.kind === 'cylinder') return { ...f, point: placed(R, t, f.point), axis: placed(R, [0, 0, 0], f.axis) };
+  throw new BarocssError('P1_MATE_KIND', `[P1_MATE_KIND] the engine oracle checks planar and cylindrical mate faces; ${part}/${face} is ${f.kind}`, 'evaluate');
 }
 
 function loopTerms(solved: StudioDoc, tree: JointTree): Term[] {
@@ -181,8 +183,8 @@ function partMasses(solved: StudioDoc, base: StudioDoc, problems: string[]): Par
     try {
       const sp = part(p.name, p.doc);
       for (const key of sp.bodies()) {
-        const m = sp.body(key).mass(), w = placed(p.R, p.t, m.centroidMM);
-        g += m.massG; c = [c[0] + m.massG * w[0], c[1] + m.massG * w[1], c[2] + m.massG * w[2]];
+        const m = sp.body(key).mass(), w = placed(p.R, p.t, m.centroid);
+        g += m.mass; c = [c[0] + m.mass * w[0], c[1] + m.mass * w[1], c[2] + m.mass * w[2]];
       }
     } catch (e) { problems.push(`${p.name}: ${e instanceof Error ? e.message : String(e)}`); continue; }
     out.push({ id: p.id, name: p.name, g, centroid: g > 0 ? [c[0] / g, c[1] / g, c[2] / g] : c });
@@ -215,7 +217,7 @@ function rigidGroup(tree: JointTree, link: string): Set<string> {
 // and the zone of meshing gears' teeth (root to tip about each joint's axis). Parent and child of a joint seated on a
 // flat mate (coincident, or a distance of 0) are not checked, as the core's sweep checks no parent and child; nor a
 // follower no joint drives against its camshaft (PG-5).
-const CONTACT_MM = 1e-6, DEPTH = 10, ARC = 1.01;
+const CONTACT = 1e-6, DEPTH = 10, ARC = 1.01;
 /** The chord a display mesh's facets put inside a circle of radius r (8 segments a quarter turn), and a margin. */
 const band = (r: number) => r * (1 - Math.cos(Math.PI / 32)) + 0.05;
 interface Ring { o: V3; d: V3; lo: number; hi: number }
@@ -287,12 +289,12 @@ function positionsAt(p: Pose, l: SweepLink): Float64Array {
 }
 function clearance(p: Pose, c: PairCheck): number {
   const d = convexDistance(hullAt(p, c.a), hullAt(p, c.b));
-  if (d > CONTACT_MM) return d;
+  if (d > CONTACT) return d;
   const pa = positionsAt(p, c.a), pb = positionsAt(p, c.b);
   let least = Infinity;
   for (const k of c.checks) {
     if (!k.ia.length || !k.ib.length) continue;
-    least = Math.min(least, meshClearance(pa, k.ia, pb, k.ib, { bvhA: bvhAt(p, k.ka, pa, k.ia), bvhB: bvhAt(p, k.kb, pb, k.ib) }).distanceMM);
+    least = Math.min(least, meshClearance(pa, k.ia, pb, k.ib, { bvhA: bvhAt(p, k.ka, pa, k.ia), bvhB: bvhAt(p, k.kb, pb, k.ib) }).distance);
   }
   return least;
 }
@@ -307,8 +309,8 @@ function travel(p0: Pose, p1: Pose, l: SweepLink): number {
 interface SweepState { tree: JointTree; terms: readonly Term[]; unknowns: readonly string[]; driver: string; poses: number; least: { mm: number; deg: number; links: [string, string] } | null }
 /** A pair between two poses: clear, or the angle of its first contact. */
 function certify(s: SweepState, c: PairCheck, p0: Pose, p1: Pose, d0: number, d1: number, depth: number): number | null {
-  if (d0 <= CONTACT_MM) return p0.deg;
-  if (d1 <= CONTACT_MM) return p1.deg;
+  if (d0 <= CONTACT) return p0.deg;
+  if (d1 <= CONTACT) return p1.deg;
   if (d0 + d1 > travel(p0, p1, c.a) + travel(p0, p1, c.b)) return null;
   if (depth >= DEPTH) return (p0.deg + p1.deg) / 2;
   const deg = (p0.deg + p1.deg) / 2, q = { ...p0.q, [s.driver]: deg * Math.PI / 180 };
@@ -324,9 +326,9 @@ function contactAt(s: SweepState, c: PairCheck, from: Record<string, number>, de
   close(s.tree, s.terms, s.unknowns, q);
   const p = poseOf(s.tree, deg, q);
   const pa = positionsAt(p, c.a), pb = positionsAt(p, c.b);
-  let m = { distanceMM: Infinity, pointA: null as readonly [number, number, number] | null };
-  for (const k of c.checks) { if (!k.ia.length || !k.ib.length) continue; const x = meshClearance(pa, k.ia, pb, k.ib); if (x.distanceMM < m.distanceMM) m = x; }
-  return { deg, links: [c.a.link, c.b.link] as [string, string], at: m.pointA ? m.pointA.map(r3) as V3 : null, mm: m.distanceMM };
+  let m = { distance: Infinity, pointA: null as readonly [number, number, number] | null };
+  for (const k of c.checks) { if (!k.ia.length || !k.ib.length) continue; const x = meshClearance(pa, k.ia, pb, k.ib); if (x.distance < m.distance) m = x; }
+  return { deg, links: [c.a.link, c.b.link] as [string, string], at: m.pointA ? m.pointA.map(r3) as V3 : null, mm: m.distance };
 }
 
 /** The cycle swept pair by pair: the first contact, the least clearance, what was left out and why. */
@@ -390,13 +392,13 @@ const timed = <T>(checks: Check[], id: string, run: () => { ok: boolean; detail:
   const t0 = performance.now();
   let r: { ok: boolean; detail: string; value?: T };
   try { r = run(); } catch (e) { r = { ok: false, detail: e instanceof Error ? e.message : String(e) }; }
-  checks.push({ id, ok: r.ok, detail: r.detail, ms: Math.round(performance.now() - t0) });
+  checks.push({ id, ok: r.ok, detail: r.detail, duration: Math.round(performance.now() - t0) / 1000 });
   return r.value;
 };
 
 /** The checks over a document (a StudioDoc whose instances are the engine's parts, as Save writes it). */
-export async function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?: number; outputs?: boolean; files?: boolean } = {}): Promise<EngineCheck> {
-  const t0 = performance.now(), checks: Check[] = [], figures: EngineFigures = {}, step = o.stepDeg ?? BRIEF.stepDeg;
+export async function checkEngine(doc: StudioDoc, o: { sweep?: boolean; step?: number; outputs?: boolean; files?: boolean } = {}): Promise<EngineCheck> {
+  const t0 = performance.now(), checks: Check[] = [], figures: EngineFigures = {}, step = o.step ?? BRIEF.step;
   const instances = doc.instances ?? [], named = (role: Role) => instances.filter(i => role.test(i.name.toLowerCase()));
 
   // parts
@@ -414,11 +416,11 @@ export async function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?
     const t = treeOf(view), bad = [...solvedR.problems.map(p => `${p.mate}: ${p.reason}`), ...t.problems.map(p => `[${p.code}] ${p.message}`)];
     return { ok: !bad.length, detail: bad.length ? bad.slice(0, 4).join(' · ') : `${(doc.mates ?? []).length} mates solve; ${t.joints.filter(j => j.type !== 'fixed').length} moving joints, ${t.loops.length} loop(s), ${t.couplings.length} gear coupling(s)`, value: t };
   });
-  if (!tree) return { ok: false, checks, figures, ms: Math.round(performance.now() - t0) };
+  if (!tree) return { ok: false, checks, figures, duration: Math.round(performance.now() - t0) / 1000 };
   const driver = tree.joints.find(j => turning(j) && j.child === crankId);
   const rodJoint = tree.joints.find(j => turning(j) && j.parent === crankId && (j.child === rodId || j.child.startsWith(`${rodId}__`)));
   const crankR = driver && rodJoint ? Math.hypot(...perp(sub(rodJoint.origin, driver.origin), unit(driver.axis))) : undefined;
-  if (crankR !== undefined) figures.crankRadiusMM = r3(crankR);
+  if (crankR !== undefined) figures.crankRadius = r3(crankR);
 
   // cycle
   const cycle = timed<{ poses: Record<string, number>[]; terms: Term[]; unknowns: string[] }>(checks, 'cycle', () => {
@@ -448,15 +450,15 @@ export async function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?
       lo = Math.min(lo, s); hi = Math.max(hi, s);
       out.push({ ...q });
     }
-    const stroke = hi - lo, boreD = boreFace?.kind === 'cylinder' ? 2 * boreFace.radius : undefined, cc = boreD ? Math.PI / 4 * boreD * boreD * stroke / 1000 : undefined;
-    Object.assign(figures, { strokeMM: r3(stroke), cycleSteps: out.length, maxLoopResidualMM: worst, ...(boreD ? { boreMM: r3(boreD) } : {}), ...(cc ? { displacementCC: r3(cc) } : {}) });
+    const stroke = hi - lo, boreD = boreFace?.kind === 'cylinder' ? 2 * boreFace.radius : undefined, displacement = boreD ? Math.PI / 4 * boreD * boreD * stroke : undefined;
+    Object.assign(figures, { stroke: r3(stroke), cycleSteps: out.length, maxLoopResidual: worst, ...(boreD ? { bore: r3(boreD) } : {}), ...(displacement ? { displacement: r3(displacement) } : {}) });
     const problems: string[] = [];
     if (!(stroke > 1)) problems.push(`the piston hardly moves (${r3(stroke)} mm)`);
     if (crankR !== undefined && Math.abs(stroke - 2 * crankR) > 0.01) problems.push(`stroke ${r3(stroke)} is not twice the crank radius ${r3(crankR)}`);
     if (Math.abs(at0 - hi) > 1e-6 && Math.abs(at0 - lo) > 1e-6) problems.push('the assembled pose is neither top nor bottom dead centre');
-    if (cc === undefined) problems.push('no bore: the piston has no round mate in its loop');
-    else if (cc < BRIEF.displacementCC[0] || cc > BRIEF.displacementCC[1]) problems.push(`displacement ${r3(cc)} cc is outside ${BRIEF.displacementCC.join('–')} cc`);
-    return { ok: !problems.length, detail: problems.length ? problems.join('; ') : `720° in ${step}° steps, the loop closed at each (worst ${worst.toExponential(1)} mm); stroke ${r3(stroke)}, bore ${r3(boreD!)}, ${r3(cc!)} cc`, value: { poses: out, terms, unknowns } };
+    if (displacement === undefined) problems.push('no bore: the piston has no round mate in its loop');
+    else if (displacement < BRIEF.displacement[0] || displacement > BRIEF.displacement[1]) problems.push(`displacement ${r3(displacement)} mm³ is outside ${BRIEF.displacement.join('–')} mm³`);
+    return { ok: !problems.length, detail: problems.length ? problems.join('; ') : `720° in ${step}° steps, the loop closed at each (worst ${worst.toExponential(1)} mm); stroke ${r3(stroke)}, bore ${r3(boreD!)}, ${r3(displacement!)} mm³`, value: { poses: out, terms, unknowns } };
   });
 
   // timing
@@ -470,7 +472,7 @@ export async function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?
     }
     const ratio = c.leader === driver.key ? Math.abs(c.multiplier) : 1 / Math.abs(c.multiplier);
     figures.camRatio = r3(ratio);
-    return { ok: Math.abs(ratio - BRIEF.camRatio) < 1e-9, detail: `camshaft at ${r3(ratio)} of the crank's turn (backlash ${r3(c.backlashMM)} mm, contact ratio ${r3(c.contactRatio)})` };
+    return { ok: Math.abs(ratio - BRIEF.camRatio) < 1e-9, detail: `camshaft at ${r3(ratio)} of the crank's turn (backlash ${r3(c.backlash)} mm, contact ratio ${r3(c.contactRatio)})` };
   });
 
   // sweep
@@ -479,18 +481,18 @@ export async function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?
     const name = (id: string) => instances.find(i => i.id === id)?.name ?? id;
     const r = sweepCycle(tree, sweepLinksOf(view, tree), solved, cycle, driver.key, step, instances.filter(i => FOLLOWER.test(i.name.toLowerCase())).map(i => i.id));
     if (r.contact) return { ok: false, detail: `${name(r.contact.links[0])} touches ${name(r.contact.links[1])} at ${r3(r.contact.deg)}°${r.contact.at ? `, near (${r.contact.at.join(', ')}) mm` : ''}` };
-    if (r.least) figures.minClearanceMM = r3(r.least.mm);
+    if (r.least) figures.minClearance = r3(r.least.mm);
     const notes = [...r.skipped.map(x => `${name(x.links[0])}–${name(x.links[1])}: ${x.why}`)];
     return { ok: true, detail: `no contact through 720° (${r.pairs} pairs, ${r.poses} poses with the subdivisions)${r.least ? `; least clearance ${r3(r.least.mm)} mm (${name(r.least.links[0])}–${name(r.least.links[1])} at ${r3(r.least.deg)}°)` : ''}${r.seated ? `; ${r.seated} pairs checked without their running fits' surfaces and gear teeth` : ''}${notes.length ? `; not checked: ${notes.join('; ')}` : ''}` };
   });
 
   // masses and balance
-  const massProblems: string[] = [], masses = partMasses(solved, doc, massProblems), total = masses.reduce((s, m) => s + m.g, 0) / 1000;
+  const massProblems: string[] = [], masses = partMasses(solved, doc, massProblems), total = masses.reduce((s, m) => s + m.g, 0);
   timed(checks, 'masses', () => {
-    figures.massKg = r3(total);
+    figures.mass = r3(total);
     const empty = masses.filter(m => !(m.g > 0)).map(m => m.name), problems = [...massProblems, ...(empty.length ? [`no mass: ${empty.join(', ')}`] : [])];
-    if (total < BRIEF.massKg[0] || total > BRIEF.massKg[1]) problems.push(`${r3(total)} kg is outside ${BRIEF.massKg.join('–')} kg`);
-    return { ok: !problems.length, detail: problems.length ? problems.join('; ') : `${masses.length} parts, ${r3(total)} kg` };
+    if (total < BRIEF.mass[0] || total > BRIEF.mass[1]) problems.push(`${r3(total)} g is outside ${BRIEF.mass.join('–')} g`);
+    return { ok: !problems.length, detail: problems.length ? problems.join('; ') : `${masses.length} parts, ${r3(total)} g` };
   });
   timed(checks, 'balance', () => {
     if (!driver || !rodJoint || crankR === undefined || !pistonId || !rodId) return { ok: false, detail: 'no crank, rod and piston to balance' };
@@ -500,7 +502,7 @@ export async function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?
     const axis = unit(driver.axis), u = unit(perp(sub(rodJoint.origin, driver.origin), axis));
     const U = -of(rigidGroup(tree, crankId!)).reduce((s, m) => s + m.g * dot(sub(m.centroid, driver.origin), u), 0);
     const bf = (U - rot * crankR) / (recip * crankR);
-    Object.assign(figures, { reciprocatingG: r3(recip), rotatingG: r3(rot), counterweightGMM: r3(U), balanceFactor: r3(bf) });
+    Object.assign(figures, { reciprocating: r3(recip), rotating: r3(rot), counterweightMoment: r3(U), balanceFactor: r3(bf) });
     const ok = bf >= BRIEF.balanceFactor[0] && bf <= BRIEF.balanceFactor[1];
     return { ok, detail: `balance factor ${r3(bf)} (counterweights ${r3(U)} g·mm; turning ${r3(rot)} g, reciprocating ${r3(recip)} g at ${r3(crankR)} mm)${ok ? '' : `: outside ${BRIEF.balanceFactor.join('–')}`}` };
   });
@@ -511,10 +513,10 @@ export async function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?
     const t1 = performance.now(), r = await outputsOf(doc, masses, o.files ? (files = []) : null);
     parts = r.parts;
     Object.assign(figures, r.figures);
-    checks.push({ id: 'outputs', ok: !r.problems.length, detail: r.problems.length ? r.problems.slice(0, 6).join('; ') : r.detail, ms: Math.round(performance.now() - t1) });
+    checks.push({ id: 'outputs', ok: !r.problems.length, detail: r.problems.length ? r.problems.slice(0, 6).join('; ') : r.detail, duration: Math.round(performance.now() - t1) / 1000 });
   }
 
-  return { ok: checks.every(c => c.ok), checks, figures, ...(parts ? { parts } : {}), ...(files ? { files } : {}), ms: Math.round(performance.now() - t0) };
+  return { ok: checks.every(c => c.ok), checks, figures, ...(parts ? { parts } : {}), ...(files ? { files } : {}), duration: Math.round(performance.now() - t0) / 1000 };
 }
 
 // ── outputs: each made part's, and the assembly's BOM ──
@@ -556,7 +558,7 @@ async function outputsOf(doc: StudioDoc, masses: readonly PartMass[], files: Out
   // (The BOM first: a part it lists whole as bought — a fastener, a catalogue part — is bought, not made here.)
   let lines = 0, bought = new Set<string>();
   try {
-    const content = await outputOf(doc, 'output_bom'), bom = content.bom as { lines: { parts: string[]; kind?: string; source: string | null }[]; totalMassG: number };
+    const content = await outputOf(doc, 'output_bom'), bom = content.bom as { lines: { parts: string[]; kind?: string; source: string | null }[]; totalMass: number };
     files?.push({ path: 'bom.json', data: fileText(content) }, { path: 'purchase.csv', data: fileText(await outputOf(doc, 'output_purchase_csv')) });
     bought = new Set(bom.lines.filter(l => l.kind !== undefined || l.source !== null).flatMap(l => l.parts.filter(x => !x.includes(':'))));
     lines = bom.lines.length;
@@ -564,7 +566,7 @@ async function outputsOf(doc: StudioDoc, masses: readonly PartMass[], files: Out
     const missing = (doc.instances ?? []).filter(i => !listed.has(i.id)).map(i => i.name);
     if (missing.length) problems.push(`the BOM leaves out ${missing.join(', ')}`);
     const total = masses.reduce((s, m) => s + m.g, 0);
-    if (Math.abs(bom.totalMassG - total) > 0.01 * total) problems.push(`the BOM's mass ${r3(bom.totalMassG)} g is not the parts' ${r3(total)} g`);
+    if (Math.abs(bom.totalMass - total) > 0.01 * total) problems.push(`the BOM's mass ${r3(bom.totalMass)} g is not the parts' ${r3(total)} g`);
   } catch (e) { problems.push(`no BOM — ${message(e)}`); }
   const made = [{ id: BASE, name: 'base', doc }, ...(doc.instances ?? []).map(i => ({ id: i.id, name: i.name, doc: i.doc }))]
     .filter(p => !bought.has(p.id) && p.doc.nodes.length && madeBodies(p.doc.nodes, bodiesOf(p.doc)).length);

@@ -203,7 +203,7 @@ function seatMeets(seat: Seat, A: string, PA: Float64Array, IA: Uint32Array, PB:
 function seatClearance(seat: Seat, A: string, PA: Float64Array, PB: Float64Array): number {
   const flip = seat.first !== A;
   let d = Infinity;
-  for (const [s1, s2] of seat.checks) { if (!s1.length || !s2.length) continue; const m = flip ? meshClearance(PA, s2, PB, s1).distanceMM : meshClearance(PA, s1, PB, s2).distanceMM; if (m < d) d = m; }
+  for (const [s1, s2] of seat.checks) { if (!s1.length || !s2.length) continue; const m = flip ? meshClearance(PA, s2, PB, s1).distance : meshClearance(PA, s1, PB, s2).distance; if (m < d) d = m; }
   return d;
 }
 /** A pose's points: the home points moved (into `out`). */
@@ -291,7 +291,7 @@ export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Re
           if (r === 0 && s === 0) { skipped.push({ links: [A, B], why: 'in contact where the path starts and not moved by it' }); rate.set(`${A}|${B}`, -1); continue; }
           return { contact: { s, values: fk.values, links: [A, B] }, clear: false, minClearance: { mm: 0, s, links: [A, B] }, samples, pairs, skipped, designed };
         }
-        d = seat ? seatClearance(seat, A, pa.mesh, pb.mesh) : meshClearance(pa.mesh, la.indices, pb.mesh, lb.indices).distanceMM;
+        d = seat ? seatClearance(seat, A, pa.mesh, pb.mesh) : meshClearance(pa.mesh, la.indices, pb.mesh, lb.indices).distance;
       }
       if (r < 0) continue;
       if (!min || d < min.mm) min = { mm: d, s, links: [A, B] };

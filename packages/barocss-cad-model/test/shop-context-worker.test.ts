@@ -34,9 +34,20 @@ parentPort.on('message',data=>self.onmessage({data}));parentPort.postMessage({re
     worker.postMessage({ type: 'part', id: ++id, revision: id, slot: 'read', doc: sender.pack(view) });
     const [reply] = await response as [{ id: number; result: Parameters<MeshReceiver['unpack']>[1] }];
     assert.equal(reply.id, id); const result: EvalResult = receiver.unpack('read', reply.result); assert.ok(result.ok);
+    assert.ok(Number.isFinite(result.wallTime) && result.wallTime >= 0);
+    assert.equal('ms' in reply.result, false); assert.equal('ms' in result, false);
     assert.deepEqual(result.shopRows, provenanceOfTree(view)); assert.deepEqual(result.shopRows, native.shopRows);
-    assert.equal(result.bodies[0].volumeMM3, native.bodies[0].volumeMM3); volumes.push(result.bodies[0].volumeMM3);
+    assert.equal(result.bodies[0].volume, native.bodies[0].volume); volumes.push(result.bodies[0].volume);
     assert.equal(result.shopRows?.[0].rows[0].origin, 'inherited');
   }
   assert.notEqual(volumes[0], volumes[1]); assert.equal(child.frames, undefined);
+  // The same authored child without its parent's section row is a real evaluation refusal.
+  const response = once(worker, 'message');
+  worker.postMessage({ type: 'part', id: ++id, revision: id, slot: 'read', doc: sender.pack(child) });
+  const [reply] = await response as [{ id: number; result: Parameters<MeshReceiver['unpack']>[1] }];
+  const failed = receiver.unpack('read', reply.result), native = evaluatePart(child, id);
+  assert.ok(!failed.ok && !native.ok);
+  assert.deepEqual(failed.error, native.error);
+  assert.ok(Number.isFinite(failed.wallTime) && failed.wallTime >= 0);
+  assert.equal('ms' in reply.result, false); assert.equal('ms' in failed, false);
 });

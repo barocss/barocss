@@ -32,10 +32,10 @@ function cubes(x: number, y: number, z: number): StudioDoc {
 function boxCylinder(flip: boolean): StudioDoc {
   let d = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [-8, 0], max: [0, 3] });
   d = withNode(d, { kind: 'extrude', sketch: 0, height: 8, from: -2 });
-  d = withNode(d, { kind: 'rotate', parent: { node: 1, side: 'solid' }, axis: 'x', angleDegrees: 30, pivot: [0, 0, 0] });
+  d = withNode(d, { kind: 'rotate', parent: { node: 1, side: 'solid' }, axis: 'x', angle: 30, pivot: [0, 0, 0] });
   d = withNode(d, { kind: 'sketch', profile: 'circle', center: [-2, -2], radius: 2 });
   d = withNode(d, { kind: 'extrude', sketch: 3, height: 4, from: 1 });
-  d = withNode(d, { kind: 'rotate', parent: { node: 4, side: 'solid' }, axis: 'x', angleDegrees: 30, pivot: [0, 0, 0] });
+  d = withNode(d, { kind: 'rotate', parent: { node: 4, side: 'solid' }, axis: 'x', angle: 30, pivot: [0, 0, 0] });
   return withNode(d, { kind: 'union', left: { node: flip ? 5 : 2, side: 'solid' }, right: { node: flip ? 2 : 5, side: 'solid' } });
 }
 const bodyOf = (doc: StudioDoc): BodyResult => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.detail); assert.equal(r.bodies.length, 1); return r.bodies[0]; };
@@ -47,7 +47,7 @@ test('O8: lumps touching along an edge, at a point, a corner on an edge, a cylin
     assert.deepEqual(lumpTouches(b.mesh), [[0, 1]], label);
   }
   // (Case (b) is the kernel's own, its volume the kernel's: 8 · 3 · 8 + π · 2² · 4.)
-  for (const flip of [false, true]) assert.ok(Math.abs(bodyOf(boxCylinder(flip)).volumeMM3! - (192 + 16 * Math.PI)) <= 1e-6 * 242, String(flip));
+  for (const flip of [false, true]) assert.ok(Math.abs(bodyOf(boxCylinder(flip)).volume! - (192 + 16 * Math.PI)) <= 1e-6 * 242, String(flip));
   const apart = bodyOf(cubes(20, 0, 0));
   assert.deepEqual([apart.pieces, apart.lumpTouch], [2, undefined], 'apart: two pieces, no touch');
   const faces = bodyOf(cubes(10, 0, 0));

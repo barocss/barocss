@@ -18,13 +18,13 @@
           "row": {
             "kind": "v-belt",
             "id": "v-a",
-            "angleDeg": 38,
-            "datumWidthMM": 8.5,
-            "aboveDatumMM": 2,
-            "belowDatumMM": 9,
-            "spacingMM": 12,
-            "edgeMM": 8,
-            "thicknessMM": 8,
+            "angle": 38,
+            "datumWidth": 8.5,
+            "aboveDatum": 2,
+            "belowDatum": 9,
+            "spacing": 12,
+            "edge": 8,
+            "thickness": 8,
             "estimate": true
           },
           "diameter": 100,
@@ -37,11 +37,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 188957.14308397885,
           "relTol": 1e-7
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,

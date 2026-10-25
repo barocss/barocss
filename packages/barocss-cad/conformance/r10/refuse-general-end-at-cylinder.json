@@ -67,7 +67,7 @@
           "kind": "rotate",
           "target": "c0",
           "axis": "y",
-          "angleDegrees": 5,
+          "angle": 5,
           "pivot": [
             0,
             0,

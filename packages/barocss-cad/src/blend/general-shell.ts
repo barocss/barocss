@@ -264,7 +264,7 @@ function shellBody(body: Brep, t: number, open: ReadonlySet<string>, id: string,
       const z0 = R.z0 - (R.stop[2] ? 0 : t), z1 = R.z1 + (R.stop[3] ? 0 : t);
       // A rectangle (ρ, h) turned about the local Y axis, then placed: Y → the axis, X → the start angle.
       const profile = (inner > 0 ? [[inner, z0], [outer, z0], [outer, z1], [inner, z1]] : [[0, z0], [outer, z0], [outer, z1], [0, z1]]).map(p => ({ kind: 'line' as const, start: p as XY }));
-      slabs.push(placeTurned(revolveProfile({ id: sid, profile, axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: span * 180 / Math.PI }), sid, span, start, C.c, C.a, C.e1, C.e2));
+      slabs.push(placeTurned(revolveProfile({ id: sid, profile, axis: { origin: [0, 0], direction: [0, 1] }, angle: span * 180 / Math.PI }), sid, span, start, C.c, C.a, C.e1, C.e2));
     });
   });
   revolutions.forEach((x, k) => slabs.push(...revolutionSlab(x.R, x.face, x.name, usesOf(x.face).flatMap(l => l.uses).map(u => ({ curve: u.curve, stop: stops(u.edge) })), t, out, size, `${id}_v${k}`)));
@@ -465,7 +465,7 @@ function cornerSolids(corners: readonly Corner[], size: number, id: string): Bre
     regions.forEach((reg, j) => {
       if (reg.holes.length) refuse('the corner of a concave edge has a hole in its section');
       const profile = reg.outer.map(g => g.kind === 'line' ? { kind: 'line' as const, start: [g.a[0], g.a[1]] as XY } : g.kind === 'arc' ? { kind: 'arc' as const, start: endOf(g, 0), center: g.c as XY, direction: (g.sweep > 0 ? 'ccw' : 'cw') as 'ccw' | 'cw' } : refuse('a corner profile with a free curve'));
-      const pid = `${sid}_${j}`, turned = revolveProfile({ id: pid, profile, axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: whole ? 360 : span * 180 / Math.PI });
+      const pid = `${sid}_${j}`, turned = revolveProfile({ id: pid, profile, axis: { origin: [0, 0], direction: [0, 1] }, angle: whole ? 360 : span * 180 / Math.PI });
       out.push(placeTurned(turned, pid, span, start, c.c0, c.a, c.e1, c.e2));
     });
   }
@@ -614,7 +614,7 @@ function revolutionSlab(R: Revolution, f: BrepFace, name: string, uses: { curve:
     const rmin = Math.min(...reg.outer.flatMap(g => g.kind === 'line' ? [g.a[0], g.b[0]] : g.kind === 'arc' ? [Math.max(0, g.c[0] - g.r)] : [0]));
     const dth = rmin > 1e-6 * size ? t / rmin : TAU, g0 = stop[2] ? 0 : dth, g1 = stop[3] ? 0 : dth, span = span0 + g0 + g1, full = span >= TAU - 1e-9, start = full ? 0 : th0 - g0;
     const profile = reg.outer.map(g => g.kind === 'line' ? { kind: 'line' as const, start: [g.a[0], g.a[1]] as XY } : g.kind === 'arc' ? { kind: 'arc' as const, start: endOf(g, 0), center: g.c as XY, direction: (g.sweep > 0 ? 'ccw' : 'cw') as 'ccw' | 'cw' } : refuse('a slab profile with a free curve'));
-    const sid = `${id}_${j}`, turned = revolveProfile({ id: sid, profile, axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: full ? 360 : span * 180 / Math.PI });
+    const sid = `${id}_${j}`, turned = revolveProfile({ id: sid, profile, axis: { origin: [0, 0], direction: [0, 1] }, angle: full ? 360 : span * 180 / Math.PI });
     return placeTurned(turned, sid, span, start, c, a, e1, e2);
   });
 }

@@ -34,7 +34,7 @@ const named = (n: ModelNode): { key: 'edges' | 'open' | 'faces'; edge: boolean }
 export function signaturesOf(body: BodyResult): { faces: Map<string, Signature>; edges: Map<string, Signature> } {
   const faces = new Map<string, Signature>(), edges = new Map<string, Signature>();
   for (const f of body.mesh.faces) {
-    const names = f.name.split('+'), sig: Signature = { kind: f.kind, at: f.centroid, dir: f.kind === 'plane' ? f.normal : null, size: f.areaMM2, ...(f.radius ? { radius: f.radius } : {}), ...(names.length > 1 ? { shared: names.length } : {}) };
+    const names = f.name.split('+'), sig: Signature = { kind: f.kind, at: f.centroid, dir: f.kind === 'plane' ? f.normal : null, size: f.area, ...(f.radius ? { radius: f.radius } : {}), ...(names.length > 1 ? { shared: names.length } : {}) };
     for (const name of names) faces.set(name, sig);
   }
   for (const e of body.mesh.edges) {

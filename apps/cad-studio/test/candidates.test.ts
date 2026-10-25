@@ -44,7 +44,7 @@ test('A7.5 isolation: two candidates built on R0 leave it unchanged and do not s
   const s = await seeded(), b = new CandidateBoard(s, evaluate), r0 = canonicalOf(s.doc);
   const a = await built(b, 'A', 6, 1), bb = await built(b, 'B', 7, 2);
   assert.equal(canonicalOf(b.state.doc), r0, 'R0 unchanged'); assert.equal(b.volume(), 1000);
-  assert.deepEqual([a.evidence!.facts.volume_mm3, bb.evidence!.facts.volume_mm3], [1200, 1400]);
+  assert.deepEqual([a.evidence!.facts.volume, bb.evidence!.facts.volume], [1200, 1400]);
   const before = canonical([b.evidenceOf('A'), b.evidenceOf('B')]);
   assert.ok(b.start({ operationId: 'sC', candidate: 'C', patch: { ops: [{ tool: 'edit_feature', args: { index: 42, values: { h: 6 } } }] } }).ok);
   assert.equal((await b.run('rC', 'C')).code, 'WRONG_TARGET');
@@ -57,7 +57,7 @@ test('A7.5 the replay gate, mutants: the part read back with other facts, a verd
   const s = await seeded();
   const bent = (f: (e: Evidence) => Evidence | { error: string }): Reopen => async bytes => { const real = await (await import('@barocss/cad-model/team/candidates')).inProcessReopen(evaluate)(bytes); return 'error' in real ? real : f(real); };
   for (const [reopen, code] of [
-    [bent(e => ({ ...e, facts: { ...e.facts, volume_mm3: e.facts.volume_mm3 + 1 } })), 'REPLAY_FACTS_DIFFER'],
+    [bent(e => ({ ...e, facts: { ...e.facts, volume: e.facts.volume + 1 } })), 'REPLAY_FACTS_DIFFER'],
     [bent(e => ({ ...e, verdicts: { ...e.verdicts, H: { ...e.verdicts.H, measured: (e.verdicts.H.measured ?? 0) + 0.02 } } })), 'REPLAY_VERDICT_DIFFERS'],
     [bent(e => ({ ...e, verdicts: { ...e.verdicts, H: { status: 'fail' } } })), 'REPLAY_VERDICT_DIFFERS'],
     [(async () => ({ error: 'the file is cut short' })) as Reopen, 'REPLAY_UNREADABLE'],

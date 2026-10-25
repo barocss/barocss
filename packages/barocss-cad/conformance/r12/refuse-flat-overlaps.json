@@ -159,11 +159,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 8605.044226976348,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             38.50260979527409,
             25,
@@ -199,7 +199,7 @@
         ],
         "flat": {
           "options": {
-            "thicknessMM": 2,
+            "thickness": 2,
             "kFactor": 0.44
           },
           "error": {
