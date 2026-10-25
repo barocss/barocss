@@ -20,11 +20,11 @@ section current.
 | Kernel | R7.3b/R7.7b adopted in `bd60b578b`; CG1.1 bounded non-parallel loft core adopted at `a52d6c46b`; native45 tests and both consumer type checks pass | CG1.1 curved-profile/general-section support and Studio/v2 adapters, then CG1.2 guide rails and CG2 patterns; use RS7 as a consumer | PG-3 profiling remains prepared; R7.3d and K17 stay in separate windows |
 | Outer | O24(a)/(b)/(c) and RS6 core adopted; O24(d)-1 fastened implementation assigned from `697b31611` | O24(d) ball/universal/cylindrical, then RS6 Studio/API loop consumers and RS7 coupled loops; exact feature slices | O24(e) relations and CG4 flexible subassemblies/patterns; RO diagnostic remains optional |
 | GPU | G15d.2 bloom adopted (`621c7dc6f`, merge `cba255347`). G14 quiet section samples give mixed results (5.89 ms PASS, 7.43 ms FAIL against 6 ms); an excluded run ended above load 10. No new code checkpoint | Keep G14: separate surface/cap/output contributions before choosing an optimization; then G15d.3 → G15c → G15d.4 | G15-accept on the P1 engine |
-| API | R7.7d adopted; P2 G4606 attempt0004 reviewed: matching3 and impact9 pass, types/lint pass; G still unmerged | R(original G production/B test) → B e663 → A f174 → C8eb; preserve the first three tooling failures | Merge each verified general checkpoint; RS6/RS7 facade consumers follow the P2 queue |
+| API | R7.7d adopted; P2 G4606 and B e663 adopted in `6a7826c4f`/`6707a9b5d`; fresh product13 tests and both consumer type checks pass | A f174 → C8eb in separate exact-SHA windows; R reproduced the old VALUE failure; preserve the first three tooling failures | Merge each verified general checkpoint; RS6/RS7 facade consumers follow the P2 queue |
 | Docs | R7 docs adopted; R7.6 part2 five external source files returned, review and runtime pending | Inventory fixtures and baseline after source review; document RS7 from implemented features | Preserve the owner preview and existing artifacts |
 | Drawings (CG5) | DR-6a adopted; R7 Drawing consumers adopted in `bd60b578b`; DR-6b56d2 source-ready, runtime NOT RUN and unmerged | Actual hole-face probe after a separate exact-SHA writer assignment; then retained-selection browser case | DR-6 targets, standalone/composite; DR-7 and DR-8 later |
 | Data (CG6) | idle: VA-1/VA-2 done (merge df8761f1e); what is left (sharing, comments, multi-user) waits on the owner | — | — |
-| Coordinator | R7 adopted; P2 G scoped result reviewed; CG1.1 bounded core adopted; O24(d)-1 code ready for focused native checks | Keep the P2 R/B/A/C order. Run one runtime writer at a time. Review changed areas and merge each ready checkpoint | RS7 staged acceptance joins existing O24/RS6/CG work; keep recorded exceptions and owner input decisions |
+| Coordinator | R7 adopted; P2 G scoped result reviewed; CG1.1 bounded core adopted; O24(d)-1 code ready for focused native checks | G/B are adopted; continue P2 A/C and O24(d)-1 focused validation. Run one runtime writer and merge each verified checkpoint | RS7 staged acceptance joins existing O24/RS6/CG work; keep recorded exceptions and owner input decisions |
 
 ## Codex lane ownership and R7 readiness (2026-10-24)
 
@@ -383,7 +383,7 @@ Do not treat the example as a copy of a known rotor or as a manufactured aircraf
 The first CG1.1 core checkpoint is adopted from `2b720537a` by merge `a52d6c46b`. Its native checks
 passed: build, package types, four-file lint, 45 tests (14 in the new file and 31 existing), and
 Model/Studio consumer type checks. The first `fd625c07b` build failure is preserved. These are focused
-checks; no new whole-kernel or browser qualification is claimed. O24(d)-1 code is ready for its native window.
+checks; no new whole-kernel or browser qualification is claimed. O24(d)-1 has passed Model64 tests. Its first Studio run is 8PASS/2FAIL from a stale recorder-fixture return; a one-line test fix is source-ready, with native recheck pending.
 P2 R/B/A/C stays in its current order; its general API work is not replaced by RS7.
 Source work can proceed in separate lanes. Builds, tests and browser runs use one runtime writer.
 Use focused regressions for each feature. Run a full integration window when the required checkpoints are ready.
