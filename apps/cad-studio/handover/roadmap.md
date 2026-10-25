@@ -140,6 +140,14 @@ A selected planar box test connected B-rep mass data to independent axis-inertia
 The direct-file engine History scroll and Save/New/Open flow preserved the complete document in desktop Chrome;
 Project/OPFS saving was outside that check. Original failures and limited visual evidence remain separate.
 
+Negative principal-axis draft is implemented at `9e5dcfc6`, with its one affected library build, eighteen
+focused tests and changed-file lint checked. Three negative-axis fixtures were inspected in four desktop
+views. These checks preserve the existing tolerances and refusal boundaries; the mass-property comparisons
+use a same-lift Z reference and do not establish measured accuracy or manufacturing acceptance.
+The remaining delivery gates are the reviewed public inventory, documentation/site checks and local product
+adoption. The next separate UI slice pins a historical static-gravity record beside a new prediction;
+its external source proposal is reviewed but is not yet adopted or executed.
+
 Stage 1 still covers a bounded static holding-torque calculation for one connected open revolute or continuous
 joint with explicit pose, gravity and known material. Nested moving-part occurrences remain refused. This is
 not free-motion prediction or completion of Stage 1. Establish Physics ownership and the mass, coordinate-frame,

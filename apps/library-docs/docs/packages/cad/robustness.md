@@ -14,10 +14,15 @@ surfaces; mesh inputs retain faceted faces. The Boolean algorithm depends on tha
   described below.
 - **Fillets and chamfers** roll a ball along the named edges, or cut them back, on the exact faces either side.
 - **Offsets.** `shell`, `thicken` and `draft` offset or tilt faces on their surfaces.
-  In a kernel part document, `draft` accepts `pull: 'x'`, `'y'` or `'z'` for the positive world coordinate axis.
-  Omitting `pull` selects +Z. `neutral` is the plane's coordinate in mm along that selected world axis,
-  not a distance from the picked face; if omitted, it uses the body's minimum coordinate on that axis.
-  Negative axes and arbitrary pull vectors are not supported by this document feature.
+  In a kernel part document, `draft` accepts `pull: 'x'`, `'y'`, `'z'`, `'-x'`, `'-y'` or `'-z'` for a signed world coordinate axis.
+  Omitting `pull` selects +Z. A positive `angle` leans into the material; a negative angle leans out.
+  `neutral` is the plane's coordinate in mm on the selected world X, Y or Z axis, not a distance from the picked face.
+  If omitted, it uses the body's minimum coordinate for a positive pull or maximum coordinate for a negative pull.
+  Do not negate an explicit `neutral` value just because the pull axis is negative.
+  Arbitrary pull vectors remain unsupported. These axis choices do not establish general curved-face support or manufacturing validation.
+  For the standalone `kind: 'draft'` feature, `angle` must be finite and satisfy `0 < |angle| < 45` degrees; otherwise it gives `INPUT`.
+  The neutral plane must be at or below the entire selected face for a positive pull, or at or above it for a negative pull, within the existing 1e-6 mm plane tolerance.
+  The face must extend a positive distance from that plane along the pull direction; violations of these placement or height conditions give `SELECTION`.
 
 ### A draft calculated from its dimensions
 

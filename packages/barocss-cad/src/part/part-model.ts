@@ -188,12 +188,13 @@ export type CadPartFeature = Base & (
    */
   | { readonly kind: 'sweep-curve'; readonly sketch: string; readonly path: { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[] } }
   /**
-   * Draft (taper) on chosen side faces along the positive `pull` axis (default: Z). Each planar side
+   * Draft (taper) on chosen side faces along the signed `pull` axis (default: positive Z). Each planar side
    * face turns about its line on the neutral plane by `angle` degrees: positive leans into the material,
-   * negative out. `neutral` is the world coordinate in mm along that axis (default: the body's minimum).
+   * negative out. `neutral` is the world coordinate in mm along that axis (default: the body's minimum
+   * for a positive pull, maximum for a negative pull).
    * The faces are selected by name.
    */
-  | { readonly kind: 'draft'; readonly target: string; readonly faces: readonly string[]; readonly angle: number; readonly pull?: CadPartAxis; readonly neutral?: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
+  | { readonly kind: 'draft'; readonly target: string; readonly faces: readonly string[]; readonly angle: number; readonly pull?: CadPartAxis | '-x' | '-y' | '-z'; readonly neutral?: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
   /**
    * D149: one face of a part split along NURBS curves lying on it (`curves`, mm), or along its isocline n·d = 0 for the pull
    * `pull`; the face by name (a base name naming one face). The pieces are named `<face>#1`, `<face>#2` … (an isocline's +
@@ -1554,14 +1555,15 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (target.length !== 1) fail('REFERENCE', 'draft one part at a time (name it as id/k)');
       const neutral = f.neutral === undefined ? undefined : dim(f.neutral as CadPartDim, 'neutral');
       const pull = f.pull === undefined ? 'z' : f.pull as unknown;
-      if (pull !== 'x' && pull !== 'y' && pull !== 'z') fail('INPUT', 'pull must be x, y or z (a positive coordinate axis)');
+      if (pull !== 'x' && pull !== 'y' && pull !== 'z' && pull !== '-x' && pull !== '-y' && pull !== '-z') fail('INPUT', 'pull must be x, y or z (a positive coordinate axis), or -x, -y or -z');
       return () => {
         if (target[0].solid.kind === 'brep' && target[0].solid.brep.faces.some(isFacetFace)) fail('CAPABILITY', 'draft on mesh faces is not supported yet (general draft and offset arrive with R11)');
-        // Cyclic permutations put the positive pull on local Z without trigonometric rotation.
-        const toZ: BrepAffine['matrix'] | null = pull === 'x' ? [0, 1, 0, 0, 0, 1, 1, 0, 0] : pull === 'y' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : null;
-        const fromZ: BrepAffine['matrix'] | null = pull === 'x' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : pull === 'y' ? [0, 1, 0, 0, 0, 1, 1, 0, 0] : null;
+        // Signed permutations put the pull on local Z with determinant +1 and no trigonometric rotation.
+        const negativePull = pull === '-x' || pull === '-y' || pull === '-z';
+        const toZ: BrepAffine['matrix'] | null = pull === 'x' ? [0, 1, 0, 0, 0, 1, 1, 0, 0] : pull === 'y' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : pull === '-x' ? [0, 1, 0, 0, 0, -1, -1, 0, 0] : pull === '-y' ? [0, 0, 1, -1, 0, 0, 0, -1, 0] : pull === '-z' ? [1, 0, 0, 0, -1, 0, 0, 0, -1] : null;
+        const fromZ: BrepAffine['matrix'] | null = pull === 'x' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : pull === 'y' ? [0, 1, 0, 0, 0, 1, 1, 0, 0] : pull === '-x' ? [0, 0, -1, 1, 0, 0, 0, -1, 0] : pull === '-y' ? [0, -1, 0, 0, 0, -1, 1, 0, 0] : pull === '-z' ? [1, 0, 0, 0, -1, 0, 0, 0, -1] : null;
         const localSolid = toZ ? affine(target[0].solid, toZ, [0, 0, 0]) : target[0].solid;
-        const brep = brepOf(toZ ? { solid: localSolid } : target[0], at), box = bounds(localSolid), zN = neutral ?? box.min[2], R = len(sub(box.max, box.min)) + 2, a = (angle as number) * Math.PI / 180;
+        const brep = brepOf(toZ ? { solid: localSolid } : target[0], at), box = bounds(localSolid), zN = negativePull && neutral !== undefined ? -neutral : neutral ?? box.min[2], R = len(sub(box.max, box.min)) + 2, a = (angle as number) * Math.PI / 180;
         // (The turn's line a hair below the neutral plane, so a wedge does not touch the body's bottom along a line.)
         const lift = 1e-6 * R;
         const coedges = new Map(brep.coedges.map(c => [c.id, c])), edges = new Map(brep.edges.map(e => [e.id, e])), points = new Map(brep.vertices.map(v => [v.id, v.point]));
@@ -1575,9 +1577,9 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           let nrm: Point = [0, 0, 0];
           ring.forEach((p, i) => { const q = ring[(i + 1) % ring.length]; nrm = add(nrm, [(p[1] - q[1]) * (p[2] + q[2]), (p[2] - q[2]) * (p[0] + q[0]), (p[0] - q[0]) * (p[1] + q[1])]); });
           const n = unit(nrm);
-          if (Math.abs(n[2]) > 1e-9 || face.loops.length > 1) fail('CAPABILITY', `${name}: a draft takes side faces square to the pull (${pull === 'x' ? 'X' : pull === 'y' ? 'Y' : 'Z'}) without holes`);
+          if (Math.abs(n[2]) > 1e-9 || face.loops.length > 1) fail('CAPABILITY', `${name}: a draft takes side faces square to the pull (${pull === 'x' ? 'X' : pull === 'y' ? 'Y' : pull === '-x' ? '-X' : pull === '-y' ? '-Y' : pull === '-z' ? '-Z' : 'Z'}) without holes`);
           const zs = ring.map(p => p[2]), top = Math.max(...zs), height = top - zN;
-          if (!(height > 0) || Math.min(...zs) < zN - 1e-6) fail('SELECTION', `${name}: the neutral plane ${pull} = ${zN} must be at or below the face`);
+          if (!(height > 0) || Math.min(...zs) < zN - 1e-6) fail('SELECTION', negativePull ? `${name}: the neutral plane ${pull.slice(1)} = ${-zN} must be at or above the face for pull ${pull}` : `${name}: the neutral plane ${pull} = ${zN} must be at or below the face`);
           // A frame on the face: X along it (level), Y up, Z into the body (draft in) or out of it (draft out).
           const along: Point = a > 0 ? [-n[0], -n[1], -n[2]] : n, x = unit(cross([0, 0, 1], along)), y = cross(along, x);
           const m: BrepAffine['matrix'] = [x[0], y[0], along[0], x[1], y[1], along[1], x[2], y[2], along[2]], o = ring[0];
