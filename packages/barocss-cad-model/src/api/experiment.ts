@@ -32,6 +32,7 @@ function reportOf(doc: StudioDoc, options: GravityExperimentOptions) {
   const movingPart = tree.links.find(link => link.id === joint.child)!.part;
   const movingDoc = movingPart === 'base' ? doc : doc.instances?.find(instance => instance.id === movingPart)?.doc;
   if (!movingDoc) unsupported('The moving link must identify an existing part occurrence.');
+  if (movingDoc.instances?.length) unsupported('Nested part occurrences are outside this static gravity experiment profile.');
   // The ordinary material reader falls back for unknown ids. This bounded experiment must not accept that fallback.
   const bodies = bodiesOf(movingDoc);
   for (const counted of moving.bodies) {
