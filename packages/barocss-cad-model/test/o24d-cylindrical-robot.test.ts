@@ -11,6 +11,7 @@ import { treeOf, viewOf } from '../src/api/robotCore';
 import { poseOf as nativePose } from '../src/robot/verbs';
 import { robotParts } from '../src/robot/urdf';
 import { loopTermsOf } from '../src/robot/loop';
+import { camFacesOf } from '../src/robot/cam';
 import { isRefusal } from '../src/engine/refusal';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 
@@ -178,6 +179,40 @@ test('Cylindrical robot: coupled mates, grounded motion and ambiguous pair-key s
   unsupported(tree({ ...doc, instances: doc.instances!.map(i => ({ ...i, grounded: true })) }), m.id);
   unsupported(tree(doc, { version: 1, joints: { 'base~p': { lower: -10, upper: 10 } } }), m.id);
   chain(tree(doc, settings()));
+});
+
+test('Cylindrical robot: a stored same-pair cam refuses the chain with or without cam faces', () => {
+  const doc = solved(), original = structuredClone(doc), cylindrical = doc.mates![0];
+  const accepted = addMate(doc, { kind: 'cam', a: { part: 'base', face: 'origin:xy' }, b: { part: 'p', face: 'origin:xy' } });
+  assert.deepEqual(accepted.problems, []);
+  assert.equal(accepted.mate.a.at, undefined); assert.equal(accepted.mate.b.at, undefined);
+  assert.deepEqual(doc, original);
+  const readTree = (d: StudioDoc, includeFaces: boolean, mateProblems: { mate: string; reason: string }[] = []) => jointTree({
+    instances: d.instances!, mates: d.mates!, tables: tablesFor(d), mateProblems,
+    ...(includeFaces ? { camFaces: (part: string) => {
+      const own = part === 'base' ? d : d.instances!.find(i => i.id === part)?.doc;
+      assert.ok(own, `real part geometry required for ${part}`); return camFacesOf(own);
+    } } : {}),
+  });
+  const unrelatedDoc: StudioDoc = { ...doc, instances: [...doc.instances!, {
+    id: 'q', name: 'Other follower', doc: rectanglePart(5, 5, 2), position: [40, 0, 0], rotation: [0, 0, 0],
+  }] };
+  const unrelated = addMate(unrelatedDoc, { kind: 'cam', a: { part: 'base', face: 'origin:xy' }, b: { part: 'q', face: 'origin:xy' } });
+  for (const includeFaces of [false, true]) {
+    const refused = readTree(accepted.doc, includeFaces);
+    unsupported(refused, cylindrical.id);
+    assert.ok(refused.problems.some(p => p.code === 'MOTION_UNSUPPORTED' && p.mates?.includes(cylindrical.id) && p.mates.includes(accepted.mate.id)));
+    assert.equal(refused.joints.length, 0, 'same-pair cam must leave no fixed or moving substitute');
+    assert.equal(refused.links.filter(l => l.part === null).length, 0);
+    // Other cam diagnostics may remain; only this explicit pair's guard is checked.
+    for (const unaffected of [
+      readTree(unrelated.doc, includeFaces),
+      readTree(accepted.doc, includeFaces, [{ mate: accepted.mate.id, reason: 'Upstream cam validation refused this mate' }]),
+    ]) {
+      assert.equal(unaffected.joints.filter(j => j.mates.includes(cylindrical.id)).length, 2);
+      assert.ok(!unaffected.problems.some(p => p.code === 'MOTION_UNSUPPORTED' && p.mates?.includes(cylindrical.id)));
+    }
+  }
 });
 
 test('Cylindrical robot: noncoaxial, opposite, tilted and nonfinite solved axes cannot create a chain', () => {

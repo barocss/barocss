@@ -200,3 +200,40 @@ test('Universal robot: bad per-axis limits remain typed, missing export ratings 
   const result = robotParts(missing, () => null);
   assert.ok('refusals' in result && result.refusals.some(r => r.code === 'LIMITS_MISSING'));
 });
+
+test('Universal robot: a saved same-pair cam refuses both directions without inventing a free 2R chain', async () => {
+  const added = addMate(solved(), { kind: 'cam',
+    a: { part: 'base', face: 'origin:xy' }, b: { part: 'p', face: 'origin:xy' } });
+  assert.deepEqual(added.problems, []);
+  const universal = added.doc.mates!.find(m => m.kind === 'universal')!, cam = added.mate;
+  assert.equal(cam.a.at, undefined); assert.equal(cam.b.at, undefined);
+  for (const reversed of [false, true]) {
+    const stored: StudioDoc = { ...added.doc, mates: [universal, reversed ? { ...cam, a: cam.b, b: cam.a } : cam] };
+    const opened = await readStudioFile(encodeStudioFile(stored)); assert.ok('doc' in opened);
+    assert.deepEqual(opened.doc.mates, stored.mates);
+    const before = structuredClone(opened.doc);
+    for (const provideCamFaces of [false, true]) {
+      const input = { instances: opened.doc.instances!, mates: opened.doc.mates!, tables: tablesFor(opened.doc),
+        ...(provideCamFaces ? { camFaces: () => [] } : {}) };
+      const blocked = jointTree(input);
+      assert.ok(blocked.problems.some(p => p.code === 'MOTION_UNSUPPORTED'
+        && p.mates?.includes(universal.id) && p.mates.includes(cam.id)
+        && /an explicit universal combined with other mates; coupled decomposition is not supported/.test(p.message)), JSON.stringify(blocked.problems));
+      assert.equal(blocked.joints.filter(j => j.mates.includes(universal.id)).length, 0);
+      assert.equal(blocked.links.filter(l => l.part === null).length, 0);
+      // A cam already rejected by the assembly solver must not suppress the independent valid pair.
+      chain(jointTree({ ...input, mateProblems: [{ mate: cam.id, reason: 'Cam profile was rejected' }] }));
+    }
+    assert.deepEqual(opened.doc, before);
+  }
+  const unrelated: StudioDoc = { ...added.doc, instances: [...added.doc.instances!,
+    { id: 'q', name: 'Other cam', doc: rectanglePart(5, 5, 2), position: [40, 0, 0], rotation: [0, 0, 0] },
+    { id: 'r', name: 'Other follower', doc: rectanglePart(5, 5, 2), position: [50, 0, 0], rotation: [0, 0, 0] }],
+  mates: [universal, { ...cam, a: { part: 'q', face: 'origin:xy' }, b: { part: 'r', face: 'origin:xy' } }] };
+  for (const provideCamFaces of [false, true]) {
+    const independent = jointTree({ instances: unrelated.instances!, mates: unrelated.mates!, tables: tablesFor(unrelated),
+      ...(provideCamFaces ? { camFaces: () => [] } : {}) });
+    assert.equal(independent.joints.filter(j => j.mates.includes(universal.id)).length, 2);
+    assert.ok(!independent.problems.some(p => p.code === 'MOTION_UNSUPPORTED' && p.mates?.includes(universal.id)));
+  }
+});

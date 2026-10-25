@@ -251,6 +251,11 @@ export function jointTree(input: TreeInput): JointTree {
   // joint. A pair met again is a loop.
   const motions = new Map<string, PairMotion>();
   for (const [k, ms] of pairs) {
+    // Cam is not a constraint-row joint, but a same-pair cam still makes an explicit connector joint coupled.
+    // Keep its id in this pair so the existing coupled refusal applies before any chain or cam-face evaluation.
+    if (ms.some(m => m.kind === 'universal' || m.kind === 'cylindrical')) {
+      ms.push(...input.mates.filter(m => m.kind === 'cam' && !failed.has(m.id) && pairKey(m.a.part, m.b.part) === k));
+    }
     const motion = pairMotion(ms, input.tables, placed, L);
     if (motion.universal && settings.joints?.[k]) {
       motions.set(k, { unsupported: 'pair-level universal limits or ratings; set each explicit axis key (#0 a.Z, #1 b.X) instead' });
