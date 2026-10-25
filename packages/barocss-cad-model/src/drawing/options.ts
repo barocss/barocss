@@ -2,11 +2,13 @@
 import { problem, refusal, type Problem } from '../engine/refusal';
 import { halfOk, removedOk, sameSection, sectionDirOk, sectionsOf, stepsOk, withSections, type DrawingSection, type DrawingSettings, type DrawingTable } from './types';
 import { detailOk, type DrawingDetail } from './detail';
+import { datumsProperty, checkDatumOptions, readDatums } from './datums';
 import { framesProperty, checkDrawingFrames, readFrames } from './controls';
 import { checkDrawingMetadata, readTitleBlock, readRevisions } from './metadata';
 import { breakOk, breaksMeet, type DrawingBreak } from './breaks';
 
 export const manufacturingDrawingProperties = {
+  datums: datumsProperty,
   frames: framesProperty,
   titleBlock: { type: 'object', description: 'DR-5: replaces title metadata. Basic retains the original block; extended adds six fields. Omitted keeps it.', properties: { template: { type: 'string', enum: ['basic', 'extended'] }, ...Object.fromEntries(['organization', 'number', 'drawnBy', 'checkedBy', 'material', 'finish'].map(k => [k, { type: 'string', minLength: 1, maxLength: 120 }])) }, required: ['template'], additionalProperties: false },
   revisions: { type: 'array', maxItems: 50, description: 'DR-5: replaces revision history; [] clears; omitted keeps. Unique revision labels. Does not change the active revision or record approval. Show with a table from revisions.', items: { type: 'object', properties: { revision: { type: 'string', minLength: 1, maxLength: 6 }, date: { type: 'string', description: 'YYYY-MM-DD' }, description: { type: 'string', minLength: 1, maxLength: 120 }, by: { type: 'string', minLength: 1, maxLength: 60 } }, required: ['revision', 'date', 'description'], additionalProperties: false } },
@@ -24,6 +26,7 @@ const keys = (v: Record<string, unknown>, allowed: string[]) => Object.keys(v).e
 
 /** No coercion or partial acceptance, even when the caller bypasses the offered JSON schema. */
 export function checkManufacturingDrawing(args: Record<string, unknown>): Problem[] {
+  const datums = checkDatumOptions(args); if (datums.length) return datums;
   const frames = checkDrawingFrames(args); if (frames.length) return frames;
   const metadata = checkDrawingMetadata(args); if (metadata.length) return metadata;
   for (const flag of ['weldSymbols', 'balloons']) if (flag in args && typeof args[flag] !== 'boolean') return [problem('DRAWING_OPTIONS', `${flag} must be boolean.`)];
@@ -69,6 +72,7 @@ export function checkManufacturingDrawing(args: Record<string, unknown>): Proble
 /** Call only after strict validation. Refuse section edits that would change an annotation's model reference (DRAWING_SECTION_REFERENCES, thrown). */
 export function withManufacturingDrawing(s: DrawingSettings, args: Record<string, unknown>): DrawingSettings {
   let next = { ...s };
+  if ('datums' in args) { delete next.datums; const datums = readDatums(args.datums); if (datums.length) next.datums = datums; }
   if ('frames' in args) { delete next.frames; const frames = readFrames(args.frames); if (frames.length) next.frames = frames; }
   if ('titleBlock' in args) next.titleBlock = readTitleBlock(args.titleBlock)!;
   if ('revisions' in args) { delete next.revisions; const rows = readRevisions(args.revisions); if (rows.length) next.revisions = rows; }

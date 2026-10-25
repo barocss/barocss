@@ -13,7 +13,7 @@ import { fitText, textWidth } from '../src/drawing/text';
 import type { PartInstance } from '../src/engine/doc';
 import { arcPath, sheetSvg } from '../src/io/svg';
 import { sheetPdf } from '../src/io/pdf';
-import { defaultDrawing, readDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
+import { defaultDrawing, readDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews, type ViewId } from '../src/drawing/types';
 import { SAMPLE_SIZES, withSampleRows } from './person-file';
 
 const viewsOf = (doc: StudioDoc): DrawingViews => {
@@ -26,7 +26,7 @@ const near = (a: number, b: number, eps = 1e-6) => Math.abs(a - b) <= eps;
 
 test('the standard views of the plate: outline visible, the hole hidden in the front and right views, round from the top', () => {
   const v = viewsOf(plate());
-  const hidden = (id: keyof DrawingViews) => v[id].edges.flatMap(e => e.pieces.filter(p => !p.visible));
+  const hidden = (id: ViewId) => v[id].edges.flatMap(e => e.pieces.filter(p => !p.visible));
   assert.equal(hidden('front').length, 2); assert.equal(hidden('right').length, 2); assert.equal(hidden('top').length, 0);
   assert.deepEqual([v.front.min, v.front.max], [[0, 0], [64, 8]]);
   assert.deepEqual([v.top.min, v.top.max], [[0, 0], [64, 32]]);
@@ -156,7 +156,7 @@ test('drawing settings read back from a file keep what is valid', () => {
 
 test('centre marks: a cross on the hole seen round, a centreline along it seen from the side, none on a fillet corner', () => {
   const v = viewsOf(plate()), layout = layoutSheet(v, defaultDrawing());
-  const lines = (id: keyof DrawingViews) => centreMarks(layout.views[id], v[id]).filter((m): m is Extract<Mark, { kind: 'line' }> => m.kind === 'line');
+  const lines = (id: ViewId) => centreMarks(layout.views[id], v[id]).filter((m): m is Extract<Mark, { kind: 'line' }> => m.kind === 'line');
   const top = lines('top'), c = toSheet(layout.views.top, [32, 16]);
   assert.equal(top.length, 2);
   assert.ok(top.every(m => m.pen === 'center'));

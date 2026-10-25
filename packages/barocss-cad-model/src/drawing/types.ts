@@ -7,6 +7,8 @@ import type { Sig } from '../engine/references';
 import { isVec3 } from '../util/guards';
 import { readDetails, type DrawingDetail } from './detail';
 import { readBreaks, type DrawingBreak } from './breaks';
+import { readDatums, type DrawingFace, type DrawingFaceRef } from './datums';
+export type { DrawingFaceRef } from './datums';
 import { readFrames, type DrawingFrame } from './controls';
 export type { DrawingFrame } from './controls';
 import { readTitleBlock, readRevisions, type DrawingTitleBlock, type DrawingRevision } from './metadata';
@@ -73,7 +75,7 @@ export type DrawingDimension = ({ tol?: Tolerance; count?: number; auto?: true; 
  * A datum feature (R14.4, O5): its letter in a box at `place` (the view's model coordinates), a leader to a filled triangle
  * on a straight edge of the view (the face seen edge-on).
  */
-export interface DrawingDatum { id: string; letter: string; view: ViewId; edge: EdgeRef; place: XY }
+export type DrawingDatum = { id: string; letter: string; view: ViewId; place: XY } & ({ edge: EdgeRef; face?: never } | { face: DrawingFaceRef; edge?: never });
 export interface DrawingNote { id: string; text: string; at: XY; leader?: { view: ViewId; at: XY } }
 /** A table's column (O49): its header `label [unit]`, numbers shown to `digits` places (absent: up to 2) and aligned right by default. */
 export interface TableColumn { key: string; label: string; unit?: string; align?: 'start' | 'middle' | 'end'; digits?: number }
@@ -264,7 +266,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(readRoom(r.room) ? { room: readRoom(r.room)! } : {}),
     ...(r.orientation === 'x+' || r.orientation === 'y+' || r.orientation === 'x-' ? { orientation: r.orientation } : {}),
     ...(r.tolerancing === 'geometric' ? { tolerancing: 'geometric' as const } : {}),
-    ...(Array.isArray(r.datums) && r.datums.some(isDatum) ? { datums: r.datums.filter(isDatum).map(d => ({ id: d.id, letter: d.letter, view: d.view, edge: { ...d.edge }, place: [d.place[0], d.place[1]] as XY })) } : {}),
+    ...(readDatums(r.datums).length ? { datums: readDatums(r.datums) } : {}),
     ...(readFrames(r.frames).length ? { frames: readFrames(r.frames) } : {}),
     ...(Array.isArray(r.notes) && r.notes.some(isNote) ? { notes: r.notes.filter(isNote).map(n => ({ id: n.id, text: n.text, at: [n.at[0], n.at[1]] as XY, ...(n.leader && VIEW_IDS.includes(n.leader.view) && isXY(n.leader.at) ? { leader: { view: n.leader.view, at: [n.leader.at[0], n.leader.at[1]] as XY } } : {}) })) } : {}),
     ...(readTables(r.tables).length ? { tables: readTables(r.tables) } : {}),
@@ -282,7 +284,6 @@ function readRoom(raw: unknown): ViewRoom | null {
   }
   return Object.keys(out).length ? out : null;
 }
-const isDatum = (d: unknown): d is DrawingDatum => { const x = d as DrawingDatum; return !!x && typeof x.id === 'string' && typeof x.letter === 'string' && /^[A-HJ-NPR-Z]$/.test(x.letter) && VIEW_IDS.includes(x.view) && !!x.edge && typeof x.edge.edge === 'string' && Array.isArray(x.edge.near) && x.edge.near.length === 3 && isXY(x.place); };
 /** A pitch circle's members: three or more holes, each by an edge name and a point. */
 const ringOk = (ring: unknown): boolean => Array.isArray(ring) && ring.length >= 3 && ring.length <= 360 && ring.every(m => m && typeof m.edge === 'string' && Array.isArray(m.near) && m.near.length === 3);
 const isXY = (p: unknown): p is XY => Array.isArray(p) && p.length === 2 && p.every(x => typeof x === 'number' && Number.isFinite(x));
@@ -311,4 +312,4 @@ function readTolerance(t: unknown): Tolerance | null {
   return null;
 }
 
-export type DrawingViews = Record<ViewId, BrepProjection>;
+export type DrawingViews = Record<ViewId, BrepProjection> & { faces?: DrawingFace[] };

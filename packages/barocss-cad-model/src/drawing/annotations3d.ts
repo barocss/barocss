@@ -6,6 +6,7 @@
 // mm and its baseline direction, a frame its cells and box, a weld its data. Targets are the drawing's own references:
 // persistent edge names (a placed part's `<inst>/` kept) with their 3D points. Ids are the sheet items'. The glyph
 // builders the sheet uses are given in plane coordinates too (`frameGlyph`, `weldGlyph`), one source for both.
+import { datumAnchor } from './datums';
 import type { Characteristic, MaterialModifier } from './controls';
 import type { BrepProjection } from '@barocss/cad';
 import { fmtMM, type Resolved } from './dimensions';
@@ -63,6 +64,7 @@ const dirOf = (p: AnnotationPlane, d: readonly number[]): Vec3 => z0(add3(add3([
 /** The drawing's annotations on the model, from a built sheet (lost ones, notes and the isometric view's, said in `left`). */
 export function modelAnnotations(i: AnnotationInputs): ModelAnnotations {
   const items: ModelAnnotation[] = [], left: { id: string; why: string }[] = [];
+  for (const d of i.settings.datums ?? []) if (d.face && !datumAnchor(i.views, d)) left.push({ id: d.id, why: 'its face has no unique current boundary anchor' });
   for (const r of i.sheet.dimensions) if (!r.ok) left.push({ id: r.dim.id, why: r.reason });
   for (const n of i.settings.notes ?? []) left.push({ id: n.id, why: 'a note is placed on the paper, not on the model' });
   for (const g of i.sheet.groups) {
@@ -96,7 +98,8 @@ function itemOf(i: AnnotationInputs, g: MarkGroup, view: DimView, v: ViewPlaceme
     else if (f) extra = { frame: { characteristic: f.characteristic, zone: (f.diameter ?? (f.characteristic === 'position')) ? 'diameter' : 'linear', value: f.value, ...(f.material ? { material: f.material } : {}), ...(f.datumModifiers ? { datumModifiers: { ...f.datumModifiers } } : {}), ...(f.projected ? { projected: f.projected } : {}), ...(f.freeState ? { freeState: true } : {}), ...(f.tangentPlane ? { tangentPlane: true } : {}), datums: [...f.datums], dim: f.dim, cells: cellsOf(f), box: boxOf(g.marks, v) } };
   } else if (kind === 'datum') {
     const d = i.settings.datums?.find(x => x.id === g.id); if (!d) return null;
-    targets = [{ at: [...d.edge.near] as Vec3, edge: d.edge.edge }]; extra = { datum: { letter: d.letter } };
+    const at = datumAnchor(i.views, d); if (!at) return null;
+    targets = [{ at, ...(d.face ? { face: d.face.face } : { edge: d.edge.edge }) }]; extra = { datum: { letter: d.letter } };
   } else {
     const placed = i.sheet.welds?.placed.find(p => p.label === g.id), j = placed && i.welds?.find(x => x.id === placed.joint);
     if (!placed || !j) return null;
