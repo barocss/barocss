@@ -178,6 +178,48 @@ and current-source gap are frozen. Rows three through six extend existing accept
 For later sheet-metal and frame work, qualify edit/regenerate to unfold or cut-list to
 Drawing/export as one flow, and keep unimplemented joins/trims/cut lists conditional.
 
+## Shared route bundles and virtual clips (Zip Ties)
+
+User research and planning request, 2026-10-26. This is a new bounded editing workflow,
+not an implemented routing or cable-physics feature. Reference interaction:
+[ComfyUI Zip Ties](https://github.com/safzanpirani/comfyui-zip-ties), which stores ties as
+workflow layout data and lets a user move or rotate several links together. For 3D CAD,
+[SOLIDWORKS routing through clips](https://help.solidworks.com/2023/English/SolidWorks/sldpiping/t_routing_through_clips.htm)
+and [Inventor harness settings](https://help.autodesk.com/cloudhelp/2026/ENU/Inventor-Help/files/GUID-EA41610E-ACFF-4F8B-9A05-339CA9CAEB1A.htm)
+provide established examples of shared route points, individual route offsets and separate
+centerline/sweep displays. These references are product documentation, not our runtime proof.
+
+The proposed interaction is: select two existing 3D routes, add one virtual clip, drag its
+XYZ handle to reshape the selected route handles together, preview both swept bodies, then
+Apply once. Each route keeps its own identity, profile and end connections. A clip is initially
+an editing constraint with no manufactured body or BOM item. Later explicit real clamp parts
+must have their own geometry and component identity.
+
+Current reusable code includes direct curve poles and movePole, the XYZ skeleton editor's
+preview/Apply/Undo pattern, existing Pipe/Sweep construction and Viewer picking/overlays.
+Current Sweep copies a direct curve's arrays. It does not retain a live route dependency.
+Therefore grouped handles alone cannot promise that old swept bodies follow later edits.
+Keep legacy snapshots unchanged; only a new explicit bundle may carry the new regeneration link.
+
+| Stage / task | Lead and exact responsibility | Completion gate |
+| --- | --- | --- |
+| PB0 — route/clip contract | API owns persistent input and atomic document contract; GPU owns handle/pick/preview contract; Outer owns the later editor | Record stable route/object/feature identities, chosen handle keys, source revision, clip position and per-member offsets in model mm. Fixed control-point topology only in the first slice. Missing or changed handles are stale/refused, with no automatic reassignment. Current GPU source reading is assigned; implementation is not started. |
+| PB1 — two routes, one clip | Outer editor after the current STL source slice returns; API producer and GPU interaction support have separate files | Translate one common XYZ handle and apply the same delta to the chosen handle of each route. Preserve clip-local offsets and untouched endpoints. Show individual members and their errors. No automatic packing, branching, global spacing guarantee, clip rotation or physics in this first editor. |
+| PB2 — regenerate and commit atomically | API/Kernel existing evaluation path; Outer applies one complete candidate document | Regenerate both explicitly linked sweeps using their own profiles. Commit only if all members succeed on the current revision. One member failure, Cancel or stale completion leaves the complete previous document/results unchanged. One Undo/Redo restores all members together. Real Save/New/Open preserves membership, references and geometry inputs. |
+| PB3 — richer route control | GPU/Outer after PB1–PB2 actual acceptance | Multiple clips, selective branches and clip orientation/section arrangement, with explicit local-frame continuity and source/version checks. Measure crossings, section clearance and bend constraints on fixed fixtures. Do not call simple XYZ offsets a general parallel-curve or collision-free solution. |
+| PB4 — engineering qualification | Kernel/API, with existing Drawings/BOM/export consumers | Separate rigid pipe straight lengths/elbows from manually shaped cable paths. Specify and verify applicable bend radius, clearances, lengths, connector directions and manufacturing rules before claiming them. Cable sag, tension, fixed-length dynamics, contact or automatic obstacle routing need separate ownership and approval. Do not resume paused Physics or add a solver here. |
+
+PB1–PB2 require real desktop browser selection/drag/preview/Apply, visible failures, PNG owner/root
+inspection and console collection, plus independent native geometry and actual downloaded-file
+roundtrip checks. A preview, screenshot or source fixture alone is not route acceptance. Preserve
+tolerances, first failures and unmeasured items. The current one-route XYZ native/Viewer checks
+remain one-route evidence; they are not bundle-editing proof.
+
+Scheduling: finish the checked product closeout and the in-flight STL-quality producer/UI source
+batch first. Independent route-contract reading can continue now. Do not assign simultaneous edits
+to the same App/editor files. Keep the existing single coordinator task record authoritative;
+PB1 source implementation starts only after the exact input contract and file ownership are assigned.
+
 ## CAD-to-simulation handoff: issue 2209 planning boundary
 
 Reference [issue 2209](https://github.com/barocss/barocss/issues/2209) after the current editable-CAD,
@@ -238,7 +280,15 @@ validation are different results and must remain separate.
 
 ## Order now (2026-10-26)
 
-The current checked local product is `3307c88b3a33c3b1fb78d14e887d08ccd9ca5c46`. Its earlier
+The current checked local product is `5ed2c69021e210fdf3b868d4e2a3f74fcc52e6fc`.
+Its 19-path associative-sketch/clip-readback merge preserves the product-only portable handoff
+files, foreign33 and CAD818. The first affected product GPU emit passed: 272 outputs emitted,
+5 changed and 240 retained outputs unchanged; do not call every one of the existing 512 files
+fresh. Mandatory product check-docs passed with 34 pages, 0 being-written, 47 figures, 3755 KB,
+739 labels and empty stderr. The original metadata preparation failure is separate from the
+first actual compiler PASS. No CAD rebuild was needed for this slice. Remote push is not done.
+
+The previous checked product `3307c88b3a33c3b1fb78d14e887d08ccd9ca5c46` and its earlier
 seven-path merge `91e96a23` contains sketch coefficient/diagnostic precision, Enter/value visibility,
 exact revolve admission, Drawing compatibility tests and the Sketches guide. The first affected
 product CAD build, one selected endpoint regression and the mandatory final product documentation
@@ -315,7 +365,8 @@ Next integrate this checked Model/UI/test/docs/GPU slice and the already-passed 
 into the product. Preserve the product-only portable handoff files and foreign WIP. No CAD rebuild
 is needed because CAD production is unchanged. The product's ignored GPU Viewer output is old,
 so run its first affected original library emit, distinguish actually emitted files from retained
-ones, and finish the mandatory product documentation check. Product adoption remains pending here.
+ones, and finish the mandatory product documentation check. Those required product steps are now
+complete at `5ed2c690`; retain each original source-bound check instead of rerunning it.
 
 Previously adopted setup Save/Open/Use/Run/Bind, historical records and Pin comparison retain
 separate contracts. Actual calculation creates a new result; imported records remain historical.
