@@ -153,7 +153,6 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   // Reference inspection reads this sheet; it does not change the selected reference or the saved drawing.
   const referenceLabels = useMemo<readonly DrawingReferenceLabel[]>(() => !busy && sheet ? sheet.dimensions.map(r => ({ dimensionId: r.dim.id, view: r.dim.view, text: r.ok ? r.text : null, ...(!r.ok ? { reason: r.reason } : {}) })) : [], [busy, sheet]);
   useEffect(() => { onReferenceLabels?.(referenceLabels); }, [onReferenceLabels, referenceLabels]);
-  useEffect(() => () => { onReferenceLabels?.([]); }, [onReferenceLabels]);
   const referenceInspection = useMemo(() => {
     if (!referencePreview) return null;
     const unavailable = (reason: string, dimensionId: string | null = null) => ({ dimensionId, markup: '', message: `Reference preview unavailable: ${reason}` });

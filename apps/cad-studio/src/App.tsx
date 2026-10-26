@@ -196,6 +196,7 @@ function changesBeyondVariability(a: StudioDoc, b: StudioDoc): boolean {
   return false;
 }
 type MassFields = Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'>;
+type ReferenceLabelOwner = { doc: StudioDoc; model: StudioDoc };
 /** What Open reads, said when it is given another kind of file. */
 const OPEN_READS = 'Open reads models (.bcad, .json), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your part is unchanged.';
 /** O18: the same bodies to draw — each key and mesh as before (only masses may differ). */
@@ -454,9 +455,8 @@ export function App() {
   const [refProblems, setRefProblems] = useState<RefProblem[]>([]);
   const [refChoices, setRefChoices] = useState<{ index: number; names: string[] } | null>(null);
   const [referencePreview, setReferencePreview] = useState<DrawingReferencePreview | null>(null);
-  const [referenceLabels, setReferenceLabels] = useState<readonly DrawingReferenceLabel[]>([]);
-  const receiveReferenceLabels = useCallback((labels: readonly DrawingReferenceLabel[]) => setReferenceLabels(previous => JSON.stringify(previous) === JSON.stringify(labels) ? previous : labels), []);
-  useEffect(() => { setReferencePreview(null); setReferenceLabels([]); }, [doc]);
+  const [referenceLabelCache, setReferenceLabelCache] = useState<{ owner: ReferenceLabelOwner; labels: readonly DrawingReferenceLabel[] } | null>(null);
+  useEffect(() => { setReferencePreview(null); }, [doc]);
   const [fileName, setFileName] = useState('Bracket-01');
   const [dirty, setDirty] = useState(false);
   /** Unsaved work kept from an earlier visit, offered back once. */
@@ -718,6 +718,16 @@ export function App() {
     catch { return shownDoc; }
   }, [shownDoc]);
   const evaluated = useMemo(() => prefixDoc(shownDoc, marker ?? shownDoc.nodes.length), [shownDoc.nodes, shownDoc.parameters, shownDoc.frames?.sections, rootContextKey, followsParts ? shownDoc.instances : null, marker]);
+  // Labels outlive the Drawing view, but only for the exact accepted document and displayed model.
+  // Do not bind to DrawingWorkspace's spread prop: that wrapper is new on every render.
+  const referenceLabelOwner = useMemo<ReferenceLabelOwner>(() => ({ doc, model: evaluated }), [doc, evaluated]);
+  const referenceLabelOwnerNow = useRef(referenceLabelOwner); referenceLabelOwnerNow.current = referenceLabelOwner;
+  const receiveReferenceLabels = useCallback((labels: readonly DrawingReferenceLabel[]) => {
+    if (referenceLabelOwnerNow.current !== referenceLabelOwner) return;
+    setReferenceLabelCache(previous => previous?.owner === referenceLabelOwner && JSON.stringify(previous.labels) === JSON.stringify(labels) ? previous : { owner: referenceLabelOwner, labels });
+  }, [referenceLabelOwner]);
+  const referenceLabels = referenceLabelCache?.owner === referenceLabelOwner ? referenceLabelCache.labels : [];
+
   const sectionRun = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({ busy: false, next: null });
   // The section: the part with each body that crosses the plane split there (the rest kept or left out whole).
   useEffect(() => {
@@ -2659,32 +2669,39 @@ export function App() {
   // (A panel opened while the dock is a strip opens its sheet: the panel is in it.)
   useEffect(() => { if (!dockDocked && (bomOpen || libraryOpen || paramsOpen)) layout.setDockSheet(true); }, [dockDocked, bomOpen, libraryOpen, paramsOpen, layout.setDockSheet]);
   // Reference decisions stay in the existing Browser panel. Preview never commits a candidate.
-  const referenceDecisions = !sketch && !active && !rendering && (refMarks.length > 0 || refProblems.length > 0) ? <section aria-label="References">
+  const referenceRowStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 6, paddingBlock: 8, minWidth: 0, maxWidth: '100%', overflowWrap: 'anywhere' };
+  const referenceActionsStyle: CSSProperties = { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4, minWidth: 0, maxWidth: '100%' };
+  const referenceButtonStyle: CSSProperties = { minWidth: 0, maxWidth: '100%', whiteSpace: 'normal', overflowWrap: 'anywhere', textAlign: 'left' };
+  const referenceDecisions = !sketch && !active && !rendering && (refMarks.length > 0 || refProblems.length > 0) ? <section aria-label="References" style={{ minWidth: 0, maxWidth: '100%', overflowWrap: 'anywhere' }}>
     <div className="ol-head">References</div>
     <div className="muted">{refMarks.length} matched again · {refProblems.length} need a choice</div>
-    {refMarks.map(m => <div key={'m' + m.index}>
-      <p>{referenceCaption(m.where)}<br /><span className="muted">{affectedDimensions(m.now)} affected dimension(s) · Matched again</span></p>
-      {referenceDimension(m.where) && <button className="ghost small" onClick={() => previewReference(m.where)}>Show dimension</button>}
-      {m.edge && <button className="ghost small" onClick={() => previewReference(m.where, m.now, true)}>Preview in model</button>}
-      <button className="ghost small" onClick={() => void settleRef(m.index)}>Confirm reference</button>
-      <button className="ghost small" onClick={() => void showRefChoices(m.index)}>Show alternatives</button>
-      {refChoices?.index === m.index && refChoices.names.filter(n => n !== m.now).map((n, i) => <div key={n}>
+    {refMarks.map(m => <div key={'m' + m.index} style={referenceRowStyle}>
+      <p style={{ margin: 0, whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{referenceCaption(m.where)}<br /><span className="muted">{affectedDimensions(m.now)} affected dimension(s) · Matched again</span></p>
+      <div style={referenceActionsStyle}>
+      {referenceDimension(m.where) && <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(m.where)}>Show dimension</button>}
+      {m.edge && <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(m.where, m.now, true)}>Preview in model</button>}
+      <button className="ghost small" style={referenceButtonStyle} onClick={() => void settleRef(m.index)}>Confirm reference</button>
+      <button className="ghost small" style={referenceButtonStyle} onClick={() => void showRefChoices(m.index)}>Show alternatives</button>
+      </div>
+      {refChoices?.index === m.index && refChoices.names.filter(n => n !== m.now).map((n, i) => <div key={n} style={referenceActionsStyle}>
         <span>Candidate {i + 1} </span>
-        <button className="ghost small" onClick={() => previewReference(m.where, n)}>Preview candidate {i + 1}</button>
-        <button className="ghost small" onClick={() => void settleRef(m.index, n)}>Use candidate {i + 1}</button>
+        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(m.where, n)}>Preview candidate {i + 1}</button>
+        <button className="ghost small" style={referenceButtonStyle} onClick={() => void settleRef(m.index, n)}>Use candidate {i + 1}</button>
       </div>)}
-      <details><summary>Technical details</summary><div className="muted" style={{ overflowWrap: 'anywhere' }}>{m.where}: {m.was} → {m.now}{refChoices?.index === m.index && refChoices.names.filter(n => n !== m.now).map((n, i) => <div key={n}>Candidate {i + 1}: {n}</div>)}</div></details>
+      <details style={{ minWidth: 0, maxWidth: '100%' }}><summary>Technical details</summary><div className="muted" style={{ overflowWrap: 'anywhere' }}>{m.where}: {m.was} → {m.now}{refChoices?.index === m.index && refChoices.names.filter(n => n !== m.now).map((n, i) => <div key={n}>Candidate {i + 1}: {n}</div>)}</div></details>
     </div>)}
-    {refProblems.map(p => <div key={'p' + p.index}>
-      <p>{referenceCaption(p.where)}<br /><span className="muted">{affectedDimensions(p.name)} affected dimension(s) · {p.candidates.length ? 'Choose a reference' : 'Reference missing'}{p.node !== null ? ' · Feature held' : ''}</span></p>
-      {referenceDimension(p.where) && <button className="ghost small" onClick={() => previewReference(p.where)}>Show dimension</button>}
-      {p.candidates.map((n, i) => <div key={n}>
+    {refProblems.map(p => <div key={'p' + p.index} style={referenceRowStyle}>
+      <p style={{ margin: 0, whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{referenceCaption(p.where)}<br /><span className="muted">{affectedDimensions(p.name)} affected dimension(s) · {p.candidates.length ? 'Choose a reference' : 'Reference missing'}{p.node !== null ? ' · Feature held' : ''}</span></p>
+      <div style={referenceActionsStyle}>
+      {referenceDimension(p.where) && <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(p.where)}>Show dimension</button>}
+      </div>
+      {p.candidates.map((n, i) => <div key={n} style={referenceActionsStyle}>
         <span>Candidate {i + 1} </span>
-        <button className="ghost small" onClick={() => previewReference(p.where, n)}>Preview candidate {i + 1}</button>
-        <button className="ghost small" onClick={() => previewReference(p.where, n, true)}>Preview in model</button>
-        <button className="ghost small" onClick={() => void settleRef(p.index, n)}>Use candidate {i + 1}</button>
+        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(p.where, n)}>Preview candidate {i + 1}</button>
+        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(p.where, n, true)}>Preview in model</button>
+        <button className="ghost small" style={referenceButtonStyle} onClick={() => void settleRef(p.index, n)}>Use candidate {i + 1}</button>
       </div>)}
-      <details><summary>Technical details</summary><div className="muted" style={{ overflowWrap: 'anywhere' }}>{p.where}: {p.name}{p.candidates.map((n, i) => <div key={n}>Candidate {i + 1}: {n}</div>)}</div></details>
+      <details style={{ minWidth: 0, maxWidth: '100%' }}><summary>Technical details</summary><div className="muted" style={{ overflowWrap: 'anywhere' }}>{p.where}: {p.name}{p.candidates.map((n, i) => <div key={n}>Candidate {i + 1}: {n}</div>)}</div></details>
     </div>)}
   </section> : null;
   const browserPanel = (
