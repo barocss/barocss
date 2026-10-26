@@ -98,7 +98,7 @@ test('route bundle admission: explicit schema-4 JSON roundtrip retains recipe, m
 });
 
 test('route bundle admission: BCADPACK remains version 1 while its document carries schema 3 or 4', async () => {
-  const mesh = await meshNodeBlobs({ kind: 'mesh', name: 'Stored triangles', unit: 'mm', representation: 'facets' },
+  const mesh = await meshNodeBlobs({ kind: 'mesh', name: 'Stored triangles', unit: 'mm', representation: 'facets' } as const,
     [0, 0, 0, 1, 0, 0, 0, 1, 0], [0, 1, 2]);
   for (const source of [copiedDocument(), bundledDocument()]) {
     const doc = withNode(source, mesh), bytes = encodeStudioFile(doc);
