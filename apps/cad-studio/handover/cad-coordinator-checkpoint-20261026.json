@@ -1,183 +1,843 @@
 {
-  "schema": 1,
-  "status": "IN_PROGRESS_NOT_PAUSED_NOT_PUSHED",
-  "generatedUTC": "2026-10-26T05:55:44.507629+00:00",
-  "purpose": "Portable handoff snapshot only; reconcile actual refs/owner status. Not a second live queue.",
-  "productBeforeThisHandoffCommit": "5e6a559e548845fdc169a753834519b3c2e6b1ee",
-  "productRuntimeValidatedAt": "91e96a2361a7b483a1915da822d07b495e766848",
-  "productRequiredDocs": "PENDING_THIS_HANDOFF_COMMIT",
-  "aggregate": "056d2927ce97b245d5a8934ed9705d2caa068655",
-  "commonChecksSource": "1a7f22666189e7a20be9eb6c0e70ed8c9f72a678",
-  "laterDelta": "roadmap and portable handoff only; production/library bytes unchanged",
-  "featureBranch": "review/cad-gpu-engine-2026-10-14",
-  "remoteLastObserved": "16eabdd8e55ff3bb8cb77bfa2769e1e7049be715",
-  "mustRecheckRemoteBeforePush": true,
-  "quota": {
-    "usedPercent": 69,
-    "remainingPercent": 31,
-    "secondary": null,
-    "pauseAtRemaining": 5
-  },
-  "tasks": [
-    {
-      "id": "CAD-VERIFIED-SKETCH-PRODUCT-SLICE-01",
-      "owner": "API",
-      "status": "LOCAL_MERGE_DONE_PRODUCT_CHECKS_PENDING",
-      "scope": "정밀도/회전/도면/본문7경로검증수락·portable4와foreign33보존",
-      "completionCriteria": [
-        "정확선택경로/tree/mergepending전달·필수제품docs"
-      ],
-      "mergeCommit": "91e96a2361a7b483a1915da822d07b495e766848",
-      "resultLocation": "work/sketch-revolve-drawing-product-adoption-20261026/merge.json"
-    },
-    {
-      "id": "CAD-91e96a-Product-Revolve-build-endpoint1-0001-20261026",
-      "owner": "Kernel",
-      "status": "ACCEPTED_BUILD_SELECTED1_PASS_FULL_RETURN",
-      "scope": "첫affected제품CADbuild1→기존endpoint선택1",
-      "completionCriteria": [
-        "첫affected제품build1→기존endpoint선택1 각첫1회. firstFAIL후후속NOTRUN/retry0. aggregatebuild/native5/browser재실행0.",
-        "제품old818완전선보존/new또는부분dist별도보존. aggregatefresh818와실bytes/kind/mode비교. 테스트선택1과실SKIP구분. 수치출력없으면NOT_RECORDED.",
-        "source409/toolconfig/test·foreign33·portable4·HEAD/status 전후. productsource는aggregate와다른WT. sharedaggregate쓰기0·서버브라우저조작0.",
-        "원stage/env-i/pinnedNode/cacheoff/고유tmpemptyZDOT·actualwait또는directexit/4exit·releaseSTARTEXIT·ownslot읽기관측/descUNKNOWN. writer/archive읽기반환."
-      ],
-      "actualTAP": {
-        "tests": 1,
-        "pass": 1,
-        "fail": 0,
-        "cancelled": 0,
-        "skipped": 0,
-        "todo": 0
-      },
-      "filterExcluded": "4declNOT_EMITTED_NOT_SKIP4",
-      "actualVolumeNumbers": "NOT_RECORDED",
-      "productDist818MatchesAggregate": true,
-      "runtimeReturned": true,
-      "rawItems": 62,
-      "distFiles": 2454,
-      "receiptSHA256": "40bfde0583da0c83571c2166858325bf37d598a1a0759d4bfa38d2638a85eecb",
-      "indexSHA256": "7e44c745d2babc8f3f631e839be3982159ae0649d3422d31888d3b97530a3f2c"
-    },
-    {
-      "id": "CAD-REVOLVE-AXIS-BROWSER-01",
-      "owner": "Kernel",
-      "status": "ACCEPTED_SCOPED_PASS_FULL_RETURN",
-      "scope": "기존Kernelfixture→Viewer연결·원translatedendpoint양성1/접선거부1·실source/PNG/console/자기page정리",
-      "completionCriteria": [
-        "실제positive형상PNG/owner직접view",
-        "원거부의정확오류/미출력·source/CADdist불변·원FAIL보존",
-        "Studio저작UI/제조인수확대0"
-      ],
-      "runtimeReturned": true,
-      "resultLocation": "/Users/user/Documents/Codex/2026-10-24/cad-kernel-20261024/outputs/revolve-axis-browser-1a7f22-20261026-attempt0001/"
-    },
-    {
-      "id": "CAD-1a7f22-Sketch-Revolve-docs-check-site-0001-20261026",
-      "owner": "Docs",
-      "status": "ACCEPTED_CHECK_SITE_ACTUAL_PAGE_PASS_FULL_RETURN",
-      "completionCriteria": [
-        "원check-docs→외부site각첫1회. firstFAIL뒤siteNOTRUN/retry0·추가generator/sourceexpected쓰기0.",
-        "현재1a7소스와freshCAD818/GPU실관측baseline·tool/cache/config pathkind/hashmode전후, count/symlink-only가정0.",
-        "원env-i/pinnedNode/cacheoff/tmpemptyZDOT·actualwait4exit·same-shellreleaseSTARTEXIT·ownslot읽기관측·descUNKNOWN·rawMJS234등원경고유지.",
-        "새sitePASS뒤실제변경된studio/sketches1페이지의6줄경계/기존그림및headinglink만자기agent-browser나기존허용IAB도구로검증. robots/modeling재검사0·기존tab/server보존·PNG직접view.",
-        "sharedsource현재동결·실브라우저Kernel/Outer독립수행중이며추가code쓰기나서버refresh없음. 원site외부outDir만쓰기, writer/archive읽기반환.",
-        "sourceRoadmapcheckpoint문서만나중에추가되더라도이런API/Library본문/생산bytes가같으면이2검사를불필요하게재실행하지않고sourcebinding구분. 제품merge뒤필수제품check는별도."
-      ],
-      "resultLocation": null
-    },
-    {
-      "id": "SC-ASSOCIATIVE-EDIT-01",
-      "owner": "Outer",
-      "status": "ACTUAL_FAIL_ACCEPTED_FULL_RETURN_REPAIR_CONTRACT_ACTIVE",
-      "scope": "면 projection→offset→extrude/cut→치수변경/split/delete·올바른 참조 또는 명시 수리·UndoSaveOpen, 기존531/1658/2215",
-      "completionCriteria": [
-        "공개면projection/offset/extrude-cut/원치수edit1case·의미참조보존또는명시수리거부",
-        "실Undo/SaveOpen/PNG·정확source/console·필요최소commit검증·미검증분리"
-      ],
-      "resultLocation": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/outputs/sc-associative-browser-1a7f2266-20261026/report.md",
-      "actualBaselineVolume": 6720,
-      "actualWidth60Volume": 10560,
-      "expectedAssociativeVolume": 10240,
-      "diagnosis": "n2snapshot40/36유지·n0폭60/BodyRef와cutlink보존·faceID저장없음. naming소실확대0"
-    },
-    {
-      "id": "SC-ASSOCIATIVE-REPAIR-01",
-      "owner": "Outer",
-      "status": "EXPLICIT_SOURCE_IMPLEMENTATION_DISPATCH_PENDING",
-      "scope": [
-        "apps/cad-studio/src/App.tsx",
-        "apps/cad-studio/src/ui/SketchPanel.tsx",
-        "packages/barocss-cad-model/src/sketch/types.ts",
-        "packages/barocss-cad-model/src/engine/doc.ts",
-        "packages/barocss-cad-model/src/engine/part.ts",
-        "packages/barocss-cad-model/src/engine/flatten.ts",
-        "packages/barocss-cad-model/test/sketch-associative-inset.test.ts"
-      ],
-      "completionCriteria": [
-        "구형snapshot보존/신규명시연관/안전refusal/dependency/flatten경계",
-        "owner정상commit exacthunks·내부writer반환",
-        "root채택뒤원공개width40→60/10240·UndoRedo/SaveOpen·focused영향검사"
-      ],
-      "resultLocation": null,
-      "contractSHA256": "2c1f189b2a2a0e25100d4a1352859aca4493a553e6ac16469567ef6516245751"
-    }
-  ],
+  "schemaVersion": 1,
+  "kind": "PORTABLE_SNAPSHOT_OF_EXISTING_AUTHORITY_NOT_SECOND_TASK_QUEUE",
+  "savedUTC": "2026-10-26T22:26:06.373927+00:00",
+  "paused": false,
+  "pushed": false,
+  "validatedProductCode": "7a62d6dfd336659b57958bf5a5af64e17ddb9c0b",
+  "productBranch": "review/cad-gpu-engine-2026-10-14",
+  "aggregateHead": "22f856ed8fd2fb6479ad8ca806bc13f8d48a6b2f",
+  "aggregateBranch": "codex/cad-current-source-aggregate-20261025",
+  "localAuthority": "/Users/user/.cache/barocss-preserved/2026-10-24-codex-integration/round3/coordinator-api-active-20261025.json",
   "owners": {
     "Kernel": "01a16e2f-fd09-7ea3-b47e-e1243e1b3498",
     "Outer": "01a16e30-2fb2-7a31-8011-258896c32342",
     "GPU": "01a16e30-68c5-7ae2-a500-33133dc9b2b4",
     "Docs": "01a16e30-d6e2-7030-a266-fdeb12dc9b9f",
-    "Drawings": "01a16e31-1757-7e83-b62c-436a517d1dc7"
+    "Drawings": "01a16e31-1757-7e83-b62c-436a517d1dc7",
+    "Viewer": "01a1787c-a71c-7000-a102-4988e3481ec0"
   },
-  "nextOrder": [
-    "Exact current product SHA required check-docs once; no common site/native/types/browser repeat.",
-    "Outer normal scoped commit→root exact adoption→own public linked case 40to60/10240 UndoRedoSaveOpen, then focused new native/types/lint.",
-    "Quota<=5 safe global pause→verified integration/minimal checks→normal handoff commit→origin feature push/remoteSHA verify→cad automation PAUSED."
-  ],
-  "supportServerLastObserved": {
-    "owner": "Kernel",
-    "port": 52032,
-    "parent": 13822,
-    "child": 13856,
-    "session": 79248,
-    "slot": 13822,
-    "mustVerifyCurrentBeforeSignal": true
-  },
-  "constraints": [
-    "root sole aggregate/product writer; owners normal existingbranch exactcommits",
-    "native/build/generator heavy1/originalguard; independent browser/read allowed",
-    "no reset/rebase/amend/force/newWT/depsWASM/productiontol weakening",
-    "foreign33/WIP/tabs/profiles preserved; Physics owner unconfirmed and P2HOLD",
-    "default BRep validation only; raw strictBrep label correction retained; extra strict:true NOTRUN",
-    "focused evidence is not measured/wholeproduct/manufacturing acceptance; descendants/fullgraph UNKNOWN"
-  ],
-  "portableEvidence": [
-    {
-      "path": "evidence-20261026/84-open60-framed.png",
-      "bytes": 286198,
-      "sha256": "5c41373fe470de00827d7f36e4455bddeabf1d18ab1255194825167cd066ea39"
+  "laneAssignments": {
+    "GPU": {
+      "currentTask": "GPU-G15B-POINT-PCSS-01",
+      "nextTask": null,
+      "nextCondition": "Currentown551→boundednewpointPCSSsource first; rootowns previousqualifiedproductintegration",
+      "nextAssignment": null,
+      "updatedUTC": "2026-10-26T18:34:22.214656+00:00",
+      "responsibility": "GPU owns qualified source and functional evidence; API root owns integration"
     },
-    {
-      "path": "evidence-20261026/B-fixed-enter.bcad",
-      "bytes": 1116,
-      "sha256": "9a1e5683ebbe51db10e60eb540cc65ece4566fe3297ab25f293d64dfe0ec345d"
+    "Kernel": {
+      "currentTask": "CAD-G15-MODEL-STUDIO-FEATURE-BATCH-01",
+      "nextTask": null,
+      "nextCondition": "FirstwholeG15Model/Studio5command batch then Outeractualpublicflow aftersource/runtimereturn; rootproductintegration later",
+      "nextAssignment": null,
+      "updatedUTC": "2026-10-26T22:17:48.304363+00:00",
+      "responsibility": "ModelAPI implementation; qualified009awaits exactUIconsumer. PriorCG1minimum2passedandreturned."
     },
-    {
-      "path": "evidence-20261026/B-fixed-open-roundtrip.bcad",
-      "bytes": 1134,
-      "sha256": "0fb8e3854ec51fddf861f4ee0f127ea049e564bac9cf5bb9c956722f59c3be2f"
+    "Outer": {
+      "currentTask": "STUDIO-G15-LIGHT-SHADOW-CONSUMER-01",
+      "nextTask": null,
+      "nextCondition": "Finish whole G15 Model/UI source then root-batched impact/public flow/product integration",
+      "nextAssignment": "NONE_UNTIL_BOUNDED_NEXT_ROADMAP_SCOPE",
+      "updatedUTC": "2026-10-26T21:43:14.372763+00:00"
     },
-    {
-      "path": "evidence-20261026/SC-base40-cut4.bcad",
-      "bytes": 2342,
-      "sha256": "39db28143348184202491073679a52de9dcd8a26fe2024762536f833d130db0c"
+    "Docs": {
+      "currentTask": "CG1-DOCS-SITE-CLOSURE-01",
+      "nextTask": null,
+      "nextCondition": "Complete exact docs/site/necessary changed page; root local product cut closes then next bounded documentation assignment",
+      "nextAssignment": null,
+      "updatedUTC": "2026-10-26T21:53:16.659100+00:00"
     },
-    {
-      "path": "evidence-20261026/SC-width60-cut4.bcad",
-      "bytes": 2152,
-      "sha256": "dc30a44d046961f64c84af735f80dff144675146499c8021f50db446af980fd7"
+    "Drawings": {
+      "currentTask": "DRAWING-DR6-STANDALONE-FRAME-01",
+      "nextTask": null,
+      "nextCondition": "Ownsourceimplementation immediately; runtime aftercurrentDocs/productslot; rootowns priorpointproductintegration",
+      "nextAssignment": null,
+      "updatedUTC": "2026-10-26T18:34:22.214656+00:00"
+    },
+    "API": {
+      "currentTask": "CLOSED-FEATURE-SOURCE-INTEGRATION-01",
+      "nextTask": null,
+      "responsibility": "Coordinator/API review + producer-consumer mediation + integration; implementation delegated to Kernel",
+      "nextCondition": "CG1 product7a62 requireddocs firstPASS; immutablebuilt documentation pages continue separately. Root immediately adopts next whole G15 exactdelta and executes ready firstaffectedbatch.",
+      "nextAssignment": null,
+      "updatedUTC": "2026-10-26T22:15:02.550858+00:00"
+    },
+    "Viewer": {
+      "currentTask": "VIEWER-V5-NAMED-REVIEW-VIEWS-01",
+      "nextTask": null,
+      "nextCondition": "Own40a nextnormal source; requiredonebatch aftersourcecompletion and currentnativewindowreturn",
+      "nextAssignment": null,
+      "updatedUTC": "2026-10-26T18:34:22.214656+00:00"
     }
+  },
+  "selectedTasks": {
+    "CAD-MODEL-G15-SHADOW-LIGHT-FIELDS-01": {
+      "owner": "Kernel",
+      "assignment": "CONFIRMED",
+      "basis": "ExistingG15b + actualmissing Model point/spot shadow DTO/read fields, settledmm/worldidentity contract",
+      "goal": "Preserve point/spot optionalcastShadow/shadowRadius through Modelsave/read and sharedtypedadmission usedbyStudio; no genericrenderrewrite",
+      "scope": [
+        "packages/barocss-cad-model/src/engine/render.ts",
+        "packages/barocss-cad-model/test/render-shadow-lights.test.ts"
+      ],
+      "dependencies": [
+        "CG1 currentruntime/source/archive allreturned; now satisfied",
+        "Ownbranch normalchild only; shared0bCG1 sourcefreeze remains"
+      ],
+      "status": "NORMAL009B_ROOT_ADOPTED_DF70_WHOLE22F_FIRST_BATCH_DISPATCHED",
+      "contract": "CADmm=GPUworld1, position/range/radius identity; onlyintensityexisting size²*.05. Optionalfalse/zero/omission retained; noautoenable. Activatedradius finite nonnegativef32/positiveunderflowrefusal; intensity0 remainsactive. Preservelegacydirectional andexistingposition/rangeclamp/default, no blanketretroactivedisabledvalidation. Currentcapsfirst4directional/spot, first8point/caster1 unchanged; no duplicatedGPUmath/dependency. Newshadowfieldinvalid policy explicit, neverinvalidactive→0 silentclamp. Prefer existingVALUE typedrefusal; no registryexpansion.",
+      "completionCriteria": [
+        "Whole normal source2filechild and fixedcontracts; callerinputcopy/no mutation",
+        "SamefeatureOuterUI/bridge uses exactcontract; functiontests coverlegacyomission,false,0,positive,invalidpreservation and documentread/write",
+        "One latercombined affectedbatch, oldrender/CG1/corePASS not repeated",
+        "Rootexactintegration; samefeaturepublicbrowserownedOuter"
+      ],
+      "runtime": "ALL_NOTRUN",
+      "sourceAuthority": "/Users/user/Documents/Codex/2026-10-24/cad-gpu-20261024/outputs/point-pcss-studio-units-20261027/contract.md",
+      "delivery": {
+        "sent": true,
+        "toolAccepted": true,
+        "actuallyStarted": true,
+        "received": true
+      },
+      "baseline": "b52c946c95c957528f07576d24d2f8b1df2fac59",
+      "baselineExcludedFromAdoption": true,
+      "admissionContract": {
+        "pureShared": "validateRenderShadowLights, onecommonread/UI/bridge admission boundary",
+        "disabled": "Preserve omitted/false/0; finite nonnegativeJSradius retained without f32restriction; nonnumeric/NaN/Infinity/negative newradius VALUErefusal",
+        "eligibleActive": "First8point/caster1 andfirst4spot originalorder, f32finite/positiveunderflowrefusal, intensity0stillactive",
+        "legacy": "Existing position/rangeclamp, directional,read12slice unchanged",
+        "unit": "CADmm=GPUworld1, radiusidentity"
+      },
+      "sourceWriterReturned": true,
+      "normalChild": "PENDING_WHOLE_TWOFILE_RETURN",
+      "actualFirstFeatureEdit": "render.ts point/spot optionalcastShadow/shadowRadius(mm), readonlyunknown[] sharedpurevalidator, readRendernewfields single-readplainDTO snapshot",
+      "partialReturn": {
+        "productionWriter": true,
+        "contractReader": true,
+        "testWriter": true,
+        "runtime": "NOTRUN",
+        "shared0bSourceWrites": 0,
+        "wholeFeatureComplete": false
+      },
+      "source": "009b92cc4fe08f1cb492f0da34fb5ef7b606c0d2",
+      "parent": "b52c946c95c957528f07576d24d2f8b1df2fac59",
+      "runtimeReturned": true,
+      "archiveReturned": true,
+      "sourceDelta": "+155/-5",
+      "newTestDeclarations": 5,
+      "resultLocation": "/Users/user/Documents/Codex/2026-10-24/cad-kernel-20261024/outputs/g15-shadow-light-fields-source-b52c946-20261027.md",
+      "rootStaticReview": {
+        "exact2NormalDelta": true,
+        "blockers": 0,
+        "readReturned": true,
+        "rootRenderPreimageMatchesB52": true,
+        "runtime": "NOTRUN"
+      },
+      "reportSHA256": "8223fc1e4a244dd8a4b264975e2e45e146b9dda205c9b20acb04e564f4cb543c"
+    },
+    "STUDIO-G15-LIGHT-SHADOW-CONSUMER-01": {
+      "owner": "Outer",
+      "assignment": "CONFIRMED_CONDITIONAL",
+      "basis": "ExistingG15b allshadowinglights + actualproductf1af consumerfields dropped; user foundationfirst/wholefeature mandate",
+      "goal": "Expose qualified directional/spot/point shadow choices via existingRenderPanel and forward complete lightfields to existingGPU; completepublicUndoRedo/actualSaveOpen/capture",
+      "scope": [
+        "apps/cad-studio/src/ui/RenderPanel.tsx",
+        "apps/cad-studio/src/viewport/gpuRenderer.ts",
+        "related focusedconsumer tests only"
+      ],
+      "status": "FIRST_RUNTIME_CONSUMER4_PASS_STUDIO_TEST_TYPE1_MINIMUM_NORMAL_CHILD_FIX_ACTIVE",
+      "dependencies": [
+        "CG1 public source/runtime/archive returned: satisfied",
+        "Qualified immutable GPU33a and Model009b contract/source: satisfied for own-source implementation",
+        "Root must adopt exact whole Model/UI/GPU cut before required impact/runtime batch"
+      ],
+      "completionCriteria": [
+        "SamefeaturefoundationDTO/inputcontract first; no inventedunits or duplicateconversion",
+        "WholeUI+bridge normalchild with optionalfalse/zero/omission preserved",
+        "One requiredModel/Studio impactbatch then actualindependentcaster/radius/invalidpreservation/SaveOpen/PNG androotintegration"
+      ],
+      "exclusions": [
+        "Newrenderer",
+        "newGPUshadowmath",
+        "autoenablealllights",
+        "budgetextension",
+        "Appwholesale",
+        "tolerancechange"
+      ],
+      "delivery": {
+        "sent": true,
+        "toolAccepted": true,
+        "received": true,
+        "actuallyStarted": true
+      },
+      "nextAction": "Outer immediately implements the assigned RenderPanel/gpuRenderer consumer on its own normal branch using exact qualified foundations; root CG1 docs cut proceeds independently. No shared writes or runtime before root pins.",
+      "unitContractSettled": {
+        "mmEqualsGPUWorld": 1,
+        "radiusExtraScale": false,
+        "intensityOnly": "size²*.05",
+        "intensity0StillActive": true,
+        "evidence": "/Users/user/Documents/Codex/2026-10-24/cad-gpu-20261024/outputs/point-pcss-studio-units-20261027/contract.md"
+      },
+      "modelSourceContract": {
+        "source": "009b92cc4fe08f1cb492f0da34fb5ef7b606c0d2",
+        "parent": "b52c946c95c957528f07576d24d2f8b1df2fac59",
+        "exact2deltaOnly": true,
+        "sharedValidator": "validateRenderShadowLights(readonlyunknown[]):void",
+        "staticAccepted": true,
+        "runtime": "NOTRUN",
+        "deliveredToOuter": true
+      },
+      "dependencyMediation": {
+        "at": "2026-10-26T21:43:14.372763+00:00",
+        "reason": "Root shared adoption is required before combined impact/runtime, not before independent own-source implementation. No semantic/unit contract remains unresolved. Avoid idle while CG1 docs source is frozen.",
+        "GPU": "33a0fa9ab8b23788a39b0546ab484bacb7525311",
+        "Model": "009b92cc4fe08f1cb492f0da34fb5ef7b606c0d2"
+      },
+      "firstActualCodeAction": {
+        "at": "2026-10-26T21:45:12.205489+00:00",
+        "parent": "f476d132a93c716f04d9f6b8dd5a3e2f41cbd1cc",
+        "state": "Ownbranch clean index/normal identity checked; three internal owners directly writing RenderPanel/gpuRenderer/focusedconsumer test. Foreign App/Vite exactpreservation; rootshared writes0; testsNOTRUN."
+      },
+      "sourceResult": {
+        "parent": "f476d132a93c716f04d9f6b8dd5a3e2f41cbd1cc",
+        "child": "498c36f9542628499e66718ff204e94f9f2ea681",
+        "files": 3,
+        "sourceWritersReturned": true,
+        "runtime": "NOTRUN",
+        "archiveReturned": true,
+        "staticReview": {
+          "rootPeer": "model_api_scope API/state/units read returned no blocker; no runtime proof",
+          "ownerFoundIssue": "Multiple invalid radius drafts: one field Escape clears global lightError and may hide warning for remaining invalid field; accepted settings unaffected. Static finding, runtime NOTRUN.",
+          "correction": "Owner RenderPanel only normal child of845, no GPU/helper/budget changes",
+          "845FinalQualified": false
+        },
+        "chain": [
+          "845301061c087334d50f01ec3fb629ce6c27db71",
+          "498c36f9542628499e66718ff204e94f9f2ea681"
+        ],
+        "fieldWarningCorrection": {
+          "files": 1,
+          "addedLines": 18,
+          "removedLines": 9,
+          "RenderPanelSHA256": "c5c95754013b5d81564f9b6d6ec59ee430e16283c38e449286e23fdc69d38d70",
+          "ownerStaticPeer": "No further blocker; actualbrowserNOTRUN",
+          "acceptedSettingsChanged": false
+        },
+        "report": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/outputs/studio-g15-light-shadow-498c36f95-source-20261027/report.md",
+        "reportSHA256": "a3a9dbdb31507676559b24343aa83699c17622bd4e151658f01fe8e785606f77",
+        "rawIndexSHA256": "3a8ecf1ca973a69dd2c6dd00bd3f7d0ca863e9ea36d2cc30deb1e2934c8f446c",
+        "rawFiles": 31,
+        "finalRootStaticReview": {
+          "reviewer": "model_api_scope",
+          "source": "498c36f9542628499e66718ff204e94f9f2ea681",
+          "scope": "Only final RenderPanel+18/-9 delta",
+          "result": "No blocker. aria-invalid/fieldalert use radiusErrors[i]; Escape removes currentindex only; other radius/global budget errors retained; acceptedlights change resets draft/errors together; no acceptedsettings mutation on refusal",
+          "runtime": "NOTRUN",
+          "readReturned": true
+        }
+      }
+    },
+    "CAD-G15-MODEL-STUDIO-FEATURE-BATCH-01": {
+      "owner": "Kernel",
+      "assignment": "CONFIRMED_CONDITIONAL",
+      "basis": "Existing whole G15 Model/Studio consumer from qualified GPU33a and Model009b, exact Outer8453+minimumfield-error child; no newfeature expansion",
+      "goal": "One necessary affected batch for the completed same-feature Model/UI implementation, followed by Outer actualpublic flow",
+      "scope": [
+        "Model render-shadow-lights.test.ts original5 declarations",
+        "Studio render-shadow-consumer.test.ts original4 declarations",
+        "Model/Studio affected types",
+        "Exact production Modelrender+RenderPanel+gpuRenderer lint"
+      ],
+      "dependencies": [
+        "Outer final normal minimum RenderPanel child/sourcearchive return",
+        "Root exactGPU33a/Model009b/Studiofinal source adoption after CG1 product closure",
+        "Native original heavy lane returned and exact root lease dispatched"
+      ],
+      "completionCriteria": [
+        "First required commands once; actual TAP/exit/raw retained",
+        "First failure stops latercommands; sourcefix newSHA/newattempt",
+        "Actualwait fourstages same-shell release ownedslot observation",
+        "Source/tool/config/output prepost and source/runtime/archive returns"
+      ],
+      "verification": "Owner plans exact existing runners/cwd/commands from saved source now; no Node/probe/test/build before final root lease",
+      "status": "ORIGINAL_MODEL5_STUDIO4_MODELTYPE_PASS_STUDIOTYPE_FIRSTFAIL_RETURNED_TEST1_MINIMUM_FIX_ASSIGNED",
+      "delivery": {
+        "sent": true,
+        "toolAccepted": true,
+        "received": true,
+        "actuallyStarted": true
+      },
+      "runtime": "NOTRUN",
+      "nextAction": "Return compact exact plan. Root adopts finalsource and leases firstbatch once CG1 product closes.",
+      "commandPlan": {
+        "path": "/Users/user/Documents/Codex/2026-10-24/cad-kernel-20261024/work/g15-model-studio-feature-batch-plan-009b8453-20261027.json",
+        "bytes": 4729,
+        "sha256": "b8dd70a51fa4ab4c0a323bcb1e46f7209a3966a713239118cadb1de3ca6963ee",
+        "commands": 5,
+        "ModelDeclarations": 5,
+        "StudioDeclarations": 4,
+        "actualTAP": "NOTRUN",
+        "boundary": "Model runner does not traverse Studio; separate existing Studio runner/cwd required; no newcases/probes",
+        "finalStudioSource": "498c36f9542628499e66718ff204e94f9f2ea681"
+      },
+      "source": "22f856ed8fd2fb6479ad8ca806bc13f8d48a6b2f",
+      "executionID": "CAD-22f856-G15-ModelStudio-feature-batch-0001-20261027",
+      "lease": "/Users/user/.cache/barocss-preserved/2026-10-24-codex-integration/round3/cad-22f856-g15-model-studio-feature-batch-0001-lease-20261027.json",
+      "leaseSHA256": "810e79230cb9a3bea52930fc0e9530d483216698755e2d615b63d8064d7b05b4",
+      "resultLocation": "/Users/user/.cache/barocss-preserved/2026-10-27-cad-g15-model-studio-22f856-feature/attempt-0001",
+      "preparationDiagnostic": {
+        "tool": "exec-e4ab6d15-5962-48b6-a9a6-a739e640bf19",
+        "error": "SyntaxError in collector pathselection if; before native launch",
+        "ownerCorrectedTool": "exec-fdf3d57c-5fbb-4066-afec-45f9834f565c",
+        "originalNativeRuns": 0,
+        "rootReadObserved": true,
+        "nativeFailure": false
+      },
+      "lastActualObservation": "Exactlease received, collector-onlySyntaxError fixedbeforeNode; no actual firststage reported yet. Owneractive, notstopped. No duplicate dispatch.",
+      "firstActualResult": {
+        "session": 81793,
+        "initial": "97b7e3",
+        "final": "9c2af5",
+        "exit": 1,
+        "Model": {
+          "PID": 4157,
+          "TAP": 5,
+          "pass": 5,
+          "ms": 334.432459,
+          "fourExits": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "StudioConsumer": {
+          "PID": 4227,
+          "TAP": 4,
+          "pass": 4,
+          "ms": 116.889792,
+          "fourExits": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ModelType": {
+          "PID": 4286,
+          "pass": true,
+          "actualInputs": 1237,
+          "PREMATCHED": 785,
+          "POSTONLY": 452,
+          "CHANGED": 0
+        },
+        "StudioType": {
+          "PID": 4562,
+          "wait": 2,
+          "fourExits": [
+            0,
+            2,
+            0,
+            2
+          ],
+          "diagnostics": [
+            "test/render-shadow-consumer.test.ts(107,50): error TS2339: Property kind does not exist on type never."
+          ],
+          "actualInputs": 1599,
+          "PREMATCHED": 1111,
+          "POSTONLY": 488,
+          "CHANGED": 0
+        },
+        "production3lint": "NOTRUN_AFTER_FIRSTFAIL",
+        "sourceToolConfigHeadStatusOutputsSame": true,
+        "runtimeReturned": true,
+        "liveSourceReturned": true,
+        "raw": "/Users/user/.cache/barocss-preserved/2026-10-27-cad-g15-model-studio-22f856-feature/attempt-0001"
+      },
+      "minimalRepair": {
+        "owner": "Outer",
+        "scope": "apps/cad-studio/test/render-shadow-consumer.test.ts oneassert only",
+        "cause": "assert.deepEqual on lights property with [] narrows mutable property to never[]; TS does not track subsequent draw mutation",
+        "requested": "assert.equal lights.length0 keeps empty-array condition without cast/clone/productionchanges",
+        "afterNormalChild": "NewSHA/newattempt StudioType + never-runproduction3lint only; retain original Model5/Studio4/Modeltype exactproductionPASS. Reassess if any more changes."
+      }
+    },
+    "DRAWING-DR6-STANDALONE-FRAME-01": {
+      "owner": "Drawings",
+      "assignment": "CONFIRMED",
+      "basis": "ExistingroadmapCG5 DR6 standaloneframes; actualDrawingFrame.dimrequired andFrameEditor!dimnull gapconfirmed",
+      "goal": "Single standalonegeometriccontrolframe Modeladmission/serialization/SheetSVG thenStudiocreate/move/delete/saveopen",
+      "scope": "Drawingownedcontrols/types/options/sheet/issues/reorient/scope/SVG andexacteditor/Workspace +relatedtests; no generalModelengine/app/CG1/sourcewrites",
+      "status": "WHOLE13_PLUS_ONEFILE_SETTINGS_SNAPSHOT_NORMAL_CHILD_REVIEWED_READY_NEXT_SHARED_SOURCE_WINDOW",
+      "dependencies": [
+        "Priorpointtarget allsource/runtime/archive returned",
+        "NewheavyonlyaftercurrentDocs/productwindowreturn"
+      ],
+      "apiContract": "Existingdimensionattachedlegacy unchanged; standaloneexplicitview+finite denseview-mmplace2 XORdim; globaluniqueIDs, attacheddimuniquenessonly; preserveunknown/hiddenview withdiagnosis; annotationnotgeometryattachment/solver/certification",
+      "completionCriteria": [
+        "Whole normalsource includingModelguards/read/write/sheet/SVG andsameUI",
+        "Unchangedlegacyvalues/tol/modifiers andinvalidpreservation",
+        "One necessaryimpactbatch thenpubliccreate-move-delete/SaveNewOpen/SVG",
+        "Rootexactintegration"
+      ],
+      "exclusions": [
+        "compositeframes",
+        "line/areatargets",
+        "ISO/ASMEpresets",
+        "inch",
+        "newPMIgeometry",
+        "tolerancesolver",
+        "P2manufacturingacceptance"
+      ],
+      "delivery": {
+        "sent": true,
+        "toolAccepted": true,
+        "received": true,
+        "actuallyStarted": true
+      },
+      "actualFirstAction": "Own079e/indexempty/WIP9preserved; controls.ts DrawingFrame/frameOk/readFrames/schema XORactualedit; Model/consumer/UI threeinternalroles",
+      "scopeBoundary": "scope.tsforeignWIP9notedited; coordinator normalguard ifneeded; no patchdelivery/no sharedbd925CG1writes",
+      "source": "d68d6e49aebf3315c2db31edbf149cac11a42ed9",
+      "parent": "079e2ae12ac90266cf39e8549abe6c7e1f8548ab",
+      "sourceWriterReturned": true,
+      "sourceFiles": 13,
+      "productionFiles": 11,
+      "newNativeDeclarations": 6,
+      "manifestSHA256": "71090ea10c7913e4405ac09d3a8ab3b443b2a1188b3b10f9172ec81f43feb487",
+      "resultLocation": "/Users/user/Documents/Codex/2026-10-24/cad-drawings-20261024/outputs/drawing-dr6-standalone-frame-20261027/source-0001/",
+      "nextAction": "Rootwhole13 source review then separatequalifiedsourcecut/batch; notmixedcurrent902CG1freeze",
+      "runtimeStatus": "ALL_NOTRUN",
+      "rootStaticPeer": {
+        "blockers": 0,
+        "scope": "Exact13normaldelta079→d68 plus typedconsumers/readonly checks",
+        "readReturned": true,
+        "runtime": "NOTRUN"
+      },
+      "staticCorrection": {
+        "cause": "App defaultDrawing makes equal-valued fresh settings object on unrelated render; pending placement reference-only guard may reject valid firstAdd",
+        "owner": "Drawings",
+        "scope": [
+          "apps/cad-studio/src/ui/DrawingWorkspace.tsx"
+        ],
+        "change": "Add-time drawingvalue snapshot compared atplacement, keep actualsettings/view/document/geometry guards",
+        "source": "ac53b888c04a4b5e86a82db83a51c46331e456fe",
+        "runtimeFailure": false,
+        "nextEvidence": "Firstbatchoncorrectedchild only; publicFirstAdd Browsercollapse thenplacement",
+        "rootMediation": "Rawdoc/settings reference pins both falsepositive; stable nodes/parameters/outputs/instances + content-key model guards, orderedkey+mesh notwholeBodyarray; preservesexistingbusy/viewguard. No lifetimedocid exists. Pendingnormalchild/readreview.",
+        "parent": "d68d6e49aebf3315c2db31edbf149cac11a42ed9",
+        "sourceDelta": "+5/-3 exactWorkspace1file",
+        "rootRead": "Normalchild fullyread; settingsvalue snapshot + stable4docchildren + content-key currentModel/pendingmodel; originalbusy/view/currentrowpreserved"
+      },
+      "finalSource": "ac53b888c04a4b5e86a82db83a51c46331e456fe",
+      "normalChain": [
+        "d68d6e49aebf3315c2db31edbf149cac11a42ed9",
+        "ac53b888c04a4b5e86a82db83a51c46331e456fe"
+      ],
+      "nextRootPreimageReview": {
+        "current": "0b115b6d8123a449f23d921c68718976e43e8711",
+        "originalParent": "079e2ae12ac90266cf39e8549abe6c7e1f8548ab",
+        "paths": 13,
+        "unchangedOrBothAbsent": 12,
+        "different": [
+          "packages/barocss-cad-model/src/drawing/issues.ts"
+        ],
+        "mediation": "Root retains currentindependentdimension leader/extension textavoidance and expandedcandidates maxReach; donor normaldelta adds standaloneframe branch. Threeway/sourcehunks reviewed atnextadoption, not donorwholefile overwrite. No ownernewscope needed.",
+        "applied": false
+      }
+    },
+    "VIEWER-V5-NAMED-REVIEW-VIEWS-01": {
+      "owner": "Viewer",
+      "assignment": "CONFIRMED_CONDITIONAL",
+      "basis": "Source roadmap V5 saved views + overnightapprovedViewerimplementation",
+      "goal": "Named sourcebound saved review views in SDK/app with existingreview contract",
+      "scope": "SDK/app/relatedtestsREADME only; oldformatcompatible; noconfig/hooks/newrenderer/annotationengine",
+      "status": "NORMAL_WHOLE13_SOURCE_AND_REQUIRED_FLOW_RETURNED_ROOT_NEXTCUT_PENDING",
+      "dependencies": [
+        "V3current40a source/readersreturned; nextsourceownbranch only",
+        "Newheavy scheduledaftercurrentsharednativewindows"
+      ],
+      "completionCriteria": [
+        "Name save/rename/delete/explicitrestore; document/assembly source-revision/units preserved",
+        "Malformed/mismatched inputs preserveacceptedstate/list",
+        "Normalwholechild thennecessarybatch and actualSaveOpen",
+        "Rootexactintegration"
+      ],
+      "delivery": {
+        "sent": true,
+        "toolAccepted": true,
+        "received": true,
+        "actuallyStarted": true
+      },
+      "actualFirstAction": "ExistingSDKnamedlist absent; app list + SDKsideeffectfree reviewvalidation actualfilechange",
+      "source": "65a208b429c66c6c2e6b6acc2178a085830a961f",
+      "parent": "40a05546042dca6e4bb4d7e50166e3d7df897ea3",
+      "sourceWriterReturned": true,
+      "runtimeReturned": true,
+      "archiveReturned": true,
+      "resultLocation": "/Users/user/Documents/Codex/2026-10-26/cad-viewer-20261026/outputs/cad-viewer-named-views-20261027/report.md",
+      "actual": {
+        "newBehaviorTests": 15,
+        "tapIncluding2Parents": 17,
+        "fail": 0,
+        "sourceLocalTypes": 0,
+        "documentAndAssemblyActualReviewFileFlow": "state/list/pixel match; originalmisclick preserved",
+        "forcedAsyncRaceAndGPULoss": "NOTRUN"
+      },
+      "rootReview": {
+        "peer": "Exact13 source plus originalreports read blocker0/readreturned",
+        "directViewed": [
+          "document-saved-views.png",
+          "assembly-saved-views.png"
+        ],
+        "productAdopted": false
+      },
+      "gitObjectAvailableForRootIntegration": true
+    },
+    "CG1-DOCS-SITE-CLOSURE-01": {
+      "owner": "Docs",
+      "goal": "CG1 documentation/source contract closes before local product adoption",
+      "scope": [
+        "Current reviewed docs7 and minimum reviewed API expected rows",
+        "check:docs and site, necessary changed public pages only"
+      ],
+      "status": "COMPLETED_SCOPED_COMMON_DOCS_SITE_ACTUAL_PAGES_ALL_RETURNED_PRODUCT_REQUIRED_DOCS_PASS",
+      "dependencies": [
+        "CAD-480060-CG1-inventory-source-0001-20261027",
+        "Root reviewedexpected normalcommit"
+      ],
+      "completionCriteria": [
+        "First exact check/site commands pass, actual required changed page display within existing browser access",
+        "All source/runtime/archive return; original failures/CLI CUA limits retained"
+      ],
+      "verification": "One required affected docs/site batch; existing unaffected checks not repeated",
+      "nextAction": "Root supplies new source SHA and exact lease after semantic review",
+      "source": "3751a3ac55d1e1dc346651b8d41b25d4bb665105",
+      "executionID": "CAD-3751a3-CG1-docs-check-site-0002-20261027",
+      "lease": "/Users/user/.cache/barocss-preserved/2026-10-24-codex-integration/round3/cad-3751a3-cg1-docs-check-site-0002-lease-20261027.json",
+      "leaseSHA256": "440e94b22310eda4b9af7123801a47bd68e852b6eb2908e5d8635e515ddeb289",
+      "resultLocation": "/Users/user/.cache/barocss-preserved/2026-10-27-docs-cg1-3751a3-validation/attempt-0002",
+      "delivery": {
+        "sent": true,
+        "toolAccepted": true,
+        "received": true,
+        "actuallyStarted": true
+      },
+      "lastActualObservation": "3751 corrected lease acknowledged; own source/structured launch preparation active. First actual stage session/result not yet reported. Original159FAIL and rootgenerator1PASS remain separate.",
+      "preparationOnlyFailure": {
+        "toolMarker": "exec-fe691e36-6cbc-4462-990f-d7f3afbb7572",
+        "error": "FileExistsError outputworkspace alreadycreated by ownHTMLpeer",
+        "stage": "Before any nativecommand, rawattempt untouched",
+        "ownerResolved": "Preserved peerfile; created absent snapshot.py with actuallease, no originalnative command retry",
+        "productFailure": false,
+        "firstNativeCommand": "Notyet reported; no inference from prep"
+      },
+      "actualFirstAction": {
+        "session": 8663,
+        "startChunk": "95dece",
+        "preSource": 3253,
+        "tools": 11,
+        "CAD": 818,
+        "GPU": 288,
+        "ModelDist": "ABSENT",
+        "head": "159482a6e84736354e0cd88a1e6bd32cd140f83c"
+      },
+      "launchPATHNonconformance": {
+        "reportedBy": "Docs before first actualwait return",
+        "outerLaunch": "/usrsbin typo instead /usr/sbin",
+        "originalPreserved": true,
+        "rootReadExactStageSHA": "c8ce314ae634cfe9bf93a47391fca459f282e05fbbb84b8bc99eef738a3fd4d1",
+        "rootActualStageProof": "line6 absolute/bin/mkdir; line7 correct fixedPATHexport before gate27 and absoluteNode34",
+        "scopeAccepted": "Effective gate/NodePATH is lease-equivalent by actual pinnedstage ordering; outer launchbytes NOT equivalent; no added processenv measurement claimed",
+        "executionDecision": "Do not rerun docs. If actual docs fourexits/release/source checks PASS, execute never-run site1 once from exact launch.json string",
+        "rootExplicitMediationAt": "2026-10-26T21:57:32.233152+00:00",
+        "productFunctionalFailure": false
+      },
+      "actualFirstResult": {
+        "session": 8663,
+        "final": "5101eb",
+        "exit": 1,
+        "fourExits": [
+          0,
+          1,
+          0,
+          1
+        ],
+        "shell": 79328,
+        "releaseStartExitSameShell": true,
+        "releaseExit": 0,
+        "ownedSlotAbsent": true,
+        "stdoutBytes": 0,
+        "stderrLines": [
+          "docs/reference/_refusals.md differs from the sources: run node scripts/refusals.mjs",
+          "studio/files.md: the label **. Select a representation, or select ** is not in the studio's sources"
+        ],
+        "postSession": 18306,
+        "postFinal": "b86a9f",
+        "postExit": 0,
+        "source": 3253,
+        "tools": 11,
+        "CAD": 818,
+        "GPU": 288,
+        "ModelDist": "ABSENT",
+        "allPrePostHashModePathKindsSame": true,
+        "site": "NOTRUN_AFTER_FIRSTFAIL",
+        "browser": "NOTRUN_AFTER_FIRSTFAIL",
+        "runtimeReturned": true,
+        "sourceReturned": true,
+        "archiveReturned": true
+      },
+      "minimumCorrection": {
+        "ownerDocs": "Normal ownbranch studio/files.md1file label bold-span joined onto one line; exactoriginal label/text preserved; no checker change",
+        "ownerRoot": "Original scripts/refusals.mjs fixed sharedtarget means root solewriter runs one pinned source-generator at correctedsource, reviews generateddelta then normalcommit",
+        "next": "NewSHA/newattempt docscheck and never-runsite; no originalcommand retry"
+      },
+      "originalFailureArchive": {
+        "files": 33,
+        "sealSHA256": "9729817f21d92a98ab62ce35d6d79b022e727af19a429be13e16b2e391eee7aa",
+        "receiptSHA256": "3f7e0810334b93cb216d75c06b10aa892d87c98a0aae56ae52e7f604162221d0",
+        "allWritersReadersReturned": true
+      },
+      "sourceCorrectionResult": {
+        "generatedRootCommit": "3719ae368405f28e1d2adb697bf3946448761e27",
+        "labelDonor": "03b01feb6846032a140fbfdbb012c00cc03cdee9",
+        "labelRootCommit": "3751a3ac55d1e1dc346651b8d41b25d4bb665105",
+        "files": 2,
+        "productionChanges": 0,
+        "checkerPolicyChanges": 0,
+        "rootReport": "/Users/user/Documents/Codex/2026-10-24/cad-api-20261024/outputs/cg1-docs-minimum-correction-adoption-20261027.json",
+        "originalFailureRawUntouched": true
+      },
+      "correctedFirstAction": {
+        "session": 90327,
+        "startChunk": "06708b",
+        "head": "3751a3ac55d1e1dc346651b8d41b25d4bb665105",
+        "leaseSHA256": "440e94b22310eda4b9af7123801a47bd68e852b6eb2908e5d8635e515ddeb289",
+        "preSource": 3253,
+        "tools": 11,
+        "CAD": 818,
+        "GPU": 288,
+        "ModelDist": "ABSENT",
+        "structuredLaunchExact": true,
+        "priorFullArchiveCopiedAgain": false,
+        "currentActualPreAndDeltaPreserved": true
+      },
+      "correctedResult": {
+        "postSession": 56580,
+        "final": "1bb2f1",
+        "exit": 0,
+        "source": 3253,
+        "tools": 11,
+        "CAD": 818,
+        "GPU": 288,
+        "ModelDist": "ABSENT",
+        "pinsSame": true,
+        "runtimeReturned": true,
+        "liveSourceReturned": true,
+        "builtArtifactBrowserArchive": "ACTIVE",
+        "docs": {
+          "source": "3751a3ac55d1e1dc346651b8d41b25d4bb665105",
+          "session": 90327,
+          "final": "43b5d3",
+          "exit": 0,
+          "pages": 35,
+          "beingWritten": 0,
+          "shots": 47,
+          "KB": 3755,
+          "labels": 807,
+          "stderrBytes": 0
+        },
+        "site": {
+          "session": 27968,
+          "final": "b36b9b",
+          "exit": 0,
+          "version": "VitePress1.6.4",
+          "seconds": 4.9,
+          "files": 195,
+          "fourExits": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "releaseShell": 86339,
+          "ownSlotAbsent": true,
+          "MJSWarnings": 0,
+          "chunkWarnings": 0
+        }
+      },
+      "actualBrowser": {
+        "source": "3751a3ac55d1e1dc346651b8d41b25d4bb665105",
+        "browser": "official Codex IAB CUA",
+        "tab": 13,
+        "desktop": "1280x720",
+        "pages": 4,
+        "nativeImages": 11,
+        "imageFormat": "JPEG not PNG",
+        "consoleWarningsErrors": [],
+        "pageHorizontalOverflowObserved": false,
+        "longCodeActualScroll": "624/849; scrollLeft0→225",
+        "browserReaderReturned": true,
+        "savedArchiveReturned": true,
+        "rootDirectViews": [
+          "cad-model-guide-example-desktop.jpg",
+          "gpu-pbr-maps-desktop.jpg",
+          "studio-path-tracing-desktop.jpg",
+          "studio-step-export-desktop.jpg"
+        ],
+        "rootReadBrowserEvidenceAndObservations": true,
+        "CLI": "NOTRUN_IAB_CDP_UNSUPPORTED_SEPARATE_FROM_CUA",
+        "scope": "3751built pages, not new22fG15/productSTLdocbyteidentical"
+      },
+      "archive": {
+        "files": 252,
+        "sealSHA256": "d1a6f9cff571a8baae7e725ade0b5c1b7e6d1d72127e596fbfcb2e4dcd59b839",
+        "receiptSHA256": "1c3c14b045ea8b3fc35eb39f5015dd8d67210fac9221de0bba557a59a9f0bc92",
+        "browserEvidenceSHA256": "977c461494643c8065b9de38888dcc8ede06630bfd3260f132fb1b6c4e518c88",
+        "sourceRuntimeBrowserAllReadersWritersReturned": true,
+        "rootDirectNativeJPEGViews": 4,
+        "sourceBase159PlusActual3751Delta": true,
+        "oldWholeArchivesDuplicated": false,
+        "deliverableStaticServer": {
+          "origin": "http://127.0.0.1:55883",
+          "PID": 87867,
+          "session": 37104,
+          "tab": 13,
+          "kept": true
+        },
+        "firstRestrictedBindPermissionErrorPreserved": true,
+        "metadataMissingSelectedCountDiagnosticPreserved": true,
+        "fullReadGraph": "NOT_ESTABLISHED",
+        "descendants": "UNKNOWN"
+      }
+    }
+  },
+  "runtime": {
+    "status": "G15_FIRST_STUDIO_TYPE_FAIL_RETURNED_SAMEFEATURE_TEST_ASSERTION_FIX",
+    "nativeOwner": null,
+    "previousOwner": "Kernel",
+    "previousId": "CAD-49420d-CG1-context-Studio-types-App1lint-0001-20261027",
+    "previousReturn": "Actualfirst2PASS/source+runtime returned; archivepending; Outerremainingpublicregressionreleased",
+    "browserPolicy": "각owner agent-browser개별검증, 공유기하경합만조정",
+    "browserLanes": {
+      "GPU": {
+        "owner": "GPU",
+        "status": "NEW33A_ORIGINAL4STAGE_AND_PUBLIC_FLOW_RETURNED_ARCHIVE_CLOSING",
+        "source": "33a0fa9ab8b23788a39b0546ab484bacb7525311"
+      },
+      "Docs": {
+        "owner": "Docs",
+        "status": "ALL_2f9_RETURNED_BUILT_SITE_DELIVERABLE_PRESERVED",
+        "source": "2f9db4ae11ac88d29d510c045314315e37334764"
+      },
+      "Outer": {
+        "taskId": "STUDIO-CG1-GUIDE-CONSUMER-01",
+        "source": "49420da62991cfb23698a28a493d8396cf1a8826",
+        "status": "CG1_ACTUAL_PUBLIC_FLOW_PASS_ALL_RETURNED",
+        "centralNewApprovalRequired": false,
+        "oldFailurePreserved": true,
+        "createdUTC": "2026-10-26T21:26:58.138781+00:00",
+        "serverSession": 88894,
+        "ownedChrome": "a2",
+        "firstToolSelectorTimeout": "XPathwait124 preserved, actualDOMsnapshot continuation withoutreupload",
+        "runtimeReturned": true,
+        "archiveReturned": true
+      },
+      "Drawings": {
+        "owner": "Drawings",
+        "status": "ACTUAL_POINT_PUBLIC_FILE_SVG_SOURCE_RETURNED_EXTRAFILE_RENDER_AND_CHROME_CLOSE_UNKNOWN",
+        "source": "46777f7e5d68d3f1e075671357430d6d6c64c891",
+        "nativeProductFailure": false,
+        "session": "drawing-dr6-target-20261027-03"
+      },
+      "Kernel": {
+        "owner": "Kernel",
+        "status": "ALL_RETURNED_MODEL_CONSUMER_SOURCE_NEXT",
+        "source": "2e9c2a3d939070378986cb573f05366f98787685",
+        "session": "kernel-cubic-2e9c2a-a1"
+      },
+      "Viewer": {
+        "owner": "Viewer",
+        "status": "V3_VALIDATION_RUNTIME_RETURNED_PREVIEW53032_KEPT_NEXTV5_SOURCE_STARTED",
+        "source": "40a05546042dca6e4bb4d7e50166e3d7df897ea3"
+      }
+    },
+    "sourceWriteFreeze": {
+      "status": "RETURNED_ROOT_MINIMUM_TEST_CHILD_ADOPTION_NEXT",
+      "source": "22f856ed8fd2fb6479ad8ca806bc13f8d48a6b2f"
+    },
+    "nativeId": null,
+    "nativeLease": null,
+    "nativeLeaseSHA256": null,
+    "exclusiveReservation": "No nativeheavy active; Outer ownsource test1 correction; no oldPASS repeats",
+    "sourceHead": "22f856ed8fd2fb6479ad8ca806bc13f8d48a6b2f",
+    "supportRefresh": {
+      "id": "CAD-123ff9-Owned-Vite-refresh-01",
+      "status": "OWNER_RETURNED_SUPPORTED_SERVER_ACTIVE",
+      "allowedExactChild": 14632,
+      "sourceUnchanged": true,
+      "reason": "실served-source 결속 실패·캐시원인단정0",
+      "updatedAt": "2026-10-26T03:02:48.923754+00:00",
+      "child": 18128,
+      "parent": 18094,
+      "session": 75369,
+      "port": 52032
+    },
+    "preservedSupportServer": {
+      "owner": "Kernel",
+      "child": 71571,
+      "parent": 71536,
+      "session": 1810,
+      "slot": 71536,
+      "port": 52032,
+      "keep": true
+    },
+    "quotaPauseState": "ARMED_NOT_TRIGGERED_55_PERCENT_REMAINING",
+    "nativeQueue": [],
+    "loadBlocker": {
+      "observedLoad1": 16.26,
+      "threshold": 40,
+      "gateExit": 75,
+      "nativeNodeRuns": 0,
+      "holder": "Kernel-browser-20261026",
+      "ownedServerCPUObserved": 0.0,
+      "reason": "원공유환경부하고보유supportslot;특정원인미확정·타인프로세스조작0",
+      "releaseCondition": "원gate show의allowed슬롯>현재holder·load<40; supportslot1이면현재정책상load<25필요. 소유refresh도동일원guard준수.",
+      "bypass": false,
+      "initialConditionCorrection": "root초기load<40만표현한조건오류를정정. capacity는allowed>holders이며support1의경우load<25필요.",
+      "allowedSlots": 2,
+      "holders": 1,
+      "replacementCanProceed": true,
+      "parallelNativeCanProceed": true
+    },
+    "lastOwnerSnapshotUTC": "2026-10-26T21:47:06.382903+00:00",
+    "noReadyRuntimeReason": null,
+    "productHead": "7a62d6dfd336659b57958bf5a5af64e17ddb9c0b",
+    "productCheckoutHead": "7a62d6dfd336659b57958bf5a5af64e17ddb9c0b",
+    "roadmapCheckpointCommit": "12603e1ffce937733c7acc38dafbdf8aafab350b",
+    "lastSourceIntegrationUTC": "2026-10-26T16:21:20.178584+00:00",
+    "nativeExecutionAuthority": "Kernel first5stages only; no extraGPUemit/CG1native/diagnosticprobes"
+  },
+  "quotaPause": {
+    "thresholdRemainingPercent": 5,
+    "latestUsed": 50,
+    "latestRemaining": 50,
+    "secondary": "UNAVAILABLE",
+    "action": "stop all6owners+ownagents, safe returns, qualifiedintegration/minchecks, portablehandoff/normalcommit, root authorizednormalfeaturepush/remoteSHA, cadPAUSED",
+    "resetCreditsUsed": false
+  },
+  "resumeOrder": [
+    "Read actual quota/HEADs and local authority before acting",
+    "G15 original first StudioTypeFAIL preserved; Outer fixes one testassert on normalchild. No productionchanges. Root exactchild adopts, then only correctedStudioType + never-runproduction3lint on newSHA/newattempt; originalModel5/Studio4/ModeltypesPASS retained",
+    "After requiredbatch/live source return, Outer ownagent-browser executes the already bounded G15 publicflow; no central newbrowserpermission",
+    "Then root finishes qualified G15 docs/productcut, followed by ready Viewer and standalone exactnormaldelta cuts, preserving currentholds"
   ],
-  "rawArchivesIncluded": false,
-  "rawLimits": "Detailed local archives are not claimed portable; receipt hashes, source refs, actual input documents and image are retained. No claim of recovered missing originals."
+  "pendingObjectAvailability": "Pending donor/root aggregate commits are local. No claim origin contains them. Preserve exact local refs/checkout or scoped recovery objects at quota finalization if still unmerged.",
+  "evidence": "evidence-20261027/cg1/index.json",
+  "limits": [
+    "Wholeengine/robot/freeforward/contact/physical/manufacturing/release notaccepted; P2HOLD",
+    "No reset/rebase/amend/force/newWork/deps/solver/profile/oldpausedwork",
+    "Metadata checkpoint only: code/docchecks remain actual7a62 execution, not a new test on this documentationcommit"
+  ]
 }

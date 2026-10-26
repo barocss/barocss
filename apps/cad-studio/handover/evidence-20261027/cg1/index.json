@@ -1,0 +1,67 @@
+{
+  "source": "49420da62991cfb23698a28a493d8396cf1a8826",
+  "provenance": "Actual public Studio Save downloads and native PNG captures, copied without content edits",
+  "files": [
+    {
+      "file": "before-loft.bcad",
+      "bytes": 1216,
+      "sha256": "a094e95a9061e089ef0f0462fa01386455fc264fabe5ecb8be5bf8dbfb44e072",
+      "originalLocalSource": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/outputs/studio-cg1-guide-browser-49420da6-20261027/raw/downloads/before-loft.bcad"
+    },
+    {
+      "file": "preview.bcad",
+      "bytes": 1216,
+      "sha256": "a094e95a9061e089ef0f0462fa01386455fc264fabe5ecb8be5bf8dbfb44e072",
+      "originalLocalSource": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/outputs/studio-cg1-guide-browser-49420da6-20261027/raw/downloads/preview.bcad"
+    },
+    {
+      "file": "applied.bcad",
+      "bytes": 3127,
+      "sha256": "3499673cafea52f9c130c335d2c22c2d563a4ab37948b2b4f1c052d1f8d85db6",
+      "originalLocalSource": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/outputs/studio-cg1-guide-browser-49420da6-20261027/raw/downloads/applied.bcad"
+    },
+    {
+      "file": "undo.bcad",
+      "bytes": 1216,
+      "sha256": "a094e95a9061e089ef0f0462fa01386455fc264fabe5ecb8be5bf8dbfb44e072",
+      "originalLocalSource": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/outputs/studio-cg1-guide-browser-49420da6-20261027/raw/downloads/undo.bcad"
+    },
+    {
+      "file": "redo.bcad",
+      "bytes": 3127,
+      "sha256": "3499673cafea52f9c130c335d2c22c2d563a4ab37948b2b4f1c052d1f8d85db6",
+      "originalLocalSource": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/outputs/studio-cg1-guide-browser-49420da6-20261027/raw/downloads/redo.bcad"
+    },
+    {
+      "file": "reopened.bcad",
+      "bytes": 3127,
+      "sha256": "3499673cafea52f9c130c335d2c22c2d563a4ab37948b2b4f1c052d1f8d85db6",
+      "originalLocalSource": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/outputs/studio-cg1-guide-browser-49420da6-20261027/raw/downloads/reopened.bcad"
+    },
+    {
+      "file": "guide-preview.png",
+      "bytes": 178708,
+      "sha256": "74a298738e618125f6ffa222802adc91c73c5bec8b934f393a427124c5a1adde",
+      "originalLocalSource": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/outputs/studio-cg1-guide-browser-49420da6-20261027/raw/guide-preview.png"
+    },
+    {
+      "file": "reopened-framed.png",
+      "bytes": 156241,
+      "sha256": "068d8760db450a07f02404c3b78a083ce4f4a47eda6598a41530f23d8430da14",
+      "originalLocalSource": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/outputs/studio-cg1-guide-browser-49420da6-20261027/raw/reopened-framed.png"
+    }
+  ],
+  "equalityGroups": [
+    [
+      "before-loft.bcad",
+      "preview.bcad",
+      "undo.bcad"
+    ],
+    [
+      "applied.bcad",
+      "redo.bcad",
+      "reopened.bcad"
+    ]
+  ],
+  "scope": "Actual bounded desktop flow, no new native quantitative/manufacturing/physical validation"
+}
