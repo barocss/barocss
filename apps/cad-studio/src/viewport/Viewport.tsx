@@ -34,6 +34,7 @@ import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } f
 import { splineOutline } from '@barocss/cad-model/sketch/spline';
 import type { Analysis } from './analysis';
 import { recordCanvas } from './recordVideo';
+import { renderFocusDistance } from './renderFocus';
 
 export type { SketchTool, SketchShape, SketchAnchor, SketchState, Make } from '@barocss/cad-model/sketch/types';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
@@ -50,6 +51,8 @@ export interface ViewportHandle {
   /** A WebM of `count` frames at `fps`, frame i drawn by `draw(i)` first (RS2: a motion, the Render turntable). */
   recordVideo(count: number, fps: number, draw: (i: number) => void): Promise<Blob>;
   /** The camera as render settings keep it, and back. */
+  /** Pick one visible surface for Render focus. Null means background/cancel; the return value cancels the pick. */
+  pickRenderFocus(done: (focus: number | null) => void): () => void;
   getCamera(): RenderCamera;
   setCamera(c: RenderCamera): void;
   /** Which renderer draws: WebGPU, the WebGL2 fallback, or none yet. */
@@ -464,6 +467,16 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const [printError, setPrintError] = useState<string | null>(null);
   const [camError, setCamError] = useState<string | null>(null);
   const propsRef = useRef(props); propsRef.current = props;
+  const focusPick = useRef<((focus: number | null) => void) | null>(null);
+  const [pickingFocus, setPickingFocus] = useState(false);
+  const finishFocusPick = (focus: number | null) => {
+    const done = focusPick.current; focusPick.current = null; setPickingFocus(false);
+    if (canvas.current) canvas.current.style.cursor = '';
+    done?.(focus);
+  };
+  const renderActive = !!props.render && !props.sketch;
+  useEffect(() => { if (!renderActive) { const done = focusPick.current; focusPick.current = null; setPickingFocus(false); if (canvas.current) canvas.current.style.cursor = ''; done?.(null); } }, [renderActive]);
+  useEffect(() => () => { const done = focusPick.current; focusPick.current = null; done?.(null); }, []);
   /** The grid step (mm) points snap to: the studio's setting (0: off, to a micrometre). */
   const snap = (v: number) => { const st = propsRef.current.snapStep ?? 1; return st > 0 ? Math.round(Math.round(v / st) * st * 1000) / 1000 : Math.round(v * 1000) / 1000; };
   // Pointer events can arrive before React re-renders with the shape we just emitted, so handlers read
@@ -795,6 +808,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     setAo(on) { ao.current = on; if (renderer.current) renderer.current.aoEnabled = on; request(); },
     capture() { return renderer.current?.capture ? renderer.current.capture() : Promise.resolve(null); },
     recordVideo(count, fps, draw) { return recordCanvas(canvas.current!, count, fps, draw, request, renderer.current?.drawNow ? () => renderer.current?.drawNow?.() : undefined); },
+    pickRenderFocus(done) {
+      finishFocusPick(null);
+      if (!propsRef.current.render || propsRef.current.sketch || !renderer.current?.pickSurfacePoint) { done(null); return () => undefined; }
+      focusPick.current = done; setPickingFocus(true);
+      return () => { if (focusPick.current === done) finishFocusPick(null); };
+    },
     getCamera() { const c = camera.current; return { target: [...c.target] as [number, number, number], distance: c.distance, yaw: c.yaw, pitch: c.pitch, fovY: c.fovY, ortho: c.ortho }; },
     setCamera(v) { const c = camera.current; c.target = [...v.target] as Vec3; c.distance = v.distance; c.yaw = v.yaw; c.pitch = v.pitch; c.fovY = v.fovY; c.ortho = v.ortho; request(); },
     get backend() { return backend; },
@@ -1004,6 +1023,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const onPointerDown = (e: React.PointerEvent) => {
     canvas.current!.setPointerCapture(e.pointerId);
     const { x, y } = local(e);
+    if (focusPick.current && e.button === 0 && !e.altKey) { drag.current = { mode: null, x, y, moved: false }; return; }
     const tool = propsRef.current.tool;
     if (tool && e.button === 0 && !e.altKey && tool.down(x, y, toolView(), e)) { drag.current = { mode: 'tool', x, y, moved: false }; request(); return; }
     const hit = e.button === 0 && !propsRef.current.sketch ? gizmoHit(x, y) : null;
@@ -1024,6 +1044,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     if (d.mode === 'pan') { camera.current.pan(x - d.x, y - d.y, h); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
     if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, false); d.moved = true; request(); return; }
     if (d.mode === 'tool') { propsRef.current.tool?.move(x, y, toolView(), e); d.moved = true; request(); return; }
+    if (focusPick.current && !d.mode) { if (e.buttons === 1 && Math.hypot(x - d.x, y - d.y) > 5) d.moved = true; canvas.current!.style.cursor = 'crosshair'; return; }
     if (!d.mode && propsRef.current.tool?.move(x, y, toolView(), e)) { request(); return; }
     if (!d.mode && !sk0()) {
       const hot = gizmoHit(x, y);
@@ -1118,6 +1139,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       propsRef.current.onContextMenu({ x: e.clientX, y: e.clientY }, { face, edge }); return;
     }
     if (d.mode || d.moved || e.button !== 0) return;
+    if (focusPick.current) {
+      const point = propsRef.current.render && !propsRef.current.sketch ? renderer.current?.pickSurfacePoint?.(x, y, camera.current) ?? null : null;
+      finishFocusPick(point ? renderFocusDistance(camera.current, point) : null);
+      if (canvas.current) canvas.current.style.cursor = '';
+      request(); return;
+    }
     if (propsRef.current.placing) { propsRef.current.onSpot?.(spotAt(x, y, w, h), true); return; }
     // A cage being edited takes the click (a miss clears its selection; the body under it is not picked).
     const cg = propsRef.current.cage;
@@ -1494,7 +1521,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 
   const drawOverlay = () => <>{overlay()}{!renderer.current?.setOverlayLabels && !!props.annotations?.length && pmiSvg(props.annotations, props.annotationSelected ?? null)}</>;
   return (
-    <div className="viewport" data-renderer={backend ?? undefined}
+    <div className="viewport" data-renderer={backend ?? undefined} data-focus-picking={pickingFocus || undefined}
       data-display-mode-requested={props.requestedDisplayMode ?? props.displayMode ?? 'shaded-with-edges'}
       data-display-mode-effective={displayStatus?.effective ?? props.displayMode ?? 'shaded-with-edges'}
       data-display-mode-supported={props.displayModeReason ? false : displayStatus?.supported}

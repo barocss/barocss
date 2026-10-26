@@ -157,6 +157,8 @@ export interface ViewRenderer {
   trackFrameCost(on: boolean): void;
   /** O10: the last frame tracked in each display mode, for the bodies shown now (work counts, not time). */
   frameCosts(): Partial<Record<DisplayMode, FrameCost>>;
+  /** The visible surface's world point, including curved faces, instances and section caps (Render focus). */
+  pickSurfacePoint?(x: number, y: number, camera: OrbitCamera): Vec3 | null;
   pickFace(x: number, y: number, camera: OrbitCamera, view: ViewState): FaceRef | null;
   pickEdge(x: number, y: number, camera: OrbitCamera, view: ViewState, radius?: number): EdgeRef | null;
   bounds(): { min: Vec3; max: Vec3 } | null;
