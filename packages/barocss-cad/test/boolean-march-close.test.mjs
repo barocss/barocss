@@ -83,6 +83,39 @@ test('surface intersection: invalid marching options refuse before evaluating re
   assert.ok(evaluations > 0, 'admitted options reach the regular patches before the budget is spent');
 });
 
+test('surface intersection: invalid domains and grid evaluations refuse before marching', () => {
+  const options = { step: 0.1, tolerance: 1e-6, grid: 2 };
+  const refused = detail => error => error instanceof SurfaceIntersectionError && error.code === 'SURFACE_INTERSECTION'
+    && error.message === `Surface intersection: ${detail}`;
+  const planes = counts => [
+    { at: ([u, v]) => { counts[0]++; return [u, v, 0]; }, box: [[-1, -1], [1, 1]] },
+    { at: ([u, v]) => { counts[1]++; return [u, 0, v]; }, box: [[-1, -1], [1, 1]] },
+  ];
+  // Both domains are admitted before either regular plane is evaluated. Zero spans are not invalid.
+  const invalidBoxes = [
+    [[NaN, -1], [1, 1]], [[-1, -1], [Infinity, 1]], [[-1, -Infinity], [1, 1]],
+    [[1, -1], [-1, 1]], [[-1, 1], [1, -1]],
+  ];
+  for (const side of [0, 1]) for (const box of invalidBoxes) {
+    const counts = [0, 0], patches = planes(counts); patches[side].box = box;
+    assert.throws(() => intersectPatches(...patches, options), refused('patch domains must have finite ordered bounds'));
+    assert.deepEqual(counts, [0, 0]);
+  }
+  // Finite ordered endpoints can still overflow the existing grid-parameter subtraction.
+  {
+    const counts = [0, 0], patches = planes(counts); patches[0].box = [[-1e308, -1], [1e308, 1]];
+    assert.throws(() => intersectPatches(...patches, options), refused('grid parameters must be finite'));
+    assert.deepEqual(counts, [0, 0]);
+  }
+  // Explicit invalid callback results are refusal inputs, not substitutes for valid geometry.
+  for (const side of [0, 1]) for (const result of [[], [0, 0], [0, 0, 0, 0], [NaN, 0, 0], [0, Infinity, 0], [0, 0, -Infinity]]) {
+    const counts = [0, 0], patches = planes(counts);
+    patches[side].at = () => { counts[side]++; return result; };
+    assert.throws(() => intersectPatches(...patches, options), refused('patch grid evaluation must return a finite 3D point'));
+    assert.equal(counts[side], 1, 'the first invalid grid result refuses immediately');
+  }
+});
+
 test('analytic Boolean: two balls patterned ∪ a ball, its circle traced once (L4 fuzz seed 20261023 #119, D236)', () => {
   // The circle where the second copy meets the ball passed its start 0.41 of a step away: traced twice, its two halves
   // ran over each other and the stitch found an edge used six times. The result is two bodies: the first copy alone.
