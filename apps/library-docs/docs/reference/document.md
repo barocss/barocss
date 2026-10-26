@@ -60,6 +60,34 @@ Only `format`, `schema`, `units`, `parameters`, `nodes` and `outputs` are always
 | `drafts` | Features made from an image or a drawing, and their dimensions still to confirm |
 | `render` | The Render workspace's settings: appearances, lights, environment, camera, props, animation |
 
+### Saved render light fields
+
+Point and spot entries in `render.lights` may store `castShadow` and `shadowRadius`; the radius uses world mm.
+This JSON is a field excerpt, not a complete `.bcad` document:
+
+```json
+{
+  "render": {
+    "lights": [{
+      "kind": "point", "position": [0, 0, 100], "color": "#ffffff",
+      "intensity": 1, "range": 0, "castShadow": false, "shadowRadius": 0
+    }]
+  }
+}
+```
+
+The reader keeps explicit `false` and `0`; omitted optional shadow fields remain omitted. A radius does not enable
+its shadow. Supplied flags must be boolean, and supplied radii must be finite and nonnegative, even when the
+shadow is off. Invalid shadow fields give `VALUE`.
+
+The render reader reads only the first 12 input light entries, then skips unknown light kinds and applies its
+existing defaults and clamps. Within the resulting list, shadow admission counts point and spot entries separately,
+in order: the first eight points and first four spots are eligible. Entries with shadows off still occupy those
+positions. For eligible enabled shadows, a supplied radius must stay finite in GPU f32 and stay nonzero when
+positive. A second enabled point caster gives `VALUE`, even if its intensity is zero.
+These checks cover shadow fields and caster counts, not all GPU position, direction or range inputs.
+See [Studio light controls](/studio/rendering#lights-environment-and-tone-mapping) for editing the settings.
+
 ### Route bundle fields
 
 Explicit route bundles use document `schema: 4`, with `format: 'barocss-cad-model'` and `units: 'mm'`.
