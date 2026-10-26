@@ -80,8 +80,7 @@ is kept in the project instead.
 
 ### Choose how STEP writes mesh bodies
 
-When the evaluated part contains a mesh body other than infill, **Export STEP** opens **Mesh bodies in the STEP
-file as…**. Select a representation, or select **Cancel** to close the dialog without exporting.
+When the evaluated part contains a mesh body other than infill, **Export STEP** opens **Mesh bodies in the STEP file as…**. Select a representation, or select **Cancel** to close the dialog without exporting.
 
 | Choose | What it writes |
 |---|---|
