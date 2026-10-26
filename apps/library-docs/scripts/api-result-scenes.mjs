@@ -3,10 +3,10 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { createRequire } from 'node:module';
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { createRequire, isBuiltin } from 'node:module';
+import { constants, copyFileSync, mkdtempSync, mkdirSync, readFileSync, realpathSync, statSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const SOURCE_COMMIT = '8cddcd05fd3a388472d5a01b4a43e09cdf8a50aa';
@@ -19,6 +19,71 @@ assert.ok(args.length === 0 || (args.length === 2 && args[0] === '--out' && args
 const target = args.length ? resolve(args[1]) : join(repo, 'apps/library-docs/docs/.vitepress/components/api-result-scenes.json');
 const git = (...arguments_) => execFileSync('git', ['-C', repo, ...arguments_], { encoding: 'utf8' }).trim();
 const digest = path => createHash('sha256').update(readFileSync(path)).digest('hex');
+
+const within = (root, path) => {
+  const rel = relative(root, path);
+  return rel === '' || (!isAbsolute(rel) && rel !== '..' && !rel.startsWith(`..${sep}`));
+};
+// Evidence is written only beside an explicitly selected output outside this worktree.
+if (args.length) assert.ok(!within(repo, target), '--out must be outside the worktree to preserve producer evidence');
+function preserveProducerEvidence(bundle, metafile) {
+  const directory = join(dirname(target), 'producer-evidence');
+  mkdirSync(directory, { recursive: true });
+  copyFileSync(bundle, join(directory, 'source.mjs'), constants.COPYFILE_EXCL);
+  writeFileSync(join(directory, 'metafile.json'), JSON.stringify(metafile, null, 2) + '\n', { flag: 'wx' });
+  const inputs = [], externalEdges = [], unresolved = [];
+  for (const [key, metadata] of Object.entries(metafile.inputs)) {
+    const record = { inputKey: key, esbuildBytes: metadata.bytes };
+    try {
+      if (key.startsWith('<') || /^[a-z][a-z0-9+.-]*:/i.test(key)) throw new Error('virtual or namespaced input is not a filesystem path');
+      const path = resolve(repo, key), info = statSync(path);
+      if (!info.isFile()) throw new Error('metafile input is not a regular file');
+      const data = readFileSync(path), realPath = realpathSync(path), relativePath = relative(repo, path);
+      const parts = relativePath.split(sep), inWorktree = within(repo, path);
+      Object.assign(record, {
+        path, realPath, bytes: data.length,
+        sha256: createHash('sha256').update(data).digest('hex'),
+        mode: `0o${(info.mode & 0o7777).toString(8)}`,
+        packageBoundary: !inWorktree ? 'outside-worktree' : parts[0] === 'packages' || parts[0] === 'apps' ? parts.slice(0, 2).join('/') : parts[0],
+        distBoundary: { pathContainsDist: path.split(sep).includes('dist'), realPathContainsDist: realPath.split(sep).includes('dist') },
+        pinnedCADSource: within(join(repo, CAD_PATH, 'src'), path),
+        physicalPathInsideWorktree: within(repo, realPath),
+      });
+      if (info.size !== data.length) throw new Error('file size changed while preserving input bytes');
+      if (metadata.bytes !== data.length) throw new Error('actual input byte count differs from the esbuild metafile');
+      if (within(join(repo, CAD_PATH, 'dist'), path) || within(join(repo, CAD_PATH, 'dist'), realPath)) throw new Error('CAD dist cannot enter this source-only bundle');
+      record.status = 'FILE_BOUND';
+    } catch (error) {
+      record.status = 'UNRESOLVED';
+      record.reason = error instanceof Error ? error.message : String(error);
+      unresolved.push({ inputKey: key, reason: record.reason });
+    }
+    inputs.push(record);
+    for (const dependency of metadata.imports ?? []) if (dependency.external) {
+      const nodeBuiltin = isBuiltin(dependency.path);
+      externalEdges.push({ fromInput: key, ...dependency, classification: nodeBuiltin ? 'NODE_BUILTIN_EXTERNAL' : 'UNBOUND_EXTERNAL' });
+      if (!nodeBuiltin) unresolved.push({ inputKey: key, externalPath: dependency.path, reason: 'external non-Node module is not bound by this metafile' });
+    }
+  }
+  const outputExternalEdges = [];
+  for (const [output, metadata] of Object.entries(metafile.outputs)) {
+    for (const dependency of metadata.imports ?? []) if (dependency.external) {
+      const nodeBuiltin = isBuiltin(dependency.path);
+      outputExternalEdges.push({ fromOutput: output, ...dependency, classification: nodeBuiltin ? 'NODE_BUILTIN_EXTERNAL' : 'UNBOUND_EXTERNAL' });
+      if (!nodeBuiltin) unresolved.push({ output, externalPath: dependency.path, reason: 'output retains an unbound non-Node external module' });
+    }
+  }
+  const bundleData = readFileSync(bundle);
+  const evidence = {
+    format: 'api-result-producer-inputs-v1', sourceRoot: repo,
+    pinnedCADSourceCommit: SOURCE_COMMIT, pinnedCADTreeSHA1: CAD_TREE,
+    bundle: { savedPath: 'source.mjs', bytes: bundleData.length, sha256: createHash('sha256').update(bundleData).digest('hex') },
+    inputs, externalEdges, outputExternalEdges, unresolved,
+    boundary: 'Actual esbuild metafile inputs only. Node builtin external edges are not filesystem inputs. This is not the full producer/toolchain/runtime read graph.',
+  };
+  writeFileSync(join(directory, 'inputs.json'), JSON.stringify(evidence, null, 2) + '\n', { flag: 'wx' });
+  assert.equal(unresolved.length, 0, `Unresolved producer inputs were preserved in inputs.json: ${JSON.stringify(unresolved)}`);
+}
 
 // Docs and producer edits may differ; the CAD package used by the source bundle must not.
 assert.equal(git('rev-parse', `${SOURCE_COMMIT}:${CAD_PATH}`), CAD_TREE, 'Pinned CAD tree does not match the producer');
@@ -51,11 +116,13 @@ const { build } = createRequire(join(repo, 'package.json'))('esbuild');
 const temp = mkdtempSync(join(tmpdir(), 'api-result-scenes-'));
 try {
   const file = join(temp, 'source.mjs');
-  await build({
+  const result = await build({
     entryPoints: [join(import.meta.dirname, 'api-result-scenes-source.mjs')], outfile: file,
     bundle: true, platform: 'node', format: 'esm', target: 'node22',
+    absWorkingDir: repo, metafile: true,
     alias: { '@barocss/cad': join(repo, `${CAD_PATH}/src`) }, logLevel: 'warning',
   });
+  if (args.length) preserveProducerEvidence(file, result.metafile);
   const { buildScenes } = await import(pathToFileURL(file).href);
   const { cases, analyticChecks } = buildScenes();
   const text = JSON.stringify({ format: 'api-result-scenes-v1', provenance: { ...provenance, analyticChecks }, cases }) + '\n';
