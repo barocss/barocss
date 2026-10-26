@@ -164,7 +164,7 @@ test('viewer lights: the frame block matches the WGSL layout', () => {
   assert.ok(close([...two.slice(248, 260)], [1, 1, 1, 2, 0, 1, 0, 2.5, -1, 0, 0, -4], 1e-6));
   assert.deepEqual([...packFrame(vp, cam, [], {}).slice(248, 276)], new Array(28).fill(0));
   assert.equal(FRAME_BYTES, 4 * (252 + 4 * MAX_CLIP_PLANES + MAX_DIRECTIONAL * 20 + 4));
-  assert.match(surfaceWGSL(), new RegExp(`clipColor: vec4f,\\n  clips: array<vec4f, ${MAX_CLIP_PLANES}>,\\n  shadowLights: array<ShadowLight, ${MAX_DIRECTIONAL}>,`));
+  assert.match(surfaceWGSL().replace(/\/\/[^\n]*/g, ''), new RegExp(`clipColor: vec4f,\\s+clips: array<vec4f, ${MAX_CLIP_PLANES}>,\\s+shadowLights: array<ShadowLight, ${MAX_DIRECTIONAL}>,`));
 });
 
 test('G15b studio environments: equirectangular RGBA, overhead brighter than below, the softbox room dark with its key the brightest; the cyclorama bright all round', () => {
