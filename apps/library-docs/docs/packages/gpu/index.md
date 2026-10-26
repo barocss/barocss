@@ -130,6 +130,8 @@ pixels and material snapshot; remove or replace disposed references before creat
 
 The renderer uses the first lights of each kind in `viewer.lights`, not the first lights with shadows enabled.
 Set `castShadow: true` on a light within that set. `viewer.shadowMapSize` sets each shadow map's resolution.
+Setting `intensity: 0` still uses a light slot and does not disable shadow checks. If its `castShadow` is true,
+a point light still counts toward the one-caster limit. Set `castShadow: false` to disable its shadow.
 
 PCF averages nearby shadow-map comparisons. PCSS searches for blockers and varies the filter radius with blocker
 and receiver depth.
@@ -138,7 +140,7 @@ and receiver depth.
 | --- | --- | --- |
 | Directional | First 4 | Each can cast a shadow. `environment.softShadows` sets their shared angular size in degrees for PCSS. Zero or omission retains the hard, 3×3-filtered edge. |
 | Spot | First 4 | Each can cast a shadow. Zero or omitted `shadowRadius` uses PCF; a positive radius enables bounded PCSS. |
-| Point | First 8 | At most one can cast a shadow, using six 90-degree PCF faces. A second enabled caster causes `LIGHT_INVALID`. Point shadows do not use PCSS. |
+| Point | First 8 | At most one can cast a shadow, using six 90-degree faces. Zero or omitted `shadowRadius` uses PCF; a positive radius enables bounded PCSS. A second enabled caster causes `LIGHT_INVALID`. |
 
 For an enabled spot shadow, position and direction must be finite f32 vectors, and direction must be nonzero.
 The cone half-angle is in degrees and must be strictly between 0 and 90; the default is 30. Range must be finite
@@ -162,15 +164,21 @@ viewer.requestRender();
 
 // Alternative point example: this assignment replaces the light list.
 viewer.lights = [{ kind: 'point', position: [1, -1, 3.5], range: 18,
-  intensity: 100, castShadow: true }];
+  intensity: 100, shadowRadius: 0.25, castShadow: true }];
 viewer.requestRender();
 ```
 
-For an enabled point shadow, position must be a finite f32 vector. Range must be finite, nonnegative and
-representable in f32 without rounding a positive value to zero. A positive range keeps the spherical lighting
-cutoff and limits each face's far plane; zero or omission fits the faces to the scene and cap bounds.
+For an enabled point shadow, position must be a finite f32 vector. Both `range` and `shadowRadius` must be
+finite, nonnegative and representable in f32 without rounding a positive value to zero. A positive range keeps the
+spherical lighting cutoff and limits each face's far plane; zero or omission fits the faces to the scene and cap bounds.
 Inputs that cannot form a finite f32 depth projection refuse with `LIGHT_INVALID`. These shadow admission
 checks apply only to enabled casters among the first four spot lights or first eight point lights.
+
+Point PCSS approximates the emitter with a disk perpendicular to each receiver ray. It uses the six shadow faces
+with bounded blocker-search and filter radii. The radius uses the scene's world units. It is not an area-light simulation.
+
+The Viewer checks shadow inputs during creation and before each draw. Direct assignment to `viewer.lights`
+does not run these checks.
 
 ### Capture pixels and release the viewer
 
