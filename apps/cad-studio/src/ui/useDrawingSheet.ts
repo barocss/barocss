@@ -95,7 +95,7 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   // (D155: a diameter on a face with a fit class shows the class and its limits; a class with no row, an issue.)
   // (O145: and the machine elements' callouts — a bearing's seat, a ring's groove.)
   const elements = useMemo(() => elementsOfBodies(doc.nodes, bodies ?? []), [doc.nodes, bodies]);
-  const callout = useMemo(() => withElements(doc, withFit(doc, (edge: string) => holeCallout(doc.nodes, edge)), elements), [doc.nodes, doc.fits, elements]);
+  const callout = useMemo(() => withElements(doc, withFit(doc, (edge: string) => holeCallout(doc.nodes, edge, doc.parameters)), elements), [doc.nodes, doc.parameters, doc.fits, elements]);
   const fitMissOf = useMemo(() => fitMiss(doc), [doc.fits]);
   // (FRf2, O125: frames following a placed part's sketch that changed since linked.)
   const followedChanged = useMemo(() => scoped.authored ? followedStale(scoped.authored).map(staleText) : [], [scoped.authored]);

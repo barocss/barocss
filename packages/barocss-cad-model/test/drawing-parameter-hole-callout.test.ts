@@ -60,6 +60,52 @@ function checkDrawing(doc: StudioDoc, expected: string): void {
   assert.deepEqual(texts, [[expected], [expected]], 'model-mm callouts are independent of paper scale');
 }
 
+// Direct formatter boundaries only. The Drawing tests below still consume the real input.callout.
+function checkFormatterBoundaries(): void {
+  const invalid = [NaN, Infinity, -Infinity, 0, -1];
+  const edgeOf = (doc: StudioDoc, index = doc.nodes.length - 1) => `${featureId(doc.nodes, index)}.side0`;
+  for (const value of invalid) {
+    const radius = document(value, 5), depth = document(2.5, value);
+    assert.equal(holeCallout(radius.nodes, edgeOf(radius)), null, 'invalid literal radius');
+    assert.equal(holeCallout(depth.nodes, edgeOf(depth)), null, 'invalid literal depth');
+  }
+  const radiusRef = document({ parameter: 'R' }, 5), depthRef = document(2.5, { parameter: 'D' });
+  const parameterCases: Readonly<Record<string, number>>[] = [{}, ...invalid.map(value => ({ R: value, D: value }))];
+  for (const parameters of parameterCases) {
+    assert.equal(holeCallout(radiusRef.nodes, edgeOf(radiusRef), parameters), null, 'missing or invalid parameter radius');
+    assert.equal(holeCallout(depthRef.nodes, edgeOf(depthRef), parameters), null, 'missing or invalid parameter depth');
+  }
+  const counterbore = (radius: Dim, childRadius: Dim, childDepth?: Dim): StudioDoc => {
+    const main = withNode(rectanglePart(32, 32, 8), {
+      kind: 'hole', parent: { node: 1, side: 'solid' }, center: [10, 16], radius,
+    });
+    return withNode(main, {
+      kind: 'hole', parent: { node: 2, side: 'solid' }, center: [10, 16], radius: childRadius,
+      ...(childDepth === undefined ? {} : { depth: childDepth }),
+    });
+  };
+  const checkCounterbore = (doc: StudioDoc, expected: string | null, parameters?: Readonly<Record<string, number>>) => {
+    const before = structuredClone(doc);
+    for (const index of [2, 3]) {
+      const actual = parameters === undefined ? holeCallout(doc.nodes, edgeOf(doc, index)) : holeCallout(doc.nodes, edgeOf(doc, index), parameters);
+      assert.equal(actual, expected, 'both the main rim and the counterbore rim read the complete callout');
+    }
+    assert.deepEqual(doc, before, 'formatting never changes the saved holes');
+  };
+  // Existing hole-types counterbore oracle, fixed independently of the formatter output.
+  const expected = 'Ø6.6 THRU  CBORE Ø11 × 6.5 DEEP';
+  checkCounterbore(counterbore(3.3, 5.5, 6.5), expected);
+  checkCounterbore(counterbore({ parameter: 'R' }, { parameter: 'CR' }, { parameter: 'CD' }), expected, { R: 3.3, CR: 5.5, CD: 6.5 });
+  // null deliberately represents malformed runtime data, not a new authored Dim value.
+  for (const depth of [undefined, null as unknown as Dim, { parameter: 'MISSING' }, ...invalid]) {
+    checkCounterbore(counterbore(3.3, 5.5, depth), null);
+  }
+  for (const radius of [{ parameter: 'MISSING' }, ...invalid]) {
+    checkCounterbore(counterbore(3.3, radius, 6.5), null);
+    checkCounterbore(counterbore(radius, 5.5, 6.5), null);
+  }
+}
+
 test('a parameter-bound blind-hole depth draws the same callout as its literal five-mm value', () => {
   checkDrawing(document(2.5, 5), 'M6×1 × 5 DEEP');
   checkDrawing(document(2.5, { parameter: 'D' }, { D: 5 }), 'M6×1 × 5 DEEP');
@@ -70,4 +116,5 @@ test('a parameter-bound tap-drill radius retains the nominal callout and three-d
   checkDrawing(document(2.5, 5.1236), 'M6×1 × 5.124 DEEP');
   checkDrawing(document({ parameter: 'R' }, 5, { R: 2.5 }), 'M6×1 × 5 DEEP');
   checkDrawing(document({ parameter: 'R' }, { parameter: 'D' }, { R: 2.5, D: 5.1236 }), 'M6×1 × 5.124 DEEP');
+  checkFormatterBoundaries();
 });
