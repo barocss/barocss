@@ -210,8 +210,8 @@ test('DR6 endpoint targets: drawing.set and the real file codec preserve sheet/P
   assert.deepEqual(widened.drawing?.datumTargets, [authored, moving], 'the saved selection hints are not replaced with sampled geometry');
 
   for (const [rows, code] of [[[{ ...authored, point: { ...authored.point, edge: 'missing-edge' } }], 'DATUM_TARGET_LOST'], [[authored, { ...authored, id: 'other' }], 'DATUM_TARGET_DUPLICATE']] as const) {
-    const stored = { ...opened.doc, drawing: { ...readDrawing(opened.doc.drawing), datumTargets: [...rows] } };
-    const before = JSON.stringify(stored), next = inputOf(stored), context = issueContext(next);
+    const stored: StudioDoc = { ...opened.doc, drawing: { ...readDrawing(opened.doc.drawing), datumTargets: [...rows] } };
+    const before: string = JSON.stringify(stored), next = inputOf(stored), context = issueContext(next);
     assert.ok(drawingIssues(context).some(i => i.code === code));
     assert.ok(!context.sheet.groups.some(g => g.datumTarget));
     const annotations = modelAnnotations({ ...next, layout: context.layout, sheet: context.sheet });
