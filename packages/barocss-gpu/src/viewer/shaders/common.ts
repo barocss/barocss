@@ -4,7 +4,7 @@ export const MAX_DIRECTIONAL = 4, MAX_POINT = 8, MAX_SPOT = 4;
 /** Byte sizes and offsets of the uniform blocks (kept with the WGSL below and packFrame in lights.ts). */
 /** Clip planes at most (G19: a box section's six). */
 export const MAX_CLIP_PLANES = 6;
-export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 16 + MAX_CLIP_PLANES * 16;
+export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 16 + MAX_CLIP_PLANES * 16 + MAX_DIRECTIONAL * 80 + 16;
 export const OBJECT_BYTES = 256, OBJECT_STRIDE = 256;
 
 /** The WGSL every program starts with (internal: its frame and object blocks, its helpers). */
@@ -12,6 +12,7 @@ export const common = /* wgsl */ `
 struct DirLight { direction: vec4f, color: vec4f }
 struct PointLight { position: vec4f, color: vec4f }
 struct SpotLight { position: vec4f, direction: vec4f, color: vec4f, cone: vec4f }
+struct ShadowLight { viewProj: mat4x4f, params: vec4f }
 struct Frame {
   viewProj: mat4x4f,
   eye: vec4f,
@@ -39,6 +40,9 @@ struct Frame {
   // colour (linear), |w| the number of planes (0: none).
   clipColor: vec4f,
   clips: array<vec4f, ${MAX_CLIP_PLANES}>,
+  // Directional indices are fixed texture-array layers; shadowActive.x is their active bit mask.
+  shadowLights: array<ShadowLight, ${MAX_DIRECTIONAL}>,
+  shadowActive: vec4u,
 }
 struct Object {
   model: mat4x4f,
@@ -58,7 +62,7 @@ struct Object {
   finishOrigin: vec4f,
 }
 @group(0) @binding(0) var<uniform> frame: Frame;
-@group(0) @binding(1) var shadowMap: texture_depth_2d;
+@group(0) @binding(1) var shadowMap: texture_depth_2d_array;
 @group(0) @binding(2) var shadowSampler: sampler_comparison;
 @group(0) @binding(3) var envMap: texture_2d<f32>;
 @group(0) @binding(4) var envSampler: sampler;

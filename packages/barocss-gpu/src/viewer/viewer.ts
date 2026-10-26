@@ -16,7 +16,7 @@ export { Geometry, ImageTexture, Mesh, ViewerError, packColorMap };
 export type { AddMeshOptions, CapHatch, ClipPlane, ColorMap, InstancesInput, Material, ShaderMaterial, TextureOptions, TextureSource };
 import { defaultLights, directionalLights, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type ContactFrame, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, bloomWGSL, BLOOM_LEVELS, depthOfFieldWGSL, capProbeSamplesWGSL, envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
+import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, bloomWGSL, BLOOM_LEVELS, depthOfFieldWGSL, capProbeSamplesWGSL, envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
 
 /** The ground grid on the plane across the camera's up axis. */
 export interface GridOptions {
@@ -222,11 +222,11 @@ export class Viewer {
   private pipelines = new Map<PipelineKey, Pipeline>();
   private frameBuffer!: Buffer;
   private frameGroup!: BindGroup;
-  private shadowFrameBuffer!: Buffer;
-  private shadowFrameGroup!: BindGroup;
+  private shadowFrameBuffers: Buffer[] = [];
+  private shadowFrameGroups: BindGroup[] = [];
   /** The caps' probe from the light (G19.4; the shadow map's size, made while the planes cap a caster) and its group. */
   private lightProbe: Texture | null = null;
-  private shadowCapGroup: BindGroup | null = null;
+  private shadowCapGroups: (BindGroup | null)[] = [];
   private shadowSampler!: object;
   private emptyShadow!: Texture;
   /** A one-texel nearest front depth (none): what the frame bind groups hold where the caps' prepass target is not bound. */
@@ -236,6 +236,7 @@ export class Viewer {
   /** The frame bind group without the prepass target (for the prepass itself, which draws into it). */
   private frameGroupBare!: BindGroup;
   private shadowMap: Texture | null = null;
+  private shadowLayers = 0;
   private materialLayout!: object;
   private surfaceLayout!: object;
   /** The surface pipeline description for a shader module and variant (lit or not, two-sided, transparent). */
@@ -247,9 +248,7 @@ export class Viewer {
   /** The scene's box while a frame is drawn (asked for by the shadow, occlusion and camera clip). */
   private frameBox: { box: Box3 | null } | null = null;
   /** What the shadow map was last drawn from (device, size, light view, each caster), as numbers: unchanged, it is kept. */
-  private shadowDrawn = new Float64Array(0);
-  private shadowNext = new Float64Array(0);
-  private shadowDrawnLength = -1;
+  private shadowCache = Array.from({ length: MAX_DIRECTIONAL }, () => ({ drawn: new Float64Array(0), next: new Float64Array(0), length: -1 }));
   /** The frame's shadow casters (a list kept from frame to frame). */
   private casterList: Mesh[] = [];
   private ids = new WeakMap<object, number>();
@@ -347,7 +346,7 @@ export class Viewer {
     await this.createPipelines();
     this.outputBuffer = device.createBuffer({ size: OUTPUT_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer output' });
     this.frameBuffer = device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer frame' });
-    this.shadowFrameBuffer = device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer shadow frame' });
+    this.shadowFrameBuffers = Array.from({ length: MAX_DIRECTIONAL }, (_, i) => device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: `viewer shadow frame ${i}` }));
     this.shadowSampler = (device as unknown as { createSampler(d: object): object }).createSampler({ compare: 'less', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
     this.mipSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear' });
     this.rampSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
@@ -369,7 +368,9 @@ export class Viewer {
     this.emptyFrontSamples = device.createTexture({ size: [1, 1], format: CAP_SAMPLES_FORMAT, sampleCount: SAMPLES, usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no caps samples' });
     this.brdfLut = device.createTexture({ size: [BRDF_LUT_SIZE, BRDF_LUT_SIZE], format: 'rg16float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer BRDF table' });
     this.envPass('fsLut', this.white.texture, this.brdfLut, 0, 'rg16float', [0, 0, 1, 0]);
-    this.shadowMap = null;
+    this.shadowMap = null; this.shadowLayers = 0; this.lightProbe = null;
+    this.shadowFrameGroups = []; this.shadowCapGroups = [];
+    for (const cache of this.shadowCache) cache.length = -1;
     // (The targets were the lost device's: made again, and bound, when next drawn.)
     this.targets = null; this.pickTargets = null; this.oit = null; this.atlasGpu = null;
     this.bindFrames();
@@ -391,11 +392,11 @@ export class Viewer {
     const irradianceView = lighting ? lighting.irradiance.createView() : this.white.texture.createView(), lutView = this.brdfLut.createView();
     // (The caps' prepass target where the targets exist; the scene's group must not hold it while the prepass draws into it.)
     const front = this.targets?.capFront ?? this.emptyFront;
-    const group = (buffer: Buffer, map: Texture, depth: Texture, samples = this.emptyFrontSamples) => this.device.createBindGroup({ layout, entries: [{ binding: 0, resource: { buffer } }, { binding: 1, resource: map.createView() }, { binding: 2, resource: this.shadowSampler }, { binding: 3, resource: envView }, { binding: 4, resource: envSampler }, { binding: 5, resource: depth.createView() }, { binding: 6, resource: samples.createView() }, { binding: 7, resource: irradianceView }, { binding: 8, resource: lutView }] });
+    const group = (buffer: Buffer, map: Texture, depth: Texture, samples = this.emptyFrontSamples) => this.device.createBindGroup({ layout, entries: [{ binding: 0, resource: { buffer } }, { binding: 1, resource: map.createView({ dimension: '2d-array' }) }, { binding: 2, resource: this.shadowSampler }, { binding: 3, resource: envView }, { binding: 4, resource: envSampler }, { binding: 5, resource: depth.createView() }, { binding: 6, resource: samples.createView() }, { binding: 7, resource: irradianceView }, { binding: 8, resource: lutView }] });
     this.frameGroup = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow, front, this.targets?.capFrontSamples ?? this.emptyFrontSamples);
     this.frameGroupBare = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow, this.emptyFront);
-    this.shadowFrameGroup = group(this.shadowFrameBuffer, this.emptyShadow, this.emptyFront);
-    this.shadowCapGroup = this.lightProbe ? group(this.shadowFrameBuffer, this.emptyShadow, this.lightProbe) : null;
+    this.shadowFrameGroups = this.shadowFrameBuffers.map(buffer => group(buffer, this.emptyShadow, this.emptyFront));
+    this.shadowCapGroups = this.shadowFrameBuffers.map(buffer => this.lightProbe ? group(buffer, this.emptyShadow, this.lightProbe) : null);
   }
 
   private async createPipelines(): Promise<void> {
@@ -416,7 +417,7 @@ export class Viewer {
     }
     const frameLayout = d.createBindGroupLayout({ entries: [
       { binding: 0, visibility: 3, buffer: { type: 'uniform' } },
-      { binding: 1, visibility: 2, texture: { sampleType: 'depth' } },
+      { binding: 1, visibility: 2, texture: { sampleType: 'depth', viewDimension: '2d-array' } },
       { binding: 2, visibility: 2, sampler: { type: 'comparison' } },
       { binding: 3, visibility: 2, texture: { sampleType: 'float' } }, { binding: 4, visibility: 2, sampler: { type: 'filtering' } },
       { binding: 5, visibility: 2, texture: { sampleType: 'unfilterable-float' } },
@@ -1305,9 +1306,9 @@ export class Viewer {
     return mat.shader ? this.shaderPipeline(mat.shader, variant) : variant;
   }
 
-  /** The shadow-casting light's view of the scene: an orthographic box around it along the light. */
-  private shadowFrame(): ShadowFrame | null {
-    const light = directionalLights(this.lights).find(l => l.castShadow), scene = this.sceneBounds();
+  /** One directional light's orthographic view of all scene casters, including those outside the camera. */
+  private shadowFrame(light: ReturnType<typeof directionalLights>[number]): ShadowFrame | null {
+    const scene = this.sceneBounds();
     if (!light || !scene) return null;
     const r = Math.max(boxRadius(scene), 1e-6), c = boxCenter(scene), d = normalize(light.direction);
     const up: Vec3 = Math.abs(d[2]) < 0.9 ? [0, 0, 1] : [0, 1, 0], eye = sub(c, scale(d, 2 * r));
@@ -1336,15 +1337,17 @@ export class Viewer {
     return { cell, major: g.major ?? 10, fade: d * 6, height: g.height ?? 0, color: parseColor(g.color, [0.55, 0.56, 0.6]), opacity: g.opacity ?? 0.5 };
   }
 
-  private writeUniforms(viewProjection: Mat4, shadow: ShadowFrame | null = null): void {
+  private writeUniforms(viewProjection: Mat4, shadows: readonly (ShadowFrame | null)[] = []): void {
     // (Into the frame block kept for it, G13.)
     const vpt = frameViewport; vpt[0] = this.canvas.width; vpt[1] = this.canvas.height; vpt[2] = this.pixelRatio; const sb = this.sceneBounds(); vpt[3] = sb ? boxRadius(sb) : 0.866;
-    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow, vpt, this.gridFrame(), this.clip, frameBlock));
-    if (shadow) {
+    const first = shadows.find(frame => frame !== null) ?? null;
+    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, first, vpt, this.gridFrame(), this.clip, frameBlock, shadows));
+    for (let i = 0; i < shadows.length; i++) {
+      const shadow = shadows[i]; if (!shadow) continue;
       const f = packFrame(shadow.viewProjection, this.camera, NO_LIGHTS, this.environment, null, SHADOW_VIEWPORT, null, this.clip, shadowFrameBlock);
-      // (Seen from the light — orthographic, along its direction: the caps' entry into the kept region along its rays, G19.4.)
+      // Every encoded light pass owns a distinct buffer: queue writes all precede command submission.
       if (shadow.eye && shadow.direction) { f[16] = shadow.eye[0]; f[17] = shadow.eye[1]; f[18] = shadow.eye[2]; f[19] = 0; f[20] = shadow.direction[0]; f[21] = shadow.direction[1]; f[22] = shadow.direction[2]; }
-      this.device.queue.writeBuffer(this.shadowFrameBuffer, 0, f);
+      this.device.queue.writeBuffer(this.shadowFrameBuffers[i], 0, f);
     }
     // (Each run of dirty slots written on its own, G8: one write from the lowest dirty slot to the highest sent every block
     // between them again — 70 KiB a frame while a section was dragged, two meshes far apart dirty.)
@@ -1488,7 +1491,7 @@ export class Viewer {
    * nearest beyond each texel's entry into the kept region along the light — in the shadow map's depth (cleared and drawn
    * again by the shadow pass after it), read by the caps drawn into the shadow map.
    */
-  private drawLightProbe(enc: ReturnType<Device['createCommandEncoder']>, casters: readonly Mesh[]): void {
+  private drawLightProbe(enc: ReturnType<Device['createCommandEncoder']>, casters: readonly Mesh[], layer: number): void {
     const size = this.shadowMapSize;
     if (!this.lightProbe || this.lightProbe.width !== size) {
       this.lightProbe?.destroy();
@@ -1497,9 +1500,9 @@ export class Viewer {
     }
     const pass = enc.beginRenderPass({ label: 'viewer light probe',
       colorAttachments: [{ view: this.lightProbe.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
-      depthStencilAttachment: { view: this.shadowMap!.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'discard' },
+      depthStencilAttachment: { view: this.shadowLayer(layer), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'discard' },
     });
-    pass.setBindGroup(0, this.shadowFrameGroup);
+    pass.setBindGroup(0, this.shadowFrameGroups[layer]);
     pass.setPipeline(this.pipelines.get('shadowProbe')!);
     for (const m of casters) {
       if (!this.capped(m) || !this.upload(m.geometry)) continue;
@@ -1529,24 +1532,28 @@ export class Viewer {
   private drawGrid(pass: RenderPass, current: { pipeline?: Pipeline }): void {
     pass.setPipeline(this.pipelines.get('grid')!); { dynamicOffset[0] = 0; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); } current.pipeline = undefined; pass.draw(3);
   }
+  private shadowLayer(layer: number): View {
+    return this.shadowMap!.createView({ dimension: '2d', baseArrayLayer: layer, arrayLayerCount: 1 });
+  }
   /** Whether the shadow map must be drawn again: the light's view or a caster changed since it was (recorded when so). */
-  private shadowChanged(viewProjection: ArrayLike<number>, casters: readonly Mesh[]): boolean {
+  private shadowChanged(layer: number, viewProjection: ArrayLike<number>, casters: readonly Mesh[]): boolean {
+    const cache = this.shadowCache[layer];
     // (The key in a typed array kept from frame to frame, grown when needed — G13: an array of numbers emptied and
     // filled again each frame was its own new store, 70 KiB a frame for 240 casters.)
     const need = 3 + 4 + viewProjection.length + casters.length * 20;
-    if (this.shadowNext.length < need) this.shadowNext = new Float64Array(need * 2);
-    const k = this.shadowNext;
+    if (cache.next.length < need) cache.next = new Float64Array(need * 2);
+    const k = cache.next;
     let n = 0;
     k[n++] = this.idOf(this.device); k[n++] = this.shadowMapSize;
     // (The clip plane changes what casts.)
     if (this.clip) { k[n++] = this.clip.planes.length * (this.clip.cutout ? -1 : 1); for (const p of this.clip.planes) { k[n++] = p.normal[0]; k[n++] = p.normal[1]; k[n++] = p.normal[2]; k[n++] = p.offset; } } else k[n++] = 0;
     for (let i = 0; i < viewProjection.length; i++) k[n++] = viewProjection[i];
     for (const m of casters) { k[n++] = m.slot * 2 + (this.capped(m) ? 1 : 0); k[n++] = this.idOf(m.geometry); k[n++] = m.geometry.gpu ? 1 : 0; k[n++] = m.instances ? this.idOf(m.instances) : 0; const t = m.transform; for (let i = 0; i < t.length; i++) k[n++] = t[i]; }
-    const was = this.shadowDrawn;
-    let same = this.shadowDrawnLength === n;
+    const was = cache.drawn;
+    let same = cache.length === n;
     for (let i = 0; same && i < n; i++) same = was[i] === k[i];
     if (same) return false;
-    this.shadowDrawn = k; this.shadowNext = was; this.shadowDrawnLength = n;
+    cache.drawn = k; cache.next = was; cache.length = n;
     return true;
   }
   /** Number each distinct outline colour of the frame (up to MAX_OUTLINES; later ones share the last). */
@@ -1589,38 +1596,45 @@ export class Viewer {
     const { opaque, transparent, culled } = this.visibleMeshes(vp);
     const outlines = this.outlineColors();
     const outlineArea = outlines.length ? this.outlineRect(vp) : null;
-    const shadow = this.shadowFrame();
-    if (shadow && (!this.shadowMap || this.shadowMap.width !== this.shadowMapSize)) {
+    const shadows = directionalLights(this.lights).map(light => light.castShadow ? this.shadowFrame(light) : null);
+    let layers = 0;
+    for (let i = 0; i < shadows.length; i++) if (shadows[i]) layers = i + 1;
+    // Grow to the highest active directional slot. A single first light still allocates one layer.
+    if (layers && (!this.shadowMap || this.shadowMap.width !== this.shadowMapSize || this.shadowLayers < layers)) {
       this.shadowMap?.destroy();
-      this.shadowMap = this.device.createTexture({ size: [this.shadowMapSize, this.shadowMapSize], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer shadow map' });
+      this.shadowLayers = Math.max(layers, this.shadowLayers);
+      this.shadowMap = this.device.createTexture({ size: [this.shadowMapSize, this.shadowMapSize, this.shadowLayers], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer directional shadow maps' });
       this.bindFrames();
-      this.shadowDrawnLength = -1;
+      for (const cache of this.shadowCache) cache.length = -1;
     }
     const env = this.environment.map instanceof ImageTexture && !this.environment.map.disposed ? this.environment.map : null;
     if (env !== this.boundEnv || (env && !env.gpu)) this.bindFrames();
-    this.writeUniforms(vp, shadow);
+    this.writeUniforms(vp, shadows);
     packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame(), outlineArea, outputBlock, this.contactFrame(), this.focusEnabled() ? { inverseProjection: invert(this.camera.projectionMatrix(this.aspect)), pixelRatio: this.pixelRatio } : null);
     this.device.queue.writeBuffer(this.outputBuffer, 0, outputBytes);
     const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.views.scene;
     const enc = this.device.createCommandEncoder();
     // (The shadow map is drawn again only when the light's view or a caster changed.)
     const casters = this.casterList; casters.length = 0;
-    if (shadow) for (const m of this.meshes) if (m.visible && m.castShadow && !m.transparent && m.geometry.topology === 'triangles') casters.push(m);
-    if (shadow && this.shadowMap && this.shadowChanged(shadow.viewProjection, casters)) {
+    if (layers) for (const m of this.meshes) if (m.visible && m.castShadow && !m.transparent && m.geometry.topology === 'triangles') casters.push(m);
+    for (let i = 0; i < shadows.length; i++) {
+      const shadow = shadows[i];
+      if (!shadow || !this.shadowMap || !this.shadowChanged(i, shadow.viewProjection, casters)) continue;
       // (G19.4: the capped casters' caps too — first the probe from the light, into the shadow map's own depth.)
       const capping = this.clip ? this.anyCapped(casters) : false;
       this.costPass = 'shadow';
-      if (capping) this.drawLightProbe(enc, casters);
+      if (capping) this.drawLightProbe(enc, casters, i);
       // Every shadow caster, in view or not.
-      const sp = enc.beginRenderPass({ label: 'viewer shadow', colorAttachments: [], depthStencilAttachment: { view: this.shadowMap.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store' } });
-      sp.setBindGroup(0, capping && this.shadowCapGroup ? this.shadowCapGroup : this.shadowFrameGroup);
+      const sp = enc.beginRenderPass({ label: `viewer shadow ${i}`, colorAttachments: [], depthStencilAttachment: { view: this.shadowLayer(i), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store' } });
+      const capGroup = this.shadowCapGroups[i];
+      sp.setBindGroup(0, capping && capGroup ? capGroup : this.shadowFrameGroups[i]);
       sp.setPipeline(this.pipelines.get('shadow')!);
       for (const m of casters) {
         if (!this.upload(m.geometry)) continue;
         { dynamicOffset[0] = m.slot * OBJECT_STRIDE; sp.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
         this.drawTriangles(sp, m, false);
       }
-      if (capping && this.shadowCapGroup) {
+      if (capping && capGroup) {
         sp.setPipeline(this.pipelines.get('shadowCap')!);
         for (const m of casters) {
           if (!this.capped(m) || !m.geometry.gpu) continue;
@@ -2152,7 +2166,9 @@ export class Viewer {
     this.geometries.clear(); this.meshes = [];
     this.targets?.msaa?.destroy(); this.targets?.scene.destroy(); this.targets?.depth.destroy();
     if (this.pickTargets) { this.pickTargets.id.destroy(); this.pickTargets.z.destroy(); this.pickTargets.instance.destroy(); this.pickTargets.depth.destroy(); this.pickTargets.read.destroy(); }
-    this.frameBuffer?.destroy(); this.objectBuffer?.destroy(); this.outputBuffer?.destroy(); this.shadowFrameBuffer?.destroy();
+    this.frameBuffer?.destroy(); this.objectBuffer?.destroy(); this.outputBuffer?.destroy();
+    for (const buffer of this.shadowFrameBuffers) buffer.destroy();
+    this.shadowFrameBuffers = []; this.shadowFrameGroups = []; this.shadowCapGroups = [];
     this.targets?.mask.destroy(); this.targets?.maskDepth.destroy(); this.targets?.capFront.destroy(); this.targets?.capFrontSamples?.destroy(); this.emptyFront?.destroy(); this.emptyFrontSamples?.destroy(); this.lightProbe?.destroy();
     this.shadowMap?.destroy(); this.emptyShadow?.destroy(); this.identityInstance?.destroy(); this.white?.texture.destroy(); this.zeroParams?.destroy();
     this.releaseBloom(); this.releaseFocus(); this.black?.destroy();
