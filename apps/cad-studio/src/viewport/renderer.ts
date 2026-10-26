@@ -138,7 +138,7 @@ export interface RenderPathTraceSession {
   sample(count?: number): Promise<number>;
   start(onProgress?: (samples: number) => void): Promise<void>;
   stop(): void;
-  capture(denoise?: boolean): Promise<{ width: number; height: number; data: Uint8Array }>;
+  capture(denoise?: boolean): Promise<{ width: number; height: number; samples: number; data: Uint8Array }>;
   dispose(): void;
 }
 

@@ -33,7 +33,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   onError?(message: string): void;
 }) {
   const [method, setMethod] = useState<'raster' | 'path-tracing'>('raster');
-  const [traceSamples, setTraceSamples] = useState(0), [traceRunning, setTraceRunning] = useState(false), [traceBusy, setTraceBusy] = useState(false);
+  const [traceSamples, setTraceSamples] = useState(0), [tracePreviewSamples, setTracePreviewSamples] = useState(0), [traceRunning, setTraceRunning] = useState(false), [traceBusy, setTraceBusy] = useState(false);
   const [traceError, setTraceError] = useState<string | null>(null), [denoise, setDenoise] = useState(true);
   const trace = useRef<RenderPathTraceSession | null>(null), traceEpoch = useRef(0), tracePreview = useRef<HTMLCanvasElement | null>(null);
   const queuedCapture = useRef<RenderPathTraceSession | null>(null);
@@ -52,7 +52,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
       if (traceEpoch.current !== epoch || trace.current !== session || !tracePreview.current) return;
       const canvas = tracePreview.current; canvas.width = frame.width; canvas.height = frame.height;
       canvas.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(frame.data), frame.width, frame.height), 0, 0);
-      canvas.dataset.samples = String(session.samples);
+      canvas.dataset.samples = String(frame.samples); setTracePreviewSamples(frame.samples);
     } catch (error) {
       if (traceEpoch.current === epoch && trace.current === session) setTraceError(error instanceof Error ? error.message : String(error));
     } finally {
@@ -65,7 +65,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   };
   const startTrace = async () => {
     disposeTrace(); const epoch = traceEpoch.current;
-    setTraceSamples(0); setTraceError(null); setTraceBusy(true); setTraceRunning(false);
+    setTraceSamples(0); setTracePreviewSamples(0); setTraceError(null); setTraceBusy(true); setTraceRunning(false);
     if (tracePreview.current) { tracePreview.current.width = 0; delete tracePreview.current.dataset.samples; }
     try {
       const session = await onCreatePathTrace();
@@ -154,7 +154,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         <button className="tool tiny" aria-label="Export image" title="Export the view as a PNG" disabled={!available || (method === 'path-tracing' && !traceSamples)} onClick={() => { if (method === 'path-tracing') void exportStill(); else onExport(); }}><Icon name="photo_camera" small /></button></div>
       {!available && <div className="empty">Rendering needs a browser with WebGPU. The view below is the modelling look.</div>}
       <label className={FIELD}><span>Render method</span><NativeSelect className={CONTROL} aria-label="Render method" value={method} onChange={event => {
-        disposeTrace(); setTraceRunning(false); setTraceBusy(false); setTraceSamples(0); setTraceError(null); setMethod(event.target.value as typeof method);
+        disposeTrace(); setTraceRunning(false); setTraceBusy(false); setTraceSamples(0); setTracePreviewSamples(0); setTraceError(null); setMethod(event.target.value as typeof method);
       }}><option value="raster">Raster</option><option value="path-tracing">Path tracing</option></NativeSelect></label>
       {method === 'path-tracing' && <div className="render-section" aria-label="Path tracing" data-trace-running={traceRunning}>
         {!available && <div role="status">Path tracing needs WebGPU. The WebGL2 viewport stays interactive.</div>}
@@ -170,7 +170,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
           if (trace.current?.samples) void showTrace(trace.current, traceEpoch.current);
         }} /></label>
         <canvas ref={tracePreview} aria-label="Path trace preview" width={0} height={0} style={{ width: '100%', height: 'auto' }} />
-        {traceSamples > 0 && <div className="muted small">{trace.current?.width} × {trace.current?.height} px · frozen still</div>}
+        {tracePreviewSamples > 0 && <div className="muted small">{trace.current?.width} × {trace.current?.height} px · preview {tracePreviewSamples} samples · frozen still</div>}
         {traceError && <div role="alert" className="diag">{traceError}</div>}
       </div>}
       <div className="tabs" role="tablist">
