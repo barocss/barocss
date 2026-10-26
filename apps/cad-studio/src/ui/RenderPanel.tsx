@@ -249,7 +249,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
 
       {tab === 'lights' && <div className="render-section [&>[data-slot=button]]:self-start">
         <div className="muted small">Shadow limits: first 4 sun lights, first 4 spot lights, and one of the first 8 point lights.</div>
-        {lightError && <div className="diag" role="alert">{lightError}</div>}
+        {lightError && <div className="diag sticky top-0 z-10 bg-card" role="alert">{lightError}</div>}
         {render.lights.map((l, i) => {
           const [az, el] = anglesOf(l.kind === 'point' ? [0, 0, -1] : l.direction);
           return <div className="light" key={i}>
