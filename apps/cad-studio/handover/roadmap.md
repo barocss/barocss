@@ -148,6 +148,18 @@ candidate. Original capture failures and clipped images remain recorded. These c
 tolerances and refusal boundaries; same-lift Z mass-property references are not measured accuracy or
 manufacturing acceptance, and this work does not add a signed-axis Studio authoring control.
 
+Pinned gravity-record comparison is adopted in product `2753b38f`. Desktop public file/Pin/Replace/Unpin checks,
+Studio consumer types, panel lint and documentation/site checks passed at their original sources. A changed
+recorded axis origin hides the numeric difference; this synthetic display check is not a new physical result.
+The actual-BRep rigid-frame regression is adopted in product `3475dccb`: two selected tests check rotated COM,
+full inertia and pivot axes with authored density, and the required product docs check passed. No production
+calculation or unit changes were made for that test-only slice.
+
+This source adds the reviewed experiment-definition module, twelve test declarations and a settings-panel
+candidate. Setup Save/Open, input application, explicit run and explicit rebinding are separate operations.
+The complete source batch is ready for its first runtime checks; it is not yet verified or adopted. Existing
+result records, pinned comparison, document Save and Physics solvers keep their separate contracts.
+
 ### Near-term delivery ownership (2026-10-26)
 
 Each row is a bounded delivery slice, with source, numerical, screen/file and product gates kept separate.
@@ -156,9 +168,9 @@ Independent source work proceeds in parallel. New heavy execution and shared int
 | Slice | Owner | Current source state | Required next evidence |
 |---|---|---|---|
 | Explain the lost d19 dimension | Drawings, coordinated by API | One retained observation at `7c435d1f` resolves d19 to 142 and d1 to 0.17; original browser loss remains unexplained | Compare the actual source/bundle path before a narrow fix or new browser claim. Preserve the original failure and 34-dimension requirement; the current native observation is not a 34-glyph pass. |
-| Pin a historical gravity record beside the current result | Outer implementation; GPU screen checks; API adoption | The reviewed one-file panel proposal is in this source checkpoint | Operate Pin/Replace/Unpin, calculation and record Open in desktop Chrome; inspect inputs, document match, historical status, compatible-axis delta, layout and preserved downloads. Then check Studio types, changed-file lint and local adoption. |
-| Check actual BRep mass across rigid frames | Kernel; API adoption | External one-file, two-test proposal uses existing public operations; not executed | Verify independent rotated COM/full tensor and pivot-axis formulas on the same frame with the existing tolerance. No duplicate adapter, conversion or new Physics claim. |
-| Save an experiment setup before calculation | API's three agents; Outer UI; Docs | Separate definition API, twelve test declarations and a layered settings-panel proposal are external, reviewed candidates; not executed or adopted | Keep document Save, setup Save/Open and result-record Download/Open distinct. Open previews settings; explicit input application changes only the form. Run uses the caller's matching current document and creates a result only on success. Rebind creates a new unexecuted setup. Test refusal, copies, staleness and real file/UI flows before adoption. |
+| Pin a historical gravity record beside the current result | Outer implementation; GPU screen checks; API adoption | Product `2753b38f` adopted; actual desktop, impact and product docs checks complete in their stated scopes | Operate Pin/Replace/Unpin, calculation and record Open in desktop Chrome; inspect inputs, document match, historical status, compatible-axis delta, layout and preserved downloads. Then check Studio types, changed-file lint and local adoption. |
+| Check actual BRep mass across rigid frames | Kernel; API adoption | Product `3475dccb` adopted the two passing BRep rigid-frame tests; no production calculation changes | Verify independent rotated COM/full tensor and pivot-axis formulas on the same frame with the existing tolerance. No duplicate adapter, conversion or new Physics claim. |
+| Save an experiment setup before calculation | API's three agents; Outer UI; Docs | Definition API, twelve test declarations and the reviewed settings panel are in this source batch; first runtime and product adoption remain pending | Keep document Save, setup Save/Open and result-record Download/Open distinct. Open previews settings; explicit input application changes only the form. Run uses the caller's matching current document and creates a result only on success. Rebind creates a new unexecuted setup. Test refusal, copies, staleness and real file/UI flows before adoption. |
 | Admit the first free pendulum profile | Confirm Physics ownership first; Kernel/API supply mass/frame contracts | No solver implementation assigned | Agree pivot/COM placement, pivot inertia, gravity moment, reactions and units, then check independent period, energy, time-step convergence and joint errors. Physical validation needs separate measurements. |
 
 The local pin and setup UI state is not saved by CAD document Save. A matching imported historical record is
