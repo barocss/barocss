@@ -33,10 +33,12 @@
     <label>Z <input id="source-z" type="range" min="1" max="6" step="0.5" value="3.5" disabled> <output id="z-value" for="source-z">3.5</output></label>
   </div>
   <div class="controls" role="group" aria-label="Point light controls">
+    <label>Light radius <input id="shadow-radius" type="range" min="0" max="1.5" step="0.1" value="0.4" disabled> <output id="radius-value" for="shadow-radius">0.4</output></label>
     <label>Range <input id="range" type="range" min="4" max="24" step="1" value="18" disabled> <output id="range-value" for="range">18</output></label>
     <label>Intensity <input id="intensity" type="range" min="0" max="160" step="10" value="100" disabled> <output id="intensity-value" for="intensity">100</output></label>
     <button id="capture" type="button" disabled>Capture preview</button>
   </div>
+  <p>Light radius uses world units and softens shadow edges. Zero keeps sharp shadows.</p>
   <p id="status" role="status" aria-live="polite">Loading the viewer…</p>
   <p id="error" role="alert" hidden></p>
   <canvas id="view" aria-label="Interactive point light shadows on the floor and walls"></canvas>

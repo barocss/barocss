@@ -52,12 +52,24 @@ An appearance is a look, not a material: a body's mass comes from its material, 
 - **Lights.** **Add sun**, **Add point** and **Add spot** add lights.
   - A sun has **Azimuth** and **Elevation**.
   - A point or spot light has a position, and a **Range** over which it fades. A spot also has a **Cone**.
-  - Every light has **Intensity** and **Colour**.
-  - One sun can cast a **Shadow**.
-- **Shadows.** The shadow is soft, as from a studio key light about 3° across: sharp at the foot of what casts it and
-  wider and lighter farther off. Contact shadows darken the creases and the places where parts meet, which the shadow
-  map is too coarse to show. Both are on in the Render workspace, with no control for them yet; the modelling look
-  is unchanged.
+  - Light positions, **Range** and **Shadow radius** use CAD mm: 1 mm is passed to the GPU scene as 1 world unit.
+    Point and spot **Intensity** is scaled for the scene size, so its value is not the raw GPU intensity.
+  - Every light has **Intensity**, **Colour** and **Shadow**. Use **Shadow** to turn its shadow on or off.
+  - A point or spot light also has **Shadow radius**, in mm. Enter `0` for the default edge or a larger value for a
+    softer shadow. Turning **Shadow** off keeps the saved radius. Entering a radius does not turn **Shadow** on.
+    An unset radius shows **Default (0 mm)**. Clearing the input shows an error and does not save `0`; press **Esc**
+    to restore the saved value.
+  - Shadows use the first four sun lights, the first four spot lights, and at most one of the first eight point
+    lights. Count the order separately for each kind. To move a point shadow, turn the current point's **Shadow**
+    off, then turn it on for another point in that group. **Intensity** `0` does not free that shadow slot.
+    See [GPU light and shadow limits](/packages/gpu/#light-and-shadow-limits).
+  - If shadow validation rejects a radius or a second point shadow in that group, the panel shows an error and
+    keeps the accepted light settings.
+- **Shadows.** A sun shadow uses a fixed light size of about 3°: sharp at the foot of what casts it and wider and
+  lighter farther off. Contact shadows darken the creases and the places where parts meet, which the shadow map is
+  too coarse to show. The sun size and contact shadows have no separate controls; the modelling look is unchanged.
+  These controls describe live raster shadows. An existing frozen still does not change. Use **Start** to create a
+  new session; see [Path tracing](#path-tracing).
 - **Scene.**
   - The background's **Top** and **Bottom** colours, and the **Ambient** light.
   - **Studio** lights the part: **Sky and ground**, **Softboxes** or **Cyclorama**. **Environment** takes an image

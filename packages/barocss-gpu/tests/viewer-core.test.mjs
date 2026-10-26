@@ -124,7 +124,7 @@ test('viewer geometry: checks its input, computes normals, picks the nearest tri
 });
 
 test('viewer lights: the frame block matches the WGSL layout', () => {
-  assert.equal(FRAME_BYTES, 2304);
+  assert.equal(FRAME_BYTES, 2320);
   assert.match(surfaceWGSL(), new RegExp(`dirs: array<DirLight, ${MAX_DIRECTIONAL}>`));
   // A shader material: its declarations, aliases and expression; the default params struct unless it declares one.
   const custom = surfaceWGSL({ declarations: 'fn f(x: f32) -> f32 { return x; }\n', expression: 'vec3f(f(native_uv.x))', aliases: { native_uv: 'uv' } });
@@ -163,7 +163,7 @@ test('viewer lights: the frame block matches the WGSL layout', () => {
   const two = packFrame(vp, cam, [], {}, null, [1, 1, 1], null, { normal: [0, 1, 0], offset: 2.5, cap: [1, 1, 1], planes: [{ normal: [0, 1, 0], offset: 2.5 }, { normal: [-1, 0, 0], offset: -4 }] });
   assert.ok(close([...two.slice(248, 260)], [1, 1, 1, 2, 0, 1, 0, 2.5, -1, 0, 0, -4], 1e-6));
   assert.deepEqual([...packFrame(vp, cam, [], {}).slice(248, 276)], new Array(28).fill(0));
-  assert.equal(FRAME_BYTES, 4 * (252 + 4 * MAX_CLIP_PLANES + MAX_SHADOWS * 20 + 4 + MAX_SPOT * 4));
+  assert.equal(FRAME_BYTES, 4 * (252 + 4 * MAX_CLIP_PLANES + MAX_SHADOWS * 20 + 4 + MAX_SPOT * 4 + 4));
   assert.match(surfaceWGSL().replace(/\/\/[^\n]*/g, ''), new RegExp(`clipColor: vec4f,\\s+clips: array<vec4f, ${MAX_CLIP_PLANES}>,\\s+shadowLights: array<ShadowLight, ${MAX_SHADOWS}>,`));
 });
 

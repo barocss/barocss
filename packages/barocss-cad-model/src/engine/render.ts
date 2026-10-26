@@ -2,6 +2,7 @@
 // per body, lights, the environment and a saved camera. Colours are sRGB hex; directions point the way
 // light travels (world, Z up).
 import { isVec3 } from '../util/guards';
+import { refusal } from './refusal';
 
 export type Hex = `#${string}`;
 export interface Appearance {
@@ -31,8 +32,8 @@ export type FinishKind = typeof FINISH_KINDS[number];
 export interface AppearanceFinish { kind: FinishKind; scale: number; strength: number; axis?: [number, number, number] }
 export type RenderLight =
   | { kind: 'directional'; direction: [number, number, number]; color: Hex; intensity: number; castShadow: boolean }
-  | { kind: 'point'; position: [number, number, number]; color: Hex; intensity: number; range: number }
-  | { kind: 'spot'; position: [number, number, number]; direction: [number, number, number]; color: Hex; intensity: number; range: number; angle: number; penumbra: number };
+  | { kind: 'point'; position: [number, number, number]; color: Hex; intensity: number; range: number; castShadow?: boolean; /** Emitter radius in world mm; zero keeps PCF when shadows are enabled. */ shadowRadius?: number }
+  | { kind: 'spot'; position: [number, number, number]; direction: [number, number, number]; color: Hex; intensity: number; range: number; angle: number; penumbra: number; castShadow?: boolean; /** Emitter radius in world mm; zero keeps PCF when shadows are enabled. */ shadowRadius?: number };
 export interface RenderEnvironment {
   top: Hex; bottom: Hex;
   /** Hemisphere ambient strength. */
@@ -159,6 +160,32 @@ const vec = (v: unknown, fallback: [number, number, number]): [number, number, n
   isVec3(v) ? [v[0], v[1], v[2]] : fallback;
 const obj = (v: unknown): Record<string, unknown> => v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
 
+/** Read each optional shadow field once, preserving false, zero and the authored JS number. */
+function shadowFields(light: Record<string, unknown>): { castShadow?: boolean; shadowRadius?: number } {
+  const castShadow = light.castShadow, shadowRadius = light.shadowRadius;
+  if (castShadow !== undefined && typeof castShadow !== 'boolean') throw refusal('VALUE', 'point and spot castShadow must be a boolean');
+  if (shadowRadius !== undefined && (typeof shadowRadius !== 'number' || !Number.isFinite(shadowRadius) || shadowRadius < 0)) throw refusal('VALUE', 'point and spot shadowRadius must be a finite nonnegative number of mm');
+  return { ...(castShadow !== undefined ? { castShadow } : {}), ...(shadowRadius !== undefined ? { shadowRadius } : {}) };
+}
+
+/** Validate only new shadow fields and caster counts, without changing lights.
+ * Disabled fields keep JSON-safe JS values; eligible active radii must also survive GPU f32.
+ * This does not validate the GPU's general position, direction or range inputs. */
+export function validateRenderShadowLights(lights: readonly unknown[]): void {
+  let points = 0, spots = 0, pointCasters = 0;
+  for (const value of lights) {
+    const light = obj(value), kind = light.kind;
+    if (kind !== 'point' && kind !== 'spot') continue;
+    const shadow = shadowFields(light), inBudget = kind === 'point' ? ++points <= 8 : ++spots <= 4;
+    if (!inBudget || shadow.castShadow !== true) continue;
+    if (shadow.shadowRadius !== undefined) {
+      const radius = Math.fround(shadow.shadowRadius);
+      if (!Number.isFinite(radius) || (shadow.shadowRadius > 0 && radius === 0)) throw refusal('VALUE', 'active point and spot shadowRadius must remain finite and nonzero when positive in GPU f32');
+    }
+    if (kind === 'point' && ++pointCasters > 1) throw refusal('VALUE', 'at most one of the first eight point lights may cast shadows');
+  }
+}
+
 export function readAppearance(v: unknown, fallback: Appearance): Appearance {
   const o = obj(v);
   return { color: hex(o.color, fallback.color), metallic: num(o.metallic, 0, 1, fallback.metallic), roughness: num(o.roughness, 0, 1, fallback.roughness), opacity: num(o.opacity, 0.05, 1, fallback.opacity),
@@ -183,7 +210,7 @@ function readPost(v: unknown): RenderPost {
     ...(depthOfField ? { depthOfField } : {}) };
 }
 
-/** Render settings from a saved document (anything missing or out of range takes the default). */
+/** Render settings from a saved document: legacy defaults/clamps, with explicit shadow-field refusals. */
 export function readRender(v: unknown): RenderSettings {
   const d = defaultRender(), o = obj(v);
   if (!v) return d;
@@ -191,10 +218,11 @@ export function readRender(v: unknown): RenderSettings {
   const lights = Array.isArray(o.lights) ? o.lights.slice(0, 12).flatMap((l): RenderLight[] => {
     const x = obj(l), color = hex(x.color, '#ffffff'), intensity = num(x.intensity, 0, 100, 1);
     if (x.kind === 'directional') return [{ kind: 'directional', direction: vec(x.direction, [0, 0, -1]), color, intensity, castShadow: x.castShadow === true }];
-    if (x.kind === 'point') return [{ kind: 'point', position: vec(x.position, [0, 0, 100]), color, intensity, range: num(x.range, 0, 1e6, 0) }];
-    if (x.kind === 'spot') return [{ kind: 'spot', position: vec(x.position, [0, 0, 100]), direction: vec(x.direction, [0, 0, -1]), color, intensity, range: num(x.range, 0, 1e6, 0), angle: num(x.angle, 1, 89, 30), penumbra: num(x.penumbra, 0, 1, 0.2) }];
+    if (x.kind === 'point') return [{ kind: 'point', position: vec(x.position, [0, 0, 100]), color, intensity, range: num(x.range, 0, 1e6, 0), ...shadowFields(x) }];
+    if (x.kind === 'spot') return [{ kind: 'spot', position: vec(x.position, [0, 0, 100]), direction: vec(x.direction, [0, 0, -1]), color, intensity, range: num(x.range, 0, 1e6, 0), angle: num(x.angle, 1, 89, 30), penumbra: num(x.penumbra, 0, 1, 0.2), ...shadowFields(x) }];
     return [];
   }) : d.lights;
+  validateRenderShadowLights(lights);
   const def = readAppearance(o.defaultAppearance, d.defaultAppearance);
   const appearances: Record<string, Appearance> = {};
   for (const [k, a] of Object.entries(obj(o.appearances))) appearances[k] = readAppearance(a, def);

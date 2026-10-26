@@ -24,7 +24,7 @@ import { overlayTriangles, type OverlayDrawing } from './overlayDrawing';
 const ZEBRA = zebra(), CURVATURE = curvature();
 import { materialShader, showScene, type MaterialShaderResult, type SceneView } from '@barocss/gpu';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
-import { appearanceOf, tiledUVs, type Appearance, type RenderSettings, type StudioKind } from '@barocss/cad-model/engine/render';
+import { appearanceOf, tiledUVs, validateRenderShadowLights, type Appearance, type RenderSettings, type StudioKind } from '@barocss/cad-model/engine/render';
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
@@ -202,6 +202,7 @@ export class GpuRenderer implements ViewRenderer {
 
   /** Render settings (the Render workspace), or null for the modelling look. */
   setRender(settings: RenderSettings | null): void {
+    if (settings) validateRenderShadowLights(settings.lights);
     this.settings = settings;
     for (const b of this.bodies) b.state = '';
     this.applyLook();
@@ -680,8 +681,10 @@ export class GpuRenderer implements ViewRenderer {
     if (r) {
       // The settings' lights; the first directional one that casts a shadow casts it on the ground.
       v.lights = r.lights.map((l): Light => l.kind === 'directional' ? { ...l }
-        : l.kind === 'point' ? { kind: 'point', position: l.position, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range }
-          : { kind: 'spot', position: l.position, direction: l.direction, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range, angle: l.angle, penumbra: l.penumbra });
+        : l.kind === 'point' ? { kind: 'point', position: l.position, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range,
+          ...(l.castShadow === undefined ? {} : { castShadow: l.castShadow }), ...(l.shadowRadius === undefined ? {} : { shadowRadius: l.shadowRadius }) }
+          : { kind: 'spot', position: l.position, direction: l.direction, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range, angle: l.angle, penumbra: l.penumbra,
+            ...(l.castShadow === undefined ? {} : { castShadow: l.castShadow }), ...(l.shadowRadius === undefined ? {} : { shadowRadius: l.shadowRadius }) });
       const e = r.environment;
       const envMap = e.map ? this.imageTexture(e.map.image) : e.studio ? this.studioTexture(e.studio.kind) : null;
       v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ...postOf(e.post), softShadows: RENDER_SUN_SIZE, contactShadows: { strength: 0.5 }, ambientOcclusion: e.occlusion && !this.interacting ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false, ...(envMap ? { map: envMap, mapIntensity: e.map?.intensity ?? e.studio?.intensity ?? 1 } : {}) };

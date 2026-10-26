@@ -36,7 +36,7 @@ box.outline = '#e8c25a';                // a selection outline around the visibl
   back to front; shadow catchers (`shadowOnly`).
 - Lines: screen-space width (`lineWidth`), segment ids (`edges`) and `pickLine()`.
 - Scene: instancing (`instances`: a transform and colour each, one draw), frustum culling, directional
-  shadows (up to four lights, PCF/PCSS), spot shadows (up to four lights, PCF/PCSS), and one point shadow (six-face PCF) with `castShadow: true`, ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
+  shadows (up to four lights, PCF/PCSS), spot shadows (up to four lights, PCF/PCSS), and one point shadow (six-face PCF/PCSS) with `castShadow: true`, ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
   exposure and ACES tone mapping in a linear half-float pipeline.
 - Tests: `tests/viewer-core.test.mjs` (Node), `tests/viewer-browser.test.mjs` and
   `tests/scene-viewer-browser.test.mjs` (Chrome's WebGPU, `CHROME` and `PW_DIR`,
@@ -66,7 +66,18 @@ spherical lighting cutoff and limits each face's far plane. Range 0 fits the six
 faces to the scene and cap bounds. Inputs that cannot form a finite f32 depth
 projection refuse with `LIGHT_INVALID`. The point filter makes nine depth
 comparisons and reprojects taps across face boundaries. Directional and spot
-PCF retain linear comparison filtering. Point shadows do not use PCSS.
+PCF retain linear comparison filtering. A point light's positive `shadowRadius`
+enables bounded PCSS instead. It is a world-unit emitter radius represented by
+an equivalent disk perpendicular to each receiver ray. This is an approximation,
+not a sphere-area light renderer. Radius 0 or omission retains the existing
+six-face PCF. The radius must be finite, nonnegative and representable in f32;
+invalid enabled inputs refuse with `LIGHT_INVALID`. Point radius is separate
+from a spot's cone `penumbra` and the directional `softShadows` angular size.
+Point PCSS searches one centre tap and 15 disk taps, with a four-texel minimum
+footprint and a 48-texel maximum, both limited to tangent slope 0.25. Its
+16-tap final filter has the same slope limit. This resolution-dependent search
+is a quality bound on the approximation; a larger emitter radius cannot remove
+the search limit.
 Contact shadows retain the first casting directional light.
 
 The CSS-shaped scene language shows on it with one call: `showScene(viewer, source)` compiles a scene
