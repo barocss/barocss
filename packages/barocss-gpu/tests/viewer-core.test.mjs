@@ -589,3 +589,57 @@ test('pickNow returns null when camera translation changes during readback, with
   assert.equal(accepted.face, 102); assert.ok(near(accepted.scalar, 7, 1e-5));
   assert.equal(unmaps, 2, 'both mapped buffers must be unmapped, including the refused stale read');
 });
+
+// Reuse the camera-readback fixture; change only the public clip plane while its GPU result waits.
+test('pickNow returns null when the clip plane changes during readback, without changing an accepted hit', async () => {
+  const positions = [], indices = [];
+  for (const [axis, sign] of [[0, 1], [0, -1], [1, 1], [1, -1], [2, 1], [2, -1]]) {
+    const u = (axis + 1) % 3, v = (axis + 2) % 3, base = positions.length / 3;
+    for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const p = [0, 0, 0]; p[axis] = sign; p[u] = a; p[v] = b * sign; positions.push(...p); }
+    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  }
+  const data = prepareGeometry({ positions, indices, faces: Array.from({ length: 12 }, (_, i) => 100 + i) });
+  data.scalars = prepareScalars(data, Array(data.vertexCount).fill(7), 'vertex');
+  const camera = new Camera({ position: [-6, 0.15, 0], target: [0, 0.15, 0], up: [0, 0, 1], projection: 'orthographic' });
+  camera.clip({ min: [-20, -20, -20], max: [20, 20, 20] });
+  const point = [-1, 0.15, 0], depth = Math.fround(clipZ(camera.viewProjection(1), point));
+  const mesh = { id: 17, visible: true, pickable: true, clipped: true, cap: true, transparent: false, material: {}, transform: identity(),
+    geometry: { data, disposed: false, topology: 'triangles' }, instanceCount: 1, instances: null };
+  const viewer = Object.create(Viewer.prototype), pass = { setScissorRect() {}, setBindGroup() {}, end() {} };
+  let held = false, entered, release, unmaps = 0;
+  const read = {
+    mapAsync() { return held ? new Promise(resolve => { release = resolve; entered(); }) : Promise.resolve(); },
+    unmap() { unmaps++; },
+    getMappedRange(offset) { return offset === 256 ? Float32Array.of(depth).buffer : Uint32Array.of(offset === 512 ? 0 : mesh.id).buffer; },
+  };
+  Object.assign(viewer, { canvas: { width: 1, height: 1, clientWidth: 1, clientHeight: 1 }, camera, meshes: [mesh], clip: null,
+    device: { queue: { submit() {} }, createCommandEncoder: () => ({ beginRenderPass: () => pass, copyTextureToBuffer() {}, finish() {} }) },
+    alive() {}, prepareCamera: () => camera.viewProjection(1), visibleMeshes: () => ({ opaque: [mesh], transparent: [] }), writeUniforms() {},
+    requestRender() {}, drawCapFront() {}, drawMesh() {}, drawCaps() {}, ensurePickTargets: () => ({ views: {}, read }) });
+  const accepted = await viewer.pickNow(0, 0);
+  assert.equal(accepted.mesh, mesh); assert.equal(accepted.face, 102); assert.equal(accepted.triangle, 2);
+  assert.equal(accepted.cap, false); assert.equal(accepted.instance, null);
+  assert.ok(close(accepted.point, point, 1e-5), JSON.stringify(accepted.point));
+  assert.ok(near(accepted.scalar, 7, 1e-5));
+  const acceptedPoint = [...accepted.point];
+  held = true;
+  const mappingEntered = new Promise(resolve => { entered = resolve; }), pending = viewer.pickNow(0, 0);
+  await mappingEntered;
+  assert.equal(viewer.clipPlane, null);
+  const cameraBefore = { ...structuredClone(camera.state()), near: camera.near, far: camera.far };
+  const sizeBefore = [viewer.canvas.width, viewer.canvas.height, viewer.canvas.clientWidth, viewer.canvas.clientHeight];
+  const transformBefore = Array.from(mesh.transform);
+  // Keep x >= 0: the previous front at x = -1 is removed and the new cap is at x = 0.
+  viewer.clipPlane = { normal: [1, 0, 0], offset: 0 };
+  assert.deepEqual(viewer.clipPlanes, [{ normal: [1, 0, 0], offset: 0 }]);
+  assert.deepEqual({ ...camera.state(), near: camera.near, far: camera.far }, cameraBefore);
+  assert.deepEqual([viewer.canvas.width, viewer.canvas.height, viewer.canvas.clientWidth, viewer.canvas.clientHeight], sizeBefore);
+  assert.deepEqual(Array.from(mesh.transform), transformBefore);
+  assert.equal(mesh.geometry.data, data);
+  release();
+  const stale = await pending;
+  assert.equal(unmaps, 2, 'both mapped buffers must be unmapped, including the refused stale read');
+  assert.equal(stale, null, `a readback from the previous clip state must be refused: ${JSON.stringify(stale && { point: stale.point, face: stale.face, triangle: stale.triangle, cap: stale.cap, capPlane: stale.capPlane })}`);
+  assert.deepEqual(accepted.point, acceptedPoint, 'the accepted hit must keep its original point');
+  assert.equal(accepted.face, 102); assert.ok(near(accepted.scalar, 7, 1e-5));
+});
