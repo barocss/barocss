@@ -44,6 +44,10 @@ In the studio, IGES is for curves and surfaces you edit directly, not solids. Se
 
 STL carries triangles only: no units, colours, names or exact curves.
 
+Omitting `segmentsPerQuarter` from `exportStl` uses 16.
+This dimensionless tessellation setting is not a millimetre tolerance or a guarantee of geometric error.
+It does not change the on-screen mesh; see [STL export choices](/studio/files#exports) for the studio controls.
+
 ## DXF
 
 `writeDxf(document, { version })` writes a 2D drawing:
