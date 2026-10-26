@@ -17,7 +17,7 @@ const data={contract:'After the public clip plane changes while pick continuatio
 let api,viewer,mesh,pending,releaseGate,originalDescriptor,wrapped,heldBuffer,armed=false;
 const event=(name,extra={})=>{data.events.push({name,time:performance.now(),...extra});publish();};
 function publish(){out.textContent=JSON.stringify(data,null,2);const a=button('json');if(a.href.startsWith('blob:'))URL.revokeObjectURL(a.href);a.href=URL.createObjectURL(new Blob([out.textContent],{type:'application/json'}));}
-const state=()=>structuredClone(viewer.camera.state());
+const state=()=>structuredClone({...viewer.camera.state(),near:viewer.camera.near,far:Number.isFinite(viewer.camera.far)?viewer.camera.far:String(viewer.camera.far)});
 const clipState=()=>structuredClone(viewer.clipPlane);
 const hitValue=h=>h?{meshId:h.mesh.id,meshName:h.mesh.name,point:[...h.point],triangle:h.triangle,face:h.face,instance:h.instance,depth:h.depth,cap:h.cap}:null;
 function box(){
@@ -56,7 +56,7 @@ button('setup').onclick=async()=>{
     const adapter=await navigator.gpu?.requestAdapter();check(adapter,'Actual WebGPU adapter unavailable');
     data.adapterInfo={vendor:adapter.info?.vendor,architecture:adapter.info?.architecture,device:adapter.info?.device,description:adapter.info?.description};
     const input={pixelRatio:1,controls:false,camera:{position:[0,-5,0],target:[0,0,0],up:[0,0,1],fovY:40}};
-    data.initialInput=structuredClone(input);viewer=await api.createViewer(canvas,input);mesh=viewer.add(box(),{name:'original-blue-box',material:{color:'#0000ff',unlit:true}});
+    data.initialInput=structuredClone(input);viewer=await api.createViewer(canvas,input);mesh=viewer.add(box(),{name:'original-blue-box',cap:true,material:{color:'#0000ff',unlit:true}});
     viewer.clipPlane={normal:[0,0,1],offset:-2};
     await viewer.frame();data.originalCamera=state();data.originalClip=clipState();data.size=[canvas.width,canvas.height];
     data.originalHit=hitValue(await viewer.pick(160,120));check(data.originalHit?.meshName==='original-blue-box','Unchanged public pick did not hit original box');
