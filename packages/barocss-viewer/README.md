@@ -1139,3 +1139,48 @@ success, and a pending older source request is invalidated. A preparation error
 returns `{ ok: false, stage: 'preflight', error }` and leaves the Face scene
 drawn. Passing `'atomic'` always returns a `preflight` refusal before anything
 changes; there is no atomic swap.
+
+## Save and apply a review state
+
+`viewer.captureReviewState()` returns a detached `ViewerReviewStateV1` object.
+It stores only the camera, visible geometry and selected geometry, plus scene
+revision pins. It does not contain packets, CAD source, motion, materials,
+measurements or layers. Do not use the full `getState()` as a review file.
+
+```js
+const text = JSON.stringify(viewer.captureReviewState());
+// The host writes text to a file. Later, with the same CAD revision loaded:
+viewer.applyReviewState(JSON.parse(text));
+```
+
+The SDK derives `scene` from the accepted document or assembly. The pins contain
+its kind, ID, revision, `mmToSceneUnit`, and the loaded body/instance inventory
+with original document and asset revision references. The inventory order must
+also match. A different document, assembly, revision, subset or scale refuses.
+These pins identify a revision; they do not authenticate source contents or
+provide file integrity. The producer must advance revisions when CAD data or
+assembly placements change.
+
+Only revisioned primitive CAD documents and assemblies are supported. Empty,
+disposed, native-source-only, model-set-only, Shell, mixed-depth and qualified
+Face scenes refuse explicitly. The existing 1..4 loaded-object limit remains.
+Zero visible objects are allowed. Selection must refer to visible geometry.
+Existing material and layer restrictions also apply.
+
+`applyReviewState(unknown)` validates the whole input before presentation. It
+uses the existing presenter once, then commits camera, visibility and selection.
+Invalid data leaves the full accepted state and drawing unchanged. If the
+presenter throws, Viewer retains CPU state and attempts to draw the prior state;
+if that recovery also fails, an `AggregateError` reports both failures. No SDK
+can guarantee pixels after a device failure. Successful apply does not mutate
+the caller's object, the CAD data, hierarchy or any other accepted Viewer data.
+
+See `examples/viewer-review` for public controls and actual file Save/Open.
+The focused CPU regression command is:
+
+```sh
+node --test packages/barocss-viewer/tests/review-state.test.mjs
+```
+
+It uses actual CAD admission with a recording presenter. Real rendering and file
+controls require the separate browser flow in that example.
