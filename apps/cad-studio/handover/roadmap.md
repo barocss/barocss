@@ -44,37 +44,50 @@ repeated audits or new diagnostic tests into separate work streams. Preserve nec
 failures, reuse unchanged passing results, and finish the feature source before its one affected batch.
 
 Current order (2026-10-27): finish complete features, then integrate their reviewed normal commits.
-Local product `872e1e626` contains the scoped SSI, Route WireDoc preservation, joint pose/HUD
-and preceding documentation bundle with its required product checks. These are bounded feature
-checkpoints, not completion of every robot or experiment stage.
+Local product `f1af9760f` contains the bounded cubic loft foundation, qualified G15
+path-trace/PBR/light-and-shadow chain, DR6 endpoint targets and their public documentation.
+The first required product CAD build, selected cubic-circle case, GPU emit and documentation
+checks passed. Existing native and actual consumer receipts retain their original scope;
+whole G15, robot, free-forward dynamics and manufacturing acceptance remain open.
 
-The next product cut is frozen at source `46777f7e5`: the bounded cubic loft foundation, qualified
-G15 path-trace/PBR/light-and-shadow chain, DR6 endpoint targets and the G15 public API page.
-The cubic foundation passed its focused native and actual public API shape flow; Studio authoring
-is still the next consumer. DR6 passed its required affected batch and actual target creation,
-symbol move, label, translated-edge refusal, explicit reselection and Save/New/Open flow. The
-coordinator viewed the application PNGs and compared the saved target fields. The first final
-file was overwritten by a later save: its original bytes were not preserved, so no byte-identical
-roundtrip is claimed. Actual SVG download/XML checks passed; the extra file-render browser
-commands timed out and remain unverified. Keep those first failures and unknown cleanup states.
+The current cut completes the copied-guide loft in CAD Model and Studio. Model source
+`1cc2cb5` / `dd48fb9` / `fb03045` and Studio `fe1afa05` were adopted as exact child deltas.
+The original native11 PASS and Model type4 FAIL remain recorded. The normal two-file repair
+passed command7, Model/Studio types and production9 lint. A collector used the wrong cwd when
+reading saved lint paths; its original failure remains, and only the never-run public builder
+continued. The builder passed without repeating the other checks.
 
-The generated public inventory was reviewed as 21 inserted and 38 replaced rows, with no removals;
-6,600 existing rows and the other five top-level fields remain unchanged. Close this cut with the
-required documentation/site checks, exact product integration and first affected product outputs.
-Do not enlarge this cut with the following independent source work.
+The first actual Studio flow found only None in the Guide list after a direct-only import.
+App-only repair `f476d132` was adopted as `49420da6`; it snapshots current shown direct data
+at Loft start without changing the geometry memo policy. Corrected Studio types/App1 lint
+passed once. Actual desktop D0 Open, original guide import, Guide (copied), Preview/Apply,
+Undo/Redo and real Save/New/Open then passed. Before/preview/undo files match in all1216 bytes;
+applied/redo/reopened files match in all3127 bytes. Original sketches and direct objects stay
+unchanged. Frames and cubic controls are copied world-mm snapshots, not live curve references.
+Root viewed both final PNGs. Original product and tool failures remain preserved; native
+quantitative accuracy and manufacturing acceptance are separate.
 
-Kernel owns Model API implementation; the coordinator owns API design, contract resolution and
-integration. The complete next CG1 source is Model `1cc2cb5` / `dd48fb9` / `fb03045` plus exact
-Studio UI child `fe1afa05` (exclude its producer baseline). Its four API and seven command test
-declarations are not execution results. Run one combined affected batch, then the existing public
-Loft / Source-import / Undo-Redo / actual file flow. A copied world-mm guide is not a live link.
+The external inventory at `4800600ee` adds6, removes0 and changes5 exposures: the two public
+loft input types, copied-guide helpers, framed sections, the stored LoftSection, three StudioPart
+loft method exposures and ModelNode/isSolidNode guide types. Existing6654 rows and the other
+five top-level fields stay identical. Existing compiler-symbol names and numeric pairs do not
+change. Only these reviewed rows are synchronized. Next close documentation/site and product
+integration; do not enlarge this cut with unrelated pending features.
 
-GPU continues G15b independently: point PCSS source `33a0fa9` has its first affected emit, new
-CPU 11 and GPU 1 cases and four-file lint results; the public demo/archive and product adoption
-remain separate. Current point-PCF/spot-PCSS qualification does not imply whole G15 acceptance.
-Viewer's normal standalone React app/inspection/measurement/review/lighting/assembly source
-through `40a05546` has scoped owner evidence and root review; next-cut integration remains.
-Its next V5 source implements named saved review views using the existing SDK contract.
+Kernel owns Model API implementation; the coordinator owns API design, contract resolution
+and integration. The next whole feature is G15 Studio shadow consumption: qualified GPU point
+PCSS `33a0fa9`, Model fields/one shared validator `009b92c`, and normal Studio child `8453010`.
+The Studio source is complete; its required impact batch and actual workflow are NOTRUN.
+CAD1mm equals GPUworld1. Point/spot shadow radius passes unchanged; only existing intensity
+uses size squared times .05. Preserve false, zero, omission, accepted settings on refusal and
+current caster budgets. Independent own-source work does not wait for shared adoption; its
+combined runtime batch requires the exact root-adopted source.
+
+Viewer's standalone app, assembly and named review views through `65a208b4` have scoped
+owner evidence and static root review; exact next-cut integration remains. Standalone drawing
+frames `d68d6e49` plus `ac53b888` have reviewed normal source, with first required runtime still
+pending clean root adoption. Preserve stopped packaging/config/hook work, the Viewer README
+boundary and the independent root dimension-clearance fix during integration.
 
 Reuse existing basic functions. Wider datum targets, auto-rematching, arbitrary assemblies,
 new renderers/solvers and manufacturing certification are not implied. Keep independent source

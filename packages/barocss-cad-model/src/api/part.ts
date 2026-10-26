@@ -1,12 +1,14 @@
 // R7 (cad-model's facade): the one part (@barocss/cad/api's Part) over the studio document, with its studio backend
-// (./studio), and only the studio layer added: a material by its library id for mass. `.doc` is the StudioDoc the
+// (./studio), with studio-only authoring and a material by its library id for mass. `.doc` is the StudioDoc the
 // agent's tools, the studio, save/open and the fingerprints use. Assemblies, variants and rows come as the layer grows.
-import { BarocssError, Part, bracketedCode, refuse, studioSpec, type BodyQuery, type Density, type FaceQuery, type Vec3 } from '@barocss/cad/api';
+import { BarocssError, Part, Sketch, bracketedCode, refuse, studioSpec, type BodyQuery, type Density, type FaceQuery, type Vec3 } from '@barocss/cad/api';
 import { sha256Hex } from '../util/digest';
 import { loadPersonRows } from '../chat/rows';
 import { receivePersonRowFiles } from '../engine/rowFiles';
 import type { RowKind } from '../engine/rowDefinitions';
-import type { StudioDoc } from '../engine/doc';
+import { bodyKey, withNode, type LoftSection, type ModelNode, type StudioDoc } from '../engine/doc';
+import type { LoftInput, LoftSectionFrame } from '@barocss/cad';
+import { checkNode } from '../chat/features';
 import { MATERIALS } from '../library/materials';
 import type { MassResult } from './core';
 import { bodiesOf, materialOf, withBodyName, withMaterial } from './core';
@@ -14,6 +16,14 @@ import { studioBackend } from './studio';
 import { drawingDoc, drawingOf, manufacturabilityOf, outputOf, withCasting, withProcess, type CastingOptions } from './outputs';
 import { setBought } from '../bom/bom';
 import { withLibraryPart, type LibraryPartInput } from './library';
+
+/** A closed sketch at a legacy height or in an explicit world-mm section frame, never both. */
+export type StudioLoftSection = { readonly sketch: Sketch } & (
+  | { readonly z: number; readonly frame?: never }
+  | { readonly frame: LoftSectionFrame; readonly z?: never }
+);
+/** The Kernel's bounded quadratic/cubic guide: copied world-mm values, not a live curve reference. */
+export interface StudioLoftOptions { readonly guide?: LoftInput['guide']; readonly smooth?: boolean }
 
 /** set_drawing's settings (its schema's names): the sheet, scale, projection, front, views, tolerancing, title, scope, sections, details, tables, balloons, weld symbols. */
 export interface DrawingSettingsInput {
@@ -29,6 +39,46 @@ const libraryMaterial = (id: string) => {
 };
 
 export class StudioPart extends Part<StudioDoc> {
+  /**
+   * A loft through closed sketches, choosing its new body. Section frames and guide controls are copied snapshots
+   * in world mm; later edits to the source curve or caller's arrays do not drive this feature. A guide requires
+   * explicit frames. The Kernel evaluates its exact endpoints, cap fractions and supported shape combinations.
+   * Only a successfully evaluated document is returned; a refusal leaves this part and the inputs unchanged.
+   */
+  loft(sections: readonly StudioLoftSection[], options: StudioLoftOptions = {}): this {
+    if (!Array.isArray(sections) || sections.length < 2) throw refuse('VALUE', 'a loft needs at least two sketch sections');
+    if (options === null || typeof options !== 'object' || Array.isArray(options)
+      || Object.keys(options).some(k => k !== 'guide' && k !== 'smooth')) throw refuse('VALUE', 'loft options are guide and smooth');
+    if (options.smooth !== undefined && typeof options.smooth !== 'boolean') throw refuse('VALUE', 'loft smooth must be true or false');
+    let copied: StudioLoftOptions;
+    try { copied = structuredClone(options); } catch { throw refuse('VALUE', 'loft options must be plain copied values'); }
+    let doc = this.document;
+    const stored: LoftSection[] = [];
+    for (const section of sections) {
+      if (section === null || typeof section !== 'object' || Array.isArray(section) || !(section.sketch instanceof Sketch)) throw refuse('VALUE', 'a loft section takes a finished Sketch');
+      const framed = Object.prototype.hasOwnProperty.call(section, 'frame'), height = Object.prototype.hasOwnProperty.call(section, 'z');
+      if (framed === height || Object.keys(section).some(k => k !== 'sketch' && k !== 'frame' && k !== 'z')) throw refuse('VALUE', 'a loft section takes sketch and exactly one of frame or z');
+      const z = framed ? undefined : section.z;
+      if (!framed && (typeof z !== 'number' || !Number.isFinite(z))) throw refuse('VALUE', 'a loft section z must be a finite number of mm');
+      const node = { kind: 'sketch', ...section.sketch.data };
+      const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+      if (why) throw refuse('VALUE', `the loft sketch: ${why}`);
+      const sketch = doc.nodes.length;
+      doc = withNode(doc, node as ModelNode);
+      try { stored.push(framed ? { sketch, frame: structuredClone(section.frame!) } : { sketch, z: z! }); }
+      catch { throw refuse('VALUE', 'a loft section frame must be plain copied values'); }
+    }
+    const index = doc.nodes.length;
+    const loft: ModelNode = { kind: 'loft', sections: stored,
+      ...(Object.prototype.hasOwnProperty.call(copied, 'guide') ? { guide: copied.guide } : {}),
+      ...(Object.prototype.hasOwnProperty.call(copied, 'smooth') ? { smooth: copied.smooth } : {}) };
+    const why = checkNode(loft, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the loft: ${why}`);
+    doc = withNode(doc, loft);
+    bodiesOf(doc);
+    return this.next(doc, bodyKey({ node: index, side: 'solid' }, doc.nodes));
+  }
+
   /**
    * The body's mass properties in a library material (its id, e.g. 'al6061') or at a density, in MMGS — or, given
    * neither, in the material the body names (its own, else the brief's).

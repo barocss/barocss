@@ -5,7 +5,7 @@ import { refusal } from './refusal';
 
 import type { BoundConstraint3D } from '../frames/sketch3d';
 import type { RobotSettings } from '../robot/joints';
-import type { BendTable } from '@barocss/cad';
+import type { BendTable, LoftInput, LoftSectionFrame } from '@barocss/cad';
 import type { Brief } from './schema/brief';
 import type { QuestionLog } from './schema/questions';
 import type { ReferenceSet } from './schema/references';
@@ -19,6 +19,8 @@ export type { BearingHousingRef } from './bearingContext';
 
 export type Axis = 'x' | 'y' | 'z';
 export type Dim = number | { parameter: string };
+/** A loft section: a legacy height or an explicit world-mm frame, never both. */
+export type LoftSection = { sketch: number } & ({ z: Dim; frame?: never } | { frame: LoftSectionFrame; z?: never });
 /** A cam's motion laws (R12c.6a, D160): closed forms, the kernel's. */
 export type CamLawName = 'uniform' | 'harmonic' | 'cycloidal' | 'polynomial-345' | 'modified-trapezoid';
 /**
@@ -156,7 +158,7 @@ type ModelNodeBase = SketchNode
   | { kind: 'sweep-curve'; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[] }; routeBundleMember?: { bundleId: string; memberId: string } }
   /** A ruled loft through sketches at increasing heights (each section's edges to the next one's). */
   /** `from`: the sketches the sections were carried over from, when they lay on offset planes (used by the loft). */
-  | { kind: 'loft'; sections: { sketch: number; z: Dim }[]; smooth?: boolean; from?: number[] }
+  | { kind: 'loft'; sections: LoftSection[]; smooth?: boolean; from?: number[]; /** World-mm seam controls, copied on authoring and passed to the kernel unchanged. */ guide?: LoftInput['guide'] }
   /** A body read from a STEP file (the file's text is kept in the document). */
   /** `solids`: how many solids the file holds when more than one; each is then its own body (side `part<k>`). */
   | { kind: 'import'; name: string; step: string; solids?: number }

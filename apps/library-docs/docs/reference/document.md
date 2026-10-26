@@ -25,8 +25,17 @@ and writes it (`@barocss/cad-model/engine/doc` and `engine/container`).
 
 Documents use `"format": "barocss-cad-model"` and `"units": "mm"`. Ordinary documents use `"schema": 3`, which keys bodies by stable ids. Explicit route bundles use `"schema": 4`.
 
-- **No migrations yet.** Until the first release, documents follow the latest schema. Unreleased versions aren't
-  migrated between, and fixtures are updated instead.
+- **Supported older schemas.** After its checks pass, the reader converts a missing `schema`, or schema 0, 1 or 2,
+  to schema 3. A valid explicit route-bundle document keeps schema 4.
+- **Fields filled on read.** Missing units are read as millimetres, and a missing parameters list starts empty.
+  Features without stable ids are given ids. For schema 2, body looks, appearances and animation tracks move from
+  index-based body keys to stable feature-id keys.
+- **Open and Save.** When **Open** fills older fields, **Opened an older model** lists the changes. Opening does not
+  rewrite the source file. Save the opened document to keep its current form.
+- **Refusals.** The reader reads document schemas up to 4. Invalid or newer schemas, unknown features and explicit
+  non-mm units are refused. These conversions do not guarantee compatibility between all unreleased versions.
+- **Separate version fields.** `BCADPACK` version 1 describes the binary container. The document's `schema` describes
+  its model data; it is not the container version.
 - **Revisions.** A document's revision names the content results depend on. See
   [Revisions and sources](/guide/concepts#revisions-and-sources).
 

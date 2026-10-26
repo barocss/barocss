@@ -337,7 +337,7 @@
 | `[DIRECT_KNOT]` | `engine` | That knot cannot come out without moving the curve more than … mm (or it has none inside). |
 | `[DIRECT_LOFT]` | `engine` | Loft through 2 to 15 curves. |
 | `[DIRECT_LOOP]` | `engine` | Pick four curves that meet end to end in a loop. |
-| `[DIRECT_PICK]` | `engine` | … is not a curve or a surface of its source. |
+| `[DIRECT_PICK]` | `app`, `engine` | Choose an available guide or None. |
 | `[DIRECT_PLANE]` | `engine` | The curve lies in the plane … = …: it does not cross it. |
 | `[DIRECT_RANGE]` | `engine` | The curves run over different parameter ranges: trim or rebuild them to one range first. |
 | `[DIRECT_SOURCE]` | `engine` | This CAD source has no curves or surfaces. |

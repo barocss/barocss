@@ -1,9 +1,10 @@
 // Finished sketches as profiles the feature commands take (Extrude, Revolve, Pipe, Loft): which sketches no
 // feature uses yet, the picked ones, where they lie (outlines in world space, to draw and pick), and the
 // sketches of a loft brought onto its first section's plane (the kernel lofts sections of one plane).
+import type { LoftSectionFrame } from '@barocss/cad';
 import type { Vec3 } from '../engine/mesh';
-import { parentsOf, type LoopSegment, type ModelNode, type SketchNode } from '../engine/doc';
-import { toLocal, toWorld, xyPlane, type SketchPlane } from '../sketch/plane';
+import { NODE_EXTRA_FIELDS, parentsOf, type LoopSegment, type ModelNode, type SketchNode } from '../engine/doc';
+import { toLocal, toWorld, xyPlane, yAxisOf, type SketchPlane } from '../sketch/plane';
 import { loopOf } from '../sketch/loops';
 
 type XY = [number, number];
@@ -73,4 +74,22 @@ export function loftSections(nodes: readonly ModelNode[], picked: readonly numbe
   if (out[0].z !== 0 && out[0].source !== picked[0]) return loftSections(nodes, [out[0].source, ...picked.filter(i => i !== out[0].source)]);
   for (let k = 1; k < out.length; k++) if (!(out[k].z > out[k - 1].z + 1e-9)) return { error: 'Two sections lie at the same height: put each on its own offset plane.' };
   return { plane: base, sections: out };
+}
+
+/** Guided loft sections: keep the picked order and authored sketches in their own world-mm frames. */
+export function framedLoftSections(nodes: readonly ModelNode[], picked: readonly number[]): { sections: { node: SketchNode; frame: LoftSectionFrame; source: number }[] } | { error: string } {
+  if (picked.length !== 2) return { error: 'A guided loft needs exactly two finished sketches.' };
+  if (new Set(picked).size !== picked.length) return { error: 'Pick two different sketches for the guided loft.' };
+  const sections: { node: SketchNode; frame: LoftSectionFrame; source: number }[] = [];
+  for (const source of picked) {
+    const node = nodes[source];
+    if (!Number.isInteger(source) || node?.kind !== 'sketch') return { error: 'A picked loft section is not a finished sketch.' };
+    if (node.regions?.length || node.holes?.length) return { error: `Sketch ${source + 1} has holes or several shapes: a loft section is one closed shape.` };
+    const plane = planeOf(node);
+    const copy = structuredClone(node);
+    for (const key of NODE_EXTRA_FIELDS) delete copy[key];
+    // Use the existing SketchPlane meaning, including yAxisOf's clean behavior. Do not carry or round profiles.
+    sections.push({ node: copy, frame: { origin: [...plane.origin] as Vec3, xAxis: [...plane.xAxis] as Vec3, yAxis: yAxisOf(plane) }, source });
+  }
+  return { sections };
 }

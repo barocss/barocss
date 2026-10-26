@@ -5,7 +5,9 @@ What isn't supported, or is refused, gathered from the other pages. Each item li
 ## Status
 
 - **Unreleased.** Everything is unreleased, at `0.0.0`: nothing is on npm, and APIs can change.
-- **No migrations.** Documents follow the latest schema. Older unreleased documents aren't migrated.
+- **Limited document conversion.** The file reader converts supported older schemas to schema 3 and keeps valid
+  explicit route-bundle documents at schema 4. Invalid or newer schemas and unknown features are refused. This does
+  not guarantee compatibility between all unreleased versions.
   ([The .bcad document](/reference/document))
 - **Not covered.** Electronics CAD (PCBs) remains outside the current scope.
 - **Planned engineering analyses.** Structural/FEM, thermal, fluid and broader CAE experiments are in the long-term

@@ -4,7 +4,8 @@
 // that body by default; Operation can make a new body or cut it instead.
 import { withNode, type BodyRef, type ModelNode, type SketchNode, type StudioDoc } from '../engine/doc';
 import { toLocal, toWorld } from '../sketch/plane';
-import { loftSections, pickedSketches, planeOf, profileMiddle } from './profiles';
+import { framedLoftSections, loftSections, pickedSketches, planeOf, profileMiddle } from './profiles';
+import { copyLoftGuide } from './loftGuides';
 import { faceProfile } from './faceProfile';
 import { directNow } from '../engine/directModule';
 import type { Command, Ctx, Field, Values } from './commands';
@@ -174,9 +175,37 @@ export const loftCommand: Command = {
   id: 'loft', label: 'Loft', icon: 'cad-loft', group: 'create', keywords: 'taper transition blend sections ruled',
   hint: 'A solid through two or more sketches on parallel planes (Shift-click to pick them)',
   available: ctx => { const picked = ctx.selection.sketches ?? []; if (picked.length < 2) return no('Pick two or more finished sketches on parallel planes (Shift-click).'); const s = loftSections(ctx.doc.nodes, picked); return 'error' in s ? no(s.error) : ok; },
-  fields: () => [{ key: 'smooth', label: 'Smooth (through the middle sections)', kind: 'choice', options: [{ value: 'no', label: 'Ruled' }, { value: 'yes', label: 'Smooth' }] }],
-  defaults: () => ({ smooth: 'no' }),
+  fields: (ctx, values) => [{ key: 'guide', label: 'Guide (copied)', kind: 'choice', options: [
+    { value: '', label: 'None' },
+    ...(ctx.doc.direct?.objects ?? []).flatMap(object => { const guide = copyLoftGuide(ctx.doc, object.id); return guide.ok ? [{ value: object.id, label: guide.name }] : []; }),
+  ], unknown: value => { const guide = copyLoftGuide(ctx.doc, value); return guide.ok ? 'Choose an available guide or None.' : guide.reason; } },
+  ...(!values?.guide ? [{ key: 'smooth', label: 'Smooth (through the middle sections)', kind: 'choice' as const, options: [{ value: 'no', label: 'Ruled' }, { value: 'yes', label: 'Smooth' }] }] : [])],
+  defaults: () => ({ smooth: 'no', guide: '' }),
+  steps: (ctx, values) => {
+    if (values.guide !== undefined && values.guide !== '') {
+      const guide = typeof values.guide === 'string' ? copyLoftGuide(ctx.doc, values.guide) : { ok: false as const, reason: 'Choose an available guide or None.' };
+      const sections = framedLoftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);
+      return [
+        { label: 'Sections', text: 'error' in sections ? sections.error : sections.sections.map(section => `Sketch ${section.source + 1}`).join(' → ') + ' (picked order)', done: !('error' in sections) },
+        { label: 'Guide', text: guide.ok ? `${guide.name}. Copied world-mm values; later curve edits do not update this loft.` : guide.reason, done: guide.ok },
+      ];
+    }
+    return [
+      { label: 'Guide', text: 'None. Use the existing section heights.', done: true },
+      ...(ctx.doc.direct?.objects ?? []).flatMap((object, index) => { const guide = copyLoftGuide(ctx.doc, object.id); return guide.ok ? [] : [{ label: `Unavailable guide ${index + 1}`, text: `${object.name}: ${guide.reason}`, done: false }]; }),
+    ];
+  },
   build: (ctx, v) => {
+    if (v.guide !== undefined && v.guide !== '') {
+      if (typeof v.guide !== 'string') throw refusal('DIRECT_PICK', 'Choose an available guide or None.');
+      const guide = copyLoftGuide(ctx.doc, v.guide);
+      if (!guide.ok) throw refusal('DIRECT_PICK', guide.reason);
+      const sections = framedLoftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);
+      if ('error' in sections) throw refusal('LOFT_SECTIONS', sections.error);
+      let doc = ctx.doc; const at: number[] = [];
+      for (const section of sections.sections) { doc = withNode(doc, section.node); at.push(doc.nodes.length - 1); }
+      return withNode(doc, { kind: 'loft', sections: sections.sections.map((section, index) => ({ sketch: at[index], frame: section.frame })), from: sections.sections.map(section => section.source), guide: guide.guide });
+    }
     const s = loftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);
     if ('error' in s) throw refusal('LOFT_SECTIONS', s.error);
     // Each section on the first one's plane (the picked sketches stay as they are, used by the loft).

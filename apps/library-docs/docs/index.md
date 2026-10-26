@@ -51,6 +51,8 @@ numerical and measurement gates, and [Limits](/reference/limits#planned-physical
 
 ## Status
 
-BaroCSS CAD is unreleased and developed locally. The packages are `0.0.0` versions, and the document schema tracks
-the latest version until the first release: there is no migration between unreleased versions.
+BaroCSS CAD is unreleased and developed locally. The packages are `0.0.0` versions. The document reader converts
+supported older schemas and reports the changes. Save the opened model to keep its current form. Newer schemas and
+unknown features are refused; compatibility between all unreleased versions is not guaranteed. See
+[Document schema](/reference/document#schema-version).
 Everything is written in TypeScript, with no WebAssembly and no geometry libraries underneath.

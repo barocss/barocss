@@ -125,7 +125,15 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'decimate': return { ...at, kind: 'decimate', target: ref(node.parent), ...(node.ratio !== undefined ? { ratio: node.ratio } : {}), ...(node.triangles !== undefined ? { triangles: node.triangles } : {}), ...(node.maxError !== undefined ? { maxError: node.maxError } : {}), ...(node.featureAngle !== undefined ? { featureAngle: node.featureAngle } : {}) };
     case 'sweep': return { ...at, kind: 'sweep', sketch: id(node.sketch), path: node.path };
     case 'sweep-curve': return { ...at, kind: 'sweep-curve', sketch: id(node.sketch), path: node.path };
-    case 'loft': return { ...at, kind: 'loft', sections: node.sections.map(s => ({ sketch: id(s.sketch), z: s.z })), ...(node.smooth ? { smooth: true } : {}) };
+    case 'loft': {
+      const framed = Object.hasOwn(node, 'guide') || node.sections.some(s => Object.hasOwn(s, 'frame'));
+      return { ...at, kind: 'loft',
+        // Keep own presence and malformed values for kernel admission on the framed path.
+        sections: node.sections.map(s => ({ ...structuredClone(s), sketch: id(s.sketch) })),
+        ...(framed ? (Object.hasOwn(node, 'smooth') ? { smooth: structuredClone(node.smooth) } : {}) : (node.smooth ? { smooth: true } : {})),
+        ...(Object.hasOwn(node, 'guide') ? { guide: structuredClone(node.guide) } : {}),
+      };
+    }
     case 'import': return { ...at, kind: 'import', step: node.step, ...((node.solids ?? 1) > 1 ? { each: true } : {}) };
     case 'mesh': return { ...at, kind: 'mesh', ...meshArrays(node.repair ? { blob: node.repair.result } : node), ...(node.repair ? repaired(node.repair) : {}), ...(node.representation ? { representation: node.representation } : {}), ...((node.pieces ?? 1) > 1 ? { each: true } : {}) };
     case 'thread': return { ...at, kind: 'thread', diameter: node.diameter, pitch: node.pitch, center: node.center, seat: node.seat, ...(node.length !== undefined ? { length: node.length } : {}), ...(node.hex ? { hex: node.hex } : {}), ...(node.form ? { form: node.form } : {}) };
