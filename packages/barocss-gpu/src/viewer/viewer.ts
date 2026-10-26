@@ -361,7 +361,7 @@ export class Viewer {
     device.queue.writeTexture({ texture: this.black }, new Uint8Array([0, 0, 0, 0]), { bytesPerRow: 4 }, [1, 1]);
     this.bloomChain = null;
     this.zeroParams = device.createBuffer({ size: 64, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer no params' });
-    this.white = { texture: white, group: device.createBindGroup({ layout: this.materialLayout, entries: [{ binding: 0, resource: white.createView() }, { binding: 1, resource: this.mipSampler }, { binding: 2, resource: { buffer: this.zeroParams } }] }) };
+    this.white = { texture: white, group: device.createBindGroup({ layout: this.materialLayout, entries: this.materialEntries(white, this.mipSampler, this.zeroParams, undefined, white) }) };
     this.identityInstance = device.createBuffer({ size: INSTANCE_STRIDE, usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label: 'viewer identity instance' });
     device.queue.writeBuffer(this.identityInstance, 0, new Uint8Array(packInstances({ transforms: identity() }).data));
     this.emptyShadow = device.createTexture({ size: [1, 1], format: 'depth32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no shadow' });
@@ -429,6 +429,11 @@ export class Viewer {
     this.materialLayout = d.createBindGroupLayout({ entries: [
       { binding: 0, visibility: 2, texture: { sampleType: 'float' } }, { binding: 1, visibility: 2, sampler: { type: 'filtering' } },
       { binding: 2, visibility: 2, buffer: { type: 'uniform', minBindingSize: 64 } },
+      ...[3, 5, 7].flatMap(binding => [
+        { binding, visibility: 2, texture: { sampleType: 'float' } },
+        { binding: binding + 1, visibility: 2, sampler: { type: 'filtering' } },
+      ]),
+      { binding: 9, visibility: 2, buffer: { type: 'uniform', minBindingSize: 16 } },
     ] });
     const surfaceLayout = this.surfaceLayout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout, this.materialLayout] });
     // Labels add the glyph atlas (G15).
@@ -739,7 +744,7 @@ export class Viewer {
     if (mesh.cost) { this.costRecords.delete(mesh); mesh.cost = null; }
     // Its own GPU buffers go with it (made again should it be drawn again).
     if (mesh.instances?.buffer) { mesh.instances.buffer.destroy(); mesh.instances.buffer = null; mesh.instances.device = null; }
-    mesh.materialState?.params.destroy(); mesh.materialState = null;
+    mesh.materialState?.params.destroy(); mesh.materialState?.pbrParams.destroy(); mesh.materialState = null;
     mesh.mapState?.params.destroy(); mesh.mapState?.texture.destroy(); mesh.mapState = null;
     this.requestRender();
   }
@@ -806,6 +811,18 @@ export class Viewer {
     return t;
   }
 
+  /** Every surface group has data-map defaults, including the white, custom-shader and scalar-ramp groups. */
+  private materialEntries(texture: Texture, sampler: object, params: Buffer, pbr?: { maps: readonly (ImageTexture | null)[]; params: Buffer }, white = this.white?.texture ?? texture): object[] {
+    return [
+      { binding: 0, resource: texture.createView() }, { binding: 1, resource: sampler }, { binding: 2, resource: { buffer: params } },
+      ...[0, 1, 2].flatMap(i => {
+        const gpu = pbr?.maps[i]?.gpu;
+        return [{ binding: 3 + i * 2, resource: (gpu?.texture ?? white).createView() }, { binding: 4 + i * 2, resource: gpu?.sampler ?? this.mipSampler }];
+      }),
+      { binding: 9, resource: { buffer: pbr?.params ?? this.zeroParams } },
+    ];
+  }
+
   /** The material bind group of a colour map: uploaded (with its mips) on first use and after a device loss. */
   private mapGroup(map: ImageTexture | null): BindGroup {
     if (!map || map.disposed) return this.white.group;
@@ -820,27 +837,42 @@ export class Viewer {
       addressModeU: o.wrap === 'repeat' ? 'repeat' : 'clamp-to-edge', addressModeV: o.wrap === 'repeat' ? 'repeat' : 'clamp-to-edge',
       magFilter: o.filter, minFilter: o.filter, mipmapFilter: o.filter, ...(o.filter === 'linear' && o.mipmaps ? { maxAnisotropy: 8 } : {}),
     });
-    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: [{ binding: 0, resource: texture.createView() }, { binding: 1, resource: sampler }, { binding: 2, resource: { buffer: this.zeroParams } }] });
+    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: this.materialEntries(texture, sampler, this.zeroParams) });
     map.gpu = { texture, group, device: this.device, sampler };
     return group;
   }
 
-  /** A mesh's material bind group: its map's (or the white texel's), with its shader params when it has a shader. */
+  /** A mesh's material group, with independently sampled linear data maps and custom shader parameters. */
   private materialGroup(m: Mesh): BindGroup {
-    const mat = m.material;
-    if (!mat.shader) { m.materialState?.params.destroy(); m.materialState = null; return this.mapGroup(mat.map ?? null); }
+    const mat = m.material, normal = mat.normalMap && !mat.normalMap.disposed ? mat.normalMap : null;
+    const roughness = mat.roughnessMap && !mat.roughnessMap.disposed ? mat.roughnessMap : null, metallic = mat.metallicMap && !mat.metallicMap.disposed ? mat.metallicMap : null;
+    if (!mat.shader && !normal && !roughness && !metallic) {
+      m.materialState?.params.destroy(); m.materialState?.pbrParams.destroy(); m.materialState = null;
+      return this.mapGroup(mat.map ?? null);
+    }
     const map = mat.map && !mat.map.disposed ? mat.map : null, data = m.shaderParams(), st = m.materialState;
-    if (st && st.device === this.device && st.map === map) {
+    const scale = mat.normalScale ?? [1, 1], x = Math.fround(scale[0]), y = Math.fround(scale[1]);
+    if (st && st.device === this.device && st.map === map && st.maps[0] === normal && st.maps[1] === roughness && st.maps[2] === metallic) {
       if (st.data !== data) { this.device.queue.writeBuffer(st.params, 0, data); st.data = data; }
+      if (st.pbrData[0] !== x || st.pbrData[1] !== y) {
+        st.pbrData[0] = x; st.pbrData[1] = y;
+        this.device.queue.writeBuffer(st.pbrParams, 0, st.pbrData);
+      }
       return st.group;
     }
-    st?.params.destroy();
+    st?.params.destroy(); st?.pbrParams.destroy();
     this.mapGroup(map);
+    const maps = [normal, roughness, metallic];
+    for (const image of maps) if (image) this.mapGroup(image);
     const params = this.device.createBuffer({ size: 64, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer shader params' });
     this.device.queue.writeBuffer(params, 0, data);
-    const view = map?.gpu ? map.gpu.texture.createView() : this.white.texture.createView(), sampler = map?.gpu ? map.gpu.sampler : this.mipSampler;
-    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: [{ binding: 0, resource: view }, { binding: 1, resource: sampler }, { binding: 2, resource: { buffer: params } }] });
-    m.materialState = { device: this.device, map, params, group, data };
+    const pbrData = new Float32Array([x, y, 0, 0]);
+    new Uint32Array(pbrData.buffer)[2] = (normal ? 1 : 0) | (roughness ? 2 : 0) | (metallic ? 4 : 0);
+    const pbrParams = this.device.createBuffer({ size: 16, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer material maps' });
+    this.device.queue.writeBuffer(pbrParams, 0, pbrData);
+    const sampler = map?.gpu ? map.gpu.sampler : this.mipSampler;
+    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: this.materialEntries(map?.gpu?.texture ?? this.white.texture, sampler, params, { maps, params: pbrParams }) });
+    m.materialState = { device: this.device, map, params, group, data, maps, pbrParams, pbrData };
     return group;
   }
 
@@ -1407,7 +1439,7 @@ export class Viewer {
     this.device.queue.writeTexture({ texture }, packed.ramp, { bytesPerRow: 1024 }, [256, 1]);
     const params = this.device.createBuffer({ size: 64, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer colour map params' });
     this.device.queue.writeBuffer(params, 0, packed.params);
-    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: [{ binding: 0, resource: texture.createView() }, { binding: 1, resource: this.rampSampler }, { binding: 2, resource: { buffer: params } }] });
+    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: this.materialEntries(texture, this.rampSampler, params) });
     m.mapState = { device: this.device, map: packed, texture, params, group };
     return group;
   }
@@ -2116,7 +2148,7 @@ export class Viewer {
     this.resizeObserver?.disconnect();
     this.cancelScheduled();
     for (const g of this.geometries) g.release();
-    for (const m of this.meshes) { m.instances?.buffer?.destroy(); m.materialState?.params.destroy(); m.mapState?.params.destroy(); m.mapState?.texture.destroy(); }
+    for (const m of this.meshes) { m.instances?.buffer?.destroy(); m.materialState?.params.destroy(); m.materialState?.pbrParams.destroy(); m.mapState?.params.destroy(); m.mapState?.texture.destroy(); }
     this.geometries.clear(); this.meshes = [];
     this.targets?.msaa?.destroy(); this.targets?.scene.destroy(); this.targets?.depth.destroy();
     if (this.pickTargets) { this.pickTargets.id.destroy(); this.pickTargets.z.destroy(); this.pickTargets.instance.destroy(); this.pickTargets.depth.destroy(); this.pickTargets.read.destroy(); }

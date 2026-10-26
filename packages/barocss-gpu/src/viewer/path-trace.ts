@@ -4,7 +4,7 @@ import { Camera } from './camera.js';
 import { linear, packOutput, parseColor, type Background, type Environment, type Light } from './lights.js';
 import { normalize, type Vec3 } from './math.js';
 import { ImageTexture, type Mesh } from './scene.js';
-import { traceMapPixels, traceScene, traceSize } from './path-trace-scene.js';
+import { traceDataMapPixels, traceMapPixels, traceScene, traceSize } from './path-trace-scene.js';
 import { pathTraceDisplayWGSL, pathTraceWGSL } from './shaders/path-trace.js';
 import { ViewerError } from './viewer-error.js';
 
@@ -27,6 +27,7 @@ export class PathTraceSession {
   private tail: Promise<unknown> = Promise.resolve();
   private readonly buffers: Buffer[] = [];
   private atlas!: Texture;
+  private dataAtlas!: Texture;
   private target!: Texture;
   private params!: Buffer;
   private options!: Buffer;
@@ -54,10 +55,14 @@ export class PathTraceSession {
       let i = maps.indexOf(env.map); if (i < 0) { i = maps.length; maps.push(env.map); } envLayer = i + 1;
     }
     const atlasWidth = Math.max(1, ...maps.map(m => m.width)), atlasHeight = Math.max(1, ...maps.map(m => m.height));
+    const dataMaps = scene.dataMaps, dataWidth = Math.max(1, ...dataMaps.map(m => m.width)), dataHeight = Math.max(1, ...dataMaps.map(m => m.height));
     traceSize(atlasWidth, atlasHeight, device.limits.maxTextureDimension2D);
+    traceSize(dataWidth, dataHeight, device.limits.maxTextureDimension2D);
     if (maps.length + 1 > device.limits.maxTextureArrayLayers) throw new ViewerError('TEXTURE_INVALID', 'Too many path tracing texture layers');
+    if (dataMaps.length + 1 > device.limits.maxTextureArrayLayers) throw new ViewerError('TEXTURE_INVALID', 'Too many path tracing data texture layers');
     // Do the CPU image copies now; later source edits/disposal cannot change this still.
     const pixels = maps.map(m => traceMapPixels(m, atlasWidth, atlasHeight));
+    const dataPixels = dataMaps.map(m => traceDataMapPixels(m, dataWidth, dataHeight));
     const session = new PathTraceSession(device, width, height, removed);
     device.pushErrorScope('validation');
     let scope = true;
@@ -101,7 +106,10 @@ export class PathTraceSession {
       session.atlas = device.createTexture({ label: 'trace image atlas', size: [atlasWidth, atlasHeight, maps.length + 1], format: 'rgba8unorm-srgb', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST });
       const white = new Uint8Array(atlasWidth * atlasHeight * 4).fill(255);
       for (const [i, data] of [white, ...pixels].entries()) device.queue.writeTexture({ texture: session.atlas, origin: [0, 0, i] }, data, { bytesPerRow: atlasWidth * 4 }, [atlasWidth, atlasHeight, 1]);
-      session.traceGroup = device.createBindGroup({ layout: trace.getBindGroupLayout(0), entries: [...[nodes, triangles, attributes, materials, accumulation, guides, session.params, lights].map((b, binding) => ({ binding, resource: { buffer: b } })), { binding: 8, resource: session.atlas.createView({ dimension: '2d-array' }) }] });
+      session.dataAtlas = device.createTexture({ label: 'trace data atlas', size: [dataWidth, dataHeight, dataMaps.length + 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST });
+      const dataWhite = new Uint8Array(dataWidth * dataHeight * 4).fill(255);
+      for (const [i, data] of [dataWhite, ...dataPixels].entries()) device.queue.writeTexture({ texture: session.dataAtlas, origin: [0, 0, i] }, data, { bytesPerRow: dataWidth * 4 }, [dataWidth, dataHeight, 1]);
+      session.traceGroup = device.createBindGroup({ layout: trace.getBindGroupLayout(0), entries: [...[nodes, triangles, attributes, materials, accumulation, guides, session.params, lights].map((b, binding) => ({ binding, resource: { buffer: b } })), { binding: 8, resource: session.atlas.createView({ dimension: '2d-array' }) }, { binding: 9, resource: session.dataAtlas.createView({ dimension: '2d-array' }) }] });
       session.target = device.createTexture({ label: 'trace export', size: [width, height], format: 'rgba8unorm', usage: TextureUsage.STORAGE_BINDING | TextureUsage.COPY_SRC });
       const output = storage(packOutput(env, [], 0, snapshot.background), 'trace tone/grading', true);
       session.options = storage(new Uint32Array(4).buffer, 'trace denoiser options', true);
@@ -165,6 +173,6 @@ export class PathTraceSession {
   dispose(): void {
     if (this.dead) return; this.dead = true; this.stop();
     for (const b of this.buffers) b.destroy(); this.buffers.length = 0;
-    this.atlas?.destroy(); this.target?.destroy(); this.removed(this);
+    this.atlas?.destroy(); this.dataAtlas?.destroy(); this.target?.destroy(); this.removed(this);
   }
 }

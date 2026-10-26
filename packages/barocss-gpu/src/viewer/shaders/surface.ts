@@ -16,6 +16,14 @@ export const surfaceWGSL = (custom?: SurfaceShader, capSamples = false): string 
 @group(2) @binding(0) var map: texture_2d<f32>;
 @group(2) @binding(1) var mapSampler: sampler;
 @group(2) @binding(2) var<uniform> materialParams: MaterialParams;
+@group(2) @binding(3) var pbrNormalMap: texture_2d<f32>;
+@group(2) @binding(4) var pbrNormalSampler: sampler;
+@group(2) @binding(5) var pbrRoughnessMap: texture_2d<f32>;
+@group(2) @binding(6) var pbrRoughnessSampler: sampler;
+@group(2) @binding(7) var pbrMetallicMap: texture_2d<f32>;
+@group(2) @binding(8) var pbrMetallicSampler: sampler;
+struct PbrMapParams { normalScale: vec2f, flags: u32, _pad: u32 }
+@group(2) @binding(9) var<uniform> pbrMaps: PbrMapParams;
 fn shaderColor(uv: vec2f, world: vec3f, normal: vec3f) -> vec3f {
 ${Object.entries(custom?.aliases ?? {}).map(([name, from]) => `  let ${name} = ${from};
 `).join('')}  return ${custom ? custom.expression : 'vec3f(1.0)'};
@@ -109,21 +117,55 @@ fn shadowAt(world: vec3f, n: vec3f) -> f32 {
 }
 fn schlick(f0: vec3f, voh: f32) -> vec3f { return f0 + (vec3f(1.0) - f0) * pow(1.0 - voh, 5.0); }
 
+// Tangent-space normals from the geometry's UVs, including mirrored UVs and a non-uniform model transform.
+// Called before any discard. The first branch reads only a uniform; all derivatives and sampling precede per-pixel branches.
+fn mappedNormal(in: VOut, n: vec3f) -> vec3f {
+  if ((pbrMaps.flags & 1u) == 0u || all(pbrMaps.normalScale == vec2f(0.0))) { return n; }
+  let qx = dpdx(in.world); let qy = dpdy(in.world);
+  let ux = dpdx(in.uv); let uy = dpdy(in.uv);
+  var encoded = textureSample(pbrNormalMap, pbrNormalSampler, in.uv).xyz * 2.0 - 1.0;
+  encoded = vec3f(encoded.xy * pbrMaps.normalScale, encoded.z);
+  let encodedMagnitude = max(max(abs(encoded.x), abs(encoded.y)), abs(encoded.z));
+  if (!(encodedMagnitude > 0.0)) { return n; }
+  encoded /= encodedMagnitude;
+  let det = ux.x * uy.y - ux.y * uy.x;
+  if (!(abs(det) > 1e-20 && abs(det) < 1e20)) { return n; }
+  let rawT = (qx * uy.y - qy * ux.y) / det;
+  let rawB = (qy * ux.x - qx * uy.x) / det;
+  let tangent = rawT - n * dot(n, rawT);
+  let tangentLength = dot(tangent, tangent);
+  if (!(tangentLength > 1e-12 && tangentLength < 1e30)) { return n; }
+  let t = tangent * inverseSqrt(tangentLength);
+  let across = cross(n, t);
+  let handed = dot(across, rawB);
+  if (!(abs(handed) > 1e-20 && abs(handed) < 1e30)) { return n; }
+  let b = across * select(-1.0, 1.0, handed > 0.0);
+  let result = t * encoded.x + b * encoded.y + n * encoded.z;
+  let resultLength = dot(result, result);
+  if (!(resultLength > 1e-12 && resultLength < 1e30)) { return n; }
+  return result * inverseSqrt(resultLength);
+}
+
 fn litColor(in: VOut, front: bool) -> vec4f {
   let texel = textureSample(map, mapSampler, in.uv);
   let alpha = in.color.a * texel.a;
+  var n = normalize(in.normal);
+  if (!front) { n = -n; }
+  n = mappedNormal(in, n);
+  var roughness = object.params.y;
+  var metallic = object.params.x;
+  if ((pbrMaps.flags & 2u) != 0u) { roughness *= textureSample(pbrRoughnessMap, pbrRoughnessSampler, in.uv).g; }
+  if ((pbrMaps.flags & 4u) != 0u) { metallic *= textureSample(pbrMetallicMap, pbrMetallicSampler, in.uv).b; }
   // (G15a: the point in the mesh's own frame and its change per pixel, before any fragment is discarded.)
   let local = meshPoint(in.world);
   let footprint = length(fwidth(local));
   if (clippedAway(in.world)) { discard; }
   // Alpha cutout (pick.w: the cutoff × 1000; 0 off).
   if (object.pick.w > 0u && alpha < f32(object.pick.w) / 1000.0) { discard; }
-  var n = normalize(in.normal);
-  if (!front) { n = -n; }
   let base = in.color.rgb * texel.rgb * shaderColor(in.uv, in.world, n);
-  var layer = plainLayer(n, object.params.y);
-  if (object.finish.x > 0.5 || object.finish.w > 0.0 || object.finishOrigin.w > 0.0) { layer = finishLayer(local, n, object.params.y, footprint); }
-  let c = shadeLayered(in.world, base, object.params.x, object.params.z, (object.pick.z & 1u) == 1u, layer);
+  var layer = plainLayer(n, roughness);
+  if (object.finish.x > 0.5 || object.finish.w > 0.0 || object.finishOrigin.w > 0.0) { layer = finishLayer(local, n, roughness, footprint); }
+  let c = shadeLayered(in.world, base, metallic, object.params.z, (object.pick.z & 1u) == 1u, layer);
   return vec4f(c * alpha, alpha);
 }
 

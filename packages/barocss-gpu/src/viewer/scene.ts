@@ -48,6 +48,14 @@ export interface Material {
   shadowOnly?: boolean;
   /** A colour map (Viewer.createTexture), multiplied into the colour through the geometry's uvs. */
   map?: ImageTexture | null;
+  /** Tangent-space +Y normals, RGB decoded as 2 × value − 1, through the geometry's uvs. Requires a live srgb:false texture. */
+  normalMap?: ImageTexture | null;
+  /** Normal-map X/Y scale (default [1, 1]); two finite f32 values. Negative and zero scales are allowed. */
+  normalScale?: readonly [number, number];
+  /** Green channel multiplied into roughness through the geometry's uvs. Requires a live srgb:false texture. */
+  roughnessMap?: ImageTexture | null;
+  /** Blue channel multiplied into metallic through the geometry's uvs. Requires a live srgb:false texture. */
+  metallicMap?: ImageTexture | null;
   /**
    * Drawn a little in front of the surfaces it lies on (G12: an overlay sharing faces with a body, such as a proposal's
    * added or removed material) — the opposite of the surfaces' own depth bias. Default false.
@@ -280,7 +288,7 @@ export class Mesh {
   /** @internal Which outline colour of the frame (1-based; 0 none). */
   outlineSlot = 0;
   /** @internal A shader material's bind group (its map and its own parameters), for the device and inputs it was made for. */
-  materialState: { device: Device; map: ImageTexture | null; params: Buffer; group: BindGroup; data: Float32Array } | null = null;
+  materialState: { device: Device; map: ImageTexture | null; params: Buffer; group: BindGroup; data: Float32Array; maps: readonly (ImageTexture | null)[]; pbrParams: Buffer; pbrData: Float32Array } | null = null;
   /** @internal Its frame cost record while the viewer counts (Viewer.costs, O10), made when first drawn counting. */
   cost: MeshCost | null = null;
   /** Pick id (1-based; 0 is empty space). */
@@ -288,7 +296,9 @@ export class Mesh {
 
   constructor(readonly geometry: Geometry, private readonly owner: Viewer, id: number, options: AddMeshOptions) {
     this.id = id;
-    this._material = materialOf(options.material);
+    const material = materialOf(options.material);
+    this.checkMaterialMaps(material);
+    this._material = material;
     this._visible = options.visible ?? true;
     this.pickable = options.pickable ?? true;
     this.castShadow = options.castShadow ?? true;
@@ -321,7 +331,16 @@ export class Mesh {
     this._transform = Float64Array.from(m); this.worldBox = undefined; this.owner.sceneMoved(); this.touch();
   }
   get material(): Readonly<Material> { return this._material; }
-  set material(m: Material) { this._material = materialOf({ ...this._material, ...m }); this._params = null; this.touch(); }
+  set material(m: Material) {
+    const next = materialOf({ ...this._material, ...m });
+    this.checkMaterialMaps(next);
+    this._material = next; this._params = null; this.touch();
+  }
+  private checkMaterialMaps(m: Material): void {
+    if (!hasDataMaps(m)) return;
+    if (this.geometry.topology !== 'triangles') throw new ViewerError('MATERIAL_INVALID', 'Material data maps need triangle surfaces');
+    if (this._colorMap) throw new ViewerError('MATERIAL_INVALID', 'Material data maps cannot use the scalar-field colour map pass');
+  }
   /**
    * @internal The 64 bytes of a shader material's parameters: the same array while they stay the same (they
    * are read every frame, so a params array changed in place is still seen), a new one when they change.
@@ -366,7 +385,10 @@ export class Mesh {
    * surface (flat when unlit), or null for the material again. Without a field the material shows.
    */
   get colorMap(): ColorMap | null { return this._colorMap; }
-  set colorMap(map: ColorMap | null) { this._colorMap = map ? { ...map, packed: packColorMap(map) } : null; this.owner.requestRender(); }
+  set colorMap(map: ColorMap | null) {
+    if (map && hasDataMaps(this._material)) throw new ViewerError('MATERIAL_INVALID', 'Scalar-field colour maps cannot use UV material data maps');
+    this._colorMap = map ? { ...map, packed: packColorMap(map) } : null; this.owner.requestRender();
+  }
   /** @internal Whether it draws its colour map: one set, a field on its triangles, opaque. */
   get mapped(): boolean { return !!this._colorMap && !!this.geometry.data.scalars && this.geometry.topology === 'triangles' && !this.transparent; }
   /** @internal */ get packedMap(): { ramp: Uint8Array; params: Float32Array } | null { return this._colorMap?.packed ?? null; }
@@ -431,7 +453,11 @@ export function hatchOf(h: CapHatch): CapHatch | null {
 /** @internal (R2c: used by the viewer too.) */
 export function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map' | 'shader' | 'lineDash' | 'lineHiddenDash' | 'pointBorder' | 'finish'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null; lineDash: readonly [number, number] | null; lineHiddenDash: readonly [number, number] | null | undefined; pointBorder: { width: number; color: Vec3 } | null; finish: Required<SurfaceFinish> | null } {
   const hiddenDash = m.lineHiddenDash;
+  const normalMap = dataMapOf(m.normalMap), roughnessMap = dataMapOf(m.roughnessMap), metallicMap = dataMapOf(m.metallicMap);
+  const scale = m.normalScale === undefined ? [1, 1] : m.normalScale;
+  if (!scale || scale.length !== 2 || ![scale[0], scale[1]].every(v => typeof v === 'number' && Number.isFinite(v) && Number.isFinite(Math.fround(v)))) throw new ViewerError('MATERIAL_INVALID', 'normalScale needs exactly two finite f32 numbers');
   return {
+    normalMap, roughnessMap, metallicMap, normalScale: [scale[0], scale[1]],
     color: parseColor(m.color, m.shadowOnly ? [0, 0, 0] : [0.8, 0.8, 0.8]), opacity: Math.min(1, Math.max(0, m.opacity ?? 1)),
     colorWrite: m.colorWrite ?? true, lineHiddenDash: hiddenDash === undefined ? undefined : hiddenDash && hiddenDash[0] > 0 && hiddenDash[1] > 0 ? [hiddenDash[0], hiddenDash[1]] : null,
     metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1, lineDash: m.lineDash && m.lineDash[0] > 0 && m.lineDash[1] > 0 ? [m.lineDash[0], m.lineDash[1]] : null, lineOver: m.lineOver ?? false, lineHidden: Math.min(1, Math.max(0, m.lineHidden ?? 0)), decal: m.decal ?? false,
@@ -439,6 +465,12 @@ export function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 
     finish: finishOf(m.finish), clearcoat: unit(m.clearcoat), clearcoatRoughness: Math.min(1, Math.max(0.02, m.clearcoatRoughness ?? 0.08)), film: unit(m.film),
   };
 }
+function dataMapOf(map: ImageTexture | null | undefined): ImageTexture | null {
+  if (map == null) return null;
+  if (!(map instanceof ImageTexture) || map.disposed || map.options?.srgb !== false) throw new ViewerError('TEXTURE_INVALID', 'A material data map needs a live ImageTexture with srgb:false');
+  return map;
+}
+const hasDataMaps = (m: Material): boolean => !!(m.normalMap || m.roughnessMap || m.metallicMap);
 const unit = (v: number | undefined) => Number.isFinite(v) ? Math.min(1, Math.max(0, v!)) : 0;
 /** A finish as packed: known kind, positive scale, strength 0–1, a unit axis (Z when none or zero). */
 function finishOf(f: SurfaceFinish | null | undefined): Required<SurfaceFinish> | null {

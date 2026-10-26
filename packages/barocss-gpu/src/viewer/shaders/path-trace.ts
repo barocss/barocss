@@ -35,7 +35,7 @@ fn closest(o: vec3f, d: vec3f, minT: f32) -> Hit {
 }
 `;
 const dataWGSL = /* wgsl */ `
-struct TraceMaterial { model: mat4x4f, color: vec4f, params: vec4f, finish: vec4f, finishAxis: vec4f, finishOrigin: vec4f, tex: vec4f }
+struct TraceMaterial { model: mat4x4f, color: vec4f, params: vec4f, finish: vec4f, finishAxis: vec4f, finishOrigin: vec4f, tex: vec4f, pbrMaps: vec4f, normalScale: vec4f }
 struct Attribute { n0: vec4f, n1: vec4f, n2: vec4f, c0: vec4f, c1: vec4f, c2: vec4f, uv01: vec4f, uv2: vec4f }
 struct Light { position: vec4f, direction: vec4f, color: vec4f, cone: vec4f }
 struct Params { eye: vec4f, right: vec4f, up: vec4f, forward: vec4f, sky: vec4f, ground: vec4f, size: vec4u, env: vec4f, upAxis: vec4f }
@@ -46,6 +46,7 @@ struct Params { eye: vec4f, right: vec4f, up: vec4f, forward: vec4f, sky: vec4f,
 @group(0) @binding(6) var<uniform> params: Params;
 @group(0) @binding(7) var<storage, read> lights: array<Light>;
 @group(0) @binding(8) var atlas: texture_2d_array<f32>;
+@group(0) @binding(9) var dataAtlas: texture_2d_array<f32>;
 var<private> object: TraceMaterial;
 var<private> rng: u32;
 const PI = 3.14159265359;
@@ -63,6 +64,40 @@ fn texel(uv: vec2f, layer: i32, flags: u32) -> vec4f {
   let a = vec2i(floor(p)); let t = fract(p);
   return mix(mix(textureLoad(atlas, address(a, size, repeat), layer, 0), textureLoad(atlas, address(a + vec2i(1, 0), size, repeat), layer, 0), t.x),
     mix(textureLoad(atlas, address(a + vec2i(0, 1), size, repeat), layer, 0), textureLoad(atlas, address(a + vec2i(1), size, repeat), layer, 0), t.x), t.y);
+}
+fn dataTexel(uv: vec2f, layer: i32, flags: u32) -> vec4f {
+  let size = vec2i(textureDimensions(dataAtlas)); let repeat = (flags & 1u) != 0u;
+  let p = uv * vec2f(size) - 0.5;
+  if ((flags & 2u) != 0u) { return textureLoad(dataAtlas, address(vec2i(floor(p + 0.5)), size, repeat), layer, 0); }
+  let a = vec2i(floor(p)); let t = fract(p);
+  return mix(mix(textureLoad(dataAtlas, address(a, size, repeat), layer, 0), textureLoad(dataAtlas, address(a + vec2i(1, 0), size, repeat), layer, 0), t.x),
+    mix(textureLoad(dataAtlas, address(a + vec2i(0, 1), size, repeat), layer, 0), textureLoad(dataAtlas, address(a + vec2i(1), size, repeat), layer, 0), t.x), t.y);
+}
+fn mappedNormal(h: Hit, n: vec3f, uv: vec2f) -> vec3f {
+  if (object.pbrMaps.x == 0.0 || all(object.normalScale.xy == vec2f(0.0))) { return n; }
+  let tr = tris[h.index]; let a = attrs[tr.id];
+  let duv1 = a.uv01.zw - a.uv01.xy; let duv2 = a.uv2.xy - a.uv01.xy;
+  let det = duv1.x * duv2.y - duv1.y * duv2.x;
+  if (!(abs(det) > 1e-20 && abs(det) < 1e20)) { return n; }
+  let e1 = tr.b - tr.a; let e2 = tr.c - tr.a;
+  let rawT = (e1 * duv2.y - e2 * duv1.y) / det;
+  let rawB = (e2 * duv1.x - e1 * duv2.x) / det;
+  let tangent = rawT - n * dot(n, rawT); let tangentLength = dot(tangent, tangent);
+  if (!(tangentLength > 1e-12 && tangentLength < 1e30)) { return n; }
+  let t = tangent * inverseSqrt(tangentLength); let crossNT = cross(n, t);
+  let handed = dot(crossNT, rawB);
+  if (!(abs(handed) > 1e-20 && abs(handed) < 1e30)) { return n; }
+  let b = normalize(crossNT) * sign(handed);
+  var mapped = dataTexel(uv, i32(object.pbrMaps.x), u32(object.pbrMaps.w) & 3u).rgb * 2.0 - 1.0;
+  mapped = vec3f(mapped.xy * object.normalScale.xy, mapped.z);
+  // Scale before squaring: normalScale permits every finite f32, including its maximum value.
+  let largest = max(max(abs(mapped.x), abs(mapped.y)), abs(mapped.z));
+  if (!(largest > 0.0)) { return n; }
+  mapped = normalize(mapped / largest);
+  let world = t * mapped.x + b * mapped.y + n * mapped.z;
+  let worldLength = dot(world, world);
+  if (!(worldLength > 1e-12 && worldLength < 1e30)) { return n; }
+  return world * inverseSqrt(worldLength);
 }
 fn baseAt(h: Hit) -> vec4f {
   let a = attrs[tris[h.index].id]; let b = vec3f(1.0 - h.uv.x - h.uv.y, h.uv);
@@ -134,9 +169,15 @@ fn primary(pixel: vec2f) -> vec3f {
     let base = baseAt(h).rgb;
     if (object.params.w > 0.5) { radiance += throughput * base; break; }
     radiance += throughput * base * object.params.z;
+    let uv = attr.uv01.xy * bary.x + attr.uv01.zw * bary.y + attr.uv2.xy * bary.z;
+    n = mappedNormal(h, n, uv);
+    let mapFlags = u32(object.pbrMaps.w);
+    var rough = object.params.y; var metal = object.params.x;
+    if (object.pbrMaps.y > 0.0) { rough *= dataTexel(uv, i32(object.pbrMaps.y), (mapFlags >> 2u) & 3u).g; }
+    if (object.pbrMaps.z > 0.0) { metal *= dataTexel(uv, i32(object.pbrMaps.z), (mapFlags >> 4u) & 3u).b; }
     let footprint = 2.0 * params.up.w / f32(params.size.y) * select(1.0, h.t, params.eye.w > 0.0);
-    let layer = finishLayer(meshPoint(world), n, clamp(object.params.y, 0.04, 1.0), footprint);
-    let metal = clamp(object.params.x, 0.0, 1.0); let v = -d;
+    let layer = finishLayer(meshPoint(world), n, clamp(rough, 0.04, 1.0), footprint);
+    metal = clamp(metal, 0.0, 1.0); let v = -d;
     let tint = filmTint(max(dot(n, v), 0.0), layer.film, world);
     let epsilon = max(1e-6, max(max(abs(world.x), abs(world.y)), abs(world.z)) * 4e-7);
     let origin = world + gn * epsilon;

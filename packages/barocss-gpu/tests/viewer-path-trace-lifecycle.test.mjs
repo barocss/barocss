@@ -55,7 +55,7 @@ test('failed creation releases every allocated resource even when both scope pop
   await assert.rejects(PathTraceSession.create(fake.device, snapshot(), {}, () => { removed++; }), error => error === original);
   assert.equal(fake.popCalls, 2, 'the failed cleanup scope pop was exercised');
   assert.ok(fake.resources.filter(resource => resource.kind === 'buffer').length >= 10, 'failure occurs after full buffer allocation');
-  assert.equal(fake.resources.filter(resource => resource.kind === 'texture').length, 2, 'atlas and export target were allocated');
+  assert.equal(fake.resources.filter(resource => resource.kind === 'texture').length, 3, 'colour atlas, data atlas and export target were allocated');
   for (const resource of fake.resources) assert.equal(resource.destroyed, 1, resource.label);
   assert.equal(removed, 1);
 });
