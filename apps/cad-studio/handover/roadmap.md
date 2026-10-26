@@ -238,13 +238,13 @@ validation are different results and must remain separate.
 
 ## Order now (2026-10-26)
 
-The current local product merge is `91e96a2361a7b483a1915da822d07b495e766848`, with seven
-reviewed paths from common source `1a7f2266`: sketch coefficient/diagnostic precision, Enter and
-value visibility, exact revolve admission, Drawing compatibility tests and the Sketches guide.
-The union tree preserves the product's four portable handoff files and 33 foreign regular files.
-This merge is **integration validation pending**: run the product's first affected CAD build,
-one selected existing endpoint regression, then the mandatory product documentation check.
-Do not rerun the common-source checks merely because these bytes were locally integrated.
+The current checked local product is `3307c88b3a33c3b1fb78d14e887d08ccd9ca5c46`. Its earlier
+seven-path merge `91e96a23` contains sketch coefficient/diagnostic precision, Enter/value visibility,
+exact revolve admission, Drawing compatibility tests and the Sketches guide. The first affected
+product CAD build, one selected endpoint regression and the mandatory final product documentation
+check passed. Fresh CAD output bytes/kinds/modes matched the candidate. The product's portable
+handoff files and 33 foreign regular files remain preserved. Keep these checks at their actual
+source refs; do not repeat them for the next Model/UI-only slice.
 
 At common source `1a7f2266`, the affected CAD build and five frozen revolve regressions passed.
 The production-file lint, final Studio type check and corrected Drawing compatibility tests also
@@ -275,6 +275,21 @@ snapshot sketches or add a second naming engine. Missing or ambiguous inputs mus
 instead of silently producing an old or unrelated profile. Freeze the original failing file and
 numerical/geometry expectations before a minimal commit and the same public workflow check.
 
+**Associative repair checkpoint:** the explicit **Link face outline + inset** source at `51e7af55`
+passed the frozen public case: 40 mm gives 6720 mm³; width 60 mm, Redo and real Save/New/Open
+all give 10240 mm³. Actual Undo restores 6720 mm³. Passive/manual-edit Cancel preserves the
+saved document; passive Finish preserves the sketch ID, recipe, default body target and cut link,
+while refreshing the stored outline cache to 60/56. This does not reinterpret legacy snapshots.
+The original native 14 passed at `51e7af55`. Its first Model type check failed with three test-shape
+diagnostics; preserve that failure and the unrun Studio/lint stages. Normal test-only corrections
+in `203c87a8` and `342e293f` fixed the missing annotations/required frame arrays. Model and Studio
+types and exact production-seven-file lint passed at `342e293f`, with no production-byte change.
+The reviewed inventory adds two public entries and changes four optional-field rows; all other
+6623 entries and the other five top-level values are unchanged. Next run check-docs/site and
+inspect the changed Sketches page, then integrate this bounded slice and the already-passed
+fillet test into the product and run its mandatory documentation check. No CAD rebuild is needed
+for this Model/UI/test/documentation slice. Product adoption is still pending at this checkpoint.
+
 Previously adopted setup Save/Open/Use/Run/Bind, historical records and Pin comparison retain
 separate contracts. Actual calculation creates a new result; imported records remain historical.
 Material snapshots preserve used density versus catalogue declarations without authenticating
@@ -291,8 +306,8 @@ approval; preserve other sessions and record actual source, input, URL and scree
 
 | Slice | Owner | Current source state | Required next evidence |
 |---|---|---|---|
-| Close the verified sketch/revolve product slice | Kernel product build/selected endpoint; Docs mandatory check; API integration | Product `91e96a23` merged; common-source checks and scoped browser checks accepted | Preserve old/new product outputs; compare fresh bytes/modes with the candidate; selected endpoint and product docs must pass at their actual source. |
-| Repair associative face-sketch edits | Outer implementation; API contract review | Public width-change case failed at `1a7f2266`; source/runtime returned and failing files preserved | Agree the minimal persistent recipe and dependency edge, preserve legacy snapshots, refuse missing/ambiguous sources, then run the frozen width-edit/Undo/Redo/Save/Open case. |
+| Close the verified sketch/revolve product slice | Kernel product build/selected endpoint; Docs mandatory check; API integration | Product `3307c88b` has the affected build, selected endpoint and final docs PASS | Preserve exact receipts and old/new outputs; do not repeat completed checks without a relevant change. |
+| Repair associative face-sketch edits | Outer implementation/browser; API integration; Docs page verification | Original snapshot failure preserved; new explicit-link browser flow, native14 and corrected type/lint PASS at their distinct source refs | Complete reviewed inventory/docs/site/page checks, local product adoption and its mandatory docs check; preserve legacy behavior and first failures. |
 | Preserve drill versus tap-depth contracts | API contract; Drawings consumer | Existing plain/tapped, through/blind and legacy compatibility tests passed; no new independent tap-depth field implemented | A separate field contract must state depth limits, backward defaults and Drawing/text implications before implementation. Do not rerun the existing compatibility tests without a relevant change. |
 | GPU stale-readback protection | Existing GPU owner | Two verified source files already adopted; required product docs passed at `44a8fc9e` | Keep camera/backing/client/aspect snapshot and rejection evidence; assign a new bounded consumer only when a relevant gap is established. No new BVH/LOD or paused FOV work. |
 | Admit the first free pendulum profile | Confirm Physics ownership first; Kernel/API supply mass/frame contracts | No solver implementation assigned | Agree pivot/COM placement, pivot inertia, gravity moment, reactions and units; then check independent period, energy, time-step convergence and joint errors. Physical validation needs separate measurements. |
