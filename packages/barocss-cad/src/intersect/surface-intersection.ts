@@ -114,10 +114,41 @@ export function intersectPatches(A: Patch, B: Patch, options: {
   readonly seeds?: readonly Point[];
 }): IntersectionChain[] {
   const n = options.grid ?? 24, h = options.step, tol = options.tolerance;
+  if (!Number.isFinite(h) || !(h > 0)) throw new SurfaceIntersectionError('step must be a finite positive number');
+  if (!Number.isFinite(tol) || !(tol >= 0)) throw new SurfaceIntersectionError('tolerance must be a finite nonnegative number');
+  if (!Number.isFinite(n) || !Number.isInteger(n) || !(n > 0)) throw new SurfaceIntersectionError('grid must be a finite positive integer');
+  // A chain point and both parameter tracks must describe the same finite intersection.
+  const withinTolerance = (r: NonNullable<ReturnType<typeof onBoth>>): boolean => {
+    if (!r.pa.every(Number.isFinite) || !r.pb.every(Number.isFinite) || !r.x.every(Number.isFinite)) return false;
+    const a = A.at(r.pa), b = B.at(r.pb);
+    return a.every(Number.isFinite) && b.every(Number.isFinite)
+      && len(sub(a, b)) <= tol && len(sub(a, r.x)) <= tol && len(sub(b, r.x)) <= tol;
+  };
   let budget = options.budget ?? 200000;
+  if (!Number.isFinite(budget) || !(budget >= 0)) throw new SurfaceIntersectionError('budget must be a finite nonnegative number');
   const spend = () => { if (--budget < 0) throw new SurfaceIntersectionError('too many marching steps (the surfaces touch or overlap along a curve)'); };
+  for (const P of [A, B]) {
+    const [[u0, v0], [u1, v1]] = P.box;
+    if (![u0, v0, u1, v1].every(Number.isFinite) || u0 > u1 || v0 > v1) {
+      throw new SurfaceIntersectionError('patch domains must have finite ordered bounds');
+    }
+  }
   const gridOf = (P: Patch) => { const [[u0, v0], [u1, v1]] = P.box, pts: { p: XY; x: Point }[][] = [];
-    for (let i = 0; i <= n; i++) { const row: { p: XY; x: Point }[] = []; for (let j = 0; j <= n; j++) { const p: XY = [u0 + (u1 - u0) * i / n, v0 + (v1 - v0) * j / n]; row.push({ p, x: P.at(p) }); } pts.push(row); } return pts; };
+    for (let i = 0; i <= n; i++) {
+      const row: { p: XY; x: Point }[] = [];
+      for (let j = 0; j <= n; j++) {
+        const p: XY = [u0 + (u1 - u0) * i / n, v0 + (v1 - v0) * j / n];
+        if (!p.every(Number.isFinite)) throw new SurfaceIntersectionError('grid parameters must be finite');
+        const x = P.at(p);
+        if (!x || x.length !== 3 || !Number.isFinite(x[0]) || !Number.isFinite(x[1]) || !Number.isFinite(x[2])) {
+          throw new SurfaceIntersectionError('patch grid evaluation must return a finite 3D point');
+        }
+        row.push({ p, x });
+      }
+      pts.push(row);
+    }
+    return pts;
+  };
   const GA = gridOf(A), GB = gridOf(B);
   // No chain is longer than a few times both patches' size.
   const extent = (G: { x: Point }[][]) => { let m = 0; for (const row of G) for (const c of row) m = Math.max(m, len(sub(c.x, G[0][0].x))); return m; };
@@ -148,13 +179,13 @@ export function intersectPatches(A: Patch, B: Patch, options: {
   function* seeds() {
     for (const x of options.seeds ?? []) {
       const s = onBoth(A, B, project(A, x, nearest(GA, x)), project(B, x, nearest(GB, x)));
-      if (s && len(sub(A.at(s.pa), B.at(s.pb))) <= tol && len(sub(s.x, x)) <= 100 * tol && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9)) yield s;
+      if (s && withinTolerance(s) && len(sub(s.x, x)) <= 100 * tol && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9)) yield s;
     }
     for (const c of raw) {
       // A crossing well within a traced chain's reach refines onto that chain: skipped unrefined.
       if (near(c.x, h / 2) || options.skipNear?.(c.x, h / 2)) continue;
       const s = onBoth(A, B, project(A, c.x, c.ua), project(B, c.x, c.ub));
-      if (s && len(sub(A.at(s.pa), B.at(s.pb))) <= tol && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9)) yield s;
+      if (s && withinTolerance(s) && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9)) yield s;
     }
   }
   for (const seed of seeds()) {
@@ -163,8 +194,8 @@ export function intersectPatches(A: Patch, B: Patch, options: {
     if (len(cross(normalOf(A, seed.pa), normalOf(B, seed.pb))) < 1e-4) continue;
     const march = (dir: 1 | -1) => {
       const pts: Point[] = [seed.x], tans: Point[] = [], uvA: XY[] = [seed.pa], uvB: XY[] = [seed.pb], touched: Point[] = [];
-      let closed = false;
-      for (let k = 0; k < maxSteps; k++) {
+      let closed = false, k = 0;
+      for (; k < maxSteps; k++) {
         spend();
         const pa = uvA[uvA.length - 1], pb = uvB[uvB.length - 1], x = pts[pts.length - 1], c = cross(normalOf(A, pa), normalOf(B, pb));
         // The surfaces turn tangent: the curve ends here (its direction is undefined).
@@ -185,16 +216,19 @@ export function intersectPatches(A: Patch, B: Patch, options: {
         for (let tries = 0; tries < 6 && !next; tries++, step /= 2) {
           const guess = add(x, scale(t, step));
           const r = onBoth(A, B, project(A, guess, pa), project(B, guess, pb), { o: guess, n: t });
-          if (r && len(sub(r.x, guess)) < step && len(sub(A.at(r.pa), B.at(r.pb))) <= tol) { next = r; taken = step; }
+          if (r && len(sub(r.x, guess)) < step && withinTolerance(r)) { next = r; taken = step; }
         }
-        if (!next) break;
+        if (!next) throw new SurfaceIntersectionError('corrector did not converge within six attempts');
         // Leaving a box: cut the step at the box edge (bisection on the fraction of the step).
         if (!inside(A, next.pa) || !inside(B, next.pb)) {
+          if (!inside(A, pa) || !inside(B, pb)) throw new SurfaceIntersectionError('boundary bracket has no inside starting point');
           let lo = 0, hi = 1, last = { pa, pb, x };
           for (let it = 0; it < 40; it++) {
             spend();
             const m = (lo + hi) / 2, g = add(x, scale(sub(next.x, x), m)), r = onBoth(A, B, project(A, g, pa), project(B, g, pb), { o: g, n: t });
-            if (r && inside(A, r.pa) && inside(B, r.pb)) { lo = m; last = r; } else hi = m;
+            // A failed correction is not evidence of an outside point: preserve a valid bracket.
+            if (!r || !withinTolerance(r)) throw new SurfaceIntersectionError('boundary correction did not satisfy the intersection tolerance');
+            if (inside(A, r.pa) && inside(B, r.pb)) { lo = m; last = r; } else hi = m;
           }
           // The end lies exactly on the edge: a point closer than the step tolerance replaces the last one.
           const endTan = scale(unit(cross(normalOf(A, last.pa), normalOf(B, last.pb))), sign);
@@ -207,6 +241,10 @@ export function intersectPatches(A: Patch, B: Patch, options: {
         // Running back over itself (circling a tangency): the curve ends there.
         if (k > 8 && runsBack(pts, next.x, taken * 0.5)) break;
         pts.push(next.x); uvA.push(next.pa); uvB.push(next.pb);
+      }
+      if (k === maxSteps) throw new SurfaceIntersectionError('maximum marching steps reached before completion');
+      for (let i = 0; i < pts.length; i++) if (!withinTolerance({ pa: uvA[i], pb: uvB[i], x: pts[i] })) {
+        throw new SurfaceIntersectionError('chain point does not satisfy the intersection tolerance');
       }
       if (tans.length < pts.length) tans.push(tans[tans.length - 1] ?? [1, 0, 0]);
       return { pts, tans, closed, uvA, uvB, touched };

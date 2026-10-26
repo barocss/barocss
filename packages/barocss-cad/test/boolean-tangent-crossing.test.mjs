@@ -12,6 +12,14 @@ test('surface intersection: a march through a point where the surfaces touch kee
   const chains = intersectPatches(cyl, ball, { step: 0.05, tolerance: 1e-4 });
   assert.ok(chains.length >= 1);
   for (const ch of chains) {
+    assert.equal(ch.uvA.length, ch.points.length);
+    assert.equal(ch.uvB.length, ch.points.length);
+    for (let k = 0; k < ch.points.length; k++) {
+      const point = ch.points[k], a = cyl.at(ch.uvA[k]), b = ball.at(ch.uvB[k]);
+      assert.ok(Math.hypot(...point.map((v, i) => v - a[i])) <= 1e-4, `chain point ${k} is off patch A`);
+      assert.ok(Math.hypot(...point.map((v, i) => v - b[i])) <= 1e-4, `chain point ${k} is off patch B`);
+      assert.ok(Math.hypot(...a.map((v, i) => v - b[i])) <= 1e-4, `patch tracks differ at chain point ${k}`);
+    }
     for (let k = 1; k < ch.points.length; k++) {
       const a = ch.points[k - 1], b = ch.points[k], c = ch.points[k + 1];
       if (!c) break;
