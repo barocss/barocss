@@ -1,0 +1,42 @@
+/* Preflight stays off, as in CAD Studio. Local workspace rules occupy the lower layer. */
+@layer legacy, theme, base, components, utilities;
+@import "./styles.css" layer(legacy);
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@theme inline {
+  --color-background: var(--viewer-background);
+  --color-foreground: var(--viewer-foreground);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--viewer-foreground);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--viewer-foreground);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-ink);
+  --color-secondary: var(--ui-secondary);
+  --color-secondary-foreground: var(--viewer-foreground);
+  --color-muted: var(--ui-muted);
+  --color-muted-foreground: var(--muted);
+  --color-accent: var(--ui-hover);
+  --color-accent-foreground: var(--viewer-foreground);
+  --color-destructive: var(--viewer-destructive);
+  --color-border: var(--line);
+  --color-input: var(--line);
+  --color-ring: var(--accent);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --font-sans: var(--viewer-sans);
+  --font-mono: var(--viewer-mono);
+}
+
+:root {
+  --viewer-background: #15191d;
+  --viewer-foreground: #dce2e6;
+  --viewer-destructive: #e89585;
+  --viewer-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --viewer-mono: "SFMono-Regular", Consolas, monospace;
+  --ui-secondary: #252c32;
+  --ui-muted: #23292f;
+  --ui-hover: #303941;
+}

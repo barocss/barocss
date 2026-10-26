@@ -156,9 +156,9 @@ select:disabled { opacity: .4; }
 .export-status { overflow: hidden; max-width: 30%; text-overflow: ellipsis; white-space: nowrap; color: #b1c6d0; }
 .session-meta { max-width: 32%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #8aa1b1; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; }
 
-dialog { width: min(570px, calc(100vw - 60px)); max-height: calc(100dvh - 80px); padding: 0; border: 1px solid #46545e; border-radius: 8px; color: #dce2e6; background: #1d252c; box-shadow: 0 24px 80px #0007; }
-dialog[open] { animation: dialog-enter 160ms ease-out; }
-dialog::backdrop { background: #080e14b8; backdrop-filter: blur(3px); }
+.admission-dialog { width: min(570px, calc(100vw - 60px)); max-height: calc(100dvh - 80px); padding: 0; border: 1px solid #46545e; border-radius: 8px; color: #dce2e6; background: #1d252c; box-shadow: 0 24px 80px #0007; }
+.admission-dialog[data-state="open"] { animation: dialog-enter 160ms ease-out; }
+[data-slot="dialog-overlay"] { background: #080e14b8; backdrop-filter: blur(3px); }
 .dialog-heading { padding: 27px 27px 22px; }
 .dialog-heading h2 { margin: 12px 0 8px; color: #edf2f5; font-size: 23px; font-weight: 500; letter-spacing: -.7px; }
 .dialog-heading p { margin: 0; color: #9eafbc; font-size: 12px; line-height: 1.6; }
@@ -180,7 +180,7 @@ dialog::backdrop { background: #080e14b8; backdrop-filter: blur(3px); }
 #admission-error { margin: 7px 0 0; color: #d3b48b; font-size: 11px; line-height: 1.6; }
 #admission-error:empty { display: none; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 27px 23px; }
-@keyframes dialog-enter { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes dialog-enter { from { opacity: 0; } to { opacity: 1; } }
 
 @media (max-width: 1200px) {
   .app-toolbar { gap: 14px; padding: 0 14px; }

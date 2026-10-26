@@ -1,10 +1,10 @@
-export function attachPngExport({ viewer, canvas, button, status, isLoaded, frameGuard, generation }) {
-  let epoch = 0, busy = false;
+export function createPngExport({ viewer, canvas, onChange, isLoaded, frameGuard, generation }) {
+  let epoch = 0, busy = false, status = '';
   const urls = new Set();
-  const refresh = () => { button.disabled = busy || !isLoaded(); };
+  const refresh = () => { onChange({ busy, status }); };
   const cancel = () => {
     epoch++;
-    if (busy) status.textContent = 'Image capture cancelled. Export again.';
+    if (busy) status = 'Image capture cancelled. Export again.';
     busy = false;
     refresh();
   };
@@ -12,8 +12,7 @@ export function attachPngExport({ viewer, canvas, button, status, isLoaded, fram
     if (busy || !isLoaded()) return;
     const request = ++epoch, guard = frameGuard(), version = generation();
     const width = canvas.width, height = canvas.height;
-    busy = true; refresh();
-    status.textContent = 'Preparing PNG…';
+    busy = true; status = 'Preparing PNG…'; refresh();
     let url;
     const assertCurrent = () => {
       if (guard !== frameGuard() || version !== generation())
@@ -37,18 +36,17 @@ export function attachPngExport({ viewer, canvas, button, status, isLoaded, fram
       url = URL.createObjectURL(blob); urls.add(url);
       const link = document.createElement('a');
       link.href = url; link.download = 'viewer-review.png'; link.click();
-      status.textContent = 'PNG saved.';
+      status = 'PNG saved.';
     } catch (error) {
-      if (request === epoch) status.textContent = 'PNG not saved: ' + (error?.message || String(error));
+      if (request === epoch) status = 'PNG not saved: ' + (error?.message || String(error));
     } finally {
       if (url) setTimeout(() => { URL.revokeObjectURL(url); urls.delete(url); }, 1000);
       if (request === epoch) { busy = false; refresh(); }
     }
   };
-  button.addEventListener('click', exportImage);
   refresh();
-  return { refresh, cancel, dispose() {
-    cancel(); button.removeEventListener('click', exportImage);
+  return { exportImage, cancel, dispose() {
+    cancel();
     for (const url of urls) URL.revokeObjectURL(url);
     urls.clear();
   } };

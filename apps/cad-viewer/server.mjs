@@ -1,9 +1,11 @@
 import { createServer } from 'node:http';
 import { readFile, readdir, realpath } from 'node:fs/promises';
-import { resolve, dirname, relative, isAbsolute } from 'node:path';
+import { resolve, dirname, relative, isAbsolute, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { build } from 'esbuild';
+import { compile } from '@tailwindcss/node';
+import { Scanner } from '@tailwindcss/oxide';
 
 const directory = dirname(fileURLToPath(import.meta.url));
 const root = resolve(directory, '../..');
@@ -41,9 +43,10 @@ const sourceResolver = { name: 'cad-viewer-own-public-source', setup(builder) {
 } };
 
 // Reuse the existing root esbuild tool. Do not read package source through its node_modules links.
-const bundle = await build({ absWorkingDir: root, entryPoints: [resolve(directory, 'app.js')],
+const bundle = await build({ absWorkingDir: root, entryPoints: [resolve(directory, 'src/main.tsx')],
   bundle: true, write: false, metafile: true, format: 'esm', platform: 'browser', target: 'es2022',
-  plugins: [sourceResolver] });
+  jsx: 'automatic', alias: { '@': resolve(directory, 'src') },
+  define: { 'process.env.NODE_ENV': '"development"' }, plugins: [sourceResolver] });
 const inputs = await Promise.all(Object.keys(bundle.metafile.inputs).map(async input => {
   const path = resolve(root, input), absolutePath = await realpath(path), bytes = await readFile(absolutePath);
   const owner = [...packages.values()].find(item => within(item.directory, absolutePath));
@@ -60,11 +63,43 @@ const ownSource = inputs.filter(input => input.ownKind === 'source').map(input =
 const ownDist = inputs.filter(input => input.ownKind === 'dist').map(input => input.absolutePath);
 if (ownSource.length === 0 || ownDist.length !== 0) throw new Error('Expected own source inputs only.');
 const html = await readFile(resolve(directory, 'index.html'));
-const css = await readFile(resolve(directory, 'styles.css'));
+async function sourceFiles(directory) {
+  const files = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const path = resolve(directory, entry.name);
+    if (entry.isDirectory()) files.push(...await sourceFiles(path));
+    else if (/\.[jt]sx?$/.test(entry.name)) files.push(path);
+  }
+  return files;
+}
+const cssEntry = resolve(directory, 'tailwind.css');
+const cssDependencies = new Set([cssEntry]);
+const compiler = await compile(await readFile(cssEntry, 'utf8'), {
+  base: directory, from: cssEntry, onDependency: path => cssDependencies.add(path),
+});
+// Scan actual local content with Tailwind's scanner. No app class list is hand-maintained.
+const candidateFiles = [...new Set([
+  resolve(directory, 'index.html'), ...await sourceFiles(resolve(directory, 'src')),
+  ...inputs.filter(input => within(directory, input.absolutePath)).map(input => input.absolutePath),
+])].sort();
+const candidates = new Scanner({}).scanFiles(await Promise.all(candidateFiles.map(async file => ({
+  content: await readFile(file, 'utf8'), extension: extname(file).slice(1),
+}))));
+if (candidates.length === 0) throw new Error('Tailwind did not find any local class candidates.');
+const compiledCSS = compiler.build(candidates);
+if (!compiledCSS.includes('.bg-primary {') || !compiledCSS.includes('.fixed {'))
+  throw new Error('Tailwind did not emit the required Button and Dialog utilities.');
+const css = Buffer.from(compiledCSS);
+const cssInputs = await Promise.all([...new Set([...cssDependencies, ...candidateFiles])].sort().map(async path => {
+  const absolutePath = await realpath(path), bytes = await readFile(absolutePath);
+  return { path: relative(root, path), absolutePath, role: extname(path) === '.css' ? 'stylesheet' : 'candidate-source',
+    bytes: bytes.length, sha256: sha(bytes) };
+}));
 const sample = await readFile(resolve(root, 'packages/barocss-cad-interop/examples/document-gpu-v2.cad-document.json'));
-const audit = { mode: 'source-app', bundleSHA256: sha(bundle.outputFiles[0].contents), inputs,
+const audit = { mode: 'source-react-shadcn-app', bundleSHA256: sha(bundle.outputFiles[0].contents), inputs,
   ownSourceCount: ownSource.length, ownDistCount: ownDist.length, ownSource, ownDist,
   htmlSHA256: sha(html), cssSHA256: sha(css), sampleSHA256: sha(sample),
+  cssEntry: relative(root, cssEntry), cssInputs, cssCandidateCount: candidates.length,
   publicEntries: [...publicEntries.values()] };
 const files = new Map([
   ['/', ['text/html; charset=utf-8', html]],
@@ -83,9 +118,10 @@ const server = createServer((request, response) => {
   if (!file) { response.writeHead(404).end(); return; }
   response.writeHead(200, { 'content-type': file[0], 'cache-control': 'no-store' }).end(file[1]);
 });
-server.listen(port, '127.0.0.1', () => {
-  console.log(JSON.stringify({ url: 'http://127.0.0.1:' + port, mode: audit.mode,
+const buildSummary = { url: 'http://127.0.0.1:' + port, mode: audit.mode,
     bundleSHA256: audit.bundleSHA256, inputs: inputs.length,
     ownSourceCount: ownSource.length, ownDistCount: ownDist.length,
-    htmlSHA256: audit.htmlSHA256, cssSHA256: audit.cssSHA256 }));
-});
+    htmlSHA256: audit.htmlSHA256, cssSHA256: audit.cssSHA256,
+    cssInputs: cssInputs.length, cssCandidateCount: candidates.length };
+if (process.argv.includes('--check')) console.log(JSON.stringify({ ...buildSummary, listening: false }));
+else server.listen(port, '127.0.0.1', () => console.log(JSON.stringify(buildSummary)));

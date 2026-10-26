@@ -1,5 +1,16 @@
 # CAD Viewer app
 
+The screen uses React and local shadcn/ui components, with the same component
+source and dependency versions as CAD Studio. `src/components/ui/` contains
+Button, Input, NativeSelect and the Radix-based Dialog. `src/lib/utils.ts` holds
+the shared class pattern. These files belong to the Viewer app. The app does not
+import Studio at runtime.
+
+Tailwind CSS compiles the actual screen and component classes. Preflight is off,
+as in Studio. Workspace CSS is in the lower `legacy` layer. `tailwind.css` maps
+the shadcn color tokens to the Viewer palette. `components.json` records the
+local shadcn configuration.
+
 The workspace groups bodies by their original asset. ISO, Front, Top and Right
 change the camera direction while preserving geometry, visibility, selection
 and materials. Front looks from +Z, Top from +Y, and Right from +X in the display
@@ -11,17 +22,29 @@ source and bindings. It does not edit the document.
 
 ## Run
 
-From the repository root, use the existing Node and esbuild installation:
+From the repository root, use the existing Node and workspace dependencies:
 
 ```sh
 node apps/cad-viewer/server.mjs
 ```
 
 Open `http://127.0.0.1:53032`. Set `CAD_VIEWER_PORT` to use a different port.
-The local server reuses the root esbuild tool. No install or package publication
-is needed. This is a source development app. Its resolver reads public package
-exports from this clone. `/input-audit.json` records bundle and input SHA-256
-hashes, HTML and CSS hashes, and source/dist input counts.
+The local server reuses esbuild and the installed Tailwind Node compiler. It
+bundles `src/main.tsx` with the automatic React JSX runtime. It compiles the CSS
+from `tailwind.css` and scans the actual local TSX, JavaScript and HTML inputs
+with the Tailwind scanner. No install or package publication is needed.
+
+This is a source development app. Its resolver reads public package exports
+from this clone. `/input-audit.json` records JavaScript input SHA-256 hashes,
+all CSS imports and scanned content hashes, the generated CSS hash, the HTML
+hash, and source/dist input counts. The resolver refuses foreign BaroCSS source
+and BaroCSS dist inputs. Studio files are not build inputs.
+
+For a build check without opening a server port, run:
+
+```sh
+node apps/cad-viewer/server.mjs --check
+```
 
 ## Open a document
 
