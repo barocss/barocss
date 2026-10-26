@@ -55,7 +55,8 @@ export function Hud({ store, onChange, onApply, onCancel }: Props) {
       <div className="hud-actions">
         <span className="muted"><Kbd>Tab</Kbd> next <Kbd>Enter</Kbd> apply <Kbd>⇧Enter</Kbd> again <Kbd>Esc</Kbd> cancel</span>
         <span className="grow" />
-        <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+        {/* Keep native button activation from also reaching the window's Apply shortcut. */}
+        <Button variant="ghost" onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }} onClick={onCancel}>Cancel</Button>
         <Button variant="default" disabled={active.preview !== 'ok'} onClick={onApply}>Apply</Button>
       </div>
     </div>
