@@ -55,7 +55,10 @@ export interface RenderEnvironment {
 export const STUDIO_KINDS = ['softbox', 'cyclorama'] as const;
 export type StudioKind = typeof STUDIO_KINDS[number];
 /** G15d: the post — a grade, contrast and saturation (1 unchanged), a vignette and bloom (0 none – 1). */
-export interface RenderPost { grade: 'neutral' | 'warm' | 'cool'; contrast: number; saturation: number; vignette: number; bloom?: number }
+export interface RenderPost { grade: 'neutral' | 'warm' | 'cool'; contrast: number; saturation: number; vignette: number; bloom?: number;
+  /** G15d.3: positive view-axis focus distance (mm), and maximum blur radius (0–24 CSS px). Zero blur keeps focus but disables the effect. */
+  depthOfField?: { focus: number; blur: number };
+}
 export interface RenderCamera { target: [number, number, number]; distance: number; yaw: number; pitch: number; fovY: number; ortho: boolean }
 export interface RenderSettings {
   version: 1;
@@ -172,9 +175,12 @@ function readFinish(f: Record<string, unknown>): AppearanceFinish {
 }
 
 function readPost(v: unknown): RenderPost {
-  const o = obj(v);
+  const o = obj(v), dof = obj(o.depthOfField);
+  const depthOfField = typeof dof.focus === 'number' && Number.isFinite(dof.focus) && dof.focus > 0 && typeof dof.blur === 'number' && Number.isFinite(dof.blur)
+    ? { focus: dof.focus, blur: num(dof.blur, 0, 24, 0) } : undefined;
   return { grade: o.grade === 'warm' || o.grade === 'cool' ? o.grade : 'neutral', contrast: num(o.contrast, 0.5, 1.5, 1), saturation: num(o.saturation, 0, 2, 1), vignette: num(o.vignette, 0, 1, 0),
-    ...(typeof o.bloom === 'number' && o.bloom > 0 ? { bloom: num(o.bloom, 0, 1, 0) } : {}) };
+    ...(typeof o.bloom === 'number' && o.bloom > 0 ? { bloom: num(o.bloom, 0, 1, 0) } : {}),
+    ...(depthOfField ? { depthOfField } : {}) };
 }
 
 /** Render settings from a saved document (anything missing or out of range takes the default). */

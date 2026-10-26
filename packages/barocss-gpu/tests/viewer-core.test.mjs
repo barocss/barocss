@@ -455,7 +455,7 @@ test('nearest segment: the same segment, distance and parameter as the walk over
   assert.ok(hits > 1000 && behind > 50, `${hits} hits, ${behind} with the eye among the segments`);
 });
 
-test('outline reach: a box\'s screen rectangle holds every point of it the camera sees; a corner behind the eye leaves it unbounded; the output block carries it last', () => {
+test('outline reach: a box\'s screen rectangle holds every point of it the camera sees; a corner behind the eye leaves it unbounded; the output block carries it before focus settings', () => {
   const vp = multiply(perspectiveReversed(Math.PI / 3, 1.5, 0.1), lookAt([30, -40, 25], [0, 0, 0], [0, 0, 1])), w = 1200, h = 800;
   const box = { min: [-5, -3, 0], max: [8, 4, 6] }, r = screenRect(vp, [box], w, h);
   assert.ok(r && r[0] < r[2] && r[1] < r[3]);
@@ -467,22 +467,22 @@ test('outline reach: a box\'s screen rectangle holds every point of it the camer
   // The eye inside the box: a corner behind it.
   assert.equal(screenRect(vp, [{ min: [20, -50, 0], max: [40, -30, 30] }], w, h), null);
   const u = new Float32Array(packOutput({}, [[1, 0, 0]], 2, null, null, [10, 20, 30, 40]));
-  assert.deepEqual([...u.slice(-4)], [10, 20, 30, 40]);
-  assert.deepEqual([...new Float32Array(packOutput({}, [[1, 0, 0]])).slice(-4)], [-1e9, -1e9, 1e9, 1e9]);
+  assert.deepEqual([...u.slice(112, 116)], [10, 20, 30, 40]);
+  assert.deepEqual([...new Float32Array(packOutput({}, [[1, 0, 0]])).slice(112, 116)], [-1e9, -1e9, 1e9, 1e9]);
   // G15d.1: AgX is tone map 2; the grading (balance and contrast, lift and saturation, gamma and on, gain) and the
   // vignette (amount, clear radius, fade end) just before the outline box; off, all zeros.
   assert.equal(new Uint32Array(packOutput({ toneMapping: 'agx' }), 4, 1)[0], 2);
-  const g = new Float32Array(packOutput({ grading: { temperature: 0.5, contrast: 1.2, saturation: 0.8, lift: [0.1, 0, 0], gamma: [1, 1.1, 1], gain: [1, 1, 0.9] }, vignette: { amount: 0.4, size: 0.2, softness: 0.5 } })).slice(-24, -4);
+  const g = new Float32Array(packOutput({ grading: { temperature: 0.5, contrast: 1.2, saturation: 0.8, lift: [0.1, 0, 0], gamma: [1, 1.1, 1], gain: [1, 1, 0.9] }, vignette: { amount: 0.4, size: 0.2, softness: 0.5 } })).slice(92, 112);
   const wb = whiteBalance(0.5, 0);
   assert.ok(close([...g], [...wb, 1.2, 0.1, 0, 0, 0.8, 1, 1.1, 1, 1, 1, 1, 0.9, 0, 0.4, 0.2, 0.7, 0], 1e-6));
   assert.ok(Math.abs(0.2126 * wb[0] + 0.7152 * wb[1] + 0.0722 * wb[2] - 1) < 1e-9 && wb[0] > wb[2], 'warm: red over blue, luminance kept');
-  assert.ok([...new Float32Array(packOutput({})).slice(-24, -4)].every(x => x === 0), 'no post: zeros');
-  assert.ok([...new Float32Array(packOutput({ vignette: { amount: 0 } })).slice(-8, -4)].every(x => x === 0), 'amount 0: no vignette');
+  assert.ok([...new Float32Array(packOutput({})).slice(92, 112)].every(x => x === 0), 'no post: zeros');
+  assert.ok([...new Float32Array(packOutput({ vignette: { amount: 0 } })).slice(108, 112)].every(x => x === 0), 'amount 0: no vignette');
   // G15b: the contact shadows' projection, direction and length, strength and thickness, before the grading; none: zeros.
   const proj = Array.from({ length: 16 }, (_, i) => i + 1);
-  const ct = new Float32Array(packOutput({}, [], 2, null, null, null, null, { projection: proj, inverseProjection: proj, direction: [0, 0.6, 0.8], length: 2, strength: 0.5, thickness: 1.2 })).slice(-48, -24);
+  const ct = new Float32Array(packOutput({}, [], 2, null, null, null, null, { projection: proj, inverseProjection: proj, direction: [0, 0.6, 0.8], length: 2, strength: 0.5, thickness: 1.2 })).slice(68, 92);
   assert.ok(close([...ct], [...proj, 0, 0.6, 0.8, 2, 0.5, 1.2, 0, 0], 1e-6));
-  assert.ok([...new Float32Array(packOutput({})).slice(-48, -24)].every(x => x === 0), 'no contact shadows: zeros');
+  assert.ok([...new Float32Array(packOutput({})).slice(68, 92)].every(x => x === 0), 'no contact shadows: zeros');
 });
 
 // Exercise pickNow's real readback-to-metadata path. Only the GPU transport is mocked: the cap and triangle
