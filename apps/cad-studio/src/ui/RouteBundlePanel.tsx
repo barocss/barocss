@@ -100,7 +100,7 @@ export function RouteBundlePanel(props: RouteBundlePanelProps) {
     <fieldset className="m-0 min-w-0 border-0 p-0" disabled={busy}>
       <legend className="mb-1 text-[11px] text-muted-foreground">{label} · mm</legend>
       <div className="grid grid-cols-3 gap-1">{AXES.map((axis, index) => <label key={axis} className="min-w-0 text-[11px]">
-        <span>{axis}</span><Input type="text" inputMode="decimal" aria-label={`${label} ${axis} mm`} aria-invalid={!finite(values[index])}
+        <span>{axis}</span><Input className="w-full max-w-full" type="text" inputMode="decimal" aria-label={`${label} ${axis} mm`} aria-invalid={!finite(values[index])}
           value={values[index]} onChange={event => onChange(withCoordinate(values, index, event.target.value))} />
       </label>)}</div>
       {!values.every(finite) && <div className="hud-error" role="status">Enter a finite signed number for each axis.</div>}
