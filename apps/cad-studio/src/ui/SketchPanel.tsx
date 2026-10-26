@@ -101,7 +101,7 @@ export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, o
             onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) put(s.a, l, v, s.r); }} /><em>°</em></span></label>
           {num('slot-width', 'Width', s.r * 2, v => put(s.a, l, angle, Math.max(0.25, v / 2)), 0.5)}</>;
       })()}
-      {s?.kind === 'polygon' && <div className="pts pts-4" role="group" aria-label="Outline points">
+      {s?.kind === 'polygon' && <div className="pts pts-4" role="group" aria-label="Outline points" style={{ gridTemplateColumns: '18px minmax(0, 1fr) minmax(0, 1fr) minmax(112px, 1.1fr)' }}>
         <span /><span>X</span><span>Y</span><span>Edge</span>
         {s.points.map((p, i) => {
           const n = s.points.length, b = s.bulges?.[i] ?? 0, hasEdge = s.closed || i < n - 1;
