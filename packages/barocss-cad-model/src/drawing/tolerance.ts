@@ -43,7 +43,7 @@ type Change =
   | { kind: 'note'; text: string; at: XY }
   | { kind: 'tolerances'; dims: string[]; value: number }
   | { kind: 'datum'; datum: DrawingDatum }
-  | { kind: 'frame'; frame: DrawingFrame; basic: string[] };
+  | { kind: 'frame'; frame: Extract<DrawingFrame, { dim: string }>; basic: string[] };
 
 const SAME = 1e-6;
 const NO_SIZES: FastenerSizes = {};
@@ -177,11 +177,14 @@ export function toleranceSuggestions(ctx: IssueContext): ToleranceSuggestion[] {
   });
   // (A frame names the datums the drawing has or is offered: none it could not place.)
   const datums = letters.filter(l => named.includes(l) || have.has(l));
+  const frameIds = new Set((s.frames ?? []).map(f => f.id));
   for (const k of kinds) {
     if ((s.frames ?? []).some(f => f.dim === k.dim.dim.id)) continue;
     const p = holePosition(k.callout, k.diameter, ctx.fastenerSizes ?? NO_SIZES), basic = locating(ctx, k.centres);
+    const baseId = `frame-${k.dim.dim.id}`, frameId = frameIds.has(baseId) ? nextFreeId(`${baseId}-`, frameIds, 2) : baseId;
+    frameIds.add(frameId);
     out.push({ id: `position-${k.dim.dim.id}`, kind: 'position', message: `${k.dim.text}: position Ø${p.value} to ${datums.join(', ') || 'no datum'}; its ${basic.length} location dimension${basic.length === 1 ? '' : 's'} basic.`, basis: p.basis, estimate: p.estimate,
-      change: { kind: 'frame', frame: { id: `frame-${k.dim.dim.id}`, dim: k.dim.dim.id, characteristic: 'position', value: p.value, datums }, basic } });
+      change: { kind: 'frame', frame: { id: frameId, dim: k.dim.dim.id, characteristic: 'position', value: p.value, datums }, basic } });
   }
   return out;
 }

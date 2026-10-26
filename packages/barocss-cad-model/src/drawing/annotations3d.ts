@@ -74,6 +74,7 @@ export function modelAnnotations(i: AnnotationInputs): ModelAnnotations {
   }
   for (const r of i.sheet.dimensions) if (!r.ok) left.push({ id: r.dim.id, why: r.reason });
   for (const n of i.settings.notes ?? []) left.push({ id: n.id, why: 'a note is placed on the paper, not on the model' });
+  for (const f of i.settings.frames ?? []) if (f.dim === undefined) left.push({ id: f.id, why: 'a standalone frame has no attached model geometry' });
   for (const g of i.sheet.groups) {
     if (!g.id || !(g.role === 'dimension' || g.role === 'datum' || g.role === 'control' || g.role === 'weld')) continue;
     if (g.datumTarget && omittedTargets.has(g.id)) continue;
@@ -91,7 +92,7 @@ export function modelAnnotations(i: AnnotationInputs): ModelAnnotations {
 /** A frame's view: its dimension's. */
 function controlView(i: AnnotationInputs, g: MarkGroup): DimView | undefined {
   const f = i.settings.frames?.find(x => x.id === g.id);
-  return f ? i.settings.dimensions.find(d => d.id === f.dim)?.view : undefined;
+  return f?.dim !== undefined ? i.settings.dimensions.find(d => d.id === f.dim)?.view : undefined;
 }
 
 function itemOf(i: AnnotationInputs, g: MarkGroup, view: DimView, v: ViewPlacement, pr: BrepProjection): ModelAnnotation | null {
@@ -103,7 +104,7 @@ function itemOf(i: AnnotationInputs, g: MarkGroup, view: DimView, v: ViewPlaceme
     if (!r) return null;
     targets = targetsOf(r.dim);
     if (kind === 'dimension') extra = { dimension: { measure: r.kind, value: r.value, unit: r.kind === 'angle' ? 'deg' : 'mm', text: r.text, ...(r.dim.tol ? { tol: r.dim.tol } : {}), ...(r.dim.basic ? { basic: true as const } : {}), ...(r.dim.count ? { count: r.dim.count } : {}) } };
-    else if (f) extra = { frame: { characteristic: f.characteristic, zone: (f.diameter ?? (f.characteristic === 'position')) ? 'diameter' : 'linear', value: f.value, ...(f.material ? { material: f.material } : {}), ...(f.datumModifiers ? { datumModifiers: { ...f.datumModifiers } } : {}), ...(f.projected ? { projected: f.projected } : {}), ...(f.freeState ? { freeState: true } : {}), ...(f.tangentPlane ? { tangentPlane: true } : {}), datums: [...f.datums], dim: f.dim, cells: cellsOf(f), box: boxOf(g.marks, v) } };
+    else if (f?.dim !== undefined) extra = { frame: { characteristic: f.characteristic, zone: (f.diameter ?? (f.characteristic === 'position')) ? 'diameter' : 'linear', value: f.value, ...(f.material ? { material: f.material } : {}), ...(f.datumModifiers ? { datumModifiers: { ...f.datumModifiers } } : {}), ...(f.projected ? { projected: f.projected } : {}), ...(f.freeState ? { freeState: true } : {}), ...(f.tangentPlane ? { tangentPlane: true } : {}), datums: [...f.datums], dim: f.dim, cells: cellsOf(f), box: boxOf(g.marks, v) } };
   } else if (kind === 'datum') {
     if (g.datumTarget) {
       const d = i.settings.datumTargets?.find(x => x.id === g.id); if (!d) return null;

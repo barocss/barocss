@@ -92,7 +92,7 @@ export function sectionExtents(settings: DrawingSettings, sections?: readonly Sh
   return out;
 }
 /** `detail` (DR-1): a detail's circle and letter on its parent (`view` the parent), or the detail itself (`view` its own `detail:B`). */
-export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control' | 'table' | 'weld' | 'balloon' | 'detail'; id?: string; view?: DimView; /** A point target, kept distinct from a datum feature even when their ids coincide. */ datumTarget?: true; marks: Mark[] }
+export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control' | 'table' | 'weld' | 'balloon' | 'detail'; id?: string; view?: DimView; /** A point target, kept distinct from a datum feature even when their ids coincide. */ datumTarget?: true; /** A frame with its own view/place rather than a dimension attachment. */ standaloneFrame?: true; marks: Mark[] }
 export interface SheetSectionPlaced { id: string; view: SectionViewId; placement: SectionPlacement; projection: BrepProjection; form?: 'removed' | 'revolved'; on?: ViewId }
 /** DR-1: a detail as the sheet drew it: its parent, scale, placement (its circle's square) and clipped projection; where its dimensions are drawn. */
 export interface SheetDetail { id: string; view: DetailParent; scale: number; placement: ViewPlacement; projection: BrepProjection }
@@ -143,6 +143,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     if (marks) groups.push({ role: 'datum', datumTarget: true, id: d.id, view: d.view, marks });
   }
   for (const f of settings.frames ?? []) {
+    if (f.dim === undefined) continue;
     const g = groups.find(x => x.role === 'dimension' && x.id === f.dim), main = g?.marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
     if (g && main) groups.push({ role: 'control', id: f.id, view: g.view, marks: frameMarks(main, f) });
   }
@@ -195,8 +196,16 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   groups.push(...drawn.groups);
   for (const [id, r] of drawn.resolved) inSections.set(id, r);
   for (const f of settings.frames ?? []) {
+    if (f.dim === undefined) continue;
     const g = groups.find(x => x.role === 'dimension' && x.id === f.dim && x.view && !isViewId(x.view)), main = g?.marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
     if (g && main) groups.push({ role: 'control', id: f.id, view: g.view, marks: frameMarks(main, f) });
+  }
+  const placedViews = { sections: onSheet, details: drawn.details.map(x => x.detail) };
+  for (const f of settings.frames ?? []) {
+    if (f.dim !== undefined) continue;
+    const placement = placementOf(layout, placedViews, f.view);
+    if (!placement || placement.hidden || !projectionOf(views, placedViews, f.view)) continue;
+    groups.push({ role: 'control', standaloneFrame: true, id: f.id, view: f.view, marks: frameMarksAt(toSheet(placement, f.place), f) });
   }
   const dimensions: Resolved[] = settings.dimensions.map(d => inSections.get(d.id) ?? inViews.find(r => r.dim === d)!);
   // (FRd2, O119: the weld symbols, before the tables so an auto-placed one keeps clear of their texts.)
@@ -914,6 +923,10 @@ const FRAME_H = 6, FRAME_SYMBOL = 7, FRAME_DATUM = 6;
 export function frameMarks(under: Extract<Mark, { kind: 'text' }>, f: DrawingFrame): Mark[] {
   const q = textCorners(under.at, under.text, under.size, under.anchor, 0, !!under.bold);
   const x0 = Math.min(q[0][0], q[3][0]), y0 = under.at[1] + 1.6;
+  return frameMarksAt([x0, y0], f);
+}
+/** A control frame's top-left corner in sheet mm; symbol sizes are independent of view scale. */
+function frameMarksAt([x0, y0]: XY, f: DrawingFrame): Mark[] {
   const value = `${(f.diameter ?? (f.characteristic === 'position')) ? 'Ø' : ''}${fmtMM(f.value)}`, base = textWidth(value, TEXT, false) + 2.5;
   const modifiers = [...(f.material ? [f.material === 'maximum' ? 'M' : 'L'] : []), ...(f.freeState ? ['F'] : []), ...(f.tangentPlane ? ['T'] : []), ...(f.projected ? ['P'] : [])];
   const height = f.projected ? fmtMM(f.projected) : '', heightWidth = height ? textWidth(height, TEXT, false) + 1 : 0;

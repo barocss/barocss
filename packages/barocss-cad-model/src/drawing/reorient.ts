@@ -105,6 +105,16 @@ export function reorient(from: DrawingViews, to: DrawingViews, settings: Drawing
   if (settings.notes) turned.notes = settings.notes.map(n => n.leader ? { ...n, leader: (([view, at]) => ({ view, at }))(mapPlace(n.leader.view, n.leader.at)) } : n);
   if (settings.datums) turned.datums = settings.datums.map(d => { const [view, place] = mapPlace(d.view, d.place); return { ...d, view, place }; });
   if (settings.datumTargets) turned.datumTargets = settings.datumTargets.map(d => { const [view, place] = mapPlace(d.view, d.place); return { ...d, view, place }; });
+  if (settings.frames) turned.frames = settings.frames.map(f => {
+    if (f.dim !== undefined) return f;
+    const ownView = f.view;
+    if (isViewId(ownView)) { const [view, place] = mapPlace(ownView, f.place); return { ...f, view, place }; }
+    // Keep derived-view identity. A missing parent stays unresolved; never use baseViewOf's front fallback.
+    const parent = isDetailRef(ownView) ? settings.details?.find(d => d.id === detailLetter(ownView))?.view : ownView;
+    const base = parent && (isViewId(parent) ? parent : isSectionRef(parent) ? sectionsOf(settings).find(s => s.id === sectionLetter(parent))?.view : undefined);
+    const m = base && map.get(base);
+    return m ? { ...f, place: m.point(f.place) } : f;
+  });
   // Every dimension reads as it did.
   const failed: { dim: string; was: string; now: string }[] = [];
   settings.dimensions.forEach((d, k) => {

@@ -83,7 +83,7 @@ export function information(pr: DrawingViews['front']): number {
  * placed by hand on it (a side set, or annotations to keep, stay as they are). Null: keep the front.
  */
 export function frontByInformation(views: DrawingViews, settings: DrawingSettings): { orientation: Orientation; why: string } | null {
-  if (settings.orientation || settings.dimensions.some(d => !d.auto) || (settings.notes ?? []).some(n => n.leader) || (settings.datums ?? []).length) return null;
+  if (settings.orientation || settings.dimensions.some(d => !d.auto) || (settings.notes ?? []).some(n => n.leader) || (settings.datums ?? []).length || settings.frames?.some(f => f.dim === undefined)) return null;
   const front = information(views.front), right = information(views.right);
   if (!(right > 1.2 * front && right > front + 2)) return null;
   const t = views.right.toward, orientation = ORIENTATIONS.find(o => { const v = viewsFor(o).front.toward; return Math.abs(v[0] - t[0]) < 1e-9 && Math.abs(v[1] - t[1]) < 1e-9; })!;
