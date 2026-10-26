@@ -58,6 +58,7 @@ export class StudioPart extends Part<StudioDoc> {
       if (section === null || typeof section !== 'object' || Array.isArray(section) || !(section.sketch instanceof Sketch)) throw refuse('VALUE', 'a loft section takes a finished Sketch');
       const framed = Object.prototype.hasOwnProperty.call(section, 'frame'), height = Object.prototype.hasOwnProperty.call(section, 'z');
       if (framed === height || Object.keys(section).some(k => k !== 'sketch' && k !== 'frame' && k !== 'z')) throw refuse('VALUE', 'a loft section takes sketch and exactly one of frame or z');
+      if (!framed && (typeof section.z !== 'number' || !Number.isFinite(section.z))) throw refuse('VALUE', 'a loft section z must be a finite number of mm');
       const node = { kind: 'sketch', ...section.sketch.data };
       const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
       if (why) throw refuse('VALUE', `the loft sketch: ${why}`);

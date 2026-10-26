@@ -73,7 +73,7 @@ test('public loft: legacy heights, unguided frames and the quadratic guide retai
 });
 
 test('public loft: invalid guide failure leaves the accepted part, inputs and mass results intact and returns document copies', () => {
-  const base = part('accepted loft'), input = sections(), options = { guide: cubic() }, accepted = base.loft(input, options);
+  const base = part('accepted loft').parameter('H', 0), input = sections(), options = { guide: cubic() }, accepted = base.loft(input, options);
   const before = accepted.doc, baseBefore = base.doc, massBefore = accepted.mass({ density: 1 });
   const inputBefore = input.map(s => ({ sketch: s.sketch.data, frame: structuredClone(s.frame) }));
   const bad = cubic(); bad.controlPoints[1][2] = 1.25; const badBefore = structuredClone(bad);
@@ -83,6 +83,19 @@ test('public loft: invalid guide failure leaves the accepted part, inputs and ma
   const extra = { guide: cubic(), unsupported: true }, extraBefore = structuredClone(extra);
   assert.throws(() => accepted.loft(input, extra), error => error instanceof BarocssError && error.code === 'VALUE' && error.where === 'facade');
   assert.deepEqual(extra, extraBefore);
+  const savedBefore = JSON.stringify(before);
+  // Deliberate untyped JS calls: public section z is a finite number, not the document-only Dim encoding.
+  for (const z of [{ parameter: 'H' }, NaN, Infinity, -Infinity]) {
+    const badSections = [{ sketch: sketch().circle({ r: 1 }), z }, { sketch: sketch().circle({ r: 4 }), z: 3 }];
+    const callerBefore = badSections.map(s => ({ sketch: s.sketch.data, z: structuredClone(s.z) }));
+    assert.throws(() => Reflect.apply(accepted.loft, accepted, [badSections]), error =>
+      error instanceof BarocssError && error.code === 'VALUE' && error.where === 'facade'
+      && /a loft section z must be a finite number of mm/.test(error.message));
+    assert.deepEqual(badSections.map(s => ({ sketch: s.sketch.data, z: s.z })), callerBefore);
+    assert.deepEqual(accepted.doc, before); assert.equal(JSON.stringify(accepted.doc), savedBefore);
+    if (typeof z === 'object') { z.parameter = 'changed-after-refusal'; assert.equal(JSON.stringify(accepted.doc), savedBefore); }
+  }
+
   assert.deepEqual(bad, badBefore); assert.deepEqual(accepted.doc, before); assert.deepEqual(base.doc, baseBefore);
   assert.deepEqual(accepted.mass({ density: 1 }), massBefore);
   assert.deepEqual(input.map(s => ({ sketch: s.sketch.data, frame: s.frame })), inputBefore);
