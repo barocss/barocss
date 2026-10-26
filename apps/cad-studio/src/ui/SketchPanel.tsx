@@ -101,12 +101,13 @@ export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, o
             onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) put(s.a, l, v, s.r); }} /><em>°</em></span></label>
           {num('slot-width', 'Width', s.r * 2, v => put(s.a, l, angle, Math.max(0.25, v / 2)), 0.5)}</>;
       })()}
-      {s?.kind === 'polygon' && <div className="pts pts-4" role="group" aria-label="Outline points">
+      {s?.kind === 'polygon' && <div className="pts pts-4" role="group" aria-label="Outline points" style={{ gridTemplateColumns: '18px minmax(0, 1fr) minmax(0, 1fr) minmax(112px, 1.1fr)' }}>
         <span /><span>X</span><span>Y</span><span>Edge</span>
         {s.points.map((p, i) => {
           const n = s.points.length, b = s.bulges?.[i] ?? 0, hasEdge = s.closed || i < n - 1;
           const q = s.points[(i + 1) % n], edge = b ? arcOf(p as P2, q as P2, b).radius : Math.hypot(q[0] - p[0], q[1] - p[1]);
-          const locked = (b ? s.radii?.[i] : s.lengths?.[i]) !== undefined;
+          const driving = b ? s.radii?.[i] : s.lengths?.[i];
+          const locked = driving !== undefined;
           return [
             <span key={'n' + i}>{i + 1}</span>,
             ...[0, 1].map(k => <Input key={i + '_' + k} type="number" step="any" aria-label={`Point ${i + 1} ${'XY'[k]}`} value={round(p[k])}
@@ -116,7 +117,7 @@ export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, o
                 onShape({ ...s, points: movePoint(s.points, i, k, v, s.closed), lengths });
               }} />),
             hasEdge ? <span key={'e' + i} className="edge-cell">{b ? <em>R</em> : null}
-              <Input id={'sk-' + (b ? 'rad' : 'len') + i} type="number" step="any" min={0.5} className={locked ? 'locked' : ''} value={round(edge)}
+              <Input id={'sk-' + (b ? 'rad' : 'len') + i} type="number" step="any" min={0.5} className={locked ? 'locked' : ''} value={driving ?? round(edge)}
                 aria-label={b ? `Arc ${i + 1} radius` : `Edge ${i + 1} length`}
                 title={locked ? `Locked ${b ? 'radius' : 'length'} · clear to unlock` : `Type a ${b ? 'radius' : 'length'} (or press Enter) to lock it`}
                 onKeyDown={e => {

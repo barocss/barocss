@@ -7,6 +7,7 @@
 // share them), but not touch or cross it anywhere else.
 import { BrepError, buildBrep, loopVectorArea, surfaceNormalAtCentre, type Brep, type BrepFaceInput, type BrepLoopInput } from '../brep/brep-core.js';
 import { curveTolerance, intersectSegments, locateInRegion, segStart, type CurveSegment2 } from '../brep/curved-arrangement.js';
+import { exactPoint2, exactPoint2FromXY, exactOrient2, type ExactPoint2 } from '../brep/planar-arrangement.js';
 import { sideName, SIDE_TAG } from '../document/side-names.js';
 import { buildProfileLoop, segmentCurve, type ProfileSegment, type ProfileSegmentInput, type XY } from './extruded-profile-solid.js';
 import { evaluateCurve, curveDomain } from '../core/math.js';
@@ -138,14 +139,49 @@ export function revolveProfile(input: RevolveInput): Brep {
   let side = 0;
   const onAxisAt = (p: readonly number[]) => Math.abs(hr(p)[1]) <= 1e-9 * Math.max(1, Math.abs(p[0]), Math.abs(p[1]));
   const axial = loop.map(seg => seg.kind === 'line' && onAxisAt(seg.start) && onAxisAt(seg.end));
-  loop.forEach((seg, i) => { if (!axial[i]) for (let k = 0; k <= 64; k++) {
-    const t = k / 64, p = seg.kind === 'line' ? [seg.start[0] + (seg.end[0] - seg.start[0]) * t, seg.start[1] + (seg.end[1] - seg.start[1]) * t, 0]
-      : [seg.center[0] + seg.radius * Math.cos(seg.startAngle + seg.sweep * t), seg.center[1] + seg.radius * Math.sin(seg.startAngle + seg.sweep * t), 0];
-    const rho = hr(p)[1];
-    if (onAxisAt(p)) { if (k === 0 || k === 64) continue; throw new BrepError('GEOMETRY', 'revolve: the profile touches the axis between its vertices'); }
-    if (side && Math.sign(rho) !== side) throw new BrepError('GEOMETRY', 'revolve: the profile crosses the axis');
-    side = Math.sign(rho);
-  } });
+  loop.forEach((seg, i) => {
+    if (axial[i]) return;
+    // A line's signed radius is affine. A circular arc's extrema are its carrier points along ±s.
+    const candidates: { p: XY; interior: boolean }[] = [{ p: seg.start, interior: false }, { p: seg.end, interior: false }];
+    if (seg.kind === 'arc') {
+      const centre = exactPoint2FromXY([...seg.center]), zero = exactPoint2FromXY([0, 0]);
+      // Subtract authored coordinates as exact homogeneous rationals, before any Number rounding.
+      const ray = (q: XY): ExactPoint2 => {
+        const e = exactPoint2FromXY(q), denominator = e.w * centre.w;
+        return exactPoint2(e.x * centre.w - centre.x * e.w, denominator,
+          e.y * centre.w - centre.y * e.w, denominator);
+      };
+      // The same half-plane/cross ordering as the exact planar arrangement, from +X counter-clockwise.
+      const half = (v: ExactPoint2) => v.y > 0n || (v.y === 0n && v.x > 0n) ? 0 : 1;
+      const less = (a: ExactPoint2, b: ExactPoint2) => half(a) !== half(b)
+        ? half(a) < half(b) : exactOrient2(zero, a, b) > 0;
+      const sameRay = (a: ExactPoint2, b: ExactPoint2) => half(a) === half(b) && exactOrient2(zero, a, b) === 0;
+      const first = ray(seg.start), last = ray(seg.end), [start, end] = seg.sweep > 0 ? [first, last] : [last, first];
+      if ((start.x === 0n && start.y === 0n) || (end.x === 0n && end.y === 0n) || sameRay(start, end)) {
+        throw new BrepError('GEOMETRY', 'revolve: the arc direction cannot be determined from its endpoint rays');
+      }
+      for (const sign of [-1, 1]) {
+        const critical = exactPoint2FromXY([sign * s[0], sign * s[1]]);
+        if (critical.x === 0n && critical.y === 0n) {
+          throw new BrepError('GEOMETRY', 'revolve: the arc direction cannot be determined from its endpoint rays');
+        }
+        if (sameRay(start, critical) || sameRay(end, critical)) continue;
+        // Circular order handles both minor and major arcs, including the wrap across +X.
+        const interior = less(start, end) ? less(start, critical) && less(critical, end)
+          : less(start, critical) || less(critical, end);
+        if (interior) {
+          const p: XY = [seg.center[0] + sign * seg.radius * s[0], seg.center[1] + sign * seg.radius * s[1]];
+          candidates.push({ p, interior: true });
+        }
+      }
+    }
+    for (const { p, interior } of candidates) {
+      const rho = hr(p)[1];
+      if (onAxisAt(p)) { if (!interior) continue; throw new BrepError('GEOMETRY', 'revolve: the profile touches the axis between its vertices'); }
+      if (side && Math.sign(rho) !== side) throw new BrepError('GEOMETRY', 'revolve: the profile crosses the axis');
+      side = Math.sign(rho);
+    }
+  });
   if (!side) throw new BrepError('GEOMETRY', 'revolve: the profile lies on the axis');
   const pole = loop.map(seg => onAxisAt(seg.start));
   // Two walls meeting on the axis at one vertex pinch a full turn to a point (not a manifold solid).
