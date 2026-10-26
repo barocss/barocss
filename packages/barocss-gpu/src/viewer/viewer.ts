@@ -1757,7 +1757,10 @@ export class Viewer {
     pass.setScissorRect(px, py, 1, 1);
     pass.setBindGroup(0, this.frameGroup);
     const current: { pipeline?: Pipeline } = {};
-    for (let l = 0; l < 2; l++) for (const m of l ? transparent : opaque) if (m.pickable && m.geometry.topology === 'triangles') this.drawMesh(pass, m, current, true);
+    const transforms = new Map<Mesh, Mat4>();
+    for (let l = 0; l < 2; l++) for (const m of l ? transparent : opaque) if (m.pickable && m.geometry.topology === 'triangles') {
+      transforms.set(m, m.transform.slice()); this.drawMesh(pass, m, current, true);
+    }
     this.drawCaps(pass, opaque, current, 'capPick');
     this.drawCaps(pass, transparent, current, 'capPick');
     pass.end();
@@ -1775,6 +1778,7 @@ export class Viewer {
     if (this.clip !== clip || this.camera !== camera || this.canvas.width !== width || this.canvas.height !== height
       || this.canvas.clientWidth !== clientWidth || this.canvas.clientHeight !== clientHeight || this.aspect !== aspect
       || cameraValues.some((value, i) => !Object.is(value, currentCameraValues[i]))) return null;
+    for (const [mesh, transform] of transforms) if (transform.some((value, i) => !Object.is(value, mesh.transform[i]))) return null;
 
     const mesh = id ? this.meshes.find(m => m.id === id) : undefined;
     if (!mesh) return null;
