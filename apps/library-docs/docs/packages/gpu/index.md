@@ -118,6 +118,12 @@ The example assumes an existing WebGPU viewer and its scene units; 160 is not au
 Studio stores its focus distance in mm and both its focus and blur values, as described under
 [Focus and blur](/studio/rendering#focus-and-blur). These are image settings, not geometric or physical accuracy bounds.
 
+![View-axis focus depth is 80 mm while eye-to-point distance is 100 mm; blur is a separate CSS-pixel value](/diagrams/focus-distance.svg)
+
+[Open the focus diagram at full size](/diagrams/focus-distance.svg).
+
+This coordinate example uses Studio mm; use the GPU scene's own world unit when applying the same view-axis rule.
+
 ## The scene and material language
 
 The Render tab's props and its authored materials are written in this language. It runs on the CPU, so these

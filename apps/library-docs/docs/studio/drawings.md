@@ -176,6 +176,29 @@ uses sheet mm, while its optional `leader.at` uses the view's model coordinates.
 to match the sheet: the drawing applies the view scale. A leader follows its view; a note's text position stays on
 the sheet.
 
+### Hole callouts from parameter values
+
+For code that prepares drawing annotations, `holeCallout` from `@barocss/cad-model/drawing/callout` takes the document's model nodes, a current edge name, and an optional numeric parameter map. Pass `doc.parameters` when a hole radius or depth refers to a parameter. The same map resolves the radius and depth of a following counterbore. Omitting the map uses an empty map; it does not read parameters from the document automatically.
+
+The result is annotation text or `null`, not a measured dimension or a drawing update. Lengths are in model mm, independent of sheet scale. The text uses diameter, `THRU` or depth, and available pattern, thread, counterbore, and countersink information. Resolved hole and counterbore radii and depths are rounded to three decimal places before formatting; the diameter is twice the rounded radius. A non-hole edge, an unresolved required parameter, or a required hole or counterbore length that is non-finite or non-positive before rounding gives `null`. Very small positive lengths can round to zero; the text is not a geometry-validity check.
+
+```ts
+import type { ModelNode } from '@barocss/cad-model/engine/doc';
+import { holeCallout } from '@barocss/cad-model/drawing/callout';
+
+// Supply the current document's nodes and doc.parameters, plus an edge name
+// selected from that same model. No feature or geometry is created here.
+export function currentHoleAnnotation(
+  nodes: readonly ModelNode[],
+  parameters: Readonly<Record<string, number>>,
+  edgeName: string,
+): string | null {
+  const text = holeCallout(nodes, edgeName, parameters);
+  if (text === null) return null; // Leave this edge without a hole callout.
+  return text;
+}
+```
+
 ## Tolerances
 
 **Tolerancing** is **± dimensions** or **Geometric (datums, position)**. **Tolerance suggestions** proposes the

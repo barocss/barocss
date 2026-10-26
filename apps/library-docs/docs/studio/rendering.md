@@ -81,6 +81,10 @@ The saved Model field is `render.environment.post.depthOfField: { focus, blur }`
 It requires a finite positive `focus` and a finite `blur`; the reader clamps blur to the 0–24 range.
 This is a display effect, not a physical camera calibration or a change to measurements.
 
+![View-axis focus depth is 80 mm while eye-to-point distance is 100 mm; blur is a separate CSS-pixel value](/diagrams/focus-distance.svg)
+
+[Open the focus diagram at full size](/diagrams/focus-distance.svg).
+
 ## Props and materials
 
 The **Source** tab holds two texts, both in the language of [@barocss/gpu](/packages/gpu/):

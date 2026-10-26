@@ -204,6 +204,24 @@ For every drag update, call the same `candidateFromTotal` function with displace
 
 See [the control-point diagram and Studio steps](/studio/features#route-bundles) and [the saved fields](/reference/document#route-bundle-fields).
 
+### When a route edit is refused
+
+Route helper admission failures use `BAD_REFERENCE` with a `Route bundle:` message. They reject an invalid
+binding or candidate; they are not results from evaluating the complete model.
+
+| What failed | What to change |
+|---|---|
+| The accepted document identity changed, or a captured curve/source binding is stale. | Discard the old candidate. Start from the current accepted document and select the current curve and copied sweep again. Do not replace only the stored revision or canonical string to bypass the check. |
+| A copied sweep path does not match its current direct curve, or its sweep/profile ID is missing or ambiguous. | Restore a consistent document, make a matching copied sweep from the current curve, and select its current independent circular profile. An old copied path is not a fallback. |
+| The selected point is an endpoint, or the source is not an open clamped cubic with finite coordinates, valid knots and positive matching weights. | Choose an existing interior control point on a supported millimetre curve. Correct the source geometry before creating the binding. |
+| Members repeat an ID, curve, sweep, profile, or the same source/geometry pair through different object names. | Choose two distinct curve sources, each with its own sweep and profile. Renaming an alias does not make it a second source. |
+| Bundle data has the wrong schema, is nested in a placed/pending part, or has missing or orphan member markers. | Keep bundle data in one valid schema-4 base document with two matching members and markers. Detach a valid bundle before placing its document as a part; changing the schema number alone does not repair the bindings. |
+| Binding admission succeeds, but complete candidate evaluation fails. | Keep the accepted document and inspect the evaluation error. Correct the model or reduce the proposed edit, then evaluate the whole candidate again before committing. This failure is not necessarily a route admission `BAD_REFERENCE`. |
+
+The helpers return private candidates. The caller owns complete evaluation and commit; the Studio keeps the
+accepted document when a route preview or final check fails. These checks do not establish collision clearance,
+general constraint solvability or manufacturing suitability.
+
 ## Assembly and robot motions
 
 Use the `api/` facade's `assembly(...).robot()` to read an assembly as a robot. `robot.path(...)` takes at least
