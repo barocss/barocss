@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { drawingIssues, type IssueContext } from '../src/drawing/issues';
+import { applyFix, drawingIssues, type IssueContext } from '../src/drawing/issues';
 import { placeDimensionLabels } from '../src/drawing/layout';
 import { dimensionMarks, type Mark, type MarkGroup } from '../src/drawing/sheet';
 import { textWidth } from '../src/drawing/text';
@@ -165,4 +165,124 @@ for (const kind of ['radius', 'diameter'] as const) test(`${kind}: a real leader
   assert.equal(result.settings.dimensions.length, 1);
   assert.deepEqual(next.sheet.dimensions.map(r => r.ok ? [r.value, r.text] : null), [[value, resolved(dim).text]]);
   checkGeometry(next);
+});
+
+// These pure fixtures cover the public Move contract seen in the d32 -> d33 regression.
+// They do not replay cover.bcad or establish its browser/DXF acceptance.
+type LinearResult = Extract<Resolved, { ok: true; kind: 'linear' }>;
+function moveFixture(wide = false, fixedText = false, obstacles: Mark[] = []): IssueContext {
+  const base = fixture(), extent = wide ? 200 : 100, middle = extent / 2;
+  const specs: { dim: DrawingDimension; a: XY; b: XY; value: number; text: string }[] = [{
+    dim: { id: 'auto-p2', view: 'front', kind: 'linear', auto: true, orient: 'horizontal',
+      a: { at: 'end', edge: 'moving.a', near: [middle - 10, middle, 0] },
+      b: { at: 'end', edge: 'moving.b', near: [middle + 10, middle, 0] },
+      place: [middle, fixedText ? 34 : middle] },
+    a: [middle - 10, middle], b: [middle + 10, middle], value: 20, text: '20',
+  }];
+  if (fixedText) specs.push({
+    dim: { id: 'fixed-six', view: 'front', kind: 'linear', orient: 'vertical',
+      a: { at: 'end', edge: 'fixed.a', near: [70, 26, 0] },
+      b: { at: 'end', edge: 'fixed.b', near: [70, 32, 0] }, place: [41.2, 29] },
+    a: [70, 26], b: [70, 32], value: 6, text: '6',
+  });
+  const layout: SheetLayout = { ...base.layout, size: [extent, extent],
+    frame: [5, 5, extent - 5, extent - 5], title: [extent - 20, extent - 20, extent - 5, extent - 5],
+    views: { ...base.layout.views,
+      front: { ...base.layout.views.front, origin: [0, extent], box: [middle - 15, middle - 15, middle + 15, middle + 15] },
+      iso: { ...base.layout.views.iso, hidden: true },
+    } };
+  const projection = { ...base.views.front, min: [0, 0] as XY, max: [extent, extent] as XY };
+  const views: DrawingViews = { front: projection, top: projection, right: projection, iso: projection };
+  const build = (settings: DrawingSettings): IssueContext => {
+    const dimensions: LinearResult[] = settings.dimensions.map(dim => {
+      const spec = specs.find(x => x.dim.id === dim.id)!;
+      assert.ok(dim.kind === 'linear');
+      return { ok: true, kind: 'linear', dim, a: spec.a, b: spec.b, value: spec.value, text: spec.text };
+    });
+    const groups: MarkGroup[] = [{ role: 'view', view: 'front', marks: obstacles },
+      ...dimensions.map(r => ({ role: 'dimension' as const, id: r.dim.id, view: r.dim.view, marks: dimensionMarks(layout.views.front, r) }))];
+    return { views, layout, settings, sheet: { size: layout.size, dimensions, groups }, callout: () => null, rebuild: build };
+  };
+  return build({ ...defaultDrawing(), scale: 1, dimensions: specs.map(x => x.dim) });
+}
+const visualIssues = (ctx: IssueContext) => drawingIssues(ctx).filter(x => ['TEXT_OVERLAP', 'TEXT_OVER_LINES', 'OFF_SHEET'].includes(x.code));
+function movedContext(ctx: IssueContext, place: XY): IssueContext {
+  return ctx.rebuild!(applyFix(ctx, { kind: 'move', dim: 'auto-p2', place }));
+}
+function checkMoveGeometry(ctx: IssueContext): void {
+  const own = ctx.sheet.groups.find(g => g.id === 'auto-p2')!.marks;
+  const held = ctx.sheet.groups.filter(g => g.id !== 'auto-p2').flatMap(g => g.marks);
+  const heldBoxes = texts(held).map(bounds), ownBoxes = texts(own).map(bounds);
+  for (const box of ownBoxes) {
+    assert.ok(heldBoxes.every(other => !overlap(box, other)), 'moved text clears the fixed texts');
+    assert.ok(segments(held).every(([a, b]) => !cuts(a, b, box)), 'moved text clears the existing geometry');
+  }
+  assert.ok(segments(own).every(([a, b]) => heldBoxes.every(box => !cuts(a, b, box))), 'new extensions, leaders and arrows clear every fixed text');
+  const [x0, y0, x1, y1] = ctx.layout.frame;
+  for (const [x, y] of [...segments(own).flat(), ...ownBoxes.flatMap(([a, b, c, d]) => [[a, b], [c, d]])]) {
+    assert.ok(x >= x0 && x <= x1 && y >= y0 && y <= y1, 'candidate stays inside the original frame');
+  }
+}
+function applyPublicMove(ctx: IssueContext): IssueContext {
+  const before = JSON.stringify(ctx.settings);
+  const issue = drawingIssues(ctx).find(x => x.code === 'TEXT_OVER_LINES' && x.dims?.includes('auto-p2'));
+  assert.ok(issue, 'the original text has a real line collision');
+  assert.ok(issue.fix?.kind === 'move', 'the public issue offers a Move');
+  const next = ctx.rebuild!(applyFix(ctx, issue.fix));
+  const withoutPlace = ({ place: _place, ...d }: DrawingDimension) => { void _place; return d; };
+  assert.deepEqual(next.settings.dimensions.map(withoutPlace), ctx.settings.dimensions.map(withoutPlace), 'all refs, flags, tolerances and directions stay');
+  assert.deepEqual(next.sheet.dimensions.map(r => r.ok ? [r.value, r.text] : null), ctx.sheet.dimensions.map(r => r.ok ? [r.value, r.text] : null), 'physical and displayed values stay');
+  const styles = (c: IssueContext) => c.sheet.groups.flatMap(g => texts(g.marks).map(({ text, size, angle, bold, anchor }) => ({ id: g.id, text, size, angle, bold, anchor })));
+  assert.deepEqual(styles(next), styles(ctx), 'all shown text, fonts and reading directions stay');
+  assert.deepEqual(next.sheet.groups.filter(g => g.id !== 'auto-p2'), ctx.sheet.groups.filter(g => g.id !== 'auto-p2'), 'all fixed text and geometry stay');
+  assert.equal(next.settings.scale, ctx.settings.scale);
+  assert.deepEqual(next.layout, ctx.layout, 'page, scale, frame and view placements stay');
+  assert.equal(JSON.stringify(ctx.settings), before, 'the input is not changed');
+  assert.deepEqual(visualIssues(next), [], 'Move creates no new visual issue elsewhere on the sheet');
+  checkMoveGeometry(next);
+  return next;
+}
+
+test('public Move rejects a new extension through an unchanged dimension six', () => {
+  const ctx = moveFixture(false, true, [line([45, 64], [55, 64])]);
+  const fixed = ctx.sheet.groups.find(g => g.id === 'fixed-six')!;
+  assert.equal(texts(fixed.marks)[0].text, '6');
+  assert.deepEqual(visualIssues(ctx).map(x => x.dims), [['auto-p2']], 'the six starts clear');
+  // This is the former first outward 8 mm candidate: its own text clears, but its extension does not.
+  const unsafe = movedContext(ctx, [50, 26]);
+  const own = unsafe.sheet.groups.find(g => g.id === 'auto-p2')!.marks;
+  const fixedBox = bounds(texts(fixed.marks)[0]);
+  assert.ok(texts(own).every(t => !overlap(bounds(t), fixedBox)), 'testing the moved text alone misses the regression');
+  assert.ok(segments(own).some(([a, b]) => cuts(a, b, fixedBox)), 'an independent oracle finds the new extension collision');
+  assert.ok(visualIssues(unsafe).some(x => x.code === 'TEXT_OVER_LINES' && x.dims?.includes('fixed-six')));
+  const next = applyPublicMove(ctx);
+  assert.notDeepEqual(next.settings.dimensions[0].place, [50, 26], 'the unsafe candidate is not offered');
+  assert.deepEqual(next.settings.dimensions[1], ctx.settings.dimensions[1], 'the fixed six is not moved to hide the collision');
+});
+
+test('public Move finds a 2 mm normal gap missed by all six 8 mm rows', () => {
+  const rows = [0, ...Array.from({ length: 6 }, (_, k) => 8 * (k + 1)).flatMap(mm => [-mm, mm])];
+  const ctx = moveFixture(false, false, rows.map(mm => line([48, 47.8 + mm], [52, 47.8 + mm])));
+  for (const mm of rows.filter(mm => mm !== 0)) {
+    const candidate = movedContext(ctx, [50, 50 + mm]);
+    const box = bounds(texts(candidate.sheet.groups.find(g => g.id === 'auto-p2')!.marks)[0]);
+    assert.ok(segments(ctx.sheet.groups[0].marks).some(([a, b]) => cuts(a, b, box)), 'each old 8 mm row is independently blocked');
+  }
+  checkMoveGeometry(movedContext(ctx, [50, 52]));
+  const next = applyPublicMove(ctx), place = next.settings.dimensions[0].place;
+  assert.equal(place[0], 50, 'only the normal component moves');
+  assert.equal(Math.abs(place[1] - 50), 2, 'the safe gap is two paper mm away');
+});
+
+test('public Move searches beyond six rows when the nearer normal positions are blocked', () => {
+  const ctx = moveFixture(true, false, [line([100, 45], [100, 153])]);
+  for (const mm of [0, 8, 16, 24, 32, 40, 48]) for (const sign of [-1, 1]) {
+    const candidate = movedContext(ctx, [100, 100 + sign * mm]);
+    const box = bounds(texts(candidate.sheet.groups.find(g => g.id === 'auto-p2')!.marks)[0]);
+    assert.ok(cuts([100, 45], [100, 153], box), 'all six old normal rows remain blocked');
+  }
+  checkMoveGeometry(movedContext(ctx, [100, 156]));
+  const next = applyPublicMove(ctx), place = next.settings.dimensions[0].place;
+  assert.equal(place[0], 100, 'measurement direction stays fixed');
+  assert.ok(Math.abs(place[1] - 100) > 48, 'a real safe spot lies beyond the old 48 mm range');
 });
