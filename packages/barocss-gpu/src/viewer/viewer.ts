@@ -14,9 +14,10 @@ type View = ReturnType<Texture['createView']>;
 import { Geometry, ImageTexture, INSTANCE_STRIDE, Mesh, ViewerError, packColorMap, packInstances, type AddMeshOptions, type CapHatch, type ClipPlane, type ColorMap, type InstancesInput, type Material, type ShaderMaterial, type TextureOptions, type TextureSource } from './scene.js';
 export { Geometry, ImageTexture, Mesh, ViewerError, packColorMap };
 export type { AddMeshOptions, CapHatch, ClipPlane, ColorMap, InstancesInput, Material, ShaderMaterial, TextureOptions, TextureSource };
-import { defaultLights, directionalLights, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type ContactFrame, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
+import { defaultLights, directionalLights, spotLights, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type ContactFrame, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
+import { spotShadowFrame, validateSpotShadowLights } from './spot-shadow.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, bloomWGSL, BLOOM_LEVELS, depthOfFieldWGSL, capProbeSamplesWGSL, envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
+import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_SHADOWS, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, bloomWGSL, BLOOM_LEVELS, depthOfFieldWGSL, capProbeSamplesWGSL, envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
 
 /** The ground grid on the plane across the camera's up axis. */
 export interface GridOptions {
@@ -237,6 +238,7 @@ export class Viewer {
   private frameGroupBare!: BindGroup;
   private shadowMap: Texture | null = null;
   private shadowLayers = 0;
+  private shadowMask = 0;
   private materialLayout!: object;
   private surfaceLayout!: object;
   /** The surface pipeline description for a shader module and variant (lit or not, two-sided, transparent). */
@@ -248,7 +250,7 @@ export class Viewer {
   /** The scene's box while a frame is drawn (asked for by the shadow, occlusion and camera clip). */
   private frameBox: { box: Box3 | null } | null = null;
   /** What the shadow map was last drawn from (device, size, light view, each caster), as numbers: unchanged, it is kept. */
-  private shadowCache = Array.from({ length: MAX_DIRECTIONAL }, () => ({ drawn: new Float64Array(0), next: new Float64Array(0), length: -1 }));
+  private shadowCache = Array.from({ length: MAX_SHADOWS }, () => ({ drawn: new Float64Array(0), next: new Float64Array(0), length: -1 }));
   /** The frame's shadow casters (a list kept from frame to frame). */
   private casterList: Mesh[] = [];
   private ids = new WeakMap<object, number>();
@@ -309,6 +311,7 @@ export class Viewer {
   private constructor(readonly canvas: HTMLCanvasElement, private readonly options: ViewerOptions) {
     this.camera = new Camera(options.camera);
     this.lights = options.lights ?? defaultLights();
+    validateSpotShadowLights(this.lights);
     this.environment = options.environment ?? {};
     if (options.grid) this.grid = options.grid === true ? { visible: true } : { visible: true, ...options.grid };
     this.background = backgroundOf(options.background);
@@ -346,7 +349,7 @@ export class Viewer {
     await this.createPipelines();
     this.outputBuffer = device.createBuffer({ size: OUTPUT_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer output' });
     this.frameBuffer = device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer frame' });
-    this.shadowFrameBuffers = Array.from({ length: MAX_DIRECTIONAL }, (_, i) => device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: `viewer shadow frame ${i}` }));
+    this.shadowFrameBuffers = Array.from({ length: MAX_SHADOWS }, (_, i) => device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: `viewer shadow frame ${i}` }));
     this.shadowSampler = (device as unknown as { createSampler(d: object): object }).createSampler({ compare: 'less', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
     this.mipSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear' });
     this.rampSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
@@ -368,7 +371,7 @@ export class Viewer {
     this.emptyFrontSamples = device.createTexture({ size: [1, 1], format: CAP_SAMPLES_FORMAT, sampleCount: SAMPLES, usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no caps samples' });
     this.brdfLut = device.createTexture({ size: [BRDF_LUT_SIZE, BRDF_LUT_SIZE], format: 'rg16float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer BRDF table' });
     this.envPass('fsLut', this.white.texture, this.brdfLut, 0, 'rg16float', [0, 0, 1, 0]);
-    this.shadowMap = null; this.shadowLayers = 0; this.lightProbe = null;
+    this.shadowMap = null; this.shadowLayers = 0; this.shadowMask = 0; this.lightProbe = null;
     this.shadowFrameGroups = []; this.shadowCapGroups = [];
     for (const cache of this.shadowCache) cache.length = -1;
     // (The targets were the lost device's: made again, and bound, when next drawn.)
@@ -1340,13 +1343,13 @@ export class Viewer {
   private writeUniforms(viewProjection: Mat4, shadows: readonly (ShadowFrame | null)[] = []): void {
     // (Into the frame block kept for it, G13.)
     const vpt = frameViewport; vpt[0] = this.canvas.width; vpt[1] = this.canvas.height; vpt[2] = this.pixelRatio; const sb = this.sceneBounds(); vpt[3] = sb ? boxRadius(sb) : 0.866;
-    const first = shadows.find(frame => frame !== null) ?? null;
+    const first = shadows.slice(0, MAX_DIRECTIONAL).find(frame => frame !== null) ?? null;
     this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, first, vpt, this.gridFrame(), this.clip, frameBlock, shadows));
     for (let i = 0; i < shadows.length; i++) {
       const shadow = shadows[i]; if (!shadow) continue;
       const f = packFrame(shadow.viewProjection, this.camera, NO_LIGHTS, this.environment, null, SHADOW_VIEWPORT, null, this.clip, shadowFrameBlock);
       // Every encoded light pass owns a distinct buffer: queue writes all precede command submission.
-      if (shadow.eye && shadow.direction) { f[16] = shadow.eye[0]; f[17] = shadow.eye[1]; f[18] = shadow.eye[2]; f[19] = 0; f[20] = shadow.direction[0]; f[21] = shadow.direction[1]; f[22] = shadow.direction[2]; }
+      if (shadow.eye && shadow.direction) { f[16] = shadow.eye[0]; f[17] = shadow.eye[1]; f[18] = shadow.eye[2]; f[19] = shadow.perspective ? 1 : 0; f[20] = shadow.direction[0]; f[21] = shadow.direction[1]; f[22] = shadow.direction[2]; }
       this.device.queue.writeBuffer(this.shadowFrameBuffers[i], 0, f);
     }
     // (Each run of dirty slots written on its own, G8: one write from the lowest dirty slot to the highest sent every block
@@ -1491,7 +1494,7 @@ export class Viewer {
    * nearest beyond each texel's entry into the kept region along the light — in the shadow map's depth (cleared and drawn
    * again by the shadow pass after it), read by the caps drawn into the shadow map.
    */
-  private drawLightProbe(enc: ReturnType<Device['createCommandEncoder']>, casters: readonly Mesh[], layer: number): void {
+  private drawLightProbe(enc: ReturnType<Device['createCommandEncoder']>, casters: readonly Mesh[], slot: number, layer: number): void {
     const size = this.shadowMapSize;
     if (!this.lightProbe || this.lightProbe.width !== size) {
       this.lightProbe?.destroy();
@@ -1502,7 +1505,7 @@ export class Viewer {
       colorAttachments: [{ view: this.lightProbe.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
       depthStencilAttachment: { view: this.shadowLayer(layer), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'discard' },
     });
-    pass.setBindGroup(0, this.shadowFrameGroups[layer]);
+    pass.setBindGroup(0, this.shadowFrameGroups[slot]);
     pass.setPipeline(this.pipelines.get('shadowProbe')!);
     for (const m of casters) {
       if (!this.capped(m) || !this.upload(m.geometry)) continue;
@@ -1592,18 +1595,24 @@ export class Viewer {
     try { this.drawFrame(capture); } finally { this.frameBox = null; this.counting = false; }
   }
   private drawFrame(capture: Buffer | null): void {
+    validateSpotShadowLights(this.lights);
     const vp = this.prepareCamera();
     const { opaque, transparent, culled } = this.visibleMeshes(vp);
     const outlines = this.outlineColors();
     const outlineArea = outlines.length ? this.outlineRect(vp) : null;
-    const shadows = directionalLights(this.lights).map(light => light.castShadow ? this.shadowFrame(light) : null);
-    let layers = 0;
-    for (let i = 0; i < shadows.length; i++) if (shadows[i]) layers = i + 1;
-    // Grow to the highest active directional slot. A single first light still allocates one layer.
+    const shadows: (ShadowFrame | null)[] = Array(MAX_SHADOWS).fill(null);
+    directionalLights(this.lights).forEach((light, i) => { if (light.castShadow) shadows[i] = this.shadowFrame(light); });
+    const scene = this.sceneBounds(), depth = this.clip ? this.depthBounds() : null;
+    spotLights(this.lights).forEach((light, i) => { if (light.castShadow) shadows[MAX_DIRECTIONAL + i] = spotShadowFrame(light, scene, depth, this.shadowMapSize); });
+    let layers = 0, mask = 0;
+    for (let i = 0; i < shadows.length; i++) if (shadows[i]) { layers++; mask |= 1 << i; }
+    // Metadata slots are stable; the texture layers contain only active lights in slot order.
+    // Changing that order can reuse a layer formerly drawn by another light, so invalidate all slots.
+    if (mask !== this.shadowMask) { for (const cache of this.shadowCache) cache.length = -1; this.shadowMask = mask; }
     if (layers && (!this.shadowMap || this.shadowMap.width !== this.shadowMapSize || this.shadowLayers < layers)) {
       this.shadowMap?.destroy();
       this.shadowLayers = Math.max(layers, this.shadowLayers);
-      this.shadowMap = this.device.createTexture({ size: [this.shadowMapSize, this.shadowMapSize, this.shadowLayers], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer directional shadow maps' });
+      this.shadowMap = this.device.createTexture({ size: [this.shadowMapSize, this.shadowMapSize, this.shadowLayers], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer shadow maps' });
       this.bindFrames();
       for (const cache of this.shadowCache) cache.length = -1;
     }
@@ -1617,15 +1626,18 @@ export class Viewer {
     // (The shadow map is drawn again only when the light's view or a caster changed.)
     const casters = this.casterList; casters.length = 0;
     if (layers) for (const m of this.meshes) if (m.visible && m.castShadow && !m.transparent && m.geometry.topology === 'triangles') casters.push(m);
+    let layer = 0;
     for (let i = 0; i < shadows.length; i++) {
       const shadow = shadows[i];
-      if (!shadow || !this.shadowMap || !this.shadowChanged(i, shadow.viewProjection, casters)) continue;
+      if (!shadow) continue;
+      const physicalLayer = layer++;
+      if (!this.shadowMap || !this.shadowChanged(i, shadow.viewProjection, casters)) continue;
       // (G19.4: the capped casters' caps too — first the probe from the light, into the shadow map's own depth.)
       const capping = this.clip ? this.anyCapped(casters) : false;
       this.costPass = 'shadow';
-      if (capping) this.drawLightProbe(enc, casters, i);
+      if (capping) this.drawLightProbe(enc, casters, i, physicalLayer);
       // Every shadow caster, in view or not.
-      const sp = enc.beginRenderPass({ label: `viewer shadow ${i}`, colorAttachments: [], depthStencilAttachment: { view: this.shadowLayer(i), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store' } });
+      const sp = enc.beginRenderPass({ label: `viewer shadow ${i}`, colorAttachments: [], depthStencilAttachment: { view: this.shadowLayer(physicalLayer), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store' } });
       const capGroup = this.shadowCapGroups[i];
       sp.setBindGroup(0, capping && capGroup ? capGroup : this.shadowFrameGroups[i]);
       sp.setPipeline(this.pipelines.get('shadow')!);

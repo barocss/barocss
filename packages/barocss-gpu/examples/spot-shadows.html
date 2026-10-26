@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spot shadows · BaroCSS GPU</title>
+  <style>
+    :root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; background: #17191d; color: #eceef2; }
+    body { max-width: 1040px; margin: 32px auto; padding: 0 20px; }
+    h1 { margin-bottom: 4px; font-size: 1.6rem; }
+    p, figcaption { color: #bbc1cb; }
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin: 18px 0; }
+    label { display: inline-flex; align-items: center; gap: 8px; }
+    input, button { accent-color: #e9b979; }
+    button { padding: 7px 14px; font: inherit; cursor: pointer; }
+    button:disabled { cursor: default; }
+    canvas { display: block; width: 100%; aspect-ratio: 4 / 3; border: 1px solid #414854; background: #20242b; }
+    [hidden] { display: none; }
+    #error { color: #ffb4ad; white-space: pre-wrap; }
+    figure { margin: 24px 0; }
+    output { min-width: 3ch; font-variant-numeric: tabular-nums; }
+  </style>
+  <script type="importmap">{"imports":{"@barocss/cad":"../../barocss-cad/dist/index.js"}}</script>
+  <script type="module" src="./spot-shadows.js"></script>
+</head>
+<body>
+  <h1>Spot shadows</h1>
+  <p>A warm spot light shines past the block onto the floor. The small bright cube marks its source; the line shows its axis. Move the source or aim to inspect the shadow.</p>
+  <div class="controls" role="group" aria-label="Spot light controls">
+    <label><input id="shadow" type="checkbox" checked disabled> Cast shadow</label>
+    <label>Source X <input id="source-x" type="range" min="-6" max="6" step="0.5" value="5" disabled> <output id="source-value" for="source-x">5.0</output></label>
+    <label>Aim X <input id="target-x" type="range" min="-3" max="3" step="0.5" value="0" disabled> <output id="target-value" for="target-x">0.0</output></label>
+  </div>
+  <div class="controls" role="group" aria-label="Spot cone and range controls">
+    <label>Cone half-angle <input id="angle" type="range" min="10" max="60" step="5" value="30" disabled> <output id="angle-value" for="angle">30°</output></label>
+    <label>Range <input id="range" type="range" min="4" max="24" step="1" value="18" disabled> <output id="range-value" for="range">18</output></label>
+    <label>Intensity <input id="intensity" type="range" min="0" max="160" step="10" value="80" disabled> <output id="intensity-value" for="intensity">80</output></label>
+    <button id="capture" type="button" disabled>Capture preview</button>
+  </div>
+  <p id="status" role="status" aria-live="polite">Loading the viewer…</p>
+  <p id="error" role="alert" hidden></p>
+  <canvas id="view" aria-label="Interactive spot light cone and shadow"></canvas>
+  <figure id="capture-output" hidden>
+    <canvas id="still" aria-label="Captured spot light shadow"></canvas>
+    <figcaption id="capture-caption"></figcaption>
+  </figure>
+</body>
+</html>
