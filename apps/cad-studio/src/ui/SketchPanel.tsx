@@ -19,7 +19,7 @@ const NONE: SketchPick[] = [];
  * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`. O16: the contents
  * on shadcn (Input, NativeSelect, Button, FIELD); the shell (its title) and the chip toggles are the studio's.
  */
-export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, onUseOutline, onLinkedInset, onToCurves }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
+export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, onOffset, onUseOutline, onLinkedInset, onToCurves }: { sketch: SketchState; toolLabel: string; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
   /** Sets the picked outline entities or the dimension being edited in the viewport. */
   onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void;
   /** Offsets the newest closed shape by `d` mm (out when positive) as a shape beside it. */
@@ -64,7 +64,7 @@ export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, o
 
   return (
     <aside className="card props sk-panel" aria-label="Sketch">
-      <div className="card-title">SKETCH · {planeLabel(sketch.plane)}{sketch.base ? ' · on face' : ''}</div>
+      <div className="card-title">SKETCH · {toolLabel} · {planeLabel(sketch.plane)}{sketch.base ? ' · on face' : ''}</div>
       {sketch.association && <p role="status">Linked face outline and inset. Geometry or plane edits detach this link.</p>}
       {sketch.associationDetached && <p role="status">Link detached by a geometry or plane edit. This profile is now a snapshot.</p>}
       {onPlace && (() => {
@@ -83,7 +83,7 @@ export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, o
               onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v) && Math.abs(v) < 90) onPlace(anchor.kind, anchor.offset, v); }} /><em>°</em></span></label>
         </div>;
       })()}
-      {!s && <div className="empty">Pick a tool on the left and click on the plane. Points snap to 1 mm.</div>}
+      {!s && <div className="empty">Snap 1 mm</div>}
       {s && <div className={'sk-status' + (status.warn ? ' open' : '')} role="status"><i />{status.text}</div>}
       {error && <div className="sk-status open" role="alert"><i />{error}</div>}
       {s?.kind === 'rectangle' && (() => {
