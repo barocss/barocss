@@ -37,9 +37,13 @@ function markSvg(m: Mark): string {
 /** Marks as SVG elements. */
 export const marksSvg = (marks: readonly Mark[]) => marks.map(markSvg).join('');
 
-/** The sheet's groups as SVG elements (dimensions carry data-dim; the `selected` one has class sel). */
-export function sheetGroupsSvg(sheet: Sheet, selected?: string | null): string {
-  return sheet.groups.map(g => `<g class="${g.role}${selected && g.id === selected ? ' sel' : ''}"${g.view ? ` data-view="${g.view}"` : ''}${g.id ? ` data-dim="${esc(g.id)}"` : ''}>${g.marks.map(markSvg).join('')}</g>`).join('\n');
+/** Sheet groups keep target identity separate from dimension/datum identity when selected or picked. */
+export function sheetGroupsSvg(sheet: Sheet, selected?: string | null, selectedTarget?: string | null): string {
+  return sheet.groups.map(g => {
+    const active = g.datumTarget ? selectedTarget : selected;
+    const identity = g.datumTarget ? 'data-datum-target' : 'data-dim';
+    return `<g class="${g.role}${active && g.id === active ? ' sel' : ''}"${g.view ? ` data-view="${g.view}"` : ''}${g.id ? ` ${identity}="${esc(g.id)}"` : ''}>${g.marks.map(markSvg).join('')}</g>`;
+  }).join('\n');
 }
 
 /** A standalone SVG file of the sheet, printing at true size. */

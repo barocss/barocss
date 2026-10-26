@@ -104,6 +104,7 @@ export function reorient(from: DrawingViews, to: DrawingViews, settings: Drawing
   });
   if (settings.notes) turned.notes = settings.notes.map(n => n.leader ? { ...n, leader: (([view, at]) => ({ view, at }))(mapPlace(n.leader.view, n.leader.at)) } : n);
   if (settings.datums) turned.datums = settings.datums.map(d => { const [view, place] = mapPlace(d.view, d.place); return { ...d, view, place }; });
+  if (settings.datumTargets) turned.datumTargets = settings.datumTargets.map(d => { const [view, place] = mapPlace(d.view, d.place); return { ...d, view, place }; });
   // Every dimension reads as it did.
   const failed: { dim: string; was: string; now: string }[] = [];
   settings.dimensions.forEach((d, k) => {

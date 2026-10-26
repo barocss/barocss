@@ -9,6 +9,8 @@ import { readDetails, type DrawingDetail } from './detail';
 import { readBreaks, type DrawingBreak } from './breaks';
 import { readDatums, type DrawingFace, type DrawingFaceRef } from './datums';
 export type { DrawingFaceRef } from './datums';
+import { readDatumTargets, type DrawingDatumTarget } from './datumTargets';
+export type { DrawingDatumTarget } from './datumTargets';
 import { readFrames, type DrawingFrame } from './controls';
 export type { DrawingFrame } from './controls';
 import { readTitleBlock, readRevisions, type DrawingTitleBlock, type DrawingRevision } from './metadata';
@@ -159,6 +161,7 @@ export interface DrawingSettings {
   /** How the drawing is toleranced (R14.4, O5): by ± values (default) or geometrically (datums and position). */
   tolerancing?: 'plus-minus' | 'geometric';
   datums?: DrawingDatum[];
+  datumTargets?: DrawingDatumTarget[];
   frames?: DrawingFrame[];
 }
 /**
@@ -267,6 +270,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(r.orientation === 'x+' || r.orientation === 'y+' || r.orientation === 'x-' ? { orientation: r.orientation } : {}),
     ...(r.tolerancing === 'geometric' ? { tolerancing: 'geometric' as const } : {}),
     ...(readDatums(r.datums).length ? { datums: readDatums(r.datums) } : {}),
+    ...(readDatumTargets(r.datumTargets).length ? { datumTargets: readDatumTargets(r.datumTargets) } : {}),
     ...(readFrames(r.frames).length ? { frames: readFrames(r.frames) } : {}),
     ...(Array.isArray(r.notes) && r.notes.some(isNote) ? { notes: r.notes.filter(isNote).map(n => ({ id: n.id, text: n.text, at: [n.at[0], n.at[1]] as XY, ...(n.leader && VIEW_IDS.includes(n.leader.view) && isXY(n.leader.at) ? { leader: { view: n.leader.view, at: [n.leader.at[0], n.leader.at[1]] as XY } } : {}) })) } : {}),
     ...(readTables(r.tables).length ? { tables: readTables(r.tables) } : {}),

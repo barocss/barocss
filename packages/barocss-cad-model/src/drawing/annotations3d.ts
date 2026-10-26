@@ -7,6 +7,7 @@
 // persistent edge names (a placed part's `<inst>/` kept) with their 3D points. Ids are the sheet items'. The glyph
 // builders the sheet uses are given in plane coordinates too (`frameGlyph`, `weldGlyph`), one source for both.
 import { datumAnchor } from './datums';
+import { datumTargetConflicts, resolveDatumTarget, type DatumTargetFailureCode } from './datumTargets';
 import type { Characteristic, MaterialModifier } from './controls';
 import type { BrepProjection } from '@barocss/cad';
 import { fmtMM, type Resolved } from './dimensions';
@@ -44,10 +45,10 @@ export interface ModelAnnotation {
   dimension?: { measure: 'linear' | 'diameter' | 'radius' | 'pcd' | 'angle'; value: number; unit: 'mm' | 'deg'; text: string; tol?: Tolerance; basic?: true; count?: number };
   /** The frame's compartments in order (the symbol's, the zone and value, each datum), and its box in plane coordinates [u0, v0, u1, v1]. */
   frame?: { characteristic: Characteristic; zone: 'diameter' | 'linear'; value: number; datums: string[]; dim: string; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; projected?: number; freeState?: boolean; tangentPlane?: boolean; cells: { text: string; symbol?: Characteristic }[]; box: [number, number, number, number] };
-  datum?: { letter: string };
+  datum?: { letter: string; targetNumber?: number };
   weld?: { joint: string; kind: 'fillet' | 'butt'; size: number | null; estimate: boolean; allRound: boolean; inner: boolean };
 }
-export interface ModelAnnotations { version: typeof MODEL_ANNOTATIONS_VERSION; items: ModelAnnotation[]; left: { id: string; why: string }[] }
+export interface ModelAnnotations { version: typeof MODEL_ANNOTATIONS_VERSION; items: ModelAnnotation[]; left: { id: string; why: string; code?: DatumTargetFailureCode }[] }
 /** What the lifting needs of a built sheet: its views, layout, settings and the sheet; the frame's weld joints. */
 export interface AnnotationInputs { views: DrawingViews; layout: SheetLayout; settings: DrawingSettings; sheet: Sheet; welds?: readonly WeldJoint[] }
 
@@ -63,12 +64,19 @@ const dirOf = (p: AnnotationPlane, d: readonly number[]): Vec3 => z0(add3(add3([
 
 /** The drawing's annotations on the model, from a built sheet (lost ones, notes and the isometric view's, said in `left`). */
 export function modelAnnotations(i: AnnotationInputs): ModelAnnotations {
-  const items: ModelAnnotation[] = [], left: { id: string; why: string }[] = [];
+  const items: ModelAnnotation[] = [], left: ModelAnnotations['left'] = [];
   for (const d of i.settings.datums ?? []) if (d.face && !datumAnchor(i.views, d)) left.push({ id: d.id, why: 'its face has no unique current boundary anchor' });
+  const targetConflicts = datumTargetConflicts(i.settings.datumTargets ?? []), omittedTargets = new Set<string>();
+  for (const d of i.settings.datumTargets ?? []) {
+    const result = targetConflicts.has(d) ? { ok: false as const, code: 'DATUM_TARGET_DUPLICATE' as const, reason: 'The datum target id or letter-number is defined more than once.' } : resolveDatumTarget(i.views[d.view], d);
+    if (!result.ok) { left.push({ id: d.id, code: result.code, why: result.reason }); omittedTargets.add(d.id); }
+    else if (i.layout.views[d.view].hidden) { left.push({ id: d.id, why: `its view (${d.view}) is not on the sheet` }); omittedTargets.add(d.id); }
+  }
   for (const r of i.sheet.dimensions) if (!r.ok) left.push({ id: r.dim.id, why: r.reason });
   for (const n of i.settings.notes ?? []) left.push({ id: n.id, why: 'a note is placed on the paper, not on the model' });
   for (const g of i.sheet.groups) {
     if (!g.id || !(g.role === 'dimension' || g.role === 'datum' || g.role === 'control' || g.role === 'weld')) continue;
+    if (g.datumTarget && omittedTargets.has(g.id)) continue;
     const view = g.role === 'control' ? controlView(i, g) : g.view;
     if (!view) continue;
     if (view === 'iso') { left.push({ id: g.id, why: 'in the isometric view: no plane of the model' }); continue; }
@@ -97,9 +105,15 @@ function itemOf(i: AnnotationInputs, g: MarkGroup, view: DimView, v: ViewPlaceme
     if (kind === 'dimension') extra = { dimension: { measure: r.kind, value: r.value, unit: r.kind === 'angle' ? 'deg' : 'mm', text: r.text, ...(r.dim.tol ? { tol: r.dim.tol } : {}), ...(r.dim.basic ? { basic: true as const } : {}), ...(r.dim.count ? { count: r.dim.count } : {}) } };
     else if (f) extra = { frame: { characteristic: f.characteristic, zone: (f.diameter ?? (f.characteristic === 'position')) ? 'diameter' : 'linear', value: f.value, ...(f.material ? { material: f.material } : {}), ...(f.datumModifiers ? { datumModifiers: { ...f.datumModifiers } } : {}), ...(f.projected ? { projected: f.projected } : {}), ...(f.freeState ? { freeState: true } : {}), ...(f.tangentPlane ? { tangentPlane: true } : {}), datums: [...f.datums], dim: f.dim, cells: cellsOf(f), box: boxOf(g.marks, v) } };
   } else if (kind === 'datum') {
-    const d = i.settings.datums?.find(x => x.id === g.id); if (!d) return null;
-    const at = datumAnchor(i.views, d); if (!at) return null;
-    targets = [{ at, ...(d.face ? { face: d.face.face } : { edge: d.edge.edge }) }]; extra = { datum: { letter: d.letter } };
+    if (g.datumTarget) {
+      const d = i.settings.datumTargets?.find(x => x.id === g.id); if (!d) return null;
+      const result = resolveDatumTarget(pr, d); if (!result.ok) return null;
+      targets = [{ at: result.at, edge: result.edge }]; extra = { datum: { letter: d.letter, targetNumber: d.number } };
+    } else {
+      const d = i.settings.datums?.find(x => x.id === g.id); if (!d) return null;
+      const at = datumAnchor(i.views, d); if (!at) return null;
+      targets = [{ at, ...(d.face ? { face: d.face.face } : { edge: d.edge.edge }) }]; extra = { datum: { letter: d.letter } };
+    }
   } else {
     const placed = i.sheet.welds?.placed.find(p => p.label === g.id), j = placed && i.welds?.find(x => x.id === placed.joint);
     if (!placed || !j) return null;
