@@ -66,6 +66,11 @@ decomposition in this candidate; its assembly freedom does not establish robot o
 
 - **Sliders.** Each joint's slider poses the robot, within its limits. **Home** returns every joint to zero, the pose
   the mates solve to.
+- **Numeric pose.** For an independent moving joint, enter turns in degrees or slides in mm.
+  Choose **Apply** or press **Enter** to apply the value. Typing alone does not change the pose.
+  Choose **Cancel** or press **Escape** to discard the edit and restore the displayed value.
+  A value outside the joint's set lower or upper limit is refused; the previous pose stays unchanged.
+  The slider's input window does not add physical joint limits.
 - **A pose is a preview.** It isn't saved, and it doesn't add undo steps.
 - **Links.** **Link masses** lists each link's mass and centre of mass, from its bodies and their materials. The card
   shows the gravity torques at the current pose. Right after an edit, these wait until the masses are worked out.
