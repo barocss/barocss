@@ -1262,4 +1262,3 @@ preparation as `applyMeasuredReviewState`; it does not apply a candidate and the
 undo it. A host can validate every named review before applying one selected
 candidate. Validation does not reserve the scene: apply still validates against
 the current state and can encounter a synchronous presentation failure.
-
