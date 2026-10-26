@@ -38,6 +38,7 @@ function withSketch(doc: StudioDoc, spec: FeatureSpec): StudioDoc {
 }
 
 function apply(doc: StudioDoc, spec: FeatureSpec, body: string | null): StudioDoc {
+  if (spec.command === 'linear-feature-pattern') throw refuse('UNAVAILABLE', 'linear-feature-pattern is not available in a studio part');
   const bodies = doc.nodes.length ? bodiesOf(doc) : [];
   const { selection, unknown } = resolveNames(bodies, namesOf(spec, body));
   if (unknown.length) throw refuse('SELECTION_UNKNOWN', `no face, edge or body named ${unknown.join(', ')} on the part`);

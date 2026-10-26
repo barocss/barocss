@@ -35,6 +35,7 @@ type BaseSpec =
   | { readonly command: 'shell'; readonly faces: readonly string[]; readonly values: { readonly t: number } }
   | { readonly command: BooleanCommand; readonly tool: string; readonly values: Record<string, never> }
   | { readonly command: 'linear-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
+  | { readonly command: 'linear-feature-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
   | { readonly command: 'circular-pattern'; readonly values: { readonly axis: AxisName; readonly count: number; readonly span: number; readonly px: number; readonly py: number } }
   | { readonly command: 'move'; readonly values: { readonly x: number; readonly y: number; readonly z: number } }
   | { readonly command: 'mirror'; readonly values: { readonly plane: 'yz' | 'xz' | 'xy'; readonly at: number } }
@@ -143,6 +144,10 @@ export function booleanSpec(command: BooleanCommand, tool: string): FeatureSpec 
 
 export function linearPatternSpec(o: Resolved<LinearPatternOptions>): FeatureSpec {
   return { command: 'linear-pattern', values: { axis: axisName(o.axis), spacing: positive('spacing', o.spacing), count: count(o.count) } };
+}
+
+export function linearFeaturePatternSpec(o: Resolved<LinearPatternOptions>): FeatureSpec {
+  return { command: 'linear-feature-pattern', values: { axis: axisName(o.axis), spacing: positive('spacing', o.spacing), count: count(o.count) } };
 }
 
 export function circularPatternSpec(o: Resolved<CircularPatternOptions>): FeatureSpec {
