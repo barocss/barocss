@@ -1,3 +1,6 @@
+import { reviewRecord, validateReviewScene } from './review-state.js';
+import type { ViewerReviewSceneV1, ViewerReviewStateV1 } from './review-state.js';
+export type { ViewerReviewSceneV1, ViewerReviewStateV1 } from './review-state.js';
 import { createCadGeometryReference, curveDomain, evaluateCurve, evaluateSurface,
   queryCadDocumentBounds, queryCadAssemblyInstancePoint, surfaceDomain, validateCadDocumentBounds } from '@barocss/cad';
 import type { AdaptiveCurveSamplingResult, WideAdaptiveCurveSamplingResult, CadAssemblyResult,
@@ -2268,6 +2271,70 @@ export class Viewer {
   resize(width: number, height: number): void {
     this.gpuLive(); this.dimensions(width, height);
     this.presenter.setSize(width, height);
+  }
+  private reviewScene(): ViewerReviewSceneV1 {
+    this.gpuLive(); this.primitiveScope();
+    check(this.drawn === 'mesh' || this.drawn === 'qualified', 'Review requires a loaded primitive CAD scene');
+    check(this.document !== null || this.assembly !== null,
+      'Review requires a revisioned CAD document or assembly');
+    const scene = this.assembly?.assembly ?? this.document!.document;
+    // These small pins bind to the actual loaded subset, not to a caller-supplied label.
+    // JSON tuples avoid delimiter collisions. No geometry/source text enters the saved state.
+    const members = this.assembly
+      ? this.assemblyInstances.map(value => JSON.stringify([value.instanceId, value.reference]))
+      : this.documentBodies.map(value => JSON.stringify(value.binding));
+    return { kind: this.assembly ? 'assembly' : 'document',
+      id: 'assemblyId' in scene ? scene.assemblyId : scene.documentId,
+      revision: scene.revision, mmToSceneUnit: this.options.mmToSceneUnit, members };
+  }
+  /** A detached, JSON-safe review of the current revision and loaded subset; excludes geometry. */
+  captureReviewState(): ViewerReviewStateV1 {
+    return structuredClone({ schema: 'barocss-viewer-review', version: 1, scene: this.reviewScene(),
+      camera: this.camera, visibleGeometry: this.geometryRefs().filter(ref => this.visible(ref)),
+      selectedGeometry: this.selectedGeometry });
+  }
+  /** Validate the complete candidate before drawing or changing accepted CPU state. */
+  applyReviewState(input: unknown): void {
+    const scene = this.reviewScene();
+    const data = reviewRecord(input, ['schema', 'version', 'scene', 'camera', 'visibleGeometry', 'selectedGeometry'], 'Review');
+    check(data.schema === 'barocss-viewer-review' && data.version === 1, 'Unsupported Viewer review format');
+    validateReviewScene(data.scene, scene);
+    const cameraData = reviewRecord(data.camera, ['eye', 'target', 'up', 'fovY', 'near', 'far'], 'Review camera');
+    // The GPU validator checks camera geometry. Validate vectors first to refuse accessors/non-data arrays.
+    const camera = validateMeshCamera({ eye: vector(cameraData.eye, 'Review eye', -1000, 1000),
+      target: vector(cameraData.target, 'Review target', -1000, 1000),
+      up: vector(cameraData.up, 'Review up', -Number.MAX_VALUE, Number.MAX_VALUE),
+      fovY: finite(cameraData.fovY, 'Review fovY', 10, 100),
+      near: finite(cameraData.near, 'Review near', 0.0001, 10000),
+      far: finite(cameraData.far, 'Review far', 0.0001, 10000) });
+    check(Array.isArray(data.visibleGeometry) && data.visibleGeometry.length <= 4,
+      'Review visible geometry requires 0..4 references');
+    const visible = denseArray(data.visibleGeometry, data.visibleGeometry.length, 'Review visible geometry').map(parseGeometryRef);
+    const inventory = this.geometryRefs();
+    check(visible.every(ref => inventory.some(value => sameGeometryRef(value, ref))), 'Review contains unknown geometry');
+    check(visible.every((ref, i) => visible.findIndex(value => sameGeometryRef(value, ref)) === i),
+      'Review contains duplicate geometry');
+    const selection = data.selectedGeometry === null ? null : parseGeometryRef(data.selectedGeometry);
+    check(selection === null || visible.some(ref => sameGeometryRef(ref, selection)), 'Review selection must be visible');
+    check(!this.clothFrame || visible.some(ref => ref.kind === 'surface'), 'Clear cloth layer before hiding the native Surface');
+    check(!this.fluidFrame || visible.some(ref => ref.kind === 'surface'), 'Clear fluid layer before hiding the native Surface');
+    check(this.surfaceMaterials.every(material => visible.some(ref => ref.kind === 'surface' && sameRef(ref, material.ref))),
+      'Clear Surface material before hiding its native Surface');
+    check(selection?.kind !== 'surface' || !this.surfaceMaterials.some(material => sameRef(selection, material.ref)),
+      'Clear Surface material before selecting the bound Surface');
+    const hidden = inventory.filter(ref => !visible.some(value => sameGeometryRef(value, ref)));
+    const surface = selection?.kind === 'surface' ? { modelId: selection.modelId, surfaceId: selection.surfaceId } : null;
+    try {
+      this.present(this.packets, this.curves, camera, surface, this.motion, selection, this.geometryMotion,
+        this.drawn === 'qualified', hidden);
+    } catch (error) {
+      // The shared presenter can fail after removing old meshes. Restore the accepted drawing.
+      try { this.present(this.packets, this.curves, this.camera, this.selected, this.motion); }
+      catch (recoveryError) { throw new AggregateError([error, recoveryError], 'Review display and recovery failed'); }
+      throw error;
+    }
+    this.camera = camera; this.hiddenGeometry = hidden;
+    this.selected = surface; this.selectedGeometry = selection;
   }
   getState(): ViewerState {
     const status = this.disposed ? 'disposed' : this.packets.length + this.curves.length || this.shell?.boundsScene || this.qualifiedFaceScene ? 'ready' : 'empty';
