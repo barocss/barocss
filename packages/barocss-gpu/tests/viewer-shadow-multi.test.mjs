@@ -20,14 +20,14 @@ const slot = (frame, index) => frame.slice(legacyFloats + index * shadowStride, 
 const expected = frame => [...frame.viewProjection, frame.normalOffset, frame.texel, frame.bias, frame.softness ?? 0];
 
 test('multi-directional shadow storage follows the unchanged frame prefix and preserves viewport and clip offsets', () => {
-  assert.equal(MAX_DIRECTIONAL, 4); assert.equal(MAX_SHADOWS, 14); assert.equal(FRAME_BYTES, 2240);
+  assert.equal(MAX_DIRECTIONAL, 4); assert.equal(MAX_SHADOWS, 14); assert.equal(FRAME_BYTES, 2304);
   const clip = { normal: [0, 1, 0], offset: 3, cap: [1, 0, 0], planes: [{ normal: [0, 1, 0], offset: 3 }], cutout: true };
   const frame = packFrame(view, camera, [], {}, null, [640, 480, 2, 7], null, clip);
-  assert.equal(frame.byteLength, 2240);
+  assert.equal(frame.byteLength, 2304);
   assert.deepEqual([...frame.slice(220, 224)], [640, 480, 2, 7]);
   assert.deepEqual([...frame.slice(248, 252)], [1, 0, 0, -1]);
   assert.deepEqual([...frame.slice(252, 256)], [0, 1, 0, 3]);
-  assert.deepEqual([...frame.slice(legacyFloats)], new Array(MAX_SHADOWS * shadowStride + 4).fill(0));
+  assert.deepEqual([...frame.slice(legacyFloats)], new Array(FRAME_BYTES / 4 - legacyFloats).fill(0));
 });
 
 test('a legacy single shadow populates its directional slot and keeps the original primary shadow fields', () => {
@@ -68,7 +68,7 @@ test('explicit inactive frames override the legacy shadow and a reused target cl
   const packed = pack(lights, [null, null, null, null], shadow(9), target);
   assert.equal(packed, target); assert.equal(words(packed)[39], 0); assert.equal(words(packed)[maskIndex], 0);
   assert.deepEqual([...packed.slice(200, 220)], new Array(20).fill(0));
-  assert.deepEqual([...packed.slice(legacyFloats)], new Array(MAX_SHADOWS * shadowStride + 4).fill(0));
+  assert.deepEqual([...packed.slice(legacyFloats)], new Array(FRAME_BYTES / 4 - legacyFloats).fill(0));
   const absent = pack([light()], undefined);
   assert.equal(words(absent)[39], 0); assert.equal(words(absent)[maskIndex], 0);
   const fifthOnly = pack([light(false), light(false), light(false), light(false), light()], [null, null, null, null, shadow(1)], shadow(1));

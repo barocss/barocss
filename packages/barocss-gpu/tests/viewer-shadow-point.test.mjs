@@ -130,7 +130,7 @@ test('point camera translation uses a direct fixed basis and refuses unrepresent
 });
 
 test('mixed shadow metadata keeps legacy offsets and dense-mask inputs while point selection uses the point-light index', () => {
-  assert.equal(FRAME_BYTES, 2240); assert.equal(MAX_SHADOWS, 14); assert.equal(POINT_SHADOW_START, 8); assert.equal(POINT_SHADOW_FACES, 6);
+  assert.equal(FRAME_BYTES, 2304); assert.equal(MAX_SHADOWS, 14); assert.equal(POINT_SHADOW_START, 8); assert.equal(POINT_SHADOW_FACES, 6);
   const dir = { kind: 'directional', direction: [0, 0, -1], castShadow: true }, spot = { kind: 'spot', position: [0, 0, 0], direction: [0, 0, -1], castShadow: true };
   const chosen = point({ range: 10 }), lights = [point({ castShadow: false }), dir, spot, chosen];
   const shadow = seed => { const viewProjection = identity(); viewProjection[12] = seed; return { viewProjection, normalOffset: 0.125, texel: 1 / 1024, bias: 1 / 2048, softness: 0.25 }; };
@@ -164,7 +164,7 @@ test('partial or sparse point faces disable all six metadata slots and reuse cle
   assert.equal(new Uint32Array(pack([light], sparse).buffer)[maskOffset], 0);
   assert.equal(new Uint32Array(pack([light], complete.slice(0, 13)).buffer)[maskOffset + 1], 0);
   pack([point({ castShadow: false })], complete, packed);
-  assert.deepEqual([...packed.slice(436)], new Array(124).fill(0));
+  assert.deepEqual([...packed.slice(436)], new Array(FRAME_BYTES / 4 - 436).fill(0));
 });
 
 test('point projection and packing preserve caller lights, bounds and frame arrays and own their eye snapshots', () => {

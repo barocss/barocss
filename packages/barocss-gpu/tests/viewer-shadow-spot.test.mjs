@@ -112,7 +112,7 @@ test('subnormal and maximum f32 spot directions pack finite unit axes aligned wi
 });
 
 test('mixed directional and spot metadata keeps slots zero, three, four and seven with mask 0x99', () => {
-  assert.equal(MAX_SHADOWS, 14); assert.equal(FRAME_BYTES, 2240);
+  assert.equal(MAX_SHADOWS, 14); assert.equal(FRAME_BYTES, 2304);
   const dir = castShadow => ({ kind: 'directional', direction: [0, 0, -1], castShadow });
   const lights = [dir(true), spot(), dir(false), spot({ castShadow: false }), dir(false), dir(true), spot({ castShadow: false }), spot()];
   const shadow = value => { const viewProjection = identity(); viewProjection[12] = value; return { viewProjection, normalOffset: value / 8, texel: 1 / 1024, bias: 1 / 2048, softness: value / 16 }; };
@@ -127,7 +127,7 @@ test('mixed directional and spot metadata keeps slots zero, three, four and seve
   for (const slot of [1, 2, 5, 6]) assert.deepEqual([...packed.slice(276 + slot * 20, 296 + slot * 20)], new Array(20).fill(0));
   assert.deepEqual([...packed.slice(200, 216)], [...frames[0].viewProjection]); assert.deepEqual(frames, before);
   packFrame(identity(), new Camera(), lights, {}, null, undefined, null, null, packed, new Array(8).fill(null));
-  assert.equal(words[maskIndex], 0); assert.deepEqual([...packed.slice(276)], new Array(MAX_SHADOWS * 20 + 4).fill(0));
+  assert.equal(words[maskIndex], 0); assert.deepEqual([...packed.slice(276)], new Array(FRAME_BYTES / 4 - 276).fill(0));
 });
 
 test('spot-only shadows leave legacy directional fields empty and exclude the fifth or disabled spot', () => {

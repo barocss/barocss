@@ -36,7 +36,7 @@ box.outline = '#e8c25a';                // a selection outline around the visibl
   back to front; shadow catchers (`shadowOnly`).
 - Lines: screen-space width (`lineWidth`), segment ids (`edges`) and `pickLine()`.
 - Scene: instancing (`instances`: a transform and colour each, one draw), frustum culling, directional
-  shadows (up to four lights, PCF/PCSS), spot shadows (up to four lights, PCF), and one point shadow (six-face PCF) with `castShadow: true`, ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
+  shadows (up to four lights, PCF/PCSS), spot shadows (up to four lights, PCF/PCSS), and one point shadow (six-face PCF) with `castShadow: true`, ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
   exposure and ACES tone mapping in a linear half-float pipeline.
 - Tests: `tests/viewer-core.test.mjs` (Node), `tests/viewer-browser.test.mjs` and
   `tests/scene-viewer-browser.test.mjs` (Chrome's WebGPU, `CHROME` and `PW_DIR`,
@@ -51,6 +51,13 @@ vectors, with nonzero direction; the cone angle must be between 0 and 90 degrees
 and range must be finite and nonnegative. Invalid enabled spot shadow inputs
 refuse with `LIGHT_INVALID`. A positive range limits the shadow projection;
 range 0 fits its depth to the scene. `softShadows` applies to directional lights.
+For a spot light, `shadowRadius` sets the light disk radius in world units. A
+positive value enables PCSS: the shadow spreads with receiver–blocker distance.
+Zero or omission retains the existing PCF shadow. The radius must be finite,
+nonnegative and representable in f32; invalid enabled inputs refuse with
+`LIGHT_INVALID`. This radius is separate from `penumbra`, which fades the cone's
+lighting edge. PCSS uses bounded blocker-search and filter radii in the shadow
+map; it is an approximation of a disk light, rather than an area-light renderer.
 One of the first eight point lights can set `castShadow: true`; enabling two or
 more refuses with `LIGHT_INVALID`. Its six 90-degree faces use PCF at the same
 map resolution. Position must be a finite f32 vector; range must be finite,

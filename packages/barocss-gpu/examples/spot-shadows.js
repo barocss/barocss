@@ -1,5 +1,5 @@
 const byId = id => document.getElementById(id);
-const controls = ['shadow', 'source-x', 'target-x', 'angle', 'range', 'intensity'].map(byId);
+const controls = ['shadow', 'source-x', 'target-x', 'angle', 'penumbra', 'shadow-radius', 'range', 'intensity'].map(byId);
 const status = byId('status'), error = byId('error'), captureButton = byId('capture');
 let api = null, viewer = null, sourceMarker = null, axis = null, closed = false, capturing = false, epoch = 0;
 
@@ -14,10 +14,11 @@ function updateLight() {
   epoch++;
   const x = Number(byId('source-x').value), aim = Number(byId('target-x').value);
   const angle = Number(byId('angle').value), range = Number(byId('range').value), intensity = Number(byId('intensity').value), castShadow = byId('shadow').checked;
+  const penumbra = Number(byId('penumbra').value), shadowRadius = Number(byId('shadow-radius').value);
   const position = [x, -3, 7], target = [aim, 0, 0.6], direction = target.map((value, i) => value - position[i]);
   viewer.lights = [
     { kind: 'directional', direction: [-0.3, 0.4, -1], color: '#486994', intensity: 0.3 },
-    { kind: 'spot', position, direction, color: '#ffe8bd', intensity, angle, penumbra: 0.2, range, castShadow },
+    { kind: 'spot', position, direction, color: '#ffe8bd', intensity, angle, penumbra, shadowRadius, range, castShadow },
   ];
   sourceMarker.transform = api.translation(position);
   const line = api.identity();
@@ -26,8 +27,9 @@ function updateLight() {
   viewer.requestRender();
   byId('source-value').value = x.toFixed(1); byId('target-value').value = aim.toFixed(1);
   byId('angle-value').value = `${angle}°`; byId('range-value').value = String(range); byId('intensity-value').value = String(intensity);
+  byId('penumbra-value').value = penumbra.toFixed(1); byId('radius-value').value = shadowRadius.toFixed(1);
   error.hidden = true;
-  status.textContent = `Spot shadow ${castShadow ? 'on' : 'off'} · source X ${x.toFixed(1)} · aim X ${aim.toFixed(1)} · cone ${angle}° · range ${range}${capturing ? ' · earlier capture discarded' : ''}`;
+  status.textContent = `Spot shadow ${castShadow ? 'on' : 'off'} · source X ${x.toFixed(1)} · aim X ${aim.toFixed(1)} · cone ${angle}° · beam fade ${penumbra.toFixed(1)} · light radius ${shadowRadius.toFixed(1)} · range ${range}${capturing ? ' · earlier capture discarded' : ''}`;
 }
 
 captureButton.addEventListener('click', async () => {

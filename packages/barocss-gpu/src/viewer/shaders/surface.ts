@@ -107,6 +107,57 @@ fn softShadowAt(uv: vec2f, z: f32, world: vec3f, light: u32) -> f32 {
   for (var i = 0; i < 16; i++) { lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + rot * DISC[i] * radius, layer, z); }
   return lit / 16.0;
 }
+// Standard perspective depth -> actual axial distance. The equivalent n*f formula can overflow.
+fn spotShadowDistance(depth: f32, params: vec4f) -> f32 {
+  let ratio = params.x / params.y;
+  return clamp(params.x / max(1.0 - depth * (1.0 - ratio), ratio), params.x, params.y);
+}
+// A world-space disk projects to .5*focal*R*(zr-zb)/(zb*zr) UV units.
+// Keep products in their mantissas until the texel cap is known, including maximum finite f32 inputs.
+fn spotShadowRadius(params: vec4f, blocker: f32, receiver: f32, limit: f32) -> f32 {
+  let gap = max(1.0 - blocker / receiver, 0.0);
+  if (!(gap > 0.0)) { return 0.0; }
+  let r = frexp(params.w); let f = frexp(params.z); let g = frexp(gap); let z = frexp(blocker);
+  let value = frexp(0.5 * r.fract * f.fract * g.fract / z.fract);
+  let exponent = r.exp + f.exp + g.exp - z.exp + value.exp;
+  let bound = frexp(limit);
+  if (exponent > bound.exp || (exponent == bound.exp && value.fract >= bound.fract)) { return limit; }
+  return ldexp(value.fract, exponent);
+}
+// Spot PCSS uses perspective distances; directional PCSS keeps its existing linear-depth formula above.
+fn softSpotShadowAt(uv: vec2f, depth: f32, reference: f32, world: vec3f, light: u32) -> f32 {
+  let params = frame.spotShadowParams[light - ${MAX_DIRECTIONAL}u];
+  let receiver = spotShadowDistance(depth, params);
+  let layer = shadowLayerIndex(light);
+  let texel = frame.shadowLights[light].params.y;
+  let size = vec2f(textureDimensions(shadowMap));
+  let angle = fract(sin(dot(fract(world), vec3f(12.9898, 78.233, 37.719))) * 43758.5453) * 6.2831853;
+  let rot = mat2x2f(cos(angle), sin(angle), -sin(angle), cos(angle));
+  let search = max(2.0 * texel, spotShadowRadius(params, params.x, receiver, 24.0 * texel));
+  var mean = 0.0;
+  var count = 0.0;
+  for (var i = 0; i < 16; i++) {
+    let q = uv + rot * DISC[i] * search;
+    if (!(all(q >= vec2f(0.0)) && all(q <= vec2f(1.0)))) { continue; }
+    let d = textureLoad(shadowMap, min(vec2i(q * size), vec2i(size) - 1), layer, 0);
+    if (d >= 0.0 && d < 1.0 && d < reference) {
+      let blocker = spotShadowDistance(d, params);
+      if (blocker > 0.0 && blocker < receiver) {
+        count += 1.0;
+        mean += (blocker - mean) / count;
+      }
+    }
+  }
+  if (count == 0.0) { return 1.0; }
+  let radius = max(texel, spotShadowRadius(params, mean, receiver, 32.0 * texel));
+  var lit = 0.0;
+  for (var i = 0; i < 16; i++) {
+    let q = uv + rot * DISC[i] * radius;
+    if (!(all(q >= vec2f(0.0)) && all(q <= vec2f(1.0)))) { lit += 1.0; }
+    else { lit += textureSampleCompareLevel(shadowMap, shadowSampler, q, layer, reference); }
+  }
+  return lit / 16.0;
+}
 /** Lit share (0–1) of a point by the shadow map: 3×3 percentage-closer filtering, or soft (PCSS) when the light has a size. */
 fn shadowAt(world: vec3f, n: vec3f, light: u32) -> f32 {
   let shadow = frame.shadowLights[light];
@@ -116,6 +167,9 @@ fn shadowAt(world: vec3f, n: vec3f, light: u32) -> f32 {
   let uv = vec2f(q.x * 0.5 + 0.5, 0.5 - q.y * 0.5);
   if (any(uv < vec2f(0.0)) || any(uv > vec2f(1.0)) || q.z < 0.0 || q.z > 1.0) { return 1.0; }
   if (light < ${MAX_DIRECTIONAL}u && shadow.params.w > 0.0) { return softShadowAt(uv, q.z - shadow.params.z, world, light); }
+  if (light >= ${MAX_DIRECTIONAL}u && light < ${MAX_DIRECTIONAL + MAX_SPOT}u && frame.spotShadowParams[light - ${MAX_DIRECTIONAL}u].w > 0.0) {
+    return softSpotShadowAt(uv, q.z, q.z - shadow.params.z, world, light);
+  }
   let layer = shadowLayerIndex(light);
   var lit = 0.0;
   for (var y = -1; y <= 1; y++) {
