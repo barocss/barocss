@@ -114,6 +114,9 @@ export function intersectPatches(A: Patch, B: Patch, options: {
   readonly seeds?: readonly Point[];
 }): IntersectionChain[] {
   const n = options.grid ?? 24, h = options.step, tol = options.tolerance;
+  if (!Number.isFinite(h) || !(h > 0)) throw new SurfaceIntersectionError('step must be a finite positive number');
+  if (!Number.isFinite(tol) || !(tol >= 0)) throw new SurfaceIntersectionError('tolerance must be a finite nonnegative number');
+  if (!Number.isFinite(n) || !Number.isInteger(n) || !(n > 0)) throw new SurfaceIntersectionError('grid must be a finite positive integer');
   // A chain point and both parameter tracks must describe the same finite intersection.
   const withinTolerance = (r: NonNullable<ReturnType<typeof onBoth>>): boolean => {
     if (!r.pa.every(Number.isFinite) || !r.pb.every(Number.isFinite) || !r.x.every(Number.isFinite)) return false;
@@ -122,6 +125,7 @@ export function intersectPatches(A: Patch, B: Patch, options: {
       && len(sub(a, b)) <= tol && len(sub(a, r.x)) <= tol && len(sub(b, r.x)) <= tol;
   };
   let budget = options.budget ?? 200000;
+  if (!Number.isFinite(budget) || !(budget >= 0)) throw new SurfaceIntersectionError('budget must be a finite nonnegative number');
   const spend = () => { if (--budget < 0) throw new SurfaceIntersectionError('too many marching steps (the surfaces touch or overlap along a curve)'); };
   const gridOf = (P: Patch) => { const [[u0, v0], [u1, v1]] = P.box, pts: { p: XY; x: Point }[][] = [];
     for (let i = 0; i <= n; i++) { const row: { p: XY; x: Point }[] = []; for (let j = 0; j <= n; j++) { const p: XY = [u0 + (u1 - u0) * i / n, v0 + (v1 - v0) * j / n]; row.push({ p, x: P.at(p) }); } pts.push(row); } return pts; };
