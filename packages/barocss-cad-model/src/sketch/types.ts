@@ -1,5 +1,6 @@
 // The sketch's state types (PKG-b, B1): the shapes a sketch is drawn with, the tool, the anchor and the state — the
 // model's (sketch/*), not the viewport's. viewport/Viewport.tsx re-exports them for the UI.
+import type { PlanarFaceOutlineInsetAssociation } from '../engine/doc';
 import type { PlaneKind, SketchPlane } from './plane';
 import type { SketchRule } from './terms';
 import type { SketchPick } from './rules';
@@ -35,12 +36,15 @@ export type SketchShape = (
 };
 
 /** What a sketch plane is placed from: the face it was started on or a coordinate plane, moved by `offset` along its normal. */
-export interface SketchAnchor { kind: 'face' | PlaneKind; offset: number; /** Degrees tipped about the plane's X axis (before the offset). */ angle?: number; face?: { plane: SketchPlane; base: { node: number; side: string } | null; /** The face's own outline and holes as sketch shapes (to use, or to snap to). */ outline?: SketchShape[] } }
+export interface SketchAnchor { kind: 'face' | PlaneKind; offset: number; /** Degrees tipped about the plane's X axis (before the offset). */ angle?: number; face?: { plane: SketchPlane; base: { node: number; side: string } | null; /** The face's own outline and holes as sketch shapes (to use, or to snap to). */ outline?: SketchShape[]; /** Validated on explicit linked use; no mesh index is persisted. */ linkSource?: Omit<PlanarFaceOutlineInsetAssociation, 'insetMM'> } }
 export interface SketchState { plane: SketchPlane; anchor?: SketchAnchor; /** Closed shapes drawn before the current one. */ done?: SketchShape[]; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null; /** What the finished profile makes by default. */ make?: Make;
   /** Outline points and edges picked with the Select tool; the dimension open in the viewport editor (len<i>, rad<i>, dist<a>_<b>). */
   picked?: SketchPick[]; editDim?: string | null;
   /** Set when a finished sketch is reopened: Finish replaces this node instead of adding a feature. */
   editNode?: number;
+  /** Explicit linked profile; manual geometry or plane edits detach it. */
+  association?: PlanarFaceOutlineInsetAssociation;
+  associationDetached?: boolean;
   /**
    * A reopened sketch from before R10a (no side ids): its walls' positional names to the ids its shapes took in that
    * order (`side2` → `side[e3]`), so Finish names the later features' references by them (D86).

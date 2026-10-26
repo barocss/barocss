@@ -3,6 +3,7 @@ import { Fragment, Profiler, Suspense, lazy, useCallback, useEffect, useMemo, us
 import { EngineClient, type ProposalOverlay } from './engine/client';
 import { PROPOSAL_ADDED, PROPOSAL_REMOVED, type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { multiply } from '@barocss/gpu/viewer';
+import { resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
 import { placedDoc, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { placementOf } from '@barocss/cad-model/engine/placement';
 import { instanceEvaluationCurrent, instanceEvaluationSources } from './viewport/instanceEvaluation';
@@ -325,6 +326,8 @@ const CAD_DISPLAY_MODES: { value: DisplayMode; label: string }[] = [
   { value: 'x-ray', label: 'X-ray' },
 ];
 
+const detachSketchLink = (s: SketchState): SketchState => s.association ? { ...s, association: undefined, associationDetached: true } : s;
+
 export function App() {
   countRender('App');
   const engine = useMemo(() => new EngineClient(), []);
@@ -368,7 +371,10 @@ export function App() {
    */
   const [bodyDrag, setBodyDrag] = useState<{ matrix: Float64Array; settling: boolean } | null>(null);
   const previewFor = useRef<string | null>(null);
-  const [sketch, setSketch] = useState<SketchState | null>(null);
+  const [sketch, setSketchState] = useState<SketchState | null>(null);
+  // Invalidate an in-flight linked Finish before a queued sketch change renders (including Cancel).
+  const sketchGeneration = useRef(0);
+  const setSketch = useCallback((next: Parameters<typeof setSketchState>[0]) => { sketchGeneration.current++; setSketchState(next); }, []);
   /** The Render workspace: the part with its appearances, lights and environment. */
   const [rendering, setRendering] = useState(false);
   /** The Drawing workspace: the part's dimensioned 2D views on a sheet. */
@@ -411,8 +417,8 @@ export function App() {
     if (shape) { const c = !prev || fresh ? constructRef.current : !!prev.construction; shape = c ? { ...shape, construction: true } : shape.construction ? (({ construction: _c, ...rest }) => rest as SketchShape)(shape) : shape; }
     const r = settleShape(shape, keep ? null : prev); liveShape.current = r.shape;
     if (!keep && isSettled(prev) && isSettled(r.shape)) sketchHistory.current.push(prev, r.shape);
-    setSketchError(r.error); setSketch(s => s && { ...s, shape: r.shape, ...(keep ? { done: joinOpen([...(s.done ?? []), keep]) } : {}) });
-  }, []);
+    setSketchError(r.error); setSketch(s => s && { ...(JSON.stringify(s.shape) === JSON.stringify(r.shape) && !keep ? s : detachSketchLink(s)), shape: r.shape, ...(keep ? { done: joinOpen([...(s.done ?? []), keep]) } : {}) });
+  }, [setSketch]);
   useEffect(() => { if (!sketch) { setSketchError(null); sketchHistory.current.clear(); } }, [sketch]);
   const [palette, setPalette] = useState(false);
   // (G12a: the chat column's open state and width, kept per viewer; collapsed when the window narrows past what fits.)
@@ -1008,7 +1014,7 @@ export function App() {
     else setToast({ title: 'Could not export an image', hint: 'Rendering needs a browser with WebGPU.', detail: '' });
   };
 
-  const cancel = useCallback(() => { setActive(null); setPreviewBodies(null); setSketch(null); }, []);
+  const cancel = useCallback(() => { setActive(null); setPreviewBodies(null); setSketch(null); }, [setSketch]);
 
   // Live preview: re-evaluate the candidate whenever HUD values change. One evaluation at a time, the
   // newest values next (a drag sends many): the preview keeps up as fast as the kernel does, with no
@@ -1105,7 +1111,7 @@ export function App() {
     // (Not when it places an instance: those bodies are the instance's, shown once it is evaluated.)
     if (previewBodies && (next.instances?.length ?? 0) === (active.ctx.doc.instances?.length ?? 0)) { setBodies(previewBodies); claimBodies.current = true; }
     commit(next); setActive(null); setPreviewBodies(null); setSketch(null);
-  }, [activeStore, commit, previewBodies, bearingRootCurrent]);
+  }, [activeStore, commit, previewBodies, bearingRootCurrent, setSketch]);
   // (Only for the command it was asked for: cancelled or replaced, it is forgotten. R1d: looked at after each render — a
   // preview's result renders the App with its bodies — and as the preview's state settles without one, an error.)
   useEffect(() => {
@@ -1133,7 +1139,8 @@ export function App() {
       const base = face ? refOf(bodies[f.body]) : null;
       const make = cmd.id === 'revolve' ? 'revolve-y' as const : cmd.id === 'pipe' ? 'pipe' as const : cmd.id === 'loft' ? 'loft' as const : undefined;
       const fp = face ? faceProfile(bodies[f.body].mesh, f.face) : null, outline = fp ? (({ shape, done }) => [...(shape ? [shape] : []), ...done])(sketchShapes(fp)) : undefined;
-      const anchor: SketchAnchor = face ? { kind: 'face', offset: 0, face: { plane, base, ...(outline?.length ? { outline } : {}) } } : { kind: 'xy', offset: 0 };
+      const linkSource = face && base && base.side === 'solid' && !doc.instances?.length ? { kind: 'planar-face-outline-inset' as const, version: 1 as const, source: base, sourceFeature: featureId(doc.nodes, base.node), face: face.name } : undefined;
+      const anchor: SketchAnchor = face ? { kind: 'face', offset: 0, face: { plane, base, ...(outline?.length ? { outline } : {}), ...(linkSource ? { linkSource } : {}) } } : { kind: 'xy', offset: 0 };
       setSketch({ plane, anchor, tool: make && make !== 'loft' ? 'circle' : 'rectangle', shape: null, base, ...(make ? { make } : {}) }); setActive(null); setPreviewBodies(null);
       const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies, plane);
       viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS); return;
@@ -1163,7 +1170,7 @@ export function App() {
     // the current authored targets when it builds its candidate, as well as when it lists choices.
     const startCtx = cmd.id === 'bearing' ? { ...ctx, doc: { ...ctx.doc, instances: doc.instances } } : ctx;
     setActive({ cmd, values: cmd.defaults?.(startCtx) ?? {}, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
-  }, [ctx, selection, bodies, engine, commit, evaluated.nodes, variants.showing]);
+  }, [ctx, selection, bodies, engine, commit, evaluated.nodes, variants.showing, setSketch]);
 
   // Shift-Enter: once the part has its new bodies (and the selection followed them), the command again.
   useEffect(() => { if (restart && !active) { setRestart(null); start(commands.find(c => c.id === restart.id) ?? restart); } }, [restart, active, start]);
@@ -1196,10 +1203,10 @@ export function App() {
     if (!sketch) return;
     const face = sketch.anchor?.face, base = kind === 'face' ? face?.base ?? null : null;
     const plane = offsetPlane(tiltPlane(kind === 'face' && face ? face.plane : standardPlane(kind === 'face' ? 'xy' : kind), angle), offset);
-    setSketch({ ...sketch, plane, base, anchor: { ...(sketch.anchor ?? { offset: 0 }), kind, offset, angle } });
+    setSketch({ ...(JSON.stringify(sketch.plane) === JSON.stringify(plane) ? sketch : detachSketchLink(sketch)), plane, base, anchor: { ...(sketch.anchor ?? { offset: 0 }), kind, offset, angle } });
     const [min, max] = sketchRegion(bodies, plane);
     viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
-  }, [sketch, bodies]);
+  }, [sketch, bodies, setSketch]);
 
   /** The sketch's shapes as curves of the direct geometry (one per shape, through the sketch plane); the sketch is left. */
   const sketchToCurves = async () => {
@@ -1230,7 +1237,7 @@ export function App() {
     if (!target) { setToast({ title: 'Nothing to offset', hint: 'Draw a closed shape first.', detail: '' }); return; }
     const r = offsetShape(target, d);
     if ('error' in r) { setToast({ title: 'Cannot offset', hint: r.error, detail: '' }); return; }
-    setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), r.shape] });
+    setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), r.shape] });
   };
   /** Trims, extends or splits the piece of the sketch at `at` (plane mm); open pieces meeting end to end join. */
   const trimSketch = (op: 'trim' | 'extend' | 'split', at: [number, number], tol: number) => {
@@ -1238,18 +1245,37 @@ export function App() {
     const shapes = sketch.editNode !== undefined && sketch.shape ? [sketch.shape, ...(sketch.done ?? [])] : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])];
     const r = (op === 'trim' ? trimAt : op === 'extend' ? extendAt : splitAt)(shapes.map(x => x.kind === 'polygon' ? { ...x, pending: false } : x), at, tol);
     if ('error' in r) { setToast({ title: op === 'trim' ? 'Nothing to trim there' : op === 'extend' ? 'Nothing to extend there' : 'Nothing to split there', hint: r.error, detail: '' }); return; }
-    setSketch(s => s && { ...s, shape: null, done: r.shapes, picked: [] });
+    setSketch(s => s && { ...detachSketchLink(s), shape: null, done: r.shapes, picked: [] });
   };
   /** Reopens the sketch node `index` in the sketcher (Select tool, its kept constraints back); Finish writes it back in place. */
   const editSketch = (index: number) => {
-    const node = doc.nodes[index]; if (node?.kind !== 'sketch') return;
+    const stored = doc.nodes[index]; if (stored?.kind !== 'sketch') return;
+    let node: SketchNode;
+    try { node = stored.association !== undefined ? resolveAssociativeSketch(doc, index) : stored; }
+    catch (error) { setToast({ title: 'Cannot open linked sketch', hint: error instanceof Error ? error.message : String(error), detail: '' }); return; }
     const { shape, done, positional } = sketchShapes(node), plane: SketchPlane = node.plane ? { origin: [...node.plane.origin], normal: [...node.plane.normal], xAxis: [...node.plane.xAxis] } : xyPlane();
     setEditNode(null); setActive(null); setPreviewBodies(null); setSelection(emptySel);
-    setSketch(startPicking({ plane, tool: 'select', shape, done, base: null, editNode: index, ...(positional ? { positional } : {}) }, 'select'));
+    setSketch(startPicking({ plane, tool: 'select', shape, done, base: node.association ? node.on ?? node.association.source : null, editNode: index, ...(node.association ? { association: node.association } : {}), ...(positional ? { positional } : {}) }, 'select'));
     const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
+  };
+  const linkSketchInset = (insetMM: number) => {
+    const source = sketch?.anchor?.face?.linkSource;
+    if (!sketch || !source) return;
+    if (!Number.isFinite(insetMM) || insetMM <= 0) { setToast({ title: 'Cannot link face outline', hint: 'Enter a finite positive inset distance.', detail: '' }); return; }
+    if (sketch.shape || sketch.done?.length) { setToast({ title: 'Cannot link face outline', hint: 'Start with an empty sketch. Existing shapes are preserved.', detail: '' }); return; }
+    try {
+      const association = { ...source, insetMM }, index = doc.nodes.length;
+      const candidate = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [1, 1], association } as SketchNode);
+      const node = resolveAssociativeSketch(candidate, index), { shape, done } = sketchShapes(node);
+      const plane = planeOf(node);
+      setSketch({ ...sketch, plane, shape, done, base: association.source, association, associationDetached: false });
+    } catch (error) { setToast({ title: 'Cannot link face outline', hint: error instanceof Error ? error.message : String(error), detail: '' }); }
   };
   const finishSketch = useCallback(() => {
     if (!sketch || (!sketch.shape && !sketch.done?.length)) { setSketch(null); return; }
+    const requestedGeneration = sketchGeneration.current;
+    const linked = !!(sketch.association || sketch.associationDetached);
+    const requestCurrent = () => docNow.current === doc && sketchGeneration.current === requestedGeneration;
     // A reopened sketch keeps its main profile first (the first outer shape is the main one).
     // (Open lines and arcs meeting end to end are one outline.)
     const shapes = joinOpen((sketch.editNode !== undefined && sketch.shape ? [sketch.shape, ...(sketch.done ?? [])] : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])]).map(x => x.kind === 'polygon' && !x.closed ? { ...x, pending: false } : x));
@@ -1258,20 +1284,26 @@ export function App() {
     // Construction shapes are kept with the sketch (they come back when it is reopened).
     const refs = shapes.filter(x => x.construction), node = refs.length ? { ...profile.node, construction: refs } as SketchNode : profile.node;
     // The sketch keeps its plane; everything below is in the plane's own coordinates (Z along its normal).
-    const placedNode: ModelNode = isDefaultPlane(sketch.plane) ? node : { ...node, plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } } as SketchNode;
+    const placedNode: ModelNode = { ...node, ...(isDefaultPlane(sketch.plane) ? {} : { plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } }), ...(sketch.association ? { association: sketch.association } : {}), ...((sketch.association || sketch.associationDetached) && sketch.base ? { on: sketch.base } : {}) } as SketchNode;
     if (sketch.editNode !== undefined) {
-      const at = sketch.editNode, edited = { ...doc, nodes: dropStaleMade(doc.nodes, doc.nodes.map((n, k) => k === at ? placedNode : n)) };
+      const at = sketch.editNode;
+      const replacement = linked && doc.nodes[at].id !== undefined ? { ...placedNode, id: doc.nodes[at].id } : placedNode;
+      const edited = { ...doc, nodes: dropStaleMade(doc.nodes, doc.nodes.map((n, k) => k === at ? replacement : n)) };
       // (A sketch from before R10a getting its side ids: the features on it keep their references, by the new names.)
       const tags = (placedNode as SketchNode).sideTags, next = sketch.positional && tags && !(doc.nodes[at] as SketchNode).sideTags ? renameToTagged(edited, at, sketch.positional, tags, featureId) : edited;
-      engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) { commit(next); setSketch(null); } else setToast(r.error); });
+      engine.evaluate(sketch.association || sketch.associationDetached ? next : prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r || (linked && !requestCurrent())) return; if (r.ok) { commit(next); setSketch(null); } else setToast(r.error); });
       return;
     }
     // A finished sketch is a feature of its own (it remembers the body it was drawn on): picked, ready
     // for Extrude, Revolve, Pipe or Loft.
     const base = sketch.base ?? null, next = withNode(doc, { ...placedNode, ...(base ? { on: base } : {}) } as SketchNode);
+    if (sketch.association) {
+      engine.evaluate(next, revision.current++).then(r => { if (!r || !requestCurrent()) return; if (r.ok) { commit(next); setSketch(null); setSelection({ ...emptySel, sketches: [next.nodes.length - 1] }); } else setToast(r.error); });
+      return;
+    }
     commit(next); setSketch(null);
     setSelection({ ...emptySel, sketches: [next.nodes.length - 1] });
-  }, [sketch, doc, marker, commit, engine]);
+  }, [sketch, doc, marker, commit, engine, setSketch]);
 
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number }; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean) => {
     // (The section view shows cut copies of the bodies: picks wait until it is closed.)
@@ -2003,7 +2035,7 @@ export function App() {
         e.preventDefault();
         // While sketching, ⌘Z steps through the outline's edits (constraints, dimensions, values).
         const back = sketch ? (e.shiftKey ? sketchHistory.current.redo(liveShape.current) : sketchHistory.current.undo(liveShape.current)) : null;
-        if (back) { liveShape.current = back; setSketchError(null); setSketch(s => s && { ...s, shape: back, picked: [], editDim: null }); return; }
+        if (back) { liveShape.current = back; setSketchError(null); setSketch(s => s && { ...detachSketchLink(s), shape: back, picked: [], editDim: null }); return; }
         if (!sketch) { if (e.shiftKey) doRedo(); else doUndo(); }
         return;
       }
@@ -2563,8 +2595,8 @@ export function App() {
   const inspector = (
       <Profiler id="right-col" onRender={onBlockRender}><div className="right-col">
 
-      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onToCurves={sketchToCurves} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
-        ? (asRefs: boolean) => setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
+      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onLinkedInset={sketch.anchor?.kind === 'face' && sketch.anchor.face?.linkSource && !sketch.anchor.offset && !sketch.anchor.angle ? linkSketchInset : undefined} onToCurves={sketchToCurves} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
+        ? (asRefs: boolean) => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
       {versionsOpen && !variantsOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase?.id ?? null} onCompare={setCompareBase}
@@ -2949,7 +2981,7 @@ export function App() {
             onClick={() => setSketch(s => s && { ...s, construct: !s.construct })}><Icon name="cad-sk-construction" /></ToolIconButton>
           {(sketch.done ?? []).some(d => d.construction) && <ToolIconButton state={sketch.hideConstruction ? 'on' : 'idle'} data-tip={sketch.hideConstruction ? 'Show construction' : 'Hide construction'} data-tip-desc="The dashed reference shapes: hidden ones are not drawn or snapped to, and stay with the sketch" aria-label={sketch.hideConstruction ? 'Show construction' : 'Hide construction'}
             onClick={() => setSketch(s => s && { ...s, hideConstruction: !s.hideConstruction })}><Icon name={sketch.hideConstruction ? 'visibility_off' : 'visibility'} /></ToolIconButton>}
-          <ToolIconButton data-tip="Clear profile" data-tip-desc="Remove every shape drawn in this sketch" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...s, shape: null, done: [] })}><Icon name="ink_eraser" /></ToolIconButton>
+          <ToolIconButton data-tip="Clear profile" data-tip-desc="Remove every shape drawn in this sketch" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [] })}><Icon name="ink_eraser" /></ToolIconButton>
         </>) : TOOL_GROUPS.map((g, gi) => (
           <div key={g} className="tool-group">
             {gi > 0 && <div className="sep" />}

@@ -3,9 +3,11 @@
 // another assembly, it is then one instance with several bodies whose faces mate like any part's.
 import { placedDoc, prefixDoc, type BodyRef, type Dim, type MemberSection, type ModelNode, type StudioDoc } from './doc';
 import { nextSerial, renameFeatureIds, withIds } from './ids';
+import { refusal } from './refusal';
 
 /** The document with its instances folded in as features (nested sub-assemblies too). */
 export function flattenAssembly(doc: StudioDoc): StudioDoc {
+  if (doc.nodes.some(n => n.kind === 'sketch' && n.association !== undefined)) throw refusal('BAD_REFERENCE', 'Associative sketch: flattening recipes is not supported.');
   const own: StudioDoc = { ...doc, instances: undefined, mates: undefined, render: undefined, direct: undefined };
   const shown = (doc.instances ?? []).filter(i => !i.hidden);
   if (!shown.length) return own;

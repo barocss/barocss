@@ -19,13 +19,15 @@ const NONE: SketchPick[] = [];
  * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`. O16: the contents
  * on shadcn (Input, NativeSelect, Button, FIELD); the shell (its title) and the chip toggles are the studio's.
  */
-export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, onUseOutline, onToCurves }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
+export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, onUseOutline, onLinkedInset, onToCurves }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
   /** Sets the picked outline entities or the dimension being edited in the viewport. */
   onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void;
   /** Offsets the newest closed shape by `d` mm (out when positive) as a shape beside it. */
   onOffset?(d: number): void;
   /** Adds the face's own outline and holes (as references when `asRefs`); absent when not sketching on a face as it is. */
   onUseOutline?(asRefs: boolean): void;
+  /** Replaces the empty sketch with the linked face outline and one inward inset. */
+  onLinkedInset?(insetMM: number): void;
   /** The sketch's lines, arcs and circles made curves (direct geometry), the sketch left. */
   onToCurves?(): void }) {
   const [offsetBy, setOffsetBy] = useState(2);
@@ -63,6 +65,8 @@ export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, o
   return (
     <aside className="card props sk-panel" aria-label="Sketch">
       <div className="card-title">SKETCH · {planeLabel(sketch.plane)}{sketch.base ? ' · on face' : ''}</div>
+      {sketch.association && <p role="status">Linked face outline and inset. Geometry or plane edits detach this link.</p>}
+      {sketch.associationDetached && <p role="status">Link detached by a geometry or plane edit. This profile is now a snapshot.</p>}
       {onPlace && (() => {
         const anchor = sketch.anchor ?? { kind: 'xy' as const, offset: 0 };
         return <div className="sk-plane">
@@ -167,6 +171,7 @@ export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, o
           <Button variant="ghost" aria-label="Face outline as references" data-tip="As references" data-tip-desc="The face's edges as construction shapes: snapped to, not part of the profile" onClick={() => onUseOutline(true)}>As references</Button>
         </div>
       </>}
+      {onLinkedInset && <><Button type="button" variant="ghost" onClick={() => onLinkedInset(offsetBy)}>Link face outline + inset</Button><p>Uses Offset distance below as the inward inset (mm).</p></>}
       {onOffset && <>
         <div className="card-title" style={{ marginTop: 10 }}>OFFSET</div>
         <div className="sk-offset">
