@@ -1,4 +1,5 @@
 import { parseBaroCadDocument } from '@barocss/cad-interop/document';
+import { createCadGeometryReference, curveDomain, surfaceDomain } from '@barocss/cad';
 
 const FILE_LIMIT = 2 * 1024 * 1024;
 const BODY_ID = /^[A-Za-z_][A-Za-z0-9_-]{0,47}$/;
@@ -16,7 +17,7 @@ export function parseDocument(text, label = 'CAD document') {
     const binding = bodyBindings.find(value => value.bodyId === body.id);
     const geometry = compiled?.model.objects.find(value => value.id === body.geometryId);
     const kind = binding?.geometryKind ?? geometry?.kind ?? body.kind;
-    let reason = '';
+    let reason = '', reference, nativeDomain, nativeQuery;
     if (document.units.length !== 'mm' || document.units.angle !== 'rad')
       reason = 'This Viewer requires millimetres and radians.';
     else if (body.kind !== 'direct-geometry-object' || !['surface', 'curve'].includes(kind))
@@ -29,10 +30,29 @@ export function parseDocument(text, label = 'CAD document') {
       reason = 'This Viewer requires the authored XYZ frame.';
     else if (compiled.model.objects.filter(value => ['surface', 'curve'].includes(value.kind)).length > 4)
       reason = 'The source asset exceeds the current 4 native object limit.';
+    if (geometry && ['surface', 'curve'].includes(kind)) {
+      try {
+        const original = createCadGeometryReference(result, { bodyId: body.id });
+        reference = original.reference;
+        if (original.geometry.kind === 'curve') {
+          const domain = curveDomain(original.geometry);
+          nativeDomain = { kind: 'curve', parameter: [...domain] };
+          nativeQuery = { kind: 'curve', parameter: domain[0] / 2 + domain[1] / 2 };
+        } else {
+          const domain = surfaceDomain(original.geometry);
+          nativeDomain = { kind: 'surface', u: [...domain.u], v: [...domain.v] };
+          nativeQuery = { kind: 'surface', u: domain.u[0] / 2 + domain.u[1] / 2,
+            v: domain.v[0] / 2 + domain.v[1] / 2 };
+        }
+      } catch {
+        reason ||= 'The original native reference or parameter domain is unavailable.';
+      }
+    }
     return {
       id: body.id, name: body.name, kind, geometryId: body.geometryId,
       assetId: body.assetId, assetRevision: asset?.revision ?? null,
       supported: reason === '', reason,
+      ...(reference ? { reference, nativeDomain, nativeQuery } : {}),
     };
   });
   const used = new Set();

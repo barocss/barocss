@@ -4,6 +4,7 @@ import { parseSource, readSource, admitSource } from './source.js';
 import { createPngExport } from './png-export.js';
 import { createReviewFile, readReviewFile, REVIEW_FILE_LIMIT } from './review-file.js';
 import { addNamedReview, renameNamedReview, removeNamedReview, getNamedReview, namedReviewCandidate } from './named-reviews.js';
+import { inspectDocumentPoint } from './native-inspection.js';
 
 export const sameRef = (a, b) => a?.kind === b?.kind && a?.modelId === b?.modelId
   && (a?.surfaceId ?? a?.curveId) === (b?.surfaceId ?? b?.curveId);
@@ -38,6 +39,7 @@ export function createViewerController({ canvas, stage, onChange }) {
   let lightingError = '';
   let measurement = emptyMeasurement();
   let assemblyInspection = null;
+  let documentInspection = null;
   let namedViews = [], namedGeneration = 0, namedBusy = false, namedViewError = '';
   let pickFilter = 'all';
   const listeners = [];
@@ -67,6 +69,13 @@ export function createViewerController({ canvas, stage, onChange }) {
       else if (assemblyInspection?.instanceId !== instance.instanceId) {
         const query = active.catalog.find(row => row.id === instance.instanceId)?.nativeQuery;
         if (query) inspectAssemblyPoint(instance, query);
+      }
+      const body = active?.kind === 'document'
+        ? state.documentBodies.find(entry => sameRef(entry.ref, state.selectedGeometry)) : null;
+      if (!body) documentInspection = null;
+      else if (documentInspection?.bodyId !== body.binding.bodyId) {
+        const entry = active.catalog.find(row => row.id === body.binding.bodyId);
+        if (entry?.nativeQuery) inspectDocumentBodyPoint(body, entry.nativeQuery);
       }
       if (measurement.points.some(point => !state.visibleGeometry.some(ref => sameRef(ref, pointRef(point.input))))) {
         measurement = emptyMeasurement();
@@ -112,6 +121,7 @@ export function createViewerController({ canvas, stage, onChange }) {
       appearancePreset, appearanceNote, lightingCapabilities: viewer?.getLightingCapabilities() ?? null,
       lightingError, measurement: structuredClone(measurement), measurementOverlay,
       assemblyInspection: assemblyInspection ? structuredClone(assemblyInspection) : null,
+      documentInspection: documentInspection ? structuredClone(documentInspection) : null,
       namedViews: namedViews.map(entry => entry.name), namedBusy, namedViewError, pickFilter });
   }
   function inspectAssemblyPoint(binding, query) {
@@ -124,6 +134,21 @@ export function createViewerController({ canvas, stage, onChange }) {
       const previous = assemblyInspection?.instanceId === binding.instanceId ? assemblyInspection : null;
       assemblyInspection = { instanceId: binding.instanceId, query: previous?.query ?? { ...query },
         result: previous?.result ?? null, error: error?.message || String(error) };
+    }
+  }
+  function inspectDocumentBodyPoint(binding, query) {
+    const bodyId = binding.binding.bodyId;
+    const body = active.catalog.find(row => row.id === bodyId);
+    if (!body?.nativeDomain) { documentInspection = null; return; }
+    try {
+      const result = inspectDocumentPoint(active, viewer.getState(), query);
+      documentInspection = { bodyId, label: body.name, query: { ...query },
+        domain: structuredClone(body.nativeDomain), result, error: '' };
+    } catch (error) {
+      const previous = documentInspection?.bodyId === bodyId ? documentInspection : null;
+      documentInspection = { bodyId, label: body.name, query: previous?.query ?? { ...query },
+        domain: structuredClone(body.nativeDomain), result: previous?.result ?? null,
+        error: error?.message || String(error) };
     }
   }
   function measuredPoint(input, point) {
@@ -331,6 +356,7 @@ export function createViewerController({ canvas, stage, onChange }) {
         active = candidate; admitted = ids; candidate = null; admissionIds = [];
         measurement = emptyMeasurement(); lightingError = '';
         assemblyInspection = null;
+        documentInspection = null;
         namedViews = []; namedGeneration++; namedViewError = '';
         pickFilter = 'all';
         documentEpoch++; reviewEpoch++; frameGeneration++;
@@ -422,6 +448,15 @@ export function createViewerController({ canvas, stage, onChange }) {
       if (!binding) { message('Select a loaded assembly instance first.', true); refresh(); return; }
       inspectAssemblyPoint(binding, query);
       message(assemblyInspection.error || 'Original native point inspected in part and assembly coordinates.', Boolean(assemblyInspection.error));
+      refresh();
+    },
+    inspectDocumentPoint(query) {
+      if (!loaded() || active.kind !== 'document') return;
+      const state = viewer.getState();
+      const body = state.documentBodies.find(entry => sameRef(entry.ref, state.selectedGeometry));
+      if (!body) { message('Select a visible document body first.', true); refresh(); return; }
+      inspectDocumentBodyPoint(body, query);
+      message(documentInspection?.error || 'Original native point inspected in authored millimetres.', Boolean(documentInspection?.error));
       refresh();
     },
     applyLighting(input) {

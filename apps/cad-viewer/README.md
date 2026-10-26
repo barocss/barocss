@@ -169,6 +169,23 @@ The pick filter belongs to the current session. Review files and saved views
 do not store or restore it. Successful source admission, including a changed
 loaded body or instance subset, resets the filter to **All**.
 
+Select a document body to open **Native point** in the Inspector. Enter Curve
+**t** or Surface **u/v**, then choose **Inspect point**. The displayed ranges
+come from the original parameter domains. The first result uses their midpoint.
+**Original XYZ** is in authored millimetres. It does not use sampled screen
+coordinates, display scale or a camera transform. The query stays available
+when the selected body's point is outside the camera view.
+
+The app binds the public CAD reference and point query to the currently loaded
+document, body and asset revisions. A rejected parameter retains the last
+accepted result and its **Evaluated** parameters. The draft inputs stay visible
+with the error. Changing or clearing selection, hiding that body or accepting a
+new source clears this inspection. Camera, lighting and Pick changes retain it.
+Native point inspection changes no geometry, camera, selection, framebuffer
+or distance query cache. It is a point evaluation, not a distance measurement
+or a certified dimension. Review files and saved views do not store its draft
+or result. Assembly mode keeps its separate part/assembly point inspector.
+
 The appearance controls apply or clear a temporary Surface material. Clear
 Surface selection before applying a material. Clear a bound material before
 selecting or hiding that Surface. These controls use the existing GPU material

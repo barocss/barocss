@@ -12,6 +12,8 @@ import { AssemblyTree } from './AssemblyTree';
 import { AssemblyInspector } from './AssemblyInspector';
 import type { AssemblyInspection } from './AssemblyInspector';
 import { NamedViewsPanel } from './NamedViewsPanel';
+import { DocumentInspector } from './DocumentInspector';
+import type { DocumentInspection } from './DocumentInspector';
 
 type Body = {
   id: string;
@@ -52,6 +54,7 @@ type ViewModel = {
   measurement: DistanceMeasurement;
   measurementOverlay: { width: number; height: number; points: ProjectedMeasurementPoint[] };
   assemblyInspection: AssemblyInspection | null;
+  documentInspection: DocumentInspection | null;
   namedViews: string[];
   namedBusy: boolean;
   namedViewError: string;
@@ -66,6 +69,7 @@ const initialModel: ViewModel = {
   measurement: { active: false, points: [], result: null, error: '' },
   measurementOverlay: { width: 0, height: 0, points: [] },
   assemblyInspection: null,
+  documentInspection: null,
   namedViews: [], namedBusy: false, namedViewError: '',
 };
 
@@ -368,6 +372,8 @@ export function App() {
             onRestore={name => api()?.restoreNamedView(name)}
             onRename={(name, nextName) => api()?.renameNamedView(name, nextName) ?? Promise.resolve(false)}
             onDelete={name => { void api()?.deleteNamedView(name); }} />
+          {!isAssembly && model.documentInspection && <DocumentInspector inspection={model.documentInspection}
+            onInspect={query => api()?.inspectDocumentPoint(query)} />}
           {(model.measurement.active || model.measurement.points.length > 0) && <DistancePanel measurement={model.measurement}
             onStart={() => api()?.startMeasurement()}
             onCancel={() => { api()?.cancelMeasurement(); measurementToolRef.current?.focus(); }}

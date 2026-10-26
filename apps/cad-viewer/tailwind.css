@@ -4,6 +4,7 @@
 @import "./src/distance.css" layer(legacy);
 @import "./src/lighting.css" layer(legacy);
 @import "./src/assembly.css" layer(legacy);
+@import "./src/native-inspection.css" layer(legacy);
 @import "./src/named-views.css" layer(legacy);
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
