@@ -18,6 +18,10 @@ const viewDirections = {
 };
 const summary = value => value && ({ label: value.label, id: value.id,
   revision: value.revision, catalog: value.catalog });
+const emptyMeasurement = () => ({ active: false, points: [], result: null, error: '' });
+const pointRef = input => input.kind === 'surface'
+  ? { kind: input.kind, modelId: input.modelId, surfaceId: input.surfaceId }
+  : { kind: input.kind, modelId: input.modelId, curveId: input.curveId };
 
 /** Own the SDK lifetime and commands. React owns every screen element. */
 export function createViewerController({ canvas, stage, onChange }) {
@@ -28,6 +32,7 @@ export function createViewerController({ canvas, stage, onChange }) {
   let appearanceTarget = '', appearancePreset = 'default', appearanceBinding;
   let admissionError = '', status = 'Starting Viewer…', statusError = false;
   let exportStatus = '', exportBusy = false;
+  let measurement = emptyMeasurement();
   const listeners = [];
   const reviewUrls = new Set();
   const loaded = () => Boolean(active && viewer && !disposed);
@@ -44,8 +49,22 @@ export function createViewerController({ canvas, stage, onChange }) {
     const state = viewer?.getState() ?? null;
     let appearanceNote = 'Load a Surface to change its appearance.';
     let viewPreset = null;
+    const rect = canvas.getBoundingClientRect();
+    const measurementOverlay = { width: rect.width, height: rect.height, points: [] };
     if (state) {
       recordFrame();
+      if (measurement.points.some(point => !state.visibleGeometry.some(ref => sameRef(ref, pointRef(point.input))))) {
+        measurement = emptyMeasurement();
+        message('Distance cleared because a measured body was hidden.');
+      }
+      measurement.points.forEach((point, index) => {
+        // Projection is a display annotation. It does not test occlusion or change the framebuffer.
+        try {
+          const projected = viewer.projectNativePoint(point.input);
+          if (projected) measurementOverlay.points.push({ label: index === 0 ? 'A' : 'B',
+            xCss: projected.xCss, yCss: projected.yCss });
+        } catch { /* A lost GPU context can make a display annotation unavailable. */ }
+      });
       if (!state.surfaces.some(ref => surfaceKey(ref) === appearanceTarget))
         appearanceTarget = state.surfaces[0] ? surfaceKey(state.surfaces[0]) : '';
       const ref = state.surfaces.find(ref => surfaceKey(ref) === appearanceTarget);
@@ -74,7 +93,43 @@ export function createViewerController({ canvas, stage, onChange }) {
     onChange({ ready: loaded(), starting, active: summary(active), admitted: [...admitted], state,
       search, candidate: summary(candidate), admissionIds: [...admissionIds], admissionError,
       status, statusError, exportStatus, exportBusy, viewPreset, appearanceTarget,
-      appearancePreset, appearanceNote });
+      appearancePreset, appearanceNote, measurement: structuredClone(measurement), measurementOverlay });
+  }
+  function measuredPoint(input, point) {
+    const state = viewer.getState();
+    const binding = state.documentBodies.find(body => sameRef(body.ref, pointRef(input)))?.binding;
+    const name = active.catalog.find(body => body.id === binding?.bodyId)?.name
+      || input.surfaceId || input.curveId;
+    return { input, label: name + (binding ? ' · ' + binding.assetId : ''), kind: input.kind,
+      pointMM: [...point.pointMM], parameterLabel: input.kind === 'surface'
+        ? `u = ${input.u.toPrecision(7)}, v = ${input.v.toPrecision(7)}` : `t = ${input.t.toPrecision(7)}` };
+  }
+  function pickMeasurement(hit) {
+    try {
+      if (!hit) throw new Error('Choose a point on visible geometry.');
+      if (hit.ambiguous) throw new Error('This point is ambiguous. Choose another point.');
+      const input = hit.kind === 'surface'
+        ? { kind: 'surface', ...hit.ref, u: hit.parameterUV[0], v: hit.parameterUV[1] }
+        : { kind: 'curve', ...hit.ref, t: hit.parameterApprox };
+      const first = measurement.points[0];
+      if (first && first.input.modelId !== input.modelId)
+        throw new Error('Choose the second point in the same asset as point A.');
+      if (!first) {
+        const projected = viewer.projectNativePoint(input);
+        if (!projected) throw new Error('Choose a point inside the view.');
+        measurement = { active: true, points: [measuredPoint(input, projected.point)], result: null, error: '' };
+        message('Point A set. Choose point B in the same asset.');
+      } else {
+        const result = viewer.measureNativePoints(first.input, input);
+        measurement = { active: false, points: [measuredPoint(first.input, result.first), measuredPoint(input, result.second)],
+          result: { distanceMM: result.distanceMM }, error: '' };
+        message('Distance measured in native millimetres.');
+      }
+    } catch (error) {
+      measurement = { ...measurement, error: error?.message || String(error) };
+      message(measurement.error, true);
+    }
+    refresh();
   }
   function run(action, text) {
     if (!loaded()) return;
@@ -107,6 +162,11 @@ export function createViewerController({ canvas, stage, onChange }) {
         if (disposed) { created.dispose(); return; }
         viewer = created;
         const controlError = error => { message(error?.message || String(error), true); refresh(); };
+        listen(window, 'keydown', event => {
+          if (event.target === canvas && event.key === 'Escape' && measurement.active) {
+            event.preventDefault(); event.stopPropagation(); api.cancelMeasurement();
+          }
+        }, { capture: true });
         pointerControls = viewer.attachPointerControls({ onError: controlError });
         keyboardControls = viewer.attachKeyboardControls({ onError: controlError });
         listen(canvas, 'pointerdown', event => {
@@ -118,6 +178,16 @@ export function createViewerController({ canvas, stage, onChange }) {
         }, type === 'wheel' ? { passive: true } : undefined);
         listen(canvas, 'click', event => {
           if (!loaded() || event.button !== 0) return;
+          if (measurement.active) {
+            try {
+              const rect = canvas.getBoundingClientRect();
+              pickMeasurement(viewer.pickGeometry({ xCss: event.clientX - rect.left, yCss: event.clientY - rect.top }));
+            } catch (error) {
+              measurement = { ...measurement, error: error?.message || String(error) };
+              message(measurement.error, true); refresh();
+            }
+            return;
+          }
           run(() => {
             const rect = canvas.getBoundingClientRect();
             const hit = viewer.pickGeometry({ xCss: event.clientX - rect.left, yCss: event.clientY - rect.top });
@@ -185,12 +255,26 @@ export function createViewerController({ canvas, stage, onChange }) {
         const ids = [...admissionIds];
         viewer.loadDocument(candidate.result, loadOptions(ids));
         active = candidate; admitted = ids; candidate = null; admissionIds = [];
+        measurement = emptyMeasurement();
         documentEpoch++; reviewEpoch++; frameGeneration++;
         appearanceBinding = undefined; appearanceTarget = ''; search = '';
         message('Document opened. Drag to orbit. Shift+drag to pan.'); refresh();
       } catch (error) { admissionError = error.message; refresh(); }
     },
     setSearch(value) { search = value; refresh(); },
+    startMeasurement() {
+      if (!loaded()) return;
+      measurement = { ...emptyMeasurement(), active: true };
+      message('Distance: choose point A on the model.'); refresh();
+      canvas.focus({ preventScroll: true });
+    },
+    cancelMeasurement() {
+      measurement = emptyMeasurement(); message('Distance selection cancelled.'); refresh();
+    },
+    clearMeasurement() {
+      // The public SDK retains its last query cache. Never clear the CAD scene to clear a UI tool.
+      measurement = emptyMeasurement(); message('Distance cleared.'); refresh();
+    },
     select(ref) { run(() => viewer.selectGeometry(ref), ref ? 'Body selected.' : 'Selection cleared.'); },
     setVisibility(ref, checked) { run(() => {
       const current = viewer.getState();

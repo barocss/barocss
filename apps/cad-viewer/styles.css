@@ -131,6 +131,7 @@ kbd { display: inline-flex; justify-content: center; align-items: center; height
 .help-key { color: #a0b0bb; margin-right: 3px; }
 
 .inspector-panel { display: flex; flex-direction: column; border-left: 1px solid var(--line); overflow: auto; scrollbar-width: thin; scrollbar-color: #46525c transparent; }
+.inspector-panel > .inspector-heading, .inspector-panel > .inspector-section { flex-shrink: 0; }
 .inspector-heading { display: flex; align-items: center; min-height: 46px; padding: 0 18px; border-bottom: 1px solid #354049; background: #222a30; }
 .inspector-heading h2 { margin: 0; color: #e0e7ec; font-size: 12px; font-weight: 600; }
 .inspector-section { padding: 21px 18px 24px; }

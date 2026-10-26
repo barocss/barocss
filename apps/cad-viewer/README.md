@@ -80,6 +80,22 @@ Surface selection before applying a material. Clear a bound material before
 selecting or hiding that Surface. These controls use the existing GPU material
 compiler and Viewer binding API.
 
+**Measure** starts a two-point distance tool. Click A and then B in the same
+asset. Screen picking uses sampled geometry. The public SDK evaluates those
+parameters on the original Surface or Curve and returns straight-line distance
+in native millimetres. This is not Curve arc length or a certified dimension.
+Surfaces with temporary materials can also be measured. Existing selection,
+geometry, camera and framebuffer pixels stay unchanged by the measurement.
+
+The inspector shows A/B source names, parameters, native XYZ coordinates and
+distance. Overlay markers follow the camera and viewport size. Projection does
+not test occlusion. Escape cancels an active tool. Clear removes the app's
+measurement display; the SDK keeps its last successful query cache. Hiding a
+measured body or successfully loading a document removes the app's measurement.
+Different-asset and ambiguous picks keep A for another attempt. A missed pick
+also keeps the active tool. Review files and PNG images do not save these DOM
+measurement annotations.
+
 **Save review** writes the existing compact review JSON. It records the camera,
 visibility, selection and source revision pins. It does not contain CAD geometry
 or temporary material overrides. **Open review** requires the same accepted

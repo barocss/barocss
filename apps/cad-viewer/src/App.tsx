@@ -5,6 +5,8 @@ import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
 import { NativeSelect } from './components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './components/ui/dialog';
+import { DistancePanel, MeasurementOverlay } from './DistancePanel';
+import type { DistanceMeasurement, ProjectedMeasurementPoint } from './DistancePanel';
 
 type Body = {
   id: string;
@@ -36,6 +38,8 @@ type ViewModel = {
   appearanceTarget: string;
   appearancePreset: string;
   appearanceNote: string;
+  measurement: DistanceMeasurement;
+  measurementOverlay: { width: number; height: number; points: ProjectedMeasurementPoint[] };
 };
 
 const initialModel: ViewModel = {
@@ -43,6 +47,8 @@ const initialModel: ViewModel = {
   candidate: null, admissionIds: [], admissionError: '', status: 'Starting Viewer…',
   statusError: false, exportStatus: '', exportBusy: false, viewPreset: null,
   appearanceTarget: '', appearancePreset: 'default', appearanceNote: 'Load a Surface to change its appearance.',
+  measurement: { active: false, points: [], result: null, error: '' },
+  measurementOverlay: { width: 0, height: 0, points: [] },
 };
 
 function sameRef(a: ViewerGeometryRef | null | undefined, b: ViewerGeometryRef | null | undefined) {
@@ -89,6 +95,7 @@ export function App() {
   const stageRef = useRef<HTMLDivElement>(null);
   const documentFileRef = useRef<HTMLInputElement>(null);
   const reviewFileRef = useRef<HTMLInputElement>(null);
+  const measurementToolRef = useRef<HTMLButtonElement>(null);
   const controllerRef = useRef<ReturnType<typeof createViewerController> | null>(null);
   const [model, setModel] = useState<ViewModel>(initialModel);
 
@@ -261,6 +268,12 @@ export function App() {
                 onClick={() => api()?.isolateSelected()}>Isolate</Button>
               <Button id="clear-selection" variant="ghost" size="sm" title="Clear selection (Escape)" disabled={!selected}
                 onClick={() => api()?.select(null)}>Clear</Button>
+              <span className="toolbar-divider" aria-hidden="true" />
+              <Button ref={measurementToolRef} id="measure-tool" variant="ghost" size="sm" aria-pressed={model.measurement.active}
+                disabled={!model.ready || !state?.visibleGeometry.length}
+                onClick={() => { if (model.measurement.active) api()?.cancelMeasurement(); else api()?.startMeasurement(); }}>
+                Measure
+              </Button>
             </div>
             <div className="view-presets" aria-label="Standard views">
               {(['iso', 'front', 'top', 'right'] as const).map(name => <Button key={name} id={`view-${name}`} variant="ghost" size="sm"
@@ -271,7 +284,10 @@ export function App() {
             </div>
           </div>
           <div ref={stageRef} id="viewport-stage" className="viewport-stage">
-            <canvas ref={canvasRef} id="viewport" tabIndex={0} aria-label="CAD model. Drag to orbit, Shift-drag to pan, and scroll to zoom." />
+            <canvas ref={canvasRef} id="viewport" tabIndex={0} data-measuring={model.measurement.active}
+              aria-label={model.measurement.active ? 'Distance tool. Click two points in the same asset. Press Escape to cancel.'
+                : 'CAD model. Drag to orbit, Shift-drag to pan, and scroll to zoom.'} />
+            <MeasurementOverlay {...model.measurementOverlay} />
             <span className="viewport-mode" aria-hidden="true">Perspective</span>
             <div id="empty-state" className="empty-state" hidden={model.ready}>
               <div className="empty-content">
@@ -285,12 +301,16 @@ export function App() {
           </div>
           <div id="viewport-help" className="viewport-help">
             <span><span className="help-key">Drag</span> Orbit</span><span><span className="help-key">Shift + drag</span> Pan</span>
-            <span><span className="help-key">Scroll</span> Zoom</span><span><span className="help-key">Click</span> Select</span>
+            <span><span className="help-key">Scroll</span> Zoom</span><span><span className="help-key">Click</span> {model.measurement.active ? 'Set point' : 'Select'}</span>
           </div>
         </section>
 
         <aside className="inspector-panel" aria-label="Model inspector">
           <div className="inspector-heading"><h2>Properties</h2></div>
+          {(model.measurement.active || model.measurement.points.length > 0) && <DistancePanel measurement={model.measurement}
+            onStart={() => api()?.startMeasurement()}
+            onCancel={() => { api()?.cancelMeasurement(); measurementToolRef.current?.focus(); }}
+            onClear={() => { api()?.clearMeasurement(); measurementToolRef.current?.focus(); }} />}
           <section className="inspector-section selection-section">
             <div className="section-heading"><h3>Selection</h3></div>
             <p id="selection-empty" className="context-note" hidden={Boolean(selected)}>Select a body to inspect its properties.</p>
