@@ -24,7 +24,7 @@ simultaneously pickable or change the original geometry/picker.
 
 ## Stage and apply an original instance choice
 
-The separate **Choose assembly instances** panel lists all six original IDs,
+Expand **Change admitted instances (1–4)** to use the separate **Choose assembly instances** panel. It lists all six original IDs,
 native kinds, parents and full original references. **Metadata only** means
 an instance is not currently admitted for display or native point inspection.
 These rows do not have Show, Select or point-query controls. Accepted bindings
@@ -71,8 +71,9 @@ characters. Caller getters/coercion are not invoked; original Proxy input is
 refused. Apply/Discard accept zero arguments. The example's physical inventory
 is the authentic six; Viewer display capacity remains1..4.
 
-With Node22, ordinary development uses public names with normal source
-default exports and no custom conditions/source aliases:
+With Node22, development uses public names with the manifest default source
+exports. The server resolves each own public export inside this clone so a shared
+installed tool runtime cannot select source from another checkout:
 
 ```sh
 node examples/viewer-assembly-scene/server.mjs
@@ -124,3 +125,40 @@ Dispose is separate from Run proof. It performs idempotent Viewer cleanup,
 disposes the caller-owned cloth world and records the disposed status and
 browser errors. Native completion,
 Integration and publication require separate evidence.
+
+
+## One assembly review flow
+
+The accepted instance list now follows the original hierarchy. Expand **Original
+source reference** on a row to inspect the complete original reference. A dashed ancestor
+is context only when it is not admitted. It has no Show, Select or Inspect action.
+Existing original-reference and stale-row checks also cover nested rows. The
+complete native source and local/world matrices remain the authority.
+
+Select an admitted instance in the hierarchy or click it in the viewport. Both
+routes update the same selection and highlighted row. **Hide selected** removes
+that instance from the visible subset and clears its selection. **Isolate
+selected** keeps only that admitted instance visible. **Show all admitted** shows
+the accepted 1–4 bindings; it does not admit metadata-only instances.
+
+Use **Orbit** or the existing **Fit visible** control to change the camera. Use
+**Save assembly review**, change the camera/selection/visibility, then open the
+actual downloaded JSON file with **Open assembly review**. This uses the V1 SDK
+`captureReviewState` and `applyReviewState` methods. It creates no new scene
+format or renderer. File input is bounded to32KiB. A successful Open resets the
+host selection filter to All and refreshes the selected hierarchy row. Original
+point inspection can then be requested again. Failure preserves the accepted
+Viewer state, filter and point inspection. A revision/load change during the
+file read refuses the pending Open through the host epoch check.
+
+The saved review binds the assembly ID/revision and actual admitted inventory.
+Load revision1 or apply another instance choice, then open the saved file to see
+explicit refusal. The current camera, visibility, selection, original hierarchy,
+source references and local/world placements must remain unchanged. Revision
+pins are not source authentication or a file-integrity signature.
+
+`window.viewerAssemblyReviewEvidence` provides read-only review/state/pixels and
+native point-to-screen inspection. Browser acceptance uses public controls and
+real Save/Open files for changes. It does not run the older full proof campaign.
+`/input-audit.json` adds input size/hash pins and the served bundle SHA-256 for
+source binding. Compiled package acceptance remains a separate explicit mode.

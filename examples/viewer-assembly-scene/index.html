@@ -11,6 +11,8 @@
     button:disabled { opacity:.5; } ul { list-style:none; padding:0; margin:0; }
     li { margin-bottom:10px; border:1px solid #56748f; padding:8px; overflow-wrap:anywhere; }
     li[aria-selected="true"] { border-color:#ffe577; } small { display:block; }
+    li ul { margin:8px 0 0 12px; } .hierarchy-context { border-style:dashed; color:#bac9d6; }
+    .review-tools { margin-bottom:12px; } input { max-width:100%; }
     pre { white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; }
     @media(max-width:900px) { .layout { grid-template-columns:1fr; } }
   </style>
@@ -19,6 +21,12 @@
   <h1>Choose original native assembly instances</h1>
   <p>Original local geometry and authored hierarchy placement stay separate. Inspect a revision-pinned
     original point in local and assembly space. This host does not edit instance placements.</p>
+  <div class="review-tools" aria-label="Assembly review controls">
+    <button id="hide-selected" disabled>Hide selected</button><button id="isolate-selected" disabled>Isolate selected</button>
+    <button id="show-all" disabled>Show all admitted</button><button id="orbit" disabled>Orbit</button>
+    <button id="save-review" disabled>Save assembly review</button>
+    <label>Open assembly review <input id="open-review" type="file" accept=".json,application/json" disabled></label>
+  </div>
   <div class="layout"><div>
     <canvas id="view" width="640" height="480" aria-label="Selected original assembly instances"></canvas>
     <button id="revision0" disabled>Load revision 0</button><button id="revision1" disabled>Load revision 1</button>
@@ -27,7 +35,7 @@
     <label>Selection filter <select id="filter" disabled><option value="all">All</option>
       <option value="surface">Surfaces</option><option value="curve">Curves</option></select></label>
     <pre id="inspection" aria-label="Original instance point">Select an instance to inspect.</pre>
-  </div><aside><fieldset><legend>Choose assembly instances</legend>
+  </div><aside><details id="instance-choice-panel"><summary>Change admitted instances (1–4)</summary><fieldset><legend>Choose assembly instances</legend>
     <p id="assembly-choice-count" role="status" aria-live="polite">No current original assembly.</p>
     <ul id="assembly-choice" aria-label="Original assembly instance choice"></ul>
     <button id="apply-assembly-choice" disabled>Apply instance choice</button>
@@ -36,7 +44,7 @@
       Metadata-only instances are not in the view. Show controls below change visibility of accepted instances; they do not change this choice.
       A choice alone changes no accepted scene. Discard restores the accepted IDs. Apply resets selection and point inspection only after success.
       Apply needs a ready Viewer.</p></details>
-  </fieldset><h2>Accepted instance bindings</h2><ul id="instances"></ul></aside></div>
+  </fieldset></details><h2>Accepted instance hierarchy</h2><p>Dashed ancestors provide hierarchy context. They are not admitted to the viewport.</p><ul id="instances" aria-label="Accepted instance hierarchy"></ul></aside></div>
   <pre id="status" role="status" aria-live="polite">Loading original assembly fixtures…</pre>
   <script type="module" src="/bundle.js"></script>
 </body></html>
