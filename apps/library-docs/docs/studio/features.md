@@ -23,6 +23,43 @@ The CAD document format also supports one quadratic guide for a bounded circle o
 exactly two explicit section frames with identical axes. See [Guided conic lofts](/packages/cad/robustness#guided-conic-lofts)
 for the input rules.
 
+## Route bundles
+
+**Route bundle** ties one interior control point on each of two direct curves. Both selected points move by the
+same world XYZ displacement; the other control points and curve endpoints stay fixed. It does not translate the
+whole curves or solve general mates or free-form curve constraints.
+
+![Two selected curve control points move by the same displacement while endpoints stay fixed](/diagrams/route-bundle-poles.svg)
+
+The diagram uses two unit-weight cubic curves in the world XY plane. Both selected points move by `[8, 5, 0]` mm.
+[Open the coordinate diagram at full size](/diagrams/route-bundle-poles.svg).
+
+Prepare two distinct open, clamped cubic curves in millimetres. Each needs its own matching copied **Sweep** and
+an independent, positive circular sketch in the default XY plane, without holes or extra regions. Placed or
+associative profiles and placed or trimmed curve objects are outside this tool's scope.
+
+1. Select the two direct curves and choose **Route bundle**. If a bundle already exists, open the same tool and
+   choose it under **Active bundle**. The tool requires an up-to-date document and no other active edit.
+2. For a new bundle, enter **Bundle name**. For each member, choose **Curve**, **Control point**
+   and **Copied sweep**. The control point must be interior; use different curves, sweeps and profiles for the two
+   members. Enter finite world XYZ coordinates in **Tie anchor**, in mm, then choose **Create**. This prepares a
+   draft preview. Wait for **Preview ready. Apply to keep this edit.**, then choose **Apply** to create the bundle.
+3. For the accepted bundle, enter **Total translation** in mm and choose **Preview**. Values are measured from the start of this edit, not
+   added to the previous preview. The app prepares a preview and then evaluates the complete candidate document.
+   Wait for **Preview ready. Apply to keep this edit.**, then choose **Apply** to keep the candidate.
+4. Choose **Cancel**, press **Escape**, or close the panel to discard the uncommitted edit. An error clears the
+   candidate display and keeps the accepted document. If the document, bindings or draft changes, preview the
+   current draft again; an old evaluation reply cannot make it ready to apply.
+
+**Detach** prepares removal of the link while keeping the current curves and copied sweeps. It also needs a
+successful check and **Apply**. Reopening a bundle starts a new edit from its accepted state.
+
+The source curve primitives come from the document's direct CAD geometry. They are not complete Studio model
+documents. The route helpers create private Studio document candidates; the app owns full-document evaluation
+and commit. A valid binding alone does not establish that every resulting sweep can be evaluated.
+
+For the public helpers, see [Route bundles in code](/packages/cad-model/#route-bundles-in-code).
+
 ## Holes
 
 ![Hole with Copies set to On a circle: four holes previewed round the plate's centre](/shots/studio/features/holes-on-a-circle.jpg)

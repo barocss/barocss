@@ -75,24 +75,39 @@ is kept in the project instead.
 | **Export STL** | Triangles in millimetres, one file per body, with no colours, names or exact curves |
 | **Export 3MF** | For a slicer: bodies, materials, colours and the print orientation |
 
-**Export STL** opens **STL export**. Choose **Quality**, then **Export** or **Cancel**.
-**Automatic** leaves the tessellation option unset. **Draft 8**, **Standard 16** and **Fine 32** set
-`segmentsPerQuarter` to 8, 16 and 32 for B-rep bodies only. These are dimensionless tessellation settings,
-not millimetre error tolerances or guaranteed bounds on geometric error.
-Explicit quality is refused for mesh bodies, touching-piece outputs and documents with visible placed instances.
-Export a placed part from its own document.
-The choice does not change the on-screen mesh or the saved document. Exported coordinates follow the millimetre
-convention; STL itself stores no unit. If an explicit quality cannot be produced or preparation fails, no STL
-file or source sidecar is downloaded. **Cancel** also discards the pending export without downloading either.
+### Choose an STL quality
 
-- **Touching pieces.** Automatic STL writes one file per piece when pieces touch only along an edge or at a point.
-  3MF writes those pieces as separate objects, because a reader would weld them otherwise.
-- **The display mesh.** With **Automatic**, when the kernel can't mesh a body for STL, its display mesh is written instead, and the toast
-  names the body.
-- **Drafts.** If the part has dimensions read from an image or drawing that aren't confirmed yet, STEP and STL still
-  export, and the toast says it is a draft and which dimensions are open.
-- **Not up to date.** A part that is still evaluating, or that failed to evaluate, isn't exported. Fix it, or wait,
-  and export again.
+1. Wait for the current design to finish evaluating. Fix any evaluation error before exporting.
+2. Choose **Export STL**. **Quality** starts at **Automatic** each time the dialog opens.
+3. Use the table below to choose a quality, then choose **Export**. Choose **Cancel** to stop preparation.
+4. Read the export message. If it names bodies written from the on-screen mesh, review those files before use.
+   Keep the downloaded `.source.json` beside the STL files.
+
+| Situation | Choose or do this |
+|---|---|
+| You do not need a specific sampling setting | Use **Automatic**. It leaves the quality option unset. |
+| You need a specific setting for B-rep bodies | Use **Draft 8**, **Standard 16** or **Fine 32**. These set 8, 16 or 32 segments per quarter; they are not millimetre error limits. |
+| The output includes a mesh body | Use **Automatic**. An explicit quality is refused. |
+| Pieces touch only at an edge or point | Use **Automatic**. It splits the display mesh into one STL per piece. |
+| The document has visible placed instances | Open the part's own document before using an explicit quality. |
+| Automatic reports use of the on-screen mesh | The kernel returned no STL bytes (`null`), so the display mesh supplied the bytes. This fallback does not mean the kernel export succeeded. |
+| Explicit quality cannot produce bytes | No STL or source sidecar is downloaded. Read the message; use **Automatic** only if its display-mesh fallback is acceptable. |
+| Export reports an error | Read and correct the reported problem, then export again. A worker error stops both Automatic and explicit export; it does not select the fallback. |
+| The design changes during preparation | Wait for the current design to evaluate, then open **Export STL** again. The stale request downloads nothing. |
+
+All STL bytes and the source sidecar are prepared before downloads start. **Cancel** during preparation discards
+the pending export without downloading either. Changing quality does not change the on-screen mesh or save a
+quality setting in the document.
+
+STL coordinates follow the millimetre convention, but the file stores no unit.
+Confirm the scale in the receiving app before using the mesh.
+
+![STL export flow: quality selection, preparation, current-design check and download](/diagrams/stl-export-flow.svg)
+
+If dimensions read from an image or drawing remain unconfirmed, STEP and STL still export.
+The message identifies the export as a draft and lists the open dimensions.
+
+For 3MF, pieces that touch only at an edge or point remain separate objects to avoid welding them in a reader.
 
 **Sources.** Each export names the document revision it was made from:
 

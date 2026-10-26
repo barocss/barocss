@@ -49,6 +49,161 @@ The package is public module by module. Import each module by its path; the pack
 | `util/` | Small shared helpers: unit factors, guards, ids, rounding, SHA-256 digests, the document revision |
 | `rb9/` | The AI scenario ladder: its rungs, a scripted agent, its measures and report |
 
+## Writing a root body's STL
+
+Import `evaluateDoc` and `stlFor` from `@barocss/cad-model/engine/evaluate`. `stlFor` takes a `StudioDoc`,
+a root body's key from that document's evaluated bodies, and optional `segmentsPerQuarter` settings.
+This helper selects only the first evaluated root body:
+
+```ts
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { evaluateDoc, stlFor } from '@barocss/cad-model/engine/evaluate';
+
+function firstRootStl(doc: StudioDoc, revision: number): Uint8Array | null {
+  const r = evaluateDoc(doc, revision);
+  if (!r.ok || r.bodies.length === 0) return null;
+  return stlFor(doc, r.bodies[0].key, { segmentsPerQuarter: 16 });
+}
+```
+
+Supply `revision` as the caller's numeric evaluation tag; it is not the saved source-record revision.
+A successful evaluation can still produce `null` from `stlFor`, so check the helper's result before writing a file.
+A missing root body, a non-finite `segmentsPerQuarter`, or a caught evaluation/export failure returns `null`;
+this result does not identify which cause occurred. The studio's [display-mesh fallback](/studio/files#exports)
+is a separate UI policy; this helper does not provide it or create a `.source.json` record.
+
+### STL and its source record
+
+To keep an STL with its source information, create both from the same document and pass the STL's exact filename
+to `sourceRecord`. The following helper returns two named files in memory; it does not write or download them.
+It returns `null` if evaluation fails, there is no root body, or `stlFor` cannot produce the STL.
+
+```ts
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { evaluateDoc, stlFor } from '@barocss/cad-model/engine/evaluate';
+import { sourceRecord, sourceBytes, sourceName } from '@barocss/cad-model/team/source';
+
+type MemoryFile = { name: string; bytes: Uint8Array };
+
+function firstRootStlFiles(
+  doc: StudioDoc,
+  revision: number,
+  stlName = 'part.stl',
+): [MemoryFile, MemoryFile] | null {
+  const result = evaluateDoc(doc, revision);
+  if (!result.ok || result.bodies.length === 0) return null;
+  const bytes = stlFor(doc, result.bodies[0].key, { segmentsPerQuarter: 16 });
+  if (bytes === null) return null;
+  const source = sourceRecord(doc, [stlName]);
+  return [
+    { name: stlName, bytes },
+    { name: sourceName(stlName), bytes: sourceBytes(source) },
+  ];
+}
+```
+
+The caller's numeric `revision` tags the evaluation. The source record's string `revision` instead identifies
+the document's canonical revision content. Its `digest` is the SHA-256 of that input content, not a checksum of
+the STL bytes or a certificate of geometric accuracy. `sourceName('part.stl')` gives `part.source.json`.
+Keep the returned pair together; after changing the document, produce a new pair rather than reusing the old record.
+
+![STL bytes and their separate source-record JSON from the same document](/diagrams/stl-source-pair.svg)
+
+### Reading a source record
+
+`sourceRecord(doc, files, options)` from `@barocss/cad-model/team/source` returns these fields:
+
+| Field | Meaning |
+|---|---|
+| `format` | The literal `barocss-source`. |
+| `version` | Record version `1`. |
+| `revision` | The 16-character hexadecimal revision from `revisionOf(doc)`, for detecting stale input. It covers the revision fields, not every saved document field. |
+| `digest` | SHA-256 of the UTF-8 canonical content used for that revision. It is not a checksum of the exported files. |
+| `files` | A copy of the supplied file-name list. It contains names, not file contents or checksums. |
+| `handSet` | Robot base-link and joint settings, included only with `{ robot: true }`. It is omitted by default. |
+
+`sourceBytes(record)` encodes the record as JSON bytes. `sourceName(name)` replaces the last extension with
+`.source.json`, or appends that suffix when there is no matching extension. It only derives a name; it does not
+validate a file name or make it safe for a destination path.
+
+When reading the JSON, treat `revision` and `digest` as identifiers for the recorded input content. Reading the
+record does not verify the named export files, authenticate the author, or establish physical accuracy.
+For robot exports, read `handSet` when present; its omission does not mean the robot used zero limits or ratings.
+
+Keep the record with the files it names and keep the editable `.bcad` document separately. The record is not a
+saved document and cannot reconstruct the model from its revision or digest.
+
+## Route bundles in code
+
+Import the route-bundle helpers from `@barocss/cad-model/engine/routeBundle`. A bundle ties one interior control pole on each of two curves to one translation in world millimetres. It does not join the curves or move each whole curve.
+
+The input must contain exactly two distinct direct curves. Each curve must be an open, clamped cubic with positive weights. Each member selects an existing interior pole by its numeric string `handleKey` and names an existing active `sweep-curve` feature and its earlier circular sketch profile. The profile must have a finite positive radius; associated or placed profiles, extra regions, and holes are outside this contract. Each copied sweep path must already match its direct curve. Members must use distinct curves, source geometries, profiles, and sweeps. A document can contain one bundle; nested bundle metadata is not supported.
+
+| Helper | Result and meaning |
+| --- | --- |
+| `createRouteBundle(doc, input)` | Returns a copied `StudioDoc` candidate with schema `4`, one tie, two members, and markers on the two sweeps. It uses existing inputs; it does not create the curves, profiles, or sweeps. |
+| `moveRouteBundle(frozenStart, bundleId, totalDeltaMM, expectedDocumentIdentity)` | Returns a candidate measured from the unchanged drag-start document. Both selected poles and the tie anchor receive the same total delta. Endpoints and all other poles remain fixed. The copied sweep paths are updated to match. |
+| `detachRouteBundle(doc, bundleId, expectedDocumentIdentity)` | Removes the bundle and its sweep markers, and returns a schema `3` candidate. It keeps the current curve coordinates and copied sweep paths. |
+| `assertRouteBundleDocument(input)` | Returns `void` if the route-bundle admission checks accept the input. It does not evaluate the whole model. |
+| `routeBundleDocumentIdentity(doc)` | Returns the full canonical document identity used by these helpers. Use this exact string, not `revisionOf(doc)` or a revision label. |
+
+`createRouteBundle` receives `expectedDocumentIdentity` in its input object. Move and detach receive it as their last argument. A stale identity or an invalid bundle input is refused with `BAD_REFERENCE`. The stored source binding and copied path must still match the current direct curve.
+
+The following helpers take IDs and selections from the caller's existing document. They return candidates only. Evaluate the whole candidate and commit it only after that evaluation succeeds. For a drag, also check that the accepted document still has `baseIdentity` before commit; discard the candidate if the document has changed.
+
+```ts
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import {
+  assertRouteBundleDocument,
+  createRouteBundle,
+  detachRouteBundle,
+  moveRouteBundle,
+  routeBundleDocumentIdentity,
+  type CreateRouteBundleInput,
+} from '@barocss/cad-model/engine/routeBundle';
+
+type DeltaMM = [number, number, number];
+type NewBundle = Omit<CreateRouteBundleInput, 'expectedDocumentIdentity'>;
+
+export function createRouteCandidate(
+  accepted: StudioDoc,
+  input: NewBundle,
+): StudioDoc {
+  assertRouteBundleDocument(accepted);
+  return createRouteBundle(accepted, {
+    ...input,
+    expectedDocumentIdentity: routeBundleDocumentIdentity(accepted),
+  });
+}
+
+// Call once at drag start, after the bundle candidate has been accepted.
+export function beginRouteDrag(accepted: StudioDoc, bundleId: string) {
+  const frozenStart = structuredClone(accepted);
+  const baseIdentity = routeBundleDocumentIdentity(frozenStart);
+  return {
+    baseIdentity,
+    candidateFromTotal(totalDeltaMM: DeltaMM): StudioDoc {
+      return moveRouteBundle(
+        frozenStart, bundleId, totalDeltaMM, baseIdentity,
+      );
+    },
+  };
+}
+
+export function detachRouteCandidate(
+  accepted: StudioDoc,
+  bundleId: string,
+): StudioDoc {
+  return detachRouteBundle(
+    accepted, bundleId, routeBundleDocumentIdentity(accepted),
+  );
+}
+```
+
+For every drag update, call the same `candidateFromTotal` function with displacement from the drag start. Do not add frame deltas or use the previous candidate as a new start. The tie stores each selected pole's offset from its anchor; it does not force both poles onto the anchor. These helpers do not certify clearance, bend radius, sweep validity, or manufacturing suitability.
+
+See [the control-point diagram and Studio steps](/studio/features#route-bundles) and [the saved fields](/reference/document#route-bundle-fields).
+
 ## Assembly and robot motions
 
 Use the `api/` facade's `assembly(...).robot()` to read an assembly as a robot. `robot.path(...)` takes at least
@@ -216,7 +371,7 @@ These rules do not extend the supported motion contract above.
 
 ## The studio document
 
-The document is a `barocss-cad-model` file, schema 3, in millimetres:
+The document is a `barocss-cad-model` file in millimetres. Ordinary documents use schema 3; an explicit route bundle uses schema 4:
 
 - **The model.** Its `nodes` are the features in order, with its parameters and outputs.
 - **Everything else on the part:**

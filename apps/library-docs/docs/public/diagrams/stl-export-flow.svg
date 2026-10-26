@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="710" viewBox="0 0 720 710" role="img" aria-labelledby="title desc">
+  <title id="title">STL export: quality, preparation and download</title>
+  <desc id="desc">Automatic omits the quality option and can use the display mesh if the worker returns null. Explicit quality 8, 16 or 32 requires supported B-rep bodies. All STL files and the source sidecar are prepared before downloading. Refusal, worker error, explicit null, cancellation or a stale request stops preparation without downloads. This is a conceptual source flow, not an API shape capture or physical validation.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#526277"/></marker>
+  </defs>
+  <rect width="720" height="710" rx="12" fill="#f8fafc"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#18283b">
+    <text x="360" y="30" text-anchor="middle" font-size="23" font-weight="700">STL export: prepare before download</text>
+    <text x="360" y="55" text-anchor="middle">Conceptual flow from the Studio source</text>
+    <g fill="none" stroke="#526277" stroke-width="2" marker-end="url(#arrow)">
+      <path d="M196 153V176H300V194"/>
+      <path d="M524 153V176H420V194"/>
+      <path d="M300 258V280H196V295"/>
+      <path d="M420 258V280H524V295"/>
+      <path d="M196 358V449"/>
+      <path d="M524 358V380"/>
+      <path d="M524 426V449"/>
+      <path d="M360 515V538"/>
+      <path d="M48 128H24V482H58"/>
+    </g>
+    <rect x="48" y="77" width="296" height="76" rx="8" fill="#e8f1ff" stroke="#7593ba"/>
+    <text x="196" y="100" text-anchor="middle" font-weight="700">Automatic</text>
+    <text x="196" y="123" text-anchor="middle">No quality option supplied</text>
+    <text x="196" y="145" text-anchor="middle">Touching pieces: split display mesh*</text>
+    <rect x="376" y="77" width="296" height="76" rx="8" fill="#edf0ff" stroke="#8288bd"/>
+    <text x="524" y="100" text-anchor="middle" font-weight="700">Explicit: 8 / 16 / 32</text>
+    <text x="524" y="123" text-anchor="middle">segmentsPerQuarter = choice</text>
+    <text x="524" y="145" text-anchor="middle">Supported B-rep bodies only</text>
+    <rect x="80" y="194" width="560" height="64" rx="8" fill="#ffffff" stroke="#8e9baa"/>
+    <text x="360" y="218" text-anchor="middle" font-weight="700">For each root body: worker → stlFor → exportStl</text>
+    <text x="360" y="242" text-anchor="middle">Request STL bytes; keep preparing without downloading</text>
+    <rect x="58" y="295" width="276" height="63" rx="8" fill="#e7f5ef" stroke="#689c88"/>
+    <text x="196" y="320" text-anchor="middle" font-weight="700">STL bytes returned</text>
+    <text x="196" y="344" text-anchor="middle">Keep bytes for this body</text>
+    <rect x="386" y="295" width="276" height="63" rx="8" fill="#fff4df" stroke="#b89a5f"/>
+    <text x="524" y="320" text-anchor="middle" font-weight="700">null + Automatic only</text>
+    <text x="524" y="344" text-anchor="middle">Use the on-screen display mesh</text>
+    <rect x="386" y="380" width="276" height="46" rx="8" fill="#fff4df" stroke="#b89a5f"/>
+    <text x="524" y="408" text-anchor="middle">Prepare fallback bytes + notice</text>
+    <rect x="58" y="449" width="604" height="66" rx="8" fill="#e7f5ef" stroke="#689c88"/>
+    <text x="360" y="474" text-anchor="middle" font-weight="700">All bodies prepared → prepare &lt;name&gt;.source.json</text>
+    <text x="360" y="499" text-anchor="middle">Check that this request still matches the current design</text>
+    <rect x="148" y="538" width="424" height="44" rx="8" fill="#d8eee5" stroke="#4b8a73"/>
+    <text x="360" y="566" text-anchor="middle" font-weight="700">Download all prepared STL files + sidecar</text>
+    <rect x="48" y="606" width="624" height="65" rx="8" fill="#fff0ef" stroke="#bf7e77"/>
+    <text x="360" y="629" text-anchor="middle" font-weight="700">Before download: stop on refusal, error or explicit null</text>
+    <text x="360" y="654" text-anchor="middle">Cancel or stale request also stops → no STL or sidecar download</text>
+    <text x="360" y="695" text-anchor="middle">* Automatic touching-piece split bypasses the worker request.</text>
+  </g>
+</svg>

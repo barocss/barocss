@@ -48,6 +48,7 @@ export const sidebar = [
       { text: '@barocss/cad-model', link: '/packages/cad-model/', lane: 'outer' },
       { text: 'Object API', link: '/packages/api', lane: 'API' },
       { text: '@barocss/gpu', link: '/packages/gpu/', lane: 'GPU' },
+      { text: '@barocss/viewer (SDK)', link: '/packages/viewer/', lane: 'GPU' },
     ],
   },
   {

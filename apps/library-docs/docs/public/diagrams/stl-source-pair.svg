@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 430" role="img" aria-labelledby="title desc">
+  <title id="title">One input document, two export files</title>
+  <desc id="desc">The first evaluated root body supplies STL bytes. A separate source record names the STL and hashes the document's canonical revision content. The source record does not hash the STL bytes or contain the editable document.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#52647a"/>
+    </marker>
+  </defs>
+  <rect width="800" height="430" rx="16" fill="#f3f6fb"/>
+  <g font-family="system-ui, sans-serif" fill="#172b46">
+    <text x="28" y="36" font-size="22" font-weight="700">One input document → two export files</text>
+    <rect x="28" y="140" width="214" height="142" rx="12" fill="#fff" stroke="#92a6bf"/>
+    <text x="46" y="170" font-size="19" font-weight="700">StudioDoc</text>
+    <text x="46" y="199" font-size="16">Root body's geometry</text>
+    <text x="46" y="225" font-size="16">Revision-covered fields</text>
+    <text x="46" y="257" font-size="15" fill="#52647a">Use the same document.</text>
+    <path d="M 242 178 H 286 V 111 H 330" fill="none" stroke="#52647a" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 242 245 H 286 V 297 H 330" fill="none" stroke="#52647a" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="340" y="65" width="430" height="116" rx="12" fill="#e5f3f0" stroke="#51877b"/>
+    <text x="360" y="94" font-size="19" font-weight="700">part.stl</text>
+    <text x="360" y="122" font-size="16">stlFor(doc, body.key, options)</text>
+    <text x="360" y="151" font-size="16">Uint8Array · binary triangles</text>
+    <text x="360" y="173" font-size="14" fill="#395f57">If it returns null, do not create the pair.</text>
+    <rect x="340" y="214" width="430" height="159" rx="12" fill="#eaf0fe" stroke="#7890bc"/>
+    <text x="360" y="243" font-size="19" font-weight="700">part.source.json</text>
+    <text x="360" y="271" font-size="16">sourceBytes(sourceRecord(doc, ['part.stl']))</text>
+    <text x="360" y="300" font-size="16">revision: 16 hexadecimal characters</text>
+    <text x="360" y="326" font-size="16">digest: SHA-256 of canonical input content</text>
+    <text x="360" y="352" font-size="16">files: ['part.stl']</text>
+    <text x="28" y="407" font-size="16">Keep the pair together. Save the editable .bcad document separately.</text>
+  </g>
+</svg>

@@ -32,7 +32,8 @@ features:
 | [The agent](/agent/) | An AI that designs with the studio's own tools, through the chat or as an MCP server and a command line. |
 | [`@barocss/cad`](/packages/cad/) | The kernel: exact B-rep and NURBS geometry, Booleans, fillets, offsets, mass properties, STEP, IGES, STL and DXF. |
 | [`@barocss/cad-model`](/packages/cad-model/) | The document model above the kernel: parts, assemblies, drawings, BOM, processes, robots and the agent's tools. |
-| [`@barocss/gpu`](/packages/gpu/) | The viewer the studio draws with: WebGPU scenes, materials, compute analyses and frame costs. |
+| [`@barocss/gpu`](/packages/gpu/) | The canvas renderer the studio draws with: WebGPU scenes, materials, compute analyses and frame costs. |
+| [`@barocss/viewer`](/packages/viewer/) | The Viewer SDK class for embedding a CAD viewer and managing its review state. |
 
 ## From design to experiments
 

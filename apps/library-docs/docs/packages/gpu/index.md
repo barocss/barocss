@@ -2,6 +2,9 @@
 
 The studio's WebGPU viewer, and a small CSS-shaped scene and material language. It depends only on `@barocss/cad`.
 
+This package supplies the low-level canvas renderer. For the `Viewer` SDK class and its review-state API, see
+[`@barocss/viewer`](/packages/viewer/).
+
 - **Version.** The package is `0.0.0`, experimental and unreleased.
 - **How the studio uses it.** The studio draws with this viewer when the browser has WebGPU. Its WebGL2 fallback is
   the studio's own renderer, not part of this package (see [WebGPU and WebGL2](#webgpu-and-webgl2)).
@@ -94,6 +97,26 @@ package's own browser tests drive it in Chrome.
     chain spread the highlights; the targets are recreated on resize and released with the viewer.
   - 4× MSAA, exposure and ACES tone mapping in a linear half-float pipeline.
   - Clip planes and cap hatching for sections.
+
+### Depth of field
+
+The low-level viewer accepts `environment.depthOfField` as `false` or `{ focus, blur? }`:
+
+```js
+viewer.environment = {
+  ...viewer.environment,
+  depthOfField: { focus: 160, blur: 6 },
+};
+```
+
+`focus` is a positive distance along the camera's view axis in the scene's world units. `blur` is a maximum
+radius in CSS pixels. Omitting `blur` uses 8; positive values are capped at 24. The renderer scales CSS pixels
+by the device pixel ratio. Omitting the effect, setting it to `false`, or using zero blur disables it.
+Non-finite or non-positive focus, and non-finite or non-positive blur, do not enable the effect.
+
+The example assumes an existing WebGPU viewer and its scene units; 160 is not automatically 160 mm.
+Studio stores its focus distance in mm and both its focus and blur values, as described under
+[Focus and blur](/studio/rendering#focus-and-blur). These are image settings, not geometric or physical accuracy bounds.
 
 ## The scene and material language
 

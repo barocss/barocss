@@ -23,7 +23,7 @@ and writes it (`@barocss/cad-model/engine/doc` and `engine/container`).
 
 ## Schema version
 
-Documents are `"format": "barocss-cad-model"`, `"schema": 3`, `"units": "mm"`. Schema 3 keys bodies by stable ids.
+Documents use `"format": "barocss-cad-model"` and `"units": "mm"`. Ordinary documents use `"schema": 3`, which keys bodies by stable ids. Explicit route bundles use `"schema": 4`.
 
 - **No migrations yet.** Until the first release, documents follow the latest schema. Unreleased versions aren't
   migrated between, and fixtures are updated instead.
@@ -38,7 +38,7 @@ Only `format`, `schema`, `units`, `parameters`, `nodes` and `outputs` are always
 
 | Field | What it holds |
 |---|---|
-| `format`, `schema`, `units` | `barocss-cad-model`, 3, `mm` |
+| `format`, `schema`, `units` | `barocss-cad-model`, 3 or 4 for an explicit route bundle, `mm` |
 | `nextId` | The next feature serial (`n<nextId>`). Ids are never used twice |
 | `parameters` | Named values the features' dimensions can be bound to |
 | `configurations` | Saved sets of parameter values, by name |
@@ -46,9 +46,39 @@ Only `format`, `schema`, `units`, `parameters`, `nodes` and `outputs` are always
 | `outputs` | The bodies, by key, and the feature and side each comes from |
 | `bodies` | Each body's own name, colour and visibility, kept with it as features change |
 | `direct` | NURBS curves and surfaces beside the model: imported sources and what tools made of them |
+| `routeBundles` | One explicit tie between two interior curve control points and their matching copied sweeps; schema 4 |
 | `underlays` | Imported drawings' outlines and text, to trace over. They are never geometry |
 | `drafts` | Features made from an image or a drawing, and their dimensions still to confirm |
 | `render` | The Render workspace's settings: appearances, lights, environment, camera, props, animation |
+
+### Route bundle fields
+
+Explicit route bundles use document `schema: 4`, with `format: 'barocss-cad-model'` and `units: 'mm'`.
+Older documents without bundle metadata keep their existing copied-sweep behaviour; reading them does not
+automatically link their curves. The current route profile permits exactly one bundle with exactly two members.
+
+| Field | Stored meaning |
+|---|---|
+| `routeBundles` | The explicit bundle array on the base Studio document. Nested route bundles are not supported. |
+| `routeBundles[0].id` | The bundle's nonempty identifier. |
+| `version`, `kind`, `frame` | The fixed values `1`, `'two-open-curves-one-translation-tie'`, and `'world-mm'`. |
+| `tie.id`, `tie.anchorMM` | The tie identifier and its three finite world XYZ coordinates in mm. |
+| `members` | Two distinct bindings, each with a member `id`. |
+| `curveObjectId`, `sourceKey`, `geometryId` | The direct curve object and its source/geometry selectors. The loaded source is a millimetre CAD geometry model, not another Studio document. |
+| `handleKey` | The selected interior control-point index as a string. Endpoints cannot be tied. |
+| `sourceCanonical`, `sourceRevision` | The captured source/object/curve canonical content and its revision. They detect changed or stale source bindings; they do not provide automatic rematching. |
+| `offsetMM` | Three finite values giving the selected control point's offset from the tie anchor, in world mm. Moving the tie preserves this offset. |
+| `sweepFeatureId`, `profileFeatureId` | Stable IDs for the matching active copied sweep and its earlier independent circular sketch. |
+| `nodes[].routeBundleMember` | On each linked `sweep-curve` node, `{ bundleId, memberId }` identifies the matching bundle member. Its copied `path` must match the current direct curve. |
+
+The reader checks these bindings, source captures and markers. Missing, ambiguous, stale or orphan bindings are
+refused with `BAD_REFERENCE`; it does not silently use an old sweep path. Bundle metadata requires schema 4 and
+cannot be added to a schema-3 record. Removing the only bundle also removes its member markers and returns the
+document to schema 3, while preserving the current curves and copied sweeps.
+
+Route helpers return candidate documents; their binding checks do not run a complete model evaluation. The caller
+must evaluate the whole candidate before accepting it. Linked route documents cannot be inserted as placed parts,
+and rollback to a partial feature history requires detaching the bundle first.
 
 ### Assemblies, drawings and robots
 
