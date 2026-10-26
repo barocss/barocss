@@ -48,14 +48,17 @@ for (const projection of ['orthographic', 'perspective']) test(`path trace ${pro
       const count = trace.samples; let callbacks = 0;
       await trace.start(() => { callbacks++; if (callbacks === 3) trace.stop(); });
       const final = trace.samples, stopped = !trace.running;
+      const frameSamples = { one: one.samples, eight: eight.samples, denoised: denoised.samples, reference: reference.samples, frozen: frozen.samples };
       trace.dispose(); let disposed = false; try { await trace.capture(); } catch (e) { disposed = e.code === 'DISPOSED'; }
       const sessions = v.pathTraces.size; v.dispose();
-      return { errors, difference, count, final, stopped, callbacks, disposed, sessions, raster: [raster.width, raster.height] };
+      return { errors, difference, count, final, stopped, callbacks, disposed, sessions, frameSamples, raster: [raster.width, raster.height] };
     }, projection);
     t.diagnostic(JSON.stringify(result));
     assert.ok(result.errors.eight < result.errors.one * 0.5, 'eight samples reduce reference error');
     assert.ok(result.errors.denoised < result.errors.eight, 'our geometry-aware denoiser reduces low-sample noise');
     assert.equal(result.difference, 0, 'snapshot remains byte-identical after live camera/material edits and raster rendering');
+    assert.deepEqual(result.frameSamples, { one: 1, eight: 8, denoised: 8, reference: 128, frozen: 128 }, 'captured sample counts remain fixed after later sampling');
+    assert.equal(result.frameSamples.eight, result.frameSamples.denoised, 'raw and denoised captures describe the same sampled image');
     assert.equal(result.final, result.count + 3); assert.equal(result.callbacks, 3); assert.equal(result.stopped, true); assert.equal(result.disposed, true); assert.equal(result.sessions, 0);
     assert.deepEqual(result.raster, [320, 240]); assert.deepEqual(s.errors, []);
   } finally { await s.close(); }
@@ -69,10 +72,11 @@ test('path trace G15a finishes, colour map, coat/film, instances, direct shadows
       const geom = { positions: [-3, -3, 0, 3, -3, 0, 3, 3, 0, -3, -3, 0, 3, 3, 0, -3, 3, 0], uvs: [0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1] };
       const map = v.createTexture({ width: 2, height: 2, data: new Uint8Array([255,0,0,255, 0,255,0,255, 255,0,0,255, 0,255,0,255]) }, { filter: 'nearest', mipmaps: false });
       const m = v.add(geom, { material: { color: '#ffffff', map, metallic: 0.7, roughness: 0.4, clearcoat: 0.5, film: 0.6, doubleSided: true }, instances: { transforms: [...api.translation([0,0,0])] } });
-      const sums = [];
+      const sums = [], frameSamples = [];
       for (const kind of [null, ...api.SURFACE_FINISHES]) {
         m.material = { finish: kind ? { kind, scale: 0.3, strength: 0.8 } : null };
         const tr = await v.createPathTrace({ width: 32, height: 24, bounces: 3 }); await tr.sample(8); const image = await tr.capture(false);
+        frameSamples.push(image.samples);
         let sum = 0; for (let i=0;i<image.data.length;i+=4) sum += image.data[i] + image.data[i+1] + image.data[i+2]; sums.push(sum); tr.dispose();
       }
       m.material = { finish: null, unlit: true, metallic: 0 };
@@ -83,9 +87,11 @@ test('path trace G15a finishes, colour map, coat/film, instances, direct shadows
       for (const options of [{width:0}, {bounces:0}]) { try { await v.createPathTrace(options); } catch(e) { refused.push(e.code); } }
       v.clipPlane = { normal: [1,0,0], offset: 0 }; try { await v.createPathTrace(); } catch(e) { refused.push(e.code); }
       v.clipPlane = null; m.material = { shader: {expression:'vec3f(1.0)'} }; try { await v.createPathTrace(); } catch(e) { refused.push(e.code); }
-      const sessions = v.pathTraces.size; v.dispose(); return { sums, left, right, refused, sessions };
+      const sessions = v.pathTraces.size; v.dispose(); return { sums, left, right, refused, sessions, frameSamples, colourMapSamples: image.samples };
     });
     t.diagnostic(JSON.stringify(result)); assert.ok(result.sums.every(x=>x>0)); assert.ok(new Set(result.sums).size >= 6, 'shared G15a finishes alter transport');
+    assert.deepEqual(result.frameSamples, result.sums.map(() => 8), 'each finish capture records eight samples');
+    assert.equal(result.colourMapSamples, 4, 'colour map capture records four samples');
     assert.ok(result.left[0]>200 && result.left[1]<10); assert.ok(result.right[1]>200 && result.right[0]<10);
     assert.deepEqual(result.refused, ['SIZE_INVALID','PATH_TRACE_UNSUPPORTED','PATH_TRACE_UNSUPPORTED','PATH_TRACE_UNSUPPORTED']); assert.equal(result.sessions,0); assert.deepEqual(s.errors,[]);
   } finally { await s.close(); }
@@ -110,9 +116,11 @@ test('path trace BVH shadows and secondary emissive transport have independent i
       v.add(quad([1.2,-1,0],[1.2,-1,2],[1.2,1,2],[1.2,1,0]),{material:{color:'#ff0000',emissive:2,doubleSided:true,roughness:1}});
       const direct=await image(1,8), indirect=await image(4,64);
       const transport={direct:mean(direct,[-.5,0,0]),indirect:mean(indirect,[-.5,0,0])};
-      v.dispose();return {shadow,transport};
+      const frameSamples = { clear: clear.samples, blocked: blocked.samples, direct: direct.samples, indirect: indirect.samples };
+      v.dispose();return {shadow,transport,frameSamples};
     });
     t.diagnostic(JSON.stringify(result));
+    assert.deepEqual(result.frameSamples, { clear: 8, blocked: 8, direct: 8, indirect: 64 }, 'each image oracle retains its own sampled image count');
     assert.ok(result.shadow.clear > 50 && result.shadow.blocked < result.shadow.clear * 0.2,'occluder blocks the direct light along the BVH shadow ray');
     assert.equal(result.transport.direct,0); assert.ok(result.transport.indirect > 10,'secondary paths carry red emission onto the floor'); assert.deepEqual(s.errors,[]);
   } finally { await s.close(); }

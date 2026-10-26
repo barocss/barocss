@@ -60,22 +60,27 @@ test('failed creation releases every allocated resource even when both scope pop
   assert.equal(removed, 1);
 });
 
-test('capture waits for a submitted sample and the next sample waits for capture readback', async t => {
+test('capture records its queued sample snapshot and keeps it fixed after later work completes', async t => {
   const fake = gpu({ holdWork: true, holdMaps: true });
   let removed = 0;
   const session = await PathTraceSession.create(fake.device, snapshot(), {}, () => { removed++; });
   t.after(() => session.dispose());
   const first = session.sample(); await settle();
   const captured = session.capture(false); await settle();
+  assert.equal(session.samples, 0, 'capture is queued behind the unfinished first sample, not captured at call time');
   assert.deepEqual(fake.submissions, ['progressive still sample']);
   fake.work[0].resolve(); assert.equal(await first, 1); await settle();
   assert.deepEqual(fake.submissions, ['progressive still sample', 'trace denoise and output']);
   const second = session.sample(); await settle();
   assert.equal(fake.work.length, 1, 'no next sample may use the buffers during readback');
+  assert.equal(session.samples, 1, 'the later sample is queued behind capture readback');
   fake.maps[0].resolve();
   const frame = await captured; assert.deepEqual([frame.width, frame.height, frame.data.length], [2, 2, 16]);
+  assert.equal(frame.samples, 1, 'image metadata belongs to the sample completed before its serialized capture');
   await settle(); assert.equal(fake.work.length, 2);
   fake.work[1].resolve(); assert.equal(await second, 2);
+  assert.equal(session.samples, 2, 'the later queued sample has completed');
+  assert.equal(frame.samples, 1, 'later session progress must not change the captured image metadata');
   session.dispose(); assert.equal(removed, 1);
   for (const resource of fake.resources) assert.equal(resource.destroyed, 1, resource.label);
 });

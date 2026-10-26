@@ -14,7 +14,8 @@ export interface PathTraceOptions {
   /** Maximum surface bounces, 1–16 (default 6); finite-depth transport, with Russian roulette after bounce 3. */
   bounces?: number;
 }
-export interface PathTraceImage { width: number; height: number; data: Uint8Array }
+/** Pixels and their completed accumulation count, fixed when the queued capture runs. */
+export interface PathTraceImage { width: number; height: number; samples: number; data: Uint8Array }
 export interface TraceSnapshot { meshes: readonly Mesh[]; camera: Camera; environment: Environment; lights: readonly Light[]; background: Background; width: number; height: number; clipped: boolean }
 
 /** Frozen still. start() samples until stop(); sample() permits deterministic, bounded batches for tools and tests. */
@@ -146,6 +147,7 @@ export class PathTraceSession {
   capture(denoise = true): Promise<PathTraceImage> {
     return this.enqueue(async () => {
       if (!this.count) throw new ViewerError('PATH_TRACE_BUSY', 'Sample the still before capturing it');
+      const samples = this.count;
       this.device.queue.writeBuffer(this.options, 0, new Uint32Array([denoise ? 1 : 0, 0, 0, 0]));
       const row = Math.ceil(this.width * 4 / 256) * 256;
       const read = this.device.createBuffer({ size: row * this.height, usage: BufferUsage.COPY_DST | BufferUsage.MAP_READ, label: 'trace PNG readback' });
@@ -156,7 +158,7 @@ export class PathTraceSession {
         await read.mapAsync(MapMode.READ); this.alive();
         const src = new Uint8Array(read.getMappedRange()), data = new Uint8Array(this.width * this.height * 4);
         for (let y = 0; y < this.height; y++) data.set(src.subarray(y * row, y * row + this.width * 4), y * this.width * 4);
-        read.unmap(); return { width: this.width, height: this.height, data };
+        read.unmap(); return { width: this.width, height: this.height, samples, data };
       } finally { read.destroy(); }
     });
   }
