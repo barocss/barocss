@@ -14,7 +14,11 @@ import { canonical, fnv64 } from '../src/util/revision';
 const EPS = 1e-7, DELTA: [number, number, number] = [5, -3, 4];
 const MIDPOINTS = [[-0.125, -1.125, 16.5], [3.875, -1.125, 16.5]];
 const pointClose = (actual: number[], expected: number[]) => assert.ok(Math.hypot(...actual.map((v, k) => v - expected[k])) <= EPS, `${JSON.stringify(actual)} vs ${JSON.stringify(expected)}`);
-const curveText = (id: string, x: number) => `@curve #${id} { type: nurbs; degree: 3; knots: [0,0,0,0,1,1,1,1]; control-points: [[${x},0,0],[${x},0,10],[${x},0,20],[${x},0,30]]; weights: [1,1,1,1]; }`;
+const curveText = (id: string, x: number) => {
+  // The overflow fixture keeps 1e308, expressed in the existing decimal-only source grammar.
+  const coordinate = x === 1e308 ? '1' + '0'.repeat(308) : String(x);
+  return `@curve #${id} { type: nurbs; degree: 3; knots: [0,0,0,0,1,1,1,1]; control-points: [[${coordinate},0,0],[${coordinate},0,10],[${coordinate},0,20],[${coordinate},0,30]]; weights: [1,1,1,1]; }`;
+};
 const source = (name: string, curves: string[]) => `@model ${name} { version: 0; length-unit: mm; ${curves.join('\n')} }`;
 function curve(direct: DirectGeometry, id: string): Curve {
   const object = direct.objects.find(o => o.id === id); assert.ok(object);
