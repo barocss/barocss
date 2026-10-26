@@ -106,12 +106,16 @@ input.body-visibility:disabled { opacity: .35; cursor: default; }
 .body-visibility svg { width: 15px; height: 15px; }
 .panel-footnote { margin: 0; padding: 12px 17px; border-top: 1px solid #2f383f; color: #8197a6; font-size: 11px; line-height: 1.6; }
 
-.viewport-panel { display: grid; grid-template-rows: auto minmax(0, 1fr) 34px; min-width: 0; min-height: 0; background: #10161c; }
+.viewport-panel { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-width: 0; min-height: 0; background: #10161c; }
 .viewport-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 14px; min-height: 46px; padding: 7px 11px; border-bottom: 1px solid #354049; background: #222a30; }
-.viewport-actions { display: flex; align-items: center; gap: 3px; }
+.viewport-actions { display: flex; flex: 1 1 550px; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; }
+.viewport-action-group { display: flex; flex: 0 0 auto; align-items: center; gap: 3px; min-width: 0; }
+.viewport-action-group + .viewport-action-group { padding-left: 8px; border-left: 1px solid #3a454f; }
 .viewport-actions button { min-height: 29px; padding: 0 7px; border-color: transparent; background: transparent; color: #bdcbd4; font-size: 11px; }
 .viewport-actions button:hover:not(:disabled) { background: #303c45; border-color: transparent; }
-.view-presets { display: flex; align-items: center; gap: 1px; margin-left: auto; padding: 2px; border: 1px solid #43515c; border-radius: 4px; background: #1b2329; }
+.viewport-pick-filter { display: flex; align-items: center; gap: 6px; margin-left: 4px; color: #93a8b6; font-size: 10px; }
+.viewport-pick-filter select { width: 83px; height: 25px; padding: 0 18px 0 6px; color: #c2d0da; background: #1b2329; font-size: 11px; }
+.view-presets { display: flex; flex: 0 0 auto; align-items: center; gap: 1px; margin-left: auto; padding: 2px; border: 1px solid #43515c; border-radius: 4px; background: #1b2329; }
 .view-presets button { min-height: 24px; padding: 0 9px; border: 0; border-radius: 2px; background: transparent; color: #acbecb; font-size: 11px; }
 .view-presets button:hover:not(:disabled) { background: #34434d; }
 .view-presets button[aria-pressed="true"] { background: #31515d; color: #a4ecf6; }
@@ -127,7 +131,8 @@ kbd { display: inline-flex; justify-content: center; align-items: center; height
 .empty-content h2 { margin: 0; color: #dce7ee; font-size: 18px; font-weight: 500; line-height: 1.5; letter-spacing: -.3px; }
 .empty-content p { margin: 10px 0 22px; color: #8fa2b1; font-size: 12px; line-height: 1.8; }
 .empty-content button { gap: 16px; min-height: 34px; padding: 0 13px; font-size: 12px; }
-.viewport-help { display: flex; align-items: center; justify-content: center; gap: 22px; min-width: 0; padding: 0 10px; border-top: 1px solid #303b44; color: #8098a8; background: #1c252c; font-size: 10px; white-space: nowrap; }
+.viewport-help { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 18px; min-width: 0; min-height: 34px; padding: 7px 10px; border-top: 1px solid #303b44; color: #8098a8; background: #1c252c; font-size: 10px; line-height: 1.5; }
+.viewport-help > span { white-space: nowrap; }
 .help-key { color: #a0b0bb; margin-right: 3px; }
 
 .inspector-panel { display: flex; flex-direction: column; border-left: 1px solid var(--line); overflow: auto; scrollbar-width: thin; scrollbar-color: #46525c transparent; }
@@ -188,7 +193,8 @@ select:disabled { opacity: .4; }
   .export-actions { padding-left: 11px; }
   .toolbar-group { gap: 5px; }
   .app-toolbar button { gap: 5px; padding: 0 9px; }
-  .viewport-actions { gap: 1px; }
+  .viewport-actions { gap: 4px 6px; }
+  .viewport-action-group { gap: 1px; }
   .viewport-actions button { padding: 0 5px; }
   .viewport-help { gap: 13px; }
 }

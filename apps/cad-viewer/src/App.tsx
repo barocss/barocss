@@ -43,6 +43,7 @@ type ViewModel = {
   exportBusy: boolean;
   reviewBusy: boolean;
   viewPreset: ViewPreset | null;
+  pickFilter: 'all' | 'surface' | 'curve';
   appearanceTarget: string;
   appearancePreset: string;
   appearanceNote: string;
@@ -59,7 +60,7 @@ type ViewModel = {
 const initialModel: ViewModel = {
   ready: false, starting: true, active: null, admitted: [], state: null, search: '',
   candidate: null, admissionIds: [], admissionError: '', status: 'Starting Viewer…',
-  statusError: false, exportStatus: '', exportBusy: false, reviewBusy: false, viewPreset: null,
+  statusError: false, exportStatus: '', exportBusy: false, reviewBusy: false, viewPreset: null, pickFilter: 'all',
   appearanceTarget: '', appearancePreset: 'default', appearanceNote: 'Load a Surface to change its appearance.',
   lightingCapabilities: null, lightingError: '',
   measurement: { active: false, points: [], result: null, error: '' },
@@ -148,6 +149,7 @@ export function App() {
   const isAssembly = model.active?.kind === 'assembly';
   const candidateIsAssembly = model.candidate?.kind === 'assembly';
   const selected = state?.selectedGeometry;
+  const canFitSelected = Boolean(model.ready && selected && state?.visibleGeometry.some(ref => sameRef(ref, selected)));
   const canOpen = !model.starting && Boolean(state);
   const isolateBlocked = Boolean(selected && state?.surfaceMaterials.some(entry =>
     !sameRef({ kind: 'surface', ...entry.ref }, selected)));
@@ -294,23 +296,38 @@ export function App() {
         <section className="viewport-panel" aria-label="Model workspace">
           <div className="viewport-toolbar">
             <div className="viewport-actions" aria-label="View actions">
-              <Button id="fit-all" variant="ghost" size="sm" title="Fit all visible bodies (F)"
-                disabled={!model.ready || !state?.visibleGeometry.length} onClick={() => api()?.fit()}><Icon name="fit" />Fit all <kbd>F</kbd></Button>
-              <Button id="show-all" variant="ghost" size="sm" disabled={!model.ready} onClick={() => api()?.showAll()}><Icon name="eye" />Show all</Button>
-              <span className="toolbar-divider" aria-hidden="true" />
-              <Button id="hide-selected" variant="ghost" size="sm" disabled={!selected} onClick={() => api()?.hideSelected()}>Hide</Button>
-              <Button id="isolate-selected" variant="ghost" size="sm" disabled={!selected || isolateBlocked}
-                title={isolateBlocked ? 'Clear material overrides on other bodies before isolating.' : 'Show only the selected body'}
-                onClick={() => api()?.isolateSelected()}>Isolate</Button>
-              <Button id="clear-selection" variant="ghost" size="sm" title="Clear selection (Escape)" disabled={!selected}
-                onClick={() => api()?.select(null)}>Clear</Button>
-              <span className="toolbar-divider" aria-hidden="true" />
-              <Button ref={measurementToolRef} id="measure-tool" variant="ghost" size="sm" aria-pressed={model.measurement.active}
-                disabled={!model.ready || !state?.visibleGeometry.length || isAssembly}
-                title={isAssembly ? 'Native distance measurement is unavailable in assembly mode.' : 'Measure two native points'}
-                onClick={() => { if (model.measurement.active) api()?.cancelMeasurement(); else api()?.startMeasurement(); }}>
-                Measure
-              </Button>
+              <div className="viewport-action-group" role="group" aria-label="Frame and visibility">
+                <Button id="fit-all" variant="ghost" size="sm" title="Fit all visible bodies (F)"
+                  disabled={!model.ready || !state?.visibleGeometry.length} onClick={() => api()?.fit()}><Icon name="fit" />Fit all <kbd>F</kbd></Button>
+                <Button id="fit-selected" variant="ghost" size="sm" title="Fit the selected body in an isometric view (Shift+F)"
+                  disabled={!canFitSelected} onClick={() => api()?.fitSelected()}>Fit selected</Button>
+                <Button id="show-all" variant="ghost" size="sm" disabled={!model.ready} onClick={() => api()?.showAll()}><Icon name="eye" />Show all</Button>
+              </div>
+              <div className="viewport-action-group" role="group" aria-label="Selection actions">
+                <Button id="hide-selected" variant="ghost" size="sm" disabled={!selected} onClick={() => api()?.hideSelected()}>Hide</Button>
+                <Button id="isolate-selected" variant="ghost" size="sm" disabled={!selected || isolateBlocked}
+                  title={isolateBlocked ? 'Clear material overrides on other bodies before isolating.' : 'Show only the selected body'}
+                  onClick={() => api()?.isolateSelected()}>Isolate</Button>
+                <Button id="clear-selection" variant="ghost" size="sm" title="Clear selection (Escape)" disabled={!selected}
+                  onClick={() => api()?.select(null)}>Clear</Button>
+              </div>
+              <div className="viewport-action-group" role="group" aria-label="Viewport picking">
+                <Button ref={measurementToolRef} id="measure-tool" variant="ghost" size="sm" aria-pressed={model.measurement.active}
+                  disabled={!model.ready || !state?.visibleGeometry.length || isAssembly}
+                  title={isAssembly ? 'Native distance measurement is unavailable in assembly mode.' : 'Measure two native points'}
+                  onClick={() => { if (model.measurement.active) api()?.cancelMeasurement(); else api()?.startMeasurement(); }}>
+                  Measure
+                </Button>
+                <label className="viewport-pick-filter" htmlFor="pick-filter"
+                  title="Filters viewport clicks and measurement picks. Tree selection and visibility are unchanged.">
+                  <span>Pick</span>
+                  <NativeSelect id="pick-filter" aria-label="Viewport pick filter" disabled={!model.ready} value={model.pickFilter}
+                    title="Filters viewport clicks and measurement picks. Tree selection and visibility are unchanged."
+                    onChange={event => api()?.setPickFilter(event.target.value as ViewModel['pickFilter'])}>
+                    <option value="all">All</option><option value="surface">Surface</option><option value="curve">Curve</option>
+                  </NativeSelect>
+                </label>
+              </div>
             </div>
             <div className="view-presets" aria-label="Standard views">
               {(['iso', 'front', 'top', 'right'] as const).map(name => <Button key={name} id={`view-${name}`} variant="ghost" size="sm"
@@ -339,6 +356,7 @@ export function App() {
           <div id="viewport-help" className="viewport-help">
             <span><span className="help-key">Drag</span> Orbit</span><span><span className="help-key">Shift + drag</span> Pan</span>
             <span><span className="help-key">Scroll</span> Zoom</span><span><span className="help-key">Click</span> {model.measurement.active ? 'Set point' : 'Select'}</span>
+            <span><span className="help-key">Shift + F</span> Fit selected</span>
           </div>
         </section>
 

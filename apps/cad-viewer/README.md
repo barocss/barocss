@@ -15,6 +15,7 @@ The workspace groups bodies by their original asset. ISO, Front, Top and Right
 change the camera direction while preserving geometry, visibility, selection
 and materials. Front looks from +Z, Top from +Y, and Right from +X in the display
 basis. Fit all restores the SDK's complete scene view.
+Fit selected frames one selected, visible body or assembly occurrence in ISO.
 
 A separate document review app. It consumes the public `@barocss/viewer`,
 `@barocss/cad-interop/document`, `@barocss/cad-interop/assembly`, `@barocss/cad`
@@ -147,7 +148,26 @@ temporarily unrestorable; Rename and Delete remain available.
 Use the body list to select, show, hide, isolate and fit displayed geometry.
 The inspector shows its original document, body, asset, revision and geometry
 bindings. Drag to orbit. Use the viewport control hints to pan and zoom. Press
-**F** to fit and **Escape** to clear selection.
+**F** to fit all visible geometry and **Escape** to clear selection.
+
+Choose **Fit selected**, or press **Shift+F** with the viewport focused, to fit
+the selected visible body or assembly occurrence in ISO. The app uses the
+SDK's `fitGeometry()` with the selected display reference and its authored
+placement. Other bodies stay visible. This command changes the camera and
+keeps the selection, visibility, lighting, completed measurement and source.
+It requires a visible selection. The existing **F** shortcut still fits all
+visible geometry.
+
+The viewport's **Pick** control has **All**, **Surface** and **Curve** choices.
+It limits which geometry a viewport click can select. The same filter applies
+to both A/B clicks in the distance tool. Changing the filter keeps the current
+selection and completed measurement. Tree selection, body visibility and the
+CAD source are unchanged. An opaque Surface still covers a Curve behind it;
+choosing **Curve** does not make that Curve visible or selectable.
+
+The pick filter belongs to the current session. Review files and saved views
+do not store or restore it. Successful source admission, including a changed
+loaded body or instance subset, resets the filter to **All**.
 
 The appearance controls apply or clear a temporary Surface material. Clear
 Surface selection before applying a material. Clear a bound material before

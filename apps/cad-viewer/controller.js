@@ -39,6 +39,7 @@ export function createViewerController({ canvas, stage, onChange }) {
   let measurement = emptyMeasurement();
   let assemblyInspection = null;
   let namedViews = [], namedGeneration = 0, namedBusy = false, namedViewError = '';
+  let pickFilter = 'all';
   const listeners = [];
   const reviewUrls = new Set();
   const loaded = () => Boolean(active && viewer && !disposed);
@@ -111,7 +112,7 @@ export function createViewerController({ canvas, stage, onChange }) {
       appearancePreset, appearanceNote, lightingCapabilities: viewer?.getLightingCapabilities() ?? null,
       lightingError, measurement: structuredClone(measurement), measurementOverlay,
       assemblyInspection: assemblyInspection ? structuredClone(assemblyInspection) : null,
-      namedViews: namedViews.map(entry => entry.name), namedBusy, namedViewError });
+      namedViews: namedViews.map(entry => entry.name), namedBusy, namedViewError, pickFilter });
   }
   function inspectAssemblyPoint(binding, query) {
     try {
@@ -166,6 +167,11 @@ export function createViewerController({ canvas, stage, onChange }) {
     try { action(); message(text); }
     catch (error) { message(error?.message || String(error), true); }
     refresh();
+  }
+  function pickAt(event) {
+    const rect = canvas.getBoundingClientRect();
+    return viewer.pickGeometry({ xCss: event.clientX - rect.left, yCss: event.clientY - rect.top },
+      { kinds: pickFilter === 'all' ? ['surface', 'curve'] : [pickFilter] });
   }
   function captureSnapshot() {
     const native = measurement.result ? { first: measurement.points[0].input,
@@ -229,6 +235,10 @@ export function createViewerController({ canvas, stage, onChange }) {
         viewer = created;
         const controlError = error => { message(error?.message || String(error), true); refresh(); };
         listen(window, 'keydown', event => {
+          if (event.target !== canvas || event.repeat || event.isComposing || event.altKey || event.ctrlKey || event.metaKey) return;
+          if (event.shiftKey && event.key.toLowerCase() === 'f') {
+            event.preventDefault(); event.stopPropagation(); api.fitSelected(); return;
+          }
           if (event.target === canvas && event.key === 'Escape' && measurement.active) {
             event.preventDefault(); event.stopPropagation(); api.cancelMeasurement();
           }
@@ -246,8 +256,7 @@ export function createViewerController({ canvas, stage, onChange }) {
           if (!loaded() || event.button !== 0) return;
           if (measurement.active) {
             try {
-              const rect = canvas.getBoundingClientRect();
-              pickMeasurement(viewer.pickGeometry({ xCss: event.clientX - rect.left, yCss: event.clientY - rect.top }));
+              pickMeasurement(pickAt(event));
             } catch (error) {
               measurement = { ...measurement, error: error?.message || String(error) };
               message(measurement.error, true); refresh();
@@ -255,8 +264,7 @@ export function createViewerController({ canvas, stage, onChange }) {
             return;
           }
           run(() => {
-            const rect = canvas.getBoundingClientRect();
-            const hit = viewer.pickGeometry({ xCss: event.clientX - rect.left, yCss: event.clientY - rect.top });
+            const hit = pickAt(event);
             if (hit?.ambiguous) throw new Error('The pick is ambiguous. Choose another point.');
             viewer.selectGeometry(hit ? { kind: hit.kind, ...hit.ref } : null);
           }, 'Selection updated.');
@@ -324,6 +332,7 @@ export function createViewerController({ canvas, stage, onChange }) {
         measurement = emptyMeasurement(); lightingError = '';
         assemblyInspection = null;
         namedViews = []; namedGeneration++; namedViewError = '';
+        pickFilter = 'all';
         documentEpoch++; reviewEpoch++; frameGeneration++;
         appearanceBinding = undefined; appearanceTarget = ''; search = '';
         message(active.kind === 'assembly' ? 'Assembly opened. Select an occurrence to inspect its original placement.'
@@ -331,6 +340,14 @@ export function createViewerController({ canvas, stage, onChange }) {
       } catch (error) { admissionError = error.message; refresh(); }
     },
     setSearch(value) { search = value; refresh(); },
+    setPickFilter(value) {
+      if (!loaded()) return;
+      if (!['all', 'surface', 'curve'].includes(value)) { message('Choose All, Surface or Curve.', true); refresh(); return; }
+      pickFilter = value;
+      message(value === 'all' ? 'Viewport picks include Surfaces and Curves.'
+        : `Viewport picks include only ${value === 'surface' ? 'Surfaces' : 'Curves'}.`);
+      refresh();
+    },
     saveNamedView(name) {
       if (measurement.active) { namedViewError = 'Finish or cancel point selection before saving a view.'; refresh(); return Promise.resolve(false); }
       return changeNamedViews(snapshot => addNamedReview(namedViews, { name, ...snapshot }, snapshot.review.scene), 'Saved view added.');
@@ -371,6 +388,11 @@ export function createViewerController({ canvas, stage, onChange }) {
         : current.visibleGeometry.filter(value => !sameRef(value, ref)));
     }, 'Visibility updated.'); },
     fit() { run(() => viewer.fit(), 'View fitted.'); },
+    fitSelected() { run(() => {
+      const selected = viewer.getState().selectedGeometry;
+      if (!selected) throw new Error('Select a visible body or instance first.');
+      viewer.fitGeometry(selected);
+    }, 'Selected geometry fitted in an isometric view.'); },
     standardView(name) { run(() => {
       const view = viewDirections[name];
       if (!view) throw new Error('Choose a standard view.');
