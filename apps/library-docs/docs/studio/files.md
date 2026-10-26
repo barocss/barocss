@@ -75,9 +75,19 @@ is kept in the project instead.
 | **Export STL** | Triangles in millimetres, one file per body, with no colours, names or exact curves |
 | **Export 3MF** | For a slicer: bodies, materials, colours and the print orientation |
 
-- **Touching pieces.** A body whose pieces touch only along an edge or at a point is written as one STL file per piece,
-  and as separate 3MF objects, because a reader would weld them otherwise.
-- **The display mesh.** When the kernel can't mesh a body for STL, its display mesh is written instead, and the toast
+**Export STL** opens **STL export**. Choose **Quality**, then **Export** or **Cancel**.
+**Automatic** leaves the tessellation option unset. **Draft 8**, **Standard 16** and **Fine 32** set
+`segmentsPerQuarter` to 8, 16 and 32 for B-rep bodies only. These are dimensionless tessellation settings,
+not millimetre error tolerances or guaranteed bounds on geometric error.
+Explicit quality is refused for mesh bodies, touching-piece outputs and documents with visible placed instances.
+Export a placed part from its own document.
+The choice does not change the on-screen mesh or the saved document. Exported coordinates follow the millimetre
+convention; STL itself stores no unit. If an explicit quality cannot be produced or preparation fails, no STL
+file or source sidecar is downloaded. **Cancel** also discards the pending export without downloading either.
+
+- **Touching pieces.** Automatic STL writes one file per piece when pieces touch only along an edge or at a point.
+  3MF writes those pieces as separate objects, because a reader would weld them otherwise.
+- **The display mesh.** With **Automatic**, when the kernel can't mesh a body for STL, its display mesh is written instead, and the toast
   names the body.
 - **Drafts.** If the part has dimensions read from an image or drawing that aren't confirmed yet, STEP and STL still
   export, and the toast says it is a draft and which dimensions are open.
