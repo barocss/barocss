@@ -33,10 +33,13 @@
   </div>
   <div class="controls" role="group" aria-label="Spot cone and range controls">
     <label>Cone half-angle <input id="angle" type="range" min="10" max="60" step="5" value="30" disabled> <output id="angle-value" for="angle">30°</output></label>
+    <label>Beam edge fade <input id="penumbra" type="range" min="0" max="1" step="0.1" value="0.2" disabled> <output id="penumbra-value" for="penumbra">0.2</output></label>
+    <label>Light radius (world units) <input id="shadow-radius" type="range" min="0" max="1.5" step="0.1" value="0.4" disabled> <output id="radius-value" for="shadow-radius">0.4</output></label>
     <label>Range <input id="range" type="range" min="4" max="24" step="1" value="18" disabled> <output id="range-value" for="range">18</output></label>
     <label>Intensity <input id="intensity" type="range" min="0" max="160" step="10" value="80" disabled> <output id="intensity-value" for="intensity">80</output></label>
     <button id="capture" type="button" disabled>Capture preview</button>
   </div>
+  <p>Beam edge fade changes the cone boundary. Light radius softens cast shadows in world units; zero keeps the original hard-shadow filter.</p>
   <p id="status" role="status" aria-live="polite">Loading the viewer…</p>
   <p id="error" role="alert" hidden></p>
   <canvas id="view" aria-label="Interactive spot light cone and shadow"></canvas>

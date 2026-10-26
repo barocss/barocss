@@ -19,6 +19,8 @@ function validate(light: SpotLight): void {
   const angle = light.angle === undefined ? 30 : light.angle, range = light.range === undefined ? 0 : light.range;
   if (typeof angle !== 'number' || !Number.isFinite(angle) || angle <= 0 || angle >= 90) invalid('A spot shadow angle must be finite and between 0 and 90 degrees');
   if (typeof range !== 'number' || !Number.isFinite(range) || range < 0) invalid('A spot shadow range must be finite and nonnegative');
+  const radius = light.shadowRadius === undefined ? 0 : light.shadowRadius;
+  if (typeof radius !== 'number' || !Number.isFinite(radius) || radius < 0 || !Number.isFinite(Math.fround(radius)) || (radius > 0 && Math.fround(radius) === 0)) invalid('A spot shadow radius must be nonnegative and representable in f32');
 }
 /** Only enabled shadows among the first four spot lights add admission rules; legacy lighting stays unchanged. */
 export function validateSpotShadowLights(lights: readonly Light[]): void {
@@ -64,6 +66,7 @@ export function spotShadowFrame(light: SpotLight, scene: Box3 | null, depth: Box
   const tangent = Math.tan((light.angle ?? 30) * Math.PI / 180), focal = 1 / tangent, a = 1 / (1 - near / far);
   // Keep a finite far plane and a positive near term after the actual f32 uniform conversion.
   if (!(Number.isFinite(Math.fround(focal)) && Math.fround(focal) > 0 && Math.fround(a) > 1 && Math.fround(near * a) > 0)) invalid('Spot shadow depth or cone cannot be represented in f32');
+  if ((light.shadowRadius ?? 0) > 0 && !(Number.isFinite(Math.fround(near)) && Math.fround(near) > 0 && Number.isFinite(Math.fround(far)) && Math.fround(far) > Math.fround(near))) invalid('Spot PCSS depth bounds must be finite positive f32 values');
   const projection = new Float64Array(16);
   projection[0] = projection[5] = focal; projection[10] = -a; projection[11] = -1; projection[14] = -near * a;
   const up: Vec3 = Math.abs(direction[2]) < 0.9 ? [0, 0, 1] : [0, 1, 0];
@@ -77,5 +80,5 @@ export function spotShadowFrame(light: SpotLight, scene: Box3 | null, depth: Box
   ]);
   const viewProjection = multiply(projection, view), texel = 1 / size, normalOffset = far / size * (3 * tangent);
   if (!viewProjection.every(value => Number.isFinite(value) && Number.isFinite(Math.fround(value))) || !Number.isFinite(Math.fround(normalOffset)) || !(Math.fround(texel) > 0)) invalid('Spot shadow matrix or bias exceeds finite f32 values');
-  return { viewProjection, normalOffset, texel, bias: 0.0005, softness: 0, eye, direction, perspective: true };
+  return { viewProjection, normalOffset, texel, bias: 0.0005, softness: 0, eye, direction, perspective: true, near, far, focal };
 }

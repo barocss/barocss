@@ -6,7 +6,7 @@ export const MAX_SHADOWS = POINT_SHADOW_START + POINT_SHADOW_FACES;
 /** Byte sizes and offsets of the uniform blocks (kept with the WGSL below and packFrame in lights.ts). */
 /** Clip planes at most (G19: a box section's six). */
 export const MAX_CLIP_PLANES = 6;
-export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 16 + MAX_CLIP_PLANES * 16 + MAX_SHADOWS * 80 + 16;
+export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 16 + MAX_CLIP_PLANES * 16 + MAX_SHADOWS * 80 + 16 + MAX_SPOT * 16;
 export const OBJECT_BYTES = 256, OBJECT_STRIDE = 256;
 
 /** The WGSL every program starts with (internal: its frame and object blocks, its helpers). */
@@ -46,6 +46,8 @@ struct Frame {
   // Active depth-array layers are compacted by mask bit order; shadowActive.y is the point index + 1 (0: none).
   shadowLights: array<ShadowLight, ${MAX_SHADOWS}>,
   shadowActive: vec4u,
+  // Spot PCSS: near, far, focal length (1/tan(cone angle)), world-space disk radius; zero for PCF.
+  spotShadowParams: array<vec4f, ${MAX_SPOT}>,
 }
 struct Object {
   model: mat4x4f,
