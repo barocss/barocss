@@ -2,13 +2,13 @@
 import { ViewerError } from './viewer-error.js';
 import type { Camera } from './camera.js';
 import { invert, normalize, srgbToLinear, sub, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_OUTLINES, MAX_POINT, MAX_SPOT, OUTPUT_BYTES } from './shaders.js';
+import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_OUTLINES, MAX_POINT, MAX_SPOT, MAX_SHADOWS, POINT_SHADOW_START, POINT_SHADOW_FACES, OUTPUT_BYTES } from './shaders.js';
 
 /** sRGB colour, 0–1 per channel, or a CSS hex string. */
 export type Color = Vec3 | string;
-export interface DirectionalLight { kind: 'directional'; direction: Vec3; color?: Color; intensity?: number; /** Casts shadows (the first such light does). */ castShadow?: boolean }
-export interface PointLight { kind: 'point'; position: Vec3; color?: Color; intensity?: number; /** Zero: no cut-off. */ range?: number }
-export interface SpotLight { kind: 'spot'; position: Vec3; direction: Vec3; color?: Color; intensity?: number; range?: number; /** Degrees from the axis. */ angle?: number; /** 0–1: share of the cone that fades. */ penumbra?: number }
+export interface DirectionalLight { kind: 'directional'; direction: Vec3; color?: Color; intensity?: number; /** Casts a shadow for each enabled light among the first four directional lights. */ castShadow?: boolean }
+export interface PointLight { kind: 'point'; position: Vec3; color?: Color; intensity?: number; /** Zero: no cut-off. */ range?: number; /** Enables a six-face PCF shadow; at most one of the first eight point lights may enable it. */ castShadow?: boolean }
+export interface SpotLight { kind: 'spot'; position: Vec3; direction: Vec3; color?: Color; intensity?: number; range?: number; /** Degrees from the axis. */ angle?: number; /** 0–1: share of the cone that fades. */ penumbra?: number; /** Enables a shadow among the first four spot lights. */ castShadow?: boolean; /** Light disk radius in world units (finite nonnegative f32); zero or omitted retains PCF, positive enables PCSS. Independent of cone penumbra. */ shadowRadius?: number }
 export type Light = DirectionalLight | PointLight | SpotLight;
 export interface Environment {
   /** Hemisphere ambient: sky above the up axis, ground below. */
@@ -21,7 +21,7 @@ export interface Environment {
   /** A vignette (G15d.1): the frame darkened towards its corners. */
   vignette?: Vignette | null;
   /**
-   * Soft shadows (G15b): the shadow-casting light's angular size in degrees — its penumbra widening with the distance
+   * Soft shadows (G15b): every shadow-casting directional light's angular size in degrees — its penumbra widening with the distance
    * from what casts it (PCSS); 0 or none: the hard 3×3-filtered edge.
    */
   softShadows?: number;
@@ -108,11 +108,19 @@ export const defaultLights = (): Light[] => [
 /** The shadow of the casting light: its view-projection, normal offset (world), texel size (uv) and depth bias. */
 /** The shadow-casting light's view (`eye`, `direction`: where it looks from and along — the caps' probe from it, G19.4). */
 export interface ShadowFrame { viewProjection: Mat4; normalOffset: number; texel: number; bias: number; eye?: Vec3; direction?: Vec3;
+  /** Perspective light projection (spot or point face); omitted for orthographic directional lights. */
+  perspective?: boolean;
+  /** Actual perspective projection inputs, used to recover spot-shadow axial depth for PCSS. */
+  near?: number; far?: number; focal?: number;
   /** G15b: the penumbra's width in the map's uv per unit of its depth between a blocker and the shadowed point (0: hard). */
   softness?: number }
 
 /** The directional lights the frame lights with (the shadow index refers to this list). */
 export const directionalLights = (lights: readonly Light[]): DirectionalLight[] => lights.filter((l): l is DirectionalLight => l.kind === 'directional').slice(0, MAX_DIRECTIONAL);
+/** The spot lights the frame lights with; shadow metadata uses MAX_DIRECTIONAL plus this index. */
+export const spotLights = (lights: readonly Light[]): SpotLight[] => lights.filter((l): l is SpotLight => l.kind === 'spot').slice(0, MAX_SPOT);
+/** The first eight point lights, in the same order as the frame's lighting inputs. */
+export const pointLights = (lights: readonly Light[]): PointLight[] => lights.filter((l): l is PointLight => l.kind === 'point').slice(0, MAX_POINT);
 
 /** The ground grid as drawn this frame: cell size, cells per major line, fade distance, height; colour (sRGB) and opacity. */
 export interface GridFrame { cell: number; major: number; fade: number; height: number; color: Vec3; opacity: number }
@@ -123,7 +131,7 @@ export interface GridFrame { cell: number; major: number; fade: number; height: 
  * cut-away sides. The caps in a colour (sRGB). `normal` and `offset`: the first plane's.
  */
 export interface ClipFrame { normal: Vec3; offset: number; cap: Vec3; planes: readonly { normal: Vec3; offset: number }[]; cutout?: boolean }
-export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment, shadow: ShadowFrame | null = null, viewport: readonly number[] = [1, 1, 1, 0], grid: GridFrame | null = null, clip: ClipFrame | null = null, into: Float32Array | null = null): Float32Array {
+export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment, shadow: ShadowFrame | null = null, viewport: readonly number[] = [1, 1, 1, 0], grid: GridFrame | null = null, clip: ClipFrame | null = null, into: Float32Array | null = null, shadows?: readonly (ShadowFrame | null)[]): Float32Array {
   // (`into`: a block kept for it, cleared and written again — G13.)
   const f = into ? (into.fill(0), into) : new Float32Array(FRAME_BYTES / 4), u = new Uint32Array(f.buffer);
   f.set(viewProjection, 0);
@@ -136,10 +144,16 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
   put4(f, 24, sky[0], sky[1], sky[2], amb);
   put4(f, 28, ground[0], ground[1], ground[2], amb);
   put4(f, 32, up[0], up[1], up[2], env.map ? env.mapIntensity ?? 1 : 0);
-  const dirs = directionalLights(lights), points: PointLight[] = [], spots: SpotLight[] = [];
-  for (const l of lights) { if (l.kind === 'point' && points.length < MAX_POINT) points.push(l); else if (l.kind === 'spot' && spots.length < MAX_SPOT) spots.push(l); }
-  let caster = -1;
-  if (shadow) for (let i = 0; i < dirs.length && caster < 0; i++) if (dirs[i].castShadow) caster = i;
+  const dirs = directionalLights(lights), spots = spotLights(lights), points = pointLights(lights);
+  const legacyCaster = shadow ? dirs.findIndex(light => light.castShadow) : -1;
+  const activeShadows: (ShadowFrame | null)[] = new Array(MAX_SHADOWS).fill(null);
+  for (let i = 0; i < dirs.length; i++) if (dirs[i].castShadow) activeShadows[i] = shadows === undefined ? (i === legacyCaster ? shadow : null) : shadows[i] ?? null;
+  for (let i = 0; i < spots.length; i++) if (spots[i].castShadow && shadows !== undefined) activeShadows[MAX_DIRECTIONAL + i] = shadows[MAX_DIRECTIONAL + i] ?? null;
+  const pointCaster = points.findIndex(light => light.castShadow);
+  const pointFrames = Array.from({ length: POINT_SHADOW_FACES }, (_, face) => shadows?.[POINT_SHADOW_START + face] ?? null);
+  const pointActive = pointCaster >= 0 && pointFrames.every(frame => frame !== null);
+  if (pointActive) for (let face = 0; face < POINT_SHADOW_FACES; face++) activeShadows[POINT_SHADOW_START + face] = pointFrames[face];
+  const caster = activeShadows.slice(0, dirs.length).findIndex(frame => frame !== null);
   u[36] = dirs.length; u[37] = points.length; u[38] = spots.length; u[39] = caster + 1;
   let o = 40;
   for (let i = 0; i < dirs.length; i++) {
@@ -154,12 +168,15 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
   o += MAX_POINT * 8;
   for (let i = 0; i < spots.length; i++) {
     const l = spots[i], outer = ((l.angle ?? 30) * Math.PI) / 180, inner = outer * (1 - Math.min(1, Math.max(0, l.penumbra ?? 0.2)));
-    const d = normalize(l.direction), c = linear(parseColor(l.color)), at = o + i * 16;
+    // Shadow admission permits every finite nonzero direction, including subnormals.
+    const largest = l.castShadow ? Math.max(Math.abs(l.direction[0]), Math.abs(l.direction[1]), Math.abs(l.direction[2])) : 1;
+    const d = normalize(l.castShadow ? [l.direction[0] / largest, l.direction[1] / largest, l.direction[2] / largest] : l.direction), c = linear(parseColor(l.color)), at = o + i * 16;
     put4(f, at, l.position[0], l.position[1], l.position[2], l.range ?? 0); put4(f, at + 4, d[0], d[1], d[2], 0);
     put4(f, at + 8, c[0], c[1], c[2], l.intensity ?? 1); put4(f, at + 12, Math.max(Math.cos(inner), Math.cos(outer) + 1e-4), Math.cos(outer), 0, 0);
   }
   o += MAX_SPOT * 16;
-  if (shadow && caster >= 0) { f.set(shadow.viewProjection, o); put4(f, o + 16, shadow.normalOffset, shadow.texel, shadow.bias, shadow.softness ?? 0); }
+  const primaryShadow = caster >= 0 ? activeShadows[caster] : null;
+  if (primaryShadow) { f.set(primaryShadow.viewProjection, o); put4(f, o + 16, primaryShadow.normalOffset, primaryShadow.texel, primaryShadow.bias, primaryShadow.softness ?? 0); }
   // (viewport.w: the scene's size, the see-through surfaces' depth weight's scale; G11.)
   put4(f, o + 20, viewport[0], viewport[1], viewport[2], viewport[3] ?? 0);
   if (grid) {
@@ -171,6 +188,22 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
     const c = linear(clip.cap), n = Math.min(MAX_CLIP_PLANES, clip.planes.length);
     put4(f, o + 48, c[0], c[1], c[2], clip.cutout ? -n : n);
     for (let i = 0; i < n; i++) { const p = clip.planes[i]; put4(f, o + 52 + 4 * i, p.normal[0], p.normal[1], p.normal[2], p.offset); }
+  }
+  const shadowStart = o + 52 + MAX_CLIP_PLANES * 4;
+  let shadowMask = 0;
+  for (let i = 0; i < activeShadows.length; i++) {
+    const frame = activeShadows[i];
+    if (!frame) continue;
+    const at = shadowStart + i * 20;
+    f.set(frame.viewProjection, at); put4(f, at + 16, frame.normalOffset, frame.texel, frame.bias, i < MAX_DIRECTIONAL ? frame.softness ?? 0 : 0);
+    shadowMask |= 1 << i;
+  }
+  u[shadowStart + MAX_SHADOWS * 20] = shadowMask;
+  u[shadowStart + MAX_SHADOWS * 20 + 1] = pointActive ? pointCaster + 1 : 0;
+  const spotParamsStart = shadowStart + MAX_SHADOWS * 20 + 4;
+  for (let i = 0; i < spots.length; i++) {
+    const frame = activeShadows[MAX_DIRECTIONAL + i], radius = spots[i].shadowRadius ?? 0;
+    if (frame && radius > 0) put4(f, spotParamsStart + i * 4, frame.near ?? 0, frame.far ?? 0, frame.focal ?? 0, radius);
   }
   return f;
 }

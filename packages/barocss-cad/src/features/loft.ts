@@ -44,6 +44,9 @@ export interface LoftInput {
   readonly guide?: {
     readonly kind: 'quadratic-bezier';
     readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]];
+  } | {
+    readonly kind: 'cubic-bezier';
+    readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]];
   };
   /**
    * The first section's segment tags (R10a, D86): each side named `side[t]` by the segment of the first section it
@@ -67,7 +70,7 @@ const bezier = (q: Piece): Bezier => {
 const quadratic = (b: Bezier, w: number): Bezier => b.p.length === 3 ? b : { p: [b.p[0], [(b.p[0][0] + b.p[1][0]) / 2, (b.p[0][1] + b.p[1][1]) / 2], b.p[1]], w: [1, w, 1] };
 const curve3 = (b: Bezier, z: number, id: string): Curve => ({ kind: 'curve', id, degree: b.p.length - 1, knots: b.p.length === 2 ? [0, 0, 1, 1] : [0, 0, 0, 1, 1, 1], controlPoints: b.p.map(p => [p[0], p[1], z] as Point), weights: [...b.w] });
 
-const G3 = gauss(3), G4 = gauss(4), G24 = gauss(24);
+const G3 = gauss(3), G4 = gauss(4), G6 = gauss(6), G24 = gauss(24);
 /** A rational Bézier's point and derivative at s. */
 function at(b: Bezier, s: number): [XY, XY] {
   const n = b.p.length - 1, B = n === 1 ? [1 - s, s] : [(1 - s) ** 2, 2 * s * (1 - s), s * s], dB = n === 1 ? [-1, 1] : [-2 * (1 - s), 2 - 4 * s, 2 * s];
@@ -124,7 +127,7 @@ function legacyLoft(input: LoftInput, guideFactory?: LoftGuideFactory): ReturnTy
   sections.forEach((p, k) => p.forEach((q, i) => {
     const below = k > 0 ? sideName(k - 1, i) : `${nm}.bottom`, above = k < K ? sideName(k, i) : `${nm}.top`;
     edges.push({ id: rid(k, i), curve: curve3(piece(k, i), z[k], rid(k, i)), vertices: [vid(k, i), vid(k, i + 1)], name: [below, above].sort().join('|') });
-    if (k < K) edges.push({ id: lid(k, i), curve: guide ? { kind: 'curve', id: lid(k, i), degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [vertices[i].point, guide.middle(vertices[i].point, vertices[n + i].point), vertices[n + i].point], weights: [1, 1, 1] } : lineCurve(lid(k, i), [...startOf(q), z[k]], [...startOf(sections[k + 1][i]), z[k + 1]]), vertices: [vid(k, i), vid(k + 1, i)], name: [sideName(k, (i + n - 1) % n), sideName(k, i)].sort().join('|') });
+    if (k < K) edges.push({ id: lid(k, i), curve: guide ? { kind: 'curve', id: lid(k, i), degree: guide.degree, knots: [...guide.knots], controlPoints: guide.controls(vertices[i].point, vertices[n + i].point), weights: Array(guide.degree + 1).fill(1) } : lineCurve(lid(k, i), [...startOf(q), z[k]], [...startOf(sections[k + 1][i]), z[k + 1]]), vertices: [vid(k, i), vid(k + 1, i)], name: [sideName(k, (i + n - 1) % n), sideName(k, i)].sort().join('|') });
   }));
 
   // The sides: each a patch between a section's edge and the next one's, with the curves the mass uses.
@@ -141,8 +144,8 @@ function legacyLoft(input: LoftInput, guideFactory?: LoftGuideFactory): ReturnTy
     }
     if (guide && lo.w.some((w, j) => w !== hi.w[j])) fail('guided mixed curves need identical rational weights');
     spans.push({ lo, hi, z0: z[k], z1: z[k + 1] });
-    const surface: Surface = { kind: 'surface', id: `f${k}_${i}`, degreeU: lo.p.length - 1, degreeV: guide ? 2 : 1, knotsU: lo.p.length === 2 ? [0, 0, 1, 1] : [0, 0, 0, 1, 1, 1], knotsV: guide ? [0, 0, 0, 1, 1, 1] : [0, 0, 1, 1],
-      controlPoints: lo.p.map((p, j) => { const a: Point = [p[0], p[1], z[k]], b: Point = [hi.p[j][0], hi.p[j][1], z[k + 1]]; return guide ? [a, guide.middle(a, b), b] : [a, b]; }), weights: lo.w.map((w, j) => guide ? [w, w, w] : [w, hi.w[j]]) };
+    const surface: Surface = { kind: 'surface', id: `f${k}_${i}`, degreeU: lo.p.length - 1, degreeV: guide ? guide.degree : 1, knotsU: lo.p.length === 2 ? [0, 0, 1, 1] : [0, 0, 0, 1, 1, 1], knotsV: guide ? [...guide.knots] : [0, 0, 1, 1],
+      controlPoints: lo.p.map((p, j) => { const a: Point = [p[0], p[1], z[k]], b: Point = [hi.p[j][0], hi.p[j][1], z[k + 1]]; return guide ? guide.controls(a, b) : [a, b]; }), weights: lo.w.map((w, j) => guide ? Array(guide.degree + 1).fill(w) : [w, hi.w[j]]) };
     faces.push({ id: `f${k}_${i}`, surface, sense: 'forward', name: sideName(k, i), loops: [{ kind: 'outer', uses: [
       { edge: rid(k, i), sense: 'forward' }, { edge: lid(k, i + 1), sense: 'forward' }, { edge: rid(k + 1, i), sense: 'reversed' }, { edge: lid(k, i), sense: 'reversed' }] }] });
   }
@@ -155,9 +158,9 @@ function legacyLoft(input: LoftInput, guideFactory?: LoftGuideFactory): ReturnTy
   const I = Array(10).fill(0) as number[];
   for (const { lo, hi, z0, z1 } of spans) {
     const h = z1 - z0;
-    // The translated Green integrands have degree at most seven in l: Gauss(4).
+    // Quadratic translation gives degree at most seven in l; cubic gives at most ten.
     // The no-guide path keeps the original Gauss(3) arithmetic.
-    const G = guide ? G4 : G3;
+    const G = guide ? (guide.degree === 3 ? G6 : G4) : G3;
     G.x.forEach((l, a) => {
       const zz = z0 + l * h, wl = G.w[a] * h, offset = guide?.offset(l);
       let A = 0, Sx = 0, Sy = 0, Sxx = 0, Syy = 0, Sxy = 0;

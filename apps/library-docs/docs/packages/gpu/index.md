@@ -85,18 +85,94 @@ package's own browser tests drive it in Chrome.
 - **Lines.** Screen-space width, segment ids, and `pickLine()`.
 - **The scene.**
   - Instancing (one draw for many copies) and frustum culling.
-  - Directional shadows, ambient occlusion, a gradient or transparent background, and a ground grid.
-  - Soft shadows: `environment.softShadows`, the shadow-casting light's angular size in degrees, widens the penumbra
-    with the distance from what casts it (PCSS). With 0 or none, the edge stays hard. Only the one shadow-casting
-    light is softened.
+  - Directional, spot and point shadows within the [light limits below](#light-and-shadow-limits).
+  - Ambient occlusion, a gradient or transparent background, and a ground grid.
   - Contact shadows: `environment.contactShadows: { length?, strength? }` darkens where the depth buffer blocks a short
-    ray toward the shadow-casting light, in the creases the shadow map is too coarse for.
+    ray toward the first shadow caster among the first four directional lights, in the creases the shadow map is too coarse for.
   - Bloom: `environment.bloom: { strength?, threshold?, knee? }` adds a glow from pixels above a linear-light threshold
     before tone mapping. Defaults are strength 0.05, threshold 1 and a soft knee one quarter of the threshold. Set
     `bloom` to false, omit it, or set strength to 0 to turn it off. A half-resolution prefilter and a downsample/upsample
     chain spread the highlights; the targets are recreated on resize and released with the viewer.
   - 4× MSAA, exposure and ACES tone mapping in a linear half-float pipeline.
   - Clip planes and cap hatching for sections.
+
+### Light and shadow limits
+
+The renderer uses the first lights of each kind in `viewer.lights`, not the first lights with shadows enabled.
+Set `castShadow: true` on a light within that set. `viewer.shadowMapSize` sets each shadow map's resolution.
+
+PCF averages nearby shadow-map comparisons. PCSS searches for blockers and varies the filter radius with blocker
+and receiver depth.
+
+| Light kind | Lights used | Shadow support and softness |
+| --- | --- | --- |
+| Directional | First 4 | Each can cast a shadow. `environment.softShadows` sets their shared angular size in degrees for PCSS. Zero or omission retains the hard, 3×3-filtered edge. |
+| Spot | First 4 | Each can cast a shadow. Zero or omitted `shadowRadius` uses PCF; a positive radius enables bounded PCSS. |
+| Point | First 8 | At most one can cast a shadow, using six 90-degree PCF faces. A second enabled caster causes `LIGHT_INVALID`. Point shadows do not use PCSS. |
+
+For an enabled spot shadow, position and direction must be finite f32 vectors, and direction must be nonzero.
+The cone half-angle is in degrees and must be strictly between 0 and 90; the default is 30. Range must be finite
+and nonnegative; zero or omission fits the shadow depth to the scene. `shadowRadius` is a light disk radius in
+scene world units, not degrees or CSS pixels. It must be finite, nonnegative and representable in f32 without
+rounding a positive value to zero. Invalid enabled inputs refuse with `LIGHT_INVALID`.
+
+`penumbra` is a separate 0–1 share of the cone used to fade its lighting edge. It does not set shadow softness.
+Spot PCSS uses bounded blocker-search and filter radii; it approximates a disk light, not an area-light renderer.
+`environment.softShadows` applies to directional shadows, not spot or point shadows.
+
+These SDK settings use the existing spot and point examples. They assume an existing WebGPU viewer and scene;
+the positions, range and radius use that scene's world units, which are not automatically mm.
+
+```js
+// Spot example: source [5, -3, 7], aimed at [0, 0, 0.6].
+viewer.lights = [{ kind: 'spot', position: [5, -3, 7], direction: [-5, 3, -6.4],
+  angle: 30, penumbra: 0.2, shadowRadius: 0.4, range: 18, intensity: 80,
+  castShadow: true }];
+viewer.requestRender();
+
+// Alternative point example: this assignment replaces the light list.
+viewer.lights = [{ kind: 'point', position: [1, -1, 3.5], range: 18,
+  intensity: 100, castShadow: true }];
+viewer.requestRender();
+```
+
+For an enabled point shadow, position must be a finite f32 vector. Range must be finite, nonnegative and
+representable in f32 without rounding a positive value to zero. A positive range keeps the spherical lighting
+cutoff and limits each face's far plane; zero or omission fits the faces to the scene and cap bounds.
+Inputs that cannot form a finite f32 depth projection refuse with `LIGHT_INVALID`. These shadow admission
+checks apply only to enabled casters among the first four spot lights or first eight point lights.
+
+### Capture pixels and release the viewer
+
+`viewer.capture()` draws a frame and returns a promise for `{ width, height, data }`. The dimensions are
+`canvas.width` and `canvas.height`: canvas backing pixels, not CSS pixels or model units. `data` is a
+`Uint8Array` of packed RGBA bytes. Rows run from top to bottom; each pixel has four consecutive bytes.
+
+| Returned data | Byte layout |
+| --- | --- |
+| One pixel at `(x, y)` | R, G, B, A at offsets `4 * (y * width + x)` through `4 * (y * width + x) + 3` |
+| One row | `width * 4` bytes, with no row padding in the returned array |
+| A 640 × 480 backing image | `640 * 480 * 4 = 1,228,800` bytes |
+
+![Calculated RGBA row layout for a 640 by 480 backing image; this is not an API capture](/diagrams/capture-rows.svg)
+
+[Open the byte layout at full size](/diagrams/capture-rows.svg).
+
+The renderer removes GPU readback row padding and converts BGRA to RGBA when needed. The result is raw
+pixels, not a PNG file. A caller must encode them to create an image file. Studio's image export adds that
+encoding step with `ImageData` and an `OffscreenCanvas`.
+
+| Method | Caller action and result |
+| --- | --- |
+| `requestRender()` | Request a draw after changing public camera or light fields. Built-in scheduling combines requests into one frame. With `onRequestRender`, each request calls that callback instead. |
+| `frame()` | Request a frame and return `Promise<void>` for the frame waiter. It can also resolve after GPU-work failure or disposal; it returns no image bytes. |
+| `capture()` | Draw and read the RGBA bytes; handle its asynchronous failure separately. |
+| `dispose()` | Release the viewer when its canvas is no longer needed. Repeated calls are safe. |
+
+`dispose()` cancels scheduled work, removes controls and resize observation, and releases GPU resources.
+After disposal, `capture()` rejects with `DISPOSED`, while `requestRender()` returns without scheduling work.
+Disposal also releases pending frame waiters; a resolved `frame()` promise alone is not proof of a successful
+capture. Keep the viewer alive until operations that need it have finished.
 
 ### Depth of field
 

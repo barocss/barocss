@@ -27116,7 +27116,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "Base & (({ readonly kind: \"sketch\"; readonly profile: \"rectangle\"; readonly min: CadPartPoint2; readonly max: CadPartPoint2; } & Placed) | ({ readonly kind: \"sketch\"; readonly profile: \"circle\"; readonly center: CadPartPoint2; readonly radius: CadPartDim; } & Placed) | ({ readonly kind: \"sketch\"; readonly profile: \"polygon\"; readonly points: readonly CadPartPoint2[]; } & Placed) | ({ readonly kind: \"sketch\"; readonly profile: \"loop\"; readonly segments: readonly CadPartLoopSegment[]; } & Placed) | { readonly kind: \"extrude\"; readonly sketch: string; readonly height: CadPartDim; readonly from?: CadPartDim | undefined; readonly draft?: number | undefined; } | { readonly kind: \"revolve\"; readonly sketch: string; readonly axis: { readonly origin: CadPartPoint2; readonly direction: readonly [number, number] | \"x\" | \"y\"; }; readonly angle?: number | undefined; } | { readonly kind: \"union\" | \"difference\" | \"intersect\"; readonly target: string; readonly tool: string; } | { readonly kind: \"hole\"; readonly target: string; readonly center: CadPartPoint2; readonly radius: CadPartDim; readonly depth?: CadPartDim | undefined; readonly axis?: CadPartAxis | undefined; readonly side?: \"min\" | \"max\" | undefined; readonly countersink?: CadPartDim | undefined; readonly face?: string | undefined; } | { readonly kind: \"translate\"; readonly target: string; readonly offset: CadPartPoint3; } | { readonly kind: \"rotate\"; readonly target: string; readonly axis: CadPartAxis; readonly angle: number; readonly pivot?: CadPartPoint3 | undefined; } | { readonly kind: \"mirror\"; readonly target: string; readonly plane: \"xy\" | \"xz\" | \"yz\"; readonly keep?: boolean | undefined; } | { readonly kind: \"scale\"; readonly target: string; readonly factor: number; readonly pivot?: CadPartPoint3 | undefined; } | { readonly kind: \"linear-pattern\"; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number; } | { readonly kind: \"circular-pattern\"; readonly target: string; readonly axis: CadPartAxis; readonly angle: number; readonly count: number; readonly pivot?: CadPartPoint3 | undefined; } | { readonly kind: \"split\"; readonly target: string; readonly axis?: CadPartAxis | undefined; readonly normal?: CadPartPoint3 | undefined; readonly at: CadPartDim; } | { readonly kind: \"sweep\"; readonly sketch: string; readonly path: readonly CadPartSweepStep[]; } | { readonly kind: \"loft\"; readonly sections: readonly CadPartLoftSection[]; readonly smooth?: boolean | undefined; readonly guide?: { readonly kind: \"quadratic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | undefined; } | { readonly kind: \"import\"; readonly step: string; readonly each?: boolean | undefined; } | { readonly kind: \"mesh\"; readonly positions: Float64Array<ArrayBufferLike> | readonly number[] | Float32Array<ArrayBufferLike>; readonly indices: Uint32Array<ArrayBufferLike> | readonly number[]; readonly representation?: \"facets\" | \"planar\" | undefined; readonly each?: boolean | undefined; readonly open?: boolean | undefined; readonly groups?: readonly number[] | Int32Array<ArrayBufferLike> | undefined; } | { readonly kind: \"sweep-curve\"; readonly sketch: string; readonly path: { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[]; }; } | { readonly kind: \"draft\"; readonly target: string; readonly faces: readonly string[]; readonly angle: number; readonly pull?: CadPartAxis | \"-x\" | \"-y\" | \"-z\" | undefined; readonly neutral?: CadPartDim | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"split-face\"; readonly target: string; readonly face: string; readonly curves?: readonly { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[]; }[] | undefined; readonly pull?: CadPartPoint3 | undefined; readonly names?: readonly string[] | undefined; } | { readonly kind: \"thicken\"; readonly surface: { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[]; }; readonly thickness: CadPartDim; readonly side?: \"reverse\" | \"normal\" | \"both\" | undefined; } | { readonly kind: \"subd\"; readonly cage: { readonly positions: Float64Array<ArrayBufferLike> | readonly number[]; readonly faces: readonly (readonly number[])[]; readonly creases?: readonly (readonly [number, number])[] | undefined; }; } | { readonly kind: \"sew\"; readonly surfaces: readonly { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[]; }[]; readonly tolerance?: number | undefined; } | { readonly kind: \"spur-gear\"; readonly module?: CadPartDim | undefined; readonly normalModule?: CadPartDim | undefined; readonly helixAngle?: number | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly teeth: number; readonly faceWidth: CadPartDim; readonly pressureAngle?: number | undefined; readonly profileShift?: number | undefined; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly centerDistance?: CadPartDim | undefined; readonly phase?: number | undefined; } | undefined; readonly generator?: \"spur-gear@0\" | \"spur-gear@1\" | undefined; readonly toolTipRadius?: CadPartDim | undefined; } | { readonly kind: \"spur-rack\"; readonly module?: CadPartDim | undefined; readonly normalModule?: CadPartDim | undefined; readonly helixAngle?: number | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly teeth: number; readonly faceWidth: CadPartDim; readonly height: CadPartDim; readonly pressureAngle?: number | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly origin?: CadPartPoint2 | undefined; readonly angle?: number | undefined; readonly from?: CadPartDim | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly centerDistance?: CadPartDim | undefined; readonly phase?: CadPartDim | undefined; } | undefined; readonly generator?: \"spur-rack@0\" | \"spur-rack@1\" | undefined; readonly rootFillet?: CadPartDim | undefined; } | { readonly kind: \"internal-gear\"; readonly module?: CadPartDim | undefined; readonly normalModule?: CadPartDim | undefined; readonly helixAngle?: number | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly teeth: number; readonly faceWidth: CadPartDim; readonly rim: CadPartDim; readonly pressureAngle?: number | undefined; readonly profileShift?: number | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"internal-gear@0\" | \"internal-gear@1\" | undefined; readonly cutter?: { readonly teeth: number; readonly shift?: number | undefined; readonly tipRadius?: CadPartDim | undefined; } | undefined; } | { readonly kind: \"bevel-gear\"; readonly module: CadPartDim; readonly teeth: number; readonly mateTeeth: number; readonly shaftAngle?: number | undefined; readonly faceWidth: CadPartDim; readonly pressureAngle?: number | undefined; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly phase?: number | undefined; } | undefined; readonly spiral?: { readonly angle: number; readonly hand: \"left\" | \"right\"; readonly cutterRadius: CadPartDim; } | undefined; readonly generator?: \"bevel-gear@0\" | undefined; } | { readonly kind: \"worm\"; readonly axialModule?: CadPartDim | undefined; readonly starts: number; readonly diameter?: CadPartDim | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly length: CadPartDim; readonly form?: \"ZI\" | \"ZA\" | \"ZN\" | \"ZK\" | \"ZC\" | undefined; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly phase?: number | undefined; } | undefined; readonly generator?: \"worm@0\" | undefined; } | { readonly kind: \"worm-wheel\"; readonly worm: { readonly axialModule: CadPartDim; readonly starts: number; readonly diameter: CadPartDim; readonly hand: \"left\" | \"right\"; }; readonly teeth: number; readonly faceWidth: CadPartDim; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"worm-wheel@0\" | undefined; } | { readonly kind: \"spring\"; readonly wire: CadPartDim; readonly diameter?: CadPartDim | undefined; readonly outerDiameter?: CadPartDim | undefined; readonly innerDiameter?: CadPartDim | undefined; readonly activeCoils: number; readonly pitch?: CadPartDim | undefined; readonly freeLength?: CadPartDim | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly ends?: \"closed\" | \"open\" | \"closed-ground\" | undefined; readonly endCoils?: number | undefined; readonly transition?: number | undefined; readonly shearModulus?: number | undefined; readonly shearModulusEstimate?: boolean | undefined; readonly load?: number | undefined; readonly profileTolerance?: number | undefined; readonly hooks?: \"machine-loop\" | \"crossover\" | undefined; readonly bendRadius?: CadPartDim | undefined; readonly loopRadius?: CadPartDim | undefined; readonly loopAngle?: number | undefined; readonly initialTension?: number | undefined; readonly legLengths?: readonly [CadPartDim, CadPartDim] | undefined; readonly youngsModulus?: number | undefined; readonly youngsModulusEstimate?: boolean | undefined; readonly moment?: number | undefined; readonly type?: \"compression\" | \"extension\" | \"torsion\" | undefined; readonly body?: \"cylindrical\" | \"conical\" | \"barrel\" | \"variable-pitch\" | undefined; readonly wireSection?: \"round\" | \"rectangular\" | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"spring@0\" | undefined; } | { readonly kind: \"cam\"; readonly base: CadPartDim; readonly thickness: CadPartDim; readonly follower: \"flat\" | \"roller\"; readonly motion?: \"translating\" | \"oscillating\" | undefined; readonly roller?: CadPartDim | undefined; readonly offset?: CadPartDim | undefined; readonly pivotDistance?: CadPartDim | undefined; readonly armLength?: CadPartDim | undefined; readonly faceOffset?: CadPartDim | undefined; readonly faceWidth?: CadPartDim | undefined; readonly segments: readonly { readonly angle: number; readonly to?: number | undefined; readonly law?: CamLaw | undefined; }[]; readonly bore?: CadPartDim | undefined; readonly minimumRim?: CadPartDim | undefined; readonly pressureAngleLimit?: number | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"cam@0\" | undefined; } | { readonly kind: \"sprocket\"; readonly row: DriveRow; readonly teeth: number; readonly tip: CadPartDim; readonly width: CadPartDim; readonly seat?: CadPartDim | undefined; readonly toothForm?: string | undefined; readonly bore?: CadPartDim | undefined; readonly minimumRim?: CadPartDim | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"sprocket@0\" | undefined; } | { readonly kind: \"pulley\"; readonly row: DriveRow; readonly teeth?: number | undefined; readonly diameter?: CadPartDim | undefined; readonly grooves?: number | undefined; readonly width?: CadPartDim | undefined; readonly crown?: CadPartDim | undefined; readonly bore?: CadPartDim | undefined; readonly minimumRim?: CadPartDim | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"pulley@0\" | undefined; } | { readonly kind: \"belt\"; readonly row: DriveRow; readonly pitchRadii: readonly [CadPartDim, CadPartDim]; readonly centerDistance: CadPartDim; readonly rounding?: \"whole\" | \"even\" | undefined; readonly width?: CadPartDim | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"belt@0\" | undefined; } | { readonly kind: \"coupling\"; readonly row: DriveRow; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"coupling@0\" | undefined; } | { readonly kind: \"connector-opening\"; readonly target: string; readonly face: string; readonly row: ConnectorRow; readonly center: CadPartPoint3; readonly rotation?: number | undefined; } | { readonly kind: \"connector-body\"; readonly opening: string; } | { readonly kind: \"gusset\"; readonly frame: string; readonly point: number; readonly members?: readonly [number, number] | undefined; readonly along?: number | undefined; readonly legs: readonly [CadPartDim, CadPartDim]; readonly thickness: CadPartDim; readonly clip?: CadPartDim | undefined; readonly offset?: CadPartDim | undefined; } | { readonly kind: \"end-cap\"; readonly frame: string; readonly member: number; readonly end: \"start\" | \"end\"; readonly fit: \"over\" | \"inset\"; readonly thickness: CadPartDim; } | { readonly kind: \"weld-bead\"; readonly frame: string; readonly on: { readonly member: number; readonly end: \"start\" | \"end\"; } | { readonly gusset: string; } | { readonly cap: string; }; readonly leg: CadPartDim; readonly inner?: boolean | undefined; readonly sharing?: CadPartBeadSharing | undefined; } | { readonly kind: \"shaft\"; readonly steps: readonly { readonly diameter: CadPartDim; readonly length: CadPartDim; readonly fillet?: CadPartDim | undefined; readonly undercut?: { readonly width: CadPartDim; readonly depth: CadPartDim; } | undefined; readonly grooves?: readonly { readonly diameter: CadPartDim; readonly width: CadPartDim; readonly at: CadPartDim; }[] | undefined; readonly keyseats?: readonly { readonly width: CadPartDim; readonly depth: CadPartDim; readonly length: CadPartDim; readonly offset: CadPartDim; readonly ends?: \"square\" | \"end-mill\" | \"disc\" | undefined; readonly cutterRadius?: CadPartDim | undefined; readonly angle?: number | undefined; }[] | undefined; }[]; readonly chamfers?: readonly [CadPartDim, CadPartDim] | undefined; readonly holes?: readonly { readonly diameter: CadPartDim; readonly at: CadPartDim; readonly angle?: number | undefined; }[] | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"shaft@0\" | undefined; } | { readonly kind: \"key\"; readonly shaft: string; readonly keyseat: number; readonly width?: CadPartDim | undefined; readonly height: CadPartDim; readonly length?: CadPartDim | undefined; readonly ends?: \"square\" | \"round\" | undefined; readonly hub?: string | undefined; readonly fit?: { readonly tables: readonly FitTable[]; readonly key: string; readonly seat?: string | undefined; readonly hub?: string | undefined; } | undefined; } | { readonly kind: \"keyway\"; readonly target: string; readonly face: string; readonly width: CadPartDim; readonly depth: CadPartDim; readonly angle?: number | undefined; } | { readonly kind: \"retaining-ring\"; readonly shaft: string; readonly groove: number; readonly thickness: CadPartDim; readonly outerDiameter: CadPartDim; readonly row?: { readonly shaftDiameter?: number | undefined; readonly grooveDiameter?: number | undefined; readonly grooveWidth?: number | undefined; readonly source?: string | undefined; readonly estimate?: boolean | undefined; } | undefined; } | { readonly kind: \"oring-gland\"; readonly target: string; readonly face: string; readonly gland: \"face\" | \"piston\" | \"rod\"; readonly ring: { readonly id: string; readonly dash?: string | undefined; readonly insideDiameter: number; readonly crossSection: number; readonly source?: string | undefined; readonly estimate?: boolean | undefined; }; readonly groove: { readonly diameter: CadPartDim; readonly width: CadPartDim; readonly at?: CadPartDim | undefined; readonly depth?: CadPartDim | undefined; readonly center?: CadPartPoint3 | undefined; }; readonly seal?: CadPartDim | undefined; readonly ranges?: GlandRanges | undefined; readonly fit?: { readonly tables: readonly FitTable[]; readonly seal?: string | undefined; readonly groove?: string | undefined; } | undefined; } | { readonly kind: \"oring\"; readonly gland: string; } | { readonly kind: \"bearing\"; readonly row: BearingRow; readonly shaft: string; readonly step: number; readonly against: \"start\" | \"end\"; readonly housing?: string | undefined; readonly fit?: BearingFitClasses | undefined; } | { readonly kind: \"pin\"; readonly shaft: string; readonly hole: number; readonly diameter?: CadPartDim | undefined; readonly length?: CadPartDim | undefined; readonly fit?: boolean | undefined; } | { readonly kind: \"thread\"; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2 | undefined; readonly seat?: CadPartDim | undefined; readonly length?: CadPartDim | undefined; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean | undefined; } | undefined; readonly form?: \"faceted\" | \"helical\" | undefined; } | { readonly kind: \"separate\"; readonly target: string; } | { readonly kind: \"decimate\"; readonly target: string; readonly triangles?: number | undefined; readonly ratio?: number | undefined; readonly maxError?: CadPartDim | undefined; readonly featureAngle?: number | undefined; } | ({ readonly kind: \"sheet-base\"; readonly sketch: string; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; readonly reverse?: boolean | undefined; } & CadPartSheetK) | ({ readonly kind: \"sheet-contour\"; readonly path: readonly CadPartPoint2[]; readonly plane?: CadPartSketchPlane | undefined; readonly side: \"left\" | \"right\"; readonly width: CadPartDim; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; } & CadPartSheetK) | { readonly kind: \"frame\"; readonly points: readonly CadPartPoint3[]; readonly segments: readonly CadPartFrameSegment[]; readonly bends?: readonly { readonly point: number; readonly radius: CadPartDim; }[] | undefined; readonly section: CadPartSection; readonly anchor?: \"left\" | \"right\" | \"origin\" | \"bottom\" | \"top\" | \"center\" | \"centroid\" | \"bottom-left\" | \"bottom-right\" | \"top-left\" | \"top-right\" | undefined; readonly offset?: readonly [CadPartDim, CadPartDim] | undefined; readonly roll?: number | undefined; readonly mirror?: boolean | undefined; readonly up?: CadPartPoint3 | undefined; readonly overrides?: readonly CadPartFrameOverride[] | undefined; readonly corners?: CadPartFrameCorners | undefined; readonly trims?: readonly CadPartFrameTrim[] | undefined; } | { readonly kind: \"frame-member\"; readonly section: CadPartSection; readonly start: CadPartPoint3; readonly end: CadPartPoint3; readonly anchor?: \"left\" | \"right\" | \"origin\" | \"bottom\" | \"top\" | \"center\" | \"centroid\" | \"bottom-left\" | \"bottom-right\" | \"top-left\" | \"top-right\" | undefined; readonly offset?: readonly [CadPartDim, CadPartDim] | undefined; readonly roll?: number | undefined; readonly up?: CadPartPoint3 | undefined; } | { readonly kind: \"sheet-corner-relief\"; readonly target: string; readonly corner: string; readonly shape: \"square\" | \"round\"; readonly size: CadPartDim; } | { readonly kind: \"sheet-flange\"; readonly target: string; readonly edge: string; readonly length: CadPartDim; readonly angle?: number | undefined; readonly bendRadius?: CadPartDim | undefined; readonly measure?: \"outer\" | \"inner\" | \"tangent\" | undefined; readonly position?: \"material-inside\" | \"material-outside\" | \"bend-outside\" | undefined; readonly offsets?: readonly [CadPartDim, CadPartDim] | undefined; readonly relief?: { readonly kind: \"rectangular\" | \"obround\"; readonly width: CadPartDim; readonly depth: CadPartDim; } | { readonly kind: \"none\"; } | undefined; } | { readonly kind: \"shell\"; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[] | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"chamfer\"; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"fillet\"; readonly target: string; readonly edges: readonly string[]; readonly radius?: CadPartDim | undefined; readonly radii?: readonly { readonly at: CadPartPoint3; readonly radius: CadPartDim; }[] | undefined; readonly section?: { readonly kind: \"circular\"; } | { readonly kind: \"conic\"; readonly rho: number; } | { readonly kind: \"g2\"; readonly tension?: number | undefined; } | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; })",
+            "type": "Base & (({ readonly kind: \"sketch\"; readonly profile: \"rectangle\"; readonly min: CadPartPoint2; readonly max: CadPartPoint2; } & Placed) | ({ readonly kind: \"sketch\"; readonly profile: \"circle\"; readonly center: CadPartPoint2; readonly radius: CadPartDim; } & Placed) | ({ readonly kind: \"sketch\"; readonly profile: \"polygon\"; readonly points: readonly CadPartPoint2[]; } & Placed) | ({ readonly kind: \"sketch\"; readonly profile: \"loop\"; readonly segments: readonly CadPartLoopSegment[]; } & Placed) | { readonly kind: \"extrude\"; readonly sketch: string; readonly height: CadPartDim; readonly from?: CadPartDim | undefined; readonly draft?: number | undefined; } | { readonly kind: \"revolve\"; readonly sketch: string; readonly axis: { readonly origin: CadPartPoint2; readonly direction: readonly [number, number] | \"x\" | \"y\"; }; readonly angle?: number | undefined; } | { readonly kind: \"union\" | \"difference\" | \"intersect\"; readonly target: string; readonly tool: string; } | { readonly kind: \"hole\"; readonly target: string; readonly center: CadPartPoint2; readonly radius: CadPartDim; readonly depth?: CadPartDim | undefined; readonly axis?: CadPartAxis | undefined; readonly side?: \"min\" | \"max\" | undefined; readonly countersink?: CadPartDim | undefined; readonly face?: string | undefined; } | { readonly kind: \"translate\"; readonly target: string; readonly offset: CadPartPoint3; } | { readonly kind: \"rotate\"; readonly target: string; readonly axis: CadPartAxis; readonly angle: number; readonly pivot?: CadPartPoint3 | undefined; } | { readonly kind: \"mirror\"; readonly target: string; readonly plane: \"xy\" | \"xz\" | \"yz\"; readonly keep?: boolean | undefined; } | { readonly kind: \"scale\"; readonly target: string; readonly factor: number; readonly pivot?: CadPartPoint3 | undefined; } | { readonly kind: \"linear-pattern\"; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number; } | { readonly kind: \"circular-pattern\"; readonly target: string; readonly axis: CadPartAxis; readonly angle: number; readonly count: number; readonly pivot?: CadPartPoint3 | undefined; } | { readonly kind: \"split\"; readonly target: string; readonly axis?: CadPartAxis | undefined; readonly normal?: CadPartPoint3 | undefined; readonly at: CadPartDim; } | { readonly kind: \"sweep\"; readonly sketch: string; readonly path: readonly CadPartSweepStep[]; } | { readonly kind: \"loft\"; readonly sections: readonly CadPartLoftSection[]; readonly smooth?: boolean | undefined; readonly guide?: { readonly kind: \"quadratic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | { readonly kind: \"cubic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | undefined; } | { readonly kind: \"import\"; readonly step: string; readonly each?: boolean | undefined; } | { readonly kind: \"mesh\"; readonly positions: Float64Array<ArrayBufferLike> | readonly number[] | Float32Array<ArrayBufferLike>; readonly indices: Uint32Array<ArrayBufferLike> | readonly number[]; readonly representation?: \"facets\" | \"planar\" | undefined; readonly each?: boolean | undefined; readonly open?: boolean | undefined; readonly groups?: readonly number[] | Int32Array<ArrayBufferLike> | undefined; } | { readonly kind: \"sweep-curve\"; readonly sketch: string; readonly path: { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[]; }; } | { readonly kind: \"draft\"; readonly target: string; readonly faces: readonly string[]; readonly angle: number; readonly pull?: CadPartAxis | \"-x\" | \"-y\" | \"-z\" | undefined; readonly neutral?: CadPartDim | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"split-face\"; readonly target: string; readonly face: string; readonly curves?: readonly { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[]; }[] | undefined; readonly pull?: CadPartPoint3 | undefined; readonly names?: readonly string[] | undefined; } | { readonly kind: \"thicken\"; readonly surface: { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[]; }; readonly thickness: CadPartDim; readonly side?: \"reverse\" | \"normal\" | \"both\" | undefined; } | { readonly kind: \"subd\"; readonly cage: { readonly positions: Float64Array<ArrayBufferLike> | readonly number[]; readonly faces: readonly (readonly number[])[]; readonly creases?: readonly (readonly [number, number])[] | undefined; }; } | { readonly kind: \"sew\"; readonly surfaces: readonly { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[]; }[]; readonly tolerance?: number | undefined; } | { readonly kind: \"spur-gear\"; readonly module?: CadPartDim | undefined; readonly normalModule?: CadPartDim | undefined; readonly helixAngle?: number | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly teeth: number; readonly faceWidth: CadPartDim; readonly pressureAngle?: number | undefined; readonly profileShift?: number | undefined; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly centerDistance?: CadPartDim | undefined; readonly phase?: number | undefined; } | undefined; readonly generator?: \"spur-gear@0\" | \"spur-gear@1\" | undefined; readonly toolTipRadius?: CadPartDim | undefined; } | { readonly kind: \"spur-rack\"; readonly module?: CadPartDim | undefined; readonly normalModule?: CadPartDim | undefined; readonly helixAngle?: number | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly teeth: number; readonly faceWidth: CadPartDim; readonly height: CadPartDim; readonly pressureAngle?: number | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly origin?: CadPartPoint2 | undefined; readonly angle?: number | undefined; readonly from?: CadPartDim | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly centerDistance?: CadPartDim | undefined; readonly phase?: CadPartDim | undefined; } | undefined; readonly generator?: \"spur-rack@0\" | \"spur-rack@1\" | undefined; readonly rootFillet?: CadPartDim | undefined; } | { readonly kind: \"internal-gear\"; readonly module?: CadPartDim | undefined; readonly normalModule?: CadPartDim | undefined; readonly helixAngle?: number | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly teeth: number; readonly faceWidth: CadPartDim; readonly rim: CadPartDim; readonly pressureAngle?: number | undefined; readonly profileShift?: number | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"internal-gear@0\" | \"internal-gear@1\" | undefined; readonly cutter?: { readonly teeth: number; readonly shift?: number | undefined; readonly tipRadius?: CadPartDim | undefined; } | undefined; } | { readonly kind: \"bevel-gear\"; readonly module: CadPartDim; readonly teeth: number; readonly mateTeeth: number; readonly shaftAngle?: number | undefined; readonly faceWidth: CadPartDim; readonly pressureAngle?: number | undefined; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly phase?: number | undefined; } | undefined; readonly spiral?: { readonly angle: number; readonly hand: \"left\" | \"right\"; readonly cutterRadius: CadPartDim; } | undefined; readonly generator?: \"bevel-gear@0\" | undefined; } | { readonly kind: \"worm\"; readonly axialModule?: CadPartDim | undefined; readonly starts: number; readonly diameter?: CadPartDim | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly length: CadPartDim; readonly form?: \"ZI\" | \"ZA\" | \"ZN\" | \"ZK\" | \"ZC\" | undefined; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly phase?: number | undefined; } | undefined; readonly generator?: \"worm@0\" | undefined; } | { readonly kind: \"worm-wheel\"; readonly worm: { readonly axialModule: CadPartDim; readonly starts: number; readonly diameter: CadPartDim; readonly hand: \"left\" | \"right\"; }; readonly teeth: number; readonly faceWidth: CadPartDim; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"worm-wheel@0\" | undefined; } | { readonly kind: \"spring\"; readonly wire: CadPartDim; readonly diameter?: CadPartDim | undefined; readonly outerDiameter?: CadPartDim | undefined; readonly innerDiameter?: CadPartDim | undefined; readonly activeCoils: number; readonly pitch?: CadPartDim | undefined; readonly freeLength?: CadPartDim | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly ends?: \"closed\" | \"open\" | \"closed-ground\" | undefined; readonly endCoils?: number | undefined; readonly transition?: number | undefined; readonly shearModulus?: number | undefined; readonly shearModulusEstimate?: boolean | undefined; readonly load?: number | undefined; readonly profileTolerance?: number | undefined; readonly hooks?: \"machine-loop\" | \"crossover\" | undefined; readonly bendRadius?: CadPartDim | undefined; readonly loopRadius?: CadPartDim | undefined; readonly loopAngle?: number | undefined; readonly initialTension?: number | undefined; readonly legLengths?: readonly [CadPartDim, CadPartDim] | undefined; readonly youngsModulus?: number | undefined; readonly youngsModulusEstimate?: boolean | undefined; readonly moment?: number | undefined; readonly type?: \"compression\" | \"extension\" | \"torsion\" | undefined; readonly body?: \"cylindrical\" | \"conical\" | \"barrel\" | \"variable-pitch\" | undefined; readonly wireSection?: \"round\" | \"rectangular\" | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"spring@0\" | undefined; } | { readonly kind: \"cam\"; readonly base: CadPartDim; readonly thickness: CadPartDim; readonly follower: \"flat\" | \"roller\"; readonly motion?: \"translating\" | \"oscillating\" | undefined; readonly roller?: CadPartDim | undefined; readonly offset?: CadPartDim | undefined; readonly pivotDistance?: CadPartDim | undefined; readonly armLength?: CadPartDim | undefined; readonly faceOffset?: CadPartDim | undefined; readonly faceWidth?: CadPartDim | undefined; readonly segments: readonly { readonly angle: number; readonly to?: number | undefined; readonly law?: CamLaw | undefined; }[]; readonly bore?: CadPartDim | undefined; readonly minimumRim?: CadPartDim | undefined; readonly pressureAngleLimit?: number | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"cam@0\" | undefined; } | { readonly kind: \"sprocket\"; readonly row: DriveRow; readonly teeth: number; readonly tip: CadPartDim; readonly width: CadPartDim; readonly seat?: CadPartDim | undefined; readonly toothForm?: string | undefined; readonly bore?: CadPartDim | undefined; readonly minimumRim?: CadPartDim | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"sprocket@0\" | undefined; } | { readonly kind: \"pulley\"; readonly row: DriveRow; readonly teeth?: number | undefined; readonly diameter?: CadPartDim | undefined; readonly grooves?: number | undefined; readonly width?: CadPartDim | undefined; readonly crown?: CadPartDim | undefined; readonly bore?: CadPartDim | undefined; readonly minimumRim?: CadPartDim | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"pulley@0\" | undefined; } | { readonly kind: \"belt\"; readonly row: DriveRow; readonly pitchRadii: readonly [CadPartDim, CadPartDim]; readonly centerDistance: CadPartDim; readonly rounding?: \"whole\" | \"even\" | undefined; readonly width?: CadPartDim | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"belt@0\" | undefined; } | { readonly kind: \"coupling\"; readonly row: DriveRow; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"coupling@0\" | undefined; } | { readonly kind: \"connector-opening\"; readonly target: string; readonly face: string; readonly row: ConnectorRow; readonly center: CadPartPoint3; readonly rotation?: number | undefined; } | { readonly kind: \"connector-body\"; readonly opening: string; } | { readonly kind: \"gusset\"; readonly frame: string; readonly point: number; readonly members?: readonly [number, number] | undefined; readonly along?: number | undefined; readonly legs: readonly [CadPartDim, CadPartDim]; readonly thickness: CadPartDim; readonly clip?: CadPartDim | undefined; readonly offset?: CadPartDim | undefined; } | { readonly kind: \"end-cap\"; readonly frame: string; readonly member: number; readonly end: \"start\" | \"end\"; readonly fit: \"over\" | \"inset\"; readonly thickness: CadPartDim; } | { readonly kind: \"weld-bead\"; readonly frame: string; readonly on: { readonly member: number; readonly end: \"start\" | \"end\"; } | { readonly gusset: string; } | { readonly cap: string; }; readonly leg: CadPartDim; readonly inner?: boolean | undefined; readonly sharing?: CadPartBeadSharing | undefined; } | { readonly kind: \"shaft\"; readonly steps: readonly { readonly diameter: CadPartDim; readonly length: CadPartDim; readonly fillet?: CadPartDim | undefined; readonly undercut?: { readonly width: CadPartDim; readonly depth: CadPartDim; } | undefined; readonly grooves?: readonly { readonly diameter: CadPartDim; readonly width: CadPartDim; readonly at: CadPartDim; }[] | undefined; readonly keyseats?: readonly { readonly width: CadPartDim; readonly depth: CadPartDim; readonly length: CadPartDim; readonly offset: CadPartDim; readonly ends?: \"square\" | \"end-mill\" | \"disc\" | undefined; readonly cutterRadius?: CadPartDim | undefined; readonly angle?: number | undefined; }[] | undefined; }[]; readonly chamfers?: readonly [CadPartDim, CadPartDim] | undefined; readonly holes?: readonly { readonly diameter: CadPartDim; readonly at: CadPartDim; readonly angle?: number | undefined; }[] | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"shaft@0\" | undefined; } | { readonly kind: \"key\"; readonly shaft: string; readonly keyseat: number; readonly width?: CadPartDim | undefined; readonly height: CadPartDim; readonly length?: CadPartDim | undefined; readonly ends?: \"square\" | \"round\" | undefined; readonly hub?: string | undefined; readonly fit?: { readonly tables: readonly FitTable[]; readonly key: string; readonly seat?: string | undefined; readonly hub?: string | undefined; } | undefined; } | { readonly kind: \"keyway\"; readonly target: string; readonly face: string; readonly width: CadPartDim; readonly depth: CadPartDim; readonly angle?: number | undefined; } | { readonly kind: \"retaining-ring\"; readonly shaft: string; readonly groove: number; readonly thickness: CadPartDim; readonly outerDiameter: CadPartDim; readonly row?: { readonly shaftDiameter?: number | undefined; readonly grooveDiameter?: number | undefined; readonly grooveWidth?: number | undefined; readonly source?: string | undefined; readonly estimate?: boolean | undefined; } | undefined; } | { readonly kind: \"oring-gland\"; readonly target: string; readonly face: string; readonly gland: \"face\" | \"piston\" | \"rod\"; readonly ring: { readonly id: string; readonly dash?: string | undefined; readonly insideDiameter: number; readonly crossSection: number; readonly source?: string | undefined; readonly estimate?: boolean | undefined; }; readonly groove: { readonly diameter: CadPartDim; readonly width: CadPartDim; readonly at?: CadPartDim | undefined; readonly depth?: CadPartDim | undefined; readonly center?: CadPartPoint3 | undefined; }; readonly seal?: CadPartDim | undefined; readonly ranges?: GlandRanges | undefined; readonly fit?: { readonly tables: readonly FitTable[]; readonly seal?: string | undefined; readonly groove?: string | undefined; } | undefined; } | { readonly kind: \"oring\"; readonly gland: string; } | { readonly kind: \"bearing\"; readonly row: BearingRow; readonly shaft: string; readonly step: number; readonly against: \"start\" | \"end\"; readonly housing?: string | undefined; readonly fit?: BearingFitClasses | undefined; } | { readonly kind: \"pin\"; readonly shaft: string; readonly hole: number; readonly diameter?: CadPartDim | undefined; readonly length?: CadPartDim | undefined; readonly fit?: boolean | undefined; } | { readonly kind: \"thread\"; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2 | undefined; readonly seat?: CadPartDim | undefined; readonly length?: CadPartDim | undefined; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean | undefined; } | undefined; readonly form?: \"faceted\" | \"helical\" | undefined; } | { readonly kind: \"separate\"; readonly target: string; } | { readonly kind: \"decimate\"; readonly target: string; readonly triangles?: number | undefined; readonly ratio?: number | undefined; readonly maxError?: CadPartDim | undefined; readonly featureAngle?: number | undefined; } | ({ readonly kind: \"sheet-base\"; readonly sketch: string; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; readonly reverse?: boolean | undefined; } & CadPartSheetK) | ({ readonly kind: \"sheet-contour\"; readonly path: readonly CadPartPoint2[]; readonly plane?: CadPartSketchPlane | undefined; readonly side: \"left\" | \"right\"; readonly width: CadPartDim; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; } & CadPartSheetK) | { readonly kind: \"frame\"; readonly points: readonly CadPartPoint3[]; readonly segments: readonly CadPartFrameSegment[]; readonly bends?: readonly { readonly point: number; readonly radius: CadPartDim; }[] | undefined; readonly section: CadPartSection; readonly anchor?: \"left\" | \"right\" | \"origin\" | \"bottom\" | \"top\" | \"center\" | \"centroid\" | \"bottom-left\" | \"bottom-right\" | \"top-left\" | \"top-right\" | undefined; readonly offset?: readonly [CadPartDim, CadPartDim] | undefined; readonly roll?: number | undefined; readonly mirror?: boolean | undefined; readonly up?: CadPartPoint3 | undefined; readonly overrides?: readonly CadPartFrameOverride[] | undefined; readonly corners?: CadPartFrameCorners | undefined; readonly trims?: readonly CadPartFrameTrim[] | undefined; } | { readonly kind: \"frame-member\"; readonly section: CadPartSection; readonly start: CadPartPoint3; readonly end: CadPartPoint3; readonly anchor?: \"left\" | \"right\" | \"origin\" | \"bottom\" | \"top\" | \"center\" | \"centroid\" | \"bottom-left\" | \"bottom-right\" | \"top-left\" | \"top-right\" | undefined; readonly offset?: readonly [CadPartDim, CadPartDim] | undefined; readonly roll?: number | undefined; readonly up?: CadPartPoint3 | undefined; } | { readonly kind: \"sheet-corner-relief\"; readonly target: string; readonly corner: string; readonly shape: \"square\" | \"round\"; readonly size: CadPartDim; } | { readonly kind: \"sheet-flange\"; readonly target: string; readonly edge: string; readonly length: CadPartDim; readonly angle?: number | undefined; readonly bendRadius?: CadPartDim | undefined; readonly measure?: \"outer\" | \"inner\" | \"tangent\" | undefined; readonly position?: \"material-inside\" | \"material-outside\" | \"bend-outside\" | undefined; readonly offsets?: readonly [CadPartDim, CadPartDim] | undefined; readonly relief?: { readonly kind: \"rectangular\" | \"obround\"; readonly width: CadPartDim; readonly depth: CadPartDim; } | { readonly kind: \"none\"; } | undefined; } | { readonly kind: \"shell\"; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[] | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"chamfer\"; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"fillet\"; readonly target: string; readonly edges: readonly string[]; readonly radius?: CadPartDim | undefined; readonly radii?: readonly { readonly at: CadPartPoint3; readonly radius: CadPartDim; }[] | undefined; readonly section?: { readonly kind: \"circular\"; } | { readonly kind: \"conic\"; readonly rho: number; } | { readonly kind: \"g2\"; readonly tension?: number | undefined; } | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; })",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -27738,7 +27738,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": true,
-                "type": "{ readonly kind: \"quadratic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | undefined"
+                "type": "{ readonly kind: \"quadratic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | { readonly kind: \"cubic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | undefined"
               },
               {
                 "name": "hand",
@@ -97268,7 +97268,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": true,
-                "type": "{ readonly kind: \"quadratic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | undefined"
+                "type": "{ readonly kind: \"quadratic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | { readonly kind: \"cubic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | undefined"
               },
               {
                 "name": "id",
@@ -257521,7 +257521,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "({ name: string; description: string; input_schema: { type: string; properties: { mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { layout: { type: string; }; mode?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { codes: { type: string; items: { type: string; }; }; mode?: undefined; layout?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { ids: { type: string; items: { type: string; }; }; mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { scope: { oneOf: ({ type: string; properties: { kind: { const: string; }; part: { type: string; }; }; required: string[]; additionalProperties: boolean; } | { type: string; properties: { kind: { const: string; }; part?: undefined; }; required: string[]; additionalProperties: boolean; })[]; }; sheet: { type: string; enum: string[]; }; scale: { anyOf: ({ type: string; enum?: undefined; } | { type: string; enum: string[]; })[]; }; projection: { type: string; enum: string[]; }; front: { type: string; enum: string[]; }; views: { type: string; items: { type: string; enum: string[]; }; }; tolerancing: { type: string; enum: string[]; }; title: { type: string; }; datums: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; face: { type: string; properties: { face: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; edge: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; oneOf: { required: string[]; not: { required: string[]; }; }[]; additionalProperties: boolean; }; }; frames: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; }; dim: { type: string; }; characteristic: { type: string; enum: (\"position\" | \"straightness\" | \"flatness\" | \"circularity\" | \"cylindricity\" | \"profile-line\" | \"profile-surface\" | \"parallelism\" | \"perpendicularity\" | \"angularity\" | \"concentricity\" | \"symmetry\" | \"circular-runout\" | \"total-runout\")[]; }; value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; projected: { type: string; exclusiveMinimum: number; maximum: number; }; freeState: { type: string; }; tangentPlane: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; titleBlock: { type: string; description: string; properties: { template: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; revisions: { type: string; maxItems: number; description: string; items: { type: string; properties: { revision: { type: string; minLength: number; maxLength: number; }; date: { type: string; description: string; }; description: { type: string; minLength: number; maxLength: number; }; by: { type: string; minLength: number; maxLength: number; }; }; required: string[]; additionalProperties: boolean; }; }; weldSymbols: { type: string; description: string; }; balloons: { type: string; description: string; }; sections: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; at: { type: string; description: string; }; dir: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; half: { type: string; description: string; properties: { line: { type: string; enum: string[]; }; at: { type: string; }; cut: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; steps: { type: string; description: string; items: { type: string; properties: { past: { type: string; }; at: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; along: { type: string; enum: string[]; }; removed: { type: string; description: string; properties: { at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; scale: { type: string; }; }; additionalProperties: boolean; }; revolved: { type: string; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; details: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; description: string; }; center: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; radius: { type: string; description: string; }; scale: { type: string; description: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; breaks: { type: string; description: string; items: { type: string; properties: { axis: { type: string; enum: string[]; }; from: { type: string; }; to: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; tables: { type: string; description: string; items: { type: string; properties: { id: { type: string; minLength: number; }; from: { type: string; enum: string[]; }; title: { type: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; corner: { type: string; enum: string[]; }; whole: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; })[]",
+            "type": "({ name: string; description: string; input_schema: { type: string; properties: { mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { layout: { type: string; }; mode?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { codes: { type: string; items: { type: string; }; }; mode?: undefined; layout?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { ids: { type: string; items: { type: string; }; }; mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { scope: { oneOf: ({ type: string; properties: { kind: { const: string; }; part: { type: string; }; }; required: string[]; additionalProperties: boolean; } | { type: string; properties: { kind: { const: string; }; part?: undefined; }; required: string[]; additionalProperties: boolean; })[]; }; sheet: { type: string; enum: string[]; }; scale: { anyOf: ({ type: string; enum?: undefined; } | { type: string; enum: string[]; })[]; }; projection: { type: string; enum: string[]; }; front: { type: string; enum: string[]; }; views: { type: string; items: { type: string; enum: string[]; }; }; tolerancing: { type: string; enum: string[]; }; title: { type: string; }; datums: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; face: { type: string; properties: { face: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; edge: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; oneOf: { required: string[]; not: { required: string[]; }; }[]; additionalProperties: boolean; }; }; datumTargets: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; additionalProperties: boolean; }; }; frames: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; }; dim: { type: string; }; characteristic: { type: string; enum: (\"position\" | \"straightness\" | \"flatness\" | \"circularity\" | \"cylindricity\" | \"profile-line\" | \"profile-surface\" | \"parallelism\" | \"perpendicularity\" | \"angularity\" | \"concentricity\" | \"symmetry\" | \"circular-runout\" | \"total-runout\")[]; }; value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; projected: { type: string; exclusiveMinimum: number; maximum: number; }; freeState: { type: string; }; tangentPlane: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; titleBlock: { type: string; description: string; properties: { template: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; revisions: { type: string; maxItems: number; description: string; items: { type: string; properties: { revision: { type: string; minLength: number; maxLength: number; }; date: { type: string; description: string; }; description: { type: string; minLength: number; maxLength: number; }; by: { type: string; minLength: number; maxLength: number; }; }; required: string[]; additionalProperties: boolean; }; }; weldSymbols: { type: string; description: string; }; balloons: { type: string; description: string; }; sections: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; at: { type: string; description: string; }; dir: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; half: { type: string; description: string; properties: { line: { type: string; enum: string[]; }; at: { type: string; }; cut: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; steps: { type: string; description: string; items: { type: string; properties: { past: { type: string; }; at: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; along: { type: string; enum: string[]; }; removed: { type: string; description: string; properties: { at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; scale: { type: string; }; }; additionalProperties: boolean; }; revolved: { type: string; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; details: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; description: string; }; center: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; radius: { type: string; description: string; }; scale: { type: string; description: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; breaks: { type: string; description: string; items: { type: string; properties: { axis: { type: string; enum: string[]; }; from: { type: string; }; to: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; tables: { type: string; description: string; items: { type: string; properties: { id: { type: string; minLength: number; }; from: { type: string; enum: string[]; }; title: { type: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; corner: { type: string; enum: string[]; }; whole: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; })[]",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -270307,7 +270307,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
-                "type": "{ letter: string; } | undefined"
+                "type": "{ letter: string; targetNumber?: number | undefined; } | undefined"
               },
               {
                 "name": "dimension",
@@ -270429,7 +270429,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "{ id: string; why: string; }[]"
+                "type": "{ id: string; why: string; code?: DatumTargetFailureCode | undefined; }[]"
               },
               {
                 "name": "version",
@@ -273580,6 +273580,725 @@
     },
     {
       "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
+      "exportName": "DatumTargetFailureCode",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "DatumTargetFailureCode",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "\"DATUM_TARGET_INVALID\" | \"DATUM_TARGET_LOST\" | \"DATUM_TARGET_AMBIGUOUS\" | \"DATUM_TARGET_UNSUPPORTED\" | \"DATUM_TARGET_DUPLICATE\" | \"DATUM_TARGET_UNVERIFIED\"",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "\"DATUM_TARGET_INVALID\" | \"DATUM_TARGET_LOST\" | \"DATUM_TARGET_AMBIGUOUS\" | \"DATUM_TARGET_UNSUPPORTED\" | \"DATUM_TARGET_DUPLICATE\" | \"DATUM_TARGET_UNVERIFIED\""
+              }
+            ],
+            "members": [
+              {
+                "name": "__@iterator@35",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => StringIterator<string>"
+              },
+              {
+                "name": "anchor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => string"
+              },
+              {
+                "name": "at",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => string | undefined"
+              },
+              {
+                "name": "big",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "blink",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "bold",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "charAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => string"
+              },
+              {
+                "name": "charCodeAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => number"
+              },
+              {
+                "name": "codePointAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => number | undefined"
+              },
+              {
+                "name": "concat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(...strings: string[]) => string"
+              },
+              {
+                "name": "endsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, endPosition?: number | undefined) => boolean"
+              },
+              {
+                "name": "fixed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "fontcolor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(color: string) => string"
+              },
+              {
+                "name": "fontsize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (size: number): string; (size: string): string; }"
+              },
+              {
+                "name": "includes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "indexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "italics",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "lastIndexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "length",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "link",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(url: string) => string"
+              },
+              {
+                "name": "localeCompare",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (that: string): number; (that: string, locales?: string | string[] | undefined, options?: CollatorOptions | undefined): number; (that: string, locales?: LocalesArgument, options?: CollatorOptions | undefined): number; }"
+              },
+              {
+                "name": "match",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): RegExpMatchArray | null; (matcher: { [Symbol.match](string: string): RegExpMatchArray | null; }): RegExpMatchArray | null; }"
+              },
+              {
+                "name": "matchAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(regexp: RegExp) => RegExpStringIterator<RegExpExecArray>"
+              },
+              {
+                "name": "normalize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (form: \"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\"): string; (form?: string | undefined): string; }"
+              },
+              {
+                "name": "padEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "padStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "repeat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(count: number) => string"
+              },
+              {
+                "name": "replace",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; (searchValue: { [Symbol.replace](string: string, replaceValue: string): string; }, replaceValue: string): string; (searchValue: { [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string; }, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "replaceAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "search",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): number; (searcher: { [Symbol.search](string: string): number; }): number; }"
+              },
+              {
+                "name": "slice",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start?: number | undefined, end?: number | undefined) => string"
+              },
+              {
+                "name": "small",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (separator: string | RegExp, limit?: number | undefined): string[]; (splitter: { [Symbol.split](string: string, limit?: number | undefined): string[]; }, limit?: number | undefined): string[]; }"
+              },
+              {
+                "name": "startsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "strike",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "sub",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "substr",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(from: number, length?: number | undefined) => string"
+              },
+              {
+                "name": "substring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start: number, end?: number | undefined) => string"
+              },
+              {
+                "name": "sup",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toLocaleLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLocaleUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toString",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trim",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimLeft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimRight",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "valueOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              }
+            ],
+            "indexSignatures": [
+              {
+                "key": "number",
+                "type": "string",
+                "readonly": true,
+                "callable": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
+      "exportName": "DatumTargetResolution",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "DatumTargetResolution",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "{ ok: true; at: Vec3; edge: string; } | { ok: false; code: DatumTargetFailureCode; reason: string; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "{\n    ok: true;\n    at: Vec3;\n    edge: string;\n} | {\n    ok: false;\n    code: DatumTargetFailureCode;\n    reason: string;\n}"
+              }
+            ],
+            "members": [
+              {
+                "name": "at",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Vec3"
+              },
+              {
+                "name": "code",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "DatumTargetFailureCode"
+              },
+              {
+                "name": "edge",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "ok",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "false"
+              },
+              {
+                "name": "ok",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "true"
+              },
+              {
+                "name": "reason",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
+      "exportName": "DrawingDatumTarget",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "DrawingDatumTarget",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "DrawingDatumTarget",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "letter",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "number",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "place",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "XY"
+              },
+              {
+                "name": "point",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ edge: string; at: \"end\"; near: Vec3; endpoint?: \"min\" | \"max\" | undefined; sig?: Sig | undefined; was?: string | undefined; }"
+              },
+              {
+                "name": "view",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "ViewId"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
+      "exportName": "checkDatumTargetOptions",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "checkDatumTargetOptions",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(args: Record<string, unknown>) => Problem<CadModelCode>[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(args: Record<string, unknown>) => Problem<CadModelCode>[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
+      "exportName": "datumTargetConflicts",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "datumTargetConflicts",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(targets: readonly DrawingDatumTarget[]) => ReadonlySet<DrawingDatumTarget>",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(targets: readonly DrawingDatumTarget[]) => ReadonlySet<DrawingDatumTarget>"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
+      "exportName": "datumTargetEndpoint",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "datumTargetEndpoint",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(ends: readonly Vec3[] | null, at: Vec3) => \"min\" | \"max\" | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(ends: readonly Vec3[] | null, at: Vec3) => \"min\" | \"max\" | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
+      "exportName": "datumTargetsProperty",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "datumTargetsProperty",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "{ type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; additionalProperties: boolean; }; }",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
+      "exportName": "readDatumTargets",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "readDatumTargets",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(raw: unknown) => DrawingDatumTarget[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(raw: unknown) => DrawingDatumTarget[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
+      "exportName": "resolveDatumTarget",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "resolveDatumTarget",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(projection: BrepProjection, target: DrawingDatumTarget) => DatumTargetResolution",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(projection: BrepProjection, target: DrawingDatumTarget) => DatumTargetResolution"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
       "subpath": "./drawing/datums",
       "exportName": "DrawingFace",
       "space": "type",
@@ -276123,6 +276842,13 @@
                 "type": "DrawingIssueCode"
               },
               {
+                "name": "datumTargets",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string[] | undefined"
+              },
+              {
                 "name": "dims",
                 "kind": "property",
                 "optional": true,
@@ -276202,11 +276928,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"DUPLICATE\" | \"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"DATUM_UNDEFINED\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\"",
+            "type": "\"DUPLICATE\" | DatumTargetFailureCode | \"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"DATUM_UNDEFINED\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"DATUM_UNDEFINED\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"DUPLICATE\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\""
+                "definition": "\"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"DATUM_UNDEFINED\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"DUPLICATE\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\" | DatumTargetFailureCode"
               }
             ],
             "members": [
@@ -278721,7 +279447,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "{ datums: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; face: { type: string; properties: { face: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; edge: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; oneOf: { required: string[]; not: { required: string[]; }; }[]; additionalProperties: boolean; }; }; frames: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; }; dim: { type: string; }; characteristic: { type: string; enum: (\"position\" | \"straightness\" | \"flatness\" | \"circularity\" | \"cylindricity\" | \"profile-line\" | \"profile-surface\" | \"parallelism\" | \"perpendicularity\" | \"angularity\" | \"concentricity\" | \"symmetry\" | \"circular-runout\" | \"total-runout\")[]; }; value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; projected: { type: string; exclusiveMinimum: number; maximum: number; }; freeState: { type: string; }; tangentPlane: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; titleBlock: { type: string; description: string; properties: { template: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; revisions: { type: string; maxItems: number; description: string; items: { type: string; properties: { revision: { type: string; minLength: number; maxLength: number; }; date: { type: string; description: string; }; description: { type: string; minLength: number; maxLength: number; }; by: { type: string; minLength: number; maxLength: number; }; }; required: string[]; additionalProperties: boolean; }; }; weldSymbols: { type: string; description: string; }; balloons: { type: string; description: string; }; sections: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; at: { type: string; description: string; }; dir: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; half: { type: string; description: string; properties: { line: { type: string; enum: string[]; }; at: { type: string; }; cut: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; steps: { type: string; description: string; items: { type: string; properties: { past: { type: string; }; at: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; along: { type: string; enum: string[]; }; removed: { type: string; description: string; properties: { at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; scale: { type: string; }; }; additionalProperties: boolean; }; revolved: { type: string; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; details: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; description: string; }; center: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; radius: { type: string; description: string; }; scale: { type: string; description: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; breaks: { type: string; description: string; items: { type: string; properties: { axis: { type: string; enum: string[]; }; from: { type: string; }; to: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; tables: { type: string; description: string; items: { type: string; properties: { id: { type: string; minLength: number; }; from: { type: string; enum: string[]; }; title: { type: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; corner: { type: string; enum: string[]; }; whole: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; }",
+            "type": "{ datums: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; face: { type: string; properties: { face: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; edge: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; oneOf: { required: string[]; not: { required: string[]; }; }[]; additionalProperties: boolean; }; }; datumTargets: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; additionalProperties: boolean; }; }; frames: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; }; dim: { type: string; }; characteristic: { type: string; enum: (\"position\" | \"straightness\" | \"flatness\" | \"circularity\" | \"cylindricity\" | \"profile-line\" | \"profile-surface\" | \"parallelism\" | \"perpendicularity\" | \"angularity\" | \"concentricity\" | \"symmetry\" | \"circular-runout\" | \"total-runout\")[]; }; value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; projected: { type: string; exclusiveMinimum: number; maximum: number; }; freeState: { type: string; }; tangentPlane: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; titleBlock: { type: string; description: string; properties: { template: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; revisions: { type: string; maxItems: number; description: string; items: { type: string; properties: { revision: { type: string; minLength: number; maxLength: number; }; date: { type: string; description: string; }; description: { type: string; minLength: number; maxLength: number; }; by: { type: string; minLength: number; maxLength: number; }; }; required: string[]; additionalProperties: boolean; }; }; weldSymbols: { type: string; description: string; }; balloons: { type: string; description: string; }; sections: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; at: { type: string; description: string; }; dir: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; half: { type: string; description: string; properties: { line: { type: string; enum: string[]; }; at: { type: string; }; cut: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; steps: { type: string; description: string; items: { type: string; properties: { past: { type: string; }; at: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; along: { type: string; enum: string[]; }; removed: { type: string; description: string; properties: { at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; scale: { type: string; }; }; additionalProperties: boolean; }; revolved: { type: string; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; details: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; description: string; }; center: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; radius: { type: string; description: string; }; scale: { type: string; description: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; breaks: { type: string; description: string; items: { type: string; properties: { axis: { type: string; enum: string[]; }; from: { type: string; }; to: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; tables: { type: string; description: string; items: { type: string; properties: { id: { type: string; minLength: number; }; from: { type: string; enum: string[]; }; title: { type: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; corner: { type: string; enum: string[]; }; whole: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; }",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -280473,6 +281199,13 @@
             ],
             "members": [
               {
+                "name": "datumTarget",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "true | undefined"
+              },
+              {
                 "name": "id",
                 "kind": "property",
                 "optional": true,
@@ -281540,6 +282273,37 @@
             ],
             "callSignatures": [
               "(layout: SheetLayout, views: DrawingViews, d: DrawingDatum) => Mark[] | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheet",
+      "exportName": "datumTargetMarks",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheet.ts",
+            "name": "datumTargetMarks",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(layout: SheetLayout, views: DrawingViews, d: DrawingDatumTarget) => Mark[] | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(layout: SheetLayout, views: DrawingViews, d: DrawingDatumTarget) => Mark[] | null"
             ]
           }
         }
@@ -284061,6 +284825,79 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./drawing/types",
+      "exportName": "DrawingDatumTarget",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "DrawingDatumTarget",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "DrawingDatumTarget",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "letter",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "number",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "place",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "XY"
+              },
+              {
+                "name": "point",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ edge: string; at: \"end\"; near: Vec3; endpoint?: \"min\" | \"max\" | undefined; sig?: Sig | undefined; was?: string | undefined; }"
+              },
+              {
+                "name": "view",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "ViewId"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/types",
       "exportName": "DrawingDetail",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -284720,6 +285557,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "boolean | undefined"
+              },
+              {
+                "name": "datumTargets",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "DrawingDatumTarget[] | undefined"
               },
               {
                 "name": "datums",
@@ -314379,6 +315223,13 @@
                 "type": "() => void"
               },
               {
+                "name": "datumTarget",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "true | undefined"
+              },
+              {
                 "name": "edge",
                 "kind": "property",
                 "optional": false,
@@ -314440,6 +315291,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "Sig | undefined"
+              },
+              {
+                "name": "targetEndpoint",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "\"min\" | \"max\" | undefined"
               },
               {
                 "name": "was",
@@ -314798,6 +315656,37 @@
             ],
             "callSignatures": [
               "(doc: StudioDoc, finals: readonly BodyResult[], evaluate: Evaluate, tables?: Tables) => Promise<StudioDoc>"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/references",
+      "exportName": "sameDatumTargetSourceSig",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/references.ts",
+            "name": "sameDatumTargetSourceSig",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(a: Sig, b: Sig) => boolean",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(a: Sig, b: Sig) => boolean"
             ]
           }
         }
@@ -334281,14 +335170,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(sheet: Sheet, selected?: string | null | undefined) => string",
+            "type": "(sheet: Sheet, selected?: string | null | undefined, selectedTarget?: string | null | undefined) => string",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(sheet: Sheet, selected?: string | null | undefined) => string"
+              "(sheet: Sheet, selected?: string | null | undefined, selectedTarget?: string | null | undefined) => string"
             ]
           }
         }
@@ -419776,7 +420665,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"GEOMETRY\" | \"BUDGET\" | \"SELECTION\" | \"SYNTAX\" | \"REFERENCE\" | \"TYPE\" | \"VERSION\" | \"OPTIONS\" | \"BINDING\" | \"FRAME\" | \"IDENTITY\" | \"MATERIAL\" | \"NUMERICAL\" | \"PROFILE\" | \"RANGE\" | \"SOURCE\" | \"UNSUPPORTED\" | \"UV\" | \"MATERIAL_UNKNOWN\" | \"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\" | \"MESH_INVALID\" | \"LIGHT_INVALID\" | \"CAMERA_INVALID\" | \"SCENE\" | \"MESH_PACKET_INVALID\" | \"MESH_OPTIONS_INVALID\" | \"PRIMITIVE_FRAME_INVALID\" | \"FACE_PREVIEW_INVALID\" | \"SCENE_INVALID\" | \"BOOLEAN_BUFFERS_INVALID\" | \"GPU_BVH_DEPTH\" | \"GPU\" | \"RECONSTRUCTION\" | \"IR\" | \"UNIFORM\" | \"CONVERSION\" | \"REPRESENTATION\" | \"TRANSFORM\" | \"CAMERA\" | \"RAY\" | \"LIGHTING\" | \"TEXTURE\" | \"CONTEXT\" | \"LIGHTS\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\" | \"SELECTOR\" | \"NORMALIZATION\" | \"SOURCE_BINDING\" | \"SCENE_VIEW\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"GEOMETRY\" | \"BUDGET\" | \"SELECTION\" | \"SYNTAX\" | \"REFERENCE\" | \"TYPE\" | \"VERSION\" | \"OPTIONS\" | \"BINDING\" | \"FRAME\" | \"IDENTITY\" | \"MATERIAL\" | \"NUMERICAL\" | \"PROFILE\" | \"RANGE\" | \"SOURCE\" | \"UNSUPPORTED\" | \"UV\" | \"MATERIAL_UNKNOWN\" | \"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"PATH_TRACE_UNSUPPORTED\" | \"PATH_TRACE_BUSY\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"LIGHT_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\" | \"MESH_PACKET_INVALID\" | \"MESH_OPTIONS_INVALID\" | \"MESH_INVALID\" | \"CAMERA_INVALID\" | \"PRIMITIVE_FRAME_INVALID\" | \"FACE_PREVIEW_INVALID\" | \"SCENE_INVALID\" | \"BOOLEAN_BUFFERS_INVALID\" | \"GPU_BVH_DEPTH\" | \"SCENE\" | \"GPU\" | \"RECONSTRUCTION\" | \"IR\" | \"UNIFORM\" | \"CONVERSION\" | \"REPRESENTATION\" | \"TRANSFORM\" | \"CAMERA\" | \"RAY\" | \"LIGHTING\" | \"TEXTURE\" | \"CONTEXT\" | \"LIGHTS\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\" | \"SELECTOR\" | \"NORMALIZATION\" | \"SOURCE_BINDING\" | \"SCENE_VIEW\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -420340,7 +421229,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"MESH_INVALID\" | \"CAMERA_INVALID\" | \"MESH_PACKET_INVALID\" | \"MESH_OPTIONS_INVALID\" | \"PRIMITIVE_FRAME_INVALID\" | \"FACE_PREVIEW_INVALID\" | \"SCENE_INVALID\" | \"BOOLEAN_BUFFERS_INVALID\" | \"GPU_BVH_DEPTH\"",
+            "type": "\"MESH_PACKET_INVALID\" | \"MESH_OPTIONS_INVALID\" | \"MESH_INVALID\" | \"CAMERA_INVALID\" | \"PRIMITIVE_FRAME_INVALID\" | \"FACE_PREVIEW_INVALID\" | \"SCENE_INVALID\" | \"BOOLEAN_BUFFERS_INVALID\" | \"GPU_BVH_DEPTH\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -421914,6 +422803,13 @@
               },
               {
                 "name": "range",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "shadowRadius",
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
@@ -423578,6 +424474,27 @@
                 "type": "number | undefined"
               },
               {
+                "name": "metallicMap",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "ImageTexture | null | undefined"
+              },
+              {
+                "name": "normalMap",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "ImageTexture | null | undefined"
+              },
+              {
+                "name": "normalScale",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "readonly [number, number] | undefined"
+              },
+              {
                 "name": "opacity",
                 "kind": "property",
                 "optional": true,
@@ -423611,6 +424528,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "number | undefined"
+              },
+              {
+                "name": "roughnessMap",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "ImageTexture | null | undefined"
               },
               {
                 "name": "shader",
@@ -423943,7 +424867,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "{ device: Device; map: ImageTexture | null; params: Buffer; group: BindGroup; data: Float32Array<ArrayBufferLike>; } | null"
+                "type": "{ device: Device; map: ImageTexture | null; params: Buffer; group: BindGroup; data: Float32Array<ArrayBufferLike>; maps: readonly (ImageTexture | null)[]; pbrParams: Buffer; pbrData: Float32Array<ArrayBufferLike>; } | null"
               },
               {
                 "name": "name",
@@ -431809,6 +432733,239 @@
     {
       "package": "@barocss/gpu",
       "subpath": ".",
+      "exportName": "PathTraceImage",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/gpu",
+            "file": "src/viewer/path-trace.ts",
+            "name": "PathTraceImage",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "PathTraceImage",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "data",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Uint8Array<ArrayBufferLike>"
+              },
+              {
+                "name": "height",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "samples",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "width",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/gpu",
+      "subpath": ".",
+      "exportName": "PathTraceOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/gpu",
+            "file": "src/viewer/path-trace.ts",
+            "name": "PathTraceOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "PathTraceOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "bounces",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "height",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "width",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/gpu",
+      "subpath": ".",
+      "exportName": "PathTraceSession",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/gpu",
+            "file": "src/viewer/path-trace.ts",
+            "name": "PathTraceSession",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "PathTraceSession",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "capture",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(denoise?: boolean) => Promise<PathTraceImage>"
+              },
+              {
+                "name": "dispose",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => void"
+              },
+              {
+                "name": "height",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "running",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
+              },
+              {
+                "name": "sample",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(count?: number) => Promise<number>"
+              },
+              {
+                "name": "samples",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "start",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(onProgress?: ((samples: number) => void) | undefined) => Promise<void>"
+              },
+              {
+                "name": "stop",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => void"
+              },
+              {
+                "name": "width",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [],
+            "constructSignatures": [],
+            "staticMembers": [
+              {
+                "name": "create",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(device: Device, snapshot: TraceSnapshot, options: PathTraceOptions, removed: (session: PathTraceSession) => void) => Promise<PathTraceSession>"
+              }
+            ],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/gpu",
+      "subpath": ".",
       "exportName": "PickHit",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -432084,6 +433241,13 @@
               }
             ],
             "members": [
+              {
+                "name": "castShadow",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | undefined"
+              },
               {
                 "name": "color",
                 "kind": "property",
@@ -440918,6 +442082,13 @@
                 "type": "number | undefined"
               },
               {
+                "name": "castShadow",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | undefined"
+              },
+              {
                 "name": "color",
                 "kind": "property",
                 "optional": true,
@@ -440961,6 +442132,13 @@
               },
               {
                 "name": "range",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "shadowRadius",
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
@@ -446195,6 +447373,13 @@
                 "type": "(input: GeometryInput) => Geometry"
               },
               {
+                "name": "createPathTrace",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options?: PathTraceOptions) => Promise<PathTraceSession>"
+              },
+              {
                 "name": "createTexture",
                 "kind": "method",
                 "optional": false,
@@ -446565,11 +447750,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\"",
+            "type": "\"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"PATH_TRACE_UNSUPPORTED\" | \"PATH_TRACE_BUSY\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"LIGHT_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\""
+                "definition": "\"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"PATH_TRACE_UNSUPPORTED\" | \"PATH_TRACE_BUSY\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"LIGHT_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\""
               }
             ],
             "members": [
@@ -452854,7 +454039,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"MATERIAL_UNKNOWN\" | \"MATERIAL_INVALID\" | \"MESH_INVALID\" | \"LIGHT_INVALID\" | \"CAMERA_INVALID\"",
+            "type": "\"MATERIAL_UNKNOWN\" | \"MATERIAL_INVALID\" | \"LIGHT_INVALID\" | \"MESH_INVALID\" | \"CAMERA_INVALID\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -466868,7 +468053,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"GEOMETRY\" | \"BUDGET\" | \"SELECTION\" | \"SYNTAX\" | \"REFERENCE\" | \"TYPE\" | \"VERSION\" | \"OPTIONS\" | \"BINDING\" | \"FRAME\" | \"IDENTITY\" | \"MATERIAL\" | \"NUMERICAL\" | \"PROFILE\" | \"RANGE\" | \"SOURCE\" | \"UNSUPPORTED\" | \"UV\" | \"MATERIAL_UNKNOWN\" | \"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\" | \"MESH_INVALID\" | \"LIGHT_INVALID\" | \"CAMERA_INVALID\" | \"SCENE\" | \"MESH_PACKET_INVALID\" | \"MESH_OPTIONS_INVALID\" | \"PRIMITIVE_FRAME_INVALID\" | \"FACE_PREVIEW_INVALID\" | \"SCENE_INVALID\" | \"BOOLEAN_BUFFERS_INVALID\" | \"GPU_BVH_DEPTH\" | \"GPU\" | \"RECONSTRUCTION\" | \"IR\" | \"UNIFORM\" | \"CONVERSION\" | \"REPRESENTATION\" | \"TRANSFORM\" | \"CAMERA\" | \"RAY\" | \"LIGHTING\" | \"TEXTURE\" | \"CONTEXT\" | \"LIGHTS\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\" | \"SELECTOR\" | \"NORMALIZATION\" | \"SOURCE_BINDING\" | \"SCENE_VIEW\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"GEOMETRY\" | \"BUDGET\" | \"SELECTION\" | \"SYNTAX\" | \"REFERENCE\" | \"TYPE\" | \"VERSION\" | \"OPTIONS\" | \"BINDING\" | \"FRAME\" | \"IDENTITY\" | \"MATERIAL\" | \"NUMERICAL\" | \"PROFILE\" | \"RANGE\" | \"SOURCE\" | \"UNSUPPORTED\" | \"UV\" | \"MATERIAL_UNKNOWN\" | \"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"PATH_TRACE_UNSUPPORTED\" | \"PATH_TRACE_BUSY\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"LIGHT_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\" | \"MESH_PACKET_INVALID\" | \"MESH_OPTIONS_INVALID\" | \"MESH_INVALID\" | \"CAMERA_INVALID\" | \"PRIMITIVE_FRAME_INVALID\" | \"FACE_PREVIEW_INVALID\" | \"SCENE_INVALID\" | \"BOOLEAN_BUFFERS_INVALID\" | \"GPU_BVH_DEPTH\" | \"SCENE\" | \"GPU\" | \"RECONSTRUCTION\" | \"IR\" | \"UNIFORM\" | \"CONVERSION\" | \"REPRESENTATION\" | \"TRANSFORM\" | \"CAMERA\" | \"RAY\" | \"LIGHTING\" | \"TEXTURE\" | \"CONTEXT\" | \"LIGHTS\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\" | \"SELECTOR\" | \"NORMALIZATION\" | \"SOURCE_BINDING\" | \"SCENE_VIEW\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -467432,7 +468617,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"MESH_INVALID\" | \"CAMERA_INVALID\" | \"MESH_PACKET_INVALID\" | \"MESH_OPTIONS_INVALID\" | \"PRIMITIVE_FRAME_INVALID\" | \"FACE_PREVIEW_INVALID\" | \"SCENE_INVALID\" | \"BOOLEAN_BUFFERS_INVALID\" | \"GPU_BVH_DEPTH\"",
+            "type": "\"MESH_PACKET_INVALID\" | \"MESH_OPTIONS_INVALID\" | \"MESH_INVALID\" | \"CAMERA_INVALID\" | \"PRIMITIVE_FRAME_INVALID\" | \"FACE_PREVIEW_INVALID\" | \"SCENE_INVALID\" | \"BOOLEAN_BUFFERS_INVALID\" | \"GPU_BVH_DEPTH\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -469006,6 +470191,13 @@
               },
               {
                 "name": "range",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "shadowRadius",
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
@@ -470670,6 +471862,27 @@
                 "type": "number | undefined"
               },
               {
+                "name": "metallicMap",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "ImageTexture | null | undefined"
+              },
+              {
+                "name": "normalMap",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "ImageTexture | null | undefined"
+              },
+              {
+                "name": "normalScale",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "readonly [number, number] | undefined"
+              },
+              {
                 "name": "opacity",
                 "kind": "property",
                 "optional": true,
@@ -470703,6 +471916,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "number | undefined"
+              },
+              {
+                "name": "roughnessMap",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "ImageTexture | null | undefined"
               },
               {
                 "name": "shader",
@@ -471035,7 +472255,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "{ device: Device; map: ImageTexture | null; params: Buffer; group: BindGroup; data: Float32Array<ArrayBufferLike>; } | null"
+                "type": "{ device: Device; map: ImageTexture | null; params: Buffer; group: BindGroup; data: Float32Array<ArrayBufferLike>; maps: readonly (ImageTexture | null)[]; pbrParams: Buffer; pbrData: Float32Array<ArrayBufferLike>; } | null"
               },
               {
                 "name": "name",
@@ -478901,6 +480121,239 @@
     {
       "package": "@barocss/gpu",
       "subpath": "./source",
+      "exportName": "PathTraceImage",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/gpu",
+            "file": "src/viewer/path-trace.ts",
+            "name": "PathTraceImage",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "PathTraceImage",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "data",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Uint8Array<ArrayBufferLike>"
+              },
+              {
+                "name": "height",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "samples",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "width",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/gpu",
+      "subpath": "./source",
+      "exportName": "PathTraceOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/gpu",
+            "file": "src/viewer/path-trace.ts",
+            "name": "PathTraceOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "PathTraceOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "bounces",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "height",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "width",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/gpu",
+      "subpath": "./source",
+      "exportName": "PathTraceSession",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/gpu",
+            "file": "src/viewer/path-trace.ts",
+            "name": "PathTraceSession",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "PathTraceSession",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "capture",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(denoise?: boolean) => Promise<PathTraceImage>"
+              },
+              {
+                "name": "dispose",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => void"
+              },
+              {
+                "name": "height",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "running",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
+              },
+              {
+                "name": "sample",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(count?: number) => Promise<number>"
+              },
+              {
+                "name": "samples",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "start",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(onProgress?: ((samples: number) => void) | undefined) => Promise<void>"
+              },
+              {
+                "name": "stop",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => void"
+              },
+              {
+                "name": "width",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [],
+            "constructSignatures": [],
+            "staticMembers": [
+              {
+                "name": "create",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(device: Device, snapshot: TraceSnapshot, options: PathTraceOptions, removed: (session: PathTraceSession) => void) => Promise<PathTraceSession>"
+              }
+            ],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/gpu",
+      "subpath": "./source",
       "exportName": "PickHit",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -479176,6 +480629,13 @@
               }
             ],
             "members": [
+              {
+                "name": "castShadow",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | undefined"
+              },
               {
                 "name": "color",
                 "kind": "property",
@@ -488010,6 +489470,13 @@
                 "type": "number | undefined"
               },
               {
+                "name": "castShadow",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | undefined"
+              },
+              {
                 "name": "color",
                 "kind": "property",
                 "optional": true,
@@ -488053,6 +489520,13 @@
               },
               {
                 "name": "range",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "shadowRadius",
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
@@ -493287,6 +494761,13 @@
                 "type": "(input: GeometryInput) => Geometry"
               },
               {
+                "name": "createPathTrace",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options?: PathTraceOptions) => Promise<PathTraceSession>"
+              },
+              {
                 "name": "createTexture",
                 "kind": "method",
                 "optional": false,
@@ -493657,11 +495138,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\"",
+            "type": "\"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"PATH_TRACE_UNSUPPORTED\" | \"PATH_TRACE_BUSY\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"LIGHT_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\""
+                "definition": "\"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"PATH_TRACE_UNSUPPORTED\" | \"PATH_TRACE_BUSY\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"LIGHT_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\""
               }
             ],
             "members": [
@@ -502245,6 +503726,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "number | undefined"
+              },
+              {
+                "name": "shadowRadius",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
               }
             ],
             "indexSignatures": []
@@ -502974,6 +504462,27 @@
                 "type": "number | undefined"
               },
               {
+                "name": "metallicMap",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "ImageTexture | null | undefined"
+              },
+              {
+                "name": "normalMap",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "ImageTexture | null | undefined"
+              },
+              {
+                "name": "normalScale",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "readonly [number, number] | undefined"
+              },
+              {
                 "name": "opacity",
                 "kind": "property",
                 "optional": true,
@@ -503007,6 +504516,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "number | undefined"
+              },
+              {
+                "name": "roughnessMap",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "ImageTexture | null | undefined"
               },
               {
                 "name": "shader",
@@ -503189,7 +504705,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "{ device: Device; map: ImageTexture | null; params: Buffer; group: BindGroup; data: Float32Array<ArrayBufferLike>; } | null"
+                "type": "{ device: Device; map: ImageTexture | null; params: Buffer; group: BindGroup; data: Float32Array<ArrayBufferLike>; maps: readonly (ImageTexture | null)[]; pbrParams: Buffer; pbrData: Float32Array<ArrayBufferLike>; } | null"
               },
               {
                 "name": "name",
@@ -503497,6 +505013,239 @@
     {
       "package": "@barocss/gpu",
       "subpath": "./viewer",
+      "exportName": "PathTraceImage",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/gpu",
+            "file": "src/viewer/path-trace.ts",
+            "name": "PathTraceImage",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "PathTraceImage",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "data",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Uint8Array<ArrayBufferLike>"
+              },
+              {
+                "name": "height",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "samples",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "width",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/gpu",
+      "subpath": "./viewer",
+      "exportName": "PathTraceOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/gpu",
+            "file": "src/viewer/path-trace.ts",
+            "name": "PathTraceOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "PathTraceOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "bounces",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "height",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "width",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/gpu",
+      "subpath": "./viewer",
+      "exportName": "PathTraceSession",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/gpu",
+            "file": "src/viewer/path-trace.ts",
+            "name": "PathTraceSession",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "PathTraceSession",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "capture",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(denoise?: boolean) => Promise<PathTraceImage>"
+              },
+              {
+                "name": "dispose",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => void"
+              },
+              {
+                "name": "height",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "running",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
+              },
+              {
+                "name": "sample",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(count?: number) => Promise<number>"
+              },
+              {
+                "name": "samples",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "start",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(onProgress?: ((samples: number) => void) | undefined) => Promise<void>"
+              },
+              {
+                "name": "stop",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => void"
+              },
+              {
+                "name": "width",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [],
+            "constructSignatures": [],
+            "staticMembers": [
+              {
+                "name": "create",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(device: Device, snapshot: TraceSnapshot, options: PathTraceOptions, removed: (session: PathTraceSession) => void) => Promise<PathTraceSession>"
+              }
+            ],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/gpu",
+      "subpath": "./viewer",
       "exportName": "PickHit",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -503687,6 +505436,13 @@
               }
             ],
             "members": [
+              {
+                "name": "castShadow",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | undefined"
+              },
               {
                 "name": "color",
                 "kind": "property",
@@ -504343,6 +506099,13 @@
                 "type": "number | undefined"
               },
               {
+                "name": "castShadow",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | undefined"
+              },
+              {
                 "name": "color",
                 "kind": "property",
                 "optional": true,
@@ -504386,6 +506149,13 @@
               },
               {
                 "name": "range",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "shadowRadius",
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
@@ -508380,6 +510150,13 @@
                 "type": "(input: GeometryInput) => Geometry"
               },
               {
+                "name": "createPathTrace",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options?: PathTraceOptions) => Promise<PathTraceSession>"
+              },
+              {
                 "name": "createTexture",
                 "kind": "method",
                 "optional": false,
@@ -508750,11 +510527,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\"",
+            "type": "\"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"PATH_TRACE_UNSUPPORTED\" | \"PATH_TRACE_BUSY\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"LIGHT_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\""
+                "definition": "\"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"PATH_TRACE_UNSUPPORTED\" | \"PATH_TRACE_BUSY\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"LIGHT_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\""
               }
             ],
             "members": [

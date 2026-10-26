@@ -74,12 +74,15 @@ export function framedMixedLoftSolid(input: LoftInput, frames: readonly Frame[],
     if (!startWorld.every((x, c) => x === authored[0][c]) || !endWorld.every((x, c) => x === authored[1][c])) return fail('need the first authored seam to survive exact curve normalization');
     const guide = admitLoftGuide(input.guide, startWorld, endWorld, n, 'endpoints must exactly match the first mixed-curve cap seams');
     return {
-      middle: (lo: Point, hi: Point): Point => {
-        const target = guide.middle(worldPoint(lo), worldPoint(hi));
+      degree: guide.degree, knots: [...guide.knots],
+      controls: (lo: Point, hi: Point): Point[] => guide.controls(worldPoint(lo), worldPoint(hi)).map((target, i, poles) => {
+        if (i === 0) return lo;
+        if (i === poles.length - 1) return hi;
         const local = localVector(target.map((x, c) => x - a.origin[c]) as Point);
-        if (!worldPoint(local).every((x, c) => x === target[c]) || local[2] !== (lo[2] + hi[2]) / 2) return fail('need an exact transverse guide transform');
+        const z = guide.degree === 2 ? (lo[2] + hi[2]) / 2 : lo[2] + (hi[2] - lo[2]) * (i / guide.degree);
+        if (!worldPoint(local).every((x, c) => x === target[c]) || local[2] !== z) return fail('need an exact transverse guide transform');
         return local;
-      },
+      }),
       offset: (t: number): Point => {
         const d = localVector(guide.offset(t));
         if (d[2] !== 0) return fail('need an exact transverse guide displacement');

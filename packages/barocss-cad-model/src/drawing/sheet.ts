@@ -1,6 +1,7 @@
 // The sheet as a display list in sheet millimetres (y down): frame, title block, the projected views
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
 import { datumAnchor } from './datums';
+import { datumTargetConflicts, resolveDatumTarget, type DrawingDatumTarget } from './datumTargets';
 import { characteristicMarks, modifierMarks } from './controls';
 import { TITLE_FIELDS, TITLE_EXTRA_HEIGHT, revisionTableContent } from './metadata';
 import { weldSymbols, type WeldPlaced } from './welds';
@@ -91,7 +92,7 @@ export function sectionExtents(settings: DrawingSettings, sections?: readonly Sh
   return out;
 }
 /** `detail` (DR-1): a detail's circle and letter on its parent (`view` the parent), or the detail itself (`view` its own `detail:B`). */
-export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control' | 'table' | 'weld' | 'balloon' | 'detail'; id?: string; view?: DimView; marks: Mark[] }
+export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control' | 'table' | 'weld' | 'balloon' | 'detail'; id?: string; view?: DimView; /** A point target, kept distinct from a datum feature even when their ids coincide. */ datumTarget?: true; marks: Mark[] }
 export interface SheetSectionPlaced { id: string; view: SectionViewId; placement: SectionPlacement; projection: BrepProjection; form?: 'removed' | 'revolved'; on?: ViewId }
 /** DR-1: a detail as the sheet drew it: its parent, scale, placement (its circle's square) and clipped projection; where its dimensions are drawn. */
 export interface SheetDetail { id: string; view: DetailParent; scale: number; placement: ViewPlacement; projection: BrepProjection }
@@ -135,6 +136,12 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   }
   // Datum features and feature control frames (R14.4, O5): a frame under its dimension's text.
   for (const d of settings.datums ?? []) { if (layout.views[d.view].hidden) continue; const marks = datumMarks(layout, views, d); if (marks) groups.push({ role: 'datum', id: d.id, view: d.view, marks }); }
+  const targetConflicts = datumTargetConflicts(settings.datumTargets ?? []);
+  for (const d of settings.datumTargets ?? []) {
+    if (targetConflicts.has(d) || layout.views[d.view].hidden) continue;
+    const marks = datumTargetMarks(layout, views, d);
+    if (marks) groups.push({ role: 'datum', datumTarget: true, id: d.id, view: d.view, marks });
+  }
   for (const f of settings.frames ?? []) {
     const g = groups.find(x => x.role === 'dimension' && x.id === f.dim), main = g?.marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
     if (g && main) groups.push({ role: 'control', id: f.id, view: g.view, marks: frameMarks(main, f) });
@@ -844,6 +851,28 @@ export function basicBox(marks: readonly Mark[]): Mark[] {
 
 /** Sheet mm: a datum symbol's box, its triangle's base and height. */
 const DATUM_BOX = 6, DATUM_BASE = 3, DATUM_HEIGHT = 2.6;
+/** An endpoint target: a point marker at its current model point, a leader and its letter-number label. */
+export function datumTargetMarks(layout: SheetLayout, views: DrawingViews, d: DrawingDatumTarget): Mark[] | null {
+  const pr = views[d.view], resolved = resolveDatumTarget(pr, d);
+  if (!resolved.ok) return null;
+  const v = layout.views[d.view], F = toSheet(v, [dot3(resolved.at, pr.right), dot3(resolved.at, pr.up)]), P = toSheet(v, d.place);
+  const label = `${d.letter}${d.number}`, bounds = textCorners([0, 0], label, TEXT, 'middle'), marker = DATUM_BASE / 2;
+  // Keep the upper half empty and the complete text box inside the lower half, in sheet mm.
+  const baseline = GAP - Math.min(...bounds.map(p => p[1])), labelAt: XY = [P[0], P[1] + baseline];
+  const radius = Math.max(DATUM_BOX / 2, ...bounds.map(p => Math.hypot(p[0], p[1] + baseline))) + GAP;
+  const marks: Mark[] = [
+    { kind: 'line', a: [F[0] - marker, F[1] - marker], b: [F[0] + marker, F[1] + marker], pen: 'thin', role: 'leader' },
+    { kind: 'line', a: [F[0] - marker, F[1] + marker], b: [F[0] + marker, F[1] - marker], pen: 'thin', role: 'leader' },
+  ];
+  const dir = sub(F, P), length = Math.hypot(...dir);
+  if (length > radius) marks.push({ kind: 'line', a: add(P, dir, radius / length), b: F, pen: 'thin', role: 'leader' });
+  marks.push(
+    { kind: 'arc', center: P, u: [radius, 0], v: [0, radius], t0: 0, t1: 2 * Math.PI, pen: 'thin', role: 'frame' },
+    { kind: 'line', a: [P[0] - radius, P[1]], b: [P[0] + radius, P[1]], pen: 'thin', role: 'frame' },
+    { kind: 'text', at: labelAt, text: label, size: TEXT, anchor: 'middle' },
+  );
+  return marks;
+}
 /** A datum feature symbol: its letter boxed at its place, a leader to a filled triangle on its edge (null: the edge is gone). */
 export function datumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingDatum): Mark[] | null {
   if (d.face) return faceDatumMarks(layout, views, d);

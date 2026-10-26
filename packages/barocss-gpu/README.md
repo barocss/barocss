@@ -36,11 +36,38 @@ box.outline = '#e8c25a';                // a selection outline around the visibl
   back to front; shadow catchers (`shadowOnly`).
 - Lines: screen-space width (`lineWidth`), segment ids (`edges`) and `pickLine()`.
 - Scene: instancing (`instances`: a transform and colour each, one draw), frustum culling, directional
-  shadows (shadow map, PCF), ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
+  shadows (up to four lights, PCF/PCSS), spot shadows (up to four lights, PCF/PCSS), and one point shadow (six-face PCF) with `castShadow: true`, ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
   exposure and ACES tone mapping in a linear half-float pipeline.
 - Tests: `tests/viewer-core.test.mjs` (Node), `tests/viewer-browser.test.mjs` and
   `tests/scene-viewer-browser.test.mjs` (Chrome's WebGPU, `CHROME` and `PW_DIR`,
   `VIEWER_ADAPTER=swiftshader` for the software adapter).
+
+The first four directional lights contribute lighting; each can enable its own
+shadow with `castShadow: true`. `viewer.shadowMapSize` sets each map's resolution,
+and `environment.softShadows` sets their shared angular size in degrees (0: hard).
+The first four spot lights can also set `castShadow: true`; they use PCF with the
+same map resolution. Spot shadow positions and directions must be finite f32
+vectors, with nonzero direction; the cone angle must be between 0 and 90 degrees,
+and range must be finite and nonnegative. Invalid enabled spot shadow inputs
+refuse with `LIGHT_INVALID`. A positive range limits the shadow projection;
+range 0 fits its depth to the scene. `softShadows` applies to directional lights.
+For a spot light, `shadowRadius` sets the light disk radius in world units. A
+positive value enables PCSS: the shadow spreads with receiver–blocker distance.
+Zero or omission retains the existing PCF shadow. The radius must be finite,
+nonnegative and representable in f32; invalid enabled inputs refuse with
+`LIGHT_INVALID`. This radius is separate from `penumbra`, which fades the cone's
+lighting edge. PCSS uses bounded blocker-search and filter radii in the shadow
+map; it is an approximation of a disk light, rather than an area-light renderer.
+One of the first eight point lights can set `castShadow: true`; enabling two or
+more refuses with `LIGHT_INVALID`. Its six 90-degree faces use PCF at the same
+map resolution. Position must be a finite f32 vector; range must be finite,
+nonnegative and representable in f32. A positive range keeps the existing
+spherical lighting cutoff and limits each face's far plane. Range 0 fits the six
+faces to the scene and cap bounds. Inputs that cannot form a finite f32 depth
+projection refuse with `LIGHT_INVALID`. The point filter makes nine depth
+comparisons and reprojects taps across face boundaries. Directional and spot
+PCF retain linear comparison filtering. Point shadows do not use PCSS.
+Contact shadows retain the first casting directional light.
 
 The CSS-shaped scene language shows on it with one call: `showScene(viewer, source)` compiles a scene
 source (version 0 or 1), adds a mesh per object with its placement and colour (`view.meshes` by id, picks
@@ -50,6 +77,77 @@ and 64 bytes of params) with `materialShader(source, params?)` (`{ok, shader, un
 diagnostics), `bindingShader(binding)` for a compiled `MeshMaterialBinding`, and
 `uv01Shader(material, uniforms)` for a native Surface UV01 material. A UV01 source reads
 `surface_u01`/`surface_v01` from the geometry's `uvs`.
+
+### PBR data maps
+
+Triangle materials support `normalMap`, `roughnessMap` and `metallicMap` through
+the geometry's UVs, in both raster rendering and progressive stills. Create these
+textures with `{ srgb: false }`; they contain linear data rather than colour.
+
+```js
+const normalMap = viewer.createTexture({ width, height, data: normalPixels }, { srgb: false });
+const packed = viewer.createTexture({ width, height, data: packedPixels }, { srgb: false });
+box.geometry.setUVs(uvs);
+box.material = {
+  normalMap, normalScale: [1, 1],
+  roughnessMap: packed, roughness: 1,
+  metallicMap: packed, metallic: 1,
+};
+```
+
+Normal RGB values describe a tangent-space +Y normal. `normalScale` scales X/Y;
+use a negative Y scale for the opposite convention. A missing or degenerate UV
+frame keeps the original surface normal. The roughness map's green channel and
+metallic map's blue channel multiply their respective material values, so one
+packed texture can serve both roles. Set a map to `null` to remove it.
+
+Data maps require live textures and triangle geometry. A scalar-field
+`Mesh.colorMap` uses a separate analysis pass and cannot be combined with these
+UV maps. Disposing an accepted map restores the raster material's unmapped value;
+an existing frozen still retains its own pixels and material snapshot. Remove or
+replace disposed references before creating another still.
+
+[Interactive material-map example](examples/material-maps.html) provides map
+toggles, normal strength, normal-Y and UV mirroring, and a frozen still capture.
+Serve the repository after the existing package build to open it.
+
+### Progressive still images
+
+`viewer.createPathTrace()` creates an offscreen still with its own frozen scene,
+camera, materials and lighting. Later edits to the live viewer do not update that
+still. Create another session to render the edited scene; raster rendering and
+controls remain independent.
+
+```js
+// Use the populated viewer from the example above.
+const still = await viewer.createPathTrace({ width: 640, height: 480, bounces: 6 });
+try {
+  await still.sample(8); // Each manual call accepts 1–64 samples.
+  const raw = await still.capture(false);
+
+  // start() resolves after sampling stops; this callback bounds the total at 32.
+  await still.start(samples => {
+    if (samples >= 32) still.stop();
+  });
+  const frame = await still.capture(true); // Geometry-aware denoising.
+  console.log(frame.width, frame.height, frame.samples, frame.data);
+  console.log(raw.samples); // Still 8 after the later sampling.
+} finally {
+  still.dispose(); // Release this session's GPU resources, including on failure.
+}
+```
+
+`capture()` returns `{ width, height, samples, data }`, with top-to-bottom RGBA
+bytes. Sample the still before capturing it. `frame.samples` is the completed
+sample count for those pixels, fixed when the queued capture starts. The live
+`still.samples` can advance after that capture; use `frame.samples` when labelling
+or exporting an image. Stop progressive sampling before calling `sample()`.
+
+The still includes visible, bounded triangle surfaces. Active section clips and
+caps, custom material shaders, scalar maps and contours refuse with
+`PATH_TRACE_UNSUPPORTED`. Lines, labels, overlays and raster shadow catchers are
+not included. Raster post effects, including depth of field, bloom, SSAO, contact
+shadows and outlines, do not apply to the still.
 
 ## Removed renderers
 

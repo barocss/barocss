@@ -35,12 +35,21 @@ const r3 = (v: Vec3, q: number): Vec3 => [round(v[0], q), round(v[1], q), round(
 export const toSig = (s: Signature): Sig => ({ k: s.kind, p: r3(s.at, 1e-6), ...(s.dir ? { d: r3(s.dir, 1e-9) } : {}), s: round(s.size, 1e-6), ...(s.radius !== undefined ? { r: round(s.radius, 1e-9) } : {}), ...(s.shared !== undefined ? { n: s.shared } : {}) });
 export const fromSig = (s: Sig): Signature => ({ kind: s.k, at: s.p, dir: s.d ?? null, size: s.s, ...(s.r !== undefined ? { radius: s.r } : {}), ...(s.n !== undefined ? { shared: s.n } : {}) });
 
+/** Exact rounded source geometry for a datum target; direction sign and shared-name metadata do not identify an endpoint. */
+export function sameDatumTargetSourceSig(a: Sig, b: Sig): boolean {
+  const same = (p: Vec3, q: Vec3, sign = 1) => p[0] === sign * q[0] && p[1] === sign * q[1] && p[2] === sign * q[2];
+  return a.k === b.k && same(a.p, b.p) && a.s === b.s && a.r === b.r
+    && (a.d === undefined || b.d === undefined ? a.d === b.d : same(a.d, b.d) || same(a.d, b.d, -1));
+}
+
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 type Tables = (part: string) => FaceTable | undefined;
 
 /** One stored reference: what it names, and where its geometry is. */
 export interface Ref {
   where: string; edge: boolean; name: string; sig?: Sig; rematched: boolean;
+  /** Datum targets keep their exact edge name and require an explicitly selected endpoint. */
+  datumTarget?: true; targetEndpoint?: 'min' | 'max';
   /** `node`: that feature's parent body; `part`: that part's face table (a mate); neither: the part's bodies. */
   node: number | null; parent?: { node: number; side: string }; part?: string;
   /** The name it had before a re-match (while marked). */
@@ -69,6 +78,7 @@ function writable(d: StudioDoc): StudioDoc {
   const out: StudioDoc = { ...d, nodes: d.nodes.map(n => { const key = refKey(n); return key ? { ...n, [key]: [...(n as unknown as Record<string, string[]>)[key]] } as ModelNode : n; }) };
   if (d.mates) out.mates = d.mates.map(m => ({ ...m, a: { ...m.a }, b: { ...m.b } }));
   if (d.drawing?.dimensions) out.drawing = { ...d.drawing, dimensions: d.drawing.dimensions.map(x => 'a' in x ? { ...x, a: { ...x.a }, b: { ...x.b } } as typeof x : { ...x }) };
+  if (d.drawing?.datumTargets) out.drawing = { ...(out.drawing ?? d.drawing), datumTargets: d.drawing.datumTargets.map(t => ({ ...t, point: { ...t.point, near: [...t.point.near] as Vec3, ...(t.point.sig ? { sig: { ...t.point.sig, p: [...t.point.sig.p] as Vec3, ...(t.point.sig.d ? { d: [...t.point.sig.d] as Vec3 } : {}) } } : {}) } })) };
   if (d.bodies) { const bodies: NonNullable<StudioDoc['bodies']> = {}; for (const [k, look] of Object.entries(d.bodies)) bodies[k] = { ...look }; out.bodies = bodies; }
   return out;
 }
@@ -107,6 +117,10 @@ export function referencesOf(source: StudioDoc, readOnly = false): { doc: Studio
       else refs.push(pointed(`dimension ${d.id}`, true, p, () => p.edge, e => { p.edge = e; }));
     }
   }
+  for (const target of doc.drawing?.datumTargets ?? []) {
+    const point = target.point;
+    refs.push({ ...pointed(`datum target ${target.id}`, true, point, () => point.edge, edge => { point.edge = edge; }), datumTarget: true, targetEndpoint: point.endpoint });
+  }
   for (const [key, look] of Object.entries(doc.bodies ?? {})) {
     if (!look.faces) continue;
     const l = look;
@@ -141,6 +155,7 @@ function unsigned(doc: StudioDoc): boolean {
     const unsignedPoint = (p: { sig?: unknown; at?: string; ring?: { sig?: unknown }[] }) => p.at === 'pcd' ? (p.ring ?? []).some(m => !m.sig) : !p.sig;
     if (d.kind === 'pcd' ? d.ring.some(m => !m.sig) : 'a' in d ? (d.kind === 'linear' ? unsignedPoint(d.a) || unsignedPoint(d.b) : !d.a.sig || !d.b.sig) : !d.sig) return true;
   }
+  for (const target of doc.drawing?.datumTargets ?? []) if (target.point.endpoint !== undefined && !target.point.sig && target.point.was === undefined) return true;
   for (const look of Object.values(doc.bodies ?? {})) if (look.faces && Object.keys(look.faces).some(f => !look.faceSigs?.[f])) return true;
   return false;
 }
@@ -187,6 +202,8 @@ export function captureSignatures(doc: StudioDoc, bodies: readonly BodyResult[],
   let changed = false;
   for (const ref of refs) {
     if (ref.sig) continue;
+    // A legacy near-only target must remain unresolved, even when another reference needs capture.
+    if (ref.datumTarget && (!ref.targetEndpoint || ref.rematched)) continue;
     const body = ref.parent ? bodies.find(b => b.key === bodyKeyFor(out.nodes, ref.parent!.node, ref.parent!.side)) : undefined;
     const sig = candidatesOf(ref, bodies, new Map(ref.node !== null ? [[ref.node, body]] : []), tables)?.get(ref.name);
     if (sig) { ref.setSig(toSig(sig)); changed = true; }
@@ -210,7 +227,7 @@ async function parentBodies(doc: StudioDoc, refs: readonly Ref[], evaluate: Eval
  * against the document before it), except a reference still marked re-matched.
  */
 export async function refreshSignatures(doc: StudioDoc, finals: readonly BodyResult[], evaluate: Evaluate, tables: Tables = tablesFor(doc)): Promise<StudioDoc> {
-  const { doc: out, refs } = referencesOf(doc), live = refs.filter(r => !r.rematched);
+  const { doc: out, refs } = referencesOf(doc), live = refs.filter(r => !r.rematched && !r.datumTarget);
   if (!live.length) return doc;
   const parents = await parentBodies(out, live, evaluate);
   for (const ref of live) { const sig = candidatesOf(ref, finals, parents, tables)?.get(ref.name); if (sig) ref.setSig(toSig(sig)); }
@@ -227,9 +244,15 @@ export interface Problem { index: number; where: string; node: number | null; na
  */
 export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResult[], evaluate: Evaluate, tables: Tables = tablesFor(doc)): Promise<{ doc: StudioDoc; changes: Verified[]; problems: Problem[] }> {
   const { doc: out, refs } = referencesOf(doc);
-  if (!refs.some(r => r.sig)) return { doc, changes: [], problems: [] };
+  if (!refs.some(r => r.sig || r.datumTarget)) return { doc, changes: [], problems: [] };
   const parents = await parentBodies(out, refs.filter(r => r.sig), evaluate), changes: Verified[] = [], problems: Problem[] = [];
   refs.forEach((ref, index) => {
+    if (ref.datumTarget) {
+      const live = candidatesOf(ref, finals, parents, tables)?.get(ref.name);
+      if (!ref.targetEndpoint || !ref.sig || ref.rematched || !live || !sameDatumTargetSourceSig(ref.sig, toSig(live)))
+        problems.push({ index, where: ref.where, node: ref.node, name: ref.name, candidates: [] });
+      return;
+    }
     if (!ref.sig) return;
     const cands = candidatesOf(ref, finals, parents, tables); if (!cands) return;
     const m = matchSignature(fromSig(ref.sig), cands, ref.edge);
@@ -263,7 +286,7 @@ export function markedReferences(doc: StudioDoc): Marked[] {
  */
 export async function confirmReference(doc: StudioDoc, index: number, finals: readonly BodyResult[], evaluate: Evaluate, to?: string, tables: Tables = tablesFor(doc)): Promise<StudioDoc> {
   const { doc: out, refs } = referencesOf(doc), ref = refs[index];
-  if (!ref) return doc;
+  if (!ref || ref.datumTarget) return doc;
   if (to !== undefined && to !== ref.name) { ref.rename(to, false); ref.name = to; }
   ref.clear();
   if (ref.node !== null && out.nodes[ref.node].held) { const n = { ...out.nodes[ref.node] }; delete n.held; delete n.suppressed; out.nodes[ref.node] = n; }
@@ -274,7 +297,7 @@ export async function confirmReference(doc: StudioDoc, index: number, finals: re
 /** The faces (edges) reference `index` could be: those alike its stored signature, nearest first (at most `n`). */
 export async function candidatesFor(doc: StudioDoc, index: number, finals: readonly BodyResult[], evaluate: Evaluate, n = 4, tables: Tables = tablesFor(doc)): Promise<string[]> {
   const { doc: out, refs } = referencesOf(doc), ref = refs[index];
-  if (!ref?.sig) return [];
+  if (!ref?.sig || ref.datumTarget) return [];
   const cands = candidatesOf(ref, finals, await parentBodies(out, [ref], evaluate), tables);
   return cands ? rankAlike(fromSig(ref.sig), cands, ref.edge).slice(0, n) : [];
 }

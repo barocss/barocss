@@ -1,5 +1,6 @@
 // The viewer's WGSL: surface (R2c: shaders.ts split by program, shaders.ts the facade).
-import { common } from './common.js';
+import { common, MAX_DIRECTIONAL, MAX_SPOT } from './common.js';
+import { materialLayerWGSL } from './material-layer.js';
 
 /**
  * A shader material's part of the surface shader: WGSL declarations, and an expression of the linear
@@ -15,6 +16,14 @@ export const surfaceWGSL = (custom?: SurfaceShader, capSamples = false): string 
 @group(2) @binding(0) var map: texture_2d<f32>;
 @group(2) @binding(1) var mapSampler: sampler;
 @group(2) @binding(2) var<uniform> materialParams: MaterialParams;
+@group(2) @binding(3) var pbrNormalMap: texture_2d<f32>;
+@group(2) @binding(4) var pbrNormalSampler: sampler;
+@group(2) @binding(5) var pbrRoughnessMap: texture_2d<f32>;
+@group(2) @binding(6) var pbrRoughnessSampler: sampler;
+@group(2) @binding(7) var pbrMetallicMap: texture_2d<f32>;
+@group(2) @binding(8) var pbrMetallicSampler: sampler;
+struct PbrMapParams { normalScale: vec2f, flags: u32, _pad: u32 }
+@group(2) @binding(9) var<uniform> pbrMaps: PbrMapParams;
 fn shaderColor(uv: vec2f, world: vec3f, normal: vec3f) -> vec3f {
 ${Object.entries(custom?.aliases ?? {}).map(([name, from]) => `  let ${name} = ${from};
 `).join('')}  return ${custom ? custom.expression : 'vec3f(1.0)'};
@@ -63,6 +72,10 @@ fn smith(nov: f32, nol: f32, a: f32) -> f32 {
   let gl = nov * sqrt(nol * nol * (1.0 - a2) + a2);
   return 0.5 / max(gv + gl, 1e-5);
 }
+// Metadata slots stay fixed; physical layers contain only active shadows in slot order.
+fn shadowLayerIndex(light: u32) -> i32 {
+  return i32(countOneBits(frame.shadowActive.x & ((1u << light) - 1u)));
+}
 // G15b: a Poisson disc of 16 taps (unit radius) for the soft shadows' blocker search and filter.
 const DISC = array<vec2f, 16>(vec2f(-0.942, -0.399), vec2f(0.946, -0.769), vec2f(-0.094, -0.929), vec2f(0.345, 0.294),
   vec2f(-0.916, 0.458), vec2f(-0.815, -0.879), vec2f(-0.383, 0.277), vec2f(0.975, 0.756), vec2f(0.443, -0.975),
@@ -70,220 +83,223 @@ const DISC = array<vec2f, 16>(vec2f(-0.942, -0.399), vec2f(0.946, -0.769), vec2f
   vec2f(0.200, 0.786), vec2f(0.144, -0.141));
 /**
  * G15b's soft shadow (PCSS): the blockers' mean depth found round the point, the penumbra's width from how far behind them
- * it lies (frame.shadow.w: uv per unit of depth, the light's angular size), then that wide a filter of 16 taps, the disc
+ * it lies (shadow.params.w: uv per unit of depth, the light's angular size), then that wide a filter of 16 taps, the disc
  * turned per point so its pattern becomes noise.
  */
-fn softShadowAt(uv: vec2f, z: f32, world: vec3f) -> f32 {
-  let texel = frame.shadow.y;
+fn softShadowAt(uv: vec2f, z: f32, world: vec3f, light: u32) -> f32 {
+  let params = frame.shadowLights[light].params;
+  let layer = shadowLayerIndex(light);
+  let texel = params.y;
   let size = vec2f(textureDimensions(shadowMap));
   let a = fract(sin(dot(world, vec3f(12.9898, 78.233, 37.719))) * 43758.5453) * 6.2831853;
   let rot = mat2x2f(cos(a), sin(a), -sin(a), cos(a));
-  let search = clamp(z * frame.shadow.w, 2.0 * texel, 24.0 * texel);
+  let search = clamp(z * params.w, 2.0 * texel, 24.0 * texel);
   var blockers = 0.0;
   var count = 0.0;
   for (var i = 0; i < 16; i++) {
     let q = clamp(uv + rot * DISC[i] * search, vec2f(0.0), vec2f(1.0));
-    let d = textureLoad(shadowMap, min(vec2i(q * size), vec2i(size) - 1), 0);
+    let d = textureLoad(shadowMap, min(vec2i(q * size), vec2i(size) - 1), layer, 0);
     if (d < z) { blockers += d; count += 1.0; }
   }
   if (count == 0.0) { return 1.0; }
-  let radius = clamp((z - blockers / count) * frame.shadow.w, texel, 32.0 * texel);
+  let radius = clamp((z - blockers / count) * params.w, texel, 32.0 * texel);
   var lit = 0.0;
-  for (var i = 0; i < 16; i++) { lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + rot * DISC[i] * radius, z); }
+  for (var i = 0; i < 16; i++) { lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + rot * DISC[i] * radius, layer, z); }
+  return lit / 16.0;
+}
+// Standard perspective depth -> actual axial distance. The equivalent n*f formula can overflow.
+fn spotShadowDistance(depth: f32, params: vec4f) -> f32 {
+  let ratio = params.x / params.y;
+  return clamp(params.x / max(1.0 - depth * (1.0 - ratio), ratio), params.x, params.y);
+}
+// A world-space disk projects to .5*focal*R*(zr-zb)/(zb*zr) UV units.
+// Keep products in their mantissas until the texel cap is known, including maximum finite f32 inputs.
+fn spotShadowRadius(params: vec4f, blocker: f32, receiver: f32, limit: f32) -> f32 {
+  let gap = max(1.0 - blocker / receiver, 0.0);
+  if (!(gap > 0.0)) { return 0.0; }
+  let r = frexp(params.w); let f = frexp(params.z); let g = frexp(gap); let z = frexp(blocker);
+  let value = frexp(0.5 * r.fract * f.fract * g.fract / z.fract);
+  let exponent = r.exp + f.exp + g.exp - z.exp + value.exp;
+  let bound = frexp(limit);
+  if (exponent > bound.exp || (exponent == bound.exp && value.fract >= bound.fract)) { return limit; }
+  return ldexp(value.fract, exponent);
+}
+// Spot PCSS uses perspective distances; directional PCSS keeps its existing linear-depth formula above.
+fn softSpotShadowAt(uv: vec2f, depth: f32, reference: f32, world: vec3f, light: u32) -> f32 {
+  let params = frame.spotShadowParams[light - ${MAX_DIRECTIONAL}u];
+  let receiver = spotShadowDistance(depth, params);
+  let layer = shadowLayerIndex(light);
+  let texel = frame.shadowLights[light].params.y;
+  let size = vec2f(textureDimensions(shadowMap));
+  let angle = fract(sin(dot(fract(world), vec3f(12.9898, 78.233, 37.719))) * 43758.5453) * 6.2831853;
+  let rot = mat2x2f(cos(angle), sin(angle), -sin(angle), cos(angle));
+  let search = max(2.0 * texel, spotShadowRadius(params, params.x, receiver, 24.0 * texel));
+  var mean = 0.0;
+  var count = 0.0;
+  for (var i = 0; i < 16; i++) {
+    let q = uv + rot * DISC[i] * search;
+    if (!(all(q >= vec2f(0.0)) && all(q <= vec2f(1.0)))) { continue; }
+    let d = textureLoad(shadowMap, min(vec2i(q * size), vec2i(size) - 1), layer, 0);
+    if (d >= 0.0 && d < 1.0 && d < reference) {
+      let blocker = spotShadowDistance(d, params);
+      if (blocker > 0.0 && blocker < receiver) {
+        count += 1.0;
+        mean += (blocker - mean) / count;
+      }
+    }
+  }
+  if (count == 0.0) { return 1.0; }
+  let radius = max(texel, spotShadowRadius(params, mean, receiver, 32.0 * texel));
+  var lit = 0.0;
+  for (var i = 0; i < 16; i++) {
+    let q = uv + rot * DISC[i] * radius;
+    if (!(all(q >= vec2f(0.0)) && all(q <= vec2f(1.0)))) { lit += 1.0; }
+    else { lit += textureSampleCompareLevel(shadowMap, shadowSampler, q, layer, reference); }
+  }
   return lit / 16.0;
 }
 /** Lit share (0–1) of a point by the shadow map: 3×3 percentage-closer filtering, or soft (PCSS) when the light has a size. */
-fn shadowAt(world: vec3f, n: vec3f) -> f32 {
-  let p = frame.shadowViewProj * vec4f(world + n * frame.shadow.x, 1.0);
-  let uv = vec2f(p.x * 0.5 + 0.5, 0.5 - p.y * 0.5);
-  if (any(uv < vec2f(0.0)) || any(uv > vec2f(1.0)) || p.z > 1.0) { return 1.0; }
-  if (frame.shadow.w > 0.0) { return softShadowAt(uv, p.z - frame.shadow.z, world); }
+fn shadowAt(world: vec3f, n: vec3f, light: u32) -> f32 {
+  let shadow = frame.shadowLights[light];
+  let p = shadow.viewProj * vec4f(world + n * shadow.params.x, 1.0);
+  if (p.w <= 0.0) { return 1.0; }
+  let q = p.xyz / p.w;
+  let uv = vec2f(q.x * 0.5 + 0.5, 0.5 - q.y * 0.5);
+  if (any(uv < vec2f(0.0)) || any(uv > vec2f(1.0)) || q.z < 0.0 || q.z > 1.0) { return 1.0; }
+  if (light < ${MAX_DIRECTIONAL}u && shadow.params.w > 0.0) { return softShadowAt(uv, q.z - shadow.params.z, world, light); }
+  if (light >= ${MAX_DIRECTIONAL}u && light < ${MAX_DIRECTIONAL + MAX_SPOT}u && frame.spotShadowParams[light - ${MAX_DIRECTIONAL}u].w > 0.0) {
+    return softSpotShadowAt(uv, q.z, q.z - shadow.params.z, world, light);
+  }
+  let layer = shadowLayerIndex(light);
   var lit = 0.0;
   for (var y = -1; y <= 1; y++) {
     for (var x = -1; x <= 1; x++) {
-      lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + vec2f(f32(x), f32(y)) * frame.shadow.y, p.z - frame.shadow.z);
+      lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + vec2f(f32(x), f32(y)) * shadow.params.y, layer, q.z - shadow.params.z);
+    }
+  }
+  return lit / 9.0;
+}
+// Point faces are +X, -X, +Y, -Y, +Z, -Z. Equal major axes choose X, then Y, then Z.
+fn pointShadowFace(ray: vec3f) -> u32 {
+  let a = abs(ray);
+  if (a.x >= a.y && a.x >= a.z) { return select(1u, 0u, ray.x >= 0.0); }
+  if (a.y >= a.z) { return select(3u, 2u, ray.y >= 0.0); }
+  return select(5u, 4u, ray.z >= 0.0);
+}
+// RH views use up -Y, -Y, +Z, -Z, -Y, -Y; framebuffer UV flips the projected Y axis.
+fn pointShadowRay(face: u32, uv: vec2f) -> vec3f {
+  let q = uv * 2.0 - 1.0;
+  switch face {
+    case 0u: { return vec3f(1.0, q.y, -q.x); }
+    case 1u: { return vec3f(-1.0, q.y, q.x); }
+    case 2u: { return vec3f(q.x, 1.0, -q.y); }
+    case 3u: { return vec3f(q.x, -1.0, q.y); }
+    case 4u: { return vec3f(q.x, q.y, 1.0); }
+    default: { return vec3f(-q.x, q.y, -1.0); }
+  }
+}
+fn pointShadowTap(ray: vec3f, radius: f32, eye: vec3f) -> f32 {
+  let slot = ${MAX_DIRECTIONAL + MAX_SPOT}u + pointShadowFace(ray);
+  let shadow = frame.shadowLights[slot];
+  let p = shadow.viewProj * vec4f(eye + normalize(ray) * radius, 1.0);
+  if (!(p.w > 0.0)) { return 1.0; }
+  let q = p.xyz / p.w;
+  let uv = vec2f(q.x * 0.5 + 0.5, 0.5 - q.y * 0.5);
+  if (!(all(uv >= vec2f(0.0)) && all(uv <= vec2f(1.0)) && q.z >= 0.0 && q.z <= 1.0)) { return 1.0; }
+  let size = vec2i(textureDimensions(shadowMap));
+  let pixel = clamp(vec2i(uv * vec2f(size)), vec2i(0), size - vec2i(1));
+  let depth = textureLoad(shadowMap, pixel, shadowLayerIndex(slot), 0);
+  return select(0.0, 1.0, q.z - shadow.params.z < depth);
+}
+// Point-only 3x3 binary PCF. Cross-face taps use the same radial receiver distance, not edge-clamped samples.
+fn pointShadowAt(world: vec3f, n: vec3f) -> f32 {
+  let selected = frame.shadowActive.y;
+  if (selected == 0u || selected > frame.counts.y || (frame.shadowActive.x & 0x3f00u) != 0x3f00u) { return 1.0; }
+  let light = frame.points[selected - 1u];
+  if (light.position.w > 0.0 && distance(world, light.position.xyz) >= light.position.w) { return 1.0; }
+  let receiver = world + n * frame.shadowLights[${MAX_DIRECTIONAL + MAX_SPOT}].params.x;
+  let delta = receiver - light.position.xyz;
+  let largest = max(max(abs(delta.x), abs(delta.y)), abs(delta.z));
+  if (!(largest > 0.0) || (bitcast<u32>(largest) & 0x7f800000u) == 0x7f800000u) { return 1.0; }
+  let exponent = frexp(largest).exp;
+  let radius = ldexp(length(ldexp(delta, vec3i(-exponent))), exponent);
+  if (!(radius > 0.0) || (bitcast<u32>(radius) & 0x7f800000u) == 0x7f800000u) { return 1.0; }
+  let face = pointShadowFace(delta);
+  let shadow = frame.shadowLights[${MAX_DIRECTIONAL + MAX_SPOT}u + face];
+  let p = shadow.viewProj * vec4f(receiver, 1.0);
+  if (!(p.w > 0.0)) { return 1.0; }
+  let q = p.xyz / p.w;
+  let uv = vec2f(q.x * 0.5 + 0.5, 0.5 - q.y * 0.5);
+  if (!(all(uv >= vec2f(0.0)) && all(uv <= vec2f(1.0)) && q.z >= 0.0 && q.z <= 1.0)) { return 1.0; }
+  var lit = 0.0;
+  for (var y = -1; y <= 1; y++) {
+    for (var x = -1; x <= 1; x++) {
+      let ray = pointShadowRay(face, uv + vec2f(f32(x), f32(y)) * shadow.params.y);
+      lit += pointShadowTap(ray, radius, light.position.xyz);
     }
   }
   return lit / 9.0;
 }
 fn schlick(f0: vec3f, voh: f32) -> vec3f { return f0 + (vec3f(1.0) - f0) * pow(1.0 - voh, 5.0); }
 
+// Tangent-space normals from the geometry's UVs, including mirrored UVs and a non-uniform model transform.
+// Called before any discard. The first branch reads only a uniform; all derivatives and sampling precede per-pixel branches.
+fn mappedNormal(in: VOut, n: vec3f) -> vec3f {
+  if ((pbrMaps.flags & 1u) == 0u || all(pbrMaps.normalScale == vec2f(0.0))) { return n; }
+  let qx = dpdx(in.world); let qy = dpdy(in.world);
+  let ux = dpdx(in.uv); let uy = dpdy(in.uv);
+  var encoded = textureSample(pbrNormalMap, pbrNormalSampler, in.uv).xyz * 2.0 - 1.0;
+  encoded = vec3f(encoded.xy * pbrMaps.normalScale, encoded.z);
+  let encodedMagnitude = max(max(abs(encoded.x), abs(encoded.y)), abs(encoded.z));
+  if (!(encodedMagnitude > 0.0)) { return n; }
+  // A common binary exponent avoids a huge divisor whose reciprocal can flush to zero on the GPU.
+  let exponent = frexp(encodedMagnitude).exp;
+  encoded = ldexp(encoded, vec3i(-exponent));
+  let det = ux.x * uy.y - ux.y * uy.x;
+  if (!(abs(det) > 1e-20 && abs(det) < 1e20)) { return n; }
+  let rawT = (qx * uy.y - qy * ux.y) / det;
+  let rawB = (qy * ux.x - qx * uy.x) / det;
+  let tangent = rawT - n * dot(n, rawT);
+  let tangentLength = dot(tangent, tangent);
+  if (!(tangentLength > 1e-12 && tangentLength < 1e30)) { return n; }
+  let t = tangent * inverseSqrt(tangentLength);
+  let across = cross(n, t);
+  let handed = dot(across, rawB);
+  if (!(abs(handed) > 1e-20 && abs(handed) < 1e30)) { return n; }
+  let b = across * select(-1.0, 1.0, handed > 0.0);
+  let result = t * encoded.x + b * encoded.y + n * encoded.z;
+  let resultLength = dot(result, result);
+  if (!(resultLength > 1e-12 && resultLength < 1e30)) { return n; }
+  return result * inverseSqrt(resultLength);
+}
+
 fn litColor(in: VOut, front: bool) -> vec4f {
   let texel = textureSample(map, mapSampler, in.uv);
   let alpha = in.color.a * texel.a;
+  var n = normalize(in.normal);
+  if (!front) { n = -n; }
+  n = mappedNormal(in, n);
+  var roughness = object.params.y;
+  var metallic = object.params.x;
+  if ((pbrMaps.flags & 2u) != 0u) { roughness *= textureSample(pbrRoughnessMap, pbrRoughnessSampler, in.uv).g; }
+  if ((pbrMaps.flags & 4u) != 0u) { metallic *= textureSample(pbrMetallicMap, pbrMetallicSampler, in.uv).b; }
   // (G15a: the point in the mesh's own frame and its change per pixel, before any fragment is discarded.)
   let local = meshPoint(in.world);
   let footprint = length(fwidth(local));
   if (clippedAway(in.world)) { discard; }
   // Alpha cutout (pick.w: the cutoff × 1000; 0 off).
   if (object.pick.w > 0u && alpha < f32(object.pick.w) / 1000.0) { discard; }
-  var n = normalize(in.normal);
-  if (!front) { n = -n; }
   let base = in.color.rgb * texel.rgb * shaderColor(in.uv, in.world, n);
-  var layer = plainLayer(n, object.params.y);
-  if (object.finish.x > 0.5 || object.finish.w > 0.0 || object.finishOrigin.w > 0.0) { layer = finishLayer(local, n, object.params.y, footprint); }
-  let c = shadeLayered(in.world, base, object.params.x, object.params.z, (object.pick.z & 1u) == 1u, layer);
+  var layer = plainLayer(n, roughness);
+  if (object.finish.x > 0.5 || object.finish.w > 0.0 || object.finishOrigin.w > 0.0) { layer = finishLayer(local, n, roughness, footprint); }
+  let c = shadeLayered(in.world, base, metallic, object.params.z, (object.pick.z & 1u) == 1u, layer);
   return vec4f(c * alpha, alpha);
 }
 
 // ---- G15a: surface finishes, a clear coat, an oil film ----------------------------------------------------------------
 /** What a point's shading takes beyond its colour: its (finished) normal and roughness, the direction its marks run and how
  *  much they stretch the highlights (0 none), the clear coat (amount, roughness, over the unfinished normal) and the film. */
-struct Layer { n: vec3f, rough: f32, along: vec3f, aniso: f32, coatN: vec3f, coat: f32, coatRough: f32, film: f32 }
-fn plainLayer(n: vec3f, rough: f32) -> Layer { return Layer(n, rough, vec3f(0.0), 0.0, n, 0.0, 0.0, 0.0); }
-/** The mesh's linear part (rotation and a uniform scale) and the world point in its frame. */
-fn meshAxes() -> mat3x3f { return mat3x3f(object.model[0].xyz, object.model[1].xyz, object.model[2].xyz); }
-fn meshPoint(world: vec3f) -> vec3f {
-  let r = meshAxes();
-  return transpose(r) * (world - object.model[3].xyz) / max(dot(r[0], r[0]), 1e-30);
-}
-fn hash3(p: vec3i) -> f32 {
-  let h = bitcast<vec3u>(p) * vec3u(1597334673u, 3812015801u, 2798796415u);
-  let k = (h.x ^ h.y ^ h.z) * 1597334673u;
-  return f32(k >> 8u) / 16777216.0;
-}
-/** Value noise, 0–1, smooth between the lattice's points. */
-fn vnoise(q: vec3f) -> f32 {
-  let i = vec3i(floor(q));
-  let f = fract(q);
-  let u = f * f * (3.0 - 2.0 * f);
-  let x0 = mix(mix(hash3(i), hash3(i + vec3i(1, 0, 0)), u.x), mix(hash3(i + vec3i(0, 1, 0)), hash3(i + vec3i(1, 1, 0)), u.x), u.y);
-  let x1 = mix(mix(hash3(i + vec3i(0, 0, 1)), hash3(i + vec3i(1, 0, 1)), u.x), mix(hash3(i + vec3i(0, 1, 1)), hash3(i + vec3i(1, 1, 1)), u.x), u.y);
-  return mix(x0, x1, u.z);
-}
-/** How much of a detail f times finer than the marks a pixel can still show, fp the pixel's footprint in marks:
- *  details nearing two to a pixel fade out (so fine marks become roughness, never sparkle). */
-fn band(f: f32, fp: f32) -> f32 { return 1.0 - smoothstep(0.3, 0.8, fp * f); }
-fn fbm(q: vec3f, octaves: i32, fp: f32) -> f32 {
-  var s = 0.0;
-  var a = 0.5;
-  var f = 1.0;
-  var p = q;
-  for (var i = 0; i < octaves; i++) { s += a * vnoise(p) * band(f, fp); p = p * 2.03 + vec3f(17.1, 3.7, 9.2); a *= 0.5; f *= 2.03; }
-  return s;
-}
-/** A unit direction square to a (the knurl's and the brush's frame across the axis). */
-fn crossAxis(a: vec3f) -> vec3f { return normalize(select(cross(a, vec3f(1.0, 0.0, 0.0)), cross(a, vec3f(0.0, 1.0, 0.0)), abs(a.x) > 0.7)); }
-/** The finish's relief at a point of the mesh's frame (nl its normal there), in units of its scale (0–1 about); fp the
- *  pixel's footprint in the same units. */
-fn relief(kind: u32, p: vec3f, nl: vec3f, a: vec3f, o: vec3f, s: f32, fp: f32) -> f32 {
-  let q = p / s;
-  let rel = p - o;
-  let along = dot(rel, a) / s;
-  let radial = rel - dot(rel, a) * a;
-  let b1 = band(1.0, fp);
-  switch kind {
-    case 1u: { return fbm(q, 3, fp); }
-    case 2u: { return fbm(q, 4, fp) + 0.35 * smoothstep(0.62, 0.8, vnoise(q * 0.7 + vec3f(5.0))) * band(0.7, fp); }
-    case 3u: { return 0.5 + 0.35 * cos(6.2831853 * along) * b1 + 0.15 * vnoise(q * 3.0) * band(3.0, fp); }
-    case 4u: { return 0.5 + 0.4 * cos(6.2831853 * (length(radial) / s + along)) * b1 + 0.1 * vnoise(q * 4.0) * band(4.0, fp); }
-    case 5u: {
-      let b = crossAxis(a);
-      return (vnoise(vec3f(along * 0.03, dot(rel, b) / s, dot(rel, cross(a, b)) / s)) * 0.7 * b1 + 0.3 * vnoise(q * vec3f(0.2, 2.0, 2.0)) * band(2.0, fp));
-    }
-    case 6u: {
-      // (Two helical grooves at ±45° round the axis: the arc length round it against the length along it.)
-      let b = crossAxis(a);
-      let arc = atan2(dot(radial, cross(a, b)), dot(radial, b)) * length(radial) / s;
-      let g1 = abs(fract(along + arc) - 0.5);
-      let g2 = abs(fract(along - arc) - 0.5);
-      // (A knurl is rolled into the round surface: none on faces square to its axis, where its lines would meet.)
-      let side = 1.0 - smoothstep(0.5, 0.9, abs(dot(nl, a)));
-      return mix(0.5, min(g1, g2) * 2.0, band(2.0, fp) * side);
-    }
-    case 7u: { return vnoise(q) * 0.7 * b1 + 0.3 * vnoise(q * 2.7) * band(2.7, fp); }
-    default: { return 0.0; }
-  }
-}
-/** Each kind's depth (the relief's slope into the normal at strength 1), roughness added, and anisotropy. */
-fn finishLook(kind: u32) -> vec3f {
-  switch kind {
-    case 1u: { return vec3f(0.35, 0.10, 0.0); }
-    case 2u: { return vec3f(0.9, 0.22, 0.0); }
-    case 3u: { return vec3f(0.3, 0.02, 0.45); }
-    case 4u: { return vec3f(0.18, 0.02, 0.6); }
-    case 5u: { return vec3f(0.08, 0.04, 0.75); }
-    case 6u: { return vec3f(1.2, 0.05, 0.0); }
-    case 7u: { return vec3f(0.3, 0.25, 0.0); }
-    default: { return vec3f(0.0); }
-  }
-}
-fn finishLayer(local: vec3f, n: vec3f, rough0: f32, footprint: f32) -> Layer {
-  var layer = plainLayer(n, rough0);
-  layer.coat = object.finish.w;
-  layer.coatRough = object.finishAxis.w;
-  layer.film = object.finishOrigin.w;
-  let kind = u32(object.finish.x + 0.5);
-  if (kind == 0u) { return layer; }
-  let s = max(object.finish.y, 1e-6);
-  let a = normalize(object.finishAxis.xyz);
-  let o = object.finishOrigin.xyz;
-  let look = finishLook(kind);
-  let k = object.finish.z;
-  // (Marks finer than a pixel can't be drawn: their relief fades into roughness as the footprint nears a mark's size.)
-  let fp = footprint / s;
-  let fade = band(1.0, fp);
-  let r = meshAxes();
-  let nl = normalize(transpose(r) * n);
-  if (fade > 0.0) {
-    let e = 0.12 * s;
-    let h0 = relief(kind, local, nl, a, o, s, fp);
-    let g = vec3f(relief(kind, local + vec3f(e, 0.0, 0.0), nl, a, o, s, fp) - h0, relief(kind, local + vec3f(0.0, e, 0.0), nl, a, o, s, fp) - h0, relief(kind, local + vec3f(0.0, 0.0, e), nl, a, o, s, fp) - h0) / 0.12;
-    let gt = g - dot(g, nl) * nl;
-    layer.n = normalize(r * normalize(nl - look.x * k * fade * gt));
-    if (dot(layer.n, n) < 0.05) { layer.n = n; }
-  }
-  layer.rough = clamp(rough0 + look.y * k + (1.0 - fade) * look.x * k * 0.25, 0.04, 1.0);
-  if (look.z > 0.0) {
-    // (The marks' direction on the surface: machined lines run across the axis, a turned groove round it, a brush along it.)
-    var dirl = a;
-    if (kind == 3u) { dirl = cross(nl, a); }
-    if (kind == 4u) { let rel = local - o; dirl = cross(a, rel - dot(rel, a) * a); }
-    let d = r * (dirl - dot(dirl, nl) * nl);
-    if (dot(d, d) > 1e-12) { layer.along = normalize(d); layer.aniso = look.z; }
-  }
-  return layer;
-}
-/** Anisotropic GGX (Burley): rougher across the marks than along them. */
-fn ggxAniso(n: vec3f, h: vec3f, t: vec3f, a: f32, k: f32) -> f32 {
-  let b = cross(n, t);
-  let at = max(a * (1.0 - k), 0.002);
-  let ab = max(a * (1.0 + k), 0.002);
-  let x = dot(t, h) / at;
-  let y = dot(b, h) / ab;
-  let z = dot(n, h);
-  let d = x * x + y * y + z * z;
-  return 1.0 / (PI * at * ab * d * d);
-}
-/** The oil film's tint (thin-film interference, cheap): colours cycling with the view angle and the film's thickness. */
-fn filmTint(nov: f32, film: f32, world: vec3f) -> vec3f {
-  let thick = 1.2 + 0.8 * vnoise(meshPoint(world) * 0.05);
-  let t = 0.5 + 0.5 * cos(6.2831853 * (thick * (1.0 - 0.6 * nov) + vec3f(0.0, 0.33, 0.67)));
-  // (A film tints what it reflects, most at grazing angles: a sheen of colours, not a paint.)
-  return mix(vec3f(1.0), 0.75 + 0.5 * t, film * (0.35 + 0.65 * pow(1.0 - nov, 2.0)));
-}
-fn brdfLayered(v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32, layer: Layer, tint: vec3f) -> vec3f {
-  let n = layer.n;
-  let h = normalize(v + l);
-  let nol = max(dot(n, l), 0.0);
-  let nov = max(dot(n, v), 1e-4);
-  let f0 = mix(vec3f(0.04), base, metallic) * tint;
-  let f = schlick(f0, max(dot(v, h), 0.0));
-  var dist = ggx(max(dot(n, h), 0.0), a);
-  if (layer.aniso > 0.0) { dist = ggxAniso(n, h, layer.along, a, layer.aniso); }
-  let spec = dist * smith(nov, nol, a) * f;
-  let diffuse = (vec3f(1.0) - f) * (1.0 - metallic) * base / PI;
-  var c = (diffuse + spec) * nol;
-  if (layer.coat > 0.0) {
-    // (The coat: a smooth dielectric over everything, on the surface's own normal; what it reflects the base doesn't get.)
-    let cn = layer.coatN;
-    let cnol = max(dot(cn, l), 0.0);
-    let ca = layer.coatRough * layer.coatRough;
-    let fc = schlick(vec3f(0.04), max(dot(v, h), 0.0)).x * layer.coat;
-    c = c * (1.0 - fc) + vec3f(ggx(max(dot(cn, h), 0.0), ca) * smith(max(dot(cn, v), 1e-4), cnol, ca) * fc * cnol);
-  }
-  return c;
-}
+` + materialLayerWGSL + /* wgsl */ `
 @fragment fn fsLit(in: VOut, @builtin(front_facing) front: bool) -> @location(0) vec4f { return litColor(in, front); }
 // Order-independent transparency (G11, weighted blended): the premultiplied colour weighted by nearness into the
 // accumulation, its alpha into the revealage (what of the background still shows), summed in any order. The weight
@@ -350,7 +366,7 @@ fn shadeLayered(world: vec3f, base: vec3f, metallicIn: f32, emissive: f32, recei
   for (var i = 0u; i < frame.counts.x; i++) {
     let d = frame.dirs[i];
     var lit = 1.0;
-    if (frame.counts.w == i + 1u && receive) { lit = shadowAt(world, layer.coatN); }
+    if ((frame.shadowActive.x & (1u << i)) != 0u && receive) { lit = shadowAt(world, layer.coatN, i); }
     c += brdfLayered(v, normalize(-d.direction.xyz), base, metallic, a, layer, tint) * d.color.rgb * d.color.w * PI * lit;
   }
   for (var i = 0u; i < frame.counts.y; i++) {
@@ -359,7 +375,9 @@ fn shadeLayered(world: vec3f, base: vec3f, metallicIn: f32, emissive: f32, recei
     let dist = length(to);
     var fall = 1.0 / max(dist * dist, 1e-4);
     if (p.position.w > 0.0) { let q = clamp(1.0 - pow(dist / p.position.w, 4.0), 0.0, 1.0); fall *= q * q; }
-    c += brdfLayered(v, to / max(dist, 1e-6), base, metallic, a, layer, tint) * p.color.rgb * p.color.w * fall * PI;
+    var lit = 1.0;
+    if (receive && frame.shadowActive.y == i + 1u) { lit = pointShadowAt(world, layer.coatN); }
+    c += brdfLayered(v, to / max(dist, 1e-6), base, metallic, a, layer, tint) * p.color.rgb * p.color.w * fall * PI * lit;
   }
   for (var i = 0u; i < frame.counts.z; i++) {
     let s = frame.spots[i];
@@ -369,7 +387,10 @@ fn shadeLayered(world: vec3f, base: vec3f, metallicIn: f32, emissive: f32, recei
     let cone = smoothstep(s.cone.y, s.cone.x, dot(-l, normalize(s.direction.xyz)));
     var fall = cone / max(dist * dist, 1e-4);
     if (s.position.w > 0.0) { let q = clamp(1.0 - pow(dist / s.position.w, 4.0), 0.0, 1.0); fall *= q * q; }
-    c += brdfLayered(v, l, base, metallic, a, layer, tint) * s.color.rgb * s.color.w * fall * PI;
+    let shadowSlot = ${MAX_DIRECTIONAL}u + i;
+    var lit = 1.0;
+    if ((frame.shadowActive.x & (1u << shadowSlot)) != 0u && receive) { lit = shadowAt(world, layer.coatN, shadowSlot); }
+    c += brdfLayered(v, l, base, metallic, a, layer, tint) * s.color.rgb * s.color.w * fall * PI * lit;
   }
   return c;
 }
@@ -467,7 +488,23 @@ fn unlitColor(in: VOut) -> vec4f {
 @fragment fn fsShadow(in: VOut) -> @location(0) vec4f {
   if (clippedAway(in.world)) { discard; }
   var lit = 1.0;
-  if (frame.counts.w > 0u) { lit = shadowAt(in.world, normalize(in.normal)); }
+  for (var i = 0u; i < ${MAX_DIRECTIONAL + MAX_SPOT}u; i++) {
+    if ((frame.shadowActive.x & (1u << i)) == 0u) { continue; }
+    var strength = 1.0;
+    if (i >= ${MAX_DIRECTIONAL}u) {
+      let s = frame.spots[i - ${MAX_DIRECTIONAL}u];
+      let to = s.position.xyz - in.world;
+      let dist = length(to);
+      if (s.position.w > 0.0 && dist >= s.position.w) { continue; }
+      let cone = dot(-to / max(dist, 1e-6), normalize(s.direction.xyz));
+      if (cone <= s.cone.y) { continue; }
+      strength = smoothstep(s.cone.y, s.cone.x, cone);
+    }
+    let visibility = shadowAt(in.world, normalize(in.normal), i);
+    if (i < ${MAX_DIRECTIONAL}u) { lit = min(lit, visibility); }
+    else { lit = min(lit, mix(1.0, visibility, strength)); }
+  }
+  if (frame.shadowActive.y > 0u) { lit = min(lit, pointShadowAt(in.world, normalize(in.normal))); }
   let a = (1.0 - lit) * in.color.a;
   return vec4f(in.color.rgb * a, a);
 }

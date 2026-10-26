@@ -1,10 +1,12 @@
 // The viewer's WGSL: common (R2c: shaders.ts split by program, shaders.ts the facade).
 
 export const MAX_DIRECTIONAL = 4, MAX_POINT = 8, MAX_SPOT = 4;
+export const POINT_SHADOW_START = MAX_DIRECTIONAL + MAX_SPOT, POINT_SHADOW_FACES = 6;
+export const MAX_SHADOWS = POINT_SHADOW_START + POINT_SHADOW_FACES;
 /** Byte sizes and offsets of the uniform blocks (kept with the WGSL below and packFrame in lights.ts). */
 /** Clip planes at most (G19: a box section's six). */
 export const MAX_CLIP_PLANES = 6;
-export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 16 + MAX_CLIP_PLANES * 16;
+export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 16 + MAX_CLIP_PLANES * 16 + MAX_SHADOWS * 80 + 16 + MAX_SPOT * 16;
 export const OBJECT_BYTES = 256, OBJECT_STRIDE = 256;
 
 /** The WGSL every program starts with (internal: its frame and object blocks, its helpers). */
@@ -12,6 +14,7 @@ export const common = /* wgsl */ `
 struct DirLight { direction: vec4f, color: vec4f }
 struct PointLight { position: vec4f, color: vec4f }
 struct SpotLight { position: vec4f, direction: vec4f, color: vec4f, cone: vec4f }
+struct ShadowLight { viewProj: mat4x4f, params: vec4f }
 struct Frame {
   viewProj: mat4x4f,
   eye: vec4f,
@@ -39,6 +42,12 @@ struct Frame {
   // colour (linear), |w| the number of planes (0: none).
   clipColor: vec4f,
   clips: array<vec4f, ${MAX_CLIP_PLANES}>,
+  // Fixed metadata slots: directional 0–3, spot 4–7, one point's +X/-X/+Y/-Y/+Z/-Z faces 8–13.
+  // Active depth-array layers are compacted by mask bit order; shadowActive.y is the point index + 1 (0: none).
+  shadowLights: array<ShadowLight, ${MAX_SHADOWS}>,
+  shadowActive: vec4u,
+  // Spot PCSS: near, far, focal length (1/tan(cone angle)), world-space disk radius; zero for PCF.
+  spotShadowParams: array<vec4f, ${MAX_SPOT}>,
 }
 struct Object {
   model: mat4x4f,
@@ -58,7 +67,7 @@ struct Object {
   finishOrigin: vec4f,
 }
 @group(0) @binding(0) var<uniform> frame: Frame;
-@group(0) @binding(1) var shadowMap: texture_depth_2d;
+@group(0) @binding(1) var shadowMap: texture_depth_2d_array;
 @group(0) @binding(2) var shadowSampler: sampler_comparison;
 @group(0) @binding(3) var envMap: texture_2d<f32>;
 @group(0) @binding(4) var envSampler: sampler;

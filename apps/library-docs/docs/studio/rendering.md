@@ -120,3 +120,31 @@ physical behaviour; see [Experiment evidence](/reference/verification#planned-ex
 The PNG records the displayed view, including its appearance and camera. Keep the editable `.bcad` document and
 any analysis results separately: an image does not carry the model history or establish manufacturing or physical
 validation. See [Files and exports](/studio/files).
+
+Pause playback and choose the view before exporting a still. **Export image** does not pause the timeline for you
+or write a document revision or animation time into PNG metadata. Keep that context separately if you need it.
+The PNG export has no explicit preparation-cancel or stale-design check like the STL export.
+
+### Pixel data, PNG and the download
+
+The GPU viewer's `capture()` draws a frame and returns `{ width, height, data }`. `data` is a new `Uint8Array`
+of RGBA bytes, with rows from top to bottom. It is not PNG file data. Width and height use the canvas's backing
+pixels, which can differ from its CSS size; neither is a model distance in mm.
+
+| Step | Result | Who writes the file? |
+|---|---|---|
+| GPU `capture()` | Raw RGBA pixels, `width × height × 4` bytes | No file is written |
+| Studio PNG conversion | `Blob` with type `image/png` | No file is written |
+| Studio **Export image** | Downloads `<name>.png` | The app requests the browser download |
+
+For example, a 640 × 480 backing canvas returns 1,228,800 raw RGBA bytes. This is a size calculation, not a
+measured capture; PNG compression gives a separate file size.
+
+If the viewport has no capture support, it returns `null` and the app shows **Could not export an image**.
+A rejected GPU readback or PNG conversion is a separate error, not a `null` image or a successful empty file.
+Code that calls `capture()` must handle a rejected promise; the Studio path does not turn every such error into
+that same message. The raw capture reply has no frame ID, timeline time or document revision field.
+
+![Raw GPU pixels are encoded as a PNG Blob before the Studio requests a file download](/diagrams/capture-png-flow.svg)
+
+[Open the capture flow at full size](/diagrams/capture-png-flow.svg).

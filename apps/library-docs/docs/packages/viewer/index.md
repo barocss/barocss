@@ -22,6 +22,8 @@ The example loads the CAD document before exposing review Save/Open functions. T
 document JSON and 1..4 existing body IDs. The declared authored XYZ basis must match the Viewer's right-handed
 Y-up millimetre basis; the option is an assertion, not a coordinate conversion.
 
+`createViewer` requires `background`: three finite RGB components, each from 0 to 1.
+
 ```ts
 import { createViewer } from '@barocss/viewer';
 import { parseBaroCadDocument } from '@barocss/cad-interop/document';
@@ -31,7 +33,10 @@ async function createReviewHost(
   cadDocumentText: string,
   bodyIds: string[],
 ) {
-  const viewer = await createViewer(canvas, { mmToSceneUnit: 0.15 });
+  const viewer = await createViewer(canvas, {
+    mmToSceneUnit: 0.15,
+    background: [0.025, 0.04, 0.065],
+  });
   try {
     viewer.loadDocument(parseBaroCadDocument(cadDocumentText), {
       native: {
@@ -70,6 +75,34 @@ async function createReviewHost(
 The host writes the returned text to a file and supplies file text to `openReview`. It handles JSON parsing,
 read/write errors and file-size limits. It also disposes the Viewer when finished. Loading and applying can throw;
 show the error and keep the review file for correction rather than treating a failed Open as a new accepted view.
+
+## Host lifetime
+
+The host owns the Viewer and any pointer or keyboard control handles it attaches. Before removing the canvas
+or replacing its Viewer, stop the host's callbacks, dispose each control handle, then call `viewer.dispose()`.
+Disposing the Viewer does not remove the listeners installed by those separate control handles.
+
+Both control-handle disposal and `viewer.dispose()` can be called again without repeating their cleanup.
+After Viewer disposal, `getState().status` is `disposed`; `captureReviewState()` and `applyReviewState()` refuse
+that instance. Create and load a new Viewer before offering review Save/Open again.
+
+A host can keep this cleanup callback with its canvas owner:
+
+```ts
+import type { Viewer, ViewerPointerControls, ViewerKeyboardControls } from '@barocss/viewer';
+
+export function reviewCleanup(
+  viewer: Viewer,
+  pointer: ViewerPointerControls,
+  keyboard?: ViewerKeyboardControls,
+): () => void {
+  return () => {
+    pointer.dispose();
+    keyboard?.dispose();
+    viewer.dispose();
+  };
+}
+```
 
 ## What the file binds to
 

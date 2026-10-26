@@ -79,6 +79,7 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
   return (
     <aside className="card props" aria-label="Joints">
       <div className="card-title">JOINTS <span className="muted">{tree.joints.length || ''}</span></div>
+      <p className="muted py-0.5 text-[11px]">The current pose is a preview. Save does not include it in the design file.</p>
       <label className={FIELD}><span>Base link</span>
         <NativeSelect className={CONTROL} aria-label="Base link" value={tree.base} onChange={e => onBase(e.target.value)}>
           <option value={BASE}>Base part</option>
