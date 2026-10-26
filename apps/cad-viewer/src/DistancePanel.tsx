@@ -31,9 +31,6 @@ function formatMM(value: number | undefined) {
 export function DistancePanel({ measurement, onStart, onCancel, onClear }: DistancePanelProps) {
   const { active, points, result, error } = measurement;
   const distance = result && Number.isFinite(result.distanceMM) ? result.distanceMM : null;
-  const instruction = active
-    ? points.length === 0 ? 'Choose the first point on the model.' : 'Choose the second point in the same asset as A.'
-    : 'Choose two points to measure their distance.';
 
   return <section className="inspector-section distance-section" aria-labelledby="measure-heading">
     <div className="section-heading distance-heading">
@@ -47,7 +44,7 @@ export function DistancePanel({ measurement, onStart, onCancel, onClear }: Dista
       <Button id="measure-clear" type="button" variant="ghost" size="sm" onClick={onClear}
         disabled={points.length === 0 && result === null}>Clear</Button>
     </div>
-    <p className="distance-instruction" role="status">{instruction}</p>
+    {active && <p className="distance-instruction" role="status">{points.length === 0 ? 'Point A' : 'Point B'}</p>}
     <div className="distance-points">
       {(['A', 'B'] as const).map((endpoint, index) => {
         const point = points[index];
@@ -77,7 +74,6 @@ export function DistancePanel({ measurement, onStart, onCancel, onClear }: Dista
         {distance !== null && <span className="distance-unit">mm</span>}</div>
     </div>
     {error && <p id="measure-error" className="distance-error" role="alert">{error}</p>}
-    <p className="distance-note">Picks use sampled geometry and the model’s original mm coordinates. This is straight-line distance, not arc length or clearance.</p>
   </section>;
 }
 

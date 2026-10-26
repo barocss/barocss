@@ -85,12 +85,12 @@ export function LightingPanel({ lighting, disabled, error, reason, onApply, onRe
 
   const visibleError = validationError || error;
 
-  return <section className="inspector-section lighting-section" aria-labelledby="lighting-heading">
+  return <section className="inspector-section lighting-section" aria-labelledby="lighting-heading" title={reason ?? undefined}>
     <div className="section-heading lighting-heading">
       <h3 id="lighting-heading">Lighting</h3>
       <span className="lighting-mode">Mesh</span>
     </div>
-    <form className="lighting-form" onSubmit={apply} noValidate aria-describedby="lighting-note">
+    <form className="lighting-form" onSubmit={apply} noValidate>
       <fieldset className="lighting-fields" disabled={disabled}>
         <legend className="sr-only">Mesh lighting settings</legend>
         <div className="lighting-strengths">
@@ -119,8 +119,5 @@ export function LightingPanel({ lighting, disabled, error, reason, onApply, onRe
       </fieldset>
     </form>
     {visibleError && <p id="lighting-error" className="lighting-error" role="alert">{visibleError}</p>}
-    {reason && <p className="lighting-note">{reason}</p>}
-    <p id="lighting-note" className="lighting-note">Strengths: 0–1, sum ≤ 1. Direction points toward the light in the Y-up display frame. Values are unitless.</p>
-    <p className="lighting-unavailable">Unavailable in this Viewer: environment maps, shadows and post-processing.</p>
   </section>;
 }

@@ -46,6 +46,5 @@ export function AssemblyInspector({ inspection, onInspect }: {
           {['X', 'Y', 'Z'].map((axis, index) => <div key={axis}><dt>{axis}</dt><dd>{String(coordinates[index])}</dd></div>)}
         </dl></div>)}
     </div>}
-    <p className="scope-note">Original native parameters. Assembly coordinates include the authored parent placements. This is not a distance measurement.</p>
   </section>;
 }

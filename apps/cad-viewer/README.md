@@ -6,6 +6,12 @@ Button, Input, NativeSelect and the Radix-based Dialog. `src/lib/utils.ts` holds
 the shared class pattern. These files belong to the Viewer app. The app does not
 import Studio at runtime.
 
+File actions, camera controls, visibility, measurement and saved-view actions
+use icon buttons. Each icon has an accessible name and a tooltip. Standard
+view cubes highlight their corresponding face. The screen keeps input ranges,
+evaluated parameters, coordinates, units and errors. Repeated help bars,
+viewport captions and long Inspector instructions are removed.
+
 Tailwind CSS compiles the actual screen and component classes. Preflight is off,
 as in Studio. Workspace CSS is in the lower `legacy` layer. `tailwind.css` maps
 the shadcn color tokens to the Viewer palette. `components.json` records the
@@ -147,7 +153,7 @@ temporarily unrestorable; Rename and Delete remain available.
 
 Use the body list to select, show, hide, isolate and fit displayed geometry.
 The inspector shows its original document, body, asset, revision and geometry
-bindings. Drag to orbit. Use the viewport control hints to pan and zoom. Press
+bindings. Drag to orbit, Shift-drag to pan and scroll to zoom. Press
 **F** to fit all visible geometry and **Escape** to clear selection.
 
 Choose **Fit selected**, or press **Shift+F** with the viewport focused, to fit

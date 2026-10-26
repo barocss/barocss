@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import type { Viewer, ViewerGeometryRef, ViewerState } from '@barocss/viewer';
 import { createViewerController } from '../controller.js';
 import { Button } from './components/ui/button';
+import { ViewerIcon as Icon } from './components/ViewerIcon';
 import { Input } from './components/ui/input';
 import { NativeSelect } from './components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './components/ui/dialog';
@@ -86,30 +87,6 @@ function bodyFor(ref: ViewerGeometryRef, state: ViewerState, active: DocumentSum
 function materialFor(ref: ViewerGeometryRef, state: ViewerState) {
   return ref.kind === 'surface' && state.surfaceMaterials.find(entry =>
     entry.ref.modelId === ref.modelId && entry.ref.surfaceId === ref.surfaceId);
-}
-
-const iconPaths = {
-  document: 'M5 2.5h6.5L15 6v11.5H5v-15Z M11 2.5V7h4',
-  lock: 'M5 8h10v9H5V8Z M7 8V5a3 3 0 0 1 6 0v3',
-  open: 'M2.5 6V4.5h5l2 2H17V9 M2.5 6v10h13l2.5-7H5l-2.5 7',
-  cube: 'm10 2 7 4v8l-7 4-7-4V6l7-4Z M3 6l7 4 7-4 M10 10v8',
-  save: 'M10 2.5v10m-3.5-3 3.5 3.5 3.5-3.5 M3 13v4h14v-4',
-  upload: 'M10 13V3m-3.5 3.5L10 3l3.5 3.5 M3 13v4h14v-4',
-  camera: 'M3 5h3l1.5-2h5L14 5h3v12H3V5Z',
-  search: 'm12.5 12.5 4 4',
-  fit: 'M7 3H3v4m10-4h4v4M3 13v4h4m6 0h4v-4M7 7h6v6H7V7Z',
-  eye: 'M2 10s3-5 8-5 8 5 8 5-3 5-8 5-8-5-8-5Z',
-  arrow: 'M3.5 10h13m-5-5 5 5-5 5',
-  surface: 'M3 6 13 3 17 14 7 17Z M6 5 10 16 M10 4 14 15 M5 10 15 7 M6 14 16 11',
-  curve: 'M3 15C4 2 14 18 17 5 M3 14v2 M16 5h2',
-};
-function Icon({ name, className }: { name: keyof typeof iconPaths; className?: string }) {
-  return <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
-    <path d={iconPaths[name]} />
-    {name === 'camera' && <circle cx="10" cy="10.5" r="3" />}
-    {name === 'search' && <circle cx="8.5" cy="8.5" r="5" />}
-    {name === 'eye' && <circle cx="10" cy="10" r="2" />}
-  </svg>;
 }
 
 export function App() {
@@ -208,22 +185,26 @@ export function App() {
                 event.currentTarget.value = '';
                 if (file) void api()?.openDocument(file); else api()?.cancelDocumentPick();
               }} />
-            <Button id="open-document" className="button-primary" variant="default" size="sm" disabled={!canOpen} onClick={openDocumentPicker}>
-              <Icon name="open" />Open CAD file
+            <Button id="open-document" className="button-primary toolbar-icon h-[32px] w-[32px] p-0 [&_svg]:size-[18px]" variant="default" size="sm"
+              aria-label="Open CAD file" title="Open CAD file" disabled={!canOpen} onClick={openDocumentPicker}>
+              <Icon name="open" />
             </Button>
-            <Button id="open-sample" variant="ghost" size="sm" disabled={!canOpen} onClick={() => void api()?.openSample()}>
-              <Icon name="cube" />Document sample
+            <Button id="open-sample" className="toolbar-icon h-[32px] w-[32px] p-0 [&_svg]:size-[18px]" variant="ghost" size="sm" aria-label="Document sample" title="Open document sample"
+              disabled={!canOpen} onClick={() => void api()?.openSample()}>
+              <Icon name="cube" />
             </Button>
-            <Button id="open-assembly-sample" variant="ghost" size="sm" disabled={!canOpen} onClick={() => void api()?.openSample('assembly')}>
-              Assembly sample
+            <Button id="open-assembly-sample" className="toolbar-icon h-[32px] w-[32px] p-0 [&_svg]:size-[18px]" variant="ghost" size="sm" aria-label="Assembly sample" title="Open assembly sample"
+              disabled={!canOpen} onClick={() => void api()?.openSample('assembly')}>
+              <Icon name="assembly" />
             </Button>
           </div>
           <div className="toolbar-spacer" />
           <div className="toolbar-group review-actions" aria-label="Review file actions">
-            <Button id="save-review" variant="ghost" size="sm" disabled={!model.ready || model.reviewBusy || model.namedBusy || model.measurement.active}
-              title={model.measurement.active ? 'Finish or cancel point selection before saving.' : 'Save the view and completed measurement'}
+            <Button id="save-review" className="toolbar-icon h-[32px] w-[32px] p-0 [&_svg]:size-[18px]" variant="ghost" size="sm" aria-label="Save review" aria-busy={model.reviewBusy}
+              disabled={!model.ready || model.reviewBusy || model.namedBusy || model.measurement.active}
+              title={model.measurement.active ? 'Finish or cancel point selection before saving.' : model.reviewBusy ? 'Saving review…' : 'Save review'}
               onClick={() => void api()?.downloadReview()}>
-              <Icon name="save" />{model.reviewBusy ? 'Saving…' : 'Save review'}
+              <Icon name="save" />
             </Button>
             <input ref={reviewFileRef} id="review-file" type="file" accept=".json,application/json" hidden
               onChange={event => {
@@ -231,13 +212,15 @@ export function App() {
                 event.currentTarget.value = '';
                 if (file) void api()?.openReview(file); else api()?.cancelReviewPick();
               }} />
-            <Button id="open-review" variant="ghost" size="sm" disabled={!model.ready || model.reviewBusy || model.namedBusy} onClick={openReviewPicker}>
-              <Icon name="upload" />Open review
+            <Button id="open-review" className="toolbar-icon h-[32px] w-[32px] p-0 [&_svg]:size-[18px]" variant="ghost" size="sm" aria-label="Open review" title="Open review"
+              disabled={!model.ready || model.reviewBusy || model.namedBusy} onClick={openReviewPicker}>
+              <Icon name="upload" />
             </Button>
           </div>
           <div className="toolbar-group export-actions">
-            <Button id="export-png" variant="outline" size="sm" disabled={!model.ready || model.exportBusy}
-              onClick={() => void api()?.exportImage()}><Icon name="camera" />{model.exportBusy ? 'Exporting…' : 'Export PNG'}</Button>
+            <Button id="export-png" className="toolbar-icon h-[32px] w-[32px] p-0 [&_svg]:size-[18px]" variant="outline" size="sm" aria-label="Export PNG"
+              title={model.exportBusy ? 'Exporting PNG…' : 'Export PNG'} aria-busy={model.exportBusy} disabled={!model.ready || model.exportBusy}
+              onClick={() => void api()?.exportImage()}><Icon name="camera" /></Button>
           </div>
         </div>
       </header>
@@ -294,38 +277,39 @@ export function App() {
             })}
             {!isAssembly && assetIds.length === 0 && <p className="list-empty">{model.active ? 'No matching bodies.' : 'Open a CAD file to begin.'}</p>}
           </div>
-          <p className="panel-footnote">{isAssembly ? 'Occurrences · Read only' : 'CAD document · Read only'}</p>
         </aside>
 
         <section className="viewport-panel" aria-label="Model workspace">
           <div className="viewport-toolbar">
             <div className="viewport-actions" aria-label="View actions">
               <div className="viewport-action-group" role="group" aria-label="Frame and visibility">
-                <Button id="fit-all" variant="ghost" size="sm" title="Fit all visible bodies (F)"
-                  disabled={!model.ready || !state?.visibleGeometry.length} onClick={() => api()?.fit()}><Icon name="fit" />Fit all <kbd>F</kbd></Button>
-                <Button id="fit-selected" variant="ghost" size="sm" title="Fit the selected body in an isometric view (Shift+F)"
-                  disabled={!canFitSelected} onClick={() => api()?.fitSelected()}>Fit selected</Button>
-                <Button id="show-all" variant="ghost" size="sm" disabled={!model.ready} onClick={() => api()?.showAll()}><Icon name="eye" />Show all</Button>
+                <Button id="fit-all" className="toolbar-icon h-[32px] w-[32px] p-0 [&_svg]:size-[18px]" variant="ghost" size="sm" aria-label="Fit all" title="Fit all visible bodies (F)"
+                  disabled={!model.ready || !state?.visibleGeometry.length} onClick={() => api()?.fit()}><Icon name="fit" /></Button>
+                <Button id="fit-selected" className="toolbar-icon h-[32px] w-[32px] p-0 [&_svg]:size-[18px]" variant="ghost" size="sm" aria-label="Fit selected" title="Fit selected in ISO (Shift+F)"
+                  disabled={!canFitSelected} onClick={() => api()?.fitSelected()}><Icon name="focus" /></Button>
+                <Button id="show-all" className="toolbar-icon h-[32px] w-[32px] p-0 [&_svg]:size-[18px]" variant="ghost" size="sm" aria-label="Show all" title="Show all"
+                  disabled={!model.ready} onClick={() => api()?.showAll()}><Icon name="eye" /></Button>
               </div>
               <div className="viewport-action-group" role="group" aria-label="Selection actions">
-                <Button id="hide-selected" variant="ghost" size="sm" disabled={!selected} onClick={() => api()?.hideSelected()}>Hide</Button>
-                <Button id="isolate-selected" variant="ghost" size="sm" disabled={!selected || isolateBlocked}
+                <Button id="hide-selected" className="toolbar-icon h-[32px] w-[32px] p-0 [&_svg]:size-[18px]" variant="ghost" size="sm" aria-label="Hide selected" title="Hide selected"
+                  disabled={!selected} onClick={() => api()?.hideSelected()}><Icon name="hide" /></Button>
+                <Button id="isolate-selected" className="toolbar-icon h-[32px] w-[32px] p-0 [&_svg]:size-[18px]" variant="ghost" size="sm" aria-label="Isolate selected" disabled={!selected || isolateBlocked}
                   title={isolateBlocked ? 'Clear material overrides on other bodies before isolating.' : 'Show only the selected body'}
-                  onClick={() => api()?.isolateSelected()}>Isolate</Button>
-                <Button id="clear-selection" variant="ghost" size="sm" title="Clear selection (Escape)" disabled={!selected}
-                  onClick={() => api()?.select(null)}>Clear</Button>
+                  onClick={() => api()?.isolateSelected()}><Icon name="isolate" /></Button>
+                <Button id="clear-selection" className="toolbar-icon h-[32px] w-[32px] p-0 [&_svg]:size-[18px]" variant="ghost" size="sm" aria-label="Clear selection" title="Clear selection (Escape)" disabled={!selected}
+                  onClick={() => api()?.select(null)}><Icon name="close" /></Button>
               </div>
               <div className="viewport-action-group" role="group" aria-label="Viewport picking">
-                <Button ref={measurementToolRef} id="measure-tool" variant="ghost" size="sm" aria-pressed={model.measurement.active}
+                <Button ref={measurementToolRef} id="measure-tool" className="toolbar-icon h-[32px] w-[32px] p-0 [&_svg]:size-[18px]" variant="ghost" size="sm" aria-label="Measure distance" aria-pressed={model.measurement.active}
                   disabled={!model.ready || !state?.visibleGeometry.length || isAssembly}
                   title={isAssembly ? 'Native distance measurement is unavailable in assembly mode.' : 'Measure two native points'}
                   onClick={() => { if (model.measurement.active) api()?.cancelMeasurement(); else api()?.startMeasurement(); }}>
-                  Measure
+                  <Icon name="ruler" />
                 </Button>
                 <label className="viewport-pick-filter" htmlFor="pick-filter"
-                  title="Filters viewport clicks and measurement picks. Tree selection and visibility are unchanged.">
-                  <span>Pick</span>
-                  <NativeSelect id="pick-filter" aria-label="Viewport pick filter" disabled={!model.ready} value={model.pickFilter}
+                  title="Viewport pick filter">
+                  <Icon name="filter" />
+                  <NativeSelect id="pick-filter" className="h-[30px] w-[90px] px-2 text-xs" aria-label="Viewport pick filter" disabled={!model.ready} value={model.pickFilter}
                     title="Filters viewport clicks and measurement picks. Tree selection and visibility are unchanged."
                     onChange={event => api()?.setPickFilter(event.target.value as ViewModel['pickFilter'])}>
                     <option value="all">All</option><option value="surface">Surface</option><option value="curve">Curve</option>
@@ -334,10 +318,11 @@ export function App() {
               </div>
             </div>
             <div className="view-presets" aria-label="Standard views">
-              {(['iso', 'front', 'top', 'right'] as const).map(name => <Button key={name} id={`view-${name}`} variant="ghost" size="sm"
+              {(['iso', 'front', 'top', 'right'] as const).map(name => <Button key={name} id={`view-${name}`} className="toolbar-icon h-[32px] w-[32px] p-0 [&_svg]:size-[18px]" variant="ghost" size="sm"
+                aria-label={name === 'iso' ? 'Isometric view' : `${name[0].toUpperCase()}${name.slice(1)} view`}
                 title={name === 'iso' ? 'Isometric view' : `${name[0].toUpperCase()}${name.slice(1)} view`}
                 disabled={!model.ready} aria-pressed={model.viewPreset === name} onClick={() => api()?.standardView(name)}>
-                {name === 'iso' ? 'ISO' : `${name[0].toUpperCase()}${name.slice(1)}`}
+                <Icon name={name} />
               </Button>)}
             </div>
           </div>
@@ -346,21 +331,15 @@ export function App() {
               aria-label={model.measurement.active ? 'Distance tool. Click two points in the same asset. Press Escape to cancel.'
                 : 'CAD model. Drag to orbit, Shift-drag to pan, and scroll to zoom.'} />
             <MeasurementOverlay {...model.measurementOverlay} />
-            <span className="viewport-mode" aria-hidden="true">Perspective</span>
             <div id="empty-state" className="empty-state" hidden={model.ready}>
               <div className="empty-content">
                 <svg className="empty-document-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M9 4h10l5 5v19H9V4Z" /><path d="M19 4v6h5M13 16h7m-7 5h7" /></svg>
-                <h2>No CAD file open</h2><p>Open a CAD document or assembly JSON file.</p>
+                <h2>No CAD file open</h2>
                 <Button id="empty-open" className="button-primary" variant="default" size="sm" disabled={!canOpen} onClick={openDocumentPicker}>
                   Open CAD file<Icon name="arrow" />
                 </Button>
               </div>
             </div>
-          </div>
-          <div id="viewport-help" className="viewport-help">
-            <span><span className="help-key">Drag</span> Orbit</span><span><span className="help-key">Shift + drag</span> Pan</span>
-            <span><span className="help-key">Scroll</span> Zoom</span><span><span className="help-key">Click</span> {model.measurement.active ? 'Set point' : 'Select'}</span>
-            <span><span className="help-key">Shift + F</span> Fit selected</span>
           </div>
         </section>
 
@@ -374,6 +353,8 @@ export function App() {
             onDelete={name => { void api()?.deleteNamedView(name); }} />
           {!isAssembly && model.documentInspection && <DocumentInspector inspection={model.documentInspection}
             onInspect={query => api()?.inspectDocumentPoint(query)} />}
+          {isAssembly && model.assemblyInspection && <AssemblyInspector inspection={model.assemblyInspection}
+            onInspect={query => api()?.inspectAssemblyPoint(query)} />}
           {(model.measurement.active || model.measurement.points.length > 0) && <DistancePanel measurement={model.measurement}
             onStart={() => api()?.startMeasurement()}
             onCancel={() => { api()?.cancelMeasurement(); measurementToolRef.current?.focus(); }}
@@ -385,9 +366,6 @@ export function App() {
               {selectionRows.map(([label, value]) => <Fragment key={label}><dt>{label}</dt><dd>{String(value ?? '—')}</dd></Fragment>)}
             </dl>
           </section>
-          {isAssembly && model.assemblyInspection && <AssemblyInspector inspection={model.assemblyInspection}
-            onInspect={query => api()?.inspectAssemblyPoint(query)} />}
-          {isAssembly && <section className="inspector-section"><p className="context-note">Each occurrence keeps its original part and placement. Native distance measurement and material changes are unavailable in assembly mode.</p></section>}
           {model.lightingCapabilities && <LightingPanel lighting={model.lightingCapabilities.lighting}
             disabled={!model.ready || !model.lightingCapabilities.supported}
             error={model.lightingError} reason={model.ready ? model.lightingCapabilities.reason : 'Load a Surface to adjust lighting.'}
@@ -408,9 +386,9 @@ export function App() {
               <option value="default">Default</option><option value="blue">Blue</option><option value="copper">Copper</option>
             </NativeSelect>
             <Button id="apply-appearance" className="button-wide" variant="outline" size="sm" disabled={!canApplyAppearance}
+              title={model.appearanceNote} aria-describedby="appearance-note"
               onClick={() => api()?.applyAppearance()}>Apply appearance</Button>
-            <p id="appearance-note" className="context-note">{model.appearanceNote}</p>
-            <p className="scope-note">Review files do not save material overrides.</p>
+            <span id="appearance-note" className="sr-only">{model.appearanceNote}</span>
           </section>
         </aside>
       </main>
@@ -432,7 +410,7 @@ export function App() {
         <div className="dialog-heading">
           <span className="eyebrow">{candidateIsAssembly ? 'Open assembly' : 'Open document'}</span>
           <DialogTitle id="admission-heading">{candidateIsAssembly ? 'Choose instances' : 'Choose bodies'}</DialogTitle>
-          <DialogDescription id="admission-description">Select 1–4 supported {candidateIsAssembly ? 'instances' : 'bodies'} to load.</DialogDescription>
+          <DialogDescription id="admission-description" className="sr-only">Select 1–4 supported {candidateIsAssembly ? 'instances' : 'bodies'} to load.</DialogDescription>
         </div>
         <div className="candidate-summary"><h3 id="candidate-title">{model.candidate?.label}</h3>
           <p id="candidate-meta">{model.candidate ? `${model.candidate.id} · revision ${model.candidate.revision} · ${model.candidate.catalog.length} ${candidateIsAssembly ? 'instances' : 'bodies'}` : ''}</p>
