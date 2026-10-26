@@ -51,6 +51,44 @@ diagnostics), `bindingShader(binding)` for a compiled `MeshMaterialBinding`, and
 `uv01Shader(material, uniforms)` for a native Surface UV01 material. A UV01 source reads
 `surface_u01`/`surface_v01` from the geometry's `uvs`.
 
+### Progressive still images
+
+`viewer.createPathTrace()` creates an offscreen still with its own frozen scene,
+camera, materials and lighting. Later edits to the live viewer do not update that
+still. Create another session to render the edited scene; raster rendering and
+controls remain independent.
+
+```js
+// Use the populated viewer from the example above.
+const still = await viewer.createPathTrace({ width: 640, height: 480, bounces: 6 });
+try {
+  await still.sample(8); // Each manual call accepts 1–64 samples.
+  const raw = await still.capture(false);
+
+  // start() resolves after sampling stops; this callback bounds the total at 32.
+  await still.start(samples => {
+    if (samples >= 32) still.stop();
+  });
+  const frame = await still.capture(true); // Geometry-aware denoising.
+  console.log(frame.width, frame.height, frame.samples, frame.data);
+  console.log(raw.samples); // Still 8 after the later sampling.
+} finally {
+  still.dispose(); // Release this session's GPU resources, including on failure.
+}
+```
+
+`capture()` returns `{ width, height, samples, data }`, with top-to-bottom RGBA
+bytes. Sample the still before capturing it. `frame.samples` is the completed
+sample count for those pixels, fixed when the queued capture starts. The live
+`still.samples` can advance after that capture; use `frame.samples` when labelling
+or exporting an image. Stop progressive sampling before calling `sample()`.
+
+The still includes visible, bounded triangle surfaces. Active section clips and
+caps, custom material shaders, scalar maps and contours refuse with
+`PATH_TRACE_UNSUPPORTED`. Lines, labels, overlays and raster shadow catchers are
+not included. Raster post effects, including depth of field, bloom, SSAO, contact
+shadows and outlines, do not apply to the still.
+
 ## Removed renderers
 
 The viewer is the only renderer. The earlier WebGL2 renderers and single-canvas
