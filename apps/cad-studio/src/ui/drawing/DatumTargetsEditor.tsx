@@ -1,10 +1,15 @@
 // Point targets use stored exact edge references; unresolved targets remain visible in this list.
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { datumTargetConflicts, resolveDatumTarget, type DrawingDatumTarget } from '@barocss/cad-model/drawing/datumTargets';
 import type { DrawingSettings, DrawingViews, ViewId } from '@barocss/cad-model/drawing/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CONTROL, FIELD } from './sheetShared';
+
+const TARGET_WRAP: CSSProperties = { minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', whiteSpace: 'normal', overflowWrap: 'anywhere' };
+const TARGET_FIELD: CSSProperties = { display: 'grid', gridTemplateColumns: '64px minmax(0, 1fr)', minWidth: 0, maxWidth: '100%' };
+const TARGET_INPUT: CSSProperties = { minWidth: 0, width: '100%', maxWidth: '100%', boxSizing: 'border-box' };
+const TARGET_ACTION: CSSProperties = { ...TARGET_WRAP, height: 'auto' };
 
 export function DatumTargetsEditor({ settings, views, hiddenViews, selected, choices, onChoose, onSelect, onAdd, onMove, onReselect, onCommit, onRefused }: {
   settings: DrawingSettings; views: DrawingViews | null; hiddenViews: ViewId[]; selected: string | null; choices: DrawingDatumTarget[];
@@ -39,11 +44,11 @@ function TargetRow({ target, views, hidden, conflict, selected, onSelect, onMove
 }) {
   const [draft, setDraft] = useState<{ letter: string; number: string } | null>(null);
   const resolved = views && resolveDatumTarget(views[target.view], target);
-  return <div className={selected ? 'dw-dim sel' : 'dw-dim'}>
-    <Button variant="ghost" size="xs" aria-pressed={selected} onClick={onSelect}>Target {target.letter}{target.number} · {target.view}</Button>
-    <div className="text-[11px]" role="status">{conflict ? 'This target has a duplicate label or reference ID. Change its label or remove a duplicate target.' : !resolved ? 'Current drawing not ready.' : resolved.ok ? `Current endpoint [${resolved.at.join(', ')}] mm` : resolved.reason}</div>
-    {hidden && <div className="text-[11px]">This view is hidden. Show it before moving the symbol.</div>}
-    <details className="text-[11px]"><summary>Reference details</summary>
+  return <div className={selected ? 'dw-dim sel' : 'dw-dim'} style={{ ...TARGET_WRAP, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', alignItems: 'stretch', width: '100%', boxSizing: 'border-box' }}>
+    <Button variant="ghost" size="xs" style={{ ...TARGET_ACTION, justifyContent: 'flex-start', textAlign: 'left' }} aria-pressed={selected} onClick={onSelect}>Target {target.letter}{target.number} · {target.view}</Button>
+    <div className="text-[11px]" role="status" style={TARGET_WRAP}>{conflict ? 'This target has a duplicate label or reference ID. Change its label or remove a duplicate target.' : !resolved ? 'Current drawing not ready.' : resolved.ok ? `Current endpoint [${resolved.at.join(', ')}] mm` : resolved.reason}</div>
+    {hidden && <div className="text-[11px]" style={TARGET_WRAP}>This view is hidden. Show it before moving the symbol.</div>}
+    <details className="text-[11px]" style={TARGET_WRAP}><summary style={TARGET_WRAP}>Reference details</summary>
       <div className="break-all">Edge: {target.point.edge}</div>
       <div>Endpoint identity: {target.point.endpoint ?? 'Not recorded'}</div>
       <div>Saved endpoint hint [{target.point.near.join(', ')}] mm</div>
@@ -52,15 +57,17 @@ function TargetRow({ target, views, hidden, conflict, selected, onSelect, onMove
       {conflict && <div>DATUM_TARGET_DUPLICATE</div>}
       {resolved && !resolved.ok && <div>{resolved.code}</div>}
     </details>
-    <label className={FIELD}><span>Letter</span><Input className={CONTROL} aria-label={`Target ${target.letter}${target.number} letter`} value={draft?.letter ?? target.letter} maxLength={1}
+    <label className={FIELD} style={TARGET_FIELD}><span>Letter</span><Input className={CONTROL} style={TARGET_INPUT} aria-label={`Target ${target.letter}${target.number} letter`} value={draft?.letter ?? target.letter} maxLength={1}
       onChange={e => setDraft({ letter: e.target.value.toUpperCase(), number: draft?.number ?? String(target.number) })} /></label>
-    <label className={FIELD}><span>Number</span><Input className={CONTROL} aria-label={`Target ${target.letter}${target.number} number`} type="number" min={1} step={1} value={draft?.number ?? target.number}
+    <label className={FIELD} style={TARGET_FIELD}><span>Number</span><Input className={CONTROL} style={TARGET_INPUT} aria-label={`Target ${target.letter}${target.number} number`} type="number" min={1} step={1} value={draft?.number ?? target.number}
       onChange={e => setDraft({ letter: draft?.letter ?? target.letter, number: e.target.value })} /></label>
-    <Button variant="ghost" size="xs" disabled={!draft} onClick={() => {
-      if (draft && onEdit({ ...target, letter: draft.letter, number: draft.number.trim() ? Number(draft.number) : NaN })) setDraft(null);
-    }}>Apply target label</Button>
-    <Button variant="ghost" size="xs" disabled={hidden || conflict || !resolved?.ok} onClick={onMove}>Move symbol</Button>
-    <Button variant="ghost" size="xs" aria-label={`Reselect endpoint for target ${target.letter}${target.number}`} disabled={!views || conflict} onClick={onReselect}>Reselect endpoint</Button>
-    <Button variant="ghost" size="xs" aria-label={`Remove target ${target.letter}${target.number}`} onClick={onRemove}>Remove</Button>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, minWidth: 0, maxWidth: '100%' }}>
+      <Button variant="ghost" size="xs" style={TARGET_ACTION} disabled={!draft} onClick={() => {
+        if (draft && onEdit({ ...target, letter: draft.letter, number: draft.number.trim() ? Number(draft.number) : NaN })) setDraft(null);
+      }}>Apply target label</Button>
+      <Button variant="ghost" size="xs" style={TARGET_ACTION} disabled={hidden || conflict || !resolved?.ok} onClick={onMove}>Move symbol</Button>
+      <Button variant="ghost" size="xs" style={TARGET_ACTION} aria-label={`Reselect endpoint for target ${target.letter}${target.number}`} disabled={!views || conflict} onClick={onReselect}>Reselect endpoint</Button>
+      <Button variant="ghost" size="xs" style={TARGET_ACTION} aria-label={`Remove target ${target.letter}${target.number}`} onClick={onRemove}>Remove</Button>
+    </div>
   </div>;
 }
