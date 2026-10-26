@@ -496,10 +496,11 @@ export function exportStudioStep(doc: StudioDoc, options: StudioStepOptions): St
   return left.length ? { text, source, omitted: [`lattice infill not included (${left.join(', ')}); 3MF carries it`] } : { text, source };
 }
 
-export function stlFor(doc: StudioDoc, key: string): Uint8Array | null {
+export function stlFor(doc: StudioDoc, key: string, options: NonNullable<Parameters<typeof exportStl>[1]> = {}): Uint8Array | null {
   try {
+    if (options.segmentsPerQuarter !== undefined && !Number.isFinite(options.segmentsPerQuarter)) return null;
     const output = snapshotOf(doc).outputs.find(o => bodyKeyOf(o.id, doc.nodes) === key);
-    return output ? exportStl(output) : null;
+    return output ? exportStl(output, options) : null;
   } catch { return null; }
 }
 
