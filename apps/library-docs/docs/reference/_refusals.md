@@ -286,7 +286,7 @@
 | `[APPROVAL_IS_THE_USERS]` | `team` | …: only the user moves a baseline |
 | `[BAD_CONNECTOR]` | `print` | a connector needs d > 0, length > 0, 1–8 a cut, fit > 0 and wall ≥ 0 (d …, length …, count …, fit …, wall …) |
 | `[BAD_KEEPOUT]` | `chat` | …'s solid could not be made |
-| `[BAD_REFERENCE]` | `chat`, `engine` | a reference has a name. |
+| `[BAD_REFERENCE]` | `chat`, `engine` | Route bundle: merging linked route documents is not supported. |
 | `[BAD_TRANSITION]` | `team` | … is still …: a baseline follows a decided one |
 | `[BAD_VALUE]` | `chat` | … is a size above 0 mm |
 | `[BAD_VALUES]` | `chat`, `print`, `robot` | a wall t > 0, a voxel 0 < h ≤ t/2 and a drain Ø > 0 (t …, h …, drain …) |
@@ -532,6 +532,7 @@
 
 | Code | Declared or raised in | For example |
 |---|---|---|
+| `[BAD_REFERENCE]` | `.` | Route bundle: inserting a linked route document as a part is not supported. Detach the bundle first. |
 | `[BEARING_EDIT_SCOPE]` | `app` | … |
 | `[LOOP_OPEN]` | `state` | the closed motion needs its current document and joint tree |
 | `[STORAGE_CHANGED]` | `storage` | … changed since it was read |
