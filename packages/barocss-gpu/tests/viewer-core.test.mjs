@@ -128,7 +128,7 @@ test('viewer lights: the frame block matches the WGSL layout', () => {
   assert.match(surfaceWGSL(), new RegExp(`dirs: array<DirLight, ${MAX_DIRECTIONAL}>`));
   // A shader material: its declarations, aliases and expression; the default params struct unless it declares one.
   const custom = surfaceWGSL({ declarations: 'fn f(x: f32) -> f32 { return x; }\n', expression: 'vec3f(f(native_uv.x))', aliases: { native_uv: 'uv' } });
-  assert.match(custom, /let native_uv = uv;\n  return vec3f\(f\(native_uv.x\)\);/);
+  assert.match(custom, /let native_uv = uv;\n {2}return vec3f\(f\(native_uv.x\)\);/);
   assert.equal((custom.match(/struct MaterialParams/g) ?? []).length, 1);
   assert.equal((surfaceWGSL({ declarations: 'struct MaterialParams {\n  slot: array<vec4<f32>, 4>,\n}\n', expression: 'vec3f(1.0)' }).match(/struct MaterialParams/g) ?? []).length, 1);
   const cam = new Camera({ position: [0, -10, 0], target: [0, 0, 0], up: [0, 0, 1] });
@@ -544,4 +544,48 @@ test('G20 pickNow keeps a nearer cut-out front face and identifies real caps fro
     if (fixture.triangle !== undefined) assert.ok(near(hit.scalar, 7, 1e-5), 'front-face scalar survives');
     else assert.equal(hit.scalar, undefined, 'caps have no triangle scalar');
   });
+});
+
+// Reuse G20's cube and transport shape, with production camera rays/unprojection and a held readback.
+test('pickNow returns null when camera translation changes during readback, without changing an accepted hit', async () => {
+  const positions = [], indices = [];
+  for (const [axis, sign] of [[0, 1], [0, -1], [1, 1], [1, -1], [2, 1], [2, -1]]) {
+    const u = (axis + 1) % 3, v = (axis + 2) % 3, base = positions.length / 3;
+    for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const p = [0, 0, 0]; p[axis] = sign; p[u] = a; p[v] = b * sign; positions.push(...p); }
+    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  }
+  const data = prepareGeometry({ positions, indices, faces: Array.from({ length: 12 }, (_, i) => 100 + i) });
+  data.scalars = prepareScalars(data, Array(data.vertexCount).fill(7), 'vertex');
+  const camera = new Camera({ position: [-6, 0.15, 0], target: [0, 0.15, 0], up: [0, 0, 1], projection: 'orthographic' });
+  camera.clip({ min: [-20, -20, -20], max: [20, 20, 20] });
+  const point = [-1, 0.15, 0], depth = Math.fround(clipZ(camera.viewProjection(1), point));
+  const mesh = { id: 17, visible: true, pickable: true, clipped: true, cap: true, transparent: false, material: {}, transform: identity(),
+    geometry: { data, disposed: false, topology: 'triangles' }, instanceCount: 1, instances: null };
+  const viewer = Object.create(Viewer.prototype), pass = { setScissorRect() {}, setBindGroup() {}, end() {} };
+  let held = false, entered, release, unmaps = 0;
+  const read = {
+    mapAsync() { return held ? new Promise(resolve => { release = resolve; entered(); }) : Promise.resolve(); },
+    unmap() { unmaps++; },
+    getMappedRange(offset) { return offset === 256 ? Float32Array.of(depth).buffer : Uint32Array.of(offset === 512 ? 0 : mesh.id).buffer; },
+  };
+  Object.assign(viewer, { canvas: { width: 1, height: 1, clientWidth: 1, clientHeight: 1 }, camera, meshes: [mesh], clip: null,
+    device: { queue: { submit() {} }, createCommandEncoder: () => ({ beginRenderPass: () => pass, copyTextureToBuffer() {}, finish() {} }) },
+    alive() {}, prepareCamera: () => camera.viewProjection(1), visibleMeshes: () => ({ opaque: [mesh], transparent: [] }), writeUniforms() {},
+    drawCapFront() {}, drawMesh() {}, drawCaps() {}, ensurePickTargets: () => ({ views: {}, read }) });
+  const accepted = await viewer.pickNow(0, 0);
+  assert.equal(accepted.mesh, mesh); assert.equal(accepted.face, 102); assert.equal(accepted.triangle, 2);
+  assert.equal(accepted.cap, false); assert.equal(accepted.instance, null);
+  assert.ok(close(accepted.point, point, 1e-5), JSON.stringify(accepted.point));
+  assert.ok(near(accepted.scalar, 7, 1e-5));
+  const acceptedPoint = [...accepted.point];
+  held = true;
+  const mappingEntered = new Promise(resolve => { entered = resolve; }), pending = viewer.pickNow(0, 0);
+  await mappingEntered;
+  // The view direction is unchanged; the old center depth would unproject four units away in Y.
+  camera.position = [-6, 4.15, 0]; camera.target = [0, 4.15, 0];
+  release();
+  assert.equal(await pending, null, 'a readback from the previous camera state must not be reinterpreted with the new camera');
+  assert.deepEqual(accepted.point, acceptedPoint, 'the accepted hit must keep its original point');
+  assert.equal(accepted.face, 102); assert.ok(near(accepted.scalar, 7, 1e-5));
+  assert.equal(unmaps, 2, 'both mapped buffers must be unmapped, including the refused stale read');
 });
