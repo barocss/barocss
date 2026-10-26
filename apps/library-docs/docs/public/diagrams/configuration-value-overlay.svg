@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="460" viewBox="0 0 840 460" role="img" aria-labelledby="title desc">
+  <title id="title">A saved configuration replaces matching values and keeps later parameters</title>
+  <desc id="desc">Conceptual numeric example, not a geometry result or UI capture. Configuration small was saved with C equal to 3. The current parameter set later becomes C equal to 5 and Wall equal to 2. If Apply is accepted, C becomes 3 and Wall remains 2. The current name set C and Wall still differs from the saved name set C, so small does not receive the now label. Suppressed features remain suppressed. The numbers illustrate length bindings in millimetres; no shape was evaluated.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#52677d"/></marker></defs>
+  <rect width="840" height="460" rx="12" fill="#f8fafc"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#192c40">
+    <text x="420" y="33" text-anchor="middle" font-size="23" font-weight="700">Apply saved values without replacing the parameter set</text>
+    <text x="420" y="60" text-anchor="middle">Example length bindings in mm · conditional numeric comparison</text>
+    <rect x="26" y="91" width="230" height="193" rx="9" fill="#e8f0ff" stroke="#839dbd"/>
+    <text x="141" y="121" text-anchor="middle" font-weight="700">Saved: small</text>
+    <text x="141" y="165" text-anchor="middle" font-size="24">C = 3</text>
+    <text x="141" y="205" text-anchor="middle">No Wall entry</text>
+    <text x="141" y="254" text-anchor="middle">Saved names: { C }</text>
+    <rect x="305" y="91" width="230" height="193" rx="9" fill="#ffffff" stroke="#96a4b4"/>
+    <text x="420" y="121" text-anchor="middle" font-weight="700">Current before Apply</text>
+    <text x="420" y="165" text-anchor="middle" font-size="24">C = 5</text>
+    <text x="420" y="205" text-anchor="middle" font-size="24">Wall = 2</text>
+    <text x="420" y="254" text-anchor="middle">Added after saving small</text>
+    <rect x="584" y="91" width="230" height="193" rx="9" fill="#e4f3ea" stroke="#79a28b"/>
+    <text x="699" y="121" text-anchor="middle" font-weight="700">After accepted Apply</text>
+    <text x="699" y="165" text-anchor="middle" font-size="24" fill="#185b9b">C = 3</text>
+    <text x="699" y="205" text-anchor="middle" font-size="24">Wall = 2</text>
+    <text x="699" y="254" text-anchor="middle">Current names: { C, Wall }</text>
+    <path d="M256 165H280V79H560V165H575" fill="none" stroke="#185b9b" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <text x="420" y="300" text-anchor="middle" fill="#185b9b">Saved C replaces current C; Wall stays unchanged.</text>
+    <path d="M535 204H575" fill="none" stroke="#52677d" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="26" y="307" width="788" height="65" rx="9" fill="#fff4df" stroke="#b89b62"/>
+    <text x="420" y="333" text-anchor="middle" font-weight="700">No “now” label: the saved and current name sets still differ.</text>
+    <text x="420" y="357" text-anchor="middle">Save the complete current values to make a configuration for this set.</text>
+    <text x="420" y="404" text-anchor="middle">Feature suppression is separate: a suppressed feature remains suppressed.</text>
+    <text x="420" y="435" text-anchor="middle">Conceptual saved-data flow · not an evaluated shape, API result or UI capture</text>
+  </g>
+</svg>

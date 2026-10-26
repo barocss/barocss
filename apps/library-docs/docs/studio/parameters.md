@@ -73,6 +73,22 @@ Assembly variants are separate again. Their declared inputs can drive part param
 component choices or mate values in a derived document. Applying a saved parameter configuration is not the same
 operation as selecting an assembly variant. See [Assemblies](/studio/assemblies).
 
+### Applying older saved values
+
+A configuration updates matching parameter names; it does not remove values added after it was saved.
+For example, save `small` when `C = 3`. Later change `C` to `5` and add `Wall = 2`.
+If applying `small` is accepted, the current values become `C = 3, Wall = 2`. `Wall` stays because `small`
+has no value for that name. These are illustrative values for length bindings in mm, not a geometry result.
+
+The panel adds `now` only when all current names and values match the saved configuration. In this example,
+`small` need not show `now` after **Apply**, because the current set also has `Wall`. Save a configuration
+with the complete current values if you want that set to match. Applying it does not unsuppress a feature;
+change suppression separately in the history when needed.
+
+![Applying saved C equals 3 replaces current C equals 5 but keeps the later Wall equals 2; the name sets still differ](/diagrams/configuration-value-overlay.svg)
+
+[Open the configuration comparison at full size](/diagrams/configuration-value-overlay.svg).
+
 ## What a parameter drives
 
 - **The model.** A field that supports direct binding, such as an extrusion distance or a chamfer distance.
