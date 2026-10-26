@@ -32,6 +32,13 @@ feature, not a requirement to finish every future engine feature before any Stud
 | 4. Studio completion | Connect the verified operation to public controls, feedback and document transactions. | The Studio owner runs the required actual browser flow, Undo/Redo and file roundtrip, checks console and views the captured PNGs. |
 | 5. Integration | Adopt the reviewed commits and run the required affected product checks. | The coordinator records exact source and product commits, remaining limits and the next ready task. |
 
+The delivery unit is one complete feature: its foundation contract, full source implementation, required checks,
+actual consumer workflow and product integration. Source commits, a RED reproduction and a single passing test
+are intermediate checkpoints. Finish independent source pieces in parallel, then run the required affected checks
+as one planned verification batch. Carry relevant results forward; repeat a check only for a changed input, new
+failure or remaining risk. Keep first failures and required engine/browser/file evidence. Do not switch to another
+feature merely because one test passed, or skip checks to call a feature complete.
+
 Current order: finish the STL quality batch already under verification; reproduce and fix parameter-bound hole
 callouts at the Model boundary; verify the GPU pose-only stale-readback case. For path bundles, accept and test
 persistent member bindings, atomic curve/sweep updates and failure preservation in CAD/Model before implementing
