@@ -38,6 +38,9 @@ A tool's key still works while a number box has focus; it leaves the box.
 A shape drawn inside another becomes a hole in it, so a rectangle with a circle inside extrudes as a plate with a
 bore. Shapes that overlap are refused.
 
+A closed shape inside a hole is not supported in the same sketch. **Finish sketch** refuses it;
+draw that shape in a separate sketch.
+
 ## Reusing a face and offsetting a shape
 
 When the sketch is on a selected face with zero plane offset and angle, the **FACE** section offers two choices:

@@ -70,7 +70,7 @@ export function withoutCams(tree: JointTree): { tree: JointTree; notes: string[]
   return { tree: { ...tree, joints: tree.joints.map(j => (j.cam ? { ...j, mimic: undefined, cam: undefined } : j)) }, notes: cams.map(j => `${j.key} follows a cam (${j.cam!.mate}): left out — written as a free joint`) };
 }
 export function robotParts(tree: JointTree, partOf: (part: string) => UrdfPart | null): RobotParts | { refusals: { code: UrdfRefusal; message: string }[] } {
-  const refusals: { code: UrdfRefusal; message: string }[] = [], notes: string[] = [], nativeInertia: NativeInertiaBasis[] = [];
+  const refusals: { code: UrdfRefusal; message: string }[] = [], notes: string[] = tree.notes.map(note => note.message), nativeInertia: NativeInertiaBasis[] = [];
   for (const p of tree.problems) {
     if (p.code === 'MOTION_UNSUPPORTED') refusals.push({ code: 'MOTION_UNSUPPORTED', message: p.message });
     else if (p.code === 'LIMITS_BAD') refusals.push({ code: 'LIMITS_BAD', message: p.message });

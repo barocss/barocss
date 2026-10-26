@@ -21,6 +21,11 @@ A part is a `barocss-cad-part` document:
 - **Units.** Lengths are millimetres. Public and document angles are degrees. Z is up.
 - **The reference.** The full set of kinds and their fields is the `CadPartFeature` type, which the package exports.
 
+Sketch profile points use local XY coordinates. Without `plane`, these are part XY at Z = 0.
+With `plane`, local X follows `xAxis`, local Y follows `normal × xAxis`, and local Z follows `normal`, from `origin`.
+An `extrude` runs from local Z = `from` (default 0) to `from + height`; these are offsets along the sketch normal.
+A negative `height` extrudes in the opposite direction. Zero height is refused.
+
 The kinds, by family:
 
 | Family | Kinds |

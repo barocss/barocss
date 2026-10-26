@@ -472,6 +472,8 @@ function fixFor(ctx: IssueContext, p: Placed, placed: readonly Placed[], viewGri
   const others = placed.filter(q => !same(q.owner, p.owner)), boxes = others.flatMap(q => q.boxes), lines = others.filter(q => q.owner.kind === 'dimension' || q.owner.kind === 'weld' || q.owner.kind === 'balloon').flatMap(q => q.lines);
   const [fx0, fy0, fx1, fy1] = ctx.layout.frame, [tx0, ty0, tx1, ty1] = ctx.layout.title;
   const clear = (q: Placed) => q.boxes.every(b => !boxes.some(o => quadsOverlap(b, o)) && !viewGrid.hits(b) && !lines.some(([s, t]) => segmentHitsQuad(s, t, b)) && !onOtherView(ctx.layout, ctx.sheet, b, p.owner.view))
+    // A moved dimension's extensions and leaders must also clear the texts that stay in place.
+    && (q.owner.kind !== 'dimension' || q.lines.every(([s, t]) => !boxes.some(b => segmentHitsQuad(s, t, b))))
     && q.points.every(([x, y]) => x >= fx0 && x <= fx1 && y >= fy0 && y <= fy1 && !(x > tx0 && x < tx1 && y > ty0 && y < ty1));
   if (p.owner.kind === 'table') {
     // (A table goes where an auto-placed one would: the first room clear of everything else, O49.)
@@ -494,7 +496,7 @@ function fixFor(ctx: IssueContext, p: Placed, placed: readonly Placed[], viewGri
   if (!r) return {};
   const v = placementOf(ctx.layout, ctx.sheet, r.dim.view), pr = projectionOf(ctx.views, ctx.sheet, r.dim.view);
   if (!v || !pr) return {};
-  for (const place of candidates(r, v.scale, pr)) {
+  for (const place of candidates(r, v.scale, pr, Math.hypot(fx1 - fx0, fy1 - fy0))) {
     // (The sheet's resolved dimension carries its shown text, callout and count included.)
     const moved = { ...r, dim: { ...r.dim, place } } as Extract<Resolved, { ok: true }>;
     // (Drawn as the sheet draws it: boxed if basic, its feature control frame under it.)
@@ -527,7 +529,7 @@ export function marksClear(ctx: IssueContext, marks: Mark[], view: ViewId): bool
 }
 
 /** Places to try for a dimension (view coordinates): rows each way square to a linear one, round the circle for a leader. */
-function candidates(r: Extract<Resolved, { ok: true }>, scale: number, pr: BrepProjection): XY[] {
+function candidates(r: Extract<Resolved, { ok: true }>, scale: number, pr: BrepProjection, maxReach: number): XY[] {
   const p = r.dim.place, out: XY[] = [];
   if (r.kind === 'linear') {
     const o = r.dim.orient, d: XY = o === 'horizontal' ? [1, 0] : o === 'vertical' ? [0, 1] : unit([r.b[0] - r.a[0], r.b[1] - r.a[1]]), n: XY = [-d[1], d[0]];
@@ -541,6 +543,12 @@ function candidates(r: Extract<Resolved, { ok: true }>, scale: number, pr: BrepP
     for (let k = 0; k <= MOVE_ROWS + 2; k++) for (const [edge, sg] of [[hi, 1], [lo, -1]] as const) {
       const t = edge + sg * (10 + ROW * k) / scale - at;
       out.push([mid[0] + n[0] * t, mid[1] + n[1] * t]);
+    }
+    // Keep the established candidates first, then fill the gaps and search farther in sheet mm.
+    // Only the normal component moves a linear dimension; its measurement direction stays fixed.
+    for (let mm = 2; mm <= maxReach; mm += 2) for (const sg of [side, -side]) {
+      if (mm <= ROW * MOVE_ROWS && mm % ROW === 0) continue;
+      out.push([p[0] + sg * n[0] * mm / scale, p[1] + sg * n[1] * mm / scale]);
     }
     return out;
   }
