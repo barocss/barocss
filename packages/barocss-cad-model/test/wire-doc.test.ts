@@ -223,7 +223,7 @@ test('wire documents: route creation and total move preserve exact bindings thro
     assert.deepEqual(received.nodes, doc.nodes, 'copied paths, profile side tags and bundle markers cross exactly');
     assert.deepEqual(received.outputs, doc.outputs);
     const receivedBefore = structuredClone(received), result = evaluatePreview(received, revision + 1, 8, 'preview');
-    assert.ok(result.ok, result.ok ? undefined : result.error.detail);
+    assert.ok(result.ok, result.ok ? '' : result.error.detail);
     assert.deepEqual(result.bodies.map(body => body.key).sort(), ['b1', 'b3']);
     const midpoint = revision === 0 ? [[-2, 0, 15], [2, 0, 15]] : [[-0.125, -1.125, 16.5], [3.875, -1.125, 16.5]];
     for (const [i, node] of received.nodes.filter(node => node.kind === 'sweep-curve').entries()) {
