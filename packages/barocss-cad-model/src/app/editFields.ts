@@ -149,7 +149,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
     case 'loft':
       node.sections.forEach((sec, k) => {
         out.push(...sketchFields(nodes, sec.sketch, `Section ${k + 1} · `));
-        number('z' + k, `Section ${k + 1} · height`, 'mm', n => num((n as typeof node).sections[k].z), (n, v) => ({ ...(n as typeof node), sections: (n as typeof node).sections.map((x, j) => j === k ? { ...x, z: v } : x) }));
+        if (!Object.hasOwn(sec, 'frame')) number('z' + k, `Section ${k + 1} · height`, 'mm', n => num((n as typeof node).sections[k].z), (n, v) => ({ ...(n as typeof node), sections: (n as typeof node).sections.map((x, j) => j === k && !Object.hasOwn(x, 'frame') && x.frame === undefined ? { ...x, z: v } : x) }));
       });
       if (node.sections.length >= 3) out.push({ kind: 'toggle', key: 'smooth', label: 'Smooth', get: n => !!self<typeof node>(n).smooth, set: (n, v) => replace(n, i, { ...self<typeof node>(n), smooth: v }) });
       break;

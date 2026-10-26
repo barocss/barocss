@@ -20,7 +20,7 @@ const SPECS: Record<string, Spec> = {
   extrude: { sketch: 'sketch', height: 'dim', 'from?': 'dim', 'draft?': 'num' },
   revolve: { sketch: 'sketch', axis: 'enum:x|y', 'origin?': 'dim2', angle: 'num' },
   sweep: { sketch: 'sketch', path: 'path' },
-  loft: { sections: 'sections', 'smooth?': 'bool' },
+  loft: { sections: 'sections', 'smooth?': 'bool', 'guide?': 'loft-guide' },
   translate: { parent: 'ref', offset: 'dim3' },
   rotate: { parent: 'ref', axis: 'enum:x|y|z', angle: 'num', 'pivot?': 'dim3' },
   mirror: { parent: 'ref', plane: 'enum:xy|xz|yz' },
@@ -298,9 +298,25 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
       if (!Number.isInteger(v) || (v as number) < 0 || (v as number) >= nodes.length) return `the index of an earlier sketch (0–${nodes.length - 1})`;
       return nodes[v as number].kind === 'sketch' ? null : `feature ${v} is a ${nodes[v as number].kind}, not a sketch`;
     }
+    case 'loft-guide': {
+      if (!isObj(v) || Object.keys(v).length !== 2 || !Object.hasOwn(v, 'kind') || !Object.hasOwn(v, 'controlPoints') || (v.kind !== 'quadratic-bezier' && v.kind !== 'cubic-bezier')) return 'an explicit quadratic-bezier or cubic-bezier guide with controlPoints';
+      const count = v.kind === 'quadratic-bezier' ? 3 : 4;
+      if (!Array.isArray(v.controlPoints) || v.controlPoints.length !== count || !Array.from(v.controlPoints).every(p => Array.isArray(p) && p.length === 3 && [0, 1, 2].every(i => typeof p[i] === 'number' && Number.isFinite(p[i])))) return `exactly ${count} finite world-mm control points`;
+      return null;
+    }
     case 'sections': {
       if (!Array.isArray(v) || v.length < 2) return 'at least two {sketch, z} sections';
-      for (const s of v) { if (!isObj(s) || !dim(s.z)) return 'each section is {sketch, z}'; const w = checkValue(s.sketch, 'sketch', nodes, parameters, leaves); if (w) return w; }
+      for (const s of v) {
+        if (!isObj(s)) return 'each section is {sketch, z}';
+        if (Object.hasOwn(s, 'frame')) {
+          const frame = s.frame;
+          if (Object.keys(s).some(key => key !== 'sketch' && key !== 'frame') || !isObj(frame) || Object.keys(frame).length !== 3 || !['origin', 'xAxis', 'yAxis'].every(key => {
+            const p = frame[key];
+            return Object.hasOwn(frame, key) && Array.isArray(p) && p.length === 3 && [0, 1, 2].every(i => typeof p[i] === 'number' && Number.isFinite(p[i]));
+          })) return 'each framed section is {sketch, frame:{origin,xAxis,yAxis}} with finite 3D points and no z';
+        } else if (!dim(s.z)) return 'each section is {sketch, z}';
+        const w = checkValue(s.sketch, 'sketch', nodes, parameters, leaves); if (w) return w;
+      }
       return null;
     }
     case 'path': {
@@ -330,7 +346,7 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
   const ref = (r: BodyRef): BodyRef => ({ ...r, node: map(r.node) });
   const n = { ...node } as Record<string, unknown> & ModelNode;
   if ('sketch' in n && typeof n.sketch === 'number') n.sketch = map(n.sketch);
-  if (n.kind === 'loft') { (n as { sections: { sketch: number; z: unknown }[] }).sections = n.sections.map(s => ({ ...s, sketch: map(s.sketch) })); if (n.from) (n as { from: number[] }).from = n.from.map(map); }
+  if (n.kind === 'loft') { (n as Extract<ModelNode, { kind: 'loft' }>).sections = n.sections.map(s => ({ ...s, sketch: map(s.sketch) })); if (n.from) (n as { from: number[] }).from = n.from.map(map); }
   if (n.kind === 'sketch' && n.on) (n as { on: BodyRef }).on = ref(n.on);
   if (n.kind === 'sketch' && n.association !== undefined) { parentsOf(n); n.association = { ...n.association, source: ref(n.association.source) }; }
   if ((n.kind === 'gear' || n.kind === 'rack' || n.kind === 'bevel-gear' || n.kind === 'worm') && n.mesh) (n as { mesh: GearMesh }).mesh = { ...n.mesh, gear: map(n.mesh.gear) };
