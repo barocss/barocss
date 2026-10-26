@@ -108,8 +108,9 @@ test('a saved tapped blind hole keeps model mm and callout text when the sheet s
   };
   const resolved = resolveDimension(views, dim);
   assert.ok(resolved.ok && resolved.kind === 'diameter', JSON.stringify(resolved));
-  assert.equal(resolved.radius, 2.5);
-  assert.equal(resolved.value, 5);
+  // Derived geometry can round: compare lengths within 1e-9 mm, not bit equality; stored values stay strict.
+  assert.ok(Math.abs(resolved.radius - 2.5) <= 1e-9, `tap-drill radius in model mm: ${resolved.radius}`);
+  assert.ok(Math.abs(resolved.value - 5) <= 1e-9, `tap-drill diameter in model mm: ${resolved.value}`);
   assert.equal(resolved.text, 'Ø5', 'the physical measurement is the tap drill');
   assert.equal(lastHole(saved).depth, 5);
   assert.equal(lastHole(saved).thread, 'M6×1');
@@ -126,7 +127,7 @@ test('a saved tapped blind hole keeps model mm and callout text when the sheet s
     const top = sheet.groups.find(g => g.role === 'view' && g.view === 'top');
     const rim = top?.marks.find(m => m.kind === 'arc' && m.pen === 'visible');
     assert.ok(rim?.kind === 'arc');
-    assert.equal(Math.hypot(...rim.u), c.paperRadius);
-    assert.equal(Math.hypot(...rim.v), c.paperRadius);
+    assert.ok(Math.abs(Math.hypot(...rim.u) - c.paperRadius) <= 1e-9, `rim u length in paper mm at scale ${c.scale}`);
+    assert.ok(Math.abs(Math.hypot(...rim.v) - c.paperRadius) <= 1e-9, `rim v length in paper mm at scale ${c.scale}`);
   }
 });
