@@ -1,6 +1,6 @@
 # barocss CAD roadmap
 
-Current as of 2026-10-26, after the scoped CAD integration checkpoints. This file is the one place for **what we do, in what order, and
+Current as of 2026-10-27, after the scoped CAD integration checkpoints. This file is the one place for **what we do, in what order, and
 when each item is done**. It replaces Codex's continuation roadmap of 2026-10-22/23, which is at `0eabecf7f` and on
 `codex/cad-coordinator-handover-20261022`.
 
@@ -310,7 +310,20 @@ current gate explicitly. Preserve commands, immutable source references and raw 
 use their presence as a substitute for the outcome. A source review, visual result, numerical PASS and measured
 validation are different results and must remain separate.
 
-## Order now (2026-10-26)
+## Order now (2026-10-27)
+
+Latest coordinator checkpoint supersedes the earlier status paragraphs below:
+
+- Local product `d470649cd88c441ed944dc5e0bb96374f397a799` contains Viewer review-state save/restore. Source/default-export type, CPU5, actual file/browser flow and required product docs passed. Compiled Viewer/package release remains unqualified.
+- Kernel SSI source `515b2aee37496d5a72059bf9b80d5007bdd50cfb` is adopted at `59eeb67e6e0099a53d6e61e2895b479089122757`. Its first affected CAD build, two test files (7 PASS) and production1 lint passed. Old818/new818 outputs differ only in `dist/intersect/surface-intersection.js`. This protects typed failure/finite admission and existing open/closed/tangent cases; it does not certify global SSI completeness.
+- Route Model bindings and the pointer/session bridge are implemented. The first public flow produced two sweeps and a real saved baseline, then stopped at entry after an unresolved modifier-selection issue. The entry-only correction `4fdbfc76be39a5067cfff15cf4864e33b207546e` exposes the existing member selectors for two document curves. Reuse that exact saved baseline and complete the still-unrun Create/drag/Apply/Undo/Redo/file flow; preserve the original failure.
+- Parameter-bound Drawing reference source and its caption/narrow-panel follow-up passed their scoped native/browser checks. The prior Save snapshot timeout remains cause-unknown. Reuse unchanged proof and close product integration rather than run the old flow again.
+- Assembly review consumer `3c7be14dfba3dbeb217bc511d0a534489c6f2241` passed its changed public tree/pick/visibility/file flow. It reuses the SDK source entry; no new assembly engine, compiled package or larger-scene claim follows.
+- Reviewed inventory adds 9 and changes 10 rows (6629 to 6638); the other6619 rows and non-exposure fields remain byte-identical. Source docs `c520fa0195ff76cc27078fb9a4326f565be5755b` preserve Pin/setup/material-preview text. Close the current docs/site batch and exact product adoption after the consumer returns.
+- Next engine delivery is the already closed G15c progressive path-tracing source plus its captured sample-count correction. Keep it separate from the passed DoF checks. Viewer material consumption is independent source work; pack/config/hook investigation was stopped by the owner and is not a predecessor.
+
+Each feature still follows foundation contract, complete source, one necessary affected batch, real consumer and exact product integration. The earlier records below retain their original proof boundaries; they are not new assignments or complete-project claims.
+
 
 The current checked local product is `f1c6b178cd2ef9ae6bc87123e4434d204c3d08b3`.
 STL quality is complete for its scoped seven-file feature, including actual downloads and required product docs.

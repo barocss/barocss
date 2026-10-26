@@ -272437,14 +272437,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(nodes: readonly ModelNode[], edge: string) => string | null",
+            "type": "(nodes: readonly ModelNode[], edge: string, parameters?: Readonly<Record<string, number>>) => string | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(nodes: readonly ModelNode[], edge: string) => string | null"
+              "(nodes: readonly ModelNode[], edge: string, parameters?: Readonly<Record<string, number>>) => string | null"
             ]
           }
         }
@@ -301379,6 +301379,13 @@
                 "type": "\"whole\" | \"even\" | undefined"
               },
               {
+                "name": "routeBundleMember",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ bundleId: string; memberId: string; } | undefined"
+              },
+              {
                 "name": "row",
                 "kind": "property",
                 "optional": false,
@@ -302208,6 +302215,180 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./engine/doc",
+      "exportName": "RouteBundle",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/doc.ts",
+            "name": "RouteBundle",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "RouteBundle",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "frame",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"world-mm\""
+              },
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"two-open-curves-one-translation-tie\""
+              },
+              {
+                "name": "members",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "[RouteBundleMember, RouteBundleMember]"
+              },
+              {
+                "name": "tie",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ id: string; anchorMM: [number, number, number]; }"
+              },
+              {
+                "name": "version",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "1"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/doc",
+      "exportName": "RouteBundleMember",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/doc.ts",
+            "name": "RouteBundleMember",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "RouteBundleMember",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "curveObjectId",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "geometryId",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "handleKey",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "offsetMM",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "[number, number, number]"
+              },
+              {
+                "name": "profileFeatureId",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "sourceCanonical",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "sourceKey",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "sourceRevision",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "sweepFeatureId",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/doc",
       "exportName": "STUDIO_DOC_FIELDS",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -302223,7 +302404,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "readonly [\"format\", \"schema\", \"nextId\", \"units\", \"parameters\", \"configurations\", \"variability\", \"pendingParts\", \"nodes\", \"outputs\", \"render\", \"direct\", \"instances\", \"drawing\", \"bodies\", \"mates\", \"robot\", \"underlays\", \"brief\", \"questions\", \"references\", \"drafts\", \"interfaces\", \"ecrs\", \"baselines\", \"requirements\", \"proposals\", \"history\", \"libraries\", \"process\", \"printer\", \"print\", \"printPreview\", \"mould\", \"machining\", \"casting\", \"frames\", \"fits\", \"bearings\", \"orings\", \"rings\", \"fasteners\", \"fastenerSizes\", \"castingRules\", \"mounts\", \"drives\", \"connectors\", \"rowSources\"]",
+            "type": "readonly [\"format\", \"schema\", \"nextId\", \"units\", \"parameters\", \"configurations\", \"variability\", \"pendingParts\", \"nodes\", \"outputs\", \"render\", \"direct\", \"routeBundles\", \"instances\", \"drawing\", \"bodies\", \"mates\", \"robot\", \"underlays\", \"brief\", \"questions\", \"references\", \"drafts\", \"interfaces\", \"ecrs\", \"baselines\", \"requirements\", \"proposals\", \"history\", \"libraries\", \"process\", \"printer\", \"print\", \"printPreview\", \"mould\", \"machining\", \"casting\", \"frames\", \"fits\", \"bearings\", \"orings\", \"rings\", \"fasteners\", \"fastenerSizes\", \"castingRules\", \"mounts\", \"drives\", \"connectors\", \"rowSources\"]",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -303356,6 +303537,13 @@
                 "type": "RobotSettings | undefined"
               },
               {
+                "name": "routeBundles",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "RouteBundle[] | undefined"
+              },
+              {
                 "name": "rowSources",
                 "kind": "property",
                 "optional": true,
@@ -303367,7 +303555,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "2 | 1 | 3"
+                "type": "2 | 1 | 3 | 4"
               },
               {
                 "name": "underlays",
@@ -303935,14 +304123,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(node: ModelNode) => node is ({ kind: \"extrude\"; sketch: number; height: Dim; from?: Dim | undefined; draft?: number | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"revolve\"; sketch: number; axis: \"x\" | \"y\"; origin?: [Dim, Dim] | undefined; angle: number; dir?: [number, number] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"translate\"; parent: BodyRef; offset: [Dim, Dim, Dim]; } & NodeExtras) | ({ kind: \"rotate\"; parent: BodyRef; axis: Axis; angle: number; pivot?: [Dim, Dim, Dim] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"mirror\"; parent: BodyRef; plane: \"xy\" | \"xz\" | \"yz\"; } & NodeExtras) | ({ kind: \"scale\"; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"linear-pattern\"; parent: BodyRef; axis: Axis; spacing: Dim; count: number; } & NodeExtras) | ({ kind: \"circular-pattern\"; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"union\"; left: BodyRef; right: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"intersect\"; left: BodyRef; right: BodyRef; } & NodeExtras) | ({ kind: \"difference\"; parent: BodyRef; tool: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"split\"; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] | undefined; } & NodeExtras) | ({ kind: \"sweep\"; sketch: number; path: ({ kind: \"straight\"; length: Dim; } | { kind: \"bend\"; radius: Dim; angle: number; toward: \"x\" | \"y\" | \"-x\" | \"-y\"; })[]; } & NodeExtras) | ({ kind: \"sweep-curve\"; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[]; }; } & NodeExtras) | ({ kind: \"loft\"; sections: { sketch: number; z: Dim; }[]; smooth?: boolean | undefined; from?: number[] | undefined; } & NodeExtras) | ({ kind: \"import\"; name: string; step: string; solids?: number | undefined; } & NodeExtras) | ({ kind: \"mesh\"; name: string; unit: string; positions?: number[] | undefined; indices?: number[] | undefined; blob?: { positions: string; indices: string; } | undefined; representation?: \"facets\" | undefined; pieces?: number | undefined; repair?: MeshRepairRecord | undefined; crossings?: { count: number; at: [number, number, number][]; } | undefined; role?: \"infill\" | undefined; } & NodeExtras) | ({ kind: \"thread\"; diameter: number; pitch: number; center: [number, number]; seat: number; length?: number | undefined; hex?: { across: number; height: number; internal?: true | undefined; } | undefined; form?: \"faceted\" | \"helical\" | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"shell\"; parent: BodyRef; thickness: Dim; open: string[]; } & NodeExtras) | ({ kind: \"chamfer\"; parent: BodyRef; edges: string[]; distance: Dim; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-corner-relief\"; parent: BodyRef; edges: [string]; shape: \"square\" | \"round\"; size: Dim; } & NodeExtras) | ({ kind: \"sheet-flange\"; parent: BodyRef; edges: [string]; length: Dim; angle?: number | undefined; bendRadius?: Dim | undefined; measure?: \"outer\" | \"inner\" | \"tangent\" | undefined; position?: \"material-inside\" | \"material-outside\" | \"bend-outside\" | undefined; offsets?: [Dim, Dim] | undefined; relief?: { kind: \"rectangular\" | \"obround\"; width: Dim; depth: Dim; } | { kind: \"none\"; } | undefined; } & NodeExtras) | ({ kind: \"frame\"; follows?: FrameFollows | undefined; points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[]; bends?: ModelFrameBend[] | undefined; section: MemberSection; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; mirror?: boolean | undefined; up?: [number, number, number] | undefined; overrides?: FrameOverride[] | undefined; corners?: FrameCorners | undefined; trims?: FrameTrim[] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"frame-member\"; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; up?: [number, number, number] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"thicken\"; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }; thickness: Dim; side?: \"reverse\" | \"normal\" | \"both\" | undefined; } & NodeExtras) | ({ kind: \"library\"; name: string; library: CadLibraryOrigin; prefix: string; features: CadPartFeature[]; outputs: string[]; interfaces: CadLibraryInterface[]; warnings: string[]; placement?: { rotation: [number, number, number]; position: [number, number, number]; } | undefined; addTo?: BodyRef | undefined; on?: { face: string; point: [number, number, number]; } | undefined; context?: Record<string, number> | undefined; cut?: boolean | undefined; } & NodeExtras) | ({ kind: \"rack\"; module: Dim; teeth: number; faceWidth: Dim; height: Dim; thicknessReduction?: Dim | undefined; origin: [number, number]; angle?: number | undefined; from?: number | undefined; mesh?: RackMesh | undefined; generator: \"spur-rack@0\" | \"spur-rack@1\"; rootFillet?: Dim | undefined; } & NodeExtras) | ({ kind: \"internal-gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; rim: Dim; profileShift?: number | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"internal-gear@0\" | \"internal-gear@1\"; shiftDefault?: boolean | undefined; cutter?: { teeth: number; shift?: number | undefined; tipRadius?: Dim | undefined; } | undefined; } & NodeExtras) | ({ kind: \"bevel-gear\"; module: Dim; teeth: number; mateTeeth: number; shaftAngle?: number | undefined; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: BevelMesh | undefined; generator: \"bevel-gear@0\"; spiral?: { angle: number; hand: \"left\" | \"right\"; cutterRadius: Dim; cutterEstimate?: boolean | undefined; } | undefined; } & NodeExtras) | ({ kind: \"worm-wheel\"; module: Dim; starts: number; diameter: Dim; hand: \"left\" | \"right\"; teeth: number; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"worm-wheel@0\"; } & NodeExtras) | ({ kind: \"spring\"; type?: \"extension\" | \"torsion\" | undefined; wire: Dim; diameter: Dim; activeCoils: number; pitch?: Dim | undefined; freeLength?: Dim | undefined; hand: \"left\" | \"right\"; ends?: \"closed\" | \"open\" | \"closed-ground\" | undefined; shearModulus?: number | undefined; shearModulusEstimate?: boolean | undefined; load?: number | undefined; hooks?: \"machine-loop\" | \"crossover\" | undefined; initialTension?: number | undefined; legLengths?: [number, number] | undefined; youngsModulus?: number | undefined; youngsModulusEstimate?: boolean | undefined; moment?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"spring@0\"; } & NodeExtras) | ({ kind: \"cam\"; follower: \"flat\" | \"roller\"; motion?: \"translating\" | \"oscillating\" | undefined; base: number; roller?: number | undefined; offset?: number | undefined; pivotDistance?: number | undefined; armLength?: number | undefined; faceOffset?: number | undefined; segments: { angle: number; to?: number | undefined; law?: CamLawName | undefined; }[]; thickness: number; bore?: number | undefined; pressureAngleLimit?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"cam@0\"; } & NodeExtras) | ({ kind: \"sprocket\"; row: string; teeth: number; tip: number; width: number; seat?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"sprocket@0\"; } & NodeExtras) | ({ kind: \"pulley\"; row: string; teeth?: number | undefined; diameter?: number | undefined; grooves?: number | undefined; width?: number | undefined; crown?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"pulley@0\"; } & NodeExtras) | ({ kind: \"belt\"; row: string; wheels: [number, number]; rounding?: \"whole\" | \"even\" | undefined; generator: \"belt@0\"; } & NodeExtras) | ({ kind: \"coupling\"; row: string; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"coupling@0\"; } & NodeExtras) | ({ kind: \"shaft\"; steps: { diameter: Dim; length: Dim; fillet?: number | undefined; undercut?: { width: number; depth: number; } | undefined; grooves?: { diameter: number; width: number; at: number; }[] | undefined; keyseats?: { width: number; depth: number; length: number; offset: number; ends?: \"square\" | \"end-mill\" | \"disc\" | undefined; cutterRadius?: number | undefined; angle?: number | undefined; }[] | undefined; }[]; chamfers?: [number, number] | undefined; holes?: { diameter: number; at: number; angle?: number | undefined; }[] | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"shaft@0\"; } & NodeExtras) | ({ kind: \"oring-gland\"; parent: BodyRef; face: string; gland: \"face\" | \"piston\" | \"rod\"; ring: string; diameter: number; width: number; at?: number | undefined; depth?: number | undefined; center?: [number, number, number] | undefined; seal?: number | undefined; sealClass?: string | undefined; grooveClass?: string | undefined; } & NodeExtras) | ({ kind: \"oring\"; gland: number; } & NodeExtras) | ({ kind: \"connector-opening\"; parent: BodyRef; face: string; row: string; center: [number, number, number]; rotation?: number | undefined; } & NodeExtras) | ({ kind: \"connector-body\"; opening: number; } & NodeExtras) | ({ kind: \"gusset\"; frame: number; point: number; members?: [number, number] | undefined; along?: 1 | -1 | undefined; legs: [number, number]; thickness: number; clip?: number | undefined; offset?: number | undefined; } & NodeExtras) | ({ kind: \"end-cap\"; frame: number; member: number; end: \"start\" | \"end\"; fit: \"over\" | \"inset\"; thickness: number; } & NodeExtras) | ({ kind: \"bearing\"; row: string; shaft: number; step: number; against: \"start\" | \"end\"; housing?: number | undefined; housingRef?: BearingHousingRef | undefined; shaftClass?: string | undefined; housingClass?: string | undefined; } & NodeExtras) | ({ kind: \"key\"; shaft: number; keyseat: number; height: number; width?: number | undefined; length?: number | undefined; ends?: \"square\" | \"round\" | undefined; hub?: number | undefined; } & NodeExtras) | ({ kind: \"keyway\"; parent: BodyRef; face: string; width: number; depth: number; angle?: number | undefined; } & NodeExtras) | ({ kind: \"retaining-ring\"; shaft: number; groove: number; thickness: number; outerDiameter: number; row?: string | undefined; } & NodeExtras) | ({ kind: \"pin\"; shaft: number; hole: number; diameter?: number | undefined; length?: number | undefined; fit?: boolean | undefined; } & NodeExtras) | ({ kind: \"worm\"; starts: number; form: \"ZI\" | \"ZA\"; length: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; mesh: BevelMesh; generator: \"worm@0\"; } & NodeExtras) | ({ kind: \"gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; profileShift?: number | undefined; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: GearMesh | undefined; generator: \"spur-gear@0\" | \"spur-gear@1\"; toolTipRadius?: Dim | undefined; } & NodeExtras) | ({ kind: \"subd\"; name: string; cage: { positions: number[]; faces: number[][]; creases?: [number, number][] | undefined; }; mirror?: \"x\" | \"z\" | \"y\" | undefined; } & NodeExtras) | ({ kind: \"sew\"; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }[]; tolerance?: number | undefined; } & NodeExtras) | ({ kind: \"draft\"; parent: BodyRef; faces: string[]; angle: number; } & NodeExtras) | ({ kind: \"split-face\"; parent: BodyRef; face: string; pull: [number, number, number]; names?: string[] | undefined; } & NodeExtras) | ({ kind: \"fillet\"; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim; }[] | undefined; section?: FilletSection | undefined; } & NodeExtras) | ({ kind: \"separate\"; parent: BodyRef; } & NodeExtras) | ({ kind: \"decimate\"; parent: BodyRef; ratio?: number | undefined; triangles?: number | undefined; maxError?: number | undefined; featureAngle?: number | undefined; } & NodeExtras) | ({ kind: \"hole\"; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis | undefined; side?: \"min\" | \"max\" | undefined; depth?: Dim | undefined; thread?: string | undefined; pattern?: HolePattern | undefined; made?: Made | undefined; face?: string | undefined; countersink?: number | undefined; csk?: number | undefined; } & NodeExtras)",
+            "type": "(node: ModelNode) => node is ({ kind: \"extrude\"; sketch: number; height: Dim; from?: Dim | undefined; draft?: number | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"revolve\"; sketch: number; axis: \"x\" | \"y\"; origin?: [Dim, Dim] | undefined; angle: number; dir?: [number, number] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"translate\"; parent: BodyRef; offset: [Dim, Dim, Dim]; } & NodeExtras) | ({ kind: \"rotate\"; parent: BodyRef; axis: Axis; angle: number; pivot?: [Dim, Dim, Dim] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"mirror\"; parent: BodyRef; plane: \"xy\" | \"xz\" | \"yz\"; } & NodeExtras) | ({ kind: \"scale\"; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"linear-pattern\"; parent: BodyRef; axis: Axis; spacing: Dim; count: number; } & NodeExtras) | ({ kind: \"circular-pattern\"; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"union\"; left: BodyRef; right: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"intersect\"; left: BodyRef; right: BodyRef; } & NodeExtras) | ({ kind: \"difference\"; parent: BodyRef; tool: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"split\"; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] | undefined; } & NodeExtras) | ({ kind: \"sweep\"; sketch: number; path: ({ kind: \"straight\"; length: Dim; } | { kind: \"bend\"; radius: Dim; angle: number; toward: \"x\" | \"y\" | \"-x\" | \"-y\"; })[]; } & NodeExtras) | ({ kind: \"sweep-curve\"; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[]; }; routeBundleMember?: { bundleId: string; memberId: string; } | undefined; } & NodeExtras) | ({ kind: \"loft\"; sections: { sketch: number; z: Dim; }[]; smooth?: boolean | undefined; from?: number[] | undefined; } & NodeExtras) | ({ kind: \"import\"; name: string; step: string; solids?: number | undefined; } & NodeExtras) | ({ kind: \"mesh\"; name: string; unit: string; positions?: number[] | undefined; indices?: number[] | undefined; blob?: { positions: string; indices: string; } | undefined; representation?: \"facets\" | undefined; pieces?: number | undefined; repair?: MeshRepairRecord | undefined; crossings?: { count: number; at: [number, number, number][]; } | undefined; role?: \"infill\" | undefined; } & NodeExtras) | ({ kind: \"thread\"; diameter: number; pitch: number; center: [number, number]; seat: number; length?: number | undefined; hex?: { across: number; height: number; internal?: true | undefined; } | undefined; form?: \"faceted\" | \"helical\" | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"shell\"; parent: BodyRef; thickness: Dim; open: string[]; } & NodeExtras) | ({ kind: \"chamfer\"; parent: BodyRef; edges: string[]; distance: Dim; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-corner-relief\"; parent: BodyRef; edges: [string]; shape: \"square\" | \"round\"; size: Dim; } & NodeExtras) | ({ kind: \"sheet-flange\"; parent: BodyRef; edges: [string]; length: Dim; angle?: number | undefined; bendRadius?: Dim | undefined; measure?: \"outer\" | \"inner\" | \"tangent\" | undefined; position?: \"material-inside\" | \"material-outside\" | \"bend-outside\" | undefined; offsets?: [Dim, Dim] | undefined; relief?: { kind: \"rectangular\" | \"obround\"; width: Dim; depth: Dim; } | { kind: \"none\"; } | undefined; } & NodeExtras) | ({ kind: \"frame\"; follows?: FrameFollows | undefined; points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[]; bends?: ModelFrameBend[] | undefined; section: MemberSection; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; mirror?: boolean | undefined; up?: [number, number, number] | undefined; overrides?: FrameOverride[] | undefined; corners?: FrameCorners | undefined; trims?: FrameTrim[] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"frame-member\"; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; up?: [number, number, number] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"thicken\"; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }; thickness: Dim; side?: \"reverse\" | \"normal\" | \"both\" | undefined; } & NodeExtras) | ({ kind: \"library\"; name: string; library: CadLibraryOrigin; prefix: string; features: CadPartFeature[]; outputs: string[]; interfaces: CadLibraryInterface[]; warnings: string[]; placement?: { rotation: [number, number, number]; position: [number, number, number]; } | undefined; addTo?: BodyRef | undefined; on?: { face: string; point: [number, number, number]; } | undefined; context?: Record<string, number> | undefined; cut?: boolean | undefined; } & NodeExtras) | ({ kind: \"rack\"; module: Dim; teeth: number; faceWidth: Dim; height: Dim; thicknessReduction?: Dim | undefined; origin: [number, number]; angle?: number | undefined; from?: number | undefined; mesh?: RackMesh | undefined; generator: \"spur-rack@0\" | \"spur-rack@1\"; rootFillet?: Dim | undefined; } & NodeExtras) | ({ kind: \"internal-gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; rim: Dim; profileShift?: number | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"internal-gear@0\" | \"internal-gear@1\"; shiftDefault?: boolean | undefined; cutter?: { teeth: number; shift?: number | undefined; tipRadius?: Dim | undefined; } | undefined; } & NodeExtras) | ({ kind: \"bevel-gear\"; module: Dim; teeth: number; mateTeeth: number; shaftAngle?: number | undefined; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: BevelMesh | undefined; generator: \"bevel-gear@0\"; spiral?: { angle: number; hand: \"left\" | \"right\"; cutterRadius: Dim; cutterEstimate?: boolean | undefined; } | undefined; } & NodeExtras) | ({ kind: \"worm-wheel\"; module: Dim; starts: number; diameter: Dim; hand: \"left\" | \"right\"; teeth: number; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"worm-wheel@0\"; } & NodeExtras) | ({ kind: \"spring\"; type?: \"extension\" | \"torsion\" | undefined; wire: Dim; diameter: Dim; activeCoils: number; pitch?: Dim | undefined; freeLength?: Dim | undefined; hand: \"left\" | \"right\"; ends?: \"closed\" | \"open\" | \"closed-ground\" | undefined; shearModulus?: number | undefined; shearModulusEstimate?: boolean | undefined; load?: number | undefined; hooks?: \"machine-loop\" | \"crossover\" | undefined; initialTension?: number | undefined; legLengths?: [number, number] | undefined; youngsModulus?: number | undefined; youngsModulusEstimate?: boolean | undefined; moment?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"spring@0\"; } & NodeExtras) | ({ kind: \"cam\"; follower: \"flat\" | \"roller\"; motion?: \"translating\" | \"oscillating\" | undefined; base: number; roller?: number | undefined; offset?: number | undefined; pivotDistance?: number | undefined; armLength?: number | undefined; faceOffset?: number | undefined; segments: { angle: number; to?: number | undefined; law?: CamLawName | undefined; }[]; thickness: number; bore?: number | undefined; pressureAngleLimit?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"cam@0\"; } & NodeExtras) | ({ kind: \"sprocket\"; row: string; teeth: number; tip: number; width: number; seat?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"sprocket@0\"; } & NodeExtras) | ({ kind: \"pulley\"; row: string; teeth?: number | undefined; diameter?: number | undefined; grooves?: number | undefined; width?: number | undefined; crown?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"pulley@0\"; } & NodeExtras) | ({ kind: \"belt\"; row: string; wheels: [number, number]; rounding?: \"whole\" | \"even\" | undefined; generator: \"belt@0\"; } & NodeExtras) | ({ kind: \"coupling\"; row: string; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"coupling@0\"; } & NodeExtras) | ({ kind: \"shaft\"; steps: { diameter: Dim; length: Dim; fillet?: number | undefined; undercut?: { width: number; depth: number; } | undefined; grooves?: { diameter: number; width: number; at: number; }[] | undefined; keyseats?: { width: number; depth: number; length: number; offset: number; ends?: \"square\" | \"end-mill\" | \"disc\" | undefined; cutterRadius?: number | undefined; angle?: number | undefined; }[] | undefined; }[]; chamfers?: [number, number] | undefined; holes?: { diameter: number; at: number; angle?: number | undefined; }[] | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"shaft@0\"; } & NodeExtras) | ({ kind: \"oring-gland\"; parent: BodyRef; face: string; gland: \"face\" | \"piston\" | \"rod\"; ring: string; diameter: number; width: number; at?: number | undefined; depth?: number | undefined; center?: [number, number, number] | undefined; seal?: number | undefined; sealClass?: string | undefined; grooveClass?: string | undefined; } & NodeExtras) | ({ kind: \"oring\"; gland: number; } & NodeExtras) | ({ kind: \"connector-opening\"; parent: BodyRef; face: string; row: string; center: [number, number, number]; rotation?: number | undefined; } & NodeExtras) | ({ kind: \"connector-body\"; opening: number; } & NodeExtras) | ({ kind: \"gusset\"; frame: number; point: number; members?: [number, number] | undefined; along?: 1 | -1 | undefined; legs: [number, number]; thickness: number; clip?: number | undefined; offset?: number | undefined; } & NodeExtras) | ({ kind: \"end-cap\"; frame: number; member: number; end: \"start\" | \"end\"; fit: \"over\" | \"inset\"; thickness: number; } & NodeExtras) | ({ kind: \"bearing\"; row: string; shaft: number; step: number; against: \"start\" | \"end\"; housing?: number | undefined; housingRef?: BearingHousingRef | undefined; shaftClass?: string | undefined; housingClass?: string | undefined; } & NodeExtras) | ({ kind: \"key\"; shaft: number; keyseat: number; height: number; width?: number | undefined; length?: number | undefined; ends?: \"square\" | \"round\" | undefined; hub?: number | undefined; } & NodeExtras) | ({ kind: \"keyway\"; parent: BodyRef; face: string; width: number; depth: number; angle?: number | undefined; } & NodeExtras) | ({ kind: \"retaining-ring\"; shaft: number; groove: number; thickness: number; outerDiameter: number; row?: string | undefined; } & NodeExtras) | ({ kind: \"pin\"; shaft: number; hole: number; diameter?: number | undefined; length?: number | undefined; fit?: boolean | undefined; } & NodeExtras) | ({ kind: \"worm\"; starts: number; form: \"ZI\" | \"ZA\"; length: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; mesh: BevelMesh; generator: \"worm@0\"; } & NodeExtras) | ({ kind: \"gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; profileShift?: number | undefined; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: GearMesh | undefined; generator: \"spur-gear@0\" | \"spur-gear@1\"; toolTipRadius?: Dim | undefined; } & NodeExtras) | ({ kind: \"subd\"; name: string; cage: { positions: number[]; faces: number[][]; creases?: [number, number][] | undefined; }; mirror?: \"x\" | \"z\" | \"y\" | undefined; } & NodeExtras) | ({ kind: \"sew\"; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }[]; tolerance?: number | undefined; } & NodeExtras) | ({ kind: \"draft\"; parent: BodyRef; faces: string[]; angle: number; } & NodeExtras) | ({ kind: \"split-face\"; parent: BodyRef; face: string; pull: [number, number, number]; names?: string[] | undefined; } & NodeExtras) | ({ kind: \"fillet\"; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim; }[] | undefined; section?: FilletSection | undefined; } & NodeExtras) | ({ kind: \"separate\"; parent: BodyRef; } & NodeExtras) | ({ kind: \"decimate\"; parent: BodyRef; ratio?: number | undefined; triangles?: number | undefined; maxError?: number | undefined; featureAngle?: number | undefined; } & NodeExtras) | ({ kind: \"hole\"; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis | undefined; side?: \"min\" | \"max\" | undefined; depth?: Dim | undefined; thread?: string | undefined; pattern?: HolePattern | undefined; made?: Made | undefined; face?: string | undefined; countersink?: number | undefined; csk?: number | undefined; } & NodeExtras)",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
               }
             ],
             "callSignatures": [
-              "(node: ModelNode) => node is ({ kind: \"extrude\"; sketch: number; height: Dim; from?: Dim | undefined; draft?: number | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"revolve\"; sketch: number; axis: \"x\" | \"y\"; origin?: [Dim, Dim] | undefined; angle: number; dir?: [number, number] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"translate\"; parent: BodyRef; offset: [Dim, Dim, Dim]; } & NodeExtras) | ({ kind: \"rotate\"; parent: BodyRef; axis: Axis; angle: number; pivot?: [Dim, Dim, Dim] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"mirror\"; parent: BodyRef; plane: \"xy\" | \"xz\" | \"yz\"; } & NodeExtras) | ({ kind: \"scale\"; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"linear-pattern\"; parent: BodyRef; axis: Axis; spacing: Dim; count: number; } & NodeExtras) | ({ kind: \"circular-pattern\"; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"union\"; left: BodyRef; right: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"intersect\"; left: BodyRef; right: BodyRef; } & NodeExtras) | ({ kind: \"difference\"; parent: BodyRef; tool: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"split\"; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] | undefined; } & NodeExtras) | ({ kind: \"sweep\"; sketch: number; path: ({ kind: \"straight\"; length: Dim; } | { kind: \"bend\"; radius: Dim; angle: number; toward: \"x\" | \"y\" | \"-x\" | \"-y\"; })[]; } & NodeExtras) | ({ kind: \"sweep-curve\"; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[]; }; } & NodeExtras) | ({ kind: \"loft\"; sections: { sketch: number; z: Dim; }[]; smooth?: boolean | undefined; from?: number[] | undefined; } & NodeExtras) | ({ kind: \"import\"; name: string; step: string; solids?: number | undefined; } & NodeExtras) | ({ kind: \"mesh\"; name: string; unit: string; positions?: number[] | undefined; indices?: number[] | undefined; blob?: { positions: string; indices: string; } | undefined; representation?: \"facets\" | undefined; pieces?: number | undefined; repair?: MeshRepairRecord | undefined; crossings?: { count: number; at: [number, number, number][]; } | undefined; role?: \"infill\" | undefined; } & NodeExtras) | ({ kind: \"thread\"; diameter: number; pitch: number; center: [number, number]; seat: number; length?: number | undefined; hex?: { across: number; height: number; internal?: true | undefined; } | undefined; form?: \"faceted\" | \"helical\" | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"shell\"; parent: BodyRef; thickness: Dim; open: string[]; } & NodeExtras) | ({ kind: \"chamfer\"; parent: BodyRef; edges: string[]; distance: Dim; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-corner-relief\"; parent: BodyRef; edges: [string]; shape: \"square\" | \"round\"; size: Dim; } & NodeExtras) | ({ kind: \"sheet-flange\"; parent: BodyRef; edges: [string]; length: Dim; angle?: number | undefined; bendRadius?: Dim | undefined; measure?: \"outer\" | \"inner\" | \"tangent\" | undefined; position?: \"material-inside\" | \"material-outside\" | \"bend-outside\" | undefined; offsets?: [Dim, Dim] | undefined; relief?: { kind: \"rectangular\" | \"obround\"; width: Dim; depth: Dim; } | { kind: \"none\"; } | undefined; } & NodeExtras) | ({ kind: \"frame\"; follows?: FrameFollows | undefined; points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[]; bends?: ModelFrameBend[] | undefined; section: MemberSection; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; mirror?: boolean | undefined; up?: [number, number, number] | undefined; overrides?: FrameOverride[] | undefined; corners?: FrameCorners | undefined; trims?: FrameTrim[] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"frame-member\"; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; up?: [number, number, number] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"thicken\"; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }; thickness: Dim; side?: \"reverse\" | \"normal\" | \"both\" | undefined; } & NodeExtras) | ({ kind: \"library\"; name: string; library: CadLibraryOrigin; prefix: string; features: CadPartFeature[]; outputs: string[]; interfaces: CadLibraryInterface[]; warnings: string[]; placement?: { rotation: [number, number, number]; position: [number, number, number]; } | undefined; addTo?: BodyRef | undefined; on?: { face: string; point: [number, number, number]; } | undefined; context?: Record<string, number> | undefined; cut?: boolean | undefined; } & NodeExtras) | ({ kind: \"rack\"; module: Dim; teeth: number; faceWidth: Dim; height: Dim; thicknessReduction?: Dim | undefined; origin: [number, number]; angle?: number | undefined; from?: number | undefined; mesh?: RackMesh | undefined; generator: \"spur-rack@0\" | \"spur-rack@1\"; rootFillet?: Dim | undefined; } & NodeExtras) | ({ kind: \"internal-gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; rim: Dim; profileShift?: number | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"internal-gear@0\" | \"internal-gear@1\"; shiftDefault?: boolean | undefined; cutter?: { teeth: number; shift?: number | undefined; tipRadius?: Dim | undefined; } | undefined; } & NodeExtras) | ({ kind: \"bevel-gear\"; module: Dim; teeth: number; mateTeeth: number; shaftAngle?: number | undefined; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: BevelMesh | undefined; generator: \"bevel-gear@0\"; spiral?: { angle: number; hand: \"left\" | \"right\"; cutterRadius: Dim; cutterEstimate?: boolean | undefined; } | undefined; } & NodeExtras) | ({ kind: \"worm-wheel\"; module: Dim; starts: number; diameter: Dim; hand: \"left\" | \"right\"; teeth: number; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"worm-wheel@0\"; } & NodeExtras) | ({ kind: \"spring\"; type?: \"extension\" | \"torsion\" | undefined; wire: Dim; diameter: Dim; activeCoils: number; pitch?: Dim | undefined; freeLength?: Dim | undefined; hand: \"left\" | \"right\"; ends?: \"closed\" | \"open\" | \"closed-ground\" | undefined; shearModulus?: number | undefined; shearModulusEstimate?: boolean | undefined; load?: number | undefined; hooks?: \"machine-loop\" | \"crossover\" | undefined; initialTension?: number | undefined; legLengths?: [number, number] | undefined; youngsModulus?: number | undefined; youngsModulusEstimate?: boolean | undefined; moment?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"spring@0\"; } & NodeExtras) | ({ kind: \"cam\"; follower: \"flat\" | \"roller\"; motion?: \"translating\" | \"oscillating\" | undefined; base: number; roller?: number | undefined; offset?: number | undefined; pivotDistance?: number | undefined; armLength?: number | undefined; faceOffset?: number | undefined; segments: { angle: number; to?: number | undefined; law?: CamLawName | undefined; }[]; thickness: number; bore?: number | undefined; pressureAngleLimit?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"cam@0\"; } & NodeExtras) | ({ kind: \"sprocket\"; row: string; teeth: number; tip: number; width: number; seat?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"sprocket@0\"; } & NodeExtras) | ({ kind: \"pulley\"; row: string; teeth?: number | undefined; diameter?: number | undefined; grooves?: number | undefined; width?: number | undefined; crown?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"pulley@0\"; } & NodeExtras) | ({ kind: \"belt\"; row: string; wheels: [number, number]; rounding?: \"whole\" | \"even\" | undefined; generator: \"belt@0\"; } & NodeExtras) | ({ kind: \"coupling\"; row: string; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"coupling@0\"; } & NodeExtras) | ({ kind: \"shaft\"; steps: { diameter: Dim; length: Dim; fillet?: number | undefined; undercut?: { width: number; depth: number; } | undefined; grooves?: { diameter: number; width: number; at: number; }[] | undefined; keyseats?: { width: number; depth: number; length: number; offset: number; ends?: \"square\" | \"end-mill\" | \"disc\" | undefined; cutterRadius?: number | undefined; angle?: number | undefined; }[] | undefined; }[]; chamfers?: [number, number] | undefined; holes?: { diameter: number; at: number; angle?: number | undefined; }[] | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"shaft@0\"; } & NodeExtras) | ({ kind: \"oring-gland\"; parent: BodyRef; face: string; gland: \"face\" | \"piston\" | \"rod\"; ring: string; diameter: number; width: number; at?: number | undefined; depth?: number | undefined; center?: [number, number, number] | undefined; seal?: number | undefined; sealClass?: string | undefined; grooveClass?: string | undefined; } & NodeExtras) | ({ kind: \"oring\"; gland: number; } & NodeExtras) | ({ kind: \"connector-opening\"; parent: BodyRef; face: string; row: string; center: [number, number, number]; rotation?: number | undefined; } & NodeExtras) | ({ kind: \"connector-body\"; opening: number; } & NodeExtras) | ({ kind: \"gusset\"; frame: number; point: number; members?: [number, number] | undefined; along?: 1 | -1 | undefined; legs: [number, number]; thickness: number; clip?: number | undefined; offset?: number | undefined; } & NodeExtras) | ({ kind: \"end-cap\"; frame: number; member: number; end: \"start\" | \"end\"; fit: \"over\" | \"inset\"; thickness: number; } & NodeExtras) | ({ kind: \"bearing\"; row: string; shaft: number; step: number; against: \"start\" | \"end\"; housing?: number | undefined; housingRef?: BearingHousingRef | undefined; shaftClass?: string | undefined; housingClass?: string | undefined; } & NodeExtras) | ({ kind: \"key\"; shaft: number; keyseat: number; height: number; width?: number | undefined; length?: number | undefined; ends?: \"square\" | \"round\" | undefined; hub?: number | undefined; } & NodeExtras) | ({ kind: \"keyway\"; parent: BodyRef; face: string; width: number; depth: number; angle?: number | undefined; } & NodeExtras) | ({ kind: \"retaining-ring\"; shaft: number; groove: number; thickness: number; outerDiameter: number; row?: string | undefined; } & NodeExtras) | ({ kind: \"pin\"; shaft: number; hole: number; diameter?: number | undefined; length?: number | undefined; fit?: boolean | undefined; } & NodeExtras) | ({ kind: \"worm\"; starts: number; form: \"ZI\" | \"ZA\"; length: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; mesh: BevelMesh; generator: \"worm@0\"; } & NodeExtras) | ({ kind: \"gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; profileShift?: number | undefined; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: GearMesh | undefined; generator: \"spur-gear@0\" | \"spur-gear@1\"; toolTipRadius?: Dim | undefined; } & NodeExtras) | ({ kind: \"subd\"; name: string; cage: { positions: number[]; faces: number[][]; creases?: [number, number][] | undefined; }; mirror?: \"x\" | \"z\" | \"y\" | undefined; } & NodeExtras) | ({ kind: \"sew\"; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }[]; tolerance?: number | undefined; } & NodeExtras) | ({ kind: \"draft\"; parent: BodyRef; faces: string[]; angle: number; } & NodeExtras) | ({ kind: \"split-face\"; parent: BodyRef; face: string; pull: [number, number, number]; names?: string[] | undefined; } & NodeExtras) | ({ kind: \"fillet\"; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim; }[] | undefined; section?: FilletSection | undefined; } & NodeExtras) | ({ kind: \"separate\"; parent: BodyRef; } & NodeExtras) | ({ kind: \"decimate\"; parent: BodyRef; ratio?: number | undefined; triangles?: number | undefined; maxError?: number | undefined; featureAngle?: number | undefined; } & NodeExtras) | ({ kind: \"hole\"; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis | undefined; side?: \"min\" | \"max\" | undefined; depth?: Dim | undefined; thread?: string | undefined; pattern?: HolePattern | undefined; made?: Made | undefined; face?: string | undefined; countersink?: number | undefined; csk?: number | undefined; } & NodeExtras)"
+              "(node: ModelNode) => node is ({ kind: \"extrude\"; sketch: number; height: Dim; from?: Dim | undefined; draft?: number | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"revolve\"; sketch: number; axis: \"x\" | \"y\"; origin?: [Dim, Dim] | undefined; angle: number; dir?: [number, number] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"translate\"; parent: BodyRef; offset: [Dim, Dim, Dim]; } & NodeExtras) | ({ kind: \"rotate\"; parent: BodyRef; axis: Axis; angle: number; pivot?: [Dim, Dim, Dim] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"mirror\"; parent: BodyRef; plane: \"xy\" | \"xz\" | \"yz\"; } & NodeExtras) | ({ kind: \"scale\"; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"linear-pattern\"; parent: BodyRef; axis: Axis; spacing: Dim; count: number; } & NodeExtras) | ({ kind: \"circular-pattern\"; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"union\"; left: BodyRef; right: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"intersect\"; left: BodyRef; right: BodyRef; } & NodeExtras) | ({ kind: \"difference\"; parent: BodyRef; tool: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"split\"; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] | undefined; } & NodeExtras) | ({ kind: \"sweep\"; sketch: number; path: ({ kind: \"straight\"; length: Dim; } | { kind: \"bend\"; radius: Dim; angle: number; toward: \"x\" | \"y\" | \"-x\" | \"-y\"; })[]; } & NodeExtras) | ({ kind: \"sweep-curve\"; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[]; }; routeBundleMember?: { bundleId: string; memberId: string; } | undefined; } & NodeExtras) | ({ kind: \"loft\"; sections: { sketch: number; z: Dim; }[]; smooth?: boolean | undefined; from?: number[] | undefined; } & NodeExtras) | ({ kind: \"import\"; name: string; step: string; solids?: number | undefined; } & NodeExtras) | ({ kind: \"mesh\"; name: string; unit: string; positions?: number[] | undefined; indices?: number[] | undefined; blob?: { positions: string; indices: string; } | undefined; representation?: \"facets\" | undefined; pieces?: number | undefined; repair?: MeshRepairRecord | undefined; crossings?: { count: number; at: [number, number, number][]; } | undefined; role?: \"infill\" | undefined; } & NodeExtras) | ({ kind: \"thread\"; diameter: number; pitch: number; center: [number, number]; seat: number; length?: number | undefined; hex?: { across: number; height: number; internal?: true | undefined; } | undefined; form?: \"faceted\" | \"helical\" | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"shell\"; parent: BodyRef; thickness: Dim; open: string[]; } & NodeExtras) | ({ kind: \"chamfer\"; parent: BodyRef; edges: string[]; distance: Dim; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-corner-relief\"; parent: BodyRef; edges: [string]; shape: \"square\" | \"round\"; size: Dim; } & NodeExtras) | ({ kind: \"sheet-flange\"; parent: BodyRef; edges: [string]; length: Dim; angle?: number | undefined; bendRadius?: Dim | undefined; measure?: \"outer\" | \"inner\" | \"tangent\" | undefined; position?: \"material-inside\" | \"material-outside\" | \"bend-outside\" | undefined; offsets?: [Dim, Dim] | undefined; relief?: { kind: \"rectangular\" | \"obround\"; width: Dim; depth: Dim; } | { kind: \"none\"; } | undefined; } & NodeExtras) | ({ kind: \"frame\"; follows?: FrameFollows | undefined; points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[]; bends?: ModelFrameBend[] | undefined; section: MemberSection; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; mirror?: boolean | undefined; up?: [number, number, number] | undefined; overrides?: FrameOverride[] | undefined; corners?: FrameCorners | undefined; trims?: FrameTrim[] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"frame-member\"; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; up?: [number, number, number] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"thicken\"; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }; thickness: Dim; side?: \"reverse\" | \"normal\" | \"both\" | undefined; } & NodeExtras) | ({ kind: \"library\"; name: string; library: CadLibraryOrigin; prefix: string; features: CadPartFeature[]; outputs: string[]; interfaces: CadLibraryInterface[]; warnings: string[]; placement?: { rotation: [number, number, number]; position: [number, number, number]; } | undefined; addTo?: BodyRef | undefined; on?: { face: string; point: [number, number, number]; } | undefined; context?: Record<string, number> | undefined; cut?: boolean | undefined; } & NodeExtras) | ({ kind: \"rack\"; module: Dim; teeth: number; faceWidth: Dim; height: Dim; thicknessReduction?: Dim | undefined; origin: [number, number]; angle?: number | undefined; from?: number | undefined; mesh?: RackMesh | undefined; generator: \"spur-rack@0\" | \"spur-rack@1\"; rootFillet?: Dim | undefined; } & NodeExtras) | ({ kind: \"internal-gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; rim: Dim; profileShift?: number | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"internal-gear@0\" | \"internal-gear@1\"; shiftDefault?: boolean | undefined; cutter?: { teeth: number; shift?: number | undefined; tipRadius?: Dim | undefined; } | undefined; } & NodeExtras) | ({ kind: \"bevel-gear\"; module: Dim; teeth: number; mateTeeth: number; shaftAngle?: number | undefined; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: BevelMesh | undefined; generator: \"bevel-gear@0\"; spiral?: { angle: number; hand: \"left\" | \"right\"; cutterRadius: Dim; cutterEstimate?: boolean | undefined; } | undefined; } & NodeExtras) | ({ kind: \"worm-wheel\"; module: Dim; starts: number; diameter: Dim; hand: \"left\" | \"right\"; teeth: number; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"worm-wheel@0\"; } & NodeExtras) | ({ kind: \"spring\"; type?: \"extension\" | \"torsion\" | undefined; wire: Dim; diameter: Dim; activeCoils: number; pitch?: Dim | undefined; freeLength?: Dim | undefined; hand: \"left\" | \"right\"; ends?: \"closed\" | \"open\" | \"closed-ground\" | undefined; shearModulus?: number | undefined; shearModulusEstimate?: boolean | undefined; load?: number | undefined; hooks?: \"machine-loop\" | \"crossover\" | undefined; initialTension?: number | undefined; legLengths?: [number, number] | undefined; youngsModulus?: number | undefined; youngsModulusEstimate?: boolean | undefined; moment?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"spring@0\"; } & NodeExtras) | ({ kind: \"cam\"; follower: \"flat\" | \"roller\"; motion?: \"translating\" | \"oscillating\" | undefined; base: number; roller?: number | undefined; offset?: number | undefined; pivotDistance?: number | undefined; armLength?: number | undefined; faceOffset?: number | undefined; segments: { angle: number; to?: number | undefined; law?: CamLawName | undefined; }[]; thickness: number; bore?: number | undefined; pressureAngleLimit?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"cam@0\"; } & NodeExtras) | ({ kind: \"sprocket\"; row: string; teeth: number; tip: number; width: number; seat?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"sprocket@0\"; } & NodeExtras) | ({ kind: \"pulley\"; row: string; teeth?: number | undefined; diameter?: number | undefined; grooves?: number | undefined; width?: number | undefined; crown?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"pulley@0\"; } & NodeExtras) | ({ kind: \"belt\"; row: string; wheels: [number, number]; rounding?: \"whole\" | \"even\" | undefined; generator: \"belt@0\"; } & NodeExtras) | ({ kind: \"coupling\"; row: string; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"coupling@0\"; } & NodeExtras) | ({ kind: \"shaft\"; steps: { diameter: Dim; length: Dim; fillet?: number | undefined; undercut?: { width: number; depth: number; } | undefined; grooves?: { diameter: number; width: number; at: number; }[] | undefined; keyseats?: { width: number; depth: number; length: number; offset: number; ends?: \"square\" | \"end-mill\" | \"disc\" | undefined; cutterRadius?: number | undefined; angle?: number | undefined; }[] | undefined; }[]; chamfers?: [number, number] | undefined; holes?: { diameter: number; at: number; angle?: number | undefined; }[] | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"shaft@0\"; } & NodeExtras) | ({ kind: \"oring-gland\"; parent: BodyRef; face: string; gland: \"face\" | \"piston\" | \"rod\"; ring: string; diameter: number; width: number; at?: number | undefined; depth?: number | undefined; center?: [number, number, number] | undefined; seal?: number | undefined; sealClass?: string | undefined; grooveClass?: string | undefined; } & NodeExtras) | ({ kind: \"oring\"; gland: number; } & NodeExtras) | ({ kind: \"connector-opening\"; parent: BodyRef; face: string; row: string; center: [number, number, number]; rotation?: number | undefined; } & NodeExtras) | ({ kind: \"connector-body\"; opening: number; } & NodeExtras) | ({ kind: \"gusset\"; frame: number; point: number; members?: [number, number] | undefined; along?: 1 | -1 | undefined; legs: [number, number]; thickness: number; clip?: number | undefined; offset?: number | undefined; } & NodeExtras) | ({ kind: \"end-cap\"; frame: number; member: number; end: \"start\" | \"end\"; fit: \"over\" | \"inset\"; thickness: number; } & NodeExtras) | ({ kind: \"bearing\"; row: string; shaft: number; step: number; against: \"start\" | \"end\"; housing?: number | undefined; housingRef?: BearingHousingRef | undefined; shaftClass?: string | undefined; housingClass?: string | undefined; } & NodeExtras) | ({ kind: \"key\"; shaft: number; keyseat: number; height: number; width?: number | undefined; length?: number | undefined; ends?: \"square\" | \"round\" | undefined; hub?: number | undefined; } & NodeExtras) | ({ kind: \"keyway\"; parent: BodyRef; face: string; width: number; depth: number; angle?: number | undefined; } & NodeExtras) | ({ kind: \"retaining-ring\"; shaft: number; groove: number; thickness: number; outerDiameter: number; row?: string | undefined; } & NodeExtras) | ({ kind: \"pin\"; shaft: number; hole: number; diameter?: number | undefined; length?: number | undefined; fit?: boolean | undefined; } & NodeExtras) | ({ kind: \"worm\"; starts: number; form: \"ZI\" | \"ZA\"; length: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; mesh: BevelMesh; generator: \"worm@0\"; } & NodeExtras) | ({ kind: \"gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; profileShift?: number | undefined; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: GearMesh | undefined; generator: \"spur-gear@0\" | \"spur-gear@1\"; toolTipRadius?: Dim | undefined; } & NodeExtras) | ({ kind: \"subd\"; name: string; cage: { positions: number[]; faces: number[][]; creases?: [number, number][] | undefined; }; mirror?: \"x\" | \"z\" | \"y\" | undefined; } & NodeExtras) | ({ kind: \"sew\"; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }[]; tolerance?: number | undefined; } & NodeExtras) | ({ kind: \"draft\"; parent: BodyRef; faces: string[]; angle: number; } & NodeExtras) | ({ kind: \"split-face\"; parent: BodyRef; face: string; pull: [number, number, number]; names?: string[] | undefined; } & NodeExtras) | ({ kind: \"fillet\"; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim; }[] | undefined; section?: FilletSection | undefined; } & NodeExtras) | ({ kind: \"separate\"; parent: BodyRef; } & NodeExtras) | ({ kind: \"decimate\"; parent: BodyRef; ratio?: number | undefined; triangles?: number | undefined; maxError?: number | undefined; featureAngle?: number | undefined; } & NodeExtras) | ({ kind: \"hole\"; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis | undefined; side?: \"min\" | \"max\" | undefined; depth?: Dim | undefined; thread?: string | undefined; pattern?: HolePattern | undefined; made?: Made | undefined; face?: string | undefined; countersink?: number | undefined; csk?: number | undefined; } & NodeExtras)"
             ]
           }
         }
@@ -317196,6 +317384,13 @@
                 "type": "number"
               },
               {
+                "name": "depthOfField",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ focus: number; blur: number; } | undefined"
+              },
+              {
                 "name": "grade",
                 "kind": "property",
                 "optional": false,
@@ -318215,6 +318410,293 @@
             ],
             "callSignatures": [
               "(doc: Pick<StudioDoc, \"rings\">, shaftDiameter: number, grooveDiameter: number) => StudioRingRow[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/routeBundle",
+      "exportName": "CreateRouteBundleInput",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/routeBundle.ts",
+            "name": "CreateRouteBundleInput",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "CreateRouteBundleInput",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "anchorMM",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "XYZ"
+              },
+              {
+                "name": "expectedDocumentIdentity",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "members",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "[CreateRouteBundleMemberInput, CreateRouteBundleMemberInput]"
+              },
+              {
+                "name": "tieId",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/routeBundle",
+      "exportName": "CreateRouteBundleMemberInput",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/routeBundle.ts",
+            "name": "CreateRouteBundleMemberInput",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "CreateRouteBundleMemberInput",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "curveObjectId",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "handleKey",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "profileFeatureId",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "sweepFeatureId",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/routeBundle",
+      "exportName": "assertRouteBundleDocument",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/routeBundle.ts",
+            "name": "assertRouteBundleDocument",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(input: unknown) => void",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(input: unknown) => void"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/routeBundle",
+      "exportName": "createRouteBundle",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/routeBundle.ts",
+            "name": "createRouteBundle",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, input: CreateRouteBundleInput) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, input: CreateRouteBundleInput) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/routeBundle",
+      "exportName": "detachRouteBundle",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/routeBundle.ts",
+            "name": "detachRouteBundle",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, bundleId: string, expectedDocumentIdentity: string) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, bundleId: string, expectedDocumentIdentity: string) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/routeBundle",
+      "exportName": "moveRouteBundle",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/routeBundle.ts",
+            "name": "moveRouteBundle",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(frozenStart: StudioDoc, bundleId: string, totalDeltaMM: XYZ, expectedDocumentIdentity: string) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(frozenStart: StudioDoc, bundleId: string, totalDeltaMM: XYZ, expectedDocumentIdentity: string) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/routeBundle",
+      "exportName": "routeBundleDocumentIdentity",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/routeBundle.ts",
+            "name": "routeBundleDocumentIdentity",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc) => string",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc) => string"
             ]
           }
         }
@@ -319925,6 +320407,13 @@
                 "type": "RobotSettings | undefined"
               },
               {
+                "name": "routeBundles",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "RouteBundle[] | undefined"
+              },
+              {
                 "name": "rowSources",
                 "kind": "property",
                 "optional": true,
@@ -319936,7 +320425,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "2 | 1 | 3"
+                "type": "2 | 1 | 3 | 4"
               },
               {
                 "name": "underlays",
@@ -417852,6 +418341,13 @@
                 "type": "false | { length?: number | undefined; strength?: number | undefined; } | undefined"
               },
               {
+                "name": "depthOfField",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "false | { focus: number; blur?: number | undefined; } | undefined"
+              },
+              {
                 "name": "exposure",
                 "kind": "property",
                 "optional": true,
@@ -464937,6 +465433,13 @@
                 "type": "false | { length?: number | undefined; strength?: number | undefined; } | undefined"
               },
               {
+                "name": "depthOfField",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "false | { focus: number; blur?: number | undefined; } | undefined"
+              },
+              {
                 "name": "exposure",
                 "kind": "property",
                 "optional": true,
@@ -500579,6 +501082,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "false | { length?: number | undefined; strength?: number | undefined; } | undefined"
+              },
+              {
+                "name": "depthOfField",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "false | { focus: number; blur?: number | undefined; } | undefined"
               },
               {
                 "name": "exposure",
