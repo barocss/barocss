@@ -67,6 +67,9 @@ constraint the others already imply is refused, and the message says why: for ex
 implied by the other constraints — adding it would over-define the sketch`. One that contradicts them is refused as a
 conflict. Typed lengths stay locked while the solver moves the rest.
 
+Failure to converge does not prove a constraint conflict. A refused constraint edit keeps the previous outline.
+A successful solve keeps its accepted point coordinates without decimal rounding.
+
 Some constraints are inferred as you draw: an arc that meets a line smoothly is tangent to it, and a radius you lock
 keeps it so.
 
@@ -78,6 +81,9 @@ After you finish a sketch, the profile feeds a feature:
   **Join to body**, **New body** or **Cut from body**, and a cut's **Depth** is a **Distance** or **Through all**.
 - **Revolve**, **Sweep** and **Loft** are in the command palette (<kbd>Space</kbd>). Revolve turns a profile about an
   axis, sweep runs it along a path, and loft blends from one profile to another.
+
+A profile may run along the Revolve axis on whole straight segments; zero-length edges remain invalid.
+It must not cross the axis or touch it inside an arc; a full turn must not pinch to a point between two walls.
 
 A sketch you finished can be reopened from the feature editor, with its constraints. Changes are written back in
 place, and the features made from it update.
