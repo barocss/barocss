@@ -3,6 +3,7 @@ import type { Command, Ctx } from '@barocss/cad-model/app/commands';
 import { ShapesStrip } from './ShapesStrip';
 import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon } from './atoms';
+import { commandIconName } from './commandIcons';
 
 /**
  * A command's button on the rail or the shapes strip (R1c: memoised — the App's render went through every button and its
@@ -16,7 +17,7 @@ export const ToolButton = memo(function ToolButton({ c, ok, reason, on, onStart,
 }) {
   return <ToolIconButton state={on ? 'on' : ok ? 'idle' : 'off'} aria-label={c.label}
     data-tip={c.label} data-tip-key={c.shortcut ?? ''} data-tip-desc={c.hint ?? ''} data-tip-off={reason} onClick={() => onStart(c)}
-    {...(c.place && ok ? { draggable: true, onDragStart: (e: React.DragEvent) => onDragStart(c, e), onDragEnd: (e: React.DragEvent) => onDragEnd(c, e) } : {})}><Icon name={c.icon} /></ToolIconButton>;
+    {...(c.place && ok ? { draggable: true, onDragStart: (e: React.DragEvent) => onDragStart(c, e), onDragEnd: (e: React.DragEvent) => onDragEnd(c, e) } : {})}><Icon name={commandIconName(c.id, c.icon)} /></ToolIconButton>;
 });
 
 /** A command's availability as its button shows it ('' when it is on). */
