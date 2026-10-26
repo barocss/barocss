@@ -285,10 +285,37 @@ diagnostics; preserve that failure and the unrun Studio/lint stages. Normal test
 in `203c87a8` and `342e293f` fixed the missing annotations/required frame arrays. Model and Studio
 types and exact production-seven-file lint passed at `342e293f`, with no production-byte change.
 The reviewed inventory adds two public entries and changes four optional-field rows; all other
-6623 entries and the other five top-level values are unchanged. Next run check-docs/site and
-inspect the changed Sketches page, then integrate this bounded slice and the already-passed
-fillet test into the product and run its mandatory documentation check. No CAD rebuild is needed
-for this Model/UI/test/documentation slice. Product adoption is still pending at this checkpoint.
+6623 entries and the other five top-level values are unchanged. The first check-docs at `e456e7f3`
+failed because the generated Model BAD_REFERENCE row omitted its new engine source location.
+The normal one-cell generated correction at `a3997f36` passed check-docs and site build. Assigned
+Sketches and Refusals pages then passed actual desktop CUA display, link and scroll checks;
+the original local server bind denial and its browser NOT RUN remain separate. No agent-browser
+CLI execution is claimed for this CUA supplement. The first 234 MJS fallback warnings remain preserved.
+
+At `6d981f2e`, the new associative Drawing tests passed 2/2 and Model types passed without errors.
+Its separate actual Drawing screen preserved the saved document and displayed the 60/56 mm linked
+outline and 4 mm step. The Kernel XYZ interpolated holed-sweep tests also passed 2/2 at that source;
+three actual WebGPU views showed the two openings, with no obvious missing visible face. This is
+not exact curved-volume, all-normal, physical or manufacturing acceptance. Keep the original
+Drawing wait timeout and unrecorded measurements at their actual boundaries.
+
+A collapsed inset was refused before committing the candidate document. The old NodeEditor hint
+incorrectly suggested Undo. The context-only action adopted at `0214a8a0` preserves the error code,
+title and detail, and now says the design was not changed. App-only lint and the actual narrow
+new-hint browser case passed at `8273cb61`; the earlier full file workflow was not repeated.
+
+The new clip-only GPU readback regression reproduced an old stale hit in both CPU and actual
+Apple Metal WebGPU after the native map completed. The normal two-line fix `84ab7d99`, adopted
+through `8273cb61`, returns null for the same controlled case. Fresh scoped emit, the new CPU case,
+actual WebGPU case and exact two-file lint passed. Preserve the original lint module-resolution
+failure and its config-path-only correction. This is controlled consumer continuation, not a
+natural GPU latency or performance measurement. It does not resume paused FOV/BVH/LOD work.
+
+Next integrate this checked Model/UI/test/docs/GPU slice and the already-passed fillet regression
+into the product. Preserve the product-only portable handoff files and foreign WIP. No CAD rebuild
+is needed because CAD production is unchanged. The product's ignored GPU Viewer output is old,
+so run its first affected original library emit, distinguish actually emitted files from retained
+ones, and finish the mandatory product documentation check. Product adoption remains pending here.
 
 Previously adopted setup Save/Open/Use/Run/Bind, historical records and Pin comparison retain
 separate contracts. Actual calculation creates a new result; imported records remain historical.
@@ -307,9 +334,10 @@ approval; preserve other sessions and record actual source, input, URL and scree
 | Slice | Owner | Current source state | Required next evidence |
 |---|---|---|---|
 | Close the verified sketch/revolve product slice | Kernel product build/selected endpoint; Docs mandatory check; API integration | Product `3307c88b` has the affected build, selected endpoint and final docs PASS | Preserve exact receipts and old/new outputs; do not repeat completed checks without a relevant change. |
-| Repair associative face-sketch edits | Outer implementation/browser; API integration; Docs page verification | Original snapshot failure preserved; new explicit-link browser flow, native14 and corrected type/lint PASS at their distinct source refs | Complete reviewed inventory/docs/site/page checks, local product adoption and its mandatory docs check; preserve legacy behavior and first failures. |
-| Preserve drill versus tap-depth contracts | API contract; Drawings consumer | Existing plain/tapped, through/blind and legacy compatibility tests passed; no new independent tap-depth field implemented | A separate field contract must state depth limits, backward defaults and Drawing/text implications before implementation. Do not rerun the existing compatibility tests without a relevant change. |
-| GPU stale-readback protection | Existing GPU owner | Two verified source files already adopted; required product docs passed at `44a8fc9e` | Keep camera/backing/client/aspect snapshot and rejection evidence; assign a new bounded consumer only when a relevant gap is established. No new BVH/LOD or paused FOV work. |
+| Repair associative face-sketch edits | Outer implementation/browser; API integration; Docs page verification | Explicit link, native14, corrected type/lint, reviewed inventory, docs/site/pages, Drawing2 and narrow refusal-hint checks passed at their distinct refs | Local product adoption, first affected GPU emit and mandatory product documentation check; preserve legacy behavior and first failures. |
+| Preserve drill versus tap-depth contracts | API/Outer producer contract; Drawings consumer | Existing compatibility tests remain preserved; Drawings now reads the actual consumer boundary | Agree separate depth limits in mm, backward defaults and Drawing/text implications before implementation; do not repeat old tests. |
+| Separate export mesh quality | Kernel public option contract; API/Outer consumer | Kernel now reads the exact STL options and Model export boundary | Freeze actual defaults, units and a small circular-hole chord-error/triangle-budget oracle before the narrow feature implementation. |
+| GPU stale-readback protection | Existing GPU owner | New clip-only CPU and actual WebGPU RED-to-GREEN, scoped emit and exact lint passed; shared normal commits adopted | Refresh the first affected product output with the existing tsc-only build contract; preserve retained outputs, old camera evidence and first lint failure. No new BVH/LOD or paused FOV work. |
 | Admit the first free pendulum profile | Confirm Physics ownership first; Kernel/API supply mass/frame contracts | No solver implementation assigned | Agree pivot/COM placement, pivot inertia, gravity moment, reactions and units; then check independent period, energy, time-step convergence and joint errors. Physical validation needs separate measurements. |
 
 The local pin and setup UI state is not saved by CAD document Save. A matching imported historical record is
