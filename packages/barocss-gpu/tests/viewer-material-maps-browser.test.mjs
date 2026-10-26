@@ -142,13 +142,22 @@ test('raster and progressive PBR data maps match independent normal and scalar r
         const wrong = await grab(`${row.name}: incorrect sRGB factor`);
         scalar.push({ name: row.name, reference: compare(mapped, reference), wrong: compare(mapped, wrong) });
       }
-      m.material = base; const neutral = await grab('dispose: neutral');
+      // Use the independently checked front-normal scene, rather than the scalar test's
+      // near-frontal metal/ambient lighting, where the first run gave no visible map contrast.
+      v.camera.position = [0, 0, 8];
+      v.lights = [{ kind: 'directional', direction: [-0.8, -0.1, -1], intensity: 0.6 }];
+      v.environment = { ambient: 0, sky: '#000000', ground: '#000000', toneMapping: 'none' };
+      m.material = { ...base, color: '#999999', metallic: 0, normalScale: [1, 1] };
+      const neutral = await grab('dispose: neutral');
       const disposable = dataMap([204, 128, 230, 255]); m.material = { normalMap: disposable };
       const before = await grab('dispose: live map'); disposable.dispose();
       const disposed = await grab('dispose: neutral fallback');
       const replacement = dataMap([204, 128, 230, 255]); m.material = { normalMap: replacement };
       const rebound = await grab('dispose: replacement');
-      const lifecycle = { changed: compare(before, neutral), disposed: compare(disposed, neutral), rebound: compare(rebound, before) };
+      m.visible = false;
+      mesh(normal, uv);
+      const lifecycleReference = await grab('dispose: independent literal normal');
+      const lifecycle = { changed: compare(before, neutral), disposed: compare(disposed, neutral), rebound: compare(rebound, before), reference: compare(before, lifecycleReference) };
       hide(); v.camera.position = [0, 0, 8];
       v.lights = [{ kind: 'directional', direction: [-0.8, -0.1, -1], intensity: 0.6 }];
       v.environment = { ambient: 0, sky: '#000000', ground: '#000000', toneMapping: 'none' };
@@ -156,15 +165,17 @@ test('raster and progressive PBR data maps match independent normal and scalar r
       for (const row of [
         { name: 'progressive front normal', mirror: false, scale: [1, 1, 1] },
         { name: 'progressive mirrored scaled normal', mirror: true, scale: [1.7, 0.6, 1.3] },
+        { name: 'progressive max finite normalScale', mirror: false, scale: [1, 1, 1], normalScale: [3.4028234663852886e38, -3.4028234663852886e38] },
       ]) {
         hide();
         const mappedMesh = mesh([0, 0, 1], row.mirror ? uv.map((value, i) => i % 2 ? value : 1 - value) : uv, row.scale);
-        mappedMesh.material = { normalMap };
+        mappedMesh.material = { normalMap, normalScale: row.normalScale ?? [1, 1] };
         const mapped = await trace(`${row.name}: mapped`);
         mappedMesh.material = { normalMap: null }; const plain = await trace(`${row.name}: geometric`);
         mappedMesh.visible = false;
-        const expected = [normal[0] * (row.mirror ? -1 : 1), normal[1], normal[2]];
-        mesh(expected.map((value, i) => value * row.scale[i]), uv, row.scale);
+        const expected = [normal[0] * (row.mirror ? -1 : 1) * (row.normalScale?.[0] ?? 1), normal[1] * (row.normalScale?.[1] ?? 1), normal[2]];
+        const length = Math.hypot(...expected);
+        mesh(expected.map((value, i) => value / length * row.scale[i]), uv, row.scale);
         const reference = await trace(`${row.name}: literal normal`);
         transport.push({ name: row.name, samples: [mapped.samples, plain.samples, reference.samples], reference: compare(mapped, reference), changed: compare(mapped, plain) });
       }
@@ -197,6 +208,7 @@ test('raster and progressive PBR data maps match independent normal and scalar r
       assert.ok(row.wrong.mean > 3, `${row.name}: independent sRGB negative control differs`);
     }
     assert.ok(result.lifecycle.changed.mean > 3, 'a live normal map changes lighting');
+    assert.ok(result.lifecycle.reference.max <= 1, 'the lifecycle live map matches its independent literal normal');
     assert.equal(result.lifecycle.disposed.different, 0, 'disposed data map falls back to neutral');
     assert.equal(result.lifecycle.rebound.different, 0, 'replacement restores the mapped image');
     for (const row of result.transport) {

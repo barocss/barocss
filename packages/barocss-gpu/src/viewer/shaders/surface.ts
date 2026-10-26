@@ -127,7 +127,9 @@ fn mappedNormal(in: VOut, n: vec3f) -> vec3f {
   encoded = vec3f(encoded.xy * pbrMaps.normalScale, encoded.z);
   let encodedMagnitude = max(max(abs(encoded.x), abs(encoded.y)), abs(encoded.z));
   if (!(encodedMagnitude > 0.0)) { return n; }
-  encoded /= encodedMagnitude;
+  // A common binary exponent avoids a huge divisor whose reciprocal can flush to zero on the GPU.
+  let exponent = frexp(encodedMagnitude).exp;
+  encoded = ldexp(encoded, vec3i(-exponent));
   let det = ux.x * uy.y - ux.y * uy.x;
   if (!(abs(det) > 1e-20 && abs(det) < 1e20)) { return n; }
   let rawT = (qx * uy.y - qy * ux.y) / det;

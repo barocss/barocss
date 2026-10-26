@@ -90,10 +90,11 @@ fn mappedNormal(h: Hit, n: vec3f, uv: vec2f) -> vec3f {
   let b = normalize(crossNT) * sign(handed);
   var mapped = dataTexel(uv, i32(object.pbrMaps.x), u32(object.pbrMaps.w) & 3u).rgb * 2.0 - 1.0;
   mapped = vec3f(mapped.xy * object.normalScale.xy, mapped.z);
-  // Scale before squaring: normalScale permits every finite f32, including its maximum value.
+  // Rescale the exponent before squaring; dividing by a near-max f32 can flush its reciprocal to zero.
   let largest = max(max(abs(mapped.x), abs(mapped.y)), abs(mapped.z));
   if (!(largest > 0.0)) { return n; }
-  mapped = normalize(mapped / largest);
+  let exponent = frexp(largest).exp;
+  mapped = normalize(ldexp(mapped, vec3i(-exponent)));
   let world = t * mapped.x + b * mapped.y + n * mapped.z;
   let worldLength = dot(world, world);
   if (!(worldLength > 1e-12 && worldLength < 1e30)) { return n; }
