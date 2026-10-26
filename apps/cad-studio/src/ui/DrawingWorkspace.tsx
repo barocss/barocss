@@ -70,7 +70,7 @@ const TOOLS: { tool: Tool; label: string; icon: string; key: string; hint: strin
   { tool: 'datum-target', label: 'Point datum target', icon: 'my_location', key: 'T', hint: 'Click a straight edge endpoint, then place the target symbol. Overlapping endpoints require a choice.' },
 ];
 type Pending =
-  | { kind: 'standalone-frame'; view: DimView; frame: Extract<DrawingFrame, { view: DimView }>; moving: boolean; settings: DrawingSettings }
+  | { kind: 'standalone-frame'; view: DimView; frame: Extract<DrawingFrame, { view: DimView }>; moving: boolean; settingsKey: string; sourceDoc: StudioDoc; model: StudioDoc }
   | { kind: 'datum-target'; view: ViewId; target: DrawingDatumTarget; moving: boolean }
   | { kind: 'linear'; view: DimView; a: DimPoint; b?: DimPoint }
   | { kind: 'diameter' | 'radius'; view: DimView; edge: string; near: Vec3 }
@@ -283,7 +283,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (!frame && frames.length >= 200) { setMessage('A drawing can contain up to 200 geometric control frames.'); return; }
     let id = 'frame-1', index = 2; while (frames.some(row => row.id === id)) id = `frame-${index++}`;
     cancel(); setSelected(null); setSelectedTarget(null); setSelectedFrame(frame?.id ?? null); setTool('select'); setDrag(null);
-    setPending({ kind: 'standalone-frame', view, frame: frame ?? { id, view, place: [0, 0], characteristic: 'position', value: 0.1, datums: [] }, moving: !!frame, settings });
+    setPending({ kind: 'standalone-frame', view, frame: frame ?? { id, view, place: [0, 0], characteristic: 'position', value: 0.1, datums: [] }, moving: !!frame, settingsKey: JSON.stringify(settings), sourceDoc, model });
     setMessage(`Click where the standalone frame goes in the ${viewLabel(view)}. Esc cancels.`);
   };
 
@@ -402,7 +402,9 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (e.button !== 0) return;
     if (pending?.kind === 'standalone-frame') {
       const q = sheetPoint(e.clientX, e.clientY), placement = placementAt(pending.view);
-      if (busy || !views || !q || !placement || placement.hidden || settings !== pending.settings) { setMessage('The drawing changed or the frame view is not ready. Select Add or Move frame again.'); return; }
+      const before = pending.sourceDoc;
+      const documentChanged = sourceDoc.nodes !== before.nodes || sourceDoc.outputs !== before.outputs || sourceDoc.parameters !== before.parameters || sourceDoc.instances !== before.instances;
+      if (busy || !views || !q || !placement || placement.hidden || documentChanged || currentModel.current !== pending.model || JSON.stringify(settings) !== pending.settingsKey) { setMessage('The drawing changed or the frame view is not ready. Select Add or Move frame again.'); return; }
       const rows = settings.frames ?? [], current = rows.filter(row => row.id === pending.frame.id);
       if (pending.moving && (current.length !== 1 || current[0] !== pending.frame)) { setMessage('The frame changed. Select it again before moving it.'); return; }
       const next: DrawingFrame = { ...pending.frame, view: pending.view, place: fromSheet(placement, q) };
