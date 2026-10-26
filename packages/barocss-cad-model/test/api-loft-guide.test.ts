@@ -96,6 +96,26 @@ test('public loft: invalid guide failure leaves the accepted part, inputs and ma
     if (typeof z === 'object') { z.parameter = 'changed-after-refusal'; assert.equal(JSON.stringify(accepted.doc), savedBefore); }
   }
 
+
+  // Deliberate JS accessor boundary: a single snapshot must not read 0, then 0, then a document-only Dim.
+  let zReads = 0;
+  const getterParameter = { parameter: 'H' }, getterValues = [0, 0, getterParameter];
+  const firstSection = { sketch: sketch().circle({ r: 1 }), get z() { return getterValues[Math.min(zReads++, 2)]; } };
+  const secondSection = { sketch: sketch().circle({ r: 4 }), z: 3 };
+  const descriptorBefore = Object.getOwnPropertyDescriptor(firstSection, 'z');
+  const sketchBefore = [firstSection.sketch.data, secondSection.sketch.data];
+  const getterPart: StudioPart = Reflect.apply(base.loft, base, [[firstSection, secondSection]]);
+  assert.equal(zReads, 1, 'section z is read exactly once before validation and storage');
+  const getterDoc = getterPart.doc, stored = getterDoc.nodes.find(n => n.kind === 'loft');
+  assert.ok(stored && stored.kind === 'loft'); assert.ok('z' in stored.sections[0]);
+  assert.equal(typeof stored.sections[0].z, 'number'); assert.equal(stored.sections[0].z, 0);
+  assert.deepEqual(Object.getOwnPropertyDescriptor(firstSection, 'z'), descriptorBefore);
+  assert.deepEqual([firstSection.sketch.data, secondSection.sketch.data], sketchBefore); assert.equal(secondSection.z, 3);
+  assert.deepEqual(getterValues, [0, 0, { parameter: 'H' }]);
+  getterValues[0] = 99; getterParameter.parameter = 'changed-after-call'; secondSection.z = 9;
+  assert.deepEqual(getterPart.doc, getterDoc); assert.equal(zReads, 1);
+  assert.deepEqual(base.doc, baseBefore); assert.equal(JSON.stringify(accepted.doc), savedBefore);
+
   assert.deepEqual(bad, badBefore); assert.deepEqual(accepted.doc, before); assert.deepEqual(base.doc, baseBefore);
   assert.deepEqual(accepted.mass({ density: 1 }), massBefore);
   assert.deepEqual(input.map(s => ({ sketch: s.sketch.data, frame: s.frame })), inputBefore);
