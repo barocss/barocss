@@ -22,6 +22,8 @@ The example loads the CAD document before exposing review Save/Open functions. T
 document JSON and 1..4 existing body IDs. The declared authored XYZ basis must match the Viewer's right-handed
 Y-up millimetre basis; the option is an assertion, not a coordinate conversion.
 
+`createViewer` requires `background`: three finite RGB components, each from 0 to 1.
+
 ```ts
 import { createViewer } from '@barocss/viewer';
 import { parseBaroCadDocument } from '@barocss/cad-interop/document';
@@ -31,7 +33,10 @@ async function createReviewHost(
   cadDocumentText: string,
   bodyIds: string[],
 ) {
-  const viewer = await createViewer(canvas, { mmToSceneUnit: 0.15 });
+  const viewer = await createViewer(canvas, {
+    mmToSceneUnit: 0.15,
+    background: [0.025, 0.04, 0.065],
+  });
   try {
     viewer.loadDocument(parseBaroCadDocument(cadDocumentText), {
       native: {
