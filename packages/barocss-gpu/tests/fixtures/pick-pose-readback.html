@@ -1,0 +1,122 @@
+<!doctype html><meta charset="utf-8"><title>Public Viewer pick pose readback boundary</title>
+<style>body{margin:16px;background:#181818;color:#eee;font:14px system-ui}button{padding:8px;margin:4px}canvas{display:block;width:320px;height:240px;background:#202020}pre{white-space:pre-wrap;overflow-wrap:anywhere}a{color:#9cf}.fail{color:#ff9a9a}.pass{color:#9f9}</style>
+<h1>Public Viewer pick: pose boundary</h1>
+<p>Consumer fixture with explicit test injection: original GPUBuffer.mapAsync runs unchanged. Only its fulfilled continuation is held. This is not proof of a naturally slow GPU map.</p>
+<button id="setup">Setup actual WebGPU</button><button id="submit" disabled>Submit pick</button><button id="move" disabled>Move mesh +4 X</button><button id="release" disabled>Release consumer</button><button id="cleanup">Cleanup own viewer</button>
+<div id="status" role="status">Loading public module</div>
+<canvas id="gpu" aria-label="Actual WebGPU scene"></canvas>
+<p id="summary">No accepted point yet.</p>
+<a id="json" download="pick-pose-result.json">Download actual result JSON</a>
+<pre id="result"></pre>
+<script type="module">
+// Actual third-party public Viewer consumer. No fake device, RAF replacement,
+// production hook, source mutation or scheduler. Injection is confined to this page.
+const canvas=document.querySelector('#gpu'),status=document.querySelector('#status'),summary=document.querySelector('#summary'),out=document.querySelector('#result');
+const button=id=>document.getElementById(id),check=(v,s)=>{if(!v)throw new Error(s);};
+const data={contract:'After the public mesh transform changes while pick continuation is pending, stale result must be null.',injection:'real native GPUBuffer.mapAsync first; consumer continuation release controlled only after native fulfillment',events:[],nativeMapCalls:0,nativeMapFulfilled:false,consumerReleased:false,accepted:null,verdict:'NOT RUN'};
+let api,viewer,mesh,pending,releaseGate,originalDescriptor,wrapped,heldBuffer,armed=false,geometryInput,geometryAtSetup,geometryTextAtSetup,geometryHashAtSetup;
+const event=(name,extra={})=>{data.events.push({name,time:performance.now(),...extra});publish();};
+function publish(){out.textContent=JSON.stringify(data,null,2);const a=button('json');if(a.href.startsWith('blob:'))URL.revokeObjectURL(a.href);a.href=URL.createObjectURL(new Blob([out.textContent],{type:'application/json'}));}
+const state=()=>structuredClone({...viewer.camera.state(),near:viewer.camera.near,far:Number.isFinite(viewer.camera.far)?viewer.camera.far:String(viewer.camera.far)});
+const clipState=()=>structuredClone(viewer.clipPlane);
+async function sha256(text){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text)))].map(v=>v.toString(16).padStart(2,'0')).join('');}
+// Observe public geometry identity and the exact retained public geometry input, not private GPU buffer bytes.
+function snapshot(){
+  const r=canvas.getBoundingClientRect(),sameInput=JSON.stringify(geometryInput)===geometryTextAtSetup;
+  return {camera:state(),clip:clipState(),canvas:{backing:[canvas.width,canvas.height],client:[canvas.clientWidth,canvas.clientHeight],rect:{x:r.x,y:r.y,width:r.width,height:r.height,top:r.top,right:r.right,bottom:r.bottom,left:r.left}},geometry:{sameObjectAsSetup:mesh.geometry===geometryAtSetup,inputMatchesSetup:sameInput,inputSHA256:sameInput?geometryHashAtSetup:null,topology:mesh.geometry.topology,bounds:structuredClone(mesh.geometry.bounds)},transform:Array.from(mesh.transform),meshId:mesh.id};
+}
+function checkInvariant(now,label){
+  const asked=data.submitSnapshot;
+  check(JSON.stringify(now.camera)===JSON.stringify(asked.camera),`Camera or near/far changed at ${label}`);
+  check(JSON.stringify(now.clip)===JSON.stringify(asked.clip),`Clip changed at ${label}`);
+  check(JSON.stringify(now.canvas)===JSON.stringify(asked.canvas),`Canvas backing/client/rect changed at ${label}`);
+  check(now.geometry.sameObjectAsSetup&&now.geometry.inputMatchesSetup&&JSON.stringify(now.geometry)===JSON.stringify(asked.geometry),`Geometry changed at ${label}`);
+  check(JSON.stringify(now.transform)===JSON.stringify(Array.from(api.translation([4,0,0]))),`Expected public mesh translation at ${label}`);
+}
+const hitValue=h=>h?{meshId:h.mesh.id,meshName:h.mesh.name,point:[...h.point],triangle:h.triangle,face:h.face,instance:h.instance,depth:h.depth,cap:h.cap}:null;
+function box(){
+  const P=[],N=[],I=[];
+  for(const [axis,s] of [[0,1],[0,-1],[1,1],[1,-1],[2,1],[2,-1]]){
+    const u=(axis+1)%3,v=(axis+2)%3,base=P.length/3;
+    for(const [a,b] of [[-1,-1],[1,-1],[1,1],[-1,1]]){const q=[0,0,0];q[axis]=s;q[u]=a;q[v]=b*s;P.push(...q);const n=[0,0,0];n[axis]=s;N.push(...n);}
+    I.push(base,base+1,base+2,base,base+2,base+3);
+  }
+  return {positions:P,normals:N,indices:I,faces:Array.from({length:12},(_,i)=>100+i)};
+}
+function restore(){if(originalDescriptor){Object.defineProperty(GPUBuffer.prototype,'mapAsync',originalDescriptor);originalDescriptor=null;event('native-mapAsync-descriptor-restored');}}
+function install(){
+  check(!originalDescriptor,'Map wrapper already installed');
+  originalDescriptor=Object.getOwnPropertyDescriptor(GPUBuffer.prototype,'mapAsync');
+  check(typeof originalDescriptor?.value==='function','GPUBuffer.prototype.mapAsync is not a callable value');
+  const native=originalDescriptor.value;
+  wrapped=function(...args){
+    const hold=armed&&this.label==='pick read';
+    // Invoke the actual native operation even on the controlled path.
+    const nativePromise=Reflect.apply(native,this,args);
+    if(!hold)return nativePromise;
+    armed=false;heldBuffer=this;data.nativeMapCalls++;event('native-mapAsync-called',{bufferLabel:this.label});
+    return nativePromise.then(value=>{
+      data.nativeMapFulfilled=true;event('native-mapAsync-fulfilled',{mapState:this.mapState});
+      status.textContent='NATIVE GPU MAP COMPLETE — consumer pending; move mesh next';button('move').disabled=false;
+      return new Promise(resolve=>{releaseGate=()=>resolve(value);});
+    },error=>{data.nativeMapError={name:error.name,message:error.message};event('native-mapAsync-rejected');throw error;});
+  };
+  Object.defineProperty(GPUBuffer.prototype,'mapAsync',{...originalDescriptor,value:wrapped});event('consumer-wrapper-installed');
+}
+function fail(error){data.verdict='FAIL';data.failure={name:error.name,message:error.message,stack:error.stack};status.className='fail';status.textContent='FAIL: '+error.message;button('setup').disabled=true;button('submit').disabled=true;button('move').disabled=true;button('release').disabled=true;publish();console.error(error);}
+button('setup').onclick=async()=>{
+  button('setup').disabled=true;
+  try{
+    const adapter=await navigator.gpu?.requestAdapter();check(adapter,'Actual WebGPU adapter unavailable');
+    data.adapterInfo={vendor:adapter.info?.vendor,architecture:adapter.info?.architecture,device:adapter.info?.device,description:adapter.info?.description};
+    const input={pixelRatio:1,controls:false,camera:{position:[0,-5,0],target:[0,0,0],up:[0,0,1],fovY:40}};
+    geometryInput=box();geometryTextAtSetup=JSON.stringify(geometryInput);geometryHashAtSetup=await sha256(geometryTextAtSetup);
+    data.initialInput=structuredClone(input);viewer=await api.createViewer(canvas,input);mesh=viewer.add(geometryInput,{name:'original-blue-box',cap:true,material:{color:'#0000ff',unlit:true}});geometryAtSetup=mesh.geometry;
+    viewer.clipPlane=null;
+    await viewer.frame();data.originalCamera=state();data.originalClip=clipState();data.size=[canvas.width,canvas.height];data.originalSnapshot=snapshot();
+    data.originalHit=hitValue(await viewer.pick(160,120));check(data.originalHit?.meshName==='original-blue-box','Unchanged public pick did not hit original box');
+    data.initialInputPreserved=JSON.stringify(input)===JSON.stringify(data.initialInput);check(data.initialInputPreserved,'Setup input mutated');
+    event('actual-original-pick-complete');status.textContent='READY — original actual GPU hit recorded';button('submit').disabled=false;
+  }catch(e){fail(e);}
+};
+button('submit').onclick=()=>{
+  button('submit').disabled=true;
+  try{
+    check(viewer&&data.originalHit,'Setup first');install();data.submitCamera=state();data.submitClip=clipState();data.submitSnapshot=snapshot();armed=true;status.textContent='WAIT native GPU map';event('public-pick-request');
+    pending=viewer.pick(160,120);
+    pending.then(hit=>{
+      data.accepted=hitValue(hit);data.returnCamera=state();data.returnClip=clipState();data.returnSnapshot=snapshot();data.mapStateAfterReturn=heldBuffer?.mapState??null;event('public-pick-return',{mapState:data.mapStateAfterReturn});
+      check(data.nativeMapCalls===1&&data.nativeMapFulfilled&&data.consumerReleased&&data.moved,'Controlled pose boundary was not reached');
+      checkInvariant(data.returnSnapshot,'return');check(data.mapStateAfterReturn==='unmapped','Readback buffer was not unmapped before the result returned');
+      data.verdict=hit===null?'PASS':'FAIL';
+      summary.textContent=`Original hit ${JSON.stringify(data.originalHit)} | Accepted ${JSON.stringify(data.accepted)} | Current transform ${JSON.stringify(data.returnSnapshot.transform)}`;
+      status.className=hit===null?'pass':'fail';status.textContent=hit===null?'PASS: stale pose readback refused as null':'FAIL: stale GPU readback accepted after mesh transform changed';
+      restore();publish();
+    }).catch(e=>{restore();fail(e);});
+  }catch(e){restore();fail(e);}
+};
+button('move').onclick=async()=>{
+  button('move').disabled=true;
+  try{
+    check(data.nativeMapFulfilled&&releaseGate&&!data.consumerReleased,'Pose change requires actual native map completion and pending consumer');
+    mesh.transform=api.translation([4,0,0]);
+    data.moved=true;data.movedCamera=state();data.movedClip=clipState();data.movedSnapshot=snapshot();event('public-mesh-transform-moved');await viewer.frame();
+    data.movedFrameSnapshot=snapshot();checkInvariant(data.movedFrameSnapshot,'moved frame');
+    status.textContent='MESH MOVED +4 X — release consumer next';button('release').disabled=false;publish();
+  }catch(e){fail(e);}
+};
+button('release').onclick=()=>{
+  button('release').disabled=true;
+  try{check(data.moved&&releaseGate,'Move first');data.releaseSnapshot=snapshot();checkInvariant(data.releaseSnapshot,'release');data.mapStateBeforeRelease=heldBuffer?.mapState??null;check(data.mapStateBeforeRelease==='mapped','Native buffer must be mapped while the consumer is held');data.consumerReleased=true;event('consumer-release',{mapState:data.mapStateBeforeRelease});releaseGate();releaseGate=null;}
+  catch(e){fail(e);}
+};
+button('cleanup').onclick=async()=>{
+  try{
+    if(releaseGate){data.consumerReleased=true;event('cleanup-release-pending');releaseGate();releaseGate=null;}
+    if(pending)await pending.catch(()=>{});
+    restore();viewer?.dispose();data.cleanup={viewerDisposed:!!viewer,mapDescriptorRestored:!originalDescriptor,heldBufferMapStateAfterDispose:heldBuffer?.mapState??null};event('cleanup-complete');button('cleanup').disabled=true;
+  }catch(e){fail(e);}
+};
+try{api=await import('../../src/viewer/index.ts');status.textContent='MODULE READY — click Setup actual WebGPU';event('module-ready');}
+catch(e){button('setup').disabled=true;fail(e);}
+</script>

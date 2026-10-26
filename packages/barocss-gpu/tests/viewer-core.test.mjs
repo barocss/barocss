@@ -643,3 +643,59 @@ test('pickNow returns null when the clip plane changes during readback, without 
   assert.deepEqual(accepted.point, acceptedPoint, 'the accepted hit must keep its original point');
   assert.equal(accepted.face, 102); assert.ok(near(accepted.scalar, 7, 1e-5));
 });
+
+// Reuse the held readback fixture; only the real Mesh transform setter changes during the pending pick.
+test('pickNow returns null when a mesh transform changes during readback, without changing an accepted hit', async () => {
+  const { Mesh } = await import('../dist/viewer/viewer.js');
+  const positions = [], indices = [];
+  for (const [axis, sign] of [[0, 1], [0, -1], [1, 1], [1, -1], [2, 1], [2, -1]]) {
+    const u = (axis + 1) % 3, v = (axis + 2) % 3, base = positions.length / 3;
+    for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const p = [0, 0, 0]; p[axis] = sign; p[u] = a; p[v] = b * sign; positions.push(...p); }
+    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  }
+  const data = prepareGeometry({ positions, indices, faces: Array.from({ length: 12 }, (_, i) => 100 + i) });
+  data.scalars = prepareScalars(data, Array(data.vertexCount).fill(7), 'vertex');
+  const camera = new Camera({ position: [-6, 0.15, 0], target: [0, 0.15, 0], up: [0, 0, 1], projection: 'orthographic' });
+  camera.clip({ min: [-20, -20, -20], max: [20, 20, 20] });
+  const point = [-1, 0.15, 0], depth = Math.fround(clipZ(camera.viewProjection(1), point));
+  const viewer = Object.create(Viewer.prototype), pass = { setScissorRect() {}, setBindGroup() {}, end() {} };
+  const mesh = new Mesh({ data, disposed: false, topology: 'triangles' }, viewer, 17, { cap: true });
+  let held = false, entered, release, unmaps = 0;
+  const read = {
+    mapAsync() { return held ? new Promise(resolve => { release = resolve; entered(); }) : Promise.resolve(); },
+    unmap() { unmaps++; },
+    getMappedRange(offset) { return offset === 256 ? Float32Array.of(depth).buffer : Uint32Array.of(offset === 512 ? 0 : mesh.id).buffer; },
+  };
+  Object.assign(viewer, { canvas: { width: 1, height: 1, clientWidth: 1, clientHeight: 1 }, camera, meshes: [mesh], clip: null,
+    device: { queue: { submit() {} }, createCommandEncoder: () => ({ beginRenderPass: () => pass, copyTextureToBuffer() {}, finish() {} }) },
+    alive() {}, prepareCamera: () => camera.viewProjection(1), visibleMeshes: () => ({ opaque: [mesh], transparent: [] }), writeUniforms() {},
+    requestRender() {}, drawCapFront() {}, drawMesh() {}, drawCaps() {}, ensurePickTargets: () => ({ views: {}, read }) });
+  const accepted = await viewer.pickNow(0, 0);
+  assert.equal(accepted.mesh, mesh); assert.equal(accepted.face, 102); assert.equal(accepted.triangle, 2);
+  assert.equal(accepted.cap, false); assert.equal(accepted.instance, null);
+  assert.ok(close(accepted.point, point, 1e-5), JSON.stringify(accepted.point));
+  assert.ok(near(accepted.scalar, 7, 1e-5));
+  const acceptedPoint = [...accepted.point];
+  held = true;
+  const mappingEntered = new Promise(resolve => { entered = resolve; }), pending = viewer.pickNow(0, 0);
+  await mappingEntered;
+  assert.equal(viewer.clipPlane, null);
+  const cameraBefore = { ...structuredClone(camera.state()), near: camera.near, far: camera.far };
+  const sizeBefore = [viewer.canvas.width, viewer.canvas.height, viewer.canvas.clientWidth, viewer.canvas.clientHeight];
+  const transformBefore = mesh.transform, geometryBefore = structuredClone(data);
+  // Move perpendicular to the +X view direction: the old pixel ray no longer meets this mesh.
+  mesh.transform = translation([0, 4, 0]);
+  assert.notEqual(mesh.transform, transformBefore);
+  assert.deepEqual(Array.from(mesh.transform), Array.from(translation([0, 4, 0])));
+  assert.equal(viewer.clipPlane, null);
+  assert.deepEqual({ ...camera.state(), near: camera.near, far: camera.far }, cameraBefore);
+  assert.deepEqual([viewer.canvas.width, viewer.canvas.height, viewer.canvas.clientWidth, viewer.canvas.clientHeight], sizeBefore);
+  assert.equal(mesh.geometry.data, data);
+  assert.deepEqual(data, geometryBefore);
+  release();
+  const stale = await pending;
+  assert.equal(unmaps, 2, 'both mapped buffers must be unmapped, including the refused stale read');
+  assert.equal(stale, null, `a readback from the previous mesh transform must be refused: ${JSON.stringify(stale && { point: stale.point, face: stale.face, triangle: stale.triangle, cap: stale.cap, capPlane: stale.capPlane })}`);
+  assert.deepEqual(accepted.point, acceptedPoint, 'the accepted hit must keep its original point');
+  assert.equal(accepted.face, 102); assert.ok(near(accepted.scalar, 7, 1e-5));
+});
