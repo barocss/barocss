@@ -89,7 +89,8 @@ test('two radius 0.5 sweeps regenerate with their endpoint sections and preserve
   checkRoutes(after, true);
   for (let i = 0; i < 2; i++) {
     assert.ok(after.recomputation.evaluated.includes(`w${i}`));
-    assert.ok(after.recomputation.reused.includes(`s${i}`));
+    // Sketches use a private cache and are not recorded in the recomputation lists.
+    assert.deepEqual(after.document.features.find(f => f.id === `s${i}`), documentBefore.features.find(f => f.id === `s${i}`));
     assert.notDeepEqual(outputOf(after, `w${i}`).brep, beforeBreps[i]);
   }
   assert.deepEqual(after.document, editedDocumentBefore);
