@@ -127,8 +127,28 @@ export function intersectPatches(A: Patch, B: Patch, options: {
   let budget = options.budget ?? 200000;
   if (!Number.isFinite(budget) || !(budget >= 0)) throw new SurfaceIntersectionError('budget must be a finite nonnegative number');
   const spend = () => { if (--budget < 0) throw new SurfaceIntersectionError('too many marching steps (the surfaces touch or overlap along a curve)'); };
+  for (const P of [A, B]) {
+    const [[u0, v0], [u1, v1]] = P.box;
+    if (![u0, v0, u1, v1].every(Number.isFinite) || u0 > u1 || v0 > v1) {
+      throw new SurfaceIntersectionError('patch domains must have finite ordered bounds');
+    }
+  }
   const gridOf = (P: Patch) => { const [[u0, v0], [u1, v1]] = P.box, pts: { p: XY; x: Point }[][] = [];
-    for (let i = 0; i <= n; i++) { const row: { p: XY; x: Point }[] = []; for (let j = 0; j <= n; j++) { const p: XY = [u0 + (u1 - u0) * i / n, v0 + (v1 - v0) * j / n]; row.push({ p, x: P.at(p) }); } pts.push(row); } return pts; };
+    for (let i = 0; i <= n; i++) {
+      const row: { p: XY; x: Point }[] = [];
+      for (let j = 0; j <= n; j++) {
+        const p: XY = [u0 + (u1 - u0) * i / n, v0 + (v1 - v0) * j / n];
+        if (!p.every(Number.isFinite)) throw new SurfaceIntersectionError('grid parameters must be finite');
+        const x = P.at(p);
+        if (!x || x.length !== 3 || !Number.isFinite(x[0]) || !Number.isFinite(x[1]) || !Number.isFinite(x[2])) {
+          throw new SurfaceIntersectionError('patch grid evaluation must return a finite 3D point');
+        }
+        row.push({ p, x });
+      }
+      pts.push(row);
+    }
+    return pts;
+  };
   const GA = gridOf(A), GB = gridOf(B);
   // No chain is longer than a few times both patches' size.
   const extent = (G: { x: Point }[][]) => { let m = 0; for (const row of G) for (const c of row) m = Math.max(m, len(sub(c.x, G[0][0].x))); return m; };
