@@ -266,6 +266,48 @@ Use the `api/` facade's `assembly(...).robot()` to read an assembly as a robot. 
 two waypoints; `robot.motion(name)` reads a saved path. Joint inputs use degrees for turns and mm for slides.
 Velocity and acceleration limits use deg/s and deg/s², or mm/s and mm/s².
 
+### Reading pose and path results
+
+`poseAt(t)` returns joint inputs, not link placements. Pass that record to `robot.pose(...)` to obtain the pose.
+A pose reply has no overall `ok` flag; inspect the fields needed by your caller:
+
+| Result | Read it as |
+|---|---|
+| `robot.pose(values).values` | The resolved joint values, including followers, in degrees or mm. |
+| `links`, optional `frames` | Named link/frame positions in mm and rotations in degrees, in the assembly coordinates. |
+| `out_of_limits` | Joint keys outside their stored limits. A direct pose preview keeps those values rather than clamping them; a returned pose alone is not a readiness check. |
+| `path.check()` | An array with one sweep reply for each adjacent waypoint pair, in waypoint order, for supported open-chain paths. Read each reply's `clear`, optional `contact`, and `minClearance`. |
+
+Given a robot and waypoints from the caller's current joint keys:
+
+```ts
+import type { Robot } from '@barocss/cad-model/api/robot';
+
+function sampleMotion(
+  robot: Robot,
+  waypoints: Record<string, number>[],
+  limits: Record<string, { velocity: number; acceleration: number; jerk?: number }>,
+  seconds: number,
+) {
+  const path = robot.path(waypoints, { limits });
+  const values = path.poseAt(seconds);
+  return robot.pose(values);
+}
+```
+
+Supply positive velocity and acceleration limits for each moving joint, or a `default` entry. Use deg/s and
+deg/s² for turns, or mm/s and mm/s² for slides. Path timing does not read those rates from the document's joint settings.
+`poseAt` can refuse invalid paths; inspect `path.problems()` before playback.
+
+The two coordinates returned by these APIs have different meanings: `poseAt` takes time in seconds, while a
+sweep's `contact.s` and `minClearance.fraction` locate a dimensionless fraction of that waypoint segment.
+`contact.values` uses degrees/mm; `minClearance.value` is in mm. They do not give elapsed contact time.
+`minClearance` can be `null`, and `contact` is absent when no contact is returned. Do not treat missing data as zero.
+
+![Robot path inputs become a pose reply; separate per-segment checks use a fraction rather than time](/diagrams/robot-motion-result-flow.svg)
+
+[Open the motion result diagram at full size](/diagrams/robot-motion-result-flow.svg).
+
 For supported looped paths, supply driving-joint values only. `duration()` returns seconds. `poseAt(t)` returns
 the driving values at time `t` in seconds; pass them to `robot.pose(...)` to obtain solved passive-joint values
 and link placements. `problems()` returns `[]` for a supported, closable path or reports a typed refusal.

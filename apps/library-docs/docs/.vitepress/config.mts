@@ -10,6 +10,7 @@ export default defineConfig({
   // (`_*.md` are parts a page includes, such as the generated tool tables: not pages of their own.)
   srcExclude: ['**/_*.md'],
   lastUpdated: true,
+  markdown: { languageAlias: { mjs: 'js' } },
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/guide/getting-started' },
