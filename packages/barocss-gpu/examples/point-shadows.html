@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Point shadows · BaroCSS GPU</title>
+  <style>
+    :root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; background: #17191d; color: #eceef2; }
+    body { max-width: 1040px; margin: 32px auto; padding: 0 20px; }
+    h1 { margin-bottom: 4px; font-size: 1.6rem; }
+    p, figcaption { color: #bbc1cb; }
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin: 18px 0; }
+    label { display: inline-flex; align-items: center; gap: 8px; }
+    input, button { accent-color: #e9b979; }
+    button { padding: 7px 14px; font: inherit; cursor: pointer; }
+    button:disabled { cursor: default; }
+    canvas { display: block; width: 100%; aspect-ratio: 4 / 3; border: 1px solid #414854; background: #20242b; }
+    [hidden] { display: none; }
+    #error { color: #ffb4ad; white-space: pre-wrap; }
+    figure { margin: 24px 0; }
+    output { min-width: 3ch; font-variant-numeric: tabular-nums; }
+  </style>
+  <script type="importmap">{"imports":{"@barocss/cad":"../../barocss-cad/dist/index.js"}}</script>
+  <script type="module" src="./point-shadows.js"></script>
+</head>
+<body>
+  <h1>Point shadows</h1>
+  <p>One point light casts shadows onto the floor and two walls. The bright cube marks its source. Move the source to see the shadows change in each direction.</p>
+  <div class="controls" role="group" aria-label="Point source position">
+    <label><input id="shadow" type="checkbox" checked disabled> Cast shadow</label>
+    <label>X <input id="source-x" type="range" min="-4" max="4" step="0.5" value="1" disabled> <output id="x-value" for="source-x">1.0</output></label>
+    <label>Y <input id="source-y" type="range" min="-4" max="3" step="0.5" value="-1" disabled> <output id="y-value" for="source-y">-1.0</output></label>
+    <label>Z <input id="source-z" type="range" min="1" max="6" step="0.5" value="3.5" disabled> <output id="z-value" for="source-z">3.5</output></label>
+  </div>
+  <div class="controls" role="group" aria-label="Point light controls">
+    <label>Range <input id="range" type="range" min="4" max="24" step="1" value="18" disabled> <output id="range-value" for="range">18</output></label>
+    <label>Intensity <input id="intensity" type="range" min="0" max="160" step="10" value="100" disabled> <output id="intensity-value" for="intensity">100</output></label>
+    <button id="capture" type="button" disabled>Capture preview</button>
+  </div>
+  <p id="status" role="status" aria-live="polite">Loading the viewer…</p>
+  <p id="error" role="alert" hidden></p>
+  <canvas id="view" aria-label="Interactive point light shadows on the floor and walls"></canvas>
+  <figure id="capture-output" hidden>
+    <canvas id="still" aria-label="Captured point light shadows"></canvas>
+    <figcaption id="capture-caption"></figcaption>
+  </figure>
+</body>
+</html>
