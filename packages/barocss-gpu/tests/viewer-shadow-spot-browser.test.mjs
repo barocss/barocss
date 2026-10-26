@@ -119,13 +119,17 @@ test('spot shadows follow position, cone and range, preserve clipped caps and re
         blocker.transform = api.translation([10, 0, 8]); await record('behind light');
         blocker.transform = api.translation([-10, 0, -8]); await record('behind receiver');
         blocker.transform = api.identity(); viewer.lights = [red, dark, dark, dark, green];
-        // dot([0,0,-1],p) >= -4 keeps z <= 4. The new top is a cap facing the spot.
-        viewer.clipPlane = { normal: [0, 0, -1], offset: -4, cap: '#ffffff' }; await record('clipped cap');
-        blocker.visible = false; viewer.clipPlane = null;
-        const halfBox = viewer.add(box(1, 1, 0.5, [5, 0, 3.75]), { material: { color: '#ffffff', roughness: 1 } }); await record('literal half box');
+        // dot(normal,p) >= offset keeps an interior cube. All six original box faces are discarded: only caps can shadow.
+        viewer.clipPlanes = [
+          { normal: [1, 0, 0], offset: 4.75, cap: '#ffffff' }, { normal: [-1, 0, 0], offset: -5.25 },
+          { normal: [0, 1, 0], offset: -0.25 }, { normal: [0, -1, 0], offset: -0.25 },
+          { normal: [0, 0, 1], offset: 3.75 }, { normal: [0, 0, -1], offset: -4.25 },
+        ]; await record('clipped cap');
+        blocker.visible = false; viewer.clipPlanes = null;
+        const keptBox = viewer.add(box(0.5, 0.5, 0.5, [5, 0, 4]), { material: { color: '#ffffff', roughness: 1 } }); await record('literal interior cube');
         // Independent point-source projection from S=(10,0,8) onto z=0; no renderer shadow matrix is read.
         const lightProjection = (x, y, z) => [(8 * x - 10 * z) / (8 - z), 8 * y / (8 - z)];
-        const projectedCorners = [4.5, 5.5].flatMap(x => [-0.5, 0.5].flatMap(y => [3.5, 4].map(z => lightProjection(x, y, z))));
+        const projectedCorners = [4.75, 5.25].flatMap(x => [-0.25, 0.25].flatMap(y => [3.75, 4.25].map(z => lightProjection(x, y, z))));
         const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
         const sorted = projectedCorners.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
         const hullHalf = points => { const out = []; for (const point of points) { while (out.length > 1 && cross(out.at(-2), out.at(-1), point) <= 0) out.pop(); out.push(point); } return out.slice(0, -1); };
@@ -136,7 +140,7 @@ test('spot shadows follow position, cone and range, preserve clipped caps and re
         for (let i = 0; i < frames['clipped cap'].data.length; i += 4) {
           if (frames.zero.data[i] < 20 || frames.zero.data[i + 1] <= 40) continue;
           const threshold = frames.zero.data[i + 1] * 0.6;
-          const a = frames['clipped cap'].data[i + 1] < threshold, b = frames['literal half box'].data[i + 1] < threshold;
+          const a = frames['clipped cap'].data[i + 1] < threshold, b = frames['literal interior cube'].data[i + 1] < threshold;
           if (a !== b) capMaskDifference++;
           if (a) capShadowPixels++;
         }
@@ -149,7 +153,7 @@ test('spot shadows follow position, cone and range, preserve clipped caps and re
         await record('recovered');
         const recoveryLosses = viewer.stats.deviceLosses - beforeLoss;
         // A larger, still off-camera box blocks the square-projection diagonal. That point is outside the circular cone.
-        halfBox.visible = false;
+        keptBox.visible = false;
         viewer.add(box(2, 2, 1, [5, 0, 4]), { material: { color: '#ffffff', roughness: 1 } });
         receiver.material = { shadowOnly: true, opacity: 1, color: '#000000' }; viewer.setBackground('#808080');
         viewer.lights = [red, { ...green, angle: 5 }];
@@ -181,11 +185,11 @@ test('spot shadows follow position, cone and range, preserve clipped caps and re
     assert.equal(result.spotSoftChangedPixels, 0, 'directional softShadows must not change a PCF-only spot');
     assert.ok(samples['narrow cone'][1] > 40 && result.coneOutside[1] <= 2, 'the fixed axis is lit and the independent outside-cone point is dark');
     for (const name of ['turned cone', 'range cutoff']) assert.ok(samples[name][1] <= 2 && Math.abs(samples[name][0] - samples.zero[0]) <= 2, `${name}: only the spot illumination ends`);
-    assert.ok(delta(samples['clipped cap'], samples['literal half box']) <= 2, 'the spot sees the cap as the literal kept solid');
+    assert.ok(delta(samples['clipped cap'], samples['literal interior cube']) <= 2, 'the spot sees caps alone as the literal interior cube');
     assert.ok(result.capShadowPixels > 200 && result.clipChangedPixels > 20, 'the cap shadows the floor and clipping changes the footprint');
     assert.ok(result.capMaskDifference <= result.capBoundaryBudget, `cap shadow stays inside the independent two-pixel hull budget: ${result.capMaskDifference}/${result.capBoundaryBudget}`);
     assert.equal(result.recoveryLosses, 1);
-    assert.ok(delta(samples.recovered, samples['literal half box']) <= 2, 'device recovery restores the fourth spot shadow');
+    assert.ok(delta(samples.recovered, samples['literal interior cube']) <= 2, 'device recovery restores the fourth spot shadow');
     assert.ok(samples['catcher cone'][0] < 80, 'the catcher has a real shadow inside the spot cone');
     assert.ok(delta(result.catcherOutside, [128, 128, 128]) <= 2, 'the catcher is transparent outside the circular cone, even inside its projection square');
     assert.ok(delta(samples['catcher range'], [128, 128, 128]) <= 2, 'the catcher is transparent beyond the spot range');
