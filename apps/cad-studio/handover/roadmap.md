@@ -39,8 +39,9 @@ as one planned verification batch. Carry relevant results forward; repeat a chec
 failure or remaining risk. Keep first failures and required engine/browser/file evidence. Do not switch to another
 feature merely because one test passed, or skip checks to call a feature complete.
 
-Current order: finish the STL quality batch already under verification; reproduce and fix parameter-bound hole
-callouts at the Model boundary; verify the GPU pose-only stale-readback case. For path bundles, accept and test
+Current order: finish the independently qualified STL quality feature through docs, the changed page and product
+integration. GPU pose readback is complete only for the scoped product a45b7b feature. Finish parameter-bound
+hole callout reference preservation and the observed Save-flow gap at their actual producer/consumer boundary. For path bundles, accept and test
 persistent member bindings, atomic curve/sweep updates and failure preservation in CAD/Model before implementing
 the Studio tie gesture. Independent source work can continue in parallel. Do not use additional UI features to
 hide missing basic operations, unit disagreements, unsupported geometry or unresolved references.
@@ -230,7 +231,7 @@ Keep legacy snapshots unchanged; only a new explicit bundle may carry the new re
 
 | Stage / task | Lead and exact responsibility | Completion gate |
 | --- | --- | --- |
-| PB0 — route/clip contract | API owns persistent input and atomic document contract; GPU owns handle/pick/preview contract; Outer owns the later editor | Record stable route/object/feature identities, chosen handle keys, source revision, clip position and per-member offsets in model mm. Fixed control-point topology only in the first slice. Missing or changed handles are stale/refused, with no automatic reassignment. Current GPU source reading is assigned; implementation is not started. |
+| PB0 — route/clip contract | API owns persistent input and atomic document contract; GPU owns handle/pick/preview contract; Outer owns the later editor | Record stable route/object/feature identities, chosen handle keys, source revision, clip position and per-member offsets in model mm. Fixed control-point topology only in the first slice. Missing or changed handles are stale/refused, with no automatic reassignment. The Model core source is adopted after static review; actual foundation checks and the later GPU/Studio gesture remain separate gates. |
 | PB1 — two routes, one clip | Outer editor after the current STL source slice returns; API producer and GPU interaction support have separate files | Translate one common XYZ handle and apply the same delta to the chosen handle of each route. Preserve clip-local offsets and untouched endpoints. Show individual members and their errors. No automatic packing, branching, global spacing guarantee, clip rotation or physics in this first editor. |
 | PB2 — regenerate and commit atomically | API/Kernel existing evaluation path; Outer applies one complete candidate document | Regenerate both explicitly linked sweeps using their own profiles. Commit only if all members succeed on the current revision. One member failure, Cancel or stale completion leaves the complete previous document/results unchanged. One Undo/Redo restores all members together. Real Save/New/Open preserves membership, references and geometry inputs. |
 | PB3 — richer route control | GPU/Outer after PB1–PB2 actual acceptance | Multiple clips, selective branches and clip orientation/section arrangement, with explicit local-frame continuity and source/version checks. Measure crossings, section clearance and bend constraints on fixed fixtures. Do not call simple XYZ offsets a general parallel-curve or collision-free solution. |
@@ -307,7 +308,15 @@ validation are different results and must remain separate.
 
 ## Order now (2026-10-26)
 
-The current checked local product is `5ed2c69021e210fdf3b868d4e2a3f74fcc52e6fc`.
+The current checked local product is `a45b7b41062057c5bbe1a5170bf844c3654f80c5`.
+STL quality is separately qualified at `26917a5429b7e2cf0b9f8dd6052ef6892f42d5ce`; its docs/site and page checks
+are in progress before product adoption. Its Model, Studio and actual exported-file checks are already accepted.
+Drawing parameter callout display and the affected native/type/lint batch pass; reference roundtrip is not complete.
+A separate single Save-button click produced one file and a responsive page; the older repeated-download timeout
+remains preserved with unknown cause. Do not treat that tool-flow result as a repaired product defect.
+Route-bundle Model Create/Move/Detach and admission source69fe4c6, plus Kernel foundation test source0b841158,
+are adopted into the aggregate after static review. Their execution validation is NOT RUN. Close that foundation
+batch before opening the later Studio tie gesture; no new language, routing solver or physics is included.
 Its 19-path associative-sketch/clip-readback merge preserves the product-only portable handoff
 files, foreign33 and CAD818. The first affected product GPU emit passed: 272 outputs emitted,
 5 changed and 240 retained outputs unchanged; do not call every one of the existing 512 files
@@ -414,7 +423,7 @@ approval; preserve other sessions and record actual source, input, URL and scree
 | Close the verified sketch/revolve product slice | Kernel product build/selected endpoint; Docs mandatory check; API integration | Product `3307c88b` has the affected build, selected endpoint and final docs PASS | Preserve exact receipts and old/new outputs; do not repeat completed checks without a relevant change. |
 | Repair associative face-sketch edits | Outer implementation/browser; API integration; Docs page verification | Explicit link, native14, corrected type/lint, reviewed inventory, docs/site/pages, Drawing2 and narrow refusal-hint checks passed at their distinct refs | Local product adoption, first affected GPU emit and mandatory product documentation check; preserve legacy behavior and first failures. |
 | Preserve drill versus tap-depth contracts | API/Outer producer contract; Drawings consumer | Existing compatibility tests remain preserved; Drawings now reads the actual consumer boundary | Agree separate depth limits in mm, backward defaults and Drawing/text implications before implementation; do not repeat old tests. |
-| Separate export mesh quality | Kernel public option contract; API/Outer consumer | Kernel now reads the exact STL options and Model export boundary | Freeze actual defaults, units and a small circular-hole chord-error/triangle-budget oracle before the narrow feature implementation. |
+| Separate export mesh quality | Kernel public option contract; API/Outer consumer | Model and Studio source, independent rim-error checks and actual STL downloads are accepted | Finish the separate qualification docs/site/page and exact product adoption. Preserve Automatic default16, explicit8/16/32 and BRep-only refusal. No broad triangle-budget guarantee. |
 | GPU stale-readback protection | Existing GPU owner | New clip-only CPU and actual WebGPU RED-to-GREEN, scoped emit and exact lint passed; shared normal commits adopted | Refresh the first affected product output with the existing tsc-only build contract; preserve retained outputs, old camera evidence and first lint failure. No new BVH/LOD or paused FOV work. |
 | Admit the first free pendulum profile | Confirm Physics ownership first; Kernel/API supply mass/frame contracts | No solver implementation assigned | Agree pivot/COM placement, pivot inertia, gravity moment, reactions and units; then check independent period, energy, time-step convergence and joint errors. Physical validation needs separate measurements. |
 
