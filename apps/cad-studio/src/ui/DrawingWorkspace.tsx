@@ -73,10 +73,13 @@ type Pending =
 /** `view` (O148 X2): a view, or a section the sheet placed (`section:B`). */
 interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null }
 
+export interface DrawingReferencePreview { dimensionId: string; edge?: string }
+export interface DrawingReferenceLabel { dimensionId: string; view: DimView; text: string | null; reason?: string }
 
-export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, onChange: sourceOnChange, onToast }: {
+export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, onChange: sourceOnChange, onToast, referencePreview, onReferenceLabels }: {
   engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string;
   onChange(next: DrawingSettings): void; onToast(e: FriendlyError): void;
+  referencePreview?: DrawingReferencePreview | null; onReferenceLabels?(labels: readonly DrawingReferenceLabel[]): void;
 }) {
   // (The sheet's pipeline, shared with the viewport's 3D annotations, G24: views, layout, sheet and what they are built from.)
   const { source, scopeRead, scope, scopeKey, doc, model, currentModel, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, fitMissOf, followedChanged, threads, bom, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName });
@@ -147,6 +150,34 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (busy || !views || !layout || !sheet || !sectionList.every(x => cutsMade?.some(c => sameSection(c, x)))) return;
     const i = fixInputs(); if (i) fixStep(fixRound(f.state, i, fixOnly));
   }, [settings, busy, views, layout, sheet, cutsMade, error]);
+  // Reference inspection reads this sheet; it does not change the selected reference or the saved drawing.
+  const referenceLabels = useMemo<readonly DrawingReferenceLabel[]>(() => !busy && sheet ? sheet.dimensions.map(r => ({ dimensionId: r.dim.id, view: r.dim.view, text: r.ok ? r.text : null, ...(!r.ok ? { reason: r.reason } : {}) })) : [], [busy, sheet]);
+  useEffect(() => { onReferenceLabels?.(referenceLabels); }, [onReferenceLabels, referenceLabels]);
+  useEffect(() => () => { onReferenceLabels?.([]); }, [onReferenceLabels]);
+  const referenceInspection = useMemo(() => {
+    if (!referencePreview) return null;
+    const unavailable = (reason: string, dimensionId: string | null = null) => ({ dimensionId, markup: '', message: `Reference preview unavailable: ${reason}` });
+    const dimensions = settings.dimensions.filter(d => d.id === referencePreview.dimensionId);
+    if (dimensions.length !== 1) return unavailable(dimensions.length ? 'the dimension ID is not unique.' : 'the dimension is not in this drawing.');
+    const dimension = dimensions[0];
+    if (busy || !views || !layout || !sheet) return unavailable('the current sheet is not ready.');
+    const placement = placementOf(layout, sheet, dimension.view), projection = projectionOf(views, sheet, dimension.view);
+    if (!placement || placement.hidden || !projection) return unavailable('the dimension view is not shown.');
+    const resolved = sheet.dimensions.filter(r => r.dim.id === dimension.id);
+    if (resolved.length !== 1 || !resolved[0].ok) return unavailable('the dimension has no resolved display on this sheet.');
+    const label = `${dimension.view}: ${resolved[0].text}`;
+    if (referencePreview.edge === undefined) return { dimensionId: dimension.id, markup: '', message: `${label}. Dimension highlighted; no reference changed.` };
+    const edges = projection.edges.filter(e => e.name === referencePreview.edge);
+    if (edges.length !== 1) return unavailable(edges.length ? 'the candidate has more than one projected edge in this view.' : 'the candidate is not in this view.', dimension.id);
+    const pieces = edges[0].pieces.filter(p => p.visible);
+    if (!pieces.length) return unavailable('the candidate has no visible segments in this view.', dimension.id);
+    return { dimensionId: dimension.id, markup: marksSvg(pieces.map(p => curveMark(placement, p.curve, 'visible'))), message: `${label}. Candidate highlighted for inspection only; no reference changed.` };
+  }, [referencePreview, settings.dimensions, busy, views, layout, sheet]);
+  const referenceDimensionId = referenceInspection?.dimensionId ?? null;
+  useEffect(() => {
+    if (!referencePreview) return;
+    setSelected(referenceDimensionId); setTool('select'); setPending(null);
+  }, [referencePreview, referenceDimensionId]);
   const sheetMarkup = useMemo(() => sheet ? sheetGroupsSvg(sheet, selected) : '', [sheet, selected]);
   const [W, H] = layout?.size ?? [297, 210];
   const [box, setBox] = useState<[number, number, number, number] | null>(null);
@@ -541,12 +572,14 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
           <rect className="dw-sheet" x={0} y={0} width={W} height={H} fill="#fff" />
           <g fill="none" stroke="#000" strokeLinecap="round" strokeLinejoin="round" fontFamily="Helvetica, Arial, sans-serif" dangerouslySetInnerHTML={{ __html: shownMarkup }} />
           <g dangerouslySetInnerHTML={{ __html: overlay }} />
+          {referenceInspection?.markup && <g className="dw-hover" pointerEvents="none" aria-label="Reference candidate preview" dangerouslySetInnerHTML={{ __html: referenceInspection.markup }} />}
         </svg>}
         {busy && !views && <div className="dw-busy">Projecting views…</div>}
         {!busy && !views && <div className="dw-busy">{error ?? 'Nothing to draw.'}</div>}
       </div>
 
       <aside className="card dw-panel" aria-label="Drawing settings">
+        {referenceInspection && <div role="status" aria-label="Reference preview" style={{ marginBottom: 8 }}>{referenceInspection.message}</div>}
         <SheetSettings sheet={{ scopeRead, scope, views, layout, sectionA, sectionList, cutA, cutsMade, hasSheet, hasFrame, kinds, hasBought, doc, title, busy }} settings={settings} sourceDoc={sourceDoc} fileName={fileName} onChange={onChange} onToast={onToast}
           onScopeChanged={() => { setPending(null); setSelected(null); setHover(null); setDrag(null); }} turnTo={turnTo} />
 
