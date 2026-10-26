@@ -1,0 +1,14 @@
+{
+  "name": "@barocss/cad-viewer-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs"
+  },
+  "dependencies": {
+    "@barocss/viewer": "workspace:*",
+    "@barocss/cad-interop": "workspace:*",
+    "@barocss/gpu": "workspace:*"
+  }
+}
