@@ -35,6 +35,7 @@ export interface Device {
   createSampler(descriptor: object): object;
   createTexture(descriptor: object): Texture;
   createShaderModule(descriptor: { code: string; label?: string }): ShaderModule;
+  createRenderPipeline(descriptor: object): Pipeline;
   createRenderPipelineAsync(descriptor: object): Promise<Pipeline>;
   createBindGroupLayout(descriptor: object): BindGroupLayout;
   createPipelineLayout(descriptor: object): object;
