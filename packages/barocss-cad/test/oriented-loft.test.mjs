@@ -520,9 +520,9 @@ test('quadratic guide: straight optional guide preserves the previous conic geom
 
 test('quadratic guide: malformed guide objects and control tuples have exact typed diagnostics', () => {
   const g = rail(), finite = 'needs finite three-component points within the existing coordinate range';
+  assert.throws(() => guided({ ...g, kind: 'cubic-bezier' }), e => e instanceof BrepError && e.code === 'INPUT' && e.message === 'B-rep: loft: cubic guide needs exactly four world control points');
   const cases = [
     [null, 'must be one explicit guide object'], [[g, g], 'must be one explicit guide object'],
-    [{ ...g, kind: 'cubic-bezier' }, 'needs exactly kind quadratic-bezier and controlPoints'],
     [{ ...g, weights: [1, 1, 1] }, 'needs exactly kind quadratic-bezier and controlPoints'],
     [{ ...g, controlPoints: g.controlPoints.slice(0, 2) }, 'needs exactly three world control points'],
     [{ ...g, controlPoints: [...g.controlPoints, [1, 0, 4]] }, 'needs exactly three world control points'],

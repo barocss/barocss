@@ -1,7 +1,7 @@
 // Exact conic sections on two or three parallel, identically oriented frames. The same
 // rational quarter-circle parameters and weights on both ends make each ruled side's
 // intermediate section an ellipse with positive linear radii. Its centre is linear without
-// a guide, or gains the admitted two-section guide's transverse quadratic displacement. Strictly ordered
+// a guide, or gains the admitted two-section guide's transverse Bezier displacement. Strictly ordered
 // section planes and positive radii certify a simple closed solid.
 import { buildBrep, BrepError, lineCurve, type BrepFaceInput } from '../brep/brep-core.js';
 import { solidMassFromIntegrals } from '../brep/solid-mass.js';
@@ -74,13 +74,13 @@ export function curvedLoftSolid(input: LoftInput, frames: readonly Frame[]) {
   const edges = curves.flatMap((row, k) => row.map((q, i) => ({ id: ring(k, i), curve: q, vertices: [vertex(k, i), vertex(k, i + 1)] as [string, string], name: [k === K ? `${input.name}.top` : side(k, i), k === 0 ? `${input.name}.bottom` : side(k - 1, i)].sort().join('|') })));
   for (let k = 0; k < K; k++) for (let i = 0; i < 4; i++) {
     const lo = positions[k][i], hi = positions[k + 1][i];
-    const curve: Curve = guide ? { kind: 'curve', id: ruling(k, i), degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [lo, guide.middle(lo, hi), hi], weights: [1, 1, 1] } : lineCurve(ruling(k, i), lo, hi);
+    const curve: Curve = guide ? { kind: 'curve', id: ruling(k, i), degree: guide.degree, knots: [...guide.knots], controlPoints: guide.controls(lo, hi), weights: Array(guide.degree + 1).fill(1) } : lineCurve(ruling(k, i), lo, hi);
     edges.push({ id: ruling(k, i), curve, vertices: [vertex(k, i), vertex(k + 1, i)], name: [side(k, (i + 3) % 4), side(k, i)].sort().join('|') });
   }
   const faces: BrepFaceInput[] = [];
   for (let k = 0; k < K; k++) faces.push(...unit.map((q, i): BrepFaceInput => ({ id: `f${k}_${i}`, name: side(k, i), sense: 'forward', surface: {
-    kind: 'surface', id: `f${k}_${i}`, degreeU: 2, degreeV: guide ? 2 : 1, knotsU: [...q.knots], knotsV: guide ? [0, 0, 0, 1, 1, 1] : [0, 0, 1, 1],
-    controlPoints: q.controlPoints.map((_, j) => { const lo = curves[k][i].controlPoints[j], hi = curves[k + 1][i].controlPoints[j]; return guide ? [lo, guide.middle(lo, hi), hi] : [lo, hi]; }), weights: q.weights.map(w => guide ? [w, w, w] : [w, w]),
+    kind: 'surface', id: `f${k}_${i}`, degreeU: 2, degreeV: guide ? guide.degree : 1, knotsU: [...q.knots], knotsV: guide ? [...guide.knots] : [0, 0, 1, 1],
+    controlPoints: q.controlPoints.map((_, j) => { const lo = curves[k][i].controlPoints[j], hi = curves[k + 1][i].controlPoints[j]; return guide ? guide.controls(lo, hi) : [lo, hi]; }), weights: q.weights.map(w => guide ? Array(guide.degree + 1).fill(w) : [w, w]),
   }, loops: [{ kind: 'outer', uses: [{ edge: ring(k, i), sense: 'forward' }, { edge: ruling(k, i + 1), sense: 'forward' }, { edge: ring(k + 1, i), sense: 'reversed' }, { edge: ruling(k, i), sense: 'reversed' }] }] })));
   for (const k of [0, K]) {
     const s = sections[k], [x, y] = s.center, [rx, ry] = s.radii;
@@ -92,9 +92,9 @@ export function curvedLoftSolid(input: LoftInput, frames: readonly Frame[]) {
   const id = input.id, brep = buildBrep({ source: { family: 'loft', id }, vertices, edges, bodies: [{ id, kind: 'solid', shells: [{ id: `${id}.shell`, faces, closed: true }] }] });
 
   // Exact ellipse area moments in the common section basis. Radii are linear; a guide makes
-  // the centre quadratic. Second volume moments have degree at most six (four without a
-  // guide), still integrated to rounding by the existing Gauss(4), with no mesh mass.
-  const I = Array(10).fill(0) as number[], G = gauss(4), u = frames[0].u, v = frames[0].v;
+  // the centre quadratic or cubic. Second volume moments have degree at most six or eight
+  // (four without a guide), integrated by Gauss(4) or Gauss(5), with no mesh mass.
+  const I = Array(10).fill(0) as number[], G = gauss(guide?.degree === 3 ? 5 : 4), u = frames[0].u, v = frames[0].v;
   // Ordered section planes separate the spans; sum their world-space raw moments once.
   for (let k = 0; k < K; k++) G.x.forEach((t, it) => {
     const a = sections[k], b = sections[k + 1], rx = a.radii[0] + t * (b.radii[0] - a.radii[0]), ry = a.radii[1] + t * (b.radii[1] - a.radii[1]);
