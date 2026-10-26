@@ -163,6 +163,8 @@ Supply IDs from the current direct geometry. Neither helper above commits a Stud
 
 ![A straight profile keeps its X direction as a curved rail translates it through three world-coordinate positions](/diagrams/direct-sweep-surface.svg)
 
+[Open the direct sweep diagram at full size](/diagrams/direct-sweep-surface.svg).
+
 The diagram is a calculated coordinate example, not an API render. For `P(u) = [10u, 0, 0]` and
 `R(v) = [0, 20v, 20v²]`, with `u` and `v` from 0 to 1, the rail starts at `[0, 0, 0]` mm. At `v = 0.5`,
 the profile runs from `[0, 10, 5]` to `[10, 10, 5]` mm; at `v = 1`, it runs from `[0, 20, 20]` to
