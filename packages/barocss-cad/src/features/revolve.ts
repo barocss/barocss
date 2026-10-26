@@ -6,7 +6,8 @@
 // spheres, cone tips, discs) and run along it (axis segments bound no wall; the caps of a partial turn
 // share them), but not touch or cross it anywhere else.
 import { BrepError, buildBrep, loopVectorArea, surfaceNormalAtCentre, type Brep, type BrepFaceInput, type BrepLoopInput } from '../brep/brep-core.js';
-import { curveTolerance, intersectSegments, locateInRegion, paramOf, segStart, type CurveSegment2 } from '../brep/curved-arrangement.js';
+import { curveTolerance, intersectSegments, locateInRegion, segStart, type CurveSegment2 } from '../brep/curved-arrangement.js';
+import { exactPoint2, exactPoint2FromXY, exactOrient2, type ExactPoint2 } from '../brep/planar-arrangement.js';
 import { sideName, SIDE_TAG } from '../document/side-names.js';
 import { buildProfileLoop, segmentCurve, type ProfileSegment, type ProfileSegmentInput, type XY } from './extruded-profile-solid.js';
 import { evaluateCurve, curveDomain } from '../core/math.js';
@@ -143,10 +144,35 @@ export function revolveProfile(input: RevolveInput): Brep {
     // A line's signed radius is affine. A circular arc's extrema are its carrier points along ±s.
     const candidates: { p: XY; interior: boolean }[] = [{ p: seg.start, interior: false }, { p: seg.end, interior: false }];
     if (seg.kind === 'arc') {
-      const arc: CurveSegment2 = { kind: 'arc', c: seg.center, r: seg.radius, t0: seg.startAngle, sweep: seg.sweep };
+      const centre = exactPoint2FromXY([...seg.center]), zero = exactPoint2FromXY([0, 0]);
+      // Subtract authored coordinates as exact homogeneous rationals, before any Number rounding.
+      const ray = (q: XY): ExactPoint2 => {
+        const e = exactPoint2FromXY(q), denominator = e.w * centre.w;
+        return exactPoint2(e.x * centre.w - centre.x * e.w, denominator,
+          e.y * centre.w - centre.y * e.w, denominator);
+      };
+      // The same half-plane/cross ordering as the exact planar arrangement, from +X counter-clockwise.
+      const half = (v: ExactPoint2) => v.y > 0n || (v.y === 0n && v.x > 0n) ? 0 : 1;
+      const less = (a: ExactPoint2, b: ExactPoint2) => half(a) !== half(b)
+        ? half(a) < half(b) : exactOrient2(zero, a, b) > 0;
+      const sameRay = (a: ExactPoint2, b: ExactPoint2) => half(a) === half(b) && exactOrient2(zero, a, b) === 0;
+      const first = ray(seg.start), last = ray(seg.end), [start, end] = seg.sweep > 0 ? [first, last] : [last, first];
+      if ((start.x === 0n && start.y === 0n) || (end.x === 0n && end.y === 0n) || sameRay(start, end)) {
+        throw new BrepError('GEOMETRY', 'revolve: the arc direction cannot be determined from its endpoint rays');
+      }
       for (const sign of [-1, 1]) {
-        const p: XY = [seg.center[0] + sign * seg.radius * s[0], seg.center[1] + sign * seg.radius * s[1]], t = paramOf(arc, p);
-        if (t > 0 && t < 1) candidates.push({ p, interior: true });
+        const critical = exactPoint2FromXY([sign * s[0], sign * s[1]]);
+        if (critical.x === 0n && critical.y === 0n) {
+          throw new BrepError('GEOMETRY', 'revolve: the arc direction cannot be determined from its endpoint rays');
+        }
+        if (sameRay(start, critical) || sameRay(end, critical)) continue;
+        // Circular order handles both minor and major arcs, including the wrap across +X.
+        const interior = less(start, end) ? less(start, critical) && less(critical, end)
+          : less(start, critical) || less(critical, end);
+        if (interior) {
+          const p: XY = [seg.center[0] + sign * seg.radius * s[0], seg.center[1] + sign * seg.radius * s[1]];
+          candidates.push({ p, interior: true });
+        }
       }
     }
     for (const { p, interior } of candidates) {
