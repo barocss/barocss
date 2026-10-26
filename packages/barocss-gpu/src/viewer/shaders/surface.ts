@@ -1,5 +1,5 @@
 // The viewer's WGSL: surface (R2c: shaders.ts split by program, shaders.ts the facade).
-import { common } from './common.js';
+import { common, MAX_DIRECTIONAL, MAX_SHADOWS } from './common.js';
 import { materialLayerWGSL } from './material-layer.js';
 
 /**
@@ -72,6 +72,10 @@ fn smith(nov: f32, nol: f32, a: f32) -> f32 {
   let gl = nov * sqrt(nol * nol * (1.0 - a2) + a2);
   return 0.5 / max(gv + gl, 1e-5);
 }
+// Metadata slots stay fixed; physical layers contain only active shadows in slot order.
+fn shadowLayerIndex(light: u32) -> i32 {
+  return i32(countOneBits(frame.shadowActive.x & ((1u << light) - 1u)));
+}
 // G15b: a Poisson disc of 16 taps (unit radius) for the soft shadows' blocker search and filter.
 const DISC = array<vec2f, 16>(vec2f(-0.942, -0.399), vec2f(0.946, -0.769), vec2f(-0.094, -0.929), vec2f(0.345, 0.294),
   vec2f(-0.916, 0.458), vec2f(-0.815, -0.879), vec2f(-0.383, 0.277), vec2f(0.975, 0.756), vec2f(0.443, -0.975),
@@ -84,6 +88,7 @@ const DISC = array<vec2f, 16>(vec2f(-0.942, -0.399), vec2f(0.946, -0.769), vec2f
  */
 fn softShadowAt(uv: vec2f, z: f32, world: vec3f, light: u32) -> f32 {
   let params = frame.shadowLights[light].params;
+  let layer = shadowLayerIndex(light);
   let texel = params.y;
   let size = vec2f(textureDimensions(shadowMap));
   let a = fract(sin(dot(world, vec3f(12.9898, 78.233, 37.719))) * 43758.5453) * 6.2831853;
@@ -93,26 +98,29 @@ fn softShadowAt(uv: vec2f, z: f32, world: vec3f, light: u32) -> f32 {
   var count = 0.0;
   for (var i = 0; i < 16; i++) {
     let q = clamp(uv + rot * DISC[i] * search, vec2f(0.0), vec2f(1.0));
-    let d = textureLoad(shadowMap, min(vec2i(q * size), vec2i(size) - 1), i32(light), 0);
+    let d = textureLoad(shadowMap, min(vec2i(q * size), vec2i(size) - 1), layer, 0);
     if (d < z) { blockers += d; count += 1.0; }
   }
   if (count == 0.0) { return 1.0; }
   let radius = clamp((z - blockers / count) * params.w, texel, 32.0 * texel);
   var lit = 0.0;
-  for (var i = 0; i < 16; i++) { lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + rot * DISC[i] * radius, i32(light), z); }
+  for (var i = 0; i < 16; i++) { lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + rot * DISC[i] * radius, layer, z); }
   return lit / 16.0;
 }
 /** Lit share (0–1) of a point by the shadow map: 3×3 percentage-closer filtering, or soft (PCSS) when the light has a size. */
 fn shadowAt(world: vec3f, n: vec3f, light: u32) -> f32 {
   let shadow = frame.shadowLights[light];
   let p = shadow.viewProj * vec4f(world + n * shadow.params.x, 1.0);
-  let uv = vec2f(p.x * 0.5 + 0.5, 0.5 - p.y * 0.5);
-  if (any(uv < vec2f(0.0)) || any(uv > vec2f(1.0)) || p.z > 1.0) { return 1.0; }
-  if (shadow.params.w > 0.0) { return softShadowAt(uv, p.z - shadow.params.z, world, light); }
+  if (p.w <= 0.0) { return 1.0; }
+  let q = p.xyz / p.w;
+  let uv = vec2f(q.x * 0.5 + 0.5, 0.5 - q.y * 0.5);
+  if (any(uv < vec2f(0.0)) || any(uv > vec2f(1.0)) || q.z < 0.0 || q.z > 1.0) { return 1.0; }
+  if (light < ${MAX_DIRECTIONAL}u && shadow.params.w > 0.0) { return softShadowAt(uv, q.z - shadow.params.z, world, light); }
+  let layer = shadowLayerIndex(light);
   var lit = 0.0;
   for (var y = -1; y <= 1; y++) {
     for (var x = -1; x <= 1; x++) {
-      lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + vec2f(f32(x), f32(y)) * shadow.params.y, i32(light), p.z - shadow.params.z);
+      lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + vec2f(f32(x), f32(y)) * shadow.params.y, layer, q.z - shadow.params.z);
     }
   }
   return lit / 9.0;
@@ -262,7 +270,10 @@ fn shadeLayered(world: vec3f, base: vec3f, metallicIn: f32, emissive: f32, recei
     let cone = smoothstep(s.cone.y, s.cone.x, dot(-l, normalize(s.direction.xyz)));
     var fall = cone / max(dist * dist, 1e-4);
     if (s.position.w > 0.0) { let q = clamp(1.0 - pow(dist / s.position.w, 4.0), 0.0, 1.0); fall *= q * q; }
-    c += brdfLayered(v, l, base, metallic, a, layer, tint) * s.color.rgb * s.color.w * fall * PI;
+    let shadowSlot = ${MAX_DIRECTIONAL}u + i;
+    var lit = 1.0;
+    if ((frame.shadowActive.x & (1u << shadowSlot)) != 0u && receive) { lit = shadowAt(world, layer.coatN, shadowSlot); }
+    c += brdfLayered(v, l, base, metallic, a, layer, tint) * s.color.rgb * s.color.w * fall * PI * lit;
   }
   return c;
 }
@@ -360,8 +371,21 @@ fn unlitColor(in: VOut) -> vec4f {
 @fragment fn fsShadow(in: VOut) -> @location(0) vec4f {
   if (clippedAway(in.world)) { discard; }
   var lit = 1.0;
-  for (var i = 0u; i < frame.counts.x; i++) {
-    if ((frame.shadowActive.x & (1u << i)) != 0u) { lit = min(lit, shadowAt(in.world, normalize(in.normal), i)); }
+  for (var i = 0u; i < ${MAX_SHADOWS}u; i++) {
+    if ((frame.shadowActive.x & (1u << i)) == 0u) { continue; }
+    var strength = 1.0;
+    if (i >= ${MAX_DIRECTIONAL}u) {
+      let s = frame.spots[i - ${MAX_DIRECTIONAL}u];
+      let to = s.position.xyz - in.world;
+      let dist = length(to);
+      if (s.position.w > 0.0 && dist >= s.position.w) { continue; }
+      let cone = dot(-to / max(dist, 1e-6), normalize(s.direction.xyz));
+      if (cone <= s.cone.y) { continue; }
+      strength = smoothstep(s.cone.y, s.cone.x, cone);
+    }
+    let visibility = shadowAt(in.world, normalize(in.normal), i);
+    if (i < ${MAX_DIRECTIONAL}u) { lit = min(lit, visibility); }
+    else { lit = min(lit, mix(1.0, visibility, strength)); }
   }
   let a = (1.0 - lit) * in.color.a;
   return vec4f(in.color.rgb * a, a);

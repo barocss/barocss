@@ -1,10 +1,11 @@
 // The viewer's WGSL: common (R2c: shaders.ts split by program, shaders.ts the facade).
 
 export const MAX_DIRECTIONAL = 4, MAX_POINT = 8, MAX_SPOT = 4;
+export const MAX_SHADOWS = MAX_DIRECTIONAL + MAX_SPOT;
 /** Byte sizes and offsets of the uniform blocks (kept with the WGSL below and packFrame in lights.ts). */
 /** Clip planes at most (G19: a box section's six). */
 export const MAX_CLIP_PLANES = 6;
-export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 16 + MAX_CLIP_PLANES * 16 + MAX_DIRECTIONAL * 80 + 16;
+export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 16 + MAX_CLIP_PLANES * 16 + MAX_SHADOWS * 80 + 16;
 export const OBJECT_BYTES = 256, OBJECT_STRIDE = 256;
 
 /** The WGSL every program starts with (internal: its frame and object blocks, its helpers). */
@@ -40,8 +41,8 @@ struct Frame {
   // colour (linear), |w| the number of planes (0: none).
   clipColor: vec4f,
   clips: array<vec4f, ${MAX_CLIP_PLANES}>,
-  // Directional indices are fixed texture-array layers; shadowActive.x is their active bit mask.
-  shadowLights: array<ShadowLight, ${MAX_DIRECTIONAL}>,
+  // Fixed metadata slots: directional 0–3, spot 4–7. Active depth-array layers are compacted by mask bit order.
+  shadowLights: array<ShadowLight, ${MAX_SHADOWS}>,
   shadowActive: vec4u,
 }
 struct Object {

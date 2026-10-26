@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import { Camera } from '../dist/viewer/camera.js';
 import { identity } from '../dist/viewer/math.js';
 import { packFrame } from '../dist/viewer/lights.js';
-import { FRAME_BYTES, MAX_DIRECTIONAL } from '../dist/viewer/shaders.js';
+import { FRAME_BYTES, MAX_DIRECTIONAL, MAX_SHADOWS } from '../dist/viewer/shaders.js';
 import { Viewer } from '../dist/viewer/viewer.js';
 
 const camera = new Camera(), view = identity();
 const legacyFloats = 1104 / 4, shadowStride = 80 / 4;
-const maskIndex = legacyFloats + 4 * shadowStride;
+const maskIndex = legacyFloats + MAX_SHADOWS * shadowStride;
 const light = (castShadow = true) => ({ kind: 'directional', direction: [0, 0, -1], castShadow });
 const shadow = seed => {
   const viewProjection = identity(); viewProjection[12] = seed; viewProjection[13] = seed * 2;
@@ -20,14 +20,14 @@ const slot = (frame, index) => frame.slice(legacyFloats + index * shadowStride, 
 const expected = frame => [...frame.viewProjection, frame.normalOffset, frame.texel, frame.bias, frame.softness ?? 0];
 
 test('multi-directional shadow storage follows the unchanged frame prefix and preserves viewport and clip offsets', () => {
-  assert.equal(MAX_DIRECTIONAL, 4); assert.equal(FRAME_BYTES, 1440);
+  assert.equal(MAX_DIRECTIONAL, 4); assert.equal(MAX_SHADOWS, 8); assert.equal(FRAME_BYTES, 1760);
   const clip = { normal: [0, 1, 0], offset: 3, cap: [1, 0, 0], planes: [{ normal: [0, 1, 0], offset: 3 }], cutout: true };
   const frame = packFrame(view, camera, [], {}, null, [640, 480, 2, 7], null, clip);
-  assert.equal(frame.byteLength, 1440);
+  assert.equal(frame.byteLength, 1760);
   assert.deepEqual([...frame.slice(220, 224)], [640, 480, 2, 7]);
   assert.deepEqual([...frame.slice(248, 252)], [1, 0, 0, -1]);
   assert.deepEqual([...frame.slice(252, 256)], [0, 1, 0, 3]);
-  assert.deepEqual([...frame.slice(legacyFloats)], new Array(84).fill(0));
+  assert.deepEqual([...frame.slice(legacyFloats)], new Array(MAX_SHADOWS * shadowStride + 4).fill(0));
 });
 
 test('a legacy single shadow populates its directional slot and keeps the original primary shadow fields', () => {
@@ -50,7 +50,7 @@ test('four directional casters retain independent matrices and parameters while 
   assert.deepEqual([...words(packed).slice(maskIndex + 1)], [0, 0, 0]);
 });
 
-test('sparse caster frames keep directional indices rather than compacting texture layers', () => {
+test('sparse caster metadata keeps directional indices while texture layers can be compacted', () => {
   const frames = [shadow(1), shadow(2), shadow(3), null];
   const packed = pack([light(), light(false), light(), light()], frames);
   assert.equal(words(packed)[maskIndex], 5); assert.equal(words(packed)[39], 1);
@@ -68,7 +68,7 @@ test('explicit inactive frames override the legacy shadow and a reused target cl
   const packed = pack(lights, [null, null, null, null], shadow(9), target);
   assert.equal(packed, target); assert.equal(words(packed)[39], 0); assert.equal(words(packed)[maskIndex], 0);
   assert.deepEqual([...packed.slice(200, 220)], new Array(20).fill(0));
-  assert.deepEqual([...packed.slice(legacyFloats)], new Array(84).fill(0));
+  assert.deepEqual([...packed.slice(legacyFloats)], new Array(MAX_SHADOWS * shadowStride + 4).fill(0));
   const absent = pack([light()], undefined);
   assert.equal(words(absent)[39], 0); assert.equal(words(absent)[maskIndex], 0);
   const fifthOnly = pack([light(false), light(false), light(false), light(false), light()], [null, null, null, null, shadow(1)], shadow(1));
@@ -90,7 +90,7 @@ test('shadow redraw caches stay independent per layer and caster motion invalida
   const viewer = Object.create(Viewer.prototype);
   Object.assign(viewer, {
     device: {}, shadowMapSize: 2048, clip: null, ids: new WeakMap(), nextObjectId: 1,
-    shadowCache: Array.from({ length: 4 }, () => ({ drawn: new Float64Array(0), next: new Float64Array(0), length: -1 })),
+    shadowCache: Array.from({ length: MAX_SHADOWS }, () => ({ drawn: new Float64Array(0), next: new Float64Array(0), length: -1 })),
   });
   const caster = { slot: 2, geometry: { gpu: null }, instances: null, transform: identity() };
   const matrices = [1, 2, 3, 4].map(seed => shadow(seed).viewProjection);
@@ -123,7 +123,7 @@ test('active shadow layers zero and three keep different uniform buffers after b
   Object.assign(viewer, {
     canvas: { width: 640, height: 480 }, pixelRatio: 1, camera: new Camera(),
     lights: [light(), light(false), light(false), light()], environment: {}, clip: null, grid: { visible: false },
-    meshes: [], frameBuffer: buffer(), shadowFrameBuffers: Array.from({ length: 4 }, buffer),
+    meshes: [], frameBuffer: buffer(), shadowFrameBuffers: Array.from({ length: MAX_SHADOWS }, buffer),
     sceneBounds() { return null; },
     device: { queue: { writeBuffer(target, offset, data) {
       const bytes = Uint8Array.from(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
@@ -147,4 +147,34 @@ test('active shadow layers zero and three keep different uniform buffers after b
   assert.deepEqual([...new Float32Array(writes[1].bytes.buffer).slice(0, 16)], [...first.viewProjection], 'later scratch-buffer reuse must not change the first queued bytes');
   for (const layer of [1, 2]) assert.ok(viewer.shadowFrameBuffers[layer].bytes.every(byte => byte === 0), 'inactive holes must receive no shadow-pass writes');
   assert.equal(new Uint32Array(viewer.frameBuffer.bytes.buffer)[maskIndex], 9);
+});
+
+test('spot-only shadow passes keep perspective cap rays and separate uniforms without a legacy directional caster', () => {
+  const viewer = Object.create(Viewer.prototype), writes = [];
+  const buffer = () => ({ bytes: new Uint8Array(FRAME_BYTES) });
+  const spot = castShadow => ({ kind: 'spot', position: [10, 0, 8], direction: [-10, 0, -8], castShadow });
+  Object.assign(viewer, {
+    canvas: { width: 640, height: 480 }, pixelRatio: 1, camera: new Camera({ projection: 'orthographic' }),
+    lights: [spot(true), spot(false), spot(false), spot(true)], environment: {}, clip: null, grid: { visible: false },
+    meshes: [], frameBuffer: buffer(), shadowFrameBuffers: Array.from({ length: MAX_SHADOWS }, buffer),
+    sceneBounds() { return null; },
+    device: { queue: { writeBuffer(target, offset, data) {
+      const bytes = Uint8Array.from(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+      target.bytes.set(bytes, offset); writes.push({ target, bytes });
+    } } },
+  });
+  const first = { ...shadow(2), eye: [10, 0, 8], direction: [-1, 0, -1], perspective: true };
+  const last = { ...shadow(7), eye: [-10, 0, 8], direction: [1, 0, -1], perspective: true };
+  viewer.writeUniforms(identity(), [null, null, null, null, first, null, null, last]);
+  assert.deepEqual(writes.map(write => write.target), [viewer.frameBuffer, viewer.shadowFrameBuffers[4], viewer.shadowFrameBuffers[7]]);
+  const frame = new Float32Array(viewer.frameBuffer.bytes.buffer), words = new Uint32Array(frame.buffer);
+  assert.equal(words[39], 0, 'spot-only frames do not set the legacy directional index');
+  assert.deepEqual([...frame.slice(200, 220)], new Array(20).fill(0));
+  assert.equal(words[maskIndex], 0x90);
+  for (const [slot, source] of [[4, first], [7, last]]) {
+    const stored = new Float32Array(viewer.shadowFrameBuffers[slot].bytes.buffer);
+    assert.deepEqual([...stored.slice(16, 20)], [...source.eye, 1], 'spot cap rays must be perspective even for an orthographic camera');
+    assert.deepEqual([...stored.slice(0, 16)], [...source.viewProjection]);
+  }
+  assert.deepEqual([...new Float32Array(writes[1].bytes.buffer).slice(0, 16)], [...first.viewProjection]);
 });

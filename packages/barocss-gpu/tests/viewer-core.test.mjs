@@ -8,7 +8,7 @@ import { orbit, pan, zoom } from '../dist/viewer/controls.js';
 import { boxInFrustum, frustumPlanes, screenRect, transformBox } from '../dist/viewer/bounds.js';
 import { clippedRay, clippedRayFull, fillVertexColors, keptBy, localPlane, nearestSegment, prepareGeometry, prepareScalars, rayTriangles, regionEntry, segmentInstances, vertexColors } from '../dist/viewer/geometry.js';
 import { packFrame, packOutput, parseColor, whiteBalance } from '../dist/viewer/lights.js';
-import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_POINT, surfaceWGSL } from '../dist/viewer/shaders.js';
+import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_POINT, MAX_SHADOWS, surfaceWGSL } from '../dist/viewer/shaders.js';
 import { clipBox, Viewer } from '../dist/viewer/viewer.js';
 import { studioEnvironment, STUDIO_ENVIRONMENTS } from '../dist/viewer/studio-env.js';
 
@@ -124,7 +124,7 @@ test('viewer geometry: checks its input, computes normals, picks the nearest tri
 });
 
 test('viewer lights: the frame block matches the WGSL layout', () => {
-  assert.equal(FRAME_BYTES, 1440);
+  assert.equal(FRAME_BYTES, 1760);
   assert.match(surfaceWGSL(), new RegExp(`dirs: array<DirLight, ${MAX_DIRECTIONAL}>`));
   // A shader material: its declarations, aliases and expression; the default params struct unless it declares one.
   const custom = surfaceWGSL({ declarations: 'fn f(x: f32) -> f32 { return x; }\n', expression: 'vec3f(f(native_uv.x))', aliases: { native_uv: 'uv' } });
@@ -163,8 +163,8 @@ test('viewer lights: the frame block matches the WGSL layout', () => {
   const two = packFrame(vp, cam, [], {}, null, [1, 1, 1], null, { normal: [0, 1, 0], offset: 2.5, cap: [1, 1, 1], planes: [{ normal: [0, 1, 0], offset: 2.5 }, { normal: [-1, 0, 0], offset: -4 }] });
   assert.ok(close([...two.slice(248, 260)], [1, 1, 1, 2, 0, 1, 0, 2.5, -1, 0, 0, -4], 1e-6));
   assert.deepEqual([...packFrame(vp, cam, [], {}).slice(248, 276)], new Array(28).fill(0));
-  assert.equal(FRAME_BYTES, 4 * (252 + 4 * MAX_CLIP_PLANES + MAX_DIRECTIONAL * 20 + 4));
-  assert.match(surfaceWGSL().replace(/\/\/[^\n]*/g, ''), new RegExp(`clipColor: vec4f,\\s+clips: array<vec4f, ${MAX_CLIP_PLANES}>,\\s+shadowLights: array<ShadowLight, ${MAX_DIRECTIONAL}>,`));
+  assert.equal(FRAME_BYTES, 4 * (252 + 4 * MAX_CLIP_PLANES + MAX_SHADOWS * 20 + 4));
+  assert.match(surfaceWGSL().replace(/\/\/[^\n]*/g, ''), new RegExp(`clipColor: vec4f,\\s+clips: array<vec4f, ${MAX_CLIP_PLANES}>,\\s+shadowLights: array<ShadowLight, ${MAX_SHADOWS}>,`));
 });
 
 test('G15b studio environments: equirectangular RGBA, overhead brighter than below, the softbox room dark with its key the brightest; the cyclorama bright all round', () => {

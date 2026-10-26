@@ -36,7 +36,7 @@ box.outline = '#e8c25a';                // a selection outline around the visibl
   back to front; shadow catchers (`shadowOnly`).
 - Lines: screen-space width (`lineWidth`), segment ids (`edges`) and `pickLine()`.
 - Scene: instancing (`instances`: a transform and colour each, one draw), frustum culling, directional
-  shadows (up to four lights with `castShadow: true`, PCF/PCSS), ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
+  shadows (up to four lights, PCF/PCSS) and spot shadows (up to four lights, PCF) with `castShadow: true`, ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
   exposure and ACES tone mapping in a linear half-float pipeline.
 - Tests: `tests/viewer-core.test.mjs` (Node), `tests/viewer-browser.test.mjs` and
   `tests/scene-viewer-browser.test.mjs` (Chrome's WebGPU, `CHROME` and `PW_DIR`,
@@ -45,8 +45,14 @@ box.outline = '#e8c25a';                // a selection outline around the visibl
 The first four directional lights contribute lighting; each can enable its own
 shadow with `castShadow: true`. `viewer.shadowMapSize` sets each map's resolution,
 and `environment.softShadows` sets their shared angular size in degrees (0: hard).
-Contact shadows retain the first casting directional light. Point and spot light
-shadow maps are not part of this directional-shadow feature.
+The first four spot lights can also set `castShadow: true`; they use PCF with the
+same map resolution. Spot shadow positions and directions must be finite f32
+vectors, with nonzero direction; the cone angle must be between 0 and 90 degrees,
+and range must be finite and nonnegative. Invalid enabled spot shadow inputs
+refuse with `LIGHT_INVALID`. A positive range limits the shadow projection;
+range 0 fits its depth to the scene. `softShadows` applies to directional lights.
+Contact shadows retain the first casting directional light. Point-light cube
+shadows are not included.
 
 The CSS-shaped scene language shows on it with one call: `showScene(viewer, source)` compiles a scene
 source (version 0 or 1), adds a mesh per object with its placement and colour (`view.meshes` by id, picks

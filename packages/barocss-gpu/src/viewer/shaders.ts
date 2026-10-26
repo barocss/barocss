@@ -3,7 +3,7 @@
 // The scene is drawn in linear light into a half-float target (blending in linear light); the output
 // pass applies exposure and tone mapping and encodes sRGB for the canvas.
 // (R2c: split by program under shaders/; this file the facade, its exports as they were.)
-export { MAX_DIRECTIONAL, MAX_CLIP_PLANES, FRAME_BYTES, OBJECT_BYTES, MAX_POINT, MAX_SPOT, OBJECT_STRIDE } from './shaders/common.js';
+export { MAX_DIRECTIONAL, MAX_CLIP_PLANES, FRAME_BYTES, OBJECT_BYTES, MAX_POINT, MAX_SPOT, MAX_SHADOWS, OBJECT_STRIDE } from './shaders/common.js';
 export { surfaceWGSL } from './shaders/surface.js';
 export type { SurfaceShader } from './shaders/surface.js';
 export { lineWGSL } from './shaders/line.js';

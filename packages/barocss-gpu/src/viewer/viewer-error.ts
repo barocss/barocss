@@ -9,7 +9,7 @@ export type ViewerErrorCode =
   // material's params, clip planes, a texture, the backing size, a matrix that has no inverse.
   | 'PATH_TRACE_UNSUPPORTED' | 'PATH_TRACE_BUSY'
   | 'GEOMETRY_INVALID' | 'INSTANCES_INVALID' | 'TRANSFORM_INVALID' | 'COLOR_MAP_INVALID' | 'COLOR_INVALID'
-  | 'MATERIAL_INVALID' | 'CLIP_INVALID' | 'TEXTURE_INVALID' | 'SIZE_INVALID' | 'MATRIX_SINGULAR';
+  | 'MATERIAL_INVALID' | 'LIGHT_INVALID' | 'CLIP_INVALID' | 'TEXTURE_INVALID' | 'SIZE_INVALID' | 'MATRIX_SINGULAR';
 
 export class ViewerError extends BarocssError {
   constructor(readonly code: ViewerErrorCode, message: string) { super(code, message); this.name = 'ViewerError'; }
