@@ -634,7 +634,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       const r = resolveDimension({ ...views, [pending.view]: R(pending.view) }, d);
       if (r.ok) parts.push(`<g class="dw-preview">${marksSvg(dimensionMarks(P(pending.view), r))}</g>`);
     } else if (hover && v && tool === 'datum-target' && isViewId(hover.view)) {
-      for (const point of endpointSnap(views[hover.view], hover.at, 9 * mmPerPx() / v.scale)) {
+      for (const point of (bodies ? endpointSnap(views[hover.view], hover.at, 9 * mmPerPx() / v.scale, bodies).points : [])) {
         const q = toSheet(v, inView(views[hover.view], point.near));
         parts.push(`<circle class="dw-snap" cx="${q[0]}" cy="${q[1]}" r="1.4"/>`);
       }
@@ -646,7 +646,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       }
     }
     return parts.join('');
-  }, [layout, views, hover, pending, tool]);
+  }, [layout, views, bodies, hover, pending, tool]);
 
   // The dimension being dragged is drawn where it goes.
   const shownMarkup = useMemo(() => {
