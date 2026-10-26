@@ -43,12 +43,65 @@ Owner correction: concentrate resources on roadmap implementation. Do not turn v
 repeated audits or new diagnostic tests into separate work streams. Preserve necessary checks and first
 failures, reuse unchanged passing results, and finish the feature source before its one affected batch.
 
-Current order: STL quality is complete in local product f1c6b1. Close each current feature source before its
-minimum affected check batch. GPU pose readback is complete only for the scoped product a45b7b feature. Finish parameter-bound
-hole callout reference preservation and the observed Save-flow gap at their actual producer/consumer boundary. For path bundles, accept and test
-persistent member bindings, atomic curve/sweep updates and failure preservation in CAD/Model before implementing
-the Studio tie gesture. Independent source work can continue in parallel. Do not use additional UI features to
-hide missing basic operations, unit disagreements, unsupported geometry or unresolved references.
+Current order (2026-10-27): finish complete features, then integrate their reviewed normal commits.
+The scoped SSI feature is complete in local product `4c474e8b`. Route WireDoc metadata preservation
+is implemented at `568dd411`: the original two native cases passed, and the corrected test message
+then passed Model/Studio types and the three changed-file checks. Its actual Studio creation,
+preview, 3-axis move, Undo/Redo and file flow have run; final archive review and product adoption
+remain. Reuse these source-bound results instead of repeating earlier successful flows.
+
+Kernel owns the Model API implementation; the coordinator owns API design review, cross-owner
+resolution and integration. The next joint feature uses the existing 20/10 mm, +Y, al6061 two-link
+case and its three independent poses. Studio consumes the existing Model forwardKinematics export
+through useJoints and instancePoses. The public absolute pose and home-to-posed displacement are
+different representations. Do not add another FK API or apply an absolute transform twice.
+
+Independent GPU work continues through PBR and directional/spot shadows to one point light with
+six-face PCF shadows. The qualified donor results do not establish product adoption. Viewer owns
+the approved standalone React app and its existing native inspection APIs; measurements and saved
+reviews retain source/revision and capability boundaries. Studio finishes each foundation consumer
+and basic keyboard transaction. Drawings' first DR6 target slice admits a unique straight-edge
+endpoint identity only; loss or ambiguity stays explicitly unresolved. Wider point/line/area targets,
+auto-rematching and manufacturing certification are not implied. Keep independent source work
+parallel, serialize the shared heavy execution lane, and preserve paused/HOLD scopes.
+
+## Joint and robot completion plan (owner update, 2026-10-27)
+
+Direct owner instruction: add the remaining joint and robot work to this roadmap and continue it.
+Use the existing O24, RS1–RS7, R1 and experiment tracks below. This section orders their remaining
+work and completion gates; it does not create a second task queue. The coordinator records exact
+owners, files and ready dependencies in the existing task record. Do not ask the owner to assign
+each routine step. Continue current valid work while independent source pieces proceed in parallel.
+
+**Current boundary:** basic joints, robot samples, prescribed pose/playback, bounded serial support,
+mass/inertia and selected static-gravity checks exist. Universal and Cylindrical have bounded support;
+do not describe them as wholly absent or as general robot/loop support. The Model two-link static
+regression passed its selected eight declarations, including the three-pose comparison. It does not
+establish forward free motion, contact, friction, motor control or complete robot acceptance.
+The SSI source and its scoped product checks are complete at product `4c474e8b`; they do not close
+these joint and robot gates. Reuse existing receipts and preserve their source/input boundaries.
+
+| Order and existing track | Owning boundary | Remaining implementation and completion gate |
+|---|---|---|
+| 1. CAD → Model → GPU joint consumer | API/Outer coordinate the existing joint/robot document; Kernel supplies geometry/mass; GPU supplies display/pick | Reuse one existing bounded two-link case and its independent poses. Bind design revision, body/occurrence, joint frames, material density, COM, inertia and units. After a dimension or pose edit, compare Model transforms and GPU display/selection with the same evaluated output. Check invalid/stale updates preserve accepted data, then public Undo/Redo and actual Save/Open. Reuse the existing mm/g/degree and static-torque references; do not silently mix authored density2.5 with the Model material2.7 case. A rendered pose alone does not close this gate. |
+| 2. O24 joint kinds, limits and relations | Outer/API producers with Kernel/GPU consumers only where needed | Close a concrete missing supported case in Cylindrical, Universal or O24(e), using current source and receipts before choosing it. State each DoF, axis, frame, angular/linear limit, driver/follower and supported export. Check gear/rack/screw ratio and sign, instance identity, deleted references and typed unsupported results. Keep existing Lock/Auto behavior and PG-4 in the same track. Do not add a duplicate joint implementation or replace a refusal with a guessed pose. |
+| 3. RS6 closure and RS7 mechanism | Outer closure core; API/GPU shared consumers; Kernel existing blade features | Complete the admitted loop and coupled-input profile. Preserve the chosen branch through a full turn, reverse motion and extrema. Check independent closure residuals, unreachable/singular/over-limit inputs and collision handling within the declared path-checker scope. Every consumer uses the same solved pose. Then complete RS7 Save/Open, playback/scrub, stable repeated occurrences, Drawing/BOM/export and the required renderer checks. Do not pose each blade independently to hide an open loop. |
+| 4. First free rigid-body experiment | Existing Physics owner after ownership and supported-profile confirmation; Kernel/API provide mass/frame contracts | Start with the existing planned D1: fixed support, one revolute axis, known rigid body, explicit initial angle, gravity and zero friction. Keep COM tensor separate from inertia about the pivot. Convert MMGS to solver units once. Compare with `Ip·θ̈ = −m·g·l·sinθ` and, only for small angles, `T = 2π√(Ip/(m·g·l))`. Freeze error limits before execution; check period, energy, joint/constraint error, reactions and time-step convergence. This is new forward-motion evidence, separate from static holding torque. |
+| 5. Multi-link dynamics, contact and control | Existing Physics/robot owners after the admitted single-body profile | Extend one bounded two-link profile before broader mechanisms. Check independent equations, energy, gravity sign and constraint reactions. Then admit contact/friction/impact, actuator torque and speed limits, control period, saturation and tracking error as separate profiles. Report unsupported combinations explicitly. Physical accuracy needs separate sourced inputs and controlled measurements; animation and inverse-dynamics torque do not establish it. |
+| 6. P4 robot delivery and independent exchange | API/Outer with GPU, Drawings and Docs | Use the same design revision for geometry, joint tree, inertials, collision approximation, displayed pose, motion, BOM and exports. Read the supported export independently and compare scale, frames, limits, inertials and asset identity. Complete public edit/save/reopen/run/cancel and stale-result handling. Keep measured validation and manufacturing acceptance as their own gates. |
+
+For every row, keep four states visible: source implemented, independent numerical/reference checks,
+actual consumer/file flow, and product adoption with its required checks. Record the remaining unsupported
+range next to the result. Source review of Float32 conversion, display-edge grouping, preview cancellation
+or failure recovery identifies a check to resolve; it is not by itself a confirmed defect.
+
+Start with the next ready dependency in orders1–3. The first execution step is to bind the existing
+two-link document and available oracle/receipts across CAD, Model and GPU, then implement only an
+observed contract gap in the owning module. Source work comes before its one necessary affected batch.
+Do not repeat unchanged PASS cases or turn preparation into another work stream. Orders4–5 require
+the existing Physics ownership/profile gate; this update does not resume paused Physics/Motion,
+install a solver/dependency, authorize hardware control or clear P2/PG11 manufacturing holds.
+
 
 ## Goal and staged expansion (2026-10-25)
 
@@ -1066,10 +1119,10 @@ R7.6 inventory baseline contains6604 unique exposures/variants across3 packages 
 CG1.2 bounded guide adoption (`b7b0f0e08`) supports exactly two same-axis parallel conic frames, a quadratic world-space translation rail with cap seam endpoints and a midplane middle control. Exact rational NURBS and independent mass tests apply to this scope. General rails, nonparallel sections, multiple sections, smooth lofts, Studio/v2 feature adapters and RS7 acceptance remain. The original f7d7 86PASS/1FAIL is preserved; repaired oriented56 is separate. Repeated dist postflight scans were not run.
 
 
-## Viewer SDK delivery (dedicated Work, 2026-10-26)
+## Viewer SDK and app delivery (dedicated Work, updated 2026-10-27)
 
 The owner assigned a new Viewer Work, `01a1787c-a71c-7000-a102-4988e3481ec0`.
-It owns `@barocss/viewer` and one bounded external-host example. Presenter reuses
+It owns `@barocss/viewer`, the user-approved React/shadcn `apps/cad-viewer` app, and related bounded examples. Presenter reuses
 `@barocss/gpu/viewer`; the existing GPU Work retains the common renderer. CAD
 Studio currently consumes the GPU core directly. A GPU or Studio feature does
 not automatically expose a Viewer SDK option. Reuse existing loading, controls,
@@ -1084,14 +1137,17 @@ picking, native measurements, lifecycle and bounded assembly APIs.
 | V5 | Resume a source-bound review with saved views, annotations, supported measurements and capture. Complete a small embedding example without adding a CAD editor or solver. |
 | V6 | Improve measured bottlenecks in the proven flow. Reuse BVH and keep the existing LOD measurement hold. |
 
-CURRENT `VIEWER-SDK-V1-REVIEW-STATE-01` starts from qualified product `f1c6b178`
-in its own local clone and normal feature branch. Its source bundle includes
-the compact state API and a public Save/Open example. NEXT conditional
-`VIEWER-SDK-V2-ASSEMBLY-REVIEW-01` connects supported assembly navigation after
-CURRENT completes and its exact files are recorded. Native/build/generator
-uses the shared single execution lane; independent source work can proceed.
-The coordinator reviews exact normal commits and owns product integration.
-These are delivery assignments, not completed SDK or arbitrary-assembly claims.
+V1 review-state source is in its recorded scoped product; V2 assembly consumption has its own
+source/browser receipt. The owner then approved the standalone Viewer app. Its native Surface/Curve
+point measurement has a normal app commit `b579aa620`; root integration is still separate.
+CURRENT `VIEWER-APP-MEASURED-REVIEW-RESTORE-01` binds saved points and native parameters,
+units, model/source revision, view and selection/visibility to a real Save/Open workflow. Reject a
+mismatched or malformed review before changing accepted state. NEXT follows V4's existing GPU
+capabilities, with explicit supported options and refusals; do not create a second renderer.
+Controlled prototype-mutated race experiments remain distinct from unmodified public flow evidence.
+The stopped packaging/config/hook follow-up stays stopped. The coordinator reviews exact normal
+commits and owns product integration; independent source work can proceed while heavy execution
+uses the existing shared lane. These checkpoints do not claim arbitrary assembly or physical accuracy.
 
 Current feature checkpoint: DoF source has its first GPU emit, CPU2, GPU8 and
 public Studio focus/blur/pick/cancel/file roundtrip evidence at `22d592`. The
