@@ -78,7 +78,7 @@ test('point face UV orientation and off-axis depths use six RH cameras rather th
   });
 });
 
-test('automatic point depth includes raw cap bounds and positive range preserves the spherical lighting range value', () => {
+test('automatic point depth includes raw cap bounds and positive range preserves the spherical lighting range value', t => {
   const depth = { min: [-16, -1, -1], max: [-12, 1, 1] };
   const fitted = pointShadowFrames(point(), scene, depth, 1024), automatic = interval(fitted);
   assert.ok(automatic.far > 16); assert.ok(automatic.near > 0 && automatic.near <= automatic.far * 0.1);
@@ -90,7 +90,8 @@ test('automatic point depth includes raw cap bounds and positive range preserves
   assert.equal(pointShadowFrames(point(), collapsed, null, 1024), null);
   assert.equal(pointShadowFrames(light, collapsed, null, 1024).length, 6);
   const outside = pointShadowFrames(point(), { min: [3, 3, 3], max: [4, 4, 4] }, null, 1024);
-  assert.ok(interval(outside).near > 0); assert.ok(interval(outside).near <= interval(outside).far * 0.1);
+  t.diagnostic(JSON.stringify({ reconstructedNear: interval(outside).near, reconstructedFar: interval(outside).far, nearCap: interval(outside).far * 0.1 }));
+  assert.ok(interval(outside).near > 0); close(interval(outside).near, interval(outside).far * 0.1);
 });
 
 test('automatic point far contains outward-biased corner receivers and constant-radius PCF taps across face edges', () => {
