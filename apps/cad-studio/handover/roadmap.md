@@ -44,11 +44,12 @@ repeated audits or new diagnostic tests into separate work streams. Preserve nec
 failures, reuse unchanged passing results, and finish the feature source before its one affected batch.
 
 Current order (2026-10-27): finish complete features, then integrate their reviewed normal commits.
-Local product `f1af9760f` contains the bounded cubic loft foundation, qualified G15
-path-trace/PBR/light-and-shadow chain, DR6 endpoint targets and their public documentation.
-The first required product CAD build, selected cubic-circle case, GPU emit and documentation
-checks passed. Existing native and actual consumer receipts retain their original scope;
-whole G15, robot, free-forward dynamics and manufacturing acceptance remain open.
+Local product code `7a62d6df` contains the bounded cubic loft foundation and its complete
+CAD Model/Studio copied-guide workflow, the qualified earlier G15 chain, and DR6 endpoint
+targets. Its required documentation check passed. Commit `5f0e1890` adds portable handoff
+files and actual CG1 downloads/PNGs without changing that product code. Existing CAD build,
+selected cubic-circle, GPU emit and consumer receipts retain their original scope; whole G15,
+robot, free-forward dynamics and manufacturing acceptance remain open.
 
 The current cut completes the copied-guide loft in CAD Model and Studio. Model source
 `1cc2cb5` / `dd48fb9` / `fb03045` and Studio `fe1afa05` were adopted as exact child deltas.
@@ -71,17 +72,37 @@ The external inventory at `4800600ee` adds6, removes0 and changes5 exposures: th
 loft input types, copied-guide helpers, framed sections, the stored LoftSection, three StudioPart
 loft method exposures and ModelNode/isSolidNode guide types. Existing6654 rows and the other
 five top-level fields stay identical. Existing compiler-symbol names and numeric pairs do not
-change. Only these reviewed rows are synchronized. Next close documentation/site and product
-integration; do not enlarge this cut with unrelated pending features.
+change. Only these reviewed rows were synchronized. Documentation/site at `3751a3ac` and
+required product documentation at `7a62d6df` passed; the scoped CG1 delivery is integrated.
 
 Kernel owns Model API implementation; the coordinator owns API design, contract resolution
-and integration. The next whole feature is G15 Studio shadow consumption: qualified GPU point
-PCSS `33a0fa9`, Model fields/one shared validator `009b92c`, and normal Studio child `8453010`.
-The Studio source is complete; its required impact batch and actual workflow are NOTRUN.
+and integration. G15 Studio shadow consumption uses qualified GPU point PCSS `33a0fa9`,
+Model fields/one shared validator `009b92c`, and normal Studio `8453010` plus `498c36f`.
+Root source `2e1d4c04` passed Model5, Studio4, both types and production3 lint. The first
+Studio type failure remains recorded; test-only child `8c0498c` corrected its array narrowing,
+and only the failed type check and never-run lint continued. Actual desktop independent SUN
+selection, point/spot radius, rejected drafts and second caster, Undo/Redo, real Save/Open
+and public PNG export completed. The 13 downloads preserve accepted values and non-render
+document data. Reopened JSON is equal; its bytes differ only in the `render.camera` key order.
+Root viewed four actual PNGs. Whole shadow quality, performance and G15-accept remain open.
+
 CAD1mm equals GPUworld1. Point/spot shadow radius passes unchanged; only existing intensity
-uses size squared times .05. Preserve false, zero, omission, accepted settings on refusal and
-current caster budgets. Independent own-source work does not wait for shared adoption; its
-combined runtime batch requires the exact root-adopted source.
+uses size squared times .05. False, zero, omission and current caster budgets are preserved.
+Normal usage-doc child `1e7a9fb` was adopted at `c91c35de`. Its first external inventory adds
+one shared validator and changes four light-type exposures; the other6661 exposures, five
+other top fields and all367 raw compiler-symbol pairs stay identical. Only the five reviewed
+rows are synchronized. Next run the required docs/site batch, integrate this scoped feature
+into the product, run its first affected output/document checks, and capture one product scene.
+Do not repeat the already valid Model/Studio/GPU or full browser checks.
+
+The next independent Kernel implementation is CG2 linear cut-feature repetition. The public
+`linearFeaturePattern(options)` repeats the difference that directly produced the current
+solid, using the existing axis/count/mm parameter conventions and affine/Boolean operations.
+It does not copy the whole body or discard later features. Existing body patterns remain.
+The fixed reference is a60x30x10 box with three separate4x4 through cuts:17520mm3 remains,
+with unchanged outer bounds. Own source implementation has started; it is not yet qualified.
+Until a real Model node/evaluate/save contract is implemented, the shared Model facade must
+return typed UNAVAILABLE. Studio starts after that foundation contract and the pinned source.
 
 Viewer's standalone app, assembly and named review views through `65a208b4` have scoped
 owner evidence and static root review; exact next-cut integration remains. Standalone drawing

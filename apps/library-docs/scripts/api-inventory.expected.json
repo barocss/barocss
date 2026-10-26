@@ -318485,11 +318485,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "{ kind: \"directional\"; direction: [number, number, number]; color: `#${string}`; intensity: number; castShadow: boolean; } | { kind: \"point\"; position: [number, number, number]; color: `#${string}`; intensity: number; range: number; } | { kind: \"spot\"; position: [number, number, number]; direction: [number, number, number]; color: `#${string}`; intensity: number; range: number; angle: number; penumbra: number; }",
+            "type": "{ kind: \"directional\"; direction: [number, number, number]; color: `#${string}`; intensity: number; castShadow: boolean; } | { kind: \"point\"; position: [number, number, number]; color: `#${string}`; intensity: number; range: number; castShadow?: boolean | undefined; shadowRadius?: number | undefined; } | { kind: \"spot\"; position: [number, number, number]; direction: [number, number, number]; color: `#${string}`; intensity: number; range: number; angle: number; penumbra: number; castShadow?: boolean | undefined; shadowRadius?: number | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "{\n    kind: \"directional\";\n    direction: [\n        number,\n        number,\n        number\n    ];\n    color: Hex;\n    intensity: number;\n    castShadow: boolean;\n} | {\n    kind: \"point\";\n    position: [\n        number,\n        number,\n        number\n    ];\n    color: Hex;\n    intensity: number;\n    range: number;\n} | {\n    kind: \"spot\";\n    position: [\n        number,\n        number,\n        number\n    ];\n    direction: [\n        number,\n        number,\n        number\n    ];\n    color: Hex;\n    intensity: number;\n    range: number;\n    angle: number;\n    penumbra: number;\n}"
+                "definition": "{\n    kind: \"directional\";\n    direction: [\n        number,\n        number,\n        number\n    ];\n    color: Hex;\n    intensity: number;\n    castShadow: boolean;\n} | {\n    kind: \"point\";\n    position: [\n        number,\n        number,\n        number\n    ];\n    color: Hex;\n    intensity: number;\n    range: number;\n    castShadow?: boolean;\n    shadowRadius?: number;\n} | {\n    kind: \"spot\";\n    position: [\n        number,\n        number,\n        number\n    ];\n    direction: [\n        number,\n        number,\n        number\n    ];\n    color: Hex;\n    intensity: number;\n    range: number;\n    angle: number;\n    penumbra: number;\n    castShadow?: boolean;\n    shadowRadius?: number;\n}"
               }
             ],
             "members": [
@@ -318506,6 +318506,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "boolean"
+              },
+              {
+                "name": "castShadow",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | undefined"
               },
               {
                 "name": "color",
@@ -318569,6 +318576,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "number"
+              },
+              {
+                "name": "shadowRadius",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
               }
             ],
             "indexSignatures": []
@@ -319438,6 +319452,37 @@
             ],
             "callSignatures": [
               "(positions: ArrayLike<number>, normals: ArrayLike<number>, scale: number) => Float32Array<ArrayBufferLike>"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/render",
+      "exportName": "validateRenderShadowLights",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/render.ts",
+            "name": "validateRenderShadowLights",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(lights: readonly unknown[]) => void",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(lights: readonly unknown[]) => void"
             ]
           }
         }
@@ -433625,6 +433670,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "number | undefined"
+              },
+              {
+                "name": "shadowRadius",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
               }
             ],
             "indexSignatures": []
@@ -481013,6 +481065,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "number | undefined"
+              },
+              {
+                "name": "shadowRadius",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
               }
             ],
             "indexSignatures": []
@@ -505816,6 +505875,13 @@
               },
               {
                 "name": "range",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "shadowRadius",
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
