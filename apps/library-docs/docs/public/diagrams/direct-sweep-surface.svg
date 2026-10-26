@@ -16,7 +16,7 @@
       <g fill="#236eab"><circle cx="100" cy="380" r="5"/><circle cx="200" cy="380" r="5"/><circle cx="140" cy="310" r="5"/><circle cx="240" cy="310" r="5"/><circle cx="180" cy="160" r="5"/><circle cx="280" cy="160" r="5"/></g>
       <g font-size="16"><text x="212" y="386">v = 0</text><text x="253" y="316">v = 0.5</text><text x="292" y="166">v = 1</text><text x="109" y="245" fill="#17775f">rail</text></g>
       <g fill="none" stroke="#315c84" stroke-width="1.5" marker-end="url(#arrow)"><path d="M65 415H160"/><path d="M65 415L102 387"/><path d="M65 415V335"/></g>
-      <g font-size="15"><text x="168" y="420">X</text><text x="53" y="329">Z</text><text x="97" y="381">Y</text></g>
+      <g font-size="15"><text x="168" y="420">X</text><text x="53" y="329">Z</text><text x="110" y="401">Y</text></g>
     </g>
     <g font-size="18">
       <text x="450" y="116" font-weight="700">S(u,v) = P(u) + R(v) − R(0)</text>
