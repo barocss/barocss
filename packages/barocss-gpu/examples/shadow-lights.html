@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Directional shadows · BaroCSS GPU</title>
+  <style>
+    :root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; background: #17191d; color: #eceef2; }
+    body { max-width: 1040px; margin: 32px auto; padding: 0 20px; }
+    h1 { margin-bottom: 4px; font-size: 1.6rem; }
+    p, figcaption { color: #bbc1cb; }
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin: 18px 0; }
+    label { display: inline-flex; align-items: center; gap: 8px; }
+    input, button { accent-color: #e9b979; }
+    button { padding: 7px 14px; font: inherit; cursor: pointer; }
+    button:disabled { cursor: default; }
+    canvas { display: block; width: 100%; aspect-ratio: 4 / 3; border: 1px solid #414854; background: #20242b; }
+    [hidden] { display: none; }
+    #error { color: #ffb4ad; white-space: pre-wrap; }
+    figure { margin: 24px 0; }
+    output { min-width: 3ch; font-variant-numeric: tabular-nums; }
+  </style>
+  <script type="importmap">{"imports":{"@barocss/cad":"../../barocss-cad/dist/index.js"}}</script>
+  <script type="module" src="./shadow-lights.js"></script>
+</head>
+<body>
+  <h1>Directional shadows</h1>
+  <p>Two coloured lights cast separate shadows from one block. Turn off one shadow to see which light it blocks. Drag the view to inspect the floor.</p>
+  <div class="controls" role="group" aria-label="Red light controls">
+    <label><input id="red-shadow" type="checkbox" checked disabled> Red light shadow</label>
+    <label>Red intensity <input id="red-intensity" type="range" min="0" max="2" step="0.1" value="0.8" disabled> <output id="red-value" for="red-intensity">0.8</output></label>
+  </div>
+  <div class="controls" role="group" aria-label="Green light controls">
+    <label><input id="green-shadow" type="checkbox" checked disabled> Green light shadow</label>
+    <label>Green intensity <input id="green-intensity" type="range" min="0" max="2" step="0.1" value="0.8" disabled> <output id="green-value" for="green-intensity">0.8</output></label>
+  </div>
+  <div class="controls" role="group" aria-label="Shadow controls">
+    <label><input id="soft" type="checkbox" checked disabled> Soft shadows</label>
+    <label>Light angle <input id="angle" type="range" min="1" max="10" step="1" value="4" disabled> <output id="angle-value" for="angle">4°</output></label>
+    <button id="capture" type="button" disabled>Capture preview</button>
+  </div>
+  <p id="status" role="status" aria-live="polite">Loading the viewer…</p>
+  <p id="error" role="alert" hidden></p>
+  <canvas id="view" aria-label="Interactive view of separate red and green directional shadows"></canvas>
+  <figure id="capture-output" hidden>
+    <canvas id="still" aria-label="Captured directional shadows"></canvas>
+    <figcaption id="capture-caption"></figcaption>
+  </figure>
+</body>
+</html>

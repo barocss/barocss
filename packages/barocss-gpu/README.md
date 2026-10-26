@@ -36,11 +36,17 @@ box.outline = '#e8c25a';                // a selection outline around the visibl
   back to front; shadow catchers (`shadowOnly`).
 - Lines: screen-space width (`lineWidth`), segment ids (`edges`) and `pickLine()`.
 - Scene: instancing (`instances`: a transform and colour each, one draw), frustum culling, directional
-  shadows (shadow map, PCF), ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
+  shadows (up to four lights with `castShadow: true`, PCF/PCSS), ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
   exposure and ACES tone mapping in a linear half-float pipeline.
 - Tests: `tests/viewer-core.test.mjs` (Node), `tests/viewer-browser.test.mjs` and
   `tests/scene-viewer-browser.test.mjs` (Chrome's WebGPU, `CHROME` and `PW_DIR`,
   `VIEWER_ADAPTER=swiftshader` for the software adapter).
+
+The first four directional lights contribute lighting; each can enable its own
+shadow with `castShadow: true`. `viewer.shadowMapSize` sets each map's resolution,
+and `environment.softShadows` sets their shared angular size in degrees (0: hard).
+Contact shadows retain the first casting directional light. Point and spot light
+shadow maps are not part of this directional-shadow feature.
 
 The CSS-shaped scene language shows on it with one call: `showScene(viewer, source)` compiles a scene
 source (version 0 or 1), adds a mesh per object with its placement and colour (`view.meshes` by id, picks

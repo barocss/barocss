@@ -124,7 +124,7 @@ test('viewer geometry: checks its input, computes normals, picks the nearest tri
 });
 
 test('viewer lights: the frame block matches the WGSL layout', () => {
-  assert.equal(FRAME_BYTES, 1104);
+  assert.equal(FRAME_BYTES, 1440);
   assert.match(surfaceWGSL(), new RegExp(`dirs: array<DirLight, ${MAX_DIRECTIONAL}>`));
   // A shader material: its declarations, aliases and expression; the default params struct unless it declares one.
   const custom = surfaceWGSL({ declarations: 'fn f(x: f32) -> f32 { return x; }\n', expression: 'vec3f(f(native_uv.x))', aliases: { native_uv: 'uv' } });
@@ -163,8 +163,8 @@ test('viewer lights: the frame block matches the WGSL layout', () => {
   const two = packFrame(vp, cam, [], {}, null, [1, 1, 1], null, { normal: [0, 1, 0], offset: 2.5, cap: [1, 1, 1], planes: [{ normal: [0, 1, 0], offset: 2.5 }, { normal: [-1, 0, 0], offset: -4 }] });
   assert.ok(close([...two.slice(248, 260)], [1, 1, 1, 2, 0, 1, 0, 2.5, -1, 0, 0, -4], 1e-6));
   assert.deepEqual([...packFrame(vp, cam, [], {}).slice(248, 276)], new Array(28).fill(0));
-  assert.equal(FRAME_BYTES, 4 * (252 + 4 * MAX_CLIP_PLANES));
-  assert.match(surfaceWGSL(), new RegExp(`clipColor: vec4f,\\n  clips: array<vec4f, ${MAX_CLIP_PLANES}>,\\n}`));
+  assert.equal(FRAME_BYTES, 4 * (252 + 4 * MAX_CLIP_PLANES + MAX_DIRECTIONAL * 20 + 4));
+  assert.match(surfaceWGSL(), new RegExp(`clipColor: vec4f,\\n  clips: array<vec4f, ${MAX_CLIP_PLANES}>,\\n  shadowLights: array<ShadowLight, ${MAX_DIRECTIONAL}>,`));
 });
 
 test('G15b studio environments: equirectangular RGBA, overhead brighter than below, the softbox room dark with its key the brightest; the cyclorama bright all round', () => {
@@ -363,7 +363,7 @@ test('G20 a cut-out on the CPU: kept on any plane\'s kept side, the removed corn
   assert.equal(clipBox(B, { normal: [-1, 0, 0], offset: 1, planes: [{ normal: [-1, 0, 0], offset: 1 }, { normal: [0, -1, 0], offset: 1 }], cutout: true }), null);
   // The frame block: the plane count negative for a cut-out.
   const cam = new Camera(), f = packFrame(identity(), cam, [], {}, null, [1, 1, 1, 0], null, { normal: two[0].normal, offset: 0, cap: [1, 0, 0], planes: two, cutout: true });
-  const o = (FRAME_BYTES / 4) - 4 * MAX_CLIP_PLANES - 4;
+  const o = 248; // The legacy clip block stays at its original float offset before the shadow-array tail.
   assert.equal(f[o + 3], -2);
 });
 

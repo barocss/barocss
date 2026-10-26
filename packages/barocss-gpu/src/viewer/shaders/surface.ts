@@ -79,38 +79,40 @@ const DISC = array<vec2f, 16>(vec2f(-0.942, -0.399), vec2f(0.946, -0.769), vec2f
   vec2f(0.200, 0.786), vec2f(0.144, -0.141));
 /**
  * G15b's soft shadow (PCSS): the blockers' mean depth found round the point, the penumbra's width from how far behind them
- * it lies (frame.shadow.w: uv per unit of depth, the light's angular size), then that wide a filter of 16 taps, the disc
+ * it lies (shadow.params.w: uv per unit of depth, the light's angular size), then that wide a filter of 16 taps, the disc
  * turned per point so its pattern becomes noise.
  */
-fn softShadowAt(uv: vec2f, z: f32, world: vec3f) -> f32 {
-  let texel = frame.shadow.y;
+fn softShadowAt(uv: vec2f, z: f32, world: vec3f, light: u32) -> f32 {
+  let params = frame.shadowLights[light].params;
+  let texel = params.y;
   let size = vec2f(textureDimensions(shadowMap));
   let a = fract(sin(dot(world, vec3f(12.9898, 78.233, 37.719))) * 43758.5453) * 6.2831853;
   let rot = mat2x2f(cos(a), sin(a), -sin(a), cos(a));
-  let search = clamp(z * frame.shadow.w, 2.0 * texel, 24.0 * texel);
+  let search = clamp(z * params.w, 2.0 * texel, 24.0 * texel);
   var blockers = 0.0;
   var count = 0.0;
   for (var i = 0; i < 16; i++) {
     let q = clamp(uv + rot * DISC[i] * search, vec2f(0.0), vec2f(1.0));
-    let d = textureLoad(shadowMap, min(vec2i(q * size), vec2i(size) - 1), 0);
+    let d = textureLoad(shadowMap, min(vec2i(q * size), vec2i(size) - 1), i32(light), 0);
     if (d < z) { blockers += d; count += 1.0; }
   }
   if (count == 0.0) { return 1.0; }
-  let radius = clamp((z - blockers / count) * frame.shadow.w, texel, 32.0 * texel);
+  let radius = clamp((z - blockers / count) * params.w, texel, 32.0 * texel);
   var lit = 0.0;
-  for (var i = 0; i < 16; i++) { lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + rot * DISC[i] * radius, z); }
+  for (var i = 0; i < 16; i++) { lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + rot * DISC[i] * radius, i32(light), z); }
   return lit / 16.0;
 }
 /** Lit share (0–1) of a point by the shadow map: 3×3 percentage-closer filtering, or soft (PCSS) when the light has a size. */
-fn shadowAt(world: vec3f, n: vec3f) -> f32 {
-  let p = frame.shadowViewProj * vec4f(world + n * frame.shadow.x, 1.0);
+fn shadowAt(world: vec3f, n: vec3f, light: u32) -> f32 {
+  let shadow = frame.shadowLights[light];
+  let p = shadow.viewProj * vec4f(world + n * shadow.params.x, 1.0);
   let uv = vec2f(p.x * 0.5 + 0.5, 0.5 - p.y * 0.5);
   if (any(uv < vec2f(0.0)) || any(uv > vec2f(1.0)) || p.z > 1.0) { return 1.0; }
-  if (frame.shadow.w > 0.0) { return softShadowAt(uv, p.z - frame.shadow.z, world); }
+  if (shadow.params.w > 0.0) { return softShadowAt(uv, p.z - shadow.params.z, world, light); }
   var lit = 0.0;
   for (var y = -1; y <= 1; y++) {
     for (var x = -1; x <= 1; x++) {
-      lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + vec2f(f32(x), f32(y)) * frame.shadow.y, p.z - frame.shadow.z);
+      lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + vec2f(f32(x), f32(y)) * shadow.params.y, i32(light), p.z - shadow.params.z);
     }
   }
   return lit / 9.0;
@@ -241,7 +243,7 @@ fn shadeLayered(world: vec3f, base: vec3f, metallicIn: f32, emissive: f32, recei
   for (var i = 0u; i < frame.counts.x; i++) {
     let d = frame.dirs[i];
     var lit = 1.0;
-    if (frame.counts.w == i + 1u && receive) { lit = shadowAt(world, layer.coatN); }
+    if ((frame.shadowActive.x & (1u << i)) != 0u && receive) { lit = shadowAt(world, layer.coatN, i); }
     c += brdfLayered(v, normalize(-d.direction.xyz), base, metallic, a, layer, tint) * d.color.rgb * d.color.w * PI * lit;
   }
   for (var i = 0u; i < frame.counts.y; i++) {
@@ -358,7 +360,9 @@ fn unlitColor(in: VOut) -> vec4f {
 @fragment fn fsShadow(in: VOut) -> @location(0) vec4f {
   if (clippedAway(in.world)) { discard; }
   var lit = 1.0;
-  if (frame.counts.w > 0u) { lit = shadowAt(in.world, normalize(in.normal)); }
+  for (var i = 0u; i < frame.counts.x; i++) {
+    if ((frame.shadowActive.x & (1u << i)) != 0u) { lit = min(lit, shadowAt(in.world, normalize(in.normal), i)); }
+  }
   let a = (1.0 - lit) * in.color.a;
   return vec4f(in.color.rgb * a, a);
 }
