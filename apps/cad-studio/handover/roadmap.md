@@ -104,6 +104,53 @@ assertions with authored density. It is not a Model 2R solver, forward dynamics 
 Keep engine proposals and benchmark targets as unexecuted candidates until their own source, ownership,
 license, fixture, command and acceptance conditions are fixed. Record pass, fail, unsupported and not_run.
 
+## CAD result acceptance: review 2215
+
+[Review 2215](https://github.com/barocss/barocss/issues/2215) is a source audit of remote
+`c3ae0d5`, not a new runtime result or an instruction to replace the kernel. Recheck each
+finding against the current source. Keep the shared B-rep, rational/analytic geometry,
+representation-specific Boolean paths, existing numerical solvers and bounded paired-surface
+providers. Do not restart paused work or add an external dependency under this review.
+
+The next reliability work is result acceptance first, intersection evidence next, then
+approximation/error and public support contracts. The active task list remains the existing
+coordinator record; this section defines scope and completion gates, not a second queue.
+
+| Order | Scope and owner | Small completion gate |
+| --- | --- | --- |
+| P0 sketch output, API with Outer consumer | In `sketch/profile.ts`, preserve solver-approved domain coefficients; keep display rounding separate. Preserve the meaning of NONCONVERGENCE instead of reporting a proof of conflicting constraints. Reuse issues 1588/1590 and the existing solver. | Recompute residuals from the actual returned points/arcs after the public adapter, including an anchor beyond six decimal places and non-integer length/angle. Keep original tolerances, rank/DOF attribution and normal sketches. Test nonconvergence separately from conflict. Validate the affected Studio edit/save/reopen flow. |
+| P0 revolve admission, Kernel | Replace only the fixed-sample signed-radius admission with line endpoint and directed-arc extrema checks. Keep endpoint poles, supported axial segments, current profile envelope and explicit refusals. | A tangent between old sample angles, contact on both sides of epsilon, arbitrary axis/origin, and normal endpoint/pole cases agree with a frozen analytic expectation. The direct mass API is a separate consumer; do not claim it is fixed by a shape-only gate. |
+| P1 SSI and stitching, Kernel/API | Under issues 1657/535, keep termination, residual, unprocessed candidates and the 3D/dual-UV relationship through the operation boundary. Reuse the bounded providers from 1426/1499 where their profile applies. | Disjoint, transverse, small loop, near-tangent, narrow span, boundary and budget cases distinguish completed evidence from uncertain/unsupported results. A new `complete` label alone is not evidence. Preserve pcurve information or report the supported seam explicitly. |
+| P1 approximation and error, Kernel | Preserve analytic sweep versus RMF faceted sweep. Make chord/tangent and integration-error evidence explicit; freeze a loft seam/correspondence when the supported input requires it. Reuse rolling-ball refinement/refusal. | One frozen high-risk profile meets its declared error and topology/reference criteria, or is explicitly refused. Watertight mesh, sampled strict checks and quadrature method names are not global accuracy certificates. Do not enlarge tolerances to hide a lost gap or feature. |
+| P1 references, API/Outer/Drawings | Reuse issue 1658 generated/modified/deleted one-to-many evolution and existing ambiguous-reference refusal. | Edit, split, merge, symmetric candidate and deletion cases retain the intended reference or remain visibly unresolved, without editing a different face. |
+| P1 API and exchange meaning, API/Docs | Describe the fluent subset, wider feature kernel and qualification provider separately. Preserve raw STEP number import versus unit-normalizing adapters, mixed-face approximation and assembly flattening/loss notices under 539/2210. | A frozen supported example and mm/metre/inch context retain physical size and stated representation. Shape-only interchange is not assembly/history preservation. No broad API deprecation or serialization migration follows automatically. |
+
+Current-source reads confirmed the sketch rounding/diagnostic seam and the sampled revolve
+admission. They are not yet executed defect reproductions. The selected current Boolean
+1e-6 grazing seed completed its six existing stages on source `123ff9`; that does not close
+all historical 2205 cases or prove a general curved Boolean envelope.
+
+Continue the current J2/Drawing verification and scoped integration; do not replace closure
+with new candidates. R1 two-link verification may proceed independently: preserve the old
+CAD density-2.5 fixture, and bind a new Model test to its actual declared al6061 density 2.7,
+with fixed 0.864/0.432 g masses and independent holding-torque expectations. This is an
+explicit comparison-condition conversion, not a new density API or a solver change.
+
+### Delivery and cross-owner resolution
+
+Each Work commits its permitted changes in its existing owned checkout/branch and returns
+its task ID, base/commit SHA, exact paths, verification/NOT RUN and shared evidence. The
+coordinator checks the exact parent-to-child delta and integrates the commit. Do not send
+patches as the normal handoff or merge an unrelated branch ancestry. Preserve existing WIP,
+protected branches, old receipts and paused/HOLD scopes; do not rewrite historical commits.
+
+A unit/frame/contract mismatch needs an owner and a resolution path: check the producer and
+consumer contracts, place an explicit conversion at one boundary, freeze an independent
+example, verify it, then integrate. The coordinator mediates cross-owner choices. Do not
+leave a fixable mismatch as a permanent note, invent missing units, apply the same conversion
+twice, loosen tolerances or call an unknown result successful. A real external restriction
+still needs its exact cause, unblock condition and a useful independent next task.
+
 ## CAD-to-simulation handoff: issue 2209 planning boundary
 
 Reference [issue 2209](https://github.com/barocss/barocss/issues/2209) after the current editable-CAD,
