@@ -44,26 +44,41 @@ repeated audits or new diagnostic tests into separate work streams. Preserve nec
 failures, reuse unchanged passing results, and finish the feature source before its one affected batch.
 
 Current order (2026-10-27): finish complete features, then integrate their reviewed normal commits.
-The scoped SSI feature is complete in local product `4c474e8b`. Route WireDoc metadata preservation
-is implemented at `568dd411`: the original two native cases passed, and the corrected test message
-then passed Model/Studio types and the three changed-file checks. Its actual Studio creation,
-preview, 3-axis move, Undo/Redo and file flow have run; final archive review and product adoption
-remain. Reuse these source-bound results instead of repeating earlier successful flows.
+Local product `872e1e626` contains the scoped SSI, Route WireDoc preservation, joint pose/HUD
+and preceding documentation bundle with its required product checks. These are bounded feature
+checkpoints, not completion of every robot or experiment stage.
 
-Kernel owns the Model API implementation; the coordinator owns API design review, cross-owner
-resolution and integration. The next joint feature uses the existing 20/10 mm, +Y, al6061 two-link
-case and its three independent poses. Studio consumes the existing Model forwardKinematics export
-through useJoints and instancePoses. The public absolute pose and home-to-posed displacement are
-different representations. Do not add another FK API or apply an absolute transform twice.
+The next product cut is frozen at source `46777f7e5`: the bounded cubic loft foundation, qualified
+G15 path-trace/PBR/light-and-shadow chain, DR6 endpoint targets and the G15 public API page.
+The cubic foundation passed its focused native and actual public API shape flow; Studio authoring
+is still the next consumer. DR6 passed its required affected batch and actual target creation,
+symbol move, label, translated-edge refusal, explicit reselection and Save/New/Open flow. The
+coordinator viewed the application PNGs and compared the saved target fields. The first final
+file was overwritten by a later save: its original bytes were not preserved, so no byte-identical
+roundtrip is claimed. Actual SVG download/XML checks passed; the extra file-render browser
+commands timed out and remain unverified. Keep those first failures and unknown cleanup states.
 
-Independent GPU work continues through PBR and directional/spot shadows to one point light with
-six-face PCF shadows. The qualified donor results do not establish product adoption. Viewer owns
-the approved standalone React app and its existing native inspection APIs; measurements and saved
-reviews retain source/revision and capability boundaries. Studio finishes each foundation consumer
-and basic keyboard transaction. Drawings' first DR6 target slice admits a unique straight-edge
-endpoint identity only; loss or ambiguity stays explicitly unresolved. Wider point/line/area targets,
-auto-rematching and manufacturing certification are not implied. Keep independent source work
-parallel, serialize the shared heavy execution lane, and preserve paused/HOLD scopes.
+The generated public inventory was reviewed as 21 inserted and 38 replaced rows, with no removals;
+6,600 existing rows and the other five top-level fields remain unchanged. Close this cut with the
+required documentation/site checks, exact product integration and first affected product outputs.
+Do not enlarge this cut with the following independent source work.
+
+Kernel owns Model API implementation; the coordinator owns API design, contract resolution and
+integration. The complete next CG1 source is Model `1cc2cb5` / `dd48fb9` / `fb03045` plus exact
+Studio UI child `fe1afa05` (exclude its producer baseline). Its four API and seven command test
+declarations are not execution results. Run one combined affected batch, then the existing public
+Loft / Source-import / Undo-Redo / actual file flow. A copied world-mm guide is not a live link.
+
+GPU continues G15b independently: point PCSS source `33a0fa9` has its first affected emit, new
+CPU 11 and GPU 1 cases and four-file lint results; the public demo/archive and product adoption
+remain separate. Current point-PCF/spot-PCSS qualification does not imply whole G15 acceptance.
+Viewer's normal standalone React app/inspection/measurement/review/lighting/assembly source
+through `40a05546` has scoped owner evidence and root review; next-cut integration remains.
+Its next V5 source implements named saved review views using the existing SDK contract.
+
+Reuse existing basic functions. Wider datum targets, auto-rematching, arbitrary assemblies,
+new renderers/solvers and manufacturing certification are not implied. Keep independent source
+work parallel, serialize the shared heavy execution lane and preserve paused/HOLD scopes.
 
 ## Joint and robot completion plan (owner update, 2026-10-27)
 
