@@ -307545,14 +307545,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(doc: StudioDoc, key: string) => Uint8Array<ArrayBufferLike> | null",
+            "type": "(doc: StudioDoc, key: string, options?: { readonly segmentsPerQuarter?: number | undefined; }) => Uint8Array<ArrayBufferLike> | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(doc: StudioDoc, key: string) => Uint8Array<ArrayBufferLike> | null"
+              "(doc: StudioDoc, key: string, options?: { readonly segmentsPerQuarter?: number | undefined; }) => Uint8Array<ArrayBufferLike> | null"
             ]
           }
         }
