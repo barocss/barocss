@@ -8,6 +8,9 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from './compone
 import { DistancePanel, MeasurementOverlay } from './DistancePanel';
 import type { DistanceMeasurement, ProjectedMeasurementPoint } from './DistancePanel';
 import { LightingPanel } from './LightingPanel';
+import { AssemblyTree } from './AssemblyTree';
+import { AssemblyInspector } from './AssemblyInspector';
+import type { AssemblyInspection } from './AssemblyInspector';
 
 type Body = {
   id: string;
@@ -18,8 +21,10 @@ type Body = {
   assetRevision: number | null;
   supported: boolean;
   reason?: string;
+  parentId?: string | null;
+  ancestors?: string[];
 };
-type DocumentSummary = { label: string; id: string; revision: number; catalog: Body[] };
+type DocumentSummary = { kind: 'document' | 'assembly'; label: string; id: string; revision: number; catalog: Body[] };
 type ViewPreset = 'iso' | 'front' | 'top' | 'right';
 type ViewModel = {
   ready: boolean;
@@ -44,6 +49,7 @@ type ViewModel = {
   lightingError: string;
   measurement: DistanceMeasurement;
   measurementOverlay: { width: number; height: number; points: ProjectedMeasurementPoint[] };
+  assemblyInspection: AssemblyInspection | null;
 };
 
 const initialModel: ViewModel = {
@@ -54,6 +60,7 @@ const initialModel: ViewModel = {
   lightingCapabilities: null, lightingError: '',
   measurement: { active: false, points: [], result: null, error: '' },
   measurementOverlay: { width: 0, height: 0, points: [] },
+  assemblyInspection: null,
 };
 
 function sameRef(a: ViewerGeometryRef | null | undefined, b: ViewerGeometryRef | null | undefined) {
@@ -133,6 +140,8 @@ export function App() {
     reviewFileRef.current?.click();
   };
   const state = model.state;
+  const isAssembly = model.active?.kind === 'assembly';
+  const candidateIsAssembly = model.candidate?.kind === 'assembly';
   const selected = state?.selectedGeometry;
   const canOpen = !model.starting && Boolean(state);
   const isolateBlocked = Boolean(selected && state?.surfaceMaterials.some(entry =>
@@ -143,14 +152,24 @@ export function App() {
     [body.name, body.id, body.geometryId, body.assetId].join(' ').toLowerCase().includes(filter));
   const assetIds = [...new Set(filteredBodies.map(body => body.assetId))];
   const selectedSource = selected && state && model.active ? bodyFor(selected, state, model.active) : null;
-  const selectionRows = selected && model.active ? [
+  const selectedInstance = selected && state?.assemblyInstances.find(row => sameRef(row.ref, selected));
+  const selectionRows = selectedInstance ? [
+    ['Instance', selectedInstance.instanceId], ['Type', selectedInstance.ref.kind === 'surface' ? 'Surface' : 'Curve'],
+    ['Parent', selectedInstance.parentId ?? 'Root'], ['Path', [...selectedInstance.ancestors, selectedInstance.instanceId].join(' / ')],
+    ['Assembly', selectedInstance.assemblyId], ['Revision', selectedInstance.assemblyRevision],
+    ['Part document', selectedInstance.reference.documentId], ['Part revision', selectedInstance.reference.documentRevision],
+    ['Body', selectedInstance.reference.bodyId], ['Geometry', selectedInstance.reference.geometryId],
+    ['Asset', selectedInstance.reference.assetId], ['Asset revision', selectedInstance.reference.assetRevision],
+    ['Local origin mm', [3, 7, 11].map(index => selectedInstance.localMatrix[index]).join(', ')],
+    ['Assembly origin mm', [3, 7, 11].map(index => selectedInstance.worldMatrix[index]).join(', ')],
+  ] : selected && model.active ? [
     ['Name', selectedSource?.body?.name || geometryId(selected)],
     ['Type', selected.kind === 'surface' ? 'Surface' : 'Curve'],
     ['Geometry', geometryId(selected)], ['Body', selectedSource?.binding?.bodyId],
     ['Asset', selectedSource?.binding?.assetId], ['Asset revision', selectedSource?.binding?.assetRevision],
     ['Document', model.active.id], ['Revision', model.active.revision], ['Units', 'mm'],
   ] : [];
-  const appearanceSurface = state?.surfaces.find(ref => surfaceKey(ref) === model.appearanceTarget);
+  const appearanceSurface = !isAssembly && state?.surfaces.find(ref => surfaceKey(ref) === model.appearanceTarget);
   const appearanceRef: ViewerGeometryRef | null = appearanceSurface ? { kind: 'surface', ...appearanceSurface } : null;
   const canApplyAppearance = Boolean(appearanceRef && state &&
     state.visibleGeometry.some(ref => sameRef(ref, appearanceRef)) && !sameRef(selected, appearanceRef));
@@ -179,10 +198,13 @@ export function App() {
                 if (file) void api()?.openDocument(file); else api()?.cancelDocumentPick();
               }} />
             <Button id="open-document" className="button-primary" variant="default" size="sm" disabled={!canOpen} onClick={openDocumentPicker}>
-              <Icon name="open" />Open document
+              <Icon name="open" />Open CAD file
             </Button>
             <Button id="open-sample" variant="ghost" size="sm" disabled={!canOpen} onClick={() => void api()?.openSample()}>
-              <Icon name="cube" />Open sample
+              <Icon name="cube" />Document sample
+            </Button>
+            <Button id="open-assembly-sample" variant="ghost" size="sm" disabled={!canOpen} onClick={() => void api()?.openSample('assembly')}>
+              Assembly sample
             </Button>
           </div>
           <div className="toolbar-spacer" />
@@ -210,26 +232,28 @@ export function App() {
       </header>
 
       <main className="workspace">
-        <aside className="document-panel" aria-label="Document bodies">
+        <aside className="document-panel" aria-label={isAssembly ? 'Assembly instances' : 'Document bodies'}>
           <div className="panel-heading document-heading">
-            <span className="panel-label">Document</span>
+            <span className="panel-label">{isAssembly ? 'Assembly' : 'Document'}</span>
             <h1 id="document-title">{model.active?.label || 'Untitled session'}</h1>
             <p id="document-subtitle">{model.active ? `${model.active.id} · revision ${model.active.revision}` : 'No document open'}</p>
           </div>
           <div className="body-toolbar">
             <label className="search-field" htmlFor="body-search"><Icon name="search" />
               <Input id="body-search" type="search" className="h-auto min-w-0 border-0 bg-transparent p-0 text-xs shadow-none focus-visible:ring-0"
-                aria-label="Find a body" placeholder="Find a body" autoComplete="off" disabled={!model.ready}
+                aria-label={isAssembly ? 'Find an instance' : 'Find a body'} placeholder={isAssembly ? 'Find an instance' : 'Find a body'} autoComplete="off" disabled={!model.ready}
                 value={model.search} onChange={event => api()?.setSearch(event.target.value)} />
             </label>
             <div className="body-toolbar-meta">
               <span id="body-count">{model.ready ? `${model.admitted.length} / ${catalog.length} loaded` : 'No document'}</span>
               <Button id="rechoose-bodies" className="text-button h-auto" variant="ghost" size="sm" disabled={!model.ready}
-                onClick={() => api()?.openBodies()}>Choose bodies</Button>
+                onClick={() => api()?.openBodies()}>{isAssembly ? 'Choose instances' : 'Choose bodies'}</Button>
             </div>
           </div>
-          <div id="body-list" className="body-list" aria-label="Loaded bodies">
-            {assetIds.map(assetId => {
+          <div id="body-list" className="body-list" aria-label={isAssembly ? 'Assembly instances' : 'Loaded bodies'}>
+            {isAssembly && state ? <AssemblyTree key={`${model.active?.id}:${model.active?.revision}`} catalog={catalog}
+              state={state} search={model.search} onSelect={ref => api()?.select(ref)}
+              onVisibility={(ref, visible) => api()?.setVisibility(ref, visible)} /> : assetIds.map(assetId => {
               const assetBodies = catalog.filter(body => body.assetId === assetId);
               const loadedCount = assetBodies.filter(body => state?.documentBodies.some(entry => entry.binding.bodyId === body.id)).length;
               return <section key={assetId} className="asset-group">
@@ -257,9 +281,9 @@ export function App() {
                 })}</div>
               </section>;
             })}
-            {assetIds.length === 0 && <p className="list-empty">{model.active ? 'No matching bodies.' : 'Open a document to view its bodies.'}</p>}
+            {!isAssembly && assetIds.length === 0 && <p className="list-empty">{model.active ? 'No matching bodies.' : 'Open a CAD file to begin.'}</p>}
           </div>
-          <p className="panel-footnote">CAD document · Read only</p>
+          <p className="panel-footnote">{isAssembly ? 'Occurrences · Read only' : 'CAD document · Read only'}</p>
         </aside>
 
         <section className="viewport-panel" aria-label="Model workspace">
@@ -277,7 +301,8 @@ export function App() {
                 onClick={() => api()?.select(null)}>Clear</Button>
               <span className="toolbar-divider" aria-hidden="true" />
               <Button ref={measurementToolRef} id="measure-tool" variant="ghost" size="sm" aria-pressed={model.measurement.active}
-                disabled={!model.ready || !state?.visibleGeometry.length}
+                disabled={!model.ready || !state?.visibleGeometry.length || isAssembly}
+                title={isAssembly ? 'Native distance measurement is unavailable in assembly mode.' : 'Measure two native points'}
                 onClick={() => { if (model.measurement.active) api()?.cancelMeasurement(); else api()?.startMeasurement(); }}>
                 Measure
               </Button>
@@ -299,9 +324,9 @@ export function App() {
             <div id="empty-state" className="empty-state" hidden={model.ready}>
               <div className="empty-content">
                 <svg className="empty-document-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M9 4h10l5 5v19H9V4Z" /><path d="M19 4v6h5M13 16h7m-7 5h7" /></svg>
-                <h2>No document open</h2><p>Open a CAD JSON file to inspect its bodies.</p>
+                <h2>No CAD file open</h2><p>Open a CAD document or assembly JSON file.</p>
                 <Button id="empty-open" className="button-primary" variant="default" size="sm" disabled={!canOpen} onClick={openDocumentPicker}>
-                  Open document<Icon name="arrow" />
+                  Open CAD file<Icon name="arrow" />
                 </Button>
               </div>
             </div>
@@ -325,6 +350,9 @@ export function App() {
               {selectionRows.map(([label, value]) => <Fragment key={label}><dt>{label}</dt><dd>{String(value ?? '—')}</dd></Fragment>)}
             </dl>
           </section>
+          {isAssembly && model.assemblyInspection && <AssemblyInspector inspection={model.assemblyInspection}
+            onInspect={query => api()?.inspectAssemblyPoint(query)} />}
+          {isAssembly && <section className="inspector-section"><p className="context-note">Each occurrence keeps its original part and placement. Native distance measurement and material changes are unavailable in assembly mode.</p></section>}
           {model.lightingCapabilities && <LightingPanel lighting={model.lightingCapabilities.lighting}
             disabled={!model.ready || !model.lightingCapabilities.supported}
             error={model.lightingError} reason={model.ready ? model.lightingCapabilities.reason : 'Load a Surface to adjust lighting.'}
@@ -367,30 +395,32 @@ export function App() {
         overlayClassName="bg-[#080e14b8] backdrop-blur-[3px]"
         aria-labelledby="admission-heading" aria-describedby="admission-description">
         <div className="dialog-heading">
-          <span className="eyebrow">Open document</span>
-          <DialogTitle id="admission-heading">Choose bodies</DialogTitle>
-          <DialogDescription id="admission-description">Select 1–4 supported bodies to load.</DialogDescription>
+          <span className="eyebrow">{candidateIsAssembly ? 'Open assembly' : 'Open document'}</span>
+          <DialogTitle id="admission-heading">{candidateIsAssembly ? 'Choose instances' : 'Choose bodies'}</DialogTitle>
+          <DialogDescription id="admission-description">Select 1–4 supported {candidateIsAssembly ? 'instances' : 'bodies'} to load.</DialogDescription>
         </div>
         <div className="candidate-summary"><h3 id="candidate-title">{model.candidate?.label}</h3>
-          <p id="candidate-meta">{model.candidate ? `${model.candidate.id} · revision ${model.candidate.revision} · ${model.candidate.catalog.length} bodies` : ''}</p>
+          <p id="candidate-meta">{model.candidate ? `${model.candidate.id} · revision ${model.candidate.revision} · ${model.candidate.catalog.length} ${candidateIsAssembly ? 'instances' : 'bodies'}` : ''}</p>
         </div>
-        <div id="admission-list" className="admission-list" aria-label="Available document bodies">
+        <div id="admission-list" className="admission-list" aria-label={candidateIsAssembly ? 'Available assembly instances' : 'Available document bodies'}>
           {model.candidate?.catalog.map(body => {
             const checked = model.admissionIds.includes(body.id);
             return <label key={body.id} className="admission-row">
               <input type="checkbox" value={body.id} checked={checked} disabled={!body.supported || (!checked && model.admissionIds.length >= 4)}
                 aria-label={`Load ${body.name}`} onChange={event => api()?.toggleAdmission(body.id, event.target.checked)} />
-              <span><strong>{body.name}</strong><small>{body.supported ? `${body.kind} · ${body.geometryId}` : body.reason}</small></span>
+              <span><strong>{body.name}</strong><small>{body.supported ? `${body.kind} · ${body.geometryId}` : body.reason}</small>
+                {candidateIsAssembly && <small className="assembly-admission-parent">{body.ancestors?.length ? body.ancestors.join(' / ') : 'Root occurrence'}</small>}
+              </span>
             </label>;
           })}
         </div>
-        <div className="admission-feedback"><span id="admission-count">{model.admissionIds.length} of 4 bodies selected</span>
+        <div className="admission-feedback"><span id="admission-count">{model.admissionIds.length} of 4 {candidateIsAssembly ? 'instances' : 'bodies'} selected</span>
           <p id="admission-error" role="status" aria-live="polite">{model.admissionError}</p>
         </div>
         <div className="dialog-actions">
           <Button id="cancel-document" variant="outline" size="sm" onClick={() => api()?.cancelCandidate()}>Cancel</Button>
           <Button id="admit-document" className="button-primary" variant="default" size="sm" disabled={model.admissionIds.length < 1 || model.admissionIds.length > 4}
-            onClick={() => api()?.admit()}>Load bodies</Button>
+            onClick={() => api()?.admit()}>{candidateIsAssembly ? 'Load instances' : 'Load bodies'}</Button>
         </div>
       </DialogContent>
     </Dialog>

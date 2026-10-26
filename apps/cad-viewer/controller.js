@@ -1,6 +1,6 @@
 import { createViewer } from '@barocss/viewer';
 import { compileMeshMaterial } from '@barocss/gpu';
-import { parseDocument, readDocument, loadOptions } from './document.js';
+import { parseSource, readSource, admitSource } from './source.js';
 import { createPngExport } from './png-export.js';
 import { createReviewFile, readReviewFile, REVIEW_FILE_LIMIT } from './review-file.js';
 
@@ -17,7 +17,7 @@ const viewDirections = {
   top: { direction: [0, 1, 0], up: [0, 0, -1] },
   right: { direction: [1, 0, 0], up: [0, 1, 0] },
 };
-const summary = value => value && ({ label: value.label, id: value.id,
+const summary = value => value && ({ kind: value.kind, label: value.label, id: value.id,
   revision: value.revision, catalog: value.catalog });
 const emptyMeasurement = () => ({ active: false, points: [], result: null, error: '' });
 const pointRef = input => input.kind === 'surface'
@@ -36,6 +36,7 @@ export function createViewerController({ canvas, stage, onChange }) {
   let reviewBusy = false;
   let lightingError = '';
   let measurement = emptyMeasurement();
+  let assemblyInspection = null;
   const listeners = [];
   const reviewUrls = new Set();
   const loaded = () => Boolean(active && viewer && !disposed);
@@ -57,6 +58,13 @@ export function createViewerController({ canvas, stage, onChange }) {
     const measurementOverlay = { width: rect.width, height: rect.height, points: [] };
     if (state) {
       recordFrame();
+      const instance = active?.kind === 'assembly'
+        ? state.assemblyInstances.find(binding => sameRef(binding.ref, state.selectedGeometry)) : null;
+      if (!instance) assemblyInspection = null;
+      else if (assemblyInspection?.instanceId !== instance.instanceId) {
+        const query = active.catalog.find(row => row.id === instance.instanceId)?.nativeQuery;
+        if (query) inspectAssemblyPoint(instance, query);
+      }
       if (measurement.points.some(point => !state.visibleGeometry.some(ref => sameRef(ref, pointRef(point.input))))) {
         measurement = emptyMeasurement();
         message('Distance cleared because a measured body was hidden.');
@@ -81,7 +89,8 @@ export function createViewerController({ canvas, stage, onChange }) {
           ? Object.keys(presets).find(key => presets[key] === binding.binding.material.source) || 'default' : 'default';
         appearanceBinding = stamp;
       }
-      if (ref) appearanceNote = !state.visibleGeometry.some(value => sameRef(value, tagged))
+      if (active?.kind === 'assembly') appearanceNote = 'Material changes are unavailable for assembly instances.';
+      else if (ref) appearanceNote = !state.visibleGeometry.some(value => sameRef(value, tagged))
         ? 'Show this Surface first.' : sameRef(state.selectedGeometry, tagged)
           ? 'Clear the Surface selection before applying.' : binding
             ? 'Choose Default to enable Surface selection and hiding.' : 'Changes apply to this session.';
@@ -98,7 +107,20 @@ export function createViewerController({ canvas, stage, onChange }) {
       search, candidate: summary(candidate), admissionIds: [...admissionIds], admissionError,
       status, statusError, exportStatus, exportBusy, reviewBusy, viewPreset, appearanceTarget,
       appearancePreset, appearanceNote, lightingCapabilities: viewer?.getLightingCapabilities() ?? null,
-      lightingError, measurement: structuredClone(measurement), measurementOverlay });
+      lightingError, measurement: structuredClone(measurement), measurementOverlay,
+      assemblyInspection: assemblyInspection ? structuredClone(assemblyInspection) : null });
+  }
+  function inspectAssemblyPoint(binding, query) {
+    try {
+      const result = viewer.queryAssemblyInstancePoint({ assemblyId: binding.assemblyId,
+        assemblyRevision: binding.assemblyRevision, instanceId: binding.instanceId,
+        reference: binding.reference, query });
+      assemblyInspection = { instanceId: binding.instanceId, query: { ...query }, result, error: '' };
+    } catch (error) {
+      const previous = assemblyInspection?.instanceId === binding.instanceId ? assemblyInspection : null;
+      assemblyInspection = { instanceId: binding.instanceId, query: previous?.query ?? { ...query },
+        result: previous?.result ?? null, error: error?.message || String(error) };
+    }
   }
   function measuredPoint(input, point) {
     const state = viewer.getState();
@@ -157,6 +179,7 @@ export function createViewerController({ canvas, stage, onChange }) {
   const evidence = {
     state: () => viewer?.getState(), review: () => loaded() ? viewer.captureReviewState() : null,
     pixels: () => viewer?.readPixels(), document: () => viewer?.getState().document,
+    source: () => active ? structuredClone(active.source) : null,
   };
   const api = {
     async start() {
@@ -229,21 +252,21 @@ export function createViewerController({ canvas, stage, onChange }) {
     async openDocument(file) {
       const request = ++documentEpoch;
       try {
-        const next = await readDocument(file);
+        const next = await readSource(file);
         if (request !== documentEpoch || disposed) return;
         chooseBodies(next);
       } catch (error) { if (request === documentEpoch && !disposed) {
         message('Document not opened: ' + error.message, true); refresh();
       } }
     },
-    async openSample() {
+    async openSample(kind = 'document') {
       const request = ++documentEpoch;
       try {
-        const response = await fetch('/sample.cad-document.json');
+        const response = await fetch(kind === 'assembly' ? '/sample.cad-assembly.json' : '/sample.cad-document.json');
         if (!response.ok) throw new Error('The sample is unavailable.');
         const text = await response.text();
         if (request !== documentEpoch || disposed) return;
-        chooseBodies(parseDocument(text, 'Sample document'));
+        chooseBodies(parseSource(text, kind === 'assembly' ? 'Sample assembly' : 'Sample document'));
       } catch (error) { if (request === documentEpoch && !disposed) { message(error.message, true); refresh(); } }
     },
     openBodies() { if (loaded()) { documentEpoch++; chooseBodies(active, admitted); } },
@@ -258,17 +281,20 @@ export function createViewerController({ canvas, stage, onChange }) {
       if (!candidate || !viewer) return;
       try {
         const ids = [...admissionIds];
-        viewer.loadDocument(candidate.result, loadOptions(ids));
+        admitSource(viewer, candidate, ids);
         active = candidate; admitted = ids; candidate = null; admissionIds = [];
         measurement = emptyMeasurement(); lightingError = '';
+        assemblyInspection = null;
         documentEpoch++; reviewEpoch++; frameGeneration++;
         appearanceBinding = undefined; appearanceTarget = ''; search = '';
-        message('Document opened. Drag to orbit. Shift+drag to pan.'); refresh();
+        message(active.kind === 'assembly' ? 'Assembly opened. Select an occurrence to inspect its original placement.'
+          : 'Document opened. Drag to orbit. Shift+drag to pan.'); refresh();
       } catch (error) { admissionError = error.message; refresh(); }
     },
     setSearch(value) { search = value; refresh(); },
     startMeasurement() {
       if (!loaded()) return;
+      if (active.kind === 'assembly') { message('Native distance measurement is unavailable in assembly mode.', true); refresh(); return; }
       measurement = { ...emptyMeasurement(), active: true };
       message('Distance: choose point A on the model.'); refresh();
       canvas.focus({ preventScroll: true });
@@ -310,6 +336,14 @@ export function createViewerController({ canvas, stage, onChange }) {
     }, 'Selected body isolated.'); },
     setAppearanceTarget(value) { appearanceTarget = value; refresh(); },
     setAppearancePreset(value) { appearancePreset = value; refresh(); },
+    inspectAssemblyPoint(query) {
+      if (!loaded() || active.kind !== 'assembly') return;
+      const binding = viewer.getState().assemblyInstances.find(value => sameRef(value.ref, viewer.getState().selectedGeometry));
+      if (!binding) { message('Select a loaded assembly instance first.', true); refresh(); return; }
+      inspectAssemblyPoint(binding, query);
+      message(assemblyInspection.error || 'Original native point inspected in part and assembly coordinates.', Boolean(assemblyInspection.error));
+      refresh();
+    },
     applyLighting(input) {
       if (!loaded()) return;
       try { viewer.setLighting(input); lightingError = ''; message('Lighting applied.'); }
@@ -318,6 +352,7 @@ export function createViewerController({ canvas, stage, onChange }) {
     },
     resetLighting() { api.applyLighting(null); },
     applyAppearance() { run(() => {
+      if (active.kind === 'assembly') throw new Error('Material changes are unavailable for assembly instances.');
       const ref = viewer.getState().surfaces.find(ref => surfaceKey(ref) === appearanceTarget);
       if (!ref) throw new Error('Choose a loaded Surface.');
       if (appearancePreset === 'default') viewer.setSurfaceMaterial(ref, null);
@@ -338,7 +373,7 @@ export function createViewerController({ canvas, stage, onChange }) {
           second: measurement.points[1].input, distanceMM: measurement.result.distanceMM,
           metric: 'straight-line', space: 'native-authored', certification: 'not-certified' } : null;
         const lighting = viewer.getLightingCapabilities().supported ? viewer.getState().lighting : undefined;
-        const file = await createReviewFile(viewer.captureReviewState(), native, active.result.document, lighting);
+        const file = await createReviewFile(viewer.captureReviewState(), native, active.source, lighting);
         if (request !== reviewEpoch || disposed) return;
         if (before !== recordFrame() || version !== frameGeneration) throw new Error('The view changed. Save the review again.');
         const text = JSON.stringify(file) + '\n';
@@ -361,7 +396,7 @@ export function createViewerController({ canvas, stage, onChange }) {
         if (file.size > REVIEW_FILE_LIMIT) throw new Error('Review files must be 32 KiB or smaller.');
         const text = await file.text();
         if (request !== reviewEpoch || disposed) return;
-        const { candidate, legacy } = await readReviewFile(text, active.result.document);
+        const { candidate, legacy } = await readReviewFile(text, active.source);
         if (request !== reviewEpoch || disposed) return;
         if (before !== recordFrame() || version !== frameGeneration) throw new Error('The view changed. Open the review again.');
         const restored = viewer.applyMeasuredReviewState(candidate);

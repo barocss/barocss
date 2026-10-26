@@ -96,9 +96,11 @@ const cssInputs = await Promise.all([...new Set([...cssDependencies, ...candidat
     bytes: bytes.length, sha256: sha(bytes) };
 }));
 const sample = await readFile(resolve(root, 'packages/barocss-cad-interop/examples/document-gpu-v2.cad-document.json'));
+const assemblySample = await readFile(resolve(root, 'examples/gpu-scene/fixtures/assembly-revision0.json'));
 const audit = { mode: 'source-react-shadcn-app', bundleSHA256: sha(bundle.outputFiles[0].contents), inputs,
   ownSourceCount: ownSource.length, ownDistCount: ownDist.length, ownSource, ownDist,
   htmlSHA256: sha(html), cssSHA256: sha(css), sampleSHA256: sha(sample),
+  assemblySampleSHA256: sha(assemblySample),
   cssEntry: relative(root, cssEntry), cssInputs, cssCandidateCount: candidates.length,
   publicEntries: [...publicEntries.values()] };
 const files = new Map([
@@ -107,6 +109,7 @@ const files = new Map([
   ['/styles.css', ['text/css; charset=utf-8', css]],
   ['/bundle.js', ['text/javascript; charset=utf-8', bundle.outputFiles[0].contents]],
   ['/sample.cad-document.json', ['application/json; charset=utf-8', sample]],
+  ['/sample.cad-assembly.json', ['application/json; charset=utf-8', assemblySample]],
   ['/input-audit.json', ['application/json; charset=utf-8', JSON.stringify(audit, null, 2)]],
 ]);
 const port = Number(process.env.CAD_VIEWER_PORT ?? 53032);

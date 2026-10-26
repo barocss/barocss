@@ -9,6 +9,7 @@
     "check:build": "node server.mjs --check"
   },
   "dependencies": {
+    "@barocss/cad": "workspace:*",
     "@barocss/viewer": "workspace:*",
     "@barocss/cad-interop": "workspace:*",
     "@barocss/gpu": "workspace:*",

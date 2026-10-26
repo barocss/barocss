@@ -17,7 +17,8 @@ and materials. Front looks from +Z, Top from +Y, and Right from +X in the displa
 basis. Fit all restores the SDK's complete scene view.
 
 A separate document review app. It consumes the public `@barocss/viewer`,
-`@barocss/cad-interop/document` and `@barocss/gpu` APIs. It keeps the original CAD
+`@barocss/cad-interop/document`, `@barocss/cad-interop/assembly`, `@barocss/cad`
+and `@barocss/gpu` APIs. It keeps the original CAD
 source and bindings. It does not edit the document.
 
 ## Run
@@ -68,7 +69,46 @@ The sample comes from
 It contains 6 bodies across 2 assets. The dialog selects the first 2 supported
 bodies by default and shows the remaining bodies for explicit choice.
 
-## Review
+## Open an assembly
+
+**Open CAD file** accepts an existing `.cad-assembly.json` file as well as a
+document file. **Assembly sample** opens the existing original fixture at
+`examples/gpu-scene/fixtures/assembly-revision0.json`. Choose 1 to 4 existing
+instances, then choose **Load instances**. The complete source and hierarchy
+are retained. Unloaded parents remain metadata rows with expandable children.
+The parser does not create parts or placements. Display limits still apply.
+
+The Assembly list follows the authored parent hierarchy. Search keeps the
+ancestors of matching instances. Each occurrence has its own SDK display ref,
+even when two occurrences refer to the same asset and geometry. Select a row
+or click visible geometry to select that occurrence. Show, hide, isolate,
+standard views and Fit keep the authored world placement. Choosing another
+instance subset requires a new admission. Reviews require the same ordered
+admitted subset.
+
+The inspector shows assembly and part revision pins, parent path, original
+geometry and separate local/assembly placement origins in millimetres. Native
+point inspection starts at the original parameter domain midpoint. Enter a
+Curve t or Surface u/v to evaluate the original native point. The SDK returns
+separate **Part local XYZ mm** and **Assembly XYZ mm**, including all authored
+parent placements. This query does not change the view or CAD source. A bad
+parameter retains the last accepted result and shows its reason. This is a
+point inspection, not a distance measurement.
+
+Assembly mode disables the document distance tool and material changes. It
+does not reinterpret document native measurements as assembly distances.
+Lighting remains available when a Surface is loaded. A successful source
+replacement clears the earlier host measurement and inspection.
+
+Assembly review files bind the complete original assembly, including nested
+part sources, full references, parent IDs and placements, with the existing
+canonical JSON SHA-256. The SDK also checks assembly revision and exact
+ordered occurrence pins. A changed source, missing instance, stale pin or
+unsupported measurement refuses before acceptance. Legacy raw SDK reviews
+retain revision-only protection. JSON numeric -0/+0 are equivalent under the
+canonical hash; signed zeros inside original source strings remain distinct.
+
+## Inspect a document
 
 Use the body list to select, show, hide, isolate and fit displayed geometry.
 The inspector shows its original document, body, asset, revision and geometry
@@ -136,5 +176,5 @@ current lighting when opened.
 the viewport pixels, without the app toolbar or inspector. It is a display
 snapshot, not a CAD geometry export.
 
-The app does not import STEP, IGES, STL, assembly or feature-based BRep files.
+The app does not import STEP, IGES, STL or feature-based BRep files.
 It does not add modelling or document authoring tools.

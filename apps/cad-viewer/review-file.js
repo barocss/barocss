@@ -69,8 +69,9 @@ function copyNativeInput(input, label) {
   return value;
 }
 
-function copyMeasurement(input) {
+function copyMeasurement(input, sceneKind) {
   if (input === null) return null;
+  if (sceneKind === 'assembly') refuse('Native measurement reviews are unavailable for assemblies.');
   const value = record(input, ['first', 'second', 'distanceMM', 'metric', 'space', 'certification'], 'Measurement');
   if (value.metric !== 'straight-line' || value.space !== 'native-authored'
     || value.certification !== 'not-certified') refuse('Unsupported measurement metadata.');
@@ -140,10 +141,15 @@ function copySource(input, ancestors = new Set(), depth = 0) {
   } finally { ancestors.delete(input); }
 }
 
-function sourceText(sourceDocument) {
+function sourceText(sourceDocument, sceneKind) {
   if (!sourceDocument || typeof sourceDocument !== 'object' || Array.isArray(sourceDocument))
-    refuse('The loaded source document is required.');
-  return JSON.stringify(copySource(sourceDocument));
+    refuse('The loaded CAD source is required.');
+  const source = copySource(sourceDocument);
+  const expectedKind = source.schema === 'barocss-cad-assembly' ? 'assembly'
+    : source.schema === 'barocss-cad-document' ? 'document' : null;
+  if (expectedKind !== null && sceneKind !== expectedKind)
+    refuse('The review scene kind differs from the loaded CAD source.');
+  return JSON.stringify(source);
 }
 
 function bounded(text) {
@@ -158,11 +164,12 @@ async function sha256(text) {
 
 /** Snapshot all inputs before hashing. The file contains no CAD source or derived point coordinates. */
 export async function createReviewFile(review, measurement, sourceDocument, lighting) {
+  const capturedReview = copyReview(review);
   const file = { schema: FILE_SCHEMA, version: 1, sourceSHA256: '0'.repeat(64),
-    review: copyReview(review), measurement: copyMeasurement(measurement) };
+    review: capturedReview, measurement: copyMeasurement(measurement, capturedReview.scene.kind) };
   if (lighting !== undefined) file.lighting = copyLighting(lighting);
   bounded(JSON.stringify(file));
-  const capturedSource = sourceText(sourceDocument);
+  const capturedSource = sourceText(sourceDocument, capturedReview.scene.kind);
   file.sourceSHA256 = await sha256(capturedSource);
   return file;
 }
@@ -185,11 +192,12 @@ export async function readReviewFile(text, sourceDocument) {
   if (file.schema !== FILE_SCHEMA || file.version !== 1) refuse('Unsupported CAD Viewer review file.');
   if (typeof file.sourceSHA256 !== 'string' || !/^[a-f0-9]{64}$/.test(file.sourceSHA256))
     refuse('The review source hash is invalid.');
+  const capturedReview = copyReview(file.review);
   const candidate = { schema: CANDIDATE_SCHEMA, version: 1,
-    review: copyReview(file.review), measurement: copyMeasurement(file.measurement) };
+    review: capturedReview, measurement: copyMeasurement(file.measurement, capturedReview.scene.kind) };
   if (hasLighting) candidate.lighting = copyLighting(file.lighting);
-  const capturedSource = sourceText(sourceDocument);
+  const capturedSource = sourceText(sourceDocument, capturedReview.scene.kind);
   if (await sha256(capturedSource) !== file.sourceSHA256)
-    refuse('The review source differs from the loaded CAD document.');
+    refuse('The review source differs from the loaded CAD source.');
   return { candidate, legacy: false };
 }

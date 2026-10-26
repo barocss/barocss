@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 import { createReviewFile, readReviewFile, REVIEW_FILE_LIMIT } from '../review-file.js';
 
 const source = () => ({ schema: 'original-document', documentId: 'bracket', revision: 3,
@@ -244,4 +245,117 @@ test('the compact 32 KiB save bound includes optional lighting', async () => {
   assert.equal(new TextEncoder().encode(JSON.stringify(old)).length, REVIEW_FILE_LIMIT);
   await assert.doesNotReject(readReviewFile(JSON.stringify(old), source()));
   await assert.rejects(createReviewFile(view, null, source(), lighting()), /32 KiB/);
+});
+
+test('assembly review files bind complete authored source and occurrence review', async t => {
+  // This exercises the app file boundary only. SDK admission remains authoritative for the scene.
+  const original = JSON.parse(await readFile(new URL(
+    '../../../examples/gpu-scene/fixtures/assembly-revision0.json', import.meta.url), 'utf8'));
+  const assemblySource = () => structuredClone(original);
+  const ids = ['child', 'shared_root', 'surface_grandchild'];
+  const instance = id => original.instances.find(value => value.id === id);
+  const refs = ids.map(id => {
+    const reference = instance(id).reference;
+    const modelId = 'assembly.' + Array.from(id, character =>
+      character.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+    return reference.geometryKind === 'surface'
+      ? { kind: 'surface', modelId, surfaceId: reference.geometryId }
+      : { kind: 'curve', modelId, curveId: reference.geometryId };
+  });
+  const assemblyReview = () => ({ ...review(),
+    scene: { kind: 'assembly', id: original.assemblyId, revision: original.revision, mmToSceneUnit: 0.15,
+      members: ids.map(id => JSON.stringify([id, instance(id).reference])) },
+    visibleGeometry: structuredClone(refs), selectedGeometry: structuredClone(refs[1]) });
+  const makeAssemblyFile = () => createReviewFile(assemblyReview(), null, assemblySource(), lighting());
+
+  await t.test('round trip preserves occurrence identity, camera, visibility, selection and lighting', async () => {
+    const file = await makeAssemblyFile();
+    assert.deepEqual(Object.keys(file), ['schema', 'version', 'sourceSHA256', 'review', 'measurement', 'lighting']);
+    assert.equal(file.sourceSHA256, createHash('sha256').update(JSON.stringify(original)).digest('hex'));
+    const text = JSON.stringify(file), restored = await readReviewFile(text, assemblySource());
+    assert.equal(restored.legacy, false);
+    assert.deepEqual(restored.candidate, { schema: 'barocss-viewer-measured-review', version: 1,
+      review: assemblyReview(), measurement: null, lighting: lighting() });
+    assert.notEqual(restored.candidate.review.visibleGeometry[0].modelId,
+      restored.candidate.review.visibleGeometry[1].modelId);
+    assert.equal(restored.candidate.review.visibleGeometry[0].curveId,
+      restored.candidate.review.visibleGeometry[1].curveId);
+    assert.ok(!text.includes('@model') && !text.includes('worldMatrix') && !text.includes('translationMM'));
+    file.review.scene.members.reverse(); file.review.camera.eye[0] = 100;
+    file.review.visibleGeometry[0].modelId = 'changed'; file.lighting.direction[0] = 5;
+    assert.deepEqual(restored.candidate.review, assemblyReview());
+    assert.deepEqual(restored.candidate.lighting, lighting());
+  });
+
+  await t.test('same revisions with altered placement, hierarchy, part source or reference are refused', async () => {
+    const text = JSON.stringify(await makeAssemblyFile());
+    for (const change of [
+      value => { value.instances[0].placement.translationMM[0] += 1; },
+      value => { value.instances[0].placement.rotationDegreesXYZ[2] = 45; },
+      value => { value.instances[0].parentId = null; },
+      value => { value.parts[0].assets[0].source += '\nchanged original source'; },
+      value => { value.instances[0].reference.assetRevision += 1; },
+      value => { value.instances.reverse(); },
+    ]) {
+      const changed = assemblySource(); change(changed);
+      await assert.rejects(readReviewFile(text, changed), /source differs/);
+    }
+  });
+
+  await t.test('write and read capture the complete assembly before the hash await', async () => {
+    const document = assemblySource(), view = assemblyReview();
+    const pending = createReviewFile(view, null, document);
+    document.parts[0].assets[0].source += ' changed after save';
+    document.instances[0].placement.translationMM[0] += 1;
+    view.scene.members.reverse(); view.camera.eye[0] = 99;
+    const file = await pending, text = JSON.stringify(file);
+    assert.deepEqual(file.review, assemblyReview());
+    await assert.doesNotReject(readReviewFile(text, assemblySource()));
+    await assert.rejects(readReviewFile(text, document), /source differs/);
+    const readSource = assemblySource(), reading = readReviewFile(text, readSource);
+    readSource.instances[0].placement.translationMM[0] += 1;
+    assert.deepEqual((await reading).candidate.review, assemblyReview());
+  });
+
+  await t.test('known source schemas must match the review scene kind', async () => {
+    await assert.rejects(createReviewFile(review(), null, assemblySource()), /scene kind differs/);
+    const document = source(); document.schema = 'barocss-cad-document';
+    await assert.rejects(createReviewFile(assemblyReview(), null, document), /scene kind differs/);
+    const file = await makeAssemblyFile();
+    file.review.scene.kind = 'document';
+    await assert.rejects(readReviewFile(JSON.stringify(file), assemblySource()), /scene kind differs/);
+    // The existing generic finite JSON source contract is retained for older host fixtures.
+    await assert.doesNotReject(createReviewFile(review(), null, source()));
+  });
+
+  await t.test('assembly measurement must be null on save and read', async () => {
+    await assert.rejects(createReviewFile(assemblyReview(), measurement(), assemblySource()),
+      /measurement reviews are unavailable for assemblies/);
+    const file = await makeAssemblyFile(); file.measurement = measurement();
+    await assert.rejects(readReviewFile(JSON.stringify(file), assemblySource()),
+      /measurement reviews are unavailable for assemblies/);
+  });
+
+  await t.test('source hash remains mandatory while raw SDK assembly reviews remain compatible', async () => {
+    const file = await makeAssemblyFile(), unbound = { ...file }; delete unbound.sourceSHA256;
+    await assert.rejects(readReviewFile(JSON.stringify(unbound), assemblySource()), /missing or unsupported fields/);
+    await assert.rejects(readReviewFile(JSON.stringify({ ...file, sourceSHA256: '0'.repeat(64) }), assemblySource()),
+      /source differs/);
+    const old = await createReviewFile(assemblyReview(), null, assemblySource());
+    assert.equal(Object.hasOwn(old, 'lighting'), false);
+    assert.equal(Object.hasOwn((await readReviewFile(JSON.stringify(old), assemblySource())).candidate, 'lighting'), false);
+    const legacy = await readReviewFile(JSON.stringify(assemblyReview()), assemblySource());
+    assert.equal(legacy.legacy, true); assert.equal(legacy.candidate.measurement, null);
+    assert.equal(Object.hasOwn(legacy.candidate, 'lighting'), false);
+    assert.deepEqual(legacy.candidate.review, assemblyReview());
+  });
+
+  await t.test('nested source accessors are refused without execution', async () => {
+    let calls = 0;
+    const document = assemblySource();
+    Object.defineProperty(document.instances[0].placement.translationMM, '0', {
+      enumerable: true, get() { calls++; throw new Error('placement getter'); } });
+    await assert.rejects(createReviewFile(assemblyReview(), null, document), /must be data/);
+    assert.equal(calls, 0);
+  });
 });
