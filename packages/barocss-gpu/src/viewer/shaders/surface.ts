@@ -240,6 +240,93 @@ fn pointShadowAt(world: vec3f, n: vec3f) -> f32 {
   }
   return lit / 9.0;
 }
+// A cube texel stores axial standard depth; its face ray converts that distance to radial distance.
+fn pointShadowDistance(depth: f32, ray: vec3f) -> f32 {
+  let params = frame.pointShadowParams;
+  let ratio = params.x / params.y;
+  let axial = clamp(params.x / max(1.0 - depth * (1.0 - ratio), ratio), params.x, params.y);
+  return axial * (length(ray) / max(max(abs(ray.x), abs(ray.y)), abs(ray.z)));
+}
+// World emitter radius -> tangent slope R*(zr-zb)/(zb*zr), bounded before any large product is formed.
+fn pointShadowAngle(radius: f32, blocker: f32, receiver: f32) -> f32 {
+  let gap = max(1.0 - blocker / receiver, 0.0);
+  if (!(gap > 0.0)) { return 0.0; }
+  let r = frexp(radius); let g = frexp(gap); let z = frexp(blocker);
+  let value = frexp(r.fract * g.fract / z.fract);
+  let exponent = r.exp + g.exp - z.exp + value.exp;
+  if (exponent >= -1) { return 0.25; }
+  return ldexp(value.fract, exponent);
+}
+fn pointShadowBlocker(ray: vec3f, radius: f32, eye: vec3f) -> f32 {
+  let face = pointShadowFace(ray);
+  let slot = ${MAX_DIRECTIONAL + MAX_SPOT}u + face;
+  let shadow = frame.shadowLights[slot];
+  let p = shadow.viewProj * vec4f(eye + normalize(ray) * radius, 1.0);
+  if (!(p.w > 0.0)) { return 0.0; }
+  let q = p.xyz / p.w;
+  let uv = vec2f(q.x * 0.5 + 0.5, 0.5 - q.y * 0.5);
+  if (!(all(uv >= vec2f(0.0)) && all(uv <= vec2f(1.0)) && q.z >= 0.0 && q.z <= 1.0)) { return 0.0; }
+  let size = vec2i(textureDimensions(shadowMap));
+  let pixel = clamp(vec2i(uv * vec2f(size)), vec2i(0), size - vec2i(1));
+  let depth = textureLoad(shadowMap, pixel, shadowLayerIndex(slot), 0);
+  if (!(depth >= 0.0 && depth < 1.0)) { return 0.0; }
+  let texelRay = pointShadowRay(face, (vec2f(pixel) + 0.5) / vec2f(size));
+  let params = frame.pointShadowParams;
+  let receiverAxial = radius / (length(texelRay) / max(max(abs(texelRay.x), abs(texelRay.y)), abs(texelRay.z)));
+  if (!(receiverAxial >= params.x && receiverAxial <= params.y) || (bitcast<u32>(receiverAxial) & 0x7f800000u) == 0x7f800000u) { return 0.0; }
+  let referenceDepth = (1.0 - params.x / receiverAxial) / (1.0 - params.x / params.y);
+  if (!(depth < referenceDepth - shadow.params.z)) { return 0.0; }
+  let blocker = pointShadowDistance(depth, texelRay);
+  if (!(blocker > 0.0 && blocker < radius) || (bitcast<u32>(blocker) & 0x7f800000u) == 0x7f800000u) { return 0.0; }
+  return blocker;
+}
+// A point emitter is approximated by a disk perpendicular to each receiver ray, not a spot cone.
+fn softPointShadowAt(world: vec3f, n: vec3f) -> f32 {
+  let selected = frame.shadowActive.y;
+  if (selected == 0u || selected > frame.counts.y || (frame.shadowActive.x & 0x3f00u) != 0x3f00u) { return 1.0; }
+  let light = frame.points[selected - 1u];
+  if (light.position.w > 0.0 && distance(world, light.position.xyz) >= light.position.w) { return 1.0; }
+  let receiver = world + n * frame.shadowLights[${MAX_DIRECTIONAL + MAX_SPOT}].params.x;
+  let delta = receiver - light.position.xyz;
+  let largest = max(max(abs(delta.x), abs(delta.y)), abs(delta.z));
+  if (!(largest > 0.0) || (bitcast<u32>(largest) & 0x7f800000u) == 0x7f800000u) { return 1.0; }
+  let exponent = frexp(largest).exp;
+  let scaled = ldexp(delta, vec3i(-exponent));
+  let scaledLength = length(scaled);
+  let radius = ldexp(scaledLength, exponent);
+  if (!(radius > 0.0) || (bitcast<u32>(radius) & 0x7f800000u) == 0x7f800000u) { return 1.0; }
+  let direction = scaled / scaledLength;
+  let axis = select(vec3f(0.0, 1.0, 0.0), vec3f(0.0, 0.0, 1.0), abs(direction.z) < 0.9);
+  let tangent = normalize(cross(axis, direction));
+  let across = cross(direction, tangent);
+  let angle = fract(sin(dot(fract(world), vec3f(12.9898, 78.233, 37.719))) * 43758.5453) * 6.2831853;
+  let rot = mat2x2f(cos(angle), sin(angle), -sin(angle), cos(angle));
+  let params = frame.pointShadowParams;
+  let texel = frame.shadowLights[${MAX_DIRECTIONAL + MAX_SPOT}].params.y;
+  // Bound blocker search by resolution too, and include the centre so a thin umbra cannot fall between all taps.
+  let search = min(0.25, max(4.0 * texel, min(48.0 * texel, pointShadowAngle(params.z, params.x, radius))));
+  var mean = 0.0;
+  var count = 0.0;
+  for (var i = 0; i < 16; i++) {
+    let sample = select(vec2f(0.0), rot * (DISC[i] / max(length(DISC[i]), 1.0)), i > 0);
+    let ray = direction + (tangent * sample.x + across * sample.y) * search;
+    let blocker = pointShadowBlocker(ray, radius, light.position.xyz);
+    if (blocker > 0.0) { count += 1.0; mean += (blocker - mean) / count; }
+  }
+  if (count == 0.0) { return 1.0; }
+  let filterRadius = pointShadowAngle(params.z, mean, radius);
+  var lit = 0.0;
+  for (var i = 0; i < 16; i++) {
+    let sample = rot * (DISC[i] / max(length(DISC[i]), 1.0));
+    let ray = direction + (tangent * sample.x + across * sample.y) * filterRadius;
+    lit += select(1.0, 0.0, pointShadowBlocker(ray, radius, light.position.xyz) > 0.0);
+  }
+  return lit / 16.0;
+}
+fn pointShadowLit(world: vec3f, n: vec3f) -> f32 {
+  if (frame.pointShadowParams.z > 0.0) { return softPointShadowAt(world, n); }
+  return pointShadowAt(world, n);
+}
 fn schlick(f0: vec3f, voh: f32) -> vec3f { return f0 + (vec3f(1.0) - f0) * pow(1.0 - voh, 5.0); }
 
 // Tangent-space normals from the geometry's UVs, including mirrored UVs and a non-uniform model transform.
@@ -376,7 +463,7 @@ fn shadeLayered(world: vec3f, base: vec3f, metallicIn: f32, emissive: f32, recei
     var fall = 1.0 / max(dist * dist, 1e-4);
     if (p.position.w > 0.0) { let q = clamp(1.0 - pow(dist / p.position.w, 4.0), 0.0, 1.0); fall *= q * q; }
     var lit = 1.0;
-    if (receive && frame.shadowActive.y == i + 1u) { lit = pointShadowAt(world, layer.coatN); }
+    if (receive && frame.shadowActive.y == i + 1u) { lit = pointShadowLit(world, layer.coatN); }
     c += brdfLayered(v, to / max(dist, 1e-6), base, metallic, a, layer, tint) * p.color.rgb * p.color.w * fall * PI * lit;
   }
   for (var i = 0u; i < frame.counts.z; i++) {
@@ -504,7 +591,7 @@ fn unlitColor(in: VOut) -> vec4f {
     if (i < ${MAX_DIRECTIONAL}u) { lit = min(lit, visibility); }
     else { lit = min(lit, mix(1.0, visibility, strength)); }
   }
-  if (frame.shadowActive.y > 0u) { lit = min(lit, pointShadowAt(in.world, normalize(in.normal))); }
+  if (frame.shadowActive.y > 0u) { lit = min(lit, pointShadowLit(in.world, normalize(in.normal))); }
   let a = (1.0 - lit) * in.color.a;
   return vec4f(in.color.rgb * a, a);
 }

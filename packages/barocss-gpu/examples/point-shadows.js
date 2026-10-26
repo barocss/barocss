@@ -1,5 +1,5 @@
 const byId = id => document.getElementById(id);
-const controls = ['shadow', 'source-x', 'source-y', 'source-z', 'range', 'intensity'].map(byId);
+const controls = ['shadow', 'source-x', 'source-y', 'source-z', 'shadow-radius', 'range', 'intensity'].map(byId);
 const status = byId('status'), error = byId('error'), captureButton = byId('capture');
 let api = null, viewer = null, marker = null, closed = false, capturing = false, epoch = 0;
 
@@ -14,16 +14,18 @@ function updateLight() {
   epoch++;
   const position = ['source-x', 'source-y', 'source-z'].map(id => Number(byId(id).value));
   const range = Number(byId('range').value), intensity = Number(byId('intensity').value), castShadow = byId('shadow').checked;
+  const shadowRadius = Number(byId('shadow-radius').value);
   viewer.lights = [
     { kind: 'directional', direction: [-0.3, 0.4, -1], color: '#486994', intensity: 0.2 },
-    { kind: 'point', position, color: '#ffe8bd', intensity, range, castShadow },
+    { kind: 'point', position, color: '#ffe8bd', intensity, range, castShadow, shadowRadius },
   ];
   marker.transform = api.translation(position);
   viewer.requestRender();
   ['x-value', 'y-value', 'z-value'].forEach((id, i) => { byId(id).value = position[i].toFixed(1); });
   byId('range-value').value = String(range); byId('intensity-value').value = String(intensity);
+  byId('radius-value').value = shadowRadius.toFixed(1);
   error.hidden = true;
-  status.textContent = `Point shadow ${castShadow ? 'on' : 'off'} · source [${position.map(value => value.toFixed(1)).join(', ')}] · range ${range}${capturing ? ' · earlier capture discarded' : ''}`;
+  status.textContent = `Point shadow ${castShadow ? 'on' : 'off'} · source [${position.map(value => value.toFixed(1)).join(', ')}] · light radius ${shadowRadius.toFixed(1)} · range ${range}${capturing ? ' · earlier capture discarded' : ''}`;
 }
 
 captureButton.addEventListener('click', async () => {
