@@ -2991,7 +2991,7 @@ export function App() {
   </section> : null;
   const browserPanel = (
       <Profiler id="outliner" onRender={onBlockRender}><aside className={'card outliner' + (browserOpen ? '' : ' closed')} aria-label="Browser">
-        <div className="card-title">BROWSER <span className="muted" aria-busy={!fresh}>{fresh ? `${bodies.length} bod${bodies.length === 1 ? 'y' : 'ies'}` : busy ? 'evaluating…' : 'not up to date'}</span>
+        <div className="card-title">BROWSER <span className="muted" aria-busy={!fresh}>Base part · {fresh ? `${bodies.length} bod${bodies.length === 1 ? 'y' : 'ies'}` : busy ? 'evaluating…' : 'not up to date'}</span>
           <ToolIconButton size="tiny" aria-label={browserOpen ? 'Collapse the browser' : 'Expand the browser'} onClick={() => setBrowserOpen(o => { try { localStorage.setItem('cad-studio.browser', o ? 'closed' : 'open'); } catch { /* private mode */ } return !o; })}><Icon name={browserOpen ? 'left_panel_close' : 'left_panel_open'} small /></ToolIconButton></div>
         {browserOpen && <>
         {bodies.length > 0 && <div className="ol-head">Bodies</div>}
@@ -3024,7 +3024,7 @@ export function App() {
         {freeSketches.map(k => <div key={'s' + k} className={'ol-row' + (selection.sketches?.includes(k) ? ' sel' : '')}>
           <span className="ol-eye"><Icon name="cad-sketch" small /></span>
           <button className={'ol' + (selection.sketches?.includes(k) ? ' sel' : '')} onClick={e => pickProfile(k, e.shiftKey)}>Sketch {k + 1}</button></div>)}
-        {!!doc.instances?.length && <div className="ol-head">Parts placed</div>}
+        {!!doc.instances?.length && <div className="ol-head">Parts placed <span className="muted">{doc.instances.length}</span></div>}
         <OutlinerInstances instances={doc.instances ?? NO_INSTANCES} selection={instanceSel} edit={instanceEdit} locked={!!active || !!sketch || rendering || drawing}
           onPick={pickInstanceRow} onEdit={editInstanceRow} iconFor={iconFor} />
         {!!doc.direct?.objects.length && <div className="ol-head">Curves and surfaces</div>}
@@ -3065,7 +3065,7 @@ export function App() {
           {h.kind === 'prompt' && h.summary && <span className="muted"> → {h.summary}</span>}
           <span className="muted"> · {h.by.agent}{h.by.model ? ` (${h.by.model})` : ''} · {whenOf(h.at)}</span></div>)}</>}
         {referenceDecisions}
-        {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
+        {!bodies.length && !doc.instances?.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
         </>}
       </aside></Profiler>
   );
