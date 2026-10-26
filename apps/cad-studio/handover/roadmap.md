@@ -1,6 +1,6 @@
 # barocss CAD roadmap
 
-Current as of 2026-10-25, after the Claude-to-Codex lane handover. This file is the one place for **what we do, in what order, and
+Current as of 2026-10-26, after the scoped CAD integration checkpoints. This file is the one place for **what we do, in what order, and
 when each item is done**. It replaces Codex's continuation roadmap of 2026-10-22/23, which is at `0eabecf7f` and on
 `codex/cad-coordinator-handover-20261022`.
 
@@ -125,8 +125,8 @@ coordinator record; this section defines scope and completion gates, not a secon
 | P1 references, API/Outer/Drawings | Reuse issue 1658 generated/modified/deleted one-to-many evolution and existing ambiguous-reference refusal. | Edit, split, merge, symmetric candidate and deletion cases retain the intended reference or remain visibly unresolved, without editing a different face. |
 | P1 API and exchange meaning, API/Docs | Describe the fluent subset, wider feature kernel and qualification provider separately. Preserve raw STEP number import versus unit-normalizing adapters, mixed-face approximation and assembly flattening/loss notices under 539/2210. | A frozen supported example and mm/metre/inch context retain physical size and stated representation. Shape-only interchange is not assembly/history preservation. No broad API deprecation or serialization migration follows automatically. |
 
-Current-source reads confirmed the sketch rounding/diagnostic seam and the sampled revolve
-admission. They are not yet executed defect reproductions. The selected current Boolean
+The original source reads identified the sketch rounding/diagnostic seam and sampled revolve
+admission. Their subsequent reproductions, corrections and bounded checks are recorded in **Order now**. The selected current Boolean
 1e-6 grazing seed completed its six existing stages on source `123ff9`; that does not close
 all historical 2205 cases or prove a general curved Boolean envelope.
 
@@ -238,58 +238,49 @@ validation are different results and must remain separate.
 
 ## Order now (2026-10-26)
 
-The material-input capture checkpoint is local product merge `28b3331c28dfa618f3bfa9948d779442843e4b9f`.
-It preserves the density used at the original mass calculation separately from the catalogue row's declared
-value, material identifiers, fallback and declared source details. An actually applied inertia callback is
-labelled separately. These fields are recorded inputs and declarations, not authenticated or measured material.
-The focused 26 tests, Model consumer types, changed-file lint and a real Chrome calculation/download were
-checked at their original source. Documentation/site checks and the mandatory product docs check passed.
+The current local product merge is `91e96a2361a7b483a1915da822d07b495e766848`, with seven
+reviewed paths from common source `1a7f2266`: sketch coefficient/diagnostic precision, Enter and
+value visibility, exact revolve admission, Drawing compatibility tests and the Sketches guide.
+The union tree preserves the product's four portable handoff files and 33 foreign regular files.
+This merge is **integration validation pending**: run the product's first affected CAD build,
+one selected existing endpoint regression, then the mandatory product documentation check.
+Do not rerun the common-source checks merely because these bytes were locally integrated.
 
-Independent schema-one JSON records and their Studio Download/Open controls are already adopted. Imported
-records stay historical even when their full document and explicit inputs match. Explicit calculation creates
-a new result. Producer code identity, catalogue authenticity and measured physical accuracy are not established.
-Older records with no material metadata remain without it; current catalogue values are not filled in.
+At common source `1a7f2266`, the affected CAD build and five frozen revolve regressions passed.
+The production-file lint, final Studio type check and corrected Drawing compatibility tests also
+passed. Desktop checks preserved `10.0000004` through Enter/Finish/Save/Open, and confirmed the
+focused value is fully visible at the two selected dock widths. Common check-docs, site build and
+the changed Sketches page display passed. Keep original failures and their distinct source refs.
 
-The separate typed material preview and read-only Studio section keep the existing record reader, primary
-preview, full unknown report and document/input matching unchanged. Invalid optional metadata is refused by
-the new getter only, and the panel isolates that display error. At source `869879273`, desktop Chrome checks
-covered calculation, real download/Open, historical status and synthetic missing, malformed and differing
-metadata. Six captures were directly inspected. The nine new tests, Model/Studio consumer types and changed
-production-file lint passed. Synthetic metadata is display evidence, not a real changed-density calculation.
-The integration receipt records the subsequent documentation and product adoption gates; source checks alone
-do not establish those gates.
+The direct CAD-to-Viewer revolve case recorded independent expected volume
+`1.3483831066349072`, actual direct volume `1.348383106634906` and B-rep volume
+`1.348383106634922`, within the original relative `1e-12` limit. A tangent input was refused.
+Three inspected WebGPU views showed no obvious missing visible surface. This used the default
+B-rep validation checks; the original raw field called `strictBrep` was corrected in a sidecar.
+An additional `strict: true` check was not run. This is not Studio revolve-authoring, full-normal,
+physical or manufacturing acceptance.
 
-The foundation corrections, axis-inertia query, positive-principal-axis draft and Drawing input corrections
-are adopted. The product CAD library was freshly built at `b77c0a08`; its 818 output files matched the candidate.
-A selected planar box test connected B-rep mass data to independent axis-inertia formulas with authored density.
-The direct-file engine History scroll and Save/New/Open flow preserved the complete document in desktop Chrome;
-Project/OPFS saving was outside that check. Original failures and limited visual evidence remain separate.
+The existing public Sketch-to-Extrude and face-Sketch-to-Cut/Through-all flow passed in desktop
+agent-browser: a 40 by 20 by 8 mm plate, internal 10 by 10 mm profile, underside opening,
+Undo/Redo and real download/New/Open. This bounded flow remains separate from associative edits.
 
-Negative principal-axis draft is adopted in product `5705bf06`. The candidate's affected library build,
-eighteen focused tests, changed-file lint, reviewed public inventory and documentation/site checks passed.
-Three negative-axis fixtures were inspected in four desktop views. The product's first affected build,
-one selected negative-X test and mandatory docs check also passed; its fresh 818 output files matched the
-candidate. Original capture failures and clipped images remain recorded. These checks preserve the existing
-tolerances and refusal boundaries; same-lift Z mass-property references are not measured accuracy or
-manufacturing acceptance, and this work does not add a signed-axis Studio authoring control.
+**Next observed repair: `SC-ASSOCIATIVE-EDIT-01`.** A public Box 40 by 24 by 8 mm, top-face outline,
+inward offset 2 and depth-4 ring cut gave volume 6720. Changing the box width to 60 left the
+stored outline at 40/36 and gave 10560 instead of the associative expectation 10240. Undo,
+Redo and actual Save/Open retained the observed result. Body references and cut links remained
+present; this is not evidence of a lost stored face ID, because that recipe was not stored.
+Outer owns the bounded repair, with API reviewing the persistent producer/consumer contract.
+Use an explicit new associative action and existing named references; do not reinterpret old
+snapshot sketches or add a second naming engine. Missing or ambiguous inputs must require repair
+instead of silently producing an old or unrelated profile. Freeze the original failing file and
+numerical/geometry expectations before a minimal commit and the same public workflow check.
 
-Pinned gravity-record comparison is adopted in product `2753b38f`. Desktop public file/Pin/Replace/Unpin checks,
-Studio consumer types, panel lint and documentation/site checks passed at their original sources. A changed
-recorded axis origin hides the numeric difference; this synthetic display check is not a new physical result.
-The actual-BRep rigid-frame regression is adopted in product `3475dccb`: two selected tests check rotated COM,
-full inertia and pivot axes with authored density, and the required product docs check passed. No production
-calculation or unit changes were made for that test-only slice.
-
-The experiment-definition module and settings panel were checked at source `a768266a`: twelve selected
-native tests, Model/Studio consumer types and changed-file lint passed. Real desktop setup Save/Open,
-input application, explicit run, mismatch refusal and rebinding were inspected; these remain separate
-operations. Reviewed public-inventory and documentation changes await their final source and product gates.
-Existing result records, pinned comparison, document Save and Physics solvers keep their separate contracts.
-
-The same source's public Sketch-to-Extrude and face-Sketch-to-Cut/Through-all flow passed in agent-browser:
-a 40 by 20 by 8 mm body, an internal 10 by 10 mm face profile, visible underside opening, Undo/Redo and
-real download/New/Open preserved the documents. Original tool failures remain separate. This is bounded
-screen/file evidence, not every-shape support or an independent mass/inertia validation.
+Previously adopted setup Save/Open/Use/Run/Bind, historical records and Pin comparison retain
+separate contracts. Actual calculation creates a new result; imported records remain historical.
+Material snapshots preserve used density versus catalogue declarations without authenticating
+them. The product already contains J2, export-note and bounded R1 checks. None of these establish
+forward free motion or measured accuracy. Physics ownership, manufacturing holds and paused work
+remain in force. The single coordinator task record, not historical prose below, controls dispatch.
 
 ### Near-term delivery ownership (2026-10-26)
 
@@ -300,11 +291,11 @@ approval; preserve other sessions and record actual source, input, URL and scree
 
 | Slice | Owner | Current source state | Required next evidence |
 |---|---|---|---|
-| Explain the lost d19 dimension | Drawings, coordinated by API | One retained observation at `7c435d1f` resolves d19 to 142 and d1 to 0.17; original browser loss remains unexplained | Compare the actual source/bundle path before a narrow fix or new browser claim. Preserve the original failure and 34-dimension requirement; the current native observation is not a 34-glyph pass. |
-| Pin a historical gravity record beside the current result | Outer implementation; GPU screen checks; API adoption | Product `2753b38f` adopted; actual desktop, impact and product docs checks complete in their stated scopes | Operate Pin/Replace/Unpin, calculation and record Open in desktop Chrome; inspect inputs, document match, historical status, compatible-axis delta, layout and preserved downloads. Then check Studio types, changed-file lint and local adoption. |
-| Check actual BRep mass across rigid frames | Kernel; API adoption | Product `3475dccb` adopted the two passing BRep rigid-frame tests; no production calculation changes | Verify independent rotated COM/full tensor and pivot-axis formulas on the same frame with the existing tolerance. No duplicate adapter, conversion or new Physics claim. |
-| Save an experiment setup before calculation | API's three agents; Outer UI; Docs | Definition API, twelve test declarations and the reviewed settings panel are in this source batch; first runtime and product adoption remain pending | Keep document Save, setup Save/Open and result-record Download/Open distinct. Open previews settings; explicit input application changes only the form. Run uses the caller's matching current document and creates a result only on success. Rebind creates a new unexecuted setup. Test refusal, copies, staleness and real file/UI flows before adoption. |
-| Admit the first free pendulum profile | Confirm Physics ownership first; Kernel/API supply mass/frame contracts | No solver implementation assigned | Agree pivot/COM placement, pivot inertia, gravity moment, reactions and units, then check independent period, energy, time-step convergence and joint errors. Physical validation needs separate measurements. |
+| Close the verified sketch/revolve product slice | Kernel product build/selected endpoint; Docs mandatory check; API integration | Product `91e96a23` merged; common-source checks and scoped browser checks accepted | Preserve old/new product outputs; compare fresh bytes/modes with the candidate; selected endpoint and product docs must pass at their actual source. |
+| Repair associative face-sketch edits | Outer implementation; API contract review | Public width-change case failed at `1a7f2266`; source/runtime returned and failing files preserved | Agree the minimal persistent recipe and dependency edge, preserve legacy snapshots, refuse missing/ambiguous sources, then run the frozen width-edit/Undo/Redo/Save/Open case. |
+| Preserve drill versus tap-depth contracts | API contract; Drawings consumer | Existing plain/tapped, through/blind and legacy compatibility tests passed; no new independent tap-depth field implemented | A separate field contract must state depth limits, backward defaults and Drawing/text implications before implementation. Do not rerun the existing compatibility tests without a relevant change. |
+| GPU stale-readback protection | Existing GPU owner | Two verified source files already adopted; required product docs passed at `44a8fc9e` | Keep camera/backing/client/aspect snapshot and rejection evidence; assign a new bounded consumer only when a relevant gap is established. No new BVH/LOD or paused FOV work. |
+| Admit the first free pendulum profile | Confirm Physics ownership first; Kernel/API supply mass/frame contracts | No solver implementation assigned | Agree pivot/COM placement, pivot inertia, gravity moment, reactions and units; then check independent period, energy, time-step convergence and joint errors. Physical validation needs separate measurements. |
 
 The local pin and setup UI state is not saved by CAD document Save. A matching imported historical record is
 not a recalculation. Current material declarations and FNV staleness labels are not authenticity evidence.
