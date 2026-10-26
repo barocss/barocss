@@ -233,7 +233,15 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
     if (!ref.sig) return;
     const cands = candidatesOf(ref, finals, parents, tables); if (!cands) return;
     const m = matchSignature(fromSig(ref.sig), cands, ref.edge);
-    if (typeof m === 'string') { if (m !== ref.name) { changes.push({ where: ref.where, was: ref.name, now: m }); ref.rename(m, true); } return; }
+    if (typeof m === 'string') {
+      if (m !== ref.name) {
+        // Keep an existing name of the same live display edge, not merely an equal signature.
+        const live = cands.get(ref.name);
+        if (ref.edge && live !== undefined && live === cands.get(m)) return;
+        changes.push({ where: ref.where, was: ref.name, now: m }); ref.rename(m, true);
+      }
+      return;
+    }
     problems.push({ index, where: ref.where, node: ref.node, name: ref.name, candidates: m });
     if (ref.node !== null) {
       const n = out.nodes[ref.node];

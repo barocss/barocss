@@ -1,5 +1,39 @@
 # Exchange formats
 
+## File contents and reports from code
+
+These functions work on caller-supplied data. They do not open files, download results or save a document.
+Keep the report with the result; a report object is not the file content.
+
+| Function | Result and units | Failure boundary |
+|---|---|---|
+| `exportIGES(model, ids)` | `{ iges, report }`: `iges` is file text; the report declares mm, scale 1 and non-solid geometry | Requires a version-0 millimetre model with 1–16 objects and 1–16 distinct selected IDs; invalid model or selection is refused |
+| `importIGES(text, options)` | `{ request, source, model, metadata, entities, report }`: native model/source data and import provenance, not a B-rep solid | Unsupported input throws `IGESImportError` with a diagnostic `code`; it is not a successful report with missing geometry |
+| `writeDxf(drawing, options)` | `{ text, bytes, report }`: `bytes` is `Uint8Array` in Windows-1252; extents and chord distances use the drawing's units | Throws a typed refusal; use `isDxfWriteError(error)` to identify its code |
+
+The bounded IGES importer requires `sourceId`, `modelName`, `idPrefix`, `maximumEntities: 16` and
+`maximumRecords: 8192`. It accepts its supported millimetre profile without unit conversion. Its returned
+`source` is native model source, not the original IGES file text; `request.iges` retains that input text.
+
+For DXF, write the returned `bytes` when you need the writer's file encoding. Encoding `text` as UTF-8 can
+produce different bytes for non-ASCII characters. In R12, `report.r12` records conversions and whether units
+were omitted; the chord tolerance uses drawing units, not a fixed millimetre value.
+
+```ts
+import { writeDxf, isDxfWriteError, type DxfDocument } from '@barocss/cad';
+
+// The caller supplies drawing data and handles file I/O.
+export function prepareDxf(drawing: DxfDocument) {
+  try {
+    const result = writeDxf(drawing, { version: 'AC1015' });
+    return { bytes: result.bytes, report: result.report };
+  } catch (error: unknown) {
+    if (isDxfWriteError(error)) return { error: error.code };
+    throw error;
+  }
+}
+```
+
 ## STEP
 
 - **Writing.** An output's `exportStep(options)`, or `exportStep(brep | breps, options)`, writes the exact B-rep as STEP
@@ -43,6 +77,10 @@ In the studio, IGES is for curves and surfaces you edit directly, not solids. Se
   triangles as a faceted body.
 
 STL carries triangles only: no units, colours, names or exact curves.
+
+Omitting `segmentsPerQuarter` from `exportStl` uses 16.
+This dimensionless tessellation setting is not a millimetre tolerance or a guarantee of geometric error.
+It does not change the on-screen mesh; see [STL export choices](/studio/files#exports) for the studio controls.
 
 ## DXF
 

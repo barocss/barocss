@@ -15,7 +15,7 @@ export { Geometry, ImageTexture, Mesh, ViewerError, packColorMap };
 export type { AddMeshOptions, CapHatch, ClipPlane, ColorMap, InstancesInput, Material, ShaderMaterial, TextureOptions, TextureSource };
 import { defaultLights, directionalLights, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type ContactFrame, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, bloomWGSL, BLOOM_LEVELS, capProbeSamplesWGSL, envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
+import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, bloomWGSL, BLOOM_LEVELS, depthOfFieldWGSL, capProbeSamplesWGSL, envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
 
 /** The ground grid on the plane across the camera's up axis. */
 export interface GridOptions {
@@ -282,6 +282,9 @@ export class Viewer {
   private bloomChain: { targets: NonNullable<Viewer['targets']>; levels: Texture[]; views: View[]; prefilter: BindGroup; down: BindGroup[]; up: BindGroup[]; params: Buffer[]; output: BindGroup } | null = null;
   /** (The bloom's threshold and knee this frame, written into each pass's parameters.) */
   private bloomKnee = new Float32Array(2);
+  private focusPass: { targets: NonNullable<Viewer['targets']>; color: Texture; params: Buffer; group: BindGroup; output: BindGroup; bloom: Texture } | null = null;
+  private focusPipeline: Pipeline | null = null;
+  private focusParams = new Float32Array(20);
   private black!: Texture;
   private targets: { width: number; height: number; msaa: Texture | null; scene: Texture; depth: Texture; mask: Texture; maskDepth: Texture; capFront: Texture; capFrontSamples: Texture | null; output: BindGroup; views: { msaa: View | null; scene: View; depth: View; mask: View; maskDepth: View; capFront: View; capFrontSamples: View | null } } | null = null;
   private outputBuffer!: Buffer;
@@ -349,7 +352,7 @@ export class Viewer {
     this.rampSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
     this.atlasSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
     this.mipPipelines.clear();
-    this.envPipelines.clear(); this.bloomPipelines.clear();
+    this.envPipelines.clear(); this.bloomPipelines.clear(); this.focusPipeline = null; this.releaseFocus();
     this.envSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', mipmapFilter: 'linear', addressModeU: 'repeat', addressModeV: 'clamp-to-edge' });
     const white = device.createTexture({ size: [1, 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer white' });
     device.queue.writeTexture({ texture: white }, new Uint8Array([255, 255, 255, 255]), { bytesPerRow: 4 }, [1, 1]);
@@ -995,7 +998,7 @@ export class Viewer {
     const w = this.canvas.width, h = this.canvas.height, t = this.targets;
     if (t && t.width === w && t.height === h) return t;
     t?.msaa?.destroy(); t?.scene.destroy(); t?.depth.destroy(); t?.mask.destroy(); t?.maskDepth.destroy(); t?.capFront.destroy(); t?.capFrontSamples?.destroy();
-    if (t) this.releaseBloom();
+    if (t) { this.releaseBloom(); this.releaseFocus(); }
     const samples = this.options.antialias === false ? 1 : SAMPLES;
     const msaa = samples > 1 ? this.device.createTexture({ size: [w, h], format: SCENE_FORMAT, sampleCount: samples, usage: TextureUsage.RENDER_ATTACHMENT, label: 'viewer msaa' }) : null;
     const scene = this.device.createTexture({ size: [w, h], format: SCENE_FORMAT, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer scene' });
@@ -1014,9 +1017,43 @@ export class Viewer {
   }
 
   /** The output pass's bind group: the scene, its block, the outline mask, the depth and the bloom's top level. */
-  private outputGroup(scene: Texture, mask: Texture, depth: Texture, bloom: Texture): BindGroup {
+  private outputGroup(scene: Texture, mask: Texture, depth: Texture, bloom: Texture, focus: Texture = this.black): BindGroup {
     return this.device.createBindGroup({ layout: this.pipelines.get('output')!.getBindGroupLayout(0), entries: [{ binding: 0, resource: scene.createView() }, { binding: 1, resource: { buffer: this.outputBuffer } },
-      { binding: 2, resource: mask.createView() }, { binding: 3, resource: depth.createView() }, { binding: 4, resource: bloom.createView() }, { binding: 5, resource: this.rampSampler }] });
+      { binding: 2, resource: mask.createView() }, { binding: 3, resource: depth.createView() }, { binding: 4, resource: bloom.createView() }, { binding: 5, resource: this.rampSampler }, { binding: 6, resource: focus.createView() }] });
+  }
+
+  private focusEnabled(): boolean {
+    const f = this.environment.depthOfField;
+    return !!f && Number.isFinite(f.focus) && f.focus > 0 && Number.isFinite(f.blur ?? 8) && (f.blur ?? 8) > 0;
+  }
+
+  private releaseFocus(): void {
+    this.focusPass?.color.destroy(); this.focusPass?.params.destroy(); this.focusPass = null;
+  }
+
+  /** One half-resolution gather from the resolved scene, before the existing tone map, grade and outlines. */
+  private drawFocus(enc: ReturnType<Device['createCommandEncoder']>, t: NonNullable<Viewer['targets']>, bloom: Texture): BindGroup {
+    if (!this.focusPipeline) {
+      const module = this.device.createShaderModule({ code: depthOfFieldWGSL(this.options.antialias !== false), label: 'viewer depth of field' });
+      this.focusPipeline = this.device.createRenderPipeline({ label: 'viewer depth of field', layout: 'auto', vertex: { module, entryPoint: 'vs' }, fragment: { module, entryPoint: 'fs', targets: [{ format: SCENE_FORMAT }] }, primitive: { topology: 'triangle-list' } });
+    }
+    if (!this.focusPass || this.focusPass.targets !== t) {
+      this.releaseFocus();
+      const color = this.device.createTexture({ size: [Math.max(1, Math.ceil(t.width / 2)), Math.max(1, Math.ceil(t.height / 2))], format: SCENE_FORMAT, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer focus half' });
+      const params = this.device.createBuffer({ size: 80, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer focus params' });
+      const group = this.device.createBindGroup({ layout: this.focusPipeline.getBindGroupLayout(0), entries: [{ binding: 0, resource: t.scene.createView() }, { binding: 1, resource: t.depth.createView() }, { binding: 2, resource: { buffer: params } }] });
+      this.focusPass = { targets: t, color, params, group, bloom, output: this.outputGroup(t.scene, t.mask, t.depth, bloom, color) };
+    }
+    const f = this.focusPass;
+    if (f.bloom !== bloom) { f.bloom = bloom; f.output = this.outputGroup(t.scene, t.mask, t.depth, bloom, f.color); }
+    const cfg = this.environment.depthOfField;
+    this.focusParams.set(invert(this.camera.projectionMatrix(this.aspect)));
+    this.focusParams[16] = cfg ? cfg.focus : 1;
+    this.focusParams[17] = cfg ? Math.max(0, Math.min(24, cfg.blur ?? 8)) * this.pixelRatio : 0;
+    this.device.queue.writeBuffer(f.params, 0, this.focusParams);
+    const pass = enc.beginRenderPass({ label: 'viewer depth of field', colorAttachments: [{ view: f.color.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] });
+    pass.setPipeline(this.focusPipeline); pass.setBindGroup(0, f.group); pass.draw(3); pass.end();
+    return f.output;
   }
 
   /** G15d.2: the bloom chain for these targets — levels from half their size down (BLOOM_LEVELS, at least 2 px); made
@@ -1529,7 +1566,7 @@ export class Viewer {
     const env = this.environment.map instanceof ImageTexture && !this.environment.map.disposed ? this.environment.map : null;
     if (env !== this.boundEnv || (env && !env.gpu)) this.bindFrames();
     this.writeUniforms(vp, shadow);
-    packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame(), outlineArea, outputBlock, this.contactFrame());
+    packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame(), outlineArea, outputBlock, this.contactFrame(), this.focusEnabled() ? { inverseProjection: invert(this.camera.projectionMatrix(this.aspect)), pixelRatio: this.pixelRatio } : null);
     this.device.queue.writeBuffer(this.outputBuffer, 0, outputBytes);
     const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.views.scene;
     const enc = this.device.createCommandEncoder();
@@ -1652,7 +1689,10 @@ export class Viewer {
       mask.end();
     }
     // (G15d.2: the bloom from the resolved scene, read by the output pass.)
-    const outputGroup = this.environment.bloom && (this.environment.bloom.strength ?? 0.05) > 0 ? this.drawBloom(enc, targets) : targets.output;
+    const bloom = this.environment.bloom && (this.environment.bloom.strength ?? 0.05) > 0;
+    let outputGroup = bloom ? this.drawBloom(enc, targets) : targets.output;
+    if (this.focusEnabled()) outputGroup = this.drawFocus(enc, targets, bloom ? this.bloomChain!.levels[0] : this.black);
+    else if (this.focusPass) this.releaseFocus();
     const show = enc.beginRenderPass({ label: 'viewer output', colorAttachments: [{ view: out.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] });
     show.setPipeline(this.pipelines.get('output')!);
     show.setBindGroup(0, outputGroup);
@@ -2060,7 +2100,7 @@ export class Viewer {
     this.frameBuffer?.destroy(); this.objectBuffer?.destroy(); this.outputBuffer?.destroy(); this.shadowFrameBuffer?.destroy();
     this.targets?.mask.destroy(); this.targets?.maskDepth.destroy(); this.targets?.capFront.destroy(); this.targets?.capFrontSamples?.destroy(); this.emptyFront?.destroy(); this.emptyFrontSamples?.destroy(); this.lightProbe?.destroy();
     this.shadowMap?.destroy(); this.emptyShadow?.destroy(); this.identityInstance?.destroy(); this.white?.texture.destroy(); this.zeroParams?.destroy();
-    this.releaseBloom(); this.black?.destroy();
+    this.releaseBloom(); this.releaseFocus(); this.black?.destroy();
     for (const t of this.textures) t.dispose();
     this.textures.clear();
     this.context?.unconfigure();

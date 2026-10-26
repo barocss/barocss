@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="430" viewBox="0 0 800 430" role="img" aria-labelledby="title desc">
+  <title id="title">View-axis focus distance: 80 mm, not eye-to-point distance 100 mm</title>
+  <desc id="desc">Conceptual side-view coordinate example, not a physical camera model or actual render capture. The eye is at lateral zero and depth zero, and looks along positive Z. Point P has lateral coordinate 60 mm and depth 80 mm. Its Euclidean distance to the eye is 100 mm, but projection onto the unit view direction is 80 mm, the Studio Focus distance value. The focus plane at Z equals 80 mm contains P. A separate example Blur radius of 6 CSS pixels is an image-space setting, not a spatial millimetre distance.</desc>
+  <defs>
+    <marker id="axis" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#51677d"/></marker>
+    <marker id="measure" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M10 0L0 5L10 10" fill="none" stroke="#126f9f" stroke-width="2"/></marker>
+  </defs>
+  <rect width="800" height="430" rx="12" fill="#f8fafc"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#182b3e">
+    <text x="400" y="31" text-anchor="middle" font-size="23" font-weight="700">Focus distance is measured along the view axis</text>
+    <text x="400" y="57" text-anchor="middle">Side view · spatial coordinates in Studio mm</text>
+    <rect x="360" y="85" width="20" height="252" fill="#e1edf9"/>
+    <path d="M370 85V337" stroke="#397fae" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="370" y="80" text-anchor="middle" fill="#126f9f">Focus plane: Z = 80</text>
+    <g fill="none">
+      <path d="M90 335V82M73 320H474" stroke="#51677d" stroke-width="2" marker-end="url(#axis)"/>
+      <path d="M90 320L370 110" stroke="#8659a4" stroke-width="3"/>
+      <path d="M370 110V320" stroke="#8b9eb0" stroke-width="2" stroke-dasharray="5 4"/>
+      <path d="M354 320V304H370" stroke="#51677d" stroke-width="1.5"/>
+      <path d="M90 349H370" stroke="#126f9f" stroke-width="2" marker-start="url(#measure)" marker-end="url(#measure)"/>
+    </g>
+    <circle cx="90" cy="320" r="6" fill="#182b3e"/>
+    <circle cx="370" cy="110" r="7" fill="#126f9f"/>
+    <text x="49" y="371">Eye (0, 0)</text>
+    <text x="29" y="100">Lateral</text>
+    <text x="382" y="110" font-weight="700">P (depth 80, lateral 60)</text>
+    <text x="385" y="226">60 mm</text>
+    <text x="231" y="343" text-anchor="middle" fill="#126f9f" font-weight="700">80 mm focus depth</text>
+    <text x="478" y="326">+Z view direction</text>
+    <text x="239" y="194" text-anchor="middle" transform="rotate(-36.8699 239 194)" fill="#754294">100 mm eye → P</text>
+    <rect x="546" y="141" width="228" height="145" rx="10" fill="#fff4df" stroke="#b89a5f"/>
+    <text x="660" y="169" text-anchor="middle" font-weight="700">Separate image setting</text>
+    <text x="660" y="200" text-anchor="middle">Blur radius example</text>
+    <text x="660" y="233" text-anchor="middle" font-size="24" font-weight="700">6 CSS px</text>
+    <text x="660" y="265" text-anchor="middle">Not a distance in mm</text>
+    <text x="400" y="391" text-anchor="middle">Focus = (P − eye) · forward = 80 mm; √(80² + 60²) = 100 mm is not the focus value.</text>
+    <text x="400" y="418" text-anchor="middle">Conceptual coordinates only · not a physical camera model or a render capture</text>
+  </g>
+</svg>

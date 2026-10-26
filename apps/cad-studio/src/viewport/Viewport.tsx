@@ -24,7 +24,7 @@ import { shapeOutline } from '@barocss/cad-model/sketch/loops';
 import { hvOf, isSettled, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import { pickSketch } from '@barocss/cad-model/sketch/select';
 import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
-import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
+import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoCancelReason, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';
 import { ViewCube } from './ViewCube';
 import { CAGE_LINE_KEYS, CageMarks, cageLines, cagePoints } from './CageMarks';
@@ -34,6 +34,7 @@ import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } f
 import { splineOutline } from '@barocss/cad-model/sketch/spline';
 import type { Analysis } from './analysis';
 import { recordCanvas } from './recordVideo';
+import { renderFocusDistance } from './renderFocus';
 
 export type { SketchTool, SketchShape, SketchAnchor, SketchState, Make } from '@barocss/cad-model/sketch/types';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
@@ -50,6 +51,8 @@ export interface ViewportHandle {
   /** A WebM of `count` frames at `fps`, frame i drawn by `draw(i)` first (RS2: a motion, the Render turntable). */
   recordVideo(count: number, fps: number, draw: (i: number) => void): Promise<Blob>;
   /** The camera as render settings keep it, and back. */
+  /** Pick one visible surface for Render focus. Null means background/cancel; the return value cancels the pick. */
+  pickRenderFocus(done: (focus: number | null) => void): () => void;
   getCamera(): RenderCamera;
   setCamera(c: RenderCamera): void;
   /** Which renderer draws: WebGPU, the WebGL2 fallback, or none yet. */
@@ -428,7 +431,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   };
   const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | 'tool' | null; x: number; y: number; moved: boolean; x0?: number; y0?: number;
     /** A gizmo drag: what was hit, the pointer's start and last points, and what it means so far. */
-    hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; value2?: number; start2?: number; origin?: Vec3; handleAt?: Vec3; factor?: number }>({ mode: null, x: 0, y: 0, moved: false });
+    hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; value2?: number; start2?: number; origin?: Vec3; handleAt?: Vec3; factor?: number;
+    gizmo?: TransformGizmo; pointerId?: number; sessionKey?: string | number }>({ mode: null, x: 0, y: 0, moved: false });
   /** The gizmo handle under the pointer, drawn brighter. */
   const gizmoHot = useRef<GizmoHit | null>(null);
   // While the camera moves (orbit, pan, zoom), frames leave out ambient occlusion; 180 ms after the last
@@ -464,6 +468,30 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const [printError, setPrintError] = useState<string | null>(null);
   const [camError, setCamError] = useState<string | null>(null);
   const propsRef = useRef(props); propsRef.current = props;
+  const cancelGizmo = (reason: GizmoCancelReason, pointerId?: number) => {
+    const d = drag.current;
+    if (d.mode !== 'gizmo' || (pointerId !== undefined && d.pointerId !== pointerId)) return;
+    drag.current = { mode: null, x: 0, y: 0, moved: true };
+    if (d.pointerId !== undefined && canvas.current?.hasPointerCapture(d.pointerId)) canvas.current.releasePointerCapture(d.pointerId);
+    requestRef.current();
+    if (d.pointerId !== undefined) d.gizmo?.onCancel?.(d.pointerId, reason);
+  };
+  const gizmoSessionKey = props.gizmo?.sessionKey, gizmoPresent = !!props.gizmo;
+  useEffect(() => {
+    const d = drag.current;
+    if (d.mode === 'gizmo' && d.gizmo && (!gizmoPresent || !Object.is(gizmoSessionKey, d.sessionKey))) cancelGizmo('session-change');
+  }, [gizmoPresent, gizmoSessionKey]);
+  useEffect(() => () => cancelGizmo('unmount'), []);
+  const focusPick = useRef<((focus: number | null) => void) | null>(null);
+  const [pickingFocus, setPickingFocus] = useState(false);
+  const finishFocusPick = (focus: number | null) => {
+    const done = focusPick.current; focusPick.current = null; setPickingFocus(false);
+    if (canvas.current) canvas.current.style.cursor = '';
+    done?.(focus);
+  };
+  const renderActive = !!props.render && !props.sketch;
+  useEffect(() => { if (!renderActive) { const done = focusPick.current; focusPick.current = null; setPickingFocus(false); if (canvas.current) canvas.current.style.cursor = ''; done?.(null); } }, [renderActive]);
+  useEffect(() => () => { const done = focusPick.current; focusPick.current = null; done?.(null); }, []);
   /** The grid step (mm) points snap to: the studio's setting (0: off, to a micrometre). */
   const snap = (v: number) => { const st = propsRef.current.snapStep ?? 1; return st > 0 ? Math.round(Math.round(v / st) * st * 1000) / 1000 : Math.round(v * 1000) / 1000; };
   // Pointer events can arrive before React re-renders with the shape we just emitted, so handlers read
@@ -795,6 +823,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     setAo(on) { ao.current = on; if (renderer.current) renderer.current.aoEnabled = on; request(); },
     capture() { return renderer.current?.capture ? renderer.current.capture() : Promise.resolve(null); },
     recordVideo(count, fps, draw) { return recordCanvas(canvas.current!, count, fps, draw, request, renderer.current?.drawNow ? () => renderer.current?.drawNow?.() : undefined); },
+    pickRenderFocus(done) {
+      finishFocusPick(null);
+      if (!propsRef.current.render || propsRef.current.sketch || !renderer.current?.pickSurfacePoint) { done(null); return () => undefined; }
+      focusPick.current = done; setPickingFocus(true);
+      return () => { if (focusPick.current === done) finishFocusPick(null); };
+    },
     getCamera() { const c = camera.current; return { target: [...c.target] as [number, number, number], distance: c.distance, yaw: c.yaw, pitch: c.pitch, fovY: c.fovY, ortho: c.ortho }; },
     setCamera(v) { const c = camera.current; c.target = [...v.target] as Vec3; c.distance = v.distance; c.yaw = v.yaw; c.pitch = v.pitch; c.fovY = v.fovY; c.ortho = v.ortho; request(); },
     get backend() { return backend; },
@@ -968,8 +1002,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   };
   const gizmoHit = (x: number, y: number) => { const p = propsRef.current; return (p.gizmo || p.handles?.length) && canvas.current ? hitTest([x, y], p.gizmo, p.handles ?? [], projector()) : null; };
   /** A gizmo drag from its start to (x, y): calls the handler with the whole move, turn or value so far. */
-  const gizmoDrag = (x: number, y: number, shift: boolean, done: boolean) => {
-    const d = drag.current, p = propsRef.current, g = p.gizmo, P = projector(), hit = d.hit!;
+  const gizmoDrag = (x: number, y: number, shift: boolean, done: boolean, d = drag.current) => {
+    const p = propsRef.current, g = d.gizmo ?? p.gizmo, P = projector(), hit = d.hit!;
     d.x = x; d.y = y;
     if (hit.kind === 'handle') {
       const hd = p.handles?.[hit.index]; if (!hd) return;
@@ -989,7 +1023,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       const o = d.origin ?? g.origin;
       if (hit.kind === 'plane') { const [u, v] = dragPlane(d.from!, [x, y], o, hit.axes, P); delta[hit.axes[0]] = snapTo(u, step); delta[hit.axes[1]] = snapTo(v, step); }
       else { const dir: Vec3 = [0, 0, 0]; dir[hit.axis] = 1; delta[hit.axis] = snapTo(dragAlong(d.from!, [x, y], o, dir, P), step); }
-      d.delta = delta; g.onMove?.(delta, done); return;
+      d.delta = delta; g.onMove?.(delta, done, d.pointerId); return;
     }
     if (hit.kind === 'scale') {
       const k = dragScale(d.from!, [x, y], d.origin ?? g.origin, hit.axis, P), step = shift ? 0.01 : 0.05;
@@ -1002,14 +1036,18 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
+    if (drag.current.mode === 'gizmo') return;
     canvas.current!.setPointerCapture(e.pointerId);
     const { x, y } = local(e);
+    if (focusPick.current && e.button === 0 && !e.altKey) { drag.current = { mode: null, x, y, moved: false }; return; }
     const tool = propsRef.current.tool;
     if (tool && e.button === 0 && !e.altKey && tool.down(x, y, toolView(), e)) { drag.current = { mode: 'tool', x, y, moved: false }; request(); return; }
     const hit = e.button === 0 && !propsRef.current.sketch ? gizmoHit(x, y) : null;
     if (hit) {
       const hd = hit.kind === 'handle' ? propsRef.current.handles![hit.index] : undefined;
-      drag.current = { mode: 'gizmo', x, y, moved: false, hit, from: [x, y], last: [x, y], turned: 0, start: hd?.value, start2: hd?.plane?.value2, handleAt: hd ? [...hd.at] as Vec3 : undefined, origin: propsRef.current.gizmo ? [...propsRef.current.gizmo.origin] as Vec3 : undefined };
+      const g = hit.kind === 'handle' ? undefined : propsRef.current.gizmo ?? undefined;
+      drag.current = { mode: 'gizmo', x, y, moved: false, hit, from: [x, y], last: [x, y], turned: 0, start: hd?.value, start2: hd?.plane?.value2, handleAt: hd ? [...hd.at] as Vec3 : undefined, origin: propsRef.current.gizmo ? [...propsRef.current.gizmo.origin] as Vec3 : undefined, gizmo: g, pointerId: e.pointerId, sessionKey: g?.sessionKey };
+      g?.onStart?.(e.pointerId);
       return;
     }
     if (e.button === 2 && !e.shiftKey) drag.current = { mode: 'orbit', x, y, moved: false };
@@ -1019,11 +1057,13 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
-    const { x, y, w, h } = local(e); const d = drag.current; const r = renderer.current; if (!r) return;
+    const d = drag.current; if (d.mode === 'gizmo' && d.pointerId !== e.pointerId) return;
+    const { x, y, w, h } = local(e); const r = renderer.current; if (!r) return;
     if (d.mode === 'orbit') { camera.current.orbit(x - d.x, y - d.y); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
     if (d.mode === 'pan') { camera.current.pan(x - d.x, y - d.y, h); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
     if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, false); d.moved = true; request(); return; }
     if (d.mode === 'tool') { propsRef.current.tool?.move(x, y, toolView(), e); d.moved = true; request(); return; }
+    if (focusPick.current && !d.mode) { if (e.buttons === 1 && Math.hypot(x - d.x, y - d.y) > 5) d.moved = true; canvas.current!.style.cursor = 'crosshair'; return; }
     if (!d.mode && propsRef.current.tool?.move(x, y, toolView(), e)) { request(); return; }
     if (!d.mode && !sk0()) {
       const hot = gizmoHit(x, y);
@@ -1108,9 +1148,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     hover.current = { face: null, edge: null, vertex: null }; r.setState(viewState()); request();
   };
   const onPointerUp = (e: React.PointerEvent) => {
-    const d = drag.current; drag.current = { mode: null, x: 0, y: 0, moved: false };
+    const d = drag.current; if (d.mode === 'gizmo' && d.pointerId !== e.pointerId) return;
+    drag.current = { mode: null, x: 0, y: 0, moved: false };
     const { x, y, w, h } = local(e);
-    if (d.mode === 'gizmo') { drag.current = d; gizmoDrag(x, y, e.shiftKey, true); drag.current = { mode: null, x: 0, y: 0, moved: false }; request(); return; }
+    if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, true, d); request(); return; }
     if (d.mode === 'tool') { propsRef.current.tool?.up(x, y, toolView(), e); request(); return; }
     if (d.mode === 'box') { boxSelect(d.x0!, d.y0!, x, y, e.shiftKey); request(); return; }
     if (e.button === 2 && d.mode === 'orbit' && !d.moved && !propsRef.current.sketch) {
@@ -1118,6 +1159,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       propsRef.current.onContextMenu({ x: e.clientX, y: e.clientY }, { face, edge }); return;
     }
     if (d.mode || d.moved || e.button !== 0) return;
+    if (focusPick.current) {
+      const point = propsRef.current.render && !propsRef.current.sketch ? renderer.current?.pickSurfacePoint?.(x, y, camera.current) ?? null : null;
+      finishFocusPick(point ? renderFocusDistance(camera.current, point) : null);
+      if (canvas.current) canvas.current.style.cursor = '';
+      request(); return;
+    }
     if (propsRef.current.placing) { propsRef.current.onSpot?.(spotAt(x, y, w, h), true); return; }
     // A cage being edited takes the click (a miss clears its selection; the body under it is not picked).
     const cg = propsRef.current.cage;
@@ -1494,7 +1541,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 
   const drawOverlay = () => <>{overlay()}{!renderer.current?.setOverlayLabels && !!props.annotations?.length && pmiSvg(props.annotations, props.annotationSelected ?? null)}</>;
   return (
-    <div className="viewport" data-renderer={backend ?? undefined}
+    <div className="viewport" data-renderer={backend ?? undefined} data-focus-picking={pickingFocus || undefined}
       data-display-mode-requested={props.requestedDisplayMode ?? props.displayMode ?? 'shaded-with-edges'}
       data-display-mode-effective={displayStatus?.effective ?? props.displayMode ?? 'shaded-with-edges'}
       data-display-mode-supported={props.displayModeReason ? false : displayStatus?.supported}
@@ -1502,6 +1549,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       onDragOver={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), false); }}
       onDrop={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), true); }}>
       <canvas ref={canvas} className="vp-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={onPointerLeave}
+        onPointerCancel={e => cancelGizmo('pointercancel', e.pointerId)} onLostPointerCapture={e => cancelGizmo('lostpointercapture', e.pointerId)}
         onDoubleClick={e => { const p = propsRef.current, r = renderer.current; if (!r || p.sketch || p.placing) return;
           if (p.cage) { const { x, y, w, h } = local(e), hit = pickCage(p.cage.cage, q => camera.current.project(q as Vec3, w, h), x, y, 'edge'); if (hit) p.onPickCage?.(hit, e.shiftKey, e.altKey ? 'ring' : 'loop'); return; } const { x, y } = local(e), { face, edge } = pickAt(r, x, y); if (edge && p.onPickChain) p.onPickChain(edge.body, edge.edge); else if (face) p.onPickBody?.(face.body); }}
         onWheel={onWheel} onContextMenu={e => e.preventDefault()} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />

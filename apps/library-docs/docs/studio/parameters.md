@@ -25,6 +25,24 @@ a diameter to a stored radius. Choose a field offered by the **ƒ** list instead
 
 ![The Parameters panel in the dock: the parameter C used once, and the configurations small and large](/shots/studio/parameters/panel.jpg)
 
+## When an edited value is accepted
+
+Typing in an existing parameter's value field changes the draft text only. Press <kbd>Enter</kbd> or leave the
+field to submit it. The Studio checks the proposed model and its existing references before accepting the change.
+If the change is refused, the accepted parameter values, part and references stay unchanged.
+
+For example, suppose a chamfer's Distance is bound to `C = 3` mm. Typing `5` does not yet replace that value.
+After submission, `C = 5` mm is accepted only if the candidate passes the checks. Otherwise the accepted value
+remains `3` mm. These numbers illustrate the edit flow; they do not predict whether a particular chamfer can be built.
+
+If **Parameters not changed** asks you to wait, let the accepted part finish evaluating and loading its mass results,
+then submit again. If it asks for unresolved references, make those choices first. A reference that disappears or
+changes kind can block a parameter change; a finite number alone is not enough to accept it.
+
+![An existing value stays accepted while a draft is checked; a refused change keeps the old value](/diagrams/parameter-value-acceptance.svg)
+
+[Open the diagram at full size](/diagrams/parameter-value-acceptance.svg).
+
 ## Binding a value
 
 Bind a feature's value in its editor: click the feature in the history or the **Browser**, then pick a parameter from the **ƒ** list next
@@ -55,9 +73,25 @@ Assembly variants are separate again. Their declared inputs can drive part param
 component choices or mate values in a derived document. Applying a saved parameter configuration is not the same
 operation as selecting an assembly variant. See [Assemblies](/studio/assemblies).
 
+### Applying older saved values
+
+A configuration updates matching parameter names; it does not remove values added after it was saved.
+For example, save `small` when `C = 3`. Later change `C` to `5` and add `Wall = 2`.
+If applying `small` is accepted, the current values become `C = 3, Wall = 2`. `Wall` stays because `small`
+has no value for that name. These are illustrative values for length bindings in mm, not a geometry result.
+
+The panel adds `now` only when all current names and values match the saved configuration. In this example,
+`small` need not show `now` after **Apply**, because the current set also has `Wall`. Save a configuration
+with the complete current values if you want that set to match. Applying it does not unsuppress a feature;
+change suppression separately in the history when needed.
+
+![Applying saved C equals 3 replaces current C equals 5 but keeps the later Wall equals 2; the name sets still differ](/diagrams/configuration-value-overlay.svg)
+
+[Open the configuration comparison at full size](/diagrams/configuration-value-overlay.svg).
+
 ## What a parameter drives
 
-- **The model.** Any bound value: a dimension, a hole's diameter, a chamfer's distance.
+- **The model.** A field that supports direct binding, such as an extrusion distance or a chamfer distance.
 - **The drawing.** It updates with the model. A revision whose model has changed says **Revision out of date**. See
   [Drawings](/studio/drawings).
 - **Exports.** Parameters are part of the document's revision, so exports made with other values name another source

@@ -80,3 +80,16 @@ test('a texture: kept from a saved document only as an image data URL, its repea
   const uv = tiledUVs([10, 20, 5, 4, 30, 50], [0, 0, 1, 1, 0, 0], 10);
   assert.deepEqual([...uv].map(x => Math.round(x * 1e6) / 1e6), [1, 2, 3, 5]);
 });
+
+
+test('G15d.3: depth of field keeps positive finite focus in mm and finite blur clamped to CSS-pixel limits', () => {
+  const read = (depthOfField: unknown) => readRender({ environment: { post: { depthOfField } } }).environment.post?.depthOfField;
+  assert.equal(readRender(undefined).environment.post?.depthOfField, undefined);
+  assert.deepEqual(read({ focus: 125.5, blur: 6 }), { focus: 125.5, blur: 6 });
+  assert.deepEqual(read({ focus: 0.001, blur: 99 }), { focus: 0.001, blur: 24 });
+  assert.deepEqual(read({ focus: 125.5, blur: -1 }), { focus: 125.5, blur: 0 });
+  for (const focus of [0, -1, NaN, Infinity, -Infinity, '125', null, undefined]) assert.equal(read({ focus, blur: 6 }), undefined);
+  for (const blur of [NaN, Infinity, -Infinity, '6', null, undefined]) assert.equal(read({ focus: 125, blur }), undefined);
+  const settings = readRender({ environment: { post: { depthOfField: { focus: 125.5, blur: 0 } } } });
+  assert.deepEqual(readRender(JSON.parse(JSON.stringify(settings))), settings, 'saved settings retain focus when blur is off');
+});

@@ -253,6 +253,41 @@ export const CAD_ICONS: Record<string, ReactNode> = {
     out.push(line([5, 0, 1, 2].map(k => isoPath([bottom[k], top[k]], false)).join(''), 'v'));
     return out;
   })()}</>,
+  // Command-specific silhouettes: keep the original icons above for their original commands.
+  // Internal teeth face into a ring, rather than out from a spur gear.
+  'cad-internal-gear': <><circle cx="12" cy="12" r="9.5" style={tone(TONE.right)} /><path d="M10 5h4v2l2 1 1.7-1 2 3.5-1.7 1v2l1.7 1-2 3.5-1.7-1-2 1v2h-4v-2l-2-1-1.7 1-2-3.5 1.7-1v-2l-1.7-1 2-3.5L8 8l2-1z" style={dark} className="ac" /></>,
+  // A toothed cone: wide heel below, narrow hub above.
+  'cad-bevel-gear': <><ellipse cx="12" cy="6" rx="3.2" ry="1.7" style={tone(TONE.top)} /><path d="M8.8 6L3 17q9 6 18 0L15.2 6" style={tone(TONE.right)} /><path d="M3 17l1 3 2.4-.5 1.7 2 2.5-1 2.4 1 2.4-1 2.5.4L21 17" className="ac" /><path d="M9 9L6 17M12 9v10M15 9l3 8" strokeOpacity={0.55} /></>,
+  // A threaded worm above its crossed wheel.
+  'cad-worm-pair': <><path d="M2.5 3.5h19v5h-19z" style={tone(TONE.right)} /><path d="M5 8.5l3-5m1 5 3-5m1 5 3-5m1 5 3-5" className="ac" /><path d="M7 12l2-1 2 1 2-1 2 1 2-.3 1 2 2 1-1 2 .3 2-2 1-1 2-2-1-2 .3-1-2-2-1 1-2z" style={tone(TONE.right)} /><circle cx="13.2" cy="16" r="2.3" style={dark} /><path d="M13.2 13.7V10" className="ac" /></>,
+  // Two separate toothed wheels engaging on a diagonal.
+  'cad-gear-mesh': <><path d="M6 2.5h3l.6 2 2 .6 1.5 2.6-1.4 1.5.3 2.1-2.6 1.5L7.5 12 5 13l-2-2 .8-2.2L2.5 7l1.5-2.5L6 4z" style={tone(TONE.right)} /><circle cx="7.7" cy="7.7" r="1.6" style={dark} /><path d="M15.4 11l2.6.7.6 2 2 .7.8 2.6-1.5 1.6-.2 2.1-2.7.8-1.5-1.4-2.1.3-1.8-2.1.7-2-1-1.9 1.9-2z" style={acTone} className="ac" /><circle cx="16.6" cy="16.8" r="1.6" style={dark} /></>,
+  // A hub with the rectangular key slot cut into its bore.
+  'cad-keyway': <><circle cx="12" cy="12" r="9" style={tone(TONE.right)} /><path d="M10 6h4v3a4.5 4.5 0 1 1-4 0z" style={dark} /><path d="M10 9V6h4v3" className="ac" /></>,
+  // An open circlip with two plier holes.
+  'cad-retaining-ring': <><path d="M8 3.7a9 9 0 1 0 8 0l-1.5 4a4.7 4.7 0 1 1-5 0z" style={tone(TONE.right)} /><circle cx="7.4" cy="6.2" r="1.1" className="ac" /><circle cx="16.6" cy="6.2" r="1.1" className="ac" /></>,
+  // A long dowel, with its circular end and chamfer visible.
+  'cad-pin': <><path d="M5 17L15.5 3.5q3.5-1 4.5 3L9.5 20q-3.5 1-4.5-3z" style={tone(TONE.right)} /><ellipse cx="7.3" cy="18.5" rx="2.6" ry="1.6" transform="rotate(38 7.3 18.5)" style={tone(TONE.top)} /><path d="M15 4.2l4.4 3" className="ac" /></>,
+  // An elbow pipe with open annular ends; the sweep icon retains its section/path view.
+  'cad-pipe': <><path d="M3 19V12a9 9 0 0 1 9-9h7v6h-7a3 3 0 0 0-3 3v7" style={tone(TONE.right)} /><ellipse cx="6" cy="19" rx="3" ry="1.8" style={tone(TONE.top)} /><ellipse cx="6" cy="19" rx="1.3" ry=".8" style={dark} /><ellipse cx="19" cy="6" rx="1.8" ry="3" style={tone(TONE.top)} /><ellipse cx="19" cy="6" rx=".8" ry="1.3" style={dark} /><path d="M6 13a7 7 0 0 1 7-7" className="ac" /></>,
+  // An existing face displaced outwards, with its former plane still visible.
+  'cad-offset-face': <>{block(0.05, 0.05, 0, 0.8, 0.8, 0.65)}{ghost(isoPath([[0.8, 0.05, 0], [0.8, 0.8, 0], [0.8, 0.8, 0.65], [0.8, 0.05, 0.65]]))}{face('M18 8l4-2v9l-4 2z', 0, true)}{ac('M18 8l4-2v9l-4 2z')}{arrow([15.5, 11], [20.5, 8.5])}</>,
+  // A closed print body with an exposed cavity and a small drain below.
+  'cad-hollow': <><path d="M4 4h16v16H4z" style={tone(TONE.right)} /><path d="M7 7h10v9H7z" style={dark} /><path d="M7 16V7h10" className="ac" /><circle cx="12" cy="19" r="1.2" style={dark} /></>,
+  // An open frame filled with crossing struts, rather than a hollow wall.
+  'cad-lattice': <><path d="M3 5h18v15H3z" style={tone(TONE.left)} /><path d="M3 10l5-5 10 15 3-5M3 15L13 5l8 10M3 20L18 5M8 20L21 7" className="ac" /><path d="M3 5h18v15H3z" /></>,
+  // Two keyed pieces on a printer bed, rather than a single cutting plane.
+  'cad-split-bed': <><path d="M2 18l10-4 10 4-10 4z" style={tone(TONE.left)} /><path d="M3 7h7v4h2v3h-2v3H3z" style={tone(TONE.right)} /><path d="M14 7h7v10h-7v-3h2v-3h-2z" style={tone(TONE.top)} /><path d="M10 11h2v3h-2M14 11h2v3h-2" className="ac" /></>,
+  // A shaft and its mating bore, separated along their common axis.
+  'cad-fit-pair': <><path d="M2 9h8v6H2z" style={tone(TONE.right)} /><ellipse cx="10" cy="12" rx="1.7" ry="3" style={tone(TONE.top)} /><ellipse cx="18.5" cy="12" rx="3.5" ry="7" style={tone(TONE.right)} /><ellipse cx="18.5" cy="12" rx="1.4" ry="3" style={dark} /><path d="M11.5 5h5m-2-2 2 2-2 2" className="ac" /></>,
+  // Rounded SubD forms retain visible quad loops, distinct from analytic primitives.
+  'cad-subd-box': <><path d="M8 3h8q5 1 5 6v6q0 5-5 6H8q-5-1-5-6V9q0-5 5-6z" style={tone(TONE.right)} /><path d="M8 3q-3 9 0 18M16 3q3 9 0 18M3 8q9 3 18 0M3 16q9-3 18 0" strokeOpacity={0.55} /><path d="M8 8h8v8H8z" className="ac" /></>,
+  'cad-subd-tube': <><path d="M4 6v12a8 3.5 0 0 0 16 0V6" style={tone(TONE.right)} /><ellipse cx="12" cy="6" rx="8" ry="3.5" style={tone(TONE.top)} /><ellipse cx="12" cy="6" rx="4.5" ry="1.7" style={dark} /><path d="M4 12a8 3.5 0 0 0 16 0M8 9v12M16 9v12" className="ac" /></>,
+  'cad-subd-torus': <><ellipse cx="12" cy="12" rx="9.5" ry="7" style={tone(TONE.right)} /><ellipse cx="12" cy="12" rx="4" ry="2.6" style={dark} /><path d="M2.5 12h5.5m8 0h5.5M12 5v4.4m0 5.2V19M5.3 7.1l3.9 3.1m5.6 3.6 3.9 3.1M18.7 7.1l-3.9 3.1m-5.6 3.6-3.9 3.1" className="ac" /></>,
+  // A control cage: wire edges and selected vertices, without a shaded body.
+  'cad-subd-edit': <>{ghost('M5 7l9-4 6 5v9l-9 4-6-5zM5 7l6 5 9-4M11 12v9M14 3v9l6 5M5 16l9-4')}{ac('M5 7l6 5 9-4M11 12v9')}{dots([[5, 7], [11, 12], [20, 8], [11, 21]])}</>,
+  // A mounting plate: a pilot bore surrounded by a four-bolt pattern.
+  'cad-mount': <><rect x="3" y="3" width="18" height="18" rx="2" style={tone(TONE.right)} /><circle cx="12" cy="12" r="4" style={dark} />{[[6.5, 6.5], [17.5, 6.5], [6.5, 17.5], [17.5, 17.5]].map(([x, y]) => <circle key={`${x},${y}`} cx={x} cy={y} r="1.3" className="ac" />)}</>,
   // Sketch tools: flat drawings with their defining points (the points you click) in the accent colour.
   'cad-sk-rect': <>{face('M4.5 7h15v10h-15z', 0.12)}{line('M4.5 7h15v10h-15z')}{dots([[4.5, 7], [19.5, 17]])}</>,
   'cad-sk-circle': <><circle cx="12" cy="12" r="7.5" style={tone(0.12)} /><circle cx="12" cy="12" r="7.5" />{ghost('M12 12l5.3-5.3')}{dots([[12, 12], [17.3, 6.7]])}</>,

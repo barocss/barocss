@@ -4,9 +4,12 @@
 import { placedDoc, prefixDoc, type BodyRef, type Dim, type MemberSection, type ModelNode, type StudioDoc } from './doc';
 import { nextSerial, renameFeatureIds, withIds } from './ids';
 import { refusal } from './refusal';
+import { assertRouteBundleDocument } from './routeBundle';
 
 /** The document with its instances folded in as features (nested sub-assemblies too). */
 export function flattenAssembly(doc: StudioDoc): StudioDoc {
+  assertRouteBundleDocument(doc);
+  if (doc.schema === 4 || Object.prototype.hasOwnProperty.call(doc, 'routeBundles') || doc.nodes.some(n => Object.prototype.hasOwnProperty.call(n, 'routeBundleMember'))) throw refusal('BAD_REFERENCE', 'Route bundle: flattening linked route documents is not supported.');
   if (doc.nodes.some(n => n.kind === 'sketch' && n.association !== undefined)) throw refusal('BAD_REFERENCE', 'Associative sketch: flattening recipes is not supported.');
   const own: StudioDoc = { ...doc, instances: undefined, mates: undefined, render: undefined, direct: undefined };
   const shown = (doc.instances ?? []).filter(i => !i.hidden);

@@ -16,3 +16,5 @@ export { MAX_OUTLINES, OUTPUT_BYTES, outputWGSL } from './shaders/output.js';
 export { mipWGSL } from './shaders/mip.js';
 export { envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE } from './shaders/env.js';
 export { bloomWGSL, BLOOM_LEVELS } from './shaders/bloom.js';
+
+export { depthOfFieldWGSL } from './shaders/depth-of-field.js';

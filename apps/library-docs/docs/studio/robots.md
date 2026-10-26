@@ -340,6 +340,33 @@ native SI values are 0.0027 kg, [0.005, 0.005, 0.005] m and 4.5 × 10⁻⁸ kg·
 inertia and slide force against these independent values. The hypothetical 5 mm hinge is a calculation only; the
 tested hinge below uses a drilled arm with a 20 mm lever.
 
+#### Calculate the sign of a holding torque
+
+Consider one moving link at a prescribed static pose. Its total mass is 100 g, its centre of mass is
+`r = [200, 0, 0]` mm from the hinge, and the hinge's positive axis is world `+Y`. All vectors below are in
+world coordinates. Use gravity `[0, 0, -9806.65]` mm/s² and no other applied loads.
+
+| Calculation | Value |
+|---|---|
+| Convert mass and acceleration | `100 g = 0.1 kg`; `-9806.65 mm/s² = -9.80665 m/s²` |
+| Gravity force, `F = m g` | `[0, 0, -0.980665]` N |
+| Gravity moment, `r × F`, with `r` in mm | `[0, +196.133, 0]` N·mm |
+| Holding moment, opposite to gravity | `[0, -196.133, 0]` N·mm |
+| Holding moment projected onto the `+Y` axis | `-196.133 N·mm` |
+
+The public gravity reply reports the holding value by joint key, so this single independent turning joint has
+`-196.133` in both `torques` and `generalized`, with unit `N·mm`. It does not report the positive gravity moment.
+The internal calculation uses a 0.2 m lever and gives `-0.196133 N·m`; the public conversion multiplies by 1000.
+A negative value means holding effort opposite to the joint's positive axis. It is not a negative mass or a failure.
+
+![A 100 g moving mass at a 200 mm X lever, downward gravity force, and a hinge whose positive Y axis points into the XZ diagram](/diagrams/robot-holding-units.svg)
+
+[Open the holding-torque diagram at full size](/diagrams/robot-holding-units.svg).
+
+This is a calculated example and diagram, not an API execution, measurement, or validation result. It explains
+one static pose; it does not predict free motion, acceleration, contact forces, or actuator suitability. The
+bounded static gravity experiment still requires its supported one-joint model, explicit gravity input and known materials.
+
 #### Physical report examples
 
 The cube uses aluminium `al6061`, whose density is 2.7 g/cm³. The code calls the object facade, and compares its

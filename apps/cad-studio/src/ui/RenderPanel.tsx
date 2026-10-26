@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { compileGpu, materialShader } from '@barocss/gpu';
 import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderPost, type RenderSettings, FINISH_KINDS, type AppearanceFinish, type FinishKind, type StudioKind } from '@barocss/cad-model/engine/render';
 import { Icon } from './atoms';
@@ -13,7 +13,7 @@ import { NativeSelect } from '@/components/ui/native-select';
  * contents on shadcn (Button, Input, NativeSelect, FIELD / NUM / SLIDER rows); the shell (its title and Export image),
  * the tabs, the colour and range inputs and the source editors are the studio's.
  */
-export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available, fov, onFov, onError }: {
+export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available, fov, onFov, onPickFocus, onError }: {
   render: RenderSettings;
   /** Body keys the appearance edits apply to; empty: the default appearance. */
   selectedKeys: string[];
@@ -25,6 +25,8 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   available: boolean;
   /** The view's vertical field of view (degrees), and setting it. */
   fov: number; onFov(degrees: number): void;
+  /** Arm a one-shot viewport surface pick; null cancels without changing the document. */
+  onPickFocus(done: (focus: number | null) => void): (() => void) | undefined;
   onError?(message: string): void;
 }) {
   const [tab, setTab] = useState<'look' | 'lights' | 'scene' | 'source'>('look');
@@ -44,10 +46,24 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   // (G15d.1: the post, neutral until set; set back to neutral, it is dropped from the settings.)
   const post: RenderPost = env.post ?? NO_POST;
   const setPost = (patch: Partial<RenderPost>) => {
-    const next = { ...post, ...patch }, neutral = next.grade === 'neutral' && next.contrast === 1 && next.saturation === 1 && next.vignette === 0 && !next.bloom;
+    const next = { ...post, ...patch }, neutral = next.grade === 'neutral' && next.contrast === 1 && next.saturation === 1 && next.vignette === 0 && !next.bloom && !next.depthOfField;
     if (!next.bloom) delete next.bloom;
     const rest = { ...env }; delete rest.post;
     onChange({ ...render, environment: neutral ? rest : { ...rest, post: next } });
+  };
+  const [pickingFocus, setPickingFocus] = useState(false);
+  const cancelFocus = useRef<(() => void) | undefined>(undefined);
+  const latestPost = useRef({ post, setPost }); latestPost.current = { post, setPost };
+  useEffect(() => () => { cancelFocus.current?.(); }, []);
+  const pickFocus = () => {
+    if (pickingFocus) { cancelFocus.current?.(); cancelFocus.current = undefined; setPickingFocus(false); return; }
+    setPickingFocus(true);
+    const cancel = onPickFocus(focus => {
+      cancelFocus.current = undefined; setPickingFocus(false);
+      if (focus !== null) latestPost.current.setPost({ depthOfField: { focus, blur: latestPost.current.post.depthOfField?.blur ?? 6 } });
+    });
+    cancelFocus.current = cancel;
+    if (!cancel) setPickingFocus(false);
   };
   // (A preset is the look's material — colour, metal, roughness, opacity and G15a's finish, coat and film; a texture or
   // a shader on top leaves it chosen. Choosing one replaces all of those, so a finish never carries over to one without.)
@@ -195,6 +211,13 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {slider('Bloom', post.bloom ?? 0, v => setPost({ bloom: v > 0 ? v : undefined }))}
         <div className="card-title" style={{ marginTop: 10 }}>CAMERA</div>
         {slider('Field of view', fov, onFov, 10, 90, 1)}
+        <label className={FIELD}><span>Focus distance</span><span className={NUM}><Input type="number" aria-label="Focus distance" min={0.001} step="any" value={post.depthOfField?.focus ?? render.camera?.distance ?? 160}
+          onChange={e => { const focus = Number(e.target.value); if (Number.isFinite(focus) && focus > 0) setPost({ depthOfField: { focus, blur: post.depthOfField?.blur ?? 0 } }); }} onKeyDown={e => e.stopPropagation()} /><em>mm</em></span></label>
+        <label className={FIELD}><span>Blur radius</span><span className={NUM}><Input type="number" aria-label="Blur radius" min={0} max={24} step={0.5} value={post.depthOfField?.blur ?? 0}
+          onChange={e => { const blur = Number(e.target.value); if (Number.isFinite(blur) && blur >= 0 && blur <= 24) setPost({ depthOfField: { focus: post.depthOfField?.focus ?? render.camera?.distance ?? 160, blur } }); }} onKeyDown={e => e.stopPropagation()} /><em>px</em></span></label>
+        <Button variant="ghost" disabled={!available} aria-pressed={pickingFocus} onClick={pickFocus}>{pickingFocus ? 'Cancel focus pick' : 'Pick focus on part'}</Button>
+        {pickingFocus && <div role="status" className="muted small">Click a surface to set focus. A background click cancels.</div>}
+        {!available && <div role="status" className="muted small">Depth of field needs WebGPU. Your focus and blur settings are saved.</div>}
         <div className="flex flex-wrap gap-1">
           <Button variant="ghost" onClick={onSaveCamera}>Save this view</Button>
           <Button variant="ghost" disabled={!render.camera} onClick={onUseCamera}>Go to saved view</Button>

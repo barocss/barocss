@@ -6,7 +6,7 @@
  * over both (G15d.1), selection outlines and sRGB encoding for the canvas.
  */
 export const MAX_OUTLINES = 8;
-export const OUTPUT_BYTES = 16 + MAX_OUTLINES * 16 + 32 + 64 + 16 + 16 + 96 + 80 + 16;
+export const OUTPUT_BYTES = 16 + MAX_OUTLINES * 16 + 32 + 64 + 16 + 16 + 96 + 80 + 16 + 16;
 export const outputWGSL = (multisampled: boolean): string => /* wgsl */ `
 struct Output {
   exposure: f32, toneMapping: u32, outlineWidth: f32, outlines: u32,
@@ -30,6 +30,8 @@ struct Output {
   vignette: vec4f,
   // Where an outline can be (pixels: x0, y0, x1, y1): the outlined meshes' screen box and the outline's reach.
   outlineRect: vec4f,
+  // G15d.3: view-axis focus distance and maximum blur radius in backing pixels; zero radius disables it.
+  focus: vec4f,
 }
 @group(0) @binding(0) var scene: texture_2d<f32>;
 @group(0) @binding(1) var<uniform> output: Output;
@@ -38,6 +40,7 @@ struct Output {
 // G15d.2: the bloom chain's top level (half the canvas; a black texel without bloom) and its sampler.
 @group(0) @binding(4) var bloomTex: texture_2d<f32>;
 @group(0) @binding(5) var bloomSampler: sampler;
+@group(0) @binding(6) var focusTex: texture_2d<f32>;
 @vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4f {
   let p = vec2f(f32((i << 1u) & 2u), f32(i & 2u));
   return vec4f(p * 2.0 - 1.0, 0.0, 1.0);
@@ -154,7 +157,14 @@ fn contactShadow(p: vec2i, d: f32) -> f32 {
 }
 @fragment fn fs(@builtin(position) at: vec4f) -> @location(0) vec4f {
   let p = vec2i(at.xy);
-  let s = textureLoad(scene, p, 0);
+  var s = textureLoad(scene, p, 0);
+  if (output.focus.y > 0.0) {
+    let d = depthAt(p);
+    var radius = output.focus.y;
+    if (d > 0.0) { radius *= clamp(abs(1.0 - output.focus.x / max(-viewAt(p, d).z, 1e-6)), 0.0, 1.0); }
+    let blurred = textureSampleLevel(focusTex, bloomSampler, at.xy / vec2f(textureDimensions(scene)), 0.0);
+    s = mix(s, blurred, smoothstep(0.0, 1.0, radius));
+  }
   let size = vec2f(textureDimensions(scene));
   // The background (sRGB, straight alpha) under the scene.
   let bg = mix(output.top, output.bottom, at.y / size.y);

@@ -22,6 +22,32 @@ A permitted scope change clears automatic dimensions; it does not transfer their
 Without an explicit scope, sheets with balloons or a BOM table use assembly scope. Other sheets use the base part. A part sheet normally draws made bodies only. Assembly scope keeps bought elements, and enabling
 balloons on a part sheet keeps those elements visible so the balloon can point to them.
 
+### First angle and third angle
+
+Projection changes where the orthographic views are placed. In **Third angle**, the top view is above the
+front view and the right view is to its right. In **First angle**, the top view is below the front view and the
+right view is to its left. The front and top views keep the same horizontal mapping; the front and right
+views keep the same vertical mapping.
+
+For an unbroken box measuring 40 mm along X, 20 mm along Y and 10 mm along Z, use the default front view
+looking from −Y. At a fixed scale of **1:2**, the projected outlines have these sizes:
+
+| View | Model width × height | Size on the sheet at 1:2 |
+|---|---|---|
+| Front | 40 × 10 mm | 20 × 5 mm |
+| Top | 40 × 20 mm | 20 × 10 mm |
+| Right | 20 × 10 mm | 10 × 5 mm |
+
+These sizes are the same in both projection arrangements. They exclude labels, dimensions and the gaps
+between views. A different front orientation changes which model axes form the view's width and depth.
+
+![Third-angle placement with top above front and right to its right, compared with first-angle placement with top below front and right to its left](/diagrams/drawing-projection-layout.svg)
+
+[Open the diagram at full size](/diagrams/drawing-projection-layout.svg).
+
+The diagram is a calculated layout schematic, not a captured drawing or a print-size reference. Its rectangles
+show the relative outline sizes; the app also reserves space for annotations when laying out the sheet.
+
 ### Title blocks and revision history
 
 - **Title block** chooses **Basic** or **Extended**. Basic keeps the original layout. Extended adds **Organization**,
@@ -176,6 +202,29 @@ uses sheet mm, while its optional `leader.at` uses the view's model coordinates.
 to match the sheet: the drawing applies the view scale. A leader follows its view; a note's text position stays on
 the sheet.
 
+### Hole callouts from parameter values
+
+For code that prepares drawing annotations, `holeCallout` from `@barocss/cad-model/drawing/callout` takes the document's model nodes, a current edge name, and an optional numeric parameter map. Pass `doc.parameters` when a hole radius or depth refers to a parameter. The same map resolves the radius and depth of a following counterbore. Omitting the map uses an empty map; it does not read parameters from the document automatically.
+
+The result is annotation text or `null`, not a measured dimension or a drawing update. Lengths are in model mm, independent of sheet scale. The text uses diameter, `THRU` or depth, and available pattern, thread, counterbore, and countersink information. Resolved hole and counterbore radii and depths are rounded to three decimal places before formatting; the diameter is twice the rounded radius. A non-hole edge, an unresolved required parameter, or a required hole or counterbore length that is non-finite or non-positive before rounding gives `null`. Very small positive lengths can round to zero; the text is not a geometry-validity check.
+
+```ts
+import type { ModelNode } from '@barocss/cad-model/engine/doc';
+import { holeCallout } from '@barocss/cad-model/drawing/callout';
+
+// Supply the current document's nodes and doc.parameters, plus an edge name
+// selected from that same model. No feature or geometry is created here.
+export function currentHoleAnnotation(
+  nodes: readonly ModelNode[],
+  parameters: Readonly<Record<string, number>>,
+  edgeName: string,
+): string | null {
+  const text = holeCallout(nodes, edgeName, parameters);
+  if (text === null) return null; // Leave this edge without a hole callout.
+  return text;
+}
+```
+
 ## Tolerances
 
 **Tolerancing** is **± dimensions** or **Geometric (datums, position)**. **Tolerance suggestions** proposes the
@@ -226,5 +275,29 @@ selects which table corner sits on `at`. These positions do not use model coordi
 - **Export SVG** and **Export PDF** write the sheet as shown.
 - **Export DXF** writes it as AutoCAD 2000 or R12, chosen in **DXF version**.
 
+R12 converts unsupported curve forms to polylines with a chord tolerance of 0.001 mm on the sheet.
+This is a drawing-export setting, not a model or manufacturing tolerance.
+
+If PDF export warns that some characters became `?`, review the notes and title block before sending the file.
+The warning appears after the PDF download; it does not cancel it. Use **Export SVG** to keep those characters.
+
 Check **Drawing issues** as well as the exported sheet. The issue list reports unresolved references separately
 from the marks drawn on the sheet; an exported file alone does not establish that every annotation is resolved.
+
+### Drawing files from code
+
+`drawingOf(doc)` from `@barocss/cad-model/api/outputs` returns the drawing synchronously:
+
+| Field | Result |
+|---|---|
+| `sheet` | The drawing report's sheet data |
+| `issues` | Issue records with `code`, `severity`, `message` and an optional `fix` |
+| `svg` | SVG file text |
+| `dxf` | AutoCAD 2000 (`AC1015`) DXF file text |
+| `pdf` | PDF file bytes as `Uint8Array` |
+| `pdfMissing` | Characters the PDF font cannot show; these print as `?` |
+
+The function does not download files or change the document. Check `issues` and `pdfMissing` before writing
+these files. It has no DXF-version argument; the Studio's R12 choice is separate.
+Drawing-input refusals throw `BarocssError`, preserving a reported bracketed code or using `DRAWING` when none
+is present. An issue in a returned report does not by itself mean the export was refused.

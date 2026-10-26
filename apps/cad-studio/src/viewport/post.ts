@@ -17,7 +17,7 @@ const VIGNETTE = { size: 0.45, softness: 0.65 };
 const BLOOM_MAX = 0.2;
 
 /** The viewer's grading, vignette and bloom for the settings' post (none: none of them). */
-export function postOf(post: RenderPost | undefined): Pick<Environment, 'grading' | 'vignette' | 'bloom'> {
+export function postOf(post: RenderPost | undefined): Pick<Environment, 'grading' | 'vignette' | 'bloom' | 'depthOfField'> {
   if (!post) return {};
   const graded = post.grade !== 'neutral' || post.contrast !== 1 || post.saturation !== 1;
   return {
@@ -25,5 +25,7 @@ export function postOf(post: RenderPost | undefined): Pick<Environment, 'grading
     ...(post.vignette > 0 ? { vignette: { amount: post.vignette, ...VIGNETTE } } : {}),
     // (G15d.2: the slider's 0 – 1 as up to a fifth of the bright light added back as glow.)
     ...(post.bloom ? { bloom: { strength: post.bloom * BLOOM_MAX } } : {}),
+    // Focus stays in scene units; blur stays in CSS pixels, independent of device pixel ratio.
+    ...(post.depthOfField && post.depthOfField.blur > 0 ? { depthOfField: { ...post.depthOfField } } : {}),
   };
 }

@@ -67,6 +67,24 @@ An appearance is a look, not a material: a body's mass comes from its material, 
 - **Save this view** keeps the camera with the document, and **Go to saved view** returns to it.
 - **Field of view** sets the lens.
 
+### Focus and blur
+
+Under **Camera**, **Focus distance** sets a positive distance along the camera's view axis, in mm.
+**Blur radius** sets the maximum blur in CSS pixels, from 0 to 24. A value of 0 keeps the focus setting but
+turns the effect off. Changing these settings changes the displayed picture, not the model geometry.
+
+Choose **Pick focus on part**, then click a surface to set its focus distance. A background click cancels the
+pick. Choose **Cancel focus pick** to cancel it explicitly. Focus picking requires WebGPU. On WebGL2, the
+focus and blur settings remain saved, while the panel explains that the effect needs WebGPU.
+
+The saved Model field is `render.environment.post.depthOfField: { focus, blur }`.
+It requires a finite positive `focus` and a finite `blur`; the reader clamps blur to the 0–24 range.
+This is a display effect, not a physical camera calibration or a change to measurements.
+
+![View-axis focus depth is 80 mm while eye-to-point distance is 100 mm; blur is a separate CSS-pixel value](/diagrams/focus-distance.svg)
+
+[Open the focus diagram at full size](/diagrams/focus-distance.svg).
+
 ## Props and materials
 
 The **Source** tab holds two texts, both in the language of [@barocss/gpu](/packages/gpu/):

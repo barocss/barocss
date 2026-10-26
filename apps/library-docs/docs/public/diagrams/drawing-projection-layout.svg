@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="520" viewBox="0 0 920 520" role="img" aria-labelledby="title desc">
+  <title id="title">First-angle and third-angle view placement</title>
+  <desc id="desc">Calculated layout schematic, not a captured drawing or print-size reference. A box is 40 millimetres along X, 20 along Y and 10 along Z, viewed from negative Y at scale one to two. The front outline is 20 by 5 sheet millimetres, top is 20 by 10 and right is 10 by 5. Third angle places top above front and right to the right. First angle places top below front and right to the left. Front and top share their horizontal mapping; front and right share their vertical mapping. Isometric views and annotations are omitted.</desc>
+  <rect width="920" height="520" rx="12" fill="#f8fafc"/>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#182b3e">
+    <text x="460" y="34" text-anchor="middle" font-size="24" font-weight="700">The same box in two projection arrangements</text>
+    <text x="460" y="63" text-anchor="middle" font-size="16">X 40 × Y 20 × Z 10 mm · default front from −Y · scale 1:2</text>
+    <rect x="20" y="85" width="430" height="350" rx="10" fill="white" stroke="#cad4df"/>
+    <rect x="470" y="85" width="430" height="350" rx="10" fill="white" stroke="#cad4df"/>
+    <text x="235" y="116" text-anchor="middle" font-size="20" font-weight="700">Third angle</text>
+    <text x="685" y="116" text-anchor="middle" font-size="20" font-weight="700">First angle</text>
+    <g fill="none" stroke="#a8b8c8" stroke-dasharray="4 4" stroke-width="1">
+      <path d="M70 170V350M270 170V350M70 300H400M70 350H400"/>
+      <path d="M640 175V375M840 175V375M510 175H840M510 225H840"/>
+    </g>
+    <g stroke="#246e9f" stroke-width="2">
+      <rect x="70" y="170" width="200" height="100" fill="#e0f0e8"/>
+      <rect x="70" y="300" width="200" height="50" fill="#dcecf8"/>
+      <rect x="300" y="300" width="100" height="50" fill="#f8e9d6"/>
+      <rect x="640" y="175" width="200" height="50" fill="#dcecf8"/>
+      <rect x="510" y="175" width="100" height="50" fill="#f8e9d6"/>
+      <rect x="640" y="275" width="200" height="100" fill="#e0f0e8"/>
+    </g>
+    <g text-anchor="middle" font-size="16">
+      <text x="170" y="212" font-weight="700">TOP</text><text x="170" y="238">20 × 10</text>
+      <text x="170" y="321" font-weight="700">FRONT</text><text x="170" y="341">20 × 5</text>
+      <text x="350" y="321" font-weight="700">RIGHT</text><text x="350" y="341">10 × 5</text>
+      <text x="740" y="196" font-weight="700">FRONT</text><text x="740" y="216">20 × 5</text>
+      <text x="560" y="196" font-weight="700">RIGHT</text><text x="560" y="216">10 × 5</text>
+      <text x="740" y="317" font-weight="700">TOP</text><text x="740" y="343">20 × 10</text>
+    </g>
+    <text x="235" y="409" text-anchor="middle" font-size="16">Top above · right to the right</text>
+    <text x="685" y="409" text-anchor="middle" font-size="16">Top below · right to the left</text>
+    <text x="460" y="467" text-anchor="middle" font-size="17">Rectangle sizes are sheet mm. Labels and spacing are schematic; isometric views are omitted.</text>
+    <text x="460" y="496" text-anchor="middle" font-size="16">Calculated explanation · not an API result capture or a print-size reference</text>
+  </g>
+</svg>

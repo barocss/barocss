@@ -259,7 +259,7 @@ Placed parts are instances, each with its own document, and mates relate their f
   solved again after it:
   - `addPart(name, part, { at?, grounded? })` is `add_part`, with the part's document as it is;
   - `place(name, { at?, grounded? })` is `place_part`;
-  - `addMate(kind, a, b, { distance?, angle?, flip? })` is `add_mate`. Each end is `{ part, face }`: the part is
+  - `addMate(kind, a, b, { distance?, angle?, flip? })` is `add_mate`. Each end is `{ part, face, body? }`: the part is
     `'base'` or a placed part by its name, and the face is a selector picking one face, or a face name;
   - `inputs({ name: input | null })` and `variants({ name: values | null }, active?)` are `set_inputs` and
     `set_variants`. Bindings name parts and mates by id: `parts()` lists the parts' ids, and mates are `m1`, `m2` … in
@@ -267,6 +267,18 @@ Placed parts are instances, each with its own document, and mates relate their f
   - `frames({ name: { link, at?, kind? } | null })` is `set_frames`. The link is a part by name, and `at` is a Location
     in that part's own coordinates.
   - `lock(name, to?)` fixes a placed part to another part, the base by default, at its current placement.
+
+For a face-selector callback, supply `body` with that part's body key when it has several bodies. With no `body`,
+only a single-body part is selected automatically. An unavailable or ambiguous body gives `NO_BODY` or
+`BODY_AMBIGUOUS`; a callback selecting zero or several faces gives `SELECTION_ONE`. A string face name does not
+use this callback body-selection step.
+
+Distance mates require a finite distance in mm. Angle mates require a finite angle from 0° to 180°, inclusive.
+Missing or non-finite facade values give `VALUE`; an out-of-range angle is refused with `MATE_FACES`.
+`addMate` normally moves the second end's part. If it is fixed and the first is free, the ends swap. Two fixed
+ends give `MATE_BOTH_FIXED`; ends on the same part give `MATE_SAME_PART`. `place` re-solves the mates, and
+`grounded: true` on a part already moved by a mate gives `PART_MATED`.
+
 - **Its results are plain data:**
   - `parts()`;
   - `placements()`: each placed part's id, name, `position` (mm), `rotation` (degrees) and grounding;

@@ -153,7 +153,7 @@ type ModelNodeBase = SketchNode
   /** The sketch swept along straight runs and bends (from the sketch plane up +Z). */
   | { kind: 'sweep'; sketch: number; path: ({ kind: 'straight'; length: Dim } | { kind: 'bend'; radius: Dim; angle: number; toward: 'x' | '-x' | 'y' | '-y' })[] }
   /** The sketch's profile swept along a curve (a NURBS path in mm, copied from a direct curve `name`): faceted. */
-  | { kind: 'sweep-curve'; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[] } }
+  | { kind: 'sweep-curve'; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[] }; routeBundleMember?: { bundleId: string; memberId: string } }
   /** A ruled loft through sketches at increasing heights (each section's edges to the next one's). */
   /** `from`: the sketches the sections were carried over from, when they lay on offset planes (used by the loft). */
   | { kind: 'loft'; sections: { sketch: number; z: Dim }[]; smooth?: boolean; from?: number[] }
@@ -442,10 +442,31 @@ export interface PrintPreviewSettings {
   supports?: boolean;
   printed?: boolean;
 }
+/** A fixed-topology route bound to one translated virtual tie, in world millimetres. */
+export interface RouteBundleMember {
+  id: string;
+  curveObjectId: string;
+  sourceKey: string;
+  geometryId: string;
+  handleKey: string;
+  sourceRevision: string;
+  sourceCanonical: string;
+  offsetMM: [number, number, number];
+  sweepFeatureId: string;
+  profileFeatureId: string;
+}
+export interface RouteBundle {
+  id: string;
+  version: 1;
+  kind: 'two-open-curves-one-translation-tie';
+  frame: 'world-mm';
+  tie: { id: string; anchorMM: [number, number, number] };
+  members: [RouteBundleMember, RouteBundleMember];
+}
 export interface StudioDoc {
   format: 'barocss-cad-model';
-  /** 3: bodies keyed by stable ids; 2: nodes carry stable ids (`id`, `nextId`); 1: a node was named by its index. */
-  schema: 1 | 2 | 3;
+  /** 4: explicit route bundles; 3: stable body keys; 2: stable feature ids; 1: index-based feature ids. */
+  schema: 1 | 2 | 3 | 4;
   /** The next feature serial to hand out (`n<nextId>`): ids are never used twice, see engine/ids.ts. */
   nextId?: number;
   units: 'mm';
@@ -511,6 +532,8 @@ export interface StudioDoc {
   render?: RenderSettings;
   /** NURBS curves and surfaces beside the model (imported CAD sources and what tools made of them). */
   direct?: DirectGeometry;
+  /** Explicit base-document route bindings; legacy copied sweeps have no field. */
+  routeBundles?: RouteBundle[];
   /** Other parts placed beside this one (a simple assembly). */
   instances?: PartInstance[];
   /** The 2D drawing of the part (the Drawing workspace); absent until first drawn. */
@@ -600,7 +623,7 @@ export function placedDoc(inst: PartInstance, parent?: StudioDoc): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'variability', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'printPreview', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'fasteners', 'fastenerSizes', 'castingRules', 'mounts', 'drives', 'connectors', 'rowSources'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'variability', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'routeBundles', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'printPreview', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'fasteners', 'fastenerSizes', 'castingRules', 'mounts', 'drives', 'connectors', 'rowSources'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);
@@ -692,6 +715,9 @@ export function prefixDoc(doc: StudioDoc, marker: number): StudioDoc {
   // (Every node with its stable id first: a document built or read without them gets them here.)
   doc = withIds(doc);
   const nodes = doc.nodes.slice(0, marker);
+  if (nodes.length < doc.nodes.length && (Object.prototype.hasOwnProperty.call(doc, 'routeBundles') || doc.nodes.some(n => Object.prototype.hasOwnProperty.call(n, 'routeBundleMember')))) {
+    throw refusal('BAD_REFERENCE', 'Route bundle: rollback to a partial feature history is not supported. Detach the bundle first.');
+  }
   const outputs: Record<string, BodyRef> = {};
   leafBodies(nodes).forEach(ref => { outputs[bodyKey(ref, nodes)] = ref; });
   return { ...doc, nodes, outputs };

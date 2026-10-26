@@ -1,6 +1,8 @@
 <script setup>
+import { defineAsyncComponent } from 'vue';
 import BooleanWalkthrough from '../../.vitepress/components/BooleanWalkthrough.vue';
-import BooleanStages from '../../.vitepress/components/BooleanStages.vue';
+const BooleanStages = defineAsyncComponent(() =>
+  import('../../.vitepress/components/BooleanStages.vue'));
 </script>
 
 # B-rep, robustness and refusals

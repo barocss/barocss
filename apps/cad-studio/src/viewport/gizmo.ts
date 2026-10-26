@@ -9,16 +9,23 @@ import { segmentDistance as segDist, insideRing as insidePolygon } from '@barocs
 export type { Axis3 } from '@barocss/cad-model/engine/vec3';
 import type { Axis3 } from '@barocss/cad-model/engine/vec3';
 type XY = [number, number];
+export type GizmoCancelReason = 'pointercancel' | 'lostpointercapture' | 'session-change' | 'unmount';
 export interface TransformGizmo {
   /** Where the handles sit (world, mm). */
   origin: Vec3;
+  /** Changes only when the document or consumer session is replaced; stable through onStart and draft renders. */
+  sessionKey?: string | number;
   /** Axes it moves along (with a plane square for each pair of them) and turns about (world X, Y, Z). */
   move?: readonly Axis3[];
   turn?: readonly Axis3[];
   /** Degrees a turn snaps to (default 15; Shift: 1), per axis when one axis is held to steps (90). */
   turnSnap?: (axis: Axis3) => number;
+  /** The pointer that starts this drag. */
+  onStart?(pointerId: number): void;
+  /** Cancels this pointer's drag without committing its draft. */
+  onCancel?(pointerId: number, reason: GizmoCancelReason): void;
   /** The whole move from the drag's start (mm, snapped to 1 mm; Shift: 0.1), live and once more at the end. */
-  onMove?(delta: Vec3, done: boolean): void;
+  onMove?(delta: Vec3, done: boolean, pointerId?: number): void;
   /** The whole turn from the drag's start (degrees, right-handed about the axis). */
   onTurn?(axis: Axis3, degrees: number, done: boolean): void;
   /** Uniform scale: a cube at the centre and one along each axis; `onScale` gets the factor from the drag's start (×, 0.05 steps; Shift: 0.01). */

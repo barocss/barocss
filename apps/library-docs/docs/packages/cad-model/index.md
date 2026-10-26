@@ -49,11 +49,304 @@ The package is public module by module. Import each module by its path; the pack
 | `util/` | Small shared helpers: unit factors, guards, ids, rounding, SHA-256 digests, the document revision |
 | `rb9/` | The AI scenario ladder: its rungs, a scripted agent, its measures and report |
 
+## Transforming one body
+
+A studio part inherits `moved(location)` from the shared Part API. It returns a new part with transform features;
+it does not set an absolute assembly placement. Keep the returned part. Calling `moved` on that returned part
+applies the transform again to its current geometry, while the original part stays unchanged.
+
+Use `part.bodies()` to obtain current body keys. With several bodies, first choose `part.body(key)`;
+`moved` acts on that body, not every body in the document. A missing body gives `NO_BODY`, no choice among several
+gives `BODY_AMBIGUOUS`, and an unknown key passed to `body(key)` gives `BODY_UNKNOWN`.
+
+```ts
+import { Location } from '@barocss/cad/api';
+import type { StudioPart } from '@barocss/cad-model/api';
+
+function turnAndMove(part: StudioPart, bodyKey: string): StudioPart {
+  return part.body(bodyKey).moved(Location.of({
+    rotation: [0, 0, 90], position: [30, 0, 0],
+  }));
+}
+```
+
+`Location` rotations use degrees about the document origin, in X, then Y, then Z order. Translation follows in
+world XYZ millimetres. It does not rotate about the body's centre or use its bounding box as a pivot.
+For the location above, an illustrative point on the body follows this calculation:
+
+| Step | Point in mm |
+|---|---|
+| Input | `[10, 0, 0]` |
+| Rotate +90° about Z | `[0, 10, 0]` |
+| Translate by `[30, 0, 0]` | `[30, 10, 0]` |
+| Apply the same location again | `[20, 30, 0]` |
+
+![A body point is rotated about the origin before translation; repeating moved applies another transform](/diagrams/part-transform-order.svg)
+
+[Open the diagram at full size](/diagrams/part-transform-order.svg).
+
+The diagram is a coordinate calculation, not an API render or a construction check. For placement of an assembly
+instance, use [the assembly API](/packages/api#assemblies); for other body transforms, see
+[Object API](/packages/api#parts).
+
+## Writing a root body's STL
+
+Import `evaluateDoc` and `stlFor` from `@barocss/cad-model/engine/evaluate`. `stlFor` takes a `StudioDoc`,
+a root body's key from that document's evaluated bodies, and optional `segmentsPerQuarter` settings.
+This helper selects only the first evaluated root body:
+
+```ts
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { evaluateDoc, stlFor } from '@barocss/cad-model/engine/evaluate';
+
+function firstRootStl(doc: StudioDoc, revision: number): Uint8Array | null {
+  const r = evaluateDoc(doc, revision);
+  if (!r.ok || r.bodies.length === 0) return null;
+  return stlFor(doc, r.bodies[0].key, { segmentsPerQuarter: 16 });
+}
+```
+
+Supply `revision` as the caller's numeric evaluation tag; it is not the saved source-record revision.
+A successful evaluation can still produce `null` from `stlFor`, so check the helper's result before writing a file.
+A missing root body, a non-finite `segmentsPerQuarter`, or a caught evaluation/export failure returns `null`;
+this result does not identify which cause occurred. The studio's [display-mesh fallback](/studio/files#exports)
+is a separate UI policy; this helper does not provide it or create a `.source.json` record.
+
+### STL and its source record
+
+To keep an STL with its source information, create both from the same document and pass the STL's exact filename
+to `sourceRecord`. The following helper returns two named files in memory; it does not write or download them.
+It returns `null` if evaluation fails, there is no root body, or `stlFor` cannot produce the STL.
+
+```ts
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { evaluateDoc, stlFor } from '@barocss/cad-model/engine/evaluate';
+import { sourceRecord, sourceBytes, sourceName } from '@barocss/cad-model/team/source';
+
+type MemoryFile = { name: string; bytes: Uint8Array };
+
+function firstRootStlFiles(
+  doc: StudioDoc,
+  revision: number,
+  stlName = 'part.stl',
+): [MemoryFile, MemoryFile] | null {
+  const result = evaluateDoc(doc, revision);
+  if (!result.ok || result.bodies.length === 0) return null;
+  const bytes = stlFor(doc, result.bodies[0].key, { segmentsPerQuarter: 16 });
+  if (bytes === null) return null;
+  const source = sourceRecord(doc, [stlName]);
+  return [
+    { name: stlName, bytes },
+    { name: sourceName(stlName), bytes: sourceBytes(source) },
+  ];
+}
+```
+
+The caller's numeric `revision` tags the evaluation. The source record's string `revision` instead identifies
+the document's canonical revision content. Its `digest` is the SHA-256 of that input content, not a checksum of
+the STL bytes or a certificate of geometric accuracy. `sourceName('part.stl')` gives `part.source.json`.
+Keep the returned pair together; after changing the document, produce a new pair rather than reusing the old record.
+
+![STL bytes and their separate source-record JSON from the same document](/diagrams/stl-source-pair.svg)
+
+### Reading a source record
+
+`sourceRecord(doc, files, options)` from `@barocss/cad-model/team/source` returns these fields:
+
+| Field | Meaning |
+|---|---|
+| `format` | The literal `barocss-source`. |
+| `version` | Record version `1`. |
+| `revision` | The 16-character hexadecimal revision from `revisionOf(doc)`, for detecting stale input. It covers the revision fields, not every saved document field. |
+| `digest` | SHA-256 of the UTF-8 canonical content used for that revision. It is not a checksum of the exported files. |
+| `files` | A copy of the supplied file-name list. It contains names, not file contents or checksums. |
+| `handSet` | Robot base-link and joint settings, included only with `{ robot: true }`. It is omitted by default. |
+
+`sourceBytes(record)` encodes the record as JSON bytes. `sourceName(name)` replaces the last extension with
+`.source.json`, or appends that suffix when there is no matching extension. It only derives a name; it does not
+validate a file name or make it safe for a destination path.
+
+When reading the JSON, treat `revision` and `digest` as identifiers for the recorded input content. Reading the
+record does not verify the named export files, authenticate the author, or establish physical accuracy.
+For robot exports, read `handSet` when present; its omission does not mean the robot used zero limits or ratings.
+
+Keep the record with the files it names and keep the editable `.bcad` document separately. The record is not a
+saved document and cannot reconstruct the model from its revision or digest.
+
+## Direct sweep and loft surfaces
+
+`directOps` from `@barocss/cad-model/engine/direct` works on direct curves. Its sweep and loft add a
+surface and return a new `DirectGeometry`; use the returned value. These operations differ from the
+[solid features made from sketches](/studio/features#from-a-sketch).
+
+- `directOps.sweep(direct, profileId, railId)` uses the first curve as the profile and the second as the rail.
+  In authored XYZ coordinates, in mm, its surface follows `P(u) + R(v) - R(vMin)`. The profile translates
+  without turning to follow the rail. This is not the feature Sweep that keeps a sketch square to its path.
+- `directOps.loft(direct, curveIds)` passes through 2–15 curves in the supplied order. It aligns degrees and
+  interior knots, but the parameter-domain endpoints must already match within `1e-12`. This tolerance is in
+  parameter values, not mm. A mismatch gives `DIRECT_RANGE`; trim or rebuild the curves to one parameter range.
+  A curve count outside 2–15 gives `DIRECT_LOFT`.
+
+```ts
+import { directOps, type DirectGeometry } from '@barocss/cad-model/engine/direct';
+
+export function sweptSurface(direct: DirectGeometry, profileId: string, railId: string): DirectGeometry {
+  return directOps.sweep(direct, profileId, railId);
+}
+
+export function loftedSurface(direct: DirectGeometry, orderedCurveIds: string[]): DirectGeometry {
+  return directOps.loft(direct, orderedCurveIds);
+}
+```
+
+Supply IDs from the current direct geometry. Neither helper above commits a Studio document.
+
+![A straight profile keeps its X direction as a curved rail translates it through three world-coordinate positions](/diagrams/direct-sweep-surface.svg)
+
+[Open the direct sweep diagram at full size](/diagrams/direct-sweep-surface.svg).
+
+The diagram is a calculated coordinate example, not an API render. For `P(u) = [10u, 0, 0]` and
+`R(v) = [0, 20v, 20v²]`, with `u` and `v` from 0 to 1, the rail starts at `[0, 0, 0]` mm. At `v = 0.5`,
+the profile runs from `[0, 10, 5]` to `[10, 10, 5]` mm; at `v = 1`, it runs from `[0, 20, 20]` to
+`[10, 20, 20]` mm. Its direction stays along X. This calculation does not establish that arbitrary input curves
+will pass the construction checks.
+
+## Route bundles in code
+
+Import the route-bundle helpers from `@barocss/cad-model/engine/routeBundle`. A bundle ties one interior control pole on each of two curves to one translation in world millimetres. It does not join the curves or move each whole curve.
+
+The input must contain exactly two distinct direct curves. Each curve must be an open, clamped cubic with positive weights. Each member selects an existing interior pole by its numeric string `handleKey` and names an existing active `sweep-curve` feature and its earlier circular sketch profile. The profile must have a finite positive radius; associated or placed profiles, extra regions, and holes are outside this contract. Each copied sweep path must already match its direct curve. Members must use distinct curves, source geometries, profiles, and sweeps. A document can contain one bundle; nested bundle metadata is not supported.
+
+| Helper | Result and meaning |
+| --- | --- |
+| `createRouteBundle(doc, input)` | Returns a copied `StudioDoc` candidate with schema `4`, one tie, two members, and markers on the two sweeps. It uses existing inputs; it does not create the curves, profiles, or sweeps. |
+| `moveRouteBundle(frozenStart, bundleId, totalDeltaMM, expectedDocumentIdentity)` | Returns a candidate measured from the unchanged drag-start document. Both selected poles and the tie anchor receive the same total delta. Endpoints and all other poles remain fixed. The copied sweep paths are updated to match. |
+| `detachRouteBundle(doc, bundleId, expectedDocumentIdentity)` | Removes the bundle and its sweep markers, and returns a schema `3` candidate. It keeps the current curve coordinates and copied sweep paths. |
+| `assertRouteBundleDocument(input)` | Returns `void` if the route-bundle admission checks accept the input. It does not evaluate the whole model. |
+| `routeBundleDocumentIdentity(doc)` | Returns the full canonical document identity used by these helpers. Use this exact string, not `revisionOf(doc)` or a revision label. |
+
+`createRouteBundle` receives `expectedDocumentIdentity` in its input object. Move and detach receive it as their last argument. A stale identity or an invalid bundle input is refused with `BAD_REFERENCE`. The stored source binding and copied path must still match the current direct curve.
+
+The following helpers take IDs and selections from the caller's existing document. They return candidates only. Evaluate the whole candidate and commit it only after that evaluation succeeds. For a drag, also check that the accepted document still has `baseIdentity` before commit; discard the candidate if the document has changed.
+
+```ts
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import {
+  assertRouteBundleDocument,
+  createRouteBundle,
+  detachRouteBundle,
+  moveRouteBundle,
+  routeBundleDocumentIdentity,
+  type CreateRouteBundleInput,
+} from '@barocss/cad-model/engine/routeBundle';
+
+type DeltaMM = [number, number, number];
+type NewBundle = Omit<CreateRouteBundleInput, 'expectedDocumentIdentity'>;
+
+export function createRouteCandidate(
+  accepted: StudioDoc,
+  input: NewBundle,
+): StudioDoc {
+  assertRouteBundleDocument(accepted);
+  return createRouteBundle(accepted, {
+    ...input,
+    expectedDocumentIdentity: routeBundleDocumentIdentity(accepted),
+  });
+}
+
+// Call once at drag start, after the bundle candidate has been accepted.
+export function beginRouteDrag(accepted: StudioDoc, bundleId: string) {
+  const frozenStart = structuredClone(accepted);
+  const baseIdentity = routeBundleDocumentIdentity(frozenStart);
+  return {
+    baseIdentity,
+    candidateFromTotal(totalDeltaMM: DeltaMM): StudioDoc {
+      return moveRouteBundle(
+        frozenStart, bundleId, totalDeltaMM, baseIdentity,
+      );
+    },
+  };
+}
+
+export function detachRouteCandidate(
+  accepted: StudioDoc,
+  bundleId: string,
+): StudioDoc {
+  return detachRouteBundle(
+    accepted, bundleId, routeBundleDocumentIdentity(accepted),
+  );
+}
+```
+
+For every drag update, call the same `candidateFromTotal` function with displacement from the drag start. Do not add frame deltas or use the previous candidate as a new start. The tie stores each selected pole's offset from its anchor; it does not force both poles onto the anchor. These helpers do not certify clearance, bend radius, sweep validity, or manufacturing suitability.
+
+See [the control-point diagram and Studio steps](/studio/features#route-bundles) and [the saved fields](/reference/document#route-bundle-fields).
+
+### When a route edit is refused
+
+Route helper admission failures use `BAD_REFERENCE` with a `Route bundle:` message. They reject an invalid
+binding or candidate; they are not results from evaluating the complete model.
+
+| What failed | What to change |
+|---|---|
+| The accepted document identity changed, or a captured curve/source binding is stale. | Discard the old candidate. Start from the current accepted document and select the current curve and copied sweep again. Do not replace only the stored revision or canonical string to bypass the check. |
+| A copied sweep path does not match its current direct curve, or its sweep/profile ID is missing or ambiguous. | Restore a consistent document, make a matching copied sweep from the current curve, and select its current independent circular profile. An old copied path is not a fallback. |
+| The selected point is an endpoint, or the source is not an open clamped cubic with finite coordinates, valid knots and positive matching weights. | Choose an existing interior control point on a supported millimetre curve. Correct the source geometry before creating the binding. |
+| Members repeat an ID, curve, sweep, profile, or the same source/geometry pair through different object names. | Choose two distinct curve sources, each with its own sweep and profile. Renaming an alias does not make it a second source. |
+| Bundle data has the wrong schema, is nested in a placed/pending part, or has missing or orphan member markers. | Keep bundle data in one valid schema-4 base document with two matching members and markers. Detach a valid bundle before placing its document as a part; changing the schema number alone does not repair the bindings. |
+| Binding admission succeeds, but complete candidate evaluation fails. | Keep the accepted document and inspect the evaluation error. Correct the model or reduce the proposed edit, then evaluate the whole candidate again before committing. This failure is not necessarily a route admission `BAD_REFERENCE`. |
+
+The helpers return private candidates. The caller owns complete evaluation and commit; the Studio keeps the
+accepted document when a route preview or final check fails. These checks do not establish collision clearance,
+general constraint solvability or manufacturing suitability.
+
 ## Assembly and robot motions
 
 Use the `api/` facade's `assembly(...).robot()` to read an assembly as a robot. `robot.path(...)` takes at least
 two waypoints; `robot.motion(name)` reads a saved path. Joint inputs use degrees for turns and mm for slides.
 Velocity and acceleration limits use deg/s and deg/s², or mm/s and mm/s².
+
+### Reading pose and path results
+
+`poseAt(t)` returns joint inputs, not link placements. Pass that record to `robot.pose(...)` to obtain the pose.
+A pose reply has no overall `ok` flag; inspect the fields needed by your caller:
+
+| Result | Read it as |
+|---|---|
+| `robot.pose(values).values` | The resolved joint values, including followers, in degrees or mm. |
+| `links`, optional `frames` | Named link/frame positions in mm and rotations in degrees, in the assembly coordinates. |
+| `out_of_limits` | Joint keys outside their stored limits. A direct pose preview keeps those values rather than clamping them; a returned pose alone is not a readiness check. |
+| `path.check()` | An array with one sweep reply for each adjacent waypoint pair, in waypoint order, for supported open-chain paths. Read each reply's `clear`, optional `contact`, and `minClearance`. |
+
+Given a robot and waypoints from the caller's current joint keys:
+
+```ts
+import type { Robot } from '@barocss/cad-model/api/robot';
+
+function sampleMotion(
+  robot: Robot,
+  waypoints: Record<string, number>[],
+  limits: Record<string, { velocity: number; acceleration: number; jerk?: number }>,
+  seconds: number,
+) {
+  const path = robot.path(waypoints, { limits });
+  const values = path.poseAt(seconds);
+  return robot.pose(values);
+}
+```
+
+Supply positive velocity and acceleration limits for each moving joint, or a `default` entry. Use deg/s and
+deg/s² for turns, or mm/s and mm/s² for slides. Path timing does not read those rates from the document's joint settings.
+`poseAt` can refuse invalid paths; inspect `path.problems()` before playback.
+
+The two coordinates returned by these APIs have different meanings: `poseAt` takes time in seconds, while a
+sweep's `contact.s` and `minClearance.fraction` locate a dimensionless fraction of that waypoint segment.
+`contact.values` uses degrees/mm; `minClearance.value` is in mm. They do not give elapsed contact time.
+`minClearance` can be `null`, and `contact` is absent when no contact is returned. Do not treat missing data as zero.
+
+![Robot path inputs become a pose reply; separate per-segment checks use a fraction rather than time](/diagrams/robot-motion-result-flow.svg)
+
+[Open the motion result diagram at full size](/diagrams/robot-motion-result-flow.svg).
 
 For supported looped paths, supply driving-joint values only. `duration()` returns seconds. `poseAt(t)` returns
 the driving values at time `t` in seconds; pass them to `robot.pose(...)` to obtain solved passive-joint values
@@ -216,7 +509,7 @@ These rules do not extend the supported motion contract above.
 
 ## The studio document
 
-The document is a `barocss-cad-model` file, schema 3, in millimetres:
+The document is a `barocss-cad-model` file in millimetres. Ordinary documents use schema 3; an explicit route bundle uses schema 4:
 
 - **The model.** Its `nodes` are the features in order, with its parameters and outputs.
 - **Everything else on the part:**

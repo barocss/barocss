@@ -50,12 +50,13 @@ export function Hud({ store, onChange, onApply, onCancel }: Props) {
       </div>
       {active.preview === 'error' && active.error && <div className="hud-error" role="status">
         <div className="hud-error-title">{active.error.title}</div><div>{active.error.hint}</div>
-        {active.error.detail && <details><summary>Kernel detail</summary><code>{active.error.detail}</code></details>}
+        {active.error.detail && <details><summary onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }}>Kernel detail</summary><code>{active.error.detail}</code></details>}
       </div>}
       <div className="hud-actions">
         <span className="muted"><Kbd>Tab</Kbd> next <Kbd>Enter</Kbd> apply <Kbd>⇧Enter</Kbd> again <Kbd>Esc</Kbd> cancel</span>
         <span className="grow" />
-        <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+        {/* Keep native button activation from also reaching the window's Apply shortcut. */}
+        <Button variant="ghost" onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }} onClick={onCancel}>Cancel</Button>
         <Button variant="default" disabled={active.preview !== 'ok'} onClick={onApply}>Apply</Button>
       </div>
     </div>

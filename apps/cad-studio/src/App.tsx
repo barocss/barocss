@@ -7,7 +7,7 @@ import { resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
 import { placedDoc, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { placementOf } from '@barocss/cad-model/engine/placement';
 import { instanceEvaluationCurrent, instanceEvaluationSources } from './viewport/instanceEvaluation';
-import { contentKey } from '@barocss/cad-model/engine/evalMemo';
+import { contentKey, evaluationKey } from '@barocss/cad-model/engine/evalMemo';
 import type { BearingAssemblyInput } from '@barocss/cad-model/engine/bearingContext';
 import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepareBearingEdit, type BearingEditSession } from './app/bearingEdit';
 import { resolveSkeletons, SKELETON_CODES } from '@barocss/cad-model/frames/skeleton';
@@ -19,9 +19,11 @@ import type { Outcome } from '@barocss/cad-model/engine/schema/spec';
 import { rejectProposal, stripHistory } from '@barocss/cad-model/chat/proposals';
 import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import type { ProposalPart } from '@barocss/cad-model/chat/tools';
-import { candidatesFor, captureSignatures, confirmReference, markedReferences, verifyReferences, type Problem as RefProblem } from '@barocss/cad-model/engine/references';
+import { candidatesFor, captureSignatures, confirmReference, markedReferences, referencesOf, refreshSignatures, verifyReferences, type Problem as RefProblem } from '@barocss/cad-model/engine/references';
 import { matchesNativeMassPatch } from '@barocss/cad-model/engine/nativeMassWire';
-import { evaluateDoc, placedMassFields, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { evaluateDoc, placedMassFields, type BodyResult, type EvalResult } from '@barocss/cad-model/engine/evaluate';
+import { signaturesOf, type Signature } from '@barocss/cad-model/engine/rematch';
+import type { DrawingReferenceLabel, DrawingReferencePreview } from './ui/DrawingWorkspace';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { carrySelection, commands, patchValues, refOf, selectedBodies, shownFields, subdNodeOf, type Command, type Ctx, type Selection, type Values } from '@barocss/cad-model/app/commands';
@@ -56,7 +58,7 @@ import type { CamOptions } from './viewport/camDisplay';
 import { usePrintLayers, type PrintOptions } from './viewport/usePrintLayers';
 import { printOptionsOf, printSourceMeshes, withPrintPreviewSettings, type PrintPreviewPatch } from './viewport/printSettings';
 import { checkDocumentPrintPreview } from '@barocss/cad-model/engine/printPreview';
-import { firstProblem, isRefusal } from '@barocss/cad-model/engine/refusal';
+import { firstProblem, isRefusal, refusal } from '@barocss/cad-model/engine/refusal';
 import { Icon, Kbd } from './ui/atoms';
 import { FlatPatternDialog } from './ui/FlatPatternDialog';
 import { CutListDialog } from './ui/CutListDialog';
@@ -91,6 +93,8 @@ import { CagePanel } from './ui/CagePanel';
 import { useCageEditor } from './subd/useCageEditor';
 import { SKETCH3D_COMMAND, useSkeletonEditor } from './skeleton/useSkeletonEditor';
 import { SkeletonPanel } from './ui/SkeletonPanel';
+import { RouteBundlePanel, type RouteBundleCreateDraft, type RouteBundlePanelProps } from './ui/RouteBundlePanel';
+import { assertRouteBundleDocument, createRouteBundle, detachRouteBundle, moveRouteBundle, routeBundleDocumentIdentity } from '@barocss/cad-model/engine/routeBundle';
 import { loadUserLibraries, setLibraryStore } from '@barocss/cad-model/library/libraries';
 import { browserStore } from './ui/browserStore';
 import { processProfile } from '@barocss/cad-model/library/materials';
@@ -194,6 +198,7 @@ function changesBeyondVariability(a: StudioDoc, b: StudioDoc): boolean {
   return false;
 }
 type MassFields = Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'>;
+type ReferenceLabelOwner = { doc: StudioDoc; model: StudioDoc };
 /** What Open reads, said when it is given another kind of file. */
 const OPEN_READS = 'Open reads models (.bcad, .json), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your part is unchanged.';
 /** O18: the same bodies to draw — each key and mesh as before (only masses may differ). */
@@ -328,6 +333,28 @@ const CAD_DISPLAY_MODES: { value: DisplayMode; label: string }[] = [
 
 const detachSketchLink = (s: SketchState): SketchState => s.association ? { ...s, association: undefined, associationDetached: true } : s;
 
+type RouteBundleSession = {
+  token: number; accepted: StudioDoc; acceptedIdentity: string;
+  frozenStart: StudioDoc; frozenIdentity: string; bindings: string; bundleId: string;
+  gesture: number; pointerId: number | null; sequence: number;
+  purpose: 'draft' | 'preview' | 'final' | 'ready' | 'cancelled';
+  delta: Vec3; gestureBase: Vec3;
+  ready?: { candidate: StudioDoc; identity: string; evaluatedIdentity: string; result: Extract<EvalResult, { ok: true }>; sequence: number; gesture: number; pointerId: number | null };
+};
+// Optional GPU bridge contract; the GPU owner supplies these fields in the shared viewport.
+type RouteTransformGizmo = TransformGizmo & {
+  sessionKey: string;
+  onStart(pointerId: number): void;
+  onCancel(pointerId: number, reason: 'pointercancel' | 'lostpointercapture' | 'session-change' | 'unmount'): void;
+  onMove(delta: Vec3, done: boolean, pointerId?: number): void;
+};
+const routeBindings = (doc: StudioDoc) => JSON.stringify(doc.routeBundles?.map(b => ({ id: b.id, tie: b.tie, members: b.members })) ?? []);
+const routeNumbers = (values: [string, string, string]): Vec3 => {
+  if (values.some(v => !v.trim() || !Number.isFinite(Number(v)))) throw new Error('Enter three finite coordinates in mm.');
+  return values.map(Number) as Vec3;
+};
+const routeMessage = (error: unknown) => error && typeof error === 'object' && 'message' in error ? String(error.message) : String(error);
+
 export function App() {
   countRender('App');
   const engine = useMemo(() => new EngineClient(), []);
@@ -340,10 +367,14 @@ export function App() {
   // document's variability is refused — said as start() says it — and the undo entry it asked for dropped; a whole
   // document (opened, new) is always taken. Undo, redo and the system's own updates write the state directly.)
   const docNow = useRef(doc); docNow.current = doc;
+  const discardRouteRef = useRef<() => void>(() => {});
+  const routeAcceptedHandoff = useRef<{ doc: StudioDoc; identity: string; evaluatedIdentity: string; revision: number; result: Extract<EvalResult, { ok: true }> } | null>(null);
   const shownVariant = useRef<string | null>(null), undoFor = useRef<{ doc: StudioDoc; marker: number | null } | null>(null);
   const setDoc = (next: StudioDoc, whole = false) => {
     const entry = undoFor.current; undoFor.current = null;
     if (!whole && shownVariant.current && changesBeyondVariability(docNow.current, next)) { setToast({ title: 'Can’t change the part now', hint: `Showing ${shownVariant.current}: show the master to edit.`, detail: '' }); return; }
+    if (next !== docNow.current) discardRouteRef.current();
+    if (routeAcceptedHandoff.current?.doc !== next) routeAcceptedHandoff.current = null;
     if (entry) { setUndo(u => [...u.slice(-49), entry]); setRedo([]); }
     docNow.current = next; setDocState(next);
   };
@@ -354,6 +385,13 @@ export function App() {
   // The evaluated document the bodies were computed for: while a newer one evaluates (or fails), the bodies are
   // stale, and nothing pairs them with the newer document's names, facts or checks.
   const [bodiesFor, setBodiesFor] = useState<StudioDoc | null>(null);
+  // Parameter candidates use the normal evaluation lane before the accepted document changes.
+  const parameterRequest = useRef(0);
+  const [parameterEdit, setParameterEdit] = useState<{ request: number; base: StudioDoc; baseInput: StudioDoc; input: StudioDoc; next: StudioDoc; accept(next: StudioDoc): void } | null>(null);
+  const acceptedEvaluation = useRef<{ key: string; result: Extract<EvalResult, { ok: true }> } | null>(null);
+  // Only a parameter transition may hand a result to the next effect once; ordinary evaluations still run.
+  const parameterHandoff = useRef<{ target: StudioDoc; key: string; result: Extract<EvalResult, { ok: true }> } | null>(null);
+  const parameterMass = useRef<{ request: number; result: Extract<EvalResult, { ok: true }>; target?: StudioDoc; installedFor?: StudioDoc } | null>(null);
   /** Bodies set at once for the commit about to happen (a command's preview, an emptied part): claimed by its document. */
   const claimBodies = useRef(false);
   const [busy, setBusy] = useState(true);
@@ -391,6 +429,13 @@ export function App() {
   // gets its own B-rep's (placed by its massPlace) — never another revision's, whose B-rep has its own ref.
   useEffect(() => engine.onMasses(masses => {
     const got = new Map(masses.map(m => [m.ref, m.fields]));
+    // Retain candidate patches during reference refresh and the handoff to the accepted bodies.
+    // withMasses applies the existing exact native-source/ref/field guard to both copies.
+    if (parameterMass.current) parameterMass.current.result.bodies = withMasses(parameterMass.current.result.bodies, got);
+    const ready = routeSession.current?.ready;
+    if (ready) ready.result.bodies = withMasses(ready.result.bodies, got);
+    if (routeAcceptedHandoff.current) routeAcceptedHandoff.current.result.bodies = withMasses(routeAcceptedHandoff.current.result.bodies, got);
+    setRoutePreviewBodies(bs => bs && withMasses(bs, got));
     setBodies(bs => withMasses(bs, got));
     setInstanceBodies(map => { let next: typeof map | null = null; for (const [id, e] of map) { const bs = withMasses(e.bodies, got); if (bs !== e.bodies) (next ??= new Map(map)).set(id, { ...e, bodies: bs }); } return next ?? map; });
   }), [engine]);
@@ -399,6 +444,29 @@ export function App() {
   const partInput = useRef<HTMLInputElement>(null);
   /** Selected direct curves and surfaces (by object id). */
   const [directSel, setDirectSel] = useState<string[]>([]);
+  const [routePanelOpen, setRoutePanelOpen] = useState(false);
+  const [routeCreate, setRouteCreate] = useState<RouteBundleCreateDraft>({ id: 'bundle1', tieId: 'tie1', anchorMM: ['0', '0', '0'], members: [
+    { curveObjectId: '', handleKey: '1', sweepFeatureId: '' }, { curveObjectId: '', handleKey: '1', sweepFeatureId: '' },
+  ] });
+  const [routeMove, setRouteMove] = useState<[string, string, string]>(['0', '0', '0']);
+  const [routeSelected, setRouteSelected] = useState<string | null>(null);
+  const [routePhase, setRoutePhase] = useState<RouteBundlePanelProps['phase']>('idle');
+  const [routeError, setRouteError] = useState<RouteBundlePanelProps['error']>();
+  const [routeViewDoc, setRouteViewDoc] = useState<StudioDoc | null>(null);
+  const [routeVisualDoc, setRouteVisualDoc] = useState<StudioDoc | null>(null);
+  const [routePreviewBodies, setRoutePreviewBodies] = useState<BodyResult[] | null>(null);
+  const routeSession = useRef<RouteBundleSession | null>(null), routeToken = useRef(0);
+  const routeContext = useRef({ blocked: true });
+  const routePreviewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearRouteTimer = () => { if (routePreviewTimer.current !== null) clearTimeout(routePreviewTimer.current); routePreviewTimer.current = null; };
+  const discardRoute = () => {
+    clearRouteTimer(); routeToken.current++;
+    if (routeSession.current) { routeSession.current.purpose = 'cancelled'; routeSession.current.sequence++; }
+    routeSession.current = null;
+    setRouteViewDoc(null); setRouteVisualDoc(null); setRoutePreviewBodies(null);
+    setRoutePhase('idle'); setRouteError(undefined); setRouteMove(['0', '0', '0']);
+  };
+  discardRouteRef.current = discardRoute;
   /** The picked pole of the one selected direct object, and how far its gizmo has dragged it. */
   const [pole, setPole] = useState<{ id: string; key: string } | null>(null);
   const [poleDrag, setPoleDrag] = useState<Vec3 | null>(null);
@@ -441,6 +509,9 @@ export function App() {
   // References an opened file stores that could not be told (engine/references.ts), and the candidates on show.
   const [refProblems, setRefProblems] = useState<RefProblem[]>([]);
   const [refChoices, setRefChoices] = useState<{ index: number; names: string[] } | null>(null);
+  const [referencePreview, setReferencePreview] = useState<DrawingReferencePreview | null>(null);
+  const [referenceLabelCache, setReferenceLabelCache] = useState<{ owner: ReferenceLabelOwner; labels: readonly DrawingReferenceLabel[] } | null>(null);
+  useEffect(() => { setReferencePreview(null); }, [doc]);
   const [fileName, setFileName] = useState('Bracket-01');
   const [dirty, setDirty] = useState(false);
   /** Unsaved work kept from an earlier visit, offered back once. */
@@ -702,6 +773,16 @@ export function App() {
     catch { return shownDoc; }
   }, [shownDoc]);
   const evaluated = useMemo(() => prefixDoc(shownDoc, marker ?? shownDoc.nodes.length), [shownDoc.nodes, shownDoc.parameters, shownDoc.frames?.sections, rootContextKey, followsParts ? shownDoc.instances : null, marker]);
+  // Labels outlive the Drawing view, but only for the exact accepted document and displayed model.
+  // Do not bind to DrawingWorkspace's spread prop: that wrapper is new on every render.
+  const referenceLabelOwner = useMemo<ReferenceLabelOwner>(() => ({ doc, model: evaluated }), [doc, evaluated]);
+  const referenceLabelOwnerNow = useRef(referenceLabelOwner); referenceLabelOwnerNow.current = referenceLabelOwner;
+  const receiveReferenceLabels = useCallback((labels: readonly DrawingReferenceLabel[]) => {
+    if (referenceLabelOwnerNow.current !== referenceLabelOwner) return;
+    setReferenceLabelCache(previous => previous?.owner === referenceLabelOwner && JSON.stringify(previous.labels) === JSON.stringify(labels) ? previous : { owner: referenceLabelOwner, labels });
+  }, [referenceLabelOwner]);
+  const referenceLabels = referenceLabelCache?.owner === referenceLabelOwner ? referenceLabelCache.labels : [];
+
   const sectionRun = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({ busy: false, next: null });
   // The section: the part with each body that crosses the plane split there (the rest kept or left out whole).
   useEffect(() => {
@@ -729,27 +810,105 @@ export function App() {
   const sectionBodies = section ? (sectionExactShown ? sectionExact!.bodies : sectionClipped) : null;
   const render = useMemo(() => doc.render ?? defaultRender(), [doc.render]);
 
-  // Evaluate the accepted document whenever it or the rollback marker changes.
+  // A parameter candidate and its BRep stay together. A refusal keeps the last accepted document and bodies.
+  const parameterCurrent = !parameterEdit || (parameterEdit.base === doc && parameterEdit.baseInput === evaluated && !shownVariant.current);
   useEffect(() => {
-    let live = true; setBusy(true);
-    engine.evaluate(evaluated, revision.current++).then(result => {
-      if (!live || !result) return;
+    let live = true;
+    if (parameterEdit && !parameterCurrent) {
+      // A display-only edit cancels the candidate without evaluating the unchanged accepted model again.
+      if (parameterEdit.baseInput === evaluated && acceptedEvaluation.current) parameterHandoff.current = { target: docNow.current, ...acceptedEvaluation.current, result: { ...acceptedEvaluation.current.result, bodies: bodiesRef.current } };
+      if (parameterMass.current?.request === parameterEdit.request && !parameterMass.current.target) parameterMass.current = null;
+      setParameterEdit(null); return;
+    }
+    const edit = parameterEdit;
+    const input = edit?.input ?? evaluated;
+    const current = () => live && (!edit || (parameterRequest.current === edit.request && docNow.current === edit.base && evaluatedRef.current === evaluated && !shownVariant.current));
+    const refuse = (detail: string) => {
+      if (!edit || !current()) return;
+      const accepted = acceptedEvaluation.current;
+      if (accepted) parameterHandoff.current = { target: edit.base, ...accepted, result: { ...accepted.result, bodies: bodiesRef.current } };
+      if (parameterMass.current?.request === edit?.request && !parameterMass.current?.target) parameterMass.current = null;
+      setParameterEdit(null); setBusy(false);
+      setToast({ title: 'Parameters not changed', hint: 'The accepted part and its references are unchanged.', detail });
+    };
+    setBusy(true);
+    const run = async () => {
+      const key = evaluationKey(input), handoff = !edit ? parameterHandoff.current : null;
+      const routeHandoff = !edit ? routeAcceptedHandoff.current : null;
+      if (!edit) { parameterHandoff.current = null; routeAcceptedHandoff.current = null; }
+      // Only the exact accepted route document can consume its final result, once.
+      const routeResult = routeHandoff && routeHandoff.doc === doc && marker === null && !variants.showing
+        && routeHandoff.identity === routeBundleDocumentIdentity(doc) && routeHandoff.evaluatedIdentity === routeBundleDocumentIdentity(evaluated)
+        && routeHandoff.result.revision === routeHandoff.revision ? routeHandoff.result : null;
+      // A configuration-only parameter edit can keep the already fresh accepted result too.
+      const result = edit && acceptedEvaluation.current?.key === key ? acceptedEvaluation.current.result
+        : handoff?.target === docNow.current && handoff.key === key ? handoff.result : routeResult ?? await engine.evaluate(input, revision.current++);
+      if (!current()) return;
+      if (!result) { if (edit) refuse('The evaluation was superseded.'); else setBusy(false); return; }
+      if (edit) {
+        if (!result.ok) { refuse(result.error.detail || result.error.hint); return; }
+        parameterMass.current = { request: edit.request, result };
+        const oldNames = { faces: new Map<string, Signature>(), edges: new Map<string, Signature>() }, nextNames = { faces: new Map<string, Signature>(), edges: new Map<string, Signature>() };
+        for (const [list, names] of [[bodiesRef.current, oldNames], [result.bodies, nextNames]] as const) for (const body of list) {
+          const found = signaturesOf(body);
+          for (const kind of ['faces', 'edges'] as const) for (const [name, signature] of found[kind]) names[kind].set(name, signature);
+        }
+        // Missing names are held for an explicit choice; never choose a suffix or alias here.
+        for (const ref of referencesOf(edit.next, true).refs) {
+          if (ref.rematched || ref.node !== null || ref.part !== undefined) continue;
+          const kind = ref.edge ? 'edges' : 'faces', before = oldNames[kind].get(ref.name), after = nextNames[kind].get(ref.name);
+          if (!before || !after || before.kind !== after.kind) { refuse(`The reference at ${ref.where} needs an explicit choice.`); return; }
+        }
+        const next = await refreshSignatures(edit.next, result.bodies, async part => {
+          const partKey = evaluationKey(part);
+          if (partKey === key) return result;
+          if (acceptedEvaluation.current?.key === partKey) return acceptedEvaluation.current.result;
+          const parent = await engine.part(part, revision.current++, 'refs');
+          if (!current() || !parent?.ok) throw new Error('A reference parent could not be evaluated for this parameter change.');
+          for (const ref of referencesOf(edit.next, true).refs) {
+            if (ref.rematched || ref.node !== part.nodes.length || !ref.parent) continue;
+            const body = parent.bodies.find(b => b.key === bodyKeyFor(edit.next.nodes, ref.parent!.node, ref.parent!.side));
+            if (!body || !signaturesOf(body)[ref.edge ? 'edges' : 'faces'].has(ref.name)) throw new Error(`The reference at ${ref.where} needs an explicit choice.`);
+          }
+          return parent;
+        });
+        if (!current()) return;
+        // Compute the handoff key before accepting: a failed key cannot partially commit the candidate.
+        const nextKey = evaluationKey(prefixDoc(next, next.nodes.length));
+        // Reuse this exact result when installing the accepted document; do not evaluate it twice.
+        edit.accept(next);
+        if (docNow.current === edit.base) { refuse('The parameter change was not accepted.'); return; }
+        const installed = docNow.current;
+        parameterHandoff.current = { target: installed, key: nextKey, result };
+        if (parameterMass.current?.request === edit.request) parameterMass.current.target = installed;
+        setParameterEdit(null);
+        return;
+      }
       setBusy(false); setLastMs(result.wallTime * 1000);
       if (result.ok) {
-        // What is selected stays selected where it still is: faces, edges and bodies by their persistent names.
+        acceptedEvaluation.current = { key, result };
         const prev = bodiesRef.current;
         setBodies(result.bodies); setBodiesFor(evaluated); claimBodies.current = false; rebuildStore.set({ doc: evaluated, result });
+        if (handoff && parameterMass.current?.result === result && parameterMass.current.target === docNow.current) parameterMass.current.installedFor = evaluated;
         if (chatSelection.current) setSelection(resolveNames(result.bodies, chatSelection.current).selection); else setSelection(sel => carrySelection(sel, prev, result.bodies));
         if (again.current) { setRestart(again.current); again.current = null; }
         chatSelection.current = null;
       }
       else setToast(result.error);
-    });
+    };
+    void run().catch(cause => { if (edit) refuse(cause instanceof Error ? cause.message : String(cause)); else if (current()) { setBusy(false); setToast({ title: 'Could not evaluate the part', hint: 'The previous part remains shown.', detail: String(cause) }); } });
     return () => { live = false; };
-  }, [engine, evaluated]);
+  }, [engine, evaluated, parameterEdit, parameterCurrent]);
   // (A command's preview is what the part becomes: its bodies belong to the document it commits.)
   useEffect(() => { if (claimBodies.current) { claimBodies.current = false; setBodiesFor(evaluated); } }, [evaluated]);
   const fresh = bodiesFor === evaluated;
+  useEffect(() => {
+    const pending = parameterMass.current;
+    if (!pending?.target) return;
+    if (pending.target !== doc || (pending.installedFor && pending.installedFor !== evaluated)) { parameterMass.current = null; return; }
+    // The actual accepted array is installed and no deferred patch remains to bridge.
+    if (pending.installedFor === evaluated && bodiesFor === evaluated && sameMeshes(bodies, pending.result.bodies) && !bodies.some(b => b.massRef !== undefined)) parameterMass.current = null;
+  }, [doc, evaluated, bodiesFor, bodies]);
   // (Tests: the bodies shown are the current document's and nothing is computing — set in the commit that changes the
   // document, so a test never reads the last document's bodies as this one's, D109.)
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioFresh: boolean }).__studioFresh = fresh && !busy; }, [fresh, busy]);
@@ -802,6 +961,8 @@ export function App() {
   }, [doc, marker]);
   /** One undoable change of the direct geometry (the model stays as evaluated). */
   const commitDirect = useCallback((next: DirectGeometry, select?: string[]) => {
+    try { assertRouteBundleDocument({ ...doc, direct: next }); }
+    catch (error) { setToast({ title: 'Direct geometry not changed', hint: `${routeMessage(error)} Detach the route bundle before editing a bound member.`, detail: '' }); return; }
     pushUndo();
     setDoc({ ...doc, direct: next }); setDirty(true);
     if (select) setDirectSel(select);
@@ -817,9 +978,10 @@ export function App() {
   // While a pole is dragged, its object is shown re-evaluated with the pole where the gizmo has it.
   const directShown = useMemo(() => {
     if (!D) return [];
+    if (routeVisualDoc) return D.directDisplay(routeVisualDoc.direct);
     if (poleDrag && poleHere && poleObj && doc.direct) try { return D.directDisplay(D.movePole(doc.direct, poleObj, poleHere.key, poleHere.at.map((v, k) => v + poleDrag[k]))); } catch { /* shown as it was */ }
     return D.directDisplay(doc.direct);
-  }, [doc.direct, poleDrag, poleHere, poleObj, D]);
+  }, [doc.direct, poleDrag, poleHere, poleObj, D, routeVisualDoc]);
   /** One undoable change of the placed instances. */
   const commitInstances = useCallback((next: PartInstance[], select?: string[]) => {
     pushUndo();
@@ -963,6 +1125,7 @@ export function App() {
       const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
       if ('error' in read) throw new Error(read.error);
       const parsed = read.doc;
+      if (parsed.schema === 4 || Object.prototype.hasOwnProperty.call(parsed, 'routeBundles')) throw refusal('BAD_REFERENCE', 'Route bundle: inserting a linked route document as a part is not supported. Detach the bundle first.');
       const list = doc.instances ?? [], used = new Set(list.map(i => i.id));
       let n = 1; while (used.has(`inst${n}`)) n++;
       // Placed to the right of everything shown.
@@ -1014,7 +1177,144 @@ export function App() {
     else setToast({ title: 'Could not export an image', hint: 'Rendering needs a browser with WebGPU.', detail: '' });
   };
 
-  const cancel = useCallback(() => { setActive(null); setPreviewBodies(null); setSketch(null); }, [setSketch]);
+  const cancel = useCallback(() => { discardRouteRef.current(); setActive(null); setPreviewBodies(null); setSketch(null); }, [setSketch]);
+
+  // A bundle session owns a frozen document. Preview and final replies never replace accepted bodies.
+  const routeCurrent = (session: RouteBundleSession) => {
+    if (routeSession.current !== session || session.token !== routeToken.current || session.purpose === 'cancelled' || routeContext.current.blocked || !!activeStore.get()) return false;
+    try {
+      return docNow.current === session.accepted && routeBundleDocumentIdentity(docNow.current) === session.acceptedIdentity
+        && routeBundleDocumentIdentity(session.frozenStart) === session.frozenIdentity && routeBindings(session.frozenStart) === session.bindings;
+    } catch { return false; }
+  };
+  const routeFail = (error: unknown) => {
+    clearRouteTimer();
+    const session = routeSession.current;
+    if (session) { session.sequence++; session.ready = undefined; session.purpose = 'draft'; }
+    const friendly = error && typeof error === 'object'
+      && 'title' in error && typeof error.title === 'string'
+      && 'hint' in error && typeof error.hint === 'string'
+      && 'detail' in error && typeof error.detail === 'string'
+      && (!('code' in error) || error.code === undefined || typeof error.code === 'string') ? error as FriendlyError : null;
+    if (friendly) setToast(friendly);
+    setRoutePreviewBodies(null); setRouteVisualDoc(null); setRoutePhase('error'); setRouteError({ message: friendly ? friendly.hint || friendly.title : routeMessage(error) });
+  };
+  const beginRoute = (frozenStart: StudioDoc, bundleId: string, resetMove = true) => {
+    const accepted = docNow.current;
+    assertRouteBundleDocument(accepted); assertRouteBundleDocument(frozenStart);
+    const session: RouteBundleSession = { token: ++routeToken.current, accepted, acceptedIdentity: routeBundleDocumentIdentity(accepted),
+      frozenStart, frozenIdentity: routeBundleDocumentIdentity(frozenStart), bindings: routeBindings(frozenStart), bundleId,
+      gesture: 0, pointerId: null, sequence: 0, purpose: 'draft', delta: [0, 0, 0], gestureBase: [0, 0, 0] };
+    routeSession.current = session; setRouteViewDoc(frozenStart); setRouteSelected(bundleId);
+    if (resetMove) setRouteMove(['0', '0', '0']);
+    setRouteVisualDoc(null); setRoutePreviewBodies(null); setRouteError(undefined); setRoutePhase('draft');
+    return session;
+  };
+  const routeEvaluate = async (session: RouteBundleSession, candidate: StudioDoc, final: boolean, withPreview = true) => {
+    if (!routeCurrent(session)) { discardRouteRef.current(); return; }
+    clearRouteTimer();
+    const identity = routeBundleDocumentIdentity(candidate), evaluationDoc = prefixDoc(candidate, candidate.nodes.length);
+    const evaluatedIdentity = routeBundleDocumentIdentity(evaluationDoc), sequence = ++session.sequence;
+    const gesture = session.gesture, pointerId = session.pointerId;
+    session.ready = undefined; session.purpose = withPreview ? 'preview' : 'final'; setRoutePhase(withPreview ? 'preview' : 'validating'); setRouteError(undefined); setRoutePreviewBodies(null); setRouteVisualDoc(candidate);
+    const current = (purpose: RouteBundleSession['purpose']) => routeCurrent(session) && session.sequence === sequence && session.gesture === gesture
+      && session.pointerId === pointerId && session.purpose === purpose && routeBundleDocumentIdentity(candidate) === identity;
+    try {
+      if (withPreview) {
+        const previewRevision = revision.current++, preview = await engine.preview(evaluationDoc, previewRevision);
+        if (!current('preview')) return;
+        if (preview.revision !== previewRevision) throw new Error('The preview was interrupted. Preview this draft again.');
+        if (!preview.ok) { routeFail(preview.error); return; }
+        setRoutePreviewBodies(preview.bodies);
+        if (!final) { session.purpose = 'draft'; setRoutePhase('draft'); return; }
+      }
+      session.purpose = 'final'; setRoutePhase('validating');
+      const finalRevision = revision.current++, result = await engine.evaluate(evaluationDoc, finalRevision);
+      if (!current('final')) return;
+      if (!result || result.revision !== finalRevision) throw new Error('The final check was interrupted. Preview this draft again.');
+      if (!result.ok) { routeFail(result.error); return; }
+      session.ready = { candidate, identity, evaluatedIdentity, result, sequence, gesture, pointerId }; session.purpose = 'ready';
+      setRoutePreviewBodies(result.bodies); setRoutePhase('ready');
+    } catch (error) { if (current(session.purpose)) routeFail(error); }
+  };
+  const selectRouteBundle = (id: string) => {
+    discardRouteRef.current(); setRouteSelected(id);
+    if (routeContext.current.blocked) return;
+    try {
+      if (!docNow.current.routeBundles?.some(b => b.id === id)) throw new Error('Select a current route bundle.');
+      beginRoute(JSON.parse(JSON.stringify(docNow.current)) as StudioDoc, id);
+    } catch (error) { routeFail(error); }
+  };
+  const openRoute = () => {
+    cancel(); setRoutePanelOpen(true); setPole(null); setPoleDrag(null);
+    const id = docNow.current.routeBundles?.[0]?.id;
+    if (id) { selectRouteBundle(id); return; }
+    setRouteSelected(null);
+    setRouteCreate({ id: 'bundle1', tieId: 'tie1', anchorMM: ['0', '0', '0'], members: [0, 1].map(i => ({
+      curveObjectId: directSel[i] ?? '', handleKey: '1', sweepFeatureId: '',
+    })) as RouteBundleCreateDraft['members'] });
+  };
+  const createRoute = () => {
+    if (routeContext.current.blocked) return;
+    try {
+      const accepted = docNow.current;
+      const members = routeCreate.members.map((member, index) => {
+        const sweep = accepted.nodes.find(n => n.id === member.sweepFeatureId);
+        if (!sweep || sweep.kind !== 'sweep-curve') throw new Error(`Member ${index + 1}: select a current copied sweep.`);
+        const profile = accepted.nodes[sweep.sketch];
+        if (!profile?.id) throw new Error(`Member ${index + 1}: the copied sweep needs a current profile. Reselect the curve and copied sweep.`);
+        return { ...member, id: `member${index + 1}`, profileFeatureId: profile.id };
+      }) as Parameters<typeof createRouteBundle>[1]['members'];
+      const candidate = createRouteBundle(accepted, { id: routeCreate.id, tieId: routeCreate.tieId, anchorMM: routeNumbers(routeCreate.anchorMM), members,
+        expectedDocumentIdentity: routeBundleDocumentIdentity(accepted) });
+      const session = beginRoute(candidate, routeCreate.id);
+      void routeEvaluate(session, candidate, false);
+    } catch (error) { routeFail(error); }
+  };
+  const previewRoute = () => {
+    if (routeContext.current.blocked || routePhase === 'validating') return;
+    try {
+      let session = routeSession.current;
+      if (!session && routeSelected) session = beginRoute(JSON.parse(JSON.stringify(docNow.current)) as StudioDoc, routeSelected, false);
+      if (!session || !routeCurrent(session)) throw new Error('Select the current bundle again. The document changed.');
+      const delta = routeNumbers(routeMove);
+      const candidate = moveRouteBundle(session.frozenStart, session.bundleId, delta, session.frozenIdentity);
+      session.delta = delta; session.pointerId = null; session.gesture++;
+      void routeEvaluate(session, candidate, true);
+    } catch (error) { routeFail(error); }
+  };
+  const changeRouteMove = (next: [string, string, string]) => {
+    clearRouteTimer();
+    const session = routeSession.current;
+    if (session) { session.sequence++; session.purpose = 'draft'; session.ready = undefined; session.pointerId = null; session.delta = [0, 0, 0]; }
+    setRouteMove(next); setRoutePhase('draft'); setRouteError(undefined); setRouteVisualDoc(null); setRoutePreviewBodies(null);
+  };
+  const applyRoute = () => {
+    const session = routeSession.current, ready = session?.ready;
+    if (!session || !ready || !routeCurrent(session) || session.purpose !== 'ready' || ready.sequence !== session.sequence
+      || ready.gesture !== session.gesture || ready.pointerId !== session.pointerId) { routeFail(new Error('Preview the current draft before applying it.')); return; }
+    try {
+      assertRouteBundleDocument(ready.candidate);
+      if (routeBundleDocumentIdentity(ready.candidate) !== ready.identity) throw new Error('The draft changed. Preview it again.');
+      const candidate = ready.candidate, id = session.bundleId;
+      discardRouteRef.current();
+      routeAcceptedHandoff.current = { doc: candidate, identity: ready.identity, evaluatedIdentity: ready.evaluatedIdentity, revision: ready.result.revision, result: ready.result };
+      // The full candidate was evaluated against this exact accepted document; do not rebase it.
+      commit(candidate, false, true); setRouteSelected(candidate.routeBundles?.some(b => b.id === id) ? id : null);
+    } catch (error) { routeFail(error); }
+  };
+  const detachRoute = () => {
+    if (routeContext.current.blocked) return;
+    try {
+      const id = routeSelected;
+      if (!id || !docNow.current.routeBundles?.some(b => b.id === id)) { discardRouteRef.current(); return; }
+      const session = beginRoute(JSON.parse(JSON.stringify(docNow.current)) as StudioDoc, id);
+      const candidate = detachRouteBundle(session.frozenStart, id, session.frozenIdentity);
+      void routeEvaluate(session, candidate, true);
+    } catch (error) { routeFail(error); }
+  };
+  useEffect(() => { if (routeSession.current && routeSession.current.accepted !== doc) discardRouteRef.current(); }, [doc]);
+  useEffect(() => () => { clearRouteTimer(); routeToken.current++; if (routeSession.current) routeSession.current.purpose = 'cancelled'; }, []);
 
   // Live preview: re-evaluate the candidate whenever HUD values change. One evaluation at a time, the
   // newest values next (a drag sends many): the preview keeps up as fast as the kernel does, with no
@@ -1126,6 +1426,7 @@ export function App() {
   }, [previewBodies, active?.cmd, apply, activeStore]);
 
   const start = useCallback((cmd: Command) => {
+    discardRouteRef.current(); setRoutePanelOpen(false);
     setPalette(false); setRendering(false); setPlaying(false); setDrawing(false);
     const avail = cmd.available(ctx);
     if (!avail.ok) { setToast({ title: `${cmd.label} can’t run here`, hint: avail.reason, detail: '' }); return; }
@@ -1807,6 +2108,8 @@ export function App() {
   // (`full`: the part the whole proposal leaves; `parts`: its features, `leaveOut` those unticked, A4.3.)
   // (`shown`: the part as previewed — the whole proposal's, or without what is left out; G12 diffs it with the part.)
   const [ghost, setGhost] = useState<{ id: string; bodies: BodyResult[]; after: boolean; full: StudioDoc; shown: StudioDoc; parts: ProposalPart[]; leaveOut: string[] } | null>(null);
+  routeContext.current = { blocked: busy || !fresh || !!parameterEdit || marker !== null || !!shownVariant.current || !!active || !!sketch || rendering || drawing || !!measure || !!assembly.draft || !!cageEd.session || !!skel.session || !!ghost };
+  useEffect(() => { if (routeContext.current.blocked && routeSession.current) discardRouteRef.current(); }, [busy, fresh, parameterEdit, marker, active, sketch, rendering, drawing, measure, assembly.draft, cageEd.session, skel.session, ghost, doc]);
   /** G12: what the shown proposal adds and takes away (worked out in the engine worker), for the viewport's overlay. */
   const [proposalOverlay, setProposalOverlay] = useState<ProposalOverlay | null>(null);
   const [proposalBusy, setProposalBusy] = useState(false), [decidedShown, setDecidedShown] = useState(false), [historyOpen, setHistoryOpen] = useState(false);
@@ -1923,6 +2226,28 @@ export function App() {
   const confirmBrief = (key: BriefKey) => { const b = readBrief(doc.brief); if (!b) return; const next = confirmField(b, key, new Date().toISOString()); if ('error' in next) return; commit(applyBrief(doc, next), false); };
   // The references marked matched again (until confirmed), and the user's say on them and on the problems.
   const refMarks = useMemo(() => markedReferences(doc), [doc]);
+  const referenceDimension = (where: string) => doc.drawing?.dimensions.find(d => where === `dimension ${d.id}`);
+  const referenceCaption = (where: string) => {
+    const dimension = referenceDimension(where);
+    if (!dimension) return where.startsWith('feature ') ? 'Feature reference' : where.startsWith('mate ') ? 'Mate reference' : 'Model reference';
+    const label = referenceLabels.find(x => x.dimensionId === dimension.id);
+    const kind = dimension.kind === 'pcd' ? 'Pitch circle' : dimension.kind === 'angle' ? 'Angle' : dimension.kind === 'diameter' ? 'Diameter' : dimension.kind === 'radius' ? 'Radius' : 'Linear';
+    const view = dimension.view === 'front' ? 'Front' : dimension.view === 'top' ? 'Top' : dimension.view === 'right' ? 'Right' : dimension.view.startsWith('section:') ? `Section ${dimension.view.slice(8)}` : dimension.view.startsWith('detail:') ? `Detail ${dimension.view.slice(7)}` : 'Isometric';
+    return `${label?.text ?? kind + ' dimension'} · ${view} view`;
+  };
+  const affectedDimensions = (name: string) => new Set(referencesOf(doc, true).refs.filter(r => r.name === name || r.was === name).map(r => referenceDimension(r.where)?.id).filter(Boolean)).size;
+  const previewReference = (where: string, edge?: string, inModel = false) => {
+    const dimension = referenceDimension(where);
+    if (dimension && !inModel) {
+      setReferencePreview({ dimensionId: dimension.id, ...(edge ? { edge } : {}) });
+      setSketch(null); setActive(null); setMeasure(null); setRendering(false); setPlaying(false); setDrawing(true); setBrowserOpen(true);
+      return;
+    }
+    if (!edge || !fresh || busy || section || previewBodies || sketch || mateFaces) { setToast({ title: 'Preview unavailable', hint: 'Show the current model without a section or active tool first.', detail: '' }); return; }
+    const edges = bodies.flatMap((body, bodyIndex) => body.mesh.edges.flatMap((candidate, edgeIndex) => candidate.names.includes(edge) ? [{ body: bodyIndex, edge: edgeIndex }] : []));
+    if (edges.length !== 1) { setToast({ title: 'Preview unavailable', hint: edges.length ? 'This name covers more than one displayed edge.' : 'This edge is not present in the current displayed model.', detail: '' }); return; }
+    setReferencePreview(null); setDrawing(false); setRendering(false); setMeasure(null); setInstanceSel([]); setDirectSel([]); setSelection({ faces: [], edges, bodies: [] });
+  };
   const settleRef = async (index: number, to?: string) => {
     const next = await confirmReference(doc, index, bodies, d => engine.part(d, revision.current++, 'refs'), to);
     setRefProblems(ps => ps.filter(p => p.index !== index)); setRefChoices(null);
@@ -2083,6 +2408,7 @@ export function App() {
         chatSelection.current = { faces: [], edges: [], bodies: [bodyKeyFor(r.doc.nodes, r.top)] }; commit(r.doc); return;
       }
       if (drawing) return; // (the Drawing workspace has its own keys)
+      if (e.key === 'Escape' && routePanelOpen && !active && !sketch && !assembly.draft && !measure && !cageEd.session && !skel.session) { e.preventDefault(); discardRouteRef.current(); return; }
       if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else { setSelection(emptySel); setInstanceSel([]); setDirectSel([]); } return; }
       // Enter applies; Shift-Enter applies and starts the same command again (another hole, another shape).
       if (e.key === 'Enter' && !palette) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); if (e.shiftKey && active.cmd.id !== 'edit') again.current = active.cmd; apply(); } return; }
@@ -2133,7 +2459,7 @@ export function App() {
   const drawnRef = useRef(bodies);
   if (!sameMeshes(drawnRef.current, bodies)) drawnRef.current = bodies;
   const drawnBodies = drawnRef.current;
-  const shownBodies = bodyDrag ? drawnBodies : previewBodies ?? (section && sectionBodies && !sketch ? sectionBodies : drawnBodies);
+  const shownBodies = bodyDrag ? drawnBodies : routePreviewBodies ?? previewBodies ?? (section && sectionBodies && !sketch ? sectionBodies : drawnBodies);
   // The Render workspace's animated offsets on the bodies shown: each by its body's key — an exact section's piece by the
   // body it was cut from (G19.5: by index they fell on other bodies once the section left some out or split them).
   const animatedOffsets = useMemo(() => {
@@ -2151,8 +2477,8 @@ export function App() {
     const overlaid = !!ghost && proposalOverlay?.method === 'boolean';
     const had = ghost ? new Set(bodies.map(b => `${b.key}:${meshSig(b.mesh)}`)) : null;
     const fresh = (b: BodyResult) => { if (had) return !had.has(`${b.key}:${meshSig(b.mesh)}`); const at = previewNodes && bodyNodeOf(previewNodes, b.key); return !!previewNodes && !!at && rootOf(previewNodes, at.node) >= evaluated.nodes.length; };
-    return new Map(shownBodies.flatMap((b, i) => { const c = lookOf(doc, b).color ?? (shownBodies === previewBodies && fresh(b) && !overlaid ? PREVIEW_TINT : undefined); return c ? [[i, rgbOf(c)] as [number, [number, number, number]]] : []; }));
-  }, [shownBodies, doc, previewBodies, previewNodes, evaluated.nodes.length, ghost, bodies, proposalOverlay]);
+    return new Map(shownBodies.flatMap((b, i) => { const c = shownBodies === routePreviewBodies ? PREVIEW_TINT : lookOf(doc, b).color ?? (shownBodies === previewBodies && fresh(b) && !overlaid ? PREVIEW_TINT : undefined); return c ? [[i, rgbOf(c)] as [number, [number, number, number]]] : []; }));
+  }, [shownBodies, doc, previewBodies, routePreviewBodies, previewNodes, evaluated.nodes.length, ghost, bodies, proposalOverlay]);
   const hiddenBodies = useMemo(() => new Set(shownBodies.flatMap((b, i) => lookOf(doc, b).hidden ? [i] : [])), [shownBodies, doc]);
   // Faces coloured on their own, by body index and face index (their names kept with the body's look).
   // (G12: a shown proposal's faces tinted — where the Boolean refused (WebGL2 draws the overlay too, G16) — those it adds or changes
@@ -2243,7 +2569,7 @@ export function App() {
   });
   const sectionFrom = nextSerial(evaluated);
   const shownSelection = sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => cutAfter(f.name, sectionFrom)).map(f => ({ body: bi, face: f.index }))), edges: [], bodies: [] }
-    : previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
+    : routePreviewBodies || routePanelOpen || previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
   const density = MATERIALS.find(m => m.id === material) ?? MATERIALS[0];
   // (The locked references and the keep-outs, A6.3: drawn ghosted after the part's bodies, never picked.)
@@ -2410,8 +2736,89 @@ export function App() {
     return b ? holeRegions(doc.nodes, group, b.mesh.bounds) : [];
   }, [active, editNode, doc.nodes, bodies, selection.bodies, rendering, drawing, sketch]);
 
+  const routeSessionShown = routeSession.current;
+  const routeTie = routeSessionShown?.frozenStart.routeBundles?.find(b => b.id === routeSessionShown.bundleId)?.tie;
+  const routeGizmo: RouteTransformGizmo | null = routePanelOpen && routeSessionShown && routeTie && routePhase !== 'error' && !routeContext.current.blocked && routeCurrent(routeSessionShown) ? {
+    // Stable for the whole edit; a gesture has a different token and never changes this key.
+    sessionKey: `route-bundle:${routeSessionShown.token}:${routeSessionShown.bundleId}`,
+    origin: routeTie.anchorMM.map((v, k) => v + routeSessionShown.delta[k]) as Vec3, move: [0, 1, 2],
+    onStart: pointerId => {
+      const session = routeSession.current;
+      if (!session || session !== routeSessionShown || !routeCurrent(session)) return;
+      clearRouteTimer(); session.sequence++; session.gesture++; session.pointerId = pointerId;
+      session.gestureBase = [...session.delta]; session.ready = undefined; session.purpose = 'draft';
+      setRouteMove(session.delta.map(String) as [string, string, string]);
+      setRoutePhase('draft'); setRouteError(undefined); setRoutePreviewBodies(null);
+    },
+    onMove: (delta, done, pointerId) => {
+      const session = routeSession.current;
+      if (!session || session !== routeSessionShown || pointerId === undefined || session.pointerId !== pointerId || !routeCurrent(session)) return;
+      clearRouteTimer(); session.sequence++; session.ready = undefined; session.purpose = 'draft';
+      try {
+        // The viewport supplies total displacement from this gesture's captured origin.
+        const total = session.gestureBase.map((v, k) => v + delta[k]) as Vec3;
+        const candidate = moveRouteBundle(session.frozenStart, session.bundleId, total, session.frozenIdentity);
+        session.delta = total; setRouteMove(total.map(String) as [string, string, string]);
+        setRouteVisualDoc(candidate); setRoutePreviewBodies(null); setRoutePhase('draft'); setRouteError(undefined);
+        if (done) { void routeEvaluate(session, candidate, true, false); return; }
+        const sequence = session.sequence, gesture = session.gesture;
+        routePreviewTimer.current = setTimeout(() => {
+          routePreviewTimer.current = null;
+          if (routeCurrent(session) && session.sequence === sequence && session.gesture === gesture && session.pointerId === pointerId) void routeEvaluate(session, candidate, false);
+        }, 100);
+      } catch (error) { routeFail(error); }
+    },
+    onCancel: (pointerId, _reason) => {
+      const session = routeSession.current;
+      if (session && session === routeSessionShown && session.pointerId === pointerId) discardRouteRef.current();
+    },
+  } : null;
+
+  // Display-only draft guides reuse the existing non-pickable world-mm underlay channel.
+  const routeGuideUnderlays = useMemo((): typeof underlaysShown => {
+    const session = routeSession.current;
+    if (!routePanelOpen || !session || !D || routePhase === 'error' || !routeCurrent(session)) return [];
+    try {
+      const candidate = routeVisualDoc ?? session.frozenStart;
+      assertRouteBundleDocument(candidate);
+      const bundle = candidate.routeBundles?.find(b => b.id === session.bundleId);
+      if (!bundle || !candidate.direct) return [];
+      const points = bundle.members.map(member => {
+        const pole = D.polesOf(candidate.direct!, member.curveObjectId).find(p => p.key === member.handleKey);
+        if (!pole || pole.at.some(v => !Number.isFinite(v))) throw new Error('The current member point is unavailable.');
+        return { member, at: pole.at };
+      });
+      const tie = bundle.tie.anchorMM;
+      const span = Math.max(...points.map(p => Math.hypot(...p.at.map((v, k) => v - tie[k]))));
+      const height = Math.max(0.5, span * 0.05), radius = height * 0.25;
+      const guides: typeof underlaysShown = [];
+      const key = (kind: 'point' | 'line' | 'label', owner: 'member' | 'tie', id: string) => {
+        let value = JSON.stringify(['route-bundle-draft', session.token, bundle.id, kind, owner, id]);
+        while (underlaysShown.some(u => u.id === value)) value = '_' + value;
+        return value;
+      };
+      const text = (at: Vec3, value: string) => ({ at, dir: [1, 0, 0] as Vec3, up: [0, 1, 0] as Vec3, text: value, height });
+      for (const { member, at } of points) {
+        const cross = [0, 1, 2].map(axis => [
+          at.map((v, k) => v - (k === axis ? radius : 0)) as Vec3,
+          at.map((v, k) => v + (k === axis ? radius : 0)) as Vec3,
+        ]);
+        const letter = member.id === bundle.members[0].id ? 'A' : 'B';
+        guides.push({ id: key('line', 'member', member.id), lines: [[tie, at]], texts: [] },
+          { id: key('point', 'member', member.id), lines: cross, texts: [] },
+          { id: key('label', 'member', member.id), lines: [], texts: [text([at[0] + (letter === 'A' ? -height : height * 0.4), at[1] + height * 0.4, at[2]], letter)] });
+      }
+      const diamond: Vec3[] = [[tie[0], tie[1] + radius, tie[2]], [tie[0] + radius, tie[1], tie[2]],
+        [tie[0], tie[1] - radius, tie[2]], [tie[0] - radius, tie[1], tie[2]], [tie[0], tie[1] + radius, tie[2]]];
+      guides.push({ id: key('point', 'tie', bundle.tie.id), lines: [diamond], texts: [] },
+        { id: key('label', 'tie', bundle.tie.id), lines: [], texts: [text([tie[0] + height * 0.4, tie[1] + height * 0.8, tie[2]], 'Tie')] });
+      return guides;
+    } catch { return []; } // No guessed coordinates or source repair when a binding is unavailable.
+  }, [routePanelOpen, routeVisualDoc, routeViewDoc, routePhase, routeMove, doc, D, underlaysShown, busy, fresh, marker, active, sketch, rendering, drawing, measure, assembly.draft, cageEd.session, skel.session, ghost]);
+  const viewportUnderlays = useMemo(() => routeGuideUnderlays.length ? [...underlaysShown, ...routeGuideUnderlays] : underlaysShown, [underlaysShown, routeGuideUnderlays]);
+
   // The picked pole's gizmo: drag it along an axis; let go, the curve or surface is edited (one undo step).
-  const poleMode = !active && !sketch && !rendering && !drawing && !measure && !assembly.draft;
+  const poleMode = !routePanelOpen && !active && !sketch && !rendering && !drawing && !measure && !assembly.draft;
   const poleGizmo: TransformGizmo | null = poleMode && poleHere && poleObj && doc.direct ? {
     origin: poleMoved(poleDrag ?? [0, 0, 0]) as Vec3, move: [0, 1, 2],
     onMove: (delta, done) => {
@@ -2545,7 +2952,43 @@ export function App() {
   const dockEdge = dockDocked ? 0 : CHAT_STRIP + (layout.dockSheet ? layout.dockWidth : 0);
   useEffect(() => setStripWidth((chatColumnShown ? 0 : CHAT_STRIP) + dockEdge), [chatColumnShown, dockEdge]);
   // (A panel opened while the dock is a strip opens its sheet: the panel is in it.)
-  useEffect(() => { if (!dockDocked && (bomOpen || libraryOpen || paramsOpen)) layout.setDockSheet(true); }, [dockDocked, bomOpen, libraryOpen, paramsOpen, layout.setDockSheet]);
+  useEffect(() => { if (!dockDocked && (bomOpen || libraryOpen || paramsOpen || routePanelOpen)) layout.setDockSheet(true); }, [dockDocked, bomOpen, libraryOpen, paramsOpen, routePanelOpen, layout.setDockSheet]);
+  // Reference decisions stay in the existing Browser panel. Preview never commits a candidate.
+  const referenceRowStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 6, paddingBlock: 8, minWidth: 0, maxWidth: '100%', overflowWrap: 'anywhere' };
+  const referenceActionsStyle: CSSProperties = { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4, minWidth: 0, maxWidth: '100%' };
+  const referenceButtonStyle: CSSProperties = { minWidth: 0, maxWidth: '100%', whiteSpace: 'normal', overflowWrap: 'anywhere', textAlign: 'left' };
+  const referenceDecisions = !sketch && !active && !rendering && (refMarks.length > 0 || refProblems.length > 0) ? <section aria-label="References" style={{ minWidth: 0, maxWidth: '100%', overflowWrap: 'anywhere' }}>
+    <div className="ol-head">References</div>
+    <div className="muted">{refMarks.length} matched again · {refProblems.length} need a choice</div>
+    {refMarks.map(m => <div key={'m' + m.index} style={referenceRowStyle}>
+      <p style={{ margin: 0, whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{referenceCaption(m.where)}<br /><span className="muted">{affectedDimensions(m.now)} affected dimension(s) · Matched again</span></p>
+      <div style={referenceActionsStyle}>
+      {referenceDimension(m.where) && <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(m.where)}>Show dimension</button>}
+      {m.edge && <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(m.where, m.now, true)}>Preview in model</button>}
+      <button className="ghost small" style={referenceButtonStyle} onClick={() => void settleRef(m.index)}>Confirm reference</button>
+      <button className="ghost small" style={referenceButtonStyle} onClick={() => void showRefChoices(m.index)}>Show alternatives</button>
+      </div>
+      {refChoices?.index === m.index && refChoices.names.filter(n => n !== m.now).map((n, i) => <div key={n} style={referenceActionsStyle}>
+        <span>Candidate {i + 1} </span>
+        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(m.where, n)}>Preview candidate {i + 1}</button>
+        <button className="ghost small" style={referenceButtonStyle} onClick={() => void settleRef(m.index, n)}>Use candidate {i + 1}</button>
+      </div>)}
+      <details style={{ minWidth: 0, maxWidth: '100%' }}><summary>Technical details</summary><div className="muted" style={{ overflowWrap: 'anywhere' }}>{m.where}: {m.was} → {m.now}{refChoices?.index === m.index && refChoices.names.filter(n => n !== m.now).map((n, i) => <div key={n}>Candidate {i + 1}: {n}</div>)}</div></details>
+    </div>)}
+    {refProblems.map(p => <div key={'p' + p.index} style={referenceRowStyle}>
+      <p style={{ margin: 0, whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{referenceCaption(p.where)}<br /><span className="muted">{affectedDimensions(p.name)} affected dimension(s) · {p.candidates.length ? 'Choose a reference' : 'Reference missing'}{p.node !== null ? ' · Feature held' : ''}</span></p>
+      <div style={referenceActionsStyle}>
+      {referenceDimension(p.where) && <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(p.where)}>Show dimension</button>}
+      </div>
+      {p.candidates.map((n, i) => <div key={n} style={referenceActionsStyle}>
+        <span>Candidate {i + 1} </span>
+        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(p.where, n)}>Preview candidate {i + 1}</button>
+        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(p.where, n, true)}>Preview in model</button>
+        <button className="ghost small" style={referenceButtonStyle} onClick={() => void settleRef(p.index, n)}>Use candidate {i + 1}</button>
+      </div>)}
+      <details style={{ minWidth: 0, maxWidth: '100%' }}><summary>Technical details</summary><div className="muted" style={{ overflowWrap: 'anywhere' }}>{p.where}: {p.name}{p.candidates.map((n, i) => <div key={n}>Candidate {i + 1}: {n}</div>)}</div></details>
+    </div>)}
+  </section> : null;
   const browserPanel = (
       <Profiler id="outliner" onRender={onBlockRender}><aside className={'card outliner' + (browserOpen ? '' : ' closed')} aria-label="Browser">
         <div className="card-title">BROWSER <span className="muted" aria-busy={!fresh}>{fresh ? `${bodies.length} bod${bodies.length === 1 ? 'y' : 'ies'}` : busy ? 'evaluating…' : 'not up to date'}</span>
@@ -2621,6 +3064,7 @@ export function App() {
           <span className="mono muted">{h.kind}</span> {h.kind === 'prompt' ? `“${(h.prompt ?? '').slice(0, 80)}${(h.prompt?.length ?? 0) > 80 ? '…' : ''}”` : h.summary}
           {h.kind === 'prompt' && h.summary && <span className="muted"> → {h.summary}</span>}
           <span className="muted"> · {h.by.agent}{h.by.model ? ` (${h.by.model})` : ''} · {whenOf(h.at)}</span></div>)}</>}
+        {referenceDecisions}
         {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
         </>}
       </aside></Profiler>
@@ -2639,15 +3083,25 @@ export function App() {
       {libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <LibraryPanel doc={doc} onCommit={next => commit(next)} onClose={() => setLibraryOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} onQuote={() => { void exportQuote(); }} />}
       {paramsOpen && !rendering && !drawing && !sketch && !active && <ParametersPanel doc={doc} onClose={() => setParamsOpen(false)}
         onChange={p => {
+          const request = ++parameterRequest.current;
+          const cancelCandidate = () => {
+            if (parameterEdit?.base === doc && acceptedEvaluation.current) parameterHandoff.current = { target: doc, ...acceptedEvaluation.current, result: { ...acceptedEvaluation.current.result, bodies } };
+            if (parameterMass.current && !parameterMass.current.target) parameterMass.current = null;
+            setParameterEdit(null);
+          };
           // (O140: the skeletons bound to a parameter re-solved with it — a conflict refused, the parameter named, nothing changed.)
           let r: ReturnType<typeof resolveSkeletons>;
           try { r = resolveSkeletons({ ...doc, ...p, ...(p.configurations ? {} : { configurations: undefined }) }); }
-          catch (e) { if (!isRefusal(e, ...SKELETON_CODES)) throw e; setToast({ title: 'That value does not hold', hint: e.message.replace(/^\[\w+\] /, ''), detail: 'The parameters are as they were.' }); return; }
-          commit(r.doc);
+          catch (e) { cancelCandidate(); if (!isRefusal(e, ...SKELETON_CODES)) throw e; setToast({ title: 'That value does not hold', hint: e.message.replace(/^\[\w+\] /, ''), detail: 'The parameters are as they were.' }); return; }
+          if (!fresh || !massReady || shownVariant.current || refProblems.length) { cancelCandidate(); setToast({ title: 'Parameters not changed', hint: refProblems.length ? 'Choose the unresolved references first.' : !massReady ? 'Wait for the accepted part’s mass results before changing parameters.' : 'Wait for the accepted part to finish evaluating.', detail: '' }); return; }
+          // Keep deferred mass updates with the accepted result when a candidate is refused.
+          if (acceptedEvaluation.current) acceptedEvaluation.current = { ...acceptedEvaluation.current, result: { ...acceptedEvaluation.current.result, bodies } };
+          if (parameterMass.current && !parameterMass.current.target) parameterMass.current = null;
+          setParameterEdit({ request, base: doc, baseInput: evaluated, input: prefixDoc(r.doc, r.doc.nodes.length), next: r.doc, accept: next => commit(next, false) });
         }} onError={m => setToast({ title: 'Parameters', hint: m, detail: '' })} />}
       {rendering && !sketch && <Suspense fallback={null}><RenderPanel render={render} onError={m => setToast({ title: 'Could not use that image', hint: m, detail: '' })} available={viewport.current?.backend === 'webgpu'}
         selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...instanceSel.map(id => 'inst:' + id)]}
-        onChange={commitRender} onExport={exportImage} fov={fov}
+        onChange={commitRender} onExport={exportImage} fov={fov} onPickFocus={done => viewport.current?.pickRenderFocus(done)}
         onFov={deg => { const c = viewport.current?.getCamera(); if (c) { viewport.current?.setCamera({ ...c, fovY: deg * Math.PI / 180 }); setFov(deg); } }}
         onSaveCamera={() => { const c = viewport.current?.getCamera(); if (c) commitRender({ ...render, camera: c }); }}
         onUseCamera={() => { if (render.camera) { viewport.current?.setCamera(render.camera); setFov(Math.round(render.camera.fovY * 180 / Math.PI)); } }} /></Suspense>}
@@ -2966,14 +3420,15 @@ export function App() {
           try { downloadBytes(new TextEncoder().encode((await loadDirect()).directIGES(doc.direct!, fileName)), `${fileName}.igs`, 'model/iges'); }
           catch (e) { setToast({ title: 'Could not write IGES', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
         }}><Icon name="polyline" /></ToolIconButton>,
+          (!!doc.routeBundles?.length || (doc.direct?.objects.filter(object => { try { return !!D && D.geometryOf(doc.direct!, object).kind === 'curve'; } catch { return false; } }).length ?? 0) >= 2) && <ToolIconButton key="route-bundle" state={routePanelOpen ? 'on' : 'idle'} aria-label="Route bundle" data-tip="Route bundle" data-tip-desc="Link two curve control points and their copied sweeps" disabled={routeContext.current.blocked} onClick={openRoute}><Icon name="conversion_path" /></ToolIconButton>,
           <ToolIconButton key="tool13" aria-label="Insert part" data-tip="Insert part" data-tip-desc="Another part (.bcad) as an instance" onClick={() => partInput.current?.click()}><Icon name="add_to_photos" /></ToolIconButton>,
         ].filter(Boolean)} />
         <input ref={partInput} type="file" accept=".bcad,.json" hidden aria-label="Part file" onChange={e => { const f = e.target.files?.[0]; if (f) insertPart(f); e.target.value = ''; }} />
         <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header></Profiler>
       <div className="stage">
-      <SceneViewport ref={viewport} contactLinks={contactShown && motionContact ? motionContact.links : undefined} poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
-        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : compareOverlay} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+      <SceneViewport ref={viewport} contactLinks={contactShown && motionContact ? motionContact.links : undefined} poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : routeGizmo ?? gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
+        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={viewportUnderlays} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : compareOverlay} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
         onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
@@ -3028,7 +3483,7 @@ export function App() {
 
       {browserPlacement === 'left' && browserPanel}
 
-      {drawing && <Suspense fallback={null}><DrawingWorkspace engine={engine} doc={{ ...evaluated, instances: doc.instances }} bodies={bodies} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} /></Suspense>}
+      {drawing && <Suspense fallback={null}><DrawingWorkspace engine={engine} doc={{ ...evaluated, instances: doc.instances }} bodies={bodies} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} referencePreview={referencePreview} onReferenceLabels={receiveReferenceLabels} /></Suspense>}
 
       {!dockDocked && hud}
 
@@ -3044,15 +3499,6 @@ export function App() {
           onTime={t => { setPlaying(false); setTime(t); }} onPlay={play} onChange={a => commitRender({ ...render, animation: a })}
           exporting={videoBusy} onExportVideo={() => { setPlaying(false); turnFrom.current = viewport.current?.getCamera() ?? null; void recordVideo(render.animation.duration, setTime, `${fileName}-render.webm`); }} />;
       })()}
-      {!sketch && !active && !rendering && (refMarks.length > 0 || refProblems.length > 0) && <aside className="card refs" aria-label="References">
-        <div className="card-title">REFERENCES <span className="muted">{[refMarks.length && `${refMarks.length} matched again`, refProblems.length && `${refProblems.length} need${refProblems.length === 1 ? 's' : ''} a choice`].filter(Boolean).join(', ')}</span></div>
-        {refMarks.map(m => <div key={'m' + m.index} className="ref"><span className="what">{m.where}: <b>{m.was}</b> → <b>{m.now}</b></span>
-          <button className="ghost small" aria-label={`Confirm ${m.now}`} onClick={() => void settleRef(m.index)}>Confirm</button>
-          <button className="ghost small" aria-label={`Pick another for ${m.was}`} onClick={() => void showRefChoices(m.index)}>Pick another</button>
-          {refChoices?.index === m.index && refChoices.names.filter(n => n !== m.now).map(n => <button key={n} className="ghost small" onClick={() => void settleRef(m.index, n)}>{n}</button>)}</div>)}
-        {refProblems.map(p => <div key={'p' + p.index} className="ref"><span className="what">{p.where}: <b>{p.name}</b> {p.candidates.length ? 'could be any of these' : 'is gone; pick it again on the feature'}{p.node !== null ? ' (held until then)' : ''}</span>
-          {p.candidates.map(n => <button key={n} className="ghost small" aria-label={`Use ${n}`} onClick={() => void settleRef(p.index, n)}>{n}</button>)}</div>)}
-      </aside>}
       <Profiler id="history" onRender={onBlockRender}>{historyShown && <div className={'history' + (historyRows ? ' expanded' : '') + (historyLabels ? ' show-labels' : '')} role="group" aria-label="History" ref={historyBar}>
         <button className="history-labels" aria-label="Show history step names" aria-pressed={historyLabels} title={historyLabels ? 'Hide step names' : 'Show step names'} onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') e.stopPropagation(); }} onClick={() => setHistoryLabels(shown => !shown)}><Icon name="short_text" small /></button>
         {doc.nodes.map((n, i) => innerSteps.has(i) ? null : n.kind === 'sketch' ? (freeSketches.includes(i) ? (
@@ -3251,7 +3697,11 @@ export function App() {
       <Dock width={layout.dockWidth} docked={dockDocked} sheet={layout.dockSheet} onSheet={layout.setDockSheet}>
         {browserPlacement === 'dock' && browserPanel}
         {dockDocked && hud}
-        {inspector}
+        {routePanelOpen ? <RouteBundlePanel doc={routeViewDoc ?? doc} directSelection={directSel} busy={routeContext.current.blocked || routePhase === 'preview' || routePhase === 'validating'} phase={routePhase}
+          createDraft={routeCreate} moveDraft={routeMove} selectedBundleId={routeSelected} error={routeError}
+          onCreateDraftChange={next => { discardRouteRef.current(); setRouteCreate(next); setRoutePhase('draft'); }} onMoveDraftChange={changeRouteMove}
+          onBundleChange={selectRouteBundle} onCreate={createRoute} onPreview={previewRoute} onApply={applyRoute} onCancel={discardRoute}
+          onDetach={detachRoute} onClose={() => { discardRouteRef.current(); setRoutePanelOpen(false); }} /> : inspector}
         <PreviewSection mode={previewMode} onMode={choosePreview} panel={previewPanel} overlay={previewOverlay} overlayStatus={previewOverlayStatus} />
       </Dock>
       {/* (G12a: the chat column, shown at the left (order: -1) and full height; after the stage in the document, so the top bar's

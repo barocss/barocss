@@ -1,6 +1,6 @@
 # barocss CAD roadmap
 
-Current as of 2026-10-26, after the scoped CAD integration checkpoints. This file is the one place for **what we do, in what order, and
+Current as of 2026-10-27, after the scoped CAD integration checkpoints. This file is the one place for **what we do, in what order, and
 when each item is done**. It replaces Codex's continuation roadmap of 2026-10-22/23, which is at `0eabecf7f` and on
 `codex/cad-coordinator-handover-20261022`.
 
@@ -17,6 +17,91 @@ manufacturing HOLD items or any recorded FAIL, interrupted run or uncompleted qu
 This top-level scope update supersedes earlier goal and CAE exclusion statements only. The lane queues and
 historical checkpoints below remain records; this patch does not adopt candidate source, change a past result,
 authorize a new runtime window, or automatically start a gallery, browser or manufacturing acceptance run.
+
+## Foundation before Studio (owner order, 2026-10-26)
+
+Implement and verify the basic functions in Kernel, GPU, CAD and CAD Model before completing their Studio workflow.
+These foundation lanes can work in parallel when their files and resources do not conflict. This is a gate for each
+feature, not a requirement to finish every future engine feature before any Studio work.
+
+| Gate | Required result | Owner and completion evidence |
+|---|---|---|
+| 1. Foundation contract | State supported inputs, units, coordinate frames, stable references and explicit failure results. Reuse existing functions before adding another implementation. | Kernel, GPU, CAD and CAD Model owners agree on the producer/consumer boundary and exact owned files. |
+| 2. Basic implementation | Implement the admitted operation and preserve accepted data on invalid input, stale results or partial failure. | The owning engine or Model has focused tests with independent numeric or identity references where applicable; preserve the first failure and original tolerances. |
+| 3. Cross-layer verification | Verify the actual producer output at its consumer, including parameter changes, serialization and reference loss. | Confirm the bound source and required build/type checks. A screenshot, mock or same writer/reader agreement cannot replace the missing engine contract. |
+| 4. Studio completion | Connect the verified operation to public controls, feedback and document transactions. | The Studio owner runs the required actual browser flow, Undo/Redo and file roundtrip, checks console and views the captured PNGs. |
+| 5. Integration | Adopt the reviewed commits and run the required affected product checks. | The coordinator records exact source and product commits, remaining limits and the next ready task. |
+
+The delivery unit is one complete feature: its foundation contract, full source implementation, required checks,
+actual consumer workflow and product integration. Source commits, a RED reproduction and a single passing test
+are intermediate checkpoints. Finish independent source pieces in parallel, then run the required affected checks
+as one planned verification batch. Carry relevant results forward; repeat a check only for a changed input, new
+failure or remaining risk. Keep first failures and required engine/browser/file evidence. Do not switch to another
+feature merely because one test passed, or skip checks to call a feature complete.
+
+Owner correction: concentrate resources on roadmap implementation. Do not turn verification preparation,
+repeated audits or new diagnostic tests into separate work streams. Preserve necessary checks and first
+failures, reuse unchanged passing results, and finish the feature source before its one affected batch.
+
+Current order (2026-10-27): finish complete features, then integrate their reviewed normal commits.
+The scoped SSI feature is complete in local product `4c474e8b`. Route WireDoc metadata preservation
+is implemented at `568dd411`: the original two native cases passed, and the corrected test message
+then passed Model/Studio types and the three changed-file checks. Its actual Studio creation,
+preview, 3-axis move, Undo/Redo and file flow have run; final archive review and product adoption
+remain. Reuse these source-bound results instead of repeating earlier successful flows.
+
+Kernel owns the Model API implementation; the coordinator owns API design review, cross-owner
+resolution and integration. The next joint feature uses the existing 20/10 mm, +Y, al6061 two-link
+case and its three independent poses. Studio consumes the existing Model forwardKinematics export
+through useJoints and instancePoses. The public absolute pose and home-to-posed displacement are
+different representations. Do not add another FK API or apply an absolute transform twice.
+
+Independent GPU work continues through PBR and directional/spot shadows to one point light with
+six-face PCF shadows. The qualified donor results do not establish product adoption. Viewer owns
+the approved standalone React app and its existing native inspection APIs; measurements and saved
+reviews retain source/revision and capability boundaries. Studio finishes each foundation consumer
+and basic keyboard transaction. Drawings' first DR6 target slice admits a unique straight-edge
+endpoint identity only; loss or ambiguity stays explicitly unresolved. Wider point/line/area targets,
+auto-rematching and manufacturing certification are not implied. Keep independent source work
+parallel, serialize the shared heavy execution lane, and preserve paused/HOLD scopes.
+
+## Joint and robot completion plan (owner update, 2026-10-27)
+
+Direct owner instruction: add the remaining joint and robot work to this roadmap and continue it.
+Use the existing O24, RS1–RS7, R1 and experiment tracks below. This section orders their remaining
+work and completion gates; it does not create a second task queue. The coordinator records exact
+owners, files and ready dependencies in the existing task record. Do not ask the owner to assign
+each routine step. Continue current valid work while independent source pieces proceed in parallel.
+
+**Current boundary:** basic joints, robot samples, prescribed pose/playback, bounded serial support,
+mass/inertia and selected static-gravity checks exist. Universal and Cylindrical have bounded support;
+do not describe them as wholly absent or as general robot/loop support. The Model two-link static
+regression passed its selected eight declarations, including the three-pose comparison. It does not
+establish forward free motion, contact, friction, motor control or complete robot acceptance.
+The SSI source and its scoped product checks are complete at product `4c474e8b`; they do not close
+these joint and robot gates. Reuse existing receipts and preserve their source/input boundaries.
+
+| Order and existing track | Owning boundary | Remaining implementation and completion gate |
+|---|---|---|
+| 1. CAD → Model → GPU joint consumer | API/Outer coordinate the existing joint/robot document; Kernel supplies geometry/mass; GPU supplies display/pick | Reuse one existing bounded two-link case and its independent poses. Bind design revision, body/occurrence, joint frames, material density, COM, inertia and units. After a dimension or pose edit, compare Model transforms and GPU display/selection with the same evaluated output. Check invalid/stale updates preserve accepted data, then public Undo/Redo and actual Save/Open. Reuse the existing mm/g/degree and static-torque references; do not silently mix authored density2.5 with the Model material2.7 case. A rendered pose alone does not close this gate. |
+| 2. O24 joint kinds, limits and relations | Outer/API producers with Kernel/GPU consumers only where needed | Close a concrete missing supported case in Cylindrical, Universal or O24(e), using current source and receipts before choosing it. State each DoF, axis, frame, angular/linear limit, driver/follower and supported export. Check gear/rack/screw ratio and sign, instance identity, deleted references and typed unsupported results. Keep existing Lock/Auto behavior and PG-4 in the same track. Do not add a duplicate joint implementation or replace a refusal with a guessed pose. |
+| 3. RS6 closure and RS7 mechanism | Outer closure core; API/GPU shared consumers; Kernel existing blade features | Complete the admitted loop and coupled-input profile. Preserve the chosen branch through a full turn, reverse motion and extrema. Check independent closure residuals, unreachable/singular/over-limit inputs and collision handling within the declared path-checker scope. Every consumer uses the same solved pose. Then complete RS7 Save/Open, playback/scrub, stable repeated occurrences, Drawing/BOM/export and the required renderer checks. Do not pose each blade independently to hide an open loop. |
+| 4. First free rigid-body experiment | Existing Physics owner after ownership and supported-profile confirmation; Kernel/API provide mass/frame contracts | Start with the existing planned D1: fixed support, one revolute axis, known rigid body, explicit initial angle, gravity and zero friction. Keep COM tensor separate from inertia about the pivot. Convert MMGS to solver units once. Compare with `Ip·θ̈ = −m·g·l·sinθ` and, only for small angles, `T = 2π√(Ip/(m·g·l))`. Freeze error limits before execution; check period, energy, joint/constraint error, reactions and time-step convergence. This is new forward-motion evidence, separate from static holding torque. |
+| 5. Multi-link dynamics, contact and control | Existing Physics/robot owners after the admitted single-body profile | Extend one bounded two-link profile before broader mechanisms. Check independent equations, energy, gravity sign and constraint reactions. Then admit contact/friction/impact, actuator torque and speed limits, control period, saturation and tracking error as separate profiles. Report unsupported combinations explicitly. Physical accuracy needs separate sourced inputs and controlled measurements; animation and inverse-dynamics torque do not establish it. |
+| 6. P4 robot delivery and independent exchange | API/Outer with GPU, Drawings and Docs | Use the same design revision for geometry, joint tree, inertials, collision approximation, displayed pose, motion, BOM and exports. Read the supported export independently and compare scale, frames, limits, inertials and asset identity. Complete public edit/save/reopen/run/cancel and stale-result handling. Keep measured validation and manufacturing acceptance as their own gates. |
+
+For every row, keep four states visible: source implemented, independent numerical/reference checks,
+actual consumer/file flow, and product adoption with its required checks. Record the remaining unsupported
+range next to the result. Source review of Float32 conversion, display-edge grouping, preview cancellation
+or failure recovery identifies a check to resolve; it is not by itself a confirmed defect.
+
+Start with the next ready dependency in orders1–3. The first execution step is to bind the existing
+two-link document and available oracle/receipts across CAD, Model and GPU, then implement only an
+observed contract gap in the owning module. Source work comes before its one necessary affected batch.
+Do not repeat unchanged PASS cases or turn preparation into another work stream. Orders4–5 require
+the existing Physics ownership/profile gate; this update does not resume paused Physics/Motion,
+install a solver/dependency, authorize hardware control or clear P2/PG11 manufacturing holds.
+
 
 ## Goal and staged expansion (2026-10-25)
 
@@ -178,6 +263,48 @@ and current-source gap are frozen. Rows three through six extend existing accept
 For later sheet-metal and frame work, qualify edit/regenerate to unfold or cut-list to
 Drawing/export as one flow, and keep unimplemented joins/trims/cut lists conditional.
 
+## Shared route bundles and virtual clips (Zip Ties)
+
+User research and planning request, 2026-10-26. This is a new bounded editing workflow,
+not an implemented routing or cable-physics feature. Reference interaction:
+[ComfyUI Zip Ties](https://github.com/safzanpirani/comfyui-zip-ties), which stores ties as
+workflow layout data and lets a user move or rotate several links together. For 3D CAD,
+[SOLIDWORKS routing through clips](https://help.solidworks.com/2023/English/SolidWorks/sldpiping/t_routing_through_clips.htm)
+and [Inventor harness settings](https://help.autodesk.com/cloudhelp/2026/ENU/Inventor-Help/files/GUID-EA41610E-ACFF-4F8B-9A05-339CA9CAEB1A.htm)
+provide established examples of shared route points, individual route offsets and separate
+centerline/sweep displays. These references are product documentation, not our runtime proof.
+
+The proposed interaction is: select two existing 3D routes, add one virtual clip, drag its
+XYZ handle to reshape the selected route handles together, preview both swept bodies, then
+Apply once. Each route keeps its own identity, profile and end connections. A clip is initially
+an editing constraint with no manufactured body or BOM item. Later explicit real clamp parts
+must have their own geometry and component identity.
+
+Current reusable code includes direct curve poles and movePole, the XYZ skeleton editor's
+preview/Apply/Undo pattern, existing Pipe/Sweep construction and Viewer picking/overlays.
+Current Sweep copies a direct curve's arrays. It does not retain a live route dependency.
+Therefore grouped handles alone cannot promise that old swept bodies follow later edits.
+Keep legacy snapshots unchanged; only a new explicit bundle may carry the new regeneration link.
+
+| Stage / task | Lead and exact responsibility | Completion gate |
+| --- | --- | --- |
+| PB0 — route/clip contract | API owns persistent input and atomic document contract; GPU owns handle/pick/preview contract; Outer owns the later editor | Record stable route/object/feature identities, chosen handle keys, source revision, clip position and per-member offsets in model mm. Fixed control-point topology only in the first slice. Missing or changed handles are stale/refused, with no automatic reassignment. The Model core source is adopted after static review; actual foundation checks and the later GPU/Studio gesture remain separate gates. |
+| PB1 — two routes, one clip | Outer editor after the current STL source slice returns; API producer and GPU interaction support have separate files | Translate one common XYZ handle and apply the same delta to the chosen handle of each route. Preserve clip-local offsets and untouched endpoints. Show individual members and their errors. No automatic packing, branching, global spacing guarantee, clip rotation or physics in this first editor. |
+| PB2 — regenerate and commit atomically | API/Kernel existing evaluation path; Outer applies one complete candidate document | Regenerate both explicitly linked sweeps using their own profiles. Commit only if all members succeed on the current revision. One member failure, Cancel or stale completion leaves the complete previous document/results unchanged. One Undo/Redo restores all members together. Real Save/New/Open preserves membership, references and geometry inputs. |
+| PB3 — richer route control | GPU/Outer after PB1–PB2 actual acceptance | Multiple clips, selective branches and clip orientation/section arrangement, with explicit local-frame continuity and source/version checks. Measure crossings, section clearance and bend constraints on fixed fixtures. Do not call simple XYZ offsets a general parallel-curve or collision-free solution. |
+| PB4 — engineering qualification | Kernel/API, with existing Drawings/BOM/export consumers | Separate rigid pipe straight lengths/elbows from manually shaped cable paths. Specify and verify applicable bend radius, clearances, lengths, connector directions and manufacturing rules before claiming them. Cable sag, tension, fixed-length dynamics, contact or automatic obstacle routing need separate ownership and approval. Do not resume paused Physics or add a solver here. |
+
+PB1–PB2 require real desktop browser selection/drag/preview/Apply, visible failures, PNG owner/root
+inspection and console collection, plus independent native geometry and actual downloaded-file
+roundtrip checks. A preview, screenshot or source fixture alone is not route acceptance. Preserve
+tolerances, first failures and unmeasured items. The current one-route XYZ native/Viewer checks
+remain one-route evidence; they are not bundle-editing proof.
+
+Scheduling: finish the checked product closeout and the in-flight STL-quality producer/UI source
+batch first. Independent route-contract reading can continue now. Do not assign simultaneous edits
+to the same App/editor files. Keep the existing single coordinator task record authoritative;
+PB1 source implementation starts only after the exact input contract and file ownership are assigned.
+
 ## CAD-to-simulation handoff: issue 2209 planning boundary
 
 Reference [issue 2209](https://github.com/barocss/barocss/issues/2209) after the current editable-CAD,
@@ -236,9 +363,42 @@ current gate explicitly. Preserve commands, immutable source references and raw 
 use their presence as a substitute for the outcome. A source review, visual result, numerical PASS and measured
 validation are different results and must remain separate.
 
-## Order now (2026-10-26)
+## Order now (2026-10-27)
 
-The current checked local product is `3307c88b3a33c3b1fb78d14e887d08ccd9ca5c46`. Its earlier
+Latest coordinator checkpoint supersedes the earlier status paragraphs below:
+
+- Local product `d470649cd88c441ed944dc5e0bb96374f397a799` contains Viewer review-state save/restore. Source/default-export type, CPU5, actual file/browser flow and required product docs passed. Compiled Viewer/package release remains unqualified.
+- Kernel SSI source `515b2aee37496d5a72059bf9b80d5007bdd50cfb` is adopted at `59eeb67e6e0099a53d6e61e2895b479089122757`. Its first affected CAD build, two test files (7 PASS) and production1 lint passed. Old818/new818 outputs differ only in `dist/intersect/surface-intersection.js`. This protects typed failure/finite admission and existing open/closed/tangent cases; it does not certify global SSI completeness.
+- Route Model bindings and the pointer/session bridge are implemented. The first public flow produced two sweeps and a real saved baseline, then stopped at entry after an unresolved modifier-selection issue. The entry-only correction `4fdbfc76be39a5067cfff15cf4864e33b207546e` exposes the existing member selectors for two document curves. Reuse that exact saved baseline and complete the still-unrun Create/drag/Apply/Undo/Redo/file flow; preserve the original failure.
+- Parameter-bound Drawing reference source and its caption/narrow-panel follow-up passed their scoped native/browser checks. The prior Save snapshot timeout remains cause-unknown. Reuse unchanged proof and close product integration rather than run the old flow again.
+- Assembly review consumer `3c7be14dfba3dbeb217bc511d0a534489c6f2241` passed its changed public tree/pick/visibility/file flow. It reuses the SDK source entry; no new assembly engine, compiled package or larger-scene claim follows.
+- Reviewed inventory adds 9 and changes 10 rows (6629 to 6638); the other6619 rows and non-exposure fields remain byte-identical. Source docs `c520fa0195ff76cc27078fb9a4326f565be5755b` preserve Pin/setup/material-preview text. Close the current docs/site batch and exact product adoption after the consumer returns.
+- Next engine delivery is the already closed G15c progressive path-tracing source plus its captured sample-count correction. Keep it separate from the passed DoF checks. Viewer material consumption is independent source work; pack/config/hook investigation was stopped by the owner and is not a predecessor.
+
+Each feature still follows foundation contract, complete source, one necessary affected batch, real consumer and exact product integration. The earlier records below retain their original proof boundaries; they are not new assignments or complete-project claims.
+
+
+The current checked local product is `f1c6b178cd2ef9ae6bc87123e4434d204c3d08b3`.
+STL quality is complete for its scoped seven-file feature, including actual downloads and required product docs.
+The G15d.3 depth-of-field feature source is now closed across GPU core, Model and its existing Studio consumer;
+new-source runtime checks and product adoption remain. Route-bundle core preserves its Kernel2 result; its
+remaining out-of-range move test uses a valid accepted fixture and the existing producer refusal contract.
+STL quality is separately qualified at `26917a5429b7e2cf0b9f8dd6052ef6892f42d5ce`; its docs/site and page checks
+are in progress before product adoption. Its Model, Studio and actual exported-file checks are already accepted.
+Drawing parameter callout display and the affected native/type/lint batch pass; reference roundtrip is not complete.
+A separate single Save-button click produced one file and a responsive page; the older repeated-download timeout
+remains preserved with unknown cause. Do not treat that tool-flow result as a repaired product defect.
+Route-bundle Model Create/Move/Detach and admission source69fe4c6, plus Kernel foundation test source0b841158,
+are adopted into the aggregate after static review. Their execution validation is NOT RUN. Close that foundation
+batch before opening the later Studio tie gesture; no new language, routing solver or physics is included.
+Its 19-path associative-sketch/clip-readback merge preserves the product-only portable handoff
+files, foreign33 and CAD818. The first affected product GPU emit passed: 272 outputs emitted,
+5 changed and 240 retained outputs unchanged; do not call every one of the existing 512 files
+fresh. Mandatory product check-docs passed with 34 pages, 0 being-written, 47 figures, 3755 KB,
+739 labels and empty stderr. The original metadata preparation failure is separate from the
+first actual compiler PASS. No CAD rebuild was needed for this slice. Remote push is not done.
+
+The previous checked product `3307c88b3a33c3b1fb78d14e887d08ccd9ca5c46` and its earlier
 seven-path merge `91e96a23` contains sketch coefficient/diagnostic precision, Enter/value visibility,
 exact revolve admission, Drawing compatibility tests and the Sketches guide. The first affected
 product CAD build, one selected endpoint regression and the mandatory final product documentation
@@ -315,7 +475,8 @@ Next integrate this checked Model/UI/test/docs/GPU slice and the already-passed 
 into the product. Preserve the product-only portable handoff files and foreign WIP. No CAD rebuild
 is needed because CAD production is unchanged. The product's ignored GPU Viewer output is old,
 so run its first affected original library emit, distinguish actually emitted files from retained
-ones, and finish the mandatory product documentation check. Product adoption remains pending here.
+ones, and finish the mandatory product documentation check. Those required product steps are now
+complete at `5ed2c690`; retain each original source-bound check instead of rerunning it.
 
 Previously adopted setup Save/Open/Use/Run/Bind, historical records and Pin comparison retain
 separate contracts. Actual calculation creates a new result; imported records remain historical.
@@ -336,7 +497,7 @@ approval; preserve other sessions and record actual source, input, URL and scree
 | Close the verified sketch/revolve product slice | Kernel product build/selected endpoint; Docs mandatory check; API integration | Product `3307c88b` has the affected build, selected endpoint and final docs PASS | Preserve exact receipts and old/new outputs; do not repeat completed checks without a relevant change. |
 | Repair associative face-sketch edits | Outer implementation/browser; API integration; Docs page verification | Explicit link, native14, corrected type/lint, reviewed inventory, docs/site/pages, Drawing2 and narrow refusal-hint checks passed at their distinct refs | Local product adoption, first affected GPU emit and mandatory product documentation check; preserve legacy behavior and first failures. |
 | Preserve drill versus tap-depth contracts | API/Outer producer contract; Drawings consumer | Existing compatibility tests remain preserved; Drawings now reads the actual consumer boundary | Agree separate depth limits in mm, backward defaults and Drawing/text implications before implementation; do not repeat old tests. |
-| Separate export mesh quality | Kernel public option contract; API/Outer consumer | Kernel now reads the exact STL options and Model export boundary | Freeze actual defaults, units and a small circular-hole chord-error/triangle-budget oracle before the narrow feature implementation. |
+| Separate export mesh quality | Kernel public option contract; API/Outer consumer | Model and Studio source, independent rim-error checks and actual STL downloads are accepted | Finish the separate qualification docs/site/page and exact product adoption. Preserve Automatic default16, explicit8/16/32 and BRep-only refusal. No broad triangle-budget guarantee. |
 | GPU stale-readback protection | Existing GPU owner | New clip-only CPU and actual WebGPU RED-to-GREEN, scoped emit and exact lint passed; shared normal commits adopted | Refresh the first affected product output with the existing tsc-only build contract; preserve retained outputs, old camera evidence and first lint failure. No new BVH/LOD or paused FOV work. |
 | Admit the first free pendulum profile | Confirm Physics ownership first; Kernel/API supply mass/frame contracts | No solver implementation assigned | Agree pivot/COM placement, pivot inertia, gravity moment, reactions and units; then check independent period, energy, time-step convergence and joint errors. Physical validation needs separate measurements. |
 
@@ -956,3 +1117,42 @@ CG1.1d mixed line/arc loft is adopted from `a8ce2c996` by merge `b21910b43`. The
 R7.6 inventory baseline contains6604 unique exposures/variants across3 packages with TypeScript5.9.3, including type, value, type+value and asset spaces. CadPartOutput42 and CadPartSnapshot5 direct properties pass the scoped anchor rule. Intentional public API changes require a reviewed expected-inventory delta. The original inventory child is included in check-docs; individual child logs/read graph are not independently instrumented.
 
 CG1.2 bounded guide adoption (`b7b0f0e08`) supports exactly two same-axis parallel conic frames, a quadratic world-space translation rail with cap seam endpoints and a midplane middle control. Exact rational NURBS and independent mass tests apply to this scope. General rails, nonparallel sections, multiple sections, smooth lofts, Studio/v2 feature adapters and RS7 acceptance remain. The original f7d7 86PASS/1FAIL is preserved; repaired oriented56 is separate. Repeated dist postflight scans were not run.
+
+
+## Viewer SDK and app delivery (dedicated Work, updated 2026-10-27)
+
+The owner assigned a new Viewer Work, `01a1787c-a71c-7000-a102-4988e3481ec0`.
+It owns `@barocss/viewer`, the user-approved React/shadcn `apps/cad-viewer` app, and related bounded examples. Presenter reuses
+`@barocss/gpu/viewer`; the existing GPU Work retains the common renderer. CAD
+Studio currently consumes the GPU core directly. A GPU or Studio feature does
+not automatically expose a Viewer SDK option. Reuse existing loading, controls,
+picking, native measurements, lifecycle and bounded assembly APIs.
+
+| Order | Complete feature and gate |
+|---|---|
+| V1 | Consistent public load/control/state/error/dispose contract with explicit units, revisions and capability refusals. First assigned slice: compact camera/visibility/selection review state bound to the current supported document or assembly. Validate before applying; retain accepted state on failure. |
+| V2 | One external-host inspect flow using existing navigation, selection, visibility and supported native queries. A screen approximation remains distinct from a native measurement. |
+| V3 | Link the supported assembly tree and viewport selection/visibility. Preserve hierarchy, local/world transforms and repeated-instance identity; retain current 1-4 selected-instance limits. |
+| V4 | Expose existing GPU material, light, environment and post options through explicit SDK capabilities and refusal behavior. Do not add a second renderer. |
+| V5 | Resume a source-bound review with saved views, annotations, supported measurements and capture. Complete a small embedding example without adding a CAD editor or solver. |
+| V6 | Improve measured bottlenecks in the proven flow. Reuse BVH and keep the existing LOD measurement hold. |
+
+V1 review-state source is in its recorded scoped product; V2 assembly consumption has its own
+source/browser receipt. The owner then approved the standalone Viewer app. Its native Surface/Curve
+point measurement has a normal app commit `b579aa620`; root integration is still separate.
+CURRENT `VIEWER-APP-MEASURED-REVIEW-RESTORE-01` binds saved points and native parameters,
+units, model/source revision, view and selection/visibility to a real Save/Open workflow. Reject a
+mismatched or malformed review before changing accepted state. NEXT follows V4's existing GPU
+capabilities, with explicit supported options and refusals; do not create a second renderer.
+Controlled prototype-mutated race experiments remain distinct from unmodified public flow evidence.
+The stopped packaging/config/hook follow-up stays stopped. The coordinator reviews exact normal
+commits and owns product integration; independent source work can proceed while heavy execution
+uses the existing shared lane. These checkpoints do not claim arbitrary assembly or physical accuracy.
+
+Current feature checkpoint: DoF source has its first GPU emit, CPU2, GPU8 and
+public Studio focus/blur/pick/cancel/file roundtrip evidence at `22d592`. The
+required affected Model/Studio batch and product integration remain. Drawing
+parameter/reference source is adopted as `14bbc19f3`; the current compact
+History, DoF callback, STL quality and route admission code are preserved. Its
+new reference-review UI and parameter file flow still require their first
+affected checks. Reuse unchanged passing evidence; do not rerun old flows.
