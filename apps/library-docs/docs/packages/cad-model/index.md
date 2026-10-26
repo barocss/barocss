@@ -49,6 +49,46 @@ The package is public module by module. Import each module by its path; the pack
 | `util/` | Small shared helpers: unit factors, guards, ids, rounding, SHA-256 digests, the document revision |
 | `rb9/` | The AI scenario ladder: its rungs, a scripted agent, its measures and report |
 
+## Transforming one body
+
+A studio part inherits `moved(location)` from the shared Part API. It returns a new part with transform features;
+it does not set an absolute assembly placement. Keep the returned part. Calling `moved` on that returned part
+applies the transform again to its current geometry, while the original part stays unchanged.
+
+Use `part.bodies()` to obtain current body keys. With several bodies, first choose `part.body(key)`;
+`moved` acts on that body, not every body in the document. A missing body gives `NO_BODY`, no choice among several
+gives `BODY_AMBIGUOUS`, and an unknown key passed to `body(key)` gives `BODY_UNKNOWN`.
+
+```ts
+import { Location } from '@barocss/cad/api';
+import type { StudioPart } from '@barocss/cad-model/api';
+
+function turnAndMove(part: StudioPart, bodyKey: string): StudioPart {
+  return part.body(bodyKey).moved(Location.of({
+    rotation: [0, 0, 90], position: [30, 0, 0],
+  }));
+}
+```
+
+`Location` rotations use degrees about the document origin, in X, then Y, then Z order. Translation follows in
+world XYZ millimetres. It does not rotate about the body's centre or use its bounding box as a pivot.
+For the location above, an illustrative point on the body follows this calculation:
+
+| Step | Point in mm |
+|---|---|
+| Input | `[10, 0, 0]` |
+| Rotate +90° about Z | `[0, 10, 0]` |
+| Translate by `[30, 0, 0]` | `[30, 10, 0]` |
+| Apply the same location again | `[20, 30, 0]` |
+
+![A body point is rotated about the origin before translation; repeating moved applies another transform](/diagrams/part-transform-order.svg)
+
+[Open the diagram at full size](/diagrams/part-transform-order.svg).
+
+The diagram is a coordinate calculation, not an API render or a construction check. For placement of an assembly
+instance, use [the assembly API](/packages/api#assemblies); for other body transforms, see
+[Object API](/packages/api#parts).
+
 ## Writing a root body's STL
 
 Import `evaluateDoc` and `stlFor` from `@barocss/cad-model/engine/evaluate`. `stlFor` takes a `StudioDoc`,

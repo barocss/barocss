@@ -22,6 +22,32 @@ A permitted scope change clears automatic dimensions; it does not transfer their
 Without an explicit scope, sheets with balloons or a BOM table use assembly scope. Other sheets use the base part. A part sheet normally draws made bodies only. Assembly scope keeps bought elements, and enabling
 balloons on a part sheet keeps those elements visible so the balloon can point to them.
 
+### First angle and third angle
+
+Projection changes where the orthographic views are placed. In **Third angle**, the top view is above the
+front view and the right view is to its right. In **First angle**, the top view is below the front view and the
+right view is to its left. The front and top views keep the same horizontal mapping; the front and right
+views keep the same vertical mapping.
+
+For an unbroken box measuring 40 mm along X, 20 mm along Y and 10 mm along Z, use the default front view
+looking from −Y. At a fixed scale of **1:2**, the projected outlines have these sizes:
+
+| View | Model width × height | Size on the sheet at 1:2 |
+|---|---|---|
+| Front | 40 × 10 mm | 20 × 5 mm |
+| Top | 40 × 20 mm | 20 × 10 mm |
+| Right | 20 × 10 mm | 10 × 5 mm |
+
+These sizes are the same in both projection arrangements. They exclude labels, dimensions and the gaps
+between views. A different front orientation changes which model axes form the view's width and depth.
+
+![Third-angle placement with top above front and right to its right, compared with first-angle placement with top below front and right to its left](/diagrams/drawing-projection-layout.svg)
+
+[Open the diagram at full size](/diagrams/drawing-projection-layout.svg).
+
+The diagram is a calculated layout schematic, not a captured drawing or a print-size reference. Its rectangles
+show the relative outline sizes; the app also reserves space for annotations when laying out the sheet.
+
 ### Title blocks and revision history
 
 - **Title block** chooses **Basic** or **Extended**. Basic keeps the original layout. Extended adds **Organization**,
