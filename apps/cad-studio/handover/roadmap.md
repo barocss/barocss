@@ -39,8 +39,12 @@ as one planned verification batch. Carry relevant results forward; repeat a chec
 failure or remaining risk. Keep first failures and required engine/browser/file evidence. Do not switch to another
 feature merely because one test passed, or skip checks to call a feature complete.
 
-Current order: finish the independently qualified STL quality feature through docs, the changed page and product
-integration. GPU pose readback is complete only for the scoped product a45b7b feature. Finish parameter-bound
+Owner correction: concentrate resources on roadmap implementation. Do not turn verification preparation,
+repeated audits or new diagnostic tests into separate work streams. Preserve necessary checks and first
+failures, reuse unchanged passing results, and finish the feature source before its one affected batch.
+
+Current order: STL quality is complete in local product f1c6b1. Close each current feature source before its
+minimum affected check batch. GPU pose readback is complete only for the scoped product a45b7b feature. Finish parameter-bound
 hole callout reference preservation and the observed Save-flow gap at their actual producer/consumer boundary. For path bundles, accept and test
 persistent member bindings, atomic curve/sweep updates and failure preservation in CAD/Model before implementing
 the Studio tie gesture. Independent source work can continue in parallel. Do not use additional UI features to
@@ -308,7 +312,11 @@ validation are different results and must remain separate.
 
 ## Order now (2026-10-26)
 
-The current checked local product is `a45b7b41062057c5bbe1a5170bf844c3654f80c5`.
+The current checked local product is `f1c6b178cd2ef9ae6bc87123e4434d204c3d08b3`.
+STL quality is complete for its scoped seven-file feature, including actual downloads and required product docs.
+The G15d.3 depth-of-field feature source is now closed across GPU core, Model and its existing Studio consumer;
+new-source runtime checks and product adoption remain. Route-bundle core preserves its Kernel2 result; its
+remaining out-of-range move test uses a valid accepted fixture and the existing producer refusal contract.
 STL quality is separately qualified at `26917a5429b7e2cf0b9f8dd6052ef6892f42d5ce`; its docs/site and page checks
 are in progress before product adoption. Its Model, Studio and actual exported-file checks are already accepted.
 Drawing parameter callout display and the affected native/type/lint batch pass; reference roundtrip is not complete.
