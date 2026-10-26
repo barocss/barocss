@@ -101,7 +101,7 @@ test('G15 replacing settings, switching shadows off and returning to modelling d
     assert.equal(Object.hasOwn(light, 'shadowRadius'), false);
   }
   f.renderer.setRender(settings([])); f.draw();
-  assert.deepEqual(f.viewer.lights, []);
+  assert.equal(f.viewer.lights.length, 0);
   f.renderer.setRender(null); f.draw();
   assert.equal(f.viewer.lights.length, 3, 'restore the existing modelling light list');
   assert.ok(f.viewer.lights.every(light => light.kind === 'directional'));
