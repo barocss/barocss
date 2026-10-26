@@ -109,8 +109,9 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   const [tab, setTab] = useState<'look' | 'lights' | 'scene' | 'source'>('look');
   const [lightError, setLightError] = useState<string | null>(null);
   const [radiusDrafts, setRadiusDrafts] = useState<Record<number, string>>({});
+  const [radiusErrors, setRadiusErrors] = useState<Record<number, string>>({});
   // Light indices can change on removal or Undo. Do not carry a draft onto another light.
-  useEffect(() => { setRadiusDrafts({}); setLightError(null); }, [render.lights]);
+  useEffect(() => { setRadiusDrafts({}); setRadiusErrors({}); setLightError(null); }, [render.lights]);
   const current: Appearance = selectedKeys.length ? render.appearances[selectedKeys[0]] ?? render.defaultAppearance : render.defaultAppearance;
   const setLook = (patch: Partial<Appearance>) => {
     const next = { ...current, ...patch };
@@ -122,11 +123,15 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
     for (const k of selectedKeys) delete appearances[k];
     onChange({ ...render, appearances });
   };
-  const changeLights = (lights: readonly RenderLight[]) => {
-    try { changeRenderLights(render, lights, onChange); setLightError(null); setRadiusDrafts({}); }
-    catch (error) { setLightError(error instanceof Error ? error.message : String(error)); }
+  const changeLights = (lights: readonly RenderLight[], radiusIndex?: number) => {
+    try { changeRenderLights(render, lights, onChange); setLightError(null); setRadiusDrafts({}); setRadiusErrors({}); }
+    catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (radiusIndex === undefined) setLightError(message);
+      else setRadiusErrors(errors => ({ ...errors, [radiusIndex]: message }));
+    }
   };
-  const setLight = (i: number, l: RenderLight) => changeLights(render.lights.map((x, k) => k === i ? l : x));
+  const setLight = (i: number, l: RenderLight, radiusEdit = false) => changeLights(render.lights.map((x, k) => k === i ? l : x), radiusEdit ? i : undefined);
   const env = render.environment, setEnv = (patch: Partial<RenderSettings['environment']>) => onChange({ ...render, environment: { ...env, ...patch } });
   // (G15d.1: the post, neutral until set; set back to neutral, it is dropped from the settings.)
   const post: RenderPost = env.post ?? NO_POST;
@@ -264,17 +269,21 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
             {check('Shadow', !!l.castShadow, v => setLight(i, { ...l, castShadow: v }), `Light ${i + 1} shadow`)}
             {l.kind !== 'directional' && <>
               <label className={FIELD}><span>Shadow radius</span><span className={NUM}><Input type="number" min={0} step="any" aria-label={`Light ${i + 1} shadow radius mm`}
-                aria-describedby={`light-shadow-radius-${i}`} placeholder="Default (0 mm)" value={radiusDrafts[i] ?? (l.shadowRadius === undefined ? '' : String(l.shadowRadius))}
+                aria-invalid={!!radiusErrors[i]} aria-describedby={`light-shadow-radius-${i}${radiusErrors[i] ? ` light-shadow-radius-error-${i}` : ''}`} placeholder="Default (0 mm)" value={radiusDrafts[i] ?? (l.shadowRadius === undefined ? '' : String(l.shadowRadius))}
                 onChange={e => {
                   const text = e.target.value;
                   setRadiusDrafts(drafts => ({ ...drafts, [i]: text }));
-                  if (!text.trim()) { setLightError(`Enter a radius for light ${i + 1} in mm, or press Esc to keep the saved value.`); return; }
-                  setLight(i, { ...l, shadowRadius: Number(text) });
+                  if (!text.trim()) { setRadiusErrors(errors => ({ ...errors, [i]: `Enter a radius for light ${i + 1} in mm, or press Esc to keep the saved value.` })); return; }
+                  setLight(i, { ...l, shadowRadius: Number(text) }, true);
                 }} onKeyDown={e => {
                   e.stopPropagation();
-                  if (e.key === 'Escape') { setRadiusDrafts(drafts => { const next = { ...drafts }; delete next[i]; return next; }); setLightError(null); }
+                  if (e.key === 'Escape') {
+                    setRadiusDrafts(drafts => { const next = { ...drafts }; delete next[i]; return next; });
+                    setRadiusErrors(errors => { const next = { ...errors }; delete next[i]; return next; });
+                  }
                 }} /><em>mm</em></span></label>
               <div className="muted small" id={`light-shadow-radius-${i}`}>{l.castShadow ? '0 mm uses the default edge. A larger radius softens the shadow.' : 'Radius is kept while shadow is off.'}</div>
+              {radiusErrors[i] && <div className="diag" role="alert" id={`light-shadow-radius-error-${i}`}>{radiusErrors[i]}</div>}
             </>}
           </div>;
         })}
