@@ -108,7 +108,41 @@ unsupported measurement refuses before acceptance. Legacy raw SDK reviews
 retain revision-only protection. JSON numeric -0/+0 are equivalent under the
 canonical hash; signed zeros inside original source strings remain distinct.
 
-## Inspect a document
+## Saved views
+
+The Inspector's **Saved views** list stores up to 8 named snapshots for the
+current source and ordered loaded body/instance subset. Enter a name and
+choose **Save view**. Each snapshot keeps its camera, visibility, selection,
+completed native document distance and supported lighting. It does not store
+CAD geometry, material overrides or assembly point inspection parameters.
+Finish or cancel point selection before saving a snapshot.
+
+Use **Restore** to apply a snapshot explicitly. Rename and Delete only change
+the list. Names are trimmed by the screen, contain 1–64 UTF-16 code units and
+have no control characters. Names are unique with case-sensitive comparison.
+A failed rename, capture or restore keeps the accepted list and scene.
+
+**Save review** includes the complete list in the existing source-bound app
+review file. **Open review** validates the main view and every listed snapshot
+with the SDK before applying the main view once and accepting the list. A bad
+camera, native parameter/distance, lighting value or scene pin in any entry
+refuses the complete file. The list also shares the existing source hash.
+The compact 32 KiB file bound includes all entries. A list edit that would
+exceed this export bound is refused before replacing the current list.
+
+Older review files without `namedViews` retain the current list. An explicit
+empty array clears it. Successful source admission, including a new loaded
+subset, clears the list; candidate parsing and cancellation preserve it.
+Document and assembly contexts do not mix. Changes to the scene or list during
+an asynchronous file/list snapshot cancel that operation.
+
+The SDK's `validateMeasuredReviewState()` uses the same preparation path as
+apply, with no presentation or accepted cache changes. It does not add named
+view storage to the SDK. Native distance and lighting restrictions remain the
+same for each scene mode. Material overrides may make an existing snapshot
+temporarily unrestorable; Rename and Delete remain available.
+
+## Document controls
 
 Use the body list to select, show, hide, isolate and fit displayed geometry.
 The inspector shows its original document, body, asset, revision and geometry

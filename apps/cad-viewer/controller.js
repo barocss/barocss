@@ -3,6 +3,7 @@ import { compileMeshMaterial } from '@barocss/gpu';
 import { parseSource, readSource, admitSource } from './source.js';
 import { createPngExport } from './png-export.js';
 import { createReviewFile, readReviewFile, REVIEW_FILE_LIMIT } from './review-file.js';
+import { addNamedReview, renameNamedReview, removeNamedReview, getNamedReview, namedReviewCandidate } from './named-reviews.js';
 
 export const sameRef = (a, b) => a?.kind === b?.kind && a?.modelId === b?.modelId
   && (a?.surfaceId ?? a?.curveId) === (b?.surfaceId ?? b?.curveId);
@@ -37,6 +38,7 @@ export function createViewerController({ canvas, stage, onChange }) {
   let lightingError = '';
   let measurement = emptyMeasurement();
   let assemblyInspection = null;
+  let namedViews = [], namedGeneration = 0, namedBusy = false, namedViewError = '';
   const listeners = [];
   const reviewUrls = new Set();
   const loaded = () => Boolean(active && viewer && !disposed);
@@ -108,7 +110,8 @@ export function createViewerController({ canvas, stage, onChange }) {
       status, statusError, exportStatus, exportBusy, reviewBusy, viewPreset, appearanceTarget,
       appearancePreset, appearanceNote, lightingCapabilities: viewer?.getLightingCapabilities() ?? null,
       lightingError, measurement: structuredClone(measurement), measurementOverlay,
-      assemblyInspection: assemblyInspection ? structuredClone(assemblyInspection) : null });
+      assemblyInspection: assemblyInspection ? structuredClone(assemblyInspection) : null,
+      namedViews: namedViews.map(entry => entry.name), namedBusy, namedViewError });
   }
   function inspectAssemblyPoint(binding, query) {
     try {
@@ -164,6 +167,40 @@ export function createViewerController({ canvas, stage, onChange }) {
     catch (error) { message(error?.message || String(error), true); }
     refresh();
   }
+  function captureSnapshot() {
+    const native = measurement.result ? { first: measurement.points[0].input,
+      second: measurement.points[1].input, distanceMM: measurement.result.distanceMM,
+      metric: 'straight-line', space: 'native-authored', certification: 'not-certified' } : null;
+    return { review: viewer.captureReviewState(), measurement: native,
+      ...(viewer.getLightingCapabilities().supported ? { lighting: viewer.getState().lighting } : {}) };
+  }
+  function applySnapshot(candidate) {
+    const restored = viewer.applyMeasuredReviewState(candidate);
+    lightingError = '';
+    measurement = restored ? { active: false,
+      points: [measuredPoint(candidate.measurement.first, restored.first), measuredPoint(candidate.measurement.second, restored.second)],
+      result: { distanceMM: restored.distanceMM }, error: '' } : emptyMeasurement();
+  }
+  async function changeNamedViews(action, text) {
+    if (!loaded() || reviewBusy || namedBusy) return false;
+    const source = active, epoch = reviewEpoch, before = recordFrame(), version = frameGeneration, listVersion = namedGeneration;
+    namedBusy = true; refresh();
+    try {
+      const snapshot = captureSnapshot(), next = action(snapshot);
+      viewer.validateMeasuredReviewState(namedReviewCandidate(snapshot));
+      // Use the actual file codec to check the complete list's snapshot and 32 KiB export budget.
+      const file = await createReviewFile(snapshot.review, snapshot.measurement, active.source, snapshot.lighting, next);
+      if (new TextEncoder().encode(JSON.stringify(file) + '\n').byteLength > REVIEW_FILE_LIMIT)
+        throw new Error('Review files must be 32 KiB or smaller.');
+      if (disposed || source !== active || epoch !== reviewEpoch) return false;
+      if (before !== recordFrame() || version !== frameGeneration || listVersion !== namedGeneration)
+        throw new Error('The view or saved views changed. Try again.');
+      namedViews = next; namedGeneration++; namedViewError = ''; message(text); return true;
+    } catch (error) {
+      if (!disposed && source === active) { namedViewError = error?.message || String(error); message(namedViewError, true); }
+      return false;
+    } finally { namedBusy = false; refresh(); }
+  }
   function chooseBodies(next, defaults = next.defaultBodyIds) {
     candidate = next; admissionError = '';
     admissionIds = defaults.filter(id => next.catalog.some(body => body.id === id && body.supported));
@@ -180,6 +217,7 @@ export function createViewerController({ canvas, stage, onChange }) {
     state: () => viewer?.getState(), review: () => loaded() ? viewer.captureReviewState() : null,
     pixels: () => viewer?.readPixels(), document: () => viewer?.getState().document,
     source: () => active ? structuredClone(active.source) : null,
+    namedViews: () => structuredClone(namedViews),
   };
   const api = {
     async start() {
@@ -285,6 +323,7 @@ export function createViewerController({ canvas, stage, onChange }) {
         active = candidate; admitted = ids; candidate = null; admissionIds = [];
         measurement = emptyMeasurement(); lightingError = '';
         assemblyInspection = null;
+        namedViews = []; namedGeneration++; namedViewError = '';
         documentEpoch++; reviewEpoch++; frameGeneration++;
         appearanceBinding = undefined; appearanceTarget = ''; search = '';
         message(active.kind === 'assembly' ? 'Assembly opened. Select an occurrence to inspect its original placement.'
@@ -292,6 +331,25 @@ export function createViewerController({ canvas, stage, onChange }) {
       } catch (error) { admissionError = error.message; refresh(); }
     },
     setSearch(value) { search = value; refresh(); },
+    saveNamedView(name) {
+      if (measurement.active) { namedViewError = 'Finish or cancel point selection before saving a view.'; refresh(); return Promise.resolve(false); }
+      return changeNamedViews(snapshot => addNamedReview(namedViews, { name, ...snapshot }, snapshot.review.scene), 'Saved view added.');
+    },
+    renameNamedView(name, nextName) {
+      return changeNamedViews(snapshot => renameNamedReview(namedViews, name, nextName, snapshot.review.scene), 'Saved view renamed.');
+    },
+    deleteNamedView(name) {
+      return changeNamedViews(snapshot => removeNamedReview(namedViews, name, snapshot.review.scene), 'Saved view deleted.');
+    },
+    restoreNamedView(name) {
+      if (!loaded() || reviewBusy || namedBusy) return;
+      try {
+        const entry = getNamedReview(namedViews, name, viewer.captureReviewState().scene);
+        applySnapshot(namedReviewCandidate(entry)); namedViewError = '';
+        message('Saved view restored: ' + name);
+      } catch (error) { namedViewError = error?.message || String(error); message(namedViewError, true); }
+      refresh();
+    },
     startMeasurement() {
       if (!loaded()) return;
       if (active.kind === 'assembly') { message('Native distance measurement is unavailable in assembly mode.', true); refresh(); return; }
@@ -364,18 +422,16 @@ export function createViewerController({ canvas, stage, onChange }) {
       }
     }, 'Appearance applied.'); },
     async downloadReview() {
-      if (!loaded() || reviewBusy) return;
+      if (!loaded() || reviewBusy || namedBusy) return;
       if (measurement.active) { message('Finish or cancel point selection before saving.', true); refresh(); return; }
-      const request = ++reviewEpoch, before = recordFrame(), version = frameGeneration;
+      const request = ++reviewEpoch, before = recordFrame(), version = frameGeneration, listVersion = namedGeneration;
       reviewBusy = true; refresh();
       try {
-        const native = measurement.result ? { first: measurement.points[0].input,
-          second: measurement.points[1].input, distanceMM: measurement.result.distanceMM,
-          metric: 'straight-line', space: 'native-authored', certification: 'not-certified' } : null;
-        const lighting = viewer.getLightingCapabilities().supported ? viewer.getState().lighting : undefined;
-        const file = await createReviewFile(viewer.captureReviewState(), native, active.source, lighting);
+        const snapshot = captureSnapshot();
+        const file = await createReviewFile(snapshot.review, snapshot.measurement, active.source, snapshot.lighting, namedViews);
         if (request !== reviewEpoch || disposed) return;
-        if (before !== recordFrame() || version !== frameGeneration) throw new Error('The view changed. Save the review again.');
+        if (before !== recordFrame() || version !== frameGeneration || listVersion !== namedGeneration)
+          throw new Error('The view or saved views changed. Save the review again.');
         const text = JSON.stringify(file) + '\n';
         if (new TextEncoder().encode(text).byteLength > REVIEW_FILE_LIMIT) throw new Error('Review files must be 32 KiB or smaller.');
         const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -391,19 +447,22 @@ export function createViewerController({ canvas, stage, onChange }) {
     async openReview(file) {
       const request = ++reviewEpoch;
       if (!file || !loaded()) return;
-      const before = recordFrame(), version = frameGeneration;
+      const before = recordFrame(), version = frameGeneration, listVersion = namedGeneration;
       try {
         if (file.size > REVIEW_FILE_LIMIT) throw new Error('Review files must be 32 KiB or smaller.');
         const text = await file.text();
         if (request !== reviewEpoch || disposed) return;
-        const { candidate, legacy } = await readReviewFile(text, active.source);
+        const read = await readReviewFile(text, active.source);
+        const { candidate, legacy } = read;
         if (request !== reviewEpoch || disposed) return;
-        if (before !== recordFrame() || version !== frameGeneration) throw new Error('The view changed. Open the review again.');
-        const restored = viewer.applyMeasuredReviewState(candidate);
-        lightingError = '';
-        measurement = restored ? { active: false,
-          points: [measuredPoint(candidate.measurement.first, restored.first), measuredPoint(candidate.measurement.second, restored.second)],
-          result: { distanceMM: restored.distanceMM }, error: '' } : emptyMeasurement();
+        if (before !== recordFrame() || version !== frameGeneration || listVersion !== namedGeneration)
+          throw new Error('The view or saved views changed. Open the review again.');
+        viewer.validateMeasuredReviewState(candidate);
+        if (Object.hasOwn(read, 'namedViews'))
+          for (const entry of read.namedViews) viewer.validateMeasuredReviewState(namedReviewCandidate(entry));
+        applySnapshot(candidate);
+        if (Object.hasOwn(read, 'namedViews')) { namedViews = read.namedViews; namedGeneration++; }
+        namedViewError = '';
         message(legacy ? 'View restored. This file has no saved measurement.' : 'Review opened.'); refresh();
       } catch (error) { if (request === reviewEpoch && !disposed) {
         message('Review not opened: ' + error.message, true); refresh();

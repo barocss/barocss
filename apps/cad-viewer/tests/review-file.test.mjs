@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { createReviewFile, readReviewFile, REVIEW_FILE_LIMIT } from '../review-file.js';
+import { createReviewFile, readReviewFile, copyNamedViews, REVIEW_FILE_LIMIT } from '../review-file.js';
 
 const source = () => ({ schema: 'original-document', documentId: 'bracket', revision: 3,
   units: { length: 'mm', angle: 'rad' }, assets: [{ id: 'asset_a', revision: 7,
@@ -357,5 +357,158 @@ test('assembly review files bind complete authored source and occurrence review'
       enumerable: true, get() { calls++; throw new Error('placement getter'); } });
     await assert.rejects(createReviewFile(assemblyReview(), null, document), /must be data/);
     assert.equal(calls, 0);
+  });
+});
+
+test('named review files', async t => {
+  const named = (name = 'Detail') => ({ name, review: review(), measurement: measurement(), lighting: lighting() });
+  const makeNamedFile = () => createReviewFile(review(), measurement(), source(), lighting(), [named()]);
+
+  await t.test('round trip retains each review, measurement and optional lighting', async () => {
+    const detail = named(), overview = { name: 'Overview', review: review(), measurement: null };
+    overview.review.camera.eye = [8, 5, 9]; overview.review.selectedGeometry = null;
+    const reset = { name: 'Default light', review: review(), measurement: null, lighting: null };
+    const entries = [detail, overview, reset];
+    const file = await createReviewFile(review(), measurement(), source(), lighting(), entries);
+    assert.deepEqual(Object.keys(file), ['schema', 'version', 'sourceSHA256', 'review', 'measurement', 'lighting', 'namedViews']);
+    assert.equal(file.sourceSHA256, (await makeFile()).sourceSHA256);
+    const text = JSON.stringify(file), restored = await readReviewFile(text, source());
+    assert.deepEqual(restored.namedViews, entries);
+    assert.deepEqual(restored.candidate, { schema: 'barocss-viewer-measured-review', version: 1,
+      review: review(), measurement: measurement(), lighting: lighting() });
+    assert.equal(Object.hasOwn(restored.namedViews[1], 'lighting'), false);
+    assert.equal(restored.namedViews[2].lighting, null);
+    assert.ok(!text.includes('@cad') && !text.includes('pointMM'));
+  });
+
+  await t.test('absent lists preserve omission and explicit empty lists remain present', async () => {
+    for (const text of [JSON.stringify(await makeFile()), JSON.stringify(review()),
+      JSON.stringify(await createReviewFile(review(), null, source(), lighting(), undefined))]) {
+      assert.equal(Object.hasOwn(await readReviewFile(text, source()), 'namedViews'), false);
+    }
+    const file = await createReviewFile(review(), null, source(), undefined, []);
+    assert.equal(Object.hasOwn(file, 'lighting'), false);
+    assert.deepEqual(file.namedViews, []);
+    const restored = await readReviewFile(JSON.stringify(file), source());
+    assert.equal(Object.hasOwn(restored, 'namedViews'), true);
+    assert.deepEqual(restored.namedViews, []);
+    await assert.rejects(readReviewFile(JSON.stringify({ ...review(), namedViews: [] }), source()), /unsupported fields/);
+  });
+
+  await t.test('capture detaches all named fields before hashing and does not share output references', async () => {
+    const document = source(), entry = named(), entries = [entry, { ...entry, name: 'Second' }];
+    const pending = createReviewFile(review(), measurement(), document, lighting(), entries);
+    entry.name = 'Changed'; entry.review.camera.eye[0] = 100;
+    entry.review.scene.members[0] = 'changed'; entry.review.visibleGeometry[0].modelId = 'changed';
+    entry.measurement.first.u = 0.9; entry.lighting.direction[0] = 5;
+    entries.push(named('Third')); document.assets[0].source += ' changed';
+    const file = await pending;
+    assert.deepEqual(file.namedViews, [named(), named('Second')]);
+    const text = JSON.stringify(file), restored = await readReviewFile(text, source());
+    restored.namedViews[0].review.camera.eye[0] = 42;
+    restored.namedViews[0].measurement.first.u = 0.5;
+    restored.namedViews[0].lighting.direction[0] = -100;
+    assert.deepEqual(restored.namedViews[1], named('Second'));
+    assert.deepEqual(restored.candidate.review, review());
+    assert.deepEqual(restored.candidate.measurement, measurement());
+    assert.deepEqual(restored.candidate.lighting, lighting());
+    assert.deepEqual(file.namedViews[0], named());
+    assert.deepEqual((await readReviewFile(text, source())).namedViews[0], named());
+    await assert.rejects(readReviewFile(text, document), /source differs/);
+  });
+
+  await t.test('names use the exact trimmed UTF-16 limit and case-sensitive uniqueness', async () => {
+    const entries = [named('a'.repeat(64)), named('Detail'), named('detail'), named('😀'.repeat(32))];
+    assert.deepEqual(copyNamedViews(entries, review().scene), entries);
+    const eight = Array.from({ length: 8 }, (_, index) => named(`View ${index}`));
+    assert.equal(copyNamedViews(eight, review().scene).length, 8);
+    const base = await makeFile();
+    for (const entries of [null, {}, new Array(1), [...eight, named('Ninth')], [named(), named()],
+      ...['', ' ', ' Leading', 'Trailing ', 'a'.repeat(65), '😀'.repeat(33), 'Line\nbreak', 'nul\0',
+        'delete\x7f', 'c1\x85', 'c1\x9f', 12].map(name => [named(name)])]) {
+      assert.throws(() => copyNamedViews(entries, review().scene));
+      await assert.rejects(createReviewFile(review(), null, source(), undefined, entries));
+      await assert.rejects(readReviewFile(JSON.stringify({ ...base, namedViews: entries }), source()));
+    }
+  });
+
+  await t.test('every entry requires the same complete ordered scene pins', async () => {
+    const current = review(); current.scene.members = ['member_a', 'member_b'];
+    const valid = named(); valid.review = structuredClone(current);
+    const file = await createReviewFile(current, null, source(), undefined, [valid]);
+    const changes = [
+      scene => { scene.kind = 'assembly'; }, scene => { scene.id = 'different'; },
+      scene => { scene.revision++; }, scene => { scene.mmToSceneUnit = 0.2; },
+      scene => { scene.members.reverse(); }, scene => { scene.members.pop(); },
+      scene => { scene.members[0] = 'different'; },
+    ];
+    for (const change of changes) {
+      const stale = structuredClone(valid); change(stale.review.scene);
+      assert.throws(() => copyNamedViews([stale], current.scene), /scene differs/);
+      await assert.rejects(createReviewFile(current, null, source(), undefined, [stale]), /scene differs/);
+      await assert.rejects(readReviewFile(JSON.stringify({ ...file, namedViews: [valid, { ...stale, name: 'Stale' }] }), source()),
+        /scene differs/);
+    }
+  });
+
+  await t.test('unknown or malformed entry fields refuse the whole file', async () => {
+    const file = await makeNamedFile(), missing = named(); delete missing.measurement;
+    const bad = [null, {}, missing, { ...named(), sourceSHA256: file.sourceSHA256 },
+      { ...named(), lighting: undefined }, { ...named(), lighting: { ...lighting(), environment: {} } },
+      { ...named(), measurement: { ...measurement(), distanceMM: -1 } },
+      { ...named(), measurement: { ...measurement(), pointMM: [0, 0, 0] } },
+      { ...named(), review: { ...review(), extra: true } },
+      { ...named(), review: { ...review(), camera: { ...review().camera, eye: [0, 1] } } }];
+    for (const entry of bad) {
+      assert.throws(() => copyNamedViews([entry], review().scene));
+      // Explicit undefined disappears from JSON and therefore represents valid lighting omission.
+      if (!(entry && Object.hasOwn(entry, 'lighting') && entry.lighting === undefined))
+        await assert.rejects(readReviewFile(JSON.stringify({ ...file, namedViews: [named('Valid'), entry] }), source()));
+    }
+    await assert.rejects(readReviewFile(JSON.stringify({ ...file, unknown: true }), source()), /unsupported fields/);
+    await assert.rejects(readReviewFile(JSON.stringify({ ...file, sourceSHA256: '0'.repeat(64) }), source()), /source differs/);
+  });
+
+  await t.test('accessors, decorated arrays and non-plain entries refuse without invoking getters', () => {
+    let calls = 0;
+    const getter = { enumerable: true, get() { calls++; throw Error('getter was invoked'); } };
+    const name = named(); Object.defineProperty(name, 'name', getter);
+    const light = named(); Object.defineProperty(light, 'lighting', getter);
+    const vector = named(); Object.defineProperty(vector.review.camera.eye, '0', getter);
+    const symbol = named(); symbol[Symbol('extra')] = true;
+    const nonPlain = Object.assign(Object.create(null), named());
+    const decorated = [named()]; decorated.extra = true;
+    const element = [named()]; Object.defineProperty(element, '0', getter);
+    for (const entries of [[name], [light], [vector], [symbol], [nonPlain], decorated, element])
+      assert.throws(() => copyNamedViews(entries, review().scene));
+    assert.equal(calls, 0);
+  });
+
+  await t.test('assembly named views keep occurrence review and reject native measurements', async () => {
+    const document = JSON.parse(await readFile(new URL(
+      '../../../examples/gpu-scene/fixtures/assembly-revision0.json', import.meta.url), 'utf8'));
+    const instance = document.instances.find(value => value.id === 'child');
+    const view = review(); view.scene = { kind: 'assembly', id: document.assemblyId,
+      revision: document.revision, mmToSceneUnit: 0.15, members: [JSON.stringify(['child', instance.reference])] };
+    view.visibleGeometry = [{ kind: 'curve', modelId: 'assembly.6368696c64', curveId: 'shared_curve' }];
+    view.selectedGeometry = structuredClone(view.visibleGeometry[0]);
+    const entry = { name: 'Occurrence', review: view, measurement: null };
+    const file = await createReviewFile(view, null, document, undefined, [entry]);
+    assert.deepEqual((await readReviewFile(JSON.stringify(file), document)).namedViews, [entry]);
+    const measured = { ...entry, measurement: measurement() };
+    assert.throws(() => copyNamedViews([measured], view.scene), /unavailable for assemblies/);
+    await assert.rejects(readReviewFile(JSON.stringify({ ...file, namedViews: [measured] }), document),
+      /unavailable for assemblies/);
+  });
+
+  await t.test('the final compact UTF-8 bound includes every named entry', async () => {
+    const view = review(); view.scene.members = ['한'.repeat(1200)];
+    const file = await createReviewFile(view, null, source());
+    const entries = Array.from({ length: 8 }, (_, index) => ({ name: `View ${index}`, review: view, measurement: null }));
+    const text = JSON.stringify({ ...file, namedViews: entries });
+    assert.ok(text.length < REVIEW_FILE_LIMIT);
+    assert.ok(new TextEncoder().encode(text).length > REVIEW_FILE_LIMIT);
+    await assert.rejects(createReviewFile(view, null, source(), undefined, entries), /32 KiB/);
+    await assert.rejects(readReviewFile(text, source()), /32 KiB/);
   });
 });

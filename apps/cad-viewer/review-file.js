@@ -100,14 +100,19 @@ function copyLighting(input) {
   return value;
 }
 
-function copyReview(input) {
-  const value = record(input, ['schema', 'version', 'scene', 'camera', 'visibleGeometry', 'selectedGeometry'], 'Review');
-  if (value.schema !== REVIEW_SCHEMA || value.version !== 1) refuse('Unsupported Viewer review format.');
-  const scene = record(value.scene, ['kind', 'id', 'revision', 'mmToSceneUnit', 'members'], 'Review scene');
+function copyScene(input) {
+  const scene = record(input, ['kind', 'id', 'revision', 'mmToSceneUnit', 'members'], 'Review scene');
   if (!['document', 'assembly'].includes(scene.kind)) refuse('Unsupported review scene kind.');
   string(scene.id, 'Review scene.id'); finite(scene.revision, 'Review scene.revision');
   finite(scene.mmToSceneUnit, 'Review scene.mmToSceneUnit');
   scene.members = array(scene.members, 'Review scene.members').map(member => string(member, 'Review member'));
+  return scene;
+}
+
+function copyReview(input) {
+  const value = record(input, ['schema', 'version', 'scene', 'camera', 'visibleGeometry', 'selectedGeometry'], 'Review');
+  if (value.schema !== REVIEW_SCHEMA || value.version !== 1) refuse('Unsupported Viewer review format.');
+  const scene = copyScene(value.scene);
   const camera = record(value.camera, ['eye', 'target', 'up', 'fovY', 'near', 'far'], 'Review camera');
   for (const key of ['eye', 'target', 'up']) {
     camera[key] = array(camera[key], `Review camera.${key}`);
@@ -118,6 +123,32 @@ function copyReview(input) {
   return { schema: value.schema, version: value.version, scene, camera,
     visibleGeometry: array(value.visibleGeometry, 'Review visible geometry').map(ref => copyRef(ref, 'Review geometry')),
     selectedGeometry: value.selectedGeometry === null ? null : copyRef(value.selectedGeometry, 'Review selection') };
+}
+
+/** Copy file-shaped named views. SDK preflight remains the authority for display and native semantics. */
+export function copyNamedViews(input, scene) {
+  const expected = copyScene(scene);
+  if (!Array.isArray(input) || input.length > 8) refuse('Named views require an array of zero to eight entries.');
+  const names = new Set();
+  return array(input, 'Named views').map((entry, index) => {
+    const hasLighting = entry !== null && typeof entry === 'object' && Object.hasOwn(entry, 'lighting');
+    const keys = ['name', 'review', 'measurement'];
+    if (hasLighting) keys.push('lighting');
+    const value = record(entry, keys, `Named view ${index + 1}`);
+    const name = string(value.name, 'Named view name');
+    if (name.length < 1 || name.length > 64 || name.trim() !== name || /[\x00-\x1f\x7f-\x9f]/.test(name))
+      refuse('Named view names require 1 to 64 trimmed characters without control characters.');
+    if (names.has(name)) refuse('Named view names must be unique.');
+    names.add(name);
+    const review = copyReview(value.review), actual = review.scene;
+    if (actual.kind !== expected.kind || actual.id !== expected.id || actual.revision !== expected.revision
+      || actual.mmToSceneUnit !== expected.mmToSceneUnit || actual.members.length !== expected.members.length
+      || actual.members.some((member, memberIndex) => member !== expected.members[memberIndex]))
+      refuse('Named view scene differs from the current review scene.');
+    const copied = { name, review, measurement: copyMeasurement(value.measurement, actual.kind) };
+    if (hasLighting) copied.lighting = copyLighting(value.lighting);
+    return copied;
+  });
 }
 
 /** Copy source JSON without invoking accessors, toJSON, or retaining caller references. */
@@ -163,11 +194,12 @@ async function sha256(text) {
 }
 
 /** Snapshot all inputs before hashing. The file contains no CAD source or derived point coordinates. */
-export async function createReviewFile(review, measurement, sourceDocument, lighting) {
+export async function createReviewFile(review, measurement, sourceDocument, lighting, namedViews) {
   const capturedReview = copyReview(review);
   const file = { schema: FILE_SCHEMA, version: 1, sourceSHA256: '0'.repeat(64),
     review: capturedReview, measurement: copyMeasurement(measurement, capturedReview.scene.kind) };
   if (lighting !== undefined) file.lighting = copyLighting(lighting);
+  if (namedViews !== undefined) file.namedViews = copyNamedViews(namedViews, capturedReview.scene);
   bounded(JSON.stringify(file));
   const capturedSource = sourceText(sourceDocument, capturedReview.scene.kind);
   file.sourceSHA256 = await sha256(capturedSource);
@@ -186,8 +218,10 @@ export async function readReviewFile(text, sourceDocument) {
       review: copyReview(input), measurement: null }, legacy: true };
   }
   const hasLighting = input !== null && typeof input === 'object' && Object.hasOwn(input, 'lighting');
+  const hasNamedViews = input !== null && typeof input === 'object' && Object.hasOwn(input, 'namedViews');
   const keys = ['schema', 'version', 'sourceSHA256', 'review', 'measurement'];
   if (hasLighting) keys.push('lighting');
+  if (hasNamedViews) keys.push('namedViews');
   const file = record(input, keys, 'Review file');
   if (file.schema !== FILE_SCHEMA || file.version !== 1) refuse('Unsupported CAD Viewer review file.');
   if (typeof file.sourceSHA256 !== 'string' || !/^[a-f0-9]{64}$/.test(file.sourceSHA256))
@@ -196,8 +230,9 @@ export async function readReviewFile(text, sourceDocument) {
   const candidate = { schema: CANDIDATE_SCHEMA, version: 1,
     review: capturedReview, measurement: copyMeasurement(file.measurement, capturedReview.scene.kind) };
   if (hasLighting) candidate.lighting = copyLighting(file.lighting);
+  const namedViews = hasNamedViews ? copyNamedViews(file.namedViews, capturedReview.scene) : undefined;
   const capturedSource = sourceText(sourceDocument, capturedReview.scene.kind);
   if (await sha256(capturedSource) !== file.sourceSHA256)
     refuse('The review source differs from the loaded CAD source.');
-  return { candidate, legacy: false };
+  return { candidate, legacy: false, ...(hasNamedViews ? { namedViews } : {}) };
 }

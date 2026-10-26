@@ -97,6 +97,13 @@ export type ViewerQualifiedFaceAppearanceHandoffResult =
 export type ViewerGeometryRef =
   | ({ kind: 'surface' } & ViewerRef)
   | ({ kind: 'curve' } & ViewerCurveRef);
+interface PreparedReviewCandidate {
+  camera: MeshCamera;
+  visible: ViewerGeometryRef[];
+  hidden: ViewerGeometryRef[];
+  surface: ViewerRef | null;
+  selection: ViewerGeometryRef | null;
+}
 export interface ViewerPacket { modelId: string; packet: PreviewPacket }
 /** Actual Physics metre positions mapped by the host; Viewer owns the copied display frame. */
 export interface ViewerFluidFrameV0 {
@@ -2336,9 +2343,9 @@ export class Viewer {
   }
   /** Validate the complete candidate before drawing or changing accepted CPU state. */
   applyReviewState(input: unknown): void {
-    this.applyReviewCandidate(input);
+    this.presentReviewCandidate(this.prepareReviewCandidate(input));
   }
-  private applyReviewCandidate(input: unknown, lighting: MeshLighting | null = this.acceptedLighting): void {
+  private prepareReviewCandidate(input: unknown): PreparedReviewCandidate {
     const scene = this.reviewScene();
     const data = reviewRecord(input, ['schema', 'version', 'scene', 'camera', 'visibleGeometry', 'selectedGeometry'], 'Review');
     check(data.schema === 'barocss-viewer-review' && data.version === 1, 'Unsupported Viewer review format');
@@ -2368,6 +2375,11 @@ export class Viewer {
       'Clear Surface material before selecting the bound Surface');
     const hidden = inventory.filter(ref => !visible.some(value => sameGeometryRef(value, ref)));
     const surface = selection?.kind === 'surface' ? { modelId: selection.modelId, surfaceId: selection.surfaceId } : null;
+    return { camera, visible, hidden, surface, selection };
+  }
+  private presentReviewCandidate(candidate: PreparedReviewCandidate,
+    lighting: MeshLighting | null = this.acceptedLighting): void {
+    const { camera, hidden, surface, selection } = candidate;
     try {
       this.present(this.packets, this.curves, camera, surface, this.motion, selection, this.geometryMotion,
         this.drawn === 'qualified', hidden, this.particleLayer, this.surfaceMaterials, this.clothLayer, lighting);
@@ -2383,6 +2395,19 @@ export class Viewer {
   }
   /** Restore a review and its latest original-native distance as one accepted change. */
   applyMeasuredReviewState(input: unknown): ViewerNativePointDistance | null {
+    const candidate = this.prepareMeasuredReviewCandidate(input);
+    this.presentReviewCandidate(candidate.review, candidate.lighting);
+    this.nativeMeasurement = candidate.result;
+    return candidate.detached;
+  }
+  /** Check the complete candidate without presenting, adopting it, or changing measurement caches. */
+  validateMeasuredReviewState(input: unknown): void {
+    this.prepareMeasuredReviewCandidate(input);
+  }
+  private prepareMeasuredReviewCandidate(input: unknown): {
+    review: PreparedReviewCandidate; lighting: MeshLighting | null;
+    result: ViewerNativePointDistance | null; detached: ViewerNativePointDistance | null;
+  } {
     const scene = this.reviewScene();
     const hasLighting = input !== null && typeof input === 'object' && Object.hasOwn(input, 'lighting');
     const data = reviewRecord(input, hasLighting
@@ -2390,8 +2415,7 @@ export class Viewer {
       : ['schema', 'version', 'review', 'measurement'], 'Measured review');
     check(data.schema === 'barocss-viewer-measured-review' && data.version === 1,
       'Unsupported Viewer measured review format');
-    const review = reviewRecord(data.review,
-      ['schema', 'version', 'scene', 'camera', 'visibleGeometry', 'selectedGeometry'], 'Review');
+    const review = this.prepareReviewCandidate(data.review);
     const lighting = hasLighting ? data.lighting === null ? null : parseLighting(data.lighting) : this.acceptedLighting;
     if (hasLighting) {
       const capabilities = this.getLightingCapabilities();
@@ -2409,17 +2433,13 @@ export class Viewer {
       const model = this.nativeModel(first.modelId);
       check(model && second.modelId === first.modelId,
         'Both review points must belong to the accepted native model');
-      check(Array.isArray(review.visibleGeometry) && review.visibleGeometry.length <= 4,
-        'Review visible geometry requires 0..4 references');
-      const visible = denseArray(review.visibleGeometry, review.visibleGeometry.length,
-        'Review visible geometry').map(parseGeometryRef);
       const inventory = this.geometryRefs();
       for (const point of [first, second]) {
         const ref: ViewerGeometryRef = point.kind === 'surface'
           ? { kind: 'surface', modelId: point.modelId, surfaceId: point.surfaceId }
           : { kind: 'curve', modelId: point.modelId, curveId: point.curveId };
         check(inventory.some(value => sameGeometryRef(value, ref))
-          && visible.some(value => sameGeometryRef(value, ref)),
+          && review.visible.some(value => sameGeometryRef(value, ref)),
         'Review points must reference admitted and candidate-visible geometry');
       }
       result = nativeDistance(this.evaluateNativePoint(first, model), this.evaluateNativePoint(second, model));
@@ -2427,9 +2447,7 @@ export class Viewer {
     }
     // All evaluation and copying precede presentation. A failed draw leaves every cache intact.
     const detached = result === null ? null : structuredClone(result);
-    this.applyReviewCandidate(review, lighting);
-    this.nativeMeasurement = result;
-    return detached;
+    return { review, lighting, result, detached };
   }
   getState(): ViewerState {
     const status = this.disposed ? 'disposed' : this.packets.length + this.curves.length || this.shell?.boundsScene || this.qualifiedFaceScene ? 'ready' : 'empty';

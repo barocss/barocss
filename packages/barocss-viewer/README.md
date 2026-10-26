@@ -1251,3 +1251,15 @@ the current accepted light, so existing measured reviews remain compatible.
 Lighting, display and measurement form one validated candidate and use one
 presentation. A bad combined candidate leaves all accepted fields unchanged.
 
+`validateMeasuredReviewState(unknown)` checks that same complete candidate against
+the current accepted scene without presenting or adopting it. Validation covers
+scene identity, revision, scale and ordered subset pins; camera geometry;
+visible/selected references and current layer/material guards; optional lighting
+admission; and original native parameter domains and exact point distance. It
+returns undefined on success and throws on refusal. Input data, accepted state,
+measurement caches and presenter calls remain unchanged. It uses the same
+preparation as `applyMeasuredReviewState`; it does not apply a candidate and then
+undo it. A host can validate every named review before applying one selected
+candidate. Validation does not reserve the scene: apply still validates against
+the current state and can encounter a synchronous presentation failure.
+

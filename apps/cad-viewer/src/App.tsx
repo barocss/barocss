@@ -11,6 +11,7 @@ import { LightingPanel } from './LightingPanel';
 import { AssemblyTree } from './AssemblyTree';
 import { AssemblyInspector } from './AssemblyInspector';
 import type { AssemblyInspection } from './AssemblyInspector';
+import { NamedViewsPanel } from './NamedViewsPanel';
 
 type Body = {
   id: string;
@@ -50,6 +51,9 @@ type ViewModel = {
   measurement: DistanceMeasurement;
   measurementOverlay: { width: number; height: number; points: ProjectedMeasurementPoint[] };
   assemblyInspection: AssemblyInspection | null;
+  namedViews: string[];
+  namedBusy: boolean;
+  namedViewError: string;
 };
 
 const initialModel: ViewModel = {
@@ -61,6 +65,7 @@ const initialModel: ViewModel = {
   measurement: { active: false, points: [], result: null, error: '' },
   measurementOverlay: { width: 0, height: 0, points: [] },
   assemblyInspection: null,
+  namedViews: [], namedBusy: false, namedViewError: '',
 };
 
 function sameRef(a: ViewerGeometryRef | null | undefined, b: ViewerGeometryRef | null | undefined) {
@@ -209,7 +214,7 @@ export function App() {
           </div>
           <div className="toolbar-spacer" />
           <div className="toolbar-group review-actions" aria-label="Review file actions">
-            <Button id="save-review" variant="ghost" size="sm" disabled={!model.ready || model.reviewBusy || model.measurement.active}
+            <Button id="save-review" variant="ghost" size="sm" disabled={!model.ready || model.reviewBusy || model.namedBusy || model.measurement.active}
               title={model.measurement.active ? 'Finish or cancel point selection before saving.' : 'Save the view and completed measurement'}
               onClick={() => void api()?.downloadReview()}>
               <Icon name="save" />{model.reviewBusy ? 'Saving…' : 'Save review'}
@@ -220,7 +225,7 @@ export function App() {
                 event.currentTarget.value = '';
                 if (file) void api()?.openReview(file); else api()?.cancelReviewPick();
               }} />
-            <Button id="open-review" variant="ghost" size="sm" disabled={!model.ready || model.reviewBusy} onClick={openReviewPicker}>
+            <Button id="open-review" variant="ghost" size="sm" disabled={!model.ready || model.reviewBusy || model.namedBusy} onClick={openReviewPicker}>
               <Icon name="upload" />Open review
             </Button>
           </div>
@@ -339,6 +344,12 @@ export function App() {
 
         <aside className="inspector-panel" aria-label="Model inspector">
           <div className="inspector-heading"><h2>Properties</h2></div>
+          <NamedViewsPanel key={`${model.active?.kind}:${model.active?.id}:${model.active?.revision}`} names={model.namedViews}
+            disabled={!model.ready || model.reviewBusy || model.namedBusy} measurementActive={model.measurement.active}
+            error={model.namedViewError} onSave={name => api()?.saveNamedView(name) ?? Promise.resolve(false)}
+            onRestore={name => api()?.restoreNamedView(name)}
+            onRename={(name, nextName) => api()?.renameNamedView(name, nextName) ?? Promise.resolve(false)}
+            onDelete={name => { void api()?.deleteNamedView(name); }} />
           {(model.measurement.active || model.measurement.points.length > 0) && <DistancePanel measurement={model.measurement}
             onStart={() => api()?.startMeasurement()}
             onCancel={() => { api()?.cancelMeasurement(); measurementToolRef.current?.focus(); }}

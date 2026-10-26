@@ -9,6 +9,7 @@ import { build } from 'esbuild';
 const root = new URL('../../../', import.meta.url);
 const built = await build({ stdin: { contents: `export { Viewer } from './packages/barocss-viewer/src/index.ts';
 export { Presenter } from './packages/barocss-viewer/src/presenter.ts';
+export { compileMeshMaterial } from '@barocss/gpu';
 export { parseBaroCadDocument } from './packages/barocss-cad-interop/src/document.ts';
 export { parseBaroCadAssembly } from './packages/barocss-cad-interop/src/assembly.ts';`,
   resolveDir: root.pathname }, bundle: true, platform: 'node', format: 'esm', write: false,
@@ -410,4 +411,87 @@ test('Presenter changes lights without touching meshes and restores original cor
     }
     assert.equal(core.camera, camera); assert.ok(requests >= 1);
   }
+});
+
+test('named review preflight', async t => {
+  await t.test('valid document measurement and lighting do not present or change any accepted cache', () => {
+    const { viewer, presenter } = setup(), point = nativeInputs(viewer);
+    const untag = ({ kind, ...parameter }) => parameter;
+    viewer.measureNativeSurfacePoints(untag(point.surfaceA), untag(point.surfaceB));
+    viewer.measureNativeCurvePoints(untag(point.curveA), untag(point.curveB));
+    viewer.measureNativeSurfaceCurvePoints(untag(point.surfaceA), untag(point.curveB));
+    const candidate = { ...measuredReview(viewer, point.surfaceA, point.curveB),
+      lighting: structuredClone(authoredLighting) };
+    const input = structuredClone(candidate);
+    viewer.measureNativePoints(point.curveA, point.curveB); viewer.orbit(.2, -.1);
+    const before = viewer.getState(), calls = presenter.drawings.length, updates = presenter.lightingUpdates.length;
+    presenter.fail = true;
+    assert.equal(viewer.validateMeasuredReviewState(candidate), undefined);
+    assert.deepEqual(viewer.getState(), before); assert.deepEqual(candidate, input);
+    assert.equal(presenter.drawings.length, calls); assert.equal(presenter.lightingUpdates.length, updates);
+    assert.equal(presenter.fail, true);
+  });
+  await t.test('camera relations, native domain and distance, scene pins and getters refuse without presentation', () => {
+    const { viewer, presenter } = setup(), point = nativeInputs(viewer);
+    const candidate = measuredReview(viewer, point.surfaceA, point.curveB);
+    const before = viewer.getState(), calls = presenter.drawings.length;
+    const alteredView = fields => ({ ...candidate, review: { ...candidate.review, ...fields } });
+    const invalid = [
+      alteredView({ camera: { ...candidate.review.camera, eye: candidate.review.camera.target } }),
+      alteredView({ camera: { ...candidate.review.camera, near: 5, far: 1 } }),
+      alteredView({ visibleGeometry: [], selectedGeometry: null }),
+      alteredView({ selectedGeometry: { kind: 'curve', modelId: 'unknown', curveId: 'unknown' } }),
+      alteredView({ scene: { ...candidate.review.scene, revision: candidate.review.scene.revision + 1 } }),
+      alteredView({ scene: { ...candidate.review.scene, members: [...candidate.review.scene.members].reverse() } }),
+      { ...candidate, lighting: { ...authoredLighting, direction: [0, 0, 0] } },
+      { ...candidate, measurement: { ...candidate.measurement, distanceMM: candidate.measurement.distanceMM + 1 } },
+      { ...candidate, measurement: { ...candidate.measurement, first: { ...point.surfaceA, u: -2.001 } } },
+    ];
+    let getters = 0;
+    const descriptor = { enumerable: true, get() { getters++; throw Error('getter must not run'); } };
+    invalid.push(Object.defineProperty({ ...candidate }, 'review', descriptor));
+    invalid.push(alteredView({ camera: Object.defineProperty({ ...candidate.review.camera }, 'eye', descriptor) }));
+    invalid.push({ ...candidate, measurement: { ...candidate.measurement,
+      first: Object.defineProperty({ ...point.surfaceA }, 'u', descriptor) } });
+    for (const input of invalid) {
+      assert.throws(() => viewer.validateMeasuredReviewState(input));
+      assert.deepEqual(viewer.getState(), before); assert.equal(presenter.drawings.length, calls);
+      assert.equal(presenter.lightingUpdates.length, 0);
+    }
+    assert.equal(getters, 0);
+  });
+  await t.test('assembly display and lighting preflight succeeds, native measurements and stale subset pins refuse', () => {
+    const { viewer, presenter } = setup(), point = nativeInputs(viewer);
+    const measurement = measuredReview(viewer, point.surfaceA, point.curveB).measurement;
+    viewer.loadAssembly(api.parseBaroCadAssembly(assembly), { native: options.native, basis: options.basis,
+      instanceIds: ['child', 'surface_grandchild', 'shared_root', 'asset_b_instance'] });
+    viewer.selectGeometry(viewer.getState().visibleGeometry[0]);
+    const candidate = { schema: 'barocss-viewer-measured-review', version: 1,
+      review: viewer.captureReviewState(), measurement: null, lighting: structuredClone(authoredLighting) };
+    const before = viewer.getState(), calls = presenter.drawings.length;
+    assert.equal(viewer.validateMeasuredReviewState(candidate), undefined);
+    assert.throws(() => viewer.validateMeasuredReviewState({ ...candidate, measurement }), /native CAD document/);
+    assert.throws(() => viewer.validateMeasuredReviewState({ ...candidate, review: { ...candidate.review,
+      scene: { ...candidate.review.scene, members: candidate.review.scene.members.slice(1) } } }), /inventory/);
+    assert.deepEqual(viewer.getState(), before); assert.equal(presenter.drawings.length, calls);
+    assert.equal(presenter.lightingUpdates.length, 0);
+  });
+  await t.test('current material guards apply to preflight without binding or redrawing anything', () => {
+    const { viewer, presenter } = setup();
+    const surface = viewer.getState().surfaces[0];
+    const compiled = api.compileMeshMaterial('@shader #preflight_blue { @fragment { color: #2867D8; } }');
+    assert.equal(compiled.ok, true);
+    viewer.setSurfaceMaterial(surface, { material: compiled.material, uniforms: {} });
+    const candidate = { schema: 'barocss-viewer-measured-review', version: 1,
+      review: viewer.captureReviewState(), measurement: null };
+    const before = viewer.getState(), calls = presenter.drawings.length;
+    assert.equal(viewer.validateMeasuredReviewState(candidate), undefined);
+    for (const review of [
+      { ...candidate.review, visibleGeometry: [], selectedGeometry: null },
+      { ...candidate.review, selectedGeometry: { kind: 'surface', ...surface } },
+    ]) {
+      assert.throws(() => viewer.validateMeasuredReviewState({ ...candidate, review }), /Clear Surface material/);
+      assert.deepEqual(viewer.getState(), before); assert.equal(presenter.drawings.length, calls);
+    }
+  });
 });
