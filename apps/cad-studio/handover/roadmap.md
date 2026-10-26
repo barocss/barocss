@@ -151,6 +151,33 @@ leave a fixable mismatch as a permanent note, invent missing units, apply the sa
 twice, loosen tolerances or call an unknown result successful. A real external restriction
 still needs its exact cause, unblock condition and a useful independent next task.
 
+## Workflow completion cases from SolidCraft
+
+Use [SolidCraft's roadmap](https://github.com/tangency-labs/solidcraft/blob/main/ROADMAP.md),
+[0.23.0](https://github.com/tangency-labs/solidcraft/releases/tag/v0.23.0),
+[0.22.1](https://github.com/tangency-labs/solidcraft/releases/tag/v0.22.1), its
+[naming contract](https://github.com/tangency-labs/solidcraft/blob/main/docs/book/src/dev/naming.md)
+and [configuration contract](https://github.com/tangency-labs/solidcraft/blob/e02ef3246f69b8a0c54cc3f3995b2d6950e5af7a/docs/configurations.md)
+as comparison evidence. A release note, an in-progress milestone and our own executed
+result are different evidence. Do not copy its old header date, agent-hour estimates,
+completion labels, engine or implementation into our schedule or acceptance claim.
+
+| Candidate or regression | Lead and existing scope | First delivery gate |
+| --- | --- | --- |
+| Export mesh quality, small feature candidate | API lead, Outer UI and existing Kernel export boundary | Pass a bounded export-quality setting from Studio through worker/Model to the existing `exportStl` `segmentsPerQuarter` option. Keep viewport quality independent and preserve current defaults. Export a small curved/hole fixture at two fixed qualities; inspect actual downloaded STL triangle count, physical mm size, winding/closure and the preset's stated error criterion/budget. A display-mesh fallback must stay visible as fallback and cannot claim the requested kernel quality. Preserve lump handling and the source-revision sidecar. |
+| Separate drill and effective thread depth, small feature candidate | Outer lead with API/Hole and Drawings consumers | Audit existing cosmetic and modelled thread paths; extend the Studio Hole contract only where needed. Freeze separate depths in mm and their validation before code. A blind hole with a shorter effective thread retains drill geometry while callout/preview/export report the intended thread depth. Preserve legacy documents, invalid-input rollback and actual versus cosmetic-thread meaning. Do not invent a machining allowance or new thread engine. |
+| Associative sketch edit chain | API/Outer; reuse issues 531, 1658 and 2215 | Project a face, offset its profile, extrude/cut, edit the source dimension, then split or delete the source face. Keep the intended target or ask for explicit repair; never silently attach to a nearby face. Include Undo/Redo and real Save/Open. |
+| Atomic configuration row | API lead; reuse issues 533, 2047 and 2188 | Audit existing configurations/variability first. Select one row that changes dimensions, feature activation and material together. Success must bind model/BOM/drawing/export to that row and revision; failure rolls the whole change back, including undo and saved state. Do not build a second table or assume the existing table has none of these paths. |
+| Boundary regression pack | Existing Kernel/Outer scope, not a new engine | Test similar edges on two bodies after a height edit, repeated split lineage/name growth, and the current positive-to-zero-to-positive distance contract. Keep current zero-length refusal explicit; a new zero-length solver behavior needs its own bounded support decision. Do not report SolidCraft's old defect as ours. |
+| Section display and selection agreement | GPU; attach to issue 2213 | Compare visible cap, behind-cut colour/edge/hover and selection on the same revision in WebGPU and WebGL2, plus preview versus exact cut. Keep display caps distinct from native topology and do not add a new BVH or LOD task. |
+
+These are additions to workflow depth, not six new implementation epics. Close the current
+J2/Drawing/robot-warning batch and the selected 2215 sketch/revolve acceptance work first.
+The first two rows become implementation tasks only after an exact data/ownership contract
+and current-source gap are frozen. Rows three through six extend existing acceptance cases.
+For later sheet-metal and frame work, qualify edit/regenerate to unfold or cut-list to
+Drawing/export as one flow, and keep unimplemented joins/trims/cut lists conditional.
+
 ## CAD-to-simulation handoff: issue 2209 planning boundary
 
 Reference [issue 2209](https://github.com/barocss/barocss/issues/2209) after the current editable-CAD,
