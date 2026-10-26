@@ -233,7 +233,7 @@ test('public two-link gravity: explicit aluminium mass binds the CAD static-mome
   };
   for (const fixed of fixedCases) {
     const { q1, q2 } = fixed;
-    const values = { [first.key]: q1, [second.key]: q2 }, valuesBefore = { ...values };
+    const values: Record<string, number> = { [first.key]: q1, [second.key]: q2 }, valuesBefore: Record<string, number> = { ...values };
     const a = q1 * Math.PI / 180, b = (q1 + q2) * Math.PI / 180;
     const pose = robot.pose(values);
     assert.deepEqual(pose.out_of_limits, []);
