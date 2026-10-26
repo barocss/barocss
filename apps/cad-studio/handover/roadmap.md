@@ -77,6 +77,57 @@ Model's inverse-dynamics torque calculation for prescribed angles, velocities an
 forward free-motion prediction from an initial angle. Neither that torque result nor a UI animation completes
 the planned pendulum experiment. Physics ownership is still unconfirmed; this roadmap assigns no new solver work.
 
+## Reliability priorities from research index 2214
+
+Read [index 2214](https://github.com/barocss/barocss/issues/2214) and its CAD 2210, robotics 2211,
+character-motion 2212 and GPU 2213 bodies as research inputs. Their remote `c3ae0d5d` baseline differs from
+this local execution tree. Choose bounded current-source checks before claiming an old failure persists or
+adopting a comparator. No new kernel, engine, runtime dependency, WASM, paused owner, hardware control or
+manufacturing/FEA hold is activated by this roadmap update.
+
+Finish the current setup documentation/site/product slice while independent owners close observed label and
+camera problems. Then prioritize false-success and information-loss gates ahead of speculative acceleration.
+
+| Priority | Owner and existing work | Next bounded result and gate |
+|---|---|---|
+| P0 CAD Boolean acceptance | Kernel after its R1 regression; reuse issue 2205 seed and existing robustness runner | Reproduce one exact current-source cylinder/box graze seed. Keep validate, finite mass, independent volume, tessellation and roundtrip outcomes separate. Preserve the original tolerance and input. A historical 1e-5 TODO is not the requested 1e-6 seed. Only a reproduced unsupported/invalid success leads to a minimal guard or geometry fix. OCCT remains an optional independent comparator, not a new kernel dependency. |
+| P0 robot/export loss | API with existing joint tree/export owners; issues 2189, 2209 and 2211 | Preserve supported warnings and assumptions across shared export boundaries. The current source review found joint-tree notes omitted by robotParts; a bounded notes-preservation patch/test is selected. Treat unknown materials, omitted loops, unsupported couplings and hull proxies as separate loss cases; do not silently mark them dynamics-ready. |
+| P0 GPU acceptance and stale results | Existing GPU owner after its current FOV/camera work; issue 2213 | Reconcile actual G20.2 evidence, then map pose/geometry/camera/clip/request/device generations at real async consumers. A stale result must not overwrite accepted selection or native data. Reuse existing CPU and BVH references. Do not replace missing broad acceptance with one leak or screenshot case. |
+| P0 exchange meaning | API and current exchange owners; issues 539, 2203 and 2210 | Test one nested assembly with a repeated definition against explicit occurrence/placement expectations. Distinguish shape-only STEP from assembly/history preservation and report flattening or unsupported data. Independent read-back is a later selected target; own writer-reader agreement is not independent validation. |
+| P1 edit references and sketch diagnostics | Existing CAD/Outer owners; issues 1657, 1658, 2193 and 2210 | Reuse stable feature/face/edge names. A changed/split/deleted reference resolves correctly or remains unresolved instead of editing another face. Keep DOF/conflict/redundancy, convergence and valid geometry distinct. Do not add a second naming system or assume a missing solver. |
+| P2 online robot trajectory | Current robot consumer after joint/profile/loss gates; issue 2211 | Nonzero velocity/acceleration retargeting and synchronization are separate from existing rest-to-rest S-curves. Select local state-to-state only; reject cloud waypoint paths. Validate the generated path rather than reusing straight-sweep coverage outside its profile. Pinocchio/Coal/Ruckig/MuJoCo are comparison candidates pending scope, version and terms; do not port/install all of them. |
+| Conditional character motion | Confirm existing consumer, provider and owner first; issue 2212 | Separate rigid part transforms from skin deformation and root-motion/clock authority. Select an asset/weight provider before a small playback/blending/foot-contact comparison. Preserve paused Motion/Rendering work. ozz, IK and DQS are candidates, not implementations or a fix for an unverified old bulge. |
+| Hold: new BVH, LOD or speculative culling | Preserve existing G9/G14/G20-G25 decisions | BVH and instance reuse already exist. Keep measured LOD deferral; reopen only for a measured workload and fixed correctness/resource budgets. CPU submit, queue wall time, GPU timestamp, tracked bytes and driver memory are different measures. |
+
+The existing test-only R1 slice at `9be20c5e` passed its three selected BRep/COM/static-moment and axis-inertia
+assertions with authored density. It is not a Model 2R solver, forward dynamics or physical validation.
+Keep engine proposals and benchmark targets as unexecuted candidates until their own source, ownership,
+license, fixture, command and acceptance conditions are fixed. Record pass, fail, unsupported and not_run.
+
+## CAD-to-simulation handoff: issue 2209 planning boundary
+
+Reference [issue 2209](https://github.com/barocss/barocss/issues/2209) after the current editable-CAD,
+setup, joint-input and two-link slices. It is research and planning, not authorization to install Intrinsic,
+add a runtime dependency, change Physics ownership or release an adapter. Native CAD parameters and feature
+history stay authoritative; visual meshes, collision shapes, URDF/USD and runtime scenes are derived assets
+bound to the same source revision. SimReady here is a proposed barocss contract, not NVIDIA certification or
+an established Intrinsic import schema.
+
+| Slice | Reuse and owner | Admission and completion boundary |
+|---|---|---|
+| SR0: compatibility and existing contracts | API coordinates existing Kernel/Outer/GPU/Docs evidence; issues 2189 and 2193 | Read actual owned paths and source/producer/dependency identities, link/joint/frame bindings and target capabilities. Record supported, approximate, unsupported and unknown fields before assigning implementation. No duplicate package or source of truth. |
+| SR1: runtime-free unit/frame/inertial checks | Reuse existing BRep/axis/R1 oracles and issue 2193 envelope | Check 100 mm to 0.1 m, mass g to kg and inertia g mm squared to kg m squared with factor 1e-9 exactly once. Use asymmetric fixtures for tensor rotation, COM reference and parallel axes. Refuse missing/double conversions, reflections treated as rotations, invalid tensors and unknown density. Exact source scope remains a future assignment. |
+| SR2: visual/collision and joint tree | Reuse issue 2189; keep external-asset import issue 2191 separate | Permit declared bounded approximations while checking frame, scale, revision and collider completeness. Reject cycles, self-parent, missing links, zero axes, reversed limits and unsupported dependent joints. Separate authored zero, preview, belief, simulated and measured states. |
+| SR3: derived-asset lifecycle and independent read-back | Reuse issues 2188, 2193, 2203 and 2204 | CAD changes invalidate dependent assets. Cancellation, duplicate or late results cannot replace accepted data. Export one admitted profile, read it independently and reopen after relocation; compare units, bounds, joints, inertials and asset paths/hashes. XML or STEP success is not runtime compatibility. |
+| IA0: optional Intrinsic decision | Issue 2209, after separate adoption review | Confirm actual import path and immutable runtime/CLI/container/asset identities, per-component terms, environment and limits. Check geometry, kinematics, dynamics and sim/belief separately; define geometry rebuild/reinitialization. Installation, deployment and real hardware remain outside this roadmap update. |
+
+Use geometry-only, kinematics-ready and dynamics-ready as distinct profiles. Required unknown physics or
+verification cannot be promoted to dynamics-ready. Existing experiment records do not silently migrate to a
+new schema. Preserve assumptions, density sources, coordinate conventions, losses and the first failures.
+The issue's research barocss commit and pinned Intrinsic commit are not this execution baseline or an import
+receipt. Intrinsic is not a CAD kernel, image-to-CAD reconstruction system or a prerequisite for current J2/R1.
+Physics ownership and the free-pendulum contract remain unresolved; no solver/profile change follows here.
+
 ## Completion gates for virtual experiments
 
 Use four separate gates for each bounded experiment. Record the supported inputs, predicted quantities, time range,
@@ -148,17 +199,37 @@ candidate. Original capture failures and clipped images remain recorded. These c
 tolerances and refusal boundaries; same-lift Z mass-property references are not measured accuracy or
 manufacturing acceptance, and this work does not add a signed-axis Studio authoring control.
 
+Pinned gravity-record comparison is adopted in product `2753b38f`. Desktop public file/Pin/Replace/Unpin checks,
+Studio consumer types, panel lint and documentation/site checks passed at their original sources. A changed
+recorded axis origin hides the numeric difference; this synthetic display check is not a new physical result.
+The actual-BRep rigid-frame regression is adopted in product `3475dccb`: two selected tests check rotated COM,
+full inertia and pivot axes with authored density, and the required product docs check passed. No production
+calculation or unit changes were made for that test-only slice.
+
+The experiment-definition module and settings panel were checked at source `a768266a`: twelve selected
+native tests, Model/Studio consumer types and changed-file lint passed. Real desktop setup Save/Open,
+input application, explicit run, mismatch refusal and rebinding were inspected; these remain separate
+operations. Reviewed public-inventory and documentation changes await their final source and product gates.
+Existing result records, pinned comparison, document Save and Physics solvers keep their separate contracts.
+
+The same source's public Sketch-to-Extrude and face-Sketch-to-Cut/Through-all flow passed in agent-browser:
+a 40 by 20 by 8 mm body, an internal 10 by 10 mm face profile, visible underside opening, Undo/Redo and
+real download/New/Open preserved the documents. Original tool failures remain separate. This is bounded
+screen/file evidence, not every-shape support or an independent mass/inertia validation.
+
 ### Near-term delivery ownership (2026-10-26)
 
 Each row is a bounded delivery slice, with source, numerical, screen/file and product gates kept separate.
-Independent source work proceeds in parallel. New heavy execution and shared integration stay serial.
+Independent source work and isolated browser checks proceed in parallel. Native/build/generator contention and
+shared integration stay serial. Owners use agent-browser for needed checks without a new central browser
+approval; preserve other sessions and record actual source, input, URL and screenshots.
 
 | Slice | Owner | Current source state | Required next evidence |
 |---|---|---|---|
 | Explain the lost d19 dimension | Drawings, coordinated by API | One retained observation at `7c435d1f` resolves d19 to 142 and d1 to 0.17; original browser loss remains unexplained | Compare the actual source/bundle path before a narrow fix or new browser claim. Preserve the original failure and 34-dimension requirement; the current native observation is not a 34-glyph pass. |
-| Pin a historical gravity record beside the current result | Outer implementation; GPU screen checks; API adoption | The reviewed one-file panel proposal is in this source checkpoint | Operate Pin/Replace/Unpin, calculation and record Open in desktop Chrome; inspect inputs, document match, historical status, compatible-axis delta, layout and preserved downloads. Then check Studio types, changed-file lint and local adoption. |
-| Check actual BRep mass across rigid frames | Kernel; API adoption | External one-file, two-test proposal uses existing public operations; not executed | Verify independent rotated COM/full tensor and pivot-axis formulas on the same frame with the existing tolerance. No duplicate adapter, conversion or new Physics claim. |
-| Save an experiment setup before calculation | API's three agents; Outer UI; Docs | Separate definition API, twelve test declarations and a layered settings-panel proposal are external, reviewed candidates; not executed or adopted | Keep document Save, setup Save/Open and result-record Download/Open distinct. Open previews settings; explicit input application changes only the form. Run uses the caller's matching current document and creates a result only on success. Rebind creates a new unexecuted setup. Test refusal, copies, staleness and real file/UI flows before adoption. |
+| Pin a historical gravity record beside the current result | Outer implementation; GPU screen checks; API adoption | Product `2753b38f` adopted; actual desktop, impact and product docs checks complete in their stated scopes | Operate Pin/Replace/Unpin, calculation and record Open in desktop Chrome; inspect inputs, document match, historical status, compatible-axis delta, layout and preserved downloads. Then check Studio types, changed-file lint and local adoption. |
+| Check actual BRep mass across rigid frames | Kernel; API adoption | Product `3475dccb` adopted the two passing BRep rigid-frame tests; no production calculation changes | Verify independent rotated COM/full tensor and pivot-axis formulas on the same frame with the existing tolerance. No duplicate adapter, conversion or new Physics claim. |
+| Save an experiment setup before calculation | API's three agents; Outer UI; Docs | Definition API, twelve test declarations and the reviewed settings panel are in this source batch; first runtime and product adoption remain pending | Keep document Save, setup Save/Open and result-record Download/Open distinct. Open previews settings; explicit input application changes only the form. Run uses the caller's matching current document and creates a result only on success. Rebind creates a new unexecuted setup. Test refusal, copies, staleness and real file/UI flows before adoption. |
 | Admit the first free pendulum profile | Confirm Physics ownership first; Kernel/API supply mass/frame contracts | No solver implementation assigned | Agree pivot/COM placement, pivot inertia, gravity moment, reactions and units, then check independent period, energy, time-step convergence and joint errors. Physical validation needs separate measurements. |
 
 The local pin and setup UI state is not saved by CAD document Save. A matching imported historical record is

@@ -144,6 +144,48 @@ A finite recorded torque difference (current − pinned), in N·mm, appears only
 Historical records remain **not recalculated** even when document and inputs match. A difference does not establish cause, accuracy, measured validation or producer compatibility.
 The pin is local to the mounted panel and is cleared when that panel is removed. It is separate from document Save and record Download/Open.
 
+### Experiment setup
+
+| Artifact | Save | Open |
+|---|---|---|
+| Studio document | Document Save keeps the model document. | Document Open restores it separately from experiment setups and records. |
+| Experiment setup | **Save setup** downloads the current form inputs and their document binding as JSON. | **Open setup** previews settings without changing the form, results or pinned record. |
+| Past result record | The existing record Download keeps a past calculation. | **Open gravity record** restores that historical record; it does not calculate again. |
+
+Under **Experiment setup**, the steps remain separate:
+
+- **Use inputs** copies the loaded setup inputs into the form without calculating.
+- **Run saved setup** uses the loaded inputs even when the form differs. After a document match and a successful calculation, it replaces the current result and updates the form to those inputs. A failed run keeps the previous form and result.
+- **Bind setup to current design** makes new loaded settings bound to the current document, keeping their inputs. It does not change the form, download a file or calculate.
+- **Save setup** always uses the form. To download rebound settings with the loaded inputs, first choose **Use inputs**, then **Save setup**.
+
+An invalid setup file keeps the previous loaded setup, form and result. Loaded settings are local to the panel and are lost when it is removed. Past record objects and the pinned record remain unchanged.
+
+In code, `create` and `parse` do not calculate. `toJSON()` and `options` return independent copies.
+For caller-supplied Studio documents and the explicit options described above:
+
+```js
+import { GravityExperimentDefinition } from '@barocss/cad-model/api/experimentDefinition';
+
+const definition = GravityExperimentDefinition.create(doc, options);
+const text = JSON.stringify(definition.toJSON());
+const opened = GravityExperimentDefinition.parse(text);
+const copiedInputs = opened.options;
+if (opened.matches(currentDoc)) {
+  const freshResult = opened.run(currentDoc); // Explicit calculation; it can still refuse.
+  const newRecord = freshResult.record();
+}
+const rebound = opened.rebind(changedDoc); // New settings, no calculation; opened is unchanged.
+```
+
+`matches(doc)` compares the full canonical document using the saved inputs; it does not establish execution readiness.
+`run(doc)` uses the caller's current document and refuses a mismatch with `VALUE` before calculation. It does not execute the stored document text.
+`rebind(doc)` keeps the inputs in a new definition. Only explicit `run` attempts a new result under the existing static-gravity limits; past records are unchanged.
+
+Setup input `units` has exactly two keys: `angle: 'degree'` and `gravity: 'mm/s²'`.
+The result report has six: `angle: 'degree'`, `length: 'mm'`, `mass: 'g'`, `inertia: 'g·mm²'`, `gravity: 'mm/s²'` and `torque: 'N·mm'`.
+Keep result units and calculated fields out of a setup. The existing result-record schema `1` and parser are unchanged.
+
 ### Input contracts
 
 Constructors, getters and operations follow the input rules below.
