@@ -77,6 +77,33 @@ Model's inverse-dynamics torque calculation for prescribed angles, velocities an
 forward free-motion prediction from an initial angle. Neither that torque result nor a UI animation completes
 the planned pendulum experiment. Physics ownership is still unconfirmed; this roadmap assigns no new solver work.
 
+## Reliability priorities from research index 2214
+
+Read [index 2214](https://github.com/barocss/barocss/issues/2214) and its CAD 2210, robotics 2211,
+character-motion 2212 and GPU 2213 bodies as research inputs. Their remote `c3ae0d5d` baseline differs from
+this local execution tree. Choose bounded current-source checks before claiming an old failure persists or
+adopting a comparator. No new kernel, engine, runtime dependency, WASM, paused owner, hardware control or
+manufacturing/FEA hold is activated by this roadmap update.
+
+Finish the current setup documentation/site/product slice while independent owners close observed label and
+camera problems. Then prioritize false-success and information-loss gates ahead of speculative acceleration.
+
+| Priority | Owner and existing work | Next bounded result and gate |
+|---|---|---|
+| P0 CAD Boolean acceptance | Kernel after its R1 regression; reuse issue 2205 seed and existing robustness runner | Reproduce one exact current-source cylinder/box graze seed. Keep validate, finite mass, independent volume, tessellation and roundtrip outcomes separate. Preserve the original tolerance and input. A historical 1e-5 TODO is not the requested 1e-6 seed. Only a reproduced unsupported/invalid success leads to a minimal guard or geometry fix. OCCT remains an optional independent comparator, not a new kernel dependency. |
+| P0 robot/export loss | API with existing joint tree/export owners; issues 2189, 2209 and 2211 | Preserve supported warnings and assumptions across shared export boundaries. The current source review found joint-tree notes omitted by robotParts; a bounded notes-preservation patch/test is selected. Treat unknown materials, omitted loops, unsupported couplings and hull proxies as separate loss cases; do not silently mark them dynamics-ready. |
+| P0 GPU acceptance and stale results | Existing GPU owner after its current FOV/camera work; issue 2213 | Reconcile actual G20.2 evidence, then map pose/geometry/camera/clip/request/device generations at real async consumers. A stale result must not overwrite accepted selection or native data. Reuse existing CPU and BVH references. Do not replace missing broad acceptance with one leak or screenshot case. |
+| P0 exchange meaning | API and current exchange owners; issues 539, 2203 and 2210 | Test one nested assembly with a repeated definition against explicit occurrence/placement expectations. Distinguish shape-only STEP from assembly/history preservation and report flattening or unsupported data. Independent read-back is a later selected target; own writer-reader agreement is not independent validation. |
+| P1 edit references and sketch diagnostics | Existing CAD/Outer owners; issues 1657, 1658, 2193 and 2210 | Reuse stable feature/face/edge names. A changed/split/deleted reference resolves correctly or remains unresolved instead of editing another face. Keep DOF/conflict/redundancy, convergence and valid geometry distinct. Do not add a second naming system or assume a missing solver. |
+| P2 online robot trajectory | Current robot consumer after joint/profile/loss gates; issue 2211 | Nonzero velocity/acceleration retargeting and synchronization are separate from existing rest-to-rest S-curves. Select local state-to-state only; reject cloud waypoint paths. Validate the generated path rather than reusing straight-sweep coverage outside its profile. Pinocchio/Coal/Ruckig/MuJoCo are comparison candidates pending scope, version and terms; do not port/install all of them. |
+| Conditional character motion | Confirm existing consumer, provider and owner first; issue 2212 | Separate rigid part transforms from skin deformation and root-motion/clock authority. Select an asset/weight provider before a small playback/blending/foot-contact comparison. Preserve paused Motion/Rendering work. ozz, IK and DQS are candidates, not implementations or a fix for an unverified old bulge. |
+| Hold: new BVH, LOD or speculative culling | Preserve existing G9/G14/G20-G25 decisions | BVH and instance reuse already exist. Keep measured LOD deferral; reopen only for a measured workload and fixed correctness/resource budgets. CPU submit, queue wall time, GPU timestamp, tracked bytes and driver memory are different measures. |
+
+The existing test-only R1 slice at `9be20c5e` passed its three selected BRep/COM/static-moment and axis-inertia
+assertions with authored density. It is not a Model 2R solver, forward dynamics or physical validation.
+Keep engine proposals and benchmark targets as unexecuted candidates until their own source, ownership,
+license, fixture, command and acceptance conditions are fixed. Record pass, fail, unsupported and not_run.
+
 ## CAD-to-simulation handoff: issue 2209 planning boundary
 
 Reference [issue 2209](https://github.com/barocss/barocss/issues/2209) after the current editable-CAD,
@@ -193,7 +220,9 @@ screen/file evidence, not every-shape support or an independent mass/inertia val
 ### Near-term delivery ownership (2026-10-26)
 
 Each row is a bounded delivery slice, with source, numerical, screen/file and product gates kept separate.
-Independent source work proceeds in parallel. New heavy execution and shared integration stay serial.
+Independent source work and isolated browser checks proceed in parallel. Native/build/generator contention and
+shared integration stay serial. Owners use agent-browser for needed checks without a new central browser
+approval; preserve other sessions and record actual source, input, URL and screenshots.
 
 | Slice | Owner | Current source state | Required next evidence |
 |---|---|---|---|
