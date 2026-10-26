@@ -18,6 +18,26 @@ This top-level scope update supersedes earlier goal and CAE exclusion statements
 historical checkpoints below remain records; this patch does not adopt candidate source, change a past result,
 authorize a new runtime window, or automatically start a gallery, browser or manufacturing acceptance run.
 
+## Foundation before Studio (owner order, 2026-10-26)
+
+Implement and verify the basic functions in Kernel, GPU, CAD and CAD Model before completing their Studio workflow.
+These foundation lanes can work in parallel when their files and resources do not conflict. This is a gate for each
+feature, not a requirement to finish every future engine feature before any Studio work.
+
+| Gate | Required result | Owner and completion evidence |
+|---|---|---|
+| 1. Foundation contract | State supported inputs, units, coordinate frames, stable references and explicit failure results. Reuse existing functions before adding another implementation. | Kernel, GPU, CAD and CAD Model owners agree on the producer/consumer boundary and exact owned files. |
+| 2. Basic implementation | Implement the admitted operation and preserve accepted data on invalid input, stale results or partial failure. | The owning engine or Model has focused tests with independent numeric or identity references where applicable; preserve the first failure and original tolerances. |
+| 3. Cross-layer verification | Verify the actual producer output at its consumer, including parameter changes, serialization and reference loss. | Confirm the bound source and required build/type checks. A screenshot, mock or same writer/reader agreement cannot replace the missing engine contract. |
+| 4. Studio completion | Connect the verified operation to public controls, feedback and document transactions. | The Studio owner runs the required actual browser flow, Undo/Redo and file roundtrip, checks console and views the captured PNGs. |
+| 5. Integration | Adopt the reviewed commits and run the required affected product checks. | The coordinator records exact source and product commits, remaining limits and the next ready task. |
+
+Current order: finish the STL quality batch already under verification; reproduce and fix parameter-bound hole
+callouts at the Model boundary; verify the GPU pose-only stale-readback case. For path bundles, accept and test
+persistent member bindings, atomic curve/sweep updates and failure preservation in CAD/Model before implementing
+the Studio tie gesture. Independent source work can continue in parallel. Do not use additional UI features to
+hide missing basic operations, unit disagreements, unsupported geometry or unresolved references.
+
 ## Goal and staged expansion (2026-10-25)
 
 The long-term goal is one project in which users design an object, define an experiment, predict its behaviour,
