@@ -32,6 +32,8 @@ export interface Environment {
   /** Bloom (G15d.2): light above `threshold` (linear, default 1: brighter than white) glowing past its edges, added at
    *  `strength` (default 0.05) before the tone map; `knee` the threshold's soft width (default a quarter of it). */
   bloom?: { strength?: number; threshold?: number; knee?: number } | false;
+  /** Depth of field: positive view-axis focus distance (world units), maximum blur radius (CSS pixels, 0–24). */
+  depthOfField?: { focus: number; blur?: number } | false;
   /** Screen-space ambient occlusion: radius in world units (default a twelfth of the scene's), strength 0–2. */
   ambientOcclusion?: { radius?: number; strength?: number } | false;
   /**
@@ -185,7 +187,7 @@ export interface ContactFrame { projection: Mat4; inverseProjection: Mat4; direc
 /** `outlineRect`: where outlines can be (pixels x0, y0, x1, y1), or null for anywhere. */
 export function packOutput(env: Environment, outlines: readonly Vec3[] = [], outlineWidth = 2, background: Background = null, ao: OcclusionFrame | null = null, outlineRect: readonly number[] | null = null,
   // (`into`: a block kept for it, cleared and written again — R2.)
-  into: ArrayBuffer | null = null, contact: ContactFrame | null = null): ArrayBuffer {
+  into: ArrayBuffer | null = null, contact: ContactFrame | null = null, focus: { inverseProjection: Mat4; pixelRatio: number } | null = null): ArrayBuffer {
   const b = into ?? new ArrayBuffer(OUTPUT_BYTES), f = new Float32Array(b), u = new Uint32Array(b);
   if (into) f.fill(0);
   f[0] = env.exposure ?? 1;
@@ -224,5 +226,10 @@ export function packOutput(env: Environment, outlines: readonly Vec3[] = [], out
     f.set([Math.min(1, v.amount), size, size + soft, 0], o + 72);
   }
   f.set(outlineRect ?? [-1e9, -1e9, 1e9, 1e9], o + 76);
+  const dof = env.depthOfField;
+  if (focus && dof && Number.isFinite(dof.focus) && dof.focus > 0 && Number.isFinite(dof.blur ?? 8) && (dof.blur ?? 8) > 0) {
+    f.set(focus.inverseProjection, o + 8);
+    f.set([dof.focus, Math.min(24, dof.blur ?? 8) * focus.pixelRatio, 0, 0], o + 80);
+  }
   return b;
 }
