@@ -173,6 +173,62 @@ For robot exports, read `handSet` when present; its omission does not mean the r
 Keep the record with the files it names and keep the editable `.bcad` document separately. The record is not a
 saved document and cannot reconstruct the model from its revision or digest.
 
+## Solid lofts with a copied guide
+
+`part(...).loft(sections, options)` builds a solid from closed sketches. It returns a new part with the new body
+selected. Use that returned part or its `.doc`. The separate `directOps.loft()` operation below adds a surface
+to direct geometry.
+
+Supply sections in the intended order. Each section takes a `sketch` and exactly one of `z` or `frame`.
+A legacy `z` is a finite height in mm. Use one sketch plane and strictly increasing `z` values for that form.
+An explicit frame gives a world-mm `origin` and perpendicular unit `xAxis` and `yAxis` vectors. A guide requires explicit frames on both sections; its control points are already
+in world mm.
+
+```ts
+import { part, sketch, Plane } from '@barocss/cad-model/api';
+
+const frame = (z: number) => ({
+  origin: [0, 0, z] as [number, number, number],
+  xAxis: [1, 0, 0] as [number, number, number],
+  yAxis: [0, 1, 0] as [number, number, number],
+});
+const model = part('Cubic guided loft').loft([
+  { sketch: sketch(Plane.XY).circle({ r: 1 }), frame: frame(0) },
+  { sketch: sketch(Plane.XY.offset(3)).circle({ r: 4 }), frame: frame(3) },
+], {
+  guide: {
+    kind: 'cubic-bezier',
+    controlPoints: [[1, 0, 0], [4, 0, 1], [2, 0, 2], [4, 0, 3]],
+  },
+});
+const doc = model.doc;
+```
+
+The circles have radii of 1 and 4 mm on parallel caps 3 mm apart. The guide starts at `[1, 0, 0]` and ends at
+`[4, 0, 3]`, exactly at the caps' +X seams. Its inner controls lie on the planes at one-third and two-thirds
+of the cap separation: here, z = 1 and 2 mm.
+
+A `quadratic-bezier` guide takes exactly three finite control points, with its middle control on the exact cap
+midplane. A `cubic-bezier` guide takes exactly four, with its inner controls on the exact one-third and two-thirds
+planes. Both require exact seam endpoints. This is one bounded seam guide for two sections on parallel frames
+with identical axes. The Kernel checks the supported conic or homothetic mixed line/arc profiles and the existing
+coordinate limits. Arbitrary rails, multiple guides, surfaces as sections, and smooth interpolation with a guide
+are outside this contract. A refused loft leaves the previous part and inputs unchanged.
+
+To use the existing height-based path without a guide, omit the API `guide` option and supply `z` sections.
+Do not pass `null` or the string `'None'` as an API guide.
+
+In Studio, Shift-click two finished section sketches in the intended order, open **Loft**, then choose an available
+curve from **Guide (copied)**. Use that list: picking the curve separately in the viewport clears the sketch selection.
+A guided loft keeps the picked section order and their frames. **None**, the default, uses the existing section
+heights and height sorting. An imported guide must be one world-mm quadratic or cubic Bézier span, with exactly
+three or four controls, clamped end knots, no internal knots, and finite positive equal weights. Trimmed objects,
+unbaked transforms, and nonconstant rational weights are refused.
+
+Frames and guide controls are copied snapshots. A separately imported source curve does not become a live
+reference. Later changes to that curve or the caller's arrays do not update the stored loft. This construction
+does not certify manufacturing suitability.
+
 ## Direct sweep and loft surfaces
 
 `directOps` from `@barocss/cad-model/engine/direct` works on direct curves. Its sweep and loft add a
