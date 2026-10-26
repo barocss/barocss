@@ -138,6 +138,12 @@ An invalid file reports an error and preserves the previous record and input fie
 Expand **Recorded material inputs** to read the recorded metadata. Missing metadata is marked **Not recorded**; invalid material metadata makes only this section unavailable.
 This does not change the existing Historical/Match/Stale status or the record operations.
 
+Use **Pin this record** to keep the displayed record for comparison, **Replace pinned record** to replace it explicitly, and **Unpin record** to clear it. Expand **Compare records** to inspect the pinned and current entries.
+Each entry checks the current document at that record's own saved inputs; the panel's Match/Stale status instead compares the current form inputs too.
+A finite recorded torque difference (current − pinned), in N·mm, appears only when joint, occurrence, coordinate frame, axis origin and axis direction match exactly.
+Historical records remain **not recalculated** even when document and inputs match. A difference does not establish cause, accuracy, measured validation or producer compatibility.
+The pin is local to the mounted panel and is cleared when that panel is removed. It is separate from document Save and record Download/Open.
+
 ### Input contracts
 
 Constructors, getters and operations follow the input rules below.

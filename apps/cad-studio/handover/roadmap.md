@@ -140,13 +140,31 @@ A selected planar box test connected B-rep mass data to independent axis-inertia
 The direct-file engine History scroll and Save/New/Open flow preserved the complete document in desktop Chrome;
 Project/OPFS saving was outside that check. Original failures and limited visual evidence remain separate.
 
-Negative principal-axis draft is implemented at `9e5dcfc6`, with its one affected library build, eighteen
-focused tests and changed-file lint checked. Three negative-axis fixtures were inspected in four desktop
-views. These checks preserve the existing tolerances and refusal boundaries; the mass-property comparisons
-use a same-lift Z reference and do not establish measured accuracy or manufacturing acceptance.
-The remaining delivery gates are the reviewed public inventory, documentation/site checks and local product
-adoption. The next separate UI slice pins a historical static-gravity record beside a new prediction;
-its external source proposal is reviewed but is not yet adopted or executed.
+Negative principal-axis draft is adopted in product `5705bf06`. The candidate's affected library build,
+eighteen focused tests, changed-file lint, reviewed public inventory and documentation/site checks passed.
+Three negative-axis fixtures were inspected in four desktop views. The product's first affected build,
+one selected negative-X test and mandatory docs check also passed; its fresh 818 output files matched the
+candidate. Original capture failures and clipped images remain recorded. These checks preserve the existing
+tolerances and refusal boundaries; same-lift Z mass-property references are not measured accuracy or
+manufacturing acceptance, and this work does not add a signed-axis Studio authoring control.
+
+### Near-term delivery ownership (2026-10-26)
+
+Each row is a bounded delivery slice, with source, numerical, screen/file and product gates kept separate.
+Independent source work proceeds in parallel. New heavy execution and shared integration stay serial.
+
+| Slice | Owner | Current source state | Required next evidence |
+|---|---|---|---|
+| Explain the lost d19 dimension | Drawings, coordinated by API | One retained observation at `7c435d1f` resolves d19 to 142 and d1 to 0.17; original browser loss remains unexplained | Compare the actual source/bundle path before a narrow fix or new browser claim. Preserve the original failure and 34-dimension requirement; the current native observation is not a 34-glyph pass. |
+| Pin a historical gravity record beside the current result | Outer implementation; GPU screen checks; API adoption | The reviewed one-file panel proposal is in this source checkpoint | Operate Pin/Replace/Unpin, calculation and record Open in desktop Chrome; inspect inputs, document match, historical status, compatible-axis delta, layout and preserved downloads. Then check Studio types, changed-file lint and local adoption. |
+| Check actual BRep mass across rigid frames | Kernel; API adoption | External one-file, two-test proposal uses existing public operations; not executed | Verify independent rotated COM/full tensor and pivot-axis formulas on the same frame with the existing tolerance. No duplicate adapter, conversion or new Physics claim. |
+| Save an experiment setup before calculation | API's three agents; Outer UI; Docs | Separate definition API, twelve test declarations and a layered settings-panel proposal are external, reviewed candidates; not executed or adopted | Keep document Save, setup Save/Open and result-record Download/Open distinct. Open previews settings; explicit input application changes only the form. Run uses the caller's matching current document and creates a result only on success. Rebind creates a new unexecuted setup. Test refusal, copies, staleness and real file/UI flows before adoption. |
+| Admit the first free pendulum profile | Confirm Physics ownership first; Kernel/API supply mass/frame contracts | No solver implementation assigned | Agree pivot/COM placement, pivot inertia, gravity moment, reactions and units, then check independent period, energy, time-step convergence and joint errors. Physical validation needs separate measurements. |
+
+The local pin and setup UI state is not saved by CAD document Save. A matching imported historical record is
+not a recalculation. Current material declarations and FNV staleness labels are not authenticity evidence.
+After each slice, update its actual evidence and select the next ready dependency; do not leave an empty
+lane queue or generate unreviewed features simply to keep a lane busy.
 
 Stage 1 still covers a bounded static holding-torque calculation for one connected open revolute or continuous
 joint with explicit pose, gravity and known material. Nested moving-part occurrences remain refused. This is
