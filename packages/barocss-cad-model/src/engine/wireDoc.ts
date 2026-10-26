@@ -31,6 +31,12 @@ const PRUNE_EVERY = 64, KEEP_FOR = 256;
 export function evaluatedPart(doc: StudioDoc): StudioDoc {
   doc = resolveShopTree(doc);
   const out: StudioDoc = { format: doc.format, schema: doc.schema, units: doc.units, parameters: doc.parameters, nodes: doc.nodes, outputs: doc.outputs };
+  // Ordinary evaluation strips direct geometry. Bundle admission instead needs its metadata
+  // and direct sources: keep each field's own presence and value, including invalid values.
+  if (doc.schema === 4 || Object.prototype.hasOwnProperty.call(doc, 'routeBundles')) {
+    if (Object.prototype.hasOwnProperty.call(doc, 'routeBundles')) out.routeBundles = doc.routeBundles;
+    if (Object.prototype.hasOwnProperty.call(doc, 'direct')) out.direct = doc.direct;
+  }
   if (doc.instances?.length) out.instances = doc.instances.map(stripInstance);
   // Sections define the members; weld records can add bead bodies. Stock and kerf stay local.
   const sections = doc.frames?.sections, welds = doc.frames?.welds, beadOwnership = doc.frames?.beadOwnership;
