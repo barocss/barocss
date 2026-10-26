@@ -1184,3 +1184,41 @@ node --test packages/barocss-viewer/tests/review-state.test.mjs
 
 It uses actual CAD admission with a recording presenter. Real rendering and file
 controls require the separate browser flow in that example.
+
+### Restore a native distance with its review
+
+`applyMeasuredReviewState(unknown)` accepts `ViewerMeasuredReviewStateV1`:
+
+```js
+const file = {
+  schema: 'barocss-viewer-measured-review', version: 1,
+  review: viewer.captureReviewState(),
+  measurement: {
+    first: { kind: 'surface', modelId, surfaceId, u, v },
+    second: { kind: 'curve', modelId, curveId, t },
+    distanceMM, metric: 'straight-line', space: 'native-authored',
+    certification: 'not-certified',
+  },
+};
+const restored = viewer.applyMeasuredReviewState(JSON.parse(JSON.stringify(file)));
+```
+
+Each point has the exact existing `ViewerNativePointInput` fields. Both points
+must belong to the same accepted native model in a revisioned CAD document.
+They must reference admitted geometry visible in the candidate review. Original
+Surface U/V and Curve parameter domains apply. The SDK evaluates the original
+points and requires the saved finite `distanceMM` to equal their current straight
+distance exactly. It does not use display pixels or infer arc length. Revision
+pins retain the same identity limits as the ordinary review format.
+
+The complete candidate and a detached return value are prepared before the
+existing review presentation. Successful apply updates only camera, visibility,
+selection and `getState().nativeMeasurement`. It returns the detached native
+distance. A null `measurement` clears only that latest measurement field after
+the review succeeds, and returns null. The separate Surface, Curve and mixed
+measurement caches remain unchanged. Assemblies accept only null measurements.
+The ordinary review format and `applyReviewState` behavior are unchanged.
+Invalid measurement, source pins or display fields preserve the full accepted
+state without presentation. Presenter failure follows the existing drawing
+recovery behavior and also retains the previous measurement caches.
+

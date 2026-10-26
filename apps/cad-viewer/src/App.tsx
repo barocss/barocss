@@ -34,6 +34,7 @@ type ViewModel = {
   statusError: boolean;
   exportStatus: string;
   exportBusy: boolean;
+  reviewBusy: boolean;
   viewPreset: ViewPreset | null;
   appearanceTarget: string;
   appearancePreset: string;
@@ -45,7 +46,7 @@ type ViewModel = {
 const initialModel: ViewModel = {
   ready: false, starting: true, active: null, admitted: [], state: null, search: '',
   candidate: null, admissionIds: [], admissionError: '', status: 'Starting Viewer…',
-  statusError: false, exportStatus: '', exportBusy: false, viewPreset: null,
+  statusError: false, exportStatus: '', exportBusy: false, reviewBusy: false, viewPreset: null,
   appearanceTarget: '', appearancePreset: 'default', appearanceNote: 'Load a Surface to change its appearance.',
   measurement: { active: false, points: [], result: null, error: '' },
   measurementOverlay: { width: 0, height: 0, points: [] },
@@ -182,8 +183,10 @@ export function App() {
           </div>
           <div className="toolbar-spacer" />
           <div className="toolbar-group review-actions" aria-label="Review file actions">
-            <Button id="save-review" variant="ghost" size="sm" disabled={!model.ready} onClick={() => api()?.downloadReview()}>
-              <Icon name="save" />Save review
+            <Button id="save-review" variant="ghost" size="sm" disabled={!model.ready || model.reviewBusy || model.measurement.active}
+              title={model.measurement.active ? 'Finish or cancel point selection before saving.' : 'Save the view and completed measurement'}
+              onClick={() => void api()?.downloadReview()}>
+              <Icon name="save" />{model.reviewBusy ? 'Saving…' : 'Save review'}
             </Button>
             <input ref={reviewFileRef} id="review-file" type="file" accept=".json,application/json" hidden
               onChange={event => {
@@ -191,7 +194,7 @@ export function App() {
                 event.currentTarget.value = '';
                 if (file) void api()?.openReview(file); else api()?.cancelReviewPick();
               }} />
-            <Button id="open-review" variant="ghost" size="sm" disabled={!model.ready} onClick={openReviewPicker}>
+            <Button id="open-review" variant="ghost" size="sm" disabled={!model.ready || model.reviewBusy} onClick={openReviewPicker}>
               <Icon name="upload" />Open review
             </Button>
           </div>

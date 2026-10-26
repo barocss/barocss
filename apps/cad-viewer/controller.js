@@ -2,6 +2,7 @@ import { createViewer } from '@barocss/viewer';
 import { compileMeshMaterial } from '@barocss/gpu';
 import { parseDocument, readDocument, loadOptions } from './document.js';
 import { createPngExport } from './png-export.js';
+import { createReviewFile, readReviewFile, REVIEW_FILE_LIMIT } from './review-file.js';
 
 export const sameRef = (a, b) => a?.kind === b?.kind && a?.modelId === b?.modelId
   && (a?.surfaceId ?? a?.curveId) === (b?.surfaceId ?? b?.curveId);
@@ -32,12 +33,14 @@ export function createViewerController({ canvas, stage, onChange }) {
   let appearanceTarget = '', appearancePreset = 'default', appearanceBinding;
   let admissionError = '', status = 'Starting Viewer…', statusError = false;
   let exportStatus = '', exportBusy = false;
+  let reviewBusy = false;
   let measurement = emptyMeasurement();
   const listeners = [];
   const reviewUrls = new Set();
   const loaded = () => Boolean(active && viewer && !disposed);
   const guard = () => JSON.stringify({ review: loaded() ? viewer.captureReviewState() : null,
-    materials: viewer?.getState().surfaceMaterials ?? [], width: canvas.width, height: canvas.height });
+    materials: viewer?.getState().surfaceMaterials ?? [], measurement,
+    width: canvas.width, height: canvas.height });
   function recordFrame() {
     const current = guard();
     if (current !== lastGuard) { frameGeneration++; lastGuard = current; }
@@ -92,7 +95,7 @@ export function createViewerController({ canvas, stage, onChange }) {
     }
     onChange({ ready: loaded(), starting, active: summary(active), admitted: [...admitted], state,
       search, candidate: summary(candidate), admissionIds: [...admissionIds], admissionError,
-      status, statusError, exportStatus, exportBusy, viewPreset, appearanceTarget,
+      status, statusError, exportStatus, exportBusy, reviewBusy, viewPreset, appearanceTarget,
       appearancePreset, appearanceNote, measurement: structuredClone(measurement), measurementOverlay });
   }
   function measuredPoint(input, point) {
@@ -316,12 +319,28 @@ export function createViewerController({ canvas, stage, onChange }) {
         viewer.setSurfaceMaterial(ref, { material: compiled.material, uniforms: {} });
       }
     }, 'Appearance applied.'); },
-    downloadReview() { run(() => {
-      const url = URL.createObjectURL(new Blob([JSON.stringify(viewer.captureReviewState(), null, 2) + '\n'], { type: 'application/json' }));
-      reviewUrls.add(url);
-      const link = document.createElement('a'); link.href = url; link.download = 'viewer-review.json'; link.click();
-      setTimeout(() => { URL.revokeObjectURL(url); reviewUrls.delete(url); }, 1000);
-    }, 'Review saved.'); },
+    async downloadReview() {
+      if (!loaded() || reviewBusy) return;
+      if (measurement.active) { message('Finish or cancel point selection before saving.', true); refresh(); return; }
+      const request = ++reviewEpoch, before = recordFrame(), version = frameGeneration;
+      reviewBusy = true; refresh();
+      try {
+        const native = measurement.result ? { first: measurement.points[0].input,
+          second: measurement.points[1].input, distanceMM: measurement.result.distanceMM,
+          metric: 'straight-line', space: 'native-authored', certification: 'not-certified' } : null;
+        const file = await createReviewFile(viewer.captureReviewState(), native, active.result.document);
+        if (request !== reviewEpoch || disposed) return;
+        if (before !== recordFrame() || version !== frameGeneration) throw new Error('The view changed. Save the review again.');
+        const text = JSON.stringify(file) + '\n';
+        if (new TextEncoder().encode(text).byteLength > REVIEW_FILE_LIMIT) throw new Error('Review files must be 32 KiB or smaller.');
+        const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+        reviewUrls.add(url);
+        const link = document.createElement('a'); link.href = url; link.download = 'viewer-review.json'; link.click();
+        setTimeout(() => { URL.revokeObjectURL(url); reviewUrls.delete(url); }, 1000);
+        message('Review saved.');
+      } catch (error) { if (request === reviewEpoch && !disposed) message('Review not saved: ' + error.message, true); }
+      finally { reviewBusy = false; refresh(); }
+    },
     beginReviewPick() { reviewEpoch++; },
     cancelReviewPick() { reviewEpoch++; },
     async openReview(file) {
@@ -329,11 +348,17 @@ export function createViewerController({ canvas, stage, onChange }) {
       if (!file || !loaded()) return;
       const before = recordFrame(), version = frameGeneration;
       try {
-        if (file.size > 32768) throw new Error('Review files must be 32 KiB or smaller.');
+        if (file.size > REVIEW_FILE_LIMIT) throw new Error('Review files must be 32 KiB or smaller.');
         const text = await file.text();
         if (request !== reviewEpoch || disposed) return;
-        if (before !== guard() || version !== frameGeneration) throw new Error('The view changed. Open the review again.');
-        run(() => viewer.applyReviewState(JSON.parse(text)), 'Review opened.');
+        const { candidate, legacy } = await readReviewFile(text, active.result.document);
+        if (request !== reviewEpoch || disposed) return;
+        if (before !== recordFrame() || version !== frameGeneration) throw new Error('The view changed. Open the review again.');
+        const restored = viewer.applyMeasuredReviewState(candidate);
+        measurement = restored ? { active: false,
+          points: [measuredPoint(candidate.measurement.first, restored.first), measuredPoint(candidate.measurement.second, restored.second)],
+          result: { distanceMM: restored.distanceMM }, error: '' } : emptyMeasurement();
+        message(legacy ? 'View restored. This file has no saved measurement.' : 'Review opened.'); refresh();
       } catch (error) { if (request === reviewEpoch && !disposed) {
         message('Review not opened: ' + error.message, true); refresh();
       } }

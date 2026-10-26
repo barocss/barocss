@@ -1,5 +1,5 @@
 import type { MeshCamera } from '@barocss/gpu';
-import type { ViewerGeometryRef } from './index.js';
+import type { ViewerGeometryRef, ViewerNativePointInput } from './index.js';
 
 /** Revision pins identify a loaded scene. They do not authenticate its contents. */
 export interface ViewerReviewSceneV1 {
@@ -17,6 +17,20 @@ export interface ViewerReviewStateV1 {
   camera: MeshCamera;
   visibleGeometry: ViewerGeometryRef[];
   selectedGeometry: ViewerGeometryRef | null;
+}
+/** Original native parameters supplement the revision-pinned display review. */
+export interface ViewerMeasuredReviewStateV1 {
+  schema: 'barocss-viewer-measured-review';
+  version: 1;
+  review: ViewerReviewStateV1;
+  measurement: null | {
+    first: ViewerNativePointInput;
+    second: ViewerNativePointInput;
+    distanceMM: number;
+    metric: 'straight-line';
+    space: 'native-authored';
+    certification: 'not-certified';
+  };
 }
 
 /** Accept only own plain data. Do not execute getters in a file-shaped input. */

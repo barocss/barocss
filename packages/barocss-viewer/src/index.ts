@@ -1,6 +1,6 @@
 import { reviewRecord, validateReviewScene } from './review-state.js';
 import type { ViewerReviewSceneV1, ViewerReviewStateV1 } from './review-state.js';
-export type { ViewerReviewSceneV1, ViewerReviewStateV1 } from './review-state.js';
+export type { ViewerReviewSceneV1, ViewerReviewStateV1, ViewerMeasuredReviewStateV1 } from './review-state.js';
 import { createCadGeometryReference, curveDomain, evaluateCurve, evaluateSurface,
   queryCadDocumentBounds, queryCadAssemblyInstancePoint, surfaceDomain, validateCadDocumentBounds } from '@barocss/cad';
 import type { AdaptiveCurveSamplingResult, WideAdaptiveCurveSamplingResult, CadAssemblyResult,
@@ -2335,6 +2335,48 @@ export class Viewer {
     }
     this.camera = camera; this.hiddenGeometry = hidden;
     this.selected = surface; this.selectedGeometry = selection;
+  }
+  /** Restore a review and its latest original-native distance as one accepted change. */
+  applyMeasuredReviewState(input: unknown): ViewerNativePointDistance | null {
+    const scene = this.reviewScene();
+    const data = reviewRecord(input, ['schema', 'version', 'review', 'measurement'], 'Measured review');
+    check(data.schema === 'barocss-viewer-measured-review' && data.version === 1,
+      'Unsupported Viewer measured review format');
+    const review = reviewRecord(data.review,
+      ['schema', 'version', 'scene', 'camera', 'visibleGeometry', 'selectedGeometry'], 'Review');
+    let result: ViewerNativePointDistance | null = null;
+    if (data.measurement !== null) {
+      check(scene.kind === 'document', 'Measured review requires a native CAD document');
+      const measurement = reviewRecord(data.measurement,
+        ['first', 'second', 'distanceMM', 'metric', 'space', 'certification'], 'Review measurement');
+      check(measurement.metric === 'straight-line' && measurement.space === 'native-authored'
+        && measurement.certification === 'not-certified', 'Unsupported review measurement units or metric');
+      const distanceMM = finite(measurement.distanceMM, 'Review distanceMM', 0, Number.MAX_VALUE);
+      const first = parseNativePointInput(measurement.first), second = parseNativePointInput(measurement.second);
+      const model = this.nativeModel(first.modelId);
+      check(model && second.modelId === first.modelId,
+        'Both review points must belong to the accepted native model');
+      check(Array.isArray(review.visibleGeometry) && review.visibleGeometry.length <= 4,
+        'Review visible geometry requires 0..4 references');
+      const visible = denseArray(review.visibleGeometry, review.visibleGeometry.length,
+        'Review visible geometry').map(parseGeometryRef);
+      const inventory = this.geometryRefs();
+      for (const point of [first, second]) {
+        const ref: ViewerGeometryRef = point.kind === 'surface'
+          ? { kind: 'surface', modelId: point.modelId, surfaceId: point.surfaceId }
+          : { kind: 'curve', modelId: point.modelId, curveId: point.curveId };
+        check(inventory.some(value => sameGeometryRef(value, ref))
+          && visible.some(value => sameGeometryRef(value, ref)),
+        'Review points must reference admitted and candidate-visible geometry');
+      }
+      result = nativeDistance(this.evaluateNativePoint(first, model), this.evaluateNativePoint(second, model));
+      check(distanceMM === result.distanceMM, 'Review distanceMM differs from the original native points');
+    }
+    // All evaluation and copying precede presentation. A failed draw leaves every cache intact.
+    const detached = result === null ? null : structuredClone(result);
+    this.applyReviewState(review);
+    this.nativeMeasurement = result;
+    return detached;
   }
   getState(): ViewerState {
     const status = this.disposed ? 'disposed' : this.packets.length + this.curves.length || this.shell?.boundsScene || this.qualifiedFaceScene ? 'ready' : 'empty';

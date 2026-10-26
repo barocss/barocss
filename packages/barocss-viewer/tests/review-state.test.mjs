@@ -115,3 +115,144 @@ test('presenter failure restores the prior drawing and accepted state; empty sce
   viewer.clear();
   assert.throws(() => viewer.captureReviewState()); assert.throws(() => viewer.applyReviewState(saved));
 });
+
+function nativeInputs(viewer, modelId = viewer.getState().surfaces[0].modelId) {
+  const surface = viewer.getState().surfaces.find(ref => ref.modelId === modelId);
+  const curve = viewer.getState().curves.find(ref => ref.modelId === modelId);
+  return {
+    surfaceA: { kind: 'surface', ...surface, u: -2, v: 0 },
+    surfaceB: { kind: 'surface', ...surface, u: 5, v: 3 },
+    curveA: { kind: 'curve', ...curve, t: -3 },
+    curveB: { kind: 'curve', ...curve, t: 7 },
+  };
+}
+function measuredReview(viewer, first, second) {
+  const result = viewer.measureNativePoints(first, second);
+  return { schema: 'barocss-viewer-measured-review', version: 1,
+    review: viewer.captureReviewState(), measurement: {
+      first: { ...first }, second: { ...second }, distanceMM: result.distanceMM,
+      metric: result.metric, space: result.space, certification: result.certification,
+    } };
+}
+test('measured reviews restore original Surface, Curve and mixed points with detached results', () => {
+  const { viewer, presenter } = setup(), point = nativeInputs(viewer);
+  for (const [first, second] of [[point.surfaceA, point.surfaceB], [point.curveA, point.curveB],
+    [point.surfaceB, point.curveA], [point.curveB, point.surfaceA]]) {
+    viewer.setVisibleGeometry([...viewer.getState().surfaces.map(ref => ({ kind: 'surface', ...ref })),
+      ...viewer.getState().curves.map(ref => ({ kind: 'curve', ...ref }))]);
+    viewer.selectGeometry(viewer.getState().visibleGeometry[1]);
+    const saved = JSON.parse(JSON.stringify(measuredReview(viewer, first, second)));
+    const before = viewer.getState();
+    viewer.measureNativePoints(point.surfaceA, point.surfaceA);
+    viewer.setVisibleGeometry([]); viewer.orbit(.12, -.05);
+    const calls = presenter.drawings.length;
+    const restored = viewer.applyMeasuredReviewState(saved);
+    assert.equal(presenter.drawings.length, calls + 1);
+    assert.deepEqual(restored, before.nativeMeasurement);
+    assert.deepEqual(viewer.getState(), before);
+    restored.first.pointMM[0] = 123; restored.first.ref.modelId = 'changed';
+    saved.measurement.first.modelId = 'changed'; saved.review.camera.eye[0] = 99;
+    assert.deepEqual(viewer.getState(), before);
+  }
+});
+test('a null measured review clears only the latest native measurement after successful presentation', () => {
+  const { viewer } = setup(), point = nativeInputs(viewer);
+  const { kind: surfaceKind, ...surfaceA } = point.surfaceA;
+  const { kind: otherSurfaceKind, ...surfaceB } = point.surfaceB;
+  const { kind: curveKind, ...curveA } = point.curveA;
+  const { kind: otherCurveKind, ...curveB } = point.curveB;
+  viewer.measureNativeSurfacePoints(surfaceA, surfaceB);
+  viewer.measureNativeCurvePoints(curveA, curveB);
+  viewer.measureNativeSurfaceCurvePoints(surfaceA, curveA);
+  const before = viewer.getState(), review = viewer.captureReviewState();
+  assert.equal(viewer.applyMeasuredReviewState({ schema: 'barocss-viewer-measured-review', version: 1,
+    review, measurement: null }), null);
+  assert.deepEqual(viewer.getState(), { ...before, nativeMeasurement: null });
+  assert.ok(viewer.getState().measurement && viewer.getState().curveMeasurement && viewer.getState().surfaceCurveMeasurement);
+});
+test('invalid measured reviews preserve every cache and refuse before presentation without executing getters', () => {
+  const { viewer, presenter, load } = setup();
+  load(original, { ...options, bodyIds: ['body_0_surface', 'body_0_curve', 'body_1_surface', 'body_1_curve'] });
+  const point = nativeInputs(viewer), other = nativeInputs(viewer,
+    viewer.getState().surfaces.find(ref => ref.modelId !== point.surfaceA.modelId).modelId);
+  const saved = measuredReview(viewer, point.surfaceA, point.curveB);
+  const before = viewer.getState(), calls = presenter.drawings.length;
+  const altered = fields => ({ ...saved, measurement: { ...saved.measurement, ...fields } });
+  const invalid = [null, { ...saved, version: 2 }, { ...saved, extra: true },
+    altered({ distanceMM: saved.measurement.distanceMM + 1 }), altered({ distanceMM: NaN }),
+    altered({ distanceMM: Infinity }), altered({ distanceMM: -1 }), altered({ metric: 'straight-chord' }),
+    altered({ space: 'scene' }), altered({ certification: 'certified' }), altered({ units: 'mm' }),
+    altered({ first: { ...point.surfaceA, u: -2.001 } }),
+    altered({ second: { ...point.curveB, t: 7.001 } }),
+    altered({ first: { ...point.surfaceA, modelId: 'unknown' } }),
+    altered({ second: { ...point.curveB, curveId: 'skip_path_native', t: .5 } }),
+    altered({ second: other.curveB }),
+    { ...saved, review: { ...saved.review,
+      visibleGeometry: [saved.review.visibleGeometry[0]], selectedGeometry: null } },
+    { ...saved, review: { ...saved.review, camera: { ...saved.review.camera, near: saved.review.camera.far } } },
+    { ...saved, review: { ...saved.review, scene: { ...saved.review.scene, revision: original.revision + 1 } } },
+    { ...saved, review: { ...saved.review, scene: { ...saved.review.scene,
+      members: saved.review.scene.members.map((pin, index) => index ? pin : pin + 'stale') } } },
+  ];
+  let getters = 0;
+  const getter = input => Object.defineProperty(input, 'distanceMM', {
+    enumerable: true, get() { getters++; throw Error('distance getter'); } });
+  invalid.push({ ...saved, measurement: getter({ ...saved.measurement }) });
+  invalid.push(altered({ first: Object.defineProperty({ ...point.surfaceA }, 'u', {
+    enumerable: true, get() { getters++; throw Error('parameter getter'); } }) }));
+  invalid.push(Object.defineProperty({ ...saved }, 'measurement', {
+    enumerable: true, get() { getters++; throw Error('measurement getter'); } }));
+  invalid.push({ ...saved, review: Object.defineProperty({ ...saved.review }, 'camera', {
+    enumerable: true, get() { getters++; throw Error('camera getter'); } }) });
+  invalid.push({ ...saved, review: { ...saved.review, visibleGeometry: Object.defineProperty(
+    [...saved.review.visibleGeometry], '0', {
+      enumerable: true, get() { getters++; throw Error('visible reference getter'); } }) } });
+  for (const candidate of invalid) {
+    assert.throws(() => viewer.applyMeasuredReviewState(candidate));
+    assert.deepEqual(viewer.getState(), before);
+    assert.equal(presenter.drawings.length, calls);
+  }
+  assert.equal(getters, 0);
+});
+test('measured review source pins and loaded subset bind to the current accepted document', () => {
+  const { viewer, presenter, load } = setup(), point = nativeInputs(viewer);
+  const saved = measuredReview(viewer, point.surfaceA, point.surfaceB);
+  for (const [document, settings] of [[{ ...original, revision: 6 }, options],
+    [{ ...original, documentId: 'foreign_document' }, options],
+    [original, { ...options, bodyIds: ['body_0_surface'] }]]) {
+    load(document, settings);
+    const current = nativeInputs(viewer);
+    viewer.measureNativePoints(current.surfaceA, current.surfaceB);
+    const before = viewer.getState(), calls = presenter.drawings.length;
+    assert.throws(() => viewer.applyMeasuredReviewState(saved), /identity, revision|inventory/);
+    assert.deepEqual(viewer.getState(), before);
+    assert.equal(presenter.drawings.length, calls);
+  }
+});
+test('assembly accepts an unmeasured review and refuses native measurements without mutation', () => {
+  const { viewer, presenter } = setup(), point = nativeInputs(viewer);
+  const measurement = measuredReview(viewer, point.surfaceA, point.curveB).measurement;
+  viewer.loadAssembly(api.parseBaroCadAssembly(assembly), { native: options.native, basis: options.basis,
+    instanceIds: ['child', 'surface_grandchild', 'shared_root', 'asset_b_instance'] });
+  const review = { schema: 'barocss-viewer-measured-review', version: 1,
+    review: viewer.captureReviewState(), measurement };
+  const before = viewer.getState(), calls = presenter.drawings.length;
+  assert.throws(() => viewer.applyMeasuredReviewState(review), /native CAD document/);
+  assert.deepEqual(viewer.getState(), before); assert.equal(presenter.drawings.length, calls);
+  assert.equal(viewer.applyMeasuredReviewState({ ...review, measurement: null }), null);
+  assert.deepEqual(viewer.getState(), before);
+});
+test('measured review presenter failure restores drawing and every previous measurement cache', () => {
+  const { viewer, presenter } = setup(), point = nativeInputs(viewer);
+  const saved = measuredReview(viewer, point.surfaceA, point.curveB);
+  viewer.measureNativePoints(point.curveA, point.curveB);
+  viewer.selectGeometry(viewer.getState().visibleGeometry[0]);
+  viewer.orbit(.3, .1);
+  const before = viewer.getState(), drawing = presenter.drawings.at(-1);
+  for (const measurement of [saved.measurement, null]) {
+    presenter.fail = true;
+    assert.throws(() => viewer.applyMeasuredReviewState({ ...saved, measurement }), /presenter fault/);
+    assert.deepEqual(viewer.getState(), before);
+    assert.deepEqual(presenter.drawings.at(-1), drawing);
+  }
+});

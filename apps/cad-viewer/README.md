@@ -93,14 +93,28 @@ not test occlusion. Escape cancels an active tool. Clear removes the app's
 measurement display; the SDK keeps its last successful query cache. Hiding a
 measured body or successfully loading a document removes the app's measurement.
 Different-asset and ambiguous picks keep A for another attempt. A missed pick
-also keeps the active tool. Review files and PNG images do not save these DOM
-measurement annotations.
+also keeps the active tool. Finish or cancel point selection before saving a
+review. PNG images do not include the DOM measurement annotations.
 
-**Save review** writes the existing compact review JSON. It records the camera,
-visibility, selection and source revision pins. It does not contain CAD geometry
-or temporary material overrides. **Open review** requires the same accepted
-document and body inventory. A stale, invalid or incompatible file preserves
-the current scene. A changed session also cancels an unfinished file read.
+**Save review** writes compact app review JSON. It records the camera,
+visibility, selection, source revision pins and the completed A/B measurement.
+Each endpoint keeps its native model/object reference and original parameter.
+The file stores straight-line millimetres with the native-authored and
+not-certified boundaries. A SHA-256 of the canonical accepted document binds
+the review to its original source content, including asset source text.
+CAD geometry and temporary material overrides do not enter the file.
+
+**Open review** requires the same source document, revisions and loaded body
+inventory. The SDK evaluates the original endpoints before applying the view
+and latest measurement together. A bad camera, reference, domain, unit, claimed
+distance or source hash leaves accepted state unchanged. A changed session
+also cancels an unfinished read or save. Restore recreates the A/B labels and
+reprojects them in the restored camera.
+
+Older raw SDK review files still open as view-only reviews. They have source
+revision pins but no content hash or saved measurement. Opening one clears the
+app measurement and latest native measurement cache. The SDK's original raw
+review API and its file format remain unchanged.
 
 **Export PNG** writes the current Viewer framebuffer as a PNG image. It exports
 the viewport pixels, without the app toolbar or inspector. It is a display
