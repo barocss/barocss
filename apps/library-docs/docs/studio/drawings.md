@@ -249,5 +249,29 @@ selects which table corner sits on `at`. These positions do not use model coordi
 - **Export SVG** and **Export PDF** write the sheet as shown.
 - **Export DXF** writes it as AutoCAD 2000 or R12, chosen in **DXF version**.
 
+R12 converts unsupported curve forms to polylines with a chord tolerance of 0.001 mm on the sheet.
+This is a drawing-export setting, not a model or manufacturing tolerance.
+
+If PDF export warns that some characters became `?`, review the notes and title block before sending the file.
+The warning appears after the PDF download; it does not cancel it. Use **Export SVG** to keep those characters.
+
 Check **Drawing issues** as well as the exported sheet. The issue list reports unresolved references separately
 from the marks drawn on the sheet; an exported file alone does not establish that every annotation is resolved.
+
+### Drawing files from code
+
+`drawingOf(doc)` from `@barocss/cad-model/api/outputs` returns the drawing synchronously:
+
+| Field | Result |
+|---|---|
+| `sheet` | The drawing report's sheet data |
+| `issues` | Issue records with `code`, `severity`, `message` and an optional `fix` |
+| `svg` | SVG file text |
+| `dxf` | AutoCAD 2000 (`AC1015`) DXF file text |
+| `pdf` | PDF file bytes as `Uint8Array` |
+| `pdfMissing` | Characters the PDF font cannot show; these print as `?` |
+
+The function does not download files or change the document. Check `issues` and `pdfMissing` before writing
+these files. It has no DXF-version argument; the Studio's R12 choice is separate.
+Drawing-input refusals throw `BarocssError`, preserving a reported bracketed code or using `DRAWING` when none
+is present. An issue in a returned report does not by itself mean the export was refused.

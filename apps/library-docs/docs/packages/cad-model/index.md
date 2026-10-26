@@ -133,6 +133,42 @@ For robot exports, read `handSet` when present; its omission does not mean the r
 Keep the record with the files it names and keep the editable `.bcad` document separately. The record is not a
 saved document and cannot reconstruct the model from its revision or digest.
 
+## Direct sweep and loft surfaces
+
+`directOps` from `@barocss/cad-model/engine/direct` works on direct curves. Its sweep and loft add a
+surface and return a new `DirectGeometry`; use the returned value. These operations differ from the
+[solid features made from sketches](/studio/features#from-a-sketch).
+
+- `directOps.sweep(direct, profileId, railId)` uses the first curve as the profile and the second as the rail.
+  In authored XYZ coordinates, in mm, its surface follows `P(u) + R(v) - R(vMin)`. The profile translates
+  without turning to follow the rail. This is not the feature Sweep that keeps a sketch square to its path.
+- `directOps.loft(direct, curveIds)` passes through 2–15 curves in the supplied order. It aligns degrees and
+  interior knots, but the parameter-domain endpoints must already match within `1e-12`. This tolerance is in
+  parameter values, not mm. A mismatch gives `DIRECT_RANGE`; trim or rebuild the curves to one parameter range.
+  A curve count outside 2–15 gives `DIRECT_LOFT`.
+
+```ts
+import { directOps, type DirectGeometry } from '@barocss/cad-model/engine/direct';
+
+export function sweptSurface(direct: DirectGeometry, profileId: string, railId: string): DirectGeometry {
+  return directOps.sweep(direct, profileId, railId);
+}
+
+export function loftedSurface(direct: DirectGeometry, orderedCurveIds: string[]): DirectGeometry {
+  return directOps.loft(direct, orderedCurveIds);
+}
+```
+
+Supply IDs from the current direct geometry. Neither helper above commits a Studio document.
+
+![A straight profile keeps its X direction as a curved rail translates it through three world-coordinate positions](/diagrams/direct-sweep-surface.svg)
+
+The diagram is a calculated coordinate example, not an API render. For `P(u) = [10u, 0, 0]` and
+`R(v) = [0, 20v, 20v²]`, with `u` and `v` from 0 to 1, the rail starts at `[0, 0, 0]` mm. At `v = 0.5`,
+the profile runs from `[0, 10, 5]` to `[10, 10, 5]` mm; at `v = 1`, it runs from `[0, 20, 20]` to
+`[10, 20, 20]` mm. Its direction stays along X. This calculation does not establish that arbitrary input curves
+will pass the construction checks.
+
 ## Route bundles in code
 
 Import the route-bundle helpers from `@barocss/cad-model/engine/routeBundle`. A bundle ties one interior control pole on each of two curves to one translation in world millimetres. It does not join the curves or move each whole curve.

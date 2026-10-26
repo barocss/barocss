@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600" role="img" aria-labelledby="title desc">
+  <title id="title">A direct sweep translates the profile without turning it</title>
+  <desc id="desc">Calculated coordinate schematic in world millimetres, not an API render. The profile is P(u)=[10u,0,0] and the rail is R(v)=[0,20v,20v squared], with u and v between zero and one. R(0) is zero. The surface is P(u)+R(v)-R(0). Three straight profiles keep the same X direction at v=0, v=0.5 and v=1. At v=0.5 the ends are [0,10,5] and [10,10,5]; at v=1 they are [0,20,20] and [10,20,20]. The filled band is a projected schematic of the translational surface, not a solid.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#315c84"/></marker>
+  </defs>
+  <rect width="900" height="600" rx="12" fill="#f8fafc"/>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#182b3e">
+    <text x="450" y="35" text-anchor="middle" font-size="24" font-weight="700">Direct sweep: translation along a rail</text>
+    <text x="450" y="64" text-anchor="middle" font-size="16">World XYZ · mm · calculated schematic, not an API render</text>
+    <rect x="28" y="85" width="390" height="390" rx="10" fill="white" stroke="#cad4df"/>
+    <g transform="translate(25 20)">
+      <path d="M100 380Q140 350 180 160L280 160Q240 350 200 380Z" fill="#d7eaf8" stroke="#5f9bc3" stroke-width="2"/>
+      <path d="M100 380Q140 350 180 160" fill="none" stroke="#17775f" stroke-width="4"/>
+      <path d="M100 380H200M140 310H240M180 160H280" fill="none" stroke="#236eab" stroke-width="5"/>
+      <g fill="#236eab"><circle cx="100" cy="380" r="5"/><circle cx="200" cy="380" r="5"/><circle cx="140" cy="310" r="5"/><circle cx="240" cy="310" r="5"/><circle cx="180" cy="160" r="5"/><circle cx="280" cy="160" r="5"/></g>
+      <g font-size="16"><text x="212" y="386">v = 0</text><text x="253" y="316">v = 0.5</text><text x="292" y="166">v = 1</text><text x="109" y="245" fill="#17775f">rail</text></g>
+      <g fill="none" stroke="#315c84" stroke-width="1.5" marker-end="url(#arrow)"><path d="M65 415H160"/><path d="M65 415L102 387"/><path d="M65 415V335"/></g>
+      <g font-size="15"><text x="168" y="420">X</text><text x="53" y="329">Z</text><text x="97" y="381">Y</text></g>
+    </g>
+    <g font-size="18">
+      <text x="450" y="116" font-weight="700">S(u,v) = P(u) + R(v) − R(0)</text>
+      <text x="450" y="153">P(u) = [10u, 0, 0]</text>
+      <text x="450" y="185">R(v) = [0, 20v, 20v²]</text>
+      <text x="450" y="217">0 ≤ u ≤ 1 · 0 ≤ v ≤ 1 · R(0) = [0,0,0]</text>
+      <text x="450" y="265" font-weight="700">Profile endpoints (mm)</text>
+      <text x="450" y="302">v = 0: [0,0,0] → [10,0,0]</text>
+      <text x="450" y="339">v = 0.5: [0,10,5] → [10,10,5]</text>
+      <text x="450" y="376">v = 1: [0,20,20] → [10,20,20]</text>
+      <text x="450" y="427" font-weight="700">Each profile stays parallel to X.</text>
+      <text x="450" y="456">It does not turn with the rail tangent.</text>
+    </g>
+    <path d="M45 508H855" stroke="#cad4df"/>
+    <text x="450" y="540" text-anchor="middle" font-size="17">Blue lines: three profile positions · green: rail · pale blue: surface schematic</text>
+    <text x="450" y="570" text-anchor="middle" font-size="16">The surface has no solid volume in this illustration. Input acceptance is a separate check.</text>
+  </g>
+</svg>

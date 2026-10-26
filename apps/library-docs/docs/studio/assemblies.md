@@ -24,6 +24,9 @@ Copies of a part share one definition. The instance panel says so, for example `
 A mate ties a face of one part to a face of another. The **Mates** panel lists them; pick one to edit or delete it.
 To add one, pick a face that stays, then a face on the part to move.
 
+The base part and grounded parts stay fixed. If the second part is fixed and the first is free, their roles swap;
+two fixed parts cannot be mated. Typed placement is solved against the existing mates, so it cannot override them.
+
 | Mate | What it holds |
 |---|---|
 | **Coincident** | Two flat faces on one plane, a straight edge on a plane, or two straight edges on one line |
@@ -36,6 +39,8 @@ To add one, pick a face that stays, then a face on the part to move.
 | **Ball** | Connector origins together; three rotations remain free |
 | **Universal** | Connector origins together, with the fixed connector's Z perpendicular to the moving connector's X; two rotations remain free |
 | **Cam** | A follower's flat face riding a cam's lobe, from a face of the cam: see [Robots](/studio/robots#the-joint-tree) |
+
+Distance inputs use mm; angle inputs run from 0° to 180°, inclusive. Both must be finite numbers.
 
 Only compatible kinds are admitted. **Cam** is also admitted when the moving face is flat. Where offered, **Mate flip** changes the
 side or orientation for the chosen kind. Ball and universal mates do not offer this option. The panel's **Freedom** line says what the picked part can still do: fixed
