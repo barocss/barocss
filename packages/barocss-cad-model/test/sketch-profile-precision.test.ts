@@ -111,9 +111,11 @@ test('ordinary valid geometry stays accepted and an existing impossible arc edit
   const failed = settleShape({ ...accepted.shape, lengths: { 0: 40, 3: 20 }, radii: { 1: 3 } }, accepted.shape);
   assert.ok(failed.error);
   t.diagnostic(failed.error);
+  assert.equal(failed.error, 'XY numerical sketch: Bounded local solve did not meet fixed residual tolerances; this is not an inconsistency proof');
+  assert.doesNotMatch(failed.error, /These constraints conflict with each other or with the H\/V edges/);
   assert.equal(failed.shape, accepted.shape);
   assert.deepEqual(accepted.shape, before);
 });
 
-// No existing NONCONVERGENCE-labelled input was found in CAD test/conformance sources.
-// Its exact diagnostic branch remains unexecuted here; no fabricated failure or mock substitutes for it.
+// The first actual five-case run exposed the solver's NONCONVERGENCE message on this existing arc input.
+// The message originates at solver-internal.ts:97; no fabricated failure or mock substitutes for it.
