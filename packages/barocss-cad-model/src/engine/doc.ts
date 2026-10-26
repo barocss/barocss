@@ -1,4 +1,5 @@
 import { flattenShopView, resolveShopTree } from './shopRows';
+import { refusal } from './refusal';
 // The studio document: plain data, one node per feature. Every command appends or edits nodes; the
 // worker evaluates it on the kernel's B-rep part model (a node is feature `id`, see part.ts and ids.ts).
 
@@ -102,7 +103,11 @@ export interface Made { command: string; values: Record<string, number | string>
  * kernel's `sideTags`): the walls a body makes of it are named `side[<id>]` and keep their names as it is edited.
  * Left out (sketches written before), the walls are named by position (`side<k>`), as they were (D16).
  */
-type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef; construction?: unknown[]; sideTags?: { outer: string[]; regions?: string[][]; holes?: string[][] } };
+/** One explicit same-document planar face outline and its inward offset. */
+export interface PlanarFaceOutlineInsetAssociation {
+  kind: 'planar-face-outline-inset'; version: 1; source: BodyRef; sourceFeature: string; face: string; insetMM: number;
+}
+type OnPlane = { association?: PlanarFaceOutlineInsetAssociation; plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef; construction?: unknown[]; sideTags?: { outer: string[]; regions?: string[][]; holes?: string[][] } };
 export type SketchNode =
   | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim } & OnPlane)
@@ -567,6 +572,7 @@ export interface PartInstance {
 /** An instance's part with its placement applied: every body rotated and moved by the part's own features. */
 /** An instance's part as placed at the origin (a sub-assembly's own instances folded in as features). */
 export function placedBase(inst: PartInstance, parent?: StudioDoc): StudioDoc {
+  if (inst.doc.nodes.some(n => n.kind === 'sketch' && n.association !== undefined)) throw refusal('BAD_REFERENCE', 'Associative sketch: placed part recipes are not supported.');
   const resolved = resolveShopTree(inst.doc, parent, parent ? inst.id : undefined);
   const flat = flattenAssembly(flattenShopView(resolved));
   return prefixDoc(flat, flat.nodes.length);
@@ -634,7 +640,12 @@ export const usesOf = (node: ModelNode): number[] => node.kind === 'oring' ? [no
 
 export function parentsOf(node: ModelNode): number[] {
   switch (node.kind) {
-    case 'sketch': return [];
+    case 'sketch': {
+      if (node.association === undefined) return [];
+      const a = node.association;
+      if (!a || a.kind !== 'planar-face-outline-inset' || a.version !== 1 || !a.source || !Number.isInteger(a.source.node) || a.source.node < 0 || a.source.side !== 'solid' || Object.keys(a.source).some(k => k !== 'node' && k !== 'side') || typeof a.sourceFeature !== 'string' || !a.sourceFeature || typeof a.face !== 'string' || !a.face || a.face.includes('+') || !Number.isFinite(a.insetMM) || a.insetMM <= 0) throw refusal('BAD_REFERENCE', 'Associative sketch: the stored recipe is malformed.');
+      return [a.source.node];
+    }
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];

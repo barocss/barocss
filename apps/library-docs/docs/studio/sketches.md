@@ -43,10 +43,20 @@ draw that shape in a separate sketch.
 
 ## Reusing a face and offsetting a shape
 
-When the sketch is on a selected face with zero plane offset and angle, the **FACE** section offers two choices:
+When the sketch is on a selected face with zero plane offset and angle, the **FACE** section offers two copy actions:
 
 - **Use its outline** adds the face's outer boundary and holes as sketch shapes.
 - **As references** adds those edges as construction shapes. You can snap to them, but they do not form the profile.
+
+These actions and older outline sketches remain copies; they do not follow later face edits automatically.
+
+For an empty face sketch at zero plane offset and angle, choose **Link face outline + inset**.
+Use a finite positive **Offset distance** in mm; this creates one inward inset, regardless of **In**/**Out**.
+Choose one named planar face of an earlier single exact solid in the same document, with one straight outer loop
+and no holes. The linked source defines the profile; the sketch's default Join/Cut body target is stored separately.
+Source edits regenerate the outline and inset. Missing or ambiguous sources/faces, curved boundaries and collapsed
+insets are refused. Geometry or plane edits detach the link. Reopening or cancelling an edit keeps the stored link.
+The link does not support placed parts, assemblies, automatic rematching of duplicated sources or frames following the sketch.
 
 To draw a wall, close a shape and enter **Offset distance** in mm in the **OFFSET** section. Choose **Out** for an
 outward copy or **In** for an inward copy. The direction button determines the side; the distance supplies its magnitude.

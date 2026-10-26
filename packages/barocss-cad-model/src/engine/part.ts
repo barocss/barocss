@@ -11,7 +11,7 @@ import { bearingInExternalHousing } from './bearingHousing';
 import { mirrorCage, sprocketPitchDiameter, timingPitchDiameter } from '@barocss/cad';
 import type { BendTable, BeadSharedComponent, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartNameSignature, CadPartSection } from '@barocss/cad';
 import type { Sig } from './references';
-import { frameGeometry, holeCentres, bevelSpiral, prefixDoc, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
+import { frameGeometry, holeCentres, bevelSpiral, prefixDoc, type SketchNode, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
 import { bodyNodeOf, featureId, nodeIndexOf, serialOf, withIds } from './ids';
 import { keyClasses } from './fits';
 import type { StudioRingRow } from './rings';
@@ -20,6 +20,11 @@ import { documentBeadOwnershipError } from '../frames/beadOwnership';
 import { canonical, modelContent } from '../util/revision';
 import { resolveSkeletons, SKELETON_CODES } from '../frames/skeleton';
 import { isRefusal, refusal } from './refusal';
+import { bodyMesh } from './mesh';
+import { faceProfile } from '../app/faceProfile';
+import { sketchShapes } from '../sketch/reopen';
+import { offsetShape } from '../sketch/offset';
+import { profileOf } from '../sketch/loops';
 
 // (The nodes being converted: a feature's id and its references' ids are read from them.)
 let current: readonly ModelNode[] = [];
@@ -95,7 +100,11 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     // (FRf: a skeleton makes no feature — toPartDocument leaves it out; frames on it take its points.)
     case 'skeleton': throw new Error('a skeleton makes no kernel feature');
     // The drawn outline and its constraints are the studio's own (the kernel takes the solved profile).
-    case 'sketch': { const profile = { ...node }; delete profile.outline; delete profile.on; delete profile.construction; return { ...at, ...profile } as CadPartFeature; }
+    case 'sketch': {
+      if (node.association !== undefined) throw associationError('linked sketches require document-prefix resolution before kernel conversion.');
+      const profile = { ...node }; delete profile.outline; delete profile.on; delete profile.construction; delete profile.association;
+      return { ...at, ...profile } as CadPartFeature;
+    }
     case 'extrude': return { ...at, kind: 'extrude', sketch: id(node.sketch), height: node.height, ...(node.from === undefined ? {} : { from: node.from }), ...(node.draft ? { draft: node.draft } : {}) };
     case 'revolve': return { ...at, kind: 'revolve', sketch: id(node.sketch), axis: { origin: node.origin ?? [0, 0], direction: node.dir ?? node.axis }, angle: node.angle };
     case 'union': case 'intersect': return { ...at, kind: node.kind, target: ref(node.left), tool: ref(node.right) };
@@ -123,7 +132,10 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'sheet-base': return { ...at, kind: 'sheet-base', sketch: id(node.sketch), thickness: node.thickness, bendRadius: node.bendRadius, ...sheetK(node), ...(node.reverse ? { reverse: true } : {}) };
     case 'sheet-corner-relief': return { ...at, kind: 'sheet-corner-relief', target: ref(node.parent), corner: node.edges[0], shape: node.shape, size: node.size };
     case 'sheet-flange': return { ...at, kind: 'sheet-flange', target: ref(node.parent), edge: node.edges[0], length: node.length, ...(node.angle !== undefined ? { angle: node.angle } : {}), ...(node.bendRadius !== undefined ? { bendRadius: node.bendRadius } : {}), ...(node.measure ? { measure: node.measure } : {}), ...(node.position ? { position: node.position } : {}), ...(node.offsets ? { offsets: node.offsets } : {}), ...(node.relief ? { relief: node.relief } : {}) };
-    case 'frame': { const g = frameGeometry(current, node, params, partsNow); if ('code' in g) throw refusal(g.code, g.error);
+    case 'frame': {
+      const follows = node.follows, followed = follows && !('part' in follows) && 'sketch' in follows ? current[follows.sketch] : undefined;
+      if (followed?.kind === 'sketch' && followed.association !== undefined) throw associationError('frames following linked sketches are not supported.');
+      const g = frameGeometry(current, node, params, partsNow); if ('code' in g) throw refusal(g.code, g.error);
       return { ...at, kind: 'frame', points: g.points, segments: g.segments, ...(node.bends !== undefined ? { bends: node.bends } : {}), section: kernelSection(node.section, id),
       ...(node.anchor ? { anchor: node.anchor } : {}), ...(node.offset ? { offset: node.offset } : {}), ...(node.roll ? { roll: node.roll } : {}), ...(node.mirror ? { mirror: true } : {}), ...(node.up ? { up: node.up } : {}),
       ...(node.overrides?.length ? { overrides: node.overrides.map(kernelOverride) } : {}), ...(node.corners ? { corners: node.corners } : {}), ...(node.trims?.length ? { trims: node.trims.map(t => 'body' in t ? { member: t.member, end: t.end, body: ref(t.body) } : t) } : {}) }; }
@@ -269,17 +281,94 @@ function featuresOf(node: ModelNode, index: number): CadPartFeature[] {
  * that body away, and with it what is built on it alone (a Boolean with one side gone keeps the other;
  * an intersection or a subtraction from nothing is gone too).
  */
-export function toPartDocument(doc: StudioDoc): CadPartDocument {
+const associationError = (message: string) => refusal('BAD_REFERENCE', `Associative sketch: ${message}`);
+
+/** Validate the persisted binding before any native prefix evaluation. */
+function associationSource(doc: StudioDoc, index: number): number {
+  const node = doc.nodes[index];
+  if (node?.kind !== 'sketch' || !node.association) throw associationError('no linked sketch at this index.');
+  const a = node.association, source = a.source;
+  if (a.kind !== 'planar-face-outline-inset' || a.version !== 1) throw associationError('unsupported recipe kind or version.');
+  if (doc.instances?.length) throw associationError('assembly recipes are not supported.');
+  if (!source || !Number.isInteger(source.node) || source.node < 0 || source.node >= index || source.side !== 'solid' || Object.keys(source).some(k => k !== 'node' && k !== 'side')) throw associationError('the source must be an earlier same-document solid; forward and cyclic references are not supported.');
+  const parent = doc.nodes[source.node];
+  if (!parent || parent.kind === 'sketch' || parent.kind === 'skeleton' || parent.suppressed) throw associationError('the source solid is missing or suppressed.');
+  if (typeof a.sourceFeature !== 'string' || featureId(doc.nodes, source.node) !== a.sourceFeature || doc.nodes.filter((_, i) => featureId(doc.nodes, i) === a.sourceFeature).length !== 1) throw associationError('the source feature binding is missing, changed or ambiguous.');
+  if (typeof a.face !== 'string' || !a.face || a.face.includes('+')) throw associationError('one persistent named face is required.');
+  if (!Number.isFinite(a.insetMM) || a.insetMM <= 0) throw associationError('the inset must be finite and positive.');
+  return source.node;
+}
+
+/** Resolve only from features that have already been built; never recurse through toPartDocument. */
+function associativeProfile(doc: StudioDoc, index: number, prefix: readonly CadPartFeature[]): SketchNode {
+  const source = associationSource(doc, index), node = doc.nodes[index] as Extract<ModelNode, { kind: 'sketch' }>, a = node.association!;
+  let snapshot: CadPartSnapshot;
+  try { snapshot = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: doc.parameters, features: [...prefix] }); }
+  catch (cause) { throw associationError(`the source prefix could not be evaluated: ${cause instanceof Error ? cause.message : String(cause)}`); }
+  const outputs = snapshot.outputs.filter(o => o.id === featureId(doc.nodes, source));
+  if (outputs.length !== 1 || outputs[0].representation === 'faceted' || outputs[0].brep.bodies.length !== 1) throw associationError('the source must resolve to one exact solid.');
+  const brep = outputs[0].brep;
+  if (brep.bodies[0].kind !== 'solid') throw associationError('the source is not a solid.');
+  const named = brep.faces.filter(f => f.name === a.face);
+  if (named.length !== 1) throw associationError('the named source face is missing or ambiguous.');
+  const loops = named[0].loops.map(id => brep.loops.find(l => l.id === id));
+  if (loops.length !== 1 || !loops[0] || loops[0].kind !== 'outer' || loops[0].coedges.length < 3) throw associationError('the source face must have one closed outer loop without holes.');
+  // Check native edge curves before display fitting: a short curved edge must not become a line by fitting.
+  for (const id of loops[0].coedges) {
+    const coedge = brep.coedges.find(c => c.id === id), edge = coedge && brep.edges.find(e => e.id === coedge.edge), curve = edge?.curve;
+    if (!curve || curve.degree !== 1 || curve.controlPoints.length !== 2 || !curve.controlPoints.every(p => p.every(Number.isFinite)) || curve.weights.length !== 2 || !curve.weights.every(w => Number.isFinite(w) && w > 0)) throw associationError('only native straight boundary edges are supported.');
+  }
+  const mesh = bodyMesh(brep, 0), faces = mesh.faces.filter(f => f.name === a.face);
+  if (faces.length !== 1 || faces[0].kind !== 'plane') throw associationError('the named source face must be one planar face.');
+  const fp = faceProfile(mesh, faces[0].index);
+  if (!fp || fp.profile !== 'loop' || fp.holes?.length || fp.regions?.length || fp.segments.length < 3 || fp.segments.some(g => g.kind !== 'line' || !g.start.every(v => typeof v === 'number' && Number.isFinite(v))) || !fp.plane || ![...fp.plane.origin, ...fp.plane.normal, ...fp.plane.xAxis].every(Number.isFinite)) throw associationError('only one finite straight closed outer loop without holes is supported.');
+  const reopened = sketchShapes(fp);
+  if (!reopened.shape || reopened.done.length) throw associationError('the source face does not have one outer shape.');
+  const inset = offsetShape(reopened.shape, -a.insetMM);
+  if ('error' in inset) throw associationError(inset.error);
+  const profile = profileOf([reopened.shape, inset.shape]);
+  if ('error' in profile) throw associationError(profile.error);
+  if (profile.node.regions?.length || profile.node.holes?.length !== 1) throw associationError('the inset must produce one enclosed hole.');
+  const extras = { ...(node.id === undefined ? {} : { id: node.id }), ...(node.suppressed ? { suppressed: node.suppressed } : {}), ...(node.sigs ? { sigs: node.sigs } : {}), ...(node.rematched ? { rematched: node.rematched } : {}), ...(node.held ? { held: node.held } : {}), ...(node.bought === undefined ? {} : { bought: node.bought }) };
+  return { ...profile.node, ...extras, plane: fp.plane, on: { ...(node.on ?? a.source) }, association: a };
+}
+
+/** Current linked geometry for reopening. Legacy coordinate sketches are returned unchanged. */
+export function resolveAssociativeSketch(doc: StudioDoc, index: number): SketchNode {
+  const node = doc.nodes[index];
+  if (node?.kind !== 'sketch') throw associationError('no sketch at this index.');
+  if (node.association === undefined) return node;
+  const source = associationSource(doc, index);
+  // This builds only earlier nodes. The builder resolves its recipes from its own accumulated features.
+  const prefix = buildPartDocument(doc, source + 1);
+  return associativeProfile(doc, index, prefix.features);
+}
+
+export function toPartDocument(doc: StudioDoc): CadPartDocument { return buildPartDocument(doc); }
+
+function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
   doc = resolveShopTree(doc);
+  const limit = before ?? doc.nodes.length;
   bearingDependencyKey(doc);
   const ownershipError = documentBeadOwnershipError(doc);
   if (ownershipError) throw new CadPartError('PARAMETER', null, ownershipError);
   doc = withIds(doc); current = doc.nodes; library = new Map((doc.frames?.sections ?? []).map(r => [r.id, r.section])); bearingRows = new Map((doc.bearings?.rows ?? []).map(r => [r.id, r])); oringRows = new Map((doc.orings?.rows ?? []).map(r => [r.id, r])); driveRows = new Map((doc.drives?.rows ?? []).map(r => [r.id, r])); connectorRows = new Map((doc.connectors?.rows ?? []).map(r => [r.id, r])); fitTables = doc.fits?.tables ?? []; fitFaces = doc.fits?.faces ?? []; ringRows = new Map((doc.rings?.rows ?? []).map(r => [r.id, r])); params = doc.parameters ?? {}; partsNow = doc.instances ?? [];
-  const gone = new Set<number>(), features: CadPartFeature[] = [];
+  const gone = new Set<number>(), features: CadPartFeature[] = [], prefixEnds = new Map<number, number>();
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
   doc.nodes.forEach((node, i) => {
+    if (i >= limit) return;
+    prefixEnds.set(i, features.length);
     if (node.kind === 'skeleton') return;
-    if (node.kind === 'sketch') { features.push(...featuresOf(node, i)); return; }
+    if (node.kind === 'sketch') {
+      if (node.association !== undefined) {
+        const source = associationSource(doc, i), end = prefixEnds.get(source + 1);
+        if (gone.has(source) || end === undefined) throw associationError('the source solid is unavailable in the evaluated prefix.');
+        const resolved = associativeProfile(doc, i, features.slice(0, end));
+        delete resolved.association;
+        features.push(...featuresOf(resolved, i));
+      } else features.push(...featuresOf(node, i));
+      return;
+    }
     const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
     const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;
     if (two) {
@@ -304,7 +393,7 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
     features.push(...featuresOf(node, i));
   });
   // Derived weld bodies follow authored nodes. Each retry sends the complete remaining per-frame manifest.
-  const active = beadsOf(doc, gone).filter(b => !refusedBeads.has(b.key));
+  const active = beadsOf(limit < doc.nodes.length ? prefixDoc(doc, limit) : doc, gone).filter(b => !refusedBeads.has(b.key));
   for (const b of active) {
     const f = b.feature;
     if (doc.frames?.beadOwnership && 'member' in f.on) {

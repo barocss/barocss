@@ -299573,6 +299573,13 @@
                 "type": "number | undefined"
               },
               {
+                "name": "association",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "PlanarFaceOutlineInsetAssociation | undefined"
+              },
+              {
                 "name": "at",
                 "kind": "property",
                 "optional": false,
@@ -302003,6 +302010,79 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./engine/doc",
+      "exportName": "PlanarFaceOutlineInsetAssociation",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/doc.ts",
+            "name": "PlanarFaceOutlineInsetAssociation",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "PlanarFaceOutlineInsetAssociation",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "face",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "insetMM",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"planar-face-outline-inset\""
+              },
+              {
+                "name": "source",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "BodyRef"
+              },
+              {
+                "name": "sourceFeature",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "version",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "1"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/doc",
       "exportName": "PrintPreviewSettings",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -302628,6 +302708,13 @@
               }
             ],
             "members": [
+              {
+                "name": "association",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "PlanarFaceOutlineInsetAssociation | undefined"
+              },
               {
                 "name": "center",
                 "kind": "property",
@@ -313247,6 +313334,37 @@
             ],
             "callSignatures": [
               "(doc: StudioDoc, build?: (part: CadPartDocument) => CadPartSnapshot) => CadPartSnapshot"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/part",
+      "exportName": "resolveAssociativeSketch",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/part.ts",
+            "name": "resolveAssociativeSketch",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, index: number) => SketchNode",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, index: number) => SketchNode"
             ]
           }
         }
@@ -378132,7 +378250,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
-                "type": "{ plane: SketchPlane; base: { node: number; side: string; } | null; outline?: SketchShape[] | undefined; } | undefined"
+                "type": "{ plane: SketchPlane; base: { node: number; side: string; } | null; outline?: SketchShape[] | undefined; linkSource?: Omit<PlanarFaceOutlineInsetAssociation, \"insetMM\"> | undefined; } | undefined"
               },
               {
                 "name": "kind",
@@ -378385,6 +378503,20 @@
                 "optional": true,
                 "readonly": false,
                 "type": "SketchAnchor | undefined"
+              },
+              {
+                "name": "association",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "PlanarFaceOutlineInsetAssociation | undefined"
+              },
+              {
+                "name": "associationDetached",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | undefined"
               },
               {
                 "name": "base",
