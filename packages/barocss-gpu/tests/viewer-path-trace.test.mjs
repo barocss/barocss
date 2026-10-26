@@ -10,7 +10,7 @@ const mesh = options => new Mesh(new Geometry(prepareGeometry({ positions: [0, 0
 test('path trace packed source ids, material and instance attributes survive world transforms', () => {
   const m = mesh({ material: { color: '#ff0000', metallic: 0.75, roughness: 0.2, finish: { kind: 'brushed', scale: 2 }, clearcoat: 0.4, film: 0.5 }, transform: translation([3, 4, 0]), instances: { transforms: [...translation([0, 0, 5]), ...translation([10, 0, 0])], colors: [1, 0.5, 1, 0.25, 1, 1] } });
   const p = traceScene([m]);
-  assert.equal(p.bvh.triangleCount, 2); assert.equal(p.attributes.length, 64); assert.equal(p.materials.length, 40);
+  assert.equal(p.bvh.triangleCount, 2); assert.equal(p.attributes.length, 64); assert.equal(p.materials.length, 48);
   assert.deepEqual([...p.materials.slice(16, 21)], [1, 0, 0, 1, 0.75]);
   assert.equal(p.materials[24], 5); assert.equal(p.materials[25], 2); assert.equal(p.materials[35], 0.5);
   assert.equal(p.attributes[0], 0); assert.equal(p.attributes[2], 1); assert.equal(p.attributes[3], 0);

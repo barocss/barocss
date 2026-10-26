@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Material maps · BaroCSS GPU</title>
+  <style>
+    :root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; background: #17191d; color: #eceef2; }
+    body { max-width: 960px; margin: 32px auto; padding: 0 20px; }
+    h1 { margin-bottom: 4px; font-size: 1.6rem; }
+    p { color: #bbc1cb; }
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin: 20px 0; }
+    label { display: inline-flex; align-items: center; gap: 8px; }
+    input, button { accent-color: #e9b979; }
+    button { padding: 7px 14px; font: inherit; cursor: pointer; }
+    button:disabled { cursor: default; }
+    canvas { display: block; width: 100%; aspect-ratio: 4 / 3; background: #20242b; border: 1px solid #414854; }
+    canvas[hidden], [hidden] { display: none; }
+    #error { color: #ffb4ad; white-space: pre-wrap; }
+    figure { margin: 28px 0; }
+    figcaption { margin-top: 8px; color: #bbc1cb; }
+    output { min-width: 3ch; font-variant-numeric: tabular-nums; }
+  </style>
+  <script type="importmap">{"imports":{"@barocss/cad":"../../barocss-cad/dist/index.js"}}</script>
+  <script type="module" src="./material-maps.js"></script>
+</head>
+<body>
+  <h1>Material maps</h1>
+  <p>A UV quad with procedural tangent normals, green-channel roughness and blue-channel metallic data. Orbit with the pointer to inspect the highlights.</p>
+  <div class="controls" role="group" aria-label="Material controls">
+    <label><input id="normal" type="checkbox" aria-label="Normal map" checked disabled> Normal map</label>
+    <label><input id="roughness" type="checkbox" aria-label="Roughness map" checked disabled> Roughness map</label>
+    <label><input id="metallic" type="checkbox" aria-label="Metallic map" checked disabled> Metallic map</label>
+    <label>Normal strength <input id="strength" type="range" aria-label="Normal strength" min="0" max="2" step="0.1" value="1" disabled> <output id="strength-value" for="strength">1.0</output></label>
+    <label><input id="flip" type="checkbox" aria-label="Flip normal Y" disabled> Flip normal Y</label>
+    <label><input id="mirror" type="checkbox" aria-label="Mirror UVs" disabled> Mirror UVs</label>
+    <button id="capture" type="button" disabled>Capture still</button>
+  </div>
+  <p id="status" role="status" aria-live="polite">Loading the viewer…</p>
+  <p id="error" role="alert" hidden></p>
+  <canvas id="view" aria-label="Interactive material map preview"></canvas>
+  <figure id="capture-output" hidden>
+    <canvas id="still" aria-label="Captured still image"></canvas>
+    <figcaption id="capture-caption"></figcaption>
+  </figure>
+</body>
+</html>

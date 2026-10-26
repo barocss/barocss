@@ -51,6 +51,39 @@ diagnostics), `bindingShader(binding)` for a compiled `MeshMaterialBinding`, and
 `uv01Shader(material, uniforms)` for a native Surface UV01 material. A UV01 source reads
 `surface_u01`/`surface_v01` from the geometry's `uvs`.
 
+### PBR data maps
+
+Triangle materials support `normalMap`, `roughnessMap` and `metallicMap` through
+the geometry's UVs, in both raster rendering and progressive stills. Create these
+textures with `{ srgb: false }`; they contain linear data rather than colour.
+
+```js
+const normalMap = viewer.createTexture({ width, height, data: normalPixels }, { srgb: false });
+const packed = viewer.createTexture({ width, height, data: packedPixels }, { srgb: false });
+box.geometry.setUVs(uvs);
+box.material = {
+  normalMap, normalScale: [1, 1],
+  roughnessMap: packed, roughness: 1,
+  metallicMap: packed, metallic: 1,
+};
+```
+
+Normal RGB values describe a tangent-space +Y normal. `normalScale` scales X/Y;
+use a negative Y scale for the opposite convention. A missing or degenerate UV
+frame keeps the original surface normal. The roughness map's green channel and
+metallic map's blue channel multiply their respective material values, so one
+packed texture can serve both roles. Set a map to `null` to remove it.
+
+Data maps require live textures and triangle geometry. A scalar-field
+`Mesh.colorMap` uses a separate analysis pass and cannot be combined with these
+UV maps. Disposing an accepted map restores the raster material's unmapped value;
+an existing frozen still retains its own pixels and material snapshot. Remove or
+replace disposed references before creating another still.
+
+[Interactive material-map example](examples/material-maps.html) provides map
+toggles, normal strength, normal-Y and UV mirroring, and a frozen still capture.
+Serve the repository after the existing package build to open it.
+
 ### Progressive still images
 
 `viewer.createPathTrace()` creates an offscreen still with its own frozen scene,
