@@ -1051,3 +1051,39 @@ CG1.1d mixed line/arc loft is adopted from `a8ce2c996` by merge `b21910b43`. The
 R7.6 inventory baseline contains6604 unique exposures/variants across3 packages with TypeScript5.9.3, including type, value, type+value and asset spaces. CadPartOutput42 and CadPartSnapshot5 direct properties pass the scoped anchor rule. Intentional public API changes require a reviewed expected-inventory delta. The original inventory child is included in check-docs; individual child logs/read graph are not independently instrumented.
 
 CG1.2 bounded guide adoption (`b7b0f0e08`) supports exactly two same-axis parallel conic frames, a quadratic world-space translation rail with cap seam endpoints and a midplane middle control. Exact rational NURBS and independent mass tests apply to this scope. General rails, nonparallel sections, multiple sections, smooth lofts, Studio/v2 feature adapters and RS7 acceptance remain. The original f7d7 86PASS/1FAIL is preserved; repaired oriented56 is separate. Repeated dist postflight scans were not run.
+
+
+## Viewer SDK delivery (dedicated Work, 2026-10-26)
+
+The owner assigned a new Viewer Work, `01a1787c-a71c-7000-a102-4988e3481ec0`.
+It owns `@barocss/viewer` and one bounded external-host example. Presenter reuses
+`@barocss/gpu/viewer`; the existing GPU Work retains the common renderer. CAD
+Studio currently consumes the GPU core directly. A GPU or Studio feature does
+not automatically expose a Viewer SDK option. Reuse existing loading, controls,
+picking, native measurements, lifecycle and bounded assembly APIs.
+
+| Order | Complete feature and gate |
+|---|---|
+| V1 | Consistent public load/control/state/error/dispose contract with explicit units, revisions and capability refusals. First assigned slice: compact camera/visibility/selection review state bound to the current supported document or assembly. Validate before applying; retain accepted state on failure. |
+| V2 | One external-host inspect flow using existing navigation, selection, visibility and supported native queries. A screen approximation remains distinct from a native measurement. |
+| V3 | Link the supported assembly tree and viewport selection/visibility. Preserve hierarchy, local/world transforms and repeated-instance identity; retain current 1-4 selected-instance limits. |
+| V4 | Expose existing GPU material, light, environment and post options through explicit SDK capabilities and refusal behavior. Do not add a second renderer. |
+| V5 | Resume a source-bound review with saved views, annotations, supported measurements and capture. Complete a small embedding example without adding a CAD editor or solver. |
+| V6 | Improve measured bottlenecks in the proven flow. Reuse BVH and keep the existing LOD measurement hold. |
+
+CURRENT `VIEWER-SDK-V1-REVIEW-STATE-01` starts from qualified product `f1c6b178`
+in its own local clone and normal feature branch. Its source bundle includes
+the compact state API and a public Save/Open example. NEXT conditional
+`VIEWER-SDK-V2-ASSEMBLY-REVIEW-01` connects supported assembly navigation after
+CURRENT completes and its exact files are recorded. Native/build/generator
+uses the shared single execution lane; independent source work can proceed.
+The coordinator reviews exact normal commits and owns product integration.
+These are delivery assignments, not completed SDK or arbitrary-assembly claims.
+
+Current feature checkpoint: DoF source has its first GPU emit, CPU2, GPU8 and
+public Studio focus/blur/pick/cancel/file roundtrip evidence at `22d592`. The
+required affected Model/Studio batch and product integration remain. Drawing
+parameter/reference source is adopted as `14bbc19f3`; the current compact
+History, DoF callback, STL quality and route admission code are preserved. Its
+new reference-review UI and parameter file flow still require their first
+affected checks. Reuse unchanged passing evidence; do not rerun old flows.
