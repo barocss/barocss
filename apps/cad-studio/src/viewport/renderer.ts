@@ -132,6 +132,16 @@ export interface SectionClip { planes: { normal: Vec3; offset: number }[]; bodie
 /** The hatch on the cut drawn as lines (G19.3): each body's (by its index) segments, six numbers each. */
 export type SectionHatch = readonly { body: number; segments: Float32Array }[];
 /** What the viewport draws with: the WebGL2 Renderer here, or the WebGPU one (gpuRenderer.ts). */
+/** A frozen still session; its camera and scene do not follow live raster edits. */
+export interface RenderPathTraceSession {
+  readonly width: number; readonly height: number; readonly samples: number; readonly running: boolean;
+  sample(count?: number): Promise<number>;
+  start(onProgress?: (samples: number) => void): Promise<void>;
+  stop(): void;
+  capture(denoise?: boolean): Promise<{ width: number; height: number; data: Uint8Array }>;
+  dispose(): void;
+}
+
 export interface ViewRenderer {
   /** Host-driven frames (GPU viewer): its own frame requests go here instead of to its own animation frame (PERF3 A2). */
   setRequestHost?(request: () => void): void;
@@ -167,6 +177,8 @@ export interface ViewRenderer {
   setRender?(settings: import('@barocss/cad-model/engine/render').RenderSettings | null): void;
   /** The frame as a PNG. */
   capture?(): Promise<Blob>;
+  /** Freeze the current Render camera and scene for a separate still. */
+  createPathTrace?(camera: OrbitCamera, options?: { width?: number; height?: number; bounces?: number }): Promise<RenderPathTraceSession>;
   /** Zebra stripes or the curvature map on the bodies (WebGPU only; null: off). */
   setAnalysis?(mode: import('./analysis').Analysis | null): void;
   /** Cosmetic thread rings (line segments, WebGPU only). */

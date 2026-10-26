@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { compileGpu, materialShader } from '@barocss/gpu';
 import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderPost, type RenderSettings, FINISH_KINDS, type AppearanceFinish, type FinishKind, type StudioKind } from '@barocss/cad-model/engine/render';
 import { Icon } from './atoms';
+import type { RenderPathTraceSession } from '../viewport/renderer';
 import { CONTROL, FIELD, NUM, SLIDER, TICK } from './panelStyles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +14,7 @@ import { NativeSelect } from '@/components/ui/native-select';
  * contents on shadcn (Button, Input, NativeSelect, FIELD / NUM / SLIDER rows); the shell (its title and Export image),
  * the tabs, the colour and range inputs and the source editors are the studio's.
  */
-export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available, fov, onFov, onPickFocus, onError }: {
+export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available, fov, onFov, onPickFocus, onCreatePathTrace, imageName, onError }: {
   render: RenderSettings;
   /** Body keys the appearance edits apply to; empty: the default appearance. */
   selectedKeys: string[];
@@ -27,8 +28,78 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   fov: number; onFov(degrees: number): void;
   /** Arm a one-shot viewport surface pick; null cancels without changing the document. */
   onPickFocus(done: (focus: number | null) => void): (() => void) | undefined;
+  onCreatePathTrace(): Promise<RenderPathTraceSession>;
+  imageName: string;
   onError?(message: string): void;
 }) {
+  const [method, setMethod] = useState<'raster' | 'path-tracing'>('raster');
+  const [traceSamples, setTraceSamples] = useState(0), [traceRunning, setTraceRunning] = useState(false), [traceBusy, setTraceBusy] = useState(false);
+  const [traceError, setTraceError] = useState<string | null>(null), [denoise, setDenoise] = useState(true);
+  const trace = useRef<RenderPathTraceSession | null>(null), traceEpoch = useRef(0), tracePreview = useRef<HTMLCanvasElement | null>(null);
+  const queuedCapture = useRef<RenderPathTraceSession | null>(null);
+  const denoiseRef = useRef(true), captureInFlight = useRef<RenderPathTraceSession | null>(null), lastPreview = useRef(0);
+  const disposeTrace = () => {
+    traceEpoch.current++;
+    const session = trace.current; trace.current = null;
+    if (session) { session.stop(); session.dispose(); }
+  };
+  useEffect(() => () => { disposeTrace(); }, []);
+  const showTrace = async (session: RenderPathTraceSession, epoch: number) => {
+    if (captureInFlight.current === session) { queuedCapture.current = session; return; }
+    captureInFlight.current = session;
+    try {
+      const frame = await session.capture(denoiseRef.current);
+      if (traceEpoch.current !== epoch || trace.current !== session || !tracePreview.current) return;
+      const canvas = tracePreview.current; canvas.width = frame.width; canvas.height = frame.height;
+      canvas.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(frame.data), frame.width, frame.height), 0, 0);
+      canvas.dataset.samples = String(session.samples);
+    } catch (error) {
+      if (traceEpoch.current === epoch && trace.current === session) setTraceError(error instanceof Error ? error.message : String(error));
+    } finally {
+      if (captureInFlight.current === session) captureInFlight.current = null;
+      if (queuedCapture.current === session) {
+        queuedCapture.current = null;
+        if (traceEpoch.current === epoch && trace.current === session) void showTrace(session, epoch);
+      }
+    }
+  };
+  const startTrace = async () => {
+    disposeTrace(); const epoch = traceEpoch.current;
+    setTraceSamples(0); setTraceError(null); setTraceBusy(true); setTraceRunning(false);
+    if (tracePreview.current) { tracePreview.current.width = 0; delete tracePreview.current.dataset.samples; }
+    try {
+      const session = await onCreatePathTrace();
+      if (traceEpoch.current !== epoch) { session.stop(); session.dispose(); return; }
+      trace.current = session; setTraceBusy(false); setTraceRunning(true); lastPreview.current = 0;
+      await session.start(samples => {
+        if (traceEpoch.current !== epoch || trace.current !== session) return;
+        setTraceSamples(samples);
+        if (performance.now() - lastPreview.current > 500 || samples === 1) { lastPreview.current = performance.now(); void showTrace(session, epoch); }
+      });
+      if (traceEpoch.current === epoch && trace.current === session) { setTraceRunning(false); setTraceSamples(session.samples); if (session.samples) void showTrace(session, epoch); }
+    } catch (error) {
+      if (traceEpoch.current === epoch) { setTraceBusy(false); setTraceRunning(false); setTraceError(error instanceof Error ? error.message : String(error)); }
+    }
+  };
+  const stopTrace = () => {
+    if (!trace.current) { disposeTrace(); setTraceBusy(false); }
+    else trace.current.stop();
+    setTraceRunning(false);
+  };
+  const exportStill = async () => {
+    const session = trace.current, epoch = traceEpoch.current;
+    if (!session || !session.samples) return;
+    try {
+      const frame = await session.capture(denoiseRef.current);
+      if (traceEpoch.current !== epoch || trace.current !== session) return;
+      const canvas = new OffscreenCanvas(frame.width, frame.height);
+      canvas.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(frame.data), frame.width, frame.height), 0, 0);
+      const blob = await canvas.convertToBlob({ type: 'image/png' });
+      if (traceEpoch.current !== epoch || trace.current !== session) return;
+      const url = URL.createObjectURL(blob), link = document.createElement('a'); link.href = url; link.download = imageName; link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) { if (traceEpoch.current === epoch) setTraceError(error instanceof Error ? error.message : String(error)); }
+  };
   const [tab, setTab] = useState<'look' | 'lights' | 'scene' | 'source'>('look');
   const current: Appearance = selectedKeys.length ? render.appearances[selectedKeys[0]] ?? render.defaultAppearance : render.defaultAppearance;
   const setLook = (patch: Partial<Appearance>) => {
@@ -80,8 +151,28 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   return (
     <aside className="card props render-panel" aria-label="Render">
       <div className="card-title">RENDER
-        <button className="tool tiny" aria-label="Export image" title="Export the view as a PNG" disabled={!available} onClick={onExport}><Icon name="photo_camera" small /></button></div>
+        <button className="tool tiny" aria-label="Export image" title="Export the view as a PNG" disabled={!available || (method === 'path-tracing' && !traceSamples)} onClick={() => { if (method === 'path-tracing') void exportStill(); else onExport(); }}><Icon name="photo_camera" small /></button></div>
       {!available && <div className="empty">Rendering needs a browser with WebGPU. The view below is the modelling look.</div>}
+      <label className={FIELD}><span>Render method</span><NativeSelect className={CONTROL} aria-label="Render method" value={method} onChange={event => {
+        disposeTrace(); setTraceRunning(false); setTraceBusy(false); setTraceSamples(0); setTraceError(null); setMethod(event.target.value as typeof method);
+      }}><option value="raster">Raster</option><option value="path-tracing">Path tracing</option></NativeSelect></label>
+      {method === 'path-tracing' && <div className="render-section" aria-label="Path tracing" data-trace-running={traceRunning}>
+        {!available && <div role="status">Path tracing needs WebGPU. The WebGL2 viewport stays interactive.</div>}
+        <div className="muted small">A frozen still. Camera and scene changes stay in the live view. Start again to use them.</div>
+        <div className="muted small">The still includes surfaces, materials, tone mapping and colour grading. Bloom, depth of field, outlines, overlays and shadow catchers stay in the live view.</div>
+        <div className="flex flex-wrap gap-1">
+          <Button variant="ghost" aria-label="Start path tracing" disabled={!available || traceRunning || traceBusy} onClick={() => { void startTrace(); }}>Start</Button>
+          <Button variant="ghost" aria-label="Stop path tracing" disabled={!traceRunning && !traceBusy} onClick={stopTrace}>Stop</Button>
+        </div>
+        <output aria-label="Path trace samples">{traceBusy ? 'Preparing still…' : `${traceSamples} samples`}</output>
+        <label className={FIELD}><span>Denoise still</span><input type="checkbox" className={TICK} aria-label="Denoise still" checked={denoise} onChange={event => {
+          denoiseRef.current = event.target.checked; setDenoise(event.target.checked);
+          if (trace.current?.samples) void showTrace(trace.current, traceEpoch.current);
+        }} /></label>
+        <canvas ref={tracePreview} aria-label="Path trace preview" width={0} height={0} style={{ width: '100%', height: 'auto' }} />
+        {traceSamples > 0 && <div className="muted small">{trace.current?.width} × {trace.current?.height} px · frozen still</div>}
+        {traceError && <div role="alert" className="diag">{traceError}</div>}
+      </div>}
       <div className="tabs" role="tablist">
         {(['look', 'lights', 'scene', 'source'] as const).map(t => <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>{t === 'look' ? 'Appearance' : t === 'lights' ? 'Lights' : t === 'scene' ? 'Scene' : 'Source'}</button>)}
       </div>

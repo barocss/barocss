@@ -29,7 +29,7 @@ import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
 import { PROPOSAL_ADDED, PROPOSAL_CHIP_STEP, PROPOSAL_REMOVED, displayModeStatus, lineDisplayMode, proposalChips } from './renderer';
-import type { DisplayModeStatus, EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLabels, OverlayLines, OverlayPoints, SectionClip, SectionHatch, ThemeName, ViewRenderer, ViewState } from './renderer';
+import type { DisplayModeStatus, EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLabels, OverlayLines, OverlayPoints, SectionClip, SectionHatch, ThemeName, ViewRenderer, ViewState, RenderPathTraceSession } from './renderer';
 import { hatchAngle } from './sectionView';
 import type { ScalarMap } from './scalarMaps';
 import type { ProposalOverlay } from '../engine/client';
@@ -1146,6 +1146,11 @@ export class GpuRenderer implements ViewRenderer {
     const hit = this.viewer.raycast(x, y), line = this.viewer.pickLine(x, y, 6);
     const of = (m: Mesh | undefined) => m?.name?.startsWith('direct:') ? m.name.slice(7) : null;
     return of(line?.mesh) ?? of(hit?.mesh);
+  }
+
+  async createPathTrace(camera: OrbitCamera, options?: { width?: number; height?: number; bounces?: number }): Promise<RenderPathTraceSession> {
+    this.sync(camera);
+    return this.viewer.createPathTrace(options);
   }
 
   /** The frame as drawn, as a PNG. */

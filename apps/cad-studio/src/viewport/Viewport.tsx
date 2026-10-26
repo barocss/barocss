@@ -11,7 +11,7 @@ import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
 import type { FrameCost } from './frameCost';
-import { PROPOSAL_ADDED, PROPOSAL_CHIP_STEP, PROPOSAL_REMOVED, Renderer, proposalChips, type DisplayMode, type DisplayModeStatus, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
+import { PROPOSAL_ADDED, PROPOSAL_CHIP_STEP, PROPOSAL_REMOVED, Renderer, proposalChips, type DisplayMode, type DisplayModeStatus, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState, type RenderPathTraceSession } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
@@ -48,6 +48,8 @@ export interface ViewportHandle {
   setTheme(name: ThemeName): void; setAo(on: boolean): void;
   /** The frame as a PNG (WebGPU only). */
   capture(): Promise<Blob | null>;
+  /** Freeze a 640-pixel-wide still while the raster viewport stays interactive. */
+  createRenderPathTrace(): Promise<RenderPathTraceSession>;
   /** A WebM of `count` frames at `fps`, frame i drawn by `draw(i)` first (RS2: a motion, the Render turntable). */
   recordVideo(count: number, fps: number, draw: (i: number) => void): Promise<Blob>;
   /** The camera as render settings keep it, and back. */
@@ -822,6 +824,15 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     setTheme(name) { theme.current = name; setThemeName(name); renderer.current?.setTheme(name); request(); },
     setAo(on) { ao.current = on; if (renderer.current) renderer.current.aoEnabled = on; request(); },
     capture() { return renderer.current?.capture ? renderer.current.capture() : Promise.resolve(null); },
+    async createRenderPathTrace() {
+      const r = renderer.current, c = canvas.current;
+      if (!propsRef.current.render || !r?.createPathTrace || !c) throw new Error('Path tracing needs the Render workspace and WebGPU.');
+      r.render(camera.current, viewState());
+      const width = 640, height = Math.max(1, Math.round(width * c.clientHeight / Math.max(1, c.clientWidth)));
+      const session = await r.createPathTrace(camera.current, { width, height });
+      if (renderer.current !== r || !propsRef.current.render) { session.dispose(); throw new Error('The Render workspace closed before the still was ready.'); }
+      return session;
+    },
     recordVideo(count, fps, draw) { return recordCanvas(canvas.current!, count, fps, draw, request, renderer.current?.drawNow ? () => renderer.current?.drawNow?.() : undefined); },
     pickRenderFocus(done) {
       finishFocusPick(null);

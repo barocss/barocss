@@ -4,6 +4,7 @@
 // device is lost. Meshes carry a transform and a material; lights and the camera are plain data.
 import { ATLAS_CELLS, ATLAS_SIZE, GLYPH_CELL, GlyphAtlas, layoutLabels, type LabelInput } from './glyphs.js';
 import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, growBox, screenRect, transformBox, type Box3 } from './bounds.js';
+import type { PathTraceSession, PathTraceOptions } from './path-trace.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
 import { clippedRay, clippedRayFull, localPlane, nearestPoint, pointInstances, sceneNear, sceneRay, sceneTree, type SceneTree, prepareGeometry, scalarAt, segmentInstances, contourInstances, lineCount, nearestSegment, type ClippedHit, type GeometryInput } from './geometry.js';
@@ -1740,6 +1741,24 @@ export class Viewer {
 
   // ---- Reading back ------------------------------------------------------------------------------
 
+  private readonly pathTraces = new Set<PathTraceSession>();
+  /** Create an offscreen still. After its lazy module loads, scene/camera inputs are frozen before GPU preparation.
+   * Raster controls and rendering remain independent.
+   * Visible bounded triangle surfaces and G15a materials are included. Lines, labels, overlays, raster shadow catchers and raster post effects
+   * (bloom, DOF, SSAO, contact shadows, outlines) are excluded. Section caps and custom shaders are explicitly refused.
+   */
+  async createPathTrace(options: PathTraceOptions = {}): Promise<PathTraceSession> {
+    this.alive(); this.prepareCamera();
+    const device = this.device;
+    const { PathTraceSession: Session } = await import('./path-trace.js');
+    this.alive();
+    if (device !== this.device || this.recovering) throw new ViewerError('DEVICE_LOST', 'Viewer changed device before creating a still');
+    this.prepareCamera();
+    const session = await Session.create(device, { meshes: this.meshes, camera: this.camera, environment: this.environment, lights: this.lights, background: this.background, width: this.canvas.width, height: this.canvas.height, clipped: !!this.clip }, options, disposed => { this.pathTraces.delete(disposed); });
+    if (this.disposed || this.device !== device || this.recovering) { session.dispose(); throw new ViewerError('DEVICE_LOST', 'Viewer changed device while creating a still'); }
+    this.pathTraces.add(session); return session;
+  }
+
   /** Draw a frame and read it back: RGBA bytes, rows top to bottom. */
   async capture(): Promise<{ width: number; height: number; data: Uint8Array }> {
     this.alive();
@@ -2059,6 +2078,8 @@ export class Viewer {
 
   private lose(message: string): void {
     this.stats.deviceLosses++;
+    for (const session of this.pathTraces) session.dispose();
+    this.pathTraces.clear();
     for (const g of this.geometries) g.gpu = null;
     this.recovering = (async () => {
       try {
@@ -2089,6 +2110,8 @@ export class Viewer {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    for (const session of this.pathTraces) session.dispose();
+    this.pathTraces.clear();
     this.controls?.dispose();
     this.resizeObserver?.disconnect();
     this.cancelScheduled();

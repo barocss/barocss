@@ -16,7 +16,12 @@ export interface RenderPass {
   drawIndexed(indexCount: number, instanceCount?: number): void;
   end(): void;
 }
+export interface ComputePass {
+  setPipeline(pipeline: Pipeline): void; setBindGroup(index: number, group: BindGroup): void;
+  dispatchWorkgroups(x: number, y?: number, z?: number): void; end(): void;
+}
 export interface CommandEncoder {
+  beginComputePass(descriptor?: object): ComputePass;
   beginRenderPass(descriptor: object): RenderPass;
   copyTextureToBuffer(source: object, destination: object, size: object): void;
   finish(): object;
@@ -35,6 +40,7 @@ export interface Device {
   createSampler(descriptor: object): object;
   createTexture(descriptor: object): Texture;
   createShaderModule(descriptor: { code: string; label?: string }): ShaderModule;
+  createComputePipelineAsync(descriptor: object): Promise<Pipeline>;
   createRenderPipeline(descriptor: object): Pipeline;
   createRenderPipelineAsync(descriptor: object): Promise<Pipeline>;
   createBindGroupLayout(descriptor: object): BindGroupLayout;
@@ -49,8 +55,8 @@ export interface Adapter { requestDevice(descriptor?: object): Promise<Device>; 
 export interface GPU { requestAdapter(options?: object): Promise<Adapter | null>; getPreferredCanvasFormat(): string }
 export interface CanvasContext { configure(descriptor: object): void; unconfigure(): void; getCurrentTexture(): Texture }
 
-export const BufferUsage = { MAP_READ: 1, COPY_SRC: 4, COPY_DST: 8, INDEX: 16, VERTEX: 32, UNIFORM: 64 } as const;
-export const TextureUsage = { COPY_SRC: 1, COPY_DST: 2, TEXTURE_BINDING: 4, RENDER_ATTACHMENT: 16 } as const;
+export const BufferUsage = { MAP_READ: 1, COPY_SRC: 4, COPY_DST: 8, INDEX: 16, VERTEX: 32, UNIFORM: 64, STORAGE: 128 } as const;
+export const TextureUsage = { COPY_SRC: 1, COPY_DST: 2, TEXTURE_BINDING: 4, STORAGE_BINDING: 8, RENDER_ATTACHMENT: 16 } as const;
 export const MapMode = { READ: 1 } as const;
 
 export function gpuOf(): GPU | null {
