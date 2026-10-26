@@ -9,9 +9,12 @@ import { defaultDrawing } from '../src/drawing/types';
 
 // Every field a document or a node can hold survives every path that rebuilds one: a field added to the types
 // without being carried fails here (the lists are checked against the types at compile time, engine/doc.ts).
-type DocField = typeof STUDIO_DOC_FIELDS[number];
+// Schema-4 bundles require their own valid fixture; route-bundle-admission.test.ts covers that field.
+// Keep every other field required in this legacy schema-3 fixture.
+type DocField = Exclude<typeof STUDIO_DOC_FIELDS[number], 'routeBundles'>;
+const LEGACY_DOC_FIELDS = STUDIO_DOC_FIELDS.filter((field): field is DocField => field !== 'routeBundles');
 
-/** A document with every field set (the type makes the list complete), and every node extra on some node. */
+/** A legacy document with every legacy field set, and every node extra on some node. */
 function full(): StudioDoc {
   let base = rectanglePart(40, 20, 8);
   base = withNode(base, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [10, 10], radius: 2 });
@@ -52,9 +55,9 @@ function full(): StudioDoc {
   return values as StudioDoc;
 }
 /** The document's own fields (not the model's): kept as they were. */
-const OWN = STUDIO_DOC_FIELDS.filter(k => !['nodes', 'outputs', 'nextId', 'schema'].includes(k));
+const OWN = LEGACY_DOC_FIELDS.filter(k => !['nodes', 'outputs', 'nextId', 'schema'].includes(k));
 function assertKept(what: string, before: StudioDoc, after: StudioDoc, own: readonly DocField[] = OWN) {
-  for (const k of STUDIO_DOC_FIELDS) assert.ok(after[k] !== undefined, `${what}: ${k} dropped`);
+  for (const k of LEGACY_DOC_FIELDS) assert.ok(after[k] !== undefined, `${what}: ${k} dropped`);
   for (const k of own) assert.deepEqual(after[k], before[k], `${what}: ${k} changed`);
   const fillet = after.nodes.find(n => n.id === 'n3');
   if (fillet) for (const f of NODE_EXTRA_FIELDS) assert.ok(fillet[f] !== undefined, `${what}: the fillet's ${f} dropped`);

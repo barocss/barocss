@@ -36,6 +36,7 @@ import { modelHash } from './spec';
 import { moveOps, proposalOf, type ChatState, type Evaluate } from './tools';
 import { isObj } from '../util/guards';
 import { refusal } from '../engine/refusal';
+import { assertRouteBundleDocument } from '../engine/routeBundle';
 
 /** The fields a turn's op may write besides features, parameters, body outputs and looks, proposals and history. */
 const OWN = new Set<string>(['format', 'schema', 'units', 'nextId', 'nodes', 'outputs', 'parameters', 'bodies', 'proposals', 'history']);
@@ -191,6 +192,16 @@ export const changedDuring = (base: StudioDoc, now: StudioDoc): boolean => canon
  * that does not conflict; the rest as one proposal on the result, with their reasons.
  */
 export async function mergeTurn(base: StudioDoc, now: StudioDoc, patch: TurnPatch, evaluate: Evaluate, o: { deferAll?: string; rowFiles?: ChatState['rowFiles'] } = {}): Promise<Merged> {
+  const admit = (input: unknown) => {
+    assertRouteBundleDocument(input);
+    if (isObj(input) && input.schema === 4) throw refusal('BAD_REFERENCE', 'Route bundle: merging linked route documents is not supported.');
+  };
+  admit(base); admit(now);
+  for (const op of patch.ops) {
+    // Fields may carry a bundle, a required version, or nested part documents even on a legacy base.
+    admit({ schema: 3, nodes: [], ...op.effect.fields });
+    admit({ schema: 3, nodes: [...op.effect.added.map(a => a.node), ...op.effect.changed.map(c => c.node)] });
+  }
   // (Every op waiting, without running anything — nothing to await, so no edit lands in between: the last resort.)
   if (o.deferAll !== undefined) {
     const deferred = patch.ops.map((op, k): TurnConflict => ({ op: k, tool: op.tool, code: 'TURN_STILL_EDITING', reason: o.deferAll! }));

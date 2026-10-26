@@ -56,7 +56,7 @@ import type { CamOptions } from './viewport/camDisplay';
 import { usePrintLayers, type PrintOptions } from './viewport/usePrintLayers';
 import { printOptionsOf, printSourceMeshes, withPrintPreviewSettings, type PrintPreviewPatch } from './viewport/printSettings';
 import { checkDocumentPrintPreview } from '@barocss/cad-model/engine/printPreview';
-import { firstProblem, isRefusal } from '@barocss/cad-model/engine/refusal';
+import { firstProblem, isRefusal, refusal } from '@barocss/cad-model/engine/refusal';
 import { Icon, Kbd } from './ui/atoms';
 import { FlatPatternDialog } from './ui/FlatPatternDialog';
 import { CutListDialog } from './ui/CutListDialog';
@@ -963,6 +963,7 @@ export function App() {
       const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
       if ('error' in read) throw new Error(read.error);
       const parsed = read.doc;
+      if (parsed.schema === 4 || Object.prototype.hasOwnProperty.call(parsed, 'routeBundles')) throw refusal('BAD_REFERENCE', 'Route bundle: inserting a linked route document as a part is not supported. Detach the bundle first.');
       const list = doc.instances ?? [], used = new Set(list.map(i => i.id));
       let n = 1; while (used.has(`inst${n}`)) n++;
       // Placed to the right of everything shown.

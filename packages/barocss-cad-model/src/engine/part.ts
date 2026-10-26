@@ -20,6 +20,7 @@ import { documentBeadOwnershipError } from '../frames/beadOwnership';
 import { canonical, modelContent } from '../util/revision';
 import { resolveSkeletons, SKELETON_CODES } from '../frames/skeleton';
 import { isRefusal, refusal } from './refusal';
+import { assertRouteBundleDocument } from './routeBundle';
 import { bodyMesh } from './mesh';
 import { faceProfile } from '../app/faceProfile';
 import { sketchShapes } from '../sketch/reopen';
@@ -94,6 +95,7 @@ function expectOf(node: { sigs?: Record<string, Sig> }, names: readonly string[]
   return out ? { expect: out } : {};
 }
 export function featureOf(node: ModelNode, index: number, nodes?: readonly ModelNode[]): CadPartFeature {
+  if (Object.prototype.hasOwnProperty.call(node, 'routeBundleMember')) throw refusal('BAD_REFERENCE', 'Route bundle: linked sweep nodes require document validation before kernel conversion.');
   if (nodes) current = nodes;
   const at = { id: id(index) };
   switch (node.kind) {
@@ -335,6 +337,7 @@ function associativeProfile(doc: StudioDoc, index: number, prefix: readonly CadP
 
 /** Current linked geometry for reopening. Legacy coordinate sketches are returned unchanged. */
 export function resolveAssociativeSketch(doc: StudioDoc, index: number): SketchNode {
+  assertRouteBundleDocument(doc);
   const node = doc.nodes[index];
   if (node?.kind !== 'sketch') throw associationError('no sketch at this index.');
   if (node.association === undefined) return node;
@@ -347,13 +350,22 @@ export function resolveAssociativeSketch(doc: StudioDoc, index: number): SketchN
 export function toPartDocument(doc: StudioDoc): CadPartDocument { return buildPartDocument(doc); }
 
 function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
+  assertRouteBundleDocument(doc);
   doc = resolveShopTree(doc);
+  assertRouteBundleDocument(doc);
   const limit = before ?? doc.nodes.length;
   bearingDependencyKey(doc);
   const ownershipError = documentBeadOwnershipError(doc);
   if (ownershipError) throw new CadPartError('PARAMETER', null, ownershipError);
   doc = withIds(doc); current = doc.nodes; library = new Map((doc.frames?.sections ?? []).map(r => [r.id, r.section])); bearingRows = new Map((doc.bearings?.rows ?? []).map(r => [r.id, r])); oringRows = new Map((doc.orings?.rows ?? []).map(r => [r.id, r])); driveRows = new Map((doc.drives?.rows ?? []).map(r => [r.id, r])); connectorRows = new Map((doc.connectors?.rows ?? []).map(r => [r.id, r])); fitTables = doc.fits?.tables ?? []; fitFaces = doc.fits?.faces ?? []; ringRows = new Map((doc.rings?.rows ?? []).map(r => [r.id, r])); params = doc.parameters ?? {}; partsNow = doc.instances ?? [];
   const gone = new Set<number>(), features: CadPartFeature[] = [], prefixEnds = new Map<number, number>();
+  // Only this validated document path may remove a linked sweep's marker for kernel conversion.
+  const convert = (node: ModelNode, index: number): CadPartFeature[] => {
+    if (node.kind !== 'sweep-curve' || !Object.prototype.hasOwnProperty.call(node, 'routeBundleMember')) return featuresOf(node, index);
+    const snapshot = { ...node };
+    delete snapshot.routeBundleMember;
+    return featuresOf(snapshot, index);
+  };
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
   doc.nodes.forEach((node, i) => {
     if (i >= limit) return;
@@ -385,7 +397,7 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
       // (A library part added to a body, suppressed or its body gone: the body passes on as it was, or is gone.)
       if (node.kind === 'library' && node.addTo) { if (gone.has(node.addTo.node)) { gone.add(i); return; } if (node.suppressed) { pass(i, node.addTo); return; } features.push(...featuresOf(node, i)); return; }
       if (node.suppressed || ('from' in node && Array.isArray(node.from) && node.from.some(p => gone.has(p))) || ((node.kind === 'gear' || node.kind === 'rack' || node.kind === 'bevel-gear' || node.kind === 'worm') && node.mesh && gone.has(node.mesh.gear))) { gone.add(i); return; }
-      features.push(...featuresOf(node, i)); return;
+      features.push(...convert(node, i)); return;
     }
     const parent = (node as { parent: BodyRef }).parent;
     if (gone.has(parent.node)) { gone.add(i); return; }
@@ -426,6 +438,7 @@ export function beadIdOf(joint: string): string {
 }
 /** The bead each fillet record with a size makes (`gone`: nodes whose bodies are gone or suppressed). */
 export function beadsOf(doc: StudioDoc, gone: ReadonlySet<number> = new Set()): BeadFeature[] {
+  assertRouteBundleDocument(doc);
   const out: BeadFeature[] = [], nodes = doc.nodes, records = (doc.frames?.welds ?? []) as readonly WeldRecordLike[], input = canonical(modelContent(doc));
   for (const r of records) {
     if (r.kind === 'butt' || r.size === undefined) continue;
@@ -509,6 +522,7 @@ export function withBeadRetry<T>(doc: StudioDoc, build: (part: CadPartDocument) 
 export function partSnapshot(doc: StudioDoc, build: (part: CadPartDocument) => CadPartSnapshot = p => evaluateCadPart(p)): CadPartSnapshot {
   const taken = new Map<string, CadPartSnapshot>();
   const read = (source: StudioDoc, make: (part: CadPartDocument) => CadPartSnapshot): CadPartSnapshot => {
+    assertRouteBundleDocument(source);
     source = resolveShopTree(source);
     // (Geometry is always built from the solved skeletons, here, whoever calls; provenance — exportStudioStep's source revision —
     // is always the authored document's, the one a saved file hashes to. Both on purpose: see test/r4-skeletons.test.ts.)

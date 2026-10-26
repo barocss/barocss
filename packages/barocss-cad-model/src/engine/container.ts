@@ -13,6 +13,7 @@ import { arrayOf, blobRefs, blobTypeOf, getBlob, missingBlobs, putKnownBlob, sha
 import { readStudioDoc } from './migrate';
 import type { StudioDoc } from './doc';
 import { isRefusal, refusal } from './refusal';
+import { assertRouteBundleDocument } from './routeBundle';
 
 const MAGIC = 'BCADPACK', VERSION = 1;
 const pad8 = (n: number) => (n + 7) & ~7;
@@ -20,6 +21,7 @@ const pad8 = (n: number) => (n + 7) & ~7;
 
 /** The file's bytes: plain JSON (indented, as before) without blobs; the container with them. Throws when a named blob is missing. */
 export function encodeStudioFile(doc: StudioDoc): Uint8Array {
+  assertRouteBundleDocument(doc);
   const refs = [...blobRefs(doc)];
   if (!refs.length) return new TextEncoder().encode(JSON.stringify(doc, null, 2));
   const enc = new TextEncoder(), chunks: { header: Uint8Array; payload: Uint8Array }[] = [];
