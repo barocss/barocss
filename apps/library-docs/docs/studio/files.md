@@ -7,7 +7,10 @@ bodies is written as plain JSON. A part with mesh bodies is written as a small b
 holds the document and each mesh array. Each array is named by its SHA-256, and the name is checked when the file is
 read. Both kinds open.
 
-Documents follow the latest schema. The studio is unreleased, so there is no migration between its versions.
+The file reader converts supported older document schemas after checking the file. When **Open** fills older
+fields, **Opened an older model** lists the changes. The file stays unchanged until you save. A newer schema or
+unknown feature is refused. This does not guarantee compatibility between all unreleased versions. See
+[Document schema](/reference/document#schema-version).
 
 Keep a `.bcad` copy for later edits. Use an export for the receiving CAD system or slicer; it does not replace the
 saved document's feature history, mates and settings.
@@ -70,10 +73,27 @@ is kept in the project instead.
 
 | Export | What it writes |
 |---|---|
-| **Export STEP** | The exact solids, for other CAD |
+| **Export STEP** | Exact solids and mesh bodies in the selected STEP representation |
 | **Export IGES** | The visible curves and surfaces, when the part has some |
 | **Export STL** | Triangles in millimetres, one file per body, with no colours, names or exact curves |
 | **Export 3MF** | For a slicer: bodies, materials, colours and the print orientation |
+
+### Choose how STEP writes mesh bodies
+
+When the evaluated part contains a mesh body other than infill, **Export STEP** opens **Mesh bodies in the STEP
+file as…**. Select a representation, or select **Cancel** to close the dialog without exporting.
+
+| Choose | What it writes |
+|---|---|
+| **Auto** | Closed mesh bodies with up to 5,000 triangles per body use planar faces. Larger ones use AP242 tessellated faces. |
+| **Tessellated (AP242, compact)** | Mesh bodies use AP242 triangulated faces. Check that the receiving app supports this representation. |
+| **Planar faces (compatible)** | Closed mesh bodies use triangles as planar B-rep faces, merged where flat. More than 250,000 triangles in one body is refused. |
+
+Open mesh sheets always use AP242, including when you select **Planar faces (compatible)**. A body with both exact
+and mesh faces can use only AP242; selecting planar faces is refused. Its exact faces are sampled at 64 segments
+per quarter. Planar files can be large. Older CAD, CAM and slicer apps may not read AP242 tessellated faces.
+
+See [STEP mesh options and format limits](/packages/cad/formats#step) before choosing a representation for another app.
 
 ### Choose an STL quality
 

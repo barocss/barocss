@@ -96,6 +96,36 @@ package's own browser tests drive it in Chrome.
   - 4× MSAA, exposure and ACES tone mapping in a linear half-float pipeline.
   - Clip planes and cap hatching for sections.
 
+### PBR data maps
+
+Triangle materials accept `normalMap`, `roughnessMap` and `metallicMap` through the geometry's UVs, in raster
+rendering and progressive stills. Create these textures with `{ srgb: false }`: they hold linear data, not colour.
+This SDK example assumes an existing `viewer`, triangle `box`, matching `uvs` and RGBA pixel arrays:
+
+```js
+const normalMap = viewer.createTexture({ width, height, data: normalPixels }, { srgb: false });
+const packed = viewer.createTexture({ width, height, data: packedPixels }, { srgb: false });
+box.geometry.setUVs(uvs);
+box.material = {
+  normalMap, normalScale: [1, 1],
+  roughnessMap: packed, roughness: 1,
+  metallicMap: packed, metallic: 1,
+};
+viewer.requestRender();
+```
+
+Normal RGB encodes a tangent-space +Y normal. `normalScale` scales X/Y and defaults to `[1, 1]`; use a negative
+Y scale for the opposite convention. A missing or degenerate UV frame keeps the original surface normal.
+The roughness map's green channel and metallic map's blue channel multiply their material values, so one
+packed texture can serve both roles. Set a map to `null` to remove it.
+
+Data maps require live textures and triangle geometry. They cannot be combined with a scalar-field
+`Mesh.colorMap`. A data map that is not a live `ImageTexture` with `srgb: false` refuses with `TEXTURE_INVALID`.
+A `normalScale` without exactly two finite f32 numbers refuses with `MATERIAL_INVALID`, as do data maps on
+non-triangle geometry or in combination with a scalar-field colour map.
+Disposing an accepted map restores the raster material's unmapped value. An existing frozen still retains its own
+pixels and material snapshot; remove or replace disposed references before creating another still.
+
 ### Light and shadow limits
 
 The renderer uses the first lights of each kind in `viewer.lights`, not the first lights with shadows enabled.
@@ -173,6 +203,42 @@ encoding step with `ImageData` and an `OffscreenCanvas`.
 After disposal, `capture()` rejects with `DISPOSED`, while `requestRender()` returns without scheduling work.
 Disposal also releases pending frame waiters; a resolved `frame()` promise alone is not proof of a successful
 capture. Keep the viewer alive until operations that need it have finished.
+
+### Progressive still images
+
+`viewer.createPathTrace()` creates a separate offscreen still with frozen scene, camera, materials and lighting.
+Later viewer edits do not update it; create another session for the edited scene. Raster controls remain independent.
+Width and height are output backing pixels, independent of the interactive canvas; omission uses the canvas size.
+`bounces` is an integer from 1 to 16 and defaults to 6. This SDK example uses an existing populated WebGPU viewer:
+
+```js
+const still = await viewer.createPathTrace({ width: 640, height: 480, bounces: 6 });
+try {
+  await still.sample(8);
+  const raw = await still.capture(false);
+  await still.start(samples => {
+    if (samples >= 32) still.stop();
+  });
+  const frame = await still.capture(true);
+  console.log(frame.width, frame.height, frame.samples, frame.data);
+  console.log(raw.samples); // Remains 8 after the later sampling.
+} finally {
+  still.dispose();
+}
+```
+
+Each manual `sample()` batch accepts 1–64 samples. Stop progressive sampling before calling it; an active session
+refuses manual sampling with `PATH_TRACE_BUSY`. `start()` resolves after sampling stops; `stop()` ends progressive
+sampling. Sample before capture: capture with no completed samples also refuses with `PATH_TRACE_BUSY`.
+
+Unlike raster `viewer.capture()`, `still.capture()` returns `{ width, height, samples, data }`. Its top-to-bottom
+RGBA `Uint8Array` is raw pixels, not PNG data. `capture(false)` skips denoising; `capture(true)` uses geometry-aware
+denoising. `frame.samples` is fixed for those pixels when the queued capture starts. The live `still.samples` can
+advance later, so use `frame.samples` when labelling or exporting the image. Dispose each session when finished.
+
+The still includes visible, bounded triangle surfaces. Active section clips and caps, custom material shaders,
+scalar maps and contours refuse with `PATH_TRACE_UNSUPPORTED`. Lines, labels, overlays and raster shadow catchers
+are not included. Raster effects such as depth of field, bloom, SSAO, contact shadows and outlines do not apply.
 
 ### Depth of field
 

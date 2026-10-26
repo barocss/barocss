@@ -12,6 +12,21 @@ Click **Render** in the top bar to open it. The **Render** panel, in the dock, h
 
 ![The Render workspace: the part in a brass appearance, the Render panel in the dock and the timeline under the viewport](/shots/studio/rendering/appearance.jpg)
 
+## Path tracing
+
+Use **Render method** to select **Raster** or **Path tracing**. Path tracing requires WebGPU and creates a frozen still.
+
+1. Select **Start**. The panel shows **Preparing still…**, then the sample count.
+2. Select **Stop** to stop sampling. To use camera or scene edits, select **Start** again after sampling stops.
+3. Use **Denoise still** to switch noise reduction on or off for the preview and export.
+4. After at least one sample, select **Export image** to download the frozen still as a PNG.
+
+Camera and scene edits continue in the live view. They do not update the current still; **Start** creates a new session.
+The still includes surfaces, materials, tone mapping and colour grading. Bloom, depth of field, outlines, overlays and
+shadow catchers stay in the live view.
+
+For the GPU API and its limits, see [Progressive still images](/packages/gpu/#progressive-still-images).
+
 ## Appearance
 
 An appearance applies to the selected bodies. With none selected, it applies to every body without its own.
@@ -114,6 +129,9 @@ physical behaviour; see [Experiment evidence](/reference/verification#planned-ex
 ![The timeline: play, the time and its length, and Turntable](/shots/studio/rendering/timeline.png)
 
 ## Exporting an image
+
+With **Raster** selected, **Export image** uses the live viewport. The workflow below describes that raster export.
+With **Path tracing** selected, the same button downloads the current frozen still; see [Path tracing](#path-tracing).
 
 **Export image**, the camera button on the Render panel, downloads the view as a PNG. It needs WebGPU.
 
