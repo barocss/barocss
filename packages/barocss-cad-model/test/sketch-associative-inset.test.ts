@@ -257,6 +257,7 @@ test('explicit inset: an actual planar cylinder top with circular boundary refus
 test('explicit inset: a frame following the linked sketch refuses raw snapshot consumption', () => {
   const doc = withNode(document(), {
     kind: 'frame', follows: { sketch: 2 },
+    points: [], segments: [],
     section: { kind: 'rect-tube', width: 4, height: 4, wall: 1, outerRadius: 0 },
     corners: { default: 'mitre' },
   });
