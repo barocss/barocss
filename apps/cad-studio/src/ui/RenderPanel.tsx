@@ -1,12 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { compileGpu, materialShader } from '@barocss/gpu';
-import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderPost, type RenderSettings, FINISH_KINDS, type AppearanceFinish, type FinishKind, type StudioKind } from '@barocss/cad-model/engine/render';
+import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, validateRenderShadowLights, type Appearance, type Hex, type RenderLight, type RenderPost, type RenderSettings, FINISH_KINDS, type AppearanceFinish, type FinishKind, type StudioKind } from '@barocss/cad-model/engine/render';
 import { Icon } from './atoms';
 import type { RenderPathTraceSession } from '../viewport/renderer';
 import { CONTROL, FIELD, NUM, SLIDER, TICK } from './panelStyles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
+
+/** Validate the complete candidate before the document's undoable render change. */
+export function changeRenderLights(render: RenderSettings, lights: readonly RenderLight[], onChange: (next: RenderSettings) => void): void {
+  validateRenderShadowLights(lights);
+  onChange({ ...render, lights: [...lights] });
+}
 
 /**
  * The Render workspace's panel: the appearance of the selected bodies (or of every body without one),
@@ -101,6 +107,10 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
     } catch (error) { if (traceEpoch.current === epoch) setTraceError(error instanceof Error ? error.message : String(error)); }
   };
   const [tab, setTab] = useState<'look' | 'lights' | 'scene' | 'source'>('look');
+  const [lightError, setLightError] = useState<string | null>(null);
+  const [radiusDrafts, setRadiusDrafts] = useState<Record<number, string>>({});
+  // Light indices can change on removal or Undo. Do not carry a draft onto another light.
+  useEffect(() => { setRadiusDrafts({}); setLightError(null); }, [render.lights]);
   const current: Appearance = selectedKeys.length ? render.appearances[selectedKeys[0]] ?? render.defaultAppearance : render.defaultAppearance;
   const setLook = (patch: Partial<Appearance>) => {
     const next = { ...current, ...patch };
@@ -112,7 +122,11 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
     for (const k of selectedKeys) delete appearances[k];
     onChange({ ...render, appearances });
   };
-  const setLight = (i: number, l: RenderLight) => onChange({ ...render, lights: render.lights.map((x, k) => k === i ? l : x) });
+  const changeLights = (lights: readonly RenderLight[]) => {
+    try { changeRenderLights(render, lights, onChange); setLightError(null); setRadiusDrafts({}); }
+    catch (error) { setLightError(error instanceof Error ? error.message : String(error)); }
+  };
+  const setLight = (i: number, l: RenderLight) => changeLights(render.lights.map((x, k) => k === i ? l : x));
   const env = render.environment, setEnv = (patch: Partial<RenderSettings['environment']>) => onChange({ ...render, environment: { ...env, ...patch } });
   // (G15d.1: the post, neutral until set; set back to neutral, it is dropped from the settings.)
   const post: RenderPost = env.post ?? NO_POST;
@@ -145,8 +159,8 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
       <span className={SLIDER}><input type="range" aria-label={label} min={min} max={max} step={step} value={value} onChange={e => set(Number(e.target.value))} /><em>{Math.round(value * 100) / 100}</em></span></label>);
   const color = (label: string, value: Hex, set: (v: Hex) => void) => (
     <label className={FIELD} key={label}><span>{label}</span><input type="color" className="w-[62%]" aria-label={label} value={full(value)} onChange={e => set(e.target.value as Hex)} /></label>);
-  const check = (label: string, value: boolean, set: (v: boolean) => void) => (
-    <label className={FIELD} key={label}><span>{label}</span><input type="checkbox" className={TICK} aria-label={label} checked={value} onChange={e => set(e.target.checked)} /></label>);
+  const check = (label: string, value: boolean, set: (v: boolean) => void, name = label) => (
+    <label className={FIELD} key={label}><span>{label}</span><input type="checkbox" className={TICK} aria-label={name} checked={value} onChange={e => set(e.target.checked)} /></label>);
 
   return (
     <aside className="card props render-panel" aria-label="Render">
@@ -229,11 +243,13 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
       </div>}
 
       {tab === 'lights' && <div className="render-section [&>[data-slot=button]]:self-start">
+        <div className="muted small">Shadow limits: first 4 sun lights, first 4 spot lights, and one of the first 8 point lights.</div>
+        {lightError && <div className="diag" role="alert">{lightError}</div>}
         {render.lights.map((l, i) => {
           const [az, el] = anglesOf(l.kind === 'point' ? [0, 0, -1] : l.direction);
           return <div className="light" key={i}>
             <div className="card-title">{l.kind === 'directional' ? 'SUN' : l.kind === 'point' ? 'POINT' : 'SPOT'} {i + 1}
-              <Button variant="ghost" size="xs" aria-label={`Remove light ${i + 1}`} onClick={() => onChange({ ...render, lights: render.lights.filter((_, k) => k !== i) })}><Icon name="close" small /></Button></div>
+              <Button variant="ghost" size="xs" aria-label={`Remove light ${i + 1}`} onClick={() => changeLights(render.lights.filter((_, k) => k !== i))}><Icon name="close" small /></Button></div>
             {l.kind !== 'point' && <>
               {slider('Azimuth', az, v => setLight(i, { ...l, direction: directionFrom(v, el) }), -180, 180, 1)}
               {slider('Elevation', el, v => setLight(i, { ...l, direction: directionFrom(az, v) }), -89, 89, 1)}
@@ -245,13 +261,27 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
             {l.kind !== 'directional' && <>{slider('Range', l.range, v => setLight(i, { ...l, range: v }), 0, 1000, 5)}<div className="muted small">{l.range ? `Fades out over ${l.range} mm` : 'Range 0: no fall-off with distance'}</div></>}
             {slider('Intensity', l.intensity, v => setLight(i, { ...l, intensity: v }), 0, 5)}
             {color('Colour', l.color, v => setLight(i, { ...l, color: v }))}
-            {l.kind === 'directional' && check('Shadow', l.castShadow, v => onChange({ ...render, lights: render.lights.map((x, k) => x.kind === 'directional' ? { ...x, castShadow: k === i ? v : v ? false : x.castShadow } : x) }))}
+            {check('Shadow', !!l.castShadow, v => setLight(i, { ...l, castShadow: v }), `Light ${i + 1} shadow`)}
+            {l.kind !== 'directional' && <>
+              <label className={FIELD}><span>Shadow radius</span><span className={NUM}><Input type="number" min={0} step="any" aria-label={`Light ${i + 1} shadow radius mm`}
+                aria-describedby={`light-shadow-radius-${i}`} placeholder="Default (0 mm)" value={radiusDrafts[i] ?? (l.shadowRadius === undefined ? '' : String(l.shadowRadius))}
+                onChange={e => {
+                  const text = e.target.value;
+                  setRadiusDrafts(drafts => ({ ...drafts, [i]: text }));
+                  if (!text.trim()) { setLightError(`Enter a radius for light ${i + 1} in mm, or press Esc to keep the saved value.`); return; }
+                  setLight(i, { ...l, shadowRadius: Number(text) });
+                }} onKeyDown={e => {
+                  e.stopPropagation();
+                  if (e.key === 'Escape') { setRadiusDrafts(drafts => { const next = { ...drafts }; delete next[i]; return next; }); setLightError(null); }
+                }} /><em>mm</em></span></label>
+              <div className="muted small" id={`light-shadow-radius-${i}`}>{l.castShadow ? '0 mm uses the default edge. A larger radius softens the shadow.' : 'Radius is kept while shadow is off.'}</div>
+            </>}
           </div>;
         })}
         <div className="flex flex-wrap gap-1">
-          <Button variant="ghost" onClick={() => onChange({ ...render, lights: [...render.lights, { kind: 'directional', direction: directionFrom(45, 45), color: '#ffffff', intensity: 1, castShadow: false }] })}>Add sun</Button>
-          <Button variant="ghost" onClick={() => onChange({ ...render, lights: [...render.lights, { kind: 'point', position: [0, 0, 80], color: '#ffffff', intensity: 1, range: 0 }] })}>Add point</Button>
-          <Button variant="ghost" onClick={() => onChange({ ...render, lights: [...render.lights, { kind: 'spot', position: [0, -80, 80], direction: [0, 0.7, -0.7], color: '#ffffff', intensity: 1.5, range: 0, angle: 30, penumbra: 0.3 }] })}>Add spot</Button>
+          <Button variant="ghost" onClick={() => changeLights([...render.lights, { kind: 'directional', direction: directionFrom(45, 45), color: '#ffffff', intensity: 1, castShadow: false }])}>Add sun</Button>
+          <Button variant="ghost" onClick={() => changeLights([...render.lights, { kind: 'point', position: [0, 0, 80], color: '#ffffff', intensity: 1, range: 0 }])}>Add point</Button>
+          <Button variant="ghost" onClick={() => changeLights([...render.lights, { kind: 'spot', position: [0, -80, 80], direction: [0, 0.7, -0.7], color: '#ffffff', intensity: 1.5, range: 0, angle: 30, penumbra: 0.3 }])}>Add spot</Button>
         </div>
       </div>}
 
