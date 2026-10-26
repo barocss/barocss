@@ -1736,6 +1736,12 @@ export class Viewer {
     const py = Math.floor((y / Math.max(1, this.canvas.clientHeight || this.canvas.height)) * this.canvas.height);
     if (px < 0 || py < 0 || px >= this.canvas.width || py >= this.canvas.height) return null;
     const vp = this.prepareCamera();
+    // The GPU depth belongs to this camera and pixel mapping, even while its readback waits.
+    const camera = this.camera;
+    const cameraValues = [...camera.position, ...camera.target, ...camera.up,
+      camera.projection, camera.fovY, camera.near, camera.far];
+    const width = this.canvas.width, height = this.canvas.height;
+    const clientWidth = this.canvas.clientWidth, clientHeight = this.canvas.clientHeight, aspect = this.aspect;
     const { opaque, transparent } = this.visibleMeshes(vp);
     this.writeUniforms(vp);
     const t = this.ensurePickTargets(), enc = this.device.createCommandEncoder();
@@ -1763,6 +1769,13 @@ export class Viewer {
     await read.mapAsync(MapMode.READ);
     const id = new Uint32Array(read.getMappedRange(0, 4))[0], depth = new Float32Array(read.getMappedRange(256, 4))[0], instance = new Uint32Array(read.getMappedRange(512, 4))[0];
     read.unmap();
+    // Unmap first, including stale results, so the next queued pick can use the buffer.
+    const currentCameraValues = [...this.camera.position, ...this.camera.target, ...this.camera.up,
+      this.camera.projection, this.camera.fovY, this.camera.near, this.camera.far];
+    if (this.camera !== camera || this.canvas.width !== width || this.canvas.height !== height
+      || this.canvas.clientWidth !== clientWidth || this.canvas.clientHeight !== clientHeight || this.aspect !== aspect
+      || cameraValues.some((value, i) => !Object.is(value, currentCameraValues[i]))) return null;
+
     const mesh = id ? this.meshes.find(m => m.id === id) : undefined;
     if (!mesh) return null;
     const ndcX = ((px + 0.5) / this.canvas.width) * 2 - 1, ndcY = 1 - ((py + 0.5) / this.canvas.height) * 2;
