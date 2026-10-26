@@ -20,10 +20,10 @@ const slot = (frame, index) => frame.slice(legacyFloats + index * shadowStride, 
 const expected = frame => [...frame.viewProjection, frame.normalOffset, frame.texel, frame.bias, frame.softness ?? 0];
 
 test('multi-directional shadow storage follows the unchanged frame prefix and preserves viewport and clip offsets', () => {
-  assert.equal(MAX_DIRECTIONAL, 4); assert.equal(MAX_SHADOWS, 8); assert.equal(FRAME_BYTES, 1760);
+  assert.equal(MAX_DIRECTIONAL, 4); assert.equal(MAX_SHADOWS, 14); assert.equal(FRAME_BYTES, 2240);
   const clip = { normal: [0, 1, 0], offset: 3, cap: [1, 0, 0], planes: [{ normal: [0, 1, 0], offset: 3 }], cutout: true };
   const frame = packFrame(view, camera, [], {}, null, [640, 480, 2, 7], null, clip);
-  assert.equal(frame.byteLength, 1760);
+  assert.equal(frame.byteLength, 2240);
   assert.deepEqual([...frame.slice(220, 224)], [640, 480, 2, 7]);
   assert.deepEqual([...frame.slice(248, 252)], [1, 0, 0, -1]);
   assert.deepEqual([...frame.slice(252, 256)], [0, 1, 0, 3]);

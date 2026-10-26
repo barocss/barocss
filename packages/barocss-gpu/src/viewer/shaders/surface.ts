@@ -1,5 +1,5 @@
 // The viewer's WGSL: surface (R2c: shaders.ts split by program, shaders.ts the facade).
-import { common, MAX_DIRECTIONAL, MAX_SHADOWS } from './common.js';
+import { common, MAX_DIRECTIONAL, MAX_SPOT } from './common.js';
 import { materialLayerWGSL } from './material-layer.js';
 
 /**
@@ -121,6 +121,67 @@ fn shadowAt(world: vec3f, n: vec3f, light: u32) -> f32 {
   for (var y = -1; y <= 1; y++) {
     for (var x = -1; x <= 1; x++) {
       lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + vec2f(f32(x), f32(y)) * shadow.params.y, layer, q.z - shadow.params.z);
+    }
+  }
+  return lit / 9.0;
+}
+// Point faces are +X, -X, +Y, -Y, +Z, -Z. Equal major axes choose X, then Y, then Z.
+fn pointShadowFace(ray: vec3f) -> u32 {
+  let a = abs(ray);
+  if (a.x >= a.y && a.x >= a.z) { return select(1u, 0u, ray.x >= 0.0); }
+  if (a.y >= a.z) { return select(3u, 2u, ray.y >= 0.0); }
+  return select(5u, 4u, ray.z >= 0.0);
+}
+// RH views use up -Y, -Y, +Z, -Z, -Y, -Y; framebuffer UV flips the projected Y axis.
+fn pointShadowRay(face: u32, uv: vec2f) -> vec3f {
+  let q = uv * 2.0 - 1.0;
+  switch face {
+    case 0u: { return vec3f(1.0, q.y, -q.x); }
+    case 1u: { return vec3f(-1.0, q.y, q.x); }
+    case 2u: { return vec3f(q.x, 1.0, -q.y); }
+    case 3u: { return vec3f(q.x, -1.0, q.y); }
+    case 4u: { return vec3f(q.x, q.y, 1.0); }
+    default: { return vec3f(-q.x, q.y, -1.0); }
+  }
+}
+fn pointShadowTap(ray: vec3f, radius: f32, eye: vec3f) -> f32 {
+  let slot = ${MAX_DIRECTIONAL + MAX_SPOT}u + pointShadowFace(ray);
+  let shadow = frame.shadowLights[slot];
+  let p = shadow.viewProj * vec4f(eye + normalize(ray) * radius, 1.0);
+  if (!(p.w > 0.0)) { return 1.0; }
+  let q = p.xyz / p.w;
+  let uv = vec2f(q.x * 0.5 + 0.5, 0.5 - q.y * 0.5);
+  if (!(all(uv >= vec2f(0.0)) && all(uv <= vec2f(1.0)) && q.z >= 0.0 && q.z <= 1.0)) { return 1.0; }
+  let size = vec2i(textureDimensions(shadowMap));
+  let pixel = clamp(vec2i(uv * vec2f(size)), vec2i(0), size - vec2i(1));
+  let depth = textureLoad(shadowMap, pixel, shadowLayerIndex(slot), 0);
+  return select(0.0, 1.0, q.z - shadow.params.z < depth);
+}
+// Point-only 3x3 binary PCF. Cross-face taps use the same radial receiver distance, not edge-clamped samples.
+fn pointShadowAt(world: vec3f, n: vec3f) -> f32 {
+  let selected = frame.shadowActive.y;
+  if (selected == 0u || selected > frame.counts.y || (frame.shadowActive.x & 0x3f00u) != 0x3f00u) { return 1.0; }
+  let light = frame.points[selected - 1u];
+  if (light.position.w > 0.0 && distance(world, light.position.xyz) >= light.position.w) { return 1.0; }
+  let receiver = world + n * frame.shadowLights[${MAX_DIRECTIONAL + MAX_SPOT}].params.x;
+  let delta = receiver - light.position.xyz;
+  let largest = max(max(abs(delta.x), abs(delta.y)), abs(delta.z));
+  if (!(largest > 0.0) || (bitcast<u32>(largest) & 0x7f800000u) == 0x7f800000u) { return 1.0; }
+  let exponent = frexp(largest).exp;
+  let radius = ldexp(length(ldexp(delta, vec3i(-exponent))), exponent);
+  if (!(radius > 0.0) || (bitcast<u32>(radius) & 0x7f800000u) == 0x7f800000u) { return 1.0; }
+  let face = pointShadowFace(delta);
+  let shadow = frame.shadowLights[${MAX_DIRECTIONAL + MAX_SPOT}u + face];
+  let p = shadow.viewProj * vec4f(receiver, 1.0);
+  if (!(p.w > 0.0)) { return 1.0; }
+  let q = p.xyz / p.w;
+  let uv = vec2f(q.x * 0.5 + 0.5, 0.5 - q.y * 0.5);
+  if (!(all(uv >= vec2f(0.0)) && all(uv <= vec2f(1.0)) && q.z >= 0.0 && q.z <= 1.0)) { return 1.0; }
+  var lit = 0.0;
+  for (var y = -1; y <= 1; y++) {
+    for (var x = -1; x <= 1; x++) {
+      let ray = pointShadowRay(face, uv + vec2f(f32(x), f32(y)) * shadow.params.y);
+      lit += pointShadowTap(ray, radius, light.position.xyz);
     }
   }
   return lit / 9.0;
@@ -260,7 +321,9 @@ fn shadeLayered(world: vec3f, base: vec3f, metallicIn: f32, emissive: f32, recei
     let dist = length(to);
     var fall = 1.0 / max(dist * dist, 1e-4);
     if (p.position.w > 0.0) { let q = clamp(1.0 - pow(dist / p.position.w, 4.0), 0.0, 1.0); fall *= q * q; }
-    c += brdfLayered(v, to / max(dist, 1e-6), base, metallic, a, layer, tint) * p.color.rgb * p.color.w * fall * PI;
+    var lit = 1.0;
+    if (receive && frame.shadowActive.y == i + 1u) { lit = pointShadowAt(world, layer.coatN); }
+    c += brdfLayered(v, to / max(dist, 1e-6), base, metallic, a, layer, tint) * p.color.rgb * p.color.w * fall * PI * lit;
   }
   for (var i = 0u; i < frame.counts.z; i++) {
     let s = frame.spots[i];
@@ -371,7 +434,7 @@ fn unlitColor(in: VOut) -> vec4f {
 @fragment fn fsShadow(in: VOut) -> @location(0) vec4f {
   if (clippedAway(in.world)) { discard; }
   var lit = 1.0;
-  for (var i = 0u; i < ${MAX_SHADOWS}u; i++) {
+  for (var i = 0u; i < ${MAX_DIRECTIONAL + MAX_SPOT}u; i++) {
     if ((frame.shadowActive.x & (1u << i)) == 0u) { continue; }
     var strength = 1.0;
     if (i >= ${MAX_DIRECTIONAL}u) {
@@ -387,6 +450,7 @@ fn unlitColor(in: VOut) -> vec4f {
     if (i < ${MAX_DIRECTIONAL}u) { lit = min(lit, visibility); }
     else { lit = min(lit, mix(1.0, visibility, strength)); }
   }
+  if (frame.shadowActive.y > 0u) { lit = min(lit, pointShadowAt(in.world, normalize(in.normal))); }
   let a = (1.0 - lit) * in.color.a;
   return vec4f(in.color.rgb * a, a);
 }

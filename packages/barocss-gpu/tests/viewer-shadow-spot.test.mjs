@@ -8,6 +8,7 @@ import { FRAME_BYTES, MAX_SHADOWS } from '../dist/viewer/shaders.js';
 import { spotShadowFrame, validateSpotShadowLights } from '../dist/viewer/spot-shadow.js';
 import { Viewer, ViewerError } from '../dist/viewer/viewer.js';
 
+const maskIndex = 276 + MAX_SHADOWS * 20;
 const spot = overrides => ({ kind: 'spot', position: [0, 0, 0], direction: [0, 0, -1], castShadow: true, ...overrides });
 const bounds = { min: [-1, -1, -4], max: [1, 1, -2] };
 const lightError = error => error instanceof ViewerError && error.code === 'LIGHT_INVALID';
@@ -111,13 +112,13 @@ test('subnormal and maximum f32 spot directions pack finite unit axes aligned wi
 });
 
 test('mixed directional and spot metadata keeps slots zero, three, four and seven with mask 0x99', () => {
-  assert.equal(MAX_SHADOWS, 8); assert.equal(FRAME_BYTES, 1760);
+  assert.equal(MAX_SHADOWS, 14); assert.equal(FRAME_BYTES, 2240);
   const dir = castShadow => ({ kind: 'directional', direction: [0, 0, -1], castShadow });
   const lights = [dir(true), spot(), dir(false), spot({ castShadow: false }), dir(false), dir(true), spot({ castShadow: false }), spot()];
   const shadow = value => { const viewProjection = identity(); viewProjection[12] = value; return { viewProjection, normalOffset: value / 8, texel: 1 / 1024, bias: 1 / 2048, softness: value / 16 }; };
   const frames = [shadow(1), null, null, shadow(4), shadow(5), null, null, shadow(8)], before = structuredClone(frames);
   const packed = packFrame(identity(), new Camera(), lights, {}, null, undefined, null, null, null, frames), words = new Uint32Array(packed.buffer);
-  assert.deepEqual([...words.slice(36, 40)], [4, 0, 4, 1]); assert.equal(words[436], 0x99);
+  assert.deepEqual([...words.slice(36, 40)], [4, 0, 4, 1]); assert.equal(words[maskIndex], 0x99);
   for (const slot of [0, 3, 4, 7]) {
     const at = 276 + slot * 20;
     assert.deepEqual([...packed.slice(at, at + 16)], [...frames[slot].viewProjection]);
@@ -126,17 +127,17 @@ test('mixed directional and spot metadata keeps slots zero, three, four and seve
   for (const slot of [1, 2, 5, 6]) assert.deepEqual([...packed.slice(276 + slot * 20, 296 + slot * 20)], new Array(20).fill(0));
   assert.deepEqual([...packed.slice(200, 216)], [...frames[0].viewProjection]); assert.deepEqual(frames, before);
   packFrame(identity(), new Camera(), lights, {}, null, undefined, null, null, packed, new Array(8).fill(null));
-  assert.equal(words[436], 0); assert.deepEqual([...packed.slice(276)], new Array(164).fill(0));
+  assert.equal(words[maskIndex], 0); assert.deepEqual([...packed.slice(276)], new Array(MAX_SHADOWS * 20 + 4).fill(0));
 });
 
 test('spot-only shadows leave legacy directional fields empty and exclude the fifth or disabled spot', () => {
   const frame = spotShadowFrame(spot({ range: 10 }), bounds, null, 1024);
   const packed = packFrame(identity(), new Camera(), [spot()], {}, null, undefined, null, null, null, [null, null, null, null, frame]);
-  assert.equal(new Uint32Array(packed.buffer)[39], 0); assert.equal(new Uint32Array(packed.buffer)[436], 16);
+  assert.equal(new Uint32Array(packed.buffer)[39], 0); assert.equal(new Uint32Array(packed.buffer)[maskIndex], 16);
   assert.deepEqual([...packed.slice(200, 220)], new Array(20).fill(0));
   const lights = [spot({ castShadow: false }), spot({ castShadow: false }), spot({ castShadow: false }), spot({ castShadow: false }), spot()];
   const excluded = packFrame(identity(), new Camera(), lights, {}, null, undefined, null, null, null, new Array(9).fill(frame));
-  assert.equal(new Uint32Array(excluded.buffer)[38], 4); assert.equal(new Uint32Array(excluded.buffer)[436], 0);
+  assert.equal(new Uint32Array(excluded.buffer)[38], 4); assert.equal(new Uint32Array(excluded.buffer)[maskIndex], 0);
 });
 
 test('Viewer.create refuses invalid enabled spot shadows before GPU or canvas context access', async () => {

@@ -36,7 +36,7 @@ box.outline = '#e8c25a';                // a selection outline around the visibl
   back to front; shadow catchers (`shadowOnly`).
 - Lines: screen-space width (`lineWidth`), segment ids (`edges`) and `pickLine()`.
 - Scene: instancing (`instances`: a transform and colour each, one draw), frustum culling, directional
-  shadows (up to four lights, PCF/PCSS) and spot shadows (up to four lights, PCF) with `castShadow: true`, ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
+  shadows (up to four lights, PCF/PCSS), spot shadows (up to four lights, PCF), and one point shadow (six-face PCF) with `castShadow: true`, ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
   exposure and ACES tone mapping in a linear half-float pipeline.
 - Tests: `tests/viewer-core.test.mjs` (Node), `tests/viewer-browser.test.mjs` and
   `tests/scene-viewer-browser.test.mjs` (Chrome's WebGPU, `CHROME` and `PW_DIR`,
@@ -51,8 +51,16 @@ vectors, with nonzero direction; the cone angle must be between 0 and 90 degrees
 and range must be finite and nonnegative. Invalid enabled spot shadow inputs
 refuse with `LIGHT_INVALID`. A positive range limits the shadow projection;
 range 0 fits its depth to the scene. `softShadows` applies to directional lights.
-Contact shadows retain the first casting directional light. Point-light cube
-shadows are not included.
+One of the first eight point lights can set `castShadow: true`; enabling two or
+more refuses with `LIGHT_INVALID`. Its six 90-degree faces use PCF at the same
+map resolution. Position must be a finite f32 vector; range must be finite,
+nonnegative and representable in f32. A positive range keeps the existing
+spherical lighting cutoff and limits each face's far plane. Range 0 fits the six
+faces to the scene and cap bounds. Inputs that cannot form a finite f32 depth
+projection refuse with `LIGHT_INVALID`. The point filter makes nine depth
+comparisons and reprojects taps across face boundaries. Directional and spot
+PCF retain linear comparison filtering. Point shadows do not use PCSS.
+Contact shadows retain the first casting directional light.
 
 The CSS-shaped scene language shows on it with one call: `showScene(viewer, source)` compiles a scene
 source (version 0 or 1), adds a mesh per object with its placement and colour (`view.meshes` by id, picks

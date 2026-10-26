@@ -14,10 +14,11 @@ type View = ReturnType<Texture['createView']>;
 import { Geometry, ImageTexture, INSTANCE_STRIDE, Mesh, ViewerError, packColorMap, packInstances, type AddMeshOptions, type CapHatch, type ClipPlane, type ColorMap, type InstancesInput, type Material, type ShaderMaterial, type TextureOptions, type TextureSource } from './scene.js';
 export { Geometry, ImageTexture, Mesh, ViewerError, packColorMap };
 export type { AddMeshOptions, CapHatch, ClipPlane, ColorMap, InstancesInput, Material, ShaderMaterial, TextureOptions, TextureSource };
-import { defaultLights, directionalLights, spotLights, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type ContactFrame, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
+import { defaultLights, directionalLights, spotLights, pointLights, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type ContactFrame, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { spotShadowFrame, validateSpotShadowLights } from './spot-shadow.js';
+import { pointShadowFrames, validatePointShadowLights } from './point-shadow.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_SHADOWS, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, bloomWGSL, BLOOM_LEVELS, depthOfFieldWGSL, capProbeSamplesWGSL, envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
+import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_SHADOWS, POINT_SHADOW_START, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, bloomWGSL, BLOOM_LEVELS, depthOfFieldWGSL, capProbeSamplesWGSL, envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
 
 /** The ground grid on the plane across the camera's up axis. */
 export interface GridOptions {
@@ -312,6 +313,7 @@ export class Viewer {
     this.camera = new Camera(options.camera);
     this.lights = options.lights ?? defaultLights();
     validateSpotShadowLights(this.lights);
+    validatePointShadowLights(this.lights);
     this.environment = options.environment ?? {};
     if (options.grid) this.grid = options.grid === true ? { visible: true } : { visible: true, ...options.grid };
     this.background = backgroundOf(options.background);
@@ -1596,6 +1598,7 @@ export class Viewer {
   }
   private drawFrame(capture: Buffer | null): void {
     validateSpotShadowLights(this.lights);
+    validatePointShadowLights(this.lights);
     const vp = this.prepareCamera();
     const { opaque, transparent, culled } = this.visibleMeshes(vp);
     const outlines = this.outlineColors();
@@ -1604,6 +1607,9 @@ export class Viewer {
     directionalLights(this.lights).forEach((light, i) => { if (light.castShadow) shadows[i] = this.shadowFrame(light); });
     const scene = this.sceneBounds(), depth = this.clip ? this.depthBounds() : null;
     spotLights(this.lights).forEach((light, i) => { if (light.castShadow) shadows[MAX_DIRECTIONAL + i] = spotShadowFrame(light, scene, depth, this.shadowMapSize); });
+    const point = pointLights(this.lights).find(light => light.castShadow);
+    const faces = point ? pointShadowFrames(point, scene, depth, this.shadowMapSize) : null;
+    if (faces) for (let i = 0; i < faces.length; i++) shadows[POINT_SHADOW_START + i] = faces[i];
     let layers = 0, mask = 0;
     for (let i = 0; i < shadows.length; i++) if (shadows[i]) { layers++; mask |= 1 << i; }
     // Metadata slots are stable; the texture layers contain only active lights in slot order.
