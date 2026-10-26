@@ -22,13 +22,13 @@ const pack = (lights, frames, into = null) => packFrame(identity(), new Camera()
 const paramsStart = 560;
 
 test('omitted or zero spot disk radius preserves PCF matrices, legacy frame bytes and zero PCSS metadata', () => {
-  assert.equal(FRAME_BYTES, 2304); assert.equal(MAX_SHADOWS, 14);
+  assert.equal(FRAME_BYTES, 2320); assert.equal(MAX_SHADOWS, 14);
   const omitted = spot(), zero = spot({ shadowRadius: 0 });
   const before = spotShadowFrame(omitted, scene, null, 1024), after = spotShadowFrame(zero, scene, null, 1024);
   assert.deepEqual(after.viewProjection, before.viewProjection); assert.equal(after.softness, 0);
   const a = pack([omitted], slots([before])), b = pack([zero], slots([after]));
-  assert.deepEqual(b, a); assert.deepEqual([...a.slice(paramsStart)], new Array(16).fill(0));
-  assert.equal(a.byteLength - 64, 2240, 'the previous complete frame remains the prefix');
+  assert.deepEqual(b, a); assert.deepEqual([...a.slice(paramsStart)], new Array(FRAME_BYTES / 4 - paramsStart).fill(0));
+  assert.equal(a.byteLength - 64 - 16, 2240, 'spot and point PCSS metadata follow the original complete frame prefix');
 });
 
 test('spot perspective metadata independently recovers actual axial distance and focal length', () => {
@@ -74,7 +74,7 @@ test('PCSS refuses unrepresentable scalar depth bounds without tightening the pr
   const frame = spotShadowFrame(pcf, distant, null, 1024);
   assert.ok(frame.viewProjection.every(value => Number.isFinite(Math.fround(value))));
   assert.ok(frame.far > 3.4028234663852886e38);
-  assert.deepEqual([...pack([pcf], slots([frame])).slice(paramsStart)], new Array(16).fill(0));
+  assert.deepEqual([...pack([pcf], slots([frame])).slice(paramsStart)], new Array(FRAME_BYTES / 4 - paramsStart).fill(0));
   assert.throws(() => spotShadowFrame({ ...pcf, shadowRadius: 0.25 }, distant, null, 1024), lightError);
 });
 
@@ -103,10 +103,10 @@ test('reused frame storage clears spot PCSS metadata when radius becomes zero or
   const lights = [spot({ shadowRadius: 0.25 })], frame = spotShadowFrame(lights[0], scene, null, 1024), frames = slots([frame]);
   const packed = pack(lights, frames); assert.equal(packed[paramsStart + 3], 0.25);
   lights[0].shadowRadius = 0; assert.equal(pack(lights, frames, packed), packed);
-  assert.deepEqual([...packed.slice(paramsStart)], new Array(16).fill(0));
+  assert.deepEqual([...packed.slice(paramsStart)], new Array(FRAME_BYTES / 4 - paramsStart).fill(0));
   lights[0].shadowRadius = 0.25; pack(lights, frames, packed); assert.equal(packed[paramsStart + 3], 0.25);
   frames[4] = null; pack(lights, frames, packed);
-  assert.deepEqual([...packed.slice(paramsStart)], new Array(16).fill(0));
+  assert.deepEqual([...packed.slice(paramsStart)], new Array(FRAME_BYTES / 4 - paramsStart).fill(0));
 });
 
 test('spot PCSS preparation preserves caller bounds and light settings while returning independent projection metadata', () => {

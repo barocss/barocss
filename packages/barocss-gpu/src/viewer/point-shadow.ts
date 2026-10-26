@@ -16,6 +16,8 @@ function validate(light: PointLight): void {
   }
   const range = light.range === undefined ? 0 : light.range;
   if (typeof range !== 'number' || !Number.isFinite(range) || range < 0 || !Number.isFinite(Math.fround(range)) || (range > 0 && Math.fround(range) === 0)) invalid('A point shadow range must be nonnegative and representable in f32');
+  const radius = light.shadowRadius === undefined ? 0 : light.shadowRadius;
+  if (typeof radius !== 'number' || !Number.isFinite(radius) || radius < 0 || !Number.isFinite(Math.fround(radius)) || (radius > 0 && Math.fround(radius) === 0)) invalid('A point shadow radius must be nonnegative and representable in f32');
 }
 
 /** Preserve unshadowed point lighting; only one of the first eight points can allocate six shadow faces. */
@@ -79,6 +81,6 @@ export function pointShadowFrames(light: PointLight, scene: Box3 | null, depth: 
     ]);
     const viewProjection = multiply(projection, view);
     if (!viewProjection.every(value => Number.isFinite(value) && Number.isFinite(Math.fround(value)))) invalid('Point shadow matrix exceeds finite f32 values');
-    return { viewProjection, normalOffset, texel, bias: 0.0005, softness: 0, eye: [...eye] as Vec3, direction: [...forward] as Vec3, perspective: true };
+    return { viewProjection, normalOffset, texel, bias: 0.0005, softness: 0, eye: [...eye] as Vec3, direction: [...forward] as Vec3, perspective: true, near, far };
   });
 }

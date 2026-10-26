@@ -7,7 +7,7 @@ import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_OUTLINES, MAX_POINT,
 /** sRGB colour, 0–1 per channel, or a CSS hex string. */
 export type Color = Vec3 | string;
 export interface DirectionalLight { kind: 'directional'; direction: Vec3; color?: Color; intensity?: number; /** Casts a shadow for each enabled light among the first four directional lights. */ castShadow?: boolean }
-export interface PointLight { kind: 'point'; position: Vec3; color?: Color; intensity?: number; /** Zero: no cut-off. */ range?: number; /** Enables a six-face PCF shadow; at most one of the first eight point lights may enable it. */ castShadow?: boolean }
+export interface PointLight { kind: 'point'; position: Vec3; color?: Color; intensity?: number; /** Zero: no cut-off. */ range?: number; /** Enables a six-face shadow; at most one of the first eight point lights may enable it. */ castShadow?: boolean; /** World-unit emitter radius; positive values enable bounded PCSS using a disk perpendicular to each receiver ray. Zero or omission retains PCF. */ shadowRadius?: number }
 export interface SpotLight { kind: 'spot'; position: Vec3; direction: Vec3; color?: Color; intensity?: number; range?: number; /** Degrees from the axis. */ angle?: number; /** 0–1: share of the cone that fades. */ penumbra?: number; /** Enables a shadow among the first four spot lights. */ castShadow?: boolean; /** Light disk radius in world units (finite nonnegative f32); zero or omitted retains PCF, positive enables PCSS. Independent of cone penumbra. */ shadowRadius?: number }
 export type Light = DirectionalLight | PointLight | SpotLight;
 export interface Environment {
@@ -110,7 +110,7 @@ export const defaultLights = (): Light[] => [
 export interface ShadowFrame { viewProjection: Mat4; normalOffset: number; texel: number; bias: number; eye?: Vec3; direction?: Vec3;
   /** Perspective light projection (spot or point face); omitted for orthographic directional lights. */
   perspective?: boolean;
-  /** Actual perspective projection inputs, used to recover spot-shadow axial depth for PCSS. */
+  /** Actual perspective projection inputs, used to recover shadow axial depth for PCSS. */
   near?: number; far?: number; focal?: number;
   /** G15b: the penumbra's width in the map's uv per unit of its depth between a blocker and the shadowed point (0: hard). */
   softness?: number }
@@ -205,6 +205,8 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
     const frame = activeShadows[MAX_DIRECTIONAL + i], radius = spots[i].shadowRadius ?? 0;
     if (frame && radius > 0) put4(f, spotParamsStart + i * 4, frame.near ?? 0, frame.far ?? 0, frame.focal ?? 0, radius);
   }
+  const pointRadius = pointActive ? points[pointCaster].shadowRadius ?? 0 : 0;
+  if (pointRadius > 0) put4(f, spotParamsStart + MAX_SPOT * 4, pointFrames[0]?.near ?? 0, pointFrames[0]?.far ?? 0, pointRadius, 0);
   return f;
 }
 
