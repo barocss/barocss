@@ -1956,6 +1956,10 @@ export function App() {
   };
   /** Asked how mesh bodies go out when the part has any (R3.5, D48): its answer kept in this browser. */
   const [stepAsk, setStepAsk] = useState(false);
+  const [stlAsk, setStlAsk] = useState(false), [stlQuality, setStlQuality] = useState<'automatic' | '8' | '16' | '32'>('automatic'), [stlBusy, setStlBusy] = useState(false);
+  const stlGeneration = useRef(0), stlPending = useRef(false), stlCancelButton = useRef<HTMLButtonElement>(null);
+  const cancelStlExport = () => { stlGeneration.current++; stlPending.current = false; setStlBusy(false); setStlAsk(false); };
+  const askStlExport = () => { stlGeneration.current++; stlPending.current = false; setStlBusy(false); setStlQuality('automatic'); setStlAsk(true); };
   // (DEV, for the flow: the columns as a fresh viewer has them — the chat collapsed at its default width, no dock sheet — so
   // one step's open or drag does not carry into the next; and no toast — G12f: one left from an earlier step met the view
   // cube in the layout step. The recovery card is only hidden, its copy kept; a question's toast closed is cancelled.)
@@ -1977,22 +1981,51 @@ export function App() {
     else setToast({ title: 'Could not write STEP', hint: 'Fix the model’s errors first, then export again.', detail: r.error });
   };
   const exportStl = async () => {
-    if (!fresh) { setToast({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
-    const fallback: string[] = [];
-    let split = 0, files = 0;
-    const names: string[] = [];
-    for (const body of bodies) {
-      // (O8: a body whose pieces only touch along an edge or a point, one STL a piece — a reader welds them otherwise.)
-      const lumps = body.lumpTouch?.length ? lumpStls(body.mesh, body.key) : null;
-      if (lumps) { split++; files += lumps.length; for (const f of lumps) { const name = `${fileName}-${body.key}-lump${f.lump + 1}.stl`; names.push(name); downloadBytes(f.bytes, name, 'model/stl'); } continue; }
-      const kernel = await engine.stl(evaluated, body.key);
-      if (!kernel) fallback.push(bodyName(doc, body));
-      files++; names.push(`${fileName}-${body.key}.stl`); downloadBytes(kernel ?? meshToStl(body.mesh, body.key), `${fileName}-${body.key}.stl`, 'model/stl');
+    if (stlPending.current) return;
+    if (!fresh) { setStlAsk(false); setToast({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
+    const captured = { doc, evaluated, bodies: [...bodies], quality: stlQuality, name: fileName }, explicit = captured.quality !== 'automatic';
+    const refuse = (hint: string, detail = '') => { setStlAsk(false); setToast({ title: 'Could not write STL', hint, detail }); };
+    if (!captured.bodies.length) { refuse('There are no root bodies to export.'); return; }
+    if (explicit && captured.doc.instances?.some(i => !i.hidden)) { refuse('This STL quality cannot export a document with visible placed instances. Export the placed part from its own document.'); return; }
+    if (explicit) for (const body of captured.bodies) {
+      if (body.lumpTouch?.length) { refuse(`${bodyName(captured.doc, body)} needs a separate STL for each touching piece. That output uses the on-screen mesh; use Automatic.`); return; }
+      if (body.family === 'faceted') { refuse(`${bodyName(captured.doc, body)} is a mesh body. The selected STL quality needs a BRep body; use Automatic.`); return; }
     }
-    // (O9: an STL's header cannot carry its source; the record beside them does.)
-    if (names.length) downloadBytes(sourceBytes(sourceRecord(doc, names)), `${fileName}.source.json`, 'application/json');
-    // (STL is facets only: no units, colours or exact curves; say when the display mesh had to stand in.)
-    setToast({ title: `STL written: ${files} file${files === 1 ? '' : 's'}`, hint: `${draftWarning(doc) ? `${draftWarning(doc)} ` : ''}Triangles in millimetres, one file per body; no colours, names or exact curves.${fallback.length ? ` ${fallback.join(', ')} ${fallback.length === 1 ? 'was' : 'were'} written from the on-screen mesh (the kernel’s tessellation refused ${fallback.length === 1 ? 'it' : 'them'}).` : ''}${split ? ' A body whose pieces only touch along an edge or a point is written as one STL a piece; 3MF keeps them in one file as separate objects.' : ''}`, detail: '' });
+    const generation = ++stlGeneration.current;
+    stlPending.current = true; setStlBusy(true); stlCancelButton.current?.focus();
+    const current = () => {
+      if (stlGeneration.current !== generation) return false;
+      if (docNow.current !== captured.doc || evaluatedRef.current !== captured.evaluated) { refuse('The design changed while the STL files were being prepared. Export the current design again.'); return false; }
+      return true;
+    };
+    try {
+      const fallback: string[] = [], prepared: { name: string; bytes: Uint8Array }[] = [];
+      let split = 0;
+      for (const body of captured.bodies) {
+        // Automatic keeps the existing display-mesh split for touching pieces.
+        const lumps = !explicit && body.lumpTouch?.length ? lumpStls(body.mesh, body.key) : null;
+        if (lumps) { split++; for (const f of lumps) prepared.push({ name: `${captured.name}-${body.key}-lump${f.lump + 1}.stl`, bytes: f.bytes }); continue; }
+        const kernel = captured.quality === 'automatic'
+          ? await engine.stl(captured.evaluated, body.key)
+          : await engine.stl(captured.evaluated, body.key, { segmentsPerQuarter: Number(captured.quality) });
+        if (!current()) return;
+        if (kernel && 'error' in kernel) { refuse(`STL export stopped for ${bodyName(captured.doc, body)}.`, kernel.error); return; }
+        if (!kernel && explicit) { refuse(`The kernel could not write ${bodyName(captured.doc, body)} at the selected STL quality. No files were downloaded.`); return; }
+        if (!kernel) fallback.push(bodyName(captured.doc, body));
+        prepared.push({ name: `${captured.name}-${body.key}.stl`, bytes: kernel ?? meshToStl(body.mesh, body.key) });
+      }
+      // Prepare the sidecar before any download: a failed body or stale request writes no files.
+      const names = prepared.map(f => f.name), sidecar = sourceBytes(sourceRecord(captured.doc, names));
+      if (!current()) return;
+      for (const file of prepared) downloadBytes(file.bytes, file.name, 'model/stl');
+      downloadBytes(sidecar, `${captured.name}.source.json`, 'application/json');
+      setStlAsk(false);
+      setToast({ title: `STL written: ${prepared.length} file${prepared.length === 1 ? '' : 's'}`, hint: `${draftWarning(captured.doc) ? `${draftWarning(captured.doc)} ` : ''}Triangles in millimetres, one file per body; no colours, names or exact curves.${fallback.length ? ` ${fallback.join(', ')} ${fallback.length === 1 ? 'was' : 'were'} written from the on-screen mesh (the kernel’s tessellation refused ${fallback.length === 1 ? 'it' : 'them'}).` : ''}${split ? ' A body whose pieces only touch along an edge or a point is written as one STL a piece; 3MF keeps them in one file as separate objects.' : ''}`, detail: '' });
+    } catch (error) {
+      if (current()) refuse('STL export could not finish.', error instanceof Error ? error.message : String(error));
+    } finally {
+      if (stlGeneration.current === generation) { stlPending.current = false; setStlBusy(false); }
+    }
   };
 
   /** The quote package (IM6, O82): the part as STEP, its moulding report and the request, one zip; what is open said. */
@@ -2926,7 +2959,7 @@ export function App() {
           <ToolIconButton key="tool7" aria-label="Open" data-tip="Open" data-tip-desc="A .bcad model or a STEP file; an IGES file’s or a .barocad source’s curves and surfaces" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></ToolIconButton>,
           <ToolIconButton key="tool8" aria-label="Save" data-tip="Save" data-tip-key="⌘S" data-tip-desc={project.view.store ? `Into ${project.view.store.name}` : undefined} onClick={save}><Icon name="save" /></ToolIconButton>,
           <ToolIconButton key="tool8b" state={versionsOpen ? 'on' : 'idle'} aria-label="Project and versions" data-tip="Project & versions" data-tip-desc="Open a folder (or keep a project in this browser) to save into it, keep versions, branch and compare" onClick={() => setVersionsOpen(v => !v)} hidden={rendering || drawing}><Icon name="history" /></ToolIconButton>,
-          <ToolIconButton key="tool9" aria-label="Export STL" data-tip="Export STL" data-tip-desc="A mesh for printing" onClick={exportStl}><Icon name="download" /></ToolIconButton>,
+          <ToolIconButton key="tool9" aria-label="Export STL" data-tip="Export STL" data-tip-desc="A mesh for printing" onClick={askStlExport}><Icon name="download" /></ToolIconButton>,
           <ToolIconButton key="tool10" aria-label="Export 3MF" data-tip="Export 3MF" data-tip-desc="For a slicer: bodies, materials, colours, the print orientation" onClick={() => void exportThreeMf()}><Icon name="print" /></ToolIconButton>,
           <ToolIconButton key="tool11" aria-label="Export STEP" data-tip="Export STEP" data-tip-desc="The exact solids, for other CAD" onClick={() => void exportStepFile()}><Icon name="deployed_code_update" /></ToolIconButton>,
           !!doc.direct?.objects.some(o => !o.hidden) && <ToolIconButton key="tool12" aria-label="Export IGES" data-tip="Export IGES" data-tip-desc="The visible curves and surfaces" onClick={async () => {
@@ -3155,6 +3188,19 @@ export function App() {
             <button className="ghost" onClick={() => setMeshAsk(null)}>Cancel</button>
           </div></div>
       </div>}
+      {stlAsk && <div className="toast card recovery" role="dialog" aria-label="STL export" onKeyDown={e => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); cancelStlExport(); } }}>
+        <Icon name="download" className="accent" />
+        <div><div className="toast-title">STL export</div>
+          <label className="kv"><span>Quality</span><select autoFocus aria-label="STL export quality" value={stlQuality} disabled={stlBusy} onChange={e => {
+            const value = e.target.value;
+            if (value === 'automatic' || value === '8' || value === '16' || value === '32') { stlGeneration.current++; setStlQuality(value); }
+          }}>
+            <option value="automatic">Automatic</option><option value="8">Draft 8</option><option value="16">Standard 16</option><option value="32">Fine 32</option>
+          </select></label>
+          <div className="toast-hint">Automatic keeps the current mesh fallback. Draft, Standard and Fine export BRep bodies only. This does not change the on-screen mesh.</div>
+          <div className="row-actions"><button className="primary" disabled={stlBusy} onClick={() => void exportStl()}>{stlBusy ? 'Preparing…' : 'Export'}</button><button ref={stlCancelButton} className="ghost" onClick={cancelStlExport}>Cancel</button></div>
+        </div>
+      </div>}
       {stepAsk && (() => {
         const last = (() => { try { return localStorage.getItem('studio.stepMeshes'); } catch { return null; } })() ?? 'auto';
         return <div className="toast card recovery" role="dialog" aria-label="STEP mesh bodies">
@@ -3194,7 +3240,7 @@ export function App() {
             <button className="ghost" onClick={() => setCascade(null)}>Cancel</button>
           </div></div>
       </div>}
-      {toast && !cascade && !recovery && !meshAsk && !repairAsk && !stepAsk && <div className="toast card" role="alert">
+      {toast && !cascade && !recovery && !meshAsk && !repairAsk && !stepAsk && !stlAsk && <div className="toast card" role="alert">
         <Icon name="info" className="accent" />
         <div><div className="toast-title">{toast.title}</div><div className="toast-hint">{toast.hint}</div>
           {toast.detail && <details><summary>Details</summary><code>{toast.detail}</code></details>}

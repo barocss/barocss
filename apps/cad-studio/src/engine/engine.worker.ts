@@ -27,7 +27,7 @@ export type WorkerRequest =
   /** The mould's parting loops, and its halves when asked (G6: the tooling's Booleans, off the main thread). */
   | { type: 'mould'; id: number; doc: WireDoc; revision: number; halves: boolean; mould: StudioDoc['mould'] }
   | { type: 'proposalDiff'; id: number; doc: WireDoc; proposed: WireDoc; revision: number; key: { revision: string; proposal: string } }
-  | { type: 'stl'; id: number; doc: WireDoc; key: string }
+  | { type: 'stl'; id: number; doc: WireDoc; key: string; options?: { segmentsPerQuarter: number } }
   | { type: 'step'; id: number; doc: WireDoc; name: string; meshes?: 'auto' | 'tessellated' | 'planar' }
   /** A STEP file's meshes when it holds nothing else (R3.5), for the repair gate. */
   | { type: 'stepMeshes'; id: number; step: string }
@@ -142,8 +142,12 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   } else if (request.type === 'step') {
     (self as unknown as Worker).postMessage({ id: request.id, step: stepReply(request.doc, request.name, request.meshes) });
   } else {
-    const bytes = stlFor(request.doc, request.key);
-    (self as unknown as Worker).postMessage({ id: request.id, bytes }, bytes ? [bytes.buffer] : []);
+    try {
+      const bytes = stlFor(request.doc, request.key, request.options);
+      (self as unknown as Worker).postMessage({ id: request.id, bytes }, bytes ? [bytes.buffer] : []);
+    } catch (e) {
+      (self as unknown as Worker).postMessage({ id: request.id, bytes: null, error: e instanceof Error ? e.message : String(e) });
+    }
   }
 };
 /** Which reply slot a request's meshes are kept in (the client names the same: EngineClient.slotOf). */
