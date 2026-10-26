@@ -197,9 +197,9 @@ export const loftCommand: Command = {
   },
   build: (ctx, v) => {
     if (v.guide !== undefined && v.guide !== '') {
-      if (typeof v.guide !== 'string') throw refusal('LOFT_GUIDE', 'Choose an available guide or None.');
+      if (typeof v.guide !== 'string') throw refusal('DIRECT_PICK', 'Choose an available guide or None.');
       const guide = copyLoftGuide(ctx.doc, v.guide);
-      if (!guide.ok) throw refusal('LOFT_GUIDE', guide.reason);
+      if (!guide.ok) throw refusal('DIRECT_PICK', guide.reason);
       const sections = framedLoftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);
       if ('error' in sections) throw refusal('LOFT_SECTIONS', sections.error);
       let doc = ctx.doc; const at: number[] = [];

@@ -96,7 +96,9 @@ test('framed sections retain pick order and authored profile coordinates, with i
   }
   const first = result.sections[0].node;
   assert.ok(first.profile === 'circle' && first.plane);
-  first.center[0] = 99; first.plane.origin[0] = 999; result.sections[0].frame.origin[1] = 888;
+  first.center[0] = 99; first.plane.origin[0] = 999;
+  assert.equal(Reflect.set(result.sections[0].frame.origin, 1, 888), true);
+  assert.equal(result.sections[0].frame.origin[1], 888);
   assert.equal(JSON.stringify(doc), before, 'editing a returned snapshot cannot modify the authored sketches');
   for (const [picked, reason] of [
     [[0], /exactly two/], [[0, 1, 2], /exactly two/], [[0, 0], /different sketches/], [[0, 99], /not a finished sketch/],
@@ -151,7 +153,8 @@ test('affine knot intervals and common positive weights keep the controls; baked
   // Existing curvesSource text generation can round: copy the currently compiled world-mm controls exactly.
   assert.deepEqual(movedCopy.guide, { kind: 'cubic-bezier', controlPoints: compiledBefore });
   assert.deepEqual(copied.guide, { kind: 'cubic-bezier', controlPoints: CUBIC });
-  movedCopy.guide.controlPoints[0][0] = 1000;
+  assert.equal(Reflect.set(movedCopy.guide.controlPoints[0], 0, 1000), true);
+  assert.equal(movedCopy.guide.controlPoints[0][0], 1000);
   assert.deepEqual(compiled.controlPoints, compiledBefore, 'the snapshot must not alias the Direct compile cache');
   const copiedAgain = copyLoftGuide(doc, id);
   assert.ok(copiedAgain.ok);
@@ -171,7 +174,7 @@ test('unsupported direct geometry returns explicit reasons without changing the 
     assert.equal(result.ok, false);
     assert.ok(!result.ok);
     assert.match(result.reason, reason);
-    assert.throws(() => build(ctx, { smooth: 'no', guide: id }), reason);
+    assert.throws(() => build(ctx, { smooth: 'no', guide: id }), { code: 'DIRECT_PICK', message: reason });
     assert.equal(JSON.stringify(doc), before);
   }
 });
@@ -214,7 +217,7 @@ test('a deleted guide or invalid saved choice is refused without falling back to
   for (const [doc, choice] of [[deleted, id], [original, 'not-an-imported-object']] as const) {
     const before = JSON.stringify(doc), ctx = context(doc), result = copyLoftGuide(doc, choice);
     assert.ok(!result.ok); assert.match(result.reason, /no longer|missing|not.*document/i);
-    assert.throws(() => build(ctx, { smooth: 'no', guide: choice }), /no longer|missing|not.*document/i);
+    assert.throws(() => build(ctx, { smooth: 'no', guide: choice }), { code: 'DIRECT_PICK', message: /no longer|missing|not.*document/i });
     const field = loftCommand.fields?.(ctx, { smooth: 'no', guide: choice }).find(value => value.key === 'guide');
     assert.ok(field?.kind === 'choice' && !field.options.some(option => option.value === choice));
     assert.ok(field.unknown);
@@ -223,5 +226,6 @@ test('a deleted guide or invalid saved choice is refused without falling back to
     assert.ok(steps.some(step => !step.done && /no longer|missing|not.*document/i.test(step.text)));
     assert.equal(JSON.stringify(doc), before);
   }
+  assert.throws(() => build(context(original), { smooth: 'no', guide: 0 }), { code: 'DIRECT_PICK', message: /Choose an available guide or None\./ });
   assert.equal(JSON.stringify(original), originalBefore);
 });
