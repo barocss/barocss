@@ -787,6 +787,12 @@ export class GpuRenderer implements ViewRenderer {
     if (entry.line && entry.line.clipped !== surface.clipped) entry.line.clipped = surface.clipped;
   }
 
+  pickSurfacePoint(x: number, y: number, camera: OrbitCamera): Vec3 | null {
+    this.sync(camera);
+    const hit = this.viewer.raycast(x, y);
+    return hit ? [...hit.point] as Vec3 : null;
+  }
+
   pickFace(x: number, y: number, camera: OrbitCamera, _view: ViewState): FaceRef | null {
     this.sync(camera);
     const hit = this.viewer.raycast(x, y);
