@@ -1737,7 +1737,7 @@ export class Viewer {
     if (px < 0 || py < 0 || px >= this.canvas.width || py >= this.canvas.height) return null;
     const vp = this.prepareCamera();
     // The GPU depth belongs to this camera and pixel mapping, even while its readback waits.
-    const camera = this.camera;
+    const camera = this.camera, clip = this.clip;
     const cameraValues = [...camera.position, ...camera.target, ...camera.up,
       camera.projection, camera.fovY, camera.near, camera.far];
     const width = this.canvas.width, height = this.canvas.height;
@@ -1772,7 +1772,7 @@ export class Viewer {
     // Unmap first, including stale results, so the next queued pick can use the buffer.
     const currentCameraValues = [...this.camera.position, ...this.camera.target, ...this.camera.up,
       this.camera.projection, this.camera.fovY, this.camera.near, this.camera.far];
-    if (this.camera !== camera || this.canvas.width !== width || this.canvas.height !== height
+    if (this.clip !== clip || this.camera !== camera || this.canvas.width !== width || this.canvas.height !== height
       || this.canvas.clientWidth !== clientWidth || this.canvas.clientHeight !== clientHeight || this.aspect !== aspect
       || cameraValues.some((value, i) => !Object.is(value, currentCameraValues[i]))) return null;
 
