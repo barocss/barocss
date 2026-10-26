@@ -53,7 +53,7 @@ test('each directional shadow layer occludes its own light, including off-camera
       });
       let disposed = false;
       try {
-        viewer.resize(1); viewer.camera.halfHeight = 2.5; viewer.shadowMapSize = 1024;
+        viewer.resize(1); viewer.camera.fovY = 2 * Math.atan(2.5 / 20) * 180 / Math.PI; viewer.shadowMapSize = 1024;
         const box = (sx, sy, sz, at) => {
           const positions = [], normals = [], indices = [];
           for (const [axis, sign] of [[0, 1], [0, -1], [1, 1], [1, -1], [2, 1], [2, -1]]) {
