@@ -20,6 +20,9 @@
     ],
     "baseUrl": ".",
     "paths": {
+      "@barocss/viewer": [
+        "../../packages/barocss-viewer/src/index.ts"
+      ],
       "@/*": [
         "./src/*"
       ]

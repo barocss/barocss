@@ -19,7 +19,7 @@ import { prepareMesh, validateMeshCamera, validatePreviewPacket, validateMeshMat
 import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1,
   PrimitiveSceneEntryV2, MeshMaterialBinding, ParticleLayerV0, ClothLayerV0,
   UniformCurvePreview, SelectedUniformCurvePreview, QualifiedFaceSceneV0, BooleanShellSceneInputV0 } from '@barocss/gpu';
-import { Presenter, itemsOf } from './presenter.js';
+import { Presenter, itemsOf, DEFAULT_LIGHTING } from './presenter.js';
 import type { Drawing, DrawnItem } from './presenter.js';
 
 import { prepareViewerClothFrame } from './cloth-frame.js';
@@ -68,6 +68,13 @@ type Vec3 = [number, number, number];
 type ReadVec3 = readonly [number, number, number];
 type Quat = [number, number, number, number];
 export interface ViewerOptions { mmToSceneUnit: number; background: Vec3; lighting?: MeshLighting }
+export interface ViewerLightingCapabilities {
+  supported: boolean;
+  reason: string | null;
+  lighting: MeshLighting;
+  defaultLighting: MeshLighting;
+  unsupported: { environmentMap: string; shadows: string; postProcessing: string };
+}
 export interface ViewerPointerControlOptions { onError?: (error: unknown) => void }
 export interface ViewerPointerControls { dispose(): void }
 export interface ViewerKeyboardControlOptions { onError?: (error: unknown) => void }
@@ -355,23 +362,23 @@ function parseMotionFrame(input: unknown): ViewerPoseFrame {
   check(new Set(poses.map(pose => pose.targetId)).size === poses.length, 'Duplicate Motion targetId');
   return { contextId, timeSeconds, poses };
 }
+function parseLighting(input: unknown): MeshLighting {
+  const data = ownRecord(input,
+    ['ambientStrength', 'directionalStrength', 'direction'], 'Viewer lighting');
+  const ambientStrength = finite(data.ambientStrength, 'Ambient strength', 0, 1);
+  const directionalStrength = finite(data.directionalStrength, 'Directional strength', 0, 1);
+  check(ambientStrength + directionalStrength <= 1, 'Lighting strengths must sum to at most 1');
+  const direction = vector(data.direction, 'Light direction', -1000, 1000);
+  check(Math.hypot(...direction) > 0, 'Light direction must be nonzero');
+  return { ambientStrength, directionalStrength, direction };
+}
 function parseViewerOptions(input: unknown): ViewerOptions {
   check(input !== null && typeof input === 'object' && Object.getPrototypeOf(input) === Object.prototype,
     'Viewer options must be plain data');
   const hasLighting = Object.hasOwn(input, 'lighting');
   const value = ownRecord(input, hasLighting
     ? ['mmToSceneUnit', 'background', 'lighting'] : ['mmToSceneUnit', 'background'], 'Viewer options');
-  let lighting: MeshLighting | undefined;
-  if (hasLighting) {
-    const data = ownRecord(value.lighting,
-      ['ambientStrength', 'directionalStrength', 'direction'], 'Viewer lighting');
-    const ambientStrength = finite(data.ambientStrength, 'Ambient strength', 0, 1);
-    const directionalStrength = finite(data.directionalStrength, 'Directional strength', 0, 1);
-    check(ambientStrength + directionalStrength <= 1, 'Lighting strengths must sum to at most 1');
-    const direction = vector(data.direction, 'Light direction', -1000, 1000);
-    check(Math.hypot(...direction) > 0, 'Light direction must be nonzero');
-    lighting = { ambientStrength, directionalStrength, direction };
-  }
+  const lighting = hasLighting ? parseLighting(value.lighting) : undefined;
   return { mmToSceneUnit: finite(value.mmToSceneUnit, 'mmToSceneUnit', 1e-6, 1),
     background: vector(value.background, 'background', 0, 1),
     ...(lighting ? { lighting } : {}) };
@@ -683,8 +690,12 @@ export class Viewer {
   private primitiveScope(): void {
     this.nativeScope(); check(!this.mixedDepth, 'This primitive operation is unavailable in mixed depth mode');
   }
-  private show(items: DrawnItem[], camera: MeshCamera, translate?: ReadVec3): void {
-    const drawing: Drawing = { items, camera, lighting: this.acceptedLighting ?? this.options.lighting ?? null,
+  private effectiveLighting(lighting: MeshLighting | null = this.acceptedLighting): MeshLighting | null {
+    return lighting ?? this.options.lighting ?? null;
+  }
+  private show(items: DrawnItem[], camera: MeshCamera, translate?: ReadVec3,
+    lighting: MeshLighting | null = this.acceptedLighting): void {
+    const drawing: Drawing = { items, camera, lighting: this.effectiveLighting(lighting),
       background: this.options.background, mmToScene: this.options.mmToSceneUnit, ...(translate ? { translate } : {}) };
     this.presenter.show(drawing);
   }
@@ -721,8 +732,8 @@ export class Viewer {
     check(Number.isInteger(width) && Number.isInteger(height) && width >= 1 && height >= 1
       && width <= 4096 && height <= 4096 && width * height <= 4194304, 'Canvas dimensions exceed limits');
   }
-  private gpuOptions(camera = this.camera) {
-    const lighting = this.acceptedLighting ?? this.options.lighting;
+  private gpuOptions(camera = this.camera, authoredLighting: MeshLighting | null = this.acceptedLighting) {
+    const lighting = this.effectiveLighting(authoredLighting);
     return { mmToSceneUnit: this.options.mmToSceneUnit, translate: [0, 0, 0] as Vec3,
       background: this.options.background, camera,
       ...(lighting ? { lighting } : {}) };
@@ -758,7 +769,8 @@ export class Viewer {
     hiddenGeometry = this.hiddenGeometry,
     particleLayer: ParticleLayerV0 | null = this.particleLayer,
     surfaceMaterials: ViewerSurfaceMaterial[] = this.surfaceMaterials,
-    clothLayer: ClothLayerV0 | null = this.clothLayer): void {
+    clothLayer: ClothLayerV0 | null = this.clothLayer,
+    lighting: MeshLighting | null = this.acceptedLighting): void {
     this.gpuLive();
     const packets = allPackets.filter(entry => !hiddenGeometry.some(hidden => sameGeometryRef(hidden,
       { kind: 'surface', modelId: entry.modelId, surfaceId: entry.packet.surfaceId })));
@@ -793,7 +805,8 @@ export class Viewer {
     ];
     const materials = qualified ? surfaceMaterials.map(value => ({ ref: {
       modelId: value.ref.modelId, geometryId: value.ref.surfaceId }, binding: value.binding })) : [];
-    this.show(itemsOf(entries, materials, qualified ? particleLayer : null, qualified ? clothLayer : null), camera);
+    this.show(itemsOf(entries, materials, qualified ? particleLayer : null, qualified ? clothLayer : null), camera,
+      undefined, lighting);
     this.drawn = qualified || packets.length + curves.length === 0 ? 'qualified' : 'mesh';
   }
   private validatedPackets(input: unknown, allowEmpty = false, qualified = false,
@@ -2272,6 +2285,34 @@ export class Viewer {
     this.gpuLive(); this.dimensions(width, height);
     this.presenter.setSize(width, height);
   }
+  /** The lighting supported by this Viewer presentation path, as detached plain data. */
+  getLightingCapabilities(): ViewerLightingCapabilities {
+    this.gpuLive();
+    const supported = (this.drawn === 'mesh' || this.drawn === 'qualified')
+      && this.packets.length > 0 && !this.shell && !this.mixedDepth && !this.qualifiedFaceScene;
+    const reason = supported ? null : this.shell
+      ? 'Lighting controls are unavailable in this Viewer native Shell path'
+      : this.mixedDepth ? 'Lighting controls are unavailable in this Viewer mixed depth path'
+      : this.qualifiedFaceScene ? 'Lighting controls are unavailable in this Viewer independent qualified Face path'
+      : 'Lighting controls require a loaded Surface in this Viewer primitive scene path';
+    return structuredClone({ supported, reason,
+      lighting: this.effectiveLighting() ?? DEFAULT_LIGHTING,
+      defaultLighting: this.options.lighting ?? DEFAULT_LIGHTING,
+      unsupported: {
+        environmentMap: 'Environment maps are unavailable in this Viewer lighting control path',
+        shadows: 'Shadows are unavailable in this Viewer lighting control path',
+        postProcessing: 'Post processing is unavailable in this Viewer lighting control path',
+      } });
+  }
+  /** Change ambient and directional light without rebuilding geometry or changing the camera. */
+  setLighting(input: MeshLighting | null): void {
+    this.gpuLive();
+    const lighting = input === null ? null : parseLighting(input);
+    const capabilities = this.getLightingCapabilities();
+    check(capabilities.supported, capabilities.reason!);
+    this.presenter.setLighting(this.effectiveLighting(lighting));
+    this.acceptedLighting = lighting;
+  }
   private reviewScene(): ViewerReviewSceneV1 {
     this.gpuLive(); this.primitiveScope();
     check(this.drawn === 'mesh' || this.drawn === 'qualified', 'Review requires a loaded primitive CAD scene');
@@ -2295,6 +2336,9 @@ export class Viewer {
   }
   /** Validate the complete candidate before drawing or changing accepted CPU state. */
   applyReviewState(input: unknown): void {
+    this.applyReviewCandidate(input);
+  }
+  private applyReviewCandidate(input: unknown, lighting: MeshLighting | null = this.acceptedLighting): void {
     const scene = this.reviewScene();
     const data = reviewRecord(input, ['schema', 'version', 'scene', 'camera', 'visibleGeometry', 'selectedGeometry'], 'Review');
     check(data.schema === 'barocss-viewer-review' && data.version === 1, 'Unsupported Viewer review format');
@@ -2326,7 +2370,7 @@ export class Viewer {
     const surface = selection?.kind === 'surface' ? { modelId: selection.modelId, surfaceId: selection.surfaceId } : null;
     try {
       this.present(this.packets, this.curves, camera, surface, this.motion, selection, this.geometryMotion,
-        this.drawn === 'qualified', hidden);
+        this.drawn === 'qualified', hidden, this.particleLayer, this.surfaceMaterials, this.clothLayer, lighting);
     } catch (error) {
       // The shared presenter can fail after removing old meshes. Restore the accepted drawing.
       try { this.present(this.packets, this.curves, this.camera, this.selected, this.motion); }
@@ -2335,15 +2379,24 @@ export class Viewer {
     }
     this.camera = camera; this.hiddenGeometry = hidden;
     this.selected = surface; this.selectedGeometry = selection;
+    this.acceptedLighting = lighting;
   }
   /** Restore a review and its latest original-native distance as one accepted change. */
   applyMeasuredReviewState(input: unknown): ViewerNativePointDistance | null {
     const scene = this.reviewScene();
-    const data = reviewRecord(input, ['schema', 'version', 'review', 'measurement'], 'Measured review');
+    const hasLighting = input !== null && typeof input === 'object' && Object.hasOwn(input, 'lighting');
+    const data = reviewRecord(input, hasLighting
+      ? ['schema', 'version', 'review', 'measurement', 'lighting']
+      : ['schema', 'version', 'review', 'measurement'], 'Measured review');
     check(data.schema === 'barocss-viewer-measured-review' && data.version === 1,
       'Unsupported Viewer measured review format');
     const review = reviewRecord(data.review,
       ['schema', 'version', 'scene', 'camera', 'visibleGeometry', 'selectedGeometry'], 'Review');
+    const lighting = hasLighting ? data.lighting === null ? null : parseLighting(data.lighting) : this.acceptedLighting;
+    if (hasLighting) {
+      const capabilities = this.getLightingCapabilities();
+      check(capabilities.supported, capabilities.reason!);
+    }
     let result: ViewerNativePointDistance | null = null;
     if (data.measurement !== null) {
       check(scene.kind === 'document', 'Measured review requires a native CAD document');
@@ -2374,7 +2427,7 @@ export class Viewer {
     }
     // All evaluation and copying precede presentation. A failed draw leaves every cache intact.
     const detached = result === null ? null : structuredClone(result);
-    this.applyReviewState(review);
+    this.applyReviewCandidate(review, lighting);
     this.nativeMeasurement = result;
     return detached;
   }

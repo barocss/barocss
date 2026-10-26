@@ -8,6 +8,7 @@ import { build } from 'esbuild';
 // Actual Viewer admission and CAD parsing, with a recording presenter. This is CPU evidence.
 const root = new URL('../../../', import.meta.url);
 const built = await build({ stdin: { contents: `export { Viewer } from './packages/barocss-viewer/src/index.ts';
+export { Presenter } from './packages/barocss-viewer/src/presenter.ts';
 export { parseBaroCadDocument } from './packages/barocss-cad-interop/src/document.ts';
 export { parseBaroCadAssembly } from './packages/barocss-cad-interop/src/assembly.ts';`,
   resolveDir: root.pathname }, bundle: true, platform: 'node', format: 'esm', write: false,
@@ -32,12 +33,16 @@ const options = { native: { sourceVersion: 0, countU: 3, countV: 3,
   curveDisplay: { version: 1, chordToleranceMM: .02, maxSegments: 512, maxDepth: 16 } },
   basis: 'authored-xyz-matches-rhyup', bodyIds: ['body_0_surface', 'body_0_curve'] };
 globalThis.HTMLCanvasElement = class { width = 800; height = 480; };
-function setup() {
-  const presenter = { drawings: [], fail: false, show(drawing) {
+function setup(creationLighting) {
+  const presenter = { drawings: [], lightingUpdates: [], fail: false, show(drawing) {
     if (this.fail) { this.fail = false; throw new Error('presenter fault'); }
     this.drawings.push(structuredClone(drawing));
+  }, setLighting(lighting) {
+    if (this.fail) { this.fail = false; throw new Error('presenter fault'); }
+    this.lightingUpdates.push(structuredClone(lighting));
   } };
-  const viewer = new api.Viewer(new HTMLCanvasElement(), { mmToSceneUnit: .15, background: [0, 0, 0] }, presenter);
+  const viewer = new api.Viewer(new HTMLCanvasElement(), { mmToSceneUnit: .15, background: [0, 0, 0],
+    ...(creationLighting ? { lighting: creationLighting } : {}) }, presenter);
   const load = (document = original, settings = options) => viewer.loadDocument(api.parseBaroCadDocument(JSON.stringify(document)),
     { ...settings, native: { ...settings.native, unitsPerMillimeter: 1 } });
   load(); return { viewer, presenter, load };
@@ -254,5 +259,155 @@ test('measured review presenter failure restores drawing and every previous meas
     assert.throws(() => viewer.applyMeasuredReviewState({ ...saved, measurement }), /presenter fault/);
     assert.deepEqual(viewer.getState(), before);
     assert.deepEqual(presenter.drawings.at(-1), drawing);
+  }
+});
+
+const authoredLighting = { ambientStrength: .2, directionalStrength: .7, direction: [-2, 3, 4] };
+const defaultLighting = { ambientStrength: .35, directionalStrength: .65, direction: [-.6, .8, 1] };
+test('lighting changes only accepted light and uses a detached capability with creation/default reset', () => {
+  for (const creation of [undefined, { ambientStrength: .1, directionalStrength: .8, direction: [1, 2, 3] }]) {
+    const { viewer, presenter } = setup(creation), point = nativeInputs(viewer);
+    viewer.measureNativePoints(point.surfaceA, point.curveB);
+    viewer.selectGeometry(viewer.getState().visibleGeometry[1]);
+    viewer.orbit(.1, .05);
+    const before = viewer.getState(), drawings = presenter.drawings.length;
+    const input = structuredClone(authoredLighting);
+    viewer.setLighting(input);
+    assert.deepEqual(viewer.getState(), { ...before, lighting: authoredLighting });
+    assert.equal(presenter.drawings.length, drawings);
+    assert.deepEqual(presenter.lightingUpdates, [authoredLighting]);
+    input.direction[0] = 100;
+    const capabilities = viewer.getLightingCapabilities();
+    assert.equal(capabilities.supported, true); assert.equal(capabilities.reason, null);
+    assert.deepEqual(capabilities.lighting, authoredLighting);
+    assert.deepEqual(capabilities.defaultLighting, creation ?? defaultLighting);
+    assert.deepEqual(Object.keys(capabilities.unsupported), ['environmentMap', 'shadows', 'postProcessing']);
+    capabilities.lighting.direction[0] = 100; capabilities.defaultLighting.direction[0] = 100;
+    capabilities.unsupported.shadows = 'changed';
+    assert.deepEqual(viewer.getState(), { ...before, lighting: authoredLighting });
+    assert.notEqual(viewer.getLightingCapabilities().unsupported.shadows, 'changed');
+    viewer.setLighting(null);
+    assert.deepEqual(viewer.getState(), before);
+    assert.deepEqual(presenter.lightingUpdates.at(-1), creation ?? null);
+    assert.deepEqual(viewer.getLightingCapabilities().lighting, creation ?? defaultLighting);
+  }
+});
+test('invalid lighting, accessor data and presenter failure preserve every accepted cache', () => {
+  const { viewer, presenter } = setup(), point = nativeInputs(viewer);
+  viewer.measureNativePoints(point.surfaceA, point.curveB);
+  viewer.setLighting(authoredLighting);
+  const before = viewer.getState(), updates = presenter.lightingUpdates.length, drawings = presenter.drawings.length;
+  const invalid = [undefined, {}, { ...authoredLighting, extra: true },
+    { ...authoredLighting, ambientStrength: NaN }, { ...authoredLighting, ambientStrength: -.1 },
+    { ...authoredLighting, directionalStrength: 1.01 },
+    { ...authoredLighting, ambientStrength: .4, directionalStrength: .7 },
+    { ...authoredLighting, direction: [0, 0, 0] }, { ...authoredLighting, direction: [1000.01, 0, 1] },
+    { ...authoredLighting, direction: [0, Infinity, 1] }, { ...authoredLighting, direction: new Array(3) }];
+  let getters = 0;
+  invalid.push(Object.defineProperty({ ...authoredLighting }, 'ambientStrength', {
+    enumerable: true, get() { getters++; throw Error('lighting getter'); } }));
+  invalid.push({ ...authoredLighting, direction: Object.defineProperty([1, 2, 3], '0', {
+    enumerable: true, get() { getters++; throw Error('direction getter'); } }) });
+  for (const candidate of invalid) {
+    assert.throws(() => viewer.setLighting(candidate));
+    assert.deepEqual(viewer.getState(), before);
+    assert.equal(presenter.lightingUpdates.length, updates);
+    assert.equal(presenter.drawings.length, drawings);
+  }
+  assert.equal(getters, 0);
+  presenter.fail = true;
+  assert.throws(() => viewer.setLighting(null), /presenter fault/);
+  assert.deepEqual(viewer.getState(), before);
+  assert.equal(presenter.lightingUpdates.length, updates);
+});
+test('lighting capability refuses an empty or curve-only Viewer without changing accepted state', () => {
+  const { viewer, presenter, load } = setup();
+  load(original, { ...options, bodyIds: ['body_0_curve'] });
+  for (const clear of [false, true]) {
+    if (clear) viewer.clear();
+    const before = viewer.getState(), updates = presenter.lightingUpdates.length;
+    assert.equal(viewer.getLightingCapabilities().supported, false);
+    assert.match(viewer.getLightingCapabilities().reason, /loaded Surface/);
+    assert.throws(() => viewer.setLighting(authoredLighting), /loaded Surface/);
+    assert.deepEqual(viewer.getState(), before);
+    assert.equal(presenter.lightingUpdates.length, updates);
+  }
+});
+test('measured reviews apply lighting and display as one draw; legacy omission retains current light', () => {
+  const { viewer, presenter } = setup(), point = nativeInputs(viewer);
+  const saved = { ...measuredReview(viewer, point.surfaceA, point.curveB), lighting: structuredClone(authoredLighting) };
+  const expected = { ...viewer.getState(), lighting: structuredClone(authoredLighting) };
+  viewer.orbit(.3, .2); viewer.setVisibleGeometry([]);
+  let calls = presenter.drawings.length;
+  const restored = viewer.applyMeasuredReviewState(JSON.parse(JSON.stringify(saved)));
+  assert.deepEqual(restored, expected.nativeMeasurement);
+  assert.deepEqual(viewer.getState(), expected);
+  assert.equal(presenter.drawings.length, calls + 1);
+  assert.equal(presenter.lightingUpdates.length, 0);
+  assert.deepEqual(presenter.drawings.at(-1).lighting, authoredLighting);
+  saved.lighting.direction[0] = -100;
+  assert.deepEqual(viewer.getState(), expected);
+  const legacy = measuredReview(viewer, point.curveA, point.curveB);
+  calls = presenter.drawings.length;
+  viewer.applyMeasuredReviewState(legacy);
+  assert.equal(presenter.drawings.length, calls + 1);
+  assert.deepEqual(viewer.getState().lighting, expected.lighting);
+  viewer.applyMeasuredReviewState({ ...legacy, lighting: null });
+  assert.equal(viewer.getState().lighting, null);
+  assert.equal(presenter.drawings.at(-1).lighting, null);
+});
+test('invalid combined review and failed presentation preserve lighting and every previous cache', () => {
+  const { viewer, presenter } = setup(), point = nativeInputs(viewer);
+  const saved = { ...measuredReview(viewer, point.surfaceA, point.curveB), lighting: structuredClone(authoredLighting) };
+  viewer.setLighting({ ambientStrength: .4, directionalStrength: .5, direction: [0, 1, 0] });
+  viewer.measureNativePoints(point.curveA, point.curveB); viewer.orbit(.1, .1);
+  const before = viewer.getState(), calls = presenter.drawings.length, drawing = presenter.drawings.at(-1);
+  let getters = 0;
+  const invalid = [{ ...saved, lighting: { ...authoredLighting, direction: [0, 0, 0] } },
+    { ...saved, measurement: { ...saved.measurement, distanceMM: saved.measurement.distanceMM + 1 } },
+    { ...saved, review: { ...saved.review, visibleGeometry: [], selectedGeometry: null } },
+    { ...saved, review: { ...saved.review, camera: { ...saved.review.camera, near: 100, far: 1 } } },
+    Object.defineProperty({ ...saved }, 'lighting', { enumerable: true,
+      get() { getters++; throw Error('review lighting getter'); } })];
+  for (const candidate of invalid) {
+    assert.throws(() => viewer.applyMeasuredReviewState(candidate));
+    assert.deepEqual(viewer.getState(), before); assert.equal(presenter.drawings.length, calls);
+  }
+  assert.equal(getters, 0);
+  presenter.fail = true;
+  assert.throws(() => viewer.applyMeasuredReviewState(saved), /presenter fault/);
+  assert.deepEqual(viewer.getState(), before);
+  // Recovery uses the previous accepted light, even when the candidate supplied another one.
+  assert.deepEqual(presenter.drawings.at(-1), { ...drawing, lighting: before.lighting });
+  assert.equal(presenter.lightingUpdates.length, 1);
+});
+test('Presenter changes lights without touching meshes and restores original core references on faults', () => {
+  for (const fault of ['lights', 'environment', 'requestRender', null]) {
+    const previousLights = [{ kind: 'directional', direction: [0, -1, 0], intensity: .5 }];
+    const previousEnvironment = { ambient: .2 };
+    let lights = previousLights, environment = previousEnvironment, armed = fault, requests = 0;
+    const core = {
+      get lights() { return lights; }, set lights(value) {
+        if (armed === 'lights') { armed = null; throw Error('lights fault'); } lights = value;
+      },
+      get environment() { return environment; }, set environment(value) {
+        if (armed === 'environment') { armed = null; throw Error('environment fault'); } environment = value;
+      },
+      requestRender() { requests++; if (armed === 'requestRender') { armed = null; throw Error('render fault'); } },
+      add() { throw Error('must not add meshes'); },
+      camera: Object.freeze({ position: [0, 0, 6], target: [0, 0, 0] }),
+    };
+    const presenter = new api.Presenter(core), camera = core.camera;
+    if (fault) {
+      assert.throws(() => presenter.setLighting(authoredLighting), /fault/);
+      assert.equal(lights, previousLights); assert.equal(environment, previousEnvironment);
+    } else {
+      presenter.setLighting(authoredLighting);
+      assert.equal(environment.ambient, authoredLighting.ambientStrength);
+      assert.equal(lights[0].intensity, authoredLighting.directionalStrength);
+      const length = Math.hypot(...authoredLighting.direction);
+      assert.deepEqual(lights[0].direction, authoredLighting.direction.map(value => -value / length));
+    }
+    assert.equal(core.camera, camera); assert.ok(requests >= 1);
   }
 });

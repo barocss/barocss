@@ -80,6 +80,17 @@ Surface selection before applying a material. Clear a bound material before
 selecting or hiding that Surface. These controls use the existing GPU material
 compiler and Viewer binding API.
 
+The Lighting panel changes ambient strength, directional strength and light
+direction for a primitive scene with a loaded Surface. Strengths range from
+0 to 1 and their sum cannot exceed 1. Direction components range from -1000
+to 1000 and cannot all be zero. The direction is unitless, points toward the
+light and uses the Y-up display frame. The app keeps the entered direction
+scale. Reset restores the Viewer's creation lighting: ambient 0.35,
+directional 0.65, direction [-0.6, 0.8, 1]. Lighting changes keep the camera,
+geometry, selection, native measurement and original document intact.
+Environment maps, shadows and post-processing are unavailable in this Viewer
+control path. The panel is disabled for curve-only scenes.
+
 **Measure** starts a two-point distance tool. Click A and then B in the same
 asset. Screen picking uses sampled geometry. The public SDK evaluates those
 parameters on the original Surface or Curve and returns straight-line distance
@@ -98,6 +109,8 @@ review. PNG images do not include the DOM measurement annotations.
 
 **Save review** writes compact app review JSON. It records the camera,
 visibility, selection, source revision pins and the completed A/B measurement.
+For supported Surface scenes it also records the accepted lighting override,
+or null for creation lighting. Curve-only reviews omit this field.
 Each endpoint keeps its native model/object reference and original parameter.
 The file stores straight-line millimetres with the native-authored and
 not-certified boundaries. A SHA-256 of the canonical accepted document binds
@@ -107,7 +120,8 @@ CAD geometry and temporary material overrides do not enter the file.
 **Open review** requires the same source document, revisions and loaded body
 inventory. The SDK evaluates the original endpoints before applying the view
 and latest measurement together. A bad camera, reference, domain, unit, claimed
-distance or source hash leaves accepted state unchanged. A changed session
+distance, lighting value or source hash leaves accepted state unchanged. View,
+lighting and measurement restore together. A changed session
 also cancels an unfinished read or save. Restore recreates the A/B labels and
 reprojects them in the restored camera.
 
@@ -115,6 +129,8 @@ Older raw SDK review files still open as view-only reviews. They have source
 revision pins but no content hash or saved measurement. Opening one clears the
 app measurement and latest native measurement cache. The SDK's original raw
 review API and its file format remain unchanged.
+Earlier app review files and raw SDK reviews without lighting retain the
+current lighting when opened.
 
 **Export PNG** writes the current Viewer framebuffer as a PNG image. It exports
 the viewport pixels, without the app toolbar or inspector. It is a display

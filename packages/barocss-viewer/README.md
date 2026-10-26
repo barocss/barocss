@@ -383,6 +383,29 @@ light (ambient 0.35, directional 0.65 from `[-0.6,0.8,1]`). Curve lines remain
 unlit in Surface-only, mixed and wide v1 primitive scenes. Lighting never changes
 original CAD geometry or native measurements.
 
+`viewer.getLightingCapabilities()` returns detached plain data with `supported`,
+`reason`, effective `lighting`, creation/default `defaultLighting`, and refusal
+messages in `unsupported.environmentMap`, `unsupported.shadows` and
+`unsupported.postProcessing`. The controls require a loaded Surface in the
+Viewer's primitive mesh/document path. Curve-only, empty, native Shell, mixed
+depth and independent qualified Face paths refuse them. This is a limit of this
+Viewer path, not a statement about other GPU factories.
+
+```js
+viewer.setLighting({ ambientStrength: 0.2, directionalStrength: 0.7,
+  direction: [-2, 3, 4] });
+viewer.setLighting(null); // restore the creation option, or the default light
+```
+
+`setLighting` uses the same admission as creation options: dense plain finite
+XYZ direction values in -1000..1000, a nonzero vector, strengths in 0..1 and a
+sum at most 1. The accepted state retains the authored direction without
+normalization. Only the existing presenter's lights and environment change;
+meshes and camera do not rebuild. Invalid input and synchronous presenter
+failure retain the accepted light and every CPU cache. The presenter restores
+its previous light and environment references on a synchronous update failure.
+This does not establish recovery from an asynchronous device failure.
+
 To display genuine native Curve samples in the same scene, opt in during load:
 
 ```js
@@ -1193,6 +1216,7 @@ controls require the separate browser flow in that example.
 const file = {
   schema: 'barocss-viewer-measured-review', version: 1,
   review: viewer.captureReviewState(),
+  lighting: viewer.getState().lighting, // optional; omit to retain the current light
   measurement: {
     first: { kind: 'surface', modelId, surfaceId, u, v },
     second: { kind: 'curve', modelId, curveId, t },
@@ -1212,8 +1236,8 @@ distance exactly. It does not use display pixels or infer arc length. Revision
 pins retain the same identity limits as the ordinary review format.
 
 The complete candidate and a detached return value are prepared before the
-existing review presentation. Successful apply updates only camera, visibility,
-selection and `getState().nativeMeasurement`. It returns the detached native
+existing review presentation. Successful apply updates camera, visibility,
+selection, the optional lighting and `getState().nativeMeasurement`. It returns the detached native
 distance. A null `measurement` clears only that latest measurement field after
 the review succeeds, and returns null. The separate Surface, Curve and mixed
 measurement caches remain unchanged. Assemblies accept only null measurements.
@@ -1221,4 +1245,9 @@ The ordinary review format and `applyReviewState` behavior are unchanged.
 Invalid measurement, source pins or display fields preserve the full accepted
 state without presentation. Presenter failure follows the existing drawing
 recovery behavior and also retains the previous measurement caches.
+The optional `lighting` field uses the same admission and capability as
+`setLighting`; null restores the creation/default light. An omitted field keeps
+the current accepted light, so existing measured reviews remain compatible.
+Lighting, display and measurement form one validated candidate and use one
+presentation. A bad combined candidate leaves all accepted fields unchanged.
 

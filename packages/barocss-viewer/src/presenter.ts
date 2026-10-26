@@ -1,6 +1,6 @@
 // How the Viewer draws: what it shows (surfaces, curves, points; colours, poses and materials) as
 // meshes of the @barocss/gpu viewer core. The Viewer keeps the CPU state, picking and measurement;
-// a drawing is rebuilt whole for each change (scenes are bounded to a few thousand vertices).
+// Geometry changes rebuild the drawing (scenes are bounded to a few thousand vertices).
 import { createViewer as createCore } from '@barocss/gpu/viewer';
 import type { Viewer as Core, Mesh, ShaderMaterial, Light, Environment } from '@barocss/gpu/viewer';
 import { bindingShader } from '@barocss/gpu';
@@ -145,6 +145,26 @@ export class Presenter {
       }));
     }
     core.requestRender();
+  }
+
+  /** Change only the existing core lights. Keep every mesh and camera object. */
+  setLighting(lighting: MeshLighting | null): void {
+    const candidate = lightsOf(lighting), core = this.core;
+    const previousLights = core.lights, previousEnvironment = core.environment;
+    try {
+      core.lights = candidate.lights;
+      core.environment = candidate.environment;
+      core.requestRender();
+    } catch (error) {
+      try {
+        core.lights = previousLights;
+        core.environment = previousEnvironment;
+        core.requestRender();
+      } catch (recoveryError) {
+        throw new AggregateError([error, recoveryError], 'Lighting update and recovery failed');
+      }
+      throw error;
+    }
   }
 
   setSize(width: number, height: number): void { this.core.setSize(width, height); }

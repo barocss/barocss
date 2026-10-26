@@ -16,6 +16,7 @@ const review = () => ({ schema: 'barocss-viewer-review', version: 1,
 const measurement = () => ({ first: { kind: 'surface', modelId: 'asset_a_r7', surfaceId: 'patch', u: 0.125, v: 0.8 },
   second: { kind: 'curve', modelId: 'asset_a_r7', curveId: 'guide', t: 0.375 },
   distanceMM: 0.12345678901234566, metric: 'straight-line', space: 'native-authored', certification: 'not-certified' });
+const lighting = () => ({ ambientStrength: 0.2, directionalStrength: 0.7, direction: [1000, -2, 0.125] });
 const makeFile = () => createReviewFile(review(), measurement(), source());
 
 test('JSON file round trip retains native parameters, full distance and exact source hash', async () => {
@@ -132,4 +133,115 @@ test('32 KiB limit counts UTF-8 bytes on read and serialized output on save', as
   await assert.rejects(createReviewFile(oversized, null, source()), /32 KiB/);
   await assert.rejects(readReviewFile(' '.repeat(REVIEW_FILE_LIMIT + 1), source()), /32 KiB/);
   await assert.rejects(readReviewFile('{broken', source()), /not valid JSON/);
+});
+
+test('old app files, explicit undefined and legacy reviews leave lighting absent', async () => {
+  const old = await makeFile();
+  const explicit = await createReviewFile(review(), measurement(), source(), undefined);
+  assert.deepEqual(explicit, old);
+  for (const text of [JSON.stringify(old), JSON.stringify(review())]) {
+    const restored = await readReviewFile(text, source());
+    assert.equal(Object.hasOwn(restored.candidate, 'lighting'), false);
+  }
+  await assert.rejects(readReviewFile(JSON.stringify({ ...review(), lighting: lighting() }), source()),
+    /unsupported fields/);
+});
+
+test('new lighting files round trip exact strengths and authored direction without normalization', async () => {
+  const file = await createReviewFile(review(), measurement(), source(), lighting());
+  assert.deepEqual(Object.keys(file), ['schema', 'version', 'sourceSHA256', 'review', 'measurement', 'lighting']);
+  const restored = await readReviewFile(JSON.stringify(file), source());
+  assert.equal(restored.legacy, false);
+  assert.deepEqual(restored.candidate, { schema: 'barocss-viewer-measured-review', version: 1,
+    review: review(), measurement: measurement(), lighting: lighting() });
+  file.lighting.direction[0] = 10; file.lighting.ambientStrength = 0.3;
+  assert.deepEqual(restored.candidate.lighting, lighting());
+  await assert.rejects(readReviewFile(JSON.stringify({ ...file, environment: 'studio' }), source()),
+    /unsupported fields/);
+});
+
+test('explicit null lighting remains an own field for startup lighting reset', async () => {
+  const file = await createReviewFile(review(), null, source(), null);
+  assert.equal(Object.hasOwn(file, 'lighting'), true);
+  const restored = await readReviewFile(JSON.stringify(file), source());
+  assert.equal(Object.hasOwn(restored.candidate, 'lighting'), true);
+  assert.equal(restored.candidate.lighting, null);
+  assert.equal(restored.candidate.measurement, null);
+});
+
+test('lighting is detached before hashing and keeps the original source hash boundary', async () => {
+  const lights = lighting(), document = source();
+  const pending = createReviewFile(review(), measurement(), document, lights);
+  lights.direction[0] = 5; lights.ambientStrength = 0.3; document.assets[0].source += ' changed';
+  const file = await pending;
+  assert.deepEqual(file.lighting, lighting());
+  assert.equal(file.sourceSHA256, (await makeFile()).sourceSHA256);
+  const text = JSON.stringify(file), restored = await readReviewFile(text, source());
+  restored.candidate.lighting.direction[0] = 99;
+  assert.deepEqual((await readReviewFile(text, source())).candidate.lighting, lighting());
+  await assert.rejects(readReviewFile(text, document), /source differs/);
+  const unbound = { ...file }; delete unbound.sourceSHA256;
+  await assert.rejects(readReviewFile(JSON.stringify(unbound), source()), /missing or unsupported fields/);
+  await assert.rejects(readReviewFile(JSON.stringify({ ...file, sourceSHA256: '0'.repeat(64) }), source()),
+    /source differs/);
+});
+
+test('lighting accepts strength and direction limits without changing direction scale', async () => {
+  for (const lights of [
+    { ambientStrength: 0, directionalStrength: 0, direction: [1000, -1000, 1000] },
+    { ambientStrength: 1, directionalStrength: 0, direction: [1, 0, 0] },
+    { ambientStrength: 0, directionalStrength: 1, direction: [0, -1, 0] },
+    { ambientStrength: 0.5, directionalStrength: 0.5, direction: [0, 0, Number.MIN_VALUE] },
+  ]) {
+    const file = await createReviewFile(review(), measurement(), source(), lights);
+    assert.deepEqual((await readReviewFile(JSON.stringify(file), source())).candidate.lighting, lights);
+  }
+});
+
+test('lighting refuses unknown fields, invalid strengths and invalid direction coordinates', async () => {
+  const missingDirection = { ambientStrength: 0.2, directionalStrength: 0.7 };
+  const bad = [
+    {}, [], true, missingDirection, { ...lighting(), intensity: 1 },
+    { ...lighting(), ambientStrength: -0.01 }, { ...lighting(), ambientStrength: 1.01 },
+    { ...lighting(), directionalStrength: -0.01 }, { ...lighting(), directionalStrength: 1.01 },
+    { ...lighting(), ambientStrength: 0.4, directionalStrength: 0.7 },
+    { ...lighting(), ambientStrength: true }, { ...lighting(), ambientStrength: NaN },
+    { ...lighting(), directionalStrength: Infinity }, { ...lighting(), direction: [0, 0, -0] },
+    { ...lighting(), direction: [1000.01, 0, 0] }, { ...lighting(), direction: [0, -1000.01, 0] },
+    { ...lighting(), direction: [0, 0, Infinity] }, { ...lighting(), direction: [0, NaN, 1] },
+    { ...lighting(), direction: [1, 0] }, { ...lighting(), direction: [1, 0, 0, 0] },
+    { ...lighting(), direction: [1, '0', 0] }, { ...lighting(), direction: new Array(3) },
+  ];
+  const file = await makeFile();
+  for (const lights of bad) {
+    await assert.rejects(createReviewFile(review(), measurement(), source(), lights));
+    await assert.rejects(readReviewFile(JSON.stringify({ ...file, lighting: lights }), source()));
+  }
+});
+
+test('lighting rejects accessors, non-plain objects and decorated arrays without invoking getters', async () => {
+  let calls = 0;
+  const getter = { enumerable: true, get() { calls++; throw new Error('getter was invoked'); } };
+  const strength = lighting(); Object.defineProperty(strength, 'ambientStrength', getter);
+  await assert.rejects(createReviewFile(review(), null, source(), strength), /must be data/);
+  const vector = lighting(); Object.defineProperty(vector.direction, '0', getter);
+  await assert.rejects(createReviewFile(review(), null, source(), vector), /must be data/);
+  const nonPlain = Object.assign(Object.create(null), lighting());
+  await assert.rejects(createReviewFile(review(), null, source(), nonPlain), /own plain data/);
+  const symbol = lighting(); symbol[Symbol('extra')] = true;
+  await assert.rejects(createReviewFile(review(), null, source(), symbol), /unsupported fields/);
+  const decorated = lighting(); decorated.direction.extra = true;
+  await assert.rejects(createReviewFile(review(), null, source(), decorated), /dense plain array/);
+  assert.equal(calls, 0);
+});
+
+test('the compact 32 KiB save bound includes optional lighting', async () => {
+  const view = review(); view.scene.members = [''];
+  const base = await createReviewFile(view, null, source());
+  const available = REVIEW_FILE_LIMIT - new TextEncoder().encode(JSON.stringify(base)).length;
+  view.scene.members = ['x'.repeat(available)];
+  const old = await createReviewFile(view, null, source());
+  assert.equal(new TextEncoder().encode(JSON.stringify(old)).length, REVIEW_FILE_LIMIT);
+  await assert.doesNotReject(readReviewFile(JSON.stringify(old), source()));
+  await assert.rejects(createReviewFile(view, null, source(), lighting()), /32 KiB/);
 });

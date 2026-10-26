@@ -2,6 +2,7 @@
 @layer legacy, theme, base, components, utilities;
 @import "./styles.css" layer(legacy);
 @import "./src/distance.css" layer(legacy);
+@import "./src/lighting.css" layer(legacy);
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 

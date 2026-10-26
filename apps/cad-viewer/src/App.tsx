@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import type { ViewerGeometryRef, ViewerState } from '@barocss/viewer';
+import type { Viewer, ViewerGeometryRef, ViewerState } from '@barocss/viewer';
 import { createViewerController } from '../controller.js';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
@@ -7,6 +7,7 @@ import { NativeSelect } from './components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './components/ui/dialog';
 import { DistancePanel, MeasurementOverlay } from './DistancePanel';
 import type { DistanceMeasurement, ProjectedMeasurementPoint } from './DistancePanel';
+import { LightingPanel } from './LightingPanel';
 
 type Body = {
   id: string;
@@ -39,6 +40,8 @@ type ViewModel = {
   appearanceTarget: string;
   appearancePreset: string;
   appearanceNote: string;
+  lightingCapabilities: ReturnType<Viewer['getLightingCapabilities']> | null;
+  lightingError: string;
   measurement: DistanceMeasurement;
   measurementOverlay: { width: number; height: number; points: ProjectedMeasurementPoint[] };
 };
@@ -48,6 +51,7 @@ const initialModel: ViewModel = {
   candidate: null, admissionIds: [], admissionError: '', status: 'Starting Viewer…',
   statusError: false, exportStatus: '', exportBusy: false, reviewBusy: false, viewPreset: null,
   appearanceTarget: '', appearancePreset: 'default', appearanceNote: 'Load a Surface to change its appearance.',
+  lightingCapabilities: null, lightingError: '',
   measurement: { active: false, points: [], result: null, error: '' },
   measurementOverlay: { width: 0, height: 0, points: [] },
 };
@@ -321,6 +325,10 @@ export function App() {
               {selectionRows.map(([label, value]) => <Fragment key={label}><dt>{label}</dt><dd>{String(value ?? '—')}</dd></Fragment>)}
             </dl>
           </section>
+          {model.lightingCapabilities && <LightingPanel lighting={model.lightingCapabilities.lighting}
+            disabled={!model.ready || !model.lightingCapabilities.supported}
+            error={model.lightingError} reason={model.ready ? model.lightingCapabilities.reason : 'Load a Surface to adjust lighting.'}
+            onApply={input => api()?.applyLighting(input)} onReset={() => api()?.resetLighting()} />}
           <section className="inspector-section appearance-section">
             <div className="section-heading"><h3>Appearance</h3></div>
             <label className="field-label" htmlFor="appearance-target">Surface</label>

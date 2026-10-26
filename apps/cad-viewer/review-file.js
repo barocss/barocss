@@ -80,6 +80,25 @@ function copyMeasurement(input) {
     metric: value.metric, space: value.space, certification: value.certification };
 }
 
+function copyLighting(input) {
+  if (input === null) return null;
+  const value = record(input, ['ambientStrength', 'directionalStrength', 'direction'], 'Lighting');
+  for (const key of ['ambientStrength', 'directionalStrength']) {
+    if (finite(value[key], `Lighting.${key}`) < 0 || value[key] > 1)
+      refuse(`Lighting.${key} must be between zero and one.`);
+  }
+  if (value.ambientStrength + value.directionalStrength > 1)
+    refuse('Lighting strengths must total one or less.');
+  value.direction = array(value.direction, 'Lighting.direction');
+  if (value.direction.length !== 3) refuse('Lighting.direction requires three coordinates.');
+  for (const coordinate of value.direction) {
+    if (Math.abs(finite(coordinate, 'Lighting.direction')) > 1000)
+      refuse('Lighting.direction coordinates must be between -1000 and 1000.');
+  }
+  if (!value.direction.some(coordinate => coordinate !== 0)) refuse('Lighting.direction must not be zero.');
+  return value;
+}
+
 function copyReview(input) {
   const value = record(input, ['schema', 'version', 'scene', 'camera', 'visibleGeometry', 'selectedGeometry'], 'Review');
   if (value.schema !== REVIEW_SCHEMA || value.version !== 1) refuse('Unsupported Viewer review format.');
@@ -138,9 +157,10 @@ async function sha256(text) {
 }
 
 /** Snapshot all inputs before hashing. The file contains no CAD source or derived point coordinates. */
-export async function createReviewFile(review, measurement, sourceDocument) {
+export async function createReviewFile(review, measurement, sourceDocument, lighting) {
   const file = { schema: FILE_SCHEMA, version: 1, sourceSHA256: '0'.repeat(64),
     review: copyReview(review), measurement: copyMeasurement(measurement) };
+  if (lighting !== undefined) file.lighting = copyLighting(lighting);
   bounded(JSON.stringify(file));
   const capturedSource = sourceText(sourceDocument);
   file.sourceSHA256 = await sha256(capturedSource);
@@ -158,12 +178,16 @@ export async function readReviewFile(text, sourceDocument) {
     return { candidate: { schema: CANDIDATE_SCHEMA, version: 1,
       review: copyReview(input), measurement: null }, legacy: true };
   }
-  const file = record(input, ['schema', 'version', 'sourceSHA256', 'review', 'measurement'], 'Review file');
+  const hasLighting = input !== null && typeof input === 'object' && Object.hasOwn(input, 'lighting');
+  const keys = ['schema', 'version', 'sourceSHA256', 'review', 'measurement'];
+  if (hasLighting) keys.push('lighting');
+  const file = record(input, keys, 'Review file');
   if (file.schema !== FILE_SCHEMA || file.version !== 1) refuse('Unsupported CAD Viewer review file.');
   if (typeof file.sourceSHA256 !== 'string' || !/^[a-f0-9]{64}$/.test(file.sourceSHA256))
     refuse('The review source hash is invalid.');
   const candidate = { schema: CANDIDATE_SCHEMA, version: 1,
     review: copyReview(file.review), measurement: copyMeasurement(file.measurement) };
+  if (hasLighting) candidate.lighting = copyLighting(file.lighting);
   const capturedSource = sourceText(sourceDocument);
   if (await sha256(capturedSource) !== file.sourceSHA256)
     refuse('The review source differs from the loaded CAD document.');

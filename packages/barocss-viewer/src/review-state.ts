@@ -1,4 +1,4 @@
-import type { MeshCamera } from '@barocss/gpu';
+import type { MeshCamera, MeshLighting } from '@barocss/gpu';
 import type { ViewerGeometryRef, ViewerNativePointInput } from './index.js';
 
 /** Revision pins identify a loaded scene. They do not authenticate its contents. */
@@ -23,6 +23,8 @@ export interface ViewerMeasuredReviewStateV1 {
   schema: 'barocss-viewer-measured-review';
   version: 1;
   review: ViewerReviewStateV1;
+  /** Omit to retain current lighting. Null restores the Viewer's creation/default lighting. */
+  lighting?: MeshLighting | null;
   measurement: null | {
     first: ViewerNativePointInput;
     second: ViewerNativePointInput;

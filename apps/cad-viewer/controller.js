@@ -34,12 +34,13 @@ export function createViewerController({ canvas, stage, onChange }) {
   let admissionError = '', status = 'Starting Viewer…', statusError = false;
   let exportStatus = '', exportBusy = false;
   let reviewBusy = false;
+  let lightingError = '';
   let measurement = emptyMeasurement();
   const listeners = [];
   const reviewUrls = new Set();
   const loaded = () => Boolean(active && viewer && !disposed);
   const guard = () => JSON.stringify({ review: loaded() ? viewer.captureReviewState() : null,
-    materials: viewer?.getState().surfaceMaterials ?? [], measurement,
+    materials: viewer?.getState().surfaceMaterials ?? [], lighting: viewer?.getState().lighting ?? null, measurement,
     width: canvas.width, height: canvas.height });
   function recordFrame() {
     const current = guard();
@@ -96,7 +97,8 @@ export function createViewerController({ canvas, stage, onChange }) {
     onChange({ ready: loaded(), starting, active: summary(active), admitted: [...admitted], state,
       search, candidate: summary(candidate), admissionIds: [...admissionIds], admissionError,
       status, statusError, exportStatus, exportBusy, reviewBusy, viewPreset, appearanceTarget,
-      appearancePreset, appearanceNote, measurement: structuredClone(measurement), measurementOverlay });
+      appearancePreset, appearanceNote, lightingCapabilities: viewer?.getLightingCapabilities() ?? null,
+      lightingError, measurement: structuredClone(measurement), measurementOverlay });
   }
   function measuredPoint(input, point) {
     const state = viewer.getState();
@@ -258,7 +260,7 @@ export function createViewerController({ canvas, stage, onChange }) {
         const ids = [...admissionIds];
         viewer.loadDocument(candidate.result, loadOptions(ids));
         active = candidate; admitted = ids; candidate = null; admissionIds = [];
-        measurement = emptyMeasurement();
+        measurement = emptyMeasurement(); lightingError = '';
         documentEpoch++; reviewEpoch++; frameGeneration++;
         appearanceBinding = undefined; appearanceTarget = ''; search = '';
         message('Document opened. Drag to orbit. Shift+drag to pan.'); refresh();
@@ -308,6 +310,13 @@ export function createViewerController({ canvas, stage, onChange }) {
     }, 'Selected body isolated.'); },
     setAppearanceTarget(value) { appearanceTarget = value; refresh(); },
     setAppearancePreset(value) { appearancePreset = value; refresh(); },
+    applyLighting(input) {
+      if (!loaded()) return;
+      try { viewer.setLighting(input); lightingError = ''; message('Lighting applied.'); }
+      catch (error) { lightingError = error?.message || String(error); message(lightingError, true); }
+      refresh();
+    },
+    resetLighting() { api.applyLighting(null); },
     applyAppearance() { run(() => {
       const ref = viewer.getState().surfaces.find(ref => surfaceKey(ref) === appearanceTarget);
       if (!ref) throw new Error('Choose a loaded Surface.');
@@ -328,7 +337,8 @@ export function createViewerController({ canvas, stage, onChange }) {
         const native = measurement.result ? { first: measurement.points[0].input,
           second: measurement.points[1].input, distanceMM: measurement.result.distanceMM,
           metric: 'straight-line', space: 'native-authored', certification: 'not-certified' } : null;
-        const file = await createReviewFile(viewer.captureReviewState(), native, active.result.document);
+        const lighting = viewer.getLightingCapabilities().supported ? viewer.getState().lighting : undefined;
+        const file = await createReviewFile(viewer.captureReviewState(), native, active.result.document, lighting);
         if (request !== reviewEpoch || disposed) return;
         if (before !== recordFrame() || version !== frameGeneration) throw new Error('The view changed. Save the review again.');
         const text = JSON.stringify(file) + '\n';
@@ -355,6 +365,7 @@ export function createViewerController({ canvas, stage, onChange }) {
         if (request !== reviewEpoch || disposed) return;
         if (before !== recordFrame() || version !== frameGeneration) throw new Error('The view changed. Open the review again.');
         const restored = viewer.applyMeasuredReviewState(candidate);
+        lightingError = '';
         measurement = restored ? { active: false,
           points: [measuredPoint(candidate.measurement.first, restored.first), measuredPoint(candidate.measurement.second, restored.second)],
           result: { distanceMM: restored.distanceMM }, error: '' } : emptyMeasurement();
