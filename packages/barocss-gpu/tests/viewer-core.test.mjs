@@ -128,7 +128,7 @@ test('viewer lights: the frame block matches the WGSL layout', () => {
   assert.match(surfaceWGSL(), new RegExp(`dirs: array<DirLight, ${MAX_DIRECTIONAL}>`));
   // A shader material: its declarations, aliases and expression; the default params struct unless it declares one.
   const custom = surfaceWGSL({ declarations: 'fn f(x: f32) -> f32 { return x; }\n', expression: 'vec3f(f(native_uv.x))', aliases: { native_uv: 'uv' } });
-  assert.match(custom, /let native_uv = uv;\n  return vec3f\(f\(native_uv.x\)\);/);
+  assert.match(custom, /let native_uv = uv;\n {2}return vec3f\(f\(native_uv.x\)\);/);
   assert.equal((custom.match(/struct MaterialParams/g) ?? []).length, 1);
   assert.equal((surfaceWGSL({ declarations: 'struct MaterialParams {\n  slot: array<vec4<f32>, 4>,\n}\n', expression: 'vec3f(1.0)' }).match(/struct MaterialParams/g) ?? []).length, 1);
   const cam = new Camera({ position: [0, -10, 0], target: [0, 0, 0], up: [0, 0, 1] });
