@@ -1,93 +1,162 @@
 {
   "schema": 1,
   "status": "IN_PROGRESS_NOT_PAUSED_NOT_PUSHED",
-  "generatedUTC": "2026-10-26T05:06:36.876676+00:00",
-  "purpose": "Portable handoff snapshot; not a second execution queue. Reconcile actual refs and owners before resume.",
-  "productBeforeThisHandoffCommit": "f104745440effc54ad2c75b5bc043cbba7227495",
-  "productRequiredDocs": "PENDING_ENVIRONMENT_CAPACITY",
-  "aggregate": "1a7f22666189e7a20be9eb6c0e70ed8c9f72a678",
-  "remoteLastObserved": "16eabdd8e55ff3bb8cb77bfa2769e1e7049be715",
+  "generatedUTC": "2026-10-26T05:55:44.507629+00:00",
+  "purpose": "Portable handoff snapshot only; reconcile actual refs/owner status. Not a second live queue.",
+  "productBeforeThisHandoffCommit": "5e6a559e548845fdc169a753834519b3c2e6b1ee",
+  "productRuntimeValidatedAt": "91e96a2361a7b483a1915da822d07b495e766848",
+  "productRequiredDocs": "PENDING_THIS_HANDOFF_COMMIT",
+  "aggregate": "056d2927ce97b245d5a8934ed9705d2caa068655",
+  "commonChecksSource": "1a7f22666189e7a20be9eb6c0e70ed8c9f72a678",
+  "laterDelta": "roadmap and portable handoff only; production/library bytes unchanged",
   "featureBranch": "review/cad-gpu-engine-2026-10-14",
+  "remoteLastObserved": "16eabdd8e55ff3bb8cb77bfa2769e1e7049be715",
+  "mustRecheckRemoteBeforePush": true,
   "quota": {
-    "coreUsed": 67,
-    "remaining": 33,
+    "usedPercent": 69,
+    "remainingPercent": 31,
     "secondary": null,
-    "pauseAtRemaining": 5,
-    "state": "ARMED_NOT_TRIGGERED"
+    "pauseAtRemaining": 5
   },
   "tasks": [
     {
-      "id": "GPU-READBACK-SHARED-IMPACT-01",
-      "owner": "GPU",
-      "status": "ACCEPTED_SHARED_PRODUCT_MERGED_DOCS_PENDING",
-      "native": "b22e15c356c5e8c0bc0357f48c2a520a7ad27943",
-      "lintFix": "8110053b66757d3d1769a8bc95fafd124fcb456a",
-      "evidence": "Shared Viewer fresh emit56/actual inputs86 and focused CPU1 PASS; original regex lint FAIL, exact1file lint after fix PASS. Controlled actual GPU delayed-consumption experiment, not natural full performance proof."
-    },
-    {
-      "id": "CAD-SKETCH-ENTER-PRECISION-01",
-      "owner": "Outer",
-      "status": "ACCEPTED_SCOPED_NOT_PRODUCT_ADOPTED",
-      "native": "c463fea645a9a57b599a17a96f17d2fffce99b51",
-      "requested": 10.0000004,
-      "storedDriving": 10.0000004,
-      "independentLengthMM": 10.000000419678194,
-      "absoluteResidualMM": 1.967819507342483e-08,
-      "existingToleranceMM": 1e-07,
-      "fileRoundtripBytesEqual": false,
-      "fileDifferences": [
-        "node id",
-        "nextId"
+      "id": "CAD-VERIFIED-SKETCH-PRODUCT-SLICE-01",
+      "owner": "API",
+      "status": "LOCAL_MERGE_DONE_PRODUCT_CHECKS_PENDING",
+      "scope": "정밀도/회전/도면/본문7경로검증수락·portable4와foreign33보존",
+      "completionCriteria": [
+        "정확선택경로/tree/mergepending전달·필수제품docs"
       ],
-      "originalFailure": "Driving became10 after Enter; residual -3.9958117348248834e-7. Preserved outside this small snapshot."
+      "mergeCommit": "91e96a2361a7b483a1915da822d07b495e766848",
+      "resultLocation": "work/sketch-revolve-drawing-product-adoption-20261026/merge.json"
     },
     {
-      "id": "CAD-SKETCH-PRECISION-VALUE-VISIBILITY-01",
-      "owner": "Outer",
-      "status": "ADOPTED_SOURCE_BROWSER_NOTRUN_AVAILABILITY",
-      "native": "413d41b3b6841a41298e42f6be57a1d1b9c432fc",
-      "blocker": "served Panel8470 vs disk686; exact owned source refresh required, no query/cache workaround"
-    },
-    {
-      "id": "CAD-REVOLVE-ENDPOINT-ADMISSION-FIX-01",
+      "id": "CAD-91e96a-Product-Revolve-build-endpoint1-0001-20261026",
       "owner": "Kernel",
-      "status": "EXACT_SOURCE_ADOPTED_NEW_BUILD_PENDING",
-      "native": "e063a1dd372cf40e0ebb569f192bca130357b92b",
-      "original": "Build PASS, focused tests4PASS1FAIL at translated endpoint test80 GEOMETRY; volume NOT_REACHED",
-      "rejectedIntermediate": "61aa853769588a0bb0d59d0ccb5395d8ed03f00d",
-      "rule": "Keep original test80 coordinates/expected volume/tolerance; do not merge known-failing revolve to product as PASS"
+      "status": "ACCEPTED_BUILD_SELECTED1_PASS_FULL_RETURN",
+      "scope": "첫affected제품CADbuild1→기존endpoint선택1",
+      "completionCriteria": [
+        "첫affected제품build1→기존endpoint선택1 각첫1회. firstFAIL후후속NOTRUN/retry0. aggregatebuild/native5/browser재실행0.",
+        "제품old818완전선보존/new또는부분dist별도보존. aggregatefresh818와실bytes/kind/mode비교. 테스트선택1과실SKIP구분. 수치출력없으면NOT_RECORDED.",
+        "source409/toolconfig/test·foreign33·portable4·HEAD/status 전후. productsource는aggregate와다른WT. sharedaggregate쓰기0·서버브라우저조작0.",
+        "원stage/env-i/pinnedNode/cacheoff/고유tmpemptyZDOT·actualwait또는directexit/4exit·releaseSTARTEXIT·ownslot읽기관측/descUNKNOWN. writer/archive읽기반환."
+      ],
+      "actualTAP": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "filterExcluded": "4declNOT_EMITTED_NOT_SKIP4",
+      "actualVolumeNumbers": "NOT_RECORDED",
+      "productDist818MatchesAggregate": true,
+      "runtimeReturned": true,
+      "rawItems": 62,
+      "distFiles": 2454,
+      "receiptSHA256": "40bfde0583da0c83571c2166858325bf37d598a1a0759d4bfa38d2638a85eecb",
+      "indexSHA256": "7e44c745d2babc8f3f631e839be3982159ae0649d3422d31888d3b97530a3f2c"
     },
     {
-      "id": "CAD-TAP-DEPTH-DERIVED-ASSERTION-FIX-01",
-      "owner": "Drawings",
-      "status": "SOURCE_ADOPTED_NODE_NOTRUN_CAPACITY",
-      "native": "ec0523a8b04af90e9f0a30d40ceeec22860fad7b",
-      "original": "2PASS1FAIL: radius2.5000000000000004 vs2.5 strict equality; subsequent assertions NOT_REACHED",
-      "correction": "Only4derived model/paper mm comparisons abs<=1e-9; saved values/text/nominals/product tolerance unchanged",
-      "latestStage": "acquire75/wrapper75; no slot acquired, Node0, no test result"
+      "id": "CAD-REVOLVE-AXIS-BROWSER-01",
+      "owner": "Kernel",
+      "status": "ACCEPTED_SCOPED_PASS_FULL_RETURN",
+      "scope": "기존Kernelfixture→Viewer연결·원translatedendpoint양성1/접선거부1·실source/PNG/console/자기page정리",
+      "completionCriteria": [
+        "실제positive형상PNG/owner직접view",
+        "원거부의정확오류/미출력·source/CADdist불변·원FAIL보존",
+        "Studio저작UI/제조인수확대0"
+      ],
+      "runtimeReturned": true,
+      "resultLocation": "/Users/user/Documents/Codex/2026-10-24/cad-kernel-20261024/outputs/revolve-axis-browser-1a7f22-20261026-attempt0001/"
     },
     {
-      "id": "CAD-NEXT-SKETCH-REFUSAL-DOCS-VERIFY-01",
+      "id": "CAD-1a7f22-Sketch-Revolve-docs-check-site-0001-20261026",
       "owner": "Docs",
-      "status": "CONDITIONAL_SOURCE_CHECKPOINT_WAIT",
-      "rule": "One check/site after final relevant source; mixed revolve prose must not imply failed runtime passed"
+      "status": "ACCEPTED_CHECK_SITE_ACTUAL_PAGE_PASS_FULL_RETURN",
+      "completionCriteria": [
+        "원check-docs→외부site각첫1회. firstFAIL뒤siteNOTRUN/retry0·추가generator/sourceexpected쓰기0.",
+        "현재1a7소스와freshCAD818/GPU실관측baseline·tool/cache/config pathkind/hashmode전후, count/symlink-only가정0.",
+        "원env-i/pinnedNode/cacheoff/tmpemptyZDOT·actualwait4exit·same-shellreleaseSTARTEXIT·ownslot읽기관측·descUNKNOWN·rawMJS234등원경고유지.",
+        "새sitePASS뒤실제변경된studio/sketches1페이지의6줄경계/기존그림및headinglink만자기agent-browser나기존허용IAB도구로검증. robots/modeling재검사0·기존tab/server보존·PNG직접view.",
+        "sharedsource현재동결·실브라우저Kernel/Outer독립수행중이며추가code쓰기나서버refresh없음. 원site외부outDir만쓰기, writer/archive읽기반환.",
+        "sourceRoadmapcheckpoint문서만나중에추가되더라도이런API/Library본문/생산bytes가같으면이2검사를불필요하게재실행하지않고sourcebinding구분. 제품merge뒤필수제품check는별도."
+      ],
+      "resultLocation": null
+    },
+    {
+      "id": "SC-ASSOCIATIVE-EDIT-01",
+      "owner": "Outer",
+      "status": "ACTUAL_FAIL_ACCEPTED_FULL_RETURN_REPAIR_CONTRACT_ACTIVE",
+      "scope": "면 projection→offset→extrude/cut→치수변경/split/delete·올바른 참조 또는 명시 수리·UndoSaveOpen, 기존531/1658/2215",
+      "completionCriteria": [
+        "공개면projection/offset/extrude-cut/원치수edit1case·의미참조보존또는명시수리거부",
+        "실Undo/SaveOpen/PNG·정확source/console·필요최소commit검증·미검증분리"
+      ],
+      "resultLocation": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/outputs/sc-associative-browser-1a7f2266-20261026/report.md",
+      "actualBaselineVolume": 6720,
+      "actualWidth60Volume": 10560,
+      "expectedAssociativeVolume": 10240,
+      "diagnosis": "n2snapshot40/36유지·n0폭60/BodyRef와cutlink보존·faceID저장없음. naming소실확대0"
+    },
+    {
+      "id": "SC-ASSOCIATIVE-REPAIR-01",
+      "owner": "Outer",
+      "status": "EXPLICIT_SOURCE_IMPLEMENTATION_DISPATCH_PENDING",
+      "scope": [
+        "apps/cad-studio/src/App.tsx",
+        "apps/cad-studio/src/ui/SketchPanel.tsx",
+        "packages/barocss-cad-model/src/sketch/types.ts",
+        "packages/barocss-cad-model/src/engine/doc.ts",
+        "packages/barocss-cad-model/src/engine/part.ts",
+        "packages/barocss-cad-model/src/engine/flatten.ts",
+        "packages/barocss-cad-model/test/sketch-associative-inset.test.ts"
+      ],
+      "completionCriteria": [
+        "구형snapshot보존/신규명시연관/안전refusal/dependency/flatten경계",
+        "owner정상commit exacthunks·내부writer반환",
+        "root채택뒤원공개width40→60/10240·UndoRedo/SaveOpen·focused영향검사"
+      ],
+      "resultLocation": null,
+      "contractSHA256": "2c1f189b2a2a0e25100d4a1352859aca4493a553e6ac16469567ef6516245751"
     }
   ],
+  "owners": {
+    "Kernel": "01a16e2f-fd09-7ea3-b47e-e1243e1b3498",
+    "Outer": "01a16e30-2fb2-7a31-8011-258896c32342",
+    "GPU": "01a16e30-68c5-7ae2-a500-33133dc9b2b4",
+    "Docs": "01a16e30-d6e2-7030-a266-fdeb12dc9b9f",
+    "Drawings": "01a16e31-1757-7e83-b62c-436a517d1dc7"
+  },
   "nextOrder": [
-    "Reconcile actual source/owner/gate capacity. Support holder consumes one slot; allowed must exceed holders, load<40 alone is insufficient.",
-    "Restore source availability through exact owner protocol when safe; keep old failure and other user processes.",
-    "Finish Kernel exact affected build/focused5, Drawing corrected3, changed Panel Studio type, original docs/site and product docs. Do not repeat already accepted checks without a new reason.",
-    "Build selected verified product slice from product branch, excluding unverified revolve and mixed prose. Preserve foreign files and ignored CADdist.",
-    "At quota<=5 safe-pause owners/agents, integrate only verified exact deltas, finish portable record/normal commit, normal origin feature push and remote SHA verification, pause cad automation."
+    "Exact current product SHA required check-docs once; no common site/native/types/browser repeat.",
+    "Outer normal scoped commit→root exact adoption→own public linked case 40to60/10240 UndoRedoSaveOpen, then focused new native/types/lint.",
+    "Quota<=5 safe global pause→verified integration/minimal checks→normal handoff commit→origin feature push/remoteSHA verify→cad automation PAUSED."
   ],
+  "supportServerLastObserved": {
+    "owner": "Kernel",
+    "port": 52032,
+    "parent": 13822,
+    "child": 13856,
+    "session": 79248,
+    "slot": 13822,
+    "mustVerifyCurrentBeforeSignal": true
+  },
   "constraints": [
-    "Root sole aggregate/product writer; each Work manages own agents and normal branch commits.",
-    "Native/build/generator heavy1 and original guard; no gate/slot override.",
-    "No reset/rebase/amend/force/main-develop push/newWT/deps/WASM/tolerance weakening/foreign WIP commit.",
-    "Physics active owner unknown; no solver/profile takeover or pivot inertia in COM field. P2 manufacturing HOLD.",
-    "Evidence is focused source/native/browser, not full physical/production acceptance. FNV is staleness indicator, not authentication."
+    "root sole aggregate/product writer; owners normal existingbranch exactcommits",
+    "native/build/generator heavy1/originalguard; independent browser/read allowed",
+    "no reset/rebase/amend/force/newWT/depsWASM/productiontol weakening",
+    "foreign33/WIP/tabs/profiles preserved; Physics owner unconfirmed and P2HOLD",
+    "default BRep validation only; raw strictBrep label correction retained; extra strict:true NOTRUN",
+    "focused evidence is not measured/wholeproduct/manufacturing acceptance; descendants/fullgraph UNKNOWN"
   ],
   "portableEvidence": [
+    {
+      "path": "evidence-20261026/84-open60-framed.png",
+      "bytes": 286198,
+      "sha256": "5c41373fe470de00827d7f36e4455bddeabf1d18ab1255194825167cd066ea39"
+    },
     {
       "path": "evidence-20261026/B-fixed-enter.bcad",
       "bytes": 1116,
@@ -97,7 +166,18 @@
       "path": "evidence-20261026/B-fixed-open-roundtrip.bcad",
       "bytes": 1134,
       "sha256": "0fb8e3854ec51fddf861f4ee0f127ea049e564bac9cf5bb9c956722f59c3be2f"
+    },
+    {
+      "path": "evidence-20261026/SC-base40-cut4.bcad",
+      "bytes": 2342,
+      "sha256": "39db28143348184202491073679a52de9dcd8a26fe2024762536f833d130db0c"
+    },
+    {
+      "path": "evidence-20261026/SC-width60-cut4.bcad",
+      "bytes": 2152,
+      "sha256": "dc30a44d046961f64c84af735f80dff144675146499c8021f50db446af980fd7"
     }
   ],
-  "rawEvidenceLimit": "The full local raw logs, PNGs, waits and manifests are not included. Do not claim these small files reproduce full browser provenance. Same-host authority remains /Users/user/.cache/barocss-preserved/2026-10-24-codex-integration/round3/coordinator-api-active-20261025.json."
+  "rawArchivesIncluded": false,
+  "rawLimits": "Detailed local archives are not claimed portable; receipt hashes, source refs, actual input documents and image are retained. No claim of recovered missing originals."
 }
