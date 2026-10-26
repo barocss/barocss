@@ -254,11 +254,14 @@ export class EngineClient {
     });
   }
 
-  stl(doc: StudioDoc, key: string): Promise<Uint8Array | null> {
+  stl(doc: StudioDoc, key: string, options?: { segmentsPerQuarter: number }): Promise<Uint8Array | { error: string } | null> {
     const id = this.next++;
     return new Promise(resolve => {
-      this.pending.set(id, data => resolve((data as { bytes: Uint8Array | null }).bytes));
-      this.worker.postMessage({ type: 'stl', id, doc: this.wire.pack(doc), key });
+      this.pending.set(id, data => {
+        const d = data as { bytes?: Uint8Array | null; error?: string };
+        resolve(typeof d.error === 'string' ? { error: d.error } : d.bytes ?? null);
+      });
+      this.worker.postMessage({ type: 'stl', id, doc: this.wire.pack(doc), key, ...(options ? { options } : {}) });
     });
   }
 }
