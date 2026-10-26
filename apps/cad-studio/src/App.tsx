@@ -1191,7 +1191,13 @@ export function App() {
     clearRouteTimer();
     const session = routeSession.current;
     if (session) { session.sequence++; session.ready = undefined; session.purpose = 'draft'; }
-    setRoutePreviewBodies(null); setRouteVisualDoc(null); setRoutePhase('error'); setRouteError({ message: routeMessage(error) });
+    const friendly = error && typeof error === 'object'
+      && 'title' in error && typeof error.title === 'string'
+      && 'hint' in error && typeof error.hint === 'string'
+      && 'detail' in error && typeof error.detail === 'string'
+      && (!('code' in error) || error.code === undefined || typeof error.code === 'string') ? error as FriendlyError : null;
+    if (friendly) setToast(friendly);
+    setRoutePreviewBodies(null); setRouteVisualDoc(null); setRoutePhase('error'); setRouteError({ message: friendly ? friendly.hint || friendly.title : routeMessage(error) });
   };
   const beginRoute = (frozenStart: StudioDoc, bundleId: string, resetMove = true) => {
     const accepted = docNow.current;
@@ -1218,7 +1224,7 @@ export function App() {
         const previewRevision = revision.current++, preview = await engine.preview(evaluationDoc, previewRevision);
         if (!current('preview')) return;
         if (preview.revision !== previewRevision) throw new Error('The preview was interrupted. Preview this draft again.');
-        if (!preview.ok) throw new Error(preview.error.hint || preview.error.title);
+        if (!preview.ok) { routeFail(preview.error); return; }
         setRoutePreviewBodies(preview.bodies);
         if (!final) { session.purpose = 'draft'; setRoutePhase('draft'); return; }
       }
@@ -1226,7 +1232,7 @@ export function App() {
       const finalRevision = revision.current++, result = await engine.evaluate(evaluationDoc, finalRevision);
       if (!current('final')) return;
       if (!result || result.revision !== finalRevision) throw new Error('The final check was interrupted. Preview this draft again.');
-      if (!result.ok) throw new Error(result.error.hint || result.error.title);
+      if (!result.ok) { routeFail(result.error); return; }
       session.ready = { candidate, identity, evaluatedIdentity, result, sequence, gesture, pointerId }; session.purpose = 'ready';
       setRoutePreviewBodies(result.bodies); setRoutePhase('ready');
     } catch (error) { if (current(session.purpose)) routeFail(error); }
