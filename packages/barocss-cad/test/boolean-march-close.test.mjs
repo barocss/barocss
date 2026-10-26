@@ -58,6 +58,31 @@ test('surface intersection: crossing planes reach their boundaries or refuse exh
     refused('Surface intersection: maximum marching steps reached before completion'));
 });
 
+test('surface intersection: invalid marching options refuse before evaluating regular patches', () => {
+  let evaluations = 0;
+  // The same regular crossing planes; counters observe admission without changing the geometry.
+  const A = { at: ([u, v]) => { evaluations++; return [u, v, 0]; }, box: [[-1, -1], [1, 1]] };
+  const B = { at: ([u, v]) => { evaluations++; return [u, 0, v]; }, box: [[-1, -1], [1, 1]] };
+  const options = { step: 0.1, tolerance: 1e-6, grid: 2 };
+  for (const [field, values, detail] of [
+    ['step', [0, -1, NaN, Infinity, -Infinity], 'step must be a finite positive number'],
+    ['tolerance', [-1, NaN, Infinity, -Infinity], 'tolerance must be a finite nonnegative number'],
+    ['grid', [0, -1, 0.5, NaN, Infinity, -Infinity], 'grid must be a finite positive integer'],
+    ['budget', [-1, NaN, Infinity, -Infinity], 'budget must be a finite nonnegative number'],
+  ]) for (const value of values) {
+    evaluations = 0;
+    assert.throws(() => intersectPatches(A, B, { ...options, [field]: value }), error =>
+      error instanceof SurfaceIntersectionError && error.code === 'SURFACE_INTERSECTION' && error.message === `Surface intersection: ${detail}`);
+    assert.equal(evaluations, 0, `${field}=${value}: option admission precedes patch evaluation`);
+  }
+  // Zero tolerance and fractional budget remain admitted; the existing spend guard consumes 0.5.
+  evaluations = 0;
+  assert.throws(() => intersectPatches(A, B, { ...options, tolerance: 0, budget: 0.5 }), error =>
+    error instanceof SurfaceIntersectionError && error.code === 'SURFACE_INTERSECTION'
+    && error.message === 'Surface intersection: too many marching steps (the surfaces touch or overlap along a curve)');
+  assert.ok(evaluations > 0, 'admitted options reach the regular patches before the budget is spent');
+});
+
 test('analytic Boolean: two balls patterned ∪ a ball, its circle traced once (L4 fuzz seed 20261023 #119, D236)', () => {
   // The circle where the second copy meets the ball passed its start 0.41 of a step away: traced twice, its two halves
   // ran over each other and the stitch found an edge used six times. The result is two bodies: the first copy alone.
