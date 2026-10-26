@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { BrepProjection } from '@barocss/cad';
-import { checkDatumTargetOptions, datumTargetConflicts, datumTargetsProperty, readDatumTargets, resolveDatumTarget, type DrawingDatumTarget } from '../src/drawing/datumTargets';
+import { checkDatumTargetOptions, datumTargetConflicts, datumTargetEndpoint, datumTargetsProperty, readDatumTargets, resolveDatumTarget, type DrawingDatumTarget } from '../src/drawing/datumTargets';
 import { validate, type JsonSchema } from '../src/chat/contract';
 import { drawingInputs, runDrawingTool } from '../src/chat/drawing';
 import { starterDoc, type StudioDoc } from '../src/engine/doc';
@@ -11,10 +11,20 @@ import { drawingIssues, issueContext } from '../src/drawing/issues';
 import { modelAnnotations } from '../src/drawing/annotations3d';
 import { sheetGroupsSvg, sheetSvg } from '../src/io/svg';
 import { changeDrawingScope } from '../src/drawing/scope';
+import { candidatesFor, captureSignatures, confirmReference, referencesOf, refreshSignatures, verifyReferences } from '../src/engine/references';
+import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
 
-const target: DrawingDatumTarget = { id: 'point-a1', letter: 'A', number: 1, view: 'front', place: [-12, 16], point: { edge: 'instance/edge-1', at: 'end', near: [1, 0, 0] } };
+const target: DrawingDatumTarget = { id: 'point-a1', letter: 'A', number: 1, view: 'front', place: [-12, 16], point: { edge: 'instance/edge-1', at: 'end', near: [1, 0, 0], endpoint: 'min', sig: { k: 'line', p: [32, 0, 0], d: [1, 0, 0], s: 64 } } };
 const edge: BrepProjection['edges'][number] = { name: target.point.edge, kind: 'line', ends: [[0, 0, 0], [64, 0, 0]], circle: null, pieces: [{ curve: { kind: 'line', a: [0, 0], b: [64, 0] }, visible: true }] };
 const projection: BrepProjection = { right: [1, 0, 0], up: [0, 0, 1], toward: [0, -1, 0], min: [0, 0], max: [64, 0], edges: [edge] };
+// Agent-authored reference-unit data, not native geometry or browser acceptance.
+function lineBody(a: [number, number, number], b: [number, number, number], name = target.point.edge): BodyResult {
+  return { key: 'b1', family: 'planar', volume: null, mass: null, mesh: {
+    positions: new Float32Array(), normals: new Float32Array(), faceOfVertex: new Float32Array(), indices: new Uint32Array(),
+    edgeLines: new Float32Array(), edgeOfSegment: new Float32Array(), faces: [],
+    edges: [{ index: 0, names: [name], a, b, faces: [0, 0], straight: true, axis: null }], bounds: { min: a, max: b },
+  } };
+}
 const inputOf = (doc: StudioDoc) => {
   const input = drawingInputs(doc);
   if (typeof input === 'string') assert.fail(input);
@@ -28,7 +38,7 @@ test('DR6 endpoint targets: schema and authored input refuse atomically; legacy 
   const before = JSON.stringify(legacy);
   const sparse = new Array(1);
   const sparsePlace = new Array(2); sparsePlace[1] = 0;
-  const bad = [null, sparse, [target, target], [target, { ...target, id: 'other' }], [{ ...target, number: 0 }], [{ ...target, number: 1.5 }], [{ ...target, number: Number.MAX_SAFE_INTEGER + 1 }], [{ ...target, letter: 'I' }], [{ ...target, place: sparsePlace }], [{ ...target, extra: true }], [{ ...target, point: { ...target.point, at: 'center' } }], [{ ...target, point: { ...target.point, near: [0, NaN, 0] } }], [{ ...target, point: { ...target.point, sig: {} } }], Array.from({ length: 201 }, (_, i) => ({ ...target, id: `target-${i}`, number: i + 1 }))];
+  const bad = [null, sparse, [target, target], [target, { ...target, id: 'other' }], [{ ...target, number: 0 }], [{ ...target, number: 1.5 }], [{ ...target, number: Number.MAX_SAFE_INTEGER + 1 }], [{ ...target, letter: 'I' }], [{ ...target, place: sparsePlace }], [{ ...target, extra: true }], [{ ...target, point: { ...target.point, at: 'center' } }], [{ ...target, point: { ...target.point, endpoint: undefined } }], [{ ...target, point: { ...target.point, endpoint: 'first' } }], [{ ...target, point: { ...target.point, near: [0, NaN, 0] } }], [{ ...target, point: { ...target.point, sig: {} } }], [{ ...target, point: { ...target.point, was: 1 } }], Array.from({ length: 201 }, (_, i) => ({ ...target, id: `target-${i}`, number: i + 1 }))];
   for (const datumTargets of bad) {
     assert.equal(checkDatumTargetOptions({ datumTargets })[0]?.code, 'DRAWING_OPTIONS');
     const result = runDrawingTool(legacy, 'set_drawing', { title: 'Must not apply', datumTargets });
@@ -49,23 +59,46 @@ test('DR6 endpoint targets: schema and authored input refuse atomically; legacy 
   assert.notEqual(saved[0].point, target.point);
   assert.notEqual(saved[0].point.near, target.point.near);
   assert.notEqual(saved[0].place, target.place);
+  assert.notEqual(saved[0].point.sig, target.point.sig);
+  assert.notEqual(saved[0].point.sig!.p, target.point.sig!.p);
+  assert.notEqual(saved[0].point.sig!.d, target.point.sig!.d);
+  const marked = { ...target, point: { ...target.point, was: 'previous-edge' } };
+  assert.deepEqual(checkDatumTargetOptions({ datumTargets: [marked] }), []);
+  assert.deepEqual(readDatumTargets([marked]), [marked]);
+  const nearOnly = { ...target, point: { edge: target.point.edge, at: 'end' as const, near: [63, 0, 0] as [number, number, number] } };
+  assert.deepEqual(readDatumTargets([nearOnly]), [nearOnly], 'legacy near-only evidence is preserved without inventing an endpoint or signature');
+  assert.deepEqual(checkDatumTargetOptions({ datumTargets: [nearOnly] }).map(p => p.code), ['DRAWING_OPTIONS']);
   assert.equal(datumTargetConflicts(saved).size, 3, 'all rows involved in either duplicate are diagnosed');
   assert.deepEqual(readDrawing({ datumTargets: saved }).datumTargets, raw);
   assert.equal(readDrawing(defaultDrawing()).datumTargets, undefined);
 });
 
-test('DR6 endpoint targets: current literal 3D endpoints replace the hint; missing, duplicate, tied and non-line references stay unresolved', () => {
+test('DR6 endpoint targets: signed endpoint identity never switches after translation, width changes or edge ID reuse', async () => {
   assert.deepEqual(resolveDatumTarget(projection, target), { ok: true, at: [0, 0, 0], edge: 'instance/edge-1' });
-  const moved: BrepProjection = { ...projection, edges: [{ ...edge, ends: [[10, 0, 0], [74, 0, 0]] }] };
-  assert.deepEqual(resolveDatumTarget(moved, target), { ok: true, at: [10, 0, 0], edge: 'instance/edge-1' });
+  const maximum: DrawingDatumTarget = { ...target, point: { ...target.point, endpoint: 'max', near: [63, 0, 0] } };
+  assert.deepEqual(resolveDatumTarget(projection, maximum), { ok: true, at: [64, 0, 0], edge: target.point.edge });
+  const reversed: BrepProjection = { ...projection, edges: [{ ...edge, ends: [[64, 0, 0], [0, 0, 0]] }] };
+  assert.deepEqual(resolveDatumTarget(reversed, maximum), { ok: true, at: [64, 0, 0], edge: target.point.edge }, 'max is lexicographic 3D identity, not a raw endpoint index');
+  assert.deepEqual(resolveDatumTarget(projection, { ...target, point: { ...target.point, near: [32, 0, 0] } }), { ok: true, at: [0, 0, 0], edge: target.point.edge }, 'an equal-distance hint does not override the explicit endpoint');
+  assert.equal(datumTargetEndpoint([[64, 0, 0], [0, 0, 0]], [64, 0, 0]), 'max');
+  assert.equal(datumTargetEndpoint([[1, 4, 0], [1, 2, 8]], [1, 2, 8]), 'min', 'y decides when x is equal');
+  assert.equal(datumTargetEndpoint([[1, 2, 8], [1, 2, 4]], [1, 2, 8]), 'max', 'z decides when x and y are equal');
+  const changedEnds: NonNullable<BrepProjection['edges'][number]['ends']>[] = [[[100, 0, 0], [164, 0, 0]], [[0, 0, 0], [200, 0, 0]], [[100, 0, 0], [100, 64, 0]]];
+  for (const ends of changedEnds) {
+    const changed: BrepProjection = { ...projection, edges: [{ ...edge, ends }] };
+    const result = resolveDatumTarget(changed, maximum);
+    assert.equal(result.ok, false, 'translation, width or a reused edge name must not silently select the nearer opposite endpoint');
+    if (!result.ok) assert.equal(result.code, 'DATUM_TARGET_UNVERIFIED');
+  }
   const cases: [BrepProjection, DrawingDatumTarget, string][] = [
     [{ ...projection, edges: [] }, target, 'DATUM_TARGET_LOST'],
     [{ ...projection, edges: [edge, edge] }, target, 'DATUM_TARGET_AMBIGUOUS'],
-    [projection, { ...target, point: { ...target.point, near: [32, 0, 0] } }, 'DATUM_TARGET_AMBIGUOUS'],
     [{ ...projection, edges: [{ ...edge, kind: 'silhouette' }] }, target, 'DATUM_TARGET_UNSUPPORTED'],
     [{ ...projection, edges: [{ ...edge, kind: 'circle' }] }, target, 'DATUM_TARGET_UNSUPPORTED'],
     [{ ...projection, edges: [{ ...edge, ends: null }] }, target, 'DATUM_TARGET_UNSUPPORTED'],
     [projection, { ...target, point: { ...target.point, near: [0, Infinity, 0] } }, 'DATUM_TARGET_INVALID'],
+    [projection, { ...target, point: { edge: target.point.edge, at: 'end', near: [63, 0, 0] } }, 'DATUM_TARGET_UNVERIFIED'],
+    [projection, { ...maximum, point: { ...maximum.point, was: 'previous-edge' } }, 'DATUM_TARGET_UNVERIFIED'],
   ];
   for (const [view, item, code] of cases) {
     const result = resolveDatumTarget(view, item);
@@ -73,6 +106,49 @@ test('DR6 endpoint targets: current literal 3D endpoints replace the hint; missi
     if (!result.ok) assert.equal(result.code, code);
   }
   assert.deepEqual(target.point.near, [1, 0, 0]);
+
+  const noEvaluate = async () => { assert.fail('the reference unit fixture must not evaluate geometry'); };
+  const noTables = () => { assert.fail('the reference unit fixture has no external part'); };
+  const unsigned: DrawingDatumTarget = { ...maximum, point: { edge: maximum.point.edge, at: 'end', endpoint: 'max', near: [63, 0, 0] } };
+  const original: StudioDoc = { ...starterDoc(), drawing: { ...defaultDrawing(), datumTargets: [unsigned] } }, before = structuredClone(original);
+  const body = lineBody([0, 0, 0], [64, 0, 0]);
+  const captured = captureSignatures(original, [body], noTables), signed = captured.drawing!.datumTargets![0];
+  assert.deepEqual(signed.point.sig, { k: 'line', p: [32, 0, 0], d: [1, 0, 0], s: 64 });
+  assert.equal(signed.point.endpoint, 'max');
+  assert.deepEqual(original, before, 'capture copies the target point rather than mutating the original document');
+  assert.equal(referencesOf(captured, true).refs.length, 1, 'a target-only drawing enters the common Ref enumeration');
+  const valid = await verifyReferences(captured, [body], noEvaluate, noTables);
+  assert.deepEqual(valid.changes, []); assert.deepEqual(valid.problems, []);
+  for (const current of [lineBody([100, 0, 0], [164, 0, 0]), lineBody([0, 0, 0], [200, 0, 0]), lineBody([100, 0, 0], [100, 64, 0]), lineBody([0, 0, 0], [64, 0, 0], 'renamed-edge')]) {
+    const checked = await verifyReferences(captured, [current], noEvaluate, noTables);
+    assert.deepEqual(checked.changes, [], 'target verification does not automatically substitute another edge name');
+    assert.equal(checked.problems.length, 1);
+    assert.equal(checked.problems[0].name, target.point.edge);
+    assert.deepEqual(checked.doc.drawing?.datumTargets, captured.drawing?.datumTargets);
+  }
+  const refreshed = await refreshSignatures(captured, [lineBody([100, 0, 0], [164, 0, 0])], noEvaluate, noTables);
+  assert.deepEqual(refreshed.drawing?.datumTargets, captured.drawing?.datumTargets, 'refresh cannot bless a changed exact edge');
+  assert.deepEqual(await candidatesFor(captured, 0, [body], noEvaluate, 4, noTables), []);
+  assert.equal(await confirmReference(captured, 0, [body], noEvaluate, 'renamed-edge', noTables), captured, 'generic confirmation cannot replace explicit endpoint selection');
+  for (const item of [unsigned, { ...signed, point: { ...signed.point, was: 'previous-edge' } }]) {
+    const doc = { ...captured, drawing: { ...captured.drawing!, datumTargets: [item] } };
+    const checked = await verifyReferences(doc, [body], noEvaluate, noTables);
+    assert.equal(checked.problems.length, 1);
+    assert.deepEqual(checked.changes, []);
+    assert.deepEqual(checked.doc.drawing?.datumTargets, [item]);
+  }
+  const nearOnly: DrawingDatumTarget = { ...unsigned, point: { edge: unsigned.point.edge, at: 'end', near: [63, 0, 0] } };
+  const legacy = { ...original, drawing: { ...original.drawing!, datumTargets: [nearOnly] } };
+  assert.deepEqual(captureSignatures(legacy, [body], noTables).drawing?.datumTargets, [nearOnly], 'capture must not sign a legacy endpoint guess');
+  const checkedLegacy = await verifyReferences(legacy, [body], noEvaluate, noTables);
+  assert.equal(checkedLegacy.problems.length, 1); assert.deepEqual(checkedLegacy.changes, []);
+  const reopenedLegacy = await readStudioFile(encodeStudioFile(legacy));
+  assert.ok('doc' in reopenedLegacy);
+  assert.deepEqual(reopenedLegacy.doc.drawing?.datumTargets, [nearOnly], 'the real codec preserves a legacy unsigned selection without upgrading it');
+  const markedUnsigned = { ...unsigned, point: { ...unsigned.point, was: 'previous-edge' } };
+  const markedDoc = { ...original, drawing: { ...original.drawing!, datumTargets: [markedUnsigned] } };
+  assert.deepEqual(captureSignatures(markedDoc, [body], noTables).drawing?.datumTargets, [markedUnsigned], 'capture cannot sign an unconfirmed substitution');
+  assert.deepEqual(original, before);
 });
 
 test('DR6 endpoint targets: a scope change cannot silently retarget a sheet with a saved point target', () => {
@@ -86,12 +162,19 @@ test('DR6 endpoint targets: drawing.set and the real file codec preserve sheet/P
   const doc = starterDoc(), first = inputOf(doc);
   const current = first.views.front.edges.find(e => e.kind === 'line' && e.circle === null && e.ends?.some(p => p.every(v => v === 0)) && e.ends.some(p => p[0] === 64 && p[1] === 0 && p[2] === 0));
   assert.ok(current, 'the 64 by 32 by 8 starter has a real straight edge from [0,0,0] to [64,0,0]');
-  const authored: DrawingDatumTarget = { ...target, point: { edge: current.name, at: 'end', near: [1, 0, 0] } };
-  const moving: DrawingDatumTarget = { ...authored, id: 'point-a2', number: 2, place: [76, 16], point: { ...authored.point, near: [63, 0, 0] } };
-  const legacyDatum = { id: authored.id, letter: 'B', view: 'front' as const, place: [-20, 20] as [number, number], edge: { edge: current.name, near: [0, 0, 0] as [number, number, number] } };
-  const applied = runDrawingTool(doc, 'set_drawing', { datums: [legacyDatum], datumTargets: [authored, moving] });
+  const authoredInput: DrawingDatumTarget = { ...target, point: { edge: current.name, at: 'end', endpoint: 'min', near: [1, 0, 0] } };
+  const movingInput: DrawingDatumTarget = { ...authoredInput, id: 'point-a2', number: 2, place: [76, 16], point: { ...authoredInput.point, endpoint: 'max', near: [63, 0, 0] } };
+  const legacyDatum = { id: authoredInput.id, letter: 'B', view: 'front' as const, place: [-20, 20] as [number, number], edge: { edge: current.name, near: [0, 0, 0] as [number, number, number] } };
+  const applied = runDrawingTool(doc, 'set_drawing', { datums: [legacyDatum], datumTargets: [authoredInput, movingInput] });
   if ('error' in applied) assert.fail(applied.error);
-  const opened = await readStudioFile(encodeStudioFile(applied.doc));
+  const evaluated = evaluatePart(doc, 1);
+  assert.ok(evaluated.ok, 'capture uses the actual evaluated starter bodies');
+  const appliedBefore = structuredClone(applied.doc), captured = captureSignatures(applied.doc, evaluated.bodies);
+  const [authored, moving] = captured.drawing!.datumTargets!;
+  assert.ok(authored.point.sig && moving.point.sig, 'both explicit endpoint selections enter the actual reference capture path');
+  assert.deepEqual(authored.point.sig.p, [32, 0, 0]); assert.equal(authored.point.sig.s, 64);
+  assert.deepEqual(applied.doc, appliedBefore);
+  const opened = await readStudioFile(encodeStudioFile(captured));
   assert.ok('doc' in opened, 'the actual Studio container reopens');
   assert.deepEqual(opened.doc.drawing?.datumTargets, [authored, moving]);
   assert.deepEqual(opened.doc.drawing?.datums, [legacyDatum]);
@@ -120,7 +203,10 @@ test('DR6 endpoint targets: drawing.set and the real file codec preserve sheet/P
   const widened: StudioDoc = { ...opened.doc, nodes: opened.doc.nodes.map((node, index): StudioDoc['nodes'][number] => index === 0 && node.kind === 'sketch' && node.profile === 'rectangle' ? { ...node, max: [80, 32] } : node) };
   const changed = inputOf(widened), changedContext = issueContext(changed);
   const changedPmi = modelAnnotations({ ...changed, layout: changedContext.layout, sheet: changedContext.sheet });
-  assert.deepEqual(changedPmi.items.find(a => a.id === moving.id)?.targets, [{ at: [80, 0, 0], edge: current.name }], 'the same stored target follows the current endpoint after a real sketch width edit');
+  assert.ok(changed.views.front.edges.some(e => e.name === current.name && e.ends?.some(p => p[0] === 80 && p[1] === 0 && p[2] === 0)), 'the actual sketch width edit reaches 80 mm');
+  assert.ok(!changedPmi.items.some(a => a.id === moving.id), 'a changed source signature does not silently bless a current endpoint');
+  assert.ok(changedPmi.left.some(a => a.id === moving.id && a.code === 'DATUM_TARGET_UNVERIFIED'));
+  assert.ok(drawingIssues(changedContext).some(i => i.code === 'DATUM_TARGET_UNVERIFIED'));
   assert.deepEqual(widened.drawing?.datumTargets, [authored, moving], 'the saved selection hints are not replaced with sampled geometry');
 
   for (const [rows, code] of [[[{ ...authored, point: { ...authored.point, edge: 'missing-edge' } }], 'DATUM_TARGET_LOST'], [[authored, { ...authored, id: 'other' }], 'DATUM_TARGET_DUPLICATE']] as const) {

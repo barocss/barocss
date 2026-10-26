@@ -11,6 +11,8 @@ import { drawsMadeOnly } from '@barocss/cad-model/drawing/scope';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { signaturesOf } from '@barocss/cad-model/engine/rematch';
+import { toSig } from '@barocss/cad-model/engine/references';
 import { modelAnnotations } from '@barocss/cad-model/drawing/annotations3d';
 
 
@@ -47,7 +49,7 @@ import { TolerancingList } from './drawing/TolerancingList';
 import { DimensionsList } from './drawing/DimensionsList';
 import { DatumsEditor } from './drawing/DatumsEditor';
 import { DatumTargetsEditor } from './drawing/DatumTargetsEditor';
-import { checkDatumTargetOptions, resolveDatumTarget, type DrawingDatumTarget } from '@barocss/cad-model/drawing/datumTargets';
+import { checkDatumTargetOptions, datumTargetConflicts, datumTargetEndpoint, resolveDatumTarget, type DrawingDatumTarget } from '@barocss/cad-model/drawing/datumTargets';
 import { FrameEditor } from './drawing/FrameEditor';
 import { ToleranceEditor } from './drawing/ToleranceEditor';
 import { NotesList } from './drawing/NotesList';
@@ -86,7 +88,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   referencePreview?: DrawingReferencePreview | null; onReferenceLabels?(labels: readonly DrawingReferenceLabel[]): void;
 }) {
   // (The sheet's pipeline, shared with the viewport's 3D annotations, G24: views, layout, sheet and what they are built from.)
-  const { source, scopeRead, scope, scopeKey, doc, model, currentModel, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, fitMissOf, followedChanged, threads, bom, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName });
+  const { source, scopeRead, scope, scopeKey, doc, model, currentModel, bodies, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, fitMissOf, followedChanged, threads, bom, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName });
   const onChange = (next: DrawingSettings) => {
     if (!scopeRead.scope) { onToast({ title: 'Drawing scope unchanged', hint: scopeRead.error ?? 'Invalid drawing scope', detail: '' }); return; }
     sourceOnChange({ ...next, scope: next.scope ?? scopeRead.scope });
@@ -98,6 +100,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const [selected, setSelected] = useState<string | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
   const [targetChoices, setTargetChoices] = useState<DrawingDatumTarget[]>([]);
+  const [reselectTarget, setReselectTarget] = useState<DrawingDatumTarget | null>(null);
   useEffect(() => { if (selected !== null) setSelectedTarget(null); }, [selected]);
   const [message, setMessage] = useState<string | null>(null);
   const [drag, setDrag] = useState<{ id: string; place: XY } | { target: string; original: DrawingDatumTarget; place: XY } | { note: string; at: XY; grab: XY } | { detail: string; at: XY; grab: XY } | { removed: string; at: XY; grab: XY } | { pan: XY; box: [number, number, number, number] } | null>(null);
@@ -115,7 +118,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   }, [typeNote, shownNote]);
   const svg = useRef<SVGSVGElement>(null);
   useEffect(() => {
-    setPending(null); setSelected(null); setSelectedTarget(null); setTargetChoices([]); setHover(null); setDrag(null); setNoteDraft(null); setTolDraft({});
+    setPending(null); setSelected(null); setSelectedTarget(null); setTargetChoices([]); setReselectTarget(null); setHover(null); setDrag(null); setNoteDraft(null); setTolDraft({});
   }, [scopeKey]);
 
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
@@ -182,7 +185,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const referenceDimensionId = referenceInspection?.dimensionId ?? null;
   useEffect(() => {
     if (!referencePreview) return;
-    setSelected(referenceDimensionId); setSelectedTarget(null); setTargetChoices([]); setTool('select'); setPending(null);
+    setSelected(referenceDimensionId); setSelectedTarget(null); setTargetChoices([]); setReselectTarget(null); setTool('select'); setPending(null);
   }, [referencePreview, referenceDimensionId]);
   const sheetMarkup = useMemo(() => sheet ? sheetGroupsSvg(sheet, selected, selectedTarget) : '', [sheet, selected, selectedTarget]);
   const [W, H] = layout?.size ?? [297, 210];
@@ -233,12 +236,26 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const commitDims = (dimensions: DrawingDimension[]) => onChange({ ...settings, dimensions });
   const commitTargets = (datumTargets: DrawingDatumTarget[]) => {
     if (!scopeRead.scope) { setMessage(scopeRead.error ?? 'Invalid drawing scope.'); return false; }
-    const why = checkDatumTargetOptions({ datumTargets })[0];
+    if (datumTargets.length > 200 || datumTargetConflicts(datumTargets).size) { setMessage('Point targets need at most 200 rows with unique IDs and letter-number pairs.'); return false; }
+    // Saved legacy rows may remain untouched while one row is explicitly repaired. New objects stay strict.
+    const existing = new Set(settings.datumTargets ?? []), changed = datumTargets.filter(row => !existing.has(row));
+    const why = checkDatumTargetOptions({ datumTargets: changed })[0];
     if (why) { setMessage(why.message); return false; }
     onChange({ ...settings, datumTargets }); setPending(null); setTargetChoices([]); return true;
   };
-  const cancel = () => { setPending(null); setTargetChoices([]); setMessage(null); };
+  const cancel = () => { setPending(null); setTargetChoices([]); setReselectTarget(null); setMessage(null); };
   const chooseTarget = (target: DrawingDatumTarget, moving = false) => {
+    if (reselectTarget && !moving) {
+      const current = (settings.datumTargets ?? []).filter(row => row.id === reselectTarget.id);
+      if (!views || busy || current.length !== 1 || current[0] !== reselectTarget) { setMessage('The target changed or its current drawing is not ready. Select Reselect endpoint again.'); return; }
+      const next = { ...reselectTarget, point: target.point }, resolved = resolveDatumTarget(views[next.view], next);
+      if (!resolved.ok) { setMessage(`${resolved.code}: ${resolved.reason}`); return; }
+      if (commitTargets(settings.datumTargets!.map(row => row === reselectTarget ? next : row))) {
+        setReselectTarget(null); setTool('select'); setSelected(null); setSelectedTarget(next.id); setMessage(null);
+      }
+      return;
+    }
+    setReselectTarget(null);
     setTargetChoices([]); setPending({ kind: 'datum-target', view: target.view, target, moving });
     setMessage('Click where the target symbol goes. Esc cancels.');
   };
@@ -261,12 +278,16 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         return;
       }
       if (!isViewId(h.view)) { setMessage('Point targets use a base view. Select a straight edge endpoint.'); return; }
+      if (reselectTarget && h.view !== reselectTarget.view) { setMessage(`Select a current endpoint in the target's ${reselectTarget.view} view.`); return; }
+      if (!bodies) { setMessage('Wait for the current drawing bodies before selecting a target endpoint.'); return; }
       const rows = settings.datumTargets ?? [];
-      if (rows.length >= 200) { setMessage('A drawing can contain up to 200 point targets.'); return; }
+      if (!reselectTarget && rows.length >= 200) { setMessage('A drawing can contain up to 200 point targets.'); return; }
       const pr = views[h.view], placement = layout!.views[h.view];
       let n = 1; while (rows.some(t => t.letter === 'A' && t.number === n)) n++;
       let id = 'target-1', k = 2; while (rows.some(t => t.id === id)) id = `target-${k++}`;
-      const candidates = endpointSnap(pr, h.at, 9 * mmPerPx() / placement.scale).map(point => ({ id, letter: 'A', number: n, view: h.view as ViewId, place: [...h.at] as XY, point }));
+      const picked = endpointSnap(pr, h.at, 9 * mmPerPx() / placement.scale, bodies);
+      if (picked.error) { setMessage(picked.error); return; }
+      const candidates = picked.points.map(point => reselectTarget ? { ...reselectTarget, point } : { id, letter: 'A', number: n, view: h.view as ViewId, place: [...h.at] as XY, point });
       if (!candidates.length) { setMessage('Select a visible straight edge endpoint. Circle centres and curved edges are not supported.'); return; }
       if (candidates.length > 1) { setTargetChoices(candidates); setMessage('Endpoints overlap here. Choose the exact edge and endpoint in Point datum targets.'); return; }
       const resolved = resolveDatumTarget(pr, candidates[0]);
@@ -466,7 +487,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement || e.metaKey || e.ctrlKey) return;
-      if (e.key === 'Escape') { if (pending || targetChoices.length) cancel(); else { setSelected(null); setSelectedTarget(null); setTool('select'); } return; }
+      if (e.key === 'Escape') { if (pending || targetChoices.length || reselectTarget) cancel(); else { setSelected(null); setSelectedTarget(null); setTool('select'); } return; }
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedTarget) {
         e.preventDefault();
         if (commitTargets((settings.datumTargets ?? []).filter(t => t.id !== selectedTarget))) setSelectedTarget(null);
@@ -666,7 +687,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       <aside className="card dw-panel" aria-label="Drawing settings">
         {referenceInspection && <div role="status" aria-label="Reference preview" style={{ marginBottom: 8 }}>{referenceInspection.message}</div>}
         <SheetSettings sheet={{ scopeRead, scope, views, layout, sectionA, sectionList, cutA, cutsMade, hasSheet, hasFrame, kinds, hasBought, doc, title, busy }} settings={settings} sourceDoc={sourceDoc} fileName={fileName} onChange={onChange} onToast={onToast}
-          onScopeChanged={() => { setPending(null); setSelected(null); setSelectedTarget(null); setTargetChoices([]); setHover(null); setDrag(null); }} turnTo={turnTo} />
+          onScopeChanged={() => { setPending(null); setSelected(null); setSelectedTarget(null); setTargetChoices([]); setReselectTarget(null); setHover(null); setDrag(null); }} turnTo={turnTo} />
 
         <DetailsList settings={settings} sheet={sheet} layout={layout} onChange={onChange} />
 
@@ -675,7 +696,9 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         <DatumsEditor settings={settings} views={views} scale={layout?.scale ?? 1} onChange={onChange} onRefused={setMessage} />
 
         <DatumTargetsEditor settings={settings} views={busy ? null : views} hiddenViews={VIEW_IDS.filter(id => !!layout?.views[id].hidden)} selected={selectedTarget} choices={targetChoices} onChoose={chooseTarget} onSelect={id => { setSelectedTarget(id); setSelected(null); setTool('select'); cancel(); }}
-          onAdd={() => { setTool('datum-target'); cancel(); }} onMove={target => { setTool('datum-target'); chooseTarget(target, true); }} onCommit={commitTargets} onRefused={setMessage} />
+          onAdd={() => { setTool('datum-target'); cancel(); }} onMove={target => { setTool('datum-target'); chooseTarget(target, true); }}
+          onReselect={target => { cancel(); if (layout?.views[target.view].hidden) { setMessage('Show the target view before selecting its endpoint again.'); return; } setTool('datum-target'); setReselectTarget(target); setSelected(null); setSelectedTarget(target.id); setMessage(`Select the target endpoint again in the ${target.view} view. Its symbol position will be kept. Esc cancels.`); }}
+          onCommit={commitTargets} onRefused={setMessage} />
 
         <IssuesList issues={issues} scope={scope} views={views} fixIssue={fixIssue} fixEvery={fixEvery} onSelectDimension={d => { setSelected(d); setTool('select'); }} />
 
@@ -702,20 +725,28 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
 }
 
 /** Keep every visible straight-edge endpoint near the pointer. A 2D overlap is a choice, not a 3D match. */
-function endpointSnap(pr: DrawingViews[ViewId], at: XY, tolerance: number): DrawingDatumTarget['point'][] {
+function endpointSnap(pr: DrawingViews[ViewId], at: XY, tolerance: number, bodies: readonly BodyResult[]): { points: DrawingDatumTarget['point'][]; error?: string } {
   const out: DrawingDatumTarget['point'][] = [];
   for (const edge of pr.edges) {
     if (edge.kind !== 'line' || edge.circle || !edge.ends || !edge.pieces.some(piece => piece.visible)) continue;
     // Apply the existing snap routine per edge so it cannot discard another edge's overlapping endpoint.
     const nearby = snapPoints({ ...pr, edges: [edge] }).some(snap => snap.ref.at === 'end' && Math.hypot(snap.at[0] - at[0], snap.at[1] - at[1]) < tolerance);
     if (!nearby) continue;
+    const matches = bodies.flatMap(body => body.mesh.edges.filter(e => e.names.includes(edge.name)).map(e => ({ body, edge: e })));
+    if (matches.length !== 1 || !matches[0].edge.straight) return { points: [], error: 'The target edge needs one current straight edge in the drawing bodies. No target was added.' };
+    const signature = signaturesOf(matches[0].body).edges.get(edge.name);
+    if (!signature || signature.kind !== 'line') return { points: [], error: 'The current target edge has no unique straight-edge signature. No target was added.' };
     // A view along the edge can project both 3D ends to the same 2D snap. Keep both choices.
     for (const point of edge.ends) {
       const q = inView(pr, point);
-      if (Math.hypot(q[0] - at[0], q[1] - at[1]) < tolerance) out.push({ edge: edge.name, at: 'end', near: [...point] as Vec3 });
+      if (Math.hypot(q[0] - at[0], q[1] - at[1]) < tolerance) {
+        const endpoint = datumTargetEndpoint(edge.ends, point);
+        if (!endpoint) return { points: [], error: 'The current target endpoint has no distinct min/max identity. No target was added.' };
+        out.push({ edge: edge.name, at: 'end', near: [...point] as Vec3, endpoint, sig: toSig(signature) });
+      }
     }
   }
-  return out;
+  return { points: out };
 }
 
 /** A dimension point in a view's coordinates, by its stored model point (it may since have moved). */

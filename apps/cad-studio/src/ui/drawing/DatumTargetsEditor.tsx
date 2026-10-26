@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CONTROL, FIELD } from './sheetShared';
 
-export function DatumTargetsEditor({ settings, views, hiddenViews, selected, choices, onChoose, onSelect, onAdd, onMove, onCommit, onRefused }: {
+export function DatumTargetsEditor({ settings, views, hiddenViews, selected, choices, onChoose, onSelect, onAdd, onMove, onReselect, onCommit, onRefused }: {
   settings: DrawingSettings; views: DrawingViews | null; hiddenViews: ViewId[]; selected: string | null; choices: DrawingDatumTarget[];
   onChoose(target: DrawingDatumTarget): void; onSelect(id: string): void; onAdd(): void; onMove(target: DrawingDatumTarget): void;
+  onReselect(target: DrawingDatumTarget): void;
   onCommit(rows: DrawingDatumTarget[]): boolean; onRefused(message: string): void;
 }) {
   const rows = settings.datumTargets ?? [];
@@ -27,14 +28,14 @@ export function DatumTargetsEditor({ settings, views, hiddenViews, selected, cho
       })}
     </div>}
     {rows.map((target, index) => <TargetRow key={`${index}:${target.id}`} target={target} views={views} hidden={hiddenViews.includes(target.view)} conflict={conflicts.has(target)} selected={selected === target.id}
-      onSelect={() => onSelect(target.id)} onMove={() => onMove(target)} onRemove={() => onCommit(rows.filter((_, i) => i !== index))}
+      onSelect={() => onSelect(target.id)} onMove={() => onMove(target)} onReselect={() => onReselect(target)} onRemove={() => onCommit(rows.filter((_, i) => i !== index))}
       onEdit={next => onCommit(rows.map((row, i) => i === index ? next : row))} />)}
     {rows.length > 0 && <Button variant="ghost" size="xs" onClick={() => onCommit([])}>Clear point targets</Button>}
   </details>;
 }
 
-function TargetRow({ target, views, hidden, conflict, selected, onSelect, onMove, onRemove, onEdit }: {
-  target: DrawingDatumTarget; views: DrawingViews | null; hidden: boolean; conflict: boolean; selected: boolean; onSelect(): void; onMove(): void; onRemove(): void; onEdit(target: DrawingDatumTarget): boolean;
+function TargetRow({ target, views, hidden, conflict, selected, onSelect, onMove, onReselect, onRemove, onEdit }: {
+  target: DrawingDatumTarget; views: DrawingViews | null; hidden: boolean; conflict: boolean; selected: boolean; onSelect(): void; onMove(): void; onReselect(): void; onRemove(): void; onEdit(target: DrawingDatumTarget): boolean;
 }) {
   const [draft, setDraft] = useState<{ letter: string; number: string } | null>(null);
   const resolved = views && resolveDatumTarget(views[target.view], target);
@@ -44,7 +45,9 @@ function TargetRow({ target, views, hidden, conflict, selected, onSelect, onMove
     {hidden && <div className="text-[11px]">This view is hidden. Show it before moving the symbol.</div>}
     <details className="text-[11px]"><summary>Reference details</summary>
       <div className="break-all">Edge: {target.point.edge}</div>
+      <div>Endpoint identity: {target.point.endpoint ?? 'Not recorded'}</div>
       <div>Saved endpoint hint [{target.point.near.join(', ')}] mm</div>
+      {target.point.was !== undefined && <div>Reference needs confirmation: {target.point.was}</div>}
       <div>Symbol position [{target.place.join(', ')}] view mm</div>
       {conflict && <div>DATUM_TARGET_DUPLICATE</div>}
       {resolved && !resolved.ok && <div>{resolved.code}</div>}
@@ -57,6 +60,7 @@ function TargetRow({ target, views, hidden, conflict, selected, onSelect, onMove
       if (draft && onEdit({ ...target, letter: draft.letter, number: draft.number.trim() ? Number(draft.number) : NaN })) setDraft(null);
     }}>Apply target label</Button>
     <Button variant="ghost" size="xs" disabled={hidden || conflict || !resolved?.ok} onClick={onMove}>Move symbol</Button>
+    <Button variant="ghost" size="xs" aria-label={`Reselect endpoint for target ${target.letter}${target.number}`} disabled={!views || conflict} onClick={onReselect}>Reselect endpoint</Button>
     <Button variant="ghost" size="xs" aria-label={`Remove target ${target.letter}${target.number}`} onClick={onRemove}>Remove</Button>
   </div>;
 }
