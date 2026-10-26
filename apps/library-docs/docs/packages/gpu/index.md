@@ -98,6 +98,38 @@ package's own browser tests drive it in Chrome.
   - 4× MSAA, exposure and ACES tone mapping in a linear half-float pipeline.
   - Clip planes and cap hatching for sections.
 
+### Capture pixels and release the viewer
+
+`viewer.capture()` draws a frame and returns a promise for `{ width, height, data }`. The dimensions are
+`canvas.width` and `canvas.height`: canvas backing pixels, not CSS pixels or model units. `data` is a
+`Uint8Array` of packed RGBA bytes. Rows run from top to bottom; each pixel has four consecutive bytes.
+
+| Returned data | Byte layout |
+| --- | --- |
+| One pixel at `(x, y)` | R, G, B, A at offsets `4 * (y * width + x)` through `4 * (y * width + x) + 3` |
+| One row | `width * 4` bytes, with no row padding in the returned array |
+| A 640 × 480 backing image | `640 * 480 * 4 = 1,228,800` bytes |
+
+![Calculated RGBA row layout for a 640 by 480 backing image; this is not an API capture](/diagrams/capture-rows.svg)
+
+[Open the byte layout at full size](/diagrams/capture-rows.svg).
+
+The renderer removes GPU readback row padding and converts BGRA to RGBA when needed. The result is raw
+pixels, not a PNG file. A caller must encode them to create an image file. Studio's image export adds that
+encoding step with `ImageData` and an `OffscreenCanvas`.
+
+| Method | Caller action and result |
+| --- | --- |
+| `requestRender()` | Request a draw after changing public camera or light fields. Built-in scheduling combines requests into one frame. With `onRequestRender`, each request calls that callback instead. |
+| `frame()` | Request a frame and return `Promise<void>` for the frame waiter. It can also resolve after GPU-work failure or disposal; it returns no image bytes. |
+| `capture()` | Draw and read the RGBA bytes; handle its asynchronous failure separately. |
+| `dispose()` | Release the viewer when its canvas is no longer needed. Repeated calls are safe. |
+
+`dispose()` cancels scheduled work, removes controls and resize observation, and releases GPU resources.
+After disposal, `capture()` rejects with `DISPOSED`, while `requestRender()` returns without scheduling work.
+Disposal also releases pending frame waiters; a resolved `frame()` promise alone is not proof of a successful
+capture. Keep the viewer alive until operations that need it have finished.
+
 ### Depth of field
 
 The low-level viewer accepts `environment.depthOfField` as `false` or `{ focus, blur? }`:

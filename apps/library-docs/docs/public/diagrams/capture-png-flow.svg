@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="460" viewBox="0 0 900 460" role="img" aria-labelledby="title desc">
+  <title id="title">Studio image export: raw pixels, PNG Blob, then browser download</title>
+  <desc id="desc">Conceptual source flow, not a new API capture or rendered test result. GPU capture draws a frame and returns width and height in backing pixels and a new Uint8Array of RGBA rows from top to bottom. Studio encodes those pixels into an image/png Blob, then requests a named PNG browser download. A 640 by 480 backing canvas has 1228800 raw bytes; compressed PNG file size is separate. Missing capture support returns null and shows a message. Readback or encoding rejection is an error, not a null image. Still export does not pause playback or attach a time or document revision, and has no STL-style preparation cancel or stale-design guard.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#52677d"/></marker></defs>
+  <rect width="900" height="460" rx="12" fill="#f8fafc"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#192c40">
+    <text x="450" y="32" text-anchor="middle" font-size="24" font-weight="700">Pixels are not a PNG file</text>
+    <text x="450" y="60" text-anchor="middle">Pause playback and choose the view before exporting a still.</text>
+    <g fill="none" stroke="#52677d" stroke-width="2" marker-end="url(#arrow)">
+      <path d="M280 166H310"/><path d="M590 166H620"/>
+    </g>
+    <rect x="20" y="91" width="260" height="153" rx="9" fill="#e7efff" stroke="#839cbd"/>
+    <text x="150" y="119" text-anchor="middle" font-weight="700">1 · GPU capture()</text>
+    <text x="150" y="149" text-anchor="middle">Draw a frame → read RGBA</text>
+    <text x="150" y="177" text-anchor="middle">{ width, height, data }</text>
+    <text x="150" y="205" text-anchor="middle">New Uint8Array · top row first</text>
+    <text x="150" y="231" text-anchor="middle">No file written</text>
+    <rect x="310" y="91" width="280" height="153" rx="9" fill="#edf0ff" stroke="#939ac2"/>
+    <text x="450" y="119" text-anchor="middle" font-weight="700">2 · Studio encodes PNG</text>
+    <text x="450" y="149" text-anchor="middle">ImageData → OffscreenCanvas</text>
+    <text x="450" y="177" text-anchor="middle">Blob: image/png</text>
+    <text x="450" y="205" text-anchor="middle">Compressed file bytes</text>
+    <text x="450" y="231" text-anchor="middle">No file written yet</text>
+    <rect x="620" y="91" width="260" height="153" rx="9" fill="#e3f2e9" stroke="#7fa48d"/>
+    <text x="750" y="119" text-anchor="middle" font-weight="700">3 · Export image</text>
+    <text x="750" y="149" text-anchor="middle">Blob → download bytes</text>
+    <text x="750" y="177" text-anchor="middle">Browser download: &lt;name&gt;.png</text>
+    <text x="750" y="205" text-anchor="middle">App owns this request</text>
+    <text x="750" y="231" text-anchor="middle">Not a raw capture API side effect</text>
+    <rect x="20" y="263" width="860" height="55" rx="9" fill="#edf3f8"/>
+    <text x="450" y="286" text-anchor="middle">Backing pixels, not CSS size or model mm: 640 × 480 × 4 = 1,228,800 raw bytes.</text>
+    <text x="450" y="309" text-anchor="middle">This calculation does not predict the compressed PNG size.</text>
+    <rect x="20" y="334" width="860" height="58" rx="9" fill="#fff1e9" stroke="#bd9879"/>
+    <text x="450" y="358" text-anchor="middle">No capture support → null + Studio message. Readback/encoding rejection → error.</text>
+    <text x="450" y="382" text-anchor="middle">No automatic pause, time/revision stamp, or STL-style cancel/stale check.</text>
+    <text x="450" y="420" text-anchor="middle">Keep the editable model and capture context separately.</text>
+    <text x="450" y="448" text-anchor="middle">Conceptual source flow · not a new API result, renderer test or physical validation</text>
+  </g>
+</svg>

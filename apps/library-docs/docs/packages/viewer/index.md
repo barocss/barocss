@@ -76,6 +76,34 @@ The host writes the returned text to a file and supplies file text to `openRevie
 read/write errors and file-size limits. It also disposes the Viewer when finished. Loading and applying can throw;
 show the error and keep the review file for correction rather than treating a failed Open as a new accepted view.
 
+## Host lifetime
+
+The host owns the Viewer and any pointer or keyboard control handles it attaches. Before removing the canvas
+or replacing its Viewer, stop the host's callbacks, dispose each control handle, then call `viewer.dispose()`.
+Disposing the Viewer does not remove the listeners installed by those separate control handles.
+
+Both control-handle disposal and `viewer.dispose()` can be called again without repeating their cleanup.
+After Viewer disposal, `getState().status` is `disposed`; `captureReviewState()` and `applyReviewState()` refuse
+that instance. Create and load a new Viewer before offering review Save/Open again.
+
+A host can keep this cleanup callback with its canvas owner:
+
+```ts
+import type { Viewer, ViewerPointerControls, ViewerKeyboardControls } from '@barocss/viewer';
+
+export function reviewCleanup(
+  viewer: Viewer,
+  pointer: ViewerPointerControls,
+  keyboard?: ViewerKeyboardControls,
+): () => void {
+  return () => {
+    pointer.dispose();
+    keyboard?.dispose();
+    viewer.dispose();
+  };
+}
+```
+
 ## What the file binds to
 
 The format is `schema: 'barocss-viewer-review'`, `version: 1`. Its fields are `scene`, `camera`, `visibleGeometry`

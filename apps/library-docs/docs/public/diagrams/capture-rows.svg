@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="430" viewBox="0 0 960 430" role="img" aria-labelledby="title desc">
+<title id="title">Packed RGBA rows in a 640 × 480 capture</title>
+<desc id="desc">Calculated byte layout, not an API capture. Four bytes per pixel and 2560 bytes per row. There are 1228800 bytes in all. Pixel x 2 y 1 starts at offset 2568.</desc>
+<rect width="960" height="430" fill="#f8fafc"/>
+<g font-family="system-ui,sans-serif" fill="#182638">
+<text x="36" y="42" font-size="24" font-weight="700">640 × 480 backing pixels → 1,228,800 bytes</text>
+<text x="36" y="70" font-size="15" fill="#475569">Calculated data layout · not a captured API image · no model-length unit</text>
+<rect x="36" y="96" width="888" height="48" rx="6" fill="#e0ecfa" stroke="#7d9ec5"/>
+<text x="54" y="126" font-size="17">Row y = 0</text><text x="320" y="126" font-size="17">Offsets 0 … 2,559</text><text x="714" y="126" font-size="17">2,560 bytes</text>
+<rect x="36" y="154" width="888" height="48" rx="6" fill="#d7f0ec" stroke="#548f86"/>
+<text x="54" y="184" font-size="17">Row y = 1</text><text x="320" y="184" font-size="17">Offsets 2,560 … 5,119</text><text x="714" y="184" font-size="17">2,560 bytes</text>
+<text x="465" y="230" font-size="24">⋮</text>
+<rect x="36" y="244" width="888" height="48" rx="6" fill="#e0ecfa" stroke="#7d9ec5"/>
+<text x="54" y="274" font-size="17">Row y = 479</text><text x="320" y="274" font-size="17">Offsets 1,226,240 … 1,228,799</text>
+<text x="36" y="329" font-size="17" font-weight="600">Pixel (x = 2, y = 1): 4 × (1 × 640 + 2) = 2,568</text>
+<g font-size="16" text-anchor="middle">
+<rect x="36" y="346" width="164" height="44" fill="#fee2e2" stroke="#bf7373"/><text x="118" y="374">R · offset 2,568</text>
+<rect x="200" y="346" width="164" height="44" fill="#dcfce7" stroke="#73a786"/><text x="282" y="374">G · offset 2,569</text>
+<rect x="364" y="346" width="164" height="44" fill="#dbeafe" stroke="#7b9ac4"/><text x="446" y="374">B · offset 2,570</text>
+<rect x="528" y="346" width="164" height="44" fill="#e2e8f0" stroke="#94a3b8"/><text x="610" y="374">A · offset 2,571</text>
+</g><text x="718" y="374" font-size="16">No returned row padding</text>
+</g></svg>
