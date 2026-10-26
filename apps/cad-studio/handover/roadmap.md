@@ -77,6 +77,30 @@ Model's inverse-dynamics torque calculation for prescribed angles, velocities an
 forward free-motion prediction from an initial angle. Neither that torque result nor a UI animation completes
 the planned pendulum experiment. Physics ownership is still unconfirmed; this roadmap assigns no new solver work.
 
+## CAD-to-simulation handoff: issue 2209 planning boundary
+
+Reference [issue 2209](https://github.com/barocss/barocss/issues/2209) after the current editable-CAD,
+setup, joint-input and two-link slices. It is research and planning, not authorization to install Intrinsic,
+add a runtime dependency, change Physics ownership or release an adapter. Native CAD parameters and feature
+history stay authoritative; visual meshes, collision shapes, URDF/USD and runtime scenes are derived assets
+bound to the same source revision. SimReady here is a proposed barocss contract, not NVIDIA certification or
+an established Intrinsic import schema.
+
+| Slice | Reuse and owner | Admission and completion boundary |
+|---|---|---|
+| SR0: compatibility and existing contracts | API coordinates existing Kernel/Outer/GPU/Docs evidence; issues 2189 and 2193 | Read actual owned paths and source/producer/dependency identities, link/joint/frame bindings and target capabilities. Record supported, approximate, unsupported and unknown fields before assigning implementation. No duplicate package or source of truth. |
+| SR1: runtime-free unit/frame/inertial checks | Reuse existing BRep/axis/R1 oracles and issue 2193 envelope | Check 100 mm to 0.1 m, mass g to kg and inertia g mm squared to kg m squared with factor 1e-9 exactly once. Use asymmetric fixtures for tensor rotation, COM reference and parallel axes. Refuse missing/double conversions, reflections treated as rotations, invalid tensors and unknown density. Exact source scope remains a future assignment. |
+| SR2: visual/collision and joint tree | Reuse issue 2189; keep external-asset import issue 2191 separate | Permit declared bounded approximations while checking frame, scale, revision and collider completeness. Reject cycles, self-parent, missing links, zero axes, reversed limits and unsupported dependent joints. Separate authored zero, preview, belief, simulated and measured states. |
+| SR3: derived-asset lifecycle and independent read-back | Reuse issues 2188, 2193, 2203 and 2204 | CAD changes invalidate dependent assets. Cancellation, duplicate or late results cannot replace accepted data. Export one admitted profile, read it independently and reopen after relocation; compare units, bounds, joints, inertials and asset paths/hashes. XML or STEP success is not runtime compatibility. |
+| IA0: optional Intrinsic decision | Issue 2209, after separate adoption review | Confirm actual import path and immutable runtime/CLI/container/asset identities, per-component terms, environment and limits. Check geometry, kinematics, dynamics and sim/belief separately; define geometry rebuild/reinitialization. Installation, deployment and real hardware remain outside this roadmap update. |
+
+Use geometry-only, kinematics-ready and dynamics-ready as distinct profiles. Required unknown physics or
+verification cannot be promoted to dynamics-ready. Existing experiment records do not silently migrate to a
+new schema. Preserve assumptions, density sources, coordinate conventions, losses and the first failures.
+The issue's research barocss commit and pinned Intrinsic commit are not this execution baseline or an import
+receipt. Intrinsic is not a CAD kernel, image-to-CAD reconstruction system or a prerequisite for current J2/R1.
+Physics ownership and the free-pendulum contract remain unresolved; no solver/profile change follows here.
+
 ## Completion gates for virtual experiments
 
 Use four separate gates for each bounded experiment. Record the supported inputs, predicted quantities, time range,
@@ -155,10 +179,16 @@ The actual-BRep rigid-frame regression is adopted in product `3475dccb`: two sel
 full inertia and pivot axes with authored density, and the required product docs check passed. No production
 calculation or unit changes were made for that test-only slice.
 
-This source adds the reviewed experiment-definition module, twelve test declarations and a settings-panel
-candidate. Setup Save/Open, input application, explicit run and explicit rebinding are separate operations.
-The complete source batch is ready for its first runtime checks; it is not yet verified or adopted. Existing
-result records, pinned comparison, document Save and Physics solvers keep their separate contracts.
+The experiment-definition module and settings panel were checked at source `a768266a`: twelve selected
+native tests, Model/Studio consumer types and changed-file lint passed. Real desktop setup Save/Open,
+input application, explicit run, mismatch refusal and rebinding were inspected; these remain separate
+operations. Reviewed public-inventory and documentation changes await their final source and product gates.
+Existing result records, pinned comparison, document Save and Physics solvers keep their separate contracts.
+
+The same source's public Sketch-to-Extrude and face-Sketch-to-Cut/Through-all flow passed in agent-browser:
+a 40 by 20 by 8 mm body, an internal 10 by 10 mm face profile, visible underside opening, Undo/Redo and
+real download/New/Open preserved the documents. Original tool failures remain separate. This is bounded
+screen/file evidence, not every-shape support or an independent mass/inertia validation.
 
 ### Near-term delivery ownership (2026-10-26)
 
