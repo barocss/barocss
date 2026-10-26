@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "status": "IN_PROGRESS_NOT_PAUSED_NOT_PUSHED",
+  "generatedUTC": "2026-10-26T05:06:36.876676+00:00",
+  "purpose": "Portable handoff snapshot; not a second execution queue. Reconcile actual refs and owners before resume.",
+  "productBeforeThisHandoffCommit": "f104745440effc54ad2c75b5bc043cbba7227495",
+  "productRequiredDocs": "PENDING_ENVIRONMENT_CAPACITY",
+  "aggregate": "1a7f22666189e7a20be9eb6c0e70ed8c9f72a678",
+  "remoteLastObserved": "16eabdd8e55ff3bb8cb77bfa2769e1e7049be715",
+  "featureBranch": "review/cad-gpu-engine-2026-10-14",
+  "quota": {
+    "coreUsed": 67,
+    "remaining": 33,
+    "secondary": null,
+    "pauseAtRemaining": 5,
+    "state": "ARMED_NOT_TRIGGERED"
+  },
+  "tasks": [
+    {
+      "id": "GPU-READBACK-SHARED-IMPACT-01",
+      "owner": "GPU",
+      "status": "ACCEPTED_SHARED_PRODUCT_MERGED_DOCS_PENDING",
+      "native": "b22e15c356c5e8c0bc0357f48c2a520a7ad27943",
+      "lintFix": "8110053b66757d3d1769a8bc95fafd124fcb456a",
+      "evidence": "Shared Viewer fresh emit56/actual inputs86 and focused CPU1 PASS; original regex lint FAIL, exact1file lint after fix PASS. Controlled actual GPU delayed-consumption experiment, not natural full performance proof."
+    },
+    {
+      "id": "CAD-SKETCH-ENTER-PRECISION-01",
+      "owner": "Outer",
+      "status": "ACCEPTED_SCOPED_NOT_PRODUCT_ADOPTED",
+      "native": "c463fea645a9a57b599a17a96f17d2fffce99b51",
+      "requested": 10.0000004,
+      "storedDriving": 10.0000004,
+      "independentLengthMM": 10.000000419678194,
+      "absoluteResidualMM": 1.967819507342483e-08,
+      "existingToleranceMM": 1e-07,
+      "fileRoundtripBytesEqual": false,
+      "fileDifferences": [
+        "node id",
+        "nextId"
+      ],
+      "originalFailure": "Driving became10 after Enter; residual -3.9958117348248834e-7. Preserved outside this small snapshot."
+    },
+    {
+      "id": "CAD-SKETCH-PRECISION-VALUE-VISIBILITY-01",
+      "owner": "Outer",
+      "status": "ADOPTED_SOURCE_BROWSER_NOTRUN_AVAILABILITY",
+      "native": "413d41b3b6841a41298e42f6be57a1d1b9c432fc",
+      "blocker": "served Panel8470 vs disk686; exact owned source refresh required, no query/cache workaround"
+    },
+    {
+      "id": "CAD-REVOLVE-ENDPOINT-ADMISSION-FIX-01",
+      "owner": "Kernel",
+      "status": "EXACT_SOURCE_ADOPTED_NEW_BUILD_PENDING",
+      "native": "e063a1dd372cf40e0ebb569f192bca130357b92b",
+      "original": "Build PASS, focused tests4PASS1FAIL at translated endpoint test80 GEOMETRY; volume NOT_REACHED",
+      "rejectedIntermediate": "61aa853769588a0bb0d59d0ccb5395d8ed03f00d",
+      "rule": "Keep original test80 coordinates/expected volume/tolerance; do not merge known-failing revolve to product as PASS"
+    },
+    {
+      "id": "CAD-TAP-DEPTH-DERIVED-ASSERTION-FIX-01",
+      "owner": "Drawings",
+      "status": "SOURCE_ADOPTED_NODE_NOTRUN_CAPACITY",
+      "native": "ec0523a8b04af90e9f0a30d40ceeec22860fad7b",
+      "original": "2PASS1FAIL: radius2.5000000000000004 vs2.5 strict equality; subsequent assertions NOT_REACHED",
+      "correction": "Only4derived model/paper mm comparisons abs<=1e-9; saved values/text/nominals/product tolerance unchanged",
+      "latestStage": "acquire75/wrapper75; no slot acquired, Node0, no test result"
+    },
+    {
+      "id": "CAD-NEXT-SKETCH-REFUSAL-DOCS-VERIFY-01",
+      "owner": "Docs",
+      "status": "CONDITIONAL_SOURCE_CHECKPOINT_WAIT",
+      "rule": "One check/site after final relevant source; mixed revolve prose must not imply failed runtime passed"
+    }
+  ],
+  "nextOrder": [
+    "Reconcile actual source/owner/gate capacity. Support holder consumes one slot; allowed must exceed holders, load<40 alone is insufficient.",
+    "Restore source availability through exact owner protocol when safe; keep old failure and other user processes.",
+    "Finish Kernel exact affected build/focused5, Drawing corrected3, changed Panel Studio type, original docs/site and product docs. Do not repeat already accepted checks without a new reason.",
+    "Build selected verified product slice from product branch, excluding unverified revolve and mixed prose. Preserve foreign files and ignored CADdist.",
+    "At quota<=5 safe-pause owners/agents, integrate only verified exact deltas, finish portable record/normal commit, normal origin feature push and remote SHA verification, pause cad automation."
+  ],
+  "constraints": [
+    "Root sole aggregate/product writer; each Work manages own agents and normal branch commits.",
+    "Native/build/generator heavy1 and original guard; no gate/slot override.",
+    "No reset/rebase/amend/force/main-develop push/newWT/deps/WASM/tolerance weakening/foreign WIP commit.",
+    "Physics active owner unknown; no solver/profile takeover or pivot inertia in COM field. P2 manufacturing HOLD.",
+    "Evidence is focused source/native/browser, not full physical/production acceptance. FNV is staleness indicator, not authentication."
+  ],
+  "portableEvidence": [
+    {
+      "path": "evidence-20261026/B-fixed-enter.bcad",
+      "bytes": 1116,
+      "sha256": "9a1e5683ebbe51db10e60eb540cc65ece4566fe3297ab25f293d64dfe0ec345d"
+    },
+    {
+      "path": "evidence-20261026/B-fixed-open-roundtrip.bcad",
+      "bytes": 1134,
+      "sha256": "0fb8e3854ec51fddf861f4ee0f127ea049e564bac9cf5bb9c956722f59c3be2f"
+    }
+  ],
+  "rawEvidenceLimit": "The full local raw logs, PNGs, waits and manifests are not included. Do not claim these small files reproduce full browser provenance. Same-host authority remains /Users/user/.cache/barocss-preserved/2026-10-24-codex-integration/round3/coordinator-api-active-20261025.json."
+}
