@@ -265,3 +265,24 @@ test('explicit inset: a frame following the linked sketch refuses raw snapshot c
   refused(() => toPartDocument(doc));
   assert.deepEqual(doc, before);
 });
+
+
+test('explicit inset: the original face drives geometry while a separate earlier on target remains an independent copied BodyRef', () => {
+  let doc = withIds(rectanglePart(40, 24, 8));
+  doc = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [100, 100], max: [110, 110] });
+  doc = withNode(doc, { kind: 'extrude', sketch: 2, height: 5 });
+  const association: PlanarFaceOutlineInsetAssociation = {
+    kind: 'planar-face-outline-inset', version: 1,
+    source: { node: 1, side: 'solid' }, sourceFeature: featureId(doc.nodes, 1),
+    face: `${featureId(doc.nodes, 1)}.top`, insetMM: 2,
+  };
+  doc = withNode(doc, { ...savedRing(), on: { node: 3, side: 'solid' }, association });
+  const before = structuredClone(doc), stored = doc.nodes[4];
+  assert.ok(stored.kind === 'sketch');
+  const resolved = resolveAssociativeSketch(doc, 4);
+  assert.deepEqual(resolved.on, { node: 3, side: 'solid' });
+  assert.notEqual(resolved.on, stored.on, 'the resolved on target must be a copy');
+  assert.deepEqual(resolved.association?.source, { node: 1, side: 'solid' });
+  ringBounds(resolved, [0, 0, 8], [40, 24, 8], [2, 2, 8], [38, 22, 8]);
+  assert.deepEqual(doc, before, 'resolving must preserve the separate authored on target and original document');
+});

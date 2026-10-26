@@ -330,7 +330,7 @@ function associativeProfile(doc: StudioDoc, index: number, prefix: readonly CadP
   if ('error' in profile) throw associationError(profile.error);
   if (profile.node.regions?.length || profile.node.holes?.length !== 1) throw associationError('the inset must produce one enclosed hole.');
   const extras = { ...(node.id === undefined ? {} : { id: node.id }), ...(node.suppressed ? { suppressed: node.suppressed } : {}), ...(node.sigs ? { sigs: node.sigs } : {}), ...(node.rematched ? { rematched: node.rematched } : {}), ...(node.held ? { held: node.held } : {}), ...(node.bought === undefined ? {} : { bought: node.bought }) };
-  return { ...profile.node, ...extras, plane: fp.plane, on: { ...a.source }, association: a };
+  return { ...profile.node, ...extras, plane: fp.plane, on: { ...(node.on ?? a.source) }, association: a };
 }
 
 /** Current linked geometry for reopening. Legacy coordinate sketches are returned unchanged. */
