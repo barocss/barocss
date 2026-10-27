@@ -116,3 +116,23 @@ test('face fillet: a cone and a plane — a tapered boss\'s base, through the St
   const v = volumeOf(ff.build!(ctx, { r: 3 })), want = volumeOf(taper) + added;
   assert.ok(Math.abs(v - want) <= 1e-6 * want, `${v} vs ${want}`);
 });
+
+// A ball (radius 6 about height 25) on a stem (radius 3): the round where they meet, revolved. The oracle: centre
+// (4.5, 19) — 1.5 off the stem, 7.5 from the ball's centre —, tangent points, corner, a dense polygon revolved.
+const j = 25 - Math.sqrt(27);
+const ball: StudioDoc = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
+  { kind: 'sketch', profile: 'loop', plane: XZm, segments: [{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [3, 0] }, { kind: 'arc', start: [3, j], center: [0, 25], direction: 'ccw' }, { kind: 'line', start: [0, 31] }], id: 'n0' },
+  { kind: 'revolve', sketch: 0, axis: 'y', origin: [0, 0], angle: 360, id: 'n1' }], outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2 } as StudioDoc;
+
+test('face fillet: a sphere and a cylinder — a ball on its stem, through the Studio command', () => {
+  const X = [4.5, 19], tA = [3, 19], tB = [6 * 4.5 / 7.5, 25 - 6 * 6 / 7.5], C = [3, j];
+  const pts = [C, tA, ...arcPts(tA, tB, X), ...arcPts(tB, C, [0, 25])]; let mom = 0; pts.forEach((p, i) => { const q = pts[(i + 1) % pts.length]; mom += (p[0] + q[0]) * (p[0] * q[1] - q[0] * p[1]); });
+  const added = Math.abs(2 * Math.PI * mom / 6);
+  const ff = commands.find(c => c.id === 'face-fillet')!, bodies = bodiesOf(ball), faces = bodies[0].mesh.faces;
+  const stem = faces.findIndex(f => f.kind === 'curved' && f.centroid[2] < j), sphere = faces.findIndex(f => f.kind === 'curved' && f.centroid[2] > j);
+  assert.ok(stem >= 0 && sphere >= 0, faces.map(f => `${f.name}:${f.kind}`).join(' '));
+  const ctx: Ctx = { doc: ball, bodies, selection: { faces: [{ body: 0, face: stem }, { body: 0, face: sphere }], edges: [], bodies: [] } };
+  assert.equal(ff.available(ctx).ok, true, JSON.stringify(ff.available(ctx)));
+  const v = volumeOf(ff.build!(ctx, { r: 1.5 })), want = volumeOf(ball) + added;
+  assert.ok(Math.abs(v - want) <= 1e-6 * want, `${v} vs ${want}`);
+});

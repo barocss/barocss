@@ -68,11 +68,11 @@ test('face fillet: refused with the reason', () => {
   refused([...block, fillet(['b.side1', 'nope'], 4)], 'REFERENCE', /no face nope/);
   refused([...block, fillet(['b.side1', 'b.side1'], 4)], 'INPUT', /two different faces/);
   const disc = [{ id: 'c', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'b', kind: 'extrude', sketch: 'c', height: 10 }];
-  // Two coaxial cylinders a step apart (heights 0–5 and 5–10) do not run side by side; a torus (a round) is not taken (a plane and a cylinder are: the disc's bottom rim rounds).
+  // Two coaxial cylinders a step apart (heights 0–5 and 5–10) do not run side by side; a helical thread face is not taken (a plane and a cylinder are: the disc's bottom rim rounds).
   const stepped = [{ id: 's', kind: 'sketch', profile: 'polygon', plane: XZ, points: [[0, 0], [10, 0], [10, 5], [5, 5], [5, 10], [0, 10]] }, { id: 'b', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }];
   refused([...stepped, fillet(['b.side1', 'b.side3'], 1)], 'CAPABILITY', /\[FACE_FILLET_FACES\] b\.side1 and b\.side3 do not run side by side/);
-  const rimmed = [{ id: 'ds', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 20 }, { id: 'b0', kind: 'extrude', sketch: 'ds', height: 10 }, { id: 'b', kind: 'face-fillet', target: 'b0', faces: ['b0.top', 'b0.side0'], radius: 4 }];
-  refused([...rimmed, fillet(['b.round', 'b0.bottom'], 1)], 'CAPABILITY', /\[FACE_FILLET_FACE\] b\.round is not a plane, cylinder or cone/);
+  const rod = [{ id: 'b', kind: 'thread', diameter: 6, pitch: 1, seat: 10, length: 10, form: 'helical' }];
+  refused([...rod, fillet(['b.thread', 'b.end'], 0.2)], 'CAPABILITY', /\[FACE_FILLET_FACE\] b\.thread is not a plane, cylinder, cone, sphere or torus/);
   valid(out([...disc, fillet(['b.side0', 'b.bottom'], 1)], 'ff'));
   refused([...disc, fillet(['b.top', 'b.bottom'], 1)], 'CAPABILITY', /\[FACE_FILLET_FACE\] b\.top has a curved edge/);
 });
@@ -107,14 +107,15 @@ test('face fillet: a disc\'s rim and a hole\'s edge — outside corners, the rou
 test('face fillet: a plane and a cylinder refused with the reason', () => {
   const tall = bossPlate(45), on = (faces, radius) => [...tall, { id: 'ff', kind: 'face-fillet', target: 'b', faces, radius }];
   // The tangent circle at radius 31 runs off the 60 mm square plate.
-  refused(on(['p.top', 'c.side0'], 21), 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 21 mm round would not meet p\.top tangentially: the face does not hold the circle 31 mm round the axis/);
+  refused(on(['p.top', 'c.side0'], 21), 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 21 mm round would not meet p\.top tangentially: its tangent point lies off the face/);
   // A boss 10 above the plate: the plate holds a 12 mm round's circle (22 round), the boss does not reach it.
-  refused([...bossPlate(15), { id: 'ff', kind: 'face-fillet', target: 'b', faces: ['p.top', 'c.side0'], radius: 12 }], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] .*c\.side0 tangentially: it reaches 10 mm from the corner, the round 12/);
-  refused([...bossPlate(25), { id: 'ff', kind: 'face-fillet', target: 'b', faces: ['p.top', 'c.side0'], radius: 25 }], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] .*p\.top tangentially: the face does not hold the circle 35 mm/);
+  refused([...bossPlate(15), { id: 'ff', kind: 'face-fillet', target: 'b', faces: ['p.top', 'c.side0'], radius: 12 }], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 12 mm round would not meet .*c\.side0.* tangentially/);
+  refused([...bossPlate(25), { id: 'ff', kind: 'face-fillet', target: 'b', faces: ['p.top', 'c.side0'], radius: 25 }], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 25 mm round would not meet p\.top tangentially/);
   // The plate's side (z 0–5) and the boss (above the plate) run along one axis but not beside each other.
   refused(on(['p.side0', 'c.side0'], 2), 'CAPABILITY', /\[FACE_FILLET_FACES\] p\.side0 and c\.side0 do not run side by side/);
   const disc = [{ id: 'ds', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'b', kind: 'extrude', sketch: 'ds', height: 10 }];
-  refused([...disc, fillet(['b.top', 'b.side0'], 6)], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 6 mm round would cross the axis/);
+  // (Wider than the disc's radius 5: the tangent circle on its top would have a negative radius.)
+  refused([...disc, fillet(['b.top', 'b.side0'], 6)], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 6 mm round would not meet b\.top tangentially/);
 });
 
 // Faces along one direction (a plane along a cylinder, two parallel cylinders): the round extruded. The oracle builds
@@ -179,5 +180,38 @@ test('face fillet: cones — a tapered boss\'s base filled, a chamfered shaft en
   const cb = out([...cs, { id: 'ff', kind: 'face-fillet', target: 'h', faces: ['h.countersink-side1', 'h.side0'], radius: 0.5 }], 'ff'); valid(cb);
   near(massPropertiesOf(cb).volume, volume(cs, 'h') - sectionVolume([3, 7], [s2, s2], [0, -1], 0.5), 'countersink to bore');
   // The chamfer's 1.41 mm generator is too short for a round meeting it 3.4 mm from the corner.
-  refused([...shaft, fillet(['b.side1', 'b.side2'], 8)], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 8 mm round would not meet b\.side2 tangentially/);
+  refused([...shaft, fillet(['b.side1', 'b.side2'], 8)], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 8 mm round would not meet .*b\.side2.* tangentially/);
+});
+
+// Spheres and tori with planes and cylinders about one axis: circles in the half-plane, the round revolved. The oracle
+// builds each section by hand (the round's centre where the curves pushed off by r meet, its tangent points, the corner)
+// and revolves a dense polygon of it.
+const turnedLoop = (segments) => [{ id: 's', kind: 'sketch', profile: 'loop', plane: XZ, segments }, { id: 'b', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }];
+const linePts = (P, Q) => [P, Q];
+const towards2 = (c, X, R) => { const w = [X[0] - c[0], X[1] - c[1]], l = Math.hypot(...w); return [c[0] + w[0] / l * R, c[1] + w[1] / l * R]; };
+
+test('face fillet: a ball on a stem and a dome on a plate — spheres, the inside corner filled', () => {
+  // A stem of radius 3 into a ball of radius 6 about (0, 25): they meet at height 25 − √27.
+  const j = 25 - Math.sqrt(27), ball = turnedLoop([{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [3, 0] }, { kind: 'arc', start: [3, j], center: [0, 25], direction: 'ccw' }, { kind: 'line', start: [0, 31] }]);
+  const o = out([...ball, fillet(['b.side1', 'b.side2'], 1.5)], 'ff'); valid(o);
+  // The round's centre 4.5 off the axis and 7.5 from the ball's centre: (4.5, 19).
+  const X = [4.5, 19], tA = [3, 19], tB = towards2([0, 25], X, 6), C = [3, j];
+  near(massPropertiesOf(o).volume, volume(ball, 'b') + revolvedVolume([...linePts(C, tA), ...arcPts(tA, tB, X), ...arcPts(tB, C, [0, 25])]), 'ball on a stem');
+  // A dome (a sphere of radius 10 about (0, 1)) on a disc 5 thick and 30 round: they meet at radius √84.
+  const k = Math.sqrt(84), dome = turnedLoop([{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [30, 0] }, { kind: 'line', start: [30, 5] }, { kind: 'arc', start: [k, 5], center: [0, 1], direction: 'ccw' }, { kind: 'line', start: [0, 11] }]);
+  const d = out([...dome, fillet(['b.side2', 'b.side3'], 2)], 'ff'); valid(d);
+  const Y = [Math.sqrt(108), 7], sA = [Y[0], 5], sB = towards2([0, 1], Y, 10), D = [k, 5];
+  near(massPropertiesOf(d).volume, volume(dome, 'b') + revolvedVolume([...linePts(D, sA), ...arcPts(sA, sB, Y), ...arcPts(sB, D, [0, 1])]), 'dome on a plate');
+});
+
+test('face fillet: a bead (a torus) on a plate — its outer and inner feet filled, each by its own plate face', () => {
+  // A half-round bead of radius 3 about (15, 5) on a disc 5 thick: the top's outer ring (side2), the bead (side3), the inner disc (side4).
+  const bead = turnedLoop([{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [30, 0] }, { kind: 'line', start: [30, 5] }, { kind: 'arc', start: [18, 5], center: [15, 5], direction: 'ccw' }, { kind: 'line', start: [12, 5] }, { kind: 'line', start: [0, 5] }]);
+  const before = volume(bead, 'b'), w = Math.sqrt(15);
+  const o = out([...bead, fillet(['b.side2', 'b.side3'], 1)], 'ff'); valid(o);
+  const X = [15 + w, 6], tA = [X[0], 5], tB = towards2([15, 5], X, 3), C = [18, 5];
+  near(massPropertiesOf(o).volume, before + revolvedVolume([...linePts(C, tA), ...arcPts(tA, tB, X), ...arcPts(tB, C, [15, 5])]), 'outer foot');
+  const i = out([...bead, fillet(['b.side4', 'b.side3'], 1)], 'ff'); valid(i);
+  const Y = [15 - w, 6], sA = [Y[0], 5], sB = towards2([15, 5], Y, 3), D = [12, 5];
+  near(massPropertiesOf(i).volume, before + revolvedVolume([...linePts(D, sA), ...arcPts(sA, sB, Y), ...arcPts(sB, D, [15, 5])]), 'inner foot');
 });
