@@ -342,6 +342,26 @@ export function buildDraft(ctx: Ctx, v: Values): StudioDoc {
     ...(v.pull !== undefined ? { pull } : {}), ...(hasNeutral ? { neutral: neutral! } : {}) });
 }
 
+/** The two flat faces picked for a face fillet (one body, not parallel), by name, or why not. */
+function faceFilletOf(ctx: Ctx): { body: BodyResult; faces: [string, string] } | string {
+  const picks = ctx.selection.faces; if (picks.length !== 2) return 'Pick two flat faces of one body to round between (Shift-click the second).';
+  if (picks[0].body !== picks[1].body) return 'Pick faces of one body.';
+  const body = ctx.bodies[picks[0].body], f = picks.map(p => body?.mesh.faces[p.face]);
+  if (!body || f.some(x => !x || x.kind !== 'plane')) return 'A face fillet rounds between flat faces.';
+  const [a, b] = f as NonNullable<typeof f[number]>[], c = [a.normal[1] * b.normal[2] - a.normal[2] * b.normal[1], a.normal[2] * b.normal[0] - a.normal[0] * b.normal[2], a.normal[0] * b.normal[1] - a.normal[1] * b.normal[0]];
+  if (Math.hypot(...c) < 1e-6) return 'The two faces are parallel: their planes never meet (a full round takes a top between two sides).';
+  const name = (x: typeof a) => x.name.split('+')[0].split('#')[0];
+  if (name(a) === name(b)) return 'Pick two different faces.';
+  return { body, faces: [name(a), name(b)] };
+}
+
+/** A face fillet node of the two picked faces at radius `r`. */
+export function buildFaceFillet(ctx: Ctx, v: Values): StudioDoc {
+  const d = faceFilletOf(ctx); if (typeof d === 'string') throw refusal('FACE_FILLET_PICK', d);
+  const r = Number(v.r); if (!(Number.isFinite(r) && r > 0)) throw refusal('VALUE', 'A face fillet\'s radius is a positive length.');
+  return withNode(ctx.doc, { kind: 'face-fillet', parent: refOf(d.body), faces: d.faces, radius: r });
+}
+
 /** The flat +Z tops picked for a full round (one body), by name, or why not. */
 function fullRoundOf(ctx: Ctx): { body: BodyResult; faces: string[] } | string {
   const picks = ctx.selection.faces; if (!picks.length) return 'Pick the flat top face of a rib or wall (Shift-click for more).';
@@ -536,6 +556,14 @@ const allCommands: Command[] = [
     },
     // (+Z is built as before, without a pull on the node.)
     build: (ctx, v) => { const rest = { ...v }; delete rest.pull; return buildDraft(ctx, draftPullOf(v) === 'z' ? rest : { ...rest, pull: draftPullOf(v) }); },
+  },
+  {
+    id: 'face-fillet', label: 'Face fillet', icon: 'cad-face-fillet', hint: 'Round between two picked flat faces that need not touch: a chamfer, step or groove between them is replaced by one round tangent to both', group: 'modify', keywords: 'face fillet blend round corner between faces',
+    available: ctx => { const d = faceFilletOf(ctx); return typeof d === 'string' ? no(d) : ok; },
+    fields: () => [{ key: 'r', label: 'Radius', kind: 'mm', min: 0.1 }],
+    defaults: () => ({ r: 2 }),
+    steps: ctx => { const d = faceFilletOf(ctx); return typeof d === 'string' ? [{ label: 'Faces', text: d, done: false }] : [{ label: 'Faces', text: `${d.faces[0]} and ${d.faces[1]}: the round tangent to both, filled at an inside corner, cut at an outside one`, done: true }]; },
+    build: buildFaceFillet,
   },
   {
     id: 'face-thread', label: 'Thread', icon: 'cad-thread', hint: 'Cut a modelled ISO metric thread (right or left hand) on a picked round face: a shaft at its diameter, a hole (its tap drill) at the nominal size, 0.04 mm clear of a bolt like a modelled nut; a relief groove where a shaft\'s thread stops at a shoulder', group: 'modify', keywords: 'thread screw tap tapped helix modelled real external internal',

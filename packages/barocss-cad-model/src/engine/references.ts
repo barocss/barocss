@@ -66,7 +66,7 @@ type Pointed = { sig?: Sig; was?: string };
 
 /** The list of names a feature references (its key), or null. */
 function refKey(node: ModelNode): 'edges' | 'open' | 'faces' | null {
-  const key = node.kind === 'fillet' || node.kind === 'chamfer' || node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief' ? 'edges' : node.kind === 'shell' ? 'open' : node.kind === 'draft' || node.kind === 'full-round' ? 'faces' : null;
+  const key = node.kind === 'fillet' || node.kind === 'chamfer' || node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief' ? 'edges' : node.kind === 'shell' ? 'open' : node.kind === 'draft' || node.kind === 'full-round' || node.kind === 'face-fillet' ? 'faces' : null;
   return key && 'parent' in node ? key : null;
 }
 /**
@@ -147,7 +147,7 @@ function pointed(where: string, edge: boolean, at: Pointed, get: () => string, s
 /** Whether any stored reference has no signature (without copying the document). */
 function unsigned(doc: StudioDoc): boolean {
   for (const n of doc.nodes) {
-    const list = n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' || n.kind === 'full-round' ? n.faces : null;
+    const list = n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' || n.kind === 'full-round' || n.kind === 'face-fillet' ? n.faces : null;
     if (list?.some(name => !n.sigs?.[name])) return true;
   }
   for (const m of doc.mates ?? []) for (const side of [m.a, m.b]) if (side.face && !frameFace(side.face) && !side.sig) return true;

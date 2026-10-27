@@ -172,6 +172,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       if (node.section?.kind === 'conic') number('rho', 'Rho', undefined, n => ((n as typeof node).section as { rho: number }).rho, (n, v) => ({ ...(n as typeof node), section: { kind: 'conic', rho: v } }));
       if (node.section?.kind === 'g2') number('tension', 'Tension', undefined, n => ((n as typeof node).section as { tension?: number }).tension ?? 0.5, (n, v) => ({ ...(n as typeof node), section: { kind: 'g2', tension: v } }));
       break;
+    case 'face-fillet': number('r', 'Radius', 'mm', n => num((n as typeof node).radius), (n, v) => ({ ...(n as typeof node), radius: v })); break;
     case 'chamfer': number('d', 'Distance', 'mm', n => num((n as typeof node).distance), (n, v) => ({ ...(n as typeof node), distance: v })); break;
     case 'rack': {
       const k = (n: ModelNode) => n as typeof node;

@@ -92,6 +92,11 @@
 | `[EXPRESSION]` | `core/error-codes.ts (declared)` | — |
 | `[EXTRUSION]` | `core/error-codes.ts (declared)` | — |
 | `[FACE]` | `core/error-codes.ts (declared)` | — |
+| `[FACE_FILLET_FACE]` | `part` | … is not a planar face |
+| `[FACE_FILLET_FACES]` | `part` | … crosses the line where its plane meets the other's |
+| `[FACE_FILLET_NOT_CLEAR]` | `part` | the round between … and … would … … mm³ (… expected)… |
+| `[FACE_FILLET_PARALLEL]` | `part` | … and … are parallel: their planes do not meet |
+| `[FACE_FILLET_RADIUS]` | `part` | a … mm round would not meet … tangentially: the face stops before … mm from the corner |
 | `[FACE_THREAD_FACE]` | `part` | … is not a cylindrical face |
 | `[FACE_THREAD_NOT_CLEAR]` | `part` | the wall round … is thinner than the thread needs (… mm past the hole) |
 | `[FACE_THREAD_RELIEF]` | `part` | the thread on … ends at a shoulder or inside the face: it needs a relief groove (relief > 0) |
@@ -368,6 +373,7 @@
 | `[DXF_OPEN]` | `sketch` | the profile is not closed at (…, …) mm: an edge ends there with nothing joining it… |
 | `[DXF_UNSUPPORTED]` | `sketch` | $INSUNITS …: only inches, feet, millimetres, centimetres and metres are read |
 | `[FACE_DISTANCE]` | `app` | Give the face a distance to move: out (+) or in (−). |
+| `[FACE_FILLET_PICK]` | `app` | … |
 | `[FASTENER_GRIP]` | `app` | Give the joint its grip: the thickness the bolt clamps (mm). |
 | `[FASTENER_LENGTH]` | `app` | … … come …–… mm long (…). |
 | `[FASTENER_POSITION]` | `app` | Give the fastener a position (X, Y and Z in mm). |

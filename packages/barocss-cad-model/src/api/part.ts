@@ -17,7 +17,7 @@ import { drawingDoc, drawingOf, manufacturabilityOf, outputOf, withCasting, with
 import { setBought } from '../bom/bom';
 import { withLibraryPart, type LibraryPartInput } from './library';
 import { refOf } from '../app/bodyRef';
-import { buildDraft, buildFaceThread, buildFullRound, type Values } from '../app/commands';
+import { buildDraft, buildFaceFillet, buildFaceThread, buildFullRound, type Values } from '../app/commands';
 import { resolveNames } from '../chat/names';
 import { captureSignatures } from '../engine/references';
 import { bindParameter } from '../engine/parameters';
@@ -45,6 +45,9 @@ const libraryMaterial = (id: string) => {
 
 /** Public draft lengths are world mm; only the explicit neutral coordinate may bind to a parameter. */
 export interface StudioDraftOptions { readonly angle: number; readonly pull?: 'x' | 'y' | 'z' | '-x' | '-y' | '-z'; readonly neutral?: Dim }
+
+/** Face fillet options: the round's radius (world mm). */
+export interface StudioFaceFilletOptions { readonly radius: number }
 
 /** Thread options: pitch; a hole's nominal diameter and clearance on a bolt (default 0.04 mm); length from the end (left out: the face), end + or −, a shaft's relief groove. */
 export interface StudioThreadOptions { readonly pitch: number; readonly diameter?: number; readonly length?: number; readonly end?: '+' | '-'; readonly relief?: number; readonly clearance?: number; readonly hand?: 'right' | 'left' }
@@ -158,6 +161,27 @@ export class StudioPart extends Part<StudioDoc> {
     }
     next = captureSignatures(next, [body]);
     if (parameter !== undefined) next = bindParameter(next, { feature: next.nodes.length - 1, value: 'neutral', parameter });
+    const after = bodiesOf(next).map(b => b.key);
+    if (this.focus === null) return this.next(next, null);
+    const made = after.filter(key => !before.some(b => b.key === key));
+    return this.next(next, after.includes(this.focus) ? this.focus : made.length === 1 ? made[0] : null);
+  }
+
+  /** A face fillet between the two selected flat faces (they need not touch) through the Studio builder; refusal preserves this part. */
+  faceFillet(faces: (body: BodyQuery) => FaceQuery, options: StudioFaceFilletOptions): this {
+    if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).some(k => k !== 'radius')) throw refuse('VALUE', 'face fillet options are radius');
+    if (!(typeof options.radius === 'number' && Number.isFinite(options.radius))) throw refuse('VALUE', 'face fillet radius is a finite number of mm');
+    const doc = this.document, before = bodiesOf(doc), target = this.target(), body = before.find(b => b.key === target);
+    if (!body) throw refuse('NO_BODY', 'face fillet needs one selected body');
+    if (typeof faces !== 'function') throw refuse('VALUE', 'face fillet takes a face selector');
+    const picked = faces(this.select());
+    if (!picked.count) throw refuse('SELECTION_EMPTY', 'the selector picked no face to round between');
+    const { selection, unknown } = resolveNames([body], { faces: picked.names() });
+    if (unknown.length) throw refuse('SELECTION_UNKNOWN', `no face named ${unknown.join(', ')} on the selected body`);
+    let next = buildFaceFillet({ doc, bodies: [body], selection }, { r: options.radius });
+    const why = checkNode(next.nodes.at(-1), doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the face fillet: ${why}`);
+    next = captureSignatures(next, [body]);
     const after = bodiesOf(next).map(b => b.key);
     if (this.focus === null) return this.next(next, null);
     const made = after.filter(key => !before.some(b => b.key === key));

@@ -144,6 +144,13 @@ export type CadPartFeature = Base & (
    */
   | { readonly kind: 'face-thread'; readonly target: string; readonly face: string; readonly pitch: CadPartDim; readonly diameter?: CadPartDim; readonly length?: CadPartDim; readonly end?: '+' | '-'; readonly relief?: CadPartDim; readonly clearance?: CadPartDim; readonly hand?: 'right' | 'left' }
   /**
+   * A face fillet of constant `radius` between two planar faces that need not touch (a step, a chamfer or a groove
+   * between them is replaced): the round tangent to both, along their planes' meeting line, over the length both run
+   * beside it. At an inside corner the round is joined, at an outside one cut. Each face must hold its tangent line
+   * there (its edges straight); the material joined or cut is checked. The round face is `<id>.round`.
+   */
+  | { readonly kind: 'face-fillet'; readonly target: string; readonly faces: readonly [string, string]; readonly radius: CadPartDim }
+  /**
    * A hole along `axis` (default z) through the target, or `depth` deep from its `side` (default max:
    * the top for z). `center` is in the other two coordinates in order: z → [x, y], x → [y, z], y → [x, z].
    * `face` (D148): the planar face it is drilled into, by name — the depth and the countersink measured from that face's
@@ -1633,6 +1640,65 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         return one(out);
       };
     }
+    case 'face-fillet': {
+      const target = solids(f.target, 'target'), names = f.faces as unknown, r = dim(f.radius as CadPartDim, 'radius', true);
+      if (!Array.isArray(names) || names.length !== 2 || !names.every(x => typeof x === 'string' && x) || names[0] === names[1]) fail('INPUT', 'faces must name two different faces');
+      if (target.length !== 1) fail('REFERENCE', 'face fillet one part at a time (name it as id/k)');
+      return () => {
+        const source = target[0].solid;
+        if (source.kind === 'brep' && source.brep.faces.some(isFacetFace)) fail('CAPABILITY', 'a face fillet on mesh faces is not supported yet');
+        const brep = brepOf(target[0], at), points = new Map(brep.vertices.map(v => [v.id, v.point])), edges = new Map(brep.edges.map(e => [e.id, e])), coedges = new Map(brep.coedges.map(c => [c.id, c]));
+        // Each face by its name (pieces `#k` of one plane together): its plane and its loops as rings of points.
+        const sides = (names as string[]).map(name => {
+          const group = brep.faces.filter(x => x.name === name || (x.name ?? '').split('#')[0] === name);
+          if (!group.length) return fail('REFERENCE', `no face ${name} on the target`);
+          const g = faceGeometry(group[0]);
+          if (g.kind !== 'plane') return fail('CAPABILITY', `[FACE_FILLET_FACE] ${name} is not a planar face`);
+          const rings = group.flatMap(x => x.loops.map(id => brep.loops.find(l => l.id === id)!.coedges.map(cid => {
+            const c = coedges.get(cid)!, e = edges.get(c.edge)!;
+            if (e.curve.degree !== 1 || e.curve.controlPoints.length !== 2) fail('CAPABILITY', `[FACE_FILLET_FACE] ${name} has a curved edge`);
+            return points.get(c.sense === 'forward' ? e.vertices[0] : e.vertices[1])!;
+          })));
+          for (const x of group.slice(1)) { const h = faceGeometry(x); if (h.kind !== 'plane' || len(sub(h.n, g.n)) > 1e-9 || Math.abs(dot(sub(h.o, g.o), g.n)) > 1e-9 * Math.max(1, len(g.o))) fail('CAPABILITY', `[FACE_FILLET_FACE] the faces named ${name} are not one plane`); }
+          return { name, n: unit(g.n), d: dot(unit(g.n), g.o), rings };
+        });
+        const [A, B] = sides, u = cross(A.n, B.n), uu = dot(u, u);
+        if (!(Math.sqrt(uu) > 1e-9)) fail('CAPABILITY', `[FACE_FILLET_PARALLEL] ${A.name} and ${B.name} are parallel: their planes do not meet`);
+        // The planes' meeting line: point C, direction t.
+        const t = unit(u), C = scale(add(scale(cross(B.n, u), A.d), scale(cross(u, A.n), B.d)), 1 / uu);
+        const all = [...A.rings.flat(), ...B.rings.flat()], size = Math.max(1, r, ...all.map(q => len(sub(q, C)))), tol = 1e-9 * size;
+        // Each face's side of the line, in its plane and square to the line; the face must lie wholly on it.
+        const toward = (S: typeof A) => {
+          const q = S.rings.flat(), mid = scale(q.reduce((m, x) => add(m, x), [0, 0, 0] as Point), 1 / q.length), w = sub(mid, C), dir = unit(sub(w, scale(t, dot(w, t))));
+          if (q.some(x => dot(sub(x, C), dir) < -tol)) fail('CAPABILITY', `[FACE_FILLET_FACES] ${S.name} crosses the line where its plane meets the other's`);
+          return dir;
+        };
+        const dA = toward(A), dB = toward(B), cos = Math.max(-1, Math.min(1, dot(dA, dB))), theta = Math.acos(cos);
+        if (!(theta > 1e-6 && theta < Math.PI - 1e-6)) fail('CAPABILITY', `[FACE_FILLET_FACES] ${A.name} and ${B.name} lie in one plane`);
+        // Inside corner: each face's outward normal points to the other's side.
+        const sA = dot(A.n, dB), sB = dot(B.n, dA);
+        if (!(Math.abs(sA) > 1e-9 && Math.sign(sA) === Math.sign(sB))) fail('CAPABILITY', `[FACE_FILLET_FACES] ${A.name} and ${B.name} face neither into nor away from their corner`);
+        const inside = sA > 0, a = r / Math.tan(theta / 2);
+        // Over the length both faces run beside the line.
+        const along = (S: typeof A) => S.rings.flat().map(x => dot(sub(x, C), t)), ta = along(A), tb = along(B), lo = Math.max(Math.min(...ta), Math.min(...tb)), hi = Math.min(Math.max(...ta), Math.max(...tb));
+        if (!(hi - lo > tol)) fail('CAPABILITY', `[FACE_FILLET_FACES] ${A.name} and ${B.name} do not run side by side along their corner`);
+        // Tangency: each face holds its tangent line (a from the corner) over [lo, hi].
+        for (const [S, d] of [[A, dA], [B, dB]] as const) {
+          const p2 = (x: Point): [number, number] => [dot(sub(x, C), t), dot(sub(x, C), d)];
+          if (!lineInFace(S.rings.map(ring => ring.map(p2)), a, lo, hi, tol)) fail('GEOMETRY', `[FACE_FILLET_RADIUS] a ${r} mm round would not meet ${S.name} tangentially: the face stops before ${+a.toPrecision(9)} mm from the corner`);
+        }
+        // The round's section Q (corner, tangent point on A, the near arc, tangent point on B), laid along the line.
+        const X = dA, Y = unit(sub(dB, scale(dA, cos))), Z = cross(X, Y), flip = dot(Z, t) < 0, z0 = flip ? -hi : lo, z1 = flip ? -lo : hi;
+        const outer: ProfileSegmentInput[] = [{ kind: 'line', start: [0, 0] }, { kind: 'arc', start: [a, 0], center: [a, r], direction: 'cw' }, { kind: 'line', start: [a * cos, a * Math.sin(theta)] }];
+        const m: BrepAffine['matrix'] = [X[0], Y[0], Z[0], X[1], Y[1], Z[1], X[2], Y[2], Z[2]];
+        const tool = affine({ kind: 'upright', solid: prismaticFromProfile({ outer, height: z1 - z0, from: z0, tag: at }) }, m, C, n => n === `${at}.side1` ? `${at}.round` : n);
+        const area = a * r - r * r * (Math.PI - theta) / 2, held = boolean(source, tool, 'intersection', at), was = empty(held) ? 0 : exactVolume(held), before = exactVolume(source), L = hi - lo;
+        const out = boolean(source, tool, inside ? 'union' : 'difference', at), change = exactVolume(out) - before, pieces = out.kind === 'brep' ? out.brep.bodies.length : 1;
+        const want = inside ? area * L - was : -was, close = Math.abs(change - want) <= 1e-7 * Math.max(before, area * L);
+        if (pieces !== 1 || !close || !(Math.abs(want) > 1e-9 * area * L)) fail('GEOMETRY', `[FACE_FILLET_NOT_CLEAR] the round between ${A.name} and ${B.name} would ${inside ? 'add' : 'take'} ${+Math.abs(change).toPrecision(9)} mm³ (${+Math.abs(want).toPrecision(9)} expected)${pieces !== 1 ? ` and leave ${pieces} bodies` : ''}`);
+        return one(out);
+      };
+    }
     case 'hole': {
       const target = solids(f.target, 'target'), c = xy(f.center as CadPartPoint2, 'center'), r = dim(f.radius as CadPartDim, 'radius', true);
       const depth = f.depth === undefined ? null : dim(f.depth as CadPartDim, 'depth', true), axis = f.axis === undefined ? 'z' : axisOf(f.axis);
@@ -1992,6 +2058,23 @@ function splitFacets(s: Solid, n: Point, d: number, at: string): Solid[] {
   catch (cause) { if (cause instanceof BrepError || isFacetBooleanError(cause)) throw new CadPartError('GEOMETRY', at, cause.message.replace(/^B-rep: /, '')); throw cause; }
   if (!r.below || !r.above) throw new CadPartError('SELECTION', at, 'the split plane does not cross the target');
   return [{ kind: 'brep', brep: r.below }, { kind: 'brep', brep: r.above }];
+}
+
+/**
+ * Whether the segment y = h, x in [x0, x1] lies in a face (its rings in the plane's coordinates; the first of each
+ * piece outer, the rest holes — tested by even-odd crossing, so the order does not matter), its boundary included.
+ */
+function lineInFace(rings: readonly (readonly [number, number][])[], h: number, x0: number, x1: number, tol: number): boolean {
+  const onEdge = (x: number, y: number) => rings.some(ring => ring.some((p, k) => { const q = ring[(k + 1) % ring.length], dx = q[0] - p[0], dy = q[1] - p[1], l2 = dx * dx + dy * dy;
+    const s = l2 > 0 ? Math.max(0, Math.min(1, ((x - p[0]) * dx + (y - p[1]) * dy) / l2)) : 0; return Math.hypot(p[0] + s * dx - x, p[1] + s * dy - y) <= tol; }));
+  const inside = (x: number, y: number) => onEdge(x, y) || rings.reduce((n, ring) => n + ring.filter((p, k) => { const q = ring[(k + 1) % ring.length]; return (p[1] > y) !== (q[1] > y) && x < p[0] + (y - p[1]) * (q[0] - p[0]) / (q[1] - p[1]); }).length, 0) % 2 === 1;
+  // Where the boundary meets the line: between those, the line is wholly in or out.
+  const xs = [x0, x1];
+  for (const ring of rings) ring.forEach((p, k) => { const q = ring[(k + 1) % ring.length];
+    if (Math.abs(p[1] - h) <= tol) xs.push(p[0]);
+    if ((p[1] - h) * (q[1] - h) < 0) xs.push(p[0] + (h - p[1]) * (q[0] - p[0]) / (q[1] - p[1])); });
+  const cuts = [...new Set(xs.filter(x => x >= x0 - tol && x <= x1 + tol).map(x => Math.min(x1, Math.max(x0, x))))].sort((p, q) => p - q);
+  return cuts.every((x, k) => inside(x, h) && (k === 0 || inside((cuts[k - 1] + x) / 2, h)));
 }
 
 function boxSolid(min: Point, max: Point, tag: string): Solid {
