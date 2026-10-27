@@ -380,8 +380,8 @@ type ModelNodeBase = SketchNode
   | { kind: 'draft'; parent: BodyRef; faces: string[]; angle: number; pull?: Axis | '-x' | '-y' | '-z'; neutral?: Dim }
   /** IM7b (O113): a face split along its isocline n·d = 0 for the pull (the kernel's split-face, D149): its pieces `<face>#1` (the + side), `<face>#2` …, or `names`. */
   | { kind: 'split-face'; parent: BodyRef; face: string; pull: [number, number, number]; names?: string[] }
-  /** `radii` (R10.5, D100): a varying radius, given at points of the edges; `radius` then the first point's. `section` (R10.5b, D103): a conic or G2 section (default a circle). */
-  | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim }[]; section?: FilletSection }
+  /** `radii` (R10.5, D100): a varying radius, given at points of the edges; `radius` then the first point's. `atEnd`: the point is a chain end and follows it when earlier features move it. `section` (R10.5b, D103): a conic or G2 section (default a circle). */
+  | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim; atEnd?: true }[]; section?: FilletSection }
   /** Along `axis` (default z) through the body; `side` is the face it was picked on (default max). */
   /** A body in several pieces made bodies of their own (`b<i>_part<k>`). */
   | { kind: 'separate'; parent: BodyRef }

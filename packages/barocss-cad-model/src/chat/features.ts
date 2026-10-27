@@ -197,7 +197,7 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
     case 'plane': {
       return isObj(v) && isVec3(v.origin) && isVec3(v.normal) && isVec3(v.xAxis) ? null : 'a plane {origin, normal, xAxis}, each [x, y, z]';
     }
-    case 'radii': return Array.isArray(v) && v.length >= 2 && v.length <= 16 && v.every(p => isObj(p) && Array.isArray(p.at) && p.at.length === 3 && p.at.every(x => typeof x === 'number' && Number.isFinite(x)) && dim(p.radius)) ? null : '2 to 16 points {"at": [x, y, z] on the edges, "radius": r}';
+    case 'radii': return Array.isArray(v) && v.length >= 2 && v.length <= 16 && v.every(p => isObj(p) && Array.isArray(p.at) && p.at.length === 3 && p.at.every(x => typeof x === 'number' && Number.isFinite(x)) && dim(p.radius) && (p.atEnd === undefined || p.atEnd === true)) ? null : '2 to 16 points {"at": [x, y, z] on the edges, "radius": r, "atEnd"?: true}';
     case 'section': {
       const frac = (x: unknown) => typeof x === 'number' && x > 0 && x < 1;
       if (isObj(v) && v.kind === 'conic' && frac(v.rho) && Object.keys(v).every(k => k === 'kind' || k === 'rho')) return null;

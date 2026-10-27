@@ -525,7 +525,7 @@ const allCommands: Command[] = [
       if (r1 > 0 && Math.abs(r1 - r) > 1e-9) {
         const ends = chainEnds(edges);
         if (!ends) throw refusal('FILLET_CHAIN', 'A varying radius needs the picked edges to form one open chain: its two ends take the two radii.');
-        return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r, radii: [{ at: ends[0], radius: r }, { at: ends[1], radius: r1 }], ...shaped });
+        return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r, radii: [{ at: ends[0], radius: r, atEnd: true }, { at: ends[1], radius: r1, atEnd: true }], ...shaped });
       }
       return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r, ...shaped });
     },

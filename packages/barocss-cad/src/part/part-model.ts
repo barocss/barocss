@@ -512,14 +512,16 @@ export type CadPartFeature = Base & (
    * `radius` rounds the edges with one radius. `radii` instead gives the radius at points of the edges (2–16, each on
    * one of them; R10.5, D100): between them it varies smoothly by arc length along each chain (shape-preserving cubic,
    * two points: linear), carried on at its end slopes past the outer points of an open chain (it must stay positive
-   * to the chain's ends), periodic round a closed one. Give one of them.
+   * to the chain's ends), periodic round a closed one. Give one of them. A point with `atEnd: true` is the radius at an end
+   * of the open chain the edges make: evaluated, it is the chain end nearest its `at` (the two of a pair at the two ends), so
+   * it follows the ends when an earlier feature moves them.
    */
   /**
    * `section` (R10.5b, D103): the fillet's shape across — `circular` (the default, the rolling ball's arc); `conic` with
    * `rho` in (0, 1) (0.5 a parabola, less flatter, more fuller); `g2`, curvature-continuous with the faces, `tension` in
    * (0, 1) (0.5 when left out). Not circular: the rolling ball's chains, not where it rolls round or onto an edge.
    */
-  | { readonly kind: 'fillet'; readonly target: string; readonly edges: readonly string[]; readonly radius?: CadPartDim; readonly radii?: readonly { readonly at: CadPartPoint3; readonly radius: CadPartDim }[]; readonly section?: { readonly kind: 'circular' } | { readonly kind: 'conic'; readonly rho: number } | { readonly kind: 'g2'; readonly tension?: number }; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
+  | { readonly kind: 'fillet'; readonly target: string; readonly edges: readonly string[]; readonly radius?: CadPartDim; readonly radii?: readonly { readonly at: CadPartPoint3; readonly radius: CadPartDim; readonly atEnd?: true }[]; readonly section?: { readonly kind: 'circular' } | { readonly kind: 'conic'; readonly rho: number } | { readonly kind: 'g2'; readonly tension?: number }; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
 );
 /**
  * A sheet's K (R12.4, D120): one `kFactor` for every bend, or a `bendTable` (rows of T, R, angle → K, BA or BD, each

@@ -23,7 +23,7 @@ test('public variable fillet: endpoint radii follow the selected edge direction 
   const options = { radius: 1, endRadius: 3 }, optionsBefore = structuredClone(options), made = base.fillet(edge, options);
   const doc = made.doc, node = doc.nodes.at(-1); assert.ok(node && node.kind === 'fillet');
   assert.equal(node.radius, 1); assert.deepEqual(node.edges, selected.names);
-  assert.deepEqual(node.radii, [{ at: selected.a, radius: 1 }, { at: selected.b, radius: 3 }]);
+  assert.deepEqual(node.radii, [{ at: selected.a, radius: 1, atEnd: true }, { at: selected.b, radius: 3, atEnd: true }]);
   assert.deepEqual(doc.nodes.slice(0, -1), before.nodes); const expectedMass = mass(made, 1, 3);
   assert.deepEqual(base.doc, before); assert.deepEqual(options, optionsBefore); assert.deepEqual(selected, selectedBefore);
   options.endRadius = 9; const detached = made.doc; detached.nodes.length = 0;
@@ -50,7 +50,7 @@ test('public variable fillet: equal numeric radii preserve the constant command 
     assert.equal(changedDoc.parameters.End, endRadius);
     assert.ok(changedNode && changedNode.kind === 'fillet' && changedNode.radii);
     assert.equal(changedNode.radius, 1); assert.deepEqual(changedNode.edges, node.edges);
-    assert.deepEqual(changedNode.radii, [{ at: [0, 0, 10], radius: 1 }, { at: [40, 0, 10], radius: { parameter: 'End' } }]);
+    assert.deepEqual(changedNode.radii, [{ at: [0, 0, 10], radius: 1, atEnd: true }, { at: [40, 0, 10], radius: { parameter: 'End' }, atEnd: true }]);
     mass(changed, 1, endRadius);
   }
   assert.deepEqual(made.doc, doc); assert.deepEqual(parameterized.doc, parameterBefore); assert.deepEqual(base.doc, before);
@@ -72,4 +72,38 @@ test('public variable fillet: unsupported endpoint options and selection preserv
   rejected({ radius: 1, endRadius: param('EqualEnd') }, 'PARAMETER_UNBINDABLE');
   assert.throws(() => base.fillet(body => body.edges(), { radius: 1, endRadius: 3 }), error => error instanceof BarocssError && error.code === 'SELECTION_ONE');
   assert.deepEqual(base.doc, before); assert.deepEqual(accepted.doc, acceptedDoc);
+});
+
+test('variable fillet radii at the chain ends follow the box when its height or width changes', () => {
+  // A box whose W and H are parameters; the fillet's edge runs [0,0,H] to [W,0,H] and its ends move with them.
+  const removed = (length: number, r0: number, r1: number) => (1 - Math.PI / 4) * length * (r0 * r0 + r0 * r1 + r1 * r1) / 3;
+  const made = part('ends').parameter('W', 40).parameter('H', 10).box({ w: param('W'), d: 30, h: param('H') }).fillet(edge, { radius: 1, endRadius: 3 });
+  const at = (W: number, H: number) => { const p = made.withParameters({ W, H }); return { p, cut: W * 30 * H - p.mass({ density: 1 }).volume }; };
+  close(at(40, 10).cut, removed(40, 1, 3));
+  close(at(40, 12).cut, removed(40, 1, 3));
+  close(at(60, 10).cut, removed(60, 1, 3));
+  close(at(30, 8).cut, removed(30, 1, 3));
+  // The same document without atEnd keeps its authored points: off the edge after a height change (refused) and
+  // short of the new end after a width change (the taper stops at x = 40, carried on past it).
+  const fixed = structuredClone(made.doc), node = fixed.nodes.at(-1)!;
+  assert.ok(node.kind === 'fillet' && node.radii);
+  node.radii = node.radii.map(({ atEnd: _, ...p }) => p);
+  assert.throws(() => part('fixed', fixed).withParameters({ H: 12 }).mass({ density: 1 }), /lies on none of the edges/);
+  const wide = part('fixed', fixed).withParameters({ W: 60 }), cut = 60 * 30 * 10 - wide.mass({ density: 1 }).volume;
+  assert.ok(Math.abs(cut - removed(60, 1, 3)) > 1, `without atEnd the width change does not follow the end (${cut})`);
+});
+
+test('the Studio Fillet command writes a varying radius at the chain ends and it follows a later height change', async () => {
+  const { commands } = await import('../src/app/commands');
+  const { evaluateDoc } = await import('../src/engine/evaluate');
+  const fillet = commands.find(c => c.id === 'fillet')!, base = seed().parameter('H', 10);
+  const doc = { ...base.doc, nodes: base.doc.nodes.map((n, i) => i === 1 && n.kind === 'extrude' ? { ...n, height: { parameter: 'H' } } : n) };
+  const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.detail);
+  const body = r.bodies[0], edge = body.mesh.edges.findIndex(e => e.straight && e.a[1] === 0 && e.b[1] === 0 && e.a[2] === 10 && e.b[2] === 10);
+  assert.ok(edge >= 0);
+  const made = fillet.build!({ doc, bodies: r.bodies, selection: { faces: [], edges: [{ body: 0, edge }], bodies: [] } }, { radius: 1, endRadius: 3, shape: 'circular' });
+  const node = made.nodes.at(-1)!; assert.ok(node.kind === 'fillet' && node.radii);
+  assert.deepEqual(node.radii.map(p => p.atEnd), [true, true]);
+  const taller = part('taller', made).withParameters({ H: 12 });
+  close(40 * 30 * 12 - taller.mass({ density: 1 }).volume, removedVolume(1, 3));
 });

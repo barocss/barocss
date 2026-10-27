@@ -63,7 +63,7 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
       const on = output(doc, body!), edge = selectionOf(on).edges().list().find(e => e.names.includes(spec.edges[0]));
       if (!edge) throw refuse('SELECTION_UNKNOWN', 'the variable fillet edge is no longer on the selected body');
       return [{ id: nextId(doc, 'fillet'), kind: 'fillet', target: on.id, edges: [...spec.edges], radii: [
-        { at: [...edge.a], radius: spec.values.radius }, { at: [...edge.b], radius: spec.values.endRadius },
+        { at: [...edge.a], radius: spec.values.radius, atEnd: true }, { at: [...edge.b], radius: spec.values.endRadius, atEnd: true },
       ] }];
     }
     case 'chamfer':

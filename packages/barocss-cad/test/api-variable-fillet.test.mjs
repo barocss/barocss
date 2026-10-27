@@ -26,10 +26,10 @@ test('public variable fillet: one straight edge stores its a/b radius direction 
   const options = { radius: 1, endRadius: 3 }, optionsBefore = structuredClone(options), accepted = source.fillet(picked, options);
   const node = accepted.doc.features.at(-1); assert.equal(node.kind, 'fillet'); assert.equal(node.target, 'extrude1');
   assert.deepEqual(node.edges, edge.names); assert.equal(Object.hasOwn(node, 'radius'), false);
-  assert.deepEqual(node.radii, [{ at: [0, 0, 10], radius: 1 }, { at: [40, 0, 10], radius: 3 }]);
+  assert.deepEqual(node.radii, [{ at: [0, 0, 10], radius: 1, atEnd: true }, { at: [40, 0, 10], radius: 3, atEnd: true }]);
   volume(accepted, 1, 3);
   const opposite = source.fillet(picked, { radius: 3, endRadius: 1 });
-  assert.deepEqual(opposite.doc.features.at(-1).radii, [{ at: [0, 0, 10], radius: 3 }, { at: [40, 0, 10], radius: 1 }]);
+  assert.deepEqual(opposite.doc.features.at(-1).radii, [{ at: [0, 0, 10], radius: 3, atEnd: true }, { at: [40, 0, 10], radius: 1, atEnd: true }]);
   volume(opposite, 3, 1);
   assert.deepEqual(source.doc, before); assert.deepEqual(options, optionsBefore);
   options.endRadius = 4; const copy = accepted.doc; copy.features.at(-1).radii[0].at[0] = 99;
@@ -39,7 +39,7 @@ test('public variable fillet: one straight edge stores its a/b radius direction 
 test('public variable fillet: end radius binding, parameter edits and codec preserve exact stored endpoint refs', () => {
   const source = plate(), before = source.doc, options = { radius: 1, endRadius: param('E') }, optionsBefore = structuredClone(options);
   const accepted = source.fillet(picked, options), doc = accepted.doc, stored = doc.features.at(-1);
-  assert.deepEqual(stored.radii, [{ at: [0, 0, 10], radius: 1 }, { at: [40, 0, 10], radius: { parameter: 'E' } }]);
+  assert.deepEqual(stored.radii, [{ at: [0, 0, 10], radius: 1, atEnd: true }, { at: [40, 0, 10], radius: { parameter: 'E' }, atEnd: true }]);
   volume(accepted, 1, 3);
   const changed = accepted.withParameters({ E: 4 }); volume(changed, 1, 4);
   assert.deepEqual(changed.doc.features, doc.features); assert.equal(changed.parameters().E, 4);
@@ -47,7 +47,7 @@ test('public variable fillet: end radius binding, parameter edits and codec pres
   for (const endRadius of [1, 1 + 5e-10]) {
     const edited = accepted.withParameters({ E: endRadius });
     assert.equal(edited.parameters().E, endRadius); assert.deepEqual(edited.doc.features, doc.features);
-    assert.deepEqual(edited.doc.features.at(-1).radii, [{ at: [0, 0, 10], radius: 1 }, { at: [40, 0, 10], radius: { parameter: 'E' } }]);
+    assert.deepEqual(edited.doc.features.at(-1).radii, [{ at: [0, 0, 10], radius: 1, atEnd: true }, { at: [40, 0, 10], radius: { parameter: 'E' }, atEnd: true }]);
     volume(edited, 1, endRadius);
   }
 
