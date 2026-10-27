@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
-import { readDrawing } from '../src/drawing/types';
+import { readDrawing, type DrawingSettings } from '../src/drawing/types';
 import { readFrames, checkSavedDrawingFrames, type DrawingFrame } from '../src/drawing/controls';
 import { encodeStudioFile, readStudioFile, encodeStudioSnapshot, readStudioSnapshot } from '../src/engine/container';
 import { emptyDirect, geometryOf, importSource } from '../src/engine/direct';
@@ -21,7 +21,7 @@ const frames = (): DrawingFrame[] => [
     material: 'maximum', datumModifiers: { A: 'maximum' }, projected: 4, tangentPlane: true,
     composite: { value: 0.15, datums: ['A'], diameter: false, material: 'least', datumModifiers: { A: 'least' } } },
 ];
-const drawingDocument = (): StudioDoc => ({ ...emptyDoc(), drawing: { frames: frames() } });
+const drawingDocument = (): StudioDoc => ({ ...emptyDoc(), drawing: { frames: frames() } as DrawingSettings });
 const textBytes = (doc: unknown) => new TextEncoder().encode(JSON.stringify(doc));
 const at = (n: number) => `2026-10-27T01:0${n}:00.000Z`;
 
@@ -38,7 +38,7 @@ function routeDocument(): StudioDoc {
     doc = withNode(doc, { kind: 'sketch', profile: 'circle', center: [i ? 2 : -2, 0], radius: 0.5 });
     doc = withNode(doc, { kind: 'sweep-curve', sketch: 2 * i, name: object.name, path: { degree: curve.degree, knots: [...curve.knots], controlPoints: curve.controlPoints.map(p => [p[0], p[1], p[2]] as [number, number, number]), weights: [...curve.weights] } });
   }
-  doc = { ...doc, drawing: { frames: frames() } };
+  doc = { ...doc, drawing: { frames: frames() } as DrawingSettings };
   return createRouteBundle(doc, { id: 'bundle1', tieId: 'tie1', anchorMM: [0, 0, 10], expectedDocumentIdentity: routeBundleDocumentIdentity(doc), members: [
     { id: 'A', curveObjectId: direct.objects[0].id, handleKey: '1', sweepFeatureId: 'n1', profileFeatureId: 'n0' },
     { id: 'B', curveObjectId: direct.objects[1].id, handleKey: '1', sweepFeatureId: 'n3', profileFeatureId: 'n2' },

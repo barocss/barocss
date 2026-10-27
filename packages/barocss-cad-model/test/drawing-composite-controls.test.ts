@@ -35,7 +35,7 @@ test('invalid lower rows and non-position composites are rejected without partia
   const doc = { ...starterDoc(), drawing: { ...defaultDrawing(), frames: [legacy] } };
   const before = JSON.stringify(doc);
   for (const row of invalid) {
-    const bad = { ...composite, composite: row };
+    const bad: Record<string, unknown> = { ...composite, composite: row };
     assert.equal(frameOk(bad), false);
     assert.equal(checkDrawingFrames({ frames: [legacy, bad] })[0]?.code, 'DRAWING_OPTIONS');
     assert.deepEqual(readFrames([bad]), []);
@@ -81,7 +81,7 @@ test('saved composite checks refuse malformed or unsupported rows without changi
     { ...composite, characteristic: 'flatness' }, { ...composite, future: true },
   ];
   for (const bad of invalid) {
-    const input = { frames: [legacy, bad] }, saved = structuredClone(input);
+    const input: { frames: unknown[] } = { frames: [legacy, bad] }, saved = structuredClone(input);
     assert.equal(checkSavedCompositeFrames(input)[0]?.code, 'DRAWING_OPTIONS');
     assert.deepEqual(input, saved);
   }

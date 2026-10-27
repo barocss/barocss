@@ -63,8 +63,9 @@ test('attached and standalone composite frames keep both rows through the file c
     const current = { ...readDrawing(opened.doc.drawing), scale }, ctx = issueContext({ ...input, settings: current });
     const controls = ctx.sheet.groups.filter(g => g.role === 'control');
     assert.equal(controls.length, 2);
-    for (const frame of [attached, standalone]) {
-      const group = controls.find(g => g.id === frame.id); assert.ok(group);
+    const shown: DrawingFrame[] = [attached, standalone];
+    for (const frame of shown) {
+      const group: (typeof controls)[number] | undefined = controls.find(g => g.id === frame.id); assert.ok(group);
       const border = borderOf(group.marks), [x, y] = border.points[0];
       assert.ok(Math.abs(border.points[2][1] - y - 12) < 1e-9, 'two 6 mm rows remain paper-sized');
       assert.deepEqual(texts(group.marks).map(m => m.text), ['0.25', 'M', 'A', 'L', 'B', 'Ø0.1', 'L', 'C', 'M']);
