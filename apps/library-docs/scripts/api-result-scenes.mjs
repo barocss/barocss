@@ -61,17 +61,26 @@ function preserveProducerEvidence(bundle, metafile) {
     inputs.push(record);
     for (const dependency of metadata.imports ?? []) if (dependency.external) {
       const nodeBuiltin = isBuiltin(dependency.path);
-      externalEdges.push({ fromInput: key, ...dependency, classification: nodeBuiltin ? 'NODE_BUILTIN_EXTERNAL' : 'UNBOUND_EXTERNAL' });
-      if (!nodeBuiltin) unresolved.push({ inputKey: key, externalPath: dependency.path, reason: 'external non-Node module is not bound by this metafile' });
+      // Input-graph external edges describe the build; they are not retained-output or runtime claims.
+      externalEdges.push({ fromInput: key, ...dependency, role: 'INPUT_GRAPH_METADATA',
+        classification: nodeBuiltin ? 'NODE_BUILTIN_EXTERNAL' : 'INPUT_EXTERNAL_METADATA' });
     }
   }
   const outputExternalEdges = [];
   for (const [output, metadata] of Object.entries(metafile.outputs)) {
     for (const dependency of metadata.imports ?? []) if (dependency.external) {
       const nodeBuiltin = isBuiltin(dependency.path);
-      outputExternalEdges.push({ fromOutput: output, ...dependency, classification: nodeBuiltin ? 'NODE_BUILTIN_EXTERNAL' : 'UNBOUND_EXTERNAL' });
+      outputExternalEdges.push({ fromOutput: output, ...dependency, role: 'RETAINED_OUTPUT_EXTERNAL',
+        classification: nodeBuiltin ? 'NODE_BUILTIN_EXTERNAL' : 'UNBOUND_EXTERNAL' });
       if (!nodeBuiltin) unresolved.push({ output, externalPath: dependency.path, reason: 'output retains an unbound non-Node external module' });
     }
+  }
+  for (const edge of externalEdges) {
+    edge.matchingOutputExternalSpecifiers = outputExternalEdges
+      .filter(output => output.path === edge.path)
+      .map(({ fromOutput, path, kind }) => ({ fromOutput, path, kind }));
+    edge.outputMatchBasis = 'Exact specifier string match in metafile.outputs imports; not a module-identity or runtime-reachability proof.';
+    edge.runtimeReachability = 'UNKNOWN';
   }
   const bundleData = readFileSync(bundle);
   const evidence = {
@@ -79,7 +88,7 @@ function preserveProducerEvidence(bundle, metafile) {
     pinnedCADSourceCommit: SOURCE_COMMIT, pinnedCADTreeSHA1: CAD_TREE,
     bundle: { savedPath: 'source.mjs', bytes: bundleData.length, sha256: createHash('sha256').update(bundleData).digest('hex') },
     inputs, externalEdges, outputExternalEdges, unresolved,
-    boundary: 'Actual esbuild metafile inputs only. Node builtin external edges are not filesystem inputs. This is not the full producer/toolchain/runtime read graph.',
+    boundary: 'Actual esbuild filesystem inputs are bound separately. Input external edges are build metadata; an absent output-specifier match does not prove removal or tree shaking. Retained non-Node output externals are refused. Node builtin edges are not filesystem inputs. Full producer/toolchain/runtime read graph UNKNOWN.',
   };
   writeFileSync(join(directory, 'inputs.json'), JSON.stringify(evidence, null, 2) + '\n', { flag: 'wx' });
   assert.equal(unresolved.length, 0, `Unresolved producer inputs were preserved in inputs.json: ${JSON.stringify(unresolved)}`);
