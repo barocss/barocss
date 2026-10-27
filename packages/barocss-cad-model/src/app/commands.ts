@@ -383,11 +383,12 @@ const THREAD_CLEARANCE = 0.04;
 /** A face-thread node of the picked round face (a hole's needs its nominal diameter `d`); `len` 0 is the whole face. */
 export function buildFaceThread(ctx: Ctx, v: Values): StudioDoc {
   const t = threadFaceOf(ctx); if (typeof t === 'string') throw refusal('THREAD_PICK', t);
-  const pitch = Number(v.pitch), d = Number(v.d), length = Number(v.len ?? 0), relief = v.relief === undefined ? undefined : Number(v.relief), clear = v.clear === undefined ? THREAD_CLEARANCE : Number(v.clear), end = v.end === '-' ? '-' : '+';
+  const pitch = Number(v.pitch), d = Number(v.d), length = Number(v.len ?? 0), relief = v.relief === undefined ? undefined : Number(v.relief), clear = v.clear === undefined ? THREAD_CLEARANCE : Number(v.clear), end = v.end === '-' ? '-' : '+', hand = v.hand === undefined ? 'right' : v.hand;
   if (!(Number.isFinite(pitch) && pitch > 0)) throw refusal('VALUE', 'A thread\'s pitch is a positive length.');
   if (!t.external && !(Number.isFinite(d) && d > 0)) throw refusal('VALUE', 'A thread in a hole needs its nominal diameter.');
+  if (hand !== 'right' && hand !== 'left') throw refusal('VALUE', 'A thread\'s hand is right or left.');
   if (!(Number.isFinite(length) && length >= 0) || (relief !== undefined && !(Number.isFinite(relief) && relief >= 0)) || !(Number.isFinite(clear) && clear >= 0)) throw refusal('VALUE', 'A thread\'s length, relief and clearance are not negative.');
-  return withNode(ctx.doc, { kind: 'face-thread', parent: refOf(t.body), face: t.face, pitch, ...(!t.external || (Number.isFinite(d) && Math.abs(d - 2 * t.radius) > 1e-9 * Math.max(1, d)) ? { diameter: d } : {}), ...(length > 0 ? { length } : {}), ...(end === '-' ? { end } : {}), ...(t.external && relief !== undefined && relief !== pitch ? { relief } : {}), ...((!t.external && clear !== THREAD_CLEARANCE) || (t.external && v.clear !== undefined) ? { clearance: clear } : {}) });
+  return withNode(ctx.doc, { kind: 'face-thread', parent: refOf(t.body), face: t.face, pitch, ...(!t.external || (Number.isFinite(d) && Math.abs(d - 2 * t.radius) > 1e-9 * Math.max(1, d)) ? { diameter: d } : {}), ...(length > 0 ? { length } : {}), ...(end === '-' ? { end } : {}), ...(t.external && relief !== undefined && relief !== pitch ? { relief } : {}), ...((!t.external && clear !== THREAD_CLEARANCE) || (t.external && v.clear !== undefined) ? { clearance: clear } : {}), ...(hand === 'left' ? { hand: 'left' as const } : {}) });
 }
 
 const allCommands: Command[] = [
@@ -537,22 +538,23 @@ const allCommands: Command[] = [
     build: (ctx, v) => { const rest = { ...v }; delete rest.pull; return buildDraft(ctx, draftPullOf(v) === 'z' ? rest : { ...rest, pull: draftPullOf(v) }); },
   },
   {
-    id: 'face-thread', label: 'Thread', icon: 'cad-thread', hint: 'Cut a modelled ISO metric thread (right hand) on a picked round face: a shaft at its diameter, a hole (its tap drill) at the nominal size, 0.04 mm clear of a bolt like a modelled nut; a relief groove where a shaft\'s thread stops at a shoulder', group: 'modify', keywords: 'thread screw tap tapped helix modelled real external internal',
+    id: 'face-thread', label: 'Thread', icon: 'cad-thread', hint: 'Cut a modelled ISO metric thread (right or left hand) on a picked round face: a shaft at its diameter, a hole (its tap drill) at the nominal size, 0.04 mm clear of a bolt like a modelled nut; a relief groove where a shaft\'s thread stops at a shoulder', group: 'modify', keywords: 'thread screw tap tapped helix modelled real external internal',
     available: ctx => { const t = threadFaceOf(ctx); return typeof t === 'string' ? no(t) : ok; },
     fields: ctx => { const t = threadFaceOf(ctx), external = typeof t !== 'string' && t.external;
       return [{ key: 'pitch', label: 'Pitch', kind: 'mm', min: 0.2, step: 0.05 }, ...(external ? [] : [{ key: 'd', label: 'Nominal Ø', kind: 'mm' as const, min: 1 }, { key: 'clear', label: 'Clearance on a bolt', kind: 'mm' as const, min: 0, step: 0.01 }]),
+        { key: 'hand', label: 'Hand', kind: 'choice', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }] },
         { key: 'len', label: 'Length (0: whole face)', kind: 'mm', min: 0 }, { key: 'end', label: 'From', kind: 'choice', options: [{ value: '+', label: 'The + end' }, { value: '-', label: 'The − end' }] },
         ...(external ? [{ key: 'relief', label: 'Relief groove', kind: 'mm' as const, min: 0 }] : [])]; },
     defaults: ctx => {
-      const t = threadFaceOf(ctx); if (typeof t === 'string') return { pitch: 1, d: 6, len: 0, end: '+', relief: 1, clear: THREAD_CLEARANCE };
+      const t = threadFaceOf(ctx); if (typeof t === 'string') return { pitch: 1, d: 6, len: 0, end: '+', relief: 1, clear: THREAD_CLEARANCE, hand: 'right' };
       // The person's size row when one fits; else a 1 mm pitch, and a hole's nominal its drill plus a pitch (d − P ≈ the tap drill).
       const s = threadSizeOf(ctx, t), pitch = s?.pitch ?? 1;
-      return { pitch, d: t.external ? 2 * t.radius : s?.d ?? +(2 * t.radius + pitch).toFixed(3), len: 0, end: '+', relief: pitch, ...(t.external ? {} : { clear: THREAD_CLEARANCE }) };
+      return { pitch, d: t.external ? 2 * t.radius : s?.d ?? +(2 * t.radius + pitch).toFixed(3), len: 0, end: '+', relief: pitch, hand: 'right', ...(t.external ? {} : { clear: THREAD_CLEARANCE }) };
     },
     steps: (ctx, v) => { const t = threadFaceOf(ctx); if (typeof t === 'string') return [{ label: 'Face', text: t, done: false }];
       const d = t.external ? 2 * t.radius : Number(v.d), s = threadSizeOf(ctx, t);
       return [{ label: 'Face', text: `${t.external ? 'a shaft' : 'a hole'} Ø${+(2 * t.radius).toFixed(3)}`, done: true },
-        { label: 'Thread', text: `M${+d.toFixed(3)}×${v.pitch} right-hand, ${t.external ? 'external' : `internal, ${v.clear ?? THREAD_CLEARANCE} mm clear of a bolt`}, modelled: ISO 68-1 basic profile as helical B-spline faces${s && Math.abs(s.pitch - Number(v.pitch)) > 1e-9 ? ` (the size row says ×${s.pitch})` : !s ? ' (no size row: the pitch is yours)' : ''}`, done: true }]; },
+        { label: 'Thread', text: `M${+d.toFixed(3)}×${v.pitch} ${v.hand === 'left' ? 'left' : 'right'}-hand, ${t.external ? 'external' : `internal, ${v.clear ?? THREAD_CLEARANCE} mm clear of a bolt`}, modelled: ISO 68-1 basic profile as helical B-spline faces${s && Math.abs(s.pitch - Number(v.pitch)) > 1e-9 ? ` (the size row says ×${s.pitch})` : !s ? ' (no size row: the pitch is yours)' : ''}`, done: true }]; },
     build: buildFaceThread,
   },
   {

@@ -37,7 +37,7 @@ const SPECS: Record<string, Spec> = {
   shell: { parent: 'ref', thickness: 'dim', open: 'names' },
   draft: { parent: 'ref', faces: 'names1', angle: 'num', 'pull?': 'enum:x|y|z|-x|-y|-z', 'neutral?': 'dim' },
   'full-round': { parent: 'ref', faces: 'names1', 'along?': 'enum:x|y' },
-  'face-thread': { parent: 'ref', face: 'text', pitch: 'pos', 'diameter?': 'pos', 'length?': 'pos', 'end?': 'enum:+|-', 'relief?': 'num', 'clearance?': 'num' },
+  'face-thread': { parent: 'ref', face: 'text', pitch: 'pos', 'diameter?': 'pos', 'length?': 'pos', 'end?': 'enum:+|-', 'relief?': 'num', 'clearance?': 'num', 'hand?': 'enum:left' },
   // (R9, D85: a mesh body simplified; its keep and bounds are values.)
   decimate: { parent: 'ref', 'ratio?': 'num', 'triangles?': 'count', 'maxError?': 'num', 'featureAngle?': 'num' },
   chamfer: { parent: 'ref', edges: 'names1', distance: 'dim' },

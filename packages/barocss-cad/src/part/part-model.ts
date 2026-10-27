@@ -133,7 +133,7 @@ export type CadPartFeature = Base & (
    */
   | { readonly kind: 'full-round'; readonly target: string; readonly faces: readonly string[]; readonly along?: 'x' | 'y'; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
   /**
-   * A modelled ISO metric thread (right hand, helical B-spline faces `<id>.thread#k`) cut on one whole cylindrical face
+   * A modelled ISO metric thread (`hand` right, the default, or left; helical B-spline faces `<id>.thread#k`) cut on one whole cylindrical face
    * of the target, any axis: from the `end` ('+': the end further along the axis, its largest component positive;
    * default) over `length` (default the face). A hole is its tap drill: `diameter` (the nominal) is then required, the
    * hole filled over the length and the thread cut, one pitch past an open end, its profile `clearance` (default
@@ -142,7 +142,7 @@ export type CadPartFeature = Base & (
    * short of an end that is not a flat free end (a shoulder, a chamfer, the face going on). Each step's volume is
    * checked, so material in the way (a thin wall, a key) refuses rather than builds.
    */
-  | { readonly kind: 'face-thread'; readonly target: string; readonly face: string; readonly pitch: CadPartDim; readonly diameter?: CadPartDim; readonly length?: CadPartDim; readonly end?: '+' | '-'; readonly relief?: CadPartDim; readonly clearance?: CadPartDim }
+  | { readonly kind: 'face-thread'; readonly target: string; readonly face: string; readonly pitch: CadPartDim; readonly diameter?: CadPartDim; readonly length?: CadPartDim; readonly end?: '+' | '-'; readonly relief?: CadPartDim; readonly clearance?: CadPartDim; readonly hand?: 'right' | 'left' }
   /**
    * A hole along `axis` (default z) through the target, or `depth` deep from its `side` (default max:
    * the top for z). `center` is in the other two coordinates in order: z → [x, y], x → [y, z], y → [x, z].
@@ -1547,6 +1547,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const end = f.end ?? '+', relief = f.relief === undefined ? p : dim(f.relief as CadPartDim, 'relief'), clearance = f.clearance === undefined ? null : dim(f.clearance as CadPartDim, 'clearance');
       if (typeof name !== 'string' || !name) fail('INPUT', 'face must name a cylindrical face');
       if (end !== '+' && end !== '-') fail('INPUT', "end must be '+' or '-'");
+      const hand = f.hand ?? 'right';
+      if (hand !== 'right' && hand !== 'left') fail('INPUT', 'hand must be right or left');
       if (!(relief >= 0)) fail('INPUT', 'relief must not be negative');
       if (clearance !== null && !(clearance >= 0 && clearance < p / 4)) fail('INPUT', 'clearance must be at least 0 and below a quarter of the pitch');
       if (target.length !== 1) fail('REFERENCE', 'thread one part at a time (name it as id/k)');
@@ -1598,7 +1600,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           let made: Brep;
           try { made = threadSolid({ id: at, diameter: d, pitch: p, center: [0, 0], seat: hi, length: hi - lo, form: 'helical', clearance: clear }); }
           catch (cause) { if (cause instanceof RangeError || isMeshBrepError(cause)) fail('PARAMETER', cause.message); throw cause; }
-          const s = local({ kind: 'brep', brep: made! });
+          // (A left-hand thread: the right-hand rod mirrored through a plane holding its axis.)
+          const s = local(hand === 'left' ? affine({ kind: 'brep', brep: made! }, [-1, 0, 0, 0, 1, 0, 0, 0, 1], [0, 0, 0]) : { kind: 'brep', brep: made! });
           return { solid: s, area: exactVolume(s) / (hi - lo) };
         };
         const close = (got: number, expected: number, scaleOf: number) => Math.abs(got - expected) <= 1e-7 * Math.max(expected, scaleOf);

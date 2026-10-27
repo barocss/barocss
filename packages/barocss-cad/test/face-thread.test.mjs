@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, outputOf, massPropertiesOf, checkOutput, reevaluate, saveCadPart, loadCadPart, CadPartError } from '../dist/index.js';
+import { evaluateCadPart, outputOf, massPropertiesOf, checkOutput, reevaluate, saveCadPart, loadCadPart, CadPartError, evaluateSurface } from '../dist/index.js';
 
 // A modelled thread cut on an existing cylindrical face. Expectations from the inputs: the thread's section per
 // length is the kernel's own threaded rod's (the `thread` feature, built apart), itself within 5e-4 of the ISO 68-1
@@ -72,6 +72,24 @@ test('face thread: any axis — a shaft along X', () => {
   const o = out([...xs, { id: 'th', kind: 'face-thread', target: 'sh', face: 'sh.side0', pitch: 1.25, length: 10 }], 'th'); valid(o);
   near(massPropertiesOf(o).volume, Math.PI * 16 * 25 - Math.PI * (16 - core * core) * 10 + (A - Math.PI * core * core) * 8.75, 'along X');
   const xsAll = o.brep.vertices.map(v => v.point[0]); assert.ok(Math.min(...xsAll) >= -1e-9 && Math.max(...xsAll) <= 25 + 1e-9, 'stays on the shaft');
+});
+
+/** A thread face's rise per turn, signed: + for a right hand (z grows turning counter-clockwise about +Z), − for a left. */
+function risePerTurn(o, cx = 0, cy = 0) {
+  const f = o.brep.faces.find(x => /\.thread#/.test(x.name)), p1 = evaluateSurface(f.surface, 0.4, 0.5), p2 = evaluateSurface(f.surface, 0.45, 0.5), t = p => Math.atan2(p[1] - cy, p[0] - cx);
+  let dt = t(p2) - t(p1); if (dt > Math.PI) dt -= 2 * Math.PI; if (dt < -Math.PI) dt += 2 * Math.PI;
+  return (p2[2] - p1[2]) / dt * 2 * Math.PI;
+}
+
+test('face thread: a left hand is the right hand mirrored — the same volume, the helix turning the other way', () => {
+  for (const [label, base, extra] of [['shaft', shaft(), { target: 'sh', face: 'sh.side0', length: 12 }], ['hole', [...plate, hole()], { target: 'h', face: 'h.side0', diameter: 6 }]]) {
+    const [right, left] = ['right', 'left'].map(hand => out([...base, { id: 'th', kind: 'face-thread', pitch: 1, ...extra, ...(hand === 'left' ? { hand } : {}) }], 'th'));
+    valid(right); valid(left);
+    near(massPropertiesOf(left).volume, massPropertiesOf(right).volume, `${label}: volume`);
+    const c = label === 'hole' ? [15, 15] : [0, 0], r = risePerTurn(right, ...c), l = risePerTurn(left, ...c);
+    assert.ok(r > 0.95 && r < 1.05, `${label}: right hand rises a pitch a turn (${r})`); assert.ok(l < -0.95 && l > -1.05, `${label}: left hand falls a pitch a turn (${l})`);
+  }
+  refused([...shaft(), { id: 'th', kind: 'face-thread', target: 'sh', face: 'sh.side0', pitch: 1, hand: 'up' }], 'INPUT', /hand must be right or left/);
 });
 
 test('face thread: follows an upstream edit, and survives save and open', () => {

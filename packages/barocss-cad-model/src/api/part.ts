@@ -47,7 +47,7 @@ const libraryMaterial = (id: string) => {
 export interface StudioDraftOptions { readonly angle: number; readonly pull?: 'x' | 'y' | 'z' | '-x' | '-y' | '-z'; readonly neutral?: Dim }
 
 /** Thread options: pitch; a hole's nominal diameter and clearance on a bolt (default 0.04 mm); length from the end (left out: the face), end + or −, a shaft's relief groove. */
-export interface StudioThreadOptions { readonly pitch: number; readonly diameter?: number; readonly length?: number; readonly end?: '+' | '-'; readonly relief?: number; readonly clearance?: number }
+export interface StudioThreadOptions { readonly pitch: number; readonly diameter?: number; readonly length?: number; readonly end?: '+' | '-'; readonly relief?: number; readonly clearance?: number; readonly hand?: 'right' | 'left' }
 
 /** Full round options: the round's axis, x or y; left out, each face's longer side. */
 export interface StudioFullRoundOptions { readonly along?: 'x' | 'y' }
@@ -166,10 +166,11 @@ export class StudioPart extends Part<StudioDoc> {
 
   /** A modelled thread on the selected round face (a shaft, or a hole at `diameter`) through the Studio builder; refusal preserves this part. */
   thread(face: (body: BodyQuery) => FaceQuery, options: StudioThreadOptions): this {
-    const keys = ['pitch', 'diameter', 'length', 'end', 'relief', 'clearance'];
-    if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).some(k => !keys.includes(k))) throw refuse('VALUE', 'thread options are pitch, diameter, length, end, relief and clearance');
+    const keys = ['pitch', 'diameter', 'length', 'end', 'relief', 'clearance', 'hand'];
+    if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).some(k => !keys.includes(k))) throw refuse('VALUE', 'thread options are pitch, diameter, length, end, relief, clearance and hand');
     for (const k of ['pitch', 'diameter', 'length', 'relief', 'clearance'] as const) if (options[k] !== undefined && !(typeof options[k] === 'number' && Number.isFinite(options[k]))) throw refuse('VALUE', `thread ${k} is a finite number of mm`);
     if (options.end !== undefined && options.end !== '+' && options.end !== '-') throw refuse('VALUE', 'thread end is + or -');
+    if (options.hand !== undefined && options.hand !== 'right' && options.hand !== 'left') throw refuse('VALUE', 'thread hand is right or left');
     const doc = this.document, before = bodiesOf(doc), target = this.target(), body = before.find(b => b.key === target);
     if (!body) throw refuse('NO_BODY', 'thread needs one selected body');
     if (typeof face !== 'function') throw refuse('VALUE', 'thread takes a face selector');
@@ -177,7 +178,7 @@ export class StudioPart extends Part<StudioDoc> {
     if (picked.count !== 1) throw refuse(picked.count ? 'VALUE' : 'SELECTION_EMPTY', picked.count ? 'thread one round face at a time' : 'the selector picked no face to thread');
     const { selection, unknown } = resolveNames([body], { faces: picked.names() });
     if (unknown.length) throw refuse('SELECTION_UNKNOWN', `no face named ${unknown.join(', ')} on the selected body`);
-    const values: Values = { pitch: options.pitch, len: options.length ?? 0, end: options.end ?? '+', ...(options.diameter !== undefined ? { d: options.diameter } : {}), ...(options.relief !== undefined ? { relief: options.relief } : {}), ...(options.clearance !== undefined ? { clear: options.clearance } : {}) };
+    const values: Values = { pitch: options.pitch, len: options.length ?? 0, end: options.end ?? '+', ...(options.diameter !== undefined ? { d: options.diameter } : {}), ...(options.relief !== undefined ? { relief: options.relief } : {}), ...(options.clearance !== undefined ? { clear: options.clearance } : {}), ...(options.hand !== undefined ? { hand: options.hand } : {}) };
     const next = buildFaceThread({ doc, bodies: [body], selection }, values), node = next.nodes.at(-1);
     const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
     if (why) throw refuse('VALUE', `the thread: ${why}`);
