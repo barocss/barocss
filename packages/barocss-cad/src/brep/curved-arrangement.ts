@@ -90,6 +90,8 @@ function denseSamples(s: CurveSegment2): XY[] {
 /** Whether p is surely farther than eps from a general curve (outside its padded sample box). */
 const surelyOff = (s: CurveSegment2, p: XY, eps: number) => { if (s.kind !== 'curve') return false; const { lo, hi } = samples(s); return p[0] < lo[0] - eps || p[1] < lo[1] - eps || p[0] > hi[0] + eps || p[1] > hi[1] + eps; };
 const CURVE_SAMPLES = 64;
+/** Where liesAlong looks first: the middle, then the ends. */
+const LIES_ALONG_FIRST: readonly number[] = [0.5, 0, 1];
 /** The parameters crossingsAt reads a line and a general curve at (the curve's: those of its dense samples). */
 const LINE_US: readonly number[] = [0, 1], DENSE_US: readonly number[] = Array.from({ length: CURVE_SAMPLES * 2 + 1 }, (_, k) => k / (CURVE_SAMPLES * 2));
 /** Area contribution ½∮(x dy − y dx) of a segment. */
@@ -108,6 +110,13 @@ export function sampleRing(ring: readonly CurveSegment2[], step = Math.PI / 36):
 /** Even–odd point in a polygon (sampled rings). */
 export const pointInPolygon = (p: XY, poly: readonly XY[]) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
 
+/** Whether every one of a's CURVE_SAMPLES + 1 samples lies within eps of b (its middle and ends looked at first). */
+function liesAlong(a: CurveSegment2, b: CurveSegment2, eps: number): boolean {
+  for (const u of LIES_ALONG_FIRST) { const p = segAt(a, u); if (surelyOff(b, p, eps) || segDistance(b, p) > eps) return false; }
+  const ps = a.kind === 'curve' ? samplesOf(a) : polyline(a, CURVE_SAMPLES);
+  for (const p of ps) if (surelyOff(b, p, eps) || segDistance(b, p) > eps) return false;
+  return true;
+}
 /** Squared distance from p to the segment's point at u. */
 function segD2(s: CurveSegment2, p: XY, u: number): number { const q = segAt(s, u); return (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2; }
 /** Golden-section search (60 steps) for the u in [lo, hi] nearest p: the middle of the last bracket. */
@@ -268,6 +277,11 @@ export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: numbe
   // curve's nearest-point search — mostly fails at once. The same points, in the same order: K13, D242.)
   const ends = () => { for (const p of [segStart(s), segEnd(s)]) if (on(t, p) && on(s, p)) out.push(p); for (const p of [segStart(t), segEnd(t)]) push(p); };
   if (s.kind === 'curve' || t.kind === 'curve') {
+    // (One lying along the other — every one of its 65 samples within eps of it: a contact curve cut twice, from the face
+    // that made it and from a coincident face's boundary — shares with it only the ends of their run. The search below
+    // found points all along such a pair, each tested for a touch by walking the rest of the curve, and overlapEnds then
+    // dropped them all: 93 % of a face-fillet restore's arrangement time, for the same points within eps.)
+    if (liesAlong(s, t, eps) || liesAlong(t, s, eps)) { ends(); return overlapEnds(s, t, out, eps); }
     // Polyline crossings refined by Newton's method on A(u) − B(v) = 0.
     const n = (x: CurveSegment2) => x.kind === 'line' ? 1 : x.kind === 'curve' ? CURVE_SAMPLES : Math.max(4, Math.ceil(Math.abs(x.sweep) / (Math.PI / 32)));
     const ns = n(s), nt = n(t), A0 = polyline(s, ns), B0 = polyline(t, nt);
