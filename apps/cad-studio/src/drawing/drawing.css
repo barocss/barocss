@@ -16,7 +16,7 @@
 .dw-dim.sel { background: var(--accent-soft); }
 .dw-dim.lost b { color: var(--warn); }
 .dw-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.dw-hint { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); padding: 6px 12px; display: flex; gap: 12px; align-items: center; font-size: 11px; color: var(--text-2); white-space: nowrap; }
+.dw-hint { position: absolute; left: 68px; right: 272px; bottom: 50px; width: fit-content; max-width: calc(100% - 340px); margin-inline: auto; box-sizing: border-box; padding: 6px 12px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; font-size: 11px; color: var(--text-2); white-space: normal; overflow-wrap: anywhere; pointer-events: none; }
 .dw-hint.warn { border-color: var(--warn); }
 .dw-busy { position: absolute; left: 50%; top: 40%; transform: translateX(-50%); color: var(--muted); }
 /* On the paper (sheet mm): the cursor's snap, hovered edge and a dimension being placed or selected. */
