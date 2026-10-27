@@ -27,7 +27,7 @@ Kernel·GPU·CAD·CAD Model 기반을 먼저 구현하고 같은 기능을 Studi
 
 ## 현재 구현과 다음 행동
 
-공통 소스는 `1c48eaa12cb3efc874b6ae3b53a84d05c6f9b5aa`이다. 제품에서 실제 검증한 최신 코드는 `ca10a3a8ea5ce1a60cb6850062dfb1eaec157828`이다. 제품의 후속 문서 commit은 새 기능 실행 PASS가 아니다. 공통 로드맵은01–19번이며 실제 배정은 기존 단일 기록만 사용한다.
+공통 소스는 `433a035ae03a61e55b0e03b6a9b9897083774800`이다. 제품에서 실제 검증한 최신 코드는 `ca10a3a8ea5ce1a60cb6850062dfb1eaec157828`이다. 제품의 후속 문서 commit은 새 기능 실행 PASS가 아니다. 공통 로드맵은01–19번이며 실제 배정은 기존 단일 기록만 사용한다.
 
 - Studio UI5: 원2e7→root1c80, 공통 타입/lint·기본 화면을 완료하고 제품ca10a3와 필수 제품 docs 검사까지 마쳤다. 오류·단위·기존 Hud 키보드 guard를 보존했다. 다음 키보드 tooltip은 Outer 독립 소스이며 아직 미완료다.
 - Viewer: 정상10개 묶음은 공통에 채택했고 기존 SDK/앱·원본 점 검사는 한정된 담당 검증을 마쳤다. 제품 미채택이다. 새 측정·조립품 거리·리뷰는 별도 소유 작업이다. 정상 commit/실행/파일 결과를 받아 기존묶음과 구분한다. packaging/config/hook 중단은 유지한다.
@@ -40,8 +40,16 @@ Kernel·GPU·CAD·CAD Model 기반을 먼저 구현하고 같은 기능을 Studi
 
 각 담당이 내부 분할과 취합을 맡는다. 필요한 실제 UI·파일·오류·source 결속과 자기 정리를 수행한다. 독립 source는 병렬이며 무거운 실행은 하나씩 한다. 정상기능을 같은원본의 소스→필요한한배치→실제소비/파일→제품으로 닫고 유효PASS를 반복하지 않는다. 다음 source준비를 제품완료로 표시하지 않는다.
 
+## 후속 실제 결과 — 원 실행과 구분
+
+- 공통03: 1c48의 CAD build/CAD4/API4는 PASS다. command의 중복 선택 거부 기대가 실패해 시험만87327로 교정했고 command2·Model/Studio type·lint13을 PASS했다. 원 FAIL은 그대로다.
+- 실제 UI에서 Spacing0 오류와 Apply 비활성인데 이전 preview가 남았다. App의 현재값 확인·구결과 차단·preview clear만 dca→433으로 정상 채택했고 Studio type/lint1은 PASS했다. 수정 후 공개 파일 흐름은 아직 미완료이며 IAB file-upload 도구 승인 상태를 확인 중이다. 실제차단이 확정되지 않았고 제품FAIL/전체중단으로 해석하지 않는다.
+- 도면01: 87327의 전용 상태행/표제란 비중첩과 실제 입력을 PASS했고 root도 PNG를 직접 봤다. 파일·SVG·native는 반복하지 않았다. 다만 구제품ca10이 dim 없는 standalone을 버리므로 schema5 저장 보호를 제품 선행으로 배정했다.
+- 저장 보호: 일반3/route4는 보존하고 standalone/composite만5를 요구한다. canonical/hash 전 버전 확정, raw 검사·schema5 보존·실제route 판정·nested editable doc, immutable snapshot identity와 recovery/template 구버전 우회를 함께 닫는다. Kernel=Model core/버전, Outer=publish/recovery/templates, Drawings=raw/생산자다. source-only로 구현 중이며 아직 공통/제품 채택이나 실행 PASS가 아니다.
+- GPU03.1은5d8b77의 새emit294/CPU18/lint3·합성WebGPU 공개사례를 마치고 전반환했다. 원TS2352/partialemit과 실제수리plan420691의 provenance를 보존한다. 물리적외부asset/texture/skin/morph 수락이나 root제품병합이 아니다. GPU02.2는2a35e9 source후보/새실행대기다.
+
 ## 중단·push 조건
 
-이번 저장 관측은 사용72%/남음28%, secondary unavailable이다. 재개할 때 실제 도구로 다시 확인한다. 어느 유효 Codex 창이든 남음5% 이하면 전체6담당과 자체 agent의 새 작업/자동next를 멈추고 안전 checkpoint·source/runtime/archive 반환을 받습니다. 검증된 exact commit만 필요한 최소 통합을 마칩니다.
+이번 저장 관측은 사용81%/남음19%, secondary unavailable이다. 재개할 때 실제 도구로 다시 확인한다. 어느 유효 Codex 창이든 남음5% 이하면 전체6담당과 자체 agent의 새 작업/자동next를 멈추고 안전 checkpoint·source/runtime/archive 반환을 받습니다. 검증된 exact commit만 필요한 최소 통합을 마칩니다.
 
 미완료/NOTRUN·담당·재개 조건·로컬/원격 SHA를 적고 정상 commit합니다. root만 사용자 승인된 origin feature branch를 normal push하고 원격 SHA를 확인한 뒤 cad 자동화를 PAUSED로 바꿉니다. force/main/develop rewrite/PR/release/reset/credits 사용은 금지합니다. 기존 중단·권한·브랜치 보호·P2 HOLD는 유지합니다.

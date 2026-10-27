@@ -1,13 +1,13 @@
 {
   "schemaVersion": 3,
   "kind": "PORTABLE_SNAPSHOT_OF_EXISTING_AUTHORITY_NOT_SECOND_TASK_QUEUE",
-  "savedUTC": "2026-10-27T02:21:50.169559+00:00",
+  "savedUTC": "2026-10-27T04:01:01.410633+00:00",
   "paused": false,
   "pushed": false,
   "validatedProductCode": "ca10a3a8ea5ce1a60cb6850062dfb1eaec157828",
   "productBranch": "review/cad-gpu-engine-2026-10-14",
   "qualifiedG15Source": "8cddcd05fd3a388472d5a01b4a43e09cdf8a50aa",
-  "aggregateHead": "1c48eaa12cb3efc874b6ae3b53a84d05c6f9b5aa",
+  "aggregateHead": "433a035ae03a61e55b0e03b6a9b9897083774800",
   "aggregateBranch": "codex/cad-current-source-aggregate-20261025",
   "localAuthority": "/Users/user/.cache/barocss-preserved/2026-10-24-codex-integration/round3/coordinator-api-active-20261025.json",
   "owners": {
@@ -73,7 +73,7 @@
     }
   },
   "currentLimits": {
-    "quotaRemainingPercent": 28,
+    "quotaRemainingPercent": 19,
     "secondary": "UNAVAILABLE",
     "quotaPauseThresholdPercent": 5,
     "P2": "HOLD",
@@ -81,10 +81,11 @@
     "fullG15Quality": "NOT_ACCEPTED",
     "newViewerProduct": "NOT_ADOPTED",
     "newStudioUI": "PRODUCT_CODE_CA10A3_QUALIFIED",
-    "newCG2": "SOURCE_COMMON_ADOPTED_FIRST_COMBINED_NOT_RUN",
-    "newDrawing": "FILE_FLOW_VISIBILITY_PASS_STATUS_ROW_BROWSER_PENDING_PRODUCT_NOT_ADOPTED",
+    "newCG2": "CORE_MODEL_QUALIFIED; actualUIstalePreviewFAIL_normalAppfix433_type/lintPASS; remainingpublic/file/product",
+    "newDrawing": "CURRENT_NATIVE_PUBLIC_FILE_STATUS_ROW_PASS; schema5standalone_forward_compatibility_base_required_before_product",
     "newDocs": "NORMAL_CURRENT_CONTRACTS_COMMON_NEW_MODEL_PRIVATE_FIRST_FAILURES_PENDING",
-    "GPU": "OWN_HANDOFF_ONLY_ROOT_AUTO_MERGE_FORBIDDEN"
+    "GPU": "OWN_HANDOFF_ONLY_ROOT_AUTO_MERGE_FORBIDDEN",
+    "newSchema5": "SOURCE_IMPLEMENTATION_ASSIGNED_KERNEL_OUTER_DRAWINGS_NOT_ADOPTED_NOT_RUN"
   },
   "pendingLocalRefs": {
     "ViewerDonorHead": "df7d7fdda284a07eb9b25675150d3a9a0da54c74",
@@ -99,14 +100,20 @@
     "DrawingStatusRow": "4e1dacc5c1b13a38b0fbaa4ef515db8086ead613",
     "DocsModelResults": "18983ff132f0d5df22e80a209bbdec99c5870d83",
     "K02Source": "0d2e1abcd85dab68e96cd17c764c311d30e11169",
-    "K03Source": "51a59aaac885e237fb6c415a68b9c0714f9e6291"
+    "K03Source": "51a59aaac885e237fb6c415a68b9c0714f9e6291",
+    "CG2CurrentCommon": "433a035ae03a61e55b0e03b6a9b9897083774800",
+    "CG2CommandCorrection": "0cf662c658485afebd82b416a1fc587d34f8d986",
+    "CG2PreviewAppFix": "dca48fc059fed996fd3de21ce61399e456dbdc8e",
+    "SpringMinimalSource": "41c4323b9451d8089f6da0ef5e34067d7adfecc3",
+    "DrawingCompositeSource": "cbf1964d4a500e62f9c32f200312e4e2f1f3cdbf"
   },
   "activeRuntime": {
-    "owner": "GPU",
-    "source": "8de2f6ac88659c91c8156037ed8481b3e37ba576",
-    "task": "GPU-ROADMAP-02-SIZED-TARGET",
-    "status": "OWNER_REPORTED_NEW3_GENERAL_PUBLIC_PASSED_HIDPI_EXAMPLE_CHILD_ACTIVE_EXACT_NEW_SHA_RETURN_PENDING",
-    "lease": "/Users/user/.cache/barocss-preserved/2026-10-24-codex-integration/round3/gpu-8de2f6-sized-target-emit-native1-lint3-0001-lease-20261027.json"
+    "owner": "Outer",
+    "source": "433a035ae03a61e55b0e03b6a9b9897083774800",
+    "status": "PREVIEW_FIX_TYPE_LINT_ACTUAL_PASS_PUBLIC_D0_REPLAY_PENDING",
+    "toolPermissionFlag": "waitingOnApproval observed; exact technical blocker unconfirmed, owner clarification requested",
+    "oldChromeCLIFailure": "Preserved separately; officialIAB is actualpublicbrowser",
+    "remaining": "invalid/recovery/drag/ApplyUndoRedo/actualSaveNewOpen; no false complete"
   },
   "firstFailureToPreserve": {
     "Docs125": "Evidence guard mistook input imports for retained runtime external imports. API cases/JPEG/site NOTRUN. Wrapper-only normal correction is active; no retry on same source.",
