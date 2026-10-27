@@ -16,7 +16,7 @@ so it follows every change; the dimensions and notes you add are kept with it.
   export of the sheet. See [Revisions and sources](/guide/concepts#revisions-and-sources).
 
 Changing the drawing scope is refused with `DRAWING_SCOPE_REFERENCES` while the sheet has manual dimensions,
-datums, control frames or notes with leaders. Keep the scope, or remove those references explicitly first.
+datums, point datum targets, control frames or notes with leaders. Keep the scope, or remove those references explicitly first.
 A permitted scope change clears automatic dimensions; it does not transfer their references to the new part.
 
 Without an explicit scope, sheets with balloons or a BOM table use assembly scope. Other sheets use the base part. A part sheet normally draws made bodies only. Assembly scope keeps bought elements, and enabling
@@ -192,6 +192,7 @@ a larger scale.
 | <kbd>R</kbd> | Radius | Click a circle or an arc, then where its radius goes |
 | <kbd>A</kbd> | Angle | Click two straight edges, then the side of their corner |
 | <kbd>N</kbd> | Note | Click the paper for a note, or a view for a leader |
+| <kbd>T</kbd> | Point datum target | Click a straight edge endpoint, then place the target symbol |
 
 **Auto** under **Dimensions** (Auto-dimension) lays out the views with room, picks a scale and sheet that read cleanly, then adds the overall
 sizes, steps, hole positions and callouts. It replaces its own earlier dimensions and keeps yours. A dimension goes
@@ -240,9 +241,22 @@ A datum stores one edge reference or one face reference. A face reference keeps 
 assembly occurrence prefix. Its `near` point selects the nearest current boundary vertex of that face. A missing
 or ambiguous face stays unresolved; the drawing does not substitute another face or reuse the old point.
 
-Each datum has an `id` and a letter. A geometric control frame has its own `id`, refers to a dimension by `dim`,
-and names its datums by letter. Authored inputs require unique datum ids and letters, and at most one frame per
-dimension. These symbols and modifiers are annotations; they do not solve or verify the part's geometric tolerances.
+A point datum target marks one endpoint of a straight B-rep edge in a base view. Choose **Point datum target**
+or press **T**, click the endpoint, then click where the symbol goes. If endpoints overlap, choose the exact edge
+and endpoint in **Point datum targets**. Each target has a unique letter-number pair, such as A1. Circle centres
+and curved edges are not supported.
+
+The target records the endpoint and the current edge signature. If the edge changes, is missing, or cannot be
+identified, the saved target stays unresolved; it does not move to another edge or use the old hint as its point.
+Show its view and choose **Reselect endpoint** to confirm a current endpoint. **Move symbol** changes only the
+symbol's position.
+
+Each datum has an `id` and a letter. A geometric control frame has its own `id` and names its datums by letter.
+An attached frame refers to a dimension by `dim`; there can be at most one frame per dimension. A standalone
+frame instead has a view and a position in that view's model mm. In **Standalone geometric controls**, choose
+a visible view, select **Add standalone frame**, then click where the frame goes. The controls also let you move
+or remove it. Authored inputs require unique datum ids, datum letters and frame ids. These symbols and modifiers
+are annotations; they do not solve or verify the part's geometric tolerances.
 
 ## Issues
 
@@ -252,7 +266,9 @@ applies them all, and **Issue count** shows how many are left.
 
 `DATUM_LOST` reports a datum with no current anchor in a visible view. `DATUM_TWICE` reports a repeated datum
 letter. `FRAME_LOST` reports a frame whose dimension is lost or missing, and `DATUM_UNDEFINED` reports a frame
-that names an undefined datum. The last issue has no automatic fix: define the datum or edit the frame.
+that names an undefined datum. `FRAME_VIEW_MISSING` reports a standalone frame whose view is missing;
+its saved position is kept. `DATUM_TARGET_UNVERIFIED` reports a point target that needs its endpoint selected
+again. `DATUM_UNDEFINED` has no automatic fix: define the datum or edit the frame.
 
 ## Tables and balloons
 
