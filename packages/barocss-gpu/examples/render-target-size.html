@@ -50,6 +50,15 @@
       canvas.width = frame.width; canvas.height = frame.height;
       context.putImageData(new ImageData(new Uint8ClampedArray(frame.data), frame.width, frame.height), 0, 0);
     };
+    function matchTargetsToDisplay() {
+      const ratio = Math.min(2, window.devicePixelRatio || 1);
+      for (const [index, id] of ['landscape', 'portrait'].entries()) {
+        const canvas = byId(id), width = Math.max(1, Math.round(canvas.clientWidth * ratio)), height = Math.max(1, Math.round(canvas.clientHeight * ratio));
+        if (targets[index]?.width === width && targets[index]?.height === height) continue;
+        const next = viewer.createRenderTarget({ width, height });
+        targets[index]?.dispose(); targets[index] = next;
+      }
+    }
     const disc = (x, radius, segments = 64) => {
       const positions = [x,0,0], normals = [0,0,1], indices = [];
       for (let i = 0; i < segments; i++) { const a = 2 * Math.PI * i / segments; positions.push(x + radius * Math.cos(a), radius * Math.sin(a), 0); normals.push(0,0,1); }
@@ -62,6 +71,7 @@
       try {
         const effects = byId('effects').checked;
         viewer.environment = effects ? { ...base, bloom: { strength: 0.25, threshold: 0.25 }, depthOfField: { focus: 4, blur: 8 } } : base;
+        matchTargetsToDisplay();
         viewer.render(targets[0]); viewer.render(targets[1]);
         const frames = await Promise.all(targets.map(target => target.read()));
         if (closed) return;
@@ -81,8 +91,6 @@
       viewer.add(disc(0,0.85), { material: { color: '#42d5ca', unlit: true, doubleSided: true } });
       viewer.add(disc(-1.7,0.26), { material: { color: '#f5bd70', unlit: true, doubleSided: true } });
       viewer.add(disc(1.7,0.26), { material: { color: '#ef8f88', unlit: true, doubleSided: true } });
-      targets.push(viewer.createRenderTarget({ width: 480, height: 240 }));
-      targets.push(viewer.createRenderTarget({ width: 240, height: 480 }));
       viewer.render(); byId('capture').addEventListener('click', capture);
       for (const control of controls) control.disabled = false;
       byId('status').textContent = 'Capture both targets to compare their views.';
