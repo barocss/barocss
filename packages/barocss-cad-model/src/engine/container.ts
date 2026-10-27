@@ -14,6 +14,8 @@ import { readStudioDoc } from './migrate';
 import type { StudioDoc } from './doc';
 import { isRefusal, refusal } from './refusal';
 import { assertRouteBundleDocument } from './routeBundle';
+import { assertSavedDrawingDocument } from './savedDrawing';
+import { canonical, fnv64 } from '../util/revision';
 
 const MAGIC = 'BCADPACK', VERSION = 1;
 const pad8 = (n: number) => (n + 7) & ~7;
@@ -21,7 +23,12 @@ const pad8 = (n: number) => (n + 7) & ~7;
 
 /** The file's bytes: plain JSON (indented, as before) without blobs; the container with them. Throws when a named blob is missing. */
 export function encodeStudioFile(doc: StudioDoc): Uint8Array {
+  assertSavedDrawingDocument(doc);
   assertRouteBundleDocument(doc);
+  return encodeDocument(doc);
+}
+
+function encodeDocument(doc: StudioDoc): Uint8Array {
   const refs = [...blobRefs(doc)];
   if (!refs.length) return new TextEncoder().encode(JSON.stringify(doc, null, 2));
   const enc = new TextEncoder(), chunks: { header: Uint8Array; payload: Uint8Array }[] = [];
@@ -90,4 +97,40 @@ export async function readStudioFile(bytes: Uint8Array): Promise<ReturnType<type
   const missing = missingBlobs(read.doc);
   if (missing.length) return { error: `This model names mesh data it does not hold (${missing.length} array${missing.length > 1 ? 's' : ''}): it was saved incompletely.` };
   return read;
+}
+
+// Raw snapshot admission is distinct from a reader's normalized/defaulted result.
+function rawDocument(input: unknown): StudioDoc {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw refusal('CONTAINER_DAMAGED', 'the snapshot has no document');
+  const raw = input as Record<string, unknown>;
+  if (raw.format !== 'barocss-cad-model' || raw.units !== 'mm' || typeof raw.schema !== 'number' || !Number.isInteger(raw.schema) || raw.schema < 1 || raw.schema > 4 || !Array.isArray(raw.nodes) || !raw.parameters || typeof raw.parameters !== 'object' || Array.isArray(raw.parameters) || Object.values(raw.parameters).some(v => typeof v !== 'number' || !Number.isFinite(v))) throw refusal('CONTAINER_DAMAGED', 'the snapshot is not a supported millimetre Model document');
+  assertSavedDrawingDocument(raw);
+  assertRouteBundleDocument(raw);
+  const doc = raw as unknown as StudioDoc;
+  // Reuse all existing node/connector/ownership checks without changing the original canonical document.
+  const checked = readStudioDoc(JSON.stringify(structuredClone(doc)));
+  if ('error' in checked) throw refusal('CONTAINER_DAMAGED', `the snapshot document is not admitted: ${checked.error}`);
+  return doc;
+}
+function snapshotDocument(input: unknown, expectedKey: string): StudioDoc {
+  if (typeof expectedKey !== 'string' || fnv64(canonical(input)) !== expectedKey) throw refusal('VERSION_LOG', 'the raw snapshot does not match its canonical content key');
+  return rawDocument(input);
+}
+/** Save the original canonical document under its original key; this does not promise original file bytes. */
+export function encodeStudioSnapshot(doc: StudioDoc, expectedKey: string): Uint8Array { return encodeDocument(snapshotDocument(doc, expectedKey)); }
+/** Raw snapshot only: key before admission, unchanged fields after admission. Original bytes belong to the caller. */
+export async function readStudioSnapshot(bytes: Uint8Array, expectedKey: string): Promise<{ doc: StudioDoc; notes: string[] } | { error: string }> {
+  try {
+    const { text } = await decodeStudioFile(bytes), doc = snapshotDocument(JSON.parse(text), expectedKey), missing = missingBlobs(doc);
+    if (missing.length) return { error: `The snapshot is missing ${missing.length} mesh arrays.` };
+    return { doc, notes: [] };
+  } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
+}
+/** Explicit detached import, not snapshot-key authentication and not document migration. */
+export async function readStudioWorkingCopy(bytes: Uint8Array): Promise<{ doc: StudioDoc; notes: string[] } | { error: string }> {
+  try {
+    const { text } = await decodeStudioFile(bytes), doc = rawDocument(JSON.parse(text)), missing = missingBlobs(doc);
+    if (missing.length) return { error: `The working-copy file is missing ${missing.length} mesh arrays.` };
+    return { doc: structuredClone(doc), notes: [] };
+  } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
 }

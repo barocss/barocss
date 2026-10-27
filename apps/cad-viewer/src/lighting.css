@@ -1,0 +1,17 @@
+.lighting-section { min-width: 0; }
+.lighting-heading { margin-bottom: 14px; }
+.lighting-mode { color: var(--muted); font-size: 10px; }
+.lighting-fields, .lighting-direction { min-width: 0; margin: 0; padding: 0; border: 0; }
+.lighting-strengths { display: grid; grid-template-columns: minmax(0, 1fr) 76px; align-items: center; gap: 10px 8px; }
+.lighting-strengths > label, .lighting-direction > legend { color: #a9bcc9; font-size: 11px; line-height: 1.5; }
+.lighting-fields input { width: 100%; height: 26px; color: #c9dbe6; font-family: var(--viewer-mono, monospace); font-variant-numeric: tabular-nums; }
+.lighting-direction { margin-top: 13px; }
+.lighting-direction > legend { margin-bottom: 7px; }
+.lighting-axes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.lighting-axes > label { display: flex; align-items: center; gap: 5px; min-width: 0; }
+.lighting-axes > label > span { color: #8199a9; font-size: 10px; }
+.lighting-actions { display: flex; align-items: center; gap: 6px; margin-top: 14px; }
+.lighting-actions button { min-height: 25px; font-size: 11px; }
+.lighting-error { margin: 12px 0 0; color: var(--viewer-destructive, #e89585); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.lighting-note, .lighting-unavailable { margin: 12px 0 0; color: #8199a9; font-size: 10px; line-height: 1.6; }
+.lighting-unavailable { padding-top: 10px; border-top: 1px solid var(--line); }

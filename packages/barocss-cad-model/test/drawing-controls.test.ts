@@ -57,7 +57,7 @@ test('frames round-trip through saved JSON; invalid and duplicate references are
   assert.deepEqual(read.frames, [modified, { ...frame, id: 'flat', dim: 'd3', characteristic: 'flatness', datums: [] }]);
   assert.notEqual(read.frames![0].datums, modified.datums); assert.notEqual(read.frames![0].datumModifiers, modified.datumModifiers);
   assert.deepEqual(readDrawing(JSON.parse(JSON.stringify(read))), read);
-  assert.deepEqual(readFrames([{ ...frame, freeState: false, tangentPlane: false }]), [frame]);
+  assert.deepEqual(readFrames([{ ...frame, freeState: false, tangentPlane: false }]), [{ ...frame, freeState: false, tangentPlane: false }]);
 });
 
 test('bad frame inputs refuse atomically; empty frames clear, omitted keeps; absent dimensions/datums stay visible as issues', () => {

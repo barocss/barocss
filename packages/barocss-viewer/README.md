@@ -83,6 +83,25 @@ or a second canvas. The Surface is display geometry, not a certified fluid
 collision obstacle. `examples/viewer-fluid-scene` exercises the actual Physics
 and native Surface path.
 
+## Device events
+
+`createViewer` accepts an optional `onDeviceEvent` callback. It receives
+`{ type: 'lost' }` when a GPU device loss is observed, and
+`{ type: 'recreated' }` when the GPU core reports a replacement device. The
+replacement event does not confirm that a frame was drawn or pixels were
+restored. When the core cannot replace the device it sends
+`{ type: 'recovery-failed', message, cause }`: `cause` is the core's original
+failure (from the GPU viewer's `onRecoverError`, a `DEVICE_LOST` error). The
+view then stays blank and `readPixels()` rejects; make a new viewer to draw
+again. Applications should not infer success from the absence of an error.
+
+The callback can run before `createViewer` resolves if a loss occurs during
+creation. When a loss and its completed recovery both precede listener setup,
+the loss is reported, but the earlier recovery cannot be confirmed by this
+contract. Callback exceptions do not interrupt device recreation. Events are
+suppressed after Viewer disposal. This notification does not change the scene
+status returned by `getState()`.
+
 ## Selected native assembly instances
 
 `loadAssembly(result, options)` admits one complete validated public CAD
@@ -106,7 +125,28 @@ const point = viewer.queryAssemblyInstancePoint({
   query: { kind: 'curve', parameter: 2 }
 });
 // point.originalLocalPointMM and point.assemblyPointMM have separate meanings.
+const other = viewer.getState().assemblyInstances.find(item => item.instanceId === 'shared_root');
+const distance = viewer.measureAssemblyPoints(
+  { assemblyId: binding.assemblyId, assemblyRevision: binding.assemblyRevision,
+    instanceId: binding.instanceId, reference: binding.reference,
+    query: { kind: 'curve', parameter: 2 } },
+  { assemblyId: other.assemblyId, assemblyRevision: other.assemblyRevision,
+    instanceId: other.instanceId, reference: other.reference,
+    query: { kind: 'curve', parameter: 2 } }
+);
+// distance.distanceMM is the straight-line distance in assembly-space millimetres.
 ```
+
+Here `other` is another binding from `viewer.getState().assemblyInstances`. Both
+queries are evaluated against the current accepted assembly. Each must identify
+an admitted instance, current assembly ID and revision, its complete original
+part reference, and valid native parameters. The result includes both full point
+results and their original and assembly coordinates. Its metric is
+`straight-line`, its space is `assembly-space-xyz`, and its certification is
+`not-certified`. It is detached data. The method does not change the Viewer
+scene or measurement caches. As with single-point inspection, selection and
+visibility do not affect the query. It does not provide a saved measurement
+review or a screen projection.
 
 `ViewerAssemblyLoadOptions` has exactly the own data fields `native`, `basis`
 and `instanceIds`; accessors, symbols, extra or sparse entries refuse. Native
@@ -118,6 +158,16 @@ and revision, instance/parent/ancestors, full native reference, original local
 and world matrices, and derived display pose. Original native/modelSet/document
 fields become null, and documentBodies empty. The native result retains nested
 source strings; it does not retain the original Assembly JSON wire text.
+
+An assembly can opt in to the Loader's complete-source profile by adding
+`nativeCapacity: { version: 1, maximumObjects: 16 }` inside `native`. This
+allows up to sixteen original objects in a selected instance's source asset;
+it does not increase the one-to-four displayed instance limit. Omit the field
+to retain the existing source admission rules. The Loader still prepares the
+whole source asset, including objects not selected for display. Its aggregate
+Curve sampling and Surface grid limits remain in force. A source within the
+object count can therefore still be refused when it exceeds those limits.
+Invalid profiles and failed candidates leave the accepted Viewer state intact.
 
 Display refs use `assembly.` followed by two lowercase hexadecimal digits per
 instance ID character. Repeated parts keep original geometry IDs and distinct
@@ -382,6 +432,29 @@ direction:[0.8,0.4,-0.7]}`. Each strength is in 0..1 and their sum is at most
 light (ambient 0.35, directional 0.65 from `[-0.6,0.8,1]`). Curve lines remain
 unlit in Surface-only, mixed and wide v1 primitive scenes. Lighting never changes
 original CAD geometry or native measurements.
+
+`viewer.getLightingCapabilities()` returns detached plain data with `supported`,
+`reason`, effective `lighting`, creation/default `defaultLighting`, and refusal
+messages in `unsupported.environmentMap`, `unsupported.shadows` and
+`unsupported.postProcessing`. The controls require a loaded Surface in the
+Viewer's primitive mesh/document path. Curve-only, empty, native Shell, mixed
+depth and independent qualified Face paths refuse them. This is a limit of this
+Viewer path, not a statement about other GPU factories.
+
+```js
+viewer.setLighting({ ambientStrength: 0.2, directionalStrength: 0.7,
+  direction: [-2, 3, 4] });
+viewer.setLighting(null); // restore the creation option, or the default light
+```
+
+`setLighting` uses the same admission as creation options: dense plain finite
+XYZ direction values in -1000..1000, a nonzero vector, strengths in 0..1 and a
+sum at most 1. The accepted state retains the authored direction without
+normalization. Only the existing presenter's lights and environment change;
+meshes and camera do not rebuild. Invalid input and synchronous presenter
+failure retain the accepted light and every CPU cache. The presenter restores
+its previous light and environment references on a synchronous update failure.
+This does not establish recovery from an asynchronous device failure.
 
 To display genuine native Curve samples in the same scene, opt in during load:
 
@@ -1184,3 +1257,58 @@ node --test packages/barocss-viewer/tests/review-state.test.mjs
 
 It uses actual CAD admission with a recording presenter. Real rendering and file
 controls require the separate browser flow in that example.
+
+### Restore a native distance with its review
+
+`applyMeasuredReviewState(unknown)` accepts `ViewerMeasuredReviewStateV1`:
+
+```js
+const file = {
+  schema: 'barocss-viewer-measured-review', version: 1,
+  review: viewer.captureReviewState(),
+  lighting: viewer.getState().lighting, // optional; omit to retain the current light
+  measurement: {
+    first: { kind: 'surface', modelId, surfaceId, u, v },
+    second: { kind: 'curve', modelId, curveId, t },
+    distanceMM, metric: 'straight-line', space: 'native-authored',
+    certification: 'not-certified',
+  },
+};
+const restored = viewer.applyMeasuredReviewState(JSON.parse(JSON.stringify(file)));
+```
+
+Each point has the exact existing `ViewerNativePointInput` fields. Both points
+must belong to the same accepted native model in a revisioned CAD document.
+They must reference admitted geometry visible in the candidate review. Original
+Surface U/V and Curve parameter domains apply. The SDK evaluates the original
+points and requires the saved finite `distanceMM` to equal their current straight
+distance exactly. It does not use display pixels or infer arc length. Revision
+pins retain the same identity limits as the ordinary review format.
+
+The complete candidate and a detached return value are prepared before the
+existing review presentation. Successful apply updates camera, visibility,
+selection, the optional lighting and `getState().nativeMeasurement`. It returns the detached native
+distance. A null `measurement` clears only that latest measurement field after
+the review succeeds, and returns null. The separate Surface, Curve and mixed
+measurement caches remain unchanged. Assemblies accept only null measurements.
+The ordinary review format and `applyReviewState` behavior are unchanged.
+Invalid measurement, source pins or display fields preserve the full accepted
+state without presentation. Presenter failure follows the existing drawing
+recovery behavior and also retains the previous measurement caches.
+The optional `lighting` field uses the same admission and capability as
+`setLighting`; null restores the creation/default light. An omitted field keeps
+the current accepted light, so existing measured reviews remain compatible.
+Lighting, display and measurement form one validated candidate and use one
+presentation. A bad combined candidate leaves all accepted fields unchanged.
+
+`validateMeasuredReviewState(unknown)` checks that same complete candidate against
+the current accepted scene without presenting or adopting it. Validation covers
+scene identity, revision, scale and ordered subset pins; camera geometry;
+visible/selected references and current layer/material guards; optional lighting
+admission; and original native parameter domains and exact point distance. It
+returns undefined on success and throws on refusal. Input data, accepted state,
+measurement caches and presenter calls remain unchanged. It uses the same
+preparation as `applyMeasuredReviewState`; it does not apply a candidate and then
+undo it. A host can validate every named review before applying one selected
+candidate. Validation does not reserve the scene: apply still validates against
+the current state and can encounter a synchronous presentation failure.

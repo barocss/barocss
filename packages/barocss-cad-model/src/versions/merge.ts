@@ -10,6 +10,8 @@
 //   - Conflicts are returned as data (code, where, each side's value). The caller merges again with a resolution per
 //     `where` — 'ours' or 'theirs' — until none is left. Nothing is chosen for the person.
 import type { ModelNode, StudioDoc } from '../engine/doc';
+import { assertRouteBundleDocument } from '../engine/routeBundle';
+import { assertSavedDrawingDocument } from '../engine/savedDrawing';
 import { prefixDoc } from '../engine/doc';
 import { nextSerial, serialOf, withIds } from '../engine/ids';
 import { BASE, type MateRef } from '../assembly/mates';
@@ -130,11 +132,23 @@ function orderOf(oursOrder: readonly string[], theirsOrder: readonly string[], k
   return out;
 }
 
+/** Finalize only new merge results; original parents and snapshot identities are never rewritten. */
+function mergedCopy(doc: StudioDoc, mayDetach = false): StudioDoc {
+  const route = Object.hasOwn(doc, 'routeBundles') || doc.nodes.some(n => n && typeof n === 'object' && Object.hasOwn(n, 'routeBundleMember'));
+  if (route && doc.schema < 3) assertRouteBundleDocument(doc);
+  const schema: StudioDoc['schema'] = route && doc.schema === 3 ? 4 : mayDetach && !route && doc.schema === 4 ? 3 : doc.schema;
+  const copy = structuredClone({ ...doc, schema });
+  assertSavedDrawingDocument(copy);
+  assertRouteBundleDocument(copy);
+  return copy;
+}
+
 /** The three documents merged, or the conflicts left (with `resolve`'s answers taken). */
 export function mergeDocs(base: StudioDoc, ours: StudioDoc, theirs: StudioDoc, o: { resolve?: Resolutions } = {}): MergeDocsResult {
+  for (const doc of [base, ours, theirs]) { assertSavedDrawingDocument(doc); assertRouteBundleDocument(doc); }
   const resolve = o.resolve ?? {};
-  if (same(ours, theirs) || same(base, theirs)) return { doc: ours, dropped: [] };
-  if (same(base, ours)) return { doc: theirs, dropped: [] };
+  if (same(ours, theirs) || same(base, theirs)) return { doc: mergedCopy(ours), dropped: [] };
+  if (same(base, ours)) return { doc: mergedCopy(theirs), dropped: [] };
   const B = idFormOf(base), Oi = idFormOf(ours), T0 = idFormOf(theirs), Ow = withIds(ours);
   const renames = clashes(B, Oi, T0, Ow);
   const Tw = renameTheirs(withIds(theirs), renames), Ti = renames.size ? idFormOf(Tw) : T0;
@@ -210,7 +224,7 @@ export function mergeDocs(base: StudioDoc, ours: StudioDoc, theirs: StudioDoc, o
   });
   const { nodes } = indexForm(order, kept);
   const merged = { ...doc, nodes, nextId: Math.max(nextSerial(Ow), nextSerial(Tw), ...order.map(id => serialOf(id) + 1)) } as unknown as StudioDoc;
-  return { doc: prefixDoc(merged, merged.nodes.length), dropped };
+  return { doc: mergedCopy(prefixDoc(merged, merged.nodes.length), true), dropped };
 }
 
 export type MergeResult =
@@ -227,8 +241,9 @@ export function applyMerge(log: VersionLog, o: { from: string; working: StudioDo
   if (isUnsaved(log, o.working)) throw refusal('BRANCH_UNSAVED', `the document has changes since the last version of “${into.name}”: make a version first, or discard them`);
   if (ancestorsOf(log, into.head).has(from.head)) throw refusal('MERGE_UP_TO_DATE', `“${into.name}” already has everything on “${from.name}”`);
   if (ancestorsOf(log, from.head).has(into.head)) {
-    const head = versionNamed(log, from.head);
-    return { log: { ...log, branches: log.branches.map(b => b.name === into.name ? { ...b, head: head.id } : b) }, doc: readVersion(log, head.id), version: null, fastForward: true, dropped: [] };
+    const head = versionNamed(log, from.head), raw = readVersion(log, head.id);
+    assertSavedDrawingDocument(raw); assertRouteBundleDocument(raw);
+    return { log: { ...log, branches: log.branches.map(b => b.name === into.name ? { ...b, head: head.id } : b) }, doc: mergedCopy(raw), version: null, fastForward: true, dropped: [] };
   }
   const baseId = findBase(log, into.head, from.head);
   if (!baseId) throw refusal('MERGE_NO_BASE', `“${into.name}” and “${from.name}” share no version`);

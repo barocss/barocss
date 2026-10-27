@@ -28,6 +28,18 @@ const gpuHit = await viewer.pick(x, y); // the same from the GPU's id and depth 
 box.outline = '#e8c25a';                // a selection outline around the visible part
 ```
 
+### Device initialization and recovery failure
+
+`createViewer` rejects if initialization fails; a device acquired before the failure is released and the original
+error is kept. After creation, assign `viewer.onRecoverError` to receive a `DEVICE_LOST` `ViewerError` with the
+recovery failure in `cause`. The existing `onError` option still receives the diagnostic string; without it the viewer
+logs the message. `onRecover` is called on successful device replacement, not on failure. If `onError` disposes the
+viewer, `onRecoverError` is not called afterward.
+
+While recovering or after recovery fails, `viewer.ready` is false and `viewer.computeDevice` is null. After failure,
+pending and new `frame()` calls reject with the recovery error; `capture()`, `pick()` and `createPathTrace()` also
+reject. Successful device replacement alone does not establish that a new frame has been displayed.
+
 - Camera: perspective (infinite far) or orthographic, reversed [0, 1] depth, clip planes fitted to the
   scene, `fit()`, rays; orbit, pan and zoom to the point under the cursor (`controls: false` to drive the
   camera yourself).
