@@ -103,6 +103,24 @@ refused with `GEOMETRY_INVALID`. Conservative f32 range checks can also refuse
 some transforms whose final mathematical result would be finite. Vertex colours
 use the viewer's existing linear RGBA8 precision.
 
+#### 04.1 unsigned-int indices candidate
+
+The 04.1 source candidate adds `UNSIGNED_INT` (component type 5125) SCALAR
+indices to both `prepareGlb` and `prepareTexturedGlb`. It reads 32-bit values
+in little-endian order and returns a `Uint32Array`. The textured materializer
+keeps the index width while copying its input. Mirrored transforms reverse each
+triangle's winding without changing the index width.
+
+Index data must fit its buffer view, have the required component alignment and
+refer to existing vertices. The index count must be a multiple of three. The
+reserved maximum value for each index width is refused: 65535 for
+`UNSIGNED_SHORT` and 4294967295 for `UNSIGNED_INT`. A 32-bit index of 65535 is
+valid when the mesh contains that vertex. The viewer can choose a smaller
+internal index width for a small mesh while preserving valid values.
+
+This is a source candidate. Its new build, tests and browser validation have
+not run. Real external assets and product integration have not been verified.
+
 ### Embedded base colour textures (03.2 candidate)
 
 The separate `prepareTexturedGlb` API accepts the same bounded scene subset

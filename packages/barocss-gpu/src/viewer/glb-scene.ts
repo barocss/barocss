@@ -112,7 +112,7 @@ function finiteF32Sum(a: number, b: number, c: number, d: number, label: string)
 
 /**
  * Decode a bounded, self-contained GLB 2.0 triangle scene into independent viewer inputs.
- * POSITION/NORMAL are FLOAT VEC3; indices are UNSIGNED_SHORT SCALAR. Optional COLOR_0
+ * POSITION/NORMAL are FLOAT VEC3; indices are UNSIGNED_SHORT or UNSIGNED_INT SCALAR. Optional COLOR_0
  * is FLOAT VEC3/VEC4. Textures, integer colours, sparse or
  * strided data, morphs, skins, animations, cameras, extensions and non-opaque materials
  * are refused. Coordinates retain glTF metres and +Y up; no CAD-unit or axis conversion
@@ -185,11 +185,11 @@ function prepareGlbScene(source: ArrayBuffer | Uint8Array, textured: boolean): P
     const components = kind === 'index' ? 1 : kind === 'uv' ? 2 : kind === 'color' && a.type === 'VEC4' ? 4 : 3;
     if (a.type !== (kind === 'index' ? 'SCALAR' : components === 2 ? 'VEC2' : components === 4 ? 'VEC4' : 'VEC3')) fail(`${label} accessor type is unsupported`);
     if ((kind === 'position' || kind === 'normal' || kind === 'uv') && component !== 5126) fail(`${label} must use FLOAT`);
-    if (kind === 'index' && component !== 5123) fail('indices must use UNSIGNED_SHORT');
+    if (kind === 'index' && component !== 5123 && component !== 5125) fail('indices must use UNSIGNED_SHORT or UNSIGNED_INT');
     if (kind === 'color' && component !== 5126) fail('COLOR_0 must use FLOAT');
     if (a.normalized !== undefined && typeof a.normalized !== 'boolean') fail(`${label}.normalized must be boolean`);
     if (a.normalized === true) fail(`${label}.normalized is unsupported`);
-    const size = component === 5126 ? 4 : 2;
+    const size = component === 5126 || component === 5125 ? 4 : 2;
     const count = integer(a.count, `${label}.count`, 1), offset = a.byteOffset === undefined ? 0 : integer(a.byteOffset, `${label}.byteOffset`);
     const bytes = count * components * size, start = viewOffset + offset;
     if (!Number.isSafeInteger(bytes) || offset + bytes > viewLength || offset % size !== 0 || start % size !== 0 || (kind !== 'index' && offset % 4 !== 0)) fail(`${label} byte range or alignment is invalid`);
@@ -200,7 +200,7 @@ function prepareGlbScene(source: ArrayBuffer | Uint8Array, textured: boolean): P
     const result = new Array<number>(count * components);
     for (let i = 0; i < result.length; i++) {
       const at = start + i * size;
-      const raw = component === 5126 ? data.getFloat32(at, true) : data.getUint16(at, true);
+      const raw = component === 5126 ? data.getFloat32(at, true) : component === 5125 ? data.getUint32(at, true) : data.getUint16(at, true);
       if (!Number.isFinite(raw)) fail(`${label} contains a non-finite value`);
       result[i] = raw;
       if (kind === 'color') unit(result[i], `${label}[${i}]`);
@@ -222,8 +222,11 @@ function prepareGlbScene(source: ArrayBuffer | Uint8Array, textured: boolean): P
       const positions = readAccessor(attr.POSITION, 'POSITION', 'position');
       const normals = readAccessor(attr.NORMAL, 'NORMAL', 'normal');
       const indices = readAccessor(p.indices, 'indices', 'index');
+      const indexAccessor = object(accessors[ref(p.indices, accessors, 'indices accessor')], 'indices accessor');
+      const indexComponent = indexAccessor.componentType;
+      const restart = indexComponent === 5125 ? 0xffffffff : 0xffff;
       const vertices = positions.length / 3;
-      if (normals.length !== positions.length || indices.length % 3 || indices.some(i => i >= vertices || i === 65535)) fail('triangle geometry has inconsistent counts, indices or a primitive-restart value');
+      if (normals.length !== positions.length || indices.length % 3 || indices.some(i => i >= vertices || i === restart)) fail('triangle geometry has inconsistent counts, indices or a primitive-restart value');
       for (let i = 0; i < normals.length; i += 3) {
         if (normals[i] === 0 && normals[i + 1] === 0 && normals[i + 2] === 0) fail('NORMAL contains a zero direction');
       }
@@ -239,7 +242,7 @@ function prepareGlbScene(source: ArrayBuffer | Uint8Array, textured: boolean): P
       const uvs = attr.TEXCOORD_0 === undefined ? undefined : readAccessor(attr.TEXCOORD_0, 'TEXCOORD_0', 'uv');
       if (uvs && uvs.length !== vertices * 2) fail('TEXCOORD_0 count must match POSITION');
       if (selected.texture !== null && !uvs) fail('a base colour texture requires TEXCOORD_0');
-      return { positions, normals, indices, colors, uvs, material: selected.material, texture: selected.texture };
+      return { positions, normals, indices, indexComponent, colors, uvs, material: selected.material, texture: selected.texture };
     });
   });
 
@@ -283,7 +286,7 @@ function prepareGlbScene(source: ArrayBuffer | Uint8Array, textured: boolean): P
         for (let axis = 0; axis < 3; axis++) direction[axis] = finiteF32Sum(normalF32[axis] * p.normals[i], normalF32[4 + axis] * p.normals[i + 1], normalF32[8 + axis] * p.normals[i + 2], 0, 'transformed NORMAL');
         if (direction.every(x => x === 0)) fail('transformed NORMAL has no f32 direction');
       }
-      const indices = Uint16Array.from(p.indices);
+      const indices = p.indexComponent === 5125 ? Uint32Array.from(p.indices) : Uint16Array.from(p.indices);
       // Mirrored transforms reverse front-facing winding; the viewer uses a fixed CCW pipeline.
       if (det < 0) for (let i = 0; i < indices.length; i += 3) { const x = indices[i + 1]; indices[i + 1] = indices[i + 2]; indices[i + 2] = x; }
       output.push({ geometry: { positions: Float32Array.from(p.positions), normals: Float32Array.from(p.normals), indices, ...(p.colors ? { colors: [...p.colors] } : {}), ...(p.uvs ? { uvs: Float32Array.from(p.uvs) } : {}) },

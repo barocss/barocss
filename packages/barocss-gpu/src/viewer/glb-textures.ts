@@ -58,11 +58,13 @@ export async function materializeGlbTextures(viewer: Viewer, prepared: PreparedT
       if (typeof n !== 'number' || !Number.isSafeInteger(n) || n < 3 || n % 3 !== 0 || !g.normals || g.normals.length !== n || !g.indices || !Number.isSafeInteger(ni) || ni < 3 || ni % 3 !== 0 || primitive.transform.length !== 16 || (g.uvs && g.uvs.length !== n / 3 * 2) || (g.colors && g.colors.length !== n) || (index !== null && !g.uvs)) throw new ViewerError('TEXTURE_INVALID', 'Invalid GLB geometry');
       verticesTotal += n / 3; indicesTotal += ni;
       if (verticesTotal > 2_000_000 || indicesTotal > 6_000_000) throw new ViewerError('TEXTURE_INVALID', 'GLB geometry exceeds the supported limits');
-      if (g.indices) for (let i = 0; i < g.indices.length; i++) {
+      if (!(g.indices instanceof Uint16Array) && !(g.indices instanceof Uint32Array)) throw new ViewerError('TEXTURE_INVALID', 'Prepared GLB indices must use unsigned 16-bit or 32-bit integers');
+      const index32 = g.indices instanceof Uint32Array, restart = index32 ? 0xffffffff : 0xffff;
+      for (let i = 0; i < g.indices.length; i++) {
         const value = g.indices[i];
-        if (!Number.isSafeInteger(value) || value < 0 || value >= n / 3 || value >= 65535) throw new ViewerError('TEXTURE_INVALID', 'Prepared GLB index is invalid');
+        if (!Number.isSafeInteger(value) || value < 0 || value >= n / 3 || value === restart) throw new ViewerError('TEXTURE_INVALID', 'Prepared GLB index is invalid');
       }
-      const geometry = { positions: Float32Array.from(g.positions), ...(g.normals ? { normals: Float32Array.from(g.normals) } : {}), ...(g.uvs ? { uvs: Float32Array.from(g.uvs) } : {}), ...(g.indices ? { indices: Uint16Array.from(g.indices) } : {}), ...(g.colors ? { colors: Array.from(g.colors) } : {}) };
+      const geometry = { positions: Float32Array.from(g.positions), ...(g.normals ? { normals: Float32Array.from(g.normals) } : {}), ...(g.uvs ? { uvs: Float32Array.from(g.uvs) } : {}), indices: index32 ? Uint32Array.from(g.indices) : Uint16Array.from(g.indices), ...(g.colors ? { colors: Array.from(g.colors) } : {}) };
       const color = material.color;
       return { geometry, transform: primitive.transform.slice(), material: { color: Array.isArray(color) ? [color[0], color[1], color[2]] as [number, number, number] : color, opacity: material.opacity, metallic: material.metallic, roughness: material.roughness, doubleSided: material.doubleSided }, index };
     });
