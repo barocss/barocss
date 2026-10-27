@@ -7,14 +7,15 @@ import { drawingInputs } from '../src/chat/drawing';
 import { defaultDrawing, readDrawing, type DrawingFrame, type DrawingSettings, type DrawingViews, type Vec3 } from '../src/drawing/types';
 import { issueContext, drawingIssues } from '../src/drawing/issues';
 import { modelAnnotations } from '../src/drawing/annotations3d';
+import { holesOf } from '../src/drawing/auto';
 import { frontByInformation } from '../src/drawing/layout';
 import { reorient } from '../src/drawing/reorient';
 import { applySuggestion, toleranceSuggestions } from '../src/drawing/tolerance';
 import { sheetGroupsSvg, sheetSvg } from '../src/io/svg';
 
 const standalone: Extract<DrawingFrame, { view: string }> = { id: 'standalone', view: 'front', place: [10, 20], characteristic: 'flatness', value: 0.25, datums: [] };
-const inputs = () => {
-  const input = drawingInputs(starterDoc());
+const inputs = (doc = starterDoc()) => {
+  const input = drawingInputs(doc);
   if (typeof input === 'string') assert.fail(input);
   return input;
 };
@@ -84,8 +85,13 @@ test('standalone frame: reorient follows explicit view axes and keeps missing pa
   assert.deepEqual(result.settings.frames?.map(frame => frame.dim === undefined ? [frame.view, frame.place] : [frame.dim]), [['right', [-10, 20]], ['top', [20, -10]], ['section:A', [20, -10]], ['detail:B', [20, -10]], ['section:ZZ', [10, 20]], ['iso', [10, 20]], ['absent-dimension']]);
   assert.deepEqual(settings, before);
 
-  const input = inputs(), circle = input.views.top.edges.find(e => e.circle?.radius === 4 && Math.abs(e.circle.normal[2]) === 1);
-  assert.ok(circle?.circle);
+  const doc = starterDoc(), hole = doc.nodes.find(node => node.kind === 'hole');
+  assert.ok(hole?.kind === 'hole');
+  assert.equal(hole.radius, 4, 'the authored hole remains nominal diameter 8 mm');
+  const input = inputs(doc);
+  // Select the same authored hole as the tolerance consumer, not bit-exact reconstructed NURBS values.
+  const circle = holesOf(input.views, input.callout).find(candidate => candidate.view === 'top' && candidate.callout === 'Ø8 THRU' && candidate.edge.name.split('|').some(face => face.startsWith(`${hole.id}.side`)))?.edge;
+  assert.ok(circle?.circle, `Expected the starter Ø8 top hole; actual top candidates: ${JSON.stringify(input.views.top.edges.filter(edge => edge.circle || edge.name.split('|').some(face => face.startsWith(`${hole.id}.side`))).map(edge => ({ key: edge.name, kind: edge.kind, circle: edge.circle ? { radius: edge.circle.radius, normal: edge.circle.normal, center: edge.circle.center } : null })))}`);
   const collision: DrawingFrame = { ...standalone, id: 'frame-hole' };
   const geometric: DrawingSettings = { ...defaultDrawing(), tolerancing: 'geometric', frames: [collision], dimensions: [{ id: 'hole', kind: 'diameter', view: 'top', edge: circle.name, near: [...circle.circle.center], place: [60, 16] }, { id: 'hole-2', kind: 'diameter', view: 'top', edge: circle.name, near: [...circle.circle.center], place: [60, 26] }] };
   const suggestions = toleranceSuggestions(issueContext({ ...input, settings: geometric }));
