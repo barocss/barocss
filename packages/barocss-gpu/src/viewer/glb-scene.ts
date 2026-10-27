@@ -255,7 +255,7 @@ export function prepareGlb(source: ArrayBuffer | Uint8Array): PreparedGlbPrimiti
       // Mirrored transforms reverse front-facing winding; the viewer uses a fixed CCW pipeline.
       if (det < 0) for (let i = 0; i < indices.length; i += 3) { const x = indices[i + 1]; indices[i + 1] = indices[i + 2]; indices[i + 2] = x; }
       output.push({ geometry: { positions: Float32Array.from(p.positions), normals: Float32Array.from(p.normals), indices, ...(p.colors ? { colors: [...p.colors] } : {}) },
-        material: { ...p.material, color: Array.isArray(p.material.color) ? [...p.material.color] as Vec3 : p.material.color }, transform: matrix.slice() });
+        material: { ...p.material, color: Array.isArray(p.material.color) ? [p.material.color[0], p.material.color[1], p.material.color[2]] as Vec3 : p.material.color }, transform: matrix.slice() });
     }
     for (const child of node.children) visit(child, matrix, depth + 1);
     active.delete(index);
