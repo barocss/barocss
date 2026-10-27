@@ -172,9 +172,10 @@ It disposes the texture resources, but the current viewer can retain their CPU
 pixel sources in its texture collection until `viewer.dispose()`. Replacing
 scenes does not guarantee immediate release of that CPU memory.
 
-The 03.2 source candidate includes these follow-up fixes. Its new build, tests,
-lint and browser validation have not yet run. This candidate is not product
-integration or external-asset acceptance.
+The 03.2 owner branch passed a scoped emit, six CPU tests, one WebGPU
+regression, lint and the synthetic PNG/JPEG public example on the tested
+Chrome/Apple Metal adapter. Product integration, external-asset acceptance,
+general glTF compatibility and minified mipmap rendering remain separate.
 
 The CSS-shaped scene language shows on it with one call: `showScene(viewer, source)` compiles a scene
 source (version 0 or 1), adds a mesh per object with its placement and colour (`view.meshes` by id, picks
