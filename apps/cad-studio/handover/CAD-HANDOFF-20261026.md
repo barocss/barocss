@@ -79,3 +79,5 @@ Codex core primary는 95% 사용, 5% 남았다. secondary는 확인할 수 없�
 - Viewer: 별도 저장소 `/Users/user/Documents/Codex/2026-10-26/cad-viewer-20261026/viewer-sdk`의 branch `codex/viewer-sdk-20261026` HEAD `286e7646f1b9d34672b48afe70ad9f4bfac8a761`, clean. 크기 변경 오류 재시도 주입 단위검사 11개 PASS이며 실제 메모리 부족·브라우저 자동 재통지·제품은 미검증. 중단 및 소유 자원 반환의 최종 담당 확인은 아직 대기 중이다.
 
 공통 HEAD `433a035ae03a61e55b0e03b6a9b9897083774800`은 로컬에만 있을 수 있다. 검증된 최신 제품 코드는 `4bff492c6742cd5c4931ff83f0b35a606ed12230`이며 이후 문서 커밋은 새 제품 실행 PASS가 아니다. 원격 feature branch의 중단 직전 SHA는 `16eabdd8e55ff3bb8cb77bfa2769e1e7049be715`이고 이 SHA는 로컬 제품 HEAD의 조상임을 확인했다. 이 문서의 source-only refs와 외부 outputs는 자동으로 원격에 복사되지 않는다. 로컬 원본과 작업 디렉터리를 보존하고, 다른 컴퓨터에서 재개할 때는 해당 저장소와 원자료를 먼저 확보한다.
+
+중단 후 Viewer 담당 확인: 추가 작업과 검사를 시작하지 않았고 이번 작업에 새 브라우저나 서버를 실행하지 않았다. 기존 미리보기 서버는 유지한다. 로컬 `286e7646f1b9d34672b48afe70ad9f4bfac8a761`은 제품 미채택이며 실제 메모리 부족과 브라우저 자동 재통지는 미검증이다. slot과 archive의 별도 반환 증거는 확인하지 않았다. Kernel의 자동화 `automation`도 PAUSED로 전환했다. CAD·GPU·Outer·Docs 관련 확인된 자동화는 모두 PAUSED다.
