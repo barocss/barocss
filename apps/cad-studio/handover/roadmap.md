@@ -36,7 +36,7 @@
 
 | 번호 | 작업·기존 ID | 남은 범위 | 담당·선행 조건 | 완료 조건 |
 |---|---|---|---|---|
-| 07 | 고급 모델링 — CG1 | 일반 가이드/다중 단면 로프트, 경계 표면, 가변/면 필렛, 드래프트, 리브, 문자·엠보싱·wrap, 나선/실제 나사의 남은 지원 범위. | Kernel → Model/API → Outer. K02 다중 단면 로프트 `0d2e1abc`, K03 Bezier Coons `51a59aaa`, K04 필렛 `65f1a678`, K05 드래프트 `b5b425c9`, K06 리브 `9c22d37f`, K07 제한 직사각 양각/음각 `01bd6b35`는 정상 소스 완료·실행 NOTRUN이다. 공유 실행/통합은03 마감 뒤 정확 한 기능부터. | 지원 프로필·원공차·참조·독립 기대를 고정하고 편집·파일·제품까지 연결. 이미 완료된 bounded loft를 재구현하지 않는다. |
+| 07 | 고급 모델링 — CG1 | 일반 가이드/다중 단면 로프트, 경계 표면, 가변/면 필렛, 드래프트, 리브, 문자·엠보싱·wrap, 나선/실제 나사의 남은 지원 범위. | Kernel → Model/API → Outer. 2026-10-27 `local/cad-dev`에 K02–K07을 가져와 Kernel·Model 검사를 실행했다(develop 미머지): K02 다중 단면 로프트 `c6467a10`, K03 Bezier Coons `8a89b210`(Studio Direct Fill 정확 경로), K04 가변 필렛 `8f452298`+체인 끝 반지름 `74c78827`(Studio Fillet 끝 반지름), K05 드래프트 `ff544d59`(Studio Pull 축), K06 리브 `418ba584`, K07 제한 직사각 양각/음각 `76934576`. K02·K06·K07의 Studio는 그대로다(기존 명령으로 같은 형상). 남은 것: 일반 가이드 로프트, 면 필렛, 문자·wrap, 나선/실제 나사. | 지원 프로필·원공차·참조·독립 기대를 고정하고 편집·파일·제품까지 연결. 이미 완료된 bounded loft를 재구현하지 않는다. |
 | 08 | 피처 패턴·직접 편집·표면 — CG2 | 곡선/채우기 패턴, 면 이동·삭제·교체, thicken/offset/knit/trim/extend의 남은 범위. | Kernel/Model + Outer. 03과 기존 affine/Boolean/표면 provider 재사용. | body 복사와 feature 반복을 구분하고 원 이력·소실/모호 참조·실패 atomicity를 보존한다. |
 | 09 | 고급 스케치 — CG3 | spline 핸들·conic·문자·block과 진단/편집의 미완료 소비 경로. 치수 표현식은 기존 결정 조건을 유지한다. | Kernel/Model + Outer. 기본2D→3D·돌출 컷의 기존 완료 근거 재사용. | 실제 제약·DOF/충돌/비수렴을 구분한다. 원 입력·치수·좌표와 편집 후 파일 결과를 보존한다. |
 | 10 | 조립 확장 — CG4 | 유연한 하위 조립, 반복 occurrence 참조, 조립 피처, 승인된 motion/대형 조립 범위. | Model/Outer + Kernel/GPU. 같은 revision의 배치/관절 기반이 선행. | 계층·part-local/world/display 변환과 반복 인스턴스를 보존한다. pose 표시를 동역학 완료로 쓰지 않는다. |
