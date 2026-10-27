@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "kind": "PORTABLE_SNAPSHOT_OF_EXISTING_AUTHORITY_NOT_SECOND_TASK_QUEUE",
-  "savedUTC": "2026-10-27T04:01:01.410633+00:00",
+  "savedUTC": "2026-10-27T04:14:29.860770+00:00",
   "paused": false,
   "pushed": false,
   "validatedProductCode": "ca10a3a8ea5ce1a60cb6850062dfb1eaec157828",
@@ -20,41 +20,41 @@
   },
   "laneAssignments": {
     "GPU": {
-      "currentTask": "GPU-ROADMAP-02-SIZED-TARGET",
-      "nextTask": "GPU-ROADMAP-03-GLB-SUBSET",
-      "nextCondition": "02.1 전반환 뒤 공통03 최초 합동 및 새Model producer/최종Docs 자원 창을 보존하여03.1 배정.",
+      "currentTask": "GPU-ROADMAP-02-2-RENDER-TARGET-TEXTURE",
+      "nextTask": null,
+      "nextCondition": "After actual current Outer runtime return: new emit/native1/changed lint5 and own public example once. No previous GPU passes repeated.",
       "nextAssignment": "CONFIRMED_OWNER_DIRECT_USER",
-      "updatedUTC": "2026-10-27T02:15:27.009853+00:00",
+      "updatedUTC": "2026-10-27T04:14:29.860770+00:00",
       "responsibility": "GPU owns qualified source and functional evidence; API root owns integration"
     },
     "Kernel": {
-      "currentTask": "CAD-CG2-MODEL-LINEAR-CUT-CONSUMER-01",
-      "nextTask": "CAD-CG2-LINEAR-CUT-FEATURE-BATCH-01",
-      "nextCondition": "WholeCG2core+actualModelsource normalchild androotexactadoption; old05 sixcommandplan NOTRUN, adaptfirstaffectedbatch once",
+      "currentTask": "CAD-MODEL-DRAWING-SCHEMA5-CONTRACT-01",
+      "nextTask": "CAD-CG1-SPRING-CLOSED-GROUND-BOOLEAN-01",
+      "nextCondition": "Schema5 normal source returned; current shared pin return and exact functional bundle adoption first. Spring minimal source41c remains separate, unrun.",
       "nextAssignment": "CONFIRMED_CONDITIONAL",
-      "updatedUTC": "2026-10-27T00:06:38.804674+00:00",
+      "updatedUTC": "2026-10-27T04:14:29.860770+00:00",
       "responsibility": "ModelAPI implementation; qualified009awaits exactUIconsumer. PriorCG1minimum2passedandreturned."
     },
     "Outer": {
       "currentTask": "STUDIO-CG2-LINEAR-CUT-FEATURE-CONSUMER-01",
-      "nextTask": null,
-      "nextCondition": "WholeCG2core+Model+necessaryUI source thenrootexactcut/firstbatch/publicfileflow aftercurrentDrawing/DocsViewerclosure",
+      "nextTask": "CAD-MODEL-DRAWING-SCHEMA5-CONTRACT-01",
+      "nextCondition": "현재03 최소수정/실제UI/파일 마감 뒤 정확 Model helper에 publish/recovery/templates를 연결.",
       "nextAssignment": "CONFIRMED_CONDITIONAL",
       "updatedUTC": "2026-10-27T01:13:27.082201+00:00"
     },
     "Docs": {
       "currentTask": "DOCS-ACTUAL-API-FIGURE-GAPS-01",
       "nextTask": null,
-      "nextCondition": "공통 공개 목록의 새 행을 의미 검토하고 필요한 check/site·페이지·제품을 한 배치로 마감. Node22 고정; 기존 PASS 반복 없음.",
+      "nextCondition": "Private189 source/actualModel3 results await exact adoption after current shared source pin. Final public API inventory/check/site and necessary changed pages once at stable source; failed spring/CLI scopes only.",
       "nextAssignment": "CONFIRMED_CONDITIONAL",
-      "updatedUTC": "2026-10-27T01:59:00.395931+00:00"
+      "updatedUTC": "2026-10-27T04:14:29.860770+00:00"
     },
     "Drawings": {
-      "currentTask": "DRAWING-DR6-STANDALONE-FRAME-01",
+      "currentTask": "CAD-MODEL-DRAWING-SCHEMA5-CONTRACT-01",
       "nextTask": null,
-      "nextCondition": "4175ca408에서 최소 교정 후 stale Move 안내 가시성 1건만 실제 확인하고 소유 자원/핀 반환. 이전 파일 흐름은 반복하지 않음.",
+      "nextCondition": "Raw1a and real-producer tests f3 plus draft notice abac returned; no chat/drawing edits. Combined schema5 source adoption and necessary whole-feature batch next.",
       "nextAssignment": null,
-      "updatedUTC": "2026-10-27T01:59:00.395931+00:00"
+      "updatedUTC": "2026-10-27T04:14:29.860770+00:00"
     },
     "API": {
       "currentTask": "CLOSED-FEATURE-SOURCE-INTEGRATION-01",
@@ -65,18 +65,18 @@
       "updatedUTC": "2026-10-26T22:15:02.550858+00:00"
     },
     "Viewer": {
-      "currentTask": "VIEWER-APP-FUNCTION-CLARITY-01",
+      "currentTask": "VIEWER-APP-MEASURED-REVIEW-RESTORE-01",
       "nextTask": null,
-      "nextCondition": "Own40a nextnormal source; requiredonebatch aftersourcecompletion and currentnativewindowreturn",
+      "nextCondition": "Owner reports 2.2-3.4 and4.1 complete,4.2-4.4/5.1 partial. Exact normal commits and proof/resource handoff requested; remaining file-close browser awaits nonoverlap window.",
       "nextAssignment": null,
-      "updatedUTC": "2026-10-26T23:32:34.397876+00:00"
+      "updatedUTC": "2026-10-27T04:14:29.860770+00:00"
     }
   },
   "currentLimits": {
-    "quotaRemainingPercent": 19,
+    "quotaRemainingPercent": 18,
     "secondary": "UNAVAILABLE",
     "quotaPauseThresholdPercent": 5,
-    "P2": "HOLD",
+    "P2": "EXCLUDED_FROM_ACTIVE_TRACKING_HISTORICAL_HOLD_PRESERVED",
     "fullRobotPhysics": "NOT_COMPLETE",
     "fullG15Quality": "NOT_ACCEPTED",
     "newViewerProduct": "NOT_ADOPTED",
@@ -85,7 +85,7 @@
     "newDrawing": "CURRENT_NATIVE_PUBLIC_FILE_STATUS_ROW_PASS; schema5standalone_forward_compatibility_base_required_before_product",
     "newDocs": "NORMAL_CURRENT_CONTRACTS_COMMON_NEW_MODEL_PRIVATE_FIRST_FAILURES_PENDING",
     "GPU": "OWN_HANDOFF_ONLY_ROOT_AUTO_MERGE_FORBIDDEN",
-    "newSchema5": "SOURCE_IMPLEMENTATION_ASSIGNED_KERNEL_OUTER_DRAWINGS_NOT_ADOPTED_NOT_RUN"
+    "newSchema5": "MODEL448_CORRECTION3B8_DRAWING1A_F3_ABAC_NORMAL_SOURCE_READY_OUTER_WIRING_AND_RUNTIME_PENDING"
   },
   "pendingLocalRefs": {
     "ViewerDonorHead": "df7d7fdda284a07eb9b25675150d3a9a0da54c74",
@@ -105,7 +105,14 @@
     "CG2CommandCorrection": "0cf662c658485afebd82b416a1fc587d34f8d986",
     "CG2PreviewAppFix": "dca48fc059fed996fd3de21ce61399e456dbdc8e",
     "SpringMinimalSource": "41c4323b9451d8089f6da0ef5e34067d7adfecc3",
-    "DrawingCompositeSource": "cbf1964d4a500e62f9c32f200312e4e2f1f3cdbf"
+    "DrawingCompositeSource": "cbf1964d4a500e62f9c32f200312e4e2f1f3cdbf",
+    "Schema5Model": "448f0db0412bd569b82db5097f6cb815fb97b242",
+    "Schema5ModelCorrection": "3b8eb7e2cfd968419514073cb5766898ebcbf5e9",
+    "DrawingRawSchema5": "1a24cd89436bac7706e33065b04f6b0e2bb7e5cc",
+    "DrawingRealProducerTests": "f3c8ad0b611aba66782bfe422033f80aa9ad95ff",
+    "DrawingDraftNotice": "abacf8df470d482d12eba8b877bc9ab366c2e797",
+    "GpuTargetTexture": "2a35e9b665d9d86db6a95ce3047a8f4991ec8514",
+    "GpuGlbRepair": "5d8b77579fe65fff331e878d657e78e0fcbe7519"
   },
   "activeRuntime": {
     "owner": "Outer",
@@ -144,6 +151,6 @@
     "basis": "Kernel/GPU/CAD/Model 기반 후 같은기능 Studio/Viewer/제품",
     "activeTasksAuthorityOnly": "/Users/user/.cache/barocss-preserved/2026-10-24-codex-integration/round3/coordinator-api-active-20261025.json",
     "sourceCheckPublicProductSeparate": true,
-    "P2": "원HOLD/미수락은보존; 새담당전달 사용자추적제외지시는활성추적범위만변경하며PASS가아님"
+    "P2": "EXCLUDED_FROM_ACTIVE_TRACKING_HISTORICAL_HOLD_PRESERVED"
   }
 }

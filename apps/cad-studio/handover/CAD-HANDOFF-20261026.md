@@ -27,29 +27,28 @@ Kernel·GPU·CAD·CAD Model 기반을 먼저 구현하고 같은 기능을 Studi
 
 ## 현재 구현과 다음 행동
 
-공통 소스는 `433a035ae03a61e55b0e03b6a9b9897083774800`이다. 제품에서 실제 검증한 최신 코드는 `ca10a3a8ea5ce1a60cb6850062dfb1eaec157828`이다. 제품의 후속 문서 commit은 새 기능 실행 PASS가 아니다. 공통 로드맵은01–19번이며 실제 배정은 기존 단일 기록만 사용한다.
+공통 소스는 `433a035ae03a61e55b0e03b6a9b9897083774800`에 고정돼 있다. 제품에서 실제 검증한 최신 코드는 `ca10a3a8ea5ce1a60cb6850062dfb1eaec157828`이다. 후속 문서 commit은 새 기능 실행 PASS가 아니다. 전체01–19 색인은 `roadmap.md`, 실제 배정은 기존 단일 작업 기록만 사용한다.
 
-- Studio UI5: 원2e7→root1c80, 공통 타입/lint·기본 화면을 완료하고 제품ca10a3와 필수 제품 docs 검사까지 마쳤다. 오류·단위·기존 Hud 키보드 guard를 보존했다. 다음 키보드 tooltip은 Outer 독립 소스이며 아직 미완료다.
-- Viewer: 정상10개 묶음은 공통에 채택했고 기존 SDK/앱·원본 점 검사는 한정된 담당 검증을 마쳤다. 제품 미채택이다. 새 측정·조립품 거리·리뷰는 별도 소유 작업이다. 정상 commit/실행/파일 결과를 받아 기존묶음과 구분한다. packaging/config/hook 중단은 유지한다.
-- Drawings 독립 프레임: 기본 소스와 교정 consumer/types/lint, 실제 Add/편집/숨김/Move·Save/New/Open/SVG·삭제를 마쳤다. 최초 native5PASS/1FAIL은 보존했다. 거부 안내 가시성은 공통4175에서 실제 PASS·전반환했으나 표제란 일부를 가렸다. 전용 상태행 소스4e→rootb467을 채택했고 같은 화면1건의 비중첩/입력 확인은 GPU창 반환 뒤다. 제품 미채택이다.
-- 공통03 절삭 피처 선형 반복: Core05→4d887c9e7, Model503→11a8b6c9b, Studio9ee→1c48eaa12의 정확 정상 delta를 채택했다. migrate의 schema4/route admission과 기존 Core/키보드 보호를 유지했다. 최초 합동 build/새4/Model두파일 한 runner/types2/lint13은 아직NOT_RUN이다. GPU02창 뒤 실행하고 실제 소비·파일·제품으로 마감한다.
-- Docs: 실제 Kernel API3결과와 JPEG3, 메뉴/Studio6안내·현재 API계약 문서를 공통에 채택했다. 새Model 기본 샘플/producer3/별도JPEG는 private 정상f4→189 후보이다. 새3결과와새8샘플은 담당 실제PASS이나 전체164는159PASS/2FAIL/3CANCELLED이다. spring closed-ground의[GEOMETRY]와CLI경로 실패를 별도로 보존하고 담당 수리/환경복구를 진행한다. 최종공통public목록·docs/site·제품은 아직대기다. 과거 c7e/source와Node18실패를 새 소스로 재라벨하지 않는다.
-- GPU: fe2637 PT visibility와607f7d RenderTarget은 소유 새필수배치·공개PNG·정리를 완료했다. 최신 직접 지시대로 다른 위치 인계이며 이root제품에 자동병합하지 않는다. 현재02.1 sized target8de의 소유 실행창이며03.1 GLB2b056은 정상source후보/새실행대기다. 다른레인실행과겹치지않는실제반환을조정한다.
-- Kernel 독립07: K02 0d2e1abc/K03 51a59aaa는 정상source완료/실행NOT_RUN/공통미채택이다. 새spring 실제오류를 최소교정으로 우선한다. 원WIP와기존source를보존한다.
-- 전체 API 설계: `api-public-model-direction-20261027.md`의 원본/진입점/커널·GPU계층 방향을 따른다. Model을 사용자 설계 원본으로 삼고 일반Part/Assembly를 같은 진입점에서 쓰되, 기존import·format·참조·typed오류를 보존한다. 전체 메서드 차이표와 호환이행은 미완료이며 물리적패키지합침은 아직결정하지않았다.
+- 03 절삭 반복: 기반·API·명령·필수 타입/lint는 마쳤다. 실제 invalid 입력 뒤 preview 잔류를 App433에서 교정하고 type/lint1도 마쳤다. 수정 후 공개 화면·파일·제품은 남았다. Outer의 도구 승인 대기 표시 원인은 확인 중이며 source/runtime 핀은 실제 반환 전이다.
+- 01/11/16 도면과 저장: standalone의 실제 파일·SVG·상태행 입력을 마쳤다. 구제품이 새 도면을 버리는 문제 때문에 schema5 저장 보호가 제품 선행이다. Model448→3b8, Drawing b7→cbf→1a→f3→abac는 정상 소스이며 실행 NOT_RUN이다. Outer의 publish/recovery/templates/snapshot 연결은03 뒤다. 원3/4 bytes·snapshot key/id/parent를 보존한다.
+- 04 Docs: 공통a94까지 채택했다. private189의 실제 Model3 결과/그림과 새8샘플은 PASS다. 전체164의159PASS/2FAIL/3CANCELLED, spring과CLI 첫 실패를 보존한다. 최종 공통 공개 목록·check/site·필요 페이지는 아직 실행하지 않았다.
+- 05 Viewer: 기존 정상10 묶음은 공통 채택·제품 미채택이다. 소유 워크의 새 키보드/작은 화면/실패 보존·조립품 거리·리뷰 완료 보고는 새 정상 commit과 근거 반환을 확인 중이다. 제한 IGES·파일 닫기·실제 사용자 파일/장치 손실은 해당 범위로 남긴다. stopped packaging/config/hook은 재개하지 않는다.
+- 06 GPU: fe2637 PT,607 RenderTarget,8de sized target와5d8 제한 GLB는 소유 검사·공개 사례와 정리를 마쳤다. 2a35 target.asTexture는 첫 실행 창 대기다. 새 GPU 소스의 병합은 사용자 지정 다른 위치가 맡으며 이 제품에 자동 병합하지 않는다.
+- 07 Kernel: K02~K06 정상 소스와 spring41c 최소 교정은 공통 미채택·실행 NOT_RUN이다. 원 WIP·공차·최초 실패를 보존하고 실제 공통 핀 반환 뒤 정확 기능 단위로 연결한다.
+- API: `api-public-model-direction-20261027.md`에 따라 CAD Model을 편집 원본과 기본 Part/Assembly 진입점으로 삼고 커널은 독립 계산 계층으로 유지한다. 전체 메서드 차이·호환 이행과 물리적 패키지 통합은 아직 완료·확정되지 않았다.
 
-각 담당이 내부 분할과 취합을 맡는다. 필요한 실제 UI·파일·오류·source 결속과 자기 정리를 수행한다. 독립 source는 병렬이며 무거운 실행은 하나씩 한다. 정상기능을 같은원본의 소스→필요한한배치→실제소비/파일→제품으로 닫고 유효PASS를 반복하지 않는다. 다음 source준비를 제품완료로 표시하지 않는다.
+담당은 내부 분할·취합과 자기 자원 반환을 맡는다. 독립 소스는 병렬로 진행하고 실제 공유 기하·무거운 실행은 조정한다. 완료한 검사를 반복하거나 부분 PASS를 전체 기능·제품 PASS로 올리지 않는다.
 
 ## 후속 실제 결과 — 원 실행과 구분
 
 - 공통03: 1c48의 CAD build/CAD4/API4는 PASS다. command의 중복 선택 거부 기대가 실패해 시험만87327로 교정했고 command2·Model/Studio type·lint13을 PASS했다. 원 FAIL은 그대로다.
 - 실제 UI에서 Spacing0 오류와 Apply 비활성인데 이전 preview가 남았다. App의 현재값 확인·구결과 차단·preview clear만 dca→433으로 정상 채택했고 Studio type/lint1은 PASS했다. 수정 후 공개 파일 흐름은 아직 미완료이며 IAB file-upload 도구 승인 상태를 확인 중이다. 실제차단이 확정되지 않았고 제품FAIL/전체중단으로 해석하지 않는다.
 - 도면01: 87327의 전용 상태행/표제란 비중첩과 실제 입력을 PASS했고 root도 PNG를 직접 봤다. 파일·SVG·native는 반복하지 않았다. 다만 구제품ca10이 dim 없는 standalone을 버리므로 schema5 저장 보호를 제품 선행으로 배정했다.
-- 저장 보호: 일반3/route4는 보존하고 standalone/composite만5를 요구한다. canonical/hash 전 버전 확정, raw 검사·schema5 보존·실제route 판정·nested editable doc, immutable snapshot identity와 recovery/template 구버전 우회를 함께 닫는다. Kernel=Model core/버전, Outer=publish/recovery/templates, Drawings=raw/생산자다. source-only로 구현 중이며 아직 공통/제품 채택이나 실행 PASS가 아니다.
+- 저장 보호: 일반3/route4는 보존하고 standalone/composite만5를 요구한다. canonical/hash 전 버전 확정, raw 검사·schema5 보존·실제route 판정·nested editable doc, immutable snapshot identity와 recovery/template 구버전 우회를 함께 닫는다. Kernel=Model core/버전, Outer=publish/recovery/templates, Drawings=raw/생산자다. Model과 Drawing은 정상 소스로 반환됐고 비배열 새 표식 거부도 소스에서 교정했다. Outer 연결과 합동 실행·제품은 미완료다.
 - GPU03.1은5d8b77의 새emit294/CPU18/lint3·합성WebGPU 공개사례를 마치고 전반환했다. 원TS2352/partialemit과 실제수리plan420691의 provenance를 보존한다. 물리적외부asset/texture/skin/morph 수락이나 root제품병합이 아니다. GPU02.2는2a35e9 source후보/새실행대기다.
 
 ## 중단·push 조건
 
-이번 저장 관측은 사용81%/남음19%, secondary unavailable이다. 재개할 때 실제 도구로 다시 확인한다. 어느 유효 Codex 창이든 남음5% 이하면 전체6담당과 자체 agent의 새 작업/자동next를 멈추고 안전 checkpoint·source/runtime/archive 반환을 받습니다. 검증된 exact commit만 필요한 최소 통합을 마칩니다.
+이번 저장 관측은 사용82%/남음18%, secondary unavailable이다. 재개할 때 실제 도구로 다시 확인한다. 어느 유효 Codex 창이든 남음5% 이하면 전체6담당과 자체 agent의 새 작업/자동next를 멈추고 안전 checkpoint·source/runtime/archive 반환을 받습니다. 검증된 exact commit만 필요한 최소 통합을 마칩니다.
 
-미완료/NOTRUN·담당·재개 조건·로컬/원격 SHA를 적고 정상 commit합니다. root만 사용자 승인된 origin feature branch를 normal push하고 원격 SHA를 확인한 뒤 cad 자동화를 PAUSED로 바꿉니다. force/main/develop rewrite/PR/release/reset/credits 사용은 금지합니다. 기존 중단·권한·브랜치 보호·P2 HOLD는 유지합니다.
+미완료/NOTRUN·담당·재개 조건·로컬/원격 SHA를 적고 정상 commit합니다. root만 사용자 승인된 origin feature branch를 normal push하고 원격 SHA를 확인한 뒤 cad 자동화를 PAUSED로 바꿉니다. force/main/develop rewrite/PR/release/reset/credits 사용은 금지합니다. 기존 중단·권한·브랜치 보호는 유지합니다. P2 제조인수는 사용자 지시로 활성 추적·정기 보고에서 제외하며 과거 HOLD·미수락 기록은 보존합니다.
