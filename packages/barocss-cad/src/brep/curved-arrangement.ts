@@ -445,9 +445,12 @@ function arrange(rings: readonly { polygon: number; ring: readonly CurveSegment2
   // Vertices with a tolerance grid.
   const points: XY[] = [], grid = new Map<string, number[]>(), cell = eps * 64;
   const vid = (p: XY) => {
-    const gx = Math.floor(p[0] / cell), gy = Math.floor(p[1] / cell);
-    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (const v of grid.get((gx + i) + ',' + (gy + j)) ?? []) if (Math.hypot(points[v][0] - p[0], points[v][1] - p[1]) <= eps) return v;
-    const v = points.length; points.push(p); const k = gx + ',' + gy; grid.set(k, [...(grid.get(k) ?? []), v]); return v;
+    // (Neighbour cells only where p lies within 2 eps of their side: a cell is 64 eps wide, the rest hold no point within
+    // eps. The same first point as a look at all nine.)
+    const gx = Math.floor(p[0] / cell), gy = Math.floor(p[1] / cell), r = 2 * eps;
+    const x0 = p[0] - gx * cell <= r ? -1 : 0, x1 = (gx + 1) * cell - p[0] <= r ? 1 : 0, y0 = p[1] - gy * cell <= r ? -1 : 0, y1 = (gy + 1) * cell - p[1] <= r ? 1 : 0;
+    for (let i = x0; i <= x1; i++) for (let j = y0; j <= y1; j++) { const g = grid.get((gx + i) + ',' + (gy + j)); if (g) for (const v of g) if (Math.hypot(points[v][0] - p[0], points[v][1] - p[1]) <= eps) return v; }
+    const v = points.length; points.push(p); const k = gx + ',' + gy, g = grid.get(k); if (g) g.push(v); else grid.set(k, [v]); return v;
   };
   const cuts = pieces.map(p => [segStart(p.seg), segEnd(p.seg)]);
   // (A general curve's box is its samples' padded by its longest chord: the samples' own box missed a cut that ends on

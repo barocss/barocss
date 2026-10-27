@@ -1799,12 +1799,24 @@ function mergePieces(pieces: Piece[], tol: number): Piece[] {
 class PointSet3 {
   readonly points: P3[] = []; private readonly grid = new Map<string, number[]>(); private readonly cell: number;
   constructor(readonly eps: number) { this.cell = eps * 16; }
-  private k(p: P3, o = [0, 0, 0]) { return [0, 1, 2].map(i => Math.floor(p[i] / this.cell) + o[i]).join(','); }
+  // (A cell's key is its three integer coordinates joined by commas; a point's cell found once. A neighbour cell is looked
+  // in only where p lies within 2 eps of the side they share — a cell is 16 eps wide, so a point farther than that side
+  // is farther than eps from p and could not be returned (2 eps: room for rounding). The first point within eps in cell
+  // order, then insertion order, as before; most lookups now read one cell, not 27.)
   find(p: P3): number {
-    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (let m = -1; m <= 1; m++) for (const v of this.grid.get(this.k(p, [i, j, m])) ?? []) if (len(sub(this.points[v], p)) <= this.eps) return v;
+    const c = this.cell, gx = Math.floor(p[0] / c), gy = Math.floor(p[1] / c), gz = Math.floor(p[2] / c), P = this.points, eps = this.eps, r = 2 * eps;
+    const x0 = p[0] - gx * c <= r ? -1 : 0, x1 = (gx + 1) * c - p[0] <= r ? 1 : 0, y0 = p[1] - gy * c <= r ? -1 : 0, y1 = (gy + 1) * c - p[1] <= r ? 1 : 0, z0 = p[2] - gz * c <= r ? -1 : 0, z1 = (gz + 1) * c - p[2] <= r ? 1 : 0;
+    for (let i = x0; i <= x1; i++) for (let j = y0; j <= y1; j++) for (let m = z0; m <= z1; m++) {
+      const g = this.grid.get((gx + i) + ',' + (gy + j) + ',' + (gz + m));
+      if (g) for (const v of g) { const q = P[v]; if (Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]) <= eps) return v; }
+    }
     return -1;
   }
-  add(p: P3): number { const f = this.find(p); if (f >= 0) return f; const v = this.points.length; this.points.push(p); const k = this.k(p); this.grid.set(k, [...(this.grid.get(k) ?? []), v]); return v; }
+  add(p: P3): number {
+    const f = this.find(p); if (f >= 0) return f;
+    const v = this.points.length, c = this.cell, k = Math.floor(p[0] / c) + ',' + Math.floor(p[1] / c) + ',' + Math.floor(p[2] / c);
+    this.points.push(p); const g = this.grid.get(k); if (g) g.push(v); else this.grid.set(k, [v]); return v;
+  }
 }
 const pointOf = (k: Curve3, u: number): P3 => k.kind === 'line' ? add(k.p, scale(sub(k.q, k.p), u)) : k.kind === 'param' ? paramAt(k, u) : arcAt(k, k.sweep * u);
 const startOf = (k: Curve3): P3 => k.kind === 'line' ? k.p : k.kind === 'param' ? k.at(k.t0) : arcAt(k, 0);
