@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Frozen soft shadows · BaroCSS GPU</title>
+  <style>
+    :root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; background: #17191d; color: #eceef2; }
+    body { max-width: 960px; margin: 32px auto; padding: 0 20px; }
+    h1 { margin-bottom: 4px; font-size: 1.6rem; }
+    p { color: #bbc1cb; }
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin: 20px 0; }
+    label { display: inline-flex; align-items: center; gap: 8px; }
+    input, button, select { accent-color: #e9b979; }
+    button, select { padding: 7px 14px; font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: default; }
+    canvas { display: block; width: 100%; aspect-ratio: 4 / 3; background: #20242b; border: 1px solid #414854; }
+    .stills { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin-top: 28px; }
+    figure { margin: 0; min-width: 0; }
+    figcaption { margin-top: 8px; color: #bbc1cb; }
+    [hidden] { display: none; }
+    #error { color: #ffb4ad; white-space: pre-wrap; }
+    output { min-width: 3ch; font-variant-numeric: tabular-nums; }
+    @media (max-width: 600px) { .stills { grid-template-columns: 1fr; } }
+  </style>
+  <script type="importmap">{"imports":{"@barocss/cad":"../../barocss-cad/dist/index.js"}}</script>
+</head>
+<body>
+  <h1>Frozen soft shadows</h1>
+  <p>A raised panel casts a shadow across the floor. Choose a light and compare sharp and soft edges.</p>
+  <div class="controls" role="group" aria-label="Light controls">
+    <label>Light <select id="kind" aria-label="Light type" disabled><option value="point">Point</option><option value="spot">Spot</option></select></label>
+    <label>Light radius <input id="radius" aria-label="Light radius" type="range" min="0" max="1.5" step="0.1" value="0.8" disabled> <output id="radius-value" for="radius">0.8</output> world units</label>
+    <button id="compare" type="button" disabled>Capture comparison</button>
+  </div>
+  <p id="status" role="status" aria-live="polite">Loading the viewer…</p>
+  <p id="error" role="alert" hidden></p>
+  <canvas id="view" aria-label="Live light and shadow preview"></canvas>
+  <div id="stills" class="stills" hidden>
+    <figure><canvas id="hard" aria-label="Frozen sharp shadow"></canvas><figcaption id="hard-caption"></figcaption></figure>
+    <figure><canvas id="soft" aria-label="Frozen soft shadow"></canvas><figcaption id="soft-caption"></figcaption></figure>
+  </div>
+  <script type="module">
+    const byId = id => document.getElementById(id);
+    const controls = [byId('kind'), byId('radius'), byId('compare')];
+    const sessions = new Set();
+    let viewer = null, closed = false, busy = false;
+    const showError = reason => {
+      byId('error').textContent = `${reason.code ? `${reason.code}: ` : ''}${reason.message ?? String(reason)}`;
+      byId('error').hidden = false;
+    };
+    function cleanup() {
+      closed = true;
+      for (const session of sessions) session.dispose();
+      sessions.clear(); viewer?.dispose();
+    }
+    window.addEventListener('beforeunload', cleanup, { once: true });
+    const light = (kind, radius) => ({
+      kind, position: [-3, 0, 6], color: '#ffffff', intensity: 18, range: 0, castShadow: true, shadowRadius: radius,
+      ...(kind === 'spot' ? { direction: [6, 0, -6], angle: 50, penumbra: 0 } : {}),
+    });
+    function updateLight() {
+      const kind = byId('kind').value, radius = Number(byId('radius').value);
+      byId('radius-value').value = radius.toFixed(1);
+      viewer.lights = [light(kind, radius)]; viewer.requestRender();
+      byId('status').textContent = `${kind === 'point' ? 'Point' : 'Spot'} light · radius ${radius.toFixed(1)} world units. Captured images stay fixed until you capture again.`;
+    }
+    const display = (id, frame) => {
+      const canvas = byId(id); canvas.width = frame.width; canvas.height = frame.height;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('A 2D canvas context is required to show the still.');
+      context.putImageData(new ImageData(new Uint8ClampedArray(frame.data), frame.width, frame.height), 0, 0);
+    };
+    byId('compare').addEventListener('click', async () => {
+      if (!viewer || busy || closed) return;
+      busy = true; for (const control of controls) control.disabled = true;
+      byId('error').hidden = true;
+      const kind = byId('kind').value, radius = Number(byId('radius').value), label = kind === 'point' ? 'Point' : 'Spot';
+      const pending = [];
+      try {
+        for (const value of [0, radius]) {
+          viewer.lights = [light(kind, value)];
+          const session = await viewer.createPathTrace({ width: 320, height: 240, bounces: 1 });
+          sessions.add(session); pending.push(session);
+          if (closed) { session.dispose(); sessions.delete(session); return; }
+        }
+        const frames = [];
+        for (let i = 0; i < pending.length; i++) {
+          const session = pending[i];
+          for (let n = 0; n < 8; n++) {
+            if (closed) return;
+            byId('status').textContent = `Capturing ${i === 0 ? 'sharp' : 'soft'} still · ${n * 8} / 64 samples…`;
+            await session.sample(8);
+          }
+          const frame = await session.capture(false);
+          if (closed) return;
+          frames.push(frame);
+        }
+        display('hard', frames[0]); display('soft', frames[1]);
+        byId('hard-caption').textContent = `${label} · radius 0 · ${frames[0].samples} samples · frozen still`;
+        byId('soft-caption').textContent = `${label} · radius ${radius.toFixed(1)} · ${frames[1].samples} samples · frozen still`;
+        byId('stills').hidden = false;
+        byId('status').textContent = `Comparison captured. Change the light or its radius, then capture another pair.`;
+      } catch (reason) {
+        if (!closed) { showError(reason); byId('status').textContent = 'The comparison could not be captured.'; }
+      } finally {
+        for (const session of pending) { session.dispose(); sessions.delete(session); }
+        busy = false;
+        if (!closed) {
+          viewer.lights = [light(kind, radius)]; viewer.requestRender();
+          for (const control of controls) control.disabled = false;
+        }
+      }
+    });
+    try {
+      const { createViewer } = await import('../dist/viewer/index.js');
+      if (closed) throw new Error('The page closed before the viewer loaded.');
+      viewer = await createViewer(byId('view'), {
+        controls: false, pixelRatio: 1, antialias: true, background: '#20242b',
+        camera: { position: [3, 0, 10], target: [3, 0, 0], up: [0, 1, 0], projection: 'orthographic', fovY: 2 * Math.atan(2.5 / 10) * 180 / Math.PI },
+        lights: [light('point', 0.8)], environment: { sky: '#000000', ground: '#000000', ambient: 0, toneMapping: 'none' },
+        onError: reason => { if (!closed) showError(new Error(reason)); },
+      });
+      if (closed) { viewer.dispose(); throw new Error('The page closed before viewer creation completed.'); }
+      const quad = (x0, x1, y0, y1, z) => ({ positions: [x0,y0,z,x1,y0,z,x1,y1,z,x0,y1,z], normals: [0,0,1,0,0,1,0,0,1,0,0,1], indices: [0,1,2,0,2,3] });
+      viewer.add(quad(-4, 9, -4, 4, 0), { material: { color: '#cccccc', roughness: 1 } });
+      viewer.add(quad(-0.8, 0.8, -0.5, 0.5, 3), { material: { color: '#d6a968', roughness: 1, doubleSided: true } });
+      byId('kind').addEventListener('change', updateLight); byId('radius').addEventListener('input', updateLight);
+      for (const control of controls) control.disabled = false;
+      updateLight();
+    } catch (reason) {
+      if (!closed) { showError(reason); byId('status').textContent = 'The example could not start.'; }
+      cleanup();
+    }
+  </script>
+</body>
+</html>

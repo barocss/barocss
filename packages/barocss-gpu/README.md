@@ -129,6 +129,25 @@ camera, materials and lighting. Later edits to the live viewer do not update tha
 still. Create another session to render the edited scene; raster rendering and
 controls remain independent.
 
+Point and spot lights with `castShadow` enabled and a positive `shadowRadius`
+sample shadow visibility over a disk perpendicular to the direction to the
+light. Its radius uses world units. The centre direction still determines the
+BRDF, distance attenuation, range and spot cone. This is a shadow visibility
+filter, not a full area-emitter radiance model. Directional lights remain delta
+lights in the still.
+
+Zero, omitted or disabled radii retain the previous delta-light path. Path
+tracing still tests geometric occlusion for every direct light; `castShadow`
+gates this disk radius and does not turn off that existing occlusion. An enabled
+radius must be nonnegative and representable as a finite f32, without positive
+underflow. Invalid enabled radii refuse with `LIGHT_INVALID` before allocating
+the still's GPU resources. These checks apply to all lights in the still,
+independently of raster shadow-map limits. A frozen still keeps its accepted
+radius after live edits.
+
+[Interactive path-traced shadow example](examples/path-trace-soft-shadows.html)
+compares a zero-radius capture with the selected point or spot radius.
+
 ```js
 // Use the populated viewer from the example above.
 const still = await viewer.createPathTrace({ width: 640, height: 480, bounces: 6 });

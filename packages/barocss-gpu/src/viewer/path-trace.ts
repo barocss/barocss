@@ -2,8 +2,9 @@
 import { BufferUsage, MapMode, TextureUsage, type BindGroup, type Buffer, type Device, type Pipeline, type Texture } from './gpu.js';
 import { Camera } from './camera.js';
 import { linear, packOutput, parseColor, type Background, type Environment, type Light } from './lights.js';
-import { normalize, type Vec3 } from './math.js';
+import { normalize } from './math.js';
 import { ImageTexture, type Mesh } from './scene.js';
+import { traceLights } from './path-trace-lights.js';
 import { traceDataMapPixels, traceMapPixels, traceScene, traceSize } from './path-trace-scene.js';
 import { pathTraceDisplayWGSL, pathTraceWGSL } from './shaders/path-trace.js';
 import { ViewerError } from './viewer-error.js';
@@ -48,6 +49,7 @@ export class PathTraceSession {
     if (snapshot.clipped) throw new ViewerError('PATH_TRACE_UNSUPPORTED', 'Path tracing section clips and caps is not supported');
     const frozenCamera = new Camera(structuredClone(snapshot.camera.state())); frozenCamera.near = snapshot.camera.near;
     snapshot = { ...snapshot, camera: frozenCamera, environment: { ...structuredClone({ ...snapshot.environment, map: null }), map: snapshot.environment.map }, lights: structuredClone(snapshot.lights), background: structuredClone(snapshot.background) };
+    const lightData = traceLights(snapshot.lights);
     const scene = traceScene(snapshot.meshes), env = snapshot.environment, maps = [...scene.maps];
     let envLayer = 0;
     if (env.map) {
@@ -96,12 +98,6 @@ export class PathTraceSession {
       f.set([...linear(parseColor(env.sky, [0.85, 0.9, 1])), env.ambient ?? 0.3], 16); f.set([...linear(parseColor(env.ground, [0.45, 0.42, 0.4])), 0], 20);
       u.set([width, height, 0, bounces], 24); f.set([envLayer, env.mapIntensity ?? 1, snapshot.lights.length, 0], 28); f.set([...normalize(camera.up), 0], 32);
       session.block = f; session.params = storage(f, 'trace camera', true);
-      const lightData = new Float32Array(Math.max(1, snapshot.lights.length) * 16);
-      snapshot.lights.forEach((l, i) => {
-        const o = i * 16, pos: Vec3 = l.kind === 'directional' ? [0, 0, 0] : l.position, dir = l.kind === 'point' ? [0, 0, 0] : normalize(l.direction);
-        lightData.set([...pos, l.kind === 'directional' ? 0 : l.kind === 'point' ? 1 : 2, ...dir, l.kind === 'directional' ? 0 : l.range ?? 0, ...linear(parseColor(l.color)), l.intensity ?? 1], o);
-        if (l.kind === 'spot') { const outer = (l.angle ?? 30) * Math.PI / 180, inner = outer * (1 - Math.min(1, Math.max(0, l.penumbra ?? 0.2))); lightData.set([Math.max(Math.cos(inner), Math.cos(outer) + 1e-4), Math.cos(outer), 0, 0], o + 12); }
-      });
       const lights = storage(lightData, 'trace lights');
       session.atlas = device.createTexture({ label: 'trace image atlas', size: [atlasWidth, atlasHeight, maps.length + 1], format: 'rgba8unorm-srgb', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST });
       const white = new Uint8Array(atlasWidth * atlasHeight * 4).fill(255);
