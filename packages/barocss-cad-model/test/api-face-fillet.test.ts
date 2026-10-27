@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { evaluateCadPart, outputOf, massPropertiesOf } from '@barocss/cad';
 import { part, BarocssError, type BodyQuery } from '../src/api';
 import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
@@ -135,4 +136,24 @@ test('face fillet: a sphere and a cylinder — a ball on its stem, through the S
   assert.equal(ff.available(ctx).ok, true, JSON.stringify(ff.available(ctx)));
   const v = volumeOf(ff.build!(ctx, { r: 1.5 })), want = volumeOf(ball) + added;
   assert.ok(Math.abs(v - want) <= 1e-6 * want, `${v} vs ${want}`);
+});
+
+// A pipe tee at 60° (main Ø20 along X, branch Ø12): round faces at an angle, by the rolling ball. The oracle: the kernel's
+// edge fillet of every edge the two pipes share.
+test('face fillet: round faces at an angle — a 60° pipe tee, through the Studio command', () => {
+  const t = Math.PI / 3, n: [number, number, number] = [Math.cos(t), 0, Math.sin(t)];
+  const tee: StudioDoc = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
+    { kind: 'sketch', profile: 'circle', plane: { origin: [-30, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] }, center: [0, 0], radius: 10, id: 'n0' }, { kind: 'extrude', sketch: 0, height: 60, id: 'n1' },
+    { kind: 'sketch', profile: 'circle', plane: { origin: [0, 0, 0], normal: n, xAxis: [0, 1, 0] }, center: [0, 0], radius: 6, id: 'n2' }, { kind: 'extrude', sketch: 2, height: 25, id: 'n3' },
+    { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' }, id: 'n4' }], outputs: { b4: { node: 4, side: 'solid' } }, nextId: 5 } as StudioDoc;
+  const ff = commands.find(c => c.id === 'face-fillet')!, bodies = bodiesOf(tee), faces = bodies[0].mesh.faces;
+  const main = faces.findIndex(f => f.kind === 'curved' && f.name.startsWith('n1.')), branch = faces.findIndex(f => f.kind === 'curved' && f.name.startsWith('n3.'));
+  const ctx: Ctx = { doc: tee, bodies, selection: { faces: [{ body: 0, face: main }, { body: 0, face: branch }], edges: [], bodies: [] } };
+  assert.equal(ff.available(ctx).ok, true, JSON.stringify(ff.available(ctx)));
+  const v = volumeOf(ff.build!(ctx, { r: 2 }));
+  const cad = { format: 'barocss-cad-part' as const, version: 1 as const, units: 'mm' as const, parameters: {} };
+  const kernelTee = [{ id: 'ms', kind: 'sketch', profile: 'circle', plane: { origin: [-30, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] }, center: [0, 0], radius: 10 }, { id: 'm', kind: 'extrude', sketch: 'ms', height: 60 }, { id: 'bs', kind: 'sketch', profile: 'circle', plane: { origin: [0, 0, 0], normal: n, xAxis: [0, 1, 0] }, center: [0, 0], radius: 6 }, { id: 'b', kind: 'extrude', sketch: 'bs', height: 25 }, { id: 'u', kind: 'union', target: 'm', tool: 'b' }];
+  const junction = outputOf(evaluateCadPart({ ...cad, features: kernelTee } as never), 'u').brep.edges.map(e => e.name).filter(x => x && /m\.side0/.test(x) && /b\.side0/.test(x));
+  const want = massPropertiesOf(outputOf(evaluateCadPart({ ...cad, features: [...kernelTee, { id: 'f', kind: 'fillet', target: 'u', edges: junction, radius: 2 }] } as never), 'f')).volume;
+  close(v, want);
 });

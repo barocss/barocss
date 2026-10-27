@@ -215,3 +215,48 @@ test('face fillet: a bead (a torus) on a plate — its outer and inner feet fill
   const Y = [15 - w, 6], sA = [Y[0], 5], sB = towards2([15, 5], Y, 3), D = [12, 5];
   near(massPropertiesOf(i).volume, before + revolvedVolume([...linePts(D, sA), ...arcPts(sA, sB, Y), ...arcPts(sB, D, [15, 5])]), 'inner foot');
 });
+
+// Tilted cylinders: no section to extrude or revolve, so the rolling ball. A main pipe Ø20 along X and a branch Ø12,
+// square to it and at 60°. Faces that meet (F0) take the edge fillet of every edge they share: the oracle is the
+// `fillet` feature on those same edges.
+const teeOf = (tilt) => {
+  const t = tilt * Math.PI / 180, n = [Math.cos(t), 0, Math.sin(t)];
+  return [{ id: 'ms', kind: 'sketch', profile: 'circle', plane: { origin: [-30, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] }, center: [0, 0], radius: 10 }, { id: 'm', kind: 'extrude', sketch: 'ms', height: 60 },
+    { id: 'bs', kind: 'sketch', profile: 'circle', plane: { origin: [0, 0, 0], normal: n, xAxis: [0, 1, 0] }, center: [0, 0], radius: 6 }, { id: 'b', kind: 'extrude', sketch: 'bs', height: 25 }, { id: 'u', kind: 'union', target: 'm', tool: 'b' }];
+};
+const junctionOf = (tee) => out(tee, 'u').brep.edges.map(e => e.name).filter(x => x && /m\.side0/.test(x) && /b\.side0/.test(x));
+
+test('face fillet: tilted cylinders that meet — a pipe tee at 90° and 60°, by the rolling ball on their shared edges', () => {
+  for (const tilt of [90, 60]) {
+    const tee = teeOf(tilt), o = out([...tee, { id: 'ff', kind: 'face-fillet', target: 'u', faces: ['m.side0', 'b.side0'], radius: 2 }], 'ff'); valid(o);
+    const oracle = volume([...tee, { id: 'ff', kind: 'fillet', target: 'u', edges: junctionOf(tee), radius: 2 }], 'ff');
+    near(massPropertiesOf(o).volume, oracle, `${tilt}°`);
+    assert.ok(massPropertiesOf(o).volume > volume(tee, 'u'), 'an inside corner: filled');
+  }
+  // Too big a round for the branch's 6 mm radius: the rolling ball's own refusal comes through.
+  assert.throws(() => evaluateCadPart(doc([...teeOf(90), { id: 'ff', kind: 'face-fillet', target: 'u', faces: ['m.side0', 'b.side0'], radius: 30 }])), e => e instanceof CadPartError);
+});
+
+// Tilted faces apart (F1): the corner between them restored, then the rolling ball. The oracle: the same round on the
+// bare body (F0, whose own oracle is the edge fillet) — a round across a smaller round makes the same solid.
+const tilted = (n) => [Math.cos(n * Math.PI / 180), 0, Math.sin(n * Math.PI / 180)];
+const pinOn = () => { const n = tilted(60); return [{ id: 'ps', kind: 'sketch', profile: 'rectangle', min: [-25, -25], max: [25, 25] }, { id: 'p', kind: 'extrude', sketch: 'ps', height: 5 }, { id: 'cs', kind: 'sketch', profile: 'circle', plane: { origin: [0, 0, 3], normal: n, xAxis: [0, 1, 0] }, center: [0, 0], radius: 4 }, { id: 'c', kind: 'extrude', sketch: 'cs', height: 20 }, { id: 'u', kind: 'union', target: 'p', tool: 'c' }]; };
+const holeIn = () => { const n = tilted(60); return [{ id: 'ps', kind: 'sketch', profile: 'rectangle', min: [-25, -25], max: [25, 25] }, { id: 'p', kind: 'extrude', sketch: 'ps', height: 10 }, { id: 'cs', kind: 'sketch', profile: 'circle', plane: { origin: [-6 * n[0], 0, -6 * n[2]], normal: n, xAxis: [0, 1, 0] }, center: [0, 0], radius: 4 }, { id: 'c', kind: 'extrude', sketch: 'cs', height: 30 }, { id: 'u', kind: 'difference', target: 'p', tool: 'c' }]; };
+const ff = (id, target, faces, radius) => ({ id, kind: 'face-fillet', target, faces, radius });
+
+test('face fillet: tilted faces apart — a pin at 60° rounded across its smaller round (inside), a tilted hole\'s edge (outside)', () => {
+  const pin = pinOn(), bare = volume([...pin, ff('ff', 'u', ['p.top', 'c.side0'], 2)], 'ff');
+  const across = out([...pin, ff('f1', 'u', ['p.top', 'c.side0'], 1), ff('ff', 'f1', ['p.top', 'c.side0'], 2)], 'ff'); valid(across);
+  near(massPropertiesOf(across).volume, bare, 'pin: r2 across r1 = r2 on the bare pin');
+  near(bare, volume([...pin, { id: 'ff', kind: 'fillet', target: 'u', edges: out(pin, 'u').brep.edges.map(e => e.name).filter(x => x && /p\.top/.test(x) && /c\.side0/.test(x)), radius: 2 }], 'ff'), 'pin: F0 = the edge fillet');
+  const hole = holeIn(), bareH = volume([...hole, ff('ff', 'u', ['p.top', 'c.side0'], 1.5)], 'ff');
+  const acrossH = out([...hole, ff('f1', 'u', ['p.top', 'c.side0'], 0.5), ff('ff', 'f1', ['p.top', 'c.side0'], 1.5)], 'ff'); valid(acrossH);
+  near(massPropertiesOf(acrossH).volume, bareH, 'tilted hole: r1.5 across r0.5');
+  assert.ok(bareH < volume(hole, 'u'), 'an outside corner: cut');
+});
+
+test('face fillet: a 60° pipe tee rounded across its smaller round — two tilted cylinders apart', () => {
+  const tee = teeOf(60), bare = volume([...tee, ff('ff', 'u', ['m.side0', 'b.side0'], 4)], 'ff');
+  const across = out([...tee, ff('f2', 'u', ['m.side0', 'b.side0'], 2), ff('ff', 'f2', ['m.side0', 'b.side0'], 4)], 'ff'); valid(across);
+  near(massPropertiesOf(across).volume, bare, 'r4 across r2 = r4 on the bare tee');
+});

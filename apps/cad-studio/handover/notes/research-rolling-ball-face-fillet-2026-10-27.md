@@ -85,3 +85,13 @@ performance); F3, F4 small.
   many pieces (names grow with each feature).
 - Coincident surfaces in the restore Boolean (W's inner faces lie on A and B exactly) were exact for cylinders;
   cones, spheres and tori need the same probe in F1.
+
+## 7. Results (2026-10-27, F0–F4 built on `local/cad-dev`)
+
+| step | outcome |
+|---|---|
+| F0 | Built. A pair the section paths refuse for its kinds (`[FACE_FILLET_FACE]`) that shares edges goes to `finishEdges` on all of them (not when an edge has no name; parallel faces keep their refusal). 90° and 60° tees, a plate with a 60° pin: equal to the `fillet` feature on the same edges; 0.9–2.4 s. |
+| F1 | Built (`restoreCorner`, `analyticOf`). Surfaces: planes by `faceGeometry`, the rest by `revolutionOf`; shells d = 3r thick (a box beside a plane, a meridian band revolved), clipped to the face's extent plus d. Inside or outside corner from faces bordering A or B whose inner points lie within d of both (outside both: cut W; inside both: join W). Restored faces whose inner points lie on A's or B's surface take its name. Pin r2 across r1, tilted hole r1.5 across r0.5, 60° tee r4 across r2: each equal to the same round on the bare body (5 decimals), valid. 7.2 s, 8.8 s, 24.5 s. |
+| F2 | Not met (target < 3 s). CPU profile of the tee case (25 s): the analytic Boolean's curve-to-domain maps onto general patches 23 %, NURBS basis 18 %, GC 15 %, the curved 2D arrangement ~15 % — the old round's 33 lofted faces, each edge projected onto W's surfaces where they touch along the contacts. No feature-level shortcut found; next options: (a) delete the faces between and extend A and B to their intersection (a local B-rep operation, no Boolean), (b) a Boolean broad phase that keeps faces wholly inside the other operand without splitting them. Planar or chamfer faces between are cheaper (7–9 s). |
+| F3 | Built. Studio's Face fillet no longer refuses round faces at an angle (the kernel takes them or says why); texts updated. Browser: the 60° tee, both pipes picked, r 2: 20460 mm³ (kernel 20459.61), 1.3 s, Undo/Redo, Save writing both names and signatures, no console errors. |
+| F4 | Built. The revolved fillet recognises cones, spheres and tori by `revolutionOf` (axis checked against the corner's, the meridian mapped into its half-plane, every sample on it); its own circle/line fitting is gone. All earlier revolved cases unchanged. |

@@ -75,6 +75,7 @@ import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import { encodeBinaryStl } from '../io/stl.js';
 import { gearOperation } from './part-gears.js';
 import { machineOperation } from './part-machine.js';
+import { revolutionOf } from '../nurbs/surfaces/surface-revolution.js';
 import { threadSolid } from '../machine/thread-solid.js';
 import { finishOperation } from './part-finish.js';
 import { meshOperation } from './part-mesh.js';
@@ -149,7 +150,9 @@ export type CadPartFeature = Base & (
    * beside it. A planar face and a whole cylinder square to it (a boss, a rim, a hole's edge) take the round revolved
    * about the cylinder's axis; the plane must then hold the tangent circle and the cylinder the tangent height. A plane
    * along a cylinder's axis, or two parallel cylinders, take the round extruded along it, at every corner they make;
-   * cones, spheres and tori with planes and cylinders turning about one axis take it revolved. At an inside corner the round is joined, at an outside one cut. Each face must hold its tangent line
+   * cones, spheres and tori with planes and cylinders turning about one axis take it revolved. Other pairs go to the
+   * rolling ball (the edge fillet): faces that meet by every edge they share; faces apart (planes and surfaces of
+   * revolution) with the corner between them restored first — anything within 3r of both on its side replaced. At an inside corner the round is joined, at an outside one cut. Each face must hold its tangent line
    * there (its edges straight); the material joined or cut is checked. The round face is `<id>.round`.
    */
   | { readonly kind: 'face-fillet'; readonly target: string; readonly faces: readonly [string, string]; readonly radius: CadPartDim }
@@ -1647,7 +1650,9 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const target = solids(f.target, 'target'), names = f.faces as unknown, r = dim(f.radius as CadPartDim, 'radius', true);
       if (!Array.isArray(names) || names.length !== 2 || !names.every(x => typeof x === 'string' && x) || names[0] === names[1]) fail('INPUT', 'faces must name two different faces');
       if (target.length !== 1) fail('REFERENCE', 'face fillet one part at a time (name it as id/k)');
-      return () => {
+      // The rounds built from a section (extruded or revolved); a pair those do not take goes to the rolling ball: faces
+      // that meet, by every edge they share (F0); faces apart, with their corner restored first (F1).
+      const built = (): Result => {
         const source = target[0].solid;
         if (source.kind === 'brep' && source.brep.faces.some(isFacetFace)) fail('CAPABILITY', 'a face fillet on mesh faces is not supported yet');
         const brep = brepOf(target[0], at), points = new Map(brep.vertices.map(v => [v.id, v.point])), edges = new Map(brep.edges.map(e => [e.id, e])), coedges = new Map(brep.coedges.map(c => [c.id, c]));
@@ -1712,6 +1717,23 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const want = inside ? area * L - was : -was, close = Math.abs(change - want) <= 1e-7 * Math.max(before, area * L);
         if (pieces !== 1 || !close || !(Math.abs(want) > 1e-9 * area * L)) fail('GEOMETRY', `[FACE_FILLET_NOT_CLEAR] the round between ${A.name} and ${B.name} would ${inside ? 'add' : 'take'} ${+Math.abs(change).toPrecision(9)} mm³ (${+Math.abs(want).toPrecision(9)} expected)${pieces !== 1 ? ` and leave ${pieces} bodies` : ''}`);
         return one(out);
+      };
+      return () => {
+        try { return built(); }
+        catch (cause) {
+          // (Only a pair of kinds the sections do not take: parallel faces never meet, the ball cannot help them.)
+          if (!(cause instanceof CadPartError) || cause.code !== 'CAPABILITY' || !/\[FACE_FILLET_FACE\]/.test(cause.message)) throw cause;
+          let part: Part = target[0], shared = sharedEdges(brepOf(part, at), names as string[]);
+          if (!shared.length) {
+            // F1: apart — restore the corner between them (what lies there removed or filled), then the same.
+            const restored = restoreCorner(brepOf(part, at), part.solid, (names as string[]).map(name => ({ name, faces: brepOf(part, at).faces.filter(x => x.name === name || (x.name ?? '').split('#')[0] === name) })), r, at, fail);
+            if (!restored) throw cause;
+            part = { solid: restored }; shared = sharedEdges(brepOf(part, at), names as string[]);
+            if (!shared.length) fail('GEOMETRY', `[FACE_FILLET_NOT_CLEAR] ${(names as string[]).join(' and ')} do not meet once the corner between them is restored`);
+          }
+          const reports: FilletReport[] = [], solid = finishEdges(part, shared, r, 'fillet', at, fail, reports);
+          return { kind: 'solid', parts: [{ solid, ...(reports.length ? { fillet: reports } : {}) }] };
+        }
       };
     }
     case 'hole': {
@@ -2075,6 +2097,104 @@ function splitFacets(s: Solid, n: Point, d: number, at: string): Solid[] {
   return [{ kind: 'brep', brep: r.below }, { kind: 'brep', brep: r.above }];
 }
 
+/** A face's analytic surface, for the corner restore: its signed distance (outside +) and a shell d thick beside it. */
+interface Analytic { readonly dist: (x: Point) => number; readonly shell: (d: number, side: 1 | -1, margin: number, tag: string) => Solid | null }
+function analyticOf(S: { name: string; faces: readonly BrepFace[] }, brep: Brep, size: number): Analytic | null {
+  if (!S.faces.length || S.faces.some(x => x.surface.kind === 'facets')) return null;
+  const g = faceGeometry(S.faces[0]), pts = boundaryOf(brep, S.faces).flat();
+  if (g.kind === 'plane') {
+    const n = unit(g.n), o = g.o, u = unit(Math.abs(n[0]) < 0.9 ? cross(n, [1, 0, 0]) : cross(n, [0, 1, 0])), v = cross(n, u);
+    const us = pts.map(q => dot(sub(q, o), u)), vs = pts.map(q => dot(sub(q, o), v));
+    return {
+      dist: x => dot(sub(x, o), n),
+      shell: (d, side, margin, tag) => {
+        const [u0, u1, v0, v1] = [Math.min(...us) - margin, Math.max(...us) + margin, Math.min(...vs) - margin, Math.max(...vs) + margin];
+        const box: Solid = { kind: 'upright', solid: prismaticFromProfile({ outer: [{ kind: 'line', start: [u0, v0] }, { kind: 'line', start: [u1, v0] }, { kind: 'line', start: [u1, v1] }, { kind: 'line', start: [u0, v1] }], height: d, from: side > 0 ? 0 : -d, tag }) };
+        return affine(box, [u[0], v[0], n[0], u[1], v[1], n[1], u[2], v[2], n[2]], o);
+      },
+    };
+  }
+  const R = revolutionOf(nurbsOf(S.faces[0]), size);
+  if (!R) return null;
+  const toRH = (x: Point): XY2 => { const w = sub(x, R.c), h = dot(w, R.a); return [len(sub(w, scale(R.a, h))), h]; };
+  // The outward side in the half-plane: from the surface's normal at its middle (the face's sense kept).
+  const F = nurbsOf(S.faces[0]), { u, v } = surfaceDomain(F), um = (u[0] + u[1]) / 2, vm = (v[0] + v[1]) / 2, du = 1e-6 * (u[1] - u[0]), dv = 1e-6 * (v[1] - v[0]);
+  const P = evaluateSurface(F, um, vm) as Point, N3 = scale(unit(cross(sub(evaluateSurface(F, um + du, vm) as Point, P), sub(evaluateSurface(F, um, vm + dv) as Point, P))), S.faces[0].sense === 'forward' ? 1 : -1);
+  const radial = unit(sub(sub(P, R.c), scale(R.a, dot(sub(P, R.c), R.a)))), n2: XY2 = [dot(N3, radial), dot(N3, R.a)], P2 = toRH(P), rh = pts.map(toRH);
+  const Z = cross(R.e1, R.a), m: BrepAffine['matrix'] = [R.e1[0], R.a[0], Z[0], R.e1[1], R.a[1], Z[1], R.e1[2], R.a[2], Z[2]];
+  const revolved = (outer: ProfileSegmentInput[], tag: string): Solid => affine({ kind: 'brep', brep: revolveProfile({ id: tag, profile: outer, axis: { origin: [0, 0], direction: [0, 1] }, angle: 360 }) }, m, R.c);
+  const pr = R.profile;
+  if (pr.kind === 'line') {
+    const dl = sub2(pr.q, pr.p), t = unit2(dl), side0 = Math.sign(cross2(t, n2)) || 1, nrm: XY2 = [-t[1] * side0, t[0] * side0];
+    const ss = rh.map(q => (q[0] - pr.p[0]) * t[0] + (q[1] - pr.p[1]) * t[1]);
+    return {
+      dist: x => { const q = toRH(x); return (q[0] - pr.p[0]) * nrm[0] + (q[1] - pr.p[1]) * nrm[1]; },
+      shell: (d, side, margin, tag) => {
+        const s0 = Math.min(...ss) - margin, s1 = Math.max(...ss) + margin, at2 = (s: number, off: number): XY2 => [pr.p[0] + t[0] * s + nrm[0] * off, pr.p[1] + t[1] * s + nrm[1] * off];
+        const corners = [at2(s0, 0), at2(s1, 0), at2(s1, side * d), at2(s0, side * d)];
+        if (corners.some(q => q[0] <= 1e-9 * size)) return null;
+        return revolved(corners.map(start => ({ kind: 'line', start })), tag);
+      },
+    };
+  }
+  const out: 1 | -1 = n2[0] * (P2[0] - pr.c[0]) + n2[1] * (P2[1] - pr.c[1]) > 0 ? 1 : -1, ang = (q: XY2) => Math.atan2(q[1] - pr.c[1], q[0] - pr.c[0]);
+  const mid = ang(P2), as = rh.map(q => { let a = ang(q) - mid; while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; });
+  return {
+    dist: x => (len2(sub2(toRH(x), pr.c)) - pr.r) * out,
+    shell: (d, side, margin, tag) => {
+      const a0 = mid + Math.max(-Math.PI + 1e-3, Math.min(...as) - margin / pr.r), a1 = mid + Math.min(Math.PI - 1e-3, Math.max(...as) + margin / pr.r), r2 = pr.r + side * out * d;
+      const pt = (a: number, rr: number): XY2 => [pr.c[0] + rr * Math.cos(a), pr.c[1] + rr * Math.sin(a)];
+      const ring = [pt(a0, pr.r), pt(a1, pr.r), pt(a1, r2), pt(a0, r2)];
+      if (!(r2 > 1e-9 * size) || ring.some(q => q[0] <= 1e-9 * size)) return null;
+      return revolved([{ kind: 'arc', start: ring[0], center: pr.c, direction: 'ccw' }, { kind: 'line', start: ring[1] }, { kind: 'arc', start: ring[2], center: pr.c, direction: 'cw' }, { kind: 'line', start: ring[3] }], tag);
+    },
+  };
+}
+
+/**
+ * The corner between two faces that do not meet, restored (F1): whatever lies within d of both their surfaces on the
+ * corner's side — an earlier round, a chamfer, a step — removed (an inside corner: the body less the outer shells'
+ * overlap W) or filled (an outside corner: the body and the inner shells' overlap), so the two meet along their
+ * surfaces' intersection. Which side, from a face between them (its vertices within d of both, outside both or inside
+ * both). W's faces on A's or B's surface take their names. Null when the faces are not planes or surfaces of revolution.
+ */
+function restoreCorner(brep: Brep, source: Solid, sides: readonly { name: string; faces: readonly BrepFace[] }[], r: number, at: string, fail: (code: CadPartErrorCode, detail: string) => never): Solid | null {
+  const size = Math.max(1, r, ...brep.vertices.map(v => len(v.point))), surf = sides.map(S => analyticOf(S, brep, size));
+  if (surf.some(x => !x)) return null;
+  // (Two parallel planes never meet: there is no corner to restore.)
+  const g = sides.map(S => faceGeometry(S.faces[0]));
+  if (g[0].kind === 'plane' && g[1].kind === 'plane' && len(cross(unit(g[0].n), unit(g[1].n))) < 1e-9) return null;
+  const [A, B] = surf as Analytic[], d = 3 * r, margin = d + 1e-3 * size, inSides = new Set(sides.flatMap(S => S.faces.map(x => x.id)));
+  // (Points inside the faces, not their vertices: a round's lie on its contacts, on A or B.)
+  const inner = (x: BrepFace): Point[] => { if (x.surface.kind === 'facets') return []; const F = nurbsOf(x), { u, v } = surfaceDomain(F); return [[0.5, 0.5], [0.3, 0.5], [0.7, 0.5], [0.5, 0.3], [0.5, 0.7]].map(([p, q]) => evaluateSurface(F, u[0] + (u[1] - u[0]) * p, v[0] + (v[1] - v[0]) * q) as Point); };
+  // (Faces between the two border one of them: an edge shared with A or B — not a far face that happens to lie near both.)
+  const loopsOf = new Map(brep.loops.map(l => [l.id, l.face])), sideEdges = new Set(brep.coedges.filter(c => inSides.has(loopsOf.get(c.loop)!)).map(c => c.edge));
+  const bordering = new Set(brep.coedges.filter(c => sideEdges.has(c.edge)).map(c => loopsOf.get(c.loop)!));
+  const between = brep.faces.filter(x => !inSides.has(x.id) && bordering.has(x.id)).flatMap(inner).map(q => [A.dist(q), B.dist(q)]).filter(([a, b]) => Math.abs(a) < d && Math.abs(b) < d);
+  const outside = between.some(([a, b]) => a > 1e-7 * size && b > 1e-7 * size), insideBoth = between.some(([a, b]) => a < -1e-7 * size && b < -1e-7 * size);
+  if (outside === insideBoth) fail('CAPABILITY', `[FACE_FILLET_FACES] nothing lies between ${sides[0].name} and ${sides[1].name} on one side of their corner to replace`);
+  const side: 1 | -1 = outside ? 1 : -1;
+  const shells = surf.map((x, k) => x!.shell(d, side, margin, `${at}_w${k}`));
+  if (shells.some(x => !x)) fail('GEOMETRY', `[FACE_FILLET_RADIUS] a ${r} mm round's corner region would cross the axis`);
+  const W = boolean(shells[0]!, shells[1]!, 'intersection', at);
+  if (empty(W)) return null;
+  const out = boolean(source, W, outside ? 'difference' : 'union', at), pieces = out.kind === 'brep' ? out.brep.bodies.length : 1;
+  if (pieces !== 1) fail('GEOMETRY', `[FACE_FILLET_NOT_CLEAR] restoring the corner between ${sides[0].name} and ${sides[1].name} would leave ${pieces} bodies`);
+  // W's faces left on A's or B's surface (every inner point on it) take that face's name.
+  if (out.kind !== 'brep') return out;
+  const named = out.brep.faces.map(x => { if (inSides.has(x.id)) return x; const q = inner(x); const k = q.length ? [A, B].findIndex(Sx => q.every(p => Math.abs(Sx.dist(p)) <= 1e-7 * size)) : -1; return k < 0 ? x : { ...x, name: sides[k].name }; });
+  return { kind: 'brep', brep: { ...out.brep, faces: named } };
+}
+
+/** The names of the edges two named faces share (each face with its pieces `#k`), in the body's order; none when one has no name (the edge fillet finds edges by name). */
+function sharedEdges(brep: Brep, names: readonly string[]): string[] {
+  const of = (name: string) => new Set(brep.faces.filter(x => x.name === name || (x.name ?? '').split('#')[0] === name).flatMap(x => x.loops));
+  const [A, B] = names.map(of), byEdge = new Map<string, { a: boolean; b: boolean }>();
+  for (const c of brep.coedges) { const u = byEdge.get(c.edge) ?? { a: false, b: false }; if (A.has(c.loop)) u.a = true; if (B.has(c.loop)) u.b = true; byEdge.set(c.edge, u); }
+  const shared = brep.edges.filter(e => byEdge.get(e.id)?.a && byEdge.get(e.id)?.b);
+  return shared.every(e => e.name) ? shared.map(e => e.name!) : [];
+}
+
 /** A face's boundary: the edges of its pieces not shared between them, each sampled as a polyline (lines as their ends). */
 function boundaryOf(brep: Brep, faces: readonly BrepFace[]): Point[][] {
   const loops = new Set(faces.flatMap(x => x.loops)), uses = new Map<string, number>(), edges = new Map(brep.edges.map(e => [e.id, e]));
@@ -2108,9 +2228,10 @@ function revolvedFillet(brep: Brep, source: Solid, A0: { name: string; faces: re
   const cyl = sides.find(S => S.g.kind === 'cylinder');
   if (cyl && cyl.g.kind === 'cylinder') { O = cyl.g.c; a = unit(cyl.g.a); }
   else {
-    const circles = sides.filter(x => x.g.kind === 'other').flatMap(S => S.bound.map(circleOf)).filter((x): x is NonNullable<typeof x> => !!x);
-    if (circles.length < 1) return unsupported(sides.find(x => x.g.kind === 'other')!);
-    O = circles[0].c; a = circles[0].n;
+    // (A cone's, sphere's or torus's own axis, as the kernel recognises it.)
+    const S0 = sides.find(x => x.g.kind === 'other')!, R0 = S0.faces[0].surface.kind === 'facets' ? null : revolutionOf(nurbsOf(S0.faces[0]), Math.max(1, r, ...sides.flatMap(S => S.bound.flat().map(q => len(q)))));
+    if (!R0) return unsupported(S0);
+    O = R0.c; a = unit(R0.a);
   }
   const k0 = [0, 1, 2].reduce((m, k) => Math.abs(a[k]) > Math.abs(a[m]) ? k : m, 0); if (a[k0] < 0) a = scale(a, -1);
   const hOf = (q: Point) => dot(sub(q, O), a), radialOf = (q: Point) => sub(sub(q, O), scale(a, hOf(q))), rhoOf = (q: Point) => len(radialOf(q)), to2 = (q: Point): XY2 => [rhoOf(q), hOf(q)];
@@ -2130,20 +2251,22 @@ function revolvedFillet(brep: Brep, source: Solid, A0: { name: string; faces: re
     }
     // A cone, sphere or torus: its surface on one line or circle in the half-plane, whole round.
     if (S.faces.some(x => x.surface.kind === 'facets') || !wholeRound(S)) return unsupported(S);
+    // Recognised by the kernel (revolutionOf): its axis must be the corner's, its meridian a line (a cone) or a circle
+    // (a sphere, a torus), seen in this half-plane; every sample of every piece on it.
+    const Rv = revolutionOf(nurbsOf(S.faces[0]), size);
+    if (!Rv || len(cross(unit(Rv.a), a)) > 1e-9 || len(cross(sub(Rv.c, O), a)) > fit) return unsupported(S);
+    const flip = dot(Rv.a, a) < 0 ? -1 : 1, off = dot(sub(Rv.c, O), a), toHalf = (q: XY2): XY2 => [q[0], off + flip * q[1]];
     const samples = S.faces.flatMap(x => { const F = nurbsOf(x), { u, v } = surfaceDomain(F); return Array.from({ length: 49 }, (_, i) => to2(evaluateSurface(F, u[0] + (u[1] - u[0]) * (i % 7) / 6, v[0] + (v[1] - v[0]) * Math.floor(i / 7) / 6) as Point)); });
     const F = nurbsOf(S.faces[0]), { u, v } = surfaceDomain(F), um = (u[0] + u[1]) / 2, vm = (v[0] + v[1]) / 2, du = 1e-6 * (u[1] - u[0]), dv = 1e-6 * (v[1] - v[0]);
     const P = evaluateSurface(F, um, vm) as Point, N3 = scale(unit(cross(sub(evaluateSurface(F, um + du, vm) as Point, P), sub(evaluateSurface(F, um, vm + dv) as Point, P))), S.faces[0].sense === 'forward' ? 1 : -1);
-    const P2 = to2(P), n2: XY2 = [dot(N3, unit(radialOf(P))), dot(N3, a)];
-    const [p0, p1] = samples.reduce(([m, M], q) => [q[1] < m[1] ? q : m, q[1] > M[1] ? q : M], [samples[0], samples[0]]), dl = sub2(p1, p0), L = len2(dl);
-    if (L > tol && samples.every(q => Math.abs(cross2(unit2(dl), sub2(q, p0))) <= fit)) {
-      const d = unit2(dl); if (Math.abs(d[0]) <= 1e-9 || Math.abs(d[1]) <= 1e-9) return unsupported(S);
+    const P2 = to2(P), n2: XY2 = [dot(N3, unit(radialOf(P))), dot(N3, a)], pr = Rv.profile;
+    if (pr.kind === 'line') {
+      const p0 = toHalf(pr.p), d = unit2(sub2(toHalf(pr.q), p0));
+      if (Math.abs(d[0]) <= 1e-9 || Math.abs(d[1]) <= 1e-9 || samples.some(q => Math.abs(cross2(d, sub2(q, p0))) > fit)) return unsupported(S);
       const side = Math.sign(cross2(d, n2)) || 1;
       return { S, sec: { kind: 'line', p: p0, n: [-d[1] * side, d[0] * side] } as Section2, flat: false, pts: samples, mid: null as XY2 | null };
     }
-    // A circle through three spread samples, all the others on it.
-    const q1 = samples[0], q2 = samples.reduce((m, q) => len2(sub2(q, q1)) > len2(sub2(m, q1)) ? q : m), q3 = samples.reduce((m, q) => Math.abs(cross2(sub2(q2, q1), sub2(q, q1))) > Math.abs(cross2(sub2(q2, q1), sub2(m, q1))) ? q : m);
-    const D = 2 * cross2(sub2(q2, q1), sub2(q3, q1)); if (!(Math.abs(D) > tol * tol)) return unsupported(S);
-    const b2 = sub2(q2, q1), c2 = sub2(q3, q1), cc: XY2 = [q1[0] + (c2[1] * (b2[0] ** 2 + b2[1] ** 2) - b2[1] * (c2[0] ** 2 + c2[1] ** 2)) / D, q1[1] + (b2[0] * (c2[0] ** 2 + c2[1] ** 2) - c2[0] * (b2[0] ** 2 + b2[1] ** 2)) / D], R = len2(sub2(q1, cc));
+    const cc = toHalf(pr.c), R = pr.r;
     if (samples.some(q => Math.abs(len2(sub2(q, cc)) - R) > fit)) return unsupported(S);
     const out: 1 | -1 = n2[0] * (P2[0] - cc[0]) + n2[1] * (P2[1] - cc[1]) > 0 ? 1 : -1;
     return { S, sec: { kind: 'circle', c: cc, R, out } as Section2, flat: false, pts: samples, mid: P2 };

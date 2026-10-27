@@ -384,7 +384,7 @@ type ModelNodeBase = SketchNode
   | { kind: 'draft'; parent: BodyRef; faces: string[]; angle: number; pull?: Axis | '-x' | '-y' | '-z'; neutral?: Dim }
   /** Full round (a face fillet) of named flat +Z rectangular tops: each a half cylinder across its width, along `along` (default its longer side). */
   | { kind: 'full-round'; parent: BodyRef; faces: string[]; along?: 'x' | 'y' }
-  /** A face fillet of `radius` between two faces that need not touch — two planes, a plane and a cylinder across or along its axis, two parallel cylinders, cones, spheres and tori with planes and cylinders about one axis: the round tangent to both, filled at an inside corner, cut at an outside one. */
+  /** A face fillet of `radius` between two faces that need not touch — two planes, a plane and a cylinder across or along its axis, two parallel cylinders, cones, spheres and tori with planes and cylinders about one axis, faces at any angle by the rolling ball: the round tangent to both, filled at an inside corner, cut at an outside one. */
   | { kind: 'face-fillet'; parent: BodyRef; faces: [string, string]; radius: Dim }
   /** A modelled ISO metric thread on one whole cylindrical face: a shaft's at its diameter, a hole's (its tap drill) at `diameter`, `clearance` (default 0.04 mm) clear of a bolt's; from `end` over `length` (default the face), `relief` short of a shoulder; right hand unless `hand` is left. */
   | { kind: 'face-thread'; parent: BodyRef; face: string; pitch: number; diameter?: number; length?: number; end?: '+' | '-'; relief?: number; clearance?: number; hand?: 'left' }

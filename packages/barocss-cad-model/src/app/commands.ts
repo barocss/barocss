@@ -342,7 +342,7 @@ export function buildDraft(ctx: Ctx, v: Values): StudioDoc {
     ...(v.pull !== undefined ? { pull } : {}), ...(hasNeutral ? { neutral: neutral! } : {}) });
 }
 
-/** The two faces picked for a face fillet (one body): two flat ones, not parallel; a flat one and a round one across or along its axis; or two round ones with parallel axes. By name, or why not. */
+/** The two faces picked for a face fillet (one body): two flat ones not parallel, or any with a curved one (the kernel takes them or says why not). By name, or why not. */
 function faceFilletOf(ctx: Ctx): { body: BodyResult; faces: [string, string] } | string {
   const picks = ctx.selection.faces; if (picks.length !== 2) return 'Pick two faces of one body to round between (Shift-click the second): two flat ones, or a flat one and a round one.';
   if (picks[0].body !== picks[1].body) return 'Pick faces of one body.';
@@ -351,17 +351,9 @@ function faceFilletOf(ctx: Ctx): { body: BodyResult; faces: [string, string] } |
   const [a, b] = f as NonNullable<typeof f[number]>[], crossOf = (u: readonly number[], w: readonly number[]) => Math.hypot(u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]);
   if (a.kind === 'plane' && b.kind === 'plane') {
     if (crossOf(a.normal, b.normal) < 1e-6) return 'The two faces are parallel: their planes never meet (a full round takes a top between two sides).';
-  } else if (a.kind === 'plane' || b.kind === 'plane') {
-    // A flat face and a round one: the round one's axis across the flat one (a boss, a rim, a hole) or along it (a tube on a plate, a flat on a shaft).
-    // (A curved face that is no cylinder — a cone, a sphere, a torus — is left to the kernel, which takes it about the flat face's axis or says why not.)
-    const round = a.kind === 'plane' ? picks[1] : picks[0], flat = a.kind === 'plane' ? a : b, axis = roundFaceAxis(body.mesh, round.face);
-    const along = axis ? Math.abs(axis.dir[0] * flat.normal[0] + axis.dir[1] * flat.normal[1] + axis.dir[2] * flat.normal[2]) : 1;
-    if (axis && along > 1e-3 && crossOf(axis.dir, flat.normal) > 1e-3) return 'The round face\'s axis must run across the flat face or along it.';
-  } else {
-    // Two round faces: their axes parallel (two bosses joined, a boss against a bore).
-    const [p, q] = picks.map(x => roundFaceAxis(body.mesh, x.face));
-    if (p && q && crossOf(p.dir, q.dir) > 1e-3) return 'Two round faces need parallel axes.';
   }
+  // (Curved faces at any angle are the kernel's to take — by a section extruded or revolved, else the rolling ball — or
+  // to refuse with the reason.)
   const name = (x: typeof a) => x.name.split('+')[0].split('#')[0];
   if (name(a) === name(b)) return 'Pick two different faces.';
   return { body, faces: [name(a), name(b)] };
@@ -570,7 +562,7 @@ const allCommands: Command[] = [
     build: (ctx, v) => { const rest = { ...v }; delete rest.pull; return buildDraft(ctx, draftPullOf(v) === 'z' ? rest : { ...rest, pull: draftPullOf(v) }); },
   },
   {
-    id: 'face-fillet', label: 'Face fillet', icon: 'cad-face-fillet', hint: 'Round between two picked faces that need not touch — two flat ones, a flat one and a round one across or along its axis (a boss on a plate, a rim, a hole\'s edge, a tube on a plate), two parallel round ones, or cones, spheres and tori with planes and cylinders about one axis (a tapered boss, a countersink, a ball on a stem, a dome, a bead): a chamfer, step or groove between them is replaced by one round tangent to both (at each corner they make)', group: 'modify', keywords: 'face fillet blend round corner between faces',
+    id: 'face-fillet', label: 'Face fillet', icon: 'cad-face-fillet', hint: 'Round between two picked faces that need not touch — two flat ones, a flat one and a round one across or along its axis (a boss on a plate, a rim, a hole\'s edge, a tube on a plate), two parallel round ones, cones, spheres and tori about one axis (a tapered boss, a countersink, a ball on a stem, a dome, a bead), or round faces at an angle (a pipe tee, a tilted pin or hole, by the rolling ball): a chamfer, step or groove between them is replaced by one round tangent to both (at each corner they make)', group: 'modify', keywords: 'face fillet blend round corner between faces',
     available: ctx => { const d = faceFilletOf(ctx); return typeof d === 'string' ? no(d) : ok; },
     fields: () => [{ key: 'r', label: 'Radius', kind: 'mm', min: 0.1 }],
     defaults: () => ({ r: 2 }),
