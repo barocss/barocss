@@ -8,10 +8,31 @@ export interface RenderTargetOptions { width: number; height: number }
 export interface RenderTarget {
   readonly width: number;
   readonly height: number;
+  /** Sample the last opaque frame as a base color map. The target retains ownership. */
+  asTexture(): RenderTargetTexture;
   /** Read the last frame rendered into this target; it must have been rendered at least once. */
   read(): Promise<{ width: number; height: number; data: Uint8Array }>;
   /** Release this target. Calling this again has no effect. */
   dispose(): void;
+}
+
+/** A live, single-level sRGB view of a render target. Sampling uses linear filtering and clamp-to-edge.
+ * Only Material.map accepts this texture. The target must have a last frame with an opaque background.
+ * Disposing the target invalidates this view. */
+export class RenderTargetTexture {
+  /** @internal */
+  constructor(private readonly target: ViewerRenderTarget) {}
+  get width(): number { return this.target.width; }
+  get height(): number { return this.target.height; }
+  /** @internal */
+  validateFor(owner: object, output?: ViewerRenderTarget): void {
+    this.target.validateSample(owner);
+    if (output === this.target) throw new ViewerError('TEXTURE_INVALID', 'A render target cannot sample itself');
+  }
+  /** @internal */
+  sampleFor(owner: object): { texture: Texture; view: ReturnType<Texture['createView']>; sampler: object } {
+    return this.target.sampleFor(owner);
+  }
 }
 
 /** @internal The owning Viewer validates its own size, device and lifetime through checkOwner. */
@@ -20,6 +41,10 @@ export class ViewerRenderTarget implements RenderTarget {
   private disposed = false;
   private released = false;
   private hasFrame = false;
+  private opaqueFrame = false;
+  private sample: RenderTargetTexture | null = null;
+  private sampleView: ReturnType<Texture['createView']> | null = null;
+  private sampleSampler: object | null = null;
   private invalid: 'DEVICE_LOST' | 'DISPOSED' | null = null;
 
   constructor(
@@ -31,7 +56,8 @@ export class ViewerRenderTarget implements RenderTarget {
     private readonly checkOwner: () => void,
     private readonly onRelease: (target: ViewerRenderTarget) => void,
   ) {
-    this.texture = device.createTexture({ size: [targetWidth, targetHeight], format, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.COPY_SRC, label: 'viewer public render target' });
+    const srgbFormat = this.srgbFormat();
+    this.texture = device.createTexture({ size: [targetWidth, targetHeight], format, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.COPY_SRC | TextureUsage.TEXTURE_BINDING, ...(srgbFormat ? { viewFormats: [srgbFormat] } : {}), label: 'viewer public render target' });
   }
 
   get width(): number { return this.targetWidth; }
@@ -50,8 +76,33 @@ export class ViewerRenderTarget implements RenderTarget {
     return this.texture;
   }
 
+  private srgbFormat(): string | null {
+    return this.format === 'bgra8unorm' || this.format === 'rgba8unorm' ? `${this.format}-srgb` : null;
+  }
+
+  /** @internal Validate on every draw, including after a target is rendered again. */
+  validateSample(owner: object): void {
+    if (owner !== this.owner) throw new ViewerError('TEXTURE_INVALID', 'The render target belongs to another viewer');
+    this.check();
+    if (!this.srgbFormat()) throw new ViewerError('TEXTURE_INVALID', 'The render target format cannot be sampled as sRGB');
+    if (!this.hasFrame || !this.opaqueFrame) throw new ViewerError('TEXTURE_INVALID', 'The render target needs a frame with an opaque background');
+  }
+
+  asTexture(): RenderTargetTexture {
+    this.validateSample(this.owner);
+    return this.sample ??= new RenderTargetTexture(this);
+  }
+
+  /** @internal */
+  sampleFor(owner: object): { texture: Texture; view: ReturnType<Texture['createView']>; sampler: object } {
+    this.validateSample(owner);
+    const view = this.sampleView ??= this.texture.createView({ format: this.srgbFormat()! });
+    const sampler = this.sampleSampler ??= this.device.createSampler({ addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge', magFilter: 'linear', minFilter: 'linear', mipmapFilter: 'nearest' });
+    return { texture: this.texture, view, sampler };
+  }
+
   /** @internal Called only after the viewer submitted the output pass. */
-  rendered(): void { this.hasFrame = true; }
+  rendered(opaque: boolean): void { this.hasFrame = true; this.opaqueFrame = opaque; }
 
   /** @internal Dispose the GPU texture while keeping the reason available to later reads. */
   invalidate(reason: 'DEVICE_LOST' | 'DISPOSED'): void {

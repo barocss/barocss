@@ -452,7 +452,35 @@ a new default-sized target after changing the canvas size, and create all target
 again after restoring the device.
 Reading before the first render, using a disposed target, or rendering with a
 different viewer is refused. Calling `dispose()` more than once is safe.
-Using a target as a material texture is future work.
+
+The 02.2 candidate adds `target.asTexture()` for a triangle surface's
+`Material.map`. Render the source target with an opaque background first. Then
+assign its texture to a mesh in the same viewer:
+
+```js
+viewer.render(target); // The source scene must not sample target itself.
+consumer.material = { map: target.asTexture() };
+viewer.render();
+```
+
+The map is a live view of the target's last frame. A later target render updates
+the image sampled by a later consumer render. The sampled image is the final
+8-bit sRGB output, including the viewer's output effects; it is LDR, not HDR
+scene data. Sampling decodes sRGB, uses linear filtering and clamps at the
+edges. It uses one mip level. The target owns the texture; disposing the target,
+losing its device, or invalidating a default-sized target through a canvas resize
+makes the map unusable. Render a new target to replace it.
+
+The last source frame must have an opaque background each time the map is used.
+If a later source frame has a transparent background, sampling is refused until
+an opaque frame is rendered again. A viewer refuses a render that samples the
+same target it writes. Hide or remove the consuming mesh when rendering that
+target. A target map is not a normal, roughness, metallic, or environment map.
+Path tracing refuses a target map on a surface it would trace. An opaque source
+map does not make a consumer material with opacity below one opaque.
+
+The 02.2 candidate has not yet completed its new build, tests, lint, or browser
+validation. Its source and example do not establish product integration.
 
 ## Generated SDF shader text
 

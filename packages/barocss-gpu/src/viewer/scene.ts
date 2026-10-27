@@ -9,6 +9,7 @@ import { linear, parseColor, type Color } from './lights.js';
 import { identity, multiply, normalMatrixInto, srgbToLinear, type Mat4, type Vec3 } from './math.js';
 import { type SurfaceShader } from './shaders.js';
 import type { Viewer } from './viewer.js';
+import type { RenderTargetTexture } from './render-target.js';
 export { ViewerError, type ViewerErrorCode } from './viewer-error.js';
 
 export interface Material {
@@ -46,8 +47,8 @@ export interface Material {
    * black) and as dark as the opacity — a ground under a model, say.
    */
   shadowOnly?: boolean;
-  /** A colour map (Viewer.createTexture), multiplied into the colour through the geometry's uvs. */
-  map?: ImageTexture | null;
+  /** A colour map from Viewer.createTexture or RenderTarget.asTexture, multiplied into the colour through the geometry's uvs. */
+  map?: ImageTexture | RenderTargetTexture | null;
   /** Tangent-space +Y normals, RGB decoded as 2 × value − 1, through the geometry's uvs. Requires a live srgb:false texture. */
   normalMap?: ImageTexture | null;
   /** Normal-map X/Y scale (default [1, 1]); two finite f32 values. Negative and zero scales are allowed. */
@@ -288,7 +289,7 @@ export class Mesh {
   /** @internal Which outline colour of the frame (1-based; 0 none). */
   outlineSlot = 0;
   /** @internal A shader material's bind group (its map and its own parameters), for the device and inputs it was made for. */
-  materialState: { device: Device; map: ImageTexture | null; params: Buffer; group: BindGroup; data: Float32Array; maps: readonly (ImageTexture | null)[]; pbrParams: Buffer; pbrData: Float32Array } | null = null;
+  materialState: { device: Device; map: ImageTexture | RenderTargetTexture | null; params: Buffer; group: BindGroup; data: Float32Array; maps: readonly (ImageTexture | null)[]; pbrParams: Buffer; pbrData: Float32Array } | null = null;
   /** @internal Its frame cost record while the viewer counts (Viewer.costs, O10), made when first drawn counting. */
   cost: MeshCost | null = null;
   /** Pick id (1-based; 0 is empty space). */
@@ -451,7 +452,7 @@ export function hatchOf(h: CapHatch): CapHatch | null {
 }
 
 /** @internal (R2c: used by the viewer too.) */
-export function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map' | 'shader' | 'lineDash' | 'lineHiddenDash' | 'pointBorder' | 'finish'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null; lineDash: readonly [number, number] | null; lineHiddenDash: readonly [number, number] | null | undefined; pointBorder: { width: number; color: Vec3 } | null; finish: Required<SurfaceFinish> | null } {
+export function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map' | 'shader' | 'lineDash' | 'lineHiddenDash' | 'pointBorder' | 'finish'>> & { color: Vec3; map: ImageTexture | RenderTargetTexture | null; shader: ShaderMaterial | null; lineDash: readonly [number, number] | null; lineHiddenDash: readonly [number, number] | null | undefined; pointBorder: { width: number; color: Vec3 } | null; finish: Required<SurfaceFinish> | null } {
   const hiddenDash = m.lineHiddenDash;
   const normalMap = dataMapOf(m.normalMap), roughnessMap = dataMapOf(m.roughnessMap), metallicMap = dataMapOf(m.metallicMap);
   const scale = m.normalScale === undefined ? [1, 1] : m.normalScale;

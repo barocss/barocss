@@ -5,7 +5,7 @@
 import { ATLAS_CELLS, ATLAS_SIZE, GLYPH_CELL, GlyphAtlas, layoutLabels, type LabelInput } from './glyphs.js';
 import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, growBox, screenRect, transformBox, type Box3 } from './bounds.js';
 import type { PathTraceSession, PathTraceOptions } from './path-trace.js';
-import { ViewerRenderTarget, type RenderTarget, type RenderTargetOptions } from './render-target.js';
+import { RenderTargetTexture, ViewerRenderTarget, type RenderTarget, type RenderTargetOptions } from './render-target.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
 import { clippedRay, clippedRayFull, localPlane, nearestPoint, pointInstances, sceneNear, sceneRay, sceneTree, type SceneTree, prepareGeometry, scalarAt, segmentInstances, contourInstances, lineCount, nearestSegment, type ClippedHit, type GeometryInput } from './geometry.js';
@@ -301,7 +301,7 @@ export class Viewer {
   private nextId = 1;
   private geometries = new Set<Geometry>();
   private scheduled = 0;
-  private waiters: (() => void)[] = [];
+  private waiters: { resolve: () => void; reject: (error: unknown) => void }[] = [];
   private disposed = false;
   /** The device, for compute passes beside the drawing (G25, experimental): null before it is ready or once disposed. */
   get computeDevice(): object | null { return this.disposed ? null : this.device ?? null; }
@@ -819,9 +819,9 @@ export class Viewer {
   }
 
   /** Every surface group has data-map defaults, including the white, custom-shader and scalar-ramp groups. */
-  private materialEntries(texture: Texture, sampler: object, params: Buffer, pbr?: { maps: readonly (ImageTexture | null)[]; params: Buffer }, white = this.white?.texture ?? texture): object[] {
+  private materialEntries(texture: Texture, sampler: object, params: Buffer, pbr?: { maps: readonly (ImageTexture | null)[]; params: Buffer }, white = this.white?.texture ?? texture, baseView?: View): object[] {
     return [
-      { binding: 0, resource: texture.createView() }, { binding: 1, resource: sampler }, { binding: 2, resource: { buffer: params } },
+      { binding: 0, resource: baseView ?? texture.createView() }, { binding: 1, resource: sampler }, { binding: 2, resource: { buffer: params } },
       ...[0, 1, 2].flatMap(i => {
         const gpu = pbr?.maps[i]?.gpu;
         return [{ binding: 3 + i * 2, resource: (gpu?.texture ?? white).createView() }, { binding: 4 + i * 2, resource: gpu?.sampler ?? this.mipSampler }];
@@ -831,7 +831,17 @@ export class Viewer {
   }
 
   /** The material bind group of a colour map: uploaded (with its mips) on first use and after a device loss. */
-  private mapGroup(map: ImageTexture | null): BindGroup {
+  private readonly targetGroups = new WeakMap<RenderTargetTexture, BindGroup>();
+  private mapGroup(map: ImageTexture | RenderTargetTexture | null): BindGroup {
+    if (map instanceof RenderTargetTexture) {
+      const sample = map.sampleFor(this);
+      let group = this.targetGroups.get(map);
+      if (!group) {
+        group = this.device.createBindGroup({ layout: this.materialLayout, entries: this.materialEntries(sample.texture, sample.sampler, this.zeroParams, undefined, this.white.texture, sample.view) });
+        this.targetGroups.set(map, group);
+      }
+      return group;
+    }
     if (!map || map.disposed) return this.white.group;
     if (map.gpu && map.gpu.device === this.device) return map.gpu.group;
     const o = map.options, src = map.source, w = src.width, h = src.height, format = o.srgb ? 'rgba8unorm-srgb' : 'rgba8unorm';
@@ -857,7 +867,7 @@ export class Viewer {
       m.materialState?.params.destroy(); m.materialState?.pbrParams.destroy(); m.materialState = null;
       return this.mapGroup(mat.map ?? null);
     }
-    const map = mat.map && !mat.map.disposed ? mat.map : null, data = m.shaderParams(), st = m.materialState;
+    const map = mat.map instanceof ImageTexture && mat.map.disposed ? null : mat.map ?? null, data = m.shaderParams(), st = m.materialState;
     const scale = mat.normalScale ?? [1, 1], x = Math.fround(scale[0]), y = Math.fround(scale[1]);
     if (st && st.device === this.device && st.map === map && st.maps[0] === normal && st.maps[1] === roughness && st.maps[2] === metallic) {
       if (st.data !== data) { this.device.queue.writeBuffer(st.params, 0, data); st.data = data; }
@@ -877,8 +887,10 @@ export class Viewer {
     new Uint32Array(pbrData.buffer)[2] = (normal ? 1 : 0) | (roughness ? 2 : 0) | (metallic ? 4 : 0);
     const pbrParams = this.device.createBuffer({ size: 16, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer material maps' });
     this.device.queue.writeBuffer(pbrParams, 0, pbrData);
-    const sampler = map?.gpu ? map.gpu.sampler : this.mipSampler;
-    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: this.materialEntries(map?.gpu?.texture ?? this.white.texture, sampler, params, { maps, params: pbrParams }) });
+    const targetSample = map instanceof RenderTargetTexture ? map.sampleFor(this) : null;
+    const imageGpu = map instanceof ImageTexture ? map.gpu : null;
+    const sampler = targetSample?.sampler ?? imageGpu?.sampler ?? this.mipSampler;
+    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: this.materialEntries(targetSample?.texture ?? imageGpu?.texture ?? this.white.texture, sampler, params, { maps, params: pbrParams }, this.white.texture, targetSample?.view) });
     m.materialState = { device: this.device, map, params, group, data, maps, pbrParams, pbrData };
     return group;
   }
@@ -1001,7 +1013,7 @@ export class Viewer {
   get ready(): boolean { return !this.disposed && !this.recovering; }
 
   /** The frame callback, made once (not a closure a request; PERF3 C17). */
-  private readonly scheduledRun = (): void => { this.scheduled = 0; this.render(); };
+  private readonly scheduledRun = (): void => { this.scheduled = 0; this.renderCanvas(true); };
   /** Draw on the next animation frame (several requests make one frame). */
   requestRender(): void {
     if (this.disposed) return;
@@ -1018,9 +1030,10 @@ export class Viewer {
     this.scheduled = 0;
   }
 
-  /** Resolves once the next frame has been drawn and the GPU has finished it. */
+  /** Resolves once the next frame has been drawn and the GPU has finished it.
+   * Rejects if a render target map is no longer valid. */
   frame(): Promise<void> {
-    return new Promise(resolve => { this.waiters.push(resolve); this.requestRender(); });
+    return new Promise((resolve, reject) => { this.waiters.push({ resolve, reject }); this.requestRender(); });
   }
 
   /** Make an independent output. Explicit dimensions are independent of later canvas resizing. */
@@ -1046,6 +1059,16 @@ export class Viewer {
     return target;
   }
 
+  private validateTargetMaps(output?: ViewerRenderTarget): void {
+    if (this.environment.map instanceof RenderTargetTexture) throw new ViewerError('TEXTURE_INVALID', 'A render target cannot be used as an environment map');
+    for (const mesh of this.meshes) {
+      // Lines, points and scalar surfaces do not bind the material map. A capped scalar surface
+      // still binds it in the cap pass, so validate that case too.
+      if (mesh.visible && !mesh.geometry.disposed && mesh.geometry.data.elementCount && mesh.geometry.topology === 'triangles'
+        && (!mesh.mapped || !mesh.material.colorWrite || this.capped(mesh)) && mesh.material.map instanceof RenderTargetTexture) mesh.material.map.validateFor(this, output);
+    }
+  }
+
   /** Draw the canvas now, or draw a separate target without consuming a scheduled canvas frame. */
   render(target?: RenderTarget): void {
     if (target !== undefined) {
@@ -1053,19 +1076,31 @@ export class Viewer {
       if (!(target instanceof ViewerRenderTarget)) throw new ViewerError('TEXTURE_INVALID', 'The render target is not owned by this viewer');
       const output = target.outputFor(this), t0 = performance.now();
       if (!this.renderTargets.has(target)) throw new ViewerError('TEXTURE_INVALID', 'The render target is not owned by this viewer');
+      this.validateTargetMaps(target);
       const camera = this.camera, near = camera.near, far = camera.far;
       try { this.draw(null, output); } finally { camera.near = near; camera.far = far; }
-      target.rendered();
+      target.rendered(this.background !== null);
       this.stats.cpuTime = performance.now() - t0;
       return;
     }
+    this.renderCanvas(false);
+  }
+
+  private renderCanvas(scheduled: boolean): void {
     if (this.disposed || this.recovering) return;
+    try { this.validateTargetMaps(); } catch (error) {
+      this.cancelScheduled();
+      for (const waiter of this.waiters.splice(0)) waiter.reject(error);
+      if (!scheduled) throw error;
+      this.report(error instanceof ViewerError ? `${error.code}: ${error.message}` : String(error));
+      return;
+    }
     this.cancelScheduled();
     const t0 = performance.now();
     this.draw(null);
     this.stats.cpuTime = performance.now() - t0;
     const waiters = this.waiters.splice(0);
-    if (waiters.length) this.device.queue.onSubmittedWorkDone().then(() => waiters.forEach(f => f()), () => waiters.forEach(f => f()));
+    if (waiters.length) this.device.queue.onSubmittedWorkDone().then(() => waiters.forEach(w => w.resolve()), () => waiters.forEach(w => w.resolve()));
   }
 
   private ensureTargets(w: number, h: number): NonNullable<Viewer['targets']> {
@@ -1849,7 +1884,9 @@ export class Viewer {
    * (bloom, DOF, SSAO, contact shadows, outlines) are excluded. Section caps and custom shaders are explicitly refused.
    */
   async createPathTrace(options: PathTraceOptions = {}): Promise<PathTraceSession> {
-    this.alive(); this.prepareCamera();
+    this.alive();
+    for (const mesh of this.meshes) if (mesh.visible && mesh.bounded && !mesh.geometry.disposed && mesh.geometry.topology === 'triangles' && mesh.material.colorWrite !== false && !mesh.material.shadowOnly && mesh.material.map instanceof RenderTargetTexture) throw new ViewerError('PATH_TRACE_UNSUPPORTED', 'Path tracing cannot sample a render target');
+    this.prepareCamera();
     const device = this.device;
     const { PathTraceSession: Session } = await import('./path-trace.js');
     this.alive();
@@ -1863,6 +1900,7 @@ export class Viewer {
   /** Draw a frame and read it back: RGBA bytes, rows top to bottom. */
   async capture(): Promise<{ width: number; height: number; data: Uint8Array }> {
     this.alive();
+    this.validateTargetMaps();
     const w = this.canvas.width, h = this.canvas.height, row = Math.ceil((w * 4) / 256) * 256;
     const buf = this.device.createBuffer({ size: row * h, usage: BufferUsage.MAP_READ | BufferUsage.COPY_DST, label: 'viewer capture' });
     try {
@@ -2235,7 +2273,7 @@ export class Viewer {
     this.textures.clear();
     this.context?.unconfigure();
     this.device?.destroy();
-    for (const f of this.waiters.splice(0)) f();
+    for (const waiter of this.waiters.splice(0)) waiter.resolve();
   }
 }
 
