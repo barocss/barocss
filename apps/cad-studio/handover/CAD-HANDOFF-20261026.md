@@ -58,3 +58,11 @@ Kernel·GPU·CAD·CAD Model 기반을 먼저 구현하고 같은 기능을 Studi
 이번 저장 관측은 사용93%/남음7%, secondary unavailable이다. 재개할 때 실제 도구로 다시 확인한다. 어느 유효 Codex 창이든 남음5% 이하면 전체6담당과 자체 agent의 새 작업/자동next를 멈추고 안전 checkpoint·source/runtime/archive 반환을 받습니다. 검증된 exact commit만 필요한 최소 통합을 마칩니다.
 
 미완료/NOTRUN·담당·재개 조건·로컬/원격 SHA를 적고 정상 commit합니다. root만 사용자 승인된 origin feature branch를 normal push하고 원격 SHA를 확인한 뒤 cad 자동화를 PAUSED로 바꿉니다. force/main/develop rewrite/PR/release/reset/credits 사용은 금지합니다. 기존 중단·권한·브랜치 보호는 유지합니다. P2 제조인수는 사용자 지시로 활성 추적·정기 보고에서 제외하며 과거 HOLD·미수락 기록은 보존합니다.
+
+## 최신 도면 소스 반환 — 공통 및 제품 미반영
+
+- Drawings 정상 child `b0caf6bc75c97f09e6f317fdf4904a7dd7e7dcba`는 부모 `47c2abe01800fae1ec44d60c85062674e8a20f14` 위에 `freeState`와 `tangentPlane`의 명시적 false를 읽기와 재저장에서 보존한다. Open은 원본 파일을 변경하지 않는다. 현재 소스와 정적 점검만 반환했으며 시험·브라우저·제품은 미실행이다.
+- Model 정상 child `95104906946c07c4c65ec2b00d00bd1498187721`의 부모는 공통 `433a035ae03a61e55b0e03b6a9b9897083774800`이다. 일반 schema3/route4와 snapshot identity를 유지하면서 정규화 전 도면 원본을 검사한다. Drawings의 검사 함수가 선행 필요하며 실제 시험·제품은 미실행이다.
+- 공통 도면 작업은 기존 schema5 중간 이력을 가져오지 않고 `4e1dacc5c1b13a38b0fbaa4ef515db8086ead613`부터 `b0caf6bc75c97f09e6f317fdf4904a7dd7e7dcba`까지의 필요한 변경만 선택한다. 기존 공통 `drawing/issues.ts`의 충돌 보호를 보존하고 datum 검사 두 곳만 반영해야 한다. 다른 11경로의 공통 선행 파일 일치는 확인했다. 작업 ref는 로컬에만 있을 수 있으므로 원격 clone에 존재한다고 가정하지 않는다.
+- Outer는 공통 소스와 실행 자원 반환 뒤 복합 프레임 편집·Save/New/Open·잘못된 입력의 원본 보존을 실제 화면에서 확인한다. 아직 실행하지 않았다. 검증된 정확 소스만 제품에 통합한다.
+- 이번 갱신 때 사용량은 94% 사용, 유효 창 잔여 6%였다. secondary는 확인할 수 없다. 실제 중단 여부는 다음 도구 확인값으로 판단한다.
