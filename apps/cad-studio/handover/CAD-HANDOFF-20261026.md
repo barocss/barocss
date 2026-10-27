@@ -47,8 +47,14 @@ Kernel·GPU·CAD·CAD Model 기반을 먼저 구현하고 같은 기능을 Studi
 - 저장 보호: 사용자 요청에 따라 미출시 구버전 호환과 schema5 강제는 제외한다. 현재 일반 schema3/route4의 최신 reader/writer·raw 검사·snapshot identity를 하나의 기능으로 완성한다. Kernel=Model/버전, Outer=저장·복구, Drawings=raw/화면이다. 실사용 파일은 보존한다. 복구 자동 이동·삭제와 Discard 삭제는 자동 승인 검토가 데이터 손실 위험으로 거부해 우회하지 않았다. 담당이 삭제 없는 기각과 일반 단일 사용자 저장 유지 방식을 구현 중이며 합동 실행·제품은 미완료다.
 - GPU03.1은5d8b77의 새emit294/CPU18/lint3·합성WebGPU 공개사례를 마치고 전반환했다. 원TS2352/partialemit과 실제수리plan420691의 provenance를 보존한다. 물리적외부asset/texture/skin/morph 수락이나 root제품병합이 아니다. GPU02.2는2a35e9의 소유 검사와 합성 공개 사례를 마쳤다. 후속 d4e2는 첫 emit 오류2건 보존 후 한정 PNG/JPEG 합성 예제와 필수 검사를 마쳤다.
 
+## 최근 작업과 남은 범위
+
+- GPU04.1 `133d29e9bbf640b035930b4210f9d6943917409e`는 GLB 32비트 삼각 인덱스의 정상 소스다. 빌드·시험·공개 브라우저와 제품 통합은 NOT_RUN이다. GPU 소유 브랜치에 있으며 다른 통합 담당에게 인계한다.
+- Viewer 4.3의 강제 오류 검사에서 복구 거부 이유가 콘솔에만 표시되고 초기화 실패 뒤 생성 장치의 종료가 관측되지 않았다. GPU가 장치 정리와 실패 전달, Viewer가 사용자 표시를 맡았다. 자연적인 하드웨어 고장으로 일반화하지 않는다. 원 실패와 관련 실제 화면은 소유 작업의 `outputs/cad-viewer-device-20261027/`에 있다.
+- 도면은 사용자 지시에 따라 미출시 구버전 호환을 위한 schema5 강제를 제거한다. 최신 schema3/route4 reader·writer의 필드 보존을 구현 중이다. Drawings 정상 child `47c2abe01800fae1ec44d60c85062674e8a20f14`는 미실행 소스다. Kernel 연결·Outer 저장·실제 파일·공통/제품 통합은 남았다.
+
 ## 중단·push 조건
 
-이번 저장 관측은 사용92%/남음8%, secondary unavailable이다. 재개할 때 실제 도구로 다시 확인한다. 어느 유효 Codex 창이든 남음5% 이하면 전체6담당과 자체 agent의 새 작업/자동next를 멈추고 안전 checkpoint·source/runtime/archive 반환을 받습니다. 검증된 exact commit만 필요한 최소 통합을 마칩니다.
+이번 저장 관측은 사용93%/남음7%, secondary unavailable이다. 재개할 때 실제 도구로 다시 확인한다. 어느 유효 Codex 창이든 남음5% 이하면 전체6담당과 자체 agent의 새 작업/자동next를 멈추고 안전 checkpoint·source/runtime/archive 반환을 받습니다. 검증된 exact commit만 필요한 최소 통합을 마칩니다.
 
 미완료/NOTRUN·담당·재개 조건·로컬/원격 SHA를 적고 정상 commit합니다. root만 사용자 승인된 origin feature branch를 normal push하고 원격 SHA를 확인한 뒤 cad 자동화를 PAUSED로 바꿉니다. force/main/develop rewrite/PR/release/reset/credits 사용은 금지합니다. 기존 중단·권한·브랜치 보호는 유지합니다. P2 제조인수는 사용자 지시로 활성 추적·정기 보고에서 제외하며 과거 HOLD·미수락 기록은 보존합니다.

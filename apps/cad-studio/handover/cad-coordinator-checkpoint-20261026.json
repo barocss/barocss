@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "kind": "PORTABLE_SNAPSHOT_OF_EXISTING_AUTHORITY_NOT_SECOND_TASK_QUEUE",
-  "savedUTC": "2026-10-27T05:05:25.393719+00:00",
+  "savedUTC": "2026-10-27T05:08:53.808411+00:00",
   "paused": false,
   "pushed": false,
   "validatedProductCode": "4bff492c6742cd5c4931ff83f0b35a606ed12230",
@@ -73,7 +73,7 @@
     }
   },
   "currentLimits": {
-    "quotaRemainingPercent": 8,
+    "quotaRemainingPercent": 7,
     "secondary": "UNAVAILABLE",
     "quotaPauseThresholdPercent": 5,
     "P2": "EXCLUDED_FROM_ACTIVE_TRACKING_HISTORICAL_HOLD_PRESERVED",
@@ -85,7 +85,9 @@
     "newDrawing": "LATEST_READER_WRITER_RAW_FRAME_PRESERVATION_REQUIRED; schema5 not mandated",
     "newDocs": "NORMAL_CURRENT_CONTRACTS_COMMON_NEW_MODEL_PRIVATE_FIRST_FAILURES_PENDING",
     "GPU": "02.2 and 03.2 d4e2 owner-qualified synthetic public cases; GPU output remains other-integrator handoff, not product acceptance",
-    "newSchema5": "PRE_RELEASE_LATEST_ONLY; current3/general and4/route retained; exact latest reader/writer correction in progress; old schema5 candidate history preserved"
+    "newSchema5": "PRE_RELEASE_LATEST_ONLY; current3/general and4/route retained; exact latest reader/writer correction in progress; old schema5 candidate history preserved",
+    "GPU04": "133d29e9 source only; emit/CPU/WebGPU/lint/public NOT_RUN; other integrator",
+    "viewerDeviceFailure": "Forced recovery rejection only in console and context-failure device cleanup unconfirmed; GPU/Viewer fixes assigned; physical failure NOT_RUN"
   },
   "pendingLocalRefs": {
     "ViewerDonorHead": "df7d7fdda284a07eb9b25675150d3a9a0da54c74",
@@ -118,12 +120,14 @@
     "CG2RefusalRepair": "13e9c835aa10b5d111a835046daf1e05b64200a7",
     "ModelShortNames": "52ce8ba47693422bbae6cd45df2cff19a907e8f7",
     "K07Source": "01bd6b35d5a05af0dca6b57f9dc40b5c6de6eb5e",
-    "GpuGlbTexture": "d4e2c3ec7bfc89e3ab32907299a040738dc156cd"
+    "GpuGlbTexture": "d4e2c3ec7bfc89e3ab32907299a040738dc156cd",
+    "GpuUint32": "133d29e9bbf640b035930b4210f9d6943917409e",
+    "DrawingLatest34": "47c2abe01800fae1ec44d60c85062674e8a20f14"
   },
   "activeRuntime": {
-    "owner": "Viewer",
-    "status": "DEVICE_LOSS_BROWSER_START_SENT_ACTUAL_START_NOT_YET_CONFIRMED",
-    "reason": "GPU 03.2 own browser/server/slot returned"
+    "owner": "GPU + Viewer",
+    "status": "DEVICE_FAILURE_SOURCE_FIXES_ASSIGNED; previous Viewer browser exact return pending",
+    "source": "owner branches; not product adopted"
   },
   "firstFailureToPreserve": {
     "Docs125": "Evidence guard mistook input imports for retained runtime external imports. API cases/JPEG/site NOTRUN. Wrapper-only normal correction is active; no retry on same source.",
