@@ -54,8 +54,9 @@ function countsOf(file) {
     }
     if (hot && (ts.isArrayLiteralExpression(n) && n.elements.some(e => ts.isSpreadElement(e)) || ts.isObjectLiteralExpression(n) && n.properties.some(p => ts.isSpreadAssignment(p)))) c['loop-spread']++;
     if (hot && ts.isArrayLiteralExpression(n) && n.elements.length >= 3 && isConstLiteral(n) && !(n.parent && ts.isArrayLiteralExpression(n.parent))) c['loop-literal']++;
-    const next = hot || (inFunction && isLoop(n));
-    ts.forEachChild(n, k => visit(k, next, inFunction));
+    // (A for-of's or for-in's iterable and a for's initializer are evaluated once, before the loop: not inside it.)
+    const next = hot || (inFunction && isLoop(n)), once = k => (ts.isForOfStatement(n) || ts.isForInStatement(n)) && k === n.expression || ts.isForStatement(n) && k === n.initializer;
+    ts.forEachChild(n, k => visit(k, once(k) ? hot : next, inFunction));
   };
   visit(sf, false, false);
   return c;

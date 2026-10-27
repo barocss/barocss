@@ -412,9 +412,13 @@ type Piece = { seg: CurveSegment2; polygon: number };
 interface Edge { u: number; v: number; seg: CurveSegment2; count: Map<number, number> }
 interface Half { from: number; to: number; edge: number; twin: number; next: number; face: number }
 
-/** Arcs over half a turn are split in two, so no piece starts and ends at one vertex. */
+/**
+ * Arcs over half a turn are split in two, so no piece starts and ends at one vertex. (Over by more than rounding, as
+ * `simplify` keeps them: a half circle read back from a stitched edge came out one ulp past π after six Booleans and was
+ * split at its top, an extra vertex on an edge no cut touched; rounded plate + bosses, D282.)
+ */
 const halves = (s: CurveSegment2): CurveSegment2[] => {
-  if (s.kind === 'arc' && Math.abs(s.sweep) > Math.PI) return [{ ...s, sweep: s.sweep / 2 }, { ...s, t0: s.t0 + s.sweep / 2, sweep: s.sweep / 2 }];
+  if (s.kind === 'arc' && Math.abs(s.sweep) > Math.PI + 1e-12) return [{ ...s, sweep: s.sweep / 2 }, { ...s, t0: s.t0 + s.sweep / 2, sweep: s.sweep / 2 }];
   // A closed parametric curve becomes two pieces.
   if (s.kind === 'curve') { const a = segStart(s), b = segEnd(s); if (Math.hypot(a[0] - b[0], a[1] - b[1]) <= 1e-9 * (1 + Math.abs(a[0]) + Math.abs(a[1]))) { const m = (s.t0 + s.t1) / 2; return [{ ...s, t1: m }, { ...s, t0: m }]; } }
   return [s];

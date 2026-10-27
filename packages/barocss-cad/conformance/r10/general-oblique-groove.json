@@ -89,7 +89,7 @@
           "kind": "fillet",
           "target": "g",
           "edges": [
-            "c0.side0|pe.top#1#1"
+            "c0.side0|pe.top#2#1"
           ],
           "radius": 1
         }

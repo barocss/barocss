@@ -2135,6 +2135,11 @@ function onCylinderSeam(f: { surf: Surf }, x: P3, tol: number): boolean {
   const d = sub(x, s.c), th = Math.atan2(dot(d, s.e2), dot(d, s.e1));
   return (Math.PI - Math.abs(wrap(th - s.ref))) * s.r <= 100 * tol;
 }
+/** Points in order of x, then y, then z, a coordinate within eps of the other's counting as equal. */
+function keyOrder(a: P3, b: P3, eps: number): number {
+  for (let i = 0; i < 3; i++) if (Math.abs(a[i] - b[i]) > eps) return a[i] - b[i];
+  return 0;
+}
 function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0, names?: readonly (string | undefined)[], edgeFitTolerance?: number): Brep {
   // Vertices merge a little more loosely than curves are fitted: an edge meeting a surface it touches
   // (a double root, as where a fillet meets a sloping side) lands within √ε of its true point.
@@ -2281,7 +2286,10 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
   pieces.forEach((p, i) => { const n = p.face.name ?? `${id}.face`, list = byName.get(n); if (list) list.push(i); else byName.set(n, [i]); });
   for (const [n, list] of byName) {
     if (list.length === 1) { faceNames[list[0]] = n; continue; }
-    [...list].sort((x, y) => { const a = pieces[x].key, b = pieces[y].key; return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; }).forEach((i, k) => { faceNames[i] = `${n}#${k + 1}`; });
+    // (By their points inside, a coordinate within 100 tolerances counting as equal: a cylinder's two halves have one x
+    // to within rounding, and read exactly their order flipped from one Boolean to the next, the earlier boss's
+    // `side0#1` becoming `#2`; D282.)
+    [...list].sort((x, y) => keyOrder(pieces[x].key, pieces[y].key, 100 * tol)).forEach((i, k) => { faceNames[i] = `${n}#${k + 1}`; });
   }
   if (names) names.forEach((n, i) => { if (n !== undefined) faceNames[i] = n; });
   const edgeList = edges.map((e, i) => ({ id: e.id, curve: nurbs(e.k, e.id, P[e.v[0]], P[e.v[1]], fitTol, edgeFitTolerance !== undefined), vertices: [vertexAt(e.v[0], i), vertexAt(e.v[1], i)] as [string, string],
