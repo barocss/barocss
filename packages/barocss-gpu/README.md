@@ -432,6 +432,25 @@ viewer.dispose();
 background unless `background: false`, fits the camera on first show unless
 `fit: false`, and accepts an outer `transform` for a scene inside another world.
 
+### Render to a target
+
+An output target belongs to the viewer that created it. It has the canvas size
+and output format at creation. Render into it before reading its top-to-bottom
+RGBA bytes. A target render leaves a scheduled canvas frame in place.
+Use an active viewer with a scene:
+
+```js
+const target = viewer.createRenderTarget();
+viewer.render(target);
+const image = await target.read(); // { width, height, data: Uint8Array }
+target.dispose();
+```
+
+Create a new target after changing the canvas size or restoring the device.
+Reading before the first render, using a disposed target, or rendering with a
+different viewer is refused. Calling `dispose()` more than once is safe.
+Independent target sizes and using a target as a material texture are future work.
+
 ## Generated SDF shader text
 
 `compileScene` and `compileGpu` still emit the original fixed GLSL ES 3.00 SDF

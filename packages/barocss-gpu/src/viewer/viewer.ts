@@ -5,6 +5,7 @@
 import { ATLAS_CELLS, ATLAS_SIZE, GLYPH_CELL, GlyphAtlas, layoutLabels, type LabelInput } from './glyphs.js';
 import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, growBox, screenRect, transformBox, type Box3 } from './bounds.js';
 import type { PathTraceSession, PathTraceOptions } from './path-trace.js';
+import { ViewerRenderTarget, type RenderTarget } from './render-target.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
 import { clippedRay, clippedRayFull, localPlane, nearestPoint, pointInstances, sceneNear, sceneRay, sceneTree, type SceneTree, prepareGeometry, scalarAt, segmentInstances, contourInstances, lineCount, nearestSegment, type ClippedHit, type GeometryInput } from './geometry.js';
@@ -1022,8 +1023,37 @@ export class Viewer {
     return new Promise(resolve => { this.waiters.push(resolve); this.requestRender(); });
   }
 
-  /** Draw now (a frame already asked for is drawn by this one). */
-  render(): void {
+  /** Make an independent output at the current canvas size. It must be disposed by its owner. */
+  createRenderTarget(): RenderTarget {
+    this.alive();
+    if (this.recovering) throw new ViewerError('DEVICE_LOST', 'The viewer is replacing its device');
+    const width = this.canvas.width, height = this.canvas.height, device = this.device;
+    const maxDimension = device.limits.maxTextureDimension2D, maxBuffer = device.limits.maxBufferSize;
+    const readBytes = Math.ceil(width * 4 / 256) * 256 * height;
+    if (!(width >= 1 && height >= 1) || width > maxDimension || height > maxDimension || readBytes > maxBuffer) {
+      throw new ViewerError('SIZE_INVALID', 'The canvas size exceeds the render target or readback device limits');
+    }
+    const target = new ViewerRenderTarget(this, device, this.format, width, height, () => {
+      this.alive();
+      if (this.recovering || this.device !== device) throw new ViewerError('DEVICE_LOST', 'The render target device was lost');
+      if (this.canvas.width !== width || this.canvas.height !== height) throw new ViewerError('SIZE_INVALID', 'The render target size differs from the canvas');
+    }, released => this.renderTargets.delete(released));
+    this.renderTargets.add(target);
+    return target;
+  }
+
+  /** Draw the canvas now, or draw a separate target without consuming a scheduled canvas frame. */
+  render(target?: RenderTarget): void {
+    if (target !== undefined) {
+      this.alive();
+      if (!(target instanceof ViewerRenderTarget)) throw new ViewerError('TEXTURE_INVALID', 'The render target is not owned by this viewer');
+      const output = target.outputFor(this), t0 = performance.now();
+      if (!this.renderTargets.has(target)) throw new ViewerError('TEXTURE_INVALID', 'The render target is not owned by this viewer');
+      this.draw(null, output);
+      target.rendered();
+      this.stats.cpuTime = performance.now() - t0;
+      return;
+    }
     if (this.disposed || this.recovering) return;
     this.cancelScheduled();
     const t0 = performance.now();
@@ -1589,14 +1619,14 @@ export class Viewer {
     const reach = Math.ceil(this.outlineWidth * this.pixelRatio + 0.5) + 2;
     return [r[0] - reach, r[1] - reach, r[2] + reach, r[3] + reach];
   }
-  private draw(capture: Buffer | null): void {
+  private draw(capture: Buffer | null, output?: Texture): void {
     this.frameBox = null; this.frameBox = { box: this.sceneBounds() };
     // (O10: the records kept, zeroed as a counted frame begins.)
     this.counting = this.costs;
     if (this.counting) for (const c of this.costRecords.values()) zeroCost(c);
-    try { this.drawFrame(capture); } finally { this.frameBox = null; this.counting = false; }
+    try { this.drawFrame(capture, output); } finally { this.frameBox = null; this.counting = false; }
   }
-  private drawFrame(capture: Buffer | null): void {
+  private drawFrame(capture: Buffer | null, output?: Texture): void {
     validateSpotShadowLights(this.lights);
     validatePointShadowLights(this.lights);
     const vp = this.prepareCamera();
@@ -1627,7 +1657,7 @@ export class Viewer {
     this.writeUniforms(vp, shadows);
     packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame(), outlineArea, outputBlock, this.contactFrame(), this.focusEnabled() ? { inverseProjection: invert(this.camera.projectionMatrix(this.aspect)), pixelRatio: this.pixelRatio } : null);
     this.device.queue.writeBuffer(this.outputBuffer, 0, outputBytes);
-    const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.views.scene;
+    const targets = this.ensureTargets(), out = output ?? this.context.getCurrentTexture(), sceneView = targets.views.scene;
     const enc = this.device.createCommandEncoder();
     // (The shadow map is drawn again only when the light's view or a caster changed.)
     const casters = this.casterList; casters.length = 0;
@@ -1806,6 +1836,7 @@ export class Viewer {
   // ---- Reading back ------------------------------------------------------------------------------
 
   private readonly pathTraces = new Set<PathTraceSession>();
+  private readonly renderTargets = new Set<ViewerRenderTarget>();
   /** Create an offscreen still. After its lazy module loads, scene/camera inputs are frozen before GPU preparation.
    * Raster controls and rendering remain independent.
    * Visible bounded triangle surfaces and G15a materials are included. Lines, labels, overlays, raster shadow catchers and raster post effects
@@ -2142,6 +2173,8 @@ export class Viewer {
 
   private lose(message: string): void {
     this.stats.deviceLosses++;
+    for (const target of this.renderTargets) target.invalidate('DEVICE_LOST');
+    this.renderTargets.clear();
     for (const session of this.pathTraces) session.dispose();
     this.pathTraces.clear();
     for (const g of this.geometries) g.gpu = null;
@@ -2174,6 +2207,8 @@ export class Viewer {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    for (const target of this.renderTargets) target.invalidate('DISPOSED');
+    this.renderTargets.clear();
     for (const session of this.pathTraces) session.dispose();
     this.pathTraces.clear();
     this.controls?.dispose();
