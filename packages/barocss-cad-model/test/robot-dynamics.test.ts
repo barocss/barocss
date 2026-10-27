@@ -1,3 +1,5 @@
+import { gravityOf, robotViewOf } from '../src/robot/verbs';
+import { BarocssError } from '../src/engine/refusal';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -5,12 +7,14 @@ import { join, resolve } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import type { Mate } from '../src/assembly/mates';
-import { solveDoc } from '../src/chat/assembly';
+import { solveDoc } from '../src/assembly/edit';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { treeOfDoc } from '../src/chat/robot';
 import { applyTo, forwardKinematics } from '../src/robot/fk';
 import { gravityTorques, linkMasses, STANDARD_GRAVITY, type LinkMass } from '../src/robot/dynamics';
 import type { Joint, JointTree } from '../src/robot/joints';
+import { assembly, part } from '../src/api';
+import { MATERIALS } from '../src/library/materials';
 
 // RD1 (O20): static gravity torques — the planar 2R and 3R closed forms to 1e-9 (arms of real blocks on Y-axis joints,
 // their mass and centre from the block's analytic volume), G = ∂V/∂q against finite differences of the potential
@@ -103,12 +107,12 @@ test('a follower\'s share is its leader\'s by virtual work: the generalized valu
 
 test('the gravity_torques tool on the planar 3R; the conformance case (rm/gravity-3r: the closed form\'s values)', async () => {
   const doc = await planarArm(3), { tree, bodies } = await robotOf(doc), q = { 'base~l1': 0.4, 'l1~l2': -0.9, 'l2~l3': 1.3 };
-  const out = await dispatchTool({ doc, bodies }, 'gravity_torques', { values: q }, evaluate), j = JSON.parse(out.content);
+  const out = await dispatchTool({ doc, bodies }, 'gravity_torques', { values: Object.fromEntries(Object.entries(q).map(([k, v]) => [k, v * 180 / Math.PI])) }, evaluate), j = JSON.parse(out.content);
   assert.ok(!out.isError && !out.changed, out.content);
   const th = [0.4, -0.5, 0.8], xJ = [0, 40 * Math.sin(th[0]), 40 * Math.sin(th[0]) + 40 * Math.sin(th[1])], xc = th.map((t, i) => xJ[i] + 20 * Math.sin(t));
   const closed = [0, 1, 2].map(i => -g0 * xc.slice(i).reduce((s, x) => s + BLOCK_KG * (x - xJ[i]) / 1000, 0));
-  tree.joints.forEach((jj, i) => assert.ok(Math.abs(j.torques[jj.key] - closed[i]) < 1e-9 * Math.abs(closed[i]) + 1e-12, `${jj.key}: ${j.torques[jj.key]} vs ${closed[i]}`));
-  assert.equal(j.gravity_m_s2, STANDARD_GRAVITY);
+  tree.joints.forEach((jj, i) => assert.ok(Math.abs(j.torques[jj.key] / 1000 - closed[i]) < 1e-9 * Math.abs(closed[i]) + 1e-12, `${jj.key}: ${j.torques[jj.key]} vs ${closed[i]}`));
+  assert.equal(j.gravity, STANDARD_GRAVITY * 1000);
   assert.ok((await dispatchTool({ doc, bodies }, 'gravity_torques', { values: { nope: 1 } }, evaluate)).isError);
   const dir = join(CASES, 'gravity-3r');
   if (process.env.UPDATE_RM_FIXTURES) {
@@ -130,4 +134,134 @@ test('gravityTorques with a link the base does not reach yet (a part added, not 
   assert.equal('j2' in r.torques, false); assert.equal('j2' in r.generalized, false);
   assert.deepEqual([r.notReady?.code, r.notReady?.links, r.notReady?.joints], ['ROBOT_NOT_READY', ['L2'], ['j2']]);
   assert.equal(gravityTorques(tree as never, new Map([['L1', masses.get('L1')!]]), {}).notReady?.links.length, 0, 'a massless unreached link: only its joint said');
+});
+
+test('direct canonical gravity reply uses degree inputs and the planar 3R closed form in Nmm', async () => {
+  const doc = await planarArm(3), { tree, bodies } = await robotOf(doc), view = await robotViewOf(doc, bodies, evaluate);
+  const values = { 'base~l1': 0.4 * 180 / Math.PI, 'l1~l2': -0.9 * 180 / Math.PI, 'l2~l3': 1.3 * 180 / Math.PI };
+  const args = { values }, before = structuredClone(args), docBefore = JSON.stringify(doc);
+  const th = [0.4, -0.5, 0.8], xJ = [0, 40 * Math.sin(th[0]), 40 * Math.sin(th[0]) + 40 * Math.sin(th[1])], xc = th.map((t, i) => xJ[i] + 20 * Math.sin(t));
+  for (const [given, acceleration] of [[args, 9.80665], [{ ...args, g: [0, 0, -9810] }, 9.81]] as const) {
+    const reply = gravityOf(view, given, tree);
+    const closed = [0, 1, 2].map(i => -acceleration * xc.slice(i).reduce((s, x) => s + BLOCK_KG * (x - xJ[i]) / 1000, 0));
+    tree.joints.forEach((joint, i) => {
+      assert.ok(Math.abs(reply.torques[joint.key] / 1000 - closed[i]) < 1e-9 * Math.abs(closed[i]) + 1e-12);
+      assert.equal(reply.units[joint.key], 'N·mm');
+      assert.equal(reply.generalized[joint.key], reply.torques[joint.key]);
+    });
+    assert.equal(reply.gravity, acceleration === 9.81 ? 9810 : 9806.65);
+    assert.equal('gravity_m_s2' in reply, false);
+  }
+  const tool = await dispatchTool({ doc, bodies }, 'gravity_torques', args, evaluate); assert.ok(!tool.isError, tool.content);
+  assert.deepEqual(gravityOf(view, args, tree), JSON.parse(tool.content));
+  assert.deepEqual(args, before); assert.equal(JSON.stringify(doc), docBefore);
+});
+
+test('direct canonical gravity reply throws BAD_VALUES with the existing full values, joint and gravity messages', async () => {
+  const doc = await planarArm(3), { tree, bodies } = await robotOf(doc), view = await robotViewOf(doc, bodies, evaluate);
+  const cases: [Record<string, unknown>, string][] = [
+    [{ values: [] }, '"values" is {joint key: number}.'],
+    [{ values: { 'base~l1': NaN } }, '"values" is {joint key: number}.'],
+    [{ values: { absent: 1 } }, 'No joint absent; joints: base~l1, l1~l2, l2~l3.'],
+    ...[null, [0, 0], [0, 0, Infinity], [0, 0, 'bad'], { x: 0, y: 0, z: -9810 }].map(g => [{ g }, '"g" is [x, y, z] in mm/s².'] satisfies [Record<string, unknown>, string]),
+  ];
+  const docBefore = JSON.stringify(doc);
+  for (const [args, message] of cases) {
+    const before = structuredClone(args);
+    assert.throws(() => gravityOf(view, args, tree), e => e instanceof BarocssError && e.code === 'BAD_VALUES' && e.message === `[BAD_VALUES] ${message}`);
+    assert.deepEqual(args, before);
+  }
+  assert.equal(JSON.stringify(doc), docBefore);
+});
+
+
+test('public two-link gravity: explicit aluminium mass binds the CAD static-moment oracle through the existing degree/MMGS boundary', () => {
+  const near = (actual: number, expected: number) => assert.ok(Math.abs(actual - expected) <= 1e-9, `${actual} != ${expected}`);
+  const vector = (actual: readonly number[], expected: readonly number[]) => {
+    assert.equal(actual.length, 3); expected.forEach((value, i) => near(actual[i], value));
+  };
+  const aluminium = MATERIALS.find(m => m.id === 'al6061');
+  assert.ok(aluminium); assert.equal(aluminium.density, 2.7);
+  const link1 = part('link1').box({ w: 20, d: 4, h: 4, x: 0, y: -2, z: -2 }).material('al6061');
+  const link2 = part('link2').box({ w: 10, d: 4, h: 4, x: 0, y: -2, z: -2 }).material('al6061');
+  const firstBefore = structuredClone(link1.doc), secondBefore = structuredClone(link2.doc);
+  near(link1.mass().mass, 0.864); near(link2.mass().mass, 0.432);
+  // The root has no geometry. Two origin-plane pairs leave existing independent +Y turning joints.
+  const doc: StudioDoc = { ...emptyDoc(), instances: [
+    { id: 'link1', name: 'link1', doc: link1.doc, position: [0, 0, 0], rotation: [0, 0, 0] },
+    { id: 'link2', name: 'link2', doc: link2.doc, position: [20, 0, 0], rotation: [0, 0, 0] },
+  ], mates: [
+    { id: 'axis1', kind: 'concentric', a: { part: 'base', face: 'origin:xz', at: {} }, b: { part: 'link1', face: 'origin:xz', at: {} } },
+    { id: 'seat1', kind: 'coincident', a: { part: 'base', face: 'origin:xz' }, b: { part: 'link1', face: 'origin:xz' } },
+    { id: 'axis2', kind: 'concentric', a: { part: 'link1', face: 'origin:xz', at: { offset: [20, 0, 0] } }, b: { part: 'link2', face: 'origin:xz', at: {} } },
+    { id: 'seat2', kind: 'coincident', a: { part: 'link1', face: 'origin:xz' }, b: { part: 'link2', face: 'origin:xz' } },
+  ], robot: { version: 1, base: 'base' } };
+  const before = structuredClone(doc);
+  // assembly takes a name and a StudioPart carrying the document, not a raw document overload.
+  const robot = assembly('serial-links', part('empty-base', doc)).robot(), tree = robot.joints();
+  assert.deepEqual(tree.problems, []); assert.deepEqual(tree.loops, []); assert.deepEqual(tree.couplings, []);
+  assert.equal(tree.base, 'base'); assert.equal(tree.joints.length, 2);
+  const first = tree.joints.find(j => j.child === 'link1'), second = tree.joints.find(j => j.child === 'link2');
+  assert.ok(first && second);
+  assert.equal(first.parent, 'base'); assert.equal(second.parent, 'link1');
+  for (const joint of [first, second]) {
+    assert.ok(joint.type === 'continuous' || joint.type === 'revolute');
+    assert.equal(joint.mimic, undefined); vector(joint.axis, [0, 1, 0]);
+  }
+  vector(first.origin, [0, 0, 0]); vector(second.origin, [20, 0, 0]);
+  const inertias = robot.inertia().links;
+  for (const [id, expectedMass] of [['link1', 0.864], ['link2', 0.432]] as const) {
+    const link = inertias.find(l => l.link === id); assert.ok(link); near(link.mass, expectedMass);
+    assert.ok(link.bodies.length > 0);
+    assert.ok(link.bodies.every(b => !b.assumed && b.material === aluminium.label));
+    assert.ok(!link.issues.some(issue => issue.code === 'MATERIAL_ASSUMED'));
+  }
+  // Public joint values are degrees; public gravity is mm/s^2; public holding torque is N mm.
+  const gravity: [number, number, number] = [0, 0, -9806.65], gravityBefore = [...gravity];
+  // Authored 3D COM/pivot radicals are independent of the Model FK and mass replies.
+  const sqrt3 = Math.sqrt(3), shoulder = [0, 0, 0] as const;
+  const fixedCases = [
+    { q1: 0, q2: 0, elbow: [20, 0, 0], c1: [10, 0, 0], c2: [25, 0, 0], cadHolding: [-0.1765197, -0.0196133] },
+    { q1: 60, q2: -30, elbow: [10, 0, -10 * sqrt3], c1: [5, 0, -5 * sqrt3], c2: [10 + 5 * sqrt3 / 2, 0, -10 * sqrt3 - 5 / 2], cadHolding: [-9.80665 * (8 + sqrt3) / 1000, -9.80665 * sqrt3 / 1000] },
+    { q1: -30, q2: 90, elbow: [10 * sqrt3, 0, 10], c1: [5 * sqrt3, 0, 5], c2: [10 * sqrt3 + 5 / 2, 0, 10 - 5 * sqrt3 / 2], cadHolding: [-9.80665 * (8 * sqrt3 + 1) / 1000, -9.80665 / 1000] },
+  ] as const;
+  const force1 = [0, 0, -0.000864 * 9.80665], force2 = [0, 0, -0.000432 * 9.80665];
+  // Test-only -(r cross F). World r is in mm, force is in N, so holding is N mm.
+  const holdingY = (com: readonly number[], pivot: readonly number[], force: readonly number[]) => {
+    const r = com.map((x, i) => x - pivot[i]);
+    return -(r[2] * force[0] - r[0] * force[2]);
+  };
+  for (const fixed of fixedCases) {
+    const { q1, q2 } = fixed;
+    const values: Record<string, number> = { [first.key]: q1, [second.key]: q2 }, valuesBefore: Record<string, number> = { ...values };
+    const a = q1 * Math.PI / 180, b = (q1 + q2) * Math.PI / 180;
+    const pose = robot.pose(values);
+    assert.deepEqual(pose.out_of_limits, []);
+    near(pose.values[first.key], q1); near(pose.values[second.key], q2);
+    const p1 = pose.links.find(link => link.link === 'link1'), p2 = pose.links.find(link => link.link === 'link2');
+    assert.ok(p1 && p2);
+    vector(p1.position, [0, 0, 0]); vector(p1.rotation, [0, q1, 0]);
+    // The existing public pose rounds coordinates to six decimals; round only the analytic pose expectation.
+    vector(p2.position, [20 * Math.cos(a), 0, -20 * Math.sin(a)].map(x => Math.round(x * 1e6) / 1e6));
+    vector(p2.rotation, [0, q1 + q2, 0]);
+    const result = robot.gravity(values, gravity);
+    assert.equal(result.notReady, undefined); near(result.gravity, 9806.65);
+    assert.deepEqual(Object.keys(result.torques).sort(), [first.key, second.key].sort());
+    assert.deepEqual(Object.keys(result.generalized).sort(), [first.key, second.key].sort());
+    // Fixed independent kg masses at rho=2.7. These are holding torques: the negative of r cross F.
+    const holding = [-9.80665 * (0.000864 * 10 * Math.cos(a) + 0.000432 * (20 * Math.cos(a) + 5 * Math.cos(b))),
+      -9.80665 * 0.000432 * 5 * Math.cos(b)];
+    const crossHolding = [holdingY(fixed.c1, shoulder, force1) + holdingY(fixed.c2, shoulder, force2),
+      holdingY(fixed.c2, fixed.elbow, force2)];
+    // Test-only density comparison with the fixed CAD rho=2.5 radical table; no production converter.
+    const cadHolding = fixed.cadHolding;
+    [first.key, second.key].forEach((key, i) => {
+      assert.equal(result.units[key], 'N·mm'); near(result.torques[key], holding[i]);
+      near(result.torques[key], crossHolding[i]); near(crossHolding[i], holding[i]);
+      near(result.torques[key], cadHolding[i] * 27 / 25); near(result.generalized[key], holding[i]);
+    });
+    assert.deepEqual(values, valuesBefore); assert.deepEqual(gravity, gravityBefore);
+  }
+  assert.deepEqual(doc, before); assert.deepEqual(robot.doc, before);
+  assert.deepEqual(link1.doc, firstBefore); assert.deepEqual(link2.doc, secondBefore);
 });

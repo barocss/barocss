@@ -1,0 +1,848 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+        0,
+        0
+      ],
+      "max": [
+        100,
+        80
+      ],
+      "id": "n0"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 10,
+      "id": "n1"
+    }
+  ],
+  "outputs": {
+    "b1": {
+      "node": 1,
+      "side": "solid"
+    }
+  },
+  "nextId": 2,
+  "instances": [
+    {
+      "id": "inst1",
+      "name": "Socket head cap screw ISO 4762 M6×1 × 20",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              0,
+              0
+            ],
+            "radius": 5,
+            "holes": [
+              [
+                {
+                  "kind": "line",
+                  "start": [
+                    2.5,
+                    1.443376
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    0,
+                    2.886751
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    -2.5,
+                    1.443376
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    -2.5,
+                    -1.443376
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    0,
+                    -2.886751
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    2.5,
+                    -1.443376
+                  ]
+                }
+              ]
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 6,
+            "id": "n1"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              0,
+              0
+            ],
+            "radius": 3.5,
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 2.4000000000000004,
+            "id": "n3"
+          },
+          {
+            "kind": "union",
+            "left": {
+              "node": 1,
+              "side": "solid"
+            },
+            "right": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              0,
+              0
+            ],
+            "radius": 3,
+            "id": "n5"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 5,
+            "height": 20,
+            "from": -20,
+            "id": "n6"
+          },
+          {
+            "kind": "union",
+            "left": {
+              "node": 4,
+              "side": "solid"
+            },
+            "right": {
+              "node": 6,
+              "side": "solid"
+            },
+            "id": "n7",
+            "made": {
+              "command": "fastener",
+              "values": {
+                "kind": "socket-screw",
+                "size": "M6",
+                "length": "20",
+                "joint": "free",
+                "grip": 10,
+                "holeD": 0,
+                "holeDepth": 0,
+                "through": "0",
+                "insert": "part",
+                "model": "cosmetic",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "up": "+z"
+              },
+              "nodes": 8
+            }
+          }
+        ],
+        "outputs": {
+          "b7": {
+            "node": 7,
+            "side": "solid"
+          }
+        },
+        "nextId": 8,
+        "bodies": {
+          "b1": {
+            "material": "steel"
+          }
+        }
+      },
+      "position": [
+        10,
+        10,
+        10
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "inst2",
+      "name": "Socket head cap screw ISO 4762 M6×1 × 20",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              0,
+              0
+            ],
+            "radius": 5,
+            "holes": [
+              [
+                {
+                  "kind": "line",
+                  "start": [
+                    2.5,
+                    1.443376
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    0,
+                    2.886751
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    -2.5,
+                    1.443376
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    -2.5,
+                    -1.443376
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    0,
+                    -2.886751
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    2.5,
+                    -1.443376
+                  ]
+                }
+              ]
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 6,
+            "id": "n1"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              0,
+              0
+            ],
+            "radius": 3.5,
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 2.4000000000000004,
+            "id": "n3"
+          },
+          {
+            "kind": "union",
+            "left": {
+              "node": 1,
+              "side": "solid"
+            },
+            "right": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              0,
+              0
+            ],
+            "radius": 3,
+            "id": "n5"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 5,
+            "height": 20,
+            "from": -20,
+            "id": "n6"
+          },
+          {
+            "kind": "union",
+            "left": {
+              "node": 4,
+              "side": "solid"
+            },
+            "right": {
+              "node": 6,
+              "side": "solid"
+            },
+            "id": "n7",
+            "made": {
+              "command": "fastener",
+              "values": {
+                "kind": "socket-screw",
+                "size": "M6",
+                "length": "20",
+                "joint": "free",
+                "grip": 10,
+                "holeD": 0,
+                "holeDepth": 0,
+                "through": "0",
+                "insert": "part",
+                "model": "cosmetic",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "up": "+z"
+              },
+              "nodes": 8
+            }
+          }
+        ],
+        "outputs": {
+          "b7": {
+            "node": 7,
+            "side": "solid"
+          }
+        },
+        "nextId": 8,
+        "bodies": {
+          "b1": {
+            "material": "steel"
+          }
+        }
+      },
+      "position": [
+        90,
+        10,
+        10
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "inst3",
+      "name": "Socket head cap screw ISO 4762 M6×1 × 20",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              0,
+              0
+            ],
+            "radius": 5,
+            "holes": [
+              [
+                {
+                  "kind": "line",
+                  "start": [
+                    2.5,
+                    1.443376
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    0,
+                    2.886751
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    -2.5,
+                    1.443376
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    -2.5,
+                    -1.443376
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    0,
+                    -2.886751
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    2.5,
+                    -1.443376
+                  ]
+                }
+              ]
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 6,
+            "id": "n1"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              0,
+              0
+            ],
+            "radius": 3.5,
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 2.4000000000000004,
+            "id": "n3"
+          },
+          {
+            "kind": "union",
+            "left": {
+              "node": 1,
+              "side": "solid"
+            },
+            "right": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              0,
+              0
+            ],
+            "radius": 3,
+            "id": "n5"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 5,
+            "height": 20,
+            "from": -20,
+            "id": "n6"
+          },
+          {
+            "kind": "union",
+            "left": {
+              "node": 4,
+              "side": "solid"
+            },
+            "right": {
+              "node": 6,
+              "side": "solid"
+            },
+            "id": "n7",
+            "made": {
+              "command": "fastener",
+              "values": {
+                "kind": "socket-screw",
+                "size": "M6",
+                "length": "20",
+                "joint": "free",
+                "grip": 10,
+                "holeD": 0,
+                "holeDepth": 0,
+                "through": "0",
+                "insert": "part",
+                "model": "cosmetic",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "up": "+z"
+              },
+              "nodes": 8
+            }
+          }
+        ],
+        "outputs": {
+          "b7": {
+            "node": 7,
+            "side": "solid"
+          }
+        },
+        "nextId": 8,
+        "bodies": {
+          "b1": {
+            "material": "steel"
+          }
+        }
+      },
+      "position": [
+        10,
+        70,
+        10
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "inst4",
+      "name": "Socket head cap screw ISO 4762 M6×1 × 20",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              0,
+              0
+            ],
+            "radius": 5,
+            "holes": [
+              [
+                {
+                  "kind": "line",
+                  "start": [
+                    2.5,
+                    1.443376
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    0,
+                    2.886751
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    -2.5,
+                    1.443376
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    -2.5,
+                    -1.443376
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    0,
+                    -2.886751
+                  ]
+                },
+                {
+                  "kind": "line",
+                  "start": [
+                    2.5,
+                    -1.443376
+                  ]
+                }
+              ]
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 6,
+            "id": "n1"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              0,
+              0
+            ],
+            "radius": 3.5,
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 2.4000000000000004,
+            "id": "n3"
+          },
+          {
+            "kind": "union",
+            "left": {
+              "node": 1,
+              "side": "solid"
+            },
+            "right": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              0,
+              0
+            ],
+            "radius": 3,
+            "id": "n5"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 5,
+            "height": 20,
+            "from": -20,
+            "id": "n6"
+          },
+          {
+            "kind": "union",
+            "left": {
+              "node": 4,
+              "side": "solid"
+            },
+            "right": {
+              "node": 6,
+              "side": "solid"
+            },
+            "id": "n7",
+            "made": {
+              "command": "fastener",
+              "values": {
+                "kind": "socket-screw",
+                "size": "M6",
+                "length": "20",
+                "joint": "free",
+                "grip": 10,
+                "holeD": 0,
+                "holeDepth": 0,
+                "through": "0",
+                "insert": "part",
+                "model": "cosmetic",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "up": "+z"
+              },
+              "nodes": 8
+            }
+          }
+        ],
+        "outputs": {
+          "b7": {
+            "node": 7,
+            "side": "solid"
+          }
+        },
+        "nextId": 8,
+        "bodies": {
+          "b1": {
+            "material": "steel"
+          }
+        }
+      },
+      "position": [
+        90,
+        70,
+        10
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "inst5",
+      "name": "Hex head bolt ISO 4017 M8×1.25 × 30",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "polygon",
+            "points": [
+              [
+                6.5,
+                3.752777
+              ],
+              [
+                0,
+                7.505553
+              ],
+              [
+                -6.5,
+                3.752777
+              ],
+              [
+                -6.5,
+                -3.752777
+              ],
+              [
+                0,
+                -7.505553
+              ],
+              [
+                6.5,
+                -3.752777
+              ]
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 5.3,
+            "id": "n1"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              0,
+              0
+            ],
+            "radius": 4,
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 30,
+            "from": -30,
+            "id": "n3"
+          },
+          {
+            "kind": "union",
+            "left": {
+              "node": 1,
+              "side": "solid"
+            },
+            "right": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4",
+            "made": {
+              "command": "fastener",
+              "values": {
+                "kind": "hex-bolt",
+                "size": "M8",
+                "length": "30",
+                "joint": "free",
+                "grip": 10,
+                "holeD": 0,
+                "holeDepth": 0,
+                "through": "0",
+                "insert": "part",
+                "model": "cosmetic",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "up": "+z"
+              },
+              "nodes": 5
+            }
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "nextId": 5,
+        "bodies": {
+          "b1": {
+            "material": "steel"
+          }
+        }
+      },
+      "position": [
+        50,
+        40,
+        10
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

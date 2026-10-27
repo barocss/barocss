@@ -11,11 +11,11 @@
 //   error on the issue list. Only if none: the largest clean scale below them. Else the attempt with the fewest errors.
 import { elementNotes, withElementNotes } from './elementCallouts';
 import { autoDimensions, holesOf, levels, type AutoDimensionReport } from './auto';
-import { roundIn } from './dimensions';
-import { drawingIssues, fixAll, issueContext, type DrawingIssue, type SheetInputs } from './issues';
-import { sectionExtents } from './sheet';
+import { roundIn, type Resolved } from './dimensions';
+import { drawingIssues, fixAll, issueContext, quadsOverlap, segmentHitsQuad, SegmentGrid, textBox, type DrawingIssue, type IssueContext, type Quad, type SheetInputs } from './issues';
+import { basicBox, dimensionMarks, frameMarks, placementOf, sectionExtents, type Mark } from './sheet';
 import { ORIENTATIONS, SCALES, layoutSheet, viewsFor, type Orientation } from './views';
-import { ROOM_SIDES, VIEW_IDS, type DrawingSettings, type DrawingViews, type ViewId, type ViewRoom } from './types';
+import { ROOM_SIDES, VIEW_IDS, type DimView, type DrawingSettings, type DrawingViews, type ViewId, type ViewRoom, type XY } from './types';
 
 export const AUTO_LAYOUT_VERSION = 'cad-studio-auto-layout-v1';
 
@@ -83,7 +83,7 @@ export function information(pr: DrawingViews['front']): number {
  * placed by hand on it (a side set, or annotations to keep, stay as they are). Null: keep the front.
  */
 export function frontByInformation(views: DrawingViews, settings: DrawingSettings): { orientation: Orientation; why: string } | null {
-  if (settings.orientation || settings.dimensions.some(d => !d.auto) || (settings.notes ?? []).some(n => n.leader) || (settings.datums ?? []).length) return null;
+  if (settings.orientation || settings.dimensions.some(d => !d.auto) || (settings.notes ?? []).some(n => n.leader) || (settings.datums ?? []).length || settings.frames?.some(f => f.dim === undefined)) return null;
   const front = information(views.front), right = information(views.right);
   if (!(right > 1.2 * front && right > front + 2)) return null;
   const t = views.right.toward, orientation = ORIENTATIONS.find(o => { const v = viewsFor(o).front.toward; return Math.abs(v[0] - t[0]) < 1e-9 && Math.abs(v[1] - t[1]) < 1e-9; })!;
@@ -100,6 +100,98 @@ function grown(room: ViewRoom, needs: AutoDimensionReport['needs']): ViewRoom {
   return out;
 }
 const sameRoom = (a: ViewRoom, b: ViewRoom) => JSON.stringify(a) === JSON.stringify(b);
+
+const LABEL_STEP_MM = 2;
+const labelIssue = (x: DrawingIssue) => x.code === 'TEXT_OVERLAP' || x.code === 'TEXT_OVER_LINES' || x.code === 'OFF_SHEET';
+const rectangle = ([x0, y0, x1, y1]: readonly number[]): Quad => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+
+/** Segments of the display list, including arrow boundaries; arcs use the issue checker's angular subdivision. */
+function labelSegments(marks: readonly Mark[]): [XY, XY][] {
+  const out: [XY, XY][] = [];
+  for (const m of marks) {
+    if (m.kind === 'line') out.push([m.a, m.b]);
+    else if (m.kind === 'polyline' || m.kind === 'fill') {
+      for (let k = 1; k < m.points.length; k++) out.push([m.points[k - 1], m.points[k]]);
+      if (m.kind === 'fill' && m.points.length) out.push([m.points[m.points.length - 1], m.points[0]]);
+    } else if (m.kind === 'arc') {
+      const n = Math.max(2, Math.ceil(Math.abs(m.t1 - m.t0) / (Math.PI / 16)));
+      const at = (t: number): XY => [m.center[0] + m.u[0] * Math.cos(t) + m.v[0] * Math.sin(t), m.center[1] + m.u[1] * Math.cos(t) + m.v[1] * Math.sin(t)];
+      for (let k = 1; k <= n; k++) out.push([at(m.t0 + (m.t1 - m.t0) * (k - 1) / n), at(m.t0 + (m.t1 - m.t0) * k / n)]);
+    }
+  }
+  return out;
+}
+
+/** Fixed obstacles for one dimension, in sheet mm. Its own control frame moves with it. */
+function labelClearance(ctx: IssueContext, id: string, view: DimView): (marks: Mark[]) => boolean {
+  const controls = new Set(ctx.settings.frames?.filter(f => f.dim === id).map(f => f.id));
+  const held = ctx.sheet.groups.filter(g => g.role !== 'frame' && g.role !== 'title' && !(g.role === 'dimension' && g.id === id) && !(g.role === 'control' && controls.has(g.id!)));
+  const boxes = held.flatMap(g => g.marks.flatMap(m => m.kind === 'text' ? [textBox(m)] : []));
+  boxes.push(...(ctx.sheet.tables ?? []).map(t => rectangle(t.box)));
+  const grid = new SegmentGrid(labelSegments(held.flatMap(g => g.marks)));
+  const host = ctx.sheet.sections?.find(s => s.form === 'revolved' && `section:${s.id}` === view)?.on;
+  const areas = VIEW_IDS.filter(v => v !== view && v !== host && !ctx.layout.views[v].hidden).map(v => ctx.layout.views[v].box)
+    .concat((ctx.layout.sections ?? []).filter(v => `section:${v.section}` !== view).map(v => v.box),
+      (ctx.sheet.sections ?? []).filter(v => v.form === 'removed' && `section:${v.id}` !== view).map(v => v.placement.box),
+      (ctx.sheet.details ?? []).filter(v => `detail:${v.id}` !== view).map(v => v.placement.box)).map(rectangle);
+  const title = rectangle(ctx.layout.title), [x0, y0, x1, y1] = ctx.layout.frame;
+  return marks => {
+    const text = marks.flatMap(m => m.kind === 'text' ? [textBox(m)] : []), lines = labelSegments(marks);
+    const points = [...text.flat(), ...lines.flat()];
+    // Extension lines can cross their own part and other dimension lines. They must not cross another text or view.
+    return points.every(([x, y]) => x >= x0 && x <= x1 && y >= y0 && y <= y1)
+      && text.every(b => !quadsOverlap(b, title, 0) && !boxes.some(q => quadsOverlap(b, q)) && !grid.hits(b) && !areas.some(q => quadsOverlap(b, q, 0)))
+      && lines.every(([a, b]) => !segmentHitsQuad(a, b, title, 0) && !boxes.some(q => segmentHitsQuad(a, b, q)) && !areas.some(q => segmentHitsQuad(a, b, q, 0)));
+  };
+}
+
+/** Additional positions between the existing 8 mm rows. Neither the measurement direction nor its references change. */
+function* labelPlaces(r: Extract<Resolved, { ok: true }>, scale: number, reach: number): Generator<XY> {
+  const p = r.dim.place;
+  if (r.kind === 'linear') {
+    const d: XY = r.dim.orient === 'horizontal' ? [1, 0] : r.dim.orient === 'vertical' ? [0, 1] : [r.b[0] - r.a[0], r.b[1] - r.a[1]];
+    const len = Math.hypot(...d), n: XY = [-d[1] / len, d[0] / len];
+    for (let mm = LABEL_STEP_MM; mm <= reach; mm += LABEL_STEP_MM) for (const sign of [1, -1]) yield [p[0] + sign * n[0] * mm / scale, p[1] + sign * n[1] * mm / scale];
+  } else if (r.kind === 'radius' || r.kind === 'diameter') {
+    const angle = Math.atan2(p[1] - r.center[1], p[0] - r.center[0]), start = Math.hypot(p[0] - r.center[0], p[1] - r.center[1]) * scale;
+    for (let mm = 0; mm <= reach; mm += LABEL_STEP_MM) for (let k = 0; k < 16; k++) {
+      if (!mm && !k) continue;
+      const a = angle + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 8, radius = (start + mm) / scale;
+      yield [r.center[0] + Math.cos(a) * radius, r.center[1] + Math.sin(a) * radius];
+    }
+  }
+}
+
+/** Move only automatic labels left in collision. A failed search leaves the dimension and its issue intact. */
+export function placeDimensionLabels(initial: IssueContext): { settings: DrawingSettings; left: DrawingIssue[] } {
+  let ctx = initial, left = drawingIssues(ctx);
+  const ids = [...new Set(left.filter(labelIssue).flatMap(x => x.dims ?? []))];
+  for (const id of ids) {
+    const r = ctx.sheet.dimensions.find((d): d is Extract<Resolved, { ok: true }> => d.ok && d.dim.id === id);
+    if (!r?.dim.auto || !ctx.rebuild || !left.some(x => labelIssue(x) && x.dims?.includes(id))) continue;
+    const v = placementOf(ctx.layout, ctx.sheet, r.dim.view);
+    // A broken view has a nonlinear model-to-paper map. Keep its existing placement path.
+    if (!v || v.breaks?.length || !(v.scale > 0)) continue;
+    const clear = labelClearance(ctx, id, r.dim.view), frame = ctx.settings.frames?.find(f => f.dim === id), rebuild = ctx.rebuild;
+    const signature = (x: DrawingIssue) => JSON.stringify([x.code, x.severity, x.dims, x.notes, x.tables, x.welds, x.view]);
+    const before = left.map(signature);
+    for (const place of labelPlaces(r, v.scale, Math.hypot(ctx.layout.frame[2] - ctx.layout.frame[0], ctx.layout.frame[3] - ctx.layout.frame[1]))) {
+      const moved = { ...r, dim: { ...r.dim, place } } as Extract<Resolved, { ok: true }>;
+      const marks = dimensionMarks(v, moved);
+      if (r.dim.basic) marks.push(...basicBox(marks));
+      const main = marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
+      if (frame && main) marks.push(...frameMarks(main, frame));
+      if (!clear(marks)) continue;
+      const settings = { ...ctx.settings, dimensions: ctx.settings.dimensions.map(d => d.id === id ? { ...d, place } : d) };
+      const next = rebuild(settings), own = next.sheet.groups.filter(g => (g.role === 'dimension' && g.id === id) || (g.role === 'control' && next.settings.frames?.some(f => f.id === g.id && f.dim === id))).flatMap(g => g.marks);
+      if (!own.length || !labelClearance(next, id, r.dim.view)(own)) continue;
+      const issues = drawingIssues(next), remaining = [...before];
+      if (issues.some(x => labelIssue(x) && x.dims?.includes(id)) || issues.some(x => { const k = remaining.indexOf(signature(x)); if (k < 0) return true; remaining.splice(k, 1); return false; })) continue;
+      ctx = next; left = issues; break;
+    }
+  }
+  return { settings: ctx.settings, left };
+}
 
 /** Auto layout: the settings with the views, room, scale and sheet chosen and Auto-dimension's dimensions; what it did. */
 export function autoLayout(i: SheetInputs): { settings: DrawingSettings; report: AutoLayoutReport } {
@@ -127,7 +219,8 @@ export function autoLayout(i: SheetInputs): { settings: DrawingSettings; report:
         // Once every side has room: the issue list's moves for what still overlaps (a short dimension's text, a callout
         // over lines). While a side is crowded, more room comes first.
         const moved = auto.report.crowded.length ? { settings: placed, left: drawingIssues(issueContext({ ...i, settings: placed })) } : fixAll({ ...i, settings: placed }, 40, f => f.kind === 'move' || f.kind === 'move-note');
-        const done = moved.settings, left = moved.left, errors = left.filter(x => x.severity === 'error').length + auto.report.crowded.length;
+        const labels = auto.report.crowded.length ? moved : placeDimensionLabels(issueContext({ ...i, settings: moved.settings }));
+        const done = labels.settings, left = labels.left, errors = left.filter(x => x.severity === 'error').length + auto.report.crowded.length;
         if (!best || errors < best.errors) best = { settings: done, dims: auto.report, left, errors };
         if (!errors) {
           if (readable) return finish(i, done, auto.report, left, shown, dropped, tried, true);

@@ -1,5 +1,5 @@
-import { buildProfileLoop, buildExtrudedProfileSolid, measureExtrudedProfileSolid, exportExtrudedProfileSolidStl } from './extruded-profile-solid.js';
-import type { ProfileLoop, ProfileSegmentInput, ExtrudedProfileSolidResult, ExtrudedProfileMass } from './extruded-profile-solid.js';
+import { buildProfileLoop, buildExtrudedProfileSolid, measureExtrudedProfileSolid, exportExtrudedProfileSolidStl } from './features/extruded-profile-solid.js';
+import type { ProfileLoop, ProfileSegmentInput, ExtrudedProfileSolidResult, ExtrudedProfileMass } from './features/extruded-profile-solid.js';
 
 export type ModelingProfileRequest =
   | { readonly operation: 'loop'; readonly segments: readonly ProfileSegmentInput[] }
@@ -13,8 +13,8 @@ type Response<R> = R extends { operation: 'loop' } ? ProfileLoop : R extends { o
 export function runModelingProfile<R extends ModelingProfileRequest>(request: R): Response<R> {
   const r = request as ModelingProfileRequest;
   const result = r.operation === 'loop' ? buildProfileLoop(r.segments)
-    : r.operation === 'solid' ? buildExtrudedProfileSolid(r.loop, { id: r.id, heightMM: r.heightMM, ...(r.fromMM === undefined ? {} : { fromMM: r.fromMM }) })
-      : r.operation === 'mass' ? measureExtrudedProfileSolid(r.solid, { densityKgPerM3: r.densityKgPerM3 })
+    : r.operation === 'solid' ? buildExtrudedProfileSolid(r.loop, { id: r.id, height: r.heightMM, ...(r.fromMM === undefined ? {} : { from: r.fromMM }) })
+      : r.operation === 'mass' ? measureExtrudedProfileSolid(r.solid, { density: r.densityKgPerM3 })
         : exportExtrudedProfileSolidStl(r.solid, { segmentsPerQuarter: r.segmentsPerQuarter });
   return result as Response<R>;
 }

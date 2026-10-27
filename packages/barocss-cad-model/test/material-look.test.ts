@@ -4,7 +4,7 @@ import { evaluatePart } from '../src/engine/evaluate';
 import { rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { APPEARANCES, defaultRender } from '../src/engine/render';
 import { lookKey, lookOf, materialIdOf, withLook } from '../src/app/bodies';
-import { massProperties } from '../src/chat/analysis';
+import { massProperties } from '../src/analysis/analysis';
 import { linkInertia } from '../src/robot/inertia';
 import { printability } from '../src/print/rules';
 import { bomView } from '../src/team/assembly';
@@ -58,7 +58,7 @@ test('a material set on the body is the only thing that makes it steel; the look
 });
 
 test('O75: the appearance presets and the materials never share an id — every look id is prefixed look-, none is a material id', async () => {
-  const { MATERIALS_DATA } = await import('../src/library/materials'), { MATERIALS } = await import('../src/app/materials');
+  const { MATERIALS_DATA } = await import('../src/library/materials'), { MATERIALS } = await import('../src/library/materials');
   const looks = APPEARANCES.map(a => a.id), materials = new Set([...MATERIALS_DATA.materials.map(m => m.id), ...MATERIALS.map(m => m.id)]);
   assert.ok(looks.every(id => id.startsWith('look-')), looks.join(', '));
   assert.deepEqual(looks.filter(id => materials.has(id)), []);

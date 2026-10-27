@@ -10,9 +10,9 @@ import { cellText, type TableContent } from '../src/drawing/table';
 import { drawingInputs } from '../src/chat/drawing';
 import { issueContext } from '../src/drawing/issues';
 import { readDrawing } from '../src/drawing/types';
-import { sheetSvg } from '../src/drawing/svg';
-import { sheetPdf } from '../src/drawing/pdf';
-import { sheetDxf } from '../src/drawing/dxf';
+import { sheetSvg } from '../src/io/svg';
+import { sheetPdf } from '../src/io/pdf';
+import { sheetDxf } from '../src/io/dxf';
 import { dxfText } from '@barocss/cad';
 
 // R12c on drawings, S2 (O144): the 'elements', 'springs' and 'glands' table sources. Oracles: the shaft-parts scene's
@@ -37,14 +37,14 @@ function shaftScene(): StudioDoc {
   const tube = cmd('tube'); doc = tube.build!({ ...blank, doc }, { ...tube.defaults!(blank), r: 20, ri: 10, h: 22, x: 0, y: 0, z: 4 });
   doc = run(doc, 'keyway', { face: `n${doc.nodes.length - 1}.hole0.side0` }, { b: 6, t2: 2.8 });
   doc = run(doc, 'key', { bodies: [0] }, { h: 6 });
-  const t = editRingRows(doc, [{ id: 'r20', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3, source: 'the maker\'s sheet' }]); assert.ok('doc' in t);
+  const t = editRingRows(doc, [{ id: 'r20', shaftDiameter: 20, grooveDiameter: 19, grooveWidth: 1.3, source: 'the maker\'s sheet' }]); assert.ok('doc' in t);
   doc = run(t.doc, 'retaining-ring', { bodies: [0] });
   return run(doc, 'pin', { bodies: [0] });
 }
 const spring = () => { const c = cmd('spring'); return c.build!(blank, { ...c.defaults!(blank), x: 0, y: 0, z: 0, F: 20 }); };
 function gland(): StudioDoc {
   const c = cmd('cylinder'); let doc = c.build!(blank, { ...c.defaults!(blank), r: 15.5, h: 20, x: 0, y: 0, z: 0 });
-  doc = (editORingRows(doc, [{ id: '214', dash: '2-214', insideDiameterMM: 24.99, crossSectionMM: 3.53, source: 'O1 (D139)' }]) as { doc: StudioDoc }).doc;
+  doc = (editORingRows(doc, [{ id: '214', dash: '2-214', insideDiameter: 24.99, crossSection: 3.53, source: 'O1 (D139)' }]) as { doc: StudioDoc }).doc;
   return run(doc, 'oring-gland', { face: 'n1.side0' }, { seal: 31.1, dg: 25.5, w: 4.7, at: 6 });
 }
 
@@ -52,7 +52,7 @@ test('the element list: each machine element — kind, our size, the user\'s row
   const t = content(shaftScene(), 'elements');
   assert.equal(t.title, 'MACHINE ELEMENTS');
   assert.deepEqual(shown(t).map(r => r.slice(0, 7)), [
-    ['n0', 'shaft', '3 steps Ø20–Ø25 × 95', '—', '—', 'made', ''], ['n3', 'keyway', '6 × 2.8 in Ø20', '—', '—', 'made', ''], ['n4', 'key', '6 × 6 × 18', '—', '—', 'bought', ''],
+    ['n0', 'shaft', '3 steps Ø20–Ø25 × 95', '—', '—', 'made', ''], ['n3', 'keyway', '6 × 2.8 in Ø20', '—', '—', 'made', ''], ['n4', 'key', '6 × 6 × 18', '—', '—', 'bought', 'est.'],
     ['n5', 'retaining-ring', 'Ø19 / Ø24 × 1.2', 'r20', 'the maker\'s sheet', 'bought', ''], ['n6', 'pin', 'Ø4 × 20', '—', '—', 'bought', '']]);
   assert.match(t.notes!.at(-1)!, /none built in/);
   // (A spring's G estimate: marked, and said under the table.)

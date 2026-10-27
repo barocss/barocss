@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="800" viewBox="0 0 900 800" role="img" aria-labelledby="title desc">
+  <title id="title">Route bundle: move selected interior poles, not whole curves</title>
+  <desc id="desc">Conceptual coordinate example in the world XY plane, z equals zero, in millimetres; not an executed API result capture. Two open clamped cubic Bezier curves use unit weights and knots zero zero zero zero one one one one. Both select pole key 1. A begins with poles [0,0,0], [10,15,0], [20,15,0], [30,0,0]. B begins with [0,30,0], [10,45,0], [20,45,0], [30,30,0]. The tie anchor [10,30,0] and the two selected poles move by [8,5,0]. The new anchor is [18,35,0], A1 is [18,20,0] and B1 is [18,50,0]. Endpoints 0 and 3 and unselected pole 2 do not move. The member offsets [0,-15,0] and [0,15,0] stay fixed. Copied sweep paths are resynchronized from the edited curves. Solid curves show cubic Bezier equations; dotted lines show control polygons, not paths.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#6e4799"/></marker>
+    <marker id="axis" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#627386"/></marker>
+  </defs>
+  <rect width="900" height="800" rx="12" fill="#f8fafc"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#182b3e">
+    <text x="450" y="32" text-anchor="middle" font-size="24" font-weight="700">One tie moves pole 1 on each curve</text>
+    <text x="450" y="59" text-anchor="middle">World XY · Z = 0 · mm · conceptual example, not an API result capture</text>
+    <rect x="20" y="80" width="420" height="455" rx="10" fill="#ffffff" stroke="#cad4df"/>
+    <rect x="460" y="80" width="420" height="455" rx="10" fill="#ffffff" stroke="#cad4df"/>
+    <text x="230" y="110" text-anchor="middle" font-size="20" font-weight="700">Before</text>
+    <text x="670" y="110" text-anchor="middle" font-size="20" font-weight="700">After: Δ = [8, 5, 0]</text>
+    <g fill="none" stroke="#dce3eb" stroke-width="1">
+      <path d="M60 180H400M60 240H400M60 300H400M60 360H400M60 420H400M120 155V480M180 155V480M240 155V480"/>
+      <path d="M500 180H840M500 240H840M500 300H840M500 360H840M500 420H840M560 155V480M620 155V480M680 155V480"/>
+    </g>
+    <g fill="none" stroke="#627386" stroke-width="1.5" marker-end="url(#axis)">
+      <path d="M60 495V147M48 480H405"/><path d="M500 495V147M488 480H845"/>
+    </g>
+    <text x="65" y="143">Y</text><text x="410" y="486">X</text><text x="505" y="143">Y</text><text x="850" y="486">X</text>
+    <text x="47" y="516">0</text><text x="229" y="516">30</text><text x="487" y="516">0</text><text x="669" y="516">30</text>
+    <g fill="none" stroke-width="2" stroke-dasharray="5 5">
+      <path d="M60 480L120 390L180 390L240 480" stroke="#2579af"/>
+      <path d="M60 300L120 210L180 210L240 300" stroke="#208874"/>
+      <path d="M500 480L608 360L620 390L680 480" stroke="#2579af"/>
+      <path d="M500 300L608 180L620 210L680 300" stroke="#208874"/>
+    </g>
+    <g fill="none" stroke="#9aa7b5" stroke-width="2" stroke-dasharray="3 5">
+      <path d="M500 480C560 390 620 390 680 480"/>
+      <path d="M500 300C560 210 620 210 680 300"/>
+    </g>
+    <g fill="none" stroke-width="4">
+      <path d="M60 480C120 390 180 390 240 480" stroke="#12689f"/>
+      <path d="M60 300C120 210 180 210 240 300" stroke="#12775e"/>
+      <path d="M500 480C608 360 620 390 680 480" stroke="#12689f"/>
+      <path d="M500 300C608 180 620 210 680 300" stroke="#12775e"/>
+    </g>
+    <g fill="none" stroke="#8962a9" stroke-width="2" stroke-dasharray="3 4">
+      <path d="M120 210V390"/><path d="M608 180V360"/>
+    </g>
+    <g fill="#22374b" stroke="#ffffff" stroke-width="2">
+      <circle cx="60" cy="480" r="5"/><circle cx="180" cy="390" r="5"/><circle cx="240" cy="480" r="5"/>
+      <circle cx="60" cy="300" r="5"/><circle cx="180" cy="210" r="5"/><circle cx="240" cy="300" r="5"/>
+      <circle cx="500" cy="480" r="5"/><circle cx="620" cy="390" r="5"/><circle cx="680" cy="480" r="5"/>
+      <circle cx="500" cy="300" r="5"/><circle cx="620" cy="210" r="5"/><circle cx="680" cy="300" r="5"/>
+    </g>
+    <g fill="#de761d" stroke="#ffffff" stroke-width="2">
+      <circle cx="120" cy="390" r="7"/><circle cx="120" cy="210" r="7"/>
+      <circle cx="608" cy="360" r="7"/><circle cx="608" cy="180" r="7"/>
+    </g>
+    <g fill="#ffffff" stroke="#6e4799" stroke-width="2.5">
+      <path d="M120 292L128 300L120 308L112 300Z"/>
+      <path d="M608 262L616 270L608 278L600 270Z"/>
+      <circle cx="560" cy="300" r="5" stroke-dasharray="3 2"/>
+    </g>
+    <path d="M568 296L598 277" fill="none" stroke="#6e4799" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <text x="135" y="202">B1</text><text x="135" y="384">A1</text>
+    <text x="190" y="204">B2 fixed</text><text x="190" y="384">A2 fixed</text>
+    <text x="253" y="302">B3 fixed</text><text x="253" y="480">A3 fixed</text>
+    <text x="72" y="323">B0</text><text x="74" y="463">A0</text>
+    <text x="136" y="295" fill="#6e4799">anchor [10,30,0]</text>
+    <text x="624" y="172">B1 [18,50,0]</text><text x="624" y="354">A1 [18,20,0]</text>
+    <text x="625" y="263" fill="#6e4799">anchor [18,35,0]</text>
+    <text x="690" y="300">B3 fixed</text><text x="690" y="480">A3 fixed</text>
+    <text x="632" y="409">A2 fixed</text><text x="632" y="231">B2 fixed</text>
+    <text x="510" y="323">B0 fixed</text><text x="510" y="463">A0 fixed</text>
+    <rect x="20" y="553" width="860" height="183" rx="10" fill="#edf3f9"/>
+    <text x="40" y="581" font-weight="700">Before poles (world mm)</text>
+    <text x="40" y="608">A = [[0,0,0], [10,15,0], [20,15,0], [30,0,0]]</text>
+    <text x="40" y="634">B = [[0,30,0], [10,45,0], [20,45,0], [30,30,0]]</text>
+    <text x="40" y="662">Selected key = "1" · offsets A [0,−15,0], B [0,15,0] stay unchanged.</text>
+    <text x="40" y="690">Only pole 1 moves. Endpoints 0/3 and pole 2 stay fixed; the curve shape changes.</text>
+    <text x="40" y="718">The copied sweep path is resynchronized from each edited curve.</text>
+    <text x="450" y="760" text-anchor="middle">Solid: cubic curve · dashed colour: control polygon · grey: previous curve · diamond: tie anchor</text>
+    <text x="450" y="786" text-anchor="middle">Open clamped cubic · unit weights · knots [0,0,0,0,1,1,1,1] · schematic sweep sync only</text>
+  </g>
+</svg>

@@ -9,7 +9,7 @@ const field = (nodes: readonly ModelNode[], i: number, key: string): EditField =
   assert.ok(f, `no field ${key} among ${editFields(nodes, i).map(x => x.key).join(', ')}`);
   return f;
 };
-const volume = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies.map(b => b.volumeMM3!); };
+const volume = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies.map(b => b.volume!); };
 const near = (a: number, b: number, eps = 1e-6) => Math.abs(a - b) <= eps * Math.max(1, Math.abs(b));
 
 test('edit fields: an extrude edits its sketch\'s width and corner as well as its distance', () => {
@@ -59,7 +59,7 @@ test('edit fields: choice and toggle fields — a loft turns smooth, a pipe bend
   assert.equal(volume({ ...doc, nodes }).length, 1);
 
   let pipe = withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 2 });
-  pipe = withNode(pipe, { kind: 'sweep', sketch: 0, path: [{ kind: 'straight', length: 20 }, { kind: 'bend', radius: 10, angleDegrees: 90, toward: 'x' }] });
+  pipe = withNode(pipe, { kind: 'sweep', sketch: 0, path: [{ kind: 'straight', length: 20 }, { kind: 'bend', radius: 10, angle: 90, toward: 'x' }] });
   const toward = field(pipe.nodes, 1, 'toward1');
   if (toward.kind !== 'choice') return assert.fail();
   assert.deepEqual(toward.options.map(o => o.value), ['x', '-x', 'y', '-y']);
@@ -68,9 +68,9 @@ test('edit fields: choice and toggle fields — a loft turns smooth, a pipe bend
   assert.equal(volume({ ...pipe, nodes: bent }).length, 1);
 
   let pat = rectanglePart(10, 10, 5);
-  pat = withNode(pat, { kind: 'circular-pattern', parent: { node: 1, side: 'solid' }, axis: 'z', angleDegrees: 90, count: 4 });
+  pat = withNode(pat, { kind: 'circular-pattern', parent: { node: 1, side: 'solid' }, axis: 'z', angle: 90, count: 4 });
   const count = field(pat.nodes, 2, 'count');
   if (count.kind !== 'number') return assert.fail();
   const six = count.set(pat.nodes, 6.4);
-  assert.deepEqual([(six[2] as { count: number }).count, (six[2] as { angleDegrees: number }).angleDegrees], [6, 60]);
+  assert.deepEqual([(six[2] as { count: number }).count, (six[2] as { angle: number }).angle], [6, 60]);
 });

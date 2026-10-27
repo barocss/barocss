@@ -10,9 +10,9 @@ import { bodyKeyFor } from '../engine/ids';
 import { printerProfile, processProfile } from '../library/materials';
 import { refOf } from '../app/bodyRef';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import { refusal } from '../engine/refusal';
 
 export type SplitCode = 'NOT_NEEDED' | 'ONE_BODY' | 'NO_PRINTER' | 'DIRECTION_NOT_AXIS' | 'TOO_BIG_TWO_WAYS' | 'NO_ROOM' | 'BAD_CONNECTOR';
-export class SplitError extends Error { constructor(public code: SplitCode, message: string) { super(`[${code}] ${message}`); this.name = 'SplitError'; } }
 export interface SplitOptions { connector: 'dowel' | 'plug'; d: number; length: number; count?: number; fit?: number; wall?: number }
 export interface Connector { cut: number; at: Vec3; boreRadius: number; pinRadius: number; depth: number; pin: string | null }
 export interface SplitReport { axis: 'x' | 'y' | 'z'; cuts: number[]; pieces: { key: string; box: { min: Vec3; max: Vec3 }; fits: boolean }[]; connectors: Connector[]; fit: number; bed: [number, number, number] }
@@ -27,7 +27,7 @@ const extentOf = (m: DisplayMesh) => [0, 1, 2].map(k => m.bounds.max[k] - m.boun
 /** The print direction's axis (+Z when none): an axis-aligned one only. */
 function upAxis(doc: StudioDoc): number {
   const d = doc.print?.direction ?? [0, 0, 1], k = d.findIndex(x => Math.abs(x) > 1e-9);
-  if (k < 0 || d.some((x, i) => i !== k && Math.abs(x) > 1e-9)) throw new SplitError('DIRECTION_NOT_AXIS', `the print direction (${d.join(', ')}) is not along X, Y or Z: a split for the bed takes an axis-aligned one`);
+  if (k < 0 || d.some((x, i) => i !== k && Math.abs(x) > 1e-9)) throw refusal('DIRECTION_NOT_AXIS', `the print direction (${d.join(', ')}) is not along X, Y or Z: a split for the bed takes an axis-aligned one`);
   return k;
 }
 
@@ -90,18 +90,18 @@ function connectorPoints(r: Region, count: number, need: number): number[][] | {
 
 /** The split's features appended to the document, and what they make. */
 export function planBedSplit(doc: StudioDoc, bodies: readonly BodyResult[], o: SplitOptions): { doc: StudioDoc; report: SplitReport } {
-  if (bodies.length !== 1) throw new SplitError('ONE_BODY', `split for the bed takes a part of one body; this one has ${bodies.length}`);
+  if (bodies.length !== 1) throw refusal('ONE_BODY', `split for the bed takes a part of one body; this one has ${bodies.length}`);
   const printer = printerProfile(doc.printer);
-  if (!printer) throw new SplitError('NO_PRINTER', 'choose a printer first: the split is for its build volume');
+  if (!printer) throw refusal('NO_PRINTER', 'choose a printer first: the split is for its build volume');
   const count = o.count ?? 2, fit = o.fit ?? processProfile(doc.process ?? printer.process)?.thresholds.fitGap?.value ?? NaN, wall = o.wall ?? 2;
-  if (!(o.d > 0 && o.length > 0 && Number.isInteger(count) && count >= 1 && count <= 8 && fit > 0 && wall >= 0)) throw new SplitError('BAD_CONNECTOR', `a connector needs d > 0, length > 0, 1–8 a cut, fit > 0 and wall ≥ 0 (d ${o.d}, length ${o.length}, count ${count}, fit ${fit}, wall ${wall})`);
-  const up = upAxis(doc), bed = printer.buildMM, body = bodies[0], ext = extentOf(body.mesh);
-  if (fitsBed(ext, up, bed)) throw new SplitError('NOT_NEEDED', `the part (${ext.map(r2).join(' × ')} mm) fits ${printer.label} as it is`);
+  if (!(o.d > 0 && o.length > 0 && Number.isInteger(count) && count >= 1 && count <= 8 && fit > 0 && wall >= 0)) throw refusal('BAD_CONNECTOR', `a connector needs d > 0, length > 0, 1–8 a cut, fit > 0 and wall ≥ 0 (d ${o.d}, length ${o.length}, count ${count}, fit ${fit}, wall ${wall})`);
+  const up = upAxis(doc), bed = printer.buildVolume, body = bodies[0], ext = extentOf(body.mesh);
+  if (fitsBed(ext, up, bed)) throw refusal('NOT_NEEDED', `the part (${ext.map(r2).join(' × ')} mm) fits ${printer.label} as it is`);
   // (The axis: the build axis when it is too tall, else the longer in-plane one; the fewest even pieces that fit.)
   const flat = [0, 1, 2].filter(k => k !== up), k = ext[up] > bed[2] + 1e-9 ? up : ext[flat[0]] >= ext[flat[1]] ? flat[0] : flat[1];
   let n = 0;
   for (let m = 2; m <= 20; m++) { const e = ext.slice(); e[k] /= m; if (fitsBed(e, up, bed)) { n = m; break; } }
-  if (!n) throw new SplitError('TOO_BIG_TWO_WAYS', `no split along one axis makes ${printer.label}'s pieces: the part (${ext.map(r2).join(' × ')} mm) is too big two ways`);
+  if (!n) throw refusal('TOO_BIG_TWO_WAYS', `no split along one axis makes ${printer.label}'s pieces: the part (${ext.map(r2).join(' × ')} mm) is too big two ways`);
   const axis = AXES[k], [a, b] = [0, 1, 2].filter(x => x !== k), lo = body.mesh.bounds.min[k], cuts = Array.from({ length: n - 1 }, (_, i) => lo + ext[k] * (i + 1) / n);
   const rPin = o.d / 2, rBore = rPin + fit, depth = o.length / 2 + fit, need = rBore + wall;
   // (The cuts as a chain: each split's upper side split again; then each cut face's connector points, read once all are cut.)
@@ -109,14 +109,14 @@ export function planBedSplit(doc: StudioDoc, bodies: readonly BodyResult[], o: S
   const splits: number[] = [];
   for (const at of cuts) { out = withNode(out, { kind: 'split', parent: upper, at, axis } as ModelNode); splits.push(out.nodes.length - 1); upper = { node: out.nodes.length - 1, side: 'positive' }; }
   const cutDoc = out, cutEval = evaluatePart(cutDoc, 0);
-  if (!cutEval.ok) throw new SplitError('NO_ROOM', 'the part could not be cut');
+  if (!cutEval.ok) throw refusal('NO_ROOM', 'the part could not be cut');
   const points: number[][][] = [];
   for (const [i, s] of splits.entries()) {
     const lower = cutEval.bodies.find(x => x.key === bodyKeyFor(cutDoc.nodes, s, 'negative'));
     const id = cutDoc.nodes[s].id, f = lower?.mesh.faces.find(x => x.name.split('+').some(nm => nm.startsWith(`${id}.cut`)));
-    if (!lower || !f) throw new SplitError('NO_ROOM', `cut ${i + 1} at ${axis} = ${r2(cuts[i])} has no cut face`);
+    if (!lower || !f) throw refusal('NO_ROOM', `cut ${i + 1} at ${axis} = ${r2(cuts[i])} has no cut face`);
     const p = connectorPoints(regionOf(lower.mesh, f.index, a, b), count, need);
-    if (!Array.isArray(p)) throw new SplitError('NO_ROOM', `cut ${i + 1} at ${axis} = ${r2(cuts[i])}: no room for ${count} bore${count > 1 ? 's' : ''} of Ø${r2(2 * rBore)} with ${wall} mm of wall (needs ${r2(need)} mm inside the cut face; it has ${r2(Math.max(0, p.room))})`);
+    if (!Array.isArray(p)) throw refusal('NO_ROOM', `cut ${i + 1} at ${axis} = ${r2(cuts[i])}: no room for ${count} bore${count > 1 ? 's' : ''} of Ø${r2(2 * rBore)} with ${wall} mm of wall (needs ${r2(need)} mm inside the cut face; it has ${r2(Math.max(0, p.room))})`);
     points.push(p);
   }
   // (The features again, now with the bores: each cut's lower piece bored from its top (max side), the upper from its bottom.)
@@ -152,7 +152,7 @@ export function planBedSplit(doc: StudioDoc, bodies: readonly BodyResult[], o: S
   }
   pieceRefs.push(upper);
   const done = evaluatePart(out, 0);
-  if (!done.ok) throw new SplitError('NO_ROOM', 'the connectors could not be made');
+  if (!done.ok) throw refusal('NO_ROOM', 'the connectors could not be made');
   const keyOf = (r: BodyRef) => bodyKeyFor(out.nodes, r.node, r.side);
   const pieces = pieceRefs.map(r => { const bd = done.bodies.find(x => x.key === keyOf(r))!; return { key: bd.key, box: { min: [...bd.mesh.bounds.min] as Vec3, max: [...bd.mesh.bounds.max] as Vec3 }, fits: fitsBed(extentOf(bd.mesh), up, bed) }; });
   if (o.connector === 'dowel') connectors.forEach((c, i) => { c.pin = keyOf(pinRefs[i]); });

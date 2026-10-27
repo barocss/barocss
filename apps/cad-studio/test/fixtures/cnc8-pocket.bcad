@@ -1,0 +1,104 @@
+{
+ "format": "barocss-cad-model",
+ "schema": 3,
+ "units": "mm",
+ "parameters": {},
+ "nodes": [
+  {
+   "kind": "sketch",
+   "profile": "rectangle",
+   "min": [
+    0,
+    0
+   ],
+   "max": [
+    120,
+    80
+   ],
+   "id": "n0"
+  },
+  {
+   "kind": "extrude",
+   "sketch": 0,
+   "height": 20,
+   "id": "n1",
+   "made": {
+    "command": "box",
+    "values": {
+     "w": 120,
+     "d": 80,
+     "h": 20,
+     "x": 0,
+     "y": 0,
+     "z": 0
+    }
+   }
+  },
+  {
+   "kind": "sketch",
+   "profile": "rectangle",
+   "min": [
+    35,
+    25
+   ],
+   "max": [
+    85,
+    55
+   ],
+   "id": "n2"
+  },
+  {
+   "kind": "extrude",
+   "sketch": 2,
+   "height": 20,
+   "from": 12,
+   "id": "n3",
+   "made": {
+    "command": "box",
+    "values": {
+     "w": 50,
+     "d": 30,
+     "h": 20,
+     "x": 35,
+     "y": 25,
+     "z": 12
+    }
+   }
+  },
+  {
+   "kind": "difference",
+   "parent": {
+    "node": 1,
+    "side": "solid"
+   },
+   "tool": {
+    "node": 3,
+    "side": "solid"
+   },
+   "id": "n4"
+  }
+ ],
+ "outputs": {
+  "b4": {
+   "node": 4,
+   "side": "solid"
+  }
+ },
+ "nextId": 5,
+ "process": "cnc-milling",
+ "machining": {
+  "version": 1,
+  "stock": [
+   {
+    "id": "B1",
+    "kind": "block",
+    "size": [
+     125,
+     85,
+     25
+    ],
+    "source": "the flow fixture's list (a test fixture, not agent-loaded rows)"
+   }
+  ]
+ }
+}

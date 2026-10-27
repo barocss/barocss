@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep } from '../dist/index.js';
-import { setRingStations } from '../dist/rolling-ball.js';
+import { evaluateCadPart, checkBrep, massPropertiesOf, checkOutput } from '../dist/index.js';
+import { setRingStations } from '../dist/blend/rolling-ball.js';
 
 // R10.5 (D100): the variable-radius fillet. `radii` gives the radius at points of the edges; between them it varies by
 // arc length along the chain (shape-preserving cubic Hermite; two points: linear), carried on at its end slopes past
@@ -21,45 +21,45 @@ const fritschCarlson = (x, y) => {
 };
 
 test('R10.5 a box\'s top edge (convex, square planes) from r0 to r1 linearly: (1 − π/4) L (r0² + r0 r1 + r1²) / 3 to 1e-9; three points (1 at x 0, 2 at 10, 4 at 40) to (1 − π/4) ∫ r² ds of the monotone cubic; G1 to the faces, the report in bounds', () => {
-  const o0 = out(box), v0 = o0.massProperties(1).volumeMM3, edge = at(o0.brep, 0, 10);
+  const o0 = out(box), v0 = massPropertiesOf(o0).volume, edge = at(o0.brep, 0, 10);
   for (const [radii, exact] of [
     [[{ at: [0, 0, 10], radius: 1 }, { at: [40, 0, 10], radius: 3 }], A(1) * 0 + (1 - Math.PI / 4) * 40 * (1 + 3 + 9) / 3],
     [[{ at: [40, 0, 10], radius: 1 }, { at: [0, 0, 10], radius: 3 }], (1 - Math.PI / 4) * 40 * 13 / 3],
     [[{ at: [0, 0, 10], radius: 0.5 }, { at: [40, 0, 10], radius: 4 }], (1 - Math.PI / 4) * 40 * (0.25 + 2 + 16) / 3],
     [[{ at: [0, 0, 10], radius: 1 }, { at: [10, 0, 10], radius: 2 }, { at: [40, 0, 10], radius: 4 }], (() => { const r = fritschCarlson([0, 10, 40], [1, 2, 4]); let s = 0; const n = 200000; for (let i = 0; i < n; i++) s += A(r(40 * (i + 0.5) / n)) * 40 / n; return s; })()],
   ]) {
-    const o = out([...box, { id: 'f', kind: 'fillet', target: 'e', edges: [edge], radii }]), got = v0 - o.massProperties(1).volumeMM3, what = radii.map(p => p.radius).join('→');
-    assert.equal(o.validate().valid, true, what);
+    const o = out([...box, { id: 'f', kind: 'fillet', target: 'e', edges: [edge], radii }]), got = v0 - massPropertiesOf(o).volume, what = radii.map(p => p.radius).join('→');
+    assert.equal(checkOutput(o).valid, true, what);
     assert.ok(Math.abs(got / exact - 1) < 1e-9, `${what}: ${got} vs ${exact} (${got / exact - 1})`);
     const [rep] = o.fillet;
-    assert.ok(rep.contactMM <= 2.5e-7 && rep.normalDeg < 1e-3 && rep.sectionMM <= 1e-6, JSON.stringify(rep));
+    assert.ok(rep.contact <= 2.5e-7 && rep.normal < 1e-3 && rep.section <= 1e-6, JSON.stringify(rep));
   }
 });
 
 test('R10.5 a concave foot (a step\'s riser) from 1 to 4 linearly: the added volume (1 − π/4) L (r0² + r0 r1 + r1²) / 3 to 1e-9', () => {
   const step = [...box, { id: 'q', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 15] }, { id: 'f0', kind: 'extrude', sketch: 'q', height: 10, from: 10 }, { id: 'u', kind: 'union', target: 'e', tool: 'f0' }];
-  const o0 = out(step), v0 = o0.massProperties(1).volumeMM3, inner = at(o0.brep, 15, 10);
+  const o0 = out(step), v0 = massPropertiesOf(o0).volume, inner = at(o0.brep, 15, 10);
   const o = out([...step, { id: 'f', kind: 'fillet', target: 'u', edges: [inner], radii: [{ at: [0, 15, 10], radius: 1 }, { at: [40, 15, 10], radius: 4 }] }]);
-  assert.equal(o.validate().valid, true);
-  const got = o.massProperties(1).volumeMM3 - v0, exact = (1 - Math.PI / 4) * 40 * (1 + 4 + 16) / 3;
+  assert.equal(checkOutput(o).valid, true);
+  const got = massPropertiesOf(o).volume - v0, exact = (1 - Math.PI / 4) * 40 * (1 + 4 + 16) / 3;
   assert.ok(Math.abs(got / exact - 1) < 1e-9, `${got} vs ${exact} (${got / exact - 1})`);
 });
 
 test('R10.5 a boss\'s foot (a closed circle) at 1, 2, 1, 2 round it (and 0.5, 3): periodic, each quarter a smoothstep (the monotone slopes vanish where the values alternate) — ∫ of the meridian section\'s first moment dθ to 1e-7', () => {
   const R = 8, boss = [{ id: 'as', kind: 'sketch', profile: 'rectangle', min: [-30, -30], max: [30, 30] }, { id: 'a', kind: 'extrude', sketch: 'as', height: 10 },
     { id: 'bs', kind: 'sketch', profile: 'circle', center: [0, 0], radius: R }, { id: 'b', kind: 'extrude', sketch: 'bs', height: 15, from: 10 }, { id: 'u', kind: 'union', target: 'a', tool: 'b' }];
-  const o0 = out(boss), v0 = o0.massProperties(1).volumeMM3, foot = o0.brep.edges.filter(e => /a\.top/.test(e.name) && /b\.side0/.test(e.name)).map(e => e.name);
+  const o0 = out(boss), v0 = massPropertiesOf(o0).volume, foot = o0.brep.edges.filter(e => /a\.top/.test(e.name) && /b\.side0/.test(e.name)).map(e => e.name);
   // The meridian section: the square [R, R + r] × [0, r] less the quarter disc about (R + r, r); its first moment about the axis.
   const M = r => r * r * (R + r / 2) - Math.PI * r * r / 4 * (R + r - 4 * r / (3 * Math.PI));
   for (const [ra, rb] of [[1, 2], [0.5, 3]]) {
     const radii = [0, 1, 2, 3].map(k => ({ at: [R * Math.cos(k * Math.PI / 2), R * Math.sin(k * Math.PI / 2), 10], radius: k % 2 ? rb : ra }));
     const o = out([...boss, { id: 'f', kind: 'fillet', target: 'u', edges: foot, radii }]);
-    assert.equal(o.validate().valid, true);
+    assert.equal(checkOutput(o).valid, true);
     let exact = 0; const n = 400000;
     for (let i = 0; i < n; i++) { const q = 4 * (i + 0.5) / n, k = Math.floor(q), t = q - k, y0 = k % 2 ? rb : ra, y1 = k % 2 ? ra : rb; exact += M(y0 + (y1 - y0) * (3 * t * t - 2 * t ** 3)) * 2 * Math.PI / n; }
-    const got = o.massProperties(1).volumeMM3 - v0;
+    const got = massPropertiesOf(o).volume - v0;
     assert.ok(Math.abs(got / exact - 1) < 1e-7, `${ra}/${rb}: ${got} vs ${exact} (${got / exact - 1})`);
-    assert.ok(o.fillet[0].normalDeg < 1e-3, JSON.stringify(o.fillet[0]));
+    assert.ok(o.fillet[0].normal < 1e-3, JSON.stringify(o.fillet[0]));
   }
 });
 
@@ -67,22 +67,22 @@ test('R10.5 on curved faces (an oblique groove\'s rim, ellipse arcs between a pl
   const yz = { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] };
   const body = [{ id: 'p', kind: 'sketch', profile: 'rectangle', min: [8, -20], max: [32, 20] }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 10 },
     { id: 'cs', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: yz }, { id: 'c0', kind: 'extrude', sketch: 'cs', height: 60, from: -10 },
-    { id: 'c', kind: 'rotate', target: 'c0', axis: 'y', angleDegrees: 10, pivot: [20, 0, 10] }, { id: 'g', kind: 'difference', target: 'pe', tool: 'c' }];
+    { id: 'c', kind: 'rotate', target: 'c0', axis: 'y', angle: 10, pivot: [20, 0, 10] }, { id: 'g', kind: 'difference', target: 'pe', tool: 'c' }];
   // (The rim is two edges, its halves either side of the cylinder's seam; the radii at its two ends.)
-  const o0 = out(body), v0 = o0.massProperties(1).volumeMM3, rims = o0.brep.edges.filter(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name) && e.curve.controlPoints[0][1] > 0);
+  const o0 = out(body), v0 = massPropertiesOf(o0).volume, rims = o0.brep.edges.filter(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name) && e.curve.controlPoints[0][1] > 0);
   const pts = rims.flatMap(e => [e.curve.controlPoints[0], e.curve.controlPoints.at(-1)]), ends = pts.filter(p => pts.filter(q => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) < 1e-9).length === 1).sort((a, b) => a[0] - b[0]);
   assert.equal(ends.length, 2);
   const rim = { name: rims.map(e => e.name) }, radii = [{ at: ends[0], radius: 0.6 }, { at: ends[1], radius: 1.2 }];
   const o = out([...body, { id: 'f', kind: 'fillet', target: 'g', edges: rim.name, radii }]);
-  assert.equal(o.validate().valid, true);
-  const [rep] = o.fillet, removed = v0 - o.massProperties(1).volumeMM3;
-  assert.ok(rep.contactMM <= 2.5e-7 && rep.normalDeg < 1e-3 && rep.sectionMM <= 2e-6 && rep.ballMM < 1e-8, JSON.stringify(rep));
+  assert.equal(checkOutput(o).valid, true);
+  const [rep] = o.fillet, removed = v0 - massPropertiesOf(o).volume;
+  assert.ok(rep.contact <= 2.5e-7 && rep.normal < 1e-3 && rep.section <= 2e-6 && rep.ball < 1e-8, JSON.stringify(rep));
   setRingStations(2 * rep.stations);
   // (To 1e-6 of the fillet since D102: no sliver of the run past is left at the trimmed end at any count.)
-  try { const fine = v0 - out([...body, { id: 'f', kind: 'fillet', target: 'g', edges: rim.name, radii }]).massProperties(1).volumeMM3; assert.ok(Math.abs(fine / removed - 1) < 1e-6, `${removed} vs ${fine}`); }
+  try { const fine = v0 - massPropertiesOf(out([...body, { id: 'f', kind: 'fillet', target: 'g', edges: rim.name, radii }])).volume; assert.ok(Math.abs(fine / removed - 1) < 1e-6, `${removed} vs ${fine}`); }
   finally { setRingStations(null); }
   // (Between the constant fillets at its two radii.)
-  const at = r => v0 - out([...body, { id: 'f', kind: 'fillet', target: 'g', edges: rim.name, radius: r }]).massProperties(1).volumeMM3;
+  const at = r => v0 - massPropertiesOf(out([...body, { id: 'f', kind: 'fillet', target: 'g', edges: rim.name, radius: r }])).volume;
   assert.ok(removed > at(0.6) && removed < at(1.2), `${at(0.6)} < ${removed} < ${at(1.2)}`);
 });
 
@@ -101,13 +101,13 @@ test('D102 the same fillet at any station count (150–400): no sliver at the tr
   const yz = { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] };
   const body = [{ id: 'p', kind: 'sketch', profile: 'rectangle', min: [8, -20], max: [32, 20] }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 10 },
     { id: 'cs', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: yz }, { id: 'c0', kind: 'extrude', sketch: 'cs', height: 60, from: -10 },
-    { id: 'c', kind: 'rotate', target: 'c0', axis: 'y', angleDegrees: 10, pivot: [20, 0, 10] }, { id: 'g', kind: 'difference', target: 'pe', tool: 'c' }];
+    { id: 'c', kind: 'rotate', target: 'c0', axis: 'y', angle: 10, pivot: [20, 0, 10] }, { id: 'g', kind: 'difference', target: 'pe', tool: 'c' }];
   const rims = out(body).brep.edges.filter(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name) && e.curve.controlPoints[0][1] > 0);
   const pts = rims.flatMap(e => [e.curve.controlPoints[0], e.curve.controlPoints.at(-1)]), ends = pts.filter(p => pts.filter(q => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) < 1e-9).length === 1).sort((a, b) => a[0] - b[0]);
   const fil = { id: 'f', kind: 'fillet', target: 'g', edges: rims.map(e => e.name), radii: [{ at: ends[0], radius: 0.6 }, { at: ends[1], radius: 1.2 }] };
   const runs = [150, 175, 200, 250, 300, 350, 400].map(N => {
     setRingStations(N);
-    try { const o = out([...body, fil]); return { N, o, v: o.massProperties(1).volumeMM3, others: o.brep.faces.filter(f => !/^f\./.test(f.name)).map(f => f.name).sort().join(' ') }; }
+    try { const o = out([...body, fil]); return { N, o, v: massPropertiesOf(o).volume, others: o.brep.faces.filter(f => !/^f\./.test(f.name)).map(f => f.name).sort().join(' ') }; }
     finally { setRingStations(null); }
   });
   for (const { N, o, v, others } of runs) {
@@ -117,6 +117,6 @@ test('D102 the same fillet at any station count (150–400): no sliver at the tr
     assert.ok(Math.abs(v / runs[0].v - 1) < 1e-9, `${N}: ${v} vs ${runs[0].v}`);
   }
   const both = out(body).brep.edges.filter(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name));
-  const [vp, vm] = [1, -1].map(side => { const o = out([...body, { id: 'f', kind: 'fillet', target: 'g', edges: [both.find(e => Math.sign(e.curve.controlPoints[0][1]) === side).name], radius: 1 }]); assert.equal(checkBrep(o.brep, { strict: true }).valid, true, `rim ${side}`); return o.massProperties(1).volumeMM3; });
+  const [vp, vm] = [1, -1].map(side => { const o = out([...body, { id: 'f', kind: 'fillet', target: 'g', edges: [both.find(e => Math.sign(e.curve.controlPoints[0][1]) === side).name], radius: 1 }]); assert.equal(checkBrep(o.brep, { strict: true }).valid, true, `rim ${side}`); return massPropertiesOf(o).volume; });
   assert.ok(Math.abs(vp - vm) < 1e-11 * vp, `${vp} vs ${vm}`);
 });

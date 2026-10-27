@@ -7,6 +7,8 @@ import { SubdError, type CageValidation } from '@barocss/cad';
 import type { ModelNode, StudioDoc } from '../engine/doc';
 import { commitDrag, emptyCageSel, runOp, selectedVertices, startSession, validationOf, type CageOp, type CageSelection, type CageSession, type StudioCage } from '../subd/cageEdit';
 import type { ToolDefinition } from './api';
+import { r6Signed as r6 } from '../util/round';
+import { isObj, isVec3 } from '../util/guards';
 
 type SubdNode = Extract<ModelNode, { kind: 'subd' }>;
 type V3 = [number, number, number];
@@ -18,8 +20,6 @@ export const CAGE_MUTATORS = new Set(['subd_move', 'subd_extrude', 'subd_insert_
 /** A tool's answer: the next document and what it did, a read-only result, or why not. */
 export type CageToolResult = { doc: StudioDoc; did: string; extra: Record<string, unknown> } | { read: Record<string, unknown> } | { error: string };
 
-const isObj = (x: unknown): x is Args => !!x && typeof x === 'object' && !Array.isArray(x);
-const r6 = (x: number) => Math.round(x * 1e6) / 1e6;
 
 /** The subd node at `index`, or why not. */
 function nodeAt(doc: StudioDoc, index: unknown): { node: SubdNode; index: number } | { error: string } {
@@ -43,7 +43,7 @@ function edgeList(x: unknown, c: StudioCage): [number, number][] | string {
   if (missing.length) return `Not edges of the cage: ${missing.slice(0, 5).map(e => `[${e.join(', ')}]`).join(', ')}${missing.length > 5 ? ' …' : ''}.`;
   return out;
 }
-const vec = (x: unknown): V3 | null => Array.isArray(x) && x.length === 3 && x.every(v => typeof v === 'number' && Number.isFinite(v)) ? [x[0], x[1], x[2]] : null;
+const vec = (x: unknown): V3 | null => isVec3(x) ? [x[0], x[1], x[2]] : null;
 
 /** A face's centre and unit normal (Newell). */
 function faceFrame(c: StudioCage, f: number): { centre: V3; normal: V3 } {
@@ -148,7 +148,7 @@ function selectionOf(c: StudioCage, args: Args): CageSelection | string {
 function select(c: StudioCage, args: Args): Record<string, unknown> {
   const what = args.what, limit = Math.max(1, Math.min(500, Number(args.limit) || 200));
   if (what === 'faces') {
-    const dir = vec(args.normal), within = Math.cos((Number(args.within_deg ?? 30)) * Math.PI / 180), out: Record<string, unknown>[] = [];
+    const dir = vec(args.normal), within = Math.cos((Number(args.withinAngle ?? 30)) * Math.PI / 180), out: Record<string, unknown>[] = [];
     let all = 0;
     for (let f = 0; f < c.faces.length; f++) {
       const fr = faceFrame(c, f); if (!inBox(fr.centre, args.box)) continue;
@@ -174,7 +174,7 @@ function select(c: StudioCage, args: Args): Record<string, unknown> {
     const open = validationOf(startSession(0, c)).boundaryEdges.filter(([a, b]) => inBox(at(a), args.box) && inBox(at(b), args.box));
     return { open_edges: open.slice(0, limit), count: open.length };
   }
-  return { error: 'Pass "what": faces (by "normal", "within_deg", "box"), vertices (by "box"), loop or ring (through "edge"), or boundary (the open edges).' };
+  return { error: 'Pass "what": faces (by "normal", "withinAngle", "box"), vertices (by "box"), loop or ring (through "edge"), or boundary (the open edges).' };
 }
 
 const idx = { type: 'integer', description: 'The SubD feature\'s index (get_part_summary lists them; run_command subd-box, subd-torus or subd-tube makes one).' };
@@ -183,7 +183,7 @@ const pairs = (what: string) => ({ type: 'array', items: { type: 'array', items:
 const v3 = (what: string) => ({ type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3, description: what });
 export const CAGE_TOOLS: ToolDefinition[] = [
   { name: 'subd_cage', description: 'A SubD feature\'s cage: vertex and face counts, creases, mirror plane, bounds and its validation (poles, n-gons, open edges, non-manifold). Read only.', input_schema: { type: 'object', properties: { index: idx }, required: ['index'], additionalProperties: false } },
-  { name: 'subd_select', description: 'Finds cage indices to pass to the other subd_ tools (changes nothing): faces by outward "normal" (within "within_deg", default 30) and/or a "box" {min, max} on their centres; vertices in a "box"; the edge "loop" or "ring" through an "edge" [a, b]; or the "boundary" (open edges; with "box", those with both ends in it). Indices are of the cage as the node keeps it (the half when mirrored).', input_schema: { type: 'object', properties: { index: idx, what: { type: 'string', enum: ['faces', 'vertices', 'loop', 'ring', 'boundary'] }, normal: v3('faces: the direction they face'), within_deg: { type: 'number' }, box: { type: 'object', description: '{min: [x, y, z], max: [x, y, z]} (either may be left out)' }, edge: { type: 'array', items: { type: 'integer' }, minItems: 2, maxItems: 2 }, limit: { type: 'integer' } }, required: ['index', 'what'], additionalProperties: false } },
+  { name: 'subd_select', description: 'Finds cage indices to pass to the other subd_ tools (changes nothing): faces by outward "normal" (within "withinAngle", default 30) and/or a "box" {min, max} on their centres; vertices in a "box"; the edge "loop" or "ring" through an "edge" [a, b]; or the "boundary" (open edges; with "box", those with both ends in it). Indices are of the cage as the node keeps it (the half when mirrored).', input_schema: { type: 'object', properties: { index: idx, what: { type: 'string', enum: ['faces', 'vertices', 'loop', 'ring', 'boundary'] }, normal: v3('faces: the direction they face'), withinAngle: { type: 'number' }, box: { type: 'object', description: '{min: [x, y, z], max: [x, y, z]} (either may be left out)' }, edge: { type: 'array', items: { type: 'integer' }, minItems: 2, maxItems: 2 }, limit: { type: 'integer' } }, required: ['index', 'what'], additionalProperties: false } },
   { name: 'subd_move', description: 'Moves cage vertices (or those of the given edges or faces) by "delta" mm. Faces and creases stay: a value edit of the feature (applies directly at autonomy L2). On a mirrored cage the plane\'s vertices stay on the plane.', input_schema: { type: 'object', properties: { index: idx, vertices: ints('vertex indices'), edges: pairs('edges [a, b]'), faces: ints('face indices'), delta: v3('[dx, dy, dz] mm') }, required: ['index', 'delta'], additionalProperties: false } },
   { name: 'subd_extrude', description: 'Extrudes cage "faces" as one region (side quads round it) by "offset" [dx, dy, dz] or "distance" along their mean normal; or pulls open boundary "edges" out by "offset". Changes topology (a proposal at L2). The result names the new faces or edges.', input_schema: { type: 'object', properties: { index: idx, faces: ints('face indices'), edges: pairs('open edges [a, b]'), offset: v3('[dx, dy, dz] mm'), distance: { type: 'number', description: 'mm along the faces\' mean normal' } }, required: ['index'], additionalProperties: false } },
   { name: 'subd_insert_loop', description: 'Inserts an edge loop across the ring of faces through "edge" [a, b], at "t" along each ring edge from the side of a (default 0.5, the middle; near 0 or 1 a holding loop that tightens the rounding there). Changes topology.', input_schema: { type: 'object', properties: { index: idx, edge: { type: 'array', items: { type: 'integer' }, minItems: 2, maxItems: 2 }, t: { type: 'number', description: 'fraction along the edge from a, between 0 and 1' } }, required: ['index', 'edge'], additionalProperties: false } },

@@ -9,15 +9,17 @@
 import { symmetricEigen3 } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import { materialIdOf } from '../app/bodies';
-import { materialOf } from '../app/materials';
-import { rotationMatrix } from '../assembly/mates';
+import { lookOf, materialIdOf } from '../app/bodies';
+import { MATERIALS_DATA, materialData, materialOf, type WebSource } from '../library/materials';
+import { rotationMatrix } from '../engine/placement';
 import type { JointTree } from './joints';
+import { KERNEL_DENSITY } from '../app/mass';
 
-/** The kernel's mass and inertia are for aluminium (g/cm³). */
-const KERNEL_DENSITY = 2.7;
-export type Mat3 = [number, number, number, number, number, number, number, number, number];
-export type V3 = [number, number, number];
+// (The one Mat3, engine/placement's: 9 numbers, row-major, its columns the frame's axes.)
+import type { Mat3 } from '../engine/placement';
+export type { Mat3 };
+// (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
+export type V3 = import('../engine/vec3').Vec3;
 export interface Frame { /** Origin, in the part's coordinates (mm). */ origin: V3; /** Axes as columns, in the part's coordinates. */ R: Mat3 }
 export type InertiaCode = 'NO_BODY' | 'NO_VOLUME' | 'NOT_SPD' | 'TRIANGLE' | 'MATERIAL_ASSUMED';
 export interface LinkInertia {
@@ -31,7 +33,19 @@ export interface LinkInertia {
   principal: { moments: V3; axes: Mat3 };
   frame: Frame;
   /** The bodies counted, each with its material and whether that was assumed. */
-  bodies: { key: string; material: string; assumed: boolean; massKg: number }[];
+  bodies: {
+    key: string; material: string; assumed: boolean; massKg: number;
+    /** Calculation-time catalogue inputs for mass, not measured or native-inertia provenance. */
+    materialSnapshot?: {
+      bodyMaterialId: string | null; inputMaterialId: string | null; resolvedMaterialId: string;
+      fallback: 'none' | 'unset' | 'unknown-id'; densityGPerCm3: number; catalogueDensityGPerCm3: number | null;
+      /** Catalogue declarations, not a guarantee of agreement with runtime-used density or authenticity. */
+      libraryVersion: string;
+      densitySourceId: string | null; densitySourceText: string | null; densityPage?: WebSource;
+      rowEstimate: boolean | null; basis: 'builtin-catalogue-not-measured';
+    };
+    inertiaSource?: 'mmgs-density-scaled' | 'callback-override';
+  }[];
   issues: { code: InertiaCode; message: string }[];
 }
 
@@ -44,16 +58,36 @@ const crossV = (a: V3, b: V3): V3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a
 export const rotateInertia = (I: Mat3, R: Mat3): Mat3 => mul(mul(transpose(R), I), R);
 
 /** One body's mass (kg), centre (mm, part coordinates) and inertia about it (kg·m²) at its own material's density. */
-function bodyMass(doc: StudioDoc, b: BodyResult): { m: number; c: V3; I: Mat3; material: string; assumed: boolean } | null {
-  if (b.volumeMM3 === null || !b.centroid || !b.inertia) return null;
-  const id = materialIdOf(doc, b), mat = materialOf(id), k = mat.gPerCm3 / KERNEL_DENSITY;
-  return { m: b.volumeMM3 * mat.gPerCm3 * 1e-6, c: b.centroid, I: b.inertia.flat().map(x => x * k) as Mat3, material: mat.label, assumed: !id };
+function bodyMass(doc: StudioDoc, b: BodyResult): {
+  m: number; c: V3; I: Mat3; material: string; assumed: boolean;
+  materialSnapshot: NonNullable<LinkInertia['bodies'][number]['materialSnapshot']>;
+  inertiaSource: NonNullable<LinkInertia['bodies'][number]['inertiaSource']>;
+} | null {
+  if (b.volume === null || !b.centroid || !b.inertia) return null;
+  const id = materialIdOf(doc, b), mat = materialOf(id), density = mat.density, k = density / KERNEL_DENSITY;
+  const row = materialData(mat.id), densitySourceId = row?.sources.density ?? null, page = row?.pages?.density, catalogueDensity = row?.density;
+  const materialSnapshot: NonNullable<LinkInertia['bodies'][number]['materialSnapshot']> = {
+    bodyMaterialId: lookOf(doc, b).material ?? null, inputMaterialId: id ?? null, resolvedMaterialId: mat.id,
+    fallback: id === undefined ? 'unset' : id === mat.id ? 'none' : 'unknown-id',
+    densityGPerCm3: density,
+    catalogueDensityGPerCm3: typeof catalogueDensity === 'number' && Number.isFinite(catalogueDensity) ? catalogueDensity : null,
+    // Version, source ID/text/page and row estimate are catalogue declarations, not runtime-density agreement or authenticity evidence.
+    libraryVersion: MATERIALS_DATA.libraryVersion,
+    densitySourceId, densitySourceText: densitySourceId === null ? null : MATERIALS_DATA.sources[densitySourceId] ?? null,
+    ...(page ? { densityPage: { ...page } } : {}), rowEstimate: row?.estimate ?? null,
+    basis: 'builtin-catalogue-not-measured',
+  };
+  // (Mass in kg as V · ρ · 1e-6, inertia in kg·m² as I · k · 1e-9 from g·mm²: its own units and order, so not app/mass's bodyMass.)
+  return { m: b.volume * density * 1e-6, c: b.centroid, I: b.inertia.flat().map(x => x * k * 1e-9) as Mat3, material: mat.label, assumed: !id, materialSnapshot, inertiaSource: 'mmgs-density-scaled' };
 }
 
 /** A part's bodies combined (parallel axis), then in the frame: mass, centre, inertia, principal axes, the checks. */
-export function linkInertia(link: string, part: string | null, doc: StudioDoc | null, bodies: readonly BodyResult[], frame: Frame): LinkInertia {
+export function linkInertia(link: string, part: string | null, doc: StudioDoc | null, bodies: readonly BodyResult[], frame: Frame, bodyInertia?: (body: BodyResult) => Mat3 | undefined): LinkInertia {
   const issues: LinkInertia['issues'] = [], counted: LinkInertia['bodies'] = [];
-  const parts = doc ? bodies.map(b => ({ b, mass: bodyMass(doc, b) })) : [];
+  const parts = doc ? bodies.map(b => {
+    const mass = bodyMass(doc, b), native = mass && bodyInertia?.(b);
+    return { b, mass: mass && native ? { ...mass, I: native, inertiaSource: 'callback-override' as const } : mass };
+  }) : [];
   for (const { b, mass } of parts) if (!mass) issues.push({ code: 'NO_VOLUME', message: `${b.key} has no closed volume: its mass is not counted.` });
   const ok = parts.filter((p): p is { b: BodyResult; mass: NonNullable<ReturnType<typeof bodyMass>> } => !!p.mass);
   const M = ok.reduce((s, p) => s + p.mass.m, 0);
@@ -67,7 +101,7 @@ export function linkInertia(link: string, part: string | null, doc: StudioDoc | 
   for (const { b, mass } of ok) {
     const d = [0, 1, 2].map(k => (mass.c[k] - c[k]) / 1000), dd = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
     for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) I[i * 3 + j] += mass.I[i * 3 + j] + mass.m * ((i === j ? dd : 0) - d[i] * d[j]);
-    counted.push({ key: b.key, material: mass.material, assumed: mass.assumed, massKg: mass.m });
+    counted.push({ key: b.key, material: mass.material, assumed: mass.assumed, massKg: mass.m, materialSnapshot: mass.materialSnapshot, inertiaSource: mass.inertiaSource });
     if (mass.assumed) issues.push({ code: 'MATERIAL_ASSUMED', message: `${b.key} has no material set: ${mass.material} assumed.` });
   }
   const IL = rotateInertia(symmetrize(I), frame.R), com = applyM(transpose(frame.R), [c[0] - frame.origin[0], c[1] - frame.origin[1], c[2] - frame.origin[2]]).map(x => x / 1000) as V3;

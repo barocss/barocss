@@ -1,0 +1,163 @@
+{
+  "id": "fuzz-20261023-56",
+  "about": "L4 fuzz case (seed 20261023, case 56), KNOWN-CRESCENT (D195): a box less an upright cylinder tangent inside two of its sides. The prismatic route builds one body touching itself along the tangent lines (two coincident line edges each), as prismatic-solid.test pins its crescents; RB counts its four-times-used mesh edges KNOWN, not INVALID. Building it exactly (a non-manifold edge, or a split) is a later item.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            8,
+            3
+          ]
+        },
+        {
+          "id": "n1b",
+          "kind": "extrude",
+          "sketch": "n1s",
+          "height": 8
+        },
+        {
+          "id": "n1r0",
+          "kind": "rotate",
+          "target": "n1b",
+          "axis": "y",
+          "angle": 180,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n1r1",
+          "kind": "rotate",
+          "target": "n1r0",
+          "axis": "x",
+          "angle": 180,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1r1",
+          "offset": [
+            0,
+            0,
+            -2
+          ]
+        },
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 2
+        },
+        {
+          "id": "n2b",
+          "kind": "extrude",
+          "sketch": "n2s",
+          "height": 4
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2b",
+          "offset": [
+            -2,
+            -2,
+            1
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "difference",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 151.57031250000003,
+          "relTol": 0.000505023399367698,
+          "absTol": 0.07654655446197431
+        },
+        "centroid": {
+          "value": [
+            -4.533229902415403,
+            -1.458128539296935,
+            1.7332268096146248
+          ],
+          "absTol": 0.0009707083367628136
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128\u00b2 lattice at 6 shifts, e 3.83e-2 mm\u00b3, centroid e 4.85e-4 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 56,
+    "status": "INVALID",
+    "tree": {
+      "op": "difference",
+      "a": {
+        "leaf": {
+          "kind": "box",
+          "w": 8,
+          "d": 3,
+          "h": 8,
+          "rot": [
+            {
+              "axis": "y",
+              "deg": 180
+            },
+            {
+              "axis": "x",
+              "deg": 180
+            }
+          ],
+          "move": [
+            0,
+            0,
+            -2
+          ]
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 2,
+          "h": 4,
+          "rot": [],
+          "move": [
+            -2,
+            -2,
+            1
+          ]
+        }
+      }
+    }
+  }
+}

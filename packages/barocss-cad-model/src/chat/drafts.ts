@@ -8,17 +8,19 @@
 import type { Dim, DocPlane, DocUnderlay, LoopSegment, ModelNode, StudioDoc } from '../engine/doc';
 import { withNode } from '../engine/doc';
 import { featureId, nodeIndexOf } from '../engine/ids';
-import { DxfReadError, readDxfSketch, type DxfLoop } from '../sketch/dxfRead';
+import { DXF_READ_CODES, readDxfSketch, type DxfLoop } from '../sketch/dxfRead';
 import type { Underlay } from '../sketch/dxfUnderlay';
+import { r6 } from '../util/round';
+import { nextFreeId } from '../util/ids';
+import type { DraftDim, Draft, DraftSet } from '../engine/schema/drafts';
+import { isRefusal, refusal } from '../engine/refusal';
 
-export type Drive = { kind: 'scale'; nodes: string[]; about: [number, number] } | { kind: 'height'; nodes: string[] } | { kind: 'depth'; nodes: string[] } | { kind: 'hole'; node: string; hole: number; center: [number, number] };
-export interface DraftDim { name: string; label: string; value: number; basis: 'scaled' | 'from-drawing'; confirmed?: { by: 'user'; at: string }; drive: Drive }
-export interface Draft { id: string; from: { image: string } | { drawing: string }; nodes: string[]; dims: DraftDim[]; note?: string; /** A drawing that declares no unit, read as mm (every size ×25.4 off if it was inches): an assumption, shown beside the dimensions. */ unitAssumed?: true }
-export interface DraftSet { version: 1; drafts: Draft[] }
-export class DraftError extends Error { constructor(public code: 'NO_DRAFT' | 'BAD_VALUE' | 'BOUND' | 'GONE', message: string) { super(`[${code}] ${message}`); this.name = 'DraftError'; } }
+export type DraftCode = 'NO_DRAFT' | 'BAD_VALUE' | 'BOUND' | 'GONE';
+/** The codes a draft's confirmation refuses with. */
+export const DRAFT_CODES: readonly DraftCode[] = ['NO_DRAFT', 'BAD_VALUE', 'BOUND', 'GONE'];
 
 export const readDrafts = (raw: unknown): DraftSet => { const r = raw as DraftSet | undefined; return r && r.version === 1 && Array.isArray(r.drafts) ? r : { version: 1, drafts: [] }; };
-const nextDraftId = (set: DraftSet) => { let k = 1; while (set.drafts.some(d => d.id === `F${k}`)) k++; return `F${k}`; };
+const nextDraftId = (set: DraftSet) => nextFreeId('F', new Set(set.drafts.map(d => d.id)));
 /** The drafts whose features are all still in the part (a deleted feature takes its draft with it). */
 export function liveDrafts(doc: StudioDoc): Draft[] {
   return readDrafts(doc.drafts).drafts.filter(d => d.nodes.every(id => nodeIndexOf(doc.nodes, id) >= 0));
@@ -40,7 +42,6 @@ export function withImageDraft(doc: StudioDoc, from: number, image: string, dims
 
 // ——— a drawing as a sketch draft
 const segs = (l: DxfLoop): LoopSegment[] => l.segments.map(s => (s.kind === 'arc' ? { ...s, start: [r6(s.start[0] as number), r6(s.start[1] as number)], center: [r6(s.center[0] as number), r6(s.center[1] as number)] } : { ...s, start: [r6(s.start[0] as number), r6(s.start[1] as number)] }));
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 /** A DXF drawing added to the part as a sketch draft (its regions and holes, in mm, at the sketch plane), with its dimensions from the drawing. */
 export function withDrawingDraft(doc: StudioDoc, text: string, name: string, plane?: DocPlane): { doc: StudioDoc; draft: Draft | null; ignored: Record<string, number>; unit: string; underlay: Underlay } {
   const s = readDxfSketch(text), [outer, ...more] = s.regions;
@@ -61,8 +62,7 @@ export function withDrawingDraft(doc: StudioDoc, text: string, name: string, pla
 function withUnderlay(doc: StudioDoc, u: Underlay, name: string, plane: DocPlane | undefined, draft: string | undefined): StudioDoc {
   if (!u.polylines.length && !u.texts.length) return doc;
   const have = doc.underlays ?? [];
-  let k = have.length + 1; while (have.some(x => x.id === `U${k}`)) k++;
-  const entry: DocUnderlay = { id: `U${k}`, name, ...(plane ? { plane } : {}), ...(draft ? { draft } : {}), polylines: u.polylines.map(l => l.map(p => [r6(p[0]), r6(p[1])] as [number, number])), texts: u.texts.map(t => ({ ...t, at: [r6(t.at[0]), r6(t.at[1])] as [number, number] })), counts: u.counts };
+  const entry: DocUnderlay = { id: nextFreeId('U', new Set(have.map(x => x.id)), have.length + 1), name, ...(plane ? { plane } : {}), ...(draft ? { draft } : {}), polylines: u.polylines.map(l => l.map(p => [r6(p[0]), r6(p[1])] as [number, number])), texts: u.texts.map(t => ({ ...t, at: [r6(t.at[0]), r6(t.at[1])] as [number, number] })), counts: u.counts };
   return { ...doc, underlays: [...have, entry] };
 }
 /** A draft's underlays scaled by k about o with its sketch (O68: the drawing traced over stays the drawing). */
@@ -75,7 +75,7 @@ function scaleUnderlays(doc: StudioDoc, draft: string, k: number, o: [number, nu
 // ——— confirming a dimension: re-driving its features
 const isNum = (d: Dim): d is number => typeof d === 'number';
 function scaleXY(p: [Dim, Dim], k: number, o: [number, number]): [Dim, Dim] {
-  if (!isNum(p[0]) || !isNum(p[1])) throw new DraftError('BOUND', 'a sketch point is bound to a parameter: change the parameter instead');
+  if (!isNum(p[0]) || !isNum(p[1])) throw refusal('BOUND', 'a sketch point is bound to a parameter: change the parameter instead');
   return [r6(o[0] + (p[0] - o[0]) * k), r6(o[1] + (p[1] - o[1]) * k)];
 }
 const scaleLoop = (l: LoopSegment[], k: number, o: [number, number]): LoopSegment[] => l.map(s => (s.kind === 'arc' ? { ...s, start: scaleXY(s.start, k, o), center: scaleXY(s.center, k, o) } : { ...s, start: scaleXY(s.start, k, o) }));
@@ -84,7 +84,7 @@ function scaleSketch(n: ModelNode, k: number, o: [number, number]): ModelNode {
   if (n.kind !== 'sketch') return n;
   const s = { ...n } as Record<string, unknown>;
   if (n.profile === 'rectangle') { s.min = scaleXY(n.min, k, o); s.max = scaleXY(n.max, k, o); }
-  else if (n.profile === 'circle') { if (!isNum(n.radius)) throw new DraftError('BOUND', 'a radius bound to a parameter'); s.center = scaleXY(n.center, k, o); s.radius = r6(n.radius * k); }
+  else if (n.profile === 'circle') { if (!isNum(n.radius)) throw refusal('BOUND', 'a radius bound to a parameter'); s.center = scaleXY(n.center, k, o); s.radius = r6(n.radius * k); }
   else if (n.profile === 'polygon') s.points = n.points.map(p => scaleXY(p, k, o));
   else s.segments = scaleLoop(n.segments, k, o);
   if (n.regions) s.regions = n.regions.map(l => scaleLoop(l, k, o));
@@ -98,17 +98,21 @@ function scaleSketch(n: ModelNode, k: number, o: [number, number]): ModelNode {
  */
 export function confirmDimension(doc: StudioDoc, key: string, value: number | undefined, at: string): StudioDoc {
   const [draftId, name] = key.split('.'), set = readDrafts(doc.drafts), draft = set.drafts.find(d => d.id === draftId), dim = draft?.dims.find(x => x.name === name);
-  if (!draft || !dim) throw new DraftError('NO_DRAFT', `no draft dimension ${key}; ${unconfirmed(doc).map(u => u.key).join(', ') || 'none is open'}`);
-  if (!draft.nodes.every(id => nodeIndexOf(doc.nodes, id) >= 0)) throw new DraftError('GONE', `${key}'s features are no longer in the part`);
+  if (!draft || !dim) throw refusal('NO_DRAFT', `no draft dimension ${key}; ${unconfirmed(doc).map(u => u.key).join(', ') || 'none is open'}`);
+  if (!draft.nodes.every(id => nodeIndexOf(doc.nodes, id) >= 0)) throw refusal('GONE', `${key}'s features are no longer in the part`);
   const v = value ?? dim.value;
-  if (!(typeof v === 'number' && Number.isFinite(v) && v > 0)) throw new DraftError('BAD_VALUE', `${key} is a size above 0 mm`);
+  if (!(typeof v === 'number' && Number.isFinite(v) && v > 0)) throw refusal('BAD_VALUE', `${key} is a size above 0 mm`);
   const k = v / dim.value, nodes = doc.nodes.slice(), idx = (id: string) => nodeIndexOf(nodes, id);
   if (Math.abs(k - 1) > 1e-12) {
     const d = dim.drive;
     if (d.kind === 'scale') for (const id of d.nodes) nodes[idx(id)] = scaleSketch(nodes[idx(id)], k, d.about);
-    else if (d.kind === 'height') for (const id of d.nodes) { const n = nodes[idx(id)] as ModelNode & { height: Dim }; if (!isNum(n.height)) throw new DraftError('BOUND', 'the height is bound to a parameter'); nodes[idx(id)] = { ...n, height: r6(v) } as ModelNode; }
-    else if (d.kind === 'depth') for (const id of d.nodes) { const n = nodes[idx(id)] as ModelNode & { sections: { sketch: number; z: number }[] }; nodes[idx(id)] = { ...n, sections: n.sections.map(sc => ({ ...sc, z: r6(sc.z * k) })) } as ModelNode; }
-    else { const n = nodes[idx(d.node)] as ModelNode & { holes?: LoopSegment[][] }; if (!n.holes?.[d.hole]) throw new DraftError('GONE', `${key}'s hole is gone`); nodes[idx(d.node)] = { ...n, holes: n.holes.map((h, i) => (i === d.hole ? scaleLoop(h, k, d.center) : h)) } as ModelNode; }
+    else if (d.kind === 'height') for (const id of d.nodes) { const n = nodes[idx(id)] as ModelNode & { height: Dim }; if (!isNum(n.height)) throw refusal('BOUND', 'the height is bound to a parameter'); nodes[idx(id)] = { ...n, height: r6(v) } as ModelNode; }
+    else if (d.kind === 'depth') for (const id of d.nodes) {
+      const n = nodes[idx(id)] as ModelNode & { sections: { sketch: number; z: number }[] };
+      if (Object.hasOwn(n, 'guide') || n.sections.some(sc => Object.hasOwn(sc, 'frame'))) throw refusal('BOUND', 'a guided or framed loft depth cannot be scaled: edit its explicit frames and guide instead');
+      nodes[idx(id)] = { ...n, sections: n.sections.map(sc => ({ ...sc, z: r6(sc.z * k) })) } as ModelNode;
+    }
+    else { const n = nodes[idx(d.node)] as ModelNode & { holes?: LoopSegment[][] }; if (!n.holes?.[d.hole]) throw refusal('GONE', `${key}'s hole is gone`); nodes[idx(d.node)] = { ...n, holes: n.holes.map((h, i) => (i === d.hole ? scaleLoop(h, k, d.center) : h)) } as ModelNode; }
   }
   // (What the change moves: a scale moves every size of its sketches; a hole's diameter, only itself.)
   const moved = (x: DraftDim) => x !== dim && Math.abs(k - 1) > 1e-12 && dim.drive.kind === 'scale' && (x.drive.kind === 'scale' || x.drive.kind === 'hole') && (x.drive.kind === 'scale' ? x.drive.nodes.some(id => (dim.drive as { nodes: string[] }).nodes.includes(id)) : (dim.drive as { nodes: string[] }).nodes.includes(x.drive.node));
@@ -121,7 +125,7 @@ export function confirmDimension(doc: StudioDoc, key: string, value: number | un
 export function draftsReport(doc: StudioDoc) {
   const open = unconfirmed(doc);
   return {
-    drafts: liveDrafts(doc).map(d => ({ id: d.id, from: d.from, features: d.nodes, ...(d.note ? { note: d.note } : {}), dims: d.dims.map(x => ({ key: `${d.id}.${x.name}`, label: x.label, value_mm: x.value, basis: x.basis, confirmed: !!x.confirmed })) })),
+    drafts: liveDrafts(doc).map(d => ({ id: d.id, from: d.from, features: d.nodes, ...(d.note ? { note: d.note } : {}), dims: d.dims.map(x => ({ key: `${d.id}.${x.name}`, label: x.label, value: x.value, basis: x.basis, confirmed: !!x.confirmed })) })),
     unconfirmed: open.map(u => u.key),
     assumptions: unitAssumptions(doc),
     note: open.length ? `a draft: ${open.length} dimension${open.length === 1 ? '' : 's'} not confirmed by the user — ask about the ones that matter (ask_user, blocks {dimension}), or say they are assumed` : 'every draft dimension is confirmed',
@@ -158,6 +162,6 @@ export function runDraftTool(doc: StudioDoc, name: string, args: Record<string, 
     const r = withDrawingDraft(doc, args.dxf, typeof args.name === 'string' && args.name ? args.name : 'drawing', plane);
     const shown = Object.keys(r.underlay.counts).length ? { underlay: r.underlay.counts } : {}, left = { ...r.ignored, ...Object.fromEntries(Object.entries(r.underlay.left).map(([t, x]) => [t, x.count])) };
     if (!r.draft) return { doc: r.doc, content: { ok: true, draft: null, unit: r.unit, ...shown, note: 'no closed profile: the drawing is an underlay to trace over (its splines, ellipses, blocks and text), not geometry', ...(Object.keys(left).length ? { left_out: left } : {}) }, changed: true, summary: `drawing as an underlay (${Object.entries(r.underlay.counts).map(([t, n]) => `${n} ${t}`).join(', ')})` };
-    return { doc: r.doc, content: { ok: true, draft: r.draft.id, feature: r.draft.nodes[0], unit: r.unit, dims: r.draft.dims.map(x => ({ key: `${r.draft!.id}.${x.name}`, value_mm: x.value })), ...shown, ...(Object.keys(left).length ? { left_out: left } : {}) }, changed: true, summary: `drawing ${r.draft.id}: ${r.draft.dims.length} dimensions to confirm` };
-  } catch (e) { if (e instanceof DxfReadError) return { error: e.message }; throw e; }
+    return { doc: r.doc, content: { ok: true, draft: r.draft.id, feature: r.draft.nodes[0], unit: r.unit, dims: r.draft.dims.map(x => ({ key: `${r.draft!.id}.${x.name}`, value: x.value })), ...shown, ...(Object.keys(left).length ? { left_out: left } : {}) }, changed: true, summary: `drawing ${r.draft.id}: ${r.draft.dims.length} dimensions to confirm` };
+  } catch (e) { if (isRefusal(e, ...DXF_READ_CODES)) return { error: e.message }; throw e; }
 }

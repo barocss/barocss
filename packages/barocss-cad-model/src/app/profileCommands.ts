@@ -4,13 +4,15 @@
 // that body by default; Operation can make a new body or cut it instead.
 import { withNode, type BodyRef, type ModelNode, type SketchNode, type StudioDoc } from '../engine/doc';
 import { toLocal, toWorld } from '../sketch/plane';
-import { loftSections, pickedSketches, planeOf, profileMiddle } from './profiles';
+import { framedLoftSections, loftSections, pickedSketches, planeOf, profileMiddle } from './profiles';
+import { copyLoftGuide } from './loftGuides';
 import { faceProfile } from './faceProfile';
 import { directNow } from '../engine/directModule';
 import type { Command, Ctx, Field, Values } from './commands';
 
 // (Only types from commands.ts: it lists these commands, so a value import would be a cycle.)
 import { refOf } from './bodyRef';
+import { refusal } from '../engine/refusal';
 
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
 /** The sketch a single-profile command works on, or why there is none. */
@@ -99,7 +101,7 @@ export const offsetFaceCommand: Command = {
   defaults: () => ({ d: 2 }),
   steps: (_ctx, v) => [{ label: 'Move', text: Number(v.d) > 0 ? `${v.d} mm out (material added)` : Number(v.d) < 0 ? `${-Number(v.d)} mm in (material taken off)` : 'give it a distance (out +, in −)', done: Number(v.d) !== 0 }],
   build: (ctx, v) => {
-    const d = Number(v.d); if (!d) throw new Error('Give the face a distance to move: out (+) or in (−).');
+    const d = Number(v.d); if (!d) throw refusal('FACE_DISTANCE', 'Give the face a distance to move: out (+) or in (−).');
     return extrudeCommand.build!(ctx, { h: Math.abs(d), draft: 0, op: d > 0 ? 'join' : 'cut', depth: 'distance' });
   },
   handles: ctx => {
@@ -139,7 +141,7 @@ export const revolveCommand: Command = {
   },
   build: (ctx, v) => {
     const p = oneProfile(ctx)!, ax = revolveAxis(v);
-    const node: ModelNode = v.axis === 'edge' ? { kind: 'revolve', sketch: p.index, axis: 'x', origin: ax.o, dir: ax.d, angleDegrees: Number(v.deg) } : { kind: 'revolve', sketch: p.index, axis: v.axis === 'x' ? 'x' : 'y', angleDegrees: Number(v.deg) };
+    const node: ModelNode = v.axis === 'edge' ? { kind: 'revolve', sketch: p.index, axis: 'x', origin: ax.o, dir: ax.d, angle: Number(v.deg) } : { kind: 'revolve', sketch: p.index, axis: v.axis === 'x' ? 'x' : 'y', angle: Number(v.deg) };
     return combine(withNode(ctx.doc, node), baseOf(ctx, p.node)?.ref ?? null, v.op);
   },
   // The angle: an arc about the axis, from the profile's middle.
@@ -159,13 +161,13 @@ export const pipeCommand: Command = {
   hint: 'Carry a finished sketch along a run, a bend and a run',
   available: needProfile,
   fields: ctx => { const p = oneProfile(ctx); return [{ key: 'h', label: 'Run', kind: 'mm', min: 0.1 }, { key: 'bend', label: 'Bend radius', kind: 'mm', min: 0.1 },
-    { key: 'bendDeg', label: 'Bend angle', kind: 'deg', min: 1, max: 270, step: 15 },
+    { key: 'bendAngle', label: 'Bend angle', kind: 'deg', min: 1, max: 270, step: 15 },
     { key: 'toward', label: 'Bends toward', kind: 'choice', options: [{ value: 'x', label: '+X' }, { value: '-x', label: '−X' }, { value: 'y', label: '+Y' }, { value: '-y', label: '−Y' }] },
     ...opFields(!!(p && baseOf(ctx, p.node)))]; },
-  defaults: ctx => { const p = oneProfile(ctx); return { h: 8, bend: 20, bendDeg: 90, toward: 'x', ...(p && baseOf(ctx, p.node) ? { op: 'join' } : {}) }; },
+  defaults: ctx => { const p = oneProfile(ctx); return { h: 8, bend: 20, bendAngle: 90, toward: 'x', ...(p && baseOf(ctx, p.node) ? { op: 'join' } : {}) }; },
   build: (ctx, v) => {
     const p = oneProfile(ctx)!, run = Number(v.h);
-    return combine(withNode(ctx.doc, { kind: 'sweep', sketch: p.index, path: [{ kind: 'straight', length: run }, { kind: 'bend', radius: Number(v.bend), angleDegrees: Number(v.bendDeg), toward: v.toward as 'x' }, { kind: 'straight', length: run }] }), baseOf(ctx, p.node)?.ref ?? null, v.op);
+    return combine(withNode(ctx.doc, { kind: 'sweep', sketch: p.index, path: [{ kind: 'straight', length: run }, { kind: 'bend', radius: Number(v.bend), angle: Number(v.bendAngle), toward: v.toward as 'x' }, { kind: 'straight', length: run }] }), baseOf(ctx, p.node)?.ref ?? null, v.op);
   },
 };
 
@@ -173,11 +175,39 @@ export const loftCommand: Command = {
   id: 'loft', label: 'Loft', icon: 'cad-loft', group: 'create', keywords: 'taper transition blend sections ruled',
   hint: 'A solid through two or more sketches on parallel planes (Shift-click to pick them)',
   available: ctx => { const picked = ctx.selection.sketches ?? []; if (picked.length < 2) return no('Pick two or more finished sketches on parallel planes (Shift-click).'); const s = loftSections(ctx.doc.nodes, picked); return 'error' in s ? no(s.error) : ok; },
-  fields: () => [{ key: 'smooth', label: 'Smooth (through the middle sections)', kind: 'choice', options: [{ value: 'no', label: 'Ruled' }, { value: 'yes', label: 'Smooth' }] }],
-  defaults: () => ({ smooth: 'no' }),
+  fields: (ctx, values) => [{ key: 'guide', label: 'Guide (copied)', kind: 'choice', options: [
+    { value: '', label: 'None' },
+    ...(ctx.doc.direct?.objects ?? []).flatMap(object => { const guide = copyLoftGuide(ctx.doc, object.id); return guide.ok ? [{ value: object.id, label: guide.name }] : []; }),
+  ], unknown: value => { const guide = copyLoftGuide(ctx.doc, value); return guide.ok ? 'Choose an available guide or None.' : guide.reason; } },
+  ...(!values?.guide ? [{ key: 'smooth', label: 'Smooth (through the middle sections)', kind: 'choice' as const, options: [{ value: 'no', label: 'Ruled' }, { value: 'yes', label: 'Smooth' }] }] : [])],
+  defaults: () => ({ smooth: 'no', guide: '' }),
+  steps: (ctx, values) => {
+    if (values.guide !== undefined && values.guide !== '') {
+      const guide = typeof values.guide === 'string' ? copyLoftGuide(ctx.doc, values.guide) : { ok: false as const, reason: 'Choose an available guide or None.' };
+      const sections = framedLoftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);
+      return [
+        { label: 'Sections', text: 'error' in sections ? sections.error : sections.sections.map(section => `Sketch ${section.source + 1}`).join(' → ') + ' (picked order)', done: !('error' in sections) },
+        { label: 'Guide', text: guide.ok ? `${guide.name}. Copied world-mm values; later curve edits do not update this loft.` : guide.reason, done: guide.ok },
+      ];
+    }
+    return [
+      { label: 'Guide', text: 'None. Use the existing section heights.', done: true },
+      ...(ctx.doc.direct?.objects ?? []).flatMap((object, index) => { const guide = copyLoftGuide(ctx.doc, object.id); return guide.ok ? [] : [{ label: `Unavailable guide ${index + 1}`, text: `${object.name}: ${guide.reason}`, done: false }]; }),
+    ];
+  },
   build: (ctx, v) => {
+    if (v.guide !== undefined && v.guide !== '') {
+      if (typeof v.guide !== 'string') throw refusal('DIRECT_PICK', 'Choose an available guide or None.');
+      const guide = copyLoftGuide(ctx.doc, v.guide);
+      if (!guide.ok) throw refusal('DIRECT_PICK', guide.reason);
+      const sections = framedLoftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);
+      if ('error' in sections) throw refusal('LOFT_SECTIONS', sections.error);
+      let doc = ctx.doc; const at: number[] = [];
+      for (const section of sections.sections) { doc = withNode(doc, section.node); at.push(doc.nodes.length - 1); }
+      return withNode(doc, { kind: 'loft', sections: sections.sections.map((section, index) => ({ sketch: at[index], frame: section.frame })), from: sections.sections.map(section => section.source), guide: guide.guide });
+    }
     const s = loftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);
-    if ('error' in s) throw new Error(s.error);
+    if ('error' in s) throw refusal('LOFT_SECTIONS', s.error);
     // Each section on the first one's plane (the picked sketches stay as they are, used by the loft).
     let doc = ctx.doc; const at: number[] = [];
     for (const sec of s.sections) { doc = withNode(doc, sec.node); at.push(doc.nodes.length - 1); }
@@ -205,7 +235,7 @@ export const sweepCurveCommand: Command = {
   steps: ctx => { const p = pickedPath(ctx); return typeof p === 'string' ? [] : [{ label: 'Path', text: `along ${p.name} (faceted; a path tighter than the profile folds it)`, done: true }]; },
   build: (ctx, v) => {
     const p = oneProfile(ctx)!, path = pickedPath(ctx);
-    if (typeof path === 'string') throw new Error(path);
+    if (typeof path === 'string') throw refusal('SWEEP_PATH', path);
     return combine(withNode(ctx.doc, { kind: 'sweep-curve', sketch: p.index, name: path.name, path: path.path }), baseOf(ctx, p.node)?.ref ?? null, v.op);
   },
 };

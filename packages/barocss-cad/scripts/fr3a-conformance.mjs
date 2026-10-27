@@ -12,8 +12,8 @@ const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 
   const centroids = [[300, -off(600), 0], [600 + off(400), 200, 0], [300, 400 + off(600), 0], [-off(400), 200, 0]], lengths = [600, 400, 600, 400];
   write('frame-rectangle-mitre', { about: 'FR3a: a 600 × 400 rectangle of sharp 40 × 40 × 3 tubes mitred at every corner: A·L each (a prism cut by planes through the corners), the centroid moved outwards by 2I/(L·A), 45° ends.',
     input: { partDocument: D([{ id: 'f', kind: 'frame', points, segments, section: SHARP, corners: { default: 'mitre' } }]) },
-    expect: { outputs: segments.map(([i, j], k) => ({ volumeMM3: { value: A * lengths[k], relTol: 1e-9 }, centroidMM: { value: centroids[k], absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 1 }],
-      member: { areaMM2: A, lengthMM: lengths[k], centroid: [0, 0], ends: [{ end: 'start', kind: 'mitre', point: i, angleDegrees: 45 }, { end: 'end', kind: 'mitre', point: j, angleDegrees: 45 }], derived: { innerRadius: 'sharp: 0, as the outer corners' }, absTol: 1e-9 } })), stepRoundTrip: { relTol: 1e-9 } },
+    expect: { outputs: segments.map(([i, j], k) => ({ volume: { value: A * lengths[k], relTol: 1e-9 }, centroid: { value: centroids[k], absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 1 }],
+      member: { area: A, length: lengths[k], centroid: [0, 0], ends: [{ end: 'start', kind: 'mitre', point: i, angle: 45 }, { end: 'end', kind: 'mitre', point: j, angle: 45 }], derived: { innerRadius: 'sharp: 0, as the outer corners' }, absTol: 1e-9 } })), stepRoundTrip: { relTol: 1e-9 } },
     oracle: 'Closed forms: across the member at y (towards the inside > 0) it runs from y to L − y, so V = ∫(L − 2y)dA = A·L and ȳ = −2I/(L·A), I = (b⁴ − (b − 2t)⁴)/12; θ = 45°.' });
 }
 { // a butt at 60°: member 0 along +X runs through, member 1 comes in at 60° and ends on its face y = 20
@@ -25,8 +25,8 @@ const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 
   write('frame-butt-60', { about: 'FR3a: two sharp 40 × 40 × 3 tubes meeting at 60°, butted: the through member runs on (b/2)·sin φ, the other ends on its face — (b/2)/sin φ short along its line, its centroid by the cut prism\'s moments.',
     input: { partDocument: D([{ id: 'f', kind: 'frame', points: [[0, 0, 0], P, F], segments: [[0, 1], [2, 1]], section: SHARP, corners: { at: [{ point: 1, kind: 'butt', through: 0 }] } }]) },
     expect: { outputs: [
-      { volumeMM3: { value: A * (400 + run), relTol: 1e-9 }, centroidMM: { value: [(400 + run) / 2, 0, 0], absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 1 }], member: { areaMM2: A, lengthMM: 400, centroid: [0, 0], ends: [{ end: 'start', kind: 'square', point: 0 }, { end: 'end', kind: 'through', point: 1 }], absTol: 1e-9 } },
-      { volumeMM3: { value: V1, relTol: 1e-9 }, centroidMM: { value: c1, absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 1 }], member: { areaMM2: A, lengthMM: L, centroid: [0, 0], ends: [{ end: 'start', kind: 'square', point: 2 }, { end: 'end', kind: 'butt', point: 1, angleDegrees: 30 }], absTol: 1e-9 } },
+      { volume: { value: A * (400 + run), relTol: 1e-9 }, centroid: { value: [(400 + run) / 2, 0, 0], absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 1 }], member: { area: A, length: 400, centroid: [0, 0], ends: [{ end: 'start', kind: 'square', point: 0 }, { end: 'end', kind: 'through', point: 1 }], absTol: 1e-9 } },
+      { volume: { value: V1, relTol: 1e-9 }, centroid: { value: c1, absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 1 }], member: { area: A, length: L, centroid: [0, 0], ends: [{ end: 'start', kind: 'square', point: 2 }, { end: 'end', kind: 'butt', point: 1, angle: 30 }], absTol: 1e-9 } },
     ], stepRoundTrip: { relTol: 1e-9 } },
     oracle: 'Closed forms: the through member A(400 + 20 sin φ), square both ends; the butted one cut by y = 20 — s_end(ξ) = L − 20/sin φ + ξ cot φ — so V = A(L − 20/sin φ), s̄ = (A c0² + cot²φ·I)/(2V), ξ̄ = cot φ·I/V; its cut 90° − φ from square.' });
 }

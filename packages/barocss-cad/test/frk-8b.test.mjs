@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { brepMassProperties, evaluateCadPart, surfaceDomain, evaluateSurface, curveD1Evaluator, curveEvaluator, curveDomain } from '../dist/index.js';
-import { brepQuadratureIntegrals } from '../dist/brep-mass-quadrature.js';
+import { brepMassProperties, evaluateCadPart, surfaceDomain, evaluateSurface, curveD1Evaluator, curveEvaluator, curveDomain, outputOf } from '../dist/index.js';
+import { brepQuadratureIntegrals } from '../dist/brep/brep-mass-quadrature.js';
 import { faceIntegrals } from './d149-oracle.mjs';
 
 // FRk8b (D167): the trimmed-face quadrature's wrong mass on the 16/20 bevel pair at 4° (D152: 39.109 against D149's Green
@@ -77,19 +77,19 @@ test('FRk8b the sphere oracle against closed forms: a sphere\'s cap (πh²(3R �
   const XY = { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] }, R = 20, h = 7;
   const s = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
     { id: 'hs', kind: 'sketch', profile: 'loop', segments: [{ kind: 'arc', start: [0, -R], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, R] }], plane: XY },
-    { id: 'sph', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 },
+    { id: 'sph', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angle: 360 },
     { id: 'bs', kind: 'sketch', profile: 'rectangle', min: [-30, R - h], max: [30, 30], plane: { origin: [0, 0, -30], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'box', kind: 'extrude', sketch: 'bs', height: 60 },
     { id: 'cap', kind: 'intersect', target: 'sph', tool: 'box' }] });
-  const cap = s.output('cap').brep, want = Math.PI * h * h * (3 * R - h) / 3, V = oracleVolume(cap);
+  const cap = outputOf(s, 'cap').brep, want = Math.PI * h * h * (3 * R - h) / 3, V = oracleVolume(cap);
   assert.ok(Math.abs(V - want) <= 1e-10 * want, `the cap: ${V} vs ${want}`);
   // R 20 ∩ a cylinder r 6 at 9 off its axis: ∫∫ over the disk of 2√(R² − x² − y²), x = 9 + 6 sin u (FRk S0's oracle).
   const gl = (f, a, b, n) => { let I = 0; const h = (b - a) / n; for (let i = 0; i < n; i++) for (let k = 0; k < 8; k++) I += GW[k] * h / 2 * f(a + h * i + h / 2 * (GX[k] + 1)); return I; };
   const want2 = gl(u => { const xx = 9 + 6 * Math.sin(u), hw = 6 * Math.cos(u); return 6 * Math.cos(u) * gl(yy => 2 * Math.sqrt(R * R - xx * xx - yy * yy), -hw, hw, 16); }, -Math.PI / 2, Math.PI / 2, 64);
-  const cut = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+  const cut = outputOf(evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
     { id: 'hs', kind: 'sketch', profile: 'loop', segments: [{ kind: 'arc', start: [0, -R], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, R] }], plane: XY },
-    { id: 'sph', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 },
+    { id: 'sph', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angle: 360 },
     { id: 'cs', kind: 'sketch', profile: 'loop', segments: [{ kind: 'arc', start: [15, 0], center: [9, 0], direction: 'ccw' }], plane: { origin: [0, -30, 0], normal: [0, 1, 0], xAxis: [1, 0, 0] } },
-    { id: 'cyl', kind: 'extrude', sketch: 'cs', height: 60 }, { id: 'x', kind: 'intersect', target: 'sph', tool: 'cyl' }] }).output('x').brep;
+    { id: 'cyl', kind: 'extrude', sketch: 'cs', height: 60 }, { id: 'x', kind: 'intersect', target: 'sph', tool: 'cyl' }] }), 'x').brep;
   const V2 = oracleVolume(cut);
   // (The oracles together hold this body to 2e-9: the fitted intersection edges, the cylinder by D149's Green.)
   assert.ok(Math.abs(V2 - want2) <= 1e-8 * want2, `sphere ∩ cylinder: ${V2} vs ${want2}`);
@@ -98,7 +98,7 @@ test('FRk8b the sphere oracle against closed forms: a sphere\'s cap (πh²(3R �
 test('FRk8b the bevel pair\'s mass: within 1e-5 of the oracles (was 1.4 % above them), the same at 8, 16 and 32 segments a quarter (it moved 35.9 → 38.7 → 38.4), no strip dropped', () => {
   const b = JSON.parse(readFileSync(new URL('./fixtures/frk8b-bevel-pair-4deg.brep.json', import.meta.url), 'utf8'));
   assert.deepEqual([b.faces.length, b.bodies.length], [22, 3]);
-  const want = oracleVolume(b), got = brepMassProperties(b, 1).volumeMM3;
+  const want = oracleVolume(b), got = brepMassProperties(b, 1).volume;
   assert.ok(Math.abs(got - want) <= 1e-5 * want, `kernel ${got} vs the oracles' ${want} (rel ${Math.abs(got - want) / want})`);
   const runs = [8, 16, 32].map(k => brepQuadratureIntegrals(b, k)), q = runs.map(r => r.integrals[0]);
   assert.ok(Math.max(...q) - Math.min(...q) <= 1e-5 * want, `by the step: ${q.join(', ')}`);

@@ -206,7 +206,7 @@ function motion(input: unknown, inventory: ViewerGeometryRef[]): ViewerGeometryM
   const poseMap = new Map(poses.map(pose => [pose.targetId, pose]));
   return { basis: 'part-xyz-matches-rhyup', frame, bindings, displayPoses: bindings.map(binding => {
     const pose = poseMap.get(binding.targetId)!;
-    return { ref: binding.ref, translationMm: pose.translation ?? [0,0,0],
+    return { ref: binding.ref, translation: pose.translation ?? [0,0,0],
       rotationXYZW: pose.rotation ?? [0,0,0,1], scale: pose.scale ?? [1,1,1] };
   }) };
 }
@@ -255,7 +255,7 @@ export function prepareViewerNativeSceneAppearance(input: unknown, context: unkn
   check(visibleKeys.size === visible.length && visible.every(ref => inventoryKeys.has(key(ref))), 'Visibility must be a unique admitted subset');
   const appearance = record(envelope.appearance, ['lighting','materials'], 'Appearance');
   record(appearance.lighting, ['ambientStrength','directionalStrength','direction'], 'Lighting');
-  record(display.camera, ['eye','target','up','fovYDegrees','near','far'], 'Explicit camera');
+  record(display.camera, ['eye','target','up','fovY','near','far'], 'Explicit camera');
   const materials: PrimitiveSceneMaterial[] = list(appearance.materials, 0, 4, 'Materials').map(raw => {
     const value = record(raw, ['ref','binding'], 'Surface material'), ref = surfaceRef(value.ref);
     check(visibleKeys.has(key({ kind: 'surface', ...ref })), 'Material target must be a visible candidate Surface');
@@ -265,7 +265,7 @@ export function prepareViewerNativeSceneAppearance(input: unknown, context: unkn
   check(new Set(materials.map(value => JSON.stringify(value.ref))).size === materials.length, 'Duplicate material target');
   const transform = (ref: ViewerGeometryRef) => {
     const pose = geometryMotion?.displayPoses.find(pose => key(pose.ref) === key(ref));
-    return pose ? { transform: { translationMm: pose.translationMm, rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {};
+    return pose ? { transform: { translation: pose.translation, rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {};
   };
   const entries: PrimitiveSceneEntryV2[] = [
     ...surfaces.map((entry, index): PrimitiveSceneEntryV2 => ({ kind: 'surface', ref: { ...entry.ref },

@@ -15,7 +15,7 @@ const esbuild = require('esbuild'), entry = resolve(repo, 'packages/barocss-cad/
 const bundle = await esbuild.build({ absWorkingDir: repo, entryPoints: [entry], bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false, metafile: true });
 assert.equal(bundle.outputFiles.length, 1);
 const inputs = Object.keys(bundle.metafile.inputs).map(path => resolve(repo, path));
-for (const leaf of ['source-line-width-extrusion-graph.ts', 'source-line-width-face.ts', 'convex-planar-face-extrusion.ts', 'closed-exact-patch-shell.ts', 'cad-document.ts']) assert.ok(inputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
+for (const leaf of ['nurbs/source-wide/source-line-width-extrusion-graph.ts', 'nurbs/source-wide/source-line-width-face.ts', 'planar-solids/convex-planar-face-extrusion.ts', 'brep/closed-exact-patch-shell.ts', 'cad-document.ts']) assert.ok(inputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
 assert.ok(!inputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 assert.ok(inputs.filter(path => path.includes('/packages/barocss-cad/')).every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
@@ -323,11 +323,11 @@ saveJSON('atomic-and-cap-scope', { previousStatesSourcesFilesPreserved: true, ge
 
 const packageRoot = resolve(repo, 'packages/barocss-cad'), manifest = JSON.parse(readFileSync(resolve(packageRoot, 'package.json'), 'utf8'));
 const exports = manifest.publishConfig?.exports?.['.'] ?? manifest.exports['.'];
-const runtimePath = resolve(packageRoot, exports.import), declarationPath = resolve(packageRoot, exports.types), leafDeclarationPath = resolve(packageRoot, 'dist/source-line-width-extrusion-graph.d.ts');
+const runtimePath = resolve(packageRoot, exports.import), declarationPath = resolve(packageRoot, exports.types), leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/source-wide/source-line-width-extrusion-graph.d.ts');
 const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.SourceLineWidthExtrusionGraphDiagnosticCode, codes);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./source-line-width-extrusion-graph.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/source-wide/source-line-width-extrusion-graph.js'));
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(readFileSync(leafDeclarationPath, 'utf8').includes(name), name);
 const savedMain = JSON.parse(readFileSync(states[0].path, 'utf8'));
 additionalWork.publicEvaluateCalls++; assert.deepEqual(publicAPI.evaluateSourceLineWidthExtrusionGraph(savedMain.document, savedMain.options), savedMain);
@@ -336,7 +336,7 @@ additionalWork.publicUpdateCalls++; assert.deepEqual(publicAPI.updateSourceLineW
 additionalWork.publicUpdateOwnedCalls++; assert.deepEqual(publicAPI.validateSourceLineWidthExtrusionGraphUpdate(r2), r2.transaction.report);
 additionalWork.publicSerializeCalls++; assert.equal(publicAPI.serializeSourceLineWidthExtrusionGraph(r4.result.document, graphOptions), authored);
 additionalWork.publicParseCalls++; assert.deepEqual(publicAPI.parseSourceLineWidthExtrusionGraph(authored, graphOptions), r4.result);
-const emittedArtifacts = ['index.js', 'index.d.ts', 'source-line-width-extrusion-graph.js', 'source-line-width-extrusion-graph.d.ts'].map(name => { const path = resolve(packageRoot, 'dist', name), bytes = readFileSync(path); return { path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') }; });
+const emittedArtifacts = ['index.js', 'index.d.ts', 'nurbs/source-wide/source-line-width-extrusion-graph.js', 'nurbs/source-wide/source-line-width-extrusion-graph.d.ts'].map(name => { const path = resolve(packageRoot, 'dist', name), bytes = readFileSync(path); return { path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') }; });
 saveJSON('compiled-public-consumer', { runtimePath, declarationPath, leafDeclarationPath, runtimeNames, typeNames, publicNameCount: 16, mainEvaluateOwnedReplay: 1, actualHeightUpdateAndCodecReplay: true, emittedArtifacts });
 retention();
 const summary = { schema: 'barocss-source-line-width-extrusion-graph-demo', version: 0, nativeParent: '3505af21fa1e563e1aec848b4452432baf4cf0f2', sourceOnlyMetafile: true, publicNames: 16, states, transactions, failures, ownedControls, additionalWork, getterCalls, sourceHash: hash(source), authoredHashes: [hash(authored), hash(secondAuthored)], geometryScope: 'native-forward-width-face-and-closed-abstract-shell', solid: false, embedding: false, volumeCertified: false, source2FormulaLowering: false, directNativeSamplers: 0, rationalCampaign: false, lifecycle: 'rev0w5h10/rev1w8/rev2h12/rev3suppress/rev4resume-save-fresh-parse/rev5w6/rev6semantic-noop', extraValidationAndColdWorkIsSeparate: true };

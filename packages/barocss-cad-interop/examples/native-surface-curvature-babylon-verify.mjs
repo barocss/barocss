@@ -83,7 +83,7 @@ assertSame(Array.from(preview.getVerticesData('normal')), Array.from(previewData
 assertSame(Array.from(preview.getIndices()), Array.from(previewData.indices));
 assertSame(Array.from(preview.metadata.barocss.nativeParameters), Array.from(previewData.parameters));
 assert.equal(preview.metadata.barocss.modelName, 'cylinder_r2_input'); assert.equal(preview.metadata.barocss.surfaceId, 'cylinder_r2');
-assert.equal(preview.metadata.barocss.coordinateSystem, 'right-handed-y-up'); assert.equal(preview.renderingGroupId, 0);
+assert.equal(preview.metadata.barocss.coordinateSystem, 'right-handed-z-up'); assert.equal(preview.renderingGroupId, 0);
 assertSame(preview.position.asArray(), [0,0,0]); assertSame(preview.scaling.asArray(), [1,1,1]);
 assertSame(Array.from(preview.computeWorldMatrix(true).asArray()), [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
 assertSame(inspection.result.surfaces[0].packet, neutral.surfaces[0].packet);

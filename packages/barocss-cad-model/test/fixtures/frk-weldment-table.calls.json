@@ -1,0 +1,351 @@
+{
+ "about": "FRk9 acceptance (D183): the FR4b welded table frame (a mitred 1000 × 600 top of sharp 40 × 40 × 3 tubes, legs 730 under it, lower rails 150 up butted on the legs) made a weldment by the agent in one turn: a clipped gusset (legs 120 and 100, clip 15, 5 thick) at each top corner, a 4 mm cap over each leg's foot, and a 3 mm fillet bead on every butt from weld_list's joints, with the equal-length ownership of the seams two beads share. Sizes are test values (the person's in use).",
+ "calls": [
+  {
+   "tool": "features",
+   "args": {
+    "action": "add",
+    "features": [
+     {
+      "kind": "frame",
+      "points": [
+       [
+        0,
+        0,
+        750
+       ],
+       [
+        1000,
+        0,
+        750
+       ],
+       [
+        1000,
+        600,
+        750
+       ],
+       [
+        0,
+        600,
+        750
+       ],
+       [
+        0,
+        0,
+        730
+       ],
+       [
+        1000,
+        0,
+        730
+       ],
+       [
+        1000,
+        600,
+        730
+       ],
+       [
+        0,
+        600,
+        730
+       ],
+       [
+        0,
+        0,
+        0
+       ],
+       [
+        1000,
+        0,
+        0
+       ],
+       [
+        1000,
+        600,
+        0
+       ],
+       [
+        0,
+        600,
+        0
+       ],
+       [
+        0,
+        0,
+        150
+       ],
+       [
+        1000,
+        0,
+        150
+       ],
+       [
+        1000,
+        600,
+        150
+       ],
+       [
+        0,
+        600,
+        150
+       ]
+      ],
+      "segments": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        8,
+        4
+       ],
+       [
+        9,
+        5
+       ],
+       [
+        10,
+        6
+       ],
+       [
+        11,
+        7
+       ],
+       [
+        12,
+        13
+       ],
+       [
+        13,
+        14
+       ],
+       [
+        14,
+        15
+       ],
+       [
+        15,
+        12
+       ]
+      ],
+      "section": {
+       "kind": "rect-tube",
+       "width": 40,
+       "height": 40,
+       "wall": 3,
+       "outerRadius": 0
+      },
+      "corners": {
+       "default": "mitre",
+       "tee": "butt"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "gusset",
+    "bodies": [
+     "b0_part3",
+     "b0_part0"
+    ],
+    "values": {
+     "l1": 120,
+     "l2": 100,
+     "t": 5,
+     "clip": 15
+    }
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "gusset",
+    "bodies": [
+     "b0_part0",
+     "b0_part1"
+    ],
+    "values": {
+     "l1": 120,
+     "l2": 100,
+     "t": 5,
+     "clip": 15
+    }
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "gusset",
+    "bodies": [
+     "b0_part1",
+     "b0_part2"
+    ],
+    "values": {
+     "l1": 120,
+     "l2": 100,
+     "t": 5,
+     "clip": 15
+    }
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "gusset",
+    "bodies": [
+     "b0_part2",
+     "b0_part3"
+    ],
+    "values": {
+     "l1": 120,
+     "l2": 100,
+     "t": 5,
+     "clip": 15
+    }
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "end-cap",
+    "bodies": [
+     "b0_part4"
+    ],
+    "values": {
+     "end": "start",
+     "fit": "over",
+     "t": 4
+    }
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "end-cap",
+    "bodies": [
+     "b0_part5"
+    ],
+    "values": {
+     "end": "start",
+     "fit": "over",
+     "t": 4
+    }
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "end-cap",
+    "bodies": [
+     "b0_part6"
+    ],
+    "values": {
+     "end": "start",
+     "fit": "over",
+     "t": 4
+    }
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "end-cap",
+    "bodies": [
+     "b0_part7"
+    ],
+    "values": {
+     "end": "start",
+     "fit": "over",
+     "t": 4
+    }
+   }
+  },
+  {
+   "tool": "query",
+   "args": {
+    "action": "welds"
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "welds",
+    "welds": [
+     {
+      "joint": "b0_part8.start",
+      "kind": "fillet",
+      "size": 3
+     },
+     {
+      "joint": "b0_part8.end",
+      "kind": "fillet",
+      "size": 3
+     },
+     {
+      "joint": "b0_part9.start",
+      "kind": "fillet",
+      "size": 3
+     },
+     {
+      "joint": "b0_part9.end",
+      "kind": "fillet",
+      "size": 3
+     },
+     {
+      "joint": "b0_part10.start",
+      "kind": "fillet",
+      "size": 3
+     },
+     {
+      "joint": "b0_part10.end",
+      "kind": "fillet",
+      "size": 3
+     },
+     {
+      "joint": "b0_part11.start",
+      "kind": "fillet",
+      "size": 3
+     },
+     {
+      "joint": "b0_part11.end",
+      "kind": "fillet",
+      "size": 3
+     }
+    ],
+    "beadOwnership": {
+     "version": 1,
+     "policy": "equal-length"
+    }
+   }
+  },
+  {
+   "tool": "query",
+   "args": {
+    "action": "cutlist"
+   }
+  }
+ ]
+}

@@ -1,0 +1,148 @@
+{
+  "id": "fuzz-20261023-92",
+  "about": "L4 fuzz case (seed 20261023, case 92), shrunk: a box ∪ a cylinder tangent to its side along a line — refused before D204, now two bodies.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            2,
+            3
+          ]
+        },
+        {
+          "id": "n1b",
+          "kind": "extrude",
+          "sketch": "n1s",
+          "height": 4
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1b",
+          "offset": [
+            0,
+            -2,
+            -2
+          ]
+        },
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 2
+        },
+        {
+          "id": "n2b",
+          "kind": "extrude",
+          "sketch": "n2s",
+          "height": 8
+        },
+        {
+          "id": "n2r0",
+          "kind": "rotate",
+          "target": "n2b",
+          "axis": "x",
+          "angle": 180,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2r0",
+          "offset": [
+            -2,
+            -2,
+            3
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "union",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 124.53077316284183,
+          "relTol": 0.00013499313408033855,
+          "absTol": 0.01681079935869973
+        },
+        "centroid": {
+          "value": [
+            -1.421809839132136,
+            -1.7108972741735229,
+            -0.8072771951718786
+          ],
+          "absTol": 0.0008
+        },
+        "bodies": 2
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 512² lattice at 8 shifts, e 8.41e-3 mm³, centroid e 8.77e-5 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 92,
+    "status": "REFUSED",
+    "tree": {
+      "op": "union",
+      "a": {
+        "leaf": {
+          "kind": "box",
+          "w": 2,
+          "d": 3,
+          "h": 4,
+          "rot": [],
+          "move": [
+            0,
+            -2,
+            -2
+          ]
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 2,
+          "h": 8,
+          "rot": [
+            {
+              "axis": "x",
+              "deg": 180
+            }
+          ],
+          "move": [
+            -2,
+            -2,
+            3
+          ]
+        }
+      }
+    }
+  }
+}

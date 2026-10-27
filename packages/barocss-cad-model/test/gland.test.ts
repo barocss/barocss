@@ -13,7 +13,7 @@ import { runTool, type ChatState } from '../src/chat/tools';
 
 const blank: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 const cmd = (id: string) => commands.find(c => c.id === id)!;
-const O1 = { id: '214', dash: '2-214', insideDiameterMM: 24.99, crossSectionMM: 3.53, source: 'O1 (D139)' };
+const O1 = { id: '214', dash: '2-214', insideDiameter: 24.99, crossSection: 3.53, source: 'O1 (D139)' };
 function onFace(doc: StudioDoc, face: string, values: Record<string, string | number> = {}) {
   const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.detail);
   const body = r.bodies.findIndex(b => b.mesh.faces.some(f => f.name === face)), ctx: Ctx = { doc, bodies: r.bodies, selection: { faces: [{ body, face: r.bodies[body].mesh.faces.findIndex(f => f.name === face) }], edges: [], bodies: [] } };
@@ -36,7 +36,7 @@ test('O-ring gland (R12c.5): no rows, no gland; the user\'s row — a piston gla
   const r = evaluateDoc(d1, 2); assert.ok(r.ok, r.ok ? '' : r.error.detail);
   const body = (kind: string) => r.ok ? r.bodies.find(b => b.ref && d1.nodes[b.ref.node].kind === kind)! : null!;
   const gb = body('oring-gland'), notes = gb.notes!.map(n => n.text);
-  assert.ok(Math.abs(gb.volumeMM3! - Math.PI * (15.5 ** 2 * 20 - (15.5 ** 2 - 12.75 ** 2) * 4.7)) < 1e-6, String(gb.volumeMM3));
+  assert.ok(Math.abs(gb.volume! - Math.PI * (15.5 ** 2 * 20 - (15.5 ** 2 - 12.75 ** 2) * 4.7)) < 1e-6, String(gb.volume));
   assert.ok(notes.includes('O-ring gland (piston) for 214: ID 24.99 × CS 3.53 (your row, O1 (D139)); groove Ø25.5 × 4.7, 2.8 deep to the Ø31.1 bore'), JSON.stringify(notes));
   assert.ok(notes.includes('Stretch 2 %, the section 3.5006 stretched; squeeze 20.7 % (20 % stretched); fill 73.1 %'), JSON.stringify(notes));
   assert.ok(gb.notes!.some(n => /^Against squeeze 18–25 %, fill 75–85 %, stretch ≤ 5 % \(estimates: Fictiv/.test(n.text) && n.warning), JSON.stringify(notes));
@@ -49,7 +49,7 @@ test('O-ring gland (R12c.5): no rows, no gland; the user\'s row — a piston gla
 
 test('O-ring gland (R12c.5): a face gland on a plate\'s top about its centre; a gland with no squeeze refused with its title', () => {
   let doc = rectanglePart(80, 80, 10);
-  doc = (editORingRows(doc, [{ ...O1, insideDiameterMM: 29.5 }]) as { doc: StudioDoc }).doc;
+  doc = (editORingRows(doc, [{ ...O1, insideDiameter: 29.5 }]) as { doc: StudioDoc }).doc;
   const top = (() => { const r = evaluateDoc(doc, 1); return r.ok ? r.bodies[0].mesh.faces.find(f => f.name.endsWith('.top'))!.name : ''; })();
   const { doc: d } = onFace(doc, top, { dg: 30, w: 4, h: 2.6 });
   const g = d.nodes[d.nodes.length - 2] as Extract<ModelNode, { kind: 'oring-gland' }>;

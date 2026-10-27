@@ -22,7 +22,7 @@ test('Cam (R12c.6a): the command\'s default — S0\'s cam, a roller on base 20, 
   assert.deepEqual([node.follower, node.motion, node.base, node.roller, node.thickness, node.bore, node.segments], ['roller', undefined, 20, 5, 10, 8, [{ angle: 120, to: 8, law: 'cycloidal' }, { angle: 60 }, { angle: 120, to: 0, law: 'cycloidal' }, { angle: 60 }]]);
   assert.equal(featureLabel(node, 0, doc.nodes), 'Cam for a roller follower, base R20, lift 8');
   const body = r.ok ? r.bodies[0] : null!, notes = body.notes!.map(n => n.text);
-  assert.ok(Math.abs(body.volumeMM3! - 17878.657703) <= 1e-4 * 17878.66, String(body.volumeMM3));
+  assert.ok(Math.abs(body.volume! - 17878.657703) <= 1e-4 * 17878.66, String(body.volume));
   assert.ok(notes.includes('Disc cam for a translating roller follower (r 5, prime circle R 25): base R 20, lift 8 mm'), JSON.stringify(notes));
   assert.ok(notes.includes('Motion: rise to 8 mm over 0–120° (cycloidal), dwell to 180°, return to 0 mm over 180–300° (cycloidal), dwell to 360°'), JSON.stringify(notes));
   assert.ok(notes.some(t => /^Pressure angle at most 14\.8683° at 243\.4°, against 30° \(a rule of thumb, an estimate\)$/.test(t)), JSON.stringify(notes));

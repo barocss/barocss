@@ -1,38 +1,416 @@
-# GPU
+# @barocss/gpu
 
-[Run and edit an actual example](/playground#gpu-scene). Read the [language reference](./language) and [material language](./material-language). Compare the input with [captured result images](./examples).
+The studio's WebGPU viewer, and a small CSS-shaped scene and material language. It depends only on `@barocss/cad`.
 
-`@barocss/gpu` compiles a bounded scene language, prepares display geometry, and draws with one WebGPU viewer (`createViewer`, also at `@barocss/gpu/viewer`). Its manifest version is `0.0.0`.
+This package supplies the low-level canvas renderer. For the `Viewer` SDK class and its review-state API, see
+[`@barocss/viewer`](/packages/viewer/).
 
-Use `showScene(viewer, source)` for a small scene of spheres, boxes and the explicit source1 primitives. Use `viewer.add` for a CAD PreviewPacket or any other triangle or line geometry, and `materialShader`/`bindingShader` to colour it with an authored material. Use the general Engine APIs for CPU geometry, hierarchy, rays, clips and binding preparation. These paths have different inputs and limits, and share one viewer.
+- **Version.** The package is `0.0.0`, experimental and unreleased.
+- **How the studio uses it.** The studio draws with this viewer when the browser has WebGPU. Its WebGL2 fallback is
+  the studio's own renderer, not part of this package (see [WebGPU and WebGL2](#webgpu-and-webgl2)).
+- **In code.** `@barocss/gpu/api` describes a scene as an immutable object: a part's meshes, their materials, lights
+  and a camera view. `show(viewer, scene)` puts it in the viewer below. See [Object API](/packages/api#scenes).
 
-| Task | Start here |
+### Model meshes in a scene
+
+Pass a CAD part's or CAD Model assembly's `meshes()` to `scene().add()`. Use `{ lines: true }` to add
+its display edges. The meshes use the model's Z-up coordinates in mm. `Assembly.meshes()` includes the base
+and visible placed parts; it omits hidden instances. Its keys are `base/<body>` or `<instance id>/<body>`.
+An `explode` value offsets placed meshes for display only; it does not change the assembly's placements or mates.
+
+`Scene.add()` returns a new Scene but shares the supplied geometry arrays. Treat those arrays as read-only.
+A model change does not update an existing Scene or Viewer automatically. Get `meshes()` from the updated part
+or assembly, build a new Scene with the desired settings, and call `show(viewer, newScene)` to display it. The
+show operation clears the Viewer before adding the new meshes and fitting the view.
+
+### Scene geometry input candidate
+
+The API source candidate proposes the following input contract. It has not been validated or integrated
+into the product; this section does not confirm public support.
+
+In this candidate, `Scene.add()` uses the Viewer's CPU geometry validation. Ordinary lines use segment pairs.
+A contour uses `topology: 'lines'`, `contour: true` and triangle positions with normals, without edge ids. Its elements
+contain three vertices or indices. Labels use `topology: 'labels'`; an empty `positions` array and an empty label
+collection are allowed. Label text and world anchors come from `labels`. Empty positions for other topologies are
+refused with `MESH_INVALID`.
+
+The Scene retains the original geometry arrays. Validation does not replace them with prepared buffers or copy their
+contents. Treat these shared arrays as read-only. Before clearing the Viewer or changing its lights or background,
+`show()` applies the same geometry checks to every mesh, including meshes supplied through `new Scene(data)` and
+later changes to shared arrays. A geometry refusal leaves the Viewer untouched. This preflight does not provide
+rollback for material errors, device failures or other presentation errors, or establish browser validation results.
+
+The follow-up source candidate also copies value settings when a Scene is constructed and when its `data` is read:
+lights, background, camera vectors and supported nested material settings. Editing these copied settings does not
+edit the Scene. Geometry arrays stay shared, and Viewer-owned texture and shader resources retain their identity;
+this is not a deep copy of every resource.
+
+Material ids are resolved only from the Scene's own registered material entries. Standard camera names are resolved
+only from the view table's own entries; inherited object properties are not valid names. Invalid light kinds or
+required light vectors give `LIGHT_INVALID`. Invalid camera directions or up vectors give `CAMERA_INVALID`. These
+guards do not validate every light or material property. No performance measurements or runtime validation results
+are established for this candidate.
+
+Camera checks first scale finite, non-zero three-component vectors before normalization, including very large or
+subnormal components. Direct `new Scene(data)` camera settings use the same direction/up alignment threshold,
+projection choices and field-of-view range as `Scene.camera()`: perspective or orthographic, with finite `fovY`
+strictly between 0 and 180 degrees. Direct camera data must supply these fields; the constructor copies its vectors
+as supplied, while `Scene.camera()` stores normalized vectors and supplies its documented defaults.
+
+## The viewer
+
+`@barocss/gpu/viewer` is one WebGPU renderer for a canvas. It:
+
+- owns one device and canvas context;
+- keeps geometry in long-lived buffers;
+- draws on demand, at most one frame per animation frame;
+- follows the canvas's size and pixel ratio;
+- replaces a lost device and uploads the scene again.
+
+```js
+import { createViewer } from '@barocss/gpu/viewer';
+
+const viewer = await createViewer(canvas, { background: { top: '#2e3035', bottom: '#18191b' }, grid: true });
+const box = viewer.add({ positions, normals, indices, faces }, { material: { color: '#c0c4cc', roughness: 0.5 } });
+viewer.add({ positions: edgeSegments, topology: 'lines' }, { material: { color: '#111111', unlit: true, lineWidth: 1.5 } });
+viewer.lights = [{ kind: 'directional', direction: [-0.4, 0.6, -1], castShadow: true }];
+viewer.environment = { ambientOcclusion: { strength: 1 } };
+viewer.fit();
+
+const hit = viewer.raycast(x, y);        // the mesh, triangle, face, instance and point, on the CPU
+const gpuHit = await viewer.pick(x, y);  // the same from the GPU's id and depth targets
+box.outline = '#e8c25a';                 // a selection outline round the visible part
+```
+
+This example is the package README's. It needs a browser with WebGPU, so it isn't one of this site's samples. The
+package's own browser tests drive it in Chrome.
+
+- **Camera.**
+  - Perspective, with an infinite far plane, or orthographic.
+  - Reversed depth, and clip planes fitted to the scene.
+  - `fit()`, and rays from the cursor.
+  - Orbit, pan, and zoom to the point under the cursor; `controls: false` lets you drive the camera yourself.
+- **Materials.**
+  - Metal–roughness, lit by directional, point and spot lights and a hemisphere ambient; or unlit.
+  - Vertex colours, colour maps with mipmaps, transparency drawn back to front, shadow catchers.
+  - Shader materials, below.
+- **Lines.** Screen-space width, segment ids, and `pickLine()`.
+- **The scene.**
+  - Instancing (one draw for many copies) and frustum culling.
+  - Directional, spot and point shadows within the [light limits below](#light-and-shadow-limits).
+  - Ambient occlusion, a gradient or transparent background, and a ground grid.
+  - Contact shadows: `environment.contactShadows: { length?, strength? }` darkens where the depth buffer blocks a short
+    ray toward the first shadow caster among the first four directional lights, in the creases the shadow map is too coarse for.
+  - Bloom: `environment.bloom: { strength?, threshold?, knee? }` adds a glow from pixels above a linear-light threshold
+    before tone mapping. Defaults are strength 0.05, threshold 1 and a soft knee one quarter of the threshold. Set
+    `bloom` to false, omit it, or set strength to 0 to turn it off. A half-resolution prefilter and a downsample/upsample
+    chain spread the highlights; the targets are recreated on resize and released with the viewer.
+  - 4× MSAA, exposure and ACES tone mapping in a linear half-float pipeline.
+  - Clip planes and cap hatching for sections.
+
+### PBR data maps
+
+Triangle materials accept `normalMap`, `roughnessMap` and `metallicMap` through the geometry's UVs, in raster
+rendering and progressive stills. Create these textures with `{ srgb: false }`: they hold linear data, not colour.
+This SDK example assumes an existing `viewer`, triangle `box`, matching `uvs` and RGBA pixel arrays:
+
+```js
+const normalMap = viewer.createTexture({ width, height, data: normalPixels }, { srgb: false });
+const packed = viewer.createTexture({ width, height, data: packedPixels }, { srgb: false });
+box.geometry.setUVs(uvs);
+box.material = {
+  normalMap, normalScale: [1, 1],
+  roughnessMap: packed, roughness: 1,
+  metallicMap: packed, metallic: 1,
+};
+viewer.requestRender();
+```
+
+Normal RGB encodes a tangent-space +Y normal. `normalScale` scales X/Y and defaults to `[1, 1]`; use a negative
+Y scale for the opposite convention. A missing or degenerate UV frame keeps the original surface normal.
+The roughness map's green channel and metallic map's blue channel multiply their material values, so one
+packed texture can serve both roles. Set a map to `null` to remove it.
+
+For a uniform RGBA8 data texture `[255, 128, 64, 255]` created with `{ srgb: false }`, the green and blue
+samples are `128/255` and `64/255`. With material roughness `0.8` and metallic `0.6`, the parameters become:
+
+| Parameter | Calculation | Approximate result |
+| --- | --- | --- |
+| Roughness | `0.8 × (128/255)` | `0.401569` |
+| Metallic | `0.6 × (64/255)` | `0.150588` |
+
+These are parameter calculations before lighting, not final pixel RGB values or captured API results.
+Byte `128` is `128/255`, not exactly `0.5`. Filtering can mix samples from a non-uniform texture.
+
+Data maps require live textures and triangle geometry. They cannot be combined with a scalar-field
+`Mesh.colorMap`. A data map that is not a live `ImageTexture` with `srgb: false` refuses with `TEXTURE_INVALID`.
+A `normalScale` without exactly two finite f32 numbers refuses with `MATERIAL_INVALID`, as do data maps on
+non-triangle geometry or in combination with a scalar-field colour map.
+Disposing an accepted map restores the raster material's unmapped value. An existing frozen still retains its own
+pixels and material snapshot; remove or replace disposed references before creating another still.
+
+### Light and shadow limits
+
+The renderer uses the first lights of each kind in `viewer.lights`, not the first lights with shadows enabled.
+Set `castShadow: true` on a light within that set. `viewer.shadowMapSize` sets each shadow map's resolution.
+Setting `intensity: 0` still uses a light slot and does not disable shadow checks. If its `castShadow` is true,
+a point light still counts toward the one-caster limit. Set `castShadow: false` to disable its shadow.
+
+PCF averages nearby shadow-map comparisons. PCSS searches for blockers and varies the filter radius with blocker
+and receiver depth.
+
+| Light kind | Lights used | Shadow support and softness |
+| --- | --- | --- |
+| Directional | First 4 | Each can cast a shadow. `environment.softShadows` sets their shared angular size in degrees for PCSS. Zero or omission retains the hard, 3×3-filtered edge. |
+| Spot | First 4 | Each can cast a shadow. Zero or omitted `shadowRadius` uses PCF; a positive radius enables bounded PCSS. |
+| Point | First 8 | At most one can cast a shadow, using six 90-degree faces. Zero or omitted `shadowRadius` uses PCF; a positive radius enables bounded PCSS. A second enabled caster causes `LIGHT_INVALID`. |
+
+For an enabled spot shadow, position and direction must be finite f32 vectors, and direction must be nonzero.
+The cone half-angle is in degrees and must be strictly between 0 and 90; the default is 30. Range must be finite
+and nonnegative; zero or omission fits the shadow depth to the scene. `shadowRadius` is a light disk radius in
+scene world units, not degrees or CSS pixels. It must be finite, nonnegative and representable in f32 without
+rounding a positive value to zero. Invalid enabled inputs refuse with `LIGHT_INVALID`.
+
+`penumbra` is a separate 0–1 share of the cone used to fade its lighting edge. It does not set shadow softness.
+Spot PCSS uses bounded blocker-search and filter radii; it approximates a disk light, not an area-light renderer.
+`environment.softShadows` applies to directional shadows, not spot or point shadows.
+
+These SDK settings use the existing spot and point examples. They assume an existing WebGPU viewer and scene;
+the positions, range and radius use that scene's world units, which are not automatically mm.
+
+```js
+// Spot example: source [5, -3, 7], aimed at [0, 0, 0.6].
+viewer.lights = [{ kind: 'spot', position: [5, -3, 7], direction: [-5, 3, -6.4],
+  angle: 30, penumbra: 0.2, shadowRadius: 0.4, range: 18, intensity: 80,
+  castShadow: true }];
+viewer.requestRender();
+
+// Alternative point example: this assignment replaces the light list.
+viewer.lights = [{ kind: 'point', position: [1, -1, 3.5], range: 18,
+  intensity: 100, shadowRadius: 0.25, castShadow: true }];
+viewer.requestRender();
+```
+
+For an enabled point shadow, position must be a finite f32 vector. Both `range` and `shadowRadius` must be
+finite, nonnegative and representable in f32 without rounding a positive value to zero. A positive range keeps the
+spherical lighting cutoff and limits each face's far plane; zero or omission fits the faces to the scene and cap bounds.
+Inputs that cannot form a finite f32 depth projection refuse with `LIGHT_INVALID`. These shadow admission
+checks apply only to enabled casters among the first four spot lights or first eight point lights.
+
+Point PCSS approximates the emitter with a disk perpendicular to each receiver ray. It uses the six shadow faces
+with bounded blocker-search and filter radii. The radius uses the scene's world units. It is not an area-light simulation.
+
+The Viewer checks shadow inputs during creation and before each draw. Direct assignment to `viewer.lights`
+does not run these checks.
+
+### Capture pixels and release the viewer
+
+`viewer.capture()` draws a frame and returns a promise for `{ width, height, data }`. The dimensions are
+`canvas.width` and `canvas.height`: canvas backing pixels, not CSS pixels or model units. `data` is a
+`Uint8Array` of packed RGBA bytes. Rows run from top to bottom; each pixel has four consecutive bytes.
+
+| Returned data | Byte layout |
 | --- | --- |
-| Compile and display a small source scene | [Quickstart](./quickstart) |
-| Convert a native Surface packet into scene units | [CAD mesh guide](./guides#display-a-cad-surface) |
-| Handle edits and resource cleanup | [Update guide](./guides#replace-a-scene-safely) |
-| Choose an exported function or data type | [API](./api) |
-| Find a runnable repository host | [Examples](./examples) |
-| Diagnose refusal or device loss | [Limits and errors](./limits) |
+| One pixel at `(x, y)` | R, G, B, A at offsets `4 * (y * width + x)` through `4 * (y * width + x) + 3` |
+| One row | `width * 4` bytes, with no row padding in the returned array |
+| A 640 × 480 backing image | `640 * 480 * 4 = 1,228,800` bytes |
 
-## Typed generated source
+![Calculated RGBA row layout for a 640 by 480 backing image; this is not an API capture](/diagrams/capture-rows.svg)
 
-Use [Generated scene](./generated-scene) to compile the separate Source2 typed-parameter, finite-repeat and conditional-object profile. Its live example shows transformed diagnostic boxes from selected coefficients. `showScene` shows Source0/1 only; this newer compiler does not add Source2 drawing or a general Engine graphics runtime.
+[Open the byte layout at full size](/diagrams/capture-rows.svg).
 
-## Source, mesh and image
+The renderer removes GPU readback row padding and converts BGRA to RGBA when needed. The result is raw
+pixels, not a PNG file. A caller must encode them to create an image file. Studio's image export adds that
+encoding step with `ImageData` and an `OffscreenCanvas`.
 
-A native CAD model retains authored geometry. A packet contains an approximate sampled mesh. A pose changes display placement. A rendered image contains pixels. Keep these records separate. A visible mesh does not certify a native Solid, and pixels cannot recover editable source.
+| Method | Caller action and result |
+| --- | --- |
+| `requestRender()` | Request a draw after changing public camera or light fields. Built-in scheduling combines requests into one frame. With `onRequestRender`, each request calls that callback instead. |
+| `frame()` | Request a frame and return `Promise<void>` for the frame waiter. It can also resolve after GPU-work failure or disposal; it returns no image bytes. |
+| `capture()` | Draw and read the RGBA bytes; handle its asynchronous failure separately. |
+| `dispose()` | Release the viewer when its canvas is no longer needed. Repeated calls are safe. |
 
-The package's workspace root and `/source` entries both select `src/index.ts`. Use a TypeScript-capable transformer with normal package resolution. The complete `publishConfig` map selects emitted JavaScript and declarations for a separate built-package checkpoint. Local public configuration does not establish an npm release.
+`dispose()` cancels scheduled work, removes controls and resize observation, and releases GPU resources.
+After disposal, `capture()` rejects with `DISPOSED`, while `requestRender()` returns without scheduling work.
+Disposal also releases pending frame waiters; a resolved `frame()` promise alone is not proof of a successful
+capture. Keep the viewer alive until operations that need it have finished.
 
-## Current Engine boundary
+### Progressive still images
 
-The package exposes CPU Engine preparation and query APIs. It does **not** export the general Engine renderer from [#1183](https://github.com/barocss/barocss/issues/1183) or its textured renderer from [#1184](https://github.com/barocss/barocss/issues/1184); draw prepared Engine geometry by adding it to the viewer. The earlier WebGL2 renderers (`mountScene`, `mountMesh` and the other `mount*` scenes and viewports) are removed.
+`viewer.createPathTrace()` creates a separate offscreen still with frozen scene, camera, materials and lighting.
+Later viewer edits do not update it; create another session for the edited scene. Raster controls remain independent.
+Width and height are output backing pixels, independent of the interactive canvas; omission uses the canvas size.
+`bounces` is an integer from 1 to 16 and defaults to 6. This SDK example uses an existing populated WebGPU viewer:
 
-Read the shared [coordinate](../../concepts/coordinates), [ownership](../../concepts/ownership) and [version](../../concepts/versions) contracts before combining packages.
+```js
+const still = await viewer.createPathTrace({ width: 640, height: 480, bounces: 6 });
+try {
+  await still.sample(8);
+  const raw = await still.capture(false);
+  await still.start(samples => {
+    if (samples >= 32) still.stop();
+  });
+  const frame = await still.capture(true);
+  console.log(frame.width, frame.height, frame.samples, frame.data);
+  console.log(raw.samples); // Remains 8 after the later sampling.
+} finally {
+  still.dispose();
+}
+```
 
----
+Each manual `sample()` batch accepts 1–64 samples. Stop progressive sampling before calling it; an active session
+refuses manual sampling with `PATH_TRACE_BUSY`. `start()` resolves after sampling stops; `stop()` ends progressive
+sampling. Sample before capture: capture with no completed samples also refuses with `PATH_TRACE_BUSY`.
 
-Source snapshot: local Git `c79d752cb3463a34e6c93cb64e3693bc493c271f` (the WebGPU viewer; the earlier renderers were removed after `5f5ad866205a21510ac69552e704cc162fa253b5`). `packages/barocss-gpu/package.json` (Manifest; local source), `packages/barocss-gpu/src/index.ts` (public root; local source), `packages/barocss-gpu/README.md` (package README; local source). Source paths identify that fixed local snapshot. Local source is the authority for this manual.
+Unlike raster `viewer.capture()`, `still.capture()` returns `{ width, height, samples, data }`. Its top-to-bottom
+RGBA `Uint8Array` is raw pixels, not PNG data. `capture(false)` skips denoising; `capture(true)` uses geometry-aware
+denoising. `frame.samples` is fixed for those pixels when the queued capture starts. The live `still.samples` can
+advance later, so use `frame.samples` when labelling or exporting the image. Dispose each session when finished.
 
-[Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)
+The still includes visible, bounded triangle surfaces. Active section clips and caps, custom material shaders,
+scalar maps and contours refuse with `PATH_TRACE_UNSUPPORTED`. Lines, labels, overlays and raster shadow catchers
+are not included. Raster effects such as depth of field, bloom, SSAO, contact shadows and outlines do not apply.
+
+### Depth of field
+
+The low-level viewer accepts `environment.depthOfField` as `false` or `{ focus, blur? }`:
+
+```js
+viewer.environment = {
+  ...viewer.environment,
+  depthOfField: { focus: 160, blur: 6 },
+};
+```
+
+`focus` is a positive distance along the camera's view axis in the scene's world units. `blur` is a maximum
+radius in CSS pixels. Omitting `blur` uses 8; positive values are capped at 24. The renderer scales CSS pixels
+by the device pixel ratio. Omitting the effect, setting it to `false`, or using zero blur disables it.
+Non-finite or non-positive focus, and non-finite or non-positive blur, do not enable the effect.
+
+The example assumes an existing WebGPU viewer and its scene units; 160 is not automatically 160 mm.
+Studio stores its focus distance in mm and both its focus and blur values, as described under
+[Focus and blur](/studio/rendering#focus-and-blur). These are image settings, not geometric or physical accuracy bounds.
+
+![View-axis focus depth is 80 mm while eye-to-point distance is 100 mm; blur is a separate CSS-pixel value](/diagrams/focus-distance.svg)
+
+[Open the focus diagram at full size](/diagrams/focus-distance.svg).
+
+This coordinate example uses Studio mm; use the GPU scene's own world unit when applying the same view-axis rule.
+
+## The scene and material language
+
+The Render tab's props and its authored materials are written in this language. It runs on the CPU, so these
+samples run in Node:
+
+<<< @/../samples/gpu.test.mjs#scene
+
+<<< @/../samples/gpu.test.mjs#shader
+
+- **Scenes.**
+  - A scene has exactly one `@scene`, a version, and objects styled by type or id selectors.
+  - It has no classes, inheritance, expressions or scripts.
+  - Anything it doesn't take is refused, with its line and column. Nothing is silently ignored.
+- **Materials.** An `@shader` material declares its uniforms and a fragment colour, and lowers to the WGSL the viewer
+  draws with.
+- **Showing a scene.** `showScene(viewer, source, options?)` returns a `SceneView`. If the first source fails to
+  compile, it throws `SceneViewError` with code `SCENE_VIEW` and its `diagnostics`.
+  `view.meshes` maps object IDs to meshes; `view.result` holds the last successful compile result.
+  `view.update(source)` returns `{ ok: true }` after showing a successfully compiled source. A compile failure
+  returns `{ ok: false, diagnostics }` and keeps the previous displayed scene, meshes and `result`.
+  This preservation applies to compile failure; it does not guarantee recovery from every rendering or GPU error.
+  `view.dispose()` removes its meshes and disposes its cached geometry; calling it again does nothing.
+  It does not dispose the viewer. After disposal, `view.update(source)` throws `SceneViewError` with code `SCENE_VIEW`
+  and a `STATE` diagnostic instead of returning `{ ok: false, diagnostics }`.
+
+The package README is the language's full reference.
+
+## Errors
+
+gpu refuses with its own `BarocssError`, of the same shape as the other packages': a `code`, and a message that starts
+with it in brackets. gpu imports neither cad package, so the class is its own. Each error class is one of these, and
+some codes are shared by several classes, so tell refusals apart by `code`.
+
+- **The viewer's input** is refused with a `ViewerError`:
+
+  | Code | What it refuses |
+  |---|---|
+  | `GEOMETRY_INVALID` | Geometry input: positions, indices, topology counts, normals, faces, edges, UVs, labels, colours and their range, scalar fields |
+  | `INSTANCES_INVALID` | Instance transforms or colours of the wrong length, or instancing a mesh that isn't triangles |
+  | `TRANSFORM_INVALID` | A transform that isn't 16 numbers |
+  | `COLOR_MAP_INVALID` | A colour map with fewer than two stops, or stops that don't rise |
+  | `COLOR_INVALID` | A colour that isn't hex, when a frame is drawn |
+  | `MATERIAL_INVALID` | A shader material with more than 16 parameters, when a frame is drawn |
+  | `CLIP_INVALID` | Too many clip planes, or a plane without a normal or a finite offset |
+  | `TEXTURE_INVALID` | A texture without a size, or data that isn't width × height RGBA |
+  | `SIZE_INVALID` | A backing size under 1 × 1 |
+  | `MATRIX_SINGULAR` | Inverting a matrix that has no inverse |
+
+  When it can't start or draw, it refuses with `WEBGPU_UNAVAILABLE`, `NO_ADAPTER`, `NO_CONTEXT`, `SHADER`,
+  `PIPELINE`, `DEVICE_LOST` or `DISPOSED`.
+- **The package entry's inputs** are refused with a `GpuInputError`, with the same words as before its code. Where it
+  wraps a check, its cause is that check's own error:
+
+  | Code | Entry |
+  |---|---|
+  | `SCENE_INVALID` | `parseScene`, `compileScene` |
+  | `MESH_PACKET_INVALID` | `validatePreviewPacket` |
+  | `MESH_OPTIONS_INVALID` | `validateMeshOptions` |
+  | `MESH_INVALID` | `prepareMesh` |
+  | `CAMERA_INVALID` | `validateMeshCamera`, `prepareCamera` |
+  | `FACE_PREVIEW_INVALID` | `prepareKernelFacePreview`, `resolveKernelFaceReference` |
+  | `PRIMITIVE_FRAME_INVALID` | `preparePrimitiveSceneFrame` |
+  | `BOOLEAN_BUFFERS_INVALID` | `prepareCoplanarBooleanBuffers`, `prepareBooleanShellBuffers` |
+  | `GPU_BVH_DEPTH` | A hierarchy too deep for a GPU analysis (`computeExperimental`) |
+
+- **Compiling the language** doesn't throw: `compileGpu` and `materialShader` return `{ ok: false, diagnostics }`, each
+  diagnostic with its code and where it is.
+- **The object facade's** codes are on [Object API](/packages/api#scenes).
+
+## WebGPU and WebGL2
+
+The studio keeps one interface over two renderers:
+
+- **WebGPU** is this package's viewer, used when the browser has an adapter.
+- **WebGL2** is the studio's own renderer (`apps/cad-studio/src/viewport/renderer.ts`): a multisampled scene pass,
+  screen-space ambient occlusion and an id pass for picking.
+
+Both draw the model, the display modes, sections, overlays and placed parts. The analysis maps and the mould's halves
+draw only with WebGPU; on WebGL2 their buttons are disabled and say why. `?renderer=webgl2` forces WebGL2.
+
+## Compute analyses
+
+`computeExperimental` runs analyses on the GPU:
+
+- **Wall thickness:** for each display triangle, a ray inward from its centre to the next wall. The local thickness is
+  the sphere that fits there.
+- **3-axis access:** from each sample, a ray along each of ±X, ±Y and ±Z, and whether it leaves the part.
+
+Both trace the kernel's triangle hierarchy, packed for WGSL, and each has a CPU mirror. They are for display only: the
+exact values a report uses stay the CPU's. The namespace is experimental and may change without a version bump.
+
+## Frame costs
+
+With `viewer.costs` on, each mesh counts what the last frame cost it:
+
+- its draw calls;
+- the triangles, lines and points they drew;
+- its draws by pass: `shadow`, `surface`, `transparent`, `oit`, `hiddenLines`, `caps` and `outlineMask`.
+
+These are work counts, not times; a frame's CPU time is in its stats. The studio reads them per body and display
+mode, but doesn't show them yet.
+
+### Measured
+
+The studio's heaviest scenes were measured on both renderers: an orbit per display mode, at 1440 × 900 on an Apple
+M-series machine in headless Chrome, with other work running. The scenes ranged from a 38-body assembly and a
+120-bracket pattern to a 114,000-triangle spring.
+
+- **Frame rate.** Every scene held 60 Hz: the frame interval's median was 16.7 ms.
+- **Headroom.**
+  - The main thread's work stayed under about 4 ms a frame.
+  - On WebGPU, the GPU's time stayed under about 5 ms a submit.
+
+  That leaves at least three times the 16.7 ms budget.
+
+The full tables are in `apps/cad-studio/handover/notes/g11-scene-profile.md`. Times depend on the machine. Only the
+counts are the same everywhere.

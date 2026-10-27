@@ -39,8 +39,8 @@ export const RUNG5: Rung = {
     const holes = distinctCylinders(cylindersOf(bodies)).filter(c => Math.abs(c.r - rh) <= 1e-9);
     return [near('volume', volumeOf(bodies), V, 1e-9, true), solids(1, bodies),
       near('flat-length', f ? Math.max(...f.box.max) : null, a + b - B, 1e-9), near('flat-width', f ? Math.min(...f.box.max) : null, w, 1e-9),
-      near('flat-area', f?.areaMM2 ?? null, V / T + (K - 0.5) * T * TH * w, 1e-9, true),
-      holds('bend', !!f && f.bends.length === 1 && f.bends[0].direction === 'down' && Math.abs(f.bends[0].angleDegrees - 90) <= 1e-9 && Math.abs(f.bends[0].radiusMM - R) <= 1e-9, f?.bends.map(x => [x.direction, x.angleDegrees, x.radiusMM]), `one bend down, 90°, R ${R}`),
+      near('flat-area', f?.area ?? null, V / T + (K - 0.5) * T * TH * w, 1e-9, true),
+      holds('bend', !!f && f.bends.length === 1 && f.bends[0].direction === 'down' && Math.abs(f.bends[0].angle - 90) <= 1e-9 && Math.abs(f.bends[0].radius - R) <= 1e-9, f?.bends.map(x => [x.direction, x.angle, x.radius]), `one bend down, 90°, R ${R}`),
       holds('holes', holes.length === 2 && !!f && f.loops.length === 3, { holes: holes.length, loops: f?.loops.length }, `two Ø${2 * rh} holes; the flat's outline and their two loops`)];
   },
   mutants: [
@@ -83,8 +83,8 @@ export const RUNG10: Rung = {
     const placed = [[i, i], [A - i, i], [A - i, B - i], [i, B - i]].every(([x, y]) => holes.some(c => axisDistance(c, [x, y, 0]) <= 1e-9));
     return [near('volume', volumeOf(bodies), V, 1e-9, true), solids(1, bodies),
       near('flat-length', f?.box.max[0] ?? null, A + 2 * (h - BD), 1e-9), near('flat-width', f?.box.max[1] ?? null, B + 2 * (h - BD), 1e-9),
-      near('flat-area', f?.areaMM2 ?? null, V / T + (K - 0.5) * T * TH * (2 * (A + B) - 8 * cs), 1e-9, true),
-      holds('bends', !!f && f.bends.length === 4 && f.bends.every(x => x.direction === 'up' && Math.abs(x.angleDegrees - 90) <= 1e-9), f?.bends.map(x => x.direction), 'four bends up, 90°'),
+      near('flat-area', f?.area ?? null, V / T + (K - 0.5) * T * TH * (2 * (A + B) - 8 * cs), 1e-9, true),
+      holds('bends', !!f && f.bends.length === 4 && f.bends.every(x => x.direction === 'up' && Math.abs(x.angle - 90) <= 1e-9), f?.bends.map(x => x.direction), 'four bends up, 90°'),
       holds('standoff-holes', holes.length === 4 && placed, holes.map(c => c.c.map(v => +v.toFixed(6))), `four Ø${2 * rh} holes ${i} in from the corners`),
       holds('loops', !!f && f.loops.length === 6, f?.loops.length, 'the outline, four holes and the slot')];
   },

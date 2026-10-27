@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as cad from '../dist/index.js';
 import { compileCadModel, exportIGES, evaluateSurface } from '../dist/index.js';
-import { parseCadAst } from '../dist/source-ast.js';
-import { analyzeCadAst } from '../dist/semantic-model.js';
-import { lowerCadIR } from '../dist/lower-model.js';
+import { parseCadAst } from '../dist/language/source-ast.js';
+import { analyzeCadAst } from '../dist/language/semantic-model.js';
+import { lowerCadIR } from '../dist/language/lower-model.js';
 
 const curve = `@curve #arc {
     type: nurbs;

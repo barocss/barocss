@@ -6,11 +6,11 @@
 export const CadNumericPolicy = Object.freeze({
   version: 1 as const,
   /** Modeling coordinate range for authored and stored geometry. */
-  coordinateAbsMM: 10000,
+  coordinateAbs: 10000,
   /** Geometry / interchange coordinate range accepted by math validation (validateCurve, IGES import). */
-  geometryCoordinateAbsMM: 1000000,
+  geometryCoordinateAbs: 1000000,
   /** Absolute linear comparison floor for native geometry bindings. */
-  linearToleranceMM: 1e-7,
+  linearTolerance: 1e-7,
   /**
    * Scale-relative part of the linear tolerance: a 1e-12 parameter bracket on geometry of size S moves
    * points by ~1e-12·S, so comparisons use max(linearToleranceMM, relativeLinearTolerance·S). Equal to the
@@ -46,7 +46,7 @@ export function chartRoundingBoundMM(axisU: readonly number[], domainU: readonly
 
 /** Linear comparison tolerance for geometry whose coordinates reach `scaleMM` (see relativeLinearTolerance). */
 export function linearToleranceMM(scaleMM: number): number {
-  return Math.max(CadNumericPolicy.linearToleranceMM, CadNumericPolicy.relativeLinearTolerance * Math.abs(scaleMM));
+  return Math.max(CadNumericPolicy.linearTolerance, CadNumericPolicy.relativeLinearTolerance * Math.abs(scaleMM));
 }
 /** Largest absolute coordinate over point lists (curve poles, surface poles, …). */
 export function geometryScaleMM(...pointLists: readonly (readonly (readonly number[])[])[]): number {

@@ -1,0 +1,265 @@
+{
+  "id": "fuzz-20261025-99",
+  "about": "L4 fuzz finding (seed 20261025, case 99): INVALID — tessellation: 1 edges not used exactly twice",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                -3.78
+              ]
+            },
+            {
+              "kind": "arc",
+              "start": [
+                0,
+                3.78
+              ],
+              "center": [
+                0,
+                0
+              ],
+              "direction": "cw"
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n1b",
+          "kind": "revolve",
+          "sketch": "n1s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angle": 360
+        },
+        {
+          "id": "n1r0",
+          "kind": "rotate",
+          "target": "n1b",
+          "axis": "y",
+          "angle": 328.805,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1r0",
+          "offset": [
+            1.176,
+            -0.963,
+            0.902
+          ]
+        },
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                1,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                1,
+                2
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                0,
+                2
+              ]
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n2b",
+          "kind": "revolve",
+          "sketch": "n2s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angle": 360
+        },
+        {
+          "id": "n2r0",
+          "kind": "rotate",
+          "target": "n2b",
+          "axis": "x",
+          "angle": 103.362,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n2r1",
+          "kind": "rotate",
+          "target": "n2r0",
+          "axis": "z",
+          "angle": 336.216,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2r1",
+          "offset": [
+            -2.5,
+            1.5,
+            3
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "intersect",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 0.009172589246807075,
+          "relTol": 0.05530207194206956,
+          "absTol": 0.0005072631904219785
+        },
+        "centroid": {
+          "value": [
+            -2.124036904516316,
+            0.11739006380107232,
+            2.338651432067492
+          ],
+          "absTol": 0.008977940473388128
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 2.54e-4 mm³, centroid e 4.49e-3 mm",
+  "fuzz": {
+    "seed": 20261025,
+    "k": 99,
+    "status": "INVALID",
+    "tree": {
+      "op": "intersect",
+      "a": {
+        "leaf": {
+          "kind": "sphere",
+          "r": 3.78,
+          "rot": [
+            {
+              "axis": "y",
+              "deg": 328.805
+            }
+          ],
+          "move": [
+            1.176,
+            -0.963,
+            0.902
+          ]
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "cone",
+          "r1": 1,
+          "r2": 1,
+          "h": 2,
+          "rot": [
+            {
+              "axis": "x",
+              "deg": 103.362
+            },
+            {
+              "axis": "z",
+              "deg": 336.216
+            }
+          ],
+          "move": [
+            -2.5,
+            1.5,
+            3
+          ]
+        }
+      }
+    }
+  }
+}

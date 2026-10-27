@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import type { Mate } from '../src/assembly/mates';
-import { solveDoc } from '../src/chat/assembly';
+import { solveDoc } from '../src/assembly/edit';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { treeOfDoc } from '../src/chat/robot';
 import { coordinates, linkBodies, massMatrix, rnea, type LinkBody } from '../src/robot/dynamics';
@@ -155,7 +155,7 @@ function assertSourced(x: Value, what: string) {
 
 test('the size_actuators tool; refusals (a value with no source, an unknown unit, a slide); the conformance case (rm/size-1r: the closed forms)', async () => {
   const doc = JSON.parse(readFileSync(join(CASES, 'revolute', 'case.json'), 'utf8')).input.document as StudioDoc, { tree, bodies, evaluated } = await robotOf(doc), key = coordinates(tree)[0];
-  const args = { to: { [key]: 2 }, profile: 'trapezoid', limits: { velocity: 1.5, acceleration: 4 }, dwell_s: 0.5, life_h: 1 };
+  const args = { to: { [key]: 2 * 180 / Math.PI }, profile: 'trapezoid', limits: { velocity: 1.5 * 180 / Math.PI, acceleration: 4 * 180 / Math.PI }, dwell: 0.5, serviceLife: 3600 };
   const out = await dispatchTool({ doc, bodies: evaluated }, 'size_actuators', args, evaluate), j = JSON.parse(out.content);
   assert.ok(!out.isError && !out.changed, out.content);
   const joint = j.joints[0];
@@ -181,7 +181,12 @@ test('the size_actuators tool; refusals (a value with no source, an unknown unit
   }
   const c = JSON.parse(readFileSync(join(dir, 'case.json'), 'utf8'));
   assert.equal(joint.choice.reducer, c.expect.reducer);
-  for (const [name, v] of Object.entries(c.expect.checks as Record<string, number>)) { const got = joint.checks.find((x: { name: string }) => x.name === name).value; assert.ok(near(got, v, 1e-9), `${name}: ${got} vs ${v}`); }
+  for (const [name, v] of Object.entries(c.expect.checks as Record<string, number>)) {
+    const check = joint.checks.find((x: { name: string }) => x.name === name);
+    // Compare the independently frozen SI oracle in its original units; no tolerance change.
+    const scale = check.unit === 'N·mm' || check.unit === 'N·mm over the line' ? 1000 : check.unit === 'degree/s' ? 6 : check.unit === 's' ? 3600 : 1;
+    const got = check.value / scale; assert.ok(near(got, v, 1e-9), `${name}: ${got} vs ${v}`);
+  }
 });
 
 test('O75: a stated stop — the reducer\'s momentary peak torque checked against J·a on the one-joint case (to 1e-9); absent, no such check; a stop past every pair\'s limit leaves none feasible', async () => {

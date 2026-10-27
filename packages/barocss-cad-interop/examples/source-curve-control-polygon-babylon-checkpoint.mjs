@@ -55,7 +55,7 @@ export function createSourceCurveControlPolygonBabylonHost({ scene, onChange = (
     requireFact(material?.getClassName() === 'ShaderMaterial' && scene.materials.includes(material), 'Explicit actual world color ShaderMaterial required');
     assertNative(line.color.asArray(), [40 / 255, 201 / 255, 235 / 255]);
     const metadata = line.metadata?.barocss;
-    for (const [key, value] of Object.entries({ role: 'selected-uniform-curve-display-line', sourceVersion: 0, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', modelName: native.model.name,
+    for (const [key, value] of Object.entries({ role: 'selected-uniform-curve-display-line', sourceVersion: 0, lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', modelName: native.model.name,
       curveId: native.curveId, selectedObjectIndex: native.selectedObjectIndex, unrenderedObjectIds: native.unrenderedObjectIds, mode: native.mode,
       nativeDomain: native.domain, nativeParameters: native.parameters, nativeIntervals: native.intervals, quality: native.quality })) assertNative(metadata?.[key], value, 'selected-metadata.' + key);
     assertNative(line.position.asArray(), [0, 0, 0]); assertNative(line.rotation.asArray(), [0, 0, 0]); assertNative(line.scaling.asArray(), [1, 1, 1]);

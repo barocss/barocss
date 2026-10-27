@@ -10,7 +10,7 @@ import type { TableContent } from './table';
 import { cutListSource } from '../app/cutList';
 import { weldListSource } from '../frames/welds';
 import { elementsSource, glandsSource, springsSource } from './elementTables';
-import type { Bom } from '../team/bomCore';
+import type { Bom } from '../bom/core';
 
 /** `bom` (O147 B2): the BOM, worked out by the caller (the studio through its engine worker), for the 'bom' source. */
 export interface TableSourceContext { doc: StudioDoc; bodies?: readonly BodyResult[]; bom?: Bom }
@@ -24,10 +24,10 @@ export function bendTable(ctx: TableSourceContext): TableContent | { error: stri
   if (!sheets.length) return { error: 'no sheet-metal body with a flat pattern' + (bodies.some(b => b.flatRefused) ? ` (${bodies.find(b => b.flatRefused)!.flatRefused})` : '') };
   const rows: TableContent['rows'] = [], notes: string[] = [], many = sheets.length > 1;
   for (const b of sheets) {
-    const f = b.flat!, T = f.thicknessMM, feature = (n: string) => n.slice(0, Math.max(0, n.lastIndexOf('.'))), short = !many && f.bends.every(x => feature(x.name) === feature(f.bends[0].name));
+    const f = b.flat!, T = f.thickness, feature = (n: string) => n.slice(0, Math.max(0, n.lastIndexOf('.'))), short = !many && f.bends.every(x => feature(x.name) === feature(f.bends[0].name));
     for (const x of f.bends) {
-      const th = x.angleDegrees * Math.PI / 180, ba = bendAllowance(th, x.radiusMM, T, x.kFactor), bd = bendDeduction(th, x.radiusMM, T, x.kFactor);
-      rows.push([`${many ? `${b.key} ` : ''}${label(x.name, short)}`, x.direction === 'up' ? 'UP' : 'DOWN', x.angleDegrees, x.radiusMM, x.kFactor, ba, bd, x.table ? `${x.table.table} ${x.table.how === 'exact' ? 'row' : 'rows'} ${x.table.rows.join(', ')}${x.table.how === 'interpolated' ? ', interpolated' : ''}${x.table.estimate ? ' (estimate)' : ''}` : null]);
+      const th = x.angle * Math.PI / 180, ba = bendAllowance(th, x.radius, T, x.kFactor), bd = bendDeduction(th, x.radius, T, x.kFactor);
+      rows.push([`${many ? `${b.key} ` : ''}${label(x.name, short)}`, x.direction === 'up' ? 'UP' : 'DOWN', x.angle, x.radius, x.kFactor, ba, bd, x.table ? `${x.table.table} ${x.table.how === 'exact' ? 'row' : 'rows'} ${x.table.rows.join(', ')}${x.table.how === 'interpolated' ? ', interpolated' : ''}${x.table.estimate ? ' (estimate)' : ''}` : null]);
     }
     notes.push(`${many ? `${b.key}: ` : ''}T ${+T.toFixed(3)} mm; K ${f.kFactor !== undefined ? `${f.kFactor} for every bend${f.kFactor === 0.5 ? ' (an estimate: use your shop’s value)' : ''}` : 'from the bend table, by bend'}`);
   }
@@ -52,7 +52,7 @@ export function bomSource(ctx: TableSourceContext): TableContent | { error: stri
     columns: [{ key: 'no', label: 'NO.', digits: 0 }, { key: 'item', label: 'ITEM' }, { key: 'qty', label: 'QTY', digits: 0 }, { key: 'material', label: 'MATERIAL' }, { key: 'row', label: 'ROW' },
       { key: 'source', label: 'SOURCE' }, { key: 'bought', label: 'BOUGHT' }, { key: 'mass', label: 'MASS', unit: 'g', digits: 1 }],
     rows: lines.map((l, k) => [k + 1, l.item, l.qty, l.material, [l.row, l.catalogue].filter(Boolean).join(' · ') || null, l.estimate ? 'estimate' : l.source,
-      l.kind !== undefined ? `bought${l.override ? ' (set)' : ''}` : l.source !== null ? 'bought (library part)' : 'made', l.massG]),
+      l.kind !== undefined ? `bought${l.override ? ' (set)' : ''}` : l.source !== null ? 'bought (library part)' : 'made', l.mass]),
     notes: [`${ctx.bom.totalQty} part${ctx.bom.totalQty === 1 ? '' : 's'}${ctx.bom.elementQty ? `, ${ctx.bom.elementQty} bought element${ctx.bom.elementQty === 1 ? '' : 's'}` : ''}; the mass is each line's whole (an element's is in its part's)`, 'Rows and sources are yours (none built in); not validated for manufacturing'],
   };
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, evaluateCurve, curveDomain, faceGeometry, writeDxf } from '../dist/index.js';
+import { evaluateCadPart, evaluateCurve, curveDomain, faceGeometry, writeDxf, checkOutput, massPropertiesOf, surfaceAreaOf, exportStep } from '../dist/index.js';
 
 // R12 S0 (D115): the feasibility checkpoint before sheet metal. No research note; probed here against closed forms:
 // whether today's kernel builds a sheet's pieces exactly (a contour flange as one section extruded; an edge flange, any
@@ -148,49 +148,49 @@ test('R12 S0 today: a contour flange (one section extruded) and edge flanges at 
   const L = [{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [a, 0] }, { kind: 'line', start: [a, T] }, { kind: 'arc', start: [0, T], center: c, direction: 'cw' }, { kind: 'line', start: [-R, R + T] }, { kind: 'line', start: [-R, R + T + b] }, { kind: 'line', start: [-R - T, R + T + b] }, { kind: 'arc', start: [-R - T, R + T], center: c, direction: 'ccw' }];
   const o = out([{ id: 's', kind: 'sketch', profile: 'loop', segments: L, plane: xzAt(0) }, { id: 'e', kind: 'extrude', sketch: 's', height: W }]);
   const V = W * (a * T + flangeArea(T, R, b, 90)), S = 2 * (a * T + flangeArea(T, R, b, 90)) + W * (2 * a + 2 * b + Math.PI / 2 * (2 * R + T) + 2 * T);
-  assert.equal(o.validate().valid, true);
-  assert.ok(Math.abs(o.massProperties(1).volumeMM3 / V - 1) < 1e-14 && Math.abs(o.surfaceArea() / S - 1) < 1e-12);
+  assert.equal(checkOutput(o).valid, true);
+  assert.ok(Math.abs(massPropertiesOf(o).volume / V - 1) < 1e-14 && Math.abs(surfaceAreaOf(o) / S - 1) < 1e-12);
   // Its faces are named by the section's sides (`e.side3` the inner bend, `e.side7` the outer): no sheet roles.
   assert.deepEqual(o.brep.faces.map(f => f.name), ['e.side0', 'e.side1', 'e.side2', 'e.side3', 'e.side4', 'e.side5', 'e.side6', 'e.side7', 'e.bottom', 'e.top']);
   // An edge flange as a union, every angle from 30° to 175°, up and down; part width (y 5–30) too.
   for (const deg of [30, 45, 90, 120, 150, 175]) for (const down of [false, true]) for (const [y0, y1] of [[0, 40], [5, 30]]) {
     const T = 2, R = 3, h = 25, o = out(edgeFlanged({ T, R, h, deg, down, y0, y1 })), V = 30 * 40 * T + (y1 - y0) * flangeArea(T, R, h, deg);
-    assert.equal(o.validate().valid, true, `${deg}° ${down ? 'down' : 'up'} ${y0}–${y1}`);
-    assert.ok(Math.abs(o.massProperties(1).volumeMM3 / V - 1) < 1e-11, `${deg}° ${down ? 'down' : 'up'} ${y0}–${y1}`);
+    assert.equal(checkOutput(o).valid, true, `${deg}° ${down ? 'down' : 'up'} ${y0}–${y1}`);
+    assert.ok(Math.abs(massPropertiesOf(o).volume / V - 1) < 1e-11, `${deg}° ${down ? 'down' : 'up'} ${y0}–${y1}`);
   }
   // Rectangular reliefs at both ends of a part-width flange (w 2 wide, d 1.5 into the plate), by difference: exact.
   const T2 = 2, w = 2, d = 1.5, feats = edgeFlanged({ T: T2, R: 3, h: 25, deg: 90, y0: 5, y1: 30 });
   for (const [k, y] of [[0, 5 - w], [1, 30]]) feats.push({ id: `r${k}`, kind: 'sketch', profile: 'rectangle', min: [-6, y], max: [d, y + w], plane: { origin: [0, 0, -1], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: `re${k}`, kind: 'extrude', sketch: `r${k}`, height: 35 }, { id: `c${k}`, kind: 'difference', target: k ? 'c0' : 'u', tool: `re${k}` });
   const r = out(feats);
-  assert.equal(r.validate().valid, true);
-  assert.ok(Math.abs(r.massProperties(1).volumeMM3 / (30 * 40 * T2 + 25 * flangeArea(T2, 3, 25, 90) - 2 * w * d * T2) - 1) < 1e-11);
+  assert.equal(checkOutput(r).valid, true);
+  assert.ok(Math.abs(massPropertiesOf(r).volume / (30 * 40 * T2 + 25 * flangeArea(T2, 3, 25, 90) - 2 * w * d * T2) - 1) < 1e-11);
 });
 
 test('R12 S0 today: a tray of four flanges with holes is exact, with or without a gap at the corners; flanges leaning in overlap there and are united silently', () => {
   const t = tray({ holes: true }), o = out(t.feats);
-  assert.equal(o.validate().valid, true);
-  assert.ok(Math.abs(o.massProperties(1).volumeMM3 / t.V - 1) < 1e-11);
+  assert.equal(checkOutput(o).valid, true);
+  assert.ok(Math.abs(massPropertiesOf(o).volume / t.V - 1) < 1e-11);
   // The faces keep their extrusions' names, split where the Booleans cut them (`fe3.side3#1` … `#4`): a sheet's roles —
   // which face is a bend, which skin — are not named anywhere.
   assert.ok(o.brep.faces.some(f => f.name === 'fe3.side3#4') && !o.brep.faces.some(f => /bend|flange/.test(f.name ?? '')));
   // No gap: the neighbouring bends' ends meet only along the plate's corner edge, a reflex edge of a valid solid.
   for (const deg of [90, 60]) {
     const z = tray({ g: 0, deg }), oz = out(z.feats);
-    assert.equal(oz.validate().valid, true);
-    assert.ok(Math.abs(oz.massProperties(1).volumeMM3 / z.V - 1) < 1e-11, `${deg}°`);
+    assert.equal(checkOutput(oz).valid, true);
+    assert.ok(Math.abs(massPropertiesOf(oz).volume / z.V - 1) < 1e-11, `${deg}°`);
   }
   // Flanges leaning in (turned past 90°) cross their neighbours near the corners. The union takes the overlap once: a
   // valid solid, 0.3–1.8 % under its pieces, that no sheet folds into — and nothing says so.
   for (const [g, deg, under] of [[0.5, 120, 8.8e-3], [0.5, 150, 1.8e-2], [5, 120, 3.2e-3]]) {
     const c = tray({ g, deg }), oc = out(c.feats);
-    assert.equal(oc.validate().valid, true);
-    assert.ok(1 - oc.massProperties(1).volumeMM3 / c.V > under, `${deg}° gap ${g}`);
+    assert.equal(checkOutput(oc).valid, true);
+    assert.ok(1 - massPropertiesOf(oc).volume / c.V > under, `${deg}° gap ${g}`);
   }
 });
 
 test('R12 S0 probe: the B-rep unfolds — its skin developed at the neutral radius gives the K-factor\'s flat area, the textbook flat length, either skin', () => {
   // The tray with holes: the skin (the plate's bottom, four outer bend faces, four flange faces) developed for three K.
-  const T = 1.5, R = 2, h = 20, t = tray({ T, R, h, holes: true }), o = out(t.feats), V = o.massProperties(1).volumeMM3;
+  const T = 1.5, R = 2, h = 20, t = tray({ T, R, h, holes: true }), o = out(t.feats), V = massPropertiesOf(o).volume;
   for (const K of [0.5, 0.44, 0.33]) {
     const u = unfold(o.brep, 'pe.bottom', T, K);
     assert.equal(u.skin.length, 9); assert.equal(u.bends.length, 4);
@@ -206,15 +206,15 @@ test('R12 S0 probe: the B-rep unfolds — its skin developed at the neutral radi
     assert.ok(Math.abs(Math.hypot(far[0] - edge[0], far[1] - edge[1]) - (h + Math.PI / 2 * (R + K * T))) < 1e-12);
   }
   // Through STEP (no names, no history): the imported body unfolds to the same flat, its fixed face found by its plane.
-  { const back = out([{ id: 'i', kind: 'import', step: o.exportStep() }]), bottom = (f, g) => g.kind === 'plane' && g.n[2] < -0.999 && Math.abs(g.o[2]) < 1e-9;
-    const Vb = back.massProperties(1).volumeMM3;
+  { const back = out([{ id: 'i', kind: 'import', step: exportStep(o) }]), bottom = (f, g) => g.kind === 'plane' && g.n[2] < -0.999 && Math.abs(g.o[2]) < 1e-9;
+    const Vb = massPropertiesOf(back).volume;
     for (const K of [0.5, 0.33]) { const u = unfold(back.brep, bottom, T, K); assert.ok(u.skin.length === 9 && u.gap < 1e-12 && Math.abs(u.area / (Vb / T + (K - 0.5) * T * (Math.PI / 2) * t.bendWidth) - 1) < 1e-11, `STEP, K ${K}`); } }
   // No gap at the corners: the tabs' outlines touch at the plate's corners, and the area still holds.
   { const z = tray({ T, R, h, g: 0 }), oz = out(z.feats), u = unfold(oz.brep, 'pe.bottom', T, 0.44);
-    assert.ok(u.gap < 1e-12 && Math.abs(u.area / (oz.massProperties(1).volumeMM3 / T + (0.44 - 0.5) * T * (Math.PI / 2) * z.bendWidth) - 1) < 1e-11); }
+    assert.ok(u.gap < 1e-12 && Math.abs(u.area / (massPropertiesOf(oz).volume / T + (0.44 - 0.5) * T * (Math.PI / 2) * z.bendWidth) - 1) < 1e-11); }
   // Every angle, up and down, and from either skin: the same flat area.
   for (const deg of [30, 120, 175]) for (const down of [false, true]) {
-    const T = 2, K = 0.4, o = out(edgeFlanged({ T, R: 3, h: 25, deg, down, y0: 5, y1: 30 })), V = o.massProperties(1).volumeMM3, oracle = V / T + (K - 0.5) * T * deg * Math.PI / 180 * 25;
+    const T = 2, K = 0.4, o = out(edgeFlanged({ T, R: 3, h: 25, deg, down, y0: 5, y1: 30 })), V = massPropertiesOf(o).volume, oracle = V / T + (K - 0.5) * T * deg * Math.PI / 180 * 25;
     for (const fixed of ['pe.bottom', 'pe.top']) {
       const u = unfold(o.brep, fixed, T, K);
       assert.equal(u.skin.length, 3); assert.ok(u.gap < 1e-12);
@@ -237,7 +237,7 @@ test('R12 S0 probe: the developed outline is lines and circular arcs, and the DX
     const cx = (q(a) * (m[1] - b[1]) + q(m) * (b[1] - a[1]) + q(b) * (a[1] - m[1])) / d, cy = (q(a) * (b[0] - m[0]) + q(m) * (a[0] - b[0]) + q(b) * (m[0] - a[0])) / d, r = Math.hypot(a[0] - cx, a[1] - cy);
     for (let k = 1; k < 8; k++) { const p = P(e.t0 + (e.t1 - e.t0) * k / 8); deviation = Math.max(deviation, Math.abs(Math.hypot(p[0] - cx, p[1] - cy) - r)); }
     const deg = p => Math.atan2(p[1] - cy, p[0] - cx) * 180 / Math.PI, [s, f] = turn > 0 ? [deg(a), deg(b)] : [deg(b), deg(a)];
-    entities.push({ type: 'arc', center: [cx, cy], radius: r, startDeg: s, endDeg: f, layer: 'OUTLINE' });
+    entities.push({ type: 'arc', center: [cx, cy], radius: r, start: s, end: f, layer: 'OUTLINE' });
   }
   // Each image is a line or a circle to rounding: planar edges move rigidly, a bend's end arcs develop straight.
   assert.ok(deviation < 1e-12, `${deviation}`);

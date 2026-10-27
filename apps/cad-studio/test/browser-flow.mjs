@@ -1,15 +1,32 @@
 // End-to-end flow in a real Chromium: starts the Vite dev server, drives the studio like a user,
 // asserts on visible state and writes a screenshot per step.
-//   PW_DIR=/path/to/node_modules/playwright [CHROME=/path/to/chrome] [FLOW_RENDERER=webgpu|webgl2] [FLOW_ONLY=regex] node test/browser-flow.mjs [out-dir]
+//   PW_DIR=/path/to/node_modules/playwright [CHROME=/path/to/chrome] [FLOW_RENDERER=webgpu|webgl2] [FLOW_ONLY=regex] [FLOW_DPR=1..3] node test/browser-flow.mjs [out-dir]
 // FLOW_ONLY runs the first step and the steps whose names match (for steps that start from a new part).
 // The viewport draws with WebGPU when the browser has it; FLOW_RENDERER=webgl2 runs the WebGL2 fallback.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createServer as createNetServer } from 'node:net';
 
+// Pure runner contracts, also checked without starting Vite or a browser.
+function parseFlowDpr(value = '1') {
+  const input = value.trim(), dpr = Number(input);
+  if (!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(input) || !Number.isFinite(dpr) || dpr < 1 || dpr > 3) {
+    throw new RangeError('FLOW_DPR must be a decimal number from 1 to 3 (the viewport pixel-ratio range)');
+  }
+  return dpr;
+}
+
+function flowDisplayMatches(display, dpr) {
+  const { devicePixelRatio, cssWidth, cssHeight, backingWidth, backingHeight } = display;
+  return [devicePixelRatio, cssWidth, cssHeight, backingWidth, backingHeight].every(Number.isFinite) &&
+    Math.abs(devicePixelRatio - dpr) < 1e-6 && cssWidth > 0 && cssHeight > 0 &&
+    backingWidth === Math.round(cssWidth * dpr) && backingHeight === Math.round(cssHeight * dpr);
+}
+
+const flowDpr = parseFlowDpr(process.env.FLOW_DPR);
 const root = resolve(import.meta.dirname, '..');
 if (!process.env.PW_DIR) { console.error('Set PW_DIR to a Playwright package directory.'); process.exit(2); }
 const { chromium } = createRequire(join(process.env.PW_DIR, 'package.json'))('playwright');
@@ -32,7 +49,7 @@ const renderer = process.env.FLOW_RENDERER ?? 'webgpu';
 const url = server.resolvedUrls.local[0] + (renderer === 'webgl2' ? '?renderer=webgl2' : '');
 // WebGPU on the machine's adapter; the WebGL2 run uses SwiftShader (which offers no WebGPU adapter).
 const browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true, args: (process.env.FLOW_RENDERER ?? 'webgpu') === 'webgl2' ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] : ['--enable-unsafe-webgpu'] });
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: flowDpr });
 const errors = [];
 // (With its first stack lines: which code threw, not only what — a page error in a long flow is hard to place by its message.)
 page.on('pageerror', e => errors.push(`${String(e)}${e.stack ? `\n${e.stack.split('\n').slice(1, 7).join('\n')}` : ''}`));
@@ -54,6 +71,8 @@ async function check(name, fn) {
   step++;
   if (process.env.FLOW_ONLY && step > 1 && !new RegExp(process.env.FLOW_ONLY, 'i').test(name)) return;
   const before = sawLoad, files = changedFiles.length;
+  // (G12: each step starts with the columns as a fresh viewer has them — a chat opened or dragged in one step stays in it.)
+  await page.evaluate(() => window.__studioLayoutReset?.()).catch(() => {});
   try { await fn(); results.push({ step, name, ok: true }); }
   catch (e) {
     const reloaded = sawLoad > before ? ` [the page reloaded during this step, not by the flow${changedFiles.length > files ? `: ${changedFiles.slice(files).map(x => x[1]).slice(0, 3).join(', ')} changed` : ''}]` : '';
@@ -62,13 +81,19 @@ async function check(name, fn) {
   await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}-${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.png`) });
 }
 const outliner = () => page.locator('.outliner').innerText();
+// (G12e: a preview chosen in the dock's Preview & analysis switch — its enable; clicked only when not already on, since
+// the switch's item clicked again turns it off.)
+const preview = async mode => { const b = page.locator(`[aria-label="Preview: ${mode}"]`); if (await b.getAttribute('data-state') !== 'on') await b.click(); };
 /** The first body's volume from its properties (a click on its row selects it, or takes it out of the selection: until the body's panel shows). */
+// (The inspector and the context panels are read as `.props:not([aria-label$=" panel"])`: the first .props card that is not
+// a toolbar card left open across steps — the Variants, Rebuild, BOM, Library and Parameters panels, each "… panel".)
 async function bodyVolume() {
   for (let k = 0; k < 3; k++) {
     await page.locator('.outliner .ol').first().click();
-    try { await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 }); break; } catch { /* clicked off: again */ }
+    // (O18: read in the same check that sees it, the masses there — "Volume …" is a state of its own while they come.)
+    try { const got = await page.waitForFunction(() => { const m = /Volume\s*([\d,]+) mm³/.exec(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''); return m && window.__studioBodies?.().massReady !== false ? m[1] : false; }, null, { timeout: 15000 }); return Number((await got.jsonValue()).replace(/,/g, '')); } catch { /* clicked off: again */ }
   }
-  return Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
+  return NaN;
 }
 /**
  * A model file opened: until the studio shows the bodies computed for this document — not the last one's. (Waiting only
@@ -81,7 +106,16 @@ async function openModel(file, nodes, timeout = 30000) {
   await page.waitForFunction(n => window.__studioDoc !== window.__flowLastDoc && window.__studioDoc.nodes.length === n && window.__studioFresh === true, nodes, { timeout });
 }
 const history = () => page.locator('.history').innerText().catch(() => '');
-const idle = () => page.waitForFunction(() => !/Computing/.test(document.querySelector('.corner-left')?.textContent ?? ''), null, { timeout: 30000 });
+// (O18: and the bodies' masses, which the worker posts after its reply — every step that reads a volume waits here.)
+const idle = () => page.waitForFunction(() => !/Computing/.test(document.querySelector('.corner-left')?.textContent ?? '') && window.__studioBodies?.().massReady !== false, null, { timeout: 30000 });
+// (O7e: the person's fastener sizes, the shipped sample loaded in the Library panel — none is built in; a new part has none.
+// Idempotent: a step that goes on from the one before loads them only when they are not there, so it passes alone too.)
+const loadSampleSizes = async () => {
+  if (await page.evaluate(() => (window.__studioDoc.fastenerSizes?.rows?.length ?? 0) > 0)) return;
+  await page.click('[aria-label="Library"]');
+  try { await page.click('[aria-label="Load sample fastener sizes"]'); await page.waitForFunction(() => window.__studioDoc.fastenerSizes?.rows?.length === 7, null, { timeout: 10000 }); }
+  finally { await page.click('[aria-label="Close library"]'); }
+};
 const hudReady = async () => { await page.waitForTimeout(250); return page.waitForFunction(() => /preview|refused/.test(document.querySelector('.hud .status')?.textContent ?? ''), null, { timeout: 15000 }); };
 const field = (label) => page.locator('.hud .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input, select');
 const press = (k) => page.keyboard.press(k);
@@ -94,6 +128,24 @@ try {
   await check('starter plate loads', async () => {
     await idle(); assert.match(await outliner(), /Hole Ø8/);
     await page.waitForSelector(`.viewport[data-renderer="${renderer}"]`, { timeout: 15000 });
+    let display;
+    try {
+      await page.waitForFunction(dpr => {
+        const c = document.querySelector('canvas.vp-canvas');
+        return c && c.clientWidth > 0 && c.clientHeight > 0 &&
+          c.width === Math.round(c.clientWidth * dpr) && c.height === Math.round(c.clientHeight * dpr);
+      }, flowDpr, { timeout: 15000 });
+    } finally {
+      display = await page.evaluate(() => {
+        const c = document.querySelector('canvas.vp-canvas');
+        return { renderer: document.querySelector('.viewport')?.dataset.renderer, devicePixelRatio: window.devicePixelRatio,
+          cssWidth: c?.clientWidth ?? 0, cssHeight: c?.clientHeight ?? 0, backingWidth: c?.width ?? 0, backingHeight: c?.height ?? 0 };
+      });
+      const evidence = { requestedDpr: flowDpr, ...display };
+      writeFileSync(join(out, 'display.json'), JSON.stringify(evidence, null, 2) + '\n');
+      console.log(`flow display: ${JSON.stringify(evidence)}`);
+    }
+    assert.ok(flowDisplayMatches(display, flowDpr), `requested DPR and canvas backing: ${JSON.stringify(display)}`);
   });
 
   await check('new part and box', async () => {
@@ -121,24 +173,24 @@ try {
     await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
     await page.click('.views button:text-is("Top")'); await page.waitForTimeout(300);
     const [cx, cy] = await canvasCenter(); await page.mouse.move(cx, cy); await page.mouse.click(cx, cy);
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
   });
 
   await check('feature editor changes the sketch a feature is made from', async () => {
-    const bounds = () => page.locator('.props').innerText();
+    const bounds = () => page.locator('.props:not([aria-label$=" panel"])').innerText();
     await page.locator('.history .hs', { hasText: 'Box 64' }).click();
     const ed = (label) => page.locator('.node-editor .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input, select');
     assert.equal(await ed('Width').inputValue(), '64');
     await ed('Width').fill(''); await ed('Width').fill('80');
     await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await idle();
     await page.locator('.outliner .ol').nth(0).click();
-    await page.waitForFunction(() => /80 × 32 × 8/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /80 × 32 × 8/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
     assert.match(await outliner(), /Hole Ø8/);
     await press('Escape'); await press('Meta+z'); await idle(); await page.locator('.outliner .ol').nth(0).click();
-    await page.waitForFunction(() => /64 × 32 × 8/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /64 × 32 × 8/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
     assert.ok(!/80 ×/.test(await bounds()));
   });
 
@@ -187,7 +239,7 @@ try {
     assert.match(await outliner(), /1 body/);
     await page.click('.views button:text-is("Top")'); await page.waitForTimeout(300);
     const [cx, cy] = await canvasCenter(); await page.mouse.move(cx, cy); await page.mouse.click(cx, cy);
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
     await press('h'); await hudReady();
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -199,7 +251,7 @@ try {
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(400);
     const [cx, cy] = await canvasCenter(); await page.mouse.move(cx, cy); await page.mouse.click(cx, cy);
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
     await press('h'); await hudReady();
     assert.ok(await field('Centre Z').count(), 'a front-face hole is placed in X and Z');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
@@ -252,7 +304,7 @@ try {
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(400);
     let [cx, cy] = await canvasCenter(); await clickAt(cx, cy);
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
     await press('s'); await page.waitForFunction(() => /SKETCH · Y 0 · on face/.test(document.querySelector('.sk-panel')?.textContent ?? ''));
     [cx, cy] = await canvasCenter(); await press('r'); await clickAt(cx - 40, cy - 25); await clickAt(cx + 40, cy + 25); await snap('front-face-sketch');
     await press('Enter'); await press('e'); await hudReady();
@@ -286,7 +338,7 @@ try {
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const n = (await doc()).nodes[0].plane.normal;
     assert.ok(Math.abs(n[0]) < 1e-9 && Math.abs(n[1] - 0.5) < 1e-9 && Math.abs(n[2] - Math.sqrt(3) / 2) < 1e-9, `normal ${n}`);
-    await page.locator('.outliner .ol').first().click(); assert.match(await page.locator('.props').innerText(), /Faces\s*6/); await iso();
+    await page.locator('.outliner .ol').first().click(); assert.match(await page.locator('.props:not([aria-label$=" panel"])').innerText(), /Faces\s*6/); await iso();
   });
 
   await check('slot sketch extrudes as a curved body', async () => {
@@ -297,7 +349,7 @@ try {
     await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const d = await doc(); assert.equal(d.nodes[0].profile, 'loop'); assert.deepEqual(d.nodes[0].segments.map(x => x.kind), ['line', 'arc', 'line', 'arc']);
-    await page.locator('.outliner .ol').first().click(); assert.match(await page.locator('.props').innerText(), /Faces\s*6/); await iso();
+    await page.locator('.outliner .ol').first().click(); assert.match(await page.locator('.props:not([aria-label$=" panel"])').innerText(), /Faces\s*6/); await iso();
   });
 
   await check('solver locks typed lengths until fully defined', async () => {
@@ -309,6 +361,7 @@ try {
     const W = Math.round(Number(await page.inputValue('#sk-len0'))) + 6, Hh = Math.round(Number(await page.inputValue('#sk-len1'))) + 3;
     await page.fill('#sk-len0', String(W)); assert.match(await status(), /1 DOF/);
     await page.fill('#sk-len1', String(Hh)); assert.match(await status(), /Fully defined/);
+    await page.locator('aside[aria-label="Sketch"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-sketch.png`) });
     assert.equal(await page.inputValue('#sk-len2'), String(W)); assert.equal(await page.inputValue('#sk-len3'), String(Hh));
     await page.fill('#sk-len1', ''); assert.match(await status(), /1 DOF/);
     await page.focus('#sk-len1'); await press('Enter'); assert.match(await status(), /Fully defined/); await snap('fully-defined');
@@ -733,7 +786,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioPickEdge('n1.side0|n1.top'), null, { timeout: 15000 });
     assert.ok(await page.evaluate(() => window.__studioPickEdge('n1.side1|n1.top', true)));
-    await page.waitForFunction(() => /2 edges|Edges\s*2/i.test(document.querySelector('.props')?.textContent ?? '') || true, null, { timeout: 2000 });
+    await page.waitForFunction(() => /2 edges|Edges\s*2/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? '') || true, null, { timeout: 2000 });
     await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
     await field('Radius').fill('3'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 20000 });
@@ -841,7 +894,7 @@ try {
     // (Once the new plate is evaluated — the outliner lists evaluated bodies — its top face can be picked.)
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`), 'the top face exists');
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -933,7 +986,7 @@ try {
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     assert.match(await page.locator('.toast').innerText(), /STL opened[\s\S]*7,000 mm³/);
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /40 × 20 × 10/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /40 × 20 × 10/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     // (F0: a new import is facet faces, its regions named by the mesh.)
     assert.equal((await doc()).nodes[0].representation, 'facets');
     await snap('stl-open');
@@ -961,6 +1014,7 @@ try {
     // (The floater is a finding: the repair gate offers to drop it; opened as it is, both pieces come in.)
     await page.waitForSelector('[aria-label="Mesh repair"]', { timeout: 15000 });
     assert.match(await page.textContent('[aria-label="Mesh repair"]'), /2 pieces[\s\S]*1 tiny piece/);
+    await page.locator('[aria-label="Mesh repair"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-mesh-repair.png`) });
     await page.locator('[aria-label="Mesh repair"] button', { hasText: 'Open as it is' }).click();
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     assert.equal((await doc()).nodes[0].pieces, 2);
@@ -1005,7 +1059,7 @@ try {
     await page.setInputFiles('input[aria-label="Model file"]', file);
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /7000 mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /7000 mm³/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
   });
 
   await check('a mesh with a hole: checked, the repair gate (steps, holes, its numbers before it is applied), applied as a recorded step, its badge shows the fill and opens it again', async () => {
@@ -1054,7 +1108,7 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'import' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
     // (The same body: its volume as before, 4022 mm³.)
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /4022 mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /4022 mm³/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     // Size caps (D49): past 32 MiB in its meshes it still opens, and past 64 MiB (the owner's 128 MiB); past 128 MiB
     // it is refused, pointing to .bcad (the coordinates list padded with spaces; in memory below Playwright's 50 MB,
     // else a file removed once read).
@@ -1128,14 +1182,17 @@ try {
     await page.locator('.outliner .ol').first().click();
     await page.selectOption('[aria-label="Appearance preset"]', 'look-brass');
     await page.check('.render-panel [aria-label="Two-sided"]');
+    await page.locator('.render-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-render-look.png`) });
     await page.click('.render-panel [role="tab"]:text-is("Lights")');
     await page.click('.render-panel button:text-is("Add point")');
     await page.locator('.render-panel [aria-label="Range"]').last().fill('200');
+    await page.locator('.render-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-render-lights.png`) });
     await page.click('.render-panel [role="tab"]:text-is("Scene")');
     // An environment image lighting the part (and its reflections).
     await page.setInputFiles('.render-panel [aria-label="Environment image"]', join(root, 'test/fixtures/sky.png'));
     await page.waitForFunction(() => /^data:image/.test(window.__studioDoc.render.environment.map?.image ?? ''), null, { timeout: 5000 });
     await page.waitForTimeout(600); await snap('render-environment');
+    await page.locator('.render-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-render-scene.png`) });
     await page.locator('.render-panel [aria-label="Field of view"]').fill('50');
     await page.click('.render-panel button:text-is("Save this view")');
     const r = await page.evaluate(() => window.__studioDoc.render);
@@ -1206,6 +1263,7 @@ try {
     // Where the arc crosses X = 10: once, at its top.
     await page.selectOption('[aria-label="Crossing plane"]', 'x'); await page.fill('.direct-panel [aria-label="At"]', '10'); await page.click('[aria-label="Find crossings"]');
     assert.match(await page.locator('[aria-label="Crossing"]').innerText(), /10, 5, 0/);
+    await page.locator('.direct-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-direct.png`) });
     await page.click('.direct-panel button:text-is("Split")');
     await page.waitForSelector('.direct-panel .card-title:has-text("2 OBJECTS")');
     await page.locator('.ol.direct', { hasText: 'top' }).click();
@@ -1262,7 +1320,7 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'thicken', null, { timeout: 10000 });
     await page.waitForFunction(() => /Thicken study · panel 3/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
     await page.locator('.outliner .ol', { hasText: 'Thicken' }).first().click();
-    await page.waitForFunction(() => /Volume\s*1200 mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Volume\s*1200 mm³/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
     await snap('thicken'); await press('Meta+z');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind !== 'thicken', null, { timeout: 5000 });
   });
@@ -1277,7 +1335,7 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'sew', null, { timeout: 10000 });
     await page.waitForFunction(() => /Sew 6 surfaces/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
     await page.locator('.outliner .ol', { hasText: 'Sew' }).first().click();
-    await page.waitForFunction(() => /Volume\s*1200 mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Volume\s*1200 mm³/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
     assert.equal(await page.evaluate(() => window.__studioDoc.direct.objects.filter(o => o.name.startsWith('lid · ') && o.hidden).length), 6, 'the sewn surfaces are hidden');
     await snap('sew'); await press('Meta+z');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind !== 'sew', null, { timeout: 5000 });
@@ -1370,26 +1428,33 @@ try {
       if (el.tagName === 'line') { const g = n => Number(el.getAttribute(n)); return [g('x1') + (g('x2') - g('x1')) * at, g('y1') + (g('y2') - g('y1')) * at]; }
       const ps = el.getAttribute('points').trim().split(' ').map(q => q.split(',').map(Number)); return ps[Math.round((ps.length - 1) * at)];
     }, [sel, at]);
+    // (G-R32: the gizmo as drawn — its origin the same over two frames — before its handles are read; under load a fixed
+    // pause read them where the gizmo had been, and the drag missed. Each wait a condition, under a 30 s ceiling.)
+    const settled = () => page.waitForFunction(() => new Promise(done => {
+      const at = () => { const c = document.querySelector('.gizmo-origin'); return c ? `${c.getAttribute('cx')},${c.getAttribute('cy')}` : ''; };
+      const a = at(); requestAnimationFrame(() => requestAnimationFrame(() => done(a !== '' && a === at())));
+    }), null, { timeout: 30000 });
     const drag = async (from, to, steps = 8) => { await page.mouse.move(svg.x + from[0], svg.y + from[1]); await page.mouse.down(); await page.mouse.move(svg.x + to[0], svg.y + to[1], { steps }); await page.mouse.up(); };
     // Along X: as far again as the arrow is long on screen moves it the arrow's length in mm.
+    await settled();
     const a0 = await pointOf('[data-gizmo=moveX] line:nth-of-type(2)', 0.5), a1 = await pointOf('[data-gizmo=moveX] line:nth-of-type(2)', 1);
     await drag(a0, [a0[0] + (a1[0] - a0[0]) * 2, a0[1] + (a1[1] - a0[1]) * 2]);
-    await page.waitForFunction(x => window.__studioDoc.instances[1].position[0] > x + 1, before.position[0], { timeout: 5000 });
+    await page.waitForFunction(x => window.__studioDoc.instances[1].position[0] > x + 1, before.position[0], { timeout: 30000 });
     const moved = await page.evaluate(() => window.__studioDoc.instances[1]);
     assert.deepEqual([moved.position[1], moved.position[2], moved.rotation], [before.position[1], before.position[2], before.rotation]);
     // A quarter sweep round the Z arc: the copy turns about world Z in 15° steps.
-    await page.waitForTimeout(400);
+    await settled();
     const o = await page.evaluate(() => { const c = document.querySelector('.gizmo-origin'); return [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]; });
     const m = await pointOf('[data-gizmo=turnZ] polyline:nth-of-type(2)', 0.5), r = Math.hypot(m[0] - o[0], m[1] - o[1]), a = Math.atan2(m[1] - o[1], m[0] - o[0]);
     await page.mouse.move(svg.x + m[0], svg.y + m[1]); await page.mouse.down();
     for (let k = 1; k <= 10; k++) await page.mouse.move(svg.x + o[0] + r * Math.cos(a - k * Math.PI / 40), svg.y + o[1] + r * Math.sin(a - k * Math.PI / 40));
     await page.mouse.up();
-    await page.waitForFunction(z => Math.abs(window.__studioDoc.instances[1].rotation[2] - z) >= 15, before.rotation[2], { timeout: 5000 });
+    await page.waitForFunction(z => Math.abs(window.__studioDoc.instances[1].rotation[2] - z) >= 15, before.rotation[2], { timeout: 30000 });
     const turned = await page.evaluate(() => window.__studioDoc.instances[1]);
     assert.equal(Math.abs(turned.rotation[2] - before.rotation[2]) % 15, 0, `a 15° step: ${turned.rotation[2]}`);
     await snap('instance-gizmo');
     await press('Meta+z'); await press('Meta+z');
-    await page.waitForFunction(b => JSON.stringify(window.__studioDoc.instances[1].position) === JSON.stringify(b), before.position, { timeout: 5000 });
+    await page.waitForFunction(b => JSON.stringify(window.__studioDoc.instances[1].position) === JSON.stringify(b), before.position, { timeout: 30000 });
   });
 
   await check('shared part definition: a new revision waits, then both copies take it where they are; a copy made independent keeps its own', async () => {
@@ -1482,6 +1547,7 @@ try {
     await page.waitForFunction(t => { const [a, b] = window.__studioDoc.instances; return Math.abs(((b.rotation[2] - a.rotation[2]) % 360 + 540) % 360 - 180 - t) < 1e-9; }, turn(br, copy));
     // What each part can still do: the bracket is fixed; flush and at an angle, the copy only slides.
     assert.match(await page.locator('[aria-label="Freedom"]').innerText(), /fixed in place/);
+    await page.locator('[aria-label="Instance"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-instance.png`) });
     await page.locator('.ol.instance').nth(1).click();
     assert.match(await page.locator('[aria-label="Freedom"]').innerText(), /free: 2 slides$/);
     // With the instance still selected, a History chip opens the feature editor.
@@ -1491,9 +1557,9 @@ try {
     await page.evaluate(() => document.activeElement?.blur());
   });
 
-  await check('chat builds a plate through a mocked chat server', async () => {
-    // The chat server's replies are scripted (it runs the claude CLI with the studio's tools for real).
-    const sse = events => events.map(e => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
+  await check('chat builds a plate through a scripted chat (createChat)', async () => {
+    // The chat's turns are scripted in the browser (O17: shadcn's createChat, no server); the studio's end of each turn —
+    // its commit, the design history — runs on them as on the chat server's.
     const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
     const docOf = nodes => ({ ...empty, nodes, outputs: { [`b${nodes.length - 1}`]: { node: nodes.length - 1, side: 'solid' } } });
     const nodes = [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [64, 32] }, { kind: 'extrude', sketch: 0, height: 8 }];
@@ -1506,16 +1572,14 @@ try {
     const expected = Math.round(64 * 32 * 8 - 4 * Math.PI * 16 * 8 - 4 * (4 - Math.PI) * 8);
     events.push({ type: 'tool', name: 'features', input: { action: 'command', command: 'fillet' }, summary: `Fillet {"radius":2,"endRadius":0,"shape":"circular"} → 1 body, ${expected} mm³`, isError: false }, { type: 'state', doc: docOf(nodes) },
       { type: 'text', delta: 'Done: a 64 × 32 × 8 plate with four Ø8 holes and R2 vertical edges.' }, { type: 'done', doc: docOf(nodes), session: 'cli-session-1', end: 'done' });
-    const requests = [];
-    const statusUrl = u => u.pathname === '/api/chat/status', turnUrl = u => u.pathname === '/api/chat/turn';
+    const statusUrl = u => u.pathname === '/api/chat/status';
     await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model', via: 'mock' } }));
-    await page.route(turnUrl, r => {
-      const body = r.request().postDataJSON(); requests.push(body);
-      const reply = requests.length === 1 ? events : [{ type: 'text', delta: requests.length === 2 ? 'You’re welcome.' : 'That drawing shows the same plate.' }, { type: 'done', session: body.session, end: 'done' }];
-      return r.fulfill({ status: 200, contentType: 'text/event-stream', body: sse(reply) });
-    });
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Chat"]');
+    await page.waitForFunction(() => !!window.__studioScriptChat);
+    await page.evaluate(turns => window.__studioScriptChat(turns), [events, ...['You’re welcome.', 'That drawing shows the same plate.'].map(delta => [{ type: 'text', delta }, { type: 'done', session: 'cli-session-1', end: 'done' }])]);
+    /** What each turn sent, as the chat server would have received it. */
+    const requests = { get: async k => page.evaluate(k => window.__studioChatSent()[k], k), count: async () => page.evaluate(() => window.__studioChatSent().length) };
     const input = page.locator('[aria-label="Chat message"]');
     await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled);
     await input.fill('a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges'); await press('Enter');
@@ -1524,11 +1588,11 @@ try {
     assert.deepEqual(await page.evaluate(() => window.__studioDoc.nodes.map(n => n.kind)), ['sketch', 'extrude', 'hole', 'hole', 'hole', 'hole', 'fillet']);
     assert.equal(await page.locator('.chat-tool').count(), 6);
     assert.match(await page.locator('.chat-tool').last().innerText(), new RegExp(`Fillet .*${expected} mm³`));
-    assert.equal(requests[0].doc.nodes.length, 0); assert.equal(requests[0].session, undefined);
+    { const r0 = await requests.get(0); assert.equal(r0.doc.nodes.length, 0); assert.equal(r0.session, undefined); }
     // The next message resumes the same CLI conversation and leaves the part as it is.
     await input.fill('thanks'); await press('Enter');
     await page.waitForSelector('.chat-msg.assistant:has-text("welcome")');
-    assert.equal(requests[1].session, 'cli-session-1'); assert.equal(requests[1].doc.nodes.length, 7);
+    { const r1 = await requests.get(1); assert.equal(r1.session, 'cli-session-1'); assert.equal(r1.doc.nodes.length, 7); }
     // An attached drawing goes with the next message, scaled and as base64, shown as a thumbnail.
     const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEklEQVR4nGP4z8CAFWEXHbQSACj/P8Fu7N9hAAAAAElFTkSuQmCC', 'base64');
     await page.setInputFiles('[aria-label="Chat image file"]', { name: 'plate.png', mimeType: 'image/png', buffer: png });
@@ -1538,18 +1602,19 @@ try {
     await page.waitForSelector('[aria-label="Attached images"] img');
     await page.click('.chat-input button:text-is("Send")');
     await page.waitForFunction(() => document.querySelectorAll('.chat-msg.assistant').length >= 3);
-    assert.equal(requests.length, 3); assert.equal(requests[2].images.length, 1);
-    assert.equal(requests[2].images[0].media_type, 'image/png'); assert.ok(requests[2].images[0].data.length > 40);
-    assert.match(requests[2].text, /image 1 \(plate\.png, traced into \d+ layers/);
+    const r2 = await requests.get(2);
+    assert.equal(await requests.count(), 3); assert.equal(r2.images.length, 1);
+    assert.equal(r2.images[0].media_type, 'image/png'); assert.ok(r2.images[0].data.length > 40);
+    assert.match(r2.text, /image 1 \(plate\.png, traced into \d+ layers/);
     // The traced outlines go with every later turn, for the image tools on the server.
-    assert.equal(requests[2].traces.length, 1); assert.ok(Array.isArray(requests[2].traces[0].layers));
+    assert.equal(r2.traces.length, 1); assert.ok(Array.isArray(r2.traces[0].layers));
     assert.equal(await page.locator('.chat-msg.user .chat-thumbs img').count(), 1);
     // One undo takes the whole first turn back.
     await page.evaluate(() => document.activeElement?.blur());
     await press('Meta+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
     await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 7);
     await page.click('[aria-label="Close chat"]');
-    await page.unroute(statusUrl); await page.unroute(turnUrl);
+    await page.evaluate(() => window.__studioUnscriptChat()); await page.unroute(statusUrl);
   });
 
   await check('chat commits an assembly: a pin part mated into a plate', async () => {
@@ -1565,11 +1630,12 @@ try {
       { type: 'tool', name: 'assembly', input: { action: 'add_mate', kind: 'coincident' }, summary: 'added Coincident 2 (m2)', isError: false },
       { type: 'state', doc }, { type: 'text', delta: 'Pin mated into the plate.' }, { type: 'done', doc, session: 's-asm', end: 'done' },
     ];
-    const statusUrl = u => u.pathname === '/api/chat/status', turnUrl = u => u.pathname === '/api/chat/turn';
+    const statusUrl = u => u.pathname === '/api/chat/status';
     await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model' } }));
-    await page.route(turnUrl, r => r.fulfill({ status: 200, contentType: 'text/event-stream', body: events.map(e => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('') }));
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Chat"]');
+    // (Scripted in the browser, O17: createChat.)
+    await page.waitForFunction(() => !!window.__studioScriptChat); await page.evaluate(turns => window.__studioScriptChat(turns), [events]);
     await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled);
     await page.fill('[aria-label="Chat message"]', 'a plate with a pin in its hole, as two parts'); await press('Enter');
     await page.waitForSelector('.chat-msg.assistant:has-text("Pin mated")');
@@ -1579,11 +1645,59 @@ try {
     // The studio's own solver keeps it where the mates put it, and the mate panel lists them.
     await page.locator('.ol.instance', { hasText: 'Pin' }).click();
     assert.match(await page.locator('[aria-label="Mates"]').innerText(), /Concentric 1[\s\S]*Coincident 2/);
+    await page.locator('[aria-label="Mates"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-mates.png`) });
     await page.evaluate(() => document.activeElement?.blur());
     await press('Meta+z'); await page.waitForFunction(() => !(window.__studioDoc.instances?.length));
     await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.instances?.length === 1);
     await page.click('[aria-label="Close chat"]');
-    await page.unroute(statusUrl); await page.unroute(turnUrl);
+    await page.evaluate(() => window.__studioUnscriptChat()); await page.unroute(statusUrl);
+  });
+
+  await check('chat renders a scripted conversation (O17): the thinking collapsed, text runs, a tool ok and one failed, an error notice, Stop, a proposal linked to its card, New conversation', async () => {
+    const statusUrl = u => u.pathname === '/api/chat/status';
+    await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model' } }));
+    await page.click('[aria-label="New part"]'); await idle();
+    const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
+    const box = { ...empty, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { kind: 'extrude', sketch: 0, height: 10 }], outputs: { b1: { node: 1, side: 'solid' } } };
+    const risk = level => ({ level, features_touched: 1, references_broken: 0, hard_requirements_changed: [], approval: [] });
+    const proposal = (id, title, status, level) => ({ id, title, status, by: { agent: 'chat' }, at: '2026-10-24T00:00:00Z', base: 'not-this-part', ops: [], risk: risk(level), summary: title, ...(status === 'open' ? {} : { decided: { by: 'user', at: '2026-10-24T00:00:00Z' } }) });
+    const proposed = { ...box, proposals: [proposal('P1', 'Lighter: a Ø6 hole', 'open', 'low'), proposal('P2', 'Thinner walls', 'rejected', 'high')] };
+    await page.click('[aria-label="Chat"]');
+    await page.waitForFunction(() => !!window.__studioScriptChat);
+    await page.evaluate(turns => window.__studioScriptChat(turns), [
+      [{ type: 'reasoning', delta: 'A box is the simplest start.' }, { type: 'text', delta: 'A box first.' }, { type: 'tool', name: 'features', input: { action: 'command', command: 'box' }, summary: 'Box → 1 body, 8000 mm³', isError: false }, { type: 'state', doc: box },
+        { type: 'tool', name: 'features', input: { action: 'command', command: 'no-such-command' }, summary: 'Unknown command "no-such-command".', isError: true }, { type: 'text', delta: 'Done: a 40 × 20 × 10 box.' }, { type: 'done', doc: box, end: 'done' }],
+      [{ type: 'done', end: 'error', error: 'claude exited with 1' }],
+      [{ type: 'tool', name: 'features', input: { action: 'command', command: 'hole' }, summary: 'Hole', isError: false }, { type: 'sleep', ms: 20000 }, { type: 'done', end: 'done' }],
+      [{ type: 'tool', name: 'proposals', input: { action: 'propose', title: 'Lighter: a Ø6 hole' }, summary: 'proposed P1 Lighter: a Ø6 hole (low risk)', isError: false }, { type: 'text', delta: 'P1 is ready.' }, { type: 'done', doc: proposed, end: 'done' }],
+    ]);
+    const say = async text => { await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled); await page.fill('[aria-label="Chat message"]', text); await press('Enter'); };
+    await say('a box');
+    await page.waitForSelector('.chat-msg.assistant:has-text("Done: a 40")');
+    assert.equal(await page.locator('.chat-msg.assistant').count(), 2, 'two text runs, either side of the calls');
+    assert.equal(await page.locator('.chat-tool').count(), 2); assert.equal(await page.locator('.chat-tool.err').count(), 1);
+    assert.match(await page.locator('.chat-tool').first().innerText(), /features\.command\s+Box → 1 body/);
+    // (O17c: the thinking, one collapsed line that opens to its text.)
+    assert.equal(await page.locator('.chat-thinking').count(), 1); assert.equal(await page.locator('.chat-thinking[open]').count(), 0);
+    assert.equal((await page.locator('.chat-thinking summary').innerText()).trim(), 'Thinking…');
+    await page.click('.chat-thinking summary'); assert.match(await page.locator('.chat-thinking').innerText(), /simplest start/);
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2);
+    await say('again');
+    await page.waitForSelector('.chat-msg.notice:has-text("claude exited with 1")');
+    await say('a hole, slowly');
+    await page.waitForFunction(() => document.querySelectorAll('.chat-tool').length === 3);
+    await page.click('.chat-input button:text-is("Stop")');
+    await page.waitForSelector('.chat-msg.notice:has-text("Stopped.")', { timeout: 10000 });
+    await say('make it lighter');
+    await page.waitForSelector('[aria-label="Proposal P1 from the chat"]');
+    const card = await page.locator('[aria-label="Proposal P1 from the chat"]').innerText();
+    assert.match(card, /P1[\s\S]*Lighter: a Ø6 hole[\s\S]*low risk/); assert.match(card, /rebase it in Proposals/, 'made on another part: stale, rebased from the list');
+    assert.equal(await page.locator('[aria-label="Proposal P2 from the chat"]').count(), 0, 'only the proposal its call made');
+    await snap('o17-chat-scripted');
+    await page.click('[aria-label="New conversation"]');
+    await page.waitForFunction(() => !document.querySelector('.chat-msg') && !document.querySelector('.chat-tool'));
+    await page.click('[aria-label="Close chat"]');
+    await page.evaluate(() => window.__studioUnscriptChat()); await page.unroute(statusUrl);
   });
 
   await check('drag a dimension handle (box width), and turn a body 45° about X with the Rotate gizmo', async () => {
@@ -1612,7 +1726,7 @@ try {
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'rotate' && window.__studioDoc.nodes.at(-1).axis === 'x', null, { timeout: 15000 });
     const turned = await page.evaluate(() => window.__studioDoc.nodes.at(-1));
-    assert.deepEqual([Math.abs(turned.angleDegrees), turned.pivot.length], [45, 3]);
+    assert.deepEqual([Math.abs(turned.angle), turned.pivot.length], [45, 3]);
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? '') && !/error/i.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 15000 });
     await snap('rotate-x-45');
   });
@@ -1622,7 +1736,7 @@ try {
     // (Once the new box is evaluated: new bodies clear what was picked on the old ones.)
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     const seen = await page.evaluate(() => JSON.stringify(window.__studioSelection));
     await press('e'); await hudReady().catch(e => { throw new Error(`${e.message.split('\n')[0]} — before E: ${seen}`); });
     await page.waitForFunction(() => /Extrude/.test(document.querySelector('.hud')?.textContent ?? '') && /picked face/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
@@ -1640,7 +1754,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady();
     await page.waitForSelector('[data-handle="x+y"]', { timeout: 5000 });
     const before = await page.evaluate(() => [...document.querySelectorAll('.hud input')].map(i => Number(i.value)));
@@ -1657,7 +1771,7 @@ try {
     // A face picked for Fillet rounds every edge round it: the bottom's four and the hole's rim.
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.bottom')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
     await page.waitForFunction(() => /5 edges round the picked face/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
     await field('Radius').fill('2'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
@@ -1703,7 +1817,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('Shift+F'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 20000 }); await idle();
     // Pick the box's side (the box feature), drag its width arrow.
@@ -1730,7 +1844,7 @@ try {
     await press('y'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n3.bottom')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('a'); await hudReady();
     assert.ok(await page.evaluate(() => window.__studioPickFace('n1.top')));
     await page.waitForFunction(() => /face n1\.top/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
@@ -1793,7 +1907,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     const nodes = (await doc()).nodes.length;
@@ -1805,10 +1919,21 @@ try {
     await page.click('[aria-label="Section across X"]'); await page.waitForTimeout(600);
     await page.click('[aria-label="Flip the section"]'); await page.waitForTimeout(600);
     // Dragging the plane: the clipped, capped meshes follow at once (the exact section after).
+    // (R1c (3c): the dragged plane is shown from outside React state and committed on release. The section is a view
+    // setting, as before: no undo entry, the document unchanged; its handle follows the drag, and stays where it was let go.)
+    const undoState = () => page.evaluate(() => { const b = document.querySelector('[aria-label="Undo"]'); return { tip: b?.getAttribute('data-tip'), off: !!b?.disabled }; });
+    const undo0 = await undoState(), docBefore = JSON.stringify(await doc());
     const hb = await page.locator('[data-handle="section"]').boundingBox();
     await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2); await page.mouse.down();
     for (let i = 1; i <= 6; i++) await page.mouse.move(hb.x + hb.width / 2 + i * 12, hb.y + hb.height / 2 + i * 4);
-    await page.waitForTimeout(40); await snap('section-dragging'); await page.mouse.up(); await page.waitForTimeout(600);
+    await page.waitForTimeout(40); await snap('section-dragging');
+    await page.waitForFunction(b => { const r = document.querySelector('[data-handle="section"]')?.getBoundingClientRect(); return !!r && Math.hypot(r.x - b.x, r.y - b.y) > 4; }, hb, { timeout: 30000 });
+    const held = await page.locator('[data-handle="section"]').boundingBox();
+    await page.mouse.up(); await page.waitForTimeout(600);
+    const after = await page.locator('[data-handle="section"]').boundingBox();
+    assert.ok(Math.hypot(after.x - held.x, after.y - held.y) < 2, `the plane committed where it was let go: ${JSON.stringify({ held, after })}`);
+    assert.deepEqual(await undoState(), undo0, 'a section drag adds no undo entry');
+    assert.equal(JSON.stringify(await doc()), docBefore, 'nor changes the document');
     assert.equal((await doc()).nodes.length, nodes, 'the model is not changed');
     // Its outline as a sketch on the section plane: the box's cut with the hole's, one profile with a hole.
     await page.click('[aria-label="Section across Y"]'); await page.waitForTimeout(1500);
@@ -1871,7 +1996,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     await page.locator('.history .hs', { hasText: 'Box' }).click({ button: 'right' });
@@ -1915,12 +2040,12 @@ try {
 
   await check('fastener: an M8 bolt dropped into the starter plate’s hole, its thread cosmetic', async () => {
     // A 64 × 32 × 8 plate with a Ø8 hole at (32, 16).
-    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await page.click('[aria-label="New part"]'); await loadSampleSizes(); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await field('At X').fill('0'); await field('At Y').fill('0');
     await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await field('Centre X').fill('32'); await field('Centre Y').fill('16'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     await press('Escape');
@@ -1930,20 +2055,22 @@ try {
     await hudReady(); await page.waitForTimeout(300); await snap('fastener-preview'); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.made?.command === 'fastener', null, { timeout: 15000 }); await idle();
     await page.locator('.outliner .ol', { hasText: 'Bolt M8×20' }).click();
-    await page.waitForFunction(() => /M8×1\.25 right/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /M8×1\.25 right/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await snap('fastener');
   });
 
   await check('fastener at a Ø6.6 through hole: fitted M6, washer and nut under the plate, fit shown', async () => {
-    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await page.click('[aria-label="New part"]'); await loadSampleSizes(); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await field('At X').fill('0'); await field('At Y').fill('0');
     await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await field('Centre X').fill('32'); await field('Centre Y').fill('16'); await field('Diameter').fill('6.6'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     await press('Escape');
+    // (The iso view, framed: the hover points below are the hole's walls on this view, not on a camera an earlier step left.)
+    await iso();
     await shape('Fastener'); await hudReady();
     // Over the hole's wall (whichever side faces the eye): the fitted bolt follows.
     let fitted = false;
@@ -1963,6 +2090,7 @@ try {
   });
 
   await check('a countersunk screw inserted as a part of its own: an assembly instance, the part unchanged', async () => {
+    await loadSampleSizes();
     const before = await page.evaluate(() => window.__studioDoc.nodes.length);
     await shape('Fastener'); await hudReady();
     await field('Part').selectOption('csk-screw'); await field('Size').selectOption('M5'); await field('Length').selectOption('16');
@@ -1988,11 +2116,11 @@ try {
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'thread', null, { timeout: 30000 }); await idle();
     await page.locator('.outliner .ol', { hasText: 'Bolt M8×30' }).last().click();
-    await page.waitForFunction(() => /modelled|M8×1\.25/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 10000 });
+    await page.waitForFunction(() => /modelled|M8×1\.25/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 10000 });
     assert.equal(await page.evaluate(() => window.__studioDoc.nodes.at(-1).form), 'helical');
     await press('Escape');
     assert.ok(await page.evaluate(() => window.__studioSelectFace(`n${window.__studioDoc.nodes.length - 1}.head`)), 'the bolt head picked by name');
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('Escape'); await press('f'); await page.waitForTimeout(1000); await snap('fastener-modelled-thread');
   });
 
@@ -2061,11 +2189,11 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     await page.locator('.outliner .ol').first().click();
-    const mass = () => page.evaluate(() => Number((/Mass\s*([\d.]+)/.exec(document.querySelector('.props')?.textContent ?? '') ?? [])[1]));
+    const mass = () => page.evaluate(() => Number((/Mass\s*([\d.]+)/.exec(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? '') ?? [])[1]));
     const before = await mass();
     const steel = await page.evaluate(() => [...document.querySelectorAll('select[aria-label="Material"] option')].find(o => /Steel/.test(o.textContent))?.value);
     await page.selectOption('select[aria-label="Material"]', steel);
-    await page.waitForFunction(m => window.__studioDoc.bodies?.b1?.material && Number((/Mass\s*([\d.]+)/.exec(document.querySelector('.props')?.textContent ?? '') ?? [])[1]) > m * 2, before, { timeout: 5000 });
+    await page.waitForFunction(m => window.__studioDoc.bodies?.b1?.material && Number((/Mass\s*([\d.]+)/.exec(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? '') ?? [])[1]) > m * 2, before, { timeout: 5000 });
   });
 
   await check('the snap step cycles and the sketch grid follows it', async () => {
@@ -2086,25 +2214,27 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     await page.click('.outliner [aria-label="Show its features"]');
     await page.waitForFunction(() => document.querySelectorAll('.outliner .ol-step').length === 2, null, { timeout: 5000 });
     await page.locator('.outliner .ol-step', { hasText: 'Hole' }).click();
-    await page.waitForFunction(() => /EDIT FEATURE/.test(document.querySelector('.props')?.textContent ?? '') && /Diameter/.test(document.querySelector('.node-editor')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /EDIT FEATURE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? '') && /Diameter/.test(document.querySelector('.node-editor')?.textContent ?? ''), null, { timeout: 5000 });
   });
 
   await check('hole types: a countersunk hole and a tapped M6 on a box top', async () => {
-    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.click('[aria-label="New part"]'); await loadSampleSizes(); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await field('Type').selectOption('countersink'); await field('Centre X').fill('9'); await hudReady(); await page.waitForTimeout(300);
     await snap('hole-countersink'); await press('Shift+Enter');
     // One history step, a hole of its own with the countersink (the kernel cuts the cone).
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 3 && window.__studioDoc.nodes.at(-1)?.kind === 'hole' && window.__studioDoc.nodes.at(-1)?.countersink > 0, null, { timeout: 15000 });
-    await page.waitForFunction(() => /Countersunk Ø/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    // (The step's label in the Browser: the history bar is hidden again at once, the command running on — Shift+Enter —
+    // and a wait for it caught it only while the restart was late.)
+    await page.waitForFunction(() => /Countersunk Ø/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     await page.waitForFunction(() => /Hole/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 10000 });
     await field('Type').selectOption('tapped'); await field('Centre X').fill('23'); await hudReady(); await page.waitForTimeout(300);
     // (A bolt circle of the tapped holes: four round the top's middle.)
@@ -2115,24 +2245,59 @@ try {
     await snap('hole-types');
   });
 
+  await check('O14 / O16: the Library\'s shop rows on shadcn — none of the mount rows built in; Load sample mounts loads the four (its receipt kept), a file adds one', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Library"]');
+    try {
+      assert.match(await page.textContent('[aria-label="Mounts loaded"]'), /none — a mount needs its row/);
+      await page.click('[aria-label="Load sample mounts"]');
+      await page.waitForFunction(() => window.__studioDoc.mounts?.rows?.length === 4 && window.__studioDoc.rowSources?.rows?.some(r => r.kind === 'mounts' && r.file.filename === 'cad-model sample mounts.json'), null, { timeout: 10000 });
+      assert.match(await page.textContent('[aria-label="Mounts loaded"]'), /nema17, nema23, ucp204, ucfl204/);
+      const row = { id: 'my-motor', type: 'motor', holes: { pattern: 'square', spacing: 31, diameter: 3.4 }, shaft: 5, shaftHeight: 0, clearance: 0.5, estimate: true };
+      await page.setInputFiles('[aria-label="Mounts file"]', { name: 'my-mounts.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify([row])) });
+      await page.waitForFunction(() => window.__studioDoc.mounts?.rows?.length === 5, null, { timeout: 10000 });
+      assert.match(await page.textContent('[aria-label="Mounts loaded"]'), /my-motor/);
+      // (O16: the panel at 1440 in the dock, for the checkpoint.)
+      await page.locator('[aria-label="Shop rows"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-shop-rows.png`) });
+      await page.locator('[aria-label="Library panel"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}b-o16-library.png`) });
+    } finally { await page.click('[aria-label="Close library"]'); }
+  });
+
+  await check('O7e: no fastener sizes loaded — a tapped hole is refused in the HUD with [FASTENER_SIZE_ROW], the Library says none; loading the sample (the person’s click, its receipt kept) gives the seven sizes', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && !window.__studioDoc.fastenerSizes, null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await press('h'); await hudReady(); await field('Type').selectOption('tapped'); await page.waitForTimeout(400);
+    await page.waitForFunction(() => /\[FASTENER_SIZE_ROW\] no row for M6/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 10000 });
+    await snap('o7e-tapped-refused'); await press('Escape'); await press('Escape');
+    await page.click('[aria-label="Library"]');
+    try {
+      assert.match(await page.textContent('[aria-label="Fastener sizes loaded"]'), /none — fasteners and tapped holes need them/);
+      await page.click('[aria-label="Load sample fastener sizes"]');
+      await page.waitForFunction(() => window.__studioDoc.fastenerSizes?.rows?.length === 7 && window.__studioDoc.rowSources?.rows?.some(r => r.kind === 'fastener-sizes' && r.file.filename === 'cad-model sample fastener-sizes.json' && r.file.suppliedBy === 'person'), null, { timeout: 10000 });
+      assert.match(await page.textContent('[aria-label="Fastener sizes loaded"]'), /M3, M4, M5, M6, M8, M10, M12/);
+    } finally { await page.click('[aria-label="Close library"]'); }
+  });
+
   await check('a cross hole whose side touches a vertical hole’s wall from inside goes in', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     // Ø6 down through the top at (13, 16): its wall reaches x = 10.
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await field('Diameter').fill('6'); await field('Centre X').fill('13'); await field('Centre Y').fill('16'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 3, null, { timeout: 15000 }); await idle();
     // Ø4 across from the front at x = 12, z = 8: its side at x = 10 touches that wall at (10, 16, 8).
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.side0')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? '') && /0, -1, 0/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? '') && /0, -1, 0/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await field('Diameter').fill('4'); await field('Centre X').fill('12'); await field('Centre Z').fill('8'); await hudReady();
     await page.waitForFunction(() => /preview/.test(document.querySelector('.hud .status')?.textContent ?? ''), null, { timeout: 15000 });
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 4 && window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     // 32 × 32 × 16 less Ø6 × 16 and Ø4 × 32 plus their overlap (integrated): 15594.74 mm³.
     await page.locator('.outliner .ol', { hasText: 'Box' }).first().click();
-    await page.waitForFunction(() => /Volume\s*1559[45]/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Volume\s*1559[45]/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
     await snap('tangent-holes');
   });
 
@@ -2140,7 +2305,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     await press('Escape'); await page.waitForTimeout(200);
-    assert.match(await page.locator('.props').innerText(), /PART · 1 body[\s\S]*Mass/);
+    assert.match(await page.locator('.props:not([aria-label$=" panel"])').innerText(), /PART · 1 body[\s\S]*Mass/);
     await page.locator('.outliner .ol', { hasText: 'Box' }).first().click();
     await page.waitForSelector('[aria-label="Moments of inertia"]', { timeout: 5000 });
     const centre = await page.locator('[aria-label="Moments of inertia"]').innerText();
@@ -2154,16 +2319,16 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle(); await press('Escape');
     const [fx, fy] = await page.evaluate(() => window.__studioScreenOf([16, 16, 16]));
-    const filter = page.locator('[aria-label="Selection filter"]'), props = () => page.locator('.props').innerText();
+    const filter = page.locator('[aria-label="Selection filter"]'), props = () => page.locator('.props:not([aria-label$=" panel"])').innerText();
     await filter.click(); await filter.click(); assert.match(await filter.innerText(), /Edges/);
     await page.mouse.click(fx, fy); await page.waitForTimeout(300);
     assert.doesNotMatch(await props(), /SELECTION · FACE/, 'a face is not picked with Edges');
     await filter.click(); assert.match(await filter.innerText(), /Bodies/);
     // (A body made by a shape command opens for editing when picked whole.)
-    await page.mouse.click(fx, fy); await page.waitForFunction(() => /Edit Box/.test(document.querySelector('.hud')?.textContent ?? '') || /BODY/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.mouse.click(fx, fy); await page.waitForFunction(() => /Edit Box/.test(document.querySelector('.hud')?.textContent ?? '') || /BODY/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('Escape'); await page.waitForTimeout(200);
     await filter.click(); assert.match(await filter.innerText(), /Pick all/);
-    await page.mouse.click(fx, fy); await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.mouse.click(fx, fy); await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
   });
 
   await check('parameters: a chamfer bound to C follows it; a configuration saves and applies values', async () => {
@@ -2191,14 +2356,17 @@ try {
     await page.click('[aria-label="Apply small"]');
     await page.waitForFunction(() => window.__studioDoc.parameters.C === 3, null, { timeout: 5000 });
     assert.match(await page.locator('aside[aria-label="Parameters panel"]').innerText(), /small · now/);
-    await snap('parameters'); await page.click('[aria-label="Close parameters"]');
+    await snap('parameters');
+    // (O16: the panel at 1440 in the dock.)
+    await page.locator('aside[aria-label="Parameters panel"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-parameters.png`) });
+    await page.click('[aria-label="Close parameters"]');
   });
 
   await check('a cut right through a box leaves two pieces; Separate makes them two bodies', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('s'); await page.waitForTimeout(300);
     const [cx, cy] = await canvasCenter(); await press('r'); await clickAt(cx - 300, cy - 8); await clickAt(cx + 300, cy + 8);
     await press('Enter'); await press('e'); await hudReady();
@@ -2307,6 +2475,11 @@ try {
     await page.waitForSelector('[aria-label="Proposal P1"] [aria-label="Volume change"]', { timeout: 15000 });
     assert.match(await page.textContent('[aria-label="Proposal P1"] [aria-label="Volume change"]'), /^−226(\.\d+)? mm³ \(−3\.53%\)$/);
     assert.match(await page.textContent('[aria-label="Proposal P1"]'), /rebased/);
+    // (O18: the ghost tints the body the proposal changes — told by its key and mesh, not its volume — unless the
+    // engine draws the two-colour overlay.)
+    const ghostShown = await page.evaluate(() => ({ method: window.__studioProposalOverlay?.()?.method ?? null, colored: window.__studioBodies().colored }));
+    console.log(`  O18 ghost (${renderer}): overlay ${ghostShown.method}, tinted ${ghostShown.colored.join(',') || 'none'}`);
+    if (ghostShown.method !== 'boolean') assert.equal(ghostShown.colored.length, 1, JSON.stringify(ghostShown));
     await snap('proposal-ghost');
     await page.click('[aria-label="Proposal P1"] [aria-label="Before or after"]');
     assert.equal(await page.textContent('[aria-label="Proposal P1"] [aria-label="Before or after"]'), 'Before');
@@ -2420,11 +2593,11 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
     await page.evaluate(() => {
       const seen = window.__staleWatch = { evaluating: 0, bad: [] };
       const look = () => {
-        const props = document.querySelector('.props'), name = props?.querySelector('input[aria-label="Name"]')?.value ?? '', text = props?.textContent ?? '';
+        const props = document.querySelector('.props:not([aria-label$=" panel"])'), name = props?.querySelector('input[aria-label="Name"]')?.value ?? '', text = props?.textContent ?? '';
         const vol = Number(/Volume\s*([\d,]+) mm³/.exec(text)?.[1]?.replace(/,/g, '') ?? NaN);
         if (/evaluating…/.test(document.querySelector('.outliner .card-title')?.textContent ?? '')) seen.evaluating++;
         if (/Mesh ring/.test(name) && Number.isFinite(vol) && !(vol < 9870 && vol > 9600)) seen.bad.push(`props: ${name} with ${vol} mm³`);
@@ -2440,8 +2613,8 @@ try {
     const watch = await page.evaluate(() => { window.__staleObs.disconnect(); return window.__staleWatch; });
     assert.deepEqual(watch.bad, []); assert.ok(watch.evaluating > 0, 'the evaluating state was seen while the ring evaluated');
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /Mesh ring/.test(document.querySelector('.props input')?.value ?? '') && /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
-    const vol = Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
+    await page.waitForFunction(() => /Mesh ring/.test(document.querySelector('.props:not([aria-label$=" panel"]) input')?.value ?? '') && /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    const vol = Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props:not([aria-label$=" panel"])'))?.[1].replace(/,/g, ''));
     const ring = 2 * Math.PI * Math.PI * 20 * 25;
     assert.ok(vol < ring && vol > ring - 2 * Math.PI * 4 * 10, `${vol}`);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
@@ -2690,6 +2863,37 @@ try {
     await snap('spring-ground');
   });
 
+
+  // ---- O18: mass on request -----------------------------------------------------------------------------------------
+  await check('O18: a spring\'s reply comes without its mass, which follows; the inspector reads "…" until then; an undo right after the reply does not wait for the old mass', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    // (Seven coils: not the spring the step before built, whose B-rep's mass the worker still holds.)
+    await press(' '); await page.locator('.palette input').fill('spring'); await press('Enter'); await hudReady();
+    await field('Active coils').fill('7'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    const t0 = Date.now(); await press('Enter');
+    // The reply: its body with a mass ref and no mass yet (the preview's bodies, shown on Apply, carry neither).
+    await page.waitForFunction(() => { const b = window.__studioBodies?.()?.bodies; return window.__studioDoc.nodes[0]?.kind === 'spring' && b?.length === 1 && (b[0].massRef !== null || b[0].volume !== null); }, null, { timeout: 60000 });
+    const replied = Date.now() - t0, at = await page.evaluate(() => { const b = window.__studioBodies(); return { massReady: b.massReady, bodies: b.bodies }; });
+    assert.ok(!at.massReady && at.bodies[0].massRef !== null && at.bodies[0].volume === null, `the reply came before the mass: ${JSON.stringify(at)}`);
+    // An undo at once: its reply (an empty part) does not wait for the spring's quadrature, which it drops.
+    const t1 = Date.now(); await page.evaluate(() => document.activeElement?.blur?.()); await press('Meta+z');
+    await page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 0 && window.__studioDoc.nodes.length === 0; }, null, { timeout: 10000 });
+    const undone = Date.now() - t1;
+    assert.ok(undone < 1500, `the undo's reply took ${undone} ms`);
+    // Redo: the spring again, its mass "…" in the inspector, then its value.
+    await press('Meta+Shift+z');
+    await page.waitForFunction(() => { const b = window.__studioBodies?.()?.bodies; return b?.length === 1 && (b[0].massRef !== null || b[0].volume !== null); }, null, { timeout: 60000 });
+    await page.locator('.outliner .ol').first().click();
+    const early = await page.locator('.props:not([aria-label$=" panel"])').innerText();
+    const shown = await bodyVolume(), mass = await page.evaluate(() => window.__studioBodies().bodies[0].volume);
+    assert.ok(mass > 0 && Math.abs(shown - mass) <= 1, `${shown} shown, ${mass}`);
+    if (/Volume …/.test(early)) console.log('  O18: the inspector read "…" before the mass');
+    else console.log('  O18: the mass came before the inspector was read');
+    assert.ok(!/Volume 0 mm³/.test(early), 'never 0 while pending');
+    console.log(`  O18 spring (${renderer}): reply ${replied} ms after Apply, the undo's reply ${undone} ms`);
+    await press('Escape');
+  });
   await check('Spring (R12c.1b, D154): an extension spring with machine loops and a torsion spring with legs from the palette — close-wound, their notes (length inside the hooks, the legs\' angle, the rates flagged)', async () => {
     for (const [type, kind, label, note] of [['extension', 'extension', /Extension spring d2 × Ø20, 6 coils \(machine loops\)/, /^Length inside the hooks 34\.3779 mm/], ['torsion', 'torsion', /Torsion spring d2 × Ø20, 6 coils/, /^Legs 20 and 20 mm along the coil's tangent, 0° apart/]]) {
       await page.click('[aria-label="New part"]'); await idle();
@@ -2827,9 +3031,7 @@ try {
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'subd' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     assert.match(await page.textContent('.history'), /SubD box \(54 quads\)/);
-    await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
-    const props = await page.textContent('.props'), vol = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
+    const vol = await bodyVolume();
     assert.ok(vol > 0.6 * 30 * 20 * 16 && vol < 30 * 20 * 16, String(vol));
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('subd-box');
@@ -2951,6 +3153,7 @@ try {
     const half = await cageNow();
     assert.ok(half.cage.positions.filter((_, k) => k % 3 === 0).every(x => x >= -1e-9), 'the half on + x');
     await page.waitForTimeout(1200); await snap('cage-mirror');
+    await page.locator('[aria-label="Cage editor"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-cage.png`) });
     // ⌘Z in the session: the mirror undone (the whole cage again, the loop and crease kept).
     await press('Meta+z');
     await page.waitForFunction(() => window.__studioCage().mirror === null && window.__studioCage().cageFaces === 116 && window.__studioCage().creases === 16, null, { timeout: 5000 });
@@ -2996,9 +3199,9 @@ try {
       assert.deepEqual((await doc()).nodes[0].cage, want.input.partDocument.features[0].cage);
       await page.click('[aria-label="Close chat"]');
       await page.locator('.outliner .ol').first().click();
-      await page.waitForFunction(() => /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 30000 });
-      const props = await page.textContent('.props'), vol = Number(/Volume\s*([\d,.]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
-      assert.ok(Math.abs(vol / want.expect.outputs[0].volumeMM3.value - 1) < 1e-3, `${vol} mm³ shown`);
+      await page.waitForFunction(() => /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 30000 });
+      const props = await page.textContent('.props:not([aria-label$=" panel"])'), vol = Number(/Volume\s*([\d,.]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
+      assert.ok(Math.abs(vol / want.expect.outputs[0].volume.value - 1) < 1e-3, `${vol} mm³ shown`);
       await page.click('.views button:text-is("Iso")'); await frameAll(); await page.waitForTimeout(800);
       await snap('clamp-agent');
       await page.click('.views button:text-is("Front")'); await frameAll(); await page.waitForTimeout(800);
@@ -3011,8 +3214,8 @@ try {
       await page.setInputFiles('input[aria-label="Model file"]', file);
       await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 120000 }); await idle();
       await page.locator('.outliner .ol').first().click();
-      await page.waitForFunction(() => /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 30000 });
-      const back = Number(/Volume\s*([\d,.]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
+      await page.waitForFunction(() => /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 30000 });
+      const back = Number(/Volume\s*([\d,.]+) mm³/.exec(await page.textContent('.props:not([aria-label$=" panel"])'))?.[1].replace(/,/g, ''));
       assert.ok(Math.abs(back / vol - 1) < 1e-4, `${back} mm³ after STEP, ${vol} before`);
       await page.click('.views button:text-is("Iso")'); await frameAll(); await page.waitForTimeout(800);
       await snap('clamp-step-reopened');
@@ -3157,8 +3360,8 @@ try {
     await page.waitForFunction(k => window.__studioDoc.nodes.length === k + 1 && window.__studioDoc.nodes[k].kind === 'decimate', before, { timeout: 30000 });
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /Simplified: 10,000 → 1,000 triangles/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
-    const props = await page.textContent('.props');
+    await page.waitForFunction(() => /Simplified: 10,000 → 1,000 triangles/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    const props = await page.textContent('.props:not([aria-label$=" panel"])');
     assert.match(props, /Measured distance from the original: at most [\d.]+ mm/);
     assert.match(await page.textContent('.history'), /Simplify mesh to 10%/);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(600);
@@ -3222,7 +3425,7 @@ try {
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 20000 }); await idle();
     await page.locator('.outliner .ol').first().click();
-    const props = await page.textContent('.props'), vol = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
+    const props = await page.textContent('.props:not([aria-label$=" panel"])'), vol = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
     const yc = Math.sqrt(45), section = yc - 2 * Math.atan2(yc, 2) - 12.5 * Math.atan2(2, yc), exact = 16000 + 500 * Math.PI + 40 * section;
     assert.ok(Math.abs(vol - exact) <= 1, `${vol} vs ${exact}`);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
@@ -3378,7 +3581,7 @@ try {
     // virtual-sharp relations) = 5406.17 mm³; the panel rounds to 1 mm³.
     const vol = await bodyVolume();
     assert.ok(Math.abs(vol - 5406.17) <= 1, `${vol}`);
-    const props = await page.textContent('.props');
+    const props = await page.textContent('.props:not([aria-label$=" panel"])');
     assert.match(props, /Sheet metal: 1\.5 mm thick, bends of inner radius 1\.5 mm, K-factor 0\.5/);
     assert.match(props, /K 0\.5 is an estimate/);
     assert.match(props, /bend4: 90°, allowance 3\.534 mm/);
@@ -3397,11 +3600,12 @@ try {
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
     await bodyVolume();
     // The flat: 100 − 2·BD long (BD = 2(R + T) − (π/2)(R + K·T), R 2, T 1.5, K 0.44) = 94.357 × 25 mm.
-    await page.waitForFunction(() => /Flat pattern 94\.357 × 25 mm, 2 bends/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Flat pattern 94\.357 × 25 mm, 2 bends/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
     await page.click('[aria-label="Show the flat pattern"]');
     await page.waitForSelector('[aria-label="Flat pattern"]');
     assert.equal(await page.locator('[aria-label="Flat pattern drawing"] [aria-label="Bend down"]').count(), 2);
     assert.match(await page.locator('[aria-label="Flat pattern"]').innerText(), /94\.357 × 25 mm · 2 bends · T 1\.5 mm, K 0\.44/);
+    await page.locator('[aria-label="Flat pattern"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-flat-pattern.png`) });
     await snap('r12-2-flat-pattern');
     // (Handled at once: a failed click must fail this step, not leave a waiting promise to end the whole flow.)
     const download = page.waitForEvent('download'); download.catch(() => {});
@@ -3427,7 +3631,7 @@ try {
     // The plate less the trim (R + T), plus the bend and a 17 mm leg, times 50: 7315.07 mm³; its flat 80 + 20 − BD = 97.393 mm.
     const vol = await bodyVolume();
     assert.ok(Math.abs(vol - 7315.07) <= 1, `${vol}`);
-    await page.waitForFunction(() => /Flat pattern 97\.393 × 50 mm, 1 bend/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Flat pattern 97\.393 × 50 mm, 1 bend/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
     assert.match(await page.textContent('.history'), /Flange 20 · 90°/);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('r12-3a-flange');
@@ -3458,7 +3662,7 @@ try {
       await page.waitForFunction(n => window.__studioDoc.nodes.length === n + 1, k, { timeout: 30000 }); await idle();
     }
     await bodyVolume();
-    await page.waitForFunction(() => /Flat pattern [\d.]+ × [\d.]+ mm, 2 bends/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Flat pattern [\d.]+ × [\d.]+ mm, 2 bends/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('r12-3b-corner-relief');
   });
@@ -3467,15 +3671,15 @@ try {
     const fs = await import('node:fs'), file = join(out, 'sheet-l.bcad'), tableFile = join(out, 'shop-2mm.json');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 1, outputs: {}, nodes: [
       { id: 'n0', kind: 'sheet-contour', path: [[0, 0], [50, 0], [50, 35]], side: 'left', width: 20, thickness: 2, bendRadius: 3, kFactor: 0.4 }] }));
-    fs.writeFileSync(tableFile, JSON.stringify({ id: 'shop-2mm', sources: [{ id: 'shop', label: 'the shop\'s test bends' }], rows: [{ thicknessMM: 2, radiusMM: 3, angleDegrees: 90, deductionMM: 4.2, source: 'shop' }] }));
+    fs.writeFileSync(tableFile, JSON.stringify({ id: 'shop-2mm', sources: [{ id: 'shop', label: 'the shop\'s test bends' }], rows: [{ thickness: 2, radius: 3, angle: 90, deduction: 4.2, source: 'shop' }] }));
     await openModel(file, 1, 30000);
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
     await bodyVolume();
     await page.setInputFiles('input[aria-label="Bend table file"]', tableFile);
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.bendTable?.id === 'shop-2mm' && window.__studioDoc.nodes[0].kFactor === undefined, null, { timeout: 15000 }); await idle();
     await bodyVolume();
-    await page.waitForFunction(() => /K from bend table shop-2mm \(1 rows\)/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
-    const props = await page.textContent('.props');
+    await page.waitForFunction(() => /K from bend table shop-2mm \(1 rows\)/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    const props = await page.textContent('.props:not([aria-label$=" panel"])');
     assert.match(props, /deduction 4\.2 mm; K [\d.]+ from row 0/);
     assert.match(props, /Flat pattern 80\.8 × 20 mm, 1 bend/);
     await snap('r12-4-bend-table');
@@ -3489,7 +3693,7 @@ try {
       // (The flats, in the box's order: 30 × 70 − BD and 100 + 2(25 − BD) × 70 + 2(25 − BD), BD = 2(R + T) − (π/2)(R + K·T) at T = R = 1.5, K 0.44.)
       for (const [name, flat, bends, circles, notes] of [['l-bracket', '30 × 67\\.393 mm, 1 bend', ['down', 1], 2, 1], ['pcb-enclosure', '144\\.786 × 114\\.786 mm, 4 bends', ['up', 4], 4, 4]]) {
         const { calls } = JSON.parse(fs.readFileSync(join(root, `../../packages/barocss-cad-model/test/fixtures/sheet-${name}.calls.json`), 'utf8'));
-        const want = JSON.parse(fs.readFileSync(join(root, `../../packages/barocss-cad/conformance/r12/accept-${name}.json`), 'utf8')).expect.outputs[0].volumeMM3.value;
+        const want = JSON.parse(fs.readFileSync(join(root, `../../packages/barocss-cad/conformance/r12/accept-${name}.json`), 'utf8')).expect.outputs[0].volume.value;
         await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
         await page.click('[aria-label="Chat"]');
         await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
@@ -3501,9 +3705,9 @@ try {
         // (The panel rounds to 1 mm³.)
         const vol = await bodyVolume();
         assert.ok(Math.abs(vol - want) <= 1, `${name}: ${vol} vs ${want}`);
-        await page.waitForFunction(re => new RegExp(`Flat pattern ${re}`).test(document.querySelector('.props')?.textContent ?? ''), flat, { timeout: 15000 });
+        await page.waitForFunction(re => new RegExp(`Flat pattern ${re}`).test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), flat, { timeout: 15000 });
         // (The enclosure's four flanges' bends read apart, each by its feature, D122.)
-        if (name === 'pcb-enclosure') assert.equal(new Set((await page.locator('.props').textContent()).match(/n\d+\.bend(?=: )/g)).size, 4);
+        if (name === 'pcb-enclosure') assert.equal(new Set((await page.locator('.props:not([aria-label$=" panel"])').textContent()).match(/n\d+\.bend(?=: )/g)).size, 4);
         await page.click('[aria-label="Show the flat pattern"]');
         await page.waitForSelector('[aria-label="Flat pattern"]');
         assert.equal(await page.locator(`[aria-label="Flat pattern drawing"] [aria-label="Bend ${bends[0]}"]`).count(), bends[1]);
@@ -3532,7 +3736,7 @@ try {
     // 126 246.9 mm³ (the panel rounds to 1 mm³).
     const A = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9), vol = await bodyVolume();
     assert.ok(Math.abs(vol - A * 300) <= 1, `${vol} vs ${A * 300}`);
-    let props = await page.textContent('.props');
+    let props = await page.textContent('.props:not([aria-label$=" panel"])');
     assert.match(props, /Member: rect-tube 40 × 40 × 3, ro 6, ri 3 \(concentric\) · section 420\.823 mm² · length 300 mm/);
     assert.match(props, /Line through its centroid; section x −X, y \+Z/);
     assert.match(props, /Estimates, not your stock's: outerRadius 6 mm/);
@@ -3545,8 +3749,8 @@ try {
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
     await page.locator('.outliner .ol').nth(1).click();
-    await page.waitForFunction(() => /Member: tslot/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
-    props = await page.textContent('.props');
+    await page.waitForFunction(() => /Member: tslot/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    props = await page.textContent('.props:not([aria-label$=" panel"])');
     const At = 800 - 6 * (6.2 * 6.1 + 4.8 * 4.8 / 4) - 2 * Math.PI * 2.1 * 2.1;
     assert.ok(props.includes(`section ${+At.toFixed(3)} mm²`), props);
     assert.match(props, /Estimates, not your stock's: opening 6\.2 mm, lip 1\.8 mm, undercut 11 mm, depth 6\.1 mm, bore 4\.2 mm/);
@@ -3567,7 +3771,7 @@ try {
     // trim became the palette's default (D126): 302 993 mm³.
     const A = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9), vol = await bodyVolume();
     assert.ok(Math.abs(vol - A * 720) <= 1, `${vol} vs ${A * 720}`);
-    const props = await page.textContent('.props');
+    const props = await page.textContent('.props:not([aria-label$=" panel"])');
     assert.match(props, /Frame member 1 of 8: point 1 → point 5/);
     assert.match(props, /the line runs along up, so y follows \+X/);
     const ol = await page.textContent('.outliner');
@@ -3592,7 +3796,7 @@ try {
     // The first member: 600 mm of a sharp 40 × 40 × 3 tube (A 444 mm²), mitred at both ends: 266 400 mm³.
     const vol = await bodyVolume();
     assert.ok(Math.abs(vol - 444 * 600) <= 1, `${vol}`);
-    assert.match(await page.textContent('.props'), /Ends: start mitre 45° with member 4; end mitre 45° with member 2/);
+    assert.match(await page.textContent('.props:not([aria-label$=" panel"])'), /Ends: start mitre 45° with member 4; end mitre 45° with member 2/);
     await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('fr3a-mitred-rectangle');
   });
@@ -3616,8 +3820,8 @@ try {
       await page.waitForFunction(n => new RegExp(`${n} bodies`).test(document.querySelector('.outliner')?.textContent ?? ''), bodies, { timeout: 60000 }); await idle();
       const row = await page.evaluate(k => [...document.querySelectorAll('.outliner .ol')].findIndex(e => new RegExp(k).test(e.textContent ?? '')), kind === 'gusset' ? 'Gusset' : 'End cap');
       await page.locator('.outliner .ol').nth(row).click();
-      await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
-      return { volume: Number(/Volume\s*([\d,.]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, '')), notes: (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.trim()) };
+      await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+      return { volume: Number(/Volume\s*([\d,.]+) mm³/.exec(await page.textContent('.props:not([aria-label$=" panel"])'))?.[1].replace(/,/g, '')), notes: (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.trim()) };
     };
     await frameOf('rectangle', 4);
     const rows = page.locator('.outliner .ol'); await rows.nth(0).click(); await rows.nth(1).click({ modifiers: ['Shift'] });
@@ -3639,23 +3843,23 @@ try {
 
   await check('FRk2 weld beads (D166): a T and a gusset welded by the kernel\'s beads, opened as STEP', async () => {
     // (The beads come from the person's weld records through the outer lane's mapping; here the kernel's features alone.)
-    const { evaluateCadPart, exportStep } = await import('../../../packages/barocss-cad/dist/index.js');
+    const { evaluateCadPart, exportStep, outputOf } = await import('../../../packages/barocss-cad/dist/index.js');
     const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, WIDE = { kind: 'rect-tube', width: 80, height: 80, wall: 4, outerRadius: 0 };
     const part = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
       { id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [500, 0, 400], [0, 0, 400], [0, 0, 800], [400, 0, 800]], segments: [[0, 1], [2, 3], [4, 5]], section: WIDE, overrides: [{ member: 1, section: SHARP }, { member: 2, section: WIDE }], corners: { tee: 'butt', default: 'butt' } },
       { id: 'w', kind: 'weld-bead', frame: 'f', on: { member: 1, end: 'end' }, leg: 3 },
       { id: 'g', kind: 'gusset', frame: 'f', point: 1, legs: [150, 150], thickness: 8, clip: 12 },
       { id: 'gw', kind: 'weld-bead', frame: 'f', on: { gusset: 'g' }, leg: 4 }] });
-    const bead = part.output('w'), gw = part.output('gw');
-    assert.ok(Math.abs(bead.bead.volumeMM3 - 756) < 1e-9 && Math.abs(gw.bead.volumeMM3 - 2 * (138 + 138) * 16 / 2) < 1e-9, `${bead.bead.volumeMM3}, ${gw.bead.volumeMM3}`);
+    const bead = outputOf(part, 'w'), gw = outputOf(part, 'gw');
+    assert.ok(Math.abs(bead.bead.volume - 756) < 1e-9 && Math.abs(gw.bead.volume - 2 * (138 + 138) * 16 / 2) < 1e-9, `${bead.bead.volume}, ${gw.bead.volume}`);
     const file = join(out, 'frk2-welded.step'); (await import('node:fs')).writeFileSync(file, exportStep(part.outputs.map(o => o.brep), { name: 'frk2-welded' }));
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
     await page.locator('input[aria-label="Model file"]').setInputFiles(file);
     // Three members, the gusset, the T's bead (one ring) and the gusset's four runs: 9 solids.
     await page.waitForFunction(() => /9 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
     await page.locator('.outliner .ol').nth(3).click();
-    await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
-    assert.match(await page.textContent('.props'), /Volume\s*756 mm³/);
+    await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.match(await page.textContent('.props:not([aria-label$=" panel"])'), /Volume\s*756 mm³/);
     await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('frk2-beads');
   });
@@ -3674,21 +3878,26 @@ try {
     assert.ok(Math.abs(leg - 444 * 720) <= 1, `leg ${leg}`);
     // The fifth body: the first top rail, 600 between the legs' faces: 444 × 560.
     await page.locator('.outliner .ol').nth(4).click();
-    await page.waitForFunction(() => /Frame member 5 of 8/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
-    const props = await page.textContent('.props'), rail = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
+    await page.waitForFunction(() => /Frame member 5 of 8/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    const props = await page.textContent('.props:not([aria-label$=" panel"])'), rail = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
     assert.ok(Math.abs(rail - 444 * 560) <= 1, `rail ${rail}`);
     assert.match(props, /Ends: start trimmed to member 1 \(2 in order\); end trimmed to member 2 \(2 in order\)/);
     await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('fr3b-ordered-table');
   });
 
-  await check('FR3b a round-cornered table from the palette (the default tube, seconds of trims): computed off the main thread — the preview, then the bodies; the page\'s longest frame gap stays short and it answers meanwhile (D126)', async () => {
+  await check('FR3b a round-cornered box frame from the palette (the default tube, 12 members, seconds of trims): computed off the main thread — the preview, then the bodies; the page\'s longest frame gap stays short and it answers meanwhile (D126)', async () => {
     await page.click('[aria-label="New part"]');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    // (The G10 finding, 2026-10-23: the default table's trims got faster — 1.3–1.4 s now — so it no longer is a case of
+    // seconds. The box skeleton's 12 members and 8 three-way corners: the case measured, 1.7 s after K13 — a few polls.)
+    await press(' '); await page.locator('.palette input').fill('skeleton'); await press('Enter'); await hudReady();
     // A probe of the main thread: the longest gap between 10 ms ticks from here on.
     await page.evaluate(() => { const w = window; w.__gap = 0; w.__last = performance.now(); w.__tick = setInterval(() => { const t = performance.now(); w.__gap = Math.max(w.__gap, t - w.__last); w.__last = t; }, 10); });
+    await field('Skeleton').selectOption('box');
     const t0 = Date.now();
-    await press(' '); await page.locator('.palette input').fill('skeleton'); await press('Enter');
+    // (The box's preview starts: the HUD leaves the table's preview first.)
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent !== 'preview', null, { timeout: 10000 });
     // While the preview computes (the table's trims, in the worker): the page answers a round trip at once, over and over.
     let slowest = 0, polls = 0; const seen = new Set();
     while (await page.evaluate(() => document.querySelector('.hud .status')?.textContent !== 'preview')) {
@@ -3699,17 +3908,20 @@ try {
     }
     const preview = Date.now() - t0;
     await page.waitForTimeout(300); await press('Enter');
-    await page.waitForFunction(() => /8 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 120000 }); await idle();
+    await page.waitForFunction(() => /12 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 120000 }); await idle();
     const built = Date.now() - t0, gap = await page.evaluate(() => { clearInterval(window.__tick); return window.__gap; });
     // eslint-disable-next-line no-console -- the measurement itself, recorded in D126
-    console.log(`FR3b round table: preview after ${preview} ms (${polls} polls, the slowest answered in ${slowest} ms); bodies after ${built} ms; longest main-thread gap ${Math.round(gap)} ms; shown meanwhile: ${[...seen].join(' / ')}`);
+    console.log(`FR3b round box frame: preview after ${preview} ms (${polls} polls, the slowest answered in ${slowest} ms); bodies after ${built} ms; longest main-thread gap ${Math.round(gap)} ms; shown meanwhile: ${[...seen].join(' / ')}`);
     // (Meanwhile the HUD says so: "evaluating…".)
     assert.ok([...seen].some(x => /^evaluating…/.test(x)), [...seen].join(' / '));
-    assert.ok(preview > 2000, `the preview took ${preview} ms: not the case being measured`);
+    // (No wall-time floor: K13 made this preview 1.7 s. What is measured is the page answering while the worker computes,
+    // so the case only has to span a few of the 100 ms polls — the HUD seen "evaluating…" between them.)
+    assert.ok(polls >= 3, `the preview came after ${preview} ms, ${polls} polls: too quick to measure the page meanwhile`);
     assert.ok(slowest < 500, `the page took ${slowest} ms to answer while computing`);
     assert.ok(gap < 500, `the main thread was blocked ${Math.round(gap)} ms`);
     const A = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9), leg = await bodyVolume();
-    assert.ok(Math.abs(leg - A * 720) <= 1, `leg ${leg}`);
+    // (A post of the box: through both rails, 700 + 2 · 20 — A · 740, as the table's legs are A · 720.)
+    assert.ok(Math.abs(leg - A * 740) <= 1, `post ${leg}`);
   });
 
   await check('FR4a the cut list of a mitred rectangle from the palette: two rows of two (600 and 400, mitre 45° both ends, mass in aluminium — an estimate), and its CSV (new in D127)', async () => {
@@ -3727,9 +3939,11 @@ try {
     await page.waitForSelector('[aria-label="Cut list"]');
     const rows = await page.locator('[aria-label="Cut list rows"] tbody tr').allInnerTexts();
     assert.equal(rows.length, 2);
-    assert.match(rows[0], /^1\s+2\s+rect-tube 40 × 40 × 3\s+Aluminium 6061\s+600\s+640\s+mitre 45°\s+mitre 45°\s+0\.719 kg$/);
-    assert.match(rows[1], /^2\s+2\s+rect-tube 40 × 40 × 3\s+Aluminium 6061\s+400\s+440\s+mitre 45°\s+mitre 45°\s+0\.48 kg$/);
-    assert.match(await page.textContent('[aria-label="Cut list"]'), /4 pieces in 2 rows · 2000 mm · 2\.398 kg[\s\S]*estimates — not your stock's/);
+    // Sharp tube area = 40² − 34² = 444 mm²; density 2.7 g/cm³ gives 719.28/479.52 g. CSV remains kg.
+    assert.match(rows[0], /^1\s+2\s+rect-tube 40 × 40 × 3\s+Aluminium 6061\s+600\s+640\s+mitre 45°\s+mitre 45°\s+719\.28 g$/);
+    assert.match(rows[1], /^2\s+2\s+rect-tube 40 × 40 × 3\s+Aluminium 6061\s+400\s+440\s+mitre 45°\s+mitre 45°\s+479\.52 g$/);
+    assert.match(await page.textContent('[aria-label="Cut list"]'), /4 pieces in 2 rows · 2000 mm · 2397\.6 g[\s\S]*estimates — not your stock's/);
+    await page.locator('[aria-label="Cut list"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-cut-list.png`) });
     await snap('fr4a-cut-list');
     const download = page.waitForEvent('download'); download.catch(() => {});
     await page.click('[aria-label="Export cut list CSV"]');
@@ -3807,14 +4021,18 @@ try {
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count();
-      const rows = [{ id: 'L6', length: 6000, source: 'a test value' }, { id: 'L4', length: 4000, source: 'a test value' }];
-      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [{ tool: 'features', args: { action: 'frame_stock', rows, kerf: 3 } }, { tool: 'query', args: { action: 'cutlist' } }] })}`);
+      // (Rows rule b: the shop's lengths are the person's file, attached in the chat; the agent loads it by its reference.)
+      const rows = [{ id: 'L6', length: 6000, source: 'a test value' }, { id: 'L4', length: 4000, source: 'a test value' }], list = join(out, 'frame-stock.json');
+      fs.writeFileSync(list, JSON.stringify(rows)); await page.setInputFiles('input[aria-label="Chat image file"]', list);
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [{ tool: 'features', args: { action: 'frame_stock', file: '$file:frame-stock.json', kerf: 3 } }, { tool: 'query', args: { action: 'cutlist' } }] })}`);
       await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
       const tools = await page.locator('.chat-tool').allInnerTexts();
       assert.ok(tools.some(t => t.includes('features.frame_stock')) && tools.at(-1).includes('query.cutlist'), tools.slice(-3).join(' | '));
       await page.click('[aria-label="Close chat"]');
-      await page.waitForFunction(() => window.__studioDoc.frames?.stock?.length === 2 && window.__studioDoc.frames.kerfMM === 3, null, { timeout: 30000 }); await idle();
+      await page.waitForFunction(() => window.__studioDoc.frames?.stock?.length === 2 && window.__studioDoc.frames.kerf === 3, null, { timeout: 30000 }); await idle();
+      // (A member selected: its properties carry the cut list's button. FR4b, run before, leaves one selected; alone, this step picks it.)
+      if (!await page.locator('[aria-label="Show the cut list"]').count()) { await page.locator('.outliner .ol', { hasText: /^Frame/ }).first().click(); await page.waitForSelector('[aria-label="Show the cut list"]', { timeout: 15000 }); }
       await page.click('[aria-label="Show the cut list"]');
       await page.waitForSelector('[aria-label="Nesting"]');
       // (9320 mm of pieces: no sum of 4000s and 6000s lies in [9330, 10 000); one of each holds them — 10 000 − 9320 − 3 · 10.)
@@ -3873,7 +4091,7 @@ try {
   await check('Bearing (R12c.4, D158): the user\'s bearing rows loaded in the Library panel (none built in); a 6204 on the default shaft\'s first shoulder through the scripted chat — its seat and the not-located side in its notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const rows = [{ id: '6204', designation: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, estimate: true }];
+    const rows = [{ id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, estimate: true }];
     const file = join(out, 'bearing-rows.json'); fs.writeFileSync(file, JSON.stringify(rows));
     await page.click('[aria-label="Library"]');
     try {
@@ -3907,7 +4125,7 @@ try {
   await check('O-ring gland (R12c.5, D159): the user\'s O-ring rows loaded (none built in); a piston gland on a Ø31 cylinder for AS568-214 at S0\'s sizes through the scripted chat — stretch, squeeze and fill in its notes, the ranges said to be estimates', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const file = join(out, 'oring-rows.json'); fs.writeFileSync(file, JSON.stringify([{ id: '214', dash: '2-214', insideDiameterMM: 24.99, crossSectionMM: 3.53, estimate: true }]));
+    const file = join(out, 'oring-rows.json'); fs.writeFileSync(file, JSON.stringify([{ id: '214', dash: '2-214', insideDiameter: 24.99, crossSection: 3.53, estimate: true }]));
     await page.click('[aria-label="Library"]');
     try {
       assert.match(await page.textContent('[aria-label="O-ring rows"]'), /No O-ring rows: load your own .* None is built in/);
@@ -3939,7 +4157,7 @@ try {
   await check('Chain drive (R12c.6b, D161): the user\'s drive rows loaded (none built in); two sprockets and a chain on them through the scripted chat — the second moved to the distance for whole links, the links and the tooth form in their notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const rows = [{ kind: 'chain', id: 'chain-a', pitchMM: 12.7, rollerDiameterMM: 8.51, innerWidthMM: 7.75, plateHeightMM: 11.8, estimate: true }];
+    const rows = [{ kind: 'chain', id: 'chain-a', pitch: 12.7, rollerDiameter: 8.51, innerWidth: 7.75, plateHeight: 11.8, estimate: true }];
     const file = join(out, 'drive-rows.json'); fs.writeFileSync(file, JSON.stringify(rows));
     await page.click('[aria-label="Library"]');
     try {
@@ -3975,7 +4193,7 @@ try {
   await check('Connector opening (R12c.7, D162): the user\'s connector row loaded (none built in; U1\'s USB-C opening, a test row citing it); the opening in a plate\'s top through the scripted chat — the body seated, its gaps in the notes, the keep-out in the part\'s keep-outs', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const rows = [{ id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, body: { shape: 'stadium', widthMM: 8.25, heightMM: 2.4, lengthMM: 6.51 }, keepOut: { marginMM: 1, depthMM: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' }];
+    const rows = [{ id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', width: 8.34, height: 2.56, depth: 6.2 }, body: { shape: 'stadium', width: 8.25, height: 2.4, length: 6.51 }, keepOut: { margin: 1, depth: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' }];
     const file = join(out, 'connector-rows.json'); fs.writeFileSync(file, JSON.stringify(rows));
     await page.click('[aria-label="Library"]');
     try {
@@ -4012,7 +4230,7 @@ try {
   await check('Fits (R12c.2, D155): a fit table loaded in the Library panel (none built in); a bore and a pin given H7 and g6 and declared a pair through the chat — the limits and the clearance in the notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const table = { id: 'shop-fits', rows: [{ class: 'H7', overMM: 10, upToMM: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', overMM: 10, upToMM: 18, upperUM: -6, lowerUM: -17, estimate: true }] };
+    const table = { id: 'shop-fits', rows: [{ class: 'H7', over: 10, upTo: 18, upper: 0.018, lower: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upper: -0.006, lower: -0.017, estimate: true }] };
     const file = join(out, 'shop-fits.json'); fs.writeFileSync(file, JSON.stringify(table));
     await page.click('[aria-label="Library"]');
     try {
@@ -4108,11 +4326,49 @@ try {
       await page.evaluate(() => document.activeElement?.blur?.()); await press('Meta+z');
       await page.waitForFunction(() => window.__studioDoc.nodes.find(n => n.kind === 'key')?.bought === undefined && !!document.querySelector('[aria-label="BOM line 2"]'), null, { timeout: 30000 });
       await snap('bom-panel');
+      // (O16: the table at the dock's width — no wider than the panel, no item name wrapped.)
+      const fit = await page.evaluate(() => { const panel = document.querySelector('[aria-label="BOM panel"]'), table = document.querySelector('[aria-label="BOM lines"]'), items = [...table.querySelectorAll('tbody tr td:nth-child(2)')];
+        return { over: table.scrollWidth - panel.clientWidth, wrapped: items.filter(td => td.getClientRects().length && td.scrollHeight > td.clientHeight + 1).length, nowrap: items.every(td => getComputedStyle(td).whiteSpace === 'nowrap') }; });
+      assert.ok(fit.over <= 0 && fit.wrapped === 0 && fit.nowrap, JSON.stringify(fit));
+      await page.locator('[aria-label="BOM panel"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-bom-panel.png`) });
       const [csvFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export purchase list"]')]);
       const rows = fs.readFileSync(await csvFile.path(), 'utf8').trim().split('\n');
       assert.equal(rows[0], 'item no.,item,qty,kind,size,row,catalogue,source,estimate');
       assert.equal(rows.length, 2, rows.join(' | ')); assert.match(rows[1], /^2,key [\d.]+ × [\d.]+ × [\d.]+,1,key,/);
     } finally { if (await page.locator('[aria-label="Close BOM"]').count()) await page.click('[aria-label="Close BOM"]'); }
+  });
+  // ---- A9-11 (O2): the purchase list downloaded from the app keeps the key's estimate; Save, New, Open; the same bytes again --
+  await check('A9-11 purchase list from the app: a shaft and its key; the key line has no row or source and says estimate; saved, a new part, opened — the purchase list downloads byte for byte the same', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    for (const [label, pickShaft] of [['Shaft', false], ['Key', true]]) {
+      if (pickShaft) { await page.locator('.outliner .ol', { hasText: /^Shaft/ }).first().click(); await page.waitForTimeout(300); }
+      await press(' '); await page.locator('.palette input').fill(label); await page.locator('.palette input').press('Enter');
+      await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key'), null, { timeout: 30000 });
+    const purchase = async () => {
+      await page.click('nav[aria-label="Tools"] [aria-label="BOM"]');
+      try {
+        await page.waitForSelector('[aria-label="BOM line 2"]', { timeout: 30000 });
+        // (The panel says what the file says: the key's source is the estimate, not a row.)
+        assert.match(await page.textContent('[aria-label="BOM line 2"]'), /key [\d.]+ × [\d.]+ × [\d.]+[\s\S]*estimate/);
+        const [file] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export purchase list"]')]);
+        assert.match(file.suggestedFilename(), /purchase list\.csv$/);
+        return fs.readFileSync(await file.path());
+      } finally { if (await page.locator('[aria-label="Close BOM"]').count()) await page.click('[aria-label="Close BOM"]'); }
+    };
+    const first = await purchase(), rows = first.toString('utf8').trim().split('\n');
+    assert.equal(rows[0], 'item no.,item,qty,kind,size,row,catalogue,source,estimate');
+    assert.equal(rows.length, 2, rows.join(' | '));
+    assert.match(rows[1], /^2,key ([\d.]+ × [\d.]+ × [\d.]+),1,key,\1,,,,estimate$/, rows[1]);
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 10000 }), page.click('[aria-label="Save"]')]);
+    const bcad = join(out, 'a9-11-key.bcad'); fs.writeFileSync(bcad, fs.readFileSync(await saved.path()));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', bcad);
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key'), null, { timeout: 30000 }); await idle();
+    const again = await purchase();
+    assert.ok(again.equals(first), `reopened: ${again.toString('utf8')} vs ${first.toString('utf8')}`);
   });
   // ---- O147 B2: the BOM on the drawing — its table and the item balloons, numbered alike -----------------------------------
   await check('BOM table and balloons (O147 B2): a shaft and its key; on A3 the BOM table and 2 balloons numbered as its lines, on the iso view; in the SVG', async () => {
@@ -4153,6 +4409,13 @@ try {
       await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
     }
     await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key') && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
+    // (O174: a part's drawing is what it makes — a bought key is not drawn and has no note; set made in the BOM, it is the part's.)
+    await page.click('nav[aria-label="Tools"] [aria-label="BOM"]');
+    try {
+      await page.waitForSelector('[aria-label="BOM line 2"]', { timeout: 30000 });
+      await page.locator('[aria-label="BOM line 2"] select').selectOption('made');
+      await page.waitForFunction(() => window.__studioDoc.nodes.find(n => n.kind === 'key')?.bought === false, null, { timeout: 30000 });
+    } finally { if (await page.locator('[aria-label="Close BOM"]').count()) await page.click('[aria-label="Close BOM"]'); }
     await page.click('.mode button:text-is("Drawing")');
     try {
       await page.selectOption('[aria-label="Sheet size"]', 'A3');
@@ -4173,7 +4436,7 @@ try {
   await check('ring rows (O139): a row loaded in the Library panel; a ring on it via the chat cites it, no estimate; the used row stays', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const file = join(out, 'rings.json'); fs.writeFileSync(file, JSON.stringify([{ id: 'r20', designation: '20 × 1.2', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3, source: 'the maker\'s sheet' }]));
+    const file = join(out, 'rings.json'); fs.writeFileSync(file, JSON.stringify([{ id: 'r20', designation: '20 × 1.2', shaftDiameter: 20, grooveDiameter: 19, grooveWidth: 1.3, source: 'the maker\'s sheet' }]));
     await page.click('[aria-label="Library"]');
     try {
       assert.match(await page.textContent('[aria-label="Ring rows"]'), /No ring rows: load your own .* None is built in/);
@@ -4208,11 +4471,34 @@ try {
     } finally { await page.click('[aria-label="Close library"]'); }
   });
 
+  // ---- O175: Fix all runs its rounds — the section it adds is cut, then the sheet with it fixed; one click ----------------
+  await check('O175 Fix all rounds: a shaft and its bought key; Auto-dimension, then one Fix all adds the keyseat\'s section and clears what its view brings; no issue left, no key drawn (O174)', async () => {
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    for (const [label, pickShaft] of [['Shaft', false], ['Key', true]]) {
+      if (pickShaft) { await page.locator('.outliner .ol', { hasText: /^Shaft/ }).first().click(); await page.waitForTimeout(300); }
+      await press(' '); await page.locator('.palette input').fill(label); await page.locator('.palette input').press('Enter');
+      await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key') && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => (window.__studioDrawing?.()?.issues ?? []).some(x => x.code === 'DIM_ON_HIDDEN'), null, { timeout: 60000 });
+      // (The bought key is not the part's: no note points at it.)
+      assert.deepEqual(await page.evaluate(() => (window.__studioDoc.drawing?.notes ?? []).filter(n => n.id.startsWith('el-')).map(n => n.text)), []);
+      await page.click('[aria-label="Fix all issues"]');
+      // (One click: the rounds wait for the worker to cut the section, then fix the sheet with its view.)
+      await page.waitForFunction(() => (window.__studioDoc.drawing?.sections ?? []).length === 1 && (window.__studioDrawing?.()?.issues ?? []).length === 0, null, { timeout: 90000 });
+      await page.waitForFunction(() => /fixes applied/.test(document.body.textContent ?? '') && /The drawing has no issues/.test(document.body.textContent ?? ''), null, { timeout: 30000 });
+      assert.equal(await page.locator('[aria-label="Fix all issues"]').count(), 0, 'nothing left to fix');
+      await snap('fix-all-rounds');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   // ---- O138: a key's width fit — classes on the key's, keyseat's and keyway's sides -----------------------------------
   await check('key width fit (O138): h9 on the key, N9 on its keyseat, JS9 on the keyway via the chat — both width fits in the key\'s notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const table = { id: 'key-fits', rows: [{ class: 'N9', overMM: 3, upToMM: 6, upperUM: 0, lowerUM: -30, estimate: true }, { class: 'JS9', overMM: 3, upToMM: 6, upperUM: 15, lowerUM: -15, estimate: true }, { class: 'h9', overMM: 3, upToMM: 6, upperUM: 0, lowerUM: -30, estimate: true }] };
+    const table = { id: 'key-fits', rows: [{ class: 'N9', over: 3, upTo: 6, upper: 0, lower: -0.030, estimate: true }, { class: 'JS9', over: 3, upTo: 6, upper: 0.015, lower: -0.015, estimate: true }, { class: 'h9', over: 3, upTo: 6, upper: 0, lower: -0.030, estimate: true }] };
     const file = join(out, 'key-fits.json'); fs.writeFileSync(file, JSON.stringify(table));
     await page.click('[aria-label="Library"]');
     try { await page.setInputFiles('input[aria-label="Fit table file"]', file); await page.waitForFunction(() => window.__studioDoc.fits?.tables?.length === 1, null, { timeout: 10000 }); }
@@ -4319,7 +4605,7 @@ try {
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
-  await check('FRd2 the welded table\'s weld symbols on A3 by their checkbox: 11 shown, 5 said unshown; W-numbers and sizes in the SVG (O119)', async () => {
+  await check('FRd2 the welded table\'s weld symbols on A3 by their checkbox: all 16 shown (O173: a pieced end face is its face, an edge on visible ink is visible), none said unshown; W-numbers and sizes in the SVG (O119)', async () => {
     const fs = await import('node:fs');
     if (!/12 bodies/.test(await page.textContent('.outliner') ?? '')) throw new Error('FRd1 left no welded table');
     await page.click('.mode button:text-is("Drawing")');
@@ -4329,9 +4615,11 @@ try {
       await page.check('[aria-label="Weld symbols"]');
       await page.waitForFunction(() => window.__studioDrawing?.()?.welds?.placed?.length > 0, null, { timeout: 30000 });
       const w = await page.evaluate(() => window.__studioDrawing().welds);
-      assert.equal(w.placed.length, 11, JSON.stringify(w)); assert.deepEqual(w.unshown, ['W8', 'W13', 'W14', 'W15', 'W16']);
+      // (O173, 35cb1bb82: W8 and W13–W16 had been read as unseen — their seams' end faces come in pieces, or lie on another
+      // member's visible outline — and are shown; the model's frame-weld-symbols test changed with it.)
+      assert.equal(w.placed.length, 16, JSON.stringify(w)); assert.deepEqual(w.unshown, []);
       const issues = await page.evaluate(() => window.__studioDrawing().issues);
-      assert.ok(issues.some(i => i.code === 'WELD_NOT_SHOWN' && i.severity === 'warning'), JSON.stringify(issues));
+      assert.ok(!issues.some(i => i.code === 'WELD_NOT_SHOWN'), JSON.stringify(issues));
       await snap('frd2-weld-symbols');
       const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
       const svg = fs.readFileSync(await svgFile.path(), 'utf8');
@@ -4452,7 +4740,7 @@ try {
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
     await page.waitForFunction(() => /4 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
-    const first = async () => { await page.locator('.outliner .ol').first().click(); await page.waitForFunction(() => /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 30000 }); return bodyVolume(); };
+    const first = async () => { await page.locator('.outliner .ol').first().click(); await page.waitForFunction(() => /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 30000 }); return bodyVolume(); };
     assert.ok(Math.abs(await first() - 444 * 600) <= 1);
     const setValue = async (name, v) => { await page.click('[aria-label="Parameters"]'); await page.fill(`[aria-label="Value of ${name}"]`, v); await page.locator(`[aria-label="Value of ${name}"]`).press('Enter'); await page.click('[aria-label="Close parameters"]'); };
     await setValue('W', '800');
@@ -4515,7 +4803,7 @@ try {
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 6, outputs: {}, nodes: [
       { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [8, -20], max: [32, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
       { id: 'n2', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n3', kind: 'extrude', sketch: 2, height: 60, from: -10 },
-      { id: 'n4', kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'y', angleDegrees: 10, pivot: [20, 0, 10] },
+      { id: 'n4', kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'y', angle: 10, pivot: [20, 0, 10] },
       { id: 'n5', kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 4, side: 'solid' } }] }));
     await openModel(file, 6, 30000);
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
@@ -4594,7 +4882,7 @@ try {
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 6, outputs: {}, nodes: [
       { id: 'n0', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 20 }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
       { id: 'n2', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n3', kind: 'extrude', sketch: 2, height: 60, from: -30 },
-      { id: 'n4', kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'z', angleDegrees: 45, pivot: [0, 0, 10] },
+      { id: 'n4', kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'z', angle: 45, pivot: [0, 0, 10] },
       { id: 'n5', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 4, side: 'solid' } }] }));
     await openModel(file, 6, 30000);
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
@@ -4805,7 +5093,7 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'subd' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     assert.match(await page.textContent('.history'), /SubD torus \(128 quads\)/);
     await page.locator('.outliner .ol').first().click();
-    const props = await page.textContent('.props');
+    const props = await page.textContent('.props:not([aria-label$=" panel"])');
     const vol = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, '')), exact = 2 * Math.PI * Math.PI * 20 * 36;
     assert.ok(Math.abs(vol / exact - 1) < 0.03, `${vol} vs ${exact}`);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
@@ -4865,7 +5153,7 @@ try {
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'union', null, { timeout: 20000 }); await idle();
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /× 13\b/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 10000 });
+    await page.waitForFunction(() => /× 13\b/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 10000 });
     await iso(); await snap('draft-offset');
   });
 
@@ -4889,9 +5177,9 @@ try {
     const [ax, ay] = await page.evaluate(() => window.__studioScreenOf([32, 0, 16])), [bx, by] = await page.evaluate(() => window.__studioScreenOf([0, 0, 16]));
     await page.mouse.move(ax + 2, ay + 1); await page.waitForSelector('.vp-overlay .vertex-mark', { state: 'attached', timeout: 5000 });
     await page.mouse.click(ax + 2, ay + 1);
-    await page.waitForFunction(() => /SELECTION · POINT[\s\S]*32, 0, 16/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · POINT[\s\S]*32, 0, 16/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await page.keyboard.down('Shift'); await page.mouse.click(bx - 1, by + 1); await page.keyboard.up('Shift');
-    await page.waitForFunction(() => /2 POINTS[\s\S]*Distance\s*32 mm/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /2 POINTS[\s\S]*Distance\s*32 mm/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await snap('corners'); await press('Escape');
   });
 
@@ -4920,7 +5208,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await field('Centre X').fill('8'); await hudReady(); await page.waitForTimeout(300); await press('Shift+Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 });
     await page.waitForFunction(() => /Hole/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 10000 });
@@ -5004,7 +5292,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('s'); await page.waitForSelector('[aria-label="Use the face outline"]', { timeout: 5000 });
     await page.click('[aria-label="Use the face outline"]');
     await page.fill('[aria-label="Offset distance"]', '3'); await page.click('[aria-label="Offset inward"]');
@@ -5023,7 +5311,7 @@ try {
     const ext = (await doc()).nodes.length - 1;
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -5094,6 +5382,272 @@ try {
       await page.waitForFunction(() => !window.__studioDoc.drawing?.sections && !window.__studioDoc.drawing?.section && !(window.__studioDrawing?.()?.placedSections ?? []).length, null, { timeout: 20000 });
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
+  await check('detail views (CG5 DR-1): the Detail tool (E) on a box corner in the top view, auto scale, rescaled, dragged, in the SVG, removed', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.waitForFunction(() => document.querySelector('[aria-label="Drawing sheet"]')?.getAttribute('viewBox')?.includes('420'), null, { timeout: 20000 }).catch(() => {});
+      await page.waitForTimeout(500);
+      const sheetScale = await page.evaluate(() => window.__studioDrawing().scale), auto = [10, 5, 2, 1, 0.5, 0.2, 0.1].filter(x => x >= 2 * sheetScale * (1 - 1e-9)).at(-1) ?? 2 * sheetScale;
+      await press('e');
+      // (The top view's corner at X 64, Y 32 — snapped — then a point 6 mm along X: the circle's reach.)
+      const c = await page.evaluate(() => window.__studioDrawingAt('top', 64, 32)), r = await page.evaluate(() => window.__studioDrawingAt('top', 70, 32));
+      await page.mouse.move(c.x, c.y); await page.mouse.click(c.x, c.y);
+      await page.mouse.move(r.x, r.y); await page.mouse.click(r.x, r.y);
+      await page.waitForFunction(() => window.__studioDrawing?.()?.details?.length === 1, null, { timeout: 20000 });
+      const [det] = (await doc()).drawing.details;
+      assert.equal(det.id, 'B'); assert.equal(det.view, 'top'); assert.deepEqual(det.center, [64, 32]);
+      assert.ok(Math.abs(det.radius - 6) < 0.5, `radius ${det.radius}`);
+      let d = await page.evaluate(() => window.__studioDrawing().details[0]);
+      // (Auto: the smallest standard scale at least twice the sheet's; the corner's two edges inside the circle.)
+      assert.equal(d.scale, auto, `sheet ${sheetScale}`); assert.ok(d.edges >= 2, `${d.edges} edges`);
+      assert.ok(Math.abs((d.box[2] - d.box[0]) - 2 * auto * det.radius) < 1e-9);
+      assert.deepEqual(await page.evaluate(() => window.__studioDrawing().issues.filter(x => /DETAIL|OVERLAP|OFF_SHEET/.test(x.code)).map(x => x.code)), []);
+      const set = [10, 5, 2, 1, 0.5, 0.2, 0.1].find(x => x < auto), label = set >= 1 ? `${set}:1` : `1:${1 / set}`;
+      await page.selectOption('[aria-label="Detail B scale"]', String(set));
+      await page.waitForFunction(s => window.__studioDrawing?.()?.details?.[0]?.scale === s, set, { timeout: 20000 });
+      d = await page.evaluate(() => window.__studioDrawing().details[0]);
+      assert.ok(Math.abs((d.box[2] - d.box[0]) - 2 * set * det.radius) < 1e-9 && Math.abs((d.box[3] - d.box[1]) - 2 * set * det.radius) < 1e-9);
+      await snap('detail-b');
+      // Dragged by its drawing 20 mm left: kept where it was put.
+      await press('v');
+      const mid = await page.evaluate(([x0, y0, x1]) => { const svg = document.querySelector('[aria-label="Drawing sheet"]'), m = svg.getScreenCTM(); const p = new DOMPoint((x0 + x1) / 2, y0 + 3).matrixTransform(m), q = new DOMPoint((x0 + x1) / 2 - 20, y0 + 3).matrixTransform(m); return [p.x, p.y, q.x, q.y]; }, d.box);
+      await page.mouse.move(mid[0], mid[1]); await page.mouse.down(); await page.mouse.move((mid[0] + mid[2]) / 2, mid[1], { steps: 4 }); await page.mouse.move(mid[2], mid[3], { steps: 4 }); await page.mouse.up();
+      await page.waitForFunction(() => !!window.__studioDoc.drawing?.details?.[0]?.at, null, { timeout: 20000 });
+      const moved = await page.evaluate(() => window.__studioDrawing().details[0].box);
+      assert.ok(Math.abs((moved[0] - d.box[0]) + 20) < 0.6, `moved ${moved[0] - d.box[0]}`);
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      assert.ok(fs.readFileSync(await svgFile.path(), 'utf8').includes(`>DETAIL B (${label})</text>`), 'DETAIL B named in the SVG');
+      await page.click('[aria-label="Remove detail B"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.details && !(window.__studioDrawing?.()?.details ?? []).length, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+  await check('broken views (CG5 DR-2): a 500 mm bar, Add break, its ends typed, the front and top views shortened in projection, removed', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('500'); await field('Depth Y').fill('20'); await field('Height Z').fill('20'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 500×20×20/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.click('[aria-label="Add break"]');
+      // (The middle third of the longest axis: X 167 to 333.)
+      await page.waitForFunction(() => !!window.__studioDrawing?.()?.breaks?.front, null, { timeout: 20000 });
+      assert.deepEqual((await doc()).drawing.breaks, [{ axis: 'x', from: 167, to: 333 }]);
+      await page.fill('[aria-label="Break 1 from"]', '100'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.breaks?.[0]?.from === 100, null, { timeout: 20000 });
+      await page.fill('[aria-label="Break 1 to"]', '400'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.breaks?.front?.[0]?.to === 400, null, { timeout: 20000 });
+      const d = await page.evaluate(() => window.__studioDrawing());
+      // (Drawn 200 mm of the 500 at the sheet's scale, plus the 6 mm gap; the top view with it, the right view whole.)
+      const w = (id) => d.boxes[id][2] - d.boxes[id][0];
+      assert.ok(Math.abs(w('front') - (200 * d.scale + 6)) < 1e-9 && Math.abs(w('top') - w('front')) < 1e-9, `${w('front')} at ${d.scale}`);
+      assert.ok(!d.breaks.right && Math.abs(w('right') - 20 * d.scale) < 1e-9);
+      assert.deepEqual(d.issues.filter(x => /BREAK|OVERLAP|OFF_SHEET/.test(x.code)).map(x => x.code), []);
+      await snap('broken-bar');
+      await page.click('[aria-label="Remove break 1"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.breaks && !window.__studioDrawing?.()?.breaks?.front, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+  await check('section kinds (CG5 DR-3): a block with holes at Y 10 and Y 30; B–B on the front made offset (both holes, 4 faces), half (1 face), full again', async () => {
+    const fs = await import('node:fs');
+    const block = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40], id: 'n0' }, { kind: 'extrude', sketch: 0, height: 10, id: 'n1' }, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [15, 10], radius: 3, id: 'n2' }, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [45, 30], radius: 4, id: 'n3' }], outputs: { b3: { node: 3, side: 'solid' } }, nextId: 4 };
+    const file = join(out, 'dr3-block.bcad'); fs.writeFileSync(file, JSON.stringify(block));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.nodes?.length === 4 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Add section"]');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.sections?.some(x => x.id === 'B'), null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Section B view"]', 'front');
+      await page.waitForFunction(() => window.__studioDoc.drawing.sections.find(x => x.id === 'B')?.view === 'front', null, { timeout: 20000 });
+      await page.fill('[aria-label="Section B at"]', '10'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.at === 10 && x.rings === 2), null, { timeout: 30000 });
+      // Offset: a step at X 30 (the middle) to depth 30.
+      await page.selectOption('[aria-label="Section B kind"]', 'offset');
+      await page.waitForFunction(() => !!window.__studioDoc.drawing.sections.find(x => x.id === 'B')?.steps, null, { timeout: 20000 });
+      await page.fill('[aria-label="Section B step 1 depth"]', '30'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 4), null, { timeout: 30000 });
+      assert.deepEqual((await doc()).drawing.sections.find(x => x.id === 'B').steps, [{ past: 30, at: 30 }]);
+      assert.deepEqual(await page.evaluate(() => window.__studioDrawing().issues.filter(x => /OVERLAP|OVER_LINES|OFF_SHEET|DONT_FIT/.test(x.code)).map(x => x.code)), []);
+      await snap('offset-b');
+      // Half: cut right of X 30 — the face X 30–60 alone.
+      await page.selectOption('[aria-label="Section B kind"]', 'half');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 1), null, { timeout: 30000 });
+      assert.deepEqual((await doc()).drawing.sections.find(x => x.id === 'B').half, { line: 'vertical', at: 30, cut: 'after' });
+      await page.selectOption('[aria-label="Section B kind"]', 'full');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 2), null, { timeout: 30000 });
+      await page.click('[aria-label="Remove section B"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.sections, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+  await check('section forms (CG5 DR-4): a bar cut at X 50 removed (2:1, dragged) and revolved onto the front view', async () => {
+    const fs = await import('node:fs');
+    // (A 100 × 10 × 20 bar with a Ø6 hole along Z at (50, 5): the plane X 50 cuts two faces, y 0–2 and 8–10 by z 0–20.)
+    const bar = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [100, 10], id: 'n0' }, { kind: 'extrude', sketch: 0, height: 20, id: 'n1' }, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [50, 5], radius: 3, id: 'n2' }], outputs: { b2: { node: 2, side: 'solid' } }, nextId: 3 };
+    const file = join(out, 'dr4-bar.bcad'); fs.writeFileSync(file, JSON.stringify(bar));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.nodes?.length === 3 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Add section"]');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.sections?.some(x => x.id === 'B'), null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Section B view"]', 'right');
+      await page.waitForFunction(() => window.__studioDoc.drawing.sections.find(x => x.id === 'B')?.view === 'right', null, { timeout: 20000 });
+      await page.fill('[aria-label="Section B at"]', '-50'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.at === -50 && x.rings === 2), null, { timeout: 30000 });
+      // Removed: the cut face alone (its eight lines), apart from the views; at 2:1 its box 20 × 40.
+      await page.selectOption('[aria-label="Section B kind"]', 'removed');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.apartSections?.some(x => x.id === 'B' && x.form === 'removed' && x.edges === 8), null, { timeout: 30000 });
+      await page.selectOption('[aria-label="Section B scale"]', '2');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.apartSections?.some(x => x.id === 'B' && x.scale === 2), null, { timeout: 30000 });
+      let d = await page.evaluate(() => window.__studioDrawing());
+      const rb = d.apartSections[0].box;
+      assert.ok(Math.abs(rb[2] - rb[0] - 20) < 1e-9 && Math.abs(rb[3] - rb[1] - 40) < 1e-9, JSON.stringify(rb));
+      assert.deepEqual(d.placedSections, [], 'no room taken in the rows');
+      assert.deepEqual(d.issues.filter(x => /SECTION|OVERLAP|OFF_SHEET|DONT_FIT/.test(x.code)).map(x => x.code), []);
+      await snap('removed-b');
+      // Dragged 20 mm left: kept where it was put.
+      await press('v');
+      const mid = await page.evaluate(([x0, y0, x1]) => { const svg = document.querySelector('[aria-label="Drawing sheet"]'), m = svg.getScreenCTM(); const p = new DOMPoint((x0 + x1) / 2, y0 + 5).matrixTransform(m), q = new DOMPoint((x0 + x1) / 2 - 20, y0 + 5).matrixTransform(m); return [p.x, p.y, q.x, q.y]; }, rb);
+      await page.mouse.move(mid[0], mid[1]); await page.mouse.down(); await page.mouse.move((mid[0] + mid[2]) / 2, mid[1], { steps: 4 }); await page.mouse.move(mid[2], mid[3], { steps: 4 }); await page.mouse.up();
+      await page.waitForFunction(() => !!window.__studioDoc.drawing?.sections?.find(x => x.id === 'B')?.removed?.at, null, { timeout: 20000 });
+      const moved = await page.evaluate(() => window.__studioDrawing().apartSections[0].box);
+      assert.ok(Math.abs((moved[0] - rb[0]) + 20) < 0.6, `moved ${moved[0] - rb[0]}`);
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      // (Its scale named when not the sheet's.)
+      assert.ok(fs.readFileSync(await svgFile.path(), 'utf8').includes(`>SECTION B–B${d.scale === 2 ? '' : ' (2:1)'}</text>`), 'SECTION B–B named in the SVG');
+      // Revolved: onto the front view, at X 45–55 there (the front's box starts at X 0), z 0–20.
+      await page.selectOption('[aria-label="Section B kind"]', 'revolved');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.apartSections?.some(x => x.id === 'B' && x.form === 'revolved' && x.on === 'front'), null, { timeout: 30000 });
+      d = await page.evaluate(() => window.__studioDrawing());
+      const vb = d.apartSections[0].box, fb = d.boxes.front;
+      assert.ok(Math.abs(vb[0] - (fb[0] + 45 * d.scale)) < 1e-9 && Math.abs(vb[2] - (fb[0] + 55 * d.scale)) < 1e-9 && Math.abs(vb[1] - fb[1]) < 1e-9 && Math.abs(vb[3] - fb[3]) < 1e-9, `${vb} in ${fb} at ${d.scale}`);
+      await snap('revolved-b');
+      await page.selectOption('[aria-label="Section B kind"]', 'full');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.placedSections?.some(x => x.id === 'B') && !window.__studioDrawing().apartSections.length, null, { timeout: 30000 });
+      await page.click('[aria-label="Remove section B"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.sections, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+  await check('drawing metadata (CG5 DR-5): extended title block, two revision records, saved file and SVG/DXF exports', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.waitForSelector('[aria-label="Title block template"]', { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.selectOption('[aria-label="Title block template"]', 'extended');
+      await page.locator('[aria-label="Title block fields"] > summary').click();
+      for (const [label, value] of [['Organization', 'Flow shop'], ['Drawing number', 'DR-005'], ['Drawn by', 'Flow author'], ['Checked by', 'Flow checker'], ['Material', 'Flow material'], ['Finish', 'Flow finish']]) {
+        await page.fill(`[aria-label="${label}"]`, value); await page.press(`[aria-label="${label}"]`, 'Enter');
+      }
+      await page.waitForFunction(() => window.__studioDoc.drawing.titleBlock?.finish === 'Flow finish');
+      await page.click('[aria-label="Next revision"]');
+      await page.locator('[aria-label="Revision history"] > summary').click();
+      for (const [date, description] of [['2026-10-24', 'First test entry'], ['2026-10-25', 'Second test entry']]) {
+        await page.fill('[aria-label="Revision date"]', date);
+        await page.fill('[aria-label="Revision description"]', description);
+        await page.fill('[aria-label="Revision by"]', 'Flow author');
+        await page.click('[aria-label="Record revision"]');
+        await page.waitForFunction(text => [...document.querySelectorAll('[aria-label="Drawing sheet"] text')].some(x => x.textContent === text), description, { timeout: 15000 });
+        if (description === 'First test entry') await page.click('[aria-label="Next revision"]');
+      }
+      assert.equal(await page.isDisabled('[aria-label="Record revision"]'), true, 'no duplicate revision record');
+      assert.deepEqual(await page.evaluate(() => window.__studioDoc.drawing.revisions.map(r => [r.revision, r.date, r.description, r.by])), [['A', '2026-10-24', 'First test entry', 'Flow author'], ['B', '2026-10-25', 'Second test entry', 'Flow author']]);
+      await page.waitForFunction(() => !window.__studioDrawing().issues.some(x => x.severity === 'error' && x.tables?.includes('revisions')));
+      await snap('dr5-extended-title-revisions');
+      await page.locator('[aria-label="Drawing sheet"]').screenshot({ path: join(out, 'dr5-sheet.png') });
+      for (const [label, name] of [['Export SVG', 'dr5-metadata.svg'], ['Export DXF', 'dr5-metadata.dxf']]) {
+        const [download] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click(`[aria-label="${label}"]`)]);
+        const file = join(out, name); await download.saveAs(file);
+        const text = fs.readFileSync(file, 'utf8');
+        for (const value of ['Flow shop', 'DR-005', 'Flow material', 'Flow finish', 'First test entry', 'Second test entry']) assert.ok(text.includes(value), `${value} in ${name}`);
+      }
+      const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Save"]')]);
+      const file = join(out, 'dr5-saved.bcad'); await saved.saveAs(file);
+      const before = await page.evaluate(() => ({ titleBlock: window.__studioDoc.drawing.titleBlock, revisions: window.__studioDoc.drawing.revisions }));
+      await page.click('.mode button:text-is("Model")');
+      await openModel(file, 2); await idle();
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.revisions?.length === 2 && [...document.querySelectorAll('[aria-label="Drawing sheet"] text')].some(x => x.textContent === 'Second test entry'), null, { timeout: 20000 });
+      assert.deepEqual(await page.evaluate(() => ({ titleBlock: window.__studioDoc.drawing.titleBlock, revisions: window.__studioDoc.drawing.revisions })), before);
+      await page.selectOption('[aria-label="Title block template"]', 'basic');
+      await page.waitForFunction(() => ![...document.querySelectorAll('[aria-label="Drawing sheet"] text')].some(x => x.textContent === 'Flow shop'));
+      assert.equal(await page.evaluate(() => window.__studioDoc.drawing.titleBlock.organization), 'Flow shop', 'template switches keep metadata');
+      await page.selectOption('[aria-label="Title block template"]', 'extended');
+      await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Drawing sheet"] text')].some(x => x.textContent === 'Flow shop'));
+      await snap('dr5-reopened');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+  await check('geometric controls (CG5 DR-6a): fourteen characteristics, modifiers, typed missing datum issues, save and exports', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.waitForSelector('[aria-label="Auto-dimension"]', { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForSelector('.dw-dim', { timeout: 30000 }); await page.locator('.dw-dim').filter({ hasText: 'horizontal · front' }).first().click();
+      await page.click('[aria-label="Add geometric control"]');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.frames?.length === 1);
+      const shapes = {};
+      // Sheet updates can replace SVG children; retry only a detached screenshot target.
+      const controlShot = async name => {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            await page.locator('[aria-label="Drawing sheet"] g.control').screenshot({ path: join(out, name) });
+            return;
+          } catch (error) {
+            if (attempt === 2 || !String(error?.message ?? error).includes('Element is not attached to the DOM')) throw error;
+            console.warn(`DR6a control screenshot attempt ${attempt + 1}/3 failed; retrying ${name}: ${String(error?.message ?? error)}`);
+          }
+        }
+      };
+      for (const kind of ['position', 'straightness', 'flatness', 'circularity', 'cylindricity', 'profile-line', 'profile-surface', 'parallelism', 'perpendicularity', 'angularity', 'concentricity', 'symmetry', 'circular-runout', 'total-runout']) {
+        await page.selectOption('[aria-label="Geometric characteristic"]', kind);
+        await page.waitForFunction(k => window.__studioDoc.drawing.frames[0].characteristic === k && document.querySelector('[aria-label="Drawing sheet"] g.control'), kind);
+        shapes[kind] = await page.locator('[aria-label="Drawing sheet"] g.control').innerHTML();
+        if (['position', 'flatness', 'profile-surface', 'total-runout'].includes(kind)) await controlShot(`dr6a-${kind}.png`);
+      }
+      assert.equal(new Set(Object.values(shapes)).size, 14); fs.writeFileSync(join(out, 'dr6a-symbols.json'), JSON.stringify(shapes, null, 2));
+      await page.selectOption('[aria-label="Geometric characteristic"]', 'position');
+      await page.fill('[aria-label="Geometric tolerance"]', '0.05'); await page.press('[aria-label="Geometric tolerance"]', 'Enter');
+      await page.selectOption('[aria-label="Material modifier"]', 'maximum');
+      await page.check('[aria-label="Free state modifier"]'); await page.check('[aria-label="Tangent plane modifier"]');
+      await page.fill('[aria-label="Projected zone height"]', '12'); await page.press('[aria-label="Projected zone height"]', 'Enter');
+      await page.fill('[aria-label="Geometric datums"]', 'A, B'); await page.press('[aria-label="Geometric datums"]', 'Enter');
+      await page.selectOption('[aria-label="Datum A modifier"]', 'least'); await page.selectOption('[aria-label="Datum B modifier"]', 'maximum');
+      await page.waitForFunction(() => window.__studioDrawing().issues.some(x => x.code === 'DATUM_UNDEFINED'), null, { timeout: 10000 });
+      await page.waitForFunction(() => { const t = [...document.querySelectorAll('[aria-label="Drawing sheet"] g.control text')].map(e => e.textContent); return ['Ø0.05', 'M', 'L', 'F', 'T', 'P', '12', 'A', 'B'].every(x => t.includes(x)); });
+      await snap('dr6a-control-modifiers');
+      await controlShot('dr6a-modifiers.png');
+      for (const [label, name] of [['Export SVG', 'dr6a-controls.svg'], ['Export DXF', 'dr6a-controls.dxf']]) {
+        const [download] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click(`[aria-label="${label}"]`)]); await download.saveAs(join(out, name));
+        const text = fs.readFileSync(join(out, name), 'utf8'); for (const value of ['0.05', 'M', 'L', 'F', 'T', 'P']) assert.ok(text.includes(value), `${value} in ${name}`);
+      }
+      const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Save"]')]); const file = join(out, 'dr6a-saved.bcad'); await saved.saveAs(file);
+      const frame = await page.evaluate(() => window.__studioDoc.drawing.frames[0]);
+      await page.click('.mode button:text-is("Model")'); await openModel(file, 2); await idle(); await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => document.querySelector('[aria-label="Drawing sheet"] g.control') && window.__studioDoc.drawing?.frames?.[0]?.projected === 12);
+      assert.deepEqual(await page.evaluate(() => window.__studioDoc.drawing.frames[0]), frame);
+      await page.locator('.dw-dim').filter({ hasText: 'horizontal · front' }).first().click();
+      await page.fill('[aria-label="Geometric datums"]', ''); await page.press('[aria-label="Geometric datums"]', 'Enter');
+      await page.waitForFunction(() => !window.__studioDrawing().issues.some(x => x.code === 'DATUM_UNDEFINED'));
+      assert.equal(await page.evaluate(() => window.__studioDoc.drawing.frames[0].datumModifiers), undefined);
+      await page.click('[aria-label="Remove geometric control"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing.frames?.length && !document.querySelector('[aria-label="Drawing sheet"] g.control'));
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   await check('dimensions on sections (O148 X2): the shaft-and-hub file; B–B through the keyseat (Z 15); Auto-dimension puts b 6 and d − t1 16.5 on it with no DIM_ON_HIDDEN; the dimension tool snaps on the section', async () => {
     const fs = await import('node:fs');
     await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();
@@ -5147,7 +5701,7 @@ try {
     const ext = (await doc()).nodes.length - 1;
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -5157,6 +5711,8 @@ try {
       const texts = async () => (await page.evaluate(() => window.__studioDrawing())).dimensions.map(d => d.text).sort();
       // One placed by hand first: the overall width.
       const clickView = async (view, u, v) => { const p = await page.evaluate(([view, u, v]) => window.__studioDrawingAt(view, u, v), [view, u, v]); await page.mouse.move(p.x - 3, p.y); await page.mouse.move(p.x, p.y); await page.mouse.click(p.x, p.y); };
+      // (Placed 30 mm off the front view: once the centre column narrowed, G12b, that is out on the paper, further than 30 mm
+      // from any view, where a dimension being placed is still placed — read in its own view, wherever the pointer is.)
       await press('d'); await clickView('front', 0, 0); await clickView('front', 64, 0); await clickView('front', 32, -30);
       await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 1, null, { timeout: 5000 }); await press('Escape');
       await page.click('[aria-label="Auto-dimension"]');
@@ -5169,6 +5725,8 @@ try {
       await page.click('[aria-label="Auto-dimension"]'); await page.waitForTimeout(300);
       assert.deepEqual(await texts(), ['16', '32', '32', '64', '8', 'Ø8 THRU']);
       await snap('r14-auto-dimension');
+      // (O16: the drawing's settings at 1440, beside the sheet.)
+      await page.locator('[aria-label="Drawing settings"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-drawing-settings.png`) });
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
@@ -5180,7 +5738,7 @@ try {
     const ext = (await doc()).nodes.length - 1;
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -5212,7 +5770,7 @@ try {
     const ext = (await doc()).nodes.length - 1;
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -5234,13 +5792,14 @@ try {
 
   // ---- R14.4 (O5): tolerance and GD&T suggestions ------------------------------------------------------------------
   await check('R14.4: geometric tolerancing suggested — datums A B C, the hole’s position frame, basic locations — and accepted all, cleanly', async () => {
-    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    // (O7b: the hole's position tolerance is worked out from the fastener sizes the person loaded — the sample here.)
+    await page.click('[aria-label="New part"]'); await loadSampleSizes(); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
     await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
     const ext = (await doc()).nodes.length - 1;
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('6.6'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø6.6/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -5298,7 +5857,7 @@ try {
     const ext = (await doc()).nodes.length - 1;
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -5417,6 +5976,8 @@ try {
     await page.waitForFunction(() => window.__studioDoc.robot?.base === 'arm', null, { timeout: 10000 });
     assert.match(await page.locator('[aria-label="Joint base~arm"]').innerText(), /arm → Base part/);
     await snap('rm1-joints');
+    // (O16: the panel at 1440 in the dock.)
+    await page.locator('[aria-label="Joints"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-joints.png`) });
   });
 
   // ---- RM2 (O15): forward kinematics and the joint sliders ----------------------------------------------------------
@@ -5429,6 +5990,10 @@ try {
     await page.waitForSelector('[aria-label="Joint a~b value"]', { timeout: 20000 });
     const before = await page.evaluate(() => window.__studioInstanceBounds().find(i => i.id === 'b'));
     const placed = JSON.stringify((await doc()).instances);
+    // (R1c (3b): the pose lives outside React state — what a slider or a joint played does is still a preview, the history
+    // as it was: the Undo button's state is checked around each.)
+    const undoState = () => page.evaluate(() => { const b = document.querySelector('[aria-label="Undo"]'); return { tip: b?.getAttribute('data-tip'), off: !!b?.disabled }; });
+    const undo0 = await undoState();
     // (A half turn of b about a's far hole at x = 60: its box, x 50…110, swings to 10…70.)
     // (A range input set as a person's drag sets it: the native value, then an input event React hears.)
     await page.evaluate(v => { const el = document.querySelector('[aria-label="Joint a~b value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(v)); el.dispatchEvent(new Event('input', { bubbles: true })); }, Math.PI);
@@ -5436,6 +6001,7 @@ try {
     assert.ok(Math.abs(before.min[0] - 50) < 1e-3, JSON.stringify(before));
     assert.equal(JSON.stringify((await doc()).instances), placed, 'a preview: the placements are not changed');
     assert.match(await page.locator('[aria-label="Joint a~b"]').innerText(), /180\.0 °/);
+    assert.deepEqual(await undoState(), undo0, 'a slider pose adds no undo entry');
     await snap('rm2-posed');
     // (G2: the posed arm sectioned — the plane in world space through the swung link, as the CPU's moved copies cut.)
     await page.click('[aria-label="Section view"]'); await page.waitForSelector('[data-handle="section"]', { timeout: 10000 });
@@ -5446,9 +6012,22 @@ try {
     await page.click('[aria-label="Joints home"]');
     await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'b').min[0] - 50) < 1e-3, null, { timeout: 10000 });
     // Played: the first arm swings by itself, then stopped.
+    const undo1 = await undoState();
     await page.click('[aria-label="Play joint base~a"]');
     await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'a').min[0] - 10) > 1, null, { timeout: 10000 });
     await page.click('[aria-label="Play joint base~a"]');
+    assert.deepEqual(await undoState(), undo1, 'a joint played adds no undo entry');
+    assert.equal(JSON.stringify((await doc()).instances), placed, 'nor changes the placements');
+    // Saved while posed and opened again: the pose is not saved, as before (a preview) — the arm opens at home.
+    const posed = await page.evaluate(() => window.__studioInstanceBounds().find(i => i.id === 'b'));
+    assert.ok(Math.abs(posed.min[0] - 50) > 1, `posed when saved: ${JSON.stringify(posed)}`);
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const again = join(out, 'saved-rm2-posed.bcad'); fs.writeFileSync(again, fs.readFileSync(await saved.path()));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => !window.__studioDoc.instances?.length, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', again);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 2 && window.__studioInstanceBounds?.().length === 2, null, { timeout: 20000 }); await idle();
+    await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'b').min[0] - 50) < 1e-3, null, { timeout: 10000 });
+    assert.equal(JSON.stringify((await doc()).instances), placed, 'the placements as saved');
     await page.click('[aria-label="Joints home"]');
   });
 
@@ -5516,6 +6095,166 @@ try {
     await snap('rm5-arm');
   });
 
+  // ---- O12: tool and sensor frames in the Joints card ---------------------------------------------------------------
+  await check('O12: the 6R arm with a TCP on l6 and a camera on l3 — the Joints card reads each frame out where MuJoCo puts it; l6 turned a quarter moves the TCP, not the camera', async () => {
+    const fs = await import('node:fs'), file = join(out, 'arm-6r-frames.bcad');
+    const d = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'), 'utf8'));
+    // (The frames robot-frames.test.ts and conformance/rm/arm-6r/frames use; their zero pose from its expect.json, MuJoCo 3.3.0's sites.)
+    d.robot = { version: 1, frames: { tcp: { link: 'l6', position: [5, -3, 40], rotation: [0, 90, 0], kind: 'tool' }, cam: { link: 'l3', position: [10, 20, 5], rotation: [30, -15, 60], kind: 'sensor' } } };
+    fs.writeFileSync(file, JSON.stringify(d));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 6 && window.__studioDoc.robot?.frames?.tcp, null, { timeout: 20000 }); await idle();
+    const frame = n => page.locator(`[aria-label="Frame ${n}"] b`).evaluate(e => e.textContent);
+    await page.waitForSelector('[aria-label="Frame tcp"]', { timeout: 30000 });
+    const zero = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/frames/expect.json'), 'utf8')).samples[0];
+    assert.ok(Object.values(zero.q).every(v => v === 0));
+    const text = f => `(${f.o.map(v => (v * 1000).toFixed(1)).join(', ')}) · Z (${[f.R[2], f.R[5], f.R[8]].map(v => { const t = v.toFixed(3); return t === '-0.000' ? '0.000' : t; }).join(', ')})`;
+    assert.equal(await frame('tcp'), text(zero.frames.tcp));
+    assert.equal(await frame('cam'), text(zero.frames.cam));
+    assert.match(await page.locator('[aria-label="Frame tcp"]').evaluate(e => e.textContent), /^tcp tool · \S/);
+    const cam = await frame('cam');
+    await page.evaluate(v => { const el = document.querySelector('[aria-label="Joint l5~l6 value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(v)); el.dispatchEvent(new Event('input', { bubbles: true })); }, Math.PI / 2);
+    await page.waitForFunction(() => /^\(63\.0, 105\.0, 330\.0\)/.test(document.querySelector('[aria-label="Frame tcp"] b')?.textContent ?? ''), null, { timeout: 10000 });
+    assert.equal(await frame('tcp'), '(63.0, 105.0, 330.0) · Z (0.000, 1.000, 0.000)');
+    assert.equal(await frame('cam'), cam, 'the camera is on l3: l6 does not move it');
+    await page.locator('[aria-label="Joints"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o12-frames.png`) });
+    await page.click('[aria-label="Joints home"]');
+    await page.waitForFunction(() => /^\(45\.0, 97\.0, 330\.0\)/.test(document.querySelector('[aria-label="Frame tcp"] b')?.textContent ?? ''), null, { timeout: 10000 });
+  });
+
+  // ---- G13: tool and sensor frames in the viewport --------------------------------------------------------------------
+  await check('G13: the 6R arm\'s TCP and camera drawn as triads in the viewport — the TCP\'s at MuJoCo\'s point at the zero pose and after a quarter turn of l6, its Z along +Y then; the camera\'s where it was — on either renderer', async () => {
+    const fs = await import('node:fs'), file = join(out, 'g13-arm-6r-frames.bcad');
+    const d = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'), 'utf8'));
+    d.robot = { version: 1, frames: { tcp: { link: 'l6', position: [5, -3, 40], rotation: [0, 90, 0], kind: 'tool' }, cam: { link: 'l3', position: [10, 20, 5], rotation: [30, -15, 60], kind: 'sensor' } } };
+    fs.writeFileSync(file, JSON.stringify(d));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => (window.__studioFrameTriads?.() ?? []).length === 2, null, { timeout: 30000 }); await idle();
+    await page.click('.views button[title="Frame all (F)"]'); await page.waitForTimeout(600);
+    const webgpu = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu');
+    const tri = () => page.evaluate(() => Object.fromEntries(window.__studioFrameTriads().map(f => [f.name, f])));
+    const near = (a, b, tol) => a.every((v, k) => Math.abs(v - b[k]) < tol);
+    const unit = (a, b) => { const v = b.map((x, k) => x - a[k]), n = Math.hypot(...v); return v.map(x => x / n); };
+    // (Drawn where it says: on WebGPU the Z axis's middle is the triad's blue on the canvas; on WebGL2 the overlay's Z line
+    // runs from the origin's screen point to the end's.)
+    const drawn = async f => {
+      if (webgpu) {
+        // (A quarter, the middle and three quarters along it: a 2 px line's samples, one of them its blue.)
+        const along = [0.25, 0.5, 0.75].map(u => f.o.map((v, k) => v + u * (f.z[k] - v)));
+        const px = await page.evaluate(p => window.__studioPixels(p), along);
+        return px.some(c => c[2] > c[0] + 40 && c[2] > c[1] + 10) ? null : `the ${f.name} Z axis is not blue along it: ${JSON.stringify(px)} at ${JSON.stringify(await page.evaluate(p => p.map(q => window.__studioScreenOf(q)), along))}`;
+      }
+      const [o, z] = await page.evaluate(f => [window.__studioScreenOf(f.o), window.__studioScreenOf(f.z)], f);
+      const line = await page.evaluate(n => { const l = document.querySelectorAll(`.vp-overlay [aria-label="Frame triad ${n}"] line`)[2]; return l && [+l.getAttribute('x1'), +l.getAttribute('y1'), +l.getAttribute('x2'), +l.getAttribute('y2')]; }, f.name);
+      return line && near(line, [...o, ...z], 1) ? null : `the ${f.name} Z line ${JSON.stringify(line)} is not from ${JSON.stringify(o)} to ${JSON.stringify(z)}`;
+    };
+    let t = await tri();
+    assert.ok(near(t.tcp.o, [45, 97, 330], 0.05), `the TCP at the zero pose ${JSON.stringify(t.tcp.o)}`);
+    assert.equal(t.tcp.kind, 'tool'); assert.equal(t.cam.kind, 'sensor');
+    assert.equal(await drawn(t.tcp), null); assert.equal(await drawn(t.cam), null);
+    await snap('g13-frames-zero');
+    const cam = t.cam.o;
+    await page.evaluate(v => { const el = document.querySelector('[aria-label="Joint l5~l6 value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(v)); el.dispatchEvent(new Event('input', { bubbles: true })); }, Math.PI / 2);
+    await page.waitForFunction(() => { const f = window.__studioFrameTriads().find(x => x.name === 'tcp'); return Math.abs(f.o[0] - 63) < 0.05 && Math.abs(f.o[1] - 105) < 0.05; }, null, { timeout: 10000 });
+    await page.waitForTimeout(400);
+    t = await tri();
+    assert.ok(near(t.tcp.o, [63, 105, 330], 0.05), `the TCP after a quarter turn ${JSON.stringify(t.tcp.o)}`);
+    assert.ok(near(unit(t.tcp.o, t.tcp.z), [0, 1, 0], 1e-6), `its Z along +Y ${JSON.stringify(unit(t.tcp.o, t.tcp.z))}`);
+    assert.ok(near(t.cam.o, cam, 1e-9), 'the camera is on l3: l6 does not move it');
+    await snap('g13-frames-turned');
+    assert.equal(await drawn(t.tcp), null);
+    await page.click('[aria-label="Joints home"]');
+    await page.waitForFunction(() => Math.abs(window.__studioFrameTriads().find(x => x.name === 'tcp').o[0] - 45) < 0.05, null, { timeout: 10000 });
+  });
+
+  // ---- O11: the Variants card ---------------------------------------------------------------------------------------
+  await check('O11: the Variants card — a variant shown regenerated from the master (the pin moved, the loop\'s mates unmet), modelling waits; values edited, updated, reset and saved as a variant; the master shown edits again; the agent\'s set_variants in the card', async () => {
+    // (test/fixtures/o11/variants.bcad: o11-fixtures' plateMaster — "offset" drives the pin's distance above the plate,
+    // 5 in the master, high 25, low 1 — and a mate loop a~b whose "gap" input drives m2.)
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, 'test/fixtures/o11/variants.bcad'));
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 3 && window.__studioInstanceBounds?.().length === 3, null, { timeout: 20000 }); await idle();
+    const pinZ = () => page.evaluate(() => window.__studioInstanceBounds().find(i => i.id === 'pin').min[2]);
+    const pinAt = z => page.waitForFunction(z => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'pin').min[2] - z) < 1e-6, z, { timeout: 20000 });
+    const card = page.locator('[aria-label="Variants panel"]'), sets = () => card.locator('[aria-label^="Set "]').evaluateAll(ls => ls.map(l => `${l.getAttribute('aria-label').slice(4)}${l.dataset.active ? '*' : ''}`));
+    const variants = () => page.evaluate(() => window.__studioDoc.variability.variants.map(v => `${v.name}:${v.values.offset}`).join(' '));
+    assert.ok(Math.abs(await pinZ() - 13) < 1e-6, 'the master: the pin 5 above the 8 mm plate');
+    await page.click('[aria-label="Variants"]'); await card.waitFor({ timeout: 5000 });
+    assert.deepEqual(await sets(), ['Master*', 'high', 'low']);
+    assert.equal(await card.locator('[aria-label="Variant shown"]').count(), 0);
+    // Show high: the pin 25 above; the banner; the loop's two mates listed unmet; the document's own master untouched.
+    const master = await page.evaluate(() => JSON.stringify(window.__studioDoc.instances));
+    await card.locator('[aria-label="Show high"]').click(); await pinAt(33); await idle();
+    assert.deepEqual(await sets(), ['Master', 'high*', 'low']);
+    assert.match(await card.locator('[aria-label="Variant shown"]').innerText(), /Showing high, regenerated from the master/);
+    assert.deepEqual(await card.locator('[aria-label^="Unmet mate "]').evaluateAll(ls => ls.map(l => l.getAttribute('aria-label'))), ['Unmet mate m2', 'Unmet mate m3']);
+    assert.equal(await page.evaluate(() => JSON.stringify(window.__studioDoc.instances)), master, 'showing writes nothing of the master');
+    assert.equal(await page.evaluate(() => window.__studioDoc.variability.active), 'high');
+    await page.locator('[aria-label="Variants panel"] .dock-section-head').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o11-head.png`) });
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o11-variants.png`) });
+    // Modelling waits while a variant is shown.
+    await page.evaluate(() => document.activeElement?.blur?.()); await press('b');
+    await page.waitForFunction(() => /Showing high: show the master to edit/.test(document.body.textContent ?? ''), null, { timeout: 5000 });
+    assert.equal(await page.locator('.hud .status').count(), 0, 'no command started');
+    // Every other edit too — one guard where edits land (App's setDoc): the feature editor's Apply, a placed part moved
+    // (the Instance card's X, the commit a gizmo drag makes), a parameter added; each refused, the part as it was.
+    const model = () => page.evaluate(() => JSON.stringify({ nodes: window.__studioDoc.nodes, instances: window.__studioDoc.instances, parameters: window.__studioDoc.parameters }));
+    const refusedNow = async () => {
+      await page.waitForFunction(() => /Showing high: show the master to edit/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 5000 });
+      await page.click('.toast [aria-label="Dismiss"]');
+    };
+    const edits = {
+      feature: async v => { await page.locator('.history .hs', { hasText: 'Extrude' }).last().click(); const ed = page.locator('.node-editor .field input[type="number"]').first(); await ed.fill(''); await ed.fill(v); await page.locator('.node-editor button', { hasText: 'Apply' }).click(); },
+      instance: async v => { await page.locator('.ol.instance', { hasText: 'pin' }).first().click(); const x = page.locator('[aria-label="Instance"] input[aria-label="Instance X"]').first(); await x.fill(v); await x.press('Enter'); },
+      parameter: async v => { await page.click('[aria-label="Parameters"]'); await page.fill('[aria-label="New parameter name"]', 'T'); await page.fill('[aria-label="New parameter value"]', v); await page.click('[aria-label="Add parameter"]'); },
+    };
+    await page.click('.toast [aria-label="Dismiss"]');
+    const kept = await model();
+    await edits.feature('9'); await refusedNow(); await press('Escape');
+    await edits.instance('21'); await refusedNow();
+    await edits.parameter('3'); await refusedNow(); await page.click('[aria-label="Parameters"]');
+    assert.equal(await model(), kept, 'nothing of the master written while high is shown');
+    assert.equal(await page.evaluate(() => window.__studioDoc.variability.active), 'high');
+    // A working value: the pin follows, unsaved; Reset puts high back; Update writes it into high.
+    await card.locator('[aria-label="Value of offset"]').fill('15'); await pinAt(23);
+    assert.match(await card.locator('[aria-label="Values edited"]').innerText(), /1 value differs from high/);
+    assert.match(await card.locator('[aria-label="Variant shown"]').innerText(), /Showing high, edited/);
+    assert.equal(await variants(), 'high:25 low:1', 'not saved');
+    await card.locator('[aria-label="Reset to high"]').click(); await pinAt(33);
+    await card.locator('[aria-label="Value of offset"]').fill('15'); await pinAt(23);
+    await card.locator('[aria-label="Update high"]').click();
+    await page.waitForFunction(() => window.__studioDoc.variability.variants.find(v => v.name === 'high').values.offset === 15, null, { timeout: 5000 });
+    assert.equal(await card.locator('[aria-label="Values edited"]').count(), 0);
+    // Saved as a new variant, made active.
+    await card.locator('[aria-label="Value of offset"]').fill('7'); await pinAt(15);
+    await card.locator('[aria-label="Variant name"]').fill('mid'); await card.locator('[aria-label="Save variant"]').click();
+    await page.waitForFunction(() => window.__studioDoc.variability.active === 'mid', null, { timeout: 5000 });
+    assert.equal(await variants(), 'high:15 low:1 mid:7');
+    assert.deepEqual(await sets(), ['Master', 'high', 'low', 'mid*']);
+    // The master shown: the pin back, the banner gone, modelling again.
+    await card.locator('[aria-label="Show the master"]').click(); await pinAt(13); await idle();
+    assert.equal(await card.locator('[aria-label="Variant shown"]').count(), 0);
+    assert.equal(await page.evaluate(() => window.__studioDoc.variability.active), undefined);
+    await page.evaluate(() => document.activeElement?.blur?.()); await press('b'); await hudReady();
+    await press('Escape'); await page.waitForFunction(() => !document.querySelector('.hud .status'), null, { timeout: 5000 });
+    // The same three edits taken now.
+    await edits.feature('9'); await page.waitForFunction(() => JSON.stringify(window.__studioDoc.nodes).includes('9'), null, { timeout: 15000 }); await press('Escape'); await idle();
+    await edits.instance('21'); await page.waitForFunction(() => window.__studioDoc.instances.find(i => i.id === 'pin').position[0] === 21, null, { timeout: 15000 });
+    await edits.parameter('3'); await page.waitForFunction(() => window.__studioDoc.parameters.T === 3, null, { timeout: 15000 }); await page.click('[aria-label="Parameters"]'); await idle();
+    // The agent's set_variants (a scripted turn, the chat's own end of it): its variant in the card.
+    await page.route(u => u.pathname === '/api/chat/status', r => r.fulfill({ json: { enabled: true, model: 'mock-model', via: 'mock' } }));
+    const done = await page.evaluate(() => { const d = window.__studioDoc; return { ...d, variability: { ...d.variability, variants: [...d.variability.variants, { name: 'agent wide', values: { offset: 40 } }] } }; });
+    await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !!window.__studioScriptChat);
+    await page.evaluate(turn => window.__studioScriptChat([turn]), [{ type: 'tool', name: 'assembly', input: { action: 'variants', variants: { 'agent wide': { offset: 40 } } }, summary: 'variants: defined agent wide', isError: false }, { type: 'text', delta: 'Added agent wide.' }, { type: 'done', doc: done, session: 'cli-session-o11', end: 'done' }]);
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled);
+    await page.locator('[aria-label="Chat message"]').fill('add a variant with the pin 40 above'); await press('Enter');
+    await page.waitForSelector('.chat-msg.assistant:has-text("Added agent wide.")', { timeout: 30000 });
+    await page.waitForFunction(() => window.__studioDoc.variability.variants.some(v => v.name === 'agent wide'), null, { timeout: 10000 });
+    await page.waitForSelector('[aria-label="Variants panel"] [aria-label="Set agent wide"]', { timeout: 10000 });
+    await page.evaluate(() => window.__studioUnscriptChat?.()); await page.click('[aria-label="Close chat"]');
+    // (Closed again, as a person would; the steps after read the inspector past any "… panel" card anyway.)
+    await card.locator('[aria-label="Close Variants"]').click(); await card.waitFor({ state: 'detached', timeout: 5000 });
+  });
+
   // ---- RM6 (O19): the collision sweep -----------------------------------------------------------------------------
   await check('RM6: the 2R arm swung into a grounded post — Check path reports the contact with the post; a small move is clear', async () => {
     const fs = await import('node:fs');
@@ -5546,7 +6285,7 @@ try {
     await page.waitForSelector('[aria-label="Joint l2~l3 holding"]', { timeout: 30000 });
     for (const [k, v] of Object.entries(c.input.values)) await page.evaluate(([key, x]) => { const el = document.querySelector(`[aria-label="Joint ${key} value"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [k, v]);
     for (const [k, t] of Object.entries(c.expect.torques_N_m)) {
-      await page.waitForFunction(([key, want]) => document.querySelector(`[aria-label="Joint ${key} holding"]`)?.textContent === `holds ${want} N·m against gravity`, [k, String(Number(t.toPrecision(4)))], { timeout: 10000 })
+      await page.waitForFunction(([key, want]) => document.querySelector(`[aria-label="Joint ${key} holding"]`)?.textContent === `holds ${want} N·mm against gravity`, [k, String(Number((t * 1000).toPrecision(4)))], { timeout: 10000 })
         .catch(async e => { throw new Error(`${e.message.split('\n')[0]}: ${await page.locator(`[aria-label="Joint ${k} holding"]`).innerText()} vs ${t}`); });
     }
     await snap('rd1-holding');
@@ -5565,12 +6304,12 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
-      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'assembly', args: { action: 'move', to: c.input.to, profile: c.input.profile, limits: c.input.limits } }];
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'assembly', args: { action: 'move', to: Object.fromEntries(Object.entries(c.input.to).map(([k, v]) => [k, v * 180 / Math.PI])), profile: c.input.profile, limits: Object.fromEntries(Object.entries(c.input.limits).map(([k, v]) => [k, v * 180 / Math.PI])) } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const line = await page.locator('.chat-tool').last().innerText();
       // (The chat lists a read tool's result as the start of its JSON: the profile and its duration first.)
-      assert.ok(line.includes(`"profile":"s-curve","duration_s":${Number(c.expect.duration_s.toPrecision(10))}`), line);
+      assert.ok(line.includes(`"profile":"s-curve","duration":${Number(c.expect.duration_s.toPrecision(10))}`), line);
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
   });
@@ -5578,7 +6317,9 @@ try {
   // ---- RD3 (O22): actuator sizing --------------------------------------------------------------------------------------
   await check('RD3: size_actuators through the real chat and tool servers on the one-joint case — the cycle\'s times as the conformance case has them, a motor and a reducer chosen with every check passed', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
-    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/size-1r/case.json'), 'utf8')), file = join(out, 'size-1r.bcad'), { document, ...args } = c.input;
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/size-1r/case.json'), 'utf8')), file = join(out, 'size-1r.bcad'), { document, dwell_s, life_h, ...coreArgs } = c.input;
+    // This conformance case stores internal radian inputs; the public tool takes degrees and seconds.
+    const args = { ...coreArgs, to: Object.fromEntries(Object.entries(coreArgs.to).map(([k, v]) => [k, v * 180 / Math.PI])), limits: Object.fromEntries(Object.entries(coreArgs.limits).map(([k, v]) => [k, v * 180 / Math.PI])), dwell: dwell_s, serviceLife: life_h * 3600 };
     fs.writeFileSync(file, JSON.stringify(document));
     await page.setInputFiles('input[aria-label="Model file"]', file);
     await page.waitForFunction(n => window.__studioDoc?.instances?.length === n, document.instances.length, { timeout: 20000 }); await idle();
@@ -5593,7 +6334,7 @@ try {
       const line = await page.locator('.chat-tool').last().innerText();
       // (The chat lists a read tool's result as the start of its JSON: the profile and the move's and the cycle's times first.)
       const T = c.input.limits, d = Object.values(c.input.to)[0], move = d / T.velocity + T.velocity / T.acceleration;
-      assert.ok(line.includes(`"profile":"trapezoid","move_s":${Number(move.toPrecision(10))},"cycle_s":${Number((2 * move + 2 * c.input.dwell_s).toPrecision(10))}`), line);
+      assert.ok(line.includes(`"profile":"trapezoid","moveDuration":${Number(move.toPrecision(10))},"cycleDuration":${Number((2 * move + 2 * c.input.dwell_s).toPrecision(10))}`), line);
       await snap('rd3-sizing');
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
@@ -5617,6 +6358,7 @@ try {
     await page.waitForFunction(() => window.__studioDoc?.brief?.process?.basis === 'assumed', null, { timeout: 15000 });
     assert.equal(await page.evaluate(() => window.__studioDoc.process ?? null), null, 'an assumed process is not applied');
     assert.match(await page.locator('[aria-label="Brief gaps"]').innerText(), /^1 to settle$/i);
+    await page.locator('[aria-label="Brief gaps"]').locator('xpath=../..').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-brief.png`) });
     assert.match(await page.locator('[aria-label="Brief process"]').innerText(), /fdm[\s\S]*assumed/);
     await snap('a6-1-brief');
     await page.click('[aria-label="Confirm brief process"]');
@@ -5651,6 +6393,7 @@ try {
       await page.waitForFunction(() => window.__studioDoc?.questions?.batches?.[0]?.status === 'open', null, { timeout: 15000 });
       assert.equal(await page.evaluate(() => window.__studioDoc.brief.purpose.said), 'verified');
       assert.match(await page.locator('[aria-label="Specify counts"]').innerText(), /^2 to answer · 1 to check$/i);
+      await page.locator('[aria-label="Specify"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-specify.png`) });
       await page.selectOption('[aria-label="Answer q1"]', 'fdm'); await page.fill('[aria-label="Answer q2"]', 'petg');
       await snap('a6-2-specify');
       await page.click('[aria-label="Send answers"]');
@@ -5712,6 +6455,7 @@ try {
     const k1 = await page.locator('[aria-label="Keep-out K1"]').innerText();
     assert.match(k1, new RegExp(`clear, ${c.expect.keepout_clearance_mm} mm`), k1);
     await snap('a6-3-reference');
+    await page.locator('[aria-label="Reference bodies"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-references.png`) });
     // (The part grown into it — the same document with the box 35 tall, saved and opened — enters the envelope: violated.)
     const doc = await page.evaluate(() => window.__studioDoc), file = join(out, 'grown.bcad');
     doc.nodes[1].height = 35;
@@ -5728,6 +6472,7 @@ try {
     await page.setInputFiles('input[aria-label="Add drawing"]', join(dir, 'by-hand-inches.dxf'));
     await page.waitForFunction(() => window.__studioDoc?.drafts?.drafts?.length === 1 && window.__studioDoc.nodes.length === 1, null, { timeout: 15000 });
     assert.match(await page.locator('[aria-label="Drafts summary"]').innerText(), /^3 to confirm$/i);
+    await page.locator('[aria-label="Drafts"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-drafts.png`) });
     assert.ok(Math.abs(Number(await page.inputValue('[aria-label="F1.width value"]')) - 101.6) < 1e-9);
     // (The width confirmed as it is; the hole set to 15 mm: re-driven, confirmed.)
     await page.click('[aria-label="Confirm F1.width"]');
@@ -5756,6 +6501,7 @@ try {
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await loadSampleSizes();
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'library', args: { action: 'standards', table: 'fasteners-metric-coarse', row: 'M6', field: 'tap' } }];
@@ -5835,6 +6581,7 @@ try {
     assert.deepEqual(kinds.slice(-2), ['shell', 'hole']);
     // (abc − (a−4)(b−4)(c−4) − π·2²·2 = 24000 − 36·26·16 − 8π = 9000.87: exact; the panel rounds to 1 mm³.)
     const vol = await bodyVolume();
+    if (!Number.isFinite(vol)) console.log(`  O18 AM7a (${renderer}): ${JSON.stringify(await page.evaluate(() => ({ b: window.__studioBodies(), props: document.querySelector('.props:not([aria-label$=" panel"])')?.textContent?.slice(0, 300) })))}`);
     assert.ok(Math.abs(vol - (24000 - 36 * 26 * 16 - 8 * Math.PI)) <= 1, String(vol));
     await snap('am7a-hollow');
   });
@@ -5960,11 +6707,11 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
-      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'query', args: { action: 'draft', pull: [0, 0, 1], min_deg: 1 } }, { tool: 'query', args: { action: 'manufacturability' } }];
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'query', args: { action: 'draft', pull: [0, 0, 1], draftMin: 1 } }, { tool: 'query', args: { action: 'manufacturability' } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const lines = await page.locator('.chat-tool').allInnerTexts(), draft = lines[lines.length - 2], report = lines[lines.length - 1];
-      assert.ok(draft.includes('"face":"n1.side0","draft_deg":3,"min_deg":3,"max_deg":3,"class":"drafted"'), draft);
+      assert.ok(draft.includes('"face":"n1.side0","draft":3,"min":3,"max":3,"class":"drafted"'), draft);
       assert.match(report, /query\.manufacturability\s*injection: pull pass, finish pass, wall pass, wall-material \w+, wall-uniform \w+, rib [\w/]+, boss [\w/]+, inside-radius \w+, sink \w+, size pass, draft pass, undercut pass/, report);
       await snap('im2-cone');
       await page.click('[aria-label="Close chat"]');
@@ -6092,7 +6839,8 @@ try {
   await check('CNC2: a milled aluminium plate with a counterbored Ø6.6 and an M6 tapped through 20 — hole depth and size pass, the thread warned (20 over 3 × d), its holes in the report', async () => {
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await idle();
-    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-milling'); await page.click('[aria-label="Close library"]');
+    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-milling'); await page.click('[aria-label="Load sample fastener sizes"]'); await page.click('[aria-label="Close library"]');
+    await page.waitForFunction(() => window.__studioDoc.fastenerSizes?.rows?.length === 7, null, { timeout: 10000 });
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
@@ -6178,7 +6926,8 @@ try {
   await check('CNC5: a milled plate with an M6 tapped hole and no drawing — the drawing failed (threads go on one); Auto-dimension in the Drawing workspace — warned now (no general note, title or material), the thread called out', async () => {
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await idle();
-    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-milling'); await page.click('[aria-label="Close library"]');
+    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-milling'); await page.click('[aria-label="Load sample fastener sizes"]'); await page.click('[aria-label="Close library"]');
+    await page.waitForFunction(() => window.__studioDoc.fastenerSizes?.rows?.length === 7, null, { timeout: 10000 });
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
@@ -6255,7 +7004,7 @@ try {
 
   // ---- CNC7b (O102): stock from the shop's list, through the real chat and tool servers --------------------------
   await check('CNC7b: a milled aluminium plate, the shop\'s stock list set by the agent — the report picks the 122 × 82 × 22 block (1 mm a face, an estimate)', async () => {
-    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-milling'); await page.click('[aria-label="Close library"]');
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
@@ -6264,8 +7013,12 @@ try {
       await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count(), calls = [
         { tool: 'features', args: { action: 'command', command: 'box', values: { w: 120, d: 80, h: 20, x: 0, y: 0, z: 0 } } }, { tool: 'features', args: { action: 'material', material: 'al6061' } },
-        { tool: 'features', args: { action: 'stock', rows: [{ id: 'P20', kind: 'block', size: [150, 100, 20], source: 'the shop' }, { id: 'B22', kind: 'block', size: [122, 82, 22], source: 'the shop' }] } },
+        { tool: 'features', args: { action: 'stock', file: '$file:stock.json' } },
         { tool: 'query', args: { action: 'manufacturability' } }];
+      // (Rows rule b: the shop's stock list is the person's file, attached in the chat.)
+      const list = join(out, 'stock.json');
+      fs.writeFileSync(list, JSON.stringify([{ id: 'P20', kind: 'block', size: [150, 100, 20], source: 'the shop' }, { id: 'B22', kind: 'block', size: [122, 82, 22], source: 'the shop' }]));
+      await page.setInputFiles('input[aria-label="Chat image file"]', list);
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const report = (await page.locator('.chat-tool').allInnerTexts()).filter(x => /cnc-milling:/.test(x)).pop();
@@ -6274,10 +7027,189 @@ try {
       assert.deepEqual(m.stock.map(r => r.id), ['P20', 'B22']);
       await snap('cnc7b-stock');
       await page.click('[aria-label="Close chat"]');
-    } finally { chat.kill(); }
+    } finally {
+      chat.kill();
+      // (A failure here must not leave the chat open for the next step: its Chat click would close it, O174.)
+      if (await page.locator('[aria-label="Close chat"]').count()) await page.click('[aria-label="Close chat"]');
+    }
   });
 
   // ---- the shapes strip's overflow: a More menu, never a sideways page --------------------------------------------
+  await check('three columns (G12a): the chat column full height at the left — opened 360 px, dragged to 480, collapsed to its 44 px strip, collapsed by itself at 1024; nothing in the centre over it; no box with a left border alone and a radius', async () => {
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
+    const rect = sel => page.evaluate(s => { const e = document.querySelector(s); if (!e) return null; const b = e.getBoundingClientRect(); return { left: b.left, right: b.right, top: b.top, bottom: b.bottom, width: b.width }; }, sel);
+    // (Everything placed in the stage stays right of the column and inside the window.)
+    const centreClear = () => page.evaluate(() => {
+      const col = document.querySelector('.chat-col').getBoundingClientRect(), bad = [];
+      for (const s of ['.topbar', '.toolbar', '.outliner', '.right-col', '.history', '.corner-right', '.corner-left']) {
+        const e = document.querySelector(s); if (!e) continue; const b = e.getBoundingClientRect(); if (!b.width) continue;
+        if (b.left < col.right - 0.5 || b.right > innerWidth + 0.5) bad.push([s, Math.round(b.left), Math.round(b.right), Math.round(col.right)]);
+      }
+      return bad;
+    });
+    // (The owner's rule: no box with a left border alone and a border-radius — a separator without a radius is fine.)
+    const leftBorders = () => page.evaluate(() => [...document.querySelectorAll('body *')].filter(e => {
+      const c = getComputedStyle(e), w = k => parseFloat(c[k]) || 0;
+      return w('borderLeftWidth') > 0 && !w('borderTopWidth') && !w('borderRightWidth') && !w('borderBottomWidth') && ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius', 'borderBottomRightRadius'].some(k => w(k) > 0);
+    }).map(e => e.className || e.tagName).slice(0, 5));
+    try {
+      await page.setViewportSize({ width: 1440, height: 900 }); await page.waitForTimeout(300);
+      if (await page.locator('.chat-col .chat').count()) await page.click('[aria-label="Chat"]');
+      assert.equal(Math.round((await rect('.chat-col')).width), 44, 'collapsed to the strip');
+      // (The strip takes the pointer only on its buttons: a click on its empty part reaches the viewport — here, off the
+      // part, it clears a selection; 92a33dcb2.)
+      await page.locator('.outliner .ol').first().click(); await page.waitForTimeout(200);
+      const picked = () => page.evaluate(() => { const s = window.__studioSelection.selection; return Object.values(s).reduce((n, v) => n + (Array.isArray(v) ? v.length : 0), 0); });
+      assert.ok(await picked() > 0, 'a body selected first');
+      const strip = await rect('.chat-col');
+      await page.mouse.click(strip.left + strip.width / 2, strip.bottom - 120); await page.waitForTimeout(300);
+      assert.equal(await picked(), 0, 'a click on the strip beside its buttons reached the viewport and cleared the selection');
+      { const bad = await centreClear(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
+      await page.click('[aria-label="Open chat"]'); await page.waitForSelector('.chat-col.open .chat', { timeout: 5000 }); await page.waitForTimeout(300);
+      const open = await rect('.chat-col');
+      assert.ok(Math.abs(open.width - 360) <= 1 && open.top === 0 && Math.abs(open.bottom - 900) <= 1, JSON.stringify(open));
+      { const bad = await centreClear(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
+      assert.ok(Math.abs((await rect('.topbar')).left - open.right) <= 1, 'the top bar starts at the column');
+      await snap('three-columns-1440');
+      // (Dragged at its right edge: 480 px, kept within 320–520.)
+      const h = await rect('.chat-resize');
+      await page.mouse.move(h.left + 3, 400); await page.mouse.down(); await page.mouse.move(h.left + 123, 400, { steps: 6 }); await page.mouse.up(); await page.waitForTimeout(300);
+      assert.ok(Math.abs((await rect('.chat-col')).width - 480) <= 2, JSON.stringify(await rect('.chat-col')));
+      await page.mouse.move(h.left + 123, 400); await page.mouse.down(); await page.mouse.move(h.left + 400, 400, { steps: 6 }); await page.mouse.up(); await page.waitForTimeout(300);
+      assert.ok(Math.abs((await rect('.chat-col')).width - 520) <= 2, 'at most 520');
+      { const bad = await centreClear(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
+      { const bad = await leftBorders(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
+      // (1024: chat and dock no longer both fit — the column collapses by itself; opened again, it holds.)
+      await page.setViewportSize({ width: 1024, height: 800 }); await page.waitForTimeout(400);
+      assert.equal(Math.round((await rect('.chat-col')).width), 44, 'collapsed by itself at 1024');
+      { const bad = await centreClear(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
+      await snap('three-columns-1024');
+      await page.click('[aria-label="Open chat"]'); await page.waitForSelector('.chat-col.open', { timeout: 5000 }); await page.waitForTimeout(300);
+      assert.ok((await rect('.chat-col')).width > 300, 'opened again at 1024');
+      { const bad = await centreClear(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
+      await page.setViewportSize({ width: 800, height: 800 }); await page.waitForTimeout(400);
+      { const bad = await centreClear(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
+      // (Back to the default width, collapsed: as the other steps expect.)
+      await page.evaluate(() => { localStorage.removeItem('studio.chatWidth'); });
+      if (await page.locator('.chat-col .chat').count()) await page.click('[aria-label="Chat"]');
+    } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
+  });
+
+  await check('layout (G12d): at 1440, 1280, 1024 and 800, the chat open and collapsed, each preview mode — no two panels or bars meet, each inside the window; no box with a left border alone and a radius', async () => {
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
+    // (The panels and bars as they show; the dock's sheet and the chat column among them. One inside another — the HUD in the
+    // dock — is not a meeting. A toast — the recovery card here — counts except on a cramped stage (an open sheet over a
+    // narrow centre), where it runs under the sheet.)
+    const problems = label => page.evaluate(label => {
+      const sel = ['.chat-col', '.dock', '.dock-strip', '.topbar', '.toolbar', '.history', '.corner-right', '.view-cube', '.hud', '.corner-stack > *',
+        ...(document.querySelector('.studio.stage-cramped') ? [] : ['.toast'])];
+      const els = [];
+      for (const s of sel) for (const e of document.querySelectorAll(s)) {
+        const b = e.getBoundingClientRect(), c = getComputedStyle(e);
+        if (b.width && b.height && c.display !== 'none' && c.visibility !== 'hidden' && !els.some(x => x.e === e)) els.push({ e, s: s + (e.getAttribute('aria-label') ? `[${e.getAttribute('aria-label')}]` : ''), b });
+      }
+      const bad = [], meets = (a, b) => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
+      for (const x of els) if (x.b.left < -0.5 || x.b.right > innerWidth + 0.5 || x.b.top < -0.5 || x.b.bottom > innerHeight + 0.5) bad.push(`${label}: ${x.s} leaves the window`);
+      for (let i = 0; i < els.length; i++) for (let j = i + 1; j < els.length; j++) {
+        const a = els[i], b = els[j];
+        if (a.e.contains(b.e) || b.e.contains(a.e)) continue;
+        if (meets(a.b, b.b)) bad.push(`${label}: ${a.s} meets ${b.s}`);
+      }
+      // (G12e: the history bar's chips whole — each one shown entirely inside the bar's box, none under the view bar.)
+      const bar = document.querySelector('.history'), corner = document.querySelector('.corner-right');
+      if (bar && getComputedStyle(bar).display !== 'none') {
+        const r = bar.getBoundingClientRect(), c = corner?.getBoundingClientRect();
+        for (const chip of bar.querySelectorAll('.hs, .hs-more')) {
+          const b = chip.getBoundingClientRect();
+          if (!b.width || getComputedStyle(chip).display === 'none') continue;
+          if (b.left < r.left - 0.5 || b.right > r.right + 0.5 || b.top < r.top - 0.5 || b.bottom > r.bottom + 0.5) bad.push(`${label}: the history chip "${chip.textContent}" is cut by the bar's edge`);
+          if (c && meets(b, c)) bad.push(`${label}: the history chip "${chip.textContent}" meets the view bar`);
+        }
+      }
+      return bad;
+    }, label);
+    const leftBorders = () => page.evaluate(() => [...document.querySelectorAll('body *')].filter(e => {
+      const c = getComputedStyle(e), n = k => parseFloat(c[k]) || 0;
+      return n('borderLeftWidth') > 0 && !n('borderTopWidth') && !n('borderRightWidth') && !n('borderBottomWidth') && ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius', 'borderBottomRightRadius'].some(k => n(k) > 0);
+    }).map(e => String(e.className || e.tagName)).slice(0, 5));
+    const modes = ['None', 'CNC', 'Print', 'Clearance', 'Analysis'], bad = [];
+    try {
+      for (const [width, height] of [[1440, 900], [1280, 800], [1024, 800], [800, 800]]) for (const chat of [false, true]) {
+        await page.evaluate(() => window.__studioLayoutReset?.());
+        await page.setViewportSize({ width, height }); await page.waitForTimeout(300);
+        if (chat) { await page.click('[aria-label="Chat"]'); await page.waitForSelector('.chat-col .chat', { timeout: 5000 }); }
+        await page.waitForTimeout(300);
+        // (Where the dock is a strip its sheet holds the previews.)
+        if (await page.locator('[aria-label="Open the dock"]').count()) await page.click('[aria-label="Open the dock"]');
+        for (const m of modes) {
+          await page.click(`[aria-label="Preview: ${m}"]`); await page.waitForTimeout(400);
+          bad.push(...await problems(`${width}${chat ? ' chat' : ''} ${m}`));
+          if (width === 1440 && !chat && m === 'Clearance') await snap('layout-1440-clearance');
+          if (width === 1024 && m === 'CNC') await snap(`layout-1024-cnc${chat ? '-chat' : ''}`);
+        }
+        await page.click('[aria-label="Preview: None"]');
+        const lb = await leftBorders(); if (lb.length) bad.push(`${width}: left border alone with a radius: ${lb.join(', ')}`);
+        // (G12f: a right-click on the plate's top — a face's long menu — opens inside the stage: below the top bar, clear of
+        // the dock, its own scroll.)
+        if (!chat && (width === 1440 || width === 1024)) {
+          const [px, py] = await page.evaluate(() => window.__studioScreenOf([10, 10, 20]));
+          await page.mouse.click(px, py, { button: 'right' }); await page.waitForSelector('.ctx-menu', { timeout: 5000 }); await page.waitForTimeout(200);
+          const m = await page.evaluate(() => { const r = s => document.querySelector(s)?.getBoundingClientRect(); const menu = r('.ctx-menu'), bar = r('.topbar'), stage = r('.stage'), dock = r('.dock'), strip = r('.dock-strip');
+            const meets = (a, b) => !!a && !!b && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+            return { inStage: menu.left >= stage.left - 0.5 && menu.right <= stage.right + 0.5 && menu.bottom <= stage.bottom + 0.5, bar: meets(menu, bar), dock: meets(menu, dock) || meets(menu, strip) }; });
+          if (!m.inStage || m.bar || m.dock) bad.push(`${width}: the right-click menu leaves the stage or meets the top bar or dock: ${JSON.stringify(m)}`);
+          await page.keyboard.press('Escape'); await page.waitForTimeout(200);
+        }
+        // (G12e: where chips are hidden, "+n" opens the bar on more rows — every step shown, whole — and Less closes it. At
+        // 1440 the part's steps all fit, stacked above the view bar if not beside it: no "+n".)
+        const more = page.locator('.history .hs-more');
+        if (width === 1440 && !chat && await more.count()) bad.push(`1440: the history bar hides steps with room for them: ${await more.innerText()}`);
+        if (await more.count()) {
+          const n = Number((await more.innerText()).replace('+', ''));
+          await more.click(); await page.waitForTimeout(200);
+          const open = await page.evaluate(() => { const bar = document.querySelector('.history'), r = bar.getBoundingClientRect();
+            return [...bar.querySelectorAll('.hs')].map(c => ({ shown: getComputedStyle(c).display !== 'none', inside: (b => b.left >= r.left - 0.5 && b.right <= r.right + 0.5 && b.top >= r.top - 0.5 && b.bottom <= r.bottom + 0.5)(c.getBoundingClientRect()) })); });
+          if (!open.every(c => c.shown && c.inside)) bad.push(`${width}${chat ? ' chat' : ''}: +${n} opened, not every step shown whole: ${JSON.stringify(open)}`);
+          await page.click('.history .hs-more'); await page.waitForTimeout(200);
+          if (await page.locator('.history .hs-more').innerText() !== '+' + n) bad.push(`${width}${chat ? ' chat' : ''}: Less did not come back to +${n}`);
+        }
+      }
+      assert.deepEqual(bad.slice(0, 12), [], bad.slice(0, 12).join('\n'));
+    } finally { await page.evaluate(() => window.__studioLayoutReset?.()); await page.setViewportSize({ width: 1440, height: 900 }); }
+  });
+
+  await check('bottom row: the history bar and the view bar never overlap at 1440 × 900, 1280 × 800, 1024 and 800 — beside each other with room, else the history stacked above; the Display popover over neither', async () => {
+    // (The chat column collapsed: the bar's room is the stage's, beside the column.)
+    if (await page.locator('.chat-col .chat').count()) await page.click('[aria-label="Chat"]');
+    // (A part with five history steps: CNC8's plate and pocket.)
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
+    const meets = (a, b) => a && b && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+    const rects = () => page.evaluate(() => { const r = s => { const e = document.querySelector(s); if (!e) return null; const b = e.getBoundingClientRect(); return { left: b.left, right: b.right, top: b.top, bottom: b.bottom }; };
+      return { history: r('.history'), views: r('.corner-right'), stack: r('.corner-right .corner-stack'), width: innerWidth, stacked: document.querySelector('.studio')?.classList.contains('history-stacked') }; });
+    const display = page.locator('[aria-label="Display and previews"]');
+    try {
+      const seen = [];
+      for (const [width, height] of [[1440, 900], [1280, 800], [1024, 800], [800, 800]]) {
+        await page.setViewportSize({ width, height }); await page.waitForTimeout(400);
+        const r = await rects();
+        assert.ok(r.history && r.views, `${width}: ${JSON.stringify(r)}`);
+        seen.push(`${width}: ${r.stacked ? 'stacked' : 'beside'}`);
+        assert.ok(!meets(r.history, r.views), `${width} × ${height}: the history bar meets the view bar: ${JSON.stringify(r)}`);
+        assert.ok(r.history.left >= 0 && r.history.right <= r.width + 0.5, `${width}: the history bar leaves the window: ${JSON.stringify(r)}`);
+        if (width === 1280) await snap('bottom-row-1280');
+        // (The Display popover stacks above the view bar, clear of the history bar.)
+        if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
+        await page.waitForTimeout(200);
+        const o = await rects();
+        assert.ok(!meets(o.history, o.stack), `${width}: the Display popover covers the history bar: ${JSON.stringify(o)}`);
+        await display.click();
+      }
+      console.log(`  bottom row: ${seen.join(', ')}`);
+      // (Beside or stacked follows the stage's room — with the dock docked, 1440 has none either; at 800 it always stacks.)
+      assert.ok(seen.at(-1).endsWith('stacked'), seen.join(', '));
+    } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
+  });
+
   await check('narrow window top bar: at 1024 and 800 the whole bar fits — no sideways page, every mode button in the window, every tool on the bar or under More tools (O127)', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     const TOOLS = ['Chat', 'Undo', 'Redo', 'New part', 'New from a template', 'Library', 'Parameters', 'Open', 'Save', 'Export STL', 'Export 3MF', 'Export STEP', 'Insert part'];
@@ -6329,7 +7261,7 @@ try {
       assert.ok(seen[0][1] > seen[2][1] && seen.every(([, a], k) => k === 0 || a <= seen[k - 1][1]), `no more shown as the window narrows: ${JSON.stringify(seen)}`);
       // A shape from the menu starts its command.
       await page.click('[aria-label="More shapes"]');
-      const last = page.locator('[role="menu"][aria-label="More shapes"] .tool').last(), label = await last.getAttribute('aria-label');
+      const last = page.locator('[role="menu"][aria-label="More shapes"] .tool:not(.off)').last(), label = await last.getAttribute('aria-label');
       await last.click();
       assert.equal(await page.locator('[role="menu"][aria-label="More shapes"]').count(), 0, 'the menu closes on a pick');
       // (Its command is the active one: its button lit when the menu opens again.)
@@ -6348,6 +7280,8 @@ try {
     await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'die-casting');
     await page.selectOption('[aria-label="Pull direction"]', '+Z');
     await page.waitForFunction(() => window.__studioDoc.process === 'die-casting' && window.__studioDoc.mould?.pull?.[2] === 1, null, { timeout: 5000 });
+    // (O7c: the person's casting rules, the sample loaded in the Library panel — none is built in.)
+    await page.click('[aria-label="Load sample casting rules"]'); await page.waitForFunction(() => window.__studioDoc.castingRules?.rows?.length === 24, null, { timeout: 10000 });
     assert.equal(await page.locator('[aria-label="Mould finish"]').count(), 0, 'no finishes for casting');
     await page.click('[aria-label="Close library"]');
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
@@ -6378,6 +7312,8 @@ try {
     await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'sand-casting');
     await page.selectOption('[aria-label="Pull direction"]', '+Z');
     await page.waitForFunction(() => window.__studioDoc.process === 'sand-casting' && window.__studioDoc.mould?.pull?.[2] === 1, null, { timeout: 5000 });
+    // (O7c: the person's casting rules, the sample loaded in the Library panel — none is built in.)
+    await page.click('[aria-label="Load sample casting rules"]'); await page.waitForFunction(() => window.__studioDoc.castingRules?.rows?.length === 24, null, { timeout: 10000 });
     await page.click('[aria-label="Close library"]');
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
@@ -6406,6 +7342,8 @@ try {
     await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'sand-casting');
     await page.selectOption('[aria-label="Pull direction"]', '+Z');
     await page.waitForFunction(() => window.__studioDoc.process === 'sand-casting', null, { timeout: 5000 });
+    // (O7c: the person's casting rules, the sample loaded in the Library panel — none is built in.)
+    await page.click('[aria-label="Load sample casting rules"]'); await page.waitForFunction(() => window.__studioDoc.castingRules?.rows?.length === 24, null, { timeout: 10000 });
     await page.click('[aria-label="Close library"]');
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
@@ -6494,8 +7432,17 @@ try {
       outputs: { b2: { node: 2, side: 'solid' } } };
     fs.writeFileSync(file, JSON.stringify(plate));
     await openModel(file, 3); await idle(); await iso();
+    // (G10: on WebGL2 the maps and the mould's view are not drawn — the button says so, disabled, and nothing is turned on.)
+    if (renderer === 'webgl2') {
+      const b = page.locator('[aria-label="Analysis map"]');
+      assert.equal(await b.isDisabled(), true, 'the analysis map is not offered on WebGL2');
+      assert.match(await b.getAttribute('data-tip-desc') ?? '', /drawn with WebGPU; this browser draws with WebGL2/);
+      assert.equal(await page.locator('[aria-label="Map legend"]').count(), 0);
+      return;
+    }
     await page.click('[aria-label="Analysis map"]');
     await page.waitForSelector('[aria-label="Map legend"]', { timeout: 10000 });
+    await page.locator('[aria-label="Map legend"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-map-legend.png`) });
     assert.match(await page.locator('[aria-label="Map legend"]').innerText(), /Wall thickness/);
     // The value under the pointer: over the plate's top, its 10 mm wall (the inscribed sphere at a top triangle).
     const box = await page.locator('canvas.vp-canvas').boundingBox();
@@ -6593,6 +7540,41 @@ try {
     fs.writeFileSync(file, JSON.stringify(ring(false)));
     await openModel(file, 0);
     await page.waitForFunction(() => window.__studioInstanceBounds?.().length === 24, null, { timeout: 60000 }); await idle(); await page.waitForTimeout(800);
+    // (G10 on WebGL2: the same claims through the renderer-neutral probes — its geometries, the frame on a 96 × 96 grid, the
+    // copies picked at 400 points on their tops — against each copy its own.)
+    if (renderer === 'webgl2') {
+      const geo = () => page.evaluate(() => window.__studioInstanceGeometries());
+      const shared = await geo();
+      assert.deepEqual([shared.copies, shared.geometries], [24, 1], `24 copies on one geometry ${JSON.stringify([shared.copies, shared.geometries])}`);
+      const r = await page.evaluate(async () => {
+        const bounds = window.__studioInstanceBounds(); let seed = 7; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+        const at = Array.from({ length: 400 }, (_, k) => { const b = bounds[k % bounds.length]; return [(b.min[0] + b.max[0]) / 2 + (rand() - 0.5) * 0.6 * (b.max[0] - b.min[0]), (b.min[1] + b.max[1]) / 2 + (rand() - 0.5) * 0.6 * (b.max[1] - b.min[1]), b.max[2]]; });
+        const settle = () => new Promise(done => setTimeout(done, 400)), picks = () => at.map(p => JSON.stringify(window.__studioInstanceAt(p)));
+        const a = await window.__studioFrame(96), pa = picks();
+        window.__studioShareCopies(false); await settle();
+        const b = await window.__studioFrame(96), pb = picks(), own = window.__studioInstanceGeometries().geometries;
+        window.__studioShareCopies(true); await settle();
+        let strong = 0, max = 0;
+        for (let i = 0; i < a.length; i += 3) { const d = Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]); if (d > 96) strong++; if (d > max) max = d; }
+        let hits = 0, differ = 0; for (let i = 0; i < at.length; i++) { if (pa[i] !== 'null') hits++; if (pa[i] !== pb[i]) differ++; }
+        return { samples: a.length / 3, strong, max, hits, differ, own };
+      });
+      console.log(`  G10 oracle (webgl2): ${JSON.stringify(r)}`);
+      assert.ok(r.strong <= r.samples * 0.001, `the same frame: ${r.strong} of ${r.samples} samples differ by more than 96 (max ${r.max})`);
+      assert.ok(r.hits > 100 && r.differ === 0, `the same picks ${JSON.stringify(r)}`);
+      assert.equal(r.own, 24, 'each its own: a geometry a copy');
+      await snap('g10-copies');
+      fs.writeFileSync(file, JSON.stringify(ring(true)));
+      const before = (await geo()).ids;
+      await openModel(file, 0);
+      await page.waitForFunction(() => window.__studioInstanceBounds?.().length === 24, null, { timeout: 60000 }); await idle(); await page.waitForTimeout(800);
+      const after = await geo();
+      assert.deepEqual([after.copies, after.geometries], [24, 2], 'the edited copy on its own');
+      assert.notDeepEqual(after.ids.r5, after.ids.r0, 'its surface not shared');
+      const kept = Object.keys(before).filter(k => k !== 'r5' && JSON.stringify(before[k]) === JSON.stringify(after.ids[k])).length;
+      assert.equal(kept, 23, 'the other copies kept their geometry');
+      return;
+    }
     const geos = () => page.evaluate(() => { const ms = window.__studioViewer.meshList.filter(m => m.name?.startsWith('inst:')); return { meshes: ms.length, geometries: new Set(ms.map(m => m.geometry)).size, ids: Object.fromEntries(ms.filter(m => m.geometry.topology === 'triangles').map(m => [m.name, m.id])), own: ms.filter(m => m.name === 'inst:r5' && m.geometry.topology === 'triangles').map(m => ms.some(o => o !== m && o.geometry === m.geometry)) }; });
     const shared = await geos();
     assert.deepEqual([shared.meshes, shared.geometries], [48, 2], 'a surface and its edges each, on two geometries');
@@ -6609,9 +7591,11 @@ try {
       const at = Array.from({ length: 400 }, (_, k) => { const b = boxes[k % boxes.length]; return [b[0] + rand() * (b[2] - b[0]), b[1] + rand() * (b[3] - b[1])]; });
       const settle = () => new Promise(done => setTimeout(done, 400));
       const picks = () => at.map(([x, y]) => { const h = v.raycast(x, y); return h && { name: h.mesh.name, tri: h.triangle, p: h.point }; });
-      await v.frame(); const a = await v.capture(), pa = picks(), geoA = new Set(v.meshList.map(m => m.geometry)).size;
+      // (G8: a curved face's silhouette is a contour geometry, one for each mesh source — counted apart.)
+      const contours = () => new Set(v.meshList.filter(m => m.geometry.data.contour).map(m => m.geometry)).size;
+      await v.frame(); const a = await v.capture(), pa = picks(), geoA = new Set(v.meshList.map(m => m.geometry)).size, contourA = contours();
       window.__studioShareCopies(false); await settle(); await v.frame();
-      const b = await v.capture(), pb = picks(), geoB = new Set(v.meshList.map(m => m.geometry)).size;
+      const b = await v.capture(), pb = picks(), geoB = new Set(v.meshList.map(m => m.geometry)).size, contourB = contours();
       window.__studioShareCopies(true); await settle();
       let strong = 0, max = 0;
       for (let i = 0; i < a.data.length; i += 4) { const d = Math.abs(a.data[i] - b.data[i]) + Math.abs(a.data[i + 1] - b.data[i + 1]) + Math.abs(a.data[i + 2] - b.data[i + 2]); if (d > 96) strong++; if (d > max) max = d; }
@@ -6622,12 +7606,13 @@ try {
         if (!x !== !y || (x && (x.name !== y.name || x.tri !== y.tri))) { differ++; continue; }
         if (x) gap = Math.max(gap, Math.hypot(x.p[0] - y.p[0], x.p[1] - y.p[1], x.p[2] - y.p[2]));
       }
-      return { pixels: a.data.length / 4, strong, max, hits, differ, gap, geoA, geoB };
+      return { pixels: a.data.length / 4, strong, max, hits, differ, gap, geoA, geoB, contourA, contourB };
     });
     console.log(`  G10 oracle: ${JSON.stringify(r)}`);
     assert.ok(r.strong <= r.pixels * 0.001, `the same frame: ${r.strong} of ${r.pixels} pixels differ by more than 96 (max ${r.max})`);
     assert.ok(r.hits > 100 && r.differ === 0 && r.gap < 1e-3, `the same picks ${JSON.stringify(r)}`);
-    assert.ok(r.geoB - r.geoA === 46, `each its own: 46 more geometries ${JSON.stringify(r)}`);
+    assert.deepEqual([r.contourA, r.contourB], [1, 24], `a silhouette contour for the shared mesh, then one a copy ${JSON.stringify(r)}`);
+    assert.ok(r.geoB - r.geoA - (r.contourB - r.contourA) === 46, `each its own: 46 more surface and edge geometries ${JSON.stringify(r)}`);
     await snap('g10-copies');
     // Copy 5 edited (its second hole moved): its own geometries; the other 23 kept as they were.
     fs.writeFileSync(file, JSON.stringify(ring(true)));
@@ -6669,6 +7654,12 @@ try {
       const names = await page.evaluate(() => window.__studioViewer.meshList.map(m => m.name).filter(n => n?.startsWith('proposal:')));
       assert.deepEqual(names.sort(), ['proposal:added', 'proposal:removed']);
     } else assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.vp-overlay [aria-label^="Material"]')].map(g => g.textContent).sort()), ['+500 mm³', '−101 mm³'], 'WebGL2: the chips in the overlay');
+    // (The two chips stacked, never meeting — they overlapped by the hole in the docs lane's shot. WebGPU draws them as engine
+    // labels at one anchor, a chip's step apart; WebGL2's are the overlay's.)
+    if (await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer !== 'webgpu')) {
+      const [r1, r2] = await page.evaluate(() => [...document.querySelectorAll('.vp-overlay [aria-label^="Material"] rect')].map(r => { const b = r.getBoundingClientRect(); return { l: b.left, r: b.right, t: b.top, b: b.bottom }; }));
+      assert.ok(r1.b <= r2.t + 0.5 || r2.b <= r1.t + 0.5 || r1.r <= r2.l + 0.5 || r2.r <= r1.l + 0.5, `the volume chips meet: ${JSON.stringify([r1, r2])}`);
+    }
     const [block, hole] = await page.evaluate(() => window.__studioPixels([[55, 5, 5], [30, 10, 8]]));
     assert.ok(block[1] > block[0] + 20 && block[1] > block[2] + 10, `green over the block ${JSON.stringify(block)}`);
     assert.ok(hole[0] > hole[1] + 20, `red at the hole ${JSON.stringify(hole)}`);
@@ -6736,7 +7727,7 @@ try {
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'rotate', null, { timeout: 15000 }); await idle();
     // (Its top face is picked again once it is made: cleared, as it was not lit while it turned.)
-    await press('Escape'); await page.waitForFunction(() => !/SELECTION/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 }); await page.waitForTimeout(600);
+    await press('Escape'); await page.waitForFunction(() => !/SELECTION/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 }); await page.waitForTimeout(600);
     const after = await page.evaluate(() => window.__studioFrame(32));
     const diff = (x, y) => x.reduce((t, v, i) => t + Math.abs(v - y[i]), 0) / x.length;
     const turned = { toAfter: diff(during, after), toBefore: diff(during, before), moved: diff(before, after) };
@@ -6796,6 +7787,7 @@ try {
     await press('Meta+z');
     await page.waitForFunction(() => document.querySelector('.vp-overlay [aria-label="3D sketch"]')?.dataset.status === 'well', null, { timeout: 5000 });
     await snap('g17-well');
+    await page.locator('aside[aria-label="3D sketch"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-skeleton.png`) });
     await page.click('aside[aria-label="3D sketch"] button[aria-label="Apply 3D sketch"]');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'skeleton', null, { timeout: 10000 });
     const node = await page.evaluate(() => window.__studioDoc.nodes.at(-1));
@@ -6818,6 +7810,22 @@ try {
     await snap('g17-corner');
     await page.click('aside[aria-label="3D sketch"] button[aria-label="Cancel 3D sketch"]');
     assert.equal(await page.evaluate(() => window.__studioDoc.nodes.length), 2, 'cancelled: nothing written');
+  });
+
+  // ---- O9: a late reply never overwrites a newer one ---------------------------------------------------------------------
+  await check('O9: the section plane dragged fast across a plate — the exact section shown is the last plane\'s, and stays so (a late reply never overwrites it)', async () => {
+    const fs = await import('node:fs'), plate = join(out, 'o9-plate.bcad');
+    fs.writeFileSync(plate, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 }] }));
+    await openModel(plate, 2); await idle();
+    // (Forty planes a frame apart, x from 2.85 to 36: each asks for an exact section; only the last may be shown.)
+    await page.evaluate(() => new Promise(done => { let i = 0; const step = () => { ++i; window.__studioDragSection({ axis: 'x', at: 2 + 34 * i / 40, keep: 'positive' }, i >= 40); if (i < 40) requestAnimationFrame(step); else done(null); }; requestAnimationFrame(step); }));
+    // (The last plane at x = 36 keeps 4 × 20 × 10 or 36 × 20 × 10, as 'positive' means; any earlier plane keeps neither.)
+    const last = [4 * 20 * 10, 36 * 20 * 10], isLast = v => last.some(w => Math.abs(v - w) < 1e-3);
+    await page.waitForFunction(([a, b]) => { const s = window.__studioSection(); return s?.exact && [a, b].some(w => Math.abs(s.volume - w) < 1e-3); }, last, { timeout: 30000 });
+    await page.waitForTimeout(1500);
+    const s = await page.evaluate(() => window.__studioSection());
+    assert.ok(s.exact && isLast(s.volume), `still the last plane's section: ${JSON.stringify({ volume: s.volume, planes: s.planes })}`);
+    await page.evaluate(() => window.__studioSetSection(null));
   });
 
   // ---- G19.2: section modes — a box, several planes, a plane from a face -------------------------------------------------
@@ -6933,7 +7941,7 @@ try {
   // ---- G19.4: a section across a welded frame (FRk's gussets, end caps and beads) ------------------------------------------------
   await check('G19.4: a section across a welded frame — members, a gusset, an end cap and beads (FRk1/2) cut by the exact section at the clipped volume, each cut hatched, GPU against CPU — on either renderer', async () => {
     const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
-    const { evaluateCadPart, exportStep } = await import('../../../packages/barocss-cad/dist/index.js');
+    const { evaluateCadPart, exportStep, massPropertiesOf } = await import('../../../packages/barocss-cad/dist/index.js');
     const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, WIDE = { kind: 'rect-tube', width: 80, height: 80, wall: 4, outerRadius: 0 };
     const part = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
       { id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [500, 0, 400], [0, 0, 400], [0, 0, 800], [400, 0, 800]], segments: [[0, 1], [2, 3], [4, 5]], section: WIDE, overrides: [{ member: 1, section: SHARP }, { member: 2, section: WIDE }], corners: { tee: 'butt', default: 'butt' } },
@@ -6957,7 +7965,7 @@ try {
     await page.evaluate(() => window.__studioSectionDebug({ hold: true, cpu: true })); await page.waitForTimeout(500);
     s = await sec(); const clipped = s.shownVolume, cpuLines = s.hatch.lines;
     await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false })); await page.waitForTimeout(300);
-    const total = part.outputs.reduce((v, o) => v + o.massProperties(1).volumeMM3, 0);
+    const total = part.outputs.reduce((v, o) => v + massPropertiesOf(o, 1).volume, 0);
     console.log(`  G19.4 welded frame: ${JSON.stringify({ renderer, total: Math.round(total), exact: Math.round(exact), clipped: Math.round(clipped), lines: lines.length, cpuLines: cpuLines.length })}`);
     assert.ok(Math.abs(exact - clipped) <= 1e-3 * total, `the exact section ${exact} against the clipped meshes ${clipped}`);
     assert.ok(exact > 0.3 * total && exact < 0.7 * total, `about half kept: ${exact} of ${total}`);
@@ -7074,6 +8082,454 @@ try {
     await page.click('[aria-label="Section view"]');
   });
 
+  // ---- K2 (FRk5, D175/D182): a notched tee in the app — shown, saved and reopened the same, on either renderer -----------------------
+  await check('K2 FRk5 notches: a V-notched and a hole-saw-notched tee of Ø30 × 2 tubes — each body to its oracle (volume 1e-9 relative, centroid 1e-6 mm), the same after Save, New and Open; a V notch too deep refused with its reason', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    // (The kernel lane's conformance cases, as the studio's frame node: the same points, segments, section and corners.)
+    const asStudio = (name) => {
+      const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/frk', name), 'utf8')), f = c.input.partDocument.features[0];
+      const node = { id: 'n0', kind: 'frame', points: f.points, segments: f.segments, section: f.section, up: f.up, corners: f.corners };
+      return { c, file: join(out, name.replace('.json', '.bcad')), doc: { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [node], outputs: {}, nextId: 1 } };
+    };
+    const canvasShot = async () => (await page.locator('canvas.vp-canvas').screenshot()).toString('base64');
+    /** The share of the canvas's pixels that differ (a summed channel difference over 48) between two shots, decoded in the page. */
+    const differs = (a, b) => page.evaluate(async ([x, y]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(x), B = await load(y); let n = 0;
+      for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++;
+      return n / (A.length / 4);
+    }, [a, b]);
+    const shown = () => page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length > 0 && b.bodies.every(x => x.volume !== null); }, null, { timeout: 120000 }).then(() => page.evaluate(() => window.__studioBodies().bodies));
+    const matches = (bodies, expect, label) => {
+      assert.equal(bodies.length, expect.outputs.length, `${label}: ${bodies.length} bodies`);
+      // (Each expected output found among the bodies by its volume, then its centroid checked.)
+      for (const o of expect.outputs) {
+        const b = bodies.find(x => Math.abs(x.volume - o.volume.value) <= o.volume.relTol * o.volume.value);
+        assert.ok(b, `${label}: no body of ${o.volume.value} mm³ in ${JSON.stringify(bodies.map(x => x.volume))}`);
+        assert.ok(b.centroid && b.centroid.every((v, k) => Math.abs(v - o.centroid.value[k]) <= Math.max(o.centroid.absTol, 1e-6)), `${label}: centroid ${JSON.stringify(b.centroid)} vs ${JSON.stringify(o.centroid.value)}`);
+      }
+    };
+    for (const name of ['notch-v-tee.json', 'notch-holesaw-tee.json']) {
+      const { c, file, doc } = asStudio(name);
+      fs.writeFileSync(file, JSON.stringify(doc));
+      await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await iso(); const empty = await canvasShot();
+      await page.setInputFiles('input[aria-label="Model file"]', file);
+      const first = await shown(); matches(first, c.expect, `${name} opened (${renderer})`);
+      assert.equal(await page.locator('.vp-error').count(), 0, await page.locator('.vp-error').allInnerTexts().then(x => x.join(' | ')));
+      // (A drawn frame: the canvas is not one flat colour — Codex saw a black first WebGPU canvas with real geometry, D175.)
+      await iso();
+      // (Against the same viewport with nothing in it: the tee must change a visible share of it — not black, not empty.)
+      const share = await differs(empty, await canvasShot());
+      assert.ok(share > 0.005, `${name}: the canvas looks blank on ${renderer} (${(100 * share).toFixed(2)} % of pixels differ from the empty view)`);
+      await snap(`k2-${name.replace('.json', '')}`);
+      // (Saved with the studio's own Save, a new part, the download opened: the same bodies.)
+      const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+      const again = join(out, `saved-${name.replace('.json', '.bcad')}`); fs.writeFileSync(again, fs.readFileSync(await saved.path()));
+      await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await page.setInputFiles('input[aria-label="Model file"]', again);
+      matches(await shown(), c.expect, `${name} reopened (${renderer})`);
+    }
+    // (Too deep: the kernel's refusal said, no body made.)
+    const { c, file, doc } = asStudio('refuse-notch-v-depth.json');
+    fs.writeFileSync(file, JSON.stringify(doc));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    const reason = /v depth must be under the branch width and length/;
+    // (The kernel's reason sits in the toast's Details, closed: textContent reads it, innerText would not.)
+    await page.waitForFunction(r => [...document.querySelectorAll('.toast')].some(t => new RegExp(r).test(t.textContent ?? '')), reason.source, { timeout: 60000 });
+    assert.ok(JSON.stringify(c).includes('NOTCH_CUTTER'));
+    assert.equal((await page.evaluate(() => window.__studioBodies().bodies)).length, 0, 'no body from a refused notch');
+    await snap('k2-refuse-notch-v-depth');
+  });
+
+  // ---- K2 (FRk5, D175): the L gap frame Codex saw black on WebGPU's first canvas — drawn, on either renderer ------------------
+  await check('K2 FRk5 L gap: a mitred L of 40 × 40 × 3 tubes with a 2 mm joint gap — two bodies, the first canvas after they arrive drawn (not black), and after Iso; the gap kept after Save, New and Open', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const doc = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, outputs: {}, nextId: 1, nodes: [{ id: 'n0', kind: 'frame', points: [[0, 0, 0], [400, 0, 0], [400, 300, 0]], segments: [[0, 1], [1, 2]], section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, corners: { default: 'mitre', gap: 2 } }] };
+    const file = join(out, 'k2-l-gap.bcad'); fs.writeFileSync(file, JSON.stringify(doc));
+    const shot = async () => (await page.locator('canvas.vp-canvas').screenshot()).toString('base64');
+    const differs = (a, b) => page.evaluate(async ([x, y]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(x), B = await load(y); let n = 0, dark = 0;
+      for (let k = 0; k < A.length; k += 4) { if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++; if (B[k] + B[k + 1] + B[k + 2] < 12) dark++; }
+      return { changed: n / (A.length / 4), black: dark / (A.length / 4) };
+    }, [a, b]);
+    const bodies = () => page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 2 && b.bodies.every(x => x.volume > 0); }, null, { timeout: 120000 }).then(() => page.evaluate(() => window.__studioBodies().bodies));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await press('f'); await page.waitForTimeout(300); const empty = await shot();
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    const first = await bodies();
+    // (The first frame with the bodies: not black, and changed from the empty view.)
+    await page.waitForTimeout(250); const firstShot = await differs(empty, await shot());
+    console.log(`  K2 L gap (${renderer}): first frame ${(100 * firstShot.changed).toFixed(2)} % changed, ${(100 * firstShot.black).toFixed(2)} % black`);
+    assert.ok(firstShot.black < 0.5, `${renderer}: the first canvas is black (${(100 * firstShot.black).toFixed(1)} %)`);
+    await iso(); const after = await differs(empty, await shot());
+    assert.ok(after.changed > 0.005 && after.black < 0.5, `${renderer}: the L is not drawn after Iso (${JSON.stringify(after)})`);
+    await snap('k2-l-gap');
+    // (A mitred L with a 2 mm gap: the two members' volumes equal, each less than an ungapped mitre's by its share of the gap.)
+    assert.ok(Math.abs(first[0].volume - first[1].volume) / first[0].volume < 0.4, JSON.stringify(first));
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const again = join(out, 'saved-k2-l-gap.bcad'); fs.writeFileSync(again, fs.readFileSync(await saved.path()));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', again);
+    const reopened = await bodies();
+    for (const b of first) assert.ok(reopened.some(r => Math.abs(r.volume - b.volume) <= 1e-9 * b.volume), `reopened: ${JSON.stringify(reopened)} vs ${JSON.stringify(first)}`);
+  });
+
+  // ---- G21 rest (roadmap G3): every display mode drawn, picks unchanged, isolate — on either renderer ------------------------
+  await check('G3 display modes: a plate and two placed pins — each CAD display mode drawn and the same pick on the plate\'s top face; isolate fades the plate, restore brings it back', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const empty = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, outputs: {} };
+    const pin = { ...empty, nodes: [{ id: 'n0', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 4 }, { id: 'n1', kind: 'extrude', sketch: 0, height: 20 }], nextId: 2 };
+    const doc = { ...empty, nextId: 2, nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [64, 32] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 8 }],
+      instances: [{ id: 'p1', name: 'Pin A', doc: pin, position: [8, 8, 8], rotation: [0, 0, 0] }, { id: 'p2', name: 'Pin B', doc: pin, position: [56, 24, 8], rotation: [0, 0, 0] }] };
+    const file = join(out, 'g3-display.bcad'); fs.writeFileSync(file, JSON.stringify(doc));
+    const shot = async () => (await page.locator('canvas.vp-canvas').screenshot()).toString('base64');
+    const differs = (a, b) => page.evaluate(async ([x, y]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(x), B = await load(y); let n = 0;
+      for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++;
+      return n / (A.length / 4);
+    }, [a, b]);
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    // (Framed by the Frame-all button: a key could start a command on what is selected.)
+    const frame = async () => { await page.click('.views button:text-is("Top")'); await page.click('.views button[title="Frame all (F)"]'); await page.waitForTimeout(400); };
+    await frame(); const blank = await shot();
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => /Parts placed/.test(document.querySelector('.outliner')?.textContent ?? '') && window.__studioFresh === true, null, { timeout: 60000 }); await idle();
+    await snap('g3-opened');
+    // (An edit the opened document starts — its last feature's HUD — is cancelled: display modes wait while one is open.)
+    for (let k = 0; k < 3 && await page.locator('.hud button:text-is("Cancel")').count(); k++) { await page.locator('.hud button:text-is("Cancel")').click(); await page.waitForTimeout(200); }
+    await frame(); await snap('g3-framed');
+    await page.waitForFunction(() => !document.querySelector('select[aria-label="CAD display mode"]')?.disabled, null, { timeout: 5000 }).catch(() => {});
+    const display = page.locator('[aria-label="Display and previews"]');
+    if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
+    // (A point of the plate's top away from its centre, where the feature's handle stands: the world point (16, 16, 8) on
+    // screen, so the pick holds however wide the centre column is — G12b's dock narrows it.)
+    const [cx, cy] = await page.evaluate(() => window.__studioScreenOf([16, 16, 8]));
+    // (Off the parts, as a world point too: the canvas's corner is the chat strip's button since G12a.)
+    const off = await page.evaluate(() => window.__studioScreenOf([-30, -30, 0]));
+    const modes = await page.locator('select[aria-label="CAD display mode"] option').evaluateAll(os => os.map(o => o.value));
+    assert.ok(modes.length >= 5, modes.join(','));
+    const picks = [];
+    for (const mode of modes) {
+      await page.selectOption('select[aria-label="CAD display mode"]', mode);
+      await page.waitForFunction(m => document.querySelector('select[aria-label="CAD display mode"]')?.dataset.displayModeEffective === m, mode, { timeout: 10000 });
+      await page.waitForTimeout(300);
+      const share = await differs(blank, await shot());
+      assert.ok(share > 0.005, `${mode} on ${renderer}: nothing drawn (${(100 * share).toFixed(2)} %)`);
+      await snap(`g3-${mode}`);
+      // (A click off the parts clears the selection; then the canvas centre: the plate's top, in every mode.)
+      await page.mouse.click(...off); await page.waitForTimeout(150);
+      await page.mouse.click(cx, cy); await page.waitForTimeout(250);
+      picks.push(JSON.stringify(await page.evaluate(() => window.__studioSelection.selection.faces)));
+    }
+    console.log(`  G3 (${renderer}): modes ${modes.join(', ')}; centre picks ${[...new Set(picks)].join(' | ')}`);
+    assert.equal(new Set(picks).size, 1, `${renderer}: the centre pick changed with the mode: ${picks.join(' | ')}`);
+    assert.notEqual(picks[0], '[]', 'the centre pick found the plate');
+    await page.selectOption('select[aria-label="CAD display mode"]', 'shaded-with-edges');
+    // (Isolate: a pin selected, the plate fades; Restore view brings it back as it was.)
+    // (The pin selected first: the shot to come back to is the selected view.)
+    await page.mouse.click(...off);
+    await page.locator('.ol.instance').first().click(); await page.waitForTimeout(300);
+    const before = await shot();
+    await page.click('[aria-label="Isolate selection"]');
+    await page.waitForSelector('[aria-label="Restore view"][aria-pressed="true"]', { timeout: 5000 }); await page.waitForTimeout(300);
+    const faded = await differs(before, await shot());
+    assert.ok(faded > 0.005, `${renderer}: isolate changed nothing (${(100 * faded).toFixed(2)} %)`);
+    await snap('g3-isolate');
+    await page.click('[aria-label="Restore view"]'); await page.waitForSelector('[aria-label="Isolate selection"]', { timeout: 5000 }); await page.waitForTimeout(300);
+    const back = await differs(before, await shot());
+    assert.ok(back < 0.002, `${renderer}: restore left ${(100 * back).toFixed(2)} % changed`);
+    await display.click();
+  });
+
+  // ---- G24 (roadmap G5): the drawing's annotations on the model — shown, picked, and the same after Save, New and Open ---------
+  await check('G24 3D annotations: the r14 geometric plate\'s drawing on the model — its annotations drawn, a text clicked picks its annotation and selects its targets, the same annotations after Save, New and Open', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/r14/tol-plate-geometric/case.json'), 'utf8'));
+    const file = join(out, 'g24-plate.bcad'); fs.writeFileSync(file, JSON.stringify({ ...c.input.document, drawing: { ...c.input.drawing, sheet: 'A3' } }));
+    const shot = async () => (await page.locator('canvas.vp-canvas').screenshot()).toString('base64');
+    const differs = (a, b) => page.evaluate(async ([x, y]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const k = new OffscreenCanvas(img.width, img.height), g = k.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(x), B = await load(y); let n = 0;
+      for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++;
+      return n / (A.length / 4);
+    }, [a, b]);
+    const pmi = () => page.evaluate(() => window.__studioPmi?.());
+    const ready = () => page.waitForFunction(() => { const p = window.__studioPmi?.(); return p && !p.reason && !p.busy && p.items?.length > 0; }, null, { timeout: 120000 }).then(pmi);
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioFresh === true && window.__studioDoc.nodes.length > 0, null, { timeout: 60000 }); await idle();
+    for (let k = 0; k < 3 && await page.locator('.hud button:text-is("Cancel")').count(); k++) await page.locator('.hud button:text-is("Cancel")').click();
+    await page.click('.views button:text-is("Front")'); await page.click('.views button[title="Frame all (F)"]'); await page.waitForTimeout(400);
+    const display = page.locator('[aria-label="Display and previews"]');
+    if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
+    const before = await shot();
+    await page.check('input[aria-label="3D annotations"]');
+    const shown = await ready();
+    await page.waitForTimeout(400);
+    const changed = await differs(before, await shot());
+    console.log(`  G24 (${renderer}): ${shown.items.length} annotations (${[...new Set(shown.items.map(a => a.kind))].join(', ')}), ${shown.left.length} sheet-only; ${(100 * changed).toFixed(2)} % of the canvas changed`);
+    assert.ok(changed > 0.002, `${renderer}: the annotations changed ${(100 * changed).toFixed(3)} % of the canvas`);
+    const texts = renderer === 'webgpu' ? await page.evaluate(() => (window.__studioOverlayTexts?.()['pmi:text'] ?? []).length) : await page.locator('.vp-overlay.pmi text').count();
+    assert.ok(texts > 0, `${renderer}: no annotation texts drawn`);
+    await snap('g24-shown');
+    // (A click on an annotation's first text — its baseline point on screen — picks it, and selects what it points at.)
+    const target = shown.items.find(a => a.targets.some(t => t.edge)) ?? shown.items[0];
+    const at = await page.evaluate(p => window.__studioScreenOf?.(p), target.anchor);
+    assert.ok(at, 'the anchor projects onto the screen');
+    await page.mouse.click(at[0], at[1]); await page.waitForTimeout(300);
+    const picked = await pmi();
+    assert.ok(picked.selected, `${renderer}: the click picked no annotation`);
+    const sel = await page.evaluate(() => window.__studioSelection.selection);
+    assert.ok(sel.edges.length + sel.faces.length > 0, `${renderer}: the pick selected none of its targets`);
+    await snap('g24-picked');
+    // (Saved, a new part, the download opened: the same annotations — nothing of the display is stored, the drawing is.)
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const again = join(out, 'saved-g24-plate.bcad'); fs.writeFileSync(again, fs.readFileSync(await saved.path()));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', again);
+    const reopened = await ready();
+    assert.deepEqual(reopened.items.map(a => [a.id, a.text.join(' ')]), shown.items.map(a => [a.id, a.text.join(' ')]));
+    await page.uncheck('input[aria-label="3D annotations"]'); await display.click();
+  });
+
+  // ---- G23 CNC (G-R3–G-R5): material removal along the Model's program, on either renderer --------------------------------
+  await check('G23 CNC: CNC8\'s pocket from its machining stock — NOT FOR PRODUCTION first; 0, the middle and the end of its program; no overcut, the floor reached; Print layers closes it; reopened, the same', async () => {
+    // (The plate and pocket the Model's own commands make, with a stock row the fixture writes: not agent-loaded rows.)
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
+    const cam = () => page.evaluate(() => { const c = window.__studioCam?.(), d = c?.display; return c && { stage: c.stage, error: c.error, reason: c.reason, progress: d?.progress, moves: d?.setup.moves.length, removed: d?.removal.removedVolume, overcut: d?.removal.overcutCells, unc: d?.removal.lateralUncertainty, top: d && 'max' in d.package.stock ? d.package.stock.max[2] : null, banner: d?.package.banner }; });
+    const at = (p) => page.waitForFunction(q => { const c = window.__studioCam?.(); return c?.stage === 'ready' && (q === 'end' ? c.display.progress === c.display.setup.moves.length : Math.abs(c.display.progress - q) < 1e-9); }, p, { timeout: 60000 }).then(cam);
+    const progressTo = (v) => page.locator('[aria-label="CNC progress"]').evaluate((el, x) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
+    // (The previews' toggles are in the Display popover over the Views row.)
+    const display = page.locator('[aria-label="Display and previews"]');
+    if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
+    await preview('CNC');
+    const start = await at(0);
+    assert.equal(start.removed, 0, JSON.stringify(start)); assert.equal(start.overcut, 0); assert.match(start.banner, /NOT FOR PRODUCTION/);
+    assert.match(await page.locator('.card[aria-label="CNC preview"]').innerText(), /NOT FOR PRODUCTION/);
+    await page.click('[aria-label="CNC progress to the end"]');
+    const end = await at('end');
+    // (The pocket's 1500 mm² less its four corners a flat Ø6 cannot reach and the field's stated band, cut from the stock's top to the floor.)
+    const area = end.removed / (end.top - 12), corners = 4 * (1 - Math.PI / 4) * 9;
+    assert.ok(area <= 1500 + 1e-6 && area >= 1500 - corners - 160 * end.unc, JSON.stringify({ area, ...end }));
+    assert.equal(end.overcut, 0, `the program enters the part: ${JSON.stringify(end)}`);
+    const mid = Math.round(end.moves / 2);
+    await progressTo(mid); const half = await at(mid);
+    assert.ok(half.removed > 0 && half.removed < end.removed, JSON.stringify({ half, end }));
+    assert.equal(await page.locator('.vp-error').count(), 0, await page.locator('.vp-error').allInnerTexts().then(x => x.join(' | ')));
+    await iso(); await snap('g23-cnc-middle');
+    // (One preview at a time, G12c: Print layers chosen, the CNC preview closes — its panel gone, nothing shown; chosen
+    // again, the same end.)
+    await preview('Print');
+    await page.waitForFunction(() => !window.__studioCam?.().display && !document.querySelector('.card[aria-label="CNC preview"]'), null, { timeout: 15000 });
+    await preview('CNC');
+    await page.click('[aria-label="CNC progress to the end"]');
+    assert.equal((await at('end')).removed, end.removed, 'the same end after the preview closed and came back');
+    // (Reopened from the file: the same program and the same removal — nothing of the preview is stored.)
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
+    await page.click('[aria-label="CNC progress to the end"]');
+    assert.equal((await at('end')).removed, end.removed, 'reopened: the same removal');
+    await snap('g23-cnc-end');
+    await preview('None');
+    await page.waitForFunction(() => !window.__studioCam?.().display, null, { timeout: 15000 });
+    await display.click();
+  });
+
+  // ---- G22 / G23 (roadmap G4): the clearance map and print layers on screen, on either renderer, the same after Save and Open ----
+  const canvasShot = async () => (await page.locator('canvas.vp-canvas').screenshot()).toString('base64');
+  const canvasDiffers = (a, b) => page.evaluate(async ([x, y]) => {
+    const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const k = new OffscreenCanvas(img.width, img.height), g = k.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+    const A = await load(x), B = await load(y); let n = 0;
+    for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++;
+    return n / (A.length / 4);
+  }, [a, b]);
+  const saveAndReopen = async (name, nodes) => {
+    const fs = await import('node:fs');
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const file = join(out, name); fs.writeFileSync(file, fs.readFileSync(await saved.path()));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await openModel(file, nodes, 60000); await idle();
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  };
+
+  await check('G22 clearance: a shaft and its key (designed) and four pairs of boxes — in contact at once, then touching and overlap; near; clear; drawn on the model and gone when closed; Print layers refuses the assembly; the same after Save, New and Open', async () => {
+    // (The fixture: the default shaft and a key in its keyseat at the root, and 20 × 20 × 10 boxes placed side by side
+    // (touching), 10 mm into each other (overlap), 0.5 mm apart (near) and 0.8 mm off in x and y (clear: 1.13 mm > 1).)
+    const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    await openModel(join(root, 'test/fixtures/clearance-states.bcad'), 2, 60000); await idle(); await iso();
+    const display = page.locator('[aria-label="Display and previews"]');
+    if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
+    const clearance = () => page.evaluate(() => { const d = window.__studioClearance?.(); return d && { request: d.request, stage: d.stage, error: d.error, pairs: d.pairs.map(p => [p.a, p.b, p.state, p.designed ?? '']), overlays: [...new Set(d.overlays.map(o => o.state))].sort() }; });
+    const ready = (after = 0) => page.waitForFunction(n => { const d = window.__studioClearance?.(); return d && d.request > n && (d.stage === 'ready' || d.stage === 'error'); }, after, { timeout: 120000 }).then(clearance);
+    const want = [['b0', 'b1', 'designed', 'key n1 in its keyseat'], ['i1/b1', 'i2/b1', 'touching', ''], ['i3/b1', 'i4/b1', 'overlap', ''], ['i5/b1', 'i6/b1', 'near', ''], ['i7/b1', 'i8/b1', 'clear', '']];
+    const before = await canvasShot();
+    await page.evaluate(() => { window.__studioClearanceLog = []; });
+    await preview('Clearance');
+    const shown = await ready();
+    assert.equal(shown.error, undefined, shown.error);
+    assert.deepEqual(shown.pairs, want);
+    // (In contact at once — the map before the overlaps are worked out — then touching (0 mm³) and overlap (2000 mm³).)
+    const log = await page.evaluate(n => window.__studioClearanceLog.filter(e => e.request === n), shown.request);
+    assert.deepEqual(log.find(e => e.stage === 'map')?.states, ['designed', 'contact', 'contact', 'near', 'clear'], JSON.stringify(log));
+    assert.deepEqual(await page.locator('li[data-clearance-state]').evaluateAll(l => l.map(x => x.dataset.clearanceState)), ['designed', 'touching', 'overlap', 'near', 'clear']);
+    // (Drawn: the bands of the four pairs within near and the overlap's volume; nothing for the clear pair.)
+    assert.deepEqual(shown.overlays, ['designed', 'near', 'overlap', 'touching']);
+    await page.waitForTimeout(400);
+    const changed = await canvasDiffers(before, await canvasShot());
+    console.log(`  G22 (${renderer}): ${shown.pairs.map(p => p[2]).join(', ')}; ${(100 * changed).toFixed(2)} % of the canvas changed`);
+    // (The overlays alone: 0.09 % here. Before G12c the panel grew over the canvas in the Display popover and the shot, taken
+    // of the screen's region, counted it — the 2 % then was mostly the panel.)
+    assert.ok(changed > 0.0005, `${renderer}: the clearance map changed ${(100 * changed).toFixed(3)} % of the canvas`);
+    await snap('g22-clearance');
+    // (One preview at a time, G12c: Print layers chosen, the clearance map closes — and the assembly is refused there;
+    // clearance chosen again, the same pairs.)
+    await preview('Print');
+    await page.waitForFunction(() => /Placed assemblies are not supported/.test(window.__studioPrint?.().reason ?? '') && !window.__studioClearance?.(), null, { timeout: 15000 });
+    assert.equal(await page.locator('.card[aria-label="Assembly clearance"]').count(), 0);
+    await preview('Clearance');
+    const back = await ready(shown.request);
+    assert.deepEqual(back.pairs, want);
+    // (Closed: the model as it was.)
+    await preview('None');
+    await page.waitForFunction(() => !window.__studioClearance?.(), null, { timeout: 15000 }); await page.waitForTimeout(400);
+    const gone = await canvasDiffers(before, await canvasShot());
+    assert.ok(gone < 0.002, `${renderer}: closed, ${(100 * gone).toFixed(3)} % still changed`);
+    // (Saved, a new part, the download opened: the same pairs — nothing of the map is stored, the instances are.)
+    await preview('Clearance');
+    const last = (await ready(back.request)).request;
+    await saveAndReopen('saved-g22-clearance.bcad', 2);
+    const reopened = await ready(last);
+    assert.deepEqual([reopened.pairs, reopened.overlays], [want, shown.overlays]);
+    await preview('None'); await display.click();
+  });
+
+  await check('G23 print layers: CNC8\'s plate sliced — its layers drawn, the height set and the layer moved changing the view, printed-up-to off; the settings saved, the same layer after Save, New and Open', async () => {
+    const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle(); await iso();
+    const display = page.locator('[aria-label="Display and previews"]');
+    if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
+    const print = () => page.evaluate(() => { const p = window.__studioPrint?.(), d = p?.display; return p && { reason: p.reason, stage: p.stage, count: d?.summary.count, k: d?.layer.k, z: d?.layer.z, top: d?.top, printed: d?.printed, supports: d?.supports }; });
+    const at = (q) => page.waitForFunction(([k, n]) => { const p = window.__studioPrint?.(), d = p?.display; return !p?.reason && p?.stage === 'ready' && d?.layer.k === k && (n === null || d.summary.count === n); }, q, { timeout: 60000 }).then(print);
+    const rangeTo = (v) => page.locator('[aria-label="Print layer"]').evaluate((el, x) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
+    const before = await canvasShot();
+    await preview('Print');
+    const first = await at([0, null]);
+    assert.ok(first.count > 1 && first.printed && first.supports, JSON.stringify(first));
+    await page.waitForTimeout(400);
+    const bottom = await canvasShot(), changed = await canvasDiffers(before, bottom);
+    assert.ok(changed > 0.002, `${renderer}: print layers changed ${(100 * changed).toFixed(3)} % of the canvas`);
+    // (The height set to 0.5 mm: fewer layers; the layer moved to the middle: another view.)
+    await page.check('input[aria-label="Set layer height"]');
+    await page.locator('input[aria-label="Print layer height (mm)"]').fill('0.5');
+    const coarse = await page.waitForFunction(n => { const d = window.__studioPrint?.()?.display; return d && d.summary.count < n; }, first.count, { timeout: 60000 }).then(print);
+    const mid = Math.floor(coarse.count / 2);
+    await rangeTo(mid);
+    const middle = await at([mid, coarse.count]);
+    assert.ok(middle.z > 0 && middle.z < middle.top, JSON.stringify(middle));
+    await page.waitForTimeout(400);
+    const moved = await canvasDiffers(bottom, await canvasShot());
+    console.log(`  G23 print (${renderer}): ${first.count} layers at 0.2 mm, ${coarse.count} at 0.5 mm; layer ${mid + 1} at ${middle.z.toFixed(3)} mm; ${(100 * changed).toFixed(2)} % changed shown, ${(100 * moved).toFixed(2)} % moved`);
+    assert.ok(moved > 0.002, `${renderer}: the layer moved changed ${(100 * moved).toFixed(3)} % of the canvas`);
+    await page.uncheck('input[aria-label="Printed up to layer"]');
+    await page.waitForFunction(() => window.__studioPrint?.()?.display?.printed === false, null, { timeout: 30000 });
+    await snap('g23-print-middle');
+    // (Saved: the layer settings are the document's; a new part, the download opened: the same layer, the same height.)
+    const saved = await saveAndReopen('saved-g23-print.bcad', 5);
+    assert.deepEqual([saved.printPreview?.layer, saved.printPreview?.layerHeight, saved.printPreview?.printed], [mid, 0.5, false], JSON.stringify(saved.printPreview));
+    const reopened = await at([mid, coarse.count]);
+    assert.deepEqual([reopened.z, reopened.top, reopened.printed], [middle.z, middle.top, false]);
+    await preview('None');
+    await page.waitForFunction(() => !window.__studioPrint?.()?.display, null, { timeout: 15000 });
+    await display.click();
+  });
+
+  // ---- O10 (GPU part): each body's frame cost by display mode, read from the renderer — the same shape on either ----------
+  await check('O10 frame costs: the clearance fixture\'s 10 bodies (8 placed copies) in each display mode — each copy its own draws, x-ray see-through, dashed hidden lines, shares of the primitives; off, nothing more counted', async () => {
+    const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    await openModel(join(root, 'test/fixtures/clearance-states.bcad'), 2, 60000); await idle(); await iso();
+    await page.waitForFunction(() => !document.querySelector('select[aria-label="CAD display mode"]')?.disabled, null, { timeout: 5000 }).catch(() => {});
+    const display = page.locator('[aria-label="Display and previews"]');
+    if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
+    const modes = await page.locator('select[aria-label="CAD display mode"] option').evaluateAll(os => os.map(o => o.value));
+    await page.evaluate(() => window.__studioFrameCost(true));
+    const costs = {};
+    for (const mode of modes) {
+      await page.selectOption('select[aria-label="CAD display mode"]', mode);
+      await page.waitForFunction(m => document.querySelector('select[aria-label="CAD display mode"]')?.dataset.displayModeEffective === m, mode, { timeout: 10000 });
+      await page.waitForFunction(m => (window.__studioFrameCost()[m]?.bodies.length ?? 0) >= 10, mode, { timeout: 15000 });
+      await page.waitForTimeout(300);
+      costs[mode] = await page.evaluate(m => window.__studioFrameCost()[m], mode);
+    }
+    const by = (mode, key) => costs[mode].bodies.find(b => b.key === key);
+    const sum = (b, ...ps) => ps.reduce((n, p) => n + b.passes[p], 0);
+    for (const mode of modes) {
+      const c = costs[mode], keys = c.bodies.map(b => b.key).sort();
+      console.log(`  O10 (${renderer}) ${mode}: ${c.bodies.length} bodies, ${c.bodies.reduce((n, b) => n + b.draws, 0)} body draws, ${c.bodies.reduce((n, b) => n + b.triangles, 0)} triangles, ${c.bodies.reduce((n, b) => n + b.lines, 0)} lines; scene ${c.scene.draws} draws; ${c.cpuTime.toFixed(2)} ms CPU; b0 ${JSON.stringify(by(mode, 'b0').passes)}`);
+      assert.deepEqual([c.renderer, c.mode], [renderer, mode], JSON.stringify([c.renderer, c.mode]));
+      // (A copy's key is its instance's id and its body's key as the studio evaluates the instance's part.)
+      assert.deepEqual(keys.map(k => k.split('/')[0]), ['b0', 'b1', ...[1, 2, 3, 4, 5, 6, 7, 8].map(i => `i${i}`)], keys.join(','));
+      assert.equal(new Set(keys.filter(k => k.includes('/')).map(k => k.split('/')[1])).size, 1, keys.join(','));
+      // (Each copy counts its own draw and primitives, through one shared geometry or not: the eight boxes the same.)
+      const copies = c.bodies.filter(b => b.key.startsWith('i'));
+      assert.ok(copies.every(b => b.draws > 0 && b.triangles === copies[0].triangles && b.lines === copies[0].lines), `${mode}: ${JSON.stringify(copies.map(b => [b.key, b.draws, b.triangles, b.lines]))}`);
+      const shares = c.bodies.reduce((n, b) => n + b.share, 0);
+      assert.ok(shares > 0 && shares <= 1 + 1e-9 && c.bodies.every(b => b.share > 0), `${mode}: shares ${shares}`);
+    }
+    // (X-ray: the surfaces see-through too — more see-through draws than shaded, whose faint lines are already so on
+    // WebGPU. Dashed: the hidden lines drawn again; shaded: not.)
+    const copy1 = costs[modes[0]].bodies.find(b => b.key.startsWith('i1/')).key;
+    for (const key of ['b0', copy1]) {
+      assert.ok(sum(by('x-ray', key), 'transparent', 'oit') > sum(by('shaded-with-edges', key), 'transparent', 'oit'), `x-ray ${key}: ${JSON.stringify([by('x-ray', key), by('shaded-with-edges', key)])}`);
+      assert.equal(by('shaded-with-edges', key).passes.hiddenLines, 0);
+      assert.ok(by('hidden-lines-dashed', key).passes.hiddenLines > 0, `dashed ${key}: ${JSON.stringify(by('hidden-lines-dashed', key))}`);
+      assert.ok(by('wireframe', key).lines > 0);
+    }
+    // (Off: frames drawn after it are not counted.)
+    const last = costs[modes[modes.length - 1]].frame;
+    await page.evaluate(() => window.__studioFrameCost(false));
+    await page.selectOption('select[aria-label="CAD display mode"]', 'shaded-with-edges'); await page.waitForTimeout(400);
+    const after = await page.evaluate(() => window.__studioFrameCost());
+    assert.ok(Object.values(after).every(c => c.frame <= last), JSON.stringify(Object.values(after).map(c => [c.mode, c.frame, last])));
+    await display.click();
+  });
+
+  await check('O10 Rebuild panel: a box, then a hole drilled in it — the hole built, the box reused, the sketch an input, each with its time; the clearance fixture\'s copies in its frame costs by their keys; closed, gone', async () => {
+    const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await press('h'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole' && window.__studioFresh === true, null, { timeout: 15000 }); await idle();
+    const hole = await page.evaluate(() => { const n = window.__studioDoc.nodes; return n.at(-1).id ?? `n${n.length - 1}`; });
+    await page.click('[aria-label="Rebuild"]');
+    const panel = page.locator('[aria-label="Rebuild panel"]');
+    await panel.waitFor({ timeout: 5000 });
+    const rows = () => panel.locator('tr[data-rebuild-state]').evaluateAll(rs => rs.map(r => [r.getAttribute('aria-label').slice(8), r.dataset.rebuildState, +r.children[2].textContent]));
+    const seen = await rows();
+    const state = Object.fromEntries(seen.map(([id, s]) => [id, s]));
+    assert.equal(state[hole], 'built', JSON.stringify(seen));
+    assert.ok(seen.some(([, s]) => s === 'reused') && seen.some(([, s]) => s === 'input'), JSON.stringify(seen));
+    assert.ok(seen.every(([, , t]) => Number.isFinite(t) && t >= 0), JSON.stringify(seen));
+    assert.match(await panel.locator('[aria-label="Rebuild totals"]').innerText(), /Evaluation \d+ \(last evaluation\), revision [0-9a-f]{16} · [1-9]\d* built in [\d.]+ ms · [1-9]\d* reused · [\d.]+ ms in all/);
+    assert.match(await panel.locator('[aria-label="Rebuild mates"]').innerText(), /No mates/);
+    console.log(`  O10 rebuild (${renderer}): ${seen.map(([id, s, t]) => `${id} ${s} ${t} ms`).join(', ')}`);
+    // (The clearance fixture: its bodies, the eight copies by their keys, in the frame costs the panel reads every 500 ms.)
+    await openModel(join(root, 'test/fixtures/clearance-states.bcad'), 2, 60000); await idle();
+    try { await page.waitForFunction(() => document.querySelectorAll('[aria-label="Frame costs"] tr[aria-label^="Frame cost "]').length >= 10, null, { timeout: 15000 }); }
+    catch (e) { console.log(`  O10 frame costs (${renderer}): ${JSON.stringify(await page.evaluate(() => ({ rows: [...document.querySelectorAll('[aria-label="Frame costs"] tr[aria-label^="Frame cost "]')].map(r => r.getAttribute('aria-label')), totals: document.querySelector('[aria-label="Frame cost totals"]')?.textContent, status: document.querySelector('[aria-label="Rebuild panel"] [role=status]')?.textContent, bodies: window.__studioBodies(), inst: window.__studioInstanceBounds?.().length })))}`); throw e; }
+    const keys = await panel.locator('tr[aria-label^="Frame cost "]').evaluateAll(rs => rs.map(r => r.getAttribute('aria-label').slice(11)).sort());
+    assert.deepEqual(keys.filter(k => k.includes('/')), [1, 2, 3, 4, 5, 6, 7, 8].map(i => `i${i}/b1`), keys.join(','));
+    assert.match(await panel.locator('[aria-label="Frame cost totals"]').innerText(), new RegExp(`^${renderer}, shaded-with-edges`));
+    await snap('o10-rebuild-panel');
+    await page.locator('[aria-label="Rebuild panel"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-rebuild.png`) });
+    await panel.locator('[aria-label="Close Rebuild"]').click();
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Rebuild panel"]'), null, { timeout: 5000 });
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
@@ -7087,6 +8543,586 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top'))); await page.waitForTimeout(300); await snap('light-selected');
     await press('h'); await hudReady(); await page.waitForTimeout(300); await snap('light-command'); await press('Escape');
+  });
+
+  // (Last, so no step's number moves.) Owner 2026-10-24: `.barocad` is our only curve and surface source; `.cad` is other
+  // programs' extension and is not read as one.
+  await check('Open: a .cad file is not taken for our source — the file named with what Open reads, the part unchanged; .barocad still offered', async () => {
+    assert.equal(await page.locator('input[aria-label="Model file"]').getAttribute('accept'), '.bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.dwg');
+    const before = JSON.stringify(await doc());
+    const file = join(out, 'bracket.cad'); (await import('node:fs')).writeFileSync(file, 'ISO-10303-21; another program\'s file');
+    await page.locator('input[aria-label="Model file"]').setInputFiles(file);
+    await page.waitForFunction(() => /Can’t open bracket\.cad/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 10000 });
+    assert.match(await page.locator('.toast').innerText(), /Open reads models \(\.bcad, \.json\), STEP \(\.step, \.stp\), STL, OBJ, IGES \(\.igs, \.iges\) and \.barocad curve and surface sources\. Your part is unchanged\./);
+    assert.equal(JSON.stringify(await doc()), before, 'the part is unchanged');
+    await page.click('.toast [aria-label="Dismiss"]');
+  });
+
+  // ---- RS2 (owner 2026-10-24, "관절 움직임"): the motion through the waypoints played in the Joints card ----------------
+  await check('RS2: a motion played — the 6R arm\'s TCP at 0, T/2 and T; pause, 2×, loop; the 2R arm into the post marked from the time of impact — either renderer', async () => {
+    const fs = await import('node:fs'), file = join(out, 'rs2-arm-6r.bcad');
+    const d = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'), 'utf8'));
+    d.robot = { version: 1, frames: { tcp: { link: 'l6', position: [5, -3, 40], rotation: [0, 90, 0], kind: 'tool' } } };
+    fs.writeFileSync(file, JSON.stringify(d));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => (window.__studioFrameTriads?.() ?? []).length === 1, null, { timeout: 30000 }); await idle();
+    const slide = (label, v) => page.evaluate(([l, x]) => { const el = document.querySelector(`[aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [label, v]);
+    const tcp = () => page.evaluate(() => window.__studioFrameTriads().find(f => f.name === 'tcp').o);
+    const clock = async () => { const m = /^t ([\d.]+) \/ ([\d.]+) s$/.exec(await page.locator('[aria-label="Motion time readout"]').innerText()); return m && { t: +m[1], T: +m[2] }; };
+    const near = (a, b, tol) => a.every((v, k) => Math.abs(v - b[k]) < tol), dist = (a, b) => Math.hypot(...a.map((v, k) => v - b[k]));
+    await slide('Joint l5~l6 value', Math.PI / 2);
+    await page.waitForFunction(() => Math.abs(window.__studioFrameTriads().find(x => x.name === 'tcp').o[0] - 63) < 0.05, null, { timeout: 10000 });
+    await page.waitForSelector('[aria-label="Motion"] [aria-label="Play motion"]:not([disabled])', { timeout: 20000 });
+    const { T } = await clock();
+    assert.ok(T > 0.5 && T < 10, `the motion's length ${T} s`);
+    // (Played to its end: the pose shown, the TCP at G13's quarter-turn point.)
+    await page.click('[aria-label="Play motion"]');
+    await page.waitForFunction(() => document.querySelector('[aria-label="Motion"] [aria-label="Play motion"]') && /^t ([\d.]+) \/ \1 s$/.test(document.querySelector('[aria-label="Motion time readout"]')?.textContent ?? ''), null, { timeout: 20000 });
+    assert.ok(near(await tcp(), [63, 105, 330], 0.05), `at T the TCP is G13's quarter-turn point: ${JSON.stringify(await tcp())}`);
+    // (Scrubbed: at 0 home, G13's zero-pose point; at T/2 halfway round l6 — a symmetric trapezoid's middle — as far from both.)
+    await slide('Motion time', 0); await page.waitForTimeout(200);
+    assert.ok(near(await tcp(), [45, 97, 330], 0.05), `at 0 the TCP is G13's zero-pose point: ${JSON.stringify(await tcp())}`);
+    await slide('Motion time', T / 2); await page.waitForTimeout(200);
+    const mid = await tcp();
+    assert.ok(Math.abs(dist(mid, [45, 97, 330]) - dist(mid, [63, 105, 330])) < 0.05 && dist(mid, [45, 97, 330]) > 1, `at T/2 the TCP halfway round: ${JSON.stringify(mid)}`);
+    assert.ok(Math.abs(mid[2] - 330) < 0.05, 'turning about l6 keeps its height');
+    await snap('rs2-motion-mid');
+    // (Paused, it holds; at 2× the motion's time runs twice the wall clock's.)
+    await slide('Motion time', 0); await page.selectOption('[aria-label="Motion speed"]', '2');
+    const rate = async () => { const a = await clock(), w0 = await page.evaluate(() => performance.now()); await page.waitForTimeout(250); const b = await clock(), w1 = await page.evaluate(() => performance.now()); return (b.t - a.t) / ((w1 - w0) / 1000); };
+    await page.click('[aria-label="Play motion"]'); await page.waitForTimeout(100);
+    const fast = await rate();
+    await page.click('[aria-label="Pause motion"]');
+    const held = (await clock()).t; await page.waitForTimeout(300);
+    assert.equal((await clock()).t, held, 'paused, the time holds');
+    assert.ok(fast > 1.4 && fast < 2.6, `at 2× the motion runs about twice as fast: ${fast.toFixed(2)}`);
+    // (Looped, past T it wraps to the start.)
+    await page.check('[aria-label="Loop motion"]'); await slide('Motion time', T * 0.9); await page.click('[aria-label="Play motion"]');
+    await page.waitForFunction(T => { const m = /^t ([\d.]+)/.exec(document.querySelector('[aria-label="Motion time readout"]')?.textContent ?? ''); return m && +m[1] < T * 0.5; }, T, { timeout: 10000 });
+    await page.click('[aria-label="Pause motion"]'); await page.uncheck('[aria-label="Loop motion"]');
+    await page.click('[aria-label="Joints home"]');
+    // (The 2R arm swung into the post, RM6's case: the two links marked from the time of impact on, not before.)
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/sweep-post/case.json'), 'utf8')), post = join(out, 'rs2-sweep-post.bcad');
+    fs.writeFileSync(post, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', post);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 3 && window.__studioInstanceBounds?.().length === 3, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Joint base~a value"]', { timeout: 20000 });
+    // (Its own view, framed: a camera left by an earlier step — New part keeps it — would make the links small.)
+    await page.click('.views button:text-is("Iso")'); await page.click('.views button[title="Frame all (F)"]'); await page.waitForTimeout(400);
+    await slide('Joint base~a value', 2);
+    await page.waitForSelector('[aria-label="Motion"] [aria-label="Play motion"]:not([disabled])', { timeout: 20000 });
+    // (A dense grid: WebGPU's mark is a 2 px outline, which a coarse one steps over.)
+    const reds = async () => { const px = await page.evaluate(() => window.__studioFrame(320)); let n = 0; for (let i = 0; i < px.length; i += 3) if (px[i] > 170 && px[i + 1] < 120 && px[i + 2] < 120) n++; return n; };
+    await page.click('[aria-label="Play motion"]');
+    await page.waitForSelector('[aria-label="Motion contact"]', { timeout: 20000 });
+    assert.match(await page.locator('[aria-label="Motion contact"]').innerText(), /^Contact .*post.* at t \d+\.\d{2} s$/);
+    const toi = +/at t ([\d.]+) s/.exec(await page.locator('[aria-label="Motion contact"]').innerText())[1];
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Pause motion"]'), null, { timeout: 20000 });
+    await page.waitForTimeout(300);
+    assert.equal((await page.evaluate(() => window.__studioContactLinks())).length, 2, 'two links marked after the time of impact');
+    const after = await reds(); await snap('rs2-contact');
+    await slide('Motion time', toi * 0.5); await page.waitForTimeout(400);
+    assert.equal(await page.locator('[aria-label="Motion contact"]').count(), 0, 'before the time of impact, no contact said');
+    assert.deepEqual(await page.evaluate(() => window.__studioContactLinks()), [], 'nor marked');
+    const before = await reds();
+    assert.ok(after > before + 20, `the links marked in the error colour after the time of impact: ${after} red samples, ${before} before`);
+    await page.click('[aria-label="Joints home"]');
+  });
+
+  // ---- RS2: the draft kept as a saved motion, chosen and played from the document; the save is an undo step ---------
+  await check('RS2: Save as motion — the draft kept by name in robot.motions (degrees), chosen and played to its end, undone', async () => {
+    const fs = await import('node:fs'), file = join(out, 'rs2-save-6r.bcad');
+    const d = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'), 'utf8'));
+    d.robot = { version: 1, frames: { tcp: { link: 'l6', position: [5, -3, 40], rotation: [0, 90, 0], kind: 'tool' } } };
+    fs.writeFileSync(file, JSON.stringify(d));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => (window.__studioFrameTriads?.() ?? []).length === 1, null, { timeout: 30000 }); await idle();
+    const slide = (label, v) => page.evaluate(([l, x]) => { const el = document.querySelector(`[aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [label, v]);
+    const tcp = () => page.evaluate(() => window.__studioFrameTriads().find(f => f.name === 'tcp').o);
+    await slide('Joint l5~l6 value', Math.PI / 2);
+    await page.waitForSelector('[aria-label="Save as motion"]:not([disabled])', { timeout: 20000 });
+    await page.fill('[aria-label="Motion name"]', 'quarter'); await page.click('[aria-label="Save as motion"]');
+    await page.waitForFunction(() => window.__studioDoc?.robot?.motions?.some(m => m.name === 'quarter'), null, { timeout: 10000 });
+    const saved = (await doc()).robot.motions.find(m => m.name === 'quarter');
+    const last = saved.path.waypoints.at(-1);
+    assert.ok(Math.abs((last['l5~l6'] ?? 0) - 90) < 1e-6, `saved in degrees: ${JSON.stringify(saved.path.waypoints)}`);
+    assert.equal(await page.locator('[aria-label="Motion choice"]').inputValue(), 'quarter', 'the saved motion chosen');
+    // (Home, then the saved one played: it ends at the quarter turn — the document's motion, not the pose shown.)
+    await page.click('[aria-label="Joints home"]');
+    await page.waitForFunction(() => Math.abs(window.__studioFrameTriads().find(x => x.name === 'tcp').o[0] - 45) < 0.05, null, { timeout: 10000 });
+    await page.selectOption('[aria-label="Motion choice"]', 'quarter');
+    await page.waitForSelector('[aria-label="Play motion"]:not([disabled])', { timeout: 10000 });
+    await page.click('[aria-label="Play motion"]');
+    await page.waitForFunction(() => document.querySelector('[aria-label="Play motion"]') && /^t ([\d.]+) \/ \1 s$/.test(document.querySelector('[aria-label="Motion time readout"]')?.textContent ?? ''), null, { timeout: 20000 });
+    const end = await tcp();
+    assert.ok(Math.abs(end[0] - 63) < 0.05 && Math.abs(end[1] - 105) < 0.05, `the saved motion ends at the quarter turn: ${JSON.stringify(end)}`);
+    // (The save is an undo step: undone, the motion is gone and the card back on the draft.)
+    await page.click('[aria-label="Joints home"]'); await page.click('[aria-label="Undo"]');
+    await page.waitForFunction(() => !window.__studioDoc?.robot?.motions?.length, null, { timeout: 10000 });
+    await page.waitForFunction(() => document.querySelector('[aria-label="Motion choice"]')?.value === '' || !document.querySelector('[aria-label="Motion choice"]'), null, { timeout: 10000 });
+  });
+
+  // ---- RS1: the robot samples in Templates, each opened with its demo motion; the 6R arm's played to its end --------
+  await check('RS1: Templates → Samples — each of the 8 robot samples opens with its joints and its demo motion; the 6R arm\'s plays to its end', async () => {
+    const index = JSON.parse((await import('node:fs')).readFileSync(join(root, '../../packages/barocss-cad-model/samples/robots/index.json'), 'utf8'));
+    assert.equal(index.length, 8);
+    for (const r of index) {
+      await page.click('[aria-label="New from a template"]');
+      await page.click(`[aria-label="Open sample ${r.title}"]`);
+      // (Its own demo motion, as the sample's file names it: the document opened is this sample's, not the one before.)
+      const name = JSON.parse((await import('node:fs')).readFileSync(join(root, '../../packages/barocss-cad-model/samples/robots', r.file), 'utf8')).robot.motions[0].name;
+      await page.waitForFunction(n => window.__studioDoc?.robot?.motions?.length === 1 && window.__studioDoc.robot.motions[0].name === n && !!document.querySelector('[aria-label="Joints"]'), name, { timeout: 30000 });
+      await page.waitForFunction(n => [...(document.querySelector('[aria-label="Motion choice"]')?.options ?? [])].some(o => o.value === n), name, { timeout: 20000 });
+      assert.equal(await page.locator('.toast').count(), 0, `${r.id} opened without a refusal`);
+      if (r.id !== 'arm-6r') continue;
+      await page.selectOption('[aria-label="Motion choice"]', name);
+      await page.waitForSelector('[aria-label="Play motion"]:not([disabled])', { timeout: 20000 });
+      await page.selectOption('[aria-label="Motion speed"]', '2');
+      await page.click('[aria-label="Play motion"]');
+      await page.waitForFunction(() => document.querySelector('[aria-label="Play motion"]') && /^t ([\d.]+) \/ \1 s$/.test(document.querySelector('[aria-label="Motion time readout"]')?.textContent ?? ''), null, { timeout: 60000 });
+      await snap('rs1-arm-6r-motion');
+      await page.selectOption('[aria-label="Motion speed"]', '1');
+    }
+  });
+
+  // ---- RS2 (2): the recorder — the motion's video at its own timing, the Render turntable's over its duration -------
+  await check('RS2 video: a motion and a Render turntable exported as WebM — ffprobe reads its codec, its frames at 30 a second and the motion\'s length; not blank', async () => {
+    const fs = await import('node:fs'), file = join(out, 'rs2-video-6r.bcad');
+    const d = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'), 'utf8'));
+    fs.writeFileSync(file, JSON.stringify(d));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForSelector('[aria-label="Joint l5~l6 value"]', { timeout: 30000 }); await idle();
+    await page.evaluate(() => { const el = document.querySelector('[aria-label="Joint l5~l6 value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(Math.PI / 2)); el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForSelector('[aria-label="Export motion video"]:not([disabled])', { timeout: 20000 });
+    const T = +/\/ ([\d.]+) s$/.exec(await page.locator('[aria-label="Motion time readout"]').innerText())[1];
+    const webm = async (button, name) => {
+      const download = page.waitForEvent('download', { timeout: 60000 }), t0 = Date.now();
+      await page.click(`[aria-label="${button}"]`);
+      const got = await download, path = join(out, name); await got.saveAs(path);
+      const bytes = fs.readFileSync(path);
+      assert.match(got.suggestedFilename(), /\.webm$/);
+      assert.deepEqual([...bytes.subarray(0, 4)], [0x1a, 0x45, 0xdf, 0xa3], `${name}: a WebM (EBML) file`);
+      assert.ok(bytes.length > 4000, `${name}: ${bytes.length} bytes`);
+      // (ffprobe, an independent reader: the codec, the frames decoded and the length; ffmpeg's last frame not one colour.)
+      const { execFileSync } = await import('node:child_process');
+      const probe = JSON.parse(execFileSync('ffprobe', ['-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=codec_name,width,height,nb_read_frames:format=duration', '-of', 'json', path], { encoding: 'utf8' }));
+      const st = probe.streams[0], px = execFileSync('ffmpeg', ['-v', 'error', '-sseof', '-0.2', '-i', path, '-frames:v', '1', '-vf', 'scale=32:32', '-f', 'rawvideo', '-pix_fmt', 'gray', '-'], { maxBuffer: 1 << 20 });
+      const mean = px.reduce((a, b) => a + b, 0) / px.length, spread = Math.sqrt(px.reduce((a, b) => a + (b - mean) ** 2, 0) / px.length);
+      return { codec: st.codec_name, frames: +st.nb_read_frames, duration: +probe.format.duration, spread, took: (Date.now() - t0) / 1000 };
+    };
+    const v = await webm('Export motion video', 'rs2-motion.webm');
+    console.log(`  RS2 video: ${JSON.stringify(v)} for a ${T} s motion`);
+    assert.ok(/^vp[89]$/.test(v.codec), `a VP8 or VP9 stream: ${v.codec}`);
+    assert.equal(v.frames, Math.ceil(T * 30) + 1, 'a frame each 1/30 s over the motion, its end included');
+    assert.ok(Math.abs(v.duration - (Math.ceil(T * 30) + 1) / 30) < 0.05, `the motion's own length, however long the frames took to draw (${v.took.toFixed(1)} s): ${v.duration}`);
+    assert.ok(v.spread > 3, `its last frame shows the model, not one colour: ${v.spread.toFixed(1)}`);
+    // (The Render workspace: a 1 s turntable, recorded by the same recorder.)
+    await page.click('[aria-label="Joints home"]');
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Timeline"]', { timeout: 20000 });
+    await page.fill('[aria-label="Duration"]', '1'); if (!(await page.isChecked('[aria-label="Turntable"]'))) await page.check('[aria-label="Turntable"]');
+    const r = await webm('Export animation video', 'rs2-turntable.webm');
+    assert.equal(r.frames, 31, 'the 1 s turntable at 30 a second'); assert.ok(r.spread > 3, 'not one colour');
+    await page.click('.mode button:text-is("Model")');
+  });
+  await check('G15d.1 post: AgX, a warm grade, contrast, saturation and a vignette from the Render panel\'s Post section — kept in the document, the frame darker at its corners and warmer; neutral again, dropped', async () => {
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await page.click('.render-panel [role="tab"]:text-is("Scene")');
+    const env = () => page.evaluate(() => window.__studioDoc.render.environment);
+    const N = 9, frame = async () => { await idle(); await page.waitForTimeout(500); return page.evaluate(n => window.__studioFrame(n), N); };
+    // (Corners: the grid's four corner samples, the background's; warmth: red over blue across the whole grid.)
+    const corners = f => [0, N - 1, N * (N - 1), N * N - 1].map(k => (f[3 * k] + f[3 * k + 1] + f[3 * k + 2]) / 3);
+    const warmth = f => { let t = 0; for (let k = 0; k < N * N; k++) t += f[3 * k] - f[3 * k + 2]; return t / (N * N); };
+    const slide = async (label, v) => { await page.evaluate(([l, x]) => { const el = document.querySelector(`.render-panel [aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [label, v]); };
+    assert.equal((await env()).post, undefined, 'no post until one is set');
+    const gpu = renderer === 'webgpu', before = gpu ? await frame() : null;
+    await slide('Vignette', 0.8);
+    await page.waitForFunction(() => window.__studioDoc.render.environment.post?.vignette === 0.8);
+    const vignetted = gpu ? await frame() : null;
+    await page.selectOption('.render-panel [aria-label="Colour grade"]', 'warm');
+    await slide('Contrast', 1.2); await slide('Saturation', 1.3);
+    await page.selectOption('.render-panel [aria-label="Tone mapping"]', 'agx');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.toneMapping === 'agx' && window.__studioDoc.render.environment.post?.saturation === 1.3);
+    assert.deepEqual((await env()).post, { grade: 'warm', contrast: 1.2, saturation: 1.3, vignette: 0.8 });
+    await page.locator('.render-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-g15d1-post-panel.png`) });
+    if (gpu) {
+      const warm = await frame(); await snap('g15d1-post');
+      const c0 = corners(before), c1 = corners(vignetted);
+      console.log(`  G15d.1: corners ${c0.map(Math.round)} → ${c1.map(Math.round)}; warmth ${warmth(before).toFixed(1)} → ${warmth(warm).toFixed(1)}`);
+      assert.ok(c1.every((c, i) => c < c0[i] - 8), `the vignette darkens every corner: ${c0.map(Math.round)} → ${c1.map(Math.round)}`);
+      assert.ok(warmth(warm) > warmth(vignetted) + 4, `the warm grade lifts red over blue: ${warmth(vignetted).toFixed(1)} → ${warmth(warm).toFixed(1)}`);
+    }
+    // Undo takes the tone map back; neutral again (each control to its default), the post leaves the document.
+    await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.toneMapping === 'aces');
+    await page.selectOption('.render-panel [aria-label="Colour grade"]', 'neutral');
+    await slide('Contrast', 1); await slide('Saturation', 1); await slide('Vignette', 0);
+    await page.waitForFunction(() => window.__studioDoc.render.environment.post === undefined, null, { timeout: 5000 });
+    if (gpu) {
+      const back = await frame();
+      assert.ok(corners(back).every((c, i) => Math.abs(c - corners(before)[i]) < 4), 'neutral: the frame as before');
+    }
+    await page.click('.mode button:text-is("Model")');
+  });
+  await check('G15a finishes: Turned steel, a knurl along Z, a lacquered paint and an oil film from the Render panel — kept on the appearance, the part drawn with its marks; None again, plain', async () => {
+    // (A new part, a box: its one body takes the default appearance, whatever the steps before left open.)
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await press('Escape');
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.waitForFunction(() => /Every body without/.test(document.querySelector('.render-panel .muted.small')?.textContent ?? ''));
+    const look = () => page.evaluate(() => window.__studioDoc.render.defaultAppearance);
+    const gpu = renderer === 'webgpu', N = 64;
+    // (The marks: how much a sample differs from its neighbours on a dense grid, the whole frame.)
+    // (A frame on a dense grid; how far two differ, sample by sample, over the samples either changes — the part's.)
+    const marks = async () => { await idle(); await page.waitForTimeout(600); return page.evaluate(n => window.__studioFrame(n), N); };
+    const apart = (a, b) => { let d = 0, n = 0; for (let k = 0; k < a.length; k++) { const e = Math.abs(a[k] - b[k]); if (e > 2) { d += e; n++; } } return n ? d / n : 0; };
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.color === '#a7abb1');
+    const plain = gpu ? await marks() : null;
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-turned-steel');
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.finish?.kind === 'turned');
+    assert.deepEqual((await look()).finish, { kind: 'turned', scale: 0.3, strength: 0.6, axis: [0, 0, 1] });
+    assert.equal(await page.inputValue('[aria-label="Appearance preset"]'), 'look-turned-steel', 'the preset shown as chosen');
+    const turned = gpu ? await marks() : null; if (gpu) await snap('g15a-turned');
+    // A knurl, coarser, along Z; the preset becomes Custom.
+    await page.selectOption('.render-panel [aria-label="Surface finish"]', 'knurled');
+    await page.evaluate(() => { const el = document.querySelector('.render-panel [aria-label="Marks"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '1.5'); el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.finish?.kind === 'knurled' && window.__studioDoc.render.defaultAppearance.finish.scale === 1.5);
+    assert.equal(await page.inputValue('.render-panel [aria-label="Finish direction"]'), 'z');
+    assert.equal(await page.inputValue('[aria-label="Appearance preset"]'), '');
+    const knurled = gpu ? await marks() : null; if (gpu) await snap('g15a-knurled');
+    await page.locator('.render-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-g15a-finish-panel.png`) });
+    // Paint under a clear coat; an oil film.
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-painted-red');
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.clearcoat === 1 && !window.__studioDoc.render.defaultAppearance.finish);
+    if (gpu) await snap('g15a-painted');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-oiled-steel');
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.film === 0.7);
+    if (gpu) await snap('g15a-oiled');
+    // None: the finish leaves the appearance.
+    await page.selectOption('.render-panel [aria-label="Surface finish"]', '');
+    await page.waitForFunction(() => !window.__studioDoc.render.defaultAppearance.finish);
+    if (gpu) {
+      const t = apart(plain, turned), k = apart(plain, knurled);
+      console.log(`  G15a: frames apart from plain steel — turned ${t.toFixed(1)}, knurled ${k.toFixed(1)}`);
+      assert.ok(t > 8, `the turned face drawn (its radial highlight): ${t.toFixed(1)}`);
+      assert.ok(k > 8, `the knurl drawn: ${k.toFixed(1)}`);
+    }
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
+    await page.click('.mode button:text-is("Model")');
+  });
+
+  // ---- CG6: a project folder, versions, restore, autosave (DA-4, DA-5) ---------------------------------------------
+  await check('CG6 project: open a folder, save into it, two versions, compare, restore the first; autosave kept in the project and offered back after a reload', async () => {
+    // (The folder picker is a native dialog a headless browser cannot drive: it hands back a real directory handle from
+    // the browser's private file system instead — the same handle calls a picked folder answers.)
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-flow-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const files = () => page.evaluate(async name => {
+      const out = [], walk = async (d, at) => { for await (const [n, h] of d.entries()) { if (h.kind === 'directory') await walk(h, `${at}${n}/`); else out.push(`${at}${n}`); } };
+      await walk(await (await navigator.storage.getDirectory()).getDirectoryHandle(name), ''); return out.filter(f => !f.endsWith('.crswap')).sort();
+    }, folder);
+    const card = page.locator('[aria-label="Versions panel"]');
+    const versions = () => card.locator('ul[aria-label="Versions"] > li').evaluateAll(ls => ls.map(l => l.getAttribute('aria-label').slice(8)));
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''));
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click();
+    await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    assert.match(await card.locator('[aria-label="Project"]').innerText(), new RegExp(`${folder}\\s*· folder`));
+    // A version saves the document into the folder and keeps it.
+    await card.locator('[aria-label="Version name"]').fill('First'); await card.locator('[aria-label="Make version"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 1, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['First']);
+    const first = await files();
+    assert.ok(first.includes('Untitled.bcad') && first.includes('.barocss/versions/Untitled.bcad.json') && first.filter(f => f.startsWith('.barocss/snapshots/')).length === 1, first.join(', '));
+    // A second box; Save writes into the folder (no download); a second version.
+    await press('b'); await hudReady(); await field('At X').fill('48'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    let downloads = 0; const count = () => { downloads++; }; page.on('download', count);
+    await page.click('[aria-label="Save"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Unsaved changes"]'), null, { timeout: 5000 });
+    page.off('download', count); assert.equal(downloads, 0, 'saved into the project, not downloaded');
+    await card.locator('[aria-label="Version name"]').fill('Second'); await card.locator('[aria-label="Make version"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 2, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['Second', 'First']);
+    // Compare the first with the working document: the second box's two features, added.
+    await card.locator('[aria-label="Compare First"]').click();
+    const compared = await card.locator('[aria-label="Compared changes"]').innerText();
+    assert.match(compared, /added sketch n2/); assert.match(compared, /added extrude n3/);
+    await page.waitForTimeout(1500); await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-cg6-compare.png`) });
+    await card.locator('[aria-label="Compare First"]').click();
+    // Restore the first: one box again, the history kept (both versions listed), the work unsaved.
+    await card.locator('[aria-label="Restore First"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.deepEqual(await versions(), ['Second', 'First']);
+    await page.waitForSelector('[aria-label="Unsaved changes"]');
+    // Autosave: kept in the project a moment after the change (the restored work: one box); after a reload, the folder
+    // reopened and the work offered back.
+    const autosaved = () => page.evaluate(async name => {
+      try {
+        const d = await (await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getDirectoryHandle('.barocss')).getDirectoryHandle('autosave');
+        return JSON.parse(await (await (await d.getFileHandle('Untitled.bcad')).getFile()).text()).nodes.length;
+      } catch { return null; }
+    }, folder);
+    for (let k = 0; k < 40 && await autosaved() !== 2; k++) await page.waitForTimeout(250);
+    assert.equal(await autosaved(), 2, 'the autosave holds the restored work (one box)');
+    expectLoad(); await page.reload(); await idle();
+    if (await page.locator('[aria-label="Recover unsaved work"]').count()) await page.click('[aria-label="Recover unsaved work"] button:text-is("Discard")');
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator(`[aria-label="Reopen ${folder}"]`).click();
+    await card.locator('[aria-label="Open Untitled.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
+    // (The log is read after the document opens.)
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 2, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['Second', 'First'], 'the versions read back from the folder');
+    assert.equal(await autosaved(), 2, 'the autosave still holds the restored work after the reopen');
+    await card.locator('[aria-label="Autosaved work"]').waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Restore autosaved work"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}b-cg6-versions.png`) });
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
+  await check('CG6 branches: a branch and the main line each add a box, merged clean; one parameter set two ways is a conflict, answered for the branch; a new part leaves the project file alone; a mesh compared by its faces', async () => {
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-branch-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const card = page.locator('[aria-label="Versions panel"]'), rows = 'ul[aria-label="Versions"] > li';
+    const versions = () => card.locator(rows).evaluateAll(ls => ls.map(l => l.getAttribute('aria-label').slice(8)));
+    const bodies = n => page.waitForFunction(n => new RegExp(`${n} bod`).test(document.querySelector('.outliner')?.textContent ?? ''), n, { timeout: 15000 });
+    const version = async name => {
+      const n = await card.locator(rows).count();
+      await card.locator('[aria-label="Version name"]').fill(name); await card.locator('[aria-label="Make version"]').click();
+      await page.waitForFunction(([sel, n]) => document.querySelectorAll(`[aria-label="Versions panel"] ${sel}`).length > n, [rows, n], { timeout: 10000 });
+      assert.equal((await versions())[0], name);
+    };
+    const onBranch = async name => { await card.locator('[aria-label="Branch"]').selectOption(name); await page.waitForFunction(n => document.querySelector('[aria-label="Versions panel"] [aria-label="Branch"]')?.value === n, name, { timeout: 10000 }); };
+    const boxAt = async (axis, v) => { await press('b'); await hudReady(); await field(axis).fill(String(v)); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle(); };
+    const parameter = async (name, value) => {
+      await page.click('[aria-label="Parameters"]');
+      await page.fill('[aria-label="New parameter name"]', name); await page.fill('[aria-label="New parameter value"]', String(value)); await page.click('[aria-label="Add parameter"]');
+      await page.waitForFunction(([n, v]) => window.__studioDoc.parameters[n] === v, [name, value], { timeout: 5000 });
+      await page.click('[aria-label="Close parameters"]'); await card.waitFor({ timeout: 5000 });
+    };
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle(); await bodies(1);
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click(); await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    await version('Base');
+    // A branch "wide" with a box along X; the main line with a box along Y; merged: three boxes, a merge version.
+    await card.locator('[aria-label="Branch name"]').fill('wide'); await card.locator('[aria-label="Make branch"]').click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Versions panel"] [aria-label="Branch"] option')].some(o => o.value === 'wide'), null, { timeout: 5000 });
+    await onBranch('wide'); await boxAt('At X', 48); await bodies(2); await version('Wide');
+    await onBranch('main'); await bodies(1);
+    assert.deepEqual(await versions(), ['Base'], "main's own history");
+    await boxAt('At Y', 48); await bodies(2); await version('Deep');
+    await card.locator('[aria-label="Merge"]').click();
+    await bodies(3);
+    const ids = await page.evaluate(() => window.__studioDoc.nodes.map(n => n.id));
+    assert.equal(new Set(ids).size, 6, `six features, ids unique: ${ids}`);
+    assert.match(await card.locator(rows).first().innerText(), /merged from wide/);
+    assert.deepEqual((await versions()).slice(1), ['Deep', 'Base']);
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-cg6-merged.png`) });
+    // One parameter set two ways: a conflict, answered for the branch.
+    await card.locator('[aria-label="Branch name"]').fill('thick'); await card.locator('[aria-label="Make branch"]').click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Versions panel"] [aria-label="Branch"] option')].some(o => o.value === 'thick'), null, { timeout: 5000 });
+    await onBranch('thick'); await parameter('T', 5); await version('T5');
+    await onBranch('main'); await parameter('T', 3); await version('T3');
+    await card.locator('[aria-label="Merge from"]').selectOption('thick'); await card.locator('[aria-label="Merge"]').click();
+    await card.locator('[aria-label="Conflict parameter:T"]').waitFor({ timeout: 5000 });
+    assert.match(await card.locator('[aria-label="Merge conflicts"]').innerText(), /1 conflict[\s\S]*main \(3\)[\s\S]*thick \(5\)/);
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}b-cg6-conflict.png`) });
+    await card.locator('[aria-label="parameter:T theirs"]').check(); await card.locator('[aria-label="Merge with these answers"]').click();
+    await page.waitForFunction(() => window.__studioDoc.parameters.T === 5, null, { timeout: 10000 });
+    assert.equal(await card.locator('[aria-label="Merge conflicts"]').count(), 0);
+    // A new part leaves the project's document: its versions go from the card, and Save writes a new file.
+    const saved = await page.evaluate(async name => (await (await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getFileHandle('Untitled.bcad')).getFile()).text(), folder);
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 0, null, { timeout: 5000 });
+    // A mesh and a box: the kernel's Boolean refuses facet bodies, so compare tints the changed faces.
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, '../../packages/barocss-cad-model/test/fixtures/block-cm.stl'));
+    await page.waitForSelector('[aria-label="Mesh units"]'); await page.selectOption('[aria-label="Mesh unit"]', 'cm');
+    await page.click('[aria-label="Mesh units"] button:text-is("Open")'); await bodies(1); await idle();
+    await version('Mesh');
+    assert.equal(await page.evaluate(async name => (await (await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getFileHandle('Untitled.bcad')).getFile()).text(), folder), saved, 'Untitled.bcad untouched');
+    const files = await page.evaluate(async name => { const out = []; for await (const [n] of (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).entries()) out.push(n); return out.sort(); }, folder);
+    assert.ok(files.filter(f => f.endsWith('.bcad')).length === 2, files.join(', '));
+    await boxAt('At X', 80); await bodies(2);
+    await card.locator('[aria-label="Compare Mesh"]').click();
+    await page.waitForFunction(() => window.__studioCompareOverlay?.()?.faces > 0, null, { timeout: 20000 });
+    const o = await page.evaluate(() => window.__studioCompareOverlay());
+    assert.equal(o.method, 'faces', JSON.stringify(o)); assert.equal(o.tinted, true);
+    await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}c-cg6-faces.png`) });
+    await card.locator('[aria-label="Compare Mesh"]').click();
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
+  await check('CG6 linked parts: a part inserted from the project names its file; saved again with a second box, the assembly opened offers it as Revision waiting, accepted the link stays', async () => {
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-linked-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const card = page.locator('[aria-label="Versions panel"]');
+    const named = async name => { await page.fill('.doc-tab input', name); };
+    const saveIn = async () => { await page.click('[aria-label="Save"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Unsaved changes"]'), null, { timeout: 5000 }); };
+    // The part, arm.bcad: one box.
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await named('arm');
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click(); await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    await saveIn();
+    // The assembly: arm.bcad inserted from the project, saved as assembly.bcad.
+    await page.click('[aria-label="New part"]'); await named('assembly');
+    await card.locator('[aria-label="Insert arm.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.instances?.length === 1, null, { timeout: 15000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].part.source), './arm.bcad');
+    await saveIn();
+    assert.match(await card.locator('[aria-label="Project documents"]').innerText(), /arm\.bcad[\s\S]*assembly\.bcad/);
+    // The part opened, a second box added, saved.
+    await card.locator('[aria-label="Open arm.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && !window.__studioDoc.instances?.length, null, { timeout: 15000 });
+    await press('b'); await hudReady(); await field('At X').fill('48'); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
+    await saveIn();
+    // The assembly opened: the newer file waits, the placed part unchanged until accepted.
+    await card.locator('[aria-label="Open assembly.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.instances?.length === 1 && !!window.__studioDoc.pendingParts, null, { timeout: 15000 });
+    assert.match(await page.locator('.toast').innerText(), /Newer files for 1 placed part/);
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].doc.nodes.length), 2);
+    assert.equal(await page.evaluate(() => Object.values(window.__studioDoc.pendingParts)[0].name), './arm.bcad');
+    await page.locator('.ol.instance').first().click(); await page.waitForSelector('[aria-label="Revision waiting"]');
+    await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-cg6-linked.png`) });
+    await page.click('[aria-label="Instance"] button:text-is("Accept Rev B")');
+    await page.waitForFunction(() => window.__studioDoc.instances[0].doc.nodes.length === 4 && !window.__studioDoc.pendingParts, null, { timeout: 15000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].part.source), './arm.bcad', 'the link stays');
+    // Checked again: the file is the part as placed, nothing more offered.
+    await page.keyboard.press('Escape');
+    await card.locator('[aria-label="Check placed parts"]').click(); await page.waitForTimeout(500);
+    assert.equal(await page.evaluate(() => window.__studioDoc.pendingParts), undefined);
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
+  await check('CG6 agent versions: a chat turn carries the project\'s version log (its index, the head\'s document); a version the agent made comes back into the project', async () => {
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-agent-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const card = page.locator('[aria-label="Versions panel"]'), rows = () => card.locator('ul[aria-label="Versions"] > li').evaluateAll(ls => ls.map(l => l.getAttribute('aria-label').slice(8)));
+    await page.route(u => u.pathname === '/api/chat/status', r => r.fulfill({ json: { enabled: true, model: 'mock-model', via: 'mock' } }));
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click(); await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Version name"]').fill('Base'); await card.locator('[aria-label="Make version"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 1, null, { timeout: 10000 });
+    // The turn's answer, made from the project's files: the part with a parameter, and the log with the agent's version of it.
+    const back = await page.evaluate(async ([name, repo]) => {
+      const L = await import(`/@fs${repo}/packages/barocss-cad-model/src/versions/log.ts`);
+      const meta = await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getDirectoryHandle('.barocss');
+      const text = async (d, f) => (await (await (await meta.getDirectoryHandle(d)).getFileHandle(f)).getFile()).text();
+      const index = JSON.parse(await text('versions', 'Untitled.bcad.json')), snapshots = {};
+      for (const v of index.versions) snapshots[v.snapshot] = JSON.parse(await text('snapshots', `${v.snapshot}.bcad`));
+      const doc = { ...window.__studioDoc, parameters: { ...window.__studioDoc.parameters, agent: 1 } };
+      return { doc, versions: L.makeVersion({ ...index, snapshots }, doc, { at: new Date().toISOString(), name: 'Agent', by: 'agent' }).log };
+    }, [folder, resolve(root, '../..')]);
+    await page.click('[aria-label="Chat"]');
+    await page.waitForFunction(() => !!window.__studioScriptChat);
+    await page.evaluate(turns => window.__studioScriptChat(turns), [[{ type: 'tool', name: 'history', input: { action: 'version', name: 'Agent' }, summary: 'version Agent', isError: false },
+      { type: 'text', delta: 'Kept the part as version Agent.' }, { type: 'done', doc: back.doc, versions: back.versions, session: 'cg6', end: 'done' }]]);
+    const input = page.locator('[aria-label="Chat message"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled);
+    await input.fill('keep this as a version'); await press('Enter');
+    await page.waitForSelector('.chat-msg.assistant:has-text("version Agent")', { timeout: 30000 });
+    // What the turn sent: the index whole, only the head's document.
+    const sent = await page.evaluate(() => window.__studioChatSent()[0].versions);
+    assert.deepEqual([sent.versions.length, Object.keys(sent.snapshots).length, sent.current], [1, 1, 'main']);
+    // What came back: the agent's version in the card and in the folder's log, the part with its parameter.
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 2, null, { timeout: 10000 });
+    assert.deepEqual(await rows(), ['Agent', 'Base']);
+    assert.equal(await page.evaluate(() => window.__studioDoc.parameters.agent), 1);
+    const kept = await page.evaluate(async name => {
+      const meta = await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getDirectoryHandle('.barocss');
+      const file = await (await (await meta.getDirectoryHandle('versions')).getFileHandle('Untitled.bcad.json')).getFile();
+      return JSON.parse(await file.text()).versions.map(v => [v.name, v.by ?? null]);
+    }, folder);
+    assert.deepEqual(kept, [['Base', null], ['Agent', 'agent']]);
+    await page.click('[aria-label="Chat"]');
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.unroute(u => u.pathname === '/api/chat/status');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
+  await check('G15b studio light: Softboxes and the Cyclorama from the Render panel light the part (kept as the environment\'s studio, its strength), an image replaces them, Sky and ground again none', async () => {
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-machined-steel');
+    await page.click('.render-panel [role="tab"]:text-is("Scene")');
+    const env = () => page.evaluate(() => window.__studioDoc.render.environment);
+    const gpu = renderer === 'webgpu';
+    // (Step 48 left an image: Sky and ground first, the image gone.)
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', '');
+    await page.waitForFunction(() => !window.__studioDoc.render.environment.map && !window.__studioDoc.render.environment.studio);
+    const mean = async () => { await idle(); await page.waitForTimeout(700); const f = await page.evaluate(() => window.__studioFrame(48)); return f.reduce((a, b) => a + b, 0) / f.length; };
+    const sky = gpu ? await mean() : 0;
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', 'softbox');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.kind === 'softbox');
+    assert.deepEqual((await env()).studio, { kind: 'softbox', intensity: 1 });
+    const softbox = gpu ? await mean() : 0; if (gpu) await snap('g15b-softbox');
+    await page.evaluate(() => { const el = document.querySelector('.render-panel [aria-label="Environment strength"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '2'); el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.intensity === 2);
+    const brighter = gpu ? await mean() : 0;
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', 'cyclorama');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.kind === 'cyclorama' && window.__studioDoc.render.environment.studio.intensity === 2);
+    if (gpu) await snap('g15b-cyclorama');
+    // An image replaces the studio (its strength kept); Sky and ground drops both.
+    await page.setInputFiles('.render-panel [aria-label="Environment image"]', join(root, 'test/fixtures/sky.png'));
+    await page.waitForFunction(() => /^data:image/.test(window.__studioDoc.render.environment.map?.image ?? '') && !window.__studioDoc.render.environment.studio, null, { timeout: 5000 });
+    assert.equal((await env()).map.intensity, 2);
+    assert.equal(await page.inputValue('.render-panel [aria-label="Studio environment"]'), 'image');
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', '');
+    await page.waitForFunction(() => !window.__studioDoc.render.environment.map && !window.__studioDoc.render.environment.studio);
+    if (gpu) {
+      console.log(`  G15b: frame mean sky ${sky.toFixed(1)}, softbox ${softbox.toFixed(1)}, ×2 ${brighter.toFixed(1)}`);
+      assert.ok(Math.abs(softbox - sky) > 1, 'the softbox room lights the part differently');
+      assert.ok(brighter > softbox + 0.5, `twice as strong, brighter: ${softbox.toFixed(1)} → ${brighter.toFixed(1)}`);
+    }
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
+    await page.click('.mode button:text-is("Model")');
+  });
+  await check('G15d.2 bloom: a chrome box under the softboxes at twice the exposure — the Bloom slider keeps post.bloom and glows its highlights; at 0 the post leaves the document', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await press('Escape');
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-chrome');
+    await page.click('.render-panel [role="tab"]:text-is("Scene")');
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', 'softbox');
+    const slide = async (label, v) => { await page.evaluate(([l, x]) => { const el = document.querySelector(`.render-panel [aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [label, v]); };
+    await slide('Exposure', 2);
+    await page.waitForFunction(() => window.__studioDoc.render.environment.exposure === 2 && window.__studioDoc.render.environment.studio?.kind === 'softbox');
+    const gpu = renderer === 'webgpu', N = 64;
+    const frame = async () => { await idle(); await page.waitForTimeout(700); return page.evaluate(n => window.__studioFrame(n), N); };
+    const before = gpu ? await frame() : null;
+    await slide('Bloom', 1);
+    await page.waitForFunction(() => window.__studioDoc.render.environment.post?.bloom === 1);
+    if (gpu) {
+      const after = await frame(); await snap('g15d2-bloom');
+      // (The glow: samples brighter with it — round the highlights, onto the background.)
+      let up = 0; for (let k = 0; k < after.length; k++) if (after[k] > before[k] + 6) up++;
+      console.log(`  G15d.2: ${up} of ${after.length} samples brighter with the bloom`);
+      assert.ok(up > 60, `the bloom glows: ${up} samples brighter`);
+    }
+    await slide('Bloom', 0);
+    await page.waitForFunction(() => window.__studioDoc.render.environment.post === undefined, null, { timeout: 5000 });
+    await slide('Exposure', 1);
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', '');
+    await page.click('.mode button:text-is("Model")');
   });
 } finally {
   await browser.close(); await server.close();

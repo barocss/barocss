@@ -3,43 +3,62 @@
 // points, or one straight edge, then where the dimension line goes), Diameter and Radius (a circle
 // that shows round in the view, then where the text goes). The sheet exports as SVG, PDF or DXF (R11b, O1);
 // section A–A also alone as a 1:1 DXF.
-import { followedStale, staleText } from '@barocss/cad-model/frames/skeleton';
-import { elementsOfBodies, withElements } from '@barocss/cad-model/drawing/elementCallouts';
-import { fitMiss, withFit } from '@barocss/cad-model/drawing/fits';
-import { weldList } from '@barocss/cad-model/frames/welds';
+import { drawsMadeOnly } from '@barocss/cad-model/drawing/scope';
+
+
+
+
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
-import { tableContent } from '@barocss/cad-model/drawing/tables';
+import { signaturesOf } from '@barocss/cad-model/engine/rematch';
+import { toSig } from '@barocss/cad-model/engine/references';
 import { modelAnnotations } from '@barocss/cad-model/drawing/annotations3d';
-import { bomPanelData } from '@barocss/cad-model/team/bom';
-import type { Bom } from '@barocss/cad-model/team/bomCore';
+
+
 import type { ProjectedEdge } from '@barocss/cad';
 import type { EngineClient } from '../engine/client';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
-import { buildSheet, curveMark, dimensionMarks, placementOf, projectionOf, sectionExtents, sectionMiddle, sheetSections } from '@barocss/cad-model/drawing/sheet';
-import { marksSvg, sheetGroupsSvg, sheetSvg } from '@barocss/cad-model/drawing/svg';
-import { toleranceText } from '@barocss/cad-model/drawing/sheet';
-import { pdfMissing, sheetPdf } from '@barocss/cad-model/drawing/pdf';
-import { sectionDxfDocument, sheetDxf } from '@barocss/cad-model/drawing/dxf';
+import { buildSheet, curveMark, dimensionMarks, placementOf, projectionOf, sheetSections } from '@barocss/cad-model/drawing/sheet';
+import { marksSvg, sheetGroupsSvg, sheetSvg } from '@barocss/cad-model/io/svg';
+
+import { pdfMissing, sheetPdf } from '@barocss/cad-model/io/pdf';
+import { sectionDxfDocument, sheetDxf } from '@barocss/cad-model/io/dxf';
 import { MIN_HOLE_ON_PAPER_MM, autoLayout, frontByInformation } from '@barocss/cad-model/drawing/layout';
 import { reorient, turnSections } from '@barocss/cad-model/drawing/reorient';
-import { applyFix, drawingIssues, fixAll, type DrawingIssue } from '@barocss/cad-model/drawing/issues';
-import { acceptAll, applySuggestion, toleranceSuggestions, type ToleranceSuggestion } from '@barocss/cad-model/drawing/tolerance';
+import { applyFix, drawingIssues, fixRound, fixRoundsOutcome, fixRoundsStart, type DrawingFix, type DrawingIssue, type FixRoundStep, type FixRounds, type SheetInputs } from '@barocss/cad-model/drawing/issues';
+import { acceptAll, toleranceSuggestions, type ToleranceSuggestion } from '@barocss/cad-model/drawing/tolerance';
 import { writeDxf, type DxfVersion } from '@barocss/cad';
-import { holeCallout } from '@barocss/cad-model/drawing/callout';
-import { threadsOf } from '@barocss/cad-model/app/threads';
-import { ORIENTATIONS, SCALES, VIEWS, fromSheet, layoutSheet, scaleLabel, toSheet, type Orientation } from '@barocss/cad-model/drawing/views';
+
+
+import { VIEWS, fromSheet, scaleLabel, toSheet, type Orientation } from '@barocss/cad-model/drawing/views';
 import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '@barocss/cad-model/drawing/dimensions';
-import { SECTION_VIEWS, VIEW_IDS, isSectionRef, sectionLetter, type DimView, modelPrint, nextRevision, nextSectionId, sectionsOf, withSections, type SectionViewId, type DimPoint, type DrawingNote, type DrawingTable, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
+import { DETAIL_PARENTS, type DetailParent } from '@barocss/cad-model/drawing/detail';
+import { DetailsList } from './drawing/DetailsList';
+import { BreaksList } from './drawing/BreaksList';
+import { VIEW_IDS, detailLetter, isDetailRef, isSectionRef, isViewId, nextSectionId, sameSection, sectionLetter, sectionsOf, withSections, type DimView, type DimPoint, type DrawingNote, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
 import { downloadBytes } from './files';
+import { today, useDrawingSheet } from './useDrawingSheet';
+import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
 import { Icon, Kbd } from './atoms';
-import type { SectionCut } from '@barocss/cad-model/drawing/section';
+import { SIDE_NAMES } from './drawing/sheetShared';
+import { SheetSettings } from './drawing/SheetSettings';
+import { IssuesList } from './drawing/IssuesList';
+import { TolerancingList } from './drawing/TolerancingList';
+import { DimensionsList } from './drawing/DimensionsList';
+import { DatumsEditor } from './drawing/DatumsEditor';
+import { DatumTargetsEditor } from './drawing/DatumTargetsEditor';
+import { checkDatumTargetOptions, datumTargetConflicts, datumTargetEndpoint, resolveDatumTarget, type DrawingDatumTarget } from '@barocss/cad-model/drawing/datumTargets';
+import { FrameEditor } from './drawing/FrameEditor';
+import { StandaloneFramesEditor } from './drawing/StandaloneFramesEditor';
+import { checkDrawingFrames, type DrawingFrame } from '@barocss/cad-model/drawing/controls';
+import { ToleranceEditor } from './drawing/ToleranceEditor';
+import { NotesList } from './drawing/NotesList';
+import { ExportActions } from './drawing/ExportActions';
 import '../drawing/drawing.css';
 
-/** The front view's sides, as the SHEET card names them (R14.3b). */
-const SIDE_NAMES: Record<Orientation, string> = { 'y-': '−Y (default)', 'x+': '+X', 'y+': '+Y', 'x-': '−X' };
-type Tool = 'select' | 'linear' | 'diameter' | 'radius' | 'angle' | 'note';
+type Tool = 'select' | 'linear' | 'diameter' | 'radius' | 'angle' | 'note' | 'detail' | 'datum-target';
 const TOOLS: { tool: Tool; label: string; icon: string; key: string; hint: string }[] = [
   { tool: 'select', label: 'Select', icon: 'arrow_selector_tool', key: 'V', hint: 'Click a dimension to select it, drag to move it · Delete removes it · drag the paper to pan, scroll to zoom' },
   { tool: 'linear', label: 'Linear dimension', icon: 'straighten', key: 'D', hint: 'Click two points (edge ends, circle centres) or one straight edge, then where the dimension goes' },
@@ -47,48 +66,49 @@ const TOOLS: { tool: Tool; label: string; icon: string; key: string; hint: strin
   { tool: 'radius', label: 'Radius', icon: 'line_end_circle', key: 'R', hint: 'Click a circle or an arc, then where its radius goes' },
   { tool: 'angle', label: 'Angle', icon: 'architecture', key: 'A', hint: 'Click two straight edges, then the side of their corner the angle goes on' },
   { tool: 'note', label: 'Note', icon: 'sticky_note_2', key: 'N', hint: 'Click on the paper for a note, or on a view for a leader and then where its text goes' },
+  { tool: 'detail', label: 'Detail view', icon: 'zoom_in', key: 'E', hint: 'Click the centre of what to enlarge on a view or a section, then how far its circle reaches' },
+  { tool: 'datum-target', label: 'Point datum target', icon: 'my_location', key: 'T', hint: 'Click a straight edge endpoint, then place the target symbol. Overlapping endpoints require a choice.' },
 ];
 type Pending =
+  | { kind: 'standalone-frame'; view: DimView; frame: Extract<DrawingFrame, { view: DimView }>; moving: boolean; settingsKey: string; sourceDoc: StudioDoc; model: StudioDoc }
+  | { kind: 'datum-target'; view: ViewId; target: DrawingDatumTarget; moving: boolean }
   | { kind: 'linear'; view: DimView; a: DimPoint; b?: DimPoint }
   | { kind: 'diameter' | 'radius'; view: DimView; edge: string; near: Vec3 }
   | { kind: 'angle'; view: DimView; a: EdgeRef; b?: EdgeRef }
-  | { kind: 'note'; leader: { view: ViewId; at: XY } };
+  | { kind: 'note'; leader: { view: ViewId; at: XY } }
+  /** DR-1: a detail's circle, its centre picked on its parent. */
+  | { kind: 'detail'; view: DetailParent; center: XY };
 /** `q`: the pointer on the sheet (mm); `at`: in the view under it (model mm). */
 /** `view` (O148 X2): a view, or a section the sheet placed (`section:B`). */
 interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null }
 
-const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+export interface DrawingReferencePreview { dimensionId: string; edge?: string }
+export interface DrawingReferenceLabel { dimensionId: string; view: DimView; text: string | null; reason?: string }
 
-/** The settings with a source's table on or off (its id the source's name); no tables left, none kept. */
-function withTable(settings: DrawingSettings, from: string, on: boolean): DrawingSettings {
-  const rest = (settings.tables ?? []).filter(x => x.from !== from), tables = on ? [...rest, { id: from, from }] : rest;
-  const { tables: _t, ...base } = settings; void _t;
-  return tables.length ? { ...base, tables } : base;
-}
-
-export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onChange, onToast }: {
+export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, onChange: sourceOnChange, onToast, referencePreview, onReferenceLabels }: {
   engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string;
   onChange(next: DrawingSettings): void; onToast(e: FriendlyError): void;
+  referencePreview?: DrawingReferencePreview | null; onReferenceLabels?(labels: readonly DrawingReferenceLabel[]): void;
 }) {
-  // The views as projected, with the front side they were projected for (R14.3b): only those of the drawing's side are used.
-  const [projected, setProjected] = useState<{ views: DrawingViews; side: string } | null>(null);
-  const views = projected && projected.side === (settings.orientation ?? 'y-') ? projected.views : null;
-  /** The sections as last cut (O148 X1; each with why it could not be cut). */
-  const [cutsMade, setCutsMade] = useState<SectionCut[] | null>(null);
-  const [sectionY, setSectionY] = useState<string | null>(null);
-  const [sectionAt, setSectionAt] = useState<{ id: string; text: string } | null>(null);
+  // (The sheet's pipeline, shared with the viewport's 3D annotations, G24: views, layout, sheet and what they are built from.)
+  const { source, scopeRead, scope, scopeKey, doc, model, currentModel, bodies, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, fitMissOf, followedChanged, threads, bom, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName });
+  const onChange = (next: DrawingSettings) => {
+    if (!scopeRead.scope) { onToast({ title: 'Drawing scope unchanged', hint: scopeRead.error ?? 'Invalid drawing scope', detail: '' }); return; }
+    sourceOnChange({ ...next, scope: next.scope ?? scopeRead.scope });
+  };
   const [dxfSection, setDxfSection] = useState<string | null>(null);
-  const sectionList = sectionsOf(settings), sectionKey = JSON.stringify(sectionList);
-  const [error, setError] = useState<string | null>(null);
-  /** The part has no body yet: the panel says so, and nothing is raised as an error. */
-  const [empty, setEmpty] = useState(false);
-  const [busy, setBusy] = useState(true);
   const [tool, setTool] = useState<Tool>('select');
   const [pending, setPending] = useState<Pending | null>(null);
   const [hover, setHover] = useState<Hover | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
+  const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
+  const [targetChoices, setTargetChoices] = useState<DrawingDatumTarget[]>([]);
+  const [reselectTarget, setReselectTarget] = useState<DrawingDatumTarget | null>(null);
+  useEffect(() => { if (selected !== null) { setSelectedTarget(null); setSelectedFrame(null); } }, [selected]);
+  useEffect(() => { if (selectedTarget !== null) setSelectedFrame(null); }, [selectedTarget]);
   const [message, setMessage] = useState<string | null>(null);
-  const [drag, setDrag] = useState<{ id: string; place: XY } | { note: string; at: XY; grab: XY } | { pan: XY; box: [number, number, number, number] } | null>(null);
+  const [drag, setDrag] = useState<{ id: string; place: XY } | { target: string; original: DrawingDatumTarget; place: XY } | { note: string; at: XY; grab: XY } | { detail: string; at: XY; grab: XY } | { removed: string; at: XY; grab: XY } | { pan: XY; box: [number, number, number, number] } | null>(null);
   /** The selected note's text while it is typed, and the selected dimension's tolerance fields. */
   const [noteDraft, setNoteDraft] = useState<string | null>(null);
   const [tolDraft, setTolDraft] = useState<Record<string, string>>({});
@@ -101,76 +121,78 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
     const t = setTimeout(() => { noteBox.current?.focus(); noteBox.current?.select(); setTypeNote(null); }, 0);
     return () => clearTimeout(t);
   }, [typeNote, shownNote]);
-  const [titleDraft, setTitleDraft] = useState<string | null>(null);
   const svg = useRef<SVGSVGElement>(null);
-
-  // Project the part (and its shown instances) whenever they change; of the drawing settings only tangent edges change the views.
-  const model = useMemo(() => doc, [doc.nodes, doc.parameters, JSON.stringify((doc.instances ?? []).map(i => [i.id, i.hidden, i.position, i.rotation, i.doc.nodes.length]))]);
   useEffect(() => {
-    let live = true; setBusy(true);
-    const side = settings.orientation ?? 'y-';
-    engine.drawing(model, { tangentEdges: !!settings.tangent, ...(sectionList.length ? { sections: sectionList } : {}), ...(settings.orientation ? { orientation: settings.orientation } : {}) }).then(r => {
-      if (!live) return;
-      setBusy(false);
-      setEmpty(!r.ok && !!r.empty);
-      if (r.ok) { setProjected({ views: r.views, side }); setCutsMade(r.sections ?? null); setError(null); } else { setProjected(null); setCutsMade(null); setError(r.error); }
-    });
-    return () => { live = false; };
-  }, [engine, model, settings.tangent, sectionKey, settings.orientation]);
+    setPending(null); setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setReselectTarget(null); setHover(null); setDrag(null); setNoteDraft(null); setTolDraft({});
+  }, [scopeKey]);
 
-  const title = settings.title ?? fileName;
-  // (The sections the settings list, as cut for them: one whose letter, view or place changed is cut again first.)
-  const cuts = useMemo(() => sheetSections((cutsMade ?? []).filter(c => sectionList.some(x => x.id === c.id && x.view === c.view && x.at === c.at))), [cutsMade, sectionKey]);
-  const sectionA = sectionList.find(x => x.id === 'A' && x.view === 'front'), cutA = cutsMade?.find(c => c.id === 'A' && c.view === 'front');
-  const layout = useMemo(() => views && layoutSheet(views, settings, sectionExtents(settings, cuts)), [views, settings, cuts]);
-  // Diameter dimensions on a hole read as its callout (count, size or thread, depth, counterbore or countersink).
-  // (D155: a diameter on a face with a fit class shows the class and its limits; a class with no row, an issue.)
-  // (O145: and the machine elements' callouts — a bearing's seat, a ring's groove.)
-  const elements = useMemo(() => elementsOfBodies(doc.nodes, bodies ?? []), [doc.nodes, bodies]);
-  const callout = useMemo(() => withElements(doc, withFit(doc, (edge: string) => holeCallout(doc.nodes, edge)), elements), [doc.nodes, doc.fits, elements]);
-  const fitMissOf = useMemo(() => fitMiss(doc), [doc.fits]);
-  // (FRf2, O125: frames following a placed part's sketch that changed since linked.)
-  const followedChanged = useMemo(() => followedStale(doc).map(staleText), [doc.nodes, doc.instances]);
-  const threads = useMemo(() => threadsOf(doc.nodes), [doc.nodes]);
-  // (O147 B2: the BOM, when the BOM table or the balloons read it — every document evaluated in the engine worker.)
-  const wantsBom = !!settings.balloons || !!settings.tables?.some(x => x.from === 'bom');
-  const [bom, setBom] = useState<Bom | null>(null);
-  const bomRevision = useRef(1);
-  useEffect(() => {
-    if (!wantsBom) { setBom(null); return; }
-    let live = true;
-    const t = setTimeout(() => { bomPanelData(doc, d => engine.part(d, bomRevision.current++, 'read'), title).then(d => { if (live) setBom(d.bom); }, () => { if (live) setBom(null); }); }, 200);
-    return () => { live = false; clearTimeout(t); };
-  }, [wantsBom, doc.nodes, doc.instances, title]);
-  // (Each sourced table's content once a document (O49): the bend table from the bodies' flat patterns.)
-  const sourced = useMemo(() => new Map((settings.tables ?? []).filter(x => x.from).map(x => [x.id, tableContent(x, { doc, ...(bodies ? { bodies } : {}), ...(bom ? { bom } : {}) })])), [settings.tables, doc, bodies, bom]);
-  const tableContentOf = useCallback((x: DrawingTable) => sourced.get(x.id) ?? { error: 'its source was not run for this sheet' }, [sourced]);
-  const hasSheet = (bodies ?? []).some(b => b.flat && b.flat.bends.length);
-  const hasFrame = (bodies ?? []).some(b => b.cutPiece);
-  // (O144: machine elements' tables, offered when the part has such an element.)
-  const kinds = new Set((bodies ?? []).flatMap(b => b.element ? [b.element.kind] : [])), hasBought = (bodies ?? []).some(b => b.ref && doc.nodes[b.ref.node]?.bought === true);
-  // (FRd2, O119: the frame's weld joints for the symbols, when they are shown.)
-  const weldJoints = useMemo(() => settings.weldSymbols && bodies ? weldList(doc, bodies).joints : undefined, [settings.weldSymbols, doc, bodies]);
-  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cuts), [views, layout, settings, title, cuts, callout, threads, tableContentOf, weldJoints, bom]);
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
   const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout, fitMiss: fitMissOf, followedChanged, elements, ...(cuts.length ? { sections: cuts } : {}) }) : [], [views, layout, settings, sheet, callout, fitMissOf, followedChanged, elements, cuts]);
   // Tolerance and GD&T suggestions (R14.4, O5): offered with their basis, applied only when accepted.
-  const suggestions = useMemo<ToleranceSuggestion[]>(() => views && layout && sheet ? toleranceSuggestions({ views, layout, settings, sheet, callout }) : [], [views, layout, settings, sheet, callout]);
+  const suggestions = useMemo<ToleranceSuggestion[]>(() => views && layout && sheet ? toleranceSuggestions({ views, layout, settings, sheet, callout, fastenerSizes: fastenerSizesOf(doc) }) : [], [views, layout, settings, sheet, callout, doc.fastenerSizes]);
   const acceptEvery = () => {
     if (!views) return;
-    const r = acceptAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) });
+    const r = acceptAll({ views, settings, fastenerSizes: fastenerSizesOf(doc), callout, fitMiss: fitMissOf, meta: { title, date: today(), source, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) });
     onChange(r.settings);
     const est = r.accepted.filter(x => x.estimate).length;
     onToast({ title: `${r.accepted.length} suggestion${r.accepted.length === 1 ? '' : 's'} accepted`, hint: est ? `${est} of them ${est === 1 ? 'is an estimate' : 'are estimates'}: check ${est === 1 ? 'it' : 'them'} against your process.` : 'Each from the studio’s data.', detail: r.accepted.map(x => `${x.message} — ${x.basis}`).join('\n') });
   };
-  const fixIssue = (x: DrawingIssue) => { if (views && layout && sheet && x.fix) onChange(applyFix({ views, layout, settings, sheet, callout, elements, ...(cuts.length ? { sections: cuts } : {}) }, x.fix)); };
-  const fixEvery = () => {
-    if (!views) return;
-    const r = fixAll({ views, settings, callout, elements, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) });
-    onChange(r.settings);
-    onToast({ title: `${r.applied.length} fix${r.applied.length === 1 ? '' : 'es'} applied`, hint: r.left.length ? `${r.left.length} issue${r.left.length === 1 ? '' : 's'} left: ${r.left[0].message}` : 'The drawing has no issues.', detail: r.left.slice(1).map(x => x.message).join('\n') });
+  const fixIssue = (x: DrawingIssue) => { if (scope.kind === 'assembly' && x.fix?.kind === 'auto-dimension') return; if (views && layout && sheet && x.fix) onChange(applyFix({ views, layout, settings, sheet, callout, elements, ...(cuts.length ? { sections: cuts } : {}) }, x.fix)); };
+  // (O175: Fix all runs the chat's rounds, fixRound: a round that adds a section waits for the worker to cut it, and the
+  // next round runs on the sheet with its view — one Fix, as the chat's fix_drawing, not a second click. The rounds stop
+  // when the settings change from elsewhere. Each round is its own undo step.)
+  const fixing = useRef<{ state: FixRounds; want: string } | null>(null);
+  const fixInputs = (): SheetInputs | null => views ? { views, settings, callout, elements, fitMiss: fitMissOf, meta: { title, date: today(), source, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) } : null;
+  const fixOnly = (fix: DrawingFix) => scope.kind !== 'assembly' || fix.kind !== 'auto-dimension';
+  const fixStep = (step: FixRoundStep) => {
+    if (step.next) {
+      fixing.current = { state: step.state, want: JSON.stringify({ ...step.next, scope: step.next.scope ?? scopeRead.scope }) };
+      onChange(step.next); return;
+    }
+    fixing.current = null;
+    if (JSON.stringify(step.settings) !== JSON.stringify(settings)) onChange(step.settings);
+    onToast({ title: `${step.applied.length} fix${step.applied.length === 1 ? '' : 'es'} applied`, hint: step.left.length ? `${step.left.length} issue${step.left.length === 1 ? '' : 's'} left: ${step.left[0].message}` : 'The drawing has no issues.', detail: step.left.slice(1).map(x => x.message).join('\n') });
   };
-  const sheetMarkup = useMemo(() => sheet ? sheetGroupsSvg(sheet, selected) : '', [sheet, selected]);
+  const fixEvery = () => {
+    const i = fixInputs(); if (!i) return;
+    fixStep(fixRound(fixRoundsStart(i), i, fixOnly));
+  };
+  useEffect(() => {
+    const f = fixing.current; if (!f) return;
+    if (JSON.stringify(settings) !== f.want) { fixing.current = null; return; }
+    if (error) { fixStep(fixRoundsOutcome(f.state)); return; }
+    // (Settled: every section the settings list cut for them, the views projected.)
+    if (busy || !views || !layout || !sheet || !sectionList.every(x => cutsMade?.some(c => sameSection(c, x)))) return;
+    const i = fixInputs(); if (i) fixStep(fixRound(f.state, i, fixOnly));
+  }, [settings, busy, views, layout, sheet, cutsMade, error]);
+  // Reference inspection reads this sheet; it does not change the selected reference or the saved drawing.
+  const referenceLabels = useMemo<readonly DrawingReferenceLabel[]>(() => !busy && sheet ? sheet.dimensions.map(r => ({ dimensionId: r.dim.id, view: r.dim.view, text: r.ok ? r.text : null, ...(!r.ok ? { reason: r.reason } : {}) })) : [], [busy, sheet]);
+  useEffect(() => { onReferenceLabels?.(referenceLabels); }, [onReferenceLabels, referenceLabels]);
+  const referenceInspection = useMemo(() => {
+    if (!referencePreview) return null;
+    const unavailable = (reason: string, dimensionId: string | null = null) => ({ dimensionId, markup: '', message: `Reference preview unavailable: ${reason}` });
+    const dimensions = settings.dimensions.filter(d => d.id === referencePreview.dimensionId);
+    if (dimensions.length !== 1) return unavailable(dimensions.length ? 'the dimension ID is not unique.' : 'the dimension is not in this drawing.');
+    const dimension = dimensions[0];
+    if (busy || !views || !layout || !sheet) return unavailable('the current sheet is not ready.');
+    const placement = placementOf(layout, sheet, dimension.view), projection = projectionOf(views, sheet, dimension.view);
+    if (!placement || placement.hidden || !projection) return unavailable('the dimension view is not shown.');
+    const resolved = sheet.dimensions.filter(r => r.dim.id === dimension.id);
+    if (resolved.length !== 1 || !resolved[0].ok) return unavailable('the dimension has no resolved display on this sheet.');
+    const label = `${dimension.view}: ${resolved[0].text}`;
+    if (referencePreview.edge === undefined) return { dimensionId: dimension.id, markup: '', message: `${label}. Dimension highlighted; no reference changed.` };
+    const edges = projection.edges.filter(e => e.name === referencePreview.edge);
+    if (edges.length !== 1) return unavailable(edges.length ? 'the candidate has more than one projected edge in this view.' : 'the candidate is not in this view.', dimension.id);
+    const pieces = edges[0].pieces.filter(p => p.visible);
+    if (!pieces.length) return unavailable('the candidate has no visible segments in this view.', dimension.id);
+    return { dimensionId: dimension.id, markup: marksSvg(pieces.map(p => curveMark(placement, p.curve, 'visible'))), message: `${label}. Candidate highlighted for inspection only; no reference changed.` };
+  }, [referencePreview, settings.dimensions, busy, views, layout, sheet]);
+  const referenceDimensionId = referenceInspection?.dimensionId ?? null;
+  useEffect(() => {
+    if (!referencePreview) return;
+    setSelected(referenceDimensionId); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setReselectTarget(null); setTool('select'); setPending(null);
+  }, [referencePreview, referenceDimensionId]);
+  const sheetMarkup = useMemo(() => sheet ? sheetGroupsSvg(sheet, selected, selectedTarget, selectedFrame) : '', [sheet, selected, selectedTarget, selectedFrame]);
   const [W, H] = layout?.size ?? [297, 210];
   const [box, setBox] = useState<[number, number, number, number] | null>(null);
   useEffect(() => { setBox(null); }, [settings.sheet]);
@@ -185,16 +207,19 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const viewAt = useCallback((q: XY): DimView | null => {
     if (!layout) return null;
     let best: DimView | null = null, bestD = 30;
-    const near = (id: DimView, [x0, y0, x1, y1]: readonly number[]) => { const d = Math.max(x0 - q[0], q[0] - x1, y0 - q[1], q[1] - y1, 0); if (d < bestD) { bestD = d; best = id; } };
+    // (DR-4: a revolved section lies on its view: inside its box, it is taken before the view.)
+    const near = (id: DimView, [x0, y0, x1, y1]: readonly number[], over = 0) => { const d = Math.max(x0 - q[0], q[0] - x1, y0 - q[1], q[1] - y1, 0); if (d - (d === 0 ? over : 0) < bestD) { bestD = d - (d === 0 ? over : 0); best = id; } };
     for (const id of VIEW_IDS) if (!layout.views[id].hidden) near(id, layout.views[id].box);
     // (O148 X2: the sections as placed, dimensioned as views are.)
-    for (const x of sheet?.sections ?? []) near(`section:${x.id}`, x.placement.box);
+    for (const x of sheet?.sections ?? []) near(`section:${x.id}`, x.placement.box, x.form === 'revolved' ? 1 : 0);
+    // (DR-1: the details as drawn, dimensioned as views are.)
+    for (const x of sheet?.details ?? []) near(`detail:${x.id}`, x.placement.box);
     return best;
   }, [layout, sheet]);
-  const snaps = useMemo(() => views ? { ...Object.fromEntries(VIEW_IDS.map(id => [id, snapPoints(views[id])])), ...Object.fromEntries((sheet?.sections ?? []).map(x => [`section:${x.id}`, snapPoints(x.projection)])) } as Partial<Record<DimView, SnapPoint[]>> : null, [views, sheet?.sections]);
+  const snaps = useMemo(() => views ? { ...Object.fromEntries(VIEW_IDS.map(id => [id, snapPoints(views[id])])), ...Object.fromEntries((sheet?.sections ?? []).map(x => [`section:${x.id}`, snapPoints(x.projection)])), ...Object.fromEntries((sheet?.details ?? []).map(x => [`detail:${x.id}`, snapPoints(x.projection)])) } as Partial<Record<DimView, SnapPoint[]>> : null, [views, sheet?.sections, sheet?.details]);
   const placementAt = (v: DimView) => layout ? placementOf(layout, sheet ?? undefined, v) : undefined;
   const projectionAt = (v: DimView) => views ? projectionOf(views, sheet ?? undefined, v) : undefined;
-  const viewLabel = (v: DimView) => isSectionRef(v) ? `section ${sectionLetter(v)}–${sectionLetter(v)}` : `${VIEWS[v].label.toLowerCase()} view`;
+  const viewLabel = (v: DimView) => isSectionRef(v) ? `section ${sectionLetter(v)}–${sectionLetter(v)}` : isDetailRef(v) ? `detail ${detailLetter(v)}` : `${VIEWS[v].label.toLowerCase()} view`;
 
   const hoverAt = useCallback((clientX: number, clientY: number): Hover | null => {
     const q = sheetPoint(clientX, clientY); if (!q || !layout || !views || !snaps) return null;
@@ -205,14 +230,101 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
     return { q, view, at, snap, edge: snap ? null : edgeAt(pr, at, 6 * mmPerPx() / v.scale) };
   }, [sheetPoint, layout, views, snaps, viewAt, sheet]);
 
+  /** Placing a dimension (its points picked): where it goes, read in its own view wherever the pointer is on the sheet —
+   *  beyond the views' reach too (hoverAt finds a view only within 30 mm), so a click out on the paper places it. */
+  const placingAt = (clientX: number, clientY: number): Hover | null => {
+    if (!pending || pending.kind === 'note' || ((pending.kind === 'linear' || pending.kind === 'angle') && !pending.b)) return null;
+    const q = sheetPoint(clientX, clientY), v = q && placementAt(pending.view);
+    return q && v ? { q, view: pending.view, at: fromSheet(v, q), snap: null, edge: null } : null;
+  };
+
   const commitDims = (dimensions: DrawingDimension[]) => onChange({ ...settings, dimensions });
-  const cancel = () => { setPending(null); setMessage(null); };
+  const commitFrames = (frames: DrawingFrame[]) => {
+    if (!scopeRead.scope) { setMessage(scopeRead.error ?? 'Invalid drawing scope.'); return false; }
+    const why = checkDrawingFrames({ frames })[0];
+    if (why) { setMessage(why.message); return false; }
+    onChange({ ...settings, frames }); return true;
+  };
+  const removeFrame = (frame: DrawingFrame) => {
+    if (frame.dim !== undefined) return;
+    if (commitFrames((settings.frames ?? []).filter(row => row !== frame))) { setSelectedFrame(null); setPending(null); setMessage(null); }
+  };
+  const commitTargets = (datumTargets: DrawingDatumTarget[]) => {
+    if (!scopeRead.scope) { setMessage(scopeRead.error ?? 'Invalid drawing scope.'); return false; }
+    if (datumTargets.length > 200 || datumTargetConflicts(datumTargets).size) { setMessage('Point targets need at most 200 rows with unique IDs and letter-number pairs.'); return false; }
+    // Saved legacy rows may remain untouched while one row is explicitly repaired. New objects stay strict.
+    const existing = new Set(settings.datumTargets ?? []), changed = datumTargets.filter(row => !existing.has(row));
+    const why = checkDatumTargetOptions({ datumTargets: changed })[0];
+    if (why) { setMessage(why.message); return false; }
+    onChange({ ...settings, datumTargets }); setPending(null); setTargetChoices([]); return true;
+  };
+  const cancel = () => { setPending(null); setTargetChoices([]); setReselectTarget(null); setMessage(null); };
+  const chooseTarget = (target: DrawingDatumTarget, moving = false) => {
+    setSelectedFrame(null);
+    if (reselectTarget && !moving) {
+      const current = (settings.datumTargets ?? []).filter(row => row.id === reselectTarget.id);
+      if (!views || busy || current.length !== 1 || current[0] !== reselectTarget) { setMessage('The target changed or its current drawing is not ready. Select Reselect endpoint again.'); return; }
+      const next = { ...reselectTarget, point: target.point }, resolved = resolveDatumTarget(views[next.view], next);
+      if (!resolved.ok) { setMessage(`${resolved.code}: ${resolved.reason}`); return; }
+      if (commitTargets(settings.datumTargets!.map(row => row === reselectTarget ? next : row))) {
+        setReselectTarget(null); setTool('select'); setSelected(null); setSelectedTarget(next.id); setMessage(null);
+      }
+      return;
+    }
+    setReselectTarget(null);
+    setTargetChoices([]); setPending({ kind: 'datum-target', view: target.view, target, moving });
+    setMessage('Click where the target symbol goes. Esc cancels.');
+  };
+  const placeFrame = (view: DimView, frame?: DrawingFrame) => {
+    const placement = placementAt(view);
+    if (busy || !views || !placement || placement.hidden) { setMessage('Show the frame view and wait for the current drawing before placing a frame.'); return; }
+    if (frame && frame.dim !== undefined) return;
+    const frames = settings.frames ?? [];
+    if (!frame && frames.length >= 200) { setMessage('A drawing can contain up to 200 geometric control frames.'); return; }
+    let id = 'frame-1', index = 2; while (frames.some(row => row.id === id)) id = `frame-${index++}`;
+    cancel(); setSelected(null); setSelectedTarget(null); setSelectedFrame(frame?.id ?? null); setTool('select'); setDrag(null);
+    setPending({ kind: 'standalone-frame', view, frame: frame ?? { id, view, place: [0, 0], characteristic: 'position', value: 0.1, datums: [] }, moving: !!frame, settingsKey: JSON.stringify(settings), sourceDoc, model });
+    setMessage(`Click where the standalone frame goes in the ${viewLabel(view)}. Esc cancels.`);
+  };
 
   const click = (h: Hover) => {
     if (!views) return;
+    if (pending?.kind === 'standalone-frame') return; // Placed directly from its explicit view in onPointerDown.
     setMessage(null);
+    if (tool === 'datum-target') {
+      if (busy) { setMessage('Wait for the current drawing.'); return; }
+      if (pending?.kind === 'datum-target') {
+        const target = { ...pending.target, place: fromSheet(layout!.views[pending.view], h.q) };
+        const resolved = resolveDatumTarget(views[pending.view], target);
+        if (!resolved.ok) { setMessage(`${resolved.code}: ${resolved.reason}`); return; }
+        const rows = settings.datumTargets ?? [];
+        const current = rows.filter(t => t.id === target.id);
+        if (pending.moving && (current.length !== 1 || current[0] !== pending.target)) { setMessage('The target changed. Select it again before moving its symbol.'); return; }
+        if (commitTargets(pending.moving ? rows.map(t => t === pending.target ? target : t) : [...rows, target])) {
+          setPending(null); setTool('select'); setSelected(null); setSelectedTarget(target.id);
+        }
+        return;
+      }
+      if (!isViewId(h.view)) { setMessage('Point targets use a base view. Select a straight edge endpoint.'); return; }
+      if (reselectTarget && h.view !== reselectTarget.view) { setMessage(`Select a current endpoint in the target's ${reselectTarget.view} view.`); return; }
+      if (!bodies) { setMessage('Wait for the current drawing bodies before selecting a target endpoint.'); return; }
+      const rows = settings.datumTargets ?? [];
+      if (!reselectTarget && rows.length >= 200) { setMessage('A drawing can contain up to 200 point targets.'); return; }
+      const pr = views[h.view], placement = layout!.views[h.view];
+      let n = 1; while (rows.some(t => t.letter === 'A' && t.number === n)) n++;
+      let id = 'target-1', k = 2; while (rows.some(t => t.id === id)) id = `target-${k++}`;
+      const picked = endpointSnap(pr, h.at, 9 * mmPerPx() / placement.scale, bodies);
+      if (picked.error) { setMessage(picked.error); return; }
+      const candidates = picked.points.map(point => reselectTarget ? { ...reselectTarget, point } : { id, letter: 'A', number: n, view: h.view as ViewId, place: [...h.at] as XY, point });
+      if (!candidates.length) { setMessage('Select a visible straight edge endpoint. Circle centres and curved edges are not supported.'); return; }
+      if (candidates.length > 1) { setTargetChoices(candidates); setMessage('Endpoints overlap here. Choose the exact edge and endpoint in Point datum targets.'); return; }
+      const resolved = resolveDatumTarget(pr, candidates[0]);
+      if (!resolved.ok) { setMessage(`${resolved.code}: ${resolved.reason}`); return; }
+      chooseTarget(candidates[0]); return;
+    }
     // Where a dimension goes is read in its own view, wherever the pointer is.
     if (pending?.kind === 'note') { addNote(h.q, pending.leader); return; }
+    if (tool === 'detail') { pickDetail(h); return; }
     const placing = pending && ((pending.kind !== 'linear' && pending.kind !== 'angle') || pending.b);
     const into = placing ? placementAt(pending.view) : null, place = placing && into ? fromSheet(into, h.q) : h.at;
     if (h.view === 'iso' && !placing) { setMessage('Dimensions go on the front, top and right views.'); return; }
@@ -263,6 +375,21 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
     }
   };
 
+  /** DR-1: the detail tool — its centre on a view or a section, then a point its circle reaches; the next free letter, its scale and place automatic. */
+  const pickDetail = (h: Hover) => {
+    if (pending?.kind === 'detail') {
+      const into = placementAt(pending.view), at = into ? fromSheet(into, h.q) : h.at, radius = Math.round(Math.hypot(at[0] - pending.center[0], at[1] - pending.center[1]) * 100) / 100;
+      if (!(radius > 0)) { setMessage('Click away from the centre: that is how far the circle reaches.'); return; }
+      // (A stays the front section's, by its checkbox, as added sections leave it.)
+      const id = nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...sectionsOf(settings)], (settings.details ?? []).map(d => d.id));
+      onChange({ ...settings, details: [...(settings.details ?? []), { id, view: pending.view, center: pending.center, radius }] });
+      setPending(null); return;
+    }
+    if (!(DETAIL_PARENTS as readonly string[]).includes(h.view) && !isSectionRef(h.view)) { setMessage('A detail enlarges part of the front, top or right view, or of a section.'); return; }
+    const c = h.snap?.at ?? h.at;
+    setPending({ kind: 'detail', view: h.view as DetailParent, center: [Math.round(c[0] * 100) / 100, Math.round(c[1] * 100) / 100] });
+  };
+
   /** A new note at a sheet point (with a leader to a view point), selected with its text ready to type. */
   const addNote = (at: XY, leader?: { view: ViewId; at: XY }) => {
     const used = new Set((settings.notes ?? []).map(n => n.id)); let k = 1; while (used.has(`n${k}`)) k++;
@@ -273,17 +400,55 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return;
+    if (pending?.kind === 'standalone-frame') {
+      const q = sheetPoint(e.clientX, e.clientY), placement = placementAt(pending.view);
+      const before = pending.sourceDoc;
+      const documentChanged = sourceDoc.nodes !== before.nodes || sourceDoc.outputs !== before.outputs || sourceDoc.parameters !== before.parameters || sourceDoc.instances !== before.instances;
+      if (busy || !views || !q || !placement || placement.hidden || documentChanged || currentModel.current !== pending.model || JSON.stringify(settings) !== pending.settingsKey) { setMessage('The drawing changed or the frame view is not ready. Select Add or Move frame again.'); return; }
+      const rows = settings.frames ?? [], current = rows.filter(row => row.id === pending.frame.id);
+      if (pending.moving && (current.length !== 1 || current[0] !== pending.frame)) { setMessage('The frame changed. Select it again before moving it.'); return; }
+      const next: DrawingFrame = { ...pending.frame, view: pending.view, place: fromSheet(placement, q) };
+      if (commitFrames(pending.moving ? rows.map(row => row === pending.frame ? next : row) : [...rows, next])) {
+        setPending(null); setSelectedFrame(next.id); setMessage(null);
+      }
+      return;
+    }
     const target = (e.target as Element).closest('[data-dim]');
     if (tool === 'note') e.preventDefault(); // (the note's text box keeps the focus it is given)
     if (tool === 'note' && !pending) {
       // On (or right by) a view: the leader's point first; elsewhere the note itself.
       const q = sheetPoint(e.clientX, e.clientY), h = hoverAt(e.clientX, e.clientY); if (!q || !layout) return;
-      const hv = h && !isSectionRef(h.view) ? h.view : null, [x0, y0, x1, y1] = hv ? layout.views[hv].box : [0, 0, 0, 0], on = hv && q[0] >= x0 - 3 && q[0] <= x1 + 3 && q[1] >= y0 - 3 && q[1] <= y1 + 3;
+      const hv = h && isViewId(h.view) ? h.view : null, [x0, y0, x1, y1] = hv ? layout.views[hv].box : [0, 0, 0, 0], on = hv && q[0] >= x0 - 3 && q[0] <= x1 + 3 && q[1] >= y0 - 3 && q[1] <= y1 + 3;
       if (h && hv && on) { setPending({ kind: 'note', leader: { view: hv, at: h.snap?.at ?? h.at } }); setMessage(null); } else addNote(q);
       return;
     }
     if (tool === 'note' && pending?.kind === 'note') { const q = sheetPoint(e.clientX, e.clientY); if (q) addNote(q, pending.leader); return; }
     if (tool === 'select') {
+      const frameId = (e.target as Element).closest('[data-standalone-frame]')?.getAttribute('data-standalone-frame');
+      const frames = frameId ? (settings.frames ?? []).filter(frame => frame.dim === undefined && frame.id === frameId) : [];
+      if (frames.length === 1) { setSelected(null); setSelectedTarget(null); setSelectedFrame(frames[0].id); setDrag(null); return; }
+      setSelectedFrame(null);
+      const targetId = (e.target as Element).closest('[data-datum-target]')?.getAttribute('data-datum-target');
+      const targets = targetId ? (settings.datumTargets ?? []).filter(t => t.id === targetId) : [];
+      if (targets.length === 1) {
+        setSelected(null); setSelectedTarget(targets[0].id); setDrag({ target: targets[0].id, original: targets[0], place: targets[0].place });
+        (e.currentTarget as Element).setPointerCapture(e.pointerId); return;
+      }
+      setSelectedTarget(null);
+      // (DR-1: a detail grabbed anywhere in its square — not on one of its dimensions — moves it on the sheet.)
+      const qd = sheetPoint(e.clientX, e.clientY), onDim = !!target && settings.dimensions.some(x => x.id === target.getAttribute('data-dim'));
+      const det = !onDim && qd ? sheet?.details?.find(x => qd[0] >= x.placement.box[0] && qd[0] <= x.placement.box[2] && qd[1] >= x.placement.box[1] && qd[1] <= x.placement.box[3]) : undefined;
+      const sd = det && settings.details?.find(x => x.id === det.id);
+      if (det && sd && qd) {
+        const at = toSheet(det.placement, sd.center);
+        setSelected(null); setDrag({ detail: det.id, at, grab: [qd[0] - at[0], qd[1] - at[1]] }); (e.currentTarget as Element).setPointerCapture(e.pointerId); return;
+      }
+      // (DR-4: a removed section grabbed anywhere in its box moves it; its place is its box's centre.)
+      const rem = !onDim && qd ? sheet?.sections?.find(x => x.form === 'removed' && qd[0] >= x.placement.box[0] && qd[0] <= x.placement.box[2] && qd[1] >= x.placement.box[1] && qd[1] <= x.placement.box[3]) : undefined;
+      if (rem && qd) {
+        const b = rem.placement.box, at: XY = [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2];
+        setSelected(null); setDrag({ removed: rem.id, at, grab: [qd[0] - at[0], qd[1] - at[1]] }); (e.currentTarget as Element).setPointerCapture(e.pointerId); return;
+      }
       const id = target?.getAttribute('data-dim') ?? null;
       setSelected(id); setNoteDraft(null); setTolDraft({});
       const d = id ? settings.dimensions.find(x => x.id === id) : undefined, n = id ? settings.notes?.find(x => x.id === id) : undefined, q = sheetPoint(e.clientX, e.clientY);
@@ -294,15 +459,20 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
       (e.currentTarget as Element).setPointerCapture(e.pointerId);
       return;
     }
-    const h = hoverAt(e.clientX, e.clientY); if (h) click(h);
+    const h = hoverAt(e.clientX, e.clientY) ?? placingAt(e.clientX, e.clientY); if (h) click(h);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (drag && 'pan' in drag) {
       const k = mmPerPx(); setBox([drag.box[0] - (e.clientX - drag.pan[0]) * k, drag.box[1] - (e.clientY - drag.pan[1]) * k, drag.box[2], drag.box[3]]); return;
     }
-    if (drag && 'note' in drag) {
+    if (drag && ('note' in drag || 'detail' in drag || 'removed' in drag)) {
       const q = sheetPoint(e.clientX, e.clientY);
       if (q) setDrag({ ...drag, at: [Math.round((q[0] - drag.grab[0]) * 10) / 10, Math.round((q[1] - drag.grab[1]) * 10) / 10] });
+      return;
+    }
+    if (drag && 'target' in drag) {
+      const target = settings.datumTargets?.find(t => t.id === drag.target), q = sheetPoint(e.clientX, e.clientY);
+      if (target && q && layout) setDrag({ ...drag, place: fromSheet(layout.views[target.view], q) });
       return;
     }
     if (drag && layout) {
@@ -311,9 +481,28 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
       if (q && d && at) setDrag({ id: drag.id, place: fromSheet(at, q) });
       return;
     }
-    setHover(hoverAt(e.clientX, e.clientY));
+    setHover(hoverAt(e.clientX, e.clientY) ?? placingAt(e.clientX, e.clientY));
   };
   const onPointerUp = () => {
+    if (drag && 'target' in drag) {
+      const targets = (settings.datumTargets ?? []).filter(t => t.id === drag.target), target = targets[0];
+      if (targets.length === 1 && target === drag.original && views && !busy) {
+        const resolved = resolveDatumTarget(views[target.view], target);
+        if (!resolved.ok) setMessage(`${resolved.code}: ${resolved.reason}`);
+        else if (target.place[0] !== drag.place[0] || target.place[1] !== drag.place[1]) commitTargets(settings.datumTargets!.map(t => t === target ? { ...t, place: drag.place } : t));
+      } else setMessage('The current target is not ready or has changed. Select it again.');
+      setDrag(null); return;
+    }
+    if (drag && 'removed' in drag) {
+      const list = sectionsOf(settings), x = list.find(y => y.id === drag.removed);
+      if (x?.removed && (x.removed.at?.[0] !== drag.at[0] || x.removed.at?.[1] !== drag.at[1])) onChange(withSections(settings, list.map(y => y === x ? { ...y, removed: { ...y.removed, at: drag.at } } : y)));
+      setDrag(null); return;
+    }
+    if (drag && 'detail' in drag) {
+      const d = settings.details?.find(x => x.id === drag.detail);
+      if (d && (d.at?.[0] !== drag.at[0] || d.at?.[1] !== drag.at[1])) onChange({ ...settings, details: settings.details!.map(x => x.id === d.id ? { ...x, at: drag.at } : x) });
+      setDrag(null); return;
+    }
     if (drag && 'note' in drag) {
       const n = settings.notes?.find(x => x.id === drag.note);
       if (n && (n.at[0] !== drag.at[0] || n.at[1] !== drag.at[1])) onChange({ ...settings, notes: settings.notes!.map(x => x.id === n.id ? { ...x, at: drag.at } : x) });
@@ -343,10 +532,21 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement || e.metaKey || e.ctrlKey) return;
-      if (e.key === 'Escape') { if (pending) cancel(); else { setSelected(null); setTool('select'); } return; }
+      if (e.key === 'Escape') { if (pending || targetChoices.length || reselectTarget) cancel(); else { setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTool('select'); } return; }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFrame) {
+        e.preventDefault();
+        const frames = (settings.frames ?? []).filter(frame => frame.dim === undefined && frame.id === selectedFrame);
+        if (frames.length === 1) removeFrame(frames[0]);
+        return;
+      }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedTarget) {
+        e.preventDefault();
+        if (commitTargets((settings.datumTargets ?? []).filter(t => t.id !== selectedTarget))) setSelectedTarget(null);
+        return;
+      }
       if ((e.key === 'Delete' || e.key === 'Backspace') && selected) { e.preventDefault(); remove(selected); return; }
-      const t = ({ v: 'select', d: 'linear', o: 'diameter', r: 'radius', a: 'angle', n: 'note' } as Record<string, Tool>)[e.key.toLowerCase()];
-      if (t) { setTool(t); setPending(null); setMessage(null); }
+      const t = ({ v: 'select', d: 'linear', o: 'diameter', r: 'radius', a: 'angle', n: 'note', e: 'detail', t: 'datum-target' } as Record<string, Tool>)[e.key.toLowerCase()];
+      if (t) { setTool(t); cancel(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -365,6 +565,9 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
       section: cutA ? (cutA.result.ok ? { rings: cutA.result.rings.length, edges: cutA.result.projection.edges.length } : { error: cutA.result.error }) : null,
       sections: (cutsMade ?? []).map(c => ({ id: c.id, view: c.view, at: c.at, ...(c.result.ok ? { rings: c.result.rings.length, edges: c.result.projection.edges.length } : { error: c.result.error }) })),
       placedSections: (layout?.sections ?? []).map(p => ({ id: p.section, of: p.of, box: p.box })),
+      apartSections: (sheet.sections ?? []).filter(x => x.form).map(x => ({ id: x.id, form: x.form, ...(x.on ? { on: x.on } : {}), scale: x.placement.scale, box: x.placement.box, edges: x.projection.edges.length })),
+      details: (sheet.details ?? []).map(d => ({ id: d.id, view: d.view, scale: d.scale, box: d.placement.box, edges: d.projection.edges.length })),
+      boxes: Object.fromEntries(VIEW_IDS.map(id => [id, layout!.views[id].box])), breaks: Object.fromEntries(VIEW_IDS.filter(id => layout!.views[id].breaks).map(id => [id, layout!.views[id].breaks])),
       issues: issues.map(x => ({ code: x.code, severity: x.severity, ...(x.fix ? { fix: x.fix.kind } : {}), ...(x.tables ? { tables: x.tables } : {}) })),
       tables: (sheet.tables ?? []).map(x => ({ id: x.id, box: x.box, ...(x.error ? { error: x.error } : {}) })),
       ...(sheet.welds ? { welds: { placed: sheet.welds.placed.map(p => ({ label: p.label, view: p.view })), unshown: sheet.welds.unshown } } : {}),
@@ -388,17 +591,19 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
    * give a clean drawing, then Auto-dimension; its own earlier dimensions replaced, those placed by hand kept.
    */
   const autoDimension = async () => {
-    if (!views) return;
+    if (!views || scope.kind === 'assembly') return;
     // The front's side by information (R14.3b), when nothing placed by hand ties it: the part projected for it first.
     let base = { views, settings, sections: cuts };
     const pick = frontByInformation(views, settings);
+    // (O174: the turned part projected as the sheet is, its bought elements out.)
     if (pick) {
       const ts = turnSections(settings, pick.orientation), list = Array.isArray(ts) ? ts : [];
-      const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(list.length ? { sections: list } : {}), ...(pick.orientation !== 'y-' ? { orientation: pick.orientation as 'x+' } : {}) });
+      const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(list.length ? { sections: list } : {}), ...(pick.orientation !== 'y-' ? { orientation: pick.orientation as 'x+' } : {}), made: drawsMadeOnly(settings) });
+      if (currentModel.current !== model) return;
       const turned = r.ok ? reorient(views, r.views, settings, pick.orientation) : null;
       if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, sections: sheetSections(r.sections ?? []) };
     }
-    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, elements, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(base.sections.length ? { sections: base.sections } : {}) });
+    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, elements, callout, fitMiss: fitMissOf, meta: { title, date: today(), source, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(base.sections.length ? { sections: base.sections } : {}) });
     onChange(next);
     const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts + report.dimensions.keys;
     const side = base.views !== views && pick ? `, the front seen from ${SIDE_NAMES[pick.orientation]} (${pick.why})` : '';
@@ -409,7 +614,9 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   /** Another front side (R14.3b, O7): the annotations re-mapped to the views showing their axes, or refused, typed. */
   const turnTo = async (o: Orientation) => {
     if (!views || o === (settings.orientation ?? 'y-')) return;
-    const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(o !== 'y-' ? { orientation: o as 'x+' } : {}) });
+    // (O174: projected as the sheet is — a part's without its bought elements.)
+    const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(o !== 'y-' ? { orientation: o as 'x+' } : {}), made: drawsMadeOnly(settings) });
+    if (currentModel.current !== model) return;
     if (!r.ok) { onToast({ title: 'Could not turn the drawing', hint: r.error, detail: '' }); return; }
     const t = reorient(views, r.views, settings, o);
     if (!t.ok) { onToast({ title: 'The drawing was not turned', hint: t.message, detail: t.code === 'ORIENTATION_REMAP_FAILED' ? t.failed.map(f => `${f.dim}: ${f.was} → ${f.now}`).join('\n') : '' }); return; }
@@ -446,6 +653,25 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
       parts.push(`<g class="dw-preview"><line x1="${t[0]}" y1="${t[1]}" x2="${hover.q[0]}" y2="${hover.q[1]}" stroke-width="0.25"/></g><circle class="dw-pick" cx="${t[0]}" cy="${t[1]}" r="0.9"/>`);
       return parts.join('');
     }
+    if (pending?.kind === 'detail') {
+      const c = toSheet(P(pending.view), pending.center), r = hover ? Math.hypot(hover.q[0] - c[0], hover.q[1] - c[1]) : 0;
+      parts.push(`<circle class="dw-pick" cx="${c[0]}" cy="${c[1]}" r="0.9"/>`);
+      if (r > 0) parts.push(`<g class="dw-preview"><circle cx="${c[0]}" cy="${c[1]}" r="${r}" fill="none" stroke-width="0.25"/></g>`);
+      return parts.join('');
+    }
+    if (pending?.kind === 'datum-target') {
+      const resolved = resolveDatumTarget(views[pending.view], pending.target);
+      if (resolved.ok) {
+        const q = toSheet(P(pending.view), inView(views[pending.view], resolved.at));
+        parts.push(`<circle class="dw-pick" cx="${q[0]}" cy="${q[1]}" r="0.9"/>`);
+        if (hover) parts.push(`<g class="dw-preview"><line x1="${q[0]}" y1="${q[1]}" x2="${hover.q[0]}" y2="${hover.q[1]}" stroke-width="0.25"/></g>`);
+      }
+      return parts.join('');
+    }
+    if (pending?.kind === 'standalone-frame') {
+      if (hover) parts.push(`<circle class="dw-pick" cx="${hover.q[0]}" cy="${hover.q[1]}" r="0.9"/>`);
+      return parts.join('');
+    }
     const placing = pending && hover && pending.kind !== 'note' && ((pending.kind !== 'linear' && pending.kind !== 'angle') || pending.b);
     if (pending?.kind === 'angle') for (const ref of [pending.a, ...(pending.b ? [pending.b] : [])]) {
       const l = resolveLine(R(pending.view), ref);
@@ -462,6 +688,11 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
         : { id: 'preview', view: pending.view, kind: pending.kind, edge: pending.edge, near: pending.near, place: at };
       const r = resolveDimension({ ...views, [pending.view]: R(pending.view) }, d);
       if (r.ok) parts.push(`<g class="dw-preview">${marksSvg(dimensionMarks(P(pending.view), r))}</g>`);
+    } else if (hover && v && tool === 'datum-target' && isViewId(hover.view)) {
+      for (const point of (bodies ? endpointSnap(views[hover.view], hover.at, 9 * mmPerPx() / v.scale, bodies).points : [])) {
+        const q = toSheet(v, inView(views[hover.view], point.near));
+        parts.push(`<circle class="dw-snap" cx="${q[0]}" cy="${q[1]}" r="1.4"/>`);
+      }
     } else if (hover && v && tool !== 'select') {
       if (hover.snap && tool === 'linear') { const q = toSheet(v, hover.snap.at); parts.push(`<circle class="dw-snap" cx="${q[0]}" cy="${q[1]}" r="1.4"/>`); }
       else if (hover.edge && (tool !== 'linear' || !pending)) {
@@ -470,207 +701,114 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
       }
     }
     return parts.join('');
-  }, [layout, views, hover, pending, tool]);
+  }, [layout, views, bodies, hover, pending, tool]);
 
   // The dimension being dragged is drawn where it goes.
   const shownMarkup = useMemo(() => {
     if (!drag || 'pan' in drag || !views || !layout || !sheet) return sheetMarkup;
-    if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cuts), selected);
+    if ('target' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, datumTargets: (settings.datumTargets ?? []).map(t => t.id === drag.target ? { ...t, place: drag.place } : t) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected, selectedTarget);
+    if ('detail' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, details: (settings.details ?? []).map(d => d.id === drag.detail ? { ...d, at: drag.at } : d) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected, selectedTarget);
+    if ('removed' in drag) return sheetGroupsSvg(buildSheet(views, layout, withSections(settings, sectionsOf(settings).map(x => x.id === drag.removed && x.removed ? { ...x, removed: { ...x.removed, at: drag.at } } : x)), { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected, selectedTarget);
+    if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected, selectedTarget);
     const dims = settings.dimensions.map(d => d.id === drag.id ? (d.kind === 'linear' ? { ...d, place: drag.place, orient: orientFor(pointIn(projectionOf(views, sheet ?? undefined, d.view)!, d.a), pointIn(projectionOf(views, sheet ?? undefined, d.view)!, d.b), drag.place) } : { ...d, place: drag.place }) : d);
-    return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cuts), selected);
-  }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, weldJoints, bom]);
+    return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected, selectedTarget);
+  }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, selectedTarget, weldJoints, bom]);
 
-  const hint = message ?? (pending ? (pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
-  const lost = sheet?.dimensions.filter(r => !r.ok) ?? [];
+  const hint = message ?? (pending ? (pending.kind === 'standalone-frame' ? 'Click where the standalone frame goes · Esc cancels' : pending.kind === 'datum-target' ? 'Click where the target symbol goes · Esc cancels' : pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
   const selDim = selected ? settings.dimensions.find(d => d.id === selected) : undefined, selNote = selected ? settings.notes?.find(n => n.id === selected) : undefined;
 
   return (
     <div className="dw" aria-label="Drawing">
       <nav className="card dw-tools" aria-label="Drawing tools">
         {TOOLS.map(t => <button key={t.tool} className={'tool' + (tool === t.tool ? ' on' : '')} aria-label={t.label} title={`${t.label} (${t.key === 'Ø' ? 'O' : t.key})`}
-          onClick={() => { setTool(t.tool); setPending(null); setMessage(null); }}><Icon name={t.icon} /></button>)}
+          onClick={() => { setTool(t.tool); cancel(); }}><Icon name={t.icon} /></button>)}
         <div className="sep" />
         <button className="tool" aria-label="Fit sheet" title="Fit the sheet" onClick={() => setBox(null)}><Icon name="fit_screen" /></button>
       </nav>
 
-      <div className="dw-paper">
-        {layout && <svg ref={svg} viewBox={viewBox.join(' ')} className={drag && 'pan' in drag ? 'dw-pan' : ''} aria-label="Drawing sheet" data-scale={layout.scale}
-          onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={() => setHover(null)} onWheel={onWheel}>
-          <rect className="dw-sheet" x={0} y={0} width={W} height={H} fill="#fff" />
-          <g fill="none" stroke="#000" strokeLinecap="round" strokeLinejoin="round" fontFamily="Helvetica, Arial, sans-serif" dangerouslySetInnerHTML={{ __html: shownMarkup }} />
-          <g dangerouslySetInnerHTML={{ __html: overlay }} />
-        </svg>}
-        {busy && !views && <div className="dw-busy">Projecting views…</div>}
-        {!busy && !views && <div className="dw-busy">{error ?? 'Nothing to draw.'}</div>}
+      <div className="dw-canvas">
+        <div className="dw-paper">
+          {layout && <svg ref={svg} viewBox={viewBox.join(' ')} className={drag && 'pan' in drag ? 'dw-pan' : ''} aria-label="Drawing sheet" data-scale={layout.scale}
+            onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={() => setHover(null)} onWheel={onWheel}>
+            <rect className="dw-sheet" x={0} y={0} width={W} height={H} fill="#fff" />
+            <g fill="none" stroke="#000" strokeLinecap="round" strokeLinejoin="round" fontFamily="Helvetica, Arial, sans-serif" dangerouslySetInnerHTML={{ __html: shownMarkup }} />
+            <g dangerouslySetInnerHTML={{ __html: overlay }} />
+            {selectedTarget && !(drag && 'target' in drag) && sheet?.groups.filter(g => g.datumTarget && g.id === selectedTarget).length === 1 && <g className="dw-hover" pointerEvents="none" aria-label="Selected point datum target" dangerouslySetInnerHTML={{ __html: marksSvg(sheet.groups.find(g => g.datumTarget && g.id === selectedTarget)!.marks) }} />}
+            {selectedFrame && sheet?.groups.filter(g => g.standaloneFrame && g.id === selectedFrame).length === 1 && <g className="dw-hover" pointerEvents="none" aria-label="Selected standalone frame" dangerouslySetInnerHTML={{ __html: marksSvg(sheet.groups.find(g => g.standaloneFrame && g.id === selectedFrame)!.marks) }} />}
+            {referenceInspection?.markup && <g className="dw-hover" pointerEvents="none" aria-label="Reference candidate preview" dangerouslySetInnerHTML={{ __html: referenceInspection.markup }} />}
+          </svg>}
+          {busy && !views && <div className="dw-busy">Projecting views…</div>}
+          {!busy && !views && <div className="dw-busy">{error ?? 'Nothing to draw.'}</div>}
+        </div>
+        <div className={'card dw-hint' + (message ? ' warn' : '')} role="status">
+          <span>{hint}</span>
+          {(selected || selectedTarget || selectedFrame) && <span><Kbd>Del</Kbd> remove</span>}
+          <span><Kbd>V</Kbd> <Kbd>D</Kbd> <Kbd>O</Kbd> <Kbd>R</Kbd> <Kbd>A</Kbd> <Kbd>N</Kbd> <Kbd>E</Kbd> <Kbd>T</Kbd> tools</span>
+        </div>
       </div>
 
       <aside className="card dw-panel" aria-label="Drawing settings">
-        <div className="card-title">SHEET {busy && views && <span className="muted">updating…</span>}</div>
-        <label className="field"><span>Size</span><select aria-label="Sheet size" value={settings.sheet} onChange={e => onChange({ ...settings, sheet: e.target.value as 'A4' })}>
-          <option value="A4">A4 landscape</option><option value="A3">A3 landscape</option></select></label>
-        <label className="field"><span>Scale</span><select aria-label="Scale" value={settings.scale ?? 'auto'} onChange={e => { const v = e.target.value; const rest = { ...settings }; delete rest.scale; onChange(v === 'auto' ? rest : { ...rest, scale: Number(v) }); }}>
-          <option value="auto">Auto{layout && settings.scale === undefined ? ` (${scaleLabel(layout.scale)})` : ''}</option>
-          {SCALES.map(s => <option key={s} value={s}>{scaleLabel(s)}</option>)}</select></label>
-        <label className="field"><span>Front from</span><select aria-label="Front view side" value={settings.orientation ?? 'y-'} onChange={e => void turnTo(e.target.value as Orientation)}>
-          {ORIENTATIONS.map(o => <option key={o} value={o}>{SIDE_NAMES[o]}</option>)}</select></label>
-        <label className="field"><span>Projection</span><select aria-label="Projection" value={settings.projection} onChange={e => onChange({ ...settings, projection: e.target.value as 'third' })}>
-          <option value="third">Third angle</option><option value="first">First angle</option></select></label>
-        <label className="field"><span>Hidden lines</span><input type="checkbox" className="check" aria-label="Hidden lines" checked={settings.hidden} onChange={e => onChange({ ...settings, hidden: e.target.checked })} /></label>
-        <label className="field"><span>Section A–A</span><input type="checkbox" className="check" aria-label="Section A–A" checked={!!sectionA} onChange={e => {
-          const rest = sectionList.filter(x => !(x.id === 'A' && x.view === 'front'));
-          // By default through the middle of the part, front to back.
-          const at = views ? sectionMiddle(views, 'front', settings.orientation) : null;
-          onChange(withSections(settings, e.target.checked && at !== null && !rest.some(x => x.id === 'A') ? [{ id: 'A', view: 'front', at }, ...rest] : rest));
-        }} /></label>
-        {sectionA && <label className="field"><span>Cut at Y</span><span className="num"><input type="number" step="any" aria-label="Section Y" value={sectionY ?? sectionA.at}
-          onChange={e => setSectionY(e.target.value)}
-          onBlur={() => { const y = Number(sectionY); if (sectionY !== null && sectionY.trim() !== '' && Number.isFinite(y)) onChange(withSections(settings, sectionList.map(x => x === sectionA ? { ...x, at: y } : x))); setSectionY(null); }}
-          onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /><em>mm</em></span></label>}
-        {sectionA && cutA && !cutA.result.ok && <div className="empty" style={{ color: 'var(--warn)' }}>Section A–A: {cutA.result.error}</div>}
-        {/* (O148 X1: more sections, each square to the front, top or right view's depth; letters in order.) */}
-        {sectionList.filter(x => x !== sectionA).map(x => {
-          const made = cutsMade?.find(c => c.id === x.id && c.view === x.view && c.at === x.at);
-          return <div key={x.id} className="field" aria-label={`Section ${x.id}`}>
-            <span>Section {x.id}–{x.id}</span>
-            <select aria-label={`Section ${x.id} view`} value={x.view} onChange={e => { const view = e.target.value as SectionViewId, at = views ? sectionMiddle(views, view, settings.orientation) : null; if (at !== null) onChange(withSections(settings, sectionList.map(y => y === x ? { ...y, view, at } : y))); }}>
-              {SECTION_VIEWS.map(v => <option key={v} value={v}>{VIEWS[v].label.toLowerCase()}</option>)}</select>
-            <span className="num"><input type="number" step="any" aria-label={`Section ${x.id} at`} value={sectionAt?.id === x.id ? sectionAt.text : x.at}
-              onChange={e => setSectionAt({ id: x.id, text: e.target.value })}
-              onBlur={() => { const v = Number(sectionAt?.text); if (sectionAt?.id === x.id && sectionAt.text.trim() !== '' && Number.isFinite(v)) onChange(withSections(settings, sectionList.map(y => y === x ? { ...y, at: v } : y))); setSectionAt(null); }}
-              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /><em>mm</em></span>
-            <button className="tool tiny" aria-label={`Remove section ${x.id}`} title={`Remove section ${x.id}–${x.id}`} onClick={() => onChange(withSections(settings, sectionList.filter(y => y !== x)))}><Icon name="close" small /></button>
-            {made && !made.result.ok && <div className="empty" style={{ color: 'var(--warn)' }}>{made.result.error}</div>}
-          </div>;
-        })}
-        <button className="ghost small" aria-label="Add section" disabled={!views} title="Another section, square to the top view's depth (change its view and place after)" onClick={() => {
-          const view: SectionViewId = sectionList.some(x => x.view === 'top') ? 'right' : 'top', at = views ? sectionMiddle(views, view, settings.orientation) : null;
-          // (A is the front's, by its checkbox above: added sections take B on.)
-          if (at !== null) onChange(withSections(settings, [...sectionList, { id: nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...sectionList]), view, at }]));
-        }}>Add section</button>
-        {(['right', 'iso'] as const).map(v => <label key={v} className="field"><span>{v === 'right' ? 'Right view' : 'Isometric view'}</span><input type="checkbox" className="check" aria-label={v === 'right' ? 'Right view' : 'Isometric view'} checked={!settings.views || settings.views.includes(v)} onChange={e => {
-          const on = new Set(settings.views ?? VIEW_IDS); if (e.target.checked) on.add(v); else on.delete(v);
-          const next = { ...settings }; delete next.views; onChange(on.size === VIEW_IDS.length ? next : { ...next, views: VIEW_IDS.filter(x => on.has(x)) });
-        }} /></label>)}
-        <label className="field"><span>Tangent edges</span><input type="checkbox" className="check" aria-label="Tangent edges" checked={!!settings.tangent} onChange={e => { const rest = { ...settings }; delete rest.tangent; onChange(e.target.checked ? { ...rest, tangent: true } : rest); }} /></label>
-        <label className="field"><span>Centre lines</span><input type="checkbox" className="check" aria-label="Centre lines" checked={settings.centers !== false} onChange={e => { const rest = { ...settings }; delete rest.centers; onChange(e.target.checked ? rest : { ...rest, centers: false }); }} /></label>
-        {hasSheet && <label className="field"><span>Bend table</span><input type="checkbox" className="check" aria-label="Bend table" checked={!!settings.tables?.some(x => x.from === 'bends')} onChange={e => { const rest = (settings.tables ?? []).filter(x => x.from !== 'bends'); const tables = e.target.checked ? [...rest, { id: 'bends', from: 'bends' }] : rest; const { tables: _t, ...base } = settings; void _t; onChange(tables.length ? { ...base, tables } : base); }} /></label>}
-        {hasFrame && <label className="field"><span>Cut list</span><input type="checkbox" className="check" aria-label="Cut list table" checked={!!settings.tables?.some(x => x.from === 'cut-list')} onChange={e => onChange(withTable(settings, 'cut-list', e.target.checked))} /></label>}
-        {/* (FRd1, O118: the frame's welds as a table, W1… with the cut list's items.) */}
-        {hasFrame && <label className="field"><span>Weld list</span><input type="checkbox" className="check" aria-label="Weld list table" checked={!!settings.tables?.some(x => x.from === 'weld-list')} onChange={e => onChange(withTable(settings, 'weld-list', e.target.checked))} /></label>}
-        {hasFrame && <label className="field"><span>Weld symbols</span><input type="checkbox" className="check" aria-label="Weld symbols" checked={!!settings.weldSymbols} onChange={e => { const { weldSymbols: _w, ...base } = settings; void _w; onChange(e.target.checked ? { ...base, weldSymbols: true } : base); }} /></label>}
-        {(kinds.size > 0 || hasBought) && <label className="field"><span>Element list</span><input type="checkbox" className="check" aria-label="Element list table" checked={!!settings.tables?.some(x => x.from === 'elements')} onChange={e => onChange(withTable(settings, 'elements', e.target.checked))} /></label>}
-        {kinds.has('spring') && <label className="field"><span>Spring data</span><input type="checkbox" className="check" aria-label="Spring data table" checked={!!settings.tables?.some(x => x.from === 'springs')} onChange={e => onChange(withTable(settings, 'springs', e.target.checked))} /></label>}
-        {kinds.has('oring-gland') && <label className="field"><span>Gland table</span><input type="checkbox" className="check" aria-label="Gland table" checked={!!settings.tables?.some(x => x.from === 'glands')} onChange={e => onChange(withTable(settings, 'glands', e.target.checked))} /></label>}
-        {/* (O147 B2: the BOM as a table and its item balloons, for an assembly or a part with machine elements.) */}
-        {(!!doc.instances?.length || kinds.size > 0) && <label className="field"><span>BOM table</span><input type="checkbox" className="check" aria-label="BOM table" checked={!!settings.tables?.some(x => x.from === 'bom')} onChange={e => onChange(withTable(settings, 'bom', e.target.checked))} /></label>}
-        {(!!doc.instances?.length || kinds.size > 0) && <label className="field"><span>Balloons</span><input type="checkbox" className="check" aria-label="Balloons" checked={!!settings.balloons} onChange={e => { const { balloons: _b, ...base } = settings; void _b; onChange(e.target.checked ? { ...base, balloons: true } : base); }} /></label>}
-        <label className="field"><span>Title</span><input aria-label="Drawing title" value={titleDraft ?? title} onChange={e => setTitleDraft(e.target.value)}
-          onBlur={() => { if (titleDraft !== null) { const rest = { ...settings }; delete rest.title; onChange(titleDraft.trim() && titleDraft.trim() !== fileName ? { ...rest, title: titleDraft.trim() } : rest); setTitleDraft(null); } }}
-          onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></label>
-        {(() => { const print = modelPrint(doc.nodes), stale = !!settings.revision && !!settings.revisedModel && settings.revisedModel !== print;
-          const set = (rev: string) => onChange(rev ? { ...settings, revision: rev, revisedModel: print } : (({ revision: _r, revisedModel: _m, ...rest }) => rest)(settings));
-          return <>
-            <label className="field"><span>Revision</span><input aria-label="Revision" value={settings.revision ?? ''} placeholder="-" maxLength={6} onChange={e => set(e.target.value.trim().toUpperCase())} />
-              <button className="ghost small" aria-label="Next revision" data-tip="Next revision" data-tip-desc="A → B, 01 → 02: the drawing’s new issue" onClick={() => set(nextRevision(settings.revision))}>Next</button></label>
-            {stale && <div className="empty" style={{ color: 'var(--warn)' }} aria-label="Revision out of date">The model changed since revision {settings.revision}: give the drawing its next revision when you issue it.</div>}
-          </>; })()}
-        {layout && !layout.fits && <div className="empty" style={{ color: 'var(--warn)' }}>The views do not fit the sheet at {scaleLabel(layout.scale)}. Pick a smaller scale or a larger sheet.</div>}
+        {referenceInspection && <div role="status" aria-label="Reference preview" style={{ marginBottom: 8 }}>{referenceInspection.message}</div>}
+        <SheetSettings sheet={{ scopeRead, scope, views, layout, sectionA, sectionList, cutA, cutsMade, hasSheet, hasFrame, kinds, hasBought, doc, title, busy }} settings={settings} sourceDoc={sourceDoc} fileName={fileName} onChange={onChange} onToast={onToast}
+          onScopeChanged={() => { setPending(null); setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setReselectTarget(null); setHover(null); setDrag(null); }} turnTo={turnTo} />
 
-        <div className="card-title" style={{ marginTop: 8 }}>ISSUES <span className="muted" aria-label="Issue count">{issues.length}</span>
-          {issues.some(x => x.fix) && <button className="ghost small" onClick={fixEvery} aria-label="Fix all issues" data-tip="Fix all" data-tip-desc="Every fix the list offers, one at a time, the sheet checked again after each">Fix all</button>}</div>
-        <div className="dw-issues" aria-label="Drawing issues">
-          {issues.map((x, k) => <div key={k} className={'dw-issue ' + x.severity} role="button" tabIndex={0} title={x.code}
-            onClick={() => { const d = x.dims?.[0]; if (d) { setSelected(d); setTool('select'); } }}>
-            <Icon name={x.severity === 'error' ? 'error' : 'warning'} small /><span>{x.message}</span>
-            {x.fix && <button className="ghost tiny" aria-label={`Fix: ${x.message}`} onClick={e => { e.stopPropagation(); fixIssue(x); }}>{x.fix.kind === 'auto-dimension' ? 'Auto' : x.fix.kind === 'add-section' ? `Add ${x.fix.id}–${x.fix.id}` : x.fix.kind === 'remove' ? 'Remove' : x.fix.kind === 'accept' ? 'Accept' : x.fix.kind === 'scale' ? (x.fix.sheet ? 'A3' : x.fix.scale !== undefined ? (x.fix.scale >= 1 ? `${x.fix.scale}:1` : `1:${Math.round(1 / x.fix.scale)}`) : 'Auto scale') : 'Move'}</button>}
-          </div>)}
-          {!issues.length && views && <div className="empty">No issues: nothing overlaps or is lost, and every hole, step and overall size is given.</div>}
-        </div>
+        <DetailsList settings={settings} sheet={sheet} layout={layout} onChange={onChange} />
 
-        <div className="card-title" style={{ marginTop: 8 }}>TOLERANCING <span className="muted" aria-label="Suggestion count">{suggestions.length}</span>
-          {suggestions.length > 0 && <button className="ghost small" onClick={acceptEvery} aria-label="Accept all suggestions" data-tip="Accept all" data-tip-desc="Every suggestion, datums before the frames that name them; then what overlaps is moved clear">Accept all</button>}</div>
-        <label className="field"><span>Mode</span><select aria-label="Tolerancing" value={settings.tolerancing ?? 'plus-minus'} onChange={e => { const next = { ...settings }; delete next.tolerancing; onChange(e.target.value === 'geometric' ? { ...next, tolerancing: 'geometric' } : next); }}>
-          <option value="plus-minus">± dimensions</option><option value="geometric">Geometric (datums, position)</option></select></label>
-        <div className="dw-issues" aria-label="Tolerance suggestions">
-          {suggestions.map(x => <div key={x.id} className="dw-issue" title={x.basis}>
-            <Icon name={x.estimate ? 'help' : 'lightbulb'} small /><span>{x.message}<br /><span className="muted">{x.estimate ? 'Estimate — ' : ''}{x.basis}</span></span>
-            <button className="ghost tiny" aria-label={`Accept: ${x.message}`} onClick={() => onChange(applySuggestion(settings, x))}>Accept</button>
-          </div>)}
-          {!suggestions.length && views && <div className="empty">Nothing to suggest: {settings.tolerancing === 'geometric' ? 'datums, positions and the general note are there' : 'the general note and hole positions are toleranced'}.</div>}
-        </div>
+        <BreaksList settings={settings} views={views} onChange={onChange} onRefused={why => onToast({ title: 'Break unchanged', hint: why, detail: '' })} />
 
-        <div className="card-title" style={{ marginTop: 8 }}>DIMENSIONS <span className="muted">{settings.dimensions.length}</span>
-          <button className="ghost small" disabled={!views || !layout} onClick={() => void autoDimension()} aria-label="Auto-dimension" data-tip="Auto-dimension" data-tip-desc="Views laid out with room, a scale and sheet that read cleanly, then overall sizes, steps, hole positions and callouts: replaces its own earlier ones, keeps yours">Auto</button></div>
-        <div className="dw-dims">
-          {sheet?.dimensions.map(r => <div key={r.dim.id} role="button" tabIndex={0} className={'dw-dim' + (selected === r.dim.id ? ' sel' : '') + (r.ok ? '' : ' lost')} title={r.ok ? undefined : r.reason}
-            onClick={() => { setSelected(r.dim.id); setTool('select'); }}>
-            <b>{r.ok ? r.text : 'lost'}{r.dim.tol ? ` ${toleranceText(r.dim.tol, r.dim.kind === 'angle' ? '°' : '')}` : ''}</b><span>{r.dim.kind === 'linear' ? r.dim.orient : r.dim.kind} · {r.dim.view}</span>
-            <span className="muted" />
-            <button className="tool tiny" aria-label={`Remove dimension ${r.ok ? r.text : r.dim.id}`} onClick={e => { e.stopPropagation(); remove(r.dim.id); }}><Icon name="close" small /></button>
-          </div>)}
-          {!settings.dimensions.length && <div className="empty">Pick a dimension tool (<Kbd>D</Kbd> linear, <Kbd>O</Kbd> diameter, <Kbd>R</Kbd> radius, <Kbd>A</Kbd> angle) and click in a view. Values come from the model in mm and follow it as it changes.</div>}
-          {lost.length > 0 && <div className="empty" style={{ color: 'var(--warn)' }}>{lost.length} dimension{lost.length > 1 ? 's' : ''} lost {lost.length > 1 ? 'their' : 'its'} reference (the part changed).</div>}
-        </div>
+        <DatumsEditor settings={settings} views={views} scale={layout?.scale ?? 1} onChange={onChange} onRefused={setMessage} />
 
-        {selDim && <>
-          <div className="card-title" style={{ marginTop: 8 }}>TOLERANCE</div>
-          <label className="field"><span>Kind</span><select aria-label="Tolerance" value={selDim.tol?.kind ?? 'none'} onChange={e => {
-            const k = e.target.value, rest = { ...selDim }; delete rest.tol;
-            const tol: Tolerance | null = k === 'symmetric' ? { kind: 'symmetric', value: 0.1 } : k === 'deviation' ? { kind: 'deviation', upper: 0.1, lower: 0 } : k === 'fit' ? { kind: 'fit', code: selDim.kind === 'diameter' ? 'H7' : 'h7' } : null;
-            setTolDraft({}); commitDims(settings.dimensions.map(d => d.id === selDim.id ? (tol ? { ...rest, tol } : rest) as DrawingDimension : d));
-          }}><option value="none">None</option><option value="symmetric">± symmetric</option><option value="deviation">Upper / lower</option><option value="fit">Fit (H7, h6 …)</option></select></label>
-          {selDim.tol && (selDim.tol.kind === 'symmetric' ? [['value', '±']] : selDim.tol.kind === 'deviation' ? [['upper', 'Upper'], ['lower', 'Lower']] : [['code', 'Fit']]).map(([key, label]) => {
-            const t = selDim.tol as Record<string, unknown>, shown = tolDraft[key] ?? String(t[key]);
-            const apply = () => {
-              const raw = tolDraft[key]; if (raw === undefined) return;
-              const next = { ...t, [key]: key === 'code' ? raw.trim() : Number(raw) } as Tolerance;
-              const ok = next.kind === 'fit' ? /^[A-Za-z]{1,2}\d{1,2}$/.test(next.code) : next.kind === 'symmetric' ? Number.isFinite(next.value) && next.value > 0 : Number.isFinite(next.upper) && Number.isFinite(next.lower) && next.upper >= next.lower;
-              if (ok) commitDims(settings.dimensions.map(d => d.id === selDim.id ? { ...d, tol: next } as DrawingDimension : d));
-              else setMessage(next.kind === 'fit' ? 'A fit is a letter or two and a grade, as H7 or js6.' : next.kind === 'symmetric' ? 'A ± tolerance is a number above 0.' : 'The upper deviation must not be below the lower.');
-              setTolDraft(m => { const rest = { ...m }; delete rest[key]; return rest; });
-            };
-            return <label key={key} className="field"><span>{label}</span><input aria-label={`Tolerance ${label}`} type={key === 'code' ? 'text' : 'number'} step="any" value={shown}
-              onChange={e => setTolDraft(m => ({ ...m, [key]: e.target.value }))} onBlur={apply} onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></label>;
-          })}
-        </>}
+        <DatumTargetsEditor settings={settings} views={busy ? null : views} hiddenViews={VIEW_IDS.filter(id => !!layout?.views[id].hidden)} selected={selectedTarget} choices={targetChoices} onChoose={chooseTarget} onSelect={id => { setSelectedTarget(id); setSelected(null); setTool('select'); cancel(); }}
+          onAdd={() => { setTool('datum-target'); cancel(); }} onMove={target => { setTool('datum-target'); chooseTarget(target, true); }}
+          onReselect={target => { cancel(); if (layout?.views[target.view].hidden) { setMessage('Show the target view before selecting its endpoint again.'); return; } setTool('datum-target'); setReselectTarget(target); setSelected(null); setSelectedTarget(target.id); setMessage(`Select the target endpoint again in the ${target.view} view. Its symbol position will be kept. Esc cancels.`); }}
+          onCommit={commitTargets} onRefused={setMessage} />
 
-        <div className="card-title" style={{ marginTop: 8 }}>NOTES <span className="muted">{settings.notes?.length ?? 0}</span></div>
-        <div className="dw-dims">
-          {(settings.notes ?? []).map(n => <div key={n.id} role="button" tabIndex={0} className={'dw-dim' + (selected === n.id ? ' sel' : '')} onClick={() => { setSelected(n.id); setNoteDraft(n.text); setTool('select'); }}>
-            <b className="dw-note-text">{n.text.split('\n')[0]}</b><span>{n.leader ? `→ ${n.leader.view}` : ''}</span><span className="muted" />
-            <button className="tool tiny" aria-label={`Remove note ${n.id}`} onClick={e => { e.stopPropagation(); remove(n.id); }}><Icon name="close" small /></button>
-          </div>)}
-          {!settings.notes?.length && <div className="empty"><Kbd>N</Kbd> adds a note: click the paper, or a view for a leader first.</div>}
-          {selNote && <>
-            <textarea ref={noteBox} className="dw-note-edit" aria-label="Note text" rows={3} value={noteDraft ?? selNote.text}
-              onChange={e => setNoteDraft(e.target.value)}
-              onBlur={() => { const t = (noteDraft ?? selNote.text).replace(/\s+$/, ''); if (t && t !== selNote.text) onChange({ ...settings, notes: settings.notes!.map(n => n.id === selNote.id ? { ...n, text: t } : n) }); setNoteDraft(null); }}
-              onKeyDown={e => { if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) (e.target as HTMLTextAreaElement).blur(); }} />
-            {selNote.leader && <button className="ghost" onClick={() => onChange({ ...settings, notes: settings.notes!.map(n => n.id === selNote.id ? { id: n.id, text: n.text, at: n.at } : n) })}>Remove leader</button>}
-          </>}
-        </div>
+        <StandaloneFramesEditor settings={settings} ready={!busy && !!views && !!layout} selected={selectedFrame}
+          availableViews={([...VIEW_IDS, ...(sheet?.sections ?? []).map(x => `section:${x.id}` as DimView), ...(sheet?.details ?? []).map(x => `detail:${x.id}` as DimView)]).filter(id => { const placement = placementAt(id); return !!placement && !placement.hidden; })}
+          onSelect={id => { cancel(); setSelected(null); setSelectedTarget(null); setSelectedFrame(id); setDrag(null); setTool('select'); }}
+          onAdd={view => placeFrame(view)} onMove={frame => { if (frame.dim === undefined) placeFrame(frame.view, frame); }} onRemove={removeFrame} />
 
-        <div className="card-title" style={{ marginTop: 8 }}>EXPORT</div>
-        <div className="dw-actions">
-          <button className="primary" disabled={!sheet} onClick={exportSvg} aria-label="Export SVG"><Icon name="download" small /> SVG</button>
-          <button className="ghost" disabled={!sheet} onClick={exportPdf} aria-label="Export PDF">PDF</button>
-          <button className="ghost" disabled={!sheet} onClick={exportDxf} aria-label="Export DXF" title="The sheet as DXF, at true size in mm, layers by line kind">DXF</button>
-          <select aria-label="DXF version" value={dxfVersion} onChange={e => setDxfVersion(e.target.value as DxfVersion)} title="DXF 2000, or R12 for older programs (curves as polylines)">
-            <option value="AC1015">2000</option><option value="AC1009">R12</option>
-          </select>
-          {cuts.length > 1 && <select aria-label="Section for DXF" value={dxfCut?.id} onChange={e => setDxfSection(e.target.value)} title="The section to export alone">{cuts.map(c => <option key={c.id} value={c.id}>{c.id}–{c.id}</option>)}</select>}
-          {dxfCut && <button className="ghost" onClick={exportSectionDxf} aria-label="Export section DXF" title={`Section ${dxfCut.id}–${dxfCut.id} alone, 1:1 in model mm`}>{dxfCut.id}–{dxfCut.id} DXF</button>}
-        </div>
-        {sheet && <div className="empty">{scaleLabel(layout!.scale)} · {settings.sheet} · {VIEW_IDS.map(id => `${VIEWS[id].label.toLowerCase()} ${views![id].edges.length}`).join(', ')} edges</div>}
+        <IssuesList issues={issues} scope={scope} views={views} fixIssue={fixIssue} fixEvery={fixEvery} onSelectDimension={d => { setSelected(d); setTool('select'); }} />
+
+        <TolerancingList suggestions={suggestions} settings={settings} views={views} onChange={onChange} acceptEvery={acceptEvery} />
+
+        <DimensionsList sheet={sheet} views={views} layout={layout} scope={scope} settings={settings} selected={selected} onSelect={id => { setSelected(id); setTool('select'); }} remove={remove} autoDimension={autoDimension} />
+
+        <ToleranceEditor selDim={selDim} settings={settings} tolDraft={tolDraft} setTolDraft={setTolDraft} commitDims={commitDims} setMessage={setMessage} />
+
+        <FrameEditor key={selectedFrame ? `frame:${selectedFrame}` : selDim?.id ?? 'none'} dim={selectedFrame ? undefined : selDim?.id} frameId={selectedFrame ?? undefined} settings={settings} onChange={onChange} onRefused={setMessage} />
+
+        <NotesList settings={settings} selected={selected} selNote={selNote} noteDraft={noteDraft} setNoteDraft={setNoteDraft} noteBox={noteBox} onSelect={n => { setSelected(n.id); setNoteDraft(n.text); setTool('select'); }} remove={remove} onChange={onChange} />
+
+        <ExportActions sheet={sheet} layout={layout} views={views} cuts={cuts} settings={settings} dxfVersion={dxfVersion} setDxfVersion={setDxfVersion} dxfCut={dxfCut} setDxfSection={setDxfSection} exportSvg={exportSvg} exportPdf={exportPdf} exportDxf={exportDxf} exportSectionDxf={exportSectionDxf} />
       </aside>
-
-      <div className={'card dw-hint' + (message ? ' warn' : '')} role="status">
-        <span>{hint}</span>
-        {selected && <span><Kbd>Del</Kbd> remove</span>}
-        <span><Kbd>V</Kbd> <Kbd>D</Kbd> <Kbd>O</Kbd> <Kbd>R</Kbd> <Kbd>A</Kbd> <Kbd>N</Kbd> tools</span>
-      </div>
     </div>
   );
+}
+
+/** Keep every visible straight-edge endpoint near the pointer. A 2D overlap is a choice, not a 3D match. */
+function endpointSnap(pr: DrawingViews[ViewId], at: XY, tolerance: number, bodies: readonly BodyResult[]): { points: DrawingDatumTarget['point'][]; error?: string } {
+  const out: DrawingDatumTarget['point'][] = [];
+  for (const edge of pr.edges) {
+    if (edge.kind !== 'line' || edge.circle || !edge.ends || !edge.pieces.some(piece => piece.visible)) continue;
+    // Apply the existing snap routine per edge so it cannot discard another edge's overlapping endpoint.
+    const nearby = snapPoints({ ...pr, edges: [edge] }).some(snap => snap.ref.at === 'end' && Math.hypot(snap.at[0] - at[0], snap.at[1] - at[1]) < tolerance);
+    if (!nearby) continue;
+    const matches = bodies.flatMap(body => body.mesh.edges.filter(e => e.names.includes(edge.name)).map(e => ({ body, edge: e })));
+    if (matches.length !== 1 || !matches[0].edge.straight) return { points: [], error: 'The target edge needs one current straight edge in the drawing bodies. No target was added.' };
+    const signature = signaturesOf(matches[0].body).edges.get(edge.name);
+    if (!signature || signature.kind !== 'line') return { points: [], error: 'The current target edge has no unique straight-edge signature. No target was added.' };
+    // A view along the edge can project both 3D ends to the same 2D snap. Keep both choices.
+    for (const point of edge.ends) {
+      const q = inView(pr, point);
+      if (Math.hypot(q[0] - at[0], q[1] - at[1]) < tolerance) {
+        const endpoint = datumTargetEndpoint(edge.ends, point);
+        if (!endpoint) return { points: [], error: 'The current target endpoint has no distinct min/max identity. No target was added.' };
+        out.push({ edge: edge.name, at: 'end', near: [...point] as Vec3, endpoint, sig: toSig(signature) });
+      }
+    }
+  }
+  return { points: out };
 }
 
 /** A dimension point in a view's coordinates, by its stored model point (it may since have moved). */

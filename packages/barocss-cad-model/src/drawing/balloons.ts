@@ -1,14 +1,14 @@
-// O147 B2: item balloons — one a BOM line, on the assembly's iso view (the front view when the iso is not shown), its
+// O147 B2: item balloons — one a BOM line, on the assembly's iso view first, then another shown view, its
 // number the line's in the BOM table (the panel's and the purchase list's). Each leads to a visible edge of an instance
 // of its item, found by persistent name, so it follows the model as it changes: a placed part's edges are `<inst>/…`, an
 // element's are its node's faces (`<node>.…`, in a placed part `<inst>/<node>.…`), and a part's balloon points at an edge
 // of its own made shape, not at one of its bought elements. The tip is the middle of the longest visible piece of the
 // edge. Each is placed, as the weld symbols are (O119), along the view's side nearest its tip in GAP steps, then the
 // other sides, where its circle is clear of the views, the title block, the texts so far and the balloons before it;
-// none clear, at its nearest place, and the issue list says so. A line none of whose items shows an edge in the view
+// none clear, at its nearest place, and the issue list says so. A line none of whose items shows an edge in any shown view
 // has no balloon, and is said.
 import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
-import type { Bom } from '../team/bomCore';
+import type { Bom } from '../bom/core';
 import type { Mark, MarkGroup } from './sheet';
 import { toSheet, type SheetLayout, type ViewPlacement } from './views';
 import type { DrawingViews, ViewId, XY } from './types';
@@ -20,15 +20,42 @@ const SIDES: readonly Side[] = ['left', 'right', 'top', 'bottom'];
 const alongOf = (side: Side) => side === 'left' || side === 'right' ? 1 : 0;
 
 export interface BalloonPlaced { readonly no: number; readonly item: string; readonly view: ViewId; readonly tip: XY; readonly edge: string; readonly at: XY }
-export interface Balloons { readonly groups: MarkGroup[]; readonly placed: readonly BalloonPlaced[]; /** Item numbers placed with no clear room. */ readonly unclear: readonly number[]; /** Item numbers with no visible edge in the view. */ readonly noEdge: readonly number[] }
+export interface Balloons { readonly groups: MarkGroup[]; readonly placed: readonly BalloonPlaced[]; /** Item numbers placed with no clear room. */ readonly unclear: readonly number[]; /** Item numbers with no visible edge in any shown view. */ readonly noEdge: readonly number[] }
 
-/** What a line's balloon may point at: an instance (`<inst>/`, `base` the part itself) or an element (`<inst>/<node>.`). */
-interface Target { inst: string; node: string | null }
-const targetOf = (line: Bom['lines'][number], id: string): Target => {
-  if (line.kind === undefined && !line.plate) return { inst: id, node: null };
+/** The base part's face names by body key (O177): what a `base:<body>` line's balloon points at. */
+export type BodyFaces = Readonly<Record<string, readonly string[]>>;
+/** A face's name less its piece suffix (`n0_env1#2` is `n0_env1`'s). */
+const faceOf = (f: string) => f.replace(/#\d+$/, '');
+/**
+ * What a line's balloon may point at: an instance (`<inst>/`, `base` the part itself), an element (`<inst>/<node>.`), or
+ * one of the base part's own bodies (`faces`: its face names, O177).
+ */
+interface Target { inst: string; node: string | null; faces?: ReadonlySet<string> }
+const NO_FACES: ReadonlySet<string> = new Set();
+/** Whether every face of an edge is one of the body's. */
+function allOn(faces: readonly string[], body: ReadonlySet<string>): boolean {
+  for (const f of faces) if (!body.has(faceOf(f))) return false;
+  return faces.length > 0;
+}
+const targetOf = (line: Bom['lines'][number], id: string, bodies: ReadonlyMap<string, ReadonlySet<string>>): Target => {
+  // (F9: a placed fastener's line is a part line — its parts are placed parts, not `part:feature`.)
+  // (O177: a base part's member or made body — `base:<body key>` (O169) — is that body's edges, by its face names.)
+  if ((line.kind === undefined || line.kind === 'fastener') && !line.plate) return id.startsWith('base:') ? { inst: 'base', node: null, faces: bodies.get(id.slice(5)) ?? NO_FACES } : { inst: id, node: null };
   const k = id.indexOf(':');
   return { inst: id.slice(0, k), node: id.slice(k + 1) };
 };
+/** Each body's face names as a set, once a sheet. */
+function faceSets(bodyFaces: BodyFaces | undefined): Map<string, ReadonlySet<string>> {
+  const out = new Map<string, ReadonlySet<string>>();
+  for (const [key, faces] of Object.entries(bodyFaces ?? {})) out.set(key, new Set(faces.map(faceOf)));
+  return out;
+}
+/** The base part's bodies' face names by key, from their display meshes (the studio's bodies). */
+export function bodyFacesOf(bodies: readonly { key: string; mesh: { faces: readonly { name: string }[] } }[]): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const b of bodies) out[b.key] = [...new Set(b.mesh.faces.map(f => faceOf(f.name)))];
+  return out;
+}
 /** An edge's instance (`base`: the part's own) and its faces' names without the prefix. */
 function edgeOf(name: string): { inst: string; faces: string[] } {
   const slash = name.indexOf('/'), dot = name.indexOf('.');
@@ -64,7 +91,7 @@ export function targetEdge(pr: BrepProjection, t: Target, elements: ReadonlyMap<
   for (const e of pr.edges) {
     const { inst, faces } = edgeOf(e.name);
     if (inst !== t.inst) continue;
-    if (t.node !== null ? !ofNode(faces, t.node) : [...(elements.get(inst) ?? [])].some(n => ofNode(faces, n))) continue;
+    if (t.faces ? !allOn(faces, t.faces) : t.node !== null ? !ofNode(faces, t.node) : [...(elements.get(inst) ?? [])].some(n => ofNode(faces, n))) continue;
     for (const p of e.pieces) {
       if (!p.visible) continue;
       const m = middleOf(p.curve);
@@ -74,25 +101,27 @@ export function targetEdge(pr: BrepProjection, t: Target, elements: ReadonlyMap<
   return best && { name: best.name, mid: best.mid };
 }
 
-/** The balloons of the BOM's lines (numbered as the table is: 1… in its order) on the iso view, or the front view. */
-export function balloonMarks(layout: SheetLayout, views: DrawingViews, bom: Bom, taken: readonly Rect[]): Balloons {
-  const view: ViewId = layout.views.iso.hidden ? 'front' : 'iso', v = layout.views[view], pr = views[view];
+/** One balloon per BOM line: prefer iso, then front, top and right, using only shown views and visible target edges. */
+export function balloonMarks(layout: SheetLayout, views: DrawingViews, bom: Bom, taken: readonly Rect[], bodyFaces?: BodyFaces): Balloons {
+  const bodies = faceSets(bodyFaces);
+  const order: readonly ViewId[] = ['iso', 'front', 'top', 'right'], shown = order.filter(view => !layout.views[view].hidden);
   const elements = new Map<string, Set<string>>();
-  for (const l of bom.lines) if (l.kind !== undefined || l.plate) for (const id of l.parts) { const t = targetOf(l, id); (elements.get(t.inst) ?? elements.set(t.inst, new Set()).get(t.inst)!).add(t.node!); }
-  const found: { no: number; item: string; tip: XY; edge: string; side: Side }[] = [], noEdge: number[] = [];
+  for (const l of bom.lines) if ((l.kind !== undefined && l.kind !== 'fastener') || l.plate) for (const id of l.parts) { const t = targetOf(l, id, bodies); (elements.get(t.inst) ?? elements.set(t.inst, new Set()).get(t.inst)!).add(t.node!); }
+  const found: { no: number; item: string; view: ViewId; tip: XY; edge: string; side: Side }[] = [], noEdge: number[] = [];
   bom.lines.forEach((l, k) => {
-    for (const id of l.parts) {
-      const e = targetEdge(pr, targetOf(l, id), elements); if (!e) continue;
+    for (const view of shown) for (const id of l.parts) {
+      const v = layout.views[view], e = targetEdge(views[view], targetOf(l, id, bodies), elements); if (!e) continue;
       const tip = toSheet(v, e.mid);
-      found.push({ no: k + 1, item: l.item, tip, edge: e.name, side: sideOf(v, tip) });
+      found.push({ no: k + 1, item: l.item, view, tip, edge: e.name, side: sideOf(v, tip) });
       return;
     }
     noEdge.push(k + 1);
   });
   // (By side and along it, so neighbouring balloons' leaders do not cross; each the first clear place from its tip.)
-  found.sort((a, b) => SIDES.indexOf(a.side) - SIDES.indexOf(b.side) || a.tip[alongOf(a.side)] - b.tip[alongOf(b.side)]);
+  found.sort((a, b) => order.indexOf(a.view) - order.indexOf(b.view) || SIDES.indexOf(a.side) - SIDES.indexOf(b.side) || a.tip[alongOf(a.side)] - b.tip[alongOf(b.side)]);
   const groups: MarkGroup[] = [], placed: BalloonPlaced[] = [], unclear: number[] = [], mine: Rect[] = [];
   for (const f of found) {
+    const view = f.view, v = layout.views[view];
     let at: XY | null = null;
     for (const side of [f.side, ...SIDES.filter(x => x !== f.side)]) {
       for (let k = 0; k <= 2 * TRIES && !at; k++) {

@@ -1,28 +1,51 @@
-import { useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import type { PartInstance } from '@barocss/cad-model/engine/doc';
 import { BASE } from '@barocss/cad-model/assembly/mates';
-import type { JointTree, JointType } from '@barocss/cad-model/robot/joints';
+import type { Joint, JointTree, JointType } from '@barocss/cad-model/robot/joints';
+import { jointSettingsOut } from '@barocss/cad-model/robot/units';
 import { sliderRange } from '@barocss/cad-model/robot/fk';
 import type { LinkInertia } from '@barocss/cad-model/robot/inertia';
+import { CONTROL, FIELD, TICK } from './panelStyles';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { NativeSelect } from '@/components/ui/native-select';
 
 const TYPE_LABEL: Record<JointType, string> = { fixed: 'Fixed', revolute: 'Revolute', continuous: 'Continuous', prismatic: 'Prismatic' };
 const axisText = (a: readonly number[]) => { const k = a.findIndex(x => Math.abs(Math.abs(x) - 1) < 1e-9); return k >= 0 ? `${a[k] < 0 ? '−' : '+'}${'XYZ'[k]}` : `[${a.map(x => x.toFixed(3)).join(', ')}]`; };
-const limitText = (l: NonNullable<JointTree['joints'][number]['limit']>, type: JointType) => [l.lower !== undefined && l.upper !== undefined ? `${l.lower} … ${l.upper} ${type === 'prismatic' ? 'mm' : 'rad'}` : '', l.effort !== undefined ? `${l.effort} ${type === 'prismatic' ? 'N' : 'N·m'}` : '', l.velocity !== undefined ? `${l.velocity} ${type === 'prismatic' ? 'mm/s' : 'rad/s'}` : ''].filter(Boolean).join(' · ');
+// (Conventions §2: a turning joint's range in degrees and its velocity in °/s, a slide's in mm and mm/s; each number to 4 significant figures.)
+const sig4 = (v: number) => { const t = Number(v.toPrecision(4)); return Object.is(t, -0) ? 0 : t; };
+const limitText = (raw: NonNullable<JointTree['joints'][number]['limit']>, type: JointType) => {
+  const l = jointSettingsOut(type, raw), slide = type === 'prismatic';
+  return [l.lower !== undefined && l.upper !== undefined ? (slide ? `${sig4(l.lower)} … ${sig4(l.upper)} mm` : `${sig4(l.lower)}° … ${sig4(l.upper)}°`) : '', l.effort !== undefined ? `${sig4(l.effort)} ${slide ? 'N' : 'N·mm'}` : '', l.velocity !== undefined ? `${sig4(l.velocity)} ${slide ? 'mm/s' : '°/s'}` : ''].filter(Boolean).join(' · ');
+};
 
 /** A gear pair at the pose shown: its phase against home, its backlash (RM2). */
-export interface GearLine { leader: string; follower: string; multiplier: number; held: boolean; backlashMM: number }
+export interface GearLine { leader: string; follower: string; multiplier: number; held: boolean; backlash: number }
 const DEG = 180 / Math.PI;
 /** One decimal, a rounding of zero shown as 0.0 (not −0.0). */
 /** A torque or force to 4 significant figures, a rounding of zero as 0. */
 const fmtTorque = (v: number) => (Math.abs(v) < 1e-12 ? '0' : Number(v.toPrecision(4)).toString());
 const mm1 = (v: number) => { const t = v.toFixed(1); return t === '-0.0' ? '0.0' : t; };
+const fix3 = (v: number) => { const t = v.toFixed(3); return t === '-0.000' ? '0.000' : t; };
+/** The motion played (RS2): the time shown and the motion's length (s), play state, loop, speed, and a contact reached. */
+export interface MotionReadout { t: number; duration: number; playing: boolean; loop: boolean; speed: number; contact: string | null }
+export interface MotionControls {
+  onPlay(): void; onPause(): void; onTime(t: number): void; onLoop(on: boolean): void; onSpeed(speed: number): void;
+  /** The document's saved motions by name, the one chosen (null: the draft), and saving the draft under a name. */
+  saved: readonly string[]; choice: string | null; onChoose(name: string | null): void; onSave(name: string): void;
+  /** A WebM of the motion at its own timing (RS2), and whether one is being recorded. */
+  onExportVideo?(): void; exporting?: boolean;
+}
+const SPEEDS = [0.25, 0.5, 1, 2];
+/** A frame as the card reads it out (O12). */
+export interface FrameReadout { name: string; link: string; kind?: 'tool' | 'sensor'; o: readonly number[]; z: readonly number[] }
 
 /**
  * The assembly as a robot (RM1): the base link, the joints the mates make, loops, gear couplings and what blocks a link;
  * and (RM2) a slider a moving joint to pose it — degrees for a turn, mm for a slide — Home, and one joint played back
  * and forth. A follower moves with its leader (no slider of its own). The pose is a preview: nothing is saved.
  */
-export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, links, onExportUrdf, onExportMjcf, onCheckPath, path, ready = true, holding, waypoints = 0, onAddWaypoint, onClearWaypoints, onWorkspace, workspace, onWorkspaceDownload, onWorkspaceHide, onExportSdf, onExportUsd }: {
+export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, frames, links, onExportUrdf, onExportMjcf, onCheckPath, path, ready = true, holding, waypoints = 0, onAddWaypoint, onClearWaypoints, onWorkspace, workspace, onWorkspaceDownload, onWorkspaceHide, onExportSdf, onExportUsd, motion, motionControls }: {
   tree: JointTree; instances: PartInstance[]; onBase(base: string): void;
   values: Record<string, number>; onValue(key: string, v: number): void; onHome(): void; playing: string | null; onPlay(key: string | null): void; gears: GearLine[];
   /** Each link's mass properties (RM3), in its link frame. */
@@ -44,59 +67,90 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
   ready?: boolean;
   /** Each joint's static gravity torque (N·m) or force (N) at the pose shown (RD1). */
   holding?: Record<string, number>;
+  /** The tool and sensor frames (O12) at the pose shown: each one's origin (mm) and its Z axis, in the assembly's coordinates. */
+  frames?: FrameReadout[];
+  /** The motion through the waypoints (RS2), when there is one to play, and its controls. */
+  motion?: MotionReadout | null; motionControls?: MotionControls;
 }) {
   const [wsN, setWsN] = useState(20000), [wsH, setWsH] = useState(10), [wsFree, setWsFree] = useState(false), [massesOpen, setMassesOpen] = useState(false);
+  const [homeReset, setHomeReset] = useState(0);
   const massLinks = links?.filter(l => l.part !== null) ?? [];
   const name = (link: string) => tree.links.find(l => l.id === link)?.name ?? (link === BASE ? 'Base part' : instances.find(i => i.id === link)?.name ?? link);
   return (
     <aside className="card props" aria-label="Joints">
       <div className="card-title">JOINTS <span className="muted">{tree.joints.length || ''}</span></div>
-      <label className="field"><span>Base link</span>
-        <select aria-label="Base link" value={tree.base} onChange={e => onBase(e.target.value)}>
+      <p className="muted py-0.5 text-[11px]">The current pose is a preview. Save does not include it in the design file.</p>
+      <label className={FIELD}><span>Base link</span>
+        <NativeSelect className={CONTROL} aria-label="Base link" value={tree.base} onChange={e => onBase(e.target.value)}>
           <option value={BASE}>Base part</option>
           {instances.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-        </select></label>
+        </NativeSelect></label>
       {tree.joints.map(j => {
         const r = sliderRange(j), turn = j.type !== 'prismatic', v = values[j.key] ?? 0, shown = turn ? v * DEG : v;
         return (
           <div key={j.key} aria-label={`Joint ${j.key}`} title={`mates ${j.mates.join(', ') || 'none'}`}>
-            <div className="kv">{name(j.parent)} → {name(j.child)} <b>{TYPE_LABEL[j.type]}{j.type !== 'fixed' ? ` ${axisText(j.axis)}` : ''}{j.mimic ? ` · follows ${j.mimic.joint} ×${j.mimic.multiplier.toFixed(4)}` : ''}</b>
+            <div className="kv">{name(j.parent)} → {name(j.child)} <b>{TYPE_LABEL[j.type]}{j.type !== 'fixed' ? ` ${axisText(j.axis)}` : ''}{j.mimic ? (j.cam ? ` · follows ${j.mimic.joint} on its cam (${j.cam.mate})` : ` · follows ${j.mimic.joint} ×${j.mimic.multiplier.toFixed(4)}`) : ''}</b>
               {j.limit && <span className="muted"> {limitText(j.limit, j.type)}</span>}</div>
-            {holding && j.type !== 'fixed' && <div className="kv muted" aria-label={`Joint ${j.key} holding`}>holds {fmtTorque(holding[j.key] ?? 0)} {turn ? 'N·m' : 'N'} against gravity</div>}
-            {j.type !== 'fixed' && !j.mimic && <div className="field" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {holding && j.type !== 'fixed' && <div className="kv muted" aria-label={`Joint ${j.key} holding`}>holds {fmtTorque((holding[j.key] ?? 0) * (turn ? 1000 : 1))} {turn ? 'N·mm' : 'N'} against gravity</div>}
+            {j.type !== 'fixed' && !j.mimic && <div className={FIELD} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <input type="range" aria-label={`Joint ${j.key} value`} min={r.min} max={r.max} step="any" value={v} style={{ flex: 1 }}
                 onChange={e => onValue(j.key, Number(e.target.value))} />
               <span className="muted" style={{ minWidth: 64, textAlign: 'right' }}>{shown.toFixed(1)} {turn ? '°' : 'mm'}</span>
-              <button className="ghost" aria-label={`Play joint ${j.key}`} onClick={() => onPlay(playing === j.key ? null : j.key)}>{playing === j.key ? '■' : '▶'}</button>
+              <Button variant="ghost" aria-label={`Play joint ${j.key}`} onClick={() => onPlay(playing === j.key ? null : j.key)}>{playing === j.key ? '■' : '▶'}</Button>
             </div>}
+            {j.type !== 'fixed' && !j.mimic && <JointPoseInput joint={j} value={v} resetKey={homeReset} onValue={onValue} />}
             {j.mimic && <div className="kv muted">at {(turn ? (values[j.key] ?? 0) * DEG : values[j.key] ?? 0).toFixed(1)} {turn ? '°' : 'mm'}</div>}
           </div>
         );
       })}
-      {gears.map(g => <div key={g.follower} className="kv" aria-label={`Gear pair ${g.follower}`}>Gears <b>{g.leader} → {g.follower} ×{g.multiplier.toFixed(4)}</b> <span className={g.held ? 'muted' : 'hud-error'}>{g.held ? 'mesh held' : 'teeth out of phase'} · backlash {g.backlashMM.toFixed(3)} mm</span></div>)}
+      {/* (O12: each frame where the pose puts it — its origin and the way its Z axis points, the approach of a tool.) */}
+      {frames?.map(f => <div key={f.name} className="py-0.5 text-[11px]" aria-label={`Frame ${f.name}`} title={`${f.kind ?? 'frame'} on ${name(f.link)}: origin in mm, its Z axis as a unit vector`}>
+        <div className="truncate">{f.name} <span className="muted">{f.kind ?? 'frame'} · {name(f.link)}</span></div>
+        <b className="mono flex flex-wrap justify-end gap-x-1 [&>span]:whitespace-nowrap"><span>({f.o.map(mm1).join(', ')})</span>{' '}<span>· Z ({f.z.map(v => fix3(v)).join(', ')})</span></b></div>)}
+      {gears.map(g => <div key={g.follower} className="kv" aria-label={`Gear pair ${g.follower}`}>Gears <b>{g.leader} → {g.follower} ×{g.multiplier.toFixed(4)}</b> <span className={g.held ? 'muted' : 'hud-error'}>{g.held ? 'mesh held' : 'teeth out of phase'} · backlash {g.backlash.toFixed(3)} mm</span></div>)}
+      {/* (RS2: the motion from home through the waypoints to the pose shown, played over time; a preview, nothing saved.) */}
+      {motion && motionControls && <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-0.5 text-[11px]" aria-label="Motion">
+        <NativeSelect className={CONTROL} aria-label="Motion choice" value={motionControls.choice ?? ''} onChange={e => motionControls.onChoose(e.target.value || null)} style={{ flexBasis: '100%' }}>
+          <option value="">Draft: home → waypoints → this pose</option>
+          {motionControls.saved.map(n => <option key={n} value={n}>{n}</option>)}
+        </NativeSelect>
+        <Button variant="ghost" aria-label={motion.playing ? 'Pause motion' : 'Play motion'} disabled={!ready || !(motion.duration > 0)}
+          title="Play the motion: from home through the waypoints to the pose shown, each move within the joints' velocity limits" onClick={motion.playing ? motionControls.onPause : motionControls.onPlay}>{motion.playing ? '⏸' : '▶'}</Button>
+        <input type="range" aria-label="Motion time" min={0} max={motion.duration || 1} step="any" value={Math.min(motion.t, motion.duration)} disabled={!(motion.duration > 0)}
+          style={{ flex: 1, minWidth: 80 }} onChange={e => motionControls.onTime(Number(e.target.value))} />
+        <span className="muted" aria-label="Motion time readout" style={{ minWidth: 92, textAlign: 'right' }}>t {motion.t.toFixed(2)} / {motion.duration.toFixed(2)} s</span>
+        <label className="inline-flex items-center gap-1"><input type="checkbox" className={TICK} aria-label="Loop motion" checked={motion.loop} onChange={e => motionControls.onLoop(e.target.checked)} /> loop</label>
+        <NativeSelect className={CONTROL} aria-label="Motion speed" value={String(motion.speed)} onChange={e => motionControls.onSpeed(Number(e.target.value))} style={{ width: 64 }}>
+          {SPEEDS.map(v => <option key={v} value={String(v)}>{v}×</option>)}
+        </NativeSelect>
+        {motionControls.onExportVideo && <Button variant="ghost" aria-label="Export motion video" disabled={!ready || !(motion.duration > 0) || motionControls.exporting}
+          title="A WebM video of the motion from its start to its end, at its own timing (30 frames a second)" onClick={motionControls.onExportVideo}>{motionControls.exporting ? 'Recording…' : 'Video'}</Button>}
+        {motion.contact && <div className="hud-error basis-full" role="status" aria-label="Motion contact">{motion.contact}</div>}
+        {motionControls.choice === null && <MotionSave saved={motionControls.saved} disabled={!(motion.duration > 0)} onSave={motionControls.onSave} />}
+      </div>}
       {path && <div className={path.contact ? 'hud-error' : 'kv muted'} role="status" aria-label="Path check">{path.text}</div>}
-      {onWorkspace && tree.joints.some(j => j.type !== 'fixed') && <div className="kv" aria-label="Workspace">
-        <label>N <input type="number" aria-label="Workspace samples" min={100} max={200000} step={1000} value={wsN} onChange={e => setWsN(Number(e.target.value))} style={{ width: 70 }} /></label>
-        <label> h <input type="number" aria-label="Workspace voxel" min={0.5} step={1} value={wsH} onChange={e => setWsH(Number(e.target.value))} style={{ width: 48 }} /> mm</label>
-        <label title="Leave out poses where two links interpenetrate (RM6's exact test): slower"> <input type="checkbox" aria-label="Workspace contact-free" checked={wsFree} onChange={e => setWsFree(e.target.checked)} /> contact-free</label>
-        <button className="ghost" aria-label="Map workspace" disabled={!ready || !(wsN >= 1 && wsH > 0)} title="The positions the end link's joint point reaches over the joints' ranges, coloured by manipulability" onClick={() => onWorkspace(wsN, wsH, wsFree)}>Workspace</button></div>}
-      {workspace && <div className="kv muted" role="status" aria-label="Workspace summary">{workspace} {onWorkspaceDownload && <button className="ghost small" aria-label="Download workspace" onClick={onWorkspaceDownload}>JSON</button>}{onWorkspaceHide && <button className="ghost small" aria-label="Hide workspace" onClick={onWorkspaceHide}>Hide</button>}</div>}
-      <div className="row-actions">{tree.joints.some(j => j.type !== 'fixed') && <button className="ghost" aria-label="Joints home" onClick={onHome}>Home</button>}
-        {onAddWaypoint && Object.values(values).some(v => v !== 0) && <button className="ghost" aria-label="Add waypoint" title="Record this pose as a waypoint: Check path goes through the waypoints in order, then to the pose shown" onClick={onAddWaypoint}>Add waypoint</button>}
-        {onClearWaypoints && waypoints > 0 && <button className="ghost" aria-label="Clear waypoints" onClick={onClearWaypoints}>Clear {waypoints} waypoint{waypoints === 1 ? '' : 's'}</button>}
-        {onCheckPath && (waypoints > 0 || Object.values(values).some(v => v !== 0)) && <button className="ghost" aria-label="Check path" disabled={!ready} title="Sweep the timed path from the solved pose (through the waypoints) to this one for collisions between links: the time of impact, or the whole path certified" onClick={onCheckPath}>Check path</button>}
-        {onExportUrdf && <button className="ghost" aria-label="Export URDF" disabled={!ready} title={ready ? undefined : 'The parts are still being evaluated'} onClick={onExportUrdf}>Export URDF</button>}
-        {onExportMjcf && <button className="ghost" aria-label="Export MJCF" disabled={!ready} title={ready ? undefined : 'The parts are still being evaluated'} onClick={onExportMjcf}>Export MJCF</button>}
-        {onExportSdf && <button className="ghost" aria-label="Export SDF" disabled={!ready} title={ready ? 'SDFormat 1.11 (Gazebo): links, inertia, meshes, joints, a loop as a ball joint' : 'The parts are still being evaluated'} onClick={onExportSdf}>Export SDF</button>}
-        {onExportUsd && <button className="ghost" aria-label="Export USD" disabled={!ready} title={ready ? 'A USD stage (.usda) with UsdPhysics rigid bodies and joints' : 'The parts are still being evaluated'} onClick={onExportUsd}>Export USD</button>}</div>
+      {onWorkspace && tree.joints.some(j => j.type !== 'fixed') && <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-0.5 text-[11px] [&>label]:inline-flex [&>label]:items-center [&>label]:gap-1 [&>label]:whitespace-nowrap" aria-label="Workspace">
+        <label>N <Input type="number" aria-label="Workspace samples" min={100} max={200000} step={1000} value={wsN} onChange={e => setWsN(Number(e.target.value))} style={{ width: 70 }} /></label>
+        <label> h <Input type="number" aria-label="Workspace voxel" min={0.5} step={1} value={wsH} onChange={e => setWsH(Number(e.target.value))} style={{ width: 48 }} /> mm</label>
+        <label title="Leave out poses where two links interpenetrate (RM6's exact test): slower"> <input type="checkbox" className={TICK} aria-label="Workspace contact-free" checked={wsFree} onChange={e => setWsFree(e.target.checked)} /> contact-free</label>
+        <Button variant="ghost" aria-label="Map workspace" disabled={!ready || !(wsN >= 1 && wsH > 0)} title="The positions the end link's joint point reaches over the joints' ranges, coloured by manipulability" onClick={() => onWorkspace(wsN, wsH, wsFree)}>Workspace</Button></div>}
+      {workspace && <div className="kv muted" role="status" aria-label="Workspace summary">{workspace} {onWorkspaceDownload && <Button variant="ghost" aria-label="Download workspace" onClick={onWorkspaceDownload}>JSON</Button>}{onWorkspaceHide && <Button variant="ghost" aria-label="Hide workspace" onClick={onWorkspaceHide}>Hide</Button>}</div>}
+      <div className="flex flex-wrap gap-1">{tree.joints.some(j => j.type !== 'fixed') && <Button variant="ghost" aria-label="Joints home" onClick={() => { setHomeReset(previous => previous + 1); onHome(); }}>Home</Button>}
+        {onAddWaypoint && Object.values(values).some(v => v !== 0) && <Button variant="ghost" aria-label="Add waypoint" title="Record this pose as a waypoint: Check path goes through the waypoints in order, then to the pose shown" onClick={onAddWaypoint}>Add waypoint</Button>}
+        {onClearWaypoints && waypoints > 0 && <Button variant="ghost" aria-label="Clear waypoints" onClick={onClearWaypoints}>Clear {waypoints} waypoint{waypoints === 1 ? '' : 's'}</Button>}
+        {onCheckPath && (waypoints > 0 || Object.values(values).some(v => v !== 0)) && <Button variant="ghost" aria-label="Check path" disabled={!ready} title="Sweep the timed path from the solved pose (through the waypoints) to this one for collisions between links: the time of impact, or the whole path certified" onClick={onCheckPath}>Check path</Button>}
+        {onExportUrdf && <Button variant="ghost" aria-label="Export URDF" disabled={!ready} title={ready ? undefined : 'The parts are still being evaluated'} onClick={onExportUrdf}>Export URDF</Button>}
+        {onExportMjcf && <Button variant="ghost" aria-label="Export MJCF" disabled={!ready} title={ready ? undefined : 'The parts are still being evaluated'} onClick={onExportMjcf}>Export MJCF</Button>}
+        {onExportSdf && <Button variant="ghost" aria-label="Export SDF" disabled={!ready} title={ready ? 'SDFormat 1.11 (Gazebo): links, inertia, meshes, joints, a loop as a ball joint' : 'The parts are still being evaluated'} onClick={onExportSdf}>Export SDF</Button>}
+        {onExportUsd && <Button variant="ghost" aria-label="Export USD" disabled={!ready} title={ready ? 'A USD stage (.usda) with UsdPhysics rigid bodies and joints' : 'The parts are still being evaluated'} onClick={onExportUsd}>Export USD</Button>}</div>
       {/* (O75: the links' masses as one line, the list on demand — a 6-link arm's ran past the viewport; a link's problem stays shown.) */}
       {massLinks.length > 0 && <div className="kv" aria-label="Link masses">Links <b>{massLinks.length} · {mm1(massLinks.reduce((s, l) => s + l.massKg, 0) * 1000)} g</b>
         {massLinks.some(l => l.issues.some(i => i.code === 'MATERIAL_ASSUMED')) && <span className="muted"> · material assumed</span>}
-        <button className="ghost small" aria-label={massesOpen ? 'Hide link masses' : 'Show link masses'} aria-expanded={massesOpen} onClick={() => setMassesOpen(!massesOpen)}>{massesOpen ? 'Hide' : 'Show'}</button></div>}
+        <Button variant="ghost" aria-label={massesOpen ? 'Hide link masses' : 'Show link masses'} aria-expanded={massesOpen} onClick={() => setMassesOpen(!massesOpen)}>{massesOpen ? 'Hide' : 'Show'}</Button></div>}
       {massLinks.map(l => {
         const bad = l.issues.filter(i => i.code !== 'MATERIAL_ASSUMED'), assumed = l.issues.some(i => i.code === 'MATERIAL_ASSUMED');
         if (!massesOpen) return bad.map((i, k) => <div key={`${l.link}-${k}`} className="hud-error" role="status">{name(l.link)}: {i.message}</div>);
-        return <div key={l.link} aria-label={`Link ${l.link} mass`} title={`inertia about the centre of mass, link frame (kg·m²): ${l.principal.moments.map(m => m.toExponential(3)).join(', ')} principal`}>
+        return <div key={l.link} aria-label={`Link ${l.link} mass`} title={`inertia about the centre of mass, link frame (g·mm²): ${l.principal.moments.map(m => (m * 1e9).toExponential(3)).join(', ')} principal`}>
           <div className="kv">{name(l.link)} <b>{mm1(l.massKg * 1000)} g</b></div>
           <div className="kv muted">CoM ({l.comM.map(v => mm1(v * 1000)).join(', ')}) mm{assumed ? ' · material assumed' : ''}</div>
           {bad.map((i, k) => <div key={k} className="hud-error" role="status">{i.message}</div>)}
@@ -107,4 +161,53 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
       {!tree.joints.length && !tree.problems.length && <div className="empty">Mate parts to the base part to make joints.</div>}
     </aside>
   );
+}
+
+/** Explicit numeric preview input. Values and bounds arrive in core radians/mm. */
+function JointPoseInput({ joint, value, resetKey, onValue }: { joint: Joint; value: number; resetKey: number; onValue(key: string, value: number): void }) {
+  const turn = joint.type !== 'prismatic', shown = turn ? value * DEG : value, unit = turn ? 'degree' : 'mm';
+  const [draft, setDraft] = useState(String(shown)), [error, setError] = useState<string | null>(null);
+  const errorId = useId(), lower = joint.limit?.lower, upper = joint.limit?.upper;
+  useEffect(() => { setDraft(String(shown)); setError(null); }, [resetKey, shown, value, joint.key, joint.type, lower, upper]);
+  const cancel = () => { setDraft(String(shown)); setError(null); };
+  const apply = () => {
+    if (!draft.trim() || !Number.isFinite(Number(draft))) { setError(`Enter a finite value in ${unit}.`); return; }
+    const entered = Number(draft);
+    // Reuse exact core values for an unchanged display or an exactly displayed endpoint; no tolerance or clamp.
+    const core = !turn ? entered : entered === shown ? value
+      : lower !== undefined && entered === lower * DEG ? lower
+      : upper !== undefined && entered === upper * DEG ? upper : entered / DEG;
+    if (!Number.isFinite(core)) { setError('The converted joint value must be finite.'); return; }
+    if (lower !== undefined && core < lower) { setError(`The value must be at least ${turn ? lower * DEG : lower} ${unit}.`); return; }
+    if (upper !== undefined && core > upper) { setError(`The value must be at most ${turn ? upper * DEG : upper} ${unit}.`); return; }
+    onValue(joint.key, core);
+    setDraft(String(turn ? core * DEG : core));
+    setError(null);
+  };
+  return <div className="min-w-0 py-0.5 text-[11px]" onKeyDown={event => event.stopPropagation()} onKeyUp={event => event.stopPropagation()}>
+    <div className="flex flex-wrap items-center gap-1">
+      <label className="flex min-w-0 flex-1 items-center gap-1"><span>Pose ({unit})</span>
+        <Input type="number" step="any" className="min-w-0 w-24" aria-label={`Joint ${joint.key} pose (${unit})`}
+          aria-invalid={error !== null} aria-describedby={error ? errorId : undefined} value={draft}
+          onChange={event => { setDraft(event.target.value); setError(null); }} onKeyDown={event => {
+            event.stopPropagation();
+            if (event.key === 'Enter') { event.preventDefault(); apply(); }
+            else if (event.key === 'Escape') { event.preventDefault(); cancel(); }
+          }} />
+      </label>
+      <Button type="button" variant="ghost" aria-label={`Apply joint ${joint.key} pose`} onClick={apply}>Apply</Button>
+      <Button type="button" variant="ghost" aria-label={`Cancel joint ${joint.key} pose edit`} onClick={cancel}>Cancel</Button>
+    </div>
+    {error && <div id={errorId} className="hud-error" role="alert">{error}</div>}
+  </div>;
+}
+
+/** The draft kept in the document under a name (RS2): a new name, or one saved before, which it replaces. */
+function MotionSave({ saved, disabled, onSave }: { saved: readonly string[]; disabled: boolean; onSave(name: string): void }) {
+  const [name, setName] = useState('');
+  const n = name.trim() || `Motion ${saved.length + 1}`;
+  return <div className="flex basis-full items-center gap-1">
+    <Input className="kv-input" aria-label="Motion name" placeholder={`Motion ${saved.length + 1}`} value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.stopPropagation()} style={{ flex: 1 }} />
+    <Button variant="ghost" aria-label="Save as motion" disabled={disabled} title={saved.includes(n) ? `Replace the saved motion “${n}”` : 'Keep this motion in the document, to play again'} onClick={() => { onSave(n); setName(''); }}>Save as motion</Button>
+  </div>;
 }

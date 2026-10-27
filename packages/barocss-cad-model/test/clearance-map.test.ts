@@ -25,45 +25,52 @@ const only = (pairs: readonly ClearancePair[]) => { assert.equal(pairs.length, 1
 test('G22: an overlap in contact at once, then filled — 5 × 20 × 10 = 1000 mm³, the mesh\'s volume the same, in body a\'s frame; the bands on both sides', async () => {
   const bodies = await assemblyPlacedBodies(asm(box(20, 20, 10), inst('p', box(20, 20, 10), [15, 0, 0])), evaluate);
   assert.deepEqual(bodies.map(b => b.key).sort(), ['b1', 'p/b1']);
-  const map = clearanceMap(bodies, { nearMM: 1.5 }), p = only(map.pairs);
-  assert.deepEqual([p.state, p.minGapMM, map.pending], ['contact', 0, 1], 'in contact: touching or a clash, the Boolean to say');
+  const map = clearanceMap(bodies, { near: 1.5 }), p = only(map.pairs);
+  assert.deepEqual([p.state, p.minGap, map.pending], ['contact', 0, 1], 'in contact: touching or a clash, the Boolean to say');
+  assert.deepEqual(map.near, { value: 1.5, source: 'input' });
+  assert.equal('minGapMM' in p || 'squeezeMM3' in p, false);
   assert.ok(p.overlap && 'pending' in p.overlap);
   const f = fillOverlap(map, bodies, pendingPairs(map)[0]);
-  assert.ok('volumeMM3' in f.overlap, JSON.stringify(f.overlap));
-  assert.ok(Math.abs(f.overlap.volumeMM3 - 1000) < 1e-9 * 1000, String(f.overlap.volumeMM3));
-  assert.ok(Math.abs(meshVolume(f.overlap.mesh.positions, f.overlap.mesh.indices) - f.overlap.volumeMM3) < 1e-3, 'its mesh encloses its volume');
+  assert.ok('volume' in f.overlap, JSON.stringify(f.overlap));
+  assert.ok(Math.abs(f.overlap.volume - 1000) < 1e-9 * 1000, String(f.overlap.volume));
+  assert.ok(Math.abs(meshVolume(f.overlap.mesh.positions, f.overlap.mesh.indices) - f.overlap.volume) < 1e-3, 'its mesh encloses its volume');
   // (In a's frame: the block between x 15 and 20 of the base box.)
   const a = p.a === 'b1';
   assert.ok(a, 'the base body is side a');
   assert.ok(Math.abs(f.overlap.mesh.bounds.min[0] - 15) < 1e-5 && Math.abs(f.overlap.mesh.bounds.max[0] - 20) < 1e-5);
-  assert.ok(applyFill(map, f) && map.pending === 0 && 'volumeMM3' in p.overlap!);
+  assert.ok(applyFill(map, f) && map.pending === 0 && 'volume' in p.overlap!);
   assert.equal(p.state, 'overlap', '1000 mm³: a clash');
   // (Bands come after the map, on asking: none in it at first.)
   assert.equal(p.band, undefined); assert.deepEqual(bandPending(map), [p]);
   const band = bandFor(map, bodies, p)!;
   assert.ok(band.a.indices.length > 0 && band.b.indices.length > 0, 'bands on both sides'); assert.deepEqual(bandPending(map), []);
+  assert.equal(bandFor(map, bodies, p), band, 'an already filled band retains its identity');
 });
 
 test('G22: 1 mm apart — near, the least gap 1 between the facing faces by name, closest points in each body\'s frame; far apart, no pair', async () => {
   const bodies = await assemblyPlacedBodies(asm(box(20, 20, 10), inst('p', box(20, 20, 10), [21, 0, 0])), evaluate);
-  const map = clearanceMap(bodies, { nearMM: 1.5 }), p = only(map.pairs);
-  assert.equal(p.state, 'near'); assert.ok(Math.abs(p.minGapMM - 1) < 1e-6, String(p.minGapMM));
+  const map = clearanceMap(bodies, { near: 1.5 }), p = only(map.pairs);
+  assert.equal(p.state, 'near'); assert.ok(Math.abs(p.minGap - 1) < 1e-6, String(p.minGap));
   assert.ok(Math.abs(p.closest.a[0] - 20) < 1e-6 && Math.abs(p.closest.b[0]) < 1e-6, JSON.stringify(p.closest));
   assert.ok(p.closest.faceA && p.closest.faceB && p.closest.faceA !== '' && p.closest.faceB !== '');
   assert.equal(p.overlap, undefined);
   const facing = Math.min(...bandFor(map, bodies, p)!.a.field);
   assert.ok(Math.abs(facing - 1) < 1e-6, `the facing side's field ${facing}`);
   const far = await assemblyPlacedBodies(asm(box(20, 20, 10), inst('p', box(20, 20, 10), [40, 0, 0])), evaluate);
-  assert.deepEqual(clearanceMap(far, { nearMM: 1.5 }).pairs, []);
+  assert.deepEqual(clearanceMap(far, { near: 1.5 }).pairs, []);
+  const three = await assemblyPlacedBodies(asm(box(20, 20, 10), inst('p', box(20, 20, 10), [21, 0, 0]), inst('q', box(20, 20, 10), [0, 22, 0])), evaluate);
+  const waiting = bandPending(clearanceMap(three, { near: 2.5 }));
+  assert.equal(waiting.length, 3);
+  for (const [i, gap] of [1, 2, Math.sqrt(5)].entries()) assert.ok(Math.abs(waiting[i].minGap - gap) < 1e-6, `nearest-first gap ${waiting[i].minGap} vs ${gap}`);
 });
 
 test('G22 band oracle: a 2 mm cube 0.8 above the middle of a box\'s top face (two big triangles) — the band refines there; its least field equals the gap within the subdivision\'s bound (near/3)', async () => {
   const near = 1.5, bodies = await assemblyPlacedBodies(asm(box(60, 40, 10), inst('c', box(2, 2, 2), [29, 19, 10.8])), evaluate);
   const top = bodies.find(b => b.key === 'b1')!;
-  const map = clearanceMap(bodies, { nearMM: near }), p = only(map.pairs), both = bandFor(map, bodies, p)!, band = p.a === 'b1' ? both.a : both.b;
-  assert.ok(Math.abs(p.minGapMM - 0.8) < 1e-6, String(p.minGapMM));
+  const map = clearanceMap(bodies, { near: near }), p = only(map.pairs), both = bandFor(map, bodies, p)!, band = p.a === 'b1' ? both.a : both.b;
+  assert.ok(Math.abs(p.minGap - 0.8) < 1e-6, String(p.minGap));
   const least = Math.min(...band.field);
-  assert.ok(least >= p.minGapMM - 1e-6 && least - p.minGapMM <= near / 3 + 1e-9, `least ${least}, gap ${p.minGapMM}`);
+  assert.ok(least >= p.minGap - 1e-6 && least - p.minGap <= near / 3 + 1e-9, `least ${least}, gap ${p.minGap}`);
   // (Refined: the band's triangles are small, around the spot — none is the face's own big triangle.)
   let longest = 0;
   for (let t = 0; t < band.indices.length; t += 3) for (const [u, v] of [[0, 1], [1, 2], [2, 0]]) { const i = 3 * band.indices[t + u], j = 3 * band.indices[t + v]; longest = Math.max(longest, Math.hypot(band.positions[i] - band.positions[j], band.positions[i + 1] - band.positions[j + 1], band.positions[i + 2] - band.positions[j + 2])); }
@@ -76,13 +83,13 @@ test('G22 band oracle: a 2 mm cube 0.8 above the middle of a box\'s top face (tw
 
 test('G22: turned 90° about Z — the fill in a\'s frame (still 1000 mm³), the closest points mapped back onto their worlds; a fill for a pose no longer shown is dropped', async () => {
   const doc = asm(box(20, 20, 10), inst('p', box(20, 20, 10), [20 + 15, 0, 0], [0, 0, 90]));
-  const bodies = await assemblyPlacedBodies(doc, evaluate), map = clearanceMap(bodies, { nearMM: 1 }), p = only(map.pairs);
+  const bodies = await assemblyPlacedBodies(doc, evaluate), map = clearanceMap(bodies, { near: 1 }), p = only(map.pairs);
   assert.equal(p.state, 'contact');
   const f = fillOverlap(map, bodies, p);
-  assert.ok('volumeMM3' in f.overlap && Math.abs(f.overlap.volumeMM3 - 1000) < 1e-9 * 1000, JSON.stringify('volumeMM3' in f.overlap ? f.overlap.volumeMM3 : f.overlap));
+  assert.ok('volume' in f.overlap && Math.abs(f.overlap.volume - 1000) < 1e-9 * 1000, JSON.stringify('volume' in f.overlap ? f.overlap.volume : f.overlap));
   // (The instance moved: a new map, its pair's pose key changed — the old fill no longer applies.)
   const moved = asm(box(20, 20, 10), inst('p', box(20, 20, 10), [20 + 14, 0, 0], [0, 0, 90]));
-  const map2 = clearanceMap(await assemblyPlacedBodies(moved, evaluate), { nearMM: 1 });
+  const map2 = clearanceMap(await assemblyPlacedBodies(moved, evaluate), { near: 1 });
   assert.notEqual(only(map2.pairs).pose, p.pose);
   assert.equal(applyFill(map2, f), false);
   assert.equal(map2.pending, 1);
@@ -94,9 +101,34 @@ test('G22: turned 90° about Z — the fill in a\'s frame (still 1000 mm³), the
 test('G22 at scale: 120 boxes, 12 × 10, x-neighbours overlapping 2 mm and y-neighbours 1 mm apart — 110 overlaps pending, the near ones (rows and diagonals), the timing given', async () => {
   const one = await assemblyPlacedBodies(box(30, 20, 8), evaluate), m = one[0].mesh;
   const bodies: PlacedBody[] = Array.from({ length: 120 }, (_, n) => ({ key: `c${n}/b1`, mesh: m, brep: one[0].brep, pose: { m: [1, 0, 0, 0, 1, 0, 0, 0, 1], t: [(n % 12) * 28, Math.floor(n / 12) * 21, 0] } }));
-  const map = clearanceMap(bodies, { nearMM: 1.5 });
+  const map = clearanceMap(bodies, { near: 1.5 });
   const count = (s: string) => map.pairs.filter(p => p.state === s).length;
   assert.deepEqual([count('contact'), map.pending], [110, 110]);
   assert.ok(count('near') > 0 && map.pairs.length < 7140 / 10, `${map.pairs.length} candidate pairs`);
-  assert.ok(map.timing.pruneMS >= 0 && map.timing.clearanceMS >= 0 && map.timing.bandMS >= 0);
+  assert.ok(map.timing.pruneTime >= 0 && map.timing.clearanceTime >= 0 && map.timing.bandTime >= 0);
+});
+
+
+test('G22 timing publishes seconds from the same clock intervals with and without eager bands', async t => {
+  const bodies = await assemblyPlacedBodies(asm(box(20, 20, 10), inst('p', box(20, 20, 10), [21, 0, 0])), evaluate);
+  const timed = (bands: boolean, timestamps: number[]) => {
+    let calls = 0;
+    const clock = t.mock.method(performance, 'now', () => {
+      assert.ok(calls < timestamps.length, 'the original measurement sites call the clock only as supplied');
+      return timestamps[calls++];
+    });
+    let map: ReturnType<typeof clearanceMap>;
+    try { map = clearanceMap(bodies, { near: 1.5, bands }); }
+    finally { clock.mock.restore(); }
+    assert.equal(calls, timestamps.length);
+    assert.equal(map.pairs.length, 1); assert.ok(Math.abs(map.pairs[0].minGap - 1) < 1e-6);
+    return map;
+  };
+  // Clock values are milliseconds; expected public intervals are independent seconds, without rounding.
+  const eager = timed(true, [100.25, 110.75, 120.125, 450.625, 2300.875]);
+  assert.deepEqual(eager.timing, { pruneTime: 0.0105, clearanceTime: 1.859625, bandTime: 0.3305 });
+  assert.ok(eager.pairs[0].band!.a.indices.length > 0 && eager.pairs[0].band!.b.indices.length > 0);
+  const lazy = timed(false, [500.125, 750.625, 1751.875]);
+  assert.deepEqual(lazy.timing, { pruneTime: 0.2505, clearanceTime: 1.00125, bandTime: 0 });
+  assert.equal(lazy.pairs[0].band, undefined);
 });

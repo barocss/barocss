@@ -50,6 +50,22 @@ export function writeRecovery(fileName: string, doc: StudioDoc): 'ok' | 'too-lar
   if (text === null) { clearRecovery(); return 'too-large'; }
   try { localStorage.setItem(KEY, text); return 'ok'; } catch { clearRecovery(); return 'refused'; }
 }
+/**
+ * O9 (REVIEW-A1): the recovery copy kept as a whole — its mesh blobs stored first, then the copy that names them — so a
+ * copy is never offered back whose meshes were not kept. Blobs refused: no copy, and the one there before removed, as
+ * when the copy itself is refused. Only the newest call writes: one overtaken while its blobs were stored writes nothing,
+ * so an older copy never lands over a newer one, nor does one whose caller stopped wanting it (`wanted`: the work saved
+ * meanwhile). `saveBlobs`: engine/blobs' saveRecoveryBlobs (true when kept).
+ */
+let keeping = 0;
+export async function keepRecovery(fileName: string, doc: StudioDoc, saveBlobs: (doc: StudioDoc) => Promise<boolean>, wanted: () => boolean = () => true): Promise<'ok' | 'too-large' | 'refused' | 'overtaken'> {
+  const call = ++keeping, text = recoveryText(fileName, Date.now(), doc);
+  if (text === null) { clearRecovery(); return 'too-large'; }
+  const kept = await saveBlobs(doc).catch(() => false);
+  if (call !== keeping || !wanted()) return 'overtaken';
+  if (!kept) { clearRecovery(); return 'refused'; }
+  try { localStorage.setItem(KEY, text); return 'ok'; } catch { clearRecovery(); return 'refused'; }
+}
 export function clearRecovery(): void { try { localStorage.removeItem(KEY); } catch { /* storage unavailable */ } }
 
 /**

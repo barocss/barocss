@@ -23,7 +23,7 @@ const rightCorner = 10 * 10 * 6 - (1 - Math.PI / 4) * 4 * 6;
 
 test('rematch: a corner inserted before the filleted one renumbers the sides; the fillet follows its corner and says so', async () => {
   const s = await filleted(), was = (s.doc.nodes[2] as { edges: string[] }).edges[0];
-  assert.ok(Math.abs(s.bodies[0].volumeMM3! - rightCorner) < 1e-6);
+  assert.ok(Math.abs(s.bodies[0].volume! - rightCorner) < 1e-6);
   // A new vertex below the bottom edge: side k is now side k + 1, and the old name names the corner at (10, 0).
   const r = await runTool(s, 'edit_feature', { index: 0, feature: { kind: 'sketch', profile: 'polygon', points: [[0, 0], [5, -2], [10, 0], [10, 10], [0, 10]] } }, evaluate);
   assert.ok(!r.isError, r.content);
@@ -32,7 +32,7 @@ test('rematch: a corner inserted before the filleted one renumbers the sides; th
   assert.notEqual(fillet.edges[0], was);
   assert.deepEqual(fillet.rematched, { [fillet.edges[0]]: was }, 'kept on the node until confirmed');
   // The right corner: the prism grew by the triangle below (10 × 2 / 2 × 6), the fillet still takes (1 − π/4) r² h.
-  assert.ok(Math.abs(r.state.bodies[0].volumeMM3! - (rightCorner + 10 * 6)) < 1e-6, String(r.state.bodies[0].volumeMM3));
+  assert.ok(Math.abs(r.state.bodies[0].volume! - (rightCorner + 10 * 6)) < 1e-6, String(r.state.bodies[0].volume));
 });
 
 test('rematch: a dimension changed keeps every name (no guessing), and a corner gone into two alike is refused with both', async () => {
@@ -58,7 +58,7 @@ for (const file of readdirSync(a1).filter(f => f.endsWith('.json'))) {
     assert.ok(!r.isError, r.content);
     for (const [i, names] of Object.entries(c.expect.names)) assert.deepEqual((r.state.doc.nodes[Number(i)] as { edges: string[] }).edges, names);
     assert.deepEqual(parse(r.content).rematched ?? [], c.expect.rematched);
-    const v = r.state.bodies.reduce((a, b) => a + b.volumeMM3!, 0);
-    assert.ok(Math.abs(v - c.expect.volumeMM3) <= 1e-6 * c.expect.volumeMM3, `${v} vs ${c.expect.volumeMM3}`);
+    const v = r.state.bodies.reduce((a, b) => a + b.volume!, 0);
+    assert.ok(Math.abs(v - c.expect.volume) <= 1e-6 * c.expect.volume, `${v} vs ${c.expect.volume}`);
   });
 }

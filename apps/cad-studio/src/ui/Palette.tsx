@@ -1,37 +1,32 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { commands, type Command, type Ctx } from '@barocss/cad-model/app/commands';
+import { useMemo, useState } from 'react';
+import { commands, type Command as StudioCommand, type Ctx } from '@barocss/cad-model/app/commands';
+import { Command, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { paletteList } from './paletteList';
 import { Icon, Kbd } from './atoms';
 
-/** `extra`: the studio's own commands, after the model's (G17's 3D sketch). */
-export function Palette({ ctx, onRun, onClose, extra }: { ctx: Ctx; onRun(c: Command): void; onClose(): void; extra?: readonly Command[] }) {
-  const [q, setQ] = useState(''); const [cursor, setCursor] = useState(0);
-  const input = useRef<HTMLInputElement>(null);
-  useEffect(() => input.current?.focus(), []);
+/** `extra`: the studio's own commands, after the model's (G17's 3D sketch). (G12f: shadcn's Command — cmdk's keyboard
+ *  selection — in its Dialog; the list ranked by paletteList, not cmdk's filter. Typing changes only the palette's state.) */
+export function Palette({ ctx, onRun, onClose, extra }: { ctx: Ctx; onRun(c: StudioCommand): void; onClose(): void; extra?: readonly StudioCommand[] }) {
+  const [q, setQ] = useState('');
   const all = useMemo(() => extra?.length ? [...commands, ...extra] : commands, [extra]);
   const list = useMemo(() => paletteList(q, ctx, all), [q, ctx, all]);
-  return (
-    <div className="palette-backdrop" onMouseDown={onClose}>
-      <div className="card palette" role="dialog" aria-label="Command palette" onMouseDown={e => e.stopPropagation()}>
+  return <Dialog open onOpenChange={open => { if (!open) onClose(); }}>
+    <DialogContent className="card palette top-[18vh] translate-y-0" overlayClassName="palette-backdrop bg-black/25" aria-label="Command palette" aria-describedby={undefined}>
+      <DialogTitle className="sr">Command palette</DialogTitle>
+      {/* (Enter is the palette's here: the window's — finish a sketch, apply — must not see it once the command starts.) */}
+      <Command shouldFilter={false} loop onKeyDown={e => { if (e.key === 'Enter') e.stopPropagation(); }}>
         <label className="palette-input"><Icon name="search" small /><span className="sr">Search commands</span>
-          <input ref={input} value={q} placeholder="Type a command…  hole, chamfer, pattern" onChange={e => { setQ(e.target.value); setCursor(0); }}
-            onKeyDown={e => {
-              if (e.key === 'ArrowDown') { e.preventDefault(); setCursor(c => Math.min(list.length - 1, c + 1)); }
-              if (e.key === 'ArrowUp') { e.preventDefault(); setCursor(c => Math.max(0, c - 1)); }
-              // Handled here: the window's Enter (finish sketch / apply) must not see it once the command starts.
-              if (e.key === 'Enter' && list[cursor]) { e.preventDefault(); e.stopPropagation(); onRun(list[cursor].c); }
-              if (e.key === 'Escape') onClose();
-            }} /><Kbd>Esc</Kbd></label>
-        <ul className="palette-list" role="listbox">
-          {list.map(({ c, a }, i) => (
-            <li key={c.id} role="option" aria-selected={i === cursor} className={(i === cursor ? 'cur ' : '') + (a.ok ? '' : 'off')}
-              onMouseEnter={() => setCursor(i)} onClick={() => onRun(c)}>
+          <CommandInput autoFocus value={q} onValueChange={setQ} placeholder="Type a command…  hole, chamfer, pattern" /><Kbd>Esc</Kbd></label>
+        <CommandList className="palette-list">
+          {list.map(({ c, a }) => (
+            <CommandItem key={c.id} value={c.id} className={'pl-item' + (a.ok ? '' : ' off')} onSelect={() => onRun(c)}>
               <Icon name={c.icon} small /><span className="pl-label">{c.label}</span>
               {!a.ok && <span className="pl-reason">{a.reason}</span>}
               <span className="grow" />{c.shortcut && <Kbd>{c.shortcut}</Kbd>}
-            </li>))}
-        </ul>
-      </div>
-    </div>
-  );
+            </CommandItem>))}
+        </CommandList>
+      </Command>
+    </DialogContent>
+  </Dialog>;
 }

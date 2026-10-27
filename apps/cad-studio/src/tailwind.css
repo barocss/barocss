@@ -1,0 +1,36 @@
+/* Tailwind v4 for the shadcn/ui components (G12b), without its preflight: the studio's own CSS keeps the browser defaults
+   it was written against. It is in the `legacy` layer, below these (G12d: styles.css orders them), so the components'
+   utilities win over its element rules. */
+@layer legacy, theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* shadcn's tokens on the studio's own: the old and the new parts look alike while panels move over. (Its `--accent` —
+   a hover fill — would clash with the studio's yellow `--accent`, so the hover fill is `--ui-hover` here.) */
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-card: var(--panel-solid);
+  --color-card-foreground: var(--text);
+  --color-popover: var(--panel-solid);
+  --color-popover-foreground: var(--text);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-ink);
+  --color-secondary: var(--ui-secondary);
+  --color-secondary-foreground: var(--text);
+  --color-muted: var(--ui-muted);
+  --color-muted-foreground: var(--muted);
+  --color-accent: var(--ui-hover);
+  --color-accent-foreground: var(--text);
+  --color-destructive: var(--warn);
+  --color-border: var(--line);
+  --color-input: var(--line);
+  --color-ring: var(--accent);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --font-sans: var(--sans);
+  --font-mono: var(--mono);
+}
+:root, :root[data-theme='dark'] { --ui-secondary: #2e3034; --ui-muted: #2a2c30; --ui-hover: #34363b; }
+:root[data-theme='light'] { --ui-secondary: #eef1f4; --ui-muted: #eef1f4; --ui-hover: #e2e7ec; }

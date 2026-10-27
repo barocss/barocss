@@ -475,8 +475,8 @@ const runtimeExports = ['sampleCurveWideAdaptive', 'validateWideAdaptiveCurveSam
   'WideAdaptiveCurveSamplingError', 'WideAdaptiveCurveSamplingDiagnosticCode'];
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.WideAdaptiveCurveSamplingDiagnosticCode, WideAdaptiveCurveSamplingDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./curve-wide-adaptive-sampling.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/curve-wide-adaptive-sampling.d.ts');
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/source-wide/curve-wide-adaptive-sampling.js'));
+const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/source-wide/curve-wide-adaptive-sampling.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = ['sampleCurveWideAdaptive', 'validateWideAdaptiveCurveSamples',
   'WideAdaptiveCurveSamplingError', 'WideAdaptiveCurveSamplingDiagnosticCode',

@@ -14,19 +14,25 @@ import { checkNode, deleteFeature } from '@barocss/cad-model/chat/features';
 import { eventParser, type TurnEvent } from '../src/chat/client';
 import { serveMcp } from '../server/cadMcp';
 import { TOOLS_V2 } from '@barocss/cad-model/chat/toolset';
+import { validate, type JsonSchema } from '@barocss/cad-model/chat/contract';
 import { checkImages, claudeArgs, createChatServer, DEFAULT_ORIGINS, fromStudio, stateNote, summarize, userMessage } from '../server/chatServer';
 import { fitSize } from '../src/chat/images';
 import { planHollow } from '@barocss/cad-model/print/hollow';
 import { simplify, traceImage, traceLoops } from '@barocss/cad-model/chat/trace';
 import { defaultRender } from '@barocss/cad-model/engine/render';
 import { defaultDrawing } from '@barocss/cad-model/drawing/types';
+import { receivePersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
+import { loadPersonRows } from '@barocss/cad-model/chat/rows';
+import SAMPLE_FASTENER_SIZES from '@barocss/cad-model/samples/rows/fastener-sizes.json';
+import SAMPLE_MOUNTS_JSON from '@barocss/cad-model/samples/rows/mounts.json';
+const SAMPLE_MOUNTS = SAMPLE_MOUNTS_JSON as unknown as { rows: import('@barocss/cad-model/engine/mountRows').StudioMountRow[] };
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function stateOf(doc: StudioDoc): Promise<ChatState> {
   const r = await evaluate(doc); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return { doc, bodies: r.bodies };
 }
 const parse = (content: string) => JSON.parse(content) as Record<string, any>;
-const volume = (s: ChatState) => s.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0);
+const volume = (s: ChatState) => s.bodies.reduce((v, b) => v + (b.volume ?? 0), 0);
 const scratch = () => mkdtempSync(join(tmpdir(), 'cad-chat-test-'));
 
 /** An MCP client over in-memory pipes to the real tool server. */
@@ -45,12 +51,17 @@ test('tool schemas: every buildable command is exposed and documented with the H
     assert.match(tool.name, /^[a-z_]+$/); assert.ok(tool.description.length > 40, tool.name);
     assert.equal(tool.input_schema.type, 'object'); assert.equal(tool.input_schema.additionalProperties, false, tool.name);
   }
-  assert.deepEqual(new Set(TOOLS.map(t => t.name)), new Set(['get_part_summary', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'get_image_layers', 'extrude_image_layer', 'inflate_image_layer', 'measure', 'mass_properties', 'set_material', 'set_stock', 'set_casting', 'set_frame_stock', 'set_frame_sections', 'set_welds', 'interference', 'section', 'wall_thickness', 'draft', 'set_requirements', 'check_spec', 'restore_best', 'apply_ops', 'run_script', 'checkpoint', 'restore', 'diff', 'propose', 'accept_proposal', 'list_proposals', 'render_views', 'inspect', 'select', 'get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print', 'subd_cage', 'subd_select', 'subd_move', 'subd_extrude', 'subd_insert_loop', 'subd_bridge', 'subd_fill', 'subd_weld', 'subd_crease', 'subd_delete', 'drawing_issues', 'tolerance_suggestions', 'auto_dimension', 'fix_drawing', 'accept_tolerances', 'set_drawing', 'get_joints', 'set_joints', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques', 'motion_torques', 'size_actuators', 'set_brief', 'get_brief', 'ask_user', 'get_references', 'add_reference', 'add_datum', 'add_keepout', 'delete_reference_item', 'check_keepouts', 'get_drafts', 'import_drawing', 'standards_lookup', 'cut_list', 'weld_list', 'fit_clearance']));
+  // (Codex's A9-9 load_rows and A9-10's six output tools are handlers too.)
+  assert.deepEqual(new Set(TOOLS.map(t => t.name)), new Set(['get_part_summary', 'run_command', 'add_features', 'edit_feature', 'set_parameters', 'delete_feature', 'get_image_layers', 'extrude_image_layer', 'inflate_image_layer', 'measure', 'mass_properties', 'rebuild_report', 'set_material', 'set_stock', 'set_casting', 'set_frame_stock', 'set_frame_sections', 'set_welds', 'interference', 'section', 'wall_thickness', 'draft', 'set_requirements', 'check_spec', 'restore_best', 'apply_ops', 'run_script', 'checkpoint', 'restore', 'diff', 'propose', 'accept_proposal', 'list_proposals', 'render_views', 'inspect', 'select', 'get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'set_inputs', 'set_variants', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print', 'subd_cage', 'subd_select', 'subd_move', 'subd_extrude', 'subd_insert_loop', 'subd_bridge', 'subd_fill', 'subd_weld', 'subd_crease', 'subd_delete', 'drawing_issues', 'tolerance_suggestions', 'auto_dimension', 'fix_drawing', 'accept_tolerances', 'set_drawing', 'get_joints', 'set_joints', 'set_frames', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques', 'motion_torques', 'size_actuators', 'set_pose', 'set_waypoint', 'check_path', 'play_motion', 'lock_part', 'set_brief', 'get_brief', 'ask_user', 'get_references', 'add_reference', 'add_datum', 'add_keepout', 'delete_reference_item', 'check_keepouts', 'get_drafts', 'import_drawing', 'standards_lookup', 'cut_list', 'weld_list', 'fit_clearance', 'load_rows', 'output_bom', 'output_purchase_csv', 'output_clearance', 'output_cam_package', 'output_print_layers', 'output_bundle', 'make_version', 'list_versions', 'restore_version', 'compare_versions', 'make_branch', 'switch_branch', 'merge_branch']));
   const run = TOOLS.find(t => t.name === 'run_command')!;
   assert.deepEqual((run.input_schema.properties as any).command.enum, CHAT_COMMANDS);
   assert.deepEqual(new Set(Object.keys(COMMAND_DOCS)), new Set(CHAT_COMMANDS));
-  // Fields from a context each command accepts: the documented keys are exactly the HUD's.
-  let doc = rectanglePart(64, 32, 8);
+  // Fields from a context each command accepts: the documented keys are exactly the HUD's. (O7: the fastener and the
+  // tapped hole take the sizes the person loaded — the sample rows, as the person loads them.)
+  const rowFiles = receivePersonRowFiles('0123456789abcdef01234567', [{ name: 'fastener-sizes.json', text: JSON.stringify(SAMPLE_FASTENER_SIZES), turn: 1 }], 1);
+  const sized = loadPersonRows(rectanglePart(64, 32, 8), 'fastener-sizes', rowFiles.files[0].id, undefined, rowFiles);
+  assert.ok('doc' in sized, 'error' in sized ? sized.error : '');
+  let doc = sized.doc;
   doc = withNode(withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [80, 0], max: [96, 16] }), { kind: 'extrude', sketch: 2, height: 16 });
   const s = await stateOf(doc), top = s.bodies[0].mesh.faces.find(f => f.name === 'n1.top')!;
   const sel = (p: Partial<Selection>): Selection => ({ faces: [], edges: [], bodies: [], ...p });
@@ -79,7 +90,7 @@ test('tool schemas: every buildable command is exposed and documented with the H
   // (Fit class takes a cylindrical face with a fit table loaded; Fit pair two classed faces, a bore and a pin: R12c.2, D155.)
   const tubeCmd = commandById('tube')!, cylCmd = commandById('cylinder')!, blank: Ctx = { doc: emptyDoc(), bodies: [], selection: sel({}) };
   const pinned = cylCmd.build!({ ...blank, doc: tubeCmd.build!(blank, { ...tubeCmd.defaults!(blank), r: 10, ri: 6, x: 0, y: 0, z: 0 }) }, { ...cylCmd.defaults!(blank), r: 6, x: 0, y: 0, z: -5 });
-  const fitted = await stateOf({ ...pinned, fits: { version: 1, tables: [{ id: 't', rows: [{ class: 'H7', overMM: 10, upToMM: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', overMM: 10, upToMM: 18, upperUM: -6, lowerUM: -17, estimate: true }] }], faces: [{ face: 'n1.hole0.side0', class: 'H7' }, { face: 'n3.side0', class: 'g6' }] } });
+  const fitted = await stateOf({ ...pinned, fits: { version: 1, tables: [{ id: 't', rows: [{ class: 'H7', over: 10, upTo: 18, upper: 0.018, lower: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upper: -0.006, lower: -0.017, estimate: true }] }], faces: [{ face: 'n1.hole0.side0', class: 'H7' }, { face: 'n3.side0', class: 'g6' }] } });
   const faceOf = (name: string) => { const body = fitted.bodies.findIndex(b => b.mesh.faces.some(f => f.name === name)); return { body, face: fitted.bodies[body].mesh.faces.findIndex(f => f.name === name) }; };
   // (Key, Retaining ring and Pin take a shaft with a keyseat, a groove and a cross hole; Keyway a hub's bore: R12c.3b, D157.)
   const shaftCmd = commandById('shaft')!, shaftDoc = shaftCmd.build!(blank, shaftCmd.defaults!(blank));
@@ -87,13 +98,13 @@ test('tool schemas: every buildable command is exposed and documented with the H
   const hubbed = await stateOf(tubeCmd.build!({ ...blank, doc: holed }, { ...tubeCmd.defaults!(blank), r: 20, ri: 10, h: 22, x: 0, y: 0, z: 4 }));
   const boreOf = () => { const body = hubbed.bodies.findIndex(b => b.mesh.faces.some(f => /\.hole0\.side0$/.test(f.name))); return { body, face: hubbed.bodies[body].mesh.faces.findIndex(f => /\.hole0\.side0$/.test(f.name)) }; };
   // (The drive commands take the user's drive rows; Belt or chain two sprockets of one chain row: R12c.6b, D161.)
-  const driveRows = { version: 1 as const, rows: [{ kind: 'chain' as const, id: 'c', pitchMM: 12.7, rollerDiameterMM: 8.51, estimate: true }, { kind: 'flat-belt' as const, id: 'f', widthMM: 40, thicknessMM: 3, estimate: true }, { kind: 'coupling' as const, id: 'k', boreMM: [12, 12] as [number, number], outsideMM: 30, lengthMM: 40, estimate: true }] };
+  const driveRows = { version: 1 as const, rows: [{ kind: 'chain' as const, id: 'c', pitch: 12.7, rollerDiameter: 8.51, estimate: true }, { kind: 'flat-belt' as const, id: 'f', width: 40, thickness: 3, estimate: true }, { kind: 'coupling' as const, id: 'k', bore: [12, 12] as [number, number], outside: 30, length: 40, estimate: true }] };
   const chained = await stateOf({ ...withNode(withNode(emptyDoc(), { kind: 'sprocket', row: 'c', teeth: 17, tip: 75, width: 7, center: [0, 0], generator: 'sprocket@0' }), { kind: 'sprocket', row: 'c', teeth: 17, tip: 75, width: 7, center: [150, 0], generator: 'sprocket@0' }), drives: driveRows });
   for (const id of CHAT_COMMANDS) {
     const profile = ['extrude', 'revolve', 'pipe', 'sheet-plate'].includes(id);
     if (id === 'key' || id === 'keyway' || id === 'retaining-ring' || id === 'pin' || id === 'bearing') {
       // (A bearing takes the user's rows loaded: R12c.4, D158.)
-      const withRows = id === 'bearing' ? { ...hubbed.doc, bearings: { version: 1 as const, rows: [{ id: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, estimate: true }] } } : hubbed.doc;
+      const withRows = id === 'bearing' ? { ...hubbed.doc, bearings: { version: 1 as const, rows: [{ id: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, estimate: true }] } } : hubbed.doc;
       const ctx: Ctx = { doc: withRows, bodies: hubbed.bodies, selection: id === 'keyway' ? sel({ faces: [boreOf()] }) : sel({ bodies: [hubbed.bodies.findIndex(b => b.ref?.node === 0)] }) }, cmd = commandById(id)!;
       assert.ok(cmd.available(ctx).ok, id);
       assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
@@ -101,7 +112,14 @@ test('tool schemas: every buildable command is exposed and documented with the H
     }
     if (id === 'connector') {
       // (An opening takes one flat face and the user's connector rows: R12c.7, D162.)
-      const ctx: Ctx = { doc: { ...s.doc, connectors: { version: 1, rows: [{ id: 'u', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, estimate: true }] } }, bodies: s.bodies, selection: sel({ faces: [{ body: 0, face: top.index }] }) }, cmd = commandById(id)!;
+      const ctx: Ctx = { doc: { ...s.doc, connectors: { version: 1, rows: [{ id: 'u', opening: { shape: 'stadium', width: 8.34, height: 2.56, depth: 6.2 }, estimate: true }] } }, bodies: s.bodies, selection: sel({ faces: [{ body: 0, face: top.index }] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
+    if (id === 'mount') {
+      // (A mount takes one flat face and the person's mount rows: the sample, as they load it, O14.)
+      const ctx: Ctx = { doc: { ...s.doc, mounts: { version: 1, rows: SAMPLE_MOUNTS.rows } }, bodies: s.bodies, selection: sel({ faces: [{ body: 0, face: top.index }] }) }, cmd = commandById(id)!;
       assert.ok(cmd.available(ctx).ok, id);
       assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
       continue;
@@ -122,7 +140,7 @@ test('tool schemas: every buildable command is exposed and documented with the H
     }
     if (id === 'oring-gland') {
       // (A gland takes one face and the user's O-ring rows loaded: R12c.5, D159.)
-      const ctx: Ctx = { doc: { ...fitted.doc, orings: { version: 1, rows: [{ id: '214', insideDiameterMM: 24.99, crossSectionMM: 3.53, estimate: true }] } }, bodies: fitted.bodies, selection: sel({ faces: [faceOf('n3.side0')] }) }, cmd = commandById(id)!;
+      const ctx: Ctx = { doc: { ...fitted.doc, orings: { version: 1, rows: [{ id: '214', insideDiameter: 24.99, crossSection: 3.53, estimate: true }] } }, bodies: fitted.bodies, selection: sel({ faces: [faceOf('n3.side0')] }) }, cmd = commandById(id)!;
       assert.ok(cmd.available(ctx).ok, id);
       assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values).filter(k => k !== 'h')), id);
       continue;
@@ -165,7 +183,7 @@ test('run_command applies the UI’s rules: availability reasons, value keys and
   assert.ok(!r.isError, r.content);
   const out = parse(r.content);
   assert.deepEqual(out.added, ['2: Hole Ø8']);
-  assert.ok(Math.abs(out.bodies[0].volume_mm3 - (64 * 32 * 8 - Math.PI * 16 * 8)) < 1e-3);
+  assert.ok(Math.abs(out.bodies[0].volume - (64 * 32 * 8 - Math.PI * 16 * 8)) < 1e-3);
   assert.ok(out.bodies[0].edges.some((e: any) => e.name === 'n1.side0|n1.side1' && e.line === 'along z'));
   assert.ok(out.bodies[0].faces.some((f: any) => f.name === 'n1.top' && f.normal[2] === 1));
 });
@@ -239,14 +257,14 @@ test('add_features checks nodes before the kernel; revolve and polygon profiles 
   assert.ok(r.isError); assert.match(parse(r.content).error, /Feature 2 of 2 \(would be index 3\)/); assert.equal(r.state, s);
   // A ring: a rectangle beside the sketch's Y axis turned a full revolution, then a triangular prism.
   r = await runTool(s, 'add_features', { features: [
-    { kind: 'sketch', profile: 'rectangle', min: [30, 0], max: [34, 6] }, { kind: 'revolve', sketch: 2, axis: 'y', angleDegrees: 360 },
+    { kind: 'sketch', profile: 'rectangle', min: [30, 0], max: [34, 6] }, { kind: 'revolve', sketch: 2, axis: 'y', angle: 360 },
     { kind: 'sketch', profile: 'polygon', points: [[0, 40], [10, 40], [0, 50]] }, { kind: 'extrude', sketch: 4, height: 3 },
   ] }, evaluate);
   assert.ok(!r.isError, r.content);
   assert.equal(r.state.bodies.length, 3);
   const ring = r.state.bodies.find(b => b.key === 'b3')!, prism = r.state.bodies.find(b => b.key === 'b5')!;
-  assert.ok(Math.abs(ring.volumeMM3! - Math.PI * (34 ** 2 - 30 ** 2) * 6) / ring.volumeMM3! < 1e-3, String(ring.volumeMM3));
-  assert.ok(Math.abs(prism.volumeMM3! - 150) < 1e-6);
+  assert.ok(Math.abs(ring.volume! - Math.PI * (34 ** 2 - 30 ** 2) * 6) / ring.volume! < 1e-3, String(ring.volume));
+  assert.ok(Math.abs(prism.volume! - 150) < 1e-6);
 });
 
 test('edit_feature uses the feature editor’s fields; delete_feature renumbers later features, their names stay (A1)', async () => {
@@ -278,7 +296,7 @@ test('edit_feature uses the feature editor’s fields; delete_feature renumbers 
 test('measure, select and the part summary read the evaluated part by name', async () => {
   const s = await stateOf(rectanglePart(64, 32, 8));
   let r = await runTool(s, 'measure', { a: 'n1.top', b: 'n1.bottom' }, evaluate);
-  assert.equal(parse(r.content).normal_distance, 8);
+  assert.equal(parse(r.content).normalDistance, 8);
   r = await runTool(s, 'measure', { a: 'n1.side0|n1.side1' }, evaluate);
   assert.equal(parse(r.content).length, 8);
   r = await runTool(s, 'select', { faces: ['n1.top'], bodies: ['b1'] }, evaluate);
@@ -362,7 +380,7 @@ test('the chat server runs the claude CLI with only the studio tools and streams
     JSON.stringify({ type: 'stream_event', event: { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'a hole.' } }, session_id: sid, parent_tool_use_id: null }),
     JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'Adding a hole.' }, { type: 'tool_use', id: 'toolu_1', name: 'mcp__cad__features', input: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } } }] }, session_id: sid }),
     () => writeFileSync(statePath, JSON.stringify({ doc: built, changed: true, selection: { faces: ['n1.top'], edges: [], bodies: [] } })),
-    JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: [{ type: 'text', text: JSON.stringify({ ok: true, did: 'Hole {"d":8,"x":6,"y":6}', bodies: [{ key: 'b2', volume_mm3: 15981.876 }] }) }] }] }, session_id: sid }),
+    JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: [{ type: 'text', text: JSON.stringify({ ok: true, did: 'Hole {"d":8,"x":6,"y":6}', bodies: [{ key: 'b2', volume: 15981.876 }] }) }] }] }, session_id: sid }),
     JSON.stringify({ type: 'result', subtype: 'success', is_error: false, result: 'Done.', session_id: sid }),
   ]);
   const work = scratch();
@@ -482,6 +500,29 @@ test('the tracer splits a character bitmap into a silhouette and its colour regi
   assert.deepEqual(simplify(sq[0], 0.5).length, 4);
 });
 
+test('image width input: schema and describe use mm width; old keys and nonpositive widths are refused without changing the part', async () => {
+  const { px, W, H } = smiley(false), s: ChatState = { ...(await stateOf(emptyDoc())), images: [traceImage(px, W, H)] };
+  const image = TOOLS_V2.find(t => t.name === 'image')!;
+  assert.match(image.description, /extrude \(width, height/); assert.match(image.description, /inflate \(width, depth/);
+  for (const [action, name, other] of [['extrude', 'extrude_image_layer', { height: 4 }], ['inflate', 'inflate_image_layer', { depth: 24 }]] as const) {
+    const schema = TOOLS.find(t => t.name === name)!.input_schema as JsonSchema;
+    assert.ok(Object.hasOwn(schema.properties!, 'width') && !Object.hasOwn(schema.properties!, 'width_mm'));
+    assert.ok(schema.required!.includes('width') && !schema.required!.includes('width_mm'));
+    assert.deepEqual(validate(schema, { width: 60, ...other }), []);
+    assert.deepEqual(validate(schema, { width_mm: 60, ...other }), ['$.width: missing', '$.width_mm: not allowed']);
+    const described = await runTool(s, 'describe', { tool: 'image', action }, evaluate);
+    assert.ok(!described.isError, described.content); assert.deepEqual(parse(described.content).input, schema);
+    const legacy = await runTool(s, name, { width_mm: 60, ...other }, evaluate);
+    assert.ok(legacy.isError, legacy.content); assert.match(parse(legacy.content).error, /^\[UNKNOWN_ARGUMENT\].*"width_mm"/);
+    assert.equal(legacy.changed, false); assert.deepEqual(legacy.state.doc, s.doc);
+    for (const width of [undefined, 0, -1]) {
+      const refused = await runTool(s, name, { ...other, ...(width === undefined ? {} : { width }) }, evaluate);
+      assert.ok(refused.isError, refused.content); assert.match(parse(refused.content).error, /^"width" \(the silhouette's width\) must be positive\.$/);
+      assert.equal(refused.changed, false); assert.deepEqual(refused.state.doc, s.doc);
+    }
+  }
+});
+
 test('extrude_image_layer builds a relief: the silhouette base and colour layers stacked at one scale', async () => {
   const { px, W, H } = smiley(false);
   const images = [traceImage(px, W, H)];
@@ -490,25 +531,25 @@ test('extrude_image_layer builds a relief: the silhouette base and colour layers
   assert.equal(layers.silhouette_aspect, 1);
   const eyes = layers.layers.find((l: any) => l.color === '#141414');
   assert.equal(eyes.regions, 2); assert.ok(eyes.box.y[0] > 0.5, JSON.stringify(eyes.box));
-  let r = await runTool(s, 'extrude_image_layer', { layer: 'silhouette', width_mm: 60, height: 4 }, evaluate);
+  let r = await runTool(s, 'extrude_image_layer', { layer: 'silhouette', width: 60, height: 4 }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   const base = parse(r.content).bodies[0];
-  assert.ok(Math.abs(base.volume_mm3 - Math.PI * 30 ** 2 * 4) / (Math.PI * 30 ** 2 * 4) < 0.03, String(base.volume_mm3));
+  assert.ok(Math.abs(base.volume - Math.PI * 30 ** 2 * 4) / (Math.PI * 30 ** 2 * 4) < 0.03, String(base.volume));
   assert.deepEqual(base.bounds.min.map(Math.round), [0, 0, 0]); assert.deepEqual(base.bounds.max.map(Math.round), [60, 60, 4]);
-  r = await runTool(s, 'extrude_image_layer', { layer: eyes.id, width_mm: 60, height: 1.5, base: 4 }, evaluate);
+  r = await runTool(s, 'extrude_image_layer', { layer: eyes.id, width: 60, height: 1.5, base: 4 }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   const eyeBody = parse(r.content).bodies.find((b: any) => b.key === 'b3');
   // Two eyes Ø6 (10 px of 140 px across 60 mm → r ≈ 4.3 mm), 1.5 thick, in the upper half, on top of the base.
-  assert.ok(Math.abs(eyeBody.volume_mm3 - 2 * Math.PI * (10 * 60 / 140) ** 2 * 1.5) / eyeBody.volume_mm3 < 0.15, String(eyeBody.volume_mm3));
+  assert.ok(Math.abs(eyeBody.volume - 2 * Math.PI * (10 * 60 / 140) ** 2 * 1.5) / eyeBody.volume < 0.15, String(eyeBody.volume));
   assert.equal(eyeBody.bounds.min[2], 4); assert.ok(eyeBody.bounds.min[1] > 30);
   r = await runTool(s, 'run_command', { command: 'union', bodies: ['b1', 'b3'] }, evaluate);
   assert.ok(!r.isError, r.content); assert.equal(r.state.bodies.length, 1);
   // Standing: upright on XZ, thickness towards −Y.
-  r = await runTool({ ...(await stateOf(emptyDoc())), images }, 'extrude_image_layer', { width_mm: 40, height: 3, orientation: 'standing' }, evaluate);
+  r = await runTool({ ...(await stateOf(emptyDoc())), images }, 'extrude_image_layer', { width: 40, height: 3, orientation: 'standing' }, evaluate);
   assert.ok(!r.isError, r.content);
   const up = parse(r.content).bodies[0].bounds;
   assert.deepEqual([up.min[1], up.max[1], Math.round(up.max[2])], [-3, 0, 40]);
-  assert.match(parse((await runTool(s, 'extrude_image_layer', { layer: 'nope', width_mm: 60, height: 1 }, evaluate)).content).error, /No layer "nope"/);
+  assert.match(parse((await runTool(s, 'extrude_image_layer', { layer: 'nope', width: 60, height: 1 }, evaluate)).content).error, /No layer "nope"/);
   assert.match(parse((await runTool({ ...s, images: [] }, 'get_image_layers', {}, evaluate)).content).error, /No image is attached/);
 });
 
@@ -517,23 +558,23 @@ test('inflate_image_layer rounds the silhouette into a 3D body and sets features
   const images = [traceImage(px, W, H)];
   let s: ChatState = { ...(await stateOf(emptyDoc())), images };
   const id = (c: string) => images[0].layers.find(l => l.color === c)!.id;
-  let r = await runTool(s, 'inflate_image_layer', { layer: 'silhouette', mode: 'body', width_mm: 60, depth: 24 }, evaluate);
+  let r = await runTool(s, 'inflate_image_layer', { layer: 'silhouette', mode: 'body', width: 60, depth: 24 }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   const body = parse(r.content).bodies[0];
   assert.deepEqual([body.bounds.min[2], body.bounds.max[2]], [-12, 12]);
   assert.ok(Math.abs(body.bounds.max[0] - 60) < 0.5 && Math.abs(body.bounds.max[1] - 60) < 0.5, JSON.stringify(body.bounds));
   // Rounder than a slab of the same outline, fuller than a cone.
   const slab = Math.PI * 30 ** 2 * 24;
-  assert.ok(body.volume_mm3 > slab * 0.55 && body.volume_mm3 < slab * 0.85, String(body.volume_mm3 / slab));
-  assert.match(parse((await runTool(s, 'inflate_image_layer', { layer: id('#141414'), mode: 'bump', width_mm: 60, depth: 2 }, evaluate)).content).error, /body_depth/);
-  r = await runTool(s, 'inflate_image_layer', { layer: id('#141414'), mode: 'bump', width_mm: 60, depth: 2, body_depth: 24 }, evaluate);
+  assert.ok(body.volume > slab * 0.55 && body.volume < slab * 0.85, String(body.volume / slab));
+  assert.match(parse((await runTool(s, 'inflate_image_layer', { layer: id('#141414'), mode: 'bump', width: 60, depth: 2 }, evaluate)).content).error, /body_depth/);
+  r = await runTool(s, 'inflate_image_layer', { layer: id('#141414'), mode: 'bump', width: 60, depth: 2, body_depth: 24 }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   const eyes = parse(r.content).bodies.slice(1);
   assert.equal(eyes.length, 2);
   // Each eye sits in the upper half and reaches 2 mm above where it is sunk into the front surface.
   for (const e of eyes) { assert.ok(e.bounds.min[1] > 30); assert.ok(e.bounds.min[2] > 9 && e.bounds.max[2] <= 12.5, JSON.stringify(e.bounds)); assert.ok(Math.abs(e.bounds.max[2] - e.bounds.min[2] - 2) < 1e-6); }
   // The face colour is one region with three holes (eyes and mouth): a filled area, inflated whole.
-  r = await runTool(s, 'inflate_image_layer', { layer: id('#fad228'), mode: 'bump', width_mm: 60, depth: 1, body_depth: 24 }, evaluate);
+  r = await runTool(s, 'inflate_image_layer', { layer: id('#fad228'), mode: 'bump', width: 60, depth: 1, body_depth: 24 }, evaluate);
   assert.ok(!r.isError, r.content);
   // A ring stroke is skipped as an outline.
   const ringPx = new Uint8ClampedArray(120 * 120 * 4).fill(255);
@@ -549,7 +590,7 @@ test('inflate_image_layer rounds the silhouette into a 3D body and sets features
   const one = parse((await runTool(cyl.state, 'get_part_summary', { body: made.key }, evaluate)).content);
   assert.equal(one.bodies.find((b: any) => b.key === made.key).faces.length, 3);
   assert.equal(big.features[0].node.points, undefined);
-  const stroke = await runTool(rs, 'inflate_image_layer', { layer: 'color2', mode: 'bump', width_mm: 40, depth: 1, body_depth: 10 }, evaluate);
+  const stroke = await runTool(rs, 'inflate_image_layer', { layer: 'color2', mode: 'bump', width: 40, depth: 1, body_depth: 10 }, evaluate);
   assert.match(parse(stroke.content).error, /outline stroke/);
 });
 

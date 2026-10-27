@@ -47,7 +47,7 @@
       "side": "solid"
      },
      "axis": "z",
-     "angleDegrees": 30,
+     "angle": 30,
      "pivot": [
       0,
       0,
@@ -62,7 +62,7 @@
       "side": "solid"
      },
      "axis": "x",
-     "angleDegrees": 50,
+     "angle": 50,
      "pivot": [
       0,
       0,

@@ -39,7 +39,8 @@
   },
   "expect": {
     "error": {
-      "code": "INPUT",
+      "code": "MATE_INCOMPATIBLE",
+      "category": "INPUT",
       "messageIncludes": "MATE_INCOMPATIBLE"
     }
   }

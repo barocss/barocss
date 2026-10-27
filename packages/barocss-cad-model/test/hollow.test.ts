@@ -5,7 +5,8 @@ import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { chordOf } from '../src/chat/references';
 import { marchingTetrahedra } from '@barocss/cad';
-import { cavityField, enclosedVoids, hollowWork, HollowError, planHollow } from '../src/print/hollow';
+import { cavityField, enclosedVoids, hollowWork, planHollow } from '../src/print/hollow';
+import { isRefusal } from '../src/engine/refusal';
 
 // AM7a (O53): SDF voxel hollowing with drains. The cavity φ = depth − t > 0 meshed by marching tetrahedra and subtracted
 // from the exact body; a drain from the bottom into each cavity. Wall thickness against the target; every cavity
@@ -18,7 +19,7 @@ async function part(calls: [string, object][]): Promise<{ doc: StudioDoc; bodies
   const e = await evaluate(s.doc); assert.ok(e.ok); return { doc: s.doc, bodies: e.bodies };
 }
 const boxOf = (w: number, d: number, h: number, x = 0) => ['run_command', { command: 'box', values: { w, d, h, x, y: 0, z: 0 } }] as [string, object];
-const code = (f: () => unknown) => { try { f(); return 'none'; } catch (e) { return e instanceof HollowError ? e.code : String(e); } };
+const code = (f: () => unknown) => { try { f(); return 'none'; } catch (e) { return isRefusal(e) ? e.code : String(e); } };
 /** Distance along a ray from p in direction u to the nearest triangle of a mesh (positions, indices). */
 function rayTo(P: ArrayLike<number>, I: ArrayLike<number>, p: number[], u: number[]): number {
   let best = Infinity;
@@ -63,7 +64,7 @@ test('the voxel route (asked), a 40 × 30 × 20 box to a 3 mm wall: planar walls
   assert.deepEqual(enclosedVoids(e1.bodies[0].mesh, drain / 4), { voids: 0, components: 0 });
   // (Mass: abc − (a−2t)(b−2t)(c−2t) − πr²t + δ, 0 ≤ δ ≤ L·h² + 8h³, L the cavity box's edge length.)
   const inner = [40 - 2 * t, 30 - 2 * t, 20 - 2 * t], L = 4 * (inner[0] + inner[1] + inner[2]);
-  const closed = 40 * 30 * 20 - inner[0] * inner[1] * inner[2] - Math.PI * 4 * t, delta = e1.bodies[0].volumeMM3! - closed, Ae = 2 * (inner[0] * inner[1] + inner[1] * inner[2] + inner[0] * inner[2]) * report.error;
+  const closed = 40 * 30 * 20 - inner[0] * inner[1] * inner[2] - Math.PI * 4 * t, delta = e1.bodies[0].volume! - closed, Ae = 2 * (inner[0] * inner[1] + inner[1] * inner[2] + inner[0] * inner[2]) * report.error;
   console.log(`AM7a box: δ ${delta.toFixed(4)} mm³ in [${(-Ae).toFixed(2)}, ${(L * h * h + 8 * h ** 3 + Ae).toFixed(2)}]; e ${report.error}, ${report.nodes} nodes; wall ${JSON.stringify(report.wall)}`);
   assert.ok(delta >= -Ae - 1e-6 && delta <= L * h * h + 8 * h ** 3 + Ae, `δ ${delta}`);
 });
@@ -95,19 +96,19 @@ test('the exact route (the kernel\'s closed shell, R11): the box to its closed f
   const box = await part([boxOf(40, 30, 20)]), { doc: out, report } = planHollow(box.doc, box.bodies, { t: 3, drain: 4 }), e = await evaluate(out); assert.ok(e.ok);
   assert.equal(report.route, 'exact'); assert.equal(report.why, undefined); assert.equal(report.error, 0);
   const want = 40 * 30 * 20 - 34 * 24 * 14 - Math.PI * 4 * 3;
-  assert.ok(Math.abs(e.bodies[0].volumeMM3! - want) <= 1e-9 * want, `${e.bodies[0].volumeMM3} vs ${want}`);
+  assert.ok(Math.abs(e.bodies[0].volume! - want) <= 1e-9 * want, `${e.bodies[0].volume} vs ${want}`);
   assert.equal(e.bodies[0].innerShells ?? 0, 0); assert.equal(enclosedVoids(e.bodies[0].mesh, 1).components, 0);
   assert.ok(report.wall.samples > 0 && Math.abs(report.wall.min - 3) <= 1e-5 && Math.abs(report.wall.max - 3) <= 1e-5, JSON.stringify(report.wall));
   // (The sphere: the shell is 4/3·π(15³ − 12³) exactly before the drain; drained; its walls at t within the two meshes' δ.)
   const ball = await part([['run_command', { command: 'sphere', values: { r: 15, x: 0, y: 0, z: 0 } }]]), hs = planHollow(ball.doc, ball.bodies, { t: 3, drain: 3 });
   assert.equal(hs.report.route, 'exact');
   const shellOnly = await evaluate({ ...hs.doc, nodes: hs.doc.nodes.slice(0, ball.doc.nodes.length + 1) }); assert.ok(shellOnly.ok);
-  assert.ok(Math.abs(shellOnly.bodies[0].volumeMM3! - 4 / 3 * Math.PI * (15 ** 3 - 12 ** 3)) <= 1e-9 * 7000, String(shellOnly.bodies[0].volumeMM3));
+  assert.ok(Math.abs(shellOnly.bodies[0].volume! - 4 / 3 * Math.PI * (15 ** 3 - 12 ** 3)) <= 1e-9 * 7000, String(shellOnly.bodies[0].volume));
   const es = await evaluate(hs.doc); assert.ok(es.ok); assert.equal(es.bodies[0].innerShells ?? 0, 0);
   const dd = chordOf(es.bodies[0].mesh);
   assert.ok(Math.abs(hs.report.wall.min - 3) <= 2 * dd + 1e-6 && Math.abs(hs.report.wall.max - 3) <= 2 * dd + 1e-6, `${JSON.stringify(hs.report.wall)}, δ ${dd}`);
   // (A pipe bent at its end: the shell refuses, the body is curved — refused, the shell's reason given.)
-  const pipe = await part([['add_features', { features: [{ kind: 'sketch', profile: 'circle', center: [0, 0], radius: 8 }, { kind: 'sweep', sketch: 0, path: [{ kind: 'straight', length: 40 }, { kind: 'bend', radius: 20, angleDegrees: 90, toward: 'x' }] }] }]]);
+  const pipe = await part([['add_features', { features: [{ kind: 'sketch', profile: 'circle', center: [0, 0], radius: 8 }, { kind: 'sweep', sketch: 0, path: [{ kind: 'straight', length: 40 }, { kind: 'bend', radius: 20, angle: 90, toward: 'x' }] }] }]]);
   let msg = ''; try { planHollow(pipe.doc, pipe.bodies, { t: 3 }); } catch (err) { msg = String(err); }
   assert.match(msg, /\[CURVED_BODY\] the part has \d+ curved faces? and the kernel's exact shell refused it: a closed end of a swept body must be a straight run longer than the wall/);
 });

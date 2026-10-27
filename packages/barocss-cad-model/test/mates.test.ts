@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import { evaluatePart } from '../src/engine/evaluate';
 import { cylinderPart, emptyDoc, placedDoc, rectanglePart, starterDoc, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { faceTableOf } from '../src/assembly/faces';
-import { flattenAssembly } from '../src/assembly/flatten';
-import { BASE, eulerOf, lockRel, rotationMatrix, rotationSteps, solveAssembly, type FaceTable, type Mate } from '../src/assembly/mates';
+import { flattenAssembly } from '../src/engine/flatten';
+import { BASE, lockRel, solveAssembly, type FaceTable, type Mate } from '../src/assembly/mates';
+import { eulerOf, rotationMatrix, rotationSteps } from '../src/engine/placement';
 
 const near = (a: number, e: number, tol = 1e-9) => Math.abs(a - e) < tol;
 const inst = (id: string, doc: StudioDoc, position: [number, number, number] = [0, 0, 0], rotation: [number, number, number] = [0, 0, 0]): PartInstance =>
@@ -22,9 +23,9 @@ const boundsOf = (i: PartInstance) => {
 
 test('mates: faces read exactly from the kernel', () => {
   const t = faceTableOf(starterDoc());
-  assert.deepEqual(t['n1.top'], { kind: 'plane', point: [0, 0, 8], normal: [0, 0, 1] });
+  assert.deepEqual(t['n1.top'], { kind: 'plane', point: [0, 0, 8], normal: [0, 0, 1], centre: [32, 16, 8] });
   // The hole's two halves read as one cylinder, its radius and centre clean.
-  assert.deepEqual(t['n2.side0'], { kind: 'cylinder', point: [32, 16, 0], axis: [0, 0, 1], radius: 4, outer: false });
+  assert.deepEqual(t['n2.side0'], { kind: 'cylinder', point: [32, 16, 0], axis: [0, 0, 1], radius: 4, outer: false, span: [0, 8] });
   assert.equal(faceTableOf(cylinderPart(4, 20))['n1.side0'].kind, 'cylinder');
 });
 
@@ -245,12 +246,12 @@ test('mates: any rotation is placed exactly (Z turns between quarter turns about
   for (const rot of [[45, 0, 0], [30, 20, 10], [0, 33, 0], [-120, 75, 200], [90, 0, 45], [180, 0, 30]] as [number, number, number][]) {
     const steps = rotationSteps(rot);
     // The kernel turns about X and Y by quarter turns only.
-    for (const s of steps) if (s.axis !== 'z') assert.ok(s.angleDegrees % 90 === 0, `${rot}: ${JSON.stringify(steps)}`);
-    const m = steps.reduce<number[]>((acc, s) => mul(turn(s.axis, s.angleDegrees), acc), rotationMatrix([0, 0, 0]));
+    for (const s of steps) if (s.axis !== 'z') assert.ok(s.angle % 90 === 0, `${rot}: ${JSON.stringify(steps)}`);
+    const m = steps.reduce<number[]>((acc, s) => mul(turn(s.axis, s.angle), acc), rotationMatrix([0, 0, 0]));
     rotationMatrix(rot).forEach((v, k) => assert.ok(near(v, m[k], 1e-12), `${rot}: ${JSON.stringify(steps)}`));
   }
   // Quarter turns keep the plain X → Y → Z steps (documents built before stay the same).
-  assert.deepEqual(rotationSteps([90, 0, 45]), [{ axis: 'x', angleDegrees: 90 }, { axis: 'z', angleDegrees: 45 }]);
+  assert.deepEqual(rotationSteps([90, 0, 45]), [{ axis: 'x', angle: 90 }, { axis: 'z', angle: 45 }]);
   // A 10 × 10 × 4 block turned 30°, 20°, 10° builds, its box where its corners go.
   const rot: [number, number, number] = [30, 20, 10], block = inst('b', rectanglePart(10, 10, 4), [5, 6, 7], rot), R = rotationMatrix(rot);
   const b = boundsOf(block);
@@ -385,7 +386,7 @@ test('sub-assemblies: a saved assembly inserts as one part with all its bodies',
   const r = evaluatePart(flat, 1);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
   assert.equal(r.bodies.length, 4, 'the plate, the pin, the chamfered block and the sized block (not the hidden one)');
-  const vol = (b: { volumeMM3: number | null }) => b.volumeMM3 ?? 0;
+  const vol = (b: { volume: number | null }) => b.volume ?? 0;
   const expected = (64 * 32 * 8 - Math.PI * 16 * 8) + Math.PI * 16 * 20 + (1000 - 2 * 2 / 2 * 10) + 6 * 6 * 6;
   assert.ok(near(r.bodies.reduce((v, b) => v + vol(b), 0), expected, 0.5), String(r.bodies.map(vol)));
   // Inserted elsewhere and turned: one instance with four bodies; its faces mate, the pin's included.

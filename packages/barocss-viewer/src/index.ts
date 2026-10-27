@@ -1,9 +1,12 @@
+import { reviewRecord, validateReviewScene } from './review-state.js';
+import type { ViewerReviewSceneV1, ViewerReviewStateV1 } from './review-state.js';
+export type { ViewerReviewSceneV1, ViewerReviewStateV1, ViewerMeasuredReviewStateV1 } from './review-state.js';
 import { createCadGeometryReference, curveDomain, evaluateCurve, evaluateSurface,
   queryCadDocumentBounds, queryCadAssemblyInstancePoint, surfaceDomain, validateCadDocumentBounds } from '@barocss/cad';
 import type { AdaptiveCurveSamplingResult, WideAdaptiveCurveSamplingResult, CadAssemblyResult,
   CadAssemblyInstancePointQuery, CadAssemblyInstancePointResult } from '@barocss/cad';
 import { BaroCadLoadAbortError, loadBaroCadSource, parseBaroCadSource } from '@barocss/cad-interop/native';
-import type { BaroCadLoadTransportOptions, BaroCadNativeResult } from '@barocss/cad-interop/native';
+import type { BaroCadLoadTransportOptions, BaroCadNativeCapacityV1, BaroCadNativeResult } from '@barocss/cad-interop/native';
 import { loadBaroCadDocument, prepareBaroCadDocumentPrimitiveNativeRefsV2 } from '@barocss/cad-interop/document';
 import type { BaroCadDocumentPrimitiveBindingV2, BaroCadDocumentPrimitiveOptionsV2,
   CadDocumentResult } from '@barocss/cad-interop/document';
@@ -13,10 +16,10 @@ import type { BaroCadModelSetLoadOptions, BaroCadModelSetManifest,
 import { prepareMesh, validateMeshCamera, validatePreviewPacket, validateMeshMaterialBinding, prepareClothLayer,
   validateUniformCurvePreview, validateSelectedUniformCurvePreview, prepareMixedDepthFrame, resolveMixedDepthFrame,
   prepareQualifiedFaceScene, resolveQualifiedFaceScene, prepareBooleanShellBuffers } from '@barocss/gpu';
-import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1,
+import type { MeshCamera, MeshLighting, PreviewPacket,
   PrimitiveSceneEntryV2, MeshMaterialBinding, ParticleLayerV0, ClothLayerV0,
   UniformCurvePreview, SelectedUniformCurvePreview, QualifiedFaceSceneV0, BooleanShellSceneInputV0 } from '@barocss/gpu';
-import { Presenter, itemsOf } from './presenter.js';
+import { Presenter, itemsOf, DEFAULT_LIGHTING } from './presenter.js';
 import type { Drawing, DrawnItem } from './presenter.js';
 
 import { prepareViewerClothFrame } from './cloth-frame.js';
@@ -29,6 +32,14 @@ import type { ViewerAssemblyLoadOptions, ViewerAssemblyInstanceBinding } from '.
 export type { ViewerAssemblyLoadOptions, ViewerAssemblyInstanceBinding } from './assembly.js';
 export type ViewerAssemblyPointQuery = CadAssemblyInstancePointQuery;
 export type ViewerAssemblyPoint = CadAssemblyInstancePointResult;
+export interface ViewerAssemblyPointDistance {
+  first: ViewerAssemblyPoint;
+  second: ViewerAssemblyPoint;
+  distanceMM: number;
+  metric: 'straight-line';
+  space: 'assembly-space-xyz';
+  certification: 'not-certified';
+}
 
 import { prepareViewerShellGraph } from './shell-graph.js';
 import type { ViewerShellLoadOptions, ViewerShellState } from './shell-graph.js';
@@ -61,8 +72,27 @@ import type { ViewerQualifiedFaceNativeSample } from './qualified-face-native-sa
 export type { ViewerQualifiedFaceNativeSample } from './qualified-face-native-sample.js';
 
 type Vec3 = [number, number, number];
+/** A vector only read (gpu's readonly Vec3 passes as one, R7.3c). */
+type ReadVec3 = readonly [number, number, number];
 type Quat = [number, number, number, number];
-export interface ViewerOptions { mmToSceneUnit: number; background: Vec3; lighting?: MeshLighting }
+/**
+ * Device recreation does not establish that a frame or its pixels have been restored. `recovery-failed`: the GPU core
+ * could not replace a lost device; the view stays blank until the page makes a new viewer. `cause` is the core's failure.
+ */
+export type ViewerDeviceEvent = { type: 'lost' } | { type: 'recreated' } | { type: 'recovery-failed'; message: string; cause: unknown };
+export interface ViewerOptions {
+  mmToSceneUnit: number;
+  background: Vec3;
+  lighting?: MeshLighting;
+  onDeviceEvent?: (event: ViewerDeviceEvent) => void;
+}
+export interface ViewerLightingCapabilities {
+  supported: boolean;
+  reason: string | null;
+  lighting: MeshLighting;
+  defaultLighting: MeshLighting;
+  unsupported: { environmentMap: string; shadows: string; postProcessing: string };
+}
 export interface ViewerPointerControlOptions { onError?: (error: unknown) => void }
 export interface ViewerPointerControls { dispose(): void }
 export interface ViewerKeyboardControlOptions { onError?: (error: unknown) => void }
@@ -85,6 +115,13 @@ export type ViewerQualifiedFaceAppearanceHandoffResult =
 export type ViewerGeometryRef =
   | ({ kind: 'surface' } & ViewerRef)
   | ({ kind: 'curve' } & ViewerCurveRef);
+interface PreparedReviewCandidate {
+  camera: MeshCamera;
+  visible: ViewerGeometryRef[];
+  hidden: ViewerGeometryRef[];
+  surface: ViewerRef | null;
+  selection: ViewerGeometryRef | null;
+}
 export interface ViewerPacket { modelId: string; packet: PreviewPacket }
 /** Actual Physics metre positions mapped by the host; Viewer owns the copied display frame. */
 export interface ViewerFluidFrameV0 {
@@ -119,12 +156,12 @@ export interface ViewerPose {
 export interface ViewerPoseFrame { contextId: string; timeSeconds: number; poses: ViewerPose[] }
 export const VIEWER_POSE_LIMITS = Object.freeze({
   durationSeconds: 3600,
-  translationMm: 10000,
+  translation: 10000,
   scaleMin: 0.001,
   scaleMax: 100,
   quaternionNormTolerance: 1e-9,
 });
-export interface ViewerDisplayPose { ref: ViewerRef; translationMm: Vec3; rotationXYZW: Quat; scale: Vec3 }
+export interface ViewerDisplayPose { ref: ViewerRef; translation: Vec3; rotationXYZW: Quat; scale: Vec3 }
 export interface ViewerMotionState {
   basis: 'part-xyz-matches-rhyup';
   frame: ViewerPoseFrame;
@@ -133,7 +170,7 @@ export interface ViewerMotionState {
 }
 export interface ViewerGeometryMotionBinding { contextId: string; targetId: string; ref: ViewerGeometryRef }
 export interface ViewerGeometryDisplayPose {
-  ref: ViewerGeometryRef; translationMm: Vec3; rotationXYZW: Quat; scale: Vec3
+  ref: ViewerGeometryRef; translation: Vec3; rotationXYZW: Quat; scale: Vec3
 }
 export interface ViewerGeometryMotionState {
   basis: 'part-xyz-matches-rhyup';
@@ -273,7 +310,7 @@ export interface ViewerState {
 
 const PALETTE: Vec3[] = [[0.14, 0.58, 0.86], [0.95, 0.57, 0.22], [0.36, 0.72, 0.49], [0.72, 0.48, 0.87]];
 const SELECTED_COLOR: Vec3 = [1, 0.94, 0.38];
-const INITIAL_CAMERA: MeshCamera = { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: 0.01, far: 100 };
+const INITIAL_CAMERA: MeshCamera = { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: 0.01, far: 100 };
 const ID = /^[A-Za-z_][A-Za-z0-9_-]{0,127}$/;
 const MODEL_ID = /^[A-Za-z_][A-Za-z0-9_.-]{0,127}$/;
 const MOTION_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
@@ -342,7 +379,7 @@ function parseMotionFrame(input: unknown): ViewerPoseFrame {
     const pose = ownRecord(inputPose, keys as string[], 'Motion pose');
     return { targetId: motionId(pose.targetId, 'Motion targetId'),
       ...(Object.hasOwn(pose, 'translation') ? { translation: vector(pose.translation, 'Motion translation',
-        -VIEWER_POSE_LIMITS.translationMm, VIEWER_POSE_LIMITS.translationMm) } : {}),
+        -VIEWER_POSE_LIMITS.translation, VIEWER_POSE_LIMITS.translation) } : {}),
       ...(Object.hasOwn(pose, 'rotation') ? { rotation: quaternion(pose.rotation) } : {}),
       ...(Object.hasOwn(pose, 'scale') ? { scale: vector(pose.scale, 'Motion scale',
         VIEWER_POSE_LIMITS.scaleMin, VIEWER_POSE_LIMITS.scaleMax) } : {}) };
@@ -350,26 +387,31 @@ function parseMotionFrame(input: unknown): ViewerPoseFrame {
   check(new Set(poses.map(pose => pose.targetId)).size === poses.length, 'Duplicate Motion targetId');
   return { contextId, timeSeconds, poses };
 }
+function parseLighting(input: unknown): MeshLighting {
+  const data = ownRecord(input,
+    ['ambientStrength', 'directionalStrength', 'direction'], 'Viewer lighting');
+  const ambientStrength = finite(data.ambientStrength, 'Ambient strength', 0, 1);
+  const directionalStrength = finite(data.directionalStrength, 'Directional strength', 0, 1);
+  check(ambientStrength + directionalStrength <= 1, 'Lighting strengths must sum to at most 1');
+  const direction = vector(data.direction, 'Light direction', -1000, 1000);
+  check(Math.hypot(...direction) > 0, 'Light direction must be nonzero');
+  return { ambientStrength, directionalStrength, direction };
+}
 function parseViewerOptions(input: unknown): ViewerOptions {
   check(input !== null && typeof input === 'object' && Object.getPrototypeOf(input) === Object.prototype,
     'Viewer options must be plain data');
   const hasLighting = Object.hasOwn(input, 'lighting');
-  const value = ownRecord(input, hasLighting
-    ? ['mmToSceneUnit', 'background', 'lighting'] : ['mmToSceneUnit', 'background'], 'Viewer options');
-  let lighting: MeshLighting | undefined;
-  if (hasLighting) {
-    const data = ownRecord(value.lighting,
-      ['ambientStrength', 'directionalStrength', 'direction'], 'Viewer lighting');
-    const ambientStrength = finite(data.ambientStrength, 'Ambient strength', 0, 1);
-    const directionalStrength = finite(data.directionalStrength, 'Directional strength', 0, 1);
-    check(ambientStrength + directionalStrength <= 1, 'Lighting strengths must sum to at most 1');
-    const direction = vector(data.direction, 'Light direction', -1000, 1000);
-    check(Math.hypot(...direction) > 0, 'Light direction must be nonzero');
-    lighting = { ambientStrength, directionalStrength, direction };
-  }
+  const hasDeviceEvent = Object.hasOwn(input, 'onDeviceEvent');
+  const keys = ['mmToSceneUnit', 'background'];
+  if (hasLighting) keys.push('lighting');
+  if (hasDeviceEvent) keys.push('onDeviceEvent');
+  const value = ownRecord(input, keys, 'Viewer options');
+  const lighting = hasLighting ? parseLighting(value.lighting) : undefined;
+  check(!hasDeviceEvent || typeof value.onDeviceEvent === 'function', 'Viewer onDeviceEvent must be a function');
   return { mmToSceneUnit: finite(value.mmToSceneUnit, 'mmToSceneUnit', 1e-6, 1),
     background: vector(value.background, 'background', 0, 1),
-    ...(lighting ? { lighting } : {}) };
+    ...(lighting ? { lighting } : {}),
+    ...(hasDeviceEvent ? { onDeviceEvent: value.onDeviceEvent as (event: ViewerDeviceEvent) => void } : {}) };
 }
 function parseNativeOptions(input: unknown):
   NativeLoadOptions | ViewerNativeCurveLoadOptions | ViewerNativeCurveLoadOptionsV1 {
@@ -398,6 +440,23 @@ function parseNativeOptions(input: unknown):
   return { sourceVersion: 0, countU, countV,
     curveDisplay: wide ? { version: 1, chordToleranceMM, maxSegments, maxDepth }
       : { chordToleranceMM, maxSegments, maxDepth } };
+}
+/** Assembly may explicitly opt in to the Loader's complete-source capacity profile. */
+function parseAssemblyNativeOptions(input: unknown):
+  (NativeLoadOptions | ViewerNativeCurveLoadOptions | ViewerNativeCurveLoadOptionsV1)
+    & { nativeCapacity?: BaroCadNativeCapacityV1 } {
+  if (!input || typeof input !== 'object' || !Object.hasOwn(input, 'nativeCapacity'))
+    return parseNativeOptions(input);
+  const hasCurves = Object.hasOwn(input, 'curveDisplay');
+  const value = ownRecord(input, hasCurves
+    ? ['sourceVersion', 'countU', 'countV', 'curveDisplay', 'nativeCapacity']
+    : ['sourceVersion', 'countU', 'countV', 'nativeCapacity'], 'Assembly native options');
+  const capacity = ownRecord(value.nativeCapacity, ['version', 'maximumObjects'], 'Assembly native capacity');
+  check(capacity.version === 1 && capacity.maximumObjects === 16,
+    'Assembly native capacity requires version 1 and maximumObjects 16');
+  const base = { sourceVersion: value.sourceVersion, countU: value.countU, countV: value.countV,
+    ...(hasCurves ? { curveDisplay: value.curveDisplay } : {}) };
+  return { ...parseNativeOptions(base), nativeCapacity: { version: 1, maximumObjects: 16 } };
 }
 function parseRef(input: unknown): ViewerRef {
   const value = ownRecord(input, ['modelId', 'surfaceId'], 'Surface reference');
@@ -516,21 +575,21 @@ function parseGeometryMotionBindings(input: unknown, frame: ViewerPoseFrame,
   'Geometry Motion bindings must cover every displayed object exactly once');
   return bindings;
 }
-function add(a: Vec3, b: Vec3): Vec3 { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
-function subtract(a: Vec3, b: Vec3): Vec3 { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
-function multiply(a: Vec3, n: number): Vec3 { return [a[0] * n, a[1] * n, a[2] * n]; }
-function dot(a: Vec3, b: Vec3): number { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
-function cross(a: Vec3, b: Vec3): Vec3 { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
-function unit(a: Vec3): Vec3 { const length = Math.hypot(...a); check(length > 1e-12, 'Degenerate camera vector'); return multiply(a, 1 / length); }
+function add(a: ReadVec3, b: ReadVec3): Vec3 { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
+function subtract(a: ReadVec3, b: ReadVec3): Vec3 { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+function multiply(a: ReadVec3, n: number): Vec3 { return [a[0] * n, a[1] * n, a[2] * n]; }
+function dot(a: ReadVec3, b: ReadVec3): number { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+function cross(a: ReadVec3, b: ReadVec3): Vec3 { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+function unit(a: ReadVec3): Vec3 { const length = Math.hypot(...a); check(length > 1e-12, 'Degenerate camera vector'); return multiply(a, 1 / length); }
 function rotated(q: Quat, v: Vec3): Vec3 {
   const t = multiply(cross([q[0], q[1], q[2]], v), 2);
   return add(v, add(multiply(t, q[3]), cross([q[0], q[1], q[2]], t)));
 }
-type DisplayTransform = Pick<ViewerDisplayPose, 'translationMm' | 'rotationXYZW' | 'scale'>;
+type DisplayTransform = Pick<ViewerDisplayPose, 'translation' | 'rotationXYZW' | 'scale'>;
 function displayVertex(native: Vec3, pose: DisplayTransform | undefined, mmToSceneUnit: number): Vec3 {
   if (!pose) return multiply(native, mmToSceneUnit);
   const scaled = native.map((value, axis) => value * pose.scale[axis]) as Vec3;
-  return multiply(add(pose.translationMm, rotated(pose.rotationXYZW, scaled)), mmToSceneUnit);
+  return multiply(add(pose.translation, rotated(pose.rotationXYZW, scaled)), mmToSceneUnit);
 }
 function surfacePose(ref: ViewerRef, motion: ViewerMotionState | null,
   geometryMotion: ViewerGeometryMotionState | null): DisplayTransform | undefined {
@@ -569,7 +628,7 @@ function cameraForBounds(low: Vec3, high: Vec3, width: number, height: number): 
   const distance = radius * 1.3 / Math.sin(Math.atan(Math.tan(halfFov) * Math.min(1, width / height)));
   check(distance + radius * 2 < 10000, 'Scene cannot fit within camera clipping bounds');
   return validateMeshCamera({ eye: add(target, multiply(unit([1, 1, 1]), distance)), target, up: [0, 1, 0],
-    fovYDegrees: 45, near: Math.max(0.0001, distance - radius * 2), far: distance + radius * 2 });
+    fovY: 45, near: Math.max(0.0001, distance - radius * 2), far: distance + radius * 2 });
 }
 
 function fittedCamera(packets: ViewerPacket[], curves: ViewerCurveEntry[], scale: number, width: number, height: number,
@@ -598,7 +657,7 @@ function fittedCamera(packets: ViewerPacket[], curves: ViewerCurveEntry[], scale
   return cameraForBounds(low, high, width, height);
 }
 
-function rayTriangle(origin: Vec3, direction: Vec3, a: Vec3, b: Vec3, c: Vec3): { distance: number; u: number; v: number } | null {
+function rayTriangle(origin: ReadVec3, direction: ReadVec3, a: ReadVec3, b: ReadVec3, c: ReadVec3): { distance: number; u: number; v: number } | null {
   const edge1 = subtract(b, a), edge2 = subtract(c, a), p = cross(direction, edge2), determinant = dot(edge1, p);
   if (Math.abs(determinant) < 1e-10) return null;
   const inverse = 1 / determinant, offset = subtract(origin, a), u = dot(offset, p) * inverse;
@@ -678,8 +737,12 @@ export class Viewer {
   private primitiveScope(): void {
     this.nativeScope(); check(!this.mixedDepth, 'This primitive operation is unavailable in mixed depth mode');
   }
-  private show(items: DrawnItem[], camera: MeshCamera, translate?: Vec3): void {
-    const drawing: Drawing = { items, camera, lighting: this.acceptedLighting ?? this.options.lighting ?? null,
+  private effectiveLighting(lighting: MeshLighting | null = this.acceptedLighting): MeshLighting | null {
+    return lighting ?? this.options.lighting ?? null;
+  }
+  private show(items: DrawnItem[], camera: MeshCamera, translate?: ReadVec3,
+    lighting: MeshLighting | null = this.acceptedLighting): void {
+    const drawing: Drawing = { items, camera, lighting: this.effectiveLighting(lighting),
       background: this.options.background, mmToScene: this.options.mmToSceneUnit, ...(translate ? { translate } : {}) };
     this.presenter.show(drawing);
   }
@@ -716,8 +779,8 @@ export class Viewer {
     check(Number.isInteger(width) && Number.isInteger(height) && width >= 1 && height >= 1
       && width <= 4096 && height <= 4096 && width * height <= 4194304, 'Canvas dimensions exceed limits');
   }
-  private gpuOptions(camera = this.camera) {
-    const lighting = this.acceptedLighting ?? this.options.lighting;
+  private gpuOptions(camera = this.camera, authoredLighting: MeshLighting | null = this.acceptedLighting) {
+    const lighting = this.effectiveLighting(authoredLighting);
     return { mmToSceneUnit: this.options.mmToSceneUnit, translate: [0, 0, 0] as Vec3,
       background: this.options.background, camera,
       ...(lighting ? { lighting } : {}) };
@@ -732,7 +795,7 @@ export class Viewer {
       check(colorIndex >= 0, 'Native appearance Surface is absent from the current palette inventory');
       return { packet: entry.packet,
         color: sameRef(ref, selected) ? SELECTED_COLOR : PALETTE[colorIndex],
-        ...(pose ? { transform: { translationMm: pose.translationMm,
+        ...(pose ? { transform: { translation: pose.translation,
           rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}) };
     });
   }
@@ -753,7 +816,8 @@ export class Viewer {
     hiddenGeometry = this.hiddenGeometry,
     particleLayer: ParticleLayerV0 | null = this.particleLayer,
     surfaceMaterials: ViewerSurfaceMaterial[] = this.surfaceMaterials,
-    clothLayer: ClothLayerV0 | null = this.clothLayer): void {
+    clothLayer: ClothLayerV0 | null = this.clothLayer,
+    lighting: MeshLighting | null = this.acceptedLighting): void {
     this.gpuLive();
     const packets = allPackets.filter(entry => !hiddenGeometry.some(hidden => sameGeometryRef(hidden,
       { kind: 'surface', modelId: entry.modelId, surfaceId: entry.packet.surfaceId })));
@@ -782,13 +846,14 @@ export class Viewer {
           color: geometrySelection?.kind === 'curve' && geometrySelection.modelId === ref.modelId
             && geometrySelection.curveId === ref.geometryId
             ? SELECTED_COLOR : PALETTE[colorIndex % PALETTE.length],
-          ...(pose ? { transform: { translationMm: pose.translationMm,
+          ...(pose ? { transform: { translation: pose.translation,
             rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}) } as PrimitiveSceneEntryV2;
       }),
     ];
     const materials = qualified ? surfaceMaterials.map(value => ({ ref: {
       modelId: value.ref.modelId, geometryId: value.ref.surfaceId }, binding: value.binding })) : [];
-    this.show(itemsOf(entries, materials, qualified ? particleLayer : null, qualified ? clothLayer : null), camera);
+    this.show(itemsOf(entries, materials, qualified ? particleLayer : null, qualified ? clothLayer : null), camera,
+      undefined, lighting);
     this.drawn = qualified || packets.length + curves.length === 0 ? 'qualified' : 'mesh';
   }
   private validatedPackets(input: unknown, allowEmpty = false, qualified = false,
@@ -1026,7 +1091,7 @@ export class Viewer {
       const poses = new Map(frame.poses.map(pose => [pose.targetId, pose]));
       const displayPoses: ViewerGeometryDisplayPose[] = bindings.map(binding => {
         const pose = poses.get(binding.targetId)!;
-        return { ref: binding.ref, translationMm: pose.translation ?? [0, 0, 0],
+        return { ref: binding.ref, translation: pose.translation ?? [0, 0, 0],
           rotationXYZW: pose.rotation ?? [0, 0, 0, 1], scale: pose.scale ?? [1, 1, 1] };
       });
       geometryMotion = { basis: 'part-xyz-matches-rhyup', frame, bindings, displayPoses };
@@ -1196,7 +1261,7 @@ export class Viewer {
     const request = ownRecord(options, ['native', 'basis', 'instanceIds'], 'Assembly options');
     check(request.basis === 'authored-xyz-matches-rhyup',
       'Assembly authored XYZ/mm basis must explicitly match Viewer Y-up/mm');
-    const nativeOptions = parseNativeOptions(request.native);
+    const nativeOptions = parseAssemblyNativeOptions(request.native);
     const candidate = prepareViewerAssembly(input, request.instanceIds,
       { ...nativeOptions, unitsPerMillimeter: 1 });
     const packets = this.validatedPackets(candidate.packets, candidate.curves.length > 0,
@@ -1237,6 +1302,16 @@ export class Viewer {
     check(this.assemblyInstances.some(value => value.instanceId === query.instanceId),
       'Assembly point must reference an admitted instance');
     return queryCadAssemblyInstancePoint(this.assembly, input);
+  }
+  /** Evaluate both points against the current assembly without changing Viewer state. */
+  measureAssemblyPoints(firstInput: ViewerAssemblyPointQuery,
+    secondInput: ViewerAssemblyPointQuery): ViewerAssemblyPointDistance {
+    const first = this.queryAssemblyInstancePoint(firstInput);
+    const second = this.queryAssemblyInstancePoint(secondInput);
+    const distanceMM = Math.hypot(...subtract(first.assemblyPointMM, second.assemblyPointMM));
+    check(Number.isFinite(distanceMM), 'Assembly point distance is not finite');
+    return structuredClone({ first, second, distanceMM, metric: 'straight-line',
+      space: 'assembly-space-xyz', certification: 'not-certified' });
   }
   loadNative(source: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions
     | ViewerNativeCurveLoadOptionsV1): void {
@@ -1504,7 +1579,7 @@ export class Viewer {
     const displayPoses = bindings.map(binding => {
       const pose = poses.get(binding.targetId)!;
       return { ref: binding.ref,
-        translationMm: pose.translation ?? [0, 0, 0] as Vec3,
+        translation: pose.translation ?? [0, 0, 0] as Vec3,
         rotationXYZW: pose.rotation ?? [0, 0, 0, 1] as Quat,
         scale: pose.scale ?? [1, 1, 1] as Vec3 };
     });
@@ -1534,7 +1609,7 @@ export class Viewer {
     const displayPoses: ViewerGeometryDisplayPose[] = bindings.map(binding => {
       const pose = poses.get(binding.targetId)!;
       return { ref: binding.ref,
-        translationMm: pose.translation ?? [0, 0, 0] as Vec3,
+        translation: pose.translation ?? [0, 0, 0] as Vec3,
         rotationXYZW: pose.rotation ?? [0, 0, 0, 1] as Quat,
         scale: pose.scale ?? [1, 1, 1] as Vec3 };
     });
@@ -1688,7 +1763,7 @@ export class Viewer {
     const offset = subtract(displayPositionScene, this.camera.eye);
     const depthScene = dot(offset, forward);
     if (depthScene < this.camera.near || depthScene > this.camera.far) return null;
-    const tangent = Math.tan(this.camera.fovYDegrees * Math.PI / 360);
+    const tangent = Math.tan(this.camera.fovY * Math.PI / 360);
     const aspect = this.canvas.width / this.canvas.height;
     const x = dot(offset, right) / (depthScene * tangent * aspect);
     const y = dot(offset, up) / (depthScene * tangent);
@@ -1898,7 +1973,7 @@ export class Viewer {
         } else {
           const camera = this.camera;
           const distance = Math.hypot(...subtract(camera.eye, camera.target));
-          const perPixel = 2 * distance * Math.tan(camera.fovYDegrees * Math.PI / 360) / bounds.height;
+          const perPixel = 2 * distance * Math.tan(camera.fovY * Math.PI / 360) / bounds.height;
           check(Number.isFinite(perPixel), 'Pointer pan scale must be finite');
           this.pan(Math.max(-1000, Math.min(1000, -dx * perPixel)),
             Math.max(-1000, Math.min(1000, dy * perPixel)));
@@ -2040,7 +2115,7 @@ export class Viewer {
     check(xCss <= rect.width && yCss <= rect.height, 'Pick point is outside canvas');
     const backward = unit(subtract(this.camera.eye, this.camera.target));
     const right = unit(cross(this.camera.up, backward)), up = cross(backward, right);
-    const tangent = Math.tan(this.camera.fovYDegrees * Math.PI / 360);
+    const tangent = Math.tan(this.camera.fovY * Math.PI / 360);
     const aspect = this.canvas.width / this.canvas.height;
     const direction = unit(add(multiply(backward, -1), add(
       multiply(right, (2 * xCss / rect.width - 1) * tangent * aspect),
@@ -2121,7 +2196,7 @@ export class Viewer {
     const forward = multiply(backward, -1);
     const right = unit(cross(this.camera.up, backward));
     const up = cross(backward, right);
-    const tangent = Math.tan(this.camera.fovYDegrees * Math.PI / 360);
+    const tangent = Math.tan(this.camera.fovY * Math.PI / 360);
     const aspect = this.canvas.width / this.canvas.height;
     const depth = (position: Vec3) => dot(subtract(position, this.camera.eye), forward);
     const project = (position: Vec3, z: number): [number, number] => {
@@ -2267,6 +2342,163 @@ export class Viewer {
     this.gpuLive(); this.dimensions(width, height);
     this.presenter.setSize(width, height);
   }
+  /** The lighting supported by this Viewer presentation path, as detached plain data. */
+  getLightingCapabilities(): ViewerLightingCapabilities {
+    this.gpuLive();
+    const supported = (this.drawn === 'mesh' || this.drawn === 'qualified')
+      && this.packets.length > 0 && !this.shell && !this.mixedDepth && !this.qualifiedFaceScene;
+    const reason = supported ? null : this.shell
+      ? 'Lighting controls are unavailable in this Viewer native Shell path'
+      : this.mixedDepth ? 'Lighting controls are unavailable in this Viewer mixed depth path'
+      : this.qualifiedFaceScene ? 'Lighting controls are unavailable in this Viewer independent qualified Face path'
+      : 'Lighting controls require a loaded Surface in this Viewer primitive scene path';
+    return structuredClone({ supported, reason,
+      lighting: this.effectiveLighting() ?? DEFAULT_LIGHTING,
+      defaultLighting: this.options.lighting ?? DEFAULT_LIGHTING,
+      unsupported: {
+        environmentMap: 'Environment maps are unavailable in this Viewer lighting control path',
+        shadows: 'Shadows are unavailable in this Viewer lighting control path',
+        postProcessing: 'Post processing is unavailable in this Viewer lighting control path',
+      } });
+  }
+  /** Change ambient and directional light without rebuilding geometry or changing the camera. */
+  setLighting(input: MeshLighting | null): void {
+    this.gpuLive();
+    const lighting = input === null ? null : parseLighting(input);
+    const capabilities = this.getLightingCapabilities();
+    check(capabilities.supported, capabilities.reason!);
+    this.presenter.setLighting(this.effectiveLighting(lighting));
+    this.acceptedLighting = lighting;
+  }
+  private reviewScene(): ViewerReviewSceneV1 {
+    this.gpuLive(); this.primitiveScope();
+    check(this.drawn === 'mesh' || this.drawn === 'qualified', 'Review requires a loaded primitive CAD scene');
+    check(this.document !== null || this.assembly !== null,
+      'Review requires a revisioned CAD document or assembly');
+    const scene = this.assembly?.assembly ?? this.document!.document;
+    // These small pins bind to the actual loaded subset, not to a caller-supplied label.
+    // JSON tuples avoid delimiter collisions. No geometry/source text enters the saved state.
+    const members = this.assembly
+      ? this.assemblyInstances.map(value => JSON.stringify([value.instanceId, value.reference]))
+      : this.documentBodies.map(value => JSON.stringify(value.binding));
+    return { kind: this.assembly ? 'assembly' : 'document',
+      id: 'assemblyId' in scene ? scene.assemblyId : scene.documentId,
+      revision: scene.revision, mmToSceneUnit: this.options.mmToSceneUnit, members };
+  }
+  /** A detached, JSON-safe review of the current revision and loaded subset; excludes geometry. */
+  captureReviewState(): ViewerReviewStateV1 {
+    return structuredClone({ schema: 'barocss-viewer-review', version: 1, scene: this.reviewScene(),
+      camera: this.camera, visibleGeometry: this.geometryRefs().filter(ref => this.visible(ref)),
+      selectedGeometry: this.selectedGeometry });
+  }
+  /** Validate the complete candidate before drawing or changing accepted CPU state. */
+  applyReviewState(input: unknown): void {
+    this.presentReviewCandidate(this.prepareReviewCandidate(input));
+  }
+  private prepareReviewCandidate(input: unknown): PreparedReviewCandidate {
+    const scene = this.reviewScene();
+    const data = reviewRecord(input, ['schema', 'version', 'scene', 'camera', 'visibleGeometry', 'selectedGeometry'], 'Review');
+    check(data.schema === 'barocss-viewer-review' && data.version === 1, 'Unsupported Viewer review format');
+    validateReviewScene(data.scene, scene);
+    const cameraData = reviewRecord(data.camera, ['eye', 'target', 'up', 'fovY', 'near', 'far'], 'Review camera');
+    // The GPU validator checks camera geometry. Validate vectors first to refuse accessors/non-data arrays.
+    const camera = validateMeshCamera({ eye: vector(cameraData.eye, 'Review eye', -1000, 1000),
+      target: vector(cameraData.target, 'Review target', -1000, 1000),
+      up: vector(cameraData.up, 'Review up', -Number.MAX_VALUE, Number.MAX_VALUE),
+      fovY: finite(cameraData.fovY, 'Review fovY', 10, 100),
+      near: finite(cameraData.near, 'Review near', 0.0001, 10000),
+      far: finite(cameraData.far, 'Review far', 0.0001, 10000) });
+    check(Array.isArray(data.visibleGeometry) && data.visibleGeometry.length <= 4,
+      'Review visible geometry requires 0..4 references');
+    const visible = denseArray(data.visibleGeometry, data.visibleGeometry.length, 'Review visible geometry').map(parseGeometryRef);
+    const inventory = this.geometryRefs();
+    check(visible.every(ref => inventory.some(value => sameGeometryRef(value, ref))), 'Review contains unknown geometry');
+    check(visible.every((ref, i) => visible.findIndex(value => sameGeometryRef(value, ref)) === i),
+      'Review contains duplicate geometry');
+    const selection = data.selectedGeometry === null ? null : parseGeometryRef(data.selectedGeometry);
+    check(selection === null || visible.some(ref => sameGeometryRef(ref, selection)), 'Review selection must be visible');
+    check(!this.clothFrame || visible.some(ref => ref.kind === 'surface'), 'Clear cloth layer before hiding the native Surface');
+    check(!this.fluidFrame || visible.some(ref => ref.kind === 'surface'), 'Clear fluid layer before hiding the native Surface');
+    check(this.surfaceMaterials.every(material => visible.some(ref => ref.kind === 'surface' && sameRef(ref, material.ref))),
+      'Clear Surface material before hiding its native Surface');
+    check(selection?.kind !== 'surface' || !this.surfaceMaterials.some(material => sameRef(selection, material.ref)),
+      'Clear Surface material before selecting the bound Surface');
+    const hidden = inventory.filter(ref => !visible.some(value => sameGeometryRef(value, ref)));
+    const surface = selection?.kind === 'surface' ? { modelId: selection.modelId, surfaceId: selection.surfaceId } : null;
+    return { camera, visible, hidden, surface, selection };
+  }
+  private presentReviewCandidate(candidate: PreparedReviewCandidate,
+    lighting: MeshLighting | null = this.acceptedLighting): void {
+    const { camera, hidden, surface, selection } = candidate;
+    try {
+      this.present(this.packets, this.curves, camera, surface, this.motion, selection, this.geometryMotion,
+        this.drawn === 'qualified', hidden, this.particleLayer, this.surfaceMaterials, this.clothLayer, lighting);
+    } catch (error) {
+      // The shared presenter can fail after removing old meshes. Restore the accepted drawing.
+      try { this.present(this.packets, this.curves, this.camera, this.selected, this.motion); }
+      catch (recoveryError) { throw new AggregateError([error, recoveryError], 'Review display and recovery failed'); }
+      throw error;
+    }
+    this.camera = camera; this.hiddenGeometry = hidden;
+    this.selected = surface; this.selectedGeometry = selection;
+    this.acceptedLighting = lighting;
+  }
+  /** Restore a review and its latest original-native distance as one accepted change. */
+  applyMeasuredReviewState(input: unknown): ViewerNativePointDistance | null {
+    const candidate = this.prepareMeasuredReviewCandidate(input);
+    this.presentReviewCandidate(candidate.review, candidate.lighting);
+    this.nativeMeasurement = candidate.result;
+    return candidate.detached;
+  }
+  /** Check the complete candidate without presenting, adopting it, or changing measurement caches. */
+  validateMeasuredReviewState(input: unknown): void {
+    this.prepareMeasuredReviewCandidate(input);
+  }
+  private prepareMeasuredReviewCandidate(input: unknown): {
+    review: PreparedReviewCandidate; lighting: MeshLighting | null;
+    result: ViewerNativePointDistance | null; detached: ViewerNativePointDistance | null;
+  } {
+    const scene = this.reviewScene();
+    const hasLighting = input !== null && typeof input === 'object' && Object.hasOwn(input, 'lighting');
+    const data = reviewRecord(input, hasLighting
+      ? ['schema', 'version', 'review', 'measurement', 'lighting']
+      : ['schema', 'version', 'review', 'measurement'], 'Measured review');
+    check(data.schema === 'barocss-viewer-measured-review' && data.version === 1,
+      'Unsupported Viewer measured review format');
+    const review = this.prepareReviewCandidate(data.review);
+    const lighting = hasLighting ? data.lighting === null ? null : parseLighting(data.lighting) : this.acceptedLighting;
+    if (hasLighting) {
+      const capabilities = this.getLightingCapabilities();
+      check(capabilities.supported, capabilities.reason!);
+    }
+    let result: ViewerNativePointDistance | null = null;
+    if (data.measurement !== null) {
+      check(scene.kind === 'document', 'Measured review requires a native CAD document');
+      const measurement = reviewRecord(data.measurement,
+        ['first', 'second', 'distanceMM', 'metric', 'space', 'certification'], 'Review measurement');
+      check(measurement.metric === 'straight-line' && measurement.space === 'native-authored'
+        && measurement.certification === 'not-certified', 'Unsupported review measurement units or metric');
+      const distanceMM = finite(measurement.distanceMM, 'Review distanceMM', 0, Number.MAX_VALUE);
+      const first = parseNativePointInput(measurement.first), second = parseNativePointInput(measurement.second);
+      const model = this.nativeModel(first.modelId);
+      check(model && second.modelId === first.modelId,
+        'Both review points must belong to the accepted native model');
+      const inventory = this.geometryRefs();
+      for (const point of [first, second]) {
+        const ref: ViewerGeometryRef = point.kind === 'surface'
+          ? { kind: 'surface', modelId: point.modelId, surfaceId: point.surfaceId }
+          : { kind: 'curve', modelId: point.modelId, curveId: point.curveId };
+        check(inventory.some(value => sameGeometryRef(value, ref))
+          && review.visible.some(value => sameGeometryRef(value, ref)),
+        'Review points must reference admitted and candidate-visible geometry');
+      }
+      result = nativeDistance(this.evaluateNativePoint(first, model), this.evaluateNativePoint(second, model));
+      check(distanceMM === result.distanceMM, 'Review distanceMM differs from the original native points');
+    }
+    // All evaluation and copying precede presentation. A failed draw leaves every cache intact.
+    const detached = result === null ? null : structuredClone(result);
+    return { review, lighting, result, detached };
+  }
   getState(): ViewerState {
     const status = this.disposed ? 'disposed' : this.packets.length + this.curves.length || this.shell?.boundsScene || this.qualifiedFaceScene ? 'ready' : 'empty';
     return structuredClone({ status, frame: 'right-handed-y-up', sourceUnit: 'mm',
@@ -2331,7 +2563,13 @@ export class Viewer {
 export async function createViewer(canvas: HTMLCanvasElement, options: ViewerOptions): Promise<Viewer> {
   check(canvas instanceof HTMLCanvasElement, 'Viewer requires an HTMLCanvasElement');
   const parsed = parseViewerOptions(options);
-  return new Viewer(canvas, parsed, await Presenter.create(canvas, parsed.background));
+  const presenter = await Presenter.create(canvas, parsed.background, parsed.onDeviceEvent);
+  try { return new Viewer(canvas, parsed, presenter); }
+  catch (error) {
+    try { presenter.dispose(); }
+    catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Viewer creation and cleanup failed'); }
+    throw error;
+  }
 }
 
 export { prepareViewerNativeSceneAppearance } from './native-scene-appearance.js';

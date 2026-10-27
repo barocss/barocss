@@ -1,0 +1,217 @@
+{
+  "id": "fuzz-20261026-184",
+  "about": "L4 fuzz robust refusal (seed 20261026, case 184), shrunk: (an open shelled box ∩ a tilted cylinder) in a circular pattern of 2 at 50.872°. 13 edges used once before D258–D259: copy 2's floor line across copy 1's end cap was dropped as lying on its edge (D258), and copy 1's cylinder ∩ copy 2's inner wall was lost where Newton started at a curve's end (D259). Now one body.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            7.5,
+            4.5
+          ]
+        },
+        {
+          "id": "n2b",
+          "kind": "extrude",
+          "sketch": "n2s",
+          "height": 4.5
+        },
+        {
+          "id": "n2f",
+          "kind": "shell",
+          "target": "n2b",
+          "thickness": 0.5,
+          "open": [
+            "n2b.top"
+          ]
+        },
+        {
+          "id": "n2r0",
+          "kind": "rotate",
+          "target": "n2f",
+          "axis": "z",
+          "angle": 182.42,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2r0",
+          "offset": [
+            2.5,
+            2.5,
+            -2.5
+          ]
+        },
+        {
+          "id": "n3s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 4
+        },
+        {
+          "id": "n3b",
+          "kind": "extrude",
+          "sketch": "n3s",
+          "height": 5
+        },
+        {
+          "id": "n3r0",
+          "kind": "rotate",
+          "target": "n3b",
+          "axis": "y",
+          "angle": 82.248,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n3r1",
+          "kind": "rotate",
+          "target": "n3r0",
+          "axis": "z",
+          "angle": 171.992,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n3",
+          "kind": "translate",
+          "target": "n3r1",
+          "offset": [
+            0,
+            -0.5,
+            -2.5
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "intersect",
+          "target": "n2",
+          "tool": "n3"
+        },
+        {
+          "id": "n0",
+          "kind": "circular-pattern",
+          "target": "n1",
+          "axis": "z",
+          "angle": 50.872,
+          "count": 2,
+          "pivot": [
+            -2.905,
+            2.651,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 55.38120113677811,
+          "relTol": 0.003206944124801897,
+          "absTol": 0.17760441761006268
+        },
+        "centroid": {
+          "value": [
+            -1.5992915215163361,
+            0.5649368675133672,
+            -0.9535884586168822
+          ],
+          "absTol": 0.004466982675561119
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 8.88e-2 mm³, centroid e 2.23e-3 mm",
+  "fuzz": {
+    "seed": 20261026,
+    "k": 184,
+    "status": "REFUSED",
+    "tree": {
+      "pattern": {
+        "kind": "circular",
+        "axis": "z",
+        "deg": 50.872,
+        "count": 2,
+        "pivot": [
+          -2.905,
+          2.651,
+          0
+        ]
+      },
+      "child": {
+        "op": "intersect",
+        "a": {
+          "leaf": {
+            "kind": "hbox",
+            "w": 7.5,
+            "d": 4.5,
+            "h": 4.5,
+            "t": 0.5,
+            "open": true,
+            "rot": [
+              {
+                "axis": "z",
+                "deg": 182.42
+              }
+            ],
+            "move": [
+              2.5,
+              2.5,
+              -2.5
+            ]
+          }
+        },
+        "b": {
+          "leaf": {
+            "kind": "cyl",
+            "r": 4,
+            "h": 5,
+            "rot": [
+              {
+                "axis": "y",
+                "deg": 82.248
+              },
+              {
+                "axis": "z",
+                "deg": 171.992
+              }
+            ],
+            "move": [
+              0,
+              -0.5,
+              -2.5
+            ]
+          }
+        }
+      }
+    }
+  }
+}

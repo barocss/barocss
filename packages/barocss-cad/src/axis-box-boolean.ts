@@ -1,19 +1,20 @@
 import { compileCadModel } from './model-compiler.js';
-import { validateAxisBoxSolid } from './box-solid.js';
-import type { AxisBoxSolidValidationReport } from './box-solid.js';
-import type { AxisBoxShell } from './box-shell.js';
-import { buildParametricFace } from './face.js';
-import type { FaceBundle } from './face.js';
-import { curveDecimal } from './curve-source.js';
-import { evaluateCurve, evaluateSurface } from './math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
+import { validateAxisBoxSolid } from './core/box-solid.js';
+import type { AxisBoxSolidValidationReport } from './core/box-solid.js';
+import type { AxisBoxShell } from './core/box-shell.js';
+import { buildParametricFace } from './core/face.js';
+import type { FaceBundle } from './core/face.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
+import { evaluateCurve, evaluateSurface } from './core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from './core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from './core/derivatives.js';
 import type { Curve, Surface, Model, Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
+import { KernelError } from './core/barocss-error.js';
 
 export const AxisBoxSolidBooleanDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOURCE: 'SOURCE', BINDING: 'BINDING', CONTACT: 'CONTACT', TOPOLOGY: 'TOPOLOGY', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidBooleanDiagnosticCode = typeof AxisBoxSolidBooleanDiagnosticCode[keyof typeof AxisBoxSolidBooleanDiagnosticCode];
-export class AxisBoxSolidBooleanError extends Error {
+export class AxisBoxSolidBooleanError extends KernelError {
   readonly code: AxisBoxSolidBooleanDiagnosticCode;
   constructor(code: AxisBoxSolidBooleanDiagnosticCode, detail: string, cause?: unknown) {
     super(('Axis-box Solid Boolean: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'AxisBoxSolidBooleanError'; this.code = code;

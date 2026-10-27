@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, evaluateSurfaceCurvature, nurbsOf } from '../dist/index.js';
-import { evaluateSurfaceD1 } from '../dist/derivatives.js';
-import { evaluateCurve } from '../dist/math.js';
-import { tessellateBrep } from '../dist/brep-tessellate.js';
+import { evaluateCadPart, checkBrep, evaluateSurfaceCurvature, nurbsOf, massPropertiesOf } from '../dist/index.js';
+import { evaluateSurfaceD1 } from '../dist/core/derivatives.js';
+import { evaluateCurve } from '../dist/core/math.js';
+import { tessellateBrep } from '../dist/brep/brep-tessellate.js';
 
 // R11.2c-1 (D112): the offset route (R11.2a/b) takes kept faces that are planes or circular cylinders however trimmed —
 // offset exactly (a plane moved, a cylinder scaled about its axis: affine maps of the face's own NURBS and edges) — beside
@@ -13,7 +13,7 @@ import { tessellateBrep } from '../dist/brep-tessellate.js';
 // fillet patch's by quadrature of its curvature.
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const out = features => evaluateCadPart(D(features)).outputs.at(-1);
-const refused = (features, code, pattern) => assert.throws(() => out(features), e => e.code === code && pattern.test(e.message), String(pattern));
+const refused = (features, code, pattern) => assert.throws(() => out(features), e => (e.details?.category ?? e.code) === code && pattern.test(e.message), String(pattern));
 const yzAt = x => ({ origin: [x, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] });
 const GL8 = [[-0.9602898564975363, 0.1012285362903763], [-0.7966664774136267, 0.2223810344533745], [-0.5255324099163290, 0.3137066458778873], [-0.1834346424956498, 0.3626837833783620], [0.1834346424956498, 0.3626837833783620], [0.5255324099163290, 0.3137066458778873], [0.7966664774136267, 0.2223810344533745], [0.9602898564975363, 0.1012285362903763]];
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -24,7 +24,7 @@ function patchBand(f, t) {
   for (let a = 0; a + 1 < ku.length; a++) for (let c = 0; c + 1 < kv.length; c++) for (let su = 0; su < 2; su++) for (let sv = 0; sv < 2; sv++) for (const [x, wx] of GL8) for (const [y, wy] of GL8) {
     const hu = (ku[a + 1] - ku[a]) / 2, hv = (kv[c + 1] - kv[c]) / 2, u = ku[a] + hu * (su + (x + 1) / 2), v = kv[c] + hv * (sv + (y + 1) / 2), r = evaluateSurfaceCurvature(S, u, v), d = evaluateSurfaceD1(S, u, v);
     const J = Math.hypot(...cross(d.du, d.dv)) * hu * hv / 4 * wx * wy;
-    A += J; V += (t + sg * r.meanCurvaturePerMM * t * t + r.gaussianCurvaturePerMM2 * t ** 3 / 3) * J;
+    A += J; V += (t + sg * r.meanCurvaturePer * t * t + r.gaussianCurvaturePer * t ** 3 / 3) * J;
   }
   return { A, V };
 }
@@ -58,11 +58,11 @@ test('R11.2c-1 a filleted pipe tee shelled with its three ends opened: the kept 
         else if (/^b\.side0/.test(face.name)) { const a = cylinderArea(body, face, branch, r); A += a; V += a * (t - t * t / (2 * r)); }
         else { const x = patchBand(face, t); A += x.A; V += x.V; }
       }
-      const o = out(shell(R, r, f, t)), report = checkBrep(o.brep, { strict: true }), m = o.massProperties(1), what = `R ${R} r ${r} f ${f} t ${t}`;
+      const o = out(shell(R, r, f, t)), report = checkBrep(o.brep, { strict: true }), m = massPropertiesOf(o), what = `R ${R} r ${r} f ${f} t ${t}`;
       assert.equal(report.valid, true, `${what}: ${report.issues}`);
       assert.equal(o.brep.shells.length, 1, what);
       assert.equal(m.method, 'quadrature', what);
-      assert.ok(Math.abs(m.volumeMM3 - V) <= A * 1e-6 * 60, `${what}: ${m.volumeMM3} vs ${V} (${(m.volumeMM3 - V) / V})`);
+      assert.ok(Math.abs(m.volume - V) <= A * 1e-6 * 60, `${what}: ${m.volume} vs ${V} (${(m.volume - V) / V})`);
       // The kept faces keep their names; the hollow's are named after them; no end face is left.
       const names = o.brep.faces.map(x => x.name);
       for (const n of ENDS) assert.ok(!names.includes(n), `${what}: ${n}`);

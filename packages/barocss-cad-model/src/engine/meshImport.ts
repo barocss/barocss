@@ -1,10 +1,11 @@
 // STL and OBJ files as a mesh feature: the triangles read, scaled from the file's unit to millimetres
 // (the files say none: the user picks it), welded and rounded so the document stays small.
 import { readObj, readStl } from '@barocss/cad';
+import { MM_PER_INCH } from '../util/units';
 /** Imported meshes go through Booleans up to this many triangles in F0, previewed up to the second (the kernel's limits, said in the studio). */
 export { FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES } from '@barocss/cad';
 
-export const MESH_UNITS = [{ value: 'mm', label: 'Millimetres', toMM: 1 }, { value: 'cm', label: 'Centimetres', toMM: 10 }, { value: 'm', label: 'Metres', toMM: 1000 }, { value: 'in', label: 'Inches', toMM: 25.4 }] as const;
+export const MESH_UNITS = [{ value: 'mm', label: 'Millimetres', to: 1 }, { value: 'cm', label: 'Centimetres', to: 10 }, { value: 'm', label: 'Metres', to: 1000 }, { value: 'in', label: 'Inches', to: MM_PER_INCH }] as const;
 export type MeshUnit = typeof MESH_UNITS[number]['value'];
 
 /**
@@ -21,7 +22,7 @@ export function readMeshFile(name: string, bytes: Uint8Array): { positions: Arra
  * file's positions stay single precision once scaled (no digits it never had); others as scaled (D45).
  */
 export function meshInMM(mesh: { positions: ArrayLike<number>; indices: number[] | null; float32?: boolean }, unit: MeshUnit): { positions: number[]; indices: number[]; size: [number, number, number] } {
-  const k = MESH_UNITS.find(u => u.value === unit)!.toMM, P = mesh.positions, n = P.length / 3, f32 = !!mesh.float32;
+  const k = MESH_UNITS.find(u => u.value === unit)!.to, P = mesh.positions, n = P.length / 3, f32 = !!mesh.float32;
   // (Corners keyed by their coordinates rounded to 1e-6 mm, the three integers hashed into buckets and compared
   // exactly: the same vertices, in the same order, as keying them by their text — without a string or array a corner.)
   const positions: number[] = [], buckets = new Map<number, number | number[]>(), remap: number[] = new Array(n);

@@ -5,35 +5,37 @@ import { readStl } from '@barocss/cad';
 import { emptyDoc, featureLabel, type StudioDoc } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
 import { editCommand } from '../src/app/editCommand';
-import { FASTENER_SIZES, fastenerFit, fastenerName, fastenerThread, holeFit, lengthsOf, sizeForHole } from '../src/app/fasteners';
+import { SAMPLE_SIZES, withSampleRows } from './person-file';
+import { fastenerFit, fastenerName, fastenerThread, holeFit, lengthsOf, sizeForHole } from '../src/app/fasteners';
 
-const ctx: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
+// (O7: the sizes are the person's — the sample rows loaded in the setup, as the person loads them.)
+const ctx: Ctx = { doc: withSampleRows(emptyDoc()), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 const f = commands.find(c => c.id === 'fastener')!;
 const bodiesOf = (doc: StudioDoc): BodyResult[] => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.title + ' ' + r.error.hint); return r.bodies; };
 const near = (a: number, b: number, tol = 0.5) => assert.ok(Math.abs(a - b) <= tol, `${a} vs ${b}`);
 
 test('fastener catalogue: M8 coarse pitch, ISO 4017 head, ISO 4032 nut, ISO 7089 washer', () => {
-  const m8 = FASTENER_SIZES.M8;
+  const m8 = SAMPLE_SIZES.M8;
   assert.deepEqual([m8.pitch, m8.s, m8.k, m8.m, m8.wd1, m8.wd2, m8.wh], [1.25, 13, 5.3, 6.8, 8.4, 16, 1.6]);
-  assert.equal(fastenerName({ kind: 'hex-bolt', size: 'M8', length: '30' }), 'Hex head bolt ISO 4017 M8×1.25 × 30');
-  assert.deepEqual(fastenerThread({ kind: 'hex-nut', size: 'M8' }), { d: 8, pitch: 1.25, hand: 'right', length: 6.8, internal: true });
-  assert.equal(fastenerThread({ kind: 'washer', size: 'M8' }), null);
+  assert.equal(fastenerName({ kind: 'hex-bolt', size: 'M8', length: '30' }, SAMPLE_SIZES), 'Hex head bolt ISO 4017 M8×1.25 × 30');
+  assert.deepEqual(fastenerThread({ kind: 'hex-nut', size: 'M8' }, SAMPLE_SIZES), { d: 8, pitch: 1.25, hand: 'right', length: 6.8, internal: true });
+  assert.equal(fastenerThread({ kind: 'washer', size: 'M8' }, SAMPLE_SIZES), null);
 });
 
 test('a hex bolt stands on its seat: head above, shank below; volumes of each part', () => {
   const doc = f.build!(ctx, { ...f.defaults!(ctx), kind: 'hex-bolt', size: 'M8', length: '30', x: 0, y: 0, z: 10 });
-  const [b] = bodiesOf(doc), m8 = FASTENER_SIZES.M8, hex = 3 * Math.sqrt(3) / 2 * (m8.s / Math.sqrt(3)) ** 2;
-  near(b.volumeMM3!, hex * m8.k + Math.PI * 16 * 30, 1);
+  const [b] = bodiesOf(doc), m8 = SAMPLE_SIZES.M8, hex = 3 * Math.sqrt(3) / 2 * (m8.s / Math.sqrt(3)) ** 2;
+  near(b.volume!, hex * m8.k + Math.PI * 16 * 30, 1);
   assert.deepEqual([b.mesh.bounds.min[2], b.mesh.bounds.max[2]].map(v => Math.round(v * 10) / 10), [-20, 15.3]);
   assert.equal(featureLabel(doc.nodes.at(-1)!, doc.nodes.length - 1, doc.nodes), 'Bolt M8×30');
   for (const kind of ['socket-screw', 'hex-nut', 'washer']) assert.equal(bodiesOf(f.build!(ctx, { ...f.defaults!(ctx), kind, size: 'M6', length: '20', x: 0, y: 0, z: 0 })).length, 1, kind);
-  const nut = bodiesOf(f.build!(ctx, { ...f.defaults!(ctx), kind: 'hex-nut', size: 'M10', x: 0, y: 0, z: 0 }))[0], m10 = FASTENER_SIZES.M10;
-  near(nut.volumeMM3!, (3 * Math.sqrt(3) / 2 * (m10.s / Math.sqrt(3)) ** 2 - Math.PI * 25) * m10.m, 1);
+  const nut = bodiesOf(f.build!(ctx, { ...f.defaults!(ctx), kind: 'hex-nut', size: 'M10', x: 0, y: 0, z: 0 }))[0], m10 = SAMPLE_SIZES.M10;
+  near(nut.volume!, (3 * Math.sqrt(3) / 2 * (m10.s / Math.sqrt(3)) ** 2 - Math.PI * 25) * m10.m, 1);
 });
 
 test('a placed bolt edits as itself (five steps rebuilt in place); lengths follow the size', () => {
   const doc = f.build!(ctx, { ...f.defaults!(ctx), size: 'M6', length: '20', x: 0, y: 0, z: 0 });
-  const edit = editCommand(doc.nodes.length - 1, doc.nodes)!, ectx: Ctx = { doc, bodies: bodiesOf(doc), selection: { faces: [], edges: [], bodies: [0] } };
+  const edit = editCommand(doc.nodes.length - 1, doc.nodes, doc)!, ectx: Ctx = { doc, bodies: bodiesOf(doc), selection: { faces: [], edges: [], bodies: [0] } };
   assert.equal(edit.label, 'Edit Fastener');
   const next = edit.build!(ectx, { ...edit.defaults!(ectx), size: 'M8', length: '40' });
   assert.equal(next.nodes.length, doc.nodes.length);
@@ -47,7 +49,7 @@ test('a bolt edited into a nut: fewer steps, and the features after it follow', 
   let doc = f.build!(ctx, { ...f.defaults!(ctx), size: 'M6', length: '20', x: 0, y: 0, z: 0 });
   const top = doc.nodes.length - 1;
   doc = withNode(doc, { kind: 'translate', parent: { node: top, side: 'solid' }, offset: [50, 0, 0] });
-  const edit = editCommand(top, doc.nodes)!, ectx: Ctx = { doc, bodies: bodiesOf(doc), selection: { faces: [], edges: [], bodies: [0] } };
+  const edit = editCommand(top, doc.nodes, doc)!, ectx: Ctx = { doc, bodies: bodiesOf(doc), selection: { faces: [], edges: [], bodies: [0] } };
   const next = edit.build!(ectx, { ...edit.defaults!(ectx), kind: 'hex-nut' });
   assert.equal(next.nodes.length, 3, 'a nut (sketch + solid) and the move');
   assert.deepEqual((next.nodes[2] as { parent: { node: number } }).parent.node, 1);
@@ -56,16 +58,16 @@ test('a bolt edited into a nut: fewer steps, and the features after it follow', 
 });
 
 test('fastener data: ISO 4017 and ISO 4762 lengths apart, ISO 273 clearance and tap drills; a hole tells its size', () => {
-  const m6 = FASTENER_SIZES.M6;
-  assert.deepEqual([lengthsOf('hex-bolt', m6)[0], lengthsOf('socket-screw', m6)[0], lengthsOf('socket-screw', FASTENER_SIZES.M3)[0]], [12, 10, 5]);
-  assert.deepEqual(FASTENER_SIZES.M8.clearance, [8.4, 9, 10]);
+  const m6 = SAMPLE_SIZES.M6;
+  assert.deepEqual([lengthsOf('hex-bolt', m6)[0], lengthsOf('socket-screw', m6)[0], lengthsOf('socket-screw', SAMPLE_SIZES.M3)[0]], [12, 10, 5]);
+  assert.deepEqual(SAMPLE_SIZES.M8.clearance, [8.4, 9, 10]);
   assert.deepEqual(holeFit(m6, 6.6), { fit: 'clearance', series: 'medium' });
   assert.deepEqual(holeFit(m6, 5), { fit: 'tapped' });
   assert.deepEqual([holeFit(m6, 6), holeFit(m6, 8)], [{ fit: 'tight' }, { fit: 'loose' }]);
-  assert.deepEqual(sizeForHole(6.6), { size: 'M6', fit: { fit: 'clearance', series: 'medium' } });
-  assert.deepEqual(sizeForHole(5)?.size, 'M6', 'the M6 tap drill, not a loose M4');
-  assert.deepEqual(sizeForHole(9), { size: 'M8', fit: { fit: 'clearance', series: 'medium' } });
-  assert.equal(sizeForHole(40), null);
+  assert.deepEqual(sizeForHole(6.6, SAMPLE_SIZES), { size: 'M6', fit: { fit: 'clearance', series: 'medium' } });
+  assert.deepEqual(sizeForHole(5, SAMPLE_SIZES)?.size, 'M6', 'the M6 tap drill, not a loose M4');
+  assert.deepEqual(sizeForHole(9, SAMPLE_SIZES), { size: 'M8', fit: { fit: 'clearance', series: 'medium' } });
+  assert.equal(sizeForHole(40, SAMPLE_SIZES), null);
 });
 
 test('placed at a through hole a bolt takes washer and nut, sized and long enough; at a tap drill it is tapped', () => {
@@ -78,19 +80,19 @@ test('placed at a through hole a bolt takes washer and nut, sized and long enoug
   const lows = bodies.map(b => Math.round(b.mesh.bounds.min[2] * 100) / 100).sort((a, b) => a - b);
   assert.deepEqual(lows, [-10, -6.8, -1.6], 'bolt end, nut and washer below the 10 mm plate');
   assert.equal(doc.bodies?.[`b${doc.nodes.findIndex((n, i) => n.kind === 'extrude' && i > 3)}`]?.name, 'Washer ISO 7089 6');
-  assert.ok(fastenerFit(v).every(s => s.done), JSON.stringify(fastenerFit(v)));
+  assert.ok(fastenerFit(v, SAMPLE_SIZES).every(s => s.done), JSON.stringify(fastenerFit(v, SAMPLE_SIZES)));
   // Too short for the joint: refused, saying how long it must be.
   assert.throws(() => f.build!(ctx, { ...v, length: '16' }), /needs 18\.8 mm/);
   // Ø5 blind 16 mm: M6 tapped, engaging 1.5 d = 9 mm with 2 pitches clear of the bottom: 12 (the shortest ISO 4017 M6).
   const t = f.place!(f.defaults!(ctx), [0, 0, 10], [0, 0, 1], { d: 5, depth: 16, through: false }), tv = f.derive!(ctx, t, Object.keys(t));
   assert.deepEqual([tv.size, tv.joint, tv.length], ['M6', 'tapped', '12']);
-  assert.ok(fastenerFit(tv).every(s => s.done), JSON.stringify(fastenerFit(tv)));
+  assert.ok(fastenerFit(tv, SAMPLE_SIZES).every(s => s.done), JSON.stringify(fastenerFit(tv, SAMPLE_SIZES)));
   // Only 12 mm deep: the shortest still runs to the bottom — kept, and flagged.
   const t2 = f.place!(f.defaults!(ctx), [0, 0, 10], [0, 0, 1], { d: 5, depth: 12, through: false }), tv2 = f.derive!(ctx, t2, Object.keys(t2));
-  assert.equal(tv2.length, '12'); assert.equal(fastenerFit(tv2).at(-1)!.done, false);
+  assert.equal(tv2.length, '12'); assert.equal(fastenerFit(tv2, SAMPLE_SIZES).at(-1)!.done, false);
   assert.equal(bodiesOf(f.build!(ctx, tv)).length, 1);
   // A tapped joint in a clearance hole is flagged.
-  assert.equal(fastenerFit({ ...v, joint: 'tapped' })[0].done, false);
+  assert.equal(fastenerFit({ ...v, joint: 'tapped' }, SAMPLE_SIZES)[0].done, false);
 });
 
 test('a bolt with washer and nut placed in a side hole turns as one: all three stand out of the face', () => {
@@ -104,17 +106,17 @@ test('a bolt with washer and nut placed in a side hole turns as one: all three s
 
 test('a countersunk socket screw (ISO 10642): its head sunk below the seat, flush at the top, the length overall', () => {
   const v = { ...f.defaults!(ctx), kind: 'csk-screw', size: 'M6', length: '20', x: 0, y: 0, z: 10 };
-  assert.equal(fastenerName(v), 'Countersunk socket screw ISO 10642 M6×1 × 20');
-  assert.deepEqual(lengthsOf('csk-screw', FASTENER_SIZES.M6).slice(0, 3), [8, 10, 12]);
-  const doc = f.build!(ctx, v), [b] = bodiesOf(doc), m6 = FASTENER_SIZES.M6;
+  assert.equal(fastenerName(v, SAMPLE_SIZES), 'Countersunk socket screw ISO 10642 M6×1 × 20');
+  assert.deepEqual(lengthsOf('csk-screw', SAMPLE_SIZES.M6).slice(0, 3), [8, 10, 12]);
+  const doc = f.build!(ctx, v), [b] = bodiesOf(doc), m6 = SAMPLE_SIZES.M6;
   near(b.mesh.bounds.max[2], 10, 1e-6); near(b.mesh.bounds.min[2], -10, 1e-6);
   near(b.mesh.bounds.max[0] - b.mesh.bounds.min[0], m6.cdk, 0.01);
   // A frustum Ø13.44 → Ø6 over 3.72, less the socket, and the shank below it.
   const R = m6.cdk / 2, r = 3, k = m6.ck, frustum = Math.PI * k / 3 * (R * R + R * r + r * r), shank = Math.PI * r * r * (20 - k);
   const socket = 3 * Math.sqrt(3) / 2 * (m6.csocket / Math.sqrt(3)) ** 2 * 2 * k * 0.6 / 2;
-  near(b.volumeMM3!, frustum + shank - socket, 3);
+  near(b.volume!, frustum + shank - socket, 3);
   assert.equal(featureLabel(doc.nodes.at(-1)!, doc.nodes.length - 1, doc.nodes), 'Csk screw M6×20');
-  assert.ok(fastenerFit({ ...v, joint: 'free' }).some(s => s.label === 'Head' && /countersink Ø13.44/.test(s.text)));
+  assert.ok(fastenerFit({ ...v, joint: 'free' }, SAMPLE_SIZES).some(s => s.label === 'Head' && /countersink Ø13.44/.test(s.text)));
 });
 
 test('a fastener inserted as a part of its own: an instance at the seat, turned out of its face, its thread remembered', async () => {
@@ -126,7 +128,7 @@ test('a fastener inserted as a part of its own: an instance at the seat, turned 
   assert.deepEqual([inst.id, inst.name, inst.position, inst.rotation], ['inst1', 'Hex head bolt ISO 4017 M8×1.25 × 30', [5, 6, 7], [0, 90, 0]]);
   const top = inst.doc.nodes.at(-1)!;
   assert.ok('made' in top && top.made?.command === 'fastener' && top.made.values.size === 'M8' && top.made.values.x === 0);
-  const [b] = bodiesOf(inst.doc); near(b.mesh.bounds.max[2], FASTENER_SIZES.M8.k, 1e-6); near(b.mesh.bounds.min[2], -30, 1e-6);
+  const [b] = bodiesOf(inst.doc); near(b.mesh.bounds.max[2], SAMPLE_SIZES.M8.k, 1e-6); near(b.mesh.bounds.min[2], -30, 1e-6);
   // A second one takes the next id.
   assert.equal(withFastenerInstance(doc, v).instances![1].id, 'inst2');
 });
@@ -138,10 +140,10 @@ test('a modelled thread: the bolt and its nut as helical B-spline faces, one sol
   assert.deepEqual(kinds.filter(k => k === 'thread').length, 2, 'the bolt and the nut');
   assert.equal(kinds.at(-1), 'thread'); assert.equal((doc.nodes.at(-1) as { made?: { command: string } }).made?.command, 'fastener');
   assert.equal(bodies.length, 3, 'bolt, washer, nut');
-  const bolt = bodies.find(b => b.key === `b${doc.nodes.length - 1}`)!, size = FASTENER_SIZES.M8;
+  const bolt = bodies.find(b => b.key === `b${doc.nodes.length - 1}`)!, size = SAMPLE_SIZES.M8;
   // Its volume between the root's and the major diameter's cylinders, plus the head.
   const hex = Math.sqrt(3) / 2 * size.s ** 2 * size.k, rMin = 4 - 5 / 8 * Math.sqrt(3) / 2 * 1.25;
-  assert.ok(bolt.volumeMM3! > hex + Math.PI * rMin ** 2 * 30 && bolt.volumeMM3! < hex + Math.PI * 16 * 30, String(bolt.volumeMM3));
+  assert.ok(bolt.volume! > hex + Math.PI * rMin ** 2 * 30 && bolt.volume! < hex + Math.PI * 16 * 30, String(bolt.volume));
   assert.ok(bolt.mesh.edges.length < 6000, `${bolt.mesh.edges.length} edges shown (the facets' smooth joints hidden)`);
   assert.ok(ms < 8000, `${Math.round(ms)} ms`);
   assert.match(f.steps!(ctx, v).find(s => s.label === 'Thread')!.text, /modelled: ISO 68-1/);
@@ -167,7 +169,7 @@ test('ISO 4017 lengths follow the cross-checked table for every size', () => {
     M8: [16, ...by(20, 70, 5), 80], M10: [...by(20, 70, 5), 80, 90, 100], M12: [...by(25, 70, 5), ...by(80, 120, 10)],
   };
   for (const [size, lengths] of Object.entries(table)) {
-    assert.deepEqual(FASTENER_SIZES[size].lengths, lengths, size);
-    assert.ok(FASTENER_SIZES[size].checked4017, size);
+    assert.deepEqual(SAMPLE_SIZES[size].lengths, lengths, size);
+    assert.ok(SAMPLE_SIZES[size].checked4017, size);
   }
 });

@@ -17,22 +17,23 @@ import { refOf } from '../app/bodyRef';
 import { pointTriangleDistance2, rayHit, triangleBvh } from '@barocss/cad';
 import { partingLine, type Half, type PartingReport } from './parting';
 import type { UndercutRegion } from './undercut';
+import { r6 } from '../util/round';
 
 export type ToolingCode = 'MOULD_NO_PULL' | 'MOULD_PULL_AXIS' | 'MOULD_ONE_BODY' | 'MOULD_STRADDLE' | 'MOULD_NO_PARTING' | 'MOULD_STEPPED' | 'MOULD_BUILD';
 /** What each waiting code waits for: the kernel's face split (D149), or the next stage (IM7b). */
 export const WAITS_FOR: Readonly<Partial<Record<ToolingCode, string>>> = { MOULD_STRADDLE: 'splitStraddles, the kernel\'s isocline split (D149)', MOULD_STEPPED: 'a parting surface off the axis planes (IM7b)' };
-export interface ShutOff { readonly at: number; readonly lengthMM: number; readonly areaMM2: number; readonly centroid: Vec3 }
-export interface SideCore { readonly faces: readonly string[]; readonly direction: Vec3; readonly areaMM2: number; readonly centroid: Vec3 }
+export interface ShutOff { readonly at: number; readonly length: number; readonly area: number; readonly centroid: Vec3 }
+export interface SideCore { readonly faces: readonly string[]; readonly direction: Vec3; readonly area: number; readonly centroid: Vec3 }
 export interface ToolingPlan {
   readonly pull: Vec3; readonly axis: Axis; readonly sign: 1 | -1;
   /** The parting plane: axis = at. */
-  readonly planeAt: number; readonly marginMM: number;
+  readonly planeAt: number; readonly margin: number;
   /** IM7a (O111): every parting height (on the axis), the planes the block is cut by (the heights' and the risers'), and the loops (for the lumps beside the part). */
   readonly levels: readonly number[]; readonly cuts: readonly { readonly axis: Axis; readonly at: number }[]; readonly loops: readonly { readonly at: number; readonly points: readonly Vec3[] }[];
   readonly block: { readonly min: readonly number[]; readonly max: readonly number[] };
   readonly shutOffs: readonly ShutOff[]; readonly sideCores: readonly SideCore[];
   /** Undercuts no side action across the pull frees (the part does not release with these halves). */
-  readonly stuck: readonly { readonly faces: readonly string[]; readonly areaMM2: number }[];
+  readonly stuck: readonly { readonly faces: readonly string[]; readonly area: number }[];
   /** What these halves leave out, said. */
   readonly notBuilt: readonly string[];
 }
@@ -41,7 +42,6 @@ export type ToolingResult = { ok: true; plan: ToolingPlan } | { ok: false; code:
 /** The margin a side, mm: an estimate (a mould base's wall is the toolmaker's). */
 export const MARGIN_ESTIMATE_MM = 10;
 
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 const AXES: readonly Axis[] = ['x', 'y', 'z'];
 const refusal = (sideCores: readonly SideCore[], stuck: ToolingPlan['stuck']) => (code: ToolingCode, message: string): ToolingResult => ({ ok: false, code, message, waitsFor: WAITS_FOR[code] ?? null, sideCores, stuck });
 
@@ -81,9 +81,9 @@ export function splitStraddles(doc: StudioDoc, bodies: readonly BodyResult[], pu
 }
 
 /** The halves' plan, from IM5's parting line and IM3's undercuts at the pull. */
-export function toolingPlan(bodies: readonly BodyResult[], pull: readonly number[] | null, parting: PartingReport | null, regions: readonly UndercutRegion[], marginMM = MARGIN_ESTIMATE_MM, resolved: readonly string[] = []): ToolingResult {
-  const sideCores: SideCore[] = regions.filter(r => r.sideAction).map(r => ({ faces: r.faces, direction: r.sideAction!, areaMM2: r6(r.areaMM2), centroid: r.centroid.map(r6) as Vec3 }));
-  const stuck = regions.filter(r => !r.sideAction).map(r => ({ faces: r.faces, areaMM2: r6(r.areaMM2) })), refuse = refusal(sideCores, stuck);
+export function toolingPlan(bodies: readonly BodyResult[], pull: readonly number[] | null, parting: PartingReport | null, regions: readonly UndercutRegion[], margin = MARGIN_ESTIMATE_MM, resolved: readonly string[] = []): ToolingResult {
+  const sideCores: SideCore[] = regions.filter(r => r.sideAction).map(r => ({ faces: r.faces, direction: r.sideAction!, area: r6(r.area), centroid: r.centroid.map(r6) as Vec3 }));
+  const stuck = regions.filter(r => !r.sideAction).map(r => ({ faces: r.faces, area: r6(r.area) })), refuse = refusal(sideCores, stuck);
   if (!pull || !parting) return refuse('MOULD_NO_PULL', 'no pull direction: the halves part along it');
   const k = pull.findIndex(v => Math.abs(Math.abs(v) - 1) <= 1e-9);
   if (k < 0 || pull.some((v, i) => i !== k && Math.abs(v) > 1e-9)) return refuse('MOULD_PULL_AXIS', 'the halves here are cut across an axis: a pull along ±X, ±Y or ±Z');
@@ -96,8 +96,8 @@ export function toolingPlan(bodies: readonly BodyResult[], pull: readonly number
   // caps above its split isocline — takes the height of its runs across the pull, the cut plane crossing those walls.)
   const levelOf = new Map<PartingReport['loops'][number], number>();
   for (const l of parting.loops) {
-    const lv = l.flat ? l.rangeMM[0] : loopLevel(l.points, bodies[0], pull, tol);
-    if (lv === null) return refuse('MOULD_STEPPED', `a parting loop not across the pull in one plane (${r6(l.rangeMM[0])} … ${r6(l.rangeMM[1])}), climbing across faces that are not along the pull: it waits for ${WAITS_FOR.MOULD_STEPPED}`);
+    const lv = l.flat ? l.pullRange[0] : loopLevel(l.points, bodies[0], pull, tol);
+    if (lv === null) return refuse('MOULD_STEPPED', `a parting loop not across the pull in one plane (${r6(l.pullRange[0])} … ${r6(l.pullRange[1])}), climbing across faces that are not along the pull: it waits for ${WAITS_FOR.MOULD_STEPPED}`);
     levelOf.set(l, lv);
   }
   const heights: number[] = [];
@@ -108,14 +108,14 @@ export function toolingPlan(bodies: readonly BodyResult[], pull: readonly number
   const risers = heights.length > 1 ? risersOf(bodies[0], pull, heights, tol) : { cuts: [], missing: null };
   if (heights.length > 1 && risers.missing) return refuse('MOULD_STEPPED', `parting loops at ${heights.length} heights (${heights.map(r6).join(', ')}) with ${risers.missing}: it waits for ${WAITS_FOR.MOULD_STEPPED}`);
   const cuts: { axis: Axis; at: number }[] = [...heights.map(h => ({ axis: AXES[k], at: at(h) })), ...(heights.length > 1 ? risers.cuts : [])];
-  const outer = [...parting.loops].sort((a, b) => b.lengthMM - a.lengthMM)[0];
-  const b = bodies[0].mesh.bounds, min = [0, 1, 2].map(i => r6(b.min[i] - marginMM)), max = [0, 1, 2].map(i => r6(b.max[i] + marginMM));
+  const outer = [...parting.loops].sort((a, b) => b.length - a.length)[0];
+  const b = bodies[0].mesh.bounds, min = [0, 1, 2].map(i => r6(b.min[i] - margin)), max = [0, 1, 2].map(i => r6(b.max[i] + margin));
   // (A shut-off: a closed loop inside another at its height — smaller, a point of it within — the halves touching across an opening there.)
   const loops = parting.loops.map(l => ({ at: at(levelOf.get(l)!), points: l.points }));
-  const shutOffs: ShutOff[] = parting.loops.filter(l => l.closed && parting.loops.some(o => o !== l && Math.abs(levelOf.get(o)! - levelOf.get(l)!) <= tol && loopArea(l.points, k) < loopArea(o.points, k) && inside(l.points[0], o.points, k))).map(l => ({ at: at(levelOf.get(l)!), lengthMM: r6(l.lengthMM), areaMM2: r6(loopArea(l.points, k)), centroid: loopCentroid(l.points, k, at(levelOf.get(l)!)) }));
+  const shutOffs: ShutOff[] = parting.loops.filter(l => l.closed && parting.loops.some(o => o !== l && Math.abs(levelOf.get(o)! - levelOf.get(l)!) <= tol && loopArea(l.points, k) < loopArea(o.points, k) && inside(l.points[0], o.points, k))).map(l => ({ at: at(levelOf.get(l)!), length: r6(l.length), area: r6(loopArea(l.points, k)), centroid: loopCentroid(l.points, k, at(levelOf.get(l)!)) }));
   const notBuilt = [...(sideCores.length ? [`${sideCores.length} side core${sideCores.length === 1 ? '' : 's'}: their directions given, their bodies not built`] : []),
     'no gate, runner, cooling, ejectors or mould base: the halves are the impression only'];
-  return { ok: true, plan: { pull: pull.map(r6) as Vec3, axis: AXES[k], sign: s, planeAt: at(levelOf.get(outer)!), levels: heights.map(at), cuts, loops, marginMM, block: { min, max }, shutOffs, sideCores, stuck, notBuilt } };
+  return { ok: true, plan: { pull: pull.map(r6) as Vec3, axis: AXES[k], sign: s, planeAt: at(levelOf.get(outer)!), levels: heights.map(at), cuts, loops, margin, block: { min, max }, shutOffs, sideCores, stuck, notBuilt } };
 }
 
 /**

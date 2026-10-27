@@ -11,10 +11,13 @@ import { driveCommands } from './driveCommands';
 import { connectorCommands } from './connectorCommands';
 import { weldmentCommands } from './weldmentCommands';
 import { alignCommand } from './alignCommand';
-import { FASTENER_SIZES, fastenerCommand } from './fasteners';
+import { fastenerCommand } from './fasteners';
+import { mountCommand } from './mounts';
+import { fastenerSizesOf, NO_SIZES, noSizeRow } from '../engine/fastenerSizeRows';
 import { duplicateBody } from '../chat/features';
 import { leafBodies, planeText, withNode, type Axis, type FilletSection, type HolePattern, type ModelNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
+import type { BearingAssemblyInput } from '../engine/bearingContext';
 import type { DisplayEdge } from '../engine/mesh';
 import { refOf } from './bodyRef';
 import { planBedSplit } from '../print/splitBed';
@@ -22,6 +25,7 @@ import { planHollow } from '../print/hollow';
 import { isHollowed, planLattice } from '../print/lattice';
 import { printerProfile, processProfile } from '../library/materials';
 import { featureId } from '../engine/ids';
+import { coded, refusal } from '../engine/refusal';
 
 export interface FaceSel { body: number; face: number }
 export interface EdgeSel { body: number; edge: number }
@@ -29,13 +33,14 @@ export interface EdgeSel { body: number; edge: number }
 /** `vertices`: corners picked (ends of edges), by body and position. */
 export interface Selection { faces: FaceSel[]; edges: EdgeSel[]; bodies: number[]; sketches?: number[]; vertices?: { body: number; at: [number, number, number] }[] }
 /** `direct`: the direct curves and surfaces picked (their ids). */
-export interface Ctx { doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; direct?: string[] }
+export interface Ctx { doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
 
 export type Values = Record<string, number | string>;
 /** `when`: shown (and required) only for these values. */
 export type Field = (
   | { key: string; label: string; kind: 'mm' | 'count' | 'deg' | 'ratio' | 'number'; min?: number; max?: number; step?: number }
-  | { key: string; label: string; kind: 'choice'; options: { value: string; label: string }[] }
+  | { key: string; label: string; kind: 'choice'; options: { value: string; label: string }[]; /** Why there is nothing to choose, when the options are none (O7: no rows loaded). */ empty?: string;
+      /** Why a value is none of them, when that has a typed refusal of its own (O14: no such row). */ unknown?: (value: string) => string }
 ) & { when?: (values: Values) => boolean };
 export const shownFields = (fields: Field[], values: Values) => fields.filter(f => !f.when || f.when(values));
 
@@ -71,6 +76,15 @@ export interface Command {
 export function patchValues(cmd: Command, ctx: Ctx, values: Values, patch: Values): Values {
   const next = { ...values, ...patch };
   return cmd.derive ? cmd.derive(ctx, next, Object.keys(patch)) : next;
+}
+/**
+ * The values a caller gave all at once (the agent's run_command, the facade's verbs), each kept as given; the others
+ * recomputed from them (O20). patchValues takes a patch as the studio sets it, one value (or a placement) at a
+ * time, where a derived value may follow it; given together, a derived value must never replace a given one — a
+ * split's given `at` was moved to the body's middle because its `axis` was given too.
+ */
+export function givenValues(cmd: Command, ctx: Ctx, values: Values, given: Values): Values {
+  return { ...patchValues(cmd, ctx, values, given), ...given };
 }
 /**
  * A value dragged in the viewport: an arrow at `at` along `dir`; the value becomes start + mm × `scale`
@@ -130,6 +144,17 @@ const r1 = (v: number) => Math.round(v);
 function oneBody(ctx: Ctx) {
   const list = selectedBodies(ctx.selection);
   return list.length === 1 ? ctx.bodies[list[0]] : null;
+}
+
+/** A cut pattern follows the active difference producer, never an older body or direct geometry. */
+function linearCutProblem(ctx: Ctx) {
+  if (ctx.direct?.length) return refusal('DIRECT_PICK', 'Select one solid cut result, not a direct curve or surface.');
+  const body = oneBody(ctx);
+  if (!body) return refusal('ONE_BODY', 'Select one cut result to repeat.');
+  const parent = refOf(body), node = ctx.doc.nodes[parent.node];
+  if (parent.side !== 'solid' || node?.kind !== 'difference' || node.suppressed || !leafBodies(ctx.doc.nodes).some(r => r.node === parent.node && r.side === parent.side))
+    return refusal('BAD_REFERENCE', 'Select the current result of an unsuppressed subtract feature.');
+  return null;
 }
 
 /** A body's box corner (least X, Y, Z), to 0.001 mm. */
@@ -254,7 +279,7 @@ function oriented(cmd: Command): Command {
       if (!t) return doc;
       // Every body it makes turns (a bolt's nut and washer too); the last node's, the one remembered, last.
       const last = doc.nodes.length - 1, made = leafBodies(doc.nodes).filter(r => r.node >= ctx.doc.nodes.length && r.side === 'solid').map(r => r.node).sort((a, b) => (a === last ? 1 : 0) - (b === last ? 1 : 0));
-      return made.reduce((d, node) => withNode(d, { kind: 'rotate', parent: { node, side: 'solid' }, axis: t.axis, angleDegrees: t.deg, pivot: base(ctx, v) }), doc);
+      return made.reduce((d, node) => withNode(d, { kind: 'rotate', parent: { node, side: 'solid' }, axis: t.axis, angle: t.deg, pivot: base(ctx, v) }), doc);
     },
     handles: cmd.handles && ((ctx, v) => {
       const hs = cmd.handles!(ctx, v), up = String(v.up ?? '+z'), t = TURNS[up]; if (!t) return hs;
@@ -355,6 +380,7 @@ const allCommands: Command[] = [
   },
   ...primitives,
   fastenerCommand,
+  mountCommand,
   {
     id: 'hole', label: 'Hole', icon: 'cad-hole', hint: 'A round hole into a flat face: through, to a depth, counterbored, countersunk or tapped', shortcut: 'H', group: 'create', keywords: 'drill bore through side cross counterbore blind countersink countersunk csk tapped thread tap',
     available: ctx => {
@@ -367,7 +393,7 @@ const allCommands: Command[] = [
       const f = ctx.selection.faces[0], { axis } = holeAxis(ctx.bodies[f.body].mesh.faces[f.face].normal)!, [a, b] = HOLE_PLANE[axis];
       return [{ key: 'type', label: 'Type', kind: 'choice', options: [{ value: 'through', label: 'Through' }, { value: 'blind', label: 'To a depth' }, { value: 'counterbore', label: 'Counterbored' }, { value: 'countersink', label: 'Countersunk' }, { value: 'tapped', label: 'Tapped' }] },
         { key: 'd', label: 'Diameter', kind: 'mm', min: 0.5 },
-        { key: 'thread', label: 'Thread', kind: 'choice', options: Object.entries(FASTENER_SIZES).map(([m, s]) => ({ value: m, label: `${m} × ${s.pitch} (drill Ø${s.tap})` })), when: v => v.type === 'tapped' },
+        { key: 'thread', label: 'Thread', kind: 'choice', options: Object.entries(fastenerSizesOf(ctx.doc)).map(([m, s]) => ({ value: m, label: `${m} × ${s.pitch} (drill Ø${s.tap})` })), empty: NO_SIZES, when: v => v.type === 'tapped' },
         { key: 'tend', label: 'Ends', kind: 'choice', options: [{ value: 'through', label: 'Through' }, { value: 'blind', label: 'To a depth' }], when: v => v.type === 'tapped' },
         { key: 'depth', label: 'Depth', kind: 'mm', min: 0.5, when: v => v.type === 'blind' || (v.type === 'tapped' && v.tend === 'blind') },
         { key: 'csd', label: 'Countersink Ø', kind: 'mm', min: 1, when: v => v.type === 'countersink' },
@@ -385,9 +411,9 @@ const allCommands: Command[] = [
       return { type: 'through', d: 8, depth: 6, cd: 14, ch: 4, csd: 16, thread: 'M6', tend: 'through', x: r1(p[a]), y: r1(p[b]), pat: 'one', pn: 4, pa: 10, pb: 0, qa: r1(face.centroid[a]), qb: r1(face.centroid[b]) };
     },
     // Tapped: the diameter is the thread's tap drill.
-    derive: (_ctx, v, changed) => v.type === 'tapped' && (changed.includes('thread') || changed.includes('type')) && FASTENER_SIZES[String(v.thread)] ? { ...v, d: FASTENER_SIZES[String(v.thread)].tap } : v,
-    steps: (_ctx, v) => v.type === 'tapped' && FASTENER_SIZES[String(v.thread)] ? [{ label: 'Thread', text: `${v.thread}×${FASTENER_SIZES[String(v.thread)].pitch} right-hand, internal, cosmetic — drilled Ø${v.d}${Number(v.d) !== FASTENER_SIZES[String(v.thread)].tap ? ` (the tap drill is Ø${FASTENER_SIZES[String(v.thread)].tap})` : ''}`, done: Number(v.d) === FASTENER_SIZES[String(v.thread)].tap }]
-      : v.type === 'countersink' ? [{ label: 'Countersink', text: `Ø${v.csd} × 90° on a Ø${v.d} hole`, done: Number(v.csd) > Number(v.d) }] : [],
+    derive: (ctx, v, changed) => { const size = fastenerSizesOf(ctx.doc)[String(v.thread)]; return v.type === 'tapped' && (changed.includes('thread') || changed.includes('type')) && size ? { ...v, d: size.tap } : v; },
+    steps: (ctx, v) => { const size = fastenerSizesOf(ctx.doc)[String(v.thread)]; return v.type === 'tapped' && !size ? [{ label: 'Thread', text: noSizeRow(String(v.thread)), done: false }] : v.type === 'tapped' && size ? [{ label: 'Thread', text: `${v.thread}×${size.pitch} right-hand, internal, cosmetic — drilled Ø${v.d}${Number(v.d) !== size.tap ? ` (the tap drill is Ø${size.tap})` : ''}`, done: Number(v.d) === size.tap }]
+      : v.type === 'countersink' ? [{ label: 'Countersink', text: `Ø${v.csd} × 90° on a Ø${v.d} hole`, done: Number(v.csd) > Number(v.d) }] : []; },
     // The centre (a puck that slides it on the face) and the diameter, at the rim along the face's first axis.
     handles: (ctx, v) => {
       const f = ctx.selection.faces[0], face = ctx.bodies[f.body].mesh.faces[f.face], h = holeAxis(face.normal); if (!h) return [];
@@ -412,15 +438,16 @@ const allCommands: Command[] = [
       // sits in the body — a boss's top inside a shell), are kept so a later depth edit drills in from that face. A
       // counterbore is a second, wider hole to its depth on the same centre.
       const at = { center: [Number(v.x), Number(v.y)] as [number, number], ...(axis === 'z' ? {} : { axis }), ...(side === 'min' ? { side } : {}), face: picked.name.split('+')[0] };
-      if (v.type === 'counterbore' && !(Number(v.cd) > Number(v.d))) throw new Error('The counterbore must be wider than the hole.');
-      if (v.type === 'countersink' && !(Number(v.csd) > Number(v.d))) throw new Error('The countersink must be wider than the hole.');
-      const tapped = v.type === 'tapped' && FASTENER_SIZES[String(v.thread)], blind = v.type === 'blind' || (v.type === 'tapped' && v.tend === 'blind');
+      if (v.type === 'counterbore' && !(Number(v.cd) > Number(v.d))) throw refusal('HOLE_SIZE', 'The counterbore must be wider than the hole.');
+      if (v.type === 'countersink' && !(Number(v.csd) > Number(v.d))) throw refusal('HOLE_SIZE', 'The countersink must be wider than the hole.');
+      if (v.type === 'tapped' && !fastenerSizesOf(ctx.doc)[String(v.thread)]) throw coded('FASTENER_SIZE_ROW', noSizeRow(String(v.thread)));
+      const tapped = v.type === 'tapped' && fastenerSizesOf(ctx.doc)[String(v.thread)], blind = v.type === 'blind' || (v.type === 'tapped' && v.tend === 'blind');
       // Copies on the face: a row or a bolt circle (each a hole of the kernel's, one step in the history).
       const count = Math.round(Number(v.pn));
-      if (v.pat !== 'one' && v.pat !== undefined && !(count >= 2 && count <= 64)) throw new Error('A hole pattern has 2 to 64 holes.');
+      if (v.pat !== 'one' && v.pat !== undefined && !(count >= 2 && count <= 64)) throw refusal('HOLE_PATTERN', 'A hole pattern has 2 to 64 holes.');
       const pattern: HolePattern | undefined = v.pat === 'row' ? { count, step: [Number(v.pa), Number(v.pb)] } : v.pat === 'circle' ? { count, about: [Number(v.qa), Number(v.qb)] } : undefined;
-      if (pattern && 'step' in pattern && !(Math.hypot(pattern.step[0], pattern.step[1]) > Number(v.d))) throw new Error('The row’s step must be longer than the hole’s diameter, or the holes run into each other.');
-      if (pattern && 'about' in pattern && Math.hypot(Number(v.x) - pattern.about[0], Number(v.y) - pattern.about[1]) < 1e-6) throw new Error('Put the first hole away from the circle’s centre: the copies turn round it.');
+      if (pattern && 'step' in pattern && !(Math.hypot(pattern.step[0], pattern.step[1]) > Number(v.d))) throw refusal('HOLE_PATTERN', 'The row’s step must be longer than the hole’s diameter, or the holes run into each other.');
+      if (pattern && 'about' in pattern && Math.hypot(Number(v.x) - pattern.about[0], Number(v.y) - pattern.about[1]) < 1e-6) throw refusal('HOLE_PATTERN', 'Put the first hole away from the circle’s centre: the copies turn round it.');
       const pat = pattern ? { pattern } : {};
       const doc = withNode(ctx.doc, { kind: 'hole', parent: refOf(body), radius: Number(v.d) / 2, ...at, ...(blind ? { depth: Number(v.depth) } : {}), ...(tapped ? { thread: `${v.thread}×${tapped.pitch}` } : {}), ...(v.type === 'countersink' ? { countersink: Number(v.csd) } : {}), ...pat });
       if (v.type === 'counterbore') return withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, radius: Number(v.cd) / 2, depth: Number(v.ch), ...at, ...pat });
@@ -434,10 +461,10 @@ const allCommands: Command[] = [
     defaults: () => ({ deg: 5 }),
     steps: ctx => { const d = draftOf(ctx); return typeof d === 'string' ? [] : [{ label: 'Faces', text: d.extrude !== null ? `every side of its extrusion: the extrusion's own draft (exact)` : `${d.faces.length} side face${d.faces.length === 1 ? '' : 's'}, turned about the body's bottom`, done: true }]; },
     build: (ctx, v) => {
-      const d = draftOf(ctx); if (typeof d === 'string') throw new Error(d);
-      const deg = Number(v.deg); if (!(deg !== 0 && Math.abs(deg) < 45)) throw new Error('A draft angle is not 0 and below 45° in size.');
+      const d = draftOf(ctx); if (typeof d === 'string') throw refusal('DRAFT_PICK', d);
+      const deg = Number(v.deg); if (!(deg !== 0 && Math.abs(deg) < 45)) throw refusal('DRAFT_ANGLE', 'A draft angle is not 0 and below 45° in size.');
       if (d.extrude !== null) return { ...ctx.doc, nodes: ctx.doc.nodes.map((n, i) => i === d.extrude && n.kind === 'extrude' ? { ...n, draft: deg } : n) };
-      return withNode(ctx.doc, { kind: 'draft', parent: refOf(d.body), faces: d.faces, angleDegrees: deg });
+      return withNode(ctx.doc, { kind: 'draft', parent: refOf(d.body), faces: d.faces, angle: deg });
     },
   },
   {
@@ -477,7 +504,7 @@ const allCommands: Command[] = [
       // (An end radius: the radius varies along the picked chain from its start to its end, R10.5, D100.)
       if (r1 > 0 && Math.abs(r1 - r) > 1e-9) {
         const ends = chainEnds(edges);
-        if (!ends) throw new Error('A varying radius needs the picked edges to form one open chain: its two ends take the two radii.');
+        if (!ends) throw refusal('FILLET_CHAIN', 'A varying radius needs the picked edges to form one open chain: its two ends take the two radii.');
         return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r, radii: [{ at: ends[0], radius: r }, { at: ends[1], radius: r1 }], ...shaped });
       }
       return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r, ...shaped });
@@ -491,7 +518,7 @@ const allCommands: Command[] = [
     defaults: () => ({ keep: 25, maxError: 0, crease: 0 }),
     build: (ctx, v) => {
       const body = ctx.bodies[selectedBodies(ctx.selection)[0]], keep = Math.round(Number(v.keep)), maxError = Number(v.maxError), crease = Number(v.crease);
-      if (!(keep >= 1 && keep <= 99)) throw new Error('Keep between 1 and 99% of the triangles.');
+      if (!(keep >= 1 && keep <= 99)) throw refusal('DECIMATE_KEEP', 'Keep between 1 and 99% of the triangles.');
       return withNode(ctx.doc, { kind: 'decimate', parent: refOf(body), ratio: keep / 100, ...(maxError > 0 ? { maxError } : {}), ...(crease > 0 ? { featureAngle: crease } : {}) });
     },
   },
@@ -541,7 +568,7 @@ const allCommands: Command[] = [
       { key: 'px', label: 'Pivot X', kind: 'mm' }, { key: 'py', label: 'Pivot Y', kind: 'mm' }, { key: 'pz', label: 'Pivot Z', kind: 'mm' }],
     // About the axis through the body's centre (where the gizmo sits); nothing turned until typed or dragged.
     defaults: ctx => { const c = centreOf(oneBody(ctx)); return { axis: 'z', angle: 0, px: c[0], py: c[1], pz: c[2] }; },
-    build: (ctx, v) => withNode(ctx.doc, { kind: 'rotate', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angleDegrees: Number(v.angle), pivot: [Number(v.px), Number(v.py), Number(v.pz)] }),
+    build: (ctx, v) => withNode(ctx.doc, { kind: 'rotate', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angle: Number(v.angle), pivot: [Number(v.px), Number(v.py), Number(v.pz)] }),
   },
   {
     id: 'scale', label: 'Scale', icon: 'cad-scale', hint: 'Grow or shrink a body about its centre: drag the gizmo’s cube or type the factor', group: 'modify', keywords: 'resize enlarge shrink factor',
@@ -597,6 +624,21 @@ const allCommands: Command[] = [
     build: (ctx, v) => duplicateBody(ctx.doc, refOf(oneBody(ctx)!), [Number(v.dx), Number(v.dy), Number(v.dz)]).doc,
   },
   {
+    id: 'linear-feature-pattern', label: 'Linear cut pattern', icon: 'cad-pattern-linear', hint: 'Repeat the cut along an axis', group: 'pattern', keywords: 'feature cut repeat subtract',
+    available: ctx => { const why = linearCutProblem(ctx); return why ? no(why.message) : ok; },
+    fields: () => [{ key: 'axis', label: 'Direction', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
+      { key: 'spacing', label: 'Spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count', label: 'Count', kind: 'count', min: 2, max: 64 }],
+    defaults: () => ({ axis: 'x', spacing: 20, count: 3 }),
+    build: (ctx, v) => {
+      const why = linearCutProblem(ctx); if (why) throw why;
+      const axis = v.axis, spacing = Number(v.spacing), count = Number(v.count);
+      if (axis !== 'x' && axis !== 'y' && axis !== 'z') throw refusal('VALUE', 'Direction must be X, Y or Z.');
+      if (!Number.isFinite(spacing) || spacing <= 0 || spacing > 10000) throw refusal('VALUE', 'Spacing must be positive and at most 10000 mm.');
+      if (!Number.isInteger(count) || count < 2 || count > 64) throw refusal('VALUE', 'Count must be a whole number from 2 to 64, including the original cut.');
+      return withNode(ctx.doc, { kind: 'linear-feature-pattern', parent: refOf(oneBody(ctx)!), axis, spacing, count });
+    },
+  },
+  {
     id: 'linear-pattern', label: 'Linear pattern', icon: 'cad-pattern-linear', hint: 'Copies of a body in a row', shortcut: 'P', group: 'pattern', keywords: 'array repeat copy',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to pattern.'),
     fields: () => [{ key: 'axis', label: 'Direction', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
@@ -641,12 +683,12 @@ const allCommands: Command[] = [
         // Each copy a body of its own, turned about the axis by its share of the spread.
         const body = refOf(oneBody(ctx)!), z = v.axis === 'z', step = z ? (span >= 360 ? 360 / n : span / (n - 1)) : 90;
         let doc = ctx.doc;
-        for (let c = 1; c < (z ? n : Math.min(4, n)); c++) doc = duplicateBody(doc, body, copy => ({ kind: 'rotate', parent: copy, axis: v.axis as Axis, angleDegrees: Math.round(step * c * 1e6) / 1e6, ...(z && (pivot[0] || pivot[1]) ? { pivot } : {}) })).doc;
+        for (let c = 1; c < (z ? n : Math.min(4, n)); c++) doc = duplicateBody(doc, body, copy => ({ kind: 'rotate', parent: copy, axis: v.axis as Axis, angle: Math.round(step * c * 1e6) / 1e6, ...(z && (pivot[0] || pivot[1]) ? { pivot } : {}) })).doc;
         return doc;
       }
       return withNode(ctx.doc, v.axis === 'z'
-        ? { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: 'z', angleDegrees: Math.round((span >= 360 ? 360 / n : span / (n - 1)) * 1e6) / 1e6, count: n, ...(pivot[0] || pivot[1] ? { pivot } : {}) }
-        : { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angleDegrees: 90, count: Math.min(4, n) });
+        ? { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: 'z', angle: Math.round((span >= 360 ? 360 / n : span / (n - 1)) * 1e6) / 1e6, count: n, ...(pivot[0] || pivot[1] ? { pivot } : {}) }
+        : { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angle: 90, count: Math.min(4, n) });
     },
   },
   {
@@ -677,7 +719,7 @@ const allCommands: Command[] = [
     steps: (_ctx, v) => v.axis === 'n' ? [{ label: 'Plane', text: splitNormal(v) ? `${planeText(splitNormal(v)!)} = ${Number(v.at)}` : 'Give the plane a direction: its normal must not be zero.', done: !!splitNormal(v) }] : [],
     build: (ctx, v) => {
       if (v.axis !== 'n') return withNode(ctx.doc, { kind: 'split', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, at: Number(v.at) });
-      const n = splitNormal(v); if (!n) throw new Error('Give the plane a direction: its normal must not be zero.');
+      const n = splitNormal(v); if (!n) throw refusal('SPLIT_PLANE', 'Give the plane a direction: its normal must not be zero.');
       return withNode(ctx.doc, { kind: 'split', parent: refOf(oneBody(ctx)!), axis: 'x', normal: n, at: Number(v.at) });
     },
   },

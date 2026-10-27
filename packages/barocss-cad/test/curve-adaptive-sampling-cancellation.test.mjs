@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { sampleCurveAdaptive, evaluateCurve } from '../dist/index.js';
-import { finiteSegmentDistance } from '../dist/curve-adaptive-sampling.js';
+import { finiteSegmentDistance } from '../dist/nurbs/curves/curve-adaptive-sampling.js';
 
 test('C6: a point whose chord projection cancels to ~0 is measured, not refused', () => {
   // Exactly perpendicular above the start, with coordinates whose products round.

@@ -16,7 +16,7 @@ const bundle = await esbuild.build({ absWorkingDir: repo, entryPoints: [entry], 
 assert.equal(bundle.outputFiles.length, 1);
 const sourceInputs = Object.keys(bundle.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
-for (const leaf of ['source-curve-interval-extraction.ts', 'curve-knot-insertion.ts', 'source-curve-control-polygon.ts', 'index.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
+for (const leaf of ['nurbs/source-wide/source-curve-interval-extraction.ts', 'nurbs/curves/curve-knot-insertion.ts', 'nurbs/source-wide/source-curve-control-polygon.ts', 'index.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
@@ -604,11 +604,11 @@ for (const selected of [main.result.originalCurve, quartic.result.originalCurve]
 const packageRoot = resolve(repo, 'packages/barocss-cad'), manifest = JSON.parse(readFileSync(resolve(packageRoot, 'package.json'), 'utf8'));
 const declared = manifest.publishConfig?.exports?.['.'] ?? manifest.exports['.'];
 const runtimePath = resolve(packageRoot, declared.import), declarationPath = resolve(packageRoot, declared.types);
-const leafDeclarationPath = resolve(packageRoot, 'dist/source-curve-interval-extraction.d.ts');
+const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/source-wide/source-curve-interval-extraction.d.ts');
 const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.SourceCurveIntervalExtractionDiagnosticCode, codes);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./source-curve-interval-extraction.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/source-wide/source-curve-interval-extraction.js'));
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(readFileSync(leafDeclarationPath, 'utf8').includes(name), name);
 const currentRequest = JSON.parse(readFileSync(cases[0].requestFile, 'utf8')), currentResult = JSON.parse(readFileSync(cases[0].resultFile, 'utf8'));
 assert.deepEqual(publicAPI.extractSourceCurveInterval(currentRequest), currentResult);
@@ -616,7 +616,7 @@ assert.deepEqual(publicAPI.validateSourceCurveIntervalExtraction(currentResult),
 for (const [source, model] of [[currentRequest.source, currentResult.originalModel], [currentResult.source, currentResult.model]]) {
   const cold = publicAPI.compileCadModel(source, { sourceVersion: 0 }); assert.equal(cold.ok, true); assert.deepEqual(cold.model, model);
 }
-const emittedArtifacts = ['index.js', 'index.d.ts', 'source-curve-interval-extraction.js', 'source-curve-interval-extraction.d.ts'].map(name => {
+const emittedArtifacts = ['index.js', 'index.d.ts', 'nurbs/source-wide/source-curve-interval-extraction.js', 'nurbs/source-wide/source-curve-interval-extraction.d.ts'].map(name => {
   const path = resolve(packageRoot, 'dist', name); assert.ok(existsSync(path)); const bytes = readFileSync(path);
   return { path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
 });

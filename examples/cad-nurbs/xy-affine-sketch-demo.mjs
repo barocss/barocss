@@ -16,7 +16,7 @@ if (mode === '--source') {
   const bundle = await require('esbuild').build({ absWorkingDir: repo, entryPoints: [resolve(repo, 'packages/barocss-cad/src/index.ts')], bundle: true,
     platform: 'node', format: 'esm', target: 'es2022', write: false, metafile: true });
   const inputs = Object.keys(bundle.metafile.inputs);
-  for (const leaf of ['xy-affine-sketch.ts', 'xy-affine-sketch-internal.ts', 'section-rational-internal.ts']) assert.ok(inputs.some(path => path.endsWith('/' + leaf)));
+  for (const leaf of ['xy-affine-sketch.ts', 'sketch/xy-affine-sketch-internal.ts', 'section-rational-internal.ts']) assert.ok(inputs.some(path => path.endsWith('/' + leaf)));
   assert.ok(!inputs.some(path => path.includes('/dist/')));
   writeFileSync(resolve(output, 'source-api.mjs'), bundle.outputFiles[0].text);
   api = await import(pathToFileURL(resolve(output, 'source-api.mjs')).href);

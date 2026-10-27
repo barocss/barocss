@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { compressionSpring, springDimensions, springSolidPitch, helicalSweep, SpringError, checkBrep, brepMassProperties, evaluateSurface, surfaceDomain, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
-import { brepBounds } from '../dist/brep-bounds.js';
+import { compressionSpring, springDimensions, springSolidPitch, helicalSweep, isSpringError, checkBrep, brepMassProperties, evaluateSurface, surfaceDomain, evaluateCadPart, exportStep, importStep, outputOf } from '../dist/index.js';
+import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.1a (D153): the helical sweep of the exact normal-plane circle, and compression springs (D139's stage), against
 // oracles written here, none of them the kernel's:
@@ -13,8 +13,8 @@ import { brepBounds } from '../dist/brep-bounds.js';
 // - k = Gd⁴/(8D³n_a) by the wire's torsion energy; τ by Wahl's factor; the solid pitch by brute-force least distance.
 
 const near = (got, want, rel, what) => assert.ok(Math.abs(got - want) <= rel * Math.abs(want), `${what}: ${got} vs ${want} (rel ${Math.abs(got - want) / Math.abs(want)})`);
-const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
-const code = c => e => e instanceof SpringError && e.code === c;
+const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volume;
+const code = c => e => isSpringError(e) && e.code === c;
 
 /** The centreline's z(φ) by D153's law: runs of constant pitch, or the smoothstep 3t² − 2t³ between two pitches. */
 function centreline(R, runs, z0) {
@@ -62,54 +62,54 @@ function leastTurnGap(R, p) { const h = p / (2 * Math.PI); let best = Infinity; 
 
 test('R12c.1a open ends: the wire is the exact pipe of the helix within the measured fit — V = πa²·S, its distance from the centreline, valid, genus 0; the report against closed forms', t => {
   const R = 10, a = 1, p = 5, n = 6, G = 79300;
-  const t0 = performance.now(), { brep, report } = compressionSpring({ wireDiameterMM: 2, meanDiameterMM: 20, activeCoils: n, pitchMM: p, ends: 'open', shearModulusMPa: G, loadN: 10 }, { id: 'sp' }), ms = performance.now() - t0;
+  const t0 = performance.now(), { brep, report } = compressionSpring({ wireDiameter: 2, meanDiameter: 20, activeCoils: n, pitch: p, ends: 'open', shearModulus: G, load: 10 }, { id: 'sp' }), ms = performance.now() - t0;
   const chk = checkBrep(brep);
   assert.equal(chk.valid, true, chk.issues[0]); assert.equal(chk.topology.length, 1); assert.equal(chk.topology[0].genus, 0);
-  const h = p / (2 * Math.PI), gamma = R / Math.hypot(R, h), C = centreline(R, [{ turns: n, p }], a * gamma), dev = report.sweep.profileDeviationMM;
+  const h = p / (2 * Math.PI), gamma = R / Math.hypot(R, h), C = centreline(R, [{ turns: n, p }], a * gamma), dev = report.sweep.profileDeviation;
   near(C.S, n * 2 * Math.PI * Math.hypot(R, h), 1e-12, 'the test\'s own length against the helix\'s closed form');
-  near(report.sweep.wireLengthMM, C.S, 1e-12, 'wire length');
-  assert.ok(dev <= report.sweep.profileToleranceMM && report.sweep.profileToleranceMM === 2e-4, `fit ${dev} within 1e-4·d`);
+  near(report.sweep.wireLength, C.S, 1e-12, 'wire length');
+  assert.ok(dev <= report.sweep.profileTolerance && report.sweep.profileTolerance === 2e-4, `fit ${dev} within 1e-4·d`);
   const worst = worstDistance(brep, R, a, C);
   assert.ok(worst <= dev + 1e-12, `distance from the centreline off by ${worst}, the reported bound ${dev}`);
   const V = vol(brep), want = Math.PI * a * a * C.S;
   assert.ok(Math.abs(V - want) <= 2 * Math.PI * a * C.S * dev + 1e-9 * want, `V ${V} vs πa²S ${want}`);
   // The bounds: from its lowest point at z 0 to L0 = n p + 2aγ (the end discs' extreme points, tilted by the helix angle).
   const b = brepBounds(brep), d = report.dimensions;
-  near(d.freeLengthMM, n * p + 2 * a * gamma, 1e-12, 'free length');
-  assert.ok(Math.abs(b.min[2]) <= 1e-6 && Math.abs(b.max[2] - d.freeLengthMM) <= 1e-6, `z from ${b.min[2]} to ${b.max[2]}`);
-  near(d.helixAngleDeg, Math.atan(p / (Math.PI * 20)) * 180 / Math.PI, 1e-12, 'helix angle');
+  near(d.freeLength, n * p + 2 * a * gamma, 1e-12, 'free length');
+  assert.ok(Math.abs(b.min[2]) <= 1e-6 && Math.abs(b.max[2] - d.freeLength) <= 1e-6, `z from ${b.min[2]} to ${b.max[2]}`);
+  near(d.helixAngle, Math.atan(p / (Math.PI * 20)) * 180 / Math.PI, 1e-12, 'helix angle');
   // The rate by the wire's torsion energy: torque FD/2 over length πD n, J = πd⁴/32 (Castigliano; shear of direct load neglected).
   const F = 10, J = Math.PI * 16 / 32, U = (F * 10) ** 2 * Math.PI * 20 * n / (2 * G * J);
-  near(d.rateNPerMM, F / (2 * U / F), 1e-12, 'rate');
+  near(d.rate, F / (2 * U / F), 1e-12, 'rate');
   near(d.wahlFactor, (4 * 10 - 1) / (4 * 10 - 4) + 0.615 / 10, 1e-15, 'Wahl');
-  near(d.load.shearStressMPa, d.wahlFactor * 8 * F * 20 / (Math.PI * 8), 1e-12, 'corrected shear stress');
-  near(d.load.deflectionMM, F / d.rateNPerMM, 1e-12, 'deflection');
+  near(d.load.shearStress, d.wahlFactor * 8 * F * 20 / (Math.PI * 8), 1e-12, 'corrected shear stress');
+  near(d.load.deflection, F / d.rate, 1e-12, 'deflection');
   // The geometric solid pitch: neighbouring turns d apart (brute force), above d by the helix angle.
-  near(leastTurnGap(R, d.solidPitchMM), 2, 1e-7, 'turns d apart at the solid pitch');
-  assert.ok(d.solidPitchMM > 2 && d.solidPitchMM < 2.002);
-  assert.equal(d.supplierSolidHeightRule, 'd·(n_t + 1)'); assert.equal(d.supplierSolidHeightMM, 14);
+  near(leastTurnGap(R, d.solidPitch), 2, 1e-7, 'turns d apart at the solid pitch');
+  assert.ok(d.solidPitch > 2 && d.solidPitch < 2.002);
+  assert.equal(d.supplierSolidHeightRule, 'd·(n_t + 1)'); assert.equal(d.supplierSolidHeight, 14);
   assert.equal(report.manufacturingValidated, false);
   t.diagnostic(`open D 20 d 2 p 5, 6 turns: ${report.sweep.pieces} pieces (${report.sweep.segments} segments), ${brep.faces.length} faces, built ${ms.toFixed(0)} ms; fit ${dev.toExponential(2)}, distance off by ${worst.toExponential(2)}; V ${V.toFixed(6)} vs πa²S ${want.toFixed(6)} (rel ${(Math.abs(V - want) / want).toExponential(2)})`);
 });
 
 test('R12c.1a closed ends: a dead coil at the geometric solid pitch each end, easing (smoothstep, 90°) to the body — V = πa²·S on the variable centreline, its distance, the free length 2p_s + n_a p + 2aγ_s', t => {
-  const R = 10, a = 1, p = 5, n = 6, { brep, report } = compressionSpring({ wireDiameterMM: 2, meanDiameterMM: 20, activeCoils: n, pitchMM: p, ends: 'closed' }, { id: 'sc' });
+  const R = 10, a = 1, p = 5, n = 6, { brep, report } = compressionSpring({ wireDiameter: 2, meanDiameter: 20, activeCoils: n, pitch: p, ends: 'closed' }, { id: 'sc' });
   const chk = checkBrep(brep);
   assert.equal(chk.valid, true, chk.issues[0]); assert.equal(chk.topology[0].genus, 0);
   const ps = springSolidPitch(20, 2), gs = R / Math.hypot(R, ps / (2 * Math.PI)), q = 0.25;
   const C = centreline(R, [{ turns: 1 - q / 2, p: ps }, { turns: q, p: ps, to: p }, { turns: n - q, p }, { turns: q, p, to: ps }, { turns: 1 - q / 2, p: ps }], a * gs);
-  near(report.sweep.wireLengthMM, C.S, 1e-10, 'wire length (Simpson on the variable centreline)');
+  near(report.sweep.wireLength, C.S, 1e-10, 'wire length (Simpson on the variable centreline)');
   const d = report.dimensions;
-  near(d.freeLengthMM, 2 * ps + n * p + 2 * a * gs, 1e-12, 'free length'); near(C.endZ + a * gs, d.freeLengthMM, 1e-12, 'the centreline\'s rise');
-  assert.equal(d.totalCoils, 8); near(d.solidHeightMM, 8 * ps + 2 * a * gs, 1e-12, 'geometric solid height'); assert.equal(d.supplierSolidHeightMM, 18);
-  const dev = report.sweep.profileDeviationMM, worst = worstDistance(brep, R, a, C);
+  near(d.freeLength, 2 * ps + n * p + 2 * a * gs, 1e-12, 'free length'); near(C.endZ + a * gs, d.freeLength, 1e-12, 'the centreline\'s rise');
+  assert.equal(d.totalCoils, 8); near(d.solidHeight, 8 * ps + 2 * a * gs, 1e-12, 'geometric solid height'); assert.equal(d.supplierSolidHeight, 18);
+  const dev = report.sweep.profileDeviation, worst = worstDistance(brep, R, a, C);
   assert.ok(worst <= dev + 1e-12 && dev <= 2e-4, `distance off by ${worst}, bound ${dev}`);
   const V = vol(brep), want = Math.PI * a * a * C.S;
   assert.ok(Math.abs(V - want) <= 2 * Math.PI * a * C.S * dev + 1e-9 * want, `V ${V} vs πa²S ${want}`);
   const b = brepBounds(brep);
-  assert.ok(Math.abs(b.min[2]) <= 1e-6 && Math.abs(b.max[2] - d.freeLengthMM) <= 1e-6, `z from ${b.min[2]} to ${b.max[2]}`);
+  assert.ok(Math.abs(b.min[2]) <= 1e-6 && Math.abs(b.max[2] - d.freeLength) <= 1e-6, `z from ${b.min[2]} to ${b.max[2]}`);
   // The dead coil's turns stay d apart from the next (the pitch only grows toward the body).
-  t.diagnostic(`closed: ${report.sweep.pieces} pieces, ${brep.faces.length} faces; least curvature radius ${report.sweep.minCurvatureRadiusMM.toFixed(6)}; distance off by ${worst.toExponential(2)} (bound ${dev.toExponential(2)}); V rel ${(Math.abs(V - want) / want).toExponential(2)}`);
+  t.diagnostic(`closed: ${report.sweep.pieces} pieces, ${brep.faces.length} faces; least curvature radius ${report.sweep.minCurvatureRadius.toFixed(6)}; distance off by ${worst.toExponential(2)} (bound ${dev.toExponential(2)}); V rel ${(Math.abs(V - want) / want).toExponential(2)}`);
 });
 
 test('R12c.1a closed and ground: the ends cut square to the axis at the centreline\'s end heights — V = πa²S − (4/3)a³R/h_s, flat at z 0 and L0 = 2p_s + n_a p', t => {
@@ -118,7 +118,7 @@ test('R12c.1a closed and ground: the ends cut square to the axis at the centreli
   // (x, y) lies below the plane for s < −yR/h (y < 0), so the cut takes ∫_{y<0} (1 − κx)(−yR/h) dA = (2/3)a³·R/h
   // (the x term vanishes by symmetry). The same at the top.
   const R = 10, a = 1, p = 5, n = 6, t0 = performance.now();
-  const { brep, report } = compressionSpring({ wireDiameterMM: 2, meanDiameterMM: 20, activeCoils: n, pitchMM: p }, { id: 'sg' }), ms = performance.now() - t0;
+  const { brep, report } = compressionSpring({ wireDiameter: 2, meanDiameter: 20, activeCoils: n, pitch: p }, { id: 'sg' }), ms = performance.now() - t0;
   assert.equal(report.ends, 'closed-ground');
   const chk = checkBrep(brep);
   assert.equal(chk.valid, true, chk.issues[0]); assert.equal(chk.topology.length, 1); assert.equal(chk.topology[0].genus, 0);
@@ -126,15 +126,15 @@ test('R12c.1a closed and ground: the ends cut square to the axis at the centreli
   const C = centreline(R, [{ turns: 1 - q / 2, p: ps }, { turns: q, p: ps, to: p }, { turns: n - q, p }, { turns: q, p, to: ps }, { turns: 1 - q / 2, p: ps }], 0);
   // (The cut's band, φ up to aγ/h_s, lies in the dead coil: the closed form holds.)
   assert.ok(a * R / Math.hypot(R, hs) / hs < 2 * Math.PI * (1 - q / 2));
-  const d = report.dimensions, V = vol(brep), want = Math.PI * a * a * C.S - 2 * (2 / 3) * a ** 3 * R / hs, dev = report.sweep.profileDeviationMM;
-  near(d.freeLengthMM, 2 * ps + n * p, 1e-12, 'free length'); near(C.endZ, d.freeLengthMM, 1e-12, 'rise');
+  const d = report.dimensions, V = vol(brep), want = Math.PI * a * a * C.S - 2 * (2 / 3) * a ** 3 * R / hs, dev = report.sweep.profileDeviation;
+  near(d.freeLength, 2 * ps + n * p, 1e-12, 'free length'); near(C.endZ, d.freeLength, 1e-12, 'rise');
   assert.ok(Math.abs(V - want) <= 2 * Math.PI * a * C.S * dev + 1e-9 * want, `V ${V} vs πa²S − (4/3)a³R/h ${want}`);
   const b = brepBounds(brep);
-  assert.ok(Math.abs(b.min[2]) <= 1e-9 && Math.abs(b.max[2] - d.freeLengthMM) <= 1e-9, `z from ${b.min[2]} to ${b.max[2]}`);
+  assert.ok(Math.abs(b.min[2]) <= 1e-9 && Math.abs(b.max[2] - d.freeLength) <= 1e-9, `z from ${b.min[2]} to ${b.max[2]}`);
   const names = new Set(brep.faces.map(f => f.name.replace(/#\d+$/, '')));
   assert.deepEqual([...names].sort(), ['sg.end0', 'sg.end1', 'sg.ground0', 'sg.ground1', 'sg.wire']);
   assert.equal(new Set(brep.faces.map(f => f.name)).size, brep.faces.length, 'face names unique');
-  near(d.solidHeightMM, 8 * ps, 1e-12, 'geometric solid height n_t p_s'); assert.equal(d.supplierSolidHeightRule, 'd·n_t'); assert.equal(d.supplierSolidHeightMM, 16);
+  near(d.solidHeight, 8 * ps, 1e-12, 'geometric solid height n_t p_s'); assert.equal(d.supplierSolidHeightRule, 'd·n_t'); assert.equal(d.supplierSolidHeight, 16);
   // A STEP round trip keeps it.
   const back = importStep(exportStep([brep], { name: 'spring' }));
   assert.equal(checkBrep(back).valid, true); near(vol(back), V, 1e-9, 'STEP round trip');
@@ -142,13 +142,13 @@ test('R12c.1a closed and ground: the ends cut square to the axis at the centreli
 });
 
 test('R12c.1a: a long fine spring, ground (20 turns; D 40 d 1), and the left hand as the right hand\'s mirror', t => {
-  const t0 = performance.now(), long = compressionSpring({ wireDiameterMM: 1, meanDiameterMM: 40, activeCoils: 20, pitchMM: 2.5 }, { id: 'lg' }), ms = performance.now() - t0;
+  const t0 = performance.now(), long = compressionSpring({ wireDiameter: 1, meanDiameter: 40, activeCoils: 20, pitch: 2.5 }, { id: 'lg' }), ms = performance.now() - t0;
   assert.equal(checkBrep(long.brep).valid, true);
   const ps = springSolidPitch(40, 1), hs = ps / (2 * Math.PI), q = 0.25, C = centreline(20, [{ turns: 1 - q / 2, p: ps }, { turns: q, p: ps, to: 2.5 }, { turns: 20 - q, p: 2.5 }, { turns: q, p: 2.5, to: ps }, { turns: 1 - q / 2, p: ps }], 0);
   const V = vol(long.brep), want = Math.PI * 0.25 * C.S - (4 / 3) * 0.125 * 20 / hs;
-  assert.ok(Math.abs(V - want) <= Math.PI * C.S * long.report.sweep.profileDeviationMM + 1e-9 * want, `V ${V} vs ${want}`);
+  assert.ok(Math.abs(V - want) <= Math.PI * C.S * long.report.sweep.profileDeviation + 1e-9 * want, `V ${V} vs ${want}`);
   t.diagnostic(`D 40 d 1, 20 active coils ground: ${long.report.sweep.pieces} pieces, ${long.brep.faces.length} faces, ${ms.toFixed(0)} ms; V rel ${(Math.abs(V - want) / want).toExponential(2)}`);
-  const right = compressionSpring({ wireDiameterMM: 2, meanDiameterMM: 20, activeCoils: 3, pitchMM: 5, ends: 'closed' }), left = compressionSpring({ wireDiameterMM: 2, meanDiameterMM: 20, activeCoils: 3, pitchMM: 5, ends: 'closed', hand: 'left' });
+  const right = compressionSpring({ wireDiameter: 2, meanDiameter: 20, activeCoils: 3, pitch: 5, ends: 'closed' }), left = compressionSpring({ wireDiameter: 2, meanDiameter: 20, activeCoils: 3, pitch: 5, ends: 'closed', hand: 'left' });
   assert.equal(checkBrep(left.brep).valid, true); near(vol(left.brep), vol(right.brep), 1e-12, 'left = right');
   // The left hand is the right hand mirrored in XZ, vertex for vertex.
   const key = p => p.map(x => x.toFixed(9)).join(','), mirrored = new Set(right.brep.vertices.map(v => key([v.point[0], -v.point[1], v.point[2]])));
@@ -160,48 +160,48 @@ test('R12c.1a: a long fine spring, ground (20 turns; D 40 d 1), and the left han
 
 test('R12c.1a: the free length gives the pitch back; each end type\'s L0 ↔ p', () => {
   for (const ends of ['open', 'closed', 'closed-ground']) {
-    const a = springDimensions({ wireDiameterMM: 1.5, meanDiameterMM: 12, activeCoils: 7.5, pitchMM: 3.2, ends });
-    const b = springDimensions({ wireDiameterMM: 1.5, meanDiameterMM: 12, activeCoils: 7.5, freeLengthMM: a.freeLengthMM, ends });
-    near(b.pitchMM, 3.2, 1e-12, `${ends}: pitch from L0`);
+    const a = springDimensions({ wireDiameter: 1.5, meanDiameter: 12, activeCoils: 7.5, pitch: 3.2, ends });
+    const b = springDimensions({ wireDiameter: 1.5, meanDiameter: 12, activeCoils: 7.5, freeLength: a.freeLength, ends });
+    near(b.pitch, 3.2, 1e-12, `${ends}: pitch from L0`);
   }
   // Outer and inner diameters as the mean ± d.
-  near(springDimensions({ wireDiameterMM: 2, outerDiameterMM: 22, activeCoils: 5, pitchMM: 4 }).meanDiameterMM, 20, 0, 'from OD');
-  near(springDimensions({ wireDiameterMM: 2, innerDiameterMM: 18, activeCoils: 5, pitchMM: 4 }).meanDiameterMM, 20, 0, 'from ID');
+  near(springDimensions({ wireDiameter: 2, outerDiameter: 22, activeCoils: 5, pitch: 4 }).meanDiameter, 20, 0, 'from OD');
+  near(springDimensions({ wireDiameter: 2, innerDiameter: 18, activeCoils: 5, pitch: 4 }).meanDiameter, 20, 0, 'from ID');
 });
 
 test('R12c.1a refusals: INVALID_INPUT, COILS_OVERLAP (pitch d is below the solid pitch), UNSUPPORTED_SPRING_KIND, PROFILE_BUDGET_EXCEEDED, SELF_INTERSECTION; a load past solid warns', () => {
-  const base = { wireDiameterMM: 2, meanDiameterMM: 20, activeCoils: 6, pitchMM: 5 };
-  for (const bad of [{ wireDiameterMM: 0 }, { meanDiameterMM: 2 }, { activeCoils: 0 }, { freeLengthMM: 30 }, { meanDiameterMM: undefined }, { outerDiameterMM: 22 }, { ends: 'squared' }, { transitionDeg: 1000, ends: 'closed', activeCoils: 1 }])
+  const base = { wireDiameter: 2, meanDiameter: 20, activeCoils: 6, pitch: 5 };
+  for (const bad of [{ wireDiameter: 0 }, { meanDiameter: 2 }, { activeCoils: 0 }, { freeLength: 30 }, { meanDiameter: undefined }, { outerDiameter: 22 }, { ends: 'squared' }, { transition: 1000, ends: 'closed', activeCoils: 1 }])
     assert.throws(() => compressionSpring({ ...base, ...bad }), code('INVALID_INPUT'), JSON.stringify(bad));
   // Touching coils wound at p = d overlap by a hair: the turns are d apart only at the geometric solid pitch (S0).
-  assert.throws(() => compressionSpring({ ...base, pitchMM: 2, ends: 'open' }), e => code('COILS_OVERLAP')(e) && /2\.001014/.test(e.message));
-  assert.throws(() => compressionSpring({ ...base, pitchMM: undefined, freeLengthMM: 14, ends: 'closed-ground' }), code('COILS_OVERLAP'));
+  assert.throws(() => compressionSpring({ ...base, pitch: 2, ends: 'open' }), e => code('COILS_OVERLAP')(e) && /2\.001014/.test(e.message));
+  assert.throws(() => compressionSpring({ ...base, pitch: undefined, freeLength: 14, ends: 'closed-ground' }), code('COILS_OVERLAP'));
   // (Extension and torsion springs are hookedSpring's since R12c.1b, D154: compressionSpring refuses them as input.)
   for (const bad of [{ type: 'extension' }, { type: 'torsion' }]) assert.throws(() => compressionSpring({ ...base, ...bad }), code('INVALID_INPUT'), JSON.stringify(bad));
   for (const bad of [{ type: 'leaf' }, { body: 'conical' }, { wire: 'rectangular' }, { endCoils: 2, ends: 'closed' }])
     assert.throws(() => compressionSpring({ ...base, ...bad }), code('UNSUPPORTED_SPRING_KIND'), JSON.stringify(bad));
   // D/d 100 over 30 turns needs more than the 1024 pieces (S0: 1140 at the gears' rule).
-  assert.throws(() => compressionSpring({ wireDiameterMM: 1, meanDiameterMM: 100, activeCoils: 30, pitchMM: 3, ends: 'open' }), code('PROFILE_BUDGET_EXCEEDED'));
-  assert.throws(() => helicalSweep('x', { helixRadiusMM: 1, runs: [{ turns: 1, pitchMM: 5 }], section: { kind: 'circle', radiusMM: 1 } }), code('SELF_INTERSECTION'));
-  assert.throws(() => helicalSweep('x', { helixRadiusMM: 5, runs: [{ turns: 1, pitchMM: 5 }], section: { kind: 'rectangle' } }), code('UNSUPPORTED_SPRING_KIND'));
-  const loaded = compressionSpring({ ...base, ends: 'open', shearModulusMPa: 79300, loadN: 100 });
+  assert.throws(() => compressionSpring({ wireDiameter: 1, meanDiameter: 100, activeCoils: 30, pitch: 3, ends: 'open' }), code('PROFILE_BUDGET_EXCEEDED'));
+  assert.throws(() => helicalSweep('x', { helixRadius: 1, runs: [{ turns: 1, pitch: 5 }], section: { kind: 'circle', radius: 1 } }), code('SELF_INTERSECTION'));
+  assert.throws(() => helicalSweep('x', { helixRadius: 5, runs: [{ turns: 1, pitch: 5 }], section: { kind: 'rectangle' } }), code('UNSUPPORTED_SPRING_KIND'));
+  const loaded = compressionSpring({ ...base, ends: 'open', shearModulus: 79300, load: 100 });
   assert.deepEqual(loaded.report.diagnostics.map(x => [x.code, x.severity]), [['COILS_OVERLAP', 'warning']]);
 });
 
 test('R12c.1a part model: the `spring` kind placed on its axis, its report on the output; refusals mapped with their codes', () => {
   const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: { d: 2 }, features });
   const snap = evaluateCadPart(D([{ id: 's', kind: 'spring', wire: { parameter: 'd' }, diameter: 20, activeCoils: 6, pitch: 5, center: [30, -5], from: 4, rotation: 90, shearModulus: 79300, shearModulusEstimate: true }]));
-  const out = snap.output('s'), b = brepBounds(out.brep);
+  const out = outputOf(snap, 's'), b = brepBounds(out.brep);
   assert.equal(out.spring.generator, 'spring@0'); assert.equal(out.spring.dimensions.shearModulusEstimate, true);
-  near(out.spring.dimensions.rateNPerMM, 79300 * 16 / (8 * 8000 * 6), 1e-12, 'rate');
-  assert.ok(Math.abs(b.min[2] - 4) <= 1e-9 && Math.abs(b.max[2] - 4 - out.spring.dimensions.freeLengthMM) <= 1e-9);
+  near(out.spring.dimensions.rate, 79300 * 16 / (8 * 8000 * 6), 1e-12, 'rate');
+  assert.ok(Math.abs(b.min[2] - 4) <= 1e-9 && Math.abs(b.max[2] - 4 - out.spring.dimensions.freeLength) <= 1e-9);
   assert.ok(Math.abs((b.min[0] + b.max[0]) / 2 - 30) < 0.2 && Math.abs((b.min[1] + b.max[1]) / 2 + 5) < 0.2, 'about its centre');
   // (Turned 90°: the wire starts on +Y, its ground end there.)
   const g0 = out.brep.faces.find(f => f.name === 's.end0');
   assert.ok(g0, 'the wire\'s start disc');
-  const refused = (f, c, tag) => assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'spring', wire: 2, diameter: 20, activeCoils: 6, pitch: 5, ...f }])), e => e.code === c && e.message.includes(`[${tag}]`), tag);
+  const refused = (f, c, tag) => assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'spring', wire: 2, diameter: 20, activeCoils: 6, pitch: 5, ...f }])), e => (e.details?.category ?? e.code) === c && e.message.includes(`[${tag}]`), tag);
   refused({ pitch: 2, ends: 'open' }, 'GEOMETRY', 'COILS_OVERLAP');
   refused({ body: 'barrel' }, 'CAPABILITY', 'UNSUPPORTED_SPRING_KIND');  // (torsion until D154, which builds it)
   refused({ freeLength: 40 }, 'INPUT', 'INVALID_INPUT');
-  assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'spring', wire: 2, diameter: 20, activeCoils: 6, pitch: 5, generator: 'spring@9' }])), e => e.code === 'CAPABILITY');
+  assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'spring', wire: 2, diameter: 20, activeCoils: 6, pitch: 5, generator: 'spring@9' }])), e => (e.details?.category ?? e.code) === 'CAPABILITY');
 });

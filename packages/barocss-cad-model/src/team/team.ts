@@ -10,18 +10,20 @@
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { dispatchTool, type ChatState, type Evaluate } from '../chat/tools';
-import type { Op } from '../chat/proposals';
-import { checkSpec, type Report } from '../chat/spec';
-import { interference, massProperties } from '../chat/analysis';
+import type { Op } from '../engine/schema/proposals';
+import { checkSpec } from '../chat/spec';
+import type { Report } from '../engine/schema/spec';
+import { interference, massProperties } from '../analysis/analysis';
 import { factsOf } from '../chat/observe';
-import { checkKeepouts, readReferences, type KeepoutResult } from '../chat/references';
+import { checkKeepouts, readReferences } from '../chat/references';
+import type { KeepoutResult } from '../engine/schema/references';
 import { printability, type PrintabilityReport } from '../print/rules';
 import { processProfile } from '../library/materials';
 import { readBrief, isStated } from '../chat/brief';
 
 // ——— revisions and patches
-// (The canonical JSON and A7's revision live in team/revision.ts — no imports — so frames/ can pin a part's revision, FRf2.)
-import { canonical, canonicalOf, revisionContent, revisionOf } from './revision';
+// (The canonical JSON and A7's revision live in util/revision.ts — no imports — so frames/ can pin a part's revision, FRf2.)
+import { canonical, canonicalOf, revisionContent, revisionOf } from '../util/revision';
 export { canonical, canonicalOf, revisionContent, revisionOf };
 export interface Patch { id: string; by: string; base: string; ops: Op[]; rationale?: string; /** The base it was made on, when rebased. */ rebasedFrom?: string; /** The Designer's answer to soft findings: kept as it is, because… (A8.1: held for the user with this reason, not rejected again). */ keep?: string }
 /** The patch made again on another revision (explicit: never automatic); its trace names the old base. */
@@ -44,7 +46,7 @@ export const contractChanges = (a: StudioDoc, b: StudioDoc) => CONTRACT_FIELDS.f
 async function overlaps(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate): Promise<Map<string, number>> {
   const out = new Map<string, number>();
   if (bodies.length < 2) return out;
-  for (const r of await interference(doc, bodies, evaluate) as { a: string; b: string; overlap_mm3?: number }[]) if (r.overlap_mm3) out.set(`${r.a}|${r.b}`, r.overlap_mm3);
+  for (const r of await interference(doc, bodies, evaluate) as { a: string; b: string; overlap?: number }[]) if (r.overlap) out.set(`${r.a}|${r.b}`, r.overlap);
   return out;
 }
 /** The process the DFM gate checks: the brief's stated one, else the part's. */
@@ -119,7 +121,7 @@ export function verifierView(doc: StudioDoc, bodies: readonly BodyResult[], extr
   const view = {
     revision: revisionOf(doc), brief: doc.brief ?? null, requirements: doc.requirements ?? [],
     facts: factsOf(doc, bodies), mass: massProperties(doc, bodies), boxes: bodies.map(b => ({ body: b.key, min: b.mesh.bounds.min, max: b.mesh.bounds.max })),
-    keepouts: extra.keepouts.map(k => ({ keepout: k.keepout, body: k.body, verdict: k.verdict, clearanceMM: k.clearanceMM, chordMM: k.chordMM })),
+    keepouts: extra.keepouts.map(k => ({ keepout: k.keepout, body: k.body, verdict: k.verdict, clearance: k.clearance, chordTolerance: k.chordMM })),
     printability: extra.print ? extra.print.rules.map(r => ({ id: r.id, status: r.status, message: r.message })) : null,
     checks: extra.spec ? { summary: extra.spec.summary, failures: extra.spec.failures, unknowns: extra.spec.unknowns } : null,
   };

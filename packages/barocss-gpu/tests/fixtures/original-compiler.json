@@ -799,7 +799,7 @@
       "surfaceId": "flat_patch",
       "revision": 7,
       "lengthUnit": "mm",
-      "coordinateSystem": "right-handed-y-up",
+      "coordinateSystem": "right-handed-z-up",
       "winding": "ccw",
       "positions": [
         1,

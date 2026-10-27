@@ -8,8 +8,8 @@ import { rectanglePart, starterDoc, withNode, type ModelNode, type PartInstance,
 import { projectViews } from '@barocss/cad-model/drawing/project';
 import { layoutSheet, toSheet } from '@barocss/cad-model/drawing/views';
 import { buildSheet, PENS } from '@barocss/cad-model/drawing/sheet';
-import { sheetSvg } from '@barocss/cad-model/drawing/svg';
-import { sheetPdf } from '@barocss/cad-model/drawing/pdf';
+import { sheetSvg } from '@barocss/cad-model/io/svg';
+import { sheetPdf } from '@barocss/cad-model/io/pdf';
 import { resolveDimension, snapPoints } from '@barocss/cad-model/drawing/dimensions';
 import { textWidth } from '@barocss/cad-model/drawing/text';
 import { defaultDrawing, type DrawingSettings, type DrawingViews, type ViewId } from '@barocss/cad-model/drawing/types';

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="430" viewBox="0 0 860 430" role="img" aria-labelledby="title desc">
+  <title id="title">Robot motion inputs and separate result types</title>
+  <desc id="desc">Conceptual API data flow, not a robot simulation or measured result. A path made from joint-keyed waypoints and caller-supplied timing limits yields joint values at a time in seconds. Robot pose converts those values to link and frame placements and reports out-of-limit keys. A separate check on supported open-chain paths returns one sweep result per waypoint segment, with dimensionless contact fraction and millimetre clearance, not contact time.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#52647a"/></marker></defs>
+  <rect width="860" height="430" rx="14" fill="#f3f6fb"/>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#172b46" font-size="16">
+    <text x="430" y="33" text-anchor="middle" font-size="23" font-weight="700">Motion results: time, joint values and segment fractions</text>
+    <text x="430" y="58" text-anchor="middle">Conceptual data flow · no simulated geometry or measured result</text>
+    <g fill="none" stroke="#52647a" stroke-width="2" marker-end="url(#arrow)">
+      <path d="M226 160H287"/><path d="M533 160H591"/>
+      <path d="M128 210V290H287"/>
+    </g>
+    <rect x="24" y="102" width="202" height="108" rx="9" fill="white" stroke="#8da4bd"/>
+    <text x="42" y="131" font-weight="700">robot.path(...)</text>
+    <text x="42" y="159">Waypoints + limits</text>
+    <text x="42" y="184">Values: degrees / mm</text>
+    <rect x="287" y="102" width="246" height="108" rx="9" fill="#e4f0ff" stroke="#7c9fc5"/>
+    <text x="305" y="131" font-weight="700">path.poseAt(seconds)</text>
+    <text x="305" y="159">Returns joint-value record</text>
+    <text x="305" y="184">Not link placements</text>
+    <rect x="591" y="91" width="245" height="134" rx="9" fill="#e6f4ed" stroke="#7ca28b"/>
+    <text x="609" y="119" font-weight="700">robot.pose(values)</text>
+    <text x="609" y="146">Resolved values</text>
+    <text x="609" y="171">Links / frames: mm, degrees</text>
+    <text x="609" y="196">Inspect out_of_limits</text>
+    <rect x="287" y="250" width="549" height="125" rx="9" fill="#fff3dd" stroke="#b59a66"/>
+    <text x="305" y="279" font-weight="700">path.check() · supported open chains only</text>
+    <text x="305" y="306">Each segment: clear / contact / minClearance</text>
+    <text x="305" y="332">contact.s / minClearance.fraction: dimensionless</text>
+    <text x="305" y="358">minClearance.value: mm</text>
+    <text x="430" y="408" text-anchor="middle">A segment fraction is not elapsed time. Timing does not certify collision clearance.</text>
+  </g>
+</svg>

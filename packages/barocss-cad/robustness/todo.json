@@ -1,50 +1,14 @@
 [
- {
-  "case": "corpus/oracle/cylinder-box-graze-x45-in0_000001-difference.json",
-  "stage": "validate",
-  "status": "INVALID",
-  "note": "D25 (RB5, first item): a box edge 1 nm (the tolerance) into the cylinder's wall. The kept pieces enclose the right 253.12 mm\u00b3, but the stitched side face's loops cross (strict L0) and the body measures 534 mm\u00b3 \u2014 returned, not refused. A guard was tried (2026-10-18): the strict loop and edge-on-surface checks on the Boolean's cut faces only, with an analytic cylinder chart, cost 1\u20132% of Boolean time, but L0's 'cross or touch' also refuses results the kernel accepts on purpose (cylinder walls touching from inside, schema-1 seams, shell slabs), and proper crossings alone miss this case. Needs a discriminating check (e.g. each cut face's vector area from its loops against its piece's) or tolerant stitching."
- },
- {
-  "case": "corpus/oracle/cylinder-box-graze-x45-in0_000001-difference.json",
-  "stage": "tessellate",
-  "status": "INVALID",
-  "note": "D25 (RB5, first item): a box edge 1 nm (the tolerance) into the cylinder's wall. The kept pieces enclose the right 253.12 mm\u00b3, but the stitched side face's loops cross (strict L0) and the body measures 534 mm\u00b3 \u2014 returned, not refused. A guard was tried (2026-10-18): the strict loop and edge-on-surface checks on the Boolean's cut faces only, with an analytic cylinder chart, cost 1\u20132% of Boolean time, but L0's 'cross or touch' also refuses results the kernel accepts on purpose (cylinder walls touching from inside, schema-1 seams, shell slabs), and proper crossings alone miss this case. Needs a discriminating check (e.g. each cut face's vector area from its loops against its piece's) or tolerant stitching."
- },
- {
-  "case": "corpus/oracle/cylinder-box-graze-x45-in0_000001-difference.json",
-  "stage": "expect",
-  "status": "WRONG",
-  "note": "D25 (RB5, first item): a box edge 1 nm (the tolerance) into the cylinder's wall. The kept pieces enclose the right 253.12 mm\u00b3, but the stitched side face's loops cross (strict L0) and the body measures 534 mm\u00b3 \u2014 returned, not refused. A guard was tried (2026-10-18): the strict loop and edge-on-surface checks on the Boolean's cut faces only, with an analytic cylinder chart, cost 1\u20132% of Boolean time, but L0's 'cross or touch' also refuses results the kernel accepts on purpose (cylinder walls touching from inside, schema-1 seams, shell slabs), and proper crossings alone miss this case. Needs a discriminating check (e.g. each cut face's vector area from its loops against its piece's) or tolerant stitching."
- },
- {
-  "case": "corpus/oracle/cylinder-box-graze-x45-in0_00001-difference.json",
-  "stage": "evaluate",
-  "status": "WRONG",
-  "note": "D25 (RB5): a box edge 10 nm (10 tolerances) into the wall: refused as non-manifold (a typed error, not a wrong body). The sliver is thinner than the stitch's vertex merge radius (20 tolerances); X- and Y-turned boxes refuse from about 3 to 30 tolerances. Needs tolerant stitching of grazing contacts."
- },
- {
-  "case": "corpus/oracle/cylinder-box-graze-y1-in0_01-intersect.json",
-  "stage": "tessellate",
-  "status": "INVALID",
-  "note": "D25 (RB5): a 10 \u00b5m lens between a plane and the cylinder, thinner than the chord error at 8 and 32 segments a quarter: both faces triangulate the same boundary samples and share a diagonal (four uses, balanced: a fold, no crack). The B-rep is strictly valid and its volume exact to 4e-9. Needs interior samples on faces thinner than their chord error."
- },
- {
-  "case": "corpus/oracle/cylinder-box-graze-x52_389-in0_01-intersect.json",
-  "stage": "evaluate",
-  "status": "WRONG",
-  "note": "D25 (RB5): found by the exact-oracle property (seeds 20261018 and 77): a box turned about X whose outermost edge is 10 \u00b5m / 1 \u00b5m (10\u2074 / 10\u00b3 tolerances) into the cylinder's wall is refused as non-manifold (the edge inside the wall has one use) \u2014 typed, not wrong, but valid input. The fixed graze family (45\u00b0, 1\u00b0) passes; which other face loses the edge's piece is open."
- },
- {
-  "case": "corpus/oracle/cylinder-box-graze-x27_564-in0_001-intersect.json",
-  "stage": "evaluate",
-  "status": "WRONG",
-  "note": "D25 (RB5): found by the exact-oracle property (seeds 20261018 and 77): a box turned about X whose outermost edge is 10 \u00b5m / 1 \u00b5m (10\u2074 / 10\u00b3 tolerances) into the cylinder's wall is refused as non-manifold (the edge inside the wall has one use) \u2014 typed, not wrong, but valid input. The fixed graze family (45\u00b0, 1\u00b0) passes; which other face loses the edge's piece is open."
- },
- {
-  "case": "corpus/oracle/gear-helical-pair-crossing-intersect.json",
-  "stage": "evaluate",
-  "status": "WRONG",
-  "note": "D59/D60 (RB5): two helical gears (twisted B-spline flanks, Hermite twist fit) crossing at a 3\u00b0 phase: the analytic Boolean of their intersection is refused as 'not a manifold solid' instead of returning the overlap (24.15 mm\u00b3 by an independent scanline integration of the exact profiles). Meshed pairs are verified by sections of the solids' own faces instead. A keyway, a slot across the teeth and a hole through a tooth of a helical gear (twisted \u00d7 planar/cylindrical) pass every stage (gear-helical-m2-z40-*.json). Needs the analytic Boolean to intersect two general B-spline faces both twisted (the surface-surface marching at near-tangent flank contact)."
- }
+  {
+    "case": "corpus/oracle/cylinder-box-graze-x45-in0_00001-difference.json",
+    "stage": "evaluate",
+    "status": "WRONG",
+    "note": "D25 (RB5): a box edge 10 nm (10 tolerances) into the wall: refused as non-manifold (a typed error, not a wrong body). The sliver is thinner than the stitch's vertex merge radius (20 tolerances); X- and Y-turned boxes refuse from about 3 to 30 tolerances. Needs tolerant stitching of grazing contacts. K9 (D187 notes, open): typed. The right result needs a lens thinner than the 20·tol merge radius recognised and dropped (the wall's lens hole filled, the box's sliver piece dropped); the same would build D186's 1 nm case. Medium–large, at the tolerance scale."
+  },
+  {
+    "case": "corpus/oracle/gear-helical-pair-crossing-intersect.json",
+    "stage": "evaluate",
+    "status": "WRONG",
+    "note": "D59/D60 (RB5): two helical gears (twisted B-spline flanks, Hermite twist fit) crossing at a 3° phase: the analytic Boolean of their intersection is refused as 'not a manifold solid' instead of returning the overlap (24.15 mm³ by an independent scanline integration of the exact profiles). Meshed pairs are verified by sections of the solids' own faces instead. A keyway, a slot across the teeth and a hole through a tooth of a helical gear (twisted × planar/cylindrical) pass every stage (gear-helical-m2-z40-*.json). Needs the analytic Boolean to intersect two general B-spline faces both twisted (the surface-surface marching at near-tangent flank contact). K9 (D187 notes, open): the trace shows the twisted flanks crossing at a very small angle; the cut splits one flank into slivers of 1e-6–1e-5 mm² classified 'same' (within tolerance of the other flank), so a marched edge keeps one use. Needs near-tangent classification and sliver merging: large; meshed pairs are checked by sections meanwhile."
+  }
 ]

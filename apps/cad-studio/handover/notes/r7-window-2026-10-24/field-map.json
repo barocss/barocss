@@ -1,0 +1,2168 @@
+{
+  "artifact_type": "migration-contract",
+  "source_product": "af40fbbe87be51232c85c9a7be41a3c7c1d11c4e",
+  "source_kernel": "a9d777a7ebdd2e0fc09b2a11689182f41a0c95bc",
+  "source_name_map_sha256": "4efcab57245b1af3030170f1cae735473ca29b36472ff9d829acdadb99634088",
+  "instructions": "Contextual names only; do not apply a global text replacement. Latest schema; no aliases, unit suffixes or tolerance changes. Final torsionalRate removal below overrides the historical survey.",
+  "renames": [
+    {
+      "old": "aboveDatumMM",
+      "new": "aboveDatum",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "VBeltRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "allowanceMM",
+      "new": "allowance",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "BendTableRow (src/frame-sheet/sheet-metal.ts)"
+    },
+    {
+      "old": "angleDeg",
+      "new": "angle",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "VBeltRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "angleDegrees",
+      "new": "angle",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "? (src/part/part-model.ts); BendTableRow (src/frame-sheet/sheet-metal.ts)"
+    },
+    {
+      "old": "belowDatumMM",
+      "new": "belowDatum",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "VBeltRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "boreMM",
+      "new": "bore",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "BearingRow (src/machine/bearing.ts); CouplingRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "boreStepMM",
+      "new": "boreStep",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "CouplingRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "chamferMM",
+      "new": "chamfer",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "BearingRow (src/machine/bearing.ts)"
+    },
+    {
+      "old": "cornerRadiusMM",
+      "new": "cornerRadius",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "ConnectorSection (src/machine/connector.ts)"
+    },
+    {
+      "old": "daMaxMM",
+      "new": "daMax",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "BearingRow (src/machine/bearing.ts)"
+    },
+    {
+      "old": "daMinMM",
+      "new": "daMin",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "BearingRow (src/machine/bearing.ts)"
+    },
+    {
+      "old": "datumWidthMM",
+      "new": "datumWidth",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "VBeltRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "deductionMM",
+      "new": "deduction",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "BendTableRow (src/frame-sheet/sheet-metal.ts)"
+    },
+    {
+      "old": "depthMM",
+      "new": "depth",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "? (src/machine/connector.ts); keepOut (src/machine/connector.ts)"
+    },
+    {
+      "old": "edgeMM",
+      "new": "edge",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "VBeltRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "heightMM",
+      "new": "height",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "ConnectorSection (src/machine/connector.ts)"
+    },
+    {
+      "old": "innerWidthMM",
+      "new": "innerWidth",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "ChainRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "lengthMM",
+      "new": "length",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "? (src/machine/connector.ts); CouplingRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "marginMM",
+      "new": "margin",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "keepOut (src/machine/connector.ts)"
+    },
+    {
+      "old": "outsideMM",
+      "new": "outside",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "BearingRow (src/machine/bearing.ts); CouplingRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "overMM",
+      "new": "over",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "FitRow (src/machine/fits.ts)"
+    },
+    {
+      "old": "pitchLineOffsetMM",
+      "new": "pitchLineOffset",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "TimingBeltRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "pitchMM",
+      "new": "pitch",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "ChainRow (src/machine/drive.ts); TimingBeltRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "plateHeightMM",
+      "new": "plateHeight",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "ChainRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "raMaxMM",
+      "new": "raMax",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "BearingRow (src/machine/bearing.ts)"
+    },
+    {
+      "old": "radiusMM",
+      "new": "radius",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "BendTableRow (src/frame-sheet/sheet-metal.ts)"
+    },
+    {
+      "old": "rollerDiameterMM",
+      "new": "rollerDiameter",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "ChainRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "spacingMM",
+      "new": "spacing",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "VBeltRow (src/machine/drive.ts)"
+    },
+    {
+      "old": "thicknessMM",
+      "new": "thickness",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "BendTableRow (src/frame-sheet/sheet-metal.ts); FlatBeltRow (src/machine/drive.ts); TimingBeltRow (src/machine/"
+    },
+    {
+      "old": "upToMM",
+      "new": "upTo",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "FitRow (src/machine/fits.ts)"
+    },
+    {
+      "old": "widthMM",
+      "new": "width",
+      "context": "1. Part-document stored fields and rows fields: 31 names",
+      "declaration": "BearingRow (src/machine/bearing.ts); ConnectorSection (src/machine/connector.ts); FlatBeltRow (src/machine/dri"
+    },
+    {
+      "old": "addendumAngleDeg",
+      "new": "addendumAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "addendumMM",
+      "new": "addendum",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpurRackReport (src/machine/gear-rack.ts)"
+    },
+    {
+      "old": "afterMM",
+      "new": "after",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "? (src/machine/shaft.ts)"
+    },
+    {
+      "old": "areaMM2",
+      "new": "area",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "? (src/machine/connector.ts); EndCapReport (src/frame-sheet/frame-weldment.ts); FrameMemberReport (src/frame-s"
+    },
+    {
+      "old": "armLengthMM",
+      "new": "armLength",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "CamReport (src/machine/cam.ts)"
+    },
+    {
+      "old": "atDeg",
+      "new": "at",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "curvature (src/machine/cam.ts); pressureAngle (src/machine/cam.ts); sweep (src/machine/cam.ts)"
+    },
+    {
+      "old": "atMM",
+      "new": "at",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "? (src/machine/shaft.ts)"
+    },
+    {
+      "old": "axialExtentMM",
+      "new": "axialExtent",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "axialModuleMM",
+      "new": "axialModule",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "WormSpec (src/machine/gear-worm.ts)"
+    },
+    {
+      "old": "axialPitchMM",
+      "new": "axialPitch",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-worm.ts)"
+    },
+    {
+      "old": "axialPlayMM",
+      "new": "axialPlay",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "RingReport (src/machine/shaft-parts.ts)"
+    },
+    {
+      "old": "axialPressureAngleDeg",
+      "new": "axialPressureAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-worm.ts)"
+    },
+    {
+      "old": "axialThicknessMM",
+      "new": "axialThickness",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-worm.ts)"
+    },
+    {
+      "old": "ballMM",
+      "new": "ball",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "FilletReport (src/blend/rolling-ball.ts)"
+    },
+    {
+      "old": "bandThicknessMM",
+      "new": "bandThickness",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BeltReport (src/machine/drive.ts)"
+    },
+    {
+      "old": "bandWidthMM",
+      "new": "bandWidth",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BeltReport (src/machine/drive.ts)"
+    },
+    {
+      "old": "baseConeAngleDeg",
+      "new": "baseConeAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "baseDiameterMM",
+      "new": "baseDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpurGearDimensions (src/machine/gear.ts); dimensions (src/machine/gear-internal.ts); dimensions (src/machine/g"
+    },
+    {
+      "old": "baseRadiusMM",
+      "new": "baseRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "CamReport (src/machine/cam.ts)"
+    },
+    {
+      "old": "beforeMM",
+      "new": "before",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "? (src/machine/shaft.ts)"
+    },
+    {
+      "old": "bendRadiusMM",
+      "new": "bendRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SheetReport (src/frame-sheet/sheet-metal.ts)"
+    },
+    {
+      "old": "bodyLengthMM",
+      "new": "bodyLength",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "HookedSpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "boreDiameterMM",
+      "new": "boreDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BevelGearSpec (src/machine/gear-bevel.ts); SpurGearSpec (src/machine/gear.ts); ThroatedWheelSpec (src/machine/"
+    },
+    {
+      "old": "boreRadiusMM",
+      "new": "boreRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "KeywayReport (src/machine/shaft-parts.ts)"
+    },
+    {
+      "old": "boundMM",
+      "new": "bound",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "DecimateReport (src/mesh/mesh-decimate.ts)"
+    },
+    {
+      "old": "centerDistanceMM",
+      "new": "centerDistance",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BeltReport (src/machine/drive.ts); chain (src/machine/drive.ts); dimensions (src/machine/gear-worm-wheel.ts)"
+    },
+    {
+      "old": "centroidRadiusMM",
+      "new": "centroidRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "curve (src/frame-sheet/frame-section.ts)"
+    },
+    {
+      "old": "circularPitchMM",
+      "new": "circularPitch",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpurGearDimensions (src/machine/gear.ts); dimensions (src/machine/gear-bevel.ts); dimensions (src/machine/gear"
+    },
+    {
+      "old": "clearanceMM",
+      "new": "clearance",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "PinReport (src/machine/shaft-parts.ts)"
+    },
+    {
+      "old": "clipMM",
+      "new": "clip",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "GussetReport (src/frame-sheet/frame-weldment.ts)"
+    },
+    {
+      "old": "coneDistanceMM",
+      "new": "coneDistance",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "contactMM",
+      "new": "contact",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "FilletReport (src/blend/rolling-ball.ts)"
+    },
+    {
+      "old": "creaseDeviationMM",
+      "new": "creaseDeviation",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SubdSummary (src/features/subd.ts)"
+    },
+    {
+      "old": "crossSectionMM",
+      "new": "crossSection",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "GlandReport (src/machine/oring.ts)"
+    },
+    {
+      "old": "crownMM",
+      "new": "crown",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "PulleyReport (src/machine/drive.ts)"
+    },
+    {
+      "old": "cutterRadiusMM",
+      "new": "cutterRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "ShaftKeyseatReport (src/machine/shaft.ts); spiral (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "cutterTipRadiusMM",
+      "new": "cutterTipRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "shaperRoot (src/machine/gear-internal.ts)"
+    },
+    {
+      "old": "cuttingCenterDistanceMM",
+      "new": "cuttingCenterDistance",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "shaperRoot (src/machine/gear-internal.ts)"
+    },
+    {
+      "old": "cuttingPressureAngleDeg",
+      "new": "cuttingPressureAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "shaperRoot (src/machine/gear-internal.ts)"
+    },
+    {
+      "old": "dedendumAngleDeg",
+      "new": "dedendumAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "dedendumMM",
+      "new": "dedendum",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpurRackReport (src/machine/gear-rack.ts)"
+    },
+    {
+      "old": "deflectionMM",
+      "new": "deflection",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "load (src/machine/spring.ts)"
+    },
+    {
+      "old": "developedLengthMM",
+      "new": "developedLength",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "curve (src/frame-sheet/frame-section.ts)"
+    },
+    {
+      "old": "deviationMM",
+      "new": "deviation",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "fillet (src/machine/gear-worm-wheel.ts); flank (src/machine/gear-worm-wheel.ts); sweep (src/machine/cam.ts); t"
+    },
+    {
+      "old": "diameterMM",
+      "new": "diameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "? (src/frame-sheet/frame-section.ts); ? (src/machine/bearing.ts); ? (src/machine/shaft.ts); PinReport (src/mac"
+    },
+    {
+      "old": "endDeg",
+      "new": "end",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "CamSegmentReport (src/machine/cam.ts)"
+    },
+    {
+      "old": "engagementClearanceMM",
+      "new": "engagementClearance",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SprocketReport (src/machine/drive.ts)"
+    },
+    {
+      "old": "extendedMM",
+      "new": "extended",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "FrameEndReport (src/frame-sheet/frame-section.ts)"
+    },
+    {
+      "old": "extensionMM",
+      "new": "extension",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "load (src/machine/spring.ts)"
+    },
+    {
+      "old": "faceContactMM",
+      "new": "faceContact",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "CamReport (src/machine/cam.ts)"
+    },
+    {
+      "old": "faceOffsetMM",
+      "new": "faceOffset",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "CamReport (src/machine/cam.ts)"
+    },
+    {
+      "old": "faceWidthMM",
+      "new": "faceWidth",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BevelGearSpec (src/machine/gear-bevel.ts); InternalGearSpec (src/machine/gear-internal.ts); SpurGearSpec (src/"
+    },
+    {
+      "old": "filletDeviationMM",
+      "new": "filletDeviation",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "generatedRoot (src/machine/gear.ts); shaperRoot (src/machine/gear-internal.ts)"
+    },
+    {
+      "old": "filletMM",
+      "new": "fillet",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "? (src/machine/shaft.ts)"
+    },
+    {
+      "old": "flankEndDepthMM",
+      "new": "flankEndDepth",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "rootFillet (src/machine/gear-rack.ts)"
+    },
+    {
+      "old": "flankRadiusMM",
+      "new": "flankRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SprocketReport (src/machine/drive.ts)"
+    },
+    {
+      "old": "floorRadiusMM",
+      "new": "floorRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "KeywayReport (src/machine/shaft-parts.ts); ShaftKeyseatReport (src/machine/shaft.ts)"
+    },
+    {
+      "old": "flushMM",
+      "new": "flush",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "seam (src/frame-sheet/frame-weldment.ts)"
+    },
+    {
+      "old": "formDiameterMM",
+      "new": "formDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "generatedRoot (src/machine/gear.ts); shaperRoot (src/machine/gear-internal.ts)"
+    },
+    {
+      "old": "freeLengthMM",
+      "new": "freeLength",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "fromMM",
+      "new": "from",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "? (src/machine/shaft.ts); KeywayReport (src/machine/shaft-parts.ts); ShaftKeyseatReport (src/machine/shaft.ts)"
+    },
+    {
+      "old": "gapHeightMM",
+      "new": "gapHeight",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "? (src/machine/connector.ts)"
+    },
+    {
+      "old": "gapMM",
+      "new": "gap",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "FrameEndReport (src/frame-sheet/frame-section.ts)"
+    },
+    {
+      "old": "gapWidthMM",
+      "new": "gapWidth",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "? (src/machine/connector.ts)"
+    },
+    {
+      "old": "grooveBottomDiameterMM",
+      "new": "grooveBottomDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "PulleyReport (src/machine/drive.ts)"
+    },
+    {
+      "old": "grooveDiameterMM",
+      "new": "grooveDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "GlandReport (src/machine/oring.ts)"
+    },
+    {
+      "old": "hausdorffMM",
+      "new": "hausdorff",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "distance (src/mesh/mesh-decimate.ts)"
+    },
+    {
+      "old": "helixAngleDeg",
+      "new": "helixAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "HookedSpringDimensions (src/machine/spring.ts); InternalGearSpec (src/machine/gear-internal.ts); SpringDimensi"
+    },
+    {
+      "old": "holeDiameterMM",
+      "new": "holeDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "PinReport (src/machine/shaft-parts.ts)"
+    },
+    {
+      "old": "innerConeDistanceMM",
+      "new": "innerConeDistance",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "innerDiameterMM",
+      "new": "innerDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "HookedSpringDimensions (src/machine/spring.ts); RingReport (src/machine/shaft-parts.ts); SpringDimensions (src"
+    },
+    {
+      "old": "insideDiameterMM",
+      "new": "insideDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "GlandReport (src/machine/oring.ts)"
+    },
+    {
+      "old": "keywayPlayMM",
+      "new": "keywayPlay",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "hub (src/machine/shaft-parts.ts)"
+    },
+    {
+      "old": "leadAngleDeg",
+      "new": "leadAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-worm.ts)"
+    },
+    {
+      "old": "leadMM",
+      "new": "lead",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-worm.ts); helix (src/machine/gear.ts)"
+    },
+    {
+      "old": "leastClearanceMM",
+      "new": "leastClearance",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "HookedSpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "leastPitchRadiusMM",
+      "new": "leastPitchRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "curvature (src/machine/cam.ts)"
+    },
+    {
+      "old": "leastProfileRadiusMM",
+      "new": "leastProfileRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "curvature (src/machine/cam.ts)"
+    },
+    {
+      "old": "legAngleDeg",
+      "new": "legAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "HookedSpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "legLengthsMM",
+      "new": "legLengths",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "HookedSpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "legMM",
+      "new": "leg",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BeadReport (src/frame-sheet/frame-weldment.ts)"
+    },
+    {
+      "old": "legsMM",
+      "new": "legs",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "GussetReport (src/frame-sheet/frame-weldment.ts)"
+    },
+    {
+      "old": "lengthInsideHooksMM",
+      "new": "lengthInsideHooks",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "HookedSpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "lengthRoomMM",
+      "new": "lengthRoom",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "KeyReport (src/machine/shaft-parts.ts)"
+    },
+    {
+      "old": "limitDeg",
+      "new": "limit",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "pressureAngle (src/machine/cam.ts)"
+    },
+    {
+      "old": "maxDeg",
+      "new": "max",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "pressureAngle (src/machine/cam.ts)"
+    },
+    {
+      "old": "maxDeviationMM",
+      "new": "maxDeviation",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SubdSummary (src/features/subd.ts)"
+    },
+    {
+      "old": "maxMM",
+      "new": "max",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "FitLimit (src/machine/fits.ts)"
+    },
+    {
+      "old": "meanConeDistanceMM",
+      "new": "meanConeDistance",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "spiral (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "meanDiameterMM",
+      "new": "meanDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "HookedSpringDimensions (src/machine/spring.ts); SpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "meanSpiralAngleDeg",
+      "new": "meanSpiralAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "spiral (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "minCurvatureRadiusMM",
+      "new": "minCurvatureRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "HelicalSweepResult (src/machine/spring.ts)"
+    },
+    {
+      "old": "minMM",
+      "new": "min",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "FitLimit (src/machine/fits.ts)"
+    },
+    {
+      "old": "minimumRimMM",
+      "new": "minimumRim",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BevelGearSpec (src/machine/gear-bevel.ts); InternalGearSpec (src/machine/gear-internal.ts); SpurGearSpec (src/"
+    },
+    {
+      "old": "moduleMM",
+      "new": "module",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BevelGearSpec (src/machine/gear-bevel.ts); InternalGearSpec (src/machine/gear-internal.ts); SpurGearSpec (src/"
+    },
+    {
+      "old": "nominalMM",
+      "new": "nominal",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "FitLimit (src/machine/fits.ts)"
+    },
+    {
+      "old": "nominalSharedVolumeMM3",
+      "new": "nominalSharedVolume",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BeadSharedSeam (src/frame-sheet/frame-weldment.ts)"
+    },
+    {
+      "old": "nominalVolumeMM3",
+      "new": "nominalVolume",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BeadReport (src/frame-sheet/frame-weldment.ts)"
+    },
+    {
+      "old": "normalDeg",
+      "new": "normal",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "FilletReport (src/blend/rolling-ball.ts)"
+    },
+    {
+      "old": "normalModuleMM",
+      "new": "normalModule",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "InternalGearSpec (src/machine/gear-internal.ts); SpurGearSpec (src/machine/gear.ts); SpurRackSpec (src/machine"
+    },
+    {
+      "old": "normalPressureAngleAtHeelDeg",
+      "new": "normalPressureAngleAtHeel",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "spiral (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "normalPressureAngleAtToeDeg",
+      "new": "normalPressureAngleAtToe",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "spiral (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "offsetMM",
+      "new": "offset",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "? (src/frame-sheet/frame-section.ts); BevelGearSpec (src/machine/gear-bevel.ts); CamReport (src/machine/cam.ts"
+    },
+    {
+      "old": "outerDiameterMM",
+      "new": "outerDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "HookedSpringDimensions (src/machine/spring.ts); RingReport (src/machine/shaft-parts.ts); SpringDimensions (src"
+    },
+    {
+      "old": "outsideDiameterMM",
+      "new": "outsideDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "PulleyReport (src/machine/drive.ts)"
+    },
+    {
+      "old": "overlapMM3",
+      "new": "overlap",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "? (src/machine/connector.ts); connectorBody (src/part/part-model.ts); housing (src/machine/bearing.ts); oring"
+    },
+    {
+      "old": "ownedSharedVolumeMM3",
+      "new": "ownedSharedVolume",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BeadSharedSeam (src/frame-sheet/frame-weldment.ts)"
+    },
+    {
+      "old": "pathMM",
+      "new": "path",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BeadSharedSeam (src/frame-sheet/frame-weldment.ts)"
+    },
+    {
+      "old": "pitchAngleDeg",
+      "new": "pitchAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "pitchDiameterMM",
+      "new": "pitchDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "PulleyReport (src/machine/drive.ts); SprocketReport (src/machine/drive.ts)"
+    },
+    {
+      "old": "pitchRadiiMM",
+      "new": "pitchRadii",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BeltReport (src/machine/drive.ts)"
+    },
+    {
+      "old": "pivotDistanceMM",
+      "new": "pivotDistance",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "CamReport (src/machine/cam.ts)"
+    },
+    {
+      "old": "pointedTipDiameterMM",
+      "new": "pointedTipDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SprocketReport (src/machine/drive.ts)"
+    },
+    {
+      "old": "pressureAngleDeg",
+      "new": "pressureAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BevelGearSpec (src/machine/gear-bevel.ts); InternalGearSpec (src/machine/gear-internal.ts); SpurGearSpec (src/"
+    },
+    {
+      "old": "primeRadiusMM",
+      "new": "primeRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "CamReport (src/machine/cam.ts)"
+    },
+    {
+      "old": "profileDeviationMM",
+      "new": "profileDeviation",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BevelGearReport (src/machine/gear-bevel.ts); CamReport (src/machine/cam.ts); HelicalSweepResult (src/machine/s"
+    },
+    {
+      "old": "profileToleranceMM",
+      "new": "profileTolerance",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BevelGearReport (src/machine/gear-bevel.ts); BevelGearSpec (src/machine/gear-bevel.ts); CamReport (src/machine"
+    },
+    {
+      "old": "rateNPerMM",
+      "new": "rate",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "HookedSpringDimensions (src/machine/spring.ts); SpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "referenceDiameterMM",
+      "new": "referenceDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpurGearDimensions (src/machine/gear.ts); dimensions (src/machine/gear-bevel.ts); dimensions (src/machine/gear"
+    },
+    {
+      "old": "restAngleDeg",
+      "new": "restAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "CamReport (src/machine/cam.ts)"
+    },
+    {
+      "old": "rimDiameterMM",
+      "new": "rimDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "InternalGearSpec (src/machine/gear-internal.ts); dimensions (src/machine/gear-internal.ts)"
+    },
+    {
+      "old": "rmsMM",
+      "new": "rms",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "distance (src/mesh/mesh-decimate.ts)"
+    },
+    {
+      "old": "rollDegrees",
+      "new": "roll",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "FrameMemberReport (src/frame-sheet/frame-section.ts)"
+    },
+    {
+      "old": "rollerRadiusMM",
+      "new": "rollerRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "CamReport (src/machine/cam.ts)"
+    },
+    {
+      "old": "rootAngleDeg",
+      "new": "rootAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "rootDiameterAtFacesMM",
+      "new": "rootDiameterAtFaces",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-worm-wheel.ts)"
+    },
+    {
+      "old": "rootDiameterAtHeelMM",
+      "new": "rootDiameterAtHeel",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "rootDiameterMM",
+      "new": "rootDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SprocketReport (src/machine/drive.ts); SpurGearDimensions (src/machine/gear.ts); dimensions (src/machine/gear-"
+    },
+    {
+      "old": "rootFilletRadiusMM",
+      "new": "rootFilletRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpurRackSpec (src/machine/gear-rack.ts)"
+    },
+    {
+      "old": "rootTorusRadiusMM",
+      "new": "rootTorusRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-worm-wheel.ts)"
+    },
+    {
+      "old": "rootWidthMM",
+      "new": "rootWidth",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpurRackReport (src/machine/gear-rack.ts)"
+    },
+    {
+      "old": "sealDiameterMM",
+      "new": "sealDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "GlandReport (src/machine/oring.ts)"
+    },
+    {
+      "old": "seatDiameterMM",
+      "new": "seatDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SprocketReport (src/machine/drive.ts)"
+    },
+    {
+      "old": "seatPlayMM",
+      "new": "seatPlay",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "KeyReport (src/machine/shaft-parts.ts)"
+    },
+    {
+      "old": "sectionMM",
+      "new": "section",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "FilletReport (src/blend/rolling-ball.ts)"
+    },
+    {
+      "old": "setbackMM",
+      "new": "setback",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SheetBendReport (src/frame-sheet/sheet-metal.ts)"
+    },
+    {
+      "old": "shaftAngleDeg",
+      "new": "shaftAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BevelGearSpec (src/machine/gear-bevel.ts); dimensions (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "shoulderFilletMM",
+      "new": "shoulderFillet",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "seat (src/machine/bearing.ts)"
+    },
+    {
+      "old": "shoulderMM",
+      "new": "shoulder",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "seat (src/machine/bearing.ts)"
+    },
+    {
+      "old": "sizeMM",
+      "new": "size",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SubdSummary (src/features/subd.ts)"
+    },
+    {
+      "old": "solidHeightMM",
+      "new": "solidHeight",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "solidPitchMM",
+      "new": "solidPitch",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "spaceWidthMM",
+      "new": "spaceWidth",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-internal.ts)"
+    },
+    {
+      "old": "spiralAngleAtHeelDeg",
+      "new": "spiralAngleAtHeel",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "spiral (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "spiralAngleAtToeDeg",
+      "new": "spiralAngleAtToe",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "spiral (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "standsMM",
+      "new": "stands",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "KeyReport (src/machine/shaft-parts.ts)"
+    },
+    {
+      "old": "standsOutMM",
+      "new": "standsOut",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "? (src/machine/connector.ts)"
+    },
+    {
+      "old": "startDeg",
+      "new": "start",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "CamSegmentReport (src/machine/cam.ts)"
+    },
+    {
+      "old": "straightLengthsMM",
+      "new": "straightLengths",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "curve (src/frame-sheet/frame-section.ts)"
+    },
+    {
+      "old": "stretchedCrossSectionMM",
+      "new": "stretchedCrossSection",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "GlandReport (src/machine/oring.ts); oring (src/part/part-model.ts)"
+    },
+    {
+      "old": "supplierSolidHeightMM",
+      "new": "supplierSolidHeight",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "surfaceLengthMM",
+      "new": "surfaceLength",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "ShaftKeyseatReport (src/machine/shaft.ts)"
+    },
+    {
+      "old": "throatDiameterMM",
+      "new": "throatDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-worm-wheel.ts)"
+    },
+    {
+      "old": "throatMM",
+      "new": "throat",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BeadReport (src/frame-sheet/frame-weldment.ts)"
+    },
+    {
+      "old": "throatRadiusMM",
+      "new": "throatRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-worm-wheel.ts)"
+    },
+    {
+      "old": "tipAngleDeg",
+      "new": "tipAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "tipDiameterAtFacesMM",
+      "new": "tipDiameterAtFaces",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-worm-wheel.ts)"
+    },
+    {
+      "old": "tipDiameterAtHeelMM",
+      "new": "tipDiameterAtHeel",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "tipDiameterMM",
+      "new": "tipDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SprocketReport (src/machine/drive.ts); SpurGearDimensions (src/machine/gear.ts); dimensions (src/machine/gear-"
+    },
+    {
+      "old": "tipRadiusMM",
+      "new": "tipRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "cutter (src/machine/gear-internal.ts)"
+    },
+    {
+      "old": "tipThicknessMM",
+      "new": "tipThickness",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpurGearDimensions (src/machine/gear.ts)"
+    },
+    {
+      "old": "tipWidthMM",
+      "new": "tipWidth",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpurRackReport (src/machine/gear-rack.ts)"
+    },
+    {
+      "old": "toMM",
+      "new": "to",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "? (src/machine/shaft.ts); KeywayReport (src/machine/shaft-parts.ts); seat (src/machine/bearing.ts)"
+    },
+    {
+      "old": "toOriginalMaxMM",
+      "new": "toOriginalMax",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "distance (src/mesh/mesh-decimate.ts)"
+    },
+    {
+      "old": "toResultMaxMM",
+      "new": "toResultMax",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "distance (src/mesh/mesh-decimate.ts)"
+    },
+    {
+      "old": "toleranceMM",
+      "new": "tolerance",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BrepEdge (src/brep/brep-core.ts); BrepVertex (src/brep/brep-core.ts)"
+    },
+    {
+      "old": "toolTipRadiusMM",
+      "new": "toolTipRadius",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpurGearSpec (src/machine/gear.ts); generatedRoot (src/machine/gear.ts)"
+    },
+    {
+      "old": "toothThicknessMM",
+      "new": "toothThickness",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpurGearDimensions (src/machine/gear.ts); SpurRackReport (src/machine/gear-rack.ts); dimensions (src/machine/g"
+    },
+    {
+      "old": "toothThicknessReductionMM",
+      "new": "toothThicknessReduction",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BevelGearSpec (src/machine/gear-bevel.ts); InternalGearSpec (src/machine/gear-internal.ts); SpurGearSpec (src/"
+    },
+    {
+      "old": "topClearanceMM",
+      "new": "topClearance",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "hub (src/machine/shaft-parts.ts)"
+    },
+    {
+      "old": "torsionalRateNmmPerDeg",
+      "new": "torsionalRate",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "HookedSpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "transverseModuleMM",
+      "new": "transverseModule",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "helix (src/machine/gear.ts)"
+    },
+    {
+      "old": "transversePressureAngleDeg",
+      "new": "transversePressureAngle",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "dimensions (src/machine/gear-worm.ts); helix (src/machine/gear.ts); spiral (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "travelToSolidMM",
+      "new": "travelToSolid",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "SpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "turnDeg",
+      "new": "turn",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "moment (src/machine/spring.ts)"
+    },
+    {
+      "old": "twistDeg",
+      "new": "twist",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "spiral (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "twistDegrees",
+      "new": "twist",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "helix (src/machine/gear.ts)"
+    },
+    {
+      "old": "twistDeviationMM",
+      "new": "twistDeviation",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "helix (src/machine/gear.ts); spiral (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "volumeMM3",
+      "new": "volume",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BeadReport (src/frame-sheet/frame-weldment.ts); EndCapReport (src/frame-sheet/frame-weldment.ts); GussetReport"
+    },
+    {
+      "old": "wallMM",
+      "new": "wall",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "MeshShellReport (src/mesh/mesh-offset.ts)"
+    },
+    {
+      "old": "wallMaxMM",
+      "new": "wallMax",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "MeshShellReport (src/mesh/mesh-offset.ts)"
+    },
+    {
+      "old": "wallMinMM",
+      "new": "wallMin",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "MeshShellReport (src/mesh/mesh-offset.ts)"
+    },
+    {
+      "old": "wireDiameterMM",
+      "new": "wireDiameter",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "HookedSpringDimensions (src/machine/spring.ts); SpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "wireLengthMM",
+      "new": "wireLength",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "HelicalSweepResult (src/machine/spring.ts); HookedSpringDimensions (src/machine/spring.ts)"
+    },
+    {
+      "old": "wrapDeg",
+      "new": "wrap",
+      "context": "2. Results reachable from CadPartSnapshot / CadPartOutput: 185 names",
+      "declaration": "BeltReport (src/machine/drive.ts)"
+    },
+    {
+      "old": "DaMaxMM",
+      "new": "DaMax",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "src/machine/bearing.ts"
+    },
+    {
+      "old": "actualCrossMM2",
+      "new": "actualCross",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/features/affine-geometry-transform.ts)"
+    },
+    {
+      "old": "actualMaximumCoordinateMM",
+      "new": "actualMaximumCoordinate",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "IGESImportMetadata (src/io/iges-import.ts); IGESImportReport (src/io/iges-import.ts)"
+    },
+    {
+      "old": "actualPointMM",
+      "new": "actualPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/curves/curve-interpolation.ts); ? (src/nurbs/surfaces/rational-ruled-surface.ts); CompatibleRuled"
+    },
+    {
+      "old": "afterPointMM",
+      "new": "afterPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/curves/curve-control-polygon.ts); ? (src/nurbs/source-wide/curve-wide-control-polygon.ts); ? (src"
+    },
+    {
+      "old": "anchorMM",
+      "new": "anchor",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/surfaces/translational-sweep-surface.ts); TranslationalSweepProvenance (src/nurbs/surfaces/transl"
+    },
+    {
+      "old": "angleRad",
+      "new": "angle",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/sketch/xy-numerical-sketch.ts)"
+    },
+    {
+      "old": "angularRad",
+      "new": "angular",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "tolerances (src/sketch/xy-numerical-sketch.ts)"
+    },
+    {
+      "old": "atDegrees",
+      "new": "at",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "sweep (src/machine/gear-bevel.ts); sweep (src/machine/gear-internal.ts); sweep (src/machine/gear-rack.ts); swe"
+    },
+    {
+      "old": "atOffsetMM",
+      "new": "atOffset",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "trimming (src/machine/gear-internal.ts)"
+    },
+    {
+      "old": "axisLengthMM",
+      "new": "axisLength",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "CutPiece (src/frame-sheet/frame-cutlist.ts); CutRow (src/frame-sheet/frame-cutlist.ts); totals (src/frame-shee"
+    },
+    {
+      "old": "backlashMM",
+      "new": "backlash",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "BevelGearPairCheck (src/machine/gear-bevel.ts); InternalGearPairCheck (src/machine/gear-internal.ts); SpurGear"
+    },
+    {
+      "old": "beforePointMM",
+      "new": "beforePoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/curves/curve-control-polygon.ts); ? (src/nurbs/source-wide/curve-wide-control-polygon.ts); ? (src"
+    },
+    {
+      "old": "bendingStressMPa",
+      "new": "bendingStress",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "src/machine/spring.ts"
+    },
+    {
+      "old": "betaDeg",
+      "new": "beta",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "openBeltLength (src/machine/drive.ts)"
+    },
+    {
+      "old": "bevelDegrees",
+      "new": "bevel",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "CutEnd (src/frame-sheet/frame-cutlist.ts)"
+    },
+    {
+      "old": "boundsMM",
+      "new": "bounds",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "AxisBoxSolidValidationReport (src/core/box-solid.ts); Body (src/axis-box-boolean.ts); Body (src/planar-solids/"
+    },
+    {
+      "old": "centerMM",
+      "new": "center",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/machine/oring.ts); ? (src/sketch/driven-sketch-circle-feature-graph.ts); ? (src/sketch/xy-arc-sketch-do"
+    },
+    {
+      "old": "centroidMM",
+      "new": "centroid",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "AxisBoxSolidMassMeasure (src/axis-box-solid-mass.ts); AxisBoxSolidMassReport (src/axis-box-solid-mass.ts); Axi"
+    },
+    {
+      "old": "chamfersMM",
+      "new": "chamfers",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "ShaftSpec (src/machine/shaft.ts)"
+    },
+    {
+      "old": "childPointMM",
+      "new": "childPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/curves/curve-parameter-split.ts); ? (src/nurbs/surfaces/surface-parameter-split.ts); CurvePlaneSi"
+    },
+    {
+      "old": "chordSagMM",
+      "new": "chordSag",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "WormPairCheck (src/machine/gear-worm.ts); sweep (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "coarseMinimumMM",
+      "new": "coarseMinimum",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "sweep (src/machine/gear-bevel.ts); sweep (src/machine/gear-internal.ts); sweep (src/machine/gear-rack.ts); swe"
+    },
+    {
+      "old": "coaxialMM3",
+      "new": "coaxial",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "FitCondition (src/machine/fits.ts)"
+    },
+    {
+      "old": "contactProbeMM",
+      "new": "contactProbe",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "LibraryFitReport (src/features/library-fit.ts)"
+    },
+    {
+      "old": "coordinateAbsMM",
+      "new": "coordinateAbs",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/sketch/driven-mixed-sketch-lines.ts); ? (src/sketch/mixed-workplane-sketch-document.ts); ? (src/sketch/"
+    },
+    {
+      "old": "creaseDegrees",
+      "new": "crease",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "FacetBrepOptions (src/mesh/facet-brep.ts)"
+    },
+    {
+      "old": "curvaturePerMM",
+      "new": "curvaturePer",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "CurveCurvatureResult (src/nurbs/surfaces/local-curvature.ts)"
+    },
+    {
+      "old": "curvatureVectorPerMM",
+      "new": "curvatureVectorPer",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "CurveCurvatureResult (src/nurbs/surfaces/local-curvature.ts)"
+    },
+    {
+      "old": "curvePointMM",
+      "new": "curvePoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/surfaces/surface-isocurve.ts)"
+    },
+    {
+      "old": "declaredMaximumCoordinateMM",
+      "new": "declaredMaximumCoordinate",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "IGESImportMetadata (src/io/iges-import.ts); IGESImportReport (src/io/iges-import.ts)"
+    },
+    {
+      "old": "densityKgPerM3",
+      "new": "density",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "AxisBoxSolidMassOptions (src/axis-box-solid-mass.ts); AxisBoxSolidMassReport (src/axis-box-solid-mass.ts); Axi"
+    },
+    {
+      "old": "derivativeDifferenceMM",
+      "new": "derivativeDifference",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/curves/curve-bezier-spans.ts); CurveBezierSpanObservation (src/nurbs/curves/curve-bezier-spans.ts"
+    },
+    {
+      "old": "differenceMM",
+      "new": "difference",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/curves/bezier-curve-degree-elevation.ts); ? (src/nurbs/curves/curve-interpolation.ts); ? (src/nur"
+    },
+    {
+      "old": "distanceMM",
+      "new": "distance",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/features/boolean-extrusion-feature-graph.ts); ? (src/nurbs/curves/curve-parameterization.ts); ? (src/sk"
+    },
+    {
+      "old": "draftDegrees",
+      "new": "draft",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "DraftedExtrusionInput (src/features/drafted-extrusion.ts)"
+    },
+    {
+      "old": "duDifferenceMM",
+      "new": "duDifference",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "SurfaceAxisReversalObservation (src/nurbs/surfaces/surface-axis-reversal.ts); SurfaceRegionObservation (src/nu"
+    },
+    {
+      "old": "dvDifferenceMM",
+      "new": "dvDifference",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "SurfaceAxisReversalObservation (src/nurbs/surfaces/surface-axis-reversal.ts); SurfaceRegionObservation (src/nu"
+    },
+    {
+      "old": "edgeFitToleranceMM",
+      "new": "edgeFitTolerance",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "options (src/brep/analytic-boolean.ts)"
+    },
+    {
+      "old": "elevatedPointMM",
+      "new": "elevatedPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/curves/bezier-curve-degree-elevation.ts); ? (src/nurbs/surfaces/surface-bezier-axis-degree-elevat"
+    },
+    {
+      "old": "endZMM",
+      "new": "endZ",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "HelicalSweepResult (src/machine/spring.ts)"
+    },
+    {
+      "old": "expectedCrossMM2",
+      "new": "expectedCross",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/features/affine-geometry-transform.ts)"
+    },
+    {
+      "old": "expectedDerivativeMM",
+      "new": "expectedDerivative",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/features/affine-geometry-transform.ts); CurveJoinObservation (src/nurbs/curves/curve-join.ts); CurveRev"
+    },
+    {
+      "old": "expectedDuMM",
+      "new": "expectedDu",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/features/affine-geometry-transform.ts); SurfaceAxisReversalObservation (src/nurbs/surfaces/surface-axis"
+    },
+    {
+      "old": "expectedDvMM",
+      "new": "expectedDv",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/features/affine-geometry-transform.ts); SurfaceAxisReversalObservation (src/nurbs/surfaces/surface-axis"
+    },
+    {
+      "old": "expectedPointMM",
+      "new": "expectedPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/surfaces/rational-ruled-surface.ts); CompatibleRuledSurfaceObservation (src/nurbs/surfaces/compat"
+    },
+    {
+      "old": "extractedPointMM",
+      "new": "extractedPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "AdaptiveCurveObservation (src/nurbs/curves/curve-adaptive-sampling.ts); CurveBezierSpanObservation (src/nurbs/"
+    },
+    {
+      "old": "faceOverlapMM",
+      "new": "faceOverlap",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "PlacedInternalGearPairCheck (src/machine/gear-internal.ts); PlacedSpurGearPairCheck (src/machine/gear.ts); Pla"
+    },
+    {
+      "old": "featureDegrees",
+      "new": "feature",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "DecimateOptions (src/mesh/mesh-decimate.ts)"
+    },
+    {
+      "old": "filledAreaMM2",
+      "new": "filledArea",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "MeshRepairReport (src/mesh/mesh-repair.ts)"
+    },
+    {
+      "old": "floaterVolumeMM3",
+      "new": "floaterVolume",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "MeshRepairReport (src/mesh/mesh-repair.ts)"
+    },
+    {
+      "old": "forceN",
+      "new": "force",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "src/machine/spring.ts"
+    },
+    {
+      "old": "gaussianCurvaturePerMM2",
+      "new": "gaussianCurvaturePer",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "SurfaceCurvatureResult (src/nurbs/surfaces/local-curvature.ts)"
+    },
+    {
+      "old": "grooveWidthMM",
+      "new": "grooveWidth",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "RingRow (src/machine/shaft-parts.ts)"
+    },
+    {
+      "old": "helixRadiusMM",
+      "new": "helixRadius",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "HelicalSweepSpec (src/machine/spring.ts)"
+    },
+    {
+      "old": "holeMM",
+      "new": "hole",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "FitCondition (src/machine/fits.ts)"
+    },
+    {
+      "old": "inertiaCentroidKgM2",
+      "new": "inertiaCentroid",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "AxisBoxSolidMassMeasure (src/axis-box-solid-mass.ts); AxisBoxSolidMassReport (src/axis-box-solid-mass.ts); Con"
+    },
+    {
+      "old": "initialTensionN",
+      "new": "initialTension",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "src/machine/spring.ts, src/part/part-machine.ts"
+    },
+    {
+      "old": "joinedPointMM",
+      "new": "joinedPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "CurveJoinObservation (src/nurbs/curves/curve-join.ts)"
+    },
+    {
+      "old": "largestFilledPerimeterMM",
+      "new": "largestFilledPerimeter",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "MeshRepairReport (src/mesh/mesh-repair.ts)"
+    },
+    {
+      "old": "linearMM",
+      "new": "linear",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "tolerances (src/sketch/xy-numerical-sketch.ts)"
+    },
+    {
+      "old": "loadN",
+      "new": "load",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "src/machine/spring.ts, src/part/part-machine.ts"
+    },
+    {
+      "old": "longPointMM",
+      "new": "longPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "CutPiece (src/frame-sheet/frame-cutlist.ts); CutRow (src/frame-sheet/frame-cutlist.ts)"
+    },
+    {
+      "old": "loopAngleDeg",
+      "new": "loopAngle",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "HookedSpringSpec (src/machine/spring.ts)"
+    },
+    {
+      "old": "loopRadiusMM",
+      "new": "loopRadius",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "HookedSpringSpec (src/machine/spring.ts)"
+    },
+    {
+      "old": "lowerPointMM",
+      "new": "lowerPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "sharedCutPoints (src/nurbs/curves/curve-parameter-split.ts)"
+    },
+    {
+      "old": "massKG",
+      "new": "mass",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "AxisBoxSolidMassMeasure (src/axis-box-solid-mass.ts); AxisBoxSolidMassReport (src/axis-box-solid-mass.ts); Axi"
+    },
+    {
+      "old": "maxCurveDeviationMM",
+      "new": "maxCurveDeviation",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "report (src/features/extruded-profile-solid.ts)"
+    },
+    {
+      "old": "maxErrorMM",
+      "new": "maxError",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "DecimateOptions (src/mesh/mesh-decimate.ts)"
+    },
+    {
+      "old": "maxOverlapMM3",
+      "new": "maxOverlap",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/features/library-fit.ts); CadLibraryFit (src/features/library.ts); LibraryFitReport (src/features/libra"
+    },
+    {
+      "old": "maximumCutPointDifferenceMM",
+      "new": "maximumCutPointDifference",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "SourceCurveIntervalExtractionReport (src/nurbs/source-wide/source-curve-interval-extraction.ts)"
+    },
+    {
+      "old": "maximumEdgeSurfaceGapMM",
+      "new": "maximumEdgeSurfaceGap",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "BrepCheckReport (src/brep/brep-core.ts)"
+    },
+    {
+      "old": "maximumObservedChangeMM",
+      "new": "maximumObservedChange",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "CurveControlPolygonReport (src/nurbs/curves/curve-control-polygon.ts); SourceCurveControlPolygonReport (src/nu"
+    },
+    {
+      "old": "maximumObservedDifferenceMM",
+      "new": "maximumObservedDifference",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "BezierCurveDegreeElevationReport (src/nurbs/curves/bezier-curve-degree-elevation.ts); CompatibleRuledSurfaceRe"
+    },
+    {
+      "old": "maximumPcurveGapMM",
+      "new": "maximumPcurveGap",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "BrepCheckReport (src/brep/brep-core.ts)"
+    },
+    {
+      "old": "maximumPointDifferenceMM",
+      "new": "maximumPointDifference",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "AffineGeometryTransformReport (src/features/affine-geometry-transform.ts); CircularGeometryPatternReport (src/"
+    },
+    {
+      "old": "maximumVertexGapMM",
+      "new": "maximumVertexGap",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "BrepCheckReport (src/brep/brep-core.ts)"
+    },
+    {
+      "old": "meanCurvaturePerMM",
+      "new": "meanCurvaturePer",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "SurfaceCurvatureResult (src/nurbs/surfaces/local-curvature.ts)"
+    },
+    {
+      "old": "meshZoneHalfLengthMM",
+      "new": "meshZoneHalfLength",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "WormPairCheck (src/machine/gear-worm.ts)"
+    },
+    {
+      "old": "minimumClearanceMM",
+      "new": "minimumClearance",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/machine/gear-bevel.ts); ? (src/machine/gear-worm-wheel.ts); ? (src/machine/gear-worm.ts); sweep (src/ma"
+    },
+    {
+      "old": "minimumSegmentMM",
+      "new": "minimumSegment",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/sketch/driven-mixed-sketch-lines.ts); limits (src/sketch/xy-numerical-sketch.ts); limits (src/xy-affine"
+    },
+    {
+      "old": "mitreDegrees",
+      "new": "mitre",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "CutEnd (src/frame-sheet/frame-cutlist.ts)"
+    },
+    {
+      "old": "momentNmm",
+      "new": "moment",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "src/machine/spring.ts, src/part/part-machine.ts"
+    },
+    {
+      "old": "nominalCenterDistanceMM",
+      "new": "nominalCenterDistance",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "InternalGearPairCheck (src/machine/gear-internal.ts); SpurGearPairCheck (src/machine/gear.ts); SpurRackPairChe"
+    },
+    {
+      "old": "normalizedSecondFormPerMM",
+      "new": "normalizedSecondFormPer",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "SurfaceCurvatureResult (src/nurbs/surfaces/local-curvature.ts)"
+    },
+    {
+      "old": "observationComparisonMM",
+      "new": "observationComparison",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "limits (src/nurbs/curves/bezier-curve-degree-elevation.ts); limits (src/nurbs/curves/curve-knot-insertion.ts);"
+    },
+    {
+      "old": "observedChangeMM",
+      "new": "observedChange",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/curves/curve-control-polygon.ts); ? (src/nurbs/source-wide/curve-wide-control-polygon.ts); ? (src"
+    },
+    {
+      "old": "originalDifferenceMM",
+      "new": "originalDifference",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/curves/curve-parameter-split.ts)"
+    },
+    {
+      "old": "originalPointMM",
+      "new": "originalPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/features/affine-geometry-transform.ts); ? (src/nurbs/curves/bezier-curve-degree-elevation.ts); ? (src/n"
+    },
+    {
+      "old": "perimeterMM",
+      "new": "perimeter",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "MeshHole (src/mesh/mesh-repair.ts); ProfileLoop (src/features/extruded-profile-solid.ts)"
+    },
+    {
+      "old": "pieceVolumesMM3",
+      "new": "pieceVolumes",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "MeshDiagnosis (src/mesh/mesh-repair.ts)"
+    },
+    {
+      "old": "pitchAnglesDeg",
+      "new": "pitchAngles",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "BevelGearPairCheck (src/machine/gear-bevel.ts)"
+    },
+    {
+      "old": "pointComparisonMM",
+      "new": "pointComparison",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "limits (src/features/affine-geometry-transform.ts); limits (src/features/multi-section-loft.ts); limits (src/n"
+    },
+    {
+      "old": "pointDifferenceMM",
+      "new": "pointDifference",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/intersect/own-convex-planar-face-holes-preview.ts); ? (src/nurbs/curves/curve-bezier-spans.ts); ? (src/"
+    },
+    {
+      "old": "pointMM",
+      "new": "point",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/convex-planar-solid.ts); ? (src/features/multi-section-loft.ts); ? (src/features/piecewise-rational-lof"
+    },
+    {
+      "old": "pointsMM",
+      "new": "points",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "AdaptiveCurveSamplingResult (src/nurbs/curves/curve-adaptive-sampling.ts); BrepMeshEdge (src/brep/brep-tessell"
+    },
+    {
+      "old": "positionsMM",
+      "new": "positions",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "BrepMesh (src/brep/brep-tessellate.ts); ExtrudedProfileMesh (src/features/extruded-profile-solid.ts); OwnNativ"
+    },
+    {
+      "old": "pressureAngleLimitDeg",
+      "new": "pressureAngleLimit",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "CamSpec (src/machine/cam.ts)"
+    },
+    {
+      "old": "principalCurvaturesPerMM",
+      "new": "principalCurvaturesPer",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "SurfaceCurvatureResult (src/nurbs/surfaces/local-curvature.ts)"
+    },
+    {
+      "old": "profilePointMM",
+      "new": "profilePoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/surfaces/translational-sweep-surface.ts); TranslationalSweepObservation (src/nurbs/surfaces/trans"
+    },
+    {
+      "old": "rackPhaseMM",
+      "new": "rackPhase",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "PlacedSpurRackCheck (src/machine/gear-rack.ts); SpurRackPairOptions (src/machine/gear-rack.ts)"
+    },
+    {
+      "old": "railPointMM",
+      "new": "railPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/surfaces/translational-sweep-surface.ts); TranslationalSweepObservation (src/nurbs/surfaces/trans"
+    },
+    {
+      "old": "refinedDifferenceMM",
+      "new": "refinedDifference",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/curves/curve-parameter-split.ts)"
+    },
+    {
+      "old": "refinedPointMM",
+      "new": "refinedPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/curves/curve-knot-insertion.ts); ? (src/nurbs/curves/curve-parameter-split.ts); ? (src/nurbs/surf"
+    },
+    {
+      "old": "relativePhaseDeg",
+      "new": "relativePhase",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/machine/gear-worm-wheel.ts); BevelGearPairOptions (src/machine/gear-bevel.ts); InternalGearPairOptions"
+    },
+    {
+      "old": "reversedPointMM",
+      "new": "reversedPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "CurveReversalObservation (src/nurbs/curves/curve-reversal.ts); SurfaceAxisReversalObservation (src/nurbs/surfa"
+    },
+    {
+      "old": "ringCenterAlongMM",
+      "new": "ringCenterAlong",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "GlandPlace (src/machine/oring.ts)"
+    },
+    {
+      "old": "ringCenterRadiusMM",
+      "new": "ringCenterRadius",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "GlandPlace (src/machine/oring.ts)"
+    },
+    {
+      "old": "rotationDeg",
+      "new": "rotation",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/io/dxf-writer.ts); ConnectorSpec (src/machine/connector.ts)"
+    },
+    {
+      "old": "scalePerMM",
+      "new": "scalePer",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "umbilicDiscriminant (src/nurbs/surfaces/local-curvature.ts)"
+    },
+    {
+      "old": "seatEdgeDiameterMM",
+      "new": "seatEdgeDiameter",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "sprocketLimits (src/machine/drive.ts)"
+    },
+    {
+      "old": "selectedCoordinateAbsMM",
+      "new": "selectedCoordinateAbs",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "limits (src/nurbs/source-wide/source-curve-control-polygon.ts); limits (src/nurbs/source-wide/source-knot-reci"
+    },
+    {
+      "old": "shaftDiameterMM",
+      "new": "shaftDiameter",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "RingRow (src/machine/shaft-parts.ts)"
+    },
+    {
+      "old": "shaftMM",
+      "new": "shaft",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "FitCondition (src/machine/fits.ts)"
+    },
+    {
+      "old": "shearModulusMPa",
+      "new": "shearModulus",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "src/machine/spring.ts, src/part/part-machine.ts"
+    },
+    {
+      "old": "shearStressMPa",
+      "new": "shearStress",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "src/machine/spring.ts"
+    },
+    {
+      "old": "speedMM",
+      "new": "speed",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "CurveCurvatureResult (src/nurbs/surfaces/local-curvature.ts)"
+    },
+    {
+      "old": "startZMM",
+      "new": "startZ",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "HelicalSweepSpec (src/machine/spring.ts)"
+    },
+    {
+      "old": "surfaceAreaMM2",
+      "new": "surfaceArea",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "report (src/features/extruded-profile-solid.ts)"
+    },
+    {
+      "old": "surfacePointMM",
+      "new": "surfacePoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/nurbs/surfaces/surface-isocurve.ts); IntervalObservation (src/features/piecewise-rational-loft.ts); Sta"
+    },
+    {
+      "old": "tangentNormsMM",
+      "new": "tangentNorms",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "normalizedMetric (src/nurbs/surfaces/local-curvature.ts)"
+    },
+    {
+      "old": "targetPointMM",
+      "new": "targetPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/features/affine-geometry-transform.ts)"
+    },
+    {
+      "old": "textHeightMM",
+      "new": "textHeight",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "options (src/frame-sheet/sheet-flat.ts)"
+    },
+    {
+      "old": "tipClearancesMM",
+      "new": "tipClearances",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "BevelGearPairCheck (src/machine/gear-bevel.ts); InternalGearPairCheck (src/machine/gear-internal.ts); SpurGear"
+    },
+    {
+      "old": "toPitchMM",
+      "new": "toPitch",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "HelicalRun (src/machine/spring.ts)"
+    },
+    {
+      "old": "touchMM",
+      "new": "touch",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "ThroatedPairCheck (src/machine/gear-worm-wheel.ts)"
+    },
+    {
+      "old": "transitionDeg",
+      "new": "transition",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "SpringSpec (src/machine/spring.ts)"
+    },
+    {
+      "old": "translationAbsMM",
+      "new": "translationAbs",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "limits (src/features/affine-geometry-transform.ts); limits (src/features/circular-geometry-pattern.ts); limits"
+    },
+    {
+      "old": "translationMM",
+      "new": "translation",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "? (src/document/cad-assembly.ts); ? (src/features/linear-geometry-pattern.ts); ? (src/nurbs/surfaces/translati"
+    },
+    {
+      "old": "uncorrectedShearStressMPa",
+      "new": "uncorrectedShearStress",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "src/machine/spring.ts"
+    },
+    {
+      "old": "upperPointMM",
+      "new": "upperPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "sharedCutPoints (src/nurbs/curves/curve-parameter-split.ts)"
+    },
+    {
+      "old": "weightedPointMM",
+      "new": "weightedPoint",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "SurfaceIsoCurveContribution (src/nurbs/surfaces/surface-isocurve.ts)"
+    },
+    {
+      "old": "weldMM",
+      "new": "weldDistance",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "MeshBrepOptions (src/mesh/mesh-brep.ts); MeshRepairSteps (src/mesh/mesh-repair.ts); options (src/mesh/mesh-rep"
+    },
+    {
+      "old": "workingPitchDiametersMM",
+      "new": "workingPitchDiameters",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "InternalGearPairCheck (src/machine/gear-internal.ts); SpurGearPairCheck (src/machine/gear.ts)"
+    },
+    {
+      "old": "workingPressureAngleDeg",
+      "new": "workingPressureAngle",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "InternalGearPairCheck (src/machine/gear-internal.ts); SpurGearPairCheck (src/machine/gear.ts); SpurRackPairChe"
+    },
+    {
+      "old": "wrap1Deg",
+      "new": "wrap1",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "openBeltLength (src/machine/drive.ts)"
+    },
+    {
+      "old": "wrap2Deg",
+      "new": "wrap2",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "openBeltLength (src/machine/drive.ts)"
+    },
+    {
+      "old": "youngsModulusMPa",
+      "new": "youngsModulus",
+      "context": "3. Options and results of the exported functions (cad-model, the studio, the facades and the docs call them): 138 names",
+      "declaration": "src/machine/spring.ts, src/part/part-machine.ts"
+    }
+  ],
+  "boundary_contract": {
+    "MassResult": {
+      "volume": "mm^3",
+      "mass": "g",
+      "centroid": "mm",
+      "inertia": "g*mm^2 about centroid"
+    },
+    "density": "g/cm^3",
+    "angles_at_document_and_public_boundaries": "degrees",
+    "torsionalRate": "N*mm/degree; per-radian twin removed",
+    "Vec3": "readonly [x,y,z]",
+    "mesh": "positions/normals/indices/lines; no positionsMM at kernel tessellation boundary"
+  },
+  "intentional_value_conversions": [
+    {
+      "boundary": "old kernel kg/m^3 density argument -> new g/cm^3",
+      "factor": 0.001
+    },
+    {
+      "boundary": "old kernel kg mass -> new g",
+      "factor": 1000
+    },
+    {
+      "boundary": "old kernel kg*m^2 inertia -> new g*mm^2",
+      "factor": 1000000000
+    }
+  ],
+  "adapter_rules": [
+    "Kernel already returns the new units: do not multiply those results again.",
+    "Outer BodyResult/bodyMass inertia contract is g*mm^2; remove the old app/mass.ts 1e6 and parallel-axis mass /1000 conversions.",
+    "API no longer multiplies Outer inertia by G_PER_KG=1000. Facade massG/inertiaGMM2 were already MMGS; their names change, not their values.",
+    "Kernel facade and model facade MassResult use volume/mass/centroid/inertia; select areaMM2 becomes area.",
+    "ALUMINIUM kernel default 2700 becomes 2.7. Keep internal robot angle math in radians; public/document quantities are degrees.",
+    "torsionalRateNmmPerRad is removed, torsionalRateNmmPerDeg becomes torsionalRate; do not synthesize a second public rate."
+  ]
+}

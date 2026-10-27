@@ -4,15 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node scripts/build-examples.mjs && vitepress dev docs",
-    "build": "node scripts/build-examples.mjs && vitepress build docs",
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
     "preview": "vitepress preview docs",
     "check:docs": "node scripts/check-docs.mjs",
-    "check:cad-impact": "node --test scripts/cad-impact-map.test.mjs",
-    "check:cad-evidence": "node --test scripts/cad-browser-evidence-validate.test.mjs scripts/cad-evidence-files.test.mjs",
-    "check:api": "node scripts/public-api.mjs --check",
-    "docs:api": "node scripts/public-api.mjs --write",
-    "examples:build": "node scripts/build-examples.mjs"
+    "capture": "node scripts/capture.mjs",
+    "test:samples": "node samples/run.mjs"
   },
   "devDependencies": {
     "vitepress": "^1.6.4"

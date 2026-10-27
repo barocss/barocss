@@ -7,10 +7,10 @@ import { drawingInputs } from '../src/chat/drawing';
 import { autoLayout } from '../src/drawing/layout';
 import { applyFix, drawingIssues, issueContext, sectionFor } from '../src/drawing/issues';
 import { readDrawing, type DrawingSettings } from '../src/drawing/types';
-import { sheetSvg } from '../src/drawing/svg';
-import { sectionDxfDocument, sheetDxf } from '../src/drawing/dxf';
+import { sheetSvg } from '../src/io/svg';
+import { sectionDxfDocument, sheetDxf } from '../src/io/dxf';
 import { HATCH_ANGLES, hatch } from '../src/drawing/sheet';
-import { sheetPdf } from '../src/drawing/pdf';
+import { sheetPdf } from '../src/io/pdf';
 import { writeDxf } from '@barocss/cad';
 import { reorient } from '../src/drawing/reorient';
 import { encodeStudioFile } from '../src/engine/container';
@@ -19,7 +19,7 @@ import { join } from 'node:path';
 
 // O148 X2: dimensions on sections — the shaft-and-hub scene of O146 (its keyseat under the hub, hidden in every standard
 // view) with B–B square to the top view's depth through the keyseat's middle (z 15): Auto-dimension finds b 6 and d − t1
-// 16.5 on the section with visible ends, so DIM_ON_HIDDEN no longer fires (the hub's d + t2 22.8 stays where it is seen); drawn and checked
+// 16.5 on the section with visible ends, so DIM_ON_HIDDEN no longer fires (the hub's d + t2 22.8 too, its bore end hidden from the top by the Ø25 step); drawn and checked
 // as a view's; a dimension on a section the sheet lacks is lost, said; turning the front with one is refused, typed.
 const blank: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 const cmd = (id: string) => commands.find(c => c.id === id)!;
@@ -37,20 +37,22 @@ function scene(): StudioDoc {
   doc = run(doc, 'keyway', { face: `n${doc.nodes.length - 1}.hole0.side0` }, { b: 6, t2: 2.8 });
   return run(doc, 'key', { bodies: [0] }, { h: 6 });
 }
+/** The scene with its key made, not bought (the person's override): a body of the part, drawn and cut (O174). */
+const madeKey = (doc: StudioDoc): StudioDoc => ({ ...doc, nodes: doc.nodes.map(n => n.kind === 'key' ? { ...n, bought: false } : n) });
 const inputs = (doc: StudioDoc, extra: Partial<DrawingSettings> = {}) => { const i = drawingInputs(doc, { ...readDrawing(doc.drawing), sheet: 'A3', ...extra }); assert.ok(typeof i !== 'string', String(i)); return { ...i, meta: { ...i.meta, date: '2026-10-22' } }; };
 const keyDims = (ctx: ReturnType<typeof issueContext>) => ctx.sheet.dimensions.filter(r => r.ok && r.dim.auto && r.dim.kind === 'linear' && /keyseat|keyway/.test(JSON.stringify(r.dim)));
 
-test('X2: with B–B through the keyseat, Auto-dimension puts b 6 and d − t1 16.5 on the section, every end visible (d + t2 22.8 stays on the top view, seen there whole); DIM_ON_HIDDEN gone; drawn there, clean; in the SVG and DXF', () => {
+test('X2: with B–B through the keyseat, Auto-dimension puts b 6 and d − t1 16.5 on the section, every end visible (d + t2 22.8 there too: from the top its bore end is under the Ø25 step); DIM_ON_HIDDEN gone; drawn there, clean; in the SVG and DXF', () => {
   const doc = scene(), i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] });
   const { settings, report } = autoLayout(i);
   assert.equal(report.dimensions.keys, 4, JSON.stringify(report.dimensions.skipped));
   const ctx = issueContext({ ...i, settings }), keys = keyDims(ctx);
   const on = keys.filter(r => r.dim.view === 'section:B').map(r => r.ok ? +r.value.toFixed(6) : NaN).sort((a, b) => a - b);
-  for (const want of [6, 16.5]) assert.ok(on.includes(want), `${want} on the section: ${on}`);
-  // (The hub's keyway is seen whole from the top as well: d + t2 22.8 stays in that view, every end visible — a section is
-  // taken only where it shows more.)
+  for (const want of [6, 16.5, 22.8]) assert.ok(on.includes(want), `${want} on the section: ${on}`);
+  // (The hub's d + t2 22.8 on the section too, D206: from the top its bore end lies under the shaft's Ø25 step (r 12.5 over
+  // the bore's r 10), hidden; B–B shows both ends visible — a section is taken only where it shows more ends visible.)
   const hub = keys.find(r => r.ok && Math.abs(r.value - 22.8) < 1e-6)!;
-  assert.equal(hub.dim.view, 'top');
+  assert.equal(hub.dim.view, 'section:B');
   // (Every end of those on visible edges of the section.)
   const pr = ctx.sheet.sections!.find(x => x.id === 'B')!.projection;
   for (const r of keys.filter(x => x.dim.view === 'section:B')) if (r.dim.kind === 'linear') for (const p of [r.dim.a, r.dim.b]) assert.ok(pr.edges.find(e => e.name === p.edge)?.pieces.some(x => x.visible), `${p.edge} visible`);
@@ -74,7 +76,7 @@ test('X2: a dimension on a section the sheet lacks is lost (DIMENSION_LOST, name
   const doc = scene(), i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] }), { settings } = autoLayout(i);
   const dropped: DrawingSettings = { ...settings, sections: undefined }; delete dropped.sections;
   const ctx = issueContext({ ...i, settings: dropped }), lost = drawingIssues(ctx).filter(x => x.code === 'DIMENSION_LOST');
-  assert.ok(lost.length === 2 && lost.every(x => /in section B–B is lost: Its section \(B–B\) is not on the sheet\.$/.test(x.message)), lost.map(x => x.message).join(' | '));
+  assert.ok(lost.length === 3 && lost.every(x => /in section B–B is lost: Its section \(B–B\) is not on the sheet\.$/.test(x.message)), lost.map(x => x.message).join(' | '));
 });
 
 test('queue 3: a section\'s dimensions carried through a reorient — B–B (square to Z) turned to a front from +X and from +Y: its dimensions stay on it and read 6 and 16.5 again; a section across the new front still refused', () => {
@@ -125,21 +127,57 @@ test('X3: DIM_ON_HIDDEN on d − t1 carries add-section B–B square to the top 
   assert.ok(fixes.length && fixes.every(f => f?.kind === 'auto-dimension'), JSON.stringify(fixes));
 });
 
-test('X3: a keyway on a tilted bore — its axis along none of X, Y, Z — is said with no section offered', () => {
+// O178 (O6): the X3 case once said "an aligned section is not drawn yet". A keyway in a bore tilted 30° about X now gets an
+// aligned section, the plane square to the bore's axis through the keyway's middle: offered as the fix, cut by the
+// kernel's split along that normal, its cut faces hatched, seen along the axis, its cutting plane edge-on in the right
+// view (whose depth, X, is square to the axis), and kept the same through Save and Open.
+test('O178: a keyway on a tilted bore — an aligned section square to its axis is the fix; cut, hatched and seen along it; its cutting plane in the right view', () => {
   let doc = cmd('tube').build!(blank, { ...cmd('tube').defaults!(blank), r: 20, ri: 10, h: 22, x: 0, y: 0, z: 0 });
   doc = run(doc, 'rotate', { bodies: [doc.nodes.length - 1] }, { axis: 'x', angle: 30, px: 0, py: 0, pz: 0 });
   const bodies = evaluated(doc), bore = bodies.flatMap(b => b.mesh.faces.map(f => f.name)).find(n => /hole0\.side0$/.test(n))!;
   doc = run(doc, 'keyway', { face: bore }, { b: 6, t2: 2.8 });
   const i = inputs(doc), ctx = issueContext(i), way = (i.elements ?? []).find(e => e.element.kind === 'keyway');
-  assert.ok(way, 'the keyway element');
+  assert.ok(way && way.element.kind === 'keyway', 'the keyway element');
   const ends = i.views.front.edges.filter(e => e.ends && e.name.includes(`${way.id}.keyway`)).flatMap(e => e.ends!.map(p => ({ edge: e.name, at: 'end' as const, near: [p[0], p[1], p[2]] as [number, number, number] })));
   const r = sectionFor(ctx, { id: 'x', view: 'front', kind: 'linear', a: ends[0], b: ends[1], orient: 'aligned', place: [0, 0] });
-  assert.ok(r && !r.fix && /its axis runs along none of X, Y and Z, so no principal section shows it/.test(r.text), JSON.stringify(r));
+  assert.ok(r?.fix?.kind === 'add-section' && r.fix.dir, JSON.stringify(r));
+  const fix = r.fix as Extract<NonNullable<typeof r.fix>, { kind: 'add-section' }>;
+  // (The axis: the tube's Z turned 30° about X, (0, −sin 30°, cos 30°); nearest the top view's depth (−Z down), so seen as the top's, its normal on that side.)
+  const axis = way.element.report.axis, n = Math.hypot(...axis), u = axis.map(x => x / n);
+  assert.equal(fix.view, 'top');
+  assert.ok(Math.abs(Math.abs(fix.dir![0] * u[0] + fix.dir![1] * u[1] + fix.dir![2] * u[2]) - 1) < 1e-6 && fix.dir![2] < 0, JSON.stringify(fix.dir));
+  const settings = applyFix(ctx, fix), cutIn = inputs(doc, settings), c = cutIn.sections?.find(x => x.id === fix.id);
+  assert.ok(c, 'the aligned section cut');
+  assert.ok(c.rings.length >= 2, `its cut faces' rings: ${c.rings.length}`);
+  // (Seen along its normal: the projection's depth is the normal.)
+  const d = fix.dir!, dl = Math.hypot(...d), toward = c.projection.toward;
+  assert.ok(Math.abs(toward[0] + d[0] / dl) < 1e-9 && Math.abs(toward[1] + d[1] / dl) < 1e-9 && Math.abs(toward[2] + d[2] / dl) < 1e-9, JSON.stringify(toward));
+  // (Its cutting plane: in the right view, a line across it, its letter at both ends.)
+  const sheet = issueContext(cutIn).sheet, plane = sheet.groups.find(g => g.role === 'section' && g.id === fix.id && g.view);
+  assert.equal(plane?.view, 'right');
+  assert.equal(plane!.marks.filter(m => m.kind === 'text' && (m as { text: string }).text === fix.id).length, 2);
+  // (The section's own view on the sheet, hatched.)
+  assert.ok(sheet.groups.some(g => g.role === 'section' && g.id === fix.id && !g.view && g.marks.some(m => m.kind === 'hatch')));
+  // (In every format: the SVG and the PDF name it, the DXF of the sheet and of the section alone write.)
+  const built = issueContext(cutIn);
+  const svg = sheetSvg(built.sheet, 'tilted'); assert.ok(svg.includes(`SECTION ${fix.id}`), svg.match(/SECTION[^<]*/g)?.join(' | ') ?? '');
+  const pdf = new TextDecoder('latin1').decode(sheetPdf(built.sheet, 'tilted')); assert.ok(pdf.includes(`SECTION ${fix.id}`), pdf.match(/\(SECTION[^)]*/g)?.join(' | ') ?? '');
+  assert.ok(sheetDxf(built.sheet, built.layout).text.includes('HATCH'), 'sheet DXF hatch');
+  assert.ok(writeDxf(sectionDxfDocument(c)).text.includes('HATCH'));
+  // (Saved and opened, the same section, its direction kept.)
+  const back = readDrawing(JSON.parse(JSON.stringify(settings)));
+  assert.deepEqual(back.sections?.find(x => x.id === fix.id), { id: fix.id, view: fix.view, at: fix.at, dir: fix.dir });
+  // (The issue's text then says the section is there.)
+  const again = sectionFor(issueContext(cutIn), { id: 'x', view: 'front', kind: 'linear', a: ends[0], b: ends[1], orient: 'aligned', place: [0, 0] });
+  assert.equal(again?.fix?.kind, 'auto-dimension', JSON.stringify(again));
 });
 
 // ——— Queue 1 (after O148): adjacent parts hatched apart in one section
 test('a section through the shaft, its key and its hub: each body hatched at its own angle (45°, 135°, 30° by body), the same in the SVG, PDF and DXF; one body alone at 45° as before', () => {
-  const doc = scene(), i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] }), ctx = issueContext(i);
+  // (O174: a part's drawing is what it makes — a bought key is neither cut nor drawn; the key set made, it is the part's.)
+  const bought = inputs(scene(), { sections: [{ id: 'B', view: 'top', at: -15 }] }).sections!.find(x => x.id === 'B')!;
+  assert.equal(new Set(bought.ringBodies).size, 2, `the shaft and the hub cut, not the bought key: ${bought.ringBodies}`);
+  const doc = madeKey(scene()), i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] }), ctx = issueContext(i);
   const B = i.sections!.find(x => x.id === 'B')!, bodies = [...new Set(B.ringBodies)];
   assert.equal(bodies.length, 3, `three bodies cut: ${B.ringBodies}`);
   const body = ctx.sheet.groups.find(g => g.role === 'section' && g.id === 'B' && !g.view)!;

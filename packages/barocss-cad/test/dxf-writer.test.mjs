@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { writeDxf, dxfNumber, dxfText, dxfHatchLines, DxfWriteError, DXF_WRITER_VERSION } from '../dist/index.js';
+import { writeDxf, dxfNumber, dxfText, dxfHatchLines, isDxfWriteError, DXF_WRITER_VERSION } from '../dist/index.js';
 import { caseRuns } from './dxf-cases.mjs';
 
 // R11b (O1): the DXF writer. Each conformance case (conformance/r11b/<case>/case.json) is written under each of
@@ -28,7 +28,7 @@ function same(e, o, where, dimBlock) {
   switch (e.type) {
     case 'line': assert.equal(o.type, 'LINE', where); nearXY(o.a, e.a, where); nearXY(o.b, e.b, where); return;
     case 'circle': assert.equal(o.type, 'CIRCLE', where); nearXY(o.center, e.center, where); near(o.radius, e.radius, where); return;
-    case 'arc': assert.equal(o.type, 'ARC', where); nearXY(o.center, e.center, where); near(o.radius, e.radius, where); near(o.startDeg, deg360(e.startDeg), where); near(o.endDeg, deg360(e.endDeg), where); return;
+    case 'arc': assert.equal(o.type, 'ARC', where); nearXY(o.center, e.center, where); near(o.radius, e.radius, where); near(o.startDeg, deg360(e.start), where); near(o.endDeg, deg360(e.end), where); return;
     case 'ellipse':
       assert.equal(o.type, 'ELLIPSE', where); nearXY(o.center, e.center, where); nearXY(o.major, e.major, where); near(o.ratio, e.ratio, where);
       // The oracle's own points of it at its parameters are ours: the same curve, the same way round.
@@ -45,7 +45,7 @@ function same(e, o, where, dimBlock) {
       return;
     case 'text':
       assert.equal(o.type, 'TEXT', where); assert.equal(shown(o.text), e.text, `${where} text`); near(o.height, e.height, where);
-      near(o.rotationDeg, deg360(e.rotationDeg ?? 0), `${where} rotation`); assert.equal(o.style, e.style ?? 'Standard');
+      near(o.rotationDeg, deg360(e.rotation ?? 0), `${where} rotation`); assert.equal(o.style, e.style ?? 'Standard');
       assert.equal(o.halign, { left: 0, center: 1, right: 2 }[e.align ?? 'left']); nearXY(o.halign ? o.alignAt : o.at, e.at, where);
       return;
     case 'mtext': assert.equal(o.type, 'MTEXT', where); assert.equal(o.text, e.text, `${where} text`); near(o.height, e.height, where); nearXY(o.at, e.at, where); return;
@@ -55,22 +55,22 @@ function same(e, o, where, dimBlock) {
       assert.equal(o.loops.length, e.loops.length);
       o.loops.forEach((l, k) => { l.points.forEach((p, i) => nearXY(p, e.loops[k].points[i], `${where} loop ${k}`)); if (e.loops[k].bulges?.some(b => b)) assert.deepEqual(l.bulges, e.loops[k].bulges); });
       if (e.fill.kind === 'lines') {
-        const a = e.fill.angleDeg * Math.PI / 180, [line] = o.lines;
-        near(line.angle, deg360(e.fill.angleDeg), where); nearXY(line.offset, [-Math.sin(a) * e.fill.spacing, Math.cos(a) * e.fill.spacing], `${where} offset`); nearXY(line.base, e.fill.origin ?? [0, 0], `${where} origin`);
+        const a = e.fill.angle * Math.PI / 180, [line] = o.lines;
+        near(line.angle, deg360(e.fill.angle), where); nearXY(line.offset, [-Math.sin(a) * e.fill.spacing, Math.cos(a) * e.fill.spacing], `${where} offset`); nearXY(line.base, e.fill.origin ?? [0, 0], `${where} origin`);
         // The oracle's own hatch lines over the loops are ours (the R12 writer's): their number and length.
-        const ours = dxfHatchLines(e.loops, e.fill.angleDeg, e.fill.spacing, e.fill.origin);
+        const ours = dxfHatchLines(e.loops, e.fill.angle, e.fill.spacing, e.fill.origin);
         assert.equal(o.rendered.lines, ours.length, `${where} hatch lines`);
         near(o.rendered.length, ours.reduce((s, [p, q]) => s + Math.hypot(q[0] - p[0], q[1] - p[1]), 0), `${where} hatch length`);
       }
       return;
     }
-    case 'insert': assert.equal(o.type, 'INSERT', where); assert.equal(o.block, e.block); nearXY(o.at, e.at, where); near(o.scale, e.scale ?? 1, where); near(o.rotationDeg, deg360(e.rotationDeg ?? 0), where); return;
+    case 'insert': assert.equal(o.type, 'INSERT', where); assert.equal(o.block, e.block); nearXY(o.at, e.at, where); near(o.scale, e.scale ?? 1, where); near(o.rotationDeg, deg360(e.rotation ?? 0), where); return;
     case 'dimension': {
       const g = e.geometry;
       assert.equal(o.type, 'DIMENSION', where); assert.equal(o.block, dimBlock, `${where} block`);
       assert.equal(o.dimtype, { linear: 0, aligned: 1, angular: 2, diameter: 3, radius: 4 }[g.kind]);
       assert.equal(shown(o.text), e.text, `${where} text`); nearXY(o.textAt, e.textAt, where);
-      if (g.kind === 'linear' || g.kind === 'aligned') { nearXY(o.defpoint, g.line, where); nearXY(o.defpoint2, g.p1, where); nearXY(o.defpoint3, g.p2, where); if (g.kind === 'linear') near(o.angle, deg360(g.angleDeg), where); }
+      if (g.kind === 'linear' || g.kind === 'aligned') { nearXY(o.defpoint, g.line, where); nearXY(o.defpoint2, g.p1, where); nearXY(o.defpoint3, g.p2, where); if (g.kind === 'linear') near(o.angle, deg360(g.angle), where); }
       else if (g.kind === 'angular') { nearXY(o.defpoint2, g.line1[0], where); nearXY(o.defpoint3, g.line1[1], where); nearXY(o.defpoint4, g.line2[0], where); nearXY(o.defpoint, g.line2[1], where); nearXY(o.defpoint5, g.arc, where); }
       else if (g.kind === 'diameter') { nearXY(o.defpoint, g.opposite, where); nearXY(o.defpoint4, g.rim, where); }
       else { nearXY(o.defpoint, g.center, where); nearXY(o.defpoint4, g.rim, where); }
@@ -100,7 +100,7 @@ function sameR12(e, list, k, where, dimBlock, tol, full) {
     return 1;
   }
   if (e.type === 'hatch') {
-    const ours = dxfHatchLines(e.loops, e.fill.angleDeg, e.fill.spacing, e.fill.origin);
+    const ours = dxfHatchLines(e.loops, e.fill.angle, e.fill.spacing, e.fill.origin);
     ours.forEach(([a, b], i) => { const x = list[k + i]; assert.equal(x.type, 'LINE', where); assert.equal(x.layer, e.layer ?? '0'); nearXY(x.a, a, where); nearXY(x.b, b, where); });
     if (full) assert.equal(full.rendered.lines, ours.length, `${where}: as many lines as the oracle draws for the AC1015 hatch`);
     return ours.length;
@@ -162,21 +162,21 @@ for (const name of cases) {
 
 test('R12: the solid hatch is refused; curves need a tolerance; a polyline no finer than it allows', () => {
   const c = JSON.parse(readFileSync(join(root, 'entities/case.json'), 'utf8')), doc = c.input.document;
-  assert.throws(() => writeDxf(doc, { version: 'AC1009', r12ChordTolerance: 1e-3 }), e => e instanceof DxfWriteError && e.code === 'R12_UNSUPPORTED');
+  assert.throws(() => writeDxf(doc, { version: 'AC1009', r12ChordTolerance: 1e-3 }), e => isDxfWriteError(e) && e.code === 'R12_UNSUPPORTED');
   const ellipse = { units: 'mm', entities: [{ type: 'ellipse', center: [0, 0], major: [10, 0], ratio: 0.5, start: 0, end: 2 * Math.PI }] };
   assert.throws(() => writeDxf(ellipse, { version: 'AC1009' }), e => e.code === 'R12_NEEDS_TOLERANCE');
   const coarse = writeDxf(ellipse, { version: 'AC1009', r12ChordTolerance: 0.1 }).report, fine = writeDxf(ellipse, { version: 'AC1009', r12ChordTolerance: 1e-4 }).report;
   assert.ok(coarse.modelSpace.VERTEX < fine.modelSpace.VERTEX && fine.r12.maxChordDeviation <= 1e-4 && coarse.r12.maxChordDeviation <= 0.1);
   assert.ok(coarse.r12.maxChordDeviation > 0.025, 'not needlessly fine');
   assert.equal(fine.r12.ellipses, 1); assert.equal(fine.r12.unitsNotStored, true);
-  const arcSided = { units: 'mm', entities: [{ type: 'hatch', loops: [{ points: [[0, 0], [10, 0]], bulges: [1, 1] }], fill: { kind: 'lines', angleDeg: 45, spacing: 1 } }] };
+  const arcSided = { units: 'mm', entities: [{ type: 'hatch', loops: [{ points: [[0, 0], [10, 0]], bulges: [1, 1] }], fill: { kind: 'lines', angle: 45, spacing: 1 } }] };
   assert.throws(() => writeDxf(arcSided, { version: 'AC1009' }), e => e.code === 'R12_UNSUPPORTED');
   assert.throws(() => writeDxf({ units: 'mm', layers: [{ name: 'a layer' }], entities: [] }, { version: 'AC1009' }), e => e.code === 'BAD_NAME', 'R12 names');
 });
 
 test('typed refusals for what cannot be written as given', () => {
   const line = (x = {}) => ({ type: 'line', a: [0, 0], b: [1, 1], ...x });
-  const refused = (doc, code) => assert.throws(() => writeDxf({ units: 'mm', ...doc }), e => e instanceof DxfWriteError && e.code === code && e.message.startsWith(`DXF [${code}]`), code);
+  const refused = (doc, code) => assert.throws(() => writeDxf({ units: 'mm', ...doc }), e => isDxfWriteError(e) && e.code === code && e.message.startsWith(`DXF [${code}]`), code);
   refused({ entities: [line({ layer: 'NOPE' })] }, 'UNKNOWN_LAYER');
   refused({ entities: [line({ linetype: 'DOTS' })] }, 'UNKNOWN_LINETYPE');
   refused({ layers: [{ name: 'A', linetype: 'DOTS' }], entities: [] }, 'UNKNOWN_LINETYPE');

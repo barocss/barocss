@@ -1,18 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep } from '../dist/index.js';
+import { evaluateCadPart, checkBrep, massPropertiesOf } from '../dist/index.js';
 
 // R11.1c (D108): the rest of R11.1. The wall's union retried by halves and in reverse where the analytic Boolean cannot
 // close a step (the notched box at t 2.9–3.1 failed untyped on HEAD), every other failure a typed refusal; a convex round
 // face the wall all but reaches refused by name; the shell's history route past a variable-radius fillet (r(s) − t).
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const out = features => evaluateCadPart(D(features)).outputs.at(-1);
-const vol = features => out(features).massProperties(1).volumeMM3;
-const refused = (features, code, pattern) => assert.throws(() => out(features), e => e.code === code && pattern.test(e.message), String(pattern));
+const vol = features => massPropertiesOf(out(features)).volume;
+const refused = (features, code, pattern) => assert.throws(() => out(features), e => (e.details?.category ?? e.code) === code && pattern.test(e.message), String(pattern));
 const exactly = (o, expected, what, rel = 1e-12) => {
   const report = checkBrep(o.brep, { strict: true });
   assert.equal(report.valid, true, `${what}: ${report.issues}`);
-  const v = o.massProperties(1).volumeMM3;
+  const v = massPropertiesOf(o).volume;
   assert.ok(Math.abs(v / expected - 1) < rel, `${what}: ${v} vs ${expected} (${(v - expected) / expected})`);
 };
 const yzAt = x => ({ origin: [x, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] });

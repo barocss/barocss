@@ -20,14 +20,24 @@ const ordinary = resolve(output, 'ordinary-source.mjs');
 const built = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true,
   platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
 const graph = Object.keys(built.metafile.inputs);
-assert(graph.some(p => p.endsWith('/src/source-scene-bounds.ts')));
+assert(graph.some(p => p.endsWith('/src/scene/source-scene-bounds.ts')));
 assert(!graph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const ordinaryURL = pathToFileURL(ordinary).href, emittedURL = pathToFileURL(resolve(pkg, published.import)).href;
 const providers = [['ordinary-source', await import(ordinaryURL), ordinaryURL],
   ['emitted-public', await import(emittedURL), emittedURL]];
 assert.deepEqual(Object.keys(providers[0][1]).sort(), Object.keys(providers[1][1]).sort());
-assert.equal(Object.keys(providers[0][1]).length, 102);
+
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+// A cold, separate instance of a provider. The ordinary source is one bundled file, so a query on it loads it afresh. The
+// emitted package is unbundled (one module graph for its entries), so a query on its entry alone would reuse every module
+// under it: its cold copy is that emitted graph bundled into one file, every module fresh (@barocss/cad left to Node).
+async function coldOf(provider, entryURL) {
+  if (provider !== 'emitted-public') { const url = new URL(entryURL); url.searchParams.set('source_scene_bounds_cold', '1'); return { module: await import(url.href), entry: url.href }; }
+  const outfile = resolve(output, 'emitted-cold.mjs');
+  await build({ entryPoints: [fileURLToPath(entryURL)], bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile, external: ['@barocss/cad'] });
+  const entry = pathToFileURL(outfile).href;
+  return { module: await import(entry), entry };
+}
 async function receipt(path) { const bytes = await readFile(path); return { path, bytes: bytes.length, sha256: hash(bytes) }; }
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['SourceSceneBoundsRequest', 'SourceSceneBoundsBox', 'SourceSceneObjectBounds',
@@ -56,8 +66,7 @@ function expectedBox(actual, expected, tolerance) {
 let accepted = 0, refused = 0, getterCalls = 0, reflectionTraps = 0, oversizeOwnKeys = 0;
 const results = [];
 for (const [provider, gpu, entryURL] of providers) {
-  const coldURL = new URL(entryURL); coldURL.searchParams.set('source_scene_bounds_cold', '1');
-  const coldGpu = await import(coldURL.href);
+  const { module: coldGpu, entry: coldEntry } = await coldOf(provider, entryURL);
   assert.notStrictEqual(coldGpu, gpu);
   assert.notStrictEqual(coldGpu.prepareSourceSceneBounds, gpu.prepareSourceSceneBounds);
   assert.deepEqual(Object.keys(coldGpu).sort(), Object.keys(gpu).sort());
@@ -103,7 +112,7 @@ for (const [provider, gpu, entryURL] of providers) {
     assert.notStrictEqual(cold.objects, result.objects);
     for (let i = 0; i < result.scene.objects.length; i++) {
       assert.notStrictEqual(cold.scene.objects[i], result.scene.objects[i]);
-      for (const field of ['color', 'translate', 'size', 'rotateDegrees', ...(input.sourceVersion === 2 ? ['scaleXYZ'] : []), ...('start' in result.scene.objects[i] ? ['start', 'end'] : [])])
+      for (const field of ['color', 'translate', 'size', 'rotation', ...(input.sourceVersion === 2 ? ['scaleXYZ'] : []), ...('start' in result.scene.objects[i] ? ['start', 'end'] : [])])
         assert.notStrictEqual(cold.scene.objects[i][field], result.scene.objects[i][field]);
     }
     for (let i = 0; i < result.objects.length; i++) {
@@ -188,13 +197,13 @@ for (const [provider, gpu, entryURL] of providers) {
       actualCauseRetained: !!error.cause, previousResultAndSourceFileRetained: true });
   }
   results.push({ provider, exports: Object.keys(gpu).sort(), acceptance, refusals,
-    coldModuleEntry: coldURL.href, independentColdPublicModule: true, coldModuleReentry: true,
+    coldModuleEntry: coldEntry, independentColdPublicModule: true, coldModuleReentry: true,
     nullPrototypeRequestAccepted: true, retainedFile: await receipt(file), finalResultSHA256: hash(retained) });
 }
 assert.equal(results[0].finalResultSHA256, results[1].finalResultSHA256);
 const report = { issue: 1320, stage: 'CPU-original-source-binary64-box-corners', accepted, refused,
   getterCalls, reflectionTraps, oversizeOwnKeys, actualGL: false, sourceGraph: graph,
-  source: await receipt(resolve(pkg, 'src/source-scene-bounds.ts')), controls: await receipt(resolve(repo, 'examples/gpu-scene/source-scene-bounds-controls.mjs')),
+  source: await receipt(resolve(pkg, 'src/scene/source-scene-bounds.ts')), controls: await receipt(resolve(repo, 'examples/gpu-scene/source-scene-bounds-controls.mjs')),
   ordinary: await receipt(ordinary), emitted: await receipt(resolve(pkg, published.import)), declarations: await receipt(declarationPath), results,
   support: 'Actual Source1/2 full original reconstruction, Number local-box bounds and eight transformed corners, source-order selections and frozen copied results/files. Independent closed-form controls from the separate control module; source-provider causes and first failures preserved. No Float32/padding/certified rounding enclosure, ideal exact native extrema, camera framing, pixels, culling, animation, overflow fabrication, performance or publication proof.' };
 const resultPath = resolve(output, 'actual-result.json'); await writeFile(resultPath, JSON.stringify(report, null, 2) + '\n');

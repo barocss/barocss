@@ -29,16 +29,16 @@ test('Circular pattern about a moved axis: copies spread over an angle; a puck a
   const ctx = picked(rectanglePart(10, 10, 10)), cp = cmd('circular-pattern'), v = { ...cp.defaults!(ctx), count: 3, span: 180, px: 30, py: 5 };
   const hs = cp.handles!(ctx, v);
   assert.deepEqual(hs.map(h => h.key), ['px', 'span']);
-  const doc = cp.build!(ctx, v), node = doc.nodes.at(-1) as { angleDegrees: number; pivot: number[] };
-  assert.deepEqual([node.angleDegrees, node.pivot], [90, [30, 5, 0]]);
+  const doc = cp.build!(ctx, v), node = doc.nodes.at(-1) as { angle: number; pivot: number[] };
+  assert.deepEqual([node.angle, node.pivot], [90, [30, 5, 0]]);
   const [b] = bodiesOf(doc);
-  assert.ok(Math.abs(b.volumeMM3! - 3000) < 1, String(b.volumeMM3));
+  assert.ok(Math.abs(b.volume! - 3000) < 1, String(b.volume));
   assert.deepEqual([b.mesh.bounds.min[0], b.mesh.bounds.max[0]].map(Math.round), [0, 60]);
 });
 
 test('Revolve edits with an arc on its angle', () => {
   let doc = withNode(rectanglePart(1, 1, 1), { kind: 'sketch', profile: 'rectangle', min: [10, 0], max: [15, 8] });
-  doc = { ...doc, nodes: [doc.nodes[2]] }; doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 180 });
+  doc = { ...doc, nodes: [doc.nodes[2]] }; doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angle: 180 });
   const edit = editCommand(1, doc.nodes)!, [h] = edit.handles!(picked(doc), edit.defaults!(picked(doc)));
   assert.equal(h.key, 'deg'); assert.ok(h.arc);
 });
@@ -50,7 +50,7 @@ test('Duplicate copies a body with all its features as a body of its own, moved 
   assert.equal(v.dx, 30);
   const out = dup.build!(ctx, v), bodies = bodiesOf(out);
   assert.equal(bodies.length, 2);
-  assert.ok(Math.abs(bodies[0].volumeMM3! - bodies[1].volumeMM3!) < 1e-6);
+  assert.ok(Math.abs(bodies[0].volume! - bodies[1].volume!) < 1e-6);
   const copy = bodies.find(b => b.mesh.bounds.min[0] > 25)!;
   assert.deepEqual([copy.mesh.bounds.min[0], copy.mesh.bounds.max[0]].map(Math.round), [30, 50]);
   assert.deepEqual((out.nodes[5] as { edges: string[] }).edges, ['n4.side0|n4.top']);
@@ -62,7 +62,7 @@ test('Mirror across a face’s plane (not only the origin’s): by default its o
   assert.deepEqual([v.plane, v.at], ['yz', 20]);
   const out = bodiesOf(m.build!(ctx, v)), lo = Math.min(...out.map(b => b.mesh.bounds.min[0])), hi = Math.max(...out.map(b => b.mesh.bounds.max[0]));
   assert.deepEqual([lo, hi].map(Math.round), [0, 40]);
-  assert.ok(Math.abs(out.reduce((s, b) => s + b.volumeMM3!, 0) - 4000) < 1);
+  assert.ok(Math.abs(out.reduce((s, b) => s + b.volume!, 0) - 4000) < 1);
   // A click on the top face mirrors up across Z 10.
   const top = ctx.bodies[0].mesh.faces.findIndex(f => f.normal[2] > 0.99), up = m.onPick!(ctx, v, { face: { body: 0, face: top }, edge: null }) as Record<string, unknown>;
   assert.deepEqual([up.plane, up.at], ['xy', 10]);
@@ -75,7 +75,7 @@ test('Patterns can make separate bodies instead of one', () => {
   assert.deepEqual(row.map(b => Math.round(b.mesh.bounds.min[0])).sort((a, b) => a - b), [0, 20, 40]);
   const ring = bodiesOf(cmd('circular-pattern').build!(ctx, { ...cmd('circular-pattern').defaults!(ctx), count: 4, px: 30, py: 5, result: 'separate' }));
   assert.equal(ring.length, 4);
-  assert.ok(ring.every(b => Math.abs(b.volumeMM3! - 1000) < 1e-6));
+  assert.ok(ring.every(b => Math.abs(b.volume! - 1000) < 1e-6));
 });
 
 test('Hole types: to a depth, and counterbored (a wider hole to its depth on the same centre)', () => {
@@ -83,10 +83,10 @@ test('Hole types: to a depth, and counterbored (a wider hole to its depth on the
   const ctx: Ctx = { doc, bodies, selection: { faces: [{ body: 0, face: top }], edges: [], bodies: [] } }, hole = cmd('hole');
   const v = { ...hole.defaults!(ctx), x: 20, y: 10, d: 6 };
   const blind = bodiesOf(hole.build!(ctx, { ...v, type: 'blind', depth: 4 }))[0];
-  assert.ok(Math.abs(blind.volumeMM3! - (8000 - Math.PI * 9 * 4)) < 0.5, String(blind.volumeMM3));
+  assert.ok(Math.abs(blind.volume! - (8000 - Math.PI * 9 * 4)) < 0.5, String(blind.volume));
   const cb = hole.build!(ctx, { ...v, type: 'counterbore', cd: 12, ch: 3 });
   assert.deepEqual(cb.nodes.slice(2).map(n => n.kind), ['hole', 'hole']);
-  const vol = bodiesOf(cb)[0].volumeMM3!;
+  const vol = bodiesOf(cb)[0].volume!;
   assert.ok(Math.abs(vol - (8000 - Math.PI * 9 * 10 - Math.PI * (36 - 9) * 3)) < 0.5, String(vol));
   assert.deepEqual(hole.handles!(ctx, { ...v, type: 'counterbore', cd: 12, ch: 3 }).map(h => h.key), ['x', 'd', 'cd', 'ch']);
   assert.throws(() => hole.build!(ctx, { ...v, type: 'counterbore', cd: 5, ch: 3 }), /wider/);
@@ -104,7 +104,7 @@ test('Split across any plane: a mitre x + y = at through the middle, its arrow a
   assert.equal(featureLabel(node, doc.nodes.length - 1, doc.nodes), 'Split X+Y = 30');
   const bodies = bodiesOf(doc);
   assert.equal(bodies.length, 2);
-  assert.ok(Math.abs(bodies[0].volumeMM3! + bodies[1].volumeMM3! - 8000) < 1e-6);
+  assert.ok(Math.abs(bodies[0].volume! + bodies[1].volume! - 8000) < 1e-6);
   assert.equal(planeText([1, 0, -0.5]), 'X−0.5Z');
   assert.throws(() => split.build!(ctx, { ...v, nx: 0, ny: 0 }), /must not be zero/);
 });
@@ -118,11 +118,11 @@ test('Draft: one side face turned about its bottom; every side of an extrusion i
   const t = Math.tan(10 * Math.PI / 180);
   const one = draft.build!(ctx(['n1.side0']), { deg: 10 });
   assert.equal(featureLabel(one.nodes.at(-1)!, one.nodes.length - 1, one.nodes), 'Draft 10° × 1');
-  assert.ok(Math.abs(bodiesOf(one)[0].volumeMM3! - (4000 - 0.5 * 10 * 10 * t * 20)) < 0.01);
+  assert.ok(Math.abs(bodiesOf(one)[0].volume! - (4000 - 0.5 * 10 * 10 * t * 20)) < 0.01);
   // All four sides: the box's extrusion takes the draft itself (no feature added).
   const all = draft.build!(ctx(['n1.side0', 'n1.side1', 'n1.side2', 'n1.side3']), { deg: 10 });
   assert.equal(all.nodes.length, doc.nodes.length); assert.equal((all.nodes[1] as { draft?: number }).draft, 10);
-  assert.ok(Math.abs(bodiesOf(all)[0].volumeMM3! - (4000 - 40 * t * 100 + 4 / 3 * t * t * 1000)) < 1e-3);
+  assert.ok(Math.abs(bodiesOf(all)[0].volume! - (4000 - 40 * t * 100 + 4 / 3 * t * t * 1000)) < 1e-3);
   const r = evaluateDoc(draft.build!(ctx(['n1.side0', 'n1.side1']), { deg: 10 }), 1);
   assert.ok(!r.ok && /meet along an edge/.test(r.error.detail + r.error.hint), r.ok ? '' : r.error.detail);
 });
@@ -133,8 +133,8 @@ test('Offset face: the top moved out joins material (the sides run on), moved in
   const [h] = offset.handles!(ctx, { d: 2 });
   assert.deepEqual([h.key, h.dir], ['d', [0, 0, 1]]);
   const up = bodiesOf(offset.build!(ctx, { d: 3 }));
-  assert.equal(up.length, 1); assert.ok(Math.abs(up[0].volumeMM3! - 20 * 20 * 13) < 1e-6); assert.equal(up[0].mesh.bounds.max[2], 13);
+  assert.equal(up.length, 1); assert.ok(Math.abs(up[0].volume! - 20 * 20 * 13) < 1e-6); assert.equal(up[0].mesh.bounds.max[2], 13);
   const down = bodiesOf(offset.build!(ctx, { d: -4 }));
-  assert.ok(Math.abs(down[0].volumeMM3! - 20 * 20 * 6) < 1e-6); assert.equal(down[0].mesh.bounds.max[2], 6);
+  assert.ok(Math.abs(down[0].volume! - 20 * 20 * 6) < 1e-6); assert.equal(down[0].mesh.bounds.max[2], 6);
   assert.throws(() => offset.build!(ctx, { d: 0 }), /a distance/);
 });

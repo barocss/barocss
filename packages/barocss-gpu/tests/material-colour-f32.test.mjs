@@ -4,9 +4,9 @@
 // backends, the viewer's entry returning a diagnostic rather than throwing.
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { compileMeshMaterial, compileNativeSurfaceUV01Material } from '../dist/mesh-material.js';
-import { lowerMeshMaterialWGSL } from '../dist/mesh-material-wgsl.js';
-import { materialShader } from '../dist/material-viewer.js';
+import { compileMeshMaterial, compileNativeSurfaceUV01Material } from '../dist/material/mesh-material.js';
+import { lowerMeshMaterialWGSL } from '../dist/material/mesh-material-wgsl.js';
+import { materialShader } from '../dist/material/material-viewer.js';
 import { srgbToLinear } from '../dist/viewer/math.js';
 
 const literals = text => [...text.matchAll(/vec3<f32>\(([^)]*)\)/g)].map(m => m[1].split(',').map(x => parseFloat(x)));

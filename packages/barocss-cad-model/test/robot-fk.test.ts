@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
 import type { StudioDoc } from '../src/engine/doc';
 import { tablesFor } from '../src/assembly/faces';
-import { solveDoc } from '../src/chat/assembly';
+import { solveDoc } from '../src/assembly/edit';
 import { dispatchTool } from '../src/chat/tools';
 import { treeOfDoc } from '../src/chat/robot';
 import { jointTreeOf, type Joint, type JointTree } from '../src/robot/joints';
@@ -77,13 +77,13 @@ test('a gear pair turns together: the follower from its leader whatever it was g
     const q = (rand() * 2 - 1) * 4 * Math.PI, fk = forwardKinematics(t, { 'base~g1': q, 'base~g2': 123 });
     assert.ok(Math.abs(fk.values['base~g2'] - (-20 / 30) * q) < 1e-12, 'the follower from its leader');
     const at = gearPairAt(c, fk.values);
-    const dPhase = Math.min(Math.abs(at.phaseDeg - home.phaseDeg), 360 / 30 - Math.abs(at.phaseDeg - home.phaseDeg));
-    assert.ok(dPhase < 1e-6, `phase ${at.phaseDeg} vs ${home.phaseDeg}`);
-    assert.ok(Math.abs(at.backlashMM - home.backlashMM) < 1e-9 && Math.abs(at.centerDistanceMM - 50) < 1e-9);
+    const dPhase = Math.min(Math.abs(at.phase - home.phase), 360 / 30 - Math.abs(at.phase - home.phase));
+    assert.ok(dPhase < 1e-6, `phase ${at.phase} vs ${home.phase}`);
+    assert.ok(Math.abs(at.backlash - home.backlash) < 1e-9 && Math.abs(at.centerDistance - 50) < 1e-9);
   }
   // The wrong ratio does not hold it: the check would see the teeth move against each other.
   const wrong = gearPairAt(c, { 'base~g1': 0.3, 'base~g2': 0.3 * 20 / 30 });
-  assert.ok(Math.abs(wrong.phaseDeg - home.phaseDeg) > 1e-3);
+  assert.ok(Math.abs(wrong.phase - home.phase) > 1e-3);
   // The follower's link turns about its own axis by its value.
   const fk = forwardKinematics(t, { 'base~g1': 0.6 }), g2 = t.joints.find(j => j.key === 'base~g2')!;
   const centre = applyTo(fk.motions.get('g2')!, g2.origin);
@@ -105,7 +105,7 @@ test('limits: values outside are reported, not clamped; slider ranges; unknown j
 
 test('the forward_kinematics tool: placements as place_part takes them, the gear phase held, refusals', async () => {
   const doc = caseDoc('chain-2r'), r = await evaluate(doc); assert.ok(r.ok);
-  const out = await dispatchTool({ doc, bodies: r.bodies }, 'forward_kinematics', { values: { 'base~a': Math.PI / 2 } }, evaluate);
+  const out = await dispatchTool({ doc, bodies: r.bodies }, 'forward_kinematics', { values: { 'base~a': 90 } }, evaluate);
   assert.ok(!out.isError && !out.changed, out.content);
   const j = JSON.parse(out.content), a = j.links.find((l: { link: string }) => l.link === 'a'), b = j.links.find((l: { link: string }) => l.link === 'b');
   // (a turned a quarter about its hole at (20, 20): its corner, 10 mm from the hole each way, goes round with it.)
@@ -120,7 +120,7 @@ test('the forward_kinematics tool: placements as place_part takes them, the gear
 test('the preview: instances moved on copies, the evaluated bodies untouched; nothing moved at home', async () => {
   const doc = caseDoc('revolute'), s = solveDoc(doc), inst = s.doc.instances![0];
   const r = await evaluate(inst.doc); assert.ok(r.ok);
-  const { placeBody } = await import('../src/engine/evaluate'), { rotationMatrix } = await import('../src/assembly/mates');
+  const { placeBody } = await import('../src/engine/evaluate'), { rotationMatrix } = await import('../src/engine/placement');
   const placed = r.bodies.map(b => placeBody({ ...b, mesh: { ...b.mesh, positions: b.mesh.positions.slice(), normals: b.mesh.normals.slice(), edgeLines: b.mesh.edgeLines.slice() } }, rotationMatrix(inst.rotation), inst.position));
   const before = Float32Array.from(placed[0].mesh.positions), t = treeOf(doc);
   const home = posedInstances([{ id: 'arm', bodies: placed }], forwardKinematics(t, {}));
@@ -137,7 +137,7 @@ test('the RM2 conformance cases: the 2R tip by its closed form, the gear followe
   const g = JSON.parse(readFileSync(resolve(CASES, 'fk-gears', 'case.json'), 'utf8')), doc = caseDoc(g.of), r = await evaluate(doc); assert.ok(r.ok);
   const gt = await treeOfDoc(doc, r.bodies, evaluate), home = gearPairAt(gt.couplings[0], {});
   for (const s of g.samples) {
-    const fk = forwardKinematics(gt, s.values), at = gearPairAt(gt.couplings[0], fk.values), d = Math.abs(at.phaseDeg - home.phaseDeg);
+    const fk = forwardKinematics(gt, s.values), at = gearPairAt(gt.couplings[0], fk.values), d = Math.abs(at.phase - home.phase);
     assert.ok(Math.abs(fk.values[s.follower] - s.expect_follower) < 1e-12 && Math.min(d, 12 - d) <= g.tol_deg, JSON.stringify(s));
   }
 });

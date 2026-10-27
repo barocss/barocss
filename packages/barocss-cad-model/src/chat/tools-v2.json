@@ -14,17 +14,26 @@
     "properties": {
      "action": {
       "enum": [
+       "bundle",
        "get",
        "add_part",
        "place",
        "delete_part",
        "add_mate",
        "edit_mate",
+       "lock",
        "delete_mate",
+       "inputs",
+       "variants",
        "insert",
        "snap",
        "joints",
+       "frames",
        "pose",
+       "set_pose",
+       "waypoint",
+       "check_path",
+       "play",
        "inertia",
        "urdf",
        "mjcf",
@@ -116,6 +125,8 @@
        "command",
        "add",
        "edit",
+       "parameters",
+       "load_rows",
        "delete",
        "material",
        "stock",
@@ -150,7 +161,14 @@
        "checkpoint",
        "restore",
        "best",
-       "diff"
+       "diff",
+       "version",
+       "versions",
+       "restore_version",
+       "compare",
+       "branch",
+       "switch",
+       "merge"
       ],
       "type": "string"
      }
@@ -265,6 +283,7 @@
     "properties": {
      "action": {
       "enum": [
+       "layers",
        "check",
        "orient"
       ],
@@ -325,8 +344,13 @@
        "wall",
        "draft",
        "fit_clearance",
+       "rebuild",
        "welds",
        "cutlist",
+       "bom",
+       "purchase_csv",
+       "clearance",
+       "cam",
        "render",
        "select",
        "manufacturability"

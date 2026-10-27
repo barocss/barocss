@@ -1,0 +1,1985 @@
+{
+ "die-casting-zinc.bcad": {
+  "bodies": [
+   {
+    "key": "b1",
+    "volume": 23635.287835,
+    "faces": 6
+   }
+  ],
+  "threads": [],
+  "fastenerSteps": [],
+  "instances": [],
+  "drawing": {
+   "suggestions": [
+    {
+     "kind": "general-note",
+     "message": "A general tolerance note: linear ±0.2 mm, angular ±0.5° where a dimension says nothing.",
+     "estimate": true
+    }
+   ],
+   "issues": [
+    "STEP_NOT_LOCATED: 4 steps are not located (an inner edge’s position is missing).",
+    "OVERALL_MISSING: The part’s overall width, height, depth are not given."
+   ],
+   "dimensions": [],
+   "tolerances": [],
+   "suggestedUntoleranced": [
+    {
+     "kind": "general-note",
+     "message": "A general tolerance note: linear ±0.2 mm, angular ±0.5° where a dimension says nothing.",
+     "estimate": true
+    }
+   ]
+  },
+  "tapped": [],
+  "machining": [
+   {
+    "id": "material",
+    "status": "pass",
+    "message": "Zinc alloy (Zamak 3 class): a metal, machined to metal limits"
+   },
+   {
+    "id": "wall",
+    "status": "pass",
+    "message": "the thinnest wall, 20 mm, against a metal's 0.5 mm feasible and 0.8 mm recommended",
+    "value": 20
+   },
+   {
+    "id": "size",
+    "status": "pass",
+    "message": "the part (40 × 30 × 20 mm) within a typical mill's 400 × 250 × 150 mm",
+    "value": 0.133
+   },
+   {
+    "id": "hole-depth",
+    "status": "pass",
+    "message": "no holes"
+   },
+   {
+    "id": "hole-size",
+    "status": "pass",
+    "message": "no holes"
+   },
+   {
+    "id": "thread",
+    "status": "pass",
+    "message": "no tapped holes"
+   },
+   {
+    "id": "corners",
+    "status": "pass",
+    "message": "no inside corners along a tool's axis"
+   },
+   {
+    "id": "pocket",
+    "status": "pass",
+    "message": "no cavities"
+   },
+   {
+    "id": "feature",
+    "status": "pass",
+    "message": "no cavities"
+   },
+   {
+    "id": "tall",
+    "status": "pass",
+    "message": "no thin standing walls"
+   },
+   {
+    "id": "text",
+    "status": "pass",
+    "message": "no text: the studio makes no text feature"
+   },
+   {
+    "id": "access",
+    "status": "pass",
+    "message": "every surface reached from one of ±X, ±Y, ±Z (the tool from its side)"
+   },
+   {
+    "id": "setups",
+    "status": "pass",
+    "message": "2 setups (−X, +X), counted greedily by the area each adds",
+    "value": 2
+   },
+   {
+    "id": "drawing",
+    "status": "pass",
+    "message": "no drawing: no threads and no tolerance stated, so the standard ±0.125 mm holds"
+   },
+   {
+    "id": "features",
+    "status": "pass",
+    "message": "no machined features recognised",
+    "value": 0
+   },
+   {
+    "id": "stock",
+    "status": "unknown",
+    "message": "STOCK_NONE_LOADED: no block stock loaded: load the shop's list (set_stock); none is built in"
+   }
+  ],
+  "manufacturing": [
+   {
+    "id": "material",
+    "status": "pass",
+    "message": "Zinc alloy (Zamak 3 class): a zinc alloy, cast to its die casting limits"
+   },
+   {
+    "id": "pull",
+    "status": "pass",
+    "message": "the pull direction (the mould opens along it): 0, 0, 1"
+   },
+   {
+    "id": "wall",
+    "status": "pass",
+    "message": "the thinnest wall, 20 mm, against a zinc alloy's least 0.6 mm",
+    "value": 20
+   },
+   {
+    "id": "draft",
+    "status": "pass",
+    "message": "every face's draft (its exact normal), the least 0.75°, against a zinc alloy's least 0.25° and achievable 0.5°",
+    "value": 0.75
+   },
+   {
+    "id": "shrink",
+    "status": "unknown",
+    "message": "the pattern's shrinkage"
+   },
+   {
+    "id": "machining-allowance",
+    "status": "n/a",
+    "message": "no face is marked machined (set_casting machined): no machining allowance"
+   },
+   {
+    "id": "hot-spots",
+    "status": "pass",
+    "message": "1 hot spot (where it freezes last: the largest inscribed balls), the largest r 9.989 mm at (19.948, 15.081, 10.011), modulus ≈ 3.33 mm (an estimate from its shape, a point: within 3.33 … 9.989 mm, r/3 … r); grid 0.406 mm",
+    "value": 9.989
+   },
+   {
+    "id": "feeding",
+    "status": "unknown",
+    "message": "the hot spots fed from the gate"
+   },
+   {
+    "id": "section-change",
+    "status": "unknown",
+    "message": "the thickest section, 19.978 mm, against the nominal wall, 13.852 mm"
+   },
+   {
+    "id": "tolerance",
+    "status": "pass",
+    "message": "a zinc alloy holds about ±0.0508 mm (generally between ±0.001\" and ±0.002\" is possible for zinc)",
+    "value": 0.0508
+   }
+  ],
+  "bom": []
+ },
+ "drawing-holes.bcad": {
+  "bodies": [
+   {
+    "key": "b5",
+    "volume": 57561.417242,
+    "faces": 13
+   }
+  ],
+  "threads": [
+   [
+    "n3",
+    {
+     "d": 6,
+     "pitch": 1,
+     "radius": 2.5,
+     "internal": true
+    }
+   ]
+  ],
+  "fastenerSteps": [],
+  "instances": [],
+  "drawing": {
+   "suggestions": [],
+   "issues": [],
+   "dimensions": [
+    "3× 20",
+    "20",
+    "90",
+    "12",
+    "34",
+    "50",
+    "M6×1 × 12 DEEP",
+    "4× Ø6.6 THRU",
+    "Ø5.5 THRU",
+    "Ø9 THRU",
+    "120",
+    "10"
+   ],
+   "tolerances": [
+    {
+     "id": "d1",
+     "tol": {
+      "kind": "symmetric",
+      "value": 0.17
+     }
+    },
+    {
+     "id": "d2",
+     "tol": {
+      "kind": "symmetric",
+      "value": 0.1
+     }
+    },
+    {
+     "id": "d3",
+     "tol": {
+      "kind": "symmetric",
+      "value": 0.35
+     }
+    },
+    {
+     "id": "d4",
+     "tol": {
+      "kind": "symmetric",
+      "value": 0.21
+     }
+    },
+    {
+     "id": "d5",
+     "tol": {
+      "kind": "symmetric",
+      "value": 0.1
+     }
+    }
+   ],
+   "suggestedUntoleranced": [
+    {
+     "kind": "hole-plus-minus",
+     "message": "M6×1 × 12 DEEP: ±0.1 on 2 location dimensions.",
+     "estimate": false
+    },
+    {
+     "kind": "hole-plus-minus",
+     "message": "4× Ø6.6 THRU: ±0.21 on 3 location dimensions.",
+     "estimate": false
+    },
+    {
+     "kind": "hole-plus-minus",
+     "message": "Ø5.5 THRU: ±0.17 on 2 location dimensions.",
+     "estimate": false
+    },
+    {
+     "kind": "hole-plus-minus",
+     "message": "Ø9 THRU: ±0.35 on 2 location dimensions.",
+     "estimate": false
+    }
+   ]
+  },
+  "tapped": [
+   {
+    "node": "n3",
+    "thread": "M6×1",
+    "size": 6,
+    "pitch": 1,
+    "tapMM": 5,
+    "bore": 5,
+    "length": 10,
+    "faces": [
+     "n3.side0"
+    ]
+   }
+  ],
+  "machining": [
+   {
+    "id": "material",
+    "status": "unknown",
+    "message": "the material (its family sets the limits)"
+   },
+   {
+    "id": "wall",
+    "status": "unknown",
+    "message": "the thinnest wall, 8.7 mm"
+   },
+   {
+    "id": "size",
+    "status": "pass",
+    "message": "the part (120 × 50 × 10 mm) within a typical mill's 400 × 250 × 150 mm",
+    "value": 0.3
+   },
+   {
+    "id": "hole-depth",
+    "status": "pass",
+    "message": "7 holes; the deepest Ø5 reaching 10 mm from its open end, 2 × its diameter, against 4 × recommended and 6 × at most",
+    "value": 2
+   },
+   {
+    "id": "hole-size",
+    "status": "pass",
+    "message": "7 drilled diameters, each a standard drill size"
+   },
+   {
+    "id": "thread",
+    "status": "pass",
+    "message": "1 tapped hole (M6×1), each on its tap drill"
+   },
+   {
+    "id": "corners",
+    "status": "pass",
+    "message": "no inside corners along a tool's axis"
+   },
+   {
+    "id": "pocket",
+    "status": "pass",
+    "message": "no cavities"
+   },
+   {
+    "id": "feature",
+    "status": "pass",
+    "message": "no cavities"
+   },
+   {
+    "id": "tall",
+    "status": "pass",
+    "message": "no thin standing walls"
+   },
+   {
+    "id": "text",
+    "status": "pass",
+    "message": "no text: the studio makes no text feature"
+   },
+   {
+    "id": "access",
+    "status": "pass",
+    "message": "every surface reached from one of ±X, ±Y, ±Z (the tool from its side)"
+   },
+   {
+    "id": "setups",
+    "status": "pass",
+    "message": "2 setups (+X, +Z), counted greedily by the area each adds",
+    "value": 2
+   },
+   {
+    "id": "drawing",
+    "status": "warn",
+    "message": "the drawing: 5 of 7 items in order; title: the title block names no part (set_drawing title)"
+   },
+   {
+    "id": "features",
+    "status": "pass",
+    "message": "7 holes recognised, each with its setup",
+    "value": 7
+   },
+   {
+    "id": "stock",
+    "status": "unknown",
+    "message": "STOCK_NONE_LOADED: no block stock loaded: load the shop's list (set_stock); none is built in"
+   }
+  ],
+  "manufacturing": [
+   {
+    "id": "wall",
+    "status": "unknown",
+    "message": "wall"
+   },
+   {
+    "id": "hole",
+    "status": "unknown",
+    "message": "hole"
+   },
+   {
+    "id": "horizontal-hole",
+    "status": "unknown",
+    "message": "horizontal-hole"
+   },
+   {
+    "id": "gap",
+    "status": "unknown",
+    "message": "gap"
+   },
+   {
+    "id": "cavity",
+    "status": "unknown",
+    "message": "cavity"
+   },
+   {
+    "id": "bed-fit",
+    "status": "unknown",
+    "message": "bed-fit"
+   },
+   {
+    "id": "overhang",
+    "status": "unknown",
+    "message": "overhang"
+   },
+   {
+    "id": "warp",
+    "status": "unknown",
+    "message": "warp"
+   },
+   {
+    "id": "tip",
+    "status": "unknown",
+    "message": "tip"
+   }
+  ],
+  "bom": []
+ },
+ "enclosure-parts.bcad": {
+  "bodies": [
+   {
+    "key": "b3",
+    "volume": 12428.833133,
+    "faces": 26
+   }
+  ],
+  "threads": [],
+  "fastenerSteps": [],
+  "instances": [],
+  "drawing": {
+   "suggestions": [
+    {
+     "kind": "general-note",
+     "message": "A general tolerance note: linear ±0.2 mm, angular ±0.5° where a dimension says nothing.",
+     "estimate": true
+    }
+   ],
+   "issues": [
+    "HOLE_SIZE_MISSING: 4 holes have no size on the drawing.",
+    "HOLE_NOT_LOCATED: 4 holes are not located (a position across or up is missing).",
+    "STEP_NOT_LOCATED: 9 steps are not located (an inner edge’s position is missing).",
+    "OVERALL_MISSING: The part’s overall width, height, depth are not given."
+   ],
+   "dimensions": [],
+   "tolerances": [],
+   "suggestedUntoleranced": [
+    {
+     "kind": "general-note",
+     "message": "A general tolerance note: linear ±0.2 mm, angular ±0.5° where a dimension says nothing.",
+     "estimate": true
+    }
+   ]
+  },
+  "tapped": [],
+  "machining": [
+   {
+    "id": "material",
+    "status": "unknown",
+    "message": "the material (its family sets the limits)"
+   },
+   {
+    "id": "wall",
+    "status": "unknown",
+    "message": "the thinnest wall, 1 mm"
+   },
+   {
+    "id": "size",
+    "status": "pass",
+    "message": "the part (80 × 60 × 10.5 mm) within a typical mill's 400 × 250 × 150 mm",
+    "value": 0.24
+   },
+   {
+    "id": "hole-depth",
+    "status": "pass",
+    "message": "2 holes; the deepest Ø2.5 reaching 7.4 mm from its open end, 2.96 × its diameter, against 4 × recommended and 6 × at most",
+    "value": 2.96
+   },
+   {
+    "id": "hole-size",
+    "status": "warn",
+    "message": "2 drilled diameters; Ø2 under the 2.5 mm a standard tool cuts",
+    "value": 2
+   },
+   {
+    "id": "thread",
+    "status": "pass",
+    "message": "no tapped holes"
+   },
+   {
+    "id": "corners",
+    "status": "unknown",
+    "message": "0 inside corners along a tool's axis; 4 sharp edges cut sharp (a face open to the tool's end); 4 angled"
+   },
+   {
+    "id": "pocket",
+    "status": "pass",
+    "message": "no cavities"
+   },
+   {
+    "id": "feature",
+    "status": "pass",
+    "message": "no cavities"
+   },
+   {
+    "id": "tall",
+    "status": "pass",
+    "message": "no thin standing walls"
+   },
+   {
+    "id": "text",
+    "status": "pass",
+    "message": "no text: the studio makes no text feature"
+   },
+   {
+    "id": "access",
+    "status": "pass",
+    "message": "every surface reached from one of ±X, ±Y, ±Z (the tool from its side)"
+   },
+   {
+    "id": "setups",
+    "status": "pass",
+    "message": "3 setups (+Y, +Z, −Y), counted greedily by the area each adds",
+    "value": 3
+   },
+   {
+    "id": "drawing",
+    "status": "pass",
+    "message": "no drawing: no threads and no tolerance stated, so the standard ±0.125 mm holds"
+   },
+   {
+    "id": "features",
+    "status": "pass",
+    "message": "2 holes, 2 bosses recognised, each with its setup",
+    "value": 4
+   },
+   {
+    "id": "stock",
+    "status": "unknown",
+    "message": "STOCK_NONE_LOADED: no block stock loaded: load the shop's list (set_stock); none is built in"
+   }
+  ],
+  "manufacturing": [
+   {
+    "id": "wall",
+    "status": "unknown",
+    "message": "wall"
+   },
+   {
+    "id": "hole",
+    "status": "unknown",
+    "message": "hole"
+   },
+   {
+    "id": "horizontal-hole",
+    "status": "unknown",
+    "message": "horizontal-hole"
+   },
+   {
+    "id": "gap",
+    "status": "unknown",
+    "message": "gap"
+   },
+   {
+    "id": "cavity",
+    "status": "unknown",
+    "message": "cavity"
+   },
+   {
+    "id": "bed-fit",
+    "status": "unknown",
+    "message": "bed-fit"
+   },
+   {
+    "id": "overhang",
+    "status": "unknown",
+    "message": "overhang"
+   },
+   {
+    "id": "warp",
+    "status": "unknown",
+    "message": "warp"
+   },
+   {
+    "id": "tip",
+    "status": "unknown",
+    "message": "tip"
+   }
+  ],
+  "bom": []
+ },
+ "fasteners-in-part.bcad": {
+  "bodies": [
+   {
+    "key": "b3",
+    "volume": 23420.297616,
+    "faces": 8
+   },
+   {
+    "key": "b9",
+    "volume": 129.483883,
+    "faces": 4
+   },
+   {
+    "key": "b11",
+    "volume": 303.306672,
+    "faces": 9
+   },
+   {
+    "key": "b12",
+    "volume": 911.896838,
+    "faces": 10
+   },
+   {
+    "key": "b20",
+    "volume": 406.335827,
+    "faces": 11
+   }
+  ],
+  "threads": [
+   [
+    "n4",
+    {
+     "d": 6,
+     "pitch": 1,
+     "radius": 3,
+     "internal": false
+    }
+   ],
+   [
+    "n5",
+    {
+     "d": 6,
+     "pitch": 1,
+     "radius": 3,
+     "internal": false
+    }
+   ],
+   [
+    "n6",
+    {
+     "d": 6,
+     "pitch": 1,
+     "radius": 3,
+     "internal": false
+    }
+   ],
+   [
+    "n7",
+    {
+     "d": 6,
+     "pitch": 1,
+     "radius": 3,
+     "internal": false
+    }
+   ],
+   [
+    "n8",
+    {
+     "d": 6,
+     "pitch": 1,
+     "radius": 3,
+     "internal": false
+    }
+   ],
+   [
+    "n9",
+    {
+     "d": 6,
+     "pitch": 1,
+     "radius": 3,
+     "internal": true
+    }
+   ],
+   [
+    "n10",
+    {
+     "d": 6,
+     "pitch": 1,
+     "radius": 3,
+     "internal": false
+    }
+   ],
+   [
+    "n11",
+    {
+     "d": 6,
+     "pitch": 1,
+     "radius": 3,
+     "internal": true
+    }
+   ],
+   [
+    "n12",
+    {
+     "d": 6,
+     "pitch": 1,
+     "radius": 3,
+     "internal": false
+    }
+   ],
+   [
+    "n13",
+    {
+     "d": 5,
+     "pitch": 0.8,
+     "radius": 2.5,
+     "internal": false
+    }
+   ],
+   [
+    "n14",
+    {
+     "d": 5,
+     "pitch": 0.8,
+     "radius": 2.5,
+     "internal": false
+    }
+   ],
+   [
+    "n15",
+    {
+     "d": 5,
+     "pitch": 0.8,
+     "radius": 2.5,
+     "internal": false
+    }
+   ],
+   [
+    "n16",
+    {
+     "d": 5,
+     "pitch": 0.8,
+     "radius": 2.5,
+     "internal": false
+    }
+   ],
+   [
+    "n17",
+    {
+     "d": 5,
+     "pitch": 0.8,
+     "radius": 2.5,
+     "internal": false
+    }
+   ],
+   [
+    "n18",
+    {
+     "d": 5,
+     "pitch": 0.8,
+     "radius": 2.5,
+     "internal": false
+    }
+   ],
+   [
+    "n19",
+    {
+     "d": 5,
+     "pitch": 0.8,
+     "radius": 2.5,
+     "internal": false
+    }
+   ],
+   [
+    "n20",
+    {
+     "d": 5,
+     "pitch": 0.8,
+     "radius": 2.5,
+     "internal": false
+    }
+   ]
+  ],
+  "fastenerSteps": [
+   [
+    {
+     "label": "Joint",
+     "text": "through 10 mm, washer + nut: needs 18.8 mm (grip + 1.6 + 5.2 + 2 pitches), 20 mm reaches",
+     "done": true
+    }
+   ],
+   [
+    {
+     "label": "Head",
+     "text": "sinks into a 90° countersink Ø11.2 (ISO 10642 head, 3.1 deep) — make the hole Countersunk, Ø11.2 or a little more",
+     "done": true
+    }
+   ]
+  ],
+  "instances": [],
+  "drawing": {
+   "suggestions": [
+    {
+     "kind": "general-note",
+     "message": "A general tolerance note: linear ±0.2 mm, angular ±0.5° where a dimension says nothing.",
+     "estimate": true
+    }
+   ],
+   "issues": [
+    "HOLE_SIZE_MISSING: 7 holes have no size on the drawing.",
+    "HOLE_NOT_LOCATED: 7 holes are not located (a position across or up is missing).",
+    "STEP_NOT_LOCATED: 8 steps are not located (an inner edge’s position is missing).",
+    "OVERALL_MISSING: The part’s overall width, height, depth are not given."
+   ],
+   "dimensions": [],
+   "tolerances": [],
+   "suggestedUntoleranced": [
+    {
+     "kind": "general-note",
+     "message": "A general tolerance note: linear ±0.2 mm, angular ±0.5° where a dimension says nothing.",
+     "estimate": true
+    }
+   ]
+  },
+  "tapped": [],
+  "machining": [
+   {
+    "id": "material",
+    "status": "unknown",
+    "message": "the material (its family sets the limits)"
+   },
+   {
+    "id": "wall",
+    "status": "unknown",
+    "message": "the thinnest wall, 0.072 mm"
+   },
+   {
+    "id": "size",
+    "status": "pass",
+    "message": "the part (60 × 40 × 24 mm) within a typical mill's 400 × 250 × 150 mm",
+    "value": 0.16
+   },
+   {
+    "id": "hole-depth",
+    "status": "pass",
+    "message": "4 holes; the deepest Ø5.5 reaching 10 mm from its open end, 1.818 × its diameter, against 4 × recommended and 6 × at most",
+    "value": 1.818
+   },
+   {
+    "id": "hole-size",
+    "status": "pass",
+    "message": "4 drilled diameters, each a standard drill size"
+   },
+   {
+    "id": "thread",
+    "status": "pass",
+    "message": "no tapped holes"
+   },
+   {
+    "id": "corners",
+    "status": "unknown",
+    "message": "0 inside corners along a tool's axis; 6 sharp edges cut sharp (a face open to the tool's end); 6 angled"
+   },
+   {
+    "id": "pocket",
+    "status": "pass",
+    "message": "1 cavity (floors); the deepest for its width 1.86 deep, 3 wide: 0.62 × against 4 × recommended",
+    "value": 0.62
+   },
+   {
+    "id": "feature",
+    "status": "pass",
+    "message": "the narrowest cavity 3 mm wide, against 2.5 mm recommended and 0.5 mm feasible",
+    "value": 3
+   },
+   {
+    "id": "tall",
+    "status": "pass",
+    "message": "no thin standing walls"
+   },
+   {
+    "id": "text",
+    "status": "pass",
+    "message": "no text: the studio makes no text feature"
+   },
+   {
+    "id": "access",
+    "status": "pass",
+    "message": "every surface reached from one of ±X, ±Y, ±Z (the tool from its side)"
+   },
+   {
+    "id": "setups",
+    "status": "pass",
+    "message": "3 setups (+X, −Z, +Z), counted greedily by the area each adds",
+    "value": 3
+   },
+   {
+    "id": "drawing",
+    "status": "pass",
+    "message": "no drawing: no threads and no tolerance stated, so the standard ±0.125 mm holds"
+   },
+   {
+    "id": "features",
+    "status": "pass",
+    "message": "1 slot, 4 holes, 1 boss recognised, each with its setup",
+    "value": 6
+   },
+   {
+    "id": "stock",
+    "status": "unknown",
+    "message": "STOCK_NONE_LOADED: no block stock loaded: load the shop's list (set_stock); none is built in"
+   }
+  ],
+  "manufacturing": [
+   {
+    "id": "wall",
+    "status": "unknown",
+    "message": "wall"
+   },
+   {
+    "id": "hole",
+    "status": "unknown",
+    "message": "hole"
+   },
+   {
+    "id": "horizontal-hole",
+    "status": "unknown",
+    "message": "horizontal-hole"
+   },
+   {
+    "id": "gap",
+    "status": "unknown",
+    "message": "gap"
+   },
+   {
+    "id": "cavity",
+    "status": "unknown",
+    "message": "cavity"
+   },
+   {
+    "id": "bed-fit",
+    "status": "unknown",
+    "message": "bed-fit"
+   },
+   {
+    "id": "overhang",
+    "status": "unknown",
+    "message": "overhang"
+   },
+   {
+    "id": "warp",
+    "status": "unknown",
+    "message": "warp"
+   },
+   {
+    "id": "tip",
+    "status": "unknown",
+    "message": "tip"
+   }
+  ],
+  "bom": []
+ },
+ "fasteners-instances.bcad": {
+  "bodies": [
+   {
+    "key": "b1",
+    "volume": 80000,
+    "faces": 6
+   }
+  ],
+  "threads": [],
+  "fastenerSteps": [],
+  "instances": [
+   {
+    "id": "inst1",
+    "name": "Socket head cap screw ISO 4762 M6×1 × 20",
+    "threads": [
+     [
+      "n0",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n1",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": true
+      }
+     ],
+     [
+      "n2",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n3",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n4",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n5",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n6",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n7",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ]
+    ],
+    "fastenerSteps": [
+     []
+    ]
+   },
+   {
+    "id": "inst2",
+    "name": "Socket head cap screw ISO 4762 M6×1 × 20",
+    "threads": [
+     [
+      "n0",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n1",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": true
+      }
+     ],
+     [
+      "n2",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n3",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n4",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n5",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n6",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n7",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ]
+    ],
+    "fastenerSteps": [
+     []
+    ]
+   },
+   {
+    "id": "inst3",
+    "name": "Socket head cap screw ISO 4762 M6×1 × 20",
+    "threads": [
+     [
+      "n0",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n1",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": true
+      }
+     ],
+     [
+      "n2",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n3",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n4",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n5",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n6",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n7",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ]
+    ],
+    "fastenerSteps": [
+     []
+    ]
+   },
+   {
+    "id": "inst4",
+    "name": "Socket head cap screw ISO 4762 M6×1 × 20",
+    "threads": [
+     [
+      "n0",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n1",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": true
+      }
+     ],
+     [
+      "n2",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n3",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n4",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n5",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n6",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ],
+     [
+      "n7",
+      {
+       "d": 6,
+       "pitch": 1,
+       "radius": 3,
+       "internal": false
+      }
+     ]
+    ],
+    "fastenerSteps": [
+     []
+    ]
+   },
+   {
+    "id": "inst5",
+    "name": "Hex head bolt ISO 4017 M8×1.25 × 30",
+    "threads": [
+     [
+      "n0",
+      {
+       "d": 8,
+       "pitch": 1.25,
+       "radius": 4,
+       "internal": false
+      }
+     ],
+     [
+      "n1",
+      {
+       "d": 8,
+       "pitch": 1.25,
+       "radius": 4,
+       "internal": false
+      }
+     ],
+     [
+      "n2",
+      {
+       "d": 8,
+       "pitch": 1.25,
+       "radius": 4,
+       "internal": false
+      }
+     ],
+     [
+      "n3",
+      {
+       "d": 8,
+       "pitch": 1.25,
+       "radius": 4,
+       "internal": false
+      }
+     ],
+     [
+      "n4",
+      {
+       "d": 8,
+       "pitch": 1.25,
+       "radius": 4,
+       "internal": false
+      }
+     ]
+    ],
+    "fastenerSteps": [
+     []
+    ]
+   }
+  ],
+  "drawing": {
+   "suggestions": [
+    {
+     "kind": "general-note",
+     "message": "A general tolerance note: linear ±0.2 mm, angular ±0.5° where a dimension says nothing.",
+     "estimate": true
+    }
+   ],
+   "issues": [
+    "OVERALL_MISSING: The part’s overall width, height, depth are not given."
+   ],
+   "dimensions": [],
+   "tolerances": [],
+   "suggestedUntoleranced": [
+    {
+     "kind": "general-note",
+     "message": "A general tolerance note: linear ±0.2 mm, angular ±0.5° where a dimension says nothing.",
+     "estimate": true
+    }
+   ]
+  },
+  "tapped": [],
+  "machining": [
+   {
+    "id": "material",
+    "status": "unknown",
+    "message": "the material (its family sets the limits)"
+   },
+   {
+    "id": "wall",
+    "status": "unknown",
+    "message": "the thinnest wall, 10 mm"
+   },
+   {
+    "id": "size",
+    "status": "pass",
+    "message": "the part (100 × 80 × 10 mm) within a typical mill's 400 × 250 × 150 mm",
+    "value": 0.32
+   },
+   {
+    "id": "hole-depth",
+    "status": "pass",
+    "message": "no holes"
+   },
+   {
+    "id": "hole-size",
+    "status": "pass",
+    "message": "no holes"
+   },
+   {
+    "id": "thread",
+    "status": "pass",
+    "message": "no tapped holes"
+   },
+   {
+    "id": "corners",
+    "status": "pass",
+    "message": "no inside corners along a tool's axis"
+   },
+   {
+    "id": "pocket",
+    "status": "pass",
+    "message": "no cavities"
+   },
+   {
+    "id": "feature",
+    "status": "pass",
+    "message": "no cavities"
+   },
+   {
+    "id": "tall",
+    "status": "pass",
+    "message": "no thin standing walls"
+   },
+   {
+    "id": "text",
+    "status": "pass",
+    "message": "no text: the studio makes no text feature"
+   },
+   {
+    "id": "access",
+    "status": "pass",
+    "message": "every surface reached from one of ±X, ±Y, ±Z (the tool from its side)"
+   },
+   {
+    "id": "setups",
+    "status": "pass",
+    "message": "2 setups (+X, −X), counted greedily by the area each adds",
+    "value": 2
+   },
+   {
+    "id": "drawing",
+    "status": "pass",
+    "message": "no drawing: no threads and no tolerance stated, so the standard ±0.125 mm holds"
+   },
+   {
+    "id": "features",
+    "status": "pass",
+    "message": "no machined features recognised",
+    "value": 0
+   },
+   {
+    "id": "stock",
+    "status": "unknown",
+    "message": "STOCK_NONE_LOADED: no block stock loaded: load the shop's list (set_stock); none is built in"
+   }
+  ],
+  "manufacturing": [
+   {
+    "id": "wall",
+    "status": "unknown",
+    "message": "wall"
+   },
+   {
+    "id": "hole",
+    "status": "unknown",
+    "message": "hole"
+   },
+   {
+    "id": "horizontal-hole",
+    "status": "unknown",
+    "message": "horizontal-hole"
+   },
+   {
+    "id": "gap",
+    "status": "unknown",
+    "message": "gap"
+   },
+   {
+    "id": "cavity",
+    "status": "unknown",
+    "message": "cavity"
+   },
+   {
+    "id": "bed-fit",
+    "status": "unknown",
+    "message": "bed-fit"
+   },
+   {
+    "id": "overhang",
+    "status": "unknown",
+    "message": "overhang"
+   },
+   {
+    "id": "warp",
+    "status": "unknown",
+    "message": "warp"
+   },
+   {
+    "id": "tip",
+    "status": "unknown",
+    "message": "tip"
+   }
+  ],
+  "bom": [
+   {
+    "item": "Socket head cap screw ISO 4762 M6×1 × 20",
+    "qty": 4,
+    "size": "socket-screw M6 × 20",
+    "kind": "fastener",
+    "estimate": true
+   },
+   {
+    "item": "Hex head bolt ISO 4017 M8×1.25 × 30",
+    "qty": 1,
+    "size": "hex-bolt M8 × 30",
+    "kind": "fastener",
+    "estimate": true
+   },
+   {
+    "item": "b1",
+    "qty": 1,
+    "size": null,
+    "estimate": null
+   }
+  ]
+ },
+ "sand-casting-a356.bcad": {
+  "bodies": [
+   {
+    "key": "b1",
+    "volume": 22797.82723,
+    "faces": 6
+   }
+  ],
+  "threads": [],
+  "fastenerSteps": [],
+  "instances": [],
+  "drawing": {
+   "suggestions": [
+    {
+     "kind": "general-note",
+     "message": "A general tolerance note: linear ±0.2 mm, angular ±0.5° where a dimension says nothing.",
+     "estimate": true
+    }
+   ],
+   "issues": [
+    "STEP_NOT_LOCATED: 4 steps are not located (an inner edge’s position is missing).",
+    "OVERALL_MISSING: The part’s overall width, height, depth are not given."
+   ],
+   "dimensions": [],
+   "tolerances": [],
+   "suggestedUntoleranced": [
+    {
+     "kind": "general-note",
+     "message": "A general tolerance note: linear ±0.2 mm, angular ±0.5° where a dimension says nothing.",
+     "estimate": true
+    }
+   ]
+  },
+  "tapped": [],
+  "machining": [
+   {
+    "id": "material",
+    "status": "pass",
+    "message": "Aluminium casting alloy (A356 class): a metal, machined to metal limits"
+   },
+   {
+    "id": "wall",
+    "status": "pass",
+    "message": "the thinnest wall, 20 mm, against a metal's 0.5 mm feasible and 0.8 mm recommended",
+    "value": 20
+   },
+   {
+    "id": "size",
+    "status": "pass",
+    "message": "the part (40 × 30 × 20 mm) within a typical mill's 400 × 250 × 150 mm",
+    "value": 0.133
+   },
+   {
+    "id": "hole-depth",
+    "status": "pass",
+    "message": "no holes"
+   },
+   {
+    "id": "hole-size",
+    "status": "pass",
+    "message": "no holes"
+   },
+   {
+    "id": "thread",
+    "status": "pass",
+    "message": "no tapped holes"
+   },
+   {
+    "id": "corners",
+    "status": "pass",
+    "message": "no inside corners along a tool's axis"
+   },
+   {
+    "id": "pocket",
+    "status": "pass",
+    "message": "no cavities"
+   },
+   {
+    "id": "feature",
+    "status": "pass",
+    "message": "no cavities"
+   },
+   {
+    "id": "tall",
+    "status": "pass",
+    "message": "no thin standing walls"
+   },
+   {
+    "id": "text",
+    "status": "pass",
+    "message": "no text: the studio makes no text feature"
+   },
+   {
+    "id": "access",
+    "status": "pass",
+    "message": "every surface reached from one of ±X, ±Y, ±Z (the tool from its side)"
+   },
+   {
+    "id": "setups",
+    "status": "pass",
+    "message": "2 setups (−X, +X), counted greedily by the area each adds",
+    "value": 2
+   },
+   {
+    "id": "drawing",
+    "status": "pass",
+    "message": "no drawing: no threads and no tolerance stated, so the standard ±0.125 mm holds"
+   },
+   {
+    "id": "features",
+    "status": "pass",
+    "message": "no machined features recognised",
+    "value": 0
+   },
+   {
+    "id": "stock",
+    "status": "unknown",
+    "message": "STOCK_NONE_LOADED: no block stock loaded: load the shop's list (set_stock); none is built in"
+   }
+  ],
+  "manufacturing": [
+   {
+    "id": "material",
+    "status": "pass",
+    "message": "Aluminium casting alloy (A356 class): a aluminium alloy, cast to its sand casting limits"
+   },
+   {
+    "id": "pull",
+    "status": "pass",
+    "message": "the pull direction (the mould opens along it): 0, 0, 1"
+   },
+   {
+    "id": "wall",
+    "status": "pass",
+    "message": "the thinnest wall, 20 mm, against a aluminium alloy's least 2.54 mm",
+    "value": 20
+   },
+   {
+    "id": "draft",
+    "status": "pass",
+    "message": "every face's draft (its exact normal), the least 2.5°, against a aluminium alloy's least 1° and achievable 2°",
+    "value": 2.5
+   },
+   {
+    "id": "shrink",
+    "status": "pass",
+    "message": "the pattern scaled 1.012917 (Aluminum, up to 4 ft: the part's largest 40 mm); a simplification: one factor by the largest extent — a pattern maker may scale each dimension by its own band",
+    "value": 1.012917
+   },
+   {
+    "id": "machining-allowance",
+    "status": "pass",
+    "message": "2.286 mm on 1 flat face (Non ferrous, up to 8 in)",
+    "value": 2.286
+   },
+   {
+    "id": "hot-spots",
+    "status": "pass",
+    "message": "1 hot spot (where it freezes last: the largest inscribed balls), the largest r 9.989 mm at (20.151, 15.081, 10.011), modulus ≈ 3.33 mm (an estimate from its shape, a point: within 3.33 … 9.989 mm, r/3 … r); grid 0.406 mm",
+    "value": 9.989
+   },
+   {
+    "id": "feeding",
+    "status": "pass",
+    "message": "every hot spot (1) fed from the gate at (20, 15, 20) through sections at least as thick",
+    "value": 0
+   },
+   {
+    "id": "section-change",
+    "status": "pass",
+    "message": "the thickest section (2r = 19.978 mm) against the nominal wall (15.032 mm): 1.329 : 1, against 2 : 1",
+    "value": 1.329
+   },
+   {
+    "id": "tolerance",
+    "status": "unknown",
+    "message": "the general tolerance"
+   }
+  ],
+  "bom": []
+ },
+ "tapped-holes-milled.bcad": {
+  "bodies": [
+   {
+    "key": "b4",
+    "volume": 46815.030521,
+    "faces": 11
+   }
+  ],
+  "threads": [
+   [
+    "n2",
+    {
+     "d": 6,
+     "pitch": 1,
+     "radius": 2.5,
+     "internal": true
+    }
+   ],
+   [
+    "n3",
+    {
+     "d": 3,
+     "pitch": 0.5,
+     "radius": 1.25,
+     "internal": true
+    }
+   ],
+   [
+    "n4",
+    {
+     "d": 10,
+     "pitch": 1.5,
+     "radius": 4.25,
+     "internal": true
+    }
+   ]
+  ],
+  "fastenerSteps": [],
+  "instances": [],
+  "drawing": {
+   "suggestions": [
+    {
+     "kind": "general-note",
+     "message": "A general tolerance note: linear ±0.2 mm, angular ±0.5° where a dimension says nothing.",
+     "estimate": true
+    }
+   ],
+   "issues": [
+    "HOLE_SIZE_MISSING: 3 holes have no size on the drawing.",
+    "HOLE_NOT_LOCATED: 3 holes are not located (a position across or up is missing).",
+    "OVERALL_MISSING: The part’s overall width, height, depth are not given."
+   ],
+   "dimensions": [],
+   "tolerances": [],
+   "suggestedUntoleranced": [
+    {
+     "kind": "general-note",
+     "message": "A general tolerance note: linear ±0.2 mm, angular ±0.5° where a dimension says nothing.",
+     "estimate": true
+    }
+   ]
+  },
+  "tapped": [
+   {
+    "node": "n2",
+    "thread": "M6×1",
+    "size": 6,
+    "pitch": 1,
+    "tapMM": 5,
+    "bore": 5,
+    "length": 12,
+    "faces": [
+     "n2.side0"
+    ]
+   },
+   {
+    "node": "n3",
+    "thread": "M3×0.5",
+    "size": 3,
+    "pitch": 0.5,
+    "tapMM": 2.5,
+    "bore": 2.5,
+    "length": 20,
+    "faces": [
+     "n3.side0"
+    ]
+   },
+   {
+    "node": "n4",
+    "thread": "M10×1.5",
+    "size": 10,
+    "pitch": 1.5,
+    "tapMM": 8.5,
+    "bore": 8.5,
+    "length": 15,
+    "faces": [
+     "n4.side0"
+    ]
+   }
+  ],
+  "machining": [
+   {
+    "id": "material",
+    "status": "pass",
+    "message": "Aluminium 6061: a metal, machined to metal limits"
+   },
+   {
+    "id": "wall",
+    "status": "pass",
+    "message": "the thinnest wall, 5 mm, against a metal's 0.5 mm feasible and 0.8 mm recommended",
+    "value": 5
+   },
+   {
+    "id": "size",
+    "status": "pass",
+    "message": "the part (60 × 40 × 20 mm) within a typical mill's 400 × 250 × 150 mm",
+    "value": 0.16
+   },
+   {
+    "id": "hole-depth",
+    "status": "fail",
+    "message": "3 holes; the deepest Ø2.5 reaching 20 mm from its open end, 8 × its diameter, against 4 × recommended and 6 × at most",
+    "value": 8
+   },
+   {
+    "id": "hole-size",
+    "status": "pass",
+    "message": "3 drilled diameters, each a standard drill size"
+   },
+   {
+    "id": "thread",
+    "status": "warn",
+    "message": "3 tapped holes (M6×1, M3×0.5, M10×1.5); M3×0.5 under M6, the recommended"
+   },
+   {
+    "id": "corners",
+    "status": "pass",
+    "message": "no inside corners along a tool's axis"
+   },
+   {
+    "id": "pocket",
+    "status": "pass",
+    "message": "no cavities"
+   },
+   {
+    "id": "feature",
+    "status": "pass",
+    "message": "no cavities"
+   },
+   {
+    "id": "tall",
+    "status": "pass",
+    "message": "no thin standing walls"
+   },
+   {
+    "id": "text",
+    "status": "pass",
+    "message": "no text: the studio makes no text feature"
+   },
+   {
+    "id": "access",
+    "status": "pass",
+    "message": "every surface reached from one of ±X, ±Y, ±Z (the tool from its side)"
+   },
+   {
+    "id": "setups",
+    "status": "pass",
+    "message": "2 setups (+X, +Z), counted greedily by the area each adds",
+    "value": 2
+   },
+   {
+    "id": "drawing",
+    "status": "fail",
+    "message": "no drawing, but 3 tapped holes (M6×1, M3×0.5, M10×1.5): a thread's size, place and length go on a drawing"
+   },
+   {
+    "id": "features",
+    "status": "pass",
+    "message": "3 holes recognised, each with its setup",
+    "value": 3
+   },
+   {
+    "id": "stock",
+    "status": "unknown",
+    "message": "STOCK_NONE_LOADED: no block stock loaded: load the shop's list (set_stock); none is built in"
+   }
+  ],
+  "manufacturing": [
+   {
+    "id": "material",
+    "status": "pass",
+    "message": "Aluminium 6061: a metal, machined to metal limits"
+   },
+   {
+    "id": "wall",
+    "status": "pass",
+    "message": "the thinnest wall, 5 mm, against a metal's 0.5 mm feasible and 0.8 mm recommended",
+    "value": 5
+   },
+   {
+    "id": "size",
+    "status": "pass",
+    "message": "the part (60 × 40 × 20 mm) within a typical mill's 400 × 250 × 150 mm",
+    "value": 0.16
+   },
+   {
+    "id": "hole-depth",
+    "status": "fail",
+    "message": "3 holes; the deepest Ø2.5 reaching 20 mm from its open end, 8 × its diameter, against 4 × recommended and 6 × at most",
+    "value": 8
+   },
+   {
+    "id": "hole-size",
+    "status": "pass",
+    "message": "3 drilled diameters, each a standard drill size"
+   },
+   {
+    "id": "thread",
+    "status": "warn",
+    "message": "3 tapped holes (M6×1, M3×0.5, M10×1.5); M3×0.5 under M6, the recommended"
+   },
+   {
+    "id": "corners",
+    "status": "pass",
+    "message": "no inside corners along a tool's axis"
+   },
+   {
+    "id": "pocket",
+    "status": "pass",
+    "message": "no cavities"
+   },
+   {
+    "id": "feature",
+    "status": "pass",
+    "message": "no cavities"
+   },
+   {
+    "id": "tall",
+    "status": "pass",
+    "message": "no thin standing walls"
+   },
+   {
+    "id": "text",
+    "status": "pass",
+    "message": "no text: the studio makes no text feature"
+   },
+   {
+    "id": "access",
+    "status": "pass",
+    "message": "every surface reached from one of ±X, ±Y, ±Z (the tool from its side)"
+   },
+   {
+    "id": "setups",
+    "status": "pass",
+    "message": "2 setups (+X, +Z), counted greedily by the area each adds",
+    "value": 2
+   },
+   {
+    "id": "drawing",
+    "status": "fail",
+    "message": "no drawing, but 3 tapped holes (M6×1, M3×0.5, M10×1.5): a thread's size, place and length go on a drawing"
+   },
+   {
+    "id": "features",
+    "status": "pass",
+    "message": "3 holes recognised, each with its setup",
+    "value": 3
+   },
+   {
+    "id": "stock",
+    "status": "unknown",
+    "message": "STOCK_NONE_LOADED: no block stock loaded: load the shop's list (set_stock); none is built in"
+   }
+  ],
+  "bom": []
+ }
+}

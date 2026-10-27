@@ -49,3 +49,24 @@ cases are built by `scripts/rb/oracle-cases.mjs`:
 
 The property "exact oracles" draws random members, and `test/property.test.mjs` checks a fixed slice. Volumes
 must match to 1e-6 relative, with a floor of 1e-12 mm³; centroids to max(1e-6, 1e-11 / V) mm.
+
+## L4 fuzz (RB5, K10, D188)
+
+`node scripts/rb/fuzz.mjs` (`pnpm rb:fuzz`) generates seeded random CSG trees (`scripts/rb/fuzz-gen.mjs`) and runs
+each through the kernel in worker processes, under a SIGKILL timeout.
+- **The trees:** boxes, cylinders, spheres, cones and frusta, rounded boxes (four edges filleted) and shelled boxes,
+  joined by union, difference, intersect and linear and circular patterns. Half of them are agent-like: whole
+  millimetres, quarter turns, flush faces.
+- **The oracle** (`scripts/rb/fuzz-oracle.mjs`) uses no kernel code.
+  - It casts z rays through a lattice turned 0.4 rad off the axes. Each leaf's exact intervals along a ray are
+    combined by the tree.
+  - It runs at 6 shifts. The mean is the value; three standard errors are its bound e.
+  - A WRONG verdict is confirmed at 4n and 8 shifts before it counts; one cleared there was the oracle's limit.
+- **The outcome of each case:**
+  - OK: valid under the strict check, watertight, and its volume and centroid within 2e (or 1e-4 of V);
+  - REFUSED: a typed error, counted by its code;
+  - a finding: WRONG, INVALID, CRASH or TIMEOUT.
+- **Findings:** each is shrunk to its smallest tree. With `--save` it is written to `corpus/fuzz/` as a replayable case
+  holding the oracle's values, so RB runs it from then on. Known findings are in `fuzz-todo.json`. `--record`
+  appends a row to `fuzz.jsonl`.
+- **Options:** `RB_FUZZ_RUNS` (default 200) and `RB_FUZZ_SEED` (20261023, or `random`).

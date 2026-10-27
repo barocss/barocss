@@ -6,11 +6,11 @@
 // external validators (usd-core's UsdPhysics parser, libsdformat) wait for the owner's go-ahead (O62).
 import { parseXml, type XmlNode } from './urdfCheck';
 import type { Mat3, V3 } from './inertia';
+import { refusal } from '../engine/refusal';
 
 export interface ModelLink { name: string; R: Mat3; o: V3; mass: number; com: V3; inertia: Mat3 }
 export interface ModelJoint { name: string; type: string; parent: string; child: string; axis: V3; limit?: { lower?: number; upper?: number; effort?: number; velocity?: number }; mimic?: { joint: string; multiplier: number; offset: number } }
 export interface RobotModel { links: ModelLink[]; joints: ModelJoint[]; closures: { name: string; a: string; b: string }[] }
-export class ModelReadError extends Error { constructor(message: string) { super(message); this.name = 'ModelReadError'; } }
 
 const mul = (a: Mat3, b: Mat3): Mat3 => { const r = new Array(9).fill(0) as Mat3; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) for (let k = 0; k < 3; k++) r[i * 3 + j] += a[i * 3 + k] * b[k * 3 + j]; return r; };
 const tr = (m: Mat3): Mat3 => [m[0], m[3], m[6], m[1], m[4], m[7], m[2], m[5], m[8]];
@@ -35,21 +35,21 @@ function about(a: V3, t: number): Mat3 {
 const kids = (n: XmlNode, name: string) => n.children.filter(c => c.name === name);
 const kid = (n: XmlNode, name: string) => n.children.find(c => c.name === name);
 const numsOf = (s: string | undefined, k: number, what: string): number[] => {
-  const v = (s ?? '').trim().split(/\s+/).map(Number); if (v.length !== k || v.some(x => !Number.isFinite(x))) throw new ModelReadError(`${what}: ${k} numbers expected, got "${s}"`); return v;
+  const v = (s ?? '').trim().split(/\s+/).map(Number); if (v.length !== k || v.some(x => !Number.isFinite(x))) throw refusal('MODEL_READ', `${what}: ${k} numbers expected, got "${s}"`); return v;
 };
-const val = (n: XmlNode | undefined, what: string) => { const v = Number(n?.text); if (!n || !Number.isFinite(v)) throw new ModelReadError(`${what} is missing or not a number`); return v; };
+const val = (n: XmlNode | undefined, what: string) => { const v = Number(n?.text); if (!n || !Number.isFinite(v)) throw refusal('MODEL_READ', `${what} is missing or not a number`); return v; };
 const opt = (n: XmlNode | undefined) => (n && n.text !== undefined && Number.isFinite(Number(n.text)) ? Number(n.text) : undefined);
 
 /** An SDF model as RM9c writes it (its links' poses in the model frame; joints at their child's frame). */
 export function readSdf(text: string): RobotModel {
   const root = parseXml(text, { text: true });
-  if (root.name !== 'sdf' || root.attrs.version !== '1.11') throw new ModelReadError(`not an SDF 1.11 document (<${root.name} version="${root.attrs.version}">)`);
-  const model = kid(root, 'model'); if (!model) throw new ModelReadError('no <model>');
+  if (root.name !== 'sdf' || root.attrs.version !== '1.11') throw refusal('MODEL_READ', `not an SDF 1.11 document (<${root.name} version="${root.attrs.version}">)`);
+  const model = kid(root, 'model'); if (!model) throw refusal('MODEL_READ', 'no <model>');
   const links: ModelLink[] = kids(model, 'link').map(l => {
-    const pose = kid(l, 'pose'); if (pose?.attrs.relative_to !== '__model__') throw new ModelReadError(`link ${l.attrs.name}: its pose is not in the model frame`);
+    const pose = kid(l, 'pose'); if (pose?.attrs.relative_to !== '__model__') throw refusal('MODEL_READ', `link ${l.attrs.name}: its pose is not in the model frame`);
     const p = numsOf(pose.text, 6, `link ${l.attrs.name} pose`), inl = kid(l, 'inertial'), ip = kid(inl ?? l, 'pose'), I = kid(inl ?? l, 'inertia');
     const c = ip ? numsOf(ip.text, 6, `link ${l.attrs.name} inertial pose`) : [0, 0, 0, 0, 0, 0];
-    if (c[3] || c[4] || c[5]) throw new ModelReadError(`link ${l.attrs.name}: an inertial frame turned from the link's is not read`);
+    if (c[3] || c[4] || c[5]) throw refusal('MODEL_READ', `link ${l.attrs.name}: an inertial frame turned from the link's is not read`);
     const g = (k: string) => val(kid(I!, k), `link ${l.attrs.name} ${k}`);
     const xx = g('ixx'), xy = g('ixy'), xz = g('ixz'), yy = g('iyy'), yz = g('iyz'), zz = g('izz');
     return { name: l.attrs.name, R: fromRpy(p[3], p[4], p[5]), o: [p[0], p[1], p[2]], mass: val(kid(inl!, 'mass'), `link ${l.attrs.name} mass`), com: [c[0], c[1], c[2]], inertia: [xx, xy, xz, xy, yy, yz, xz, yz, zz] };
@@ -58,7 +58,7 @@ export function readSdf(text: string): RobotModel {
   for (const j of kids(model, 'joint')) {
     const type = j.attrs.type, parent = kid(j, 'parent')?.text ?? '', child = kid(j, 'child')?.text ?? '', pose = numsOf(kid(j, 'pose')?.text, 6, `joint ${j.attrs.name} pose`);
     if (type === 'ball') { closures.push({ name: j.attrs.name, a: parent, b: child }); continue; }
-    if (pose.some(v => v !== 0)) throw new ModelReadError(`joint ${j.attrs.name}: away from its child's frame`);
+    if (pose.some(v => v !== 0)) throw refusal('MODEL_READ', `joint ${j.attrs.name}: away from its child's frame`);
     const ax = kid(j, 'axis'), lim = ax && kid(ax, 'limit'), mim = ax && kid(ax, 'mimic');
     const axis = (ax ? numsOf(kid(ax, 'xyz')?.text, 3, `joint ${j.attrs.name} axis`) : [0, 0, 1]) as V3;
     joints.push({ name: j.attrs.name, type, parent, child, axis, ...(lim ? { limit: { lower: opt(kid(lim, 'lower')), upper: opt(kid(lim, 'upper')), effort: opt(kid(lim, 'effort')), velocity: opt(kid(lim, 'velocity')) } } : {}),
@@ -70,14 +70,14 @@ export function readSdf(text: string): RobotModel {
 // ——— USD (.usda, as RM9c writes it: one level of prims under the root, attributes one a line)
 /** A .usda stage as RM9c writes it. */
 export function readUsda(text: string): RobotModel {
-  if (!text.startsWith('#usda 1.0')) throw new ModelReadError('not a .usda file');
+  if (!text.startsWith('#usda 1.0')) throw refusal('MODEL_READ', 'not a .usda file');
   const head = /\(\s*([\s\S]*?)\n\)/.exec(text)?.[1] ?? '';
-  if (!/metersPerUnit = 1\b/.test(head) || !/kilogramsPerUnit = 1\b/.test(head) || !/upAxis = "Z"/.test(head)) throw new ModelReadError('the stage is not in SI units with Z up');
+  if (!/metersPerUnit = 1\b/.test(head) || !/kilogramsPerUnit = 1\b/.test(head) || !/upAxis = "Z"/.test(head)) throw refusal('MODEL_READ', 'the stage is not in SI units with Z up');
   // (The root's direct children: `    def <Type> "<name>"` at four spaces, each to its `    }`.)
   const prims: { type: string; name: string; body: string }[] = [];
   for (const m of text.matchAll(/^ {4}def (\w+) "(\w+)"[\s\S]*?^ {4}\{\n([\s\S]*?)^ {4}\}$/gm)) prims.push({ type: m[1], name: m[2], body: m[3] });
   const attr = (body: string, name: string) => new RegExp(`^ {8}(?:uniform |custom )?\\w+(?:\\[\\])? ${name.replace(/:/g, ':')} = (.+)$`, 'm').exec(body)?.[1];
-  const tupleOf = (s: string | undefined, k: number, what: string) => { const v = (s ?? '').replace(/[()]/g, '').split(',').map(Number); if (v.length !== k || v.some(x => !Number.isFinite(x))) throw new ModelReadError(`${what}: ${k} numbers expected, got ${s}`); return v; };
+  const tupleOf = (s: string | undefined, k: number, what: string) => { const v = (s ?? '').replace(/[()]/g, '').split(',').map(Number); if (v.length !== k || v.some(x => !Number.isFinite(x))) throw refusal('MODEL_READ', `${what}: ${k} numbers expected, got ${s}`); return v; };
   const links: ModelLink[] = [], joints: ModelJoint[] = [], closures: RobotModel['closures'] = [];
   for (const p of prims) {
     if (p.type === 'Xform') {
@@ -92,7 +92,7 @@ export function readUsda(text: string): RobotModel {
     const rel = (k: string) => new RegExp(`rel physics:${k} = </\\w+/(\\w+)>`).exec(p.body)?.[1] ?? '';
     if (p.type === 'PhysicsSphericalJoint') { closures.push({ name: p.name, a: rel('body0'), b: rel('body1') }); continue; }
     const type = p.type === 'PhysicsPrismaticJoint' ? 'prismatic' : p.type === 'PhysicsFixedJoint' ? 'fixed' : attr(p.body, 'barocss:continuous') === 'true' ? 'continuous' : 'revolute';
-    if (tupleOf(attr(p.body, 'physics:localPos1'), 3, 'localPos1').some(v => v !== 0) || attr(p.body, 'physics:localRot1') !== '(1, 0, 0, 0)') throw new ModelReadError(`joint ${p.name}: away from its child's frame`);
+    if (tupleOf(attr(p.body, 'physics:localPos1'), 3, 'localPos1').some(v => v !== 0) || attr(p.body, 'physics:localRot1') !== '(1, 0, 0, 0)') throw refusal('MODEL_READ', `joint ${p.name}: away from its child's frame`);
     const k = type === 'prismatic' ? 1 : Math.PI / 180, lo = attr(p.body, 'physics:lowerLimit'), hi = attr(p.body, 'physics:upperLimit'), ef = attr(p.body, 'barocss:effort'), ve = attr(p.body, 'barocss:velocity'), mj = attr(p.body, 'barocss:mimicJoint');
     const limit = lo !== undefined || ef !== undefined || ve !== undefined ? { ...(lo !== undefined ? { lower: Number(lo) * k, upper: Number(hi) * k } : {}), ...(ef !== undefined ? { effort: Number(ef) } : {}), ...(ve !== undefined ? { velocity: Number(ve) } : {}) } : undefined;
     const axisTok = attr(p.body, 'physics:axis');

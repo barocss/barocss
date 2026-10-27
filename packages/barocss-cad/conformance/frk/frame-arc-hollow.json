@@ -1,0 +1,81 @@
+{
+  "id": "frk-frame-arc-hollow",
+  "step": "FRk",
+  "decisions": [
+    "D173"
+  ],
+  "about": "FRk4 native frame circular/tangent member contract; synthetic dimensions.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "section": {
+            "kind": "round-tube",
+            "diameter": 30,
+            "wall": 2
+          },
+          "up": [
+            0,
+            0,
+            1
+          ],
+          "points": [
+            [
+              150,
+              0,
+              0
+            ],
+            [
+              0,
+              150,
+              0
+            ]
+          ],
+          "segments": [
+            {
+              "from": 0,
+              "to": 1,
+              "center": [
+                0,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 41452.3384845753,
+          "relTol": 1e-12
+        },
+        "centroid": {
+          "value": [
+            95.91101283899192,
+            95.91101283899192,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "Pappus A*R*pi/2; annulus radial variance=(15^2+13^2)/4, thick arc centroid2*(R+variance/R)/pi."
+}

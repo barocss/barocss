@@ -14,7 +14,12 @@ import type { BodyResult, EvalResult } from './evaluate';
 import type { Vec3 } from './mesh';
 
 /** What a stored name looked like: a face's kind, normal and centroid, or an edge's straightness, direction and midpoint. */
-export interface Signature { kind: string; at: Vec3; dir: Vec3 | null; size: number; radius?: number }
+/**
+ * What a stored name looked like: a face's kind, normal and centroid, or an edge's straightness, direction and midpoint.
+ * `shared`: how many of the kernel's names one display face or edge carried (a closed rim made of several edges, faces
+ * merged as one), when more than one — the signature describes them together, not that name alone (O19).
+ */
+export interface Signature { kind: string; at: Vec3; dir: Vec3 | null; size: number; radius?: number; shared?: number }
 export interface Rematch { node: number; from: string; to: string }
 
 /** Cosine of the largest angle between directions taken as the same (1°). */
@@ -29,12 +34,12 @@ const named = (n: ModelNode): { key: 'edges' | 'open' | 'faces'; edge: boolean }
 export function signaturesOf(body: BodyResult): { faces: Map<string, Signature>; edges: Map<string, Signature> } {
   const faces = new Map<string, Signature>(), edges = new Map<string, Signature>();
   for (const f of body.mesh.faces) {
-    const sig: Signature = { kind: f.kind, at: f.centroid, dir: f.kind === 'plane' ? f.normal : null, size: f.areaMM2, ...(f.radius ? { radius: f.radius } : {}) };
-    for (const name of f.name.split('+')) faces.set(name, sig);
+    const names = f.name.split('+'), sig: Signature = { kind: f.kind, at: f.centroid, dir: f.kind === 'plane' ? f.normal : null, size: f.area, ...(f.radius ? { radius: f.radius } : {}), ...(names.length > 1 ? { shared: names.length } : {}) };
+    for (const name of names) faces.set(name, sig);
   }
   for (const e of body.mesh.edges) {
     const d: Vec3 = [e.b[0] - e.a[0], e.b[1] - e.a[1], e.b[2] - e.a[2]], l = Math.hypot(...d);
-    const sig: Signature = { kind: e.straight ? 'line' : 'curve', at: [(e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2, (e.a[2] + e.b[2]) / 2], dir: e.straight && l > 0 ? [d[0] / l, d[1] / l, d[2] / l] : null, size: l };
+    const sig: Signature = { kind: e.straight ? 'line' : 'curve', at: [(e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2, (e.a[2] + e.b[2]) / 2], dir: e.straight && l > 0 ? [d[0] / l, d[1] / l, d[2] / l] : null, size: l, ...(e.names.length > 1 ? { shared: e.names.length } : {}) };
     for (const name of e.names) edges.set(name, sig);
   }
   return { faces, edges };

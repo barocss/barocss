@@ -1,0 +1,433 @@
+{
+ "about": "Example casting rules (O7c): die casting's and sand casting's limits by alloy family, and sand casting's pattern allowances, each taken from the page it names. They are examples, not a standard: check them against your foundry before manufacture. Load the file yourself (Library → Load sample casting rules, or attach it in chat); the agent cannot load rows of its own.",
+ "rows": [
+  {
+   "id": "die-casting.zincWallMinMM",
+   "process": "die-casting",
+   "key": "zincWallMinMM",
+   "value": 0.6,
+   "unit": "mm",
+   "description": "a zinc alloy’s least wall",
+   "source": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept",
+   "page": {
+    "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+    "read": "2026-10-21",
+    "label": "Zinc alloys — Min. Thickness 0.6 mm (0.025 in)"
+   }
+  },
+  {
+   "id": "die-casting.zincDraftMinDeg",
+   "process": "die-casting",
+   "key": "zincDraftMinDeg",
+   "value": 0.25,
+   "unit": "deg",
+   "description": "a zinc alloy’s least draft",
+   "source": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept",
+   "page": {
+    "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+    "read": "2026-10-21",
+    "label": "Zinc alloys — Min. Draft Angle 0.25º"
+   }
+  },
+  {
+   "id": "die-casting.zincDraftRecDeg",
+   "process": "die-casting",
+   "key": "zincDraftRecDeg",
+   "value": 0.5,
+   "unit": "deg",
+   "description": "a zinc alloy’s draft, achievable in general",
+   "source": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept",
+   "page": {
+    "url": "https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design",
+    "read": "2026-10-21",
+    "label": "For draft angles, in general, 0.5º is achievable for zinc 1º-2º is achievable for aluminum."
+   }
+  },
+  {
+   "id": "die-casting.zincTolMM",
+   "process": "die-casting",
+   "key": "zincTolMM",
+   "value": 0.0508,
+   "unit": "mm",
+   "description": "a zinc alloy’s linear tolerance, ±",
+   "source": "Derived from a public page by a stated rule, not a value as printed there: its `page` names the page read and its note the rule (e.g. a step read off the sizes the page lists)",
+   "page": {
+    "url": "https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design",
+    "read": "2026-10-21",
+    "label": "generally between ±0.001\" and ±0.002\" is possible for zinc",
+    "note": "derived: the looser end, 0.002 in × 25.4 mm/in"
+   }
+  },
+  {
+   "id": "die-casting.aluminiumWallMinMM",
+   "process": "die-casting",
+   "key": "aluminiumWallMinMM",
+   "value": 0.9,
+   "unit": "mm",
+   "description": "an aluminium alloy’s least wall",
+   "source": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept",
+   "page": {
+    "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+    "read": "2026-10-21",
+    "label": "Aluminum alloys — Min. Thickness 0.9 mm (0.035 in)"
+   }
+  },
+  {
+   "id": "die-casting.aluminiumWallRecMM",
+   "process": "die-casting",
+   "key": "aluminiumWallRecMM",
+   "value": 2,
+   "unit": "mm",
+   "description": "an aluminium alloy’s typical wall",
+   "source": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept",
+   "page": {
+    "url": "https://www.dynacast.com/resources/article/die-casting-design-faq",
+    "read": "2026-10-21",
+    "label": "Wall thickness, typically is 2mm for aluminum die casting."
+   }
+  },
+  {
+   "id": "die-casting.aluminiumDraftMinDeg",
+   "process": "die-casting",
+   "key": "aluminiumDraftMinDeg",
+   "value": 0.5,
+   "unit": "deg",
+   "description": "an aluminium alloy’s least draft",
+   "source": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept",
+   "page": {
+    "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+    "read": "2026-10-21",
+    "label": "Aluminum alloys — Min. Draft Angle 0.5º"
+   }
+  },
+  {
+   "id": "die-casting.aluminiumDraftRecDeg",
+   "process": "die-casting",
+   "key": "aluminiumDraftRecDeg",
+   "value": 1,
+   "unit": "deg",
+   "description": "an aluminium alloy’s draft, achievable in general (the low end of 1º–2º)",
+   "source": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept",
+   "page": {
+    "url": "https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design",
+    "read": "2026-10-21",
+    "label": "For draft angles, in general, 0.5º is achievable for zinc 1º-2º is achievable for aluminum."
+   }
+  },
+  {
+   "id": "die-casting.aluminiumTolMM",
+   "process": "die-casting",
+   "key": "aluminiumTolMM",
+   "value": 0.1016,
+   "unit": "mm",
+   "description": "an aluminium alloy’s linear tolerance, ±",
+   "source": "Derived from a public page by a stated rule, not a value as printed there: its `page` names the page read and its note the rule (e.g. a step read off the sizes the page lists)",
+   "page": {
+    "url": "https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design",
+    "read": "2026-10-21",
+    "label": "aluminum can hold between ±0.002\" and ±0.004\"",
+    "note": "derived: the looser end, 0.004 in × 25.4 mm/in"
+   }
+  },
+  {
+   "id": "die-casting.copperWallMinMM",
+   "process": "die-casting",
+   "key": "copperWallMinMM",
+   "value": 1.25,
+   "unit": "mm",
+   "description": "a copper alloy’s (brass’s) least wall",
+   "source": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept",
+   "page": {
+    "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+    "read": "2026-10-21",
+    "label": "Copper alloys (Brass) — Min. Thickness 1.25 mm (0.050 in)"
+   }
+  },
+  {
+   "id": "die-casting.copperDraftMinDeg",
+   "process": "die-casting",
+   "key": "copperDraftMinDeg",
+   "value": 0.7,
+   "unit": "deg",
+   "description": "a copper alloy’s (brass’s) least draft",
+   "source": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept",
+   "page": {
+    "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+    "read": "2026-10-21",
+    "label": "Copper alloys (Brass) — Min. Draft Angle 0.7º"
+   }
+  },
+  {
+   "id": "sand-casting.aluminiumWallMinMM",
+   "process": "sand-casting",
+   "key": "aluminiumWallMinMM",
+   "value": 2.54,
+   "unit": "mm",
+   "description": "an aluminium alloy’s least wall or web",
+   "source": "Derived from a public page by a stated rule, not a value as printed there: its `page` names the page read and its note the rule (e.g. a step read off the sizes the page lists)",
+   "page": {
+    "url": "https://www.engineersedge.com/sand_cast.htm",
+    "read": "2026-10-21",
+    "label": "In general web or wall thickness should as a minimum be 0.10\" - Aluminum, .13 Magnesium and .13 for Steel.",
+    "note": "derived: 0.10 in × 25.4 mm/in"
+   }
+  },
+  {
+   "id": "sand-casting.magnesiumWallMinMM",
+   "process": "sand-casting",
+   "key": "magnesiumWallMinMM",
+   "value": 3.302,
+   "unit": "mm",
+   "description": "a magnesium alloy’s least wall or web",
+   "source": "Derived from a public page by a stated rule, not a value as printed there: its `page` names the page read and its note the rule (e.g. a step read off the sizes the page lists)",
+   "page": {
+    "url": "https://www.engineersedge.com/sand_cast.htm",
+    "read": "2026-10-21",
+    "label": "In general web or wall thickness should as a minimum be 0.10\" - Aluminum, .13 Magnesium and .13 for Steel.",
+    "note": "derived: 0.13 in × 25.4 mm/in"
+   }
+  },
+  {
+   "id": "sand-casting.steelWallMinMM",
+   "process": "sand-casting",
+   "key": "steelWallMinMM",
+   "value": 3.302,
+   "unit": "mm",
+   "description": "a steel’s least wall or web",
+   "source": "Derived from a public page by a stated rule, not a value as printed there: its `page` names the page read and its note the rule (e.g. a step read off the sizes the page lists)",
+   "page": {
+    "url": "https://www.engineersedge.com/sand_cast.htm",
+    "read": "2026-10-21",
+    "label": "In general web or wall thickness should as a minimum be 0.10\" - Aluminum, .13 Magnesium and .13 for Steel.",
+    "note": "derived: 0.13 in × 25.4 mm/in"
+   }
+  },
+  {
+   "id": "sand-casting.draftMinDeg",
+   "process": "sand-casting",
+   "key": "draftMinDeg",
+   "value": 1,
+   "unit": "deg",
+   "description": "the least draft, external and internal",
+   "source": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept",
+   "page": {
+    "url": "https://www.engineersedge.com/sand_cast.htm",
+    "read": "2026-10-21",
+    "label": "Standard draft for sand casting is 2 degrees with a minimum of about 1 degree for external and internal features."
+   }
+  },
+  {
+   "id": "sand-casting.draftRecDeg",
+   "process": "sand-casting",
+   "key": "draftRecDeg",
+   "value": 2,
+   "unit": "deg",
+   "description": "the standard draft",
+   "source": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept",
+   "page": {
+    "url": "https://www.engineersedge.com/sand_cast.htm",
+    "read": "2026-10-21",
+    "label": "Standard draft for sand casting is 2 degrees with a minimum of about 1 degree for external and internal features."
+   }
+  },
+  {
+   "id": "sand-casting.sectionRatioMax",
+   "process": "sand-casting",
+   "key": "sectionRatioMax",
+   "value": 2,
+   "unit": "ratio",
+   "description": "a section change’s thickness ratio, at most, without a wedge between",
+   "source": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept",
+   "page": {
+    "url": "https://www.engineersedge.com/sand_cast.htm",
+    "read": "2026-10-21",
+    "label": "If a section change of over 2:1 thickness ratio is unavoidable … use a wedge form between the unequal sections."
+   }
+  },
+  {
+   "id": "sand-casting.shrink.iron",
+   "process": "sand-casting",
+   "allowance": "shrink",
+   "family": "iron",
+   "label": "Grey Cast Iron",
+   "bands": [
+    {
+     "upToFt": 2,
+     "inPerFt": 0.125
+    },
+    {
+     "upToFt": 4,
+     "inPerFt": 0.105
+    },
+    {
+     "upToFt": null,
+     "inPerFt": 0.083
+    }
+   ],
+   "page": {
+    "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture3.htm",
+    "read": "2026-10-21",
+    "label": "Table 1: Rate of Contraction of Various Metals — Grey Cast Iron: up to 2 feet 0.125, 2 feet to 4 feet 0.105, over 4 feet 0.083 (inch/ft)",
+    "note": "the bands by the pattern dimension, as printed in feet (1 ft = 304.8 mm); the allowance in inches per foot, as printed: a ratio of allowance/12"
+   }
+  },
+  {
+   "id": "sand-casting.shrink.steel",
+   "process": "sand-casting",
+   "allowance": "shrink",
+   "family": "steel",
+   "label": "Cast Steel",
+   "bands": [
+    {
+     "upToFt": 2,
+     "inPerFt": 0.251
+    },
+    {
+     "upToFt": 6,
+     "inPerFt": 0.191
+    },
+    {
+     "upToFt": null,
+     "inPerFt": 0.155
+    }
+   ],
+   "page": {
+    "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture3.htm",
+    "read": "2026-10-21",
+    "label": "Table 1: Rate of Contraction of Various Metals — Cast Steel: up to 2 feet 0.251, 2 feet to 6 feet 0.191, over 6 feet 0.155 (inch/ft)",
+    "note": "the bands by the pattern dimension, as printed in feet (1 ft = 304.8 mm); the allowance in inches per foot, as printed: a ratio of allowance/12"
+   }
+  },
+  {
+   "id": "sand-casting.shrink.aluminium",
+   "process": "sand-casting",
+   "allowance": "shrink",
+   "family": "aluminium",
+   "label": "Aluminum",
+   "bands": [
+    {
+     "upToFt": 4,
+     "inPerFt": 0.155
+    },
+    {
+     "upToFt": 6,
+     "inPerFt": 0.143
+    },
+    {
+     "upToFt": null,
+     "inPerFt": 0.125
+    }
+   ],
+   "page": {
+    "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture3.htm",
+    "read": "2026-10-21",
+    "label": "Table 1: Rate of Contraction of Various Metals — Aluminum: up to 4 feet 0.155, 4 feet to 6 feet 0.143, over 6 feet 0.125 (inch/ft)",
+    "note": "the bands by the pattern dimension, as printed in feet (1 ft = 304.8 mm); the allowance in inches per foot, as printed: a ratio of allowance/12"
+   }
+  },
+  {
+   "id": "sand-casting.shrink.magnesium",
+   "process": "sand-casting",
+   "allowance": "shrink",
+   "family": "magnesium",
+   "label": "Magnesium",
+   "bands": [
+    {
+     "upToFt": 4,
+     "inPerFt": 0.173
+    },
+    {
+     "upToFt": null,
+     "inPerFt": 0.155
+    }
+   ],
+   "page": {
+    "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture3.htm",
+    "read": "2026-10-21",
+    "label": "Table 1: Rate of Contraction of Various Metals — Magnesium: up to 4 feet 0.173, over 4 feet 0.155 (inch/ft)",
+    "note": "the bands by the pattern dimension, as printed in feet (1 ft = 304.8 mm); the allowance in inches per foot, as printed: a ratio of allowance/12"
+   }
+  },
+  {
+   "id": "sand-casting.machining.iron",
+   "process": "sand-casting",
+   "allowance": "machining",
+   "class": "iron",
+   "label": "Cast iron",
+   "bands": [
+    {
+     "upToIn": 12,
+     "in": 0.12
+    },
+    {
+     "upToIn": 20,
+     "in": 0.2
+    },
+    {
+     "upToIn": 40,
+     "in": 0.25
+    }
+   ],
+   "page": {
+    "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture4.htm",
+    "read": "2026-10-21",
+    "label": "Table 3: Machining Allowances of Various Metals — Cast iron: up to 12 0.12, 12 to 20 0.20, 20 to 40 0.25 (inch)",
+    "note": "the bands and the allowance as printed in inches (1 in = 25.4 mm)"
+   }
+  },
+  {
+   "id": "sand-casting.machining.steel",
+   "process": "sand-casting",
+   "allowance": "machining",
+   "class": "steel",
+   "label": "Cast steel",
+   "bands": [
+    {
+     "upToIn": 6,
+     "in": 0.12
+    },
+    {
+     "upToIn": 20,
+     "in": 0.25
+    },
+    {
+     "upToIn": 40,
+     "in": 0.3
+    }
+   ],
+   "page": {
+    "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture4.htm",
+    "read": "2026-10-21",
+    "label": "Table 3: Machining Allowances of Various Metals — Cast steel: up to 6 0.12, 6 to 20 0.25, 20 to 40 0.30 (inch)",
+    "note": "the bands and the allowance as printed in inches (1 in = 25.4 mm)"
+   }
+  },
+  {
+   "id": "sand-casting.machining.nonferrous",
+   "process": "sand-casting",
+   "allowance": "machining",
+   "class": "nonferrous",
+   "label": "Non ferrous",
+   "bands": [
+    {
+     "upToIn": 8,
+     "in": 0.09
+    },
+    {
+     "upToIn": 12,
+     "in": 0.12
+    },
+    {
+     "upToIn": 40,
+     "in": 0.16
+    }
+   ],
+   "page": {
+    "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture4.htm",
+    "read": "2026-10-21",
+    "label": "Table 3: Machining Allowances of Various Metals — Non ferrous: up to 8 0.09, 8 to 12 0.12, 12 to 40 0.16 (inch)",
+    "note": "the bands and the allowance as printed in inches (1 in = 25.4 mm)"
+   }
+  }
+ ]
+}

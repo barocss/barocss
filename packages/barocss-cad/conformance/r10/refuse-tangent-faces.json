@@ -51,7 +51,8 @@
   },
   "expect": {
     "error": {
-      "code": "SELECTION",
+      "code": "TANGENT_FACES",
+      "category": "SELECTION",
       "messageIncludes": "[TANGENT_FACES]"
     }
   },

@@ -10,7 +10,7 @@ import { withLook } from '@barocss/cad-model/app/bodies';
 import { bomView, deriveBom } from '@barocss/cad-model/team/assembly';
 import { draftBaseline, moveBaseline } from '@barocss/cad-model/team/baseline';
 import { BUNDLE_FILES, verifyBundle, writeBundle, type Manifest } from '@barocss/cad-model/team/bundle';
-import { digestOf, sha256Hex } from '@barocss/cad-model/team/digest';
+import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { userToken } from '@barocss/cad-model/team/ecr';
 import { massResult } from '@barocss/cad-model/team/freshness';
 import { runPartsScenario, type PartsScenario } from '@barocss/cad-model/team/scripted';
@@ -51,7 +51,10 @@ test('a complete bundle: the document, the approved baseline, sourced materials,
   assert.equal(b.manifest.baseline?.id, 'BL1');
   const mats = JSON.parse(new TextDecoder().decode(b.files.get(BUNDLE_FILES.materials))).materials;
   assert.deepEqual(mats.map((m: { part: string; material: string; basis: string }) => [m.part, m.material, m.basis]), [['p1', 'al6061', 'body'], ['p2', 'al6061', 'body']]);
-  assert.match(mats[0].sources.densityGPerCm3, /^S-DENS: BaroCSS typical density/);
+  assert.match(mats[0].sources.density, /^S-DENS: BaroCSS typical density/);
+  assert.ok(mats.every((m: { density: number; sources: Record<string, string> }) => m.density === 2.7 && !('densityGPerCm3' in m) && !('densityGPerCm3' in m.sources)));
+  assert.match(mats[0].sources.elasticModulus, /^S-TYP:/); assert.match(mats[0].sources.yieldStress, /^S-TYP:/);
+  assert.ok(!('elasticModulusMPa' in mats[0].sources) && !('yieldMPa' in mats[0].sources));
   const results = JSON.parse(new TextDecoder().decode(b.files.get(BUNDLE_FILES.results))).results;
   assert.deepEqual(results.map((r: { result: { kind: string; part?: string } }) => `${r.result.kind}${r.result.part ? ` ${r.result.part}` : ''}`), ['bom', 'mass p1', 'mass p2']);
   assert.ok(results.every((r: { freshness: { state: string } }) => r.freshness.state === 'current'));
@@ -76,7 +79,7 @@ test('an incomplete bundle, each gap listed and never complete: a file deleted, 
   const del = await verifyBundle(reader(without(BUNDLE_FILES.results)), evaluate);
   assert.deepEqual([del.complete, del.missing], [false, ['results.json: missing']]); assert.equal(del.manifestSaidComplete, true, 'the manifest said complete: the read-back does not take its word');
   // (A file edited: a material's density.)
-  const ed = await verifyBundle(reader(edited(BUNDLE_FILES.materials, t => t.replace('"densityGPerCm3": 2.7', '"densityGPerCm3": 7.85'))), evaluate);
+  const ed = await verifyBundle(reader(edited(BUNDLE_FILES.materials, t => t.replace('"density": 2.7', '"density": 7.85'))), evaluate);
   assert.deepEqual([ed.complete, ed.intact, ed.changed], [false, false, ['materials.json: its digest is not the manifest\'s']]);
   // (The document swapped for another with the manifest's file digest rewritten: its revision is not the pinned one.)
   const other = encodeStudioFile({ ...doc, parameters: { ...doc.parameters, w: 99 } }), sw = new Map(b.files); sw.set(BUNDLE_FILES.document, other);
@@ -85,7 +88,7 @@ test('an incomplete bundle, each gap listed and never complete: a file deleted, 
   assert.deepEqual((await verifyBundle(reader(sw), evaluate)).changed, ['document.bcad: its revision is not the manifest\'s']);
   // (The baseline record rewritten consistently — content, pins and digest — and its file digest too: the manifest's anchor catches it.)
   const rb = new Map(b.files), chain = JSON.parse(new TextDecoder().decode(rb.get(BUNDLE_FILES.baseline)));
-  const top = chain.baselines[0]; top.content.bom.lines[0].qty = 1; top.content.bom.totalMassG += 1; top.pins.bom = digestOf(top.content.bom); { const { digest: _d, ...rest } = top; void _d; top.digest = digestOf(rest); }
+  const top = chain.baselines[0]; top.content.bom.lines[0].qty = 1; top.content.bom.totalMass += 1; top.pins.bom = digestOf(top.content.bom); { const { digest: _d, ...rest } = top; void _d; top.digest = digestOf(rest); }
   const cb = new TextEncoder().encode(JSON.stringify(chain)); rb.set(BUNDLE_FILES.baseline, cb);
   const m2 = JSON.parse(new TextDecoder().decode(rb.get(BUNDLE_FILES.manifest))) as Manifest; m2.files[1] = { ...m2.files[1], sha256: sha256Hex(cb), bytes: cb.length }; rb.set(BUNDLE_FILES.manifest, new TextEncoder().encode(JSON.stringify(m2)));
   assert.deepEqual((await verifyBundle(reader(rb), evaluate)).changed, ['baseline BL1: its digest is not the manifest\'s']);

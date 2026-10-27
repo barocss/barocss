@@ -16,8 +16,8 @@ const bundled = await esbuild.build({absWorkingDir: repo, entryPoints: [entry], 
 assert.equal(bundled.outputFiles.length, 1);
 const sourceInputs = Object.keys(bundled.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
-assert.ok(cadInputs.includes(entry)); assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/curve-parameterization.ts')));
-assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/curve-interpolation.ts')));
+assert.ok(cadInputs.includes(entry)); assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/nurbs/curves/curve-parameterization.ts')));
+assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/nurbs/curves/curve-interpolation.ts')));
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundled.outputFiles[0].text).toString('base64'));
@@ -235,8 +235,8 @@ const runtimeNames = ['buildParameterizedInterpolatingCurve', 'validateParameter
 const typeNames = ['CurveParameterizationMethod', 'CurveParameterizationOptions', 'CurveParameterizationReport', 'CurveParameterizationResult'];
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CurveParameterizationDiagnosticCode, CurveParameterizationDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./curve-parameterization.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/curve-parameterization.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/curves/curve-parameterization.js'));
+const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/curves/curve-parameterization.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 const cold = JSON.parse(readFileSync(summaries.find(row => row.name === 'same_points_chord').authoredFile, 'utf8'));
 const compiled = publicAPI.buildParameterizedInterpolatingCurve(cold.points, cold.options);

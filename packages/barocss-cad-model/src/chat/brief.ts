@@ -6,38 +6,13 @@
 // every body that has none of its own (an assumed one is not applied: its mass stays assumed, said so).
 import type { StudioDoc } from '../engine/doc';
 import { MATERIALS_DATA, processProfile } from '../library/materials';
+import type { Process, Field, Envelope, Brief, BriefKey, Gap, BriefError } from '../engine/schema/brief';
+import { BRIEF_FIELDS, BRIEF_VERSION, PROCESSES } from '../engine/schema/brief';
 
-export const BRIEF_VERSION = 1;
-/** The processes a brief may name: those with rules (R6b.7; machining since CNC1, O84), and sheet metal recorded as intent. */
-export const PROCESSES = ['fdm', 'sla', 'sls', 'mjf', 'injection', 'cnc-milling', 'cnc-turning', 'die-casting', 'sand-casting', 'sheet-metal'] as const;
-export type Process = (typeof PROCESSES)[number];
 const UNCHECKED: Partial<Record<Process, string>> = {
   'sheet-metal': 'sheet metal is recorded as intent; its checks are the kernel lane\'s R12 steps, not built yet',
 };
-export type Basis = 'stated' | 'assumed' | 'ambiguous';
-export interface Field<T> {
-  value: T; basis: Basis;
-  /** The user's words it comes from, quoted (required when stated by the agent). */
-  source?: string;
-  /** Why it was assumed, or how it can be read (assumed, ambiguous). */
-  why?: string;
-  /** Set by the studio when the user confirms it: stated since. */
-  confirmed?: { by: 'user'; at: string };
-  /** A stated field's quote checked against what the user typed this conversation (verified), or with no conversation
-   * to check it against (unverified: cad-cli, cad-mcp --doc, a plain script). */
-  said?: 'verified' | 'unverified';
-}
-export interface Envelope { x: number; y: number; z: number }
-export interface Brief {
-  version: typeof BRIEF_VERSION;
-  purpose?: Field<string>; process?: Field<Process>; material?: Field<string>;
-  quantity?: Field<number>; envelope?: Field<Envelope>; interfaces?: Field<string[]>;
-  loads?: Field<string>; finish?: Field<string>; notes?: Field<string>;
-}
-export const BRIEF_FIELDS = ['purpose', 'process', 'material', 'quantity', 'envelope', 'interfaces', 'loads', 'finish', 'notes'] as const;
-export type BriefKey = (typeof BRIEF_FIELDS)[number];
 export const REQUIRED: readonly BriefKey[] = ['purpose', 'process', 'material'];
-export interface Gap { field: BriefKey; why: 'missing' | 'assumed' | 'ambiguous'; value?: unknown; ask: string }
 
 const ASK: Record<BriefKey, string> = {
   purpose: 'What is the part for, and what does it attach to or hold?', process: `How will it be made (${PROCESSES.join(', ')})?`,
@@ -72,12 +47,10 @@ export function briefGaps(b: Brief | undefined): Gap[] {
 /** Whether a field is stated: by the user's words or confirmed by them. */
 export const isStated = (f: Field<unknown> | undefined) => f?.basis === 'stated';
 
-export type BriefCode = 'BAD_FIELD' | 'STATED_KEPT' | 'NO_SOURCE' | 'SOURCE_NOT_SAID' | 'CONFIRM_IS_THE_USERS';
 /** Whitespace runs as one space, the ends trimmed: the only normalisation a quote gets. */
 export const squash = (t: string) => t.replace(/\s+/g, ' ').trim();
 /** Whether a quote is verbatim in one of the user's messages (whitespace normalised only). */
 export const saidIn = (quote: string, turns: readonly string[]) => { const q = squash(quote); return q.length > 0 && turns.some(t => squash(t).includes(q)); };
-export interface BriefError { code: BriefCode; message: string }
 /**
  * A patch to the brief, all or nothing: each field {value, basis, source?, why?} or null to clear it. Refused, typed:
  * an unknown field or a value that does not fit (BAD_FIELD); a stated field overwritten or cleared by an assumption

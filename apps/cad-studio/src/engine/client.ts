@@ -4,8 +4,8 @@ import { MeshReceiver, type WireResult } from '@barocss/cad-model/engine/meshWir
 import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 /** A proposal's diff as the viewport overlays it (G12). */
 export interface ProposalOverlay {
-  added: { mesh: DisplayMesh; volumeMM3: number } | null;
-  removed: { mesh: DisplayMesh; volumeMM3: number } | null;
+  added: { mesh: DisplayMesh; volume: number } | null;
+  removed: { mesh: DisplayMesh; volume: number } | null;
   changedFaces: { name: string; kind: 'added' | 'removed' | 'changed' }[];
   method: 'boolean' | 'faces';
   why: string | null;
@@ -15,6 +15,10 @@ import type { DrawingResult } from '@barocss/cad-model/drawing/project';
 import type { DrawingSection } from '@barocss/cad-model/drawing/types';
 import { WireSender } from '@barocss/cad-model/engine/wireDoc';
 import type { MeshDiagnosis, MeshRepairResult, MeshRepairSteps } from '@barocss/cad';
+import { Lanes, type LaneReply } from './lanes';
+import { receiveNativeMass, receiveNativeMassPatch, type NativeMassSource } from '@barocss/cad-model/engine/nativeMassWire';
+import type { MassReply } from './engine.worker';
+export type { LaneReply } from './lanes';
 
 /** An evaluation's face table kept on this side (by the part's content), so face reads here do not evaluate it again (PERF3 A1). */
 function remembered(doc: StudioDoc, r: EvalResult): void { if (r.ok && r.faceTable) rememberFaceTable(doc, r.faceTable); }
@@ -23,6 +27,9 @@ function remembered(doc: StudioDoc, r: EvalResult): void { if (r.ok && r.faceTab
 export class EngineClient {
   private worker!: Worker;
   private next = 1;
+  private epoch = 0;
+  private nativeSources = new Map<number, NativeMassSource>();
+  private massSource: NativeMassSource | null = null;
   private pending = new Map<number, (data: unknown) => void>();
   /** A repair's stages as the worker posts them, by request. */
   private progress = new Map<number, (stage: string) => void>();
@@ -32,11 +39,23 @@ export class EngineClient {
   /** Replies' meshes by slot (the worker sends only those it has not sent there last time, PERF3 B12), and each evaluation's slot. */
   private meshesIn = new MeshReceiver();
   private slots = new Map<number, string>();
+  /** O9: the lanes requests go on (engine/lanes.ts): a newer request on a lane makes the older come back stale. */
+  private lanes = new Lanes();
+  /** O18: who hears the masses the worker posts after an evaluation's reply (by mass ref, unplaced). */
+  private massListeners = new Set<(masses: MassReply['masses']) => void>();
 
   constructor() { this.start(); }
   private start() {
+    const epoch = ++this.epoch;
     this.worker = new Worker(new URL('./engine.worker.ts', import.meta.url), { type: 'module' });
-    this.worker.onmessage = (event: MessageEvent<{ id: number; progress?: string; result?: WireResult }>) => {
+    this.worker.onmessage = (event: MessageEvent<{ id: number; progress?: string; result?: WireResult; nativeMass?: unknown[] } | MassReply>) => {
+      if (epoch !== this.epoch) return;
+      if ('masses' in event.data) {
+        const source = this.massSource;
+        const current = source ? event.data.masses.filter(m => receiveNativeMassPatch(m.fields, m.ref, m.nativeMass, source)) : [];
+        if (current.length) for (const listen of this.massListeners) listen(current);
+        return;
+      }
       if (event.data.progress !== undefined) { this.progress.get(event.data.id)?.(event.data.progress); return; }
       this.progress.delete(event.data.id);
       // (Every evaluation reply, stale ones too, in the order posted: the held meshes follow the worker's.)
@@ -44,7 +63,16 @@ export class EngineClient {
       if (slot !== undefined && event.data.result) {
         this.slots.delete(event.data.id);
         try { (event.data as { result: EvalResult }).result = this.meshesIn.unpack(slot, event.data.result); }
-        catch (e) { (event.data as { result: EvalResult }).result = { ok: false, revision: 0, error: { title: 'Evaluation lost', hint: 'Evaluate again.', detail: e instanceof Error ? e.message : String(e) }, ms: 0 }; }
+        catch (e) { (event.data as { result: EvalResult }).result = { ok: false, revision: 0, error: { title: 'Evaluation lost', hint: 'Evaluate again.', detail: e instanceof Error ? e.message : String(e) }, wallTime: 0 }; }
+      }
+      const source = this.nativeSources.get(event.data.id);
+      this.nativeSources.delete(event.data.id);
+      const result = event.data.result as EvalResult | undefined;
+      if (source && result?.ok && result.revision === source.revision && (source.slot !== 'evaluate' || source.requestId === this.latestEval)) {
+        const envelopes = event.data.nativeMass;
+        if (Array.isArray(envelopes) && envelopes.length === result.bodies.length) {
+          for (let i = 0; i < result.bodies.length; i++) receiveNativeMass(result.bodies[i], envelopes[i], source);
+        }
       }
       const resolve = this.pending.get(event.data.id);
       this.pending.delete(event.data.id);
@@ -58,19 +86,32 @@ export class EngineClient {
   restart(): void {
     this.worker.terminate();
     const error = { title: 'Stopped', hint: 'The computation was stopped.', detail: '' };
-    const cancelled = { result: { ok: false, revision: 0, error, ms: 0 }, step: { error: 'cancelled' }, drawing: { ok: false, error }, bytes: null, error: 'stopped', why: 'stopped' };
+    const cancelled = { result: { ok: false, revision: 0, error, wallTime: 0 }, step: { error: 'cancelled' }, drawing: { ok: false, error }, bytes: null, error: 'stopped', why: 'stopped' };
     this.progress.clear();
     for (const resolve of this.pending.values()) resolve(cancelled);
-    this.pending.clear(); this.latestEval = 0; this.wire = new WireSender(); this.meshesIn = new MeshReceiver(); this.slots.clear();
+    // (The lanes are kept: a request waiting on one comes back as the refusal above, "Stopped", as before O9.)
+    this.pending.clear(); this.latestEval = 0; this.wire = new WireSender(); this.meshesIn = new MeshReceiver(); this.slots.clear(); this.nativeSources.clear(); this.massSource = null;
     this.start();
   }
 
+  /**
+   * O9: a request on a lane — `engine.latest('preview', { revision, source }, () => engine.preview(doc, revision))` — its
+   * reply, stale when a newer request went on the same lane first (a late reply never overwrites what overtook it). One lane
+   * per thing a result replaces: 'preview', `section:<view>`, `drawing:<part>`, `placed:<instance>` …
+   */
+  /** O18: the deferred masses as the worker works them out (each a body's, by its `massRef`); the returned function stops listening. */
+  onMasses(listen: (masses: MassReply['masses']) => void): () => void { this.massListeners.add(listen); return () => { this.massListeners.delete(listen); }; }
+
+  latest<T>(lane: string, asked: { revision: number; source: string }, request: () => Promise<T>): Promise<LaneReply<T>> { return this.lanes.run(lane, asked, request); }
+
   evaluate(doc: StudioDoc, revision: number): Promise<EvalResult | null> {
     const id = this.next++; this.latestEval = id;
+    const nativeSource = { epoch: this.epoch, requestId: id, revision, slot: 'evaluate' };
+    this.nativeSources.set(id, nativeSource); this.massSource = nativeSource;
     return new Promise(resolve => {
       this.pending.set(id, data => { const r = (data as { result: EvalResult }).result; remembered(doc, r); resolve(id === this.latestEval ? r : null); });
       this.slots.set(id, 'evaluate');
-      this.worker.postMessage({ type: 'evaluate', id, doc: this.wire.pack(doc), revision });
+      this.worker.postMessage({ type: 'evaluate', id, doc: this.wire.pack(doc), revision, nativeSource });
     });
   }
 
@@ -119,10 +160,12 @@ export class EngineClient {
    */
   part(doc: StudioDoc, revision: number, slot: PartSlot = 'part'): Promise<EvalResult> {
     const id = this.next++;
+    const nativeSource = { epoch: this.epoch, requestId: id, revision, slot: `part:${slot}` };
+    this.nativeSources.set(id, nativeSource);
     return new Promise(resolve => {
       this.pending.set(id, data => { const r = (data as { result: EvalResult }).result; remembered(doc, r); resolve(r); });
       this.slots.set(id, `part:${slot}`);
-      this.worker.postMessage({ type: 'part', id, doc: this.wire.pack(doc), revision, slot });
+      this.worker.postMessage({ type: 'part', id, doc: this.wire.pack(doc), revision, slot, nativeSource });
     });
   }
 
@@ -137,7 +180,7 @@ export class EngineClient {
         const d = data as { result?: EvalResult; diff: { added: number | null; removed: number | null; changedFaces: { name: string; kind: 'added' | 'removed' | 'changed' }[]; method: 'boolean' | 'faces'; why: string | null } | null; why: string | null };
         if (!d.diff) { resolve({ error: d.why ?? 'stopped' }); return; }
         const bodies = d.result?.ok ? d.result.bodies : [], mesh = (k: string) => bodies.find(b => b.key === k)?.mesh ?? null;
-        resolve({ added: d.diff.added !== null ? { mesh: mesh('added')!, volumeMM3: d.diff.added } : null, removed: d.diff.removed !== null ? { mesh: mesh('removed')!, volumeMM3: d.diff.removed } : null, changedFaces: d.diff.changedFaces, method: d.diff.method, why: d.diff.why });
+        resolve({ added: d.diff.added !== null ? { mesh: mesh('added')!, volume: d.diff.added } : null, removed: d.diff.removed !== null ? { mesh: mesh('removed')!, volume: d.diff.removed } : null, changedFaces: d.diff.changedFaces, method: d.diff.method, why: d.diff.why });
       });
       this.slots.set(id, 'proposalDiff');
       // (The base, then the proposal: the worker unpacks them in that order.)
@@ -147,10 +190,10 @@ export class EngineClient {
   }
 
   /** A part's bodies' volumes only, no meshes (a clash probe's intersection). */
-  volumes(doc: StudioDoc): Promise<{ ok: true; volumes: { key: string; volumeMM3: number | null }[] } | { ok: false; error: unknown }> {
+  volumes(doc: StudioDoc): Promise<{ ok: true; volumes: { key: string; volume: number | null }[] } | { ok: false; error: unknown }> {
     const id = this.next++;
     return new Promise(resolve => {
-      this.pending.set(id, data => resolve((data as { volumes?: { ok: true; volumes: { key: string; volumeMM3: number | null }[] } }).volumes ?? { ok: false, error: 'stopped' }));
+      this.pending.set(id, data => resolve((data as { volumes?: { ok: true; volumes: { key: string; volume: number | null }[] } }).volumes ?? { ok: false, error: 'stopped' }));
       this.worker.postMessage({ type: 'volumes', id, doc: this.wire.pack(doc) });
     });
   }
@@ -158,10 +201,12 @@ export class EngineClient {
   /** A placed part's display bodies (copies of one part share its tessellation): never dropped as stale. */
   placed(doc: StudioDoc, base: StudioDoc, place: { m: number[]; t: [number, number, number] }, revision: number): Promise<EvalResult> {
     const id = this.next++;
+    const nativeSource = { epoch: this.epoch, requestId: id, revision, slot: 'placed' };
+    this.nativeSources.set(id, nativeSource);
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
       this.slots.set(id, 'placed');
-      this.worker.postMessage({ type: 'placed', id, doc: this.wire.pack(doc), base: this.wire.pack(base), place, revision });
+      this.worker.postMessage({ type: 'placed', id, doc: this.wire.pack(doc), base: this.wire.pack(base), place, revision, nativeSource });
     });
   }
 
@@ -200,7 +245,8 @@ export class EngineClient {
   }
 
   /** The part's drawing views (hidden-line projections), never dropped as stale. */
-  drawing(doc: StudioDoc, options: { tangentEdges?: boolean; sections?: DrawingSection[]; orientation?: 'x+' | 'y+' | 'x-' } = {}): Promise<DrawingResult> {
+  /** `made` (O174): a part's drawing — its bought elements left out of the views and the sections; an assembly's keeps them. */
+  drawing(doc: StudioDoc, options: { tangentEdges?: boolean; sections?: DrawingSection[]; orientation?: 'x+' | 'y+' | 'x-'; made?: boolean } = {}): Promise<DrawingResult> {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { drawing: DrawingResult }).drawing));
@@ -208,11 +254,14 @@ export class EngineClient {
     });
   }
 
-  stl(doc: StudioDoc, key: string): Promise<Uint8Array | null> {
+  stl(doc: StudioDoc, key: string, options?: { segmentsPerQuarter: number }): Promise<Uint8Array | { error: string } | null> {
     const id = this.next++;
     return new Promise(resolve => {
-      this.pending.set(id, data => resolve((data as { bytes: Uint8Array | null }).bytes));
-      this.worker.postMessage({ type: 'stl', id, doc: this.wire.pack(doc), key });
+      this.pending.set(id, data => {
+        const d = data as { bytes?: Uint8Array | null; error?: string };
+        resolve(typeof d.error === 'string' ? { error: d.error } : d.bytes ?? null);
+      });
+      this.worker.postMessage({ type: 'stl', id, doc: this.wire.pack(doc), key, ...(options ? { options } : {}) });
     });
   }
 }

@@ -3,6 +3,7 @@ import {readFile, writeFile, mkdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {dirname, resolve} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
+import {build} from 'esbuild';
 
 const repo=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const arg=process.argv.indexOf('--output');
@@ -10,7 +11,9 @@ assert(arg>=0&&process.argv[arg+1],'--output <directory> required');
 const output=resolve(process.argv[arg+1]);await mkdir(output,{recursive:true});
 const root=resolve(repo,'packages/barocss-gpu');
 const manifest=JSON.parse(await readFile(resolve(root,'package.json'),'utf8'));
-const entry=resolve(root,manifest.exports['.'].import),bindingEntry=resolve(dirname(entry),'mesh-material.js');
+// (R6: the package's TypeScript sources bundled, as the other flows do: Node does not load them as they are.)
+const bundle=async(from,name)=>{const outfile=resolve(output,name);await build({entryPoints:[from],bundle:true,platform:'node',format:'esm',target:'node22',outfile,logLevel:'warning'});return outfile;};
+const entry=await bundle(resolve(root,manifest.exports['.'].import),'gpu-source.mjs'),bindingEntry=await bundle(resolve(root,'src/material/mesh-material.ts'),'mesh-material-source.mjs');
 const sha=async path=>createHash('sha256').update(await readFile(path)).digest('hex');
 const gpu=await import(pathToFileURL(entry).href);
 const {validateMeshMaterialBinding}=await import(pathToFileURL(bindingEntry).href);

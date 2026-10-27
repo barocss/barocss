@@ -68,7 +68,7 @@ try {
     const mesh = display.meshes[0];
     assert.ok(mesh instanceof Mesh);
     assert.equal(mesh.metadata.barocss.surfaceId, owned.surface.id);
-    assert.equal(mesh.metadata.barocss.coordinateSystem, 'right-handed-y-up');
+    assert.equal(mesh.metadata.barocss.coordinateSystem, 'right-handed-z-up');
     assert.deepEqual(Array.from(mesh.getVerticesData('position')), Array.from(neutral.surfaces[0].mesh.positions));
     assert.deepEqual(Array.from(mesh.getVerticesData('normal')), Array.from(neutral.surfaces[0].mesh.normals));
     assert.deepEqual(Array.from(mesh.getIndices()), Array.from(neutral.surfaces[0].mesh.indices));

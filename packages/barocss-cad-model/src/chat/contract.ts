@@ -21,28 +21,41 @@ const num: JsonSchema = { type: 'number' }, str: JsonSchema = { type: 'string' }
  * its result's shape where it is fixed. (`checkpoint` keeps a snapshot for the session and `select` sets the viewport
  * selection: neither changes the document.)
  */
+const clearanceSchema = (coordinate: 'fraction' | 'time'): JsonSchema => ({ type: ['object', 'null'], properties: { value: num, [coordinate]: num, links: { type: 'array', items: str } }, required: ['value', coordinate, 'links'], additionalProperties: false });
 const READ: Record<string, JsonSchema | null> = {
-  get_part_summary: o({ feature_count: num, facts: obj, parameters: obj, features: arr, bodies: arr, note: str, followed_changed: arr }, ['feature_count', 'facts', 'parameters', 'features', 'bodies']),
+  output_bom: o({ revision: str, files: arr }, ['revision', 'files']),
+  output_purchase_csv: o({ revision: str, files: arr }, ['revision', 'files']),
+  output_clearance: o({ revision: str, files: arr }, ['revision', 'files']),
+  output_cam_package: o({ revision: str, files: arr }, ['revision', 'files']),
+  output_print_layers: o({ revision: str, files: arr }, ['revision', 'files']),
+  output_bundle: o({ revision: str, files: arr }, ['revision', 'files']),
+  get_part_summary: o({ feature_count: num, facts: obj, parameters: obj, features: arr, bodies: arr, note: str, followed_changed: arr, variability: obj }, ['feature_count', 'facts', 'parameters', 'features', 'bodies']),
   get_image_layers: null,
-  measure: o({ label: str, area: num, length: num, radius: num, distance: num, from: arr, to: arr, angle_deg: num, normal_distance: num, resolved: arr }),
+  measure: o({ label: str, area: num, length: num, radius: num, distance: num, from: arr, to: arr, angle: num, normalDistance: num, resolved: arr }),
   mass_properties: o({ bodies: arr, note: str }, ['bodies']),
   interference: o({ pairs: arr, note: str }, ['pairs']),
   section: o({ axis: str, at: num, cut: arr }, ['axis', 'at', 'cut']),
-  wall_thickness: o({ body: str, thinnest_mm: num, at: arr, face: str, note: str }, ['body']),
+  wall_thickness: o({ body: str, thinnest: num, at: arr, face: str, note: str }, ['body']),
   draft: o({ body: str, pull: arr, walls: arr, under_min: arr, note: str }, ['body', 'walls']),
   check_spec: o({ model_hash: str, summary: obj, failures: arr, unknowns: arr, policy: obj, validation: obj }, ['model_hash', 'summary']),
   // (FR4a, D127: a frame's cut list.)
   cut_list: o({ rows: arr, totals: obj, densities: str, nesting: obj, csv: str }, ['rows', 'totals', 'densities', 'nesting']),
   // (D155: a hole–shaft fit.)
-  fit_clearance: o({ kind: str, clearanceMinUM: num, clearanceMaxUM: num, estimate: bool, hole: obj, shaft: obj, offsetMM: num, lengthMM: num, marginMM: num, mmc: obj, lmc: obj, contradicted: bool, message: str }, ['kind', 'clearanceMinUM', 'clearanceMaxUM', 'estimate', 'hole', 'shaft']),
+  fit_clearance: o({ kind: str, clearanceMin: num, clearanceMax: num, estimate: bool, hole: obj, shaft: obj, offset: num, length: num, margin: num, mmc: obj, lmc: obj, contradicted: bool, message: str }, ['kind', 'clearanceMin', 'clearanceMax', 'estimate', 'hole', 'shaft']),
   // (FRd1, O118: a frame's welds.)
   weld_list: o({ joints: arr, totals: obj, orphaned: arr, notes: arr }, ['joints', 'totals', 'orphaned', 'notes']),
+  rebuild_report: o({ revision: str, evaluation: num, basis: str, evaluationTime: num, features: arr, built: num, builtTime: num, slowest: { type: ['string', 'null'] }, reused: num, mates: arr, loops: arr, limits: str }, ['revision', 'basis', 'evaluationTime', 'features', 'built', 'builtTime', 'slowest', 'reused', 'mates', 'loops', 'limits']),
   diff: o({ from: str, to: str, diff: obj }, ['diff']),
   list_proposals: o({ proposals: arr }, ['proposals']),
   render_views: o({ legend: obj, views: obj, layout: str, notes: arr }, ['views']),
   inspect: o({ faces: arr, edges: arr }),
   select: o({ ok: bool, selected: obj }, ['ok']),
   checkpoint: o({ ok: bool, checkpoint: str, model_hash: str, checkpoints: arr }, ['ok', 'checkpoint']),
+  // (CG6, DA-8: a version and a branch change the version log, not the document, as a checkpoint keeps a snapshot.)
+  make_version: o({ ok: bool, version: obj, branch: str, count: num }, ['ok', 'version', 'branch', 'count']),
+  make_branch: o({ ok: bool, branch: str, from: str, current: str }, ['ok', 'branch', 'from', 'current']),
+  list_versions: o({ current: { type: ['string', 'null'] }, branches: arr, versions: arr, note: str }, ['current', 'branches', 'versions']),
+  compare_versions: o({ from: str, to: str, same: bool, features: arr, parameters: arr, configurations: arr, mates: arr, instances: arr, fields: arr }, ['from', 'to', 'same', 'features', 'parameters', 'configurations', 'mates', 'instances', 'fields']),
   subd_cage: o({ ok: bool, index: num, vertices: num, faces: num, creases: num, bounds: obj, validation: obj }, ['ok', 'index']),
   subd_select: o({ ok: bool, faces: arr, vertices: arr, edges: arr, count: num }, ['ok']),
   drawing_issues: o({ sheet: obj, issues: arr }, ['sheet', 'issues']),
@@ -51,28 +64,32 @@ const READ: Record<string, JsonSchema | null> = {
   list_library: o({ libraries: arr, note: str }, ['libraries']),
   check_printability: o({ direction: { type: ['object', 'null'] }, rules: arr }, ['rules']),
   link_inertia: o({ links: arr }, ['links']),
-  motion_torques: o({ profile: str, duration_s: num, joints: obj, sampling: str, gravity_m_s2: num }, ['profile', 'duration_s', 'joints', 'sampling']),
-  size_actuators: o({ profile: str, move_s: num, cycle_s: num, joints: arr, skipped: arr, model: str, sampling: str, pending_worked_examples: arr }, ['profile', 'move_s', 'cycle_s', 'joints', 'skipped', 'model', 'sampling', 'pending_worked_examples']),
+  motion_torques: o({ profile: str, duration: num, joints: obj, sampling: str, gravity: num }, ['profile', 'duration', 'joints', 'sampling']),
+  size_actuators: o({ profile: str, moveDuration: num, cycleDuration: num, joints: arr, skipped: arr, model: str, sampling: str, pending_worked_examples: arr }, ['profile', 'moveDuration', 'cycleDuration', 'joints', 'skipped', 'model', 'sampling', 'pending_worked_examples']),
   get_brief: o({ brief: objOrNull, gaps: arr, complete: bool, unverified: arr, asked: obj, process: objOrNull, material: objOrNull }, ['brief', 'gaps', 'complete', 'unverified', 'asked', 'process', 'material']),
   get_references: o({ references: arr, datums: arr, keepouts: arr, problems: arr }, ['references', 'datums', 'keepouts']),
   standards_lookup: o({ tables: arr, table: str, row: str, unit: str, standards: arr, values: obj, sources: obj }),
   get_drafts: o({ drafts: arr, unconfirmed: arr, assumptions: arr, note: str }, ['drafts', 'unconfirmed', 'assumptions', 'note']),
   check_keepouts: o({ results: arr, clear: num, violated: num, undecided: num }, ['results', 'clear', 'violated', 'undecided']),
-  gravity_torques: o({ torques: obj, generalized: obj, units: obj, gravity_m_s2: num }, ['torques', 'generalized', 'units', 'gravity_m_s2']),
-  sweep_path: o({ clear: bool, contact: obj, min_clearance: { type: ['object', 'null'] }, samples: num, pairs: num, skipped: arr }, ['clear', 'samples', 'pairs', 'skipped']),
+  gravity_torques: o({ torques: obj, generalized: obj, units: obj, gravity: num, notReady: obj }, ['torques', 'generalized', 'units', 'gravity']),
+  sweep_path: o({ clear: bool, contact: obj, minClearance: clearanceSchema('fraction'), samples: num, pairs: num, skipped: arr, designed: arr }, ['clear', 'samples', 'pairs', 'skipped', 'designed']),
   export_mjcf: o({ mjcf: str, files: arr, notes: arr, check: arr }, ['mjcf', 'files', 'notes', 'check']),
   export_urdf: o({ urdf: str, files: arr, notes: arr, check: arr }, ['urdf', 'files', 'notes', 'check']),
-  forward_kinematics: o({ values: obj, links: arr, gears: arr, out_of_limits: arr }, ['values', 'links', 'gears', 'out_of_limits']),
-  get_joints: o({ version: num, base: str, links: arr, joints: arr, loops: arr, couplings: arr, problems: arr, notes: arr }, ['version', 'base', 'links', 'joints', 'loops', 'couplings', 'problems', 'notes']),
+  set_pose: o({ values: obj, links: arr, frames: arr, gears: arr, out_of_limits: arr }, ['values', 'links', 'gears', 'out_of_limits']),
+  check_path: o({ motion: str, duration: num, clear: bool, contact: obj, minClearance: clearanceSchema('time'), samples: num, skipped: arr, designed: arr }, ['motion', 'duration', 'clear', 'minClearance', 'samples', 'skipped', 'designed']),
+  play_motion: o({ motion: str, duration: num, samples: arr }, ['motion', 'duration', 'samples']),
+  forward_kinematics: o({ values: obj, links: arr, frames: arr, gears: arr, out_of_limits: arr }, ['values', 'links', 'gears', 'out_of_limits']),
+  get_joints: o({ version: num, base: str, links: arr, joints: arr, loops: arr, couplings: arr, problems: arr, notes: arr, frames: arr }, ['version', 'base', 'links', 'joints', 'loops', 'couplings', 'problems', 'notes']),
 };
 /** Changes that only add (a feature, a part, a mate, a proposal, a library): nothing there before is altered. */
 const ADDS = new Set(['run_command', 'add_features', 'extrude_image_layer', 'inflate_image_layer', 'add_part', 'add_mate', 'insert_part', 'add_library', 'add_library_part', 'propose']);
 /** Changes that may alter or remove what is there; `true`: the same call twice has no further effect. */
 const ALTERS: Record<string, boolean> = {
-  edit_feature: true, delete_feature: true, apply_ops: false, run_script: false, restore: true, restore_best: true, set_requirements: true, set_brief: true, set_material: true, set_stock: true, set_casting: true, set_frame_stock: true, set_frame_sections: true, set_welds: true, ask_user: false, add_reference: false, add_datum: false, add_keepout: false, delete_reference_item: true, import_drawing: false, accept_proposal: true,
+  load_rows: true, edit_feature: true, delete_feature: true, apply_ops: false, run_script: false, restore: true, restore_best: true, set_requirements: true, set_brief: true, set_material: true, set_stock: true, set_casting: true, set_frame_stock: true, set_parameters: false, set_frame_sections: true, set_welds: true, ask_user: false, add_reference: false, add_datum: false, add_keepout: false, delete_reference_item: true, import_drawing: false, accept_proposal: true,
   subd_move: false, subd_extrude: false, subd_insert_loop: false, subd_bridge: false, subd_fill: false, subd_weld: false, subd_crease: true, subd_delete: false,
-  place_part: true, delete_part: true, edit_mate: true, delete_mate: true, snap_part: true, orient_for_print: true,
-  auto_dimension: true, fix_drawing: false, accept_tolerances: false, set_drawing: true, set_joints: true,
+  place_part: true, delete_part: true, edit_mate: true, lock_part: false, delete_mate: true, snap_part: true, orient_for_print: true,
+  restore_version: true, switch_branch: true, merge_branch: true,
+  auto_dimension: true, fix_drawing: false, accept_tolerances: false, set_drawing: true, set_joints: true, set_inputs: true, set_variants: true, set_frames: true, set_waypoint: false,
 };
 
 const titleOf = (name: string) => name.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());

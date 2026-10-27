@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 import { emptyDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { evaluateDoc, evaluatePart } from '../src/engine/evaluate';
 import { deleteFeature, duplicateBody, moveFeature, replaceRange } from '../src/chat/features';
-import { flattenAssembly } from '../src/assembly/flatten';
+import { flattenAssembly } from '../src/engine/flatten';
 import { featureIdsOf, nextSerial, nodeIndexOf, renameFeatureIds, withIds } from '../src/engine/ids';
 import { toPartDocument } from '../src/engine/part';
 import { readStudioDoc } from '../src/engine/migrate';
@@ -13,7 +13,7 @@ import { defaultRender } from '../src/engine/render';
 import { lookOf, withLook } from '../src/app/bodies';
 
 // Stable feature ids (A1): a face's name keeps its feature's id however the history around it changes.
-const volumes = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies.map(b => Math.round(b.volumeMM3! * 1000) / 1000); };
+const volumes = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies.map(b => Math.round(b.volume! * 1000) / 1000); };
 const box = (doc: StudioDoc, x: number, w: number, h: number) => withNode(withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [x, 0], max: [x + w, w] }), { kind: 'extrude', sketch: doc.nodes.length, height: h });
 
 test('ids: appended features are n0, n1, …; a deleted id is never handed out again', () => {

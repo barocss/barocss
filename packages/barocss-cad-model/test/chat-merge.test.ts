@@ -5,7 +5,7 @@ import { rectanglePart, type ModelNode, type StudioDoc } from '../src/engine/doc
 import { nextSerial, withIds } from '../src/engine/ids';
 import { acceptProposal, runTool, type ChatState } from '../src/chat/tools';
 import { captureOp, changedDuring, mergeTurn, type TurnPatch } from '../src/chat/merge';
-import { revisionOf } from '../src/team/revision';
+import { revisionOf } from '../src/util/revision';
 import { withHistory } from '../src/chat/proposals';
 
 // O133 (item 0, the owner's decision): a chat turn merged onto the part as the person left it — the agent's ops applied
@@ -49,7 +49,7 @@ test('the README repro: a long turn and a box the person added meanwhile — bot
   assert.deepEqual(new Set(m.doc.nodes.map(n => n.id)), new Set(['n0', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6']));
   // It builds: the plate with a hole and both boxes (the agent's alone left its own n2…n4).
   const r = await evaluate(m.doc); assert.ok(r.ok);
-  const vol = r.bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0), plate = 40 * 20 * 8 - Math.PI * 9 * 8;
+  const vol = r.bodies.reduce((s, b) => s + (b.volume ?? 0), 0), plate = 40 * 20 * 8 - Math.PI * 9 * 8;
   assert.ok(Math.abs(vol - (plate + 10 * 10 * 18 + 10 * 10 * 5)) < 1, String(vol));
   assert.equal(end.doc.nodes.length, 5);
 });

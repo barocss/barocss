@@ -1,0 +1,109 @@
+{
+  "id": "fuzz-20261023-4",
+  "about": "L4 fuzz case (seed 20261023, case 4), shrunk: two copies of a box turned 120° about a corner on the axis, touching along that edge — refused before D204, now two bodies.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            5,
+            4
+          ]
+        },
+        {
+          "id": "n1b",
+          "kind": "extrude",
+          "sketch": "n1s",
+          "height": 2
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1b",
+          "offset": [
+            0,
+            0,
+            -3
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "circular-pattern",
+          "target": "n1",
+          "axis": "z",
+          "angle": 120,
+          "count": 2,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 79.99961854525007,
+          "relTol": 0.0001,
+          "absTol": 0.007999961854525008
+        },
+        "centroid": {
+          "value": [
+            -0.24102766589624294,
+            1.5825289527876545,
+            -2
+          ],
+          "absTol": 0.0010964101615137754
+        },
+        "bodies": 2
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 512² lattice at 8 shifts, e 2.47e-3 mm³, centroid e 7.14e-5 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 4,
+    "status": "REFUSED",
+    "tree": {
+      "pattern": {
+        "kind": "circular",
+        "axis": "z",
+        "deg": 120,
+        "count": 2,
+        "pivot": [
+          0,
+          0,
+          0
+        ]
+      },
+      "child": {
+        "leaf": {
+          "kind": "box",
+          "w": 5,
+          "d": 4,
+          "h": 2,
+          "rot": [],
+          "move": [
+            0,
+            0,
+            -3
+          ]
+        }
+      }
+    }
+  }
+}

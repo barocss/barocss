@@ -1,14 +1,14 @@
 import { qualifyConvexPlanarSolid, validateConvexPlanarSolid } from './convex-planar-solid.js';
 import type { ConvexPlanarSolidResult, ConvexPlanarSolidAsset, ConvexPlanarSolidEdgePair, ConvexPlanarSolidReport, ConvexPlanarSolidGraph } from './convex-planar-solid.js';
 import { buildConvexPlanarFace } from './own-convex-planar-face.js';
-import { buildAffinePlaneAxes } from './own-affine-plane-loop-internal.js';
+import { buildAffinePlaneAxes } from './intersect/own-affine-plane-loop-internal.js';
 import { compileCadModel } from './model-compiler.js';
 import type { Model, Surface, Curve, Point } from './types.js';
 import type { SectionFraction, SectionRational } from './section-rational-internal.js';
 import type { ExactPointData } from './convex-planar-solid-proof-internal.js';
-import { SolidProof, SplitLedger, SPLIT_LIMITS, demand, fields, identity, same, at } from './convex-planar-solid-split-internal.js';
-export { ConvexPlanarSolidSplitError } from './convex-planar-solid-split-internal.js';
-export type { SplitCode as ConvexPlanarSolidSplitDiagnosticCode } from './convex-planar-solid-split-internal.js';
+import { SolidProof, SplitLedger, SPLIT_LIMITS, demand, fields, identity, same, at } from './planar-solids/convex-planar-solid-split-internal.js';
+export { ConvexPlanarSolidSplitError } from './planar-solids/convex-planar-solid-split-internal.js';
+export type { SplitCode as ConvexPlanarSolidSplitDiagnosticCode } from './planar-solids/convex-planar-solid-split-internal.js';
 
 export interface ConvexPlanarSolidCutter { sourceId: string; source: string; sourceVersion: 0; model: Model; surfaceId: string }
 export interface ConvexPlanarSolidSplitOptions { operationId: string; resultIdPrefix: string; negativeSolidId: string; positiveSolidId: string }

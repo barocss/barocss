@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 /** Reuse the consumer driver's actual extracted archive; do not pack again. */
-export async function verifyArcConsumer({api,destination,temp,require}) {
+export async function verifyArcConsumer({api,destination,temp,require,archive}) {
   assert.equal(typeof api.buildXYArc,'function');
   const requests=[{kind:'quarter-arc',id:'packed_arc',center:[0,0],radius:10,quadrant:0},{kind:'circle',id:'packed_circle',center:[4,-3],radius:10}];
   writeFileSync(join(temp,'arc-runtime.mjs'),`import assert from 'node:assert/strict';
@@ -34,7 +34,7 @@ buildXYArc({kind:'quarter-arc',id:'arc',center,radius:10,quadrant:0,startAngle:0
 `);
   execFileSync(process.execPath,[require.resolve('typescript/bin/tsc'),'--noEmit','--strict','--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext',join(temp,'arc-types.ts')],{stdio:'inherit'});
   const results=requests.map(request=>api.buildXYArc(request)),hash=value=>createHash('sha256').update(value).digest('hex');
-  const record={producer:'Actual extracted public @barocss/cad ESM/types archive',archiveSHA256:hash(readFileSync(join(temp,'barocss-cad-0.0.0-private-experimental.tgz'))),indexSHA256:hash(readFileSync(join(destination,'dist/index.js'))),sourceVersion:0,nativeVersion:0,fixtures:results.map((result,i)=>({id:requests[i].id,sourceSHA256:hash(result.source),sourceBytes:Buffer.byteLength(result.source),report:result.report,igesFlags:{entity:126,planar:0,closed:0,polynomial:0,periodic:0}}))};
+  const record={producer:'Actual extracted public @barocss/cad ESM/types archive',archiveSHA256:hash(readFileSync(archive)),indexSHA256:hash(readFileSync(join(destination,'dist/index.js'))),sourceVersion:0,nativeVersion:0,fixtures:results.map((result,i)=>({id:requests[i].id,sourceSHA256:hash(result.source),sourceBytes:Buffer.byteLength(result.source),report:result.report,igesFlags:{entity:126,planar:0,closed:0,polynomial:0,periodic:0}}))};
   if(process.env.BAROCSS_CAD_ARC_EVIDENCE){const folder=resolve(process.env.BAROCSS_CAD_ARC_EVIDENCE);mkdirSync(folder,{recursive:true});writeFileSync(join(folder,'consumer-report.json'),JSON.stringify(record,null,2)+'\n');for(let i=0;i<results.length;i++){writeFileSync(join(folder,requests[i].id+'.css'),results[i].source);writeFileSync(join(folder,requests[i].id+'.json'),JSON.stringify(results[i],null,2)+'\n');}}
   console.log('Packed XY arc ESM/types, rational point/D1, original source identity and IGES flags passed');return record;
 }

@@ -25,7 +25,7 @@ assert.equal(built.outputFiles.length, 1);
 const sourceInputs = Object.keys(built.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
 assert.ok(cadInputs.includes(entry));
-assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/curve-wide-plane-intersection.ts')));
+assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/nurbs/source-wide/curve-wide-plane-intersection.ts')));
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' +
@@ -415,8 +415,8 @@ const runtimeExports = ['intersectCurveWideWithAffinePlaneSurface', 'validateWid
   'WideCurveAffinePlaneIntersectionError', 'WideCurveAffinePlaneIntersectionDiagnosticCode'];
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.WideCurveAffinePlaneIntersectionDiagnosticCode, WideCurveAffinePlaneIntersectionDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./curve-wide-plane-intersection.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/curve-wide-plane-intersection.d.ts');
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/source-wide/curve-wide-plane-intersection.js'));
+const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/source-wide/curve-wide-plane-intersection.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = [...runtimeExports, 'WideCurveAffinePlaneIntersectionOptions',
   'WideCurveAffinePlaneIntersectionReport', 'WideCurveAffinePlaneIntersectionResult'];

@@ -4,8 +4,11 @@ import type { DriveRow } from '@barocss/cad';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { editDriveRows } from '@barocss/cad-model/engine/drives';
 import { Icon } from './atoms';
+import { ROW } from './panelStyles';
+import { Button } from '@/components/ui/button';
+import { RowsEmpty } from './RowsEmpty';
 
-const sizes = (r: DriveRow) => r.kind === 'chain' ? `chain p ${r.pitchMM}, roller Ø${r.rollerDiameterMM}` : r.kind === 'timing-belt' ? `timing p ${r.pitchMM}, u ${r.pitchLineOffsetMM}` : r.kind === 'v-belt' ? `V ${r.angleDeg}°, datum width ${r.datumWidthMM}` : r.kind === 'flat-belt' ? `flat ${r.widthMM} × ${r.thicknessMM}` : `coupling Ø${r.outsideMM} × ${r.lengthMM}, bores Ø${r.boreMM[0]}/Ø${r.boreMM[1]}`;
+const sizes = (r: DriveRow) => r.kind === 'chain' ? `chain p ${r.pitch}, roller Ø${r.rollerDiameter}` : r.kind === 'timing-belt' ? `timing p ${r.pitch}, u ${r.pitchLineOffset}` : r.kind === 'v-belt' ? `V ${r.angle}°, datum width ${r.datumWidth}` : r.kind === 'flat-belt' ? `flat ${r.width} × ${r.thickness}` : `coupling Ø${r.outside} × ${r.length}, bores Ø${r.bore[0]}/Ø${r.bore[1]}`;
 
 export function DriveRows({ doc, onCommit, onError }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onError(title: string, message: string): void }) {
   const rows = doc.drives?.rows ?? [];
@@ -16,13 +19,13 @@ export function DriveRows({ doc, onCommit, onError }: { doc: StudioDoc; onCommit
   };
   return <section aria-label="Drive rows">
     <div className="card-title" style={{ marginTop: 8 }}>DRIVES</div>
-    {!rows.length && <div className="empty">No drive rows: load your own chains, belts and couplings (JSON, each with its kind; each citing its source or marked an estimate). None is built in.</div>}
-    {rows.map(r => <div key={r.id} className="param-row" aria-label={`Drive row ${r.id}`}>
+    {!rows.length && <RowsEmpty none="No drive rows" holds="Chains, belts and couplings (JSON), each with its kind; each citing its source or marked an estimate." />}
+    {rows.map(r => <div key={r.id} className={ROW} aria-label={`Drive row ${r.id}`}>
       <span title={r.source ?? 'an estimate'}><b>{r.id}</b> <span className="muted small">{sizes(r)} · {r.source ?? 'estimate'}</span></span>
-      <button className="ghost small" aria-label={`Remove drive row ${r.id}`} title="Remove the row" onClick={() => apply([], [r.id])}><Icon name="delete" small /></button>
+      <Button variant="ghost" aria-label={`Remove drive row ${r.id}`} title="Remove the row" onClick={() => apply([], [r.id])}><Icon name="delete" small /></Button>
     </div>)}
-    <div className="row-actions">
-      <label className="ghost small file-button">Add a drive rows file…<input type="file" accept="application/json,.json" aria-label="Drive rows file" hidden onChange={ev => { const f = ev.currentTarget.files?.[0]; if (f) void addFile(f); ev.currentTarget.value = ''; }} /></label>
+    <div className="flex flex-wrap gap-1">
+      <Button variant="ghost" asChild><label className="file-button">Add a drive rows file…<input type="file" accept="application/json,.json" aria-label="Drive rows file" hidden onChange={ev => { const f = ev.currentTarget.files?.[0]; if (f) void addFile(f); ev.currentTarget.value = ''; }} /></label></Button>
     </div>
   </section>;
 }

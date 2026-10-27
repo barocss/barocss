@@ -23,7 +23,13 @@ export interface SectionPlane { normal: Vec3; offset: number; axis?: Axis; face?
 export interface Section { mode: 'plane' | 'box' | 'planes' | 'cutout'; planes: SectionPlane[] }
 /** The axis section as it was (G2): across `axis` at `at`, the `keep` side shown. */
 export interface AxisSection { axis: Axis; at: number; keep: 'negative' | 'positive' }
-type Placed = { id: string; bodies: BodyResult[] };
+type Placed = {
+  id: string; bodies: BodyResult[];
+  /** CPU display-section provenance; maps shown indices back to the original instance packet. */
+  sourceBodies?: readonly number[];
+  sourceFaces?: readonly (readonly number[])[];
+  sourceEdges?: readonly (readonly number[])[];
+};
 
 /** An axis plane: across `axis` at `at`, kept on the `keep` side. */
 export function axisPlane(axis: Axis, at: number, keep: 'negative' | 'positive'): SectionPlane {
@@ -158,12 +164,14 @@ export function mergeMeshes(a: DisplayMesh, b: DisplayMesh): DisplayMesh {
 export function mergeBodies(pieces: readonly BodyResult[]): BodyResult {
   if (pieces.length === 1) return pieces[0];
   const sum = (f: (b: BodyResult) => number | null) => pieces.every(b => f(b) !== null) ? pieces.reduce((v, b) => v + f(b)!, 0) : null;
-  const volume = sum(b => b.volumeMM3), mass = sum(b => b.massG);
-  const centroid = volume && pieces.every(b => b.centroid && b.volumeMM3 !== null) ? [0, 1, 2].map(k => pieces.reduce((v, b) => v + b.centroid![k] * b.volumeMM3!, 0) / volume) as [number, number, number] : undefined;
+  const volume = sum(b => b.volume), mass = sum(b => b.mass);
+  const centroid = volume && pieces.every(b => b.centroid && b.volume !== null) ? [0, 1, 2].map(k => pieces.reduce((v, b) => v + b.centroid![k] * b.volume!, 0) / volume) as [number, number, number] : undefined;
   // (The area and inertia of the whole are not the pieces' sum — the faces between them are inside — so left out.)
-  const { areaMM2: _a, areaBasis: _b, inertia: _i, pieces: _p, ...first } = pieces[0];
-  void _a; void _b; void _i; void _p;
-  return { ...first, mesh: pieces.map(b => b.mesh).reduce(mergeMeshes), volumeMM3: volume, massG: mass, ...(centroid ? { centroid } : {}) };
+  const { area: _a, areaBasis: _b, inertia: _i, pieces: _p, volumeBasis: _v, ...first } = pieces[0];
+  void _a; void _b; void _i; void _p; void _v;
+  // (O179: the volume is the pieces' sum, so it is from the mesh when any piece's is — their bounds summed, never the first's alone.)
+  const fromMesh = pieces.filter(b => b.volumeBasis), basis = fromMesh.length ? { volumeBasis: { method: 'tessellated' as const, bound: fromMesh.some(b => b.volumeBasis!.bound === null) ? null : fromMesh.reduce((v, b) => v + b.volumeBasis!.bound!, 0) } } : {};
+  return { ...first, mesh: pieces.map(b => b.mesh).reduce(mergeMeshes), volume: volume, mass: mass, ...(centroid ? { centroid } : {}), ...basis };
 }
 /** The exact section's bodies, one a source body (its pieces merged), and each one's source body's key. */
 export function exactBodies(bodies: readonly BodyResult[], kept: readonly string[], from: readonly string[]): { bodies: BodyResult[]; from: Map<string, string> } {
@@ -207,8 +215,66 @@ export function sectionedInstances<T extends Placed>(instances: T[], poses: Read
   if (gpu) return instances;
   return instances.map(i => {
     const M = poses.get(i.id), m = M && motionOf(M);
-    return { id: i.id, bodies: i.bodies.flatMap(b => { const mesh = clipMeshSection(m ? posedBody(b, m).mesh : b.mesh, s, 'section'); return mesh ? [{ ...b, mesh }] : []; }) };
+    const bodies: BodyResult[] = [], sourceBodies: number[] = [], sourceFaces: number[][] = [], sourceEdges: number[][] = [];
+    i.bodies.forEach((b, bi) => {
+      const mesh = clipMeshSection(m ? posedBody(b, m).mesh : b.mesh, s, 'section');
+      if (!mesh) return;
+      const priorFaces = i.sourceFaces ? i.sourceFaces[bi] ?? [] : undefined, priorEdges = i.sourceEdges ? i.sourceEdges[bi] ?? [] : undefined;
+      const faces = sectionFaceSources(b.mesh, mesh, priorFaces);
+      bodies.push({ ...b, mesh });
+      sourceBodies.push(sourceIndex(i.sourceBodies, bi));
+      sourceFaces.push(faces);
+      sourceEdges.push(sectionEdgeSources(b.mesh, mesh, faces, priorFaces, priorEdges));
+    });
+    return { id: i.id, bodies, sourceBodies, sourceFaces, sourceEdges };
   });
+}
+
+/** A missing optional map is identity; a missing/invalid entry in an existing map has no native authority. */
+function sourceIndex(map: readonly number[] | undefined, index: number): number {
+  const value = map ? map[index] : index;
+  return Number.isInteger(value) && value >= 0 ? value : -1;
+}
+
+/** Cutout pieces duplicate/renumber native faces; exact full identity reconnects them without inventing cap IDs. */
+function sectionFaceSources(source: DisplayMesh, shown: DisplayMesh, prior?: readonly number[]): number[] {
+  const byIdentity = new Map<string, Set<number>>();
+  for (const f of source.faces) {
+    if (f.id === 'section-cap') continue;
+    const native = sourceIndex(prior, f.index);
+    if (native < 0) continue;
+    const key = JSON.stringify([f.id, f.name]), values = byIdentity.get(key) ?? new Set<number>();
+    values.add(native); byIdentity.set(key, values);
+  }
+  const out = Array.from({ length: shown.faces.reduce((max, f) => Math.max(max, f.index), -1) + 1 }, () => -1);
+  for (const f of shown.faces) {
+    if (f.id === 'section-cap') continue;
+    const values = byIdentity.get(JSON.stringify([f.id, f.name]));
+    if (values?.size === 1) out[f.index] = values.values().next().value!;
+  }
+  return out;
+}
+
+/** Full edge names and both original adjacent faces identify a native edge; ambiguous/boundary-cap edges stay -1. */
+function sectionEdgeSources(source: DisplayMesh, shown: DisplayMesh, faces: readonly number[], priorFaces?: readonly number[], priorEdges?: readonly number[]): number[] {
+  const keyOf = (edge: DisplayMesh['edges'][number], face: (index: number) => number): string | null => {
+    const adjacent = edge.faces.map(face);
+    if (!edge.names.length || adjacent.some(f => f < 0)) return null;
+    return JSON.stringify([[...edge.names].sort(), adjacent.sort((a, b) => a - b)]);
+  };
+  const nativeFaces = new Map(source.faces.map(f => [f.index, f.id === 'section-cap' ? -1 : sourceIndex(priorFaces, f.index)]));
+  const byIdentity = new Map<string, Set<number>>();
+  for (const edge of source.edges) {
+    const key = keyOf(edge, index => nativeFaces.get(index) ?? -1), native = sourceIndex(priorEdges, edge.index);
+    if (key === null || native < 0) continue;
+    const values = byIdentity.get(key) ?? new Set<number>(); values.add(native); byIdentity.set(key, values);
+  }
+  const out = Array.from({ length: shown.edges.reduce((max, e) => Math.max(max, e.index), -1) + 1 }, () => -1);
+  for (const edge of shown.edges) {
+    const key = keyOf(edge, index => faces[index] ?? -1), values = key === null ? undefined : byIdentity.get(key);
+    if (values?.size === 1) out[edge.index] = values.values().next().value!;
+  }
+  return out;
 }
 
 /**

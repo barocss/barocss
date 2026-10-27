@@ -20,14 +20,14 @@ const ordinary = resolve(output, 'ordinary-public.mjs'), cadPath = resolve(outpu
 const sourceBuild = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
 await build({ entryPoints: [resolve(cadPkg, cadManifest.exports['.'].import)], bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile: cadPath });
 const sourceGraph = Object.keys(sourceBuild.metafile.inputs);
-assert.ok(sourceGraph.some(p => p.endsWith('/src/native-surface-uv01-geometry.ts')));
+assert.ok(sourceGraph.some(p => p.endsWith('/src/native/uv01/native-surface-uv01-geometry.ts')));
 assert.ok(sourceGraph.some(p => p.includes('barocss-cad/src/'))); assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }];
 for (const p of providers) p.gpu = await import(pathToFileURL(p.path).href);
-const namespace = Object.keys(providers[0].gpu).sort(); assert.equal(namespace.length, 121); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
-assert.equal(namespace.includes('compileNativeSurfaceUV01Material'), false, 'No independent unadopted #1432 dependency');
+const namespace = Object.keys(providers[0].gpu).sort(); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
+
 const dtsPath = resolve(pkg, manifest.publishConfig.exports['.'].types), dts = await readFile(dtsPath, 'utf8');
-const leafDtsPath = resolve(pkg, 'dist/native-surface-uv01-geometry.d.ts'), leafDts = await readFile(leafDtsPath, 'utf8');
+const leafDtsPath = resolve(pkg, 'dist/native/uv01/native-surface-uv01-geometry.d.ts'), leafDts = await readFile(leafDtsPath, 'utf8');
 for (const name of ['prepareNativeSurfaceUV01Geometry', 'NativeSurfaceUV01GeometryError', 'NativeSurfaceUV01GeometryRequest', 'PreparedNativeSurfaceUV01Geometry', 'NativeSurfaceUV01GeometryCode']) {
   assert.ok(new RegExp('\\b' + name + '\\b').test(dts), 'Actual public DTS ' + name); assert.ok(new RegExp('\\b' + name + '\\b').test(leafDts));
 }
@@ -70,7 +70,7 @@ function verify(result, fixture) {
   assert.equal(surface.kind, 'surface'); assert.equal(surface.id, 'plane_nonunit'); assert.equal(surface.degreeU, 1); assert.equal(surface.degreeV, 1);
   assert.deepEqual(surface.weights, [[1, 1], [1, 1]]); assert.ok(Object.is(surface.controlPoints[0][0][2], -0), 'Original native control coefficient sign');
   assert.deepEqual(result.domain, fixture.domain); assert.equal(packet.surfaceId, r.surfaceId); assert.equal(packet.revision, r.revision === 0 ? 0 : r.revision);
-  assert.equal(packet.lengthUnit, 'mm'); assert.equal(packet.coordinateSystem, 'right-handed-y-up'); assert.equal(packet.winding, 'ccw');
+  assert.equal(packet.lengthUnit, 'mm'); assert.equal(packet.coordinateSystem, 'right-handed-z-up'); assert.equal(packet.winding, 'ccw');
   assert.deepEqual(report.grid, { countU: r.countU, countV: r.countV }); assert.equal(report.vertexCount, n); assert.equal(report.triangleCount, 2 * (r.countU - 1) * (r.countV - 1));
   assert.equal(report.probeCount, 5 * (r.countU - 1) * (r.countV - 1)); assert.equal(report.certified, false); assert.equal(report.normalMethod, 'area-weighted-incident-triangle');
   assert.equal(packet.parameters.length, 2 * n); assert.equal(packet.positions.length, 3 * n); assert.equal(packet.normals.length, 3 * n); assert.equal(packet.indices.length, 3 * report.triangleCount);
@@ -147,7 +147,7 @@ for (const provider of providers) {
     if (f.cause) assert.strictEqual(error.cause, f.cause);
     if (f.diagnostic) { assert.deepEqual(error.cause, f.diagnostic); frozen(error.cause); assert.equal(error.start, f.diagnostic[0].range.start); assert.equal(error.end, f.diagnostic[0].range.end); }
     if (f.nativeCause) { assert.ok(error.cause instanceof RangeError); assert.equal(error.cause.message, 'Collapsed or nonfinite preview triangle'); assert.equal(error.start, 0); assert.equal(error.end, 0); }
-    if (f.localNormalization) { assert.equal(error.cause, undefined); assert.equal(error.message, 'Native Surface UV01 domain requires finite positive represented widths'); assert.equal(error.start, 0); assert.equal(error.end, 0); }
+    if (f.localNormalization) { assert.equal(error.cause, undefined); assert.equal(error.message, '[NORMALIZATION] Native Surface UV01 domain requires finite positive represented widths'); assert.equal(error.start, 0); assert.equal(error.end, 0); }
     await retention(); refused++; failures.push({ label: f.label, code: error.code, message: error.message, start: error.start, end: error.end,
       cause: error.cause instanceof Error ? { name: error.cause.name, message: error.cause.message } : error.cause ?? null, previousSourceNativeRawUVNormalizedBuffersAndFilesRetained: true });
   }

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, buildBrep, checkBrep, brepMassProperties, booleanAnalytic, exportStep, importStep } from '../dist/index.js';
-import { extrudedProfile } from '../dist/gear.js';
+import { evaluateCadPart, buildBrep, checkBrep, brepMassProperties, booleanAnalytic, exportStep, importStep, outputOf, massPropertiesOf, checkOutput } from '../dist/index.js';
+import { extrudedProfile } from '../dist/machine/gear.js';
 
 // R12c S0 (D139): the feasibility checkpoint before machine and power-transmission elements (README §4 "R12c"). No
 // research note; probed here against closed forms and quadratures written in the test, none of them the kernel's:
@@ -20,11 +20,11 @@ import { extrudedProfile } from '../dist/gear.js';
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const run = features => evaluateCadPart(D(features));
 /** Feature `id`'s body: the document evaluated up to it (a feature a later one consumes is no output of the whole). */
-const at = (features, id) => run(features.slice(0, features.findIndex(f => f.id === id) + 1)).output(id);
+const at = (features, id) => outputOf(run(features.slice(0, features.findIndex(f => f.id === id) + 1)), id);
 const near = (got, want, rel, what) => assert.ok(Math.abs(got - want) <= rel * Math.abs(want), `${what}: ${got} vs ${want} (rel ${Math.abs(got - want) / Math.abs(want)})`);
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], scl = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
+const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volume;
 
 // ---- springs ------------------------------------------------------------------------------------------------------------
 // The helix C(φ) = (R cos φ, R sin φ, hφ), h = p/2π: its Frenet frame is carried by the screw motion M(φ) (turn φ about Z,
@@ -143,7 +143,7 @@ test('R12c S0 springs: a plane square to the axis cuts away πa²·L·z/h (close
   let perTurn = 4; while (hermiteDeviation(2 * Math.PI / perTurn) * 11 > 2e-4) perTurn++;
   const spec = { R: 10, p: 5, a: 1, turns: 3, segments: 3 * Math.ceil(perTurn / 4), pieces: 4 }, fit = 11 * hermiteDeviation(2 * Math.PI * 3 / (spec.segments * 4));
   const S = coil(spec), zTop = S.h * S.Phi, cutLo = 2.2, cutHi = zTop - 1.9;
-  const box = (z0, z1) => run([{ id: 'b', kind: 'sketch', profile: 'rectangle', min: [-30, -30], max: [30, 30], plane: { origin: [0, 0, z0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'e', kind: 'extrude', sketch: 'b', height: z1 - z0 }]).output('e').brep;
+  const box = (z0, z1) => outputOf(run([{ id: 'b', kind: 'sketch', profile: 'rectangle', min: [-30, -30], max: [30, 30], plane: { origin: [0, 0, z0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'e', kind: 'extrude', sketch: 'b', height: z1 - z0 }]), 'e').brep;
   const t0 = performance.now();
   let cut, why = '';
   try { cut = booleanAnalytic(booleanAnalytic(S.brep, box(-10, cutLo), 'difference'), box(cutHi, zTop + 10), 'difference'); } catch (e) { why = e.message; }
@@ -203,7 +203,7 @@ test('R12c S0 fits: limits → clearances by arithmetic (the page\'s own results
   const rows = [];
   for (const [name, H, s] of fits) for (const [hole, shaft, tag] of [[50 + H[0] / 1000, 50 + s[1] / 1000, 'MMC'], [50 + H[1] / 1000, 50 + s[0] / 1000, 'LMC']]) {
     const doc = [...ring(hole), { id: 's', kind: 'sketch', profile: 'circle', center: [0, 0], radius: shaft / 2 }, { id: 'se', kind: 'extrude', sketch: 's', height: L + 2, from: -1 }, { id: 'x', kind: 'difference', target: 'r', tool: 'se' }];
-    const Vr = at(doc, 'r').massProperties(1).volumeMM3, Vx = at(doc, 'x').massProperties(1).volumeMM3;
+    const Vr = massPropertiesOf(at(doc, 'r')).volume, Vx = massPropertiesOf(at(doc, 'x')).volume;
     const lost = Math.max(0, Math.PI * L * ((shaft / 2) ** 2 - (hole / 2) ** 2));
     assert.ok(Math.abs((Vr - Vx) - lost) <= 1e-6 * Vr, `${name} ${tag}: removed ${Vr - Vx} vs ${lost}`);
     rows.push(`${name} ${tag} ${shaft > hole ? `interference ${((shaft - hole) * 1000).toFixed(0)} µm, ${(Vr - Vx).toFixed(4)} mm³ (πLΔr² ${lost.toFixed(4)})` : `clearance ${((hole - shaft) * 1000).toFixed(0)} µm, none removed`}`);
@@ -224,24 +224,24 @@ const shaftProfile = () => {
   let V = 0; for (const [x0, x1, r] of [[0, 30, 12.5], [30, 44, 10], [44, 45.3, 9.5], [45.3, 80, 10]]) V += Math.PI * r * r * (x1 - x0);
   return { pts, V };
 };
-const shaftDoc = () => [{ id: 'p', kind: 'sketch', profile: 'polygon', points: shaftProfile().pts }, { id: 'sh', kind: 'revolve', sketch: 'p', axis: { origin: [0, 0], direction: 'x' }, angleDegrees: 360 }];
+const shaftDoc = () => [{ id: 'p', kind: 'sketch', profile: 'polygon', points: shaftProfile().pts }, { id: 'sh', kind: 'revolve', sketch: 'p', axis: { origin: [0, 0], direction: 'x' }, angle: 360 }];
 
 test('R12c S0 shafts: steps and a ring groove by revolve (Pappus, exact), a keyseat by a Boolean (the disc segment, closed form; end-milled ends by quadrature)', t => {
-  const base = run(shaftDoc()).output('sh'); near(base.massProperties(1).volumeMM3, shaftProfile().V, 1e-12, 'stepped shaft with groove');
-  assert.ok(base.validate().valid);
+  const base = outputOf(run(shaftDoc()), 'sh'); near(massPropertiesOf(base).volume, shaftProfile().V, 1e-12, 'stepped shaft with groove');
+  assert.ok(checkOutput(base).valid);
   // The keyseat: 6 wide, 3.5 deep from the top of the Ø20 part (R 10), 18 long (x 52–70), square ends.
   const R = 10, b = 6, t1 = 3.5, Lk = 18, F = x => x / 2 * Math.sqrt(R * R - x * x) + R * R / 2 * Math.asin(x / R), Aseg = F(b / 2) - F(-b / 2) - b * (R - t1);
   // The revolve's axis is world X, so the radius runs in Y and Z alike: the key cut from z = R − t1 up, across |y| ≤ b/2.
   const key = (ends) => [{ id: 'k', kind: 'sketch', ...(ends === 'square' ? { profile: 'rectangle', min: [52, -b / 2], max: [52 + Lk, b / 2] } : { profile: 'loop', segments: [{ kind: 'line', start: [52 + b / 2, -b / 2] }, { kind: 'arc', start: [52 + Lk - b / 2, -b / 2], center: [52 + Lk - b / 2, 0], direction: 'ccw' }, { kind: 'line', start: [52 + Lk - b / 2, b / 2] }, { kind: 'arc', start: [52 + b / 2, b / 2], center: [52 + b / 2, 0], direction: 'ccw' }] }), plane: { origin: [0, 0, R - t1], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'ke', kind: 'extrude', sketch: 'k', height: 10 }, { id: 'ks', kind: 'difference', target: 'sh', tool: 'ke' }];
-  const sq = run([...shaftDoc(), ...key('square')]).output('ks');
-  near(shaftProfile().V - sq.massProperties(1).volumeMM3, Aseg * Lk, 1e-8, 'square-ended keyseat');
-  assert.ok(sq.validate().valid);
+  const sq = outputOf(run([...shaftDoc(), ...key('square')]), 'ks');
+  near(shaftProfile().V - massPropertiesOf(sq).volume, Aseg * Lk, 1e-8, 'square-ended keyseat');
+  assert.ok(checkOutput(sq).valid);
   // End-milled: the straight part Aseg·(Lk − b) plus the two half discs of radius b/2 under the cylinder, together
   // ∫∫_{x² + w² ≤ (b/2)²} (√(R² − x²) − (R − t1)) — by Gauss–Legendre on x = (b/2) sin u (64 points).
   const gl = gauss(64); let ends = 0; for (const [u, wt] of gl) { const uu = Math.PI / 2 * u, x = b / 2 * Math.sin(uu), dx = b / 2 * Math.cos(uu) * Math.PI / 2; ends += wt * dx * 2 * Math.sqrt((b / 2) ** 2 - x * x) * (Math.sqrt(R * R - x * x) - (R - t1)); }
-  const t0 = performance.now(), rd = run([...shaftDoc(), ...key('round')]).output('ks'), ms = performance.now() - t0;
-  near(shaftProfile().V - rd.massProperties(1).volumeMM3, Aseg * (Lk - b) + ends, 1e-7, 'end-milled keyseat');
-  assert.ok(rd.validate().valid);
+  const t0 = performance.now(), rd = outputOf(run([...shaftDoc(), ...key('round')]), 'ks'), ms = performance.now() - t0;
+  near(shaftProfile().V - massPropertiesOf(rd).volume, Aseg * (Lk - b) + ends, 1e-7, 'end-milled keyseat');
+  assert.ok(checkOutput(rd).valid);
   // The key 6 high in the 3.5 seat stands 2.5 proud; the hub's 2.8 leaves 0.3 over it (the tables' top clearance).
   t.diagnostic(`shaft ${shaftProfile().V.toFixed(4)} mm³ (Pappus); keyseat segment ${Aseg.toFixed(6)} mm² × 18 square, end-milled ends ${ends.toFixed(6)} mm³ (${ms.toFixed(0)} ms); key top clearance ${(2.8 - (6 - 3.5)).toFixed(1)} mm`);
 });
@@ -270,11 +270,11 @@ test('R12c S0 bearings: a 6204 envelope (corners r 1) on the shaft\'s seat again
   // (Bottom corners: the square spans y0…y0 + r, the quarter disc's centroid at y0 + r − k; top: y1 − r…y1, at y1 − r + k.)
   const My = Ay + 2 * (-(r * r) * (y0 + r / 2) + Math.PI * r * r / 4 * (y0 + r - k)) + 2 * (-(r * r) * (y1 - r / 2) + Math.PI * r * r / 4 * (y1 - r + k));
   const want = 2 * Math.PI * My;
-  const doc = [...shaftDoc(), { id: 'b', kind: 'sketch', profile: 'loop', segments: seg }, { id: 'brg', kind: 'revolve', sketch: 'b', axis: { origin: [0, 0], direction: 'x' }, angleDegrees: 360 }, { id: 'x', kind: 'difference', target: 'sh', tool: 'brg' }];
-  near(at(doc, 'brg').massProperties(1).volumeMM3, want, 1e-11, '6204 envelope (Pappus)');
+  const doc = [...shaftDoc(), { id: 'b', kind: 'sketch', profile: 'loop', segments: seg }, { id: 'brg', kind: 'revolve', sketch: 'b', axis: { origin: [0, 0], direction: 'x' }, angle: 360 }, { id: 'x', kind: 'difference', target: 'sh', tool: 'brg' }];
+  near(massPropertiesOf(at(doc, 'brg')).volume, want, 1e-11, '6204 envelope (Pappus)');
   // On its seat (bore = seat, face on the shoulder): the shaft keeps its volume — no overlap. (The seat runs 30…44; the
   // shoulder Ø25 lies inside the abutment band da 25…26.5, its corner sharp — any fillet ≤ ra max 1 clears the r 1 corner.)
-  near(at(doc, 'x').massProperties(1).volumeMM3, shaftProfile().V, 1e-9, 'shaft less the bearing: untouched');
+  near(massPropertiesOf(at(doc, 'x')).volume, shaftProfile().V, 1e-9, 'shaft less the bearing: untouched');
   const shoulder = 2 * shaftProfile().pts[8][1], da = [25, 26.5], Da = 42, housingShoulder = 40;
   assert.ok(shoulder >= da[0] && shoulder <= da[1] && housingShoulder <= Da, 'the abutment rules');
   t.diagnostic(`6204 envelope ${want.toFixed(4)} mm³; on its Ø20 seat against the Ø25 shoulder: no overlap (coincident bore and seat, coincident face and shoulder)`);
@@ -292,13 +292,13 @@ test('R12c S0 O-rings: AS568-214 on a piston gland — the torus exact, the free
   // bore displaces — a circular segment of the section, chord at c = Db/2 − Rs from its centre, swept about the axis:
   // A = r'² acos(c/r') − c√(r'² − c²), its centroid ȳ = (2/3)(r'² − c²)^{3/2}/A beyond the centre, V = 2π(Rs + ȳ)A.
   const c = Db / 2 - Rs, A = rs * rs * Math.acos(c / rs) - c * Math.sqrt(rs * rs - c * c), yb = 2 / 3 * (rs * rs - c * c) ** 1.5 / A, want = 2 * Math.PI * (Rs + yb) * A;
-  const ringDoc = [{ id: 'c', kind: 'sketch', profile: 'circle', center: [Rs, 0], radius: rs }, { id: 'or', kind: 'revolve', sketch: 'c', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }];
+  const ringDoc = [{ id: 'c', kind: 'sketch', profile: 'circle', center: [Rs, 0], radius: rs }, { id: 'or', kind: 'revolve', sketch: 'c', axis: { origin: [0, 0], direction: 'y' }, angle: 360 }];
   const sleeve = [{ id: 'so', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 20, plane: { origin: [0, -5, 0], normal: [0, 1, 0], xAxis: [1, 0, 0] } }, { id: 'soe', kind: 'extrude', sketch: 'so', height: 10 },
     { id: 'si', kind: 'sketch', profile: 'circle', center: [0, 0], radius: Db / 2, plane: { origin: [0, -6, 0], normal: [0, 1, 0], xAxis: [1, 0, 0] } }, { id: 'sie', kind: 'extrude', sketch: 'si', height: 12 }, { id: 'sl', kind: 'difference', target: 'soe', tool: 'sie' }];
   const t0 = performance.now(); let got, why = '';
   const doc = [...ringDoc, ...sleeve, { id: 'x', kind: 'intersect', target: 'or', tool: 'sl' }];
-  near(at(doc, 'or').massProperties(1).volumeMM3, 2 * Math.PI ** 2 * Rs * rs * rs, 1e-10, 'torus');
-  try { got = at(doc, 'x').massProperties(1).volumeMM3; } catch (e) { why = e.message; }
+  near(massPropertiesOf(at(doc, 'or')).volume, 2 * Math.PI ** 2 * Rs * rs * rs, 1e-10, 'torus');
+  try { got = massPropertiesOf(at(doc, 'x')).volume; } catch (e) { why = e.message; }
   const ms = performance.now() - t0;
   t.diagnostic(`AS568-214 on Ø25.5: stretch ${(100 * stretch).toFixed(2)}%, the section ${CS} → ${(2 * rs).toFixed(4)} mm; gland depth ${depth.toFixed(2)}: squeeze ${(100 * squeeze0).toFixed(1)}% nominal, ${(100 * squeeze).toFixed(1)}% stretched; fill ${(100 * fill0).toFixed(1)}% (π CS²/4 over w·h); the bore displaces ${want.toFixed(5)} mm³ (Pappus) — kernel ${got === undefined ? `refused: ${why}` : `${got.toFixed(5)} (rel ${(Math.abs(got - want) / want).toExponential(2)})`}, ${ms.toFixed(0)} ms`);
   assert.ok(got !== undefined, why); near(got, want, 1e-7, 'torus ∩ sleeve');
@@ -324,10 +324,10 @@ test('R12c S0 connectors: a USB-C receptacle opening (8.34 × 2.56, 6.2 deep) in
   const doc = [{ id: 'pn', kind: 'sketch', profile: 'rectangle', min: [-10, -5], max: [10, 5] }, { id: 'pe', kind: 'extrude', sketch: 'pn', height: 8 },
     { id: 'os', kind: 'sketch', profile: 'loop', segments: o.seg, plane: { origin: [0, 0, 8 - 6.2], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'oe', kind: 'extrude', sketch: 'os', height: 7 }, { id: 'rc', kind: 'difference', target: 'pe', tool: 'oe' },
     { id: 'ps', kind: 'sketch', profile: 'loop', segments: p.seg, plane: { origin: [0, 0, 8 - 6.2], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'pl', kind: 'extrude', sketch: 'ps', height: 6.51 }, { id: 'x', kind: 'difference', target: 'rc', tool: 'pl' }];
-  const Vrc = at(doc, 'rc').massProperties(1).volumeMM3;
+  const Vrc = massPropertiesOf(at(doc, 'rc')).volume;
   near(Vrc, 20 * 10 * 8 - o.area * 6.2, 1e-12, 'panel less the opening');
-  near(at(doc, 'pl').massProperties(1).volumeMM3, p.area * 6.51, 1e-12, 'plug');
-  near(at(doc, 'x').massProperties(1).volumeMM3, Vrc, 1e-12, 'the seated plug touches nothing');
+  near(massPropertiesOf(at(doc, 'pl')).volume, p.area * 6.51, 1e-12, 'plug');
+  near(massPropertiesOf(at(doc, 'x')).volume, Vrc, 1e-12, 'the seated plug touches nothing');
   t.diagnostic(`opening ${o.area.toFixed(5)} mm², plug ${p.area.toFixed(5)} mm²; gaps ${((8.34 - 8.25) / 2).toFixed(3)} across, ${((2.56 - 2.4) / 2).toFixed(3)} through; the plug's 6.51 stands 0.31 out of the 6.2 opening (an opening, not the receptacle's housing or tongue)`);
 });
 
@@ -357,7 +357,7 @@ test('R12c S0 cams: a disc cam for a roller follower (cycloidal rise) — the pi
   const chk = checkBrep(brep); assert.equal(chk.valid, true, chk.issues[0]);
   // Area of the exact offset by Green (½∮x dy − y dx, 20000 trapezoids of a periodic integrand: spectrally accurate).
   let area = 0; const M = 20000; for (let i = 0; i < M; i++) { const th = 2 * Math.PI * i / M, P = prof(th), d = dprof(th); area += 0.5 * (P[0] * d[1] - P[1] * d[0]) * 2 * Math.PI / M; }
-  const V = brepMassProperties(brep, 1).volumeMM3;
+  const V = brepMassProperties(brep, 1).volume;
   // Its perimeter times the deviation bounds the area's change.
   near(V, area * 10, 2 * Math.PI * 35 * dev * 10 / (area * 10), 'cam volume');
   // The pitch curve's least radius of curvature against the roller (undercut when ρ_min < rr on the convex parts).

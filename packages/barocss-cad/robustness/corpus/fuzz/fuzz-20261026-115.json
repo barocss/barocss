@@ -1,0 +1,309 @@
+{
+  "id": "fuzz-20261026-115",
+  "about": "L4 fuzz robust refusal (seed 20261026, case 115), shrunk: (a tilted cylinder ∪ a box ∪ a cone) less a cylinder. As 20261025 #62: a cylinder piece wrapping most of its full-turn surface was refused as 'sense disagrees with its outer loop' before D257. Now one body.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n3s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 1.216
+        },
+        {
+          "id": "n3b",
+          "kind": "extrude",
+          "sketch": "n3s",
+          "height": 7.286
+        },
+        {
+          "id": "n3r0",
+          "kind": "rotate",
+          "target": "n3b",
+          "axis": "x",
+          "angle": 332.989,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n3r1",
+          "kind": "rotate",
+          "target": "n3r0",
+          "axis": "y",
+          "angle": 91.184,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n3",
+          "kind": "translate",
+          "target": "n3r1",
+          "offset": [
+            -2.883,
+            -2.361,
+            2.443
+          ]
+        },
+        {
+          "id": "n4s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            6.5,
+            2
+          ]
+        },
+        {
+          "id": "n4b",
+          "kind": "extrude",
+          "sketch": "n4s",
+          "height": 3
+        },
+        {
+          "id": "n4",
+          "kind": "translate",
+          "target": "n4b",
+          "offset": [
+            1.5,
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "union",
+          "target": "n3",
+          "tool": "n4"
+        },
+        {
+          "id": "n5s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                3.098,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                0.607,
+                4.82
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                0,
+                4.82
+              ]
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n5b",
+          "kind": "revolve",
+          "sketch": "n5s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angle": 360
+        },
+        {
+          "id": "n5",
+          "kind": "translate",
+          "target": "n5b",
+          "offset": [
+            1.171,
+            -2.074,
+            1.526
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "union",
+          "target": "n2",
+          "tool": "n5"
+        },
+        {
+          "id": "n6s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 2.476
+        },
+        {
+          "id": "n6b",
+          "kind": "extrude",
+          "sketch": "n6s",
+          "height": 4.199
+        },
+        {
+          "id": "n6",
+          "kind": "translate",
+          "target": "n6b",
+          "offset": [
+            -1.498,
+            -2.541,
+            -2.293
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "difference",
+          "target": "n1",
+          "tool": "n6"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 106.77247413313226,
+          "relTol": 0.0001505255277641772,
+          "absTol": 0.016071983019576692
+        },
+        "centroid": {
+          "value": [
+            2.36509654624151,
+            -0.6431569084773132,
+            2.6302308070235725
+          ],
+          "absTol": 0.0018754321181000183
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 8.04e-3 mm³, centroid e 9.38e-4 mm",
+  "fuzz": {
+    "seed": 20261026,
+    "k": 115,
+    "status": "REFUSED",
+    "tree": {
+      "op": "difference",
+      "a": {
+        "op": "union",
+        "a": {
+          "op": "union",
+          "a": {
+            "leaf": {
+              "kind": "cyl",
+              "r": 1.216,
+              "h": 7.286,
+              "rot": [
+                {
+                  "axis": "x",
+                  "deg": 332.989
+                },
+                {
+                  "axis": "y",
+                  "deg": 91.184
+                }
+              ],
+              "move": [
+                -2.883,
+                -2.361,
+                2.443
+              ]
+            }
+          },
+          "b": {
+            "leaf": {
+              "kind": "box",
+              "w": 6.5,
+              "d": 2,
+              "h": 3,
+              "rot": [],
+              "move": [
+                1.5,
+                0.5,
+                0.5
+              ]
+            }
+          }
+        },
+        "b": {
+          "leaf": {
+            "kind": "cone",
+            "r1": 3.098,
+            "r2": 0.607,
+            "h": 4.82,
+            "rot": [],
+            "move": [
+              1.171,
+              -2.074,
+              1.526
+            ]
+          }
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 2.476,
+          "h": 4.199,
+          "rot": [],
+          "move": [
+            -1.498,
+            -2.541,
+            -2.293
+          ]
+        }
+      }
+    }
+  }
+}

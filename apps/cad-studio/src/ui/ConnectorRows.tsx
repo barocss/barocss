@@ -3,6 +3,9 @@
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { editConnectorRows } from '@barocss/cad-model/engine/connectors';
 import { Icon } from './atoms';
+import { ROW } from './panelStyles';
+import { Button } from '@/components/ui/button';
+import { RowsEmpty } from './RowsEmpty';
 
 export function ConnectorRows({ doc, onCommit, onError }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onError(title: string, message: string): void }) {
   const rows = doc.connectors?.rows ?? [];
@@ -13,13 +16,13 @@ export function ConnectorRows({ doc, onCommit, onError }: { doc: StudioDoc; onCo
   };
   return <section aria-label="Connector rows">
     <div className="card-title" style={{ marginTop: 8 }}>CONNECTORS</div>
-    {!rows.length && <div className="empty">No connector rows: load your own (JSON: the opening, the mating body, a keep-out; each citing its source or marked an estimate). None is built in.</div>}
-    {rows.map(r => <div key={r.id} className="param-row" aria-label={`Connector row ${r.id}`}>
-      <span title={r.source ?? 'an estimate'}><b>{r.name ?? r.id}</b> <span className="muted small">{r.opening.shape} {r.opening.widthMM} × {r.opening.heightMM}, {r.opening.depthMM} deep · {r.source ?? 'estimate'}</span></span>
-      <button className="ghost small" aria-label={`Remove connector row ${r.id}`} title="Remove the row" onClick={() => apply([], [r.id])}><Icon name="delete" small /></button>
+    {!rows.length && <RowsEmpty none="No connector rows" holds="JSON: the opening, the mating body, a keep-out; each citing its source or marked an estimate." />}
+    {rows.map(r => <div key={r.id} className={ROW} aria-label={`Connector row ${r.id}`}>
+      <span title={r.source ?? 'an estimate'}><b>{r.name ?? r.id}</b> <span className="muted small">{r.opening.shape} {r.opening.width} × {r.opening.height}, {r.opening.depth} deep · {r.source ?? 'estimate'}</span></span>
+      <Button variant="ghost" aria-label={`Remove connector row ${r.id}`} title="Remove the row" onClick={() => apply([], [r.id])}><Icon name="delete" small /></Button>
     </div>)}
-    <div className="row-actions">
-      <label className="ghost small file-button">Add a connector rows file…<input type="file" accept="application/json,.json" aria-label="Connector rows file" hidden onChange={ev => { const f = ev.currentTarget.files?.[0]; if (f) void addFile(f); ev.currentTarget.value = ''; }} /></label>
+    <div className="flex flex-wrap gap-1">
+      <Button variant="ghost" asChild><label className="file-button">Add a connector rows file…<input type="file" accept="application/json,.json" aria-label="Connector rows file" hidden onChange={ev => { const f = ev.currentTarget.files?.[0]; if (f) void addFile(f); ev.currentTarget.value = ''; }} /></label></Button>
     </div>
   </section>;
 }

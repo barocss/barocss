@@ -2,6 +2,7 @@
 // the thresholds marked, the colour past it, and the value under the pointer. Drawn by the DOM when the map or the value
 // changes, not per frame.
 import type { ScalarMap } from '../viewport/scalarMaps';
+import { Button } from '@/components/ui/button';
 
 /** The thresholds with room for a label: none within 28 % of the bar's ends or of a label before it (their marks stay, with a title). */
 function labelled(map: ScalarMap, lo: number, span: number): ScalarMap['thresholds'] {
@@ -32,7 +33,7 @@ export function MapLegend({ map, hover }: { map: ScalarMap; hover: number | null
 }
 
 type MouldResult = Awaited<ReturnType<import('../engine/client').EngineClient['mould']>> | 'working' | null;
-const volume = (bs: readonly { volumeMM3?: number | null }[]) => bs.reduce((t, b) => t + (b.volumeMM3 ?? 0), 0);
+const volume = (bs: readonly { volume?: number | null }[]) => bs.reduce((t, b) => t + (b.volume ?? 0), 0);
 
 /**
  * The mould's legend (G6): the parting line's loops, and for the halves their bodies and volumes (+ along the pull, − against
@@ -44,7 +45,7 @@ export function MouldLegend({ kind, result, pull, spread, onSpread }: { kind: 'p
   return (
     <div className="card map-legend" role="group" aria-label="Mould legend">
       <div className="map-legend-head"><span>{kind === 'parting' ? 'Parting line' : 'Mould halves'}</span>
-        {kind === 'halves' && r && (r.plus.length || r.minus.length) ? <button className="ghost" aria-label="Spread the halves" onClick={() => onSpread(spread ? 0 : size * 0.4)}>{spread ? 'Close' : 'Spread'}</button> : null}</div>
+        {kind === 'halves' && r && (r.plus.length || r.minus.length) ? <Button variant="ghost" size="xs" aria-label="Spread the halves" onClick={() => onSpread(spread ? 0 : size * 0.4)}>{spread ? 'Close' : 'Spread'}</Button> : null}</div>
       {!pull ? <div className="muted">No pull: set the moulding's pull first.</div>
         : result === 'working' ? <div className="muted">Working…</div>
         : result === null ? <div className="muted">—</div>

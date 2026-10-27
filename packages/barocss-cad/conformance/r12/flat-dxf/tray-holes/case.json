@@ -425,7 +425,7 @@
       ]
     },
     "flat": {
-      "thicknessMM": 1.5,
+      "thickness": 1.5,
       "kFactor": 0.44,
       "fixedFace": "pe.top"
     },

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { orient2dExactBinary64V1 as orient } from '../dist/exact-binary64-orientation-v1.js';
+import { orient2dExactBinary64V1 as orient } from '../dist/exact-proof/exact-binary64-orientation-v1.js';
 
 const p = (x, y) => ({ x, y });
 const sign = (a, b, c) => orient(a, b, c).sign;

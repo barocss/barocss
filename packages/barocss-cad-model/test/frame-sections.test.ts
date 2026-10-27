@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type FrameSectionRow, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { personFile } from './person-file';
 import { editSections, sectionUses } from '../src/frames/sections';
 import { WireReceiver, WireSender } from '../src/engine/wireDoc';
 import { contentKey, evaluationKey } from '../src/engine/evalMemo';
@@ -31,7 +32,7 @@ test('FRc a frame on a library row is the frame with that section inline: the mi
   const est = await bodiesOf(lib(L({ kind: 'library', id: 'E' }), [{ id: 'E', section: ROW.section, estimate: true }]));
   assert.ok(est[0].notes!.some(n => n.warning && /From your section library: E — its sizes are estimates/.test(n.text)), JSON.stringify(est[0].notes));
   named.forEach((b, k) => {
-    assert.equal(b.volumeMM3, inline[k].volumeMM3, `member ${k} volume`);
+    assert.equal(b.volume, inline[k].volume, `member ${k} volume`);
     assert.deepEqual(b.centroid, inline[k].centroid); assert.deepEqual(b.mesh.bounds, inline[k].mesh.bounds);
   });
 });
@@ -40,12 +41,15 @@ test('FRc a row edited moves every frame on it: two frames on R40 (40 × 40 × 3
   let state: ChatState = { doc: straight(straight(lib(emptyDoc()), 0), 500), bodies: [] };
   state = { ...state, bodies: await bodiesOf(state.doc) };
   assert.equal(state.bodies.length, 2);
-  for (const b of state.bodies) close(b.volumeMM3!, A(40, 40, 3) * 300, 'before');
-  const r = await dispatchTool(state, 'set_frame_sections', { rows: [{ id: 'R40', section: RHS(50, 30, 4), source: 'a test value' }] }, evaluate);
+  for (const b of state.bodies) close(b.volume!, A(40, 40, 3) * 300, 'before');
+  const raw = [{ id: 'R40', section: RHS(50, 30, 4), source: 'a test value' }], f = personFile('sections.json', raw);
+  const refused = await dispatchTool({ ...state, rowFiles: f.rowFiles }, 'set_frame_sections', { rows: raw }, evaluate);
+  assert.ok(refused.isError); assert.match(JSON.parse(refused.content).error, /ROWS_NOT_FROM_PERSON/);
+  const r = await dispatchTool({ ...state, rowFiles: f.rowFiles }, 'set_frame_sections', { file: f.file }, evaluate);
   assert.ok(!r.isError, r.content);
   const out = JSON.parse(r.content);
   assert.deepEqual([out.added, out.replaced, out.removed], [[], ['R40'], []]);
-  for (const b of r.state.bodies) close(b.volumeMM3!, A(50, 30, 4) * 300, 'after');
+  for (const b of r.state.bodies) close(b.volume!, A(50, 30, 4) * 300, 'after');
   assert.equal(A(50, 30, 4) * 300, 172800);
   // (Both frames name it: removing it is refused, naming them.)
   const busy = await dispatchTool(r.state, 'set_frame_sections', { remove: ['R40'] }, evaluate);
@@ -73,7 +77,7 @@ test('FRc a section naming no row: add_features refuses it before the kernel (FR
   const r = await dispatchTool(s, 'add_features', { features: [{ kind: 'frame', points: [[0, 0, 0], [300, 0, 0]], segments: [[0, 1]], section: { kind: 'library', id: 'R99' } }] }, evaluate);
   assert.ok(r.isError); assert.match(JSON.parse(r.content).error, /\[FRAME_SECTION_UNKNOWN\] no row "R99" in the section library \(rows: R40\)/);
   const ok = await dispatchTool(s, 'add_features', { features: [{ kind: 'frame', points: [[0, 0, 0], [300, 0, 0]], segments: [[0, 1]], section: { kind: 'library', id: 'R40' } }] }, evaluate);
-  assert.ok(!ok.isError, ok.content); close(ok.state.bodies[0].volumeMM3!, A(40, 40, 3) * 300, 'on the row');
+  assert.ok(!ok.isError, ok.content); close(ok.state.bodies[0].volume!, A(40, 40, 3) * 300, 'on the row');
   // (A row deleted or renamed under a frame — the document written by hand: refused, typed, before the kernel; no fallback.)
   for (const doc of [straight(emptyDoc(), 0), lib(straight(emptyDoc(), 0), [{ ...ROW, id: 'R40b' }])]) {
     const r2 = await evaluate(doc);
@@ -87,17 +91,17 @@ test('FRc the palette: with a library, the member command offers "From your libr
   const r = await dispatchTool(s, 'run_command', { command: 'frame-member', values: { section: 'library', row: 'R40', x0: 0, y0: 0, z0: 0, x1: 500, y1: 0, z1: 0 } }, evaluate);
   assert.ok(!r.isError, r.content);
   assert.deepEqual((r.state.doc.nodes.at(-1) as { section: unknown }).section, { kind: 'library', id: 'R40' });
-  close(r.state.bodies[0].volumeMM3!, A(40, 40, 3) * 500, 'the member');
+  close(r.state.bodies[0].volume!, A(40, 40, 3) * 500, 'the member');
   const bare = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'run_command', { command: 'frame-member', values: { section: 'library', row: 'R40', x0: 0, y0: 0, z0: 0, x1: 500, y1: 0, z1: 0 } }, evaluate);
   assert.ok(bare.isError, 'no library: no such section kind');
 });
 
 test('FRc the engine worker gets the section library: a frame on a row, sent over the wire, evaluates to the same bodies (the studio evaluates off the main thread); the stock list stays behind; the caches\' keys follow an edited row', async () => {
-  const doc: StudioDoc = { ...lib(L({ kind: 'library', id: 'R40' })), frames: { version: 1, sections: [ROW], stock: [{ id: 'S6', lengthMM: 6000, source: 'a test value' }], kerfMM: 2 } };
+  const doc: StudioDoc = { ...lib(L({ kind: 'library', id: 'R40' })), frames: { version: 1, sections: [ROW], stock: [{ id: 'S6', length: 6000, source: 'a test value' }], kerf: 2 } };
   const there = new WireReceiver().unpack(new WireSender().pack(doc));
   assert.deepEqual(there.frames, { version: 1, sections: [ROW] });
   const a = await bodiesOf(doc), b = await bodiesOf(there);
-  assert.deepEqual(b.map(x => x.volumeMM3), a.map(x => x.volumeMM3));
+  assert.deepEqual(b.map(x => x.volume), a.map(x => x.volume));
   // (The caches' keys follow an edited row: evaluation, face tables and rendered views are not served stale.)
   const edited: StudioDoc = { ...doc, frames: { ...doc.frames!, sections: [{ ...ROW, section: RHS(50, 30, 4) }] } };
   assert.notEqual(evaluationKey(edited), evaluationKey(doc)); assert.notEqual(contentKey(edited), contentKey(doc));

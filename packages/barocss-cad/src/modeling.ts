@@ -4,7 +4,7 @@ import { buildXYCirclePrismShell } from './xy-circle-prism-shell.js';
 import { qualifyStoredCirclePrismSolid } from './stored-circle-prism-solid.js';
 import type { StoredCirclePrismSolidResult } from './stored-circle-prism-solid.js';
 import { runModelingProfile } from './modeling-profile-internal.js';
-import type { ProfileLoop, ProfileSegmentInput, ExtrudedProfileSolidResult, ExtrudedProfileMass } from './extruded-profile-solid.js';
+import type { ProfileLoop, ProfileSegmentInput, ExtrudedProfileSolidResult, ExtrudedProfileMass } from './features/extruded-profile-solid.js';
 import { buildXYAffineSketch } from './xy-affine-sketch.js';
 import type { XYAffineSketchSuccess, XYAffineSketchConstraint, XYAffineSketchReferenceLine } from './xy-affine-sketch.js';
 import { buildXYAffineSketchPrism } from './xy-affine-sketch-prism.js';
@@ -51,9 +51,10 @@ import { signedJson } from './xy-affine-prism-feature-document-internal.js';
 import { modelingGraphKey as graphKey, modelingNodeParameters as nodeParameters, modelingReusablePrefix as reusablePrefix } from './modeling-regeneration-internal.js';
 import { resolveModelDimension, ModelDimensionError, ModelDimensionLimits } from './modeling-dimension-internal.js';
 import type { ModelDimension as Dimension } from './modeling-dimension-internal.js';
+import { isFrom, KernelError } from './core/barocss-error.js';
 
 export type CadModelErrorCode = 'INPUT' | 'PARAMETER' | 'OWNERSHIP' | 'CAPABILITY' | 'SELECTION' | 'FORMAT' | 'BUDGET' | 'NATIVE';
-export class CadModelError extends Error {
+export class CadModelError extends KernelError {
   constructor(readonly code: CadModelErrorCode, readonly operation: string, detail: string, cause?: unknown) {
     super(`CAD model ${operation}: ${detail}`, cause === undefined ? undefined : { cause });
     this.name = 'CadModelError';
@@ -377,7 +378,8 @@ function loopProfile(segments: readonly LoopSegment[], parameters: Readonly<Reco
   const input: ProfileSegmentInput[] = segments.map(s => s.kind === 'arc' ? { kind: 'arc', start: xy(s.start), center: xy(s.center), direction: s.direction } : { kind: 'line', start: xy(s.start) });
   try { return runModelingProfile({ operation: 'loop', segments: input }); }
   catch (cause) {
-    const code = cause instanceof Error && cause.name === 'ExtrudedProfileError' ? (cause as Error & { code: string }).code : undefined;
+    // (The extruded profile's refusal told by its source, so this module need not import the profile builder.)
+    const code = isFrom<string>(cause, 'extruded-profile') ? cause.code : undefined;
     if (code !== undefined) throw new CadModelError(code === 'BUDGET' ? 'BUDGET' : code === 'INPUT' ? 'PARAMETER' : 'CAPABILITY', 'loop', cause instanceof Error ? cause.message : 'Profile refused', cause);
     throw cause;
   }
@@ -1331,7 +1333,7 @@ function measureNamedBody(bodies: Readonly<Record<string, CadBody>>, outputName:
   try {
     if (body.family === 'extruded-profile') {
       const native = runModelingProfile({ operation: 'mass', solid: body.native, densityKgPerM3: density });
-      return freeze({ outputName, densityKgPerM3: density, volumeMM3: native.volumeMM3, massKG: native.massKG, centroidMM: native.centroidMM as [number, number, number], inertiaCentroidKgM2: native.inertiaCentroidKgM2, family: 'extruded-profile', details: { native } });
+      return freeze({ outputName, densityKgPerM3: density, volumeMM3: native.volume, massKG: native.mass, centroidMM: native.centroid as [number, number, number], inertiaCentroidKgM2: native.inertiaCentroid, family: 'extruded-profile', details: { native } });
     }
     if (body.family === 'convex-planar') {
       const native = measureConvexPlanarSolidMass(body.native, { densityKgPerM3: density, maximumFanTriangles: 40 });
@@ -1363,7 +1365,7 @@ function exportNamedStl(bodies: Readonly<Record<string, CadBody>>, outputName: s
   try {
     if (body.family === 'extruded-profile') {
       const segmentsPerQuarter = 16, bytes = runModelingProfile({ operation: 'stl', solid: body.native, segmentsPerQuarter });
-      const radii = body.native.profile.segments.flatMap(s => s.kind === 'arc' ? [s.radiusMM] : []);
+      const radii = body.native.profile.segments.flatMap(s => s.kind === 'arc' ? [s.radius] : []);
       const chordToleranceMM = Math.max(0, ...radii.map(r => r * (1 - Math.cos(Math.PI / 4 / segmentsPerQuarter))));
       return freeze({ outputName, family: 'extruded-profile', format: 'binary-stl', lengthUnit: 'mm', bytes: Array.from(bytes), byteLength: bytes.length,
         triangleCount: new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(80, true),

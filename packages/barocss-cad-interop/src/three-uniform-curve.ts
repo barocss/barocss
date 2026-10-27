@@ -36,7 +36,7 @@ export class BaroCADUniformCurveLoader {
       line.name = native.curveId;
       line.userData = { barocss: {
         role: 'uniform-curve-display-line', modelName: native.model.name, curveId: native.curveId,
-        sourceVersion: 0, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up',
+        sourceVersion: 0, lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up',
         mode: native.mode, nativeParameters: [...native.parameters],
         nativeIntervals: native.intervals.map(interval => [...interval]), quality: { ...native.quality },
       } };

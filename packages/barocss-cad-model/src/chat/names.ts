@@ -4,6 +4,7 @@ import type { Selection } from '../app/commands';
 import type { BodyResult } from '../engine/evaluate';
 import type { ModelNode } from '../engine/doc';
 import { featureId, nodeIndexOf } from '../engine/ids';
+import { isObj, isVec3 } from '../util/guards';
 
 export interface NameSelection { faces: string[]; edges: string[]; bodies: string[] }
 
@@ -35,7 +36,6 @@ export type FaceSelector = string
 export type EdgeSelector = string | { between: [FaceSelector, FaceSelector] };
 export interface Resolved { selector: unknown; names: string[] }
 
-const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const baseOf = (part: string, id: string) => part.slice(id.length + 1).replace(/#\d+$/, '');
 
 /** The face names a face selector stands for, or why it stands for none (or too many). */
@@ -52,7 +52,7 @@ export function resolveFace(nodes: readonly ModelNode[], bodies: readonly BodyRe
     const exact = parts.filter(p => baseOf(p, id) === role), family = /^[a-z]+$/i.test(role) ? parts.filter(p => new RegExp(`^${role}(\\d+|\\[[A-Za-z0-9_-]+\\])$`).test(baseOf(p, id))) : [];
     found = exact.length ? exact : family;
     if (!found.length) return `feature ${id} has no face "${role}"${parts.length ? ` (its faces: ${parts.join(', ')})` : ' (it has no faces on the shown bodies)'}`;
-  } else if (Array.isArray(sel.normal) && sel.normal.length === 3 && sel.normal.every(x => typeof x === 'number' && Number.isFinite(x))) {
+  } else if (isVec3(sel.normal)) {
     const l = Math.hypot(...sel.normal as number[]); if (!(l > 0)) return 'a normal of zero length';
     const n = (sel.normal as number[]).map(x => x / l), sign = sel.pick === 'min' ? -1 : 1;
     const flat = shown.flatMap(b => b.mesh.faces.filter(f => f.kind === 'plane' && f.normal[0] * n[0] + f.normal[1] * n[1] + f.normal[2] * n[2] > 1 - 1e-9)

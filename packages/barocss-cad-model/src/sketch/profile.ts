@@ -9,7 +9,6 @@ export type LoopSegment = { kind: 'line'; start: P2 } | { kind: 'arc'; start: P2
 
 const sub = (a: P2, b: P2): P2 => [a[0] - b[0], a[1] - b[1]];
 const cross = (a: P2, b: P2) => a[0] * b[1] - a[1] * b[0];
-const round = (v: number) => Math.round(v * 1e6) / 1e6 || 0; // never -0
 
 /** Bulge of the arc from a to b that passes through p; 0 when p is (nearly) on the chord line. */
 export function bulgeThrough(a: P2, b: P2, p: P2): number {
@@ -179,13 +178,13 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
     { id: 'anchor', kind: 'fixed', pointId: 'p0', target: points[0] },
     ...hv.h.map((i): Constraint => ({ id: 'h' + i, kind: 'horizontal', segmentId: 's' + i })),
     ...hv.v.map((i): Constraint => ({ id: 'v' + i, kind: 'vertical', segmentId: 's' + i })),
-    ...Object.entries(c.lengths ?? {}).filter(([i]) => !bulges[+i]).map(([i, lengthMM]): Constraint => ({ id: 'l' + i, kind: 'length', segmentId: 's' + i, lengthMM })),
+    ...Object.entries(c.lengths ?? {}).filter(([i]) => !bulges[+i]).map(([i, length]): Constraint => ({ id: 'l' + i, kind: 'length', segmentId: 's' + i, length })),
     ...arcs.map((i): Constraint => ({ id: 'e' + i, kind: 'equal-length', segmentA: 'ra' + i, segmentB: 'rb' + i })),
-    ...Object.entries(c.radii ?? {}).filter(([i]) => bulges[+i]).map(([i, lengthMM]): Constraint => ({ id: 'r' + i, kind: 'length', segmentId: 'ra' + i, lengthMM })),
+    ...Object.entries(c.radii ?? {}).filter(([i]) => bulges[+i]).map(([i, length]): Constraint => ({ id: 'r' + i, kind: 'length', segmentId: 'ra' + i, length })),
     ...(c.equalRadii ?? []).filter(([a, b]) => bulges[a] && bulges[b]).map(([a, b]): Constraint => ({ id: `q${a}_${b}`, kind: 'equal-length', segmentA: 'ra' + a, segmentB: 'ra' + b })),
     ...(c.concentric ?? []).filter(([a, b]) => bulges[a] && bulges[b]).map(([a, b]): Constraint => ({ id: `o${a}_${b}`, kind: 'coincident', pointA: 'c' + a, pointB: 'c' + b })),
     ...(c.tangents ?? []).flatMap((j): Constraint[] => {
-      const t = tangentTarget(points, bulges, j); return t ? [{ id: 't' + j, kind: 'signed-angle', segmentA: t.a, segmentB: t.b, angleRad: t.target }] : [];
+      const t = tangentTarget(points, bulges, j); return t ? [{ id: 't' + j, kind: 'signed-angle', segmentA: t.a, segmentB: t.b, angle: t.target }] : [];
     }),
     ...extra.constraints,
   ];
@@ -196,12 +195,12 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
   });
   if (!result.ok) {
     const code = result.diagnostics[0]?.code;
-    return { ok: false, reason: code === 'NONCONVERGENCE' ? 'These constraints conflict with each other or with the H/V edges'
-      : code === 'LIMIT' || code === 'BUDGET' ? 'The sketch is too large for the solver (at most 128 constraints)'
+    return { ok: false, reason: code === 'LIMIT' || code === 'BUDGET' ? 'The sketch is too large for the solver (at most 128 constraints)'
       : code === 'DEGENERATE_GEOMETRY' ? 'These constraints would collapse an edge to a point' : result.diagnostics[0]?.message ?? 'The solver refused this sketch' };
   }
   const byId = new Map(result.solution.points.map(p => [p.id, p.position]));
-  const solved = points.map((_, i) => { const p = byId.get('p' + i)!; return [round(p[0]), round(p[1])] as P2; });
+  // Preserve the coefficients accepted by the solver's final residual check.
+  const solved = points.map((_, i) => { const p = byId.get('p' + i)!; return [p[0], p[1]] as P2; });
   // Rebuild each bulge from the solved ends and centre, keeping the arc's turning direction.
   const solvedBulges = bulges.map((b, i) => {
     if (!b) return 0;
@@ -210,6 +209,6 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
     if (b > 0 && sweep <= 0) sweep += 2 * Math.PI; if (b < 0 && sweep >= 0) sweep -= 2 * Math.PI;
     return Math.tan(sweep / 4);
   });
-  const circles = (c.circles ?? []).map((p, j) => { const q = byId.get('k' + j); return q ? [round(q[0]), round(q[1])] as P2 : p; });
+  const circles = (c.circles ?? []).map((p, j) => { const q = byId.get('k' + j); return q ? [q[0], q[1]] as P2 : p; });
   return { ok: true, dof: result.report.localDegreesOfFreedom, rank: result.report.numericalRank, rows: result.report.scalarResidualCount, points: solved, bulges: solvedBulges, circles };
 }

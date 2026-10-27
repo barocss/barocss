@@ -3,6 +3,7 @@
 // (GUSSET_FIT, CAP_END). Legs, clip and thickness are the user's: the palette's values are a first try, no data.
 import { frameGeometry, withNode, type Dim, type ModelNode } from '../engine/doc';
 import type { Command, Ctx, Field } from './commands';
+import { refusal } from '../engine/refusal';
 
 const ok = { ok: true as const };
 const no = (reason: string) => ({ ok: false as const, reason });
@@ -19,9 +20,9 @@ const picked = (ctx: Ctx) => [...new Set([...ctx.selection.bodies, ...ctx.select
 /** The frame's points as numbers and its segments (a frame following a skeleton or a sketch: its geometry now). */
 function skeletonOf(ctx: Ctx, node: FrameNode): { points: V3[]; segments: [number, number][] } | null {
   const g = frameGeometry(ctx.doc.nodes, node, ctx.doc.parameters, ctx.doc.instances);
-  if ('code' in g) return null;
+  if ('code' in g || node.bends?.length || g.segments.some(segment => !Array.isArray(segment))) return null;
   const n = (d: Dim) => typeof d === 'number' ? d : Number(ctx.doc.parameters?.[d.parameter]);
-  return { points: g.points.map(p => p.map(n) as V3), segments: g.segments };
+  return { points: g.points.map(p => p.map(n) as V3), segments: g.segments as [number, number][] };
 }
 const same = (a: V3, b: V3) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) <= 1e-6;
 /**
@@ -46,6 +47,7 @@ function gussetPick(ctx: Ctx): { node: FrameNode; index: number; members: [numbe
   const [a, b] = bodies.map(i => memberOf(ctx, i));
   if (!a || !b || a.member < 0 || b.member < 0) return 'Pick two members of a frame.';
   if (a.index !== b.index) return 'Pick two members of the same frame.';
+  if (!skeletonOf(ctx, a.node)) return 'Gussets on curved or bent frame paths are not supported. Pick straight frame members.';
   const j = jointOf(ctx, a.node, a.member, b.member);
   if (!j) return 'Those two members do not meet: pick two that share a corner, or one ending on the other.';
   return { node: a.node, index: a.index, members: [a.member, b.member], ...j };
@@ -63,7 +65,7 @@ const gussetCommand: Command = {
   defaults: () => ({ l1: 100, l2: 100, t: 5, clip: 10, offset: 0, along: '1' }),
   build: (ctx, v) => {
     const p = gussetPick(ctx);
-    if (typeof p === 'string') throw new Error(p);
+    if (typeof p === 'string') throw refusal('GUSSET_PICK', p);
     const clip = Number(v.clip) || 0, offset = Number(v.offset) || 0;
     return withNode(ctx.doc, { kind: 'gusset', frame: p.index, point: p.point, members: p.members, ...(p.pass !== undefined ? { along: Number(v.along) < 0 ? -1 : 1 } : {}), legs: [Number(v.l1), Number(v.l2)], thickness: Number(v.t), ...(clip ? { clip } : {}), ...(offset ? { offset } : {}) });
   },
@@ -83,7 +85,7 @@ const endCapCommand: Command = {
   defaults: () => ({ end: 'end', fit: 'over', t: 4 }),
   build: (ctx, v) => {
     const p = capPick(ctx);
-    if (typeof p === 'string') throw new Error(p);
+    if (typeof p === 'string') throw refusal('CAP_PICK', p);
     return withNode(ctx.doc, { kind: 'end-cap', frame: p.index, member: p.member, end: v.end === 'start' ? 'start' : 'end', fit: v.fit === 'inset' ? 'inset' : 'over', thickness: Number(v.t) });
   },
 };

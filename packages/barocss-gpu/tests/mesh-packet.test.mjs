@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { validatePreviewPacket, validateMeshOptions, prepareMesh } from '../dist/mesh-packet.js';
+import { validatePreviewPacket, validateMeshOptions, prepareMesh } from '../dist/mesh/mesh-packet.js';
 
 const options = () => ({ mmToSceneUnit: 0.1, translate: [0, 0, 0], color: [1, 0.5, 0], background: [0.1, 0.2, 0.3] });
 const patch = () => ({
   version: 0, surfaceId: 'asymmetric_patch', revision: 7, lengthUnit: 'mm',
-  coordinateSystem: 'right-handed-y-up', winding: 'ccw',
+  coordinateSystem: 'right-handed-z-up', winding: 'ccw',
   positions: [0, 0, 0, 0, 3, 0, 5, 0, 0, 5, 3, 0],
   normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
   indices: [0, 2, 1, 2, 3, 1], parameters: [2, -1, 2, 4, 9, -1, 9, 4],

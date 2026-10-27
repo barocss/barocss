@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { CAD_KERNEL_VERSION, loadCadLibrary, instantiateLibraryPart, parseLibraryExpression, evaluateLibraryExpression, CadLibraryError, evaluateCadPart, checkLibraryFit } from '../dist/index.js';
+import { CAD_KERNEL_VERSION, loadCadLibrary, instantiateLibraryPart, parseLibraryExpression, evaluateLibraryExpression, CadLibraryError, evaluateCadPart, checkLibraryFit, outputOf, massPropertiesOf } from '../dist/index.js';
 
 // LIB1 (D61): libraries as data — a manifest, parts with sourced (or estimated) parameters, variants, a recipe of
 // part-model features with safe expressions; checked on load; instantiated to features.
@@ -67,9 +67,9 @@ test('loading and instantiating: defaults, variants, values given; derived param
   assert.deepEqual(big.warnings, ['t = 5 mm is an estimate', 'Mounting plate: simplified internals — not for structural calculation']);
   assert.deepEqual(big.interfaces, [{ id: 'top', role: 'mount-face', accepts: ['foot'], frame: { origin: [40, 30, 5], z: [0, 0, 1], x: [1, 0, 0] }, faces: { plane: 'P1_p.top' } }]);
   const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: big.features };
-  const out = evaluateCadPart(doc).output('P1_f');
+  const out = outputOf(evaluateCadPart(doc), 'P1_f');
   // (Less the hole and the 0.5 mm chamfer along the 80 mm edge.)
-  assert.ok(Math.abs(out.massProperties(1).volumeMM3 - (80 * 60 * 5 - Math.PI * 2.25 ** 2 * 5 - 0.125 * 80)) < 1e-6, String(out.massProperties(1).volumeMM3));
+  assert.ok(Math.abs(massPropertiesOf(out).volume - (80 * 60 * 5 - Math.PI * 2.25 ** 2 * 5 - 0.125 * 80)) < 1e-6, String(massPropertiesOf(out).volume));
   // Defaults, a value given (no estimate warned for it), and a hole left out by `when`: the chamfer then refused as an output.
   const small = instantiateLibraryPart(lib, 'plate', { params: { t: 2 } });
   // (The chamfer left out, w < 60: the output is the body it would have changed, the hole's.)
@@ -148,20 +148,20 @@ const KEYED = {
 test('LIB2 fits: b placed onto a by interfaces facing each other (an exact rigid placement, offset in a\'s frame); the overlap by the exact Boolean — a key in its pocket overlaps by nothing, a wider key by its excess; declared fits checked on load', () => {
   const lib = loadCadLibrary(KEYED);
   const ok = checkLibraryFit(lib, 'key-in-pocket');
-  assert.equal(ok.ok, true); assert.equal(ok.overlapMM3, 0); assert.equal(ok.contact, true);
+  assert.equal(ok.ok, true); assert.equal(ok.overlap, 0); assert.equal(ok.contact, true);
   // (Lifted 1 mm off the floor: no overlap, but no contact either — not a fit.)
   const lifted = checkLibraryFit(lib, { a: KEYED.fits[0].a, b: KEYED.fits[0].b, offset: [0, 0, 1] });
-  assert.deepEqual([lifted.overlapMM3, lifted.contact, lifted.ok], [0, false, false]);
+  assert.deepEqual([lifted.overlap, lifted.contact, lifted.ok], [0, false, false]);
   // (The key's foot frame: z down, x along +Y; the pocket's: z up, x along +X — the key turned a quarter about Z, its foot on the floor.)
   const R = ok.placement.rotation; assert.deepEqual(R.map(v => Math.round(v * 1e12) / 1e12 + 0), [0, 1, 0, -1, 0, 0, 0, 0, 1]);
   const p = ([x, y, z]) => [0, 1, 2].map(i => R[3 * i] * x + R[3 * i + 1] * y + R[3 * i + 2] * z + ok.placement.translation[i]);
   assert.deepEqual(p([0, 0, 0]).map(v => +v.toFixed(12)), [15, 10, 6]); assert.deepEqual(p([0, 0, 8]).map(v => +v.toFixed(12)), [15, 10, 14]);
   // (A key 6.5 wide in the 6 mm pocket: 0.25 into each of its four walls, over its 4 mm depth: 6.5² − 6² = 6.25 mm² × 4.)
   const wide = checkLibraryFit(lib, 'key-too-wide');
-  assert.equal(wide.ok, false); assert.ok(Math.abs(wide.overlapMM3 - 6.25 * 4) < 1e-6, String(wide.overlapMM3));
+  assert.equal(wide.ok, false); assert.ok(Math.abs(wide.overlap - 6.25 * 4) < 1e-6, String(wide.overlap));
   // Moved by an offset: 1 mm along the pocket's x, into one wall by 0.9 over the key's 5.8 × the depth 4.
   const moved = checkLibraryFit(lib, { a: KEYED.fits[0].a, b: KEYED.fits[0].b, offset: [1, 0, 0] });
-  assert.ok(Math.abs(moved.overlapMM3 - 0.9 * 5.8 * 4) < 1e-6, String(moved.overlapMM3));
+  assert.ok(Math.abs(moved.overlap - 0.9 * 5.8 * 4) < 1e-6, String(moved.overlap));
   // Declared fits are checked on load: unknown parts, interfaces, roles that do not accept each other.
   const bad = fits => () => loadCadLibrary({ ...KEYED, fits });
   refused(bad([{ id: 'f', a: { part: 'nope', interface: 'x' }, b: KEYED.fits[0].b }]), 'REFERENCE', /no part nope/);

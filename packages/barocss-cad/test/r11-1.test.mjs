@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep } from '../dist/index.js';
+import { evaluateCadPart, checkBrep, massPropertiesOf } from '../dist/index.js';
 
 // R11.1a (D106): the general shell's slabs grow only across convex edges and across concave edges between two planes
 // (as before). Across a smooth edge they stop (they meet in the normal plane there); across a concave edge beside a curved
@@ -9,7 +9,7 @@ import { evaluateCadPart, checkBrep } from '../dist/index.js';
 // cylinder thinner than the wall reaches its axis. Every case is a closed form; each was over-thick on HEAD (D105).
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const out = features => evaluateCadPart(D(features)).outputs.at(-1);
-const vol = features => out(features).massProperties(1).volumeMM3;
+const vol = features => massPropertiesOf(out(features)).volume;
 const shell = (features, target, t) => out([...features, { id: 'sh', kind: 'shell', target, thickness: t }]);
 const yzAt = x => ({ origin: [x, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] }), xz = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
 const L = 40, plate = [{ id: 'p', kind: 'sketch', profile: 'rectangle', min: [0, -20], max: [L, 20] }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 10 }];
@@ -22,7 +22,7 @@ const exactly = (o, expected, what, rel = 1e-12, cavities = 1) => {
   const report = checkBrep(o.brep, { strict: true });
   assert.equal(report.valid, true, `${what}: ${report.issues}`);
   assert.equal(o.brep.shells.length, 1 + cavities, `${what}: cavities`);
-  const v = o.massProperties(1).volumeMM3;
+  const v = massPropertiesOf(o).volume;
   assert.ok(Math.abs(v / expected - 1) < rel, `${what}: ${v} vs ${expected} (${(v - expected) / expected})`);
 };
 

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, booleanPolyhedra, booleanAnalytic, brepMassProperties, BrepError } from '../dist/index.js';
+import { evaluateCadPart, booleanPolyhedra, booleanAnalytic, brepMassProperties, BrepError, massPropertiesOf, outputOf, checkOutput } from '../dist/index.js';
 
 // FR3b (D126): the planar fallback's typed reason; butts never leave a silent gap (an open side refused); ordered trims at
 // joints of three or more; copes and trims to the envelope; T-joints; trims to a plane or a body; crossing members.
@@ -9,7 +9,7 @@ import { evaluateCadPart, booleanPolyhedra, booleanAnalytic, brepMassProperties,
 const D = (features) => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const run = (features) => evaluateCadPart(D(features));
 const near = (got, want, tol, what) => assert.ok(Math.abs(got - want) <= tol * Math.max(1, Math.abs(want)), `${what}: ${got} vs ${want} (${Math.abs(got - want) / Math.max(1, Math.abs(want))})`);
-const volume = o => o.massProperties(1).volumeMM3;
+const volume = o => massPropertiesOf(o).volume;
 const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, A_SHARP = 1600 - 34 * 34;
 const ROUND = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 6 }, A_ROUND = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9);
 const refuse = (features, re) => assert.throws(() => run(features), e => e.code !== undefined && re.test(e.message), String(re));
@@ -20,11 +20,11 @@ function gauss(f, a, b, n = 400) { let I = 0; const h = (b - a) / n; for (let i 
 test('FR3b the planar fallback is typed: the polyhedral Boolean refuses a face coplanar only within binary64 with reason NOT_PLANAR_WITHIN_FLOAT (the dispatch reads the reason, not the words)', () => {
   // Two sharp tubes on oblique lines: planar bodies whose faces' vertices are coplanar to ~1e-15 only.
   const s = run([{ id: 'a', kind: 'frame-member', section: SHARP, start: [0, 0, 0], end: [300, 120, 80] }, { id: 'b', kind: 'frame-member', section: SHARP, start: [150, 60, 40], end: [150, 300, 260] }]);
-  const a = s.output('a').brep, b = s.output('b').brep;
+  const a = outputOf(s, 'a').brep, b = outputOf(s, 'b').brep;
   assert.throws(() => booleanPolyhedra(a, b, 'union'), e => e instanceof BrepError && e.reason === 'NOT_PLANAR_WITHIN_FLOAT');
   // (Through the part, the same pair unites: the dispatch took the reason.)
-  const u = run([{ id: 'a', kind: 'frame-member', section: SHARP, start: [0, 0, 0], end: [300, 120, 80] }, { id: 'b', kind: 'frame-member', section: SHARP, start: [150, 60, 40], end: [150, 300, 260] }, { id: 'w', kind: 'union', target: 'a', tool: 'b' }]).output('w');
-  assert.equal(u.bodyCount, 1); assert.ok(u.validate().valid);
+  const u = outputOf(run([{ id: 'a', kind: 'frame-member', section: SHARP, start: [0, 0, 0], end: [300, 120, 80] }, { id: 'b', kind: 'frame-member', section: SHARP, start: [150, 60, 40], end: [150, 300, 260] }, { id: 'w', kind: 'union', target: 'a', tool: 'b' }]), 'w');
+  assert.equal(u.bodyCount, 1); assert.ok(checkOutput(u).valid);
 });
 
 test('FR3b a butt never leaves a silent gap: on an angle\'s open side, a round tube or a round-cornered tube it is refused BUTT_ON_OPEN_SIDE (naming the side and the material\'s span); on an angle\'s back it builds', () => {
@@ -50,7 +50,7 @@ test('FR3b to the envelope: a butt on a round-cornered tube trimmed to its envel
   const bore = gauss(t => { const q = 3 * Math.sin(t); return 2 * (14 + 3 * Math.cos(t)) * (6 - Math.sqrt(36 - q * q)) * 3 * Math.cos(t); }, 0, Math.PI / 2);
   near(volume(s.outputs[1]), A_ROUND * 280 + 2 * (outer - bore), 1e-9, 'into the rounds'); assert.equal(s.outputs[1].member.ends[0].kind, 'cope');
   near(volume(s.outputs[0]), A_ROUND * 320, 1e-8, 'the through member, 20 on');
-  const w = welded(s.outputs); assert.equal(w.bodies.length, 1); near(brepMassProperties(w, 1).volumeMM3, volume(s.outputs[0]) + volume(s.outputs[1]), 1e-9, 'welded');
+  const w = welded(s.outputs); assert.equal(w.bodies.length, 1); near(brepMassProperties(w, 1).volume, volume(s.outputs[0]) + volume(s.outputs[1]), 1e-9, 'welded');
   // A T-joint: a Ø25 × 2 tube ends on the middle of a Ø50 × 2 one, coped to its envelope.
   const R = 25, r = 12.5, t = 2, L = 150, small = { kind: 'round-tube', diameter: 25, wall: 2 }, big = { kind: 'round-tube', diameter: 50, wall: 2 };
   const tee = run([{ id: 'f', kind: 'frame', points: [[-100, 0, 0], [100, 0, 0], [0, 0, L], [0, 0, 0]], segments: [[0, 1], [2, 3]], section: big, overrides: [{ member: 1, section: small }], corners: { tee: 'cope' } }]);
@@ -64,7 +64,7 @@ test('FR3b T-joints by default butt on the face: a rail ending on a post\'s midd
   const s = run([{ id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [0, 0, 400], [500, 0, 400]], segments: [[0, 1], [3, 2]], section: SHARP, corners: { tee: 'butt' } }]);
   near(volume(s.outputs[0]), A_SHARP * 800, 1e-12, 'post'); near(volume(s.outputs[1]), A_SHARP * 480, 1e-12, 'rail');
   assert.equal(s.outputs[1].member.ends[1].kind, 'butt');
-  const w = welded(s.outputs); assert.equal(w.bodies.length, 1); near(brepMassProperties(w, 1).volumeMM3, A_SHARP * 1280, 1e-12, 'welded');
+  const w = welded(s.outputs); assert.equal(w.bodies.length, 1); near(brepMassProperties(w, 1).volume, A_SHARP * 1280, 1e-12, 'welded');
   // Without `tee` (FR3a's frames) it is left square.
   assert.equal(run([{ id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [0, 0, 400], [500, 0, 400]], segments: [[0, 1], [3, 2]], section: SHARP, corners: {} }]).outputs[1].member.ends[1].kind, 'square');
 });
@@ -76,13 +76,13 @@ test('FR3b ordered trims: three at a corner (X through, Y to X, Z to X and Y); a
   near(volume(x), A_SHARP * (L + b / 2), 1e-12, 'x through'); near(volume(y), A_SHARP * (L - b / 2), 1e-12, 'y'); near(volume(z), A_SHARP * (L - b / 2), 1e-12, 'z');
   assert.deepEqual([x, y, z].map(o => o.member.ends[1].kind), ['through', 'trim', 'trim']);
   assert.deepEqual(z.member.ends[1].against, [0, 1]); assert.equal(z.member.ends[1].rank, 2);
-  const w = welded(s.outputs); assert.equal(w.bodies.length, 1); near(brepMassProperties(w, 1).volumeMM3, A_SHARP * (3 * L - b / 2), 1e-12, 'welded');
+  const w = welded(s.outputs); assert.equal(w.bodies.length, 1); near(brepMassProperties(w, 1).volume, A_SHARP * (3 * L - b / 2), 1e-12, 'welded');
   // A table 600 × 400 × 700: legs first by index (the same section), each running on 20 over the rails; rails 40 short.
   const points = [[0, 0, 0], [600, 0, 0], [600, 400, 0], [0, 400, 0], [0, 0, 700], [600, 0, 700], [600, 400, 700], [0, 400, 700]];
   const segments = [[0, 4], [1, 5], [2, 6], [3, 7], [4, 5], [5, 6], [6, 7], [7, 4]];
   const t0 = performance.now(), table = run([{ id: 't', kind: 'frame', points, segments, section: SHARP, corners: { multi: 'order' } }]), ms = performance.now() - t0;
   [720, 720, 720, 720, 560, 360, 560, 360].forEach((Lk, k) => near(volume(table.outputs[k]), A_SHARP * Lk, 1e-12, `table member ${k}`));
-  const tw = welded(table.outputs); assert.equal(tw.bodies.length, 1); near(brepMassProperties(tw, 1).volumeMM3, A_SHARP * (4 * 720 + 2 * 560 + 2 * 360), 1e-12, 'the table welded');
+  const tw = welded(table.outputs); assert.equal(tw.bodies.length, 1); near(brepMassProperties(tw, 1).volume, A_SHARP * (4 * 720 + 2 * 560 + 2 * 360), 1e-12, 'the table welded');
   assert.ok(ms < 10000, `${ms} ms`);
   // An order given: Z through, then Y, then X.
   const o = run([{ id: 'f', kind: 'frame', points: [[0, 0, 0], [L, 0, 0], [0, L, 0], [0, 0, L]], segments: [[1, 0], [2, 0], [3, 0]], section: SHARP, corners: { at: [{ point: 0, kind: 'order', order: [2, 1, 0] }] } }]);
@@ -98,21 +98,21 @@ test('FR3b ordered trims of round-cornered tubes: each later member is trimmed t
   // Every rail gives up at least the leg's flat face's worth (20 at each end) and reaches no farther than the leg's rounds.
   s.outputs.slice(4).forEach((o, k) => { const L = k % 2 ? 400 : 600; assert.ok(volume(o) > A_ROUND * (L - 40) - 1e-6 && volume(o) < A_ROUND * (L - 40) + 2 * 486.1, `rail ${k}: ${volume(o)}`); });
   const w = welded(s.outputs), sum = s.outputs.reduce((v, o) => v + volume(o), 0);
-  assert.equal(w.bodies.length, 1); near(brepMassProperties(w, 1).volumeMM3, sum, 1e-9, 'no two members overlap');
+  assert.equal(w.bodies.length, 1); near(brepMassProperties(w, 1).volume, sum, 1e-9, 'no two members overlap');
 });
 
 test('FR3b trims to a plane (an inclined floor) and to a body (a base plate, kept as it is); TRIM_PARALLEL, TRIM_EMPTY, TRIM_MISSES', () => {
   // A leg from z 0 to 500, its start trimmed to the plane z = 0.2x + 10 (through its axis at z 10): A·490.
   const leg = { id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 500]], segments: [[0, 1]], section: SHARP };
-  const pl = run([{ ...leg, trims: [{ member: 0, end: 'start', plane: { origin: [0, 0, 10], normal: [-0.2, 0, 1] } }] }]).output('f');
+  const pl = outputOf(run([{ ...leg, trims: [{ member: 0, end: 'start', plane: { origin: [0, 0, 10], normal: [-0.2, 0, 1] } }] }]), 'f');
   near(volume(pl), A_SHARP * 490, 1e-12, 'to the plane'); assert.equal(pl.member.ends[0].kind, 'trim');
-  near(pl.member.ends[0].angleDegrees, Math.atan(0.2) * 180 / Math.PI, 1e-12, 'its angle');
+  near(pl.member.ends[0].angle, Math.atan(0.2) * 180 / Math.PI, 1e-12, 'its angle');
   // A plane below the leg's start: it is run on down to meet it (A·520).
-  near(volume(run([{ ...leg, trims: [{ member: 0, end: 'start', plane: { origin: [0, 0, -20], normal: [0, 0, 1] } }] }]).output('f')), A_SHARP * 520, 1e-12, 'run on to the plane');
+  near(volume(outputOf(run([{ ...leg, trims: [{ member: 0, end: 'start', plane: { origin: [0, 0, -20], normal: [0, 0, 1] } }] }]), 'f')), A_SHARP * 520, 1e-12, 'run on to the plane');
   // To a body: a plate 200 × 200 from z −30 to 10; the leg starts inside it at z −20 and keeps z 10 to 500. The plate stays an output.
   const plate = [{ id: 'ps', kind: 'sketch', profile: 'rectangle', min: [-100, -100], max: [100, 100], plane: { origin: [0, 0, -30], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'p', kind: 'extrude', sketch: 'ps', height: 40 }];
   const bodySnap = run([...plate, { ...leg, points: [[0, 0, -20], [0, 0, 500]], trims: [{ member: 0, end: 'start', body: 'p' }] }]);
-  near(volume(bodySnap.output('f')), A_SHARP * 490, 1e-12, 'to the plate'); assert.ok(bodySnap.outputs.some(o => o.id === 'p'));
+  near(volume(outputOf(bodySnap, 'f')), A_SHARP * 490, 1e-12, 'to the plate'); assert.ok(bodySnap.outputs.some(o => o.id === 'p'));
   refuse([{ ...leg, trims: [{ member: 0, end: 'end', plane: { origin: [50, 0, 0], normal: [1, 0, 0] } }] }], /\[TRIM_PARALLEL\] member 0/);
   refuse([{ ...leg, trims: [{ member: 0, end: 'end', plane: { origin: [0, 0, -5], normal: [0, 0, 1] } }] }], /\[TRIM_EMPTY\] member 0/);
   refuse([...plate, { ...leg, points: [[0, 0, 100], [0, 0, 500]], trims: [{ member: 0, end: 'start', body: 'p' }] }], /\[TRIM_MISSES\] member 0 does not reach the body/);

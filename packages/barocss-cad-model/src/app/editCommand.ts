@@ -1,7 +1,7 @@
 // Editing a feature already in the part by dragging: the feature's own dimensions (the feature editor's
 // fields, app/editFields.ts) as a command, with arrows in the viewport where they act. Selecting a body
 // shows them; dragging one opens the edit with the usual preview, limits and Apply.
-import { dropStaleMade, featureLabel, parentsOf, type ModelNode, type SketchNode } from '../engine/doc';
+import { dropStaleMade, featureLabel, parentsOf, type ModelNode, type SketchNode, type StudioDoc } from '../engine/doc';
 import { toWorld } from '../sketch/plane';
 import { editFields } from './editFields';
 import { planeOf, profileMiddle } from './profiles';
@@ -10,6 +10,7 @@ import { commands, type Command, type Ctx, type Field, type HandleSpec, type Sel
 import type { BodyResult } from '../engine/evaluate';
 import { bodyKeyFor, featureId, nodeIndexOf } from '../engine/ids';
 import { refOf } from './bodyRef';
+import { boundsOf } from '../engine/bounds';
 
 type V3 = [number, number, number];
 const ok = { ok: true as const };
@@ -54,8 +55,7 @@ function extrudeHandles(nodes: readonly ModelNode[], index: number): HandleSpec[
 function madeBounds(ctx: Ctx, index: number): { min: V3; max: V3 } | null {
   const key = bodyKeyFor(ctx.doc.nodes, index), own = ctx.bodies.filter(b => b.key === key || b.key.startsWith(`${key}_`));
   if (!own.length) return null;
-  const min = [0, 1, 2].map(k => Math.min(...own.map(b => b.mesh.bounds.min[k]))) as V3, max = [0, 1, 2].map(k => Math.max(...own.map(b => b.mesh.bounds.max[k]))) as V3;
-  return { min, max };
+  return boundsOf(own);
 }
 /** A split's plane (an arrow along its normal, kept inside the body) and a row's spacing and count. */
 function placedHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): HandleSpec[] {
@@ -112,22 +112,23 @@ function holeHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): Hand
  * those values, rebuilding its sketch and solid in place — with all its arrows and its puck. Null when the
  * nodes were changed since (by the feature editor), so its values no longer describe them.
  */
-function shapeEdit(index: number, nodes: readonly ModelNode[]): Command | null {
+function shapeEdit(index: number, nodes: readonly ModelNode[], rows: Pick<StudioDoc, 'fastenerSizes'>): Command | null {
   const node = nodes[index], solid = node && (node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'union' || node.kind === 'rotate') ? node : null, made = solid?.made;
   const cmd = made && commands.find(c => c.id === made.command), n = made?.nodes ?? 2, start = index - n + 1;
   if (!solid || !made || !cmd?.build || start < 0) return null;
   if (n === 2 && (solid.kind === 'union' || solid.kind === 'rotate' || solid.sketch !== index - 1 || nodes[index - 1]?.kind !== 'sketch')) return null;
   // (Rebuilt in place; a different number of steps — a bolt made a nut — renumbers what follows.)
   const rebuild = (ctx: Ctx, v: Values) => replaceRange(ctx.doc, start, n, cmd.build!({ ...ctx, doc: { ...ctx.doc, nodes: ctx.doc.nodes.slice(0, start) } }, v).nodes.slice(start));
-  const probe: Ctx = { doc: { nodes: [...nodes] } as Ctx['doc'], bodies: [], selection: { faces: [], edges: [], bodies: [] } };
+  // (The probe has the document's fastener sizes, O7: a fastener rebuilds from its size's row.)
+  const probe: Ctx = { doc: { nodes: [...nodes], ...(rows.fastenerSizes ? { fastenerSizes: rows.fastenerSizes } : {}) } as Ctx['doc'], bodies: [], selection: { faces: [], edges: [], bodies: [] } };
   try { if (JSON.stringify(rebuild(probe, made.values).nodes.slice(start, index + 1)) !== JSON.stringify(nodes.slice(start, index + 1))) return null; } catch { return null; }
   return { ...cmd, id: 'edit', label: `Edit ${cmd.label}`, group: 'modify', available: () => ok, defaults: () => ({ ...made.values }), build: rebuild, place: undefined };
 }
 
-/** The edit of feature `index`, or null when it has no dimension to drag. */
-export function editCommand(index: number, nodes: readonly ModelNode[]): Command | null {
+/** The edit of feature `index`, or null when it has no dimension to drag; `rows`: the document's (a fastener's sizes, O7). */
+export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pick<StudioDoc, 'fastenerSizes'> = {}): Command | null {
   const node = nodes[index]; if (!node) return null;
-  const shape = shapeEdit(index, nodes); if (shape) return shape;
+  const shape = shapeEdit(index, nodes, rows); if (shape) return shape;
   const fields = editFields(nodes, index).filter(f => f.kind !== 'toggle' && !(f.kind === 'number' && Number.isNaN(f.get(nodes))));
   if (!fields.length) return null;
   return {
@@ -145,7 +146,7 @@ export function editCommand(index: number, nodes: readonly ModelNode[]): Command
       // A shell's wall: on its largest inside face, into the hollow; further in is thicker.
       if (n.kind === 'shell') {
         const was = ctx.doc.nodes[index], t0 = was?.kind === 'shell' ? num(was.thickness) : NaN, t = num(n.thickness);
-        const body = ctx.bodies.find(b => b.key === bodyKeyFor(now, index)), fid = `${featureId(now, index)}.`, inner = body?.mesh.faces.filter(f => f.kind === 'plane' && f.name.split('+').some(s => s.startsWith(fid))).sort((a, b) => b.areaMM2 - a.areaMM2)[0];
+        const body = ctx.bodies.find(b => b.key === bodyKeyFor(now, index)), fid = `${featureId(now, index)}.`, inner = body?.mesh.faces.filter(f => f.kind === 'plane' && f.name.split('+').some(s => s.startsWith(fid))).sort((a, b) => b.area - a.area)[0];
         if (!inner || !Number.isFinite(t0 + t)) return [];
         const m = inner.normal, at = [0, 1, 2].map(k => inner.centroid[k] + m[k] * (t - t0)) as V3;
         return [{ key: 't', at, dir: [...m] as V3, min: 0.1, step: 0.5 }];

@@ -4,6 +4,7 @@
 // and its pose is D_link · M_link (M: where the mates put it). Revolute and continuous joints turn by q radians about
 // their axis, prismatic ones slide q mm along it; a follower (a gear, `mimic`) takes multiplier × its leader + offset.
 // Runs per slider move: no allocation per joint beyond the poses it returns, no closures.
+import { camRate, camValue } from './cam';
 import { checkPlacedSpurGears, type GearPlacement } from '@barocss/cad';
 import type { Joint, JointTree } from './joints';
 
@@ -57,11 +58,38 @@ export const applyTo = (m: Motion, p: readonly number[]): [number, number, numbe
 
 const scratch = identity();
 /** Every link's motion for the joint values `q` (by joint key; absent: 0), the base link still. */
+/**
+ * The followers' values from their leaders, in place: a gear's or a pushed follower's linear, a cam's follower by its
+ * lobe's lift (O24 a). A follower may lead another (crank → gear → cam → follower → valve): passes until settled.
+ */
+export function followersInto(tree: JointTree, values: Record<string, number>): void {
+  for (let pass = 0; pass < tree.joints.length; pass++) {
+    let changed = false;
+    for (const j of tree.joints) {
+      if (!j.mimic) continue;
+      const lead = values[j.mimic.joint] ?? 0, v = j.cam ? camValue(j.cam, lead) : j.mimic.multiplier * lead + j.mimic.offset;
+      if (v !== values[j.key]) { values[j.key] = v; changed = true; }
+    }
+    if (!changed) return;
+  }
+}
+/**
+ * A follower's root (the free joint its chain of leaders ends at) and its rate against it at the values (dq/dq_root):
+ * the product of the multipliers, a cam's lift rate where one is on the way. A free joint is its own root, rate 1.
+ */
+export function rootOf(tree: JointTree, key: string, values: Readonly<Record<string, number>>): { key: string; rate: number } {
+  let j = tree.joints.find(x => x.key === key), rate = 1;
+  for (let guard = 0; j?.mimic && guard < tree.joints.length; guard++) {
+    rate *= j.cam ? camRate(j.cam, values[j.mimic.joint] ?? 0) : j.mimic.multiplier;
+    const lead = j.mimic.joint; j = tree.joints.find(x => x.key === lead);
+  }
+  return { key: j?.key ?? key, rate };
+}
 export function forwardKinematics(tree: JointTree, q: Readonly<Record<string, number>>): FkResult {
   const values: Record<string, number> = {}, outOfLimits: string[] = [], keys = new Set<string>();
   for (const j of tree.joints) { keys.add(j.key); values[j.key] = j.type === 'fixed' ? 0 : q[j.key] ?? 0; }
   // (Followers from their leaders: a gear pair turns together whatever was given for the follower.)
-  for (const j of tree.joints) if (j.mimic) values[j.key] = j.mimic.multiplier * (values[j.mimic.joint] ?? 0) + j.mimic.offset;
+  followersInto(tree, values);
   const motions = new Map<string, Motion>([[tree.base, identity()]]);
   for (const j of tree.joints) {
     const parent = motions.get(j.parent);
@@ -91,5 +119,5 @@ export function sliderRange(j: Joint, travel = 50): { min: number; max: number; 
 export function gearPairAt(pair: { leader: string; follower: string; g1: GearPlacement; g2: GearPlacement; s1: number; s2: number }, values: Readonly<Record<string, number>>) {
   const g1 = { ...pair.g1, rotation: pair.g1.rotation + pair.s1 * (values[pair.leader] ?? 0) }, g2 = { ...pair.g2, rotation: pair.g2.rotation + pair.s2 * (values[pair.follower] ?? 0) };
   const c = checkPlacedSpurGears(g1, g2, { mode: 'verdict' });
-  return { phaseDeg: c.relativePhaseDeg, backlashMM: c.backlashMM, contactRatio: c.usableContactRatio, centerDistanceMM: c.centerDistanceMM };
+  return { phase: c.relativePhase, backlash: c.backlash, contactRatio: c.usableContactRatio, centerDistance: c.centerDistance };
 }

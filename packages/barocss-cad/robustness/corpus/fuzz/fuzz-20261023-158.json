@@ -1,0 +1,203 @@
+{
+  "id": "fuzz-20261023-158",
+  "about": "L4 fuzz case (seed 20261023, case 158), shrunk: a cylinder − a cone whose apex lies on the cylinder's wall — refused before D208 (the traced curve stopped short of the apex).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 2
+        },
+        {
+          "id": "n1b",
+          "kind": "extrude",
+          "sketch": "n1s",
+          "height": 6
+        },
+        {
+          "id": "n1r0",
+          "kind": "rotate",
+          "target": "n1b",
+          "axis": "y",
+          "angle": 270,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n1r1",
+          "kind": "rotate",
+          "target": "n1r0",
+          "axis": "z",
+          "angle": 270,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1r1",
+          "offset": [
+            1,
+            0,
+            3
+          ]
+        },
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                3,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                0,
+                2
+              ]
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n2b",
+          "kind": "revolve",
+          "sketch": "n2s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angle": 360
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2b",
+          "offset": [
+            -1,
+            1,
+            1
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "difference",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 70.88400391661868,
+          "relTol": 0.0001,
+          "absTol": 0.007088400391661869
+        },
+        "centroid": {
+          "value": [
+            1.0483414453492206,
+            3.1090656827420817,
+            3.086263338536498
+          ],
+          "absTol": 0.0008
+        },
+        "bodies": 1
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 512² lattice at 8 shifts, e 6.21e-4 mm³, centroid e 1.29e-5 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 158,
+    "status": "REFUSED",
+    "tree": {
+      "op": "difference",
+      "a": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 2,
+          "h": 6,
+          "rot": [
+            {
+              "axis": "y",
+              "deg": 270
+            },
+            {
+              "axis": "z",
+              "deg": 270
+            }
+          ],
+          "move": [
+            1,
+            0,
+            3
+          ]
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "cone",
+          "r1": 3,
+          "r2": 0,
+          "h": 2,
+          "rot": [],
+          "move": [
+            -1,
+            1,
+            1
+          ]
+        }
+      }
+    }
+  }
+}

@@ -18,7 +18,9 @@ export function cellText(v: TableCell, c: TableColumn): string {
   if (v === null) return '—';
   if (typeof v === 'string') return v;
   if (c.digits !== undefined) return (Math.abs(v) < 0.5 * 10 ** -c.digits ? 0 : v).toFixed(c.digits);
-  const r = Math.round(v * 100) / 100;
+  const scaled = v * 100;
+  // Finite values this large already have no representable fractional part.
+  const r = Number.isFinite(v) && !Number.isFinite(scaled) ? v : Math.round(scaled) / 100;
   return String(r === 0 ? 0 : r);
 }
 export const headerText = (c: TableColumn) => (c.unit ? `${c.label} [${c.unit}]` : c.label);

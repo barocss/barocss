@@ -76,7 +76,7 @@ export function ruleTerms(rules: readonly SketchRule[], points: readonly P2[], b
     const id = 'u' + k;
     if (m === null) {
       segments.push({ id: 'd' + k, startPointId: ia, endPointId: ib });
-      constraints.push({ id, kind: 'length', segmentId: 'd' + k, lengthMM: value }); return;
+      constraints.push({ id, kind: 'length', segmentId: 'd' + k, length: value }); return;
     }
     // Measured along axis m; the helpers sit 10 mm past both points across it (axis o).
     const o = 1 - m, across = Math.max(a[o], b[o]) + 10, along = Math.abs(b[m] - a[m]) >= 0.01 ? b[m] : a[m] + value;
@@ -85,15 +85,15 @@ export function ruleTerms(rules: readonly SketchRule[], points: readonly P2[], b
     const tie = m === 0 ? 'vertical' : 'horizontal', run = m === 0 ? 'horizontal' : 'vertical';
     segments.push({ id: 'xa' + k, startPointId: ia, endPointId: 'ha' + k }, { id: 'xb' + k, startPointId: ib, endPointId: 'hb' + k },
       { id: 'xm' + k, startPointId: 'ha' + k, endPointId: 'hb' + k });
-    constraints.push({ id: id + 'a', kind: tie, segmentId: 'xa' + k }, { id: id + 'o', kind: 'length', segmentId: 'xa' + k, lengthMM: across - a[o] },
-      { id: id + 'b', kind: tie, segmentId: 'xb' + k }, { id: id + 'r', kind: run, segmentId: 'xm' + k }, { id, kind: 'length', segmentId: 'xm' + k, lengthMM: value });
+    constraints.push({ id: id + 'a', kind: tie, segmentId: 'xa' + k }, { id: id + 'o', kind: 'length', segmentId: 'xa' + k, length: across - a[o] },
+      { id: id + 'b', kind: tie, segmentId: 'xb' + k }, { id: id + 'r', kind: run, segmentId: 'xm' + k }, { id, kind: 'length', segmentId: 'xm' + k, length: value });
   };
   // Every attached circle's centre is solved (an unplaced one shows as its two free degrees of freedom).
   circles.forEach((_, j) => centre(j));
   rules.forEach((r, k) => {
     const id = 'u' + k;
     if ((r.kind === 'parallel' || r.kind === 'perpendicular') && line(r.a) && line(r.b))
-      constraints.push({ id, kind: 'signed-angle', segmentA: 's' + r.a, segmentB: 's' + r.b, angleRad: ruleAngle(r.kind, points, r.a, r.b) });
+      constraints.push({ id, kind: 'signed-angle', segmentA: 's' + r.a, segmentB: 's' + r.b, angle: ruleAngle(r.kind, points, r.a, r.b) });
     else if (r.kind === 'equal' && line(r.a) && line(r.b)) constraints.push({ id, kind: 'equal-length', segmentA: 's' + r.a, segmentB: 's' + r.b });
     else if (r.kind === 'fix' && point(r.point)) constraints.push({ id, kind: 'fixed', pointId: 'p' + r.point, target: [r.at[0], r.at[1]] });
     else if (r.kind === 'coincident' && point(r.point) && arc(r.arc)) constraints.push({ id, kind: 'coincident', pointA: 'p' + r.point, pointB: 'c' + r.arc });
@@ -115,10 +115,10 @@ export function ruleTerms(rules: readonly SketchRule[], points: readonly P2[], b
         { id: 'sab' + k, startPointId: 'p' + r.a, endPointId: 'p' + r.b }, { id: 'sl' + k, startPointId: 'p' + far, endPointId: 'sm' + k });
       const dir = (p: P2, q: P2) => angle([q[0] - p[0], q[1] - p[1]]), edge = dir(L0, L1);
       const toM = far === la ? dir(L0, M) : dir(L1, M), across = dir(A, B);
-      constraints.push({ id: id + 'c', kind: 'signed-angle', segmentA: 'sa' + k, segmentB: 'sb' + k, angleRad: 0 },
+      constraints.push({ id: id + 'c', kind: 'signed-angle', segmentA: 'sa' + k, segmentB: 'sb' + k, angle: 0 },
         { id: id + 'e', kind: 'equal-length', segmentA: 'sa' + k, segmentB: 'sb' + k },
-        { id: id + 'm', kind: 'signed-angle', segmentA: 's' + r.line, segmentB: 'sl' + k, angleRad: nearest(wrap(toM - edge), [0, Math.PI, -Math.PI]) },
-        { id, kind: 'signed-angle', segmentA: 's' + r.line, segmentB: 'sab' + k, angleRad: nearest(wrap(across - edge), [Math.PI / 2, -Math.PI / 2]) });
+        { id: id + 'm', kind: 'signed-angle', segmentA: 's' + r.line, segmentB: 'sl' + k, angle: nearest(wrap(toM - edge), [0, Math.PI, -Math.PI]) },
+        { id, kind: 'signed-angle', segmentA: 's' + r.line, segmentB: 'sab' + k, angle: nearest(wrap(across - edge), [Math.PI / 2, -Math.PI / 2]) });
     }
     else if (r.kind === 'ctan' && line(r.edge) && r.circle >= 0 && r.circle < circles.length && radii[r.circle] > 0) {
       // The touching point F: on the edge's line (in line with its farther end), the circle's radius from
@@ -130,14 +130,14 @@ export function ruleTerms(rules: readonly SketchRule[], points: readonly P2[], b
       const side = off > 1e-9 ? Math.sign(cross) || 1 : 1, foot: P2 = off > 1e-9 ? F : [c[0] - d[1] / Math.sqrt(l2) * radii[r.circle], c[1] + d[0] / Math.sqrt(l2) * radii[r.circle]];
       helpers.push({ id: 'tf' + k, position: foot });
       segments.push({ id: 'tl' + k, startPointId: 'p' + far, endPointId: 'tf' + k }, { id: 'tr' + k, startPointId: centre(r.circle), endPointId: 'tf' + k });
-      constraints.push({ id: id + 'l', kind: 'signed-angle', segmentA: 's' + r.edge, segmentB: 'tl' + k, angleRad: far === r.edge ? 0 : Math.PI },
-        { id: id + 'p', kind: 'signed-angle', segmentA: 's' + r.edge, segmentB: 'tr' + k, angleRad: side * Math.PI / 2 }, { id, kind: 'length', segmentId: 'tr' + k, lengthMM: radii[r.circle] });
+      constraints.push({ id: id + 'l', kind: 'signed-angle', segmentA: 's' + r.edge, segmentB: 'tl' + k, angle: far === r.edge ? 0 : Math.PI },
+        { id: id + 'p', kind: 'signed-angle', segmentA: 's' + r.edge, segmentB: 'tr' + k, angle: side * Math.PI / 2 }, { id, kind: 'length', segmentId: 'tr' + k, length: radii[r.circle] });
     }
     else if (r.kind === 'cconc' && r.a !== r.b && r.a >= 0 && r.b >= 0 && r.a < circles.length && r.b < circles.length)
       constraints.push({ id, kind: 'coincident', pointA: centre(r.a), pointB: centre(r.b) });
     else if (r.kind === 'angle' && line(r.a) && line(r.b)) {
       const e = edgeAngle(points, r.a, r.b);
-      constraints.push({ id, kind: 'signed-angle', segmentA: 's' + r.a, segmentB: 's' + r.b, angleRad: wrap(e.sign * r.value * Math.PI / 180 + e.flip * Math.PI) });
+      constraints.push({ id, kind: 'signed-angle', segmentA: 's' + r.a, segmentB: 's' + r.b, angle: wrap(e.sign * r.value * Math.PI / 180 + e.flip * Math.PI) });
     }
   });
   return { points: helpers, segments, constraints };

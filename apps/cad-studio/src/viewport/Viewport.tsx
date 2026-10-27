@@ -1,8 +1,17 @@
-import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 'react';
+import type { ClearanceDisplay } from './clearanceDisplay';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState, useSyncExternalStore, forwardRef } from 'react';
+import { countRender } from '../devRenders';
+import type { PrintDisplay } from './printDisplay';
+import type { CamDisplay } from './camDisplay';
+import { camStockBounds } from './camOverlayGeometry';
+import type { ModelAnnotation } from '@barocss/cad-model/drawing/annotations3d';
+import { pmiDrawings, pmiFacingKey, pmiLabels, pmiPick } from './pmiGeometry';
+import { printPointToModel, printSceneBounds, projectPrintBodies } from './printProjection';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
-import { PROPOSAL_ADDED, PROPOSAL_REMOVED, Renderer, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
+import type { FrameCost } from './frameCost';
+import { PROPOSAL_ADDED, PROPOSAL_CHIP_STEP, PROPOSAL_REMOVED, Renderer, proposalChips, type DisplayMode, type DisplayModeStatus, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState, type RenderPathTraceSession } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
@@ -15,7 +24,7 @@ import { shapeOutline } from '@barocss/cad-model/sketch/loops';
 import { hvOf, isSettled, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import { pickSketch } from '@barocss/cad-model/sketch/select';
 import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
-import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
+import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoCancelReason, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';
 import { ViewCube } from './ViewCube';
 import { CAGE_LINE_KEYS, CageMarks, cageLines, cagePoints } from './CageMarks';
@@ -24,6 +33,8 @@ import type { CageValidation } from '@barocss/cad';
 import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '@barocss/cad-model/sketch/osnap';
 import { splineOutline } from '@barocss/cad-model/sketch/spline';
 import type { Analysis } from './analysis';
+import { recordCanvas } from './recordVideo';
+import { renderFocusDistance } from './renderFocus';
 
 export type { SketchTool, SketchShape, SketchAnchor, SketchState, Make } from '@barocss/cad-model/sketch/types';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
@@ -37,22 +48,63 @@ export interface ViewportHandle {
   setTheme(name: ThemeName): void; setAo(on: boolean): void;
   /** The frame as a PNG (WebGPU only). */
   capture(): Promise<Blob | null>;
+  /** Freeze a 640-pixel-wide still while the raster viewport stays interactive. */
+  createRenderPathTrace(): Promise<RenderPathTraceSession>;
+  /** A WebM of `count` frames at `fps`, frame i drawn by `draw(i)` first (RS2: a motion, the Render turntable). */
+  recordVideo(count: number, fps: number, draw: (i: number) => void): Promise<Blob>;
   /** The camera as render settings keep it, and back. */
+  /** Pick one visible surface for Render focus. Null means background/cancel; the return value cancels the pick. */
+  pickRenderFocus(done: (focus: number | null) => void): () => void;
   getCamera(): RenderCamera;
   setCamera(c: RenderCamera): void;
   /** Which renderer draws: WebGPU, the WebGL2 fallback, or none yet. */
   readonly backend: 'webgpu' | 'webgl2' | null;
+  /** Display capability diagnosis; unsupported requests retain the prior mode and section state. */
+  getDisplayModeStatus(): DisplayModeStatus | null;
   /** The engine's overlay lines shown, segments a key (G7; WebGPU; for the flow). */
   overlayLines(): Record<string, number>;
   /** The engine's overlay labels' texts, a key (G15; WebGPU; for the flow). */
   overlayTexts(): Record<string, string[]>;
+  /** G25: the GPU device for the analyses' compute passes (WebGPU only), else null. */
+  computeDevice(): object | null;
+  /** O10: count each body's draws in the frames drawn (off by default; read-only — nothing drawn changes). */
+  trackFrameCost(on: boolean): void;
+  /** O10: the last frame tracked in each display mode, for the bodies shown now (work counts, not time; empty before a renderer). */
+  frameCosts(): Partial<Record<DisplayMode, FrameCost>>;
 }
 
 /** Where a new shape stands: a point on the ground or on an upward face, and that surface's normal. */
 /** `hole`: placed at a round hole's rim — its diameter, its depth along the axis, and whether it runs through the body. */
 export interface Spot { point: Vec3; normal: Vec3; hole?: { d: number; depth: number; through: boolean } }
+/**
+ * A robot's tool or sensor frame as the viewport draws it (G13, O12): `o` its origin (mm, assembly coordinates), `R` row-major
+ * with its columns the frame's X, Y and Z (Z = [R[2], R[5], R[8]]), `kind` its label's colour.
+ */
+export interface FrameTriad { name: string; kind?: 'tool' | 'sensor'; o: Vec3; R: readonly number[] }
 
 interface Props {
+  /** Bed-frame print display, separate from the authored/native document. */
+  printDisplay?: PrintDisplay | null;
+  printActive?: boolean;
+  /** G23 CNC: the preview's stock, paths, remaining stock and tool (world coordinates), beside the native bodies. */
+  camDisplay?: CamDisplay | null;
+  camActive?: boolean;
+  /** G24: the drawing's annotations on the model (model-annotations-v1 items), the one picked, and a pick's callback. */
+  annotations?: readonly ModelAnnotation[] | null;
+  annotationSelected?: string | null;
+  onPickAnnotation?(id: string): void;
+  /** Appearance only, on ordinary modelling solids; no document or selection store is created. */
+  displayMode?: DisplayMode;
+  /** The application's session request, before an unsupported scope falls back to the default. */
+  requestedDisplayMode?: DisplayMode;
+  displayModeReason?: string;
+  /** Session snapshot of placed instance IDs to keep opaque; undefined restores the ordinary view. */
+  isolatedInstances?: readonly string[];
+  clearance?: ClearanceDisplay | null;
+  /** Reports backend capability failures to the existing application controls. */
+  onDisplayModeStatus?(status: DisplayModeStatus): void;
+  /** Which renderer draws, once one has started (G10: what WebGL2 does not draw is said in the app). */
+  onBackend?(backend: 'webgpu' | 'webgl2'): void;
   bodies: BodyResult[];
   selection: { faces: FaceRef[]; edges: EdgeRef[]; bodies: number[] };
   ghost: Set<number>;
@@ -78,7 +130,7 @@ interface Props {
   /** A double-click on a body's face: pick the whole body; on an edge: its chain (`onPickChain`). */
   onPickBody?(body: number): void;
   onPickChain?(body: number, edge: number): void;
-  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef; vertex?: { body: number; at: Vec3 } }, additive: boolean): void;
+  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean): void;
   /** `fresh`: a new shape starts (the current one, if closed, is kept beside it). */
   onSketchShape(shape: SketchShape | null, fresh?: boolean): void;
   onCursor(p: Vec3 | null): void;
@@ -93,6 +145,10 @@ interface Props {
   onDimCommit?(key: string, value: number): void;
   /** A measured distance: a dimension line between the closest points. */
   measureLine?: { a: Vec3; b: Vec3; label: string } | null;
+  /** The robot's tool and sensor frames at the pose shown (G13): a triad each — X red, Y green, Z blue — and its name.
+   *  `frameSize`: the axes' length (mm). */
+  frames?: readonly FrameTriad[];
+  frameSize?: number;
   /** Corners picked (shown as rings). */
   pickedVertices?: { body: number; at: Vec3 }[];
   /** What clicks pick: whatever is under the pointer, or only faces, edges or whole bodies. */
@@ -140,6 +196,8 @@ interface Props {
   /** A shown proposal's added and removed material (G12; WebGPU), or none. */
   proposal?: import('../engine/client').ProposalOverlay | null;
   instanceSelection?: string[];
+  /** RS2: the links in contact as a motion plays (instance ids; BASE, the part's own bodies), marked in the error colour. */
+  contactLinks?: readonly string[];
   /** Faces of instances shown picked (mate faces). */
   instanceFaces?: { id: string; body: number; face: number }[];
   /** Finished sketches no feature uses yet (world outlines), picked ones highlighted; a click picks one (Shift: adds). */
@@ -156,6 +214,33 @@ interface Props {
   tool?: ViewportTool | null;
   onPickCage?(hit: CageHit | null, additive: boolean, grow?: 'loop' | 'ring'): void;
 }
+export function displayModeScope(props: Props): string | undefined {
+  if (props.render) return 'CAD display modes are available in Model view.';
+  if (props.analysis || props.scalarMaps?.length) return 'CAD display modes are not available with analysis.';
+  if (props.mould) return 'CAD display modes are not available with mould displays.';
+  if (props.proposal || props.direct?.length) return 'CAD display modes are not available with direct geometry or proposal previews.';
+  if (props.instancePreview) return 'CAD display modes are not available while an instance is dragged.';
+  if (props.sketch || props.cage || props.tool || props.regions?.length)
+    return 'CAD display modes are not available while a sketch, cage or tool is being edited.';
+}
+/** Copy the current placed selection so later selection changes cannot change the isolated view. */
+export function snapshotInstanceIsolation(selected: readonly string[], placed: readonly Pick<InstanceItem, 'id' | 'bodies'>[]): readonly string[] | undefined {
+  const visible = new Set(placed.filter(item => item.bodies.length > 0).map(item => item.id));
+  const snapshot = [...new Set(selected.filter(id => visible.has(id)))];
+  return snapshot.length ? snapshot : undefined;
+}
+/** Diagnose the actual bridge, rather than rejecting a backend that now draws and picks instances. */
+export function instanceDisplayStatus(status: DisplayModeStatus | null, renderer: Pick<ViewRenderer, 'setInstances' | 'pickInstanceFace'> | null, hasInstances: boolean): DisplayModeStatus | null {
+  if (!status || !hasInstances) return status;
+  if (typeof renderer?.setInstances !== 'function' || typeof renderer?.pickInstanceFace !== 'function')
+    return { ...status, supported: false, reason: 'Instance rendering requires the renderer instance bridge.' };
+  return status;
+}
+/** A cap is an instance/body hit, with no native face operation authority. Unknown faces are not caps. */
+export function instancePickFields(hit: { id: string; body: number; face: number; cap?: true }): { instance: string; instanceFace?: FaceRef; instanceCap?: { body: number } } {
+  if (hit.cap === true) return { instance: hit.id, instanceCap: { body: hit.body } };
+  return hit.face >= 0 ? { instance: hit.id, instanceFace: { body: hit.body, face: hit.face } } : { instance: hit.id };
+}
 /**
  * The overlay lines' looks (G7), as styles.css drew them in SVG; depth-tested now, their hidden parts faint (SVG drew them
  * all alike) — a measure line between two faces runs through the body.
@@ -171,6 +256,14 @@ const CHIP_LOOKS: Record<ThemeName, Pick<OverlayLabels, 'color' | 'chip'>> = {
 };
 const chipLook = (theme: ThemeName) => CHIP_LOOKS[theme];
 const UNDERLAY_TEXT_LOOK = { color: '#8a93a3', opacity: 0.8, hidden: 0.35 };
+/** G13: a frame's axes (the view triad's red, green and blue) and its name's chip — a tool's the accent, a sensor's cyan. */
+const FRAME_AXES = [['x', '#e5534b'], ['y', '#57b26b'], ['z', '#4a90e2']] as const;
+const FRAME_CHIP: Record<'tool' | 'sensor', string> = { tool: '#e8c25a', sensor: '#56c8e0' };
+/** A frame's axis ends: its origin and o + size · each column of R. */
+export function frameAxisEnds(f: FrameTriad, size: number): { x: Vec3; y: Vec3; z: Vec3 } {
+  const end = (k: number): Vec3 => [f.o[0] + size * f.R[k], f.o[1] + size * f.R[3 + k], f.o[2] + size * f.R[6 + k]];
+  return { x: end(0), y: end(1), z: end(2) };
+}
 /** An underlay text as a plane label: its height the em, the anchor its first line's baseline-left (as the SVG text had it). */
 function underlayLabel(t: { at: Vec3; dir: Vec3; up: Vec3; text: string; height: number }): OverlayLabels['labels'][number] {
   const lines = Math.max(1, t.text.split('\n').length), n = (v: Vec3): Vec3 => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
@@ -181,6 +274,20 @@ const BOX_EDGES = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7
 /** A box's 12 edges as segments, from min and max (six numbers). */
 /** The workspace map's band colours (sRGB 0–1), as the SVG's hsl(240 − 34k, 80 %, 55 %). */
 const CLOUD_BANDS = Array.from({ length: 8 }, (_, k) => hslRgb(240 - k * 34, 0.8, 0.55));
+/** The viewport's frame counter (R1): the overlay subscribes to it, so a frame draws the overlay again, not the whole viewport. */
+interface FrameTicker { n: number; listeners: Set<() => void>; subscribe(listener: () => void): () => void; get(): number }
+function frameTicker(): FrameTicker {
+  const t: FrameTicker = { n: 0, listeners: new Set(), subscribe: l => { t.listeners.add(l); return () => { t.listeners.delete(l); }; }, get: () => t.n };
+  return t;
+}
+function bumpTicker(t: FrameTicker): void { t.n++; for (const l of t.listeners) l(); }
+/** What the viewport draws over its canvas, again in each frame (R1: the frame's render is this component's alone). */
+function FrameOverlay({ ticker, draw }: { ticker: FrameTicker; draw: () => React.ReactNode }) {
+  useSyncExternalStore(ticker.subscribe, ticker.get);
+  countRender('ViewportOverlay');
+  return <>{draw()}</>;
+}
+
 function hslRgb(h: number, s: number, l: number): [number, number, number] {
   const a = s * Math.min(l, 1 - l), f = (n: number) => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
   return [f(0), f(8), f(4)];
@@ -260,14 +367,56 @@ function sameInstanceFaces(a: readonly InstanceFace[], b: readonly InstanceFace[
   return true;
 }
 
-export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(props, ref) {
+// (R1b: the print views' empty lists, one each — new ones in every App render ran the effects keyed on them again.)
+const NO_BODIES: BodyResult[] = [], NO_HANDLES: FeatureHandle[] = [], NO_PROFILES: NonNullable<Props['profiles']> = [];
+const NO_SELECTION: Props['selection'] = { faces: [], edges: [], bodies: [] };
+/** The selection as the print view's bodies number their faces and edges. */
+function printSelection(selection: Props['selection'], projection: ReturnType<typeof projectPrintBodies>): Props['selection'] {
+  const faces = selection.faces.flatMap(ref => { const index = projection.faceSources[ref.body]?.indexOf(ref.face) ?? -1; return index >= 0 ? [{ body: ref.body, face: index }] : []; });
+  const edges = selection.edges.flatMap(ref => { const index = projection.edgeSources[ref.body]?.indexOf(ref.edge) ?? -1; return index >= 0 ? [{ body: ref.body, edge: index }] : []; });
+  return { ...selection, faces, edges };
+}
+/** The face colours as the print view's bodies number their faces. */
+function printFaceColors(faceColors: Props['faceColors'], projection: ReturnType<typeof projectPrintBodies>): Props['faceColors'] {
+  return faceColors && new Map([...faceColors].map(([body, colors]) => [body, new Map((projection.faceSources[body] ?? []).flatMap((native, shown) => colors.has(native) ? [[shown, colors.get(native)!] as const] : []))]));
+}
+function printViewportProps(source: Props, projection: ReturnType<typeof projectPrintBodies>, selection: Props['selection'], faceColors: Props['faceColors']): Props {
+  const face = (ref: FaceRef | null): FaceRef | null => { const index = ref && projection.faceSources[ref.body]?.[ref.face]; return ref && index !== undefined && index !== null && index >= 0 ? { body: ref.body, face: index } : null; };
+  const edge = (ref: EdgeRef | null): EdgeRef | null => { const index = ref && projection.edgeSources[ref.body]?.[ref.edge]; return ref && index !== undefined && index !== null && index >= 0 ? { body: ref.body, edge: index } : null; };
+  const point = (p: Vec3 | null) => p ? printPointToModel(p, source.printDisplay!.summary.modelToBed) : null;
+  return { ...source, bodies: projection.bodies, selection, faceColors,
+    gizmo: null, handles: NO_HANDLES, offsets: undefined, transforms: null, pickedVertices: undefined, measureLine: null, boundsBox: null, profiles: NO_PROFILES,
+    clip: null, sectionHatch: null, clearance: null, threads: undefined, underlays: undefined, cloud: null, poles: undefined,
+    onPick: (hit, additive) => {
+      const nativeFace = face(hit.face), nativeEdge = edge(hit.edge);
+      if (hit.face && !nativeFace) { source.onPickBody?.(hit.face.body); return; }
+      if (hit.edge && !nativeEdge) { source.onPickBody?.(hit.edge.body); return; }
+      source.onPick({ ...hit, face: nativeFace, edge: nativeEdge, point: point(hit.point), ...(hit.vertex ? { vertex: { ...hit.vertex, at: point(hit.vertex.at)! } } : {}) }, additive);
+    },
+    onPickChain: (body, shown) => { const ref = edge({ body, edge: shown }); if (ref) source.onPickChain?.(ref.body, ref.edge); },
+    onCursor: p => source.onCursor(point(p)),
+    onContextMenu: (at, hit) => source.onContextMenu(at, { face: face(hit.face), edge: edge(hit.edge) }),
+  };
+}
+
+export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sourceProps, ref) {
+  countRender('Viewport');
+  const projection = useMemo(() => sourceProps.printDisplay ? projectPrintBodies(sourceProps.bodies, sourceProps.printDisplay) : null,
+    [sourceProps.bodies, sourceProps.printDisplay?.summaryKey, sourceProps.printDisplay?.top, sourceProps.printDisplay?.printed]);
+  const printSel = useMemo(() => projection ? printSelection(sourceProps.selection, projection) : null, [sourceProps.selection, projection]);
+  const printColors = useMemo(() => projection ? printFaceColors(sourceProps.faceColors, projection) : undefined, [sourceProps.faceColors, projection]);
+  const props = useMemo(() => projection ? printViewportProps(sourceProps, projection, printSel!, printColors) : sourceProps.printActive ? { ...sourceProps, bodies: NO_BODIES, selection: NO_SELECTION, gizmo: null, handles: NO_HANDLES, profiles: NO_PROFILES, threads: undefined, underlays: undefined, cloud: null, poles: undefined } : sourceProps, [sourceProps, projection, printSel, printColors]);
   const canvas = useRef<HTMLCanvasElement>(null);
   const renderer = useRef<ViewRenderer | null>(null);
+  // (O10: tracking asked for before the renderer is made applies to it once it is.)
+  const frameCostOn = useRef(false);
   const [backend, setBackend] = useState<'webgpu' | 'webgl2' | null>(null);
+  const [displayStatus, setDisplayStatus] = useState<DisplayModeStatus | null>(null);
   const theme = useRef<ThemeName>('dark'), ao = useRef(true);
   /** The theme as state, for the overlay lines whose colour follows it (G7). */
   const [themeName, setThemeName] = useState<ThemeName>('dark');
   const camera = useRef(new OrbitCamera());
+  const printCamera = useRef<{ original: RenderCamera; summary: number | null } | null>(null);
   const frame = useRef(0);
   const hover = useRef<{ face: FaceRef | null; edge: EdgeRef | null; vertex?: { body: number; at: Vec3 } | null }>({ face: null, edge: null });
   /** A corner of the body under the pointer within 7 px (an end of one of its edges), when the filter takes corners. */
@@ -275,14 +424,17 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const f = propsRef.current.pickFilter ?? 'all', bi = hit.edge?.body ?? hit.face?.body;
     if (bi === undefined || f === 'face' || f === 'body') return null;
     const mesh = propsRef.current.bodies[bi]?.mesh; if (!mesh) return null;
+    const print = propsRef.current.printDisplay;
+    if (print && hit.face && mesh.faces.some(face => face.index === hit.face!.face && face.id === 'section-cap')) return null;
     let best: Vec3 | null = null, d0 = 7;
     // (Each edge's two ends in turn: no pair array an edge, a pointer move at a time; PERF3 C17.)
-    for (const e of mesh.edges) for (let k = 0; k < 2; k++) { const p = k ? e.b : e.a, q = camera.current.project(p as Vec3, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = [...p] as Vec3; } }
+    for (const e of mesh.edges) for (let k = 0; k < 2; k++) { const p = k ? e.b : e.a; if (print?.printed && p[2] > print.top + 1e-7) continue; const q = camera.current.project(p as Vec3, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = [...p] as Vec3; } }
     return best ? { body: bi, at: best } : null;
   };
   const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | 'tool' | null; x: number; y: number; moved: boolean; x0?: number; y0?: number;
     /** A gizmo drag: what was hit, the pointer's start and last points, and what it means so far. */
-    hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; value2?: number; start2?: number; origin?: Vec3; factor?: number }>({ mode: null, x: 0, y: 0, moved: false });
+    hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; value2?: number; start2?: number; origin?: Vec3; handleAt?: Vec3; factor?: number;
+    gizmo?: TransformGizmo; pointerId?: number; sessionKey?: string | number }>({ mode: null, x: 0, y: 0, moved: false });
   /** The gizmo handle under the pointer, drawn brighter. */
   const gizmoHot = useRef<GizmoHit | null>(null);
   // While the camera moves (orbit, pan, zoom), frames leave out ambient occlusion; 180 ms after the last
@@ -313,9 +465,35 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   /** The trim tool's reach: 8 pixels on the sketch plane, in mm. */
   const trimReach = (x: number, y: number, w: number, h: number, sk: SketchState) => { const a = sketchPoint(x, y, w, h, sk.plane), b = sketchPoint(x + 8, y, w, h, sk.plane); return a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 1; };
   const sketchShapesOf = (sk: SketchState) => [...(sk.done ?? []), ...(sk.shape ? [sk.shape] : [])];
-  const [, setTick] = useState(0);
+  const ticker = useMemo(frameTicker, []);
   const [error, setError] = useState<string | null>(null);
+  const [printError, setPrintError] = useState<string | null>(null);
+  const [camError, setCamError] = useState<string | null>(null);
   const propsRef = useRef(props); propsRef.current = props;
+  const cancelGizmo = (reason: GizmoCancelReason, pointerId?: number) => {
+    const d = drag.current;
+    if (d.mode !== 'gizmo' || (pointerId !== undefined && d.pointerId !== pointerId)) return;
+    drag.current = { mode: null, x: 0, y: 0, moved: true };
+    if (d.pointerId !== undefined && canvas.current?.hasPointerCapture(d.pointerId)) canvas.current.releasePointerCapture(d.pointerId);
+    requestRef.current();
+    if (d.pointerId !== undefined) d.gizmo?.onCancel?.(d.pointerId, reason);
+  };
+  const gizmoSessionKey = props.gizmo?.sessionKey, gizmoPresent = !!props.gizmo;
+  useEffect(() => {
+    const d = drag.current;
+    if (d.mode === 'gizmo' && d.gizmo && (!gizmoPresent || !Object.is(gizmoSessionKey, d.sessionKey))) cancelGizmo('session-change');
+  }, [gizmoPresent, gizmoSessionKey]);
+  useEffect(() => () => cancelGizmo('unmount'), []);
+  const focusPick = useRef<((focus: number | null) => void) | null>(null);
+  const [pickingFocus, setPickingFocus] = useState(false);
+  const finishFocusPick = (focus: number | null) => {
+    const done = focusPick.current; focusPick.current = null; setPickingFocus(false);
+    if (canvas.current) canvas.current.style.cursor = '';
+    done?.(focus);
+  };
+  const renderActive = !!props.render && !props.sketch;
+  useEffect(() => { if (!renderActive) { const done = focusPick.current; focusPick.current = null; setPickingFocus(false); if (canvas.current) canvas.current.style.cursor = ''; done?.(null); } }, [renderActive]);
+  useEffect(() => () => { const done = focusPick.current; focusPick.current = null; done?.(null); }, []);
   /** The grid step (mm) points snap to: the studio's setting (0: off, to a micrometre). */
   const snap = (v: number) => { const st = propsRef.current.snapStep ?? 1; return st > 0 ? Math.round(Math.round(v / st) * st * 1000) / 1000 : Math.round(v * 1000) / 1000; };
   // Pointer events can arrive before React re-renders with the shape we just emitted, so handlers read
@@ -325,11 +503,23 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const emit = (shape: SketchShape | null, fresh = false) => { liveShape.current = shape; propsRef.current.onSketchShape(shape, fresh); };
   const fitted = useRef(false);
 
+  // (R1b: the bodies' offsets made once for the transforms or offsets they come from — viewState runs in each frame and hover.)
+  const offsetsMemo = useRef<{ from: unknown; map: ViewState['offsets'] } | null>(null);
+  const offsetsOf = (p: Props): ViewState['offsets'] => {
+    const from = p.transforms ?? p.offsets, had = offsetsMemo.current;
+    if (had && had.from === from) return had.map;
+    const map = p.transforms ? new Map([...p.transforms].map(([k, m]) => [k, [m[12], m[13], m[14]] as Vec3])) : p.offsets ?? new Map();
+    offsetsMemo.current = { from, map };
+    return map;
+  };
   const viewState = (): ViewState => ({
+    displayMode: propsRef.current.displayMode,
+    displayModeUnsupported: displayModeScope(propsRef.current),
+    isolatedInstances: displayModeScope(propsRef.current) ? undefined : propsRef.current.isolatedInstances,
     hoverFace: hover.current.face, hoverEdge: hover.current.edge,
     selectedFaces: propsRef.current.selection.faces, selectedEdges: propsRef.current.selection.edges, selectedBodies: propsRef.current.selection.bodies,
     // (Both renderers draw a dragged body by its matrix, its turn too — G16 for WebGL2; the offsets keep its move.)
-    offsets: propsRef.current.transforms ? new Map([...propsRef.current.transforms].map(([k, m]) => [k, [m[12], m[13], m[14]] as Vec3])) : propsRef.current.offsets ?? new Map(),
+    offsets: offsetsOf(propsRef.current),
     transforms: propsRef.current.transforms ?? undefined, ghostBodies: propsRef.current.ghost, bodyColors: propsRef.current.bodyColors, faceColors: propsRef.current.faceColors, hiddenBodies: propsRef.current.hiddenBodies, hoverBody: propsRef.current.hoverBody ?? undefined,
   });
 
@@ -353,8 +543,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     frame.current = requestAnimationFrame(() => {
       frame.current = 0;
       const r = renderer.current; if (!r) return;
+      // (The annotations' texts as facing the eye: set again in the frame which ones face it changes.)
+      const p = propsRef.current;
+      if (p.annotations?.length && r.setOverlayLabels && pmiFacingKey(p.annotations, camera.current.basis().forward) !== pmiFacing.current) applyPmiLabels();
       r.render(camera.current, viewState());
-      setTick(t => t + 1);
+      bumpTicker(ticker);
     });
   };
   requestRef.current = request;
@@ -364,7 +557,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     let live = true, observer: ResizeObserver | null = null;
     const start = (r: ViewRenderer, name: 'webgpu' | 'webgl2') => {
       if (!live) { r.dispose?.(); return; }
-      renderer.current = r; r.setTheme(theme.current); r.aoEnabled = ao.current; r.setRequestHost?.(() => requestRef.current());
+      renderer.current = r; r.setTheme(theme.current); r.aoEnabled = ao.current; r.trackFrameCost(frameCostOn.current); r.setRequestHost?.(() => requestRef.current());
       observer = new ResizeObserver(request); observer.observe(canvas.current!);
       setBackend(name);
     };
@@ -386,11 +579,45 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => {
     const r = renderer.current; if (!r) return;
     r.setBodies(props.bodies);
-    if (!fitted.current && props.bodies.length) { const b = r.bounds(); if (b) { camera.current.aspect = canvas.current!.clientWidth / Math.max(1, canvas.current!.clientHeight); camera.current.fit(b.min, b.max); fitted.current = true; } }
+    if (!sourceProps.printActive && !fitted.current && props.bodies.length) { const b = r.bounds(); if (b) { camera.current.aspect = canvas.current!.clientWidth / Math.max(1, canvas.current!.clientHeight); camera.current.fit(b.min, b.max); fitted.current = true; } }
     r.setState(viewState()); request();
   }, [props.bodies, backend]);
 
-  useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost, props.offsets, props.transforms, props.bodyColors, props.faceColors, props.hiddenBodies, props.hoverBody]);
+  useEffect(() => {
+    const c = camera.current;
+    if (sourceProps.printActive) {
+      if (!printCamera.current) printCamera.current = { original: { target: [...c.target], distance: c.distance, yaw: c.yaw, pitch: c.pitch, fovY: c.fovY, ortho: c.ortho }, summary: null };
+      if (sourceProps.printDisplay && printCamera.current.summary !== sourceProps.printDisplay.summaryKey) {
+        const box = printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies);
+        if (box) { c.aspect = canvas.current!.clientWidth / Math.max(1, canvas.current!.clientHeight); c.fit(box.min, box.max); printCamera.current.summary = sourceProps.printDisplay.summaryKey; }
+      }
+    } else if (printCamera.current) {
+      const old = printCamera.current.original; c.target = [...old.target] as Vec3; c.distance = old.distance; c.yaw = old.yaw; c.pitch = old.pitch; c.fovY = old.fovY; c.ortho = old.ortho; printCamera.current = null;
+    }
+    request();
+  }, [sourceProps.printActive, sourceProps.printDisplay?.summaryKey, backend]);
+  // (G23 CNC: the stock and the part framed once per package and setup; the camera as it was when the preview closes.)
+  const camCamera = useRef<{ original: RenderCamera; key: string | null } | null>(null);
+  const camKey = props.camDisplay ? `${props.camDisplay.packageKey}:${props.camDisplay.setupIndex}` : null;
+  useEffect(() => {
+    const c = camera.current;
+    if (props.camActive) {
+      if (!camCamera.current) camCamera.current = { original: { target: [...c.target], distance: c.distance, yaw: c.yaw, pitch: c.pitch, fovY: c.fovY, ortho: c.ortho }, key: null };
+      const stock = props.camDisplay?.package.stock;
+      if (camKey && camCamera.current.key !== camKey && stock && !('refused' in stock)) {
+        const box = camStockBounds(stock), body = renderer.current?.bounds();
+        if (body) for (let k = 0; k < 3; k++) { box.min[k] = Math.min(box.min[k], body.min[k]); box.max[k] = Math.max(box.max[k], body.max[k]); }
+        c.aspect = canvas.current!.clientWidth / Math.max(1, canvas.current!.clientHeight); c.fit(box.min, box.max); camCamera.current.key = camKey;
+      }
+    } else if (camCamera.current) {
+      const old = camCamera.current.original; c.target = [...old.target] as Vec3; c.distance = old.distance; c.yaw = old.yaw; c.pitch = old.pitch; c.fovY = old.fovY; c.ortho = old.ortho; camCamera.current = null;
+    }
+    request();
+  }, [props.camActive, camKey, backend]);
+
+  const displayScope = displayModeScope(props), hasInstances = !!props.instances?.length;
+  useEffect(() => { if (backend) props.onBackend?.(backend); }, [backend, props.onBackend]);
+  useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost, props.offsets, props.transforms, props.bodyColors, props.faceColors, props.hiddenBodies, props.hoverBody, props.displayMode, props.isolatedInstances, displayScope, hasInstances, backend]);
   // (Handles and gizmos are new objects on every render of the app: drawn again only when they move.)
   const shapeOf = (v: unknown) => JSON.stringify(v, (_k, x) => typeof x === 'function' ? undefined : x);
   const overlayKey = shapeOf([props.gizmo, props.handles]);
@@ -400,7 +627,38 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setThreads?.(props.threads ?? new Float32Array()); request(); }, [props.threads, backend]);
   useEffect(() => { renderer.current?.setRegions?.(props.regions?.length ? regionMesh(props.regions) : null); request(); }, [props.regions, backend]);
   useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);
+  useEffect(() => { renderer.current?.setClearanceDisplay?.(props.clearance ?? null); request(); }, [props.clearance, backend]);
+  useEffect(() => {
+    const r = renderer.current; if (!r) return;
+    try {
+      if (props.printDisplay && !r.setPrintDisplay) throw new Error('This renderer does not support print layers.');
+      r.setPrintDisplay?.(props.printDisplay ?? null); setPrintError(null);
+    } catch (error) { setPrintError(`Print layers (${backend ?? 'renderer'}) unavailable: ${error instanceof Error ? error.message : String(error)}`); }
+    request();
+  }, [props.printDisplay, backend]);
+  useEffect(() => {
+    const r = renderer.current; if (!r) return;
+    try {
+      if (props.camDisplay && !r.setCamDisplay) throw new Error('This renderer does not support the CNC preview.');
+      r.setCamDisplay?.(props.camDisplay ?? null); setCamError(null);
+    } catch (error) { setCamError(`CNC preview (${backend ?? 'renderer'}) unavailable: ${error instanceof Error ? error.message : String(error)}`); }
+    request();
+  }, [props.camDisplay, backend]);
+  // (G24: the annotations' lines and heads on either renderer; their texts as WebGPU's planar labels, facing the eye when a
+  // plane is nearly edge-on — rebuilt only when which ones face it changes. WebGL2 draws the texts in the SVG overlay.)
+  useEffect(() => { renderer.current?.setAnnotationDrawings?.(props.annotations?.length ? pmiDrawings(props.annotations, props.annotationSelected ?? null) : null); request(); }, [props.annotations, props.annotationSelected, backend]);
+  // (R1: which texts face the eye is checked in each frame — it was in each render, the viewport rendering every frame.)
+  const pmiFacing = useRef('');
+  const applyPmiLabels = () => {
+    const r = renderer.current, p = propsRef.current; if (!r?.setOverlayLabels) return;
+    const forward = camera.current.basis().forward;
+    pmiFacing.current = p.annotations?.length ? pmiFacingKey(p.annotations, forward) : '';
+    const l = p.annotations?.length ? pmiLabels(p.annotations, forward, p.annotationSelected ?? null) : null;
+    r.setOverlayLabels('pmi:text', l?.plain.labels.length ? l.plain : null); r.setOverlayLabels('pmi:text:selected', l?.selected ?? null);
+  };
+  useEffect(() => { applyPmiLabels(); request(); }, [props.annotations, props.annotationSelected, backend]);
   useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);
+  useEffect(() => { renderer.current?.setContactLinks?.(props.contactLinks ?? []); request(); }, [props.contactLinks, backend]);
   useEffect(() => { renderer.current?.setInstancePreview?.(props.instancePreview ?? null); request(); }, [props.instancePreview, backend]);
   useEffect(() => { renderer.current?.setInstanceTransforms?.(props.instanceTransforms ?? null); request(); }, [props.instanceTransforms, backend]);
   useEffect(() => { renderer.current?.setClip?.(props.clip ?? null); request(); }, [props.clip, backend]);
@@ -409,6 +667,17 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setMould?.(props.mould ?? null); request(); }, [props.mould, backend]);
   useEffect(() => { renderer.current?.setIsoclines?.(props.isoclines ?? null); request(); }, [props.isoclines, backend]);
   useEffect(() => { renderer.current?.setProposalOverlay?.(props.proposal ?? null); request(); }, [props.proposal, backend]);
+  useEffect(() => {
+    const r = renderer.current; if (!r || !props.onDisplayModeStatus) return;
+    // Read after the render/analysis/clip setters above, before the requested frame.
+    r.setState(viewState());
+    const status = r.getDisplayModeStatus?.();
+    if (status) {
+      const next = instanceDisplayStatus(status, r, hasInstances)!;
+      setDisplayStatus(previous => previous?.requested === next.requested && previous.effective === next.effective && previous.supported === next.supported && previous.reason === next.reason ? previous : next);
+      props.onDisplayModeStatus(next);
+    }
+  }, [props.displayMode, displayScope, props.clip, hasInstances, props.onDisplayModeStatus, backend]);
   // (G16, for the flow: the same probes on either renderer — the frame's pixels at world points or over a grid, the edge and
   // the direct object a pick finds at a world point.)
   useEffect(() => {
@@ -445,7 +714,14 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       return { ...hit, segments: segs };
     };
     w.__studioEye = () => camera.current.eye();
+    // (O10, for the flow: tracking on or off, and the last frame tracked in each display mode.)
+    w.__studioFrameCost = (on?: boolean) => { if (on !== undefined) { frameCostOn.current = on; renderer.current?.trackFrameCost(on); requestRef.current(); } return renderer.current?.frameCosts() ?? {}; };
     w.__studioDirectAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickDirect?.(q[0], q[1], camera.current) ?? null; };
+    w.__studioInstanceAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickInstanceFace?.(q[0], q[1], camera.current) ?? null; };
+    w.__studioInstanceEdgeAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickInstanceEdge?.(q[0], q[1], camera.current) ?? null; };
+    w.__studioProject = (p: Vec3) => screen(p);
+    // (RS2, for the flow: the links marked in contact as a motion plays.)
+    w.__studioContactLinks = () => [...(propsRef.current.contactLinks ?? [])];
   }, [backend]);
   // G7: the bounding box, the measure line, the underlays' polylines and the SubD cage's edges as engine lines on WebGPU —
   // made when they change (keyed by their content: the App hands new objects each render), not projected every frame;
@@ -476,6 +752,29 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const m = mlKey ? mlKey.split(',').map(Number) : null;
     r.setOverlayLabels('measure:label', m ? { labels: [{ text: mlLabel, at: [(m[0] + m[3]) / 2, (m[1] + m[4]) / 2, (m[2] + m[5]) / 2], size: 12, align: [0.5, 1], offset: [0, -8] }], ...chipLook(themeName), over: true } : null); request();
   }, [mlKey, mlLabel, themeName, backend]);
+  // G13: the frames' triads and names as engine lines and labels on WebGPU, over the scene; made when the pose moves them
+  // (keyed by their content).
+  const frames = props.frames, frameSize = props.frameSize ?? 25;
+  const framesKey = frames?.length && !sketching ? JSON.stringify([frameSize, frames.map(f => [f.name, f.kind ?? '', ...f.o, ...f.R])]) : '';
+  useEffect(() => {
+    const r = renderer.current; if (!r?.setOverlayLines || !r.setOverlayLabels) return;
+    const list = framesKey ? (JSON.parse(framesKey)[1] as (string | number)[][]).map(a => ({ name: a[0] as string, kind: (a[1] || undefined) as FrameTriad['kind'], o: a.slice(2, 5) as Vec3, R: a.slice(5) as number[] })) : [];
+    // (The names first, the axes after them: drawn later, an axis that turns under its name stays seen over the chip.)
+    for (const kind of ['tool', 'sensor'] as const) {
+      const labels = list.filter(f => (f.kind ?? 'tool') === kind).map(f => ({ text: f.name, at: f.o, size: 11, align: [0, 1] as const, offset: [8, -6] as const }));
+      r.setOverlayLabels('frames:' + kind, labels.length ? { labels, color: '#121315', chip: { fill: FRAME_CHIP[kind], padding: 3 }, over: true } : null);
+    }
+    for (const [axis, color] of FRAME_AXES) {
+      const segments = list.flatMap(f => [...f.o, ...frameAxisEnds(f, frameSize)[axis]]);
+      r.setOverlayLines('frames:' + axis, segments.length ? { segments, color, width: 2, over: true } : null);
+    }
+    request();
+  }, [framesKey, frameSize, backend]);
+  // (DEV, for the flow: the frames drawn, each's origin and axis ends in the world.)
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    (window as unknown as { __studioFrameTriads: () => unknown }).__studioFrameTriads = () => (framesKey ? props.frames ?? [] : []).map(f => ({ name: f.name, kind: f.kind ?? 'tool', o: f.o, ...frameAxisEnds(f, frameSize) }));
+  });
   const underlayKeys = useRef<string[]>([]);
   useEffect(() => {
     const r = renderer.current; if (!r?.setOverlayLines) return;
@@ -510,22 +809,45 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
 
   useImperativeHandle(ref, () => ({
     camera: camera.current,
-    fit(box) { const b = box ?? renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
-    setView(name) { camera.current.setView(name); const b = renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
+    fit(box) { const b = sourceProps.printActive ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies) : box ?? renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
+    setView(name) { camera.current.setView(name); const b = sourceProps.printActive ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies) : renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
     frameSketch(min, max, plane, insets = { left: 0, right: 0 }) {
       const w = Math.max(1, canvas.current!.clientWidth), h = Math.max(1, canvas.current!.clientHeight);
       camera.current.aspect = w / h; camera.current.faceNormal(plane.normal);
       camera.current.frameAt(toWorld(plane, [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2]), [max[0] - min[0], max[1] - min[1]], insets.left / w, insets.right / w); request();
     },
     toggleOrtho() { camera.current.ortho = !camera.current.ortho; request(); return camera.current.ortho; },
+    getDisplayModeStatus() {
+      const status = renderer.current?.getDisplayModeStatus?.() ?? null;
+      return instanceDisplayStatus(status, renderer.current, !!propsRef.current.instances?.length);
+    },
     setTheme(name) { theme.current = name; setThemeName(name); renderer.current?.setTheme(name); request(); },
     setAo(on) { ao.current = on; if (renderer.current) renderer.current.aoEnabled = on; request(); },
     capture() { return renderer.current?.capture ? renderer.current.capture() : Promise.resolve(null); },
+    async createRenderPathTrace() {
+      const r = renderer.current, c = canvas.current;
+      if (!propsRef.current.render || !r?.createPathTrace || !c) throw new Error('Path tracing needs the Render workspace and WebGPU.');
+      r.render(camera.current, viewState());
+      const width = 640, height = Math.max(1, Math.round(width * c.clientHeight / Math.max(1, c.clientWidth)));
+      const session = await r.createPathTrace(camera.current, { width, height });
+      if (renderer.current !== r || !propsRef.current.render) { session.dispose(); throw new Error('The Render workspace closed before the still was ready.'); }
+      return session;
+    },
+    recordVideo(count, fps, draw) { return recordCanvas(canvas.current!, count, fps, draw, request, renderer.current?.drawNow ? () => renderer.current?.drawNow?.() : undefined); },
+    pickRenderFocus(done) {
+      finishFocusPick(null);
+      if (!propsRef.current.render || propsRef.current.sketch || !renderer.current?.pickSurfacePoint) { done(null); return () => undefined; }
+      focusPick.current = done; setPickingFocus(true);
+      return () => { if (focusPick.current === done) finishFocusPick(null); };
+    },
     getCamera() { const c = camera.current; return { target: [...c.target] as [number, number, number], distance: c.distance, yaw: c.yaw, pitch: c.pitch, fovY: c.fovY, ortho: c.ortho }; },
     setCamera(v) { const c = camera.current; c.target = [...v.target] as Vec3; c.distance = v.distance; c.yaw = v.yaw; c.pitch = v.pitch; c.fovY = v.fovY; c.ortho = v.ortho; request(); },
     get backend() { return backend; },
     overlayLines() { return renderer.current?.overlayLines?.() ?? {}; },
     overlayTexts() { return renderer.current?.overlayTexts?.() ?? {}; },
+    computeDevice() { return renderer.current?.computeDevice?.() ?? null; },
+    trackFrameCost(on) { frameCostOn.current = on; renderer.current?.trackFrameCost(on); request(); },
+    frameCosts() { return renderer.current?.frameCosts() ?? {}; },
   }));
 
   const local = (e: { clientX: number; clientY: number }) => {
@@ -691,15 +1013,18 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   };
   const gizmoHit = (x: number, y: number) => { const p = propsRef.current; return (p.gizmo || p.handles?.length) && canvas.current ? hitTest([x, y], p.gizmo, p.handles ?? [], projector()) : null; };
   /** A gizmo drag from its start to (x, y): calls the handler with the whole move, turn or value so far. */
-  const gizmoDrag = (x: number, y: number, shift: boolean, done: boolean) => {
-    const d = drag.current, p = propsRef.current, g = p.gizmo, P = projector(), hit = d.hit!;
+  const gizmoDrag = (x: number, y: number, shift: boolean, done: boolean, d = drag.current) => {
+    const p = propsRef.current, g = d.gizmo ?? p.gizmo, P = projector(), hit = d.hit!;
     d.x = x; d.y = y;
     if (hit.kind === 'handle') {
       const hd = p.handles?.[hit.index]; if (!hd) return;
-      // An arc adds up the angle swept round its centre step by step; an arrow measures mm along it.
-      if (hd.plane) { const [u, v] = dragIn(d.from!, [x, y], hd.at, hd.dir, hd.plane.dir2, P); d.value = hd.toValue(d.start!, u); d.value2 = hd.plane.toValue2(d.start2!, v); hd.onDrag(d.value, done, d.value2); return; }
+      // An arc adds up the angle swept round its centre step by step; an arrow measures mm along it — from the handle where
+      // the drag began (G14: a handle drawn where its value now is, as SceneViewport's section handles are in each frame,
+      // would measure each step from a moved point, and the release from another: its value one snap off the last shown).
+      const at0 = d.handleAt ?? hd.at;
+      if (hd.plane) { const [u, v] = dragIn(d.from!, [x, y], at0, hd.dir, hd.plane.dir2, P); d.value = hd.toValue(d.start!, u); d.value2 = hd.plane.toValue2(d.start2!, v); hd.onDrag(d.value, done, d.value2); return; }
       if (hd.arc) { d.turned = (d.turned ?? 0) + dragAbout(d.last!, [x, y], hd.arc.centre, hd.arc.axis, P); d.last = [x, y]; d.value = hd.toValue(d.start!, d.turned); }
-      else d.value = hd.toValue(d.start!, dragAlong(d.from!, [x, y], hd.at, hd.dir, P));
+      else d.value = hd.toValue(d.start!, dragAlong(d.from!, [x, y], at0, hd.dir, P));
       hd.onDrag(d.value, done); return;
     }
     if (!g) return;
@@ -709,7 +1034,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const o = d.origin ?? g.origin;
       if (hit.kind === 'plane') { const [u, v] = dragPlane(d.from!, [x, y], o, hit.axes, P); delta[hit.axes[0]] = snapTo(u, step); delta[hit.axes[1]] = snapTo(v, step); }
       else { const dir: Vec3 = [0, 0, 0]; dir[hit.axis] = 1; delta[hit.axis] = snapTo(dragAlong(d.from!, [x, y], o, dir, P), step); }
-      d.delta = delta; g.onMove?.(delta, done); return;
+      d.delta = delta; g.onMove?.(delta, done, d.pointerId); return;
     }
     if (hit.kind === 'scale') {
       const k = dragScale(d.from!, [x, y], d.origin ?? g.origin, hit.axis, P), step = shift ? 0.01 : 0.05;
@@ -722,14 +1047,18 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
+    if (drag.current.mode === 'gizmo') return;
     canvas.current!.setPointerCapture(e.pointerId);
     const { x, y } = local(e);
+    if (focusPick.current && e.button === 0 && !e.altKey) { drag.current = { mode: null, x, y, moved: false }; return; }
     const tool = propsRef.current.tool;
     if (tool && e.button === 0 && !e.altKey && tool.down(x, y, toolView(), e)) { drag.current = { mode: 'tool', x, y, moved: false }; request(); return; }
     const hit = e.button === 0 && !propsRef.current.sketch ? gizmoHit(x, y) : null;
     if (hit) {
       const hd = hit.kind === 'handle' ? propsRef.current.handles![hit.index] : undefined;
-      drag.current = { mode: 'gizmo', x, y, moved: false, hit, from: [x, y], last: [x, y], turned: 0, start: hd?.value, start2: hd?.plane?.value2, origin: propsRef.current.gizmo ? [...propsRef.current.gizmo.origin] as Vec3 : undefined };
+      const g = hit.kind === 'handle' ? undefined : propsRef.current.gizmo ?? undefined;
+      drag.current = { mode: 'gizmo', x, y, moved: false, hit, from: [x, y], last: [x, y], turned: 0, start: hd?.value, start2: hd?.plane?.value2, handleAt: hd ? [...hd.at] as Vec3 : undefined, origin: propsRef.current.gizmo ? [...propsRef.current.gizmo.origin] as Vec3 : undefined, gizmo: g, pointerId: e.pointerId, sessionKey: g?.sessionKey };
+      g?.onStart?.(e.pointerId);
       return;
     }
     if (e.button === 2 && !e.shiftKey) drag.current = { mode: 'orbit', x, y, moved: false };
@@ -739,11 +1068,13 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
-    const { x, y, w, h } = local(e); const d = drag.current; const r = renderer.current; if (!r) return;
+    const d = drag.current; if (d.mode === 'gizmo' && d.pointerId !== e.pointerId) return;
+    const { x, y, w, h } = local(e); const r = renderer.current; if (!r) return;
     if (d.mode === 'orbit') { camera.current.orbit(x - d.x, y - d.y); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
     if (d.mode === 'pan') { camera.current.pan(x - d.x, y - d.y, h); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
     if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, false); d.moved = true; request(); return; }
     if (d.mode === 'tool') { propsRef.current.tool?.move(x, y, toolView(), e); d.moved = true; request(); return; }
+    if (focusPick.current && !d.mode) { if (e.buttons === 1 && Math.hypot(x - d.x, y - d.y) > 5) d.moved = true; canvas.current!.style.cursor = 'crosshair'; return; }
     if (!d.mode && propsRef.current.tool?.move(x, y, toolView(), e)) { request(); return; }
     if (!d.mode && !sk0()) {
       const hot = gizmoHit(x, y);
@@ -828,9 +1159,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     hover.current = { face: null, edge: null, vertex: null }; r.setState(viewState()); request();
   };
   const onPointerUp = (e: React.PointerEvent) => {
-    const d = drag.current; drag.current = { mode: null, x: 0, y: 0, moved: false };
+    const d = drag.current; if (d.mode === 'gizmo' && d.pointerId !== e.pointerId) return;
+    drag.current = { mode: null, x: 0, y: 0, moved: false };
     const { x, y, w, h } = local(e);
-    if (d.mode === 'gizmo') { drag.current = d; gizmoDrag(x, y, e.shiftKey, true); drag.current = { mode: null, x: 0, y: 0, moved: false }; request(); return; }
+    if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, true, d); request(); return; }
     if (d.mode === 'tool') { propsRef.current.tool?.up(x, y, toolView(), e); request(); return; }
     if (d.mode === 'box') { boxSelect(d.x0!, d.y0!, x, y, e.shiftKey); request(); return; }
     if (e.button === 2 && d.mode === 'orbit' && !d.moved && !propsRef.current.sketch) {
@@ -838,10 +1170,22 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       propsRef.current.onContextMenu({ x: e.clientX, y: e.clientY }, { face, edge }); return;
     }
     if (d.mode || d.moved || e.button !== 0) return;
+    if (focusPick.current) {
+      const point = propsRef.current.render && !propsRef.current.sketch ? renderer.current?.pickSurfacePoint?.(x, y, camera.current) ?? null : null;
+      finishFocusPick(point ? renderFocusDistance(camera.current, point) : null);
+      if (canvas.current) canvas.current.style.cursor = '';
+      request(); return;
+    }
     if (propsRef.current.placing) { propsRef.current.onSpot?.(spotAt(x, y, w, h), true); return; }
     // A cage being edited takes the click (a miss clears its selection; the body under it is not picked).
     const cg = propsRef.current.cage;
     if (cg) { propsRef.current.onPickCage?.(pickCage(cg.cage, p => camera.current.project(p as Vec3, w, h), x, y, cg.mode), e.shiftKey); request(); return; }
+    // (G24: a click on an annotation's text or lines picks it, before the model under it.)
+    const pm = propsRef.current.annotations;
+    if (pm?.length && propsRef.current.onPickAnnotation) {
+      const id = pmiPick(pm, p => { const q = camera.current.project(p, w, h); return Number.isFinite(q[0]) && Number.isFinite(q[1]) ? [q[0], q[1]] : null; }, x, y);
+      if (id) { propsRef.current.onPickAnnotation(id); request(); return; }
+    }
     const sk = propsRef.current.sketch;
     if (sk) {
       const p = sketchPoint(x, y, w, h, sk.plane); if (!p) return;
@@ -908,7 +1252,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const direct = r.pickDirect?.(x, y, camera.current) ?? null;
     if (direct) { propsRef.current.onPick({ face: null, edge: null, point: null, direct }, e.shiftKey); return; }
     const instance = r.pickInstanceFace?.(x, y, camera.current) ?? null;
-    if (instance) { propsRef.current.onPick({ face: null, edge: null, point: null, instance: instance.id, instanceFace: instance.face >= 0 ? { body: instance.body, face: instance.face } : undefined }, e.shiftKey); return; }
+    if (instance) { propsRef.current.onPick({ face: null, edge: null, point: null, ...instancePickFields(instance) }, e.shiftKey); return; }
     const { face, edge } = pickAt(r, x, y), vertex = vertexAt(x, y, w, h, { face, edge });
     if (vertex) { propsRef.current.onPick({ face: null, edge: null, point: vertex.at, vertex }, e.shiftKey); return; }
     propsRef.current.onPick({ face, edge, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);
@@ -920,7 +1264,17 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const [lx, hx, ly, hy] = [Math.min(x0, x1), Math.max(x0, x1), Math.min(y0, y1), Math.max(y0, y1)];
     const crossing = x1 < x0; const picked: number[] = [];
     propsRef.current.bodies.forEach((b, i) => {
+      if (propsRef.current.printActive && propsRef.current.hiddenBodies?.has(i)) return;
       const P = b.mesh.positions; let inside = 0, total = 0;
+      if (propsRef.current.printActive) {
+        // G19 can retain unused original vertices; only the displayed triangles can enter this box.
+        for (const index of new Set(b.mesh.indices)) {
+          const k = index * 3, q = camera.current.project([P[k], P[k + 1], P[k + 2]], w, h); total++;
+          if (q[0] >= lx && q[0] <= hx && q[1] >= ly && q[1] <= hy) inside++;
+        }
+        if (crossing ? inside > 0 : inside === total && total > 0) picked.push(i);
+        return;
+      }
       const step = Math.max(3, Math.floor(P.length / 3 / 400) * 3);
       for (let k = 0; k < P.length; k += step) {
         const q = camera.current.project([P[k], P[k + 1], P[k + 2]], w, h); total++;
@@ -937,6 +1291,17 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   };
 
   // Overlay: sketch preview, dimension labels and the move gizmo, projected each frame.
+  /** G24 on WebGL2 (no engine labels): each annotation text at its point, facing the eye, in the SVG overlay. */
+  const pmiSvg = (items: readonly ModelAnnotation[], selected: string | null) => {
+    const c = canvas.current; if (!c) return null;
+    const w = c.clientWidth, h = c.clientHeight, texts: React.ReactNode[] = [];
+    for (const a of items) for (const [k, t] of a.texts.entries()) {
+      const q = camera.current.project(t.at as Vec3, w, h);
+      if (!Number.isFinite(q[0]) || !Number.isFinite(q[1])) continue;
+      texts.push(<text key={a.id + ':' + k} x={q[0]} y={q[1]} textAnchor={t.align} className={'pmi-text' + (a.id === selected ? ' sel' : '')}>{t.text}</text>);
+    }
+    return <svg className="vp-overlay pmi" width={w} height={h} aria-hidden="true">{texts}</svg>;
+  };
   const overlay = () => {
     /** The overlay lines are the engine's (G7): only their labels, points and texts stay SVG. */
     const engineLines = !!renderer.current?.setOverlayLines;
@@ -1117,12 +1482,38 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     }
     // A proposal's volume chips (G12), where the renderer draws no labels (WebGL2, G16): at each material's box top, as the GPU's.
     const pr = props.proposal;
-    if (pr && !sk && !renderer.current?.setOverlayLabels) for (const side of ['added', 'removed'] as const) {
-      const s = pr[side]; if (!s || !s.mesh.indices.length) continue;
-      const b = s.mesh.bounds, q = cam.project([(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2, b.max[2]], w, h);
-      const text = `${side === 'added' ? '+' : '−'}${Math.round(s.volumeMM3).toLocaleString('en-US')} mm³`, tw = text.length * 7 + 12, fill = side === 'added' ? PROPOSAL_ADDED : PROPOSAL_REMOVED;
-      items.push(<g key={'proposal:' + side} aria-label={side === 'added' ? 'Material added' : 'Material removed'}><rect x={q[0] - tw / 2} y={q[1] - 26} width={tw} height={20} rx={4} style={{ fill }} />
-        <text x={q[0]} y={q[1] - 12} textAnchor="middle" className="dim-text" style={{ fill: '#ffffff' }}>{text}</text></g>);
+    // (Stacked over the two boxes' top, as the GPU's: they never meet.)
+    if (pr && !sk && !renderer.current?.setOverlayLabels) for (const { side, at, stack, text } of proposalChips(pr)) {
+      const q = cam.project(at, w, h), y = q[1] - 26 - stack * PROPOSAL_CHIP_STEP;
+      const tw = text.length * 7 + 12, fill = side === 'added' ? PROPOSAL_ADDED : PROPOSAL_REMOVED;
+      items.push(<g key={'proposal:' + side} aria-label={side === 'added' ? 'Material added' : 'Material removed'}><rect x={q[0] - tw / 2} y={y} width={tw} height={20} rx={4} style={{ fill }} />
+        <text x={q[0]} y={y + 14} textAnchor="middle" className="dim-text" style={{ fill: '#ffffff' }}>{text}</text></g>);
+    }
+    // G13: frame axes stay at their projected origins; names occupy separate screen-space chips (WebGL2).
+    if (props.frames?.length && !sk && !engineLines) {
+      const placed: { x: number; y: number; width: number }[] = [], leaders: React.ReactNode[] = [], labels: React.ReactNode[] = [];
+      const margin = 4, gap = 2, height = 16;
+      for (const f of props.frames) {
+        const q = cam.project(f.o, w, h), ends = frameAxisEnds(f, props.frameSize ?? 25), kind = f.kind ?? 'tool';
+        const width = f.name.length * 7 + 8, preferredX = q[0] + 8, preferredY = q[1] - 22;
+        const x = Math.max(margin, Math.min(Math.max(margin, w - margin - width), preferredX));
+        const clampY = (y: number) => Math.max(margin, Math.min(Math.max(margin, h - margin - height), y));
+        const overlappingX = placed.filter(b => x < b.x + b.width + gap && x + width + gap > b.x);
+        const candidates = [...new Set([clampY(preferredY), ...overlappingX.flatMap(b => [clampY(b.y - height - gap), clampY(b.y + height + gap)])])];
+        candidates.sort((a, b) => Math.abs(a - preferredY) - Math.abs(b - preferredY) || a - b);
+        // If the viewport cannot hold every chip, retain every name; no collision-free guarantee in that case.
+        const y = candidates.find(y => overlappingX.every(b => y + height + gap <= b.y || y >= b.y + height + gap)) ?? clampY(preferredY);
+        placed.push({ x, y, width });
+        items.push(<g key={'frame:' + f.name} aria-label={`Frame triad ${f.name}`}>
+          {FRAME_AXES.map(([axis, color]) => { const e = cam.project(ends[axis], w, h); return <line key={axis} x1={q[0]} y1={q[1]} x2={e[0]} y2={e[1]} style={{ stroke: color, strokeWidth: 2 }} />; })}</g>);
+        if (x !== preferredX || y !== preferredY) leaders.push(<line key={'frame-label-leader:' + f.name} aria-label={`Frame label leader ${f.name}`} x1={q[0]} y1={q[1]} x2={Math.max(x, Math.min(x + width, q[0]))} y2={Math.max(y, Math.min(y + height, q[1]))} style={{ stroke: FRAME_CHIP[kind], strokeWidth: 1 }} />);
+        labels.push(<g key={'frame-label:' + f.name} aria-label={`Frame label ${f.name}`}>
+          <rect x={x} y={y} width={width} height={height} rx={3} style={{ fill: FRAME_CHIP[kind] }} />
+          <text x={x + 4} y={y + 12} className="dim-text" style={{ fill: '#121315' }}>{f.name}</text>
+        </g>);
+      }
+      // All axes and leaders precede every opaque chip and text, so no line can paint over a frame name.
+      items.push(...leaders, ...labels);
     }
     if (props.tool) items.push(<g key="tool" className="vp-tool">{props.tool.marks(toolView())}</g>);
     const dr = drag.current;
@@ -1159,16 +1550,24 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       {!propsRef.current.sketch && <ViewCube right={basis.right} up={basis.up} forward={basis.forward} onLook={lookFrom} onOrbit={(dx, dy) => { camera.current.orbit(dx, dy); request(); }} />}</>;
   };
 
+  const drawOverlay = () => <>{overlay()}{!renderer.current?.setOverlayLabels && !!props.annotations?.length && pmiSvg(props.annotations, props.annotationSelected ?? null)}</>;
   return (
-    <div className="viewport" data-renderer={backend ?? undefined}
+    <div className="viewport" data-renderer={backend ?? undefined} data-focus-picking={pickingFocus || undefined}
+      data-display-mode-requested={props.requestedDisplayMode ?? props.displayMode ?? 'shaded-with-edges'}
+      data-display-mode-effective={displayStatus?.effective ?? props.displayMode ?? 'shaded-with-edges'}
+      data-display-mode-supported={props.displayModeReason ? false : displayStatus?.supported}
+      data-display-mode-reason={props.displayModeReason ?? displayStatus?.reason}
       onDragOver={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), false); }}
       onDrop={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), true); }}>
       <canvas ref={canvas} className="vp-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={onPointerLeave}
+        onPointerCancel={e => cancelGizmo('pointercancel', e.pointerId)} onLostPointerCapture={e => cancelGizmo('lostpointercapture', e.pointerId)}
         onDoubleClick={e => { const p = propsRef.current, r = renderer.current; if (!r || p.sketch || p.placing) return;
           if (p.cage) { const { x, y, w, h } = local(e), hit = pickCage(p.cage.cage, q => camera.current.project(q as Vec3, w, h), x, y, 'edge'); if (hit) p.onPickCage?.(hit, e.shiftKey, e.altKey ? 'ring' : 'loop'); return; } const { x, y } = local(e), { face, edge } = pickAt(r, x, y); if (edge && p.onPickChain) p.onPickChain(edge.body, edge.edge); else if (face) p.onPickBody?.(face.body); }}
         onWheel={onWheel} onContextMenu={e => e.preventDefault()} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />
-      {overlay()}
+      <FrameOverlay ticker={ticker} draw={drawOverlay} />
       {error && <div className="vp-error" role="alert">{error}</div>}
+      {printError && <div className="vp-error" role="alert">{printError}</div>}
+      {camError && <div className="vp-error" role="alert">{camError}</div>}
     </div>
   );
 });

@@ -9957,3 +9957,4489 @@ The defect half of FRk8b, moved up by the coordinator after FRk2 (a wrong mass o
 - **RB:** 418 cases (+9: the frk cases since R12c's 409), no new failures. The non-OK totals are unchanged: 4 refused, 3 invalid, 5 wrong (the 8 known TODOs). 153 s.
 - **Properties:** 11/11, no failures, 174 s. Among them the coaxial fillets against Pappus (200 random cone rims) and "mass by quadrature and by a finer and finer tessellation agree" (200).
 - **Not run:** cad-model and studio (no change there; their masses go through this kernel, so the coordinator's merge checks cover them); the flow.
+
+## D168 — P1 review fix: Sweep mass follows the final union (2026-10-22)
+
+This checkpoint fixes the review's overlapping Sweep mass. It does not start FRk3.
+Baseline: `c3ae0d5de60ecb250350b597552fb0203b41d43e` (remote develop merge).
+Task worktree: `/Users/user/.codex/worktrees/0d2f/barocss`.
+Branch: `codex/cad-kernel-sweep-mass-20261022`.
+The worktree initially had clean detached HEAD `57ad0fd09b6919e20133657c0739f87d10e81ecb`;
+the new branch starts at the requested baseline. No reset, stash, rebase or amend.
+Git author and committer: `easylogic <cyberuls@gmail.com>`.
+
+**Cause and change**
+- `sweepBrep` united overlapping pieces but always summed their original masses.
+- The sum is now used only when every join uses `glueAtSharedFace`. Any Boolean
+  union sends volume, centroid and inertia through `brepMassProperties` on the final body.
+- A four-bend closed ring also uses that route: its returned method is `quadrature`.
+  The existing test now expects the actual method; its `1e-12` volume tolerance is unchanged.
+- The new inertia oracle exposed a separate whole-patch integration error (about
+  `3.7e-9` relative on the annulus's transverse inertia). Increasing
+  `quadratureSegments` from 8 to 64 did not change it, since whole patches bypass
+  the mesh. Rational whole patches now use eight extra Gauss points instead of four
+  (the existing cap remains 20). No tolerance was relaxed. This does not change
+  D167's trimmed-face knot/domain/strip rules or claim completion of FRk8b's remainder.
+
+**Independent oracle and reproduction**
+
+`test/sweep-mass-overlap.test.mjs`: 2 tests. Rectangle `[-1,-1]..[1,1]`,
+R8 bends of 90 degrees toward x. Four bends form an annulus, radii 7..9,
+y=-1..1; the fifth retraces its first quarter. The test integrates
+`dV = r dr dy dtheta` directly, with no kernel mass or geometry feeding the oracle.
+It checks all nine centroidal inertia entries, volume, mass and centroid at densities
+1 and 7850, and compares the result with the final B-rep. A non-overlapping two-bend
+semicircle is the closed-form control, including its nonzero centroid.
+Tolerance: `1e-12` of the stated volume/mass/length/inertia scale, including zero entries.
+
+| Case, density 1 | Before | After | Oracle |
+|---|---|---|---|
+| 5 bends, volume mm3 | 251.32741228718342 | 201.06192982974676 | 64 pi = 201.06192982974676 |
+| 5 bends, centroid mm | [6.97610319944214, 0, 1.0238968005578593] | [8, 0, 0] to rounding | [8, 0, 0] |
+| 4 bends, volume mm3 | 201.06192982974673 | 201.06192982974673 | 64 pi |
+
+For the annulus, `Iyy = mass * 65e-6`, `Ixx = Izz = mass * (197/6)e-6`
+in kg m2. At density 1 the final values are approximately
+`diag(6.60153336274311e-12, 1.30690254389331e-11, 6.60153336274312e-12)`;
+off-diagonal values are zero to rounding.
+
+The new test was also run with the baseline's `part-model.ts` transpiled into a
+temporary module beside this worktree's own build. Other modules came from the
+current build, so this is a baseline Sweep implementation probe, not a rerun or
+qualification of the whole historical commit. It fails the fifth-bend volume:
+`251.32741228718342 vs 201.06192982974676` (1 pass, 1 expected failure).
+The temporary modules and test were removed. No other worktree's dist was used.
+
+**Verification — T2**
+
+Node `v22.19.0`. From the task worktree:
+- `pnpm install --offline --frozen-lockfile --ignore-scripts`: passed.
+- In `packages/barocss-cad`, `pnpm build:library`, `pnpm type-check`, `pnpm lint`: passed.
+  Type-check was rerun after the last test edit.
+- `pnpm exec eslint test/sweep-mass-overlap.test.mjs`: passed.
+- `node --test test/sweep-mass-overlap.test.mjs`: 2/2.
+- `node --test --test-name-pattern='shell revolved and swept bodies|sweep: a profile along straight runs' test/part-model.test.mjs`: 2/2.
+- Explicit lint of both changed test files reports the baseline's existing
+  `prefer-const` error at `test/part-model.test.mjs:512` (`b`). It is outside this fix;
+  the package's source lint passes. The original line was checked with `git show`.
+- A development run of the three focused files was 31/33 before the final method
+  expectations were corrected. Both affected tests passed in the focused rerun above.
+
+Long checks use detached `/tmp/barocss-cad-sweep-verify-20261022` at the baseline
+plus this exact four-file patch, with its own offline install and local CAD/GPU builds.
+All four source/test SHA-256 hashes match the task worktree.
+An initial full-suite attempt started before its build completed (12 passes,
+202 import failures); it is not qualification evidence. A second attempt was stopped
+on this lane's own runner/PIDs after load rose above 100. Neither attempt is counted
+as a completed suite. The final run started at load `{ 34.78 56.41 37.68 }` with
+`node --test --test-concurrency=4 test/*.test.mjs`.
+
+Final full kernel: **1547/1554 passed, 6 skipped, 1 failed**, 494.404 s.
+The only failure is the hand-over's known "actual native Split source produces
+validated scoped Face reference resolutions": the example asserts Node `22.23.3`,
+but the hand-over's Node is `22.19.0`. No environment assertion was changed.
+Both FRk8b sphere/bevel regression tests passed. This fresh session starts its
+own saved passing-name list (`/tmp/cad-kernel-sweep-passing-names.txt`); no previous
+session's list is available, so no missing-name comparison is claimed.
+
+Targeted browser flow: **2/2 passed** (starter plate and the bent pipe from the
+palette), started at load `{ 12.91 24.87 32.21 }`. From the immutable verify
+worktree's `apps/cad-studio`:
+`CAD_STUDIO_CHAT_PORT=52491 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright FLOW_ONLY='^sweep a circle into a bent pipe' node test/browser-flow.mjs /tmp/cad-kernel-sweep-browser`.
+Screenshots are in `/tmp/cad-kernel-sweep-browser`; the result log is
+`/tmp/cad-kernel-sweep-browser.log`.
+Browser start requires 1-minute load below 20 and 5-minute below 25.
+RB/properties are not due
+(first checkpoint after D167; no track boundary). cad-model/studio package suites
+are not run: their source/API did not change. The coordinator owns the merge-window
+suite and full flow. No remote write, push, PR, merge, publish or deploy.
+
+Risk: rational whole patches do more quadrature work; no performance improvement
+is claimed. General Boolean/trimmed-surface mass accuracy retains its existing limits.
+
+## D169 — A9 ordered-trim beads: S0 contract (2026-10-22)
+
+Owner routing: unblock A9 step 4 before FRk3. The clean Kernel branch merged
+coordinator head `8ce8d8b6b04b7c6e94a9ae11fc19fe515bf35d3c` as
+`33071870db0addae52db0de3f88e68e3af9f1cd6`.
+
+Scope frozen before implementation:
+- Only ordered `trim` ends (`rank`/`against`) gain inference from their actual
+  B-rep trim faces. A missing report plane alone is no longer proof of a curved end.
+- Require one plane for the complete trimmed end, using the actual surfaces and
+  trim provenance. No residual original run-on cap, mixed planes or curved cap.
+- Oblique ends retain `BEAD_ANGLE`; copes, nonplanar/mixed ends and generic body
+  trims retain `BEAD_SEAM_NOT_PLANAR`. No silent projection or approximation.
+- Existing bead placement/clipping still reads every other member's actual landing
+  faces. In the A9 table, a rail end can land on its leg and the adjacent rail.
+- Oracle: the sharp 40 x 40 x 3 table, 400 x 300 x 300, leg 3, eight ends,
+  two 40 mm triangular-prism runs per end: 8 * 2 * 40 * 3^2 / 2 = 2880 mm3.
+  Check actual support faces, no member/bead overlap, and union volume additivity.
+- Cover table/box ends, preserved curved/oblique refusals, and a changed/rotated
+  placement. No model/app/GPU edit. The model owner's existing
+  `test/frame-welds.test.ts` asserts the old refusal and needs a separate update.
+- The coordinator holds the heavy-check slot. Build, small regressions, lint and
+  final type-check may run here. Full kernel, browser, RB/properties and benchmarks
+  wait for an explicit verification window. This checkpoint will report the exact
+  ready commands and stop.
+
+### S0 result: planar support works; A9's no-overlap contract is unresolved
+
+**WIP, not an A9 acceptance or adoption receipt.** The original A9 sum assertion
+is retained and fails; neither its oracle nor tolerance was changed.
+
+Changes limited to `packages/barocss-cad/src/part-model.ts`, its new
+`test/ordered-trim-bead.test.mjs`, and this Kernel decision:
+- Infer an ordered end's plane only from the actual envelope-produced faces. Each
+  surface must be planar, all must be coplanar, and no original run-on cap may
+  survive. Generic body trims remain refused. An inferred oblique plane is
+  `BEAD_ANGLE`, with the existing 1e-9 degree limit.
+- Split collinear landing edges at their partial shared vertices before merging
+  the landing boundaries. Otherwise the table reports `flushMM=120` even though
+  it has two supported runs; the correct exterior-only value is 80. The existing
+  1e-6 mm boundary tolerance is unchanged.
+- The table/box plane checks, actual support clipping, each nominal 360 mm3 bead,
+  and transformed centroid checks pass. Beads intersect no frame member in volume.
+  Curved, partial-cap, generic-body and oblique refusal controls pass.
+
+**Independent geometry of the conflict** (test values only): at corner [0,0,300],
+the two rail ends lie on x=20 and y=20. Both create the same vertical seam prism:
+`x=20+u, y=20+v, 280<=z<=320`, `u>=0, v>=0, u+v<=3`.
+Its volume is `40 * integral(0..3, 3-u du) = 40 * 9/2 = 180 mm3`.
+Each rail's other, bottom run is a different 40 mm triangular prism. Thus:
+- nominal per-joint sum: `8 * 360 = 2880 mm3`;
+- four duplicate vertical prisms: `4 * 180 = 720 mm3`;
+- unique deposited material: `2880 - 720 = 2160 mm3`.
+
+Actual pair intersections, each 180 mm3:
+`w4start/w7end`, `w4end/w5start`, `w5end/w6start`, `w6end/w7start`.
+The frame volume is 1118880 mm3. Its union with all beads is
+1121040.0000000037 mm3, versus the unresolved A9 sum oracle's 1121760 mm3.
+All bead centroids agree with the two triangular prisms' closed forms at 1e-12.
+The diagnostic compares total material rather than subtracting two large measured
+volumes: that subtraction lost digits (2160.0000000037253), and the original
+1e-12 comparison of the 2160 result failed. No tolerance factor was changed.
+A standalone union of the detached bead bodies was also refused as non-manifold
+where prisms touch only along an edge. The frame-plus-beads union is valid.
+
+**Small checks actually run**, Node 22.19.0, this worktree's own build:
+- Before: `node --test --test-name-pattern='A9 ordered table' test/ordered-trim-bead.test.mjs`
+  fails with the original `BEAD_SEAM_NOT_PLANAR` at member 4 start (1/1 failed).
+- `pnpm build:library`: passed.
+- `node --test --test-concurrency=1 test/ordered-trim-bead.test.mjs test/frk-2.test.mjs`:
+  **12 passed, 1 failed**, 9.151 s. All five existing FRk2 tests pass. The only
+  failure is the retained A9 no-double-counting sum assertion above.
+- `pnpm type-check`, `pnpm lint`, and
+  `pnpm exec eslint test/ordered-trim-bead.test.mjs`: passed. Type-check ran after
+  the final test edit.
+- Logs: `/tmp/cad-ordered-bead-before.log`, `/tmp/cad-ordered-bead-targeted-final.log`,
+  `/tmp/cad-ordered-bead-build.log`, `/tmp/cad-ordered-bead-tsc.log`,
+  `/tmp/cad-ordered-bead-lint.log`, `/tmp/cad-ordered-bead-test-lint.log`.
+
+**Not run:** full kernel, browser, benchmarks, RB/properties (coordinator's shared
+slot held); model/studio suites (other lane). No model/app/GPU file was edited.
+The model owner has the old refusal assertion in
+`packages/barocss-cad-model/test/frame-welds.test.ts`.
+
+**Executable handling options — proposed only, not implemented**
+1. **Typed overlap refusal.** Keep independent per-joint beads; refuse a newly
+   generated bead when it overlaps another bead in volume. Kernel overlap checking
+   and a declared refusal/report contract are needed; the model's retry/weld-list
+   path must expose the refusal. This avoids silent double-counting but leaves
+   incomplete weld geometry and does not meet A9.
+2. **Assign/split each shared prism once.** Stable ownership gives some joints
+   360 and others 180 mm3; equal half-length splits give all eight joints 270 mm3.
+   Both total 2160 mm3. Requires a shared-seam identity/ownership contract in the
+   Kernel bead report and the model's `engine/part.ts` / `frames/welds.ts` mapping.
+   Nominal requested size remains 3 mm; overlap ownership must not be called flush.
+3. **One weldment material union.** Unite the frame with all beads; count the
+   unique added material as 2160 mm3 while retaining 2880 only as nominal joint
+   accounting. Requires grouped Kernel geometry/mass plus model weld/BOM semantics.
+   A detached-beads-only union is insufficient because edge-only contacts are not
+   a manifold solid. This does not make 2880 a physical material volume.
+
+Resume condition: the coordinator resolves which quantity A9 accepts and routes
+the shared-seam contract to the relevant owners. This WIP must not be described
+as no-overlap or as completed A9. Full-kernel command ready after a scheduled slot:
+`node --test --test-concurrency=4 test/*.test.mjs`; affected browser steps are the
+existing FRk2 bead and ordered-frame flows, with their prerequisites, selected by
+the coordinator. No full run has been started here during this checkpoint.
+
+## D170 — Shared-seam equal ownership: contract S0, for cross-lane agreement (2026-10-22)
+
+**Proposal only; no production API or ownership algorithm implemented.**
+Coordinator input `6b3b98aae743aa5e3de2f61aaa3cf2646b820acf` was merged into
+the preserved Kernel WIP as baseline `ebab7c500cd56c2dae6d0e27390999c79c68cc6c`.
+D169 and its original failed A9 no-double-counting assertion remain unchanged.
+The new physical target is 2160 mm3, independently derived, not a weaker overlap gate.
+
+### Geometry and ownership
+
+- V1 supports same-frame, outer fillet welds on sharp, square planar member ends.
+  A shared run must be one straight, coextensive triangular prism, constant along
+  its length, produced by exactly two distinct endpoint joints of equal leg size.
+  Each joint has at most one shared run; exclusive runs remain whole. Both halves
+  must have positive length above the existing geometric minimum.
+- Three-way sharing, multiple/disjoint shared runs per pair, unequal legs,
+  partial/coincidence-mismatched prisms, inner/gusset/cap sharing and curved or
+  tapered seams are outside V1. Congruence is checked on actual geometry, not a mesh
+  proximity label. Ordinary unshared end/gusset behavior is not expanded by V1.
+- Joint reference: `{member, end}` under the report's authored `frame` feature id.
+  Canonical order is member number, then start before end. A pair's stable local
+  seam id is the complete JSON tuple `['shared-seam-v1', frame, [jointA, jointB]]`,
+  with joints in canonical order. No truncation, world-coordinate hash, B-rep
+  transient face id, feature evaluation index or display name enters the id.
+  One run per pair avoids an unstable geometric ordinal. Instance consumers qualify
+  the local id by stable part/instance id. Renumbering members or renaming the frame
+  changes identity; invariance across those authored changes is not promised.
+- Orient the seam endpoints lexicographically in jointA's authored local member
+  frame (x, y, axis, relative to its start), not in world coordinates. JointA owns
+  normalized interval [0,1/2], jointB [1/2,1]. Split by the exact midpoint plane
+  normal to the seam. Their common boundary has zero volume. On the A9 table each
+  joint owns an exclusive 180 mm3 prism and half a shared 180 mm3 prism: 270 mm3.
+- Reordering weld records, feature evaluation or participant manifests cannot
+  change ids, ownership or output moments. Proper rigid transforms of the complete
+  geometry AND authored member frames transform points/centroids and rotate inertia;
+  they do not change ids or quantities. Changing a skeleton while retaining an
+  unrelated world-up direction is not necessarily a rigid transform of the section.
+
+### Proposed Kernel input/output, to be agreed before implementation
+
+Keep the existing `weld-bead` kind. Add an explicit complete group context:
+
+```ts
+sharing?: {
+  version: 1;
+  policy: 'equal-length';
+  joints: readonly { member: number; end: 'start' | 'end'; leg: CadPartDim }[];
+};
+```
+
+Every active participant of one shared component must carry the same canonical
+manifest, including itself. Plan the component from the frame and that immutable
+context before emitting any owned result; do not subtract whatever earlier
+features happened to produce. Validate context against the declared participants.
+Missing/inconsistent context must refuse a detected shared component, not silently
+keep overlapping nominal bodies. An isolated T needs no context and stays 360 mm3.
+
+Proposed report additions (names subject to model agreement):
+- Existing `BeadReport.volumeMM3` and output `massProperties(density)` remain
+  **actual owned material**: V, mass, centroidMM and inertiaCentroidKgM2 come from
+  the partitioned B-rep. Never multiply the nominal inertia by a volume fraction.
+- `nominalVolumeMM3`: the individually supported bead before shared allocation,
+  after normal landing-face clipping; 360 per A9 joint, non-additive physical material.
+- `sharedSeams[]`: `{id, joints:[jointA,jointB], pathMM:[p0,p1], lengthMM,
+  ownedInterval, nominalSharedVolumeMM3, ownedSharedVolumeMM3}`. Both reports carry
+  both joint refs; path follows the local orientation rule. Here length=40,
+  nominalSharedVolume=180 and ownedSharedVolume=90. The id stays stable under
+  geometry edits while a separate dependency fingerprint invalidates stale results.
+- Existing seam perimeter/flush fields retain their geometric meaning. An allocated
+  half is not flush. Weld-list totals must label requested nominal quantities and
+  owned deposited material separately: 2880 nominal, 2160 physical, 4 unique shared ids.
+- Proposed typed reasons under existing `CadPartError` PARAMETER:
+  `BEAD_SHARED_CONTEXT` for absent/inconsistent/incomplete context;
+  `BEAD_SHARED_UNSUPPORTED` for unsupported sharing geometry/multiplicity.
+  Existing `BEAD_ANGLE`, `BEAD_SEAM_NOT_PLANAR`, `BEAD_KIND`, `BEAD_SIZE` retain their
+  limits. Do not approximate a refused component or silently fall back to nominal
+  mass. A component refusal names both joints; the model must not retry one half as
+  an isolated full bead after removing its peer. Unrelated components may still build.
+
+### Cross-lane consumer contract and exact paths
+
+No files in this list were changed during S0. Required implementation paths:
+
+| Owner | Paths | Required intent |
+|---|---|---|
+| Kernel | `packages/barocss-cad/src/part-model.ts`, `src/frame-weldment.ts`, `src/index.ts` | Explicit context, canonical refs, atomic partition, report/types and actual output moments; Kernel tests/conformance |
+| Model | `packages/barocss-cad-model/src/engine/doc.ts`, `src/engine/migrate.ts` | Proposed persisted `frames.beadOwnership={version:1,policy:'equal-length'}`; explicit opt-in, read/save/refuse unknown versions; no silent migration of old nominal accounting |
+| Model | `packages/barocss-cad-model/src/engine/part.ts` | Compile complete manifests from active weld records; include all peer records/policy in bead/refusal memo keys; component-aware retry; preserve per-joint output keys |
+| Model | `packages/barocss-cad-model/src/frames/welds.ts`, `src/engine/evaluate.ts` | Expose nominal and owned volumes plus both refs, label notes, unique shared-id totals and incomplete/refused accounting |
+| Model | `packages/barocss-cad-model/src/engine/wireDoc.ts`, `src/engine/evalMemo.ts`, `src/team/revision.ts` | Carry policy through evaluatedPart/worker requests and all relevant content/freshness keys; current explicit frames projections omit a new policy field |
+| Model review/tests | `packages/barocss-cad-model/src/engine/elements.ts`, `src/engine/meshWire.ts`, `src/team/bom.ts`, `src/team/bomCore.ts`, `src/robot/inertia.ts`, `src/team/bundle.ts` | Reports/mesh-ref replies retain metadata; BOM and robot mass sum owned bodies exactly once; nominal volume never drives mass/purchase lines; bundle retains policy and refs |
+
+`meshWire.ts` already spreads non-mesh body data, so a transport rewrite is not
+assumed necessary: test both first-mesh and meshRef replies. `team/digest.ts`
+already uses full authored revision fields; test policy invalidation before adding
+a second field list. The app worker forwards typed results; no app/GPU source edit
+is requested by this contract. Any later app need gets a separate path lease.
+Model acceptance must include `test/frame-welds.test.ts`, `test/weld-beads.test.ts`,
+wire-welds, eval memo/freshness, BOM and Save/Open roundtrip tests. Exact consumer
+test placement is the model owner's decision. No robot fixture or oracle change
+is part of this contract. The later robot-refresh integration notice does not
+change this S0's already selected baseline.
+
+### S0 evidence and implementation gates
+
+`test/receipts/shared-seam-contract-s0-2026-10-22.mjs` builds explicit closed
+triangular prisms with existing public APIs. It is not a discovery/ownership API.
+One corner has nominal 360+360, partitioned 270+270, and empty owned intersection.
+Independent triangle covariance is `sum((v-centroid)*(v-centroid)^T)/12`; uniform
+extrusion adds `d*d^T*L^2/12`. Parallel axes combines the exclusive/shared halves.
+All nine inertia entries and centroids match at the unchanged 1e-12 comparison
+factor, also after body-order reversal and a 30 degree rigid rotation plus translation.
+Local owned centroids are [1,-13,8/3] and [-13,1,28/3]; density 7850 gives each
+mass 0.0021195 kg. Four corners imply 8*270=2160 physical and 8*360=2880 nominal.
+
+Actual checks, Node 22.19.0, own unchanged D169 library build (no Kernel source
+diff between 19336a09a and this baseline):
+- `node test/receipts/shared-seam-contract-s0-2026-10-22.mjs /tmp/cad-shared-seam-s0.json`:
+  exit 0; six listed geometry checks, full inertia tensors checked.
+- `node --test --test-name-pattern='FRk2 flush sides' test/frk-2.test.mjs`:
+  1/1 passed, 0.521 s; includes the standalone 360 mm3 T control.
+- `pnpm exec eslint test/receipts/shared-seam-contract-s0-2026-10-22.mjs` and
+  `pnpm type-check`: passed, after the final probe edit.
+- No production source, model file, golden or D169 assertion changed. No full Kernel,
+  browser, benchmark, RB/property or model suite started; GPU holds the heavy slot.
+
+Before implementation: coordinator/model agreement on the persisted opt-in,
+complete-manifest API and component refusal/retry contract. Implementation acceptance
+then requires actual discovery/IDs stable under request order, full proper-rigid
+covariance of centroid/inertia, zero volume overlap for every pair, and unchanged
+isolated 360 T behavior. Repeated/three-way/unequal-leg/curve/oblique inputs must
+refuse typed. The explicit-prism S0 does not claim those production gates passed.
+
+## D171 — Shared endpoint ownership API checkpoint; T2 pending (2026-10-22)
+
+Coordinator accepted Model S0 `add5146f3350b1df389d9c7fc9e8eb271af25e1b` and assigned
+K-shared-seam-implementation on input `b9d8b48341d63ea5bc48cba1f0aa020a39149a6a`.
+The task's merged baseline is `efd168db37ff9427662bf78e3bd5a614e9fd497f`.
+The source/test commit is `df5c1e68860e4514647513da1e27cbd072fb480c`.
+The separate conformance commit and **tested SHA** is
+`81d9eb298e7bf97b8c05cbd052d2551b8ed9f8aa`. Later checkpoint files are evidence only.
+The later `3d7b392fd` coordinator product baseline was not merged into this task.
+
+Kernel now accepts `weld-bead.sharing?: CadPartBeadSharing`, version 1,
+`policy:'equal-length'`, with the complete frame's declared active endpoint
+manifest `{member,end,leg}[]`. Kernel finds the actual geometry components; Model
+does not supply them. Actual nominal B-rep intersections establish sharing. Common
+actual end-boundary runs can attach a failed participant to its component. If an
+actual component cannot be proved, propagate the failure without guessing refs
+from the manifest or allowing a nominal fallback.
+
+`CadPartError.sharedComponent?: {frame,joints}` is separate from the bounded error
+message. It contains the complete actual connected component, including the
+three-way refusal. Each component is planned before either participant's output
+is exposed. Missing or invalid context uses PARAMETER / `BEAD_SHARED_CONTEXT`;
+unsupported sharing uses PARAMETER / `BEAD_SHARED_UNSUPPORTED`. Known-component
+per-bead errors carry all refs. Singleton reasons retain their earlier meaning.
+
+The owner clarified retry: **“남은 feature로 manifest 재생성”**. Model must remove all
+failed component features atomically, rebuild the Kernel manifest from remaining
+declared features, and preserve authored records/original full refusal-key context
+in Model. This Kernel checkpoint does not change Model source. A faithful manifest
+with an unresolved declared peer leg refuses that peer's actual component; it does
+not make every independent component fail merely because its manifest mentions it.
+
+V1 supports two distinct outer sharp square ends, equal legs, and one complete
+coextensive straight shared triangular prism. Actual geometry proves the run and
+its prism before partition. JointA keeps [0,0.5], jointB [0.5,1], in jointA's authored
+local frame. Each nominal bead loses only the other owner's shared half. Owned B-reps
+supply actual volume, mass, centroid and all nine inertia entries. Existing per-joint
+feature/output ids stay unchanged. Reports add mandatory `nominalVolumeMM3` and
+`sharedSeams`; unshared reports use nominal = actual and `[]`. `pathMM` is in evaluated
+part coordinates; the assembly consumer must transform it once. The full JSON tuple
+id is not truncated or hashed. Peer/context edits invalidate cached owned results.
+
+Actual A9: 8 outputs at **270 mm3 actual / 360 mm3 nominal** each; **2160 actual /
+2880 nominal** in total; 4 shared ids. Each output remains a B-rep with 2 native solid
+bodies (exclusive prism plus owned shared half). The shared prism has 180 mm3 nominal
+and 90 mm3 owned per participant. All 28 bead pairs have zero volume overlap; no bead
+overlaps a member. Independent triangle moments and parallel axes check centroid
+and all nine tensor entries at the unchanged 1e-12 factor. At density 7850 each bead
+has mass 0.0021195 kg. Order reversal, renaming, proper rigid transformation and file
+reevaluation pass. Atomic retry retains the 3 unrelated components. No-context,
+invalid/missing/duplicate manifests, duplicate refs, complete three-way components,
+unequal/unresolved legs, inner/curved/sloped ends, partial/multiple runs and explicit
+gusset/cap sharing have typed refusal controls. Isolated 360 T and ordinary gussets
+retain their quantities. The D169 failed overlap receipt is preserved in history.
+
+**Small checks on tested SHA:** selected geometry/weld/frame tests **27/27**, new
+conformance cases only **2/2**, source/test lint and type-check passed after the last
+source/test edit. Own library build passed from the identical source. A temporary
+baseline-part-model negative control fails the new moment test as expected at
+`360 vs 270`; this is not qualification of the whole historical tree.
+Commands, exact boundaries, development failure and logs are in
+`packages/barocss-cad/test/receipts/shared-seam-implementation-2026-10-22.md`.
+Conformance inputs are `conformance/r12c/frame-bead-shared-table.json` and
+`frame-bead-shared-no-context.json` in the Kernel package.
+
+**T2 remains pending.** No full Kernel/conformance/RB/properties, Model/Studio suite,
+browser/Save-Open UI or benchmark started. The coordinator owns the heavy slot.
+No Model/GPU/app implementation, robot frozen fixture or brep-core file changed.
+This is an API checkpoint, not product integration, final acceptance, publication
+or release. Additional implementation and FRk3 remain on hold for coordinator routing.
+
+## D172 — FRk3 native section contract frozen before implementation (2026-10-22)
+
+Assigned baseline: `3f3e2eb237fab38abc67f57d9f8be15f737e90d8`, normal merge of
+root `66235ce222ba30d024de85f91fa77e90b19b3005` into clean FRk3 S0
+`c05bfa5a3890125435fcccbf098f67b3df7272a9`. This starts bounded native section
+implementation. A9's shared bead planner/API/report/error remain frozen.
+
+One `i-beam` kind covers I/H proportions. `height`, `width`, `web`, `flange`,
+`rootRadius`, `toeRadius`, `flangeSlope` are all explicit inputs, including zero.
+Channel keeps required rootRadius and gains optional toeRadius/flangeSlope,
+default zero. Omitted and explicit-zero new channel inputs preserve old geometry,
+face roles, label and cut-list grouping. Slope is finite, dimensionless rise/run,
+nonnegative, with existing parameter references; negative is SECTION_DIMENSIONS.
+Positive slope thickens the flange at the web. Flange thickness is measured at the
+overhang midpoint. No catalogue dimensions, separate H kind or geometry engine.
+
+I face roles, each under the existing member prefix, are frozen as:
+- `outer.bottom`, `outer.top`;
+- `tip.bottom.right`, `tip.top.right`, `tip.top.left`, `tip.bottom.left`;
+- `inside.bottom.right`, `inside.top.right`, `inside.top.left`, `inside.bottom.left`;
+- `web.right`, `web.left`;
+- `root.bottom.right`, `root.top.right`, `root.top.left`, `root.bottom.left`;
+- `toe.bottom.right`, `toe.top.right`, `toe.top.left`, `toe.bottom.left`.
+Channel keeps its earlier roles and adds `toe.bottom`, `toe.top`.
+Zero radius omits the arc; surviving role meaning stays fixed. Start/end roles
+and member ids keep existing authority. New tests must pin these role strings.
+
+On every edge the adjacent tangent offsets must leave a positive flat. Equality
+is refused, including two offsets that exhaust an edge while each fits alone.
+No clamp, radius reduction or parallel fallback. Existing numerical guards and
+any new boundary epsilon must be explicit in the final receipt; no existing
+tolerance is relaxed. Independent triangle/sector moments must check area,
+centroid and all nine physical inertia entries, with the S0 sharp/rounded,
+legacy-zero, table/parameter and placement/contact controls.
+
+Current permission covers own build, selected new/affected regressions and final
+CAD type/lint only. Full suites, RB/properties, browser and benchmarks wait.
+This native checkpoint does not qualify Model/Studio exposure or screen T2.
+No brep-core/Boolean/quadrature, A9 tests, robot canonical, shared runner, Model,
+app, GPU, root/lock or release change. First failure requiring another path is
+reported before expansion. Exact results and epsilon remain to be appended;
+this contract is not a passing verification receipt.
+
+### D172 native result
+
+Source/test/conformance and tested SHA:
+`87cb0a9f8bf81d4c2c93f36741cb985f2c94dcb2`.
+Own build, selected FR/standards **42/42**, new conformance only **3/3**,
+final CAD type/lint and explicit new test/oracle lint passed. Independent
+triangle/spandrel-sector expectations check the seven-section matrix's area,
+centroid and all nine inertia entries, plus placement, defaults, table and
+actual flange-tip/gap controls. Scalar factor1e-12 and tensor factor1e-12 of
+max absolute oracle tensor (no floor1); existing tolerances are not widened.
+The flat cancellation guard is32*EPSILON*max(1,h,b,root,toe) mm; equality refuses.
+Old channel omitted/zero uses its original branch/label/grouping. Initial lint
+and test-assumption failures and exact commands are preserved in the native
+receipt/log under `packages/barocss-cad/test/receipts/frk3-native-2026-10-22.*`.
+
+Model/Studio field exposure and screen/integrated T2 remain incomplete. A9 stays
+frozen. No full suites/RB/properties/browser/bench or forbidden paths changed.
+Stop at this native checkpoint; coordinator routes consumer work separately.
+
+## D173 — FRk4 hollow curved/bent native member contract (2026-10-22)
+
+Parent81fbc252556b961198b14c106b3796606df6494f. Implement D164FRk4 in Kernel;
+FRk3 and A9 APIs remain fixed. Canonical brief and lane responsibilities are in
+packages/barocss-cad/test/receipts/frk4-native-2026-10-22.md.
+RevolveInput gains holes/holeTags, actual bore walls and partial cap inner loops.
+Existing outer roles/start/end stay; bore walls use hole-indexed side names.
+Frame segments retain tuples and add {from,to,through:pointIndex} or
+{from,to,center:[x,y,z]}; center selects the unambiguous minor arc, through its
+explicit sweep. bends:[{point,radius}] joins two incident straight segments,
+retains the lower segment's output id and reports original segmentIndices.
+member.curve reports kind arc/bend, center, axis, radiusMM, angleDegrees,
+startTangent,endTangent,developedLengthMM,segmentIndices. Geometric developed
+length follows the centroidal path; no bender allowance is inferred.
+Curve walls keep section roles under member prefix; composite parts use
+straight0/bend/straight1 prefixes and cap start/end semantics. Authored corners
+must be supported by actual tangents or refused, never silently squared.
+ARC_MEMBER/BEND_RADIUS/BUTT_ON_CURVED_MEMBER are typed refusal boundaries.
+Build/types/lint and scoped native tests only; no full suite/RB/browser/bench
+without the assigned heavy slot. Model/Studio exposure and screen T2 stay separate.
+
+### D173 native result
+
+Task/tested SHA5ede2e218aa6347cc78872828cbd6e813dd571e9, parent81fbc252556b961198b14c106b3796606df6494f.
+Actual hollow revolve supports bore walls/cap inner loops/full-turn cavities;
+frame supports through/center circular paths and two-segment tangent bends.
+Compatible angled endpoint mitres use circular continuation and actual plane cuts.
+Reports add centroidRadiusMM/straightLengthsMM; cut-list length is centroidal,
+and clipped curved mass is from actual BRep volume. Different curve geometries
+remain distinct groups. Existing no-bend ids and FRk3/A9 APIs remain fixed.
+Own build/type/lint passed; selected native/affected regressions75/75,
+new conformance3/3, existing revolve/sweep/shell controls3/3 passed.
+No tolerance relaxed; final direct mass/tensor comparison factor1e-12.
+No brep-core/Boolean/quadrature edit or heavy suite/browser/RB/bench ran.
+Exact inputs, roles, guards, first failures, partial-curve support limits and
+Model handoff are in packages/barocss-cad/test/receipts/frk4-native-2026-10-22.md
+and its log. Native implementation is complete within those explicit limits;
+Model/Studio exposure and screen/integrated T2 remain separate and incomplete.
+
+## D174 — FRk4 common Model and editor connection (2026-10-22)
+
+Baseline6dadb30ad8f6b3ff0190705809e9cd8a0431897f. Carry D173 arc/bend
+segments through Model nodes and Kernel conversion. Structural member uses the
+existing command and property editor for straight, centerarc, througharc and
+tangentbend. Keep actual member IDs and cutPiece.curve, including developed
+centroidal length. Strict v2 inputs reject unknown and invalid path shapes.
+Whole-node file/wire/cache transport must preserve authored arc and bend data.
+No new editor, chord replacement, bender allowance or relaxed geometry guard.
+Canonical scope and test boundary: packages/barocss-cad/test/receipts/frk4-editor-2026-10-22.md.
+Scoped implementation checks precede a fixed source SHA; browser/full checks
+require the coordinator's serial slot and remain separate from native proof.
+
+### D174 common editor screen result
+
+Exact consumer source c9afc4817b90a03dddcdde9fa80922455cbf2228 remained unchanged
+in its clean detached scratch. Lease cad-frk4-c9-browser-20261022 exercised
+centerarc/througharc/tangentbend via Structural member and common properties,
+Undo/Redo, actual Save/New/Open/re-edit. Body IDs and developed cut lengths
+remain; bend is one body/part0 with an actual1-piece cut-list row. Straight I/H
+create/save control retains b0/300mm and no curve. Production browser worker,
+Canvas PNGs and downloaded files are archived in the owned CAD receipt folder.
+The first reload expectation and later CLI modal bookkeeping errors are
+harness failures, preserved without a product source change. Center's raw
+pre-save stage object was not retained; its in-script Undo/Redo assertions and
+fresh Open/re-edit evidence remain, without claiming an archived exact tensor
+comparison for that case. Browser/server ended, port52491 free, slot returned.
+This is exact consumer screen evidence; post888444 aggregate checks remain
+with the coordinator. Full suites/benchmarks were not run in this screen lane.
+
+## D175 — FRk5 weld gap and notch contract (2026-10-22)
+
+Baseline29e9ab164663b713a692d1f814ef199cd18be981. D164 FRk5 is one Kernel plus
+common Model/Frame editor feature. corners.gap and at[].gap are Dim; perpoint
+zero overrides default. Mitre removes g/2 along each plane normal; butt/tee
+holds the branch g off. ends.gapMM records the full authored joint gap.
+at[].notch on kind:'cope' is holesaw{diameter,offset?} or v{depth,angle}, all
+Dim (angle included degrees0<angle<180). Scalar hole offset follows the unit
+cross of through axis and branch inward; V depth follows the retained branch interior towards its other end from
+the authored joint endpoint. Eccentric T cope/notch must use actual through section.
+Positive gap+notch and unsupported curved/multi modes are explicit refusals,
+not fallback. Gap under contact tolerance must still prevent bridging beads.
+Omitted/zero gaps, existing cope and A9/FRk3/FRk4 contracts stay unchanged.
+The owned canonical brief/receipt is packages/barocss-cad/test/receipts/frk5-2026-10-22.md.
+Source implementation only until coordinator assigns execution slots; final
+acceptance includes actual UI/file/worker evidence, with no new editor.
+
+### D175 implementation limits and source-only checkpoint
+
+V depth runs from the joint endpoint into retained branch material towards its
+other endpoint; hole offset uses cross(through axis, branch towards joint).
+V currently requires perpendicular axes. Positive gap+notch, gap+cope/envelope,
+ordered/nonjoint gap and curved frame gap/notch are explicit current limits,
+separate from D164's intended scope. Holesaw coverage is conservative against
+the placed section box. Existing CutListDialog.cutText and welds.ts reporting
+leases were added by coordinator. Static review corrected a gap span guard to
+include the opposite zero-gap cut plane. Build/types/lint/native/worker/UI
+checks are unexecuted pending a slot; source-ready is not feature acceptance.
+
+### D175 first runtime result — incomplete
+
+Source29cd75ccff1f6c700f8a315cfe554859834ea551 builds; native5/7pass, holesaw/V
+mass comparisons fail by3.34e-6/2.50e-6mm³. Oracles/tolerance unchanged.
+Actual BReps separately validate, but q8..64 does not remove the mass error.
+In-memory derivative/order variants do not establish a complete cause; no
+product/shared quadrature source edit was adopted. Original failures and an
+invalid first derivative probe are retained in the owned FRk5 receipt folder.
+Further execution stopped at coordinator routing request; all owned PIDs ended,
+no browser/server started, port52491 free, slot returned. Remaining Model,
+worker/file, types/lint, controls and actual screen acceptance are unrun.
+FRk5 remains incomplete; continued source analysis does not authorize new runs.
+
+### D175 bounded coordinate correction — unexecuted
+
+Parent98813a09d1569f7b270923a3b420613a3e11aaf5. Coordinator permits only
+brep-mass-quadrature.ts sink/stencil coordinate bounds and an independent
+cylinder regression source. Frame arc-length/height stencils now use the same
+unbounded coordinates as inversion; native NURBS bounds remain finite.
+FaceParameters/tessellation, integration rules and tolerances are unchanged.
+The new knot-reparameterization regression and the correction are unexecuted;
+neither original mass failure is claimed fixed. All execution remains on hold
+through the coordinator's integration window, which excludes FRk5/candidate.
+Canonical receipt records the later face cell/strip/extrapolation diagnosis
+plan. This is a source checkpoint only; FRk5 remains incomplete.
+
+### D175 common editor continuation — source only
+
+Retain29cd and67b. Continue the existing Frame/common properties/cut-list flow
+inside approved FRk5 paths. Clarify L/T layout and notch point numbering in
+Frame; retain a positive sub-millimetre gap's nonzero value in cutText when
+three-decimal rounding would show0. No new engine/worker/file path is needed.
+GPU owns execution until its slot return. Save source first; coordinator
+permits clean normal merge aa4acc0039b1473999b3864c59ef31402caa9ff8 before the
+next assigned Kernel feature run. Record source/task/tested SHAs separately.
+Gap functionality and unfinished notch accuracy remain separate; no FRk5
+completion, UI/file proof or notch repair is claimed from this source review.
+
+### D175 feature slot returned — UI pending, notch accuracy incomplete
+
+Merge-tested6f52 retains the two original failures. Exact cylinder derivative/
+projection source d456 builds and passes6/8 native; both notch mass tests still
+fail unchanged oracles/tolerance. Final fixture-only cd261 passes focused
+Model/worker7/7, related FRk4/sweep mass7/7 and Model/Studio types; scoped lint
+passed at d456. Original fixture type failures and preparation errors remain.
+Actual UI lifecycle did not run: browser binary mismatch was corrected without
+a download, then browser load crossed20 and the owned server stopped. No CSV,
+saved part or UI screenshot exists from this slot. Later load blocked restart.
+All own PIDs ended, port52491 free, slot returned for Model A9-10/8. No automatic
+restart. Canonical FRk5 receipt and its frk5-feature-2026-10-22 folder retain
+SHA-bound results and first failures. Gap native/Model results are distinct
+from queued L/T UI proof and unfinished notch mass accuracy. Next source-only
+candidate is tighter FRk5 boundary fitting, with shared topology tol unchanged.
+
+### D175 notch fit candidate — source only
+
+Parent86f2b6769 retains slot evidence and original logs. Source candidate adds
+an optional tighter edgeFitToleranceMM to analytic Boolean boundary fitting,
+used only by part-model.ts notch subtraction at1e-11mm. Omitted-option tol/4,
+topology/classification, gap/cope/ordinary trim, mass rules and oracles stay.
+Explicit fit target exceeding the depth10 limit refuses with GEOMETRY; the
+old omitted-option behavior stays. This targets the measured between-sample
+cubic boundary residual. It is unexecuted and does not prove notch accuracy.
+No shared Model edits or new editor. Model owns execution; Kernel must wait
+for a new slot before any build/test/browser. Actual L/T UI remains queued.
+
+### D175 1f041 executed — gap flow verified, notch refusal preserved
+
+Exact task/tested1f041da016318d47e26f47798b03d8c0a8ee4953 stayed frozen.
+CAD build/types, scoped lint and Model gap5/5 pass. Native6/8: both notches
+refuse at fit depth10 before mass comparison, so notch accuracy/function is
+still incomplete. Final-boundary attempt preserves that same first refusal;
+no additional numerical sweep. Earlier numerical mass failures remain valid.
+
+Existing common Frame L/T gaps create2→edit3→Undo2/Redo3→actual cut-list/CSV→
+Save/New/Open3→re-edit/finalSave4. Node/body IDs, volume/centroid/inertia and
+cutPiece match exactly across Open; T through survives unchanged. Twelve
+stage volumes meet independent RHS oracles. L's initial WebGPU canvas is black
+with actual worker geometry (cause unknown). Existing WebGL2 shows the same L
+file Open/re-edit and completes T. Preserve this renderer boundary, the first
+history pointer interception/recovery, console and raw files. L original3
+bytes were overwritten by the CLI's final automatic download; Open3 stage
+facts remain and final4 files are actual downloads. T original3 is retained.
+
+Canonical receipt and frk5-1f041-feature-2026-10-22 archive contain exact
+results, limits and96-file manifest. All own PIDs ended/52491free/slot returned.
+No full FRk5 completion, WebGPU acceptance or later aggregate result follows.
+
+### D175 source-only follow-up — strict notch fit tangent candidate
+
+Parent392352596 preserves the executed1f041 receipt. The refusal occurs in
+pre-stitch fitPieces; existing logs omit numeric t0/t1 and achieved error.
+Fixed normalized1e-6 finite differences can amplify coordinate rounding even
+after interval subdivision. No double parameter scaling or unit fault was
+found by source review. Strict-only fitting now uses five-point tangents on
+the16-span Bezier grid with shared C1 handles and local differences/36. Final
+new parametric edge emission uses the same method and checks snapped endpoints
+against the same1e-11mm target. Depth10 and independent1e-12 mass oracles stay.
+Failure diagnostics include interval/achieved/target and depth when relevant.
+
+Final-boundary physical-equation/translation cases are authored but unrun.
+No build/test/lint/types/numeric/browser execution while GPU owns its slot;
+only git diff --check. This is a source candidate, not a notch repair receipt.
+Canonical FRk5 receipt records the limits. WebGPU black display and raw L-gap3
+download loss remain unresolved; no new renderer or file proof is claimed.
+
+### D175 98c671 native pass — notch editor/file flow pending entry gate
+
+Exact task/tested98c67112906664b774c7542ccfc8c4ef20fd775f stayed clean and
+frozen; no7f1b52 merge. Fresh CAD build/types/scoped lint pass. Original
+holesaw4-fixture and V90/120 tests meet their unchanged independent1e-12
+relative mass oracles, actual validity and metadata. Final stitched physical
+boundary/translation regression4/4 passes at off-probe samples/endpoints;
+this is not a mathematical certificate over the full curve.
+
+Actual browser entry stayed above the required1m<20 threshold after server
+entry. No browser/UI/download/Save/Open assertion ran; prepared scripts are
+unexecuted. After563s total entry waiting, all8 own PIDs ended, port52493 is
+free and the sole execution slot was returned without automatic restart.
+Actual port52493 is distinct from the prior52491 reservation/run;52491 was
+not bound here. Candidate parent/baseline392352596, task/tested98c671; exact
+evidence child SHA follows in the handoff. First core failure: none; first
+deferred action: browser Open gate exit75. All six native commands exit0.
+Canonical FRk5 receipt and frk5-98c671-feature-2026-10-23 archive retain the
+native logs, entry waits, source freeze manifests and termination proof.
+Notch common-editor/file flow is pending. Earlier1f041 gap evidence and its
+WebGL2/WebGPU/raw-L-gap3 limits remain unchanged; no full FRk5 claim follows.
+
+
+### Coordinator handback pointer — Kernel D, 2026-10-23
+
+Owner finish is in force; no implementation or author checks restart. The latest
+Kernel D STOP record was reviewed at `b5fceedfba4a018899e85daceea264113b8c4a15`. Its immutable
+[snapshot](evidence/2443211888b5bc5d219fa3075dfea444bd6d5d4a/final-window/lanes/kernel-D.md) and accompanying stop receipt are archived
+with the final window. That documentation review does not adopt the branch's
+unverified product source. See [handback](notes/codex-handback-2026-10-23.md) and
+state for exact WIP, process cleanup, blockers and first resume steps.
+
+## D176 — Kernel window repairs after the Codex import (2026-10-23)
+
+The coordinator's window at `99da385a1` (develop `c3ae0d5de` + Codex's final tree `0eabecf7f` without its evidence
+folders) gave the full kernel suite 1597/1608, 6 skipped, 5 failing. One failure is the known env-only
+"actual native Split source…" test (it pins Node 22.23.3). This checkpoint repairs three of the other four and finds
+one real defect.
+
+**(a) `test/frk-3.test.mjs` failed at load.**
+- Cause: it imported its oracle from `test/receipts/frk3-oracle-moments.mjs`, which the squash dropped with the other
+  receipt folders. It is the only test that imports from a removed path.
+- Repair: the oracle moves to `test/frk3-oracle.mjs`, byte for byte as at `0eabecf7f` (signed triangles and circular
+  sectors, no production code). The import now points there; no expected value changed. 7/7.
+
+**(b) "FRk S0 members along arcs" pinned revolve's one-loop refusal, which FRk4 (D173) lifted.**
+- Revolve now takes holes.
+- Repair: the refusal check becomes a positive one. The same Ø30 × 2 tube, revolved 90° from one sketch with its bore
+  as a hole, gives Pappus A_RT · 150 · π/2 to 1e-11, one body, and validates.
+
+**(d) "sketch regions and holes" pinned revolve's old refusal text.**
+- The test now expects FRk4's text: "revolve takes one outer loop with optional holes (no regions)", still CAPABILITY.
+
+**A real defect behind (d), introduced with `99da385a1`: sweep dropped holes silently.**
+- How: FRk4's edit to `src/part-model.ts` gave the `sweep` case revolve's new check. That check refuses only regions
+  and says "revolve takes…", while `sweepBrep` uses only the outer loop.
+- Effect: a sketch's holes were dropped without a word. A Ø30 sweep with a Ø26 hole, 100 mm long, gave 70 685.83 mm³
+  instead of 17 592.92.
+- Repair: sweep's own refusal is restored, as before the import: "sweep takes a sketch of one loop (no regions or
+  holes) yet", CAPABILITY.
+- Tests: two refusal checks in `part-model.test.mjs`, holes alone and regions with holes.
+- Not affected: the frame members' curve sweep (`sweepSolid`, which carries holes through) is a separate path.
+
+**(c) Still open: "FRk S0 saddle notches", the V notch.**
+- Got 50 516.7061409051 against the oracle's 50 516.70614162129: relative error 1.42e-11 against the test's 1e-11.
+- It passed at FRk8b (`75647da69`). Codex's FRk5 quadrature and notch changes are the likely cause, not yet confirmed.
+- Next checkpoint: bisect on `codex/cad-kernel-sweep-mass-20261022`. The tolerance and the oracle stay as they are.
+
+**Checks (T1):**
+- `packages/barocss-cad`: lint 0 errors, type-check clean, `build:library`.
+- Per file: part-model, frk-s0, frk-3, frk-4-revolve, sweep-mass-overlap and sweep-solid give 55/56; the one failure
+  is (c).
+- Not run: the full kernel suite, RB and properties (no brep core change here).
+
+## D177 — Trim strips close the gap to their edge: the ribbon from the surface's point to the edge's (2026-10-23)
+
+**Cause of D176 (c), the V notch at rel 1.42e-11 against 1e-11.**
+- Bisected over the ten `packages/barocss-cad/src` commits on Codex's `codex/cad-coordinator-handover-20261022`. The
+  first bad commit is `d456a616f` ("use one exact cylinder differential for trimmed mass"). At its parent
+  `67b34f907` the V notch was +4.1e-12; from it on, −1.42e-11.
+- Its analytic partials and projection are right: they agree with `frame.at` exactly. The earlier pass was the
+  finite-difference error (the central difference of a cosine scales Su by 1 − (h/r)²/6) cancelling the real one.
+- The real error: a plane's cut through a cylinder is an edge fitted as a cubic (49 control points), 2.1–2.4e-8 mm
+  radially off the cylinder; on the plane it is within 3e-11.
+  - The planar face is integrated by Green up to the edge E itself.
+  - The cylinder face's trim strips end at the projection P = S(C) of E on the surface.
+  - So the surface the divergence theorem is taken over has a ribbon-shaped gap along every fitted edge, and the
+    volume carries the flux through it.
+
+**Fix: in `strip` (`src/brep-mass-quadrature.ts`), each strip is continued from P out to E.**
+- The ruled ribbon Y(t, s) = P + s (E − P) is taken to first order in g = E − P: F(P + g/2)·(P′ × g) at each of the
+  strip's eight t nodes, oriented as the strip.
+- P′ = Su C′u + Sv C′v, from the analytic partials or from the finite-difference tangents the strip already has.
+- The ribbon goes into the vector area and the area as well.
+- What is left is second order, about |g|² · L (1e-15 mm³ here).
+- No closures: module-level typed arrays (owner rule).
+- Not covered: an edge integrated with no strip ("straight" in (u, v)) gets no ribbon. Those edges are exact (a
+  circle about the axis, a ruling).
+
+**Results, tolerances and oracles unchanged:**
+
+| Case | Before | After |
+|---|---|---|
+| V notch | rel −1.42e-11 | 9.2e-15 |
+| D126 ordered round-cornered table, members 4–7 (D126 oracles, the FRk6 test's endpoint substitutions) | −9.6e-10, 2.6e-10, −1.12e-9, 2.4e-10 | −4.9e-14, 5.4e-15, −1.9e-14, −2.1e-15 |
+
+- The table's member 6 is the one Codex's FRk6 failed at 1e-9 (its "member5", counted from 0 in the test).
+- Codex's route was tighter edge fits for capped joints (`edgeFitToleranceMM: 1e-11`, `2364ef71`). That is slower and
+  only moves the gap down. With the ribbon it is not needed, and FRk6 (D178) does not port it.
+- Mass time for the table: 219 → 244 ms.
+
+**Checks:**
+- T1: `packages/barocss-cad` lint 0 errors, type-check clean, `build:library`. 15 mass, frame and notch files
+  (frk-1 … frk-8b, frk-s0, mass-polyhedral, modeling-mass, ordered-trim-bead, sweep-*): 80/80.
+- **T2 pending** (brep core changed): the full kernel suite, then RB and properties, in a scratch worktree, on a slot
+  from the coordinator.
+
+## D178 — FRk6: the capped ordered joint, the round-cornered ordered table in 1.1 s (2026-10-23)
+
+**Ported from Codex's FRk6 WIP (`abb697f2` on `codex/cad-kernel-sweep-mass-20261022`), reviewed, without its
+evidence.**
+- `canCapOrderedEnvelope` in `src/part-model.ts`.
+- The tests `test/frk-6-ordered-trim.test.mjs` (Codex's, unchanged) and the timing run
+  `test/frk-6-ordered-trim-perf.mjs`.
+
+**The capped joint.** It applies when three identical, centred `rect-tube` members on snapped axes meet at right
+angles at one point, the first running at least h past the joint each way.
+- The second member's envelope, as the third member's tool, is capped at the joint and takes no Boolean.
+- The proof is checked here, with rounded corners included:
+  - A ∪ B capped = A ∪ kept(B extended − A).
+  - On the band |x| < h − r, B lies inside A.
+  - Beyond it, B's points outside A's rounded corners run on along B's axis into B's own side, which is the piece kept.
+  - B's corner pieces on the far side are separate components, not kept.
+- Every other placement keeps the general route, compared exactly: rolled, offset, a different width, a short window.
+- The helper's inner arrow is hoisted to the module (`signedUnitAxis`; owner rule).
+
+**Not ported from `abb697f2`:**
+- The `edgeFitToleranceMM: 1e-11` fits at capped joints. D177's ribbon gives the accuracy that they were meant to
+  give.
+- The strip split at the edge curve's knots, with `interiorParameter`, `stripSpanD1` and per-strip
+  arrays/closures. With the ribbon, the table and the V notch hold at ~1e-14 without it, and its closures break the
+  owner rule.
+  - `test/frk-6-strip-knots.test.mjs` tests those internals, so it is not ported.
+  - If a later case needs knot splitting, it comes back with module-level buffers.
+
+**Results (D126 table, D126 oracles, FRk6's endpoint substitutions):**
+- Members 4–7: rel −4.9e-14, 5.0e-15, −1.8e-14, −1.7e-15 (1e-9 required).
+- 12 Booleans, as the test observes.
+- BRep valid, welded sum, cut list and CSV hold.
+- Time: the build goes from 5.7 s to 1.1 s. Timing run median 1144 ms (min 1108, max 1195) at load 25, so LOADED;
+  the 2 s target is met.
+
+**Checks:**
+- T1: lint 0 errors, type-check clean, `build:library`.
+- 19 mass, frame, notch, trim, weld and cut files: 90/91, 1 skipped, 0 failing.
+- T2 (full kernel suite, RB, properties): pending with D177's.
+
+## D179 — D177's ribbon on facet-mesh rims: three gaps in the strip coverage closed; two conformance centroids corrected to their closed forms (2026-10-23)
+
+**The regression.** At D177 (`3ef6df7c9`) three F2 conformance cases failed: `r6/facet-cube-blind-hole`, `-boss` and
+`-hole`.
+- Their mass left the quadrature for the tessellation's route (blind hole 7773.9018 against 8000 − 72π = 7773.8053).
+- Then, once back on the quadrature, the blind hole's and the boss's centroid moved off the pinned values.
+- Cause: an exact cylinder wall meets the facet mesh along polyline edges (64-point chords, 8.7e-4 mm inside the
+  circle).
+  - The ribbon closes that gap on one rim.
+  - On the other rim the strips were missing, for three reasons below, so the ribbons no longer balanced as the
+    unclosed gaps used to.
+  - The face then failed its vector-area check.
+
+**Three repairs in `src/brep-mass-quadrature.ts`. Each closes a gap in the strip coverage that predates D177.**
+1. **`gaussNewton` at the domain's edge.** It refused a point it could not reach, as off the domain (D167). A chord
+   point off the wall along its normal is not off the domain. It is now accepted when its residual has no part
+   along the surface (the unclamped step's tangent within the same 1e-6 of size). A point across a seam still has
+   one and is still refused.
+2. **A strip straight in (u, v) but off the surface.** Such a strip (a chord at a constant height) returned before
+   its ribbon. Now a probe whose surface point is more than 1e-12 of size from the edge's point takes the strip; its
+   own part is nil and its ribbon counts. Exact edges (a circle about the axis, a ruling) still return early.
+3. **Collinear domain triangles.** A domain triangle of three distinct points in a line (a straight run of the
+   boundary left by the ear clipping) was skipped as "no area". So its two short chords, which are the edge's, had no
+   strip, and the long chord had no segment. Only a triangle with two corners at one point is skipped now.
+
+**Results:**
+
+| Case | Pinned (the old kernel's output) | Closed form | Now |
+|---|---|---|---|
+| Blind hole z̄ | 9.825482062 | (8000·10 − 72π·16)/(8000 − 72π) = 9.8254178013 | 9.8254178091 |
+| Boss z̄ | 10.216987784 | (8000·10 + 45π·22.5)/(8000 + 45π) = 10.2170575106 | 10.2170575022 |
+| Through hole z̄ | 10 | 10 | 10.0000000000005 |
+
+- Volumes: as before D177, to 6e-14.
+- The pinned blind-hole and boss values were the old kernel's own output: 6.4e-5 and 7.0e-5 off the closed forms
+  with their unclosed rims. They are corrected to the closed forms (an independent oracle, each case's own "about").
+  The tolerance stays at absTol 1e-6.
+- V notch (9.2e-15) and the D126 table (≤ 5e-14) are unchanged.
+
+**Found, not changed:** `r6/facet-cube-sphere-intersect` pins ȳ = 17.74954826. By its symmetry all three
+coordinates of an eighth ball about the corner are 20 − 3·6/8 = 17.75; the kernel gives 17.74955 (4.5e-4 off). Its own
+pinned defect, unchanged by D177–D179, left for a later checkpoint.
+
+**Checks (T1+):**
+- lint, type-check and build pass.
+- Every test file that tessellates, builds SubD or takes mass (87 files): 872/873, 1 skipped, 0 failing. That run
+  includes D180's change too, which was made alongside.
+- **T2 pending:** the full kernel suite, RB and properties.
+
+## D180 — FRk7: the SubD display folds, slivers flipped onto the surface (2026-10-23)
+
+**S0 (D164) found it:** the pipe clamp's tessellation had one fold over 30°, 88.6°, between interior sliver triangles
+inside one face (`clamp_f210`, a bicubic SubD patch), and 45 over 15°.
+- Delaunay in the arc-length scaled (u, v) is not good in space where the patch's parameters crowd unevenly. One
+  sliver lay across the surface, its facet normal far from the surface's.
+
+**The fix, in `surfaceTriangles` (`src/brep-tessellate.ts`), after its refine / flip / refine:** an interior edge is
+flipped when all of these hold:
+- its two triangles' worse facet is off the surface's normal by more than 1.5 steps (its unit normal against its
+  corners' mean normal);
+- the flip is a triangulation (convex in the scaled domain);
+- the flip makes that worse facet nearer the surface.
+
+It runs up to 8 passes. Pole corners are left alone. The domain stays a triangulation, so the quadrature is
+unaffected. The facet test is a module function (`facetAgreement`; owner rule).
+
+**Pipe clamp:**
+
+| Folds | Before | After |
+|---|---|---|
+| Worst | 88.6° | 21.6° |
+| Over 30° | 1 | 0 |
+| Over 25° | 1 | 0 |
+| Over 20° | 12 | 6 |
+| Over 15° | 45 | 39 |
+
+- Tessellation time: 950 → 1036 ms.
+- The S0 test pinned the defect (`over(30) ≥ 1`, all slivers). It now holds FRk7's target, no fold of 25° or more,
+  renamed "FRk S0 → FRk7".
+
+**Checks:** with D179's (same run).
+- **T2 pending:** the full kernel suite, RB and properties. A visual check in the studio, on both renderers, is for
+  the GPU lane or the coordinator's window.
+
+## D181 — FRk8a: the housing's shoulder from its faces, against the row's Da max (2026-10-23)
+
+As D164 froze it. D158 recorded Da max from the row and did not check it; the housing's shoulder was not found from its
+faces.
+
+**Kernel (`src/bearing.ts`, `seatedBearing` in a housing):**
+- **Finding the shoulder (`housingShoulder`, a module function):** a planar face of the housing that is
+  - square to the bearing's axis,
+  - at one of the bearing's faces (from or to, within 1e-6 mm),
+  - with its outward normal toward the bearing,
+  - reaching the Ø D bore and stepping in from it.
+  Its diameter is its edges' nearest approach to the axis, each edge sampled 33 times. The largest such face at a
+  side stands for that side.
+- **Above the row's Da max, at either face:** `SEAT_ABUTMENT` ("the outer ring would not bear on it").
+- **None at the shaft's located side (`against`):** a warning, naming the other side when the shoulder is only there.
+- **The report:** `housing.shoulder` = { at, diameterMM } (rounded like the report's other sizes), or null when there
+  is none at either face.
+- Without a Da max in the row, the shoulder is found and reported, not checked.
+
+**Changed expectation:** R12c.4's plain through-bore housing (`test/r12c-bearing.test.mjs`) now carries the
+no-shoulder warning and `shoulder: null`, as D164's FRk8a says. Nothing else changed in its test.
+
+**Oracles (`test/frk-8a-housing-shoulder.test.mjs`, 3 tests):**
+- The turned profiles are written in the test, and the oracle is each profile's own shoulder radius.
+- **D164's "a stepped housing at Da max ± 0.5":**
+  - Ø40 and Ø41.5 are found at the located face and held, with no warning;
+  - Ø42.5 is refused;
+  - without Da max it is reported, not checked.
+- **A shoulder on the other face only:** reported there with the warning; above Da max there, refused.
+- **Through the part model:** the bearing output's report carries the shoulder; above Da max it is GEOMETRY
+  [SEAT_ABUTMENT].
+- The row is B1's 6204 (D139), a test row citing its page.
+
+**Consumers:**
+- `@barocss/cad-model`'s bearing, housing, drawing and acceptance tests: 90/90.
+- Its type-check is clean (the field is additive).
+- Its evaluate text (`engine/evaluate.ts:679`) could show the shoulder. That is the outer lane's to take, offered
+  through the coordinator.
+
+**Checks (T1):**
+- `packages/barocss-cad` lint 0 errors, type-check clean, build.
+- Bearing, shaft and housing files: 74/74.
+- No brep core change.
+
+## D182 — K2 (FRk5 leftovers), the kernel's half: the notch cases the flow loads (2026-10-23)
+
+The coordinator's split for K2: the kernel lane writes the notch cases. The GPU lane builds the browser-flow step
+(notch made, saved, reopened on both renderers) and looks into Codex's retained WebGPU failure. A kernel tessellation
+cause would come back here.
+
+**Three conformance cases in `packages/barocss-cad/conformance/frk/`, on one tee.**
+- The tee: a Ø30 × 2 round tube through from x −200 to 200, and a Ø30 × 2 branch from z 300 down to it, coped at
+  point 3 with a notch cutter.
+- **`notch-v-tee.json`:** a V notch, depth 20 at 90° (k = cot 45° = 1). All closed forms.
+  - The branch keeps z ≥ 20 − |y′|.
+  - V = A·300 − (20A − 4(15³ − 13³)/3) = 50 830.8394749546.
+  - z̄ = ½(300²A − ∫∫h²)/V, with ∫∫h² = 400A − 40·4(15³ − 13³)/3 + π(15⁴ − 13⁴)/4, giving 155.5035594880.
+- **`notch-holesaw-tee.json`:** a hole saw Ø52 on the through tube's axis.
+  - The branch keeps z ≥ √(26² − y′²).
+  - V 48 558.8898558679 and z̄ 161.9891632034, by a 64 × 256 polar Gauss–Legendre over the annulus.
+  - The oracle script is `test/frk-5-notch-oracle.py`, numpy only, no kernel code.
+- **In both cases:** the through tube is untouched (A·400, centroid at the origin), both bodies are valid, genus 1.
+  Tolerances: volume rel 1e-9, centroid abs 1e-6.
+- **`refuse-notch-v-depth.json`:** a V as deep as the branch is wide (30) is refused: PARAMETER
+  "[NOTCH_CUTTER] v depth must be under the branch width and length".
+
+**Checks (T1):** the three cases pass through `test/conformance.test.mjs` (with the other notch-named cases, 6/6). No
+product code changed. RB picks up three more cases at the next window.
+
+### D182 (continued) — K2: the native notch builds at integration; the strict-tangent candidate is in and hoisted (2026-10-23)
+
+**The triage the GPU lane sent:** "both native notch cases refuse at fit depth 10". That is D175's record at
+`1f041da01`, and it was superseded within D175 itself.
+- The strict-tangent follow-up (five-point tangents on the 16-span grid) became `98c671129`.
+- Codex executed it ("D175 98c671 native pass"). The hole saw ×4 and the V at 90° and 120° met their unchanged
+  independent 1e-12 oracles, and the final boundary lay on the tube and the cutter.
+- `98c671129` is an ancestor of `0eabecf7f`, so it is in integration since `99da385a1`: its `analytic-boolean.ts` is
+  the same as integration's.
+- At integration now:
+  - all 11 tests of `frk-5-gaps-notches` and `frk-5-notch-boundary` pass;
+  - D182's three conformance cases pass.
+- So no notch refuses. The remaining open part of K2 is the browser flow (the GPU lane's).
+
+**The review: hoisted, not changed.** The strict path's per-edge callbacks (`Array.from`, `map`, `reduce` over the
+stencils) are now plain loops. The stencils are module constants (`FIVE_POINT_*`; owner rule). The arithmetic and its
+order are the same: notch tests 12/12, notch and saddle cases 9/9.
+
+**Checks (T1):** lint 0 errors, type-check clean, build.
+
+## D183 — K6 (FRk9): the FRk track's acceptance by the agent (2026-10-23)
+
+As D164 froze it: in one turn each, a welded table frame with gussets at its corners, caps on its legs and beads on
+every butt; a portal of tapered I beams; a bent-tube handrail. FR4b's pattern (D128):
+- the scripted agent's v2 calls are in `packages/barocss-cad-model/test/fixtures/frk-*.calls.json`, sent through
+  `dispatchTool` as the chat sends them;
+- the test is `packages/barocss-cad-model/test/frk-acceptance.test.ts`, 3 tests. These are new files, the coordinator
+  agreed; no outer-lane file was changed;
+- the kernel cases `conformance/frk/accept-*.json` are written by the test (`WRITE_ACCEPTANCE=1`) and checked to hold
+  the part the agent built.
+
+Every volume is a closed form of the dimensions, none read from the build. Centroids and topology in the kernel cases
+are this kernel's (regression values, as in D128).
+
+**1. The weldment table (`frk-weldment-table`).** FR4b's welded table: a mitred 1000 × 600 top of sharp 40 × 40 × 3
+tubes, legs 730, lower rails 150 up butted on the legs. Then, with test sizes:
+- `features.command gusset`: a clipped gusset at each top corner (120 × 100, clip 15, 5 thick), 4 in all.
+- `features.command end-cap`: a 4 mm cap over each leg's foot, 4 in all.
+- `query.welds`, then `features.welds`: a 3 mm fillet on each of the 8 butt joints, with
+  `beadOwnership {version 1, equal-length}`.
+  - The first try without the ownership was refused, every bead with `[BEAD_SHARED_CONTEXT]`: two rails butt one leg
+    at one height. The ownership is the documented v2 path (D170/D171), so the agent gives it. No workaround.
+
+Oracles (A = 40² − 34²):
+
+| Item | Closed form | Value |
+|---|---|---|
+| Members | A·L, FR4b's lengths | |
+| A gusset | (120·100 − 15²)/2·5 | 29 437.5 |
+| A cap | 40²·4 | 6400 |
+| A bead, nominal | 3·40·z²/2, z = 3 | 540 |
+| A bead, owned | 2·40·z²/2 + ½·40·z²/2 | 450 |
+| All beads, owned | 4 legs × 5 fillets × 40·z²/2 | 3600 |
+
+- Why a bead is so: the rail's outer side is flush with the leg's (no fillet, flushMM 40). Its top and bottom runs
+  lie on the leg. Its inner side lies on the other rail's side face, coplanar with the leg's. That corner fillet is
+  the one the two beads share, owned by halves. Its outline's corners land on nothing.
+- The weld list's totals: complete, 8 bodies, 4 shared seams.
+- The cut list: FR4b's 5 rows, 12 pieces, 9160 mm.
+
+**2. The tapered-I portal (`frk-tapered-portal`).** Posts 2000 and a 3000 beam, butt corners.
+- The section is a TEST VALUE given in the call, not rows or a catalogue: D172's first case (I 200 × 90, web 7, flange
+  11 at the overhang's middle, root 9, toe 4.5, slope 0.14).
+- A_I = 3263.398247 by FRk3's kernel-independent triangle/sector oracle (`test/frk3-oracle.mjs`, now typed by
+  `frk3-oracle.d.mts`).
+- The butt rule's lengths:
+  - the first post runs through by half the beam's depth: 2100;
+  - the beam stands on its flange face and runs through the second post: 3000;
+  - the second post sits under it: 1900.
+- The cut list's rows give the same lengths and ends.
+
+**3. The bent-tube handrail (`frk-bent-rail`).** `features.command frame-member`, path tangentbend: Ø42.4 × 2.6 (test
+values), 1200 along X, 90° on R 150, 800 along Y.
+- V = A(L₁ + L₂ − 2R) + A·πR/2 (Pappus: the annulus's centroid on the centreline), with A = π(21.2² − 18.6²).
+- The cut list: one piece of 1935.619449 mm.
+
+**Checks (T1):**
+- `frk-acceptance` 3/3, in check mode and writing.
+- The three kernel cases through `conformance.test.mjs`: 3/3.
+- cad-model type-check (covers test/) and eslint on the new test file clean; barocss-cad lint 0 errors.
+- No product code changed; the v2 tool surface is unchanged.
+
+**The FRk track is done** with this stage, except K5 (FRk8b's second half, which D178 made unnecessary for speed)
+and the open items:
+- K2's flow and WebGPU, the GPU lane's;
+- the `r6/facet-cube-sphere-intersect` ȳ pin (D179).
+
+## D184 — K7: the facet rims about an exact ball; the ribbon beside a pole; r6 sphere-intersect's ȳ to its closed form (2026-10-23)
+
+**D179's open item.** `r6/facet-cube-sphere-intersect` (the facet cube ∩ a ball R 6 about its corner (20, 20, 20), an
+eighth of the ball) pinned ȳ 17.74954826.
+- By symmetry, and the eighth ball's 3R/8, each coordinate is 20 − 3·6/8 = 17.75. x̄ and z̄ were 17.75; ȳ was off by
+  4.5e-4.
+- **Cause, the same gap as D177/D179:**
+  - The three facet faces meet the exact sphere face along 33-point polylines, sag 1.8e-3 mm.
+  - The sphere is revolved about z, its pole at (20, 20, 14) on its face, so the face is integrated on the pole route:
+    no strips, so no ribbons.
+  - The rims' gaps stay unclosed. Each gap lies in a coordinate plane and moves only that coordinate's moment, weighted
+    by (plane − centre)². The integrals' centre is (20, 17, 20), so only the y = 20 rim shows:
+    4.5 · 0.01135 mm² / 113.1 = 4.5e-4, as observed.
+  - The pin was the kernel's own output.
+- **Fix, `src/brep-mass-quadrature.ts`:**
+  - Beside a pole, the boundary chords now take their ribbon alone (`ribbonOnly`): P = S(C) to the edge's E at the
+    strip's 8 nodes, F(P + g/2)·(P′ × g).
+  - P′ comes from central differences of P itself, because the surface's tangents degenerate at the pole.
+  - The strips stay out, their chord error extrapolated as before. The ribbon is no step's error, so it goes into the
+    squared part unchanged by the extrapolation.
+  - A node that cannot be inverted leaves its chord without a ribbon (the gap as before).
+  - The chord map is built on pole faces too.
+- **Results:**
+
+  | Value | Before | After |
+  |---|---|---|
+  | Sphere-intersect ȳ | 17.749548 | 17.75000005 |
+  | Sphere-intersect volume, rel. to 36π | 5e-11 | 4e-11 |
+  | The other r6 cases, V notch, D126 table | — | unchanged |
+
+  The expectation 17.74954826 is corrected to 17.75 (the closed form); absTol 1e-6 is unchanged.
+
+**Checks (T1+):**
+- lint 0 errors, type-check clean, build.
+- Every test file that tessellates, builds SubD or takes mass (87 files), in a detached scratch worktree: 878/879,
+  1 skipped, 0 failing.
+- T2 (full suite, RB, properties) rides the coordinator's window.
+
+## D185 — K8 (the outer lane's F5): the cnc-turning report's time was the kernel's per-call surface admission (2026-10-23)
+
+**The finding.** The A9 shaft's cnc-turning manufacturability report took about 50 s, so `a9-acceptance` took about a
+minute.
+
+**The profile** (`node --cpu-prof` on the bundled `a9-acceptance` in a detached scratch worktree, load 22): 55.0 s in
+all, 46.2 s of it under `turningOf`.
+- The path: cad-model's `turningOf` → `mould/draft.ts`'s `foot` → the kernel's `closestPointOnSurface`.
+- The kernel part:
+  - 40.6 s in `evaluateSurfaceD2`;
+  - 31.5 s of that in `admittedSurface`'s snapshot copy (`second-derivatives.ts` copies and validates the surface on
+    every call, a public entry's defence);
+  - plus `validateSurface` on every `evaluateSurfaceD1`.
+- Counts: 72 914 foot queries, 887 602 second-derivative calls (about 12 a query, the slow, linearly converging case)
+  and 4 220 974 first-derivative calls.
+- So the time is the kernel's. No cad-model file changed.
+
+**The fix: the same arithmetic, with the admission done once per surface.**
+- `derivatives.ts`: `surfaceD1Evaluator(surface)` validates once, as `curveD1Evaluator` does for curves.
+  `evaluateSurfaceD1` calls the same internal `surfaceD1`.
+- `second-derivatives.ts`: `surfaceD2Evaluator(surface)` admits once (snapshot and validation) and keeps its
+  coefficient cache. Each call admits only its parameters. `evaluateSurfaceD2` is that evaluator, used once.
+- `surface-closest.ts`:
+  - a `SurfaceSeedGrid` now carries the surface it was built for and its evaluators (additive fields), so a query
+    passing that grid for that surface uses them; the second derivatives are admitted on first use;
+  - without a grid, a query builds its own once;
+  - `surfaceD1Near` keeps its signature.
+- Every result is bit for bit as before, because the admitted copy holds the same numbers and the arithmetic is unchanged.
+
+**Results:**
+
+| Measure | Before | After |
+|---|---|---|
+| `a9-acceptance` | 55 s | 15 s |
+| `turningOf` | 46.2 s | 7.5 s |
+| The rest of the report | — | its 4.2 M first derivatives, the queries' own iterations (left as they are) |
+
+**Checks:**
+- Kernel: lint 0 errors, type-check clean, build. In a scratch worktree, 121 files that tessellate, take mass, project
+  or differentiate: 970/971, 1 skipped, 0 failing.
+- cad-model's mould, draft, cnc and A9 files: 69/69.
+
+## D186 — K9 (RB TODOs), the 1 nm graze: a wrong body becomes a typed refusal (2026-10-23)
+
+**RB's first TODO item.** `corpus/oracle/cylinder-box-graze-x45-in0_000001-difference`: a box turned 45° about X, its
+outermost edge 1 nm (the tolerance) into an upright cylinder's wall. The analytic Boolean returned a wrong body:
+- it measured 534.22 mm³ against the oracle's 253.12070406;
+- its side face's loops crossed (strict L0);
+- RB marked it validate INVALID, tessellate INVALID and expect WRONG.
+
+**Cause.** The lens the graze cuts in the wall is two traced curves, 5.7e-3 mm long, within 1 nm of each other.
+- `stitch`'s edge matching (midpoints within 10 to 100 tolerances) took the second curve for the first, so the wall's
+  face used one edge both ways where its lens hole was.
+- The non-strict check passes such a face: each edge has two uses, in opposite senses.
+
+**Fix, `src/analytic-boolean.ts`, `stitch`.** A traced curve met again by the piece that registered it is counted (a
+seam met twice is counted too, and costs only the check below).
+- When any are counted, the result is checked strictly before it is returned.
+- If it fails, the Boolean refuses: GEOMETRY "the inputs graze within <20·tol> mm (the merge radius) and the sliver
+  between them cannot be built: <the first issue>".
+- Other Booleans are not checked strictly, and their time is unchanged: the 121-file batch took 319 s against 310 s,
+  at a load 5 higher.
+- **Not done:** building the touching result (the lens dropped), the oracle's 253.12. The item stays in `todo.json` as
+  evaluate WRONG (a refusal where an output is expected), its three INVALID/WRONG rows replaced by that one.
+
+**Also caught: an existing test pinned a wrong body.** `gear-internal.test.mjs` ("placed …"): the pinion turned to
+where the sweep crosses by 0.0118 mm, intersected with the ring.
+- The old result was strict-invalid: a face 2e-19 mm wide with crossing loops, and a volume (0.00168) 5 % off its mesh's
+  at 32 segments (0.00177).
+- The test asserted only volume > 1e-4. It now accepts either a body valid under the strict check with that volume, or
+  the typed graze refusal. The overlap itself is asserted by the sweep (minimum clearance < −0.01 mm), unchanged.
+
+**Checks (T1+):**
+- Kernel lint 0 errors, type-check clean.
+- 121 kernel files (tessellation, mass, Booleans, gears, properties) in a scratch worktree: 970/971, 1 skipped,
+  0 failing.
+- RB on `robustness/corpus/oracle` alone: the known graze and helical items only. That run names them as NEW, because
+  a single folder's case ids lack the `corpus/` prefix `todo.json` keys on; the full RB rides the coordinator's window.
+
+## D187 — K9: two shallow grazes built right: an ellipse crossing a plane face's edge twice inside one chord, found by bisection (2026-10-23)
+
+**RB TODO items** `corpus/oracle/cylinder-box-graze-x52_389-in0_01-intersect` and `-x27_564-in0_001-intersect` (found
+by D25's exact-oracle property). A box turned about X has its outermost edge 10 µm and 1 µm into an upright cylinder's
+wall.
+- Both were refused as non-manifold: "edge 0 … has 1 uses". Typed, but valid input.
+- The oracles are 3.4470301e-5 and 1.0140649e-7 mm³.
+
+**Cause.**
+- The box's top face got no cut from the cylinder at all (the Boolean's trace: `B0.top`, cuts 0). So the edge between
+  it and the box's side had one use, the side's.
+- The plane meets the wall in an ellipse. `intervals` clips that ellipse to the face by crossing its 64-chord polyline
+  with the face's edges (`intersectSegments`).
+- The ellipse enters the face for 0.62 mm (0.16 mm), 10 µm (1 µm) deep. The crossing angle is 3e-5 rad in the second.
+  - The chords either missed both crossings, or Newton, seeded from two chords so near tangency, landed both seeds on
+    one root.
+  - Three parameters came out, not four, so the interval's middle was out.
+
+**Fix (`src/curved-arrangement.ts`, `intersectSegments(…, graze)`; `src/analytic-boolean.ts`, `intervals`).**
+- When a parametric probe is clipped against a plane face's straight edge:
+  - the probe's polyline has each chord within its own length of the edge cut in eighths (`grazePolyline`);
+  - its signed distance from the line is bisected at each change of sign (`grazeCrossings`), in place of Newton.
+- Where both sides lie within eps of the line, the curve runs along it (an overlap, whose ends are found as before):
+  no crossing.
+- Not applied on a cylinder's domain lines. Tried, it found crossings in a rounded tube's rounding noise (FRk6's rolled
+  ordered trim refused), and the plane alone suffices.
+- Every other crossing is computed as before.
+- A first, broad version (every curve chord near any polyline) broke 5 tests and cost 50 % more time; it is not
+  what landed.
+
+**Results:**
+
+| Case | Before | After |
+|---|---|---|
+| x52_389 | refused (non-manifold) | 3.44703012347e-5 (rel 1.5e-10), valid, watertight |
+| x27_564 | refused (non-manifold) | 1.0140649319e-7 (rel 3e-9), valid, watertight |
+
+- RB on `corpus/oracle`: evaluate 91 of 94 OK, against 89 before.
+- Their `todo.json` entries are removed; 4 remain:
+  - the 1 nm graze (D186's refusal);
+  - the 10 nm graze (a non-manifold refusal of 4 uses);
+  - the 10 µm lens's tessellation fold;
+  - helical × helical.
+
+**Checks (T1+):**
+- Kernel lint 0 errors, type-check clean.
+- 121 kernel files in a scratch worktree: 970/971, 1 skipped, 0 failing, 312 s (310–319 before).
+- RB on the oracle folder: only those 4 left.
+
+### D187 notes — K9 stops here (coordinator, option a); the four RB items left open (2026-10-23)
+
+None of the four returns a wrong body any more. Each is in `robustness/todo.json` with its analysis.
+
+| Item | Status | Analysis | Estimate |
+|---|---|---|---|
+| `y1-in0_01-intersect` | tessellate INVALID | The body is right. The 10 µm lens's cylinder and plane faces share a diagonal: 4 uses, a fold. Fix: bisect that diagonal on the curved face, with the quadrature's face parameters extended in step. | display only, medium |
+| `x45-in0_00001-difference` (10 nm) | typed refusal | Needs a lens thinner than the merge radius recognised and dropped. | medium–large, tolerance scale |
+| `x45-in0_000001-difference` (1 nm) | D186's typed refusal | The same lens drop would build it. | — |
+| `gear-helical-pair-crossing-intersect` | refused, non-manifold | Near-tangent twisted flanks, sliver pieces classified 'same'. Needs near-tangent classification and sliver merging. | large; niche, since meshed pairs are checked by sections |
+
+## D188 — K10 (RB5, L4): the CSG fuzz and its first run (2026-10-23)
+
+The S0 as the coordinator approved it, built. No kernel fix is in this record: the findings are listed for the next
+ones.
+
+**The harness (`packages/barocss-cad/scripts/rb/`).**
+- `fuzz-gen.mjs` makes seeded trees of depth ≤ 3 with ≤ 6 leaves.
+  - Leaves: box, cylinder, sphere (a revolved semicircle), cone or frustum (a revolved trapezoid), the rounded box
+    (four vertical edges filleted) and the shelled box (closed or open top). Each gets 0–2 turns about X, Y or Z and
+    a move within ±3.
+  - Joins: union, difference, intersect, and a linear or circular pattern of a subtree.
+  - Half the cases are agent-like: whole millimetres, quarter turns, flush faces.
+  - Its document writer gives each case as a plain part document; its shrinker drops operands, copies and turns
+    and rounds numbers.
+- `fuzz-oracle.mjs` uses no kernel code.
+  - It casts z rays. Each leaf gives its exact intervals in its own frame: slabs, and the quadratics of cylinders,
+    spheres, cones and the rounded box's corner discs.
+  - The intervals are combined by the tree; a pattern is the union of moved copies.
+  - V and the first moments come from the lengths and ∫z dz.
+  - The lattice is turned 0.4 rad off the axes and integrated at K = 6 shifts. The mean is the value, and three
+    standard errors are e.
+- `fuzz-worker.mjs`, per case: the strict check, a watertight tessellation (by position) and the mass.
+- `fuzz.mjs`: a worker pool with a SIGKILL timeout, judging, shrinking, and `--save` into `robustness/corpus/fuzz/`
+  (RB runs those cases). `fuzz-todo.json` holds the known findings; `--record` writes `fuzz.jsonl`. Also
+  `pnpm rb:fuzz`.
+- `stages.mjs`: RB's expectation now leaves the body count and topology unchecked when a case does not give them,
+  since a fuzz case knows only its oracle's volume and centroid.
+
+**Judging.**
+- OK: valid, watertight, |ΔV| ≤ max(2e, 1e-4·V) and the centroid within max(2e_c, 1e-4·size). An empty result
+  (no output) is OK where the oracle's V is within its bound.
+- REFUSED: a typed error, counted by code.
+- Findings: WRONG, INVALID, CRASH, TIMEOUT.
+- A WRONG verdict is confirmed against the oracle at 4n (512) and 8 shifts; one it clears was the oracle's limit,
+  reported as such.
+
+**Two oracle defects, caught by its own test before the run counted.**
+- A margin around the lattice counted the edge cells' rays across it: +0.4–0.8 % on a box.
+- At N and 2N, a fixed jitter on an axis-aligned lattice repeats the rays' offsets from snapped faces. Its difference
+  said e = 0 where the error was 0.6 %, and it produced 6 false WRONGs in a first run. The turned lattice with shifts
+  replaces it.
+
+**The unit test** (`test/fuzz-oracle.test.mjs`, 2 tests, 0.15 s) holds the oracle to closed forms within its own e:
+- a ball; a frustum π h/3 (r₁² + r₁r₂ + r₂²);
+- the rounded box wdh − 4(1 − π/4)r²h; the shelled box, closed and open;
+- a box less a cylinder through it, with its centroid;
+- a pattern of two overlapping boxes.
+
+**The first run.** Seed 20261023, 200 cases (93 agent-like), `--jobs 2`, load 18.4, 117 s; kernel p50 166 ms, p95
+3.2 s.
+- 104 OK: 8 empty, and 1 cleared by the finer oracle (2.17968 against 2.17965 ± 0.0002 at 512²).
+- 90 REFUSED:
+
+  | Count | Refusal |
+  |---|---|
+  | 61 | SELECTION "target/tool … is empty": a Boolean on an empty intermediate, typed but an over-refusal (an empty union is its other operand) |
+  | 25 | the analytic Boolean "not a manifold solid" |
+  | 2 | "an arc on a cylinder is not a cross-section" |
+  | 2 | "planar face could not be triangulated" |
+
+- 0 WRONG, 0 CRASH, 0 TIMEOUT.
+- **6 INVALID**, all valid input, each shrunk and saved as `robustness/corpus/fuzz/fuzz-20261023-<k>.json`. All are
+  in `robustness/todo.json` (RB) and `fuzz-todo.json`:
+
+  | Case | Tree | Failure |
+  |---|---|---|
+  | 35 | a circular pattern (2 copies) of one shelled box turned 48° about X | the union's face loops cross (strict) |
+  | 56 | a box (snapped turns) less a cylinder | 2 open mesh edges; the volume holds |
+  | 93 | the union of two generic cones | loops cross |
+  | 118 | the intersection of two generic cylinders | 1 open mesh edge; the volume holds |
+  | 149 | a cylinder through a shelled box's walls, snapped | loops cross |
+  | 191 | two cylinders at right angles, snapped | loops cross, and 2 open mesh edges |
+
+**Next, in severity order, one record each:**
+1. The INVALID loop-crossings (35, 93, 149, 191): union of curved faces, a wrong body's shape.
+2. The open mesh edges (56, 118): display.
+3. The 61 empty-operand refusals, an over-refusal agents will hit.
+4. The 25 non-manifold refusals, triaged.
+
+## D189 — L4 fuzz 191: a plane tangent to a cylinder's wall cuts nothing (2026-10-23)
+
+**The finding** (`robustness/corpus/fuzz/fuzz-20261023-191`, agent-like). The union of a cylinder r 3 turned 270° about X
+and an upright cylinder r 4 whose top lies on the first one's top ruling (z = 3) was INVALID:
+- the upright one's top face had an inner loop of one line used twice (a slit), so its loops touched (strict);
+- the tessellation had 2 open edges.
+
+**Cause.** In `cutPair`, a plane parallel to a cylinder's axis at the radius (h ≤ tol) still cut along the one tangent
+ruling. That ruling divides neither face: on either side of it the wall lies to one side of the plane.
+
+**Fix (`src/analytic-boolean.ts`).** No cut where the plane only touches the wall, as for a circle where a profile
+only touches a plane (already the rule above it).
+
+**Results:**
+- Case 191 passes every RB stage: valid, watertight, roundtrip. Its volume 164.2981 lies within the oracle's bound of
+  164.2744 ± 0.18.
+- Its todo entries are removed.
+
+**Tried and taken back: the pinched faces of 35 and 149.**
+- What happens: a disc tangent to a face's boundary from inside leaves the face's loop through one vertex twice, or a
+  hole touching the outer loop there. Splitting such loops into faces, and bridging a touching hole into two planar
+  faces, built 149 valid.
+- Why it is taken back: it contradicts the prismatic convention pinned by `prismatic-solid.test.mjs` ("the tangent
+  hole opens into the boundary (one crescent ring)", and its tangent-cap tessellation), and it mistook a seam's
+  revisit for a pinch. 6 tests broke.
+- So this needs a decision first: the strict check refusing a loop through one vertex twice, against that convention.
+  Asked of the coordinator.
+
+**Checks (T1+):**
+- Kernel lint 0 errors, type-check clean.
+- 121 kernel files plus the fuzz oracle test, in a scratch worktree: 972/973, 1 skipped, 0 failing.
+- RB on `corpus/fuzz`: case 191 OK at every stage.
+
+## D190 — Booleans and patterns on an empty operand keep the algebra; the fuzz rerun (2026-10-23)
+
+**The finding.** D188's largest refusal: 61 of 200 fuzz cases were refused as SELECTION "target/tool … is empty". In
+each, a Boolean or a pattern referred to an intersection that met nothing, as agents' trees do.
+
+**Fix (`src/part-model.ts`).** For union, difference, intersect and the two patterns, an empty operand is taken by
+the algebra:
+- A ∪ ∅ = A (its parts united, as a union does);
+- A − ∅ = A (its parts as they were);
+- ∅ − B = A ∩ ∅ = ∅;
+- a pattern of ∅ is ∅.
+An empty result has no output, as an empty intersection already had none. Every other feature on an empty result is
+still refused, with the same message.
+
+**Test:** `test/boolean-empty-operand.test.mjs`, the algebra case by case, and the refusal kept for a translate.
+
+**The fuzz rerun** (seed 20261023, 200 cases, jobs 2, load 27, 121 s), against D188:
+
+| Outcome | D188 | Now |
+|---|---|---|
+| OK | 104 | 163 (30 empty) |
+| REFUSED | 90 | 31 (26 non-manifold, 2 arc-on-cylinder, 2 planar triangulation, 1 other) |
+| INVALID | 6 | 6 |
+| WRONG, CRASH, TIMEOUT | 0 | 0 |
+
+- 191 is fixed (D189).
+- Tree 56 passes in full. Its shrunk case still tessellates with 2 open edges, so it stays in the todo.
+- **New, hidden before by the refusal:**
+  - 5: a cylinder less a shelled box turned about Y; 1 open mesh edge.
+  - 83: a cylinder less a frustum turned about X; a face's loops cross.
+  - Both are saved to `corpus/fuzz/` and listed in `robustness/todo.json` and `fuzz-todo.json`.
+- Open: 35 and 149 (the pinched faces, a decision asked), 93 and 83 (loops crossing), 5, 56 and 118 (open mesh edges).
+
+**Checks (T1+):**
+- Kernel lint 0 errors, type-check clean.
+- In a scratch worktree: 121 kernel files plus the part-model, pattern and Boolean ones, 1151/1152, 1 skipped, 0
+  failing; after the pattern change, the part-model, pattern and Boolean files 209/209.
+
+## D191 — A loop crossing seen only on a curve's chords is confirmed on finer chords before it is reported (2026-10-23)
+
+**Findings.** L4 fuzz 93 (cone ∪ cone) and 83 (cylinder − frustum): strict L0 reported a face's loops crossing. In both,
+a planar cap is cut by the other solid along a curve that runs 0.01–0.06 mm inside the cap's own rim arc. The rim's
+9-sample chords dip up to 0.07 mm inside the arc (their sagitta), across the curve's samples; the edges themselves do
+not meet. The volumes stood within the oracle's bounds.
+
+**Fix (`src/brep-check-geometry.ts`).** A crossing found on the 9-sample rings is confirmed on rings sampled 8 times
+finer (65 per curved edge use, the sagitta 64 times smaller). Only one still there is reported. Lines keep their 3
+samples. The finer pass runs only on a face whose coarse rings meet, so a clean face costs nothing more.
+
+**Test:** `test/brep-check-strict.test.mjs`. A 0.01 mm strip inside a quarter arc of radius 10 is valid; it failed
+before. A line from the arc's end across it is still reported.
+
+**After it:** 83 passes every RB stage. 93 validated, and its STEP round trip then showed a volume error (D192).
+
+
+## D192 — A pole face's trims far from the pole take their strips (2026-10-23)
+
+**Finding (from 93).** RB's round trip moved 93's volume by 1.25e-6 of it (bound 1e-6). The kernel's own volume,
+147.9224772 mm³, was off the ray oracle at 2048² × 8, 147.9216297 ± 6.9e-6 (e), by 8.5e-4: 123 e.
+
+By face, the error was the two cone faces that reach their apex. They take the pole route (D184), which keeps every
+trim's chord error and extrapolates it as the square of the step. At 8 segments a quarter that square is not yet
+asymptotic: errors 0.0916 / 0.0356 / 0.0095 at 4 / 8 / 16, ratios 2.6 and 3.7. Richardson from 8 and 16 left 8.5e-4.
+More segments did not converge either (q 12: +1.35e-3).
+
+**Fix (`src/brep-mass-quadrature.ts`).** On a face that reaches a pole, only a chord within four of its lengths of
+the pole keeps the ribbon alone (D184). Every other chord is inverted as on any face and takes its strip. The face
+stays in the squared part, so what is left beside the pole is still extrapolated as before.
+
+**Result on 93:**
+- q 8 and q 16 both give 147.9216303, the oracle 147.9216297 ± 6.9e-6;
+- the STEP round trip agrees.
+
+**Test (closed form):** a cone (r 3, h 4, apex up) ∩ the slab x ≥ 1. The plane trims the apex face along a hyperbola.
+The kernel gives 8.0124838588; the exact value, ∫ (r² acos(d/r) − d √(r² − d²)) dz by Gauss–Legendre on 4000 panels,
+is 8.0124838639 (−6.3e-10 relative).
+
+## D193 — A cylinder face keeps no triangle whose corners all lie on one smooth run of its boundary (2026-10-23)
+
+**Findings.**
+- L4 fuzz 5 (a cylinder less a closed shell tilted 182.8° about Y) and 118 (two crossed cylinders): one mesh edge
+  used four times.
+- The notch tees of D182 (a branch coped with a V, or with a hole saw): 4 and 23 such edges, since D182. No full RB
+  run had seen them since.
+- The B-reps were valid.
+
+**Cause.** In 5, the edge between the cylinder and the shell's inner wall lies in the wall's plane, sampled A, M, B.
+The cylinder face clipped the ear A–M–B (narrowest in U first), and so did the planar wall. The two triangles are the
+same one, wound opposite: the volume was right, but chord AB was used four times.
+
+In the tees the run is the coped cut, split into 64 short edges. The cylinder takes fans of such triangles across
+several samples, as the V's plane does. Any triangle whose corners all lie on one smooth run of the boundary has no
+point off it. Where the run is planar, a plane's cut in one edge or several, the triangle lies in that plane. It is
+the plane's own triangle, not the cylinder's.
+
+**Fix (`src/brep-tessellate.ts`, `cylinderTriangles`).** After the ear clipping, the boundary is split into smooth runs
+(cut at each point where it turns by 45° or more, in space). A triangle with all three corners on one run is turned
+over with its neighbour, a convex quadrilateral in the domain, while that leaves fewer of them. A corner's ear stays.
+
+A first try, trying such ears last in the ear clipping, fixed 5 and 118 but left the tees at 7 and 53. It was
+replaced.
+
+**Test:** `test/tessellate-cylinder-ears.test.mjs`. Fuzz 5's and 118's documents and both tees, every mesh edge used
+exactly twice. It fails before the fix.
+
+## D194 — Strict L0 accepts a loop through one B-rep vertex twice and a hole touching its loop at a shared vertex (2026-10-23)
+
+**Findings.** L4 fuzz 35 (a circular pattern of a shelled box) and 149 (a cylinder ∪ a shelled box): strict L0
+reported a face's loops touching. Each such face is pinched: one loop passes one B-rep vertex twice, the shape a disc
+tangent to a face's side leaves. Splitting such faces at the pinch (option b) broke 6 pinned tests, among them
+prismatic-solid's crescent convention ("the tangent hole opens into the boundary (one crescent ring)"), and was
+reverted (D189).
+
+**The rule (coordinator's option a).** A touch between two segments of a face's rings is the face's own shape when:
+- they meet at an end both have at one B-rep vertex (by its identity, never by nearness);
+- that vertex is passed exactly twice: by one loop twice, or by an outer loop and a hole once each;
+- the two passes do not cross there (their four rays do not alternate about the vertex);
+- the segments do not run along each other from it.
+Everything else stays a touch.
+
+**Change (`src/brep-check-geometry.ts`).** Each ring point carries its B-rep vertex (a coedge's start); `ringsCross`
+lets such a contact pass (`pinch`).
+
+**Tests** (`test/brep-check-strict.test.mjs`):
+- **Valid:** a loop through one vertex twice (two triangles meeting at it); a hole touching the square's side at a
+  vertex of it.
+- **Still touches, each tested:**
+  - the loop crossing itself at the vertex;
+  - the hole's corner a distinct vertex at the same point;
+  - the hole's corner inside the square's side;
+  - the vertex passed three times.
+
+**Downstream, 35 and 149** (RB stages, the oracle at 1024² × 8):
+
+| | 35 | 149 |
+|---|---|---|
+| Strict L0 | valid | valid |
+| Tessellation | watertight | watertight |
+| Kernel volume | 61.722697 | 179.035233 |
+| Oracle volume | 61.722722 ± 2.4e-4 (e) | 179.034168 ± 1.8e-3 |
+| Area against | a fine mesh, exact (planar body) | the STEP read-back, within 1e-6 |
+| STEP round trip | valid; same volume, area, centroid, topology | the same |
+
+No split at export is needed.
+
+**Not covered: a touch at two distinct vertices.** Prismatic-solid's crescent cap (r 5 less an internally tangent r 3)
+has two distinct vertices at the tangent point, v0 and v4 at (5, 0, 0), one for each wall's edge up the tangent line.
+The rule is by identity, so that cap stays a touch under strict L0, as it was. Fuzz 56 is the same family: a box less
+a cylinder tangent to two of its sides from inside, the body touching itself along two lines. Its edges there are
+distinct and coincide, so the tessellation by position counts them four times. A decision is asked for: whether
+coincident distinct vertices and edges along a tangency are a body's own shape too.
+
+## D195 — A prismatic crescent's touch along its tangent line is KNOWN, not INVALID (2026-10-23)
+
+**Decision (coordinator, option b).** Keep the prismatic crescent as one body. A disc tangent inside a disc, or a
+wall tangent inside a hole, touches itself along the tangent line. prismatic-solid.test pins it: 'crescent (internal
+tangency)' and the crescents of any extent. Saved documents must keep resolving.
+
+It is valid by assertValidBrep, its volume is exact, and its mesh is watertight by index. Its real problem is
+physical, a zero wall at the tangent line: a manufacturability finding, not a topology one. Not accepted in general:
+any other line-touch stays a finding.
+
+**The pattern** (`scripts/rb/stages.mjs`, `crescentContacts`), all of:
+- the body's source is prismatic-solid;
+- two distinct line edges up the tangent line coincide;
+- they run between one pair of vertices (a box less a tangent cylinder, fuzz 56) or between two pairs of distinct
+  vertices at the same points (a disc tangent inside a disc, the pinned crescent).
+
+The coordinator's wording named only the second form. Fuzz 56 is the first; both come from the same builder.
+
+**Where it counts.** RB and the fuzz give such a body a status of its own, KNOWN (detail `KNOWN-CRESCENT (D195)`),
+counted apart and not as a failure, where:
+- strict L0's issues are all its faces' loops touching, on faces through those vertices; or
+- the tessellation's open edges are all used four times, along those edges.
+The STEP read-back is held the same way. Volume and centroid are still judged against the oracle.
+
+**The physical side.** cad-model's wall measures flag both shapes, so no outer-lane finding:
+- fuzz 56: thinnest wall 0.013 mm, at the tangent line;
+- the pinned crescent: 0 mm.
+
+**Later item (c):** build such a body exactly: one non-manifold edge at the tangency, or a split there.
+
+**Test:** `test/rb.test.mjs`. The pinned crescent and a box less a tangent cylinder are KNOWN, every other stage OK.
+The same body from another source is not one.
+
+(A through cylinder tangent inside two sides of a box is refused by the prismatic route, typed: "the bodies touch
+along an edge or at a vertex only". Unchanged.)
+
+## D196 — Triage of the fuzz's 31 refusals (seed 20261023, after D190–D195) (2026-10-23)
+
+**Method** (scratch scripts, not committed). Each refused case:
+- shrunk to its smallest tree still refused alike;
+- its original tree and the shrunk one each nudged four ways, every leaf moved by up to 1e-3 mm (50 times the merge
+  radius);
+- where nudges build, their body counts and the ray oracle's volume beside the kernel's (they agree within e).
+
+A refusal of the exact input that every nudge builds is the exact contact's. One that no nudge builds is the kernel's.
+
+The 31 refusals: 27 non-manifold (one an empty loop), 2 arc-on-cylinder, 2 planar-face triangulation.
+
+| Class | Cases | What they are |
+|---|---|---|
+| **Exact contact of separate lumps** (genuinely non-manifold as one solid) | 49, 50, 56, 67, 100, 131 (all snapped) | Every nudge builds, into 2 or more bodies: the exact result is lumps touching along an edge. As one solid it is non-manifold, so refusing is right. Prismatic-solid returns such lumps as separate bodies instead ('edge touch', pinned). By that convention these are **over-refusals**: the analytic Boolean could do the same. A decision. |
+| **Near-degenerate: valid inputs that should build** | 25, 43, 51, 74, 85, 110, 119, 125 | Some nudges build (1–3 of 4). Grazes and near-tangencies at the 1e-3 scale: a sphere tangent inside over a cylinder (110), patterned spheres (119), small slivers. Kernel weaknesses. |
+| **Robust: valid inputs that should build** | non-manifold 2, 4, 15, 46, 71, 73, 92, 117, 139, 151, 157, 158, 170, 173; arc-on-cylinder 101, 176; triangulation 137 | No nudge builds: a refusal of generic geometry. The non-manifold ones are an edge with 1 or 3 uses, an intersection piece missing. Kernel weaknesses. |
+
+**Smallest generic examples**, the cheapest to start from:
+- 73: a box ∩ a cylinder turned 188.8° about X and 85.75° about Z;
+- 117: two rounded boxes ∪;
+- 139: a cylinder ∪ a box, both slightly turned;
+- 71: a cylinder ∪ an open shell;
+- 2: a rounded box ∩ a pattern of two frustums;
+- 176: a box ∩ (a sphere ∪ a cylinder), arc-on-cylinder.
+
+**None of the 31 is a wrong body.** The refusals are typed: the kernel fails safe. Building them is the next robustness
+work; its order is the coordinator's.
+
+## D197 — A point on a sparsely sampled curve maps onto its own branch (2026-10-23)
+
+**Findings.** Four of D196's robust refusals of valid inputs were refused as "not a manifold solid", an edge used once:
+- 73: a box ∩ a cylinder turned 188.8° about X;
+- 117: two rounded boxes ∪;
+- 139: a cylinder ∪ a box, both slightly turned;
+- 71: a cylinder ∪ an open shell.
+
+**Cause (73).** The box's side y = −1.5 lies 0.65° off the cylinder's axis (n·a = 0.011). Their curve is an ellipse
+whose long axis is about 300 mm, against a face 2.5 mm high. In the domain the curve's 64 samples are 25 mm apart along
+it, and it passes the face's height twice, once on each side.
+
+`intersectSegments` found its crossings with the face's edges exactly (to 1e-14). It then dropped them as off the
+curve: `paramOf` started from the nearest sample, which was on the other side, and its search ended 6.7 mm away. A cut
+ended inside the cylinder's face, and its piece was classified whole.
+
+**Fix (`src/curved-arrangement.ts`, `paramOf`).** Where the search beside the nearest sample ends off the curve, the
+spans of the chords nearer the point than that are searched as well, nearest first. The first point where it lies on
+the curve, within 1e-6 of its size, is kept.
+
+A point off the curve keeps the search as before, and so does a point by a closed curve's ends. There the chord
+across from the nearest end is not searched: the arrangement takes such a point at the end it is nearest. Searching it
+broke a union of two spheres, so that path stays as it was. The search can still end up to 0.08 mm off on very thin
+ellipses (semi-axes 0.5–1 against 300): recorded, not fixed.
+
+**Tests:** `test/boolean-steep-ellipse.test.mjs`, both failing before:
+- `paramOf` on two such ellipses, at points nearer a sample of the other side (7.1 and 4.1 mm off before);
+- 73 and 139: valid, watertight, within 3 e of the ray oracle at 256² × 6.
+
+**Results** (the oracle at 512² × 8):
+
+| Case | Result |
+|---|---|
+| 73 | 5.186989 mm³, −0.3 e |
+| 117 | 357.583818, −0.3 e |
+| 139 | 23.583834, 0.0 e |
+| 71 | 294.730561, 0.9 e |
+
+All four are strictly valid, watertight and one body. Over the seed's 31 refusals, 71, 73, 117 and 139 now build; the
+other 27 are as they were.
+
+## D198 — Which chords beside a pole take no strip is the same at every step (2026-10-23)
+
+**Finding.** L4 fuzz seed 20261024, case 65, shrunk: a cone (apex) ∪ a turned cylinder. The quadrature volume was
+131.7537735 against the ray oracle's 131.7733069 ± 8.1e-6 at 1024² × 8, which is 2400 e off.
+
+**Cause.** By step, the pole part was:
+
+| Segments a quarter | 4 | 8 | 16 | 32 |
+|---|---|---|---|---|
+| Pole part | 11.1532258 | 11.1532194 | 11.0946130 | 11.0946122 |
+
+It did not fall with the step: it jumped between 8 and 16. D192 gave a chord its strip where it lay farther than
+four of its lengths from the pole. A long trim near the apex was beside it at 8 and not at 16, so its strip came in
+at 16 only. The extrapolation took the jump for the square of the step's error. Before D192 this case was off too
+(+1433 e): no strip at all.
+
+**Fix (`src/brep-mass-quadrature.ts`).** Beside a pole now means passing within a thousandth of the face's size of it,
+a distance that does not depend on the step. Each chord is measured as a segment, not by its ends.
+
+**Result:** 131.7733090, 0.26 e. 93 (D192) is unchanged at 147.9216303.
+
+**Test:** `test/mass-pole-steps.test.mjs`, the case against the ray oracle at 256² × 6, within 3 e.
+
+## D199 — A cap about a sphere's pole, its trim round the whole turn in a few samples, is integrated (2026-10-23)
+
+**Finding.** L4 fuzz seed 20261024, case 171: a circular pattern of three overlapping balls (r 4). The quadrature
+returned null, so the mass fell back to the 64-segment mesh: 362.967 against the oracle's 363.293 ± 1.9e-4, which is
+0.09 % off and a WRONG.
+
+**Cause.** One face, a 0.64 mm² cap about a ball's pole: its trim runs round the whole turn of u in 7 samples. Each
+domain triangle spans some 50° of u, and the surface over it bends from its flat triangle far more than a step's sag.
+The coverage check compared the domain's area, 0.700, with the flat triangles', 0.643, found them 9 % apart (bound
+5 %) and gave up the body, at 8 and at 16 segments.
+
+**Fix (`src/brep-mass-quadrature.ts`).** Where the check fails, the domain's flat triangles cut in sixteen (four along
+each side) are the measure, held to the same 5 %. Coverage gone wrong still shows, since that measure keeps the
+domain's own triangles. The bound is unchanged.
+
+**Result:** 363.2931458, −0.33 e, method quadrature.
+
+**Test:** `test/mass-pole-cap.test.mjs`, the case against the ray oracle at 256² × 6, within 3 e. Before the fix the
+body's mass was tessellated and 43 e off at that resolution.
+
+## D200 — A curved body's tessellated mass states its volume's error (2026-10-23)
+
+**Coordinator's ask (from 171).** When the quadrature cannot integrate a curved body, its mass falls back to the mesh,
+and that must not be a quiet 0.09 % error.
+
+**Change (`src/solid-mass.ts`).** The value is unchanged: the same mesh, so every tessellated result stays bit for bit.
+With method `tessellated` it now carries `volumeBoundMM3`, the volume's change from a mesh of half the segments. The
+chord error falls with the square of the step, so that change is some three times the error itself. A part output's
+fallback mesh is 32 segments a quarter, its bound from 16. Other methods carry none. Only a body that falls back pays
+the second mesh.
+
+**Test:** `test/mass-tessellated-bound.test.mjs`. A ball and a cylinder with the quadrature turned off, at 8 and 16
+segments: each states a bound, and the true error (closed forms) is within it.
+
+**cad-model (outer lane, not changed here).** `chat/analysis.ts`'s `massProperties` and `engine/evaluate.ts`'s
+`bodyOf` report `volume_mm3` and `mass_g` with no basis. The area has `area_basis`; the volume has nothing. A tessellated
+volume is shown as if exact. Sent to the coordinator as a finding: a `volume_basis` with the bound, as `area_basis` is
+given.
+
+## D201 — A cut ending inside a planar face leaves no slit (2026-10-23)
+
+**Finding.** L4 fuzz seed 20261024, case 41, shrunk: two copies, 24.47° apart about Z, of a ball less a turned box.
+Strict L0 reported a face's loops touching. The face was a cut face of the box, a plane.
+
+**Cause.** Its loop ran out from a corner vertex along a 1.4e-4 mm arc, an edge of the other copy's ball, and straight
+back along it. The other ball passes within 1.4e-4 mm of that corner. The tip the arc cuts off is far below the
+pieces' area threshold, so it was not kept, and its arc stayed in the neighbour's loop as a slit: used twice, both
+ways, by one face.
+
+**Fix (`src/analytic-boolean.ts`, `stitch`).** In a planar piece's loop, uses of one edge out and straight back
+(consecutive, opposite senses) are taken out, again until none. The edge goes with them when nothing else uses it, and
+so does a vertex left with no edge. Planes only: a seam of a periodic face is met both ways, a cone's even one after
+the other at its apex.
+
+**Result:** strictly valid, watertight, 114.5005021 mm³ against the oracle's 114.5004538 ± 2.4e-4 (0.2 e).
+
+**Test:** `test/boolean-spike-cut.test.mjs`. It fails before the fix.
+
+## D202 — An arc on a cylinder's wall that is no cross-section maps into its domain as a curve (2026-10-23)
+
+**Findings.** D196's two arc-on-cylinder refusals:
+- 176: a box ∩ (a ball ∪ a cylinder);
+- 101: a cylinder less (a cone ∪ a cylinder) ∩ a cylinder.
+Both were refused with "an arc on a cylinder is not a cross-section circle".
+
+**Cause (176).** The ball ∪ cylinder's edges are their traced meeting. Where the next Boolean's march looks for a face's
+edges lying on the other surface, `exactly` turned a 0.056 mm piece of one into an exact arc (sweep 0.0245 rad, r 2.29),
+as any short curve fits a circle within the tolerance. That arc lies on the cylinder's wall but is no cross-section, so
+`curve2` refused it.
+
+**Fix (`src/analytic-boolean.ts`, `curve2`).** Such an arc maps into the cylinder's domain as a curve does: its points'
+parameters, as a traced curve's are. A cross-section still maps to a line.
+
+**Results:** both are strictly valid, watertight and one body.
+
+| Case | Volume (mm³) | Off the oracle |
+|---|---|---|
+| 176 | 8.542017 | −0.1 e |
+| 101 | 56.159035 | +0.1 e |
+
+**Test:** `test/boolean-arc-on-wall.test.mjs`, 176 against the ray oracle. It fails before the fix.
+
+## D203 — A curve that dips onto a surface-of-revolution patch between two samples is found there (2026-10-23)
+
+**Finding.** D196's robust refusal 2: a rounded box ∩ a pattern of two frustums. Refused as "not a manifold solid": an
+edge along the box's side x = 0.5 with one use.
+
+**Cause.** That side was not divided: its two cuts, one from each frustum, ended 0.035 mm apart. Between them the
+side's conic runs across a third patch: the first frustum's, 0.0046 rad inside its end.
+
+`onPatches` finds where a curve lies on the patches of revolution by 256 samples of their turn (0.0123 rad each).
+That piece, 0.012 rad long, lay between two samples outside, so the pair made no cut at all.
+
+**Fix (`src/analytic-boolean.ts`, `onPatches`; `src/surface-revolution.ts`, `patchMargin`).** A patch's margin, how far
+a point lies inside it (> 0) or outside it (< 0), is continuous along the curve. After the scan, wherever the margin
+peaks among its neighbours at a sample outside (at an end, beside its one neighbour), its maximum is sought between
+them. Where that is inside, the two crossings are bisected and the interval added. The scan's own intervals are as
+before.
+
+**Result:** 2 is strictly valid, watertight and one body, 12.282189 mm³ against the oracle's 12.280757 ± 1.2e-3
+(1.1 e).
+
+**Test:** `test/boolean-conic-patch.test.mjs`. It fails before the fix.
+
+## D204 — Lumps touching along a line or at a point are separate bodies, as lumps apart are (2026-10-23)
+
+**Contract (the coordinator's approval).** A Boolean or pattern whose result is lumps touching along a line or at a
+point returns what a disjoint result returns today.
+- **What comes back:** one output whose B-rep holds one solid body per lump. A lump is a connected component of the
+  result's interior. Each body is closed and manifold on its own and owns its edges and vertices; nothing is shared
+  across bodies, even where they coincide.
+- **Face touch is unchanged:** a union merges across the shared face, an intersection is empty, a difference is
+  unchanged.
+- **Body order and names are kept as they are:** `${feature}_body${k}` (the upright route's `_b${k}`), in the order a
+  disjoint union already has. That order is deterministic: the tool's lump first. Swapping the operands keeps the same
+  bodies.
+- **Still refused:** a lump touching itself, one body whose boundary meets itself along a line. The material left
+  around a line where two removed lumps touch is such a lump.
+- **No saved document changes,** since these inputs were all refused before.
+
+**Changes.**
+- **Analytic stitch (`src/analytic-boolean.ts`, `splitTouchingEdges`).** An edge used by four faces, two forward and two
+  reversed, has its uses paired by lump, and the second lump's pair moves to a copy of the edge. A lump is the pieces
+  joined through the edges used once each way. A vertex already stays one per disc of faces.
+  - **The pairing rule is connectivity, not radial order.** The four faces of a line touch belong to two lumps only
+    through their other edges, so the components settle it with no geometric test. Where all four uses fall in one lump
+    — a lump touching itself — nothing is split and the edge is refused as before.
+- **Upright route (`src/part-model.ts`).** `checkLumps`/`touchingLumps` are removed: brepFromPrismatic already emits
+  touching lumps as separate bodies (prismatic-solid.test's 'edge touch' and 'point touch'). The `check` parameter of
+  `boolean` goes with them.
+
+**Expected-value changes.**
+- **`analytic-boolean.test`:** "boxes in contact along a line" was a refusal. It is now two bodies, strictly valid,
+  500 + 500 mm³ (closed form).
+- **cad-model `test/union-touch.test.ts`** (the outer lane's file; the coordinator approved the change in this commit):
+  two 10 mm cubes touching at an edge, at a point, or along an edge at mid height were refused with the user-facing
+  title "The bodies only touch along an edge or a point". Each is now ok: one result, 1000 + 1000 = 2000 mm³, as the
+  same cubes 20 mm apart give.
+  - That title goes away as an error. The refusal was a limit of the kernel, not a product choice.
+  - The outer lane's O8 brings it back as a DFM warning on the result, so the person still learns the bodies only touch.
+- **Unchanged:** part-model.test's cavities meeting at a point (one lump touching itself) stay refused.
+
+**Results:** fuzz 4, 49, 50, 67, 92, 100 and 131, shrunk, each two bodies, strictly valid, watertight body by body.
+
+| Case | Kernel − oracle (e at 512² × 8) |
+|---|---|
+| 4 | +0.2 e |
+| 49 | −0.1 e |
+| 50 | 0.0 e |
+| 67 | −0.1 e |
+| 92 | 0.0 e |
+| 100 | +0.2 e |
+| 131 | −0.3 e |
+
+All seven are in `robustness/corpus/fuzz/` with `bodies` in their expect. Their full trees chain further Booleans onto
+the touching lumps, and the material left around the touch line touches itself, so those stay refused, rightly.
+
+**Tests:** `test/boolean-touching-lumps.test.mjs`, failing before:
+- fuzz 50 both ways round: the same two bodies, the tool's lump `_body0` both ways, the summed volume against the ray
+  oracle;
+- a pattern corner on the axis, a cylinder along a box's side and two boxes corner to corner, against closed forms.
+
+**For the outer lane (the coordinator's O-item):** mesh exports and print checks per lump; a "lumps touch along a line
+or at a point" DFM flag; the lump count on the BOM row.
+
+## D205 — A piece misjudged where a surface only touches it is judged again; a lump touching itself there is refused, typed (2026-10-23)
+
+**Finding.** L4 fuzz 56, shrunk: a box less (a cylinder r 2 tangent inside two of its sides ∪ a box). Refused as "not a
+manifold solid (edge … has 1 uses)": a wrong message for a right answer. One half of the cylinder's wall classified
+**same**, as on the other solid's surface: its interior point, its domain's middle, lies on the line where the box's
+side y = 0 only touches the wall. The difference keeps no such piece, so the half was dropped. The same misjudgement
+made two lumps that only touch there unbuildable, against D204's contract.
+
+**Fix (`src/analytic-boolean.ts`).**
+- **Re-judge.** A non-planar piece classified same or opposite is judged again at the points of a 6 × 6 grid over its
+  domain box that lie in it (`clearWhere`). The first clear one, in or out, decides, and the touch point is kept. A
+  piece on a truly coincident surface has no clear point and stays as it was.
+- **Then, at each such touch** (`selfTouch`), the result is classified body by body a step either side along that
+  surface's normal (10³ tolerances):
+  - **empty on both sides** (a zero wall, two cavities meeting) or **one body on both sides:** one lump touching itself.
+    Refused, typed: "the result's boundary touches itself at (x, y, z), where one surface only touches another: not a
+    manifold solid", even with no vertex or edge there;
+  - **two different bodies:** two lumps that only touch, so two bodies, as D204 has them.
+- **A result that is not strictly valid or not watertight body by body is not trusted.** The Boolean runs again
+  without the re-judging and gives today's answer.
+
+**Coordinator's rulings (2026-10-23).**
+- A lump whose boundary touches itself, geometrically, at a point or along a line is not a manifold solid.
+  part-model.test's two cavities tangent at a point stay refused. Were it a solid, the exact body is
+  8000 − 4π·20 − 9π·20 = 7183.1859 mm³; the kernel's re-judged pieces gave 7183.185910, but it is refused.
+- **56b, shrunk:** its hole's wall touches the outer face along a line, so it is refused. It is in
+  `robustness/corpus/fuzz/fuzz-20261023-56b.json` as an expected refusal.
+- **One inconsistency stays.** On the prismatic route, a crescent is the same geometry: a wall tangent inside a hole,
+  touching along a line. It is still accepted (KNOWN-CRESCENT, D195), by its convention and the call to keep saved
+  documents resolving. On the analytic route the same geometry (56b) is refused. In the crescent case, D195's DFM
+  zero-wall flag is what tells the person.
+
+**Results:**
+- L4 fuzz seed 20261024 #165 and seed 20261023 #56 are refusals, never INVALID: #56 as a self-touch, #165 by today's
+  path, its re-judged result not valid.
+- A box and a cylinder tangent to its face from outside (both turned 30° about X) are two bodies, either way round:
+  8 · 3 · 8 + π · 4 · 4 mm³, exact. With D204 alone they are refused.
+
+**Tests:** `test/boolean-tangent-piece.test.mjs`, both failing before:
+- 56b and the two cavities: refused, typed;
+- the box and tangent cylinder, both ways round: two bodies, the tool's lump first, the exact volume.
+part-model.test's pinned refusal passes unchanged: the message keeps "touch along an edge or at a vertex".
+
+## D207 — A traced curve's box in the arrangement allows for its bulge between samples (2026-10-23)
+
+**Finding.** L4 fuzz 173, shrunk: (a cylinder ∪ a cone) ∩ an open box. Refused as "not a manifold solid (edge … has 1
+uses)". The union's cylinder face is bounded by the traced cylinder–cone curve. The box's wall planes cut it along
+v = 3 and v = 3.5, and each cut ends on that curve. The arrangement looks for crossings only between pieces whose boxes
+meet, and a traced curve's box was its 64 samples' own. At v = 3 the curve bulges 3 µm past its samples, so the cut's
+end lay outside the box. The crossing was never looked for, the face was not divided and the stitch refused.
+
+**Fix (`src/curved-arrangement.ts`, `arrange`).** A general curve's box there is the samples' box padded by the
+longest chord, as `surelyOff` already uses.
+
+**Result:** 173 is valid and watertight, 2.886668 mm³ against the oracle's 2.886570 ± 3.5e-4 (0.3 e). It is in
+`robustness/corpus/fuzz/`.
+
+**Test:** `test/boolean-curve-box.test.mjs`, failing before.
+
+## D208 — A traced curve through a pole of one surface on the other goes on to the pole (2026-10-23)
+
+**Finding.** L4 fuzz 158, shrunk: a cylinder less a cone whose apex lies on the cylinder's wall. Refused as "not a
+manifold solid (edge … has 1 uses)". The intersection passes through the apex, where the cone's normal is undefined,
+and the march stopped 1e-4 short of it. The cut ended short of the domain's side at the apex, so the cone's face inside
+the cylinder was not divided. That face was judged out and dropped.
+
+**Fix (`src/analytic-boolean.ts`, `toPoles`).** An open chain whose end lies within a marching step of a pole of one
+face's surface goes on to that pole when:
+- the pole lies on the other surface (to the tolerance), and
+- the pole lies inside both faces' domain boxes.
+
+On the pole's own surface, the added point keeps the free coordinate of the end it continues.
+
+**Result:** 158 is valid and watertight, 70.884043 mm³ against the oracle's 70.884004 ± 6.2e-4 (0.1 e). It is in
+`robustness/corpus/fuzz/`.
+
+**Test:** `test/boolean-apex-on-wall.test.mjs`, failing before.
+
+## D209 — A curved piece pinched at a vertex is measured (2026-10-23)
+
+**Finding.** L4 fuzz 137, shrunk: a box ∪ a cone, a corner of the box on the cone's top circle. Refused as "Planar face
+could not be triangulated". The cone's piece outside the box is one ring through that vertex twice: a hole touching the
+boundary at that point. The stitch takes each shell's volume, for its sign, from the pieces' domain polygons, and ear
+clipping failed on the pinch.
+
+**Fix (`src/analytic-boolean.ts`, `triangulatePinched`).** When that triangulation fails, the outer ring is cut where
+it passes a point twice (within the tolerance) into simple rings, each triangulated. A ring turning the other way (the
+touching hole) is triangulated reversed and counts negatively. Other failures, and pieces with holes, throw as before.
+
+**Results:**
+- 137 is valid and watertight, 118.418014 mm³ against the oracle's 118.418097 ± 5.9e-4 (−0.1 e);
+- 125, refused the same way, is valid and watertight, 341.342932 mm³ against 341.341578 ± 1.2e-2 (0.1 e).
+
+Both are in `robustness/corpus/fuzz/`.
+
+**Test:** `test/boolean-pinched-piece.test.mjs`, failing before.
+
+## D210 — A planar piece whose middle lies where a surface only touches it is judged again too (2026-10-23)
+
+**Finding.** L4 fuzz 15, shrunk: a box ∪ a cylinder r 1 under it, touching its bottom face along a line through that
+face's middle. Refused as "not a manifold solid (edge … has 1 uses)". The bottom face's interior point lies on the
+line of touch, so the face was judged opposite (on the cylinder) and dropped. D205's re-judging covered curved pieces
+only.
+
+**Fix (`src/analytic-boolean.ts`).** The re-judging applies to planar pieces too. A planar piece on a coplanar face has
+no clear point, so it stays as it was. D205's self-touch check and its fallback apply unchanged.
+
+**Result:** 15 is two bodies, as D204's contract has them: 36.566371 mm³, 3 · 4 · 2 + π · 4, either way round. It is
+in `robustness/corpus/fuzz/` with `bodies: 2`.
+
+**Test:** `test/boolean-tangent-plane-piece.test.mjs`, failing before: two bodies, strictly valid, the exact volume,
+both orders.
+
+## D211 — K11 (F5's remainder): a foot on a patch's edge is solved along that edge, and the iteration stops at the rounding floor (2026-10-23)
+
+**Finding.** A9's turning report (cad-model's `exactNormals`) makes 72 914 foot queries, with 4 220 974 first-derivative
+and 887 602 second-derivative calls. 33 988 of the queries (47 %) ran all 30 steps. Those are points 3–12 mm off a
+patch, because a display face's exact normal is taken from the nearest of its B-rep pieces, so each point is also
+queried against the pieces it does not lie on. In 400 sampled queries every foot lay on a patch edge (none at a corner).
+Two things kept the iteration from stopping:
+- **On the edge**, the step solved in both parameters and then clamped kept pointing out, and its free part, coupled to
+  the clamped one, crawled.
+- **At the rounding floor**, where distance × curvature exceeds 1, Gauss–Newton's step grew about sixfold each time
+  from the rounding noise. The halving test accepts a step that does not increase the distance beyond 1e-12, so the
+  step test never held.
+
+On a torus patch, from points 4–16 mm off its tube, 197 of 604 feet on an edge ran all 30 steps, up to 5e-4 mm short
+of the nearest point.
+
+**Fix (`src/surface-closest.ts`).**
+- On a domain edge with the step pointing out of it, only the other parameter is solved for: Gauss–Newton along the
+  edge's curve, and in the slow case Newton with that parameter's second derivative.
+- When a small step (below 1e-8 of the domain) is larger than the last one and the distance did not fall, the iteration
+  stops at the point before.
+
+A first version that stopped when the distance no longer fell measurably stopped too early: on the K4 cylinder, feet
+were up to 2.6e-7 mm off.
+
+**Results:**
+
+| Measure (A9, `--cpu-prof`) | Before | After |
+|---|---|---|
+| `turningOf` | 8.1 s | 4.4 s |
+| `closestPointOnSurface` | 8.0 s | 4.2 s |
+| First-derivative calls | 4 220 974 | 1 396 442 |
+| Second-derivative calls | 887 602 | 76 652 |
+| Queries at the 30-step cap | 33 988 | 148 |
+
+Accuracy:
+- **400 sampled capped queries:** every foot is at least as near as the old code's after 2000 steps, up to 2.4e-10 mm
+  nearer; the feet moved by up to 1.9e-5 mm.
+- **K4's cylinder:** worst foot error 1.6e-11 mm (2.6e-11 before).
+- **The torus edge feet:** within 9e-15 of the scan oracle.
+- A9 passes.
+
+**Test:** `test/k11-closest-edge.test.mjs`, failing before: torus edge feet within 1e-9 of a dense-scan oracle, and at
+most 1 in 20 at the step cap.
+
+## D206 — A cross-section past a cylinder face's seam goes on from the domain's other side (2026-10-23)
+
+**Finding.** L4 fuzz 151, shrunk: a box less (a cylinder ∪ a ball). Refused as "not a manifold solid (edge … has 1
+uses)". The box's bottom plane cuts the cylinder, whose face spans 270°. The plane's circle is probed in the cylinder's
+domain as two half turns, from a quarter turn before the face's seam. The second half ran past the domain's window,
+u up to s·r·(ref + π). The face's boundary beyond the seam lies at the window's other end, so the half never met it.
+The plane's interval on the wall came out wrong, the bottom face got no cut and the stitch refused. L4 fuzz 46 (three
+(a cylinder ∪ a box) in a row) was the same.
+
+**Fix (`src/analytic-boolean.ts`, `wrappedPast`).** On a cylinder, the part of a probe half that runs past the
+window is moved by one turn to the window's other side and probed there too. The halves themselves stay as they
+are. Only crossings the halves did not find (more than 10 tolerances from theirs) are added: on a face round the
+whole turn, the seam's crossing is found by both.
+
+A first version cut each half at the window's end instead. It changed the rounding of crossings on faces that were
+never wrong, and so the frozen robot MJCF/USD exports' last digits. The version above leaves them bit for bit.
+
+**What else it changes: X2 (the outer lane's ruling, 2026-10-23).** The hub bore's B–B section circle used to be cut by
+an arc running 0° → 342.5°, into the keyway gap and off the face. The section plane's own interval clipped it, so the
+section looked right but its edge was split at 171.3°, that arc's middle. Now the arc runs 17.5° → 342.5° and splits
+at 180°, the bore's extreme point.
+
+X2's d + t2 22.8 moves from top to section:B. From the top, its bore end lies under the shaft's Ø25 step, so the top
+cannot show both ends visible. The old 'top' rested on the misjudged arc's split at 171.3°. DIMENSION_LOST's count on removing B–B goes 2 → 3 with it.
+
+In `packages/barocss-cad-model/test/section-dimensions.test.ts` (the outer lane's values):
+- the hub's view is section:B;
+- 22.8 is among the section's values;
+- dropping the section loses three dimensions, not two;
+- the comments say why.
+
+**Results:**
+- 151 is valid and watertight, 60.488911 mm³ against the oracle's 60.488757 ± 1.2e-3 (0.1 e);
+- 46 is valid and watertight, 601.815458 mm³ against 601.816864 ± 4.8e-2 (−0.0 e).
+
+Both are in `robustness/corpus/fuzz/` with the oracle's volume, centroid and body count.
+
+**Tests:** `test/boolean-seam-wrap.test.mjs`, failing before: both trees strictly valid, watertight and within 3 e of
+the ray oracle.
+
+## D212 — R5.1a: bit-identical copies of the vec3 helpers import them from `vec3.ts` (2026-10-23)
+
+**What.** 56 module-level copies of `add`, `sub`, `scale`, `dot`, `cross`, `len`, `unit` and `lerp` in 23 files now
+import the one in `src/vec3.ts`. A copy with another local name imports with an alias (`add as addV`, `cross as
+crossOf`, …). brep-tessellate's `unit3` calls now read `unit`.
+
+Only copies whose body is vec3's expression, operation for operation, were taken. A script checked each one against
+vec3's text with its parameters renamed. **Left as they are:**
+- `unit` that divides with no zero-vector fallback: connector, shaft-parts, facet-split, library-fit, gear-bevel;
+- `unit` that multiplies by the reciprocal: sheet-flat, spring;
+- `unit` that throws: sweep-solid;
+- subd-sd2's `lerp`, written `a + t·(b − a)`.
+
+**Traps.** No touched file is in the modeling facade closure or an internal-leaf allowlist, so no test changed.
+
+**Checks:**
+- type-check, lint;
+- T2 (brep core: brep-check-geometry, brep-mass-quadrature, brep-tessellate);
+- the test names identical to D206's run;
+- the R5 fingerprint identical (command and digests below).
+
+**Fingerprint** (`node scratch/r5/fp.mjs <package> <out> 3` after a full `build:library`; 855 cases — every RB corpus
+case and fuzz seeds 20261023/20261024 × 200): before (D206, 0845714bb) and after, sha256
+`ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical. T2: kernel suite (the known
+Node-version demo test only), RB, fuzz on both seeds (INVALID 0, WRONG 0, refusals unchanged), cad-model 976/976,
+studio 266/266; the passing test names identical to D206's run (B9's timing test, failed there under load, passes).
+
+## D213 — R5.1b: `|a − b|` is `vec3.dist` (2026-10-23)
+
+**What.** `vec3.ts` gains `dist(a, b) = Math.hypot(a[0] − b[0], a[1] − b[1], a[2] − b[2])`. The five identical module
+copies import it:
+- brep-check-geometry and fit-plain, `dist`;
+- sew-solid, `dist`;
+- brep-core, `distance`;
+- extruded-profile-solid, `d3`.
+
+vec3 is not exported from index, so the public surface is unchanged.
+
+**Left as they are:**
+- the 2D distances;
+- squared distances;
+- `hypot(...a.map(...))` forms;
+- the checked (`finite`-wrapped) copies.
+
+**Checks:** type-check, lint, T2 (brep-core), the test names identical to the last run, the R5 fingerprint identical.
+
+**Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D212's. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; cad-model 976/976, studio 266/266; test names identical.
+
+## D214 — R5.1c: one Gauss–Legendre `gauss(n)` in `quadrature.ts`; curved-arrangement's two 8-point tables are one (2026-10-23)
+
+**What.**
+- brep-mass-quadrature (an arrow) and loft (a function) each computed `gauss(n)` on [0, 1] by the same Newton
+  iteration. The arithmetic was identical; only the step variable's name differed. It is now `export function gauss`
+  in `src/quadrature.ts`, loft's text unchanged.
+- curved-arrangement held the same hard-coded 8-point table twice, `GL8` and `GL`. `GL` goes and its three uses read
+  `GL8`.
+
+**Left as they are:**
+- spring's table on [−1, 1] (another node formula and other weights);
+- the hard-coded 12-, 5- and inline tables in extruded-profile-solid, sheet-flat and revolve;
+- the closed-form 3- and 5-point rules in cad-curve-arc-length and cad-surface-area.
+
+**Checks:** type-check, lint, T2 (brep-mass-quadrature), the test names identical, the R5 fingerprint identical.
+
+**Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D213's. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; cad-model 979/979, studio 267/267; kernel test names identical (cad-model/studio differ only by the outer lane's O7 tests merged meanwhile).
+
+## D215 — R5.1d: `guardKnots` once, in `knot-guard.ts` (2026-10-23)
+
+**What.** compatible-ruled-surface, curve-control-polygon, curve-knot-insertion, curve-parameter-split and
+z-axis-revolved-surface each defined the same three-line `guardKnots(knots, degree, min, max)`. It now lives in
+`src/knot-guard.ts`, text unchanged, and they import it. surface-knot-insertion's `guardKnots(surface)` is another
+function and stays.
+
+**Checks:** type-check, lint, T2, the test names identical, the R5 fingerprint identical.
+
+**Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D214's. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; cad-model 979/979, studio 267/267; test names identical.
+
+## D216 — R5.2a: the mass quadrature's inverter picks its four nearest grid points without sorting all 625 (2026-10-23)
+
+**What (`src/brep-mass-quadrature.ts`).** When a hint misses, the inverter used to map all 625 grid points to
+`{ g, d }` objects, sort them and slice off four. `nearestGridPoints` now keeps the four nearest in one pass, into a
+reused array:
+- the squared distance is the same expression, `dx·dx + dy·dy + dz·dz` in that order, as `dot(sub, sub)`;
+- a point joins only when strictly nearer than the fourth;
+- it goes in after every kept point at the same or a smaller distance, so ties keep the grid's order, as the stable
+  sort did;
+- a distance that is not a number takes the old sort's path.
+
+Newton's step also builds its two partials and the final distance without the `.map` closures and the spread; the
+values are the same.
+
+**Tie-breaking, proved on constructed ties** (`test/r5-nearest-grid.test.mjs`, against the stable sort written as it
+was):
+- a 25 × 25 integer lattice with p on a lattice point, at a cell centre, on an edge midpoint and off the grid, so the
+  fourth place falls inside a tie of 4 or 8;
+- a grid with one point repeated 25 times (a pole's row);
+- 300 random grids on a coarse step, many of them tied, some with fewer than four points;
+- a NaN distance.
+
+Both mutations fail it: `>=` for `>` in the shift, and `<=` for `<` at the fourth.
+
+**Measured:** massProperties over the 400 fuzz documents' outputs went from 58.3 s to 51.5 s, best of 3 (load 25,
+indicative).
+
+**Checks:** type-check, lint, T2 (brep-mass-quadrature is brep core), the test names identical plus the new test, the
+R5 fingerprint identical.
+
+**Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; RB no new rows; the passing test names identical to the previous step.
+
+## D217 — R5.2b: the rolling-ball Newton solvers build their arrays without per-iteration closures (2026-10-23)
+
+**What (`src/rolling-ball.ts`).** `solveStation`, `solveCorner` and `solveCliff` built, on every Newton iteration:
+- the Jacobian rows by `[0, 1, 2, 3].map(() => …)`;
+- each finite-difference point by `q.map((x, i) => i === k ? x ± h : x)`;
+- the right-hand side by `f.map(x => -x)` (and `[-x]` / `x[0]` for the dense solve);
+- the damped step's point by `q.map((x, i) => x + λ·step[i])`.
+
+They are now array literals with the same expressions. An unchanged coordinate is copied, not given `+ 0`, so a −0
+stays −0. `hs` is a literal.
+
+**Measured:** evaluating the 194 fuzz documents with fillets took 103.6 s before and 100.2 s after, best of 3 at load
+8–18. The difference is within the noise; the change removes the allocations and changes no value.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch A (R5.2b–e)'s end: the kernel suite, RB
+and the R5 fingerprint, byte-identical (see the batch line below).
+
+**Batch bA:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D218 — R5.2c: brep-tessellate's triangle adjacency and refinement tests build no edge arrays per call (2026-10-23)
+
+**What (`src/brep-tessellate.ts`, both the LEPP path and the freeform path).** `link`, `unlink`, `widest` and `bent`
+ran on every triangle touched by refinement, flips and insertions. Each built a `[[a, b], [b, c], [c, a]]` array, and
+`widest`/`bent` added a `reduce`/`some` closure.
+
+They now take the three edges in that order by name:
+- the adjacency sets receive their triangles in the same order, which decides `across`'s and `bisect`'s neighbour
+  order;
+- `widest` keeps the first of the longest, as the reduce did;
+- `bent` short-circuits in the same order.
+
+**Measured:** tessellating the 400 fuzz documents' outputs took 5.56 s before and 5.40 s after, best of 3 at load
+about 16. Most fuzz bodies take the analytic fast paths.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch A (R5.2b–e)'s end: the kernel suite, RB
+and the R5 fingerprint, byte-identical (see the batch line below).
+hashes every tessellation) identical.
+
+**Batch bA:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D219 — R5.2d: analytic-boolean's `nearestOn` has no distance closure per call (2026-10-23)
+
+**What (`src/analytic-boolean.ts`).** `nearestOn(k, x)` made a closure `d(u) = |k(u) − x|` on each call and called it
+about 185 times: 65 samples and 60 golden-section steps, two calls each. It is now the module-level
+`distanceOn(k, x, u)`. The expressions and the search are unchanged.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch A (R5.2b–e)'s end: the kernel suite, RB
+and the R5 fingerprint, byte-identical (see the batch line below).
+
+**Batch bA:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D220 — R5.2e: surface-intersection's `onBoth` builds its least-squares system in loops (2026-10-23)
+
+**What (`src/surface-intersection.ts`).** Every Newton iteration of `onBoth` (40 at most, on every marching step and
+every seed) built:
+- the 3 rows by `[0, 1, 2].map`;
+- J Jᵀ by nested `rows.map`;
+- the right-hand side by `rows.map`;
+- copies of both for the solve;
+- the step by `[0, 1, 2, 3].map(j => rows.reduce(…, 0))`.
+
+These are now literal rows and loops:
+- J Jᵀ's entries are the same four-term sums in the same order;
+- the step sums from 0, as the reduce did;
+- the solve gets the fresh arrays directly. It mutates them, and nothing else reads them.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch A (R5.2b–e)'s end: the kernel suite, RB
+and the R5 fingerprint, byte-identical (see the batch line below).
+through every Boolean of curved faces.
+
+**Batch bA:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D221 — R5.3a: the gear features leave part-model.ts's operation() for `part-gears.ts` (2026-10-23)
+
+**What.** The operation() cases for spur-gear, internal-gear, bevel-gear, worm, worm-wheel and spur-rack are now `gearOperation` in `src/part-gears.ts`, as they were, and the dispatcher's case for
+those kinds is one line. GEAR_CODES moves with them (only they use it). Helpers: `isRecord`.
+
+How (the same for every R5.3 step):
+- A script took the cases' text verbatim, checked line for line against the previous part-model.ts.
+- The module imports only types from part-model, so no new import cycle exists.
+- Part-model values the cases use come in `HELPERS`, a frozen record built once at the end of part-model.ts. They stay
+  there because they share its state (the facet limit) or sit on its `boolean`, which `frk-6-ordered-trim.test`'s
+  coverage trap pins to `part-model.js`.
+- `Result`, `Tools`, `Solid`, `Part` and the like are now exported as types. index.ts re-exports part-model by name, so
+  the public surface is unchanged.
+- part-model.ts's imports only these cases used are removed.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch B (R5.3a–g)'s end: the kernel suite, RB, cad-model and studio
+and the R5 fingerprint, byte-identical (see the batch line below).
+
+**Batch bB:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D222 — R5.3b: the machine-element features leave part-model.ts's operation() for `part-machine.ts` (2026-10-23)
+
+**What.** The operation() cases for connector-opening/-body, oring-gland, oring, bearing, key, retaining-ring, pin, keyway, shaft, spring, sprocket, pulley, belt, coupling, cam and thread are now `machineOperation` in `src/part-machine.ts`, as they were, and the dispatcher's case for
+those kinds is one line. Their eight code tables move with them. Helpers: `isRecord`, `brepOf`.
+
+How (the same for every R5.3 step):
+- A script took the cases' text verbatim, checked line for line against the previous part-model.ts.
+- The module imports only types from part-model, so no new import cycle exists.
+- Part-model values the cases use come in `HELPERS`, a frozen record built once at the end of part-model.ts. They stay
+  there because they share its state (the facet limit) or sit on its `boolean`, which `frk-6-ordered-trim.test`'s
+  coverage trap pins to `part-model.js`.
+- `Result`, `Tools`, `Solid`, `Part` and the like are now exported as types. index.ts re-exports part-model by name, so
+  the public surface is unchanged.
+- part-model.ts's imports only these cases used are removed.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch B (R5.3a–g)'s end: the kernel suite, RB, cad-model and studio
+and the R5 fingerprint, byte-identical (see the batch line below).
+
+**Batch bB:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D223 — R5.3c: the edge finishes leave part-model.ts's operation() for `part-finish.ts` (2026-10-23)
+
+**What.** The operation() cases for fillet and chamfer are now `finishOperation` in `src/part-finish.ts`, as they were, and the dispatcher's case for
+those kinds is one line. Helpers: `finishEdges` (the shells use it too, so it stays), `CadPartLimits`.
+
+How (the same for every R5.3 step):
+- A script took the cases' text verbatim, checked line for line against the previous part-model.ts.
+- The module imports only types from part-model, so no new import cycle exists.
+- Part-model values the cases use come in `HELPERS`, a frozen record built once at the end of part-model.ts. They stay
+  there because they share its state (the facet limit) or sit on its `boolean`, which `frk-6-ordered-trim.test`'s
+  coverage trap pins to `part-model.js`.
+- `Result`, `Tools`, `Solid`, `Part` and the like are now exported as types. index.ts re-exports part-model by name, so
+  the public surface is unchanged.
+- part-model.ts's imports only these cases used are removed.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch B (R5.3a–g)'s end: the kernel suite, RB, cad-model and studio
+and the R5 fingerprint, byte-identical (see the batch line below).
+
+**Batch bB:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D224 — R5.3d: the mesh and import features leave part-model.ts's operation() for `part-mesh.ts` (2026-10-23)
+
+**What.** The operation() cases for import, subd, sew, mesh, decimate and separate are now `meshOperation` in `src/part-mesh.ts`, as they were, and the dispatcher's case for
+those kinds is one line. Helpers: `stepSizeProblem`, `splitBodies`, `brepOf`, `meshArrayOk`, `facetBody`, `facetTriangles`, `brepBodies`, `CadPartLimits`.
+
+How (the same for every R5.3 step):
+- A script took the cases' text verbatim, checked line for line against the previous part-model.ts.
+- The module imports only types from part-model, so no new import cycle exists.
+- Part-model values the cases use come in `HELPERS`, a frozen record built once at the end of part-model.ts. They stay
+  there because they share its state (the facet limit) or sit on its `boolean`, which `frk-6-ordered-trim.test`'s
+  coverage trap pins to `part-model.js`.
+- `Result`, `Tools`, `Solid`, `Part` and the like are now exported as types. index.ts re-exports part-model by name, so
+  the public surface is unchanged.
+- part-model.ts's imports only these cases used are removed.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch B (R5.3a–g)'s end: the kernel suite, RB, cad-model and studio
+and the R5 fingerprint, byte-identical (see the batch line below).
+
+**Batch bB:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D225 — R5.3e: the shell and thicken features leave part-model.ts's operation() for `part-shell.ts` (2026-10-23)
+
+**What.** The operation() cases for shell and thicken are now `shellOperation` in `src/part-shell.ts`, as they were, and the dispatcher's case for
+those kinds is one line. Helpers: `shellOf`, `CadPartLimits`.
+
+How (the same for every R5.3 step):
+- A script took the cases' text verbatim, checked line for line against the previous part-model.ts.
+- The module imports only types from part-model, so no new import cycle exists.
+- Part-model values the cases use come in `HELPERS`, a frozen record built once at the end of part-model.ts. They stay
+  there because they share its state (the facet limit) or sit on its `boolean`, which `frk-6-ordered-trim.test`'s
+  coverage trap pins to `part-model.js`.
+- `Result`, `Tools`, `Solid`, `Part` and the like are now exported as types. index.ts re-exports part-model by name, so
+  the public surface is unchanged.
+- part-model.ts's imports only these cases used are removed.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch B (R5.3a–g)'s end: the kernel suite, RB, cad-model and studio
+and the R5 fingerprint, byte-identical (see the batch line below).
+
+**Batch bB:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D226 — R5.3f: the sheet-metal features leave part-model.ts's operation() for `part-sheet.ts` (2026-10-23)
+
+**What.** The operation() cases for sheet-base, sheet-contour, sheet-corner-relief and sheet-flange are now `sheetOperation` in `src/part-sheet.ts`, as they were, and the dispatcher's case for
+those kinds is one line. Helpers: `bendK`, `frameOf`, `framed`, `placed`, `sheetCornerRelief`, `sheetFlange`, `withSheet`, `CadPartLimits`.
+
+How (the same for every R5.3 step):
+- A script took the cases' text verbatim, checked line for line against the previous part-model.ts.
+- The module imports only types from part-model, so no new import cycle exists.
+- Part-model values the cases use come in `HELPERS`, a frozen record built once at the end of part-model.ts. They stay
+  there because they share its state (the facet limit) or sit on its `boolean`, which `frk-6-ordered-trim.test`'s
+  coverage trap pins to `part-model.js`.
+- `Result`, `Tools`, `Solid`, `Part` and the like are now exported as types. index.ts re-exports part-model by name, so
+  the public surface is unchanged.
+- part-model.ts's imports only these cases used are removed.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch B (R5.3a–g)'s end: the kernel suite, RB, cad-model and studio
+and the R5 fingerprint, byte-identical (see the batch line below).
+
+**Batch bB:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D227 — R5.3g: the frame and weldment features leave part-model.ts's operation() for `part-frame.ts` (2026-10-23)
+
+**What.** The operation() cases for frame-member, frame, gusset, end-cap and weld-bead are now `frameOperation` in `src/part-frame.ts`, as they were, and the dispatcher's case for
+those kinds is one line. The frame helpers (members, corners, trims, gussets, beads) stay in part-model.ts: they build on its Boolean. They come in the helpers (22 of them). part-model.ts is now 3627 lines (4443 before R5.3).
+
+How (the same for every R5.3 step):
+- A script took the cases' text verbatim, checked line for line against the previous part-model.ts.
+- The module imports only types from part-model, so no new import cycle exists.
+- Part-model values the cases use come in `HELPERS`, a frozen record built once at the end of part-model.ts. They stay
+  there because they share its state (the facet limit) or sit on its `boolean`, which `frk-6-ordered-trim.test`'s
+  coverage trap pins to `part-model.js`.
+- `Result`, `Tools`, `Solid`, `Part` and the like are now exported as types. index.ts re-exports part-model by name, so
+  the public surface is unchanged.
+- part-model.ts's imports only these cases used are removed.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch B (R5.3a–g)'s end: the kernel suite, RB, cad-model and studio
+and the R5 fingerprint, byte-identical (see the batch line below).
+
+**Batch bB:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D228 — O10: `evaluateCadPart(…, { profile: true })` gives each feature its wall time and kernel calls (2026-10-23)
+
+**What (additive public option).**
+- `CadPartEvaluationOptions.profile?: boolean`.
+- With it, `snapshot.profile` maps each feature id to `{ ms, calls }`:
+  - `ms` is the feature's own **wall time**, by `performance.now()` (the clock the package already uses, in
+    mesh-decimate);
+  - `calls` is `{ booleans, planarBooleans, tessellations, sweeps, shells, finishes }`.
+- New exported types: `CadPartProfileCalls` and `CadPartFeatureProfile`.
+- `withParameters`/`withDocument` keep the option; a reused feature's entry is its lookup.
+
+**Where the calls are counted** (the part model's own entry points, in `src/part-model.ts`):
+
+| Counter | Entry point |
+|---|---|
+| `booleans` | the Boolean dispatcher `boolean` |
+| `planarBooleans` | `planarBoolean` |
+| `tessellations` | `clearanceAbove`'s tessellation (the holes' obstruction test) |
+| `sweeps` | `sweepBrep` (stepped paths) and the curved path's `sweepSolid` |
+| `shells` | `shellOf`, each call including nested ones |
+| `finishes` | `finishEdges` (fillets and chamfers) |
+
+Calls made by a machine element's own sub-evaluation count for the feature that made it. A body's B-rep or mesh built
+lazily, after the evaluation, is not counted.
+
+**Off (the default).**
+- Each feature takes the `if (profile)` test twice. Each counted call takes one `if (profiling)` test on a
+  module-level variable that is null.
+- There is no allocation and no closure, and `snapshot.profile` is absent.
+
+**Test:** `test/o10-profile.test.mjs`:
+- every feature has an entry, frozen, with a finite `ms` and integer calls;
+- unions and differences count Booleans, fillets count finishes, and sketches count nothing;
+- the body's volume and centroid are bit-identical with and without the option;
+- the profile is kept through `withDocument`.
+
+**Checks:** build, tsc, lint; the new test, the Boolean tests and the trap tests (80 files); the kernel suite (the known Node-version demo test only) and RB; the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical with the option off and with it on.
+
+## D229 — R5.4 batch 1: the part, machine, io, mesh, frame-sheet and language modules move into folders (2026-10-23)
+
+**What.** 53 files of `packages/barocss-cad/src` move into folders, unchanged but for their import specifiers:
+
+| Folder | Modules |
+|---|---|
+| `src/part/` | part-model and the seven part-* family modules |
+| `src/machine/` | bearing, cam, connector, drive, fits, the six gear modules, oring, shaft, shaft-parts, spring, thread-helical, thread-solid |
+| `src/io/` | dxf-writer, iges, iges-import, step, step-import, stl |
+| `src/mesh/` | the mesh-*, facet-* modules, triangle-bvh, voxel-field |
+| `src/frame-sheet/` | frame-cutlist, frame-section, frame-weldment, sheet-flat, sheet-metal |
+| `src/language/` | expression-parser, source-ast, semantic-model, lower-model |
+
+**How references keep resolving.**
+- A script (`git mv`, then every relative specifier recomputed) rewrote the imports of 69 src files, `index.ts` among
+  them. Basenames stay unique.
+- The kernel exports only `.`, so there are no shims: importers point at the new paths.
+- Outside src, the same commit updates every `dist/<name>.js` and `src/<name>.ts` path to a moved module: the tests
+  expression-ast, model-compiler, r12b-s0, r12c-s0 and source-ast, and `examples/cad-nurbs/iges-import-demo.mjs`.
+- The frozen ledgers under `examples/physics-*/` (source-freeze, base-tracked-ledger, precode-provider-hashes) are
+  records their scripts write, and no check reads them back. They stay as written.
+
+**Left at the root on purpose.** `model-compiler` stays: modeling.ts imports it as `./model-compiler.js`, the shape the
+opt-in `modeling-offset` admission trap keys on. It moves with the modeling closure, or stays, in batch 4.
+
+**Traps.**
+- `frk-6-ordered-trim`'s coverage trap finds the script ending `/part-model.js`, still true at `dist/part/`.
+- The modeling facade traps key by basename. `model-compiler`, their one provider in reach, did not move.
+- source-ast.test reads `../src/language/source-ast.ts`; its one import is still `./expression-parser.js`, a sibling.
+
+**Checks:** a full build (dist cleared), tsc, lint; the moved modules' tests and the trap tests; the kernel suite, RB
+and the R5 fingerprint; cad-model and studio (through index.ts); the moved demo run once.
+`apps/library-docs/evidence/current-public-api.json` stays at its pinned sourceCommit. The docs owner's next
+`--write-current` records the new source paths.
+
+**Checks run:** build, tsc, lint; 75 tests of the moved modules and the 20 trap tests (1021 tests); the kernel suite (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`) byte-identical; cad-model 983/983, studio 274/274; iges-import-demo passes with the new path.
+
+## D230 — R5.4 batch 2: the NURBS, exact-proof, intersection, paired and translated-strip modules move into folders (2026-10-23)
+
+**What.** 139 kernel src files move, unchanged but for their import specifiers:
+
+| Folder | Files | Modules |
+|---|---|---|
+| `src/nurbs/curves/` | 22 | bezier-curve-degree-elevation, cad-curve-arc-length, curve-adaptive-sampling, curve-bezier-spans, curve-bezier-subdivision-internal, curve-c0-degree-elevation-internal, … |
+| `src/nurbs/surfaces/` | 18 | cad-surface-area, compatible-ruled-surface, degree-matched-bezier-ruled, local-curvature, rational-ruled-surface, surface-axis-reversal, … |
+| `src/nurbs/source-wide/` | 20 | curve-wide-adaptive-sampling, curve-wide-control-polygon, curve-wide-cubic-plane-intersection, curve-wide-plane-intersection, curve-wide-refinement, curve-wide-reversal, … |
+| `src/exact-proof/` | 23 | exact-affine-plane-internal, exact-binary64-orientation-v1, exact-boundary-face-adjacency, exact-collinear-segment-overlap-v1, exact-paired-vlinear-polynomial-internal, exact-paired-vlinear-surface-intersection, … |
+| `src/intersect/` | 25 | multispan-vlinear-plane-section, multispan-vlinear-plane-trim, multispan-vlinear-plane-trim-classification, own-affine-plane-loop-internal, own-coincident-plane-clip, own-convex-loop-clip, … |
+| `src/paired/` | 19 | paired-roof-body-split, paired-roof-body-split-proof-internal, paired-roof-difference-body, paired-roof-difference-body-construction-internal, paired-roof-difference-body-proof-internal, paired-roof-difference-body-world-points, … |
+| `src/translated-strip/` | 12 | qualified-strip-binary-stl, qualified-translated-strip-body, qualified-translated-strip-body-mesh, qualified-translated-strip-body-mesh-domain-internal, qualified-translated-strip-material-internal, translated-strip-interval-boolean, … |
+
+**How references keep resolving.** The same script as D229 rewrote the relative specifiers of 179 src files. The same
+commit updates the deep `dist/` and `src/` paths of 102 files outside src: tests, scripts (the `*-test.mjs` esbuild
+entries and native-split-reference-replay) and 58 cad-nurbs demos. robust-orientation-v1.test's hard-coded src path is
+among them.
+
+**Left at the root on purpose:** the modeling closure and its trap-pinned siblings:
+- the facade providers and pure modules;
+- the internal-leaf allowlists;
+- the legacy harnesses' `./` imports: convex-planar-solid, section-rational-internal, convex-planar-solid-proof-internal,
+  own-convex-planar-face, modeling-translation-internal, types;
+- own-plate-circular-hole, which is a provider;
+- numeric-policy;
+- qualified-strip-binary-stl-encoding-internal, which modeling-stl.test resolves beside `modeling.js`.
+
+These are batch 4's.
+
+**Scripts that load an esbuild `outdir` by module name.** `split-persistent-reference-chain-test.mjs` and
+`native-split-reference-replay.mjs` bundle entries from more than one folder, so esbuild keeps the folders under its
+common base. They now import `exact-proof/persistent-face-reference-v1.mjs` from it.
+
+**Checks:** a full build, tsc, lint; the moved modules' tests and the traps; the kernel suite, RB, the R5 fingerprint;
+cad-model and studio; the changed demos that do not pin Node 22.23.3.
+
+**Checks run:** build, tsc, lint; 41 tests of the moved modules and the 20 trap tests; the kernel suite (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`) byte-identical; cad-model 986/986, studio 274/274. The 58 changed cad-nurbs demos: one passes; 57 fail the same way before the move and after it. They import `src/types.js` through Node, which resolves no `.ts`. That is not this change, and the move adds no failure.
+
+## D231 — R5.4 batch 3: the B-rep core, core numerics, document, blend and feature modules move into folders (2026-10-23)
+
+**What.** 87 kernel src files move, unchanged but for their import specifiers. Among them is the B-rep core: brep-core,
+the analytic Boolean, the arrangement, tessellation and mass quadrature.
+
+| Folder | Files | Modules |
+|---|---|---|
+| `src/brep/` | 22 | brep-adapters, brep-bounds, brep-check-geometry, brep-core, brep-euler, brep-glue, brep-hidden-line, … |
+| `src/core/` | 15 | math, derivatives, second-derivatives, vec3, quadrature, dyadic, structural-equality, … |
+| `src/document/` | 12 | cad-document-bounds, cad-document-compatibility, cad-document-export, cad-document-reference, cad-assembly, cad-assembly-instance-point, cad-assembly-members, … |
+| `src/blend/` | 6 | rolling-ball, edge-finish, fillet-section, general-shell, region-shell, offset-cavity |
+| `src/features/` | 32 | boolean-extrusion-feature-graph, boolean-extrusion-feature-graph-serde, boolean-extrusion-feature-lifecycle, boolean-extrusion-parameter-lifecycle, extruded-profile-solid, drafted-extrusion, extrusion-validation, … |
+
+**How references keep resolving.**
+- The D229 script rewrote 293 src files' specifiers and 67 outside files' deep paths. `packages/barocss-cad/README.md`'s
+  `dist/{adjacency,boundary,box-shell,box-solid,derivatives,face,math,orthogonal-adjacency}.js` paths are among them;
+  they are now under `dist/core/`.
+- The two outdir-by-name scripts now also take `features/split-face-evolution.mjs`.
+
+**Left at the root:** types, numeric-policy, data-copy, cad-document, the modeling closure and the trap-pinned planar
+solids. These are batch 4's, as you ruled.
+
+**Checks:** a full build, tsc, lint; the moved modules' tests and the traps; the kernel suite, RB, the R5 fingerprint;
+cad-model and studio; the changed demos, against their run before the move.
+
+**Checks run:** build, tsc, lint; 124 tests of the moved modules and the 20 trap tests (1231 tests); the kernel suite (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`) byte-identical; cad-model 990/990, studio 274/274; the 23 changed demos fail as they did before the move (`src/types.js` through Node, D230).
+
+## D232 — The R5 fingerprint is committed: `packages/barocss-cad/scripts/r5-fingerprint.mjs` (2026-10-24)
+
+**What.** The oracle behind D212–D231's "fingerprint identical" was a scratch script until now. It is committed, without
+its output.
+
+- **What it covers:** every RB corpus case (conformance/ and robustness/corpus/) and the L4 fuzz cases of seeds
+  20261023 and 20261024, 200 each: 855 in all.
+- **What it records per output:** validity and issues, F/E/V, surface area, mass properties as float64 hex, and a
+  sha256 of the tessellation.
+- **What it records per refusal:** its name, code and full message.
+- **Determinism:** cases go to the workers by index, so each worker sees the same cases in the same order.
+- **Rerun:** `pnpm -s build:library && node scripts/r5-fingerprint.mjs [out.jsonl] [jobs]`. Compare the printed sha256,
+  or `cmp` two outputs.
+- **Options:** `FP_PROFILE=1` evaluates with `{ profile: true }` (D228); `FP_LIMIT=n` takes every n-th case.
+
+**Check:** run at D231 (e5fcfa38a) with 4 jobs, it gives the same 855 lines, sha256
+`ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to the scratch script's at D206.
+
+**Refusal texts.** R5 changed none: the fingerprint holds every refusal message in full, identical at every step.
+
+## D233 — R5.4 batch 4: the sketch and planar-solid modules move into folders; the modeling closure stays at the root (2026-10-24)
+
+**What.** The last 72 movable kernel src files move, unchanged but for their import specifiers:
+
+| Folder | Files | Modules |
+|---|---|---|
+| `src/sketch/` | 23 | circle-graph-internal, driven-mixed-sketch-lines, driven-sketch-circle-feature-graph, mixed-workplane-sketch-document, sketch-circle-feature-graph, sketch-rectangle-feature-graph, workplane-sketch-document, … |
+| `src/planar-solids/` | 45 | axis-box-mass-frame, axis-box-point-classification, axis-box-principal-inertia, axis-box-solid-feature-document, axis-rectangle-extrusion, axis-rectangle-feature-document, convex-planar-face-extrusion, … |
+| `src/features/` | 2 | z-axis-revolve-document, z-axis-revolve-preview |
+| `src/core/` | 2 | preview, public-api |
+
+**At the src root now: 40 files.** They are `index.ts` and everything a trap pins beside `modeling.ts` (your ruling):
+- the modeling facade's pure modules and providers (modeling, its `modeling-*-internal` modules, cad-document,
+  data-copy, xy-affine-prism-feature-document-internal, xy-arc, xy-affine-sketch(-prism), xy-circle-prism-shell, the
+  convex-planar-solid providers, axis-box-boolean, axis-box-solid-mass, orthogonal-solid-boolean, own-plate-circular-hole,
+  stored-circle-prism-solid, stored-plate-hole-solid);
+- the internal-leaf allowlists' siblings (convex-planar-solid-proof-internal, section-rational-internal,
+  numeric-policy);
+- the two sha256-pinned legacy harnesses' `./` imports (convex-planar-solid, own-convex-planar-face, types, …);
+- model-compiler (the opt-in offset trap);
+- qualified-strip-binary-stl-encoding-internal (modeling-stl.test).
+
+**How references keep resolving.** The D229 script rewrote 88 src files and 26 outside files. No test addresses a moved
+module as a `./` sibling.
+
+**cad-nurbs demos.** 111 demos named moved modules in two shapes the path rewrite did not cover:
+- a basename list resolved under `src/`: `['index.ts', 'coplanar-face-boolean.ts', …]`;
+- an `index.d.ts` re-export check: `'./coplanar-face-boolean.js'`.
+
+These were missed for batches 1–3 too, so this commit makes all of them folder-qualified.
+
+**Most demos cannot run here, as before R5.** They import `manifest.exports['.'].import`, which is the development entry
+`./src/index.ts` (dist is under `publishConfig`), so Node loads TypeScript directly and does not resolve its `./types.js`
+specifiers. This is not an R5 change. Each batch's changed demos failed the same way before and after their move.
+
+**Checks:** a full build, tsc, lint; the moved modules' tests, the modeling tests and the traps; the kernel suite, RB,
+the R5 fingerprint; cad-model and studio; the changed demos, against their run before the move.
+
+**Refusal table.** `apps/library-docs/docs/reference/_refusals.md` is regenerated in this commit (`node
+scripts/refusals.mjs`): its "Raised in" folders follow the moves. No message text changed.
+
+**Checks run:** build, tsc, lint; 146 tests of the moved modules and the modeling tests with the 20 traps (1020 tests);
+the kernel suite (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases, sha256
+`ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`) byte-identical; cad-model 990/990, studio 274/274.
+Before the demo-path fix, two of batch 4's 21 changed demos newly failed (coplanar-face-boolean, stored-plate-hole-point),
+and that is what found the two shapes. The comparison of all 119 R5.4 demos, after against before R5.4 (D228), follows
+in the next record.
+
+## D234 — R5.4's demo comparison: the `.d.ts` names of moved modules in 17 cad-nurbs demos (2026-10-24)
+
+**The comparison** (coordinator's request after D233):
+- **What was run:** all 119 cad-nurbs demos R5.4 changed, each with `--source <tmp>`, on D233's tree (fresh full build)
+  and on D228's, the last before R5.4.
+- **Result:** 49 pass after against 27 before.
+  - One demo failed after but not before: rectangular-face-extrusion-body.
+  - 23 passed after and failed before. The D228 run used a checkout whose dist was not rebuilt for it, so these are
+    no evidence either way. None of them is a regression.
+
+**The cause.** D233's rewrite of the demos' src-relative names took `name.ts` and `name.js` but not `name.d.ts`. Those
+demos list emitted artifacts under `dist/` (`'rectangular-face-extrusion-body.d.ts'`), so they still named the old flat
+paths.
+
+**Fix.** 18 such names in 17 demos are made folder-qualified, `planar-solids/rectangular-face-extrusion-body.d.ts` and
+the like. No kernel file changes.
+
+**Correction to D233:** the src root keeps 39 files, index.ts included, not 40.
+
+**Checks:** the 17 demos run on the D233 kernel (results below).
+
+**Result:** of the 17 demos, 14 pass, rectangular-face-extrusion-body among them. The other 3 (native-constant-coordinate, qualified-strip-binary-stl, source-line-width-material-body-graph) failed the same before R5.4 (D228). So the 119-demo comparison leaves no demo failing after R5.4 that passed before it.
+
+## D235 — A traced curve through a pole is cut there, and the points that refine it stay on both patches (2026-10-24)
+
+**Finding.** K12, L4 fuzz seed 20261023 #110, shrunk: a cylinder r 1 ∪ a ball r 2 whose poles lie on the cylinder's
+wall (the cylinder's axis 1 from the ball's centre). Their curve is Viviani's, and it runs through the ball's north
+pole. With the cylinder from z 2.5 (union and difference) it was refused as "not a manifold solid", an edge used once:
+the ball's meridian seam. The fuzzed case itself (the cylinder from z 2, the ball's equator) is a different cause, open
+below.
+
+**Causes.** Two, the second hidden behind the first.
+- **On the ball, one cut across the pole.** On the pole's surface the curve's two halves arrive at the pole's side of
+  the domain at two values of u. One cut across it gave `curveFaceRegions` no region at all: the face vanished.
+- **A subdivision point off the ball.** `chainCurve` refines each marched step with three points corrected onto both
+  surfaces. Beside the pole the third one's hint came from the chain point across it, Newton's u ran to −21091, and the
+  point found lay on the surface's extension, 1.2e-5 mm off the ball. Its edge's fit followed it: once the cut was split
+  at the pole, the strict check found the edge 1.1e-5 mm off the ball's face (INVALID).
+
+**Fix.**
+- `src/brep/analytic-boolean.ts`, `addCut` / `throughPole`: a traced curve passing within 10 tolerances of a nurbs face's
+  pole strictly inside it (64 samples, then a golden-section search) is cut there. Its ends stay with D208's `toPoles`.
+  This is the R5 kernel session's candidate patch (`k12-start/pole-split.patch`), ported as it was.
+- `src/intersect/surface-intersection.ts`, `chainCurve`: a refining point is kept only where both patches' parameters
+  lie within a hundredth of their box's sides.
+
+Each part alone leaves the case refused: the split alone gives the INVALID above, and the point check alone the face
+with no region.
+
+**Results** (the ray oracle at 256² × 6):
+
+| Case | Before | After |
+|---|---|---|
+| 110's pair, the cylinder from z 2.5, union | refused | 42.820232 mm³ against 42.819286 ± 3.2e-3 (0.3 e), one body |
+| the same, difference | refused | 9.309912 against 9.309016 ± 2.8e-3 (0.3 e), one body |
+| fuzz 110 as fuzzed (5 leaves, and shrunk) | refused | refused, as before (see below) |
+
+**What is still open on 110.** As fuzzed, the cylinder starts at z 2, the ball's equator. There it touches the ball at
+(−2, 1, 2): its wall is tangent to the ball, Viviani's curve crosses itself there, and the cylinder's bottom circle is
+tangent to the equator at the same point. The exact union is a manifold solid (a vertex where the curve's two branches
+meet). Of four nudges of the shrunk tree by up to 1e-3 mm, one builds within e, two are refused, and one builds 7.9 e
+off on the tessellated mass. That nudge would be a WRONG in the fuzz; it is recorded here and taken up with 110.
+
+**Fingerprint:** unchanged, 855 cases, sha256 `ef3868df…`.
+
+**Test:** `test/boolean-through-pole.test.mjs`, both operations against the oracle, failing before.
+
+## D236 — A closed curve closes on its first lap: the march's step tests use the step it took (2026-10-24)
+
+**Finding.** K12, L4 fuzz seed 20261023 #119: two balls in a circular pattern, ∪ a third ball. It was refused as "not a
+manifold solid", an edge used six times. Shrunk, it is the same two leaves. All four nudges built, two bodies each, so
+the refusal was of the exact input.
+
+**Cause (`src/intersect/surface-intersection.ts`, the march).** The circle where the second copy meets the third ball
+was marched as one closed chain, but it went round twice: its points lie at 0°, 19°, … −11°, 8°, … −22°.
+- The step loop is `for (…; tries++, step /= 2)`. Its update halves `step` once more after the try that succeeds, so
+  the tests after it compared with half the step taken.
+- "Closing on the start" needed the next point within 0.75 × h/2 = 0.375 h of the start. At −11° → 8° the next point
+  was 0.41 h past it, so the march went on.
+- "Running back over itself" needed 0.5 × h/2 = 0.25 h. The second lap's points lie 0.41 h from the first lap's, so it
+  went on too, and closed at the end of the second lap.
+
+On a closed curve traced twice, the face's two halves of the hole each ran the whole circle. They were the same edges
+both ways: a slit, used six times.
+
+How often: two unit balls 1.5 apart, marched at 40 steps from 0.080 to 0.158 mm. Before the fix, 8 of the 40 traced
+the circle twice. After it, all 40 trace it once.
+
+**Fix.** The loop records the step that found the point (`taken`). Both tests use it: closing within 0.75 of it, running
+back within 0.5. Those were the factors as written. The running-back scan is a plain loop (`runsBack`) instead of a
+slice and a closure per step.
+
+**Results** (the ray oracle at 256² × 6):
+
+| Case | Before | After |
+|---|---|---|
+| 119 shrunk | refused | 72.550342 mm³ against 72.550358 ± 3.3e-3 (−0.0 e), 2 bodies (the first copy is apart) |
+| 119 as fuzzed | refused | 215.951781 against 215.952491 ± 5.2e-3 (−0.1 e), 4 bodies, as all nudges give |
+
+**Fingerprint:** 855 cases, sha256 `d9e60f0b…` (from D235's `ef3868df…`). One line changed: `fuzz:20261023:119`,
+refused → valid, F/E/V 18/82/82, 215.9517814 mm³, method quadrature.
+
+**Tests:** `test/boolean-march-close.test.mjs`, both failing before:
+- the 40 steps, each one closed chain of one lap;
+- 119 shrunk: valid, watertight, two bodies, within 3 e of the oracle.
+
+## D237 — A cut's loose end a few tolerances from a vertex or a segment ends there (2026-10-24)
+
+**Findings.** Two K12 cases, one cause.
+- **L4 fuzz seed 20261023 #74**, shrunk: a box ∩ (a cylinder ∪ a cone), their bottoms coplanar. Refused as "not a
+  manifold solid": the box's bottom edge on its side x = 1, from y 3.873 (where the cone's base rim crosses it) to the
+  corner at y 4, used once.
+- **#170** (queue item 2), shrunk: three balls r 3 in a circular pattern. Refused the same way: the first ball's seam from
+  its pole, used once.
+
+**Cause.** Where three surfaces meet, two cuts on one face, or a cut and that face's own edge, should meet at a point.
+Each is clipped against a different face's map of the same traced edge, and the ends landed a few tolerances apart: 1e-6
+is the arrangement's merge radius.
+- **74, the side x = 1:** the cone's hyperbola ended 3e-6 from the cylinder's ruling. The ruling's end was exact; the
+  traced cylinder–cone edge passes within 1.0e-7 of the true triple point. The hyperbola's end came from crossing two
+  tabulated maps on the cone's domain. The cuts did not join, the side stayed one piece (area 6, the whole face), and
+  its corner below the cone's rim stayed with it.
+- **74, the cone face:** the same hyperbola end lay 3e-6 off the middle of the cone face's edge with the cylinder.
+- **170:** on the lower half of the first ball, the third ball's circle ended 1.3e-6 beside the first two balls'
+  circle, between two of its vertices. The half kept its piece inside the third ball (7.42 mm²) and lost the piece
+  outside it (38.01 mm²), which holds the pole.
+
+Refining every crossing in 3D would move the rounding of crossings that were never wrong, as D206 found on the frozen
+robot exports. So the fix is in the arrangement, and it acts only on an end that would otherwise be left loose.
+
+**Fix (`src/brep/curved-arrangement.ts`, `joinLooseEnds`, used by `curveFaceRegions` only).** A cut's end that meets
+nothing (one edge there):
+- ends at the nearest other vertex within 10 tolerances;
+- else at the nearest point within 10 tolerances of another segment, which is split there.
+
+It does not act on a stub, an end within 10 tolerances of its own edge's other end (a cut's tail a hair past a crossing it
+already has), and it does not join onto a vertex or segment at that other end. A first version without that rule joined
+such stubs onto the ring beside them. The slivers it made broke L4 fuzz seed 20261023 #176 and seed 20261024 #171, both
+valid before; with the rule both are as before.
+
+10 tolerances is half the stitch's vertex merge radius (20), so no feature the stitch keeps is joined away. Far beyond
+it, an end stays loose (tested at 2e-5).
+
+**Results** (the ray oracle at 256² × 6):
+
+| Case | Before | After |
+|---|---|---|
+| 74 shrunk (3 leaves) | refused | 4.217298 mm³ against 4.220178 ± 1.2e-2 (−0.2 e), one body |
+| 74 as fuzzed (7 leaves) | refused | empty, as the oracle is (0) and all nudges are |
+| 170 shrunk (1 leaf, a pattern of 3) | refused | 271.769824 against 271.770355 ± 5.5e-3 (−0.1 e), one body, quadrature; all four nudges build within 0.1 e |
+| 170 as fuzzed (4 leaves) | refused | 12.566371 against 12.567062 ± 1.7e-2 (−0.0 e), one body |
+
+**Case 170 and the pole-safe map (the brief's item 2).** The brief guessed 170 needed a pole-safe domain map beside a
+closed-form sphere∩sphere, and that 171's pole cap must stay. Neither is needed. 170's cut does end on the seam 0.28 mm
+from the pole, but what lost the piece was the loose end at the triple point. With this fix:
+- seed 20261024 #171 keeps 363.2931458, method quadrature;
+- `test/mass-pole-cap.test.mjs` passes unchanged.
+
+No closed form or map change is made.
+
+**Fingerprint:** 855 cases, sha256 `ca7c13d3…` (from D236's `d9e60f0b…`). Three lines changed:
+- `fuzz:20261023:74`: refused → an empty output (the oracle's 0);
+- `fuzz:20261023:170`: refused → valid, F/E/V 4/7/5, 12.5663706 mm³, quadrature;
+- `fuzz:20261024:112`: refused → refused. Its subtrees now build, and the root refuses with "an arc does not lie in
+  its plane" instead of n5 with an edge used three times. Recorded, not fixed.
+
+**Open from it:** nudge 3 of 74 shrunk (the bottoms 1e-3 apart, no longer coplanar) is refused: an edge on the bottom
+used once.
+
+**Tests:** `test/boolean-loose-cut-ends.test.mjs`, all three failing before:
+- the arrangement: cuts 3e-6 apart, and a cut 3e-6 short of a side, divide a face (areas as the exact cuts give); an
+  end 2e-5 off stays loose;
+- 74 shrunk: valid, watertight, one body, against the oracle;
+- 170 shrunk: valid, one body, quadrature, against the oracle.
+
+## D238 — A march through a point where the surfaces touch keeps its direction (2026-10-24)
+
+**Findings.** Two K12 cases, one cause.
+- **L4 fuzz seed 20261023 #110 as fuzzed**, shrunk: a cylinder r 1 ∪ a ball r 2. The cylinder's wall is tangent to
+  the ball at (−2, 1, 2), where its bottom rim meets the ball's equator, and their curve (Viviani's) crosses itself
+  there. Refused as "not a manifold solid", an edge used six times 0.055 mm from that point. D235 had left it open.
+- **#25**, shrunk: a rounded box ∪ a ball r 4. The ball is tangent to the box's side y = −5 at that side's corner
+  (0, −5, −1), where the fillet's curve with the ball ends. Refused with an edge used eight times beside it.
+
+**Cause (`src/intersect/surface-intersection.ts`, the march).**
+- The march steps along `dir · unit(n₁ × n₂)`. At a point where the two surfaces touch, n₁ × n₂ passes through zero,
+  and along the curve it turns its sign there.
+- The march passed the point, turned back with the sign, and ran to and fro across it. On 110 the cut on one branch
+  went past the point and back four times within 0.04 mm (its parameter 0.18 → 0.137 → 0.114 …), below the
+  cylinder's rim and up again.
+- Every pass became edges of the stitch: an edge used six times.
+
+**Fix.** Each step's tangent takes the sign that agrees with the step before it, and so does the end tangent where a
+march leaves its box. Through such a point the march goes on along its own branch, and here it leaves the cylinder's
+box at the rim, at the point itself. Where n₁ × n₂ does not change sign, nothing changes.
+
+**Results** (the ray oracle at 512² × 8):
+
+| Case | Before | After |
+|---|---|---|
+| 110 shrunk (2 leaves) | refused | 41.254666 mm³ against 41.253816 ± 2.9e-3 at 256² × 6 (0.3 e), one body |
+| 110 as fuzzed (5 leaves) | refused | 160.940299 against 160.940194 ± 4.5e-3 (0.0 e), 2 bodies |
+| 25 shrunk (2 leaves) | refused | 308.036142 against 308.035559 ± 6.7e-3 at 256² × 6 (0.1 e), one body |
+| 25 as fuzzed (5 leaves) | refused | 504.150485 against 504.151226 ± 3.8e-3 (−0.2 e), one body |
+
+Nudges (four each, by up to 1e-3 mm):
+- 110 as fuzzed: 2 of 4 build;
+- 25 as fuzzed: 3 of 4 build;
+- 25 shrunk: 3 of 4 build.
+
+The rest are among the nudge findings in D239.
+
+**Fingerprint:** 855 cases, sha256 `b6e18fab…` (from D237's `ca7c13d3…`). Two lines changed:
+- `fuzz:20261023:25`: refused → valid, F/E/V 24/68/47, 504.1504847 mm³, quadrature;
+- `fuzz:20261023:110`: refused → valid, F/E/V 24/64/46, 160.9402990 mm³, quadrature.
+
+**Tests:** `test/boolean-tangent-crossing.test.mjs`, both failing before:
+- a march over a cylinder inside a ball, tangent at a point: no chain turns back;
+- 110 and 25 shrunk: valid, watertight, one body, against the oracle.
+
+**Correction (checkpoint 2, a new commit after a85661e8f).** The first version flipped a step's tangent whenever it
+pointed back against the step before. That broke `test/r12c-spring.test.mjs` "a long fine spring, ground (20 turns;
+D 40 d 1)": its ground plane cuts the wire in a slender loop, and round the loop's tight ends the tangent turns more
+than 90° between two steps, legitimately. The march was turned the wrong way there, and the Boolean refused (an edge
+used once at z 51.8466).
+
+Now the tangent is flipped only where the unflipped step would land within half a step of the chain's point before,
+which is the march running back. Through a touching point that is what happens; round a tight end it is not. The end
+tangent at a box edge takes the step's sign.
+
+Results with the correction:
+- the spring test passes, and so do 110, 25 and the other K12 tests;
+- the fingerprint is unchanged, `b6e18fab…` (it holds no long ground spring, which is why it did not show the break).
+
+## D239 — K12's near-degenerate refusals: all six closed, and the nudges' findings (2026-10-24)
+
+**The queue** (fuzz seed 20261023; each case shrunk, nudged four ways by up to 1e-3 mm, against the ray oracle, D196's
+method):
+
+| Case | End | Record |
+|---|---|---|
+| 25 | builds (−0.2 e); a point contact (n₁ × n₂ = 0) the march turned back at | D238 |
+| 51 | built already at K12's start (−0.4 e), by D197–D211; no change in K12 | — |
+| 74 | builds (empty, as the oracle; shrunk −0.2 e); cuts meeting at a triple point, a few tolerances apart | D237 |
+| 85 | **refusal shown correct**: the cylinder (r 1 about (2, 0)) is tangent to the shell's outer face y = 1 and removes the wall inside it, so the material left touches itself along the line x = 2, y = 1. That is one lump touching itself, not a manifold solid, by D205's ruling. The message names the touch at (2, 1, 4.5), code GEOMETRY | — |
+| 110 | builds (2 bodies, 0.0 e); its family through the pole (D235) and the tangent point (D238) | D235, D238 |
+| 119 | builds (4 bodies, −0.1 e); a closed march traced twice | D236 |
+| 170 (item 2) | builds (−0.0 e); a loose cut end at a triple point. No pole-safe map was needed, and 171's pole cap is unchanged | D237 |
+
+**Nudge findings, open** (recorded at the coordinator's call; not fixed). Each is a nudged input, valid and generic,
+still refused:
+- **51:** 3 of 4 nudges, edges used 2, 3 or 4 times beside the cylinder's seam ruling tangent to the ball.
+- **85:** 2 of 4, "orientation: face … sense disagrees with its outer loop". The cylinder pokes 8e-4 mm through the outer
+  wall, leaving a slot 0.08 mm wide; its wall piece's ring crosses itself.
+- **74:** 1 of 4 shrunk. The bottoms are 1e-3 apart, no longer coplanar, and a bottom edge is used once.
+- **25:** 1 of 4, an edge on the box's face y = −2 used once.
+- **110:** 2 of 4 as fuzzed. One shrunk nudge builds 7.9 e off on the tessellated mass. It states `volumeBoundMM3`
+  0.100 against a true error of 0.033, so it is not silent, but the quadrature gives up on that body.
+- **s2#112:** still refused; since D237 at its root ("an arc does not lie in its plane").
+
+## D240 — K12 step 3: where opening time goes (measured, report only) (2026-10-24)
+
+**What was measured.** G-R42 (G11) found opening slow on four scenes, with evaluation, not drawing, the cause:
+
+| Scene | Open in the browser (G11) |
+|---|---|
+| 5 box frames | 25–28 s |
+| A9 | 16 s |
+| the spring | 10 s |
+| the worm pair | 6–7 s |
+
+The GPU lane's own scene files (its G11 scratch: `frames.bcad`, `a9.bcad`, `part-spring.bcad`, `part-worm.bcad`) were run
+through the studio's open path in Node 22, outside the browser, on a85661e8f:
+- `readStudioFile`;
+- `evaluateDoc`, whose kernel evaluation is profiled (O10, D228);
+- for an assembly, `evaluatePlaced` per instance from `instanceEvaluationSources`, as App.tsx does.
+
+Two measurements:
+- per kernel feature, `{ profile: true }`, its kind from the kernel document;
+- the whole run under `node --cpu-prof`, inclusive time per function.
+
+The scripts are in the session's scratchpad, not committed. Node is about half the browser's time on the same work
+(13 s against 25–28 for the frames).
+
+**Results** (Node, ms):
+
+| Scene | Open | Kernel features | Bodies (`bodyOf`: mesh, mass, notes) | Where the time goes |
+|---|---|---|---|---|
+| 5 box frames | 12 970–14 090 | 10 990 (`frame` ×5: 120 analytic Booleans, ~85 ms each) | 2 200 (mass quadrature 1 580, mesh 310, area 180) | in the Booleans (CPU profile, per evaluation, of 10 000): `cutPair` 3 500 (`intervals` → `intersectSegments` 2 500, most of it the four end tests `ends()` against every ring segment of the face, with no box test first), the arrangement 1 600, `stitch` 1 500, `regionInteriorPoint` 1 400, `mergePieces` 1 300 |
+| A9 (38 bodies) | 4 270 | part 360 (weld beads 265 ×12, frame 87); instances 1 790 (`oringInGland` 1 290: its overlap volume by quadrature; the bearing's `overlapOf` 360; the shaft 100) | instances 310 (mesh 260) | the Node run is a quarter of the browser's 16 s. What else the browser does on open (other workers, the main thread) is outside this measurement. Instance p2 fails here with `[BEARING_HOUSING_REFERENCE] the housing link needs its current assembly and owner occurrence`, through the studio's own `placedBase` → `evaluatePlaced` path, so its cost is missing |
+| the spring (114 k triangles) | 4 130–4 420 | 680–750 (`compressionSpring`: its ground ends' analytic Boolean 650) | 3 440 (mass quadrature 2 050, tessellation 1 340) | the mass and the mesh of one swept body |
+| the worm pair | 2 640–2 780 | 15–18 (the worm 8, the gear 6) | 2 630 (tessellation 1 370, mass quadrature 610, cad-model's `checkWormPair` 510) | almost nothing in the kernel's features |
+
+The hottest single function in every scene is the NURBS basis (`basisInto`, 0.8–1.2 s of self time), under the
+tessellator and the mass quadrature.
+
+**Reading (for the coordinator's choice; nothing changed).**
+- **The frames** are the kernel's analytic Boolean, 120 of them. The cheapest candidate is a box test before
+  `intersectSegments` in `intervals`, which today tests every probe piece against every ring segment of the face. The
+  others are spread across the Boolean's stages.
+- **The spring and the worm** are the body's mass and mesh after the kernel, not its features. The mass quadrature
+  alone is 2.05 s on the spring.
+- **A9** is mostly elsewhere. Its kernel share is the O-ring's overlap volume, a quadrature of an exact torus overlap
+  (D159). Instance p2's BEARING_HOUSING_REFERENCE is a finding for the outer lane: the studio's instance path cannot
+  evaluate it.
+
+
+**Correction (2026-10-24, after K13; found by the outer lane in 8fa7a6ca2).** The harness above bundled two copies of
+cad-model:
+- its own scratch tree's `src`, imported by path;
+- integration's, through a scratch `node_modules` linked to integration's.
+
+Each copy had its own `Symbol('bearingAssemblyContext')`, so A9's p2 failed with BEARING_HOUSING_REFERENCE. The studio,
+with one module graph, does not fail there.
+
+- **Affected:** A9's 4 270 ms above, which leaves p2 out.
+- **Unaffected:** the frames, spring and worm cross no such boundary. Their single-graph times at 77d3b675c are
+  13 219, 4 098 and 2 662 ms, within this record's ranges.
+- **Re-baselined A9, single graph, at 77d3b675c:** 5 405 ms, with p2 evaluated (7 instances, none failed). That is K13's
+  "before" (D242).
+
+K13's harness has one graph by construction:
+- each scratch tree has real `node_modules` folders with its own relative `@barocss` links;
+- every timed bundle has 276 kernel and cad-model sources, all from its own tree, and one context symbol;
+- the harness now checks both before it times, and stops otherwise.
+
+## D242 — K13 step 1: the Boolean's intervals test segment boxes before `intersectSegments` (2026-10-24)
+
+**Change (pure speed).** Two changes in `brep/curved-arrangement.ts`, used by `brep/analytic-boolean.ts`:
+- `segmentsApart(s, t, eps)`: true when the two segments' boxes lie more than 4 eps apart.
+  - The boxes: a line's two ends; an arc's whole circle; a general curve's samples padded by its longest chord, the box
+    `surelyOff` already tests against.
+  - The analytic Boolean's four `intersectSegments` loops skip such a pair: the three in `intervals` (param probes,
+    line and circle probes, the part past a cylinder's seam) and the isocline split's.
+- `intersectSegments`'s end tests: each of s's two ends is tested against t first, then against s.
+  - A segment's own end lies on it nearly always. The other test, a general curve's nearest-point search, mostly fails
+    at once.
+  - t's ends were already tested against s first.
+
+**Why the output is unchanged.**
+- Every point `intersectSegments` keeps passes `on` for both segments:
+  - within eps of a point measured on the segment;
+  - for a general curve, also inside its padded box widened by eps.
+- So a kept point lies within eps of each box (plus rounding). Two boxes more than 2 eps apart have nothing to keep.
+  The test asks for 4 eps, which leaves room for that rounding.
+- Swapping the order of two `&&` tests of pure predicates keeps the same points in the same order.
+- One caveat, recorded:
+  - A NURBS-domain curve whose tabulation fails (`tabulated`'s table `false`) evaluates its exact map, and that map's
+    projection warm-starts from the surface's last point (`nurbsParam`).
+  - Calls skipped there change that warm start for later projections.
+  - The arrangement's own box test (D207) has always had the same property. The fingerprint shows no case of it.
+
+**Measured.** D240's harness (scratchpad, not committed), Node 22, median of 3, ms. A digest of each scene's evaluated
+bodies (numbers as float64 bytes) is identical before and after. The worm pair's digest masks its note "checked in N ms",
+which is a wall time.
+
+| Scene | Before (77d3b675c) | After | |
+|---|---|---|---|
+| 5 box frames | 13 219 | 11 500 | −13 % (kernel features 11 359 → 9 325) |
+| the spring | 4 098 | 4 184 | noise |
+| the worm pair | 2 662 | 2 678 | noise |
+| A9 | 5 405 | 5 437 | noise |
+
+In the frames' CPU profile, `intersectSegments` fell from about 5.0 s to 2.8 s, over the profiler's two evaluations.
+What stays is spread over the Boolean's other stages, outside step 1:
+- garbage collection 2.7 s;
+- `regionInteriorPoint` and `crossingsAt`;
+- the arrangement;
+- `mergePieces`.
+
+What is left inside `intersectSegments` is the `on` tests of crossing candidates, a golden-section `paramOf` per curve.
+The candidates lie near both curves, so a box doesn't settle them.
+
+**Also seen.** A9's p2 now evaluates in the harness: 7 instances, none failed. The outer lane's 8fa7a6ca2 traced its
+BEARING_HOUSING_REFERENCE to two copies of cad-model in the profile bundle.
+
+**Checks (T1).**
+- build:library, type-check, lint (cad);
+- `boolean-*`, analytic-boolean, d152-overlapping-cuts, prismatic-solid, frk-4-revolve and math tests:
+  54 tests, 53 pass, 1 skipped, 0 fail;
+- fingerprint `b6e18fab…` (855 cases), byte-identical.
+
+Not run: the kernel suite, RB, and the cad-model and studio suites. They run at the checkpoint after step 2.
+
+## D243 — K13 step 2: the NURBS basis (`basisInto`) clears nothing and reads each knot once (2026-10-24)
+
+**Change (pure speed), `core/math.ts`'s `basisInto`.** It is the hottest single function in every scene (D240), under
+`surfaceEvaluator`/`curveEvaluator`, so under tessellation and mass quadrature.
+- It no longer clears its three buffers on every call (`fill(0)` ×3). Every entry it reads is written first:
+  - `values[0]` at the start;
+  - each distance at its level;
+  - `values[index]` at an earlier level.
+- Each level reads its two knots once into locals. The inner loop reads its two distances once.
+- The span search halves with `>> 1` instead of `Math.floor(/ 2)`. That is the same integer for the small non-negative
+  indices here.
+- The finiteness check throws through the same `requireValue` message, now only on failure.
+- The arithmetic is unchanged and in the same order:
+  - the same expressions, the zero-denominator branches included;
+  - no reciprocal for the two divisions, which would change the last bit.
+- It already had no allocation and no closure. Its callers keep their own buffers.
+
+**Bit-identity check** (scratchpad bench, not committed):
+- the old and new functions on 62 394 parameters over degrees 1–5 and 2–12 poles;
+- knot vectors at scales 1e-3 … 3e300, offset by −1e9, and with repeated knots;
+- the domain's ends, every knot, `nextUp` neighbours, −0, and out-of-domain, NaN and ∞ parameters;
+- buffers pre-filled with 7, not 0.
+
+Result: identical values (`Object.is`) and the same start or the same refusal message in every case (3 723 refusals).
+The function alone runs 2.2× faster: 2.75 M degree-3 calls, 290 → 130 ms.
+
+**Measured.** D240's harness, Node 22, median of 3, ms. Before is step 1, 7ebcd511e. Each scene's body digest is
+identical.
+
+| Scene | Before | After | |
+|---|---|---|---|
+| 5 box frames | 11 500 | 10 832 | −6 % |
+| the spring | 4 184 | 3 543 | −15 % |
+| the worm pair | 2 678 | 2 172 | −19 % |
+| A9 | 5 437 | 4 524 | −17 % (instances 4 938 → 4 004) |
+
+**Checks (T1).**
+- build:library, type-check, lint (cad);
+- math, derivatives, face, curve-adaptive-sampling-cancellation, boolean-curve-box, frk-8b, gear-helical and gear-bevel
+  tests: 47 of 47 pass;
+- fingerprint `b6e18fab…`, byte-identical.
+
+The checkpoint suites follow at this commit.
+
+## D244 — K13 step 3: the mass quadrature's and tessellation's own cost on the spring and the worm pair (2026-10-24)
+
+**Profiled first** (D240's harness under `--cpu-prof`, at a7c7879f8).
+- The spring's mass: `brepQuadratureIntegrals` 1.61 s.
+  - Its own tessellation of the curved faces, at q and 2q (Richardson), 0.72 s.
+  - The 16-point rule over the domain triangles (`cellTriangles` → `surfacePoint`) 0.41 s.
+  - `wholePatch`'s boundary test 0.24 s.
+- The spring's mesh: `tessellateBrep` 1.21 s.
+  - In `surfaceTriangles`: Lawson flips 0.34 s, bisection refinement 0.29 s, the normals.
+- The worm pair: the quadrature 0.46 s, 0.40 s of it in `wholePatch`; tessellation 1.13 s.
+  - cad-model's `checkWormPair` 0.53 s belongs to the outer lane.
+- Under all of them: the surface evaluator's basis, about 0.8 s on the spring, called twice per point for U and V.
+
+**Changes (pure speed, the same values).**
+1. **`surfaceEvaluator` keeps the last U and the last V basis** (`core/math.ts`).
+   - A parameter equal to the last call's (`Object.is`, so −0 is not +0) reuses that basis and its first pole.
+   - A basis that throws is never kept: the flag is cleared before each computation and set after it.
+   - The point's arithmetic is unchanged: the same buffers, the same sums.
+   - It pays off where one parameter is held: a boundary side or an iso-curve, and the difference stencils below.
+2. **The quadrature's `surfacePoint` evaluates the point between its stencils**:
+   - (u + h, v), (u − h, v), then (u, v), then (u, v + h), (u, v − h);
+   - each call shares a parameter with the one before, so it keeps 4 of its 10 bases (3 in the old order);
+   - `at` is a pure evaluator here (`surfaceEvaluator` or the cylinder frame's closed form).
+   - The tessellator's `normalAt` likewise takes (a, v), then (u, v), then (u, b).
+3. **`wholePatch`'s boundary test stops at a cached sample within `near`** (`boundaryDistance` → `nearBoundary`, which
+   returns the boolean it was only ever compared for).
+   - The golden-section search only lowers the distance from the nearest sample, so a sample within `near` already
+     answers true.
+   - Its points lie between that side's samples, evaluated without fault, so skipping it skips no refusal.
+   - Its distance closure is hoisted to `sideDistance` (the owner rule on hot paths).
+
+Not changed: the flips' and refinement's order. A different order gives a different triangulation, and its `hypot` is
+not bit-equal to `sqrt`.
+
+**Measured.** D240's harness, Node 22, median of 3, ms. Before is a7c7879f8, which includes the outer lane's
+8fa7a6ca2. Each scene's body digest is identical.
+
+| Scene | Before | After | |
+|---|---|---|---|
+| the spring | 3 398 | 3 179 | −6 % (quadrature 1.61 → 1.37 s in the profile; `wholePatch` 0.24 → 0.12 s) |
+| the worm pair | 2 128 | 1 850 | −13 % (quadrature 0.46 → 0.24 s; `wholePatch` 0.40 → 0.17 s) |
+| A9 | 4 407 | 4 181 | −5 % |
+| 5 box frames | 10 589 | 10 397 | noise |
+
+**K13 in all** (77d3b675c → this commit, the same harness):
+
+| Scene | Before K13 | After K13 | |
+|---|---|---|---|
+| 5 box frames | 13 219 | 10 397 | −21 % |
+| the spring | 4 098 | 3 179 | −22 % |
+| the worm pair | 2 662 | 1 850 | −31 % |
+| A9 | 5 405 | 4 181 | −23 % |
+
+The outer lane's 8fa7a6ca2, between steps 2 and 3, is inside the last two rows.
+
+**What stays.**
+- On the spring: the quadrature's own tessellation at q and 2q (0.70 s) and the mesh's (1.2 s), mostly Lawson flips
+  and refinement.
+  - Sharing a tessellation between the mesh and the mass would need one cache across the two option sets and face
+    subsets. Not done.
+  - O18 (the outer lane's mass on request) removes the quadrature from opening altogether.
+- On the worm: `checkWormPair`, the outer lane's.
+- On the frames: the Boolean's other stages (D242).
+
+**Checks (T1).**
+- build:library, type-check, lint (cad);
+- the 148 kernel test files that use mass properties, tessellation or the surface evaluator: 1 037 tests, 1 036 pass, 1 skipped, 0 fail, no passing name gone since a7c7879f8;
+- fingerprint `b6e18fab…`, byte-identical.
+
+**Checkpoint at 80db65fd8 (T2, K13's last).**
+- The kernel suite at concurrency 4: 1663 tests, 1656 pass, 1 fail, 6 skipped.
+  - The failure is the native-split demo's Node-version assertion, failing since before K13.
+  - The passing names are identical to a7c7879f8's, which are identical to 3e6283382's.
+- RB: no NEW, the same 3 TODOs.
+- cad-model 1017/1017, studio 281/281.
+- No browser flow: nothing studio-visible changed.
+
+## D245 — K14: a face whose trims bow far from their chords in (u, v) is integrated with its strips (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261025, case 24, WRONG. Shrunk, it is a ball r 3.5 less a closed shelled box (t 0.284).
+- The mass came by the tessellated route: 165.306470 mm³ against the ray oracle's 165.478395 ± 1.2e-3 at 512² × 8,
+  that is 148 e off.
+- Its stated bound held. `volumeBoundMM3` was 0.508 against a true error of 0.172.
+- The fuzz judged the volume against its own tolerance (0.017) alone. D249 changes that judgement.
+
+**Cause (`src/brep/brep-mass-quadrature.ts`).** The ball's face `f0` beside its pole is the strip 0.454 ≤ y ≤ 0.5
+between two box walls, x = −2.668 and x = −0.021. The pole is one of its corners. The wall y = 0.454 passes 0.046 mm
+from the pole, so in (u, v) its trim rises steeply from v ≈ 0.015 to 0.25 over the face's turn of u. Sampled at a few
+points, its chords lie far above it:
+- the surface over the domain triangles alone came to 0.407 mm², and to 0.377 cut in sixteen (D199's measure);
+- the face's flat triangles and its true area are both 0.135;
+- the pre-strip coverage check (within 5 %) gave up, and the whole B-rep took the tessellated mass.
+The strips, which run from each chord to its trim, take that difference off. That check runs before them.
+
+**Fix.** A face that fails that check (coarse and fine, and not tiny) goes on to its strips. Afterwards it must hold
+two checks:
+- the existing vector-area check;
+- its area with the strips, signed by the domain's own sign (`sink.signed`: a strip inside its chord takes off),
+  against the flat triangles' area, within 5 %.
+Faces that pass the first check are unchanged.
+
+**Results.**
+
+| Case | Before | After |
+|---|---|---|
+| 24, shrunk | tessellated, −148 e | quadrature, 165.478871 (0.4 e at 512² × 8) |
+| 24, as fuzzed (5 leaves) | WRONG | quadrature, 0.04 e at 256² × 6 |
+
+The face: domain 0.4067, with the strips −0.1331 (as signed by the domain), against its flat triangles' 0.1355.
+
+**Test:** `test/fuzz-k14-findings.test.mjs` "mass: a ball's face cut by two planes …", failing before.
+**Corpus:** `robustness/corpus/fuzz/fuzz-20261025-24.json`.
+
+## D246 — K14: a curved face's diagonal that another face's mesh has too is bisected on the surface (2026-10-24)
+
+**Findings.** L4 fuzz seed 20261025, cases 99, 126 and 184, INVALID: the tessellation used a chord four times.
+- **184**, shrunk: a tilted cylinder less a tilted box. One of the box's edges runs inside the cylinder between two
+  points where it leaves the wall (V1 on the wall's outer loop, V2 on its hole, 0.14 mm apart). The ear clipping
+  joined V1 and V2 across the wall's face, so the wall's two triangles there and the box's two faces all used V1–V2.
+  The surface lies 7.7e-4 mm off that chord.
+- **99** (a ball ∩ a tilted cylinder, shrunk) and **126** (as fuzzed): a thin lens. Two faces lie between the same
+  two trims, with no point inside either, so they were triangulated alike. Each diagonal was used twice by each face.
+
+**Fix (`src/brep/brep-tessellate.ts`, `splitTakenDiagonals`).** Applies to a curved face triangulated in a parameter
+domain: a trimmed cylinder or a general patch. A diagonal between two of its boundary points whose chord is already
+taken is bisected at its (u, v) middle on the surface, with both triangles beside it. Taken means:
+- an edge's sample chord (`segIndex`); or
+- a diagonal of a face already meshed (`diagonals`, kept over the rounds).
+On a general patch the domain triangles are split too, so the mass quadrature's domain stays the mesh's. Only diagonals
+between boundary points are keyed, and nothing else in the mesh changes.
+
+**Results:** 99, 126 and 184, shrunk and as fuzzed, are watertight. As fuzzed they are within 0.05, 0.49 and 0.46 e
+of the oracle at 256² × 6, by quadrature.
+**Test:** `test/fuzz-k14-findings.test.mjs` "tessellation: a curved face's diagonal …", failing before.
+**Corpus:** `fuzz-20261025-99.json`, `fuzz-20261025-184.json`, and `fuzz-20261025-126b.json` (126 as fuzzed; its
+shrunk tree is D248's).
+
+## D247 — K14: a loop's spur edge bounds nothing in the tessellation (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261025, case 120 (snapped), INVALID: a mesh chord of no length was used once.
+- Shrunk: a ball r 4 less an open shelled box less a cylinder, linear-patterned twice 4 apart.
+- The two equal balls meet in the plane x = 0, which is also the box's outer wall.
+- The union left an edge on the ball's face with that face on both sides. Its loop runs out along the edge and
+  straight back (`e70` forward, then `e70` reversed).
+- The strict check accepts such a spur, since the edge is used twice. In the ring, though, its points stacked
+  triangles of no area.
+
+**Fix (`withoutSpurs`).** Each face's rings, on a plane, a trimmed cylinder or a general patch, are built without
+spurs: a coedge followed by the same edge the other way cancels with it, the loop's two ends included. A loop that is
+spurs alone stays as it is. On a cylinder the seam test counts only the coedges kept. The B-rep itself is unchanged:
+the mass's planar integrals and the vector areas cancel a spur's two uses anyway.
+
+**Results:** 120 shrunk and as fuzzed are watertight; as fuzzed, 0.31 e at 256² × 6.
+**Test:** "tessellation: an edge run into a face and straight back …", failing before.
+**Corpus:** `fuzz-20261025-120.json`.
+
+## D248 — K14: a cylinder tangent inside a skew one at a point: the result is checked strictly, and refused when it touches itself (2026-10-24)
+
+**Finding.** 126's shrunk tree, a cylinder r 3.5 tilted 316.862° about Y less an upright cylinder r 3. The axes are
+0.5 apart, which equals the difference of the radii, so the smaller cylinder touches the larger one's wall from inside
+at one point, (−2, 5, 2.0336).
+- The crossing-cylinder closed form takes that case on purpose. It cuts the curve's two loops at the touch, so that the
+  pieces meet there.
+- The result came back strictly invalid: the tilted wall's loop touches itself at that point. It was returned
+  unchecked, because the analytic Boolean checks strictly only after a re-judged touch (D205) or a collapsed sliver
+  (D186).
+- At the point, a step either side along the normal is empty: outside the wall, inside the hole. By D205's ruling,
+  that is one lump touching itself.
+
+**Fix (`src/brep/analytic-boolean.ts`, `touchChecked`).** A result whose intersection curve crosses itself where the
+surfaces touch is checked strictly before it is returned. Two sources record such points:
+- that closed-form branch (its double zeros inside both faces);
+- a march that flipped its direction through such a point (D238: `IntersectionChain.touches`).
+An invalid result is refused, GEOMETRY "analytic Boolean: the inputs touch at (…), where their curve crosses itself,
+and the result there is not a manifold solid: <the first issue>". A valid one is returned as before. Other Booleans pay
+nothing. The message is unbracketed, so the docs refusal table is unchanged (`refusals.mjs --check` passes).
+
+**Test:** "analytic Boolean: a cylinder tangent inside a skew one …", failing before (a body was returned).
+**Corpus:** `fuzz-20261025-126.json`, an expected refusal, as 56b is.
+
+## D249 — K14 steps 1–2: robustness at the tip, and the new refusals by D196's method (2026-10-24)
+
+**Counts** (`scripts/rb/fuzz.mjs`, 200 cases a seed, jobs 4, load 5–17, through the gate):
+
+| Seed | Kernel | OK (empty) | APPROX | REFUSED | WRONG | INVALID | CRASH | TIMEOUT |
+|---|---|---|---|---|---|---|---|---|
+| 20261025 (new) | tip 155bf40d3, the old judgement | 177 (36) | — | 18 | 1 | 4 | 0 | 0 |
+| 20261025 | tip, the new judgement | 177 (36) | 1 (case 24) | 18 | 0 | 4 | 0 | 0 |
+| 20261025 | D245–D248 | 182 (36) | 0 | 18 | 0 | 0 | 0 | 0 |
+| 20261026 (new) | tip, and D245–D248 | 185 (26) | 0 | 15 | 0 | 0 | 0 | 0 |
+| 20261023 (rerun) | tip, and D245–D248 | 189 (31) | 0 | 11 | 0 | 0 | 0 | 0 |
+| 20261024 (rerun) | tip, and D245–D248 | 186 (31) | 0 | 14 | 0 | 0 | 0 | 0 |
+
+KNOWN is 0 throughout. With D245–D248, 126's refusal is counted under its shrunk tree only: as fuzzed, 126 builds
+(D246).
+
+**The judgement (`fuzz.mjs`, `fuzz-worker.mjs`; at the coordinator's request).** A tessellated mass states
+`volumeBoundMM3` (D200). One off by more than the fuzz's tolerance is now judged against that stated bound:
+- **APPROX:** the error plus the oracle's e is within the stated bound. It is honest, but the quadrature gave up.
+  It is counted and reported, not a finding. Each one is worth a look.
+- **WRONG:** the error is past the stated bound plus e, so the bound is dishonest. This is a finding, as is a volume
+  off with no bound stated.
+Both are judged again against the finer oracle (512² × 8), as WRONG was before.
+
+**Refusals by D196's method** (scratch scripts, not committed):
+- each case was shrunk to its smallest tree refused alike, at tip 155bf40d3;
+- the original and the shrunk tree were each nudged four ways, every leaf moved by up to 1e-3 mm;
+- each nudge was built and checked against the ray oracle at 128² × 6.
+
+The class follows the original's nudges, the shrunk tree's are in brackets. Where they differ, the shrink went to
+another cause.
+
+| Class | Seed 20261025 | Seed 20261026 |
+|---|---|---|
+| **Exact contact** (every nudge of the original builds, its body counts beside) | 21 (2 bodies), 37 (2), 199 (3) | 56 (empty), 76 (2), 126 (2), 136 (2), 191 (6–7) |
+| **Near-degenerate** (1–3 of 4 build) | 26 (3/4; [4/4, empty]), 29 (3/4; [3/4]), 67 (2/4; [1/4]), 85 (1/4; [0/4]), 144 (1/4; [2/4]), 155 (1/4; [3/4]), 191 (1/4; [4/4]) | 47 (3/4; [4/4]), 58 (2/4; [3/4]), 170 (3/4; [4/4]) |
+| **Robust: valid generic input refused** (no nudge builds) | 38 [4/4], 49 [0/4], 62 [0/4], 137 [4/4], 148 [0/4], 157 [2/4], 170 [0/4], 190 [0/4] | 34 [0/4], 79 [2/4], 112 [0/4], 115 [0/4], 145 [1/4], 184 [0/4], 194 [0/4] |
+
+Where nudges built, every nudge was within 2 e of the oracle. The triage ran partly beside a diagnostic build of the
+quadrature (D245's check skipped). That moves only a mass's method, never whether a case builds. None was invalid, apart from one nudge of 20261026 #145's
+shrunk tree (polyhedral, "1b 0.1e INVALID").
+
+The refusals by message:
+- 33 GEOMETRY in all;
+- 26 "not a manifold solid": 23 analytic (2 of them orientation), 3 polyhedral (20261026's 145, 170, 191);
+- 4 "the result's boundary touches itself" (D205): 20261025's 21 and 37, 20261026's 126 and 136, all exact contacts;
+- 2 "every test ray was degenerate" (20261025's 29, 20261026's 56);
+- 1 "a straight edge on a cylinder runs across its axis direction" (20261025's 26).
+
+**Robust refusals whose shrunk tree still refuses every nudge**, smallest first, the order for step 3:
+- 20261025 #190 (1 leaf): a ball r 2.05, turned, in a circular pattern of 2 at 154.2°.
+- 20261025 #170 (1 leaf): a ball r 4, twice in a circular pattern of 90° and twice again.
+- 20261026 #34, #112, #184 (2 leaves);
+- 20261025 #49, #148, 20261026 #194 (3 leaves);
+- 20261025 #62 (2 leaves, two patterns), 20261026 #115 (4 leaves).
+The rest are robust only as fuzzed. Their shrink found an exact contact instead (38, 137) or a near-degenerate one
+(157, 79, 145). Each needs its own shrink that keeps "no nudge builds".
+
+**Checkpoint 1 checks** (T2, in a scratch worktree at 155bf40d3 with D245–D249; the integration branch's kernel is
+unchanged since):
+- Kernel: lint clean, type-check clean, full build.
+- Kernel suite at concurrency 4: 1660/1667, 6 skipped. The one failure is the native-split demo's Node-version
+  assertion, as before. Against 80db65fd8's names, the passing names are the same plus this record's four tests;
+  none is gone. A first run had three SubD display tests failing (D79, D84, D180):
+  - points added on SubD patches had no exact normal;
+  - a face tessellated again matched its own diagonals from the round before.
+  Both were fixed before the run counted here: the points take the surface's normal, and the diagonals are kept by face.
+- RB: no NEW, the same 3 TODOs. The six new corpus cases pass.
+- Fingerprint (`scripts/r5-fingerprint.mjs`): 855 cases `b6e18fab…` before. Now 861 cases `01ad424b…`, the six
+  new cases added (one an expected refusal). Two lines changed, both a centroid's last bit, their volumes and meshes
+  identical:
+  - `fuzz:20261023:106`: x by 8.9e-16;
+  - `fuzz:20261024:124`: y by 1.1e-16.
+- cad-model 1017/1017; studio 285/285.
+- `apps/library-docs/scripts/refusals.mjs --check`: unchanged.
+- No browser flow: nothing studio-visible changed.
+
+## D250 — K14 step 3: a curve's domain map is sampled finely beside a pole (2026-10-24)
+
+**Findings.**
+- **L4 fuzz seed 20261024 #138**, refused at the tip. Shrunk to 3 leaves: a tilted cylinder ∪ an open shell ∪ a ball
+  r 3.253. One intersection curve passes 0.02 mm from the ball's north pole. Refused as "not a manifold solid", an edge
+  used once there.
+- **Seed 20261025 #190** (robust). Shrunk: two equal balls r 2.05, a circular pattern of 2 at 154.2°, their circle
+  4.9e-3 mm from one ball's pole. Same message.
+
+**Cause, common to both (`tabulated`, `src/brep/analytic-boolean.ts`).** A traced curve's map into a NURBS face's domain
+is 128 samples with Hermite pieces whose tangents grow as 1/distance to the pole. Beside a pole u turns fast, much of a
+half-turn between two samples. The pieces overshot there: 190's went u 0 → −0.98 → −0.73. The face's arrangement split
+the cut at that turn and lost its first piece, leaving a gap in the face's ring.
+
+**Fix (`nearPoles`).** An interval where the curve passes nearer a pole than twice the interval's length is cut in up to
+64, so the pieces there reach a quarter of the way to the pole at most.
+- The samples are added when the table is first built, so curves on faces without poles pay nothing.
+- An interval where the curve reaches the pole (within 1e-6 of the surface's size) is left alone. There the pole's
+  parameter is the free one's limit (D235). A first version densified it too, and the samples beside the pole each took
+  whatever u the projection settled on, which broke D235's own test.
+
+**Results:**
+
+| Case | Before | After |
+|---|---|---|
+| 20261024 #138, shrunk | refused | valid, one body, 0.01 e at 256² × 6, by quadrature |
+| 20261024 #138, as fuzzed | refused | valid |
+| 20261025 #190 | refused | still refused, at the march |
+
+**#190, open: the march beside the pole** (`src/intersect/surface-intersection.ts`).
+- Projected from the point before, a 0.05 mm step lands past the pole's side of the domain, on the surface's extension.
+  The box test takes that as the curve leaving the face, and the chain stops 0.005 mm short of the patch's seam.
+- Two remedies built 190, but each broke another case, so neither is kept:
+  - re-projecting such a point from the grid samples nearest it, off the poles, at the step and in the box-edge
+    bisection (190 valid; 20261024 #154, valid before, refused with an edge used 3 times);
+  - a march step scaled to a quarter of the distance to the nearest pole (190 valid; D238's 25 failed with "Planar face
+    could not be triangulated").
+- A third, retrying only a step that crossed a pole's side, at that quarter distance, kept 154 and 25 but left 190
+  refused at the seam.
+- With either of the first two, 190's mass also fell to the tessellated route, honestly bound, APPROX. A strip by the
+  pole is dropped, its edge more than half a chord off its chord in (u, v).
+- What remains is a march that follows u's turn beside a pole without changing any march elsewhere. Not done.
+
+**Test:** `test/fuzz-k14-findings.test.mjs` "analytic Boolean: a curve passing 0.02 mm from a ball's pole …", failing
+before.
+
+## D251 — K14 step 3: a long cut that stops a tolerance short of one segment at both ends ends on it at both (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261025 #170, robust. Shrunk to one leaf: a ball r 4 turned 90° about its own axis and united
+with itself, then that twice again about another axis, 90° apart (two balls). Their circle lies in the plane x = y. It
+crosses each ball's patch seam at points that both seams pass through, (−3, −3, ±3.4641). On two faces the cut stopped
+9.5e-6 short of the seam at both ends: each face clips it against the other face's map of the same edge.
+
+**Cause (`joinLooseEnds`, `src/brep/curved-arrangement.ts`, D237).** The first loose end joined the seam and split it
+there. The second end's nearest segment was then the seam's part beside the first end. D237's rule skips any segment
+at the cut's other end, so the face was not divided, and the result had an edge used once.
+
+**Fix.** That rule now applies only to a short cut, its other end within 100 tolerances. Its purpose was the stub, a
+cut's tail a hair past a crossing. A long cut ends on the segment at both ends. D237's own cases still build: seed
+20261023 #176 (2 bodies, 0.0 e) and seed 20261024 #171 (5 bodies, −0.3 e).
+
+**Results:** 170 shrunk is valid, one body, 0.04 e at 256² × 6, by quadrature. As fuzzed (2 leaves) it is still
+refused, by another cause: shrunk again, a pattern of a ball ∪ a rounded box, an edge used once at (−6, 0.73, 2). That
+case is not done.
+**Test:** "curves: a long cut ending a tolerance short of one segment at both ends …", failing before.
+
+## D252 — K14 step 3: coplanar pieces are joined with their rings closed as their faces' arrangement closed them (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261026 #112, robust. Shrunk: a closed shelled box ∪ a ball, in a circular pattern of 2 at
+42.55°. Each copy builds alone; their union was refused, with an edge used once on the first box's corner (−1.18,
+3.911) between the cavity's floor and ceiling heights.
+
+**Cause (`mergePieces`, `src/brep/analytic-boolean.ts`).** The first box's wall x = −1.18 keeps a piece of 3.13 mm²
+inside the second copy's cavity. That piece's ring is closed to 6.7e-6, the gap `joinLooseEnds` closed in the face's
+arrangement. Merging the wall's coplanar pieces unites their rings with `booleanCurveRegions`, which does not join ends.
+The open ring bounded nothing, the piece vanished, and every edge around it was used once.
+
+**Fix.** `booleanCurveRegions` takes `joinEnds` and passes it to the arrangement. `mergePieces` sets it, so it closes
+rings as `curveFaceRegions` did. Other callers are unchanged.
+
+**Results:**
+
+| Case | Before | After |
+|---|---|---|
+| 20261026 #112 shrunk | refused | valid, one body, 0.1 e |
+| 20261026 #112 as fuzzed | refused | builds empty, as the oracle |
+| 20261026 #34 shrunk (an open shell ∪ a ball, linear-patterned) | refused | valid, one body, 0.1 e |
+| 20261026 #194 as fuzzed | refused | valid, 2 bodies, 0.0 e |
+
+#34 as fuzzed is still refused, by another cause (an edge used once at y = 2.972).
+
+**Test:** "analytic Boolean: coplanar pieces joined keep a piece …", failing before.
+
+## D253 — K14 checkpoint 2: step 3's first fixes, where the robust refusals stand (2026-10-24)
+
+**From checkpoint 1.** The two centroids that moved by one bit (`fuzz:20261023:106`, `fuzz:20261024:124`) came from
+D246. With D245's mass alone or D247's spurs alone they stay identical. With D246's bisected diagonals they change,
+through the quadrature's 16-a-quarter tessellation.
+
+**Fuzz counts** (200 cases a seed, the D249 judgement, no WRONG, INVALID, CRASH, TIMEOUT or APPROX anywhere):
+
+| Seed | Checkpoint 1: OK (empty) / REFUSED | Checkpoint 2: OK (empty) / REFUSED | Refusals that now build |
+|---|---|---|---|
+| 20261025 | 182 (36) / 18 | 182 (36) / 18 | — (170 and 190 still refused as fuzzed) |
+| 20261026 | 185 (26) / 15 | 187 (27) / 13 | 112 (empty, as the oracle), 194 |
+| 20261023 | 189 (31) / 11 | 189 (31) / 11 | — (158 refused later, by another Boolean) |
+| 20261024 | 186 (31) / 14 | 187 (31) / 13 | 138 |
+
+**The robust refusals (D249's ten whose shrunk tree refused every nudge):**
+
+| Case | Now |
+|---|---|
+| 20261025 #190 | shrunk and as fuzzed still refused, by the march beside a pole (D250, open) |
+| 20261025 #170 | shrunk builds (D251). As fuzzed it is refused by another cause: shrunk again, a ball ∪ a rounded box, twice patterned |
+| 20261026 #112 | builds, shrunk and as fuzzed (D252) |
+| 20261026 #34 | shrunk builds (D252); as fuzzed refused elsewhere, an edge used once at y = 2.972 |
+| 20261026 #184 | refused: an open shell ∩ a tilted cylinder, patterned; not looked at |
+| 20261025 #49, #148 | refused; not looked at |
+| 20261026 #194 | builds as fuzzed (D252) |
+| 20261025 #62, 20261026 #115 | refused ("orientation: face … sense disagrees with its outer loop"); not looked at |
+
+**Checks** (T2, in the scratch worktree at cbe1ce6ec with D250–D252):
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1663/1670, 6 skipped. The one failure is the native-split demo's Node-version
+  assertion. Against checkpoint 1's names, three are new (D250–D252's tests) and none is gone.
+  - Two earlier runs caught regressions, fixed before the counted run:
+    - D235's through-pole test, broken by densifying intervals that reach the pole;
+    - with the march changes D250 tried, 20261024 #154 refused and D238's 25 failed.
+- RB: no NEW, the same 3 TODOs.
+- Fingerprint: 861 cases, `cf100676…` (from `01ad424b…`). 29 lines changed:
+  - `fuzz:20261024:138` refused → valid;
+  - `fuzz:20261023:158` still refused, now at a later Boolean ("every test ray was degenerate") instead of an edge
+    used once;
+  - 27 lines with mesh, area and mass changed: the denser domain maps beside poles move trim samples. Volumes are within
+    7.1e-10 relative (20261023:112), the rest within 1.1e-10; validity and F/E/V are unchanged.
+- cad-model 1017/1017, studio 285/285.
+- No browser flow.
+
+## D254 — K14 stops at the fix budget: what the next robust refusals are (diagnosis only) (2026-10-24)
+
+K14 fixed 7 causes, D245–D248 and D250–D252, so it stops at the brief's "about 8". These are the next ones; none is
+fixed.
+
+- **20261026 #184.** Shrunk: an open shelled box ∩ a tilted cylinder, in a circular pattern of 2 at 50.87°. Each copy
+  builds, and the copies' union is refused with 13 edges used once.
+  - They form one loop in the first copy's cylinder end face (`n3b.bottom`, a plane tilted 82°): lines at the box's
+    bottom z = −2.5 and its floor z = −2.
+  - Its partners (the floor, the walls, the second copy's walls) each use their own edges between nearby but different
+    points, so the rings do not meet.
+  - Next: the vertices where the end plane meets the floor and the bottom, 0.07 mm apart (0.4096, 2.4117, −2.5) and
+    (0.4788, 2.4146, −2).
+- **20261025 #62.** Shrunk: (a tilted cylinder − a box) in a linear pattern of 3, then of 2. The ×3 builds, and the ×2
+  union is refused: "orientation: face … sense disagrees with its outer loop". The face is the second copy's cylinder
+  wall, two kept pieces (34.78 and 0.09 mm²) merged into one host domain.
+  - The big piece spans 354° about the axis.
+  - The merge's seam goes in the 0.10 rad gap left, and both regions come back as they went in.
+  - So the disagreement comes later, from the face the stitch builds over a 354° arc (its loop against that surface).
+    That is the place to look.
+- **20261026 #115** gives the same message on a 4-leaf tree (cylinders, a box, a cone). Not looked at; it may share #62's
+  cause.
+- **20261025 #49, #148.** Not looked at.
+- **20261025 #190.** The march beside a pole (D250).
+- **20261025 #170 and 20261026 #34 as fuzzed.** Each refused by a second cause after their shrunk trees built (D251,
+  D252).
+
+D239's open nudge findings and s2#112 (queue item 4) were not reached in K14.
+
+## D255 — K14 step 3: loose ends a traced curve's tolerance apart, or from a traced segment, join there (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261025 #148, robust. Shrunk: a box turned 253.3° about X, less (a cylinder ∩ a ball).
+Refused as "not a manifold solid", an edge used once: the box's edge on its face x = 2.391.
+
+**Cause (`joinLooseEnds`, `src/brep/curved-arrangement.ts`).** Where the cylinder, the ball and the box's face x = 2.391
+meet, the cuts arrive from two sources:
+- the cylinder's rulings in that face, clipped against the cylinder's traced trim with the ball;
+- the ball's circle in that face, an exact arc.
+
+The traced trim lies within its tracing tolerance, 100 tolerances, of the true curve. So:
+- on the box's face, the ruling ended 1e-4 short of the ball's arc that goes on from there, two loose ends;
+- on the ball's lower patch, the arc ended 1e-4 short of the traced trim.
+
+D237 joins only within 10 tolerances, so neither face was divided.
+
+**Fix.**
+- Two loose ends, each meeting nothing, join within 100 tolerances.
+- An exact cut's loose end joins a traced curve's segment (a domain curve not marked exact) within 100 tolerances.
+- Otherwise D237's 10 tolerances stand.
+
+A first version let any loose end join a traced segment within 100. It broke seed 20261024 #55, valid before: a short
+traced cut (7.9e-3 mm), 43 tolerances from a trim, joined it and made an edge used three times. Narrowed to exact cuts'
+ends, #55 is as before.
+
+100 tolerances is the stitch's own reach for the consecutive pieces of a ring, so the arrangement now joins no more
+than the stitch already merges. Each rule alone left 148 refused.
+
+**Results:** 148 shrunk is valid, one body, 0.07 e at 256² × 6; as fuzzed, 2 bodies, −0.2 e; both by quadrature.
+**Test:** `test/fuzz-k14-findings.test.mjs` "curves: loose ends a traced curve's tolerance apart …", failing before.
+
+## D256 — K14's closing record: the fuzz at its end, the open cases, the fingerprint chain (2026-10-24)
+
+**Final fuzz** (`scripts/rb/fuzz.mjs`, 200 cases a seed, the D249 judgement; at D255):
+
+| Seed | OK (empty) | APPROX | REFUSED | WRONG | INVALID | CRASH | TIMEOUT | At K14's start (155bf40d3) |
+|---|---|---|---|---|---|---|---|---|
+| 20261025 | 183 (36) | 0 | 17 | 0 | 0 | 0 | 0 | OK 177, REFUSED 18, WRONG 1, INVALID 4 |
+| 20261026 | 187 (27) | 0 | 13 | 0 | 0 | 0 | 0 | OK 185, REFUSED 15 |
+| 20261023 | 189 (31) | 0 | 11 | 0 | 0 | 0 | 0 | OK 189, REFUSED 11 |
+| 20261024 | 187 (31) | 0 | 13 | 0 | 0 | 0 | 0 | OK 186, REFUSED 14 |
+
+KNOWN is 0 throughout. 54 refusals remain over the four seeds, against 58 and 5 findings at the start.
+
+**What K14 fixed, one cause each:**
+- D245: the quadrature giving up on a ball's face whose trims bow far from their chords.
+- D246: a curved face's diagonal duplicating another face's mesh edge.
+- D247: spur edges in loops.
+- D248: a missed self-touch at a point tangency, now refused, typed.
+- D250: the domain map beside a pole.
+- D251: a long cut's two loose ends on one segment.
+- D252: coplanar merges dropping a ring closed to a few tolerances.
+- D255: loose ends a traced curve's tolerance apart.
+- Also D249, the fuzz's APPROX status.
+
+**Open robust refusals, with what is known of their causes:**
+
+| Case | Cause, as far as found | Record |
+|---|---|---|
+| 20261025 #190 | the march beside a pole: a step lands past the pole's side of the domain and the chain stops short of the seam. Two remedies built it but broke 20261024 #154 and D238's 25 | D250 |
+| 20261025 #62, 20261026 #115 | "orientation: face … sense disagrees with its outer loop". In #62, a cylinder wall merged from pieces spanning 354°; the merge is sound, and the face the stitch builds over that arc is where to look. #115 is not looked at | D254 |
+| 20261026 #184 | the patterned copies' coplanar floors and bottoms (z −2, −2.5), and copy 1's tilted cylinder end face across them. Its ring and its partners' meet at points 0.07 mm apart | D254 |
+| 20261025 #49 | a run of micro edges (3e-5 mm each) up one ruling of a cylinder, used 4 times: a near-tangency of the tilted third cylinder. Not fixed | this record |
+| 20261025 #170, 20261026 #34, as fuzzed | each refused by a second cause after its shrunk tree built (D251, D252) | D251, D252 |
+
+The near-degenerate and exact-contact classes (D249) were not worked. D239's open nudge findings and s2#112 were not
+reached.
+
+**The fingerprint chain** (`scripts/r5-fingerprint.mjs`):
+
+| Point | Cases | sha256 | Change |
+|---|---|---|---|
+| K14's start | 855 | `b6e18fab…` | — |
+| Checkpoint 1 (D245–D249) | 861 | `01ad424b…` | six corpus cases added; two centroids by one bit (D246) |
+| Checkpoint 2 (D250–D252) | 861 | `cf100676…` | 20261024:138 refused → valid; 20261023:158 refused at a later Boolean; 27 lines' meshes, areas and masses within 7.1e-10 relative |
+| D255 | 861 | `cf100676…` | identical. A first version of D255 changed one line, 20261024:55 valid → refused; it was narrowed before the counted run |
+
+**Checks at D255** (T2, in a scratch worktree at 00089f872 with D255):
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1664/1671, 6 skipped. The one failure is the native-split demo's Node-version
+  assertion. Against checkpoint 2's names, one is new (D255's test) and none is gone.
+- RB: no NEW, the same 3 TODOs.
+- cad-model 1020/1020, studio 286/286.
+- No browser flow.
+
+## D257 — K15: a face wrapping most of its full-turn surface is judged by its winding in its domain (2026-10-24)
+
+**Findings.** L4 fuzz seed 20261025 #62 and seed 20261026 #115, robust (D249, D254). Both were refused as "orientation:
+face … sense disagrees with its outer loop".
+- **25#62**, shrunk: (a tilted cylinder less a box) in a linear pattern of 3, then of 2. The face is the second copy's
+  cylinder wall, kept over 354°.
+- **26#115**, shrunk: (a tilted cylinder ∪ a box ∪ a cone) less a cylinder. The face (`f13`) is a cylinder wall kept over
+  most of its turn too.
+
+**Cause (`checkBrep`, `src/brep/brep-core.ts`).** The Boolean spans a cylinder piece's surface from its smallest to its
+largest θ. A piece crossing its frame's ±π cut therefore gets the whole turn, and its gap can lie anywhere in the
+domain. In #62 the gap is at u 0.31.
+- The sense check compares the outer loop's vector area with the surface normal at the domain's middle.
+- That judges a face whose normals all lie within 90° of the middle's normal.
+- A face over most of a closed surface has its vector area pointing away from its gap. In #62 the middle's normal was
+  68° from the gap, so the two came out opposed (cos −0.18). The face was right.
+- With that one check skipped, #62 is valid, strictly valid and watertight, −0.19 e at 256² × 6 by quadrature.
+
+**Fix (`loopWindsInDomain`).** Where the vector area disagrees with the middle's normal, the loop's winding in the
+face's own (u, v) domain decides.
+- The loop is sampled as `loopVectorArea` samples it, and each sample is projected onto the surface (`closestPointOnSurface`).
+- A direction in which the surface closes on itself is unwrapped along the ring.
+- Counter-clockwise agrees with `forward`, clockwise with `reversed`.
+- It decides only when every sample lies within 100 edge tolerances of the surface, the ring closes in the domain, and
+  it encloses area. Otherwise the flag stands as before.
+- Faces the vector area passes pay nothing, and no face is newly refused: the change can only clear a flag.
+
+**Results:**
+
+| Case | Before | After |
+|---|---|---|
+| 25#62 shrunk, as fuzzed | refused | one body each, −0.19 e and +0.24 e at 256² × 6, by quadrature; nudged 4 ways each, 8/8 build, within 0.6 e (128² × 6) |
+| 26#115 shrunk, as fuzzed | refused | one body each, +0.25 e and +0.03 e; nudged, 8/8 build, within 1.0 e |
+| 20261024 #185 (not queued) | refused, the same message | valid (fuzz OK) |
+
+In #62's body every face's domain winding agrees with its sense, planes included. Turned over one at a time, each face
+is refused except the wrapping one, `f23`.
+
+**Open (pre-existing, not fixed).** The check fails the other way too: a face wrapping most of its surface is passed
+when it is turned over, since its vector area then agrees with the middle's normal. Closing that means running the
+winding for every face whose surface normals leave the middle's hemisphere, at a cost on every check. Not needed by
+any finding.
+
+**Test:** `test/fuzz-k15-findings.test.mjs` "checker: a face wrapping most of its full-turn surface …", failing before.
+It also pins that every other face, turned over, is refused.
+**Corpus:** `robustness/corpus/fuzz/fuzz-20261025-62.json`, `fuzz-20261026-115.json` (their shrunk trees; the oracle's
+volume and centroid).
+
+**Checks (K15 checkpoint 1, T2, in a scratch worktree at 2fbff69e9 with D257):**
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1665/1672, 6 skipped. The one failure is the native-split demo's Node-version
+  assertion. Against D256's names, one is new (this record's test) and none is gone.
+- RB: no NEW, the same 3 TODOs. The two new corpus cases pass.
+- Fingerprint: 863 cases, `1cd931ee…` (from `cf100676…`, 861). Three lines changed: the two new corpus cases, and
+  `fuzz:20261024:185` refused → valid. Nothing else.
+- Fuzz (200 cases a seed): 20261025 OK 184 (36 empty) / REFUSED 16; 20261026 188 (27) / 12; 20261023 189 (31) / 11;
+  20261024 188 (31) / 12. No WRONG, INVALID, CRASH, TIMEOUT or APPROX.
+- cad-model 1025/1025, studio 286/286.
+- No browser flow: nothing studio-visible changed.
+
+## D258 — K15: a cut lying along a face's edge for most of its length keeps its part across the face (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261026 #184, robust (D249, D254). Shrunk: (an open shelled box ∩ a tilted cylinder) in a
+circular pattern of 2 at 50.872°. Each copy builds; the copies' union was refused with 13 edges used once, in two
+clusters. This record is the first cluster's cause; D259 is the second's.
+
+**Cause (`analyticBoolean`, `src/brep/analytic-boolean.ts`).** The first cluster is copy 1's tilted cylinder end cap
+(`n3b.bottom`), a U-shaped section of the box: the floor strip (z −2.5 … −2) and the two walls' ends above it. Copy 2's
+floor slab is coplanar with copy 1's, and it covers the strip, so the strip lies inside copy 2. The cap needs copy 2's
+floor line z = −2 as a cut across the right wall's foot, (0.4788, 2.4146) → (0.4079, 1.9111).
+- That cut came as one line, (0.4788, 2.4146, −2) → (0.0364, −0.7301, −2). It crosses the wall's foot for its first 13 %,
+  then runs along the cap's own floor edge.
+- The cuts are filtered before the arrangement: a cut whose points at 0.2, 0.5 and 0.8 all lie on the face's boundary
+  "adds nothing but slivers", and is dropped whole. This one's did (`bibbbbb` at 0, 0.1, 0.2, 0.5, 0.8, 0.9, 1).
+- Without it the strip stayed joined to the wall's end above it. That region, classified outside copy 2, was kept with
+  the strip, and the merged cap came back as the whole U. The floor, the bottom and copy 2's wall each had edges there
+  that it did not.
+
+**Fix.** A cut that the filter would drop is looked at six more times, at 0.05, 0.1, 0.35, 0.65, 0.9 and 0.95. If one
+of those points lies off the boundary, the cut goes through `offBoundary`, the isocline face split's (D149): its runs
+along the boundary longer than 100 tolerances are left out, and the parts off it are kept, their ends found on the
+boundary by bisection. Otherwise it is dropped as before; every cut the filter kept is unchanged.
+- A first version sent every such cut to `offBoundary` (257 samples, each against every segment of the face's rings).
+  Each of a coincident face's edges is such a cut: in the part model's self-unions (D260) of gear bodies, with hundreds
+  of segments a face, `gear-internal` went from 73 s to more than 600 s. The checkpoint run was stopped; with the six
+  points first, 72 s (alone, at 43f6a1bc7 + D257–D259).
+
+**Results:** with D259, 184 shrunk is one body, −0.05 e at 256² × 6; as fuzzed, 2 bodies, +0.23 e; both by
+quadrature. Nudged 4 ways each: 8/8 build, within 0.5 e. With D259 alone, 184 is still refused at the cap (an edge
+used once at (0.3799, 2.48, −1.839) as fuzzed).
+**Test:** "analytic Boolean: a cut running along a face's edge for most of its length …", failing before (with D259 in).
+**Corpus:** `robustness/corpus/fuzz/fuzz-20261026-184.json` (its shrunk tree).
+
+## D259 — K15: a crossing just inside a curve's end, where the chords meet past it, is found (2026-10-24)
+
+**Finding.** 20261026 #184's second cluster (D258): where copy 2's walls cross copy 1's wall, under the two cylinders'
+tops. Copy 2's inner wall kept its strip inside copy 1's wall, down to z = −2 between the vertical lines where copy 1's
+walls cross it; copy 1's cylinder top kept its part inside copy 2's wall.
+
+**Cause (`intersectSegments`, `src/brep/curved-arrangement.ts`).** The cut between them, copy 1's cylinder ∩ copy 2's
+inner-wall plane (an ellipse), was clipped to nothing on the wall.
+- In the wall's domain, the probe ellipse enters through the bottom line, and leaves through the wall's top curve
+  0.027 mm before that curve's end at the face's corner. That crossing was missed. With one crossing the intervals'
+  parity broke: the stretch inside the face was judged by a midpoint outside it and dropped.
+- Two curves are intersected chord by chord, then refined by Newton. Here the chords' lines met past the top curve's
+  end (b = 1.198), so Newton started with v clamped to 1.
+- There the forward difference was `segAt(t, Math.min(1, v + h))`: v itself. The derivative came out zero, the
+  Jacobian singular, and Newton stopped before its first step. (`hv`'s `|| -h` turned the step's sign, but the point
+  was never taken at v − h.)
+
+**Fix.** At a segment's end the difference is taken back from it, at u − h or v − h. Inside both segments nothing
+changes.
+- A start at an end that already meets the other segment (within eps) stays there, as before: the end is the point.
+  The first version searched on from it too, and found points inside along near-tangent joins. R11.2c-2's conic-filleted
+  box shelled open at the bottom came out 7095.4920 mm³ against its closed form's 7095.5193 (RB NEW, two tests). That
+  checkpoint run was stopped; with the start kept, they pass.
+- A point found from a start at an end counts only where the two segments cross (`crossesAt`: one's points 1e-3 of its
+  parameter either side lie on opposite sides of the other's tangent, each more than eps off it). The second checkpoint
+  run, with the first narrowing, had `robustness/corpus/parts/box-fillet-all-r4_95` valid → refused (an edge used 3
+  times): from an end the search found a near-tangent touch along a fillet's section, a point it never reached before.
+  RB passed it (that corpus case has no expectation); the fingerprint showed it. With the crossing test it is valid again.
+- Newton also stops when the clamp holds it where it is (the step points past an end): from there it would only repeat
+  the same arithmetic, so no result changes, and such a start no longer runs its 30 steps for nothing. `gear-internal`
+  73 s before, 72 s after.
+
+**Results:** with D258, as above. The wall now gets the cut from (−2.065, 2.307, 0.989) to (−2.45, 1.79, 1.411).
+**Test:** "curves: a crossing just inside a curve's end, where the chords meet past it, is found": a circle r 4 as a
+general curve (64 chords) against a 1 mm line from outside at 30°, ending 2e-3 past the crossing, at four places.
+Failing before (no crossing found).
+
+**Checks for D258–D259 (K15 checkpoint 2, T2, in a scratch worktree at 43f6a1bc7 with D258–D259):**
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1667/1674, 6 skipped. The one failure is the native-split demo's Node-version
+  assertion. Against checkpoint 1's names, two are new (these records' tests) and none is gone.
+- RB: no NEW, the same 3 TODOs.
+- Fingerprint: 864 cases, `722d0431…` (from `1cd931ee…`, 863). 171 lines changed:
+  - added: `fuzz-20261026-184`;
+  - `fuzz:20261024:18` still refused, at another edge used once;
+  - F/E/V changed, validity unchanged, volumes within 7e-11 relative: `conformance/r11/shell-notched-corner-t3`
+    (18/42/28 → 18/45/31), `fuzz:20261024:79` (+2 edges, +2 faces), `corpus/parts/box-fillet-all-r4_95` (+2, +2):
+    crossings near segment ends now found split edges there;
+  - 166 lines with meshes and areas changed only: areas within 5.3e-5 relative (`fuzz:20261024:98`), volumes within
+    3e-10.
+- Fuzz (200 cases a seed): 20261025 OK 184 (36) / REFUSED 16; 20261026 191 (27) / 9; 20261023 189 (31) / 11; 20261024
+  188 (31) / 12. No WRONG, INVALID, CRASH, TIMEOUT or APPROX. Seed 20261026 builds 47, 79 and 184 now, besides 115
+  (D257).
+- cad-model 1025/1025, studio 286/286.
+- Two earlier runs of this checkpoint were stopped, each on a regression these records describe (D258's cost, D259's
+  first two versions); no other run counted.
+- No browser flow: nothing studio-visible changed.
+
+## D260 — K15: Boolean features unite their first tool part with itself; the fix is held back (finding, a decision) (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261025 #49, robust (D249, D256). Shrunk: a cylinder ∪ (a cylinder ∪ a tilted cylinder).
+Refused as "not a manifold solid", six micro edges (3e-5 mm) up one ruling used 4 times. D256 put it down to a
+near-tangency of the tilted cylinder.
+
+**Cause (`part-model.ts`, the union / difference / intersect feature).** The tool's parts are joined as
+`tool.reduce((acc, p) => boolean(acc, p.solid, 'union', at), tool[0].solid)`: the reduce starts from the first part and
+visits it again, so every such feature begins with tool[0] ∪ tool[0]. (The empty-operand branch beside it reduces over
+`slice(1)`.) It has been so since the B-rep part model (a306e499d).
+- In #49 the outer union's tool is the inner union, whose traced curve with the tilted cylinder runs up the upright
+  cylinder's ruling, fitted in edges halving toward that point, down to 3e-5 mm. That body builds and is valid.
+- United with itself, every piece is "same", and the stitch folded those micro edges into a spur: refused.
+- Boolean traces: three analytic Booleans for the tree (c ∪ c, b ∪ c, then (b ∪ c) ∪ (b ∪ c), which failed).
+
+**The fix, `tool.slice(1).reduce(…)`, measured but not landed:**
+- #49 builds, shrunk (+0.12 e at 256² × 6) and as fuzzed (−0.17 e), by quadrature; its test fails before.
+- **Which documents:** only the generic `union`, `difference` and `intersect` features (not patterns, holes, frames,
+  welds or the machine features). In the corpus, 197 of 462 documents have one (216 features): r10 27, r11 10, r12 8,
+  r12c 5, rb4-oracle 7, bp 1, r2 2, r6 2, the oracle corpus 94, fuzz 29, parts 11, mesh 1; and every fuzz case.
+- **Time saved** (those 197 documents, best of 3 each, one process, at 7e5f38c28 against + the fix, two passes):
+  Booleans 443 → 241; 66 971 / 66 230 ms → 53 473 / 56 209 ms (−15 to −20 %; the second pass beside a checkpoint run):
+  the oracle corpus 9 253 / 9 675 → 2 358 / 2 769, fuzz 5 544 / 5 583 → 3 151 / 3 542, bp 5 140 / 5 198 → 2 447 /
+  2 494; r10, r11 and parts within their spread. The four D240 scenes use none of these features: their totals stay within the
+  runs' spread (frames 10 875 / 11 048 against 11 144 / 11 252 ms, A9's p2 instances ±600 ms), digests identical.
+- **Why it is held back:** the self-union rebuilds the tool through the Boolean, and three suites rely on what it
+  rebuilds. With the fix (K15's checkpoint-3 run with D260, at 7e5f38c28 + D260–D264):
+  - `r12c-fits` (3 tests, 2 conformance cases): checkFit's ring less a Ø50 bore refuses FIT_TABLE_MISS "no row for H8
+    at Ø50 mm" though the row is "over 30 up to 50": the nominal size, from the bore face's radius, is evidently a few
+    ulps past 50 when the bore is the tool's own cylinder, exactly 50 after the self-union's rebuild;
+  - `r12-2` flat DXF: the writer's output for a case has 49 entities where the file has 52;
+  - `r10-b`: the general fillet whose one foot at r 2 "the Boolean still cannot close" builds, where its test pins the
+    refusal; whether the body is right needs the R10.1 section oracle.
+  Each needs its own look, and one is an expected value; so the fix is a step of its own, not K15's. The fingerprint
+  run with it changed broadly (the tool bodies every such feature sees).
+
+**Open (with or without the fix):** an explicit self-union of #49's inner body (`B ∪ B`, two features) is refused, an
+edge used 5 times: the analytic Boolean's degenerate case, every surface "same".
+
+## D261 — K15: a traced cut's loose end ends on an exact segment within the stitch's merge radius (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261025 #170 as fuzzed: its second cause, after D251 built its first shrink. Shrunk again:
+(a ball r 4 ∪ a rounded box) in two circular patterns of 90°. The inner pattern turns the ball about its own centre (the
+two copies coincide); the outer one turns it about (−1, −1, 0). Refused with an edge used 3 times.
+
+**Cause (`joinLooseEnds`, `src/brep/curved-arrangement.ts`).** The two balls meet in a circle in the plane x = y,
+traced. On the first ball's face it runs from the rounded box's bottom (z = 0) to the ball's exact seam, at
+(−1, −1, −3.4641), where the second ball's seam crosses it too.
+- In the face's domain the traced cut's end stopped 1.01e-5 short of the seam: 10.1 tolerances. D237 joins an end within
+  10; D255 joins an exact cut's end onto a traced segment within 100, not the converse.
+- The face was not divided: the cut stayed a slit, and the piece kept outside the second ball was the whole face.
+
+**Fix.** A traced cut's loose end onto an exact segment within 20 tolerances, the stitch's vertex merge radius (D237's
+10 is half of it). Traced onto traced keeps 10, where D255's first version broke 20261024 #55 (still valid); an exact
+end onto a traced segment keeps D255's 100.
+- A first version used 100, as D255 has it the other way round. The checkpoint run with it had a NEW INVALID, 20261026
+  #76 (snapped): its traced end joined at 99.75 tolerances, and the body came back with an edge 1.22e-5 mm off its face
+  (non-strict invalid), where it had been refused. At 20, #76 is refused as before; #170 joins at 10.05.
+
+**Results:** #170 as fuzzed and shrunk: one body, −0.3 e at 256² × 6, by quadrature. The fix does not need D260.
+**Open:** the shrunk tree's nudges are still refused, 0/4. They are another case: a nudge moves the ball off the inner
+pattern's pivot, so its two copies become balls 1e-3 mm apart instead of one ball twice.
+**Test:** "curves: a traced cut's loose end … from an exact segment ends on it", failing before.
+**Corpus:** `robustness/corpus/fuzz/fuzz-20261025-170.json`.
+
+## D262 — K15: a short arc a few tolerances off its face's plane maps into it as a curve (2026-10-24)
+
+**Finding.** s2#112 (L4 fuzz seed 20261024 #112), D239's last open item, refused at its root since D237: "an arc does not
+lie in its plane". Shrunk: a rounded box less (a cylinder r 4 less (a ball r 2 less a cylinder r 2)), snapped. The
+ball's centre, the small cylinder's bottom and the big cylinder's top all lie at z = 3. Nudged 4 ways: shrunk 2/4 build,
+as fuzzed 1/4; the rest refused alike.
+
+**Cause (`curve2`, `src/brep/analytic-boolean.ts`).** The inner Boolean leaves a face on the plane z = 3 bounded by the
+ball's equator. In the outer one, a 0.35 mm piece of that equator (r 2, a sweep of 0.174 rad) came back tilted 1e-4 rad,
+its points up to 2.6e-6 off the plane: 2.6 tolerances. A short rational arc rebuilt through end vertices the stitch has
+merged (within 20 tolerances) tilts like that. Mapping an arc onto a plane required its normal to be the plane's within
+1e-9, and refused it otherwise.
+
+**Fix.** An arc whose normal is not the plane's, but whose points (17 along it) all lie within the stitch's merge radius
+(20 tolerances) of the plane, maps into the plane as a curve, as an arc on a cylinder's wall that is no cross-section
+does (D202). One farther off is still refused with the same message (unbracketed; the docs table is unchanged).
+
+**Results:** s2#112 shrunk, one body, −0.16 e at 256² × 6; as fuzzed, 2 bodies, −0.72 e; both by quadrature. Nudged:
+shrunk 4/4 build (0.1 e), as fuzzed 4/4 (0.6–1.5 e).
+**Test:** "analytic Boolean: a short arc a few tolerances off its face's plane …", failing before.
+**Corpus:** `robustness/corpus/fuzz/fuzz-20261024-112.json`.
+
+## D263 — K15: a face on a surface turning more than a half turn is judged by its winding either way (2026-10-24)
+
+**Finding (D257's open item; queued by the coordinator: a validator passing a wrong face is a silent wrong).** D257
+let a face's domain winding clear a flag the vector area raised, but not raise one. In 25#62's body, the wrapping
+cylinder face `f23` turned over passed `checkBrep`: its vector area points away from its gap, and turned over it agrees
+with the normal at the domain's middle, which lies 68° from the gap.
+
+**Cause.** The vector-area test is exact only for a face whose normals all lie within 90° of the middle's normal. Its
+surface here is not closed: the Boolean spans it from the piece's smallest to its largest θ, 354°, its ends 0.26 mm
+apart. So "closed" is the wrong trigger; the turn is.
+
+**Fix (`brep-core.ts`, `wrapsWithoutPoles`).** A surface whose normal at either end of u, or of v, along the domain's
+middle line, lies more than 90° from the middle's (it turns by more than a half turn) and has no domain side collapsed
+to a point is one where a face's normals can lie more than 90° from the middle's. On such a surface the outer loop's
+winding in the face's domain judges the face either way, when it can be told (D257's conditions); otherwise, and on
+every other surface, the vector area does, as before.
+- Poles are left out: a ball's or a cone's loop through its pole projects there to any u. Their faces keep the vector
+  area, as before D257.
+- `loopWindsInDomain` projects each sample from the one before, and builds the 24² seed grid only when that misses (the
+  first sample, or one past a seam): it runs on every face of a wrapping surface now.
+
+**Results:**
+- `f23` turned over: refused, `BrepError` TOPOLOGY "orientation: face … sense disagrees with its outer loop". Every face
+  of the body turned over is refused now (D257's test, which pinned `f23` as the exception, pins none).
+- The cost, D240's open harness, single graph (`open/run.mjs`), 3 runs a scene twice alternating, A at 2fbff69e9 with
+  D257 against B with D257 + D263, under the other lanes' load (14–21):
+  - the 5 box frames: A 11 115 / 10 788 ms, B 11 062 / 11 740; the spring: A 3 309 / 4 227, B 3 204 / 3 460: within
+    the runs' own spread, digests identical;
+  - under `--cpu-prof` (B): `wrapsWithoutPoles` 69 ms of the frames' 24 191 (0.3 %), 4 of the spring's 4 821;
+    `loopWindsInDomain` 0 in both, no surface there turning more than a half turn.
+**Test:** "checker: a face wrapping most of its full-turn surface, turned over, is refused, typed", failing before (it
+passed). Also D257's test, now with no face passing turned over.
+
+## D264 — K15: the part model's too-large corner finish carries `[RADIUS_EXCEEDS_FACE]` (2026-10-24)
+
+At the coordinator's request (the outer lane's R7: FriendlyError now carries the kernel's bracketed code).
+
+**Change (`part-model.ts`).** A fillet or chamfer on an upright solid's corner too large for its walls was refused as
+`PARAMETER` "edge …: fillet … mm is too large for walls of … and … mm", with no code. Its B-rep siblings (the chamfer in
+`part-model.ts` and `edge-finish.ts`) already open with `[RADIUS_EXCEEDS_FACE]`. It now does too; the text after the
+prefix is unchanged, and so is the code PARAMETER.
+- No kernel test pins the unprefixed text (part-model's match `/too large/`); cad-model's mapping takes either form
+  (`/too large for walls|RADIUS_EXCEEDS_FACE/`).
+- The docs refusal table is regenerated (`refusals.mjs`).
+
+**Checks for D261–D264 (K15 checkpoint 3, T2, in a scratch worktree at 7e5f38c28 with D261–D264, without D260):**
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1675/1682, 6 skipped. The one failure is the native-split demo's Node-version
+  assertion. Against checkpoint 2's names: three new (D261–D263's tests), five new from the API lane's
+  `api-part.test.mjs` (in integration since checkpoint 2's base), none gone.
+- RB: no NEW, the same 3 TODOs. The two new corpus cases pass.
+- Fingerprint: 866 cases, `6fe8417d…` (from `722d0431…`, 864). Four lines changed: `fuzz:20261024:112` and
+  `fuzz:20261024:97` refused → valid, and the two new corpus cases. D263 and D264 change no line.
+- Fuzz (200 cases a seed): 20261025 OK 185 (36) / REFUSED 15; 20261026 191 (27) / 9; 20261023 189 (31) / 11; 20261024
+  190 (31) / 10. No WRONG, INVALID, CRASH, TIMEOUT or APPROX.
+- cad-model 1027/1027, studio 286/286. `refusals.mjs` regenerated (D264).
+- The run before this one had D260 and D261's first version: it is the one D260 and D261 describe (three suites
+  failing with D260; 20261026 #76 INVALID with D261 at 100). Not counted.
+- No browser flow: nothing studio-visible changed.
+
+## D265 — K15's closing record: the fuzz at its end, what is open, the fingerprint chain (2026-10-24)
+
+**Final fuzz** (`scripts/rb/fuzz.mjs`, 200 cases a seed, the D249 judgement; at checkpoint 3, D257–D259, D261–D264):
+
+| Seed | OK (empty) | APPROX | REFUSED | WRONG | INVALID | CRASH | TIMEOUT | At K15's start (D256) |
+|---|---|---|---|---|---|---|---|---|
+| 20261025 | 185 (36) | 0 | 15 | 0 | 0 | 0 | 0 | OK 183, REFUSED 17 |
+| 20261026 | 191 (27) | 0 | 9 | 0 | 0 | 0 | 0 | OK 187, REFUSED 13 |
+| 20261023 | 189 (31) | 0 | 11 | 0 | 0 | 0 | 0 | OK 189, REFUSED 11 |
+| 20261024 | 190 (31) | 0 | 10 | 0 | 0 | 0 | 0 | OK 187, REFUSED 13 |
+
+KNOWN is 0 throughout. 45 refusals remain over the four seeds, against 54 at K15's start.
+
+**What K15 fixed, one cause each:**
+- D257: the validator's sense check refused a face wrapping most of its surface (its gap beside the domain's middle);
+  25#62, 26#115, 24#185.
+- D258: a cut along a face's edge for most of its length was dropped whole; 26#184 (with D259).
+- D259: a crossing just inside a curve's end was lost to Newton's collapsed difference; 26#184, 26#47, 26#79.
+- D261: a traced cut's loose end 10 tolerances short of an exact segment; 25#170 as fuzzed.
+- D262: a short arc a few tolerances off its plane was refused; s2#112 (24#112), 24#97.
+- D263: the validator passed a wrapping face turned over (a silent wrong; the coordinator's addition).
+- D264: the too-large corner finish carries `[RADIUS_EXCEEDS_FACE]` (the coordinator's addition).
+- D239's nudge findings: 51, 85 and 74 now build in every nudge (85's were D257's message).
+
+**Found and held for a decision:** D260, the Boolean features' self-union of their first tool part. Its fix builds
+25#49 and saves 15–20 % on the corpus documents with such features, but three suites (r12c-fits, r12-2's flat DXF,
+r10-b) depend on what the self-union rebuilds. It is a step of its own.
+
+**Open:**
+
+| Case | What is known | Record |
+|---|---|---|
+| 25#49 | builds with D260's fix; its self-union refuses | D260 |
+| 26#34 (as fuzzed) | a box's face 0.028 mm off a ball's seam meridian plane: a sliver beside the seam and the bottom pole, spur pieces there | this record |
+| 25#190 | the march beside a pole (two remedies failed) | D250 |
+| 25#170's nudges | the inner pattern's pivot moved: two balls 1e-3 mm apart, nearly coincident | D261 |
+| D239's 25 and 110 nudges | unchanged from K14's end (25: 0/4 here, a point contact's neighbourhood; 110: 2/4) | D239 |
+| a body united with itself | `B ∪ B` of 25#49's inner body refused, an edge used 5 times | D260 |
+
+The near-degenerate and exact-contact classes (D249) were not worked.
+
+**The fingerprint chain** (`scripts/r5-fingerprint.mjs`):
+
+| Point | Cases | sha256 | Change |
+|---|---|---|---|
+| K15's start | 861 | `cf100676…` | — |
+| Checkpoint 1 (D257) | 863 | `1cd931ee…` | two corpus cases added; 24:185 refused → valid |
+| Checkpoint 2 (D258–D259) | 864 | `722d0431…` | one added; 24:18's message; three with more edges; 166 areas ≤ 5.3e-5, volumes ≤ 3e-10 relative |
+| Checkpoint 3 (D261–D264) | 866 | `6fe8417d…` | two corpus cases added; 24:112 and 24:97 refused → valid |
+
+## D266 — K16 step 1: a fit's nominal size is judged to 1e-6 mm, as it is named (2026-10-24)
+
+**Finding (D260's first dependency).** With D260's fix, `r12c-fits` refused checkFit's ring less a Ø50 bore with
+`[FIT_TABLE_MISS] no row for H8 at Ø50 mm`, the row being "over 30 up to 50".
+
+**Cause (`lookupFit`, `src/machine/fits.ts`).** checkFit takes the nominal size as 2r of the hole face's cylinder, and r is
+recovered from the face's rational arc (`circleOf`: the chord over sin of the half angle). A Ø50 extrusion's two side
+faces measure 25.000000000000004 and 25.000000000000007. The range test `size ≤ up to` then decided the row on those
+ulps: 50.000000000000014 is past 50. The message, which prints the size to 6 decimals, named it "Ø50".
+- With the self-union, the bore was rebuilt through the Boolean, and its face came back 24.999999999999996: the miss was
+  hidden by the rebuild's rounding going the other way, not avoided. Any other measured Ø50 at a range's end could miss
+  the same way (cad-model's `engine/fits.ts` takes `2 * g.r` into lookupFit too).
+
+**Fix.** lookupFit snaps the size to 1e-6 mm, `round(x · 10⁶) / 10⁶`, before the range test, and reports that size
+(`nominalMM`, the limit sizes, the message). 1e-6 mm is the resolution the message prints, and ten of the kernel's linear
+tolerances (1e-7 mm): two sizes it snaps together are one size in the model. The division gives the double nearest the
+decimal, so a typed 12.7 stays 12.7. The table's "up to" is not loosened: 50.000001 still misses, named "Ø50.000001".
+checkFit names the snapped size in its message.
+- A size that snaps to 0 is refused as before (FIT_FACE, "above 0 mm").
+- No bracketed message changed; the docs refusal table is unchanged.
+
+**Test:** "R12c.2 a nominal size is judged to 1e-6 mm, as it is named …", failing before (the measured Ø50 sides and
+50 + 1.4e-14 missed). With D260's fix, r12c-fits' three checkFit tests pass again.
+
+## D267 — K16 step 3: an open chain's point an ulp short of its end lies at its end (2026-10-24)
+
+**Finding (D260's third dependency).** `r10-b` pins the general fillet's one foot at r 2 (the rim on `pe.top#2`) as
+refused, "the analytic Boolean cannot close it". With D260's fix that foot builds; judged by the test's own R10.1 section
+oracle it is right (−8.6e-12 of the section × 40, strictly valid). But another foot, r 3 on `pe.top#1`, was refused in its
+place, with the same message.
+- Both refusals are one failure: an edge used 6 times in the tool's clip by the end plane (`clipTool`). The tool itself
+  was not a solid: its section stations ran x = −0.625, 0, 12.9, 27.1, **0**, 40.625 — the station at the chain's end
+  (x = 40) sat at its start, and the loft folded back over the whole run.
+
+**Cause (`chainPath`, `src/blend/rolling-ball.ts`).** A point along the chain wrapped its arc length as
+`((x % L) + L) % L`. For x an ulp below L, x + L rounds to 2L, and the point came out at 0. The tool's last break, put an
+ulp below the chain's length (39.99999999999999 of 40), drew its section at the start. Which foot falls on it depends
+only on the body's rounding: the self-union's rebuild shifts L and the breaks by ulps (L 40 against 39.99999999999964),
+so D260's fix moved the refusal from one foot to another.
+
+**Fix.** One remainder, a negative one moved up a turn: `m = x % L, y = m < 0 ? m + L : m`. For an open chain inside
+(0, L) the point is x's own; a closed chain still wraps (a negative x an ulp off rounds to L, the start of a closed loop
+anyway).
+
+**Results:** every foot of r10-b's test, r 0.25–3 on both rims, builds and matches the section to 1.2e-10 (the test asks
+1e-9), strictly valid, with and without D260's fix. The foot "the Boolean still cannot close" was this.
+- The square-end refusal (`squareRefusal`, D90/D94/D99) stays for a Boolean that does fail there.
+**Tests:** "R10.B an open chain's point an ulp or a few short of its end lies at its end, not its start", failing before;
+r10-b's general-fillet test no longer pins the r 2 foot as refused (its name changes: "(refused before; one foot at r 2
+until D267)").
+
+**Checks for D266–D267 (K16 checkpoint 1, T2, in a scratch worktree at 8ec90bc49 with D266–D267, without D260's fix):**
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1677/1684, 6 skipped. The one failure is the native-split demo's Node-version
+  assertion. Against K15's checkpoint 3: two new (D266's, D267's), one renamed (r10-b's general fillet, above), none gone.
+- RB: no NEW, the same 3 TODOs.
+- Fingerprint: 866 cases, `17c1d5c4…` (from `6fe8417d…`). 20 lines changed, all general fillets and shells over them
+  (r10 14, r11 6): the wrapped point of every open chain moved by up to an ulp of 2L.
+  - Areas ≤ 3.0e-8 relative (variable-radius-boss-foot; the rest ≤ 6.7e-12), volumes ≤ 1.8e-11.
+  - Three with an edge more or fewer: corner-l-plate-top, shell-pipe-tee-closed, shell-variable-radius-box-edge (21/54/36
+    → 20/51/34), each still valid.
+  - One refusal's message: r11 `refuse-shell-pipe-tee-fillet-folds`, its [OFFSET_FOLDS] point.
+  - None refused → valid, none valid → refused.
+- Fuzz (200 cases a seed): 20261025 OK 185 / REFUSED 15; 20261026 191 / 9; 20261023 189 / 11; 20261024 190 / 10, as at
+  K15's end. No WRONG, INVALID, CRASH, TIMEOUT or APPROX.
+- cad-model 1027/1027, studio 286/286. No refusal text changed: the docs table stays.
+- No browser flow: nothing studio-visible changed.
+
+## D268 — K16 step 4: the Boolean features join their tool parts from the first over the rest (D260's fix landed) (2026-10-24)
+
+**Change (`part-model.ts`, the union / difference / intersect feature).** The tool's parts are joined as
+`tool.slice(1).reduce(…, tool[0].solid)`: every such feature no longer begins with tool[0] ∪ tool[0] (D260). 25#49
+builds (its test, "part model: a Boolean feature joins its tool parts without uniting the first with itself", also
+checks one Boolean per union feature by the profile).
+
+**D260's three dependencies, each explained before landing:**
+- `r12c-fits`: the nominal size's ulps, fixed where it is judged (D266).
+- `r10-b`: the open chain's point at its end (D267); every foot builds and matches the section oracle.
+- `r12-2`'s flat DXF: **the "49 vs 52 entities" was a misreading.** Those numbers were the byte diff's ASCII `'1'` (49)
+  and `'4'` (52), not entity counts. Both writers' outputs have the same entities (9 / 28 / 29). 36 numbers move by at
+  most 2.8e-14 mm, the tool bodies' rounding without the rebuild. The fixtures `conformance/r12/flat-dxf/{channel-hole,
+  tray-holes}/expected.*.dxf` and `oracle.*.json` are regenerated with the independent reader
+  (`DXF_ORACLE_PYTHON=~/.cache/barocss-ezdxf/bin/python node scripts/flat-dxf-fixtures.mjs`, ezdxf): an expected-value
+  change with its oracle, the geometry identical to 2.8e-14.
+
+**Fingerprint** (`scripts/r5-fingerprint.mjs`, with D269–D270 and their three corpus cases): 869 cases,
+`4e3603b7…` (from `17c1d5c4…`, 866). 354 lines changed: the tool bodies every such feature sees.
+- By where: the oracle corpus 56, the fuzz corpus 18, rb4-oracle 7, r10 6, r12 3, r12c 2, parts 1, the rest the
+  seeds' cases. Three cases added (D268's, D269's, D270's).
+- Volumes ≤ 3.6e-8 relative (fuzz-20261025-99); areas ≤ 6.8e-5 (23:70; 24:124 2.3e-5, 23:78 1.5e-5, the rest ≤ 7.9e-7),
+  the trims' fitted curves meeting at other points. 22 cases have F/E/V changes, each still valid.
+- **Status changes:** 23:13 refused → valid; 23:9 valid → refused (near-degenerate: its nudges refuse 4/4 at the old
+  tip too; left open, as the coordinator decided). 24:154 and 23:110, valid → refused on the first slice(1) tree, stay
+  valid with D269 and D270.
+- Three refusals' messages changed (another edge named): 23:100, 24:96 and `gear-helical-pair-crossing-intersect` (an RB
+  TODO).
+
+**Fuzz** (200 cases a seed): 20261025 OK 189 / REFUSED 11; 20261026 191 / 9; 20261023 190 / 10; 20261024 191 / 9, against
+15/9/11/10: 45 → 39 refusals. No WRONG, INVALID, CRASH, TIMEOUT or APPROX.
+
+**Timings.**
+- The four D240 scenes use no Boolean features; their digests are identical and the differences are noise (frames
+  11 878 / 11 017 against 11 633 / 11 165 ms; spring 3 666 / 3 319 against 3 456 / 3 359; worm 2 172 / 1 899 against
+  1 939 / 1 960; A9 4 485 / 4 358 against 4 341 / 4 568).
+- The corpus documents with union/difference/intersect features (best of 3, t260.mjs): 199 documents, 71 923 / 66 355 ms
+  and 453 Booleans before; 200 documents, 54 093 ms (one pass; the second was stopped at the account move) and 249
+  Booleans after: −18 to −25 %, in line with D260.
+
+**Open:** 23:9; an explicit `B ∪ B` of 25#49's inner body (D260); D265's list.
+
+## D269 — K16: a march past a ball's pole is cut back to it before the pole ends it (2026-10-24)
+
+**Finding.** L4 fuzz 20261024 #154 (a ball whose pole lies on a rounded box's edge between its top and its round),
+valid → refused under D268: the part model now takes box ∪ ball in that order.
+
+**Cause (`toPoles`, `src/brep/analytic-boolean.ts`).** The ball's curve with the round runs into the pole, and the march
+stopped 4.4e-4 mm past it, where the patch's side collapses. The pole put after that point made a hook: the cut passed
+the pole, turned, and came back to it. The search for the nearest point on the cut found its own end 1.8e-4 off, the
+end lay on no edge, and `mergePieces` dropped the round's open piece.
+
+**Fix.** When the march's end lies within 1000 tolerances of the pole, it is cut back while the pole lies behind its last
+point (as the march ran), and the pole is appended to what is left. The tangent is taken from the new end.
+
+**Test:** "analytic Boolean: a march past a ball's pole is cut back to it before the pole ends it", failing on the
+slice(1) tree without D269. Corpus: `robustness/corpus/fuzz/fuzz-20261024-154.json` (shrunk).
+
+## D270 — K16: a face whose loop touches its domain's side, with a hole beside it, is triangulated (2026-10-24)
+
+**Finding.** L4 fuzz 20261023 #110 ((a cylinder ∪ a ball) less a cylinder), valid → refused under D268.
+
+**Cause, two places.**
+- (a) `triangulatePinched` (`analytic-boolean.ts`), the shell volume's triangulation of a piece pinched at a vertex,
+  took the pinch only without holes. The cylinder wall's piece has a cut loop touching the seam, with the ball's own cut
+  as a hole beside it.
+- (b) `surfaceTriangles` (`src/brep/brep-tessellate.ts`). The same 3D boundary point was met twice, each run snapped to
+  its iso line on its own, a few ulps apart (6e-14). Ear clipping found no ear at the near-pinch, where an exact pinch
+  passes.
+
+**Fix.**
+- (a) Each hole goes with the counter-clockwise lobe holding its first point (`inRing`, even-odd, a module-level helper);
+  a hole held by no lobe refuses as before.
+- (b) A boundary point met again, its parameters within 1e-9 of the domain's span of the first, takes the first's.
+  Pole points are left out, and a seam's two sides, a period apart, stay as they are.
+
+**Test:** "tessellation: a face whose loop touches its domain's side, with a hole beside it, is triangulated", failing on
+the slice(1) tree without D270. Corpus: `robustness/corpus/fuzz/fuzz-20261023-110.json` (shrunk).
+
+**Checks for D268–D270 (K16 checkpoint 2, T2, in a scratch worktree at a1857acec with the patch):**
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1680/1687, 6 skipped; the one failure is the native-split demo's Node-version assertion.
+  Against checkpoint 1's names: three new (D268's, D269's, D270's), none renamed, none gone.
+- RB: no NEW, the same 3 TODOs.
+- Fingerprint, fuzz and timings: D268 above.
+- cad-model 1028/1028, studio 286/286. No refusal text changed: the docs table stays.
+- No browser flow: nothing studio-visible changed (the flat DXF's geometry moves by ≤ 2.8e-14).
+
+## D271 — K16: the Boolean's commutativity over the fuzz's trees (an RB check, the coordinator's addition) (2026-10-24)
+
+**The check (`scripts/rb/commute.mjs`, `pnpm rb:commute`).** Every union and intersection node of the fuzz corpus's
+shrunk trees (`robustness/corpus/fuzz/*.json`, their `fuzz.tree`) and of the four seeds' generated trees (20261023–26,
+200 each, drawn as the fuzz draws them) is evaluated as A op B and as B op A, through the fuzz's worker (the node's
+output checked strictly, watertight, its mass).
+- Both must build to one volume, within the two mass methods' stated accuracy (the properties' METHOD_TOL), or, where
+  that is narrower, within the fuzz's oracle bound (max(2e, 1e-4 V)). Or both must refuse.
+- **Findings:** ONE-SIDED (one order refuses, the other builds: a robust refusal), DIFFER, EMPTY-SIDED, and BROKEN
+  (either order INVALID, CRASH or TIMEOUT). Known ones are listed in `robustness/commute-todo.json` and marked TODO;
+  any other exits 1.
+- It also judges every Boolean node's own body. The fuzz judges only a tree's root, so an intermediate body failing
+  the strict check went unseen.
+
+**First run** (at 6374a7351, jobs 4, 195 s): 837 trees, 2 456 nodes. SAME 2 412, BOTH-REFUSED 37, ONE-SIDED 1,
+DIFFER 0, EMPTY-SIDED 0, BROKEN 6. That is 7 findings in 6 trees, all unions:
+
+| Node | A ∪ B | B ∪ A |
+|---|---|---|
+| 23:114 r.a | INVALID: a face's loops cross | INVALID: a face's loops cross |
+| 23:170 r.a.a | INVALID: a face's loops cross | INVALID: a face's loops cross |
+| 24:51 r.c (under a pattern) | INVALID: a face's loops cross | INVALID: a face's loops cross |
+| 24:96 r.a.b | INVALID: a face's loops cross | INVALID: a face's loops cross |
+| 24:125 r.b | refused: a planar face could not be triangulated | 140.712 mm³, valid |
+| 24:165 r | refused: not a manifold solid | INVALID: a face's loops cross |
+| 24:165 r.a | INVALID: a face's loops cross | INVALID: a face's loops cross |
+
+- No volume disagreed. Order-sensitivity appears in 2 nodes (24:125 one-sided, 24:165's root).
+- The five nodes INVALID in both orders are no commutativity failure. They are intermediate bodies emitted unrefused
+  that fail the strict check ("its loops cross or touch"); later Booleans of their trees hide it from the fuzz's root
+  judgement. All 7 are recorded as TODO, and reported to the coordinator before any fix (the brief's "more than a
+  handful").
+
+## D272 — R7.3a batch 1 (kernel): BarocssError in the kernel's core; every kernel error class on it, no text change (2026-10-24)
+
+**What (api-conventions.md §6, roadmap R7.3a; the coordinator approved the API-lane file edit).**
+- `src/core/barocss-error.ts`, new:
+  - `BarocssError`, moved here unchanged from `src/api/refusal.ts`: the same class, name, fields and constructor
+    (`code, message, where?, details?`; the message written `[CODE] …`);
+  - `RefusalWhere`, `Problem { code, message, where? }`;
+  - `KernelError`, internal: a BarocssError with Error's own constructor `(message?, { cause?, code? })`.
+- `src/api/refusal.ts` (the API lane's file) imports the class and re-exports it with `RefusalWhere`; `FacadeCode`,
+  `refuse()` and `bracketedCode` stay. One class: `@barocss/cad/api`'s `BarocssError` is the core's (tested).
+- The main entry exports `BarocssError`, `Problem` and `RefusalWhere`.
+- **All 171 kernel error classes** extend `KernelError` instead of `Error`. Nothing else in them changed: each keeps its
+  name, its code (its own field, as before) and its message, written as before.
+  - `KernelError` sets `name` to `'Error'` first, so the one class that names nothing (`SketchFailure`) stays an Error
+    by name.
+  - It defines `cause` as Error does: only when the options carry one.
+  - It deletes the own `where` and `details` that BarocssError's fields leave `undefined` under ES2022 class fields, so
+    a kernel error's own keys are as they were. A test that lists an error's own keys found this.
+  - The 11 classes that had no code take one named for the class: BREP_EULER, CURVED_ARRANGEMENT, PLANAR_ARRANGEMENT,
+    SEW, SOLID_MASS, PRISMATIC_SOLID, SECTION_DIMENSIONS (FrameSectionError, as its message already says),
+    SURFACE_INTERSECTION, MESH_BREP, XY_AFFINE_SKETCH_PRISM; CutListError takes its message's own bracketed code, else
+    CUT_LIST. No message changed.
+- **Not in batch 1** (batch 2, with the text changes recorded): one code union for the package (`CadErrorCode`) from
+  which the docs' refusal table is generated, the codes to UPPER_SNAKE where they are not, `[CODE] ` messages, and the
+  classes folded into codes. The legacy `createCadModel` classes go with R7.3d instead.
+
+**Tests.** `test/barocss-error.test.mjs`, new: every exported error class (more than 100) is a BarocssError and the
+facade's class is the same one; a kernel error keeps name, code, message, stack header and cause; the codeless classes'
+codes; a part-model refusal caught as a BarocssError.
+- The legacy createCadModel tests bundle the sources behind import allow-lists (14 `pureModules` sets, 4 `allowed`
+  sets, two map traps, one scale trap), and `source-ast` pins its module's imports: each now admits
+  `core/barocss-error`. These are test-only changes of a dependency list, not of any value.
+
+**Checks (T2 by parts; the kernel side at 6374a7351 + the change, the rest at the tip 3e14b0aeb + the change):**
+- cad tsc, eslint and build clean.
+- Kernel suite at concurrency 4 at the tip 3e14b0aeb: 1698/1705, 6 skipped, the one failure the native-split demo's
+  Node-version assertion. Names +18: this record's 2 and the API lane's R7.4b 16 (merged since checkpoint 2); none gone.
+- At the commit's parent (b5a492b24, the facades' Vec3, types only): cad build and lint, the api, error, public-api,
+  source-ast and one legacy modeling test 48/48, cad-model tsc 0.
+- R5 fingerprint byte-identical: 869 cases `4e3603b7…`. RB: no NEW (the 3 TODOs). Properties pass.
+- cad-model 1047/1047, its R4 fingerprint byte-identical to the unchanged tip's (152 documents, `d1f8bb3c…`); studio
+  tsc 0 and 286/286; the api, error and public-api tests 30/30.
+- No refusal text changed: the docs table stays. No flow: nothing studio-visible.
+
+## D273 — K16: a ruling along another face's edge leaves no slit up a cylinder's wall (2026-10-24)
+
+**Finding (D271's check, 20261024 #96 r.a.b; and 24#165's root).** A cylinder r 3 whose wall touches a box's edge along
+a ruling (x = −2, y = 2): two lumps touching along a line, each a body of its own (D204). The union's cylinder body failed
+the strict check in both orders ("its loops cross or touch"): the wall's loop ran up the ruling and straight back, one
+edge used twice in a row.
+
+**Cause (`stitch`, `src/brep/analytic-boolean.ts`).** The box's face x = −2 cuts the wall in its rulings; one lies on that
+face's edge, where the wall is outside the box on both sides, so the cut divides nothing. D201's `unspike` takes such a
+spur out, but only on planar pieces, because a periodic face meets its seam both ways (a cone's even one after the other,
+at its apex).
+
+**Fix.** `unspike` also runs on cylinder pieces, keeping an edge on the cylinder's seam (θ = ref ± π, within 100
+tolerances along the wall: `onCylinderSeam`). Other curved pieces, the NURBS ones with poles and apexes, are left as
+they were.
+
+**Results:** 24#96's node builds both ways, valid and watertight, its volume within the ray oracle's bound. 24#165's root,
+refused one way and invalid the other, builds both ways too. And an RB TODO since D186 (K9): the oracle corpus's
+`cylinder-box-graze-x45-in0_000001-difference`, a box edge 1 nm into a cylinder's wall. The lens's two traced curves had
+stitched into one edge used both ways, one after the other, by the wall's face (D186 refused it, typed). That is the same
+spur, now taken out: the body builds with the lens dropped, as K9's note asked, and RB judges it OK against its oracle
+(IMPROVEMENT; its entry leaves `robustness/todo.json`).
+
+## D274 — K16: a face's cusp, two curves tangent inside each other at a vertex, is its shape, not a touch (2026-10-24)
+
+**Finding (D271's check, 20261024 #165 r.a, 20261023 #170 r.a.a).** Unions of a rounded box and a cylinder or a cone's
+base tangent inside one of its corner fillets. A planar cap between them closes to a zero-angle point at the tangency (a
+cusp: the loop turns back, both curves leaving the vertex tangent, on one side). The strict check reported the cap's
+loop touching itself there, in both orders.
+
+**Cause (`ringsCross`, `src/brep/brep-check-geometry.ts`).** The check runs on chords. Near a cusp, the flatter curve's
+last chord cuts the other curve about κ₁/κ₂ of a chord from the vertex (a third, for r 1 inside r 3), at every sampling.
+So D191's confirmation on chords 8 times finer finds it again, scaled down: the contact is the chords', not the curves'.
+
+**Fix.** At a ring vertex where the chords in and out are within about 8° of opposite (a cusp), a contact between
+segments on either side of it, both within four chords of it, is its shape. Contacts farther away, or on one side, are
+reported as before.
+
+**The oracle, independent of the check's chords** (the coordinator's condition):
+- **Analytic, from the inputs:** each cusp's two circles are internally tangent, with exactly one common point.
+  |c₁ − c₂| = r₁ − r₂: in #165 the cylinder's (−1, 1) r 3 and the fillet's (−1, 3) r 1; in #170 the cone base's
+  (0, 1) r 3 and the fillet's (0, −1) r 1. Both distances are 2.
+- **Dense:** the two exact edge curves at each cusp, 4 000 samples each. The least separation over d² (d the distance
+  from the vertex, within half the shorter curve) is 0.3334 in #165 (both orders, and at 24#165's root). That is the
+  tangency's (κ₂ − κ₁)/2 = 1/3. In #170 it is 0.3095, at d 0.71. A real touch or crossing drives it to 0 or below.
+- **Volume:** each node's body, both ways, within the fuzz's ray oracle bound (256² × 6 lattice), in its test.
+
+## D275 — K16: a union whose parts touch along a line from outside each other is refused, typed (2026-10-24)
+
+**Finding (D271's check, 20261023 #114 r.a, 20261024 #51 r.c).** Two parts tangent from outside along a line, joined
+elsewhere through a third part: the body touches itself along that line, not a manifold solid. Its cap passed the point
+twice, at two distinct vertices ("two solids touching at a point keep two vertices"), so every edge was used once each
+way, and the result was returned failing the strict check, in both orders.
+- In #114, two of a linear pattern's cones tangent from outside, under the analytic Boolean.
+- In #51, upright cylinders r 2 and r 3, 5 apart, under the prismatic solids.
+
+**Fix: typed refusals at the node,** GEOMETRY.
+- **Analytic Boolean (`stitch`):** a planar piece whose loops pass one point (within the vertex merge radius) at two
+  vertices refuses: "the result touches itself at (…): a face's boundary passes that point twice; the inputs touch along
+  a line there". Every such face failed the strict check, so no valid result is refused.
+- **Prismatic solids (`prismatic-solid.ts`):** a cap passing one point at two vertices refuses where the solid lies on
+  both sides of the tangent line: more than half of 16 points on a circle about it (radius 1e-4 of the extent) inside the
+  cap's region. A figure eight: "the solid touches itself along the vertical line at (…): two of its walls meet there
+  from outside each other". Where the solid lies on neither side, it is D195's crescent (a disc tangent inside a disc, a
+  wall tangent inside a hole) and kept as one body; its tests pass unchanged.
+
+**Tests** (`test/commute-k16-findings.test.mjs`, three, each failing before):
+- D273: 24#96's node and 24#165's root build both ways;
+- D274: #165's and #170's nodes build both ways;
+- D275: #114's and #51's nodes refuse both ways.
+Each body is valid and watertight, its volume within the oracle's bound.
+
+**Checks for D273–D275 (K16 checkpoint 3, T2, in a scratch worktree at 43ccf24df with the change):**
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1702/1709, 6 skipped; the one failure is the native-split demo's Node-version assertion.
+  Names against R7.3a's run: +4, D273's, D274's and D275's tests and an API-lane test merged since; none gone.
+- RB: no NEW; IMPROVEMENT graze-x45-in0_000001-difference (above); 2 TODOs left. Properties pass.
+- Commutativity (`rb:commute`): SAME 2 418, BOTH-REFUSED 37, ONE-SIDED 1 (24:125, TODO), DIFFER, EMPTY-SIDED and BROKEN 0.
+  The six fixed findings leave `robustness/commute-todo.json`.
+- Fingerprint: 869 cases, `dbc1ad33…` (from `4e3603b7…`). Six lines:
+  - refused → valid: 24:165, 24:96, the graze-x45 1 nm case;
+  - valid → refused: 23:114. Its root was valid, a later union covering the line its inner union touched itself along.
+    The inner union is not a manifold solid, and D275 refuses it at the node. Building the root would need that
+    intermediate held as a non-manifold body, D195's later item (c);
+  - two refusals' messages changed (23:131 and 24:4, another failure named first).
+- Fuzz (200 cases a seed): 20261025 OK 189 / REFUSED 11; 20261026 191 / 9; 20261023 189 / 11 (23:114, above);
+  20261024 193 / 7. That is 39 → 38. No WRONG, INVALID, CRASH, TIMEOUT or APPROX.
+- At the commit's parent (f796435f2, with the API lane's split/mirror/scale verbs): cad build and lint, the api, the
+  api-legacy-coverage, the K16 findings', prismatic-solid and rb tests 51/51.
+- cad-model 1048/1048, studio 286/286. No bracketed refusal text: the docs table stays. No flow: nothing studio-visible.
+
+## D276 — K16's closing record: the self-union gone, the commutativity check, the fuzz at its end, what is open (2026-10-24)
+
+**What K16 did** (D260's finding: the Boolean features united their first tool part with itself):
+- D266: a fit's nominal size is judged to 1e-6 mm, as it is named (r12c-fits' dependency on the rebuild).
+- D267: an open chain's point an ulp short of its end lies at its end (r10-b's; every foot builds and matches the
+  section oracle).
+- D268: the fix landed, `tool.slice(1).reduce(…)`.
+  - The flat DXF's "49 vs 52" was a misread byte diff; its fixtures were regenerated by ezdxf.
+  - About −18 to −25 % time on the corpus documents with Boolean features (453 → 249 Booleans).
+- D269, D270: the two valid bodies the order change exposed. 24#154 was a march past a pole; 23#110 a pinched face with
+  holes and a boundary point met twice ulps apart.
+- D271: the coordinator's addition, the commutativity check over the fuzz's trees (`rb:commute`). Its first run found
+  7 findings: 1 one-sided, and 6 where a node's body failed the strict check, intermediate bodies the fuzz's root
+  judgement never saw.
+- D272: R7.3a batch 1, between the checkpoints (no kernel behaviour changed).
+- D273–D275: the six fixed by cause.
+  - D273: a slit up a cylinder's wall. It also builds the RB TODO graze-x45 1 nm case.
+  - D274: a cusp was the strict check's false contact. Its oracle is analytic tangency plus the exact curves'
+    separation/d².
+  - D275: parts touching along a line from outside each other are refused, typed, in the analytic Boolean and the
+    prismatic solids; D195's crescents are kept.
+
+**Final fuzz** (`scripts/rb/fuzz.mjs`, 200 cases a seed, at 43ccf24df + D273–D275):
+
+| Seed | OK (empty) | APPROX | REFUSED | WRONG | INVALID | CRASH | TIMEOUT | At K16's start (D265) |
+|---|---|---|---|---|---|---|---|---|
+| 20261025 | 189 (37) | 0 | 11 | 0 | 0 | 0 | 0 | OK 185, REFUSED 15 |
+| 20261026 | 191 (27) | 0 | 9 | 0 | 0 | 0 | 0 | OK 191, REFUSED 9 |
+| 20261023 | 189 (31) | 0 | 11 | 0 | 0 | 0 | 0 | OK 189, REFUSED 11 |
+| 20261024 | 193 (31) | 0 | 7 | 0 | 0 | 0 | 0 | OK 190, REFUSED 10 |
+
+KNOWN is 0 throughout. 38 refusals remain over the four seeds, against 45 at K16's start (54 at K15's).
+
+**The commutativity check at the end:** 2 456 union and intersection nodes. SAME 2 418, BOTH-REFUSED 37, ONE-SIDED 1
+(24:125, TODO), no DIFFER, EMPTY-SIDED or BROKEN.
+
+**The fingerprint chain** (`scripts/r5-fingerprint.mjs`):
+
+| Point | Cases | sha256 | Change |
+|---|---|---|---|
+| K16's start (K15 checkpoint 3) | 866 | `6fe8417d…` | — |
+| Checkpoint 1 (D266–D267) | 866 | `17c1d5c4…` | 20 fillet/shell lines, areas ≤ 3e-8, volumes ≤ 1.8e-11 |
+| Checkpoint 2 (D268–D270) | 869 | `4e3603b7…` | 354 lines (every Boolean feature's tool), volumes ≤ 3.6e-8; 23:13 refused → valid, 23:9 valid → refused; 3 added |
+| R7.3a batch 1 (D272) | 869 | `4e3603b7…` | byte-identical |
+| Checkpoint 3 (D273–D275) | 869 | `dbc1ad33…` | 6 lines: 24:165, 24:96 and graze-x45 1 nm refused → valid; 23:114 valid → refused; 2 messages |
+
+The kernel suite ends at 1702/1709 (6 skipped), the one failure being the native-split demo's Node-version assertion.
+
+**Open:**
+
+| Case | What is known | Record |
+|---|---|---|
+| 24:125 r.b | one-sided: A ∪ B builds a strictly valid body whose planar face the tessellation cannot triangulate (ear clipping's leftover ring runs back along a line, a hole's bridge lying on the boundary); B ∪ A builds 140.71 mm³. A typed refusal, at the tessellation | D271, this record |
+| 23:114's root | valid → refused: its inner union touches itself along a line (D275); a later union covered the line. Needs a non-manifold intermediate (D195's item (c)) | D275 |
+| 23:9 | valid → refused under D268; near-degenerate, its nudges refuse 4/4 at the old tip too | D268 |
+| a body united with itself | `B ∪ B` of 25#49's inner body refused, an edge used 5 times | D260 |
+| 26#34, 25#190, 25#170's nudges, D239's 25 and 110 nudges | unchanged from K15's end; K16's step 5 was not taken | D265 |
+
+## D277 — O19 (kernel): a stored name that resolves to other geometry than it named is refused, typed (2026-10-24)
+
+**Finding (O19, API lane finding 4; the outer lane's design, the coordinator's approval).** A fillet's, chamfer's, shell's
+or draft's stored names are positional on a sketch without sideTags. A vertex inserted upstream renumbers the sides, and
+`n1.side1|n1.side2` then names another corner. The feature builds there: a wrong result, silently. cad-model's A1 rematch
+catches it only where cad-model evaluates before and after the edit.
+
+**The field (part document, latest schema, no version bump; an addition, so saved documents resolve as before).**
+`fillet`, `chamfer`, `shell` and `draft` take an optional
+`expect: { readonly [name: string]: CadPartNameSignature }`, one entry per stored name the feature uses (`edges`,
+`open`, `faces`). Each entry is what the named edge or face looked like when the name was stored, in the shape of
+cad-model's rematch.ts `Signature`:
+
+```ts
+interface CadPartNameSignature {
+  readonly kind: 'line' | 'curve' | 'plane' | 'curved'; // an edge straight or not; a face planar or not
+  readonly at: readonly [number, number, number];          // an edge's midpoint (of its two ends), a face's centroid (mm)
+  readonly dir?: readonly [number, number, number] | null; // a straight edge's direction (either way), a planar face's normal
+  readonly size: number;                                    // an edge's chord, a face's area (informational: not judged)
+  readonly radius?: number;                                 // a cylindrical or spherical face's radius
+}
+```
+
+No unit suffixes (conventions §2). An entry for a name the feature does not use refuses INPUT. An entry whose numbers are
+not finite, or whose `kind` is none of the four, refuses INPUT. Without `expect`, nothing changes.
+
+**The rule** (cad-model's tolerances: SAME_DIRECTION 1°, SAME_RADIUS 1e-6 relative, CLEARLY_NEARER 2). The kernel
+computes each name's signature on the target part's B-rep as cad-model computes it on the display mesh:
+- an edge: straight when its curve is a line; `at` the midpoint of its ends, over the pieces carrying the name;
+- a face: planar or curved, its area centroid and normal over its tessellation, its radius as cad-model reads it.
+
+It then refuses when either holds:
+- (a) the named geometry is not alike the expectation: another kind, another radius, or another direction past 1°
+  (an edge's either way);
+- (b) another edge or face of the body, alike the expectation, is clearly nearer it: at half the named one's distance
+  from `at`, or less.
+
+Otherwise the feature builds on its names as before. This is cad-model's "clearly nearest" rule applied in the refusing
+direction only: a name is overruled when the geometry says it now points elsewhere, never because nothing is certain.
+So a dimension edit that keeps the names (the corner moved from (40, 40) to (50, 50), no other corner near (40, 40))
+still builds. Rule (b) catches the vertex insert: (40, 40, 5) has an alike edge on it, the named one now at (40, 0, 5).
+
+**What it does not catch** (the same limit as cad-model's rematch): a named edge or face whose geometry is alike its
+expectation but moved, with no other alike one near the old `at`, still builds on its name. Such a name may have moved
+to a corner that only looks like the old one: a square's corner renumbered onto another corner, with nothing left near
+the old corner, because the edit removed or moved it. The check says only that the geometry does not contradict the
+name. Only side tags, or an edit cad-model rematches before and after, say the name is right.
+
+**The refusal:** CadPartError `REFERENCE`, its message carrying the bracketed code:
+`n7: [REFERENCE_MOVED] edge n1.side1|n1.side2 is no longer the edge it named (was at (40, 40, 5), now at (40, 0, 5); n1.side2|n1.side3 is at (40, 40, 5))`,
+with a face's likewise ("face … is no longer the face it named").
+
+**Cost:** none without `expect`. With it, a check before the feature builds: the target's B-rep (built when the part is
+upright, as finishing it builds it anyway), and one tessellation where a face is named.
+
+**Built:**
+- `src/part/part-expect.ts`, new:
+  - `expectOf` checks the field as data;
+  - `edgeSignatures` and `faceSignatures` compute a body's signatures;
+  - `checkExpected` applies the rule.
+- `part-model.ts`: when a feature has `expect`, its run is wrapped (`expectedThen`): each target part's B-rep is checked
+  before the feature builds. The four kinds' types carry `expect`, and the main entry exports `CadPartNameSignature`.
+- The docs refusal table gains `[REFERENCE_MOVED]` (regenerated with `refusals.mjs`, in this commit).
+
+**Tests** (`test/o19-expect.test.mjs`, four):
+- The square: the (40, 40) corner builds with its expectation. With a vertex inserted upstream it refuses, the exact
+  message above. Without `expect` it builds at (40, 0), the silent move.
+- A dimension edit to 50 × 50 that keeps the names builds with `expect`, the same volume as without.
+- A shell's open face whose normal flipped refuses; a chamfer's line expected as a curve refuses.
+- The field checked as data: a name the feature does not use, a malformed `at`, a face kind on an edge.
+
+**Checks** (in a scratch worktree at 86da39e14 + the change):
+- cad tsc and eslint clean.
+- Kernel suite at concurrency 4: 1719/1726, 6 skipped, the one failure the native-split demo's Node-version assertion.
+  Names +4 (these tests), with the API lane's legacy-coverage tests merged since; none gone.
+- Fingerprint byte-identical: 869 cases `dbc1ad33…` (no corpus document has `expect`).
+- cad-model 1051/1051. No RB (nothing in it uses `expect`), no flow (nothing studio-visible until the outer lane wires
+  `node.sigs`).
+
+## D278 — R7.3a batch 2 (kernel), part 1: one list of codes; a part-model refusal's `code` is its specific code (2026-10-24)
+
+**Scope** (the coordinator's decision on the kernel's options: 1 + 2(b) + 3(a) + 4(a); part 1 is 1 and 2(b), the fold
+follows as part 2). No message text changes anywhere in this batch.
+
+**1. One list.** `src/core/error-codes.ts`, exported from the main entry:
+- `CAD_REFUSAL_CODES`: the 64 bracketed codes the kernel's string and template literals carry (`[FIT_TABLE_MISS] …`);
+- `CAD_ERROR_CODES`: every code a kernel error can carry (269), being those and every error class's `code` literals;
+- `CadErrorCode` and `CadRefusalCode`, their types;
+- `refusalCodeOf(message)`: a message's first known bracketed code.
+
+`CadAstError`'s code, a plain string before, is typed (`CadAstCode`, 22 codes), so the list can be read from it. The
+11 classes that took a code in D272 pass it as a literal. `test/error-codes.test.mjs` keeps the list whole: the
+literals' bracketed codes are exactly `CAD_REFUSAL_CODES`, and every class's code type lies in `CAD_ERROR_CODES` (read
+with the TypeScript checker). The docs table may read `CAD_ERROR_CODES` with R7.6's part 2; it still scrapes the
+literals.
+
+**2(b). `CadPartError.code`.** Where its message carries a known bracketed code, that code; otherwise its category
+(INPUT, PARAMETER, CAPABILITY, REFERENCE, SELECTION, GEOMETRY, FORMAT). The category is in `details.category`
+either way: `KernelError` takes `details`. The one kernel site that re-raised a CadPartError's code (a tagged
+dimension, `taggedDimension`) takes the category. Outside cad, nothing branches on the category: cad-model, the studio and
+the facades were searched. The facade's `refusalOf` (`src/api/core.ts`, the API lane's) already took the bracketed
+code first, so its `code` is unchanged; its `details.kernelCode` now holds the specific code.
+
+**3(a), the kernel's reading of §6.** A refusal with no specific code carries its category in `code` and its words
+unprefixed. There is no `[INPUT] ` sweep over the ~400 such refusals; one gets a specific code when a later change
+touches it.
+
+**What changed in values:**
+- **Fingerprint** (`scripts/r5-fingerprint.mjs`): 869 cases, `49f1fac8…` (from `dbc1ad33…`). Exactly 42 lines change,
+  each a refusal's `code` field only: its name and message are byte-identical. By old → new code:
+
+| Category | Code | Cases | Which |
+|---|---|---|---|
+| CAPABILITY | CORNER_NOT_SQUARE | 1 | r12/refuse-corner-not-square |
+| CAPABILITY | OFFSET_FOLDS | 3 | r11/refuse-shell-pipe-tee-fillet-folds, r11/refuse-shell-subd-folds, r11/refuse-thicken-folds |
+| CAPABILITY | OPENING_AT_A_VERTEX | 1 | r11/refuse-shell-opening-at-a-vertex |
+| CAPABILITY | SHELL_REGIONS_SHARP | 1 | r11/refuse-shell-regions-sharp |
+| CAPABILITY | WALL_TOO_THIN | 2 | r11/refuse-shell-mesh-wall-too-thin, r11/refuse-shell-wall-too-thin |
+| GEOMETRY | FLANGES_COLLIDE | 1 | r12/refuse-flanges-collide |
+| GEOMETRY | SHEET_CROSSES_ITSELF | 1 | r12/refuse-sheet-crosses-itself |
+| INPUT | INVALID_INPUT | 4 | r12b/rack-fillet-refused, r12b/spiral-cutter-refused, r12b/tool-tip-refused, r6a/rack-height-refused |
+| INPUT | MATE_INCOMPATIBLE | 4 | r12b/spiral-same-hand-refused, r12b/worm-wheel-zi-refused, r6a/helical-same-hand-refused, r6a/spur-mesh-module-refused |
+| PARAMETER | ARC_MEMBER | 1 | frk/refuse-frame-arc-center |
+| PARAMETER | BEAD_ANGLE | 1 | frk/refuse-bead-angle |
+| PARAMETER | BEAD_KIND | 1 | frk/refuse-bead-mitre |
+| PARAMETER | BEND_ANGLE | 1 | r12/refuse-bend-angle |
+| PARAMETER | BEND_DOES_NOT_FIT | 1 | r12/refuse-bend-does-not-fit |
+| PARAMETER | BEND_TABLE_MISS | 1 | r12/refuse-bend-table-miss |
+| PARAMETER | BUTT_ON_OPEN_SIDE | 1 | fr/refuse-butt-on-open-side |
+| PARAMETER | CAP_END | 1 | frk/refuse-cap-end |
+| PARAMETER | CONTACT_LEAVES_FACE | 1 | r10/refuse-overflow-end |
+| PARAMETER | CORNER_NOT_A_JOINT | 1 | fr/refuse-corner-not-a-joint |
+| PARAMETER | EDGE_NOT_SHEET | 1 | r12/refuse-flange-edge-not-sheet |
+| PARAMETER | GUSSET_FIT | 1 | frk/refuse-gusset-fit |
+| PARAMETER | MEMBERS_CLASH | 1 | fr/refuse-members-clash |
+| PARAMETER | MEMBER_DUPLICATE | 1 | fr/refuse-member-duplicate |
+| PARAMETER | MITRE_SECTIONS_DIFFER | 1 | fr/refuse-mitre-sections-differ |
+| PARAMETER | NOTCH_CUTTER | 1 | frk/refuse-notch-v-depth |
+| PARAMETER | RADIUS_EXCEEDS_FACE | 2 | r10/refuse-concave-chamfer-past-round, r10/refuse-radius-exceeds-face |
+| PARAMETER | SECTION_DIMENSIONS | 2 | fr/refuse-section-dimensions, frk/refuse-section-tangent-equality |
+| PARAMETER | SECTION_TABLE_MISS | 1 | r12c/frame-member-section-table-miss |
+| PARAMETER | SEGMENT_ZERO_LENGTH | 1 | fr/refuse-segment-zero-length |
+| PARAMETER | SKELETON_OVERLAP | 1 | fr/refuse-skeleton-overlap |
+| SELECTION | TANGENT_FACES | 1 | r10/refuse-tangent-faces |
+
+- **Conformance:** the 42 cases expecting those refusals by category now expect the specific code, with the category
+  beside it (`"code": "BEND_ANGLE", "category": "PARAMETER"`). `test/conformance.test.mjs` checks both.
+- **Tests:** 35 test files' helpers that checked a part-model refusal's category read `e.details?.category ?? e.code`.
+  That is the same assertion: the category for a CadPartError, the code for any other class. d148's message check
+  names both. o19-expect's three refusals check `REFERENCE_MOVED` and their category.
+
+**Checks** (in a scratch worktree at e092ceda0 + the change; then at the commit's parent 1f08f0133, with the outer lane's
+O19 wiring and R7.7a step 3):
+- cad tsc, eslint and build clean.
+- Kernel suite at concurrency 4: 1725/1732, 6 skipped, the one failure the native-split demo's Node-version assertion.
+  Names +3, these tests, with the API lane's merged since; none gone.
+- RB: no NEW, the same 2 TODOs. Fingerprint as above.
+- At the parent: kernel api, error-codes, barocss-error, conformance and o19 tests 310/310; cad-model tsc 0 and
+  1066/1066 (its O19 checks read `REFERENCE_MOVED` as before); studio tsc 0 and 286/286.
+- No refusal text changed: the docs table stays. No flow: nothing studio-visible.
+
+## D279 — R7.3a batch 2 (kernel), part 2: the live per-module error classes folded into module refusals (2026-10-24)
+
+**Scope** (option 4(a), narrowed by reachability; the coordinator agreed).
+- Only 117 of cad's 401 source files are reachable by imports from the live engine: `src/part/part-model.ts`, `src/api`
+  and `src/io`. The other **284 files** are reachable only through `index.ts` exports: createCadModel, the old
+  document versions, the native "proof" APIs (convex-planar-*, xy-affine-*, translated-strip, paired, exact-proof, the
+  wide-curve operations). They hold 141 of the 171 error classes. That count is the size of R7.3d's audit: each module
+  there retires (and its class with it) or stays, and a kept one is folded then.
+- Of the 30 live classes, 8 stay named classes, because something outside the live engine tells them apart by class:
+  - CadPartError, BrepError, FitError, IGESImportError, SubdError, SurfaceIntersectionError (cad-model and the studio);
+  - HullError (cad-model);
+  - NativeCurvatureError and NativeSecondDerivativeError (examples/cad-nurbs' demos and cad-interop's examples check
+    `instanceof` and `name`);
+  - CadAstError (a structured diagnostic, with its range and object, returned by compileCadModel).
+- The other **21 are folded**: BearingError, CamError, ConnectorError, CurvedArrangementError, DriveError,
+  DxfWriteError, ExtrudedProfileError, FacetBooleanError, FlatPatternError, FrameSectionError, GearError, GlandError,
+  MeshBrepError, PlanarArrangementError, PrismaticSolidError, SewError, ShaftError, ShaftPartError, SheetMetalError,
+  SolidMassError, SpringError.
+
+**The fold.**
+- `src/core/barocss-error.ts`:
+  - `kernelRefusal(source, code, message, cause?)`: a KernelError named `BarocssError`, its code, its message as the
+    module writes it, `details.source` naming the module;
+  - `isFrom(e, source)`.
+- Each folded class becomes a factory and a guard in its module:
+  `gearError(code, detail)` (the same message the class wrote, e.g. `gear: …`) and `isGearError(e)`. The guard is what
+  the 46 catch sites that told modules apart by class use now: the part model mapping a gear's codes, the facet Boolean
+  catching the mesh builder, and so on. Codes of two modules share names (INPUT …), so `source`, not the code, says
+  whose a refusal is.
+- The main entry exports the factories and guards in place of the classes. No message text changes, and every code is
+  as before.
+- The folded errors' `name` is `BarocssError`. The fingerprint records only the part model's refusals, which are
+  CadPartErrors, so it does not move.
+- Legacy `modeling.ts` told the extruded profile's refusal by its class name, so as not to import the profile builder
+  (its tests' bundle traps forbid it). It now tells it by `isFrom(…, 'extruded-profile')`.
+- `test/error-codes.test.mjs` also reads each `kernelRefusal(…) as … { code: C }` factory's C, so the folded modules'
+  codes stay in `CAD_ERROR_CODES`.
+
+**Tests:** `assert.throws(…, XError)` and `instanceof XError` in the kernel's tests became the guards; nothing else in
+them changed.
+
+**Checks** (in a scratch worktree at 553edb8a8 + the change):
+- cad tsc and eslint clean.
+- Kernel suite at concurrency 4: 1725/1732, 6 skipped, the one failure the native-split demo's Node-version assertion.
+  Names identical to part 1's run.
+- R5 fingerprint byte-identical: 869 cases `49f1fac8…`. RB: no NEW, the same 2 TODOs.
+- cad-model 1089/1089, studio 286/286, the docs samples 36/36.
+- At the commit's parent 88deb6df7 the samples are 47/48. The failing one, cad-model-api's "rows from a person's file,
+  then a fastener from them", fails on that tip without this change too: not this change's.
+- No refusal text changed: the docs table stays. No flow: nothing studio-visible.
+
+**Where the change is in history:** the fold's code (69 files under `packages/barocss-cad`) is in `44cb23283`, the
+coordinator's roadmap commit. The patch was applied in the shared integration worktree for its last check, and that
+commit took the working tree with it. The patch and the commit's cad diff are identical. `a152dee7e` holds this record
+and the README row. Integration is never rewritten, so the two stay as they are; read them together as D279.
+
+## D280 — R7.3b (kernel): results as data, mass in MMGS (2026-10-24)
+
+**On branch `claude/kernel-r73b-r77b`**, the coordinator's one merge window, with R7.7b next on the same branch; the
+outer, API and docs lanes branch from it. Design: `notes/r73b-r77b` in the shared notes, approved.
+
+**Mass in MMGS** (api-conventions §2).
+- `MassProperties` (was `SolidMassProperties`) is `{ volume mm³, mass g, centroid mm, inertia g·mm² about the centroid,
+  method, volumeBound? }`. A density is in g/cm³:
+  - `mass = ρ · V · 1e-3`;
+  - inertia = `ρ · 1e-3 ·` the second moments in mm⁵.
+- Live everywhere: `brepMassProperties`, `prismaticMassProperties`, `solidMassFromIntegrals`, `combineMassProperties`
+  (parallel axes in mm and g), `revolveMassProperties`, loft, the part model's hollowed and moved masses.
+- The cut list: `CutPiece.density`, a row's `mass` and `totalMass`, `totals.mass` in g, `cutList(pieces, { density })`,
+  `cutPiece(output, { volume? })`. The CSV still shows kg, a person's unit for a cut list.
+- The legacy createCadModel surface keeps its own kg types until R7.3d.
+
+**Results as data** (§4).
+- `CadPartOutput` and `CadPartSnapshot` have no methods. The new functions are on the main entry:
+
+  | Was | Now |
+  |---|---|
+  | `o.massProperties(ρ kg/m³)` | `massPropertiesOf(o, ρ g/cm³ = 1)` |
+  | `o.surfaceArea()` | `surfaceAreaOf(o)` |
+  | `o.validate()` | `checkOutput(o)` |
+  | `o.exportStl(options)` | `exportStl(o, options)` |
+  | `o.exportStep(options)` | `exportStep(o, options)` (exportStep also takes B-reps, as before) |
+  | `o.flatPattern(options)` | `flatPatternOf(o, options)` |
+  | `s.output(id)` | `outputOf(s, id)` |
+  | `s.withParameters(e)` | `reevaluate(s, { parameters: e })` |
+  | `s.withDocument(d)` | `reevaluate(s, { document: d })` |
+  | `s.save()` | `saveCadPart(s)` |
+
+- What a function needs beyond the data (the part an output was made from, its cached validation, area and flats; a
+  snapshot's cache and options) is in module WeakMaps. An output made elsewhere falls back to its B-rep.
+
+**Call sites.**
+- The kernel's tests and scripts were rewritten by a TS-checker codemod, which changed only receivers typed
+  CadPartOutput, CadPartSnapshot or MassProperties, and untyped ones in files that do not use the legacy API.
+- Where a unit made the oracle's numbers move, the oracle's factors went to g, the formulas kept: frk3-oracle, fr-s0,
+  frk-4-revolve, shared-seam, mass-polyhedral, sweep-mass-overlap, freeform, the part model's box inertia, fr-4a's cut
+  list.
+- conformance/fr's four cut-list cases expect `density` 7.85 and masses in g: the same closed forms (ρ·A·L), in g.
+- Densities given as numbers in tests went ÷1000, with 1 kept as the volume-only density.
+- The API lane's src/api/core.ts and its test/api-verbs and api-part helpers changed only to drop their kg → g
+  conversions; their result shapes are theirs (R7.7d).
+
+**Fingerprint** (`scripts/r5-fingerprint.mjs` reads `checkOutput` and `massPropertiesOf`): 869 cases, `5bef43bd…` (from
+`49f1fac8…`).
+- Every body's mass record changed, and nothing else did: refusals, F/E/V, areas, validity and meshes are
+  byte-identical.
+- In the mass records:
+  - the names went volumeMM3 → volume, massKG → mass, centroidMM → centroid, inertiaCentroidKgM2 → inertia;
+  - the mass is ×1e6 exactly (density 1 kg/m³ → 1 g/cm³, kg → g), and the inertia ×1e12 (to 3.5e-16 relative);
+  - volumes and methods are bit-identical;
+  - two frame bodies' centroids moved ≤ 1.1e-13 mm (accept-bent-rail, frame-tangent-bend: combineMassProperties
+    weights by mass in g now).
+
+**Checks** (scratch worktree at d32c34bbb + the change):
+- cad tsc, eslint and build clean.
+- Kernel suite at concurrency 4: 1725/1732, 6 skipped, the one failure the native-split demo's Node-version assertion.
+  Names identical.
+- RB: no NEW, 2 TODOs. Properties pass. Fuzz 20261024: OK 193 / REFUSED 7 as before. Commutativity (corpus): SAME 29.
+- Not run here: cad-model, the studio, the docs samples. Their call sites move in the window (the break list goes to the
+  coordinator).

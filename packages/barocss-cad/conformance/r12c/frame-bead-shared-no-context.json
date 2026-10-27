@@ -1,0 +1,196 @@
+{
+  "id": "r12c-frame-bead-shared-no-context",
+  "step": "R12c",
+  "decisions": [
+    "D170",
+    "D171"
+  ],
+  "about": "The same actual shared endpoint components without opt-in/context refuse atomically.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              400,
+              0,
+              0
+            ],
+            [
+              400,
+              300,
+              0
+            ],
+            [
+              0,
+              300,
+              0
+            ],
+            [
+              0,
+              0,
+              300
+            ],
+            [
+              400,
+              0,
+              300
+            ],
+            [
+              400,
+              300,
+              300
+            ],
+            [
+              0,
+              300,
+              300
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              4
+            ],
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              6
+            ],
+            [
+              3,
+              7
+            ],
+            [
+              4,
+              5
+            ],
+            [
+              5,
+              6
+            ],
+            [
+              6,
+              7
+            ],
+            [
+              7,
+              4
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "corners": {
+            "multi": "order"
+          }
+        },
+        {
+          "id": "w4start",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 4,
+            "end": "start"
+          },
+          "leg": 3
+        },
+        {
+          "id": "w4end",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 4,
+            "end": "end"
+          },
+          "leg": 3
+        },
+        {
+          "id": "w5start",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 5,
+            "end": "start"
+          },
+          "leg": 3
+        },
+        {
+          "id": "w5end",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 5,
+            "end": "end"
+          },
+          "leg": 3
+        },
+        {
+          "id": "w6start",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 6,
+            "end": "start"
+          },
+          "leg": 3
+        },
+        {
+          "id": "w6end",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 6,
+            "end": "end"
+          },
+          "leg": 3
+        },
+        {
+          "id": "w7start",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 7,
+            "end": "start"
+          },
+          "leg": 3
+        },
+        {
+          "id": "w7end",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 7,
+            "end": "end"
+          },
+          "leg": 3
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[BEAD_SHARED_CONTEXT]"
+    }
+  },
+  "oracle": "A complete shared frame manifest is required before either nominal participant can escape."
+}

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, brepMassProperties, spurGear, spurGearDimensions, GearError } from '../dist/index.js';
-import { twistDeviation } from '../dist/gear.js';
+import { evaluateCadPart, checkBrep, brepMassProperties, spurGear, spurGearDimensions, isGearError, outputOf } from '../dist/index.js';
+import { twistDeviation } from '../dist/machine/gear.js';
 
 // R12b S0 (D129): the feasibility checkpoint before internal, bevel and worm gears and the tool-generated root. No
 // research note; probed here against oracles written in this file, apart from the generators: closed forms, a
@@ -111,19 +111,19 @@ test('R12b S0 today: an internal gear is an annulus less a "space gear" (a spur 
   const m = 2, z = 40, b = 10, R = 50, red = 0.5 * m * TAN;
   // The space gear's dimensions are the ring's turned inside out: its tip r + 1.25m the ring's root, its root r − m the
   // ring's tip, its tooth πm/2 at the reference circle the ring's space.
-  const g = spurGearDimensions({ moduleMM: m, teeth: z, faceWidthMM: b, profileShiftCoefficient: 0.25, toothThicknessReductionMM: red });
-  close(g.tipDiameterMM / 2, m * z / 2 + 1.25 * m, 1e-12, 'ring root'); close(g.rootDiameterMM / 2, m * z / 2 - m, 1e-12, 'ring tip'); close(g.toothThicknessMM, Math.PI * m / 2, 1e-12, 'ring space');
+  const g = spurGearDimensions({ module: m, teeth: z, faceWidth: b, profileShiftCoefficient: 0.25, toothThicknessReduction: red });
+  close(g.tipDiameter / 2, m * z / 2 + 1.25 * m, 1e-12, 'ring root'); close(g.rootDiameter / 2, m * z / 2 - m, 1e-12, 'ring tip'); close(g.toothThickness, Math.PI * m / 2, 1e-12, 'ring space');
   const doc = D([
     { id: 'c', kind: 'sketch', profile: 'circle', center: [0, 0], radius: R }, { id: 'e', kind: 'extrude', sketch: 'c', height: b },
     { id: 's', kind: 'spur-gear', module: m, teeth: z, faceWidth: b + 2, from: -1, profileShift: 0.25, thicknessReduction: red },
     { id: 'ring', kind: 'difference', target: 'e', tool: 's' },
   ]);
-  const t0 = performance.now(), brep = evaluateCadPart(doc).output('ring').brep, ms = performance.now() - t0;
+  const t0 = performance.now(), brep = outputOf(evaluateCadPart(doc), 'ring').brep, ms = performance.now() - t0;
   assert.equal(brep.bodies.length, 1); assert.equal(checkBrep(brep).valid, true, checkBrep(brep).issues?.[0]);
   // The volume: (πR² − the space gear's exact area) × b, the exact area by the analytic outline here (200 000 chords
   // round it), within the generator's measured flank deviation over 2z flanks.
-  const area = polygonArea(gearOutline({ m, z, x: 0.25, red, F: 1500 })), dev = spurGear({ moduleMM: m, teeth: z, faceWidthMM: b, profileShiftCoefficient: 0.25, toothThicknessReductionMM: red }).report.profileDeviationMM;
-  const want = (Math.PI * R * R - area) * b, got = brepMassProperties(brep, 1).volumeMM3;
+  const area = polygonArea(gearOutline({ m, z, x: 0.25, red, F: 1500 })), dev = spurGear({ module: m, teeth: z, faceWidth: b, profileShiftCoefficient: 0.25, toothThicknessReduction: red }).report.profileDeviation;
+  const want = (Math.PI * R * R - area) * b, got = brepMassProperties(brep, 1).volume;
   close(got, want, 2 * z * dev * 2.25 * m * b + 1e-6 * want, 'ring volume');
   // The ring's inner faces are the space gear's, its flanks the involute's (concave towards the ring's material).
   const names = brep.faces.map(f => f.name);
@@ -134,8 +134,8 @@ test('R12b S0 today: an internal gear is an annulus less a "space gear" (a spur 
   // tip runs into it: involute interference). R12b refuses it or raises the tip to the base circle (D129).
   const zLimit = 2 / (1 - Math.cos(ALPHA));
   assert.ok(zLimit > 33 && zLimit < 34, `${zLimit}`);
-  const low = spurGearDimensions({ moduleMM: m, teeth: 33, faceWidthMM: b, profileShiftCoefficient: 0.25, toothThicknessReductionMM: red });
-  assert.ok(low.rootDiameterMM < low.baseDiameterMM);
+  const low = spurGearDimensions({ module: m, teeth: 33, faceWidth: b, profileShiftCoefficient: 0.25, toothThicknessReduction: red });
+  assert.ok(low.rootDiameter < low.baseDiameter);
 });
 
 /**
@@ -459,7 +459,7 @@ test('R12b S0 probe: a ZI worm is a helical gear of z1 teeth at β = 90° − γ
   const rows = [];
   for (const [mx, q, z1, L] of [[2, 10, 1, 50], [2, 10, 2, 50], [2, 10, 4, 50], [1, 16, 1, 40], [4, 8, 2, 90]]) {
     const gamma = Math.atan(z1 / q), mn = mx * Math.cos(gamma), beta = Math.PI / 2 - gamma;
-    assert.throws(() => spurGearDimensions({ normalModuleMM: mn, helixAngleDeg: beta * 180 / Math.PI, hand: 'right', teeth: z1, faceWidthMM: L }), e => e instanceof GearError && e.code === 'UNSUPPORTED_GEAR_KIND');
+    assert.throws(() => spurGearDimensions({ normalModule: mn, helixAngle: beta * 180 / Math.PI, hand: 'right', teeth: z1, faceWidth: L }), e => isGearError(e) && e.code === 'UNSUPPORTED_GEAR_KIND');
     // Transverse values: m_t = m_n / cos β (= m_x z... d1 = z1 m_t = q m_x), tan α_t = tan α_n / cos β.
     const mt = mn / Math.cos(beta), r = z1 * mt / 2, at = Math.atan(TAN / Math.cos(beta)), rb = r * Math.cos(at), ra = r + mn, rf = r - 1.25 * mn;
     close(2 * r, q * mx, 1e-9, 'd1 = q m_x');
@@ -476,7 +476,7 @@ test('R12b S0 probe: a ZI worm is a helical gear of z1 teeth at β = 90° − γ
   for (const r of rows) assert.equal(r.segments <= 64, !(r.mx === 1 && r.q === 16), `m${r.mx} z1 ${r.z1}: ${r.segments} axial segments`);
   assert.ok(rows.some(r => r.N > 5), 'some worm flank needs more than the five pieces a gear flank is allowed');
   // A cylindrical worm wheel is a helical gear at β = γ (the worm's hand), small β: it builds today.
-  const wheel = spurGear({ normalModuleMM: 2 * Math.cos(Math.atan(0.1)), helixAngleDeg: Math.atan(0.1) * 180 / Math.PI, hand: 'right', teeth: 40, faceWidthMM: 16, boreDiameterMM: 20 }, { id: 'w' });
+  const wheel = spurGear({ normalModule: 2 * Math.cos(Math.atan(0.1)), helixAngle: Math.atan(0.1) * 180 / Math.PI, hand: 'right', teeth: 40, faceWidth: 16, boreDiameter: 20 }, { id: 'w' });
   assert.equal(checkBrep(wheel.brep).valid, true);
-  close(wheel.report.dimensions.referenceDiameterMM, 80, 1e-9, 'the wheel\'s d2 = z2 m_x');
+  close(wheel.report.dimensions.referenceDiameter, 80, 1e-9, 'the wheel\'s d2 = z2 m_x');
 });

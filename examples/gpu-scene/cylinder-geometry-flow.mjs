@@ -20,7 +20,7 @@ const bundled = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].i
   target: 'node22', outfile: ordinary, metafile: true });
 const graph = Object.keys(bundled.metafile.inputs);
 for (const name of ['cylinder-geometry.ts', 'cylinder-geometry-build-internal.ts', 'triangle-geometry.ts', 'engine-scene.ts', 'engine-raycast.ts'])
-  assert(graph.some(path => path.endsWith('/src/' + name)), 'Actual own source dependency ' + name);
+  assert(graph.some(path => (path.includes('/src/') && path.endsWith('/' + name))), 'Actual own source dependency ' + name);
 assert(graph.some(path => /barocss-cad\/src\//.test(path)), 'Actual transitive own CAD source graph');
 assert(!graph.some(path => /barocss-(gpu|cad)\/dist\//.test(path)), 'No own emitted fallback in ordinary source');
 const providers = [['ordinary-source', await import(pathToFileURL(ordinary).href)], ['emitted-public', await import(pathToFileURL(emitted).href)]];
@@ -28,7 +28,7 @@ const namespace = Object.keys(providers[0][1]).sort(); assert.deepEqual(namespac
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['prepareCylinderGeometry', 'CylinderGeometrySourceV0', 'PreparedCylinderGeometry'])
   assert(new RegExp('\\b' + name + '\\b').test(declaration), 'Actual public DTS ' + name);
-const leafDeclaration = await readFile(resolve(pkg, 'dist/cylinder-geometry.d.ts'), 'utf8');
+const leafDeclaration = await readFile(resolve(pkg, 'dist/geometry/cylinder-geometry.d.ts'), 'utf8');
 assert(/prepareCylinderGeometry\(input:\s*unknown\):\s*PreparedCylinderGeometry/.test(leafDeclaration));
 for (const field of ['radius', 'height', 'radialSegments', 'heightSegments']) assert(new RegExp(field + ':\\s*number').test(leafDeclaration));
 const hash = value => createHash('sha256').update(value).digest('hex');
@@ -151,7 +151,7 @@ try {
     assert.equal(first.source.radius, 1); accepted++;
     const nullInput = Object.assign(Object.create(null), source(1, 3, 4, 1, 'cylinder_null')); verify(gpu.prepareCylinderGeometry(nullInput), nullInput); accepted++;
     const sceneInput = { format: 'barocss-gpu-engine-scene', version: 0, id: 'cylinder_instances', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
-      background: [.02, .04, .06], camera: { eye: [0, 3, 8], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: .1, far: 100 },
+      background: [.02, .04, .06], camera: { eye: [0, 3, 8], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: .1, far: 100 },
       geometries: [first.prepared.geometry], materials: [{ id: 'cylinder_material', type: 'unlit', colorSpace: 'linear', color: [.2, .4, .6] }],
       nodes: [[0, 0, 0], [4, 0, -2]].map((translation, i) => ({ id: 'cylinder_' + i, type: 'mesh', parentId: null, geometryId: first.source.id,
         materialId: 'cylinder_material', translation, rotationXYZW: [0, 0, 0, 1], scale: i ? [1, 2, .5] : [1, 1, 1], visible: true })) };

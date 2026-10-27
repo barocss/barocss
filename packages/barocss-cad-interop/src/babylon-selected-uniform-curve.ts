@@ -59,7 +59,7 @@ export class BaroCADSelectedUniformCurveBabylonLoader {
       line.color = new Color3(40 / 255, 201 / 255, 235 / 255);
       line.metadata = { barocss: {
         role: 'selected-uniform-curve-display-line', modelName: native.model.name, curveId: native.curveId,
-        sourceVersion: 0, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', mode: native.mode,
+        sourceVersion: 0, lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', mode: native.mode,
         selectedObjectIndex: native.selectedObjectIndex, unrenderedObjectIds: [...native.unrenderedObjectIds], nativeDomain: [...native.domain],
         nativeParameters: [...native.parameters], nativeIntervals: native.intervals.map(interval => [...interval]), quality: { ...native.quality },
       } };

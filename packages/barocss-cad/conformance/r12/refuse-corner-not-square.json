@@ -52,7 +52,8 @@
   },
   "expect": {
     "error": {
-      "code": "CAPABILITY",
+      "code": "CORNER_NOT_SQUARE",
+      "category": "CAPABILITY",
       "messageIncludes": "[CORNER_NOT_SQUARE] the corner b.side0|b.side1 is 56.309932°"
     }
   },

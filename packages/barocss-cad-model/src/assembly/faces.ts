@@ -1,10 +1,13 @@
-// A part's faces as mates read them: each persistent face name with its exact plane or cylinder, in the
-// part's own coordinates, from the kernel's B-rep (not the display mesh, which is single precision).
+// A part's faces as mates read them: each persistent face name with its exact plane, cylinder, sphere or cone, and its
+// straight and circular edges (O24 c), in the part's own coordinates, from the kernel's B-rep (not the display mesh,
+// which is single precision).
 import { evaluateCadPart, faceGeometry, type Brep } from '@barocss/cad';
+import { curvedFace, edgeKey, edgePoints, edgeShape, loopCurves, mergeEdges, planeMoment } from './shapes';
 import { withBeadRetry } from '../engine/part';
 import { contentKey } from '../engine/evalMemo';
 import type { StudioDoc } from '../engine/doc';
-import { BASE, clean, type FaceTable, type Vec3 } from './mates';
+import { BASE, type FaceTable, type MateFace, type Vec3 } from './mates';
+import { clean } from '../engine/placement';
 import { datumWorld, readReferences } from '../chat/references';
 
 /** Values within a nanometre of a round number are that number (a circle read back from its NURBS). */
@@ -39,18 +42,55 @@ export function faceTableOf(doc: StudioDoc): FaceTable {
 /** A part's evaluation's face table, kept for faceTableOf (by the part's content). */
 export function rememberFaceTable(doc: StudioDoc, table: FaceTable): void { if (doc.nodes.length) remember(faceKey(doc), table); }
 function remember(key: string, table: FaceTable) { tableCache.set(key, table); if (tableCache.size > 32) tableCache.delete(tableCache.keys().next().value!); }
-/** The face table of a part's outputs (their B-reps). */
-export function faceTableFrom(outputs: readonly { readonly brep: { readonly faces: readonly Brep['faces'][number][] } }[]): FaceTable {
+/**
+ * The face table of a part's outputs (their B-reps): flat and round faces, spheres and cones (O24 c), a flat face's
+ * centroid and a round face's or a cone's extent along its axis, and its straight and circular edges by name (the
+ * pieces of one edge, `x|y#1` and `x|y#2`, read as `x|y` when they are one circle or one line; else each by its own).
+ */
+export function faceTableFrom(outputs: readonly { readonly brep: Brep }[]): FaceTable {
   // Every part's origin planes (in its own coordinates) mate like flat faces.
   const table: FaceTable = { ...ORIGIN_PLANES };
-  for (const o of outputs) for (const f of o.brep.faces) {
-    const name = (f.name ?? f.id).replace(/#\d+$/, '');
-    if (table[name]) continue;
-    try {
-      const g = faceGeometry(f);
-      if (g.kind === 'plane') table[name] = { kind: 'plane', point: snap(g.o), normal: snapUnit(g.n) };
-      else if (g.kind === 'cylinder') table[name] = { kind: 'cylinder', point: snap(g.c), axis: snapUnit(g.a), radius: clean(g.r), outer: g.out > 0 };
-    } catch { /* a general surface: not mateable */ }
+  const moments = new Map<string, { area: number; moment: Vec3 }>(), spans = new Map<string, [number, number]>(), edges = new Map<string, { raw: string; shape: MateFace }[]>();
+  const noCentre = new Set<string>();
+  for (const o of outputs) {
+    const b = o.brep, loops = new Map(b.loops.map(l => [l.id, l])), coedges = new Map(b.coedges.map(c => [c.id, c])), edgePts = new Map<string, Vec3[]>();
+    for (const e of b.edges) edgePts.set(e.id, edgePoints(e));
+    for (const f of b.faces) {
+      const name = (f.name ?? f.id).replace(/#\d+$/, '');
+      if (!table[name]) {
+        try {
+          const g = faceGeometry(f);
+          if (g.kind === 'plane') table[name] = { kind: 'plane', point: snap(g.o), normal: snapUnit(g.n) };
+          else if (g.kind === 'cylinder') table[name] = { kind: 'cylinder', point: snap(g.c), axis: snapUnit(g.a), radius: clean(g.r), outer: g.out > 0 };
+          else { const c = curvedFace(f); if (c) table[name] = c; }
+        } catch { /* a general surface: not mateable */ }
+      }
+      const entry = table[name];
+      if (!entry || entry.kind === 'sphere' || name.startsWith('origin:')) continue;
+      const rings: { curves: Vec3[][]; outer: boolean }[] = [];
+      for (const id of f.loops) { const l = loops.get(id)!; rings.push({ curves: loopCurves(l, coedges, edgePts), outer: l.kind === 'outer' }); }
+      if (entry.kind === 'plane') {
+        const m = planeMoment(rings, entry.normal), had = moments.get(name);
+        if (!m) { noCentre.add(name); continue; }
+        moments.set(name, had ? { area: had.area + m.area, moment: [had.moment[0] + m.moment[0], had.moment[1] + m.moment[1], had.moment[2] + m.moment[2]] } : m);
+      } else if (entry.kind === 'cylinder' || entry.kind === 'cone') {
+        let [lo, hi] = spans.get(name) ?? [Infinity, -Infinity];
+        for (const r of rings) for (const curve of r.curves) for (const p of curve) { const t = (p[0] - entry.point[0]) * entry.axis[0] + (p[1] - entry.point[1]) * entry.axis[1] + (p[2] - entry.point[2]) * entry.axis[2]; lo = Math.min(lo, t); hi = Math.max(hi, t); }
+        spans.set(name, [lo, hi]);
+      }
+    }
+    for (const e of b.edges) {
+      const key = e.name ? edgeKey(e.name) : null, shape = key ? edgeShape(edgePts.get(e.id)!, e.vertices[0] === e.vertices[1]) : null;
+      if (key && shape) (edges.get(key) ?? edges.set(key, []).get(key)!).push({ raw: e.name!, shape });
+    }
+  }
+  for (const [name, m] of moments) { const f = table[name]; if (f.kind === 'plane' && !noCentre.has(name) && Math.abs(m.area) > 1e-12) table[name] = { ...f, centre: snap([m.moment[0] / m.area, m.moment[1] / m.area, m.moment[2] / m.area]) }; }
+  for (const [name, sp] of spans) { const f = table[name]; if ((f.kind === 'cylinder' || f.kind === 'cone') && sp[0] <= sp[1]) table[name] = { ...f, span: [clean(sp[0]), clean(sp[1])] }; }
+  // (An edge's pieces: one entry when they are one circle or one line, else each by its own name.)
+  for (const [key, pieces] of edges) {
+    let one: MateFace | null = pieces[0].shape;
+    for (let k = 1; one && k < pieces.length; k++) one = mergeEdges(one, pieces[k].shape);
+    if (one) table[key] = one; else for (const p of pieces) table[p.raw] = p.shape;
   }
   return table;
 }

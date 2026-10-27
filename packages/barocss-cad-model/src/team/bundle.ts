@@ -1,3 +1,4 @@
+import { resolveShopTree } from '../engine/shopRows';
 // The export bundle (A8.6, O32's addendum, O39): a portable folder that carries what an approval stands on. The source
 // document (as saved) and its revision digest; the approved BOM baseline and its ancestors; each part's materials with
 // their sources and basis; each analysis result with its fingerprint and its freshness when written; the ECR history
@@ -12,10 +13,10 @@ import { lookOf } from '../app/bodies';
 import { briefMaterial } from '../chat/brief';
 import { MATERIALS_DATA, materialData } from '../library/materials';
 import { readBaselines, verifyBaseline, type Baseline } from './baseline';
-import { digestOf, sha256Hex } from './digest';
+import { digestOf, sha256Hex } from '../util/digest';
 import { readEcrs, verifyEcrPin, type Ecr } from './ecr';
 import { bomResult, freshnessOf, massResult, requirementResults, type Freshness, type Result } from './freshness';
-import { revisionContent } from './team';
+import { revisionContent } from '../util/revision';
 
 export const BUNDLE_FILES = { document: 'document.bcad', baseline: 'baseline.json', materials: 'materials.json', results: 'results.json', ecrs: 'ecrs.json', manifest: 'manifest.json' } as const;
 export interface BundleFile { path: string; sha256: string; bytes: number }
@@ -26,7 +27,7 @@ export interface Manifest {
   files: BundleFile[];
   missing: string[]; stale: string[]; complete: boolean;
 }
-export interface MaterialEntry { part: string; body: string; material: string | null; label: string | null; densityGPerCm3: number | null; basis: 'body' | 'brief' | 'default'; sources: Record<string, string> }
+export interface MaterialEntry { part: string; body: string; material: string | null; label: string | null; density: number | null; basis: 'body' | 'brief' | 'default'; sources: Record<string, string> }
 export interface BundleCheck { complete: boolean; intact: boolean; missing: string[]; changed: string[]; stale: string[]; manifestSaidComplete: boolean | null }
 
 /** A document's revision digest: the SHA-256 of its revision fields (what A7's revision reads). */
@@ -37,18 +38,19 @@ const json = (v: unknown) => JSON.stringify(v, null, 1) + '\n';
 
 /** Each body's material, its library sources (their texts) and basis: its own, the brief's, or none (the default, assumed). */
 export async function materialsOf(doc: StudioDoc, evaluate: Evaluate): Promise<MaterialEntry[]> {
+  doc = resolveShopTree(doc);
   const out: MaterialEntry[] = [], parts: [string, StudioDoc][] = [...(doc.nodes.length ? [['base', doc] as [string, StudioDoc]] : []), ...(doc.instances ?? []).map(i => [i.id, i.doc] as [string, StudioDoc])];
   for (const [part, d] of parts) {
     const e = await evaluate(d), bodies: readonly BodyResult[] = e?.ok ? e.bodies : [];
     for (const b of bodies) {
       const own = lookOf(d, b).material, id = own ?? briefMaterial(d), m = materialData(id), sources: Record<string, string> = {};
       if (m) for (const [field, s] of Object.entries(m.sources)) sources[field] = `${s}: ${MATERIALS_DATA.sources[s] ?? '?'}`;
-      out.push({ part, body: b.key, material: id ?? null, label: m?.label ?? null, densityGPerCm3: m?.densityGPerCm3 ?? null, basis: own ? 'body' : id ? 'brief' : 'default', sources });
+      out.push({ part, body: b.key, material: id ?? null, label: m?.label ?? null, density: m?.density ?? null, basis: own ? 'body' : id ? 'brief' : 'default', sources });
     }
   }
   return out;
 }
-const materialGaps = (ms: readonly MaterialEntry[]) => ms.filter(m => !m.sources.densityGPerCm3).map(m => `material source: ${m.part}/${m.body} (${m.basis === 'default' ? 'none set: the default, assumed' : `${m.material}: not in the material library`})`);
+const materialGaps = (ms: readonly MaterialEntry[]) => ms.filter(m => !m.sources.density).map(m => `material source: ${m.part}/${m.body} (${m.basis === 'default' ? 'none set: the default, assumed' : `${m.material}: not in the material library`})`);
 /** The standard results a bundle carries when none are given: the BOM, each part's mass and requirements. */
 export async function standardResults(doc: StudioDoc, evaluate: Evaluate, run = 'B1'): Promise<Result[]> {
   const out: Result[] = [await bomResult(doc, evaluate, run)];

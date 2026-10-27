@@ -3,13 +3,14 @@ import type { XYCirclePrismShellResult, XYCirclePrismShellBundle } from './xy-ci
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionFraction, SectionRational } from './section-rational-internal.js';
 import { compileCadModel } from './model-compiler.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import type { Curve, Surface, Model, Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
+import { KernelError } from './core/barocss-error.js';
 
 export const StoredCirclePrismSolidDiagnosticCode = { INPUT: 'INPUT', OWNED: 'OWNED', GEOMETRY: 'GEOMETRY', BUDGET: 'BUDGET', NATIVE: 'NATIVE' } as const;
 type Code = typeof StoredCirclePrismSolidDiagnosticCode[keyof typeof StoredCirclePrismSolidDiagnosticCode];
-export class StoredCirclePrismSolidError extends Error {
+export class StoredCirclePrismSolidError extends KernelError {
   readonly code: Code;
   constructor(code: Code, detail: string, cause?: unknown) { super(('Stored circle-prism Solid: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'StoredCirclePrismSolidError'; this.code = code; }
 }

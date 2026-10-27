@@ -7,8 +7,8 @@ import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, SYSTEM_PROMPT, TOOLS } from '../src/chat/tools';
 import { SYSTEM_PROMPT_V2, TOOLS_V2 } from '../src/chat/toolset';
 import { GROUPS } from '../src/chat/groups';
-import { FASTENER_SIZES } from '../src/app/fasteners';
-import { ALLOWED_LICENCES, checkTables, NAMED_STANDARDS, STANDARD_SOURCES, STANDARD_TABLES, type StdSource, type StdTable } from '../src/standards/provenance';
+import { ALLOWED_LICENCES, checkTables, NAMED_STANDARDS, STANDARD_SOURCES, tablesOf, type StdSource, type StdTable } from '../src/standards/provenance';
+import { SAMPLE_SIZES, withSampleRows } from './person-file';
 
 // A6.5 (O29): standards data with provenance. Every value of the standards-derived tables has a source and every source
 // a licence a table may carry (GPL, share-alike, non-commercial and unknown refused); the fastener values are the ones
@@ -17,9 +17,12 @@ import { ALLOWED_LICENCES, checkTables, NAMED_STANDARDS, STANDARD_SOURCES, STAND
 
 const CASES = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/a6/standards');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
+// (O7: the fastener table is a document's loaded sizes — here the sample rows, loaded as the person loads them, which
+// hold the values the built-in catalogue held: the snapshot below.)
+const SAMPLE = withSampleRows(emptyDoc()), { tables: STANDARD_TABLES, sources: SOURCES } = tablesOf(SAMPLE), FASTENER_SIZES = SAMPLE_SIZES;
 
 test('every value of every standards-derived table has a source, and every source a licence a table may carry', () => {
-  assert.deepEqual(checkTables(), []);
+  assert.deepEqual(checkTables(STANDARD_TABLES, SOURCES), []);
   for (const s of STANDARD_SOURCES) {
     assert.ok(ALLOWED_LICENCES.includes(s.licence), `${s.id}: ${s.licence}`);
     assert.ok(s.where.length > 10, s.id);
@@ -51,7 +54,7 @@ test('the fastener values are the ones they were before the migration (a snapsho
 });
 
 test('standards_lookup: a value with its source; the tables listed; refused, typed, for a table or row not there', async () => {
-  const s = { doc: emptyDoc(), bodies: [] }, call = (args: object) => dispatchTool(s, 'standards_lookup', args, evaluate);
+  const s = { doc: SAMPLE, bodies: [] }, call = (args: object) => dispatchTool(s, 'standards_lookup', args, evaluate);
   const r = JSON.parse((await call({ table: 'fasteners-metric-coarse', row: 'M6', field: 'tap' })).content);
   assert.deepEqual(r.values, { tap: 5 }); assert.equal(r.sources.tap.id, 'FAST-TAP'); assert.equal(r.sources.tap.kind, 'derived');
   const row = JSON.parse((await call({ table: 'fasteners-metric-coarse', row: 'M8' })).content);

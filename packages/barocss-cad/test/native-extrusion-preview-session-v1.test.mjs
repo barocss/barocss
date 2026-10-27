@@ -3,7 +3,7 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { evaluateBooleanExtrusionFeatureGraph, updateBooleanExtrusionFeatureGraph } from '../dist/index.js';
-import { createNativeExtrusionPreviewSessionV1 } from '../dist/native-extrusion-preview-session-v1.js';
+import { createNativeExtrusionPreviewSessionV1 } from '../dist/exact-proof/native-extrusion-preview-session-v1.js';
 
 const fixture = fileURLToPath(new URL('./fixtures/boolean-extrusion.authored-graph.json', import.meta.url));
 const options = { maximumParameterResolutions: 8, maximumFeatureEvaluations: 7 };

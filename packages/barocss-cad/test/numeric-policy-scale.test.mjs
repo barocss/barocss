@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CadNumericPolicy, linearToleranceMM, geometryScaleMM } from '../dist/numeric-policy.js';
-import { intersectBezierCurveWithAffinePlaneSurface } from '../dist/own-curve-plane-intersection.js';
-import { intersectCoplanarCurveWithLineSegment } from '../dist/own-curve-line-intersection.js';
+import { intersectBezierCurveWithAffinePlaneSurface } from '../dist/intersect/own-curve-plane-intersection.js';
+import { intersectCoplanarCurveWithLineSegment } from '../dist/intersect/own-curve-line-intersection.js';
 
 const plane = (S, z = 0) => ({ kind: 'surface', id: 'p', degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1],
   controlPoints: [[[-S, -S, z], [-S, S, z]], [[S, -S, z], [S, S, z]]], weights: [[1, 1], [1, 1]] });
@@ -10,10 +10,10 @@ const quadratic = (id, poles) => ({ kind: 'curve', id, degree: 2, knots: [0, 0, 
 
 test('linear tolerance: the 1e-7 mm floor inside the modeling range, scaled beyond it', () => {
   assert.equal(linearToleranceMM(0), 1e-7);
-  assert.equal(linearToleranceMM(CadNumericPolicy.coordinateAbsMM), 1e-7);
+  assert.equal(linearToleranceMM(CadNumericPolicy.coordinateAbs), 1e-7);
   assert.ok(Math.abs(linearToleranceMM(1e6) - 1e-5) < 1e-18);
   assert.equal(geometryScaleMM([[1, -7, 2]], [[3, 4, 5]]), 7);
-  assert.equal(CadNumericPolicy.geometryCoordinateAbsMM, 1e6);
+  assert.equal(CadNumericPolicy.geometryCoordinateAbs, 1e6);
 });
 
 test('C7: curve-plane intersections at 1e6 mm bind (36 % were refused), and report the tolerance used', () => {

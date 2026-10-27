@@ -1,0 +1,6 @@
+[
+  {
+    "case": "20261024:125@r.b",
+    "note": "one-sided: A ∪ B builds a strictly valid body whose planar face the tessellation cannot triangulate (a leftover ring backtracking along a line); B ∪ A builds 140.71 mm³, D271/D276"
+  }
+]

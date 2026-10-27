@@ -1,0 +1,235 @@
+{
+  "id": "fuzz-20261023-151",
+  "about": "L4 fuzz case (seed 20261023, case 151), shrunk: a box − (a cylinder ∪ a ball) whose cylinder face spans most of a turn — refused before D206 (the plane's cross-section past the face's seam was never probed).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            5,
+            5
+          ]
+        },
+        {
+          "id": "n1b",
+          "kind": "extrude",
+          "sketch": "n1s",
+          "height": 4
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1b",
+          "offset": [
+            -2,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "n3s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3
+        },
+        {
+          "id": "n3b",
+          "kind": "extrude",
+          "sketch": "n3s",
+          "height": 4
+        },
+        {
+          "id": "n3r0",
+          "kind": "rotate",
+          "target": "n3b",
+          "axis": "y",
+          "angle": 180,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n3",
+          "kind": "translate",
+          "target": "n3r0",
+          "offset": [
+            -1,
+            0,
+            2
+          ]
+        },
+        {
+          "id": "n4s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                -3
+              ]
+            },
+            {
+              "kind": "arc",
+              "start": [
+                0,
+                3
+              ],
+              "center": [
+                0,
+                0
+              ],
+              "direction": "cw"
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n4b",
+          "kind": "revolve",
+          "sketch": "n4s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angle": 360
+        },
+        {
+          "id": "n4",
+          "kind": "translate",
+          "target": "n4b",
+          "offset": [
+            1,
+            2,
+            0
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "union",
+          "target": "n3",
+          "tool": "n4"
+        },
+        {
+          "id": "n0",
+          "kind": "difference",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 60.48875671120412,
+          "relTol": 0.0001,
+          "absTol": 0.006048875671120412
+        },
+        "centroid": {
+          "value": [
+            0.36154245717278666,
+            4.081238891361318,
+            2.51865962507279
+          ],
+          "absTol": 0.0009000000000000001
+        },
+        "bodies": 1
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 512² lattice at 8 shifts, e 1.25e-3 mm³, centroid e 4.88e-5 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 151,
+    "status": "REFUSED",
+    "tree": {
+      "op": "difference",
+      "a": {
+        "leaf": {
+          "kind": "box",
+          "w": 5,
+          "d": 5,
+          "h": 4,
+          "rot": [],
+          "move": [
+            -2,
+            1,
+            0
+          ]
+        }
+      },
+      "b": {
+        "op": "union",
+        "a": {
+          "leaf": {
+            "kind": "cyl",
+            "r": 3,
+            "h": 4,
+            "rot": [
+              {
+                "axis": "y",
+                "deg": 180
+              }
+            ],
+            "move": [
+              -1,
+              0,
+              2
+            ]
+          }
+        },
+        "b": {
+          "leaf": {
+            "kind": "sphere",
+            "r": 3,
+            "rot": [],
+            "move": [
+              1,
+              2,
+              0
+            ]
+          }
+        }
+      }
+    }
+  }
+}

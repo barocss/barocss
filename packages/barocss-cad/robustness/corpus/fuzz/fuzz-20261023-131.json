@@ -1,0 +1,127 @@
+{
+  "id": "fuzz-20261023-131",
+  "about": "L4 fuzz case (seed 20261023, case 131), shrunk: lumps touching along a line — refused before D204, now separate bodies.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 2
+        },
+        {
+          "id": "n1b",
+          "kind": "extrude",
+          "sketch": "n1s",
+          "height": 8
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1b",
+          "offset": [
+            -2,
+            3,
+            -3
+          ]
+        },
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 2
+        },
+        {
+          "id": "n2b",
+          "kind": "extrude",
+          "sketch": "n2s",
+          "height": 6
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2b",
+          "offset": [
+            -2,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "union",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 175.9314880371094,
+          "relTol": 0.0001,
+          "absTol": 0.01759314880371094
+        },
+        "centroid": {
+          "value": [
+            -2.000021571500751,
+            1.2857217177770792,
+            1.857126799438605
+          ],
+          "absTol": 0.0009000000000000001
+        },
+        "bodies": 2
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 512² lattice at 8 shifts, e 8.35e-3 mm³, centroid e 2.24e-4 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 131,
+    "status": "REFUSED",
+    "tree": {
+      "op": "union",
+      "a": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 2,
+          "h": 8,
+          "rot": [],
+          "move": [
+            -2,
+            3,
+            -3
+          ]
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 2,
+          "h": 6,
+          "rot": [],
+          "move": [
+            -2,
+            -1,
+            0
+          ]
+        }
+      }
+    }
+  }
+}

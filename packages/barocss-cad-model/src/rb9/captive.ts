@@ -6,6 +6,7 @@ import type { BodyResult } from '../engine/evaluate';
 import type { Joint, JointTree } from '../robot/joints';
 import { convexHull } from '@barocss/cad';
 import { sweepPath, type SweepLink } from '../robot/sweep';
+import { boundsOf } from '../engine/bounds';
 
 export const DIRECTIONS: readonly [string, [number, number, number]][] = [['+x', [1, 0, 0]], ['-x', [-1, 0, 0]], ['+y', [0, 1, 0]], ['-y', [0, -1, 0]], ['+z', [0, 0, 1]], ['-z', [0, 0, -1]]];
 export interface Escape { direction: string; captive: boolean; /** How far it slid before contact (mm); the full travel when it escapes. */ travel: number; samples: number }
@@ -20,8 +21,7 @@ const joint = (key: string, type: Joint['type'], child: string, axis: [number, n
 
 /** Each direction's slide of `moving` against `fixed`: captive (contact first) or not (clear past the boxes). */
 export function captivity(fixed: readonly BodyResult[], moving: readonly BodyResult[]): Escape[] {
-  const A = linkOf('fixed', fixed), B = linkOf('moving', moving), lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-  for (const b of [...fixed, ...moving]) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], b.mesh.bounds.max[k]); }
+  const A = linkOf('fixed', fixed), B = linkOf('moving', moving), { min: lo, max: hi } = boundsOf([...fixed, ...moving]);
   const out: Escape[] = [];
   for (const [name, d] of DIRECTIONS) {
     // (Past the two parts' whole box along d, and a millimetre more: no overlap is left to meet.)

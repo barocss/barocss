@@ -43,16 +43,16 @@
             ],
             "rows": [
               {
-                "thicknessMM": 2,
-                "radiusMM": 3,
-                "angleDegrees": 90,
-                "deductionMM": 4.2,
+                "thickness": 2,
+                "radius": 3,
+                "angle": 90,
+                "deduction": 4.2,
                 "source": "shop"
               },
               {
-                "thicknessMM": 2,
-                "radiusMM": 3,
-                "angleDegrees": 120,
+                "thickness": 2,
+                "radius": 3,
+                "angle": 120,
                 "kFactor": 0.42,
                 "source": "shop"
               }
@@ -65,11 +65,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 3251.327412287182,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             34.22081284886268,
             8.120776649045284,
@@ -97,7 +97,7 @@
           "c.start"
         ],
         "flat": {
-          "areaMM2": {
+          "area": {
             "value": 1616,
             "relTol": 1e-12
           },
@@ -113,7 +113,7 @@
             {
               "name": "c.bend1",
               "direction": "down",
-              "angleDegrees": 90
+              "angle": 90
             }
           ]
         }

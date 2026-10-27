@@ -23,7 +23,7 @@ const bundled = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].i
   format: 'esm', platform: 'node', target: 'node22', outfile: ordinary, metafile: true });
 const graph = Object.keys(bundled.metafile.inputs);
 for (const name of ['sphere-geometry.ts', 'sphere-geometry-build-internal.ts', 'triangle-geometry.ts', 'engine-scene.ts'])
-  assert(graph.some(path => path.endsWith('/src/' + name)), 'Actual own source dependency ' + name);
+  assert(graph.some(path => (path.includes('/src/') && path.endsWith('/' + name))), 'Actual own source dependency ' + name);
 assert(!graph.some(path => /barocss-gpu\/dist\//.test(path)), 'No own emitted fallback in ordinary source');
 const providers = [['ordinary-source', await import(pathToFileURL(ordinary).href)],
   ['emitted-public', await import(pathToFileURL(emitted).href)]];
@@ -32,7 +32,7 @@ assert.deepEqual(namespace, Object.keys(providers[1][1]).sort());
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['prepareSphereGeometry', 'SphereGeometrySourceV0', 'PreparedSphereGeometry'])
   assert(new RegExp('\\b' + name + '\\b').test(declaration), 'Actual public declaration ' + name);
-const leafDeclaration = await readFile(resolve(pkg, 'dist/sphere-geometry.d.ts'), 'utf8');
+const leafDeclaration = await readFile(resolve(pkg, 'dist/geometry/sphere-geometry.d.ts'), 'utf8');
 assert(/prepareSphereGeometry\(input:\s*unknown\):\s*PreparedSphereGeometry/.test(leafDeclaration));
 for (const field of ['radius', 'longitudeSegments', 'latitudeSegments'])
   assert(new RegExp(field + ':\\s*number').test(leafDeclaration));
@@ -164,7 +164,7 @@ try {
     const nullInput = Object.assign(Object.create(null), source(2, 4, 2, 'sphere_null'));
     const nullResult = gpu.prepareSphereGeometry(nullInput); verify(nullResult, nullInput); accepted++;
     const sceneInput = { format: 'barocss-gpu-engine-scene', version: 0, id: 'sphere_instances', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
-      background: [.02, .04, .06], camera: { eye: [0, 0, 15], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: .1, far: 100 },
+      background: [.02, .04, .06], camera: { eye: [0, 0, 15], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: .1, far: 100 },
       geometries: [first.prepared.geometry], materials: [{ id: 'sphere_material', type: 'unlit', colorSpace: 'linear', color: [.2, .4, .6] }],
       nodes: [[-5, 0, 0], [5, 1, -2]].map((translation, i) => ({ id: 'sphere_' + i, type: 'mesh', parentId: null,
         geometryId: first.source.id, materialId: 'sphere_material', translation, rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true })) };

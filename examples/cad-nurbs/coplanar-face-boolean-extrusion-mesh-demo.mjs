@@ -27,7 +27,7 @@ assert.equal(built.outputFiles.length, 1);
 const sourceInputs = Object.keys(built.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
 assert.ok(cadInputs.includes(entry));
-assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/coplanar-face-boolean-extrusion-mesh.ts')));
+assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/planar-solids/coplanar-face-boolean-extrusion-mesh.ts')));
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' +
@@ -445,8 +445,8 @@ const typeNames = ['CoplanarFaceBooleanExtrusionMeshOptions', 'CoplanarFaceBoole
   'CoplanarFaceBooleanExtrusionMeshEdgePath', 'CoplanarFaceBooleanExtrusionMeshShellRange', 'CoplanarFaceBooleanExtrusionMeshReport', 'CoplanarFaceBooleanExtrusionMeshResult'];
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CoplanarFaceBooleanExtrusionMeshDiagnosticCode, CoplanarFaceBooleanExtrusionMeshDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./coplanar-face-boolean-extrusion-mesh.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/coplanar-face-boolean-extrusion-mesh.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./planar-solids/coplanar-face-boolean-extrusion-mesh.js'));
+const leafDeclarationPath = resolve(packageRoot, 'dist/planar-solids/coplanar-face-boolean-extrusion-mesh.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(declaration), name);
 const cold = JSON.parse(readFileSync(resolve(extrusionDirectory, 'containment_hole.owned-extrusion.json'), 'utf8'));
 const compiled = publicAPI.tessellateCoplanarFaceBooleanExtrusion(cold, hole.options);

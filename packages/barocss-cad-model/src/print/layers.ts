@@ -23,11 +23,11 @@ export interface PrintLayers {
   direction: Vec3; directionSource: 'given' | 'default';
   /** Model → bed, column-major: the turn taking the direction to +Z, then down onto the bed. */
   modelToBed: number[];
-  layerMM: { mm: number; basis: 'set' | 'estimate' };
-  limitDeg: { deg: number; basis: 'set' | 'estimate' };
-  count: number; heightMM: number;
+  layerHeight: { value: number; basis: 'set' | 'estimate' };
+  overhangLimit: { value: number; basis: 'set' | 'estimate' };
+  count: number; height: number;
   supportColumns: SupportColumn[];
-  supportVolumeMM3: number;
+  supportVolume: number;
   /** The contours are the display meshes' (to their chord), not the exact surfaces'. */
   basis: 'display mesh';
   /** A layer, worked out on first asking and kept. */
@@ -44,10 +44,10 @@ function axesOf(b: Vec3): [Vec3, Vec3, Vec3] {
 }
 const CHUNK = 64;
 
-/** The layers of the bodies printed along `direction` (unset: +Z, said), `layerMM` thick (unset: 0.2, an estimate). */
-export function printLayers(meshes: readonly DisplayMesh[], o: { layerMM?: number; direction?: readonly number[]; limitDeg?: number } = {}): PrintLayers {
+/** The layers of the bodies printed along `direction` (unset: +Z, said), `layerHeight` thick, mm (unset: 0.2, an estimate); overhangs past `overhangLimit` degrees from the vertical supported. */
+export function printLayers(meshes: readonly DisplayMesh[], o: { layerHeight?: number; direction?: readonly number[]; overhangLimit?: number } = {}): PrintLayers {
   const direction = norm(o.direction ?? [0, 0, 1]), [u, v, b] = axesOf(direction);
-  const h = o.layerMM ?? 0.2, limit = o.limitDeg ?? 45, s = Math.sin(limit * Math.PI / 180);
+  const h = o.layerHeight ?? 0.2, limit = o.overhangLimit ?? 45, s = Math.sin(limit * Math.PI / 180);
   // (Every body's vertices in the bed frame, welded by position so faces' edges meet; the triangles over all of them.)
   const P: number[] = [], I: number[] = [], weld = new Map<string, number>();
   let low = Infinity;
@@ -101,8 +101,8 @@ export function printLayers(meshes: readonly DisplayMesh[], o: { layerMM?: numbe
   };
   return {
     version: PRINT_LAYERS_VERSION, direction, directionSource: o.direction ? 'given' : 'default', modelToBed,
-    layerMM: { mm: h, basis: o.layerMM !== undefined ? 'set' : 'estimate' }, limitDeg: { deg: limit, basis: o.limitDeg !== undefined ? 'set' : 'estimate' },
-    count, heightMM: top, supportColumns: columns, supportVolumeMM3: supportVolume, basis: 'display mesh', layer,
+    layerHeight: { value: h, basis: o.layerHeight !== undefined ? 'set' : 'estimate' }, overhangLimit: { value: limit, basis: o.overhangLimit !== undefined ? 'set' : 'estimate' },
+    count, height: top, supportColumns: columns, supportVolume: supportVolume, basis: 'display mesh', layer,
   };
 }
 

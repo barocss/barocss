@@ -6,6 +6,7 @@ import { withNode, type ModelNode } from '../engine/doc';
 import { oneProfile } from './profileCommands';
 import { refOf } from './bodyRef';
 import type { Command, Field, Values } from './commands';
+import { refusal } from '../engine/refusal';
 
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
 /** The sheet's rules as fields: the K-factor's label says its prefill is an estimate. */
@@ -16,8 +17,8 @@ const ruleFields: Field[] = [
 const RULES = { t: 1.5, r: 1.5, k: 0.5 } as const;
 function rulesOf(v: Values): { thickness: number; bendRadius: number; kFactor: number } {
   const thickness = Number(v.t), bendRadius = Number(v.r), kFactor = Number(v.k);
-  if (!(thickness > 0) || !(bendRadius > 0)) throw new Error('Give the sheet a thickness and a bend radius above 0.');
-  if (!(kFactor >= 0 && kFactor <= 1)) throw new Error('The K-factor lies from 0 (the inner face) to 1 (the outer face); 0.3–0.5 is usual.');
+  if (!(thickness > 0) || !(bendRadius > 0)) throw refusal('SHEET_VALUE', 'Give the sheet a thickness and a bend radius above 0.');
+  if (!(kFactor >= 0 && kFactor <= 1)) throw refusal('SHEET_VALUE', 'The K-factor lies from 0 (the inner face) to 1 (the outer face); 0.3–0.5 is usual.');
   return { thickness, bendRadius, kFactor };
 }
 
@@ -29,7 +30,7 @@ export const sheetPlateCommand: Command = {
   defaults: () => ({ ...RULES, side: 'up' }),
   steps: ctx => { const p = oneProfile(ctx); return [{ label: 'Profile', text: p ? `Sketch ${p.index + 1}` : 'pick a finished sketch', done: !!p }]; },
   build: (ctx, v) => {
-    const p = oneProfile(ctx); if (!p) throw new Error('Pick one finished sketch.');
+    const p = oneProfile(ctx); if (!p) throw refusal('SHEET_PICK', 'Pick one finished sketch.');
     return withNode(ctx.doc, { kind: 'sheet-base', sketch: p.index, ...rulesOf(v), ...(v.side === 'down' ? { reverse: true } : {}) });
   },
 };
@@ -68,8 +69,8 @@ export const sheetProfileCommand: Command = {
   },
   build: (ctx, v) => {
     const [a, b, c, angle, w, x, y, z] = ['a', 'b', 'c', 'angle', 'w', 'x', 'y', 'z'].map(k => Number(v[k]));
-    if (!(a > 0 && b > 0 && w > 0) || ((v.shape === 'z' || v.shape === 'hat') && !(c > 0))) throw new Error('Give the profile a base, a leg, a width (and a lip) above 0.');
-    if (v.shape === 'l' && !(angle > 0 && angle < 180)) throw new Error('An L bends between 0 and 180°.');
+    if (!(a > 0 && b > 0 && w > 0) || ((v.shape === 'z' || v.shape === 'hat') && !(c > 0))) throw refusal('SHEET_VALUE', 'Give the profile a base, a leg, a width (and a lip) above 0.');
+    if (v.shape === 'l' && !(angle > 0 && angle < 180)) throw refusal('SHEET_VALUE', 'An L bends between 0 and 180°.');
     const { path, side } = profilePath(String(v.shape), a, b, c, angle);
     // (The plane's normal −Y with its X along X: the profile stands up, extruded from y + w back to y.)
     const node: ModelNode = { kind: 'sheet-contour', path, side, width: w, ...rulesOf(v), plane: { origin: [x, y + w, z], normal: [0, -1, 0], xAxis: [1, 0, 0] } };
@@ -82,7 +83,7 @@ function sheetEdge(ctx: Parameters<Command['available']>[0]) {
   const sel = ctx.selection.edges;
   if (sel.length !== 1) return null;
   const body = ctx.bodies[sel[0].body], edge = body?.mesh.edges[sel[0].edge];
-  return body && edge && body.sheet ? { body, edge, T: body.sheet.thicknessMM } : null;
+  return body && edge && body.sheet ? { body, edge, T: body.sheet.thickness } : null;
 }
 const POSITIONS = [{ value: 'material-inside', label: 'Material inside' }, { value: 'material-outside', label: 'Material outside' }, { value: 'bend-outside', label: 'Bend outside' }];
 const MEASURES = [{ value: 'outer', label: 'Outer sharp' }, { value: 'inner', label: 'Inner sharp' }, { value: 'tangent', label: 'From the bend' }];
@@ -109,13 +110,13 @@ export const sheetFlangeCommand: Command = {
   defaults: () => ({ length: 20, angle: 90, position: 'material-inside', measure: 'outer', r: 0, o0: 0, o1: 0, relief: 'rectangular', rw: 0, rd: 0 }),
   steps: ctx => { const p = sheetEdge(ctx); return [{ label: 'Edge', text: p ? p.edge.names[0] : 'pick a straight edge of a sheet', done: !!p }]; },
   build: (ctx, v) => {
-    const p = sheetEdge(ctx); if (!p) throw new Error('Pick one straight edge of a sheet.');
+    const p = sheetEdge(ctx); if (!p) throw refusal('SHEET_PICK', 'Pick one straight edge of a sheet.');
     const [length, angle, r, o0, o1, rw, rd] = ['length', 'angle', 'r', 'o0', 'o1', 'rw', 'rd'].map(k => Number(v[k]));
-    if (!(length > 0) || !(angle > 0 && angle < 180)) throw new Error('A flange has a length above 0 and bends between 0 and 180°.');
+    if (!(length > 0) || !(angle > 0 && angle < 180)) throw refusal('SHEET_VALUE', 'A flange has a length above 0 and bends between 0 and 180°.');
     // (Part width: its relief written whole — the kernel defaults none (D119); 0 here is the sheet's T, an estimate.)
     const partWidth = o0 > 0 || o1 > 0, relief = !partWidth ? undefined : v.relief === 'none' ? { kind: 'none' as const } : { kind: v.relief as 'rectangular' | 'obround', width: rw > 0 ? rw : p.T, depth: rd > 0 ? rd : p.T };
     const node: ModelNode = { kind: 'sheet-flange', parent: refOf(p.body), edges: [p.edge.names[0]], length,
-      ...(angle !== 90 ? { angleDegrees: angle } : {}), ...(r > 0 ? { bendRadius: r } : {}), ...(v.measure !== 'outer' ? { measure: v.measure as 'inner' | 'tangent' } : {}),
+      ...(angle !== 90 ? { angle: angle } : {}), ...(r > 0 ? { bendRadius: r } : {}), ...(v.measure !== 'outer' ? { measure: v.measure as 'inner' | 'tangent' } : {}),
       ...(v.position !== 'material-inside' ? { position: v.position as 'material-outside' | 'bend-outside' } : {}), ...(partWidth ? { offsets: [o0, o1] as [number, number] } : {}), ...(relief ? { relief } : {}) };
     return withNode(ctx.doc, node);
   },
@@ -131,11 +132,11 @@ export const sheetCornerReliefCommand: Command = {
   hint: 'Cut a square or round relief off a sheet plate\u2019s corner (pick its corner edge) so the flanges of its two edges clear each other',
   available: ctx => sheetEdge(ctx) ? ok : no('Pick the edge of a sheet plate\u2019s corner (between its two thickness faces).'),
   fields: () => [{ key: 'shape', label: 'Shape', kind: 'choice', options: [{ value: 'square', label: 'Square' }, { value: 'round', label: 'Round' }] }, { key: 'size', label: 'Size (default R + T)', kind: 'mm', min: 0.1 }],
-  defaults: ctx => { const p = sheetEdge(ctx), b = p?.body.sheet; return { shape: 'square', size: b ? +(b.bendRadiusMM + b.thicknessMM).toFixed(6) : 3 }; },
+  defaults: ctx => { const p = sheetEdge(ctx), b = p?.body.sheet; return { shape: 'square', size: b ? +(b.bendRadius + b.thickness).toFixed(6) : 3 }; },
   steps: ctx => { const p = sheetEdge(ctx); return [{ label: 'Corner', text: p ? p.edge.names[0] : 'pick a corner edge of a sheet', done: !!p }]; },
   build: (ctx, v) => {
-    const p = sheetEdge(ctx); if (!p) throw new Error('Pick a corner edge of a sheet.');
-    const size = Number(v.size); if (!(size > 0)) throw new Error('Give the relief a size above 0.');
+    const p = sheetEdge(ctx); if (!p) throw refusal('SHEET_PICK', 'Pick a corner edge of a sheet.');
+    const size = Number(v.size); if (!(size > 0)) throw refusal('SHEET_VALUE', 'Give the relief a size above 0.');
     return withNode(ctx.doc, { kind: 'sheet-corner-relief', parent: refOf(p.body), edges: [p.edge.names[0]], shape: v.shape === 'round' ? 'round' : 'square', size });
   },
 };

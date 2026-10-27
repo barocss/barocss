@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { draftedExtrusion, evaluateCadPart, checkBrep, tessellateBrep, CadPartError } from '../dist/index.js';
+import { draftedExtrusion, evaluateCadPart, checkBrep, tessellateBrep, CadPartError, massPropertiesOf } from '../dist/index.js';
 
 const pi = Math.PI, tan = d => Math.tan(d * pi / 180);
 const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'line', start: [x1, y0] }, { kind: 'line', start: [x1, y1] }, { kind: 'line', start: [x0, y1] }];
 function mesh(b, q = 32) {
-  const m = tessellateBrep(b, { segmentsPerQuarter: q }), p = m.positionsMM, ix = m.indices, he = new Map(), key = i => p[i * 3] + ',' + p[i * 3 + 1] + ',' + p[i * 3 + 2];
+  const m = tessellateBrep(b, { segmentsPerQuarter: q }), p = m.positions, ix = m.indices, he = new Map(), key = i => p[i * 3] + ',' + p[i * 3 + 1] + ',' + p[i * 3 + 2];
   let v = 0;
   for (let t = 0; t < ix.length; t += 3) {
     const [a, b2, c] = [ix[t] * 3, ix[t + 1] * 3, ix[t + 2] * 3];
@@ -29,14 +29,14 @@ test('drafted extrusions: sloping planes and cones, exact volumes, upright names
     ['a cylinder (a cone frustum)', [{ kind: 'arc', start: [10, 0], center: [0, 0], direction: 'ccw' }], 10, 10, d => pi * (10 - d) ** 2, 5e-4],
   ];
   for (const [name, profile, h, deg, area, rel] of cases) {
-    const b = draftedExtrusion({ profile, z0: 0, z1: h, draftDegrees: deg, tag: 'e' }), report = checkBrep(b), m = mesh(b);
+    const b = draftedExtrusion({ profile, z0: 0, z1: h, draft: deg, tag: 'e' }), report = checkBrep(b), m = mesh(b);
     assert.equal(report.valid, true, `${name}: ${report.issues}`);
     assert.ok(m.watertight, `${name}: watertight`);
     assert.ok(near(m.volume, integral(area, h, deg), rel), `${name}: ${m.volume} vs ${integral(area, h, deg)}`);
     assert.ok(b.faces.some(f => f.name === 'e.top') && b.faces.some(f => f.name === 'e.bottom') && b.faces.some(f => f.name.startsWith('e.side')));
   }
-  assert.throws(() => draftedExtrusion({ profile: rect(0, 0, 4, 4), z0: 0, z1: 10, draftDegrees: 20, tag: 'e' }), /closes a straight wall/);
-  assert.throws(() => draftedExtrusion({ profile: [{ kind: 'line', start: [0, 0] }, { kind: 'arc', start: [10, 0], center: [10, 5], direction: 'ccw' }, { kind: 'line', start: [10, 10] }], z0: 0, z1: 5, draftDegrees: 3, tag: 'e' }), /not tangent/);
+  assert.throws(() => draftedExtrusion({ profile: rect(0, 0, 4, 4), z0: 0, z1: 10, draft: 20, tag: 'e' }), /closes a straight wall/);
+  assert.throws(() => draftedExtrusion({ profile: [{ kind: 'line', start: [0, 0] }, { kind: 'arc', start: [10, 0], center: [10, 5], direction: 'ccw' }, { kind: 'line', start: [10, 10] }], z0: 0, z1: 5, draft: 3, tag: 'e' }), /not tangent/);
 });
 
 test('extrude with draft in the part model: up and down, then holes and fillets on it', () => {
@@ -46,7 +46,7 @@ test('extrude with draft in the part model: up and down, then holes and fillets 
   for (const [height, from, z] of [[10, 0, [0, 10]], [-10, 5, [-5, 5]]]) {
     const o = evaluateCadPart(D([s, { id: 'e', kind: 'extrude', sketch: 's', height, from, draft: 5 }])).outputs[0], zs = o.brep.vertices.map(v => v.point[2]);
     assert.equal(checkBrep(o.brep).valid, true);
-    assert.ok(near(o.massProperties(1).volumeMM3, exact, 1e-9), String(o.massProperties(1).volumeMM3));
+    assert.ok(near(massPropertiesOf(o).volume, exact, 1e-9), String(massPropertiesOf(o).volume));
     assert.deepEqual([Math.min(...zs), Math.max(...zs)], z);
   }
   // Fillets along sloping walls: one edge, and two meeting at a corner (their mitre).

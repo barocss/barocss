@@ -1,6 +1,7 @@
 // A look-at camera with perspective or orthographic projection, reversed [0, 1] depth, clip planes
 // fitted to the scene each frame, framing of a box and rays through screen points.
 import { boxCenter, boxRadius, type Box3 } from './bounds.js';
+import { ViewerError } from './viewer-error.js';
 import { add, cross, dot, invert, length, lookAt, multiply, normalize, orthographicReversed, perspectiveReversed, scale, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
 
 export type Projection = 'perspective' | 'orthographic';
@@ -51,11 +52,18 @@ export class Camera implements CameraState {
 
   /** Frame a box: keep the view direction, move the target to its centre and back off to fit it. */
   fit(box: Box3, aspect: number, margin = 1.1): void {
+    if (!Number.isFinite(aspect) || aspect <= 0 || !Number.isFinite(margin) || margin <= 0) {
+      throw new ViewerError('SIZE_INVALID', 'Camera fit aspect and margin must be finite and positive.');
+    }
     const r = Math.max(boxRadius(box), 1e-6) * margin, c = boxCenter(box), dir = normalize(sub(this.position, this.target));
     const half = (this.fovY * Math.PI) / 360, fit = Math.min(half, Math.atan(Math.tan(half) * aspect));
     const d = r / Math.sin(fit);
+    const position = add(c, scale(length(dir) ? dir : [0, -1, 0], d));
+    if (!Number.isFinite(d) || d <= 0 || !c.every(Number.isFinite) || !position.every(Number.isFinite)) {
+      throw new ViewerError('SIZE_INVALID', 'Camera fit must produce a finite position at a positive distance.');
+    }
     this.target = c;
-    this.position = add(c, scale(length(dir) ? dir : [0, -1, 0], d));
+    this.position = position;
   }
 
   /** The ray through a point in normalised device coordinates (x, y in [−1, 1], y up). */

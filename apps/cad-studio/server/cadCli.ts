@@ -1,3 +1,4 @@
+import { isRefusal } from '@barocss/cad-model/engine/refusal';
 // The CLI (A5.4, O12): a part built by a script (run_script, A5.2) for batch work and CI, written as .bcad, STEP and
 // STL, its requirements checked. The same tool layer as the chat and cad-mcp; the person running it is the author, so
 // no autonomy gate applies (the script is theirs). Exit codes: 0 done, 1 the script or a tool refused, 2 usage,
@@ -10,10 +11,10 @@ import { mjcfOfDoc, urdfOfDoc } from '@barocss/cad-model/chat/robot';
 import { readMjcf } from '@barocss/cad-model/robot/mjcfCheck';
 import { readUrdf } from '@barocss/cad-model/robot/urdfCheck';
 import { encodeStudioFile } from '@barocss/cad-model/engine/container';
-import { evaluateDoc, stepFor, stlFor } from '@barocss/cad-model/engine/evaluate';
+import { evaluateDoc, exportStudioStep, stlFor } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { meshToStl } from '@barocss/cad-model/engine/stl';
+import { lumpStls, meshToStl } from '@barocss/cad-model/engine/stl';
 import { notLocalModel, openModel, writeAtomic } from './cadDoc';
 import { runPartsScenario, runScenario, runSummary, type PartsScenario, type Scenario } from '@barocss/cad-model/team/scripted';
 import { metricsOf, type Labelled } from '@barocss/cad-model/team/metrics';
@@ -31,13 +32,33 @@ import { partCutList } from '@barocss/cad-model/app/cutList';
 import { camPreview, camSvg } from '@barocss/cad-model/machining/cam';
 import { turningOf } from '@barocss/cad-model/machining/turning';
 import { holesOf } from '@barocss/cad-model/machining/holes';
+import { receivePersonRowFiles, type PersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
+import { sha256Text } from '@barocss/cad-model/util/digest';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
-import { readDuty, robotCheckOfDoc, robotSizeOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { robotCheckOfDoc, robotSizeOfDoc } from '@barocss/cad-model/chat/robot';
+import type { PublicDuty } from '@barocss/cad-model/robot/reports';
+import { sourceBytes, sourceName, sourceRecord } from '@barocss/cad-model/team/source';
+
+/** A STEP file for the CLI's reports: the text, or the refusal's words (R7.3c: exportStudioStep throws). */
+function stepOrError(doc: StudioDoc, name: string): ReturnType<typeof exportStudioStep> | { error: string } {
+  try { return exportStudioStep(doc, { name }); } catch (e) { return { error: e instanceof Error ? e.message : String(e) }; }
+}
 
 /** A mould plan as mould.json shows it: without the loops' points (the lumps' classifier's). */
+/** A row list named on the person's own command line (rows rule b): the file they supplied, received as the chat receives
+ *  an attached one — its name, its bytes' SHA-256, turn 1 — and passed to the loader by its reference, never as rows. */
+function personListFile(path: string): { rowFiles: PersonRowFiles; file: string } | { error: string } {
+  const full = resolve(path);
+  let text: string;
+  try { text = readFileSync(full, 'utf8'); } catch (e) { return { error: `${path}: ${e instanceof Error ? e.message : String(e)}` }; }
+  try {
+    const rowFiles = receivePersonRowFiles(sha256Text(`cad-cli ${full}`).slice(0, 24), [{ name: basename(full), text, turn: 1 }], 1);
+    return { rowFiles, file: rowFiles.files[0].id };
+  } catch (e) { return { error: `${path}: ${e instanceof Error ? e.message : String(e)}` }; }
+}
 const withoutLoops = ({ loops: _, ...rest }: ToolingPlan) => rest;
 export const CLI_USAGE = `cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
   Runs a run_script script (on base.bcad, else an empty part) and writes what is asked; prints a JSON summary.
@@ -83,7 +104,7 @@ cad-cli stock part.bcad -o folder [--list stock.json] [--allowance mm]
   stock.step. Exit 1 when none is loaded or none fits.
 cad-cli pattern part.bcad -o folder
   A sand-cast part's pattern (IM8b): the machining allowance on the faces marked machined (set_casting) and the
-  shrinkage, both from NPTEL's tables by the alloy and the part's size, or yours; writes pattern.step and pattern.json
+  shrinkage, both from your casting rules by the alloy and the part's size; writes pattern.step and pattern.json
   (the factors, their bands and pages). Exit 1 when it cannot be made, and why.
 cad-cli mould part.bcad -o folder [--margin mm]
   A moulded part's two halves (IM7 S0) where no face needs a split: a block about the part (10 mm a side, an
@@ -231,9 +252,9 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     if ('error' in opened) return failed(opened.error);
     let s0 = await stateOf(opened.doc); if ('error' in s0) return failed(s0.error);
     if (li >= 0 || ai >= 0) {
-      let rows: unknown;
-      if (li >= 0) { try { rows = JSON.parse(readFileSync(resolve(rest[li + 1]), 'utf8')); } catch (e) { return failed(`${rest[li + 1]}: ${e instanceof Error ? e.message : String(e)}`); } }
-      const set = await dispatchTool(s0, 'set_stock', { ...(li >= 0 ? { rows } : {}), ...(ai >= 0 ? { allowance: Number(rest[ai + 1]) } : {}) }, evaluate);
+      const list = li >= 0 ? personListFile(rest[li + 1]) : undefined;
+      if (list && 'error' in list) return failed(list.error);
+      const set = await dispatchTool(list ? { ...s0, rowFiles: list.rowFiles } : s0, 'set_stock', { ...(list ? { file: list.file } : {}), ...(ai >= 0 ? { allowance: Number(rest[ai + 1]) } : {}) }, evaluate);
       if (set.isError) return failed(JSON.parse(set.content).error ?? set.content);
       s0 = set.state;
     }
@@ -241,7 +262,7 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const turning = process === 'cnc-turning' ? turningOf(s0.doc, s0.bodies, holesOf(s0.bodies)) : null, r = chooseStock(s0.doc, s0.bodies, process, turning);
     if (!r.ok) { say(io.stdout, { ok: false, code: r.code, message: r.message, allowance: r.allowance }); return 1; }
     const dir = resolve(rest[oi + 1]); mkdirSync(dir, { recursive: true });
-    const step = stepFor(stockDoc(r.choice), 'stock');
+    const step = stepOrError(stockDoc(r.choice), 'stock');
     if ('error' in step) return failed(`the stock's STEP: ${step.error}`);
     writeAtomic(join(dir, 'stock.json'), new TextEncoder().encode(JSON.stringify(stockFile(r.choice), null, 1) + '\n'));
     writeAtomic(join(dir, 'stock.step'), new TextEncoder().encode(step.text));
@@ -256,9 +277,9 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     if ('error' in opened) return failed(opened.error);
     let s0 = await stateOf(opened.doc); if ('error' in s0) return failed(s0.error);
     if (li >= 0 || ki >= 0) {
-      let rows: unknown;
-      if (li >= 0) { try { rows = JSON.parse(readFileSync(resolve(rest[li + 1]), 'utf8')); } catch (e) { return failed(`${rest[li + 1]}: ${e instanceof Error ? e.message : String(e)}`); } }
-      const set = await dispatchTool(s0, 'set_frame_stock', { ...(li >= 0 ? { rows } : {}), ...(ki >= 0 ? { kerf: Number(rest[ki + 1]) } : {}) }, evaluate);
+      const list = li >= 0 ? personListFile(rest[li + 1]) : undefined;
+      if (list && 'error' in list) return failed(list.error);
+      const set = await dispatchTool(list ? { ...s0, rowFiles: list.rowFiles } : s0, 'set_frame_stock', { ...(list ? { file: list.file } : {}), ...(ki >= 0 ? { kerf: Number(rest[ki + 1]) } : {}) }, evaluate);
       if (set.isError) return failed(JSON.parse(set.content).error ?? set.content);
       s0 = set.state;
     }
@@ -280,11 +301,11 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const p = await patternOf(s0.doc, s0.bodies, evaluate);
     if (!p.ok) { say(io.stdout, { ok: false, code: p.code, message: p.message }); return 1; }
     const dir = resolve(rest[oi + 1]); mkdirSync(dir, { recursive: true });
-    const step = stepFor(p.doc, 'pattern');
+    const step = stepOrError(p.doc, 'pattern');
     if ('error' in step) return failed(`the pattern's STEP: ${step.error}`);
     writeAtomic(join(dir, 'pattern.json'), new TextEncoder().encode(JSON.stringify(p.file, null, 1) + '\n'));
     writeAtomic(join(dir, 'pattern.step'), new TextEncoder().encode(step.text));
-    say(io.stdout, { ok: true, factor: p.file.shrink.factor, machining: p.file.machining?.mm ?? null, wrote: [join(dir, 'pattern.json'), join(dir, 'pattern.step')] });
+    say(io.stdout, { ok: true, factor: p.file.shrink.factor, machining: p.file.machining?.value ?? null, wrote: [join(dir, 'pattern.json'), join(dir, 'pattern.step')] });
     return 0;
   }
   if (cmd === 'mould') {
@@ -306,9 +327,9 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const halves = mouldHalves(doc, bodies, plan.plan);
     if (!halves.ok) { say(io.stdout, { ok: false, code: halves.code, message: halves.message }); return 1; }
     const dir = resolve(rest[oi + 1]); mkdirSync(dir, { recursive: true });
-    const step = stepFor(halves.doc, 'mould');
+    const step = stepOrError(halves.doc, 'mould');
     if ('error' in step) return failed(`the halves' STEP: ${step.error}`);
-    const vol = (bs: readonly { volumeMM3?: number | null }[]) => Math.round(bs.reduce((t, b) => t + (b.volumeMM3 ?? 0), 0) * 1e3) / 1e3;
+    const vol = (bs: readonly { volume?: number | null }[]) => Math.round(bs.reduce((t, b) => t + (b.volume ?? 0), 0) * 1e3) / 1e3;
     const shown = withoutLoops(plan.plan);
     const json = { format: 'barocss-mould', version: 1, ...shown, split: sp?.split ?? [], halves: { plus: { label: 'moves along the pull (B side, usually the core)', lumps: halves.plus.length, volume_mm3: vol(halves.plus) }, minus: { label: 'fixed (A side, usually the cavity)', lumps: halves.minus.length, volume_mm3: vol(halves.minus) } },
       lumps: halves.lumps.map(l => ({ key: l.body.key, half: l.half, basis: l.basis, volume_mm3: vol([l.body]) })), margin: { mm: margin, basis: mi >= 0 ? 'set' : 'estimate' } };
@@ -324,7 +345,7 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const opened = await openModel(resolve(file));
     if ('error' in opened) return failed(opened.error);
     const s0 = await stateOf(opened.doc); if ('error' in s0) return failed(s0.error);
-    const p = camPreview(s0.doc, s0.bodies, ti >= 0 ? { toolMM: Number(rest[ti + 1]) } : {}), dir = resolve(rest[oi + 1]);
+    const p = camPreview(s0.doc, s0.bodies, ti >= 0 ? { toolDiameter: Number(rest[ti + 1]) } : {}), dir = resolve(rest[oi + 1]);
     mkdirSync(dir, { recursive: true });
     const wrote = [join(dir, 'cam-preview.json')];
     writeAtomic(wrote[0], new TextEncoder().encode(JSON.stringify(p, null, 1) + '\n'));
@@ -341,9 +362,9 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     if ('error' in s) return failed(s.error);
     let raw: unknown;
     try { raw = JSON.parse(readFileSync(resolve(rest[1]), 'utf8')); } catch (e) { return failed(`${rest[1]}: ${e instanceof Error ? e.message : String(e)}`, 2); }
-    const duty = readDuty(await treeOfDoc(s.doc, s.bodies, evaluate), raw);
-    if ('error' in duty) return failed(`${rest[1]}: ${duty.error}`, 2);
-    const r = await robotCheckOfDoc(s.doc, s.bodies, evaluate, duty);
+    let r: Awaited<ReturnType<typeof robotCheckOfDoc>>;
+    try { r = await robotCheckOfDoc(s.doc, s.bodies, evaluate, raw as PublicDuty); }
+    catch (e) { if (isRefusal(e, 'BAD_VALUES')) return failed(`${rest[1]}: ${e.message}`, 2); throw e; }
     say(io.stdout, r);
     return r.ok ? 0 : 1;
   }
@@ -357,12 +378,13 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     if ('error' in s) return failed(s.error);
     let raw: unknown;
     try { raw = JSON.parse(readFileSync(resolve(files[1]), 'utf8')); } catch (e) { return failed(`${files[1]}: ${e instanceof Error ? e.message : String(e)}`, 2); }
-    const duty = readDuty(await treeOfDoc(s.doc, s.bodies, evaluate), raw);
-    if ('error' in duty) return failed(`${files[1]}: ${duty.error}`, 2);
-    const { sized, doc } = await robotSizeOfDoc(s.doc, s.bodies, evaluate, duty), out = resolve(rest[oi + 1]), dutyOut = out.replace(/\.bcad$/i, '') + '.duty.json';
-    writeAtomic(out, encodeStudioFile(doc)); writeAtomic(dutyOut, JSON.stringify(sized.duty, null, 1) + '\n');
-    say(io.stdout, { ok: sized.ok, rounds: sized.rounds, trace: sized.trace, ...(sized.stopped ? { stopped: sized.stopped } : {}), least: sized.report.least, wrote: [out, dutyOut] });
-    return sized.ok ? 0 : 1;
+    let result: Awaited<ReturnType<typeof robotSizeOfDoc>>;
+    try { result = await robotSizeOfDoc(s.doc, s.bodies, evaluate, raw as PublicDuty); }
+    catch (e) { if (isRefusal(e, 'BAD_VALUES')) return failed(`${files[1]}: ${e.message}`, 2); throw e; }
+    const { sized: published, doc } = result, out = resolve(rest[oi + 1]), dutyOut = out.replace(/\.bcad$/i, '') + '.duty.json';
+    writeAtomic(out, encodeStudioFile(doc)); writeAtomic(dutyOut, JSON.stringify(published.duty, null, 1) + '\n');
+    say(io.stdout, { ok: published.ok, rounds: published.rounds, trace: published.trace, ...(published.stopped ? { stopped: published.stopped } : {}), least: published.report.least, wrote: [out, dutyOut] });
+    return published.ok ? 0 : 1;
   }
   if (cmd === 'check') {
     if (rest.length !== 1) return usage('check takes one .bcad file');
@@ -388,6 +410,8 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     mkdirSync(join(dir, 'meshes'), { recursive: true });
     writeAtomic(main, text);
     for (const f of r.files) writeAtomic(join(dir, f.path), f.data);
+    // (O9: the export as external readers pin it, its source beside it: the revision, the input digest, the hand-set values.)
+    writeAtomic(join(dir, sourceName(main.replace(/^.*[\\/]/, ''))), sourceBytes(sourceRecord(opened.doc, [main.replace(/^.*[\\/]/, ''), ...r.files.map(f => f.path)], { robot: true })));
     const files = new Set(r.files.map(f => f.path)), check = cmd === 'urdf' ? readUrdf(text, files) : readMjcf(text, files);
     say(io.stdout, { ok: !check.issues.length, ...('links' in check.model ? { links: check.model.links.length, joints: check.model.joints.length } : { bodies: check.model.bodies.length }), wrote: [main, ...r.files.map(f => join(dir, f.path))], notes: r.notes, check: check.issues });
     return check.issues.length ? 1 : 0;
@@ -408,13 +432,19 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
   if (!o.dry) {
     try {
       if (o.out) { writeAtomic(o.out, encodeStudioFile(s.doc)); wrote.push(o.out); }
-      if (o.step) { const step = stepFor(s.doc, o.step.replace(/^.*[\\/]/, '').replace(/\.\w+$/, '')); if ('error' in step) return failed(`STEP: ${step.error}`); writeAtomic(o.step, step.text); wrote.push(o.step); if (step.omitted) notes.push(...step.omitted); }
+      if (o.step) { const step = stepOrError(s.doc, o.step.replace(/^.*[\\/]/, '').replace(/\.\w+$/, '')); if ('error' in step) return failed(`STEP: ${step.error}`); writeAtomic(o.step, step.text); wrote.push(o.step); if (step.omitted) notes.push(...step.omitted); }
       if (o.stl) {
         if (!s.bodies.length) return failed('STL: there is no body to write');
         for (const b of s.bodies) {
           const path = s.bodies.length === 1 ? o.stl : o.stl.replace(/\.stl$/i, `-${b.key}.stl`);
+          // (O8: a body whose pieces only touch along an edge or a point, one STL a piece: <name>-lump1.stl, …)
+          const lumps = b.lumpTouch?.length ? lumpStls(b.mesh, b.key) : null;
+          if (lumps) { for (const f of lumps) { const at = path.replace(/\.stl$/i, `-lump${f.lump + 1}.stl`); writeAtomic(at, f.bytes); wrote.push(at); } continue; }
           writeAtomic(path, stlFor(s.doc, b.key) ?? meshToStl(b.mesh, b.key)); wrote.push(path);
         }
+        // (O9: an STL's header cannot carry its source; the record beside it does, for every STL this run wrote.)
+        const stls = wrote.filter(w => /\.stl$/i.test(w)), at = sourceName(o.stl);
+        writeAtomic(at, sourceBytes(sourceRecord(s.doc, stls.map(w => w.replace(/^.*[\\/]/, ''))))); wrote.push(at);
       }
     } catch (e) { return failed(`writing: ${e instanceof Error ? e.message : String(e)}`); }
   }

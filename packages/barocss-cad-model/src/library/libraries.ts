@@ -8,13 +8,17 @@ import { emptyDoc, withNode, type BodyRef, type ModelNode, type PartInstance, ty
 import { evaluateDoc } from '../engine/evaluate';
 import type { DisplayMesh } from '../engine/mesh';
 import { pointInBody } from '../app/measure';
-import { BASE, eulerOf, rotationMatrix, type Mate, type MateKind, type Vec3 } from '../assembly/mates';
+import { BASE, type Mate, type MateKind, type Vec3 } from '../assembly/mates';
+import { eulerOf, rotationMatrix } from '../engine/placement';
 import tslot20 from './builtin/tslot-20.json';
 import enclosure from './builtin/enclosure.json';
 import { checkLibraryForSharing, estimateCount, licenseOf, sharingRefusal, type LibraryCheck } from './sharing';
-import { materialContext, materialData, processProfile } from './materials';
+import { materialContext, materialData } from './materials';
 import { materialIdOf } from '../app/bodies';
 import { tslotInterfaces } from '../frames/interfaces';
+import { castingProfileOf } from '../engine/castingRuleRows';
+import { nextFreeId } from '../util/ids';
+import { refusal } from '../engine/refusal';
 
 /** Where a library comes from: built into the studio, shared by a team, or the user's own. */
 export type LibrarySource = 'built-in' | 'team' | 'user';
@@ -33,7 +37,7 @@ const registry = new Map<string, LibraryEntry>();
 export function registerLibrary(json: unknown, source: LibrarySource, meta: { authoredBy?: 'person' | 'agent'; confirmed?: boolean; check?: LibraryCheck } = {}): CadLibrary {
   const library = loadCadLibrary(json);
   const kept = registry.get(library.manifest.id);
-  if (kept && kept.source === 'built-in' && source !== 'built-in') throw new Error(`${library.manifest.id} is a built-in library: give yours another id`);
+  if (kept && kept.source === 'built-in' && source !== 'built-in') throw refusal('LIBRARY_ID', `${library.manifest.id} is a built-in library: give yours another id`);
   const authoredBy = meta.authoredBy ?? 'person';
   registry.set(library.manifest.id, { library, source, license: licenseOf(library), estimates: estimateCount(library), authoredBy, confirmed: authoredBy === 'person' || meta.confirmed === true, ...(meta.check ? { check: meta.check } : {}) });
   if (source === 'user') saveUserLibraries();
@@ -104,7 +108,7 @@ export function registerDocLibraries(doc: StudioDoc): string[] {
 export function addDocLibrary(doc: StudioDoc, json: unknown, authoredBy: 'agent' | 'person'): { doc: StudioDoc; check: LibraryCheck; license: string | null; estimates: number } {
   const lib = loadCadLibrary(json), manifest = lib.manifest;
   const kept = registry.get(manifest.id);
-  if (kept && kept.source !== 'user') throw new Error(`${manifest.id} is a ${kept.source} library: give this one another id`);
+  if (kept && kept.source !== 'user') throw refusal('LIBRARY_ID', `${manifest.id} is a ${kept.source} library: give this one another id`);
   const check = checkLibraryForSharing(manifest);
   const libs = [...(doc.libraries ?? []).filter(l => l.library.id !== manifest.id), { library: manifest, authoredBy, ...(authoredBy === 'agent' ? { confirmed: false } : {}) }];
   registerLibrary(manifest, 'user', { authoredBy, check });
@@ -119,8 +123,7 @@ export function confirmDocLibrary(doc: StudioDoc, id: string): StudioDoc {
 /** A prefix for a new library node's features, unused in the document. */
 function freshPrefix(doc: StudioDoc): string {
   const used = new Set(doc.nodes.flatMap(n => n.kind === 'library' ? [n.prefix] : []));
-  let k = 1; while (used.has(`lib${k}`)) k++;
-  return `lib${k}`;
+  return nextFreeId('lib', used);
 }
 /** The library node for a part with these values (its features made now, with `prefix`). */
 export function libraryNode(lib: CadLibrary, part: string, options: { variant?: string; params?: Record<string, number>; context?: Record<string, number> }, prefix: string): LibraryNode {
@@ -132,15 +135,14 @@ export function libraryNode(lib: CadLibrary, part: string, options: { variant?: 
 export function insertLibraryPart(doc: StudioDoc, libraryId: string, part: string, options: { variant?: string; params?: Record<string, number> } = {}): StudioDoc {
   registerDocLibraries(doc);
   const lib = libraryById(libraryId);
-  if (!lib) throw new Error(`No library ${libraryId} (libraries: ${libraries().map(e => e.library.manifest.id).join(', ')})`);
+  if (!lib) throw refusal('LIBRARY_UNKNOWN', `No library ${libraryId} (libraries: ${libraries().map(e => e.library.manifest.id).join(', ')})`);
   return withNode(doc, libraryNode(lib, part, options, freshPrefix(doc)));
 }
 /** A new assembly instance holding one library part. */
 export function libraryInstance(doc: StudioDoc, libraryId: string, part: string, options: { variant?: string; params?: Record<string, number>; name?: string; position?: Vec3; rotation?: Vec3 } = {}): { doc: StudioDoc; id: string } {
   registerDocLibraries(doc);
   const instances = doc.instances ?? [];
-  let n = 1; while (instances.some(i => i.id === `p${n}`)) n++;
-  const id = `p${n}`, partDoc = insertLibraryPart(emptyDoc(), libraryId, part, options);
+  const id = nextFreeId('p', new Set(instances.map(i => i.id))), partDoc = insertLibraryPart(emptyDoc(), libraryId, part, options);
   const node = partDoc.nodes[partDoc.nodes.length - 1] as LibraryNode;
   const inst: PartInstance = { id, name: options.name ?? node.name, doc: partDoc, position: options.position ?? [0, 0, 0], rotation: options.rotation ?? [0, 0, 0] };
   return { doc: { ...doc, instances: [...instances, inst] }, id };
@@ -210,8 +212,8 @@ export function snapByInterfaces(doc: StudioDoc, a: { part: string; interface: s
   for (const [key, kind] of Object.entries(MATE_OF)) {
     const fa = A.itf.faces?.[key], fb = B.itf.faces?.[key];
     if (!fa || !fb) continue;
-    let n = 1; while (used.has(`m${n}`)) n++; used.add(`m${n}`);
-    mates.push({ id: `m${n}`, kind, a: { part: a.part, face: fa }, b: { part: b.part, face: fb } });
+    const id = nextFreeId('m', used); used.add(id);
+    mates.push({ id, kind, a: { part: a.part, face: fa }, b: { part: b.part, face: fb } });
   }
   if (!mates.length) return { error: `${a.interface} and ${b.interface} name no faces in common to mate (plane, axis)` };
   const instances = doc.instances!.map(i => i.id === b.part ? { ...i, position, rotation } : i);
@@ -254,7 +256,7 @@ export function addLibraryPartToBody(doc: StudioDoc, libraryId: string, part: st
   // (Material and process values: the body's material — its own, else the brief's stated one (O72: as its mass reads it),
   // never an assumed one — and the document's process.)
   const unresolved: string[] = [];
-  const material = materialData(materialIdOf(doc, target)), profile = processProfile(doc.process);
+  const material = materialData(materialIdOf(doc, target)), profile = castingProfileOf(doc, doc.process);
   for (const [k, c] of Object.entries(declared)) {
     if (context[k] !== undefined) continue;
     const paths = (c.from ?? []).filter(f => f.startsWith('material.') || f.startsWith('profile.') || f.startsWith('print.'));

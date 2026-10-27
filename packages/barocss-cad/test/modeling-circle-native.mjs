@@ -59,7 +59,7 @@ function transfer(snapshot, preview, summary) {
   const output = resolve(process.env.CAD_MODEL_TRANSPORT_DIR); mkdirSync(output, { recursive: true });
   const filename = 'modeling-circle-baseline-native.json', bytes = signedData({ ...snapshotData(snapshot), summary, preview,
     bodySHA256: nativeBodyHash(snapshot), scope: 'actual retained baseline native result and genuine k4 preview; not editor transport',
-    basis: 'authored XYZ; existing right-handed-y-up packet label is not a coordinate conversion' }) + '\n';
+    basis: 'authored XYZ; existing right-handed-z-up packet label is not a coordinate conversion' }) + '\n';
   assert.ok(Buffer.byteLength(bytes) <= 3 * 1024 * 1024);
   writeFileSync(resolve(output, filename), bytes, { flag: 'wx' });
   assert.equal(sha256(readFileSync(resolve(output, filename))), sha256(bytes));

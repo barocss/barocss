@@ -6,10 +6,10 @@ import { join, resolve } from 'node:path';
 import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { tablesFor } from '../src/assembly/faces';
-import { rotationMatrix } from '../src/assembly/mates';
-import { solveDoc } from '../src/chat/assembly';
+import { rotationMatrix } from '../src/engine/placement';
+import { solveDoc } from '../src/assembly/edit';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { MATERIALS } from '../src/app/materials';
+import { MATERIALS } from '../src/library/materials';
 import { jointTreeOf } from '../src/robot/joints';
 import { linkFrames, linkInertia, rotateInertia, type Frame, type Mat3 } from '../src/robot/inertia';
 
@@ -59,9 +59,9 @@ test('a cylinder\'s analytic inertia; another material scales mass and inertia b
   const s = await build([['run_command', { command: 'cylinder', values: { r: 10, h: 30, x: 0, y: 0, z: 0 } }]]), m = Math.PI * 100 * 30 * RHO * 1e-6;
   const l = linkInertia('L', 'base', s.doc, s.bodies, AT_PART);
   assert.ok(close([l.inertia[0], l.inertia[4], l.inertia[8]], [m * (3 * 100 + 900) / 12e6, m * (3 * 100 + 900) / 12e6, m * 100 / 2e6], 1e-12));
-  const steel = MATERIALS.find(x => Math.abs(x.gPerCm3 - RHO) > 1)!, key = s.bodies[0].key;
+  const steel = MATERIALS.find(x => Math.abs(x.density - RHO) > 1)!, key = s.bodies[0].key;
   const heavy = linkInertia('L', 'base', { ...s.doc, bodies: { [key]: { material: steel.id } } } as StudioDoc, s.bodies, AT_PART);
-  assert.ok(Math.abs(heavy.massKg / l.massKg - steel.gPerCm3 / RHO) < 1e-12 && Math.abs(heavy.inertia[8] / l.inertia[8] - steel.gPerCm3 / RHO) < 1e-12);
+  assert.ok(Math.abs(heavy.massKg / l.massKg - steel.density / RHO) < 1e-12 && Math.abs(heavy.inertia[8] / l.inertia[8] - steel.density / RHO) < 1e-12);
   assert.deepEqual([heavy.bodies[0].material, heavy.bodies[0].assumed, heavy.issues], [steel.label, false, []]);
 });
 
@@ -76,7 +76,7 @@ test('two bodies combined by the parallel-axis theorem: the pair of cuboids\' cl
 });
 
 test('the checks, typed: not positive definite, the triangle inequality, no volume, a massless dummy', () => {
-  const body = (key: string, I: number[][] | undefined, volume: number | null = 1000): BodyResult => ({ key, family: 'planar', mesh: { faces: [] } as never, volumeMM3: volume, massG: null, centroid: [0, 0, 0], ...(I ? { inertia: I } : {}) });
+  const body = (key: string, I: number[][] | undefined, volume: number | null = 1000): BodyResult => ({ key, family: 'planar', mesh: { faces: [] } as never, volume: volume, mass: null, centroid: [0, 0, 0], ...(I ? { inertia: I } : {}) });
   const doc = emptyDoc();
   assert.deepEqual(linkInertia('L', 'base', doc, [body('b1', [[1, 0, 0], [0, 1, 0], [0, 0, 3]])], AT_PART).issues.map(i => i.code), ['MATERIAL_ASSUMED', 'TRIANGLE']);
   assert.ok(linkInertia('L', 'base', doc, [body('b1', [[-1, 0, 0], [0, 1, 0], [0, 0, 1]])], AT_PART).issues.some(i => i.code === 'NOT_SPD'));
@@ -117,9 +117,9 @@ test('the link_inertia tool on the 2R arm; the conformance case (rm/inertia-cubo
   assert.deepEqual(j.links.map((l: { link: string }) => l.link), ['base', 'a', 'b']);
   const a = j.links[1], b = j.links[2], armMass = (60 * 20 * 5 - 2 * Math.PI * 25 * 5) * RHO * 1e-6;
   // (The tool gives 10 significant figures.)
-  assert.ok(Math.abs(a.mass_kg - armMass) < 1e-10 * armMass && a.mass_kg === b.mass_kg, `${a.mass_kg} vs ${armMass}`);
+  assert.ok(Math.abs(a.mass / 1000 - armMass) < 1e-10 * armMass && a.mass === b.mass, `${a.mass / 1000} vs ${armMass}`);
   // (The arm's centre, (30, 10, 2.5) in its part, from its turning hole at (10, 10, 0): 20 mm along X, 2.5 up.)
-  assert.ok(close(a.com_m, [0.02, 0, 0.0025], 1e-9), JSON.stringify(a.com_m));
+  assert.ok(close(a.centroid.map((x: number) => x / 1000), [0.02, 0, 0.0025], 1e-9), JSON.stringify(a.centroid));
   assert.ok(a.issues.some((i: { code: string }) => i.code === 'MATERIAL_ASSUMED'));
   // The conformance case: the cuboid's document and its analytic answer, written from the closed form.
   const file = join(CASES, 'inertia-cuboid', 'case.json'), s = await cuboid();
@@ -128,7 +128,7 @@ test('the link_inertia tool on the 2R arm; the conformance case (rm/inertia-cubo
     const centre = [0, 1, 2].map(i => (ROT[i * 3] * CENTRE[0] + ROT[i * 3 + 1] * CENTRE[1] + ROT[i * 3 + 2] * CENTRE[2]) / 1000);
     writeFileSync(file, JSON.stringify({ case: 'inertia-cuboid', step: 'RM3', note: 'A 40 × 20 × 10 mm aluminium (2.70 g/cm³) cuboid from (15, −7, 3), turned 30° about Z then 50° about X through the origin: m = 0.0216 kg; I about its centre R·diag(m(d²+h²)/12, m(w²+h²)/12, m(w²+d²)/12)·Rᵀ, R = Rx(50°)·Rz(30°); in the part frame, SI.', input: { document: s.doc }, expect: { mass_kg: M, com_m: centre, inertia_kg_m2: mul(mul(ROT, DIAG), tr(ROT)), principal_kg_m2: [DIAG[0], DIAG[4], DIAG[8]] }, tol_rel: 1e-12 }, null, 1) + '\n');
   }
-  const k = JSON.parse(readFileSync(file, 'utf8')), rk = await evaluate(k.input.document); assert.ok(rk.ok);
+  const k = JSON.parse(readFileSync(file, 'utf8')), rk = await evaluate(k.input.document); assert.ok(rk.ok, JSON.stringify(rk.ok ? null : rk.error));
   const l = linkInertia('L', 'base', k.input.document, rk.bodies, AT_PART);
   assert.ok(Math.abs(l.massKg - k.expect.mass_kg) < 1e-15 && close(l.comM, k.expect.com_m, k.tol_rel) && close(l.inertia, k.expect.inertia_kg_m2, k.tol_rel) && close(l.principal.moments, k.expect.principal_kg_m2, k.tol_rel));
 });

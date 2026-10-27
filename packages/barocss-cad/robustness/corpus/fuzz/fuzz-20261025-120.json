@@ -1,0 +1,244 @@
+{
+  "id": "fuzz-20261025-120",
+  "about": "L4 fuzz finding (seed 20261025, case 120): INVALID — tessellation: 2 edges not used exactly twice",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n3s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                -4
+              ]
+            },
+            {
+              "kind": "arc",
+              "start": [
+                0,
+                4
+              ],
+              "center": [
+                0,
+                0
+              ],
+              "direction": "cw"
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n3b",
+          "kind": "revolve",
+          "sketch": "n3s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angle": 360
+        },
+        {
+          "id": "n3",
+          "kind": "translate",
+          "target": "n3b",
+          "offset": [
+            2,
+            0,
+            3
+          ]
+        },
+        {
+          "id": "n4s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            7,
+            7
+          ]
+        },
+        {
+          "id": "n4b",
+          "kind": "extrude",
+          "sketch": "n4s",
+          "height": 3
+        },
+        {
+          "id": "n4f",
+          "kind": "shell",
+          "target": "n4b",
+          "thickness": 0.5,
+          "open": [
+            "n4b.top"
+          ]
+        },
+        {
+          "id": "n4",
+          "kind": "translate",
+          "target": "n4f",
+          "offset": [
+            0,
+            -2,
+            -1
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "difference",
+          "target": "n3",
+          "tool": "n4"
+        },
+        {
+          "id": "n5s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3
+        },
+        {
+          "id": "n5b",
+          "kind": "extrude",
+          "sketch": "n5s",
+          "height": 5
+        },
+        {
+          "id": "n5",
+          "kind": "translate",
+          "target": "n5b",
+          "offset": [
+            -2,
+            1,
+            -1
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "difference",
+          "target": "n2",
+          "tool": "n5"
+        },
+        {
+          "id": "n0",
+          "kind": "linear-pattern",
+          "target": "n1",
+          "axis": "x",
+          "spacing": -4,
+          "count": 2
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 395.4075047502929,
+          "relTol": 0.00033179212445939404,
+          "absTol": 0.13119309602828763
+        },
+        "centroid": {
+          "value": [
+            0.42315651421519346,
+            -0.02001511496107277,
+            3.2098972755526276
+          ],
+          "absTol": 0.002537878553979675
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 6.56e-2 mm³, centroid e 1.27e-3 mm",
+  "fuzz": {
+    "seed": 20261025,
+    "k": 120,
+    "status": "INVALID",
+    "tree": {
+      "pattern": {
+        "kind": "linear",
+        "axis": "x",
+        "spacing": -4,
+        "count": 2
+      },
+      "child": {
+        "op": "difference",
+        "a": {
+          "op": "difference",
+          "a": {
+            "leaf": {
+              "kind": "sphere",
+              "r": 4,
+              "rot": [],
+              "move": [
+                2,
+                0,
+                3
+              ]
+            }
+          },
+          "b": {
+            "leaf": {
+              "kind": "hbox",
+              "w": 7,
+              "d": 7,
+              "h": 3,
+              "t": 0.5,
+              "open": true,
+              "rot": [],
+              "move": [
+                0,
+                -2,
+                -1
+              ]
+            }
+          }
+        },
+        "b": {
+          "leaf": {
+            "kind": "cyl",
+            "r": 3,
+            "h": 5,
+            "rot": [],
+            "move": [
+              -2,
+              1,
+              -1
+            ]
+          }
+        }
+      }
+    }
+  }
+}

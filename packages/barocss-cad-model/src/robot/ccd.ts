@@ -8,6 +8,7 @@
 import type { JointTree } from './joints';
 import { at, sCurve, trapezoid, type Profile, type ProfileKind } from './profile';
 import { sweepPath, type SweepLink, type SweepResult } from './sweep';
+import { refusal } from '../engine/refusal';
 
 export interface JointLimits { v: number; a: number; j?: number }
 export interface TimedPath {
@@ -27,16 +28,21 @@ export interface TimedSweep {
   /** Each sample's least clearance over the pairs, as [t, mm], in time order. */
   clearanceProfile: [number, number][];
   segments: TimedSegment[]; samples: number; skipped: SweepResult['skipped'];
+  /** O22: pairs checked without their designed seat. */
+  designed: SweepResult['designed'];
 }
-export class CcdError extends Error { constructor(message: string) { super(message); this.name = 'CcdError'; } }
 
 /** The clearance counted as contact (mm) for the time of impact. */
 export const CCD_TOLERANCE = 1e-9;
 
 /** The segments' timing: each one's normalised profile over distance 1, its limits the tightest joint's. */
 export function timePath(tree: JointTree, path: TimedPath): TimedSegment[] {
-  if (path.waypoints.length < 2) throw new CcdError('a path needs at least two waypoints');
-  const keys = tree.joints.filter(j => j.type !== 'fixed' && !j.mimic).map(j => j.key), out: TimedSegment[] = [];
+  return timeSegments(tree.joints.filter(j => j.type !== 'fixed' && !j.mimic).map(j => j.key), path);
+}
+/** timePath over the joints `keys` (a joint the waypoints never move adds nothing: RS2's duration times its own keys). */
+export function timeSegments(keys: readonly string[], path: TimedPath): TimedSegment[] {
+  if (path.waypoints.length < 2) throw refusal('PATH_TOO_SHORT', 'a path needs at least two waypoints');
+  const out: TimedSegment[] = [];
   let t = 0;
   for (let k = 0; k + 1 < path.waypoints.length; k++) {
     const from = path.waypoints[k], to = path.waypoints[k + 1];
@@ -44,7 +50,7 @@ export function timePath(tree: JointTree, path: TimedPath): TimedSegment[] {
     for (const key of keys) {
       const d = Math.abs((to[key] ?? 0) - (from[key] ?? 0)); if (!(d > 0)) continue;
       const l = path.limits[key] ?? path.limits.default;
-      if (!l || !(l.v > 0 && l.a > 0) || (path.profile === 's-curve' && !((l.j ?? 0) > 0))) throw new CcdError(`joint ${key} has no ${path.profile === 's-curve' ? 'velocity, acceleration and jerk' : 'velocity and acceleration'} limits above 0`);
+      if (!l || !(l.v > 0 && l.a > 0) || (path.profile === 's-curve' && !((l.j ?? 0) > 0))) throw refusal('LIMITS_MISSING', `joint ${key} has no ${path.profile === 's-curve' ? 'velocity, acceleration and jerk' : 'velocity and acceleration'} limits above 0`);
       v = Math.min(v, l.v / d); a = Math.min(a, l.a / d); if (l.j !== undefined) j = Math.min(j, l.j / d);
     }
     const profile = v === Infinity ? null : path.profile === 's-curve' ? sCurve(1, v, a, j) : trapezoid(1, v, a);
@@ -65,7 +71,7 @@ export function timeAt(profile: Profile | null, s: number): number {
 
 /** The path swept, segment by segment: clear, or its first contact in time; the least clearance and the profile along it. */
 export function sweepTimed(tree: JointTree, links: readonly SweepLink[], path: TimedPath, o: { maxSamples?: number } = {}): TimedSweep {
-  const segments = timePath(tree, path), clearanceProfile: [number, number][] = [], skipped: SweepResult['skipped'] = [];
+  const segments = timePath(tree, path), clearanceProfile: [number, number][] = [], skipped: SweepResult['skipped'] = [], designed: SweepResult['designed'] = [];
   let min: TimedSweep['minClearance'] = null, samples = 0;
   for (let k = 0; k < segments.length; k++) {
     const g = segments[k], trace: [number, number][] = [];
@@ -73,9 +79,10 @@ export function sweepTimed(tree: JointTree, links: readonly SweepLink[], path: T
     const r = sweepPath(tree, links, g.from, g.to, { tolerance: CCD_TOLERANCE, trace, ...(o.maxSamples ? { maxSamples: o.maxSamples } : {}) });
     samples += r.samples;
     for (const s of r.skipped) if (!skipped.some(x => x.links[0] === s.links[0] && x.links[1] === s.links[1])) skipped.push(s);
+    for (const s of r.designed) if (!designed.some(x => x.links[0] === s.links[0] && x.links[1] === s.links[1])) designed.push(s);
     for (const [s, mm] of trace) clearanceProfile.push([g.t0 + timeAt(g.profile, s), mm]);
     if (r.minClearance && (!min || r.minClearance.mm < min.mm)) min = { mm: r.minClearance.mm, t: g.t0 + timeAt(g.profile, r.minClearance.s), links: r.minClearance.links };
-    if (r.contact) return { clear: false, toi: g.t0 + timeAt(g.profile, r.contact.s), segment: k, links: r.contact.links, values: r.contact.values, minClearance: min, clearanceProfile, segments, samples, skipped };
+    if (r.contact) return { clear: false, toi: g.t0 + timeAt(g.profile, r.contact.s), segment: k, links: r.contact.links, values: r.contact.values, minClearance: min, clearanceProfile, segments, samples, skipped, designed };
   }
-  return { clear: true, minClearance: min, clearanceProfile, segments, samples, skipped };
+  return { clear: true, minClearance: min, clearanceProfile, segments, samples, skipped, designed };
 }

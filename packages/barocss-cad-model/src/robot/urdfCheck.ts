@@ -3,13 +3,16 @@
 // forward kinematics in URDF's own terms — each joint's origin, then its motion about its axis in the child frame —
 // a different composition from RM2's product of exponentials, so the two checked against each other test the export.
 // External checkers (check_urdf, MuJoCo, PyBullet) are test oracles outside the product (scripts/urdf-oracle.py).
+import { symmetricEigenvalues3 } from './eigen';
+import { refusal } from '../engine/refusal';
 
-export class XmlError extends Error { constructor(message: string, readonly at: number) { super(`XML at ${at}: ${message}`); this.name = 'XmlError'; } }
+/** A malformed XML input, where it is: "[XML_MALFORMED] XML at N: …", N in `details.at`. */
+export const xmlError = (message: string, at: number) => refusal('XML_MALFORMED', `XML at ${at}: ${message}`, { at });
 export interface XmlNode { name: string; attrs: Record<string, string>; children: XmlNode[]; /** Its text, trimmed (with `{ text: true }`: SDF keeps its values there). */ text?: string }
 const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
 const unescape = (s: string, at: number) => s.replace(/&(#x[0-9a-f]+|#\d+|\w+);/gi, (_, e: string) => {
   if (e[0] === '#') return String.fromCodePoint(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10));
-  if (!(e in ENTITIES)) throw new XmlError(`unknown entity &${e};`, at);
+  if (!(e in ENTITIES)) throw xmlError(`unknown entity &${e};`, at);
   return ENTITIES[e];
 });
 
@@ -22,30 +25,30 @@ export function parseXml(text: string, o: { text?: boolean } = {}): XmlNode {
   while (i < text.length) {
     const lt = text.indexOf('<', i);
     if (lt < 0) break;
-    if (text.slice(i, lt).trim() && stack.length === 1) throw new XmlError('text outside the root element', i);
+    if (text.slice(i, lt).trim() && stack.length === 1) throw xmlError('text outside the root element', i);
     if (o.text && stack.length > 1) { const t = text.slice(i, lt).trim(); if (t) { const n = stack[stack.length - 1]; n.text = (n.text ?? '') + unescape(t, i); } }
     i = lt;
-    if (text.startsWith('<!--', i)) { const e = text.indexOf('-->', i + 4); if (e < 0) throw new XmlError('a comment is not closed', i); i = e + 3; continue; }
-    if (text.startsWith('<?', i)) { const e = text.indexOf('?>', i + 2); if (e < 0) throw new XmlError('a declaration is not closed', i); i = e + 2; continue; }
-    if (text.startsWith('<!', i)) throw new XmlError('DOCTYPE and CDATA are not read', i);
+    if (text.startsWith('<!--', i)) { const e = text.indexOf('-->', i + 4); if (e < 0) throw xmlError('a comment is not closed', i); i = e + 3; continue; }
+    if (text.startsWith('<?', i)) { const e = text.indexOf('?>', i + 2); if (e < 0) throw xmlError('a declaration is not closed', i); i = e + 2; continue; }
+    if (text.startsWith('<!', i)) throw xmlError('DOCTYPE and CDATA are not read', i);
     if (text[i + 1] === '/') {
       const e = text.indexOf('>', i), name = text.slice(i + 2, e).trim(), open = stack.pop();
-      if (!open || open.name !== name || stack.length < 1) throw new XmlError(`</${name}> closes ${open ? `<${open.name}>` : 'nothing'}`, i);
+      if (!open || open.name !== name || stack.length < 1) throw xmlError(`</${name}> closes ${open ? `<${open.name}>` : 'nothing'}`, i);
       i = e + 1; continue;
     }
     const m = /^<([A-Za-z_][\w.:-]*)((?:\s+[A-Za-z_][\w.:-]*\s*=\s*(?:"[^"]*"|'[^']*'))*)\s*(\/?)>/.exec(text.slice(i));
-    if (!m) throw new XmlError('a malformed tag', i);
+    if (!m) throw xmlError('a malformed tag', i);
     const node: XmlNode = { name: m[1], attrs: {}, children: [] };
     for (const a of m[2].matchAll(/([A-Za-z_][\w.:-]*)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)) {
-      if (a[1] in node.attrs) throw new XmlError(`attribute ${a[1]} twice`, i);
+      if (a[1] in node.attrs) throw xmlError(`attribute ${a[1]} twice`, i);
       node.attrs[a[1]] = unescape(a[2] ?? a[3], i);
     }
     stack[stack.length - 1].children.push(node);
     if (!m[3]) stack.push(node);
     i += m[0].length;
   }
-  if (stack.length !== 1) throw new XmlError(`<${stack[stack.length - 1].name}> is not closed`, text.length);
-  if (top.children.length !== 1) throw new XmlError(`${top.children.length} root elements`, 0);
+  if (stack.length !== 1) throw xmlError(`<${stack[stack.length - 1].name}> is not closed`, text.length);
+  if (top.children.length !== 1) throw xmlError(`${top.children.length} root elements`, 0);
   return top.children[0];
 }
 
@@ -114,21 +117,12 @@ export function readUrdf(text: string, files?: ReadonlySet<string>): { model: Ur
   for (const l of links) if (l.inertial) {
     const { mass, I } = l.inertial;
     if (!(mass > 0)) issues.push(`${l.name}: mass ${mass} is not above 0`);
-    const ev = eigen3([I[0], I[1], I[2], I[1], I[3], I[4], I[2], I[4], I[5]]), tol = 1e-9 * Math.abs(ev[2]);
+    const ev = symmetricEigenvalues3([I[0], I[1], I[2], I[1], I[3], I[4], I[2], I[4], I[5]]), tol = 1e-9 * Math.abs(ev[2]);
     if (!(ev[0] > 0)) issues.push(`${l.name}: its inertia is not positive definite`);
     if (ev[2] > ev[0] + ev[1] + tol) issues.push(`${l.name}: its principal moments break the triangle inequality`);
   }
   if (files) for (const l of links) for (const m of l.meshes) if (!files.has(m)) issues.push(`${l.name}: no file ${m}`);
   return { model: { name: root.attrs.name ?? '', links, joints }, issues };
-}
-/** A symmetric 3 × 3's eigenvalues, ascending (the closed form for real symmetric matrices). */
-function eigen3(a: number[]): V3 {
-  const p1 = a[1] * a[1] + a[2] * a[2] + a[5] * a[5];
-  if (p1 === 0) return [a[0], a[4], a[8]].sort((x, y) => x - y) as V3;
-  const q = (a[0] + a[4] + a[8]) / 3, p2 = (a[0] - q) ** 2 + (a[4] - q) ** 2 + (a[8] - q) ** 2 + 2 * p1, p = Math.sqrt(p2 / 6);
-  const b = a.map((x, i) => (x - (i % 4 === 0 ? q : 0)) / p), r = (b[0] * (b[4] * b[8] - b[5] * b[7]) - b[1] * (b[3] * b[8] - b[5] * b[6]) + b[2] * (b[3] * b[7] - b[4] * b[6])) / 2;
-  const phi = r <= -1 ? Math.PI / 3 : r >= 1 ? 0 : Math.acos(r) / 3, e1 = q + 2 * p * Math.cos(phi), e3 = q + 2 * p * Math.cos(phi + 2 * Math.PI / 3);
-  return [e3, 3 * q - e1 - e3, e1];
 }
 
 type M4 = { R: number[]; t: V3 };

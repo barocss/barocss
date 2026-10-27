@@ -5,6 +5,7 @@
 // kind of face, or a clearance fit the geometry contradicts at MMC ([FIT_PAIR]) refuses the evaluation.
 import { checkFit, faceGeometry, fitTableProblem, isHoleClass, lookupFit, FitError, type Brep, type FitCheck, type FitTable } from '@barocss/cad';
 import type { StudioDoc } from './doc';
+import { editRows } from './rowEdits';
 
 /** The document's fits: the tables loaded, the faces' classes (by face name) and the pairs declared. */
 export interface StudioFits { version: 1; tables?: FitTable[]; faces?: { face: string; class: string }[]; pairs?: { hole: string; shaft: string }[] }
@@ -13,12 +14,8 @@ type Output = { readonly id: string; readonly brep: Brep };
 
 /** Tables added (each checked; one with an id held already replaces it) and removed by id. */
 export function editFitTables(doc: StudioDoc, add: readonly unknown[], remove: readonly string[] = []): { doc: StudioDoc } | { error: string } {
-  for (const t of add) { const p = fitTableProblem(t); if (p) return { error: `[FIT_TABLE] ${p}` }; }
-  const was = doc.fits?.tables ?? [], gone = remove.filter(id => !was.some(t => t.id === id));
-  if (gone.length) return { error: `no fit table ${gone.join(', ')} to remove (tables: ${was.map(t => t.id).join(', ') || 'none'})` };
-  const incoming = add as FitTable[], ids = new Set([...remove, ...incoming.map(t => t.id)]);
-  const tables = [...was.filter(t => !ids.has(t.id)), ...incoming];
-  return { doc: { ...doc, fits: { ...(doc.fits ?? { version: 1 }), version: 1, tables } } };
+  const r = editRows<FitTable>(doc.fits?.tables ?? [], add, remove, { problem: t => { const p = fitTableProblem(t); return p ? `[FIT_TABLE] ${p}` : null; }, noun: 'fit table', list: 'tables' });
+  return 'error' in r ? r : { doc: { ...doc, fits: { ...(doc.fits ?? { version: 1 }), version: 1, tables: r.rows } } };
 }
 /** A face's class set (or cleared with null); its pairs go with it when cleared. */
 export function setFaceClass(doc: StudioDoc, face: string, cls: string | null): StudioDoc {
@@ -63,7 +60,7 @@ export function fitClasses(doc: StudioDoc): string[] {
 }
 
 const mm = (x: number) => +x.toFixed(4);
-const dev = (um: number) => `${um > 0 ? '+' : um < 0 ? '−' : ''}${mm(Math.abs(um) / 1000)}`;
+const dev = (value: number) => `${value > 0 ? '+' : value < 0 ? '−' : ''}${mm(Math.abs(value))}`;
 // (A pair's check builds two Booleans: kept per pair of B-reps and classes.)
 const checks = new WeakMap<Brep, Map<string, { shaft: Brep; check: FitCheck }>>();
 
@@ -89,7 +86,7 @@ export function fitNotes(doc: StudioDoc, outputs: readonly Output[]): Map<string
     const hole = g.out === -1;
     if (hole !== isHoleClass(cls)) throw new FitError('FIT_FACE', `${face} is a ${hole ? 'hole' : 'shaft'}'s face: give it a ${hole ? "hole's class (a capital letter: H7)" : "shaft's class (a small letter: g6)"}, not ${cls}`);
     const l = lookupFit(tables, cls, 2 * g.r), src = tables.find(t => t.id === l.table)?.sources?.find(s => s.id === l.source);
-    add(hit.o.id, { text: `${face}: Ø${mm(l.nominalMM)} ${cls} ${dev(l.upperUM)}/${dev(l.lowerUM)} mm — ${mm(l.minMM)} to ${mm(l.maxMM)} (${l.table} row ${l.row}${l.estimate ? ', an estimate' : src ? `, ${src.label}` : ''})`, ...(l.estimate ? { warning: true } : {}) });
+    add(hit.o.id, { text: `${face}: Ø${mm(l.nominal)} ${cls} ${dev(l.upper)}/${dev(l.lower)} mm — ${mm(l.min)} to ${mm(l.max)} (${l.table} row ${l.row}${l.estimate ? ', an estimate' : src ? `, ${src.label}` : ''})`, ...(l.estimate ? { warning: true } : {}) });
   }
   for (const p of f.pairs ?? []) {
     const h = find(p.hole), s = find(p.shaft), hc = classOf(doc, p.hole), sc = classOf(doc, p.shaft);
@@ -99,7 +96,7 @@ export function fitNotes(doc: StudioDoc, outputs: readonly Output[]): Map<string
     const memo = kept.get(key), c = memo && memo.shaft === s.o.brep ? memo.check : checkFit(tables, { brep: h.o.brep, face: h.x.id, class: hc }, { brep: s.o.brep, face: s.x.id, class: sc });
     kept.set(key, { shaft: s.o.brep, check: c });
     if (c.contradicted) throw new FitError('FIT_PAIR', `${p.hole} / ${p.shaft}: ${c.message}`);
-    add(s.o.id, { text: `Fit ${p.hole} / ${p.shaft}: ${c.message}; at MMC ${c.mmc.overlapMM3 > 0 ? `${+c.mmc.overlapMM3.toPrecision(4)} mm³ interfering` : 'clear'}, at LMC ${c.lmc.overlapMM3 > 0 ? `${+c.lmc.overlapMM3.toPrecision(4)} mm³ interfering` : 'clear'} (by the Boolean at the limit sizes, over ${mm(c.lengthMM)} mm)`, ...(c.limits.estimate ? { warning: true } : {}) });
+    add(s.o.id, { text: `Fit ${p.hole} / ${p.shaft}: ${c.message}; at MMC ${c.mmc.overlap > 0 ? `${+c.mmc.overlap.toPrecision(4)} mm³ interfering` : 'clear'}, at LMC ${c.lmc.overlap > 0 ? `${+c.lmc.overlap.toPrecision(4)} mm³ interfering` : 'clear'} (by the Boolean at the limit sizes, over ${mm(c.length)} mm)`, ...(c.limits.estimate ? { warning: true } : {}) });
   }
   return out;
 }

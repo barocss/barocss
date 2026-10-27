@@ -33,7 +33,7 @@ test('G19 clipMeshPlane: along an axis clipMesh itself; an oblique plane through
   // x + y ≥ 16 (normal (1, 1, 0)/√2): the cap from (4, 12) to (16, 0), 8 high — 12√2 × 8.
   const p = { normal: [SQ, SQ, 0] as Vec3, offset: 16 * SQ }, c = clipMeshPlane(m, p, 'cap')!;
   const cap = c.faces.at(-1)!;
-  assert.ok(Math.abs(cap.areaMM2 - 12 * Math.SQRT2 * 8) < 1e-3, `${cap.areaMM2}`);
+  assert.ok(Math.abs(cap.area - 12 * Math.SQRT2 * 8) < 1e-3, `${cap.area}`);
   assert.ok(Math.abs(facesArea(c, f => f === cap.index) - 12 * Math.SQRT2 * 8) < 1e-3);
   assert.ok(cap.normal.every((v, k) => Math.abs(v + p.normal[k]) < 1e-6), `the cap faces the cut away side: ${cap.normal}`);
   assert.ok(Math.abs(cap.centroid[0] + cap.centroid[1] - 16) < 1e-4, 'its centre on the plane');
@@ -73,7 +73,7 @@ test('G19 the exact section: one axis plane as before; planes chained — each k
   const volume = (s: Section) => {
     const r = sectionSplits(doc, bodies, s), e = evaluateDoc(r.doc, 1);
     assert.ok(e.ok, JSON.stringify(e));
-    return { kept: e.bodies.filter(b => r.kept.includes(b.key)).map(b => b.volumeMM3 ?? 0), splits: r.doc.nodes.length - doc.nodes.length };
+    return { kept: e.bodies.filter(b => r.kept.includes(b.key)).map(b => b.volume ?? 0), splits: r.doc.nodes.length - doc.nodes.length };
   };
   // An oblique plane (x + y ≥ 16): a trapezoid of 120 mm² × 8.
   const oblique = volume({ mode: 'plane', planes: [{ normal: [SQ, SQ, 0], offset: 16 * SQ }] });

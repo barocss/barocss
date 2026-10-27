@@ -46,6 +46,20 @@ export class OrbitCamera {
   }
 
   viewProjection(): Mat4 { return mul(this.projection(), this.view()); }
+  /**
+   * The view-projection for project (R1b): made again only when the camera has moved — project runs for every edge end
+   * under a hover and every overlay point in a frame. The same matrix as viewProjection.
+   */
+  private projector(): Mat4 {
+    const k = this.projectorKey, t = this.target, o = this.ortho ? 1 : 0;
+    if (!this.projectorMatrix || k[0] !== t[0] || k[1] !== t[1] || k[2] !== t[2] || k[3] !== this.distance || k[4] !== this.yaw || k[5] !== this.pitch || k[6] !== this.fovY || k[7] !== o || k[8] !== this.aspect) {
+      k[0] = t[0]; k[1] = t[1]; k[2] = t[2]; k[3] = this.distance; k[4] = this.yaw; k[5] = this.pitch; k[6] = this.fovY; k[7] = o; k[8] = this.aspect;
+      this.projectorMatrix = this.viewProjection();
+    }
+    return this.projectorMatrix;
+  }
+  private projectorKey = new Float64Array(9);
+  private projectorMatrix: Mat4 | null = null;
 
   orbit(dx: number, dy: number) {
     this.yaw -= dx * 0.008;
@@ -120,7 +134,7 @@ export class OrbitCamera {
 
   /** Project a world point to CSS pixels. */
   project(p: Vec3, width: number, height: number): [number, number, number] {
-    const m = this.viewProjection();
+    const m = this.projector();
     const x = m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12];
     const y = m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13];
     const z = m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14];

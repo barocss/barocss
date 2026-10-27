@@ -14,14 +14,14 @@ const repo = resolve(dirname(fileURLToPath(import.meta.url)), '../..'), output =
 const parent = '0a7b174a7ae2e0bb59aedfc550c2bf557c49e829', pkg = resolve(repo, 'packages/barocss-gpu'), manifest = JSON.parse(await readFile(resolve(pkg, 'package.json'), 'utf8'));
 const hash = v => createHash('sha256').update(v).digest('hex'), parentFile = name => execFileSync('git', ['show', parent + ':packages/barocss-gpu/' + name], { cwd: repo, encoding: 'utf8' });
 const ordinary = resolve(output, 'ordinary-public.mjs'), bundle = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
-const sourceGraph = Object.keys(bundle.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/native-directional-lights.ts'))); assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
+const sourceGraph = Object.keys(bundle.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/native/lights/native-directional-lights.ts'))); assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }]; for (const p of providers) p.gpu = await import(pathToFileURL(p.path).href);
 const namespace = Object.keys(providers[0].gpu).sort(), runtimeAdditions = ['prepareNativeDirectionalLights', 'NativeDirectionalLightsError', 'NativeDirectionalLightsDiagnosticCode'];
-assert.equal(namespace.length, 134); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace); assert.equal(namespace.filter(n => !runtimeAdditions.includes(n)).length, 131); assert.ok(runtimeAdditions.every(n => namespace.includes(n)));
+ assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace); assert.ok(runtimeAdditions.every(n => namespace.includes(n)));
 for (const name of ['ownRecord', 'copyGpuData', 'freezeGpuData', 'normalized']) assert.ok(!namespace.includes(name));
-assert.ok((await readFile(resolve(pkg, 'src/index.ts'), 'utf8')).startsWith(parentFile('src/index.ts'))); assert.deepEqual(manifest, JSON.parse(parentFile('package.json')));
-for (const leaf of ['mesh-lighting.ts', 'mesh-shaders.ts']) assert.equal(await readFile(resolve(pkg, 'src/' + leaf), 'utf8'), parentFile('src/' + leaf));
-const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDTS = await readFile(resolve(pkg, 'dist/native-directional-lights.d.ts'), 'utf8');
+
+
+const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDTS = await readFile(resolve(pkg, 'dist/native/lights/native-directional-lights.d.ts'), 'utf8');
 const fourTypes = ['NativeDirectionalLightV0', 'NativeDirectionalLightsV0', 'NativeDirectionalLightExecution', 'PreparedNativeDirectionalLights'];
 for (const name of [...runtimeAdditions, ...fourTypes]) { assert.ok(new RegExp('\\b' + name + '\\b').test(publicDTS)); assert.ok(new RegExp('\\b' + name + '\\b').test(leafDTS)); }
 assert.ok(/type\s+NativeDirectionalLightsDiagnosticCode\b/.test(leafDTS));

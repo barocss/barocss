@@ -93,7 +93,7 @@ export function prepareOwnNativeFaceMesh(input: unknown, displayId: string, pack
     max[axis] = Math.max(max[axis], positions[index]);
   }
   const packet = copyCadPreviewPacket({ version: 0, surfaceId: displayId, revision: packetRevision,
-    lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw',
+    lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', winding: 'ccw',
     positions, normals, indices, parameters, bounds: { min, max } });
   return { packet, context, faces };
 }

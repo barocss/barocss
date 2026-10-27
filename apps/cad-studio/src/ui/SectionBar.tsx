@@ -6,6 +6,8 @@ import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { fmt } from '@barocss/cad-model/engine/doc';
 import type { FeatureHandle } from '../viewport/gizmo';
 import { axisPlane, boxSection, cutoutCorner, flipPlane, planeAxis, type Section, type SectionPlane } from '../viewport/sectionView';
+import { Button } from '@/components/ui/button';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Icon } from './atoms';
 
 type Box = { min: Vec3; max: Vec3 };
@@ -26,7 +28,7 @@ const label = (p: SectionPlane) => { const a = planeAxis(p); return a ? `${'XYZ'
  * The section's drag handles (G19): an arrow on each plane across it toward the side cut away, through the middle of
  * what is kept (a box's on each face); an axis plane's value its coordinate (as G2's handle), another's its offset.
  */
-export function sectionHandles(section: Section, box: Box, set: (f: (s: Section | null) => Section | null) => void): FeatureHandle[] {
+export function sectionHandles(section: Section, box: Box, set: (f: (s: Section | null) => Section | null, done: boolean) => void): FeatureHandle[] {
   // (The middle of what the axis planes keep of the box — of a cut-out, of the corner it takes out: the arrows on the
   // notch's faces.)
   const lo = [...box.min] as Vec3, hi = [...box.max] as Vec3, notch = section.mode === 'cutout';
@@ -35,17 +37,18 @@ export function sectionHandles(section: Section, box: Box, set: (f: (s: Section 
   return section.planes.map((p, i) => {
     const a = planeAxis(p), dir = p.normal.map(v => -v || 0) as Vec3;
     const at = centre.map((c, k) => c - p.normal[k] * (dot(p.normal, centre) - p.offset)) as Vec3;
-    const replace = (q: SectionPlane) => set(s => s && s.planes[i] && (s.planes[i].offset !== q.offset) ? { ...s, planes: s.planes.map((x, j) => j === i ? q : x) } : s);
+    // (`done`: the drag released — R1c (3c): the plane is committed then, the steps before it only shown.)
+    const replace = (q: SectionPlane, done: boolean) => set(s => s && s.planes[i] && (s.planes[i].offset !== q.offset) ? { ...s, planes: s.planes.map((x, j) => j === i ? q : x) } : s, done);
     if (a) {
       const k = a.k, sg = a.keep === 'positive' ? 1 : -1;
       return { id: i ? `section${i}` : 'section', at, dir, label: section.mode === 'box' ? `Section box ${a.keep === 'positive' ? '−' : '+'}${'XYZ'[k]}` : `Section ${'XYZ'[k]}`, value: a.at,
         toValue: (start: number, mm: number) => Math.min(box.max[k] - 0.5, Math.max(box.min[k] + 0.5, Math.round((start + mm * dir[k]) * 2) / 2)),
-        format: (v: number) => `${fmt(v)} mm`, onDrag: (v: number) => replace({ ...p, offset: sg * v }) };
+        format: (v: number) => `${fmt(v)} mm`, onDrag: (v: number, done: boolean) => replace({ ...p, offset: sg * v }, done) };
     }
     const [dlo, dhi] = span(p, box);
     return { id: i ? `section${i}` : 'section', at, dir, label: `Section ${p.face ? `face ${p.face}` : `plane ${i + 1}`}`, value: p.offset,
       toValue: (start: number, mm: number) => Math.min(dhi - 0.5, Math.max(dlo + 0.5, Math.round((start - mm) * 2) / 2)),
-      format: (v: number) => `${fmt(v)} mm`, onDrag: (v: number) => replace({ ...p, offset: v }) };
+      format: (v: number) => `${fmt(v)} mm`, onDrag: (v: number, done: boolean) => replace({ ...p, offset: v }, done) };
   });
 }
 
@@ -70,25 +73,26 @@ export function SectionBar({ section, setSection, hatch, setHatch, box, facePick
   };
   const one = (i: number, q: SectionPlane) => set(section.planes.map((p, j) => j === i ? q : p));
   const axisButtons = (i: number) => AXES.map(a => { const pa = planeAxis(section.planes[i]), on = !!pa && 'xyz'[pa.k] === a;
-    return <button key={a} className={on ? 'on' : ''} aria-label={section.mode === 'plane' ? `Section across ${a.toUpperCase()}` : `Section plane ${i + 1} across ${a.toUpperCase()}`} onClick={() => { setFacePick(null); one(i, middlePlane(a, box)); }}>{a.toUpperCase()}</button>; });
-  const faceButton = (i: number) => <button className={facePick === i ? 'on' : ''} aria-pressed={facePick === i} aria-label={section.mode === 'plane' ? 'Section from a face' : `Section plane ${i + 1} from a face`}
-    data-tip="From a face" data-tip-desc="Click a flat face: the section plane on it, the material behind it kept" onClick={() => setFacePick(facePick === i ? null : i)}><Icon name="ads_click" small /></button>;
-  const flip = (i: number) => <button aria-label={section.mode === 'plane' ? 'Flip the section' : `Flip section plane ${i + 1}`} data-tip="Show the other side" onClick={() => one(i, flipPlane(section.planes[i]))}><Icon name="swap_horiz" small /></button>;
+    return <Button size="sm" variant={on ? 'default' : 'ghost'} key={a} className={on ? 'on' : ''} aria-label={section.mode === 'plane' ? `Section across ${a.toUpperCase()}` : `Section plane ${i + 1} across ${a.toUpperCase()}`} onClick={() => { setFacePick(null); one(i, middlePlane(a, box)); }}>{a.toUpperCase()}</Button>; });
+  const faceButton = (i: number) => <Button size="sm" variant={facePick === i ? 'default' : 'ghost'} className={facePick === i ? 'on' : ''} aria-pressed={facePick === i} aria-label={section.mode === 'plane' ? 'Section from a face' : `Section plane ${i + 1} from a face`}
+    data-tip="From a face" data-tip-desc="Click a flat face: the section plane on it, the material behind it kept" onClick={() => setFacePick(facePick === i ? null : i)}><Icon name="ads_click" small /></Button>;
+  const flip = (i: number) => <Button size="sm" variant="ghost" aria-label={section.mode === 'plane' ? 'Flip the section' : `Flip section plane ${i + 1}`} data-tip="Show the other side" onClick={() => one(i, flipPlane(section.planes[i]))}><Icon name="swap_horiz" small /></Button>;
+  // (G12f: its buttons shadcn's — on, the primary fill; the mode a ToggleGroup, a click on the mode shown keeping it.)
   return <div className="card section-bar" role="group" aria-label="Section">
     <span className="muted">Section</span>
-    <div className="seg" role="group" aria-label="Section mode">{(['plane', 'box', 'planes', 'cutout'] as const).map(m =>
-      <button key={m} className={section.mode === m ? 'on' : ''} aria-pressed={section.mode === m} onClick={() => mode(m)}
-        {...(m === 'cutout' ? { 'data-tip': 'Cut-out', 'data-tip-desc': 'Take a corner out: a quarter (two planes) or an eighth (three), the rest kept' } : {})}>{m === 'plane' ? 'Plane' : m === 'box' ? 'Box' : m === 'planes' ? 'Planes' : 'Cut-out'}</button>)}</div>
+    <ToggleGroup type="single" className="seg" aria-label="Section mode" value={section.mode} onValueChange={v => { if (v) mode(v as Section['mode']); }}>{(['plane', 'box', 'planes', 'cutout'] as const).map(m =>
+      <ToggleGroupItem key={m} value={m} className={section.mode === m ? 'on' : ''}
+        {...(m === 'cutout' ? { 'data-tip': 'Cut-out', 'data-tip-desc': 'Take a corner out: a quarter (two planes) or an eighth (three), the rest kept' } : {})}>{m === 'plane' ? 'Plane' : m === 'box' ? 'Box' : m === 'planes' ? 'Planes' : 'Cut-out'}</ToggleGroupItem>)}</ToggleGroup>
     {section.mode === 'plane' && <>{axisButtons(0)}{faceButton(0)}{flip(0)}
-      <button aria-label="Sketch the section" data-tip="Sketch the section" data-tip-desc="A sketch on the section plane with the cut's outlines in it (to extrude, revolve or dimension)" onClick={onSketch}><Icon name="cad-sketch" small /></button></>}
+      <Button size="sm" variant="ghost" aria-label="Sketch the section" data-tip="Sketch the section" data-tip-desc="A sketch on the section plane with the cut's outlines in it (to extrude, revolve or dimension)" onClick={onSketch}><Icon name="cad-sketch" small /></Button></>}
     {section.mode === 'box' && <><span className="muted small">drag a face's arrow</span>
-      <button aria-label="Reset the section box" data-tip="Reset the box" data-tip-desc="The box round the part, a tenth in from each face" onClick={() => set(boxSection(box.min, box.max).planes, 'box')}><Icon name="restart_alt" small /></button></>}
+      <Button size="sm" variant="ghost" aria-label="Reset the section box" data-tip="Reset the box" data-tip-desc="The box round the part, a tenth in from each face" onClick={() => set(boxSection(box.min, box.max).planes, 'box')}><Icon name="restart_alt" small /></Button></>}
     {(section.mode === 'planes' || section.mode === 'cutout') && <>{section.planes.map((p, i) => <span key={i} className="section-plane" aria-label={`Section plane ${i + 1}`}>
       <span className="mono small" aria-label={`Section plane ${i + 1} is`}>{label(p)}</span>{axisButtons(i)}{faceButton(i)}{flip(i)}
-      {section.planes.length > 2 && <button aria-label={`Remove section plane ${i + 1}`} onClick={() => set(section.planes.filter((_, j) => j !== i))}><Icon name="close" small /></button>}</span>)}
-      {section.planes.length < 3 && <button aria-label="Add a section plane" data-tip="Add a plane" data-tip-desc={section.mode === 'cutout' ? 'An eighth taken out, not a quarter' : undefined} onClick={() => set(section.mode === 'cutout' ? [...section.planes, cutoutCorner(box, eye(), 3)[2]] : [...section.planes, middlePlane(AXES.find(a => !section.planes.some(p => planeAxis(p) && 'xyz'[planeAxis(p)!.k] === a)) ?? 'z', box)])}><Icon name="add" small /></button>}</>}
-    <button className={hatch ? 'on' : ''} aria-pressed={hatch} aria-label="Hatch the cut" data-tip="Hatch" data-tip-desc="Lines on the cut, each part's at its own angle" onClick={() => setHatch(!hatch)}><Icon name="texture" small /></button>
-    {section.mode !== 'plane' && <button aria-label="Sketch the section" disabled data-tip="Sketch the section" data-tip-desc="One plane only: a sketch lies on one plane"><Icon name="cad-sketch" small /></button>}
+      {section.planes.length > 2 && <Button size="sm" variant="ghost" aria-label={`Remove section plane ${i + 1}`} onClick={() => set(section.planes.filter((_, j) => j !== i))}><Icon name="close" small /></Button>}</span>)}
+      {section.planes.length < 3 && <Button size="sm" variant="ghost" aria-label="Add a section plane" data-tip="Add a plane" data-tip-desc={section.mode === 'cutout' ? 'An eighth taken out, not a quarter' : undefined} onClick={() => set(section.mode === 'cutout' ? [...section.planes, cutoutCorner(box, eye(), 3)[2]] : [...section.planes, middlePlane(AXES.find(a => !section.planes.some(p => planeAxis(p) && 'xyz'[planeAxis(p)!.k] === a)) ?? 'z', box)])}><Icon name="add" small /></Button>}</>}
+    <Button size="sm" variant={hatch ? 'default' : 'ghost'} className={hatch ? 'on' : ''} aria-pressed={hatch} aria-label="Hatch the cut" data-tip="Hatch" data-tip-desc="Lines on the cut, each part's at its own angle" onClick={() => setHatch(!hatch)}><Icon name="texture" small /></Button>
+    {section.mode !== 'plane' && <Button size="sm" variant="ghost" aria-label="Sketch the section" disabled data-tip="Sketch the section" data-tip-desc="One plane only: a sketch lies on one plane"><Icon name="cad-sketch" small /></Button>}
     {facePick !== null && <span className="muted small" role="status">Click a flat face</span>}
   </div>;
 }

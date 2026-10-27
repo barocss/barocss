@@ -1,242 +1,262 @@
-export { parseScene, SceneError } from './scene.js';
-export type { Scene, Scene1, SceneObject, SceneObject1, RotatedSceneObject, CylinderSceneObject, CapsuleSceneObject, RoundedBoxSceneObject, TorusSceneObject, AnyScene, SceneSourceOptions, RGB, Vec3 } from './scene.js';
-export { compileScene, GPU_LIMITS } from './compiler.js';
-export type { SceneShaders } from './compiler.js';
-export { GPUError } from './gpu-error.js';
-export type { UpdateResult } from './gpu-error.js';
-export { validatePreviewPacket, validateMeshOptions, prepareMesh } from './mesh-packet.js';
-export type { PreviewPacket, MeshOptions } from './mesh-packet.js';
-export type {MeshLighting} from './mesh-lighting.js';
-export type { MeshEdgeOverlay } from './edge-overlay.js';
-export { validateMeshCamera, prepareCamera } from './camera.js';
-export type { MeshCamera } from './camera.js';
+import { parseScene as parseSceneRaw } from './scene/scene.js';
+import { compileScene as compileSceneRaw } from './mesh/compiler.js';
+import { validatePreviewPacket as validatePreviewPacketRaw, validateMeshOptions as validateMeshOptionsRaw, prepareMesh as prepareMeshRaw } from './mesh/mesh-packet.js';
+import { validateMeshCamera as validateMeshCameraRaw, prepareCamera as prepareCameraRaw } from './mesh/camera.js';
+import { prepareKernelFacePreview as prepareKernelFacePreviewRaw, resolveKernelFaceReference as resolveKernelFaceReferenceRaw } from './mesh/kernel-face-preview.js';
+import { refusing } from './core/input-error.js';
+// (R7.3a batch 3: these entries refuse a caller's input with a coded GpuInputError, the plain error under it kept as its
+// cause; inside the package the plain functions are used, so the engine and native paths wrap them as before.)
+export const parseScene = refusing('SCENE_INVALID', parseSceneRaw);
+export const compileScene = refusing('SCENE_INVALID', compileSceneRaw);
+export const validatePreviewPacket = refusing('MESH_PACKET_INVALID', validatePreviewPacketRaw);
+export const validateMeshOptions = refusing('MESH_OPTIONS_INVALID', validateMeshOptionsRaw);
+export const prepareMesh = refusing('MESH_INVALID', prepareMeshRaw);
+export const validateMeshCamera = refusing('CAMERA_INVALID', validateMeshCameraRaw);
+export const prepareCamera = refusing('CAMERA_INVALID', prepareCameraRaw);
+export const prepareKernelFacePreview = refusing('FACE_PREVIEW_INVALID', prepareKernelFacePreviewRaw);
+export const resolveKernelFaceReference = refusing('FACE_PREVIEW_INVALID', resolveKernelFaceReferenceRaw);
+export { preparePrimitiveSceneFrame } from './mesh/primitive-frame-preflight.js'; // (it recodes its own refusals: the caller's reflection passes through)
+export { GpuInputError, type GpuInputErrorCode } from './core/input-error.js';
+export { SceneError } from './scene/scene.js';
+export type { Scene, Scene1, SceneObject, SceneObject1, RotatedSceneObject, CylinderSceneObject, CapsuleSceneObject, RoundedBoxSceneObject, TorusSceneObject, AnyScene, SceneSourceOptions, RGB, Vec3 } from './scene/scene.js';
+export { GPU_LIMITS } from './mesh/compiler.js';
+export type { SceneShaders } from './mesh/compiler.js';
+export { GPUError } from './core/gpu-error.js';
+export { BarocssError, refusalText, type BarocssErrorOptions, type Problem } from './core/barocss-error.js';
+export type { Mat3, Mat4 } from './core/geometry-types.js';
+export type { GpuErrorCode } from './core/error-codes.js';
+export type { UpdateResult } from './core/gpu-error.js';
+export type { PreviewPacket, MeshOptions } from './mesh/mesh-packet.js';
+export type {MeshLighting} from './mesh/mesh-lighting.js';
+export type { MeshEdgeOverlay } from './mesh/edge-overlay.js';
+export type { MeshCamera } from './mesh/camera.js';
 
-export {compileGpu} from './gpu-compiler.js';
-export type {GpuCompileInput,GpuCompileResult,GpuDiagnostic,GpuRenderIR,GpuExecution} from './gpu-compiler.js';
-export type {SceneAst,SourceRange} from './scene-front.js';
+export {compileGpu} from './mesh/gpu-compiler.js';
+export type {GpuCompileInput,GpuCompileResult,GpuDiagnostic,GpuRenderIR,GpuExecution} from './mesh/gpu-compiler.js';
+export type {SceneAst,SourceRange} from './scene/scene-front.js';
 
-export type {MeshFaceHighlight} from './face-highlight.js';
+export type {MeshFaceHighlight} from './mesh/face-highlight.js';
 
-export type {MeshObjectHighlight} from './object-highlight.js';
-
-
-export {prepareKernelFacePreview,resolveKernelFaceReference} from './kernel-face-preview.js';
-export type {KernelFaceContext,KernelNormalSource,KernelFaceReference,KernelFaceBinding,KernelFacePreview,KernelFacePreviewOptions} from './kernel-face-preview.js';
-
-export type {MeshSceneOptions} from './primitive-scene.js';
-export type {MeshSceneTransform,MeshSceneBounds} from './mesh-scene-transform.js';
-export type {PrimitiveSceneEntry,PrimitiveSceneOptions,PrimitiveSceneEntryV1,PrimitiveSceneInputV1,PrimitiveSceneRef,PrimitiveSceneMaterial,PrimitiveSceneFrameV0,PrimitiveSceneFrameV1,PrimitiveSceneEntryV2,PrimitiveSceneInputV2} from './primitive-scene.js';
-export {compileMeshMaterial,validateMeshMaterialIR,validateMeshMaterialBinding,lowerMeshMaterial,MeshMaterialError} from './mesh-material.js';
-export type {MeshMaterialCode,MeshMaterialDiagnostic,MeshMaterialUniform,MeshMaterialExpression,MeshMaterialIR,MeshMaterialBinding,LoweredMeshMaterial} from './mesh-material.js';
-export {compileEngineUVMaterial,validateEngineUVMaterialIR,lowerEngineUVMaterial} from './mesh-material.js';
-export type {EngineUVMaterialExpression,EngineUVMaterialIR,LoweredEngineUVMaterial} from './mesh-material.js';
-
-export type {ParticleLayerV0} from './particle-layer.js';
-export {prepareClothLayer} from './cloth-layer.js';
-export type {ClothLayerV0,PreparedClothLayer} from './cloth-layer.js';
-
-export {prepareCoplanarBooleanBuffers} from './coplanar-boolean-buffers.js';
-export type {CoplanarBooleanBufferOptions,PreparedCoplanarBooleanBuffers} from './coplanar-boolean-buffers.js';
-
-export {prepareBooleanShellBuffers} from './boolean-shell-buffers.js';
-export type {PreparedBooleanShellBuffers} from './boolean-shell-buffers.js';
+export type {MeshObjectHighlight} from './mesh/object-highlight.js';
 
 
-export type {BooleanShellSceneInputV0,BooleanShellSceneEntry,BooleanShellLeafRef,BooleanShellSceneOptions} from './boolean-shell-scene-input.js';
+export type {KernelFaceContext,KernelNormalSource,KernelFaceReference,KernelFaceBinding,KernelFacePreview,KernelFacePreviewOptions} from './mesh/kernel-face-preview.js';
 
-export {prepareUniformCurvePreview,validateUniformCurvePreview,UniformCurvePreviewError} from './uniform-curve-preview.js';
-export type {UniformCurvePreview,UniformCurvePreviewInput,UniformCurvePreviewDiagnosticCode} from './uniform-curve-preview.js';
-export {prepareSelectedUniformCurvePreview,validateSelectedUniformCurvePreview} from './uniform-curve-preview.js';
-export type {SelectedUniformCurvePreview,SelectedUniformCurvePreviewInput} from './uniform-curve-preview.js';
+export type {MeshSceneOptions} from './scene/primitive-scene.js';
+export type {MeshSceneTransform,MeshSceneBounds} from './mesh/mesh-scene-transform.js';
+export type {PrimitiveSceneEntry,PrimitiveSceneOptions,PrimitiveSceneEntryV1,PrimitiveSceneInputV1,PrimitiveSceneRef,PrimitiveSceneMaterial,PrimitiveSceneFrameV0,PrimitiveSceneFrameV1,PrimitiveSceneEntryV2,PrimitiveSceneInputV2} from './scene/primitive-scene.js';
+export {compileMeshMaterial,validateMeshMaterialIR,validateMeshMaterialBinding,lowerMeshMaterial,MeshMaterialError} from './material/mesh-material.js';
+export type {MeshMaterialCode,MeshMaterialDiagnostic,MeshMaterialUniform,MeshMaterialExpression,MeshMaterialIR,MeshMaterialBinding,LoweredMeshMaterial} from './material/mesh-material.js';
+export {compileEngineUVMaterial,validateEngineUVMaterialIR,lowerEngineUVMaterial} from './material/mesh-material.js';
+export type {EngineUVMaterialExpression,EngineUVMaterialIR,LoweredEngineUVMaterial} from './material/mesh-material.js';
 
-export {prepareMixedDepthFrame,resolveMixedDepthFrame,MixedDepthError} from './mixed-depth-frame.js';
-export type {MixedDepthFrameV0,MixedDepthSurfaceV0,MixedDepthDiagnosticCode} from './mixed-depth-frame.js';
+export type {ParticleLayerV0} from './mesh/particle-layer.js';
+export {prepareClothLayer} from './mesh/cloth-layer.js';
+export type {ClothLayerV0,PreparedClothLayer} from './mesh/cloth-layer.js';
 
-export {prepareQualifiedFaceScene,resolveQualifiedFaceScene,QualifiedFaceSceneError} from './qualified-face-scene.js';
-export type {QualifiedFaceSceneV0,QualifiedFaceAssetV0,QualifiedFaceSceneDiagnosticCode} from './qualified-face-scene.js';
+import {prepareCoplanarBooleanBuffers as prepareCoplanarBooleanBuffersRaw} from './boolean/coplanar-boolean-buffers.js';
+export const prepareCoplanarBooleanBuffers = refusing('BOOLEAN_BUFFERS_INVALID', prepareCoplanarBooleanBuffersRaw);
+export type {CoplanarBooleanBufferOptions,PreparedCoplanarBooleanBuffers} from './boolean/coplanar-boolean-buffers.js';
 
-export {prepareAxisBoxBooleanBuffers,AxisBoxBooleanBufferError} from './axis-box-boolean-buffers.js';
-export type {AxisBoxBooleanBufferOptions,PreparedAxisBoxBooleanBuffers,AxisBoxBooleanPanelRange,AxisBoxBooleanBufferDiagnosticCode} from './axis-box-boolean-buffers.js';
-
-export {prepareTriangleGeometry,TriangleGeometryError,TriangleGeometryDiagnosticCode} from './triangle-geometry.js';
-export type {TriangleGeometryV0,PreparedTriangleGeometry} from './triangle-geometry.js';
-
-export {prepareEngineScene,EngineSceneError,EngineSceneDiagnosticCode} from './engine-scene.js';
-export {prepareEngineDrawBatches} from './engine-draw-batches.js';
-export type {EngineDrawBatch,EngineDrawBatchPlan} from './engine-draw-batches.js';
-export type {EngineSceneV0,EngineSceneMaterialV0,EngineSceneNodeV0,PreparedEngineSceneNode,PreparedEngineSceneDraw,PreparedEngineScene} from './engine-scene.js';
-
-export {raycastEngineScene,EngineRaycastError,EngineRaycastDiagnosticCode} from './engine-raycast.js';
-export type {EngineRayV0,EngineRayHitV0} from './engine-raycast.js';
-export {prepareEngineCameraRay,EngineCameraRayError,EngineCameraRayDiagnosticCode} from './engine-camera-ray.js';
-export type {EngineCameraRayRequestV0,PreparedEngineCameraRay} from './engine-camera-ray.js';
-
-export {sampleEngineTranslationClip,EngineTranslationClipError,EngineTranslationClipDiagnosticCode} from './engine-translation-clip.js';
-export type {EngineTranslationClipV0,EngineTranslationTrackV0,EngineTranslationKeyV0,EngineTranslationClipRequestV0,SampledEngineTranslationClip} from './engine-translation-clip.js';
-
-export {prepareEngineSceneFrustum,EngineSceneFrustumError,EngineSceneFrustumDiagnosticCode} from './engine-scene-frustum.js';
-export type {EngineSceneFrustumRequestV0,EngineSceneFrustumEntryV0,PreparedEngineSceneFrustum} from './engine-scene-frustum.js';
-
-export {prepareEngineTextureBindings,EngineTextureBindingsError,EngineTextureBindingsDiagnosticCode} from './engine-texture-bindings.js';
-export type {EngineTextureV0,EngineTextureBindingV0,EngineTextureBindingsV0,PreparedEngineTexture,PreparedEngineTextureBindings} from './engine-texture-bindings.js';
-
-export {sampleEngineRotationClip,EngineRotationClipError,EngineRotationClipDiagnosticCode} from './engine-rotation-clip.js';
-export type {EngineRotationClipV0,EngineRotationTrackV0,EngineRotationKeyV0,EngineRotationClipRequestV0,SampledEngineRotationClip} from './engine-rotation-clip.js';
-
-export {sampleEngineScaleClip,EngineScaleClipError,EngineScaleClipDiagnosticCode} from './engine-scale-clip.js';
-export type {EngineScaleClipV0,EngineScaleTrackV0,EngineScaleKeyV0,EngineScaleClipRequestV0,SampledEngineScaleClip} from './engine-scale-clip.js';
-export {prepareEngineOpacityBindings,EngineOpacityBindingsError,EngineOpacityBindingsDiagnosticCode} from './engine-opacity-bindings.js';
-export type {EngineOpacityBindingV0,EngineOpacityBindingsV0,PreparedEngineOpacityBindings} from './engine-opacity-bindings.js';
-export {prepareEngineLightingBindings,EngineLightingBindingsError,EngineLightingBindingsDiagnosticCode} from './engine-lighting-bindings.js';
-export type {EngineLightingBindingV0,EngineLightingBindingsV0,PreparedEngineLightingBindings} from './engine-lighting-bindings.js';
-export {prepareEngineMaterialBindings,EngineMaterialBindingsError,EngineMaterialBindingsDiagnosticCode} from './engine-material-bindings.js';
-export type {EngineMaterialBindingV0,EngineMaterialBindingsV0,PreparedEngineMaterialBindings} from './engine-material-bindings.js';
-
-export {prepareEngineUVMaterialBindings} from './engine-material-bindings.js';
-export type {EngineUVMaterialBindingV0,EngineUVMaterialBindingsV0,PreparedEngineUVMaterialBindings} from './engine-material-bindings.js';
-export type {EngineUVMaterialBinding} from './mesh-material.js';
-
-export {compileEngineUVRepeatingMaterial,validateEngineUVRepeatingMaterialIR,lowerEngineUVRepeatingMaterial} from './mesh-material.js';
-export type {EngineUVRepeatingMaterialExpression,EngineUVRepeatingMaterialIR} from './mesh-material.js';
-
-export {prepareEngineUVRepeatingMaterialBindings} from './engine-material-bindings.js';
-export type {EngineUVRepeatingMaterialBindingV0,EngineUVRepeatingMaterialBindingsV0,PreparedEngineUVRepeatingMaterialBindings} from './engine-material-bindings.js';
-export type {EngineUVRepeatingMaterialBinding} from './mesh-material.js';
-
-export { prepareTriangleGeometryWithNormals } from './triangle-normal-generation.js';
-export type { TriangleNormalSourceV0, PreparedTriangleGeometryWithNormals } from './triangle-normal-generation.js';
-
-export { sampleEngineTransformClip, EngineTransformClipError, EngineTransformClipDiagnosticCode } from './engine-transform-clip.js';
-export type { EngineTransformKeyV0, EngineTransformTrackV0, EngineTransformClipV0, EngineTransformClipRequestV0, SampledEngineTransformClip } from './engine-transform-clip.js';
-
-export { compileAffineSceneSource } from './affine-scene-source.js';
-export type { AffineSceneObject2, AffineScene2, CompiledAffineSceneSource } from './affine-scene-source.js';
-
-export {prepareSourceSceneBounds,SourceSceneBoundsError,SourceSceneBoundsDiagnosticCode} from './source-scene-bounds.js';
-export type {SourceSceneBoundsRequest,SourceSceneBoundsBox,SourceSceneObjectBounds,PreparedSourceSceneBounds} from './source-scene-bounds.js';
-
-export { evaluateAuthoredMaterial, AuthoredMaterialEvaluationError, AuthoredMaterialEvaluationDiagnosticCode } from './material-evaluation.js';
-export type { AuthoredMaterialRequest, AuthoredMaterialSample } from './material-evaluation.js';
+import {prepareBooleanShellBuffers as prepareBooleanShellBuffersRaw} from './boolean/boolean-shell-buffers.js';
+export const prepareBooleanShellBuffers = refusing('BOOLEAN_BUFFERS_INVALID', prepareBooleanShellBuffersRaw);
+export type {PreparedBooleanShellBuffers} from './boolean/boolean-shell-buffers.js';
 
 
-export { prepareBoxGeometry } from './box-geometry.js';
-export type { BoxGeometrySourceV0, PreparedBoxGeometry } from './box-geometry.js';
+export type {BooleanShellSceneInputV0,BooleanShellSceneEntry,BooleanShellLeafRef,BooleanShellSceneOptions} from './boolean/boolean-shell-scene-input.js';
 
-export { preparePlaneGeometry } from './plane-geometry.js';
-export type { PlaneGeometrySourceV0, PreparedPlaneGeometry } from './plane-geometry.js';
+export {prepareUniformCurvePreview,validateUniformCurvePreview,UniformCurvePreviewError} from './mesh/uniform-curve-preview.js';
+export type {UniformCurvePreview,UniformCurvePreviewInput,UniformCurvePreviewDiagnosticCode} from './mesh/uniform-curve-preview.js';
+export {prepareSelectedUniformCurvePreview,validateSelectedUniformCurvePreview} from './mesh/uniform-curve-preview.js';
+export type {SelectedUniformCurvePreview,SelectedUniformCurvePreviewInput} from './mesh/uniform-curve-preview.js';
 
-export { prepareSphereGeometry } from './sphere-geometry.js';
-export type { SphereGeometrySourceV0, PreparedSphereGeometry } from './sphere-geometry.js';
+export {prepareMixedDepthFrame,resolveMixedDepthFrame,MixedDepthError} from './mesh/mixed-depth-frame.js';
+export type {MixedDepthFrameV0,MixedDepthSurfaceV0,MixedDepthDiagnosticCode} from './mesh/mixed-depth-frame.js';
 
-export { preparePrimitiveSceneFrame } from './primitive-frame-preflight.js';
-export type { PrimitiveSceneFrameProfile, PrimitiveSceneCpuFrameV0, PreparedPrimitiveSceneFrameEntry, PreparedPrimitiveSceneFrame } from './primitive-frame-preflight.js';
+export {prepareQualifiedFaceScene,resolveQualifiedFaceScene,QualifiedFaceSceneError} from './scene/qualified-face-scene.js';
+export type {QualifiedFaceSceneV0,QualifiedFaceAssetV0,QualifiedFaceSceneDiagnosticCode} from './scene/qualified-face-scene.js';
+
+export {prepareAxisBoxBooleanBuffers,AxisBoxBooleanBufferError} from './boolean/axis-box-boolean-buffers.js';
+export type {AxisBoxBooleanBufferOptions,PreparedAxisBoxBooleanBuffers,AxisBoxBooleanPanelRange,AxisBoxBooleanBufferDiagnosticCode} from './boolean/axis-box-boolean-buffers.js';
+
+export {prepareTriangleGeometry,TriangleGeometryError,TriangleGeometryDiagnosticCode} from './geometry/triangle-geometry.js';
+export type {TriangleGeometryV0,PreparedTriangleGeometry} from './geometry/triangle-geometry.js';
+
+export {prepareEngineScene,EngineSceneError,EngineSceneDiagnosticCode} from './engine/engine-scene.js';
+export {prepareEngineDrawBatches} from './engine/engine-draw-batches.js';
+export type {EngineDrawBatch,EngineDrawBatchPlan} from './engine/engine-draw-batches.js';
+export type {EngineSceneV0,EngineSceneMaterialV0,EngineSceneNodeV0,PreparedEngineSceneNode,PreparedEngineSceneDraw,PreparedEngineScene} from './engine/engine-scene.js';
+
+export {raycastEngineScene,EngineRaycastError,EngineRaycastDiagnosticCode} from './engine/engine-raycast.js';
+export type {EngineRayV0,EngineRayHitV0} from './engine/engine-raycast.js';
+export {prepareEngineCameraRay,EngineCameraRayError,EngineCameraRayDiagnosticCode} from './engine/engine-camera-ray.js';
+export type {EngineCameraRayRequestV0,PreparedEngineCameraRay} from './engine/engine-camera-ray.js';
+
+export {sampleEngineTranslationClip,EngineTranslationClipError,EngineTranslationClipDiagnosticCode} from './engine/engine-translation-clip.js';
+export type {EngineTranslationClipV0,EngineTranslationTrackV0,EngineTranslationKeyV0,EngineTranslationClipRequestV0,SampledEngineTranslationClip} from './engine/engine-translation-clip.js';
+
+export {prepareEngineSceneFrustum,EngineSceneFrustumError,EngineSceneFrustumDiagnosticCode} from './engine/engine-scene-frustum.js';
+export type {EngineSceneFrustumRequestV0,EngineSceneFrustumEntryV0,PreparedEngineSceneFrustum} from './engine/engine-scene-frustum.js';
+
+export {prepareEngineTextureBindings,EngineTextureBindingsError,EngineTextureBindingsDiagnosticCode} from './engine/engine-texture-bindings.js';
+export type {EngineTextureV0,EngineTextureBindingV0,EngineTextureBindingsV0,PreparedEngineTexture,PreparedEngineTextureBindings} from './engine/engine-texture-bindings.js';
+
+export {sampleEngineRotationClip,EngineRotationClipError,EngineRotationClipDiagnosticCode} from './engine/engine-rotation-clip.js';
+export type {EngineRotationClipV0,EngineRotationTrackV0,EngineRotationKeyV0,EngineRotationClipRequestV0,SampledEngineRotationClip} from './engine/engine-rotation-clip.js';
+
+export {sampleEngineScaleClip,EngineScaleClipError,EngineScaleClipDiagnosticCode} from './engine/engine-scale-clip.js';
+export type {EngineScaleClipV0,EngineScaleTrackV0,EngineScaleKeyV0,EngineScaleClipRequestV0,SampledEngineScaleClip} from './engine/engine-scale-clip.js';
+export {prepareEngineOpacityBindings,EngineOpacityBindingsError,EngineOpacityBindingsDiagnosticCode} from './engine/engine-opacity-bindings.js';
+export type {EngineOpacityBindingV0,EngineOpacityBindingsV0,PreparedEngineOpacityBindings} from './engine/engine-opacity-bindings.js';
+export {prepareEngineLightingBindings,EngineLightingBindingsError,EngineLightingBindingsDiagnosticCode} from './engine/engine-lighting-bindings.js';
+export type {EngineLightingBindingV0,EngineLightingBindingsV0,PreparedEngineLightingBindings} from './engine/engine-lighting-bindings.js';
+export {prepareEngineMaterialBindings,EngineMaterialBindingsError,EngineMaterialBindingsDiagnosticCode} from './engine/engine-material-bindings.js';
+export type {EngineMaterialBindingV0,EngineMaterialBindingsV0,PreparedEngineMaterialBindings} from './engine/engine-material-bindings.js';
+
+export {prepareEngineUVMaterialBindings} from './engine/engine-material-bindings.js';
+export type {EngineUVMaterialBindingV0,EngineUVMaterialBindingsV0,PreparedEngineUVMaterialBindings} from './engine/engine-material-bindings.js';
+export type {EngineUVMaterialBinding} from './material/mesh-material.js';
+
+export {compileEngineUVRepeatingMaterial,validateEngineUVRepeatingMaterialIR,lowerEngineUVRepeatingMaterial} from './material/mesh-material.js';
+export type {EngineUVRepeatingMaterialExpression,EngineUVRepeatingMaterialIR} from './material/mesh-material.js';
+
+export {prepareEngineUVRepeatingMaterialBindings} from './engine/engine-material-bindings.js';
+export type {EngineUVRepeatingMaterialBindingV0,EngineUVRepeatingMaterialBindingsV0,PreparedEngineUVRepeatingMaterialBindings} from './engine/engine-material-bindings.js';
+export type {EngineUVRepeatingMaterialBinding} from './material/mesh-material.js';
+
+export { prepareTriangleGeometryWithNormals } from './geometry/triangle-normal-generation.js';
+export type { TriangleNormalSourceV0, PreparedTriangleGeometryWithNormals } from './geometry/triangle-normal-generation.js';
+
+export { sampleEngineTransformClip, EngineTransformClipError, EngineTransformClipDiagnosticCode } from './engine/engine-transform-clip.js';
+export type { EngineTransformKeyV0, EngineTransformTrackV0, EngineTransformClipV0, EngineTransformClipRequestV0, SampledEngineTransformClip } from './engine/engine-transform-clip.js';
+
+export { compileAffineSceneSource } from './scene/affine-scene-source.js';
+export type { AffineSceneObject2, AffineScene2, CompiledAffineSceneSource } from './scene/affine-scene-source.js';
+
+export {prepareSourceSceneBounds,SourceSceneBoundsError,SourceSceneBoundsDiagnosticCode} from './scene/source-scene-bounds.js';
+export type {SourceSceneBoundsRequest,SourceSceneBoundsBox,SourceSceneObjectBounds,PreparedSourceSceneBounds} from './scene/source-scene-bounds.js';
+
+export { evaluateAuthoredMaterial, AuthoredMaterialEvaluationError, AuthoredMaterialEvaluationDiagnosticCode } from './material/material-evaluation.js';
+export type { AuthoredMaterialRequest, AuthoredMaterialSample } from './material/material-evaluation.js';
 
 
-export { prepareTorusGeometry } from './torus-geometry.js';
-export type { TorusGeometrySourceV0, PreparedTorusGeometry } from './torus-geometry.js';
+export { prepareBoxGeometry } from './geometry/box-geometry.js';
+export type { BoxGeometrySourceV0, PreparedBoxGeometry } from './geometry/box-geometry.js';
 
-export { prepareCylinderGeometry } from './cylinder-geometry.js';
-export type { CylinderGeometrySourceV0, PreparedCylinderGeometry } from './cylinder-geometry.js';
+export { preparePlaneGeometry } from './geometry/plane-geometry.js';
+export type { PlaneGeometrySourceV0, PreparedPlaneGeometry } from './geometry/plane-geometry.js';
 
-export { prepareConeGeometry } from './cone-geometry.js';
-export type { ConeGeometrySourceV0, PreparedConeGeometry } from './cone-geometry.js';
+export { prepareSphereGeometry } from './geometry/sphere-geometry.js';
+export type { SphereGeometrySourceV0, PreparedSphereGeometry } from './geometry/sphere-geometry.js';
 
-export { prepareCapsuleGeometry } from './capsule-geometry.js';
-export type { CapsuleGeometrySourceV0, PreparedCapsuleGeometry } from './capsule-geometry.js';
-
-export { prepareRoundedBoxGeometry } from './rounded-box-geometry.js';
-export type { RoundedBoxGeometrySourceV0, PreparedRoundedBoxGeometry } from './rounded-box-geometry.js';
-
-export {compileNativeSurfaceUV01Material,validateNativeSurfaceUV01MaterialIR,lowerNativeSurfaceUV01Material} from './mesh-material.js';
-export type {NativeSurfaceUV01MaterialExpression,NativeSurfaceUV01MaterialIR,LoweredNativeSurfaceUV01Material} from './mesh-material.js';
-
-export {prepareNativeSurfaceUV01Geometry,NativeSurfaceUV01GeometryError} from './native-surface-uv01-geometry.js';
-export type {NativeSurfaceUV01GeometryRequest,PreparedNativeSurfaceUV01Geometry,NativeSurfaceUV01GeometryCode} from './native-surface-uv01-geometry.js';
-
-export {prepareNativeSurfaceUV01MaterialBinding,NativeSurfaceUV01BindingError} from './native-surface-uv01-binding.js';
-export type {NativeSurfaceUV01BindingRequest,PreparedNativeSurfaceUV01Binding,NativeSurfaceUV01BindingCode} from './native-surface-uv01-binding.js';
+export type { PrimitiveSceneFrameProfile, PrimitiveSceneCpuFrameV0, PreparedPrimitiveSceneFrameEntry, PreparedPrimitiveSceneFrame } from './mesh/primitive-frame-preflight.js';
 
 
-export {compileParameterizedAffineSceneSource,SceneParameterSourceError} from './scene-parameter-source.js';
-export type {SceneParameterCode,SceneParameterDiagnostic,SceneParameterDeclaration,ParameterizedAffineSceneAst,SceneParameter,CompiledParameterizedAffineSceneSource} from './scene-parameter-source.js';
+export { prepareTorusGeometry } from './geometry/torus-geometry.js';
+export type { TorusGeometrySourceV0, PreparedTorusGeometry } from './geometry/torus-geometry.js';
 
-export {compileMultiplicativeAffineSceneSource} from './scene-product-source.js';
-export type {MultiplicativeAffineSceneAst,CompiledMultiplicativeAffineSceneSource} from './scene-product-source.js';
+export { prepareCylinderGeometry } from './geometry/cylinder-geometry.js';
+export type { CylinderGeometrySourceV0, PreparedCylinderGeometry } from './geometry/cylinder-geometry.js';
 
-export {compileArithmeticAffineSceneSource} from './scene-arithmetic-source.js';
-export type {ArithmeticAffineSceneAst,CompiledArithmeticAffineSceneSource} from './scene-arithmetic-source.js';
+export { prepareConeGeometry } from './geometry/cone-geometry.js';
+export type { ConeGeometrySourceV0, PreparedConeGeometry } from './geometry/cone-geometry.js';
 
-export { prepareNativeDirectionalLights, NativeDirectionalLightsError, NativeDirectionalLightsDiagnosticCode } from './native-directional-lights.js';
-export type { NativeDirectionalLightV0, NativeDirectionalLightsV0, NativeDirectionalLightExecution, PreparedNativeDirectionalLights } from './native-directional-lights.js';
+export { prepareCapsuleGeometry } from './geometry/capsule-geometry.js';
+export type { CapsuleGeometrySourceV0, PreparedCapsuleGeometry } from './geometry/capsule-geometry.js';
 
-export { compileFiniteRepeatAffineSceneSource } from './scene-finite-repeat-source.js';
-export type { SceneRepeatDeclaration, SceneGenerationRecord, FiniteRepeatAffineSceneAst, CompiledFiniteRepeatAffineSceneSource } from './scene-finite-repeat-source.js';
+export { prepareRoundedBoxGeometry } from './geometry/rounded-box-geometry.js';
+export type { RoundedBoxGeometrySourceV0, PreparedRoundedBoxGeometry } from './geometry/rounded-box-geometry.js';
+
+export {compileNativeSurfaceUV01Material,validateNativeSurfaceUV01MaterialIR,lowerNativeSurfaceUV01Material} from './material/mesh-material.js';
+export type {NativeSurfaceUV01MaterialExpression,NativeSurfaceUV01MaterialIR,LoweredNativeSurfaceUV01Material} from './material/mesh-material.js';
+
+export {prepareNativeSurfaceUV01Geometry,NativeSurfaceUV01GeometryError} from './native/uv01/native-surface-uv01-geometry.js';
+export type {NativeSurfaceUV01GeometryRequest,PreparedNativeSurfaceUV01Geometry,NativeSurfaceUV01GeometryCode} from './native/uv01/native-surface-uv01-geometry.js';
+
+export {prepareNativeSurfaceUV01MaterialBinding,NativeSurfaceUV01BindingError} from './native/uv01/native-surface-uv01-binding.js';
+export type {NativeSurfaceUV01BindingRequest,PreparedNativeSurfaceUV01Binding,NativeSurfaceUV01BindingCode} from './native/uv01/native-surface-uv01-binding.js';
 
 
-export { compileConditionalAffineSceneSource } from './scene-conditional-source.js';
-export type { SceneConditionalDeclaration, SceneConditionalDecision, ConditionalAffineSceneAst, CompiledConditionalAffineSceneSource } from './scene-conditional-source.js';
+export {compileParameterizedAffineSceneSource,SceneParameterSourceError} from './scene/scene-parameter-source.js';
+export type {SceneParameterCode,SceneParameterDiagnostic,SceneParameterDeclaration,ParameterizedAffineSceneAst,SceneParameter,CompiledParameterizedAffineSceneSource} from './scene/scene-parameter-source.js';
 
-export { compileGeneratedAffineSceneSource } from './scene-generated-source.js';
-export type { GeneratedAffineSceneAst, CompiledGeneratedAffineSceneSource } from './scene-generated-source.js';
+export {compileMultiplicativeAffineSceneSource} from './scene/scene-product-source.js';
+export type {MultiplicativeAffineSceneAst,CompiledMultiplicativeAffineSceneSource} from './scene/scene-product-source.js';
 
-export { compileOptionalRepeatedAffineSceneSource } from './scene-optional-repeat-source.js';
-export type { OptionalRepeatedAffineSceneAst, CompiledOptionalRepeatedAffineSceneSource } from './scene-optional-repeat-source.js';
+export {compileArithmeticAffineSceneSource} from './scene/scene-arithmetic-source.js';
+export type {ArithmeticAffineSceneAst,CompiledArithmeticAffineSceneSource} from './scene/scene-arithmetic-source.js';
 
-export { compileDiscreteMeshMaterial, validateDiscreteMeshMaterialIR, lowerDiscreteMeshMaterial } from './mesh-material.js';
-export type { DiscreteMeshMaterialExpression, DiscreteMeshMaterialIR, LoweredDiscreteMeshMaterial } from './mesh-material.js';
+export { prepareNativeDirectionalLights, NativeDirectionalLightsError, NativeDirectionalLightsDiagnosticCode } from './native/lights/native-directional-lights.js';
+export type { NativeDirectionalLightV0, NativeDirectionalLightsV0, NativeDirectionalLightExecution, PreparedNativeDirectionalLights } from './native/lights/native-directional-lights.js';
 
-export { evaluateDiscreteAuthoredMaterial } from './material-evaluation.js';
-export type { DiscreteAuthoredMaterialRequest, DiscreteAuthoredMaterialSample } from './material-evaluation.js';
+export { compileFiniteRepeatAffineSceneSource } from './scene/scene-finite-repeat-source.js';
+export type { SceneRepeatDeclaration, SceneGenerationRecord, FiniteRepeatAffineSceneAst, CompiledFiniteRepeatAffineSceneSource } from './scene/scene-finite-repeat-source.js';
 
-export { compileEngineUVTextureMaterial, validateEngineUVTextureMaterialIR, lowerEngineUVTextureMaterial } from './mesh-material.js';
-export type { EngineMaterialSampler, EngineUVTextureMaterialExpression, EngineUVTextureMaterialIR, LoweredEngineUVTextureMaterial } from './mesh-material.js';
 
-export { lowerMeshMaterialWGSL } from './mesh-material-wgsl.js';
-export type { LoweredMeshMaterialWGSL } from './mesh-material-wgsl.js';
+export { compileConditionalAffineSceneSource } from './scene/scene-conditional-source.js';
+export type { SceneConditionalDeclaration, SceneConditionalDecision, ConditionalAffineSceneAst, CompiledConditionalAffineSceneSource } from './scene/scene-conditional-source.js';
 
-export { prepareEngineUVTextureMaterialBindings, EngineUVTextureMaterialBindingsError, EngineUVTextureMaterialBindingsDiagnosticCode } from './engine-uv-texture-material-bindings.js';
-export type { EngineUVTextureMaterialBindingV0, EngineUVTextureMaterialBindingsV0, EngineUVTextureMaterialSamplerBinding, PreparedEngineUVTextureMaterialBindings } from './engine-uv-texture-material-bindings.js';
+export { compileGeneratedAffineSceneSource } from './scene/scene-generated-source.js';
+export type { GeneratedAffineSceneAst, CompiledGeneratedAffineSceneSource } from './scene/scene-generated-source.js';
 
-export { lowerEngineUVTextureMaterialWGSL } from './engine-uv-texture-material-wgsl.js';
-export type { LoweredEngineUVTextureMaterialWGSL } from './engine-uv-texture-material-wgsl.js';
+export { compileOptionalRepeatedAffineSceneSource } from './scene/scene-optional-repeat-source.js';
+export type { OptionalRepeatedAffineSceneAst, CompiledOptionalRepeatedAffineSceneSource } from './scene/scene-optional-repeat-source.js';
 
-export { lowerEngineUVTextureProgramWGSL } from './engine-uv-texture-program-wgsl.js';
-export type { LoweredEngineUVTextureProgramWGSL } from './engine-uv-texture-program-wgsl.js';
+export { compileDiscreteMeshMaterial, validateDiscreteMeshMaterialIR, lowerDiscreteMeshMaterial } from './material/mesh-material.js';
+export type { DiscreteMeshMaterialExpression, DiscreteMeshMaterialIR, LoweredDiscreteMeshMaterial } from './material/mesh-material.js';
+
+export { evaluateDiscreteAuthoredMaterial } from './material/material-evaluation.js';
+export type { DiscreteAuthoredMaterialRequest, DiscreteAuthoredMaterialSample } from './material/material-evaluation.js';
+
+export { compileEngineUVTextureMaterial, validateEngineUVTextureMaterialIR, lowerEngineUVTextureMaterial } from './material/mesh-material.js';
+export type { EngineMaterialSampler, EngineUVTextureMaterialExpression, EngineUVTextureMaterialIR, LoweredEngineUVTextureMaterial } from './material/mesh-material.js';
+
+export { lowerMeshMaterialWGSL } from './material/mesh-material-wgsl.js';
+export type { LoweredMeshMaterialWGSL } from './material/mesh-material-wgsl.js';
+
+export { prepareEngineUVTextureMaterialBindings, EngineUVTextureMaterialBindingsError, EngineUVTextureMaterialBindingsDiagnosticCode } from './material/engine-uv-texture-material-bindings.js';
+export type { EngineUVTextureMaterialBindingV0, EngineUVTextureMaterialBindingsV0, EngineUVTextureMaterialSamplerBinding, PreparedEngineUVTextureMaterialBindings } from './material/engine-uv-texture-material-bindings.js';
+
+export { lowerEngineUVTextureMaterialWGSL } from './material/engine-uv-texture-material-wgsl.js';
+export type { LoweredEngineUVTextureMaterialWGSL } from './material/engine-uv-texture-material-wgsl.js';
+
+export { lowerEngineUVTextureProgramWGSL } from './material/engine-uv-texture-program-wgsl.js';
+export type { LoweredEngineUVTextureProgramWGSL } from './material/engine-uv-texture-program-wgsl.js';
 
 
 // Trusted WGSL expression for original native Surface normalized UV01.
-export { lowerNativeSurfaceUV01MaterialWGSL } from './native-surface-uv01-material-wgsl.js';
-export type { LoweredNativeSurfaceUV01MaterialWGSL } from './native-surface-uv01-material-wgsl.js';
-export { lowerEngineUVRepeatingMaterialWGSL } from './engine-uv-repeating-material-wgsl.js';
-export type { LoweredEngineUVRepeatingMaterialWGSL } from './engine-uv-repeating-material-wgsl.js';
+export { lowerNativeSurfaceUV01MaterialWGSL } from './native/uv01/native-surface-uv01-material-wgsl.js';
+export type { LoweredNativeSurfaceUV01MaterialWGSL } from './native/uv01/native-surface-uv01-material-wgsl.js';
+export { lowerEngineUVRepeatingMaterialWGSL } from './material/engine-uv-repeating-material-wgsl.js';
+export type { LoweredEngineUVRepeatingMaterialWGSL } from './material/engine-uv-repeating-material-wgsl.js';
 
 
 // Complete trusted WebGPU program for original native Surface normalized UV01.
-export { lowerNativeSurfaceUV01ProgramWGSL } from './native-surface-uv01-program-wgsl.js';
-export type { LoweredNativeSurfaceUV01ProgramWGSL } from './native-surface-uv01-program-wgsl.js';
+export { lowerNativeSurfaceUV01ProgramWGSL } from './native/uv01/native-surface-uv01-program-wgsl.js';
+export type { LoweredNativeSurfaceUV01ProgramWGSL } from './native/uv01/native-surface-uv01-program-wgsl.js';
 
 // Source-derived native UV01 frame admission and checked CPU upload bytes; no GPU allocation.
-export { prepareNativeSurfaceUV01Frame, NativeSurfaceUV01FrameError, NativeSurfaceUV01FrameDiagnosticCode } from './native-surface-uv01-frame.js';
-export type { NativeSurfaceUV01FrameRequest, NativeSurfaceUV01FrameEntry, NativeSurfaceUV01FrameOptions, NativeSurfaceUV01FrameDraw, NativeSurfaceUV01FrameResources, PreparedNativeSurfaceUV01Frame } from './native-surface-uv01-frame.js';
+export { prepareNativeSurfaceUV01Frame, NativeSurfaceUV01FrameError, NativeSurfaceUV01FrameDiagnosticCode } from './native/uv01/native-surface-uv01-frame.js';
+export type { NativeSurfaceUV01FrameRequest, NativeSurfaceUV01FrameEntry, NativeSurfaceUV01FrameOptions, NativeSurfaceUV01FrameDraw, NativeSurfaceUV01FrameResources, PreparedNativeSurfaceUV01Frame } from './native/uv01/native-surface-uv01-frame.js';
 
 // Explicit required-WebGPU viewport for source-derived native Surface UV01 requests.
 
-export { prepareNativeDirectionalLightProgramWGSL, NativeDirectionalLightProgramWGSLError } from './native-directional-light-program-wgsl.js';
-export type { NativeDirectionalLightProgramWGSLCode, NativeDirectionalLightProgramWGSLRequest, NativeDirectionalLightProgramWGSLSlot, NativeDirectionalLightProgramWGSLExecution, NativeDirectionalLightProgramWGSLABI, NativeDirectionalLightProgramWGSLProgram, NativeDirectionalLightProgramWGSLUniforms, PreparedNativeDirectionalLightProgramWGSL } from './native-directional-light-program-wgsl.js';
+export { prepareNativeDirectionalLightProgramWGSL, NativeDirectionalLightProgramWGSLError } from './native/lights/native-directional-light-program-wgsl.js';
+export type { NativeDirectionalLightProgramWGSLCode, NativeDirectionalLightProgramWGSLRequest, NativeDirectionalLightProgramWGSLSlot, NativeDirectionalLightProgramWGSLExecution, NativeDirectionalLightProgramWGSLABI, NativeDirectionalLightProgramWGSLProgram, NativeDirectionalLightProgramWGSLUniforms, PreparedNativeDirectionalLightProgramWGSL } from './native/lights/native-directional-light-program-wgsl.js';
 
-export { NativeDirectionalLightWebGPUError, NativeDirectionalLightWebGPUDiagnosticCode } from './native-directional-light-webgpu-frame.js';
-export type { NativeDirectionalLightWebGPURequest, NativeDirectionalLightWebGPUFrameOptions } from './native-directional-light-webgpu-frame.js';
+export { NativeDirectionalLightWebGPUError, NativeDirectionalLightWebGPUDiagnosticCode } from './native/lights/native-directional-light-webgpu-frame.js';
+export type { NativeDirectionalLightWebGPURequest, NativeDirectionalLightWebGPUFrameOptions } from './native/lights/native-directional-light-webgpu-frame.js';
 
 
 // CPU-only native point-light catalog and trusted WGSL/ABI upload preparation (#1583).
-export { prepareNativePointLights, NativePointLightsError, NativePointLightsDiagnosticCode } from './native-point-lights.js';
-export type { NativePointLightV0, NativePointLightsV0, NativePointLightExecution, PreparedNativePointLights } from './native-point-lights.js';
-export { prepareNativePointLightProgramWGSL, NativePointLightProgramWGSLError } from './native-point-light-program-wgsl.js';
-export type { NativePointLightProgramWGSLCode, NativePointLightProgramWGSLRequest, NativePointLightProgramWGSLSlot, NativePointLightProgramWGSLExecution, NativePointLightProgramWGSLABI, NativePointLightProgramWGSLProgram, NativePointLightProgramWGSLUniforms, PreparedNativePointLightProgramWGSL } from './native-point-light-program-wgsl.js';
+export { prepareNativePointLights, NativePointLightsError, NativePointLightsDiagnosticCode } from './native/lights/native-point-lights.js';
+export type { NativePointLightV0, NativePointLightsV0, NativePointLightExecution, PreparedNativePointLights } from './native/lights/native-point-lights.js';
+export { prepareNativePointLightProgramWGSL, NativePointLightProgramWGSLError } from './native/lights/native-point-light-program-wgsl.js';
+export type { NativePointLightProgramWGSLCode, NativePointLightProgramWGSLRequest, NativePointLightProgramWGSLSlot, NativePointLightProgramWGSLExecution, NativePointLightProgramWGSLABI, NativePointLightProgramWGSLProgram, NativePointLightProgramWGSLUniforms, PreparedNativePointLightProgramWGSL } from './native/lights/native-point-light-program-wgsl.js';
 
 // The native point-light request: a frame and its light catalog (drawn by @barocss/viewer).
-export { NativePointLightWebGPUError, NativePointLightWebGPUDiagnosticCode } from './native-point-light-webgpu-frame.js';
-export type { NativePointLightWebGPURequest, NativePointLightWebGPUFrameOptions } from './native-point-light-webgpu-frame.js';
+export { NativePointLightWebGPUError, NativePointLightWebGPUDiagnosticCode } from './native/lights/native-point-light-webgpu-frame.js';
+export type { NativePointLightWebGPURequest, NativePointLightWebGPUFrameOptions } from './native/lights/native-point-light-webgpu-frame.js';
 
 
 // The unified WebGPU viewer: one device and canvas context, persistent buffers, on-demand frames,
@@ -244,7 +264,9 @@ export type { NativePointLightWebGPURequest, NativePointLightWebGPUFrameOptions 
 export * from './viewer/index.js';
 
 // The CSS-shaped scene language shown on the viewer.
-export { showScene, SceneViewError } from './scene-viewer.js';
-export type { SceneView, SceneViewOptions } from './scene-viewer.js';
-export { materialShader, bindingShader, uv01Shader, uvRepeatingShader } from './material-viewer.js';
-export type { MaterialShaderResult, MaterialUniform } from './material-viewer.js';
+export { showScene, SceneViewError } from './scene/scene-viewer.js';
+export type { SceneView, SceneViewOptions } from './scene/scene-viewer.js';
+export { materialShader, bindingShader, uv01Shader, uvRepeatingShader } from './material/material-viewer.js';
+export type { MaterialShaderResult, MaterialUniform } from './material/material-viewer.js';
+// EXPERIMENTAL (G25): GPU compute for analyses; may change without a version bump.
+export * as computeExperimental from './compute/index.js';

@@ -6,10 +6,11 @@ import { identity, invert, lookAt, multiply, orthographicReversed, perspectiveRe
 import { Camera } from '../dist/viewer/camera.js';
 import { orbit, pan, zoom } from '../dist/viewer/controls.js';
 import { boxInFrustum, frustumPlanes, screenRect, transformBox } from '../dist/viewer/bounds.js';
-import { clippedRay, fillVertexColors, keptBy, localPlane, nearestSegment, prepareGeometry, rayTriangles, regionEntry, segmentInstances, vertexColors } from '../dist/viewer/geometry.js';
-import { packFrame, packOutput, parseColor } from '../dist/viewer/lights.js';
-import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_POINT, surfaceWGSL } from '../dist/viewer/shaders.js';
-import { clipBox } from '../dist/viewer/viewer.js';
+import { clippedRay, clippedRayFull, fillVertexColors, keptBy, localPlane, nearestSegment, prepareGeometry, prepareScalars, rayTriangles, regionEntry, segmentInstances, vertexColors } from '../dist/viewer/geometry.js';
+import { packFrame, packOutput, parseColor, whiteBalance } from '../dist/viewer/lights.js';
+import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_POINT, MAX_SPOT, MAX_SHADOWS, surfaceWGSL } from '../dist/viewer/shaders.js';
+import { clipBox, Viewer } from '../dist/viewer/viewer.js';
+import { studioEnvironment, STUDIO_ENVIRONMENTS } from '../dist/viewer/studio-env.js';
 
 const near = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps * Math.max(1, Math.abs(b));
 const close = (a, b, eps = 1e-9) => a.every((x, i) => near(x, b[i], eps));
@@ -123,11 +124,11 @@ test('viewer geometry: checks its input, computes normals, picks the nearest tri
 });
 
 test('viewer lights: the frame block matches the WGSL layout', () => {
-  assert.equal(FRAME_BYTES, 1104);
+  assert.equal(FRAME_BYTES, 2320);
   assert.match(surfaceWGSL(), new RegExp(`dirs: array<DirLight, ${MAX_DIRECTIONAL}>`));
   // A shader material: its declarations, aliases and expression; the default params struct unless it declares one.
   const custom = surfaceWGSL({ declarations: 'fn f(x: f32) -> f32 { return x; }\n', expression: 'vec3f(f(native_uv.x))', aliases: { native_uv: 'uv' } });
-  assert.match(custom, /let native_uv = uv;\n  return vec3f\(f\(native_uv.x\)\);/);
+  assert.match(custom, /let native_uv = uv;\n {2}return vec3f\(f\(native_uv.x\)\);/);
   assert.equal((custom.match(/struct MaterialParams/g) ?? []).length, 1);
   assert.equal((surfaceWGSL({ declarations: 'struct MaterialParams {\n  slot: array<vec4<f32>, 4>,\n}\n', expression: 'vec3f(1.0)' }).match(/struct MaterialParams/g) ?? []).length, 1);
   const cam = new Camera({ position: [0, -10, 0], target: [0, 0, 0], up: [0, 0, 1] });
@@ -162,8 +163,22 @@ test('viewer lights: the frame block matches the WGSL layout', () => {
   const two = packFrame(vp, cam, [], {}, null, [1, 1, 1], null, { normal: [0, 1, 0], offset: 2.5, cap: [1, 1, 1], planes: [{ normal: [0, 1, 0], offset: 2.5 }, { normal: [-1, 0, 0], offset: -4 }] });
   assert.ok(close([...two.slice(248, 260)], [1, 1, 1, 2, 0, 1, 0, 2.5, -1, 0, 0, -4], 1e-6));
   assert.deepEqual([...packFrame(vp, cam, [], {}).slice(248, 276)], new Array(28).fill(0));
-  assert.equal(FRAME_BYTES, 4 * (252 + 4 * MAX_CLIP_PLANES));
-  assert.match(surfaceWGSL(), new RegExp(`clipColor: vec4f,\\n  clips: array<vec4f, ${MAX_CLIP_PLANES}>,\\n}`));
+  assert.equal(FRAME_BYTES, 4 * (252 + 4 * MAX_CLIP_PLANES + MAX_SHADOWS * 20 + 4 + MAX_SPOT * 4 + 4));
+  assert.match(surfaceWGSL().replace(/\/\/[^\n]*/g, ''), new RegExp(`clipColor: vec4f,\\s+clips: array<vec4f, ${MAX_CLIP_PLANES}>,\\s+shadowLights: array<ShadowLight, ${MAX_SHADOWS}>,`));
+});
+
+test('G15b studio environments: equirectangular RGBA, overhead brighter than below, the softbox room dark with its key the brightest; the cyclorama bright all round', () => {
+  for (const kind of STUDIO_ENVIRONMENTS) {
+    const e = studioEnvironment(kind, 256);
+    assert.equal(e.width, 256); assert.equal(e.height, 128); assert.equal(e.data.length, 256 * 128 * 4);
+    assert.ok(e.data.every((v, i) => i % 4 !== 3 || v === 255), `${kind}: opaque`);
+  }
+  const s = studioEnvironment('softbox', 256), at = (e, az, el) => { const x = Math.floor(((az + 180) / 360) * e.width), y = Math.floor(((90 - el) / 180) * e.height); return e.data[(y * e.width + x) * 4]; };
+  assert.equal(at(s, -120, 50), 255, 'the key: full white');
+  assert.ok(at(s, 60, 10) < 60 && at(s, 0, -45) < 50, 'the room dark between its panels');
+  assert.ok(at(s, 90, 30) > 200, 'the strip behind');
+  const c = studioEnvironment('cyclorama', 256);
+  assert.ok(at(c, 45, 20) > 190 && at(c, 45, -20) > 140 && at(c, 45, -80) < at(c, 45, -10), 'the backdrop bright, the cove into the floor');
 });
 
 test('G2 the clip plane on the CPU: a ray finds the nearest hit on the kept side, a back face through the cut; a segment only its kept part', () => {
@@ -348,7 +363,7 @@ test('G20 a cut-out on the CPU: kept on any plane\'s kept side, the removed corn
   assert.equal(clipBox(B, { normal: [-1, 0, 0], offset: 1, planes: [{ normal: [-1, 0, 0], offset: 1 }, { normal: [0, -1, 0], offset: 1 }], cutout: true }), null);
   // The frame block: the plane count negative for a cut-out.
   const cam = new Camera(), f = packFrame(identity(), cam, [], {}, null, [1, 1, 1, 0], null, { normal: two[0].normal, offset: 0, cap: [1, 0, 0], planes: two, cutout: true });
-  const o = (FRAME_BYTES / 4) - 4 * MAX_CLIP_PLANES - 4;
+  const o = 248; // The legacy clip block stays at its original float offset before the shadow-array tail.
   assert.equal(f[o + 3], -2);
 });
 
@@ -440,7 +455,7 @@ test('nearest segment: the same segment, distance and parameter as the walk over
   assert.ok(hits > 1000 && behind > 50, `${hits} hits, ${behind} with the eye among the segments`);
 });
 
-test('outline reach: a box\'s screen rectangle holds every point of it the camera sees; a corner behind the eye leaves it unbounded; the output block carries it last', () => {
+test('outline reach: a box\'s screen rectangle holds every point of it the camera sees; a corner behind the eye leaves it unbounded; the output block carries it before focus settings', () => {
   const vp = multiply(perspectiveReversed(Math.PI / 3, 1.5, 0.1), lookAt([30, -40, 25], [0, 0, 0], [0, 0, 1])), w = 1200, h = 800;
   const box = { min: [-5, -3, 0], max: [8, 4, 6] }, r = screenRect(vp, [box], w, h);
   assert.ok(r && r[0] < r[2] && r[1] < r[3]);
@@ -452,6 +467,235 @@ test('outline reach: a box\'s screen rectangle holds every point of it the camer
   // The eye inside the box: a corner behind it.
   assert.equal(screenRect(vp, [{ min: [20, -50, 0], max: [40, -30, 30] }], w, h), null);
   const u = new Float32Array(packOutput({}, [[1, 0, 0]], 2, null, null, [10, 20, 30, 40]));
-  assert.deepEqual([...u.slice(-4)], [10, 20, 30, 40]);
-  assert.deepEqual([...new Float32Array(packOutput({}, [[1, 0, 0]])).slice(-4)], [-1e9, -1e9, 1e9, 1e9]);
+  assert.deepEqual([...u.slice(112, 116)], [10, 20, 30, 40]);
+  assert.deepEqual([...new Float32Array(packOutput({}, [[1, 0, 0]])).slice(112, 116)], [-1e9, -1e9, 1e9, 1e9]);
+  // G15d.1: AgX is tone map 2; the grading (balance and contrast, lift and saturation, gamma and on, gain) and the
+  // vignette (amount, clear radius, fade end) just before the outline box; off, all zeros.
+  assert.equal(new Uint32Array(packOutput({ toneMapping: 'agx' }), 4, 1)[0], 2);
+  const g = new Float32Array(packOutput({ grading: { temperature: 0.5, contrast: 1.2, saturation: 0.8, lift: [0.1, 0, 0], gamma: [1, 1.1, 1], gain: [1, 1, 0.9] }, vignette: { amount: 0.4, size: 0.2, softness: 0.5 } })).slice(92, 112);
+  const wb = whiteBalance(0.5, 0);
+  assert.ok(close([...g], [...wb, 1.2, 0.1, 0, 0, 0.8, 1, 1.1, 1, 1, 1, 1, 0.9, 0, 0.4, 0.2, 0.7, 0], 1e-6));
+  assert.ok(Math.abs(0.2126 * wb[0] + 0.7152 * wb[1] + 0.0722 * wb[2] - 1) < 1e-9 && wb[0] > wb[2], 'warm: red over blue, luminance kept');
+  assert.ok([...new Float32Array(packOutput({})).slice(92, 112)].every(x => x === 0), 'no post: zeros');
+  assert.ok([...new Float32Array(packOutput({ vignette: { amount: 0 } })).slice(108, 112)].every(x => x === 0), 'amount 0: no vignette');
+  // G15b: the contact shadows' projection, direction and length, strength and thickness, before the grading; none: zeros.
+  const proj = Array.from({ length: 16 }, (_, i) => i + 1);
+  const ct = new Float32Array(packOutput({}, [], 2, null, null, null, null, { projection: proj, inverseProjection: proj, direction: [0, 0.6, 0.8], length: 2, strength: 0.5, thickness: 1.2 })).slice(68, 92);
+  assert.ok(close([...ct], [...proj, 0, 0.6, 0.8, 2, 0.5, 1.2, 0, 0], 1e-6));
+  assert.ok([...new Float32Array(packOutput({})).slice(68, 92)].every(x => x === 0), 'no contact shadows: zeros');
+});
+
+// Exercise pickNow's real readback-to-metadata path. Only the GPU transport is mocked: the cap and triangle
+// intersections, transforms, camera projection and scalar interpolation use the production implementation.
+test('G20 pickNow keeps a nearer cut-out front face and identifies real caps from readback depth', async t => {
+  const positions = [], indices = [];
+  for (const [axis, sign] of [[0, 1], [0, -1], [1, 1], [1, -1], [2, 1], [2, -1]]) {
+    const u = (axis + 1) % 3, v = (axis + 2) % 3, base = positions.length / 3;
+    for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const p = [0, 0, 0]; p[axis] = sign; p[u] = a; p[v] = b * sign; positions.push(...p); }
+    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  }
+  const data = prepareGeometry({ positions, indices, faces: Array.from({ length: 12 }, (_, i) => 100 + i) });
+  data.scalars = prepareScalars(data, Array(data.vertexCount).fill(7), 'vertex');
+  const quarter = [{ normal: [1, 0, 0], offset: 0 }, { normal: [0, 1, 0], offset: 0 }];
+  const slab = [{ normal: [-1, 0, 0], offset: 0.5 }, { normal: [1, 0, 0], offset: 0.5 }];
+  const cases = [
+    { name: 'quarter front', planes: quarter, cutout: true, origin: [-6, 1.65, 0], direction: [1, -0.3, 0], point: [-1, 0.15, 0], triangle: 2 },
+    { name: 'slab front', planes: slab, cutout: true, origin: [-6, 0.15, 0], direction: [1, 0, 0], point: [-1, 0.15, 0], triangle: 2 },
+    { name: 'quarter cap', planes: quarter, cutout: true, origin: [-0.5, -2, 0], direction: [0, 1, 0], point: [-0.5, 0, 0], plane: 1 },
+    { name: 'slab cap', planes: slab, cutout: true, origin: [0, 0.15, 0], direction: [1, 0, 0], point: [0.5, 0.15, 0], plane: 1 },
+    { name: 'single cap tie on front', planes: [{ normal: [1, 0, 0], offset: -1 }], cutout: false, origin: [-6, 0.15, 0], direction: [1, 0, 0], point: [-1, 0.15, 0], plane: 0 },
+    { name: 'single cap', planes: [quarter[1]], cutout: false, origin: [0.5, -2, 0], direction: [0, 1, 0], point: [0.5, 0, 0], plane: 0 },
+    { name: 'multi-plane cap', planes: quarter, cutout: false, origin: [0.5, -2, 0], direction: [0, 1, 0], point: [0.5, 0, 0], plane: 1 },
+  ];
+  for (const fixture of cases) for (const instanced of [false, true]) await t.test(`${fixture.name}, ${instanced ? 'instance 1' : 'mesh'}`, async () => {
+    const shift = instanced ? [3, 0, 0] : [0, 0, 0], move = p => p.map((v, i) => v + shift[i]);
+    const origin = move(fixture.origin), point = move(fixture.point), direction = fixture.direction;
+    const planes = fixture.planes.map(p => ({ ...p, offset: p.offset + p.normal.reduce((s, v, i) => s + v * shift[i], 0) }));
+    const clip = { ...planes[0], planes, cutout: fixture.cutout };
+    const camera = new Camera({ position: origin, target: origin.map((v, i) => v + direction[i]), up: [0, 0, 1], projection: 'orthographic' });
+    camera.clip({ min: [-20, -20, -20], max: [20, 20, 20] });
+    // The exact review ray, including its non-unit direction. unproject still reads the real float32 GPU depth.
+    camera.ray = () => ({ origin, direction });
+    const vp = camera.viewProjection(1), depth = Math.fround(clipZ(vp, point));
+    const mesh = { id: 17, visible: true, pickable: true, clipped: true, cap: true, transparent: false, material: {}, transform: identity(),
+      geometry: { data, disposed: false, topology: 'triangles' }, instanceCount: instanced ? 2 : 1,
+      instances: instanced ? { matrices: [translation([30, 0, 0]), translation(shift)] } : null };
+    const viewer = Object.create(Viewer.prototype);
+    const pass = { setScissorRect() {}, setBindGroup() {}, end() {} };
+    const read = { async mapAsync() {}, unmap() {}, getMappedRange(offset) { return offset === 256 ? Float32Array.of(depth).buffer : Uint32Array.of(offset === 512 ? (instanced ? 1 : 0) : mesh.id).buffer; } };
+    Object.assign(viewer, { canvas: { width: 1, height: 1, clientWidth: 1, clientHeight: 1 }, camera, meshes: [mesh], clip,
+      device: { queue: { submit() {} }, createCommandEncoder: () => ({ beginRenderPass: () => pass, copyTextureToBuffer() {}, finish() {} }) },
+      alive() {}, prepareCamera: () => vp, visibleMeshes: () => ({ opaque: [mesh], transparent: [] }), writeUniforms() {},
+      drawCapFront() {}, drawMesh() {}, drawCaps() {}, ensurePickTargets: () => ({ views: {}, read }) });
+    const cap = viewer.capHit(origin, direction);
+    assert.ok(cap, 'a cap exists on the same mesh and instance');
+    assert.equal(cap.instance, instanced ? 1 : null);
+    if (fixture.name === 'quarter front') {
+      const full = clippedRayFull(data, translation(shift), origin, direction, clip, true, true);
+      assert.equal(full.hit.triangle, 2); assert.ok(near(full.hit.t, 5)); assert.equal(full.hit.cap, false);
+      assert.ok(near(cap.t, 6), 'the same mesh cap is behind the original front');
+    }
+    const hit = await viewer.pickNow(0, 0);
+    assert.equal(hit.mesh, mesh); assert.equal(hit.instance, instanced ? 1 : null); assert.equal(hit.depth, depth);
+    assert.ok(close(hit.point, point, 1e-5), JSON.stringify(hit.point));
+    assert.equal(hit.cap, fixture.plane !== undefined);
+    assert.equal(hit.triangle, fixture.triangle ?? null); assert.equal(hit.face, fixture.triangle === undefined ? null : 100 + fixture.triangle);
+    assert.equal(hit.capPlane, fixture.plane);
+    if (fixture.triangle !== undefined) assert.ok(near(hit.scalar, 7, 1e-5), 'front-face scalar survives');
+    else assert.equal(hit.scalar, undefined, 'caps have no triangle scalar');
+  });
+});
+
+// Reuse G20's cube and transport shape, with production camera rays/unprojection and a held readback.
+test('pickNow returns null when camera translation changes during readback, without changing an accepted hit', async () => {
+  const positions = [], indices = [];
+  for (const [axis, sign] of [[0, 1], [0, -1], [1, 1], [1, -1], [2, 1], [2, -1]]) {
+    const u = (axis + 1) % 3, v = (axis + 2) % 3, base = positions.length / 3;
+    for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const p = [0, 0, 0]; p[axis] = sign; p[u] = a; p[v] = b * sign; positions.push(...p); }
+    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  }
+  const data = prepareGeometry({ positions, indices, faces: Array.from({ length: 12 }, (_, i) => 100 + i) });
+  data.scalars = prepareScalars(data, Array(data.vertexCount).fill(7), 'vertex');
+  const camera = new Camera({ position: [-6, 0.15, 0], target: [0, 0.15, 0], up: [0, 0, 1], projection: 'orthographic' });
+  camera.clip({ min: [-20, -20, -20], max: [20, 20, 20] });
+  const point = [-1, 0.15, 0], depth = Math.fround(clipZ(camera.viewProjection(1), point));
+  const mesh = { id: 17, visible: true, pickable: true, clipped: true, cap: true, transparent: false, material: {}, transform: identity(),
+    geometry: { data, disposed: false, topology: 'triangles' }, instanceCount: 1, instances: null };
+  const viewer = Object.create(Viewer.prototype), pass = { setScissorRect() {}, setBindGroup() {}, end() {} };
+  let held = false, entered, release, unmaps = 0;
+  const read = {
+    mapAsync() { return held ? new Promise(resolve => { release = resolve; entered(); }) : Promise.resolve(); },
+    unmap() { unmaps++; },
+    getMappedRange(offset) { return offset === 256 ? Float32Array.of(depth).buffer : Uint32Array.of(offset === 512 ? 0 : mesh.id).buffer; },
+  };
+  Object.assign(viewer, { canvas: { width: 1, height: 1, clientWidth: 1, clientHeight: 1 }, camera, meshes: [mesh], clip: null,
+    device: { queue: { submit() {} }, createCommandEncoder: () => ({ beginRenderPass: () => pass, copyTextureToBuffer() {}, finish() {} }) },
+    alive() {}, prepareCamera: () => camera.viewProjection(1), visibleMeshes: () => ({ opaque: [mesh], transparent: [] }), writeUniforms() {},
+    drawCapFront() {}, drawMesh() {}, drawCaps() {}, ensurePickTargets: () => ({ views: {}, read }) });
+  const accepted = await viewer.pickNow(0, 0);
+  assert.equal(accepted.mesh, mesh); assert.equal(accepted.face, 102); assert.equal(accepted.triangle, 2);
+  assert.equal(accepted.cap, false); assert.equal(accepted.instance, null);
+  assert.ok(close(accepted.point, point, 1e-5), JSON.stringify(accepted.point));
+  assert.ok(near(accepted.scalar, 7, 1e-5));
+  const acceptedPoint = [...accepted.point];
+  held = true;
+  const mappingEntered = new Promise(resolve => { entered = resolve; }), pending = viewer.pickNow(0, 0);
+  await mappingEntered;
+  // The view direction is unchanged; the old center depth would unproject four units away in Y.
+  camera.position = [-6, 4.15, 0]; camera.target = [0, 4.15, 0];
+  release();
+  assert.equal(await pending, null, 'a readback from the previous camera state must not be reinterpreted with the new camera');
+  assert.deepEqual(accepted.point, acceptedPoint, 'the accepted hit must keep its original point');
+  assert.equal(accepted.face, 102); assert.ok(near(accepted.scalar, 7, 1e-5));
+  assert.equal(unmaps, 2, 'both mapped buffers must be unmapped, including the refused stale read');
+});
+
+// Reuse the camera-readback fixture; change only the public clip plane while its GPU result waits.
+test('pickNow returns null when the clip plane changes during readback, without changing an accepted hit', async () => {
+  const positions = [], indices = [];
+  for (const [axis, sign] of [[0, 1], [0, -1], [1, 1], [1, -1], [2, 1], [2, -1]]) {
+    const u = (axis + 1) % 3, v = (axis + 2) % 3, base = positions.length / 3;
+    for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const p = [0, 0, 0]; p[axis] = sign; p[u] = a; p[v] = b * sign; positions.push(...p); }
+    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  }
+  const data = prepareGeometry({ positions, indices, faces: Array.from({ length: 12 }, (_, i) => 100 + i) });
+  data.scalars = prepareScalars(data, Array(data.vertexCount).fill(7), 'vertex');
+  const camera = new Camera({ position: [-6, 0.15, 0], target: [0, 0.15, 0], up: [0, 0, 1], projection: 'orthographic' });
+  camera.clip({ min: [-20, -20, -20], max: [20, 20, 20] });
+  const point = [-1, 0.15, 0], depth = Math.fround(clipZ(camera.viewProjection(1), point));
+  const mesh = { id: 17, visible: true, pickable: true, clipped: true, cap: true, transparent: false, material: {}, transform: identity(),
+    geometry: { data, disposed: false, topology: 'triangles' }, instanceCount: 1, instances: null };
+  const viewer = Object.create(Viewer.prototype), pass = { setScissorRect() {}, setBindGroup() {}, end() {} };
+  let held = false, entered, release, unmaps = 0;
+  const read = {
+    mapAsync() { return held ? new Promise(resolve => { release = resolve; entered(); }) : Promise.resolve(); },
+    unmap() { unmaps++; },
+    getMappedRange(offset) { return offset === 256 ? Float32Array.of(depth).buffer : Uint32Array.of(offset === 512 ? 0 : mesh.id).buffer; },
+  };
+  Object.assign(viewer, { canvas: { width: 1, height: 1, clientWidth: 1, clientHeight: 1 }, camera, meshes: [mesh], clip: null,
+    device: { queue: { submit() {} }, createCommandEncoder: () => ({ beginRenderPass: () => pass, copyTextureToBuffer() {}, finish() {} }) },
+    alive() {}, prepareCamera: () => camera.viewProjection(1), visibleMeshes: () => ({ opaque: [mesh], transparent: [] }), writeUniforms() {},
+    requestRender() {}, drawCapFront() {}, drawMesh() {}, drawCaps() {}, ensurePickTargets: () => ({ views: {}, read }) });
+  const accepted = await viewer.pickNow(0, 0);
+  assert.equal(accepted.mesh, mesh); assert.equal(accepted.face, 102); assert.equal(accepted.triangle, 2);
+  assert.equal(accepted.cap, false); assert.equal(accepted.instance, null);
+  assert.ok(close(accepted.point, point, 1e-5), JSON.stringify(accepted.point));
+  assert.ok(near(accepted.scalar, 7, 1e-5));
+  const acceptedPoint = [...accepted.point];
+  held = true;
+  const mappingEntered = new Promise(resolve => { entered = resolve; }), pending = viewer.pickNow(0, 0);
+  await mappingEntered;
+  assert.equal(viewer.clipPlane, null);
+  const cameraBefore = { ...structuredClone(camera.state()), near: camera.near, far: camera.far };
+  const sizeBefore = [viewer.canvas.width, viewer.canvas.height, viewer.canvas.clientWidth, viewer.canvas.clientHeight];
+  const transformBefore = Array.from(mesh.transform);
+  // Keep x >= 0: the previous front at x = -1 is removed and the new cap is at x = 0.
+  viewer.clipPlane = { normal: [1, 0, 0], offset: 0 };
+  assert.deepEqual(viewer.clipPlanes, [{ normal: [1, 0, 0], offset: 0 }]);
+  assert.deepEqual({ ...camera.state(), near: camera.near, far: camera.far }, cameraBefore);
+  assert.deepEqual([viewer.canvas.width, viewer.canvas.height, viewer.canvas.clientWidth, viewer.canvas.clientHeight], sizeBefore);
+  assert.deepEqual(Array.from(mesh.transform), transformBefore);
+  assert.equal(mesh.geometry.data, data);
+  release();
+  const stale = await pending;
+  assert.equal(unmaps, 2, 'both mapped buffers must be unmapped, including the refused stale read');
+  assert.equal(stale, null, `a readback from the previous clip state must be refused: ${JSON.stringify(stale && { point: stale.point, face: stale.face, triangle: stale.triangle, cap: stale.cap, capPlane: stale.capPlane })}`);
+  assert.deepEqual(accepted.point, acceptedPoint, 'the accepted hit must keep its original point');
+  assert.equal(accepted.face, 102); assert.ok(near(accepted.scalar, 7, 1e-5));
+});
+
+// Reuse the held readback fixture; only the real Mesh transform setter changes during the pending pick.
+test('pickNow returns null when a mesh transform changes during readback, without changing an accepted hit', async () => {
+  const { Mesh } = await import('../dist/viewer/viewer.js');
+  const positions = [], indices = [];
+  for (const [axis, sign] of [[0, 1], [0, -1], [1, 1], [1, -1], [2, 1], [2, -1]]) {
+    const u = (axis + 1) % 3, v = (axis + 2) % 3, base = positions.length / 3;
+    for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const p = [0, 0, 0]; p[axis] = sign; p[u] = a; p[v] = b * sign; positions.push(...p); }
+    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  }
+  const data = prepareGeometry({ positions, indices, faces: Array.from({ length: 12 }, (_, i) => 100 + i) });
+  data.scalars = prepareScalars(data, Array(data.vertexCount).fill(7), 'vertex');
+  const camera = new Camera({ position: [-6, 0.15, 0], target: [0, 0.15, 0], up: [0, 0, 1], projection: 'orthographic' });
+  camera.clip({ min: [-20, -20, -20], max: [20, 20, 20] });
+  const point = [-1, 0.15, 0], depth = Math.fround(clipZ(camera.viewProjection(1), point));
+  const viewer = Object.create(Viewer.prototype), pass = { setScissorRect() {}, setBindGroup() {}, end() {} };
+  const mesh = new Mesh({ data, disposed: false, topology: 'triangles' }, viewer, 17, { cap: true });
+  let held = false, entered, release, unmaps = 0;
+  const read = {
+    mapAsync() { return held ? new Promise(resolve => { release = resolve; entered(); }) : Promise.resolve(); },
+    unmap() { unmaps++; },
+    getMappedRange(offset) { return offset === 256 ? Float32Array.of(depth).buffer : Uint32Array.of(offset === 512 ? 0 : mesh.id).buffer; },
+  };
+  Object.assign(viewer, { canvas: { width: 1, height: 1, clientWidth: 1, clientHeight: 1 }, camera, meshes: [mesh], clip: null,
+    device: { queue: { submit() {} }, createCommandEncoder: () => ({ beginRenderPass: () => pass, copyTextureToBuffer() {}, finish() {} }) },
+    alive() {}, prepareCamera: () => camera.viewProjection(1), visibleMeshes: () => ({ opaque: [mesh], transparent: [] }), writeUniforms() {},
+    requestRender() {}, drawCapFront() {}, drawMesh() {}, drawCaps() {}, ensurePickTargets: () => ({ views: {}, read }) });
+  const accepted = await viewer.pickNow(0, 0);
+  assert.equal(accepted.mesh, mesh); assert.equal(accepted.face, 102); assert.equal(accepted.triangle, 2);
+  assert.equal(accepted.cap, false); assert.equal(accepted.instance, null);
+  assert.ok(close(accepted.point, point, 1e-5), JSON.stringify(accepted.point));
+  assert.ok(near(accepted.scalar, 7, 1e-5));
+  const acceptedPoint = [...accepted.point];
+  held = true;
+  const mappingEntered = new Promise(resolve => { entered = resolve; }), pending = viewer.pickNow(0, 0);
+  await mappingEntered;
+  assert.equal(viewer.clipPlane, null);
+  const cameraBefore = { ...structuredClone(camera.state()), near: camera.near, far: camera.far };
+  const sizeBefore = [viewer.canvas.width, viewer.canvas.height, viewer.canvas.clientWidth, viewer.canvas.clientHeight];
+  const transformBefore = mesh.transform, geometryBefore = structuredClone(data);
+  // Move perpendicular to the +X view direction: the old pixel ray no longer meets this mesh.
+  mesh.transform = translation([0, 4, 0]);
+  assert.notEqual(mesh.transform, transformBefore);
+  assert.deepEqual(Array.from(mesh.transform), Array.from(translation([0, 4, 0])));
+  assert.equal(viewer.clipPlane, null);
+  assert.deepEqual({ ...camera.state(), near: camera.near, far: camera.far }, cameraBefore);
+  assert.deepEqual([viewer.canvas.width, viewer.canvas.height, viewer.canvas.clientWidth, viewer.canvas.clientHeight], sizeBefore);
+  assert.equal(mesh.geometry.data, data);
+  assert.deepEqual(data, geometryBefore);
+  release();
+  const stale = await pending;
+  assert.equal(unmaps, 2, 'both mapped buffers must be unmapped, including the refused stale read');
+  assert.equal(stale, null, `a readback from the previous mesh transform must be refused: ${JSON.stringify(stale && { point: stale.point, face: stale.face, triangle: stale.triangle, cap: stale.cap, capPlane: stale.capPlane })}`);
+  assert.deepEqual(accepted.point, acceptedPoint, 'the accepted hit must keep its original point');
+  assert.equal(accepted.face, 102); assert.ok(near(accepted.scalar, 7, 1e-5));
 });

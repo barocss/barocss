@@ -25,8 +25,8 @@ assert.equal(built.outputFiles.length, 1);
 const sourceInputs = Object.keys(built.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
 assert.ok(cadInputs.includes(entry));
-assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/own-cubic-curve-plane-intersection.ts')));
-assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/own-cubic-bernstein-roots.ts')));
+assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/intersect/own-cubic-curve-plane-intersection.ts')));
+assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/intersect/own-cubic-bernstein-roots.ts')));
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' +
@@ -401,8 +401,8 @@ const runtimeExports = ['intersectCubicBezierCurveWithAffinePlaneSurface', 'vali
   'CubicCurveAffinePlaneIntersectionError', 'CubicCurveAffinePlaneIntersectionDiagnosticCode'];
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CubicCurveAffinePlaneIntersectionDiagnosticCode, CubicCurveAffinePlaneIntersectionDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./own-cubic-curve-plane-intersection.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/own-cubic-curve-plane-intersection.d.ts');
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./intersect/own-cubic-curve-plane-intersection.js'));
+const leafDeclarationPath = resolve(packageRoot, 'dist/intersect/own-cubic-curve-plane-intersection.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = [...runtimeExports, 'CubicCurveAffinePlaneIntersectionOptions',
   'CubicCurveAffinePlaneIntersectionReport', 'CubicCurveAffinePlaneIntersectionResult', 'CubicCurvePlaneRootEvidence'];

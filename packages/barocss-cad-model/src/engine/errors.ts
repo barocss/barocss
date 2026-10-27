@@ -1,7 +1,20 @@
 // Kernel refusals are precise but written for kernel authors. Map them to what a designer can act on.
-export interface FriendlyError { title: string; hint: string; detail: string }
+export interface FriendlyError {
+  title: string; hint: string; detail: string;
+  /**
+   * The kernel's code (R7 finding): its bracketed refusal (`RADIUS_EXCEEDS_FACE`), which `detail` then starts with, or
+   * else the thrown error's own kind (`PARAMETER`, `GEOMETRY` …); absent when it gave neither. Callers tell refusals apart by it.
+   */
+  code?: string;
+}
 
 const rules: { test: RegExp; title: string; hint: string }[] = [
+  { test: /\[BEAD_SHARED_CONTEXT\]/,
+    title: 'The shared bead context is incomplete or unsupported',
+    hint: 'Use ownership version 1 and policy equal-length. Keep the complete joint component; do not remove a failed peer to build a full bead.' },
+  { test: /\[BEAD_SHARED_UNSUPPORTED\]/,
+    title: 'This shared bead geometry is not supported',
+    hint: 'Version 1 supports two equal-leg outer endpoint beads sharing one straight prism in the same frame. The refused component has no modelled bead material.' },
   { test: /FRAME_SECTION_UNKNOWN/,
     title: 'A frame names a section that is not in the library',
     hint: 'Add the row back to the section library (Library panel, SECTIONS), or give the frame another section.' },
@@ -200,8 +213,23 @@ const rules: { test: RegExp; title: string; hint: string }[] = [
     hint: 'Overlap the bodies (or keep them apart) so the result is a proper solid.' },
 ];
 
-export function friendly(message: string): FriendlyError {
-  const detail = message.replace(/^n\d+:\s*/, '').trim();
-  for (const rule of rules) if (rule.test.test(message)) return { title: rule.title, hint: rule.hint, detail };
-  return { title: 'The kernel could not build this', hint: 'Undo the last change, or adjust the values and try again.', detail };
+/** A bracketed refusal code in a kernel message: `[RADIUS_EXCEEDS_FACE]`. */
+const CODE = /\[([A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+)\]/;
+/**
+ * A kernel refusal as a designer can act on it; `kind`, the thrown error's own code, kept when the message has no
+ * bracketed one. The title and hint are as before; `detail` starts with the bracketed code when there is one.
+ */
+export function friendly(message: string, kind?: string): FriendlyError {
+  let detail = message.replace(/^n\d+:\s*/, '').trim();
+  const bracketed = CODE.exec(detail)?.[1], code = bracketed ?? kind;
+  if (bracketed && !detail.startsWith(`[${bracketed}]`)) detail = `[${bracketed}] ${detail.replace(`[${bracketed}] `, '').replace(`[${bracketed}]`, '').trim()}`;
+  const extra = code ? { code } : {};
+  for (const rule of rules) if (rule.test.test(message)) return { title: rule.title, hint: rule.hint, detail, ...extra };
+  return { title: 'The kernel could not build this', hint: 'Undo the last change, or adjust the values and try again.', detail, ...extra };
+}
+/** What was thrown, as friendly(): its message and, when it has one, its code (the kernel's errors carry a string `code`). */
+export function friendlyCause(cause: unknown): FriendlyError {
+  if (!(cause instanceof Error)) return friendly(String(cause));
+  const kind = (cause as { code?: unknown }).code;
+  return friendly(cause.message, typeof kind === 'string' ? kind : undefined);
 }

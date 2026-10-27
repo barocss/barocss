@@ -1384,3 +1384,2479 @@ checkpoint a stage, FLOW_ONLY on both renderers.
 3. Merge the integration tip the coordinator names.
 4. Finish G20.2 as listed above.
 5. Then G21: send its S0 to the coordinator first.
+
+
+### Coordinator handback pointer — GPU G, 2026-10-23
+
+Owner finish is in force; no implementation or author checks restart. The latest
+GPU G STOP record was reviewed at `0eff11097ebe3e795f4c5173211eb861214c76a2`. Its immutable
+[snapshot](evidence/2443211888b5bc5d219fa3075dfea444bd6d5d4a/final-window/lanes/gpu-G.md) and accompanying stop receipt are archived
+with the final window. That documentation review does not adopt the branch's
+unverified product source. See [handback](notes/codex-handback-2026-10-23.md) and
+state for exact WIP, process cleanup, blockers and first resume steps.
+
+## G-R1 — resumed by Claude after Codex: the studio lint error (2026-10-23)
+
+- **What**: `apps/cad-studio/test/bench-assembly.mjs:34`, `no-this-alias` (the one studio lint error in the
+  coordinator's window at 99da385a1). The bench's timestamp-query wrapper of `GPUDevice.createCommandEncoder` aliased
+  `this` as `dev`. The wrapper's body moved to `instrument(dev, enc)`, and the patched method passes `this` and the
+  encoder to it; what it measures is unchanged.
+- **Checks** (T1): studio eslint on the file, 0 errors (4 `no-console` warnings, as before); `node --check`. Not run:
+  `bench:assembly` itself (a browser bench; it needs a heavy-run slot and low load).
+
+## G-R2 — A9-7: a placed part's bearing edited in place, against a linked housing (ported from Codex, 2026-10-23)
+
+- **What**: Codex's A9-7 UI connection, from `codex/a9-7-ui-connection`: `git diff c45c92f85 8789e468d --
+  apps/cad-studio/src` (the original `d46ddbd8` plus its correction `8789e468`), applied unchanged to integration
+  6bfd0ad97. Source only; Codex's evidence files are not ported.
+  - The Outliner lists a selected placed part's bearings. One opens a NodeEditor on that occurrence (`app/bearingEdit.ts`).
+    - The edit session keeps the explicit immediate occurrence as owner: two instances may share one authored child
+      document.
+    - Inherited bearing and fit rows reach the edit and its validation, never the saved child.
+    - Apply validates the edited occurrence in the worker, then commits through the root's undo path only if the root,
+      the selection and the occurrence are still the ones captured.
+  - `useAssembly` reads linked face tables per owner through a host callback with the current root (`bearingFaceInput`),
+    never from a bare child or a flattened document. The bare `faceKey(child)` read was what blanked the screen at d46.
+    A group is published only whole and only for the current source; otherwise no mate, lock, ground or solve runs.
+  - The BOM panel (`bomHasLinkedHousing`) never shows or exports a previous result once the document has a linked
+    housing. An evaluation failure shows its reason. Unlinked documents keep their partial data while loading, as before.
+  - App: the Bearing command builds against the current authored targets. Its preview and Apply are refused once the
+    assembly changed under it.
+- **Tests**: Codex's three tests (in packages/barocss-gpu/tests) moved to the studio, as agreed with the coordinator.
+  - `test/bearing-edit.test.ts`, 7 tests.
+  - `test/bom-linked-ui.test.ts`, 5 tests.
+  - `test/assembly-linked-faces.test.ts`, 5 tests.
+  - The two hook tests bundle BomPanel and useAssembly with recording stand-ins for React and the model calls. They
+    load esbuild from the studio's node_modules at run time.
+  - The fixture row is written into the test document. It is not agent-loaded rows; rule (b) governs those.
+- **Ownership**: BomPanel.tsx is the outer lane's file. The coordinator assigned this change to the GPU lane and told the
+  outer lane to hold off that file.
+- **Checks** (T1):
+  - the three test files, run one at a time: 17/17;
+  - studio `type-check`: 0 errors;
+  - eslint on the 4 source and 3 test files: 0 problems;
+  - `build:library` (cad, gpu): rebuilt for the run.
+- **Not run**:
+  - the full studio suite and a browser flow: they need a slot;
+  - linked-bearing success in the real UI: it needs an admissible person-supplied row/fit file from the owner, and none
+    is faked. Codex's no-row flow at 8789e468 passed in its own run; it is not repeated here.
+- **Branch**: `claude/gpu-lane-2026-10-23`, in this session's own worktree, which is isolated and cannot write
+  great-einstein-3ea69b. It was cut from 6bfd0ad97.
+
+## G-R3 — G23 CNC: material removal shown along the Model's program, on both renderers (from Codex's source 5c9f861f, 2026-10-23)
+
+- **What**: Codex's six CNC source files from `codex/g23-cam-preview` (source only; its brief and evidence are not
+  ported), reviewed, corrected and connected. Before this, they had never been compiled, run or wired.
+  - `camHeightfield.ts` — the stock as a height field in one setup's machine frame:
+    - inputs: the Model's `cam-package-v1` (camPackage) — its stock solid or refusal, its tool, its setups' ordered moves;
+    - from pristine stock on every request;
+    - only feeds, plunges and ramps cut;
+    - a cell is lowered only to where the tool reaches its furthest corner;
+    - refused, typed: a skew or mirrored frame, a bar across the machine Z, a grid the tool cannot cover, a buried
+      flute, and more than 250 000 samples or 25 M cell visits.
+  - Corrections in review:
+    - **The stated lateral uncertainty was wrong**: `h + s/2`, where h is the half diagonal and s the sample spacing.
+      A cell stays when its centre is more than r − h from every sample, so material can stand r − 2h from them. It is
+      now `2h + s/2`, the full diagonal. The pocket oracle below found the gap: 1391.07 mm² against a 1392.70 bound
+      built from the old value.
+    - **The hot loops had closures and allocations per element** (owner rule): `forEach` over cells, a `triangle` and an
+      `at` closure, `move.a.map` per sample. They are now plain loops with module-level helpers.
+    - **The mesh drew four walls on every cell**. Walls now go only where a cell stands above its neighbour or the
+      footprint's edge.
+    - **The worker received the whole document and bodies on every progress tick**. It now gets them only when the
+      source changes (`source` in the request); a scrub posts a few numbers.
+  - `camToolGeometry.ts`: the declared flat, ball or bull tool, revolved with 64 sectors and 12 nose rings.
+    - The shank is shown one diameter long, an estimate said; the Model's shankMM is a diameter. No holder is shown.
+    - `disk` is hoisted.
+  - `camOverlayGeometry.ts`: world-space drawings.
+    - The stock wire is where the Model put it.
+    - Paths by move kind, whole and done, the active move, the remaining stock (lit amber) and the tool (lit) are turned
+      back through the setup's inverse on the CPU. That is exact: the frame is a signed axis permutation.
+    - Identities stay while their inputs do: paths per setup, remaining stock per removal, tool per pose.
+  - Both renderers share one overlay path with print layers:
+    - `overlayDrawing.ts`: the shared type. It allows non-indexed triangles and lit surfaces.
+    - `overlayGL.ts`: the WebGL2 pass, factored out of PrintOverlayGL, plus a lit program. PrintOverlayGL keeps its API.
+    - `GpuRenderer.syncOverlay`: shared by `setPrintDisplay` and the new `setCamDisplay`.
+  - `Viewport`:
+    - `camDisplay` and `camActive`, with renderer errors shown as an alert;
+    - the stock and the part framed once per package and setup, and the camera restored on close.
+  - `CamPanel`, in the right corner next to Print layers:
+    - NOT FOR PRODUCTION first; setup, progress (to the move and a fraction), the asked grid and an optional tool;
+    - shown: removed volume (a grid estimate), grid and pitch, sample spacing, ± across, the tool and its basis, the safe
+      Z estimate, and the skipped features with why.
+  - App:
+    - session only: no document field, so Save/Open reproduce the same input from the machining stock and geometry;
+    - mutually exclusive with Print layers and assembly clearance, each saying so;
+    - refused with a reason in Render/Drawing, with placed parts, references, an edit, Section view or analyses;
+    - dev hook `__studioCam`.
+- **Tests**: `test/cnc-preview.test.ts`, 6 tests.
+  - tool profiles exact (ball and bull noses), with their refusals;
+  - every Model setup frame's inverse exact; skew, mirror and scale refused;
+  - stock and grid refusals;
+  - cutting moves only;
+  - a prefix rebuilt from pristine stock is the same, scrubbing back included;
+  - buried and work-cap refusals;
+  - the slot oracle: (20·6 + π·9)·4, less at most the stated band;
+  - the overlay identities and the tool tip's world position.
+  - **The CNC8 pocket oracle**, the Model's own 50 × 30 × 8 pocket from cad-model's test: the field's cut area is at
+    most 1500 mm² and at least 1500 − 4(1 − π/4)·9 − 160·(stated uncertainty).
+- **Checks** (T1):
+  - cnc-preview 6/6;
+  - Codex's studio-code tests in packages/barocss-gpu/tests, one file each: print overlay 6, hook 5, worker 3,
+    projection 6, settings 4; clearance overlay-gl 5, gpu 5, clip 5; display contract 9, gpu display contract 13;
+    instance bridge 7; silhouette 5.
+  - The print overlay check reads `pass.draws`; PrintOverlayGL exposes it from the shared pass.
+  - studio type-check 0 errors; eslint on App, viewport/ and the test 0 problems;
+  - studio `build`: the CNC worker bundles (1.78 MB, like the print worker).
+- **Not run / not built**:
+  - the two-renderer flow: a stock-bearing pocket document shown, 0/middle/end compared, setup switched including −Z,
+    an unsupported stock refused, picks and camera kept, Save/New/Open. It needs a slot.
+  - overcut colouring (where the swept tool enters the part, README §G23). It needs the part's mesh against the field
+    and comes next.
+  - the hook's and worker's lifecycle in a browser.
+
+## G-R4 — G23 CNC: overcut shown red, and a Model program defect it found (2026-10-23)
+
+- **What**: where the swept tool enters the part (README §G23: uncut and overcut coloured). Uncut is the amber stock
+  left.
+  - **The part's top.** The height field rasters the part's display meshes (world → machine frame) into its grid: each
+    triangle is written at the cell centres its plan covers, and the highest surface per column is kept. A wall seen
+    edge-on covers no centre.
+  - **What counts as overcut.** A cell cut more than 0.01 mm under that top (`CAM_OVERCUT_TOLERANCE_MM`; the part mesh's
+    own error is not known here). It is counted (`overcutCells`, `overcutMM3`) and its top drawn red, apart from the
+    amber stock.
+  - **Conservative both ways.** The field removes no more than the tool sweeps, so a correct program shows no false
+    overcut at walls.
+  - **Where it shows.** The panel says the overcut, or that there is none, to the field's resolution. The worker passes
+    the current bodies' meshes.
+- **The defect it found** (the outer lane's file, reported to the coordinator, not changed here):
+  - On CNC8's pocket, camPackage's feeds run at x 73–117, y 53–77 instead of the pocket's 38–82, 28–52.
+  - `pocketMoves`' `at()` adds the plane origin to loop points that `cam.ts` already gives as projections
+    (`[p·X, p·Y]`). The tool then mills the plate's top: 3142 cells and 10 618 mm³ into the part.
+  - The fix is `q0·X + q1·Y + ((o·n) + floor − depth)·n`.
+  - cad-model's test compares the swept area to the feeds' own bounds, so it cannot see an offset.
+  - The CNC8 "no overcut" check joins `cnc-preview.test.ts` once the fix lands.
+- **Tests**: one more in `cnc-preview.test.ts` (7):
+  - a slot through a part filling the stock is overcut by exactly what it removes;
+  - a part whose top is the slot's floor is not overcut (within the tolerance);
+  - a part beside the slot's end is overcut in part.
+- **Checks** (T1): cnc-preview 7/7; studio type-check 0; eslint (viewport/ and the test) 0.
+- **Not run**: the two-renderer flow (slot).
+
+## G-R5 — G23 CNC: the CNC8 pocket cut through its own part, end to end (roadmap G2, 2026-10-23)
+
+- **What**: the check G-R4 held back, now that the outer lane's O157 (fcdc7e3bf, integration 402f4f6fd) puts the
+  pocket's feeds where the pocket is.
+- **The test** (`cnc-preview.test.ts`, 8 tests): the Model's own CNC8 pocket.
+  - `camPackage` builds the program from the plate's document and its machining stock.
+  - The height field is cut at 0.5 mm, end to end, with the part's own display meshes.
+  - It removes material and has no overcut cell (and no red drawing).
+  - The lowest top left is the pocket's floor, z 12, to 1e-6.
+  - Before O157, the same check counted 3142 cells and 10 618 mm³ into the part.
+- **Checks** (T1): cnc-preview 8/8; studio type-check 0; eslint on the test 0.
+- **Not run**: the two-renderer flow (slot).
+
+## G-R6 — the previews take the made bodies only (O160 F1 in print layers and CNC; roadmap G4, 2026-10-23)
+
+- **What**: the outer lane's O160 (`madeBodies`, e46106870) in the GPU lane's two manufacturing previews.
+  - The Print workspace passed every shown body's mesh to `printLayers`, so a bought O-ring was sliced with its cover.
+    Now `printSourceMeshes(doc, bodies)` (viewport/printSettings.ts) feeds it: the made bodies, less those hidden.
+    The A9 cover should show 40 layers, no supports and 8 mm high. That number is the outer lane's (a9-acceptance); this
+    lane's flow step will read it, not hard-code it.
+  - The CNC preview's overcut judged every body as the part. Now `camPartMeshes(doc, bodies)` passes only the made
+    bodies, so a bought bearing's or O-ring's volume is not counted as gouged. `camPackage` already plans from the made
+    bodies since O160.
+- **Tests**: `test/made-bodies-previews.test.ts` (2).
+  - An O-ring and a bearing are left out of both previews.
+  - With the person's `bought: false` override, the O-ring is in both.
+  - A body with no node reference is the part's own.
+  - A hidden made body is not printed.
+- **Checks** (T1):
+  - made-bodies-previews 2 and cnc-preview 8 (10/10);
+  - Codex's print settings 4, hook 5 and worker 3 (packages/barocss-gpu/tests);
+  - studio type-check 0; eslint on the changed files 0.
+- **Not run**: the print flow step on both renderers (slot).
+
+## G-R7 — G21 rest, a static pass: WebGPU silhouettes without a per-frame closure (roadmap G3, 2026-10-23)
+
+- **What**: a read of both renderers' display-mode, silhouette and isolate/hide paths for what G21 still lacks without a
+  browser. Most of it is in place:
+  - both renderers draw every mode;
+  - curved-face silhouettes for bodies and instances, hidden bodies skipped, isolated instances faded to 0.15;
+  - instance surfaces keep their depth in line-only modes.
+- **The one defect**: WebGPU's `updateSilhouettes` defined an `update` closure on every frame, the owner's no-nested-
+  functions rule for per-frame paths. It is now a method, `updateSilhouette`, with the same arguments and behaviour:
+  - bodies are shown unless hidden; instances always;
+  - a recompute when the mesh, the eye or the placement moved;
+  - a restyle when the mode, opacity, theme or clip did.
+- **Looked at and left**: WebGL2's silhouette cache is per GpuBody. Each placed instance uploads its own GpuBody (only
+  the geometry is shared), so instances sharing a tessellation do not thrash it. No change.
+- **Checks** (T1): Codex's studio-code checks, one file each:
+  - silhouette 5 and display contracts 9 + 13;
+  - instance bridge 7, print overlay 6, clearance gpu 4;
+  - studio type-check 0; eslint 0.
+- **Left for the browser slot**: G3's acceptance. Each mode, isolate and hide on both renderers, with picks unchanged.
+
+## G-R8 — the drawing's sheet pipeline as a hook, no behaviour change (G24 step 1; roadmap G5, 2026-10-23)
+
+- **What**: the coordinator's decision. The GPU lane extracts the pipeline, since the outer lane is on A9's acceptance
+  path. DrawingWorkspace.tsx is the outer lane's file, borrowed for this commit; the coordinator asked them to leave it
+  until this lands.
+  - **What moved.** DrawingWorkspace's sheet pipeline went to `src/ui/useDrawingSheet.ts`, next to it:
+    - the scope and its document, and the bodies read;
+    - the views projected with their sections, and the layout;
+    - elements, callouts, fits, the followed-stale notes and threads;
+    - the BOM read, the sourced tables, the weld joints, and the sheet.
+  - **Its signature.** `useDrawingSheet(active, { engine, doc, bodies, settings, fileName, annotations? })` returns
+    those values, plus `annotations` (model-annotations-v1) when asked.
+    - With `active` false, no engine call is made and nothing is built.
+    - DrawingWorkspace calls it with `active` true. `today()` moved with it.
+  - **Proof of no change.** The moved code was diffed against HEAD's DrawingWorkspace. The only differences are the
+    three `active` guards (bodies read, projection, BOM read) and `active` in their dependencies, and DrawingWorkspace
+    passes true. React's hook order is the same on every render. Unused imports were removed.
+- **Checks** (T1):
+  - studio type-check 0; eslint on both files 0;
+  - chat.test (the studio test that reads drawing outputs) 18/18;
+  - studio build ok.
+- **Not run**: the drawing flow steps. Their exports' bytes on the existing fixtures are the check the coordinator
+  asked for, and need the browser slot. The code that builds the sheet and the exports is the same code, moved.
+
+## G-R9 — G24: the drawing's annotations on the model, picked to their targets (roadmap G5, 2026-10-23)
+
+- **What**: G24 on `useDrawingSheet` (G-R8) and the outer lane's model-annotations-v1, as the coordinator approved:
+  planar text, the edge-on fallback, and picking by persistent names.
+  - **The toggle.** "3D annotations" in the right corner, session only. Nothing new is stored: the annotations come from
+    the document's own drawing settings, so Save/Open gives them back.
+    - App builds the drawing's sheet only while it is on, with the Drawing workspace's own inputs (`useDrawingSheet` with
+      `active`).
+    - It is refused with a reason in Render/Drawing, during an edit, and with the print or CNC preview.
+    - When the hook is inactive, it no longer canonicalises the document each render. The Drawing workspace always
+      passes `active`, so it is unchanged.
+  - **The drawings.** `viewport/pmiGeometry.ts` holds `pmiDrawings`.
+    - The data's lines and arcs (chords of π/24) become one line drawing. Its heads become triangles (filled, a 12-sided
+      dot) or strokes (open, tick). The selected annotation is apart, in the accent colour.
+    - Both renderers draw them through the shared overlay path: `setAnnotationDrawings`, over OverlayGL and syncOverlay.
+  - **The texts.** `pmiLabels`, on WebGPU's labels: in each text's plane, at its height in mm, along its direction and
+    up.
+    - Seen within 10° of edge-on, a text faces the eye at 12 px. It is rebuilt only when that set changes
+      (`pmiFacingKey`).
+    - WebGL2 (no engine labels) draws the texts facing the eye in the SVG overlay.
+  - **The pick.** `pmiPick` finds the annotation nearest the pointer, within 8 px of its texts' spans or its lines on
+    screen. It takes the click before the model under it.
+    - App's `pickAnnotation` selects its targets' edges and faces by their persistent names on the evaluated bodies
+      (`pmiSelection`).
+    - The panel shows the count, how many are only on the sheet, and the picked one's text.
+    - Dev hook `__studioPmi`.
+- **Tests**: `test/pmi.test.ts` (3), on the outer lane's fixture (r14 tol-plate-geometric, auto-dimensioned, tolerances
+  accepted, a fit on the hole):
+  - every segment and head of the data is drawn once, the first line exactly; the selected one apart in the accent
+    colour;
+  - labels are planar at their height and direction, face the eye edge-on, and the facing key changes only then;
+  - a click on a text picks its annotation and a miss none; the targets are selected by their names on the evaluated
+    bodies.
+- **Checks** (T1):
+  - pmi 3/3; cnc-preview, made-bodies-previews and chat 28/28;
+  - Codex's print/display/silhouette/clearance/instance checks 44/44;
+  - studio type-check 0; eslint 0; build ok.
+- **Not run**: the flow on both renderers (shown, picked, the same after Save/New/Open), and instance-prefixed targets'
+  selection on placed parts. Both wait for the browser slot.
+
+## G-R10 — G25 step 1: the triangle hierarchy packed for WGSL, with a CPU mirror (roadmap G6, 2026-10-23)
+
+- **Approved S0** (coordinator):
+  - (a) `compute/` in @barocss/gpu, exported as **experimental**: `computeExperimental` from the package. It may change
+    without a version bump, and has no docs page yet.
+  - (b) **G25c, the scan-to-CAD deviation, is deferred** until a scan input is decided. The robot workspace cloud is not
+    a scan.
+  - (c) G25a thickness, then G25b access, each its own checkpoint. The CPU values stay authoritative in the panels; the
+    GPU map is labelled "GPU estimate".
+- **What** (`packages/barocss-gpu/src/compute/bvhPack.ts`): `packBvh` packs the kernel's `triangleBvh` (K2) into two
+  storage buffers.
+  - **Nodes**, 8 words each:
+    - the box low and high as f32, rounded outward from f64 (`f32Down`, `f32Up`);
+    - a link: an inner node's first child, or −1 − start for a leaf;
+    - a leaf's count.
+  - **Triangles**, 12 words each: in leaf order, f32 vertices, and the source triangle's index for `skip`.
+  - **Depth refusal**: a hierarchy deeper than the WGSL traversal's fixed 64-entry stack is refused (`[GPU_BVH_DEPTH]`).
+    A DFS that pushes both children holds at most depth + 1 entries; the median split keeps the depth near
+    log2(triangles / 4).
+  - **The CPU mirror**: `packedRayHit` and `packedNearestDistance2` run the kernel's algorithms (slab test, Möller–Trumbore,
+    Ericson's regions, nearer child first) on the packed words, as the shaders will. No allocation per query, and no
+    per-element closure.
+- **Tests** (`tests/compute-bvh-pack.test.mjs`, 5, in gpu `test`). Meshes: a box off the origin, a sphere of 2400
+  triangles, and a sphere of 10 000 triangles at r 0.9.
+  - The outward rounding is exact.
+  - Every triangle appears once in leaf order with its source index, each f32 vertex inside its leaf's f32 box.
+  - The mirror's ray hit equals the kernel's within 1e-5 of the mesh's size: 400 rays a mesh, hits and misses, plus an
+    inward ray skipping its own triangle.
+  - The nearest distance does too, bounded queries included.
+  - A 69-deep chain is refused.
+- **Checks** (T1): gpu `test` 184/184; gpu type-check 0; eslint (compute, index) 0; `build:library` ok.
+- **Next**: G25a, the WGSL kernels (thickness) and their browser spec against the CPU map. The spec waits for the slot.
+
+## G-R11 — G25a: wall thickness as a WGSL compute pass, with its CPU mirror (roadmap G6, 2026-10-23)
+
+- **What** (`packages/barocss-gpu/src/compute/thickness.ts`, experimental): the studio's IM4 rule, one to one.
+  - `wallRays` gives each display triangle's centre and its normal reversed. A degenerate triangle gets a zero direction,
+    meaning no ray: WGSL may optimise a NaN test away, so none is used.
+  - `WALL_THICKNESS_WGSL` runs one invocation per triangle:
+    - the depth is the nearest hit inward, skipping the triangle itself;
+    - the local thickness is twice the nearest-surface distance from the ray's midpoint, bounded by half the depth;
+    - both traversals use a fixed 64-entry stack, the same slab test, Möller–Trumbore and Ericson's regions as the kernel.
+  - `gpuWallThickness(device, packed, rays)`:
+    - one pass and two read-backs;
+    - its buffers are released after;
+    - the pipeline is compiled once per device;
+    - the WebGPU types are structural, as the viewer's are.
+  - `cpuWallThickness` is its mirror on the same packed words.
+- **Tests**:
+  - `tests/compute-thickness.test.mjs` (3, in gpu `test`):
+    - a 40 × 30 × 8 box's top and bottom triangles read 8 deep and 8 thick;
+    - a Ø60/Ø50 tube 40 high with 96 sides reads 5 across its wall;
+    - every triangle equals the kernel's rayHit + nearestDistance2 composed the same way (1e-5 of the size);
+    - a degenerate triangle reads Infinity.
+  - `tests/compute-thickness-browser.test.mjs` (in gpu `test:browser`): the GPU pass against the CPU mirror per
+    triangle, within 1e-4 of the size, with hits and misses the same. Cases: the box and a 20 000-triangle sphere shell
+    (R 30, r 25). GPU and CPU times are printed with the load.
+- **Checks** (T1): gpu `test` 187/187; type-check 0; eslint 0; `build:library` ok; the browser spec passes `node --check`.
+- **Not run**: the browser spec, which needs the slot; so the WGSL has not yet been compiled by a device. Also next:
+  the studio's thickness map on WebGPU ("GPU estimate", with the CPU's numbers in the panel), checked against
+  `thicknessMap` on the CNC8 plate (its 8 mm floor), the r14 plate and a curved part.
+
+## G-R12 — G25b: tool access as a WGSL compute pass; both analyses checked against the studio's CPU maps (roadmap G6, 2026-10-23)
+
+- **What** (`packages/barocss-gpu/src/compute/`, experimental):
+  - **`access.ts`**, CNC4's rule one to one:
+    - `accessSampleSet` lays out the samples on the CPU, as accessOf does: n² parts a triangle (n from its longest edge
+      over the step, at most 48), each part's centre 0.01 mm off the face, and the 6-bit set of directions on the face's
+      side;
+    - `ACCESS_WGSL` runs one invocation a sample: its six axis rays (minT 1e-6, no skip) give a mask of the directions
+      that leave the part;
+    - `accessByTriangle` folds the masks back per triangle into the unreached share and the OR mask;
+    - `cpuAccessMasks` is the pass's mirror.
+  - **Shared pieces.** `bvhWgsl.ts` holds the hierarchy's structs, bindings 0–1, `rayHit` and `nearest2`, now shared by
+    both passes. `dispatch.ts`'s `runCompute` handles inputs, outputs, a 16-byte uniform, workgroups of 64 and read-back,
+    with every buffer released and one pipeline a device and shader.
+  - The thickness pass now uses both, with unchanged WGSL.
+- **Tests**:
+  - `tests/compute-access.test.mjs` (2, in gpu `test`):
+    - a box: every face reached by its own direction, and the samples' areas sum to each triangle's;
+    - a box with a sealed cavity: the cavity's faces at share 1, the outside at 0, and every mask equal to the kernel's
+      rayHit along the same directions.
+  - **`apps/cad-studio/test/gpu-analyses.test.ts` (2), the acceptance's CPU half**, on the CNC8 pocket plate and the r14
+    geometric plate:
+    - cad-model's own `accessSamples` (share and mask per triangle) equals the experimental samples folded back:
+      shares within 1e-5, masks all equal;
+    - cad-model's `wallSamples` (depth and local) equals the thickness mirror within 1e-4 of the size, hits and misses
+      the same.
+    - So the GPU passes, once they match their mirrors in the browser, compute what the panels compute.
+  - `tests/compute-access-browser.test.mjs` (in gpu `test:browser`): GPU masks against the mirror, on a sealed-cavity box
+    and a 20 000-triangle shell. At most 1 sample in 10 000 may differ, a ray grazing within f32; shares within 1e-3.
+    Times are printed with the load.
+- **Checks** (T1): gpu `test` 189/189; gpu type-check 0; eslint (src) 0; gpu-analyses 2/2; studio type-check 0.
+- **Not run**:
+  - both browser specs (slot);
+  - the studio map wiring on WebGPU ("GPU estimate"), which follows the specs;
+  - the acceptance cases still to add in the browser: a box (its wall), the CNC8 plate (its 8 mm floor), the r14
+    plate and a curved part, with timings at the stated load.
+
+## G-R13 — the bottom-right controls no longer cover the history bar or the panels (a regression fix; flow on WebGPU, 2026-10-23)
+
+- **The regression** (the coordinator's full flow at a177c4929: 16 steps timed out on clicks): the Views row (the
+  corner-right row) had grown well past the ≈600 px the history bar's position assumes.
+  - G-R3 and G-R9's CNC and 3D-annotation toggles, beside Print layers and Assembly clearance.
+  - Codex's G21 display-mode select and "Isolate selection" in the Views card.
+  - So it lay over the history bar's steps. Codex's display-mode notice (`cad-display-status`, absolute above the row)
+    lay over the property panel's lower buttons, such as Sew into a body.
+- **The fix**:
+  - The Views row has one **Display** button (`aria-label="Display and previews"`, `aria-expanded`). It is lit while any
+    preview is on, isolate is in use or the mode is not the default.
+  - It opens a popover above the row holding:
+    - a Display card: the CAD display mode select and Isolate selection, unchanged, with the same labels;
+    - the display-mode notice, inside that card;
+    - the four preview toggles.
+    - The previews' state stays in App, so closing the popover does not stop a preview.
+  - The maps' legends, the popover and the section bar now stack in one column above the row (`.corner-stack`). Before,
+    each sat at its own absolute offset and they could overlap.
+  - The history bar and timeline CSS is untouched.
+- **Flow test changes**:
+  - The G23 CNC step opens the popover first and closes it after.
+  - K2's refusal is read from the toast's textContent: the kernel's reason sits in its closed Details, which innerText
+    skips.
+  - K2's blank-canvas check compares the shown tee with the empty viewport by the share of pixels that change (more than
+    0.5 %). A colour count could not tell them apart: 60 against 60.
+- **Flow** (WebGPU, DPR 1, 1440 × 900), the failing steps with their prerequisites, three runs (load 1m 13–35):
+  - all of 2–6, 20–25, 35–40, 48–60, 61–77, 98–104 and 193–197 pass;
+  - all of 246 and 247 (narrow widths), 261–267 (G19.3–G20.2, K2, G23 CNC) and 267 (palette) pass.
+  - In one run, step 65 (Hole then Fillet) was refused by the kernel when run without 61–64. The camera they leave
+    moves the dragged hole; with them it passes, as in the full flow.
+- **Steps not mine** (the coordinator's list): 147, 245 and 248 (the outer lane's rows rule (b) in the scripted chat),
+  and 144 (a timing flake).
+
+## G-R14 — K2's viewport side on both renderers, and the L-gap black canvas not reproduced (roadmap K2 / G4, 2026-10-23)
+
+- **K2 notches** (`K2 FRk5 notches`, the kernel lane's D182 cases) **and G23 CNC** (`G23 CNC`) **pass on WebGL2**
+  too (load 1m 14–19). With G-R13's WebGPU runs, both now pass on both renderers.
+- **The L-gap reproduction** (new check `K2 FRk5 L gap`).
+  - D175 recorded that the L gap frame's first WebGPU canvas was black with real worker geometry, and WebGL2 fine.
+  - The check opens a mitred L of 40 × 40 × 3 tubes with a 2 mm joint gap, as the studio's frame node, after a New part.
+    It requires:
+    - two bodies;
+    - the first frame after they arrive not black (under 0.5 % near-black pixels) and changed from the empty view;
+    - the same after Iso;
+    - the same volumes (1e-9) after Save, New and Open.
+  - Results:
+
+    | Renderer | First frame changed | Black | Result |
+    |---|---|---|---|
+    | WebGPU | 8.61 % | 0.00 % | passes |
+    | WebGL2 | 11.03 % | 0.00 % | passes |
+
+  - **Not reproduced at integration.** Codex's black canvas came from its own environment at 1f041 (before the
+    G19–G21 viewer work in integration); its raw files are gone.
+  - The check stays in the flow as a guard. If it comes back, the step's message gives the shares.
+
+## G-R15 — G3's acceptance: every display mode on both renderers, picks unchanged, isolate and restore (roadmap G3, 2026-10-23)
+
+- **The check** (new flow step `G3 display modes`): a 64 × 32 × 8 plate and two placed Ø8 × 20 pins (curved faces,
+  silhouettes).
+  - Each of the five CAD display modes is chosen from the Display popover: shaded with edges, hidden lines removed,
+    hidden lines dashed, wireframe, x-ray. For each, the step requires:
+    - the mode effective (the select's `data-display-mode-effective`);
+    - the canvas drawn (over 0.5 % of pixels changed from the empty view);
+    - a click on the plate's top, away from the feature's handle, selecting the same face in every mode.
+  - Isolate: with a pin selected, Isolate selection fades the rest (over 0.5 % changed); Restore view brings back the
+    selected view (under 0.2 % changed).
+- **Results** (load 1m 16–31, DPR 1, 1440 × 900):
+
+  | Renderer | Modes drawn | Pick | Isolate fades, restore returns |
+  |---|---|---|---|
+  | WebGPU | 5/5 | `{body 0, face 5}` in all five | yes |
+  | WebGL2 | 5/5 | `{body 0, face 5}` in all five | yes |
+
+  The snapshots were inspected: dashed hidden edges, silhouettes on the pins, isolate fading the plate and the other pin.
+- **Not covered**: hiding a body in every mode (the outliner's eye), and section plus mode combinations. G19's steps cover
+  sections in the default mode.
+- **Getting the step right**: a click at the canvas centre hit the extrude's handle and opened its edit, which disables
+  the display modes. The step now frames with the Frame-all button (a key could start a command) and clicks away from
+  the handle.
+
+## G-R16 — G24's acceptance on both renderers: shown, picked to its targets, the same after Save, New and Open (roadmap G5, 2026-10-23)
+
+- **The check** (new flow step `G24 3D annotations`): the outer lane's r14 tol-plate-geometric case, its document with
+  its own drawing (6 dimensions, A3), opened in the studio and seen from Front.
+  - "3D annotations" is turned on from the Display popover.
+  - The annotations must arrive and be drawn: the canvas changes, and the texts are drawn (WebGPU's `pmi:text` labels;
+    WebGL2's SVG texts).
+  - A click at the first annotation's text anchor, projected by `__studioScreenOf`, must pick it and select its
+    targets.
+  - After Save, New and Open, the same ids and texts.
+- **Results** (load 1m 17–20, DPR 1, 1440 × 900):
+
+  | Renderer | Annotations | Canvas changed | Pick | After Save/New/Open |
+  |---|---|---|---|---|
+  | WebGPU | 6 dimensions, 0 sheet-only | 0.88 % | selects its edge (the 64 mm line along X) | same |
+  | WebGL2 | 6 dimensions, 0 sheet-only | 1.14 % | selects its edge | same |
+
+  The snapshots were inspected: the 64 and 32 dimensions, extension lines and heads in their planes, and Ø8 THRU.
+- **Not covered**: datums and frames in 3D on screen. They are in pmi.test (unit); this case's drawing has no frame
+  placed. Instance-prefixed targets are not covered either.
+
+## G-R17 — G25's compute passes run on a device: both match their CPU mirrors (roadmap G6, 2026-10-23)
+
+- **First runs on WebGPU** (Chrome, Node 22, load 1m 19–25), one spec file at a time:
+  - `compute-access-browser`:
+
+    | Case | Samples | Masks that differ | Worst share | CPU | GPU |
+    |---|---|---|---|---|---|
+    | a sealed-cavity box | 27 924 | 0 | 0 | 19 ms | 1.3 ms |
+    | a 20 000-triangle sphere shell | 331 900 | 0 | 0 | 590 ms | 7.7 ms |
+
+  - `compute-thickness-browser`:
+
+    | Case | Worst \|Δ\| | Hits and misses | Outliers | CPU | GPU |
+    |---|---|---|---|---|---|
+    | the box | 3.8e-6 mm | the same | 0 | 0.4 ms | 0.9 ms |
+    | the 20 000-triangle shell | 8.6e-6 mm | the same | 2 | 87 ms | 7.2 ms |
+
+    - The 2 outliers are polar rays aimed at the inner sphere's pole vertex. The f64 mirror (as the kernel's own f64
+      rayHit would) slips between triangles there and reads the far side, 54.97. The f32 GPU hits the inner shell,
+      4.9975: the true wall.
+    - The spec counts such through-a-vertex cases and allows at most 1 in 1000; the rest are compared within 1e-4 of
+      the size.
+- **Fixes the device runs found**:
+  - The WGSL "no hit" literal 3.4028235e38 is above f32's largest, so the shader did not compile. It is now 1e38,
+    read back as Infinity at ≥ 9e37: f32 stores 1e38 as 9.99999968e37.
+  - The specs' server now answers /favicon.ico (204). A 404 was a console error.
+- **A Codex contract updated** (`cad-instance-display-diagnostics`, "one … toggle"): it read App.tsx between
+  `aria-label="Views"` and the notice. Isolate now lives in G-R13's Display card, so the check reads that card and also
+  requires no Isolate toggle left in the Views row. Its intent is unchanged: one toggle, enabled to restore, session
+  only.
+- **Checks**: gpu `test` 189/189; type-check 0; eslint 0; studio gpu-analyses, pmi and cnc-preview 13/13.
+- **`test:browser` as a whole**: it hung in `uv-repeating-browser` (G18.2, the docs' shaders) for over an hour, and only
+  this lane's processes were stopped. That spec is to be run alone with a timeout to find why. The other browser specs
+  (viewer, scene viewer, pose-clip) were not reached in that run.
+
+## G-R18 — the viewer no longer hangs at start without antialiasing; the access map on the GPU (roadmap G6/G7, 2026-10-23)
+
+- **The hang** (gpu `test:browser` stuck for over an hour; viewer-pose-clip's G2 and G19 timing out):
+  - It came with Codex's 22e129e36 (per-sample caps). Without antialiasing, the caps reuse the surface and pick shader
+    modules, and `createPipelines` called `getCompilationInfo()` on every entry, so twice on each of those two modules.
+    In Chrome a second call on one module never settles.
+  - So `createViewer({ antialias: false })` never returned. A cold probe confirmed it: antialias true started in 835
+    ms; antialias false had not started after 170 s, with no pipeline pending, waiting on the sixth compilation check.
+  - **Fix**: each module is checked once. A cold antialias-false viewer now starts in about 2 s.
+  - Every spec that makes an unantialiased viewer was affected. A test timeout left its browser open, so the process
+    never exited.
+- **gpu `test:browser`, one file each** (load 1m 10–14):
+
+  | Spec | Result |
+  |---|---|
+  | viewer | 1/1 |
+  | scene-viewer | 1/1 |
+  | uv-repeating | 1/1 (2.6 s; it had hung) |
+  | compute-thickness | 1/1 |
+  | compute-access | 1/1 |
+  | viewer-pose-clip | 17/18 |
+
+  - The one left is #6, "G20.2 no cap leaks over a front face's far edges". It finds 77 cap pixels where the CPU's ray
+    meets no cap; 10 are allowed for pixel-edge rounding. It is a real cap defect (G7's area), and is investigated
+    next. It could not run before this fix.
+- **G25b's access map on the GPU** (approved):
+  - Viewer `computeDevice` (a getter) passes through `GpuRenderer.computeDevice` and the Viewport handle to
+    `useGpuAccessMaps`.
+  - On WebGPU the access map is the compute pass's, the legend titled "Not reached by a 3-axis mill · GPU estimate".
+    With no device (WebGL2, or not ready) it is the CPU's, as before.
+  - `accessOf` stays the panels' number.
+  - `accessMapOf` and `accessStep` in scalarMaps share the map and the step with the CPU path.
+  - gpu-analyses checks the GPU map's step and length against cad-model's accessSamples.
+- **Thickness stays on the CPU** (the coordinator's decision): thicknessMap's legend range comes from `wallsOf`, which
+  runs the CPU rays itself. Seeding the samples from the GPU would make the panels' numbers the GPU's. The GPU
+  thickness pass stays built and tested for when the range can come from elsewhere.
+- **Checks**: gpu `test` 189/189; type-check 0 (gpu, studio); eslint 0; studio gpu-analyses and analysis-maps 8/8.
+
+## G-R19 — G20.2's cap-leak check made right for antialiased caps; viewer-pose-clip 18/18 (roadmap G7, 2026-10-23)
+
+- **The failure** (viewer-pose-clip #6, which could first run after G-R18): 77 cap pixels where the CPU's centre ray
+  meets no cap, against 10 allowed.
+- **What it was**: a probe on the test's own scene (a cut-out 40 × 20 × 10 plate with a shadow catcher), each cap pixel
+  classed by its colour and its neighbours:
+  - with antialiasing (Codex's per-sample caps), the 64 such pixels were all beside a CPU cap pixel, and none was the
+    pure cap colour. They are partly covered edge pixels: the cap on some of their samples. That is G7's antialiased
+    cap edge, not a leak.
+  - without antialiasing, 3, within the allowance.
+  - The leak G20.2 guarded against (660 pixels before its fix) covers whole pixels.
+- **The check now**:
+  - A leak is a pixel of the pure cap colour (every sample cap) where the CPU's ray meets no cap: 10 allowed, as before.
+  - Partly covered cap pixels must exist, so the cap edge is antialiased.
+  - Result: 11 050 cap pixels, 0 leaks, 77 partly covered (load 1m 11).
+- **viewer-pose-clip 18/18.** With G-R18, every gpu browser spec passes, one file each: viewer, scene-viewer,
+  pose-clip, uv-repeating, compute-thickness, compute-access.
+- **G7 so far**: antialiased cap edges are shown (the fringe), with no leaks and the caps' picks unchanged (pose-clip's
+  G2, G19 and G20 pick checks pass). Still open from its S0:
+  - AA on against off on a box at 0°, 30° and 45° and a cylinder (the interior unchanged, coverage at the edge);
+  - capFrontSamples' memory and the frame time.
+
+## G-R20 — G7 closed: antialiased caps against unantialiased, their cost; pose-clip #6 tightened (roadmap G7, 2026-10-23)
+
+- **pose-clip #6 tightened** (the coordinator's rule, so the G-R19 rule can't hide a real leak):
+  - A partly covered cap-coloured pixel counts as an edge pixel only when it is 8-adjacent to a CPU cap pixel.
+  - Any other cap-coloured pixel where the CPU's ray meets no cap is a leak, pure or not: 10 allowed, as before.
+  - Result: 11 050 cap pixels, 0 leaks, 77 edge pixels, all beside a CPU cap pixel (load 1m 14). viewer-pose-clip 18/18.
+- **viewer-cap-aa-browser** (new, in `test:browser`), WebGPU only. The scene:
+  - one viewer each with antialiasing on and off; 480 × 360 at pixel ratio 1; orthographic, seen along +Y; cut by y = 0;
+  - an unlit #404040 body with a #ff00ff cap on black;
+  - a box 8 × 8 × 8 turned 0°, 30° and 45° about Y (the cap a turned square), and a 64-sided Ø8 cylinder standing
+    along Y (the cap a disc).
+- **The interior unchanged**: pixels whose whole 3 × 3 neighbourhood is cap by the CPU's ray, AA on against off.
+  Worst |Δ| 0/255 in every case (10 000, 9 748, 9 660 and 7 676 pixels).
+- **The edge covered**: edge pixels are those with cap and not cap in their 3 × 3 neighbourhood. A partly covered pixel
+  is neither the pure cap colour nor grey, but a mix of magenta and what is beside it.
+  - Box 0°: 404 of 816 (50 %), where the square's edges fall mid-pixel.
+  - Box 30°: 648 of 1 104 (59 %).
+  - Box 45°: 564 of 1 136 (50 %).
+  - Cylinder: 436 of 816 (53 %).
+  - The spec requires ≥ 30 % on the turned boxes and the cylinder.
+- **An uncut frame unchanged**: the same scene uncut with the cap path on (`cap: true`) against off. 0 bytes differ in
+  every case.
+- **Cost**:
+  - capFrontSamples is rgba16float at 4 samples, 8 bytes a sample. That is W·H·32 bytes: 5.27 MiB at 480 × 360,
+    63.3 MiB at 1920 × 1080.
+  - It is allocated only when a capped frame is drawn with antialiasing (`ensureCapSamples`).
+  - Frame time, with capture and read-back (20 captures each, load 1m 10): 1.9–2.2 ms cut with AA, 1.8–2.1 ms cut
+    without, 1.4–1.6 ms uncut.
+- **Not covered**: WebGL2. Its caps aren't drawn per sample, so there is no AA path there to compare.
+- **G7 done.** With it, the roadmap list given to the GPU lane (G1–G7, K2) is done.
+
+## G-R21 — G8 performance regression check: three causes fixed, two App findings (roadmap G8, 2026-10-23)
+
+- **What ran**: `bench:browser`, `bench:assembly` and `bench-mesh-browser`, alone, against the budgets G13 set (two
+  times G4's, re-measured).
+  - First run at load 1m 10–12, on integration 3e573ec71:
+    - over budget: pose (138 buffers, budget 4); explode (6 758 buffers); section on the GPU (70.7 KiB uploaded a frame,
+      budget 5; 12 ms of GPU, budget 6); pick (126 ms of task, budget 90); hover over 120 brackets (0 frames); both
+      ghosted orbits (125 submits, budget 64);
+    - bench:assembly: 258 buffers, budget 60;
+    - the meshes: within every budget.
+- **Tracing**: `BENCH_TRACE=1` (new, opt-in) prints under each row:
+  - the buffers made and the bytes written, by label and caller;
+  - the meshes dirty at each frame's object write, and who touched them;
+  - a CPU profile's self time and stacks.
+- **Cause 1, curved-face silhouettes on the CPU** (Codex's G3 display modes, 99da385a1). `updateSilhouette` recomputed
+  each surface's contour whenever the eye or its transform moved, into a new line geometry and buffer. That was every
+  frame for every moved body in pose and explode, and for every curved body in an orbit.
+  - **Fix: the contour on the GPU.** `GeometryInput.contour` (gpu): line geometry made from triangles with normals.
+    - Each triangle is one instance (72 bytes).
+    - The line shader's `vsContour` finds the segment silhouetteLines finds: the facing at the vertices, linear across
+      the triangle, at zero. Zero vertices and degenerate triangles are handled the same way.
+    - It is drawn by the line pipelines' contour variants (plain, see-through, over, hidden), and never picked.
+  - The studio makes one contour geometry per mesh (`contourTriangles`: the curved, unfaceted faces' non-degenerate
+    triangles). Its copies share it, and it moves with its surface's transform.
+  - silhouetteLines stays for WebGL2.
+  - **viewer-contour-browser** (new, in `test:browser`): a torus drawn with the CPU's segments and with the contour.
+    - Perspective, orthographic, and turned and moved: 819, 776 and 983 pixels each way.
+    - 0 pixels of either more than a pixel from the other.
+    - Moved 10 times: 0 buffers made.
+- **Cause 2, object blocks written from the lowest dirty slot to the highest.** Two dirty meshes far apart (the ground,
+  a late silhouette) sent every block between them again: 70 KiB a frame.
+  - Fix: each run of dirty slots written on its own; a gap of up to 4 clean blocks is kept in its run.
+- **Cause 3, silhouette lines flipping `clipped`.** applyClip set them false (they were not in its cut set) and
+  updateSilhouette set them back each frame, dirtying about 116 lines a frame in the section drag.
+  - Fix: applyClip gives each silhouette line its surface's `clipped`.
+- **Bench rules (measurement only)**:
+  - A reversed timestamp pair leaves its submit unstamped: out of the GPU average, and allowed for 5 % of the submits
+    (at least 1). Seen on Chrome/Metal: one section frame's first pass with its begin stamp unwritten (6.1e18).
+  - The hover over 120 brackets is `drawless`: the brackets are not highlighted under the pointer, so 0 frames is
+    right, and its task is what is judged.
+- **After**, the full run (load 22–35, LOADED; the outer lane's run beside it):
+  - pose: 0 buffers, 4.3 KiB a frame.
+  - explode: 0 buffers; frame callback 2.5 → 0.33 ms; task 28.6 → 24.4 ms; 116 → 90 KiB a frame.
+  - section on the GPU: 2.6 KiB a frame; GPU 5.0–5.6 ms in three runs (7.5 once at load 25; budget 6).
+  - bench:assembly: 27 buffers.
+  - Every other row within budget, except the two App findings below.
+- **Findings for the App** (not fixed here; App.tsx is shared, and the owner has asked for its refactor):
+  - **pick: a bracket clicked**: 121–151 ms of task (budget 90; 47.7 at G9). A CPU profile puts it in React's DEV
+    element creation as the whole App renders again on the selection:
+    - 63 ms in the outliner's 120 instance rows (App.tsx 2309);
+    - 20 ms in the toolbar's `toolButton` (App.tsx 1790).
+  - **ghosted orbits after a pick**: once the pattern is open and a bracket has been clicked, the App renders again on
+    every orbit step (2 s of `jsxDEV` over 60 steps), and each step draws a second frame (124 submits). Alone, or
+    without the pick, 59.
+    - What sets the App's state on a camera move is not yet found: a refactor's first question.
+- **Checks**:
+  - gpu: tsc 0, eslint 0, unit 189/189 (cad-gpu-display-contract #24's fixture has no field initialisers: the contour
+    map is made on first use).
+  - studio: tsc 0; eslint 0 errors (the bench's existing no-console warnings only).
+  - gpu browser specs, one file each (load 18–22): viewer, scene-viewer, pose-clip 18/18, uv-repeating, compute-thickness,
+    compute-access, cap-aa, contour.
+  - studio suite: 249/249.
+  - FLOW_ONLY on WebGPU, the steps that draw silhouettes or sections (load 13–16), all pass: section view (73), cylinder
+    on a side face (85), G19.2 (262), G19.4 (264), K2 notches (267) and G3 display modes (269).
+- **Next**: G9 (capFrontSamples memory), then G10 (WebGL2 full flow); then R1, the App.tsx split, which takes both App
+  findings.
+
+## G-R22 — G9: the caps' samples at 2 bytes a sample, 63.3 MiB at 4K (roadmap G9, 2026-10-23)
+
+- **Before**: capFrontSamples held each sample's probe winner as its depth's 32 bits in an rgba16float (11/11/10 bits and a
+  back flag): 8 bytes a sample, 32 a pixel. That is 28.1 → 112.5 MiB at 1440p and 253.1 MiB at 4K, allocated whenever a
+  capped frame is drawn with antialiasing.
+- **Now: r16uint, a triangle's key** (`probeKey`: the mesh's slot, its first vertex and its instance, hashed to 16 bits,
+  never 0; 0 is no cap or a front face).
+  - The probe writes its winner's key where the winner is a back face. The probe still chooses by the sample's own depth
+    (`capSampleDepth`), with the back face's lead as before.
+  - A cap draws where the key at its sample is its own triangle's: the triangle the probe found there. The probe and the
+    caps draw the same triangle at a sample (one index buffer, one rasterisation), so the key matches without a depth
+    tolerance.
+  - The slot key is object.pick.z's high half: `(slot % 65535) + 1`. The flags' bits 0–1 are unchanged.
+  - Why a triangle and not a mesh: with one key a mesh, every back face of the winning mesh on the ray would draw the cap.
+    In the order-independent pass, which writes no depth, a ghost's cap was then added again. The spec below shows 8/255
+    that way, against 0/255.
+  - Limit: two triangles on one ray share a key about 1 time in 65 535. The unit test measures under 4 in 65 535 over
+    260 000 pairs, neighbouring first vertices included. Then a sample of a cap could be drawn by the wrong triangle.
+  - r32uint is not multisampled in WebGPU; r16uint, r8uint, rg16uint and r32float are (Chrome, checked).
+- **Memory, 4 samples × 2 bytes = 8 bytes a pixel**: 1.32 MiB at 480 × 360; 15.8 MiB at 1080p; 28.1 MiB at 1440p;
+  63.3 MiB at 4K (budget 64). Still allocated only for a capped frame with antialiasing.
+- **viewer-cap-aa-browser**:
+  - G7's four cases unchanged: interior worst |Δ| 0/255; edge partly covered 404 / 648 / 564 / 436 pixels, as G-R20;
+    uncut frames byte-identical.
+  - New: at 2560 × 1440 and 3840 × 2160, 251 507 and 566 484 cap pixels. A frame with read-back takes 17.9 and 38.6 ms
+    cut, 19.3 and 36.4 ms uncut (load 13); the read-back of a 4K frame is most of that.
+  - New: one ghosted mesh of two boxes in line, the first cut: its cap's interior with antialiasing (the samples' keys)
+    against without (the pixel's probe), worst 0/255 over 3 364 pixels. With the key a mesh (tried, then put back),
+    8/255.
+- **viewer-cap-samples** (Codex's source contracts) now pin the new contract: r16uint, a uint binding, the key
+  interpolated flat in probe and caps, `capFirstSample` by key. The 11/11/10 depth-lane test is replaced by the key's
+  test.
+- **Checks**:
+  - gpu: tsc 0, eslint 0, unit 189/189.
+  - Browser specs, one file each (load 12–37): cap-aa 3/3, pose-clip 18/18 (G20.2: 11 050 caps, 0 leaks, 77 edge;
+    G19.4 ghost caps), viewer, scene-viewer, uv-repeating, contour.
+  - FLOW_ONLY on WebGPU, every step that sections, plus G3 display modes: 20 passed, 0 failed. The load started at 37
+    and reached 60 at the end, with other lanes' runs beside it.
+
+## G-R23 — G10: the full browser flow on WebGL2, the parity statement (roadmap G10, 2026-10-23)
+
+- **Full flow, WebGL2**: from a detached scratch worktree at 6db68a8ef, chat port 52691, load 1m 15–19 at start and end.
+  - 255 passed and 17 failed.
+  - 9 of the 17 were my setup: the kernel's `dist` was not built in the scratch worktree ("Cannot find module …
+    barocss-cad/dist/index.js"). Built, they pass (42, 44, 45, 46, 83, 120, 121, 142, 264, 265).
+- **Reruns** (FLOW_ONLY, each failing step with its prerequisites), at b836b7efd with both dists fully built:
+  - load 8–10: 1, FRd1 (165), 255, 258, 269, 271 and 272 pass;
+  - 144 and 166 fail on WebGL2 and on WebGPU alike (see below).
+- **Real WebGL2 gaps, and what was done**:
+  - **G6 analysis maps and the mould's view (255)**: renderer.ts has no `setScalarMaps`, `scalarAt` or `setMould`. On
+    WebGL2 the Thickness button turned on and nothing was drawn. That was silent, and it cascaded: the maps were left on,
+    so display modes were refused in 269, and 271 and 272 waited.
+    - **Stated limit** (accepted by the coordinator): on WebGL2 the "Analysis map" button is disabled, with its reason:
+      "… are drawn with WebGPU; this browser draws with WebGL2".
+    - App.tsx learns the renderer through Viewport's new `onBackend`; the legend follows the same state.
+    - Step 255 on WebGL2 checks the disabled button, its reason and that no legend is shown.
+    - **Roadmap limits line**: analysis maps (thickness, draft, 3-axis access) and the mould's parting line and halves are
+      WebGPU only; WebGL2 says so.
+  - **G10 shared copies (258)**: WebGL2 shares a copy's tessellation too (renderer.ts' `instanceShapes`). The step read
+    the WebGPU viewer's DEV hook. Now:
+    - renderer.ts has a `shareCopies` toggle (every instance made again) and `instanceGeometries()`, with the DEV hooks
+      `__studioShareCopies` and `__studioInstanceGeometries`.
+    - Step 258's WebGL2 branch uses the renderer-neutral probes. Result (`G10 oracle (webgl2)`):
+      - 24 copies on 1 geometry, 24 when each has its own;
+      - the 96 × 96 frame the same: 0 of 9 216 samples differ by more than 96, max 2;
+      - 400 picks on the copies' tops: 366 hits, 0 differ;
+      - the edited copy on its own geometry (2 in all), the other 23 kept.
+- **Not WebGL2 (the same on WebGPU at b836b7efd, load 8)**, findings for their lanes:
+  - **144 FR3b** (D126): the round-cornered table's preview now arrives after 1 293–1 435 ms, and the step requires more
+    than 2 000 ms to be "the case being measured". The kernel's trims got faster; the step's premise is stale. What it
+    measures holds: the slowest answer was 1 ms, and the longest main-thread gap 73 ms.
+  - **166 FRd2** (O119): all 16 welds are now placed on A3, and none is said unshown. The step expects 11 placed and W8
+    and W13–W16 unshown. A drawing-model change since O119 (O174–O178) places the five.
+- **Bench**: `BENCH_TRACE` also prints the callers of React's `dispatchSetState`, for R1's ghosted-orbit question.
+- **Checks**: studio tsc 0, eslint 0, unit 250/250; the flow's syntax checked. The full flow runs at the end of Phase R,
+  as the survey's rules say.
+
+## G-R24 — R1a: the viewport's per-frame render moved into its overlay; Escape clears a part's selection (roadmap R1, 2026-10-23)
+
+- **How it is measured**: `countRender(name)` (DEV only, `src/devRenders.ts`) in App, Viewport and the new
+  ViewportOverlay. `bench:browser` under `BENCH_TRACE=1` prints each row's renders, the same rows before and after.
+  Numbers below are renders per row: App / Viewport (/ overlay).
+- **Before**, at de06d57b7 (load 9):
+  - every frame rendered the whole Viewport: orbit 60 frames → 60 Viewport renders; cloud orbits 60; underlay 61;
+  - ghosted orbits: 66 App and 128–129 Viewport renders, 124 submits, task 19.6 ms a frame.
+- **The ghosted orbit's cause** (G8's open question): the bench's `dispatchSetState` callers show `place` (App.tsx) ←
+  `onTurn` ← `gizmoDrag` (Viewport).
+  - After a bracket was picked, the bench pressed Escape. Escape cleared only the faces' selection.
+  - The bracket stayed selected, with its gizmo, and the orbit drag that followed turned it.
+  - **Fix (a behaviour fix, its own commit 53e0cb4cf)**: Escape clears the placed parts' and the direct objects'
+    selections too.
+- **R1a, the per-frame render**: `request()` set a state each frame (`setTick`), so the whole Viewport rendered again:
+  its handlers, its JSON keys, the camera basis and the PMI key, ViewCube's props.
+  - Now a frame bumps a ticker. Only `FrameOverlay`, which draws the SVG overlay, ViewCube and WebGL2's PMI texts,
+    subscribes to it (`useSyncExternalStore`).
+  - Which PMI texts face the eye was computed in each render; it is now checked in the frame, before it is drawn. The
+    texts are set again only when that changes, as before.
+- **After**, at the same rows (load 23 → 12):
+  - orbit: 1 Viewport render, 60 overlay renders (60 Viewport before);
+  - the cloud and underlay orbits likewise, 1 Viewport render each;
+  - hover over the plate: 0 Viewport (11 before), 11 overlay;
+  - ghosted orbits: 1 App, 1 Viewport, 60 overlay renders; 59 submits; task 3.3 ms a frame (19.6). Both rows are now
+    within budget.
+  - Rows the App renders every frame are unchanged, and are R1's next targets:
+    - pose: 100 App renders over 51 frames (the joint's value is App state);
+    - explode: 60;
+    - section drag: 154.
+  - pick is unchanged at 129 ms: the App's selection render, R1's App split.
+- **Checks**:
+  - studio tsc 0, eslint 0.
+  - FLOW_ONLY on both renderers, the steps that draw the overlay (load 7–13), all pass: constraints and typed dimensions,
+    a box's dimension arrows, measure, a dimension handle and the Rotate gizmo, the view cube, the section plane's drag,
+    K2 L gap, G3, G24 and G23.
+  - The instance steps 50, 57, 58 and 60 need their prerequisites. With 49, 56, 57 and 59, all pass on WebGPU (load 9).
+
+## G-R25 — R1b: the viewport's stable inputs (print views, offsets, the projector) (roadmap R1, 2026-10-23)
+
+- **Print views' props**:
+  - With Print layers or the CNC preview on, the viewport's props were made again in every App render: `bodies: []`,
+    the selection, `handles: []`, `profiles: []`, and the print projection's selection and face colours.
+  - The effects keyed on them (setBodies, setState) ran again each time.
+  - Now the empty lists are module constants, and the projected selection and face colours are memoised on their inputs
+    (`printSelection`, `printFaceColors`). The same values as before.
+- **The bodies' offsets**: `viewState()` runs in each frame and hover, and it made a new Map of the transforms' offsets
+  each time. Now that Map is made once for the transforms (or offsets) it comes from.
+- **The projector**: studio `camera.ts` `project` multiplied the view-projection again on every call. It runs for every
+  edge end on a hover (vertexAt) and every overlay point in a frame.
+  - Now the matrix is kept until a camera value changes: target, distance, yaw, pitch, fovY, ortho or aspect.
+  - It is the same `viewProjection`, so the projected points are bit-identical.
+- **Renders**: the bench rows read as G-R24 (load 18 → 11). These inputs did not drive the bench rows' renders; what
+  they save is work in each render and frame.
+- **Not done here**: `memo(Viewport)`. The App hands it about 15 props made in every render (inline callbacks,
+  `boundsBox`, `measureLine`, `profiles={active ? [] : …}`, `cageEd.shown(…)`), so memo would compare and still render.
+  They are made stable with the App split (R1c).
+- **Checks**:
+  - studio tsc 0, eslint 0, unit 250/250.
+  - FLOW_ONLY on both renderers (load 9–11), passing: the overlay steps, the instance steps (56–58), AM6, AM7a, G24 and
+    G23 (Print layers inside).
+  - 49 and 50 fail when run straight after 47 (measure), at R1a's f63c349f2 too, so the cause is the FLOW_ONLY order,
+    not R1b. In the full flow, 48 comes between them, and they passed (G-R23).
+
+## G-R26 — R1c (1): the outliner's placed parts and the toolbar's buttons memoised; the camera cache's test (roadmap R1, 2026-10-23)
+
+- **What**:
+  - `ui/OutlinerInstances.tsx`: the list of placed parts, and each row, as memoised components. Each row gets its
+    selected flag, its bearings when it alone is selected, the bearing being edited, and whether editing is locked. The
+    pick and edit handlers are stable (setters only).
+  - `ui/ToolButton.tsx`: a command's button, memoised. Its availability (ok, reason) and its on flag are worked out by
+    the App as before. `start` goes through a ref to the latest, and the drag handlers are stable.
+  - The DOM is unchanged: the same classes, attributes, labels and order.
+- **The camera cache's test** (the coordinator's request), `test/camera-projector.test.ts`: each value project depends
+  on is changed in place after a projection, each of target's three, then target replaced, distance, yaw, pitch, fovY,
+  ortho and aspect, and orbit, pan, zoom, fit and setView. Each time the projection is bit-identical to a fresh camera's
+  with the same values, and again from the kept matrix. Also: the same matrix as viewProjection. 16/16.
+- **Bench** (BENCH_TRACE, load 38 → 24, LOADED):
+  - **pick: a bracket clicked**: task 129 → 57.6 ms (budget 90). Now within budget. The profile's jsxDEV self time is
+    118 → 36 ms.
+  - the pattern opened: 64.8 → 26.4 ms of task.
+  - the other rows within budget, except pose (28.6 ms of task, budget 22). Its App renders every frame for the joint's
+    value: R1c (2).
+- **Checks**:
+  - studio tsc 0, eslint 0, unit 266/266.
+  - FLOW_ONLY on both renderers (load 12–24), passing: tool keys, the instance chain, chat commits an assembly, Bearing
+    R12c.4, the narrow top bar, the shapes strip, the palette.
+  - 50, 57, 60 and G3 failed when the sketch step 24 ran before them. Run as G-R24's set (49, 56–60) and G3 alone
+    (load 20–22), all pass, so the cause is the FLOW_ONLY order.
+
+## G-R27 — R1c (2a): the rail's and the shapes strip's button lists memoised by their availability (roadmap R1, 2026-10-23)
+
+- **Why**: memoised buttons alone (G-R26) still left the App making each button's element again in every render, about
+  70 of them. That is 376 ms of jsxDEV in the pose row: the App renders in every frame of a joint played, an explode or
+  a section drag.
+- **What** (`ui/ToolButton.tsx`):
+  - `commandStates(list, ctx)` is each command's availability in this render, with a signature.
+  - `CommandButtons` (each rail group) and `CommandStrip` (the shapes strip's buttons inside ShapesStrip) are memoised.
+    They are made again only when the commands, that signature, the active command or a handler changes.
+  - The rail's groups and the place commands are module constants. The DOM is unchanged.
+- **Bench** (load 39 → 37, LOADED; before is G-R26's run at load 13):
+  - pose 31.2 → 23.4 ms of task a frame (budget 22);
+  - explode 27.8 → 19.7;
+  - section drag 30.8 → 23.3;
+  - pick 57.6 → 48.0;
+  - pattern 26.4 → 21.6.
+  - The toolbar's stack is gone from the profile. What is left of the App's per-frame render is its own JSX: 894 ms over
+    138 renders in the pose row. That is the next split.
+- **Checks**:
+  - studio tsc 0 (after the merge), eslint 0, unit 266/266.
+  - FLOW_ONLY on both renderers (load 23–37), all pass: constraints, tool keys, a hole by dimensions, a box's arrows, an
+    instance placed, Bearing R12c.4, the narrow top bar, the shapes strip, the palette.
+
+## G-R28 — step 258's WebGPU count after G8's contours (G10, 2026-10-23)
+
+- **The failure** (the coordinator's full window at 218c5604a, WebGPU): "each its own: 46 more geometries". The scene's
+  geometries went 4 → 73 when each copy got its own mesh. Pixels and picks were the same (strong 0, max 1; 255 hits,
+  0 differ).
+- **Why**: G8 (G-R21) draws a curved face's silhouette as a contour geometry, one for each mesh source, shared by
+  copies of it. A copy with its own mesh has its own contour too: 23 more, beside the 46 surfaces and edges. The code
+  is right; the step's count predates G8. My G10 reruns were on WebGL2 only, so they did not see it.
+- **The step now** counts the contours apart: 1 shared, then 24, one a copy. The other geometries are still 46 more.
+- **FLOW_ONLY 258** (load 26–28), passing on both renderers:
+  - WebGPU: contours 1 → 24, geometries 4 → 73;
+  - WebGL2: as G-R23.
+
+## G-R29 — R2a: per-frame allocations in the viewer and both studio renderers (roadmap R2, 2026-10-23)
+
+- **gpu viewer** (`viewer.ts`, `lights.ts`):
+  - The shadow pass's two per-caster dynamic-offset arrays and the grid's `[0]` now go through the module's
+    `dynamicOffset`, as every other draw does.
+  - The four `for (const list of [opaque, transparent])` loops no longer make an array a call. One test inside them
+    (`list === transparent`) is now `l === 1`.
+  - `opaque.some(m => …)` / `casters.some(m => …)`, closures a frame, are now `anyCapped` / `anyGhostCapped` loops.
+  - `packOutput` writes into a kept block (`into`, zeroed first) instead of a new ArrayBuffer a frame. Its outline
+    colours are written without the `slice`/`forEach`/spread arrays.
+  - The shadow frame's `packFrame` call writes into a kept block. Its light list and viewport are constants (`[1, 1, 1]`,
+    as before).
+  - The same values are written in the same order.
+- **studio WebGL2 renderer** (`renderer.ts`): the instances' and the bodies' draw loops are index loops, in place of
+  `forEach` closures and `entries()` pairs, with `return` → `continue`. The edge colour is passed without a spread. The
+  bounds' corners are taken without a `.map` array a corner.
+- **studio WebGPU renderer**: the silhouettes' seen set is kept and cleared, made on first use for the contract test's
+  field-less fixture.
+- **Left as they are, with the reason**:
+  - `pipelineKey`: a per-mesh cache would have to follow `geometry.data.scalars`, which changes without touching the
+    mesh, `colorMap` and the shader pipelines' lazy compiles. That is a wrong-pipeline risk for a few short strings.
+  - `gridFrame`, made twice a frame: one small object. A cache would have to follow the grid's fields and the distance.
+  - The WebGPU renderer's camera, lights and environment objects a frame: the viewer's change checks lean on them
+    (`target` is copied so the studio's array is never aliased). Reusing them risks those checks for little.
+- **Bench** (load 21 → 17, LOADED): explode 14.3 ms of task a frame (19.7 at G-R27); pick 39.0 (48.0); ghosted orbits
+  2.5; section drag 21.8. The pose row, App state each frame, waits for R1c (3).
+- **Checks**:
+  - gpu: tsc 0, eslint 0, unit 189/189. Browser specs, one file each, all pass: viewer, scene-viewer, pose-clip 18/18,
+    cap-aa 3/3, contour, uv-repeating.
+  - studio: tsc 0, eslint 0, unit 266/266.
+  - FLOW_ONLY on both renderers, all pass: instance place and drag, the section steps (73, G19.2, G19.4, G20.2), K2 L
+    gap, G3 and G24. On WebGPU 258 failed until G-R28, then passed.
+
+## G-R30 — R1c (3a): the joints and the placed parts' poses as domain hooks, a pure move (roadmap R1, 2026-10-23)
+
+- **What moved**, line for line (each moved line was checked to be in its hook unchanged):
+  - `state/useJoints.ts`: the joint-slider pose, the joint played (its frame loop), the path checked, the waypoints and
+    the workspace map, with their effects (a moved joint clears the path; a new tree drops the waypoints, the map and
+    gone joints' values), and `jointFk` and `gearLines`.
+  - `state/useScenePoses.ts`: `instancesPlaced`, `instancePoseMap` (posed and exploded), `cpuInstanceSection`,
+    `instanceSectionPoses` (a live drag under a CPU section), `instancesShown` (sectioned), `instanceTransforms`, and the
+    DEV `__studioInstanceBounds` hook.
+  - The App keeps the state set from many places, the explode factor and the instance drag, and calls the two hooks
+    where the code was.
+  - The effects run in the same order: no other effect stood between the moved ones.
+- **Not changed**: the values, when they are made, and what renders. This is the structure step; (3b) takes the
+  per-frame values out of React state.
+- **Checks**:
+  - studio tsc 0 (after the merge), eslint 0, unit 266/266.
+  - FLOW_ONLY on both renderers (load 23–27): RM1–RM6 and RM9a–RM9c (the arm posed, played, Home, Check path,
+    waypoints, the workspace map, the exports), R12b.7 the gears, an instance placed, 73 and G19.2 sections, 258 and
+    G3. All pass on WebGPU. On WebGL2 all pass except 58, once.
+  - 58 on WebGL2 is load-sensitive, a 5 s wait. Run twice here it passed once (load 19) and failed once (load 26 → 41).
+    At R2a's cb8d10856, before this move, it also failed once and passed once (load 32–40). So it is not this move.
+
+## G-R31 — R1c (3b): what a frame changes is kept outside React state; SceneViewport and the Joints card subscribe (roadmap R1, 2026-10-23)
+
+- **Why** (the owner's concern, and the coordinator's call): a joint played set App state in each frame, so the whole
+  App rendered every frame. An explode dragged did the same.
+- **What**:
+  - `state/valueStore.ts`: a value outside React state, with `get`, `set` (a value or an updater, telling the
+    subscribers only when it changes) and `subscribe`. `useStoreValue(store, subscribed)` reads it through
+    useSyncExternalStore. With `subscribed` false it is the value as it is when the component renders for another
+    reason.
+  - The pose (`useJoints`' `poseStore`) and the explode factor (`explodeStore`) live there. The play loop, the sliders,
+    Home, the pruning of gone joints and `__studioSetExplode` set them as their state setters did.
+  - **Subscribers**:
+    - `viewport/SceneViewport.tsx` wraps Viewport. It makes the placed parts' matrices from the pose and the factor, as
+      useScenePoses does (`poseKinematics`, then `instancePoses`), and it holds the flow's `__studioInstanceBounds`.
+    - `ui/JointsPanelLive.tsx` is the Joints card's readout: the values after forward kinematics, the gear pairs
+      (`gearLinesAt`) and the gravity torques.
+    - `ui/ExplodeButton.tsx` is the explode button, its label and its steps.
+  - **The App** subscribes to them only while it uses them itself: the clearance check is on, or the placed parts are
+    sectioned on the CPU. Its copies of the pose then follow each frame, as before. Otherwise it reads them when it
+    renders anyway. It always follows whether the parts are exploded (the instance gizmo is not offered then). The Add
+    waypoint and Check path buttons read the pose from the store when clicked.
+  - A path checked is cleared when the pose changes, through the store's subscription, as the effect on the pose did.
+- **History and files, unchanged and tested**: the pose is a preview, as RM2 says ("shown moved and not saved"). RM2
+  now checks, on both renderers:
+  - a slider pose, and a joint played then stopped, leave the Undo button as it was (its tip and its disabled state),
+    and leave the placements unchanged;
+  - the arm saved while posed, then New and Open: the placements as saved, the arm at home (the pose is not in the file,
+    as before).
+- **Bench** (BENCH_TRACE, load 39 → 36, LOADED), renders a row:
+  - **pose**: App 109 → 3; SceneViewport and JointsPanelLive 95 each; task 23.4 → **4.1 ms** a frame (budget 22). Now
+    within budget. 94 frames drawn in the row, 69 before: the frames got cheaper.
+  - **explode**: App 60 → 1; SceneViewport 60; task 14.3 → 9.1 ms.
+  - The section drag still renders the App each frame. The section plane is App state with its exact section and
+    hatch, and was not in this step's scope.
+- **Checks**:
+  - studio tsc 0 (after the merge), eslint 0, unit 266/266.
+  - FLOW_ONLY on both renderers (load 20–45), all pass: RM1–RM6 and RM9a–RM9c (RM2 with the new checks), R12b.7 the
+    gears, the instance chain 57 and 58 (explode inside 57), 73 and G19.2 sections, 258 and G3.
+
+## G-R32 — step 58's waits made conditions, not a pause (the coordinator's request, 2026-10-23)
+
+- **The defect**: after the X drag the step paused a fixed 400 ms and then read the turn handle where the gizmo was
+  drawn. Under load, the overlay had not yet followed the moved copy, so the turn drag started off the handle. The next
+  wait, 5 s for the 15° step, then failed: about 1 run in 2 at load 30–40 on WebGL2 (G-R30). The step's three waits had
+  5 s ceilings.
+- **Now**:
+  - Before each drag, `settled()` waits for the gizmo as drawn: its origin present and the same over two animation
+    frames.
+  - The three condition waits (moved along X, turned 15°, undone) have 30 s ceilings.
+  - The assertions are unchanged.
+- **Runs**: WebGL2 three times in a row (load 24 → 87, other lanes' work beside it), 3/3 pass; WebGPU once (load
+  87 → 81), pass.
+
+## G-R33 — R1c (3c), part 1: a dragged section plane outside React state, committed on release (roadmap R1, 2026-10-23; not finished)
+
+- **What**:
+  - The section is split into the committed state and `sectionLive`, a value store holding a dragged plane. App code
+    reads `section = live ?? committed`, so its 64 readers are unchanged.
+  - Handles drag through `dragSection(f, done)`; `sectionHandles` passes `done`. Each step goes into the store, the App
+    is told once as the drag starts, and the release commits.
+  - On WebGPU, SceneViewport draws the dragged plane's clip and handles (`liveSection`). On WebGL2 the App subscribes:
+    its CPU copies are cut again in each frame, as before.
+  - DEV `__studioDragSection(s, done)` follows the same path; the bench's section rows use it.
+  - The section is a view setting, as before. Step 73 now checks that a drag adds no undo entry and leaves the document
+    unchanged, that the handle follows the drag, and that the handle stays where it was let go.
+- **Checks**:
+  - studio tsc 0, eslint 0, unit 266/266.
+  - FLOW_ONLY on both renderers (load 16–54), all pass: 73, G19.2–G19.5, G20.2, RM1, RM2, K2 notches, G3 and the
+    instance place step.
+- **Not yet done**: the GPU section row still renders the App at each step (60 App renders, 32 submits; task 25.7 ms
+  under load 33, LOADED). Something still sets App state per step and has to be found with the bench's setter trace.
+  Until then the perf goal of (3c) is open.
+
+## G-R34 — R1c (3c), part 2: the section drag no longer renders the App (roadmap R1, 2026-10-23; R1 done)
+
+- **What still rendered the App** (after G-R33: 59–61 App renders over the 60 steps): a minimal DevTools hook in the
+  bench (BENCH_TRACE: "app hooks changed", the App fiber's hook states compared at each commit) showed two causes.
+  - **Hook 106, 33 times**: `useStoreValue`'s useSyncExternalStore, even when not subscribed. After each commit React
+    checks the snapshot again, and it renders again when the store has moved meanwhile.
+  - **Hook 114, 23 times**: the exact section's results. Each App render took the live plane, started an engine job for
+    it, and its result rendered the App again.
+- **Fixes**:
+  - `useStoreValue(store, false)` reads `store.get()` outside useSyncExternalStore: no snapshot to check, so no forced
+    render.
+  - On WebGPU the App takes the plane as the drag started (`sectionDragFrom`), not the live one. The exact section waits
+    for the release: no engine job while dragging, and none shown, since its cut would be the old plane's. The live
+    plane's clip and handles are SceneViewport's (G-R33). The release commits, and the exact section then follows.
+  - On WebGL2 (or with the CPU path forced) the App follows the live plane as before: its CPU copies are cut in each
+    frame.
+  - **The one behaviour change**: during a drag paused without letting go, the exact section no longer comes in. It
+    comes after the release.
+- **Bench** (BENCH_TRACE, load 30 → 15, LOADED):
+  - **section drag, GPU**: App 59 → 5; task 25.7 → **5.9 ms** a frame (budget 33). The GPU time a submit was 7.55 ms
+    (budget 6; 5.0–6.6 in earlier loaded runs), so the row still reads SLOW on GPU time alone. The same frames' GPU
+    work was not changed here.
+  - section drag, CPU (WebGL2's path): App renders each step, as designed.
+  - pose (App 3, 4.0 ms), explode (App 1, 8.7 ms) and pick (47 ms) as before.
+- **Checks**:
+  - studio tsc 0 (after the merge), eslint 0, unit 267/267.
+  - FLOW_ONLY on both renderers (load 11–16), all pass: 73 (its G-R33 checks: no undo entry, the document unchanged,
+    the handle following and committed), G19.2–G19.5, G20.2, RM2, K2 notches and G3.
+- **R1 done.** Its rows against where they started (all LOADED, so compare only):
+  - pick 129 → 47 ms;
+  - ghosted orbits 19.6 → 2.7 ms;
+  - pose 23.4 → 4.0 ms;
+  - explode 27.8 → 8.7 ms;
+  - section drag 30.8 → 5.9 ms;
+  - one Viewport render per orbit, not one a frame.
+
+## G-R35 — R2b: one display-policy module for both studio renderers (roadmap R2, 2026-10-23)
+
+- **A user-visible change named (from G-R34)**: on WebGPU, while a section plane is dragged, the GPU's clip follows
+  the plane live, and the exact section comes in after the release (before G-R34 it could also come in during a pause
+  in the drag). The coordinator accepted it.
+- **What** (`viewport/displayPolicy.ts`), what both renderers had as their own copies, with the same values:
+  - the display modes' factors: x-ray 0.25, faded 0.15, ghost 0.35, edges 0.9, hidden lines dashed at 0.55 with a
+    [6, 4] dash, the hatch at 0.55, threads at 0.55;
+  - the accent and a selection's share of it (0.42);
+  - the themes' shared colours (`PALETTE`: background, grid, base, edge). Each renderer keeps what is tuned for it:
+    its ambient, grid opacity, shadow and AO.
+  - `faceStateOf` / `edgeStateOf`: a body's hovered (1) and selected (2) faces and edges from the view state. These
+    were line-for-line the same in both.
+- **Left as they are**: numbers that only look the same.
+  - The proposal overlay's 0.35 is its hidden share, not a ghost.
+  - WebGL2's shader mixes 0.22 for a hovered body and 0.55 for its uBodySel hover; WebGPU's hover face is 0.2.
+  - The ground's 0.55 under a render setting.
+  - The lights' directions.
+- **Checks**:
+  - gpu unit 189/189 (cad-gpu-display-contract bundles gpuRenderer); studio tsc 0 (after the merge), eslint 0, unit
+    268/268.
+  - FLOW_ONLY on both renderers (load 19–40), passing: G3 display modes, the G19.3 hatch, section 73, proposals (ghost
+    and before/after), hole types, the selection filter, an instance placed, 258 and K2 L gap.
+  - Not passing: **81** (a countersunk screw inserted as its own part) fails on both renderers, and the same way at
+    f18177709 before this change, so it is not this change. Handed to the coordinator. It may follow the built-in
+    tables becoming person-loaded sample rows.
+
+## G-R36 — R2c: viewer.ts and shaders.ts split behind their facades (roadmap R2, 2026-10-23)
+
+- **shaders.ts** (918 lines) is now `viewer/shaders/` by program: common (the uniform blocks' sizes and the WGSL every
+  program starts with), surface, line, point, label, oit, grid, pick, output and mip. `shaders.ts` is the facade with
+  its exports as they were; `common` itself stays internal, as it was.
+  - **Checked**: the old and the new module, each bundled, export the same 19 names. All 29 values are identical,
+    strings byte for byte, the program functions called with each kind of argument: custom surface shaders, the
+    capSamples and multisampled variants.
+- **viewer.ts** (2 311 lines → 1 921) gives `viewer/scene.ts` (410) its scene objects as they were: ViewerError, the
+  material, texture, mesh, clip-plane, colour-map and instances options, ImageTexture, packColorMap, the instances'
+  packing, Geometry, Mesh, the cap hatch and the material normaliser.
+  - Mesh's scratch moved with it: the object block's normal matrix and its words.
+  - `viewer.ts` imports them and exports the same public names as before. The viewer's own internal helpers
+    (`packInstances`, `INSTANCE_STRIDE`, `hatchOf`, `materialOf`) are exported from scene.ts as @internal only, not
+    from the facade.
+  - The two classes reached each other only through public members, so nothing about access changed.
+- **Tests' file servers**: four browser specs served `dist/viewer/*.js` from the top folder only, and
+  `dist/viewer/shaders/*` was refused. They now walk subfolders. The examples read the kernel's dist or walk already.
+- **Checks**:
+  - gpu: tsc 0, eslint 0, build, unit 189/189. Browser specs, one file each, all pass: viewer, scene-viewer,
+    pose-clip 18/18, cap-aa 3/3, contour, uv-repeating, compute-thickness, compute-access.
+  - studio: tsc 0, unit 268/268.
+  - FLOW_ONLY on WebGPU, all pass: 73, G19.4, G3, G24, 258, RM2, K2 L gap, the palette.
+
+## G-R37 — R2d: the gpu package's top-level files into folders (roadmap R2, 2026-10-23; R2 done)
+
+- **What**: 96 files moved with `git mv`, their basenames unchanged and unique; `index.ts`, `viewer/` and `compute/` as
+  they were.
+  - scene 15, boolean 4, geometry 21, mesh 17, native/lights 8, native/uv01 7, engine 13, material 9 (the
+    engine-uv-* and mesh-material files among them), core 2 (gpu-error, rotation).
+  - Every relative import in src was rewritten from the file's new place to its target's.
+- **What else followed, in the same commit**:
+  - The gpu tests' deep dist imports (gpu-compiler, material-colour-f32, mesh-packet) and the esbuild entries in
+    native-point-light-program-wgsl.
+  - 52 examples/gpu-scene flows: their deep imports, the `src/<file>.ts` receipts and the bundle-graph assertions
+    (`endsWith('/src/<file>.ts')`). Lines reading a pinned commit (`gitFile(…)`, `commit:`) were left on their old
+    paths.
+- **Not edited** (the coordinator's rule): any profile, evidence or ledger JSON, and the physics examples' evidence
+  bundle (`native-freeze/source-bundle.js`).
+  - The library-docs builders read gpu sources through git at each profile's pinned sourceCommit, so they keep
+    resolving. **The docs profiles pick up the new paths only when the docs owner next re-pins them.**
+- **Nothing live left on the old paths**: outside packages/barocss-gpu, apart from index and viewer/index, JSON and
+  evidence, the only `barocss-gpu/(src|dist)/` paths left are:
+  - prose in the handover notes;
+  - the studio tests' imports of `src/viewer/*` (not moved);
+  - `.github/scripts/affected-ci.test.mjs`' template `src/${name}.ts` (a synthetic path);
+  - pinned reads (`engine-uv-texture-material-flow`'s `gitFile`);
+  - the negative assertions that the graph does not include dist.
+- **Checks**:
+  - gpu: build, tsc 0, eslint 0, unit 189/189. Browser specs, one file each (load 19–27), all pass: viewer,
+    scene-viewer, pose-clip 18/18, cap-aa 3/3, contour, uv-repeating, compute-thickness, compute-access.
+  - The library-docs scripts without a pin: cad-impact-map.test.mjs 7/7; check-viewer-authored-directional-lights
+    passes.
+  - studio: tsc 0, unit 268/268. FLOW_ONLY on WebGPU: 73 and G3 pass.
+  - The examples/gpu-scene flows tried (material-scalar-abs, engine-scene, native-surface-uv01-frame,
+    triangle-geometry, scene-generated, material-smoothstep, engine-uv-texture-material-wgsl) fail, and fail the same
+    way at d50c2fe82, before the move. Some cannot find the kernel's `src/types.js`; others assert a git-diff file list
+    against an old base. Not this move: noted for the kernel lane and the examples' owner.
+- **R2 done**: per-frame allocations (R2a), the display-policy module (R2b), the viewer/shaders split (R2c) and these
+  folders.
+
+## G-R38 — G4: the clearance map and print layers as flow steps on both renderers (roadmap G4, 2026-10-23)
+
+- **No WebGL2 limit here.** Both studio renderers already draw the clearance overlays (`setClearanceDisplay`) and the
+  print layers (`setPrintDisplay`), so neither needs a disabled button with a reason, unlike G6.
+- **Fixture** `test/fixtures/clearance-states.bcad` (generated once from the model's own commands, not agent rows):
+  - At the root: the default shaft and a key in its keyseat, a designed pair ("key n1 in its keyseat").
+  - Placed 20 × 20 × 10 boxes:
+    - side by side: touching;
+    - 10 mm into each other: an overlap of 2000 mm³;
+    - 0.5 mm apart: near;
+    - 0.8 mm off in both x and y: clear, at a gap of 1.13 mm against near = 1 mm.
+- **DEV hook** `__studioClearanceLog`: records each display the worker sends, with its stage and the raw and shown pair
+  states. It lives in useClearanceAnalysis's onmessage, not in a render, because a render can batch two messages. The
+  flow reads the `map` stage from it to see the contact state, before the overlaps are worked out. The log is capped at
+  200 entries and is DEV only.
+- **Flow step 273, G22 clearance** checks:
+  - The pairs at `ready`: designed, touching, overlap, near, clear.
+  - The `map` stage before them: designed, contact, contact, near, clear.
+  - The panel's `li[data-clearance-state]`.
+  - Overlays for designed, near, overlap and touching, and none for clear.
+  - The canvas changes, then returns once closed (< 0.2 %).
+  - With Print layers checked, the assembly is refused there and the clearance panel says "Close Print layers"; after
+    it closes, the same pairs.
+  - Save → New → Open gives the same pairs and overlays.
+- **Flow step 274, G23 print layers**, on CNC8's plate:
+  - 100 layers at the estimated 0.2 mm.
+  - Height set to 0.5 mm: 40 layers.
+  - Layer moved to 21, at bed Z 10.25 mm: the view changes.
+  - "Printed up to layer" turned off.
+  - The saved file holds `printPreview` { layer 20, layerMM 0.5, printed false }. Reopened: the same layer, the same Z,
+    the same top.
+- **Runs** (FLOW_ONLY `^G22 clearance|^G23 print layers`): both steps pass on both renderers, first run.
+  - WebGPU: 2.03 % of the canvas changed for the map; print 11.73 % shown, 5.60 % moved.
+  - WebGL2: 2.12 %; print 12.39 % shown, 5.65 % moved.
+  - studio tsc 0, eslint 0 on the changed source.
+
+## G-R39 — O10's GPU part: each body's frame cost by display mode, read-only (O10, 2026-10-23)
+
+- **Shape**: as approved by the coordinator. Off by default; while off, one branch per draw. Read-only: the tally only
+  counts what a frame already draws.
+- **Viewer (packages/barocss-gpu)**:
+  - `viewer.costs` turns the counting on and off.
+  - `viewer.meshCosts(): ReadonlyMap<Mesh, MeshCost>` gives `{ draws, triangles, lines, points, passes }`.
+  - `FramePass` is one of shadow, surface, transparent, oit, hiddenLines, caps, outlineMask; `FRAME_PASSES` is
+    exported.
+- **Viewer records**:
+  - Kept between frames on the mesh (`Mesh.cost`, internal) and in the map.
+  - Made when a mesh is first drawn counting; dropped by `remove`/`clear`.
+  - Zeroed as each counted frame begins.
+  - No per-frame Map, object or closure in the draw loop: the tally is in drawTriangles, drawMesh, drawHiddenLines and
+    drawMapped behind `if (this.counting)`.
+  - The pass is a field set where each pass begins. Caps count with their probes; the mask's caps count as
+    outlineMask; the light probe counts as shadow.
+- **Studio (`viewport/frameCost.ts`)**, the same shape on both renderers:
+  - `trackFrameCost(on)`.
+  - `frameCosts(): Partial<Record<DisplayMode, FrameCost>>`: the last frame tracked in each mode, for the bodies shown
+    now.
+  - `FrameCost` is `{ renderer, mode, frame, cpuMs, bodies: BodyCost[], scene }`; `BodyCost` adds `key` and `share`.
+- **How each renderer fills it**:
+  - gpuRenderer maps the viewer's per-mesh counts after each frame. A root body counts its surface, edges, highlight
+    and silhouette. A copy counts its own surface, silhouette, edges and threads under `${instanceId}/${bodyKey}`,
+    through shared geometry or not (G10). The scene is everything else.
+  - renderer.ts (WebGL2) counts its own draws through a `T` that is null when off. Its scene counts the draws its render
+    makes itself (background, grid, ground shadow, direct geometry, proposals, the AO composite). Overlay helpers are not
+    counted, as the doc comment says.
+- **Handle**: ViewportHandle forwards `trackFrameCost`/`frameCosts`; tracking asked for before a renderer is made applies
+  once it is. The DEV hook is `__studioFrameCost(on?)`.
+- **Stated limit**: work counts plus the frame's CPU time only. There is no per-body GPU time. A whole-frame gpuMs is
+  left for later.
+- **What the counts showed** on the clearance fixture (10 bodies, 8 placed copies):
+  - Wireframe draws the surfaces' triangles on both renderers, for the depth the edges are classified against. My
+    proposal's "wireframe: 0 surface triangles" was wrong; the step checks lines > 0 there instead.
+  - WebGPU counts 11378 lines against WebGL2's 1220. The GPU contour (G8) draws one instance per curved-face triangle,
+    and WebGL2's CPU silhouette draws its segments.
+  - On WebGPU in shaded mode, the edges and silhouettes are see-through lines, so the transparent pass has draws there
+    too. The x-ray check compares x-ray's see-through draws with shaded's.
+  - A copy's key is the studio's instance evaluation key (`i1/b2` here). The clearance worker names the same body
+    `i1/b1`, because it evaluates the source document its own way. The outer lane's panel and the agent query should
+    know which key they join on.
+- **Checks**:
+  - gpu: tsc 0, eslint 0, unit 189/189.
+  - Browser specs: viewer-costs 1/1 (new), viewer 1/1, pose-clip 18/18.
+  - The three adapter tests that build a GpuRenderer from a field list gained `tally: { tracking: false }`;
+    cad-gpu-display-contract, cad-clearance-gpu and cad-print-overlay pass 23/23.
+  - studio: tsc 0, eslint 0, unit 268/268.
+- **Flow** (FLOW_ONLY):
+  - O10 (step 275) passes on WebGPU and WebGL2. It covers the five modes, each copy's own draws, x-ray see-through,
+    dashed hidden lines, shares, and that nothing is counted once off.
+  - G3 display modes (270) passes on both.
+  - On WebGL2, step 1 failed once (`/Hole Ø8/`) and passed on the rerun.
+
+## G-R40 — R6: the examples/gpu-scene flows triaged, 65 kept and green, 13 retired (roadmap R6, 2026-10-23)
+
+- **Starting point**: all 78 flows failed as checked in.
+  - The cause common to all: in the workspace `@barocss/cad` resolves to CAD's TypeScript sources, which Node does
+    not load.
+  - The rest pinned the repository's state on each milestone day: exact public-namespace sizes, the parent commit's
+    barrel, bytes, declarations and manifest, git deltas, and dependencies then pending.
+  - Two causes were mine, from R2d. It missed the `'/src/' + name` source-graph checks, and it rewrote paths read from
+    pinned parent commits (`parentFile('src/material/…')`), where the parent has the old path.
+- **Coordinator verdicts, as approved**:
+  - (a): fix the 65 that still check shipped behaviour.
+  - (b): delete the 13 that need research inputs not in the repository, with one record line each naming the missing
+    input.
+- **Runner** `examples/gpu-scene/run-flows.mjs`: builds cad and gpu, then runs each flow with a fresh `--output` and the
+  gpu tests' hook `tests/cad-dist.mjs` through `NODE_OPTIONS` (child processes included). The README says so.
+- **(a), in three commits**:
+  - 1/3: the runner, plus 15 flows whose namespace-size checks became "includes the names this flow adds". The 18
+    flows that needed only the hook are unchanged.
+  - 2/3, 17 flows: R2d's source-graph paths; the removed primitive-scene-renderer.ts dropped from preflight's graph;
+    the parent-commit checks dropped.
+  - 3/3, 15 flows:
+    - R2d's parentFile paths undone.
+    - The parent-commit checks dropped.
+    - Two real behaviour changes since the milestones, followed:
+      - An f32 underflow literal is refused at compile time (RANGE) since acbf60deb (G5), not later at lowering. Five
+        flows now check that, and uv01-frame's frame case became a compile check.
+      - `validateMeshMaterialBinding` has been public since 59c1eff09.
+    - material-locals and material-shorthand bundle the sources with esbuild instead of importing src/index.ts with
+      plain Node.
+  - Every check of actual output stays: WGSL, programs, buffers and values.
+- **Rule correction, before anything was committed**: my first generic "exact length" rule also matched output checks
+  (panel, body, draw and diagnostic counts). It was reverted and narrowed to namespace sizes only. The scratch run that
+  had shown "50 green" with those checks removed was redone with them kept.
+- **(b), one commit**:
+  - The 13 flows.
+  - Five helpers used only by them: knot-*-internal.mjs ×3, source-surface-elevation-frame-internal.mjs,
+    split-body-engine-scene.ts.
+  - The gpu README's three command blocks for retired flows now say so.
+  - The physics examples' base-tracked-ledger.json entries stay as historical text, untouched.
+- **Record**: every changed assertion, before → after with its reason, and each retired flow's missing input are in
+  `handover/notes/r6-gpu-scene-flows.md`. Pinned evidence is untouched, as are the outer lane's two clearance files.
+- **Final run**: `node examples/gpu-scene/run-flows.mjs` passes 65/65 on the kept set, with a full cad+gpu build first, at
+  integration 8ddf53eea merged.
+- **Next**: D229 folders the kernel's dist. After the merge past it, the runner's full `build:library` clears the stale
+  flat files; rerun it then.
+
+## G-R41 — the history bar no longer runs under the view bar (2026-10-23)
+
+- **The defect** (the docs tour shot at 1280 × 800, and G-R38's 1440 × 900 shots with longer history):
+  - `.history` was centred on the assumption that the view bar (`.corner-right`: Display, the views, Pick all, Snap,
+    units) is 600 px wide.
+  - It has grown to about 700 px with Analyse and Maps, so the bar's second chip ran under it.
+- **The fix**:
+  - `ui/useBottomRow.ts` measures the view bar (a ResizeObserver plus the window's resize) and sets `--corner-w` and
+    `--corner-h` on `.studio`.
+  - `.history` fills the room between the browser panel's edge (270 px) and the view bar, centred there, scrolling its
+    chips when they don't fit.
+  - With less than 280 px of room, `.studio.history-stacked` lifts it above the view bar (left 270 px to right 12 px).
+    The view bar's own stack (previews, legends, section bar) rises above it there.
+  - Measured: beside at 1440; stacked at 1280, 1024 and 800.
+- **Check**: the new flow step "bottom row", at 1440 × 900, 1280 × 800, 1024 × 800 and 800 × 800, with five history
+  chips. In each size it checks that:
+  - the history bar's and the view bar's rects don't intersect;
+  - the history bar stays in the window;
+  - the open Display popover's stack doesn't meet the history bar.
+  - It also checks beside at the widest and stacked at the narrowest.
+- **Runs**: passes on WebGPU (the layout is the renderer's frame, not the renderer's). "Narrow window top bar" (O127)
+  still passes; studio tsc and eslint clean.
+
+## G-R42 — G11: the heaviest scenes measured; no budget missed, so G11 closes (2026-10-23)
+
+- **Read-only**: no product change. The tables are in `handover/notes/g11-scene-profile.md`.
+- **What was measured**: 11 scenes on both renderers, a 60-step orbit in three display modes (shaded with edges, hidden
+  lines dashed, x-ray), at loads of 10–17.
+  - The A9 assembly (38 bodies), the 120-bracket pattern, five box frames (60 members), the 6R arm and the welded table.
+  - The heaviest generated parts: a spring (114 k triangles), a worm pair (17 k) and a spur gear.
+  - The heaviest studio fixtures: clearance-states and lid, plus the starter template.
+- **Result**: every scene holds 60 Hz on both renderers, with frame-interval p95 16.7–16.8 ms. On the worst rows:
+  - Main-thread task 2.2–3.9 ms a frame.
+  - WebGPU 0.5–5.0 ms of GPU a submit. The highest are the lid fixture at 5.0 (its outline mask) and the frames in
+    x-ray at 4.7.
+  - The frames' single 50 ms frame and A9's 33 ms frame are one-offs at the drag's start, on both renderers.
+  - The 16.7 ms frame budget is met with at least 3× headroom everywhere. Occlusion culling, LOD or more instancing
+    would buy nothing measurable on these scenes.
+- **Outside the GPU's budget, for the kernel lane**: opening is the slow part (evaluation). The frames take 25–28 s,
+  A9 16 s, the spring 10 s and the worm pair 6–7 s.
+- **Refused, not measured**: "Fill with a lattice" (after Hollow) on an 80 × 60 × 40 box, at the kernel's
+  2 000 000-triangle cap.
+- **Unit difference (O10's note 2)**: WebGPU's line counts are 5–20× WebGL2's on curved parts. The GPU contour draws
+  one instance per curved-face triangle.
+
+## G-R43 — G12a: the three-column shell, the chat column, the proposal cards in it (roadmap G12, 2026-10-24)
+
+- **Commit**: it landed as one commit, 85625038e ("wip … to be split"). The split into an App.tsx commit and the rest was
+  refused here as history rewriting (hard reset, then revert). The later G12 steps keep App.tsx in their own commits.
+- **Shell**: `.studio` is a flex row of the chat column and `.stage`.
+  - `.stage` (the centre) holds the top bar, the viewport and everything placed over it, positioned as before but
+    within the centre.
+  - `100vw`-based widths became `100%`.
+  - The column comes after the stage in the document, shown at the left by `order: -1`. The top bar's Chat button
+    stays the first `[aria-label="Chat"]`, because the chat panel has that label too.
+- **Chat column** (`layout/ChatColumn.tsx`, `layout/useLayout.ts`):
+  - Full height. 360 px by default, dragged at its right edge within 320–520 px and kept per viewer.
+  - The width shown leaves the centre at least 560 px.
+  - Collapsed, it is a 44 px strip laid over the stage's left edge, so the canvas keeps the window's width. Pixel-based
+    sketch and drawing steps (18, 204) depend on that; `--strip-w` moves the stage's left-anchored parts past the strip.
+  - Collapsed by itself when the window narrows past chat + dock + 560 px. That happens at 1024; an open made after it
+    holds.
+- **Proposals** moved from the Browser into the column, over the chat.
+  - While one is open, the column shows it with the chat open or not.
+  - The decided ones are reached from the strip's "Show decided proposals".
+  - The cards drop the left-border-and-radius style (the owner's rule) for an even 1 px border and a tinted risk chip.
+- **Also**:
+  - The view bar wraps onto a second row in a narrow centre instead of running under the column.
+  - The bottom row measures the stage less the strip.
+  - The file-name chip gives way first in a tight top bar.
+- **Checks**:
+  - New flow step "three columns (G12a)": open 360, drag to 480 and 520, collapse to 44, collapsed by itself at 1024,
+    nothing in the centre over the column at 1440/1024/800, and no box with a left border alone and a radius. It passes
+    on WebGPU and WebGL2.
+  - The chat, proposal, bottom-row, narrow-top-bar, concentric-arcs and R14.1 steps pass on WebGPU; the layout ones also
+    on WebGL2.
+  - Studio unit 274/274, tsc and eslint clean, check:docs clean.
+  - A full WebGPU flow run before the strip became an overlay showed 18 and 204 shifting; both pass now.
+  - "shapes strip" and "R14.4" fail before G12a as well, at 09ef149d4 in the scratch worktree: pre-existing, not from
+    this step.
+
+## G-R44 — G12b: shadcn/ui and Tailwind v4 set up, the right dock with the Browser, the HUD and the inspector (roadmap G12, 2026-10-24)
+
+- **Setup** (762499b9c, package.json and the lockfile only): tailwindcss and @tailwindcss/vite 4.1.13, clsx,
+  tailwind-merge, class-variance-authority, the Radix primitives (collapsible, scroll-area, toggle-group, tooltip, slot)
+  and react-resizable-panels, all exact. The owner confirmed the download in this session.
+- **Tailwind without its preflight**: only `tailwindcss/theme.css` and `utilities.css`, in layers.
+  - The studio's own CSS stays unlayered and keeps the browser defaults it was written against.
+  - shadcn's tokens are mapped onto the studio's in `src/tailwind.css`. shadcn's `--accent` (a hover fill) is
+    `--ui-hover` there, so the studio's yellow `--accent` keeps its meaning.
+  - `components.json` and `@/` mean src/. `cn()` is in `src/lib/utils.ts`.
+  - Collapsible, ScrollArea and Badge are copied into `src/components/ui`.
+- **Dock** (`layout/Dock.tsx`): 300 px, or 280 below 1280.
+  - It holds the Browser (moved from the left, its mount behind `browserPlacement`), the running command's HUD and
+    the inspector (today's right column). They sit flat in one plain scroll column. Radix's ScrollArea let the panels'
+    content grow past it.
+  - Where chat + dock + 560 px don't fit, the dock is a 44 px strip at the stage's right with a sheet over the viewport.
+    An opened BOM, Library or Parameters panel opens the sheet.
+- **Top bar**: spans the centre and the dock (the window less the chat column), with the dock under it.
+- **Fixes the narrower centre called for**:
+  - Strips take the pointer only on their buttons. Steps 72 and 273 had clicked the canvas's left edge, where the
+    chat strip lies.
+  - The top bar's z-index is set once (a later `z-index: 6` in the same rule had won).
+  - The inline dimension editor sits over the bar again (z 9, O137).
+  - Toasts sit at the stage's top left under the hint bar. The section bar is about 700 px wide in a narrow centre and
+    met them at the bottom.
+  - The view bar's room is the stage less both strips.
+- **Flow changes**:
+  - Each step starts with the columns as a fresh viewer has them (DEV `__studioLayoutReset`).
+  - G3's two clicks are world points on screen.
+  - R14.1's hand placement is 18 mm off the front view; at 30 mm it fell on the top view's label.
+  - The shapes strip picks the last shape that can start. Fastener, needing a row, is off.
+  - The bottom-row step follows the stage's room.
+  - The three-columns step checks that a click beside the strip's buttons reaches the viewport.
+- **Runs**:
+  - Full flow on WebGPU and on WebGL2 (scratch worktree, b3d6a2369): 279/280 each. The one failure is R14.4 (207),
+    fixed on the outer lane's branch (d2d62a94e).
+  - Studio unit 274/274, tsc and eslint clean, check:docs clean (533 labels).
+- **For the outer lane**: a click on a drawing view's label does not place a dimension. R14.1's placement fell on one in
+  the narrower centre.
+
+## G-R45 — G12c/G12d: Preview & analysis one mode at a time, compact panel text, the layout check, the CSS in a layer (roadmap G12, 2026-10-24)
+
+- **G12c, the dock's Preview & analysis section** (94ce0e006, c397ed363 App.tsx):
+  - `previewMode` (none, CNC, print, clearance, analysis) replaces the three toggles. Each panel's own checkbox sets or
+    clears its mode, so one preview shows at a time. Choosing Analysis starts zebra; the analysis maps are that mode.
+    The mutual-exclusion notices are gone.
+  - The section is a folding `DockSection` (its open state kept per viewer) with a one-at-a-time ToggleGroup.
+  - The panels are compact: colour chips, NOT FOR PRODUCTION as a chip (Print, and since a12e158b6 CNC, the package's
+    whole banner behind Details and as the chip's tip), the rest behind Details. CNC's overcut line stays shown.
+  - The Display popover holds the display mode and isolate only. 3D annotations are an overlay toggle beside the modes.
+- **G12d, the layout step** (25899f359): 1440, 1280, 1024 and 800, the chat open and collapsed, each preview mode, the
+  dock's sheet opened where the dock is a strip.
+  - No two of the chat column, dock, dock strip, top bar, tools rail, history bar, view bar, view cube, HUD, view-bar
+    popovers and toasts meet; each stays inside the window; no box with a left border alone and a radius.
+  - **What it found, fixed**:
+    - The view bar's room ran under the tools rail.
+    - The history bar met the dock's strip and sheet.
+    - The preview switch's items had the browser's button border (preflight is off).
+    - The history bar still reserved 270 px at the left for the browser panel, which is in the dock now. It starts past
+      the tools rail (72 px) when `BROWSER_PLACEMENT` is the dock.
+    - A stage too cramped even for the stacked bar (800 px, the chat open, the sheet open: 72 px left) hides the
+      history bar and the view cube until the sheet closes (`stage-cramped`).
+    - The recovery card ran under the sheet at 1024 with the chat open. Toasts now keep to the stage's room, 220 px at
+      least. On a cramped stage a toast runs under the sheet: raising it would put it over the top bar's menus.
+- **The studio's CSS in `@layer legacy`** (950dab2e3, approved by the coordinator):
+  - styles.css, ui/chat.css, ui/constraints.css and drawing/drawing.css are wrapped, with no rule changed. The layer is
+    ordered first (`legacy, theme, base, components, utilities`), so within it the rules settle as before.
+  - Tailwind's utilities, the shadcn components', now win over its element rules (`button { font: inherit }`, the
+    panels' inputs). O16's components can drop their `!`.
+  - No third-party stylesheet that the old rules beat is pulled in:
+    - Google Fonts' sheet declares only the icon font and `.material-symbols-outlined`; the studio uses its own `.ms`.
+    - Radix ScrollArea injects a scrollbar rule and react-resizable-panels a drag cursor, but neither is mounted.
+- **The R1 bench rerun found a regression from G-R41** (db502eb7a):
+  - The explode button's label (`Explode ×0.03…`) resizes the view bar every frame of a drag. useBottomRow kept its
+    size in React state, so the App rendered each frame: explode App 43 renders, task 19.2 ms.
+  - The size now goes onto the studio element as CSS variables, outside React. The App renders only when the stacking
+    changes: explode App 2, task 10.1 ms.
+  - The other rows are as at G-R34. The run was LOADED, so compare only: orbit App 1, 3.1 ms; pose App 3, 3.9 ms;
+    section (GPU) App 5, 6.8 ms; pick 55 ms.
+- **Flow**:
+  - Step 89 (hole types) waits for the countersunk hole's label in the Browser. The history bar hides again at once
+    while the command runs on (Shift+Enter), so a wait for it caught it only when the restart was late. The earlier
+    bisect toward 94ce0e006 was this flake.
+  - G22 and G23 check one preview at a time. G22's canvas threshold is for the overlays alone.
+- **Runs** (scratch worktree):
+  - Full flow at e770d5c8e. WebGL2: 282/283. WebGPU: 260/283 in the full run. Its first failure was the dev server's
+    dependency re-bundling after the O16 merge (a cold cache: "the page reloaded during this step") at step 61, and the
+    run was loaded beside the kernel's T2. The 22 steps rerun alone all pass. On both renderers the one failure left is
+    FR3b (147), the known "not the case being measured" flake.
+  - After a12e158b6: the layout, bottom-row, three-columns and G23 steps pass on both renderers.
+  - Studio tsc and eslint 0 errors. check:docs clean (558 labels).
+  - Studio unit 281/282: `bom-linked-ui.test` fails, from O16, not G12. It bundles BomPanel against a React stub
+    without `forwardRef`, and the shadcn Button's Radix Slot calls it.
+- **New labels**: Preview & analysis; Preview mode; Preview: None / CNC / Print / Clearance / Analysis; Collapse /
+  Expand Preview & analysis. Renamed: none. The Display button's tip is now "The display mode and isolate (the
+  previews are in the dock)".
+
+## G-R46 — G12e: the switch is the previews' enable; history chips whole (roadmap G12, 2026-10-24)
+
+- **One mode, its settings alone** (23724e10f, 828764fa7 App.tsx):
+  - Print, CNC and Clearance lose their own on/off boxes. The dock's switch enables them, and under it only the chosen
+    preview's settings show, flat. None shows a one-line hint.
+  - Analysis gets a panel (`viewport/AnalysisPanel.tsx`): the surface analysis (Zebra, Curvature, Overhang for a
+    printing process) and the map (Thickness, Draft and the mould's Parting and Halves with a pull, Access). These are
+    the choices the view bar's Analyse and Maps buttons step through, and those buttons stay. On WebGL2 the maps are
+    disabled with their reason.
+  - 3D annotations, the one overlay (the owner's choice), is a toggle at the section's header (`DockSection` actions).
+    Its status line shows under the panel.
+- **History chips never cut mid-text** (23780cd69):
+  - The bar stacks above the view bar when its steps don't fit beside it. The bottom row uses the bar's natural width;
+    a fixed 280 px used to decide.
+  - Where even the stacked row is short (a narrow centre), the chips past its room hide behind a "+n" chip. It opens
+    the bar on more rows with every step whole; Less closes it.
+  - `useFitChips` hides them by style, outside React, measured again when the bar, the stage, the view bar or the
+    stacking changes. The App renders when the count changes.
+- **Toasts** sit below the view cube (top 144 px). The recovery card met the cube at 1024 with the chat open.
+- **Flow** (b548fe1f2):
+  - Previews are chosen with the switch through a `preview(mode)` helper. It clicks only when the mode is not on,
+    since clicking the item again turns it off.
+  - The layout step checks:
+    - every history chip whole inside the bar and clear of the view bar;
+    - "+n" opening every step whole, and Less closing it;
+    - no "+n" at 1440 with the chat collapsed.
+- **Runs**:
+  - Full flow at b548fe1f2 (scratch): WebGPU 282/283, WebGL2 282/283. The one failure is FR3b (147), the known
+    "not the case being measured" flake.
+  - R1 bench rows (loaded, compare only):
+    - orbit App 1, 3.1 ms; pose App 3, 4.5 ms; explode App 2, 9.8 ms; pick 55 ms;
+    - section on GPU App 5, 6.7 ms. Its GPU time of 8.1 ms a submit is over the budget of 6, as before.
+  - Studio tsc and eslint 0 errors. check:docs clean (558 labels). Unit 281/282, the O16 `bom-linked-ui` stub as in
+    G-R45.
+- **Labels**:
+  - Removed (old → nothing), the checkboxes:
+    - `Print layers`, `CNC preview`, `Assembly clearance`. The panels keep these names as their aria-labels.
+    - Their enable is now `Preview: Print`, `Preview: CNC`, `Preview: Clearance`.
+  - New:
+    - `Analysis` (the panel);
+    - `Surface analysis kind`, `Surface: Zebra / Curvature / Overhang`;
+    - `Analysis map kind`, `Map: Thickness / Draft / Access / Parting / Halves`;
+    - `n more history steps` / `Fewer history steps` (the "+n" / Less chip).
+  - For the docs lane: display.md, assemblies.md and manufacturing.md say these previews are in **Display**, and that
+    Print layers and the CNC preview "take turns". They are now chosen in the dock's Preview & analysis switch.
+
+## G-R47 — G12f, part 1: the shell onto shadcn (Tooltip, the rail, the HUD, the section bar, the timeline, the view bar, the menus, the palette, the help) (roadmap G12, 2026-10-24)
+
+- **Packages** (a2d8db19f, apps/cad-studio/package.json and pnpm-lock.yaml only):
+  - Added from Radix's 2026-10-05 release, the coordinator approving the pins and the owner the download:
+    react-dropdown-menu 2.1.25, react-context-menu 2.3.8, react-dialog 1.2.0. Also cmdk 1.1.1 (2025-03-14).
+  - Deliberate downgrades onto the same release: G12b's came from the 2026-10-12 release, under the lanes' two-week
+    rule. react-tooltip 1.4.1 → 1.3.0, scroll-area 1.4.0 → 1.3.0, collapsible 1.2.1 → 1.1.21, toggle-group 1.2.1 →
+    1.1.20, slot 1.5.0 → 1.4.0.
+  - cmdk's `react-primitive ^2.0.2` resolved to 2.2.0 (10-12). The root override `"cmdk>@radix-ui/react-primitive":
+    "2.1.11"` (13074758a, the coordinator's) holds it. A direct pin did not, and `pnpm dedupe` touched unrelated
+    packages.
+  - Every package added or changed was published on or before 2026-10-05.
+  - react-context-menu turned out not to be needed: the menus open from code at a point, so a DropdownMenu anchored
+    there fits. It can go in a later package commit.
+- **Areas** (labels, roles and the classes the flows and other lanes use are kept):
+  - 88a30d9da, the **tooltip**: still one layer reading `data-tip`. It now renders shadcn's Tooltip (Radix's
+    placement) anchored on the hovered element's box.
+  - dba7c5781, the **rail**: ToolButton is on `components/ui/tool-button.tsx`, a ghost icon button with the primary
+    fill when on. Its box stays `.tool`'s, so the rail's short-window sizes hold.
+  - 837fa7830, the **HUD**: shadcn's Input, NativeSelect and Button.
+  - e853e6e36:
+    - the **section bar**: the mode is a ToggleGroup, and a click on the mode shown keeps it; the buttons are Button;
+    - the **timeline** and the explode chip.
+  - ee60ff852, App.tsx: the **view bar**'s buttons and chips are Button.
+  - 35ce1cdc2, the **menus, palette and help**:
+    - A right-click's menu is a DropdownMenu anchored at the click. It is kept inside the window, opening upward when
+      that has more room, with arrow keys and Escape.
+    - More tools and More shapes are DropdownMenus rendered in place (`portal={false}`), so the flows find their
+      buttons inside the bar.
+    - The palette is shadcn's Command (cmdk) in its Dialog, ranked by paletteList (`shouldFilter={false}`). Enter is
+      kept from the window's handler.
+    - The keyboard and mouse help is a Dialog.
+  - 262949d1c, App.tsx: `__studioLayoutReset` (DEV) also dismisses every toast. The recovery card is only hidden; a
+    question's toast is cancelled. This is the outer lane's find: a toast from an earlier step met the view cube in the
+    layout step.
+- **Left for part 2**: the top bar's own buttons. The ~30 `className="tool"` spots in App.tsx waited for O11, which is
+  now merged.
+- **Measured** (DEV `__studioRenders`). Neither was changed by G12f; both are R1d, after G12f and before G13:
+  - HUD typing: 4 keystrokes render App 10 times, the same with the old HUD.
+  - Placing: 30 pointer moves render App 114 times.
+- **Runs**:
+  - Full flow at 262949d1c (scratch): WebGPU 281/285, WebGL2 281/285. The failures on both:
+    - FR3b (147), the known flake;
+    - AM7a and AM7b (NaN mass), and O10 Rebuild panel (284). All three pass alone at 262949d1c and at the merge
+      before G12f's menus (83161bb55). They are the outer lane's O18 work in progress: deferred mass, and the
+      copies' frame costs with sameMeshes.
+  - The pair "render a part" (48), then section view (74), parameters, surface analysis and RM2, fails at b548fe1f2
+    too, before G12f. It is an order dependency of step 48 that the full flow, with steps between, does not meet.
+  - R1 bench rows (loaded): orbit App 1, 3.2 ms; pose App 3, 4.6 ms; explode App 2, 9.9 ms; pick 57 ms; section on
+    GPU App 5, 6.8 ms.
+  - Studio tsc 0, eslint 0 errors, unit 286/286, vite build. check:docs: no label drift. Its two other reports at the
+    time (`_refusals.md`, cad-model `api/`) were the API lane's, fixed on integration by the docs lane.
+- **Queued for G14 (measure, then decide)**:
+  - Section on GPU: 8.1 ms a submit against 6.
+  - From O18: with a new bodies array of identical meshes, gpuRenderer's rebuild on WebGPU left the placed copies out
+    of the drawn frames. The outer lane worked round it in App (sameMeshes, 2aae36ec3). Two questions: why the copies
+    drop, and whether the renderer should key on mesh identity.
+
+## G-R48 — G12f, part 2: the top bar onto shadcn; the context menu inside the stage (roadmap G12, 2026-10-24)
+
+- **The top bar** (44a4a243c, App.tsx):
+  - Its tools and the panels' close buttons (about 30 `className="tool"` spots) are on ToolIconButton.
+  - The mode switch (Model, Sketch, Render, Drawing), Finish sketch and the Templates rows are on shadcn's Button; the
+    template's name is on Input.
+  - The labels and the `tool`, `on` and `sketching` classes are kept.
+- **The right-click menu inside the stage** (d28a8e1a1, from the coordinator's review of the 1440 screenshot: a face's
+  ~24-item menu had risen over the Model/Sketch tabs):
+  - Radix's collision boundary is the stage. It is padded below the top bar and clear of the dock's strip or sheet,
+    both measured as the menu opens.
+  - The menu's height is that room, with its own scroll. It opens at the click and flips up only where the stage has
+    more room above.
+  - The layout step checks it (a55096abe): at 1440 and 1024 a right-click on the plate opens the menu inside the stage,
+    clear of the top bar and the dock.
+- **Packages** (b5102a63b): `@radix-ui/react-context-menu` is removed, unused (the coordinator agreed). Only its entries
+  leave the lockfile.
+- **gpu** (the coordinator's ask from the API lane): `tests/api-scene.test.mjs` is in the package's test script.
+  - The facade's tests pass 4/4; gpu's whole test script passes 193/193.
+  - The script needs CAD's `build:library` first, as before.
+- **Runs**:
+  - Full flow at 5bac895fa (integration with O18 merged, scratch): **WebGPU 286/286, WebGL2 286/286**. AM7a/b and O10
+    pass in sequence with O18, and FR3b passed this time.
+  - R1 bench rows (loaded): orbit App 1, 3.4 ms; pose App 3, 4.3 ms; explode App 2, 10.2 ms; pick 56 ms; section on GPU
+    App 5, 6.8 ms. Section's GPU time is over its budget, as before; it is on the G14 list.
+- **G12 is done** with this, as the coordinator counts it, once the docs lane retakes its shots.
+- **Queued**:
+  - R1d next: the HUD values and the placing pointer in a store.
+  - G13 the frame triads, after R1d.
+  - G14: section's GPU time; O18's copies dropped on a rebuild with identical meshes; the step-48 order dependency
+    (render a part, then section view, parameters, surface analysis or RM2).
+  - R7.3: rename the packets' `right-handed-y-up` tag to what it means. Viewer is already Z-up and nothing converts
+    coordinates.
+
+## G-R49 — R1d: the HUD's values and the placing pointer outside the App's renders (roadmap R1d, 2026-10-24)
+
+- **What rendered the App**:
+  - Typing in the HUD: 4 keystrokes rendered App 10 times.
+  - Placing: 30 pointer moves rendered App 76 times, before the click. That is the bench's loaded measure; 114 in the
+    dev server's first count.
+  - Each value went through App state (`active`), then the preview's result again (`previewBodies`, `preview: 'ok'`).
+    Two effects then set state to the value it already had, which renders App once more to bail out:
+    - the requirements' `setSpec(null)` with no requirements;
+    - the access map's `setResult(null)` while off, its deps the shown bodies.
+- **The change** (83ce1a2cb, 7a62bda29 App.tsx):
+  - The running command is in a store (`activeStore`, a ValueStore; `setActive` is its `set`, with the same updaters).
+  - App subscribes to a key (`activeKey`): the command, its context and placing, and its values, unless the HUD typed
+    them (the values its last keystroke made) or the pointer is placing the shape.
+  - Handle and gizmo drags render App as before, so their handles follow the pointer.
+  - The HUD subscribes to the whole command: values, preview state, error.
+  - The preview evaluation follows the store's values, not App's renders.
+  - Apply-when-ready is checked after each render (a result renders App with its bodies) and as the preview settles
+    without one (an error).
+  - `apply` and a command's pick read the store.
+  - Both bailout setters now set state only when there is something to clear.
+- **Bench** (two new rows, `app` = App's renders; budgets one per keystroke or move; loaded, compare only):
+  - HUD typing: App 10 → **1** (1 result).
+  - Placing: App 76 → **16** (16 results, one each).
+  - Side effect of the access-map fix: the section drag's App renders 121 → 61 (CPU) and 5 → 3 (GPU).
+  - The full bench, all 19 rows: ok. Section on GPU is within its budget in this run.
+- **Also** (7b919a762, the coordinator's asks from the API lane):
+  - The facades' browser check `api-show-browser` (the API lane's, reviewed) is in gpu's `test:browser`. It passes 1/1
+    on hardware WebGPU and on SwiftShader.
+  - gpu's tsconfig.json is `noEmit`. build:library emits through `tsconfig.build.json`, so a bare `tsc` only checks and
+    no longer overwrites the bundle in dist/index.js with unbundled output.
+- **Runs**:
+  - Full flow at 7a62bda29 (scratch): **WebGPU 286/286, WebGL2 286/286**.
+  - Studio unit 286/286, tsc and eslint 0 errors, check:docs clean (595 labels). gpu unit 193/193.
+
+## G-R50 — G13: the robot's frames drawn as triads; a proposal's volume chips stacked (roadmap G13, 2026-10-24)
+
+- **Frames** (6cf398188), the prop shape the coordinator settled with the outer lane:
+  `frames?: readonly { name, kind?: 'tool' | 'sensor', o: Vec3, R: Mat3 }[]`.
+  - `o` is in mm, in assembly coordinates. `R` is row-major with its columns the frame's axes.
+  - Each frame is drawn as a triad, X red, Y green, Z blue, over the scene, with its name on a chip: a tool's is the
+    accent, a sensor's cyan.
+  - WebGPU draws engine lines and labels, keyed by content. WebGL2 draws them in the overlay.
+  - The axes are drawn after the names, so an axis that turns under its name stays visible. The first run found the
+    TCP's chip covering its Z axis after the turn.
+  - SceneViewport builds the list from the pose store: FK's link motions while a slider moves, the solved pose's own
+    frames otherwise. So a joint played renders it, not the App.
+  - The axes' length is a fifth of the parts' own extent, so the triads keep their size as the arm moves.
+- **Flow** (4b4acd4cb), the 6R arm with O12's TCP on l6 and camera on l3:
+  - The TCP's triad is at MuJoCo's (45, 97, 330) at the zero pose, and at (63, 105, 330) after a quarter turn of l6,
+    its Z then along +Y.
+  - The camera's triad does not move.
+  - The triads are drawn where they say. On WebGPU the Z axis is blue on the canvas along it; on WebGL2 the overlay's Z
+    line runs between the origin's and the end's screen points.
+- **A proposal's volume chips** (b0d5619b4), from the docs lane's shot, where they overlapped by the hole:
+  - Both chips stand stacked over the top of the two boxes (`proposalChips`), on WebGPU's labels and WebGL2's overlay
+    alike, so they never meet however the view turns.
+  - G12's step checks that the WebGL2 chips' boxes are apart.
+- **Runs**:
+  - Full flow at 4b4acd4cb (scratch): **WebGPU 287/287, WebGL2 287/287**.
+  - The full bench: every row ok but section on GPU's GPU time (8.8 ms a submit against 6; the G14 item). Pose is App 3,
+    4.6 ms, as before: the frames don't render the App.
+
+## G-R51 — R7.3a in progress: gpu's errors onto BarocssError, batch 1 of 2 (roadmap R7.3a, 2026-10-24)
+
+R7.3a in progress: batch 1 is committed as WIP (c185821e8), unit-checked, not browser-checked; batch 2 is not started.
+The work stopped here for the owner's move to another place.
+
+- **Done (batch 1, no message or code changed)**:
+  - `src/core/barocss-error.ts`: gpu's `BarocssError`, in api-conventions.md §6's shape `{ code, message, where?,
+    details? }`, with `cause`, and `Problem` `{ code, message, where? }`. gpu imports neither cad nor cad-model, so this
+    is its own class of that name and shape.
+  - Each of gpu's 35 error classes extends it. Each keeps its class name (the tests' `instanceof` and `assert.throws`,
+    about 200 references), its `code` and its message unchanged.
+    - The three without a code get one each, one to one: GPUError `gpu`, SceneError `scene`, SceneViewError
+      `scene-view`.
+    - `instanceof BarocssError` now catches any refusal of the package.
+  - `src/core/error-codes.ts`: `GpuErrorCode`, the union of every class's `code` type plus the facade's
+    `MESH_INVALID` and `LIGHT_INVALID`, so the docs' refusal table can be read from types.
+  - `src/api/refusal.ts` (the API lane's facade) uses the core class. `refuse()` still writes the `[CODE] …` message.
+  - Exported from the main entry: `BarocssError`, `Problem`, `GpuErrorCode`. `UpdateResult`'s error is a BarocssError.
+  - `tests/barocss-error.test.mjs` is in the test script: each exported error class is a BarocssError, keeping its
+    name, code and message.
+- **Not done (batch 2, next)**, as the coordinator split it:
+  - The codes in upper-snake (`webgpu-unavailable` → `WEBGPU_UNAVAILABLE` …, the three above too).
+  - Messages prefixed `[CODE] `.
+  - gpu's tests and examples/gpu-scene updated in the same commits. The studio matched no gpu code or class at batch 1
+    (checked: none in apps/cad-studio/src or test); recheck at the time and list each studio site changed.
+- **Left open, for the coordinator**: the `{ ok: false, diagnostics }` compile results are kept as data results.
+  - They are mesh-material, scene-viewer and gpu-compiler. Their diagnostics already carry `code` and `message`, with
+    source positions.
+  - Whether they become `check…` functions returning `Problem[]`, or throws, is not decided. Either changes their
+    callers.
+- **Checks at the commit**: gpu tsc 0 and eslint 0; gpu unit 195/195, its earlier 193 plus the new error test's two; the
+  build; studio tsc 0. gpu's test:browser was stopped before it finished, on the owner's stop:
+  **the batch is NOT VERIFIED in the browser**. The next session runs `pnpm test:browser` in packages/barocss-gpu, after
+  CAD's and gpu's build:library, on hardware and with VIEWER_ADAPTER=swiftshader.
+- **Then**, from the coordinator's queue:
+  - R7.3c: gpu's Vec3, Mat3 and Mat4 at the package boundary (§10.2).
+  - R7.3d: the `right-handed-y-up` tag renamed, with the kernel lane (§10.1).
+  - G14, measure then decide: section's GPU time 8.8 ms against 6; the copies dropped on a rebuild with identical
+    meshes (O18); the step-48 order dependency.
+
+## G-R52 — R7.3a batch 1 browser-verified (a harness 404 found); batch 2: upper-snake codes, `[CODE] …` messages (roadmap R7.3a, 2026-10-24)
+
+- **Batch 1 in the browser** (ee5d032ad, merged as 1c20848d9):
+  - **Found**: batch 1 broke gpu's `test:browser`. viewer/ and api/ import `../core/barocss-error.js`, and the
+    harnesses serve exact routes (the viewer's built modules under `/viewer/…`, the facade's `/gpu/api/…`), so the
+    import 404'd and the module failed to load: 5 of 28 on hardware (api-show, viewer-browser, the three cap-aa tests).
+    The studio was not affected (its Vite resolves the package; the window's flow 287/287 stands); no studio harness
+    serves dist/viewer.
+  - Fix, tests only: each viewer harness (and the costs bench) also serves `/core/barocss-error.js`; api-show's route
+    takes `core/`. Then 28/28 on hardware and 28/28 with VIEWER_ADAPTER=swiftshader.
+- **Batch 2** (this commit):
+  - **Codes upper-snake.** Ten codes in four classes were not: ViewerError's `webgpu-unavailable`, `no-adapter`,
+    `no-context`, `shader`, `pipeline`, `disposed`, `device-lost` → `WEBGPU_UNAVAILABLE` …; GPUError `gpu` → `GPU`,
+    SceneError `scene` → `SCENE`, SceneViewError `scene-view` → `SCENE_VIEW`. The other 31 classes' codes were already
+    upper-snake (`INPUT`, `BUDGET` …).
+    - GPUError, SceneError and SceneViewError declare their code's literal type (`declare readonly code: 'GPU'`), so
+      `GpuErrorCode` is a union of literals, not `string`.
+    - `core/error-codes.ts` checks it with tsc: `NonUpperSnakeGpuErrorCode` must be `never`. Checked by adding
+      `'oops-x'` to the union: tsc fails, as it should.
+    - Codes stay per class, not package-unique: `INPUT` is the code of about 30 classes. Whether the docs table needs
+      them unique (`ENGINE_RAYCAST_INPUT` …) is the coordinator's call; nothing reads them that way today.
+  - **Messages `[CODE] …`.** gpu's BarocssError writes the prefix, as cad's facade class does, once (a message already
+    carrying its code keeps it once; the facade's `refuse()` is unchanged).
+    - The 27 classes that cap a refusal at 1024 characters pass `maxLength: 1024`, and the base class caps the whole
+      message, its prefix included. So the flows' `message.length <= 1024` checks stand unchanged.
+    - `refusalText(error)` (exported) gives the words without the refusal's own code. It is used where a refusal's text
+      moves into a diagnostic that carries the code as its own field, or into another refusal under that one's code:
+      mesh-material's six compile catches, material-viewer, gpu-compiler's diagnostic (its `code(message)` guess reads
+      the words), scene-front's three primitive checks, material-evaluation ×2 and scene-parameter-source. So a
+      diagnostic's message is the same text as before, and a wrapped refusal reads `[OUTER] words`, never
+      `[OUTER] [INNER] words`.
+  - **A batch-1 regression, fixed**: seven classes record a cause given as `undefined` as an own `cause` (the native
+    lights' four `arguments.length > 2`, the two WebGPU frames' and the UV-texture bindings' variadic cause). Batch 1's
+    base class dropped an undefined cause, and the uv-texture-material-bindings flow's "a thrown undefined is the cause"
+    check failed. The base class now keeps a cause whenever the key is given; the other classes leave the key out when
+    they have none, as before. A unit test checks both.
+  - **The studio's call sites**, all checked, none changed:
+    - RenderPanel's scene and material errors show compile diagnostics (`compileGpu`, `materialShader`): data, whose
+      messages keep their words (above).
+    - gpuRenderer's `showScene` catch drops the refusal (the panel shows the diagnostics); `createViewer`'s rejection in
+      Viewport falls back to WebGL2 without showing it.
+    - useGpuMaps shows a compute error's message, but compute throws plain `Error`s, not gpu's classes.
+    - Nothing in apps/cad-studio/src or test matches a gpu code or class name.
+  - **Tests**: barocss-error.test (5): `[CODE] …` per constructor shape, the 1024 cap with the prefix, the prefix once,
+    `refusalText`, a diagnostic plain, the undefined cause. Four gpu-scene flows checked the old text and now check the
+    code too: engine-transform-clip, engine-uv-texture-material-bindings and triangle-normal-generation
+    (`startsWith('[${code}] Header: ')`), native-surface-uv01-geometry (the exact `[NORMALIZATION] …`). viewer-browser's
+    disposed check reads `DISPOSED`.
+- **Runs** (this worktree, at the batch's tree):
+  - gpu tsc 0, eslint 0, unit 198/198, examples/gpu-scene flows 65/65, `test:browser` 28/28 on hardware and 28/28 with
+    VIEWER_ADAPTER=swiftshader (its viewer-browser case rerun after the `DISPOSED` fix). Only three of the nine browser
+    files read VIEWER_ADAPTER (viewer-browser, scene-viewer-browser, api-show); the other six run on hardware both times.
+  - Studio tsc 0 (no studio file changed).
+  - Studio flow, FLOW_ONLY `^(render a part|surface analysis|G12:|G13:|G16:|G17:|G19\.|G20\.2|K2 FRk5|G3 display
+    modes|G22 clearance|G23 )` (the steps on either renderer, plus Render's and the analysis' gpu compiles), port 52691:
+    WebGPU 17/18 and WebGL2 17/18. The one failure on both, 280 (G3 display modes), is a FLOW_ONLY prerequisite: its
+    Mount needs the mount rows that step 91 (O14 / O16, the Library's shop rows) loads, so the Mount stayed open and
+    the display-mode select was disabled. Rerun with `^(O14 / O16: the Library|G3 display modes)`: 91 and 280 pass on
+    both renderers.
+  - Not run: the full flow on either renderer (the coordinator's window at the end of R7.3); studio unit.
+- **Left open, for the coordinator**:
+  - The `{ ok: false, diagnostics }` compile results (mesh-material, scene-viewer, gpu-compiler) stay data results, as in
+    G-R51.
+  - 101 plain `throw new Error/RangeError/TypeError` remain in gpu's src (geometry.ts 15, gpu-data.ts 15, viewer/scene.ts
+    10 …). Several are causes the classes wrap, and flows check them as `RangeError`. Whether they become BarocssErrors is
+    a batch 3 decision.
+- **For R7.3d (the packet tag)**: `right-handed-y-up` is not meaningless everywhere. gpu's primitive geometries and the
+  engine scene are authored in scene units with a real Y axis (cylinder-geometry: "a generic Y-axis mesh"; capsule,
+  cone, plane, torus alike), so there the tag is true. The misleading one is the mm mesh packet from CAD (cad's
+  core/packet.ts and its seven preview builders, gpu's mesh-packet.ts, gpu-compiler and kernel-face-preview), which is
+  Z-up data. The same tag also sits in packages/barocss-cad-interop (its packet, three and babylon hosts, which are Y-up
+  engines), packages/barocss-viewer, the physics examples and pinned evidence JSON. The scope is the coordinator's call.
+
+## G-R53 — R7.3c: gpu's Vec3, Mat3 and Mat4 in one declaration, readonly at the boundary (roadmap R7.3c, 2026-10-24)
+
+- **One declaration**: `src/core/geometry-types.ts`, in api-conventions.md §10.2's shapes:
+  - `Vec3 = readonly [number, number, number]`;
+  - `Mat3`: 9 numbers, row-major, its columns the frame's axes;
+  - `Mat4 = Float64Array`, column-major.
+- **Before**: two exported Vec3s, viewer/math.ts's readonly one (exported as `ViewerVec3`) and scene-types.ts's mutable
+  one (the main entry's `Vec3`), plus scene-viewer's local `V3` and inline `[number, number, number]` in the public
+  mesh packet, the mesh camera, capHatchAxes and the SDF render IR. No Mat3.
+- **After**:
+  - viewer/math.ts and scene-types.ts re-export the core types. scene-viewer's `V3` is the core `Vec3`.
+  - The main entry exports `Vec3` (now readonly), `Mat3` and `Mat4`. The viewer entry exports the same three under the
+    same names. `ViewerVec3` is gone, with no alias; nothing in the repository used it.
+  - Readonly `Vec3` in the public types: MeshPacket's `bounds`; MeshOptions' and the coplanar boolean options'
+    `translate`; MeshCamera's `eye`, `target` and `up`; capHatchAxes' `u` and `v`; the SDF IR's `translate`, `size`,
+    `rotateDegrees`, `start` and `end`. Colours stay `RGB`, a mutable triple: they are not geometry.
+  - Inside gpu, values being built stay mutable: 58 `number[] as Vec3` casts read `as [number, number, number]`, and
+    the growing min/max accumulators are typed mutable (engine-scene, triangle-geometry, mesh-scene-transform,
+    primitive-frame-preflight, source-scene-bounds' `GrowingBox`). A readonly Vec3 accepts them.
+- **No runtime change**: the built `dist/index.js` and every emitted `.js` are byte-identical to batch 2's (`cmp`). The
+  only new file is the type-only `dist/core/geometry-types.js`. So the browser tests and flows were not rerun.
+- **Runs**: gpu tsc 0, eslint 0, unit 198/198. Studio tsc 0 and cad-model tsc 0 against the new declarations; neither
+  changed.
+- **Not done, for the other lanes** (§10.2 says "where they cross a package"): cad's `Vector3` (section-properties) and
+  its api/ Vec3s (the API lane's), and cad-model's eight `Vec3`/`V3`/`Mat3` declarations, are the kernel's, the API
+  lane's and the outer lane's.
+
+## G-R54 — G14 in progress, measured: section's GPU time by pass; the step-48 order dependency (roadmap G14, 2026-10-24)
+
+- **Section's GPU time, by pass** (measure first):
+  - The viewer's render passes now carry labels (`viewer surface`, `viewer output`, `viewer shadow`, `viewer cap front`
+    and `… samples`, `viewer light probe`, `viewer oit` and `… composite`, `viewer outline mask`, `viewer mip`,
+    `viewer pick`). A label is the only change: no pass, draw or binding moved.
+  - bench-browser records each stamped pass's time by its label and prints it under the row with `BENCH_PASSES=1`.
+  - Run: `BENCH_ONLY='^(section|orbit)' BENCH_PASSES=1 node test/bench-browser.mjs`, load 14 → 12, so LOADED (compare
+    only). Milliseconds per submit:
+
+| Row | GPU | surface | output | cap front samples | light probe | cap front | shadow | outline mask |
+|---|---|---|---|---|---|---|---|---|
+| orbit, 60 steps | 1.2 | 0.41 | 0.79 | — | — | — | — | — |
+| orbit, a body outlined | 2.06 | 0.40 | 1.27 | — | — | — | — | 0.39 |
+| section, 120 brackets on the GPU | **5.68** (≤ 6) | 2.17 | 2.06 | 0.71 | 0.30 | 0.27 | 0.17 | — |
+| section, CPU clipMesh (WebGL2's) | 1.95 | 0.86 | 0.81 | — | — | — | 0.28 | — |
+
+  - Within its budget in this run; 8.1–8.8 ms at G-R46–G-R50, also loaded. So the overrun is not steady.
+  - Where the time goes: the surface pass costs 2.5 times the CPU path's (the clip plane's discard and the caps' probe
+    in the same shader), and so does the output pass (2.06 against 0.81). The cap passes add 1.3 ms. The output pass's
+    share is the open question: it resolves and composites the same pixels either way.
+  - **Decision proposed**: no change to the section path from this. Next, one quiet-machine run of the section rows to
+    settle whether 6 ms holds, then, only if it doesn't, the output pass first.
+- **The step-48 order dependency** (reproduced: FLOW_ONLY `^(render a part|section view|parameters:|surface
+  analysis|RM2:)` on WebGPU; 48 passes, 74, 96, 193 and 217 fail):
+  - Cause 1: **New part keeps the camera.** Step 48 leaves its saved view (the camera further out). Step 74 starts from
+    New part with that camera, where it otherwise starts from the default one. Its six 12 px drag steps then move the
+    plane to 29 mm, not 24.
+  - Cause 2: at that zoom the section handle moves 2.9 px on release (held → after: −2.7, −1.0 px), over step 74's
+    2 px limit. The drag and the commit both snap to 0.5 mm, and the handle's point comes from the same
+    `sectionHandles(section, sectionBox)` both times, so the move is in how the handle is drawn, not in the plane. Still
+    to find: during the drag SceneViewport draws the handle from the live store; after release the App draws it, and
+    they differ.
+  - Steps 96, 193 and 217 fail only because 74 stopped with the section left on (96's screenshot: the section bar still
+    up, Chamfer refused).
+  - Step 74 passes alone.
+  - **Decisions proposed**: (a) New part puts the camera back to the default view; this is user-visible, so it is the
+    coordinator's call. **The coordinator's answer: not now.** It stays a possible later UX item, so it doesn't hide (b). (b) Find the 2.9 px release move and fix it: a handle should not move when it's let go. (c) The
+    flow's steps 96, 193 and 217 don't need to change.
+- **O18's placed copies dropped on a rebuild with identical meshes** (measure first):
+  - The outer lane's work-round (App's `sameMeshes`, 2aae36ec3) was taken out in this worktree only, for the runs, then
+    put back (nothing committed).
+  - FLOW_ONLY `^O10 (frame costs|Rebuild)` and `^(AM7|O10 (frame costs|Rebuild))` on WebGPU: all pass (285, 286, and
+    AM7a and AM7b before them). The frame costs list the 10 bodies with the 8 copies by their keys in every display
+    mode. **Not reproduced at 540df6a71.**
+  - Why it can't come from gpuRenderer.setBodies today: it keys bodies by their mesh signature (content), keeps every
+    body whose signature is unchanged, and returns at once when all are. A new array of the same meshes rebuilds
+    nothing. The instances are keyed the same way (setInstances). So "should the renderer key on mesh identity" is
+    answered: it already keys on content, which covers identity.
+  - **Decision proposed**: close the item. Keep the work-round: it also saves the App's re-render on a mass patch. If a
+    full window shows the copies missing again, its O10 steps will catch it.
+
+## G-R55 — R7.3d, gpu and interop side: the CAD packet's tag is `right-handed-z-up`; GpuErrorCode takes the facade's codes (roadmap R7.3d, 2026-10-24)
+
+- **Scope, as the coordinator settled it**: the mm mesh packet from CAD only. Its tag was `right-handed-y-up`, which
+  is wrong for CAD's data (Z up, §10.1); it becomes `right-handed-z-up`, with no alias. gpu's primitive geometries,
+  the engine scene, the SDF render IR, the cloth and particle layers and the pinned evidence JSON keep
+  `right-handed-y-up`: they are scene units with a real Y up (cylinder-geometry is "a generic Y-axis mesh").
+- **gpu** (489a29d36, the README in dc39326fd and 540df6a71):
+  - mesh-packet.ts (the PreviewPacket type, its validator and its copy) and kernel-face-preview.ts (the packet it builds).
+  - gpu-compiler.ts: the render IR's frame is per variant now. The SDF IRs are `right-handed-y-up`, the indexed-mesh IR
+    (a CAD packet) is `right-handed-z-up`.
+  - The README's packet example and IR line.
+  - Tests and fixtures that build packets: tests/mesh-fixtures, mesh-packet, mesh-consumer, gpu-compiler-consumer,
+    fixtures/original-compiler.json's packet. examples/gpu-scene: mesh-fixtures.mjs, mesh-flat-packet.json and
+    native-surface-uv01-geometry-flow's packet check. examples/cad-nurbs/preview-flat-packet.json.
+- **barocss-cad-interop** (assigned to this lane for the rename only): its packet reader (packet.ts), native-face.ts's
+  packet and babylon.ts's surface-mesh metadata, which copies the packet's frame. Its curve lineage (three, babylon,
+  pixi3d curves) is not a packet and keeps its label. Tests: interop.test's packet, babylon-loader's metadata check.
+- **barocss-viewer**: unchanged. It passes cad's packets through gpu's validator and writes no packet tag itself; its
+  `frame: 'right-handed-y-up'` is another field.
+- **The physics examples** (3541c0e48, assigned by the coordinator): physics-character-viewer's capsule-mesh, terrain and
+  geometry-checks, and the rigid-hinge viewer's meshes.mjs, built packets with the old tag, which gpu now refuses. Only
+  the literals changed; `node --check` on each.
+- **The kernel's side**: cad's core/packet.ts, core/preview.ts, z-axis-revolve-preview.ts, the seven planar-solids
+  preview builders, the README's three lines, and the fixtures/tests that build packets (tessellation.test,
+  modeling-box-cut-fixture, modeling-union-fixture, stored-circle-prism-solid-fixture, modeling-circle-native). It is a
+  patch for the kernel lane, `r73d-kernel-packet-tag.patch` in the lanes' shared notes folder (16 files, 22 lines;
+  `git apply --check` clean). The two sides land together: gpu now refuses a y-up packet, and native-surface-uv01's
+  frame pack compares cad's packet type with gpu's, which tsc rejects until both are renamed.
+- **GpuErrorCode** (the API lane's R7.5b finding 8): `| SceneCode` from src/api/refusal.ts, a type-only import, in
+  place of the hand-written `'MESH_INVALID' | 'LIGHT_INVALID'`. The facade's MATERIAL_UNKNOWN, MATERIAL_INVALID and
+  CAMERA_INVALID reach the union, and the union and the refusal table can't drift.
+- **Runs**, with the kernel patch applied locally (then reverted, not committed by this lane): cad tsc 0 and its three
+  packet suites (construction, stored-circle-prism-solid, tessellation) 28/28. gpu tsc 0, eslint 0, unit 201/201,
+  test:consumer 3/3, gpu-scene flows 65/65 (after native-surface-uv01-geometry's check), test:browser 29/29 on
+  hardware. Interop `pnpm test` passes. `test:babylon` passes with gpu's cad-dist hook
+  (`node --import ../barocss-gpu/tests/cad-dist.mjs test/babylon-loader.test.mjs`); its own script fails before running
+  anything, because `@barocss/cad` resolves to TypeScript sources (G-R40's cause, which this change didn't introduce).
+  Studio tsc 0: the studio, cad-model and the docs don't use the packet path.
+
+## G-R56 — G14 (b): a handle drag measured from where it began; the release no longer moves the section handle (roadmap G14, 2026-10-24)
+
+- **Cause** (G-R54's cause 2): Viewport's handle drag measured each step with `dragAlong(from, pointer, hd.at, …)` and
+  `dragIn(…)`, linearised at the handle's *current* point.
+  - On WebGPU, SceneViewport hands Viewport the section's live handles, drawn where the plane now is, in every frame of
+    the drag. So each step measured from the point one frame back, and the release measured from yet another point.
+  - In perspective, the same pointer then gives a slightly different value. At step 74's zoom after step 48, that flipped
+    a 0.5 mm snap: the plane was committed half a millimetre back from where it was shown, and the handle moved 2.9 px
+    on release.
+- **Fix** (`viewport/Viewport.tsx`): the drag keeps the handle's point as the drag began (`handleAt`) and measures every
+  step and the release from it. The move gizmo already did this (`origin`, "measured from the gizmo where the drag
+  began"). Arcs, which add up their turn step by step about a fixed centre, are unchanged.
+- **Runs**:
+  - FLOW_ONLY `^(render a part|section view|a selected box shows its dimension|drag a surface pole|drag a part
+    instance|drag a dimension handle|Hole: drag its centre|a box under a fillet keeps up|O9:|G19\.|G20\.2|G16:|G17:)`:
+    every handle-drag step passes on WebGPU and on WebGL2 (32, 64, 66, 69, 74, 271–277), and **74 passes after 48**:
+    the order dependency is gone at its cause.
+  - 50, 58 and 270 failed in that selection on both renderers. Rerun with their prerequisites,
+    `^(import a \.barocad source|drag a surface pole|place another part as an instance|drag a part instance|G16:)`, all
+    six pass on both. 50 needs 49's imported surface and 58 needs 57's instance.
+  - 270 (G16) is another camera carry-over: it passes after 49/57 and failed after the G19 steps. That is the New-part
+    camera item (G-R54 (a)), left for later.
+  - Studio tsc 0 and eslint 0 (with R7.3d's kernel patch applied in the lane's tree; this branch is cut before R7.3d).
+- **Branch**: `claude/gpu-g14-handle-2026-10-24`, cut at 3801e2d9f (before R7.3d), so it can merge ahead of the R7.3d
+  pair. The lane branch merges it too.
+
+## G-R57 — R7.3a batch 3: gpu's public-input refusals coded (roadmap R7.3a, 2026-10-24; in progress, by area)
+
+The coordinator's plan from the classification (`gpu-throws-classified.md` in the lanes' shared notes):
+- Of the 101 plain throws in gpu's src, 61 refuse a caller's input on a public path, 28 are invariants or unreachable,
+  and 12 are wrapped as causes or turned into diagnostics.
+- The 61 become coded BarocssErrors, area by area, one commit each.
+- Shared helpers stay plain. Where they are public through an entry, the entry wraps them, keeping the RangeError as
+  the cause, so the seven flows that check `cause instanceof RangeError` stay true.
+- (b) and (c) are unchanged. Refusals that fire when a frame or a pick runs stay where they fire.
+- **Later, "verify, then remove"**: 17 (b) sites the classifier called dead: face-highlight 6, edge-overlay 1,
+  boolean-shell-scene-input 8, requireSceneExecution 2. Not verified: face-highlight is still imported by
+  object-highlight.
+
+**1. The viewer** (32 sites):
+- ViewerError moves into its own module, `viewer/viewer-error.ts` (re-exported where it was, from viewer/scene.ts and
+  the viewer entry), so geometry, lights and math refuse with it without an import cycle. Its code union is
+  `ViewerErrorCode`, exported from the viewer entry; GpuErrorCode takes it through ViewerError as before.
+- New codes, each `[CODE] ` followed by the old words:
+
+| Code | Sites |
+|---|---|
+| GEOMETRY_INVALID | geometry.ts' input checks (15: positions, indices, topology counts, normals, faces, edges, uvs, labels, colours, a colour range, scalar fields); Geometry's setColors/colour range/uvs (scene.ts, 4) |
+| INSTANCES_INVALID | instance transforms or colours of the wrong length; instancing a non-triangle mesh (3) |
+| TRANSFORM_INVALID | a transform that isn't 16 numbers (1) |
+| COLOR_MAP_INVALID | fewer than two stops, or stops not rising (1) |
+| COLOR_INVALID | not a hex colour (lights.ts, at frame time, 1) |
+| MATERIAL_INVALID | a shader material with more than 16 params (at frame time, 1) |
+| CLIP_INVALID | more clip planes than allowed; a plane without a normal or a finite offset (2) |
+| TEXTURE_INVALID | a texture without a size; data not width × height RGBA (2) |
+| SIZE_INVALID | a backing size under 1 × 1 (1) |
+| MATRIX_SINGULAR | `invert` of a matrix with no inverse (1) |
+
+- The class was RangeError; it's ViewerError now. Nothing in gpu's tests, the gpu-scene flows, the studio or cad-model
+  checks these as RangeError (the classifier's search, rechecked). The tests' message regexes are unanchored.
+- **Found, for the coordinator**: the published package has two copies of the viewer's classes. `@barocss/gpu` is a
+  bundle (dist/index.js) and `@barocss/gpu/viewer` is tsc's unbundled output (dist/viewer/), so `instanceof` across
+  the two entries fails (a ViewerError from one is not the other's BarocssError). This predates batch 3; the studio
+  uses src and is unaffected. barocss-error.test compares within the viewer entry and says why.
+- **Runs** (with R7.3d's kernel patch applied in the lane's tree, uncommitted; without it gpu's build stops at tsc):
+  gpu tsc 0, eslint 0, unit 202/202 (barocss-error.test 6, a new MATRIX_SINGULAR case); test:browser 29/29 on hardware
+  and 29/29 on SwiftShader; studio tsc 0, studio unit 286/286.
+
+**2. The mesh and scene entries** (24 sites, wrapped at their entries):
+- `core/input-error.ts`: `GpuInputError`, its codes, `recoded(code, error)` and `refusing(code, fn)`. `refusing` is
+  applied once per entry, at load, in src/index.ts. A plain Error from the entry becomes a GpuInputError of the code,
+  with the same words and the plain one as its cause. A BarocssError, and anything that isn't an Error, passes through.
+- Inside the package the plain functions are still used. So the engine and native paths wrap the shared validators as
+  before, and the seven flows that check `cause instanceof RangeError` are unchanged.
+
+| Code | Entry | The sites it covers |
+|---|---|---|
+| SCENE_INVALID | parseScene, compileScene | scene/scene.ts:8 (the source version); gpu-data.ts' 12 record and object checks, through compileScene's admission |
+| MESH_PACKET_INVALID | validatePreviewPacket | mesh-packet.ts:33 |
+| MESH_OPTIONS_INVALID | validateMeshOptions | the options' camera (camera.ts:17), lighting (mesh-lighting.ts, 6) and transform |
+| MESH_INVALID | prepareMesh | the packet's and the options' checks |
+| CAMERA_INVALID | validateMeshCamera, prepareCamera | camera.ts:17 |
+| FACE_PREVIEW_INVALID | prepareKernelFacePreview, resolveKernelFaceReference | kernel-face-preview.ts:20 and its record reads |
+| PRIMITIVE_FRAME_INVALID | preparePrimitiveSceneFrame | mesh-scene-transform.ts:19, gpu-compiler.ts:60 (requireMeshExecution) and the packet, camera and lighting checks under it |
+
+- **preparePrimitiveSceneFrame recodes in its own catch, not through `refusing`.** Its flow checks that an error the
+  caller's own input throws (a Proxy trap's sentinel, while the frame record is read) passes through as the very same
+  object. So once the input is read, a plain refusal is recoded. What the read itself throws passes through, as before.
+- Changed check: primitive-frame-preflight-flow's six `RangeError` expectations now expect a GpuInputError of
+  PRIMITIVE_FRAME_INVALID, with the RangeError as its cause and its message as the cause's after the code.
+- **Runs** (R7.3d's kernel patch applied in the lane's tree, uncommitted): gpu tsc 0, eslint 0, unit 203/203
+  (barocss-error.test 7: an entry's coded refusal with its cause; a coded refusal passing through); test:consumer 3/3;
+  gpu-scene flows 65/65; test:browser 29/29 on hardware; studio tsc 0.
+- **Found while checking**: R7.3c's readonly Vec3 breaks packages/barocss-viewer's type-check (34 errors, all of them
+  gpu's readonly Vec3 meeting barocss-viewer's own mutable `Vec3` aliases; 0 with gpu's Vec3 mutable). It went to the
+  coordinator with a proposed fix in barocss-viewer only.
+
+**3. Boolean buffers and the BVH** (5 sites):
+- BOOLEAN_BUFFERS_INVALID: prepareCoplanarBooleanBuffers and prepareBooleanShellBuffers are wrapped in index.ts. That
+  covers native-mesh-buffers.ts:6 and 46, coplanar-boolean-buffers.ts:29 and boolean-shell-buffers.ts:22. axis-box,
+  which wraps the same helpers in its own `child()`, is unchanged.
+- GPU_BVH_DEPTH: packBvh (computeExperimental) throws a GpuInputError in place. Its message is byte-identical to
+  before (`[GPU_BVH_DEPTH] the hierarchy is … deep; …`), so the studio's access map shows the same words.
+- **Runs** (R7.3d now merged on integration; the kernel's half was applied locally): gpu tsc 0, eslint 0, unit
+  204/204, consumer 3/3, gpu-scene flows 65/65, test:browser 29/29 on hardware and on SwiftShader; studio tsc 0,
+  cad-interop tsc 0.
+
+**Batch 3's codes, for the docs lane's refusal table**:
+- ViewerError: GEOMETRY_INVALID, INSTANCES_INVALID, TRANSFORM_INVALID, COLOR_MAP_INVALID, COLOR_INVALID,
+  MATERIAL_INVALID, CLIP_INVALID, TEXTURE_INVALID, SIZE_INVALID, MATRIX_SINGULAR.
+- GpuInputError: SCENE_INVALID, MESH_PACKET_INVALID, MESH_OPTIONS_INVALID, MESH_INVALID, CAMERA_INVALID,
+  FACE_PREVIEW_INVALID, PRIMITIVE_FRAME_INVALID, BOOLEAN_BUFFERS_INVALID, GPU_BVH_DEPTH.
+- All are in GpuErrorCode (`ViewerErrorCode`, `GpuInputErrorCode`). Each message is `[CODE] ` followed by the old
+  words.
+- After batch 3, gpu's src keeps 40 plain throws: 28 invariants or unreachable and 12 wrapped as causes. That's by
+  design.
+
+## G-R58 — Open reads `.barocad` as the only curve and surface source; another file is named with what Open reads (owner, 2026-10-24)
+
+- **The owner**: ".barocad 하나만 우리는 가지고 있어도 될 것 같아." `.cad` is a generic extension other CAD programs
+  use. The studio took such a file for our source, parsed it, and failed.
+- **The change** (App.tsx):
+  - The Model file input's accept list drops `.cad`.
+  - open() takes only `/\.barocad$/i` as a source, and strips only that from the name.
+  - A file whose extension Open doesn't read is now refused before the model reader is tried. Before, it reached
+    readStudioFile and failed with the reader's words. The toast says "Can't open <name>", with `OPEN_READS`: "Open reads
+    models (.bcad, .json), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your
+    part is unchanged."
+  - A file without an extension is still tried as a model, as before.
+- **Nothing else reads or writes `.cad`**: not in the studio's src or test, cad-model's src, or the fixtures (lid,
+  study and warp are `.barocad`). The one mention is apps/library-docs/docs/studio/files.md:21, which lists `.cad`
+  beside `.barocad`. That's for the docs lane.
+- **Flow**: a new step, the last (288, so no other step's number moves). It checks the accept list, opens
+  `bracket.cad`, and expects the toast's name and words and the part unchanged.
+  - FLOW_ONLY `^(Open: a \.cad|import a \.barocad source|open a STEP file)` on WebGPU: 46, 49 and 288 pass.
+  - 49 is the `.barocad` import; 46 is STEP and its refusal of a bad .step.
+- **Runs**: studio tsc 0, eslint 0 on App.tsx. Not run: studio unit (the change is in App's open path, which only the
+  flow reaches); WebGL2 (renderer-independent).
+
+## G-R59 — R7.3d follow-up: cad-interop's curve metadata and its examples are `right-handed-z-up`; the axis-box basis question returned (roadmap R7.3d, 2026-10-24)
+
+- **The interop curve metadata** (the coordinator's go): CAD curve samples in mm, put into Three, Babylon and pixi3d
+  geometry with no axis change. That's CAD's Z-up data under a Y-up label, the packet's mislabel again.
+  - `'right-handed-y-up'` → `'right-handed-z-up'` in: three.ts, babylon.ts (the curve lines), three-uniform-curve,
+    babylon-uniform-curve, babylon-selected-uniform-curve, pixi3d-selected-uniform-curve; and the test
+    selected-uniform-curve-pixi3d.
+  - In the examples that check these labels: curve-parameterization-three (verify and html), host-replacement-flow,
+    host-replacement-babylon-flow, weighted-curve-babylon (verify and html), the xy-angle-arc and
+    source-curve-control-polygon checkpoints. Also multi-section-loft-babylon (verify and html),
+    native-surface-curvature-babylon-verify and sdk-entry-checkpoint-verify: these check the *surface* mesh's metadata,
+    which R7.3d renamed (babylon.ts:113) but whose example checks it missed.
+  - The `-scene-units` labels (cloth, particles) are untouched.
+- **Runs**: interop tsc 0, build, `pnpm test` passes, test:babylon (with gpu's cad-dist hook) passes,
+  selected-uniform-curve-pixi3d.test passes.
+  - **Not run, and can't be as they stand**: the example verifies and checkpoints. They need a demo's output directory
+    (`<CAD-947-demo-output-directory>`, `--output EVIDENCE_DIR`) or a TypeScript loader for interop's src
+    (ERR_MODULE_NOT_FOUND on src/*.js, ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX). This predates the change: it's the state
+    G-R40 triaged for the gpu-scene flows. Their edits are the same literal as src's.
+- **axis-box-boolean-buffers: returned to the coordinator, not changed.** Its `basis: 'authored-xyz-matches-rhyup'` is
+  not its own.
+  - It's the host assertion used in about 150 places across cad-interop (the Three, Babylon and pixi3d hosts) and
+    barocss-viewer: "map authored XYZ unchanged into the host's right-handed Y-up frame".
+  - Its output is scaled into scene units by mmToSceneUnit, like the engine scene. So its `coordinateSystem` names the
+    host scene's frame, not the CAD data's.
+  - Renaming only axis-box's basis would split one assertion into two spellings. A rename of the assertion itself is
+    one change across all three packages, and it's the coordinator's call.
+  - **The coordinator's answer**: option (a), leave axis-box as it is. The basis is the Y-up hosts' assertion and the
+    output is in scene units.
+
+## G-R60 — R7.7c, part 1: no unit suffixes in gpu's names; the stored formats renamed in place (roadmap R7.7c, 2026-10-24)
+
+The owner, conventions §2: no unit suffixes in names, stored formats included ("저장된 문서 필드도 단위 접미사를 빼줘.
+아직 배포 전이니 최신 스키마로 바꾸고 픽스처를 다시 만들면 돼."). Renamed in place with no alias. Pinned evidence JSON
+is untouched as history. The coordinator settled the scope:
+- **A, options and results**:
+  - FrameStats `cpuMs` → `cpuTime` (ms, in its doc). The studio's `frameCost` row field follows (FrameCost and its
+    tracker), and so do gpuRenderer.ts:719, RebuildPanel's totals line (a read; outer's panel, in the agreed list) and
+    the flow's O10 log line.
+  - accessSampleSet(…, `stepMM`) → `step` (mm, in its doc). Positional, so the studio's useGpuMaps is unchanged.
+  - perspectiveReversed(`fovYRadians`, …) → `fovY` (radians, in its doc).
+- **B, gpu's data formats** (word-level, every use; tsc then checked for collisions):
+  - `rotateDegrees` → `rotation`: the scene objects, the SDF IR, source-scene bounds. In gpu-data, the raw local
+    became `given` so it doesn't meet the new field's name.
+  - `fovYDegrees` → `fovY`: MeshCamera, the engine scene's camera, the frustum. It's used by 64 files: gpu tests,
+    31 gpu-scene flows, barocss-viewer, and the viewer and physics examples that build MeshCameras.
+  - `translationMm` → `translation`: the mesh scene transform and the engine scene's node transform. Also
+    barocss-viewer's DrawnPose and pose data, and the examples that build them.
+  - gpu's four engine clip formats: `timeSeconds` → `time`, with their flows and the README.
+- **Not renamed**:
+  - `pointsMM` and `positionsMM` come from cad's previews and results. They pair with the kernel's R7.7b, as R7.3d did.
+  - `mmToSceneUnit` is a conversion factor's name, not a suffix on a quantity.
+  - The `…Bytes` counts name what they count.
+  - The facade's `fovYDeg` is the API lane's (R7.7d).
+  - barocss-viewer's own ViewerPoseFrame.timeSeconds and the physics examples' timeSeconds are unowned research
+    formats outside R7.7, as the coordinator ruled.
+  - The print fields (layerMM, limitDeg) are outer's R7.7a step 3.
+  - ClearancePanel's `nearMM` and the clearance worker's `job.nearMM` are part 2, after outer's step 3.
+- **Fixtures**: no JSON fixture held these fields. Every use was in code (.ts, .mjs, .js) or the gpu README.
+- **Runs**: tsc 0 in gpu, studio, barocss-viewer and cad-interop; eslint 0 (gpu; the studio's three files); gpu unit
+  204/204, consumer 3/3, gpu-scene flows 65/65, test:browser 29/29 on hardware; studio unit 286/286; FLOW_ONLY
+  `^O10 (frame costs|Rebuild)` on WebGPU passes (the frame costs' "ms CPU" read through cpuTime).
+
+## G-R61 — One copy of each class across gpu's entries: dist/index.js is tsc's output, not a bundle (pre-publication, 2026-10-24)
+
+- **The finding** (G-R57): `build:library` ran tsc, which emits every module, and then esbuild overwrote dist/index.js
+  with a bundle of src/index.ts. So `@barocss/gpu` had its own copies of Viewer, ViewerError, BarocssError and every
+  other class, while `@barocss/gpu/viewer` and `@barocss/gpu/api` used tsc's modules. `instanceof` across the entries
+  failed for a consumer.
+- **The fix**: `build:library` is `tsc -p tsconfig.build.json` alone. dist/index.js is tsc's index, importing the same
+  modules as the viewer and api entries. The exports map's paths are unchanged (`.`, `./source`, `./viewer`, `./api`,
+  types beside them). `@barocss/cad` stays an external import, as it was. No package, dependency or lockfile change:
+  esbuild came from the workspace root.
+- **Checks of the fix**:
+  - test:consumer, against `pnpm pack`'s tarball with publishConfig applied: the consumer now also imports the three
+    entries and checks `viewer.ViewerError === main.ViewerError`, `viewer.Viewer === main.Viewer`,
+    `api.BarocssError === main.BarocssError`, and that a viewer entry's ViewerError is the main entry's BarocssError.
+  - barocss-error.test asserts the same within the workspace.
+- **The browser harnesses**: scene-viewer, compute-thickness, compute-access and uv-repeating served the bundle as
+  `/gpu.js`. They now serve gpu's dist as built under `/gpu/…` and import `/gpu/index.js`, as api-show already did. That
+  file is the API lane's; I changed only its route and comment, and the coordinator saw the change.
+- **Found by building into a clean dist** (`rm -rf dist` first): 33 gpu-scene flows read files that no build makes any
+  more. That was hidden by stale leftovers in this worktree's dist.
+  - 32 flows read flat `dist/<leaf>.d.ts|js` paths from before R2d's folders, written either as a literal or as
+    `'dist/' + leaf + '.d.ts'`. Each now names the file where it is built: the literals rewritten where the name is
+    unique under dist (all were), and `builtDeclaration(leaf)` finds a leaf by name.
+  - material-discrete-selection compared the parent commit's declarations with a stale mesh-material.d.ts from before
+    R7.3a. Its pin now takes the one intended change, `MeshMaterialError extends BarocssError` (G-R51). Every other byte
+    stays equal.
+  - source-scene-bounds wanted a cold, separate instance by re-importing the entry with a query. That reloads only the
+    entry of an unbundled graph. For the emitted package its cold copy is now the emitted graph bundled into one file,
+    with every module fresh. The check that the two are different instances stays.
+  - The coordinator's window may also have passed on stale files, if its dist was never cleaned.
+- **Runs** (clean dist): gpu tsc 0, eslint 0, unit 204/204, test:consumer 3/3 (the packed tarball), gpu-scene flows
+  65/65, test:browser 29/29 on hardware and 29/29 on SwiftShader.
+
+## G-R62 — R7.7c, part 2: the clearance preview's `nearMM` is `near` (roadmap R7.7c, 2026-10-24)
+
+- After outer's R7.7a step 3 (merge 7c8c6c038; the print fields are `layerHeight` and `overhangLimit`, outer's).
+- **Renamed**:
+  - ClearancePanel's `nearMM` prop → `near`.
+  - The clearance worker's request `job.nearMM` → `job.near`. Its call to the core is now `{ near: job.near }`; the
+    core option was already `near`.
+  - The ClearanceDisplay field → `near`, documented "in mm". clearanceAnalysis, useClearanceAnalysis and App's state
+    follow (`clearanceNear`, `setClearanceNear`).
+  - gpu's clearance test fixtures, and cad-clearance-app-flow's check that the UI state isn't saved into the document
+    (`clearanceNear`).
+  - None of these is stored: a document never carried them, and that check says so.
+- **Left, for the outer lane**: cad-model's clearance map result carries `near: { mm }`, a unit as a field name
+  (clearanceAnalysis reads `map.near.mm`). It's outer's core shape.
+- **Runs**: tsc 0 in the studio, gpu, cad-model, barocss-viewer and cad-interop; eslint 0 on the six studio files; gpu
+  unit 204/204; studio unit 286/286; FLOW_ONLY `^G22 clearance` passes on WebGPU and WebGL2 (283).
+  - **Pre-existing, not from this change**: three of the four cad-clearance tests in packages/barocss-gpu/tests fail
+    before running. They're outside gpu's test script, so nothing ran them. cad-clearance-analysis bundles against
+    cad-model's `placementOf`, which is no longer exported from engine/doc.ts. cad-clearance-hook's bundle reads
+    `import.meta.env.DEV` without Vite. cad-clearance-gpu and cad-clearance-overlay-gl pass. Whether to repair or retire
+    them is the coordinator's call.
+
+## G-R63 — gpu's dormant tests repaired and in the test script: 204 → 301 (2026-10-24)
+
+- **What was dormant**: 15 test files in packages/barocss-gpu/tests were in no script. 14 test real code: the studio
+  viewport's clearance, print and display modules, and the bench's runner. The 15th, viewer-costs-browser, is the
+  browser bench's own harness and stays out.
+- **Repairs**:
+  - cad-clearance-analysis bundled `placementOf` from cad-model's engine/doc.ts. It now comes from engine/placement.ts,
+    where it lives.
+  - cad-clearance-hook bundled studio code that reads Vite's `import.meta.env.DEV`. esbuild is given
+    `define: { 'import.meta.env.DEV': 'false' }`, a production stand-in.
+  - The five cad-print tests used the print *options'* old names. Outer's R7.7a step 3 renamed them to `layerHeight` and
+    `overhangLimit`, and they follow. The print *result* still says `layerMM: { mm }` and `limitDeg: { deg }`, outer's
+    results step; those reads are kept.
+  - browser-runner-contract:
+    - It counted 17 bench cases. The bench has had 19 since G-R49's HUD and placing rows.
+    - It expected a reversed timestamp pair to be a timing error. Since G8 such a submit is counted `unstamped`, which
+      is G8's rule for Chrome/Metal's unwritten begin stamp. The check now asserts that rule.
+    - No limit was loosened: the case set is the bench's own list, and the reversed pair is still kept out of the GPU
+      average.
+- **Retired**: none.
+- **Now in `test`**: browser-runner-contract, cad-clearance-analysis, -clip, -gpu, -hook, -overlay-gl,
+  cad-display-browser-fixture, cad-display-browser-runner, cad-print-hook, -overlay, -projection, -settings, -worker,
+  cad-silhouette. gpu's unit run is 301/301 (was 204) and takes about 3 s.
+
+## G-R64 — RS2, part 1: a motion played in the Joints card (owner, 2026-10-24: "관절 움직임 같은거")
+
+- **What it plays**: the draft motion, unsaved — home, through the waypoints recorded (RM9a), to the pose shown, the
+  path Check path sweeps. It's frozen when Play starts or the scrubber moves. A slider moved, Home, a joint played, the
+  waypoints changed or a new tree stop it. Nothing is saved.
+- **The Joints card's Motion row**: "Play motion" / "Pause motion", a "Motion time" scrubber (0…T), a readout
+  "t 1.23 / 4.56 s", "Loop motion" and "Motion speed" (0.25×, 0.5×, 1×, 2×). Scrubbing pauses and sets the pose at t.
+  A contact reached shows as "Contact <link> – <link> at t … s".
+- **Mechanism** (`state/motion.ts`, useJoints):
+  - The path is timed once (ccd's `timePath`). The pose at t is each joint from its segment's start to its end by the
+    segment's progress (profile's `at`), as the sweep interpolates.
+  - The time is in its own ValueStore. An rAF loop advances it by dt × speed, wrapping or stopping at T, and sets
+    poseStore. JointsPanelLive follows the time, so a frame renders the card's live part and the viewport, never the
+    App.
+  - Check path's limits rule (each joint's velocity limit, else 1 rad/s or 100 mm/s, twice that per second) is
+    `pathLimits`, shared by Check path and the motion. Check path is otherwise unchanged.
+- **Contact**: a frozen motion is swept once (`sweepTimed`, the links as placed, as Check path does) for its first
+  contact.
+  - From t ≥ toi, the two links are marked. WebGPU outlines them in the error colour; WebGL2 tints them (`uContact`).
+    The part's own bodies are marked when the base link is one of the two.
+  - The mark is a `contactLinks` prop. App sets it once, as t crosses the time of impact: a subscription changes state
+    only on the crossing.
+- **Flow** (step 289, appended last, so no other number moves). The oracles are independent of the motion code: G13's
+  TCP points, a symmetric trapezoid's middle, and the time rate.
+  - The 6R arm from home to l6 at a quarter turn: the TCP is at G13's zero-pose point (45, 97, 330) at 0 and its
+    quarter-turn point (63, 105, 330) at T. At T/2 it is halfway round (as far from both, its height kept).
+  - Paused, the time holds. At 2× the motion's time runs 1.4–2.6 times the wall clock's. Looped past T, it wraps.
+  - RM6's 2R arm into the post: "Contact … post … at t" after the time of impact, with both links marked
+    (`__studioContactLinks`) and more strongly red samples in the frame than before it. Before it, nothing is said or
+    marked.
+  - Passes on WebGPU and on WebGL2.
+- **Bench**: a new row, "motion: the 2R arm's motion played". Loaded run (load 21 → 18), compare only: 190 frames,
+  task 4.4 ms a frame, GPU 1.36 ms a submit, 0 buffers made, 4 App renders over 190 frames — beside the joint played's
+  4.39 ms and App 3. The renders come at Play, the freeze's sweep and Pause, never in a frame. The budget is `app: 4`.
+  The runner contract counts 20 cases.
+- **Runs**: studio tsc 0, eslint 0 on the eight files, browser-runner-contract 11/11, FLOW_ONLY `^RS2:` on WebGPU and
+  WebGL2, BENCH_ONLY `^(pose|motion):`.
+- **Next (part 2)**:
+  - outer's `@barocss/cad-model/robot/motion` (poseAt, duration, timedPathOf, motionOf) in place of this adapter;
+  - "Save as motion" and a select of the document's saved motions (RobotSettings.motions);
+  - RS1's Samples group;
+  - the video export, as its own checkpoint.
+
+## G-R65 — RS2 part 2 (saved motions, outer's core) and RS1's studio side (the Samples group); G14's section, measured again (2026-10-24)
+
+- **RS2 part 2** (a79d3df3f, WIP until this checkpoint verified it):
+  - The motion module uses outer's core, `@barocss/cad-model/robot/motion`: `poseAt(tree, path, t)` and
+    `duration(path)`. The core times a path once per path object. The local adapter is gone; `pathLimits` and
+    `draftPath` stay.
+  - **Choosing**: the Motion row's "Motion choice" select lists the draft ("Draft: home → waypoints → this pose") and
+    the document's saved motions (`RobotSettings.motions`) by name. A saved one is timed through `timedPathOf` (the
+    document keeps degrees and mm; poseAt and the sweep take radians). Its length shows before it plays. A choice
+    changed stops the motion; a saved motion gone from the document returns the card to the draft.
+  - **Saving**: with the draft chosen, "Motion name" and "Save as motion" keep it in the document as
+    `{ name, path: motionOf(tree, draft) }`. A motion of the same name is replaced. It's an undo step, the file is
+    dirty, and the saved one is chosen.
+  - The shown pose and the play state stay UI-only: not stored, no undo.
+- **RS1's studio side**: a "SAMPLES · ROBOTS" group in the Templates menu.
+  - It lists outer's `packages/barocss-cad-model/samples/robots/index.json` (8 samples, title and about).
+  - "Open sample <title>" opens the sample's `.bcad` through Open's own path (`open(file)`). Every sample opens with its
+    demo motion in the Joints card.
+  - `app/samples.ts` reads the index when the studio loads (`import.meta.glob`, eager). A document loads only when it's
+    opened: each is its own lazy chunk in the build.
+- **Flow** (appended, numbers kept):
+  - 290 — Save as motion on the 6R arm. "quarter" is saved with l5~l6 at 90 (degrees) and chosen. From home it plays to
+    the quarter turn (TCP at G13's point, 63, 105). Undo removes it and the card returns to the draft.
+  - 291 — each of the 8 samples opens from Templates → Samples with its own demo motion (the name its file gives:
+    wave, pick, reach, box, look around, grip, crank, turn) and no refusal. The 6R arm's "reach" plays to its end at 2×.
+  - FLOW_ONLY `^RS[12]:` (289, 290, 291): all pass on WebGPU and on WebGL2.
+- **Runs**: studio tsc 0, eslint 0, unit 286/286, vite build (the samples in their own chunks).
+- **G14, section on the GPU, measured again** (load 12 → 18, so "LOADED" again, the quietest run so far):
+  - 8.05 ms a submit against the budget of 6: surface 3.07, output 2.85, cap front samples 1.20, cap front 0.50,
+    shadow 0.26, light probe 0.18.
+  - The CPU path: surface 0.73, output 0.70.
+  - The earlier 5.68 was the outlier; the overrun is steady.
+  - Next, as agreed (G-R54): the output pass first. It costs four times the CPU path's for the same pixels, likely the
+    cap samples' resolve (G7's antialiased caps) or SSAO over the cut faces. A step of its own.
+
+## G-R66 — RS2, checkpoint 2: a motion and the Render turntable exported as WebM video (2026-10-24)
+
+- **What**: a "Video" button in the Joints card's Motion row (aria "Export motion video") and in the Render
+  Timeline (aria "Export animation video"). Each downloads a WebM: `<file>-<motion>.webm`, `<file>-render.webm`.
+- **How** (`viewport/recordVideo.ts`, `viewport/webm.ts`, no dependency):
+  - Frame i is drawn by the caller (the motion's pose at i/30 s through `showMotionAt`, or the turntable's time),
+    shown, copied into an even-sized OffscreenCanvas, and encoded with WebCodecs' VideoEncoder (VP9, else VP8)
+    with its own timestamp i/fps. A key frame every 60.
+  - Our WebM writer: EBML header, Segment with Info (1 ms timecodes, Duration), one video track, Clusters of
+    SimpleBlocks (a new cluster at each key frame or 30 s). No Cues; ffprobe and players read it without them.
+  - Why not MediaRecorder: it times frames by the wall clock. On WebGL2 under a software renderer a 2.07 s motion
+    came out 12.9 s long. Explicit timestamps keep the motion's timing however slow a frame is.
+  - WebGL2 keeps no buffer past a frame (`preserveDrawingBuffer: false`), so the renderer's `drawNow()` draws
+    again just before the canvas is read. `capture()` uses it too.
+  - The motion freezes (no playback) while it records; the turntable stops playing and starts from the current
+    camera.
+- **Flow**:
+  - 292 (new): a motion and a 1 s turntable exported. ffprobe reads vp8/vp9, frames = ceil(T·30)+1, duration
+    within 0.05 s of frames/30, and the last frame is not blank (ffmpeg gray spread > 3). Both renderers.
+  - 289: Iso + Frame all before the post-contact part, and the red count on a 320 grid. WebGPU's contact mark is
+    a 2 px outline, which the 160 grid stepped over after step 48's view (17 red samples).
+  - FLOW_ONLY `^(RS|render a part)` (1, 48, 289–292): all pass on WebGPU and on WebGL2.
+- **Runs**: studio tsc 0, eslint 0, unit 287/287 (webm.test.ts: header, DocType, codec, pixel size, clusters,
+  block bytes).
+
+## G-R67 — G15d.1: AgX, colour grading and a vignette, and the Render panel's Post section (roadmap G15d.1, 2026-10-24)
+
+- **The output pass** (`packages/barocss-gpu`, `viewer/shaders/output.ts`, `viewer/lights.ts`):
+  - `Environment.toneMapping: 'agx'` beside ACES and none. This is Sobotka's AgX in its common fitted form: an inset
+    matrix, log2 between −12.47 and +4.03 stops, a polynomial sigmoid, an outset matrix, then 2.2 back to linear.
+    Bright saturated colour turns towards white instead of clipping. Our own WGSL; no LUT.
+  - `Environment.grading` (`ColorGrading`), applied in this order:
+    - white balance (`whiteBalance(temperature, tint)`: channel gains with the luminance kept);
+    - lift, gamma and gain per channel;
+    - saturation around Rec. 709 luminance;
+    - contrast around mid grey (0.46) in the encoded image.
+  - `Environment.vignette`: an amount, a clear radius and a fade. It is round, with the frame's aspect kept.
+  - Grading and the vignette apply after tone mapping, over the scene and the background, before the outlines (which
+    stay UI colours). The background is still not tone-mapped, as before.
+  - When they are off, the block's slots are zeros and the pass skips them (a uniform branch). The output block grows by
+    80 bytes, and `outlineRect` stays last.
+- **The studio**:
+  - `viewport/post.ts` holds the grades (neutral; warm studio, which is amber with warm-lifted shadows; cool daylight).
+    `postOf` maps the settings' post to the viewer's grading and vignette. Neutral gives nothing.
+  - The Render panel's Scene tab has a **POST** section: Exposure and Tone map (moved here, with the same aria labels),
+    then Tone map with AgX ("Soft highlights (AgX)"), Grade, Contrast, Saturation and Vignette. Each change is one
+    undoable edit. When everything is back to neutral, the post leaves the document.
+- **Cross-lane change** (named to the coordinator before it was made; no answer when committed, so it is a commit of
+  its own that can be dropped or handed on):
+  - `packages/barocss-cad-model/src/engine/render.ts`: `toneMapping` gains `'agx'`, and there is an optional
+    `post: RenderPost` (grade, contrast 0.5–1.5, saturation 0–2, vignette 0–1). It is read with clamps; when absent
+    there is no post. There is no schema bump (doc-schema-tracks-latest).
+- **Tests**:
+  - gpu unit 301/301. That includes `viewer-core`'s layout checks, plus RS2's `contactLinks` added to two studio-renderer
+    fixtures, which had failed 13 tests since b7869913d.
+  - gpu browser `viewer-post-browser` (new, in test:browser) passes on hardware and on SwiftShader. At ×6 exposure:
+    - none: 255,49,49;
+    - ACES: 253,40,40;
+    - AgX: 255,131,131.
+    The vignette's corner is 59 against 104 at the edge; warm gives 137,126,114 on grey; saturation 0 turns red grey;
+    contrast keeps mid grey within 6.
+  - cad-model render 5/5. Studio unit 288/288 (post.test.ts).
+  - Flow 293 (new) passes on WebGPU and WebGL2 (where the document checks run). On WebGPU:
+    - the corners go from 62,62,25,25 to 38,38,13,13 with the vignette;
+    - warmth (red − blue) goes from −2.3 to 26.1;
+    - neutral again gives the frame as before.
+- **Bench** (new rows `render: orbit 60` and `render: orbit 60, post on (AgX, warm grade, vignette)`, LOADED, load
+  28–37):
+  - DPR 1: 1.03 → 1.06 ms of GPU a submit (output 0.71 → 0.75).
+  - DPR 2 (a 2880×1800 page, more than 1440p): 3.29 → 3.46 ms (output 2.37 → 2.46).
+  - Both are far under the 16.7 ms Render orbit target. Modelling is unchanged (the post is off).
+
+## G-R68 — G15a: surface finishes, a clear coat and an oil film (roadmap G15a, 2026-10-24)
+
+- **The surface shader** (`packages/barocss-gpu`, `viewer/shaders/surface.ts`, `viewer/scene.ts`):
+  - `Material.finish` (`SurfaceFinish`: kind, scale, strength, axis, origin), `clearcoat` (+ `clearcoatRoughness`, 0.08 by
+    default) and `film`. They are packed in the object block's free 48 bytes (`OBJECT_BYTES` 208 → 256; the stride was
+    already 256). With none of them set, the slots are zeros and the shading takes the old path.
+  - The relief and roughness are made per pixel from the mesh's own coordinates (its transform's frame, so a pattern
+    stays on the part as it moves or explodes). The noise is our own value noise and fbm, not textures:
+    - cast and sand-cast: grain, the sand's coarser, with pits;
+    - machined: lines across the axis;
+    - turned: rings about the axis through the origin (the body's box centre in the studio), feed lines along it;
+    - brushed: streaks along the axis;
+    - knurled: two ±45° helical grooves round the axis, only on faces not square to it;
+    - blasted: fine pits.
+    The normal is perturbed by finite differences of the relief in the mesh frame.
+  - **Band-limited by the pixel's footprint** (`band`): each detail fades as it nears two to a pixel, and the lost relief
+    becomes roughness. Fine marks never sparkle; at a distance a turned face shows as its radial highlight.
+  - Machined, turned and brushed stretch the highlight across their marks. This uses anisotropic GGX (Burley: rougher
+    across than along) for the lights, and a bent reflection normal for the ambient and environment.
+  - **Clear coat**: a second, smooth dielectric lobe on the unperturbed normal, for the lights and the reflection. What
+    it reflects the base doesn't get. Shadows use the unperturbed normal.
+  - **Oil film**: a thin-film tint on the reflections. Colours cycle with the view angle and a varying thickness, strongest
+    at grazing angles. It is kept subtle (a sheen, not a paint).
+- **cad-model** (`engine/render.ts`, outer's file, its own commit; named to the coordinator before it was built):
+  - `Appearance.finish?` (`AppearanceFinish`: kind of `FINISH_KINDS`, scale 0.01–100 mm, strength 0–1, an optional
+    axis), `clearcoat?` and `film?` (0–1). They are read with clamps; absent means none; no schema bump.
+  - Ten new presets: cast aluminium, sand-cast iron, machined steel, turned steel, brushed aluminium, knurled steel,
+    bead-blasted aluminium, painted red (lacquered), chrome and oiled steel. The `look-` prefix is kept (O75's test
+    passes).
+- **The studio**:
+  - `viewport/finish.ts` maps a look to the viewer's finish, centring turned and knurled finishes on the body.
+  - The Render panel's Appearance tab gets Finish (None or a kind), Marks (mm), Depth, Along (X/Y/Z, for the
+    directional kinds), Clear coat and Oil film.
+  - A preset now matches on the look's material fields (colour, metal, roughness, opacity, finish, coat, film), so a
+    texture or shader on top leaves it chosen. Choosing one replaces those fields, so a finish never carries over to a
+    preset without one.
+- **The built-in look per material id is the owner's call**, so it is not built. The proposal:
+  - steel → machined steel; ss304 → brushed; al6061 and ti64 → machined in their own colour;
+  - brass → turned;
+  - a380, a356, zamak3 and az91d → cast;
+  - grey-iron → sand-cast;
+  - pa12 → blasted (SLS grain);
+  - abs, pc, pp, petg, pom, pla and resin → their plastic, no finish.
+- **Tests**:
+  - gpu unit 302/302, plus a packing test in viewer-display.
+  - `viewer-finish-browser` (new, in test:browser) passes on hardware and SwiftShader. It checks:
+    - every kind's marks are drawn;
+    - sand-cast is rougher than cast;
+    - brushed stretches the highlight 28 × 144 against a round 76 × 76;
+    - the clear coat's highlight peaks at 255 over a rough base at 38;
+    - the oil film adds chroma;
+    - marks a hundredth of a pixel wide become roughness;
+    - the finish moves with its mesh (difference 0).
+  - gpu test:browser 31/31.
+  - cad-model render 6/6 and material-look 3/3; studio unit 292/292 (finish.test.ts).
+  - Flow 294 (new) passes on WebGPU and WebGL2: turned steel, a knurl along Z, the painted and the oiled presets, then
+    None. Marks on the frame: plain 3.55, turned 4.54, knurled 4.60.
+- **Bench** (new row `render: orbit 60, post on, knurled and lacquered (G15a)`). The machine was heavily loaded (load 58 →
+  41), so this is for comparison only:
+  - DPR 1: the surface pass costs 1.41 → 2.21 ms with the knurl and coat; 4.92 ms a submit against the 8 ms budget.
+  - The quiet run for the 1440p check is still owed.
+
+## G-R69 — G15b (1–2): the environment's lighting prefiltered, and studio environments (roadmap G15b, 2026-10-24)
+
+- **The environment's lighting** (`packages/barocss-gpu`, `viewer/shaders/env.ts`, `viewer.envLighting`):
+  - Made once per environment map, kept with it (`ImageTexture.gpu.lighting`) and destroyed with it.
+  - **Reflections**: prefiltered by GGX for each roughness, one mip level each, from 0 to 1 (`ENV_LEVELS` 7, at most
+    1024 across, rgba16float). Each level takes 128 importance samples with the split sum's normal = view = reflection.
+    Each sample is read from the source level whose texels match its share of the sphere (filtered importance sampling).
+  - **Diffuse light**: the cosine-weighted mean radiance round a normal (64 × 32, 512 samples). Before, this was the map's
+    most blurred mip level, a box average.
+  - **The split sum's BRDF table** (Karis; 64 × 64 rg16float, made once per device): scale and bias to f0 over n·v and
+    roughness.
+  - The surface shader (`envReflect`, `envDiffuse`, `brdfScaleBias` in common; frame bindings 7 and 8) uses them
+    **only under an environment map**. The sky-and-ground look, the modelling one, is unchanged; so are the coat's
+    reflection and the anisotropic bend. The old `envAt` (lod from the frame block) is gone; the levels now come from
+    `textureNumLevels`.
+- **Studio environments** (`viewer/studio-env.ts`, `studioEnvironment(kind, width)`): equirectangular sRGB bytes made in
+  our own code, no download.
+  - `softbox`: a dark room; a large key up in front on the left, a fill on the right, a strip behind.
+  - `cyclorama`: a white backdrop with a light bank above and the cove's soft horizon into the floor.
+  They are 8-bit (the light's range is the environment strength); HDR sources are not taken yet.
+- **cad-model** (`engine/render.ts`, outer's file, coordinator-approved pattern, its own commit):
+  - `RenderEnvironment.studio?: { kind: 'softbox' | 'cyclorama', intensity }` (`STUDIO_KINDS`). It is read with clamps;
+    absent means none. An image, when present, is used instead.
+- **The studio**:
+  - The Render panel's Scene tab gets "Studio" (Sky and ground, Softboxes, Cyclorama; Image when one is loaded).
+  - Environment strength covers either source.
+  - Choosing a studio drops the image; loading an image drops the studio and keeps its strength.
+  - `gpuRenderer.studioTexture` makes each studio once.
+- **Tests**:
+  - `viewer-env-browser` (new) passes on hardware and SwiftShader. A white diffuse sphere under a white sky over a black
+    ground reads 243 at the top, 188 at the equator (0.5 linear is 188) and 74 below. A mirror's horizon is 3 px wide; a
+    rough metal's (0.6) is 35 px.
+  - gpu test:browser 31/31 before the new test; gpu unit 303/303 (the studio environments' shape and brightness).
+  - cad-model render 7/7; studio unit 292/292.
+  - Flow 295 (new) passes on WebGPU and WebGL2: softboxes, strength ×2, cyclorama, an image replacing it, then Sky and
+    ground. The frame's mean on machined steel: sky 52.2, softbox 47.2, ×2 48.6.
+- **Next, G15b (3–4)**: soft shadows (PCSS for the casting light) and contact shadows in the output pass.
+
+## G-R70 — G15b (3–4): soft shadows (PCSS) and contact shadows (roadmap G15b, 2026-10-24)
+
+- **Soft shadows** (`Environment.softShadows`: the casting light's angular size in degrees; `ShadowFrame.softness`, frame
+  `shadow.w`):
+  - PCSS. A 16-tap Poisson blocker search finds the blockers' mean depth; the penumbra's width follows from how far behind
+    them the point lies (uv per unit of map depth = the depth range × tan(size) / the map's breadth); then a 16-tap
+    comparison filter of that width. The disc is turned per point, so its pattern becomes noise.
+  - The search is capped at 24 texels and the filter at 32.
+  - With 0 or none, the old 3×3 PCF runs, so the modelling look is unchanged.
+  - Only the one shadow-casting light is softened. "Every shadowing light" in the roadmap needs more shadow maps; that is
+    left for when a scene asks for it.
+- **Contact shadows** (`Environment.contactShadows: { length, strength }`; output block: the projection, the direction
+  toward the light in view space, length, strength, thickness):
+  - A 14-step screen-space ray from each pixel toward the casting light through the depth buffer. The light is blocked
+    where a surface lies in front of the ray's point by less than a blocker's thickness (twice the ray's length: a solid
+    seen from above shows only its top). The effect is weaker toward the ray's end.
+  - It darkens the creases and contacts the shadow map is too coarse for. The inverse projection is packed for it when
+    the occlusion is off.
+- **The studio**: the Render workspace sets `softShadows: 3` (a studio key light's size, `RENDER_SUN_SIZE`) and contact
+  shadows at strength 0.5. There is no control yet; the modelling look is untouched.
+- **Tests**:
+  - `viewer-shadow-soft-browser` (new) passes on hardware and SwiftShader:
+    - a tall post's shadow: hard, it is as dark along its length (73, 73); soft (6°), it is dark at the foot (73) and
+      lighter toward the tip (134), wider than hard;
+    - contact shadows: the crease beside a box with no shadow-map shadow goes 234 → 164, while the open ground stays 234.
+  - viewer-core packing test for the contact block. gpu unit and test:browser: see the checkpoint.
+  - Flow 294 now starts from a new box part (it ran on whatever the steps before left, the 6R robot after 292). Its
+    check compares whole frames against plain steel: turned 13.7, knurled 21.7.
+  - FLOW_ONLY `^(starter|render a part|G15|RS2 video)` passes on WebGPU and WebGL2.
+- **Bench** (loaded, 25–30, comparison only; the soft and contact shadows are on in every Render row):
+  - DPR 1: render orbit 2.86 ms a submit, with the post 4.42, knurled and lacquered 3.99.
+  - DPR 2: 9.96 ms. That is within the 16.7 ms Render target but the heaviest yet, at 2880×1800. A quiet run is owed.
+
+## G-R71 — G15d.2 bloom; the bench's GPU time is the passes' union, not their sum (roadmap G15d.2, G14, 2026-10-24; WIP, flow 296 not rerun)
+
+- **Bloom** (`viewer/shaders/bloom.ts`, `Environment.bloom: { strength, threshold, knee }`): a half-resolution prefilter
+  (a soft knee, a 13-tap Karis-weighted filter), then the dual filter, 4 steps down and 4 up, before the tone map. The
+  output pass adds the chain's top level. `RenderPost.bloom` (cad-model `engine/render.ts`, 0–1, absent when 0) and a
+  Bloom slider in the Render panel's Post section, up to strength 0.2.
+  - The chain is tied to its targets: it is made again for new targets, and released with them on a resize and on
+    dispose, so its prefilter never reads a destroyed scene. Its per-frame path has no nested functions
+    (`bloomPass`, `bloomGroup`, `releaseBloom`). The texel is written once per pass; the threshold and knee each frame
+    from one scratch array.
+- **"7 ms at DPR 1, 32 at DPR 2" was the bench, not the bloom.** On Chrome/Metal a pass that reads the pass before it
+  is stamped from when it was queued, so its interval holds its wait. bench-browser summed the passes' intervals.
+  - A probe (scratch, not committed) took the time from the surface pass's end to the output pass's end. Bloom adds
+    0.07–0.14 ms at 1440×900 and 0.35–0.39 ms at 2880×1800. The summed figure was 34 ms and 170–200 ms there.
+  - `timestampSample` now returns the **union** of a submit's pass intervals as `ms` (the old sum as `sumMS`).
+    Contract test updated. BENCH_PASSES's per-label figures are still each pass's own interval, so they overlap.
+  - Bench, loaded (17–22), compare only. Every row is now lower than before; the budgets were set on sums, so they are
+    loose, not wrong.
+
+| Row (union, ms a submit) | DPR 1 | DPR 2 |
+|---|---|---|
+| render: orbit 60 | 2.76 | 4.00 |
+| render: post on (AgX, grade, vignette, bloom) | 4.13 | 5.03 |
+| render: post on, knurled and lacquered | 5.74 | 4.56 |
+
+- **G14, section on the GPU, measured again with the union** (DPR 1, loaded 17.8): **5.65 ms** (≤ 6). The summed
+  passes would read 10.55. The output pass's "four times the CPU path's" (G-R54, G-R65) was its wait on the surface pass.
+  **Proposed**: drop the G14 output-pass step; keep one quiet run (load < 10) of `BENCH_ONLY='^(section|orbit)'` to
+  confirm.
+- **The 2 gpu unit failures** (viewer-cap-samples, AA true and false): the test's fake viewer had no `black` texture,
+  which the output group now binds. The test is fixed and checks that a bloom chain is released with its targets.
+- **Runs**:
+  - gpu unit 303/303, lint, type-check;
+  - viewer-bloom-browser on hardware and SwiftShader, viewer-post-browser;
+  - cad-model render 7/7, type-check; studio unit 300/300, tsc.
+  - FLOW_ONLY `^(starter|G15)` on WebGPU and WebGL2: 303 (G15d.2 bloom), 297 and 302 pass. **296 (G15d.1) failed on
+    both**, reading `__studioDoc.render.environment` of undefined, very likely because the regex left out its
+    prerequisite "render a part". **Not rerun**: the lanes stopped. Next: FLOW_ONLY `^(starter|render a part|G15d.1)`
+    on both renderers.

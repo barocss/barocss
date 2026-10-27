@@ -1,15 +1,25 @@
+import { ConnectorEditor } from './MateConnector';
+import { withConnector, type Connector } from '@barocss/cad-model/assembly/connectors';
 import { useEffect, useState } from 'react';
 import type { PartInstance } from '@barocss/cad-model/engine/doc';
 import { fmt } from '@barocss/cad-model/engine/doc';
-import { BASE, KIND_LABEL, kindsFor, mateLabel, type FaceTable, type Mate, type MateKind, type MateRef } from '@barocss/cad-model/assembly/mates';
+import { BASE, KIND_LABEL, mateKindsOf, mateLabel, type FaceTable, type Mate, type MateKind, type MateRef } from '@barocss/cad-model/assembly/mates';
 import type { Assembly } from '../assembly/useAssembly';
 import { Icon } from './atoms';
+import { CONTROL, FIELD, TICK } from './panelStyles';
+import { Button } from '@/components/ui/button';
+import { NativeSelect } from '@/components/ui/native-select';
 
 /** A face for people: its kind and where it came from ("Top face", "Hole Ø8", "Side face 2"). */
 export function faceLabel(name: string, table: FaceTable | undefined): string {
   const f = table?.[name];
   if (table && !f) return `missing face (${name})`;
   if (f?.kind === 'cylinder') return `${f.outer ? 'Round face' : 'Hole'} Ø${fmt(Math.round(f.radius * 2000) / 1000)}`;
+  // (O24 c: spheres, cones and edges.)
+  if (f?.kind === 'sphere') return `${f.outer ? 'Sphere' : 'Socket'} Ø${fmt(Math.round(f.radius * 2000) / 1000)}`;
+  if (f?.kind === 'cone') return `${f.outer ? 'Cone' : 'Conical seat'} ${fmt(Math.round(f.half * 360000 / Math.PI) / 1000)}°`;
+  if (f?.kind === 'line') return `Edge ${fmt(Math.round(f.length * 1000) / 1000)} mm`;
+  if (f?.kind === 'circle') return `${f.ends ? 'Arc edge' : 'Circular edge'} Ø${fmt(Math.round(f.radius * 2000) / 1000)}`;
   const origin = /^origin:(xy|xz|yz)$/.exec(name);
   if (origin) return `${origin[1].toUpperCase()} plane`;
   const tail = name.split('|')[0].split('.').pop() ?? name;
@@ -37,25 +47,28 @@ export function MatePanel({ assembly, instances, instance, onRefused }: { assemb
   return (
     <aside className="card props" aria-label="Mates">
       <div className="card-title">MATES <span className="muted">{mates.length || ''}</span>
-        {!draft && <button className="ghost" style={{ marginLeft: 'auto' }} onClick={assembly.start}>Add mate</button>}</div>
+        {!draft && <Button variant="ghost" style={{ marginLeft: 'auto' }} onClick={assembly.start}>Add mate</Button>}</div>
       {instance && !draft && <LockRow instance={instance} instances={instances} onLock={to => { const why = assembly.lock(instance, to); if (why) onRefused(why); }} />}
       {instance && !draft && <div className="kv" aria-label="Freedom">{instances.find(i => i.id === instance)?.name ?? instance} <b>{freedomText(instance)}</b></div>}
       {draft && <div className="mate-draft" style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
-        <label className="field"><span>Type</span>
-          <select aria-label="Mate type" value={draft.kind} onChange={e => assembly.setDraft({ kind: e.target.value as MateKind | 'auto' })}>
+        <label className={FIELD}><span>Type</span>
+          <NativeSelect className={CONTROL} aria-label="Mate type" value={draft.kind} onChange={e => assembly.setDraft({ kind: e.target.value as MateKind | 'auto', ...(e.target.value === 'ball' || e.target.value === 'universal' || e.target.value === 'cylindrical' ? { flip: false } : {}) })}>
             <option value="auto">Auto</option>
             {(Object.keys(KIND_LABEL) as MateKind[]).filter(k => k !== 'lock').map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}
-          </select></label>
+          </NativeSelect></label>
         {draft.kind === 'distance' && <NumberField label="Distance" value={draft.distance} onCommit={v => assembly.setDraft({ distance: v })} />}
         {draft.kind === 'angle' && <NumberField label="Angle" unit="°" value={draft.angle} onCommit={v => assembly.setDraft({ angle: v })} />}
-        {draft.kind !== 'concentric' && <label className="field check-row"><span>Flip</span>
-          <input type="checkbox" aria-label="Mate flip" checked={draft.flip} onChange={e => assembly.setDraft({ flip: e.target.checked })} /></label>}
+        {draft.kind !== 'concentric' && draft.kind !== 'ball' && draft.kind !== 'universal' && draft.kind !== 'cylindrical' && <label className="field check-row"><span>Flip</span>
+          <input type="checkbox" className={TICK} aria-label="Mate flip" checked={draft.flip} onChange={e => assembly.setDraft({ flip: e.target.checked })} /></label>}
+        {draft.kind === 'universal' && <div className="empty" aria-label="Universal axes">2 free turns: Stays Z is perpendicular to Moves X. Origins coincide. Mate connector limits are unavailable. Robot motion uses two rotation axes and a logical intermediate link. Coupled mates and closed loops are unsupported.</div>}
+        {draft.kind === 'cylindrical' && <div className="empty" aria-label="Cylindrical axes">1 free turn and 1 free slide along aligned connector Z axes. Mate connector limits are unavailable. Robot motion uses one axial slide and one rotation with a logical intermediate link. Coupled mates and closed loops are unsupported.</div>}
         <PlanePicker instances={instances} onPick={assembly.pickFace} />
+        <ReferencePicker instances={instances} tables={tables} onPick={assembly.pickFace} />
         <div className="kv">1 · Stays <b>{draft.picks[0] ? refText(draft.picks[0].ref) : 'click a face'}</b></div>
         <div className="kv">2 · Moves <b>{draft.picks[1] ? refText(draft.picks[1].ref) : draft.picks[0] ? 'click a face on another part' : '—'}</b></div>
         {draft.error ? <div className="hud-error" role="status" aria-label="Mate refused"><div className="hud-error-title">Can’t mate these faces</div>{draft.error}</div>
-          : <div className="empty">Click a face on the part that stays, then one on the part to move: two flat faces (coincident, distance, angle), two round faces (concentric, tangent), or a flat and a round one (tangent). Flat faces end up flush and facing each other.</div>}
-        <div className="row-actions"><button className="ghost" onClick={assembly.cancel}>Cancel</button></div>
+          : <div className="empty">Click a face on the part that stays, then one on the part to move: two flat faces (coincident, distance, angle), two round faces (concentric, tangent), or a flat and a round one (tangent). Flat faces end up flush and facing each other. Fastened aligns connector origins, Z and X with no free motion.</div>}
+        <div className="flex flex-wrap gap-1"><Button variant="ghost" onClick={assembly.cancel}>Cancel</Button></div>
       </div>}
       {mates.map((m, i) => {
         const p = problemOf(m.id);
@@ -77,29 +90,35 @@ function MateEditor({ mate, problem, tables, refText, onEdit, onDelete }: {
   onEdit(patch: Partial<Mate>): void; onDelete(): void;
 }) {
   const fa = tables.get(mate.a.part)?.[mate.a.face], fb = tables.get(mate.b.part)?.[mate.b.face];
-  const kinds = fa && fb ? kindsFor(fa, fb) : [mate.kind];
+  let kinds: MateKind[] = [mate.kind];
+  if (fa && fb) { try { kinds = mateKindsOf({ a: mate.a, b: mate.b }, { a: fa, b: fb }); } catch { /* Keep the selected kind visible for an invalid saved connector. */ } }
+  if (mate.kind !== 'lock' && mate.kind !== 'cam') kinds = [...kinds, ...(['fastened', 'ball', 'universal', 'cylindrical'] as const).filter(k => !kinds.includes(k))];
   return (
     <div className="mate-edit" style={{ display: 'grid', gap: 6, marginTop: 8 }}>
       <div className="kv">Stays <b>{refText(mate.a)}</b></div>
       <div className="kv">Moves <b>{refText(mate.b)}</b></div>
-      <label className="field"><span>Type</span>
-        <select aria-label="Edit mate type" value={mate.kind} onChange={e => {
+      <ConnectorEditor label="Stays" face={fa} value={mate.a.at} onChange={at => onEdit({ a: withConnector(mate.a, at) })} />
+      <ConnectorEditor label="Moves" face={fb} value={mate.b.at} onChange={at => onEdit({ b: withConnector(mate.b, at) })} />
+      <label className={FIELD}><span>Type</span>
+        <NativeSelect className={CONTROL} aria-label="Edit mate type" value={mate.kind} onChange={e => {
           const kind = e.target.value as MateKind;
+          if (kind === 'fastened' || kind === 'ball' || kind === 'universal' || kind === 'cylindrical') { onEdit({ kind }); return; }
           onEdit({ kind, distance: kind === 'distance' ? mate.distance ?? 0 : undefined, angle: kind === 'angle' ? mate.angle ?? 90 : undefined, ...(kind === 'concentric' ? { flip: undefined } : {}) });
-        }}>{kinds.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</select></label>
+        }}>{kinds.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</NativeSelect></label>
       {mate.kind === 'distance' && <NumberField label="Distance" value={mate.distance ?? 0} onCommit={v => onEdit({ distance: v })} />}
       {mate.kind === 'angle' && <NumberField label="Angle" unit="°" value={mate.angle ?? 0} onCommit={v => onEdit({ angle: v })} />}
-      {mate.kind === 'lock' ? <div className="empty">Moves with {refText(mate.a)} as one piece, where it stood when locked.</div>
+      {mate.kind === 'fastened' && <div className="empty" aria-label="Fastened freedom">0 DoF: the connector origins, Z and X stay aligned.</div>}
+      {mate.kind === 'cylindrical' ? <div className="empty" aria-label="Cylindrical freedom">1 free turn and 1 free slide along aligned connector Z axes. Mate connector limits are unavailable. Robot motion uses one axial slide and one rotation with a logical intermediate link. Coupled mates and closed loops are unsupported.</div> : mate.kind === 'universal' ? <div className="empty" aria-label="Universal freedom">2 free turns: Stays Z is perpendicular to Moves X. Origins coincide. Mate connector limits are unavailable. Robot motion uses two rotation axes and a logical intermediate link. Coupled mates and closed loops are unsupported.</div> : mate.kind === 'ball' ? <div className="empty" aria-label="Ball freedom">3 free turns: only the connector origins coincide.</div> : mate.kind === 'lock' ? <div className="empty">Moves with {refText(mate.a)} as one piece, where it stood when locked.</div>
         : mate.kind === 'concentric'
-        ? <label className="field"><span>Axes</span>
-          <select aria-label="Mate axes" value={mate.flip === undefined ? 'either' : mate.flip ? 'reversed' : 'same'}
+        ? <label className={FIELD}><span>Axes</span>
+          <NativeSelect className={CONTROL} aria-label="Mate axes" value={mate.flip === undefined ? 'either' : mate.flip ? 'reversed' : 'same'}
             onChange={e => onEdit({ flip: e.target.value === 'either' ? undefined : e.target.value === 'reversed' })}>
             <option value="either">Either way</option><option value="same">Same direction</option><option value="reversed">Reversed</option>
-          </select></label>
+          </NativeSelect></label>
         : <label className="field check-row"><span>Flip</span>
-          <input type="checkbox" aria-label="Edit mate flip" checked={!!mate.flip} onChange={e => onEdit({ flip: e.target.checked || undefined })} /></label>}
+          <input type="checkbox" className={TICK} aria-label="Edit mate flip" checked={!!mate.flip} onChange={e => onEdit({ flip: e.target.checked || undefined })} /></label>}
       {problem && <div className="hud-error" role="status"><div className="hud-error-title">Not met</div>{problem}</div>}
-      <div className="row-actions"><button className="ghost" onClick={onDelete}>Delete mate</button></div>
+      <div className="flex flex-wrap gap-1"><Button variant="ghost" onClick={onDelete}>Delete mate</Button></div>
     </div>
   );
 }
@@ -108,13 +127,13 @@ function MateEditor({ mate, problem, tables, refText, onEdit, onDelete }: {
 function LockRow({ instance, instances, onLock }: { instance: string; instances: PartInstance[]; onLock(to: string): void }) {
   const [to, setTo] = useState(BASE);
   return (
-    <label className="field"><span>Lock to</span>
+    <label className={FIELD}><span>Lock to</span>
       <span style={{ display: 'flex', gap: 6, minWidth: 0 }}>
-        <select aria-label="Lock to" value={to} onChange={e => setTo(e.target.value)} style={{ flex: 1, minWidth: 0 }}>
+        <NativeSelect className={CONTROL} aria-label="Lock to" value={to} onChange={e => setTo(e.target.value)} style={{ flex: 1, minWidth: 0 }}>
           <option value={BASE}>Base part</option>
           {instances.filter(i => i.id !== instance).map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-        </select>
-        <button type="button" className="ghost" onClick={() => onLock(to)}>Lock</button>
+        </NativeSelect>
+        <Button type="button" variant="ghost" onClick={() => onLock(to)}>Lock</Button>
       </span></label>
   );
 }
@@ -123,15 +142,32 @@ function LockRow({ instance, instances, onLock }: { instance: string; instances:
 function PlanePicker({ instances, onPick }: { instances: PartInstance[]; onPick(ref: MateRef): void }) {
   const [part, setPart] = useState(BASE);
   return (<>
-    <label className="field"><span>Or a plane of</span>
-      <select aria-label="Plane of" value={part} onChange={e => setPart(e.target.value)}>
+    <label className={FIELD}><span>Or a plane of</span>
+      <NativeSelect className={CONTROL} aria-label="Plane of" value={part} onChange={e => setPart(e.target.value)}>
         <option value={BASE}>Base part</option>
         {instances.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-      </select></label>
+      </NativeSelect></label>
     <div className="row-actions" style={{ display: 'flex', gap: 6, paddingLeft: 84 }}>
-      {(['xy', 'xz', 'yz'] as const).map(p => <button key={p} type="button" className="ghost" aria-label={`Pick ${p.toUpperCase()} plane`} onClick={() => onPick({ part, face: `origin:${p}` })}>{p.toUpperCase()}</button>)}
+      {(['xy', 'xz', 'yz'] as const).map(p => <Button key={p} type="button" variant="ghost" aria-label={`Pick ${p.toUpperCase()} plane`} onClick={() => onPick({ part, face: `origin:${p}` })}>{p.toUpperCase()}</Button>)}
     </div>
   </>);
+}
+
+/** Persistent geometry choices also expose edges until the GPU lane supplies viewport edge picking. */
+function ReferencePicker({ instances, tables, onPick }: { instances: PartInstance[]; tables: Map<string, FaceTable>; onPick(ref: MateRef): void }) {
+  const [part, setPart] = useState(BASE), [face, setFace] = useState('');
+  const [at, setAt] = useState<Connector | undefined>();
+  const table = tables.get(part), entries = Object.keys(table ?? {}), name = entries.includes(face) ? face : entries[0] ?? '';
+  return <div className="grid gap-1" aria-label="Mate reference picker">
+    <label className={FIELD}><span>Reference of</span><NativeSelect className={CONTROL} aria-label="Reference part" value={part} onChange={e => { setPart(e.target.value); setFace(''); setAt(undefined); }}>
+      <option value={BASE}>Base part</option>{instances.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+    </NativeSelect></label>
+    <label className={FIELD}><span>Geometry</span><NativeSelect className={CONTROL} aria-label="Reference geometry" value={name} onChange={e => { setFace(e.target.value); setAt(undefined); }}>
+      {entries.map(n => <option key={n} value={n}>{faceLabel(n, table)} · {n}</option>)}
+    </NativeSelect></label>
+    <ConnectorEditor label="Pick" face={table?.[name]} value={at} onChange={next => setAt(next ?? undefined)} />
+    <Button variant="ghost" disabled={!name} aria-label="Pick mate reference" onClick={() => onPick({ part, face: name, ...(at !== undefined ? { at } : {}) })}>Pick reference</Button>
+  </div>;
 }
 
 function NumberField({ label, value, onCommit, unit = 'mm' }: { label: string; value: number; onCommit(v: number): void; unit?: string }) {
@@ -139,6 +175,6 @@ function NumberField({ label, value, onCommit, unit = 'mm' }: { label: string; v
   useEffect(() => setDraft(String(value)), [value]);
   // A refused value goes back to the one in force (an accepted one comes back as the new value).
   const commit = () => { const v = Number(draft); if (draft.trim() !== '' && Number.isFinite(v) && v !== value) onCommit(v); setDraft(String(value)); };
-  return <label className="field"><span>{label}</span><span className="num"><input aria-label={`Mate ${label.toLowerCase()}`} type="number" step="any" value={draft}
+  return <label className={FIELD}><span>{label}</span><span className="num"><input aria-label={`Mate ${label.toLowerCase()}`} type="number" step="any" value={draft}
     onChange={e => setDraft(e.target.value)} onBlur={commit} onKeyDown={e => { if (e.key === 'Enter') commit(); }} /><em>{unit}</em></span></label>;
 }

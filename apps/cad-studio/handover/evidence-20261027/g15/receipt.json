@@ -1,0 +1,133 @@
+{
+  "task": "GPU-G15-PRODUCT-STUDIO-IMAGE-01",
+  "status": "PASS_BOUNDED_PRODUCT_SCENE_RUNTIME_AND_SOURCE_RETURNED",
+  "finishedUTC": "2026-10-26T23:55:43.268897+00:00",
+  "productHEAD": "28a62d2ec02f334f5fb7613fbb096e2926fd5b20",
+  "qualifiedSource": "8cddcd05fd3a388472d5a01b4a43e09cdf8a50aa",
+  "originalRoot": "22f856ed8fd2fb6479ad8ca806bc13f8d48a6b2f",
+  "gpuDonor": "33a0fa9ab8b23788a39b0546ab484bacb7525311",
+  "actualInput": {
+    "bytes": 4959,
+    "SHA256": "fcbd3cfac8d0b5cba62239da5f508e76aa3ddf73bc497ea2dfae4f7f22d2bf35",
+    "sealedCopy": "/Users/user/Documents/Codex/2026-10-24/cad-gpu-20261024/outputs/g15-product-studio-20261027/sealed-input/reopened.bcad",
+    "publicOpenCount": 1,
+    "sceneOrLightValuesEdited": false
+  },
+  "actualProductBrowser": {
+    "url": "http://127.0.0.1:60971/",
+    "session": "gpu-g15-product-studio27-0001",
+    "ChromeMajor": 156,
+    "viewport": [
+      1440,
+      1000
+    ],
+    "DPR": 1,
+    "method": "Raster",
+    "body": "Loft 2 sections",
+    "bodyCount": 1,
+    "guideCount": 1,
+    "point3Shadow": true,
+    "point3RadiusMM": 2.5,
+    "point3Position": [
+      0,
+      0,
+      80
+    ],
+    "pageErrors": [],
+    "consoleWarnings": 0,
+    "consoleErrors": 0,
+    "consoleInfo": 1,
+    "alerts": [],
+    "servedSourceMatches": 11,
+    "selectedSourcePostMatches": 23,
+    "dirtyStatusLines": 32,
+    "dirtyStatusExactlySame": true
+  },
+  "images": [
+    {
+      "path": "/Users/user/Documents/Codex/2026-10-24/cad-gpu-20261024/outputs/g15-product-studio-20261027/studio-lights-product.png",
+      "bytes": 131885,
+      "SHA256": "5b3e08dd9384f67b5ca4c7644bf71e238a0fdc6bea4525c0ee10915de8d8a8c7",
+      "width": 1440,
+      "height": 1000,
+      "ownerDirectViewed": true,
+      "subagentDirectViewed": true
+    },
+    {
+      "path": "/Users/user/Documents/Codex/2026-10-24/cad-gpu-20261024/outputs/g15-product-studio-20261027/studio-point-spot-product.png",
+      "bytes": 130543,
+      "SHA256": "99aa243676e1f7dd67d4dea749ec1f81e033c017557a259f8637cb8761164833",
+      "width": 1440,
+      "height": 1000,
+      "ownerDirectViewed": true,
+      "subagentDirectViewed": true
+    }
+  ],
+  "runtimeReturn": {
+    "timeUTC": "2026-10-26T23:53:14.702536+00:00",
+    "browserClose": {
+      "success": true,
+      "data": {
+        "closed": true
+      },
+      "error": null
+    },
+    "server": {
+      "expectedHEAD": "28a62d2ec02f334f5fb7613fbb096e2926fd5b20",
+      "observedHEAD": "28a62d2ec02f334f5fb7613fbb096e2926fd5b20",
+      "ownerPID": 66427,
+      "port": 60971,
+      "startedUTC": "2026-10-26T23:41:33.138995+00:00",
+      "gateExit": 0,
+      "argv": [
+        "/Users/user/.cache/barocss-toolchains/node-v22.23.3-darwin-arm64/bin/node",
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-review-efbb2c/node_modules/vite/bin/vite.js",
+        "--config",
+        "/Users/user/Documents/Codex/2026-10-24/cad-gpu-20261024/outputs/g15-product-studio-20261027/product-vite.config.mjs",
+        "--configLoader",
+        "runner",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "60971",
+        "--strictPort"
+      ],
+      "serverPID": 66461,
+      "requestedSignal": 15,
+      "actualChildWaitExit": 143,
+      "releaseExit": 0,
+      "intentionalStop": true,
+      "endedUTC": "2026-10-26T23:52:40.365527+00:00"
+    },
+    "toolActualWaitExit": 0,
+    "ownSlotAbsent": true,
+    "portConnectCode": 61,
+    "portAbsent": true,
+    "postHEAD": "28a62d2ec02f334f5fb7613fbb096e2926fd5b20",
+    "descendants": "UNKNOWN"
+  },
+  "sourceReturn": {
+    "allReadersReturned": true,
+    "allWritersReturned": true,
+    "productAndAggregatePinsReleasedBeforeArchive": true,
+    "rootNotified": true
+  },
+  "priorRequiredChecks": "evidence-index.json; product emit288 diagnostics0; docs35/0/47/3755/819; original source failures and repairs retained externally. Existing passed checks not repeated.",
+  "captureObservation": {
+    "status": "UNKNOWN_CAUSE_NOT_PRODUCT_FAILURE",
+    "originalFullPagePNG": [
+      "studio-lights-initial.png",
+      "studio-lights-keyboard.png"
+    ],
+    "observation": "Lights DOM snapshot then full-page PNG/DOM Appearance. Cause not established. Preserved raw/PNG. No further cause study.",
+    "normalViewportResult": "Trusted click -> same tab DOM selected Lights -> viewport PNG -> same tab still Lights; final-state saved; no product source change."
+  },
+  "limitations": [
+    "One existing scene, same light values in both images; no on/off or radius before-after comparison.",
+    "Sun and point shadows, AO and ground contribute together; image does not isolate point PCSS causality or certify spot shadow.",
+    "Only 11 served modules/import edges bound; not complete runtime import graph.",
+    "Selected23 source files and dirty status32 checked; no new all-foreign-file-byte claim.",
+    "Direct Vite child intentionalSIGTERM143, wrapper actualwait0, release0, ownslot/port absent; descendantsUNKNOWN.",
+    "No new CPU/native/build/type/docs re-runs by GPU image task. Local product integration; remote publication not claimed."
+  ]
+}

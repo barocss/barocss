@@ -5,7 +5,8 @@
 //   no freedom → fixed; one turn → revolute (continuous without limits); one slide → prismatic;
 //   a turn and the slide along its axis → cylindrical, two turns and … → a chain of 1-DoF joints through dummy links
 //   (slides first, then the turn: planar = two slides and a turn; ball = three turns about one point);
-//   anything else (a screw motion, two turns on different axes, more) → MOTION_UNSUPPORTED, typed, never guessed.
+//   an explicit universal → its two connector-attached turns, not a free-twist approximation;
+//   anything else (a screw motion, other two-turn combinations, more) → MOTION_UNSUPPORTED, typed, never guessed.
 // A pair of parts joined twice round the graph is a loop: the tree keeps one path and reports the other as a loop with
 // its mates (closed loops are RM8's), never dropped. Two meshing spur gears on revolute joints of one carrier are a
 // coupled pair: the second mimics the first, ratio −z1/z2, from the kernel's checkPlacedSpurGears (D56).
@@ -13,15 +14,22 @@
 // (export, RM4, writes metres); joint values are 0 at the pose the mates solve to.
 import { checkPlacedSpurGears, spurGearDimensions, type GearPlacement } from '@barocss/cad';
 import type { PartInstance, StudioDoc } from '../engine/doc';
-import { BASE, rotationMatrix, type FaceTable, type Mate, type MateFace, type Vec3 } from '../assembly/mates';
+import { BASE, mateFacesOf, mateRefusal, type FaceTable, type Mate, type MateFace, type Vec3 } from '../assembly/mates';
+import { rotationMatrix } from '../engine/placement';
 import { add, cross, dot, len, sub } from '../engine/vec3';
+import { exportNames, checkFrame, readFrames, resolveFrame, type FrameCode, type FrameSettings, type ToolFrame } from './frames';
+import { readMotions, type Motion } from './motion';
+import { camFacesOf, camLiftOf, camValue, type CamFace, type CamLift } from './cam';
+import { jointSettingsIn } from './units';
 
 export const ROBOT_VERSION = 1;
 export type JointType = 'fixed' | 'revolute' | 'continuous' | 'prismatic';
-/** A joint's limits and ratings, as the person sets them (radians or mm; N·m or N; rad/s or mm/s). */
+/** Latest stored/public limits and ratings: degrees or mm; N·mm or N; degree/s or mm/s. */
 export interface JointSettings { lower?: number; upper?: number; effort?: number; velocity?: number }
 /** The robot settings a document keeps (`doc.robot`, versioned): the base link, and each joint's settings by its key. */
-export interface RobotSettings { version: 1; base?: string; joints?: Record<string, JointSettings> }
+/** `frames` (O12): named tool and sensor frames on links, kept beside the joints (robot/frames.ts). */
+/** `motions` (RS2): named paths through joint-space waypoints (robot/motion.ts), in degrees or mm. */
+export interface RobotSettings { version: 1; base?: string; joints?: Record<string, JointSettings>; frames?: Record<string, FrameSettings>; motions?: Motion[] }
 
 export interface Link { id: string; /** The part it is (base or an instance id); null for a dummy link in a joint chain. */ part: string | null; name: string }
 export interface Joint {
@@ -32,17 +40,20 @@ export interface Joint {
   key: string; type: JointType; parent: string; child: string;
   /** A point on the axis (the child's origin projected onto it) and the axis, world frame, mm. */
   origin: Vec3; axis: Vec3;
+  /** Solver limits and ratings: radians or mm; N·m or N; rad/s or mm/s. */
   limit?: { lower?: number; upper?: number; effort?: number; velocity?: number };
   /** The mates this pair's joint is made of. */
   mates: string[];
-  /** Coupled to another joint (two meshing gears): this = multiplier × that + offset. */
+  /** Coupled to another joint (two meshing gears; a pushed follower): this = multiplier × that + offset. */
   mimic?: { joint: string; multiplier: number; offset: number };
+  /** O24 (a): a cam's follower — `mimic` names the cam's joint (multiplier 0), and this is the lift (robot/cam.ts). */
+  cam?: CamLift;
 }
-export type RobotCode = 'NOT_CONNECTED' | 'MOTION_UNSUPPORTED' | 'BASE_UNKNOWN' | 'MATE_PROBLEM' | 'LIMITS_MISSING' | 'LIMITS_BAD' | 'GEAR_NOT_COUPLED';
-export interface RobotIssue { code: RobotCode; message: string; parts?: string[]; mates?: string[]; joint?: string }
+export type RobotCode = 'NOT_CONNECTED' | 'MOTION_UNSUPPORTED' | 'BASE_UNKNOWN' | 'MATE_PROBLEM' | 'LIMITS_MISSING' | 'LIMITS_BAD' | 'GEAR_NOT_COUPLED' | 'CAM_NOT_SEATED' | 'CAM_PROFILE_UNSUPPORTED' | 'COUPLING_CYCLE' | 'COUPLED_TWICE' | FrameCode;
+export interface RobotIssue { code: RobotCode; message: string; parts?: string[]; mates?: string[]; joint?: string; frame?: string }
 export interface Loop { parts: [string, string]; mates: string[]; freedom: number; message: string }
 export interface Coupling {
-  leader: string; follower: string; multiplier: number; centerDistanceMM: number; nominalCenterDistanceMM: number; backlashMM: number; contactRatio: number;
+  leader: string; follower: string; multiplier: number; centerDistance: number; nominalCenterDistance: number; backlash: number; contactRatio: number;
   /** The two gears in their common frame (Z on the first's axis), and how each joint's positive turn reads about that Z (RM2: the pair at any pose). */
   g1: GearPlacement; g2: GearPlacement; s1: 1 | -1; s2: 1 | -1;
 }
@@ -51,8 +62,14 @@ export interface JointTree {
   /** Pairs joined again round the graph: kept as loop closures, with their mates. */
   loops: Loop[];
   couplings: Coupling[];
+  /** PG-6: each concentric mate's two round faces (world, at the solved pose) — a running fit the sweep leaves to the mate. */
+  fits?: Fit[];
+  /** O24 (a): cam mates as couplings — a turning cam's follower (kind cam), a follower pushing another (kind push). */
+  cams?: CamCoupling[];
   /** What blocks a link or a joint (typed); `notes`: what an export will need (limits) or could not couple. */
   problems: RobotIssue[]; notes: RobotIssue[];
+  /** The tool and sensor frames on its links, at the solved pose (O12; absent: none set). */
+  frames?: ToolFrame[];
 }
 
 /** The settings as read from a document (absent: none; anything malformed dropped, the rest kept). */
@@ -65,7 +82,8 @@ export function readRobot(raw: unknown): RobotSettings {
     for (const f of ['lower', 'upper', 'effort', 'velocity'] as const) if (num((s as JointSettings)[f])) j[f] = (s as JointSettings)[f];
     if (Object.keys(j).length) joints[k] = j;
   }
-  return { version: 1, ...(typeof r.base === 'string' && r.base ? { base: r.base } : {}), ...(Object.keys(joints).length ? { joints } : {}) };
+  const frames = readFrames(r.frames), motions = readMotions(r.motions);
+  return { version: 1, ...(typeof r.base === 'string' && r.base ? { base: r.base } : {}), ...(Object.keys(joints).length ? { joints } : {}), ...(frames ? { frames } : {}), ...(motions ? { motions } : {}) };
 }
 
 // ── Free twists of a pair: constraint rows on X = [ω; v/L] (v the velocity at the world origin, L a length scale) ──
@@ -86,16 +104,20 @@ const dirRow = (n: Vec3, t: Vec3): Row => { const c = cross(n, t); return [c[0],
 type Placed = { R: number[]; t: Vec3 };
 function worldFace(f: MateFace, at: Placed): MateFace {
   const point = add(apply(at.R, f.point), at.t);
-  return f.kind === 'plane' ? { kind: 'plane', point, normal: unit(apply(at.R, f.normal)) } : { ...f, point, axis: unit(apply(at.R, f.axis)) };
+  return f.kind === 'plane' ? { kind: 'plane', point, normal: unit(apply(at.R, f.normal)) } : f.kind === 'sphere' ? { ...f, point } : { ...f, point, axis: unit(apply(at.R, f.axis)) };
 }
 /** The rows a mate puts on b's twist relative to a (both faces in the world). */
 function mateRows(m: Mate, fa: MateFace, fb: MateFace, L: number): Row[] {
-  if (m.kind === 'lock') return [0, 1, 2, 3, 4, 5].map(i => { const r = [0, 0, 0, 0, 0, 0] as Row; r[i] = 1; return r; });
+  if (m.kind === 'lock' || m.kind === 'fastened') return [0, 1, 2, 3, 4, 5].map(i => { const r = [0, 0, 0, 0, 0, 0] as Row; r[i] = 1; return r; });
   if (fa.kind === 'plane' && fb.kind === 'plane') {
     const n = fa.normal, [t1, t2] = across(n);
     if (m.kind === 'angle') { const c = cross(fb.normal, n); return len(c) > 1e-9 ? [[c[0], c[1], c[2], 0, 0, 0]] : [dirRow(n, t1), dirRow(n, t2)]; }
     return [dirRow(n, t1), dirRow(n, t2), pointRow(fb.point, n, L)];
   }
+  // Ball's derived sphere pair uses these same three point rows, without a directional row.
+  // (O24 c: two spheres concentric hold the centres together; a sphere tangent to a face, its centre a radius off it.)
+  if (fa.kind === 'sphere' && fb.kind === 'sphere') return ([[1, 0, 0], [0, 1, 0], [0, 0, 1]] as Vec3[]).map(e => pointRow(fb.point, e, L));
+  if (fa.kind === 'sphere' || fb.kind === 'sphere') { const plane = (fa.kind === 'plane' ? fa : fb) as Extract<MateFace, { kind: 'plane' }>, ball = (fa.kind === 'sphere' ? fa : fb); return [pointRow(ball.point, plane.normal, L)]; }
   if (fa.kind === 'cylinder' && fb.kind === 'cylinder') {
     const a = fa.axis, [t1, t2] = across(a);
     if (m.kind === 'concentric') return [dirRow(a, t1), dirRow(a, t2), pointRow(fb.point, t1, L), pointRow(fb.point, t2, L)];
@@ -183,7 +205,20 @@ export interface TreeInput {
   gears?: (part: string) => readonly GearPlacement[];
   /** The mates the solver could not meet (they make no joint). */
   mateProblems?: readonly { mate: string; reason: string }[];
+  /** A part's faces with their boundaries (its B-rep), for its cam mates (robot/cam.ts). */
+  camFaces?: (part: string) => readonly CamFace[];
 }
+/** A concentric mate's faces: a's and b's axis (a point, a direction) and radius, world. */
+export interface Fit { mate: string; a: string; b: string; pa: Vec3; da: Vec3; ra: number; pb: Vec3; db: Vec3; rb: number }
+/** A cam mate's coupling: the driver's joint, the follower's, and the lift's range over a turn (mm) or its ratio. */
+export interface CamCoupling {
+  kind: 'cam' | 'push'; mate: string; leader: string; follower: string; lift?: [number, number]; multiplier?: number;
+  /** The driver's and the follower's parts, the follower's contact face (world, at the solved pose), and for a cam the slab it covers along the cam's axis: the seat the sweep leaves to the mate (O22). */
+  seat: { driver: string; follower: string; p: Vec3; n: Vec3; axis?: Vec3; slab?: [number, number] };
+}
+/** Universal's step indices name a.Z (#0) and b.X (#1), independent of the chosen robot base. */
+/** Cylindrical's indices name its axial slide (#0, mm) and axial turn (#1, radians). */
+type PairMotion = ReturnType<typeof motionOf> & { universal?: Mate; cylindrical?: Mate };
 
 /** The joint tree from the base link: links, joints (chains through dummy links), loops, gear couplings, issues. */
 export function jointTree(input: TreeInput): JointTree {
@@ -199,8 +234,14 @@ export function jointTree(input: TreeInput): JointTree {
   const failed = new Set((input.mateProblems ?? []).map(p => p.mate)), pairs = new Map<string, Mate[]>();
   const pairKey = (a: string, b: string) => [a, b].sort((x, y) => parts.indexOf(x) - parts.indexOf(y)).join('~');
   for (const m of input.mates) {
+    if (m.kind === 'cam') continue;
     if (failed.has(m.id)) { problems.push({ code: 'MATE_PROBLEM', message: `${m.id} is not met (${(input.mateProblems ?? []).find(p => p.mate === m.id)!.reason}): it makes no joint.`, mates: [m.id] }); continue; }
     if (!placed.has(m.a.part) || !placed.has(m.b.part) || m.a.part === m.b.part) continue;
+    // Explicit connector joints resolve persistent references before any fixed or point rows are admitted.
+    if (m.kind === 'fastened' || m.kind === 'ball' || m.kind === 'universal' || m.kind === 'cylindrical') {
+      const why = mateRefusal(m, input.tables(m.a.part)?.[m.a.face], input.tables(m.b.part)?.[m.b.face]);
+      if (why) { failed.add(m.id); problems.push({ code: 'MATE_PROBLEM', message: `${m.id} is not met (${why}): it makes no joint.`, mates: [m.id] }); continue; }
+    }
     const k = pairKey(m.a.part, m.b.part); (pairs.get(k) ?? pairs.set(k, []).get(k)!).push(m);
   }
   // Grounded instances are fixed in the world: joined to the base by a fixed joint.
@@ -208,11 +249,42 @@ export function jointTree(input: TreeInput): JointTree {
   // The tree: grown from the base, each step taking the pair that leaves the least freedom (Prim's, weighted by the
   // pair's degrees of freedom; ties in the document's order), so a loose mate closes a loop rather than replacing a
   // joint. A pair met again is a loop.
-  const motions = new Map<string, ReturnType<typeof motionOf>>();
-  for (const [k, ms] of pairs) motions.set(k, pairMotion(ms, input.tables, placed, L));
+  const motions = new Map<string, PairMotion>();
+  for (const [k, ms] of pairs) {
+    // Cam is not a constraint-row joint, but a same-pair cam still makes an explicit connector joint coupled.
+    // Keep its id in this pair so the existing coupled refusal applies before any chain or cam-face evaluation.
+    if (ms.some(m => m.kind === 'universal' || m.kind === 'cylindrical')) {
+      ms.push(...input.mates.filter(m => m.kind === 'cam' && !failed.has(m.id) && pairKey(m.a.part, m.b.part) === k));
+    }
+    const motion = pairMotion(ms, input.tables, placed, L);
+    if (motion.universal && settings.joints?.[k]) {
+      motions.set(k, { unsupported: 'pair-level universal limits or ratings; set each explicit axis key (#0 a.Z, #1 b.X) instead' });
+    } else if (motion.universal && [motion.universal.a.part, motion.universal.b.part].some(p => grounded.includes(p))) {
+      motions.set(k, { unsupported: 'an explicit universal with a grounded endpoint; the grounding constraint is not a free 2R chain' });
+    } else if (motion.cylindrical && settings.joints?.[k]) {
+      motions.set(k, { unsupported: 'pair-level cylindrical limits or ratings; set each explicit axis key (#0 axial slide, #1 axial turn) instead' });
+    } else if (motion.cylindrical && [motion.cylindrical.a.part, motion.cylindrical.b.part].some(p => grounded.includes(p))) {
+      motions.set(k, { unsupported: 'an explicit cylindrical with a grounded endpoint; the grounding constraint is not a free slide and turn chain' });
+    } else motions.set(k, motion);
+  }
   const weight = (k: string) => { const m = motions.get(k); return m === undefined ? 0 : 'steps' in m ? m.steps.length : 7; };
   const edges = [...pairs.keys()].map(k => k.split('~') as [string, string]);
   for (const g of grounded) if (!pairs.has(pairKey(BASE, g))) edges.push([BASE, g]);
+  // Explicit Universal and Cylindrical joints are admitted only as open serial pairs.
+  for (const [key, ms] of pairs) {
+    const connectorJoint = ms.find(m => m.kind === 'universal' || m.kind === 'cylindrical');
+    if (!connectorJoint) continue;
+    const [a, b] = key.split('~'), reached = new Set([a]), pending = [a];
+    for (let i = 0; i < pending.length; i++) for (const [x, y] of edges) {
+      if (pairKey(x, y) === key) continue;
+      const next = x === pending[i] ? y : y === pending[i] ? x : undefined;
+      if (next !== undefined && !reached.has(next)) { reached.add(next); pending.push(next); }
+    }
+    if (reached.has(b)) {
+      motions.set(key, { unsupported: `an explicit ${connectorJoint.kind} in a closed or coupled loop; loop decomposition is not supported` });
+      problems.push({ code: 'MOTION_UNSUPPORTED', message: `${key}: an explicit ${connectorJoint.kind} in a closed or coupled loop is not supported.`, parts: [a, b], mates: ms.map(m => m.id) });
+    }
+  }
   const parent = new Map<string, string>([[base, '']]), order = [base], used = new Set<string>();
   for (;;) {
     let best: [string, string] | null = null, bw = Infinity;
@@ -228,7 +300,7 @@ export function jointTree(input: TreeInput): JointTree {
   const links: Link[] = order.map(p => ({ id: p, part: p, name: nameOf(p) })), joints: Joint[] = [];
   for (const p of parts) if (!parent.has(p)) problems.push({ code: 'NOT_CONNECTED', message: `${nameOf(p)} is joined to no other part by mates and is not fixed: it is not in the robot.`, parts: [p] });
 
-  const limitOf = (key: string): Joint['limit'] => { const s = settings.joints?.[key]; return s ? { ...s } : undefined; };
+  const limitOf = (key: string, type: JointType): Joint['limit'] => { const s = settings.joints?.[key]; return s ? jointSettingsIn(type, s) : undefined; };
   for (const child of order.slice(1)) {
     const par = parent.get(child)!, key = pairKey(par, child), mates = pairs.get(key) ?? [];
     const childAt = placed.get(child)!.t;
@@ -237,13 +309,19 @@ export function jointTree(input: TreeInput): JointTree {
     if ('unsupported' in motion) { problems.push({ code: 'MOTION_UNSUPPORTED', message: `${nameOf(child)} moves on ${nameOf(par)} in ${motion.unsupported}: no joint of the tree makes that.`, parts: [par, child], mates: mates.map(m => m.id) }); continue; }
     if (!motion.steps.length) { joints.push({ key, type: 'fixed', parent: par, child, origin: childAt, axis: [0, 0, 1], mates: mates.map(m => m.id) }); continue; }
     // One step: the joint itself; more: a chain through dummy links, the child at its end.
-    motion.steps.forEach((s, i) => {
-      const last = i === motion.steps.length - 1, k = motion.steps.length === 1 ? key : `${key}#${i}`;
+    const reverseConnector = motion.universal?.b.part === par || motion.cylindrical?.b.part === par;
+    const steps = motion.steps.map((s, index) => ({ ...s, index }));
+    if (reverseConnector) steps.reverse();
+    steps.forEach((s, i) => {
+      const last = i === steps.length - 1, k = steps.length === 1 ? key : `${key}#${s.index}`;
       const from = i === 0 ? par : `${child}__${i}`, to = last ? child : `${child}__${i + 1}`;
       if (!last) links.push({ id: to, part: null, name: `${nameOf(child)} (dummy ${i + 1})` });
-      const origin = s.point ? add(s.point, scale(s.axis, dot(sub(childAt, s.point), s.axis))) : childAt, limit = limitOf(k);
+      // This intermediate link is a logical carrier (part:null), never an assembly body or BOM/mass row.
+      // Reversing the parent takes (exp(Sa*a) exp(Sb*b))^-1, with stable keys and both signs reversed.
+      const axis = reverseConnector ? scale(s.axis, -1) : s.axis;
+      const origin = s.point ? motion.universal || motion.cylindrical ? s.point : add(s.point, scale(s.axis, dot(sub(childAt, s.point), s.axis))) : childAt, limit = limitOf(k, s.type);
       const type: JointType = s.type === 'prismatic' ? 'prismatic' : limit?.lower !== undefined || limit?.upper !== undefined ? 'revolute' : 'continuous';
-      joints.push({ key: k, type, parent: from, child: to, origin: origin.map(x => (Math.abs(x) < 1e-12 ? 0 : x)) as Vec3, axis: s.axis, ...(limit ? { limit } : {}), mates: mates.map(m => m.id) });
+      joints.push({ key: k, type, parent: from, child: to, origin: origin.map(x => (Math.abs(x) < 1e-12 ? 0 : x)) as Vec3, axis, ...(limit ? { limit } : {}), mates: mates.map(m => m.id) });
     });
   }
   // Loops: pairs with mates the tree did not take.
@@ -264,17 +342,71 @@ export function jointTree(input: TreeInput): JointTree {
     if ((j.type === 'prismatic' || j.type === 'revolute' || j.type === 'continuous') && (l?.effort === undefined || l.velocity === undefined)) notes.push({ code: 'LIMITS_MISSING', message: `${j.key}: no effort or velocity rating yet (export needs both).`, joint: j.key });
   }
   const couplings = input.gears ? gearCouplings(joints, placed, input.gears, notes) : [];
-  return { version: 1, base, links, joints, loops, couplings, problems, notes };
+  // (PG-6: the running fits — every concentric mate's two round faces, where the solver put them.)
+  const fits: Fit[] = [];
+  for (const m of input.mates) {
+    if (m.kind !== 'concentric' || m.a.at !== undefined || m.b.at !== undefined || failed.has(m.id)) continue;
+    const fa = input.tables(m.a.part)?.[m.a.face], fb = input.tables(m.b.part)?.[m.b.face], A = placed.get(m.a.part), B = placed.get(m.b.part);
+    if (fa?.kind !== 'cylinder' || fb?.kind !== 'cylinder' || !A || !B) continue;
+    fits.push({ mate: m.id, a: m.a.part, b: m.b.part, pa: add(apply(A.R, fa.point), A.t), da: unit(apply(A.R, fa.axis)), ra: fa.radius, pb: add(apply(B.R, fb.point), B.t), db: unit(apply(B.R, fb.axis)), rb: fb.radius });
+  }
+  const camMates = input.mates.filter(m => m.kind === 'cam' && !failed.has(m.id)), cams0 = camMates.length && input.camFaces ? camCouplings(camMates, joints, placed, input.tables, input.camFaces, problems) : [];
+  // (A follower leading, round its chain, back to itself has no value: the coupling that closes the cycle is dropped, said so.)
+  for (const j of joints) {
+    const seen = new Set<string>([j.key]);
+    for (let k = joints.find(x => x.key === j.mimic?.joint); k?.mimic; k = joints.find(x => x.key === k!.mimic!.joint)) {
+      if (seen.has(k.key) || k.mimic.joint === j.key) { problems.push({ code: 'COUPLING_CYCLE', message: `${j.key} follows ${j.mimic!.joint}, whose couplings lead back to it: that coupling is left out.`, joint: j.key }); j.mimic = undefined; j.cam = undefined; break; }
+      seen.add(k.key);
+    }
+  }
+  const cams = cams0.filter(c => joints.find(j => j.key === c.follower)?.mimic);
+  // (O12: each frame on its link, or its refusal among the problems.)
+  const frames: ToolFrame[] = [], partIds = new Set(parts), names = settings.frames ? exportNames({ links, joints }) : null;
+  for (const [name, f] of Object.entries(settings.frames ?? {})) {
+    const [why] = checkFrame(name, f, { links }, partIds, names!);
+    if (why) problems.push({ ...why, frame: name, parts: [f.link] }); else frames.push(resolveFrame(name, f, placed.get(f.link)!));
+  }
+  return { version: 1, base, links, joints, loops, couplings, ...(cams.length ? { cams } : {}), ...(fits.length ? { fits } : {}), problems, notes, ...(frames.length ? { frames } : {}) };
 }
 
 /** A pair's free motion from its mates' rows at the solved pose (b relative to a; the same freedom either way round). */
-function pairMotion(mates: readonly Mate[], tables: TreeInput['tables'], placed: Map<string, Placed>, L: number): ReturnType<typeof motionOf> {
+function pairMotion(mates: readonly Mate[], tables: TreeInput['tables'], placed: Map<string, Placed>, L: number): PairMotion {
+  const universal = mates.find(m => m.kind === 'universal');
+  if (universal) {
+    if (mates.length !== 1) return { unsupported: 'an explicit universal combined with other mates; coupled decomposition is not supported' };
+    const fa = tables(universal.a.part)?.[universal.a.face], fb = tables(universal.b.part)?.[universal.b.face];
+    const A = placed.get(universal.a.part), B = placed.get(universal.b.part);
+    if (!fa || !fb || !A || !B) return { unsupported: 'an explicit universal with unavailable connector geometry' };
+    // mateFacesOf resolves the actual connector options: a.Z and b.X, including local turn/flip/offset.
+    const sf = mateFacesOf(universal, { a: fa, b: fb }), a = worldFace(sf.a, A), b = worldFace(sf.b, B);
+    if (a.kind !== 'plane' || b.kind !== 'plane') return { unsupported: 'an explicit universal without two connector axes' };
+    if (![...a.point, ...b.point, ...a.normal, ...b.normal].every(Number.isFinite) || Math.abs(len(a.normal) - 1) > TOL || Math.abs(len(b.normal) - 1) > TOL) return { unsupported: 'an explicit universal with invalid or singular connector axes' };
+    if (len(sub(a.point, b.point)) > 1e-6 || Math.abs(dot(a.normal, b.normal)) > TOL) return { unsupported: 'an explicit universal whose solved connector origins do not coincide or whose axes are not perpendicular' };
+    // The existing space-frame FK composes these exact screws: a's turn carries b's moving axis.
+    return { universal, steps: [{ type: 'revolute', axis: a.normal, point: a.point }, { type: 'revolute', axis: b.normal, point: a.point }] };
+  }
+  const cylindrical = mates.find(m => m.kind === 'cylindrical');
+  if (cylindrical) {
+    if (mates.length !== 1) return { unsupported: 'an explicit cylindrical combined with other mates; coupled decomposition is not supported' };
+    const fa = tables(cylindrical.a.part)?.[cylindrical.a.face], fb = tables(cylindrical.b.part)?.[cylindrical.b.face];
+    const A = placed.get(cylindrical.a.part), B = placed.get(cylindrical.b.part);
+    if (!fa || !fb || !A || !B) return { unsupported: 'an explicit cylindrical with unavailable connector geometry' };
+    const sf = mateFacesOf(cylindrical, { a: fa, b: fb }), a = worldFace(sf.a, A), b = worldFace(sf.b, B);
+    if (a.kind !== 'cylinder' || b.kind !== 'cylinder') return { unsupported: 'an explicit cylindrical without two connector axes' };
+    if (![...a.point, ...b.point, ...a.axis, ...b.axis].every(Number.isFinite) || Math.abs(len(a.axis) - 1) > TOL || Math.abs(len(b.axis) - 1) > TOL) return { unsupported: 'an explicit cylindrical with invalid or singular connector axes' };
+    const delta = sub(b.point, a.point), acrossAxis = sub(delta, scale(a.axis, dot(delta, a.axis)));
+    if (len(sub(a.axis, b.axis)) > TOL || len(acrossAxis) > 1e-6) return { unsupported: 'an explicit cylindrical whose solved connector Z axes are not aligned on one same-sense line' };
+    // Only transverse separation is constrained. The actual home axial gap and twist remain in M_link.
+    // These exact same-axis screws commute, and the existing FK carries the rotation axis with the slide.
+    return { cylindrical, steps: [{ type: 'prismatic', axis: a.axis, point: a.point }, { type: 'revolute', axis: a.axis, point: a.point }] };
+  }
   const rows: Row[] = [];
   for (const m of mates) {
     if (m.kind === 'lock') { rows.push(...mateRows(m, null as never, null as never, L)); continue; }
     const fa = tables(m.a.part)?.[m.a.face], fb = tables(m.b.part)?.[m.b.face];
     if (!fa || !fb) continue;
-    rows.push(...mateRows(m, worldFace(fa, placed.get(m.a.part)!), worldFace(fb, placed.get(m.b.part)!), L));
+    const sf = mateFacesOf(m, { a: fa, b: fb });
+    rows.push(...mateRows(sf.as === m.kind ? m : { ...m, kind: sf.as }, worldFace(sf.a, placed.get(m.a.part)!), worldFace(sf.b, placed.get(m.b.part)!), L));
   }
   return motionOf(freeTwists(rows, L));
 }
@@ -282,14 +414,18 @@ function pairMotion(mates: readonly Mate[], tables: TreeInput['tables'], placed:
 /** Meshing spur gears on two turning joints of one carrier: the second follows the first, −z1/z2 (D56's pair check). */
 function gearCouplings(joints: Joint[], placed: Map<string, Placed>, gearsOf: (part: string) => readonly GearPlacement[], notes: RobotIssue[]): Coupling[] {
   const turning = joints.filter(j => (j.type === 'revolute' || j.type === 'continuous') && !j.child.includes('__'));
-  const onAxis = turning.flatMap(j => {
-    const at = placed.get(j.child)!;
-    return gearsOf(j.child).flatMap(g => {
+  // (PG-4: the gears of a link's rigid group — its part and the parts fixed to it, a gear locked on its shaft — not its part's
+  // alone; a locked gear off the joint's axis is said so, not left out silently.)
+  const onAxis = turning.flatMap(j => rigidGroup(joints, j.child).flatMap(part => {
+    const at = placed.get(part)!;
+    return gearsOf(part).flatMap(g => {
       const axis = unit(apply(at.R, [0, 0, 1])), point = add(apply(at.R, [g.center[0], g.center[1], g.from]), at.t);
       const off = sub(point, j.origin), perp = sub(off, scale(j.axis, dot(off, j.axis)));
-      return len(cross(axis, j.axis)) < 1e-9 && len(perp) < 1e-6 ? [{ j, g, axis, point, xAxis: unit(apply(at.R, [1, 0, 0])) }] : [];
+      if (len(cross(axis, j.axis)) < 1e-9 && len(perp) < 1e-6) return [{ j, g, axis, point, xAxis: unit(apply(at.R, [1, 0, 0])) }];
+      if (part !== j.child) notes.push({ code: 'GEAR_NOT_COUPLED', message: `${part}'s gear is fixed to ${j.child} but not on ${j.key}'s axis: it is not coupled.` });
+      return [];
     });
-  });
+  }));
   const out: Coupling[] = [];
   for (let a = 0; a < onAxis.length; a++) for (let b = a + 1; b < onAxis.length; b++) {
     const A = onAxis[a], B = onAxis[b];
@@ -299,21 +435,79 @@ function gearCouplings(joints: Joint[], placed: Map<string, Placed>, gearsOf: (p
       return { spec: g.g.spec, center: [dot(d, x), dot(d, y)], from: dot(d, z), rotation: g.g.rotation + turn };
     };
     const g1 = frame(A), g2 = frame(B), dist = Math.hypot(g2.center[0] - g1.center[0], g2.center[1] - g1.center[1]);
-    const tips = (spurGearDimensions(g1.spec).tipDiameterMM + spurGearDimensions(g2.spec).tipDiameterMM) / 2;
+    const tips = (spurGearDimensions(g1.spec).tipDiameter + spurGearDimensions(g2.spec).tipDiameter) / 2;
     if (!(dist < tips)) continue;
     if (dot(A.axis, B.axis) < 0) { notes.push({ code: 'GEAR_NOT_COUPLED', message: `${A.j.key} and ${B.j.key}: their gears face opposite ways (not coupled yet).` }); continue; }
     if (A.j.parent !== B.j.parent) { notes.push({ code: 'GEAR_NOT_COUPLED', message: `${A.j.key} and ${B.j.key}: their gears mesh but turn on different links, so their angles are not tied.` }); continue; }
     try {
       const c = checkPlacedSpurGears(g1, g2, { mode: 'verdict' }), multiplier = -g1.spec.teeth / g2.spec.teeth;
       B.j.mimic = { joint: A.j.key, multiplier, offset: 0 };
-      out.push({ leader: A.j.key, follower: B.j.key, multiplier, centerDistanceMM: c.centerDistanceMM, nominalCenterDistanceMM: c.nominalCenterDistanceMM, backlashMM: c.backlashMM, contactRatio: c.usableContactRatio,
+      out.push({ leader: A.j.key, follower: B.j.key, multiplier, centerDistance: c.centerDistance, nominalCenterDistance: c.nominalCenterDistance, backlash: c.backlash, contactRatio: c.usableContactRatio,
         g1, g2, s1: dot(A.j.axis, z) < 0 ? -1 : 1, s2: dot(B.j.axis, z) < 0 ? -1 : 1 });
     } catch (cause) { notes.push({ code: 'GEAR_NOT_COUPLED', message: `${A.j.key} and ${B.j.key}: ${cause instanceof Error ? cause.message.replace(/^gear: /, '') : String(cause)}` }); }
   }
   return out;
 }
 
+/** A link and the parts fixed to it (down through fixed joints): its rigid group. */
+function rigidGroup(joints: readonly Joint[], link: string): string[] {
+  const out = [link];
+  for (let i = 0; i < out.length; i++) for (const j of joints) if (j.parent === out[i] && j.type === 'fixed' && !out.includes(j.child)) out.push(j.child);
+  return out;
+}
+/** The link a link is rigidly fixed to (up through fixed joints): its rigid group's first. */
+function rigidOf(joints: readonly Joint[], link: string): string {
+  for (let guard = 0; guard < joints.length; guard++) { const j = joints.find(x => x.child === link); if (!j || j.type !== 'fixed') return link; link = j.parent; }
+  return link;
+}
+/** The pair's joints ending at a part (a chain's too), in order. */
+const jointsTo = (joints: readonly Joint[], part: string) => joints.filter(j => j.child === part || j.child.startsWith(`${part}__`));
+/**
+ * O24 (a): each cam mate as a coupling. A turning cam (its part's joint a turn) drives the follower's slide by the lobe's
+ * lift; a sliding driver (a follower's own slide) pushes it linearly. Each is checked: the follower slides on the cam's
+ * carrier toward the face, its face across the cam's axis, seated on the lobe at the solved pose (CAM_NOT_SEATED), the
+ * lobe read from flats and round faces along the axis (CAM_PROFILE_UNSUPPORTED) — else a problem, never coupled.
+ */
+function camCouplings(mates: readonly Mate[], joints: Joint[], placed: Map<string, Placed>, tables: TreeInput['tables'], faces: NonNullable<TreeInput['camFaces']>, problems: RobotIssue[]): CamCoupling[] {
+  const out: CamCoupling[] = [];
+  for (const m of mates) {
+    const cam = m.a.part, fol = m.b.part, bad = (code: RobotCode, why: string) => problems.push({ code, message: `${m.id}: ${why}`, mates: [m.id], parts: [cam, fol] });
+    const jc = [...jointsTo(joints, cam)].reverse().find(j => j.type !== 'fixed'), jf = jointsTo(joints, fol).find(j => j.type === 'prismatic');
+    const P = placed.get(fol), C = placed.get(cam), ff = tables(fol)?.[m.b.face];
+    if (!jc || !jf || !P || !C || ff?.kind !== 'plane') { bad('CAM_NOT_SEATED', !jc ? `${cam} has no joint to drive a follower` : !jf ? `${fol} does not slide (a follower slides in its guide)` : `${fol}.${m.b.face} is not a flat face`); continue; }
+    if (rigidOf(joints, jointsTo(joints, fol)[0].parent) !== rigidOf(joints, jointsTo(joints, cam)[0].parent)) { bad('CAM_NOT_SEATED', `${cam} and ${fol} move on different links, so the lobe and the follower are not tied`); continue; }
+    if (jf.mimic) { bad('COUPLED_TWICE', `${jf.key} already follows ${jf.mimic.joint}: a joint follows one leader`); continue; }
+    const nf = unit(apply(P.R, ff.normal)), pf = add(apply(P.R, ff.point), P.t), u = scale(nf, -1), uw = dot(u, jf.axis);
+    if (Math.abs(uw) < 1e-9) { bad('CAM_NOT_SEATED', `${fol} slides across its face, not toward ${cam}`); continue; }
+    if (jc.type === 'prismatic') {
+      const fa = tables(cam)?.[m.a.face];
+      if (fa?.kind !== 'plane') { bad('CAM_NOT_SEATED', `${cam} slides, so it pushes with a flat face: ${m.a.face} is not one`); continue; }
+      const na = unit(apply(C.R, fa.normal)), pa = add(apply(C.R, fa.point), C.t);
+      if (Math.abs(dot(na, nf) + 1) > 1e-9 || Math.abs(dot(sub(pf, pa), na)) > 1e-6) { bad('CAM_NOT_SEATED', `${fol}.${m.b.face} is not on ${cam}.${m.a.face} at the solved pose`); continue; }
+      const multiplier = dot(jc.axis, u) / uw;
+      jf.mimic = { joint: jc.key, multiplier, offset: 0 };
+      out.push({ kind: 'push', mate: m.id, leader: jc.key, follower: jf.key, multiplier, seat: { driver: cam, follower: fol, p: pf, n: nf } });
+      continue;
+    }
+    if (Math.abs(dot(u, jc.axis)) > 1e-9) { bad('CAM_NOT_SEATED', `${fol}.${m.b.face} is not across ${cam}'s axis`); continue; }
+    const own = faces(fol).filter(f => f.name === m.b.face).flatMap(f => f.pts).map(p => add(apply(P.R, p), P.t)), along = own.map(p => dot(sub(p, jc.origin), jc.axis));
+    let lift: CamLift;
+    try {
+      lift = camLiftOf({ mate: m.id, cam, follower: jf.key, faces: faces(cam), place: p => add(apply(C.R, p as Vec3), C.t), turn: v => unit(apply(C.R, v as Vec3)), o: jc.origin, a: jc.axis, u, w: jf.axis, lo: Math.min(...along), hi: Math.max(...along) });
+    } catch (e) { bad('CAM_PROFILE_UNSUPPORTED', e instanceof Error ? e.message.replace(/^\[\w+\] [^:]+: /, '') : String(e)); continue; }
+    lift.cam = jc.key;
+    const d0 = dot(sub(pf, jc.origin), u);
+    if (Math.abs(lift.h0 - d0) > 1e-6) { bad('CAM_NOT_SEATED', `${fol}.${m.b.face} is ${(d0 - lift.h0).toFixed(6)} mm off the lobe at the solved pose`); continue; }
+    jf.mimic = { joint: jc.key, multiplier: 0, offset: 0 }; jf.cam = lift;
+    let lo = Infinity, hi = -Infinity;
+    for (let k = 0; k < 360; k++) { const v = camValue(lift, (k * Math.PI) / 180) * uw; lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    out.push({ kind: 'cam', mate: m.id, leader: jc.key, follower: jf.key, lift: [Math.round(lo * 1e6) / 1e6 + 0, Math.round(hi * 1e6) / 1e6 + 0], seat: { driver: cam, follower: fol, p: pf, n: nf, axis: jc.axis, slab: [Math.min(...along) + dot(jc.origin, jc.axis), Math.max(...along) + dot(jc.origin, jc.axis)] } });
+  }
+  return out;
+}
+
 /** The tree of a document as it stands (its instances as solved, its robot settings). */
 export function jointTreeOf(doc: StudioDoc, solved: { instances: readonly PartInstance[]; problems: readonly { mate: string; reason: string }[] }, tables: TreeInput['tables'], gears?: TreeInput['gears']): JointTree {
-  return jointTree({ instances: solved.instances, mates: doc.mates ?? [], tables, settings: readRobot(doc.robot), mateProblems: solved.problems, ...(gears ? { gears } : {}) });
+  const docOf = (part: string) => part === BASE ? doc : solved.instances.find(i => i.id === part)?.doc;
+  return jointTree({ instances: solved.instances, mates: doc.mates ?? [], tables, settings: readRobot(doc.robot), mateProblems: solved.problems, ...(gears ? { gears } : {}), camFaces: part => { const d = docOf(part); return d ? camFacesOf(d) : []; } });
 }

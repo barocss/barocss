@@ -1,10 +1,11 @@
-import { tessellateConvexPlanarSolid } from './convex-planar-solid-mesh.js';
-import type { ConvexPlanarSolidMeshResult } from './convex-planar-solid-mesh.js';
+import { tessellateConvexPlanarSolid } from './planar-solids/convex-planar-solid-mesh.js';
+import type { ConvexPlanarSolidMeshResult } from './planar-solids/convex-planar-solid-mesh.js';
 import type { ConvexPlanarSolidResult } from './convex-planar-solid.js';
-import { MassLedger, MASS_LIMITS, ConvexPlanarSolidMassError } from './convex-planar-solid-mass-internal.js';
+import { MassLedger, MASS_LIMITS, ConvexPlanarSolidMassError } from './planar-solids/convex-planar-solid-mass-internal.js';
 import { encodeQualifiedStripBinaryStlTrusted } from './qualified-strip-binary-stl-encoding-internal.js';
 import type { QualifiedStlCounts, QualifiedStlEncodingResult, QualifiedStlGeometry } from './qualified-strip-binary-stl-encoding-internal.js';
 import { SectionRationalContext } from './section-rational-internal.js';
+import { KernelError } from './core/barocss-error.js';
 
 type ExactWork = ReturnType<SectionRationalContext['counts']>;
 type Stage = 'mesh' | 'projection' | 'loss' | 'facet' | 'encoding' | 'snapshot';
@@ -22,7 +23,7 @@ type Context = {
 };
 
 /** Private refusal retains the original cause and completed bounded evidence, never STL bytes. */
-export class ModelingStlError extends Error {
+export class ModelingStlError extends KernelError {
   constructor(readonly code: Code, readonly stage: Stage, detail: string,
     readonly context: Context, readonly progress: Progress, cause?: unknown) {
     super(('Modeling binary STL: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

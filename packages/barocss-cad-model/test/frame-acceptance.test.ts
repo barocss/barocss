@@ -10,9 +10,9 @@ import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { drawingInputs } from '../src/chat/drawing';
 import { drawingIssues, fixAll, issueContext } from '../src/drawing/issues';
 import { readDrawing } from '../src/drawing/types';
-import { sheetSvg } from '../src/drawing/svg';
-import { sheetPdf } from '../src/drawing/pdf';
-import { sheetDxf } from '../src/drawing/dxf';
+import { sheetSvg } from '../src/io/svg';
+import { sheetPdf } from '../src/io/pdf';
+import { sheetDxf } from '../src/io/dxf';
 import { cutListSource } from '../src/app/cutList';
 
 // FR4b (D128): the frames' acceptance — a welded table frame and a 2020-class T-slot frame, each built by the agent's
@@ -30,7 +30,7 @@ async function build(name: string): Promise<{ state: ChatState; results: string[
   return { state, results };
 }
 const close = (a: number, b: number, tol: number, what: string) => assert.ok(Math.abs(a - b) <= tol * Math.max(1, Math.abs(b)), `${what}: ${a} vs ${b}`);
-const A_SHARP = 1600 - 34 * 34, RHO = 7850;
+const A_SHARP = 1600 - 34 * 34, RHO = 7.85;
 /** The tslot-20 section's area by its slots and bore (D123): a² less four slots wo·ds + (wu − wo)²/4, less the bore. */
 const A_TSLOT = 400 - 4 * (6.2 * 6.1 + (11 - 6.2) ** 2 / 4) - Math.PI * 2.1 ** 2;
 function caseFile(name: string, doc: StudioDoc, about: string, expect: object, oracle: string) {
@@ -38,28 +38,28 @@ function caseFile(name: string, doc: StudioDoc, about: string, expect: object, o
   if (process.env.WRITE_ACCEPTANCE) writeFileSync(file, JSON.stringify({ id: `fr-${name}`, step: 'FR', decisions: ['D128'], about, input: { partDocument }, expect, oracle }, null, 2) + '\n');
   assert.deepEqual(JSON.parse(readFileSync(file, 'utf8')).input.partDocument, JSON.parse(JSON.stringify(partDocument)), `${name}: the conformance case holds the part the agent built`);
 }
-type Row = { quantity: number; axisLengthMM: number; ends: [string, string] };
-const rowsOf = (rows: { quantity: number; axisLengthMM: number; ends: readonly { kind: string }[] }[]): Row[] => rows.map(r => ({ quantity: r.quantity, axisLengthMM: Math.round(r.axisLengthMM * 1e9) / 1e9, ends: [r.ends[0].kind, r.ends[1].kind] }));
+type Row = { quantity: number; axisLength: number; ends: [string, string] };
+const rowsOf = (rows: { quantity: number; axisLength: number; ends: readonly { kind: string }[] }[]): Row[] => rows.map(r => ({ quantity: r.quantity, axisLength: Math.round(r.axisLength * 1e9) / 1e9, ends: [r.ends[0].kind, r.ends[1].kind] }));
 
 test('FR4b the welded table frame by the agent: a mitred 1000 × 600 top, four legs 730 under it, lower rails butted on the legs — every member by closed form, welded to one body and its sum; the cut list (5 rows of 12); on the drawing as a table', async () => {
   const { state, results } = await build('frame-welded-table'), bodies = state.bodies;
   assert.equal(bodies.length, 12);
   const lengths = [1000, 600, 1000, 600, 730, 730, 730, 730, 960, 560, 960, 560];
-  bodies.forEach((b, k) => close(b.volumeMM3!, A_SHARP * lengths[k], 1e-12, `member ${k}`));
+  bodies.forEach((b, k) => close(b.volume!, A_SHARP * lengths[k], 1e-12, `member ${k}`));
   // The agent's cut list: top rails mitred both ends, legs square, lower rails butted both ends.
   const out = JSON.parse(results[1]);
   assert.deepEqual(rowsOf(out.rows), [
-    { quantity: 2, axisLengthMM: 1000, ends: ['mitre', 'mitre'] }, { quantity: 2, axisLengthMM: 600, ends: ['mitre', 'mitre'] },
-    { quantity: 4, axisLengthMM: 730, ends: ['square', 'square'] }, { quantity: 2, axisLengthMM: 960, ends: ['butt', 'butt'] }, { quantity: 2, axisLengthMM: 560, ends: ['butt', 'butt'] }]);
-  assert.equal(out.totals.quantity, 12); close(out.totals.axisLengthMM, 2 * 1600 + 4 * 730 + 2 * 1520, 1e-12, 'total length');
+    { quantity: 2, axisLength: 1000, ends: ['mitre', 'mitre'] }, { quantity: 2, axisLength: 600, ends: ['mitre', 'mitre'] },
+    { quantity: 4, axisLength: 730, ends: ['square', 'square'] }, { quantity: 2, axisLength: 960, ends: ['butt', 'butt'] }, { quantity: 2, axisLength: 560, ends: ['butt', 'butt'] }]);
+  assert.equal(out.totals.quantity, 12); close(out.totals.axisLength, 2 * 1600 + 4 * 730 + 2 * 1520, 1e-12, 'total length');
   assert.match(out.csv, /^item,quantity,section,material/);
   // Welded: the legs stand under the top's corners, the lower rails on the legs' faces — one body, no overlap.
   const snap = evaluateCadPart(toPartDocument(state.doc)), members = snap.outputs.filter(o => o.member);
   let w = members[0].brep; for (const o of members.slice(1)) w = booleanAnalytic(w, o.brep, 'union');
-  assert.equal(w.bodies.length, 1); close(brepMassProperties(w, 1).volumeMM3, A_SHARP * lengths.reduce((a, b) => a + b, 0), 1e-12, 'welded');
+  assert.equal(w.bodies.length, 1); close(brepMassProperties(w, 1).volume, A_SHARP * lengths.reduce((a, b) => a + b, 0), 1e-12, 'welded');
   // In steel (a test value): the rows' mass ρ·A·L.
-  const steel = cutList(members.map(o => cutPiece(o)), { densityKgPerM3: RHO });
-  close(steel.totals.massKG, RHO * A_SHARP * lengths.reduce((a, b) => a + b, 0) * 1e-9, 1e-12, 'steel mass');
+  const steel = cutList(members.map(o => cutPiece(o)), { density: RHO });
+  close(steel.totals.mass, RHO * A_SHARP * lengths.reduce((a, b) => a + b, 0) * 1e-3, 1e-12, 'steel mass');
   // On the drawing: the cut list as a table (the 'cut-list' source), on the sheet and in its SVG.
   const content = cutListSource({ doc: state.doc, bodies });
   assert.ok(!('error' in content), JSON.stringify(content));
@@ -85,7 +85,7 @@ test('FR4b the welded table frame by the agent: a mitred 1000 × 600 top, four l
   const groupsA4 = a4ctx.sheet.groups.filter(x => x.role === 'table' && x.id === 'cut'), textsOf = (gg: typeof groupsA4[number]) => gg.marks.filter(m => m.kind === 'text').map(m => (m as { text: string }).text);
   // (The 166 mm table is wider than any room on this A4 at 1:20: its columns go in groups, ITEM leading each.)
   assert.ok(groupsA4.every(gg => textsOf(gg).includes('ITEM')), 'the key column in every block');
-  for (const h of ['QTY', 'SECTION', 'MATERIAL', 'LENGTH [mm]', 'LONG POINT [mm]', 'START', 'END', 'MASS EA [kg]']) assert.ok(groupsA4.some(gg => textsOf(gg).includes(h)), `${h} in a block`);
+  for (const h of ['QTY', 'SECTION', 'MATERIAL', 'LENGTH [mm]', 'LONG POINT [mm]', 'START', 'END', 'MASS EA [g]']) assert.ok(groupsA4.some(gg => textsOf(gg).includes(h)), `${h} in a block`);
   assert.deepEqual(groupsA4.map(gg => textsOf(gg).includes('CUT LIST')), groupsA4.map((_, k) => k === 0), 'the title on the first');
   assert.ok(textsOf(groupsA4.at(-1)!).some(t => /^12 pieces, 9160 mm, /.test(t)) && !groupsA4.slice(0, -1).some(gg => textsOf(gg).some(t => /^12 pieces/.test(t))), 'the notes on the last');
   // (Every row once in each column group — each item as often as the others — and in order within each block.)
@@ -109,10 +109,10 @@ test('FR4b the welded table frame by the agent: a mitred 1000 × 600 top, four l
   const dxf = sheetDxf(ctx.sheet, ctx.layout);
   for (const t of texts) assert.ok(dxf.text.includes(`\n${dxfText(t, false)}\n`), `DXF: ${t}`);
   caseFile('accept-welded-table', state.doc, 'FR4b acceptance: the welded table frame the agent builds (test/fixtures/frame-welded-table.calls.json): a mitred 1000 × 600 top of sharp 40 × 40 × 3 tubes, legs 730 under it, lower rails 150 up butted on the legs; its cut list in steel (a test value).',
-    { outputs: lengths.map((L, k) => ({ volumeMM3: { value: A_SHARP * L, relTol: 1e-9 }, centroidMM: { value: bodies[k].centroid, absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 1 }] })),
-      cutList: { densityKgPerM3: RHO, absTol: 1e-9, rows: [[1000, 'mitre', 45, 1040, ['n0/0', 'n0/2']], [600, 'mitre', 45, 640, ['n0/1', 'n0/3']], [730, 'square', 0, 730, ['n0/4', 'n0/5', 'n0/6', 'n0/7']], [960, 'butt', 0, 960, ['n0/8', 'n0/10']], [560, 'butt', 0, 560, ['n0/9', 'n0/11']]].map(([L, kind, deg, lp, pieces]) => ({
-        quantity: (pieces as string[]).length, pieces, axisLengthMM: L, longPointMM: lp, fromVolume: false, ends: [0, 1].map(() => ({ kind, mitreDegrees: deg, bevelDegrees: 0 })), massKG: RHO * A_SHARP * (L as number) * 1e-9 })),
-        totals: { quantity: 12, axisLengthMM: 9160, massKG: RHO * A_SHARP * 9160e-9 } }, stepRoundTrip: { relTol: 1e-9 } },
+    { outputs: lengths.map((L, k) => ({ volume: { value: A_SHARP * L, relTol: 1e-9 }, centroid: { value: bodies[k].centroid, absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 1 }] })),
+      cutList: { density: RHO, absTol: 1e-9, rows: [[1000, 'mitre', 45, 1040, ['n0/0', 'n0/2']], [600, 'mitre', 45, 640, ['n0/1', 'n0/3']], [730, 'square', 0, 730, ['n0/4', 'n0/5', 'n0/6', 'n0/7']], [960, 'butt', 0, 960, ['n0/8', 'n0/10']], [560, 'butt', 0, 560, ['n0/9', 'n0/11']]].map(([L, kind, deg, lp, pieces]) => ({
+        quantity: (pieces as string[]).length, pieces, axisLength: L, longPoint: lp, fromVolume: false, ends: [0, 1].map(() => ({ kind, mitre: deg, bevel: 0 })), mass: RHO * A_SHARP * (L as number) * 1e-3 })),
+        totals: { quantity: 12, axisLength: 9160, mass: RHO * A_SHARP * 9160e-3 } }, stepRoundTrip: { relTol: 1e-9 } },
     'Closed forms: the top\'s rails A·1000 and A·600 (mitre planes through the corners on their lines; long point L + 40), the legs A·730 (square, under the top), the lower rails A(L − 40) (butted on the legs\' faces); mass ρ·A·L. Centroids by this kernel.');
 });
 
@@ -120,20 +120,20 @@ test('FR4b the 2020 T-slot frame by the agent: four uprights 500, rails 380 and 
   const { state, results } = await build('frame-tslot'), bodies = state.bodies;
   assert.equal(bodies.length, 12);
   const lengths = [500, 500, 500, 500, 380, 380, 280, 280, 380, 380, 280, 280];
-  bodies.forEach((b, k) => close(b.volumeMM3!, A_TSLOT * lengths[k], 1e-12, `member ${k}`));
+  bodies.forEach((b, k) => close(b.volume!, A_TSLOT * lengths[k], 1e-12, `member ${k}`));
   const out = JSON.parse(results[1]);
-  assert.deepEqual(rowsOf(out.rows), [{ quantity: 4, axisLengthMM: 500, ends: ['square', 'square'] }, { quantity: 4, axisLengthMM: 380, ends: ['square', 'square'] }, { quantity: 4, axisLengthMM: 280, ends: ['square', 'square'] }]);
+  assert.deepEqual(rowsOf(out.rows), [{ quantity: 4, axisLength: 500, ends: ['square', 'square'] }, { quantity: 4, axisLength: 380, ends: ['square', 'square'] }, { quantity: 4, axisLength: 280, ends: ['square', 'square'] }]);
   // No two members overlap: they touch on faces only, so united they weigh their sum.
   const snap = evaluateCadPart(toPartDocument(state.doc)), members = snap.outputs.filter(o => o.member);
   let u = members[0].brep; for (const o of members.slice(1)) u = booleanAnalytic(u, o.brep, 'union');
-  close(brepMassProperties(u, 1).volumeMM3, A_TSLOT * lengths.reduce((a, b) => a + b, 0), 1e-9, 'united');
+  close(brepMassProperties(u, 1).volume, A_TSLOT * lengths.reduce((a, b) => a + b, 0), 1e-9, 'united');
   // Its notes: the section's area, A by the closed form to the note's 3 decimals; the agent gave the slot sizes, so no estimate warning.
   assert.ok(bodies[0].notes!.some(n => n.text.startsWith('Member: ') && n.text.includes(`section ${+A_TSLOT.toFixed(3)} mm²`) && n.text.includes('length 500')), JSON.stringify(bodies[0].notes));
   assert.ok(!bodies.some(b => b.notes!.some(n => n.warning)), 'no warnings: square ends between faces, no clash');
   caseFile('accept-tslot-frame', state.doc, 'FR4b acceptance: the 2020-class T-slot frame the agent builds (test/fixtures/frame-tslot.calls.json): 400 × 300 × 500, four uprights and eight rails between their faces, all square; the slot sizes are the tslot-20 library\'s estimates.',
-    { outputs: lengths.map((L, k) => ({ volumeMM3: { value: A_TSLOT * L, relTol: 1e-9 }, centroidMM: { value: bodies[k].centroid, absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 1 }] })),
-      cutList: { densityKgPerM3: 2700, absTol: 1e-9, rows: [[500, ['n0/0', 'n0/1', 'n0/2', 'n0/3']], [380, ['n0/4', 'n0/5', 'n0/8', 'n0/9']], [280, ['n0/6', 'n0/7', 'n0/10', 'n0/11']]].map(([L, pieces]) => ({
-        quantity: 4, pieces, axisLengthMM: L, longPointMM: L, fromVolume: false, ends: [0, 1].map(() => ({ kind: 'square', mitreDegrees: 0, bevelDegrees: 0 })), massKG: 2700 * A_TSLOT * (L as number) * 1e-9 })),
-        totals: { quantity: 12, axisLengthMM: 4 * (500 + 380 + 280), massKG: 2700 * A_TSLOT * 4 * (500 + 380 + 280) * 1e-9 } }, stepRoundTrip: { relTol: 1e-9 } },
-    'Closed forms: the section a² less four slots wo·ds + (wu − wo)²/4 less the bore π(2.1)²; uprights A·500, rails A·380 and A·280 between the uprights\' faces; square ends; mass ρ·A·L at 2700 kg/m³ (a test value). Centroids by this kernel.');
+    { outputs: lengths.map((L, k) => ({ volume: { value: A_TSLOT * L, relTol: 1e-9 }, centroid: { value: bodies[k].centroid, absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 1 }] })),
+      cutList: { density: 2.7, absTol: 1e-9, rows: [[500, ['n0/0', 'n0/1', 'n0/2', 'n0/3']], [380, ['n0/4', 'n0/5', 'n0/8', 'n0/9']], [280, ['n0/6', 'n0/7', 'n0/10', 'n0/11']]].map(([L, pieces]) => ({
+        quantity: 4, pieces, axisLength: L, longPoint: L, fromVolume: false, ends: [0, 1].map(() => ({ kind: 'square', mitre: 0, bevel: 0 })), mass: 2.7 * A_TSLOT * (L as number) * 1e-3 })),
+        totals: { quantity: 12, axisLength: 4 * (500 + 380 + 280), mass: 2.7 * A_TSLOT * 4 * (500 + 380 + 280) * 1e-3 } }, stepRoundTrip: { relTol: 1e-9 } },
+    'Closed forms: the section a² less four slots wo·ds + (wu − wo)²/4 less the bore π(2.1)²; uprights A·500, rails A·380 and A·280 between the uprights\' faces; square ends; mass ρ·A·L at 2.7 g/cm³ (a test value). Centroids by this kernel.');
 });

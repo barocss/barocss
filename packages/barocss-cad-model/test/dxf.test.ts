@@ -10,8 +10,8 @@ import { layoutSheet } from '../src/drawing/views';
 import { snapPoints } from '../src/drawing/dimensions';
 import { buildSheet, hatch, type Mark } from '../src/drawing/sheet';
 import { sectionOf } from '../src/drawing/section';
-import { sheetSvg } from '../src/drawing/svg';
-import { arcEntity, sectionDxfDocument, sheetDxf, sheetDxfDocument } from '../src/drawing/dxf';
+import { sheetSvg } from '../src/io/svg';
+import { arcEntity, sectionDxfDocument, sheetDxf, sheetDxfDocument } from '../src/io/dxf';
 import { sketchDxfDocument } from '../src/sketch/dxf';
 import { defaultDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
 
@@ -63,7 +63,7 @@ function curvePoints(e: DxfEntity, n: number): XY[] {
   const out: XY[] = [];
   for (let k = 0; k <= n; k++) {
     if (e.type === 'circle') { const t = 2 * Math.PI * k / n; out.push([e.center[0] + e.radius * Math.cos(t), e.center[1] + e.radius * Math.sin(t)]); }
-    else if (e.type === 'arc') { let s = e.endDeg - e.startDeg; if (s <= 0) s += 360; const t = (e.startDeg + s * k / n) * Math.PI / 180; out.push([e.center[0] + e.radius * Math.cos(t), e.center[1] + e.radius * Math.sin(t)]); }
+    else if (e.type === 'arc') { let s = e.end - e.start; if (s <= 0) s += 360; const t = (e.start + s * k / n) * Math.PI / 180; out.push([e.center[0] + e.radius * Math.cos(t), e.center[1] + e.radius * Math.sin(t)]); }
     else if (e.type === 'ellipse') { const t = e.start + (e.end - e.start) * k / n, [mx, my] = e.major; out.push([e.center[0] + mx * Math.cos(t) - my * e.ratio * Math.sin(t), e.center[1] + my * Math.cos(t) + mx * e.ratio * Math.sin(t)]); }
     else throw new Error(e.type);
   }
@@ -108,7 +108,7 @@ test('the plate drawing as DXF: every mark of the sheet, dimensions as DIMENSION
     const g = groups[k], r = sheet.dimensions.find(y => y.ok && y.dim.id === g.id);
     assert.ok(r && r.ok && r.value === d.measurement, `dimension ${d.text}`);
     const geo = d.geometry;
-    if (geo.kind === 'linear') { const L = geo.angleDeg === 0 ? Math.abs(geo.p2[0] - geo.p1[0]) : Math.abs(geo.p2[1] - geo.p1[1]); assert.ok(near(L, d.measurement! * layout.scale), `${d.text}: ${L}`); }
+    if (geo.kind === 'linear') { const L = geo.angle === 0 ? Math.abs(geo.p2[0] - geo.p1[0]) : Math.abs(geo.p2[1] - geo.p1[1]); assert.ok(near(L, d.measurement! * layout.scale), `${d.text}: ${L}`); }
     if (geo.kind === 'aligned') assert.ok(near(Math.hypot(geo.p2[0] - geo.p1[0], geo.p2[1] - geo.p1[1]), d.measurement! * layout.scale));
     if (geo.kind === 'diameter') assert.ok(near(Math.hypot(geo.rim[0] - geo.opposite[0], geo.rim[1] - geo.opposite[1]), d.measurement! * layout.scale));
     if (geo.kind === 'radius') assert.ok(near(Math.hypot(geo.rim[0] - geo.center[0], geo.rim[1] - geo.center[1]), d.measurement! * layout.scale));
@@ -130,7 +130,7 @@ test('the plate drawing as DXF: every mark of the sheet, dimensions as DIMENSION
   const mark = sheet.groups.find(g => g.role === 'section' && !g.view)!.marks.find((m): m is Extract<Mark, { kind: 'hatch' }> => m.kind === 'hatch')!;
   const h = plain.find((e): e is Extract<DxfEntity, { type: 'hatch' }> => e.type === 'hatch')!;
   assert.ok(h.fill.kind === 'lines');
-  const ours = dxfHatchLines(h.loops, h.fill.angleDeg, h.fill.spacing, h.fill.origin).map(([a, b]) => [[a[0], H - a[1]], [b[0], H - b[1]]] as [XY, XY]);
+  const ours = dxfHatchLines(h.loops, h.fill.angle, h.fill.spacing, h.fill.origin).map(([a, b]) => [[a[0], H - a[1]], [b[0], H - b[1]]] as [XY, XY]);
   const sheetLines = hatch(mark.rings, mark.spacing);
   assert.equal(ours.length, sheetLines.length); assert.ok(ours.length > 10);
   for (const l of sheetLines) assert.ok(ours.some(([a, b]) => [[a, b], [b, a]].some(([p, q]) => near(p[0], l.a[0], 1e-9) && near(p[1], l.a[1], 1e-9) && near(q[0], l.b[0], 1e-9) && near(q[1], l.b[1], 1e-9))), `hatch line ${l.a} → ${l.b}`);

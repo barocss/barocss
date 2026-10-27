@@ -67,7 +67,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "CAP_END",
+      "category": "PARAMETER",
       "messageIncludes": "[CAP_END] member 1's start is cut by a mitre"
     }
   },

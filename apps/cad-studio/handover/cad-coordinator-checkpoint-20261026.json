@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 3,
+  "kind": "PORTABLE_SNAPSHOT_OF_EXISTING_AUTHORITY_NOT_SECOND_TASK_QUEUE",
+  "savedUTC": "2026-10-27T05:08:53.808411+00:00",
+  "paused": false,
+  "pushed": false,
+  "validatedProductCode": "4bff492c6742cd5c4931ff83f0b35a606ed12230",
+  "productBranch": "review/cad-gpu-engine-2026-10-14",
+  "qualifiedG15Source": "8cddcd05fd3a388472d5a01b4a43e09cdf8a50aa",
+  "aggregateHead": "433a035ae03a61e55b0e03b6a9b9897083774800",
+  "aggregateBranch": "codex/cad-current-source-aggregate-20261025",
+  "localAuthority": "/Users/user/.cache/barocss-preserved/2026-10-24-codex-integration/round3/coordinator-api-active-20261025.json",
+  "owners": {
+    "Kernel": "01a16e2f-fd09-7ea3-b47e-e1243e1b3498",
+    "Outer": "01a16e30-2fb2-7a31-8011-258896c32342",
+    "GPU": "01a16e30-68c5-7ae2-a500-33133dc9b2b4",
+    "Docs": "01a16e30-d6e2-7030-a266-fdeb12dc9b9f",
+    "Drawings": "01a16e31-1757-7e83-b62c-436a517d1dc7",
+    "Viewer": "01a1787c-a71c-7000-a102-4988e3481ec0"
+  },
+  "laneAssignments": {
+    "GPU": {
+      "currentTask": "GPU-ROADMAP-02-2-RENDER-TARGET-TEXTURE",
+      "nextTask": null,
+      "nextCondition": "After actual current Outer runtime return: new emit/native1/changed lint5 and own public example once. No previous GPU passes repeated.",
+      "nextAssignment": "CONFIRMED_OWNER_DIRECT_USER",
+      "updatedUTC": "2026-10-27T04:14:29.860770+00:00",
+      "responsibility": "GPU owns qualified source and functional evidence; API root owns integration"
+    },
+    "Kernel": {
+      "currentTask": "CAD-MODEL-DRAWING-SCHEMA5-CONTRACT-01",
+      "nextTask": "CAD-CG1-SPRING-CLOSED-GROUND-BOOLEAN-01",
+      "nextCondition": "최신 reader/writer의 실제 데이터 보존을 현재3/route4 계약에서 완성한다. schema5 강제와 미출시 구버전 장기 호환 gate는 제외한다.",
+      "nextAssignment": "CONFIRMED_CONDITIONAL",
+      "updatedUTC": "2026-10-27T04:14:29.860770+00:00",
+      "responsibility": "ModelAPI implementation; qualified009awaits exactUIconsumer. PriorCG1minimum2passedandreturned."
+    },
+    "Outer": {
+      "currentTask": "STUDIO-CG2-LINEAR-CUT-FEATURE-CONSUMER-01",
+      "nextTask": "CAD-MODEL-DRAWING-SCHEMA5-CONTRACT-01",
+      "nextCondition": "최신 reader/writer의 실제 데이터 보존을 현재3/route4 계약에서 완성한다. schema5 강제와 미출시 구버전 장기 호환 gate는 제외한다.",
+      "nextAssignment": "CONFIRMED_CONDITIONAL",
+      "updatedUTC": "2026-10-27T01:13:27.082201+00:00"
+    },
+    "Docs": {
+      "currentTask": "DOCS-ACTUAL-API-FIGURE-GAPS-01",
+      "nextTask": null,
+      "nextCondition": "Private189 source/actualModel3 results await exact adoption after current shared source pin. Final public API inventory/check/site and necessary changed pages once at stable source; failed spring/CLI scopes only.",
+      "nextAssignment": "CONFIRMED_CONDITIONAL",
+      "updatedUTC": "2026-10-27T04:14:29.860770+00:00"
+    },
+    "Drawings": {
+      "currentTask": "CAD-MODEL-DRAWING-SCHEMA5-CONTRACT-01",
+      "nextTask": null,
+      "nextCondition": "최신 reader/writer의 실제 데이터 보존을 현재3/route4 계약에서 완성한다. schema5 강제와 미출시 구버전 장기 호환 gate는 제외한다.",
+      "nextAssignment": null,
+      "updatedUTC": "2026-10-27T04:14:29.860770+00:00"
+    },
+    "API": {
+      "currentTask": "CLOSED-FEATURE-SOURCE-INTEGRATION-01",
+      "nextTask": null,
+      "responsibility": "Coordinator/API review + producer-consumer mediation + integration; implementation delegated to Kernel",
+      "nextCondition": "CG1 product7a62 requireddocs firstPASS; immutablebuilt documentation pages continue separately. Root immediately adopts next whole G15 exactdelta and executes ready firstaffectedbatch.",
+      "nextAssignment": null,
+      "updatedUTC": "2026-10-26T22:15:02.550858+00:00"
+    },
+    "Viewer": {
+      "currentTask": "VIEWER-APP-MEASURED-REVIEW-RESTORE-01",
+      "nextTask": null,
+      "nextCondition": "Owner reports 2.2-3.4 and4.1 complete,4.2-4.4/5.1 partial. Exact normal commits and proof/resource handoff requested; remaining file-close browser awaits nonoverlap window.",
+      "nextAssignment": null,
+      "updatedUTC": "2026-10-27T04:14:29.860770+00:00"
+    }
+  },
+  "currentLimits": {
+    "quotaRemainingPercent": 7,
+    "secondary": "UNAVAILABLE",
+    "quotaPauseThresholdPercent": 5,
+    "P2": "EXCLUDED_FROM_ACTIVE_TRACKING_HISTORICAL_HOLD_PRESERVED",
+    "fullRobotPhysics": "NOT_COMPLETE",
+    "fullG15Quality": "NOT_ACCEPTED",
+    "newViewerProduct": "NOT_ADOPTED",
+    "newStudioUI": "PRODUCT_CODE_CA10A3_QUALIFIED",
+    "newCG2": "PRODUCT_4BFF_CAD_BUILD_AND_13E9_DOCS_PASS; common433 actual UI/files; product browser NOT_RUN",
+    "newDrawing": "LATEST_READER_WRITER_RAW_FRAME_PRESERVATION_REQUIRED; schema5 not mandated",
+    "newDocs": "NORMAL_CURRENT_CONTRACTS_COMMON_NEW_MODEL_PRIVATE_FIRST_FAILURES_PENDING",
+    "GPU": "02.2 and 03.2 d4e2 owner-qualified synthetic public cases; GPU output remains other-integrator handoff, not product acceptance",
+    "newSchema5": "PRE_RELEASE_LATEST_ONLY; current3/general and4/route retained; exact latest reader/writer correction in progress; old schema5 candidate history preserved",
+    "GPU04": "133d29e9 source only; emit/CPU/WebGPU/lint/public NOT_RUN; other integrator",
+    "viewerDeviceFailure": "Forced recovery rejection only in console and context-failure device cleanup unconfirmed; GPU/Viewer fixes assigned; physical failure NOT_RUN"
+  },
+  "pendingLocalRefs": {
+    "ViewerDonorHead": "df7d7fdda284a07eb9b25675150d3a9a0da54c74",
+    "ViewerRootHead": "a416de2d07b2bae64b6580a9b5181b3b41cef02c",
+    "StudioUIRoot": "1c80f8c18ad3b1c8796a7d38c7e1256072d39dec",
+    "CG2KernelDonor": "05d4315c950cf338634715a647a2d4a126b349c4",
+    "DrawingsDonor": "ac53b888c04a4b5e86a82db83a51c46331e456fe",
+    "DocsFigureDonor": "125bd50c5b2037f1444f9f6148afcf45d0e5dc51",
+    "CG2ModelDonor": "50397c0f7eb10fe3804c870addd9cfb80bc0307b",
+    "CG2StudioDonor": "9ee0fd25210254e95314d71bd0a9c163bd5dba29",
+    "CG2Common": "1c48eaa12cb3efc874b6ae3b53a84d05c6f9b5aa",
+    "DrawingStatusRow": "4e1dacc5c1b13a38b0fbaa4ef515db8086ead613",
+    "DocsModelResults": "18983ff132f0d5df22e80a209bbdec99c5870d83",
+    "K02Source": "0d2e1abcd85dab68e96cd17c764c311d30e11169",
+    "K03Source": "51a59aaac885e237fb6c415a68b9c0714f9e6291",
+    "CG2CurrentCommon": "433a035ae03a61e55b0e03b6a9b9897083774800",
+    "CG2CommandCorrection": "0cf662c658485afebd82b416a1fc587d34f8d986",
+    "CG2PreviewAppFix": "dca48fc059fed996fd3de21ce61399e456dbdc8e",
+    "SpringMinimalSource": "41c4323b9451d8089f6da0ef5e34067d7adfecc3",
+    "DrawingCompositeSource": "cbf1964d4a500e62f9c32f200312e4e2f1f3cdbf",
+    "Schema5Model": "448f0db0412bd569b82db5097f6cb815fb97b242",
+    "Schema5ModelCorrection": "3b8eb7e2cfd968419514073cb5766898ebcbf5e9",
+    "DrawingRawSchema5": "1a24cd89436bac7706e33065b04f6b0e2bb7e5cc",
+    "DrawingRealProducerTests": "f3c8ad0b611aba66782bfe422033f80aa9ad95ff",
+    "DrawingDraftNotice": "abacf8df470d482d12eba8b877bc9ab366c2e797",
+    "GpuTargetTexture": "2a35e9b665d9d86db6a95ce3047a8f4991ec8514",
+    "GpuGlbRepair": "5d8b77579fe65fff331e878d657e78e0fcbe7519",
+    "CG2ProductCode": "4bff492c6742cd5c4931ff83f0b35a606ed12230",
+    "CG2ApiInventory": "7ec61aff2d36855b038d40ce624216e7670d7dc8",
+    "CG2RefusalRepair": "13e9c835aa10b5d111a835046daf1e05b64200a7",
+    "ModelShortNames": "52ce8ba47693422bbae6cd45df2cff19a907e8f7",
+    "K07Source": "01bd6b35d5a05af0dca6b57f9dc40b5c6de6eb5e",
+    "GpuGlbTexture": "d4e2c3ec7bfc89e3ab32907299a040738dc156cd",
+    "GpuUint32": "133d29e9bbf640b035930b4210f9d6943917409e",
+    "DrawingLatest34": "47c2abe01800fae1ec44d60c85062674e8a20f14"
+  },
+  "activeRuntime": {
+    "owner": "GPU + Viewer",
+    "status": "DEVICE_FAILURE_SOURCE_FIXES_ASSIGNED; previous Viewer browser exact return pending",
+    "source": "owner branches; not product adopted"
+  },
+  "firstFailureToPreserve": {
+    "Docs125": "Evidence guard mistook input imports for retained runtime external imports. API cases/JPEG/site NOTRUN. Wrapper-only normal correction is active; no retry on same source.",
+    "G15": "Original22f test narrowing TS2339 fixed only in test assertion; old three PASS stages not repeated. Initial offscreen refusal fixed by one class string and targeted real UI. Fullcapture tab observation causeUNKNOWN, normalviewport final proof accepted.",
+    "DocsModel164": {
+      "source": "a94d537f9edd84787f1a658bcda0238387ca36f6",
+      "result": "159PASS/2FAIL/3CANCELLED",
+      "spring": "GEOMETRY n0.wire/n0.ground0 boundary bracket",
+      "CLI": "workspace/esbuild 경로 실패, 링크 복구 후 실제해결미확정",
+      "runtimeGraph": "UNKNOWN"
+    },
+    "CG2ProductDocs": "7ec61 first docs failed due _refusals drift; 13e9 documentation-only fix and retry passed; original output retained locally.",
+    "GPU03_2": "29fd emit wait2/acquire0/command2/release0/wrapper2: MIME unknown to PNG/JPEG union TS2345/TS2322. Remaining CPU/WebGPU/lint/public NOT_RUN."
+  },
+  "remote": {
+    "pushExecuted": false,
+    "lastObservedHead": "16eabdd8e55ff3bb8cb77bfa2769e1e7049be715",
+    "freshVerification": "Required at quota finalization; pending local refs may not exist on remote."
+  },
+  "resume": [
+    "Read this snapshot and actual local authority; compare actual Git HEAD and owner statuses.",
+    "Check actual Codex usage; <=5 means stop owners, safe checkpoint, qualified exact integration/minimum checks, portable handoff normalcommit, root authorized non-force feature-branch push and remoteSHA check, then pause cad.",
+    "Do not restart packaged-provider/config/hook work, paused Physics/Motion, or held manufacturing scopes.",
+    "Use normal owner commits and root exact integration; no new Work/worktree, no repeated valid checks. Each UI owner uses own browser session.",
+    "If only a remote clone is available, verify each pending local ref and external evidence exists before resuming; do not reconstruct missing proof."
+  ],
+  "sourceRoadmapNumberedItems": 19,
+  "apiDirection": "api-public-model-direction-20261027.md",
+  "roadmapAlignment": {
+    "basis": "Kernel/GPU/CAD/Model 기반 후 같은기능 Studio/Viewer/제품",
+    "activeTasksAuthorityOnly": "/Users/user/.cache/barocss-preserved/2026-10-24-codex-integration/round3/coordinator-api-active-20261025.json",
+    "sourceCheckPublicProductSeparate": true,
+    "P2": "EXCLUDED_FROM_ACTIVE_TRACKING_HISTORICAL_HOLD_PRESERVED",
+    "preReleaseLatestOnly": "User: no releases yet; use current version. Do not make unreleased old binaries or long migration a requirement; preserve actual files, snapshots and active WIP."
+  }
+}

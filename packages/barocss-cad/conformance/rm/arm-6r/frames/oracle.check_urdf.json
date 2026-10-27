@@ -1,0 +1,23 @@
+{
+ "listed": [
+  "cam",
+  "tcp"
+ ],
+ "ok": true,
+ "oracle": "check_urdf (urdfdom)",
+ "returncode": 0,
+ "stderr": [],
+ "stdout": [
+  "robot name is: robot",
+  "---------- Successfully Parsed XML ---------------",
+  "root Link: base has 1 child(ren)",
+  "    child(1):  l1",
+  "        child(1):  l2",
+  "            child(1):  l3",
+  "                child(1):  cam",
+  "                child(2):  l4",
+  "                    child(1):  l5",
+  "                        child(1):  l6",
+  "                            child(1):  tcp"
+ ]
+}

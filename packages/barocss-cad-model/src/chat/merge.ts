@@ -27,18 +27,22 @@
 // the person previews, accepts or rejects it as any other.
 import { STUDIO_DOC_FIELDS, type BodyLook, type BodyRef, type ModelNode, type StudioDoc } from '../engine/doc';
 import { featureId, nextSerial, serialOf } from '../engine/ids';
-import { canonical } from '../team/revision';
+import { canonical } from '../util/revision';
 import { renumber } from './features';
-import { nextProposalId, PLAN_CHARS, withHistory, type HistoryEntry, type Op, type Proposal, type Risk, type TurnCode, type TurnConflict } from './proposals';
+import { nextProposalId, PLAN_CHARS, withHistory } from './proposals';
+import type { HistoryEntry, Op, Proposal, Risk, TurnCode, TurnConflict } from '../engine/schema/proposals';
 import { moveOp, renameIds } from './remap';
 import { modelHash } from './spec';
 import { moveOps, proposalOf, type ChatState, type Evaluate } from './tools';
+import { isObj } from '../util/guards';
+import { refusal } from '../engine/refusal';
+import { assertRouteBundleDocument } from '../engine/routeBundle';
 
 /** The fields a turn's op may write besides features, parameters, body outputs and looks, proposals and history. */
 const OWN = new Set<string>(['format', 'schema', 'units', 'nextId', 'nodes', 'outputs', 'parameters', 'bodies', 'proposals', 'history']);
 const FIELDS: readonly string[] = STUDIO_DOC_FIELDS.filter(k => !OWN.has(k));
 /** The tools that bring back a whole earlier state. */
-const RESTORES = new Set(['restore', 'restore_best']);
+const RESTORES = new Set(['restore', 'restore_best', 'restore_version', 'switch_branch', 'merge_branch']);
 const TOKEN = /(?<![\w])[nb](\d+)(?!\d)/g;
 
 /** What an op did, explicit: features in id form (each index reference the referenced feature's serial). */
@@ -67,7 +71,6 @@ export interface TurnOp { tool: string; args: Record<string, unknown>; order: st
 /** A turn's patch (A7's on a base): the base's revision (`revisionOf`) and next serial, the ops in order. */
 export interface TurnPatch { id: string; by: { agent: string; model?: string }; base: string; nextId: number; ops: TurnOp[] }
 
-const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const idsOf = (nodes: readonly ModelNode[]) => nodes.map((_, i) => featureId(nodes, i));
 /** A node with its index references as serials. */
 const idForm = (nodes: readonly ModelNode[], node: ModelNode): ModelNode => renumber(node, i => serialOf(featureId(nodes, i)));
@@ -188,7 +191,17 @@ export const changedDuring = (base: StudioDoc, now: StudioDoc): boolean => canon
  * The turn's ops applied to the part as the person has it now (`now`), from the base they were made on (`base`), each
  * that does not conflict; the rest as one proposal on the result, with their reasons.
  */
-export async function mergeTurn(base: StudioDoc, now: StudioDoc, patch: TurnPatch, evaluate: Evaluate, o: { deferAll?: string } = {}): Promise<Merged> {
+export async function mergeTurn(base: StudioDoc, now: StudioDoc, patch: TurnPatch, evaluate: Evaluate, o: { deferAll?: string; rowFiles?: ChatState['rowFiles'] } = {}): Promise<Merged> {
+  const admit = (input: unknown) => {
+    assertRouteBundleDocument(input);
+    if (isObj(input) && input.schema === 4) throw refusal('BAD_REFERENCE', 'Route bundle: merging linked route documents is not supported.');
+  };
+  admit(base); admit(now);
+  for (const op of patch.ops) {
+    // Fields may carry a bundle, a required version, or nested part documents even on a legacy base.
+    admit({ schema: 3, nodes: [], ...op.effect.fields });
+    admit({ schema: 3, nodes: [...op.effect.added.map(a => a.node), ...op.effect.changed.map(c => c.node)] });
+  }
   // (Every op waiting, without running anything — nothing to await, so no edit lands in between: the last resort.)
   if (o.deferAll !== undefined) {
     const deferred = patch.ops.map((op, k): TurnConflict => ({ op: k, tool: op.tool, code: 'TURN_STILL_EDITING', reason: o.deferAll! }));
@@ -282,16 +295,16 @@ export async function mergeTurn(base: StudioDoc, now: StudioDoc, patch: TurnPatc
   }
   if (!doc) {
     r = await run(true);
-    if (!r) throw new Error('The evaluation was superseded while the chat turn was merged.');
+    if (!r) throw refusal('MERGE_SUPERSEDED', 'The evaluation was superseded while the chat turn was merged.');
     const d = docOf(r.w);
-    if (!('doc' in d)) throw new Error(`The merged part names ${d.missing.join(', ')}, which it does not have.`);
+    if (!('doc' in d)) throw refusal('MERGE_MISSING', `The merged part names ${d.missing.join(', ')}, which it does not have.`);
     doc = d.doc; bodies = r.bodies;
     if (!r.applied.length) { const e = await evaluate(doc); if (e?.ok) bodies = e.bodies; }
   }
   // (The history the applied ops added, after the person's.)
   for (const k of r!.applied) for (const h of patch.ops[k].effect.history) doc = withHistory(doc, historyOf(h));
   if (!r!.deferred.length) return { doc, applied: r!.applied, deferred: [], proposal: null };
-  const withProposal = await deferredProposal({ doc, bodies }, patch, r!.deferred, ids, evaluate);
+  const withProposal = await deferredProposal({ doc, bodies, rowFiles: o.rowFiles }, patch, r!.deferred, ids, evaluate);
   return { doc: withProposal.doc, applied: r!.applied, deferred: r!.deferred, proposal: withProposal.id };
 }
 

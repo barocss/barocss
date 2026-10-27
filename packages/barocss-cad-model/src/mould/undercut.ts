@@ -11,14 +11,15 @@
 import type { BodyResult } from '../engine/evaluate';
 import type { Vec3 } from '../engine/mesh';
 import { rayHit, triangleBvh, type TriangleBvh } from '@barocss/cad';
+import { boundsOf } from '../engine/bounds';
 
 export interface UndercutRegion {
-  body: string; faces: string[]; areaMM2: number; centroid: Vec3; triangles: number;
+  body: string; faces: string[]; area: number; centroid: Vec3; triangles: number;
   /** The side action across the pull that frees all of it (null: none does), and the best one tried with the share it frees. */
   sideAction: Vec3 | null; best: { direction: Vec3; clearShare: number };
 }
-/** `coarsestMM`: the largest spacing used — the step where triangles allowed it, more on the largest (n capped): an undercut under it may be missed. */
-export interface UndercutReport { pull: Vec3; regions: UndercutRegion[]; samples: number; stepMM: number; coarsestMM: number; method: string }
+/** `coarsestStep`: the largest spacing used — the step where triangles allowed it, more on the largest (n capped): an undercut under it may be missed. */
+export interface UndercutReport { pull: Vec3; regions: UndercutRegion[]; samples: number; sampleStep: number; coarsestStep: number; method: string }
 const OFF = 0.01, MAX_N = 64;
 
 const unit = (v: readonly number[]): Vec3 => { const l = Math.hypot(v[0], v[1], v[2]); return [v[0] / l, v[1] / l, v[2] / l]; };
@@ -42,8 +43,7 @@ function root(parent: Int32Array, x: number): number { while (parent[x] !== x) {
  */
 export function undercuts(bodies: readonly BodyResult[], pull: readonly number[], stepMM?: number): UndercutReport {
   const d = unit(pull), back: Vec3 = [-d[0], -d[1], -d[2]], [u, v] = across(d), sides: Vec3[] = [u, [-u[0], -u[1], -u[2]], v, [-v[0], -v[1], -v[2]]];
-  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-  for (const b of bodies) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], b.mesh.bounds.max[k]); }
+  const { min: lo, max: hi } = boundsOf(bodies);
   const h = stepMM ?? Math.max(0.05, Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) / 400);
   const regions: UndercutRegion[] = [];
   let samples = 0, coarsest = 0;
@@ -99,9 +99,9 @@ export function undercuts(bodies: readonly BodyResult[], pull: readonly number[]
         const share = left === 0 ? 1 : A > 0 ? Math.min(freed / A, 1 - 1e-15) : 0;
         if (share > best.clearShare) { best = { direction: s, clearShare: share }; bestAll = left === 0; }
       }
-      regions.push({ body: body.key, faces: [...faces].sort(), areaMM2: A, centroid: [c[0] / A, c[1] / A, c[2] / A], triangles: tris.length, sideAction: bestAll ? best.direction : null, best });
+      regions.push({ body: body.key, faces: [...faces].sort(), area: A, centroid: [c[0] / A, c[1] / A, c[2] / A], triangles: tris.length, sideAction: bestAll ? best.direction : null, best });
     }
   }
-  regions.sort((a, b) => b.areaMM2 - a.areaMM2);
-  return { pull: d, regions, samples, stepMM: h, coarsestMM: coarsest, method: `each display triangle split into n² equal parts (n from its longest edge over a ${+h.toFixed(4)} mm step, at most ${MAX_N}); each part's centre ${OFF} mm off the triangle along its normal, a ray along +d and −d through the triangle BVH; hidden both ways: an undercut, its share of the area with it; regions joined at shared positions; side actions tried along the two axes across d, both ways` };
+  regions.sort((a, b) => b.area - a.area);
+  return { pull: d, regions, samples, sampleStep: h, coarsestStep: coarsest, method: `each display triangle split into n² equal parts (n from its longest edge over a ${+h.toFixed(4)} mm step, at most ${MAX_N}); each part's centre ${OFF} mm off the triangle along its normal, a ray along +d and −d through the triangle BVH; hidden both ways: an undercut, its share of the area with it; regions joined at shared positions; side actions tried along the two axes across d, both ways` };
 }

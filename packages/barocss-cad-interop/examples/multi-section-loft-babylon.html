@@ -103,7 +103,7 @@
         throw new Error(`Native loft Surface mismatch: ${item.key}`);
       const mesh = display.meshes[0];
       if (display.meshes.length !== 1 || !(mesh instanceof Mesh) || mesh.metadata.barocss.surfaceId !== item.id ||
-          mesh.metadata.barocss.coordinateSystem !== 'right-handed-y-up')
+          mesh.metadata.barocss.coordinateSystem !== 'right-handed-z-up')
         throw new Error(`Expected one native-bound Babylon Mesh: ${item.key}`);
       for (const [kind, values] of [['position', neutral.surfaces[0].mesh.positions],
         ['normal', neutral.surfaces[0].mesh.normals]]) {

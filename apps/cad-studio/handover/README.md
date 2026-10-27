@@ -1,3 +1,24 @@
+# CAD Studio handover — current entry
+
+Read [state.yaml](state.yaml) first for the current code baseline, Work identities,
+verification receipts, blockers and next actions. Then read [roadmap.md](roadmap.md)
+and [protocol.md](protocol.md). The coordinator alone updates these current records.
+
+The [owner roadmap](notes/owner-roadmap-2026-10-22.md) defines the full product
+goal. The [message example](notes/coordination-message-pattern-2026-10-22.md)
+defines the response, decision, instruction and dependency-relay loop.
+
+The [2026-10-22 coordinator handover](notes/coordinator-handover-2026-10-22.md)
+is the source checkpoint for this continuation. Its code was merged into develop
+at `c3ae0d5de60ecb250350b597552fb0203b41d43e` (PR #2185). This merge does not
+replace the recorded full-verification checkpoint `9fec9950c`.
+
+The dated handovers and decision logs below are retained history. Their earlier
+statements about unpushed work, next tasks and incomplete features apply to the
+commits they name. Use the current state record to resume work.
+
+---
+
 # cad-studio hand-over — 2026-10-16
 
 Hand-over from the Claude account that ran the 2026-10-16 cad-studio work (organization NAVER_TEAM_17,
@@ -6,6 +27,122 @@ the git history and the QA report are the record. Everything is **local only**: 
 no npm publish.
 
 ## 0. Start here — hand-over of 2026-10-18 (read this section first)
+
+### Kernel lane: resumed after Codex (2026-10-23) — read this block first, then the FRk8b block below
+
+Codex ran the lanes on 2026-10-22/23; its kernel work came into integration with `99da385a1`: FRk3 (D172), FRk4
+(D173/D174), FRk5 (D175), the Sweep mass correction and shared weld seams. For the import, the lane briefs and the
+window at it, see `notes/claude-resume-2026-10-23/`.
+
+| Checkpoint | Record | State |
+|---|---|---|
+| Window repairs: frk-3's oracle path; two refusal checks FRk4 made stale; sweep's silently dropped holes (a defect from the import) refused again | D176 | done (T1) |
+| V notch precision: trim strips close the gap to their fitted edge (the ribbon); V notch 9.2e-15, D126 table members 4–7 from ~1e-9 to ~1e-14 | D177 | done (T1); T2 pending |
+| FRk6: the capped ordered joint (12 Booleans; the table's build 5.7 s → 1.1 s, ≤ 2 s met); its accuracy half is D177 | D178 | done (T1); T2 pending |
+| D177's ribbon on facet-mesh rims: three gaps in the strip coverage closed; two r6 centroids corrected to their closed forms (they pinned the old output) | D179 | done (T1+); T2 pending |
+| FRk7: SubD display folds flipped onto the surface (pipe clamp worst 88.6° → 21.6°, none ≥ 25°) | D180 | done (T1+); T2 pending |
+| Open: `r6/facet-cube-sphere-intersect` pins ȳ 17.74954826 against the symmetric 17.75 (4.5e-4) | — | found (D179) |
+| FRk8a: the housing's shoulder from its faces against Da max (SEAT_ABUTMENT above it; a warning when none at the located side) | D181 | done (T1) |
+| K2 (FRk5 leftovers), kernel half: the notch cases for the flow (V and hole saw on a tee, closed form / Gauss oracles; a NOTCH_CUTTER refusal). The flow step and the WebGPU failure are the GPU lane's | D182 | done (T1) |
+| K6 FRk9: acceptance by the agent — the weldment table (gussets, caps, beads with shared-seam ownership), the tapered-I portal, the bent-tube rail; `conformance/frk/accept-*` | D183 | done (T1) |
+| K5 FRk8b second half | — | not needed (D178 met the speed) |
+| K7: r6 sphere-intersect ȳ — the facet rims' gap beside a pole closed by the ribbon alone; the pin (the kernel's output) to 17.75 | D184 | done (T1+) |
+| K8: F5, the cnc-turning report — the kernel admitted the surface per derivative call; once per surface now (a9-acceptance 55 → 15 s) | D185 | done (T1+) |
+| K9a: the 1 nm graze returned a wrong body (534 against 253 mm³, loops crossing) — now checked strictly and refused, typed; gear-internal's test pinned a strict-invalid body, relaxed to valid-or-refused | D186 | done (T1+) |
+| K9b: the 10 µm and 1 µm grazes (x52, x27) built right — a plane face's edge crossed twice inside one chord, found by bisection | D187 | done (T1+) |
+| K9 stops (coordinator, option a): the 10 nm graze, the lens fold, helical × helical and the 1 nm refusal left open with their analyses | D187 notes | open |
+| K10: RB5 L4 fuzz built and run — 200 cases: 104 OK, 90 typed refusals, 0 WRONG, 6 INVALID findings shrunk into `robustness/corpus/fuzz/` | D188 | done (first run; findings open) |
+| Fuzz 191: a plane tangent to a cylinder's wall cut a slit — no cut now | D189 | done (T1+) |
+| Fuzz 35 / 149: pinched faces (a tangent disc) — strict check against the prismatic crescent convention | — | decision asked |
+| The 61 empty-operand refusals: Booleans and patterns keep the algebra (A ∪ ∅ = A …); the fuzz rerun 163 OK / 31 refused / 6 INVALID | D190 | done (T1+) |
+| Fuzz 93, 83: a crossing seen only on a curve's 9-sample chords is confirmed on chords 8× finer before it is reported | D191 | done (T2) |
+| Fuzz 93's volume (123 e off): a pole face's trims away from the pole take their strips; now within e | D192 | done (T2) |
+| Fuzz 5, 118, the notch tees (open since D182), graze-y1 (since D25): a cylinder face keeps no triangle whose corners all lie on one smooth boundary run | D193 | done (T2) |
+| Fuzz 35, 149 (pinched faces): strict L0 accepts a loop through one B-rep vertex twice, or a hole touching its loop at a shared vertex (identity, not nearness; option a) | D194 | done (T2) |
+| Fuzz 56 and the pinned prismatic crescents: a prismatic body touching itself along a tangent line is KNOWN in RB and the fuzz, not INVALID (option b; DFM walls flag it: 0.013 / 0 mm) | D195 | done |
+| A prismatic crescent built exactly (a non-manifold edge, or a split at the tangency) | — | later (c) |
+| The fuzz's 31 refusals: triage — 6 exact contacts of separate lumps (non-manifold as one solid; over-refusals by prismatic's separate-bodies convention, a decision), 8 near-degenerate and 17 robust refusals of valid inputs (kernel weaknesses) | D196 | done |
+| Fuzz 73, 117, 139, 71 (robust refusals): a point on a sparsely sampled curve maps onto its own branch (paramOf) | D197 | done (T2) |
+| Fuzz seed 20261024 #65 (WRONG, 2400 e): which chords beside a pole take no strip is the same at every step | D198 | done (T2) |
+| Fuzz seed 20261024 #171 (WRONG, 0.09 %): a cap about a sphere's pole, its trim round the whole turn in a few samples, is integrated | D199 | done (T2) |
+| A curved body's tessellated mass states its volume's error (volumeBoundMM3); cad-model's volume_basis is the outer lane's | D200 | done (T2) |
+| Fuzz s2#41, s1#149 (full tree): a planar face's slit (a loop out along an edge and back, or a hole of nothing else) is taken out in stitch | D201 | done (T2) |
+| Fuzz 176, 101 (arc-on-cylinder refusals): an arc on a wall that is no cross-section maps into the domain as a curve | D202 | done (T2) |
+| Fuzz 2 (robust refusal): a curve that dips onto a revolution patch between two of onPatches' samples is found (patchMargin) | D203 | done (T2) |
+| Fuzz 4, 49, 50, 67, 92, 100, 131 (exact contacts): lumps touching along a line or at a point are separate bodies, as lumps apart are (cad-model union-touch flipped; its refusal title retires, O8's DFM warning returns it) | D204 | done (T2) |
+| Fuzz 56 and tangent contacts: a piece misjudged where a surface only touches it is re-judged; a lump touching itself is refused, typed; two lumps touching are two bodies | D205 | done (T2) |
+| Fuzz 173 (robust refusal): a traced curve's box in the arrangement allows for its bulge between samples | D207 | done (T2) |
+| Fuzz 158 (robust refusal): a traced curve through a pole of one surface on the other goes on to the pole | D208 | done (T2) |
+| Fuzz 137, 125 (robust refusals): a curved piece pinched at a vertex (a hole touching its boundary there) is measured | D209 | done (T2) |
+| Fuzz 15 (robust refusal): a planar piece whose middle lies where a surface only touches it is re-judged too (two bodies) | D210 | done (T2) |
+| K11: F5's remainder — a foot on a patch edge is solved along it, the iteration stops at the rounding floor (turningOf 8.1 → 4.4 s, first derivatives 4.2 M → 1.4 M) | D211 | done (T2) |
+| Fuzz 151, 46 (robust refusals): a cross-section past a cylinder face's seam is probed on the domain's other side; X2's d + t2 22.8 moves to section:B (outer lane's ruling) | D206 | done (T2) |
+| R5.1a: bit-identical vec3 copies (56 in 23 files) import vec3.ts; variants (no fallback, reciprocal, throwing) stay | D212 | done (T2, fingerprint identical) |
+| R5.1b: |a − b| is vec3.dist (5 identical copies) | D213 | done (T2, fingerprint identical) |
+| R5.1c: one Gauss–Legendre gauss(n) (quadrature.ts); curved-arrangement's duplicate GL8 table gone | D214 | done (T2, fingerprint identical) |
+| R5.1d: guardKnots once (knot-guard.ts), 5 identical copies | D215 | done (T2, fingerprint identical) |
+| R5.2a: the mass inverter picks its 4 nearest grid points in one pass (ties in grid order, proved on constructed ties) | D216 | done (T2, fingerprint identical) |
+| R5.2b: rolling-ball Newton solvers build their arrays without per-iteration closures | D217 | done (batched checks, fingerprint identical) |
+| R5.2c: brep-tessellate adjacency and refinement tests build no edge arrays per call | D218 | done (batched checks, fingerprint identical) |
+| R5.2d: analytic-boolean nearestOn has no distance closure per call | D219 | done (batched checks, fingerprint identical) |
+| R5.2e: surface-intersection onBoth builds its least-squares system in loops | D220 | done (batched checks, fingerprint identical) |
+| R5.3a: the gears leave operation() for part-gears.ts (verbatim; helpers frozen record) | D221 | done (batched checks, fingerprint identical) |
+| R5.3b: the machine elements leave operation() for part-machine.ts (verbatim; helpers frozen record) | D222 | done (batched checks, fingerprint identical) |
+| R5.3c: the fillet and chamfer leave operation() for part-finish.ts (verbatim; helpers frozen record) | D223 | done (batched checks, fingerprint identical) |
+| R5.3d: the mesh and import features leave operation() for part-mesh.ts (verbatim; helpers frozen record) | D224 | done (batched checks, fingerprint identical) |
+| R5.3e: the shell and thicken leave operation() for part-shell.ts (verbatim; helpers frozen record) | D225 | done (batched checks, fingerprint identical) |
+| R5.3f: the sheet-metal features leave operation() for part-sheet.ts (verbatim; helpers frozen record) | D226 | done (batched checks, fingerprint identical) |
+| R5.3g: the frame and weldment features leave operation() for part-frame.ts (verbatim; helpers frozen record) | D227 | done (batched checks, fingerprint identical) |
+| R5.4 batch 1: part, machine, io, mesh, frame-sheet, language into src folders (53 files) | D229 | done (batched checks, fingerprint identical) |
+| R5.4 batch 2: nurbs/{curves,surfaces,source-wide}, exact-proof, intersect, paired, translated-strip (139 files) | D230 | done (batched checks, fingerprint identical) |
+| R5.4 batch 3: brep, core, document, blend, features (87 files) | D231 | done (batched checks, fingerprint identical) |
+| R5's fingerprint committed: packages/barocss-cad/scripts/r5-fingerprint.mjs (855 cases; sha256 ef3868df…) | D232 | done |
+| R5.4 batch 4: sketch, planar-solids (+2 features, 2 core); the modeling closure and trap-pinned siblings stay at the root (40 files) | D233 | done (batched checks, fingerprint identical) |
+| R5.4's demo comparison (119 demos vs D228): the .d.ts names of moved modules in 17 demos folder-qualified; none fails that passed before | D234 | done |
+| O10 (kernel part): evaluateCadPart(…, { profile: true }) — per-feature wall time and kernel calls; off by default | D228 | done (fingerprint identical off and on) |
+| Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
+| K12: fuzz 110's family (Viviani's curve through a ball's pole) — the traced curve cut at the pole (the R5 session's patch), and chainCurve's refining points kept on both patches; 110 as fuzzed (a tangent point at the equator) still open | D235 | done (T1, fingerprint identical) |
+| K12: fuzz 119 — the march's closing and running-back tests used half the step taken, so a closed curve could be traced twice (8 of 40 steps on two balls); they use the step taken | D236 | done (T1, fingerprint: 119 refused → valid, nothing else) |
+| K12: fuzz 74 and 170 — a cut's loose end within 10 tolerances of a vertex or a segment ends there (cuts meeting at a triple point, each clipped against another face's map of one edge, ended 1–3e-6 apart); 170 needed no pole-safe map, 171's pole cap unchanged | D237 | done (T2 at 4d78043bd: kernel 1654/1661, RB no NEW, cad-model 1003, studio 281; fingerprint: 74, 170 refused → built; 112 refused at the root instead) |
+| K12: fuzz 110 as fuzzed and 25 — a march through a point where the surfaces touch kept turning back with n₁ × n₂'s sign; each step's tangent keeps the previous one's direction | D238 | done (T1, fingerprint: 25, 110 refused → valid; corrected after checkpoint 2: the first version broke the long ground spring) |
+| K12 queue closed: 25, 74, 110, 119, 170 build; 51 built already; 85 a correct refusal (a lump touching itself, D205); the nudge findings left open | D239 | done |
+| K12 step 3: opening time measured (report only) — frames: 120 analytic Booleans (10 of 13 s in Node; intervals' unboxed segment tests 2.5 s); spring and worm: the body's mass quadrature and mesh, not the kernel features; A9: the O-ring overlap's quadrature 1.3 s, instance p2 fails BEARING_HOUSING_REFERENCE | D240 | done (measured) |
+| K13 step 1: the Boolean's intervals skip segment pairs whose boxes lie 4 eps apart (`segmentsApart`), and `intersectSegments` tests each end against the other segment first — frames 13 219 → 11 500 ms, others unchanged | D242 | done (T1, fingerprint identical, scene digests identical) |
+| K13 step 2: the NURBS basis (`basisInto`) clears no buffers and reads each knot once, the same arithmetic in the same order (bench: 62 394 cases identical, 2.2× alone) — spring 4 184 → 3 543, worm 2 678 → 2 172, A9 5 437 → 4 524, frames 11 500 → 10 832 ms | D243 | done (T1, fingerprint identical, scene digests identical) |
+| K13 step 3: the surface evaluator keeps the last U and V basis, the quadrature's and tessellator's stencils take the point between their neighbours, wholePatch's boundary test stops at a cached sample within reach — spring 3 398 → 3 179, worm 2 128 → 1 850, A9 4 407 → 4 181 ms; K13 in all: frames 13 219 → 10 397, spring 4 098 → 3 179, worm 2 662 → 1 850, A9 5 405 → 4 181 | D244 | done (T2 at 80db65fd8: kernel 1656/1663, names unchanged, RB no NEW, cad-model 1017, studio 281; fingerprint identical, scene digests identical) |
+| K14 step 1: fuzz seeds 20261025/20261026 (new) and 20261023/20261024 (rerun) at 155bf40d3 — 20261025 had 1 WRONG (24) and 4 INVALID (99, 120, 126, 184), the others none; the fuzz judges a tessellated mass against its stated bound (APPROX, not a finding) | D249 | done |
+| K14: 24 — a ball's face whose trims bow far from their chords in (u, v) (two walls 0.05 mm off its pole) integrated with its strips, held to its signed area; it had fallen to the tessellated mass, 148 e off (its stated bound honest) | D245 | done (T2) |
+| K14: 99, 126, 184 — a curved face's diagonal another face's mesh has too (an edge's chord, or a lens's twin face) bisected on the surface | D246 | done (T2) |
+| K14: 120 — a loop's spur edge (an edge out and back, two equal balls meeting in a wall's plane) left out of the rings | D247 | done (T2) |
+| K14: 126 shrunk — a cylinder tangent inside a skew one at a point gave a strict-invalid body unchecked; touch points now check the result strictly, refused when it touches itself | D248 | done (T2 at checkpoint 1: kernel 1660/1667, names +4 only, RB no NEW, cad-model 1017, studio 285; fingerprint 861 cases 01ad424b, two centroids by one bit) |
+| K14 step 2: the 33 new refusals by D196's method — 8 exact contacts, 10 near-degenerate, 15 robust (10 still refusing every nudge when shrunk, smallest: 20261025 #190 and #170, a patterned ball) | D249 | done |
+| K14 step 3: a curve's domain map sampled finely beside a pole (20261024 #138 builds); 20261025 #190's march beside a pole stays open (two remedies built it but broke 154 / D238's 25) | D250 | done (T2) |
+| K14 step 3: a long cut a tolerance short of one segment at both ends ends on it at both (20261025 #170 shrunk) | D251 | done (T2) |
+| K14 step 3: coplanar pieces joined with their rings closed as their face's arrangement closed them (20261026 #112, #34 shrunk, #194) | D252 | done (T2) |
+| K14 checkpoint 2: counts and the robust refusals' state; checkpoint 1's two centroid bits came from D246 | D253 | done (T2: kernel 1663/1670, names +3, RB no NEW, fingerprint cf100676 (138 refused → valid; 27 lines ≤ 7e-10 relative), cad-model 1017, studio 285) |
+| K14 stopped at the fix budget (7 causes): the next robust refusals diagnosed — 26#184 (rings meeting 0.07 mm apart at a tilted end plane), 25#62 (the face stitched over a 354° arc), 26#115, 25#49, 25#148, 25#190; D239's nudge findings and s2#112 not reached | D254 | done (diagnosis only) |
+| K14: loose ends a traced curve's tolerance apart join there — two loose ends within 100 tolerances, an exact cut's end onto a traced segment within 100 (20261025 #148 builds) | D255 | done (T2: kernel 1664/1671, names +1, RB no NEW, fingerprint cf100676 unchanged, cad-model 1020, studio 286) |
+| K14 closing record: the final fuzz table (54 refusals left over four seeds, no findings), the open robust refusals with their causes, the fingerprint chain b6e18fab → 01ad424b → cf100676 | D256 | done |
+| K15: 25#62, 26#115 — a face wrapping most of its full-turn surface (a cylinder wall over 354°, its gap beside the domain's middle) is judged by its loop's winding in its domain where its vector area disagrees with the middle's normal; 20261024 #185 builds too | D257 | done (T2: kernel 1665/1672, names +1, RB no NEW, fingerprint 863 cases 1cd931ee (two corpus cases added; 24:185 refused → valid), fuzz refusals 16/12/11/12, cad-model 1025, studio 286) |
+| K15: 26#184 — a cut lying along a face's edge for most of its length keeps its part across the face (offBoundary, behind six probe points; a first version cost gear-internal 73 → 600+ s) | D258 | done (T2) |
+| K15: 26#184 — a crossing just inside a curve's end, where the chords meet past it, is found (a backward difference at the end; an end already meeting stays, and a point found from an end counts only where the two cross: two regressions caught by the checkpoint's runs); 26#47, #79 build too | D259 | done (T2: kernel 1667/1674, names +2, RB no NEW, fingerprint 864 cases 722d0431 (171 lines: 1 added, 3 F/E/V +edges, 166 areas ≤ 5.3e-5 rel., volumes ≤ 3e-10), fuzz refusals 16/9/11/12, cad-model 1025, studio 286) |
+| K15: 25#49 — Boolean features unite their first tool part with itself (since a306e499d); the fix builds 49 and saves 15–20 % on 197 corpus documents, but r12c-fits, r12-2's flat DXF and r10-b depend on the self-union's rebuild | D260 | found; fix held (a decision) |
+| K15: 25#170 as fuzzed — a traced cut's loose end ends on an exact segment within 20 tolerances (the stitch's merge radius; 100 made 26#76 INVALID) | D261 | done (T2) |
+| K15: s2#112 (24#112), 24#97 — a short arc a few tolerances off its face's plane maps into it as a curve | D262 | done (T2) |
+| K15: a face on a surface turning more than a half turn (no pole) is judged by its winding either way: a wrapping face turned over is refused, typed; frames/spring cost 0.3 % / 0.1 % (profiled) | D263 | done (T2) |
+| K15: the part model's too-large corner finish carries [RADIUS_EXCEEDS_FACE]; docs refusal table regenerated | D264 | done (T2: kernel 1675/1682, names +3 (+5 API lane), RB no NEW, fingerprint 866 cases 6fe8417d (24:112, 24:97 refused → valid; 2 added), fuzz refusals 15/9/11/10, cad-model 1027, studio 286) |
+| K15 closing record: refusals 54 → 45 over four seeds, no findings; open: 25#49 (D260), 26#34, 25#190, 170's nudges, D239's 25/110 nudges, B ∪ B; fingerprint chain cf100676 → 1cd931ee → 722d0431 → 6fe8417d | D265 | done |
+| K16 step 1: a fit's nominal size judged to 1e-6 mm, as named — a Ø50 bore measured 25.000000000000007 missed "up to 50" without the self-union's rebuild | D266 | done (T2) |
+| K16 step 3: an open chain's point an ulp short of its end lay at its start ((x % L + L) % L) — the general fillet's tool folded back, "the Boolean cannot close it"; every r10-b foot builds | D267 | done (T2: kernel 1677/1684, names +2 (1 renamed), RB no NEW, fingerprint 866 cases 17c1d5c4 (20 fillet/shell lines, areas ≤ 3e-8, volumes ≤ 1.8e-11), fuzz refusals 15/9/11/10, cad-model 1027, studio 286) |
+| K16 step 4: the Boolean features join their tool parts from the first over the rest (D260 landed); the flat DXF's "49 vs 52" was a misread byte diff, fixtures regenerated by ezdxf | D268 | done (T2: kernel 1680/1687, names +3, RB no NEW, fingerprint 869 cases 4e3603b7 (354 lines; volumes ≤ 3.6e-8; 23:13 → valid, 23:9 → refused, open), fuzz refusals 11/9/10/9 (45 → 39), cad-model 1028, studio 286) |
+| K16: a march past a ball's pole cut back to it (24#154); a pinched face with holes, and a boundary point met twice ulps apart, triangulated (23#110) | D269, D270 | done (T2, with D268) |
+| K16: the Boolean's commutativity over the fuzz's trees, an RB check (`rb:commute`): 2 456 union/intersection nodes, SAME 2 412, both refused 37; 7 findings (1 one-sided, 6 with an intermediate body failing the strict check) kept as TODO | D271 | done (check in; findings reported) |
+| R7.3a batch 1 (kernel): BarocssError moved into src/core (api/refusal.ts re-exports it); all 171 kernel error classes on it via KernelError, names, codes and messages kept; 11 codeless classes get one | D272 | done (kernel 1698/1705, names +18, R5 4e3603b7 and R4 d1f8bb3c byte-identical, RB/props, cad-model 1047, studio 286) |
+| K16 checkpoint 3: the commutativity check's six — a slit up a cylinder wall taken out (D273, also builds the graze-x45 1 nm RB TODO), a cusp is a face's shape not a touch (D274, analytic + dense oracle), parts touching along a line from outside refused typed (D275) | D273–D275 | done (T2: kernel 1702/1709, names +4, RB IMPROVEMENT 1, commute BROKEN 0, fingerprint 869 dbc1ad33 (6 lines; 23:114 valid → refused), fuzz refusals 11/9/11/7 (39 → 38), cad-model 1048, studio 286) |
+| K16 closing record: refusals 45 → 38 over four seeds, no findings; commutativity 2 456 nodes, one one-sided TODO (24:125); open: 24:125, 23:114's root (needs a non-manifold intermediate), 23:9, B ∪ B, K15's list; fingerprint chain 6fe8417d → 17c1d5c4 → 4e3603b7 → dbc1ad33 | D276 | done |
+| O19 (kernel): fillet/chamfer/shell/draft take an optional `expect` (each stored name's signature, rematch.ts's shape); a name now resolving to other geometry refuses `[REFERENCE_MOVED]`, never builds elsewhere | D277 | done (kernel 1719/1726, names +4, fingerprint dbc1ad33 byte-identical, cad-model 1051; refusal table regenerated) |
+| R7.3a batch 2 part 1 (kernel): CAD_ERROR_CODES (269) and CAD_REFUSAL_CODES (64) in src/core/error-codes.ts; a part-model refusal's `code` is its message's bracketed code, its category in details.category; no text change | D278 | done (kernel 1725/1732, fingerprint 49f1fac8: 42 refusals' code field only, conformance 42 fixtures, cad-model 1066, studio 286) |
+| R7.3a batch 2 part 2 (kernel): 21 live per-module error classes folded into module refusals (factory + guard, details.source, named BarocssError); 8 kept as classes; the 141 in the 284 files reachable only through exports left for R7.3d | D279 | done (kernel 1725/1732, names unchanged, fingerprint 49f1fac8 byte-identical, RB, cad-model 1089, studio 286, samples 36/36) |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 
@@ -77,7 +214,7 @@ The owner moved the work to another account mid-track. The kernel lane stops cle
 
 **How to resume**
 1. Read this block, then D164 (FRk's S0) and D165–D167 in `decisions.md`, then the coordinator's brief.
-2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests.
+2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests (while iterating on a test, `node scripts/tool.mjs build:fast` there: esbuild, 0.4 s, no type check, the declarations of the last full build kept; a full build and `type-check` stay the gates).
 3. A flow step: `CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright CAD_STUDIO_CHAT_PORT=52491 FLOW_ONLY=<regex> node test/browser-flow.mjs <out>` in `apps/cad-studio`, on its own, with short titles.
 4. RB: `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record`, then `scripts/rb/props.mjs --record`. The rows record the commit they ran on: run them on the committed code, or set the row's `commit` to the code's commit (as at 75647da69).
 5. Start FRk3 with D168.
@@ -142,7 +279,7 @@ block is kept as history.
 
 **How to resume**
 1. Read this block, then the FR records (D122–D128) and the FR hand-over block below, then the coordinator's brief.
-2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests.
+2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests (while iterating on a test, `node scripts/tool.mjs build:fast` there: esbuild, 0.4 s, no type check, the declarations of the last full build kept; a full build and `type-check` stay the gates).
 3. For a flow step: `CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright CAD_STUDIO_CHAT_PORT=52491 FLOW_ONLY=<regex> node test/browser-flow.mjs <out>`, in `apps/cad-studio`, on its own. Keep titles short: the step's screenshot is named by its title.
 4. RB: `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record`, then `scripts/rb/props.mjs --record`.
 5. Each step needs:
@@ -206,7 +343,7 @@ track K → queue block below, the **kernel-lane queue** is done: five items, D1
 
 **How to resume**
 1. Read this block, then D139 (R12c) and D148–D152 in `decisions.md`.
-2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests.
+2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests (while iterating on a test, `node scripts/tool.mjs build:fast` there: esbuild, 0.4 s, no type check, the declarations of the last full build kept; a full build and `type-check` stay the gates).
 3. For a flow step: `CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright CAD_STUDIO_CHAT_PORT=52491 FLOW_ONLY=<regex> node test/browser-flow.mjs <out>`, in `apps/cad-studio`, on its own.
    - A step that builds on the step before it (step 45 needs step 44's mesh) needs both in the regex.
 4. RB: `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record`, then `scripts/rb/props.mjs --record`.
@@ -768,7 +905,14 @@ Done:
      - G25 analyses on the GPU for interactive speed: wall thickness and tool access by GPU rays (display only; the exact values stay the kernel's), and a scan-versus-CAD deviation colour map.
      - After G25 (coordinator, 2026-10-22, unless G20 needs the same machinery first): antialiased cap edges — the caps' probe and cap test per MSAA sample (G19.4's limit).
      - Later, when measured need appears: GPU occlusion culling for very large assemblies (G14's thresholds), progressive photoreal rendering and turntable / exploded-animation video export.
-   - **GPU lane: hand-over (account change, 2026-10-22).** Full block in `handover/decisions-gpu.md` (last section).
+   - **GPU lane, now (2026-10-24, the new account):** branch `claude/gpu-lane-2026-10-23`, worktree
+     `.claude/worktrees/compassionate-turing-e88276`; the current record is the last G-R section of
+     `handover/decisions-gpu.md`.
+     - Done: R7.3a's gpu part, batch 1 (browser-verified at ee5d032ad) and batch 2 (upper-snake codes, `[CODE] …`
+       messages, G-R52).
+     - Next: R7.3c (gpu's Vec3, Mat3 and Mat4 at the boundary), R7.3d (the packet tag, scope with the coordinator and
+       the kernel), G14 (measure, then decide).
+   - **GPU lane: hand-over (account change, 2026-10-22), history.** Full block in `handover/decisions-gpu.md`.
      - Last done: G20.1 (02ebc9a7a).
      - In progress: G20.2, committed as WIP. 3d85e6793 is the gpu probe fix, 398683cb6 the studio cut-out; their
        commit messages list what is unverified.
@@ -781,7 +925,60 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 
 ### Outer lane (owner, 2026-10-19: a second implementation session; the coordinator merges it into this branch)
 
-#### Outer lane: hand-over at A9-5/6 (account change, 2026-10-22) — read this block first
+#### Outer lane: resumed after Codex (2026-10-23) — read this block first
+
+**State.** Branch `claude/cad-outer-lane-531d5a`, at integration `fc739afed` plus this lane's checkpoints. The brief is `notes/claude-resume-2026-10-23/outer.md`; the block below it is the 2026-10-22 hand-over, kept as history.
+
+| commit | item | verified |
+|---|---|---|
+| `0d4ff6a4c` O149 | the import cycle Codex's `chat/outputs` closed, broken | sheet 8/8 (with O150), cageEdit 7/7, tsc (model, studio), eslint 0 errors |
+| `b85435208` O150 | rows rule (b) through the fixtures (8 test files, `test/person-file.ts`); stock and frame stock merge by id (P2) | those 8 files and person-rows 9/9, tsc (model, studio), eslint 0 errors |
+| `3b2fdbbfa` O151 | the read-tool contract covers Codex's six output tools; O73's part result carries `shopRows` (A9-8) | tool-contract 3/3, enclosure 17/17, tsc, eslint |
+| `959ecd34d` O152 | an assembly with no cross-part housing link keeps its document and instance identity (A9-7 vs A9-10) | shop-rows 9/9, bearing-housing-context 8/8, 57 related model files, tsc, eslint |
+| `d7e070e16` O153 | cad-cli `stock` and `nest`: `--list` received as the person's file; cnc-stock and chat fixtures; the studio runner takes names | the 14 studio files the window failed, each passing; tsc; eslint |
+| `d1bc7943e` O154 | S3: the frozen v2 contract re-recorded (additive only); load_rows moves from `library` to `features` | toolset 9/9 (23,180 of 25,000 characters a turn), person-rows 9/9, tsc, eslint |
+| `9d498b1b1` O155 | `remove: [ids]` on set_stock and set_frame_stock (O150's open item, closed) | person-rows 10/10, cnc-stock 6/6, toolset 9/9, tsc, eslint |
+| `fcdc7e3bf` O157 | the CAM package's pockets where they are: the floor plane's origin added once (G23's overcut, found by the GPU lane) | cam-package 4/4 with an absolute oracle on +Z, −Z and +X; tsc; eslint |
+| `070cb5993` O158 | O3: the A9 brief's 6204 moves from step 1 to step 3, off the key; no clash in the map | clearance-designed 5/5, tsc, eslint |
+| `11ef04b5b` O159 | O5, first half: conformance/a9/rows (a test fixture standing in for the person's files; the owner's own acceptance pending) and the A9 run's steps 1–7; findings F1–F4 | a9-acceptance 1/1, tsc, eslint |
+| `e46106870` O160 | F1: `madeBodies` — bought elements stay out of DFM, print layers and CAM (the BOM's rule) | a9 (shaft Ø25 × 95, cover 40 layers no support, CAM unchanged), made-bodies, 21 model + 7 studio files, tsc, eslint |
+| `74f6b0d76` O161 | F2: a through hole is drilled once, by the first setup that reaches it; the others note it | cam-package 4/4 (each hole once, −Z only its own), a9 (one +Z setup, 5 holes once), studio cnc-cam, tsc, eslint |
+| `2a2caf0e9` O162 | the bearing's housing line names its shoulder (D181) | bearing 5/5 (a Ø40 lip; a plain bore with the kernel's warning), tsc, eslint |
+| `10a2558e4` O163 | F3: a hole wider than the tool is a circular pocket, never a plunge; made once across setups | cam-package 5/5 (Ø47 bore in world coordinates), a9, studio cnc-cam, tsc, eslint; flow not run |
+| `e21235d26` O164 | O5 second half begun: the weldment (gussets, caps, beads by their oracles) and the placed assembly, the 6204 housed in the plate (A9-7), the clearance map clean; F6, F7 | a9-acceptance 2/2, tsc, eslint |
+| `ad5c0e59f` O165 | O5 as an automated run: a drawing per made part, the BOM and CSV, the bundle on the person's approval, reopened the same; F8 (drawing issues), F9 (screws), F10 (members not in the BOM) open; owner acceptance pending | a9-acceptance 3/3 (about 185 s), tsc, eslint |
+| `1c30c7271` O166 | a hole narrower than the tool is refused by name, CAM_TOOL_TOO_LARGE (refusals and the setup's notes), the rest of the program kept | cam-package 6/6, a9 3/3, studio cnc-cam, tsc, eslint |
+| `3a7f351a1` O167 | F6: the chat's edit_feature links an existing bearing to another part's housing (the draft's context and fit tables); the A9 run edits instead of re-adding | bearing-housing-context 9/9, a9 3/3, 28 edit files, studio A9-7 UI tests, tsc, eslint |
+| `5c28bbf60` O168 | F7: a refused bead is said on its joint with placed parts too (beadRefusal looks in the evaluated view) | frame-welds 6/6 (fails without), a9 3/3, 14 bead/weld files, tsc, eslint |
+| `927638b51` O169 | F10: an assembly's base part's members are BOM lines by cut-list row, its mass in the total; BOM masses by the body's material (they were the default's) | bom-base 2/2, a9 3/3, BOM files, tsc, eslint |
+| `51977af6e` O170 | F8, first error: one Fix builds the sheet again after each round (a section it adds was invisible to the same pass) | drawing-fix-rounds 1/1, drawing files, a9 3/3, tsc, eslint |
+| `a4f3b8e24`, `91e4ccf54` O171 | F8, second error: a frame member's bore gives no levels; the weldment's drawing has no error, A9's four drawings none | weldment-drawing 1/1 (fails without), a9 3/3, drawing and frame files, tsc, eslint |
+| `86328ec2a` O172 | F8: Fix's Auto-dimension keeps the keyseat's dimension (it had no elements); a snap point is a visible edge's; Fix re-dimensions only after a section. The shaft's DIM_ON_HIDDEN and the cover's hole count are the bought elements in the views: a decision | drawing-fix-elements 2/2 (fails without), a9 3/3, drawing files, tsc, eslint |
+| `35cb1bb82` O173 | F8: every weld has its symbol (a pieced end face is the face's; an edge on visible ink is visible); BALLOON_NO_EDGE on inset caps is right | frame-weld-symbols 3/3 (FRd2's expectation changed), weldment-drawing 1/1, a9 3/3, drawing/weld files, tsc, eslint |
+| `fc9cfe62c` O174 | F8: a part's drawing is projected from what it makes (bought elements out of views and sections; an assembly's keeps them); a round outline locates its concentric circles; Fix keeps its best round | drawing-made-views 2/2 (new), element-callouts and section-dimensions (expectations by class), drawing/section/weld files, a9 3/3, tsc, eslint; flow not run |
+| `e408b6dba`, `d89a1cd75` O175 | the studio's Fix all runs the chat's rounds (`fixRound`; a round waits for the sections it added to be cut); a part's sheet with balloons draws its bought items | drawing-fix-rounds 2/2, drawing-made-views 3/3 (its balloons case fails without `drawsMadeOnly`), drawing files, a9 3/3, tsc, eslint; flow at `5eb851d3e`/`b679cff88`: every step passes |
+| `6f6c02dbf` O176 | F9: the person's `fasteners` rows (load_rows, rule b); a fastener placed as its own part is a bought BOM line by its row (×4 merged), else an estimate; A9's four M6 screws | bom-fasteners 4/4, a9 3/3, BOM/row/field files, toolset (23,198 of 25,000), tsc, eslint; flow not run |
+| `82f78ab57` O177 | the base part's own BOM lines (members, made bodies) get their balloons: `bodyFaces` by body key (chat: B-reps; studio: meshes; useDrawingSheet gains the one output) | balloons-base 1/1 (new), bom-fasteners 4/4 (noEdge was [2]), balloon/drawing files, a9 3/3 (slow under load 48, rerun pending), tsc, eslint |
+| `5dec9f8a4` O178 | O6: aligned sections — `dir` on a section (its plane's normal), cut by the kernel's normal split, seen along it, its cutting plane inclined in an edge-on view; the off-axis keyway's fix adds one | section-dimensions 8/8 (X3's expectation replaced), section/drawing/reorient/dxf files, a9 3/3 in 161 s, studio section files, tsc, eslint; flow not run |
+| `99b61ef2a` R3a | chat/tools.ts by action group, first step: chat/toolKit.ts (types, per-call flags, accept/fail and helpers), chat/part/query.ts and chat/part/image.ts, moved verbatim; tools.ts 1,699 → 1,309 lines, re-exporting what moved | byte check identical, toolset 9/9 (23,198), tool-contract 3/3, cad-model suite 960/960 (LOADED), tsc, eslint |
+| `d803fa40f`, `fc8a55aba` O179 | a volume from the mesh says so (the kernel's D200): BodyResult.volumeBasis, mass_properties volume_basis, the BOM's and the quote's estimate with bounds, the body panel's line, merged section pieces' summed bound | volume-basis 4/4, studio volume-basis-merge 1/1, cad-model suite 964/964, flow body-panel and section steps 6/6, tsc, eslint |
+| `53f98c1ff` R3b | chat/part/features.ts (the features group, verbatim); the person-row actions' steps (rowsAsked, fileRows); inRange/isVec3; insidePoly → insideRing; TEST_CONCURRENCY in scripts/test.mjs; tools.ts 1,021 lines | byte check identical (37 more probes), toolset 9/9, tool-contract 3/3, cad-model suite 964/964, tsc, eslint |
+| `92cb2e912` R3c | chat/part/requirements.ts and chat/part/views.ts, verbatim; tools.ts 967 lines | byte check identical (11 more probes), toolset 9/9, tool-contract 3/3, cad-model suite 964/964, tsc, eslint |
+| `eda95ce10` R3d | chat/toolDefinitions.ts: the definitions block, verbatim in order (batch/mutator sets, schemas, describe, PART_TOOLS, argument check, TOOLS, SYSTEM_PROMPT); tools.ts 623 lines | byte check identical, toolset 9/9, tool-contract 3/3, cad-model suite 964/964, tsc, eslint |
+| `127574318` R3e | chat/part/history.ts and chat/part/proposals.ts (the runner passed in as `dispatch`; the public proposal functions as same-signature wrappers in chat/tools); the survey's items 1–3 (subToolResult, placedPart/partReply, the v2 translation once); tools.ts 236 lines. FRd2's flow step expects O173's 16 welds | byte check identical against the pre-R3e baseline (with placed-part, runTool and proposal probes), cad-model suite 964/964, tsc, eslint; flow not run |
+| `605208857`, `5d305d6eb` FR3b | the flow's responsiveness step on a box frame (2.7–2.8 s), its 2000 ms premise kept; FRd2's 16 welds | flow FRd1, FRd2, FR3b ok |
+| `5bca3663a` O8 | pieces touching along a line or at a point (the kernel's D204, D205): `lumpTouch`, 3MF objects and STL files a lump at a time, per-lump walls, the `lump-touch` warning in the old refusal's words, the BOM's `lumps`; App.tsx 132 and 1699–1712 (named) | lumps 4/4 (the kernel's 30° case both ways), cad-model suite 968/968, 18 studio files 87/87, tsc, eslint; flow not run |
+| `68466234b` O7a | the pre-O7 fixtures (seven .bcad, one per built-in use) and `expected.json`, what each opens to; the load paths and nested docs O7b's migration must cover; tslot-20's M5 literals, options to the coordinator | o7-legacy 8/8 (twice, same), tsc, eslint |
+| `0a95d430e` O7b | fastener sizes are the person's rows (`fastener-sizes`, sample file shipped): every reader takes the document's sizes, `[FASTENER_SIZE_ROW]` refusals, no migration (owner: schema tracks the latest); tslot-20 (C); O7a's fixtures the equivalence oracle | cad-model 979/979, studio 266/266, tsc, eslint; flow waits for O7e |
+| `bd3a2637a`, `1720e4c2b` O7e | the Library's shop rows: the sample or the person's file, loaded as the person's act with its receipt (a one-turn receipt; 1720e4c2b fixed turn 0); the samples public (`files`, `./samples/*`); the flow's fastener/hole/CNC steps load the sample | FLOW_ONLY 8 steps on both renderers, o7e-sizes, tsc, eslint |
+| `5d184e85e`, `e7605d03e`, `404195b98` O7c | casting rules are the person's rows (`casting-rules`, 24 sample rows): castability, draft limits, pattern and library checks read `castingProfileOf(doc)`; `[CASTING_RULE_ROW]`; materials.json keeps the casting profiles' id and label | cad-model 979/979, studio 268/268, FLOW_ONLY IM8a–c both renderers |
+| `a5e5996e6` O7d | enclosure variants stay the library's own estimates (owner: D2); sources reworded; no notes comparison (the boss pilots equal tap drills in value, not in kind) | enclosure, library, rb9, o7-legacy 31/31 |
+| `f4d51d77f`, `a04ccdee9`, `80f527d4b`, `c40c77013` O15 | robot_check (env-gated) and the RD10 L3 run script; ratings as the tool's arguments (set_joints' approval gate, kept in production); success only by a fresh cad-cli robot-check; guards each exercised; chatServer's kill-before-spawn fix; live runs not yet made (account weekly limit), then deferred by the owner | dry run 3/3 (least 0.25 as O48), o15-robot-check 2/2 |
+| `f900925ed`, `73fa0d820`, `1f0d23516`, `c9b78c816`, `56f9e321c` O9 | the engine's lanes (a discriminated reply; one lane per thing replaced); the callers' six guards audited (R4b moves them); exports' source: STEP description (kernel option), 3MF metadata, the title block's SRC, a .source.json beside STL and robot exports; REVIEW-A1 keepRecovery | cad-model 983/983, studio 274/274, FLOW_ONLY 13 steps both renderers |
+
+**Next:** the frozen v2 contract test (toolset), waiting on the coordinator's choice: move load_rows to `features` (recommended), or v3. Then the studio suite's failures (the rows (b) fixtures in the cad-cli paths). 
+
+#### Outer lane: hand-over at A9-5/6 (account change, 2026-10-22) (history)
 
 **State.** Branch `claude/cad-outer-lane-531d5a` (worktree `.claude/worktrees/studio-mates-cbde0e`), local only. The last O-number is O148; later entries in `decisions-outer.md` are titled, not numbered (queue 3–5b, G22, G23, A9). The last work commit is `65eeac483`; this block's commit follows it.
 

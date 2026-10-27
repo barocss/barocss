@@ -6,7 +6,8 @@
 // A sketch with nothing fixed keeps its 6 rigid motions (3 for points on a line), as a 2D sketch keeps 3.
 // The viewport's tool on it is the GPU lane's (G17).
 
-export type V3 = [number, number, number];
+// (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
+export type V3 = import('../engine/vec3').Vec3;
 export type Axis3 = 'x' | 'y' | 'z';
 /** A constraint's value: a number, or a document parameter's (FRg after G17's ask, O140: re-solved when it changes). */
 export type Value3D = number | { parameter: string };

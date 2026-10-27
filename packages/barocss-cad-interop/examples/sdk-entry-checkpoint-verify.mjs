@@ -62,7 +62,7 @@ const resources = result.group.children.map((object, index) => {
   assert.deepEqual(object.userData.barocss.nativeParameters, sample.parameters);
   assert.deepEqual(object.userData.barocss.nativeIntervals, sample.segments.map(segment => segment.domain));
   assert.equal(object.userData.barocss.lengthUnit, 'mm');
-  assert.equal(object.userData.barocss.coordinateSystem, 'right-handed-y-up');
+  assert.equal(object.userData.barocss.coordinateSystem, 'right-handed-z-up');
   assert.equal(object.geometry.getAttribute('normal'), undefined);
   assert.equal(object.geometry.getAttribute('_CAD_UV'), undefined);
   assert.deepEqual(object.geometry.getAttribute('position').array, neutral.curves[index].positions);

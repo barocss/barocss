@@ -1,3 +1,4 @@
+import { receivePersonRowFiles, type RowFileInput } from '@barocss/cad-model/engine/rowFiles';
 // The chat's small local server: each turn runs the `claude` CLI (print mode, streaming JSON) with
 // the studio's tools as its only tools (an MCP server, server/cadMcp.ts, working on a state file), and
 // streams what happens back to the browser as server-sent events:
@@ -12,6 +13,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { VersionLog } from '@barocss/cad-model/versions/log';
 import type { NameSelection } from '@barocss/cad-model/chat/tools';
 import { TOOLSET } from '@barocss/cad-model/chat/toolset';
 import { v1Call } from '@barocss/cad-model/chat/groups';
@@ -20,6 +22,7 @@ import type { StateFile } from './cadMcp';
 import type { TurnOp } from '@barocss/cad-model/chat/merge';
 import type { BlobType, WireBlobs } from '@barocss/cad-model/engine/blobs';
 import { createHash } from 'node:crypto';
+import { ROBOT_CHECK, robotL3, robotL3Env } from './robotL3/tool';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
 export const MAX_TURNS = 24;
@@ -64,9 +67,11 @@ export function fromStudio(req: IncomingMessage, origins: readonly string[]): bo
 
 export type ChatServerEvent =
   | { type: 'text'; delta: string }
+  /** O17c: the model's thinking as the CLI streams it (additive: readers that take events by type ignore it). */
+  | { type: 'reasoning'; delta: string }
   | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean }
   | { type: 'state'; doc: StudioDoc; /** The turn's calls that changed the part since the last state (O133). */ ops?: TurnOp[] }
-  | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; usage?: TurnUsage; ops?: TurnOp[] };
+  | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; /** CG6: the turn's version log, when a call moved it. */ versions?: VersionLog; versionsWanted?: string[]; usage?: TurnUsage; ops?: TurnOp[] };
 /** What the CLI reports a turn used (its result message, A5.5): tokens, model turns, cost. */
 export interface TurnUsage { input_tokens?: number; output_tokens?: number; cache_read_input_tokens?: number; cache_creation_input_tokens?: number; num_turns?: number; total_cost_usd?: number }
 
@@ -76,7 +81,9 @@ export function claudeArgs(o: { mcpConfig: string; model: string; session?: stri
     '-p', '--input-format', 'stream-json', '--output-format', 'stream-json', '--verbose', '--include-partial-messages',
     '--model', o.model, '--max-turns', String(MAX_TURNS),
     // Only the studio's tools: no built-in tools, no other MCP servers, settings or skills.
-    '--tools', '', '--mcp-config', o.mcpConfig, '--strict-mcp-config', '--allowedTools', TOOLSET.tools.map(t => `mcp__cad__${t.name}`).join(','),
+    '--tools', '', '--mcp-config', o.mcpConfig, '--strict-mcp-config', '--allowedTools', [...TOOLSET.tools.map(t => `mcp__cad__${t.name}`), ...(robotL3() ? [`mcp__cad__${ROBOT_CHECK}`] : [])].join(','),
+    // (O15: the L3 run's own spending cap, the CLI's.)
+    ...(process.env.CAD_MAX_BUDGET_USD ? ['--max-budget-usd', process.env.CAD_MAX_BUDGET_USD] : []),
     '--permission-prompts', 'none', '--setting-sources', '', '--disable-slash-commands',
     '--system-prompt', TOOLSET.prompt,
     ...(o.session ? ['--resume', o.session] : []),
@@ -120,7 +127,7 @@ export function summarize(name: string, text: string, isError: boolean): string 
   if (name === 'get_assembly') return `${(j.instances?.length ?? 0) + 1} parts, ${j.mates?.length ?? 0} mates${j.problems?.length ? `, ${j.problems.length} unmet` : ''}`;
   if (typeof j.did === 'string' && !Array.isArray(j.bodies)) return `${j.did}${j.unmet_mates?.length ? ` (${j.unmet_mates.length} unmet mate${j.unmet_mates.length > 1 ? 's' : ''})` : ''}`;
   if (Array.isArray(j.bodies)) {
-    const v = j.bodies.reduce((s: number, b: { volume_mm3: number | null }) => s + (b.volume_mm3 ?? 0), 0);
+    const v = j.bodies.reduce((s: number, b: { volume: number | null }) => s + (b.volume ?? 0), 0);
     return `${j.did} → ${j.bodies.length} bod${j.bodies.length === 1 ? 'y' : 'ies'}, ${r0(v)} mm³`;
   }
   return text.length > 160 ? text.slice(0, 157) + '…' : text;
@@ -200,7 +207,7 @@ export function createChatServer(options: ChatServerOptions) {
     if (req.method !== 'POST' || path !== '/turn') return sendJson(res, 404, { error: 'Not found.' });
     // JSON only: a cross-site page cannot send it without a CORS preflight, which this server never answers.
     if (!/^application\/json\s*(;|$)/i.test(req.headers['content-type'] ?? '')) return sendJson(res, 415, { error: 'Send the turn as application/json.' });
-    let body: { text?: unknown; doc?: unknown; turns?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown; blobSession?: unknown; blobRefs?: unknown };
+    let body: { rowFiles?: unknown; rowConversation?: unknown; text?: unknown; doc?: unknown; turns?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown; blobSession?: unknown; blobRefs?: unknown; versions?: unknown };
     try { body = JSON.parse(await readBody(req)); } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON.' }); }
     if (typeof body.text !== 'string' || !body.text.trim() || typeof body.doc !== 'object' || !body.doc) return sendJson(res, 400, { error: 'Expected {text, doc, session?, images?}.' });
     const imageError = checkImages(body.images);
@@ -227,13 +234,25 @@ export function createChatServer(options: ChatServerOptions) {
       if (missing.length) return sendJson(res, 409, { error: 'The chat server does not have this mesh data yet.', missing });
       blobFiles = (refs as string[]).map(h => ({ hash: h, ...kept.have.get(h)! }));
     }
+    let rowInputs: RowFileInput[] | undefined, rowConversation: string | undefined, rowNote = '';
+    if (body.rowFiles !== undefined) {
+      try {
+        rowConversation = typeof body.rowConversation === 'string' ? body.rowConversation : '';
+        const files = receivePersonRowFiles(rowConversation, body.rowFiles as RowFileInput[], Array.isArray(body.turns) ? body.turns.length : 0);
+        rowInputs = body.rowFiles as RowFileInput[];
+        rowNote = '\n\n[Files supplied by the person in this conversation; features.load_rows takes file by id:\n' + files.files.map(f => `${f.id}: ${JSON.stringify(f.source.filename)} (user turn ${f.source.turn}, SHA256 ${f.source.sha256})`).join('\n') + ']';
+      } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid conversation row files.' }); }
+    }
+    // (CG6: a version log as a turn carries it — the index, some documents; the tools check what they read.)
+    const v = body.versions as { format?: unknown; versions?: unknown; branches?: unknown; snapshots?: unknown } | undefined;
+    if (v !== undefined && (!v || v.format !== 'barocss-versions' || !Array.isArray(v.versions) || !Array.isArray(v.branches) || !v.snapshots || typeof v.snapshots !== 'object')) return sendJson(res, 400, { error: 'versions: not a version log.' });
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
-    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}) } satisfies StateFile));
+    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(rowInputs ? { rowFiles: rowInputs, rowConversation } : {}), ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}), ...(body.versions ? { versions: body.versions as StateFile['versions'] } : {}) } satisfies StateFile));
     // (How far the agent may go on its own, D41: 1–4, else the default 2.)
     const level = [1, 2, 3, 4].includes(Number(body.autonomy)) ? Number(body.autonomy) : 2;
-    const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });
-    const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}`;
+    const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), ...(robotL3() ? robotL3Env() : {}), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });
+    const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}${rowNote}`;
     const args = claudeArgs({ mcpConfig, model, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
 
     res.statusCode = 200; res.setHeader('content-type', 'text/event-stream'); res.setHeader('cache-control', 'no-cache');
@@ -250,6 +269,9 @@ export function createChatServer(options: ChatServerOptions) {
     catch (e) { emit({ type: 'done', end: 'error', error: e instanceof Error ? e.message : String(e) }); res.end(); rmSync(dir, { recursive: true, force: true }); return; }
     let aborted = false, session: string | undefined = typeof body.session === 'string' ? body.session : undefined, failure: string | undefined, stderr = '';
     res.on('close', () => { if (!res.writableFinished) { aborted = true; child.kill('SIGTERM'); } });
+    // (O15: a client gone before the CLI started — its 'close' already past — stops it now; else it runs on, unbilled to
+    // no one's view and holding the turn.)
+    if ((res.destroyed || res.socket?.destroyed) && !res.writableFinished) { aborted = true; child.kill('SIGTERM'); }
     child.stderr?.on('data', d => { stderr = (stderr + d).slice(-2000); });
     const calls = new Map<string, { name: string; input: unknown }>();
     let sent = 0, sentOps = 0, usage: TurnUsage | undefined;
@@ -261,6 +283,7 @@ export function createChatServer(options: ChatServerOptions) {
       try { m = JSON.parse(line); } catch { return; }
       if (m.session_id) session = m.session_id;
       if (m.type === 'stream_event' && m.event?.type === 'content_block_delta' && m.event.delta?.type === 'text_delta' && !m.parent_tool_use_id) emit({ type: 'text', delta: m.event.delta.text });
+      else if (m.type === 'stream_event' && m.event?.type === 'content_block_delta' && m.event.delta?.type === 'thinking_delta' && !m.parent_tool_use_id && typeof m.event.delta.thinking === 'string') emit({ type: 'reasoning', delta: m.event.delta.thinking });
       else if (m.type === 'assistant') {
         for (const b of m.message?.content ?? []) if (b.type === 'tool_use') calls.set(b.id, { name: String(b.name).replace(/^mcp__cad__/, ''), input: b.input });
       } else if (m.type === 'user') {
@@ -280,7 +303,8 @@ export function createChatServer(options: ChatServerOptions) {
     const code = await new Promise<number | null>(resolve => { child.on('error', e => { failure = e.message; resolve(null); }); child.on('close', resolve); });
     const s = read();
     if (!aborted && code !== 0 && !failure) failure = stderr.trim().split('\n').slice(-3).join(' ') || `claude exited with ${code}`;
-    emit({ type: 'done', ...(s?.changed ? { doc: s.doc } : {}), ...newOps(s), ...(s?.selection ? { selection: s.selection } : {}), ...(session ? { session } : {}), end: aborted ? 'aborted' : failure ? 'error' : 'done', ...(failure ? { error: failure } : {}), ...(usage ? { usage } : {}) });
+    // (CG6: the turn's version log back when a call moved it — the studio folds it into the project's, versions/log.ts withTurnLog.)
+    emit({ type: 'done', ...(s?.changed ? { doc: s.doc } : {}), ...newOps(s), ...(s?.versionsChanged && s.versions ? { versions: s.versions, ...(s.versionsWanted?.length ? { versionsWanted: s.versionsWanted } : {}) } : {}), ...(s?.selection ? { selection: s.selection } : {}), ...(session ? { session } : {}), end: aborted ? 'aborted' : failure ? 'error' : 'done', ...(failure ? { error: failure } : {}), ...(usage ? { usage } : {}) });
     res.end();
     rmSync(dir, { recursive: true, force: true });
   };

@@ -37,8 +37,8 @@ export function oracle(kind, density = 2700) {
   const second = matrix((i, j) => sub(parent.second[i][j], tool?.second[i][j] ?? zero));
   const centroid = first.map(x => div(x, volume)), central = matrix((i, j) => sub(second[i][j], div(mul(first[i], first[j]), volume)));
   const trace = central.reduce((sum, row, i) => add(sum, row[i]), zero);
-  return { volumeMM3: text(volume), massKG: text(mul(volume, q(density, 1000000000))), centroidMM: centroid.map(text),
-    inertiaCentroidKgM2: matrix((i, j) => text(mul(i === j ? sub(trace, central[i][j]) : neg(central[i][j]), q(density, 1000000000000000)))) };
+  return { volumeMM3: text(volume), mass: text(mul(volume, q(density, 1000000000))), centroidMM: centroid.map(text),
+    inertiaCentroid: matrix((i, j) => text(mul(i === j ? sub(trace, central[i][j]) : neg(central[i][j]), q(density, 1000000000000000)))) };
 }
 function binary64(value) {
   assert.ok(Number.isFinite(value)); if (value === 0) return zero;
@@ -67,25 +67,25 @@ function projection(value, fraction, error) {
 }
 export function proveMass(result, snapshot, outputName, kind, density = 2700) {
   const expected = oracle(kind, density), body = snapshot.bodies[outputName];
-  deepFrozen(result); assert.equal(result.outputName, outputName); assert.equal(result.family, body.family); assert.equal(result.densityKgPerM3, density);
-  assert.deepEqual(Object.keys(result).sort(), ['centroidMM', 'densityKgPerM3', 'details', 'family', 'inertiaCentroidKgM2', 'massKG', 'outputName', 'volumeMM3']);
+  deepFrozen(result); assert.equal(result.outputName, outputName); assert.equal(result.family, body.family); assert.equal(result.density, density);
+  assert.deepEqual(Object.keys(result).sort(), ['centroidMM', 'density', 'details', 'family', 'inertiaCentroid', 'mass', 'outputName', 'volumeMM3']);
   exactData(result.details.exact, expected);
   assert.deepEqual(Object.keys(result.details).sort(), ['conversionErrors', 'exact', 'native']);
-  assert.deepEqual(Object.keys(result.details.conversionErrors).sort(), ['centroidMM', 'inertiaCentroidKgM2', 'massKG']);
+  assert.deepEqual(Object.keys(result.details.conversionErrors).sort(), ['centroidMM', 'inertiaCentroid', 'mass']);
   const errors = result.details.conversionErrors;
-  projection(result.volumeMM3, expected.volumeMM3); projection(result.massKG, expected.massKG, errors.massKG);
+  projection(result.volumeMM3, expected.volumeMM3); projection(result.mass, expected.mass, errors.mass);
   expected.centroidMM.forEach((x, i) => projection(result.centroidMM[i], x, errors.centroidMM[i]));
-  expected.inertiaCentroidKgM2.forEach((row, i) => row.forEach((x, j) => {
-    projection(result.inertiaCentroidKgM2[i][j], x, errors.inertiaCentroidKgM2[i][j]);
-    assert.ok(Object.is(result.inertiaCentroidKgM2[i][j], result.inertiaCentroidKgM2[j][i]));
+  expected.inertiaCentroid.forEach((row, i) => row.forEach((x, j) => {
+    projection(result.inertiaCentroid[i][j], x, errors.inertiaCentroid[i][j]);
+    assert.ok(Object.is(result.inertiaCentroid[i][j], result.inertiaCentroid[j][i]));
   }));
   const native = result.details.native, convex = result.family === 'convex-planar', measure = convex ? native.measure : native.total;
   exactData(convex ? native.solid : native.boolean, body.native);
-  assert.equal(native.options.densityKgPerM3, density);
-  exactData(native.options, convex ? { densityKgPerM3: density, maximumFanTriangles: 40 } : { densityKgPerM3: density, maximumCells: 27 });
+  assert.equal(native.options.density, density);
+  exactData(native.options, convex ? { density: density, maximumFanTriangles: 40 } : { density: density, maximumCells: 27 });
   assert.equal(native.report.sourceFrame, 'authored-xyz-no-axis-conversion'); assert.equal(native.report.quality.densityCertified, false);
   assert.equal(native.report.quality.parentProofUnchanged, true);
-  const diagonal = expected.inertiaCentroidKgM2.map((row, i) => fromText(row[i])), stored = result.inertiaCentroidKgM2.map((row, i) => binary64(row[i]));
+  const diagonal = expected.inertiaCentroid.map((row, i) => fromText(row[i])), stored = result.inertiaCentroid.map((row, i) => binary64(row[i]));
   const minors = d => [d[0], mul(d[0], d[1]), d.reduce(mul, q(1))].map(text);
   const pd = measure.positiveDefinite;
   exactData(convex ? pd.exactCentroidLeadingMinors : pd.exactLeadingMinors, minors(diagonal));
@@ -100,8 +100,8 @@ export function proveMass(result, snapshot, outputName, kind, density = 2700) {
     assert.equal(native.boolean.panels.length, kind === 'window' ? 32 : 46);
     assert.equal(native.report.volumeMM3, result.volumeMM3);
   }
-  return { family: result.family, outputName, volumeMM3: result.volumeMM3, massKG: result.massKG,
-    centroidMM: result.centroidMM, inertiaCentroidKgM2: result.inertiaCentroidKgM2, exact: expected,
+  return { family: result.family, outputName, volumeMM3: result.volumeMM3, mass: result.mass,
+    centroidMM: result.centroidMM, inertiaCentroid: result.inertiaCentroid, exact: expected,
     resultSHA256: dataHash(result), nativeSHA256: dataHash(native), parentSHA256: dataHash(body.native),
     returnedReport: native.report, exactIndependentBoxMomentOracle: true, deepFrozenInActualProcess: true };
 }

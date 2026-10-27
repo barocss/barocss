@@ -1,8 +1,12 @@
 // G17: the 3D sketch's panel — Draw / Select, the work plane and an axis lock, the diagnosis (well, under, over,
 // conflict: what is free, redundant or unmet), the constraints the selection offers, the constraints with their
-// values (a bound one shows its parameter), the session's undo, and Apply / Cancel.
+// values (a bound one shows its parameter), the session's undo, and Apply / Cancel. O16: its actions, fields and
+// values on shadcn (Button, Input, FIELD); the Tool, plane and axis toggles stay the studio's segmented buttons.
 import { constraintText, offers, statusText } from '../skeleton/skeletonTool';
 import type { SkeletonEditor } from '../skeleton/useSkeletonEditor';
+import { FIELD } from './panelStyles';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const KIND_NAME: Record<string, string> = { length: 'Length', distance: 'Distance', angle: 'Angle', parallel: 'Parallel', perpendicular: 'Perpendicular', along: 'Along', 'on-axis': 'On axis', 'on-plane': 'On plane', fixed: 'Fixed', coincident: 'Coincident' };
 
@@ -24,25 +28,25 @@ export function SkeletonPanel({ editor, name }: { editor: SkeletonEditor; name: 
       {d && 'error' in d ? d.error : solve ? statusText(solve) : '—'}
       {solve && solve.status === 'under' && <span className="muted small"> · free points blue</span>}
     </div>
-    <div className="kv">Picked <b aria-label="Picked">{picked}</b></div>
+    <div className={FIELD}><span>Picked</span> <b aria-label="Picked">{picked}</b></div>
     <div className="cage-ops" aria-label="Constraints offered">{offers(s.draft, sel, editor.plane).map(o =>
-      <button key={o.label} className="ghost small" aria-label={'Add ' + o.label} onClick={() => editor.addConstraint(o.constraint)}>{o.label}</button>)}</div>
+      <Button key={o.label} variant="ghost" aria-label={'Add ' + o.label} onClick={() => editor.addConstraint(o.constraint)}>{o.label}</Button>)}</div>
     {!!s.draft.constraints.length && <ul className="skeleton-constraints" aria-label="Constraints">{s.draft.constraints.map((c, k) => {
       const v = c.kind === 'angle' ? c.degrees : c.kind === 'length' || c.kind === 'distance' ? c.value : null;
       return <li key={k} className={(unmet.has(k) ? 'bad ' : redundant.has(k) ? 'over ' : '') + (sel.constraints.includes(k) ? 'sel' : '')} aria-label={`Constraint ${k + 1}`}>
-        <button className="ghost small" onClick={() => editor.select({ points: [], segments: [], constraints: [k] })}>{KIND_NAME[c.kind]}</button>
-        {typeof v === 'number' ? <input type="number" aria-label={`Constraint ${k + 1} value`} defaultValue={v} key={v} step="any" onKeyDown={e => { if (e.key === 'Enter') { e.stopPropagation(); editor.setValue(k, Number((e.target as HTMLInputElement).value)); } }} onBlur={e => { const n = Number(e.target.value); if (n !== v) editor.setValue(k, n); }} />
+        <Button variant="ghost" onClick={() => editor.select({ points: [], segments: [], constraints: [k] })}>{KIND_NAME[c.kind]}</Button>
+        {typeof v === 'number' ? <Input type="number" aria-label={`Constraint ${k + 1} value`} defaultValue={v} key={v} step="any" onKeyDown={e => { if (e.key === 'Enter') { e.stopPropagation(); editor.setValue(k, Number((e.target as HTMLInputElement).value)); } }} onBlur={e => { const n = Number(e.target.value); if (n !== v) editor.setValue(k, n); }} />
           : <span className="mono">{constraintText(c)}</span>}
         {unmet.has(k) && <span className="warn small">unmet</span>}{redundant.has(k) && <span className="muted small">redundant</span>}
       </li>;
     })}</ul>}
     <div className="muted small">{s.draft.points.length} points · {s.draft.segments.length} segments{solve ? ` · ${solve.dof} degrees of freedom` : ''}</div>
-    <div className="row-buttons">
-      <button className="ghost small" aria-label="Undo 3D sketch step" onClick={editor.undo}>Undo</button>
-      <button className="ghost small" aria-label="Delete picked" disabled={!sel.points.length && !sel.segments.length && !sel.constraints.length} onClick={editor.removeSelected}>Delete</button>
-      <span className="grow" />
-      <button className="ghost small" aria-label="Cancel 3D sketch" onClick={editor.cancel}>Cancel</button>
-      <button className="primary small" aria-label="Apply 3D sketch" disabled={solve?.status === 'conflict' || !!(d && 'error' in d)} onClick={editor.apply}>Apply</button>
+    <div className="flex items-center gap-1 pt-1">
+      <Button variant="ghost" aria-label="Undo 3D sketch step" onClick={editor.undo}>Undo</Button>
+      <Button variant="ghost" aria-label="Delete picked" disabled={!sel.points.length && !sel.segments.length && !sel.constraints.length} onClick={editor.removeSelected}>Delete</Button>
+      <span className="flex-1" />
+      <Button variant="ghost" aria-label="Cancel 3D sketch" onClick={editor.cancel}>Cancel</Button>
+      <Button variant="default" aria-label="Apply 3D sketch" disabled={solve?.status === 'conflict' || !!(d && 'error' in d)} onClick={editor.apply}>Apply</Button>
     </div>
   </aside>;
 }

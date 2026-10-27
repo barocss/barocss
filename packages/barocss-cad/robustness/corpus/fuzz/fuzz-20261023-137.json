@@ -1,0 +1,214 @@
+{
+  "id": "fuzz-20261023-137",
+  "about": "L4 fuzz case (seed 20261023, case 137), shrunk: a box ∪ a cone whose box corner lies on the cone's top circle — refused before D209 (the pinched cone piece's domain polygon failed to triangulate).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            1,
+            3
+          ]
+        },
+        {
+          "id": "n1b",
+          "kind": "extrude",
+          "sketch": "n1s",
+          "height": 1
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1b",
+          "offset": [
+            3,
+            2,
+            -3
+          ]
+        },
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                4,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                2,
+                4
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                0,
+                4
+              ]
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n2b",
+          "kind": "revolve",
+          "sketch": "n2s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angle": 360
+        },
+        {
+          "id": "n2r0",
+          "kind": "rotate",
+          "target": "n2b",
+          "axis": "x",
+          "angle": 270,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n2r1",
+          "kind": "rotate",
+          "target": "n2r0",
+          "axis": "y",
+          "angle": 270,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2r1",
+          "offset": [
+            1,
+            1,
+            -2
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "union",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 118.41809666164201,
+          "relTol": 0.0001,
+          "absTol": 0.011841809666164202
+        },
+        "centroid": {
+          "value": [
+            1.0252676955609525,
+            2.5878399132186143,
+            -2.005055705425438
+          ],
+          "absTol": 0.0008000000000000004
+        },
+        "bodies": 1
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 512² lattice at 8 shifts, e 5.90e-4 mm³, centroid e 7.38e-6 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 137,
+    "status": "REFUSED",
+    "tree": {
+      "op": "union",
+      "a": {
+        "leaf": {
+          "kind": "box",
+          "w": 1,
+          "d": 3,
+          "h": 1,
+          "rot": [],
+          "move": [
+            3,
+            2,
+            -3
+          ]
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "cone",
+          "r1": 4,
+          "r2": 2,
+          "h": 4,
+          "rot": [
+            {
+              "axis": "x",
+              "deg": 270
+            },
+            {
+              "axis": "y",
+              "deg": 270
+            }
+          ],
+          "move": [
+            1,
+            1,
+            -2
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,11 @@
 // R8.2 (D81): the cage editor's panel — mode, Box/Smooth, the operations on the selection, the mirror, what the
-// validation flags, the session's undo, and Done / Cancel.
+// validation flags, the session's undo, and Done / Cancel. O16: its operations, fields and actions on shadcn (Button,
+// NativeSelect, FIELD); the Pick and Show toggles stay the studio's segmented buttons.
 import type { CageEditor } from '../subd/useCageEditor';
 import { validationOf, type CageMode, type CageOp } from '@barocss/cad-model/subd/cageEdit';
+import { CONTROL, FIELD } from './panelStyles';
+import { Button } from '@/components/ui/button';
+import { NativeSelect } from '@/components/ui/native-select';
 
 const OPS: { op: CageOp; label: string; key?: string; tip: string }[] = [
   { op: 'extrude', label: 'Extrude', key: 'E', tip: 'The picked faces (or boundary edges) out as a new region; drag the gizmo to move it — or hold Shift as you drag' },
@@ -28,21 +32,21 @@ export function CagePanel({ editor, name }: { editor: CageEditor; name: string }
     <div className="seg" role="group" aria-label="Show">
       <button className={!s.smooth ? 'on' : ''} aria-pressed={!s.smooth} data-tip="Box" data-tip-desc="The cage as it is (Tab)" onClick={() => s.smooth && editor.toggleSmooth()}>Box</button>
       <button className={s.smooth ? 'on' : ''} aria-pressed={s.smooth} data-tip="Smooth" data-tip-desc="The limit surface (Tab)" onClick={() => !s.smooth && editor.toggleSmooth()}>Smooth</button></div>
-    <div className="kv">Picked <b aria-label="Picked">{what}</b></div>
-    <div className="cage-ops">{OPS.map(o => <button key={o.op} className="ghost small" aria-label={o.label} data-tip={o.label + (o.key ? ` (${o.key})` : '')} data-tip-desc={o.tip} onClick={() => editor.op(o.op)} disabled={!n && o.op !== 'weld-near'}>{o.label}</button>)}</div>
-    <label className="kv"><span>Mirror</span><select aria-label="Mirror" value={s.mirror ?? ''} onChange={e => editor.op(e.target.value ? `mirror-${e.target.value}` as CageOp : 'mirror-off')}>
-      <option value="">None</option><option value="x">Across X</option><option value="y">Across Y</option><option value="z">Across Z</option></select></label>
+    <div className={FIELD}><span>Picked</span> <b aria-label="Picked">{what}</b></div>
+    <div className="cage-ops">{OPS.map(o => <Button key={o.op} variant="ghost" aria-label={o.label} data-tip={o.label + (o.key ? ` (${o.key})` : '')} data-tip-desc={o.tip} onClick={() => editor.op(o.op)} disabled={!n && o.op !== 'weld-near'}>{o.label}</Button>)}</div>
+    <label className={FIELD}><span>Mirror</span><NativeSelect className={CONTROL} aria-label="Mirror" value={s.mirror ?? ''} onChange={e => editor.op(e.target.value ? `mirror-${e.target.value}` as CageOp : 'mirror-off')}>
+      <option value="">None</option><option value="x">Across X</option><option value="y">Across Y</option><option value="z">Across Z</option></NativeSelect></label>
     <div className="cage-checks" aria-label="Cage checks">
       {!v.valid && <div className="warn">Not a manifold: {v.nonManifoldEdges.length} edges, {v.nonManifoldVertices.length} vertices (red)</div>}
       <div className="muted small">{v.poles.length} poles (ringed: G1 caps there) · {v.ngons.length} n-gons (tinted) · {v.boundaryEdges.length} open edges{v.darts.length ? ` · ${v.darts.length} darts` : ''} · {s.cage.faces.length} faces</div>
       {editor.previewMs !== null && <div className="muted small" aria-label="Preview time">Preview {editor.previewMs.toFixed(1)} ms</div>}
     </div>
-    <div className="row-buttons">
-      <button className="ghost small" aria-label="Undo cage step" disabled={!s.undo.length} onClick={editor.undo}>Undo</button>
-      <button className="ghost small" aria-label="Redo cage step" disabled={!s.redo.length} onClick={editor.redo}>Redo</button>
-      <span className="grow" />
-      <button className="ghost small" aria-label="Cancel cage edit" onClick={editor.cancel}>Cancel</button>
-      <button className="primary small" aria-label="Done editing cage" onClick={editor.done}>Done</button>
+    <div className="flex items-center gap-1 pt-1">
+      <Button variant="ghost" aria-label="Undo cage step" disabled={!s.undo.length} onClick={editor.undo}>Undo</Button>
+      <Button variant="ghost" aria-label="Redo cage step" disabled={!s.redo.length} onClick={editor.redo}>Redo</Button>
+      <span className="flex-1" />
+      <Button variant="ghost" aria-label="Cancel cage edit" onClick={editor.cancel}>Cancel</Button>
+      <Button variant="default" aria-label="Done editing cage" onClick={editor.done}>Done</Button>
     </div>
   </aside>;
 }

@@ -15,16 +15,17 @@
 // assumption, said so). A ± tolerance with the same effect on each of two axes is T / (2√2) (the square inside the
 // round zone). Values are rounded down to 0.01 mm (tighter, never looser). Holes the data does not place: an estimate.
 import { holesOf } from './auto';
-import { FASTENER_SIZES, sizeForHole } from '../app/fasteners';
+import { sizeForHole, type FastenerSizes } from '../app/fasteners';
 import { datumMarks, projectionOf } from './sheet';
 import { fixAll, issueContext, marksClear, type IssueContext, type SheetInputs } from './issues';
 import { inView, resolveLine, type Resolved } from './dimensions';
 import type { DrawingDatum, DrawingDimension, DrawingFrame, DrawingSettings, EdgeRef, ViewId, XY } from './types';
+import { nextFreeId } from '../util/ids';
 
 export const TOLERANCE_SUGGESTIONS_VERSION = 'cad-studio-tolerance-suggestions-v1';
 
 /** The general tolerances suggested: estimates (a common machining default, not from a standard; check the shop's own). */
-export const GENERAL_TOLERANCE = { linearMM: 0.2, angularDeg: 0.5, basis: 'an estimate: a common machining default, not from a standard — check against your shop’s' } as const;
+export const GENERAL_TOLERANCE = { linear: 0.2, angular: 0.5, basis: 'an estimate: a common machining default, not from a standard — check against your shop’s' } as const;
 export const GENERAL_NOTE_PREFIX = 'UNLESS OTHERWISE STATED';
 /** A hole kind's position tolerance when no fastener data places it: an estimate. */
 export const POSITION_ESTIMATE_MM = 0.2;
@@ -42,29 +43,30 @@ type Change =
   | { kind: 'note'; text: string; at: XY }
   | { kind: 'tolerances'; dims: string[]; value: number }
   | { kind: 'datum'; datum: DrawingDatum }
-  | { kind: 'frame'; frame: DrawingFrame; basic: string[] };
+  | { kind: 'frame'; frame: Extract<DrawingFrame, { dim: string }>; basic: string[] };
 
 const SAME = 1e-6;
+const NO_SIZES: FastenerSizes = {};
 const floor2 = (v: number) => Math.floor(v * 100 + 1e-9) / 100;
 
 /** The position tolerance of a kind of hole: its value, why, and whether it is an estimate. */
-export function holePosition(callout: string | null, diameter: number): { value: number; basis: string; estimate: boolean } {
+export function holePosition(callout: string | null, diameter: number, sizes: FastenerSizes): { value: number; basis: string; estimate: boolean } {
   const thread = callout?.match(/\bM(\d+(?:\.\d+)?)/);
   if (thread) {
-    const size = FASTENER_SIZES[`M${thread[1]}`];
+    const size = sizes[`M${thread[1]}`];
     if (size) {
       const H = size.clearance[1], T = floor2((H - size.d) / 2);
-      if (T > 0) return { value: T, basis: `a tapped M${thread[1]} hole, its screw fixed: T = (H − F)/2 = (${H} − ${size.d})/2, H the screw's ISO 273 medium clearance hole assumed in the mating part (studio fastener data)`, estimate: false };
+      if (T > 0) return { value: T, basis: `a tapped M${thread[1]} hole, its screw fixed: T = (H − F)/2 = (${H} − ${size.d})/2, H the screw's ISO 273 medium clearance hole assumed in the mating part (your fastener sizes)`, estimate: false };
     }
   }
-  const s = sizeForHole(diameter);
+  const s = sizeForHole(diameter, sizes);
   if (s && s.fit.fit === 'clearance') {
-    const size = FASTENER_SIZES[s.size], F = size.d, T = floor2(diameter - F), series = s.fit.series, H = size.clearance[['fine', 'medium', 'coarse'].indexOf(series)];
+    const size = sizes[s.size], F = size.d, T = floor2(diameter - F), series = s.fit.series, H = size.clearance[['fine', 'medium', 'coarse'].indexOf(series)];
     // An ISO 273 hole: the data says which screw. Near one only: the screw is assumed (an estimate, said so).
-    if (T > 0 && Math.abs(H - diameter) <= 1e-6) return { value: T, basis: `a Ø${diameter} clearance hole for ${s.size} (ISO 273 ${series}, studio fastener data), its screw floating: T = H − F = ${diameter} − ${F}`, estimate: false };
+    if (T > 0 && Math.abs(H - diameter) <= 1e-6) return { value: T, basis: `a Ø${diameter} clearance hole for ${s.size} (ISO 273 ${series}, your fastener sizes), its screw floating: T = H − F = ${diameter} − ${F}`, estimate: false };
     if (T > 0) return { value: T, basis: `an estimate: Ø${diameter} is no ISO 273 hole; ${s.size} assumed (its ${series} hole is Ø${H}), its screw floating: T = H − F = ${diameter} − ${F}`, estimate: true };
   }
-  return { value: POSITION_ESTIMATE_MM, basis: 'an estimate: no fastener in the studio data fits this hole', estimate: true };
+  return { value: POSITION_ESTIMATE_MM, basis: 'an estimate: none of your fastener sizes fits this hole', estimate: true };
 }
 
 interface HoleKind { dim: Extract<Resolved, { ok: true; kind: 'diameter' | 'radius' }>; callout: string | null; diameter: number; centres: Centre[] }
@@ -143,15 +145,15 @@ function datumPlace(ctx: IssueContext, view: ViewId, line: [XY, XY], letter: str
 export function toleranceSuggestions(ctx: IssueContext): ToleranceSuggestion[] {
   const s = ctx.settings, out: ToleranceSuggestion[] = [], geometric = s.tolerancing === 'geometric';
   if (!(s.notes ?? []).some(n => n.text.startsWith(GENERAL_NOTE_PREFIX))) {
-    const [x0, y0] = ctx.layout.title, text = `${GENERAL_NOTE_PREFIX}:\nLINEAR ±${GENERAL_TOLERANCE.linearMM} · ANGULAR ±${GENERAL_TOLERANCE.angularDeg}°`;
-    out.push({ id: 'general-note', kind: 'general-note', message: `A general tolerance note: linear ±${GENERAL_TOLERANCE.linearMM} mm, angular ±${GENERAL_TOLERANCE.angularDeg}° where a dimension says nothing.`, basis: GENERAL_TOLERANCE.basis, estimate: true, change: { kind: 'note', text, at: [x0, y0 - 14] } });
+    const [x0, y0] = ctx.layout.title, text = `${GENERAL_NOTE_PREFIX}:\nLINEAR ±${GENERAL_TOLERANCE.linear} · ANGULAR ±${GENERAL_TOLERANCE.angular}°`;
+    out.push({ id: 'general-note', kind: 'general-note', message: `A general tolerance note: linear ±${GENERAL_TOLERANCE.linear} mm, angular ±${GENERAL_TOLERANCE.angular}° where a dimension says nothing.`, basis: GENERAL_TOLERANCE.basis, estimate: true, change: { kind: 'note', text, at: [x0, y0 - 14] } });
   }
   const kinds = holeKinds(ctx);
   if (!geometric) {
     for (const k of kinds) {
       // Its location dimensions without a tolerance, or with a looser ± one (a dimension shared with other holes gets the
       // tightest); none that is basic (a frame holds its tolerance).
-      const p = holePosition(k.callout, k.diameter), pm = floor2(p.value / (2 * Math.SQRT2)), dims = locating(ctx, k.centres).filter(id => { const d = s.dimensions.find(x => x.id === id)!, t = d.tol; return !d.basic && (!t || (t.kind === 'symmetric' && t.value > pm + 1e-9)); });
+      const p = holePosition(k.callout, k.diameter, ctx.fastenerSizes ?? NO_SIZES), pm = floor2(p.value / (2 * Math.SQRT2)), dims = locating(ctx, k.centres).filter(id => { const d = s.dimensions.find(x => x.id === id)!, t = d.tol; return !d.basic && (!t || (t.kind === 'symmetric' && t.value > pm + 1e-9)); });
       if (!dims.length || pm <= 0) continue;
       out.push({ id: `hole-pm-${k.dim.dim.id}`, kind: 'hole-plus-minus', message: `${k.dim.text}: ±${pm} on ${dims.length} location dimension${dims.length > 1 ? 's' : ''}.`, basis: `${p.basis}; on each axis T/(2√2) = ${p.value}/(2√2)`, estimate: p.estimate, change: { kind: 'tolerances', dims, value: pm } });
     }
@@ -175,11 +177,14 @@ export function toleranceSuggestions(ctx: IssueContext): ToleranceSuggestion[] {
   });
   // (A frame names the datums the drawing has or is offered: none it could not place.)
   const datums = letters.filter(l => named.includes(l) || have.has(l));
+  const frameIds = new Set((s.frames ?? []).map(f => f.id));
   for (const k of kinds) {
     if ((s.frames ?? []).some(f => f.dim === k.dim.dim.id)) continue;
-    const p = holePosition(k.callout, k.diameter), basic = locating(ctx, k.centres);
+    const p = holePosition(k.callout, k.diameter, ctx.fastenerSizes ?? NO_SIZES), basic = locating(ctx, k.centres);
+    const baseId = `frame-${k.dim.dim.id}`, frameId = frameIds.has(baseId) ? nextFreeId(`${baseId}-`, frameIds, 2) : baseId;
+    frameIds.add(frameId);
     out.push({ id: `position-${k.dim.dim.id}`, kind: 'position', message: `${k.dim.text}: position Ø${p.value} to ${datums.join(', ') || 'no datum'}; its ${basic.length} location dimension${basic.length === 1 ? '' : 's'} basic.`, basis: p.basis, estimate: p.estimate,
-      change: { kind: 'frame', frame: { id: `frame-${k.dim.dim.id}`, dim: k.dim.dim.id, characteristic: 'position', value: p.value, datums }, basic } });
+      change: { kind: 'frame', frame: { id: frameId, dim: k.dim.dim.id, characteristic: 'position', value: p.value, datums }, basic } });
   }
   return out;
 }
@@ -188,15 +193,20 @@ export function toleranceSuggestions(ctx: IssueContext): ToleranceSuggestion[] {
 export function applySuggestion(settings: DrawingSettings, s: ToleranceSuggestion): DrawingSettings {
   const c = s.change;
   switch (c.kind) {
-    case 'note': { const used = new Set((settings.notes ?? []).map(n => n.id)); let k = 1; while (used.has(`n${k}`)) k++; return { ...settings, notes: [...(settings.notes ?? []), { id: `n${k}`, text: c.text, at: c.at }] }; }
+    case 'note': { const id = nextFreeId('n', new Set((settings.notes ?? []).map(n => n.id))); return { ...settings, notes: [...(settings.notes ?? []), { id, text: c.text, at: c.at }] }; }
     // (Set where there is none, tightened where a looser ± one is: never loosened.)
     case 'tolerances': return { ...settings, dimensions: settings.dimensions.map(d => c.dims.includes(d.id) && (!d.tol || (d.tol.kind === 'symmetric' && d.tol.value > c.value)) ? { ...d, tol: { kind: 'symmetric', value: c.value } } : d) };
     case 'datum': return { ...settings, datums: [...(settings.datums ?? []).filter(d => d.letter !== c.datum.letter), c.datum] };
-    case 'frame': return {
-      ...settings, frames: [...(settings.frames ?? []).filter(f => f.dim !== c.frame.dim), c.frame],
-      // (A basic dimension carries no tolerance of its own: the frame holds it.)
-      dimensions: settings.dimensions.map(d => { if (!c.basic.includes(d.id)) return d; const { tol: _t, ...rest } = d; void _t; return { ...rest, basic: true } as DrawingDimension; }),
-    };
+    case 'frame': {
+      const frames = settings.frames ?? [];
+      // A suggestion is offered only for a dimension without a frame. Recheck before applying it.
+      if (!settings.dimensions.some(d => d.id === c.frame.dim) || frames.some(f => f.dim === c.frame.dim || f.id === c.frame.id)) return settings;
+      return {
+        ...settings, frames: [...frames, c.frame],
+        // (A basic dimension carries no tolerance of its own: the frame holds it.)
+        dimensions: settings.dimensions.map(d => { if (!c.basic.includes(d.id)) return d; const { tol: _t, ...rest } = d; void _t; return { ...rest, basic: true } as DrawingDimension; }),
+      };
+    }
   }
 }
 

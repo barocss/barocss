@@ -5,14 +5,15 @@ import { join, resolve } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, starterDoc, type StudioDoc } from '../src/engine/doc';
 import { acceptProposal, dispatchTool, runTool, type ChatState } from '../src/chat/tools';
-import { lex, parse, runScript, SCRIPT_LIMITS, ScriptError, type ScriptHost } from '../src/chat/script';
+import { lex, parse, runScript, SCRIPT_LIMITS, type ScriptHost } from '../src/chat/script';
+import { isRefusal } from '../src/engine/refusal';
 
 // A5.2 (O10): run_script — a part built in one call, all or nothing, each command a tool call; typed errors with the
 // line; the conformance cases in conformance/a5/; a fuzz run that only ever ends in a typed error.
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const read = (content: string) => JSON.parse(content) as Record<string, any>;
-const volumeOf = (s: ChatState) => s.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0);
+const volumeOf = (s: ChatState) => s.bodies.reduce((v, b) => v + (b.volume ?? 0), 0);
 const empty = (): ChatState => ({ doc: emptyDoc(), bodies: [] });
 const CASES = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/a5');
 
@@ -96,7 +97,7 @@ test('the conformance cases (conformance/a5): volumes in closed form, errors typ
     assert.ok(!out.isError, `${name}: ${out.content}`);
     assert.equal(out.state.doc.nodes.length, c.expect.features, name);
     if (c.expect.names) assert.deepEqual(r.names, c.expect.names, name);
-    assert.ok(Math.abs(volumeOf(out.state) - c.expect.volume_mm3) <= c.expect.tol, `${name}: ${volumeOf(out.state)} vs ${c.expect.volume_mm3}`);
+    assert.ok(Math.abs(volumeOf(out.state) - c.expect.volume) <= c.expect.tol, `${name}: ${volumeOf(out.state)} vs ${c.expect.volume}`);
   }
 });
 
@@ -126,7 +127,7 @@ test('the language: precedence, conditionals, objects and lists, comments; a hos
 });
 
 test('limits and typed errors at the parser: source size, nesting, unclosed strings and comments', () => {
-  const code = (f: () => unknown) => { try { f(); return 'none'; } catch (e) { assert.ok(e instanceof ScriptError, String(e)); return `${e.code}@${e.line}:${e.col}`; } };
+  const code = (f: () => unknown) => { try { f(); return 'none'; } catch (e) { assert.ok(isRefusal(e), String(e)); return `${e.code}@${e.details?.line}:${e.details?.col}`; } };
   assert.equal(code(() => lex('x'.repeat(SCRIPT_LIMITS.sourceChars + 1))), 'LIMIT@1:1');
   assert.match(code(() => parse('const a = ' + '('.repeat(60) + '1' + ')'.repeat(60))), /^LIMIT@1:\d+$/);
   assert.match(code(() => parse('const a = "abc\nconst b = 1')), /^SYNTAX@1:11$/);
@@ -153,8 +154,8 @@ test('fuzz: random scripts end in a result or a typed error, never a crash or a 
     if (k % 2) for (let t = rand(40); t >= 0; t--) source += pieces[rand(pieces.length)] + (rand(3) ? ' ' : '');
     else { source = valid; for (let m = 1 + rand(2); m > 0; m--) { const at = rand(source.length), op = rand(3); source = source.slice(0, at) + (op === 0 ? '' : chars[rand(chars.length)]) + source.slice(op === 1 ? at : at + 1); } }
     try { await runScript(parse(source), host); seen.add('ran'); } catch (e) {
-      assert.ok(e instanceof ScriptError, `${source}\n→ ${String(e)}`);
-      assert.ok(e.line >= 1 && e.col >= 1, source);
+      assert.ok(isRefusal(e), `${source}\n→ ${String(e)}`);
+      assert.ok((e.details?.line as number) >= 1 && (e.details?.col as number) >= 1, source);
       seen.add(e.code);
     }
   }

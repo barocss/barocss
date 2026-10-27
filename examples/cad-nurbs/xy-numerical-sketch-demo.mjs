@@ -19,11 +19,11 @@ const p = (id, position) => ({ id, position }), s = (id, startPointId, endPointI
 const doc = () => ({ format: 'barocss-xy-numerical-sketch', version: 0, profile: 'bounded-length-angle-v0', id: 'brace', lengthUnit: 'mm', angleUnit: 'rad',
   points: [p('A', [.1, -.2]), p('B', [38, .5]), p('C', [23, 17])], segments: [s('AB', 'A', 'B'), s('AC', 'A', 'C'), s('BC', 'B', 'C')],
   constraints: [{ id: 'anchor', kind: 'fixed', pointId: 'A', target: [0, 0] }, { id: 'level', kind: 'horizontal', segmentId: 'AB' },
-    { id: 'base_length', kind: 'length', segmentId: 'AB', lengthMM: 40 }, { id: 'brace_length', kind: 'length', segmentId: 'AC', lengthMM: 30 },
-    { id: 'brace_angle', kind: 'signed-angle', segmentA: 'AB', segmentB: 'AC', angleRad: 37 * Math.PI / 180 }],
+    { id: 'base_length', kind: 'length', segmentId: 'AB', length: 40 }, { id: 'brace_length', kind: 'length', segmentId: 'AC', length: 30 },
+    { id: 'brace_angle', kind: 'signed-angle', segmentA: 'AB', segmentB: 'AC', angle: 37 * Math.PI / 180 }],
   branchGuards: [{ id: 'forward', kind: 'positive-projection', segmentId: 'AB', direction: [1, 0] }, { id: 'above', kind: 'oriented-triplet', pointA: 'A', pointB: 'B', pointC: 'C', orientation: 'ccw' }] });
 if (mode === '--controls') {
-  const { qr, evaluate } = await import(await bundle('packages/barocss-cad/src/xy-numerical-sketch-solver-internal.ts', 'controls'));
+  const { qr, evaluate } = await import(await bundle('packages/barocss-cad/src/sketch/xy-numerical-sketch-solver-internal.ts', 'controls'));
   const a = qr([[1, 0], [0, 1], [1, 1]], [2, 3, 5], 2); assert.equal(a.rank, 2); assert.ok(Math.abs(a.solution[0] - 2) < 1e-12 && Math.abs(a.solution[1] - 3) < 1e-12);
   assert.equal(qr([[1, 2], [2, 4]], [0, 0], 2).rank, 1); assert.equal(qr([], [], 4).rank, 0);
   assert.equal(qr([[1, 0], [0, 1e-12]], [0, 0], 2).rank, 1);
@@ -56,7 +56,7 @@ function save(name, d) {
 }
 function refusal(name, d, code) { const result = solve(d); assert.deepEqual(Object.keys(result), ['ok', 'diagnostics']); assert.equal(result.ok, false); assert.equal(result.diagnostics[0].code, code); refused.push({ name, code }); }
 const first = save('brace37', doc()); assert.equal(first.report.numericalRank, 6); assert.equal(first.report.localDegreesOfFreedom, 0);
-const edited = doc(); edited.constraints[3].lengthMM = 35; edited.constraints[4].angleRad = 42 * Math.PI / 180;
+const edited = doc(); edited.constraints[3].length = 35; edited.constraints[4].angle = 42 * Math.PI / 180;
 const second = save('brace42', edited); assert.equal(second.report.numericalRank, 6); assert.equal(second.report.localDegreesOfFreedom, 0);
 assert.deepEqual(first.solution.model.objects.map(c => c.id), second.solution.model.objects.map(c => c.id));
 for (const [result, length, degrees] of [[first, 30, 37], [second, 35, 42]]) {
@@ -66,7 +66,7 @@ for (const [result, length, degrees] of [[first, 30, 37], [second, 35, 42]]) {
 }
 const under = doc(); under.constraints = []; const u = save('under', under); assert.equal(u.report.numericalRank, 0); assert.equal(u.report.localDegreesOfFreedom, 6);
 const redundant = doc(); redundant.constraints.push({ ...redundant.constraints[2], id: 'duplicate_length' }); const r = save('redundant', redundant); assert.equal(r.report.numericalRank, 6); assert.equal(r.report.scalarResidualCount, 7);
-const incompatible = doc(); incompatible.constraints.push({ id: 'incompatible_length', kind: 'length', segmentId: 'AB', lengthMM: 45 }); refusal('incompatible-dimensions-not-conflict-proof', incompatible, 'NONCONVERGENCE');
+const incompatible = doc(); incompatible.constraints.push({ id: 'incompatible_length', kind: 'length', segmentId: 'AB', length: 45 }); refusal('incompatible-dimensions-not-conflict-proof', incompatible, 'NONCONVERGENCE');
 const branch = doc(); branch.points[2].position[1] = -17; refusal('seed-branch', branch, 'BRANCH');
 const degenerate = doc(); degenerate.points[1].position = [...degenerate.points[0].position]; refusal('degenerate-seed', degenerate, 'DEGENERATE_GEOMETRY');
 const range = doc(); range.points[1].position[0] = 10001; refusal('coordinate-range', range, 'UNSUPPORTED');

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CadNumericPolicy, sampleCurveAdaptive, splitCurveAtParameter, evaluateCurveCurvature } from '../dist/index.js';
-import { intersectBezierCurveWithAffinePlaneSurface } from '../dist/own-curve-plane-intersection.js';
+import { intersectBezierCurveWithAffinePlaneSurface } from '../dist/intersect/own-curve-plane-intersection.js';
 
 const cubic = S => ({ kind: 'curve', id: 'c', degree: 3, knots: [0, 0, 0, 0, 1, 1, 1, 1], controlPoints: [[-S, 0, -S * .2], [-S * .3, S * .6, S * .1], [S * .4, -S * .5, S * .05], [S, S * .2, S * .3]], weights: [1, 1, 1, 1] });
 const quadratic = S => ({ kind: 'curve', id: 'q', degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [[-S, 0, -S * .2], [0, S * .6, S * .1], [S, S * .2, S * .3]], weights: [1, 1, 1] });
@@ -23,9 +23,9 @@ test('C9: beyond the geometry range every geometry operation refuses alike', () 
 
 test('modeling-range results keep the 1e-7 mm floor; reports name the range used', () => {
   const split = ops(100).split(), sample = ops(100).sample();
-  assert.equal(split.report.limits.observationComparisonMM, 1e-7);
-  assert.equal(sample.report.inputProfile.coordinateAbsMM, CadNumericPolicy.geometryCoordinateAbsMM);
-  assert.ok(ops(5e5).split().report.limits.observationComparisonMM > 1e-7);
+  assert.equal(split.report.limits.observationComparison, 1e-7);
+  assert.equal(sample.report.inputProfile.coordinateAbsMM, CadNumericPolicy.geometryCoordinateAbs);
+  assert.ok(ops(5e5).split().report.limits.observationComparison > 1e-7);
 });
 
 test('knot / parameter range stays the parameter range (only coordinates widened)', () => {

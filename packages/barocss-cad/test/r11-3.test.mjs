@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, exportStep, importStep } from '../dist/index.js';
-import { brepMassProperties } from '../dist/solid-mass.js';
-import { tessellateBrep } from '../dist/brep-tessellate.js';
+import { evaluateCadPart, checkBrep, exportStep, importStep, massPropertiesOf } from '../dist/index.js';
+import { brepMassProperties } from '../dist/brep/solid-mass.js';
+import { tessellateBrep } from '../dist/brep/brep-tessellate.js';
 
 // R11.3 (D114): a mesh body's shell — its cavity the mesh's own triangles, each vertex moved in to the least-squares point
 // of its triangles' planes moved in by the wall (where up to three planes meet, their sharp join exactly), the wall it
@@ -10,7 +10,7 @@ import { tessellateBrep } from '../dist/brep-tessellate.js';
 // Oracles in closed form: the sharp-join inset of a polyhedron, every face's plane moved in by the wall.
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const out = features => evaluateCadPart(D(features)).outputs.at(-1);
-const refused = (features, code, pattern) => assert.throws(() => out(features), e => e.code === code && pattern.test(e.message), String(pattern));
+const refused = (features, code, pattern) => assert.throws(() => out(features), e => (e.details?.category ?? e.code) === code && pattern.test(e.message), String(pattern));
 const xz = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
 const mesh = (P, I) => ({ id: 'm', kind: 'mesh', positions: [...P], indices: [...I], representation: 'facets' });
 const shell = (P, I, t, open) => [mesh(P, I), { id: 'sh', kind: 'shell', target: 'm', thickness: t, ...(open ? { open } : {}) }];
@@ -32,7 +32,7 @@ function icosphere(R, levels) {
   return { P: P.flatMap(p => p.map(x => x * R)), I: F.flat() };
 }
 /** An exact body's tessellation as a mesh. */
-const meshOf = features => { const m = tessellateBrep(out(features).brep, { segmentsPerQuarter: 4 }); return { P: m.positionsMM, I: m.indices }; };
+const meshOf = features => { const m = tessellateBrep(out(features).brep, { segmentsPerQuarter: 4 }); return { P: m.positions, I: m.indices }; };
 /** A U-prism (40 × 20 section, a slot 10 wide down to 2 mm above the bottom) 30 long; a box with a blind pocket. */
 const U = meshOf([{ id: 's', kind: 'sketch', profile: 'polygon', points: [[0, 0], [40, 0], [40, 20], [25, 20], [25, 2], [15, 2], [15, 20], [0, 20]], plane: xz }, { id: 'e', kind: 'extrude', sketch: 's', height: 30 }]);
 const POCKET = meshOf([{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 's', height: 20 }, { id: 'p', kind: 'sketch', profile: 'rectangle', min: [10, 10], max: [30, 20] }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 30, from: 2 }, { id: 'd', kind: 'difference', target: 'e', tool: 'pe' }]);
@@ -49,12 +49,12 @@ test('R11.3 mesh bodies shelled: polyhedra exactly their sharp-join insets, the 
     ['pocket', POCKET, 0.9, 20400 - (38.2 * 28.2 * 18.2 - 21.8 * 11.8 * 18), [0.9, 1.1]],
   ];
   for (const [name, m, t, exact, [lo, hi]] of cases) {
-    const o = out(shell(m.P, m.I, t)), r = checkBrep(o.brep, { strict: true }), v = o.massProperties(1), what = `${name} t ${t}`;
+    const o = out(shell(m.P, m.I, t)), r = checkBrep(o.brep, { strict: true }), v = massPropertiesOf(o), what = `${name} t ${t}`;
     assert.equal(r.valid, true, `${what}: ${r.issues}`);
     assert.equal(o.brep.shells.length, 2, what);
-    assert.ok(Math.abs(v.volumeMM3 / exact - 1) < 1e-12, `${what}: ${v.volumeMM3} vs ${exact}`);
-    assert.equal(o.shell.wallMM, t);
-    assert.ok(Math.abs(o.shell.wallMinMM - lo) < 1e-9 && Math.abs(o.shell.wallMaxMM - hi) < 1e-9, `${what}: wall ${o.shell.wallMinMM} … ${o.shell.wallMaxMM}`);
+    assert.ok(Math.abs(v.volume / exact - 1) < 1e-12, `${what}: ${v.volume} vs ${exact}`);
+    assert.equal(o.shell.wall, t);
+    assert.ok(Math.abs(o.shell.wallMin - lo) < 1e-9 && Math.abs(o.shell.wallMax - hi) < 1e-9, `${what}: wall ${o.shell.wallMin} … ${o.shell.wallMax}`);
   }
 });
 
@@ -63,17 +63,17 @@ test('R11.3 a mesh sphere shelled: the wall it achieves within its normals\' spr
     const m = icosphere(10, levels), o = out(shell(m.P, m.I, t)), r = checkBrep(o.brep, { strict: true }), what = `level ${levels} t ${t}`;
     assert.equal(r.valid, true, `${what}: ${r.issues}`);
     assert.equal(o.brep.shells.length, 2, what);
-    assert.ok(o.shell.wallMinMM >= t * (1 - spread) && o.shell.wallMaxMM <= t * (1 + spread), `${what}: ${o.shell.wallMinMM} … ${o.shell.wallMaxMM}`);
-    assert.ok(o.massProperties(1).volumeMM3 > 0 && o.massProperties(1).volumeMM3 < out([mesh(m.P, m.I)]).massProperties(1).volumeMM3, what);
+    assert.ok(o.shell.wallMin >= t * (1 - spread) && o.shell.wallMax <= t * (1 + spread), `${what}: ${o.shell.wallMin} … ${o.shell.wallMax}`);
+    assert.ok(massPropertiesOf(o).volume > 0 && massPropertiesOf(o).volume < massPropertiesOf(out([mesh(m.P, m.I)])).volume, what);
   }
 });
 
 test('R11.3 a hollow mesh body through STEP and back, planar and tessellated: its void kept (HEAD wrote both shells as one, refused on reading)', () => {
-  const ball = icosphere(10, 3), o = out(shell(ball.P, ball.I, 1)), v = o.massProperties(1).volumeMM3;
+  const ball = icosphere(10, 3), o = out(shell(ball.P, ball.I, 1)), v = massPropertiesOf(o).volume;
   for (const meshes of ['planar', 'tessellated']) {
     const back = importStep(exportStep(o.brep, { meshes }));
     assert.equal(back.shells.length, 2, meshes);
-    assert.ok(Math.abs(brepMassProperties(back, 1).volumeMM3 / v - 1) < 1e-9, meshes);
+    assert.ok(Math.abs(brepMassProperties(back, 1).volume / v - 1) < 1e-9, meshes);
   }
 });
 
@@ -95,7 +95,7 @@ test('R11.3 thicken refuses its fold by name: a quarter cylinder R 10 thickened 
   refused(thicken(21, 'both'), 'CAPABILITY', /\[OFFSET_FOLDS\] face t curves more tightly than the wall .*the wall 10\.5 mm/);
   // Within the radius, or away from the axis: made (a sampled mesh, so the volume is near the exact one).
   for (const [t, side, exact] of [[9, 'normal', Math.PI / 4 * (100 - 1) * 10], [12, 'reverse', Math.PI / 4 * (22 * 22 - 100) * 10], [19, 'both', Math.PI / 4 * (19.5 ** 2 - 0.5 ** 2) * 10]]) {
-    const v = out(thicken(t, side)).massProperties(1).volumeMM3;
+    const v = massPropertiesOf(out(thicken(t, side))).volume;
     assert.ok(Math.abs(v / exact - 1) < 2e-3, `${t} ${side}: ${v} vs ${exact}`);
   }
 });

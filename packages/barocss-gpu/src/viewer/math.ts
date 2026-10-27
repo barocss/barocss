@@ -1,7 +1,8 @@
 // Small vector and matrix helpers for the viewer. Matrices are column-major (WGSL and WebGPU order):
 // element (row r, column c) is at index c * 4 + r. Depth is WebGPU's [0, 1], reversed (near → 1).
-export type Vec3 = readonly [number, number, number];
-export type Mat4 = Float64Array;
+import { ViewerError } from './viewer-error.js';
+import type { Vec3, Mat4 } from '../core/geometry-types.js';
+export type { Vec3, Mat4 };
 
 export const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 export const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -38,9 +39,9 @@ export function lookAt(eye: Vec3, target: Vec3, up: Vec3): Mat4 {
   return m;
 }
 
-/** Perspective with reversed depth and an infinite far plane: view depth −near → 1, −∞ → 0. */
-export function perspectiveReversed(fovYRadians: number, aspect: number, near: number): Mat4 {
-  const f = 1 / Math.tan(fovYRadians / 2), m = new Float64Array(16);
+/** Perspective with reversed depth and an infinite far plane: view depth −near → 1, −∞ → 0. `fovY` in radians. */
+export function perspectiveReversed(fovY: number, aspect: number, near: number): Mat4 {
+  const f = 1 / Math.tan(fovY / 2), m = new Float64Array(16);
   m[0] = f / aspect; m[5] = f; m[11] = -1; m[14] = near;
   return m;
 }
@@ -68,7 +69,7 @@ export function invert(m: Mat4): Mat4 {
   const b06 = a[8] * a[13] - a[9] * a[12], b07 = a[8] * a[14] - a[10] * a[12], b08 = a[8] * a[15] - a[11] * a[12];
   const b09 = a[9] * a[14] - a[10] * a[13], b10 = a[9] * a[15] - a[11] * a[13], b11 = a[10] * a[15] - a[11] * a[14];
   const det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
-  if (!det) throw new RangeError('Matrix is not invertible');
+  if (!det) throw new ViewerError('MATRIX_SINGULAR', 'Matrix is not invertible');
   const d = 1 / det;
   out[0] = (a[5] * b11 - a[6] * b10 + a[7] * b09) * d;
   out[1] = (a[2] * b10 - a[1] * b11 - a[3] * b09) * d;

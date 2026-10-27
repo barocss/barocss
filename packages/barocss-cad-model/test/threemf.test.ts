@@ -78,7 +78,7 @@ test('AM5 a box as 3MF: the package\'s parts (content types, relationships, mode
   assert.match(new TextDecoder().decode(z.get('[Content_Types].xml')!), /Extension="model" ContentType="application\/vnd\.ms-package\.3dmanufacturing-3dmodel\+xml"/);
   assert.match(new TextDecoder().decode(z.get('_rels/.rels')!), /Target="\/3D\/3dmodel\.model"[^>]*Type="http:\/\/schemas\.microsoft\.com\/3dmanufacturing\/2013\/01\/3dmodel"/);
   const m = readModel(z);
-  assert.match(m.xml, /<model unit="millimeter" xml:lang="en-US" xmlns="http:\/\/schemas\.microsoft\.com\/3dmanufacturing\/core\/2015\/02" xmlns:p="http:\/\/schemas\.microsoft\.com\/3dmanufacturing\/production\/2015\/06">/);
+  assert.match(m.xml, /<model unit="millimeter" xml:lang="en-US" xmlns="http:\/\/schemas\.microsoft\.com\/3dmanufacturing\/core\/2015\/02" xmlns:p="http:\/\/schemas\.microsoft\.com\/3dmanufacturing\/production\/2015\/06" xmlns:barocss="https:\/\/barocss\.com\/3mf\/2026">/);
   assert.match(m.xml, /<metadata name="CreationDate">2026-10-18<\/metadata>/); assert.doesNotMatch(m.xml, /requiredextensions/);
   assert.deepEqual(m.bases, [{ name: 'ABS', color: '#CC3333' }]);
   assert.equal(m.objects.length, 1); assert.deepEqual([m.objects[0].pid, m.objects[0].pindex], ['1', '0']);
@@ -164,11 +164,33 @@ test('AM5 size and time: 200 000 triangles written, deflated and zipped; the num
   const r = await write3mf({ title: 'bump', objects: [{ name: 'bump', positions: P, indices: I, material: 'PLA', color: '#888' }], items: [{ object: 0 }], uuid, date: DATE });
   assert.ok('bytes' in r);
   assert.ok(r.stats.triangles >= 200_000, String(r.stats.triangles)); assert.equal(r.stats.openEdges, 0); assert.equal(r.stats.repeatedEdges, 0);
-  if (process.env.AM_PERF) console.log(`AM5 perf: ${r.stats.triangles} triangles, ${r.stats.vertices} vertices; model XML ${(r.stats.modelXmlBytes / 1e6).toFixed(2)} MB, 3MF ${(r.stats.bytes / 1e6).toFixed(2)} MB (${(100 * r.stats.bytes / r.stats.modelXmlBytes).toFixed(1)}%); ${r.stats.ms.toFixed(0)} ms`);
-  assert.ok(r.stats.ms < 5000, `${r.stats.ms} ms`);
+  if (process.env.AM_PERF) console.log(`AM5 perf: ${r.stats.triangles} triangles, ${r.stats.vertices} vertices; model XML ${(r.stats.modelXmlBytes / 1e6).toFixed(2)} MB, 3MF ${(r.stats.bytes / 1e6).toFixed(2)} MB (${(100 * r.stats.bytes / r.stats.modelXmlBytes).toFixed(1)}%); ${(r.stats.duration * 1000).toFixed(0)} ms`);
+  assert.ok(r.stats.duration < 5, `${r.stats.duration} s`);
   const m = readModel(readZip(r.bytes));
   assert.equal(m.objects[0].t.length / 3, r.stats.triangles);
   // Read back within the 32-bit float the coordinates were written at.
   for (let k = 0; k < 300; k++) { const v = (k * 7919) % (P.length / 3); for (let a = 0; a < 3; a++) assert.equal(Math.fround(m.objects[0].v[3 * v + a]), Math.fround(P[3 * v + a])); }
 });
 
+
+
+test('AM5 timing: public seconds keep unrounded elapsed time and leave the native archive unchanged', async t => {
+  const doc = rectanglePart(20, 10, 5), model = threeMfModelOf(doc, [{ doc, bodies: bodiesOf(doc) }], 'timing box');
+  assert.ok(typeof model !== 'string');
+  seq = 0;
+  let calls = 0;
+  const clock = t.mock.method(performance, 'now', () => ++calls === 1 ? 0 : 250.4);
+  let result;
+  try {
+    result = await write3mf({ ...model, uuid, date: DATE });
+    assert.equal(calls, 2);
+  } finally { clock.mock.restore(); }
+  assert.ok('bytes' in result);
+  assert.equal(result.stats.duration, 0.2504);
+  assert.ok(!('ms' in result.stats));
+  seq = 0;
+  const again = await write3mf({ ...model, uuid, date: DATE });
+  assert.ok('bytes' in again);
+  assert.deepEqual(result.bytes, again.bytes);
+  assert.deepEqual({ ...result.stats, duration: 0 }, { ...again.stats, duration: 0 });
+});

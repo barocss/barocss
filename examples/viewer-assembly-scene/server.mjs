@@ -3,6 +3,7 @@ import { readFile, readdir, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import { createHash } from 'node:crypto';
 
 const directory = dirname(fileURLToPath(import.meta.url));
 const root = resolve(directory, '../..');
@@ -15,29 +16,33 @@ for (const name of await readdir(resolve(root, 'packages'))) {
     if (manifest.name?.startsWith('@barocss/')) manifests.set(manifest.name, { manifest, packageDirectory });
   } catch (error) { if (error.code !== 'ENOENT' && error.code !== 'ENOTDIR') throw error; }
 }
-// Test-only checkpoint. Development uses ordinary public-name source resolution.
+// Resolve every own public export inside this clone, even when tools use shared installed dependencies.
 const publishResolver = { name: 'viewer-assembly-compiled-checkpoint', setup(builder) {
   builder.onResolve({ filter: /^@barocss\// }, ({ path }) => {
     const parts = path.split('/'), name = parts.slice(0, 2).join('/');
     const item = manifests.get(name);
     if (!item) throw new Error('Unknown own package ' + path);
     const subpath = parts.length === 2 ? '.' : './' + parts.slice(2).join('/');
-    const entry = item.manifest.publishConfig?.exports?.[subpath];
+    const entry = (compiled ? item.manifest.publishConfig?.exports : item.manifest.exports)?.[subpath];
     const target = typeof entry === 'string' ? entry : entry?.import;
-    if (typeof target !== 'string' || !target.startsWith('./dist/'))
-      throw new Error('Missing publishConfig compiled import map for ' + path);
+    if (typeof target !== 'string' || !target.startsWith(compiled ? './dist/' : './src/'))
+      throw new Error('Missing public ' + (compiled ? 'compiled' : 'source') + ' import map for ' + path);
     return { path: resolve(item.packageDirectory, target) };
   });
 } };
 const bundle = await build({ absWorkingDir: root, entryPoints: [resolve(directory, 'app.js')],
   bundle: true, write: false, metafile: true, format: 'esm', platform: 'browser', target: 'es2022',
-  plugins: compiled ? [publishResolver] : [] });
+  plugins: [publishResolver] });
 const inputs = Object.keys(bundle.metafile.inputs).map(path => relative(root, resolve(root, path)));
 const ownSource = inputs.filter(path => /^packages\/[^/]+\/src\//.test(path));
 const ownDist = inputs.filter(path => /^packages\/[^/]+\/dist\//.test(path));
 if (compiled ? ownSource.length !== 0 || ownDist.length === 0 : ownDist.length !== 0 || ownSource.length === 0)
   throw new Error('Own source/dist checkpoint contamination: ' + JSON.stringify({ ownSource, ownDist }));
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const inputPins = await Promise.all(inputs.map(async path => {const bytes=await readFile(resolve(root,path));
+  return {path,bytes:bytes.length,sha256:sha(bytes)};}));
 const audit = { mode: compiled ? 'compiled-checkpoint' : 'source-default', inputs,
+  bundleSHA256:sha(bundle.outputFiles[0].contents),inputPins,
   ownSourceCount: ownSource.length, ownDistCount: ownDist.length,
   ownSource, ownDist, compiledResolver: compiled ? 'publishConfig.exports.import for every own public entry' : null };
 // Original #979 authored native source. Loader/CAD supplies genuine native authority.

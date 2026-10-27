@@ -14,8 +14,8 @@ export const RB4_BOX = { min: [-3.371, -3.944, 0.247], max: [1.79, 2.502, 0.247 
  * (gap < 0: clear of it by that much): the edge grazes the wall. An X turn keeps the box's edges along x, so
  * the wall comes in along y; a Y or Z turn, along x.
  */
-export function grazing(cylinder, box, axis, angleDegrees, gap) {
-  const t = angleDegrees * Math.PI / 180, R = ROT[axis](Math.cos(t), Math.sin(t)), corners = [];
+export function grazing(cylinder, box, axis, angle, gap) {
+  const t = angle * Math.PI / 180, R = ROT[axis](Math.cos(t), Math.sin(t)), corners = [];
   for (const i of [0, 1]) for (const j of [0, 1]) for (const k of [0, 1]) {
     const p = [i ? box.max[0] : box.min[0], j ? box.max[1] : box.min[1], k ? box.max[2] : box.min[2]];
     corners.push(R.map(row => row[0] * p[0] + row[1] * p[1] + row[2] * p[2]));
@@ -28,24 +28,24 @@ export function grazing(cylinder, box, axis, angleDegrees, gap) {
 
 /**
  * An upright cylinder (`cylinder`: cx, cy, r, z0, z1) and a box (`box`: min, max) turned about `axis` by
- * `angleDegrees` (pivot at the origin), combined by `op` ('intersect' | 'difference'): the document's
+ * `angle` (pivot at the origin), combined by `op` ('intersect' | 'difference'): the document's
  * features and the exact { volume, centroid } (volume 0: no output).
  */
-export function cylinderBoxCase(cylinder, box, axis, angleDegrees, op) {
-  const turn = { axis, angleDegrees }, meet = cylinderBoxIntersection(cylinder, box, turn), whole = cylinderMass(cylinder);
+export function cylinderBoxCase(cylinder, box, axis, angle, op) {
+  const turn = { axis, angle }, meet = cylinderBoxIntersection(cylinder, box, turn), whole = cylinderMass(cylinder);
   const exact = op === 'intersect' ? meet : { volume: whole.volume - meet.volume, moment: whole.moment.map((m, k) => m - meet.moment[k]) };
   const features = [
     { id: 'As', kind: 'sketch', profile: 'circle', center: [cylinder.cx, cylinder.cy], radius: cylinder.r }, { id: 'A', kind: 'extrude', sketch: 'As', height: cylinder.z1 - cylinder.z0, from: cylinder.z0 },
     { id: 'Bs', kind: 'sketch', profile: 'rectangle', min: box.min.slice(0, 2), max: box.max.slice(0, 2) }, { id: 'B0', kind: 'extrude', sketch: 'Bs', height: box.max[2] - box.min[2], from: box.min[2] },
-    { id: 'B', kind: 'rotate', target: 'B0', axis, angleDegrees, pivot: [0, 0, 0] }, { id: 'X', kind: op, target: 'A', tool: 'B' },
+    { id: 'B', kind: 'rotate', target: 'B0', axis, angle, pivot: [0, 0, 0] }, { id: 'X', kind: op, target: 'A', tool: 'B' },
   ];
   return { features, volume: exact.volume, centroid: exact.volume > 0 ? exact.moment.map(m => m / exact.volume) : null, error: meet.error };
 }
 
-/** Two cylinders (radii a, b) whose axes cross at `angleDegrees`, intersected: features and the exact values. */
-export function crossedCase(a, b, angleDegrees, at = { cx: 1.237, cy: -0.481, by: 0.913 }) {
-  const { meet, features } = crossedCylinderFeatures({ a, b, angleDegrees, ...at });
-  return { features: [...features, { id: 'X', kind: 'intersect', target: 'A', tool: 'B' }], volume: crossedCylinders(a, b, angleDegrees), centroid: meet };
+/** Two cylinders (radii a, b) whose axes cross at `angle`, intersected: features and the exact values. */
+export function crossedCase(a, b, angle, at = { cx: 1.237, cy: -0.481, by: 0.913 }) {
+  const { meet, features } = crossedCylinderFeatures({ a, b, angle, ...at });
+  return { features: [...features, { id: 'X', kind: 'intersect', target: 'A', tool: 'B' }], volume: crossedCylinders(a, b, angle), centroid: meet };
 }
 
 /**

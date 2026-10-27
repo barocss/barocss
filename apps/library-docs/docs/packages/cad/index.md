@@ -1,40 +1,53 @@
-# CAD
+# @barocss/cad
 
-Start with the [solid modeling quickstart](./quickstart), then [cut, chamfer, edit and reopen a part](./modeling). The current public entry is `cad.model()`: named millimetre dimensions, shape operations and named native Solid outputs, without version selection or internal identity/reference authoring.
+The CAD kernel. It is a boundary-representation (B-rep) modeller with NURBS curves and surfaces, written in TypeScript,
+with no WebAssembly and no external geometry library. The studio, the document model and the agent's tools all run on
+it.
 
-`@barocss/cad` also provides rational B-spline evaluation, native construction/query operations, a bounded text compiler and an ASCII IGES writer. Its manifest version is `0.0.0-experimental`. Those advanced APIs retain their separate contracts.
+- **Exact surfaces.** Planes, cylinders, cones, tori and B-spline surfaces stay exact through Booleans, fillets and
+  offsets.
+  - STEP is written from them.
+  - Mass properties are integrated over them. The few curved bodies the quadrature can't integrate fall back to the
+    tessellation, and their result says so (`method: 'tessellated'`), with an error bound.
+- **Stable names.** A part is a list of features. Faces are named by the feature and role that made them, such as
+  `p.top` or `h.side0`. Those names are kept through every later feature, and through parameter edits that keep the
+  topology.
+- **Correct or refused.** An operation gives a valid body, or a `CadPartError` saying why it can't. It doesn't return an
+  approximate body. See [B-rep, robustness and refusals](/packages/cad/robustness).
+- **Meshes too.** Imported STL, OBJ and tessellated STEP bodies are faceted B-reps, with their own Booleans, holes and
+  splits.
 
-| Task | Page |
-| --- | --- |
-| Make and edit a solid plate | [Quickstart](./quickstart) |
-| Sketch → extrude → cut → chamfer → edit → save/load | [Model a part](./modeling) |
-| Check supported shapes, bounds and evidence | [Capabilities](./capabilities) |
-| Find advanced geometry and compatibility recipes | [Guides](./guides) |
-| Find the actual public operation/type | [API](./api) |
-| Work with Curve/Surface text programs | [Advanced language reference](./language) |
-| See captured display examples | [Examples](./examples) |
-| Check native/compiler bounds and refusal | [Limits](./limits) |
+## Status and install
 
-Use CAD for authoritative native geometry and authored intent. Use [CAD interop](../cad-interop/) for loading or renderer adapters, and [GPU](../gpu/) for admitted display profiles. A mesh is derived display data. The [modeling guide's evidence boundary](./modeling#evidence-and-current-availability) separates API acceptance, editor adoption, site deployment and package publication.
+The package is `@barocss/cad`, version `0.0.0-experimental`. It is unreleased and not on npm.
 
-## Advanced and historical contracts
+- **From the repository.** Use it from a checkout, as a workspace package.
+- **TypeScript sources.** Its entry point is the TypeScript source itself (`./src/index.ts`). Use it with a bundler or
+  a TypeScript-aware runtime; there is no build step to run first.
+- **Two entry points.**
+  - `@barocss/cad` is the core: the part document, its evaluation, and everything else the kernel does.
+  - `@barocss/cad/api` is the [object facade](/packages/api) over it, for writing parts in code.
 
-The [exact-prism workflow](./exact-prism-modeling), [serial-part v2 files](./serial-part-v2) and [Source0–3 programs](./language-workflows) remain source-pinned historical/advanced references. Existing saved files keep their matching readers; `cad.load` does not automatically migrate them. New solid examples use the [modeling API](./modeling).
+<<< @/../samples/cad-part.test.mjs#import
 
-## Native Curve/Surface authority
+## A part in code
 
-`Model` version0 holds Curves and Surfaces in millimetres. A native Curve holds degree, knots, poles and weights. A native Surface uses `controlPoints[uIndex][vIndex]` and corresponding weights. Parameters, knots and weights are dimensionless. Do not replace these fields with sampled display vertices.
+A part is a JSON document: its units, its parameters, and its features in order. The facade's `part()` writes one,
+verb by verb, and `.doc` is the document. `evaluateCadPart` evaluates a document and returns a snapshot. Its
+`outputs` are the bodies no later feature consumes.
 
-Source dialect0/1/2, Model version0, IR schema version, document version and preview packet version have different meanings. A source1 extrusion can produce a Model version0. A pose belongs to presentation or an explicitly authored native operation; moving an image is not an edit to the model.
+<<< @/../samples/cad-part.test.mjs#part
 
-## Local entry and quality
+The facade gives the results as plain data, in millimetres and grams. Each output of the snapshot also checks
+itself:
 
-The workspace root selects `src/index.ts`. Use normal package imports with a TypeScript-capable transformer. The publication map selects emitted JS/declarations after a separate build. Local public configuration is not registry publication.
+<<< @/../samples/cad-part.test.mjs#outputs
 
-Many operations qualify a narrow family, such as an integer axis box or a selected planar/cylindrical construction. Read each report and error domain. An accepted local construction does not establish general curved Boolean, unrestricted topology, certified tolerances, manufacturing quality or commercial CAD parity.
+These samples run in `apps/library-docs` (`pnpm test:samples`), against the package's sources.
 
----
+## Where next
 
-Historical Curve/Surface overview source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. `packages/barocss-cad/package.json` (Manifest; local source), `packages/barocss-cad/src/index.ts` (public root; local source), `packages/barocss-cad/README.md` (package README; local source). Source paths identify that fixed local snapshot. Local source is the authority for this manual.
-
-[Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)
+- [Modeling API](/packages/cad/modeling): the part document, evaluating, outputs and tessellation.
+- [B-rep, robustness and refusals](/packages/cad/robustness): what the kernel guarantees, and what it refuses.
+- [Exchange formats](/packages/cad/formats): STEP, IGES, STL and DXF.
+- [@barocss/cad-model](/packages/cad-model/): the studio's document model on top of the kernel.

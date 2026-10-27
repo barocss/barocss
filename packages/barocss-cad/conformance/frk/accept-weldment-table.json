@@ -1,0 +1,1370 @@
+{
+  "id": "frk-accept-weldment-table",
+  "step": "FRk",
+  "decisions": [
+    "D183"
+  ],
+  "about": "FRk9 acceptance: the weldment the agent makes of FR4b's welded table (test/fixtures/frk-weldment-table.calls.json, cad-model): 4 clipped gussets at the top corners, 4 caps over the legs' feet, 8 fillet beads (leg 3) on the lower rails' butts with equal-length ownership of their shared seams.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n0",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              750
+            ],
+            [
+              1000,
+              0,
+              750
+            ],
+            [
+              1000,
+              600,
+              750
+            ],
+            [
+              0,
+              600,
+              750
+            ],
+            [
+              0,
+              0,
+              730
+            ],
+            [
+              1000,
+              0,
+              730
+            ],
+            [
+              1000,
+              600,
+              730
+            ],
+            [
+              0,
+              600,
+              730
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              1000,
+              0,
+              0
+            ],
+            [
+              1000,
+              600,
+              0
+            ],
+            [
+              0,
+              600,
+              0
+            ],
+            [
+              0,
+              0,
+              150
+            ],
+            [
+              1000,
+              0,
+              150
+            ],
+            [
+              1000,
+              600,
+              150
+            ],
+            [
+              0,
+              600,
+              150
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              8,
+              4
+            ],
+            [
+              9,
+              5
+            ],
+            [
+              10,
+              6
+            ],
+            [
+              11,
+              7
+            ],
+            [
+              12,
+              13
+            ],
+            [
+              13,
+              14
+            ],
+            [
+              14,
+              15
+            ],
+            [
+              15,
+              12
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "corners": {
+            "default": "mitre",
+            "tee": "butt"
+          }
+        },
+        {
+          "id": "n1",
+          "kind": "gusset",
+          "frame": "n0",
+          "point": 0,
+          "members": [
+            3,
+            0
+          ],
+          "legs": [
+            120,
+            100
+          ],
+          "thickness": 5,
+          "clip": 15
+        },
+        {
+          "id": "n2",
+          "kind": "gusset",
+          "frame": "n0",
+          "point": 1,
+          "members": [
+            0,
+            1
+          ],
+          "legs": [
+            120,
+            100
+          ],
+          "thickness": 5,
+          "clip": 15
+        },
+        {
+          "id": "n3",
+          "kind": "gusset",
+          "frame": "n0",
+          "point": 2,
+          "members": [
+            1,
+            2
+          ],
+          "legs": [
+            120,
+            100
+          ],
+          "thickness": 5,
+          "clip": 15
+        },
+        {
+          "id": "n4",
+          "kind": "gusset",
+          "frame": "n0",
+          "point": 3,
+          "members": [
+            2,
+            3
+          ],
+          "legs": [
+            120,
+            100
+          ],
+          "thickness": 5,
+          "clip": 15
+        },
+        {
+          "id": "n5",
+          "kind": "end-cap",
+          "frame": "n0",
+          "member": 4,
+          "end": "start",
+          "fit": "over",
+          "thickness": 4
+        },
+        {
+          "id": "n6",
+          "kind": "end-cap",
+          "frame": "n0",
+          "member": 5,
+          "end": "start",
+          "fit": "over",
+          "thickness": 4
+        },
+        {
+          "id": "n7",
+          "kind": "end-cap",
+          "frame": "n0",
+          "member": 6,
+          "end": "start",
+          "fit": "over",
+          "thickness": 4
+        },
+        {
+          "id": "n8",
+          "kind": "end-cap",
+          "frame": "n0",
+          "member": 7,
+          "end": "start",
+          "fit": "over",
+          "thickness": 4
+        },
+        {
+          "id": "bead_b0_part8_start",
+          "kind": "weld-bead",
+          "frame": "n0",
+          "on": {
+            "member": 8,
+            "end": "start"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 8,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 8,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "bead_b0_part8_end",
+          "kind": "weld-bead",
+          "frame": "n0",
+          "on": {
+            "member": 8,
+            "end": "end"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 8,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 8,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "bead_b0_part9_start",
+          "kind": "weld-bead",
+          "frame": "n0",
+          "on": {
+            "member": 9,
+            "end": "start"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 8,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 8,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "bead_b0_part9_end",
+          "kind": "weld-bead",
+          "frame": "n0",
+          "on": {
+            "member": 9,
+            "end": "end"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 8,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 8,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "bead_b0_part10_start",
+          "kind": "weld-bead",
+          "frame": "n0",
+          "on": {
+            "member": 10,
+            "end": "start"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 8,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 8,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "bead_b0_part10_end",
+          "kind": "weld-bead",
+          "frame": "n0",
+          "on": {
+            "member": 10,
+            "end": "end"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 8,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 8,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "bead_b0_part11_start",
+          "kind": "weld-bead",
+          "frame": "n0",
+          "on": {
+            "member": 11,
+            "end": "start"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 8,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 8,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "bead_b0_part11_end",
+          "kind": "weld-bead",
+          "frame": "n0",
+          "on": {
+            "member": 11,
+            "end": "end"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 8,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 8,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 9,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 10,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 11,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 444000,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            500.0000000000001,
+            -0.4593333333333304,
+            750
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 266400,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            1000.7655555555556,
+            300.00000000000006,
+            750
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 444000,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            500,
+            600.4593333333333,
+            750
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 266400,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            -0.7655555555555521,
+            300,
+            750
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 324120,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            -2.560514363099462e-16,
+            4.352874417269085e-15,
+            365
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 324120,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            1000,
+            4.352874417269085e-15,
+            365
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 324120,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            1000,
+            600,
+            365
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 324120,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            -2.560514363099462e-16,
+            600,
+            365
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 426240,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            500,
+            0,
+            150
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 248640,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            1000,
+            300.00000000000006,
+            150.00000000000003
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 426240,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            500,
+            600,
+            150
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 248640,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            0,
+            300.00000000000006,
+            150.00000000000003
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 29437.5,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            53.874734607218706,
+            60.66878980891721,
+            750
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 29437.5,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            939.3312101910828,
+            53.874734607218706,
+            750
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 29437.5,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            946.1252653927813,
+            539.3312101910828,
+            750
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 29437.5,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            60.66878980891721,
+            546.1252653927813,
+            750
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 6400,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            4.618527782440651e-16,
+            4.618527782440651e-16,
+            -2
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 6400,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            1000,
+            4.618527782440651e-16,
+            -2
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 6400,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            1000,
+            600,
+            -2
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 6400,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            4.618527782440651e-16,
+            600,
+            -2
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 450,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            21,
+            4.2,
+            148
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 3,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 450,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            979,
+            4.2,
+            148
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 3,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 450,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            995.8,
+            21,
+            152
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 3,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 450,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            995.8,
+            579,
+            148
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 3,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 450,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            979,
+            595.8,
+            152
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 3,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 450,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            21,
+            595.8,
+            148
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 3,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 450,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            4.2,
+            579,
+            152
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 3,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volume": {
+          "value": 450,
+          "relTol": 1e-9
+        },
+        "centroid": {
+          "value": [
+            4.2,
+            21,
+            152
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 3,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "Closed forms: members A·L (A = 40² − 34²; FR4b's lengths); a gusset (120·100 − 15²)/2·5; a cap 40²·4; a bead 2·40·3²/2 + ½·40·3²/2 (two runs its own, the leg's corner fillet shared by halves). Centroids and topology by this kernel."
+}

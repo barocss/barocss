@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart } from '../dist/index.js';
+import { evaluateCadPart, massPropertiesOf, checkOutput, outputOf } from '../dist/index.js';
 
 // R10 S0 (D87): the feasibility checkpoint before general fillets. The research note's R10.1 (handover/notes/
 // research-r10-r11-fillet-shell-2026-10-18.md) makes two closed-form classes with the tool + Boolean method fillets use
 // today; its risk is the analytic Boolean meeting a tool tangent to a curved face. Probed here with the tools built by
 // hand — exact — and the refusals and the faceReach defect of the day recorded; R10.1 (D88) turned them over, below.
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
-const vol = features => evaluateCadPart(D(features)).outputs.at(-1).massProperties(1).volumeMM3;
-const valid = features => evaluateCadPart(D(features)).outputs.at(-1).validate().valid;
+const vol = features => massPropertiesOf(evaluateCadPart(D(features)).outputs.at(-1)).volume;
+const valid = features => checkOutput(evaluateCadPart(D(features)).outputs.at(-1)).valid;
 const yz = { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] }, xz = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
 const R = 5, H = 10, L = 40;
 const plate = [{ id: 'p', kind: 'sketch', profile: 'rectangle', min: [0, -20], max: [40, 20] }, { id: 'pe', kind: 'extrude', sketch: 'p', height: H }];
@@ -57,19 +57,19 @@ test('R10 S0 (b) coaxial: a revolved tool tangent to a cone (the rim between a c
 
 test('R10 S0 then and now: the edges R10.1 added — refused at S0 (D87) — are filleted, and faceReach\'s defect (8.5 mm admitted on a face 7.93 mm deep) is a typed refusal (D88)', () => {
   const rodOnPlate = [...plate, ...rod, { id: 'u', kind: 'union', target: 'pe', tool: 'ce' }];
-  const junction = evaluateCadPart(D(rodOnPlate)).output('u').brep.edges.find(e => /ce\.side0/.test(e.name) && /pe\.top/.test(e.name)).name;
+  const junction = outputOf(evaluateCadPart(D(rodOnPlate)), 'u').brep.edges.find(e => /ce\.side0/.test(e.name) && /pe\.top/.test(e.name)).name;
   // (At S0: "straight edges can be finished between two planes only".) The fillet now matches the tool built by hand.
   assert.ok(Math.abs((vol([...rodOnPlate, { id: 'f', kind: 'fillet', target: 'u', edges: [junction], radius: 2 }]) - vol(rodOnPlate)) / (section(2) * L) - 1) < 1e-9);
   const cone = [{ id: 's', kind: 'sketch', profile: 'polygon', points: [[0, 0], [10, 0], [10, 10], [4, 16], [0, 16]], plane: xz }, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }];
-  const rim = evaluateCadPart(D(cone)).output('r').brep.edges.find(e => /side1/.test(e.name) && /side2/.test(e.name)).name;
+  const rim = outputOf(evaluateCadPart(D(cone)), 'r').brep.edges.find(e => /side1/.test(e.name) && /side2/.test(e.name)).name;
   // (At S0: "only edges between planes and cylinders".)
   assert.equal(valid([...cone, { id: 'f', kind: 'fillet', target: 'r', edges: [rim], radius: 2 }]), true);
   // A block 20 high whose top bows in on its far side (an arc about (15, 5)): 10 mm deep at its ends, 15 − √50 = 7.93 at y = 5.
   const bowed = [{ id: 's', kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, 0] }, { kind: 'arc', start: [10, 0], center: [15, 5], direction: 'cw' }, { kind: 'line', start: [10, 10] }, { kind: 'line', start: [0, 10] }] }, { id: 'e', kind: 'extrude', sketch: 's', height: 20 }];
-  const edge = evaluateCadPart(D(bowed)).output('e').brep.edges.find(e => /side3/.test(e.name) && /top/.test(e.name)).name, v0 = vol(bowed);
+  const edge = outputOf(evaluateCadPart(D(bowed)), 'e').brep.edges.find(e => /side3/.test(e.name) && /top/.test(e.name)).name, v0 = vol(bowed);
   const took = r => v0 - vol([...bowed, { id: 'f', kind: 'fillet', target: 'e', edges: [edge], radius: r }]);
   assert.ok(Math.abs(took(7.5) - (1 - Math.PI / 4) * 7.5 * 7.5 * 10) < 1e-6, 'within the true reach: a quarter round');
   assert.ok(Math.abs(took(7.9) - (1 - Math.PI / 4) * 7.9 * 7.9 * 10) < 1e-6, 'just within it');
   // (At S0 8.5 was admitted, and no quarter round came of it.) The true reach, 7.928932, refuses it by name.
-  assert.throws(() => took(8.5), e => e.code === 'PARAMETER' && /\[RADIUS_EXCEEDS_FACE\].*7\.928932 mm/.test(e.message));
+  assert.throws(() => took(8.5), e => (e.details?.category ?? e.code) === 'PARAMETER' && /\[RADIUS_EXCEEDS_FACE\].*7\.928932 mm/.test(e.message));
 });

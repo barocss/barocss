@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { acceptProposal, agentMayNotAccept, dispatchTool, leaveOutClosure, previewProposal, proposalParts, rebaseProposal, runTool, type ChatState } from '../src/chat/tools';
-import { approvalOf, compactHistory, HISTORY_BYTES, rejectProposal, PROMPT_CHARS, stripHistory, withHistory, type HistoryEntry } from '../src/chat/proposals';
+import { approvalOf, compactHistory, HISTORY_BYTES, rejectProposal, PROMPT_CHARS, stripHistory, withHistory } from '../src/chat/proposals';
+import type { HistoryEntry } from '../src/engine/schema/proposals';
 import { modelHash } from '../src/chat/spec';
 import { readStudioDoc } from '../src/engine/migrate';
 import { defaultDrawing } from '../src/drawing/types';
@@ -28,7 +29,7 @@ test('propose: worked out on a copy (diff, checks before and after, risk), the p
   assert.equal(modelHash(r.state.doc), before, 'the model is unchanged');
   assert.equal(r.state.doc.nodes, s.doc.nodes);
   assert.deepEqual(out.diff.added.map((a: { id: string }) => a.id), ['n2']);
-  assert.ok(out.change.volume_mm3 < 0);
+  assert.ok(out.change.volume < 0);
   // 40·20·8 = 6400 mm³ fails R2; the hole (π·9·8 ≈ 226) still leaves 6174: R2 still fails, R1 passes both.
   assert.deepEqual([out.checks.before.pass, out.checks.after.pass], [1, 1]);
   assert.deepEqual(out.risk, { level: 'low', features_touched: 1, references_broken: 0, hard_requirements_changed: [], approval: [] });
@@ -56,7 +57,7 @@ test('accept replays the ops; a stale one is refused until rebased (recomputed, 
   let s = (await runTool(s0, 'propose', { title: 'hole', ops: [HOLE] }, evaluate)).state;
   s = (await runTool(s, 'propose', { title: 'another hole', ops: [{ ...HOLE, args: { ...HOLE.args, values: { d: 4, x: 30, y: 10 } } }] }, evaluate)).state;
   const ghost = await previewProposal(s, 'P1', evaluate);
-  assert.ok('bodies' in ghost, JSON.stringify(ghost)); assert.ok(ghost.bodies[0].volumeMM3! < s.bodies[0].volumeMM3!, `${ghost.bodies[0].volumeMM3} ${s.bodies[0].volumeMM3}`);
+  assert.ok('bodies' in ghost, JSON.stringify(ghost)); assert.ok(ghost.bodies[0].volume! < s.bodies[0].volume!, `${ghost.bodies[0].volume} ${s.bodies[0].volume}`);
   const a = await acceptProposal(s, 'P1', evaluate);
   assert.ok('state' in a, JSON.stringify(a));
   assert.equal(a.state.doc.nodes.length, 3);

@@ -8,7 +8,7 @@ import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { drawingInputs } from '../src/chat/drawing';
 import { autoLayout } from '../src/drawing/layout';
 import { acceptAll } from '../src/drawing/tolerance';
-import { issueContext } from '../src/drawing/issues';
+import { drawingIssues, issueContext } from '../src/drawing/issues';
 import { placementOf, type Mark, type MarkGroup } from '../src/drawing/sheet';
 import { readDrawing, type DrawingSettings, type XY } from '../src/drawing/types';
 import { toSheet, type ViewPlacement } from '../src/drawing/views';
@@ -98,4 +98,27 @@ test('G24: the welded table\'s weld symbols on the model equal the sheet\'s; eac
     g.marks.forEach((m, k) => { const gl = glyph[k]; if (m.kind === 'line' && gl.kind === 'line') assert.ok(near(toSheet(v, gl.a), m.a) && near(toSheet(v, gl.b), m.b), `${a.id} glyph line ${k}`); if (m.kind === 'text' && gl.kind === 'text') assert.ok(near(toSheet(v, gl.at), m.at) && gl.text === m.text); });
   }
   assert.ok(out.left.every(x => x.why), 'what is left out is said');
+});
+
+
+test('face datum sheet and 3D marks retain the existing plate corner, saved identity and edge datums; lost faces remain explicit', () => {
+  const { i, settings } = geometric(), faces = i.views.faces!;
+  const face = faces.find(f => f.points.some(p => p.every(v => v === 0)))!; assert.ok(face);
+  const authored: DrawingSettings = { ...settings, datums: [...(settings.datums ?? []), { id: 'face-d', letter: 'D', view: 'top', face: { face: face.name, near: [0, 0, 0] }, place: [-10, 42] }] };
+  const saved = readDrawing(JSON.parse(JSON.stringify(authored))); assert.deepEqual(saved.datums, authored.datums);
+  const ctx = issueContext({ ...i, settings: saved }), out = modelAnnotations({ views: i.views, layout: ctx.layout, settings: saved, sheet: ctx.sheet });
+  const item = out.items.find(a => a.id === 'face-d')!; assert.ok(item);
+  assert.deepEqual(item.targets, [{ at: [0, 0, 0], face: face.name }]); assert.equal(item.datum!.letter, 'D');
+  const group = ctx.sheet.groups.find(g => g.id === 'face-d')!; assert.ok(group);
+  sameAsSheet(item, group, placementOf(ctx.layout, ctx.sheet, item.from)!);
+  assert.ok(item.arrows[0].tip.every(v => Math.abs(v) < 1e-9), 'known plate origin, independent of datumAnchor');
+  const legacy = out.items.filter(a => a.kind === 'datum' && a.id !== 'face-d');
+  assert.equal(legacy.length, 3); assert.ok(legacy.every(a => a.targets.length && a.targets.every(t => t.edge && !t.face)));
+  for (const replacement of [faces.filter(f => f !== face), [...faces, face], faces.map(f => f === face ? { ...f, points: [] } : f)]) {
+    const views = { ...i.views, faces: replacement }, unresolved = issueContext({ ...i, views, settings: saved });
+    assert.ok(drawingIssues(unresolved).some(x => x.code === 'DATUM_LOST' && x.message.includes('Datum D:')));
+    const annotations = modelAnnotations({ views, layout: unresolved.layout, settings: saved, sheet: unresolved.sheet });
+    assert.ok(!annotations.items.some(a => a.id === 'face-d'));
+    assert.ok(annotations.left.some(a => a.id === 'face-d' && /no unique current boundary anchor/.test(a.why)));
+  }
 });

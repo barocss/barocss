@@ -1,0 +1,73 @@
+{
+  "id": "frk-i-tapered",
+  "step": "FRk",
+  "decisions": [
+    "D172"
+  ],
+  "about": "FRk3 named tapered section: valid one-body extrusion against independent triangle/sector area moments.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "m",
+          "kind": "frame-member",
+          "section": {
+            "kind": "i-beam",
+            "height": 200,
+            "width": 90,
+            "web": 7,
+            "flange": 11,
+            "rootRadius": 9,
+            "toeRadius": 4.5,
+            "flangeSlope": 0.14
+          },
+          "start": [
+            0,
+            0,
+            0
+          ],
+          "end": [
+            0,
+            0,
+            1000
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 3263398.247297415,
+          "relTol": 1e-12
+        },
+        "centroid": {
+          "value": [
+            0,
+            0,
+            500
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "test/receipts/frk3-oracle-moments.mjs: signed triangles plus root/toe spandrels (two triangles minus a minor circular sector). Synthetic dimensions, no catalogue."
+}

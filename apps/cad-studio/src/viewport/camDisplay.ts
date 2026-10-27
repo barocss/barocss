@@ -1,0 +1,21 @@
+import type { CamPackage, SetupProgram, ToolShape } from '@barocss/cad-model/machining/camPackage';
+
+export interface CamGeometry { positions: Float32Array; normals?: Float32Array; indices?: Uint32Array }
+export interface CamRemoval {
+  /** Setup-frame display mesh; never native Model geometry. */
+  geometry: CamGeometry;
+  /** Cells cut below the part's surface (the tool entered the part): their tops, and the volume taken from the part. */
+  overcut: CamGeometry; overcutVolume: number; overcutCells: number;
+  cellPitch: number; sampleSpacing: number; nx: number; ny: number;
+  removedVolume: number; lateralUncertainty: number;
+}
+export interface CamDisplay {
+  request: number; packageKey: number;
+  package: CamPackage; setupIndex: number; setup: SetupProgram;
+  progress: number; position: [number, number, number];
+  removal: CamRemoval;
+}
+export interface CamOptions {
+  setup: number; progress: number; cellPitch: number;
+  tool?: Partial<Omit<ToolShape, 'basis'>>;
+}

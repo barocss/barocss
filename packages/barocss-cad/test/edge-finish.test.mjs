@@ -1,15 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { finishBrepEdges, brepFromPrismatic, prismaticFromProfile, transformBrep, checkBrep, tessellateBrep, brepMassProperties, BrepError, evaluateCadPart } from '../dist/index.js';
+import { finishBrepEdges, revolveProfile, brepFromPrismatic, prismaticFromProfile, transformBrep, checkBrep, tessellateBrep, brepMassProperties, BrepError, evaluateCadPart, massPropertiesOf, checkOutput, surfaceAreaOf } from '../dist/index.js';
 import { openEdgesByBody } from '../scripts/rb/stages.mjs';
 
 const pi = Math.PI, corner = r => r * r * (1 - pi / 4), k = (10 - 3 * pi) / (12 - 3 * pi);
 const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'line', start: [x1, y0] }, { kind: 'line', start: [x1, y1] }, { kind: 'line', start: [x0, y1] }];
-const prism = (outer, h, tag) => brepFromPrismatic(prismaticFromProfile({ outer, heightMM: h, tag }), { id: tag });
-const volume = b => brepMassProperties(b, 1000, { segmentsPerQuarter: 48 }).volumeMM3;
+const prism = (outer, h, tag) => brepFromPrismatic(prismaticFromProfile({ outer, height: h, tag }), { id: tag });
+const volume = b => brepMassProperties(b, 1, { segmentsPerQuarter: 48 }).volume;
 const near = (a, b, rel) => Math.abs(a - b) <= rel * Math.abs(b);
 function watertight(b) {
-  const m = tessellateBrep(b, { segmentsPerQuarter: 16 }), p = m.positionsMM, ix = m.indices, he = new Map(), key = i => p[i * 3] + ',' + p[i * 3 + 1] + ',' + p[i * 3 + 2];
+  const m = tessellateBrep(b, { segmentsPerQuarter: 16 }), p = m.positions, ix = m.indices, he = new Map(), key = i => p[i * 3] + ',' + p[i * 3 + 1] + ',' + p[i * 3 + 2];
   for (let t = 0; t < ix.length; t += 3) for (let e = 0; e < 3; e++) { const s = key(ix[t + e]) + '>' + key(ix[t + (e + 1) % 3]); he.set(s, (he.get(s) ?? 0) + 1); }
   return [...he].every(([s, n]) => { const [x, y] = s.split('>'); return he.get(y + '>' + x) === n; });
 }
@@ -90,13 +90,85 @@ test('every edge of a box filleted: strictly valid, watertight, volume and area 
   for (const r of [0.5, 2, 4.9]) {
     const A = a - 2 * r, B = b - 2 * r, C = c - 2 * r;
     const volume = A * B * C + 2 * r * (A * B + B * C + A * C) + pi * r * r * (A + B + C) + 4 / 3 * pi * r ** 3, area = 2 * (A * B + B * C + A * C) + 2 * pi * r * (A + B + C) + 4 * pi * r * r;
-    const o = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: r }])).outputs[0], m = o.massProperties(1), v = o.validate();
-    assert.equal(v.valid, true, `r ${r}: ${v.issues[0]}`); assert.ok(v.maximumEdgeSurfaceGapMM < 1e-8);
+    const o = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: r }])).outputs[0], m = massPropertiesOf(o), v = checkOutput(o);
+    assert.equal(v.valid, true, `r ${r}: ${v.issues[0]}`); assert.ok(v.maximumEdgeSurfaceGap < 1e-8);
     assert.equal(openEdgesByBody(o.brep, tessellateBrep(o.brep, { segmentsPerQuarter: 8 })), 0, `r ${r} watertight`);
     // (The corner patches hold their ball's pole, where the quadrature over their trimmed domains is least
     // accurate: 5e-5, shrinking with finer quadrature; the geometry itself is exact to 1e-9.)
-    assert.ok(Math.abs(m.volumeMM3 - volume) <= 5e-5 * volume, `r ${r} volume ${m.volumeMM3} vs ${volume}`);
-    assert.ok(Math.abs(o.surfaceArea() - area) <= 5e-5 * area, `r ${r} area ${o.surfaceArea()} vs ${area}`);
-    m.centroidMM.forEach((x, k) => assert.ok(Math.abs(x - [a / 2, b / 2, c / 2][k]) < 5e-4, `r ${r} centroid ${m.centroidMM}`));
+    assert.ok(Math.abs(m.volume - volume) <= 5e-5 * volume, `r ${r} volume ${m.volume} vs ${volume}`);
+    assert.ok(Math.abs(surfaceAreaOf(o) - area) <= 5e-5 * area, `r ${r} area ${surfaceAreaOf(o)} vs ${area}`);
+    m.centroid.forEach((x, k) => assert.ok(Math.abs(x - [a / 2, b / 2, c / 2][k]) < 5e-4, `r ${r} centroid ${m.centroid}`));
   }
+});
+
+
+// The meridian uses a 3-4-5 generator: the unit direction into the cone is (3/5,-4/5).
+const coneTopFrustum = (bottom = 8, top = 5, height = 4, angle = 360) => revolveProfile({
+  id: 'cone', profile: [[0, 0], [bottom, 0], [top, height], [0, height]].map(start => ({ kind: 'line', start })),
+  axis: { origin: [0, 0], direction: [0, 1] }, angle,
+});
+const circularRimsAtY = (body, y) => body.edges.filter(e => e.curve.degree === 2 && e.curve.controlPoints.every(p => p[1] === y));
+
+test('cone top chamfer: one selected half-rim finishes the full circle with independent Pappus mass', () => {
+  const body = coneTopFrustum(), before = structuredClone(body), rims = circularRimsAtY(body, 4);
+  assert.equal(rims.length, 2, 'the authored complete circle has two half-rim edges');
+  // d=1 along both faces removes the meridian triangle (5,4),(4,4),(28/5,16/5).
+  // Its area is 2/5 and radial centroid is 73/15. Pappus gives Vremoved=292*pi/75.
+  // The frustum has V=172*pi and first Y moment 292*pi; removed first Y moment=1812*pi/125.
+  const expectedVolume = 12608 * pi / 75, expectedY = 1626 / 985;
+  for (const selected of [[rims[0].name], [rims[1].name]]) {
+    const out = finishBrepEdges(body, selected, 1, 'chamfer', 'c'), report = checkBrep(out, { strict: true }), m = brepMassProperties(out, 1);
+    assert.equal(report.valid, true, JSON.stringify(report.issues));
+    assert.equal(out.bodies.length, 1); assert.equal(out.bodies[0].kind, 'solid');
+    assert.equal(out.shells.length, 1); assert.equal(out.shells[0].closed, true);
+    assert.ok(watertight(out));
+    assert.ok(near(m.volume, expectedVolume, 1e-9), `${m.volume} vs ${expectedVolume}`);
+    assert.ok(near(m.mass, expectedVolume / 1000, 1e-9));
+    m.centroid.forEach((x, i) => assert.ok(Math.abs(x - [0, expectedY, 0][i]) <= 1e-9, `centroid ${m.centroid}`));
+    const baseName = name => name.replace(/#\d+$/, '');
+    assert.equal(out.faces.filter(f => baseName(f.name) === 'c.face').length, 2, 'both halves have the requested finishing name');
+    const names = new Set(body.faces.map(f => baseName(f.name)));
+    assert.ok(out.faces.every(f => names.has(baseName(f.name)) || baseName(f.name) === 'c.face'), 'only source faces and the chamfer remain');
+    assert.ok(out.faces.every(f => !f.name.includes('.tool')), 'no grown tool wall remains');
+    assert.deepEqual(body, before, 'finishing preserves the source B-rep');
+  }
+});
+
+test('cone top chamfer: partial rims, bottom and concave rims, and distances at the support limits have exact typed refusals', () => {
+  const scope = (body, y, distance, radius) => {
+    const edge = circularRimsAtY(body, y).find(e => radius === undefined || Math.abs(Math.hypot(e.curve.controlPoints[0][0], e.curve.controlPoints[0][2]) - radius) <= 1e-9); assert.ok(edge);
+    const before = structuredClone(body);
+    assert.throws(() => finishBrepEdges(body, [edge.name], distance, 'chamfer', 'c'),
+      e => e instanceof BrepError && e.code === 'GEOMETRY' && e.message === `B-rep: CAPABILITY: [CONE_TOP_CHAMFER_SCOPE] edge ${edge.name}: only a convex full-circle small-cap rim of one solid conical frustum is supported`);
+    assert.deepEqual(body, before);
+  };
+  const size = (body, distance) => {
+    const edge = circularRimsAtY(body, 4)[0], before = structuredClone(body);
+    assert.throws(() => finishBrepEdges(body, [edge.name], distance, 'chamfer', 'c'),
+      e => e instanceof BrepError && e.code === 'INPUT' && e.message === `B-rep: PARAMETER: [CONE_TOP_CHAMFER_SIZE] edge ${edge.name}: the distance must stay strictly inside both faces and away from the axis`);
+    assert.deepEqual(body, before);
+  };
+  scope(coneTopFrustum(8, 5, 4, 180), 4, 1);
+  scope(coneTopFrustum(), 0, 1);
+  // At (r,y)=(6,1), the stepped cone has a reflex material corner and also exceeds the simple-frustum scope.
+  const concave = revolveProfile({ id: 'concave', profile: [[0, 0], [8, 0], [8, 1], [6, 1], [4, 4], [0, 4]].map(start => ({ kind: 'line', start })), axis: { origin: [0, 0], direction: [0, 1] }, angle: 360 });
+  scope(concave, 1, 1, 6);
+  for (const distance of [0, -1, NaN, Infinity]) size(coneTopFrustum(), distance);
+  size(coneTopFrustum(), 5); // The cap contact reaches the axis.
+  size(coneTopFrustum(9, 6), 5); // The cone contact reaches the bottom cap before the axis.
+});
+
+test('cone top chamfer: the existing plane-cylinder and box chamfer paths retain analytic mass', () => {
+  const cylinder = revolveProfile({ id: 'cylinder', profile: rect(0, 0, 5, 4), axis: { origin: [0, 0], direction: [0, 1] }, angle: 360 });
+  const rim = circularRimsAtY(cylinder, 4)[0], cylinderBefore = structuredClone(cylinder);
+  const round = finishBrepEdges(cylinder, [rim.name], 1, 'chamfer', 'c');
+  assert.equal(checkBrep(round, { strict: true }).valid, true); assert.ok(watertight(round));
+  // A right triangle of area 1/2 at radial centroid 5-1/3 revolves off the cylinder.
+  assert.ok(near(volume(round), 100 * pi - 14 * pi / 3, 1e-9));
+  assert.deepEqual(cylinder, cylinderBefore);
+  const box = prism(rect(0, 0, 20, 10), 5, 'e'), boxBefore = structuredClone(box);
+  const flat = finishBrepEdges(box, ['e.side0|e.top'], 1, 'chamfer', 'c');
+  assert.equal(checkBrep(flat, { strict: true }).valid, true); assert.ok(watertight(flat));
+  assert.ok(near(volume(flat), 1000 - 20 / 2, 1e-9));
+  assert.deepEqual(box, boxBefore);
 });

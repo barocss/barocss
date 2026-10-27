@@ -72,7 +72,7 @@
       if (display.group.children.length !== 1 || line.type !== 'Line' || line.name !== item.id)
         throw new Error(`Expected one native-bound Line: ${item.key}`);
       const lineage = line.userData.barocss;
-      if (lineage.curveId !== item.id || lineage.sourceVersion !== 0 || lineage.coordinateSystem !== 'right-handed-y-up' ||
+      if (lineage.curveId !== item.id || lineage.sourceVersion !== 0 || lineage.coordinateSystem !== 'right-handed-z-up' ||
           JSON.stringify(lineage.nativeParameters) !== JSON.stringify(neutral.curves[0].sample.parameters))
         throw new Error(`Native parameter lineage mismatch: ${item.key}`);
       const positions = line.geometry.getAttribute('position').array;

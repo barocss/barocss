@@ -1,0 +1,34 @@
+{
+ "about": "FRk9 acceptance (D183): a bent-tube handrail by the agent in one turn — a Ø42.4 × 2.6 tube (test values) 1200 along X, bent tangentially through 90° on a 150 centreline radius at the virtual corner (1200, 0, 900), then 800 along Y.",
+ "calls": [
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "frame-member",
+    "values": {
+     "path": "tangentbend",
+     "x0": 0,
+     "y0": 0,
+     "z0": 900,
+     "bx": 1200,
+     "by": 0,
+     "bz": 900,
+     "x1": 1200,
+     "y1": 800,
+     "z1": 900,
+     "radius": 150,
+     "section": "round-tube",
+     "d": 42.4,
+     "t": 2.6
+    }
+   }
+  },
+  {
+   "tool": "query",
+   "args": {
+    "action": "cutlist"
+   }
+  }
+ ]
+}

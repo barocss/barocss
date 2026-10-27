@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart } from '../dist/index.js';
+import { evaluateCadPart, massPropertiesOf, checkOutput, outputOf, reevaluate } from '../dist/index.js';
 
 // FR2 (D124): a frame — one member per segment of a skeleton, each its own body. Oracles written here: each member's
 // A·L by the textbook area and its segment's length; its centroidal line on its segment's points (anchored at the
@@ -29,9 +29,9 @@ test('FR2 a box frame of 12 round-cornered tubes: one body each (f/0 … f/11), 
   assert.deepEqual(snap.outputs.map(o => o.id), segments.map((_, k) => `f/${k}`));
   let total = 0;
   snap.outputs.forEach((o, k) => {
-    const [i, j] = segments[k], L = len(sub(points[j], points[i])), m = o.member, v = o.massProperties(1).volumeMM3;
+    const [i, j] = segments[k], L = len(sub(points[j], points[i])), m = o.member, v = massPropertiesOf(o).volume;
     near(v, A_RHS * L, 1e-12, `member ${k} volume`); total += v;
-    assert.deepEqual(m.frame, { member: k, from: i, to: j }); assert.equal(o.bodyCount, 1); assert.ok(o.validate().valid, `member ${k}`);
+    assert.deepEqual(m.frame, { member: k, from: i, to: j }); assert.equal(o.bodyCount, 1); assert.ok(checkOutput(o).valid, `member ${k}`);
     [0, 1, 2].forEach(c => { near(m.centroidLine.start[c], points[i][c], 1e-12, `member ${k} line start`); near(m.centroidLine.end[c], points[j][c], 1e-12, `member ${k} line end`); });
     const u = m.axis, x = m.xAxis, y = m.yAxis;
     for (const [a, b, w] of [[x, x, 1], [y, y, 1], [u, u, 1], [x, y, 0], [x, u, 0], [y, u, 0]]) near(dot(a, b), w, 1e-15, `member ${k} frame`);
@@ -52,14 +52,14 @@ test('FR2 overrides: the legs a heavier sharp tube rolled 45°, one rail anchore
   const snap = run([{ id: 'f', kind: 'frame', points, segments, section: RHS, overrides }]);
   snap.outputs.forEach((o, k) => {
     const [i, j] = segments[k], L = len(sub(points[j], points[i]));
-    near(o.massProperties(1).volumeMM3, (k < 4 ? A_SHS : A_RHS) * L, 1e-12, `member ${k}`);
-    if (k < 4) { near(o.member.rollDegrees, 45, 0, `leg ${k} roll`); near(Math.abs(o.member.xAxis[0]), Math.SQRT1_2, 1e-15, `leg ${k} x turned 45°`); }
+    near(massPropertiesOf(o).volume, (k < 4 ? A_SHS : A_RHS) * L, 1e-12, `member ${k}`);
+    if (k < 4) { near(o.member.roll, 45, 0, `leg ${k} roll`); near(Math.abs(o.member.xAxis[0]), Math.SQRT1_2, 1e-15, `leg ${k} x turned 45°`); }
   });
   // Rail 4 (along +X at z 700) hangs below its line: its top face on it, its centroid 20 below.
-  const r = snap.output('f/4').member;
+  const r = outputOf(snap, 'f/4').member;
   assert.equal(r.anchor, 'top'); near(r.centroidLine.start[2], 680, 1e-12, 'rail 4 centroid z');
   // Rail 5 keeps the frame's centroid anchor.
-  near(snap.output('f/5').member.centroidLine.start[2], 700, 1e-12, 'rail 5');
+  near(outputOf(snap, 'f/5').member.centroidLine.start[2], 700, 1e-12, 'rail 5');
 });
 
 test('FR2 mirror: an angle turned over across its own y axis — the same area, its centroid at −x̄ in its frame; per member by override', () => {
@@ -67,14 +67,14 @@ test('FR2 mirror: an angle turned over across its own y axis — the same area, 
   const points = [[0, 0, 0], [0, 1000, 0], [400, 0, 0], [400, 1000, 0]], segments = [[0, 1], [2, 3]];
   const snap = run([{ id: 'f', kind: 'frame', points, segments, section: ANG, anchor: 'origin', overrides: [{ member: 1, mirror: true }] }]);
   const [a, b] = snap.outputs, ca = a.member.centroid, cb = b.member.centroid;
-  near(a.massProperties(1).volumeMM3, A_ANG * 1000, 1e-12, 'stile'); near(b.massProperties(1).volumeMM3, A_ANG * 1000, 1e-12, 'mirrored stile');
+  near(massPropertiesOf(a).volume, A_ANG * 1000, 1e-12, 'stile'); near(massPropertiesOf(b).volume, A_ANG * 1000, 1e-12, 'mirrored stile');
   near(cb[0], -ca[0], 1e-15, 'mirrored centroid x'); near(cb[1], ca[1], 1e-15, 'mirrored centroid y');
   assert.equal(b.member.mirrored, true); assert.match(b.member.section, /, mirrored$/);
   // Along +Y, up +Z: x = −X. The first stile's leg reaches to −X; the mirrored one's to +X.
   const xs = o => o.brep.vertices.map(v => v.point[0]);
   assert.deepEqual([Math.min(...xs(a)), Math.max(...xs(a))], [-50, 0]); assert.deepEqual([Math.min(...xs(b)), Math.max(...xs(b))], [400, 450]);
   // The centre of mass by the moments: the heel on the line, the centroid at (−x̄)(−X) for the mirrored one.
-  near(b.massProperties(1).centroidMM[0], 400 + ca[0], 1e-12, 'mirrored centre of mass x');
+  near(massPropertiesOf(b).centroid[0], 400 + ca[0], 1e-12, 'mirrored centre of mass x');
   // (Mirrored, a wall's faces keep their role names.)
   assert.ok(b.brep.faces.some(f => f.name === 'f.m1.root'));
 });
@@ -84,9 +84,9 @@ test('FR2 an oblique skeleton (a tetrahedron of round tubes): A·L each, its fra
   const points = [[0, 0, 0], [{ parameter: 's' }, 0, 0], [250, 433.0127, 0], [250, 144.3376, 408.2483]], segments = [[0, 1], [1, 2], [2, 0], [0, 3], [1, 3], [2, 3]];
   const snap = run([{ id: 'f', kind: 'frame', points, segments, section: tube }], { s: 500 });
   const P = points.map(p => p.map(c => typeof c === 'number' ? c : 500));
-  snap.outputs.forEach((o, k) => { const [i, j] = segments[k]; near(o.massProperties(1).volumeMM3, A * len(sub(P[j], P[i])), 1e-12, `member ${k}`); near(dot(o.member.yAxis, o.member.axis), 0, 1e-15, `member ${k}`); });
-  const again = snap.withParameters({ s: 620 });
-  near(again.output('f/0').massProperties(1).volumeMM3, A * 620, 1e-12, 'the parameter moved point 1');
+  snap.outputs.forEach((o, k) => { const [i, j] = segments[k]; near(massPropertiesOf(o).volume, A * len(sub(P[j], P[i])), 1e-12, `member ${k}`); near(dot(o.member.yAxis, o.member.axis), 0, 1e-15, `member ${k}`); });
+  const again = reevaluate(snap, { parameters: { s: 620 } });
+  near(massPropertiesOf(outputOf(again, 'f/0')).volume, A * 620, 1e-12, 'the parameter moved point 1');
 });
 
 test('FR2 refusals by name: SEGMENT_ZERO_LENGTH (one point twice, or two points together), MEMBER_DUPLICATE, SKELETON_OVERLAP; bad indices and overrides', () => {

@@ -23,7 +23,7 @@ test('the whole-assembly gate: clean passes with its mass; a part moved off the 
   // (Both aluminium, assumed: 60·40·10 less two Ø4 holes, and 60·40·2 less two: 2.7 g/cm³.)
   const want = 2.7e-3 * (60 * 40 * 10 - 2 * Math.PI * 4 * 10 + 60 * 40 * 2 - 2 * Math.PI * 4 * 2);
   // (massProperties gives grams to 3 decimals: each part to ±0.0005 g.)
-  assert.ok(Math.abs(ok.massG - want) <= 2 * 0.0005 + 1e-9, `${ok.massG} vs ${want}`);
+  assert.ok(Math.abs(ok.mass - want) <= 2 * 0.0005 + 1e-9, `${ok.mass} vs ${want}`);
   // (The board moved 2 mm along X — an assembly change after its acceptance: off the pattern.)
   const moved: StudioDoc = { ...doc, instances: doc.instances!.map(i => (i.id === 'p2' ? { ...i, position: [2, 0, 20] as [number, number, number] } : i)) };
   const m = await checkAssembly(moved, evaluate);
@@ -53,7 +53,7 @@ test('the BOM agent on a built view: derived lines (identical parts on one line)
   assert.equal(bom.totalQty, 3); assert.deepEqual(checkBom(view, bom), []);
   assert.ok(Object.isFrozen(view) === false && !JSON.stringify(view).includes('function'), 'a plain view');
   // (Seeded defects: a part dropped, a quantity wrong, a part twice, a total off.)
-  const dropped = { ...bom, lines: bom.lines.slice(0, 1) }, qty = { ...bom, lines: bom.lines.map(l => ({ ...l, qty: l.qty + 1 })) }, twice = { ...bom, lines: [...bom.lines, bom.lines[0]] }, total = { ...bom, totalMassG: bom.totalMassG + 1 };
+  const dropped = { ...bom, lines: bom.lines.slice(0, 1) }, qty = { ...bom, lines: bom.lines.map(l => ({ ...l, qty: l.qty + 1 })) }, twice = { ...bom, lines: [...bom.lines, bom.lines[0]] }, total = { ...bom, totalMass: bom.totalMass + 1 };
   assert.match(checkBom(view, dropped).join(), /p2 \(board\) is on 0 lines/); assert.match(checkBom(view, qty).join(), /quantity 2, 1 parts/);
   assert.match(checkBom(view, twice).join(), /p1 \(bracket\) is on 2 lines/); assert.match(checkBom(view, total).join(), /total mass/);
   // (A library part: its line names the library, version, part and variant; a BOM without it is refused.)

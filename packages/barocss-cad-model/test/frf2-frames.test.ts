@@ -24,7 +24,7 @@ const frame = (follows: object) => ({ kind: 'frame', follows, section: RHS, corn
 async function ok(s: ChatState, tool: string, args: Record<string, unknown>) { const r = await dispatchTool(s, tool, args, evaluate); assert.ok(!r.isError, `${tool}: ${r.content}`); return r; }
 async function refused(s: ChatState, tool: string, args: Record<string, unknown>, re: RegExp) { const r = await dispatchTool(s, tool, args, evaluate); assert.ok(r.isError, `${tool} should be refused`); assert.match(JSON.parse(r.content).error, re); }
 const start = async () => ok({ doc: { ...emptyDoc(), instances: [part('p1', 100), part('p2', 400)] }, bodies: [] }, 'add_features', { features: [frame({ part: 'p1', sketch: 'n0' })] });
-const lengths = (s: ChatState) => s.bodies.map(b => b.volumeMM3! / A).sort((a, b) => a - b);
+const lengths = (s: ChatState) => s.bodies.map(b => b.volume! / A).sort((a, b) => a - b);
 const near = (a: number[], b: number[]) => assert.ok(a.length === b.length && a.every((v, k) => Math.abs(v - b[k]) <= 1e-6 * b[k]), `${a} vs ${b}`);
 
 test('FRf2 a base frame on a placed part\'s sketch: members A · 300 and A · 200 on z = 100, the part\'s revision pinned; its notes name the part; the part moved to z = 150 — the frame moves, nothing stale', async () => {

@@ -6157,7 +6157,7 @@ The coordinator's end-to-end acceptance. One scripted agent run, through the rea
   - A 50 × 30 × 8 pocket.
 - **Shaft (part p2).** A steel turned shaft, Ø20 × 30 / Ø25 × 40 / Ø20 × 25.
   - A 6 × 6 × 18 key in its keyseat.
-  - A 6204 bearing on step 1 against the Ø25 shoulder, the seat k5.
+  - A 6204 bearing on step 1 against the Ø25 shoulder, the seat k5. **Corrected by O158: on step 3 against the same Ø25 shoulder; on step 1 it sat over the key.**
 - **Cover (part p3).** A Ø60 × 8 cover, PETG, printed on FDM, with a face O-ring gland for a 2-214 O-ring. It sits on the plate over the bore.
 
 **What the shop gets**: per-part DFM reports, a drawing per made part, the BOM and the purchase CSV, a clean clearance map, and the export bundle.
@@ -6205,7 +6205,7 @@ Each step is a chat call or a short run of them, with its expected outcome. "Exa
      - the stock a box from B1.
    - The probe got STOCK_NONE_LOADED until the stock was set on p1 itself (gap A9-8).
 6. **Shaft.**
-   - `shaft` (the defaults), then `key` (6 × 6 × 18, its height an estimate), then `bearing` 6204 on step 1, k5.
+   - `shaft` (the defaults), then `key` (6 × 6 × 18, its height an estimate), then `bearing` 6204 on step 1, k5. **O158: on step 3 against its start.**
    - **Exact**: the bearing's body is 19800.6522 mm³ (Pappus; the kernel's case).
    - The seat note: "k5: 20.002 to 20.011, interference −21 to −2 µm".
    - `query.fit_clearance` H7/k6 at 20: −15 to +19 µm, closed form (probed: −15, +19).
@@ -6406,3 +6406,3064 @@ After each item, the A9 run moves one step further. It is the acceptance once al
 4. Run the flow as `FLOW_ONLY=… CAD_STUDIO_CHAT_PORT=52391 CHROME=… PW_DIR=~/.cache/barocss-playwright/node_modules/playwright node test/browser-flow.mjs <out>`.
 5. Once the wip is green, take A9-13.
 
+
+### A9-4 — manufacturing drawing options (2026-10-22, source preparation)
+
+- Normal merge baseline: `720c703619f3c2b711c52298f89a06e9699f87a8` (parents native `b62f4656c5b978c956f555fa92f214919f5eef57` and exact Integration `73434a7dd69b2e8e040320a5b4580e27dc743dac`). Clean before implementation. A9-13 native evidence remains separate; this merge adds no verification claim.
+- `drawing.set` retains the existing proposal/user-approval path. No direct application, batch or agent approval exemption.
+- Optional `weldSymbols` and `balloons`: booleans; true enables, false removes the saved flag. Omitted fields retain their current value. Null, coercions and unknown keys are refused atomically.
+- `sections`: complete replacement array of strict `{id, view, at}` records. IDs are unique A–Z or AA–ZZ, view is front/top/right, at is finite model mm. Empty array clears both modern sections and the legacy section. Use existing `withSections` canonical storage (single A/front writes legacy section). A changed/removed section referenced by a dimension is refused; no dimension or manual reference is silently removed.
+- `tables`: complete replacement array of strict `{id, from, title?, at?, corner?, whole?}` source-table records. `from` is bom, cut-list or weld-list; IDs unique nonempty strings; at is exactly two finite sheet-mm numbers; corner uses existing four values; whole is boolean. No generated columns, rows, standards or supplier data. Empty array removes tables. Omission preserves all existing table kinds and authored content.
+- Scope is resolved before option changes and stored explicitly; enabling BOM/balloons must not switch an implicit base part to assembly. Part local geometry, assembly Auto refusal and BOM/balloon identity remain A9-13 contracts.
+- Native/worker/proposal/batch regressions and actual UI/export/Save/Open/reedit are required. GPU owns the serial check slot: no build/type/test/browser starts during source preparation. Record immutable task SHA, then request the slot.
+
+### A9-4 — native feature verified (2026-10-22)
+
+- Baseline `720c703619f3c2b711c52298f89a06e9699f87a8`; production `7f9773cdaccac59e44964dd2d3935c8846736cef`; exact tested checkout `ab679bcc95e92bb4b38cc2ca60af693a437a2857`. Production and test source hashes identical between the latter two. Receipt/manifest: `packages/barocss-cad-model/evidence/ab679bcc95e92bb4b38cc2ca60af693a437a2857/`.
+- Lease cad-a94-ab679-feature-20261022: own detached clean scratch/deps/dist, Node22.19.0/GOMAXPROCS1/test concurrency1, serial commands and bounded running load. CAD/GPU builds, affected native20/20 (including production worker and A9-13/FixAll), both type checks and scoped lint pass.
+- Actual scripted-claude → real chat/MCP v2 drawing.set proposal → UI user Accept: weld symbols, balloon1 with plate identity, sections A/B and BOM/cut-list/weld-list display/output. Actual Save/New/Open/title reedit, disable flags/clear lists and restore pass. All3 proposals accepted, model/instances/user welds preserved in saved files. PDF one-page A3 render visually checked plus extracted texts; DXF ANSI_1252 group-code texts agree with SVG/PDF. External CAD import/render remains unrun.
+- First failure is only extra file-audit's incorrect UTF-8 read of Windows-1252 DXF; original script/log kept. Separate CP1252 audit passes. Product source and passing checks/UI unchanged, no repeat. Poppler Fontconfig warning preceded natural exit0 and valid PNG. Existing BEAD_KIND physical-bead refusal for the fixture's mitre/fillet record is printed; no bead creation or manufacture qualification claim.
+- All owned recorded process roots exited, ports52391/52392 clear, scratch tracked clean; unrelated Chrome preserved. Model slot returned, no further checks. Native feature verified; Integration adoption/validation pending. No remote/live-model/full-suite/benchmark work.
+
+### A9-10/8 — source preparation (2026-10-22)
+
+- Baseline a671eee202837147a99c16319ed05fc54bc57a7e, normal merge of exact30f7ca2bdcd500b2bc063a5b5a8860c84a989533. Frozen task bounds and existing-generator reuse decisions in packages/barocss-cad-model/evidence/a9-10-8/brief.md. Source only; feature verification has not started.
+- Six read-only actions: query.bom/purchase_csv/clearance/cam, print.layers, assembly.bundle; strict input and expectedRevision, file content+SHA256 via existing MCP JSON, no approval mutation/new host loader. Bundle existing user approval/freshness/bead gates remain.
+- Derived shop row context retains authored child/parent and row refs; same-id local override, report origins. Existing material registry absent, so no new material schema; existing material semantics retained. Human/coordinator explicitly extended lease for two part dispatch branches, drawing scope and engine/wire/cache context. No App/GPU/Kernel/shared runner or extra frames edits.
+- Nested section rows inline in temporary flatten view; actual distinct nested machine-row conflict refuses explicitly. No full nested machine-row flatten claim; namespace seam outside current owned path. This limit must remain visible in verification/adoption.
+- Interrupted solely for separately routed old unknown guard: source5f5636e73/evidence5c9a38d5,10/10+Model types+lint, coordinator adoptiona0010e44. Original17 WIP hashes unchanged, no reset/stash/mixing. Main feature source work resumed; no feature checks until a new lease.
+
+- Second isolated interruption: a001 baseline → frame guard/legacy label sourcef36f33619, evidence24510f8b0.18/18 frame+FRk3/FRk4 editor controls, both types and scoped lint pass;24 WIP hashes unchanged. Slot returned. No whole-suite/UI claims or mixing into this WIP. Source work resumed.
+- Wire origin metadata and optional successful evaluation origins are additive runtime data, not StudioDoc schema. Full local overrides retain parent context; same-view re-resolution does not reinterpret inherited rows as local. Source tests cover actual App worker and direct/batch/proposal/context save paths. Feature checks remain unrun until its own exact-SHA lease.
+
+### A9-9 — conversation row files, source-only (2026-10-22)
+
+- Separate branch codex/cad-model-a99-rows starts at14387248f89cf4c028ada541ddce386ced45ec7d. Preserve the original A9-10/8 branch and its first execution slot. Managed worktree creation failed for disk space; the coordinator approved a branch in the original clean checkout. No other checkout/output cleanup followed.
+- Implemented the owner's rows rule b: actual user JSON attachment/paste → conversation file reference → existing v2 library.load_rows and domain validation. Existing section/stock chat loaders use the same file authority and refuse agent rows. The Library panel is unchanged.
+- The coordinator approved exactly ChatPanel/client/chatServer/cadMcp plus Model doc field/list, wire retention and shopRows provenance consumption. A per-row digest sidecar keeps filename/person/turn/file SHA256 beside the original strict source/estimate fields. Inheritance and override use matched row receipts; stale receipts do not support changed values. Bend explicitly targets an existing sheet feature and keeps proposal/approval gates.
+- See packages/barocss-cad-model/evidence/a9-9/brief.md for the source contract, capability boundary, persistence limit and separate execution order. No builds, tests, types, lint, server or browser ran for A9-9. Its source tests are not passing evidence. Source-only checkpoint precedes the assigned exact9b318 normal merge.
+
+### A9-10/8 — actual outputs and Studio lifecycle receipt (2026-10-22)
+
+- Frozen baseline14387248f89cf4c028ada541ddce386ced45ec7d; tested sourcefea13033a045e6e67a0ddc3a588c7effab1d2d24. Initial module initialization and readonly type failures were corrected inside the same feature. The v2 file envelope now preserves exact content bytes rather than translating handler-like user text.
+- Final related native34/34, Model/Studio types and scoped lint pass. Actual MCP generates BOM, CSV, clearance, CAM, print layers and approved evidence bundle for inherited p1 and local-override p2; initial and post-Studio files match generators and independent bundle verification. Full responses, fixed filenames, sizes and SHA256 are retained. Unapproved/stale/invalid/missing/incomplete-bead refusals preserve state; contact remains pending for exact overlap.
+- Actual scripted-claude/chat/MCP Studio flow passes: read-only outputs, user-accepted parent stock change, Save/New/Open, user-accepted child geometry reedit, another Save/New/Open. Inherited stock stays absent from the authored p1; p2's local override remains. The resulting Save file is used for the second MCP output phase. BOM approvals use the existing top-level deterministic scenario userToken channel; stock/geometry proposal acceptances use the real UI. No live model.
+- Earlier browser load-stop and original timing-audit failure remain separate. The amended runtime policy applies only to the second browser attempt, which starts under1m20/5m25 and passes. No performance pass is claimed.
+- Native evidence: packages/barocss-cad-model/evidence/fea13033a045e6e67a0ddc3a588c7effab1d2d24/a9108-output-feature/receipt.md. Own process groups ended;52391/52392 free; sole slot returned before packaging. Native feature evidence is ready for serial Integration adoption; no integrated-head or release claim. A9-9 source353f02c59 remains separate and unexecuted.
+
+### A9-9 — adopted output baseline connected, source-only (2026-10-22)
+
+- Normal merge c228158846bfd296a13b3461d351abf8f05d0297 joins preserved353f02c59 to exact owner-assigned Integrationc6f92174ca20f212847fae76688797b3e11b2758. The handover append conflict was resolved by retaining both records. A9-10/8 descriptor initialization, readonly types, exact file payloads and adopted receipts stay intact.
+- Remaining real consumer seams: v2 preserves person filenames/row evidence ids instead of treating them as tool guidance; large whole-JSON pastes keep complete file bytes without violating the existing20k quote-history field limit. Actual ChatPanel user input remains the only browser registration path; plain prose/tool call scripts do not mint files. Library panel, App, viewport and Kernel files are unchanged by these source fixes.
+- Added source cases for another conversation's ref, handler-like filenames/row ids, raw provenance plus ordinary guidance conversion, and whole/fenced/large paste bytes. Existing same-value parent/child file isolation, targeted reloads, different-value override and Save/Open cases remain. No A9-9 build/test/type/lint/browser was started; Kernel still owns execution. A9-10/8 adopted native results must not be relabeled as A9-9 results.
+
+### A9-9 — explicit conversation context and approved App bridge (2026-10-22)
+
+- ca36afb7 removes the module-global active/default context; absent/empty/foreign/revoked states cannot borrow another conversation's refs. Source cases cover loader and proposal preview/rebase/accept, including unchanged-state refusal.
+- The coordinator then approved the concrete minimal App patch: chatRowFiles ref, explicit rowFiles at three proposal call sites, ChatPanel callback and capability lifetime only. Applied with a guard against re-publishing revoked authority. Close preserves pending approval; a new conversation clears/revokes prior authority. Stream/async completion does not publish capabilities. Added a paused actual-dispatch source case for revocation during evaluation.
+- No viewport, instance evaluation, G22, general Save/Open/recovery or Kernel changes. No build/test/type/lint/server/browser was started. This is the next A9-9 source checkpoint, not execution evidence or feature acceptance.
+
+### A9-9 — native actual person-file lifecycle receipt (2026-10-22)
+
+- Baselinef7affc42; tested38e7433f2d3014337455fec36e817e0159c87128. Schema constant initialization, stale-test input, formal-field fixture and lint filename expression first failures/fixes are recorded separately. No App server existed during source edits; all actual UI flows use the final frozen source. Later Integration7f1b52 was not merged during this execution.
+- Native31/31, final Model/Studio types and scoped lint pass (3 existing warnings retained). Actual JSON attachment and >20k clipboard paste use host-issued refs through real MCP proposals, existing preview/rebase/accept, Save/New/Open. Chat close preserves pending approval. Equal-id/equal-value parent/child rows from distinct files stay distinct through ordinary edits and parent-only/child-only reloads. Inherited p1 rows are not materialized. Original source strings and estimate:true persist.
+- Actual empty new conversation rejects old refs, fake person input and raw agent rows. A separate live-current-file proposal followed by the actual New conversation button verifies immediate ref revocation. Native cases also cover absent/revoked contexts and revocation while evaluation is pending; no global authority fallback remains.
+- The actual saved file supplies both p1/p2 six-output requests:22 files with byte/hash checks, generator content comparison and independent bundle verification. Baseline approval uses the existing top-level scenario userToken API; row proposals use real App UI approval. No live model or publication claim.
+- Evidence: packages/barocss-cad-model/evidence/38e7433f2d3014337455fec36e817e0159c87128/a99-person-files/receipt.md. Owned groups ended and52691/64316 free; slot returned before packaging. Native feature ready for serial local Integration adoption; new integrated HEAD validation remains separate.
+
+### O lane checkpoint — A9-7 native adoption and UI dependency (2026-10-23)
+
+- Owner: Execute CAD Model / Outer. Actual worktree: `/Users/user/.codex/worktrees/c35f/barocss`. Actual feature branch: `codex/cad-model-a99-rows`. Product/tested SHA: `f78d98bcb7a9357c4457996c1a3c03a7dff3e81d`; evidence/checkpoint parent: `44bca47b0ba48906684a285790c57be1e6e12344`. No uncommitted product WIP or running Model check remains at this checkpoint. This append changes only the O decision record and does not rerun or extend native acceptance.
+- Completed: explicit `{root, owner}` cross-part housing context; stable `housingRef`; current exact native housing and relative-pose checks; parent/local row handling; worker, memo and freshness inputs; existing Bearing command/editFields API; linked-part BOM refusal. Focused native 15/15, Model types and scoped lint on 22 TypeScript paths passed on the tested SHA. Original initialization/type failures and fixes remain in evidence. All seven own process groups ended; no browser/server/TCP port was used. Slot `cad-a97-37eb-native-20261023` was returned before packaging. Evidence has 25 content files / 44,300 bytes plus two manifests; 22 tested source hashes match.
+- Coordinator adoption: `d47785c4263385e6b44ae7292f3321a6b8c65b01`, reported and inspected as the local A9-7 Model adoption. The coordinator alone owns integration branch `codex/cad-coordinator-handover-20261022`, serial `merge --no-ff`, and current `state.yaml` adopted scopes. This feature checkout has not merged that later adoption commit, and its earlier local state snapshot must not be presented as current coordinator state. Active WIP is retained; no branch is discarded or reset.
+- Current UI dependency: GPU observed Housing/H7 Apply commit, followed by a blank screen because `useAssembly` read a bare linked child through `FaceClient.table(flattenAssembly(i.doc))`. GPU owns the assigned `useAssembly.ts`, App and BomPanel correction: current root plus explicit occurrence id, `resolveShopTree`, then the existing EngineClient part/read native face table. Model product changes are not currently requested. GPU owns the current execution; Model starts no duplicate or broad checks.
+- Exact next first step: receive the immutable GPU bridge source/receipt and any concrete Model failure from the coordinator. Inspect the failed Model boundary against that exact current root/owner input. If the failure belongs to Model, fix only its assigned paths, preserve the first failure, and run only the assigned affected checks under a new serial slot. Then connect and check final manufacturing/purchase outputs against the actual saved UI document. Exit requires actual current geometry/row/source facts and exact output bytes/hashes, plus the coordinator's scoped adoption; native/API evidence alone cannot close the UI feature.
+- Not run: actual UI plate selection/link/edit/move/error, Undo/Redo, downloaded manufacturing/purchase files and UI Save/New/Open on the combined bridge. A new GPU bridge SHA and Model WIP SHA for those changes are not yet received; none is invented. The separate A9-11 UI/download gap remains pending. No final aggregate validation, release, push, PR or publication is claimed.
+- Standing owner rules retained: the existing protocol/state/three-Work structure; own TypeScript only; no WASM/new runtime dependencies/icon-font bundle; no nested function creation in frame/element hot paths; typed refusal without tolerance relaxation; no embedded standard rows/text. Production rows use only files supplied by the person in the conversation with provenance, and agent-authored rows are refused. Synthetic native test rows are fixture inputs only and are not production authority. CAD tool actions remain v2 with tools-list-plus-prompt at most 25,000 characters per turn. Terminate only own PIDs. Git author/committer is `easylogic <cyberuls@gmail.com>`; records/commits are English and user reports Korean. Preserve the three protected historical branches named by the owner. If the owner says to finish, stop only own active checks and report the exact point; the coordinator owns the final serial window and `codex-handback-<date>.md`.
+
+### O lane clarification — no confirmed human-supplied row/fit file for A9-7 product acceptance (2026-10-23)
+
+- Read-only audit result: no confirmed file was found that connects an actual human message/attachment in this conversation to original row/fit bytes and their hash. No human-source path, original message/attachment identifier or matching hash can be reported from the reviewed evidence. Missing provenance is not replaced by a saved `suppliedBy: person` field, a test source string, a file digest alone, or an automation-created conversation turn.
+- A9-7 `test/bearing-housing-context.test.ts` declares the `6204` row and `H7-test` fit as literal fixture values, with source text `A9-7 supplied test row`. `test/bearing-housing.test.ts` declares `6204-test` with source text `A9-7 test row`. These are agent-authored correctness fixtures, not files supplied by the person. Native evidence `f78d98bcb7a9357c4457996c1a3c03a7dff3e81d/a97-bearing-housing-native` proves only the recorded native/API behavior on those inputs, not compliance with rows (b) for product use or actual-person A9-7 acceptance.
+- Reviewed A9-9 evidence `38e7433f2d3014337455fec36e817e0159c87128/a99-person-files/receipt.md` explicitly describes a scripted CLI fixture with no live inference. Its retained `browser-case.js` drives file input/paste and proposal controls from an automation script, including generated reload files. Those files, host-issued refs, hashes, saved receipts and screenshots establish the controlled transport/capability test. They do not establish that the human supplied those rows in this conversation. Earlier labels such as "actual person files" must be read within that controlled test boundary, not promoted to real human-source evidence.
+- Existing native and adoption records remain immutable. The product boundary stays open: a real human-provided row/fit file with its original message/attachment source and exact bytes/hash is needed before a corresponding actual-person product flow can qualify under rows (b). No file is invented, no fixture is reclassified, no source/estimate is rewritten, and no loader authority is fabricated. The coordinator/GPU owns that actual UI witness; Model waits for exact assigned defects or authorized output work. This clarification changes only the O record. No product check, browser, server or process was started.
+
+### O lane owner stop — preserved A9-7 handback point (2026-10-23)
+
+- Owner requested finish. New implementation and new feature checks are stopped. Actual worktree `/Users/user/.codex/worktrees/c35f/barocss`, branch `codex/cad-model-a99-rows`. Baseline `a283cb58c67d641e971267822f6052a84e202ce8` was normally merged at `715492ce76a123e9e0c076244cb772f1915d4f7d`; initial task `37ebd004cbf8150f997aa0600a401a3af3ab4103`; final tested product `f78d98bcb7a9357c4457996c1a3c03a7dff3e81d`; native evidence `44bca47b0ba48906684a285790c57be1e6e12344`. Pre-stop local HEAD `f32598a71f7f1a3a4d0787c12820c4426c82998c` contains only the later O clarifications. Coordinator adopted those records at `9810fe1e43298a867f26328a4f91469fd6bf3670`; the coordinator branch was observed at `f2415e3095aec5f353bd405c674662653ce27402`, not verified by Model.
+- Dirty paths before this stop receipt: none. No uncommitted product WIP, active own check, server or browser exists. All seven recorded own PID/group ids (`15197`, `93054`, `63189`, `25795`, `34715`, `16943`, `96780`) were already ended at slot return and are absent again at stop observation. No signal was sent now, and no other Work PID was touched. Stop observation is `packages/barocss-cad-model/evidence/a9-7/owner-stop-20261023.json`. Original partial/failing logs remain unchanged in the native evidence directory. No reset/stash/amend/rebase, branch discard or product edit occurred.
+- Last completed feature step: Model native/API housing implementation and its 15/15 focused native tests, final Model types and scoped lint. Exact coverage and source hashes remain in the native receipt. First failures remain the new test entry's CHAT_COMMANDS initialization failure and the missing-context TypeScript narrowing failure; both corrections and final passing runs are preserved. Last completed documentation step: explicit finding that no real human-provided row/fit file was confirmed. Synthetic rows remain correctness fixtures only.
+- Unverified feature work: GPU's combined App/useAssembly/BomPanel bridge and its actual screen/file flow are outside the tested Model SHA. No newer Model product WIP SHA was assigned or produced. Model has not run actual combined UI link/edit/move/error, Undo/Redo, Save/New/Open, manufacturing/purchase download verification, or final integrated-head checks. A9-11 UI/download acceptance is also still pending in Model's records. Human-source row/fit product acceptance remains open; no fixture provenance is promoted. Source/native adoption is retained without claiming product completion.
+- Exact first command after a new owner resume instruction: `git -C /Users/user/.codex/worktrees/c35f/barocss show codex/cad-coordinator-handover-20261022:apps/cad-studio/handover/state.yaml`. Then read the coordinator's final handback and exact GPU bridge receipt, reconcile the latest immutable SHA and owned-path assignment, and address only any assigned Model failure or output connection. Do not start a build/test/browser automatically. The coordinator alone owns the final serial validation window on the final integration SHA and `codex-handback-<date>.md`. The present commit is a local documentation checkpoint only.
+
+## O149 — the import cycle Codex's outputs closed, broken (2026-10-23)
+
+**The defect.** At `99da385a1`, `chat/tools.ts` imported `./outputs` statically (Codex, the v2 output tools). The chain was outputs → team/bundle → team/baseline → team/assembly → team/parts → chat/tools.
+- Any entry that reached tools.ts through the team modules first found `commands` and `ROBOT_TOOLS` undefined at tools.ts's load: "ROBOT_TOOLS is not iterable".
+- It failed every test file that loads that way: the model's sheet and cageEdit, and most of the studio suite's 21 failures (cad-cli, CNC, nest, mould, pattern, robot, bundles, chat, palette, decimate, frame).
+
+**The fix, behaviour unchanged:**
+- **tools.ts** loads `./outputs` on first use: a module-level promise, filled once by `import('./outputs')` in the output-tool branch. The static edge is gone, so no load order can see tools.ts half-built.
+- **team/interfaces.ts** is a new leaf: the Architect's `readInterfaces`, `interfacesRevision`, `HolePattern`, `Envelope` and `Interfaces`, moved unchanged from team/parts.ts.
+  - It imports only team/revision.
+  - bundle, baseline, ecr and freshness read the interfaces from it; bundle and digest read `canonical` and `revisionContent` from team/revision, the same functions team.ts re-exports.
+  - parts.ts re-exports the moved names, so every importer still resolves.
+- **The cycle finder** (scratchpad `outer/cycles.mjs`) no longer puts chat/tools in a cycle with chat/outputs.
+
+**Verified (T1):**
+- sheet.test 8/8, with O150's fixture; the one failure left before O150 was rows (b), not the cycle;
+- cageEdit.test 7/7;
+- tsc of cad-model and of cad-studio;
+- eslint of cad-model's src and test: 0 errors.
+
+**Not run:** the full package and studio suites. They wait for a coordinator slot.
+
+## O150 — rows rule (b) through the fixtures; stock and frame stock merge by id (2026-10-23)
+
+**The fixtures.** Codex's rule (b) refuses agent-written rows (ROWS_NOT_FROM_PERSON), and that refusal is right. Tests that still handed the tools their own rows now load the same rows as a file the person supplied:
+- `test/person-file.ts`: one supplied file at turn 1 (`receivePersonRowFiles`), with the reference a loader takes;
+- the tests moved to it: batch-changes, clearance-designed (A9-5), frame-nesting (FRb ×2), frame-sections (FRc), frame-welds (A9-1), drawing-table (the R12 bend table) and sheet (D120).
+
+The bend-table cases now add a plain sheet (K 0.5), then `load_rows {kind: 'bend', file, feature: 0}`, which replaces K with the person's table. The flat (80.8) and the TABLE ROWS cell are unchanged.
+
+Each tool family still asserts the refusal:
+- `set_frame_sections {rows}`, both directly and through `apply_ops` (batch-changes);
+- the agent's raw sheet node carrying its own `bendTable` (sheet D120).
+
+Rule (b) itself is unchanged.
+
+**Merge by id: review finding P2, a behaviour change.**
+- **The defect:** `set_stock` and `set_frame_stock` replaced the whole list. On a placed part whose parent carries stock, the part's shop view (the inherited rows plus its own) then read the inherited rows as removed, and the call was refused (SHOP_ROW_INHERITED_REMOVE).
+- **The fix:** stock and frame-stock rows now merge by id, like every other row kind. The file's rows replace the same ids in place, new ids are appended, and rows the file does not name stay.
+- **Checks per row:** a bad row is refused by its index and id. Two rows with one id in one file are refused (`[STOCK_ROW]`, `[FRAME_STOCK_ROW] two rows with one id.`).
+- **Test:** person-rows P2. A placed part keeps its inherited B1 and S6 and gets its own B2 and S4, which are written into the part only. The base keeps B1 when a later file adds only R30.
+- **The report:** `set_frame_sections` now names the rows the file added or changed and the ids removed. Its content lists the library: id, name, section, and the source or `estimate`.
+
+**Open (not decided here):** with merge by id, no chat call removes a stock or frame-stock row. Before, a smaller file did that by replacing the list. A `remove` argument, like `set_frame_sections`'s, is a v2 contract change, so it goes to the coordinator first.
+
+**Verified (T1):**
+- person-rows 9/9, batch-changes 6/6, clearance-designed 4/4, frame-nesting 5/5, frame-sections 6/6, frame-welds 5/5, drawing-table 5/5, sheet 8/8;
+- tsc of cad-model and of cad-studio;
+- eslint of cad-model's src and test: 0 errors.
+
+**Not run:** the full package and studio suites, which need a coordinator slot. The window's remaining model failures are separate checkpoints: enclosure O73, shop-rows (inherited-context identity), tool-contract (read-tool output schema) and toolset (the frozen v2 contract).
+
+## O151 — the read-tool contract covers Codex's output tools; a part-scoped result's shopRows (2026-10-23)
+
+**tool-contract.** "every read tool's result matches its output schema" failed at `99da385a1`. Codex had given six output tools an output schema in contract.ts but never ran them in the test: `output_bom`, `output_purchase_csv`, `output_clearance`, `output_print_layers`, `output_cam_package` and `output_bundle`.
+
+The test now runs each one through `dispatchTool`, which also exercises O149's lazy load, on a document where it succeeds:
+- a 20 × 15 × 4 plate for BOM, CSV, clearance and print layers;
+- for the CAM package, a placed plate on the document's test stock row (written into the document directly, not through a tool);
+- for the bundle, the plate approved through draft → review → approved with a user token.
+
+Each result conforms to its schema, reports `changed: false`, and leaves the document as it was.
+
+**enclosure O73.** A part-scoped `set_material` result now begins with `shopRows`, the provenance of the shop rows the part sees. That is the coordinator's A9-8 decision ("reports state the row's origin"), which Codex built. The part has no rows, so the expectation adds `shopRows: []`. Nothing else changes.
+
+**Verified (T1):** tool-contract 3/3, enclosure 17/17, chat-outputs 7/7, bom-panel 4/4.
+
+## O152 — an assembly without a cross-part housing link keeps its identity (2026-10-23)
+
+**The defect.**
+- Codex's A9-7 (`7e8dece38`, 10-23) made `resolveShopTree(root)` always return a new view of an assembly root: the root and every instance carried a bearing-context symbol.
+- That broke A9-10's guarantee from the day before (`1e00c2f52`, "empty inherited context preserves legacy document and instance identity").
+- Identity is what the resolved-tree caches and the studio's reference comparisons key on.
+
+**The fix.**
+- `bearingAssemblyView` builds the context only when a bearing of the root or of an immediate part has a raw `housingRef`. Otherwise it returns the root itself.
+- `bearingPartView`, a part draft in part dispatch or the feature editor, still always gets its context from the root, because the draft may be adding the first link.
+- Nothing else reads the context without a `housingRef` node: part.ts and wireDoc use it only for linked bearings, and the Housing choice falls back to `ctx.bearingAssembly` or the root's instances.
+- `linksHousing` is a module-level loop with no closures, as the hot-path rule requires.
+
+**Verified (T1):**
+- shop-rows 9/9; bearing-housing-context 8/8 (A9-7's own tests);
+- the 57 model test files that touch instances, bearings or the shop tree, all passing;
+- tsc of model and studio; eslint 0 errors.
+
+**Not run:** the full package and studio suites, and A9-7's studio UI. The GPU lane is porting `8789e468`, so it should check that the Housing path still gets its context from part dispatch.
+
+## O153 — the studio side of rows rule (b): cad-cli's `--list` is the person's file; the studio runner takes names (2026-10-23)
+
+**cad-cli `stock` and `nest`.**
+- **Before:** `--list file.json` read the file and handed its rows to `set_stock` / `set_frame_stock` as `rows`, which rule (b) refuses. So both commands failed with any list.
+- **Now:** the file is received the way the chat receives an attached one, through `personListFile` in server/cadCli.ts:
+  - `receivePersonRowFiles` with the file's name, its bytes' SHA-256 and turn 1, in a conversation id derived from the path;
+  - the loader then takes it by reference (`{file}`).
+- **Why this is a person's file:** the person names it on their own command line, and no agent is involved.
+- **What it does not do:** add a flag that marks rows as the person's without a file. A file that is not `*.json`, or not JSON at all, is refused with the receiver's message.
+
+**cnc-stock (CNC7b ×6).**
+- Lists arrive as person files (`stockList`, with `test/person-file.ts` on the studio side).
+- The by-name refusals now come from files: a missing source, a block of two sides, two rows of one id.
+- Two refusals stay on `set_stock`'s own arguments: a negative allowance, and rows the agent writes itself (ROWS_NOT_FROM_PERSON).
+- "One too short refused" now loads its single short bar onto the shaft afresh. With merge by id (O150), the earlier R22 would otherwise stay and be chosen. This shows O150's open item: there is still no chat call that removes a row.
+
+**chat.test.** The handler list adds Codex's `load_rows` and its six output tools.
+
+**The studio test runner** (scripts/test.mjs) takes names, as cad-model's runner does (the coordinator approved this):
+- `node scripts/test.mjs cnc-stock frame` runs only the files whose name contains one of them;
+- no names runs every file, exactly as before;
+- names that match nothing exit 1 rather than letting `node --test` pick its own files.
+
+**Verified (T1), per file:**
+- previously failing: cnc-stock 6/6, frame-nest-cli 1/1, chat 18/18;
+- failing in the window at `99da385a1`, now passing with O149: cad-external 6/6, candidates 5/5, cnc-cam 5/5, im7 7/7, im8b 8/8, robot-sizer 3/3, team-bundle 2/2, decimate 3/3, frame 10/10, palette-rank 2/2, palette 2/2;
+- tsc of studio; eslint of the changed files: 0 errors.
+
+**Not run:** the full studio suite and any browser flow.
+
+## O154 — S3: the frozen v2 contract, re-recorded; load_rows moves to `features` (2026-10-23)
+
+**The diff** between `src/chat/tools-v2.json` (last recorded at O124, `c176929f6`) and the live TOOLS_V2. Codex never re-recorded the file. Group inputs carry only the action enum.
+- assembly + `bundle`; print + `layers`; query + `bom`, `purchase_csv`, `clearance`, `cam` — additive.
+- library + `load_rows`, with library's `destructiveHint` false → true — flagged breaking ("library: now destructive"). load_rows is rightly in contract.ts's ALTERS (it replaces rows of the same id and a sheet's K), and a group is destructive if any action is.
+
+**The coordinator's choice: (a).**
+- load_rows moves into the `features` group, which is already destructive, so library stays non-destructive (toolset.test asserts that).
+- v2 was never released, and `library.load_rows` lived only in Codex's squashed work, so it is renamed outright with no alias.
+- The handler name stays `load_rows`.
+
+**Every use changed:**
+- `src/chat/groups.ts`: the action moves from library to features;
+- `src/chat/rows.ts`: the ROWS_KIND message, "describe features.load_rows";
+- `apps/cad-studio/server/chatServer.ts`: the row-file note the agent reads, "features.load_rows takes file by id";
+- `test/person-rows.test.ts`: four v2 calls and one proposal op, `library` → `features`.
+
+Checked with git grep:
+- the other `load_rows` uses call the handler name, and stay as they are (tools.ts's BATCHABLE, MUTATORS and case, drawing-table, sheet, studio chat.test);
+- no studio flow or fixture names `library.load_rows`;
+- the README §0 and decisions-outer A9-9 text that mentions it is history, kept.
+
+**Re-recorded** with `UPDATE_TOOL_CONTRACT=1`. That run first asserts there is no breaking change against the old file, and it passed. The file gains seven action names and nothing else.
+
+**Verified (T1):**
+- toolset 9/9: the frozen contract, `library` not destructive, the per-turn guard at 23,180 of 25,000 characters (13 tools, list 14,938, prompt 8,242);
+- shop-context-tools 3/3 (its own ≤ 25,000 guard), person-rows 9/9, tool-contract 3/3, sheet 8/8, drawing-table 5/5, studio chat 18/18;
+- tsc of model and studio; eslint 0 errors.
+
+## O155 — stock and frame-stock rows leave by name: `remove` on set_stock and set_frame_stock (2026-10-23)
+
+This closes O150's open item. O150 made rows merge by id, so a smaller file no longer drops rows. The coordinator chose a `remove: [ids]` argument mirroring `set_frame_sections`'s.
+
+- **The calls:** `set_stock {file?, remove?, allowance?}` and `set_frame_stock {file?, remove?, kerf?}`.
+  - The file merges first, then the named rows are dropped (`removeRows` in tools.ts, a module-level helper).
+  - An id the list does not have is refused with the list (`[STOCK_ROW_UNKNOWN]`, `[FRAME_STOCK_UNKNOWN]`), and the document is unchanged.
+  - The v2 hints and the descriptions name `remove`. Group inputs carry only the action enum, so the frozen contract is unchanged.
+- **On a placed part:**
+  - its own row goes;
+  - an inherited row is the base's, so removing it there is refused by A9-8's restore (SHOP_ROW_INHERITED_REMOVE), and the base keeps it.
+- **Nothing references a stock row by id** (CAM and nesting choose from the list), so no in-use check is needed. That differs from sections, which members name.
+- **cnc-stock's "one too short"** now removes R16, R25 and R22 by name and adds the short R22s, on the same shaft. O153 had needed a fresh document for this.
+
+**Verified (T1):**
+- person-rows 10/10, with the new O155 case: base remove, kerf with remove, unknown ids, file plus remove, and part-own versus inherited;
+- toolset 9/9 at 23,198 of 25,000 characters a turn; shop-context-tools 3/3, tool-contract 3/3, frame-nesting 5/5, batch-changes 6/6;
+- studio cnc-stock 6/6, frame-nest-cli 1/1, chat 18/18;
+- tsc of model and studio; eslint 0 errors.
+
+## O157 — the CAM package's pockets where they are: the floor plane's origin added once (2026-10-23)
+
+**The defect.** The GPU lane's G23 overcut check found it.
+- **Symptom:** CNC8's pocket is 50 × 30 at x 35–85, y 25–55, with its floor at z 12. Its packaged feeds ran at x 73–117, y 53–77, where they should be at 38–82, 28–52 (the pocket inset by R 3). The program was shifted by the floor plane origin's in-plane part (35, 25), so the tool would have milled the plate's top.
+- **Cause:** cam.ts's `outlineOf` gives the loops as absolute projections [p·X, p·Y]. camPackage's `pocketMoves` then added the whole origin again: `o + q0·X + q1·Y + (floor − depth)·n`. z came out right only because the origin's normal component is the floor's height.
+- **Why the test missed it:** the existing swept-volume test measured the cut against the feeds' own bounds.
+
+**The fix.**
+- A point at a depth is `q0·X + q1·Y + (o·n + floor − depth)·n`, then taken into the setup's frame. Only the origin's height along the normal counts.
+- It is a module-level `pocketPoint`, with the top height `o·n + floor` worked out once per pocket. The per-point `[0, 1, 2].map` closure is gone, as the hot-path rule requires.
+- Holes are unaffected, because `drillMoves` uses the world point `op.at`.
+
+**The oracle**, absolute (cam-package.test, "O157 the pocket where it is"). Each setup's feeds are taken back to world coordinates through its frame's transpose and must lie in the pocket inset by R = 3, at its levels:
+
+| Setup | Pocket | Feeds (x, y, depth) |
+|---|---|---|
+| +Z | CNC8's | [38, 82] × [28, 52], z [12, 17] |
+| −Z | the same, opening on the bottom | [38, 82] × [28, 52], z [3, 8] |
+| +X | a side pocket into x 120, y 25–55, z 4–16 | x [112, 117] × y [28, 52] × z [7, 13] |
+
+The test fails on the old code and passes on the fix.
+
+**Verified (T1):**
+- cam-package 4/4, chat-outputs 7/7, tool-contract 3/3;
+- studio cnc-cam 5/5 and chat 18/18;
+- tsc of model and studio; eslint 0 errors.
+
+**Not run:** the GPU lane's end-to-end "no overcut" check, which they add after this lands.
+
+## O158 — O3: the A9 brief's bearing moves off the key, from step 1 to step 3 (2026-10-23)
+
+**The clash.** With the default shaft (Ø20 × 30 / Ø25 × 40 / Ø20 × 25) and the default keyseat on step 1 (z 6–24), A9's 6204 on step 1 against the Ø25 shoulder (z 16–30) sat over the key. The clearance map reads that as a 115 mm³ clash, since nothing seats a key with a bearing (A9-6's test pins it).
+
+**The choice: move the bearing, not the key.**
+- The bearing goes on step 3, against that step's start, which is the other side of the same Ø25 shoulder. It now sits at z 70–84.
+- The shaft keeps every default: the keyseat on step 1, and the ring groove on step 3 at 18 from its start (z 88), clear of the bearing.
+- Step 3 is Ø20 like step 1, so the seat and its numbers do not change: k5 at 20, the seat note, `fit_clearance` H7/k6, and the bearing body's 19800.6522 mm³.
+- The S0's two lines (the parts list and step 6) are marked "corrected by O158". The A9 run (O5) follows the corrected brief. No placement in it is written yet.
+
+**The test** (clearance-designed, "O3 (A9 brief)"):
+1. The default shaft, its key, and the 6204 at `{step: 3, against: 'start'}`. The node stores step 3 and start.
+2. The key sits at z 6–24 and the bearing at z 70–84, read from their meshes.
+3. Key and shaft, and bearing and shaft, are both designed seats.
+4. No pair overlaps. The key and the bearing are not even a pair within the map's 1 mm.
+
+The A9-6 test of the old placement stays as it is: it is the record that the clash is found.
+
+**Verified (T1):** clearance-designed 5/5, tsc, eslint 0 errors.
+
+## O159 — O5, the A9 acceptance run, first half: the rows fixture and steps 1–7 (2026-10-23)
+
+**The rows** (`packages/barocss-cad-model/conformance/a9/rows/*.json`, with its README). The coordinator's conditions:
+- **It is a test fixture standing in for the person's files.** Each file is received through the chat's person-file path, `receivePersonRowFiles` at turn 1 (rows rule b), then passed by `file` to `features.load_rows` or the stock tools.
+- **Every row cites a source or says it is an estimate:**
+  - 6204: NSK's page, D139's B1. It gives no `boreDeviationUM`, because the page gives no bore tolerance.
+  - 214: Global O-Ring's AS568 chart, D139's O1.
+  - The fit rows (H7 18–30 and 30–50, k5, k6, N9, JS9, h9): all `estimate: true`, since ISO 286's deviations are not public as text (D139).
+  - R40: `estimate: true`, with sharp corners.
+  - B1, R30 and S6: the stock loaders require a source text, so it names this fixture as "an illustrative shop list for the A9 run, not a real shop's".
+- There is no standards text and no copied table.
+- One file per kind, in place of the S0's single rows.json, because a loader takes one kind per file.
+- **The owner's own acceptance, with a real person-supplied row/fit file, stays pending.**
+
+**The run** (`test/a9-acceptance.test.ts`). It goes through the real v2 tools (`dispatchTool`), on the brief as O158 corrected it. Each step and its oracle, all passing:
+1. **Rows.**
+   - `frame_sections {rows}` with the fixture's own rows is refused (ROWS_NOT_FROM_PERSON); the file loads R40, an estimate.
+   - Frame stock S6 with kerf 2, and stock B1 and R30 with allowance 1.
+   - The bearing, fit and O-ring rows go on the base, and each load echoes its file: name, `suppliedBy: person`, turn 1. The parts inherit them (A9-8).
+2. **Briefs.** The frame states purpose and material, and its process stays a gap: there is no weldment process (A9-12). p1 is cnc-milling, al6061; p2 cnc-turning, steel; p3 fdm, petg. Each part's manufacturability report runs on its own process (A9-2).
+3. **Frame.** 8 members, steel.
+   - **Exact:** A · ΣL = 444 · 2520 = 1 118 880 mm³, with the top at z 320.
+   - Cut list: [4 × 320, 2 × 360, 2 × 260].
+   - Nested into one S6: used 2520, kerf 14, offcut 3466.
+4. *(Welds, gussets and caps: not in this half.)*
+5. **Plate.** 200 × 300 × 14, so its 300 bridges the two 360 rails; four Ø6.6 holes over the rails, the Ø47 bore and the 50 × 30 × 8 pocket.
+   - **Exact:** 840000 − 12000 − 4π·3.3²·14 − π·23.5²·14 = 801 794.9075 mm³, to 5e-7.
+   - CAM: NOT FOR PRODUCTION; the stock a 210 × 310 × 16 box from B1 with allowance 1; the pocket's feed levels 11, 8, 6 in the +Z setup.
+6. **Shaft.** The defaults, the key, and the 6204: refused before its rows ("Load your bearing rows first"), then on step 3 against the start at k5.
+   - **Exact:** the bearing's body is 19 800.6522 mm³.
+   - Seat note: "k5: 20.002 to 20.011 (the ring's tolerance is not in its row), an estimate". The row's source is cited in the bearing's note.
+   - `fit_clearance` H7/k6 at 20: transition, −15 to +19 µm, an estimate.
+7. **Cover.** Ø60 × 8, a face gland for 214.
+   - Prefills: depth 3.53 · 0.75 = 2.6475 (2.648) and width π · 1.765² / (0.8 h) = 4.6208 (4.621), to 3 decimals.
+
+**Where the S0 was wrong, corrected here (no product change):**
+- **The offcut** is 6000 − 2520 − **7** · 2 = 3466. FRb's rule is n − 1 kerfs a bar (nesting.ts), where the S0 had 8 · 2.
+- **The seat note** has no "interference −21 to −2 µm": the row has no bore deviation, since D139's NSK source gives none.
+- **No weldment process**, so the frame's brief has no process (A9-12).
+
+**Findings: oracles not met, and not asserted yet.**
+- **F1. Manufacturing reports include the part's bought elements.**
+  - The shaft's cnc-turning report sizes it at "Ø47 × 95 mm along its axis". Ø47 is the 6204's outside; the shaft's largest step is Ø25.
+  - The cover's print layers (`print.layers`, G23 A) slice the bought O-ring body too: 45 layers to 8.882 mm with support columns from z 5.352, where the S0 expects 40 layers and no support.
+  - The BOM already tells made from bought (`elementLines`, bomCore). DFM, print and CAM do not use it.
+  - Proposal: one `madeBodies(doc, bodies)` by the same rule, applied to the manufacturability report, print layers and CAM. It touches cad-model's print and machining modules (this lane) and maybe the GPU lane's Print workspace input.
+- **F2. CAM drills every through hole twice,** once in the +Z setup and once in the −Z setup: holes 1–5 in both. The S0 expects one +Z setup.
+- **F3. CAM drills the Ø47 bore** as a plunge with the Ø6 tool, which cannot make it. A bore wider than the tool needs a circular pocket, or a refusal that names it.
+- **F4. Step 8 needs a placement decision.**
+  - With the bearing in the plate's bore (z 320–334), the shaft's step 3 stands 11 mm above the plate (z 345). A cover "on the plate over the bore" would clash with it.
+  - Options: (a) the cover on the plate clear of the shaft; (b) a cover with a clearance hole for the shaft; (c) the shaft's step 3 shortened to the bearing's 14, with no groove.
+
+**Verified (T1):** a9-acceptance 1/1 (steps 1–7), tsc, eslint 0 errors. Not run: the full suites.
+
+**Next (the second half), after F1–F4 are decided:** steps 4 and 8–11 — welds, gussets and caps; the assembly and its clean clearance map; the drawings; the BOM and purchase CSV; the outputs; the bundle; reopened identical.
+
+## O160 — F1: a part's process judges what it makes; bought elements stay out of DFM, print layers and CAM (2026-10-23)
+
+**The defect** (A9's F1):
+- The shaft's cnc-turning report sized it at "Ø47 × 95": Ø47 is the bought 6204's outside.
+- The cover's print layers sliced its bought O-ring: 45 layers with support columns from z 5.352.
+
+The BOM already tells made from bought; manufacturing did not ask.
+
+**The coordinator's decision: one shared filter, by the BOM's rule.**
+- **`madeBodies(nodes, bodies)`** (engine/elements.ts) keeps every body except a bought element's. "Bought" is decided by `boughtOf`, the BOM's own rule: the person's override (`bought` on the node), else the kind's default (BOUGHT_BY_DEFAULT: bearing, ring, key, pin, O-ring, spring, belt or chain, a connector's body; a coupling as its row says).
+- **Applied at the entry points**, so every caller follows:
+  - `printability`, which covers FDM/SLA/SLS/MJF, moulding, casting and machining through it;
+  - `machinability`, also called directly by rb9;
+  - `camPreview` and `camPackage`, including their stock and safe height;
+  - `output_print_layers`. A part whose bodies are all bought is refused there, with `[OUTPUT_EVALUATION]`.
+- **The studio's Print workspace** (the GPU lane's viewport/print.worker) builds its own mesh list, so it does not follow by itself. It needs `madeBodies` on its input. The coordinator relays that, and I touched none of their files.
+
+**Oracles** (a9-acceptance, plus the new made-bodies.test):
+- the shaft's turning size: "Ø25 × 95 mm along its axis…";
+- the cover's print at 0.2: 40 layers, no support, 8 high, as the S0 froze it;
+- the shaft's CAM refusal: identical with and without the key and the 6204, and naming the part's 95 × 25 × 25 (milled stock from the block list holds no shaft, so both refuse);
+- `madeBodies` directly: the shaft in and its key out; the person setting the key made puts it back.
+
+**F5, found while timing (not this fix):** the A9 shaft's cnc-turning report takes about 50 s at load 40–50. It took 72 s before this change, with the bearing counted. It makes a9-acceptance about a minute long, and a profile is worth doing later.
+
+**Verified (T1):**
+- model: made-bodies 1/1, a9-acceptance 1/1, and every model test file using printability, machinability, CAM or print layers (21 files, all passing);
+- studio: cnc-preview, cnc-cam, chat, im7, cnc-stock, im8b, mould-undercut, all passing;
+- tsc of model and studio; eslint 0 errors.
+
+## O161 — F2: a through hole is drilled once, by the first setup that reaches it (2026-10-23)
+
+**The defect** (A9's F2): the CAM package drilled every through hole in both its +Z and its −Z setup. `camPreview` lists each setup a hole is reachable from (`drillPoints`, one per access direction), and `camPackage` programmed them all.
+
+**The coordinator's rule, built in camPackage:**
+- **Setup order** is the order the operations bring the setups in. The pockets come first, so on CNC8's and A9's plates that is +Z.
+- **A hole reachable from several setups** is drilled once, in the first of them.
+- **Each other setup that has work of its own** records `notes: ["hole1: drilled in the +Z setup, not again here"]`. `SetupProgram.notes` is a new optional field, so cam-package-v1 readers are unaffected.
+- **A setup left with no work** is not made at all: A9's plate is one +Z setup.
+- **The preview** (`camPreview`, its SVG and the studio's cnc-cam test) still lists every direction a hole is reachable from. That list is about access, not the program.
+
+**The expectation change**, a decision-backed one:
+- The old cam-package test "CNC8's holes" pinned the through hole in −Z too.
+- It now has three holes: a through Ø6.6, a blind Ø5 from the top, and a blind Ø4 from the bottom, so the −Z setup still exists.
+- Each hole is drilled exactly once, and the through and top holes come from +Z, at depths 0 and 10.
+- −Z has only the bottom hole, a turned-over frame (axis [0, 0, −1]) and the note naming the through hole. +Z has no notes.
+
+**A9:** the plate's package is the one +Z setup, with its five holes each drilled once. The Ø47 bore is still a drill there, which is F3, next.
+
+**Verified (T1):**
+- model: cam-package 4/4, a9-acceptance 1/1, chat-outputs 7/7, cnc-holes 6/6, cnc-features 4/4, cnc-access 4/4;
+- studio: cnc-cam 5/5, cnc-preview 8/8;
+- tsc of model and studio; eslint 0 errors.
+
+## O162 — the bearing's housing line names its shoulder (the kernel's D181, FRk8a) (2026-10-23)
+
+The kernel lane's D181 (`ec4a4724c`) adds `report.housing.shoulder { at, diameterMM } | null` to `seatedBearing`: the planar annulus at a face of the bearing stepping in from the bore, its diameter the inner edge's. It also adds a warning when the housing has no shoulder at the located side, or at either face.
+
+- **The housing line** (engine/evaluate.ts `bearingNotes`) now reads "In the housing's Ø47 bore against its Ø40 shoulder at the bearing's end; no overlap" when there is a shoulder. With none, it reads as before.
+- **The warning** comes through as a warning note, unchanged: it was already in `report.warnings`, which the notes pass on.
+- **Tests** (bearing.test):
+  - a Ø47 bore over the bearing's 16–30 with a Ø40 lip over 30–34, unioned into one housing body: the line names the Ø40 shoulder at the end, and there is no warning;
+  - a plain Ø47 bore: the line without a shoulder, plus the kernel's "the housing has no shoulder at either face of the bearing" as a warning.
+- This worktree's `packages/barocss-cad` dist was rebuilt from integration (D181 included) before the tests ran.
+
+**Verified (T1):** bearing 5/5, bearing-housing 4/4, bearing-housing-context 8/8, clearance-designed 5/5; tsc of model and studio; eslint 0 errors.
+
+## O163 — F3: a hole wider than the tool is milled as a circular pocket, never plunged (2026-10-23)
+
+**The defect** (A9's F3): CAM planned the plate's Ø47 bore as a plunge with the Ø6 tool. The package carries one tool, and a plunge of it makes a hole of the tool's diameter. The GPU lane's heightfield cuts every move with that tool, so a "drill" pass already showed Ø6 holes for every hole.
+
+**The rule**, the coordinator's "never a plunge" with "the tool too small for a plunge of that size":
+- **A hole up to the tool's diameter** (within 1e-9) is a drill point, as before: plunge and retract.
+- **A wider hole** is a circular pocket (`boreAsPocket` in cam.ts, a module-level function), built with the pocket machinery:
+  - the floor at the hole's bottom, the plane square to its setup;
+  - the outline its circle, drawn as an inscribed polygon whose chord-to-arc gap is ≤ 1e-3 mm, so the cut stays inside;
+  - loops inset by R, then by the stepover; levels at the step-down to its depth;
+  - the note "Ø47 is wider than the Ø6 tool: milled as a circular pocket, not drilled".
+- **Through bores** are listed from both ends by the preview. O161's made-once rule now covers every operation by feature, not only drills, so a bore is milled once and the other setup notes "milled in the +Z setup, not again here".
+- **This also covers the Ø6.6 holes with the Ø6 tool:** each is a small circular pass, the loop at r 0.3. A plunge of the Ø6 tool would leave them Ø6. A hole narrower than the tool is still a drill point (it overcuts), as before. A refusal for it is not decided here.
+- **No refusal code was needed:** the pocket machinery takes the circle for any hole wider than the tool.
+
+**Tests:**
+- cam-package's hole test is now about drills: three Ø4 holes with the Ø4 tool, each plunged once, with F2's notes.
+- The new F3 test: a Ø47 through bore and a Ø6 hole with the Ø6 tool, checked in world coordinates:
+  - one +Z setup; the bore one circular pocket, never drilled, at levels 3, 6, 9, 12 and 14;
+  - every feed within 23.5 − R of the axis, the outermost there to the polygon's 2e-3;
+  - feeds from z 11 down to z 0; the Ø6 hole plunged.
+- The A9 plate: one +Z setup with six features (the 50 × 30 pocket, the Ø47 bore and the four Ø6.6 holes), each made once and none drilled. The pocket's own feeds are still at levels 11, 8 and 6.
+- The studio's cnc-cam CNC8 test, Ø4 tool:
+  - the Ø6.6 through hole is a circular pocket listed from +Z (floor z 0) and from −Z (floor z 20); the Ø5 blind one from +Z (floor z 10), each with its note;
+  - with a Ø5 tool, the Ø5 hole is a drill point again;
+  - the SVG draws the pockets' polygons, and a drill's circle.
+
+**Not run:** the browser flow. The GPU lane's CNC flow step on `cnc8-pocket.bcad` may count drill passes. Its Ø6.6 holes with the default Ø6 tool are now pocket passes, so that flow needs a run, theirs or the window's.
+
+**Verified (T1):**
+- model: cam-package 5/5, a9-acceptance 1/1, chat-outputs 7/7, tool-contract 3/3;
+- studio: cnc-cam 5/5, cnc-preview 8/8, made-bodies-previews 2/2, chat 18/18;
+- tsc of model and studio; eslint 0 errors.
+
+## O164 — O5, second half begun: the weldment (step 4) and the assembly with a clean clearance map (step 8) (2026-10-23)
+
+The A9 run's second test continues the first's state. It is one run on one document, with the brief as O158 corrected it.
+
+**Two brief adjustments, made so the parts fit together:**
+- **The plate's holes** sit 10 in from its 300 ends (y 10 and 290), so all four land on the rails. The rails' centres are 300 apart and each rail is 40 wide (z 280–320); 20 in from the ends would miss one rail. The exact volume is unchanged.
+- **F4 (b), the coordinator's choice:** the cover has a Ø22 hole round the shaft's end. That is the Ø20 step plus a stated 1 mm a side (`SHAFT_END_MM`, `COVER_CLEARANCE_MM`). The cover still prints in 40 layers with no support.
+
+**4. The weldment:**
+- **Gussets:** 4 at the leg tops, each 60 × 60 × 5 clipped 10, with its 360 rail. Each is (60·60 − 10²)/2·5 = 8750 mm³ (FRk1).
+- **End caps:** 4 inset caps, 4 thick, in the legs' feet, each 34·34·4 = 4624 mm³.
+- **Joints:** 20 — 8 rail ends, 8 gusset seams and 4 caps.
+- **A cap's weld** defaults to butt. A fillet record on a cap is refused (the caps' joints are in `refusedJointIds`), the part still evaluates, and the records are removed.
+- **Fillets** of 3 mm at the other 16 joints, with bead ownership `{version 1, equal-length}`. Without it, the shared seams are refused (BEAD_SHARED_CONTEXT).
+- **Beads:**
+  - each rail end is the kernel's `bead-tee-flush` case, 360 mm³ nominal (8 × 360 = 2880, as the S0 froze it);
+  - each gusset's 200 mm of seams at leg 3 is 3²/2·200 = 900 mm³;
+  - complete: 12 bodies, 6480 mm³ nominal, none refused.
+
+**8. The assembly:**
+- **Placed exactly:**
+  - the plate at (100, 0, 320), on the rails' top;
+  - the shaft at (200, 150, 250), so the bearing's 14 lies in the plate's 14, z 320–334;
+  - the cover at (200, 150, 334), on the plate over the bore.
+- **A9-7, the 6204 housed in the plate's bore** (another part) through the bearing command with `housing: part:{p1, b9}` and H7:
+  - "In the housing's Ø47 bore; no overlap";
+  - "Housing seat H7: 47 to 47.025…";
+  - D181's warning that the plain bore does not locate the outer ring.
+- **The clearance map**, with every contact filled (83 pairs, about 4 s), is clean:
+  - no pair overlaps;
+  - the designed seats are named: the key in its keyseat, the bearing on its shaft (k5) and in p1/b9 (H7), the O-ring in its gland;
+  - the weld beads are designed with their members;
+  - the rest touch or are clear;
+  - the one near pair is the shaft's end in the cover's hole: 1 mm a side by construction, which the display meshes measure as 0.984 (their chords). It is asserted within 0.02 below 1.
+
+**Findings (not fixed here):**
+- **F6. The chat's `edit_feature` cannot set a cross-part housing.**
+  - `editFields` gets no assembly context in a part-scoped edit, so its Housing choice is only "none, 0, 1". The bearing command does get the context, through the part draft's view (`bearingPartView`).
+  - An agent has to delete the bearing and put it again with the housing, which is what the run does.
+  - The fix is in this lane: pass the part draft's bearing context to `editFields` from the edit handler (tools.ts:899).
+- **F7. The cap's bead refusal is reported only as ids in this order.**
+  - With the fillet records set first and the ownership after, the weld list puts the caps in `refusedJointIds` but gives no `bead.refused` message on the joint.
+  - In a scratch probe that set them in another order, the joint carried "[BEAD_KIND] a cap sits flush…".
+  - It is a reporting gap: the refusal itself holds.
+- **F5 (O160)** is unchanged: the shaft's turning report takes about 50 s, and the run is now about 65 s.
+
+**Still to do in O5:** step 9 (the drawings, one per made part in sequence: the document has one drawing and its scope picks the part), step 10 (the BOM and the purchase CSV), step 11 (the bundle), and reopened identical.
+
+**Verified (T1):** a9-acceptance 2/2 (about 65 s), tsc, eslint 0 errors.
+
+## O165 — O5 done as an automated run: drawings, BOM and CSV, the bundle, reopened the same; F8–F10 left open (2026-10-23)
+
+The A9 run (`test/a9-acceptance.test.ts`) is three tests on one state: steps 1–7 (O159–O160), steps 4 and 8 (O164), and now 9–11 with the reopen. It takes about 185 s at load 30–35; F5's turning report is most of the first test's time.
+
+**9. A drawing per made part.**
+- **The model:** a document has one drawing, and a part scope switches its subject. Once a sheet holds model references, switching is refused (DRAWING_SCOPE_REFERENCES). So the weldment is the base's own drawing, and each placed part has its own drawing, set part-scoped.
+- **Sequence:** each is set by a proposal the person accepts (`acceptProposal`), then `auto` and `fix` run.
+  - The weldment drawing: A3, front/top/right/iso, weld symbols, balloons, and the BOM, cut-list and weld-list tables.
+  - The plate, the shaft and the cover: A3 each.
+- **Asserted:**
+  - each part has its own drawing;
+  - the weldment's options are on;
+  - **the plate's drawing is clean**;
+  - no drawing is short of a fit row.
+
+**10. The BOM and the purchase CSV, through v2.**
+- **The CSV** holds exactly the three bought lines:
+  - the key: no row, no source, an estimate (A9-11);
+  - the 6204 and the 214, each with its row and its D139 source.
+- **The made lines' masses** are by material, for example the plate's 801 794.9075 mm³ · 2.7 g/cm³.
+
+**11. The bundle.**
+- Refused with no approved baseline (`[OUTPUT_BUNDLE_INCOMPLETE]`).
+- A forged user token's approval is refused (APPROVAL_IS_THE_USERS).
+- The person approves through review → approved with the user's token. The bundle is then complete and intact, with nothing missing, changed or stale, and its six files.
+- `cad-cli`'s fresh-process verify (A7.5's style) is not run here.
+
+**Reopened.** The document is encoded, read again, and gives the same BOM, CSV and clearance map (less the map's run-time `timing`), and a complete, intact bundle.
+
+**Open findings, not asserted:**
+- **F8. Drawing issues left after auto and fix:**
+  - **Weldment:**
+    - TEXT_OVERLAP, an error: the top view's name over weld symbol W1. At A3 1:10 it was TEXT_OVER_LINES.
+    - WELD_NOT_SHOWN: 12 welds have no visible edge in front/top/right, against the S0's "none with symbols on".
+    - BALLOON_NO_EDGE: BOM line 3.
+  - **Shaft:**
+    - TEXT_OVERLAP, an error: a note over the front view's name.
+    - DIM_ON_HIDDEN ×2: the keyseat's 12.5 and 25, with no section added. O148 X3's fix covers a keyseat, yet `fix` did not add it here.
+  - **Cover:** HOLE_NOT_LOCATED reports "4 holes" on a cover with one hole, plus the gland, so it is probably counting the gland's edges.
+  - **The sheet sizes** are A4 and A3 only.
+- **F9. The four M6 screws cannot be BOM lines.**
+  - The `fastener` command builds them from a built-in catalogue (FASTENER_SIZES), which the rows rule would replace with a person's row.
+  - No element kind makes a fastener a bought line.
+  - Needs a decision: a fastener row kind and element, or the screws left out of A9.
+- **F10. The frame's members are not BOM lines** and their mass is not in the BOM.
+  - `deriveBom` lists placed parts, plates and elements, but not the base part's own bodies.
+  - The S0 expects the members by cut-list row, and Σ volume · density with nothing assumed.
+
+**The owner's acceptance** with a real person-supplied row/fit file stays pending: the rows here are the fixture.
+
+**Verified (T1):** a9-acceptance 3/3 (about 185 s), tsc, eslint 0 errors. Not run: the full suites and any browser flow.
+
+## O166 — a hole narrower than the tool is refused by name, CAM_TOOL_TOO_LARGE, never an overcut drill (2026-10-23)
+
+**The rule**, the owner's ("a typed refusal over a wrong result"), relayed by the coordinator:
+- A plunge of the package's tool makes a hole of the tool's diameter. Since O163, a hole wider than the tool is a circular pocket.
+- A hole **narrower** than the tool was still a drill point, and it would come out too big without saying so.
+- camPackage now refuses that operation, not the package:
+  - `refusals: [{ feature, setup, code: 'CAM_TOOL_TOO_LARGE', message: 'Ø5 hole is narrower than the Ø6 tool: a plunge would overcut it' }]`, a new optional field, absent when there is nothing to refuse, so cam-package-v1 readers are unaffected;
+  - the setup that would have drilled it notes "hole1: [CAM_TOOL_TOO_LARGE] …";
+  - the rest of the program is kept.
+- **The preview** (`camPreview`) still lists the hole's drill point, as its access list. The package is what refuses.
+
+**Test** (cam-package, "O166"):
+- a Ø5 and a Ø6 blind hole with the Ø6 tool: the Ø5 is refused by its code and message, in +Z with its note, and the Ø6 is still drilled; the linking rule holds;
+- with a Ø5 tool there is no `refusals` key at all (the Ø5 is drilled, the Ø6 a pocket).
+
+No studio expectation relied on an overcut drill: cnc-cam tests the preview.
+
+**Verified (T1):** model cam-package 6/6, chat-outputs 7/7, a9-acceptance 3/3; studio cnc-cam 5/5, cnc-preview 8/8, made-bodies-previews 2/2; tsc of model and studio; eslint 0 errors.
+
+## O167 — F6: the chat's edit_feature links an existing bearing to another part's housing (2026-10-23)
+
+**The gap** (A9's F6):
+- A part-scoped `edit_feature` called `editFields(nodes, index)` with neither an assembly input nor the part draft's bearing context. Its Housing choice was only the part's own bodies (none, 0, 1), and its seat-class choices were empty, because no fit tables were passed.
+- The bearing command already offered the other parts' bodies, through the draft's context (`bearingPartView`). So an agent had to delete a bearing and put it again to link its housing.
+
+**The fix:**
+- `editFields` takes an optional fifth argument, `EditScope { context?, fits? }`, used only when no assembly input is given:
+  - the housing options come from `bearingHousingOptions(…, context)`, the same as the bearing command's;
+  - the seat classes include the draft's fit tables.
+- The chat's edit handler (tools.ts) passes `{ context: bearingContextOf(state.doc), fits: state.doc.fits }`. In a part-scoped call, `state.doc` is the part's shop view, carrying its context and its inherited rows.
+- The studio's call (App.tsx, with its assembly input) is unchanged.
+
+**Tests:**
+- bearing-housing-context, "O167 (F6)":
+  - an existing bearing on p2 is linked by `edit_feature {housing: part:{p1, b1}, housingClass: H7}`: `housingRef` set, `housing` unset, the class H7, and the report covered;
+  - then cleared with `none`;
+  - a housing in a part that does not exist is refused.
+- The command path with a housing stays tested in the file's A9-7 test.
+- **The A9 run** now edits the bearing it put in step 6, rather than deleting and re-adding it. The bearing keeps its id (n2), and the clearance map names its seats as "bearing n2 …".
+
+**Verified (T1):**
+- model: bearing-housing-context 9/9, a9-acceptance 3/3, and every model test file using `edit_feature` or `editFields` (28 files, all passing);
+- studio: bearing-edit 7/7, bom-linked-ui 5/5, assembly-linked-faces 5/5;
+- tsc of model and studio; eslint 0 errors.
+
+## O168 — F7: a refused bead is said on its joint with placed parts too (2026-10-23)
+
+**The defect** (A9's F7): with placed parts, a fillet on a cap was counted refused (`refusedJointIds`), but its joint in the weld list had no `bead.refused` message.
+
+**The cause:**
+- The kernel's bead refusals are kept by key: the bead feature plus the canonical model content of the document evaluated (`refusedBeads` in engine/part.ts).
+- The evaluation (`partSnapshot`) keys them on the resolved document, with shop rows resolved into each placed part and skeletons solved.
+- `beadRefusal`, which the weld list and the bead accounting use, looked them up on the authored document. Without placed parts the two coincide, which is why a scratch probe saw the message. With placed parts, the inherited rows make them differ, so the lookup missed.
+
+**The fix:**
+- `beadRefusal` looks in the evaluated view first: `resolveShopTree`, then `resolveSkeletons`, the evaluation's own steps, cached per document in a WeakMap.
+- It then looks in the authored document, where the section and face readers record refusals through `withBeadRetry` directly.
+- The refusals and their keys are unchanged.
+
+**Tests:**
+- frame-welds, "O168 (F7)": a table frame with one inset cap and a placed part inheriting the base's section row. A fillet on the cap, with bead ownership set, gives `[BEAD_KIND] a cap sits flush…` on the cap's joint and its id in `refusedJointIds`. The test fails without the fix.
+- The A9 run asserts the message on each of its four caps' joints.
+
+**Verified (T1):**
+- model: frame-welds 6/6, a9-acceptance 3/3, and every model test file on beads or welds (14 files, all passing: bead-ownership-policy, shared-bead*, weld-beads, wire-welds, frk-acceptance, frk5-editor, cnc-drawing, shop-rows, team-input-authority, tool-contract);
+- studio: chat, frame, memory, mould-quote;
+- tsc of model and studio; eslint 0 errors.
+
+## O169 — F10: an assembly's base part makes things too; its members are BOM lines, and BOM masses are by material (2026-10-23)
+
+**The defect** (A9's F10): `deriveBom` listed the placed parts, plates and elements, but not the base part's own bodies. A9's welded frame, the base, had no member lines, and its mass was missing from the total. The S0 wants the members by cut-list row and Σ volume · density with nothing assumed.
+
+**The coordinator's decision:**
+- An assembly's base part's made bodies are BOM lines.
+- Frame members merge by cut-list row (section, length, material).
+- The mass is Σ volume · density.
+- This is a correction, not a contract break: the BOM is derived, and nothing saved changes.
+
+**Built** (team/bomCore.ts, team/assembly.ts):
+- **The view's new optional `base`**, only for a document with placed parts:
+  - its members by the cut-list rows of its made bodies (`madeBodies`, then `partCutList`): item, section, long-point length, material, pieces, mass;
+  - its other made bodies (neither members nor elements), one each;
+  - the base part's whole mass, as a placed part's is counted.
+- **Lines:**
+  - each member row is a line "rect-tube 40 × 40 × 3 × 320", qty its pieces, `parts` `base:<body>`, `member {section, lengthMM}`, after the parts and before the plates;
+  - each other base body is its own line.
+- **`totalMassG`** adds the base part's mass. `totalQty` stays the number of placed parts.
+- **`checkBom`** checks the base lines:
+  - each member piece on its row's line exactly once, with that row's section, length and material;
+  - each other base body on one line;
+  - the total mass with the base included.
+- **A single part** (no placed parts) is unchanged: it is its own one line, "this part" (bom.ts), so its bodies are not listed twice.
+
+**Found while building it — BOM masses were the default material's.**
+- A body's own `massG` is the default material's density (aluminium), whatever the person set, so four steel gussets weighed 94.5 g, at 2.7.
+- BOM masses now come from the exact volume times the body's material density (`exactMass`) for the members, other base bodies and plates. A single part's base mass uses `massProperties`, as a placed part's always did.
+- No existing test had pinned a plate's mass in a material other than the default, so no expectation changes for it.
+
+**Expectations changed**, each justified:
+- The A9 run, step 10, now asserts:
+  - the three member lines: [320 × 4, 360 × 2, 260 × 2], steel, each n · A · L · 7.85e-3;
+  - the plates by steel: 4 × 8750 · 7.85e-3 and 4 × 4624 · 7.85e-3;
+  - the total above the parts plus the members (the plates and beads too).
+- Its comment no longer lists F10 as open.
+- No other model or studio test changed: none had base-part bodies in an assembly.
+
+**New test** (bom-base.test):
+- a frame base with one placed plate: the member lines by row in steel, `checkBom` clean, the total the plate plus the base, `totalQty` 1;
+- a single frame part: its one line, weighed in steel, not aluminium.
+
+**Verified (T1):**
+- model: bom-base 2/2, a9-acceptance 3/3, and every model test file on the BOM, baseline or mass, all passing;
+- studio: bom-linked-ui, chat, made-bodies-previews, mould-quote, team-bundle;
+- tsc of model and studio; eslint 0 errors.
+
+## O170 — F8, first error: one Fix leaves the sheet fixed, with the sheet built again after each round (2026-10-23)
+
+**The defect:**
+- On the A9 shaft (the defaults, the key, the 6204), after `auto` and one `fix`, there was a TEXT_OVERLAP error: a dimension over the key's note (in A9, over a view's name).
+- A second `fix` cleared it.
+- **Cause:** that Fix adds the keyseat's section B (O148 X3's fix) and re-dimensions. The new section is a new view to lay out. `fixAll` ran on inputs built before it started, so the section's view and the overlap it brings were invisible to the same pass.
+
+**The fix** (chat/drawing.ts, `fix_drawing`):
+- After a round of `fixAll`, the inputs are built again from the fixed settings (`drawingInputs`), and the fixes run again, until a round applies none (`FIX_ROUNDS`, 4).
+- The answer's issue list is the sheet as built after the fixes, the same as asking for the issues again.
+- **The studio's Fix all** (DrawingWorkspace, its sections from `useDrawingSheet`) still does one round: its section geometry follows the settings asynchronously, so a second press finishes it. That is left as a follow-up, because the hook now feeds the GPU lane's 3D annotations.
+
+**Test** (drawing-fix-rounds):
+- on the shaft, one Fix adds the section and leaves no error and no TEXT_OVERLAP;
+- its reported issues equal a fresh `issues` call;
+- a second Fix applies nothing.
+
+**Still open in F8** (the A9 run, after this):
+- **Weldment**, A3, four views, symbols, balloons and three tables: two TEXT_OVER_LINES errors without a fix — a dimension "3" over lines, and the top view's name pushed into the next view by the dimensions under it.
+  - Auto layout's room counts only dimensions: not weld symbols, tables or balloons. At A3, the largest sheet, its scale search finds no clean layout.
+  - At an explicit 1:10, it becomes a TEXT_OVERLAP between the top view's name and weld symbol W1, again with no fix, because names and weld symbols are not movers.
+- **Shaft:** DIM_ON_HIDDEN ×2, now on two dimensions besides the one X3's section serves.
+- **Cover:** HOLE_NOT_LOCATED counts 4.
+- **Weldment:** BALLOON_NO_EDGE, WELD_NOT_SHOWN.
+
+**Verified (T1):** drawing-fix-rounds 1/1; chat-drawing 4/4, drawing-issues 9/9, drawing-scope 8/8, frame-acceptance 2/2, frame-weld-symbols 3/3, tool-contract 3/3, toolset 9/9; a9-acceptance 3/3 (the shaft's drawing now has no error); tsc of model and studio; eslint 0 errors.
+
+## O171 — F8, second error: a frame member's bore gives no levels; the weldment's drawing has no error (2026-10-23)
+
+**The defect:**
+- A9's welded table frame drawing (A3, four views asked, weld symbols, balloons, the BOM, cut-list and weld-list tables), after `auto` and `fix`, kept two TEXT_OVER_LINES errors with no fix: a dimension "3" over lines, and the top view's name pushed into the next view by the dimensions under it.
+- **Cause:** at every member end, Auto-dimension took the tube's bore edges as levels: they are visible looking into the open end. So it gave a 3 and a 37 (the wall, and the bore's other side) at each, 19 dimensions in all.
+- Those crowded the sheet past its room. The layout's scale search then found no readable clean scale at A3 and kept the attempt with the fewest errors.
+
+**The fix** (drawing/auto.ts `levels`):
+- A frame member's bore, a face named `n<frame>.m<member>.bore…`, gives no levels. Its wall is its section's, said in the cut list and in the section's callout.
+- Gears' and pulleys' `.bore` faces are not frame members and are unchanged.
+- `levels` also serves the view choice and STEP_NOT_LOCATED, which therefore no longer ask for those levels either.
+
+**Result:**
+- The frame gets 11 dimensions (the overall 400, 300 and 320, the rails' 40s, 340, 440 and the levels of the gussets and caps).
+- Auto finds a readable 1:10 on A3, and Fix has nothing to do.
+- What is left is the two warnings, BALLOON_NO_EDGE and WELD_NOT_SHOWN, which are F8's next items.
+
+**Tests:**
+- weldment-drawing, "O171": that frame with a placed plate. After `auto` and one `fix`, there is no error, no dimension to a member's bore, and the overall 400, 300 and 320 are given. The test fails without the fix.
+- The A9 run's step 9 now asserts the S0's oracle: no error on any of the four drawings.
+
+**Verified (T1):**
+- model: weldment-drawing 1/1, a9-acceptance 3/3, and every model test file on auto-dimension, auto layout, drawing issues or frames, all passing;
+- studio: every test file on drawings, auto or frames, all passing;
+- tsc of model and studio; eslint 0 errors.
+
+## O172 — F8: Fix keeps the keyseat's dimension; a snap point is a visible edge's; the shaft's DIM_ON_HIDDEN found to be the bought bearing's (2026-10-23)
+
+**The coordinator's question:** why didn't O148 X3's section serve the shaft's two DIM_ON_HIDDEN?
+- **Answer:** they are not the keyseat's.
+  - Dimension 12.5 runs from the Ø25 shoulder to the end chamfer's centre, and dimension 25 across the Ø25 shoulder, both in the top view.
+  - From the top, both Ø25 shoulder circles (z 30 and z 70) are hidden by the **bought 6204** on step 3 (z 70–84), whose ring covers radius 10 to 23.5.
+  - X3's section is the keyseat's. These two are hidden because the part's drawing is projected with its bought elements in it.
+- **The same cause** makes the issue list count a bought bearing's bore and an O-ring's circles as holes: the shaft's "5 holes" and the cover's "4 holes" (HOLE_NOT_LOCATED and HOLE_SIZE_MISSING). Auto-dimension cannot meet those.
+- **The fix that would end all of it:** a part's drawing views projected from what it makes, by the BOM's `boughtOf` (`madeBodies`, as O160 did for DFM, print and CAM). It changes every drawing with elements, in two places: the chat's `drawingInputs` and the studio's `useDrawingSheet`, which now feeds the GPU lane's 3D annotations. **It goes to the coordinator for a decision; not built here.**
+
+**What is built, three defects found on the way:**
+- **Fix's Auto-dimension had no elements.**
+  - In `applyFix`, the `auto-dimension` fix called `autoDimensions(…, [] , …)`, so O146's keyseat and keyway plans were lost. A Fix that re-dimensioned dropped the keyseat's d − t1 instead of putting it on its section, the very thing X3's message promises.
+  - It now passes the context's elements (issues.ts).
+- **A snap point was the first edge found at a place,** hidden or not (dimensions.ts `snapPoints`). Where edges coincide on the view, it is now a visible edge's when one is: a module-level `addSnap`, with no closure per point.
+- **Fix's rounds** (O170) re-dimensioned every round, with Auto-dimension and the moves undoing each other on issues it cannot meet (the bought holes above). A later round now re-dimensions only after the round before added a section. On the shaft that is 2 re-dimensions, not 4.
+
+**Tests** (drawing-fix-elements):
+- one Fix on the shaft adds section B, re-dimensions twice, leaves the keyseat's dimension on section B–B, and leaves no error;
+- a synthetic view with a hidden and a visible edge at one place: the snap point is the visible one's, in either order.
+- Both fail on the code before.
+
+**Verified (T1):**
+- model: drawing-fix-elements 2/2, a9-acceptance 3/3, and every model test file on drawings or dimensions, all passing;
+- studio: every test file on drawings or dimensions, all passing;
+- tsc of model and studio; eslint 0 errors.
+
+**Still open in F8:**
+- **The decision above.** It would end the shaft's DIM_ON_HIDDEN and the cover's hole count.
+- **BALLOON_NO_EDGE** (the weldment's BOM line 3).
+- **WELD_NOT_SHOWN** (12 welds with no visible edge in front, top and right).
+
+## O173 — F8: every weld has its symbol; BALLOON_NO_EDGE on the end caps is right (2026-10-23)
+
+**WELD_NOT_SHOWN.** A9's frame drawing said 12 welds had no visible edge in front, top or right, so they got no symbol. Two misreadings in `seamEdge` (drawing/welds.ts), which finds a joint's seam edge by its end face's name:
+- **A trimmed end face comes in pieces:** the projection names them `n0_env1#1` and `n0_env1#2`. The seam's face is `n0_env1`, and the names were compared exactly, so every rail end that butts a leg had no seam in any view. A piece is now the face's (`onFace`, stripping `#n`).
+- **An edge with no pieces lies wholly on visible ink,** by BrepProjection's contract: it coincides with a visible line another edge draws. It was read as unseen. It is now visible.
+- **Stability:** an arrow still follows its seam by name through an edit (FRd2). The seam edge is chosen with an edge drawn in its own visible pieces before one only on another's ink, then the longer, then by name.
+
+**BALLOON_NO_EDGE stays, by design.** On the weldment it is BOM line 3, the end caps: inset plugs inside the legs' feet, with no visible edge from the iso view's side. The warning says so, and the BOM table lists them.
+
+**Expectation changed** (frame-weld-symbols, FRd2's own test):
+- It pinned W8 and W13–W16 as unshown, "behind other members". By the projection's contract they were not hidden: their seams lie on another member's visible outline, as edges with no pieces.
+- All 16 joints are now shown, and WELD_NOT_SHOWN is not raised.
+- Its `onEdge` helper accepts an edge on ink as visible and a pieced face name as the face's.
+- The edit-follow test still holds, the same edge before and after, by the selection order above.
+
+**Tests:**
+- weldment-drawing (O171's) now also asserts all 20 welds placed, none unshown, and the one issue left BALLOON_NO_EDGE;
+- frame-weld-symbols 3/3.
+
+**Verified (T1):**
+- model: every test file on drawings or welds, all passing; a9-acceptance 3/3;
+- studio: every test file on drawings or welds, all passing;
+- tsc of model and studio; eslint 0 errors.
+
+**F8 now:** the weldment drawing has only BALLOON_NO_EDGE (correct). The shaft's DIM_ON_HIDDEN and the cover's hole count wait on the coordinator's decision (O172: a part's views without its bought elements). The A4/A3-only limit is recorded.
+
+## O174 — F8: a part's drawing is projected from what it makes (2026-10-23)
+
+**Decision (the coordinator's, on O172's question).** A part's drawing documents what the part makes. Its bought elements (the BOM's `boughtOf`: keys, pins, bearings, O-rings, unless the person sets `bought: false`) are left out of its views and its sections, as DFM, print and CAM leave them (O160). An assembly-scope drawing keeps its bought parts. No phantom display of bought elements for now; that stays a possible later option.
+
+**Where:**
+- `brepsFor(doc, { made })` (engine/evaluate) drops the outputs `boughtOutputIds` names, falling back to every output if none would remain; instances unchanged.
+- `sectionsCut(…, made)` (drawing/section) neither cuts nor draws them.
+- The chat's `drawingInputs` and the studio (`useDrawingSheet` → `engine.drawing({ made })` → the worker) both pass `made` when the scope is not `assembly`. useDrawingSheet's change was agreed with the coordinator (the GPU lane reads that hook).
+
+**Two follow-ons the change exposed:**
+- **A round outline locates what is on its centre** (drawing/issues `coverage`). A view whose extents equal a circle's diameter (a shaft or cover seen end on) locates every circle concentric with it: there is no edge to measure from. The extents are of the flattened curves, so the match is to `OUTLINE_REL` = 1e-4 of the diameter (24.9998 against 25). An off-centre hole is still HOLE_NOT_LOCATED until dimensioned.
+- **Fix keeps its best round.** With the bearing gone, a Fix round can make what the next one clears (a section's view), and a later round can undo an earlier one. The rounds run as before (O170, O172); the sheet with the fewest errors, then the fewest warnings, is kept only when better than the start. A second Fix applies nothing (idempotent).
+
+**Expectations changed, by class:**
+- **Bought elements' edges are no longer projected** in a part's views. The shaft's Ø25 shoulders had been hidden behind the bearing (DIM_ON_HIDDEN).
+- **Hole counts exclude bought bores and rings:** the bearing's bore and the O-ring's circles had counted as the part's holes.
+- **Leader notes to bought elements are dropped** (element-callouts): with the key and pin bought, no note; set made (`bought: false`), both notes as before.
+- **Bought keys are not cut in sections** (section-dimensions): 2 bodies cut with the key bought, 3 with it made, each hatched at its own angle as before.
+
+**Tests** (drawing-made-views, new):
+- the shaft with key and bearing: no edge of n1/n2 in front, top or right; after Auto-dimension and Fix, no issue; `brepsFor` gives 1 B-rep made, 3 for an assembly's drawing;
+- the cover: its Ø22 bore and gland concentric with the round outline are located by it, the O-ring not drawn, no issue; an off-centre Ø4 is still HOLE_NOT_LOCATED.
+
+**Verified (T1):**
+- model: drawing-made-views 2/2, and the 27 model test files on drawings, sections, welds or dimensions, a9-acceptance 3/3 among them, all passing;
+- studio: pmi 3/3, section-cutout 2/2, section-hatch 3/3, section-planes 4/4, section-view 5/5, bom-linked-ui 5/5;
+- tsc of model and studio; eslint 0 errors on the changed files.
+- Not run: the flow (its slot is still pending, with the uncommitted rows-file steps).
+
+**F8 now:** the shaft and the cover drawings have no issue; the weldment's only issue is BALLOON_NO_EDGE (correct, O173).
+
+## O175 — the studio's Fix all runs the chat's rounds; a part's sheet with balloons draws its bought items (2026-10-23)
+
+**Fix all's rounds in the studio.** The chat's fix_drawing builds the sheet again after each round (O170), re-dimensions only after a section was added (O172) and keeps its best round (O174). The studio's Fix all ran one fixAll pass: on the default shaft and its key it added the keyseat's section B and stopped, and the section's view still had DIM_ON_HIDDEN, so it took a second click.
+- **The rounds are one function now,** `fixRound` in drawing/issues (with `fixRoundsStart`, `fixRoundsOutcome`, `fixScore` and `FIX_ROUNDS`). Each call scores the sheet the last round's settings built, keeps the best, and runs the next fixAll. It hands back `next`, the settings to build and come back with, or the outcome.
+- **The chat** runs the rounds in one call, building each `next` with drawingInputs (its behaviour unchanged).
+- **The studio** (DrawingWorkspace only; no hook change) commits each `next` and waits until the worker has cut every section the settings list. Then it runs the next round on the sheet with that view. The rounds stop if the settings change from elsewhere or the projection fails (the best so far kept). The toast comes at the end, with the best sheet's issues.
+- **Limit:** each round is its own undo step (App's `commitDrawing` pushes one per change). Undoing a Fix takes as many steps as it had rounds.
+
+**A part's sheet with balloons draws its bought items** (`drawsMadeOnly` in drawing/scope; the chat's drawingInputs and useDrawingSheet both use it). O174 left them out of every part-scope sheet. A balloon points at its BOM line's item, a bought key too, so on the flow's BOM-table-and-balloons sheet (a part scope since its first change) balloon 2 had no edge. With balloons on, the sheet is drawn from every body, as an assembly's is.
+
+**Tests:**
+- drawing-fix-rounds, new: Fix all driven round by round as the studio does reaches the chat's settings with no error. One pass alone adds the section and leaves more (the studio before).
+- drawing-made-views, new: a part sheet with balloons draws the bought key, balloons 1 and 2 on their items, none without an edge. Without balloons, the key is not drawn. It fails without `drawsMadeOnly`.
+- Flow, uncommitted until its slot:
+  - a new step `O175 Fix all rounds`: the shaft and its bought key, Auto-dimension, one Fix all; section B, no issue, no Fix all button left, no note on the key;
+  - O145's element-notes step sets the key made in the BOM first, since a bought key is not drawn (O174);
+  - CNC7b's `fs` import moved from CNC2, where the earlier edit had put it (lint).
+
+**Verified (T1):**
+- model: the drawing test files listed in the commit, a9-acceptance 3/3 among them, all passing;
+- tsc of model and studio; eslint 0 errors on the changed files.
+- Not run: the flow (its slot is pending with the rows-file steps and these).
+
+## O176 — F9: a placed fastener is a bought BOM line, named by the person's fastener row (2026-10-23)
+
+**The gap (O165's F9).** A9's four M6 screws could not be BOM lines. The fastener command builds plain extrudes and unions from its own catalogue (FASTENER_SIZES), and no element kind or row made a fastener bought.
+
+**What is new (cad-model only, no kernel change):**
+- **A row kind `fasteners`** (engine/fastenerRows), loaded only from a file the person supplied (`features.load_rows`, rows rule b; an agent-written row is ROWS_NOT_FROM_PERSON). A row has:
+  - `id`, `kind` (hex-bolt, socket-screw, csk-screw, hex-nut, washer), `size` ("M6");
+  - `lengthMM` for a screw or bolt and none for a nut or washer;
+  - optional `designation`, `partNumber`, `supplier`;
+  - `source` or `estimate: true`, never both, never neither; unknown fields refused.
+  - It is stored as `doc.fasteners`, a new document field (additive: saved documents keep resolving). It is carried by the wire form and the receipts (`rowEntries`), and checked in fields.test's full document.
+- **A fastener placed as a part of its own** (the command's `insert: 'instance'`, whose last node is `made` by the fastener command) is a bought BOM line (bomCore `fastenerOfPart`):
+  - merged over its copies by shape and material, as parts are: 4 equal screws, one line ×4;
+  - named by the row of its kind, size and length (1e-6 mm): its designation, row id, source, and catalogue (part number, supplier);
+  - with no such row, the line is an estimate and says what is missing ("no fastener row for socket-screw M6 × 20: what is bought is an estimate"), so the person knows which file to supply; an estimate row says so too;
+  - in the purchase list (kind `fastener`), its mass in the parts' as before;
+  - checkBom checks each fastener line's parts are placed fasteners with the line's size and row, an estimate said.
+- **Balloons and the BOM table** treat a fastener line as a part line (its parts are placed parts, not `part:feature`): its balloon goes on a screw's edge, and the table says bought.
+- **The studio's BOM panel** shows a fastener line as "bought part", with no bought/made choice: the choice sets `bought` on a part's feature, and a placed fastener is a part.
+
+**Not in this step, said:**
+- A fastener built into a part (`insert: 'part'`) stays the part's bodies, not a bought line.
+- The screws' shape still comes from FASTENER_SIZES. That table is a built-in catalogue, the owner's open item: untouched, a row names what is bought, not how it is drawn.
+- The rails under A9's plate have no tapped holes: the screws' shanks enter the rails' walls (the clearance map's step 8 runs before they are placed).
+
+**Found, not fixed here:** on an assembly sheet with balloons, a base part's own made-body line (O169's `base:<body>`, e.g. a plain plate as the base) has no edge: `targetOf` reads `base:b1` as an instance id. Members' lines take the same path. A follow-up: a body key is not a face name, so the target needs the body's node.
+
+**The v2 contract:** no action was added or changed, so tools-v2.json is unchanged. `load_rows`' kind enum takes ROW_KINDS, and its description names `fasteners` in one clause. Per turn: 23,198 of 25,000 characters.
+
+**A9:** conformance/a9/rows/fasteners.json (SCS-M6x20, a fixture standing in for the person's file, its source naming the fixture) is loaded in step 10. Four socket-screw M6 × 20 are then placed through the plate's Ø6.6 holes (z 334). The BOM's bought lines are fastener ×4 (SCS-M6x20, not an estimate), key, 6204 and 214. The CSV has 4 bought lines, the screws first. The S0's "4 M6 screws" is met.
+
+**Tests:**
+- bom-fasteners, new:
+  - four placed screws with no row: one line ×4, an estimate with its reason, in the CSV, checkBom clean;
+  - the person's row: the line named by it, no estimate; an agent's rows refused; a row of another length not this screw's;
+  - the row checks.
+- bom-fasteners also: on the assembly's sheet with balloons, the screws' balloon is on an `instN/` edge, and the BOM table says bought.
+- a9-acceptance's step 10 as above.
+
+**Verified (T1):**
+- model: bom-fasteners 4/4, a9-acceptance 3/3, and bom-balloons, bom-base, bom-panel, editFields, fields, migrate, person-rows, ring-rows, shop-rows, team-assembly, team-baseline, wire-doc, toolset, tool-contract, fasteners, drawing-table, chat-drawing and standards, all passing;
+- studio: bom-linked-ui 5/5;
+- tsc of model and studio; eslint 0 errors on the changed files.
+- Not run: the flow (the BOM panel's fastener line is in no flow step yet).
+
+**O175's flow (the coordinator's slot, before this step).** The runs were from detached scratch worktrees on port 52391, load 1m 9–16.
+- At `5eb851d3e`, the rows-file steps, A9-11, the BOM panel, BOM table and balloons, element notes, CNC7b and IM8a passed.
+- Two steps failed there:
+  - **The new O175 step:** Auto-dimension's turned projection and Turn the drawing (DrawingWorkspace's two other `engine.drawing` calls) had no `made`, so the bought key got a leader note. Fixed in `d89a1cd75`; the step passes.
+  - **FRb's cut-list step:** alone under FLOW_ONLY, it found no member selected, so "Show the cut list" never appeared. It now selects one (`b679cff88`) and passes.
+
+## O177 — the base part's own BOM lines get their balloons (2026-10-23)
+
+**The defect (found in O176, the coordinator's order to fix).** On an assembly's sheet with balloons, the base part's own BOM lines (O169) had no balloon:
+- a frame member's cut-list row;
+- a made body of the base's own (a plain plate as the base).
+Their parts are `base:<body key>`; `targetOf` read that whole string as an instance id, which no edge has, and the line went to BALLOON_NO_EDGE.
+
+**The fix.**
+- A body key is not a face name: `b0_part3` is a member whose faces are `n0.m3.…`, and a holed plate `b2` has faces of n1 and n2. So the balloon now gets the base part's face names by body key, `bodyFaces`, on the sheet's meta.
+  - In the chat, `baseBodyFaces(doc)` (engine/evaluate) reads them from the snapshot's B-reps.
+  - In the studio, `bodyFacesOf(bodies)` (drawing/balloons) reads them from the bodies' display meshes.
+  - Either is computed only for a sheet with balloons.
+- A `base:<key>` line's target is an edge whose faces are all that body's (piece suffixes `#n` stripped). It takes the longest visible piece, as before. Each body's face set is built once a sheet, and the check is a module-level function (no closure per edge).
+- useDrawingSheet gains one output, `bodyFaces`; nothing else in the hook changed (named to the coordinator). DrawingWorkspace passes it in its five sheet metas: accept all, Fix all, Auto-dimension, and the two drag previews.
+
+**Tests:**
+- balloons-base, new: a frame (members 320 ×4, 360 ×2, 260 ×2), a block of the base's own and a placed plate, on an assembly sheet with balloons:
+  - each member row's balloon on one of its own pieces' edges (`n0.m<k>.`);
+  - the block's on its own faces;
+  - the plate's on `p1/`;
+  - none without an edge, a balloon per line.
+- bom-fasteners: the base plate's line now has its balloon too (noEdge was [2]).
+
+**Verified (T1):**
+- model: balloons-base 1/1, bom-fasteners 4/4, and bom-balloons, bom-base, weldment-drawing, drawing-made-views, drawing, drawing-issues, drawing-table, drawing-scope, chat-drawing, frame-weld-symbols, all passing;
+- a9-acceptance 3/3, though the run took far longer than its usual 3 minutes: the machine's load was 48 from other runs, and its process was stopped by hand after its summary. A timed rerun is pending.
+- tsc of model and studio; eslint 0 errors on the changed files.
+- Not run: the flow.
+
+## O178 — O6: aligned sections for off-axis features (2026-10-23)
+
+**The item (the coordinator's: build it).** A feature whose axis runs along none of X, Y and Z, such as a keyway in a tilted bore, had no section to show it. X3 (O148) said so: "an aligned section is not drawn yet". Its dimensions stayed on hidden lines (DIM_ON_HIDDEN) with no fix.
+
+**What is new:**
+- **`DrawingSection.dir`** (optional): the section plane's own normal, in model axes and any length. `at` is along it (the plane is dot(p, dir/|dir|) = at, the far side kept). The section is laid out as `view`'s sections are.
+  - Principal sections are unchanged, with no `dir`.
+  - Saved and read back with its direction (`readDrawing`); `drawing.options` validates it (three finite numbers, not all zero).
+  - `withSections` never folds an aligned A into the old `section` field.
+  - Sections compare by letter, view, place and direction (`sameSection`): in options' reference check, the sheet's extents, and the studio's cut filter and Fix-all settle check. useDrawingSheet's outputs are unchanged.
+- **`sectionFrame`** (drawing/views): a section's unit depth, its principal axis (none for an aligned one), and the view it is seen in. An aligned section looks along its normal, with its view's up made square to it.
+- **The cut** (`sectionOf`, its new last argument `dir`):
+  - The kernel's split takes the plane's `normal`; a principal section keeps its axis split exactly as before.
+  - The cut faces' rings come from `planeRings`, on the general plane. `cutRings` is now that function on a principal axis, the same arithmetic.
+- **The cutting plane** (sheet): in the first shown view whose depth is square to the normal, a line across the view, padded past the part and clipped to the box. Its arrows point along the normal as seen there, the letter by each end.
+- **The fix** (issues `sectionFor`): an off-axis keyway's dimension now offers `add-section` with `dir`:
+  - the plane square to the axis through the keyway's middle;
+  - its view the principal one whose depth lies nearest the axis, the normal turned to that depth's side;
+  - once that section is there, the issue's fix is Auto-dimension.
+- **Turning the front** (reorient) keeps an aligned section as it is: its plane is the model's own.
+
+**Not in this step:** no studio control to type a direction. An aligned section comes from its issue's fix (Fix, Fix all) or from the chat's `drawing.options`.
+
+**Expectation changed:** X3's test (O148) said "no section offered" for the tilted keyway. That was the gap this item closes, so the test is replaced by O178's.
+
+**Test** (section-dimensions, O178): a keyway in a bore tilted 30° about X.
+- The fix is an aligned section with dir ∥ the bore's axis (top's side, −Z), laid out as the top's.
+- It cuts with rings, and the projection's depth is the normal.
+- Its cutting plane is in the right view with the letter twice; its view is hatched.
+- In the SVG and the PDF, and the sheet's and the section's DXF (HATCH).
+- Read back with `dir`; then the issue's fix is Auto-dimension.
+
+**Verified (T1):**
+- model: section-dimensions 8/8, and sections, reorient, dxf, frame-sections, frk3-section-tables, drawing, drawing-issues, drawing-fix-rounds, drawing-fix-elements, chat-drawing, drawing-scope, auto-dimension, toolset (23,198 of 25,000, unchanged), tool-contract and balloons-base, all passing;
+- a9-acceptance 3/3 in 161 s at load 13. O177's slow run (about 50 min) was the load of 48, not a regression.
+- studio: section-cutout, section-hatch, section-planes, section-view and pmi, all passing;
+- tsc of model and studio; eslint 0 errors on the changed files.
+- Not run: the flow (no step makes an aligned section yet).
+
+## R3a — chat/tools.ts by action group, first step: the shared kit, query and image (2026-10-23)
+
+**Phase R, R3 (the coordinator's plan, approved).** chat/tools.ts was 1,699 lines; 540 of them one switch of 37 v1 handlers. It is split by v2 action group, behaviour-preserving only, in five checkpoints (R3a–R3e).
+- **The facade.** chat/tools.ts stays a file (the package exports `./*` → `./src/*.ts`).
+  - It keeps runTool, dispatchTool and the dispatch.
+  - It re-exports every name that moved, so `@barocss/cad-model/chat/tools` and every relative import resolve as before.
+- **Modules** go in `chat/part/`, one per v2 group. The shared kit is `chat/toolKit.ts`.
+- **No cycle:** a handler that calls tools again gets the runner as its `run` argument; no module imports tools.ts.
+
+**R3a moved, verbatim (code text unchanged; only indentation and the function around a case's body):**
+- **chat/toolKit.ts:**
+  - the ChatState, Evaluate and ToolOutcome types, and the new PartRun and PartHandler;
+  - the per-call flags, now `export let responseFormat` and `because`, set by `setCall(args)` as runPartTool starts. Importers read the live bindings unchanged;
+  - r3, v3, json, describeBodies, features, CHECKPOINTS, DETAIL_LIMIT, accept, fail, checkValues, isObj, strings, list.
+- **chat/part/query.ts:** get_part_summary, measure, weld_list, fit_clearance, mass_properties, interference, section, wall_thickness and draft, plus fitView.
+  - wall_thickness and draft shared one case that read `name`: it is one hoisted `wallThicknessOrDraft(name, …)` and two module-level handlers.
+- **chat/part/image.ts:** get_image_layers, extrude_image_layer, inflate_image_layer and the trace geometry (traceOf … surfaceAt, INFLATE, BUMP, layerSketches).
+- **tools.ts** is 1,309 lines.
+  - `PART_HANDLERS` is a module-level const of hoisted functions, built once.
+  - It is looked up with `Object.hasOwn` before the remaining switch, after the drawing tools, as the cases were.
+  - It re-exports describeBodies, ChatState, Evaluate, ToolOutcome, INFLATE, layerSketches and surfaceAt.
+
+**The byte check** (a scratch snapshot, never committed): TOOLS as JSON, SYSTEM_PROMPT, the v2 tools list and prompt, `describe` of every group, action, command and feature kind, the mutator and argument tables, and three refusals (468 KB). It reproduced identically twice before the move, and is identical after it.
+
+**Seams and proposals left by R3a:**
+- **The per-call flags.** `export let responseFormat/because` with `setCall(args)` keeps the flow identical and writes them in one place. They are still module state set on every call. This is the seam for the later step that carries them in the call context instead (the survey's item 6), when that step can keep the per-call flow the same.
+- **A proposal for the coordinator, not made here:** the package runner `scripts/test.mjs` passes no concurrency to `node --test`. The one-line change would be to pass `--test-concurrency=${process.env.TEST_CONCURRENCY}` when that variable is set. Until then, R checkpoints run the suite through an uncommitted scratch copy with `--test-concurrency=4`.
+
+**Verified (R3a):**
+- the byte check, identical;
+- toolset 9/9 (23,198 of 25,000, unchanged) and tool-contract 3/3;
+- the cad-model suite at --test-concurrency=4: 960 of 960 pass, in 378 s. LOADED: it started at load 36 and the kernel lane's suite took the load to 105 during it.
+- tsc of model and studio; eslint 0 errors on the changed files.
+- Not run: the flow (no studio change).
+
+## O179 — a volume found from the mesh says so: volume_basis, the BOM's and the quote's estimate (2026-10-23)
+
+**The finding (the kernel lane's, relayed by the coordinator; the kernel's D200, `69122b44b`).** When the quadrature cannot integrate a curved body, the kernel's mass falls back to the mesh. D200 gives that result `method: 'tessellated'` and `volumeBoundMM3`: the volume's change from a mesh of half the segments, about three times the error. cad-model dropped both, and its mass_properties, BOM and quote showed such a volume and mass as exact. Area already carried `area_basis`.
+
+**What is new:**
+- **The body:** `BodyResult.volumeBasis` (`{ method: 'tessellated', boundMM3 }`), set by `bodyOf` from the kernel's result through `volumeBasisOf` (engine/evaluate). An exact method (quadrature, planar, closed form) leaves it out, so every exact body is as before.
+- **mass_properties:** `volume_basis: { method, bound_mm3, mass_bound_g, note }` beside volume and mass, the way `area_basis` stands beside area. The mass's bound is the volume's times the body's density. `massBoundOf(doc, bodies)` sums it (null when a tessellated body has no bound).
+- **The BOM:**
+  - a placed part, a base member row or a base body whose mass is partly from the mesh has `massBoundG` and its line is an estimate (merged copies add their bounds; null stays unknown);
+  - the BOM gains `totalMassBoundG` when any of its total is from the mesh;
+  - a part with no placed parts (its own line) too.
+  - All of it is additive: a BOM with no tessellated body is byte for byte as before, so approved baselines stay valid.
+- **The quote request** (mould/quote): its part gains an additive `volumeBasis` (volume and mass bounds), and the page's part line says "an estimate from the mesh: ± … mm³, ± … g".
+
+**Two studio edits (the coordinator approved both, in O179):**
+- **App.tsx, the body panel** (one additive JSX line at 2581–2582, right after the Volume line at 2580): a volume from the mesh shows "From the mesh ± … mm³", in the warning colour, with a title saying the volume, mass and centre of mass are from the display mesh. The R1 split of App.tsx should keep it beside Volume.
+- **viewport/sectionView.ts `mergeBodies`** (the GPU lane's file; the coordinator told them):
+  - The coordinator asked for `volumeBasis` to be dropped there, as areaBasis is. I changed that, and say so: the merged volume is the pieces' sum and stays on the body, so dropping the basis would show a partly-mesh volume as exact.
+  - The first piece's own basis is dropped. The merged body gets `{ method: 'tessellated', boundMM3: Σ }` when any piece's is from the mesh (null if one's bound is unknown), and none when all are exact.
+  - Studio test volume-basis-merge, new: none / one / two / unknown.
+
+**Tests** (volume-basis, new; built on the kernel's own tessellated result, `brepMassProperties(…, { quadratureSegments: 0 })` on a ball r 4, and on that ball's body as the fallback gives it):
+- the method and bound kept, the exact 4/3 π r³ within the bound; the ball as evaluated (quadrature) carries none;
+- mass_properties: volume_basis with the volume's and the mass's bound (aluminium 2.7); nothing for an exact body;
+- the BOM: the ball's line an estimate with its bound, the plate's line as before, the total's bound; none when nothing is from the mesh;
+- the quote: quote.json's `volumeBasis` and the page's estimate text; none when exact.
+
+**Verified (T1):**
+- cad-model suite at --test-concurrency=4: 964 of 964 (the 960 of R3a, plus volume-basis's 4), 291 s, at load 40 → 21;
+- studio volume-basis-merge 1/1; tsc of model and studio; eslint 0 errors on the changed files (App.tsx and sectionView.ts among them).
+- Flow at `d803fa40f`, FLOW_ONLY the body panel and section steps, from a detached scratch worktree on port 52391, at load 39 → 37: 73 section view, 91 mass, 262 G19.2, 263 G19.3, 264 G19.4 and 266 G20.2, all ok (each on either renderer where it says so).
+
+## R3b — chat/tools.ts by action group: the features group, the person-row steps, ranged and point checks (2026-10-23)
+
+**Moved, verbatim** (as R3a): chat/part/features.ts holds the features group's handlers and their data.
+- The handlers: run_command, add_features, edit_feature, delete_feature, set_material, load_rows, set_stock, set_casting, set_frame_stock, set_frame_sections, set_welds.
+- Their data: CHAT_COMMANDS, COMMAND_DOCS, removeRows.
+- tools.ts is 1,021 lines (1,309 after R3a, 1,699 before R3). It imports CHAT_COMMANDS and COMMAND_DOCS back for describe and re-exports them.
+
+**The survey's items in this checkpoint:**
+- **4, the person-row actions' steps.** set_stock, set_frame_stock and set_frame_sections repeated the same four steps; they now call `rowsAsked(args, other)` and `fileRows(state, args, kind)` in features.ts. The four steps:
+  - rows from the agent refused (ROWS_NOT_FROM_PERSON);
+  - the ids to remove;
+  - "Give file, remove, … or any of them." / "Give file, remove or both.", built from the action's own setting;
+  - the person's file loaded when given.
+  Each action's own check still runs between the two, in the same order, and every refusal text is the same (the byte check probes each).
+- **5, ranged numbers and points.** `inRange(v, lo, hi, loOpen?)` and `isVec3(v)` in toolKit replace six inline checks and one plane check:
+  - the stock allowance, the kerf, the casting allowance and shrink, a weld's size;
+  - the casting gate, and the sketch plane's origin, normal and xAxis (tools.ts).
+  The casting allowance and shrink lacked `Number.isFinite`; their range comparisons already refused NaN and ±Infinity, so the outcome is the same for every input.
+- **7, the duplicate point-in-polygon.** image.ts's `insidePoly` was the same even–odd test as engine/geom2's `insideRing`, which the module already imports as `inside`: the same comparisons in the same order, so the same result for every input. It is gone; `surfaceAt` uses `inside`.
+- **The runner** (the coordinator approved it): scripts/test.mjs passes `--test-concurrency=$TEST_CONCURRENCY` when the variable is set. The R checkpoints run `TEST_CONCURRENCY=4 node scripts/test.mjs`; the scratch copy is retired.
+
+**The byte check** now also probes the features group, on an empty part and on a plate: 37 refusals and plain answers, and four completed changes with their documents (stock allowance, kerf, casting, material). The baseline was taken before any edit and was identical across two runs. It is identical after the move and after items 4, 5 and 7.
+
+**Verified (R3b):**
+- the byte check, identical (with the features group's probes);
+- toolset 9/9 (23,198 of 25,000, unchanged) and tool-contract 3/3;
+- the cad-model suite, `TEST_CONCURRENCY=4 node scripts/test.mjs`: 964 of 964 pass, in 299 s, at load 38 → 29;
+- tsc of model and studio; eslint 0 errors on the changed files.
+- Not run: the flow (no studio change).
+
+## R3c — chat/tools.ts by action group: requirements and views (2026-10-23)
+
+**Moved, verbatim** (as R3a and R3b):
+- chat/part/requirements.ts: set_requirements and check_spec;
+- chat/part/views.ts: render_views, inspect and select. chat/views.ts keeps its rendering helpers.
+tools.ts is 967 lines.
+
+**The byte check** also probes the requirements and view tools, on an empty part and on a plate: 11 calls, with each call's content, error flag, changed flag, selection and requirements. The baseline was taken before the edit and was identical across two runs; it is identical after.
+
+**Verified (R3c):**
+- the byte check, identical;
+- toolset 9/9 and tool-contract 3/3;
+- the cad-model suite: 964 of 964, in 299 s, at load 20 → 22;
+- tsc and eslint clean.
+- Not run: the flow.
+
+## R3d — chat/tools.ts by action group: the definitions (2026-10-23)
+
+**The order changed (the coordinator approved it):** the definitions move before the history and proposal tools. That machinery (runOps, the script host, moveOps) calls takesArgument and unknownArguments, which lived in the definitions block; moving it first would have needed it to import tools.ts, a cycle.
+
+**Moved, verbatim and in today's order** to chat/toolDefinitions.ts (361 lines):
+- BATCHABLE/BATCHABLE_TOOLS and MUTATORS/isMutator;
+- the schema helpers, commandDoc, describe and featureKinds;
+- PART_TOOLS, with the pass that adds `because` to the tools that change the part, and PART_SCOPED/withPartArgument;
+- argumentsOf, takesArgument and unknownArguments;
+- TOOLS and SYSTEM_PROMPT.
+
+It imports nothing from tools.ts. tools.ts (623 lines) imports back the six it uses (BATCHABLE, MUTATORS, PART_SCOPED, describe, takesArgument, unknownArguments) and re-exports the seven public ones (BATCHABLE_TOOLS, isMutator, featureKinds, takesArgument, unknownArguments, TOOLS, SYSTEM_PROMPT).
+
+**The byte check** is identical: TOOLS JSON, SYSTEM_PROMPT, the v2 list and prompt, every describe, the argument tables and the groups' probes.
+
+**Verified (R3d):**
+- the byte check, identical;
+- toolset 9/9 and tool-contract 3/3, within the suite;
+- the cad-model suite through the lanes guard's gate (go at load 15): 964 of 964, in 338 s;
+- tsc and eslint clean.
+- Not run: the flow.
+
+## R3e — chat/tools.ts by action group: history and proposals; the dispatcher's own repetitions (2026-10-23)
+
+**Moved:**
+- **chat/part/history.ts** (the v2 `model` and `history` groups): apply_ops, run_script, checkpoint, restore, diff and restore_best, with the ops runner they share: OpsRun, runOps, idsOf, the script host, runScriptOn, moveOps, errorOf.
+- **chat/part/proposals.ts** (the v2 `proposals` group): propose, accept_proposal and list_proposals. With them, the machinery:
+  - the autonomy gate: autonomy, changesPart and ASSEMBLY_CHANGES, valuesOnly, proposalNeededAtL2, agentMayNotAccept;
+  - proposalOf, acceptProposal, rebaseProposal;
+  - the parts: proposalParts, leaveOutClosure, toggledLeaveOut, partialDoc, previewProposal.
+- **The runner comes in, no module imports chat/tools.** Each function that called the dispatcher takes it first as `dispatch`. The handlers get it as their fourth argument; it is not called `run`, since apply_ops has a local of that name. The script host takes it in its constructor. Otherwise the code is verbatim.
+- **The public functions keep their signatures in chat/tools** as thin wrappers that pass the dispatcher in: proposalOf, acceptProposal, rebaseProposal, moveOps, previewProposal. They hold no module state. The rest are re-exported as they are: agentMayNotAccept, autonomy, leaveOutClosure, partialDoc, proposalParts, toggledLeaveOut, Decider, ProposalPart.
+- **runPartTool's switch is gone:** every part tool is in PART_HANDLERS.
+
+**The survey's items 1–3, behaviour-preserving:**
+- **1, the sub-tool result adapter.** The references, brief, robot and drawing tools each built the same outcome: the document kept when it changed, the content as JSON. That is now one `subToolResult(state, out)` in toolKit, with the same fields in the same order.
+- **2, the placed-part dispatch.** The part-scoped tools' path (check_printability, orient_for_print and the brief, A9-2) and the part tools' path (FRf2) built the same context, now written once in `placedPart(state, inst, evaluate)`. The same `partReply` adds the reply's part and shopRows prefix. The context is:
+  - the part's shop rows resolved from the assembly's;
+  - an evaluation that restores the part's own rows first;
+  - its bodies.
+  Each path keeps its own steps (the select refusal, the following frames' check and refresh, the mates solved), in their order.
+- **3, the v2 translation once.** runTool translates a v2 call and now says so to the dispatcher (`v1 = true`), which no longer translates it a second time. dispatchTool, the batch and the script still translate what they are given. The second translation of an already-v1 call was the identity, so every outcome is the same.
+- **Not done: item 6** (carry the per-call flags in a call context instead of export let and setCall). It stays for later, as recorded at R3a.
+
+**tools.ts** is 236 lines: the facade (runTool, dispatchTool and the dispatcher), the handler map, the wrappers and the re-exports.
+
+**The byte check** gained three sets of probes:
+- **The history and proposal tools, in sequence on a plate (22 calls)**, with each call's content, flags, document, transactions and policy, times normalized: batches (refused, dry, applied), checkpoints, diff, restore, best, scripts, proposals proposed, listed and accepted.
+- **The proposal functions called directly:** previewProposal, rebaseProposal and acceptProposal (P1 and an unknown id).
+- **For items 2 and 3:** a placed part's calls through both paths (five each, a bad part id among them), and runTool's own entry.
+Its baseline was taken at the commit before R3e (1dcaa8692) in a detached scratch worktree, identical across two runs; it is identical after the move and after items 1–3.
+
+**Verified (R3e):**
+- the byte check: identical after the move, and after items 1–3, against the pre-R3e baseline;
+- the cad-model suite: 964 of 964, in 244 s, gate go at load 10;
+- toolset and tool-contract within it;
+- tsc of model and studio; eslint clean.
+- Not run: the flow. R3e changes no studio file; FRd2's step below is a flow file, to run in the next flow slot.
+
+## FRd2's flow step — all 16 weld symbols shown, tied to O173 (2026-10-23)
+
+The GPU lane's G10 found the step `FRd2 the welded table's weld symbols…` failing on both renderers: 16 placed, none unshown, where it expected 11 placed with W8 and W13–W16 unshown.
+- **The cause is O173 (`35cb1bb82`).** A trimmed end face in pieces is now its face, and an edge lying on visible ink is visible, so those five seams are found. O173 changed the model's frame-weld-symbols expectation by that reasoning; the flow step was not updated with it.
+- **16 is the right answer** by O173's account. The step now expects 16 placed, none unshown, and no WELD_NOT_SHOWN, and its title says so. Not a regression; nothing else changed.
+
+## FR3b's flow step — measured on a box frame, its 2000 ms premise kept (2026-10-23)
+
+**The finding (the GPU lane's G10).** The step measures the page's responsiveness while a frame's trims compute in the worker; its premise is a preview of more than 2 s. The default round-tube table now takes 1,293–1,435 ms there (1.4–1.6 s in node), so the case was no longer the one measured. Responsiveness itself held: the slowest answer 1 ms, the longest gap 73 ms.
+
+**The fix: the premise stays, the case changes** (`605208857`, the coordinator's approval; not the threshold):
+- The step now builds the box skeleton (12 members, eight three-way corners): 2.7–2.8 s in node.
+- It opens the palette's frame as before, lets the table's preview finish, then installs the main-thread probe and switches the skeleton to box. The timing starts there, after the HUD has left the table's preview.
+- Bodies: 12. The post's volume is checked against A · 740, through both rails: node gives exactly 740.0000 · A for each of the four posts, as the table's legs are 720.0000 · A.
+- In the flow it measured: the preview after 2,302 ms, the slowest answer 1 ms, the bodies after 3,709 ms, the longest main-thread gap 54 ms.
+- **The margin is small:** 2,302 against 2,000. If the trims get faster again, the premise goes stale again. A later fix would make the case heavier, such as a box with more members, or state the premise relative to the probe's resolution, without lowering the 2,000.
+
+**The flow** (FLOW_ONLY FRd1, FRd2 and FR3b, at `605208857`, a detached scratch worktree, load 24 → 19):
+- 144 FR3b, 165 FRd1 and 166 FRd2 ok; FRd2 expects O173's 16.
+- The run started without the lanes guard's gate: flow-run.sh is a script, which the guard cannot see into. The script now takes the gate at its top.
+- An edit to the script during the run broke its last line (the scratch worktree was then removed by hand).
+
+## O8 — pieces touching along a line or at a point: exports and print checks a lump at a time, a warning, the BOM's count (2026-10-23)
+
+**Why (the kernel's D204, D205).** Pieces touching only along an edge or at a point are no longer refused. The union keeps them as one result with one solid body per lump, numbered as a disjoint result is: two cubes on an edge, at a point or a corner on an edge, and a box with a cylinder tangent to its side, either way round. The old refusal, "The bodies only touch along an edge or a point", retired as an error. The model is to bring it back as a warning and keep the outputs sound: a mesh welded by position reads such a touch as an edge of four faces.
+
+**The lumps** (engine/lumps.ts, new):
+- **On the display mesh.** It is the B-rep's own tessellation face by face, so each display face carries `lump`: its B-rep body's number, 0 first, the kernel's order. That is set only on a body of two or more lumps, so every other mesh is as before. A face group never spans two lumps: after D204 their edges are their own.
+- **`lumpTouches(mesh)`** gives the touching pairs: a vertex of one lump within the kernel's tolerance (1e-6 of the body's size, the mesh's own `near`) of a triangle of the other, boxes first. The kernel imprints the touch on both lumps (a split face, an edge), so the test holds in all five cases. The point-to-triangle distance and the box tests are module-level functions; no closure per vertex or triangle.
+- **`BodyResult.lumpTouch`** holds the touching pairs, found once per B-rep, only when the result is in several pieces and two touch. Pieces apart (a cut right through) keep `pieces` alone.
+- **`lumpName(body, k)`** is "<body> / lump k" (k from 1): the 3MF objects', the STL files' and the warning's name, so they match.
+
+**What uses it:**
+- **3MF** (print/export3mf): a body with `lumpTouch` is one object per lump, each with its own vertices, its triangles' colours kept. Welded, it then has no edge of four faces; the whole body as one object has one. Pieces apart, and one lump, stay one object: the body's own mesh, as before.
+- **STL** (the coordinator's decision: files, not a refusal):
+  - `lumpStls(mesh, name)` writes one binary STL per lump, as `<name>-lump1.stl`, `-lump2.stl`, …;
+  - the studio's Export STL does so for a body with `lumpTouch`. App.tsx changed at 132 (the import) and 1699–1712 (`exportStl`): named to the coordinator before the edit, for R1. Its toast says so in one line;
+  - cad-cli's `--stl` does the same;
+  - one lump, or pieces apart, keep the one STL, the kernel's.
+- **The print checks** (print/rules): the thinnest wall of a body with `lumpTouch` is measured a lump at a time. Across the touch the other lump is no wall of this one's: measured whole, the touch reads as a wall of zero.
+- **The warning:** the manufacturability result, for every process including none chosen, gets rule `lump-touch`:
+  - status `warn`, message "The bodies only touch along an edge or a point: <lump names>", the lumps as its entities;
+  - the reason: they print, cast or cut as separate pieces, and a welded mesh reads the touch as non-manifold.
+  - It appears only for such a body, so every existing report is as it was.
+- **The BOM:** a line whose part has a body in several pieces says how many solids it comes as (`lumps`), only when a body has two or more. The studio's BOM panel shows "· n lumps" after the item. The purchase CSV adds "n lumps" to the line's size cell, only then: every other row is byte for byte as before.
+
+**Tests** (lumps, new):
+- the five touching cases found (`lumpTouch` [[0, 1]]), case (b) being the kernel's own D205 case (a box and a cylinder r 2 tangent to its face y = 0, both turned 30° about X, either way round, volume 192 + 16π); pieces apart, two pieces and no touch; face to face, one solid;
+- the 3MF has two objects named "<body> / lump 1" and "/ lump 2", with 0 open and 0 repeated edges; the body as one object has repeated edges;
+- two STLs whose triangles are all the body's;
+- one lump: no `lump` fields, no split, the body's own mesh as its 3MF object (the export path as before); pieces apart, one object;
+- the warning, in those words and names, on cubes and on the cylinder case: the thinnest wall a lump's own (a cube's 10, the box's 3), not the touch's zero; also with no process; none for pieces apart or one lump;
+- the BOM: "Pair" 2 lumps, "Plate" none; the CSV's size cell "2 lumps", the plate's empty.
+
+**Verified (O8).** The run was at integration e4ba3c579 plus this change, tier T2: the core files mesh and evaluate changed.
+- cad-model suite 968/968. Earlier it was 964; the 4 new tests are lumps'.
+- 18 studio files, 87/87: bom-linked-ui, cad-external, cnc-cam, candidates, clarify, cnc-stock, frame-nest-cli, im7, im8b, mould-quote, robot-sizer, robot-harness, pkg-boundary, robot-urdf, robot-mjcf, team-metrics, team-bundle, team.
+  - The first run had one failure: PKG-b expects ui/files.ts to re-export `meshToStl` alone, on its own line. `lumpStls` is now on a line of its own, so the test's pattern and meaning are unchanged; pkg-boundary is 3/3.
+- tsc (cad-model, studio) and eslint clean. No expected value changed.
+- Not run: the flow, and the studio files that don't import the changed modules.
+
+## O7a — the legacy fixtures and the open-as-before harness, before any conversion (2026-10-23)
+
+**Why.** The coordinator approved O7, the built-in fastener sizes, casting rules and enclosure variants as person-loaded sample rows, with saved documents opening identically (point 4). This first checkpoint freezes what "identically" means, before any reader changes.
+
+**What:**
+- **The fixtures.** Seven `.bcad` files in `packages/barocss-cad-model/test/fixtures/o7-legacy/`, saved by today's code. They are listed with their use in that folder's README and are never re-saved:
+  - fasteners made in a part, and fasteners placed as parts;
+  - tapped holes, milled;
+  - a drawing whose ± tolerances the fastener data set and stored;
+  - die and sand casting;
+  - enclosure library parts.
+- **`expected.json`** holds what each opened to: bodies, threads, fastener edit steps, the drawing, tapped holes, CAM and DFM rules, the BOM. For the drawing that means its suggestions, issues, dimensions, stored tolerances, and the suggestions with those tolerances taken off; the last are the `holePosition` reads at open.
+  - Numbers are rounded to 9 decimals: a bore read as 5.000000000000001 is 5.
+  - Run twice, the result is the same.
+- **`test/o7-legacy.test.ts`** checks every fixture through Save/Open (`readStudioFile`).
+
+**Plan check (the coordinator's point 3), reported before O7b:**
+- The starter document has a plain hole, r 4, with no tap, so O7 doesn't affect it. Its drawing reads "fits no fastener" from the data, and with no rows loaded it reads the same.
+- enclosure.json and materials.json profiles 7–8 are the tables O7d and O7c convert.
+- tslot-20.json carries four literals equal to the catalogue's M5 values: `bore` 4.2, the Slot nut's `drill` 4.2, and the end cap's and angle bracket's `hole` 5.5. They are not read from FASTENER_SIZES. Options (A), (B) and (C) went to the coordinator; I recommended (C): the library's own values, the source text saying so, and a warning when loaded rows differ. Waiting for the coordinator's choice.
+
+**Load paths for O7b's migration.** A read-only survey found these. Point 4 needs each one covered.
+- **Through `readStudioFile`/`readStudioDoc`:**
+  - Open, Insert part and a placed part's new revision (App.tsx 1499, 780, 2454);
+  - templates (app/templates.ts:14);
+  - cad-mcp and cad-cli `--doc` (server/cadDoc.ts:31);
+  - `cad-cli replay` and CandidateBoard (team/candidates.ts:62, 194);
+  - bundle verify (team/bundle.ts:132).
+- **Not through it (a cast `JSON.parse`):**
+  - crash recovery (app/recovery.ts:12, 61; restored at App.tsx:2848);
+  - the chat server's client → state.json (server/chatServer.ts:205, 242) and its cad-mcp state file (server/cadMcp.ts:44);
+  - team scenario `start` docs (cadCli.ts:164, 175; team/scripted.ts:90, 115).
+  - O7b puts the migration on each of these. For the chat round trip the right point is where the client's document enters the server.
+- **Nested documents:** `instances[].doc` (recursively) and `pendingParts[id].doc`.
+  - `readStudioDoc` migrates only the top level today: its validators recurse, its migration steps don't. O7's legacy-row freeze has to recurse.
+  - `modelContent` recurses into instance docs. Freezing rows into a placed part therefore changes its revision digest; O7b will check that before choosing where the rows go.
+
+**Verified (O7a).**
+- o7-legacy 8/8, run twice with the same result.
+- tsc and eslint clean.
+- Only tests and fixtures changed, so no suite ran (T1).
+
+## O7b — fastener sizes are the person's rows: the kind, the readers, the refusals, the sample; no migration (2026-10-23)
+
+**Why.** O7, the approved plan: the built-in standards-like tables become person-loaded sample rows. The shape follows the rows. O7b covers the fastener sizes (a); casting rules are O7c, enclosure variants O7d, the Library panel O7e.
+
+**Owner decision (2026-10-23, via the coordinator):** "We haven't released, so the document schema always tracks the latest version." This overrides the plan's schema 3 → 4 bump and its legacy freeze:
+- The schema stays 3; migrate.test.ts and browser-flow.mjs:2263 are unchanged.
+- Nothing is migrated: no freeze, no `legacy` row, no migration receipt, no note. The recovery, chat-server, cad-mcp and team-start paths stay as they were, and App.tsx around 2848 is untouched.
+- A document without fastener-size rows has none.
+- The O7a fixtures are repurposed as the equivalence oracle (below).
+- I had built the freeze before this decision arrived. It is dropped, not committed, and kept in my scratchpad only.
+
+**The kind** (`engine/fastenerSizeRows.ts`, new):
+- **Row and storage.** `fastener-sizes` is one row per thread size, stored in `doc.fastenerSizes { version: 1, rows }`. Each row holds:
+  - `id` (M6), with `d` equal to its number;
+  - pitch, the heads, nut and washer;
+  - `lengths` / `capLengths` / `cskLengths` (rising);
+  - `clearance` [fine, medium, coarse] and `tap`;
+  - `source` or `estimate: true`, never both or neither, plus optional `fieldSources` and `unchecked` (fields not cross-checked). `unchecked` replaces `checked4017`.
+- **Where it plugs in.**
+  - It is loaded only by `load_rows` from a person's file (rows rule b): ROW_KINDS, the rows.ts case, rowEntries.
+  - Placed parts inherit it through shopRows ('fastener-size'), with restoreAuthoredShopRows and the flatten-scope check covering it.
+  - `STUDIO_DOC_FIELDS` gains `fastenerSizes`.
+- **`fastenerSizesOf(doc)`** gives the sizes by id, memoised on the rows array.
+
+**The readers**, each now taking the document's sizes:
+- **Fasteners** (app/fasteners): `sizeForHole`, `jointLength`, `fastenerName`, `fastenerThread`, `fastenerFit`, `fastenerNodes`/build and `withFastenerInstance`. A placed fastener part keeps no rows of its own and inherits the assembly's.
+- **The fastener command:**
+  - It is unavailable with no rows, its reason `[FASTENER_SIZE_ROW] no fastener sizes loaded — …`.
+  - Its size and length choices are the rows'.
+  - Sizing to a picked hole moved from `place` (which has no context) to `derive` on `holeD`. Every caller already derives after placing: App's patchValues and the tests. The values come out identical.
+  - A size with no row is refused: `[FASTENER_SIZE_ROW] no row for M6 — load your fastener sizes (samples/rows/fastener-sizes.json is an example)`.
+- **The hole command:** the tapped list, derive and steps come from the rows. A tapped hole whose size has no row is refused. It used to be drilled silently as a plain hole.
+- **Choice fields:** a choice field can say why it is empty (`empty`), so run_command gives the typed refusal and not `"thread" is one of .`.
+- **Readings without a row** draw no fastener thread (`threadsOf(nodes, sizes)`), report no tap drill (`tappedHoles`), and give the position estimate (`holePosition`). The drawing's sizes go in through `SheetInputs`/`IssueContext.fastenerSizes`.
+- **standards_lookup:** 'fasteners-metric-coarse' is the view of the loaded rows (`tablesOf(doc)`). A field whose source text is a STANDARD_SOURCES entry is that source; any other is the row's own, kind `row`.
+- **editCommand** takes the document's rows, so a fastener's edit rebuilds from its size's row.
+- **The built-in catalogue is gone from src.** Its values are in the sample file.
+
+**The sample** (`samples/rows/fastener-sizes.json`, with a README): M3–M12, each field's source text from STANDARD_SOURCES, and `unchecked` from their unverified flags.
+- The package now ships it: `files` gains `samples` and exports gain `"./samples/*"` (the coordinator's decision; additive public surface, no lockfile change). It is named again in O7e.
+- **Correction:** the tap source said "d − P" for every size. M8's 6.8 (d − P = 6.75) and M12's 10.2 (10.25) aren't d − P. Those two rows now say so. No value changed.
+
+**tslot-20 (the coordinator's option C):**
+- The profile's `bore` and the Slot nut's `drill` (4.2), and the end cap's and angle bracket's `hole` (5.5), stay the parts' own values. Their source now reads "the library's own estimate, equal to a common M5 tap drill / the M5 medium clearance hole, not read from your fastener sizes".
+- `library/fastenerLinks.ts` maps these parameters to the size value they equal. When a loaded row differs, the part's notes warn and name both values. The shape doesn't change.
+
+**Studio:**
+- App.tsx: the thread rings and the instance rings (2054, 2065); the inspector's fastener name and thread (2604–2605); the editCommand call (1980). All were approved.
+- ui/useDrawingSheet.ts:95.
+- ui/DrawingWorkspace.tsx:109 (the suggestions' context) and `acceptAll`'s inputs.
+
+**Tests.**
+- **The equivalence oracle** (o7-legacy, 9/9). For each of the seven pre-O7 fixtures, with the sample rows loaded as the person (`withSampleRows`), opening gives exactly expected.json: bodies, threads, fastener steps, drawing, tapped holes, CAM and DFM, BOM. Without rows: the same bodies, no fastener thread or steps, no tap drill, every position suggestion an estimate. fasteners-in-part keeps 0 threads and tapped-holes-milled keeps its 3 callout threads.
+- **New tests:** o7-tslot (C); tool-contract's O7 refusals ([FASTENER_SIZE_ROW] for a tapped hole and a fastener with no rows; both made once the person loads them).
+- **The setup helper:** `test/person-file.ts`'s `withSampleRows(doc)` loads the sample through `receivePersonRowFiles` + `loadPersonRows`, keeping the receipt. `SAMPLE_SIZES` is its sizes.
+- Studio chat.test: the command-schema test's context loads the sample from `@barocss/cad-model/samples/rows/fastener-sizes.json`, as the person loads it.
+- **Setups that changed.** No assertion's expected value changed. Each change loads the sample rows, passes the sizes the readers now take, or both.
+  - fasteners: the command context's document, the sizes arguments, and editCommand's rows.
+  - bom-fasteners: the plate.
+  - threads and drawing: the fastener context, and threadsOf's sizes.
+  - tolerance: the sheet inputs' sizes, and holePosition's.
+  - standards: the tables of a sample-loaded document. The values snapshot now compares the sample's sizes, which hold the same values.
+  - fields: the full document gains a fastener-size row.
+  - a9-acceptance, cnc-drawing, cnc-features, cnc-holes: the start document. One test each in batch-changes, bodies and chat-drawing.
+  - hole-types: the plate.
+  - tool-contract: the read tools' document.
+  - o7-legacy: the samples loaded, plus the no-rows test.
+- **Flow steps that need the person's rows,** and so wait for O7e's Library panel button: fastener ×2, fastener as an instance, the fastener's threads, the modelled thread, hole types (tapped M6), standards lookup (M6), CNC2, CNC5.
+
+**Also fixed:** with the size not chosen yet, the fastener's length field was empty. It now offers M6's lengths, else the first row's, as the built-in table did.
+
+**Verified (O7b).** Run at integration c4656738a plus this change, tier T2 (core files, and the coordinator asked for the full suites).
+- cad-model suite 979/979: O8's 968, plus O7a's 8, plus the no-rows oracle, o7-tslot and tool-contract's O7 refusals.
+- Studio suite 266/266 after the chat.test setup. The first run was 265/266; the failure was that test's context, which had no rows.
+- tsc (cad-model, studio) and eslint clean. The one warning, chat-drawing.test.ts:15, was already there.
+- No expected value changed.
+- Not run: the flow. Its steps that place fasteners or tapped holes need O7e's Library panel load, listed above.
+
+## O7e — the Library panel's shop rows: the person loads the sample or their own file (2026-10-23)
+
+**Why.** O7b made the fastener sizes the person's rows. A person in the studio needs a way to load them: the shipped sample or their own file. The coordinator took O7b and O7e together, so integration never had the flow's fastener steps broken. Merged as fe2bb2d3b.
+
+**What:**
+- `ui/LibraryPanel.tsx` (the cross-lane file, named and approved) gains a "Shop rows" section (`ui/FastenerSizes.tsx`):
+  - a line with the sizes loaded, or "none — fasteners and tapped holes need them";
+  - "Load sample fastener sizes", which loads `@barocss/cad-model/samples/rows/fastener-sizes.json`;
+  - "Add a fastener sizes file…", a file input for the person's own file.
+  - No App.tsx change.
+- **The load is the person's act** (`app/sizesFile.ts`, no React).
+  - The click receives the file as a person's file and loads it the way chat's load_rows does, through the same validator.
+  - Its receipt names the file. The sample's file name in the receipt is `cad-model sample fastener-sizes.json`, because receipt file names hold no folders.
+  - Each load is a one-turn receipt of its own. The first build passed turn 0, which `receivePersonRowFiles` refuses, so every flow step that loaded the sample failed. 1720e4c2b fixed it and added the unit test that would have caught it.
+  - The agent cannot press it: it is no tool.
+- **The public surface:** the samples ship with the package (`files` gains `samples`; exports gain `"./samples/*": "./samples/*"`). It is additive, the coordinator's decision. There is no lockfile change and no publish.
+- **The flow:**
+  - The steps that build fasteners or tapped holes load the sample in their setup, as the person: fastener M8, fastener at Ø6.6, the csk screw as an instance, hole types, A6.5's standards_lookup, CNC2 and CNC5.
+  - A new step, "O7e: no fastener sizes loaded", checks four things: [FASTENER_SIZE_ROW] in the HUD for a tapped hole, "none" in the Library, the sample loaded with the person's receipt, and the seven sizes listed.
+
+**Verified (O7e).**
+- FLOW_ONLY at 1720e4c2b passed those eight steps on WebGPU and on WebGL2 (flow exit 0 each).
+- The studio unit test o7e-sizes passed: the sample's 7 sizes with the receipt; a bad row and a non-JSON file refused.
+- tsc and eslint clean.
+
+## O7c — casting rules are the person's rows (2026-10-23)
+
+**Why.** O7's approved plan, item (b): die casting's and sand casting's limits by alloy family, and sand casting's pattern allowances, were built into materials.json. They are values read from public pages. Like the fastener sizes, they become rows the person loads (rows rule b). Per the owner decision, nothing is migrated.
+
+**The kind** (`engine/castingRuleRows.ts`, new):
+- **Row shapes.** `casting-rules` rows are stored in `doc.castingRules { version: 1, rows }` and take three shapes:
+  - a limit `{ id, process, key, value, unit, description, source, page? }` (`die-casting.zincWallMinMM`);
+  - a shrinkage table `{ …, allowance: 'shrink', family, label, bands, page }` (`sand-casting.shrink.iron`);
+  - a machining-allowance table `{ …, allowance: 'machining', class, label, bands, page }`.
+- **Checks.** The checker carries over materials.json's own checks:
+  - a page is https with a read date and its label;
+  - an allowance table's page has a note on its units;
+  - shrink bands rise and end open; machining bands rise; values are above 0.
+- **Plumbing.** The kind is in ROW_KINDS, rows.ts, rowEntries, shopRows (placed parts inherit it) and STUDIO_DOC_FIELDS.
+- **`castingProfileOf(doc, id)`** builds a casting process from the document's rows; any other process is the material data's, as it is.
+  - A limit's source is kept as the text it cites. The reports name a source by its id, so a text that is one of the material data's sources maps back to that id; the sample's do. That keeps the reports identical.
+- **materials.json** keeps the two casting profiles' id and label only. Its thresholds and allowances moved to the sample.
+
+**The readers.**
+- **Report and draft limits.** `castability` and `castingDraftLimits` (casting/report.ts) take the document's profile at their entry. Their callers are unchanged, so viewport/scalarMaps.ts (the GPU lane's) is untouched.
+- **No rules loaded.** With no rules for the process, the report adds `casting-rules: unknown, [CASTING_RULE_ROW] no die-casting rules loaded — load your casting rules (samples/rows/casting-rules.json is an example)`. Every rule that reads a limit or an allowance comes out unknown: material, wall, draft, shrink, section-change, tolerance. Only the geometry's rules are judged: pull, hot spots, feeding.
+- **The pattern.** `patternOf` refuses a sand-casting pattern with no rules (`PATTERN_NOT_CASTING`, the [CASTING_RULE_ROW] text).
+- **Library checks.** Their `profile.<threshold>` context reads `castingProfileOf` too.
+
+**The sample** (`samples/rows/casting-rules.json`): 24 rows. Die casting has 11 limits. Sand casting has 6 limits, 4 shrinkage tables and 3 machining tables. Each carries its page, and the values are the former built-in ones, unchanged. The samples README has its row.
+
+**Studio.** The Library's shop rows gain the casting rules: a loaded line (each process with its row count, or "none — a cast part's limits need them"), "Load sample casting rules", and a file input. The flow's IM8a, IM8b and IM8c steps load the sample in their setup.
+
+**Tests.**
+- **The oracle (o7-legacy).** The die- and sand-casting fixtures, with both samples loaded, equal expected.json unchanged. Without rows they give the [CASTING_RULE_ROW] rule, and the six limit rules come out unknown.
+- **Setups changed, no expected value changed:**
+  - im8a: the cast documents, and the data test's profile from the sample;
+  - im8c: the cast documents, and the section ratio's page from the sample;
+  - g6-samples: the die-cast document;
+  - studio im8b: the cast documents, and SAND and the die-casting allowances from the sample;
+  - fields: a casting rule row in the full document;
+  - person-file: `withSampleRows` takes 'casting-rules'.
+- **New:** studio o7e-sizes' casting test (both processes, the person's receipt).
+
+**Verified (O7c).** Run at 404195b98, over integration 529aa630f, tier T2.
+- cad-model suite 979/979 and studio suite 268/268. The studio count is O7b's 266 plus o7e-sizes' 2.
+- FLOW_ONLY IM8a, IM8b and IM8c passed on WebGPU and WebGL2 (flow exit 0 each).
+- tsc and eslint clean, after removing the processProfile imports nothing used any more.
+- No expected value changed.
+
+## O7d — enclosure.json's variants stay the library's own (owner: "D2 로 해줘") (2026-10-23)
+
+**Why.** O7's plan item (c) would have made the screw boss's, the insert hole's and the PCB standoff's M2–M5 variants person-loaded rows. A closer look showed they are the library's own estimates. The pilot holes are "a BaroCSS rule of thumb for plastic bosses" and the heat-set insert holes "a typical brass insert … use your insert's own datasheet". Each is flagged `estimate`, and none is a value from a standard's table or a page. That is tslot-20's case, for which the coordinator chose (C). Two options went to the coordinator:
+- (D1) as planned: the variants become rows, and a boss with no row is refused;
+- (D2) as (C): the variants stay the library's.
+
+The coordinator asked the owner, who answered: "D2 로 해줘" (go with D2).
+
+**What.**
+- The three variant-bearing sources (screw-boss `dp`/`rt`, insert-hole `dh`/`Lh`/`De`, pcb-standoff `dp`) now begin "the library's own estimate:" and say "not read from your fastener sizes". The values and the library version are unchanged.
+- **No notes comparison.** The coordinator's rule is a comparison only where a loaded fastener-size row carries the same quantity, and none does. The screw boss's and the standoff's `dp` for M3, M4 and M5 (2.5, 3.3, 4.2) are numerically the sample's tap drills. But they are a different quantity: a pilot hole for a thread-forming screw in plastic, against a tap drill for a 6H internal thread in metal. Comparing them would warn about a difference that isn't one. The insert hole's values are the insert's, not the screw's.
+
+**Verified (O7d).** enclosure, library, rb9 and o7-legacy 31/31; no test reads those texts. T1.
+
+## O15 — RD10's L3 run: the tool, the run script and its guards; the live runs not yet made, deferred by the owner (2026-10-23)
+
+**Why.** O46's protocol: a live model sizes O48's undersized arm-3r with RD9's harness as its tool. The owner approved the live run, US$25 at most in all. The coordinator approved the plan and its notes: a per-run wall clock, independent runs, no coaching, the gate, and usage as the CLI reports it.
+
+**The tool** (`apps/cad-studio/server/robotL3/tool.ts`): `robot_check`.
+- **Scope.** It is listed, allowed and callable only with `CAD_ROBOT_L3=1`. The MCP server lists it, the chat server's `--allowedTools` adds it, and the chat server passes its variables in the MCP config's env. Every other turn's tools, the toolset guard and the per-turn budget are as they were.
+- **What it checks.** The robot with the joints' ratings (`joints`) and the duty (`duty`) passed, each falling back to the last passed, on a copy of the part. It returns RD9's report: every margin, the least, the unknowns. It keeps the last design checked (`duty.json`, `duty.joints.json`) and logs each call: ok, least, failing count, actuators, ratings.
+- **The deviation, accepted by the coordinator.** `assembly.set_joints` is a robot change, and a robot change is always a proposal for the user ("always needs the user's approval"). The run has no user, so the ratings are robot_check's arguments, and the harness applies the last checked design to the saved .bcad. That stands in for the person's accept: the run measures whether a model can size the arm, not the approval flow. Production keeps set_joints' gate unchanged.
+
+**The run** (`apps/cad-studio/server/robotL3/main.ts`, `node scripts/robot-l3.mjs --scripted | --live`):
+- **Independent runs.** Each run gets a fresh folder, O48's start, and the byte-identical prompt (sha256 `921e82c0edc38209…`), with no session resumed. The prompt names what may change (ratings, actuators, the motion profile) and what may not (geometry, poses, dwells, life). It gives no hints of the sizer's rules.
+- **Success** is decided only by a fresh `cad-cli robot-check` on the saved part and duty: exit 0 and every margin above 0. A run whose duty changed the life, a pose or a dwell is no pass.
+- **Guards:**
+  - the CLI's own `--max-budget-usd 8` (passed by claudeArgs when `CAD_MAX_BUDGET_USD` is set);
+  - a 30-minute wall clock (a test-only override: `CAD_ROBOT_L3_WALL_MS`);
+  - the chat's turn cap;
+  - a result without `total_cost_usd` counts as over budget and stops the series;
+  - a run whose CLI never ran the model (an error with no output tokens) stops the series;
+  - no run starts that could take the total past US$25;
+  - live needs `--live` and `CAD_ROBOT_L3_LIVE=1`.
+- **No coaching.** A failed run is recorded as it is, and the brief is never edited and run again.
+
+**The dry run**, with the scripted model following the sizer's answer:
+- **The first try failed 3/3** on the approval gate above. That is how the deviation was found.
+- **Then 3/3 pass.**
+  - The scripted model made two robot_check calls; the first showed O48's 16 failing margins.
+  - The fresh check's least margin is joint range l1~l2 at 0.25, the same as O48.
+  - The prompt hash was identical across runs.
+- **The guards, each exercised:**
+  - a fake cost of US$9 stops the series after run 1;
+  - no cost reported stops it;
+  - `--live` without the flag is refused;
+  - the budget flag reaches the CLI (o15-robot-check test);
+  - a run that changes the brief's terms is no pass (test).
+- **The wall clock**, exercised with a 2 s ceiling and a scripted model sleeping 6 s (it writes a mark if it lives). The run was recorded as `end: wall-clock`, and the series stopped (no cost reported). It found two bugs:
+  - **chatServer (a04ccdee9).** A client gone during the turn's setup, before the spawn, left the CLI running: its 'close' had fired before the listener existed. It now checks right after the spawn. That is a production fix.
+  - **The run script (80f527d4b).** Its blocking spawnSync of cad-cli held the event loop, and with it the kill. The check is asynchronous now.
+  - After both fixes, the model was killed: its mark was never written.
+
+**The live runs: not yet made.**
+- The first attempt (19:17 KST) met the CLI account's weekly usage limit: "You've hit your weekly limit · resets 7am (Asia/Seoul)".
+- All three ended in 2–3 s with 0 tokens, US$0 and 1 turn, and no tool call was made. They are not model results.
+- c40c77013 now stops the series on such a run.
+- **Deferred by the owner** (via the coordinator, 2026-10-23 19:20 KST): "O15 는 다음에 하고 다른 것 부터 하자" (do O15 later, do other things first). The rerun after the reset is not made. The script and the tool stay as committed, inert without `CAD_ROBOT_L3=1`. O15 moves to the end of the outer lane's queue until the owner brings it back.
+
+**Tests.** o15-robot-check 2/2; tool-contract-mcp unchanged; tsc and eslint clean.
+
+## O9 — results tied to their revision: the engine's lanes, the callers' guards, exports' sources, REVIEW-A1 (2026-10-23)
+
+**Why.** From #2188 (M2), approved by the owner:
+- every worker reply is checked against what it was asked of before it is shown or stored, and a late reply never overwrites a newer state;
+- drawings and exports carry their source revision;
+- REVIEW-A1: recovery reported success before the mesh blob was stored.
+
+**Step 1: the engine client's lanes** (`apps/cad-studio/src/engine/lanes.ts`, `EngineClient.latest`).
+- **What a lane is.** A request goes on a lane, one per thing a result replaces (the coordinator's rule): 'preview', `section:<view>`, `drawing:<part>`, `placed:<instance>`. Never one per kind of request.
+- **What a reply is.** A discriminated union: `{ stale: true, lane, revision }` or `{ stale: false, lane, revision, source, result }`, so TypeScript forces a caller to look at `stale` before it reaches the result.
+- **Behaviour.**
+  - A newer request on a lane makes every older one there come back stale, whatever order the replies arrive in.
+  - Lanes apart don't supersede each other.
+  - A stopped worker's waiting requests still come back as its refusal ("Stopped").
+  - The existing methods are unchanged.
+- Test: o9-lanes 3/3.
+
+**Step 2 (narrowed, accepted).** The audit found every worker-reply caller already tied to what it asked for, in six ways:
+
+| caller | its guard |
+|---|---|
+| App: section | live flag; a latest-wins run |
+| App: bearing edit | run counter; scope check |
+| App: placed parts | live flag; source key and placement |
+| App: command preview | live flag; previewRun's queue |
+| App: proposalDiff | live flag |
+| App: mould | live flag |
+| subd/useCageEditor | live flag; `of: session` |
+| assembly/useAssembly readFaces | `current()`; source key |
+| ui/useDrawingSheet, DrawingWorkspace | `bodyRead.doc`, `projected.model`, `bomRead.doc`; live flag |
+| viewport usePrintLayers, useClearanceAnalysis, camPreview (the GPU lane's) | `id === request.current && value.request === id` |
+
+- No caller lets a late reply overwrite a newer state today, so none was rewritten.
+- The lanes are the one mechanism for new callers. Moving these six onto them is R4b's (the coordinator), one caller per checkpoint, with no behaviour change.
+- A flow step proves the guards: "O9: the section plane dragged fast across a plate". It makes forty planes a frame apart; the exact section shown is the last plane's, and it is still the last one's 1.5 s later.
+
+**Step 3: exports carry their source** (option C, the coordinator's). The source is `revisionOf(doc)`, the team revision: what a revision covers, 64-bit, for staleness.
+- **In the file:**
+  - STEP's FILE_DESCRIPTION is ('BaroCSS CAD part','source revision <rev>'). The kernel's step.ts gained an additive `description` option (cross-lane, approved), whose default stays byte for byte.
+  - 3MF has `<metadata name="barocss:SourceRevision">`, with `xmlns:barocss="https://barocss.com/3mf/2026"` declared, as 3MF asks of a name off its list.
+  - The drawing's title block has a "SRC <rev>" line at the top right, beside the person's own REV cell. drawingInputs, useDrawingSheet and DrawingWorkspace pass it.
+- **Beside the file**, for the bytes that can't carry it: STL's fixed 80-byte header, and the robot exports that external readers' frozen oracles pin. A `.source.json` record (team/source.ts) holds the revision, the SHA-256 of the revision's canonical content, the files, and for a robot the hand-set values (base, joint settings).
+  - cad-cli `--stl` writes `<name>.source.json`, and `urdf`/`mjcf` write `robot.source.json`.
+  - The studio's STL export downloads `<name>.source.json`. The URDF, MJCF and SDF zips get a `robot.source.json` entry, and the USD download a sidecar. The App.tsx lines were approved: 1716–1720, 2478, 2514, 2520 and 2526.
+  - Bundles already record the document's revision in their manifest.
+- **revisionOf's fields** gain O7's fastenerSizes and castingRules. A document without them hashes as before.
+- **Determinism** (o9-source 3/3):
+  - STEP exported twice gives the same bytes but for the header's time stamp; 3MF written twice is byte-identical;
+  - the drawing's SVG is the same twice, and names the source;
+  - the record is the same bytes twice;
+  - another part gives another source.
+- **Expected values changed.** Each is a provenance change, pre-approved:
+  1. **threemf.test.ts:81**, the `<model>` tag regex. Before it ended `xmlns:p="…/production/2015/06">`. After, it adds ` xmlns:barocss="https://barocss.com/3mf/2026"` before the `>`.
+  2. **conformance r14/tables/bends/expected.AC1015.dxf**, regenerated (UPDATE_DXF_FIXTURES=1): the title block's one SRC TEXT; the handles after it renumbered.
+     - Its ezdxf oracle (oracle.AC1015.json) was re-run with ezdxf 1.4.5 (`~/.cache/barocss-ezdxf`, already installed).
+     - The audit is clean (errors [], fixes []). TITLE_BLOCK added one TEXT ("SRC 0c6f828ede0d236f" at [285, 34], height 1.8) and removed nothing. The coordinator checked the same.
+  3. **reference-bodies.test.ts**, "not in the STEP export". The comparison sets aside the source line together with the time stamp: a locked reference is in the document's revision, not in its geometry.
+  4. **cad-external.test.ts**, `--stl` with two bodies. `wrote` goes from 2 files to 3, the third `two.source.json`.
+- **Unaffected.** O8's single-lump test: under (C) the STL bytes don't change.
+
+**Step 4: REVIEW-A1.** `keepRecovery(fileName, doc, saveBlobs, wanted)` (app/recovery.ts):
+- it stores the mesh blobs first, then writes the copy that names them;
+- blobs refused or failing: no copy, and the older copy is removed;
+- an overtaken call writes nothing, nor does one whose work was saved meanwhile (`wanted`: the effect's cleanup).
+- App.tsx's recovery effect (340–352, approved) is now that one call, with the toasts on their branches.
+- recovery 4/4.
+
+**Verified (O9).** At 56f9e321c, over integration 3ea5624e2, tier T2.
+- cad-model suite 983/983. Since O7c's 979: o9-source 3, and the content-key test in o7-tslot 1.
+- Studio suite 274/274. Since 268: o9-lanes 3, o15-robot-check 2, recovery +1.
+- tsc and eslint clean.
+- FLOW_ONLY on WebGPU and WebGL2 (exit 0 each, with each step's prerequisite steps):
+  - 3MF export, "drawing revision" (the title block), the container mesh's recovery, "unsaved work comes back after a reload" (after the surface steps that make its direct objects);
+  - RM4 URDF, RM5 MJCF, and RM9c SDF/USD (after RM9a and RM9b, which open its arm);
+  - CNC5;
+  - the new O9 section step.
+- On the first run, "unsaved work" and RM9c failed alone: their documents come from the steps before. Rerun with those steps, they pass. These were FLOW_ONLY prerequisites, not this change.
+
+## O10 step A — one key for a placed copy's body, whoever produces it (2026-10-23)
+
+**Why.** O10's plan, step A: a placed copy's body had two keys. `placedDoc` appends the copy's transform nodes to the
+part's, so the studio's evaluation keyed a copy's first body `i1/b2` while interference and the clearance map keyed it
+`i1/b1`. The clearance worker hid this by matching a shown body by its owner's prefix (`i1/…`).
+
+**What.**
+- **The key is the origin's.** A placed body is keyed by the node it comes from in the part as placed (`placedBase`), not
+  by the transformed copy: `originNode` walks a transform node back to its parent until it is one of the base's nodes.
+  - evaluatePlaced (engine/evaluate.ts) keys and places each output by its origin output;
+  - the clearance map (team/clearanceMap.ts), `placedBodies` (team/parts.ts) and the assembly (team/assembly.ts) evaluate
+    `placedBase` and key from it.
+  - Every producer now gives `${instance}/${key}`, the same key for the same body.
+- **Exact matching.** `visibleClearanceBodies(bodies, visibleKeys)` keeps a body only when its key is shown; the owner
+  prefix match and the `visibleInstances` argument are gone from the filter (clearanceAnalysis.ts, clearance.worker.ts).
+  A disagreement now shows as a missing overlay, not a match by prefix.
+- **The studio's shown keys** (App.tsx:2129, approved): the root's shown bodies plus every placed copy's
+  `${i.id}/${b.key}`. Built from `instancesPlaced` (shown, not hidden, unsectioned) rather than `instancesShown`: under a
+  section the latter holds the cut copies, while the root's keys come from the unsectioned `bodies`. A deviation from the
+  approved line ("built from instancesShown"), for that reason; the coordinator accepted it. 2130 stays.
+- **Second bug, found on the way.** stepFor's instance loop left out the root's role bodies (infill) but not a placed
+  copy's: a copy's infill went into the STEP. It now looks up the copy's origin node and leaves it out when it has a role.
+- **Wording correction (docs lane's request).** The fastener command's hint said "a standard … (ISO, M3–M12)"; since O7b
+  the sizes are the person's rows. It now reads "A bolt, cap screw, nut or washer from your loaded fastener sizes — …".
+- **Chat agrees too.** The plan's item 3 (chat's clearance through placedBase) came with the clearance map's own change:
+  `assemblyPlacedBodies` evaluates `placedBase` for each shown copy, so chat and the worker key a sub-assembly alike.
+- **Unchanged:** the BOM (approved); no expected value changed.
+
+**Tests.**
+- o10-body-keys 3/3 (new): copies at the origin, moved, and moved and turned — the studio's key equals interference's
+  and the clearance map's; a copy's material read by `lookOf`; a sub-assembly moved to [5, 7, 0] and turned 90° about Z,
+  its two bodies keyed the same by every producer.
+- gpu cad-clearance-analysis (cross-lane, approved) rewritten for exact matching: `arm/b2` and `armature/b1` are not
+  matched by `arm`'s prefix; 13/13.
+- toolset, tool-contract, fasteners and the clearance tests: 41/41 with o10-body-keys. Full suites after the model change:
+  model 986/986, studio 274/274.
+
+**Verified (O10 step A).**
+- FLOW_ONLY at 224147c04 (T1), WebGPU and WebGL2, each 14 steps ok (flow exit 0 on the rerun): STEP export, 3MF,
+  STEP and meshes (with its prerequisite, the mesh repair, step 44: alone it failed on both for want of the repaired
+  cup, a FLOW_ONLY prerequisite), place / drag / mate a copy, interference, RM1, RM4 (URDF), RM5 (MJCF), G3 display
+  modes, **G22 clearance** (eight copies i1–i8 placed apart: the exact-key match finds every pair, the same after Save,
+  New and Open) and O10 frame costs.
+- Not run: a flow step with a turned copy under the clearance map (the unit test covers the turn); the full flow (the
+  coordinator's, per merge window).
+- tsc (model, studio) and eslint on the changed files clean.
+
+## O10 step B — the rebuild report: each feature built or reused, its time and kernel calls; mates and their loops (2026-10-23)
+
+**Why.** O10's plan, step B: before R4's caches, a read-only baseline of what an evaluation costs and why, tied to the
+revision. The kernel half is the kernel lane's (D228, 250e59ef7): `evaluateCadPart(…, { profile: true })` gives
+`snapshot.profile`, each feature's own wall time and its kernel calls.
+
+**What.**
+- **The main evaluation is profiled** (engine/evaluate.ts). evaluateDoc's snapshot is made with `{ profile: true }` (a
+  reused snapshot keeps the option), and its result carries `rebuild: { evaluated, reused, profile }`. Only evaluateDoc:
+  previews, sections, other parts and placed copies are not profiled.
+- **`rebuildReport(doc, result)`** (team/rebuild.ts, new), read only:
+  - **features**, in the kernel's order: id, node and label (featureLabel), state, ms, calls (booleans, planar
+    Booleans, tessellations, sweeps, shells, finishes). The state is `built`, `reused`, or `input`: a sketch is in the
+    profile but in neither of the kernel's lists, having no body of its own.
+  - **built** (how many and their time together), the **slowest** built one, and how many were **reused**;
+  - **mates** that cannot be met, from the studio's own solver (`solveAssembly`, as solveDoc runs it);
+  - **loops**: the mates refused as closing a loop, grouped by the parts they join;
+  - the document's **revision** (team/revision) and the **evaluation** number the times are from;
+  - **limits**: wall time, a reused feature's is its lookup; display meshes and B-reps worked out afterwards, placed
+    copies and other parts' evaluations are not counted.
+- **Cycles.** A search found one place a dependency loop can arise and is detected today: mates (mates.ts, "It closes
+  a loop"). The feature tree refers only to earlier features by index, so it cannot loop; a sketch on a face refers to
+  an earlier body; a frame on a sibling part is refused (FRf2). The report says so instead of inventing other checks.
+  The refusal's text became a shared constant (`LOOP_REASON`), unchanged, which the report groups by.
+- **Not yet:** the join with the GPU tally (frameCosts per body by the step-A key) is the panel's, step C.
+
+**Tests.** o10-rebuild 3/3 (new):
+- a first evaluation builds every body feature and marks the sketch an input; the same document again builds nothing
+  and reuses all; the hole's radius edited builds the hole again (a Boolean counted) and reuses the plate; the
+  revision changes with it;
+- a failed evaluation has no report;
+- two parts placed by each other: both mates listed, one loop [a, b] of m1 and m3; a mate on the base that can be met
+  is not listed; the loop broken, none.
+- mates 17/17 unchanged.
+
+**Verified (O10 step B, c2faf9cdf).** T2 (evaluate.ts is core):
+- model 989/989, studio 274/274; the test names as at step A but o10-rebuild's three and the sub-assembly test renamed.
+- FLOW_ONLY at c2faf9cdf, WebGPU and WebGL2: place / mate a copy, chat commits an assembly, interference and G22
+  clearance ok. "delete a feature from its editor" failed alone on both for want of its prerequisite (step 39, the
+  plate with its Ø12 hole); with it, ok on both at 38f21239f (step C's run).
+- tsc and eslint clean.
+
+## O10 step C — the Rebuild panel and query.rebuild (2026-10-23)
+
+**Why.** O10's plan, step C: show step B's report to the person and to the agent; R4's caches get measured against it.
+
+**Studio** (App.tsx lines approved; the coordinator's change: a store, not App state, as R1 asked).
+- **The last evaluation** goes into a value store (state/valueStore's pattern): App's main evaluation sets
+  `rebuildStore.set({ doc, result })` beside its bodies (App.tsx:597), so an evaluation renders only the open panel, not
+  App. `rebuildOpen` is App state (438), changed only by a click.
+- **The button:** "Rebuild" in the toolbar's inspect group after the BOM (2310), a new `cad-rebuild` icon (a block in
+  a turning arrow, drawn to the icon set; checked on the icon sheet). It closes the BOM; the panel mounts beside it under
+  the same guard (2418).
+- **ui/RebuildPanel.tsx** (new):
+  - totals: the evaluation and its basis, the revision, how many built and their time, how many reused, the whole time;
+  - the feature table: label, state (built, reused, input), ms, kernel calls; the slowest marked;
+  - the mates that cannot be met (the studio's own solve, `assembly.problems`, not solved again) and their loops;
+  - the frame costs of the display mode shown, per body by its key: polled every 500 ms while the panel is open and
+    shown again only when the counts change (never per frame); tracking on at open, off at close; this renderer only,
+    never compared across; wireframe's surface triangles "for depth only";
+  - the limits line.
+- **Wording correction (the coordinator's, from the docs lane's tour shot):** the part panel is the Browser, its title.
+  The Boolean hint said "Shift-click a second body in the Outliner" and its accessible name was "Outliner"; both say
+  Browser now. No agent-facing string named the panel.
+
+**Chat.** `query.rebuild` (handler `rebuild_report`, chat/part/query.ts), approved cold:
+- `rebuildFromScratch(doc, revision)` (engine/evaluate.ts) builds the part from nothing with the profile on and leaves
+  the main snapshot as it is, so the next evaluation still reuses what it built. It works out no bodies.
+- The report says `basis: 'from scratch'` (the panel's is `'last evaluation'`) and `evaluationMs`, the whole build's
+  time: a big part from nothing can take seconds.
+- The contract's output schema, the groups entry and tools-v2.json gain it (additive: the frozen file's one line,
+  `rebuild`). Per turn 23,198 → 23,276 of 25,000.
+- **A list gained the name:** studio chat.test.ts's handler names gain `rebuild_report`, the new action.
+
+**Also:** apps/cad-studio/scripts/test.mjs honours `TEST_CONCURRENCY` as cad-model's runner does (the coordinator's ask).
+
+**Tests.**
+- o10-rebuild 4/4: the new one, from scratch right after a warm evaluation — every body feature built, none reused,
+  the whole time at least the features'; the main evaluation after it still reuses all.
+- tool-contract: rebuild_report's result matches its schema and changes nothing. toolset, shop-context-tools 16/16.
+- A flow step, "O10 Rebuild panel": a box, then a hole drilled in it; the panel lists the hole built, the box reused,
+  the sketch an input, each timed; no mates; the clearance fixture opened, its frame costs list the eight copies
+  `i1/b1`…`i8/b1`; closed, gone.
+
+**Verified (O10 step C, 5655f09ff + deb69dc69).** T2 (evaluate.ts, App):
+- After the integration merge past D229 (R5.4 batch 1): the kernel rebuilt with build:library from clean, tsc (model,
+  studio) and eslint clean.
+- FLOW_ONLY at 38f21239f, WebGPU and WebGL2, 9 steps ok each (flow exit 0): draw a plate, delete a feature from its
+  editor, place / mate a copy, history roll back, G22 clearance, O10 frame costs, **O10 Rebuild panel** (n0 input
+  0 ms, n1 reused 0 ms, n2 built 0.4 ms on both).
+- model 990/990; studio 273/274 at 38f21239f, the one the handler-names list above; with it, chat 18/18. Test names as
+  at step B but the new from-scratch test.
+- Not run: the full flow (the coordinator's, per merge window); a live chat turn calling query.rebuild (the contract
+  test calls the handler).
+
+## R4 batches A–C — cad-model duplicates gathered, the engine's placement math, evaluate.ts and two caches (2026-10-24)
+
+**Why.** The roadmap's R4 (plan approved): the R0 survey's cad-model duplicates, layering and evaluate.ts, behaviour
+unchanged; every cache checked against a full re-evaluation (#2188 M1). Batch D (folders, no shims) follows.
+
+**The oracle (R4.0, fe800e32c).** `scripts/r4-fingerprint.mjs` (its output never committed) records 133 documents —
+every .bcad and conformance document, the 14 agent-call fixtures replayed, each RB9 rung at its four corner trials —
+evaluated whole, their rebuild states, STEP without its time stamp, STL per body, B-reps with and without made parts,
+the BOM, an assembly's clearance map, the drawing's dimensions and issues; and the tool list and prompt. Two wall-time
+values are left out (the clearance map's `timing`, the gear-contact note's "checked in N ms"). Base `5da366d6…`, the
+same run twice; byte-identical at each batch's end, kernel R5.4 batches merged in between.
+
+**Batch A — leaf utilities.**
+- A1 util/round.ts: r3/r6/r9 (+0, never −0) and r3Signed/r6Signed (−0 kept) from 30 files; one-off forms stay
+  (`|| 0`, toPrecision, isFinite-guarded, the SAME grid, r1/r2/r4).
+- A2 util/guards.ts (isObj ×8, isVec3 and its seven written-out copies); util/units.ts (MM_PER_INCH, MM_PER_FOOT).
+- A3 util/ids.ts `nextFreeId` (13 loops, each prefix and start kept; drawing/types' lettered ids and engine/ids'
+  serials are other schemes).
+
+**Batch B — shared helpers.**
+- B1 engine/bounds.ts `boundsOf` (17 loops; chat/observe's stays, it sums in the same pass).
+- B2 app/mass.ts `massGOf` (V · ρ / 1000) and `KERNEL_DENSITY` (2.7), the byte-identical copies only. Kept apart, each
+  commented: team/bomCore's V · ρ · 1e-3; robot/inertia's bodyMass in kg; app/mass's v · (ρ / 2.7) · 1e6 against
+  analysis's (x · ρ) / 2.7; engine/evaluate's ALUMINIUM 2700 (kg/m³, the kernel's argument).
+- B3 one material registry (library/materials; app/materials gone, importers updated incl. App.tsx:14) and
+  app/bodies `partMaterial` → `{ id, mixed }`, so the "different materials" messages stay.
+- B4 engine/rowEdits.ts `editRows` for seven row editors; frames/sections stays (normalised rows, coded refusals).
+- B5 off, B5' instead: the kernel's `symmetricEigen3` is a Jacobi sweep; on 1,000 random SPD inertia tensors it gave
+  other values than urdfCheck's closed form in 999, worst relative 5.7e-15 — a last-bit change, so not taken. The two
+  closed forms (urdfCheck, mjcfCheck), identical in operations and order, are robot/eigen.ts's one.
+
+**Batch C — engine structure.**
+- C1 engine/placement.ts: Mat3, matMul, axisAngle, DEG, rotationMatrix, rotationSteps, clean, eulerOf (from
+  assembly/mates) and placementOf (from engine/doc); doc.ts and part.ts no longer import rotation math from the
+  solver. Importers updated, no shims (App.tsx:6 became two lines; useScenePoses.ts:3; three studio tests).
+  robot/dynamics' mul3 stays (it sums from 0: −0 becomes +0). Left for batch D: doc.ts's flattenAssembly,
+  evaluate's face table, references' frameFace/tablesFor.
+- C2 assembly/instances.ts `evaluateTree`: the BOM panel's and the BOM agent's identical walk.
+- C3 evaluate.ts: the body notes to engine/bodyNotes.ts (917 → ~480 lines); evaluateDoc and evaluatePart share
+  `partResult`; one `failed` for five catches.
+- **skeletonsNow (the coordinator's decision, pinned).** A probe on sketch3d-params' bound skeleton (W 600 → 800, not
+  re-solved): partBreps, stlFor, brepsFor (and made), baseBodyFaces and the STEP's geometry are identical with and
+  without solving first, because partSnapshot's read resolves skeletons itself; only the STEP's source differs, and it
+  is the authored document's revision — the one a saved file has. Left as is: a comment at partSnapshot's
+  resolveSkeletons, and test/r4-skeletons.
+- C4 two caches, each checked against a full re-evaluation (test/r4-caches):
+  - placedOutputs keeps each copy's last snapshots (placed; at the origin for beads) by instance id, rebuilt through
+    the kernel's withDocument. With them kept, STEP's body and brepsFor (plain and made) equal the export from
+    nothing — the clearance fixture, a 6R arm, fasteners as parts, a placed weldment with beads — again, after a copy
+    is moved and turned, moved back, and after a copy's part is edited.
+  - A frame's geometry once per leafBodies call, and its member count once per evaluation (a Map partResult makes).
+    Not cached across calls: node arrays are changed in place in a few places, so identity is no safe key.
+  - Timings (stepFor first/again/again; brepsFor plain/again/made), before → after: the 6R arm 140/129/131 →
+    140/3/3 ms and 81/76/73 → 1/1/1 ms; fasteners 49/40/40 → 46/3/3 and 19/19/20 → 1/0/1; the clearance fixture
+    23/15/13 → 22/10/8 and 6/5/6 → 1/1/2. The O10 cold rebuild (kernel features) unchanged.
+
+**Wording corrections folded in** (the coordinator's and the docs lane's): cad-cli `pattern` ("from your casting
+rules"); machining/report's tapped-hole rule ("no row in your loaded fastener sizes"); App.tsx:2627's thread line
+("nominal sizes from your fastener rows"); the README's `frames/` and `casting/` rows; the fastener sample's `about`
+("Load sample fastener sizes").
+
+**A flow finding.** Step 80 ("fastener at a Ø6.6 through hole") failed under batch B's FLOW_ONLY selection — at batch
+A's commit too — and passed alone: its hover points came from the camera an earlier step left. It now resets the
+view (iso()) first (58acf5e9e, test only).
+
+**Verified.** (T2 at each batch end; per step tsc for model and studio, eslint and the step's named tests)
+- Batch A (0dd1e12ff): fingerprint identical; model 990/990, studio 274/274; FLOW_ONLY 15/15 on WebGPU and WebGL2.
+- Batch B (36ab45ad4): fingerprint identical; model 990/990, studio 274/274, test names as A's; FLOW_ONLY 26/27 on
+  both, the one step 80 above (alone: ok on both).
+- Batch C (e29f7dcba, after the kernel's next R5.4 folder batch, the kernel rebuilt from clean): fingerprint
+  identical; model 993/993 (r4-skeletons, r4-caches ×2 new), studio 274/274, names as B's but those; FLOW_ONLY 32/32
+  on WebGPU and WebGL2 (flow exit 0) — STEP, 3MF, draw a plate, place and mate a copy, the fastener steps (step 80 after
+  the camera-moving ones), O7e, FR1, FR4b, FRb, FRk, the BOM panel and table, RM1, RM4, RM5, IM5, IM6, CNC1, CNC2,
+  IM8a, IM8b, G22, O10 Rebuild panel.
+- Not run: the full flow (the coordinator's window).
+
+## R4 batch D — folders, no shims; two flow fixes and a wording correction (2026-10-24)
+
+**Why.** R4's last batch (plan approved, the coordinator's change: no `export *` shims — nothing is released, so every
+importer is updated in the same commit). Done before G12b and O16 rewrite the panels (option a): import lines only.
+
+**Moves** (each its own commit; importers updated across cad-model, the studio and the GPU lane's one file):
+
+| old | new |
+|---|---|
+| chat/analysis | analysis/analysis |
+| library/alignment | analysis/alignment |
+| team/bom, team/bomCore | bom/bom, bom/core |
+| team/sha256, team/digest, team/revision | util/sha256, util/digest, util/revision |
+| chat/{brief,questions,references,drafts,spec,proposals}: their types | engine/schema/<name> (plus brief's BRIEF_VERSION, PROCESSES, BRIEF_FIELDS) |
+| chat/rowSources, chat/rowDefinitions, chat/rowFiles | engine/rowSources, engine/rowDefinitions, engine/rowFiles |
+| assembly/flatten | engine/flatten |
+| drawing/dxf, drawing/pdf, drawing/svg | io/dxf, io/pdf, io/svg |
+
+- engine/ now imports nothing from chat/, and from assembly/ only types and the face-table helpers evaluate and
+  references use. engine/container stays in engine/ (the document format; the coordinator's call).
+- Two studio tests mock modules by path (bom-linked-ui, assembly-linked-faces): their filters follow the moves.
+- The docs refusal table (refusals.mjs) regenerated: two codes' modules (team → bom, chat → engine), no text.
+- Left for the docs lane: apps/library-docs/samples/cad-model.test.mjs imports team/revision (now util/revision);
+  the module map gains analysis/, bom/, engine/schema/, util/.
+
+**Two flow fixes (test only).** Step 80 frames the iso view before hovering (an order artefact, R4 batch B).
+Step 207 (R14.4) loads the sample fastener sizes first: since O7b the hole's position tolerance is the person's
+sizes', and the step had been failing alone too (not an order artefact) — R14.1–R14.5 pass on both renderers.
+
+**Wording correction.** holePosition's bases named "studio fastener data" and "no fastener in the studio data";
+they now name "your fastener sizes" (tolerance.test.ts:85's expected text with it). A search of user-facing strings for
+"studio data", "built-in", "the table (M" and "ISO sizes" found nothing else from before O7.
+
+**Verified (T2).** At df3ab8baf (after the kernel's next R5.4 folder batch, rebuilt from clean): the fingerprint
+identical to the base `5da366d6…`; model 993/993, studio 274/274, test names as batch C's; FLOW_ONLY 45/45 on WebGPU and
+WebGL2 (flow exit 0) on G12a's shell — batch C's set plus R14.1–R14.5, R11b, sections (O148 X1–X3), chat commits an
+assembly, A6.1, A6.3 and the brief steps. The wording commit (c921923f4) after it: tolerance, drawing, r14 76/76.
+Not run: the full flow (the coordinator's window).
+
+## O17a and O17c (server side) — the chat turn as an AI SDK transport; the thinking as a reasoning event (2026-10-24)
+
+**Why.** O17 (owner, via the coordinator; plan approved): the chat column on the AI SDK's `useChat` with shadcn's AI
+components. Built first without new dependencies or UI (G12b sets up shadcn): the transport, then O17c's event.
+
+**O17a (6c706a4ff).** src/chat/transport.ts: `StudioTransport` POSTs /api/chat/turn through runServerTurn as before
+(the server's protocol unchanged), and `TurnChunker` writes its events as the UI message stream's chunks — a text run
+one text part, each tool call a dynamic tool part with its input and output (or error) at once (the server reports a
+call when its result is back; ids are the turn's own counter), the states and the done as transient data, the end as
+finish, error or abort. The chunk types are the AI SDK's UIMessageChunk kinds, declared locally until the install.
+- Tested on turns the real chat server streamed (scripts/chat-server.mjs, the scripted CLI, the real tool server,
+  recorded with an origin of its own): ok, error, aborted (test/fixtures/o17). Same chunks with the response cut in
+  pieces of 1, 7, 64 bytes or whole; the request as before.
+
+**O17c, server and transport (2b328f4f3).** The CLI's top-level `thinking_delta` is emitted as `{ type: 'reasoning',
+delta }` (additive); the transport writes a reasoning run as one reasoning part, closed before text. server/turnEvents.ts
+is the A/B harness's and the robot L3 run's one SSE reader (their copies were identical); both take events by type, and a
+test shows their tools and done unchanged with a reasoning event before every event. **Unverified against the live
+CLI:** no live turn was run (the owner's call, asked separately); tested on a synthetic recording (thinking-claude.mjs).
+The rendering (one collapsed "Thinking…" line) comes with the UI after G12b.
+
+**Pins chosen for the install after G12b** (each at least two weeks old, approved): `ai` 7.0.137, `@ai-sdk/react`
+4.0.140 (depends on ai 7.0.137 exactly), `@shadcn/helpers` 0.2.0 (0.3.0 is from 2026-10-16), `zod` 4.6.5 — ai's
+required peer, pinned because `auto-install-peers=true` would otherwise pull a younger one.
+
+## R4b.1 — the cage editor's exact build on an O9 lane; useAssembly's readFaces left as it is (2026-10-24)
+
+- **subd/useCageEditor (a14dc6375):** its effect's live flag became the 'cage' lane: a newer step's build makes an
+  older reply stale, and the effect's cleanup cancels the lane (engine/lanes.ts gains `cancel`), as the flag did.
+  `of: session` stays. No App.tsx change. o9-lanes 4/4; FLOW_ONLY on WebGPU and WebGL2: the nine SubD steps (SD1, SD2,
+  R8.2, R8.3, both D84, R11.2a, R11.2b) ok, flow exit 0.
+- **assembly/useAssembly readFaces: not moved.** Its guard is render-time — `currentSource` is set during render, so
+  a reply arriving between a render and its effect is already stale — and it also skips starting a read once stale. A
+  lane orders requests, not renders: it would take that reply, a behaviour change. Kept as it is.
+- The App and src/ui callers (section, bearing, placed, preview, proposalDiff, mould; useDrawingSheet,
+  DrawingWorkspace) wait for G12b.
+
+## O11 — assembly inputs and variants, regenerated from the one master; the agent's two actions (2026-10-24)
+
+**Model side (19d5d86e4, refusal table 552338c2b).** `doc.variability {version 1, inputs, variants?, active?}`: an
+input has a name, a type (number, boolean, choice), a unit, min/max or choices, a default and explicit bindings — a
+part's parameter (scale·v + offset), a feature's suppression (by stable id, when a value), the part a placed instance
+uses ({like: instance} or a shipped library part), a mate's distance or angle. A variant is a named set of input
+values. Part-level configurations stay as they are (folding them into variants later is a UI question). No migration.
+- `variantOf(master, values)` applies each binding to a copy and solves the mates again; the master is never written,
+  and every value at its default gives the master itself. `checkVariability` requires the master to be the default
+  variant (INPUT_DEFAULT): a bound target holds what the default gives it.
+- **No cycle by construction:** inputs never refer to inputs and bindings only write, so no check is added. A mate loop
+  reached through a mate input is the solver's own problem, passed through (tested).
+- A library component must be a shipped part and must build where it is placed (rows rule b), else INPUT_CHOICE.
+- Oracle: each fixture's variants A → B → A through the kept snapshots equal fresh evaluations byte for byte (bodies,
+  STEP, B-reps, BOM, clearance map). The fingerprint gained the 12 fixture documents; the 133 earlier ones identical.
+
+**Agent side.** Two actions in the existing `assembly` group, no new tool; both write `doc.variability` only, so
+`approvalOf` (instances, mates, drawing, robot, locked parts) is untouched by them:
+- `assembly.inputs` (`set_inputs {inputs: {name: input | null}}`): adds, replaces by name, or removes. Structural:
+  refused at L1 (propose), refused with `needs_proposal` at L2 — even on an empty part, unlike the first-build
+  exception for features — applied at L3+. Every defined variant is regenerated against the new inputs, so removing an
+  input a variant uses is refused, named.
+- `assembly.variants` (`set_variants {variants?: {name: values | null}, active?: name | null}`): values only — refused
+  at L1, applied at L2+. A variant defined or made active is regenerated before it is kept; its unmet mates come back
+  in the reply. Deleting the active variant leaves the master active, said in the reply.
+- Both are batchable, so a proposal can carry them; contract: altering, idempotent.
+- `query.summary` gains `variability`: the inputs (with what each drives), the variants and the active one.
+- Per turn 23,276 → 23,446 of 25,000 (toolset guard).
+- The tools act on the master and its bodies; the studio showing the active variant comes with the UI after G12b.
+
+## O12 — tool and sensor frames on links: FK, IK, the workspace map, four exports (2026-10-24)
+
+- **Shape:** `robot.frames: {name: {link, position?, rotation?, kind?}}`, inside the robot settings beside `joints` (no
+  STUDIO_DOC_FIELDS change; readRobot reads it). The pose is in the link's part's own coordinates (mm; degrees about X,
+  then Y, then Z, as a placed part's rotation), not in the exported link frame, so a frame stays put when joints or
+  the base link change. The name is the export name (letters, digits, _).
+- **Tree:** jointTree resolves each frame to its world pose at the solved pose (`tree.frames`, present only when some
+  are set — get_joints and every export unchanged otherwise). framePoses gives them for FK's motions.
+- **IK:** `frameTarget(tree, name, pose, mode?)` reduces to the existing solver: the frame's link, the link motion
+  pose · M⁻¹ and the frame's origin as the tool point, so both errors are the frame's own. `frameTool` gives a frame as
+  a tool point; workspaceMap takes `frame`. NO_FRAME for an unknown one.
+- **Exports, each frame a fixed child of its link:** URDF a massless link (ROS-Industrial's tool0) on a fixed joint;
+  SDF a link with the dummy links' 1e-9 kg inertial (an SDF link without one weighs 1 kg) on a fixed joint; MJCF a
+  welded body without mass holding a `<site>` of the frame's name. **USD differs from the plan:** a child Xform
+  beneath its link's prim, no joint — a PhysicsFixedJoint to a prim that is not a rigid body ties the link to the world.
+- **Refusals:** FRAME_LINK_MISSING, FRAME_LINK_STALE (a part not joined to the base link), FRAME_NAME, FRAME_POSE.
+  FRAME_NAME checks the pattern, then the name after the exporters' own naming — the links' namer (sanitised, then made
+  unique in order) for the frame's link, the joints' for its `<name>_fixed` joint; each exporter also refuses a frame
+  it would rename (USD's root prim is named after the export, so a frame "robot" is refused there only). The namer moved
+  to robot/frames.ts (urdf.ts re-exports it). They sit in the tree's problems, refused by set_frames for the frames it names, and
+  by every export (never dropped).
+- **Agent:** `assembly.frames` (`set_frames`); it writes `robot`, so approvalOf proposes it at every level, as
+  set_joints. set_joints keeps the frames. forward_kinematics returns `frames`; get_joints shows them. No IK action
+  (none existed). Per turn 23,446 → 23,549.
+- **Read-back** (arm-6r, a TCP on l6, a camera on l3): our URDF, SDF and MJCF readers at 21 poses < 1e-9 mm; MuJoCo
+  3.3.0's sites at 21 poses, worst 6.7e-16 m, total mass as without frames; usd-core 26.8's world transforms of the
+  frame prims, worst 6.1e-17, 7 rigid bodies and 6 joints as without frames; check_urdf parses it, each frame a child of
+  its link. Committed under conformance/rm/arm-6r/frames/ (scripts/frames-oracle.py). **SDF: no external reader here**
+  (no gz/libsdformat installed), our own reader only.
+- **Diffs:** no frames → every export byte for byte as before (the committed arm-6r files) and the R4 fingerprint
+  unchanged; with frames, each export is the old one plus its frames' lines only (URDF 6, SDF 12, MJCF 3, USD 5 per frame).
+- Not done here: the sliders' readout and the frames in the viewport wait for G12b.
+
+## O14 — mounts from the person's datasheet rows (2026-10-24)
+
+- **Row kind `mounts`** (doc.mounts; **a STUDIO_DOC_FIELDS entry**), in the existing rows machinery: ROW_KINDS,
+  rowEntries, resolveShopRows (inherited by placed parts), restoreAuthoredShopRows, flattenShopView's scope check,
+  the revision fields, load_rows. Person-only (rows rule b), with receipts; nothing built in.
+- **A row** is how a part is mounted, not what it can do: type motor | servo | bearing-unit, the bolt pattern (square,
+  rect, or 2–12 on a circle) and its clearance hole, pilot and its depth, shaft and its offset and height above the face,
+  a servo's body, the clearance round the cuts, source | estimate, fieldSources, unchecked. Ratings stay in the actuator
+  catalogue. mountRowProblem's limits are in MOUNT_LIMITS; every refusal [MOUNT_RANGE], naming the row and field.
+- **Bearing rows:** not duplicated. The kernel's BearingRow is a rolling bearing's envelope; a bearing unit's row is its
+  housing's mounting and may name a bearings row, whose bore must equal its shaft. A bearing seated in a bored plate
+  stays the bearing feature.
+- **Binding:** the `mount` command cuts ordinary features into a flat ±X/±Y/±Z face (bolt holes, the pilot through or as
+  a recess with the shaft's hole, a flange's shaft hole, a servo's body cut through as sketch, extrude, difference); the
+  last remembers the command (`made`, now allowed on hole and difference nodes), so a used row stays. The pilot's
+  cylinder is a named face: a concentric mate on it puts the joint on the motor's axis (tested). The result reports the
+  axis — out of the face, or a pillow block's along it at its height, square to its bolts — for a mate or set_frames;
+  no frame is written automatically. Re-opening a mount as one command waits for the UI (its build needs the face).
+- **Refusals:** [MOUNT_ROW] (none loaded, no such row — choice fields gained an `unknown` text for it — a bearing row not
+  loaded), [MOUNT_RANGE], [MOUNT_FACE]. run_command now returns a build's thrown refusal as the tool's error,
+  "<Label>: <refusal>", the part unchanged, for every command.
+- **Agent:** no new action (features.command with command mount, features.load_rows with kind mounts); gated as adding features. Per turn 23,556.
+- **Sample** samples/rows/mounts.json, read only from public HTML pages (no file downloaded), numbers only, each with its
+  URL and the date read (2026-10-24): UCP204 and UCFL204 from NSK's product pages (sourced rows). NEMA 17 and NEMA 23
+  are **estimates**, every field in `unchecked`: NEMA 17's spacing, M3 and shaft are on Bondtech's product page but
+  its pilot only in the maker's PDF drawing; NEMA 23's maker drawings are PDFs, and the one distributor listing found
+  refused the request. The PDFs wait for the owner's permission (the coordinator's list). No NEMA standard text is
+  used. Plate clearance holes from ISO 273 medium as the fastener-sizes sample gives it; the clearances round pilot and
+  shaft are the example's choice, said so. **No servo row:** no maker's dimensioned mounting drawing was found; the
+  servo type is tested with a test-only estimate row (test/o14-fixtures).
+- **Fingerprint:** every existing document identical; the six mount fixtures (test/o14-fixtures) are new entries.
+- **A change every command shows:** run_command (features.command) returns a build's thrown refusal as the tool's error,
+  "<Label>: <refusal>", the part unchanged. Before, the throw left the tool: through the MCP server a JSON-RPC error
+  (-32603), in the chat server the turn's error. No flow step or A/B brief relied on the throw; the A/B harness's
+  `refusals` count (tool results with isError) now includes these.
+- Mount already runs from the palette (app/commands.ts). **The post-G12b UI list** (O11, O12, O14), in one place:
+  O11 — the inputs and variants panel, the active variant shown (the studio evaluates it); O12 — each frame in the
+  sliders' readout and drawn in the viewport; O14 — the Library's rows loader (FastenerSizes.tsx, which lists only
+  fastener sizes and casting rules) gains "Load sample mounts" and a load-a-file entry for mounts, in its own pattern,
+  and the mount's axis shown. Done before G12b, it stays in that one component.
+
+## D240 findings — A9's p2 and the worm pair's check (2026-10-24)
+
+- **A9's p2** ([BEARING_HOUSING_REFERENCE] … needs its current assembly and owner occurrence): not a studio failure. On
+  the GPU lane's a9.bcad, the studio's path — instanceEvaluationSources, placedDoc, the worker's wire, evaluatePlaced —
+  evaluates all seven instances. The profile bundle that refused it held two copies of engine/bearingContext.ts (its
+  checkout's node_modules linked @barocss/cad-model to another worktree), each with its own context Symbol. No change;
+  `Symbol.for` hardening left undone (it would also hide skew between copies).
+- **The worm pair** (8fa7a6ca2): wormMeshNotes keeps the kernel check's notes by the pair as placed, exactly as first
+  computed; re-evaluation 543 → 47 ms, the first open unchanged (the kernel's check, the kernel lane's code).
+- **Proposal, not built:** the spring's mass quadrature (2.05 s at open) could be computed only when the inspector, the
+  BOM or mass properties ask — a studio-side saving to weigh when the O11 UI is designed.
+- **D241 (lazy mass), stopped at measurement:** the worker's reply forces it. MeshSender.pack (engine/meshWire.ts) takes
+  each body apart with a rest spread, which reads every property, so a lazy getter would run in the worker on every
+  evaluation reply, at open included. Every other reader is on request (the inspector, InstancePanel, MapLegend,
+  sectionView, the preview ghost; in the model only cutPiece for members; factsOf and the fingerprint when called).
+  Laziness needs mass left off the wire and fetched per body, with its readers awaiting it (src/engine, App.tsx,
+  src/ui): for the post-G12b UI list, not built.
+
+## O17 — the chat on the AI SDK: rendering, scripted turns, O17c's line; R14.1's placement (2026-10-24)
+
+- **Install** (c25ecc976): `ai` 7.0.137, `@ai-sdk/react` 4.0.140, `@shadcn/helpers` 0.2.0, `zod` 4.6.5, exact; undici
+  held at 7.30.0 by the coordinator's root override (6dbdc9fca: 7.30.1 was younger than two weeks).
+- **Rendering** (4341340a4): chat/useStudioChat holds ChatPanel's turn logic on `useChat`, unchanged (session, quotes,
+  traces, rows, blobs; previews from data-state; the A7 merge, history and commit at the end). Notices are `data-notice`
+  parts of the turn's own message. After `stop()` useChat reads the stream no further, so a stopped turn's notice is
+  appended by the hook once the turn has settled. components/ai: Message, Tool (a failed call by its icon and `err`, no
+  left border), ProposalLink (a propose call's proposal from the document — title, risk and status chips, Reject and
+  Accept as the list; stale: rebased from the list; AI SDK approval not used). Every label and class kept. App.tsx: two
+  lines (the proposal props). All 51 chat steps on both renderers: 52/52 each.
+- **Scripted turns** (80a49b2e6, DEV): `window.__studioScriptChat(turns)` streams the chat server's own events through
+  shadcn's createChat, the n-th user message answered by the n-th turn; the studio's end runs on the scripted `done`,
+  and a turn stopped before it ends as aborted. `__studioChatSent()` keeps what each turn would have sent. Steps 61 and
+  62 moved to it (61 renamed "… through a scripted chat (createChat)"); step 63 is new, UI only. Everything that proves
+  tools and gates stays on the real servers.
+- **O17c** (c7e6644e8): a reasoning part is one collapsed "Thinking…" line; none when the CLI streams no thinking.
+  **Unverified against the live CLI** — the live turn is the owner's ask.
+- **R14.1's label click** (the GPU lane's report): not the label — the click landed on the paper further than 30 mm from
+  every view, and hoverAt, finding no view, dropped it. While a dimension is placed, its place is read in its own view
+  wherever the pointer is on the sheet (placingAt), for the click and its preview; the flow's placement is back at 30 mm.
+
+## R4b.3–R4b.8 — the remaining stale-reply guards on the O9 lanes (2026-10-24)
+
+One caller a commit, each guard's own behaviour kept; App.tsx edits on the guard lines only.
+- **R4b.3 App section** (a8a5c38af): its live flag → the 'section' lane (cancelled by the effect's cleanup); the
+  latest-wins queue stays (it keeps 40 dragged planes from being 40 requests).
+- **R4b.4 App bearing edit** (d1e372ec4): the run counter → the 'bearing-edit' lane, cancelled when the document,
+  selection or edit changes. The request never throws on the lane (its refusal is its result), so a stale one says
+  nothing, like a stale reply; the scope check (bearingEditCurrent) stays.
+- **R4b.5 App placed parts** (a5e294f3c): one lane a part, `placed:<id>`; the cleanup cancels the lanes it asked on.
+- **R4b.6, R4b.7 App proposal diff and mould view** (f583df59e): 'proposal-diff' and 'mould' (the effects only; the
+  mould's map and panel untouched).
+- **R4b.8 useDrawingSheet** (be38231a7): 'drawing-bodies', 'drawing', 'drawing-bom'; a refused read is its result
+  (null), as the flags' rejection handlers had it. DrawingWorkspace keeps no guard of its own.
+- **Kept as they are** (behaviour a lane would change): App's command preview — its guard shows an overtaken result
+  while a newer one is queued, so a drag keeps its feedback; useAssembly's readFaces (R4b.2, render-time).
+- **Verified:** studio tsc and eslint; bearing, drawing, o9, instance, section, mould and proposal tests 41/41; the
+  batch FLOW_ONLY at be38231a7 on WebGPU and WebGL2, 20 steps each, exit 0 (the section steps with O9's fast drag,
+  placing / dragging / mating instances, the real-chat proposals, Bearing, IM2 and IM5's mould views, drawing revision,
+  R14.1–R14.3b, sections O148 X1/X2, BOM table and balloons).
+
+## R7.3a in progress — cad-model's refusals onto one shape (2026-10-24)
+
+The owner approved api-conventions.md (§6) and the R7 rows. The coordinator's order: two separate batches, so that a
+regression can be pinned to one of them.
+- **Batch 1:** no text change. The fingerprint stays byte-identical to 1125c4eb… (2e0a2f34f, 152 documents).
+- **Batch 2:** the uncoded throws and classes get codes. Their message text changes, and the deltas are recorded.
+
+**Done (step 1 of batch 1, 71cf7807f).**
+- `src/engine/refusal.ts`:
+  - re-exports `BarocssError` from `@barocss/cad/api` (no second class);
+  - `CadModelCode`, one union of the codes folded so far;
+  - `Problem { code, message, where? }`;
+  - `refusal(code, message, details?)`, whose message is the old "[CODE] …" text byte for byte, plus `problem()`,
+    `isRefusal(e, ...codes)` and `firstProblem()`.
+- Twelve coded Error classes are folded: IkError, LoopError, WorkspaceError, SplitError, LatticeError, HollowError,
+  EcrError, BaselineError, DxfReadError, DraftError, ReferenceError, ScriptError.
+  - Each class's `[CODE] message` text is unchanged.
+  - Callers' `instanceof X` became `isRefusal(e, ...X_CODES)`, with DXF_READ_CODES, DRAFT_CODES, REFERENCE_CODES
+    (in schema/references) and SCRIPT_CODES.
+  - ScriptError's line and col are in `details`, built by `scriptError()`; history.ts and script.test read them there.
+- Verified:
+  - cad-model tsc and eslint, studio tsc;
+  - the affected tests 150/150 (robot, print, team, drafts, dxf, references, script, questions, a6);
+  - step 1's full suites and fingerprint ran after the commit and are reported with the hand-over.
+
+**Next, still batch 1 (no text change):**
+1. **Validators.** `…Problem(x): string | null` becomes `check…(x): Problem[]`:
+   - drawingScopeProblem, manufacturingDrawingProblem, valueProblem, frameProblem, fastenerSizeRowProblem,
+     printPreviewProblem, documentPrintPreviewProblem, bearingHousingRefProblem, documentBearingHousingProblem,
+     ringRowProblem, mountRowProblem, fastenerRowProblem, castingRuleRowProblem, and checkVariability's string return.
+   - Read each callsite first. The row validators return text without the code (`${at}: unknown field…`); their
+     callers or the `at` prefix add the code.
+   - A caller that threw `new Error(p)` throws `new BarocssError(p.code, p.message)`. The constructor drops the
+     leading `[CODE] ` and adds it back, so the text is the same.
+   - A caller that kept a string uses `firstProblem()`.
+2. **The 40 `throw new Error('[CODE] …')`** become `refusal('CODE', '…')`, the text unchanged. By module: engine 24,
+   app 11, drawing 2, assembly, team and bom 1 each.
+3. **The bracketed-string returns in results**, e.g. variantOf's `{ error }`, chat/drafts and references' `{ error }`,
+   frames/skeleton, chat/features and chat/drawing. Operations throw; tool-layer message builders such as
+   toolDefinitions' UNKNOWN_ARGUMENT may stay as builders. Update scripts/r4-fingerprint.ts where it reads `'error' in r`.
+4. **Close batch 1.** Run the full cad-model and studio suites and the fingerprint; it must be byte-identical to
+   1125c4eb… (152 documents).
+
+**Then batch 2 (codes added, text changes recorded):**
+- About 110 uncoded throws: engine 45, app 51, chat 3, drawing 3, team 2, io 3, library 3.
+- The 7 uncoded classes: XmlError ("XML at N: …"), ModelReadError, ActuatorError, CcdError, ProfileError,
+  ContainerError, SketchDxfError.
+- Name each code by the refusal's kind, UPPER_SNAKE, reusing an existing code where it means the same.
+- Record each moved message as before → after here, together with the fingerprint lines it moves.
+- Update tests that pin the old text in the same commits, and regenerate apps/library-docs' refusal table with
+  `node apps/library-docs/scripts/refusals.mjs`.
+
+**Things the next session must know.**
+- `BarocssError`'s `where` is typed `RefusalWhere` ('facade' | 'evaluate' | 'export'), so cad-model passes none. The
+  kernel lane moves the class into the kernel's core in their R7.3a (after K16); import it from there once it lands.
+- Don't change `src/api/`; it is the API lane's. cad-model's facade (src/api/refusal.ts) already re-exports the same class.
+- A fold helper (regex: class line removed, `new X(` becomes `refusal(`, tests' `instanceof X` becomes `isRefusal(e)`)
+  lived in the scratchpad only. The pattern is simple to redo per file.
+- After R7.3a, the queue goes on to R7.3c (one mass and one bounds function; `stepFor` becomes
+  `exportStudioStep(doc, options)` with `timestamp` in options; readonly vectors across packages), then R7.3b's
+  cad-model follow-up (bodyMass inertia in g·mm²) once the kernel's lands.
+
+## R7.3a batch 1 closed — validators, coded throws and operations on one shape, no text changed (2026-10-24)
+
+**Done (4a2e534e9, on integration a1857acec).**
+- Before it, step 1's tree (a1857acec) was checked again: fingerprint 1125c4eb… (152 documents), cad-model 1028/1028,
+  studio 286/286.
+- **Validators → `check…(x): Problem[]`** (none, or the first problem), for those whose texts carry a code:
+  checkDrawingScope, checkManufacturingDrawing, checkPrintPreview, checkDocumentPrintPreview, checkBearingHousingRef,
+  checkDocumentBearingHousing, checkMountRow, checkFrame (`Problem<FrameCode>`), checkValue, checkVariability,
+  checkSkeletonEdit, checkPartDelete, checkPartEdit.
+  - A caller that kept a string uses `firstProblem()`; one that threw throws `refused(problem)`.
+  - `Problem` is generic in its code (`Problem<C>`), so a validator can say which codes it returns.
+- **The 43 `throw new Error('[CODE] …')`** are `refusal('CODE', '…')`. frameGeometry's two `[${code}]` throws are too,
+  its codes typed as `FrameGeometryCode`.
+- **`refusal()` writes the prefix itself.** BarocssError's constructor drops the first `[CODE] ` it finds anywhere in
+  the message. So step 1's `refusal(code, text)` would have dropped a nested refusal's own `[CODE] ` (for example
+  BEARING_HOUSING_EVALUATION quoting an evaluation error). `refusal()` now passes `[CODE] text`, so the text is byte for
+  byte what was written. `coded(code, text)` is for a text written already, such as NO_SIZES.
+- **Operations throw instead of returning `{ error }`:**
+  - variantOf and variantNamed, with `VARIANT_CODES`;
+  - boundConstraints, solvedSkeleton and resolveSkeletons, with `SKELETON_CODES`; resolveSkeletons rethrows with the
+    feature named, as its old text did;
+  - withManufacturingDrawing, with DRAWING_SECTION_REFERENCES.
+
+  Their callers catch only those codes and show the same text: the chat tools, part.ts's evaluated view,
+  useVariants, App's parameter change, the skeleton editor and its draft diagnosis. Anything else is rethrown, as before.
+- **Kept on purpose:**
+  - frameGeometry's `{ code, error }`: a query that seven callers branch on, not a refusal;
+  - readStudioDoc's `{ error }`: a reader's result;
+  - the chat tools' `{ error }` outcomes: the tool layer, per §6.
+- **Moved to batch 2:** the row validators whose texts have no code (ring, fastener, fastener size, casting rule), and
+  editRows' texts.
+- **Studio call sites moved with the change** (the GPU lane's files named):
+  - `viewport/printSettings.ts` and `App.tsx`: one import, the print check, the parameter change;
+  - `state/useVariants.ts`, `skeleton/skeletonTool.ts`, `skeleton/useSkeletonEditor.tsx`.
+- **The fingerprint's `message(e)` records `${e.name}`,** and BarocssError's name differs from Error's. No recorded
+  document throws (the records have no `threw`), so nothing moved. A refusal that starts throwing where a document is
+  recorded would show the name: watch for it in batch 2.
+- **Verified (T2):**
+  - fingerprint **1125c4eb… byte-identical** (152 documents);
+  - cad-model 1028/1028, studio 286/286 (TEST_CONCURRENCY=4, scratch worktree);
+  - tsc (model, studio); eslint 0 errors (20 old warnings).
+  - Flow not run: no UI text or step changed.
+
+## R7.3a batch 2 closed — every cad-model refusal coded, each moved text recorded (2026-10-24)
+
+**Done (7ccc22dd9, merged with integration 4ff6208b7 as 437125dab).**
+- **The rule for every moved text:** after = `[CODE] ` + before, nothing else in the words changes. Three exceptions:
+  - XmlError's text is `[XML_MALFORMED] XML at N: …`, with N in `details.at` as well.
+  - A `.bcad` that can't be read keeps the container's code in front:
+    `[CONTAINER_DAMAGED] This model file could not be read: the file is cut short.` (it was
+    `This model file could not be read: the file is cut short.`).
+  - editRows' two texts are `[ROW_UNKNOWN] no <noun> … to remove (…)` and `[ROW_IN_USE] <noun> … <used>`.
+- **The seven classes folded:** ActuatorError, CcdError, ProfileError, ModelReadError, XmlError, ContainerError and
+  SketchDxfError. Nothing caught them by class; the only `instanceof`, studio test robot-urdf's, now checks
+  `{ code: 'XML_MALFORMED' }`.
+- **94 throws coded.** Those whose shared text was already coded (NO_SIZES and noSizeRow, NO_MOUNTS and noMountRow,
+  ROWS_NOT_FROM_PERSON) are thrown with `coded()`, their text unchanged.
+- **Kept plain Errors, as internal invariants rather than refusals:**
+  - `chat/contract.ts:98` (an unclassified tool);
+  - `engine/wireDoc.ts:96` and `engine/meshWire.ts:44` (the worker wire);
+  - `engine/evaluate.ts:349, :548` (a bead with no origin body);
+  - `engine/part.ts:77` (a skeleton sent to the kernel);
+  - the test scenarios' setup in `team/parts.ts:101` and `team/boardScenario.ts:35`.
+- **Row validators:** `checkRingRow`, `checkFastenerRow`, `checkFastenerSizeRow` and `checkCastingRuleRow` return
+  `Problem[]` (RING_ROW, FASTENER_ROW, FASTENER_SIZE_ROW, CASTING_RULE_ROW). editRows' `RowEdit.problem` stays
+  `string | null`, because the kernel's row validators feed it too; cad-model's pass through `firstProblem`.
+- **What is left of §6 in cad-model:**
+  - the row editors' `{ doc } | { error }` results, which the chat's load_rows and the studio's row panels read;
+  - readStudioDoc's `{ error }`, a reader's result.
+
+  Both go with R7.3c's assembly core functions, where the same callers move.
+- **The refusal table:** `apps/library-docs/scripts/refusals.mjs` (approved by the coordinator) also reads
+  `refusal|problem|coded('CODE', …)` calls, with an upper-snake literal code. The output format and module column are
+  unchanged.
+  - `_refusals.md` is regenerated: 145 → 254 codes, none gone.
+  - It brings back step 1's codes, which had dropped out (the robot, print, team, chat and DXF ones).
+  - The kernel's coming pattern (core/barocss-error.ts) isn't on integration yet; the scraper reads it once it is.
+- **Fingerprint lines moved: none.** It is 1125c4eb… byte-identical (152 documents), because no recorded document
+  reaches a batch-2 text.
+- **The moved texts by code:** count, files, the text before (after = `[CODE] ` + it).
+
+| Code | Files | n | Before |
+|---|---|---|---|
+| ACTUATOR_INPUT | `robot/actuators.ts` | 2 | unit "…" is not known (…); the dwell is a time of 0 s or more |
+| ALIGN_PICK | `app/alignCommand.ts` | 2 | Pick the face of the body to move.; Click the flat face of another body to put it on (or choose the floor). |
+| ALIGN_TURN | `app/alignCommand.ts` | 1 | The faces must face along X, Y or Z for the body to be turned onto it: turn it first … |
+| CAP_PICK | `app/weldmentCommands.ts` | 1 | (an expression: p) |
+| CASTING_RULE_ROW | `engine/castingRuleRows.ts` | 16 | a casting rule row is an object { id, process, key, value, unit, description, source } …; a casting rule row needs an id; …: process is one of …; …: allowance is shrink or machining (or left out, for a limit); …: unknown field …; … |
+| CONTAINER_DAMAGED | `engine/container.ts` | 5 | the file is cut short; a mesh chunk is malformed; a mesh chunk does not match its hash (……): the file is damaged; the file has no document |
+| CONTAINER_NEWER | `engine/container.ts` | 1 | this file was saved by a newer cad-studio (container version …; this one reads …) |
+| DECIMATE_KEEP | `app/commands.ts` | 1 | Keep between 1 and 99% of the triangles. |
+| DIRECT_DEGREE | `engine/direct.ts` | 1 | The curve is already degree 5, the highest raised to. |
+| DIRECT_ID | `engine/direct.ts` | 1 | No free id prefix. |
+| DIRECT_INTERSECT | `engine/direct.ts` | 2 | These surfaces cannot be intersected: ….; These surfaces do not meet. |
+| DIRECT_KNOT | `engine/direct.ts` | 1 | That knot cannot come out without moving the curve more than … mm (or it has none inside). |
+| DIRECT_LOFT | `engine/direct.ts` | 1 | Loft through 2 to 15 curves. |
+| DIRECT_LOOP | `engine/direct.ts` | 3 | Pick four curves that meet end to end in a loop.; The four curves do not meet end to end: each must start where another ends.; The curves do not close into a loop. |
+| DIRECT_PICK | `engine/direct.ts` | 4 | … is not a curve or a surface of its source.; No such object.; Pick a curve.; Pick a surface. |
+| DIRECT_PLANE | `engine/direct.ts` | 1 | The curve lies in the plane … = …: it does not cross it. |
+| DIRECT_RANGE | `engine/direct.ts` | 1 | The curves run over different parameter ranges: trim or rebuild them to one range first. |
+| DIRECT_SOURCE | `engine/direct.ts` | 2 | (an expression: r.diagnostics.map(d => d.message); This CAD source has no curves or surfaces. |
+| DIRECT_VALUE | `engine/direct.ts` | 6 | Extend by a positive distance.; A scale is a positive factor.; Each stretch is a positive factor.; A shear moves one axis by another: pick two different axes.; Give the shear a factor.; A name is needed. |
+| DRAFT_ANGLE | `app/commands.ts` | 1 | A draft angle is not 0 and below 45° in size. |
+| DRAFT_PICK | `app/commands.ts` | 1 | (an expression: d) |
+| FACE_DISTANCE | `app/profileCommands.ts` | 1 | Give the face a distance to move: out (+) or in (−). |
+| FASTENER_GRIP | `app/fasteners.ts` | 1 | Give the joint its grip: the thickness the bolt clamps (mm). |
+| FASTENER_LENGTH | `app/fasteners.ts` | 2 | … … come …–… mm long (…).; … × … is too short for this joint: it needs … mm (grip … + washer … + nut … + 2 … |
+| FASTENER_POSITION | `app/fasteners.ts` | 1 | Give the fastener a position (X, Y and Z in mm). |
+| FASTENER_ROW | `engine/fastenerRows.ts` | 11 | a fastener row is an object { id, kind, size, lengthMM (a screw or bolt), source \| …; a fastener row needs an id; …: unknown field …; …: kind is one of …; …: size is the thread's, as "M6"; …: a …'s lengthMM is a number of mm above 0; …: a … has no lengthMM; … |
+| FASTENER_SIZE_ROW | `app/commands.ts`, `app/fasteners.ts`, `engine/fastenerSizeRows.ts` | 14 | (an expression: noSizeRow(String(v.thread); (an expression: noSizeRow(String(v.size); a fastener size row is an object { id (M6), d, pitch, s, k, m, dk, ks, socket, wd1, …; a fastener size row\'s id is its thread size, as "M6"; …: unknown field …; … |
+| FILLET_CHAIN | `app/commands.ts` | 1 | A varying radius needs the picked edges to form one open chain: its two ends take the … |
+| FRAME_MEMBER | `app/frameCommands.ts` | 2 | Give the member a start and an end apart.; Pick a straight member, an arc by center or through a point, or a tangent bend. |
+| FRAME_NOTCH | `app/frameCommands.ts` | 2 | Give the notch an existing joint point number.; Pick no notch, a hole saw or a V notch. |
+| FRAME_SECTION_PICK | `app/frameCommands.ts` | 2 | Pick a row of your section library.; Pick a section kind. |
+| FRAME_SKELETON_PICK | `app/frameCommands.ts` | 1 | Pick straight edges (of a layout box or sketch) for the skeleton, or choose a preset. |
+| FRAME_VALUE | `app/frameCommands.ts` | 2 | … must be a finite number.; Give the skeleton a width, a depth and a height above 0. |
+| GEAR_PICK | `app/primitives.ts` | 1 | Select one spur gear or internal gear to mesh with. |
+| GUSSET_PICK | `app/weldmentCommands.ts` | 1 | (an expression: p) |
+| HOLE_PATTERN | `app/commands.ts` | 3 | A hole pattern has 2 to 64 holes.; The row’s step must be longer than the hole’s diameter, or the holes run into each other.; Put the first hole away from the circle’s centre: the copies turn round it. |
+| HOLE_SIZE | `app/commands.ts` | 2 | The counterbore must be wider than the hole.; The countersink must be wider than the hole. |
+| IGES_EXPORT | `engine/direct.ts` | 2 | There are no visible curves or surfaces to export.; IGES export takes at most 16 curves and surfaces: hide some first. |
+| IGES_READ | `engine/direct.ts` | 1 | This IGES file cannot be read (…): only untransformed NURBS curves and surfaces … |
+| LIBRARY_ID | `library/libraries.ts` | 2 | … is a built-in library: give yours another id; … is a … library: give this one another id |
+| LIBRARY_UNKNOWN | `library/libraries.ts` | 1 | No library … (libraries: …) |
+| LIMITS_BAD | `robot/profile.ts` | 2 | a trapezoid needs velocity and acceleration limits above 0; an S-curve needs velocity, acceleration and jerk limits above 0 |
+| LIMITS_MISSING | `robot/ccd.ts`, `robot/dynamics.ts` | 2 | joint … has no … limits above 0; an S-curve needs a jerk limit for each moving joint |
+| LOFT_SECTIONS | `app/profileCommands.ts` | 1 | (an expression: s.error) |
+| MERGE_MISSING | `chat/merge.ts` | 1 | The merged part names …, which it does not have. |
+| MERGE_SUPERSEDED | `chat/merge.ts` | 1 | The evaluation was superseded while the chat turn was merged. |
+| MESH_NOT_LOADED | `engine/container.ts`, `engine/part.ts` | 2 | the mesh data …… is not loaded: it cannot be saved; The mesh's data (……) is not loaded: open the file it was saved in again |
+| MODEL_READ | `robot/modelCheck.ts` | 11 | …: … numbers expected, got "…"; … is missing or not a number; not an SDF 1.11 document (<… version="…">); no <model>; link …: its pose is not in the model frame; link …: an inertial frame turned from the link's is not read; … |
+| MOUNT_ROW | `app/mounts.ts` | 2 | (an expression: NO_MOUNTS); (an expression: noMountRow(String(v.row) |
+| NO_CHANGE | `app/alignCommand.ts` | 1 | It is already there. |
+| PATH_TOO_SHORT | `robot/ccd.ts` | 1 | a path needs at least two waypoints |
+| PRIMITIVE_SIZE | `app/primitives.ts` | 4 | The tube radius must be smaller than the ring radius.; The inner radius must be smaller than the outer one. |
+| RING_ROW | `engine/rings.ts` | 9 | a ring row is an object { id, shaftDiameterMM, grooveDiameterMM, grooveWidthMM, source …; a ring row needs an id; …: unknown field …; …: designation is text; …: … must be a number of mm above 0; …: the groove's Ø… must be below the shaft's Ø…; … |
+| ROWS_NOT_FROM_PERSON | `engine/rowSources.ts` | 1 | (an expression: ROWS_NOT_FROM_PERSON) |
+| ROW_FILES | `engine/rowFiles.ts` | 4 | Invalid row-file conversation.; At most 32 row files per conversation.; A row file needs a JSON filename, text and its user conversation turn.; Row files are limited to 256 KiB each and 1 MiB per conversation. |
+| SHEET_PICK | `app/sheetCommands.ts` | 3 | Pick one finished sketch.; Pick one straight edge of a sheet.; Pick a corner edge of a sheet. |
+| SHEET_VALUE | `app/sheetCommands.ts` | 6 | Give the sheet a thickness and a bend radius above 0.; The K-factor lies from 0 (the inner face) to 1 (the outer face); 0.3–0.5 is usual.; Give the profile a base, a leg, a width (and a lip) above 0.; An L bends between 0 and 180°.; … |
+| SKETCH_PARAMETER | `sketch/dxf.ts` | 1 | The sketch uses the parameter “…”, which has no value. |
+| SPLIT_PLANE | `app/commands.ts` | 1 | Give the plane a direction: its normal must not be zero. |
+| SWEEP_PATH | `app/profileCommands.ts` | 1 | (an expression: path) |
+| TRIM_CURVE | `engine/trim.ts` | 4 | The curve does not close: trim by a closed curve (a loop).; The curve crosses itself on the surface: trim by a simple loop.; The curve encloses nothing on the surface (it lies along it edge-on, or off its edge).; … |
+| XML_MALFORMED | `robot/urdfCheck.ts` | 1 | XML at …: … |
+| ZIP_LIMIT | `io/zip.ts` | 3 | zip: … entries (at most 65 535 without ZIP64); zip: … is past 4 GiB (no ZIP64); zip: the archive is past 4 GiB (no ZIP64) |
+
+- **Verified (T2):**
+  - cad-model 1028/1028, studio 286/286 (scratch worktree, TEST_CONCURRENCY=4);
+  - the affected model files 315/315 before the commit;
+  - after merging the tip: facade tests 25/25, studio tsc clean, check:docs passes (33 pages, 595 labels);
+  - cad-model tsc: one error, `src/api/assemblyCore.ts:73`, batch 1's variantOf meeting R7.5 (the API lane's, routed);
+  - eslint 0 errors.
+  - Not run: the flow, the kernel suite, RB.
+    - The flow's only step on a moved text is O139's ring rows. It matches `/used by a retaining ring/` without an
+      anchor, so it holds with `[ROW_IN_USE]` in front.
+    - The studio's row panels (RingRows) show the error as the toast's hint, code included, as coded row refusals
+      already did. Stripping it there is the panels' call, a follow-up.
+
+## R7.3c — one function per concept in cad-model: bounds, STEP, the assembly's edits, Vec3; rotate's pivot recorded (2026-10-24)
+
+**Done (e3a9b6dd0).**
+- **Bounds.** `engine/bounds`' `boundsOf(bodies)` is the one function; no bodies gives the empty box (±∞), as its 16
+  callers expect. The two `boxOf(bodies) → box | null` wrappers, in app/mass (Vec3 tuple) and rb9/measure (mesh
+  Vec3), are gone. Their four callers check for no bodies themselves: App's box, rb9's boxIs, rungs-assembly and
+  rungs-plates. Values are unchanged.
+- **STEP.**
+  - `stepFor(doc, name, meshes?, { timestamp? })` is now `exportStudioStep(doc, { name, meshes?, timestamp? })`. It
+    returns `{ text, source, omitted? }` (`StudioStep`), and at the kernel level the one STEP function stays
+    `exportStep(breps, options)`.
+  - It throws:
+    - **NO_BODY** for no body to write;
+    - the evaluation's own refusals, passed through as they are (they were `{ error: message }`).
+  - **Texts moved:**
+    - `There is no body to export.` → `[NO_BODY] There is no body to export.`
+    - `Only infill bodies: STEP carries the exact part, and there is none to export.` → the same with `[NO_BODY] ` in
+      front.
+  - The worker's wire, cad-cli, the mould quote, the qa probes and the fingerprint keep `{ error: message }` reports.
+    Each catches the throw (`stepReply`, `stepOrError`, `stepOr`).
+  - The facade's stepOf passes the words to `fromExport`, so its code reads NO_BODY where it was EXPORT.
+- **The assembly's edits as core functions** (assembly/edit.ts, the coordinator's R7.5 finding 7):
+  - **The functions:**
+    - `addPart(doc, { name, doc?, position?, rotation?, grounded? })` → `{ doc, problems, id }`;
+    - `partCopy(doc, part)` (add_part's copy_of);
+    - `placePart(doc, { part, position?, rotation?, grounded?, name?, hidden? })` → `{ doc, problems }`;
+    - `addMate(doc, { kind, a, b, distance?, angle?, flip? })` and `editMate(doc, { id, … })` → `{ doc, problems, mate,
+      freedom }`;
+    - `withFrames(doc, frames)` (set_frames' write) and `checkFramesOn(tree, names)` (its check on the joint tree,
+      which the caller builds: the tool asynchronously, the facade at once).
+  - `solveDoc` moves to assembly/edit from chat/assembly, and its 19 importers follow.
+  - The tools call these. Each solves once, in the core, from the placements before the change, as `changed()` did, and
+    the tools report the result unchanged (`reported`).
+  - **Codes** (ASSEMBLY_CODES): NO_PART, PART_MATED, MATE_KIND, MATE_SAME_PART, MATE_BOTH_FIXED, MATE_FACE_UNKNOWN,
+    MATE_FACES, MATE_UNMET, NO_MATE, FRAME_NAME.
+  - **Texts moved:**
+    - after = `[CODE] ` + before;
+    - the tool keeps its own hints after the words: MATE_FACE_UNKNOWN's `. List mateable faces with get_assembly …`, and
+      MATE_UNMET's `kept`;
+    - set_frames' texts were coded already and don't move;
+    - the call-shape refusals stay in the tools, uncoded as before (`"name" is required`, `"a" and "b" are {part, face}`).
+  - api/assemblyCore.ts (the API lane's) still mirrors the tools. Only its `solveDoc` import moved. Switching it to
+    these functions is the API lane's, and its byte-for-byte test checks the switch.
+- **Vectors** (§10.2, where they cross a package):
+  - the exported `Vec3` and `V3` of engine/mesh, assembly/mates, drawing/types, drawing/annotations3d, print/overhang,
+    frames/sketch3d and robot/inertia are now engine/vec3's `Vec3`;
+  - robot/inertia's `Mat3` is now engine/placement's.
+
+  They are still mutable tuples. `readonly [x, y, z]` is the conventions' shape, but it reaches every writer of a vector
+  (hundreds of sites), so it's a later step of its own. Module-local `type V3 = […]` declarations don't cross
+  anything and stay.
+- **Rotate's default pivot.** It is recorded, and no code changes:
+  - **The verb's default is the body's box centre,** to 0.001 mm (`centreOf`), written into the node. That covers the
+    studio's rotate command, the gizmo and the agent's v2 `rotate` (COMMAND_DOCS: "default: the body's centre").
+  - **A `rotate` node without `pivot` means the origin,** the kernel's default. Saved and hand-written documents keep
+    resolving.
+  - The facades' rotate follows the verb: the centre, written as `pivot`, so `.doc` equals what the command writes. The
+    API lane builds it.
+- **Mass: not folded here,** as proposed to the coordinator. The four computations round in their own orders: Body
+  panel, tools/BOM/quote, BOM core and robot inertia. Folding them is a last-ulp value change that reaches the BOM lines
+  and the fingerprint. R7.3b's MMGS move changes the same values, so both go in one step with one oracle and one record.
+- **Verified (T2)** on e3a9b6dd0, in a scratch worktree:
+  - cad-model 1047/1047 (integration's new tests included), studio 286/286;
+  - docs samples 24/24;
+  - tsc (model, studio); eslint 0 errors;
+  - the affected model files 294/294 before the commit.
+- **The fingerprint is d1f8bb3c…, and R7.3c moved none of it.** Its 153 records equal those of the merge before it
+  (437125dab), one by one. The 17 documents that differ from batch 2's (7ccc22dd9) moved with integration's tip, the
+  kernel's K16: last-ulp volumes, B-reps, STEP and STL of the o7 enclosure and fasteners fixtures, and rb9's sheet and
+  enclosure and print-in-place rungs. No recorded document reaches NO_BODY.
+  - Not run: the flow, the kernel suite, RB.
+
+## O20 — a value the agent gives a command is never replaced by a derived one (2026-10-24)
+
+Found by the API lane. A 10 mm box and `run_command {command: 'split', values: {axis: 'x', at: 2}}` made
+`{kind: 'split', axis: 'x', at: 5}`: two 500 mm³ halves, with no warning. Mirror did the same: `plane: 'yz', at: 12`
+put the plane at x = 10.
+- **Cause.** run_command patches every given value at once, so `changed` is every given key. A command's `derive`
+  recomputes the values that follow a changed one, and it overwrote a given one. Split's `at` follows its axis and
+  mirror's follows its plane. The studio's UI sets one value at a time, so it was right.
+- **Fix.** `givenValues(cmd, ctx, values, given)` in app/commands.ts is patchValues with the given values put back on
+  top, so a derived value never replaces a given one.
+  - The agent's run_command (chat/part/features.ts) and the facade's verbs (api/studio.ts, the API lane's call site)
+    use it.
+  - patchValues stays as it was for the studio, whose `place` passes whole value sets (a fastener at a hole's rim),
+    where the derived size must win.
+- **The audit:** every command with a derive is fastener, hole, mirror, move and split. The test pins that list.
+  - split: a given `at` with its axis was moved to the middle. **Fixed.**
+  - mirror: a given `at` with its plane was moved to the body's face. **Fixed.**
+  - hole: a tapped hole's given Ø was replaced by the thread's tap drill. **Fixed**; no Ø given still takes the tap drill.
+  - fastener: a given length was swapped for the nearest length the size comes in. **Fixed**: an offered length is kept,
+    and one not offered is now refused ("length" is one of 12, 16, 20 …), never swapped.
+  - move: with only Δ or only the landing point given, the other follows, as before. With both given, both stand and
+    the build uses Δ.
+- **Test:** test/o20-given-values.test.ts, 6 tests. With patchValues in place of givenValues, 4 fail (split, mirror,
+  hole, fastener).
+- **Verified (T1):** o20 6/6; tsc (model, studio); eslint. The full suites run with the next checkpoint.
+
+## R7.7a step 1 — the agent's tool arguments without unit suffixes, and the core options they feed (2026-10-24)
+
+The owner's rule (conventions §2, amended 36dc8e1bc): no unit suffix. Where a bare name is ambiguous it gets a clearer
+word, and the coordinator approved those words (r7.7a-rename-proposal.md in the shared notes). Values are unchanged.
+
+| where | old | new |
+|---|---|---|
+| query.clearance (`output_clearance`) | `nearMM` | `near` |
+| query.cam (`output_cam_package`) | `toolMM` | `toolDiameter` |
+| print.layers (`output_print_layers`) | `layerMM` | `layerHeight` (`layers` holds the indices) |
+| print.layers (`output_print_layers`) | `limitDeg` | `overhangLimit` (degrees from the vertical) |
+| the pipe command's value (COMMAND_DOCS, the palette) | `bendDeg` | `bendAngle` |
+| the sweep's edit fields | `bendDeg<k>` | `bendAngle<k>` |
+| core option | `clearanceMap(bodies, { nearMM })` | `{ near }` |
+| core option | `camPreview` / `camPackage` `{ toolMM }` | `{ toolDiameter }` |
+| core option | `printLayers(meshes, { layerMM, limitDeg })` | `{ layerHeight, overhangLimit }` |
+
+- The tool descriptions now give each unit in words, for example "layerHeight (mm)".
+- The argument check's texts follow the new names: `overhangLimit must be greater than 0 and less than 90 degrees.`
+  and `… at most 10000 (mm).`
+- **tools-v2.json is unchanged:** it freezes the 13 tools and their action enums, and the per-action arguments sit
+  under them. The per-turn tools list plus prompt is within the budget (toolset 9/9).
+- The docs tool table is regenerated: `node apps/library-docs/scripts/agent-tools.mjs`.
+- The studio's call sites moved with it: cad-cli's `--tool`, clearance.worker and print.worker. Those are GPU-lane
+  viewport files, and only the option names at the calls changed; their own state names (`nearMM` props, `layerMM` in
+  PrintOptions) wait for step 3, where the stored printPreview `layerMM` moves.
+- **Left for the later steps:** the results' `layerMM: { mm, basis }` and `limitDeg: { deg, basis }` (print layers),
+  the cam result's `tool.diameterMM` and `stepoverMM`, and the stored printPreview `layerMM`.
+- **Verified (T1):**
+  - the affected model files 85/85 (toolset, tool-contract, chat-outputs, clearance, cam, print, a9, shop-context,
+    sheet, pipe, sweep, o20) and studio cnc-cam and robot 29/29;
+  - tsc (model, studio); eslint 0 errors.
+
+## R7.7a step 3 — StudioDoc's own stored fields without unit suffixes (2026-10-24)
+
+The owner widened R7.7 to stored fields (4b0413599): the documents are unreleased, so the rename happens in place,
+with no alias and no migration. Values are unchanged.
+
+| stored field | old | new |
+|---|---|---|
+| print preview | `printPreview.layerMM` | `layerHeight` (`layer` is the shown layer's index) |
+| machining | `machining.allowanceMM` | `allowance` |
+| casting | `casting.machiningAllowanceMM` | `machiningAllowance` |
+| frames | `frames.kerfMM` | `kerf` |
+| weld records | `frames.welds[].sizeMM` (WeldRecord; part.ts gives it to the bead as its leg) | `size` |
+| datums | `datums[].residualMM` | `residual` |
+
+- The set_* tool arguments were already `allowance`, `kerf` and `size`.
+- printPreview's validator text now reads `layerHeight must be …`.
+- **Studio:**
+  - the GPU lane's print state, which mirrors the stored field and printLayers' options: PrintOptions, PrintRequest,
+    PrintPanel, printSettings, usePrintLayers and print.worker, with layerMM → layerHeight and limitDeg →
+    overhangLimit;
+  - ReferencesPanel reads `residual`.
+  - ClearancePanel's `nearMM` prop is UI state and isn't touched.
+- browser-flow.mjs: two assertions now read `frames.kerf` and `printPreview.layerHeight`.
+- No fixture, sample or .bcad carries these fields, so nothing is regenerated.
+- **Left for the later steps:**
+  - step 2: the fit-table rows (`upToMM`, `overMM`, kernel row types);
+  - step 4: results such as nesting's `kerfMM` per bar, a weld joint's `weld.sizeMM`, KeepoutResult, robot/loop's
+    `residualMM` and print layers' `layerMM: { mm }`.
+- **Verified (T1):** tsc (model, studio); eslint 0 errors. The affected tests and the full suites run in the scratch
+  check together with O19's wiring.
+
+## O19 — a stored edge or face name checked against what it named: refused, or matched again, never built on another (2026-10-24)
+
+The API lane found it in R7.4b, finding 4. The kernel's half is D277 (78a84d506): `expect` on fillet, chamfer, shell
+and draft, refusing `[REFERENCE_MOVED]`.
+- **Cause.** A sketch without sideTags (what commands and add_features write) names its walls by position. A vertex
+  inserted upstream renumbers them, and a fillet's stored `side1|side2` rounded another corner, silently. The node
+  carried `sigs`, but only the edit tool's rematch compared them; a document edited elsewhere skipped that.
+- **part.ts.** Each fillet, chamfer, shell and draft passes `expect`: its used names' signatures from `node.sigs`. The
+  compact `{ k, p, d, s, r }` becomes the kernel's `{ kind, at, dir, size, radius }`, and only the names the feature
+  uses go, by name (`expectOf`, at module level). A node without sigs passes none, as before.
+- **The agent's tools** (`chat/toolKit.ts` accept). An evaluation refused REFERENCE_MOVED runs `verifyReferences`, the
+  open path's matcher.
+  - **One clear match:** it is taken, marked re-matched until confirmed. The result carries `rematched` [{ where, was,
+    now }] and a note.
+  - **None or several:** refused with `references` [{ where, name, candidates }], the part unchanged.
+- **The studio's open** (App.tsx verifyOpened, a call site named to the coordinator). A document whose evaluation is
+  refused REFERENCE_MOVED is verified too, with no final bodies, so its moved names are substituted and marked, or the
+  feature is held with its candidates. Before this, an evaluation that failed skipped the check.
+- **Test:** test/o19-stored-names.test.ts, 4 tests:
+  - the sigs are written;
+  - the vertex insert is refused REFERENCE_MOVED; without sigs the same document rounds another corner;
+  - a 12 × 10 dimension change keeps building, with the fillet on its corner;
+  - through add_features on the moved document, the name is matched again (marked) and the fillet stays on its
+    corner.
+
+  With expectOf returning nothing, tests 2 and 4 fail.
+- **Verified (T1):** o19 4/4; tsc (model, studio); eslint. The full suites and the fingerprint run in the scratch check.
+- **Full check** (68c66bd66, scratch):
+  - cad-model 1065/1066, studio 286/286, docs samples 36/36.
+  - The one failure is conformance a1-refs-gone (references.test). Its harness required the opened document to build
+    before verifying. With `expect`, the gone edge's document is refused REFERENCE_MOVED (the kernel: "it is a line
+    edge now, was curve"). The harness now starts the check with no bodies on REFERENCE_MOVED, as the studio's
+    verifyOpened does. The case's expectations are unchanged and pass: the fillet is held, and the rest builds to the
+    same volume. references, rematch and o19: 17/17.
+- **The fingerprint is ddec05e2…, and O19 moved none of it:** its 152 records equal those of the commit before
+  (51bf8b294) one by one. No recorded document carries sigs that moved.
+  - Against the old tip (8f822fed9's), two records differ, both from step 1 and step 3:
+    - `toolset`: step 1's tool descriptions;
+    - frk-weldment-table.calls.json's STEP text hash: step 3's weld `size` renames the document's canonical JSON, so
+      the source revision the STEP header names is a new hash. The geometry is the same (bodies, B-reps and STL
+      unchanged).
+
+## O21 — the agent can make, set, rename, bind and remove named parameters; one core for the panel, the tools and the facade (2026-10-24)
+
+The API lane found it in R7.4d's design: no v2 action created or set a named parameter. The design was approved by
+the coordinator before code.
+- **Core,** in engine/parameters.ts. Each is verb(doc, …) → doc, pure, with refusals coded (PARAMETER_CODES) and the
+  facade's texts kept:
+  - `withParameters(doc, edits)` sets existing parameters, with PARAMETER_UNKNOWN and VALUE. It is the same as the
+    kernel facade's.
+  - `addParameters(doc, values)`: PARAMETER_NAME, PARAMETER_EXISTS, VALUE.
+  - `renameParameter(doc, from, to)` renames the nodes' references and the configurations, and keeps the order.
+  - `removeParameter(doc, name)`: each use keeps its value, and the configurations stay as they are, as the panel
+    did.
+  - `bindParameter(doc, { feature: index | id, value: edit_feature's key, parameter })` goes through editFields'
+    bind. It refuses PARAMETER_UNBINDABLE, the facade's code for the same refusal, when the value isn't written as it
+    is to one place, and NO_FEATURE for a feature that isn't there.
+  - `parameterUses` and `referencesRenamed` move from the studio's ParametersPanel.
+- **The studio's ParametersPanel** calls these and keeps its own checks and words (its toasts), so its behaviour is
+  unchanged. One difference: a rename in a document with no configurations no longer writes an empty
+  `configurations: {}`.
+- **The agent:**
+  - `features.parameters`, backed by set_parameters. It takes add, set, rename, bind, remove (and because), applied in
+    that order, all or nothing, then evaluated by accept, so a value that doesn't build is refused with the part
+    unchanged. The result lists each parameter with its value and uses.
+  - The contract classes it ALTERS (not idempotent), BATCHABLE and MUTATORS.
+- **tools-v2.json is re-recorded with one additive value,** `parameters` in features' action enum
+  (UPDATE_TOOL_CONTRACT=1, no breaking change).
+- **Per turn:** 23,682 characters (tools/list 15,440 + system prompt 8,242; cap 25,000).
+- **Docs:** the tool table (_tools.md) and the refusal table are regenerated, and check:docs passes (596 labels).
+- **Follow-ups:**
+  - configurations (named parameter sets) through the agent;
+  - the API lane moves its adapter's withParameters and binding onto these.
+- **Test:** test/o21-parameters.test.ts, 3 tests:
+  - the core functions and their refusals (texts pinned);
+  - bind, rename and remove;
+  - through set_parameters: add, bind and set give a 40 × 20 × 8 volume; a refusal anywhere applies nothing; T = 0
+    is refused by the evaluation.
+- **Verified (T1):** o21 3/3, toolset 9/9, tool-contract; tsc (model, studio); eslint 0 errors.
+
+## RS2 (core) — a robot's motions: poseAt and duration on Check path's timing; robot.motions saved in degrees (2026-10-24)
+
+The owner asked for more robot samples and joint motion ("로봇 관련해서 좀 더 다양한 샘플, 예제를 만들어봐야하지 않아? 관절 움직임
+같은거라던가?"). The contract was settled by the coordinator with the GPU lane.
+- **robot/motion.ts:**
+  - `poseAt(tree, path, t)` → joint values by key at t (s, clamped). It interpolates in joint space between waypoints
+    on ccd's timePath: one profile per segment on the tightest joint, so every joint starts and stops together within
+    its limits. It is the same timing sweepTimed checks, so what plays is what Check path certified. Gear followers
+    aren't in the values; FK resolves them.
+  - `duration(path)` → s, timed over the keys the waypoints name. It needs no tree, because a joint no waypoint names
+    never moves; ccd's `timeSegments(keys, path)` is split out of timePath for it.
+  - `checkPath(tree, path)` → Problem[]:
+    - JOINT_UNKNOWN;
+    - JOINT_MIMIC (a gear follower: give its leader);
+    - JOINT_LIMIT (a waypoint past lower or upper; straight segments between waypoints inside the limits stay inside);
+    - LIMITS_MISSING or LIMITS_BAD, PATH_TOO_SHORT.
+  - `timedPathOf(tree, motion)` and `motionOf(tree, path)` convert a saved motion's degrees to the radians path poseAt
+    and sweepTimed take, and back ("Save as motion").
+- **The stored field:** `robot.motions: [{ name, path: { waypoints, profile?, limits? } }]`.
+  - It is in the document's units (conventions §2): degrees for a turning joint and mm for a slide; limits as
+    `{ velocity, acceleration, jerk? }` per key or `default`.
+  - readRobot reads it and drops anything malformed. `motionNamed` refuses MOTION_UNKNOWN.
+  - set_joints and withFrames keep motions when they rewrite the robot settings. Before the fix, an emptied frames
+    list would have dropped the settings whole.
+- **Test:** test/rs2-motion.test.ts, 4 tests:
+  - the 2R chain's trapezoid against its closed form (v 1, a 2 over 1 rad: 1.5 s; s = t² at 0.25 s, 0.5 at 0.75 s;
+    clamped at both ends);
+  - three waypoints, each met at its segment's end;
+  - checkPath's refusals;
+  - degrees ⇄ radians and robot.motions read back.
+- **Verified (T1):** rs2 4/4; tsc; eslint 0 errors.
+
+## RS1 — eight sample robots, ready to open, each with a demo motion (2026-10-24)
+
+The coordinator approved the place and format: `packages/barocss-cad-model/samples/robots/<id>.bcad`, as plain JSON
+(no mesh data), with `index.json` [{ id, title, about, file }] for the GPU lane's Samples list. The package already
+exports `./samples/*`.
+- **The generator:** `scripts/robot-samples.ts`, run with `node scripts/robot-samples.mjs`.
+  - It builds each robot from blocks with holes, joined by the studio's mates: a turn is a hole concentric plus a face
+    coincident, and a slide is two square face pairs coincident.
+  - Four start from the kernel's RM conformance robots: chain-2r, arm-6r, four-bar and urdf-gears.
+  - There is no rows data (rule b).
+  - Every moving joint gets an estimated rating, which the exports need: turns 2 N·m and 180°/s, slides 50 N and
+    100 mm/s.
+  - Each sample has one demo motion in robot.motions, in degrees or mm.
+- **The samples:**
+
+| id | what | joints | motion |
+|---|---|---|---|
+| arm-2r | 2R planar arm | turn, turn (±150°), 40 mm apart | wave |
+| scara | SCARA | turn, turn, slide (±40 mm), turn | pick |
+| arm-6r | 6R arm | six turns (Z Y Y Z Y Z) | reach |
+| gantry-ppp | Cartesian gantry | slides X (0–200), Y (0–120), Z (±40) | box |
+| pan-tilt | pan-tilt camera head | pan Z (±170°), tilt X (±60°), a sensor frame `camera` | look around |
+| gripper | gear-coupled gripper | the left finger turns (±30°); the right one follows it, multiplier −1 | grip |
+| four-bar | four-bar linkage | crank, coupler, rocker (one loop) | crank |
+| gear-joint | gear-driven joint | 20 : 30, the follower at −2/3 | turn |
+
+- **The gripper's coupling.** A rack and pinion between two sliding fingers isn't a coupling the joint tree knows:
+  gear couplings tie two turning joints on one link by their spur gears. So the fingers pivot on two meshing 20-tooth
+  gears. A parallel-jaw gripper (rack and pinion, or a linkage) is a follow-up.
+- **Test:** test/rs1-samples.test.ts, 6 tests:
+  - the files equal what the script writes, and match index.json;
+  - each joint tree (types, the followers' multipliers, the camera frame), with no problems, and its motion passes
+    checkPath with a duration > 0;
+  - FK at 20 poses per open-chain sample against the chain's product of exponentials, written in the test from the
+    home axes (Rodrigues), to 1e-9 mm;
+  - by hand: the gantry's ram moves by (10, 20, −5), and the 2R's elbow is at 20 + 40 cos q;
+  - the four-bar's loop closes through its motion's angles, the pins within 1e-9 mm;
+  - MJCF (all eight) and URDF (the seven open chains) exported and read back by our readers, FK through the files
+    equal to ours to 1e-12 m;
+  - check_urdf on every URDF, and MuJoCo 3.3.0's mj_kinematics of every MJCF against our reader's, to 1e-9. Both
+    ran here; the test skips when neither is installed. The helper is `scripts/robot-fk-oracle.py`, which reads JSON
+    and writes JSON, and nothing is committed from it.
+- The fingerprint doesn't read samples/ (its roots are the fixtures and conformance), so nothing in it moves.
+- **Verified (T1):** rs1 6/6, rs2 4/4; tsc; eslint 0 errors.
+
+## O19 fix — a display edge or face carrying several kernel names: its shared signature is not sent as expect (2026-10-24)
+
+The coordinator's full flow at 7c8c6c038 was 286/288. Steps 176 (R10.2a) and 183 (R10.4b), the pipe tee's junction
+fillets round a closed curve loop, were refused "The kernel could not build this" (volume NaN). They passed at
+1f43a0818.
+- **Cause, reproduced in node:**
+  - The junction is one display edge carrying the kernel's eight names (`n1.side0#1|n3.side0#2#4` … `#1#4`), its two
+    ends at the same point (35, 0, 10).
+  - signaturesOf gave all eight names that edge's one signature: at = the midpoint of its ends.
+  - In the kernel each name is its own piece of the loop. Only the piece whose midpoint is nearest (35, 0, 10) built;
+    the other six were refused REFERENCE_MOVED, the named piece 3 to 9 mm away and another clearly nearer.
+  - The flow picks its name by iterating, so it hit one of the six.
+  - Merged faces (`a+b`, one signature for each name) are the same case for shell and draft.
+- **The fix:**
+  - The Signature of a display element that carries more than one kernel name records `shared` (the count), stored as
+    `n` in the Sig.
+  - expectOf (part.ts) doesn't send those signatures, because they describe the rim or the merged faces together, not
+    that name.
+  - matchSignature doesn't read `n`, so re-matching on open is unchanged.
+- **The trade-off, for now:** closed rims and merged faces get no kernel check, while single-name edges and faces keep
+  it. The vertex-insert refusal holds.
+- **Fingerprint (the coordinator checked it after fc3fde052):** two records moved, rb9/product-brief/0 and /2, and in
+  them only `step.text`'s hash. Bodies, breps, brepsMade, keys, rebuild and stl are identical. Both briefs end in a
+  fillet (n6, R0.5) whose stored signature now carries `n`. That changes the document's canonical JSON, and with it the
+  source revision in the STEP header — the same mechanism as step 3's weld record.
+- **Follow-up (logged):** signatures per kernel name, taken from each piece's own geometry, so that a display element
+  carries one signature per name. That would restore the check for rims and merged faces.
+- **The kernel lane** had started a distance-to-samples change in part-expect.ts. The coordinator asked it to drop
+  that unless it has a failing single-name closed-loop case: on its own it wouldn't fix this case, because `at` would
+  still be nearer a different piece.
+- **Test:** o19 test 5, the tee filleted by each of its eight names, builds to the same volume, each name's sig marked
+  `n: 8`. It fails without the fix.
+- **Verified:**
+  - o19 5/5, references and rematch 13/13;
+  - tsc; eslint;
+  - FLOW_ONLY '^R10\.(2a|4b)' on port 52391: steps 1, 176 and 183 ok.
+
+## RS3 (a) — the robot tools' work as sync core functions (robot/verbs.ts), replies unchanged (2026-10-24)
+
+- **One async gatherer:** `robotViewOf(doc, bodies, evaluate)` builds `RobotView { doc, bodies, parts }`, each placed
+  part evaluated once. `viewWith(view, doc)` keeps the parts and takes another document's settings.
+- **The sync verbs:** treeOf, partsOf, sweepLinksOf, poseOf, sweepOf, inertiaOf, gravityOf, movesOf, sizeOf, urdfOf,
+  mjcfOf, and withJoints (set_joints' write, beside assembly/edit's withFrames).
+- **chat/robot.ts:** each tool is now `view = await robotViewOf(…)` followed by a verb. The call's shape is still
+  checked in the tool, in the same words.
+  - treeOfDoc, robotOfDoc, sweepLinksOfDoc, urdfOfDoc and mjcfOfDoc are thin async entries over the view.
+- **Oracle:** every robot test unchanged and passing, with the replies byte for byte as before.
+  - model 116/116 (robot, rs1, rs2, api-assembly, tool-contract, toolset, o11, o12, frames);
+  - studio robot 24/24;
+  - tsc; eslint 0 errors.
+- **Next, (b):** the four actions set_pose, waypoint, check_path and play, in degrees and mm, with the budget
+  reported.
+
+## RS3 (b) — the agent moves the robot: set_pose, waypoint, check_path, play, in degrees and mm (2026-10-24)
+
+- **Four assembly actions:** each is a verb in robot/verbs.ts plus a handler in chat/robot.ts. The handlers are
+  `set_waypoint` and `play_motion`, because one-word handler names (`waypoint`, `play`) read ambiguously in prose
+  (O105b).
+
+| action | handler | what it does | changes the document? |
+|---|---|---|---|
+| `set_pose {values}` | `set_pose` | the links and frames placed as FK places them, values out in degrees | no, a preview |
+| `waypoint {motion, values?, at?, remove?, limits?}` | `set_waypoint` | adds, inserts or removes a waypoint in robot.motions; makes the motion when it is absent; `limits` are the stored `{velocity, acceleration, jerk?}` per key or `default` | yes, robot settings, so it is proposed |
+| `check_path {motion}` | `check_path` | sweepTimed along the motion's timing: clear, or the first contact (t_s, segment, links, values in degrees); min_clearance; samples; skipped pairs | no |
+| `play {motion, samples?}` | `play_motion` | poseAt at 2–200 even times (default 30): values in degrees and mm, and each link's placement | no |
+
+- **Refusals, typed:**
+  - JOINT_LIMIT is given in the units the agent used ("a~b = 151° is outside its limits -150° to 150°"; a slide's in
+    mm). The verbs check this themselves before checkPath, whose own text is in radians.
+  - JOINT_UNKNOWN, JOINT_MIMIC, MOTION_UNKNOWN.
+  - LIMITS_MISSING when a motion without limits is played or checked.
+  - VALUE for a bad `at` or `remove`, or a waypoint with no values.
+  - A bad call shape is refused in the handler.
+- **The approval:** `set_waypoint` is in ASSEMBLY_CHANGES and BATCHABLE, and in ALTERS as not idempotent.
+  approvalOf already lists `robot`, so the agent proposes it, like set_joints.
+- **Bug fixed in RS2, a saved `default` limit:**
+  - timedPathOf passed `default` through unconverted. The samples' `default {90, 180}`, meant as deg/s, therefore
+    played as 90 rad/s.
+  - A saved `default` is now in each joint's own unit (deg/s for a turn, mm/s for a slide). It becomes each moving
+    joint's own limits where that joint has none.
+  - motionOf does the same in reverse.
+  - The rs2 test now pins this. It previously pinned the unconverted default (`p.limits.default.v == 45`); that value
+    was the bug, so the expectation was corrected, not loosened.
+  - Every sample's motion is now about 57× slower than before, as intended: for example arm-2r's wave takes 5.5 s and
+    the SCARA's pick 5.17 s.
+- **Bug fixed in RS1, the gantry's `box` motion:** the ram went 30 mm down into the X carriage (contact at −10 mm).
+  It now goes up 30 mm, within ±40. Only gantry-ppp.bcad changed when the samples were regenerated.
+- **Open for the coordinator:** check_path on gripper, four-bar and gear-joint reports contact at t = 0.
+  - The pairs are meshing gears and the loop's closing joint, which touch by design.
+  - sweep skips parent and child pairs, and pairs that touch where the path starts only when the path doesn't move
+    them.
+  - The proposal is to skip gear-coupled pairs, whose mesh the coupling's phase already holds, and loop-closure pairs,
+    which meet at their joint.
+  - This changes sweep_path and the studio's Check path too, so it is the coordinator's call.
+- **Budget:** 24,042 characters a turn, cap 25,000; this step added 360. The tools stay separate: there is room, and
+  merging set_pose into `pose` with a flag was the fallback only if the budget got tight.
+- **tools-v2.json:** re-recorded with the four new assembly actions, additions only.
+- **Docs:** _tools.md and _refusals.md regenerated; check:docs passes.
+- **Tests:**
+  - New, test/rs3-movement.test.ts (4 tests on the RS1 samples):
+    - set_pose against FK in radians, its refusals, a gear follower from its leader;
+    - set_waypoint: direct use refused with needs_approval, a proposal's approval is `robot`, then make, insert and
+      remove, each refusal, and degrees and mm in the text;
+    - check_path: the SCARA's pick and the gantry's box are clear, the duration matches the trapezoid's closed form,
+      the limits are in degrees, MOTION_UNKNOWN and LIMITS_MISSING are refused;
+    - play_motion against poseAt at the same times, with the first and last waypoints met.
+  - Changed: tool-contract runs the three read tools; the studio chat test lists the four handlers.
+- **Verified (T1):** rs1, rs2, rs3, robot-*, tool-contract and toolset 103/103; tsc; eslint 0 errors.
+
+## O22 — designed contact in the collision sweep: meshing gears and planar loop pins; LOOP_OPEN for looped motions (2026-10-24)
+
+The docs lane found (RS4) that three samples' demo motions report contact from t = 0: gripper and gear-joint (meshing
+gears) and four-bar (its coupler and rocker, pinned by the loop closure). The sweep skipped only parent and child
+pairs. The coordinator scheduled it as O22.
+- **robot/sweep.ts:** sweepPath now reads designed seats from the tree, so the agent's tools, the studio's Check path
+  (App.tsx, no change there) and the harness all get them. The result gains
+  `designed: [{links, why}]`; sweepTimed, sweep_path and check_path pass it on.
+  - **Meshing gears (a coupling):**
+    - Each gear's zone is its triangles inside its tip cylinder (spurGearDimensions' ra) about its joint's axis, over
+      the axial span its teeth have.
+    - Zone against zone (teeth on teeth) is the coupling's to hold, by its phase. Every other triangle pair is still
+      checked.
+    - Two bare gears have nothing else, so the pair is left out, with the reason given.
+  - **A planar loop's pin (a closure):**
+    - Every joint between the two links turns about an axis parallel to the pin's axis (or slides across it), so
+      each point keeps its place along that axis. Two triangles whose extents along it meet at most at a plane can
+      only touch, never cross.
+    - So only the triangles inside the slab both links fill are checked. Stacked links share no slab and are left out:
+      they cannot meet.
+    - A part of one reaching into the other's slab (a post) is checked as any other pair.
+    - A loop that is not planar, or interleaved links with no stacking, are checked as any other pair.
+  - **Rejected first approach:** checking stacked pins a 1e-4 mm gap apart along the axis. It stalled conservative
+    advancement (step = gap / rate, 20,000 samples) and ended in a false contact.
+- **LOOP_OPEN (new code):** nothing closes a loop along a motion — not poseAt, not the sweep, not the studio's playback.
+  - The four-bar's demo motion turns the crank while crank~coupler and base~rocker stay at 0, so its poses are open
+    chain.
+  - check_path and play_motion therefore refuse a robot that has a loop (a typed refusal rather than a wrong result).
+  - The proposed follow-up, RS5: motions close their loops, with closeLoop per pose in poseAt (the RS1 test already
+    closes the four-bar along its demo values) and a sweep over the closed path. The studio's playback and Check path
+    have the same gap; that part is the GPU lane's.
+- **Tests:**
+  - New, test/o22-designed-contact.test.ts (3 tests):
+    - **Gears:** the bare gripper is clear both ways and its gear pair is left out with the reason. An arm on the left
+      finger, outside its tip circle, swung −90° hits the right gear at 0.927296 rad. The closed form is
+      90° − asin((ra + 2) / 40) = 0.927295 rad, and the test allows from it up to one pitch angle past it. Swung +90°,
+      the arm is clear.
+    - **Loop pin:** the bare four-bar is clear both ways and the stacked pair is left out with the reason. A post on
+      the rocker is hit by the coupler one way, clear the other way (designed, checked), and a post where the coupler
+      already lies is a contact at s = 0.
+    - **LOOP_OPEN:** check_path and play_motion refuse the four-bar.
+  - RS1 extended: every sample's demo motion passes check_path clear, except the four-bar, which is refused with
+    LOOP_OPEN.
+- **The samples' check_path results:** arm-2r, scara, arm-6r, gantry-ppp (after RS3 (b)'s fix), pan-tilt, gripper and
+  gear-joint are clear; four-bar is refused with LOOP_OPEN.
+- **Docs:** _refusals.md regenerated.
+- **Verified (T1):** o22, rs1–3, robot-*, tool-contract and toolset; tsc; eslint 0 errors.
+
+## P1-L3 (harness) — a live AI run of a product brief on Codex, prepared and dry-run only (2026-10-24)
+
+The owner: P1-L3 may run on Codex ("AI 실행하는건 codex 로 해줘도 돼"), with no token cap ("codex 는 토큰 상관 없이 쓸
+수 있어"). The harness is ready. No live run has been made; it waits for the coordinator to say P1's scripted build is
+complete.
+- **The choice: Codex directly, not O15's chat-server path.** `codex exec --json` is one process with a JSONL event
+  stream, which is simpler to make deterministic and to log than the claude-CLI chat turn.
+- **server/liveRun/codexRun.ts, scripts/live-run.mjs:**
+  - **The runs:** each run gets a fresh folder holding the same start (part.bcad), the byte-identical brief on stdin
+    (its sha256 recorded) and nothing kept between runs (`--ephemeral`).
+  - **The tools:**
+    - cad-mcp (server/cadDoc.ts, the v2 tools, `--autonomy 4`) on that folder's part.bcad is the only MCP server. It is
+      bundled once per series, so every run talks to the same build.
+    - The user's config and rules are ignored (`--ignore-user-config --ignore-rules`), so the owner's plugins and MCP
+      servers are left out.
+    - The sandbox is read-only and the working root is the empty run folder.
+    - Codex's built-ins are disabled (verified with `codex features list`): shell_tool, plugins, apps, browser_use(_external),
+      computer_use, in_app_browser, image_generation, memories, skill_search, tool_suggest, code_mode_host, goals; and
+      `web_search="disabled"`.
+  - **Model:** gpt-6.1-sol with reasoning high, named in the harness (the owner's Codex default), since the user config is
+    ignored.
+  - **Off-contract:** any event item that is neither a cad tool call nor the model's own text (a command_execution,
+    another server's tool) fails the run.
+  - **Caps:** a tool-call cap (default 400) and a wall clock (default 60 min). Either one ends the run, killing the run's
+    own process group, Codex and its MCP server. There are no dollar caps on Codex (the owner).
+  - **Per run, on disk:** events.jsonl (each event stamped as it arrived), stderr, the last message, codex-args.json,
+    check.json, and records.json: turns, tool calls (tool, refused, ms), tokens summed from `turn.completed`, how the
+    run ended (completed, tool-cap, wall-clock, failed, error) and the result.
+  - **The judgment:** only a fresh run of the brief's own oracle, `--check '["cmd", …, "{doc}"]'`, on the part the run
+    saved. Exit 0 passes. Its stdout is kept, as JSON when it is.
+  - **The series:** a series stops when Codex never ran (it refused at once).
+  - **A live run** needs `--live` and `CAD_LIVE_RUN=1`.
+- **Open:**
+  - `unified_exec` cannot be turned off, by `--disable` or by `features.*`. With shell_tool off it may not be offered at
+    all. If it is, the read-only sandbox, the empty working root and the off-contract rule cover it: a run that uses it
+    fails.
+  - Codex's event format comes from its `exec --json` events (thread.started, turn.started/completed/failed,
+    item.started/completed; mcp_tool_call, agent_message, reasoning). The first live run confirms it, and readEvents
+    reads unknown kinds as off-contract.
+  - A headless run has no person to accept proposals, so assembly changes are proposed and the agent accepts them
+    itself. The brief must say so; the API lane writes it.
+  - The API lane provides the brief and the oracle command. Its contract is exit 0 = every P1 check passes, with JSON
+    on stdout.
+- **Test (dry run):** test/p1-l3-live-run.test.ts, 3 tests. test/fixtures/scripted-codex.mjs stands in for codex; it
+  starts the configured MCP server and reports its calls as Codex's events.
+  - The arguments and the event reading.
+  - A pass, an oracle failure (cad-cli check, exit 3) and an off-contract shell call, each judged afresh.
+  - The tool-call cap and the wall clock: a run killed at 1.5 s, not waited out.
+- **Verified (T1):** p1-l3 3/3, a scripted run through scripts/live-run.mjs, studio tsc, eslint 0 errors.
+
+## RS1/RS2 follow-ups — sample joint limits, the Joints card in degrees, `default` limits pinned (2026-10-24)
+
+From the coordinator, after the docs lane's arm-6r shot and its repro of the `default` bug (fixed in RS3 (b)):
+- **Samples:** scara and arm-6r now carry real lower and upper limits, so robot-check and the exports' limit checks
+  exercise them.
+  - scara: base~arm1 ±130°, arm1~arm2 ±145°, quill~tool ±360°.
+  - arm-6r: ±170°, ±120°, ±150°, ±180°, ±120°, ±360°.
+  - Their joints read revolute now, no longer continuous; RS1's EXPECT is updated to match.
+  - Left unbounded, by design: the four-bar's crank and passive pins, and the gear-joint's driving gear. A gear
+    follower has no limits of its own.
+  - Only arm-6r.bcad and scara.bcad changed when the samples were regenerated. Every demo motion stays inside the
+    limits (checkPath) and clear (check_path).
+- **JointsPanel (the studio's Joints card):** a turning joint's range now reads in degrees ("-150° … 150°"), its
+  velocity in °/s ("180 °/s") and its effort in N·m, each to 4 significant figures; a slide reads in mm, mm/s and N.
+  Before, the card printed raw radians ("3.141592653589793 rad/s").
+- **Tests:**
+  - rs2: the `default` form and the per-joint form give the same duration, which equals the trapezoid's closed form,
+    and a default-limits motion round-trips to the per-joint form with the same duration.
+  - RS1: arm-2r's wave is pinned at 5.5 s (1.5 + 2.5 + 1.5); every moving joint is rated, and only the four listed are
+    unbounded.
+- **Verified (T1):** rs1, rs2, rs3, o22 and robot-*, 96/96; tsc (model and studio); eslint 0 errors.
+
+## O24 (a), PG-7 — loops close on their own mates: slides, chains, several loops; pose and set_pose close them (2026-10-24)
+
+P1's slider-crank was refused by closureOf: NOT_ONE_LOOP ("… has 5"). Its piston rides on the rod's small end by a
+concentric-only wrist pin (a slide plus a turn), and the piston–bore concentric closes the loop. The coordinator
+approved the design, which lifts the API lane's check.ts close().
+- **robot/loop.ts, the general closer (the four-bar's pin closer stays as it is):**
+  - `loopTermsOf(doc, tree)`: each loop mate as it holds at the solved pose.
+
+    | mate | its term |
+    |---|---|
+    | concentric | two points of a's axis kept on b's line (6 rows) |
+    | coincident or distance | a's point at b's plane offset (1 row), plus the normals kept (n_a × n_b, 3 rows) |
+    | angle | the normals' cosine (1 row) |
+    | lock | three of b's points where a carries them (9 rows) |
+    | anything else | refused: LOOP_MATE_UNSUPPORTED |
+
+  - `loopCloserOf(doc, tree)` gives the terms, the loop joints (on one part's path, not both), the free ones (gear
+    followers move with their leaders, folded into the leader's column × multiplier) and the loops' freedom: the free
+    joints less the Jacobian's rank at the solved pose.
+  - `closeLoops(tree, closer, drivers, from)`:
+    - damped Gauss–Newton, (JᵀJ + λI)δ = −Jᵀr with λ = 1e-12·max(1, diag), on the analytic Jacobian (a turn moves a
+      point by ω × (x − o) and a direction by ω × d; a slide moves a point along its axis);
+    - it starts from the previous pose and converges at 1e-9 mm;
+    - continuation in steps of at most 5° or 5 mm, halved down to 1e-3°, keeps the assembled branch.
+  - **Refusals:**
+    - LOOP_PASSIVE: more drivers than the freedom; the text names how many and which.
+    - JOINT_MIMIC: a follower given.
+    - NO_CLOSURE: no closure at the smallest step (past a toggle or out of reach), with how far apart the mates are.
+    - DEAD_POINT: closed, but the passive joints lose rank against the solved pose.
+  - The hot helpers are module level with scratch arrays: evalLoop, rateOn, solveNormal, and rankOf (cyclic Jacobi).
+- **robot/verbs.ts:** `closedValues(view, values)` closes the loops, taking the loop joints given as the drivers.
+  - poseOf uses it, so forward_kinematics and set_pose return solved loops, plus `loops: {drivers, solved,
+    residual_mm}`.
+  - forward_kinematics returns refusals as tool errors.
+  - The descriptions say all this; the per-turn size is unchanged at 24,042, since handler descriptions aren't counted
+    in it.
+- **Not done from the design:** "the tree prefers to leave out a turning pin". Both of the engine's candidate pairs are
+  concentric-only (cylindrical), so it would not help, and it would risk other trees. MJCF still writes a loop it can
+  close (a pin, `connect`) and leaves the others out with a note, as before.
+- **Test:** test/o24a-loops.test.ts, 5 tests.
+  - **The slider-crank (r 30, L 70):** crank, rod, a piston on a concentric-only wrist pin, and a grounded cylinder
+    holding the bore, built from blocks with holes.
+    - Run with e 0 (the bore left out as the loop), e 5 (the bore left out) and e 5 (the wrist pin left out).
+    - At every 5° through 720° the wrist pin is where W.x = P.x + √(L² − (y_b − P.y)²) puts it, to 1e-9 mm, with the
+      crankpin P from the crank's own FK. The stroke is 60 mm (2r) at e 0. A jump to 200° gives the same pose as
+      stepping there.
+    - The old closer refuses it.
+  - **The four-bar:** the general closer equals the pin closer to 1e-9 at seven crank angles. LOOP_PASSIVE is refused
+    (two drivers); the rocker driven to 3 rad is refused at its toggle, 0.901 rad; a tangent mate closing a loop is
+    refused, LOOP_MATE_UNSUPPORTED.
+  - **The tools:** forward_kinematics at 60° puts the piston at the closed form's x; set_pose at 60° gives the same
+    links; a passive joint given is refused, LOOP_PASSIVE, through both tools.
+- **Next:** PG-5 (the cam mate), then RS6: poseAt, check_path and play close loops, and LOOP_OPEN goes away.
+- **Verified (T1):** o24a 5/5; robot-*, rs1–3, o22, tool-contract and toolset 113/113; tsc; eslint 0 errors; docs
+  tables regenerated.
+
+## O24 (a), PG-5 — the cam mate: a flat-faced follower lifted by its lobe's support, a pushed valve; seen by pose, sweep, dynamics and exports (2026-10-24)
+
+P1's lobes are sketched arc-and-line profiles, not kernel cam nodes, and the joint tree had no cam pair. The
+coordinator approved the design: a declared `cam` mate.
+- **assembly/mates.ts:** MateKind gains `cam` (a: a face of the cam part; b: the follower's flat face).
+  - kindsFor offers it whenever b is flat, at the end of the list, so an automatic choice is unchanged.
+  - The solver holds nothing for it: the follower's own mates place it.
+  - The studio's mate list shows it, from KIND_LABEL.
+- **robot/cam.ts:**
+  - `camFacesOf(doc)`: a part's B-rep faces, each with its geometry, snapped as the face tables snap theirs, and its
+    boundary sampled (17 points per edge; a round face bounded by a closed edge is whole). Cached by content.
+  - `camLiftOf(…)`: the lobe's profile is its faces within the follower face's slab along the cam's axis.
+    - flats along the axis (their boundary points);
+    - round faces along it (an arc: centre, radius, and the span its boundary covers);
+    - end faces are skipped;
+    - anything else is refused, CAM_PROFILE_UNSUPPORTED.
+  - `camSupport` is h(θ) = max over the profile of (p − o)·R(a, −θ)u, with u the direction from the cam toward the
+    follower's face. It is exact for a flat face at any offset, and a concave stretch is bridged as a tappet bridges it.
+  - `camValue` = (h(θ) − h(0)) / (u·w); `camRate` is its central difference.
+- **robot/joints.ts, camCouplings:**
+  - **Turning driver:** the follower's slide is coupled by the lift. The joint gets `mimic` (naming the cam's joint,
+    multiplier 0) plus `cam` (the lift).
+  - **Sliding driver (a follower pushing a valve):** linear, mimic = (w_a·u)/(w_b·u).
+  - **Problems, typed, and nothing coupled:**
+    - CAM_NOT_SEATED: no driver joint; the follower doesn't slide; the face isn't flat; the two on different rigid
+      groups (compared through fixed joints); a slide across the face; the face not across the cam's axis; the face
+      off the lobe at the solved pose, by how much.
+    - CAM_PROFILE_UNSUPPORTED: the lobe's profile can't be read.
+  - `tree.cams`: {kind cam|push, mate, leader, follower, lift range (mm) or multiplier, seat}.
+- **Everything that follows a leader now handles a cam:**
+  - FK (followersInto): passes until settled, so chains work (crank → gear → cam → follower → valve).
+  - `rootOf` (fk.ts): the free root joint and the rate against it. Used by gravity's generalized fold (virtual work),
+    the mass matrix's columns and IK's Jacobian.
+  - The sweep's bound (followerBound): the lobe's reach per radian over |u·w|, through chains.
+  - checkPath: JOINT_MIMIC, "follows … (a cam)".
+  - Loop closing: CAM_IN_LOOP.
+  - Motion torques (jointRate): CAM_UNSUPPORTED, because the second derivative of the lift isn't worked out.
+  - Exports (robotParts, so URDF, MJCF, SDF and USD): CAM_UNSUPPORTED, unless `leave_out: ["cam"]` (export_urdf and
+    export_mjcf; withoutCams), which writes the follower as a free joint and notes it.
+  - The Joints card: "follows X on its cam (mate)".
+- **The sweep's cam seat (robot/sweep.ts):** the follower's face rides the lobe by design.
+  - Certified: the whole follower against the driver outside the seat (outside the face's slab; for a push, off the
+    face it meets).
+  - Crossing only, at each step with the step capped at 1/90 of the move:
+    - the follower's other triangles against the seat, with edges lying in the contact plane left out (they are the
+      contact face's own boundary);
+    - a crossing counts only at least 1e-4 mm through the plane, and 1e-4 mm inside the triangle.
+    - Why: single-precision display meshes make a graze — a lobe flat lying in the follower's plane, the face's edge
+      on the lobe — look like a crossing, and 1e-4 mm is past their precision.
+  - The pair's hulls all but meet throughout, so the seat's own sets set the step, not the hulls.
+  - **The limit, recorded:** the seat's crossing test is sampled at those steps, not certified between them, unlike the
+    rest of the sweep.
+- **The flat face's width:** the coupling doesn't check it; the support is the infinite plane's. A follower face
+  narrower than its contact excursion would be modelled too high, not as a crash.
+- **Test:** test/o24a-cam.test.ts, 4 tests.
+  - The engine's own lobe (base r 14, nose r 6 at 14 out, tangent-joined) on its shaft; a flat-faced follower sliding
+    under a grounded guide; a valve pushed by it.
+  - The lift is max(14, 14 cos θ + 6) − 20 at 72 cam angles to 1e-9 mm, the face on the lobe, and the valve with the
+    follower.
+  - get_joints' couplings; set_pose at 90° gives −6 mm; a half-turn sweep is clear, the seat said designed.
+  - Exports refused with CAM_UNSUPPORTED only; leave_out writes it free and noted.
+  - A follower 0.5 mm off the lobe: CAM_NOT_SEATED, uncoupled.
+  - A skirt under the follower's face is hit by the nose swinging toward it and clear swinging away.
+- **Not covered here:** a gear → cam chain is the same follower passes, but has no dedicated test; P1 milestone 2's own
+  check covers it.
+- **Verified (T1):** o24a-cam 4/4; robot*, rs1–3, o22, o24a, tool-contract, toolset, assembly, mates, clearance, o11, o12
+  and api-assembly 161/161; tsc (model and studio); eslint 0 errors; docs tables regenerated. The per-turn size is
+  unchanged at 24,042.
+
+## RS6 (core) — motions close their loops: play and check_path through the general closer; LOOP_OPEN retired (2026-10-24)
+
+The coordinator ordered RS6 right after O24 (a): P1's cycle sweep needs a looped mechanism moved through its motion
+with its loop closed. The core is ours; the studio's playback is the GPU lane's.
+- **robot/verbs.ts:**
+  - **play_motion:** each sample's pose from poseAt (the waypoints name the drivers), closed by closeLoops from the
+    sample before. poseOf gains `close = false` for poses that are already closed.
+  - **check_path, on a looped robot (`sweepClosed`):**
+    - Each timed segment is cut into chords no more than 1° (or 1 mm) of its drivers apart.
+    - Each chord runs between two closed poses and is swept straight and certified by sweepPath (RM6), at
+      CCD_TOLERANCE.
+    - A chord's middle is not closed exactly. How far it is (loopResidual, the mates' residual) is reported as
+      `loops: {chords, chord_residual_mm}`, the chords' error.
+    - The first contact's time is taken on its chord's profile, timeAt over the chord's span of the segment.
+    - Robots without loops keep sweepTimed, unchanged.
+  - **set_waypoint** on a looped robot closes the waypoint, so one that gives a passive loop joint is refused,
+    LOOP_PASSIVE.
+  - **LOOP_OPEN** is no longer thrown, and its code is removed from CadModelCode.
+- **robot/loop.ts:** `loopResidual(tree, closer, q)`.
+- **For the GPU lane's playback:** `loopCloserOf(doc, tree)` once, then, per frame,
+  `closeLoops(tree, closer, poseAt(tree, path, t), previous)`, which gives the passive joints. The studio's Check path
+  can call checkMotion's chord sweep, or the same chords.
+- **Tests:**
+  - o24a-loops gains 2:
+    - play_motion on the slider-crank's full turn has the piston on the closed form at all 25 samples (to 1e-6 mm, the
+      reply's rounding). check_path is clear over 360 chords, with a chord residual under 0.01 mm. A waypoint giving the
+      rod's joint is refused, LOOP_PASSIVE.
+    - A grounded block behind the stroke: check_path's first contact is piston–stop at the crank angle where the
+      closed form puts the piston's back on the block's face, to under 1e-3 rad.
+  - Changed, because LOOP_OPEN is retired:
+    - o22's test 3: the four-bar's crank motion is clear over 240 chords, with a chord residual under 0.01 mm, and the
+      rocker follows the crank.
+    - RS1: every sample's demo motion passes check_path clear, the four-bar's with its loop closed.
+- **Verified (T1):** o24a-loops 7/7; robot*, rs1–3, o22, o24a, tool-contract, toolset, assembly, mates, clearance, o11, o12 and api-assembly 163/163; tsc; eslint 0 errors; docs tables regenerated.
+
+## PG-8 and PG-4 — the agent can lock (lock_part); gears locked to a shaft couple (2026-10-24)
+
+The coordinator ordered these from P1's gaps.
+- **PG-8, assembly/edit.ts `lockPart(doc, {part, to})`:** the studio's Lock written as the core's own verb.
+  - It writes a `lock` mate whose rel is lockRel(to, part), so the part is kept where it stands in to's coordinates.
+  - A fixed part with a free one swap, as add_mate swaps them.
+  - Refused, typed: NO_PART, MATE_SAME_PART, MATE_BOTH_FIXED, MATE_UNMET.
+  - The agent's action is assembly.lock, handler `lock_part`. It is in ASSEMBLY_CHANGES and BATCHABLE, so it is
+    proposed, and ALTERS counts it as not idempotent.
+  - tools-v2.json is re-recorded, an addition only; the per-turn size is 24,097 (+55); the studio chat test lists the
+    handler.
+  - The facade's own lockDoc (api/assemblyCore.ts, the API lane's, on integration, not on this branch) can delegate
+    to lockPart once they merge. That is the API lane's file, so it is named here and not touched.
+- **PG-4, robot/joints.ts gearCouplings:** a turning joint's gears are those of its link's rigid group, its part and
+  the parts fixed to it (`rigidGroup`, down through fixed joints), not its part's alone.
+  - A locked gear that is not on its joint's axis gets the note GEAR_NOT_COUPLED instead of being left out silently.
+  - The child's own off-axis gears are left as before, so existing trees' notes don't move.
+- **Test:** test/pg48-lock-gears.test.ts, 2 tests.
+  - lock_part: called directly it is refused with needs_approval; through dispatch it locks, with rel (0, 0, 10) and
+    the part where it stood; NO_PART, MATE_SAME_PART and MATE_BOTH_FIXED are refused.
+  - The API lane's repro (two shafts 45 mm apart, a 20T and a 40T gear, m 1.5, each locked to its shaft): one
+    coupling at −20/40, centre distance 45. Unlocked, no coupling.
+- **Verified (T1):** pg48 2/2; toolset, tool-contract and assembly; studio chat 20/20; tsc; eslint 0 errors; docs tables
+  regenerated.
+
+## PG-6 — running fits swept as designed: a concentric mate's round faces are the fit's (2026-10-24)
+
+P1 found that sweep_path tests contact on the display meshes (8 segments a quarter turn, a chord 0.135 mm inside a
+circle of r 28), so a piston with 0.1 mm radial clearance read as touching its bore. The API lane's check.ts worked
+around it with a finer mesh and running-fit seats. Our core now takes the seat approach, as O22 did for gear teeth.
+- **robot/joints.ts:** `tree.fits`, each concentric mate's two round faces in world at the solved pose: {mate, a, b,
+  pa, da, ra, pb, db, rb}.
+- **robot/sweep.ts:** a fit is a seat between its two links when they are not parent and child; those are skipped
+  anyway.
+  - The zone: each link's triangles with all three corners on its cylinder, within 1e-4 + 1e-6·r. The display mesh's
+    vertices lie on the true surface.
+  - Certified: a's whole mesh against b's triangles off its round face.
+  - Crossing only: b's round face against a's other triangles, counted only deeper than the band r(1 − cos π/32) +
+    0.05 mm (the chord sag at 8 segments a quarter turn, plus the API lane's margin). A part's own rim on its face, the
+    piston cap's edge, grazes the other's chords; a boss past the bore is contact.
+  - Two bare round parts are left out, with the reason given. A loop pin's planar seat replaces a fit's seat on the
+    same pair, as before.
+  - The cam seat's crossing now carries its own depth (1e-4).
+- **The limit, recorded:** the fit's crossing part is sampled at the sweep's steps, at most 1/90 of the move, not
+  certified between them, as the cam seat's is. A finer or exact surface check near contact would be the next step if
+  a case needs it.
+- **Test:** test/pg6-running-fit.test.ts, 2 tests.
+  - A piston of r 27.95 in a bore of r 28 (0.05 mm, under the 0.135 sag), its facets turned half a segment. It is
+    locked to a carriage sliding along the bore, and the bore's concentric mate is the loop.
+  - The 20 mm stroke sweeps clear, the fit said designed.
+  - With the tree's fits removed, the meshes are in contact at s = 0: P1's gap reproduced.
+  - A boss reaching to r 31 is still contact.
+- **Coupling checks from the approved design, robot/joints.ts:**
+  - COUPLING_CYCLE: a follower whose chain of leaders leads back to itself. The coupling that closes the cycle is
+    dropped and said so.
+  - COUPLED_TWICE: a second cam or push mate on a follower already coupled, so a joint has one leader. Before, the
+    second mate silently replaced the first.
+  - o24a-cam test 5: two pushes, follower → valve and valve → follower, give one COUPLING_CYCLE with one push kept; the
+    lobe plus a back push give COUPLED_TWICE.
+- **Verified (T1):** pg6 2/2, o24a-cam 5/5; robot*, rs1–3, o22, o24a, pg*, tool-contract, toolset, assembly, mates,
+  clearance, o11, o12, api-assembly and rb9 169/169 before the cycle checks; tsc; eslint 0 errors. The per-turn size is
+  24,097.
+
+## O24 (c) — inherited reference-table WIP verified and corrected (2026-10-24, Codex Outer)
+
+- Inherited baseline: `64fb17a2ff824aee80d266adfcdce6071f0fef34` (WIP, not proof). Its parent is
+  `6b95379a309cbef9d3e4868158e880cb62fb595c`. No merge or rebase was performed.
+- Retained the reference table for spherical/conical faces, straight/circular edges, persistent signatures,
+  solver/tree/loop consumers and MatePanel labels. Added focused tests and updated the agent's descriptions.
+- Fixed spherical constraints being omitted from the position solve. A sphere tangent to a plane now moves its
+  centre to the radius offset; two concentric spheres hold their centres and leave three turns free.
+- Fixed edge merging: an open arc keeps its endpoints; disconnected arcs and separated collinear segments retain
+  individual names. Classification tolerance depends on local shape size, not distance from the origin. The sphere
+  fit is centred and scaled before solving. Numerical tolerances were not relaxed.
+- Flat-face centres use analytic circular-sector area and first-moment corrections, including off-centre holes.
+  A boundary curve outside the line/circle classifier leaves the optional centre absent. O24(b) must refuse a
+  requested centre in that case instead of using an arbitrary plane origin.
+- Added `test/o24c-references.test.ts` (7 tests): native revolved sphere/cone closed forms, box edges and cylinder
+  rims/spans; open/disconnected edges; translated geometry; circular-hole area centroid; solved mates/freedom and
+  typed refusal; v2 assembly add-mate, signature capture, Save/Open/reference verification and a ball joint tree.
+- Checks: CAD/GPU builds PASS; model/Studio types PASS; changed-area eslint PASS. The broad affected suite passed
+  189/189 before the final description/refusal compatibility edits and extra translation test. The final focused
+  suite passed 45/45, including all 7 O24(c) tests; Studio assembly-linked-faces/chat passed 25/25. The tool budget is
+  24,410 characters (13 tools, tools/list 16,168 + prompt 8,242), under 25,000.
+- Actual browser/file check: real Chromium/WebGPU opened a generated `.bcad` assembly, checked three solved mate
+  placements, all four new reference labels and the mate editor, with no page errors. Screenshot inspected. This is
+  scripted feature evidence; full integration, direct viewport edge/vertex picking and owner acceptance are not
+  established by it. Browser sources remained unchanged during the run.
+- First failures retained externally: inherited tests 51/54 (new optional fields and expanded refusal text); new
+  tests 1/5 (arc/translation/sphere-position defects and an unsupported tangent-tree expectation); Studio 24/25
+  (refusal wording); translated native probe outside the kernel's coordinate domain; browser probe using `.barocad`
+  for a `.bcad` document. The latter two were probe errors, corrected without changing product limits.
+- Limits: classification uses the approved finite-sample NURBS checks, not an arbitrary-surface equivalence proof.
+  A sphere/plane tangent is a valid assembly mate, but its five-DOF tree remains typed MOTION_UNSUPPORTED. Unsupported
+  loop mates still refuse LOOP_MATE_UNSUPPORTED. Connectors, direct vertex references and O24(d)/(e) are not added.
+- External artifacts only: `/Users/user/.cache/barocss-preserved/2026-10-24-codex-outer-o24c/` contains logs, native
+  fixtures, the browser probe/result and screenshot. No logs, screenshots or generated evidence are committed.
+- Next: O24(b), mate connectors, using this table; then (d), then (e). PG-4/5/6/8 implementations and their current
+  focused tests were checked, not repeated as new development. The R7.7a steps 2/4 migration proposal names owned,
+  shared and Drawings paths separately. It waits for the coordinator's exact kernel baseline and window; this lane
+  did not adopt the breaking kernel branch. Coordinator owns roadmap updates and generated agent/refusal tables.
+
+## O24 (b) — mate connectors on persistent references (2026-10-24, Codex Outer)
+
+- Baseline: `55b83d55976e95fe157dd7cd26ddfcb54da76a34`, clean. Work stayed on the assigned existing Outer branch;
+  no integration or breaking kernel branch was merged or rebased.
+- `MateRef.at?: Connector` stores only point/offset/turn/flip. No top-level document field, alias or schema-version
+  change. A connector resolves in part coordinates: flip Z about X, turn in degrees about the resulting Z, then
+  apply offset in that final local frame. Face and edge names and their raw-geometry signatures remain unchanged.
+- `assembly/connectors.ts`: readConnector validates and copies JSON options; connectorOf(face, {at, name}) derives
+  a serialisable frame; withConnector sets/removes options without dropping a signature. Points:
+  - flat faces: computed area centre; origin/datum planes: their origin;
+  - cylinders/cones: span centre/start/end; cones: apex; datum axes: their origin for centre;
+  - spheres: centre; straight edges: start/mid/end; circular arcs: centre/start/mid/end (including major arcs).
+  - full circular edges support centre. Other point requests, absent centroids/spans and malformed data refuse
+    CONNECTOR_POINT, CONNECTOR_UNAVAILABLE or CONNECTOR_INVALID. Cam/lock connectors refuse CONNECTOR_KIND.
+- The classic mates keep their existing freedoms. mateFacesOf(mate, {a,b}) projects frames to planes for
+  coincident/distance/angle and zero-radius axes for concentric/tangent. This does not add O24(d)'s joint kinds or
+  fasten two connector frames. X determines local offsets and remains available for O24(d).
+- Core addMate preserves connector options when a fixed second part swaps the sides. editMate accepts
+  `connectors: {a?, b?}`; null removes one. Refused edits are atomic. v2 assembly.add_mate uses a/b.at;
+  assembly.edit_mate forwards connectors. Saved nested/pending documents validate connector syntax on read.
+- Robot rows and general loop terms use the resolved geometry. Concentric connectors do not imply physical
+  cylindrical running-fit seats. The legacy planar pin closer now resolves its connector anchor too.
+- Studio: the existing MatePanel has a persistent face/edge selector, point and local offset/turn/flip controls,
+  separate Stays/Moves connector editors and the existing undoable commit path. Direct viewport edge/vertex picking
+  remains with GPU. The existing linked-face test was extended to prove connector options reach the commit.
+- Verification:
+  - Initial broad affected suite 196/196; final focused suite 64/64 after the pin correction and option-shape
+    alignment; final Studio linked-face/chat 26/26. These counts are separate stages, not additive.
+  - O24(b) has 8 native tests: every supported point, major arcs, flip/turn/offset, owned copies, typed refusals,
+    edits/removal/swap, v2/signatures/Save/Open, offset-axis FK and physical-fit exclusion, and planar/general closure.
+  - Model types, Studio types/production build and changed-area eslint PASS. Final build retains dependency-module
+    directive/dynamic-import warnings in the external log; they are not build failures.
+  - v2 contract PASS: 13 tools, tools/list 16,203 + prompt 8,242 = 24,445 characters, below 25,000 (+35 from O24(c)).
+  - Actual Chromium/WebGPU: edge point options, UI-created distance mate at Z=10, edit to Z=12, stored 90-degree
+    turn, Undo/Redo, actual Save/Open and visible restored controls; no page errors. Screenshot inspected.
+- First product failure preserved: the new planar pin regression failed 7/8, returning Z=15 instead of 23.5 for the
+  selected connector anchor. After correction, connector/loop tests passed 19/19, then the final 64/64.
+- One final browser launch was NOT RUN: the heavy gate refused a slot after 61 seconds (exit 75). Its log is retained.
+  After the qualification job released its slot, the retry acquired normally and passed at entry load
+  9.30/8.41/8.73 (1/5/15 minutes). No gate or tolerance was bypassed or relaxed.
+- Logs, scripts, fixtures, screenshot and machine-readable receipt stay outside Git in
+  `/Users/user/.cache/barocss-preserved/2026-10-24-codex-outer-o24b/`. No generated evidence is committed.
+- Not run: full aggregate suites/browser flow, fresh unchanged CAD/GPU dependency builds, integration check:docs,
+  live model runs or release. The prior CAD/GPU build receipts remain separate; neither package changed here.
+- Coordinator proposal: mark O24(b) native/focused-browser verified, adopt serially, regenerate shared tool/refusal
+  tables and run check:docs. Next ready is O24(d), explicit connector joint kinds and limits, with FK and URDF/MJCF
+  unit checks; then O24(e). R7.7a steps 2/4 still require the coordinator's exact kernel baseline and window.

@@ -5,7 +5,8 @@ import { join, resolve } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { applyBrief, briefGaps, confirmField, patchBrief, readBrief, type Brief } from '../src/chat/brief';
+import { applyBrief, briefGaps, confirmField, patchBrief, readBrief } from '../src/chat/brief';
+import type { Brief } from '../src/engine/schema/brief';
 
 // A6.1 (O24): the brief. The conformance fixtures (hand-written: their expected gaps and what the studio does with the
 // process and material) through the tool; an assumption never replacing what the user stated; the studio's confirm;
@@ -87,12 +88,12 @@ test('a stated library material is the bodies\' (mass no longer assumed); an ass
     s = (await call(s, 'set_brief', { fields: { material } })).state;
     const m = await mass(), json = JSON.stringify(m);
     assert.equal(m.assumed, assumed, `${material.value} ${material.basis}: ${json}`);
-    if (!assumed) assert.ok(Math.abs(m.mass_g - 1000 * 7.85 / 1000) < 1e-6, json);
+    if (!assumed) assert.ok(Math.abs(m.mass - 1000 * 7.85 / 1000) < 1e-6, json);
   }
   // (A body's own material still wins.)
   const key = s.bodies[0].key, own = { ...s.doc, bodies: { ...(s.doc.bodies ?? {}), [key]: { material: 'al6061' } } };
   const m = JSON.parse((await call({ ...s, doc: own }, 'mass_properties', {})).content).bodies[0];
-  assert.ok(Math.abs(m.mass_g - 2.7) < 1e-6, JSON.stringify(m));
+  assert.ok(Math.abs(m.mass - 2.7) < 1e-6, JSON.stringify(m));
 });
 
 test('the script\'s brief() and the v2 path (requirements.brief / requirements.gaps) do what set_brief and get_brief do', async () => {

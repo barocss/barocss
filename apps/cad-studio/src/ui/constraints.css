@@ -1,3 +1,5 @@
+/* (In the studio's legacy layer, below Tailwind's: styles.css orders the layers.) */
+@layer legacy {
 /* Sketch constraints and dimensions: viewport marks and the sketch panel's constraint section. */
 .vp-overlay .sk-pick-edge { fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: 0.85; }
 .vp-overlay .sk-pick-edge.hover { stroke-width: 4; opacity: 0.4; }
@@ -13,7 +15,7 @@
 .vp-overlay .cons-glyph .cons-text { font-size: 11px; }
 .dim-edit::-webkit-inner-spin-button, .dim-edit::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 /* (z 7: above the top bar, z 6, so a dimension near the window's top edge stays editable, O137; below the palette's backdrop, 10.) */
-.dim-edit { -moz-appearance: textfield; position: absolute; z-index: 7; width: 84px; height: 26px; padding: 0 8px; border-radius: 5px; border: 1.5px solid #8fb8ff; background: #101826; color: #fff;
+.dim-edit { -moz-appearance: textfield; position: absolute; z-index: 9; width: 84px; height: 26px; padding: 0 8px; border-radius: 5px; border: 1.5px solid #8fb8ff; background: #101826; color: #fff;
   font: 500 12px var(--mono); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); outline: none; }
 :root[data-theme='light'] .vp-overlay .dim-line, :root[data-theme='light'] .vp-overlay .dim-ext { stroke: #2f6fd6; }
 :root[data-theme='light'] .vp-overlay .dim-arrow { fill: #2f6fd6; }
@@ -40,3 +42,4 @@
 /* The mono face has no ∥ / ⊥ glyphs: symbols use the system face. */
 .vp-overlay .cons-glyph .cons-text, .cons-tools button b { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
 .cons-tools.cons-dims { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

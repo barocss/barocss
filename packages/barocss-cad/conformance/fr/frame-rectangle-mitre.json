@@ -72,11 +72,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 266400,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             300,
             -0.7655555555555555,
@@ -92,8 +92,8 @@
           }
         ],
         "member": {
-          "areaMM2": 444,
-          "lengthMM": 600,
+          "area": 444,
+          "length": 600,
           "centroid": [
             0,
             0
@@ -103,13 +103,13 @@
               "end": "start",
               "kind": "mitre",
               "point": 0,
-              "angleDegrees": 45
+              "angle": 45
             },
             {
               "end": "end",
               "kind": "mitre",
               "point": 1,
-              "angleDegrees": 45
+              "angle": 45
             }
           ],
           "derived": {
@@ -119,11 +119,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 177600,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             601.1483333333333,
             200,
@@ -139,8 +139,8 @@
           }
         ],
         "member": {
-          "areaMM2": 444,
-          "lengthMM": 400,
+          "area": 444,
+          "length": 400,
           "centroid": [
             0,
             0
@@ -150,13 +150,13 @@
               "end": "start",
               "kind": "mitre",
               "point": 1,
-              "angleDegrees": 45
+              "angle": 45
             },
             {
               "end": "end",
               "kind": "mitre",
               "point": 2,
-              "angleDegrees": 45
+              "angle": 45
             }
           ],
           "derived": {
@@ -166,11 +166,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 266400,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             300,
             400.7655555555556,
@@ -186,8 +186,8 @@
           }
         ],
         "member": {
-          "areaMM2": 444,
-          "lengthMM": 600,
+          "area": 444,
+          "length": 600,
           "centroid": [
             0,
             0
@@ -197,13 +197,13 @@
               "end": "start",
               "kind": "mitre",
               "point": 2,
-              "angleDegrees": 45
+              "angle": 45
             },
             {
               "end": "end",
               "kind": "mitre",
               "point": 3,
-              "angleDegrees": 45
+              "angle": 45
             }
           ],
           "derived": {
@@ -213,11 +213,11 @@
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 177600,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -1.1483333333333334,
             200,
@@ -233,8 +233,8 @@
           }
         ],
         "member": {
-          "areaMM2": 444,
-          "lengthMM": 400,
+          "area": 444,
+          "length": 400,
           "centroid": [
             0,
             0
@@ -244,13 +244,13 @@
               "end": "start",
               "kind": "mitre",
               "point": 3,
-              "angleDegrees": 45
+              "angle": 45
             },
             {
               "end": "end",
               "kind": "mitre",
               "point": 0,
-              "angleDegrees": 45
+              "angle": 45
             }
           ],
           "derived": {

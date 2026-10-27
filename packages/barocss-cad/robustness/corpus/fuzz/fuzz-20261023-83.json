@@ -1,0 +1,193 @@
+{
+  "id": "fuzz-20261023-83",
+  "about": "L4 fuzz finding (seed 20261023, case 83): INVALID — strict: geometry: face n0_body0/s0/f2: its loops cross or touch themselves or each other (ring 0 segment 43 and ring 0 segment 14)",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3.777
+        },
+        {
+          "id": "n1b",
+          "kind": "extrude",
+          "sketch": "n1s",
+          "height": 5.634
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1b",
+          "offset": [
+            -1.276,
+            2.794,
+            0.646
+          ]
+        },
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                2.386,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                2.186,
+                1.825
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                0,
+                1.825
+              ]
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n2b",
+          "kind": "revolve",
+          "sketch": "n2s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angle": 360
+        },
+        {
+          "id": "n2r0",
+          "kind": "rotate",
+          "target": "n2b",
+          "axis": "x",
+          "angle": 278.514,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2r0",
+          "offset": [
+            0.561,
+            2.142,
+            -0.855
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "difference",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 248.32177174971198,
+          "relTol": 0.0009240518671098858,
+          "absTol": 0.22946219682935626
+        },
+        "centroid": {
+          "value": [
+            -1.3071799884262212,
+            2.7936409286457753,
+            3.5044766382156807
+          ],
+          "absTol": 0.0044259176404197655
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 1.15e-1 mm³, centroid e 2.21e-3 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 83,
+    "status": "INVALID",
+    "tree": {
+      "op": "difference",
+      "a": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 3.777,
+          "h": 5.634,
+          "rot": [],
+          "move": [
+            -1.276,
+            2.794,
+            0.646
+          ]
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "cone",
+          "r1": 2.386,
+          "r2": 2.186,
+          "h": 1.825,
+          "rot": [
+            {
+              "axis": "x",
+              "deg": 278.514
+            }
+          ],
+          "move": [
+            0.561,
+            2.142,
+            -0.855
+          ]
+        }
+      }
+    }
+  }
+}

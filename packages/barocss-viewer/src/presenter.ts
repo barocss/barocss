@@ -1,17 +1,20 @@
 // How the Viewer draws: what it shows (surfaces, curves, points; colours, poses and materials) as
 // meshes of the @barocss/gpu viewer core. The Viewer keeps the CPU state, picking and measurement;
-// a drawing is rebuilt whole for each change (scenes are bounded to a few thousand vertices).
+// Geometry changes rebuild the drawing (scenes are bounded to a few thousand vertices).
 import { createViewer as createCore } from '@barocss/gpu/viewer';
 import type { Viewer as Core, Mesh, ShaderMaterial, Light, Environment } from '@barocss/gpu/viewer';
 import { bindingShader } from '@barocss/gpu';
 import type { MeshCamera, MeshLighting, PrimitiveSceneEntryV1, PrimitiveSceneEntryV2, PrimitiveSceneMaterial,
   ParticleLayerV0, ClothLayerV0 } from '@barocss/gpu';
+import type { ViewerDeviceEvent } from './index.js';
 
 type Vec3 = [number, number, number];
+/** A vector only read (gpu's readonly Vec3 passes as one, R7.3c). */
+type ReadVec3 = readonly [number, number, number];
 type Quat = [number, number, number, number];
 
 /** A display pose in authored millimetres: scale, then rotation, then translation. */
-export interface DrawnPose { translationMm: Vec3; rotationXYZW: Quat; scale: Vec3 }
+export interface DrawnPose { translation: ReadVec3; rotationXYZW: Quat; scale: ReadVec3 }
 export interface DrawnTriangles {
   kind: 'triangles';
   /** Authored millimetres (with `mm`) or scene units. */
@@ -33,7 +36,7 @@ export type DrawnItem = DrawnTriangles | DrawnLines | DrawnPoints;
 export interface Drawing {
   items: DrawnItem[]; camera: MeshCamera; lighting: MeshLighting | null; background: Vec3;
   /** Scene units per authored millimetre, and a scene-unit offset after it. */
-  mmToScene: number; translate?: Vec3;
+  mmToScene: number; translate?: ReadVec3;
   /** Lights and environment in place of the ones from `lighting`. */
   lights?: { lights: Light[]; environment: Environment };
 }
@@ -65,8 +68,8 @@ export function itemsOf(entries: readonly (PrimitiveSceneEntryV1 | PrimitiveScen
 export const DEFAULT_LIGHTING: MeshLighting = { ambientStrength: 0.35, directionalStrength: 0.65, direction: [-0.6, 0.8, 1] };
 
 /** Column-major T(offset) · S(mm) · T(t) · R(q) · S(s). */
-export function poseMatrix(pose: DrawnPose | null | undefined, mmToScene: number, offset: Vec3 = [0, 0, 0]): number[] {
-  const [x, y, z, w] = pose?.rotationXYZW ?? [0, 0, 0, 1], s = pose?.scale ?? [1, 1, 1], t = pose?.translationMm ?? [0, 0, 0];
+export function poseMatrix(pose: DrawnPose | null | undefined, mmToScene: number, offset: ReadVec3 = [0, 0, 0]): number[] {
+  const [x, y, z, w] = pose?.rotationXYZW ?? [0, 0, 0, 1], s = pose?.scale ?? [1, 1, 1], t = pose?.translation ?? [0, 0, 0];
   const r = [
     1 - 2 * (y * y + z * z), 2 * (x * y + z * w), 2 * (x * z - y * w),
     2 * (x * y - z * w), 1 - 2 * (x * x + z * z), 2 * (y * z + x * w),
@@ -96,12 +99,69 @@ const DOT = {
 
 export class Presenter {
   private meshes: Mesh[] = [];
-  private constructor(readonly core: Core) {}
+  private disposed = false;
+  private watchedDevice: object | null = null;
+  private reportedLosses = 0;
+  private awaitingRecreation = false;
+  private constructor(readonly core: Core, private readonly onDeviceEvent?: (event: ViewerDeviceEvent) => void) {
+    if (!onDeviceEvent) return;
+    core.onRecover = () => {
+      if (this.disposed) return;
+      this.watchDevice();
+      if (this.awaitingRecreation) {
+        this.awaitingRecreation = false;
+        this.emitDeviceEvent({ type: 'recreated' });
+      }
+    };
+    core.onRecoverError = error => {
+      if (this.disposed) return;
+      this.awaitingRecreation = false;
+      this.emitDeviceEvent({ type: 'recovery-failed', message: error.message, cause: error.cause });
+    };
+    // A loss can occur before createCore resolves and this listener is attached.
+    if (core.stats.deviceLosses > 0) {
+      this.reportedLosses = core.stats.deviceLosses;
+      this.awaitingRecreation = true;
+      this.emitDeviceEvent({ type: 'lost' });
+      // (A recovery that already failed before this listener was attached: nothing is drawing.)
+      if (core.ready === false && core.recovery === null) this.emitDeviceEvent({ type: 'recovery-failed', message: 'The GPU device was lost and could not be recreated.', cause: null });
+    }
+    this.watchDevice();
+  }
 
-  static async create(canvas: HTMLCanvasElement, background: Vec3): Promise<Presenter> {
+  private emitDeviceEvent(event: ViewerDeviceEvent): void {
+    if (this.disposed) return;
+    try { this.onDeviceEvent?.(event); } catch { /* Host callbacks must not interrupt GPU recovery. */ }
+  }
+
+  private watchDevice(): void {
+    const device = this.core.computeDevice;
+    if (!device || device === this.watchedDevice) return;
+    this.watchedDevice = device;
+    const lost = (device as { lost?: PromiseLike<unknown> }).lost;
+    if (!lost || typeof lost.then !== 'function') return;
+    void Promise.resolve(lost).then(() => {
+      if (this.disposed || this.watchedDevice !== device) return;
+      const losses = this.core.stats.deviceLosses;
+      if (losses <= this.reportedLosses) return;
+      this.reportedLosses = losses;
+      this.awaitingRecreation = true;
+      this.emitDeviceEvent({ type: 'lost' });
+    }, () => { /* A rejected non-WebGPU promise is not a device-loss event. */ });
+  }
+
+  static async create(canvas: HTMLCanvasElement, background: Vec3,
+    onDeviceEvent?: (event: ViewerDeviceEvent) => void): Promise<Presenter> {
     const core = await createCore(canvas, { controls: false, autoResize: false, background, pixelRatio: 1 });
-    core.setSize(canvas.width, canvas.height);
-    return new Presenter(core);
+    try {
+      core.setSize(canvas.width, canvas.height);
+      return new Presenter(core, onDeviceEvent);
+    } catch (error) {
+      core.onRecover = null; core.onRecoverError = null;
+      try { core.dispose(); }
+      catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Viewer creation and cleanup failed'); }
+      throw error;
+    }
   }
 
   /** Replace what is drawn. */
@@ -110,13 +170,13 @@ export class Presenter {
     for (const m of this.meshes) m.remove();
     this.meshes = [];
     const cam = drawing.camera;
-    Object.assign(core.camera, { projection: 'perspective', position: [...cam.eye], target: [...cam.target], up: [...cam.up], fovY: cam.fovYDegrees });
+    Object.assign(core.camera, { projection: 'perspective', position: [...cam.eye], target: [...cam.target], up: [...cam.up], fovY: cam.fovY });
     const { lights, environment } = drawing.lights ?? lightsOf(drawing.lighting);
     core.lights = lights; core.environment = environment;
     core.setBackground(drawing.background);
     // A pixel at the target, for dots of a screen size.
     const distance = Math.hypot(cam.eye[0] - cam.target[0], cam.eye[1] - cam.target[1], cam.eye[2] - cam.target[2]);
-    const pixel = (2 * distance * Math.tan((cam.fovYDegrees * Math.PI) / 360)) / Math.max(1, core.canvas.height);
+    const pixel = (2 * distance * Math.tan((cam.fovY * Math.PI) / 360)) / Math.max(1, core.canvas.height);
     for (const item of drawing.items) {
       if (item.kind === 'points') {
         const count = item.positions.length / 3;
@@ -145,6 +205,26 @@ export class Presenter {
     core.requestRender();
   }
 
+  /** Change only the existing core lights. Keep every mesh and camera object. */
+  setLighting(lighting: MeshLighting | null): void {
+    const candidate = lightsOf(lighting), core = this.core;
+    const previousLights = core.lights, previousEnvironment = core.environment;
+    try {
+      core.lights = candidate.lights;
+      core.environment = candidate.environment;
+      core.requestRender();
+    } catch (error) {
+      try {
+        core.lights = previousLights;
+        core.environment = previousEnvironment;
+        core.requestRender();
+      } catch (recoveryError) {
+        throw new AggregateError([error, recoveryError], 'Lighting update and recovery failed');
+      }
+      throw error;
+    }
+  }
+
   setSize(width: number, height: number): void { this.core.setSize(width, height); }
 
   /** The name of the drawn item under a canvas point (CSS pixels), if it was given one. */
@@ -156,5 +236,9 @@ export class Presenter {
   /** The drawn pixels, RGBA rows from the top. */
   async readPixels(): Promise<Uint8Array> { await this.core.frame(); return (await this.core.capture()).data; }
 
-  dispose(): void { this.meshes = []; this.core.dispose(); }
+  dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true; this.watchedDevice = null; this.core.onRecover = null; this.core.onRecoverError = null;
+    this.meshes = []; this.core.dispose();
+  }
 }

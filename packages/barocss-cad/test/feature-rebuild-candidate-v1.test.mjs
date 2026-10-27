@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { prepareBooleanExtrusionRebuildV1 } from '../dist/feature-rebuild-candidate-v1.js';
+import { prepareBooleanExtrusionRebuildV1 } from '../dist/exact-proof/feature-rebuild-candidate-v1.js';
 
 // Explicit refusal controls; a full native fixture test remains a separate gate.
 test('transactional rebuild candidate refuses invalid or absent owned state', () => {
@@ -44,7 +44,7 @@ test('real authored Native graph rebuild generates a separately owned candidate 
   const editsBefore = structuredClone(edits);
   const prepared = prepareBooleanExtrusionRebuildV1(previous, edits);
   const independent = updateBooleanExtrusionFeatureGraph(previous, edits);
-  const { planBooleanExtrusionImpactV1 } = await import('../dist/feature-impact-plan-v1.js');
+  const { planBooleanExtrusionImpactV1 } = await import('../dist/exact-proof/feature-impact-plan-v1.js');
   const directImpact = planBooleanExtrusionImpactV1(previous.report, {
     parameterIds: ['base_height'], featureIds: [],
   });

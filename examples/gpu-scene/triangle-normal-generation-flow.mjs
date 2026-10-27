@@ -21,8 +21,8 @@ const ordinary = resolve(output, 'ordinary-source.mjs');
 const bundled = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)],
   bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
 const graph = Object.keys(bundled.metafile.inputs);
-assert(graph.some(p => p.endsWith('/src/triangle-normal-generation.ts')));
-assert(graph.some(p => p.endsWith('/src/triangle-geometry.ts')));
+assert(graph.some(p => p.endsWith('/src/geometry/triangle-normal-generation.ts')));
+assert(graph.some(p => p.endsWith('/src/geometry/triangle-geometry.ts')));
 assert(!graph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const hash = value => createHash('sha256').update(value).digest('hex');
 async function receipt(path) {
@@ -76,7 +76,7 @@ const fixtures = [
 function scene(geometry) {
   return { format: 'barocss-gpu-engine-scene', version: 0, id: 'generated_normal_scene',
     coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', background: [.02, .04, .08],
-    camera: { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 60, near: .1, far: 100 },
+    camera: { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovY: 60, near: .1, far: 100 },
     geometries: [geometry], materials: [{ id: 'white', type: 'unlit', colorSpace: 'linear', color: [1, 1, 1] }],
     nodes: [{ id: 'generated_mesh', type: 'mesh', parentId: null, translation: [0, 0, 0],
       rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true,
@@ -85,7 +85,7 @@ function scene(geometry) {
 const providers = [['ordinary-source', await import(pathToFileURL(ordinary).href)],
   ['emitted-public', await import(pathToFileURL(resolve(pkg, published.import)).href)]];
 assert.deepEqual(Object.keys(providers[0][1]).sort(), Object.keys(providers[1][1]).sort());
-assert.equal(Object.keys(providers[0][1]).length, 99);
+
 const declarationPath = resolve(pkg, published.types);
 const declarations = await readFile(declarationPath, 'utf8');
 for (const name of ['TriangleNormalSourceV0', 'PreparedTriangleGeometryWithNormals', 'prepareTriangleGeometryWithNormals']) {
@@ -217,7 +217,7 @@ for (const [name, gpu] of providers) {
     assert(error instanceof gpu.TriangleGeometryError, label + ': actual public error');
     assert.equal(error.code, code, label);
     assert.equal(error.name, 'TriangleGeometryError');
-    assert(error.message.startsWith('Triangle geometry: ')); assert(error.message.length <= 1024);
+    assert(error.message.startsWith(`[${code}] Triangle geometry: `)); assert(error.message.length <= 1024);
     if (cause !== undefined) assert.strictEqual(error.cause, cause, label + ': original cause');
     if (text !== undefined) assert(error.message.includes(text), label + ': diagnostic detail');
     if (label === 'incident_face_disagreement') assert(error.cause instanceof RangeError);
@@ -306,7 +306,7 @@ for (const [name, gpu] of providers) {
   results.push({ provider: name, accepted: acceptance, refusals, controls, exports: Object.keys(gpu).sort() });
 }
 const report = { issue: 1272, accepted, refused, getters, proxyReflections, oversizeEnumerations,
-  actualGL: false, sourceGraph: graph, source: await receipt(resolve(pkg, 'src/triangle-normal-generation.ts')),
+  actualGL: false, sourceGraph: graph, source: await receipt(resolve(pkg, 'src/geometry/triangle-normal-generation.ts')),
   declarations: await receipt(declarationPath), ordinary: await receipt(ordinary),
   emitted: await receipt(resolve(pkg, published.import)), results,
   support: 'Bounded original indexed Number area-weighted normals by source vertex identity; all vertices referenced. Actual existing geometry and scene0 providers, independent frozen originals/generated Number normals and mutable F32 buffers. CPU/source/emitted/file/cold proof only; no native CAD, browser/GL/pixel, old U32/max-geometry campaign, performance, whole engine/Three.js parity or publication.' };

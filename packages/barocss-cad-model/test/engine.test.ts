@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, stepFor } from '../src/engine/evaluate';
+import { evaluateDoc, exportStudioStep } from '../src/engine/evaluate';
 import { importStep, checkBrep, brepMassProperties } from '@barocss/cad';
 import { cylinderPart, emptyDoc, featureLabel, leafBodies, loftTop, prefixDoc, rectanglePart, starterDoc, withNode } from '../src/engine/doc';
 import type { DisplayMesh } from '../src/engine/mesh';
@@ -77,7 +77,7 @@ test('a pattern is one output holding the original and its copies; rollback eval
 test('kernel refusals come back as plain-language errors', () => {
   // A hole crossing the plate's edge is a notch; one that misses the plate is refused.
   const notch = evaluateDoc(withNode(rectanglePart(100, 60, 5), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [2, 30], radius: 4 }), 1);
-  assert.ok(notch.ok && notch.bodies[0].volumeMM3! < 30000);
+  assert.ok(notch.ok && notch.bodies[0].volume! < 30000);
   const r = evaluateDoc(withNode(rectanglePart(100, 60, 5), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [200, 30], radius: 4 }), 1);
   assert.equal(r.ok, false);
   if (!r.ok) {
@@ -105,7 +105,7 @@ test('B-rep part model: Boolean chains, holes on results, and name-based fillets
   const filleted = evaluateDoc(doc, 2);
   assert.ok(filleted.ok, JSON.stringify(!filleted.ok && filleted.error));
   const exact = 60 * 40 * 8 + Math.PI * 36 * 10 + 15 * 20 * 6 - Math.PI * 9 * 18 - (25 - 25 * Math.PI / 4) * 8;
-  assert.ok(Math.abs(filleted.bodies[0].volumeMM3! - exact) < 1e-6, String(filleted.bodies[0].volumeMM3));
+  assert.ok(Math.abs(filleted.bodies[0].volume! - exact) < 1e-6, String(filleted.bodies[0].volume));
   // A wider, thicker plate: the fillet still finds its edge by name.
   const edited = { ...doc, nodes: doc.nodes.map((n, i) => i === 0 ? { ...n, max: [90, 40] } : i === 1 ? { ...n, height: 12 } : n) as typeof doc.nodes };
   const after = evaluateDoc(edited, 3);
@@ -121,7 +121,7 @@ test('side holes along X and Y, and a pin along X joined to the plate (plane + c
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
   const [body] = r.bodies, exact = 60 * 30 * 12 - Math.PI * 9 * 60 - Math.PI * 4 * 10;
   assert.equal(body.family, 'curved');
-  assert.ok(Math.abs(body.volumeMM3! - exact) < 2e-4 * exact, String(body.volumeMM3));
+  assert.ok(Math.abs(body.volume! - exact) < 2e-4 * exact, String(body.volume));
   assert.ok(Math.abs(signedVolume(body.mesh) - exact) / exact < 5e-3);
   assert.ok(body.mesh.faces.some(f => f.name === 'n2.side0' && f.kind === 'curved'), 'the cross hole wall is one named face');
 });
@@ -137,13 +137,13 @@ test('a side hole drilled across a round boss (quartic trims) and through a plat
   // Removed: the x-cylinder (r 3) inside the boss (r 8): ∫ 2√(9 − y²) · 2√(64 − y²) dy over |y| ≤ 3.
   let crossed = 0; for (let i = 0, n = 4000; i < n; i++) { const y = -3 + 6 * (i + 0.5) / n; crossed += 2 * Math.sqrt(9 - y * y) * 2 * Math.sqrt(64 - y * y) * 6 / n; }
   const exact = 60 * 30 * 10 + Math.PI * 64 * 14 - crossed;
-  assert.ok(Math.abs(r.bodies[0].volumeMM3! - exact) < 3e-4 * exact, String(r.bodies[0].volumeMM3));
+  assert.ok(Math.abs(r.bodies[0].volume! - exact) < 3e-4 * exact, String(r.bodies[0].volume));
   let turned = rectanglePart(40, 20, 10);
-  turned = withNode(turned, { kind: 'rotate', parent: { node: 1, side: 'solid' }, axis: 'z', angleDegrees: 30 });
+  turned = withNode(turned, { kind: 'rotate', parent: { node: 1, side: 'solid' }, axis: 'z', angle: 30 });
   turned = withNode(turned, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [10, 5], radius: 2, axis: 'x' });
   const t = evaluateDoc(turned, 2);
   assert.ok(t.ok, JSON.stringify(!t.ok && t.error));
-  assert.ok(t.bodies[0].volumeMM3! < 8000);
+  assert.ok(t.bodies[0].volume! < 8000);
 });
 
 test('fillets and chamfers on any edge: a box top edge, a hole rim picked by one arc, a chamfered rim', () => {
@@ -151,7 +151,7 @@ test('fillets and chamfers on any edge: a box top edge, a hole rim picked by one
   const box = rectanglePart(20, 10, 5);
   const top = evaluateDoc(withNode(box, { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 2 }), 1);
   assert.ok(top.ok, JSON.stringify(!top.ok && top.error));
-  assert.ok(Math.abs(top.bodies[0].volumeMM3! - (1000 - corner(2) * 20)) < 1e-4 * 1000, String(top.bodies[0].volumeMM3));
+  assert.ok(Math.abs(top.bodies[0].volume! - (1000 - corner(2) * 20)) < 1e-4 * 1000, String(top.bodies[0].volume));
   assert.ok(top.bodies[0].mesh.faces.some(f => f.kind === 'curved' && /n2\.face/.test(f.name)), 'the fillet face is named by its feature');
   // The starter plate's hole: its rim is two arcs; either one names the whole circle.
   const plate = starterDoc(), probe = evaluateDoc(plate, 2);
@@ -161,10 +161,10 @@ test('fillets and chamfers on any edge: a box top edge, a hole rim picked by one
   const base = 64 * 32 * 8 - Math.PI * 16 * 8;
   const filleted = evaluateDoc(withNode(plate, { kind: 'fillet', parent: { node: 2, side: 'solid' }, edges: rim.names, radius: 1 }), 3);
   assert.ok(filleted.ok, JSON.stringify(!filleted.ok && filleted.error));
-  assert.ok(Math.abs(filleted.bodies[0].volumeMM3! - (base - 2 * Math.PI * (4 + k) * corner(1))) < 1e-4 * base, String(filleted.bodies[0].volumeMM3));
+  assert.ok(Math.abs(filleted.bodies[0].volume! - (base - 2 * Math.PI * (4 + k) * corner(1))) < 1e-4 * base, String(filleted.bodies[0].volume));
   const chamfered = evaluateDoc(withNode(plate, { kind: 'chamfer', parent: { node: 2, side: 'solid' }, edges: rim.names, distance: 1 }), 4);
   assert.ok(chamfered.ok, JSON.stringify(!chamfered.ok && chamfered.error));
-  assert.ok(Math.abs(chamfered.bodies[0].volumeMM3! - (base - 2 * Math.PI * (4 + 1 / 3) * 0.5)) < 1e-4 * base, String(chamfered.bodies[0].volumeMM3));
+  assert.ok(Math.abs(chamfered.bodies[0].volume! - (base - 2 * Math.PI * (4 + 1 / 3) * 0.5)) < 1e-4 * base, String(chamfered.bodies[0].volume));
   // A fillet as large as a boss is refused in plain words.
   let boss = withNode(rectanglePart(20, 20, 4), { kind: 'sketch', profile: 'circle', center: [10, 10], radius: 3 });
   boss = withNode(boss, { kind: 'extrude', sketch: 2, height: 5, from: 4 });
@@ -180,7 +180,7 @@ test('shell: an open box from its top face, exact and still upright; a too-thick
   const r = evaluateDoc(withNode(box, { kind: 'shell', parent: { node: 1, side: 'solid' }, thickness: 2, open: ['n1.top'] }), 1);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
   assert.equal(r.bodies[0].family, 'upright');
-  assert.ok(Math.abs(r.bodies[0].volumeMM3! - (24000 - 36 * 26 * 18)) < 1e-6, String(r.bodies[0].volumeMM3));
+  assert.ok(Math.abs(r.bodies[0].volume! - (24000 - 36 * 26 * 18)) < 1e-6, String(r.bodies[0].volume));
   assert.ok(r.bodies[0].mesh.faces.some(f => /n2\.in\./.test(f.name)), 'inner walls are named');
   assert.equal(featureLabel(withNode(box, { kind: 'shell', parent: { node: 1, side: 'solid' }, thickness: 2, open: [] }).nodes[2], 2, []), 'Shell 2');
   const thick = evaluateDoc(withNode(box, { kind: 'shell', parent: { node: 1, side: 'solid' }, thickness: 20, open: ['n1.top'] }), 2);
@@ -193,19 +193,17 @@ test('extrude with draft: the walls lean in, the volume is exact, the label show
   doc = withNode(doc, { kind: 'extrude', sketch: 0, height: 10, draft: 5 });
   const r = evaluateDoc(doc, 1), d = 10 * Math.tan(5 * Math.PI / 180), exact = 10 * (1200 - 70 * d + 4 * d * d / 3);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
-  assert.ok(Math.abs(r.bodies[0].volumeMM3! - exact) < 1e-6 * exact, String(r.bodies[0].volumeMM3));
+  assert.ok(Math.abs(r.bodies[0].volume! - exact) < 1e-6 * exact, String(r.bodies[0].volume));
   assert.equal(featureLabel(doc.nodes[1], 1, doc.nodes), 'Extrude 10 · 5°');
 });
 
 test('a STEP file opens as a body: its faces named, features work on it', () => {
-  const text = stepFor(rectanglePart(40, 30, 10), 'plate');
-  assert.ok('text' in text);
-  if (!('text' in text)) return;
+  const text = exportStudioStep(rectanglePart(40, 30, 10), { name: 'plate' });
   let doc = withNode(emptyDoc(), { kind: 'import', name: 'plate', step: text.text });
   doc = withNode(doc, { kind: 'hole', parent: { node: 0, side: 'solid' }, center: [20, 15], radius: 4 });
   const r = evaluateDoc(doc, 1);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
-  assert.ok(Math.abs(r.bodies[0].volumeMM3! - (12000 - Math.PI * 160)) < 2e-4 * 12000, String(r.bodies[0].volumeMM3));
+  assert.ok(Math.abs(r.bodies[0].volume! - (12000 - Math.PI * 160)) < 2e-4 * 12000, String(r.bodies[0].volume));
   assert.ok(r.bodies[0].mesh.faces.some(f => /^n0\.n1\.top$/.test(f.name)), r.bodies[0].mesh.faces.map(f => f.name).join(' '));
   assert.equal(featureLabel(doc.nodes[0], 0, doc.nodes), 'Import plate');
   const bad = evaluateDoc(withNode(emptyDoc(), { kind: 'import', name: 'x', step: 'not a step file' }), 2);
@@ -215,25 +213,23 @@ test('a STEP file opens as a body: its faces named, features work on it', () => 
 test('STEP export of the whole part: every body in one exact file that reads back', () => {
   let doc = starterDoc();
   doc = withNode(doc, { kind: 'linear-pattern', parent: { node: 2, side: 'solid' }, axis: 'x', spacing: 80, count: 2 });
-  const r = stepFor(doc, 'plate');
-  assert.ok('text' in r, JSON.stringify(r));
-  if (!('text' in r)) return;
+  const r = exportStudioStep(doc, { name: 'plate' });
   assert.equal((r.text.match(/MANIFOLD_SOLID_BREP/g) ?? []).length, 2);
   assert.match(r.text, /FILE_NAME\('plate\.step'/);
   const back = importStep(r.text), plate = 64 * 32 * 8 - Math.PI * 16 * 8;
   assert.equal(checkBrep(back).valid, true);
-  assert.ok(Math.abs(brepMassProperties(back, 1000, { segmentsPerQuarter: 32 }).volumeMM3 - 2 * plate) < 1e-3 * plate);
-  assert.ok('error' in stepFor(emptyDoc(), 'empty'));
+  assert.ok(Math.abs(brepMassProperties(back, 1000, { segmentsPerQuarter: 32 }).volume - 2 * plate) < 1e-3 * plate);
+  assert.throws(() => exportStudioStep(emptyDoc(), { name: 'empty' }), { code: 'NO_BODY', message: '[NO_BODY] There is no body to export.' });
 });
 
 test('pipe: a circle swept along a run, a bend and a run, with exact mass', () => {
   let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 2 });
-  doc = withNode(doc, { kind: 'sweep', sketch: 0, path: [{ kind: 'straight', length: 10 }, { kind: 'bend', radius: 8, angleDegrees: 90, toward: 'x' }, { kind: 'straight', length: 10 }] });
+  doc = withNode(doc, { kind: 'sweep', sketch: 0, path: [{ kind: 'straight', length: 10 }, { kind: 'bend', radius: 8, angle: 90, toward: 'x' }, { kind: 'straight', length: 10 }] });
   const r = evaluateDoc(doc, 1), exact = 4 * Math.PI * (20 + 4 * Math.PI);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
-  assert.ok(Math.abs(r.bodies[0].volumeMM3! - exact) < 1e-9 * exact, String(r.bodies[0].volumeMM3));
+  assert.ok(Math.abs(r.bodies[0].volume! - exact) < 1e-9 * exact, String(r.bodies[0].volume));
   assert.equal(featureLabel(doc.nodes[1], 1, doc.nodes), 'Pipe 3 steps');
-  const tight = evaluateDoc(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 2 }), { kind: 'sweep', sketch: 0, path: [{ kind: 'bend', radius: 1, angleDegrees: 90, toward: 'x' }] }), 2);
+  const tight = evaluateDoc(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 2 }), { kind: 'sweep', sketch: 0, path: [{ kind: 'bend', radius: 1, angle: 90, toward: 'x' }] }), 2);
   assert.equal(tight.ok, false);
 });
 
@@ -247,7 +243,7 @@ test('shell after a fillet: a tray with a rounded foot, its hollow rounded by th
   // About what a fillet r takes along a rectangle's foot (its corner section times the perimeter; the
   // mitres at the corners change it by a fraction of a percent).
   const a = (r: number) => r * r * (1 - Math.PI / 4);
-  const v = r.bodies[0].volumeMM3!, outer = 48000 - a(4) * 200, inner = 56 * 36 * 18 - a(2) * 184;
+  const v = r.bodies[0].volume!, outer = 48000 - a(4) * 200, inner = 56 * 36 * 18 - a(2) * 184;
   assert.ok(Math.abs(v - (outer - inner)) < 0.01 * v, `${v} vs about ${outer - inner}`);
   const refused = evaluateDoc(withNode(withNode(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] }), { kind: 'extrude', sketch: 0, height: 20 }),
     { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 3 }), { kind: 'shell', parent: { node: 2, side: 'solid' }, thickness: 2, open: ['n1.top'] }), 2);
@@ -264,7 +260,7 @@ test('shell a plate with a boss on it, open at the boss top: one hollow through 
   doc = withNode(doc, { kind: 'shell', parent: { node: 4, side: 'solid' }, thickness: 2, open: ['n3.top'] });
   const r = evaluateDoc(doc, 1);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
-  assert.ok(Math.abs(r.bodies[0].volumeMM3! - (18400 - (56 * 36 * 2 + 16 * 16 * 12))) < 1e-6);
+  assert.ok(Math.abs(r.bodies[0].volume! - (18400 - (56 * 36 * 2 + 16 * 16 * 12))) < 1e-6);
   const ledge = evaluateDoc({ ...doc, nodes: [...doc.nodes.slice(0, -1), { kind: 'shell', parent: { node: 4, side: 'solid' }, thickness: 2, open: ['n1.top'] }] }, 2);
   assert.equal(ledge.ok, false);
   assert.match(!ledge.ok ? ledge.error.title : '', /top, the bottom or a side/);
@@ -278,7 +274,7 @@ test('smooth loft: a square bulging to a wider middle and back, through three se
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
   // More than the ruled loft through the same sections: the side bulges smoothly.
   const ruled = evaluateDoc({ ...doc, nodes: [...doc.nodes.slice(0, -1), { kind: 'loft', sections: [{ sketch: 0, z: 0 }, { sketch: 2, z: 6 }, { sketch: 1, z: 12 }] }] }, 2);
-  assert.ok(ruled.ok && r.bodies[0].volumeMM3! > ruled.bodies[0].volumeMM3!);
+  assert.ok(ruled.ok && r.bodies[0].volume! > ruled.bodies[0].volume!);
   assert.equal(featureLabel(doc.nodes[3], 3, doc.nodes), 'Loft 3 sections · smooth');
 });
 
@@ -287,23 +283,23 @@ test('shell a box with a round boss turned out of its side: one wall throughout,
   doc = withNode(doc, { kind: 'extrude', sketch: 0, height: 20 });
   doc = withNode(doc, { kind: 'sketch', profile: 'circle', center: [20, 10], radius: 6 });
   doc = withNode(doc, { kind: 'extrude', sketch: 2, height: 20 });
-  doc = withNode(doc, { kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'y', angleDegrees: 90 });
+  doc = withNode(doc, { kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'y', angle: 90 });
   doc = withNode(doc, { kind: 'translate', parent: { node: 4, side: 'solid' }, offset: [50, 0, 30] });
   doc = withNode(doc, { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 5, side: 'solid' } });
   doc = withNode(doc, { kind: 'shell', parent: { node: 6, side: 'solid' }, thickness: 1.5, open: ['n3.top'] });
   const r = evaluateDoc(doc, 1);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
   const solid = 48000 + Math.PI * 36 * 10;
-  assert.ok(r.bodies[0].volumeMM3! > 0.2 * solid && r.bodies[0].volumeMM3! < 0.5 * solid, String(r.bodies[0].volumeMM3));
+  assert.ok(r.bodies[0].volume! > 0.2 * solid && r.bodies[0].volume! < 0.5 * solid, String(r.bodies[0].volume));
 });
 
 test('shell a revolved cup open at the top: exact, its walls 2 thick', () => {
   let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'polygon', points: [[0, 0], [20, 0], [20, 30], [0, 30]] });
-  doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });
+  doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angle: 360 });
   doc = withNode(doc, { kind: 'shell', parent: { node: 1, side: 'solid' }, thickness: 2, open: ['n1.side2'] });
   const r = evaluateDoc(doc, 1);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
-  assert.ok(Math.abs(r.bodies[0].volumeMM3! - Math.PI * (12000 - 324 * 28)) < 1e-6 * r.bodies[0].volumeMM3!, String(r.bodies[0].volumeMM3));
+  assert.ok(Math.abs(r.bodies[0].volume! - Math.PI * (12000 - 324 * 28)) < 1e-6 * r.bodies[0].volume!, String(r.bodies[0].volume));
 });
 
 test('loft: a square to a smaller square above is a frustum, exact; the top comes from the drawn sketch', () => {
@@ -316,7 +312,7 @@ test('loft: a square to a smaller square above is a frustum, exact; the top come
   const r = evaluateDoc(doc, 1), exact = 12 / 3 * (400 + 100 + 200);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
   assert.equal(r.bodies.length, 1);
-  assert.ok(Math.abs(r.bodies[0].volumeMM3! - exact) < 1e-9 * exact, String(r.bodies[0].volumeMM3));
+  assert.ok(Math.abs(r.bodies[0].volume! - exact) < 1e-9 * exact, String(r.bodies[0].volume));
   assert.equal(featureLabel(doc.nodes[2], 2, doc.nodes), 'Loft 2 sections');
   const flat = evaluateDoc(withNode(withNode(withNode(emptyDoc(), bottom), top), { kind: 'loft', sections: [{ sketch: 0, z: 4 }, { sketch: 1, z: 4 }] }), 2);
   assert.equal(flat.ok, false);
@@ -325,11 +321,11 @@ test('loft: a square to a smaller square above is a frustum, exact; the top come
 
 test('revolve: a circle sketch turns into a torus, cut by a box; a profile along the axis is solid, one across it refused', () => {
   let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [20, 10], radius: 4 });
-  doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });
+  doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angle: 360 });
   const r = evaluateDoc(doc, 1);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
   const torus = 2 * Math.PI ** 2 * 20 * 16;
-  assert.ok(Math.abs(r.bodies[0].volumeMM3! - torus) < 1e-9 * torus, String(r.bodies[0].volumeMM3));
+  assert.ok(Math.abs(r.bodies[0].volume! - torus) < 1e-9 * torus, String(r.bodies[0].volume));
   assert.equal(r.bodies[0].family, 'curved');
   assert.ok(r.bodies[0].mesh.faces.every(f => f.kind === 'curved'));
   // The display mesh (8 segments per quarter) is a regular grid inscribed in the torus.
@@ -341,23 +337,23 @@ test('revolve: a circle sketch turns into a torus, cut by a box; a profile along
   const cut = evaluateDoc(doc, 2);
   assert.ok(cut.ok, JSON.stringify(!cut.ok && cut.error));
   assert.equal(cut.bodies.length, 1);
-  assert.ok(Math.abs(cut.bodies[0].volumeMM3! - torus / 2) < 3e-3 * torus, String(cut.bodies[0].volumeMM3));
+  assert.ok(Math.abs(cut.bodies[0].volume! - torus / 2) < 3e-3 * torus, String(cut.bodies[0].volume));
   assert.ok(cut.bodies[0].mesh.faces.some(f => f.kind === 'plane'), 'the cut leaves flat faces');
   assert.equal(featureLabel(doc.nodes[1], 1, doc.nodes), 'Revolve 360°');
   // A half disc beside the axis turns into a sphere (poles), which a box then cuts.
   let ball = withNode(emptyDoc(), { kind: 'sketch', profile: 'loop', segments: [{ kind: 'arc', start: [0, -6], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, 6] }] });
-  ball = withNode(ball, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });
+  ball = withNode(ball, { kind: 'revolve', sketch: 0, axis: 'y', angle: 360 });
   const sphere = evaluateDoc(ball, 5);
-  assert.ok(sphere.ok && Math.abs(sphere.bodies[0].volumeMM3! - 288 * Math.PI) < 1e-9 * 288 * Math.PI, JSON.stringify(sphere.ok ? sphere.bodies[0].volumeMM3 : sphere.error));
+  assert.ok(sphere.ok && Math.abs(sphere.bodies[0].volume! - 288 * Math.PI) < 1e-9 * 288 * Math.PI, JSON.stringify(sphere.ok ? sphere.bodies[0].volume : sphere.error));
   ball = withNode(ball, { kind: 'sketch', profile: 'rectangle', min: [-10, -10], max: [10, 10] });
   ball = withNode(ball, { kind: 'extrude', sketch: 2, height: 10, from: 3 });
   ball = withNode(ball, { kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } });
   const capped = evaluateDoc(ball, 6), cap = Math.PI * 9 * (18 - 3) / 3;
-  assert.ok(capped.ok && Math.abs(capped.bodies[0].volumeMM3! - (288 * Math.PI - cap)) < 3e-3 * 288 * Math.PI, JSON.stringify(capped.ok ? capped.bodies[0].volumeMM3 : capped.error));
+  assert.ok(capped.ok && Math.abs(capped.bodies[0].volume! - (288 * Math.PI - cap)) < 3e-3 * 288 * Math.PI, JSON.stringify(capped.ok ? capped.bodies[0].volume : capped.error));
   // A profile along the axis turns into a solid (a cylinder with disc ends); one across it is refused.
-  const onAxis = evaluateDoc(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [5, 5] }), { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 }), 3);
-  assert.ok(onAxis.ok && Math.abs(onAxis.bodies[0].volumeMM3! - Math.PI * 125) < 1e-9 * Math.PI * 125, JSON.stringify(onAxis.ok ? onAxis.bodies[0].volumeMM3 : onAxis.error));
-  const across = evaluateDoc(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [-2, 0], max: [5, 5] }), { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 }), 4);
+  const onAxis = evaluateDoc(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [5, 5] }), { kind: 'revolve', sketch: 0, axis: 'y', angle: 360 }), 3);
+  assert.ok(onAxis.ok && Math.abs(onAxis.bodies[0].volume! - Math.PI * 125) < 1e-9 * Math.PI * 125, JSON.stringify(onAxis.ok ? onAxis.bodies[0].volume : onAxis.error));
+  const across = evaluateDoc(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [-2, 0], max: [5, 5] }), { kind: 'revolve', sketch: 0, axis: 'y', angle: 360 }), 4);
   assert.equal(across.ok, false);
   if (!across.ok) assert.match(across.error.title, /can’t turn about this axis/);
 });
@@ -373,7 +369,7 @@ test('a slot sketch extrudes as one line + arc body with two curved faces and ex
   assert.equal(body.mesh.faces.length, 6);
   assert.equal(body.mesh.faces.filter(f => f.kind === 'curved').length, 2);
   const exact = (480 + Math.PI * 36) * 5;
-  assert.ok(Math.abs(body.volumeMM3! - exact) < 1e-8);
+  assert.ok(Math.abs(body.volume! - exact) < 1e-8);
   assert.ok(Math.abs(signedVolume(body.mesh) - exact) / exact < 5e-3);
   // Tangent line/arc joints draw no seam: only the two cap outlines remain (as straight runs and arc polylines).
   const cap = (f: number) => body.mesh.faces[f].kind === 'plane' && Math.abs(body.mesh.faces[f].normal[2]) > 0.99;
@@ -390,7 +386,7 @@ test('a concave outline with an arc notch becomes a loop body; straight convex o
     { kind: 'sketch', profile: 'loop', segments }), { kind: 'extrude', sketch: 0, height: 4 });
   const r = evaluateDoc(doc, 1);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
-  assert.ok(Math.abs(r.bodies[0].volumeMM3! - (800 - Math.PI * 12.5) * 4) < 1e-8);
+  assert.ok(Math.abs(r.bodies[0].volume! - (800 - Math.PI * 12.5) * 4) < 1e-8);
 });
 
 test('the numerical solver keeps H/V edges, honours locked lengths and reports DOF', async () => {
@@ -487,13 +483,12 @@ test('closing infers equal radii and shared centres; a loop with them still extr
 test('a STEP file with two solids opens as two bodies that take features on their own (D2)', () => {
   let two = rectanglePart(10, 10, 5);
   two = withNode(withNode(two, { kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [26, 6] }), { kind: 'extrude', sketch: 2, height: 4 });
-  const text = stepFor(prefixDoc(two, two.nodes.length), 'two');
-  assert.ok('text' in text);
+  const text = exportStudioStep(prefixDoc(two, two.nodes.length), { name: 'two' });
   let doc = withNode(emptyDoc(), { kind: 'import', name: 'two', step: text.text, solids: 2 });
   assert.deepEqual(leafBodies(doc.nodes), [{ node: 0, side: 'part0' }, { node: 0, side: 'part1' }]);
   let r = evaluateDoc(doc, 1);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
-  assert.deepEqual(r.bodies.map(b => [b.key, Math.round(b.volumeMM3 ?? 0)]), [['b0_part0', 500], ['b0_part1', 144]]);
+  assert.deepEqual(r.bodies.map(b => [b.key, Math.round(b.volume ?? 0)]), [['b0_part0', 500], ['b0_part1', 144]]);
   doc = withNode(doc, { kind: 'translate', parent: { node: 0, side: 'part1' }, offset: [0, 0, 10] });
   r = evaluateDoc(doc, 2);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
@@ -530,6 +525,6 @@ test('a cross hole whose side touches a vertical hole’s wall from inside is bu
     const doc = withNode(withNode(rectanglePart(100, 40, 12), { ...a, parent: { node: 1, side: 'solid' } }), { ...b, parent: { node: 2, side: 'solid' } });
     const r = evaluateDoc(doc, 1);
     assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
-    assert.ok(Math.abs(r.bodies[0].volumeMM3! - exact) < 1e-5 * exact, `${r.bodies[0].volumeMM3} vs ${exact}`);
+    assert.ok(Math.abs(r.bodies[0].volume! - exact) < 1e-5 * exact, `${r.bodies[0].volume} vs ${exact}`);
   }
 });

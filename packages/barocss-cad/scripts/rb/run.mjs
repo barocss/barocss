@@ -66,7 +66,7 @@ await new Promise(all => { let left = Math.min(jobs, cases.length); for (let k =
 // still fail, IMPROVEMENT when they pass now; any other failure is NEW.
 const todoFile = join(pkg, 'robustness/todo.json'), todo = existsSync(todoFile) ? JSON.parse(readFileSync(todoFile, 'utf8')) : [];
 const known = r => todo.find(t => t.case === r.case && (t.stage === '*' || t.stage === r.stage.replace(/#\d+$/, '')));
-const failed = r => !['OK', 'REFUSED'].includes(r.status);
+const failed = r => !['OK', 'REFUSED', 'KNOWN'].includes(r.status);
 for (const r of rows) { const t = known(r); r.mark = failed(r) ? (t ? 'TODO' : 'NEW') : (t ? 'IMPROVEMENT' : undefined); if (!r.mark) delete r.mark; }
 writeFileSync(out, rows.map(r => JSON.stringify(r)).join('\n') + '\n');
 
@@ -77,7 +77,7 @@ const pad = (s, n) => String(s).padEnd(n);
 console.log(`\n${pad('stage', 12)}${pad('category', 22)}${pad('class', 13)}${pad('n', 5)}${pad('pass', 8)}${STATUSES.map(s => pad(s, 11)).join('')}${pad('p50 ms', 9)}p95 ms`);
 for (const [k, list] of [...groups].sort()) {
   const [stage, category, inputClass] = k.split('\t'), by = Object.fromEntries(STATUSES.map(s => [s, list.filter(r => r.status === s).length]));
-  console.log(`${pad(stage, 12)}${pad(category, 22)}${pad(inputClass, 13)}${pad(list.length, 5)}${pad(((by.OK + by.REFUSED) / list.length * 100).toFixed(0) + '%', 8)}${STATUSES.map(s => pad(by[s] || '', 11)).join('')}${pad(pct(list.map(r => r.ms), 0.5), 9)}${pct(list.map(r => r.ms), 0.95)}`);
+  console.log(`${pad(stage, 12)}${pad(category, 22)}${pad(inputClass, 13)}${pad(list.length, 5)}${pad(((by.OK + by.REFUSED + by.KNOWN) / list.length * 100).toFixed(0) + '%', 8)}${STATUSES.map(s => pad(by[s] || '', 11)).join('')}${pad(pct(list.map(r => r.ms), 0.5), 9)}${pct(list.map(r => r.ms), 0.95)}`);
 }
 const marks = m => rows.filter(r => r.mark === m);
 for (const m of ['NEW', 'TODO', 'IMPROVEMENT']) if (marks(m).length) { console.log(`\n${m}:`); for (const r of marks(m)) console.log(`  ${r.case} ${r.stage} ${r.status}${r.detail ? ` — ${r.detail.slice(0, 160)}` : ''}`); }

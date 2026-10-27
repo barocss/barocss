@@ -12,10 +12,10 @@ import { rayHit, triangleBvh } from '@barocss/cad';
 import { concaveSpan, extent, holesOf, tappedHoles, type Hole } from './holes';
 import { narrowest } from './cavities';
 import { DIRECTION_NAMES, DIRECTIONS } from './access';
+import { r6 } from '../util/round';
 
 type V = readonly number[];
 const dot = (a: V, b: V) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 const AXES: readonly V[] = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
 
 export type FeatureKind = 'pocket' | 'slot' | 'step' | 'hole' | 'boss';
@@ -25,11 +25,11 @@ export interface Feature {
   readonly setups: readonly string[];
   readonly faces: readonly string[];
   /** Depth (a floor's below its highest wall; a hole's along its axis; a boss's height above its base). */
-  readonly depthMM: number;
+  readonly depth: number;
   /** Pockets: width (narrowest across its walls) and length (its extent along the narrowest's normal); slots: width across and length along; steps: the width of the floor out from its wall. */
-  readonly widthMM?: number; readonly lengthMM?: number;
+  readonly width?: number; readonly length?: number;
   /** Holes and bosses: the diameter (a hole's narrowest step); a hole's type, thread and counterbore. */
-  readonly diameterMM?: number; readonly through?: boolean; readonly thread?: string; readonly counterbore?: { diameterMM: number; depthMM: number };
+  readonly diameter?: number; readonly through?: boolean; readonly thread?: string; readonly counterbore?: { diameter: number; depth: number };
 }
 
 /** Each face's vertices, by index. */
@@ -118,19 +118,19 @@ export function featuresOf(doc: StudioDoc, bodies: readonly BodyResult[], holes:
     let width: number, length: number;
     if (f0.kind === 'step') { const w = f0.walled[0] ?? dirs[0], l = dirs.find(u => u !== w) ?? w; width = ext(w); length = ext(l); }
     else { width = narrowest(all, n, u => f0.bounded.some(w => Math.abs(Math.abs(dot(u, w)) - 1) < 1e-9)) ?? Math.min(...dirs.map(ext)); length = f0.kind === 'slot' ? ext(f0.free[0]) : Math.max(...dirs.map(ext)); }
-    out.push({ kind: f0.kind, body: f0.body, setups: [...new Set([f0.dir, ...g.flatMap(f => f.also)])].sort((x, y) => x - y).map(d => DIRECTION_NAMES[d]), faces: [...new Set(g.map(f => f.name))], depthMM: r6(f0.depth),
-      widthMM: r6(width), lengthMM: r6(length) });
+    out.push({ kind: f0.kind, body: f0.body, setups: [...new Set([f0.dir, ...g.flatMap(f => f.also)])].sort((x, y) => x - y).map(d => DIRECTION_NAMES[d]), faces: [...new Set(g.map(f => f.name))], depth: r6(f0.depth),
+      width: r6(width), length: r6(length) });
   }
   // Holes (CNC2): the narrowest step drilled; a wider step at an open end, its counterbore; a tapped hole's thread.
   const tapped = tappedHoles(doc, holes);
   for (const h of holes) {
     const s = h.steps[0], cb = h.counterbore ? h.steps.find(x => x !== s) : undefined, t = tapped.find(x => x.faces.some(f => s.faces.includes(f)));
-    out.push({ kind: 'hole', body: h.body, setups: holeSetups(h), faces: h.steps.flatMap(x => x.faces), depthMM: r6(Math.max(...h.steps.map(x => x.toMM)) - Math.min(...h.steps.map(x => x.fromMM))), diameterMM: r6(s.diameterMM), through: h.open[0] && h.open[1],
-      ...(t ? { thread: t.thread } : {}), ...(cb ? { counterbore: { diameterMM: r6(cb.diameterMM), depthMM: r6(cb.toMM - cb.fromMM) } } : {}) });
+    out.push({ kind: 'hole', body: h.body, setups: holeSetups(h), faces: h.steps.flatMap(x => x.faces), depth: r6(Math.max(...h.steps.map(x => x.to)) - Math.min(...h.steps.map(x => x.from))), diameter: r6(s.diameter), through: h.open[0] && h.open[1],
+      ...(t ? { thread: t.thread } : {}), ...(cb ? { counterbore: { diameter: r6(cb.diameter), depth: r6(cb.to - cb.from) } } : {}) });
   }
-  for (const b of bodies) for (const x of bossesOf(b)) out.push({ kind: 'boss', body: b.key, setups: [DIRECTION_NAMES[x.dir]], faces: [x.face], depthMM: r6(x.height), diameterMM: r6(x.diameter) });
+  for (const b of bodies) for (const x of bossesOf(b)) out.push({ kind: 'boss', body: b.key, setups: [DIRECTION_NAMES[x.dir]], faces: [x.face], depth: r6(x.height), diameter: r6(x.diameter) });
   const order: FeatureKind[] = ['pocket', 'slot', 'step', 'hole', 'boss'];
-  out.sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind) || (b.depthMM - a.depthMM) || a.faces[0].localeCompare(b.faces[0]));
+  out.sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind) || (b.depth - a.depth) || a.faces[0].localeCompare(b.faces[0]));
   const count = new Map<FeatureKind, number>();
   return out.map(f => { const k = (count.get(f.kind) ?? 0) + 1; count.set(f.kind, k); return { id: `${f.kind}${k}`, ...f }; });
 }

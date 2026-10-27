@@ -11,6 +11,7 @@ import type { BodyResult } from '../engine/evaluate';
 import { camPreview, NOT_FOR_PRODUCTION, type DrillPoint, type PocketPass } from './cam';
 import { chooseStock } from './stock';
 import { DIRECTION_NAMES, DIRECTIONS } from './access';
+import { madeBodies } from '../engine/elements';
 
 export const CAM_PACKAGE_VERSION = 'cam-package-v1';
 type Vec3 = [number, number, number];
@@ -20,7 +21,7 @@ export interface Move { kind: MoveKind; a: Vec3; b: Vec3 }
 /** A pass: a pocket's loop at a level, or a hole; its moves [from, to) of its setup's program. */
 export interface Pass { kind: 'pocket' | 'drill'; feature: string; level?: number; loop?: number; from: number; to: number }
 export interface ToolShape {
-  kind: 'flat' | 'ball' | 'bull'; diameterMM: number; cornerMM: number; fluteMM: number; shankMM: number;
+  kind: 'flat' | 'ball' | 'bull'; diameter: number; cornerRadius: number; fluteLength: number; shankDiameter: number;
   basis: { diameter: 'given' | 'estimate'; shape: 'given' | 'estimate' };
 }
 export interface SetupProgram {
@@ -28,17 +29,21 @@ export interface SetupProgram {
   /** World → machine, column-major: the setup's axes, the tool's axis machine +Z. */
   frame: number[];
   axis: Vec3;
-  safeZ: { mm: number; basis: 'estimate' };
-  entry: { rampDeg: number; basis: 'estimate'; rule: string };
+  safeZ: { value: number; basis: 'estimate' };
+  entry: { rampAngle: number; basis: 'estimate'; rule: string };
   moves: Move[]; passes: Pass[];
+  /** What this setup leaves to another (O161: a through hole is drilled once, by the first setup that reaches it). */
+  notes?: string[];
 }
 export type StockSolid = { kind: 'box'; min: Vec3; max: Vec3 } | { kind: 'cylinder'; start: Vec3; axis: Vec3; length: number; diameter: number };
 export interface CamPackage {
   banner: string; notForProduction: true; version: typeof CAM_PACKAGE_VERSION;
-  tool: ToolShape; stepoverMM: number; stepdownMM: number; basis: string;
+  tool: ToolShape; stepover: number; stepdown: number; basis: string;
   stock: StockSolid | { refused: { code: string; message: string } };
   setups: SetupProgram[];
   skipped: readonly { feature: string; why: string }[];
+  /** Operations refused by name (O166): a hole narrower than the tool is not drilled — a plunge would overcut it. */
+  refusals?: { feature: string; setup: string; code: 'CAM_TOOL_TOO_LARGE'; message: string }[];
 }
 
 const SAFE_ABOVE_MM = 5, RAMP_DEG = 3;
@@ -51,10 +56,11 @@ function axesOf(n: readonly number[]): [Vec3, Vec3, Vec3] {
 }
 
 /** The package: the tool's whole shape (`tool` given, else a flat end mill of CNC8's diameter, its flute 3 D and shank D, estimates). */
-export function camPackage(doc: StudioDoc, bodies: readonly BodyResult[], o: { toolMM?: number; tool?: Partial<Omit<ToolShape, 'basis'>> } = {}): CamPackage {
-  const p = camPreview(doc, bodies, { ...(o.tool?.diameterMM ?? o.toolMM ? { toolMM: o.tool?.diameterMM ?? o.toolMM } : {}) });
-  const D = p.tool.diameterMM, kind = o.tool?.kind ?? 'flat';
-  const tool: ToolShape = { kind, diameterMM: D, cornerMM: kind === 'ball' ? D / 2 : kind === 'bull' ? o.tool?.cornerMM ?? D / 4 : 0, fluteMM: o.tool?.fluteMM ?? 3 * D, shankMM: o.tool?.shankMM ?? D, basis: { diameter: p.tool.basis, shape: o.tool ? 'given' : 'estimate' } };
+export function camPackage(doc: StudioDoc, all: readonly BodyResult[], o: { toolDiameter?: number; tool?: Partial<Omit<ToolShape, 'basis'>> } = {}): CamPackage {
+  const bodies = madeBodies(doc.nodes, all); // (O160: the stock, the safe height and the cuts are the made part's.)
+  const p = camPreview(doc, bodies, { ...(o.tool?.diameter ?? o.toolDiameter ? { toolDiameter: o.tool?.diameter ?? o.toolDiameter } : {}) });
+  const D = p.tool.diameter, kind = o.tool?.kind ?? 'flat';
+  const tool: ToolShape = { kind, diameter: D, cornerRadius: kind === 'ball' ? D / 2 : kind === 'bull' ? o.tool?.cornerRadius ?? D / 4 : 0, fluteLength: o.tool?.fluteLength ?? 3 * D, shankDiameter: o.tool?.shankDiameter ?? D, basis: { diameter: p.tool.basis, shape: o.tool ? 'given' : 'estimate' } };
   const st = chooseStock(doc, bodies, 'cnc-milling');
   const stock: CamPackage['stock'] = st.ok ? ('min' in st.choice.placement ? { kind: 'box', min: [...st.choice.placement.min] as Vec3, max: [...st.choice.placement.max] as Vec3 } : { kind: 'cylinder', start: [...st.choice.placement.start] as Vec3, axis: [...st.choice.placement.axis] as Vec3, length: st.choice.placement.length, diameter: st.choice.placement.diameter }) : { refused: { code: st.code, message: st.message } };
   // (The highest point to keep clear of: the stock's corners, else the part's box.)
@@ -66,30 +72,64 @@ export function camPackage(doc: StudioDoc, bodies: readonly BodyResult[], o: { t
   const programOf = (setup: string): SetupProgram => {
     const had = setups.get(setup); if (had) return had;
     const n = DIRECTIONS[DIRECTION_NAMES.indexOf(setup)], [x, y, z] = axesOf(n), top = Math.max(...corners.map(c => dot(c, n)));
-    const prog: SetupProgram = { setup, frame: [x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, 0, 0, 0, 1].map(v => v + 0), axis: z, safeZ: { mm: top + SAFE_ABOVE_MM, basis: 'estimate' },
-      entry: { rampDeg: RAMP_DEG, basis: 'estimate', rule: `a ramp at ${RAMP_DEG}° along the level's first loop where it is long enough for the step down, else a plunge` }, moves: [], passes: [] };
+    const prog: SetupProgram = { setup, frame: [x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, 0, 0, 0, 1].map(v => v + 0), axis: z, safeZ: { value: top + SAFE_ABOVE_MM, basis: 'estimate' },
+      entry: { rampAngle: RAMP_DEG, basis: 'estimate', rule: `a ramp at ${RAMP_DEG}° along the level's first loop where it is long enough for the step down, else a plunge` }, moves: [], passes: [] };
     setups.set(setup, prog);
     return prog;
   };
-  for (const op of p.operations) { if (op.kind === 'pocket') pocketMoves(programOf(op.setup), op); else drillMoves(programOf(op.setup), op); }
-  for (const s of setups.values()) { const last = s.moves.at(-1); if (last && last.b[2] < s.safeZ.mm) s.moves.push({ kind: 'retract', a: last.b, b: [last.b[0], last.b[1], s.safeZ.mm] }); }
-  return { banner: NOT_FOR_PRODUCTION, notForProduction: true, version: CAM_PACKAGE_VERSION, tool, stepoverMM: p.stepoverMM, stepdownMM: p.stepdownMM, basis: p.basis, stock, setups: [...setups.values()], skipped: p.skipped };
+  // (O161: a feature reachable from several setups — a through hole, or a bore milled as a circular pocket, from both ends
+  // — is made once, by the first of them in setup order, the order the operations bring the setups in; each other setup
+  // that has work of its own says so.)
+  const order: string[] = [];
+  for (const op of p.operations) if (!order.includes(op.setup)) order.push(op.setup);
+  const madeIn = new Map<string, string>(), alsoFrom = new Map<string, string[]>();
+  for (const op of p.operations) {
+    const had = madeIn.get(op.feature);
+    if (had === undefined || order.indexOf(op.setup) < order.indexOf(had)) madeIn.set(op.feature, op.setup);
+    const from = alsoFrom.get(op.feature) ?? []; if (!from.includes(op.setup)) from.push(op.setup); alsoFrom.set(op.feature, from);
+  }
+  // (O166: a plunge of the tool makes a hole of the tool's diameter, so a narrower hole would come out too big: that
+  // operation is refused by name, typed, and the rest of the program kept.)
+  const refusals: NonNullable<CamPackage['refusals']> = [];
+  for (const op of p.operations) {
+    if (madeIn.get(op.feature) !== op.setup) continue;
+    if (op.kind === 'drill' && op.diameter < tool.diameter - 1e-9) { refusals.push({ feature: op.feature, setup: op.setup, code: 'CAM_TOOL_TOO_LARGE', message: `Ø${op.diameter} hole is narrower than the Ø${tool.diameter} tool: a plunge would overcut it` }); continue; }
+    if (op.kind === 'pocket') pocketMoves(programOf(op.setup), op); else drillMoves(programOf(op.setup), op);
+  }
+  for (const r of refusals) { const s = setups.get(r.setup); if (s) (s.notes ??= []).push(`${r.feature}: [${r.code}] ${r.message}`); }
+  for (const [feature, from] of alsoFrom) {
+    const by = madeIn.get(feature)!;
+    for (const setup of from) { const s = setup === by ? undefined : setups.get(setup); if (s) (s.notes ??= []).push(`${feature}: ${p.operations.some(o => o.feature === feature && o.kind === 'drill') ? 'drilled' : 'milled'} in the ${by} setup, not again here`); }
+  }
+  for (const s of setups.values()) { const last = s.moves.at(-1); if (last && last.b[2] < s.safeZ.value) s.moves.push({ kind: 'retract', a: last.b, b: [last.b[0], last.b[1], s.safeZ.value] }); }
+  return { banner: NOT_FOR_PRODUCTION, notForProduction: true, version: CAM_PACKAGE_VERSION, tool, stepover: p.stepover, stepdown: p.stepdown, basis: p.basis, stock, setups: [...setups.values()], skipped: p.skipped, ...(refusals.length ? { refusals } : {}) };
 }
 
 /** A world point in a setup's machine frame. */
 const toMachine = (s: SetupProgram, w: readonly number[]): Vec3 => { const f = s.frame; return [f[0] * w[0] + f[4] * w[1] + f[8] * w[2] + 0, f[1] * w[0] + f[5] * w[1] + f[9] * w[2] + 0, f[2] * w[0] + f[6] * w[1] + f[10] * w[2] + 0]; };
 /** From where the tool is to `to`: up to the safe height, across, down — or nothing if it is there. */
 function linkTo(s: SetupProgram, to: Vec3): void {
-  const last = s.moves.at(-1), at = last ? last.b : null, safe = s.safeZ.mm;
+  const last = s.moves.at(-1), at = last ? last.b : null, safe = s.safeZ.value;
   if (at && at[2] < safe) s.moves.push({ kind: 'retract', a: at, b: [at[0], at[1], safe] });
   const from: Vec3 = at ? [at[0], at[1], safe] : [to[0], to[1], safe];
   if (!at || from[0] !== to[0] || from[1] !== to[1]) s.moves.push({ kind: 'rapid', a: from, b: [to[0], to[1], safe] });
 }
 
+/**
+ * A pocket loop's point at a depth, in the setup's machine frame. The loops are the floor's outline projected on the plane's
+ * axes ([p·X, p·Y], absolute, cam.ts outlineOf), so the origin adds only its height along the normal: `top` = o·n + the
+ * full depth, the top face's height, and a level is measured down from it. (Adding the whole origin, as before O157,
+ * shifted the program by the origin's in-plane part.)
+ */
+function pocketPoint(s: SetupProgram, op: PocketPass, q: readonly number[], depth: number, top: number): Vec3 {
+  const X = op.plane.x, Y = op.plane.y, n = op.plane.normal, h = top - depth;
+  return toMachine(s, [q[0] * X[0] + q[1] * Y[0] + h * n[0], q[0] * X[1] + q[1] * Y[1] + h * n[1], q[0] * X[2] + q[1] * Y[2] + h * n[2]]);
+}
+
 function pocketMoves(s: SetupProgram, op: PocketPass): void {
   if (!op.loops.length) return;
-  const floor = op.levels.at(-1)!, o = op.plane.origin, X = op.plane.x, Y = op.plane.y;
-  const at = (q: readonly number[], depth: number): Vec3 => { const w = [0, 1, 2].map(k => o[k] + q[0] * X[k] + q[1] * Y[k] + (floor - depth) * op.plane.normal[k]); return toMachine(s, w); };
+  const o = op.plane.origin, n = op.plane.normal, top = o[0] * n[0] + o[1] * n[1] + o[2] * n[2] + op.levels.at(-1)!;
+  const at = (q: readonly number[], depth: number): Vec3 => pocketPoint(s, op, q, depth, top);
   let prev = 0;
   for (const level of op.levels) {
     op.loops.forEach((loop, j) => {
@@ -97,7 +137,7 @@ function pocketMoves(s: SetupProgram, op: PocketPass): void {
       if (j === 0) {
         // (Down into the cut: through the air cleared so far by a plunge, then a ramp along the loop or a plunge.)
         const start = pts[0], above = at(loop[0], prev); linkTo(s, start);
-        s.moves.push({ kind: 'plunge', a: [start[0], start[1], s.safeZ.mm], b: above });
+        s.moves.push({ kind: 'plunge', a: [start[0], start[1], s.safeZ.value], b: above });
         const need = (level - prev) / Math.tan(RAMP_DEG * Math.PI / 180);
         let len = 0; for (let i = 0; i < pts.length; i++) len += Math.hypot(pts[(i + 1) % pts.length][0] - pts[i][0], pts[(i + 1) % pts.length][1] - pts[i][1]);
         if (len >= need && need > 0) {
@@ -122,8 +162,8 @@ function pocketMoves(s: SetupProgram, op: PocketPass): void {
 }
 
 function drillMoves(s: SetupProgram, op: DrillPoint): void {
-  const from = s.moves.length, entry = toMachine(s, op.at), bottom = toMachine(s, op.at.map((v, k) => v + op.depthMM * op.axis[k]));
+  const from = s.moves.length, entry = toMachine(s, op.at), bottom = toMachine(s, op.at.map((v, k) => v + op.depth * op.axis[k]));
   linkTo(s, entry);
-  s.moves.push({ kind: 'plunge', a: [entry[0], entry[1], s.safeZ.mm], b: bottom }, { kind: 'retract', a: bottom, b: [entry[0], entry[1], s.safeZ.mm] });
+  s.moves.push({ kind: 'plunge', a: [entry[0], entry[1], s.safeZ.value], b: bottom }, { kind: 'retract', a: bottom, b: [entry[0], entry[1], s.safeZ.value] });
   s.passes.push({ kind: 'drill', feature: op.feature, from, to: s.moves.length });
 }

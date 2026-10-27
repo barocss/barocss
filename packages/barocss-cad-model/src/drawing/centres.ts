@@ -6,6 +6,7 @@ import type { BrepProjection } from '@barocss/cad';
 import type { Mark } from './sheet';
 import { toSheet, type ViewPlacement } from './views';
 import type { XY } from './types';
+import { r6Signed as r6 } from '../util/round';
 
 /** How far past the feature a centre mark or centreline reaches (sheet mm). */
 const PAST = 2.5;
@@ -13,7 +14,6 @@ const PAST = 2.5;
 export function centreMarks(v: ViewPlacement, pr: BrepProjection): Mark[] {
   const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
   const P = (p: readonly number[]): XY => [dot(p, pr.right), dot(p, pr.up)];
-  const r6 = (x: number) => Math.round(x * 1e6) / 1e6;
   // Whole circles: the arcs of one circle (centre, radius, plane) together a full turn.
   const turns = new Map<string, { center: readonly number[]; radius: number; normal: readonly number[]; sweep: number }>();
   for (const e of pr.edges) {

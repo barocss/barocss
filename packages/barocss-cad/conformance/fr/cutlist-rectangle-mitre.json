@@ -72,11 +72,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 266400,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             300,
             -0.7655555555555555,
@@ -93,11 +93,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 177600,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             601.1483333333333,
             200,
@@ -114,11 +114,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 266400,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             300,
             400.7655555555556,
@@ -135,11 +135,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 177600,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -1.1483333333333334,
             200,
@@ -157,7 +157,7 @@
       }
     ],
     "cutList": {
-      "densityKgPerM3": 7850,
+      "density": 7.85,
       "absTol": 1e-9,
       "rows": [
         {
@@ -166,22 +166,22 @@
             "f/0",
             "f/2"
           ],
-          "axisLengthMM": 600,
-          "longPointMM": 640,
+          "axisLength": 600,
+          "longPoint": 640,
           "fromVolume": false,
           "ends": [
             {
               "kind": "mitre",
-              "mitreDegrees": 45,
-              "bevelDegrees": 0
+              "mitre": 45,
+              "bevel": 0
             },
             {
               "kind": "mitre",
-              "mitreDegrees": 45,
-              "bevelDegrees": 0
+              "mitre": 45,
+              "bevel": 0
             }
           ],
-          "massKG": 2.09124
+          "mass": 2091.24
         },
         {
           "quantity": 2,
@@ -189,28 +189,28 @@
             "f/1",
             "f/3"
           ],
-          "axisLengthMM": 400,
-          "longPointMM": 440,
+          "axisLength": 400,
+          "longPoint": 440,
           "fromVolume": false,
           "ends": [
             {
               "kind": "mitre",
-              "mitreDegrees": 45,
-              "bevelDegrees": 0
+              "mitre": 45,
+              "bevel": 0
             },
             {
               "kind": "mitre",
-              "mitreDegrees": 45,
-              "bevelDegrees": 0
+              "mitre": 45,
+              "bevel": 0
             }
           ],
-          "massKG": 1.3941599999999998
+          "mass": 1394.1599999999999
         }
       ],
       "totals": {
         "quantity": 4,
-        "axisLengthMM": 2000,
-        "massKG": 6.9708
+        "axisLength": 2000,
+        "mass": 6970.799999999999
       }
     }
   },

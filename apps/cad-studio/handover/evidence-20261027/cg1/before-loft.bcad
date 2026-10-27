@@ -1,0 +1,70 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "circle",
+      "center": [
+        0,
+        0
+      ],
+      "radius": 1,
+      "sideTags": {
+        "outer": [
+          "e1"
+        ]
+      },
+      "id": "n0"
+    },
+    {
+      "kind": "sketch",
+      "profile": "circle",
+      "center": [
+        0,
+        0
+      ],
+      "radius": 4,
+      "sideTags": {
+        "outer": [
+          "e1"
+        ]
+      },
+      "plane": {
+        "origin": [
+          0,
+          0,
+          3
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "xAxis": [
+          1,
+          0,
+          0
+        ]
+      },
+      "id": "n1"
+    }
+  ],
+  "outputs": {},
+  "nextId": 2,
+  "direct": {
+    "sources": {
+      "src_1": "@model CG1_cubic_guide {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 3; knots: [0,0,0,0,1,1,1,1]; control-points: [[1,0,0],[4,0,1],[2,0,2],[4,0,3]]; weights: [1,1,1,1]; }\n}"
+    },
+    "objects": [
+      {
+        "id": "obj_1",
+        "name": "guide · c1",
+        "source": "src_1",
+        "geometry": "c1"
+      }
+    ]
+  }
+}

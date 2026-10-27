@@ -8,7 +8,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { featureLabel, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { Command } from '@barocss/cad-model/app/commands';
 import type { Axis3, BoundConstraint3D, V3 } from '@barocss/cad-model/frames/sketch3d';
-import { skeletonEditRefusal, solvedSkeleton } from '@barocss/cad-model/frames/skeleton';
+import { checkSkeletonEdit, SKELETON_CODES, solvedSkeleton } from '@barocss/cad-model/frames/skeleton';
+import { firstProblem, isRefusal } from '@barocss/cad-model/engine/refusal';
 import type { ToolView, ViewportTool } from '../viewport/Viewport';
 import { diagnoseDraft, dragSolve, NO_SELECTION, nearestSnap, onAxisLine, onGrid, onPlane, removeFromDraft, segmentAt, type Diagnosis, type Selection3D, type SkeletonDraft, type Snap, type WorkPlane } from './skeletonTool';
 import { SkeletonMarks } from './SkeletonMarks';
@@ -104,12 +105,13 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
     const s = ref.current.session; if (!s) return;
     if (!s.draft.points.length) { end(); return; }
     const base: SkeletonNode = { kind: 'skeleton', points: s.draft.points.map(p => [p[0], p[1], p[2]] as [number, number, number]), segments: s.draft.segments, ...(s.name ? { name: s.name } : {}), ...(s.draft.constraints.length ? { constraints: s.draft.constraints } : {}) };
-    const solved = solvedSkeleton(base, doc.parameters);
-    if ('error' in solved) { fail('The 3D sketch cannot be applied', solved.error); return; }
+    let solved: ReturnType<typeof solvedSkeleton>;
+    try { solved = solvedSkeleton(base, doc.parameters); }
+    catch (e) { if (!isRefusal(e, ...SKELETON_CODES)) throw e; fail('The 3D sketch cannot be applied', e.message); return; }
     const node = solved.node as SkeletonNode;
     if (s.node === null) commit(withNode(doc, node));
     else {
-      const why = skeletonEditRefusal(doc.nodes, s.node, node);
+      const why = firstProblem(checkSkeletonEdit(doc.nodes, s.node, node));
       if (why) { fail(`${featureLabel(doc.nodes[s.node], s.node, doc.nodes)} cannot change so`, why); return; }
       commit({ ...doc, nodes: doc.nodes.map((n, i) => i === s.node ? node : n) });
     }

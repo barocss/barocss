@@ -2,6 +2,8 @@
 // how the mouse moves the view and picks.
 import { useEffect } from 'react';
 import { commands } from '@barocss/cad-model/app/commands';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon, Kbd } from './atoms';
 
 const GROUPS: [string, string][] = [['create', 'Create'], ['modify', 'Modify'], ['pattern', 'Pattern'], ['combine', 'Combine'], ['inspect', 'Inspect']];
@@ -18,9 +20,10 @@ export function ShortcutHelp({ onClose }: { onClose(): void }) {
     return () => window.removeEventListener('keydown', key, true);
   }, [onClose]);
   return (
-    <div className="help-scrim" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="card help" role="dialog" aria-label="Keyboard and mouse">
-        <div className="card-title">KEYBOARD AND MOUSE <button className="tool tiny" aria-label="Close" onClick={onClose}><Icon name="close" small /></button></div>
+    // (G12f: shadcn's Dialog — its overlay, focus kept inside, a click outside closing it.)
+    <Dialog open onOpenChange={open => { if (!open) onClose(); }}>
+      <DialogContent className="card help" overlayClassName="help-scrim bg-black/35" aria-label="Keyboard and mouse" aria-describedby={undefined}>
+        <DialogTitle className="card-title">KEYBOARD AND MOUSE <ToolIconButton size="tiny" aria-label="Close" onClick={onClose}><Icon name="close" small /></ToolIconButton></DialogTitle>
         <div className="help-cols">
           <section>{GROUPS.map(([g, name]) => {
             const list = commands.filter(c => c.group === g && c.shortcut);
@@ -29,7 +32,7 @@ export function ShortcutHelp({ onClose }: { onClose(): void }) {
           <section><h4>General</h4>{GENERAL.map(([k, what]) => <div key={k} className="help-row"><span>{what}</span><Kbd>{k}</Kbd></div>)}
             <h4>Mouse</h4>{MOUSE.map(([k, what]) => <div key={k} className="help-row"><span>{what}</span><span className="muted">{k}</span></div>)}</section>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

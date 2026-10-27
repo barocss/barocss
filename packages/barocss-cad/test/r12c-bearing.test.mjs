@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { shaftSolid, seatedBearing, bearingEnvelope, bearingRowProblem, BearingError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
-import { brepBounds } from '../dist/brep-bounds.js';
+import { shaftSolid, seatedBearing, bearingEnvelope, bearingRowProblem, isBearingError, checkBrep, brepMassProperties, evaluateCadPart, outputOf } from '../dist/index.js';
+import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.4 (D158): bearing envelopes from the user's rows, on a shaft's seat and in a housing. The row is D139's B1 (the
 // NSK 6204 page: d 20, D 47, B 14, r 1; da 25–26.5, Da max 42, ra max 1), a test row citing it; the rings' deviations
@@ -9,15 +9,15 @@ import { brepBounds } from '../dist/brep-bounds.js';
 // construction: the rectangle less four corner squares plus quarter discs, 19800.6522 mm³); the abutment rules by
 // arithmetic on the row; the fits' clearances (hole − shaft) by arithmetic; no overlap by volumes.
 
-const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
+const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volume;
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want}`);
-const code = c => e => e instanceof BearingError && e.code === c;
+const code = c => e => isBearingError(e) && e.code === c;
 const I = { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] };
-const ROW = { id: '6204', designation: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, source: 'B1 (D139): the NSK 6204 page' };
-const FITS = [{ id: 'seat-fits', rows: [{ class: 'k5', overMM: 18, upToMM: 30, upperUM: 11, lowerUM: 2, estimate: true }, { class: 'H7', overMM: 30, upToMM: 50, upperUM: 25, lowerUM: 0, estimate: true }] }];
+const ROW = { id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, source: 'B1 (D139): the NSK 6204 page' };
+const FITS = [{ id: 'seat-fits', rows: [{ class: 'k5', over: 18, upTo: 30, upper: 0.011, lower: 0.002, estimate: true }, { class: 'H7', over: 30, upTo: 50, upper: 0.025, lower: 0, estimate: true }] }];
 /** A shaft Ø25 × 30, Ø20 × 50 (the seat from z 30), a Ø19 × 1.3 groove `gap` beyond the bearing's 14. */
 function shaft(over = {}) {
-  const s = shaftSolid({ steps: [{ diameterMM: over.shoulder ?? 25, lengthMM: 30, filletMM: over.fillet }, { diameterMM: over.seat ?? 20, lengthMM: over.seatLength ?? 50, grooves: over.gap === null ? [] : [{ diameterMM: 19, widthMM: 1.3, atMM: 14 + (over.gap ?? 0.2) }] }] }, { id: 's' });
+  const s = shaftSolid({ steps: [{ diameter: over.shoulder ?? 25, length: 30, fillet: over.fillet }, { diameter: over.seat ?? 20, length: over.seatLength ?? 50, grooves: over.gap === null ? [] : [{ diameter: 19, width: 1.3, at: 14 + (over.gap ?? 0.2) }] }] }, { id: 's' });
   return { report: s.report, place: I, brep: s.brep };
 }
 const S0 = (() => { const r = 1, y0 = 10, y1 = 23.5, B = 14, k = 4 * r / (3 * Math.PI), Ay = B * (y1 - y0) * (y0 + y1) / 2;
@@ -29,7 +29,7 @@ test('R12c.4 envelope: a 6204 from the user\'s row — the rounded section revol
   assert.equal(checkBrep(e).valid, true); assert.equal(checkBrep(e).topology[0].genus, 1);
   near(vol(e), S0, 1e-6, 'Pappus');
   assert.deepEqual([...new Set(e.faces.map(f => f.name.replace(/#\d+$/, '')))].sort(), ['b.bore', 'b.corner1', 'b.corner2', 'b.corner3', 'b.corner4', 'b.face0', 'b.face1', 'b.outside']);
-  for (const [bad, why] of [[{ ...ROW, source: undefined }, /never neither/], [{ ...ROW, estimate: true }, /not both/], [{ ...ROW, outsideMM: 18 }, /must exceed its bore/], [{ ...ROW, chamferMM: 8 }, /too large/], [{ ...ROW, daMinMM: 27 }, /da min is above da max/], [{ ...ROW, boreDeviationUM: [-10, 0] }, /upper ≥ lower/], [{ ...ROW, extra: 1 }, /unknown field/]])
+  for (const [bad, why] of [[{ ...ROW, bore: undefined, boreMM: ROW.bore }, /unknown field boreMM/], [{ ...ROW, source: undefined }, /never neither/], [{ ...ROW, estimate: true }, /not both/], [{ ...ROW, outside: 18 }, /must exceed its bore/], [{ ...ROW, chamfer: 8 }, /too large/], [{ ...ROW, daMin: 27 }, /da min is above da max/], [{ ...ROW, boreDeviation: [-0.01, 0] }, /upper ≥ lower/], [{ ...ROW, extra: 1 }, /unknown field/]])
     assert.match(bearingRowProblem(bad) ?? 'accepted', why);
   assert.equal(bearingRowProblem(ROW), null);
 });
@@ -38,12 +38,12 @@ test('R12c.4 seat: on the Ø20 seat against the Ø25 shoulder (within da 25–26
   const sh = shaft(), b = seatedBearing(ROW, sh, { step: 2, against: 'start' }, 'b');
   assert.equal(checkBrep(b.brep).valid, true);
   const bb = brepBounds(b.brep); near(bb.min[2], 30, 1e-9, 'against the shoulder'); near(bb.max[2], 44, 1e-9, 'B'); near(bb.max[0], 23.5, 1e-9, 'D/2');
-  assert.deepEqual([b.report.seat.shoulderMM, b.report.seat.located, b.report.warnings], [25, 'ring groove 1', []]);
-  near(b.report.seat.overlapMM3, 0, 1e-9 * vol(sh.brep), 'no overlap');
+  assert.deepEqual([b.report.seat.shoulder, b.report.seat.located, b.report.warnings], [25, 'ring groove 1', []]);
+  near(b.report.seat.overlap, 0, 1e-9 * vol(sh.brep), 'no overlap');
   assert.equal(b.report.notForStructuralCalculation, true); assert.equal(b.report.source, 'B1 (D139): the NSK 6204 page');
   // A fillet r 0.8 at the shoulder clears the bearing's r 1 corner.
   const f = seatedBearing(ROW, shaft({ fillet: 0.8 }), { step: 2, against: 'start' }, 'b');
-  near(f.report.seat.overlapMM3, 0, 1e-6, 'fillet 0.8 under the r 1 corner'); near(f.report.seat.shoulderFilletMM, 0.8, 0, 'fillet');
+  near(f.report.seat.overlap, 0, 1e-6, 'fillet 0.8 under the r 1 corner'); near(f.report.seat.shoulderFillet, 0.8, 0, 'fillet');
   // Against the seat's end instead: no shoulder there (it ends the shaft).
   assert.throws(() => seatedBearing(ROW, sh, { step: 2, against: 'end' }, 'b'), e => code('SEAT_ABUTMENT')(e) && /no shoulder at its end/.test(e.message));
   // No groove: the other side unlocated, a warning.
@@ -57,26 +57,27 @@ test('R12c.4 refusals: SEAT_ABUTMENT for a shoulder outside da min…da max, a f
     assert.throws(() => seatedBearing(ROW, shaft(over), { step: 2, against: 'start' }, 'b'), e => code('SEAT_ABUTMENT')(e) && why.test(e.message), JSON.stringify(over));
   assert.throws(() => seatedBearing(ROW, shaft({ seat: 20.5 }), { step: 2, against: 'start' }, 'b'), e => code('SEAT_FIT')(e) && /bore is Ø20/.test(e.message));
   // Without ra max in its row, the bearing's own corner r bounds the fillet.
-  const noRa = { ...ROW, raMaxMM: undefined };
+  const noRa = { ...ROW, raMax: undefined };
   assert.throws(() => seatedBearing(noRa, shaft({ fillet: 1.2 }), { step: 2, against: 'start' }, 'b'), e => code('SEAT_ABUTMENT')(e) && /the bearing's corner r 1/.test(e.message));
   assert.throws(() => seatedBearing(ROW, shaft(), { step: 3, against: 'start' }, 'b'), code('INVALID_INPUT'));
 });
 
 test('R12c.4 housing and fits: a Ø47 bore on the axis covers it, no overlap; k5 on the shaft against the bore\'s [0, −10] is interference −21…−2, H7 in the housing against the OD\'s [0, −11] clearance 0…+36 (arithmetic, test rows)', () => {
   const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
-  const housing = (dx, z0 = 28, h = 20) => evaluateCadPart(D([{ id: 'o', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 35, plane: { origin: [0, 0, z0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'oe', kind: 'extrude', sketch: 'o', height: h },
-    { id: 'c', kind: 'sketch', profile: 'circle', center: [dx, 0], radius: 23.5, plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'ce', kind: 'extrude', sketch: 'c', height: 100 }, { id: 'h', kind: 'difference', target: 'oe', tool: 'ce' }])).output('h').brep;
-  const row = { ...ROW, boreDeviationUM: [0, -10], outsideDeviationUM: [0, -11] };
+  const housing = (dx, z0 = 28, h = 20) => outputOf(evaluateCadPart(D([{ id: 'o', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 35, plane: { origin: [0, 0, z0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'oe', kind: 'extrude', sketch: 'o', height: h },
+    { id: 'c', kind: 'sketch', profile: 'circle', center: [dx, 0], radius: 23.5, plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'ce', kind: 'extrude', sketch: 'c', height: 100 }, { id: 'h', kind: 'difference', target: 'oe', tool: 'ce' }])), 'h').brep;
+  const row = { ...ROW, boreDeviation: [0, -0.01], outsideDeviation: [0, -0.011] };
   const b = seatedBearing(row, shaft(), { step: 2, against: 'start', housing: housing(0), fit: { tables: FITS, shaft: 'k5', housing: 'H7' } }, 'b');
-  assert.deepEqual([b.report.housing.covered, b.report.warnings], [true, []]); near(b.report.housing.overlapMM3, 0, 1e-6, 'housing');
-  assert.deepEqual([b.report.shaftFit.kind, b.report.shaftFit.clearanceMinUM, b.report.shaftFit.clearanceMaxUM], ['interference', -21, -2]);
-  assert.deepEqual([b.report.housingFit.kind, b.report.housingFit.clearanceMinUM, b.report.housingFit.clearanceMaxUM], ['clearance', 0, 36]);
+  // (A plain through bore has no shoulder: FRk8a says so, D181.)
+  assert.deepEqual([b.report.housing.covered, b.report.housing.shoulder, b.report.warnings], [true, null, ['the housing has no shoulder at either face of the bearing: its outer ring is not located (a cover or a ring is not modelled)']]); near(b.report.housing.overlap, 0, 1e-6, 'housing');
+  assert.deepEqual([b.report.shaftFit.kind, b.report.shaftFit.clearanceMin, b.report.shaftFit.clearanceMax], ['interference', -10 / 1000 - 11 / 1000, 0 / 1000 - 2 / 1000]);
+  assert.deepEqual([b.report.housingFit.kind, b.report.housingFit.clearanceMin, b.report.housingFit.clearanceMax], ['clearance', 0 / 1000 - 0 / 1000, 25 / 1000 - -11 / 1000]);
   assert.throws(() => seatedBearing(row, shaft(), { step: 2, against: 'start', housing: housing(0.5) }, 'b'), e => code('SEAT_FIT')(e) && /no Ø47 bore on the bearing's axis/.test(e.message));
   assert.match(seatedBearing(row, shaft(), { step: 2, against: 'start', housing: housing(0, 34, 6) }, 'b').report.warnings[0], /does not cover the bearing/);
   assert.throws(() => seatedBearing(row, shaft(), { step: 2, against: 'start', fit: { tables: FITS, shaft: 'm6' } }, 'b'), e => code('SEAT_FIT')(e) && /load a row for m6/.test(e.message));
   // Without the rings' deviations: the seat's limits only.
   const plain = seatedBearing(ROW, shaft(), { step: 2, against: 'start', fit: { tables: FITS, shaft: 'k5' } }, 'b');
-  assert.deepEqual([plain.report.shaftFit.limit.minMM, plain.report.shaftFit.limit.maxMM, plain.report.shaftFit.kind], [20.002, 20.011, undefined]);
+  assert.deepEqual([plain.report.shaftFit.limit.min, plain.report.shaftFit.limit.max, plain.report.shaftFit.kind], [20.002, 20.011, undefined]);
 });
 
 test('R12c.4 part model: a shaft turned and moved, a bearing on its seat and in a housing; the codes mapped', () => {
@@ -85,11 +86,16 @@ test('R12c.4 part model: a shaft turned and moved, a bearing on its seat and in 
     { id: 'o', kind: 'sketch', profile: 'circle', center: [60, 0], radius: 35, plane: { origin: [0, 0, 33], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'oe', kind: 'extrude', sketch: 'o', height: 20 },
     { id: 'c', kind: 'sketch', profile: 'circle', center: [60, 0], radius: 23.5, plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'ce', kind: 'extrude', sketch: 'c', height: 100 }, { id: 'h', kind: 'difference', target: 'oe', tool: 'ce' },
     { id: 'b', kind: 'bearing', row: ROW, shaft: 's', step: 2, against: 'start', housing: 'h' }];
-  const snap = evaluateCadPart(D(feats)), b = snap.output('b'), bb = brepBounds(b.brep);
+  const snap = evaluateCadPart(D(feats)), b = outputOf(snap, 'b'), bb = brepBounds(b.brep);
   near(bb.min[2], 35, 1e-9, 'z'); near((bb.min[0] + bb.max[0]) / 2, 60, 1e-9, 'x'); assert.equal(b.bearing.seat.located, 'ring groove 1'); assert.equal(b.bearing.housing.covered, true);
   assert.ok(snap.outputs.some(o => o.id === 's') && snap.outputs.some(o => o.id === 'h'), 'the shaft and the housing stay outputs');
-  const refused = (patch, c, tag) => assert.throws(() => evaluateCadPart(D(feats.map(f => f.id === 'b' ? { ...f, ...patch } : f))), e => e.code === c && e.message.includes(`[${tag}]`), tag);
-  refused({ row: { ...ROW, daMaxMM: 24.9, daMinMM: 22 } }, 'GEOMETRY', 'SEAT_ABUTMENT');
-  refused({ row: { ...ROW, boreMM: 17 } }, 'GEOMETRY', 'SEAT_FIT');
+  const refused = (patch, c, tag) => assert.throws(() => evaluateCadPart(D(feats.map(f => f.id === 'b' ? { ...f, ...patch } : f))), e => (e.details?.category ?? e.code) === c && e.message.includes(`[${tag}]`), tag);
+  refused({ row: { ...ROW, daMax: 24.9, daMin: 22 } }, 'GEOMETRY', 'SEAT_ABUTMENT');
+  refused({ row: { ...ROW, bore: 17 } }, 'GEOMETRY', 'SEAT_FIT');
   refused({ row: { ...ROW, source: undefined } }, 'INPUT', 'INVALID_INPUT');
+});
+
+test('R12c.4 R7 bearing deviation rows accept mm and reject old quantity names', () => {
+  assert.equal(bearingRowProblem({ ...ROW, boreDeviation: [0, -0.010], outsideDeviation: [0, -0.011] }), null);
+  for (const old of ['boreDeviationUM', 'outsideDeviationUM']) assert.match(bearingRowProblem({ ...ROW, [old]: [0, -10] }), new RegExp(`unknown field ${old}`));
 });

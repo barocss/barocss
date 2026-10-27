@@ -15,7 +15,9 @@ const page = `<!doctype html><meta charset="utf-8"><style>body{margin:0;backgrou
 
 async function serve() {
   // Exact routes: the viewer's built modules and one page.
-  const files = new Map((await readdir(dist)).filter(f => f.endsWith('.js')).map(f => [`/viewer/${f}`, path.join(dist, f)]));
+  // (R2c: the viewer's modules in subfolders too — shaders/.)
+  const files = new Map((await readdir(dist, { recursive: true })).filter(f => f.endsWith('.js')).map(f => [`/viewer/${f.split(path.sep).join('/')}`, path.join(dist, f)]));
+  files.set('/core/barocss-error.js', path.join(dist, '../core/barocss-error.js')); // (R7.3a: the viewer refuses with the package's one BarocssError.)
   const server = createServer(async (req, res) => {
     if (req.url === '/favicon.ico') { res.writeHead(204); res.end(); return; }
     if (req.url === '/') { res.writeHead(200, { 'content-type': 'text/html' }); res.end(page); return; }
@@ -215,7 +217,7 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
       await viewer.frame();
       return { ms, all, close: { ...viewer.stats } };
     });
-    t.diagnostic(`4000 meshes: ${many.ms.toFixed(1)} ms/frame, cpu ${many.all.cpuMs.toFixed(1)} ms, close-up draws ${many.close.drawCalls}, culled ${many.close.culled}`);
+    t.diagnostic(`4000 meshes: ${many.ms.toFixed(1)} ms/frame, cpu ${many.all.cpuTime.toFixed(1)} ms, close-up draws ${many.close.drawCalls}, culled ${many.close.culled}`);
     assert.equal(many.all.drawCalls, 4000);
     assert.ok(many.close.culled > 3000 && many.close.drawCalls + many.close.culled === 4000);
     // (A software rasteriser draws thousands of meshes slowly; the bound is for a hardware adapter.)
@@ -384,7 +386,7 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
       viewer.dispose(); viewer.dispose();
       try { viewer.add(window.t.box(1, 1, 1)); return 'added'; } catch (e) { return e.code; }
     });
-    assert.equal(disposed, 'disposed');
+    assert.equal(disposed, 'DISPOSED');
     assert.deepEqual(errors, []);
   } finally { await browser.close(); await server.close(); }
 });

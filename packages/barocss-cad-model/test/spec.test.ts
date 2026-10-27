@@ -1,3 +1,4 @@
+import { validateSuite } from '../src/chat/spec';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -74,7 +75,10 @@ test('mutation check: a check that cannot fail is vacuous, a declared invariant 
   const rep2 = parse((await runTool(s, 'check_spec', { validate: true }, onlyModel)).content);
   assert.equal(rep2.mutants.built, 0); assert.deepEqual(rep2.vacuous, []);
   assert.deepEqual(rep2.unverified.map((v: { req_id: string }) => v.req_id).sort(), ['H', 'L', 'Z']);
-  assert.ok(typeof rep.mutants.ms === 'number');
+  for (const result of [rep, rep2]) {
+    assert.ok(Number.isFinite(result.mutants.duration) && result.mutants.duration >= 0);
+    assert.ok(!('ms' in result.mutants));
+  }
 });
 
 test('policy: the best snapshot, rounds without progress and a restart hint; a change breaking a passed hard requirement is refused unless it says why', async () => {
@@ -130,4 +134,18 @@ test('gear queries (R6a.4b, D56): centre distance, backlash, contact ratio and c
   // Malformed: a and b are feature ids.
   r = await runTool(s, 'set_requirements', { requirements: [{ id: 'G9', source: 'x', hard: true, check: { op: '>=', query: { fn: 'gear_backlash', a: 'n0' }, value: 0 } }] }, evaluate);
   assert.ok(r.isError); assert.match(parse(r.content).error, /gear_backlash takes two spur gears' feature ids/);
+});
+
+
+test('validation timing: seconds keep the original rounded millisecond interval and two clock reads', async t => {
+  const s = await stateOf(rectanglePart(40, 20, 8));
+  let calls = 0;
+  const clock = t.mock.method(performance, 'now', () => ++calls === 1 ? 0 : 250.4);
+  try {
+    const result = await validateSuite(s.doc, s.bodies, async () => null, new Map());
+    assert.equal(result.mutants.duration, 0.250);
+    assert.ok(!('ms' in result.mutants));
+    assert.equal(calls, 2);
+    assert.equal(result.mutants.built, 0);
+  } finally { clock.mock.restore(); }
 });

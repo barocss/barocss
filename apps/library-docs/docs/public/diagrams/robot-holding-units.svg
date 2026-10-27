@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="560" viewBox="0 0 920 560" role="img" aria-labelledby="title desc">
+  <title id="title">Gravity moment and the opposite holding moment</title>
+  <desc id="desc">Calculated static example, not an API render or measurement. In the world XZ plane, a 100 gram moving mass has its centre 200 millimetres along positive X from a hinge. Positive Y points into the page. Gravity is [0,0,-9806.65] millimetres per second squared, so force is [0,0,-0.980665] newtons. The gravity moment is positive 196.133 newton millimetres about Y. The holding moment reported about the positive Y joint axis is negative 196.133 newton millimetres.</desc>
+  <defs>
+    <marker id="axis" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#315c84"/></marker>
+    <marker id="force" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#b24336"/></marker>
+  </defs>
+  <rect width="920" height="560" rx="12" fill="#f8fafc"/>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#182b3e">
+    <text x="460" y="35" text-anchor="middle" font-size="24" font-weight="700">One static pose: hold against gravity</text>
+    <text x="460" y="64" text-anchor="middle" font-size="16">Calculated example · world coordinates · not an API render or measurement</text>
+    <rect x="25" y="90" width="510" height="360" rx="10" fill="white" stroke="#cad4df"/>
+    <path d="M130 300H485M130 300V140" fill="none" stroke="#315c84" stroke-width="1.8" marker-end="url(#axis)"/>
+    <text x="492" y="306" font-size="17">+X</text><text x="114" y="128" font-size="17">+Z</text>
+    <path d="M130 300H410" stroke="#2677a9" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="410" cy="300" r="17" fill="#de9d3e" stroke="#875721" stroke-width="2"/>
+    <text x="328" y="245" font-size="17">centre of mass</text><text x="366" y="271" font-size="17">100 g</text>
+    <circle cx="130" cy="300" r="13" fill="white" stroke="#315c84" stroke-width="2"/>
+    <path d="M122 292L138 308M138 292L122 308" stroke="#315c84" stroke-width="2"/>
+    <text x="48" y="343" font-size="16">hinge: +Y into page</text>
+    <path d="M130 373H410M130 365V381M410 365V381" fill="none" stroke="#627386" stroke-width="1.5"/>
+    <text x="270" y="399" text-anchor="middle" font-size="17">r = [200, 0, 0] mm</text>
+    <path d="M410 318V425" fill="none" stroke="#b24336" stroke-width="3" marker-end="url(#force)"/>
+    <text x="432" y="353" font-size="17" fill="#b24336">F along −Z</text>
+    <g font-size="18">
+      <text x="563" y="121" font-weight="700">Convert before using SI force</text>
+      <text x="563" y="157">100 g = 0.1 kg</text>
+      <text x="563" y="191">9806.65 mm/s² = 9.80665 m/s²</text>
+      <text x="563" y="225">Fz = −0.980665 N</text>
+      <text x="563" y="278" font-weight="700">Moment about the hinge</text>
+      <text x="563" y="313">Gravity: +196.133 N·mm about Y</text>
+      <text x="563" y="347">Holding: −196.133 N·mm about Y</text>
+      <text x="563" y="390">−0.196133 N·m × 1000</text>
+      <text x="563" y="424">= −196.133 N·mm</text>
+    </g>
+    <path d="M35 478H885" stroke="#cad4df"/>
+    <text x="460" y="510" text-anchor="middle" font-size="17">Gravity moment = r × F · holding moment is opposite · report projects onto the joint axis</text>
+    <text x="460" y="538" text-anchor="middle" font-size="16">A static holding value does not predict free motion or establish actuator suitability.</text>
+  </g>
+</svg>

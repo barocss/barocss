@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { prepareCamera, validateMeshCamera, validateMeshOptions } from '../dist/index.js';
-const camera = () => ({ eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: 0.01, far: 100 });
+const camera = () => ({ eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: 0.01, far: 100 });
 const options = () => ({ mmToSceneUnit: 0.1, translate: [0, 0, 0], color: [1, 0.5, 0], background: [0.1, 0.2, 0.3] });
 const close = (actual, expected, epsilon = 1e-5) => assert.ok(Math.abs(actual - expected) <= epsilon, `${actual} != ${expected}`);
 const mul = (matrix, point) => [0, 1, 2, 3].map((row) => point.reduce((sum, n, col) => sum + matrix[col * 4 + row] * n, 0));
@@ -58,7 +58,7 @@ test('near and far map to OpenGL clip endpoints and behind-camera has negative W
 test('up rotation, aspect and optics follow analytic projection expectations', () => {
   const rotated = prepareCamera({ ...camera(), up: [1, 0, 0] }, 1);
   assert.ok(projected(rotated, [1, 0, 0]).ndc[1] > 0); assert.ok(projected(rotated, [0, 1, 0]).ndc[0] < 0);
-  const narrow = prepareCamera({ ...camera(), fovYDegrees: 10 }, 1), wide = prepareCamera({ ...camera(), fovYDegrees: 100 }, 1);
+  const narrow = prepareCamera({ ...camera(), fovY: 10 }, 1), wide = prepareCamera({ ...camera(), fovY: 100 }, 1);
   assert.ok(projected(narrow, [1, 0, 0]).ndc[0] > projected(wide, [1, 0, 0]).ndc[0]);
   close(projected(prepareCamera(camera(), 2), [1, 0, 0]).ndc[0] * 2, projected(prepareCamera(camera(), 1), [1, 0, 0]).ndc[0]);
 });
@@ -92,7 +92,7 @@ test('strict objects and vectors reject missing, foreign, symbol and accessor fi
 test('camera vectors and optics reject all scalar bound violations', () => {
   for (const key of ['eye', 'target', 'up']) for (const n of [NaN, Infinity, -Infinity, '0']) { const c = camera(); c[key][0] = n; assert.throws(() => validateMeshCamera(c)); }
   for (const key of ['eye', 'target']) for (const n of [-1001, 1001]) { const c = camera(); c[key][0] = n; assert.throws(() => validateMeshCamera(c)); }
-  for (const [key, values] of [['fovYDegrees', [9.99, 100.01, Infinity, NaN, '45']], ['near', [0, -1, 0.000099, Infinity, NaN]], ['far', [0, 0.01, 10001, Infinity, NaN]]]) {
+  for (const [key, values] of [['fovY', [9.99, 100.01, Infinity, NaN, '45']], ['near', [0, -1, 0.000099, Infinity, NaN]], ['far', [0, 0.01, 10001, Infinity, NaN]]]) {
     for (const n of values) assert.throws(() => validateMeshCamera({ ...camera(), [key]: n }));
   }
 });

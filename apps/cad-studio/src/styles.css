@@ -1,3 +1,8 @@
+/* (The studio's own CSS in one layer below Tailwind's (G12d): within it the rules settle as before; Tailwind's utilities —
+   the shadcn/ui components' — win over its element rules, preflight off. main.tsx imports this file first, so this line
+   orders the layers. ui/chat.css, ui/constraints.css and drawing/drawing.css are in the same layer.) */
+@layer legacy, theme, base, components, utilities;
+@layer legacy {
 :root, :root[data-theme='dark'] {
   --bg: #1d1e21; --panel: rgba(36, 37, 41, 0.94); --panel-solid: #242529; --line: #3a3c41; --line-soft: #2f3135;
   --text: #e2e4e8; --text-2: #c9ccd1; --muted: #8a8e96; --accent: #e8c25a; --accent-ink: #1d1e21; --accent-soft: #3b3420;
@@ -18,12 +23,64 @@ button { font: inherit; color: inherit; }
 .grow { flex-grow: 1; }
 .kbd { display: inline-flex; align-items: center; height: 18px; padding: 0 5px; border-radius: 3px; border: 1px solid #4a4d53; background: #2a2c30; font: 500 10px var(--mono); color: #b7bbc2; }
 
-.studio { position: relative; width: 100vw; height: 100vh; }
+.studio { position: relative; width: 100vw; height: 100vh; display: flex; }
+/* (G12a: the three columns — the chat column, then the stage: the top bar, the viewport and everything placed over it,
+   positioned in the stage as they were in the window.) */
+.stage { position: relative; flex: 1 1 auto; min-width: 0; height: 100vh; overflow: hidden; }
+.chat-col { order: -1; box-sizing: border-box; position: relative; flex: none; height: 100vh; display: flex; flex-direction: column; background: var(--panel-solid); border-right: 1px solid var(--line); z-index: 4; }
+.chat-col:not(.open) { position: absolute; left: 0; top: 0; z-index: 6; }
+/* (A strip over the stage's edge takes the pointer only on its buttons: a click beside them reaches the viewport.) */
+.chat-col:not(.open), .dock-strip { pointer-events: none; }
+.chat-col:not(.open) button, .dock-strip button { pointer-events: auto; }
+/* (G12b: the right dock — docked beside the centre, or a strip at the stage's right edge whose button opens it as a sheet
+   over the viewport. Its panels sit flat in one scrolling column: no shadows, a divider between them.) */
+.dock { order: 1; position: relative; flex: none; box-sizing: border-box; height: calc(100vh - 36px); margin-top: 36px; display: flex; flex-direction: column; background: var(--panel-solid); border-left: 1px solid var(--line); z-index: 4; }
+.dock.sheet { position: absolute; top: 0; margin-top: 36px; z-index: 7; box-shadow: -8px 0 24px rgba(0, 0, 0, 0.35); }
+.dock-scroll { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; }
+.dock-body { display: flex; flex-direction: column; }
+.dock-strip { position: absolute; right: 0; top: 36px; box-sizing: border-box; height: calc(100vh - 36px); display: flex; flex-direction: column; align-items: center; padding: 8px 0; background: var(--panel-solid); border-left: 1px solid var(--line); z-index: 6; }
+.dock .outliner, .dock .right-col, .dock .hud { position: static; width: auto; max-height: none; }
+.dock .right-col { display: flex; flex-direction: column; gap: 0; }
+/* (G12c: a dock section — a header that folds it, its summary chip — and the Preview & analysis section's switch and panels,
+   flat like the rest of the dock.) */
+.dock-section { border-bottom: 1px solid var(--line-soft); }
+.dock-section-bar { display: flex; align-items: center; }
+.dock-section-actions { display: flex; align-items: center; gap: 6px; padding-right: 10px; font-size: 11px; color: var(--text-2); }
+.dock-section-head { display: flex; flex: 1; min-width: 0; align-items: center; gap: 6px; padding: 8px 10px; border: 0; background: transparent; color: var(--text-2); cursor: pointer; text-align: left; }
+.dock-section-head:hover { background: var(--ui-hover); }
+.dock-section-head .card-title { margin: 0; }
+.dock-section-body { padding: 0 10px 10px; display: flex; flex-direction: column; gap: 8px; }
+.preview-modes { align-self: flex-start; }
+/* (G12e: the chosen preview's settings flat under the switch — the switch its enable; the others not shown.) */
+.dock-section-body > .card { max-width: none !important; padding: 0 !important; background: transparent; border: 0; box-shadow: none; backdrop-filter: none; display: flex; flex-direction: column; gap: 4px; }
+.preview-hint, .overlay-status { font-size: 11px; }
+.overlay-toggle { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; cursor: pointer; }
+.analysis-row { display: flex; align-items: center; gap: 8px; }
+.analysis-row > .muted { width: 48px; font-size: 11px; }
+/* (Compact panel text: a one-line status and colour chips; the full legend, limits and notes behind Details.) */
+.legend-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+.legend-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-2); }
+.legend-chip i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; }
+.panel-details { font-size: 11px; color: var(--muted); }
+.panel-details summary { cursor: pointer; color: var(--text-2); }
+.nfp-chip { display: inline-flex; padding: 0 6px; border-radius: 6px; font-size: 10px; font-weight: 600; letter-spacing: 0.03em; color: #f6c9a4; background: var(--warn-soft); }
+.dock-body > .outliner, .dock-body > .hud, .dock .right-col > * { background: transparent; border: 0; border-bottom: 1px solid var(--line-soft); border-radius: 0; box-shadow: none; backdrop-filter: none; }
+.chat-col-chat { flex: 1; min-height: 0; display: flex; }
+.chat-col-chat > .chat { flex: 1; min-width: 0; }
+.chat-proposals { flex: none; max-height: 45%; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid var(--line-soft); }
+.chat-resize { position: absolute; top: 0; right: -3px; width: 6px; height: 100%; cursor: col-resize; z-index: 5; }
+.chat-resize:hover, .chat-resize:active { background: var(--accent-soft); }
+.chat-col-closed { flex: none; display: flex; align-items: center; gap: 8px; padding: 8px; font-size: 11px; }
+/* (The chat closed with a proposal open: the proposals take the column.) */
+.chat-proposals:has(+ .chat-col-closed) { flex: 1 1 auto; max-height: none; }
+.chat-strip { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 0; }
 .viewport { position: absolute; inset: 0; }
 .vp-canvas { width: 100%; height: 100%; display: block; cursor: default; touch-action: none; }
 .vp-overlay { position: absolute; inset: 0; pointer-events: none; }
+.vp-overlay.pmi .pmi-text { fill: #2185db; font: 12px var(--mono, ui-monospace, monospace); paint-order: stroke; stroke: var(--bg, #fff); stroke-width: 3px; }
+.vp-overlay.pmi .pmi-text.sel { fill: #ff941f; }
 /* The view cube: top right of the viewport, left of the properties column. */
-.view-cube { position: absolute; right: 304px; top: 46px; z-index: 2; cursor: pointer; overflow: visible; touch-action: none; }
+.view-cube { position: absolute; right: calc(16px + var(--dock-strip-w, 0px)); top: 46px; z-index: 2; cursor: pointer; overflow: visible; touch-action: none; }
 .view-cube .vc-part { fill: color-mix(in srgb, #c9ccd2 calc(var(--shade) * 100%), #1b1c1f); stroke: #1b1c1f; stroke-width: 0.8; stroke-linejoin: round; opacity: 0.92; }
 .view-cube .vc-part:not(.face) { fill: color-mix(in srgb, #a9adb5 calc(var(--shade) * 100%), #1b1c1f); }
 .view-cube .vc-part.hot { fill: var(--accent); }
@@ -51,7 +108,7 @@ button { font: inherit; color: inherit; }
 .history .hs.suppressed { opacity: 0.45; text-decoration: line-through; }
 /* A step storing a reference matched again (or held until one is picked): marked, see engine/references.ts. */
 .history .hs.rematched { box-shadow: inset 0 -2px 0 var(--warn, #e0a030); }
-.refs { position: absolute; left: calc(270px + (100vw - 870px) / 2); bottom: 64px; transform: translateX(-50%); width: min(520px, calc(100vw - 32px)); padding: 10px; z-index: 3; }
+.refs { position: absolute; left: calc(270px + var(--strip-w, 0px) + (100% - 870px - var(--strip-w, 0px)) / 2); bottom: 64px; transform: translateX(-50%); width: min(520px, calc(100% - 32px)); padding: 10px; z-index: 3; }
 .refs .ref { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; padding: 3px 0; }
 .refs .ref .what { flex: 1 1 auto; min-width: 0; }
 .param-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px auto auto; align-items: center; gap: 6px; margin: 4px 0; }
@@ -85,21 +142,23 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 .kv select { font: 500 11px var(--mono); color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 1px 2px; max-width: 60%; }
 .measure-item + .measure-item { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
 
-.topbar { position: absolute; top: 0; left: 0; right: 0; height: 36px; overflow-x: clip; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: rgba(22, 23, 25, 0.92); border-bottom: 1px solid var(--line-soft); z-index: 6; }
+.topbar { position: absolute; top: 0; left: var(--chat-col-w, 0px); right: 0; height: 36px; overflow-x: clip; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: rgba(22, 23, 25, 0.92); border-bottom: 1px solid var(--line-soft); z-index: 8; }
 /* (Above the panels under it, z 2–5: its menus — More shapes, More tools, Templates — drop over them; the palette's backdrop, z 10, still covers it.) */
 .brand { display: flex; align-items: center; gap: 6px; font-weight: 600; }
-.doc-tab { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 4px 0 8px; border-radius: 5px; background: #2a2c30; }
-.doc-tab input { background: transparent; border: 0; color: var(--text); font: 400 12px var(--sans); outline: none; }
+/* (The file name gives way first when the bar is tight: the centre column is the window less the chat column, G12a.) */
+.doc-tab { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 4px 0 8px; border-radius: 5px; background: #2a2c30; flex: 0 1 auto; min-width: 72px; }
+.doc-tab input { background: transparent; border: 0; color: var(--text); font: 400 12px var(--sans); outline: none; flex: 1 1 auto; min-width: 0; width: 18ch; text-overflow: ellipsis; }
 .dot { width: 6px; height: 6px; border-radius: 3px; background: var(--accent); margin-right: 4px; }
 .shapes { display: flex; flex: 0 1 auto; min-width: 0; gap: 1px; padding-left: 8px; margin-left: 2px; border-left: 1px solid var(--line-soft); }
 /* More shapes: the strip's overflow (ui/ShapesStrip.tsx), a grid under its button. */
 .shapes-more-anchor { position: relative; display: inline-flex; }
-.shapes-more { position: absolute; top: 34px; left: 0; z-index: 30; display: grid; grid-template-columns: repeat(6, 30px); gap: 2px; padding: 6px; }
+.shapes-more { display: grid; grid-template-columns: repeat(6, 30px); gap: 2px; padding: 6px; }
 .shapes .tool { width: 30px; height: 30px; }
 /* The right-hand tools (ui/ToolsTray.tsx): the bar's spacing between them; the rest in More tools, under its button at the right. */
 .tools-tray { display: flex; flex: 0 0 auto; align-items: center; gap: 10px; }
 .tools-more-anchor { position: relative; display: inline-flex; }
-.tools-more { position: absolute; top: 34px; right: 0; z-index: 30; display: grid; grid-template-columns: repeat(4, 30px); gap: 6px; padding: 8px; }
+/* (G12f: the More menus are shadcn's DropdownMenu, placed by Radix: their grids here.) */
+.tools-more { display: grid; grid-template-columns: repeat(4, 30px); gap: 6px; padding: 8px; }
 .tools-more .tpl-anchor { position: relative; }
 .shapes .tool[draggable='true'] { cursor: grab; }
 .mode { display: flex; gap: 2px; padding: 2px; border-radius: 6px; background: #2a2c30; }
@@ -114,14 +173,14 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 .tool.on { background: var(--accent); color: var(--accent-ink); }
 .tool.off { opacity: 0.4; }
 .tool.tiny { width: 22px; height: 22px; }
-.toolbar { position: absolute; top: 50px; left: 12px; width: 44px; padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; z-index: 2; max-height: calc(100vh - 110px); overflow-y: auto; scrollbar-width: none; }
+.toolbar { position: absolute; top: 50px; left: calc(12px + var(--strip-w, 0px)); width: 44px; padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; z-index: 2; max-height: calc(100vh - 110px); overflow-y: auto; scrollbar-width: none; }
 .tool-group { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .sep { height: 1px; width: 26px; background: var(--line); margin: 4px 0; }
 
 .right-col { position: absolute; right: 12px; top: 50px; width: 248px; display: flex; flex-direction: column; gap: 10px; z-index: 2; max-height: calc(100vh - 120px); }
 .outliner, .props { padding: 10px; overflow: auto; }
 /* The browser: left, beside the tool rail. */
-.outliner { position: absolute; left: 64px; top: 50px; width: 212px; max-height: calc(100vh - 260px); z-index: 2; }
+.outliner { position: absolute; left: calc(64px + var(--strip-w, 0px)); top: 50px; width: 212px; max-height: calc(100vh - 260px); z-index: 2; }
 .outliner.closed { width: auto; }
 .outliner .card-title { display: flex; align-items: center; gap: 6px; }
 .outliner .card-title .muted { flex: 1; }
@@ -166,7 +225,7 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 .primary:disabled { opacity: 0.4; cursor: default; }
 .ghost { height: 28px; padding: 0 12px; border: 1px solid var(--line); border-radius: 5px; background: transparent; cursor: pointer; }
 
-.hud { position: absolute; right: 12px; top: 50px; width: 280px; max-height: calc(100vh - 130px); overflow: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; z-index: 3; }
+.hud { position: absolute; right: calc(12px + var(--dock-strip-w, 0px)); top: 50px; width: 280px; max-height: calc(100vh - 130px); overflow: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; z-index: 3; }
 .hud-title { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 12px; }
 .status { font: 500 10px var(--mono); padding: 2px 6px; border-radius: 3px; background: #2e3034; color: var(--muted); }
 .status.ok { color: #9fd8b0; }
@@ -178,35 +237,71 @@ details { margin-top: 4px; font-size: 10px; color: #b9a57c; }
 details code { display: block; white-space: pre-wrap; word-break: break-word; font: 400 10px var(--mono); margin-top: 4px; }
 .hud-actions { display: flex; align-items: center; gap: 6px; font-size: 10px; }
 
-/* (Centred in the room between the status line, bottom left, and the view bar, bottom right.) */
-.history { position: absolute; left: calc(270px + (100vw - 870px) / 2); bottom: 16px; transform: translateX(-50%); max-width: max(280px, calc(100vw - 900px)); padding: 6px; display: flex; align-items: center; gap: 4px; overflow-x: auto; z-index: 2; }
-.hs { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border: 0; border-radius: 5px; background: #2e3034; color: var(--text-2); white-space: nowrap; cursor: pointer; font-size: 11px; }
-.hs:hover { background: #393b40; }
+/* History attaches to the stage edge; status and view controls stay above its fixed-height row. */
+.studio.has-history:not(.stage-cramped) { --history-height: 40px; }
+.history { position: absolute; left: var(--strip-w, 0px); right: var(--dock-strip-w, 0px); bottom: 0; width: auto; margin: 0; min-width: 0; height: 40px; box-sizing: border-box; padding: 5px 10px; border-top: 1px solid var(--line); background: var(--panel-solid); display: flex; align-items: center; gap: 4px; overflow-x: auto; overflow-y: hidden; z-index: 3; }
+.hs, .hs-more { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border: 0; border-radius: 5px; background: #2e3034; color: var(--text-2); white-space: nowrap; cursor: pointer; font-size: 11px; }
+.hs:hover, .hs-more:hover { background: #393b40; }
+.history .hs { flex: none; width: 28px; justify-content: center; padding: 0; }
+.history.show-labels .hs { width: auto; padding-inline: 9px; }
+.history-labels { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; }
+.history-labels:hover { background: var(--line-soft); color: var(--text); }
+.history-labels[aria-pressed='true'] { background: var(--accent-soft); color: var(--accent); }
+.history button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* (G12e: whole chips only — those past the room hidden, a "+n" chip that opens the bar on more rows, its chips all shown.) */
+.hs-more { flex: none; color: var(--accent); }
+.history.expanded { flex-wrap: nowrap; overflow-x: auto; }
 .hs.edit { outline: 1px dashed var(--accent); background: var(--accent-soft); color: #f3d98f; }
 .hs.rolled { opacity: 0.35; }
 .marker { width: 4px; height: 26px; border: 0; border-radius: 2px; background: var(--accent); margin: 0 4px; cursor: pointer; }
+.history .marker { flex: none; }
 .hint-bar { position: absolute; left: 50%; top: 46px; transform: translateX(-50%); white-space: nowrap; padding: 7px 12px; display: flex; align-items: center; gap: 14px; color: var(--text-2); font-size: 11px; z-index: 2; }
 .hint-title { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: var(--accent); }
 
-.corner-left { position: absolute; left: 66px; bottom: 14px; display: flex; flex-direction: column; gap: 4px; font-size: 10px; z-index: 1; pointer-events: none; }
-.corner-right { position: absolute; right: 12px; bottom: 16px; display: flex; align-items: center; gap: 4px; z-index: 2; }
+.corner-left { position: absolute; left: calc(66px + var(--strip-w, 0px)); bottom: calc(14px + var(--history-height, 0px)); display: flex; flex-direction: column; gap: 4px; font-size: 10px; z-index: 1; pointer-events: none; }
+/* (A narrow centre wraps the view bar onto a second row rather than past the stage's left edge; the history bar, measuring
+   it, stacks above.) */
+.corner-right { position: absolute; right: calc(12px + var(--dock-strip-w, 0px)); bottom: calc(16px + var(--history-height, 0px)); display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px; z-index: 2; max-width: calc(100% - 76px - var(--strip-w, 0px) - var(--dock-strip-w, 0px)); }
+.corner-right .card.views { flex-wrap: wrap; }
+.corner-right .corner-stack { position: absolute; right: 0; bottom: calc(100% + 6px); display: flex; flex-direction: column; align-items: flex-end; gap: 4px; max-height: calc(100vh - 160px); overflow-y: auto; pointer-events: none; z-index: 3; }
+.studio.has-history:not(.stage-cramped) .corner-right .corner-stack { max-height: max(0px, calc(100vh - var(--history-height, 0px) - var(--corner-h, 32px) - 68px)); }
+.corner-right .corner-stack > * { pointer-events: auto; }
+/* (No room even stacked — an open dock sheet over a narrow centre: the bar and the view cube hide until the sheet closes, G12d.) */
+.stage-cramped .history, .stage-cramped .view-cube { display: none; }
+.corner-right .previews { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.corner-right .corner-stack .section-bar, .corner-right .corner-stack .map-legend { position: static; }
 .chip { display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 8px; border-radius: 4px; background: #2e3034; font-size: 11px; color: var(--text-2); }
 .views { display: flex; gap: 2px; padding: 2px; }
+.views.display { flex-wrap: wrap; align-items: center; max-width: 320px; }
 .views button { height: 22px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: var(--text-2); cursor: pointer; font-size: 11px; display: inline-flex; align-items: center; }
 .views button:hover { background: #34363b; }
 .views button.on { background: var(--accent); color: var(--accent-ink); }
+.cad-display-control { display: inline-flex; align-items: center; padding: 0 3px; }
+.cad-display-control select { max-width: 164px; height: 22px; padding: 0 4px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-solid); color: var(--text-2); font: 400 11px var(--sans); }
+.cad-display-control select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.cad-display-control select:disabled { opacity: 0.65; cursor: not-allowed; }
+.cad-display-status { display: block; flex-basis: 100%; max-width: 300px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-solid); color: var(--text-2); font-size: 11px; line-height: 1.4; }
 
-.palette-backdrop { position: absolute; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.25); }
-.palette { position: absolute; left: 50%; top: 18vh; transform: translateX(-50%); width: 520px; padding: 6px; }
+/* (G12f: the palette is shadcn's Command in its Dialog — the overlay and its place the Dialog's; its rows here.) */
+.palette-backdrop { background: rgba(0, 0, 0, 0.25); }
+.palette { width: 520px; padding: 6px; }
 .palette-input { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 8px; border-radius: 5px; background: var(--bg); border: 1px solid var(--line); color: var(--muted); }
 .palette-input input { flex-grow: 1; border: 0; background: transparent; color: var(--text); font: 400 13px var(--sans); outline: none; }
-.palette-list { list-style: none; margin: 6px 0 0; padding: 0; max-height: 50vh; overflow: auto; }
-.palette-list li { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; border-radius: 4px; cursor: pointer; color: var(--text-2); }
-.palette-list li.cur { background: #34363b; color: var(--text); }
-.palette-list li.off { opacity: 0.55; }
+.palette-list { margin: 6px 0 0; padding: 0; max-height: 50vh; overflow: auto; }
+.palette-list .pl-item { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; border-radius: 4px; cursor: pointer; color: var(--text-2); }
+.palette-list .pl-item[data-selected='true'] { background: #34363b; color: var(--text); }
+.palette-list .pl-item.off { opacity: 0.55; }
 .pl-reason { color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.toast { position: absolute; left: 66px; bottom: 44px; max-width: 380px; padding: 10px 10px 10px 12px; display: flex; gap: 10px; align-items: flex-start; z-index: 4; border-color: #6e4220; }
+/* (At the stage's top left, under the hint bar — where the Browser was before it moved into the dock, G12b: clear of the
+   bottom row and of the section bar stacked over it, as wide as that is in a narrow centre.) */
+/* (G12d: within the stage's room, clear of the dock's strip or open sheet at its right, and below the view cube (G12e: the
+   recovery card met it at 1024 with the chat open) — 220 px at least: on a cramped
+   stage, an open sheet over a narrow centre, the toast runs under the sheet, below the top bar's menus.) */
+.toast { position: absolute; left: calc(66px + var(--strip-w, 0px)); top: 144px; bottom: auto; max-width: max(220px, min(380px, calc(100% - 78px - var(--strip-w, 0px) - var(--dock-strip-w, 0px)))); box-sizing: border-box; padding: 10px 10px 10px 12px; display: flex; gap: 10px; align-items: flex-start; z-index: 4; border-color: #6e4220; }
+/* (The stack takes the toast's place and width; its notices sit one under another instead of on top of each other.) */
+.toast-stack { position: absolute; left: calc(66px + var(--strip-w, 0px)); top: 144px; width: max(220px, min(380px, calc(100% - 78px - var(--strip-w, 0px) - var(--dock-strip-w, 0px)))); display: flex; flex-direction: column; align-items: flex-start; gap: 8px; z-index: 4; pointer-events: none; }
+.toast-stack > .toast { position: static; max-width: 100%; pointer-events: auto; }
 .toast-title { font-weight: 600; margin-bottom: 2px; }
 .toast-hint { color: var(--text-2); line-height: 1.45; }
 .edge-hover { fill: none; stroke: #f0cf73; stroke-width: 2.5; stroke-linecap: round; opacity: 0.85; }
@@ -214,7 +309,9 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 
 .marquee { fill: rgba(79, 143, 247, 0.10); stroke: #4f8ff7; stroke-width: 1; }
 .marquee.crossing { fill: rgba(87, 178, 107, 0.10); stroke: #57b26b; stroke-dasharray: 5 4; }
-.ctx-menu { position: fixed; z-index: 20; width: 224px; padding: 4px; display: flex; flex-direction: column; }
+/* (G12f: the menus are shadcn's DropdownMenu — Radix places them; a right-click's is anchored at the click.) */
+.menu-anchor { position: fixed; width: 0; height: 0; pointer-events: none; }
+.ctx-menu { width: 224px; display: flex; flex-direction: column; }
 .ctx-title { padding: 6px 8px 2px; margin: 0; }
 .ctx-item { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: var(--text-2); text-align: left; cursor: pointer; }
 .ctx-item:hover, .ctx-item:focus { background: #34363b; color: var(--text); outline: none; }
@@ -239,7 +336,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 :root[data-theme='light'] .topbar { background: rgba(247, 248, 250, 0.94); }
 :root[data-theme='light'] .doc-tab, :root[data-theme='light'] .mode, :root[data-theme='light'] .chip, :root[data-theme='light'] .hs, :root[data-theme='light'] .status { background: #eef1f4; }
 :root[data-theme='light'] .mode button.on { background: #ffffff; }
-:root[data-theme='light'] .tool:hover:not(:disabled), :root[data-theme='light'] .ol:hover, :root[data-theme='light'] .views button:hover, :root[data-theme='light'] .ctx-item:hover, :root[data-theme='light'] .palette-list li.cur { background: #e3e8ee; }
+:root[data-theme='light'] .tool:hover:not(:disabled), :root[data-theme='light'] .ol:hover, :root[data-theme='light'] .views button:hover, :root[data-theme='light'] .ctx-item:hover, :root[data-theme='light'] .palette-list .pl-item[data-selected='true'] { background: #e3e8ee; }
 :root[data-theme='light'] .ol.sel, :root[data-theme='light'] .hs.edit { background: var(--accent-soft); color: #7a5a08; }
 :root[data-theme='light'] .kv b { color: var(--text); }
 :root[data-theme='light'] .kbd { background: #f2f4f6; border-color: #c9cfd6; color: #4a5562; }
@@ -296,9 +393,9 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .ghost.tiny { height: 20px; padding: 0 8px; font-size: 11px; }
 .toast.recovery .row-actions { display: flex; gap: 6px; margin-top: 8px; }
 /* A sheet's flat pattern (R12.2): its own window in the middle, above toasts, wide enough to read the flat. */
-.toast.flat-pattern { left: 50%; top: 50%; bottom: auto; transform: translate(-50%, -50%); width: min(760px, calc(100vw - 160px)); max-width: none; z-index: 8; border-color: var(--line, #3a3d44); }
+.toast.flat-pattern { left: 50%; top: 50%; bottom: auto; transform: translate(-50%, -50%); width: min(760px, calc(100% - 160px)); max-width: none; z-index: 8; border-color: var(--line, #3a3d44); }
 /* The cut list (FR4a): a table of rows over the viewport, centred like the flat pattern. */
-.toast.cut-list { left: 50%; top: 50%; bottom: auto; transform: translate(-50%, -50%); width: min(900px, calc(100vw - 160px)); max-width: none; z-index: 8; border-color: var(--line, #3a3d44); }
+.toast.cut-list { left: 50%; top: 50%; bottom: auto; transform: translate(-50%, -50%); width: min(900px, calc(100% - 160px)); max-width: none; z-index: 8; border-color: var(--line, #3a3d44); }
 .cut-list-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12px; font-variant-numeric: tabular-nums; }
 .cut-list-table th, .cut-list-table td { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--line, #3a3d44); white-space: nowrap; }
 .timeline { position: absolute; left: 50%; bottom: 62px; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 6px 10px; max-width: min(860px, calc(100% - 140px)); flex-wrap: wrap; font-size: 11px; z-index: 5; }
@@ -323,18 +420,18 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 /* CAD line icons (ui/cadIcons.tsx) and the app's tooltip (ui/Tooltip.tsx). */
 .cad-icon { display: inline-block; vertical-align: middle; flex: none; --icon-ac: #5aa2ff; --icon-bg: var(--panel-solid); }
 /* Faces mix into what the icon sits on (see ui/cadIcons.tsx). */
-.tool:hover:not(:disabled) .cad-icon, .palette-list li.cur .cad-icon { --icon-bg: #34363b; }
+.tool:hover:not(:disabled) .cad-icon, .palette-list .pl-item[data-selected='true'] .cad-icon { --icon-bg: #34363b; }
 .tool.on .cad-icon { --icon-bg: var(--accent); }
-:root[data-theme='light'] .tool:hover:not(:disabled) .cad-icon, :root[data-theme='light'] .palette-list li.cur .cad-icon { --icon-bg: #e3e8ee; }
+:root[data-theme='light'] .tool:hover:not(:disabled) .cad-icon, :root[data-theme='light'] .palette-list .pl-item[data-selected='true'] .cad-icon { --icon-bg: #e3e8ee; }
 .cad-icon .ac { stroke: var(--icon-ac); }
 .cad-icon .acf { fill: var(--icon-ac); }
 :root[data-theme='light'] .cad-icon { --icon-ac: #2f6fd6; }
 /* On the active tool's yellow: one ink. */
 .tool.on .cad-icon { --icon-ac: currentColor; }
 .tool .cad-icon { width: 20px; height: 20px; }
-.tooltip { position: fixed; z-index: 50; max-width: 260px; padding: 7px 10px; pointer-events: none; display: flex; flex-direction: column; gap: 3px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
-.tooltip.right { transform: translateY(-50%); }
-.tooltip.below { transform: translateX(-50%); }
+/* (G12f: the tooltip is shadcn's — its box and placement from components/ui/tooltip; its inner rows here.) */
+.tooltip { display: flex; flex-direction: column; gap: 3px; }
+.tooltip-anchor { position: fixed; pointer-events: none; }
 .tooltip-head { display: flex; align-items: center; gap: 8px; }
 .tooltip-head b { font-weight: 600; }
 .tooltip-desc { color: var(--text-2); line-height: 1.4; }
@@ -356,9 +453,9 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .hud-step:not(.done) .ms { color: var(--accent); }
 
 /* The keyboard and mouse list (ui/ShortcutHelp.tsx). */
-.help-scrim { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.35); }
+.help-scrim { background: rgba(0, 0, 0, 0.35); }
 .help { width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 80px); overflow: auto; padding: 14px 16px; }
-.help .card-title { display: flex; justify-content: space-between; align-items: center; }
+.help .card-title { display: flex; justify-content: space-between; align-items: center; margin: 0; }
 .help-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
 .help h4 { margin: 12px 0 4px; font: 600 10px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .help-row { display: flex; align-items: center; gap: 8px; height: 24px; }
@@ -409,12 +506,11 @@ button.chip.snap:hover { background: #3a3c41; }
 .file-button { cursor: pointer; }
 .pending-rev { margin: 6px 0; padding: 6px 8px; border: 1px solid var(--accent, #e8c25a); border-radius: 6px; font-size: 12px; }
 /* Proposals and the design history (A4.2). */
-.proposal { display: flex; flex-direction: column; gap: 3px; padding: 5px 6px; border-radius: 5px; border-left: 3px solid var(--border, #444); font-size: 12px; line-height: 1.4; }
-.proposal.risk-low { border-left-color: #4caf7d; } .proposal.risk-medium { border-left-color: #c9a227; } .proposal.risk-high { border-left-color: #e05a4f; }
+.proposal { display: flex; flex-direction: column; gap: 3px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line-soft); font-size: 12px; line-height: 1.4; }
 .proposal.rejected, .proposal.accepted { opacity: 0.7; }
 .proposal-title { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
 .risk-badge { margin-left: auto; padding: 0 5px; border-radius: 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; background: rgba(255, 255, 255, 0.08); }
-.risk-badge.low { color: #4caf7d; } .risk-badge.medium { color: #c9a227; } .risk-badge.high { color: #e05a4f; }
+.risk-badge.low { color: #4caf7d; background: rgba(76, 175, 125, 0.16); } .risk-badge.medium { color: #c9a227; background: rgba(201, 162, 39, 0.16); } .risk-badge.high { color: #e05a4f; background: rgba(224, 90, 79, 0.16); }
 .proposal-plan { white-space: pre-wrap; color: var(--text); opacity: 0.85; }
 .proposal-actions { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .proposal-dv { font-size: 11px; }
@@ -513,3 +609,4 @@ button.chip.snap:hover { background: #3a3c41; }
 .skeleton-constraints li.bad button { color: #f08a84; }
 .skeleton-constraints li.over button { color: #f0c070; }
 .skeleton-constraints input { width: 80px; }
+}

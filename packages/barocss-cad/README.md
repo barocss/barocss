@@ -395,8 +395,8 @@ Selected position limits are 1e-9 mm native and 1e-7 mm reader; derivative limit
 are 1e-9 and 1e-7 times max(1, expected vector norm), in original parameter units.
 All current construction, derivative, preview and exchange gates remain mandatory.
 
-The additive index export loads `dist/boundary.js`, whose only runtime dependency
-is existing `dist/math.js`; the types import is erased. The preview host needs the
+The additive index export loads `dist/core/boundary.js`, whose only runtime dependency
+is existing `dist/core/math.js`; the types import is erased. The preview host needs the
 exact static `/boundary.js` route. CAD records a proposed registration patch;
 the GPU integrator applies it and verifies the actual host serially.
 
@@ -466,8 +466,8 @@ Reader-generated valid faces are selected independent consumer evidence, not
 validation of every native input or interchange of our graph. No healing/tolerance
 override or runtime kernel is added. All current gates remain mandatory.
 
-The additive `dist/face.js` export imports only existing `dist/derivatives.js`,
-`dist/boundary.js` and `dist/math.js` at runtime; type imports are erased. GPU alone
+The additive `dist/core/face.js` export imports only existing `dist/core/derivatives.js`,
+`dist/core/boundary.js` and `dist/core/math.js` at runtime; type imports are erased. GPU alone
 registers exact `/face.js` and verifies native plus actual-host final merged heads.
 
 ## Exact two-rectangle adjacency v0
@@ -538,7 +538,7 @@ must fail even when both original exported faces are valid. Folded/collapsed rea
 acceptance is retained as a limitation, never a general native certificate. All old
 point/source/preview/IGES/D1/boundary/face gates remain mandatory.
 
-New `dist/adjacency.js` imports existing `dist/face.js` and `dist/derivatives.js`.
+New `dist/core/adjacency.js` imports existing `dist/core/face.js` and `dist/core/derivatives.js`.
 Type imports are erased. GPU alone registers exact `/adjacency.js` and runs serial
 native plus current actual-host/browser/captured-export final-head postchecks.
 
@@ -590,8 +590,8 @@ Actual folded/collapsed reader acceptance remains a limitation, not a product pr
 
 Two separate five-object Models preserve Model16. No sewing, shared IsSame edge,
 serialized global graph, closed shell/solid/STEP, general geometric certificate or
-manufacturing result follows. New `dist/orthogonal-adjacency.js` imports only existing
-`dist/face.js` and `dist/derivatives.js` at runtime; type-only adjacency/types imports
+manufacturing result follows. New `dist/core/orthogonal-adjacency.js` imports only existing
+`dist/core/face.js` and `dist/core/derivatives.js` at runtime; type-only adjacency/types imports
 are erased. GPU alone registers exact `/orthogonal-adjacency.js`, integrates and
 runs same-head native/current-host/browser/captured-export postchecks.
 
@@ -657,7 +657,7 @@ folded/collapsed reader acceptance/defaultfuzzy limitations are retained. No sew
 healing/tolerance override, shared IsSame, serialized global shell, original solid,
 STEP/manufacturing/hardware claim follows.
 
-New `dist/box-shell.js` imports only existing `dist/face.js` and `dist/derivatives.js`
+New `dist/core/box-shell.js` imports only existing `dist/core/face.js` and `dist/core/derivatives.js`
 at runtime. Native/adjacency type references are erased. GPU alone registers the
 exact static `/box-shell.js` route and performs serial same-head native/current
 project-host/browser/selected-export/CSP/module postchecks before closure.
@@ -714,7 +714,7 @@ reader sewing/shared IsSame/global topology serialization or mutable kernel soli
 is created. Original bounded STEP, arbitrary solid/manufacturing/hardware claims
 remain outside this exact operation.
 
-New `dist/box-solid.js` imports ONLY existing `dist/box-shell.js` at runtime;
+New `dist/core/box-solid.js` imports ONLY existing `dist/core/box-shell.js` at runtime;
 native types are erased. GPU alone registers exact static `/box-solid.js` and
 runs same-head native/current project/browser/save-open/selected-IGES postchecks.
 
@@ -798,7 +798,7 @@ Counts are integers 2..64 in each direction. The product is at most 4096 vertice
 All counts and native geometry are validated before mesh allocation.
 
 The packet is a plain JSON-compatible object with version 0, surfaceId, revision,
-lengthUnit `mm`, coordinateSystem `right-handed-y-up`, winding `ccw`, flat numeric
+lengthUnit `mm`, coordinateSystem `right-handed-z-up`, winding `ccw`, flat numeric
 positions/normals/indices/parameters, and bounds `{ min, max }`. No axis conversion
 is applied: XYZ values retain the native coordinates. The host must interpret
 those coordinates under the declared convention; this API does not infer a CAD
@@ -1374,7 +1374,7 @@ generated geometry throws instead of adopting a partial packet.
 N>=4 uses N vertices/N-2 triangles. Triangle3 adds one deterministic display
 centroid to meet the existing four-vertex packet minimum and emits three
 positive-Z triangles. No packet schema/minimum change is made. Normals are+Z,
-units stay mm/right-handed-y-up/ccw and bounds come from actual output positions.
+units stay mm/right-handed-z-up/ccw and bounds come from actual output positions.
 The completed actual packet passes the original native packet validator.
 
 The report names source Curve/derived mesh/revision, source/output counts and
@@ -2638,7 +2638,7 @@ candidate curved-shell display/solid certification remain deferred.
 owns the actual circle-prism candidate and calls its unchanged canonical gate.
 Exact options require distinct native-ID/Model-name ASCII meshID1..64, integer
 revision0..2147483647 and k2..32. Returns owned packet/faceRanges/edgePaths/
-edgeProvenance/report under unchanged PreviewPacket0/mm/right-handed-y-up/ccw.
+edgeProvenance/report under unchanged PreviewPacket0/mm/right-handed-z-up/ccw.
 Input bounds32768values/depth14/arrays128/records24/strings128 stay unchanged.
 
 N=4*k native parameter samplesj/k retain original caps' world Curves and

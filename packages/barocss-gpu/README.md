@@ -28,6 +28,18 @@ const gpuHit = await viewer.pick(x, y); // the same from the GPU's id and depth 
 box.outline = '#e8c25a';                // a selection outline around the visible part
 ```
 
+### Device initialization and recovery failure
+
+`createViewer` rejects if initialization fails; a device acquired before the failure is released and the original
+error is kept. After creation, assign `viewer.onRecoverError` to receive a `DEVICE_LOST` `ViewerError` with the
+recovery failure in `cause`. The existing `onError` option still receives the diagnostic string; without it the viewer
+logs the message. `onRecover` is called on successful device replacement, not on failure. If `onError` disposes the
+viewer, `onRecoverError` is not called afterward.
+
+While recovering or after recovery fails, `viewer.ready` is false and `viewer.computeDevice` is null. After failure,
+pending and new `frame()` calls reject with the recovery error; `capture()`, `pick()` and `createPathTrace()` also
+reject. Successful device replacement alone does not establish that a new frame has been displayed.
+
 - Camera: perspective (infinite far) or orthographic, reversed [0, 1] depth, clip planes fitted to the
   scene, `fit()`, rays; orbit, pan and zoom to the point under the cursor (`controls: false` to drive the
   camera yourself).
@@ -36,11 +48,49 @@ box.outline = '#e8c25a';                // a selection outline around the visibl
   back to front; shadow catchers (`shadowOnly`).
 - Lines: screen-space width (`lineWidth`), segment ids (`edges`) and `pickLine()`.
 - Scene: instancing (`instances`: a transform and colour each, one draw), frustum culling, directional
-  shadows (shadow map, PCF), ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
+  shadows (up to four lights, PCF/PCSS), spot shadows (up to four lights, PCF/PCSS), and one point shadow (six-face PCF/PCSS) with `castShadow: true`, ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
   exposure and ACES tone mapping in a linear half-float pipeline.
 - Tests: `tests/viewer-core.test.mjs` (Node), `tests/viewer-browser.test.mjs` and
   `tests/scene-viewer-browser.test.mjs` (Chrome's WebGPU, `CHROME` and `PW_DIR`,
   `VIEWER_ADAPTER=swiftshader` for the software adapter).
+
+The first four directional lights contribute lighting; each can enable its own
+shadow with `castShadow: true`. `viewer.shadowMapSize` sets each map's resolution,
+and `environment.softShadows` sets their shared angular size in degrees (0: hard).
+The first four spot lights can also set `castShadow: true`; they use PCF with the
+same map resolution. Spot shadow positions and directions must be finite f32
+vectors, with nonzero direction; the cone angle must be between 0 and 90 degrees,
+and range must be finite and nonnegative. Invalid enabled spot shadow inputs
+refuse with `LIGHT_INVALID`. A positive range limits the shadow projection;
+range 0 fits its depth to the scene. `softShadows` applies to directional lights.
+For a spot light, `shadowRadius` sets the light disk radius in world units. A
+positive value enables PCSS: the shadow spreads with receiver–blocker distance.
+Zero or omission retains the existing PCF shadow. The radius must be finite,
+nonnegative and representable in f32; invalid enabled inputs refuse with
+`LIGHT_INVALID`. This radius is separate from `penumbra`, which fades the cone's
+lighting edge. PCSS uses bounded blocker-search and filter radii in the shadow
+map; it is an approximation of a disk light, rather than an area-light renderer.
+One of the first eight point lights can set `castShadow: true`; enabling two or
+more refuses with `LIGHT_INVALID`. Its six 90-degree faces use PCF at the same
+map resolution. Position must be a finite f32 vector; range must be finite,
+nonnegative and representable in f32. A positive range keeps the existing
+spherical lighting cutoff and limits each face's far plane. Range 0 fits the six
+faces to the scene and cap bounds. Inputs that cannot form a finite f32 depth
+projection refuse with `LIGHT_INVALID`. The point filter makes nine depth
+comparisons and reprojects taps across face boundaries. Directional and spot
+PCF retain linear comparison filtering. A point light's positive `shadowRadius`
+enables bounded PCSS instead. It is a world-unit emitter radius represented by
+an equivalent disk perpendicular to each receiver ray. This is an approximation,
+not a sphere-area light renderer. Radius 0 or omission retains the existing
+six-face PCF. The radius must be finite, nonnegative and representable in f32;
+invalid enabled inputs refuse with `LIGHT_INVALID`. Point radius is separate
+from a spot's cone `penumbra` and the directional `softShadows` angular size.
+Point PCSS searches one centre tap and 15 disk taps, with a four-texel minimum
+footprint and a 48-texel maximum, both limited to tangent slope 0.25. Its
+16-tap final filter has the same slope limit. This resolution-dependent search
+is a quality bound on the approximation; a larger emitter radius cannot remove
+the search limit.
+Contact shadows retain the first casting directional light.
 
 The CSS-shaped scene language shows on it with one call: `showScene(viewer, source)` compiles a scene
 source (version 0 or 1), adds a mesh per object with its placement and colour (`view.meshes` by id, picks
@@ -50,6 +100,77 @@ and 64 bytes of params) with `materialShader(source, params?)` (`{ok, shader, un
 diagnostics), `bindingShader(binding)` for a compiled `MeshMaterialBinding`, and
 `uv01Shader(material, uniforms)` for a native Surface UV01 material. A UV01 source reads
 `surface_u01`/`surface_v01` from the geometry's `uvs`.
+
+### PBR data maps
+
+Triangle materials support `normalMap`, `roughnessMap` and `metallicMap` through
+the geometry's UVs, in both raster rendering and progressive stills. Create these
+textures with `{ srgb: false }`; they contain linear data rather than colour.
+
+```js
+const normalMap = viewer.createTexture({ width, height, data: normalPixels }, { srgb: false });
+const packed = viewer.createTexture({ width, height, data: packedPixels }, { srgb: false });
+box.geometry.setUVs(uvs);
+box.material = {
+  normalMap, normalScale: [1, 1],
+  roughnessMap: packed, roughness: 1,
+  metallicMap: packed, metallic: 1,
+};
+```
+
+Normal RGB values describe a tangent-space +Y normal. `normalScale` scales X/Y;
+use a negative Y scale for the opposite convention. A missing or degenerate UV
+frame keeps the original surface normal. The roughness map's green channel and
+metallic map's blue channel multiply their respective material values, so one
+packed texture can serve both roles. Set a map to `null` to remove it.
+
+Data maps require live textures and triangle geometry. A scalar-field
+`Mesh.colorMap` uses a separate analysis pass and cannot be combined with these
+UV maps. Disposing an accepted map restores the raster material's unmapped value;
+an existing frozen still retains its own pixels and material snapshot. Remove or
+replace disposed references before creating another still.
+
+[Interactive material-map example](examples/material-maps.html) provides map
+toggles, normal strength, normal-Y and UV mirroring, and a frozen still capture.
+Serve the repository after the existing package build to open it.
+
+### Progressive still images
+
+`viewer.createPathTrace()` creates an offscreen still with its own frozen scene,
+camera, materials and lighting. Later edits to the live viewer do not update that
+still. Create another session to render the edited scene; raster rendering and
+controls remain independent.
+
+```js
+// Use the populated viewer from the example above.
+const still = await viewer.createPathTrace({ width: 640, height: 480, bounces: 6 });
+try {
+  await still.sample(8); // Each manual call accepts 1–64 samples.
+  const raw = await still.capture(false);
+
+  // start() resolves after sampling stops; this callback bounds the total at 32.
+  await still.start(samples => {
+    if (samples >= 32) still.stop();
+  });
+  const frame = await still.capture(true); // Geometry-aware denoising.
+  console.log(frame.width, frame.height, frame.samples, frame.data);
+  console.log(raw.samples); // Still 8 after the later sampling.
+} finally {
+  still.dispose(); // Release this session's GPU resources, including on failure.
+}
+```
+
+`capture()` returns `{ width, height, samples, data }`, with top-to-bottom RGBA
+bytes. Sample the still before capturing it. `frame.samples` is the completed
+sample count for those pixels, fixed when the queued capture starts. The live
+`still.samples` can advance after that capture; use `frame.samples` when labelling
+or exporting an image. Stop progressive sampling before calling `sample()`.
+
+The still includes visible, bounded triangle surfaces. Active section clips and
+caps, custom material shaders, scalar maps and contours refuse with
+`PATH_TRACE_UNSUPPORTED`. Lines, labels, overlays and raster shadow catchers are
+not included. Raster post effects, including depth of field, bloom, SSAO, contact
+shadows and outlines, do not apply to the still.
 
 ## Removed renderers
 
@@ -223,9 +344,9 @@ existing world-space distance gradient. Rotating a sphere retains authored data
 but does not change its ideal spherical geometry.
 
 Structured `Scene1` uses `version: 1` and requires each object's owned
-`rotateDegrees: [x, y, z]` data. `compileScene(Scene1)` accepts the same bounds.
+`rotation: [x, y, z]` data. `compileScene(Scene1)` accepts the same bounds.
 Source1 emits SDF render IR schema2 with `angleUnit: 'deg'`, `rotationOrder: 'X-Y-Z'`
-and per-draw `rotateDegrees`. Scene0, SDF IR1, mesh IR1 and old shader bytes
+and per-draw `rotation`. Scene0, SDF IR1, mesh IR1 and old shader bytes
 remain unchanged. AST schema1 identifies source0 or source1 in `sourceVersion`.
 
 `showScene` compiles a source as source1 when its header says `version: 1;` and
@@ -361,7 +482,7 @@ The identical GPU/CAD JSON-compatible contract is:
 ```js
 {
   version: 0, surfaceId: 'surface', revision: 0,
-  lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw',
+  lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', winding: 'ccw',
   positions: [/* flat XYZ in mm */], normals: [/* flat unit XYZ */],
   indices: [/* triangle indices */], parameters: [/* flat CAD-domain UV */],
   bounds: { min: [/* XYZ */], max: [/* XYZ */] }
@@ -394,7 +515,7 @@ cross(partialU,partialV); no CAD package imports are required.
 ```js
 const camera = {
   eye: [4, 3, 6], target: [0, 0, 0], up: [0, 1, 0],
-  fovYDegrees: 45, near: 0.01, far: 100,
+  fovY: 45, near: 0.01, far: 100,
 };
 const accepted = validateMeshOptions({ ...options, camera });
 ```
@@ -436,7 +557,7 @@ producer; `prepareMesh` and the original validators remain supported.
 Success returns `{ok:true, ast, ir, execution, diagnostics:[]}`. Scene execution is
 `{kind:'sdf', scene, shaders}`; mesh execution is `{kind:'indexed-mesh', mesh}` and
 has `ast:null`. IR uses `schema:'barocss-gpu-render-ir'`, `schemaVersion:1`,
-`pipeline:'sdf'|'indexed-mesh'`, name, right-handed-y-up coordinates, background and
+`pipeline:'sdf'|'indexed-mesh'`, name, its frame (right-handed-y-up for sdf, right-handed-z-up for indexed-mesh: CAD's), background and
 resolved draws. SDF dimensions remain full extents in dimensionless scene units.
 Mesh packet data retains native mm/UV/winding/revision/ID provenance; conversion
 is explicit in options. These are alternative backends, not mixed depth rendering.
@@ -565,14 +686,14 @@ copies. Exactly repeated native sample points remain zero-length segments; nonze
 native segments that collapse in Float32 refuse.
 
 `MeshSceneTransform` optionally supplies the complete
-`{translationMm,rotationXYZW,scale}` pose in the original packet's declared
+`{translation,rotationXYZW,scale}` pose in the original packet's declared
 right-handed Y-up XYZ frame. No axis conversion is inferred. Translation is
 finite within ±10000 mm; each scale is in [0.001,100]; the XYZW quaternion has
 components in [-1,1] and unit norm within 1e-9. Computation normalizes that
 quaternion, while owned pose copies retain its authored components and signed
 zeros. Explicit undefined, unknown fields, sparse arrays and accessors refuse.
 
-Positions use `commonTranslate + mmToSceneUnit * (translationMm + R * (scale *
+Positions use `commonTranslate + mmToSceneUnit * (translation + R * (scale *
 nativePositionMm))`. Normals use `normalize(R * (nativeNormal / scale))`.
 Original packets, UV, native IDs, winding and bounds remain unchanged. Derived
 Float64 and Float32 geometry must both retain finite positive triangle area and
@@ -595,13 +716,13 @@ it in draw options. The declared strength is `ambientStrength + directionalStren
 ```ts
 const result = compileMeshMaterial(`
 @shader #wave {
-  @uniform timeSeconds: float(0,2,0);
+  @uniform time: float(0,2,0);
   @fragment {
-    color: mix(#204080,#E08020,sin(timeSeconds*1.5707963267948966)*0.5+0.5);
+    color: mix(#204080,#E08020,sin(time*1.5707963267948966)*0.5+0.5);
   }
 }`);
 if (result.ok) {
-  mesh.material = { shader: bindingShader({ material: result.material, uniforms: { timeSeconds: 1 } }) };
+  mesh.material = { shader: bindingShader({ material: result.material, uniforms: { time: 1 } }) };
 }
 ```
 
@@ -670,12 +791,8 @@ regions return empty arrays and null bounds. Unsafe Float32 geometry refuses.
 This is a CPU backend preparation API, not a PreviewPacket0. GPU upload, materials,
 depth, pixels and resource lifetime belong to the consumer that draws it.
 
-Run the affected build and the actual saved-file API flow:
-
-```sh
-pnpm --filter @barocss/gpu build:library
-node examples/gpu-scene/boolean-buffers-flow.mjs --meshes /path/to/887/meshes --output /tmp/boolean-buffers
-```
+Its saved-file flow (`boolean-buffers-flow.mjs`) read CAD #887's research meshes, which are not in the
+repository; it was retired in R6. `axis-box-boolean-buffers-flow.mjs` still runs the API on its own fixtures.
 
 ## Native filled Shell CPU buffers
 
@@ -695,10 +812,8 @@ entries}`, each entry `{ref,native,color,edges}` with a qualified
 `{graphId,graphRevision,featureId,outputSlotId}` ref) remains the exported shape
 `@barocss/viewer` uses for selected Shell graphs.
 
-```sh
-pnpm --filter @barocss/gpu build:library
-node examples/gpu-scene/shell-buffers-flow.mjs --meshes /path/to/896/meshes --planar /path/to/887/cross_union.owned-mesh.json --output /tmp/shell-buffers
-```
+Its saved-file flow (`shell-buffers-flow.mjs`) read CAD #896's research meshes, which are not in the
+repository; it was retired in R6.
 
 ## Bounded scalar material functions (abs, min, max)
 
@@ -925,12 +1040,12 @@ const sampled = sampleEngineTranslationClip(originalScene, {
   coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
   timeUnit: 'seconds', interpolation: 'linear',
   tracks: [{nodeId: 'mesh', keys: [
-    {timeSeconds: 0, translation: [0, 0, 0]},
-    {timeSeconds: 2, translation: [2, 0, 0]},
+    {time: 0, translation: [0, 0, 0]},
+    {time: 2, translation: [2, 0, 0]},
   ]}],
 }, {
   format: 'barocss-gpu-engine-translation-clip-request', version: 0,
-  timeSeconds: 1,
+  time: 1,
 });
 const preparedFrame = prepareEngineScene(sampled.scene);
 ```
@@ -1007,12 +1122,12 @@ const sampled = sampleEngineRotationClip(originalScene, {
   timeUnit: 'seconds', rotationOrder: 'xyzw',
   interpolation: 'shortest-path-nlerp',
   tracks: [{ nodeId: 'parent', keys: [
-    { timeSeconds: 0, rotationXYZW: [0, 0, 0, 1] },
-    { timeSeconds: 2, rotationXYZW: [0, 0, 1, 0] },
+    { time: 0, rotationXYZW: [0, 0, 0, 1] },
+    { time: 2, rotationXYZW: [0, 0, 1, 0] },
   ] }],
 }, {
   format: 'barocss-gpu-engine-rotation-clip-request', version: 0,
-  timeSeconds: 1,
+  time: 1,
 });
 ```
 
@@ -1060,12 +1175,12 @@ const sampled = sampleEngineScaleClip(originalScene, {
   coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
   timeUnit: 'seconds', interpolation: 'linear',
   tracks: [{ nodeId: 'parent', keys: [
-    { timeSeconds: 0, scale: [1, 1, 1] },
-    { timeSeconds: 2, scale: [2, 3, 4] },
+    { time: 0, scale: [1, 1, 1] },
+    { time: 2, scale: [2, 3, 4] },
   ] }],
 }, {
   format: 'barocss-gpu-engine-scale-clip-request', version: 0,
-  timeSeconds: 1,
+  time: 1,
 });
 ```
 
@@ -2008,8 +2123,7 @@ copy/work budgets, original signed data and all public declarations are unchange
 This correction is native-only; legacy MeshMaterial and generic/repeating EngineUV
 reflection behavior remains compatible.
 
-One bounded source/emitted/file/cold flow:
-`node examples/gpu-scene/native-reflection-cause-flow.mjs --output /absolute/fresh-directory`.
+Its flow (`native-reflection-cause-flow.mjs`) read another research checkout's build and was retired in R6.
 
 ## Authored pure float material functions
 

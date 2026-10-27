@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="440" viewBox="0 0 800 440" role="img" aria-labelledby="title desc">
+  <title id="title">Parameter value: draft, check and accept</title>
+  <desc id="desc">Conceptual edit flow, not a UI capture or an evaluated chamfer result. An existing chamfer distance is bound to C equal to 3 millimetres. Typing 5 changes draft text only. Enter or leaving the value field submits a candidate. Model and reference checks precede acceptance. A successful candidate accepts C equal to 5. Refusal keeps the accepted C equal to 3, part and references. The example does not claim either chamfer is valid for a specific model.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#52677d"/></marker></defs>
+  <rect width="800" height="440" rx="12" fill="#f8fafc"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#192c40">
+    <text x="400" y="32" text-anchor="middle" font-size="23" font-weight="700">A typed value is not yet an accepted model</text>
+    <text x="400" y="59" text-anchor="middle">Example: a chamfer Distance bound to C · values in mm</text>
+    <g stroke="#52677d" stroke-width="2" fill="none" marker-end="url(#arrow)">
+      <path d="M234 136H278"/><path d="M522 136H566"/>
+      <path d="M678 190V231H228V278"/><path d="M678 190V278"/>
+    </g>
+    <rect x="24" y="91" width="210" height="99" rx="8" fill="#e5f2eb" stroke="#7da38e"/>
+    <text x="129" y="119" text-anchor="middle" font-weight="700">Accepted: C = 3</text>
+    <text x="129" y="147" text-anchor="middle">Type 5 in the value field</text>
+    <text x="129" y="173" text-anchor="middle">Only draft text changes</text>
+    <rect x="278" y="91" width="244" height="99" rx="8" fill="#e8f0ff" stroke="#819bc0"/>
+    <text x="400" y="119" text-anchor="middle" font-weight="700">Submit the draft</text>
+    <text x="400" y="147" text-anchor="middle">Press Enter or leave the field</text>
+    <text x="400" y="173" text-anchor="middle">Candidate requests C = 5</text>
+    <rect x="566" y="91" width="210" height="99" rx="8" fill="#edf0ff" stroke="#8d93bc"/>
+    <text x="671" y="119" text-anchor="middle" font-weight="700">Check candidate</text>
+    <text x="671" y="147" text-anchor="middle">Model evaluation</text>
+    <text x="671" y="173" text-anchor="middle">Existing references</text>
+    <text x="248" y="262" text-anchor="start">If accepted</text>
+    <text x="658" y="262" text-anchor="end">If refused</text>
+    <rect x="58" y="278" width="340" height="86" rx="8" fill="#e0f1e7" stroke="#6f9d83"/>
+    <text x="228" y="307" text-anchor="middle" font-weight="700">C = 5 becomes accepted</text>
+    <text x="228" y="335" text-anchor="middle">The bound model uses the new value</text>
+    <rect x="458" y="278" width="318" height="86" rx="8" fill="#fff0ee" stroke="#bf8980"/>
+    <text x="617" y="307" text-anchor="middle" font-weight="700">Keep accepted C = 3</text>
+    <text x="617" y="335" text-anchor="middle">Keep the prior part and references</text>
+    <text x="400" y="397" text-anchor="middle">A finite value can still be refused. Read the message before retrying.</text>
+    <text x="400" y="425" text-anchor="middle">Conditional numeric example · no geometry evaluation or UI capture</text>
+  </g>
+</svg>

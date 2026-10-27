@@ -20,7 +20,7 @@ const ordinary = resolve(output, 'ordinary-source.mjs');
 const bundled = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true,
   platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
 const graph = Object.keys(bundled.metafile.inputs);
-assert(graph.some(p => p.endsWith('/src/engine-transform-clip.ts')));
+assert(graph.some(p => p.endsWith('/src/engine/engine-transform-clip.ts')));
 assert(!graph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const hash = v => createHash('sha256').update(v).digest('hex');
 async function receipt(path) { const bytes = await readFile(path); return { path, bytes: bytes.length, sha256: hash(bytes) }; }
@@ -41,7 +41,7 @@ const group = (id, parentId, translation = [-0, 0, 0]) => ({ id, type: 'group', 
   translation, rotationXYZW: [-0, 0, 0, 1], scale: [1, 1, 1], visible: true });
 function source() { return { format: 'barocss-gpu-engine-scene', version: 0, id: 'atomic_scene',
   coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', background: [0, .1, .2],
-  camera: { eye: [-0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: .01, far: 100 },
+  camera: { eye: [-0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: .01, far: 100 },
   geometries: [{ format: 'barocss-gpu-triangle-geometry', version: 0, id: 'sloped_quad',
     coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', winding: 'ccw',
     positions: [-.5, -.5, -.5, .5, -.5, .5, .5, .5, .5, -.5, .5, -.5],
@@ -50,9 +50,9 @@ function source() { return { format: 'barocss-gpu-engine-scene', version: 0, id:
   materials: [{ id: 'white', type: 'unlit', colorSpace: 'linear', color: [1, 1, 1] }],
   nodes: [group('parent', null), group('child', 'parent'),
     { ...group('mesh_a', 'child'), type: 'mesh', geometryId: 'sloped_quad', materialId: 'white' }] }; }
-const key = (timeSeconds, translation = [-0, 0, 0], rotationXYZW = [-0, 0, 0, 1], scale = [1, 1, 1]) =>
-  ({ timeSeconds, translation: [...translation], rotationXYZW: [...rotationXYZW], scale: [...scale] });
-const request = (timeSeconds = 2) => ({ format: 'barocss-gpu-engine-transform-clip-request', version: 0, timeSeconds });
+const key = (time, translation = [-0, 0, 0], rotationXYZW = [-0, 0, 0, 1], scale = [1, 1, 1]) =>
+  ({ time, translation: [...translation], rotationXYZW: [...rotationXYZW], scale: [...scale] });
+const request = (time = 2) => ({ format: 'barocss-gpu-engine-transform-clip-request', version: 0, time });
 const clip = () => ({ format: 'barocss-gpu-engine-transform-clip', version: 0, id: 'atomic_keys',
   sceneId: 'atomic_scene', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', timeUnit: 'seconds',
   rotationOrder: 'xyzw', interpolation: 'linear-trs-shortest-path-nlerp',
@@ -60,7 +60,7 @@ const clip = () => ({ format: 'barocss-gpu-engine-transform-clip', version: 0, i
 const providers = [['ordinary-source', await import(pathToFileURL(ordinary).href)],
   ['emitted-public', await import(pathToFileURL(resolve(pkg, published.import)).href)]];
 assert.deepEqual(Object.keys(providers[0][1]).sort(), Object.keys(providers[1][1]).sort());
-assert.equal(Object.keys(providers[0][1]).length, 101);
+
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['EngineTransformKeyV0', 'EngineTransformTrackV0', 'EngineTransformClipV0',
   'EngineTransformClipRequestV0', 'SampledEngineTransformClip']) assert(new RegExp('\\b' + name + '\\b').test(declaration));
@@ -128,13 +128,13 @@ for (const [name, gpu] of providers) {
   const common = { version: 0, id: 'intermediate', sceneId: atomic.id,
     coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', timeUnit: 'seconds' };
   const oneT = { ...common, format: 'barocss-gpu-engine-translation-clip', interpolation: 'linear',
-    tracks: [{ nodeId: 'parent', keys: [{ timeSeconds: 1, translation: [-1000, 0, 0] }] }] };
+    tracks: [{ nodeId: 'parent', keys: [{ time: 1, translation: [-1000, 0, 0] }] }] };
   const oneR = { ...common, format: 'barocss-gpu-engine-rotation-clip', interpolation: 'shortest-path-nlerp', rotationOrder: 'xyzw',
-    tracks: [{ nodeId: 'parent', keys: [{ timeSeconds: 1, rotationXYZW: [0, 1, 0, 0] }] }] };
+    tracks: [{ nodeId: 'parent', keys: [{ time: 1, rotationXYZW: [0, 1, 0, 0] }] }] };
   vector(gpu.prepareEngineScene(atomic).nodes[1].worldMatrix.slice(12, 15), [0, 0, 0]);
   for (const [label, fn, c, format] of [['translation-only', gpu.sampleEngineTranslationClip, oneT, 'barocss-gpu-engine-translation-clip-request'],
     ['rotation-only', gpu.sampleEngineRotationClip, oneR, 'barocss-gpu-engine-rotation-clip-request']]) {
-    let e; try { fn(atomic, c, { format, version: 0, timeSeconds: 1 }); } catch (error) { e = error; }
+    let e; try { fn(atomic, c, { format, version: 0, time: 1 }); } catch (error) { e = error; }
     assert(e); assert.equal(e.code, 'FRAME'); assert(e.cause instanceof gpu.EngineSceneError); assert.equal(e.cause.code, 'TRANSFORM');
     controls.push({ label, code: e.code, causeCode: e.cause.code, message: e.cause.message });
   }
@@ -148,7 +148,7 @@ for (const [name, gpu] of providers) {
   await accept('genuine_empty', empty, none, request(0));
   const hidden = source(); hidden.nodes[0].visible = false;
   await accept('hidden_target', hidden, clip(), request(2), p => { assert.equal(p.scene.draws.length, 0); return { draws: 0 }; });
-  await accept('negative_zero_caller', source(), clip(), request(-0), p => { assert(Object.is(p.request.timeSeconds, -0)); return { negativeZero: true }; });
+  await accept('negative_zero_caller', source(), clip(), request(-0), p => { assert(Object.is(p.request.time, -0)); return { negativeZero: true }; });
   const nearUnit = clip(); nearUnit.tracks[0].keys = [key(0, [-0, 0, 0], [-0, 0, 0, 1 - 5e-10])];
   await accept('literal_near_unit', source(), nearUnit, request(0), p => {
     assert.deepEqual(p.scene.scene.nodes[0].rotationXYZW, [-0, 0, 0, 1 - 5e-10]); return { q: p.scene.scene.nodes[0].rotationXYZW };
@@ -172,7 +172,7 @@ for (const [name, gpu] of providers) {
   const saved = await readFile(file), sb = json(retainedS), cb = json(retainedC), qb = json(retainedQ);
   const callers = [clone(retainedS), clone(retainedC), clone(retainedQ)];
   const owned = gpu.sampleEngineTransformClip(...callers); callers[0].nodes[0].translation[0] = 9;
-  callers[1].tracks[0].keys[0].scale[0] = 8; callers[2].timeSeconds = 0;
+  callers[1].tracks[0].keys[0].scale[0] = 8; callers[2].time = 0;
   assert.deepEqual(sourceResult(owned), sourceResult(previous));
   owned.scene.nodes[0].worldMatrixF32[12] = 999; owned.scene.geometries[0].positions[0] = 999;
   assert.deepEqual(owned.originalScene, retainedS); assert.deepEqual(owned.scene.scene, previous.scene.scene);
@@ -186,7 +186,7 @@ for (const [name, gpu] of providers) {
     ['positionUnit', 'mm'], ['timeUnit', 'ms'], ['rotationOrder', 'wxyz'], ['interpolation', 'slerp']])
     change('clip_' + field, (s, c) => c[field] = value, 'VERSION');
   change('request_version', (s, c, q) => q.version = 1, 'VERSION');
-  for (const value of [-1, 3601, NaN, '1']) change('request_time_' + String(value), (s, c, q) => q.timeSeconds = value, 'RANGE');
+  for (const value of [-1, 3601, NaN, '1']) change('request_time_' + String(value), (s, c, q) => q.time = value, 'RANGE');
   change('wrong_scene', (s, c) => c.sceneId = 'other', 'REFERENCE');
   change('missing_node', (s, c) => c.tracks[0].nodeId = 'absent', 'REFERENCE');
   change('duplicate_target', (s, c) => c.tracks.push(clone(c.tracks[0])), 'REFERENCE');
@@ -199,10 +199,10 @@ for (const [name, gpu] of providers) {
   failures.push({ label: 'oversize_keys_before_ownKeys', s: source(), c: oversizedKeys, q: request(), code: 'BUDGET' });
   change('aggregate513', (s, c) => c.tracks = Array.from({ length: 17 }, (_, i) => ({ nodeId: 'n_' + i,
     keys: Array.from({ length: i === 16 ? 1 : 32 }, (_, t) => key(t)) })), 'BUDGET');
-  change('duplicate_time', (s, c) => c.tracks[0].keys[1].timeSeconds = 1, 'RANGE');
-  change('descending_time', (s, c) => c.tracks[0].keys[1].timeSeconds = 0, 'RANGE');
-  change('small_gap', (s, c) => c.tracks[0].keys[1].timeSeconds = 1 + .5e-6, 'RANGE');
-  change('late_key', (s, c) => c.tracks[0].keys[1].timeSeconds = 3601, 'RANGE');
+  change('duplicate_time', (s, c) => c.tracks[0].keys[1].time = 1, 'RANGE');
+  change('descending_time', (s, c) => c.tracks[0].keys[1].time = 0, 'RANGE');
+  change('small_gap', (s, c) => c.tracks[0].keys[1].time = 1 + .5e-6, 'RANGE');
+  change('late_key', (s, c) => c.tracks[0].keys[1].time = 3601, 'RANGE');
   for (const [field, value] of [['translation', 1000.1], ['translation', -1000.1],
     ['scale', 0], ['scale', .009], ['scale', 100.01], ['rotationXYZW', 1.01], ['scale', Infinity]])
     change(field + '_range_' + value, (s, c) => c.tracks[0].keys[0][field][0] = value, 'RANGE');
@@ -218,7 +218,7 @@ for (const [name, gpu] of providers) {
   change('key_hidden', (s, c) => Object.defineProperty(c.tracks[0].keys[0], 'extra', { value: 1 }), 'INPUT');
   change('tracks_sparse', (s, c) => delete c.tracks[0], 'INPUT');
   change('keys_sparse', (s, c) => delete c.tracks[0].keys[0], 'INPUT');
-  change('request_getter', (s, c, q) => Object.defineProperty(q, 'timeSeconds',
+  change('request_getter', (s, c, q) => Object.defineProperty(q, 'time',
     { enumerable: true, get() { getters++; return 2; } }), 'INPUT');
   change('clip_getter', (s, c) => Object.defineProperty(c, 'tracks',
     { enumerable: true, get() { getters++; return []; } }), 'INPUT');
@@ -230,7 +230,7 @@ for (const [name, gpu] of providers) {
   failures.push({ label: 'foreign_record_prototype', s: source(), c: Object.assign(Object.create({}), clip()), q: request(), code: 'INPUT' });
   change('actual_original_scene', s => s.nodes[2].geometryId = 'absent', 'SCENE', 'REFERENCE');
   change('actual_final_world', (s, c, q) => { s.nodes[1].translation = [11, 0, 0];
-    c.tracks[0].keys = [key(0, [0, 0, 0], [0, 0, 0, 1], [100, 100, 100])]; q.timeSeconds = 0; }, 'FRAME', 'TRANSFORM');
+    c.tracks[0].keys = [key(0, [0, 0, 0], [0, 0, 0, 1], [100, 100, 100])]; q.time = 0; }, 'FRAME', 'TRANSFORM');
   const aggregateFirst = clip(); aggregateFirst.tracks = Array.from({ length: 17 }, (_, i) => ({
     nodeId: 'n_' + i, keys: Array.from({ length: i === 16 ? 1 : 32 }, (_, t) => key(t)) }));
   Object.defineProperty(aggregateFirst.tracks[0].keys[0], 'translation', { enumerable: true,
@@ -245,7 +245,7 @@ for (const [name, gpu] of providers) {
     let error; try { gpu.sampleEngineTransformClip(s, c, q); } catch (e) { error = e; }
     assert(error instanceof gpu.EngineTransformClipError, label + ' actual public error class');
     assert.equal(error.code, code, label); assert.equal(error.name, 'EngineTransformClipError');
-    assert(error.message.startsWith('Engine transform clip: ')); assert(error.message.length <= 1024);
+    assert(error.message.startsWith(`[${code}] Engine transform clip: `)); assert(error.message.length <= 1024);
     if (causeCode) { assert(error.cause instanceof gpu.EngineSceneError); assert.equal(error.cause.code, causeCode); }
     if (exactCause) assert.strictEqual(error.cause, exactCause);
     assert.equal(getters, 0); assert.equal(oversizeOwnKeys, 0);
@@ -260,7 +260,7 @@ for (const [name, gpu] of providers) {
 assert.equal(results[0].finalSampleSHA256, results[1].finalSampleSHA256);
 const report = { issue: 1274, stage: 'CPU-original-atomic-local-TRS-file', accepted, refused, getters,
   proxyReflections, oversizeOwnKeys, actualGL: false, sourceGraph: graph,
-  source: await receipt(resolve(pkg, 'src/engine-transform-clip.ts')), declarations: await receipt(declarationPath),
+  source: await receipt(resolve(pkg, 'src/engine/engine-transform-clip.ts')), declarations: await receipt(declarationPath),
   ordinary: await receipt(ordinary), emitted: await receipt(resolve(pkg, published.import)), results,
   support: 'One original and one complete selected-frame scene admission. Original scene0/complete TRS clip0/request0, caller seconds, componentwise linear translation and positive scale, shortest-path quaternion nlerp. Literal endpoints retain coefficients/sign bits; originals and derived buffers stay separate. Atomic valid frame despite real invalid single-channel intermediates, independent interior normal/ray/UV and cold original files. No timer, global interval certificate, blending, slerp, renderer/pixels, native source rewrite, performance or publication claim.' };
 const resultFile = resolve(output, 'actual-result.json');

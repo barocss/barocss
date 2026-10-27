@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url';
 const tmp = mkdtempSync(join(tmpdir(), 'barocss-impact-'));
 try {
   const bundle = await build({
-    entryPoints: [resolve(import.meta.dirname, '../src/feature-impact-plan-v1.ts')],
+    entryPoints: [resolve(import.meta.dirname, '../src/exact-proof/feature-impact-plan-v1.ts')],
     bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false
   });
   const modulePath = join(tmp, 'impact.mjs');

@@ -18,8 +18,9 @@ const list = document.querySelector('#instances'), inspection = document.querySe
 const filter = document.querySelector('#filter');
 const choiceList=document.querySelector('#assembly-choice'),choiceCount=document.querySelector('#assembly-choice-count');
 const applyChoiceButton=document.querySelector('#apply-assembly-choice'),discardChoiceButton=document.querySelector('#discard-assembly-choice');
-const buttons = Object.fromEntries(['revision0','revision1','fit','run-proof','dispose']
+const buttons = Object.fromEntries(['revision0','revision1','fit','run-proof','dispose','orbit','hide-selected','isolate-selected','show-all','save-review']
   .map(id => [id,document.querySelector('#'+id)]));
+const reviewFile=document.querySelector('#open-review');
 const errors = [], warnings = [];
 window.addEventListener('error',event=>errors.push(event.message));
 window.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
@@ -31,7 +32,7 @@ const options={native:{sourceVersion:0,countU:3,countV:3,
 // Own the admission options before the external proof hook can expose its separate copy.
 const choiceOptions=clone(options);
 const mmToSceneUnit=.05;
-const camera={eye:[.375,.25,2],target:[.375,.25,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10};
+const camera={eye:[.375,.25,2],target:[.375,.25,0],up:[0,1,0],fovY:45,near:.01,far:10};
 const sameRef=(a,b)=>a?.kind===b?.kind && a?.modelId===b?.modelId
   && (a?.kind==='surface'?a.surfaceId===b.surfaceId:a?.curveId===b?.curveId);
 let viewer=null,assemblies=[],clothWorld=null,nativeSet=null,result=null,running=false,disposed=false;
@@ -162,7 +163,7 @@ function discardAssemblyChoice() {
 }
 function currentAcceptedRow(item,binding,epoch,assembly,gpu=false) {
   check(!disposed&&!running,'Instance action needs an idle live host.');
-  check(item.isConnected&&item.parentElement===list,'This accepted instance row is detached.');
+  check(item.isConnected&&list.contains(item),'This accepted instance row is detached.');
   const state=viewer.getState();
   check(epoch===choiceEpoch&&same(state.assembly,assembly)
     &&state.assemblyInstances.some(row=>same(row,binding)),'This accepted instance binding is stale.');
@@ -175,13 +176,19 @@ function render() {
   const epoch=choiceEpoch,assembly=choiceAssembly;
   for(const [id,button] of Object.entries(buttons)) button.disabled=id==='dispose'?disposed:!ready||running;
   filter.disabled=!ready||running;
-  list.replaceChildren(...state.assemblyInstances.map(binding=>{
+  reviewFile.disabled=!ready||running||!state.assembly;
+  buttons['save-review'].disabled=!ready||running||!state.assembly;
+  buttons['show-all'].disabled=!ready||running||!state.assembly;
+  for(const id of ['hide-selected','isolate-selected'])buttons[id].disabled=!ready||running||!state.assembly||!state.selectedGeometry;
+  const rows=new Map(state.assemblyInstances.map(binding=>{
     const item=document.createElement('li'); item.dataset.instanceId=binding.instanceId;
     item.dataset.kind=binding.ref.kind; item.setAttribute('aria-selected',String(sameRef(state.selectedGeometry,binding.ref)));
     const title=document.createElement('strong'),lineage=document.createElement('small'),identity=document.createElement('small');
     title.textContent=binding.instanceId+' · '+binding.ref.kind+' · revision '+binding.assemblyRevision;
     lineage.textContent='Parent: '+(binding.parentId??'root')+' · Ancestors: '+(binding.ancestors.join(' → ')||'none');
     identity.textContent=JSON.stringify(binding.reference);
+    const sourceDetails=document.createElement('details'),sourceSummary=document.createElement('summary');
+    sourceSummary.textContent='Original source reference';sourceDetails.append(sourceSummary,identity);
     const visible=state.visibleGeometry.some(ref=>sameRef(ref,binding.ref));
     const label=document.createElement('label'),toggle=document.createElement('input');
     toggle.type='checkbox';toggle.checked=visible;toggle.disabled=!ready;
@@ -195,8 +202,21 @@ function render() {
     select.addEventListener('click',()=>action(()=>{currentAcceptedRow(item,binding,epoch,assembly,true);viewer.selectGeometry(binding.ref);showPoint(binding);}));
     inspect.textContent='Inspect original point';inspect.setAttribute('aria-label','Inspect '+binding.instanceId);
     inspect.disabled=disposed||running;inspect.addEventListener('click',()=>action(()=>{currentAcceptedRow(item,binding,epoch,assembly);return showPoint(binding);}));
-    item.append(title,lineage,identity,label,select,inspect);return item;
+    item.append(title,lineage,label,select,inspect,sourceDetails);return [binding.instanceId,item];
   }));
+  // Keep non-admitted ancestors as context only. They gain no Viewer binding or controls.
+  const originals=state.assembly?.assembly.instances??[];
+  function branch(id) {
+    const children=originals.filter(row=>row.parentId===id).map(row=>branch(row.id)).filter(Boolean);
+    let item=rows.get(id);
+    if(!item&&!children.length)return null;
+    if(!item) { item=document.createElement('li');item.className='hierarchy-context';
+      const label=document.createElement('strong');label.textContent=id+' · hierarchy only · not admitted';item.append(label); }
+    if(children.length) {const group=document.createElement('ul');group.setAttribute('aria-label','Children of '+id);
+      group.append(...children);item.append(group);}
+    return item;
+  }
+  list.replaceChildren(...originals.filter(row=>row.parentId===null).map(row=>branch(row.id)).filter(Boolean));
 }
 function action(callback) { if(disposed)return;try{callback();render();}catch(error){display(error.message);} }
 function loadAssembly(revision=0,ids=defaultIDs) {
@@ -221,7 +241,7 @@ function project(worldMM) {
   const unit=a=>{const n=Math.hypot(...a);return a.map(v=>v/n);},dot=(a,b)=>a.reduce((n,v,i)=>n+v*b[i],0);
   const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
   const forward=unit(c.target.map((n,i)=>n-c.eye[i])),right=unit(cross(forward,c.up)),up=cross(right,forward);
-  const delta=worldMM.map((n,i)=>n*mmToSceneUnit-c.eye[i]),z=dot(delta,forward),t=Math.tan(c.fovYDegrees*Math.PI/360);
+  const delta=worldMM.map((n,i)=>n*mmToSceneUnit-c.eye[i]),z=dot(delta,forward),t=Math.tan(c.fovY*Math.PI/360);
   return {xCss:(1+dot(delta,right)/(z*t*canvas.width/canvas.height))*rect.width/2,
     yCss:(1-dot(delta,up)/(z*t))*rect.height/2};
 }
@@ -287,7 +307,7 @@ async function startClothScene() {
   clothWorld??=createClothWorld({format:'barocss-cloth-scene',version:1,revision:'assemblyClothPrior',
     basis:'right-handed-xyz-metres',fixedStepSeconds:1/120,profile:'pinned-sheet-sphere-v1'});
   const state=clothWorld.getState();viewer.loadModelSet(nativeSet);
-  viewer.setView({eye:[0,100,0],target:[0,15,0],up:[0,0,-1],fovYDegrees:45,near:.01,far:500});
+  viewer.setView({eye:[0,100,0],target:[0,15,0],up:[0,0,-1],fovY:45,near:.01,far:500});
   const frame={version:0,layerId:'prior_native_cloth',contextId:'prior_world',sceneRevision:state.sceneRevision,
     stepIndex:state.stepIndex,vertexCount:state.vertexCount,triangleCount:state.triangleCount,
     positionsM:state.positionsM,triangles:state.triangles};viewer.setClothFrame(frame);return frame;
@@ -379,6 +399,11 @@ try {
     authoredWorld,worldPoint,project,hitSamples,witness,updateCadAssembly,resolveCadGeometryReference,
     loadBaroCadAssembly,loadBaroCadModelSet,
     fixtures:['/assembly-revision0.json','/assembly-revision1.json'],get result(){return result;}};
+  window.viewerAssemblyReviewEvidence={review:()=>viewer.captureReviewState(),state:()=>viewer.getState(),
+    pixels:()=>viewer.readPixels(),errors,warnings,
+    point:instanceId=>{const binding=viewer.getState().assemblyInstances.find(row=>row.instanceId===instanceId);
+      check(binding,'Unknown accepted instance.');const point=viewer.queryAssemblyInstancePoint(queryFor(binding));
+      return {point,screen:project(point.assemblyPointMM)};}};
   display('Ready: four selected instances from six original native instances, revision0.');
 }catch(error){display({ok:false,stage:'startup',error:error.stack||error.message});}
 applyChoiceButton.addEventListener('click',()=>action(()=>applyAssemblyChoice()));
@@ -386,6 +411,38 @@ discardChoiceButton.addEventListener('click',()=>action(()=>discardAssemblyChoic
 for(const revision of [0,1])buttons['revision'+revision].addEventListener('click',()=>action(()=>loadAssembly(revision)));
 buttons.fit.addEventListener('click',()=>action(()=>viewer.fit()));buttons['run-proof'].addEventListener('click',runProof);
 buttons.dispose.addEventListener('click',dispose);
+buttons.orbit.addEventListener('click',()=>action(()=>viewer.orbit(.3,.15)));
+buttons['hide-selected'].addEventListener('click',()=>action(()=>{
+  const state=viewer.getState();check(state.selectedGeometry,'Select one visible instance first.');
+  viewer.setVisibleGeometry(state.visibleGeometry.filter(ref=>!sameRef(ref,state.selectedGeometry)));
+  inspection.textContent='Selection hidden. Original hierarchy and placements are unchanged.';
+}));
+buttons['isolate-selected'].addEventListener('click',()=>action(()=>{
+  const state=viewer.getState();check(state.selectedGeometry,'Select one visible instance first.');
+  viewer.setVisibleGeometry([state.selectedGeometry]);
+}));
+buttons['show-all'].addEventListener('click',()=>action(()=>{
+  viewer.setVisibleGeometry(viewer.getState().assemblyInstances.map(row=>row.ref));
+}));
+buttons['save-review'].addEventListener('click',()=>action(()=>{
+  const review=viewer.captureReviewState();
+  const url=URL.createObjectURL(new Blob([JSON.stringify(review,null,2)+'\n'],{type:'application/json'}));
+  const link=document.createElement('a');link.href=url;link.download='assembly-review.json';link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);display('Assembly review file saved.');
+}));
+reviewFile.addEventListener('change',async()=>{
+  const chosen=reviewFile.files[0];reviewFile.value='';if(!chosen)return;
+  const epoch=choiceEpoch;
+  try {
+    check(!disposed&&!running,'Review Open needs an idle live host.');
+    check(chosen.size<=32768,'Review file exceeds32KiB.');
+    const candidate=JSON.parse(await chosen.text());
+    check(!disposed&&!running&&epoch===choiceEpoch,'Assembly changed while the review file was read.');
+    viewer.applyReviewState(candidate);
+    filter.value='all';inspection.textContent='Review restored. Inspect an instance for its original point.';
+    render();display('Assembly review file opened and applied.');
+  }catch(error){display('Review refused: '+error.message);}
+});
 filter.addEventListener('change',()=>action(()=>{const selected=viewer.getState().selectedGeometry;
   if(selected&&filter.value!=='all'&&selected.kind!==filter.value)viewer.selectGeometry(null);}));
 canvas.addEventListener('click',event=>action(()=>{const rect=canvas.getBoundingClientRect(),hit=viewer.pickGeometry(

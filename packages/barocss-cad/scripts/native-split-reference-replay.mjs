@@ -25,17 +25,17 @@ try {
   const result = JSON.parse(readFileSync(join(dir, 'source-result.json'), 'utf8'));
   const bundle = await build({
     entryPoints: [resolve(root, 'packages/barocss-cad/src/index.ts'),
-      resolve(root, 'packages/barocss-cad/src/split-face-evolution.ts'),
-      resolve(root, 'packages/barocss-cad/src/persistent-face-reference-v1.ts')],
+      resolve(root, 'packages/barocss-cad/src/features/split-face-evolution.ts'),
+      resolve(root, 'packages/barocss-cad/src/exact-proof/persistent-face-reference-v1.ts')],
     bundle: true, platform: 'node', format: 'esm', target: 'es2022',
     outdir: dir, outExtension: { '.js': '.mjs' }, write: true,
   });
   assert.equal(bundle.errors.length, 0);
   const api = await import(pathToFileURL(join(dir, 'index.mjs')));
   const { projectConvexPlanarSplitFaceEvolution: project } =
-    await import(pathToFileURL(join(dir, 'split-face-evolution.mjs')));
+    await import(pathToFileURL(join(dir, 'features', 'split-face-evolution.mjs')));
   const { resolveAuthoredFaceAfterSplitV1: resolveRef } =
-    await import(pathToFileURL(join(dir, 'persistent-face-reference-v1.mjs')));
+    await import(pathToFileURL(join(dir, 'exact-proof', 'persistent-face-reference-v1.mjs')));
   assert.deepEqual(api.validateConvexPlanarSolidSplit(result), result.report);
   const receipt = project(result);
   assert.equal(receipt.namingCertified, false);

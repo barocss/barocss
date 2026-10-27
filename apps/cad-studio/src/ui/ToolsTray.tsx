@@ -2,7 +2,9 @@
 // the right — in a "More tools" menu, so a narrow window never clips a control or scrolls the page sideways. The
 // shapes strip gives way first: the tray counts it at its least (its More button alone), so the tray folds only when
 // even that leaves no room. The room is measured again whenever the bar or one of its children changes size.
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon } from './atoms';
 
 /** A tool's width (the tray adds its own gap between them, the bar's spacing). */
@@ -36,21 +38,15 @@ export function ToolsTray({ items }: { items: readonly ReactNode[] }) {
     ro.observe(bar); for (const el of Array.from(bar.children)) if (el !== tray) ro.observe(el);
     return () => ro.disconnect();
   }, [items.length]);
-  // (The menu closes on a pick, a click outside it and on Escape; a tool inside it keeps its own menus, as Templates does.)
-  useEffect(() => {
-    if (!open) return;
-    const away = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
-    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
-    document.addEventListener('mousedown', away); document.addEventListener('keydown', key);
-    return () => { document.removeEventListener('mousedown', away); document.removeEventListener('keydown', key); };
-  }, [open]);
   const rest = items.slice(fit);
   return <div className="tools-tray" role="toolbar" aria-label="Tools bar" ref={ref}>
     {items.slice(0, fit)}
     {rest.length > 0 && <span className="tools-more-anchor">
-      <button className={'tool' + (open ? ' on' : '')} aria-label="More tools" aria-expanded={open} data-tip="More tools" data-tip-desc={`${rest.length} more`} onClick={() => setOpen(v => !v)}><Icon name="more_vert" /></button>
-      {/* (A pick closes it — but Templates, whose own menu opens inside it.) */}
-      {open && <div className="card tools-more" role="menu" aria-label="More tools" onClick={e => { if (!(e.target as HTMLElement).closest('.tpl-anchor')) setOpen(false); }}>{rest}</div>}
+      {/* (G12f: shadcn's DropdownMenu, in place — Radix's dismissal: a click outside, Escape; a pick closes it, but Templates, whose own menu opens inside it.) */}
+      <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
+        <DropdownMenuTrigger asChild><ToolIconButton state={open ? 'on' : 'idle'} aria-label="More tools" data-tip="More tools" data-tip-desc={`${rest.length} more`}><Icon name="more_vert" /></ToolIconButton></DropdownMenuTrigger>
+        <DropdownMenuContent portal={false} className="card tools-more min-w-0 p-2" aria-label="More tools" align="end" onClick={e => { if (!(e.target as HTMLElement).closest('.tpl-anchor')) setOpen(false); }}>{rest}</DropdownMenuContent>
+      </DropdownMenu>
     </span>}
   </div>;
 }

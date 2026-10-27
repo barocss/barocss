@@ -1,13 +1,14 @@
 import { marchingTetrahedra, meshVolume, voxelInsideFlags } from '@barocss/cad';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart, stepFor, type BodyResult } from '../src/engine/evaluate';
+import { evaluatePart, exportStudioStep, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { interference, massProperties } from '../src/chat/analysis';
+import { interference, massProperties } from '../src/analysis/analysis';
 import { threeMfModelOf } from '../src/print/export3mf';
 import { cavityField, planHollow } from '../src/print/hollow';
-import { awayFromZero, gyroid, gyroidFraction, gyroidGradient, latticeField, LatticeError, mixedTetrahedra, planLattice, weldTau } from '../src/print/lattice';
+import { awayFromZero, gyroid, gyroidFraction, gyroidGradient, latticeField, mixedTetrahedra, planLattice, weldTau } from '../src/print/lattice';
+import { isRefusal } from '../src/engine/refusal';
 
 // AM7b (O57): a gyroid lattice infill, a separate mesh body inside an exactly hollowed part. Its solid fraction against the
 // gyroid's own f(k) within the derived ε_MT + ε_mix + 4σ; the solid one component, nothing loose; every empty region
@@ -22,7 +23,7 @@ async function hollowBox(w: number, d: number, hgt: number, t: number, drain = 3
 }
 // (The coarse case for the kernel's intersection: its mesh Boolean takes minutes past a few thousand triangles.)
 const COARSE = { w: 24, d: 24, h: 18, t: 3, drain: 6, L: 12, k: 0.8, vox: 3 };
-const code = (f: () => unknown) => { try { f(); return 'none'; } catch (e) { return e instanceof LatticeError ? e.code : String(e); } };
+const code = (f: () => unknown) => { try { f(); return 'none'; } catch (e) { return isRefusal(e) ? e.code : String(e); } };
 const area = (m: { positions: ArrayLike<number>; indices: ArrayLike<number> }) => { let A = 0; const P = m.positions, I = m.indices; for (let t = 0; t < I.length; t += 3) { const a = I[t] * 3, b = I[t + 1] * 3, c = I[t + 2] * 3, u = [P[b] - P[a], P[b + 1] - P[a + 1], P[b + 2] - P[a + 2]], v = [P[c] - P[a], P[c + 1] - P[a + 1], P[c + 2] - P[a + 2]]; A += Math.hypot(u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]) / 2; } return A; };
 
 test('the solid fraction on whole cells: a 24 × 24 × 12 cavity of 6 mm cells, k 0.6 — the lattice over the cavity is f(k) within ε_MT + ε_mix + 4σ', () => {
@@ -42,14 +43,14 @@ test('the solid fraction on whole cells: a 24 × 24 × 12 cavity of 6 mm cells, 
 });
 
 test('filled: the solid one component, nothing loose; every empty region drained (the two labyrinths); in the mass beside the exact shell', async () => {
-  const { doc, bodies } = await hollowBox(30, 30, 18, 3), shellVolume = bodies[0].volumeMM3!;
+  const { doc, bodies } = await hollowBox(30, 30, 18, 3), shellVolume = bodies[0].volume!;
   const { doc: out, report } = planLattice(doc, bodies, { cell: 6, k: 0.6, h: 0.5 }), e = await evaluate(out); assert.ok(e.ok, JSON.stringify(!e.ok && e).slice(0, 400));
   console.log(`AM7b fill: ${report.pieces} piece(s), ${report.dropped.count} dropped (${report.dropped.volume.toFixed(2)} mm³), ${report.drains.length} drain(s) added (${report.joined} joined), ${report.snapped} wall vertices snapped, ${report.triangles} triangles, lattice ${report.volume.toFixed(1)} mm³, ${report.mixed} mixed tets`);
   // (The lattice: the facet bodies, its pieces, their volumes its own; the shell: the B-rep, its drains added.)
   const lats = e.bodies.filter(b => b.family === 'faceted'), shell = e.bodies.find(b => b.family !== 'faceted')!;
-  assert.equal(lats.length, report.pieces); assert.ok(Math.abs(lats.reduce((s, b) => s + b.volumeMM3!, 0) - report.volume) <= 1e-6 * report.volume);
+  assert.equal(lats.length, report.pieces); assert.ok(Math.abs(lats.reduce((s, b) => s + b.volume!, 0) - report.volume) <= 1e-6 * report.volume);
   assert.ok(report.drains.length >= 1, 'a sheet gyroid leaves two labyrinths: at least one more drain');
-  assert.ok(shell.volumeMM3! < shellVolume, 'the new drains cut through the shell');
+  assert.ok(shell.volume! < shellVolume, 'the new drains cut through the shell');
   // (Each body's voxels at h/4, OR'd — one triangle soup's parity would flip where the lattice meets the shell's wall: the
   // solid one 6-connected component; every empty voxel reached from outside.)
   const hc = 0.25, lo = shell.mesh.bounds.min, hi = shell.mesh.bounds.max, o: [number, number, number] = [lo[0] - 0.8, lo[1] - 0.87, lo[2] - 0.91], n = [0, 1, 2].map(q => Math.ceil((hi[q] - o[q] + 0.8) / hc) + 1);
@@ -70,11 +71,11 @@ test('no overlap with the shell by the kernel\'s intersection, every piece touch
   console.log(`AM7b coarse: ${report.triangles} triangles, ${report.pieces} piece(s), ${report.dropped.count} dropped, ${report.drains.length} drain(s) added`);
   const e = await evaluate(out); assert.ok(e.ok, JSON.stringify(!e.ok && e).slice(0, 400));
   const shell = e.bodies.find(b => b.family !== 'faceted')!, pairs = await interference(out, e.bodies, evaluate);
-  assert.deepEqual(pairs.filter(p => 'overlap_mm3' in p), [], JSON.stringify(pairs));
+  assert.deepEqual(pairs.filter(p => 'overlap' in p), [], JSON.stringify(pairs));
   // (Each piece against the shell: touching — its wall vertices on the wall — and the pieces apart from one another.)
   const withShell = pairs.filter(p => p.a === shell.key || p.b === shell.key);
   assert.equal(withShell.length, report.pieces);
-  for (const p of withShell) assert.ok((p.clearance_mm as number) <= 1e-3, JSON.stringify(p));
+  for (const p of withShell) assert.ok((p.clearance as number) <= 1e-3, JSON.stringify(p));
   // (Refusals.)
   const plain = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'run_command', { command: 'box', values: { w: 30, d: 30, h: 18, x: 0, y: 0, z: 0 } }, evaluate), pe = await evaluate(plain.state.doc); assert.ok(pe.ok);
   assert.equal(code(() => planLattice(plain.state.doc, pe.bodies, { cell: 6, k: 0.6 })), 'NOT_HOLLOW');
@@ -90,14 +91,14 @@ test('STEP leaves the infill out and says so (by its role, not its name); 3MF an
   const e = await evaluate(out); assert.ok(e.ok);
   const lats = e.bodies.filter(b => b.role === 'infill'), solids = (t: string) => (t.match(/=\s*(MANIFOLD_SOLID_BREP|BREP_WITH_VOIDS|TESSELLATED_SOLID)\(/g) ?? []).length;
   assert.ok(lats.length >= 1 && lats.length === e.bodies.length - 1, 'every lattice piece is infill, the shell not');
-  const step = stepFor(out, 'part'); assert.ok('text' in step, JSON.stringify(step));
+  const step = exportStudioStep(out, { name: 'part' });
   assert.equal(solids(step.text), 1, 'the shell alone'); assert.doesNotMatch(step.text, /TRIANGULATED_FACE|TESSELLATED_SHELL/);
   assert.match(step.omitted?.join(' ') ?? '', /lattice infill not included \(.+\); 3MF carries it/);
   // (Without the role, the same doc's STEP carries every piece.)
-  const plain = { ...out, nodes: out.nodes.map(n => n.kind === 'mesh' ? { ...n, role: undefined } : n) }, all = stepFor(plain, 'part'); assert.ok('text' in all);
+  const plain = { ...out, nodes: out.nodes.map(n => n.kind === 'mesh' ? { ...n, role: undefined } : n) }, all = exportStudioStep(plain, { name: 'part' });
   assert.equal(solids(all.text), 1 + lats.length); assert.equal(all.omitted, undefined);
   // (Renamed: still left out.)
-  const renamed = { ...out, nodes: out.nodes.map(n => n.kind === 'mesh' ? { ...n, name: 'my infill' } : n) }, r = stepFor(renamed, 'part'); assert.ok('text' in r);
+  const renamed = { ...out, nodes: out.nodes.map(n => n.kind === 'mesh' ? { ...n, name: 'my infill' } : n) }, r = exportStudioStep(renamed, { name: 'part' });
   assert.equal(solids(r.text), 1);
   // (3MF: an object for the shell and each piece; the mass: every body, the lattice's volume in it.)
   const model = threeMfModelOf(out, [{ doc: out, bodies: e.bodies }], 'part'); assert.ok(typeof model !== 'string', String(model));

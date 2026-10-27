@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { interference } from '../src/chat/analysis';
+import { interference } from '../src/analysis/analysis';
 import { processProfile } from '../src/library/materials';
-import { fitsBed, planBedSplit, SplitError, type SplitOptions } from '../src/print/splitBed';
+import { fitsBed, planBedSplit, type SplitOptions } from '../src/print/splitBed';
+import { isRefusal } from '../src/engine/refusal';
 
 // AM6 (O51): a part too big for the bed split along one axis into the fewest even pieces that fit, with dowel or plug
 // connectors. Piece volumes against the original (exactly before connectors, by the closed form after); each piece
@@ -19,12 +20,12 @@ async function box(w: number, d: number, h: number, extra: Partial<StudioDoc> = 
   assert.ok(!r.isError, r.content); const doc = { ...r.state.doc, ...extra }, e = await evaluate(doc); assert.ok(e.ok); return { doc, bodies: e.bodies };
 }
 async function bodiesOf(doc: StudioDoc) { const e = await evaluate(doc); assert.ok(e.ok, JSON.stringify(!e.ok && e)); return e.bodies; }
-const vol = (bs: readonly BodyResult[], keys: readonly string[]) => keys.reduce((s, k) => s + bs.find(b => b.key === k)!.volumeMM3!, 0);
-const code = (f: () => unknown) => { try { f(); return 'none'; } catch (e) { return e instanceof SplitError ? e.code : String(e); } };
+const vol = (bs: readonly BodyResult[], keys: readonly string[]) => keys.reduce((s, k) => s + bs.find(b => b.key === k)!.volume!, 0);
+const code = (f: () => unknown) => { try { f(); return 'none'; } catch (e) { return isRefusal(e) ? e.code : String(e); } };
 const DOWEL: SplitOptions = { connector: 'dowel', d: 6, length: 20 };
 
 test('a 300 mm bar on the 256 mm bed: two pieces that each fit; dowels at the fit; volumes by the closed form; no overlap anywhere', async () => {
-  const { doc, bodies } = await box(300, 40, 20), V = bodies[0].volumeMM3!;
+  const { doc, bodies } = await box(300, 40, 20), V = bodies[0].volume!;
   const { doc: out, report } = planBedSplit(doc, bodies, DOWEL), bs = await bodiesOf(out);
   assert.deepEqual([report.axis, report.cuts, report.pieces.length, report.connectors.length, report.fit], ['x', [150], 2, 2, FIT]);
   assert.ok(report.pieces.every(p => p.fits), JSON.stringify(report.pieces));
@@ -42,10 +43,10 @@ test('a 300 mm bar on the 256 mm bed: two pieces that each fit; dowels at the fi
   for (const c of report.connectors) { const rs = radii(c.pin!); assert.ok(rs.length && rs.every(r => Math.abs(r - 3) <= 1e-9) && Math.abs(rB - rs[0] - FIT) <= 1e-9, JSON.stringify(rs)); }
   // (Interference, exact: no two of them overlap — the cut faces touch, the pins sit in their bores with the fit.)
   const pairs = await interference(out, bs, evaluate, [...report.pieces.map(p => p.key), ...report.connectors.map(c => c.pin!)]);
-  assert.equal(pairs.length, 6); assert.deepEqual(pairs.filter(p => 'overlap_mm3' in p), [], JSON.stringify(pairs));
+  assert.equal(pairs.length, 6); assert.deepEqual(pairs.filter(p => 'overlap' in p), [], JSON.stringify(pairs));
   // (Before connectors, the cut alone: the pieces sum to the bar exactly.)
   const cutOnly = { ...out, nodes: out.nodes.slice(0, doc.nodes.length + 1) }, cb = await bodiesOf(cutOnly);
-  assert.ok(Math.abs(cb.reduce((s, b) => s + b.volumeMM3!, 0) - V) <= 1e-9 * V);
+  assert.ok(Math.abs(cb.reduce((s, b) => s + b.volume!, 0) - V) <= 1e-9 * V);
 });
 
 test('the fewest pieces along the axis that needs it: 600 mm in three; a tall part along the build axis; plugs (the pin one with the lower piece)', async () => {
@@ -54,11 +55,11 @@ test('the fewest pieces along the axis that needs it: 600 mm in three; a tall pa
   const tall = await box(40, 40, 300), rz = planBedSplit(tall.doc, tall.bodies, DOWEL).report;
   assert.deepEqual([rz.axis, rz.cuts, rz.pieces.every(p => p.fits)], ['z', [150], true]);
   // (Plugs: the pin's lower half is in the lower piece's material, its upper half in the upper piece's bore.)
-  const { doc, bodies } = await box(300, 40, 20), V = bodies[0].volumeMM3!, { doc: out, report } = planBedSplit(doc, bodies, { ...DOWEL, connector: 'plug' }), bs = await bodiesOf(out);
+  const { doc, bodies } = await box(300, 40, 20), V = bodies[0].volume!, { doc: out, report } = planBedSplit(doc, bodies, { ...DOWEL, connector: 'plug' }), bs = await bodiesOf(out);
   assert.equal(bs.length, 2, 'two pieces, the pins one with the lower'); assert.ok(report.connectors.every(c => c.pin === null));
   const rB = 3 + FIT, want = V + 2 * (Math.PI * 9 * 10 - Math.PI * rB * rB * (10 + FIT));
-  assert.ok(Math.abs(bs.reduce((s, b) => s + b.volumeMM3!, 0) - want) <= 1e-9 * V, `${bs.reduce((s, b) => s + b.volumeMM3!, 0)} vs ${want}`);
-  assert.deepEqual((await interference(out, bs, evaluate)).filter(p => 'overlap_mm3' in p), []);
+  assert.ok(Math.abs(bs.reduce((s, b) => s + b.volume!, 0) - want) <= 1e-9 * V, `${bs.reduce((s, b) => s + b.volume!, 0)} vs ${want}`);
+  assert.deepEqual((await interference(out, bs, evaluate)).filter(p => 'overlap' in p), []);
 });
 
 test('refusals, typed: it fits; two bodies; no printer; an oblique print direction; too big two ways; no room for the bore; a bad connector', async () => {

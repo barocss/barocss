@@ -9,9 +9,9 @@ import { drawingIssues, issueContext } from '../src/drawing/issues';
 import { readDrawing, type DrawingSettings, type ViewId, type XY } from '../src/drawing/types';
 import { fromSheet } from '../src/drawing/views';
 import { balloonMarks } from '../src/drawing/balloons';
-import { sheetSvg } from '../src/drawing/svg';
-import { sheetPdf } from '../src/drawing/pdf';
-import { sheetDxf } from '../src/drawing/dxf';
+import { sheetSvg } from '../src/io/svg';
+import { sheetPdf } from '../src/io/pdf';
+import { sheetDxf } from '../src/io/dxf';
 import type { ProjectedCurve } from '@barocss/cad';
 
 // O147 B2: the BOM on the drawing — the 'bom' table numbered as the BOM panel and the purchase list number it, and one
@@ -31,7 +31,7 @@ function part(): StudioDoc {
   let doc = cmd('shaft').build!(blank, cmd('shaft').defaults!(blank));
   doc = { ...doc, nodes: doc.nodes.map((n, i) => i === 0 ? { ...(n as Extract<ModelNode, { kind: 'shaft' }>), holes: [{ diameter: 4, at: 80 }] } : n) };
   doc = run(doc, 'key', { bodies: [0] }, { h: 6 });
-  const t = editRingRows(doc, [{ id: 'r20', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3, source: 'the maker\'s sheet' }]); assert.ok('doc' in t); doc = t.doc;
+  const t = editRingRows(doc, [{ id: 'r20', shaftDiameter: 20, grooveDiameter: 19, grooveWidth: 1.3, source: 'the maker\'s sheet' }]); assert.ok('doc' in t); doc = t.doc;
   doc = run(doc, 'retaining-ring', { bodies: [0] });
   return run(doc, 'pin', { bodies: [0] });
 }
@@ -83,7 +83,7 @@ test('the BOM table and its balloons: 2 copies — 4 lines numbered 1–4, 4 bal
   assert.ok(pdf.includes('(BILL OF MATERIALS) Tj') && [1, 2, 3, 4].every(n => pdf.includes(`(${n}) Tj`)), 'PDF');
   assert.ok(dxf.includes('\nBILL OF MATERIALS\n') && [1, 2, 3, 4].every(n => dxf.includes(`\n${n}\n`)), 'DXF');
   // (Off by default: no balloons, and no BOM worked out when nothing reads it.)
-  const off = drawingInputs(doc, { ...readDrawing(doc.drawing), sheet: 'A3' }); assert.ok(typeof off !== 'string');
+  const off = drawingInputs(doc, { ...readDrawing(doc.drawing), scope: { kind: 'assembly' }, sheet: 'A3' }); assert.ok(typeof off !== 'string');
   assert.equal(off.meta.bom, undefined);
   assert.equal(issueContext({ ...off, meta: { ...off.meta, date: '2026-10-22' } }).sheet.groups.filter(g => g.role === 'balloon').length, 0);
 });
@@ -92,7 +92,7 @@ test('balloons on the front view when the iso is not shown; a line with no visib
   const doc = asm(part()), front = sheetOf(doc, { views: ['front', 'top'] });
   assert.deepEqual(front.ctx.sheet.balloons!.placed.map(p => p.view), ['front', 'front', 'front', 'front']);
   const { i, ctx } = sheetOf(doc), bom = i.meta.bom!;
-  const more = { ...bom, lines: [...bom.lines, { item: 'a part not placed', parts: ['i9'], qty: 1, material: null, massG: 0, source: null }] };
+  const more = { ...bom, lines: [...bom.lines, { item: 'a part not placed', parts: ['i9'], qty: 1, material: null, mass: 0, source: null }] };
   const missing = issueContext({ ...i, meta: { ...i.meta, bom: more } });
   assert.deepEqual(missing.sheet.balloons!.noEdge, [5]);
   assert.match(drawingIssues(missing).find(x => x.code === 'BALLOON_NO_EDGE')!.message, /^BOM line 5: no edge of its item is visible in the iso view/);

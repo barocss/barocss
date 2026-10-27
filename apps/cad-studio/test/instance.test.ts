@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart, stepFor } from '@barocss/cad-model/engine/evaluate';
+import { evaluatePart, exportStudioStep } from '@barocss/cad-model/engine/evaluate';
 import { placedDoc, rectanglePart, type PartInstance } from '@barocss/cad-model/engine/doc';
 
 test('instances: a part placed by rotation then a move, in display and in STEP', () => {
@@ -12,12 +12,11 @@ test('instances: a part placed by rotation then a move, in display and in STEP',
   // The 20 × 10 plate turned 90° about Z spans x −10..0 then moves to 90..100; y 0..20.
   const near = (a: number, e: number) => Math.abs(a - e) < 1e-6;
   assert.ok(near(b.min[0], 90) && near(b.max[0], 100) && near(b.min[1], 0) && near(b.max[1], 20) && near(b.max[2], 4), JSON.stringify(b));
-  assert.ok(near(r.bodies[0].volumeMM3!, 800));
-  const step = stepFor({ ...part, instances: [inst, { ...inst, id: 'i2', position: [0, 50, 0] }] }, 'assembly');
-  assert.ok('text' in step, JSON.stringify(step));
+  assert.ok(near(r.bodies[0].volume!, 800));
+  const step = exportStudioStep({ ...part, instances: [inst, { ...inst, id: 'i2', position: [0, 50, 0] }] }, { name: 'assembly' });
   assert.equal((step.text.match(/MANIFOLD_SOLID_BREP/g) ?? []).length, 3, 'the part and its two instances');
-  const hidden = stepFor({ ...part, instances: [{ ...inst, hidden: true }] }, 'assembly');
-  assert.ok('text' in hidden && (hidden.text.match(/MANIFOLD_SOLID_BREP/g) ?? []).length === 1);
+  const hidden = exportStudioStep({ ...part, instances: [{ ...inst, hidden: true }] }, { name: 'assembly' });
+  assert.ok((hidden.text.match(/MANIFOLD_SOLID_BREP/g) ?? []).length === 1);
 });
 
 test('exploded view: instances pushed out from the middle by the factor; the meshes moved, not the parts', async () => {

@@ -72,7 +72,7 @@
     "held": {
       "2": "\"n1.side1|n1.side2\" is gone"
     },
-    "volumeMM3": 600
+    "volume": 600
   },
   "oracle": "by construction (a box has no curved edge); the box alone builds, 10 × 10 × 6"
 }

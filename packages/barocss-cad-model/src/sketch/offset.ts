@@ -5,9 +5,9 @@
 // to meet across the gap); where an arc joins its neighbour tangentially (a rounded corner) they still meet there.
 import type { SketchShape } from './types';
 import { arcOf } from './profile';
+import { r6Signed as r6 } from '../util/round';
 
 type P2 = [number, number];
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6;
 
 /** The shape offset by `d` mm (outward when positive), or why it cannot be. */
 export function offsetShape(s: SketchShape, d: number): { shape: SketchShape } | { error: string } {

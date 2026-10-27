@@ -9,7 +9,8 @@ import { treeOfDoc } from '../chat/robot';
 import type { BodyResult } from '../engine/evaluate';
 import { assemblyBodies, checkAssembly } from '../team/assembly';
 import type { Call, Outcome, Params, Rung } from './core';
-import { axisDistance, boxIs, boxOf, cylindersOf, holds, near, parallel, volumeOf } from './measure';
+import { axisDistance, boxIs, cylindersOf, holds, near, parallel, volumeOf } from './measure';
+import { boundsOf } from '../engine/bounds';
 import { machinability } from '../machining/report';
 import { processProfile } from '../library/materials';
 
@@ -117,7 +118,7 @@ export const RUNG7: Rung = {
     const aligned = parts.length === 2 && A.length === want.length && B.length === want.length && A.every(a => B.some(b => axisDistance(b, a.c) <= 1e-9));
     const pattern = parts.length === 2 && want.every(([x, y]) => A.some(c => axisDistance(c, [x, y, 0]) <= 1e-9));
     // (Each hole's axis from its own plate's sides, by the plate's box: at least 1.5 Ø.)
-    const edge = parts.map((b, k) => { const bx = boxOf(b); return bx ? Math.min(...bores[k].map(c => Math.min(c.c[0] - bx.min[0], bx.max[0] - c.c[0], c.c[1] - bx.min[1], bx.max[1] - c.c[1]))) : -Infinity; });
+    const edge = parts.map((b, k) => { const bx = b.length ? boundsOf(b) : null; return bx ? Math.min(...bores[k].map(c => Math.min(c.c[0] - bx.min[0], bx.max[0] - c.c[0], c.c[1] - bx.min[1], bx.max[1] - c.c[1]))) : -Infinity; });
     return [
       holds('plates', parts.length === 2 && parts.every(b => b.length === 1), parts.map(b => b.length), 'two plates, one solid each'),
       holds('mated', !tree.problems.length && tree.joints.every(j => j.type === 'fixed') && insts.every(i => tree.joints.some(j => j.child === i.id)), { joints: tree.joints.map(j => [j.key, j.type]), problems: tree.problems.map(x => x.code) }, 'plate B fixed to plate A by its mates'),

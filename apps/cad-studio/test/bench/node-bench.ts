@@ -3,7 +3,7 @@
 // rows have a 1 ms floor), so noise passes and a real regression (a lost cache, a quadratic loop) fails. Run: pnpm bench (BENCH_JSON=1 for machine output).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { brepFromTriangles, convexHull, decimateMesh, meshDistance, diagnoseMesh, encodeBinaryStl, readStl, repairMesh, brepMassProperties, brepSurfaceArea, checkSpurGearPair, evaluateCadPart, exportStep, extrudeFaces, facetBoolean, facetBrepFromTriangles, splitFacetBrep, stepMeshes, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
+import { massPropertiesOf, brepFromTriangles, convexHull, decimateMesh, meshDistance, diagnoseMesh, encodeBinaryStl, readStl, repairMesh, brepMassProperties, brepSurfaceArea, checkSpurGearPair, evaluateCadPart, exportStep, extrudeFaces, facetBoolean, facetBrepFromTriangles, splitFacetBrep, stepMeshes, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
 import { boxCage } from '@barocss/cad-model/app/primitives';
 import { organicTorus } from './mesh-fixtures';
 import { evaluateDoc, shareMeshes } from '@barocss/cad-model/engine/evaluate';
@@ -16,13 +16,14 @@ import { directDisplay, emptyDirect, importSource, movePole } from '@barocss/cad
 import { projectViews } from '@barocss/cad-model/drawing/project';
 import { layoutSheet } from '@barocss/cad-model/drawing/views';
 import { buildSheet } from '@barocss/cad-model/drawing/sheet';
-import { sheetDxf } from '@barocss/cad-model/drawing/dxf';
+import { sheetDxf } from '@barocss/cad-model/io/dxf';
 import { autoDimensions } from '@barocss/cad-model/drawing/auto';
 import { drawingIssues } from '@barocss/cad-model/drawing/issues';
 import { autoLayout } from '@barocss/cad-model/drawing/layout';
 import { toleranceSuggestions } from '@barocss/cad-model/drawing/tolerance';
 import { defaultDrawing } from '@barocss/cad-model/drawing/types';
-import { checkSpec, type Requirement } from '@barocss/cad-model/chat/spec';
+import { checkSpec } from '@barocss/cad-model/chat/spec';
+import type { Requirement } from '@barocss/cad-model/engine/schema/spec';
 import { parse as parseScript } from '@barocss/cad-model/chat/script';
 import { jointTreeOf } from '@barocss/cad-model/robot/joints';
 import { forwardKinematics } from '@barocss/cad-model/robot/fk';
@@ -37,8 +38,8 @@ import { exportMjcf } from '@barocss/cad-model/robot/mjcf';
 import { readMjcf } from '@barocss/cad-model/robot/mjcfCheck';
 import { sweepLinks, sweepPath } from '@barocss/cad-model/robot/sweep';
 import { placeBody } from '@barocss/cad-model/engine/evaluate';
-import { rotationMatrix } from '@barocss/cad-model/assembly/mates';
-import { solveDoc } from '@barocss/cad-model/chat/assembly';
+import { rotationMatrix } from '@barocss/cad-model/engine/placement';
+import { solveDoc } from '@barocss/cad-model/assembly/edit';
 import { tablesFor } from '@barocss/cad-model/assembly/faces';
 import { dispatchTool } from '@barocss/cad-model/chat/tools';
 import { withLook } from '@barocss/cad-model/app/bodies';
@@ -98,7 +99,7 @@ function torusMesh(R: number, r: number, n: number, m: number): { positions: num
   return { positions: P, indices: I };
 }
 const commandCtx: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
-const GEAR1 = { moduleMM: 2, teeth: 20, faceWidthMM: 10 }, GEAR2 = { moduleMM: 2, teeth: 40, faceWidthMM: 10 };
+const GEAR1 = { module: 2, teeth: 20, faceWidth: 10 }, GEAR2 = { module: 2, teeth: 40, faceWidth: 10 };
 let uuidSeq = 0;
 const benchUuid = () => `00000000-0000-4000-8000-${(++uuidSeq).toString(16).padStart(12, '0')}`;
 /** R11b (O1), 2026-10-19: about twice the first measurement. */
@@ -158,7 +159,7 @@ const scenarios: Scenario[] = [
     for (let k = 0; k < 6; k++) f.push({ id: `s${k}`, kind: 'sketch', profile: 'circle', center: [5, 5], radius: 5 - k * 0.6 }, { id: `e${k}`, kind: 'extrude', sketch: `s${k}`, height: 2, ...(k ? { from: 2 * k } : {}) });
     for (let k = 1; k < 6; k++) f.push({ id: `u${k}`, kind: 'union', target: k === 1 ? 'e0' : `u${k - 1}`, tool: `e${k}` });
     let r = 30;
-    return () => evaluateCadPart(D([...f, { id: 'p', kind: 'circular-pattern', target: 'u5', axis: 'z', angleDegrees: 30, count: 12, pivot: [r += 1e-3, 5, 0] }]));
+    return () => evaluateCadPart(D([...f, { id: 'p', kind: 'circular-pattern', target: 'u5', axis: 'z', angle: 30, count: 12, pivot: [r += 1e-3, 5, 0] }]));
   } },
   { name: 'drawing: 120-hole plate, 4 views (cold)', budgetMS: 2600, runs: 3, setup() {
     // (A fresh part each run: a drawing's tessellation is cached with its B-rep.)
@@ -337,12 +338,12 @@ const scenarios: Scenario[] = [
   // each run a B-rep of its own; the plate's curved holes and the SubD torus's B-spline faces both by quadrature.)
   { name: 'mass: 16-hole plate', budgetMS: 650, runs: 3, setup() {
     const outs = Array.from({ length: 4 }, (_, k) => evaluateCadPart(toPartDocument(holePlate(100 + 3e-3 * (k + 1)))).outputs[0]);
-    let k = 0; return () => outs[k++ % outs.length].massProperties(2700);
+    let k = 0; return () => massPropertiesOf(outs[k++ % outs.length], 2.7);
   } },
   { name: 'mass: SubD torus, 2,048 quads', budgetMS: 70, runs: 3, setup() {
     const cmd = commands.find(c => c.id === 'subd-torus')!;
     const outs = Array.from({ length: 4 }, (_, k) => evaluateCadPart(toPartDocument(cmd.build!(commandCtx, { ...cmd.defaults!(commandCtx), R: 20, r: 6, nu: 64, nv: 32, x: 1e-3 * k, y: 0, z: 0 }))).outputs[0]);
-    let k = 0; return () => outs[k++ % outs.length].massProperties(2700);
+    let k = 0; return () => massPropertiesOf(outs[k++ % outs.length], 2.7);
   } },
   // (PERF3 B9: mesh bodies' mass and area, each run a B-rep of its own (they are kept per B-rep): facet faces, and the
   // planar representation an STL opens as, a face per triangle here. Before: 17 ms; and 355 ms mass, 651 ms area.)
@@ -356,8 +357,8 @@ const scenarios: Scenario[] = [
   } },
   // (Gears, R6a: the pair check keeps its last 64 answers by its arguments (not the face widths, PERF3 C16), so each run
   // a phase of its own, a billionth of a degree. The verdict on a clear pair, and the report on a pair that interferes.)
-  { name: 'gear: verdict, clear pair (m2, 20/40)', budgetMS: 300, runs: 3, setup() { let k = 0; return () => checkSpurGearPair(GEAR1, GEAR2, { mode: 'verdict', relativePhaseDeg: 1e-9 * ++k }); } },
-  { name: 'gear: report, interfering pair (a 59.8)', budgetMS: 2400, runs: 2, setup() { let k = 0; return () => checkSpurGearPair(GEAR1, GEAR2, { centerDistanceMM: 59.8, mode: 'report', relativePhaseDeg: 1e-9 * ++k }); } },
+  { name: 'gear: verdict, clear pair (m2, 20/40)', budgetMS: 300, runs: 3, setup() { let k = 0; return () => checkSpurGearPair(GEAR1, GEAR2, { mode: 'verdict', relativePhase: 1e-9 * ++k }); } },
+  { name: 'gear: report, interfering pair (a 59.8)', budgetMS: 2400, runs: 2, setup() { let k = 0; return () => checkSpurGearPair(GEAR1, GEAR2, { centerDistance: 59.8, mode: 'report', relativePhase: 1e-9 * ++k }); } },
   // (LIB2: every declared fit of the T-slot library built, placed and its overlap measured.)
   { name: 'library: tslot-20 fits (all)', budgetMS: 250, runs: 3, setup() { const lib = libraryById('tslot-20')!; return () => checkFits(lib); } },
   // (A tessellated STEP of 200k triangles read as the studio's worker reads it; F1 split and F2 hole on facet bodies,

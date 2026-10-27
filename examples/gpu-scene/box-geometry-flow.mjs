@@ -23,7 +23,7 @@ const bundled = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].i
   format: 'esm', platform: 'node', target: 'node22', outfile: ordinary, metafile: true });
 const graph = Object.keys(bundled.metafile.inputs);
 for (const name of ['box-geometry.ts', 'box-geometry-build-internal.ts', 'triangle-geometry.ts', 'engine-scene.ts'])
-  assert(graph.some(path => path.endsWith('/src/' + name)), 'Actual public source dependency ' + name);
+  assert(graph.some(path => (path.includes('/src/') && path.endsWith('/' + name))), 'Actual public source dependency ' + name);
 assert(!graph.some(path => /barocss-(gpu|cad)\/dist\//.test(path)), 'No own emitted fallback in ordinary source');
 const providers = [['ordinary-source', await import(pathToFileURL(ordinary).href)],
   ['emitted-public', await import(pathToFileURL(resolve(pkg, published.import)).href)]];
@@ -31,7 +31,7 @@ assert.deepEqual(Object.keys(providers[0][1]).sort(), Object.keys(providers[1][1
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['prepareBoxGeometry', 'BoxGeometrySourceV0', 'PreparedBoxGeometry'])
   assert(new RegExp('\\b' + name + '\\b').test(declaration), 'Actual public declaration ' + name);
-const leafDeclaration = await readFile(resolve(pkg, 'dist/box-geometry.d.ts'), 'utf8');
+const leafDeclaration = await readFile(resolve(pkg, 'dist/geometry/box-geometry.d.ts'), 'utf8');
 assert(/prepareBoxGeometry\(input:\s*unknown\):\s*PreparedBoxGeometry/.test(leafDeclaration));
 assert(/sizeXYZ:\s*\[number, number, number\]/.test(leafDeclaration));
 
@@ -168,7 +168,7 @@ try {
     const nullResult = gpu.prepareBoxGeometry(nullableRoot); assert.deepEqual(nullResult.source.sizeXYZ, [2, 4, 6]); accepted++;
 
     const sceneInput = { format: 'barocss-gpu-engine-scene', version: 0, id: 'two_box_instances', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
-      background: [.02, .04, .06], camera: { eye: [9, 8, 16], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: .1, far: 100 },
+      background: [.02, .04, .06], camera: { eye: [9, 8, 16], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: .1, far: 100 },
       geometries: [first.prepared.geometry], materials: [{ id: 'box_material', type: 'unlit', colorSpace: 'linear', color: [.25, .5, .75] }],
       nodes: [
         { id: 'left_box', type: 'mesh', parentId: null, geometryId: 'box_authored', materialId: 'box_material', translation: [-5, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true },

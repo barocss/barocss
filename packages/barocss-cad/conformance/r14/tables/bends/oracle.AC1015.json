@@ -253,6 +253,23 @@
     "type": "TEXT"
    },
    {
+    "alignAt": [
+     285.0,
+     34.0
+    ],
+    "at": [
+     285.0,
+     34.0
+    ],
+    "halign": 2,
+    "height": 1.8,
+    "layer": "TEXT",
+    "rotationDeg": 0,
+    "style": "BC_TEXT",
+    "text": "SRC 0c6f828ede0d236f",
+    "type": "TEXT"
+   },
+   {
     "at": [
      169.0,
      24.0

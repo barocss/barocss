@@ -1,0 +1,180 @@
+{
+  "id": "fuzz-20261023-46",
+  "about": "L4 fuzz case (seed 20261023, case 46), shrunk: three (a cylinder ∪ a box) in a row — refused before D206 (the plane's cross-section past a cylinder face's seam was never probed).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3
+        },
+        {
+          "id": "n2b",
+          "kind": "extrude",
+          "sketch": "n2s",
+          "height": 6
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2b",
+          "offset": [
+            -2,
+            0,
+            -3
+          ]
+        },
+        {
+          "id": "n3s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            3,
+            4
+          ]
+        },
+        {
+          "id": "n3b",
+          "kind": "extrude",
+          "sketch": "n3s",
+          "height": 6
+        },
+        {
+          "id": "n3r0",
+          "kind": "rotate",
+          "target": "n3b",
+          "axis": "z",
+          "angle": 90,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n3r1",
+          "kind": "rotate",
+          "target": "n3r0",
+          "axis": "x",
+          "angle": 90,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n3",
+          "kind": "translate",
+          "target": "n3r1",
+          "offset": [
+            -3,
+            -1,
+            -2
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "union",
+          "target": "n2",
+          "tool": "n3"
+        },
+        {
+          "id": "n0",
+          "kind": "linear-pattern",
+          "target": "n1",
+          "axis": "x",
+          "spacing": 4,
+          "count": 3
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 601.816864013672,
+          "relTol": 0.00015853693155101948,
+          "absTol": 0.09541019897638471
+        },
+        "centroid": {
+          "value": [
+            1.0627712151174253,
+            -1.2842091157674809,
+            -0.13892981534035803
+          ],
+          "absTol": 0.0016
+        },
+        "bodies": 1
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 512² lattice at 8 shifts, e 4.77e-2 mm³, centroid e 3.19e-4 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 46,
+    "status": "REFUSED",
+    "tree": {
+      "pattern": {
+        "kind": "linear",
+        "axis": "x",
+        "spacing": 4,
+        "count": 3
+      },
+      "child": {
+        "op": "union",
+        "a": {
+          "leaf": {
+            "kind": "cyl",
+            "r": 3,
+            "h": 6,
+            "rot": [],
+            "move": [
+              -2,
+              0,
+              -3
+            ]
+          }
+        },
+        "b": {
+          "leaf": {
+            "kind": "box",
+            "w": 3,
+            "d": 4,
+            "h": 6,
+            "rot": [
+              {
+                "axis": "z",
+                "deg": 90
+              },
+              {
+                "axis": "x",
+                "deg": 90
+              }
+            ],
+            "move": [
+              -3,
+              -1,
+              -2
+            ]
+          }
+        }
+      }
+    }
+  }
+}

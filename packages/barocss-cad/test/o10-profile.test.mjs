@@ -1,0 +1,44 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { evaluateCadPart, massPropertiesOf, reevaluate } from '../dist/index.js';
+import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
+
+// O10 (D228): evaluateCadPart's `profile` option — each feature's own wall time and its kernel calls, counted at the part
+// model's entry points; off by default, and the same bodies either way.
+const leaf = (kind, dims, move) => ({ leaf: { kind, ...dims, rot: [], move } });
+const tree = { op: 'difference', a: { op: 'union', a: leaf('box', { w: 4, d: 3, h: 2 }, [0, 0, 0]), b: leaf('rbox', { w: 2, d: 2, h: 3, r: 0.4 }, [3, 1, 0]) }, b: leaf('cyl', { r: 0.8, h: 6 }, [1, 1.5, -1]) };
+
+test('O10: profile gives every feature its wall time and kernel calls; without it there is none; the bodies are the same (D228)', () => {
+  const { document, root } = documentOf(tree);
+  const plain = evaluateCadPart(document), timed = evaluateCadPart(document, undefined, { profile: true });
+  assert.equal(plain.profile, undefined);
+  const p = timed.profile;
+  assert.ok(Object.isFrozen(p));
+  assert.deepEqual(Object.keys(p).sort(), document.features.map(f => f.id).sort());
+  for (const [id, e] of Object.entries(p)) {
+    assert.ok(Number.isFinite(e.wallTime) && e.wallTime >= 0, `${id} wallTime seconds`);
+    assert.ok(Object.isFrozen(e.calls) && Object.values(e.calls).every(n => Number.isInteger(n) && n >= 0), `${id} calls`);
+  }
+  const kind = id => document.features.find(f => f.id === id).kind, of = k => Object.entries(p).filter(([id]) => kind(id) === k).map(([, e]) => e.calls);
+  assert.ok(of('union').every(c => c.booleans >= 1) && of('difference').every(c => c.booleans >= 1), 'Booleans counted');
+  assert.ok(of('fillet').every(c => c.finishes >= 1), 'finishes counted');
+  assert.ok(of('sketch').every(c => Object.values(c).every(n => n === 0)), 'a sketch calls nothing');
+  // The same body, bit for bit.
+  const a = massPropertiesOf(plain.outputs.find(o => o.id === root)), b = massPropertiesOf(timed.outputs.find(o => o.id === root));
+  assert.equal(b.volume, a.volume); assert.deepEqual(b.centroid, a.centroid);
+  // Kept through a re-evaluation, reused features included.
+  const again = reevaluate(timed, { document: document });
+  assert.deepEqual(Object.keys(again.profile).sort(), Object.keys(p).sort());
+});
+
+test('R7 profile wallTime is seconds from the unchanged two clock samples', t => {
+  let next = 1000;
+  const clock = t.mock.method(performance, 'now', () => { const value = next; next += 250; return value; });
+  const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }] };
+  const result = evaluateCadPart(doc, undefined, { profile: true });
+  assert.equal(clock.mock.callCount(), 2);
+  assert.equal(result.profile.s.wallTime, 0.25);
+  assert.equal(Object.hasOwn(result.profile.s, 'ms'), false);
+  assert.deepEqual(Object.keys(result.profile.s), ['wallTime', 'calls']);
+  assert.equal(JSON.parse(JSON.stringify(result.profile)).s.wallTime, 0.25);
+});

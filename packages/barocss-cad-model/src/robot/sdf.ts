@@ -11,7 +11,7 @@
 import { encodeBinaryStl } from '@barocss/cad';
 import type { JointTree } from './joints';
 import type { Mat3, V3 } from './inertia';
-import { esc, namer, num, nums, robotParts, rpyOf, type UrdfFile, type UrdfPart, type UrdfRefusal } from './urdf';
+import { esc, frameExportNames, namer, num, nums, robotParts, rpyOf, type UrdfFile, type UrdfPart, type UrdfRefusal } from './urdf';
 import type { MjcfClosure } from './mjcf';
 
 export const SDF_EXPORT_VERSION = 'barocss-sdf-v1';
@@ -29,6 +29,8 @@ export function exportSdf(tree: JointTree, partOf: (part: string) => UrdfPart | 
   const linkName = namer(), jointName = namer(), names = { links: {} as Record<string, string>, joints: {} as Record<string, string> };
   for (const l of tree.links) names.links[l.id] = linkName(l.id);
   for (const j of tree.joints) names.joints[j.key] = jointName(j.key);
+  const frameNames = frameExportNames(parts.frames, linkName, jointName);
+  if (!(frameNames instanceof Map)) return { ok: false, refusals: [frameNames] };
   const files: UrdfFile[] = [], out: string[] = [];
   out.push('<?xml version="1.0"?>', `<!-- ${SDF_EXPORT_VERSION}: barocss CAD Studio. SI units; each link's frame at its joint, Z on the axis; joint values 0 at the pose the mates solve to. -->`,
     '<sdf version="1.11">', `  <model name="${esc(modelName.replace(/[^A-Za-z0-9_-]/g, '_') || 'robot')}">`);
@@ -62,6 +64,13 @@ export function exportSdf(tree: JointTree, partOf: (part: string) => UrdfPart | 
   for (const c of closures) {
     const F = world.get(c.b)!, at = ap(tr(F.R), [c.point[0] - F.o[0], c.point[1] - F.o[1], c.point[2] - F.o[2]]).map(v => v / 1000);
     out.push(`    <joint name="loop_${names.links[c.a]}_${names.links[c.b]}" type="ball">`, `      <parent>${names.links[c.a]}</parent>`, `      <child>${names.links[c.b]}</child>`, `      <pose>${nums(at)} 0 0 0</pose>`, '    </joint>');
+  }
+  // (O12: each frame a link with the dummy links' tiny inertial — an SDF link without one weighs 1 kg — fixed to its link.)
+  for (const f of parts.frames) {
+    const n = frameNames.get(f.name)!;
+    out.push(`    <link name="${n.link}">`, `      <pose relative_to="__model__">${nums(f.world.o.map(v => v / 1000))} ${nums(rpyOf(f.world.R))}</pose>`,
+      '      <inertial>', '        <mass>1e-9</mass>', '        <inertia><ixx>1e-15</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-15</iyy><iyz>0</iyz><izz>1e-15</izz></inertia>', '      </inertial>', '    </link>',
+      `    <joint name="${n.joint}" type="fixed">`, `      <parent>${names.links[f.link]}</parent>`, `      <child>${n.link}</child>`, '      <pose>0 0 0 0 0 0</pose>', '    </joint>');
   }
   out.push('  </model>', '</sdf>', '');
   return { ok: true, sdf: out.join('\n'), files, names, notes, frames: world };

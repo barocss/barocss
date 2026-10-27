@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { closestPointOnSurface, surfaceSeedGrid, closestPointOnTriangle, pointTriangleDistance2, evaluateCadPart, surfaceEvaluator } from '../dist/index.js';
+import { closestPointOnSurface, surfaceSeedGrid, closestPointOnTriangle, pointTriangleDistance2, evaluateCadPart, surfaceEvaluator, outputOf } from '../dist/index.js';
 
 // K4 (D143): the nearest point of a NURBS surface, and of a triangle. Oracles, none of them the kernel's: closed-form
 // feet on exact surfaces the part model builds (a cylinder, a sphere, a torus: the radial foot), a plane patch's
@@ -17,7 +17,7 @@ const nearestOf = (faces, p) => faces.map(s => closestPointOnSurface(s, p, { gri
 test('K4 surfaces: a cylinder, a sphere and a torus (the radial foot in closed form), on and off them, the unit normal radial', () => {
   const r = rng(21);
   // A cylinder R 10, 0 ≤ z ≤ 30 (a circle extruded): its side's foot (R p_xy/|p_xy|, z), the distance ||p_xy| − R|.
-  const cyl = curved(run([{ id: 'c', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10 }, { id: 'e', kind: 'extrude', sketch: 'c', height: 30 }]).output('e').brep);
+  const cyl = curved(outputOf(run([{ id: 'c', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10 }, { id: 'e', kind: 'extrude', sketch: 'c', height: 30 }]), 'e').brep);
   for (let k = 0; k < 200; k++) {
     const a = 2 * Math.PI * r(), rr = 10 * (0.3 + 2 * r()), z = 1 + 28 * r(), p = [rr * Math.cos(a), rr * Math.sin(a), z], f = nearestOf(cyl, p);
     assert.ok(Math.abs(f.distance - Math.abs(rr - 10)) <= 1e-9, `cylinder ${k}: ${f.distance} vs ${Math.abs(rr - 10)}`);
@@ -29,13 +29,13 @@ test('K4 surfaces: a cylinder, a sphere and a torus (the radial foot in closed f
   // Past the patch's end (z > 30): the foot on its top circle, the distance √((ρ − R)² + (z − 30)²).
   { const f = nearestOf(cyl, [13, 0, 34]); assert.ok(Math.abs(f.distance - 5) <= 1e-9 && Math.abs(f.point[2] - 30) <= 1e-12, `past the end ${f.distance}`); }
   // A sphere R 12 (a half disc revolved): the distance ||p| − R|.
-  const sph = curved(run([{ id: 'p', kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, -12] }, { kind: 'arc', start: [0, 12], center: [0, 0], direction: 'cw' }] }, { id: 's', kind: 'revolve', sketch: 'p', axis: { origin: [0, 0], direction: 'y' } }]).output('s').brep);
+  const sph = curved(outputOf(run([{ id: 'p', kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, -12] }, { kind: 'arc', start: [0, 12], center: [0, 0], direction: 'cw' }] }, { id: 's', kind: 'revolve', sketch: 'p', axis: { origin: [0, 0], direction: 'y' } }]), 's').brep);
   for (let k = 0; k < 150; k++) {
     const z = 2 * r() - 1, ph = 2 * Math.PI * r(), s = Math.sqrt(1 - z * z), rr = 12 * (0.2 + 2 * r()), p = [rr * s * Math.cos(ph), rr * s * Math.sin(ph), rr * z], f = nearestOf(sph, p);
     assert.ok(Math.abs(f.distance - Math.abs(rr - 12)) <= 1e-8, `sphere ${k}: ${f.distance} vs ${Math.abs(rr - 12)}`);
   }
   // A torus R 20, r 4 about Y: the distance |√((ρ − R)² + y²) − r|, ρ the distance from the axis.
-  const tor = curved(run([{ id: 'c', kind: 'sketch', profile: 'circle', center: [20, 0], radius: 4 }, { id: 't', kind: 'revolve', sketch: 'c', axis: { origin: [0, 0], direction: 'y' } }]).output('t').brep);
+  const tor = curved(outputOf(run([{ id: 'c', kind: 'sketch', profile: 'circle', center: [20, 0], radius: 4 }, { id: 't', kind: 'revolve', sketch: 'c', axis: { origin: [0, 0], direction: 'y' } }]), 't').brep);
   for (let k = 0; k < 150; k++) {
     const a = 2 * Math.PI * r(), b = 2 * Math.PI * r(), d = 4 * (0.1 + 1.6 * r()), rho = 20 + d * Math.cos(b), p = [rho * Math.cos(a), d * Math.sin(b), rho * Math.sin(a)], f = nearestOf(tor, p);
     assert.ok(Math.abs(f.distance - Math.abs(d - 4)) <= 1e-8, `torus ${k}: ${f.distance} vs ${Math.abs(d - 4)}`);

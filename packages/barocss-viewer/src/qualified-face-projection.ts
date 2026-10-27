@@ -13,26 +13,28 @@ export interface ViewerQualifiedFacePointProjection {
   occlusion: 'not-tested';
 }
 type Vec3 = [number, number, number];
+/** A vector only read (gpu's readonly Vec3 passes as one, R7.3c). */
+type ReadVec3 = readonly [number, number, number];
 function check(value: unknown, message: string): asserts value {
   if (!value) throw new RangeError('Qualified Face projection: ' + message);
 }
-function finiteVector(value: Vec3): Vec3 {
+function finiteVector<T extends ReadVec3>(value: T): T {
   check(value.every(Number.isFinite), 'camera or point intermediate is not finite');
   return value;
 }
-function subtract(a: Vec3, b: Vec3): Vec3 {
+function subtract(a: ReadVec3, b: ReadVec3): Vec3 {
   return finiteVector([a[0] - b[0], a[1] - b[1], a[2] - b[2]]);
 }
-function cross(a: Vec3, b: Vec3): Vec3 {
+function cross(a: ReadVec3, b: ReadVec3): Vec3 {
   return finiteVector([a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
     a[0] * b[1] - a[1] * b[0]]);
 }
-function unit(value: Vec3): Vec3 {
+function unit(value: ReadVec3): Vec3 {
   const length = Math.hypot(...finiteVector(value));
   check(Number.isFinite(length) && length > 0, 'camera basis is degenerate or not finite');
   return finiteVector(value.map(component => component / length) as Vec3);
 }
-function dot(a: Vec3, b: Vec3): number {
+function dot(a: ReadVec3, b: ReadVec3): number {
   const value = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
   check(Number.isFinite(value), 'camera projection dot product is not finite');
   return value;
@@ -51,14 +53,14 @@ export function projectViewerQualifiedFacePoint(scene: QualifiedFaceSceneV0, inp
   const camera = scene.camera;
   finiteVector(camera.eye); finiteVector(camera.target); finiteVector(camera.up);
   check(Number.isFinite(camera.near) && Number.isFinite(camera.far)
-    && camera.near > 0 && camera.far > camera.near && Number.isFinite(camera.fovYDegrees)
-    && camera.fovYDegrees > 0 && camera.fovYDegrees < 180, 'accepted camera clipping/FOV data are invalid');
+    && camera.near > 0 && camera.far > camera.near && Number.isFinite(camera.fovY)
+    && camera.fovY > 0 && camera.fovY < 180, 'accepted camera clipping/FOV data are invalid');
   const backward = unit(subtract(camera.eye, camera.target));
   const forward = backward.map(value => -value) as Vec3;
   const right = unit(cross(camera.up, backward)), up = cross(backward, right);
   const offset = subtract(point.pointScene, camera.eye), depthScene = dot(offset, forward);
   if (depthScene <= 0 || depthScene < camera.near || depthScene > camera.far) return null;
-  const tangent = Math.tan(camera.fovYDegrees * Math.PI / 360), aspect = backingWidth / backingHeight;
+  const tangent = Math.tan(camera.fovY * Math.PI / 360), aspect = backingWidth / backingHeight;
   const horizontal = depthScene * tangent * aspect, vertical = depthScene * tangent;
   check(Number.isFinite(tangent) && tangent > 0 && Number.isFinite(aspect) && aspect > 0
     && Number.isFinite(horizontal) && horizontal > 0 && Number.isFinite(vertical) && vertical > 0,

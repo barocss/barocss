@@ -18,9 +18,10 @@
 import type { BrepProjection, ProjectedEdge } from '@barocss/cad';
 import { fmtMM, pitchCircle, resolveDimension, roundIn, snapPoints, type SnapPoint } from './dimensions';
 import type { SheetLayout } from './views';
-import { isSectionRef, sectionLetter, type DimPoint, type DimView, type DrawingDimension, type DrawingSettings, type DrawingViews, type SectionRef, type ViewId, type XY } from './types';
+import { baseViewOf, isSectionRef, type DimPoint, type DimView, type DrawingDimension, type DrawingSettings, type DrawingViews, type SectionRef, type ViewId, type XY } from './types';
 import { placementOf, type SheetSection } from './sheet';
 import type { PartElement } from './elementCallouts';
+import { nextFreeId } from '../util/ids';
 
 export const AUTO_DIMENSIONS_VERSION = 'cad-studio-auto-dimensions-v1';
 
@@ -45,7 +46,7 @@ export interface AutoDimensionReport {
   kept: number;
   skipped: { view: ViewId; what: string; why: string }[];
   /** Sides of a view whose rows need more sheet room than there is at this scale and sheet (they overlap what is next to them). */
-  crowded: { view: DimView; side: 'above' | 'below' | 'left' | 'right'; neededMM: number; roomMM: number }[];
+  crowded: { view: DimView; side: 'above' | 'below' | 'left' | 'right'; needed: number; room: number }[];
   /** The sheet room (mm) each view side's dimensions take, from the view's edge (a view's name below not counted): what the layout gives room for (R14.3). */
   needs: Partial<Record<DimView, Record<'above' | 'below' | 'left' | 'right', number>>>;
 }
@@ -88,15 +89,15 @@ function keyPlans(views: DrawingViews, layout: SheetLayout, elements: readonly P
   const want: { what: string; a: (f: string[]) => boolean; b: (f: string[]) => boolean; mm: number; level: boolean }[] = [];
   for (const { id, element: e } of elements) {
     if (e.kind === 'shaft') for (const s of e.report.keyseats) {
-      const seat = `${id}.keyseat${s.index}`, step = e.report.steps[s.step - 1], d = step ? step.diameterMM : NaN;
-      want.push({ what: `keyseat ${s.index}'s width`, a: f => f.includes(seat), b: f => f.includes(seat), mm: s.widthMM, level: true });
+      const seat = `${id}.keyseat${s.index}`, step = e.report.steps[s.step - 1], d = step ? step.diameter : NaN;
+      want.push({ what: `keyseat ${s.index}'s width`, a: f => f.includes(seat), b: f => f.includes(seat), mm: s.width, level: true });
       // (Its floor: an edge between two of the seat's own faces; the far side: its step's silhouette.)
-      if (Number.isFinite(d)) want.push({ what: `d − t1 at keyseat ${s.index}`, a: f => f.length > 0 && f.every(x => x === seat), b: f => f.some(x => x === `${id}.seat${s.step}` || x.startsWith(`${id}.seat${s.step}.`)), mm: d - s.depthMM, level: false });
+      if (Number.isFinite(d)) want.push({ what: `d − t1 at keyseat ${s.index}`, a: f => f.length > 0 && f.every(x => x === seat), b: f => f.some(x => x === `${id}.seat${s.step}` || x.startsWith(`${id}.seat${s.step}.`)), mm: d - s.depth, level: false });
     }
     if (e.kind === 'keyway') {
       const way = `${id}.keyway`, bore = e.report.face;
-      want.push({ what: `keyway ${id}'s width`, a: f => f.includes(way), b: f => f.includes(way), mm: e.report.widthMM, level: true });
-      want.push({ what: `d + t2 at keyway ${id}`, a: f => f.includes(way) && !f.includes(bore), b: f => f.includes(bore) && !f.includes(way), mm: 2 * e.report.boreRadiusMM + e.report.depthMM, level: false });
+      want.push({ what: `keyway ${id}'s width`, a: f => f.includes(way), b: f => f.includes(way), mm: e.report.width, level: true });
+      want.push({ what: `d + t2 at keyway ${id}`, a: f => f.includes(way) && !f.includes(bore), b: f => f.includes(bore) && !f.includes(way), mm: 2 * e.report.boreRadius + e.report.depth, level: false });
     }
   }
   const out: Planned[] = [];
@@ -201,10 +202,16 @@ const dot3 = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] 
 export interface Mark { x: number; ref: DimPoint; hole: boolean }
 
 /** Straight visible edges across `k` (constant along it): their position and an end to measure from. */
+/**
+ * A frame member's bore (a tube's inside, `n<frame>.m<member>.bore…`): its wall is its section's, said in the cut list and
+ * the section's callout, so its edges are no levels to dimension a weldment by (O171, F8) — they crowded A9's frame drawing
+ * with a 3 and a 37 at every member end.
+ */
+const FRAME_BORE = /(?:^|\|)n\d+\.m\d+\.bore\b/;
 export function levels(pr: BrepProjection, k: 0 | 1): Mark[] {
   const out: Mark[] = [];
   for (const e of pr.edges) {
-    if (!e.ends || e.circle || (e.kind !== 'line' && e.kind !== 'silhouette') || !e.pieces.some(p => p.visible)) continue;
+    if (!e.ends || e.circle || (e.kind !== 'line' && e.kind !== 'silhouette') || !e.pieces.some(p => p.visible) || FRAME_BORE.test(e.name)) continue;
     const a = e.ends[0], b = e.ends[1], ax = a[0] * pr.right[0] + a[1] * pr.right[1] + a[2] * pr.right[2], ay = a[0] * pr.up[0] + a[1] * pr.up[1] + a[2] * pr.up[2];
     const bx = b[0] * pr.right[0] + b[1] * pr.right[1] + b[2] * pr.right[2], by = b[0] * pr.up[0] + b[1] * pr.up[1] + b[2] * pr.up[2];
     const pa = k === 0 ? ax : ay, pb = k === 0 ? bx : by, qa = k === 0 ? ay : ax, qb = k === 0 ? by : bx;
@@ -239,7 +246,7 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
   for (const p of keyPlans(views, layout, elements, report, sections)) (planned[p.dim.view] ??= []).push(p);
   // (A section's dimensions are read from its projection, as a view's are from the view's.)
   const dimViews: Partial<Record<DimView, BrepProjection>> = { ...views, ...Object.fromEntries(sections.map(x => [`section:${x.id}`, x.projection])) };
-  const base = (v: DimView): ViewId => isSectionRef(v) ? sections.find(x => x.id === sectionLetter(v))?.view ?? 'front' : v;
+  const base = (v: DimView): ViewId => baseViewOf(v, sections, settings.details);
   for (const id of ORTHO) {
     // (A view not shown (R14.3) gets nothing; a hole that shows round only there is the issue list's VIEW_NEEDED.)
     if (layout.views[id].hidden) continue;
@@ -312,7 +319,7 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
   // Placement: rows outward from the view on its freer side, inner rows the shorter.
   const out: DrawingDimension[] = [...manual], used = new Set(manual.map(d => d.id));
   const manualSpans = new Set(manual.map(m => spanKey(dimViews, m, base)).filter((k): k is string => !!k));
-  const nextId = () => { let n = 1; while (used.has(`d${n}`)) n++; used.add(`d${n}`); return `d${n}`; };
+  const nextId = () => { const id = nextFreeId('d', used); used.add(id); return id; };
   const onSections = sections.filter(x => layout.sections?.some(p => p.section === x.id)).map(x => `section:${x.id}` as SectionRef);
   for (const id of [...ORTHO.filter(o => !layout.views[o].hidden), ...onSections] as DimView[]) {
     if (!planned[id]?.length && isSectionRef(id)) continue;
@@ -343,7 +350,7 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
     need[vSide] = rowsOn(vRows - usedOpposite.v); need[opposite[vSide]] = rowsOn(usedOpposite.v);
     report.needs[id] = { ...need };
     need.below += need.below ? LABEL : 0;
-    for (const side of ['above', 'below', 'left', 'right'] as const) if (need[side] > free[side] + 1e-9) report.crowded.push({ view: id, side, neededMM: Math.round(need[side] * 10) / 10, roomMM: Math.round(free[side] * 10) / 10 });
+    for (const side of ['above', 'below', 'left', 'right'] as const) if (need[side] > free[side] + 1e-9) report.crowded.push({ view: id, side, needed: Math.round(need[side] * 10) / 10, room: Math.round(free[side] * 10) / 10 });
     leaders.sort((a, b) => a.span[0][0] - b.span[0][0]).forEach((p, k) => {
       const [x] = p.span[0], r = p.radius!, off = (CALLOUT_ROW + ROW * (k + usedOpposite.u)) / s;
       const place: XY = [x + (toRight ? 1 : -1) * (r + CALLOUT_RUN / s), down ? pr.min[1] - off : pr.max[1] + off];

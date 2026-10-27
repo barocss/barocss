@@ -1,0 +1,218 @@
+{
+  "id": "fuzz-20261023-56b",
+  "about": "L4 fuzz case (seed 20261023, case 56), shrunk: a box less (a cylinder tangent inside two of its sides \u222a a box) \u2014 the hole's wall touches the outer face y = 0 along a line, a zero wall: one lump touching itself, refused, typed (D205; before it, refused as \"edge \u2026 has 1 uses\").",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            8,
+            3
+          ]
+        },
+        {
+          "id": "n1b",
+          "kind": "extrude",
+          "sketch": "n1s",
+          "height": 8
+        },
+        {
+          "id": "n1r0",
+          "kind": "rotate",
+          "target": "n1b",
+          "axis": "y",
+          "angle": 180,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n1r1",
+          "kind": "rotate",
+          "target": "n1r0",
+          "axis": "x",
+          "angle": 180,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1r1",
+          "offset": [
+            0,
+            0,
+            -2
+          ]
+        },
+        {
+          "id": "n3s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 2
+        },
+        {
+          "id": "n3b",
+          "kind": "extrude",
+          "sketch": "n3s",
+          "height": 4
+        },
+        {
+          "id": "n3",
+          "kind": "translate",
+          "target": "n3b",
+          "offset": [
+            -2,
+            -2,
+            1
+          ]
+        },
+        {
+          "id": "n4s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            1,
+            5
+          ]
+        },
+        {
+          "id": "n4b",
+          "kind": "extrude",
+          "sketch": "n4s",
+          "height": 5
+        },
+        {
+          "id": "n4r0",
+          "kind": "rotate",
+          "target": "n4b",
+          "axis": "y",
+          "angle": 90,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n4",
+          "kind": "translate",
+          "target": "n4r0",
+          "offset": [
+            -1,
+            2,
+            -2
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "union",
+          "target": "n3",
+          "tool": "n4"
+        },
+        {
+          "id": "n0",
+          "kind": "difference",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "touches itself"
+    }
+  },
+  "fuzz": {
+    "seed": 20261023,
+    "k": 56,
+    "status": "REFUSED",
+    "tree": {
+      "op": "difference",
+      "a": {
+        "leaf": {
+          "kind": "box",
+          "w": 8,
+          "d": 3,
+          "h": 8,
+          "rot": [
+            {
+              "axis": "y",
+              "deg": 180
+            },
+            {
+              "axis": "x",
+              "deg": 180
+            }
+          ],
+          "move": [
+            0,
+            0,
+            -2
+          ]
+        }
+      },
+      "b": {
+        "op": "union",
+        "a": {
+          "leaf": {
+            "kind": "cyl",
+            "r": 2,
+            "h": 4,
+            "rot": [],
+            "move": [
+              -2,
+              -2,
+              1
+            ]
+          }
+        },
+        "b": {
+          "leaf": {
+            "kind": "box",
+            "w": 1,
+            "d": 5,
+            "h": 5,
+            "rot": [
+              {
+                "axis": "y",
+                "deg": 90
+              }
+            ],
+            "move": [
+              -1,
+              2,
+              -2
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -4,7 +4,7 @@ import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
 import { elementLines } from '../src/engine/elements';
-import { bomPanelDataOf, purchaseCsv } from '../src/team/bom';
+import { bomPanelDataOf, purchaseCsv } from '../src/bom/bom';
 import { checkBom } from '../src/team/assembly';
 import { weldList, weldListTable } from '../src/frames/welds';
 
@@ -29,7 +29,7 @@ test('FRk1 plates as elements and BOM lines: the gusset (5 thick, 5887.5 mm²) a
   assert.deepEqual(lines.map(l => [l.kind, l.size, l.bought]), [['gusset', 'plate 5 thick, legs 120 × 100, clipped 15', false], ['end-cap', 'plate 4 thick, over, 1600 mm²', false]]);
   const one = bomPanelDataOf(doc, d => evaluateDoc(d, 1), 'frame');
   const plates = one.bom.lines.filter(l => l.plate);
-  assert.deepEqual(plates.map(l => [l.item, l.qty, l.plate!.thicknessMM, l.plate!.areaMM2, l.plate!.volumeMM3]), [['gusset plate 5 mm', 1, 5, 5887.5, 29437.5], ['end-cap plate 4 mm', 1, 4, 1600, 6400]]);
+  assert.deepEqual(plates.map(l => [l.item, l.qty, l.plate!.thickness, l.plate!.area, l.plate!.volume]), [['gusset plate 5 mm', 1, 5, 5887.5, 29437.5], ['end-cap plate 4 mm', 1, 4, 1600, 6400]]);
   assert.equal(one.bom.plateQty, 2);
   assert.deepEqual(checkBom(one.view, one.bom), []);
   assert.ok(!one.made.some(m => m.kind === 'gusset' || m.kind === 'end-cap'), 'plates are not made elements as well');
@@ -47,7 +47,7 @@ test('FRk1 seams as weld joints: the gusset\'s on each member (105, 85), the cap
   const doc = part(), bodies = evaluated(doc).bodies, w = weldList(doc, bodies);
   const key = (node: number) => bodies.find(b => b.ref?.node === node && !b.cutPiece)!.key, m = bodies.filter(b => b.cutPiece).map(b => b.key);
   const plates = w.joints.filter(j => j.kind === 'gusset' || j.kind === 'cap');
-  assert.deepEqual(plates.map(j => [j.id, j.kind, j.seamMM, j.end, j.weld.kind, j.weld.sizeMM, j.weld.sizeBasis, j.seamBasis]), [
+  assert.deepEqual(plates.map(j => [j.id, j.kind, j.seamLength, j.end, j.weld.kind, j.weld.size, j.weld.sizeBasis, j.seamBasis]), [
     [`${key(1)}.${m[0]}`, 'gusset', 105, null, 'fillet', 3, 'estimate', 'exact'],
     [`${key(1)}.${m[1]}`, 'gusset', 85, null, 'fillet', 3, 'estimate', 'exact'],
     // (A cap sits flush with its member's outline: a corner weld by default, not a fillet — FRk2's rule.)

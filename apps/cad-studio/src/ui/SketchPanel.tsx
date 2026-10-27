@@ -5,6 +5,10 @@ import type { SketchAnchor, SketchShape, SketchState } from '../viewport/Viewpor
 import { arcOf, arcPairs, canBeTangent, inferredHV, radiusToBulge, samePair, type ArcPair, type P2, type SolveResult } from '@barocss/cad-model/sketch/profile';
 import { isSettled, redundancy, solveShape, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import { ConstraintTools } from './ConstraintTools';
+import { CONTROL, FIELD, NUM } from './panelStyles';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { NativeSelect } from '@/components/ui/native-select';
 
 type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
 const NONE: SketchPick[] = [];
@@ -12,22 +16,25 @@ const NONE: SketchPick[] = [];
 /**
  * Numbers drive the profile. Closed outlines are solved by the kernel's numerical sketch solver:
  * point 1 is anchored, drawn H/V edges stay H/V, typed lengths and radii become locked dimensions and
- * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`.
+ * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`. O16: the contents
+ * on shadcn (Input, NativeSelect, Button, FIELD); the shell (its title) and the chip toggles are the studio's.
  */
-export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, onUseOutline, onToCurves }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
+export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, onOffset, onUseOutline, onLinkedInset, onToCurves }: { sketch: SketchState; toolLabel: string; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
   /** Sets the picked outline entities or the dimension being edited in the viewport. */
   onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void;
   /** Offsets the newest closed shape by `d` mm (out when positive) as a shape beside it. */
   onOffset?(d: number): void;
   /** Adds the face's own outline and holes (as references when `asRefs`); absent when not sketching on a face as it is. */
   onUseOutline?(asRefs: boolean): void;
+  /** Replaces the empty sketch with the linked face outline and one inward inset. */
+  onLinkedInset?(insetMM: number): void;
   /** The sketch's lines, arcs and circles made curves (direct geometry), the sketch left. */
   onToCurves?(): void }) {
   const [offsetBy, setOffsetBy] = useState(2);
   const s = sketch.shape;
   const num = (id: string, label: string, value: number, set: (v: number) => void, min?: number) => (
-    <label className="field" key={id}><span>{label}</span>
-      <span className="num"><input id={'sk-' + id} type="number" step="any" min={min} value={round(value)}
+    <label className={FIELD} key={id}><span>{label}</span>
+      <span className={NUM}><Input id={'sk-' + id} type="number" step="any" min={min} value={round(value)}
         onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) set(v); }} /><em>mm</em></span></label>);
   const solved = useMemo(() => isSettled(s) ? solveShape(s) : null, [s]);
   const status = statusOf(s, solved);
@@ -57,24 +64,26 @@ export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, o
 
   return (
     <aside className="card props sk-panel" aria-label="Sketch">
-      <div className="card-title">SKETCH · {planeLabel(sketch.plane)}{sketch.base ? ' · on face' : ''}</div>
+      <div className="card-title">SKETCH · {toolLabel} · {planeLabel(sketch.plane)}{sketch.base ? ' · on face' : ''}</div>
+      {sketch.association && <p role="status">Linked face outline and inset. Geometry or plane edits detach this link.</p>}
+      {sketch.associationDetached && <p role="status">Link detached by a geometry or plane edit. This profile is now a snapshot.</p>}
       {onPlace && (() => {
         const anchor = sketch.anchor ?? { kind: 'xy' as const, offset: 0 };
         return <div className="sk-plane">
-          <label className="field"><span>Plane</span>
-            <select aria-label="Sketch plane" value={anchor.kind} onChange={e => onPlace(e.target.value as SketchAnchor['kind'], anchor.offset, anchor.angle)}>
+          <label className={FIELD}><span>Plane</span>
+            <NativeSelect className={CONTROL} aria-label="Sketch plane" value={anchor.kind} onChange={e => onPlace(e.target.value as SketchAnchor['kind'], anchor.offset, anchor.angle)}>
               {anchor.face && <option value="face">Selected face</option>}
               <option value="xy">XY (top)</option><option value="xz">XZ (front)</option><option value="yz">YZ (right)</option>
-            </select></label>
-          <label className="field"><span>Offset</span>
-            <span className="num"><input aria-label="Plane offset" type="number" step="any" value={round(anchor.offset)}
+            </NativeSelect></label>
+          <label className={FIELD}><span>Offset</span>
+            <span className={NUM}><Input aria-label="Plane offset" type="number" step="any" value={round(anchor.offset)}
               onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v) && Math.abs(v) <= 10000) onPlace(anchor.kind, v, anchor.angle); }} /><em>mm</em></span></label>
-          <label className="field"><span>Angle</span>
-            <span className="num"><input aria-label="Plane angle" type="number" step={5} min={-89} max={89} value={round(anchor.angle ?? 0)}
+          <label className={FIELD}><span>Angle</span>
+            <span className={NUM}><Input aria-label="Plane angle" type="number" step={5} min={-89} max={89} value={round(anchor.angle ?? 0)}
               onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v) && Math.abs(v) < 90) onPlace(anchor.kind, anchor.offset, v); }} /><em>°</em></span></label>
         </div>;
       })()}
-      {!s && <div className="empty">Pick a tool on the left and click on the plane. Points snap to 1 mm.</div>}
+      {!s && <div className="empty">Snap 1 mm</div>}
       {s && <div className={'sk-status' + (status.warn ? ' open' : '')} role="status"><i />{status.text}</div>}
       {error && <div className="sk-status open" role="alert"><i />{error}</div>}
       {s?.kind === 'rectangle' && (() => {
@@ -92,26 +101,27 @@ export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, o
           b: [round(a[0] + len * Math.cos(deg * Math.PI / 180)), round(a[1] + len * Math.sin(deg * Math.PI / 180))] });
         return <>{num('slot-x', 'Centre X', s.a[0], v => put([v, s.a[1]], l, angle, s.r))}{num('slot-y', 'Centre Y', s.a[1], v => put([s.a[0], v], l, angle, s.r))}
           {num('slot-length', 'Length', l, v => put(s.a, Math.max(0.5, v), angle, s.r), 0.5)}
-          <label className="field"><span>Angle</span><span className="num"><input id="sk-slot-angle" type="number" step="any" value={round(angle)}
+          <label className={FIELD}><span>Angle</span><span className={NUM}><Input id="sk-slot-angle" type="number" step="any" value={round(angle)}
             onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) put(s.a, l, v, s.r); }} /><em>°</em></span></label>
           {num('slot-width', 'Width', s.r * 2, v => put(s.a, l, angle, Math.max(0.25, v / 2)), 0.5)}</>;
       })()}
-      {s?.kind === 'polygon' && <div className="pts pts-4" role="group" aria-label="Outline points">
+      {s?.kind === 'polygon' && <div className="pts pts-4" role="group" aria-label="Outline points" style={{ gridTemplateColumns: '18px minmax(0, 1fr) minmax(0, 1fr) minmax(112px, 1.1fr)' }}>
         <span /><span>X</span><span>Y</span><span>Edge</span>
         {s.points.map((p, i) => {
           const n = s.points.length, b = s.bulges?.[i] ?? 0, hasEdge = s.closed || i < n - 1;
           const q = s.points[(i + 1) % n], edge = b ? arcOf(p as P2, q as P2, b).radius : Math.hypot(q[0] - p[0], q[1] - p[1]);
-          const locked = (b ? s.radii?.[i] : s.lengths?.[i]) !== undefined;
+          const driving = b ? s.radii?.[i] : s.lengths?.[i];
+          const locked = driving !== undefined;
           return [
             <span key={'n' + i}>{i + 1}</span>,
-            ...[0, 1].map(k => <input key={i + '_' + k} type="number" step="any" aria-label={`Point ${i + 1} ${'XY'[k]}`} value={round(p[k])}
+            ...[0, 1].map(k => <Input key={i + '_' + k} type="number" step="any" aria-label={`Point ${i + 1} ${'XY'[k]}`} value={round(p[k])}
               onChange={e => {
                 const v = Number(e.target.value); if (!Number.isFinite(v)) return;
                 const lengths = { ...(s.lengths ?? {}) }; delete lengths[i]; delete lengths[(i - 1 + n) % n];
                 onShape({ ...s, points: movePoint(s.points, i, k, v, s.closed), lengths });
               }} />),
             hasEdge ? <span key={'e' + i} className="edge-cell">{b ? <em>R</em> : null}
-              <input id={'sk-' + (b ? 'rad' : 'len') + i} type="number" step="any" min={0.5} className={locked ? 'locked' : ''} value={round(edge)}
+              <Input id={'sk-' + (b ? 'rad' : 'len') + i} type="number" step="any" min={0.5} className={locked ? 'locked' : ''} value={driving ?? round(edge)}
                 aria-label={b ? `Arc ${i + 1} radius` : `Edge ${i + 1} length`}
                 title={locked ? `Locked ${b ? 'radius' : 'length'} · clear to unlock` : `Type a ${b ? 'radius' : 'length'} (or press Enter) to lock it`}
                 onKeyDown={e => {
@@ -157,21 +167,22 @@ export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, o
       {onUseOutline && <>
         <div className="card-title" style={{ marginTop: 10 }}>FACE</div>
         <div className="sk-offset">
-          <button className="ghost" aria-label="Use the face outline" data-tip="Use its outline" data-tip-desc="The face's edges (outline and holes) as shapes of this sketch" onClick={() => onUseOutline(false)}>Use its outline</button>
-          <button className="ghost" aria-label="Face outline as references" data-tip="As references" data-tip-desc="The face's edges as construction shapes: snapped to, not part of the profile" onClick={() => onUseOutline(true)}>As references</button>
+          <Button variant="ghost" aria-label="Use the face outline" data-tip="Use its outline" data-tip-desc="The face's edges (outline and holes) as shapes of this sketch" onClick={() => onUseOutline(false)}>Use its outline</Button>
+          <Button variant="ghost" aria-label="Face outline as references" data-tip="As references" data-tip-desc="The face's edges as construction shapes: snapped to, not part of the profile" onClick={() => onUseOutline(true)}>As references</Button>
         </div>
       </>}
+      {onLinkedInset && <><Button type="button" variant="ghost" onClick={() => onLinkedInset(offsetBy)}>Link face outline + inset</Button><p>Uses Offset distance below as the inward inset (mm).</p></>}
       {onOffset && <>
         <div className="card-title" style={{ marginTop: 10 }}>OFFSET</div>
         <div className="sk-offset">
-          <span className="num"><input aria-label="Offset distance" type="number" step="any" min={0.1} value={offsetBy} onChange={e => setOffsetBy(Number(e.target.value))} /><em>mm</em></span>
-          <button className="ghost" aria-label="Offset outward" data-tip="Offset out" data-tip-desc="A copy of the newest closed shape this far outside it (the ring between them is the profile)" onClick={() => onOffset(Math.abs(offsetBy))}>Out</button>
-          <button className="ghost" aria-label="Offset inward" data-tip="Offset in" data-tip-desc="A copy of the newest closed shape this far inside it (a wall)" onClick={() => onOffset(-Math.abs(offsetBy))}>In</button>
+          <span className="num"><Input aria-label="Offset distance" type="number" step="any" min={0.1} value={offsetBy} onChange={e => setOffsetBy(Number(e.target.value))} /><em>mm</em></span>
+          <Button variant="ghost" aria-label="Offset outward" data-tip="Offset out" data-tip-desc="A copy of the newest closed shape this far outside it (the ring between them is the profile)" onClick={() => onOffset(Math.abs(offsetBy))}>Out</Button>
+          <Button variant="ghost" aria-label="Offset inward" data-tip="Offset in" data-tip-desc="A copy of the newest closed shape this far inside it (a wall)" onClick={() => onOffset(-Math.abs(offsetBy))}>In</Button>
         </div>
       </>}
       {onToCurves && <>
         <div className="card-title" style={{ marginTop: 10 }}>CURVES</div>
-        <button className="ghost" aria-label="Make curves" data-tip="Make curves" data-tip-desc="Each shape of the sketch as a curve in space (for lofts, sweeps and ruled surfaces); the sketch is left" onClick={onToCurves}>Make curves of the sketch</button>
+        <Button variant="ghost" aria-label="Make curves" data-tip="Make curves" data-tip-desc="Each shape of the sketch as a curve in space (for lofts, sweeps and ruled surfaces); the sketch is left" onClick={onToCurves}>Make curves of the sketch</Button>
       </>}
     </aside>
   );

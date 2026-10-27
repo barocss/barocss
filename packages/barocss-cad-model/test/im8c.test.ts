@@ -5,8 +5,9 @@ import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { withLook } from '../src/app/bodies';
 import { printability } from '../src/print/rules';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { processProfile } from '../src/library/materials';
 import { solidification } from '../src/casting/solidification';
+import { withSampleRows } from './person-file';
+import { castingProfileOf } from '../src/engine/castingRuleRows';
 
 // IM8c (O109): hot spots and feeding, against closed forms — a plate's one hot spot on its mid-plane, r = t/2; IM8 S0's
 // L junction (walls t = 4), one hot spot of r = t(2 − √2) on the corner's bisector, isolated from a gate at a leg's end
@@ -23,7 +24,8 @@ async function build(calls: [string, Record<string, unknown>][]): Promise<Studio
   return s.doc;
 }
 const cast = (doc: StudioDoc, gate?: [number, number, number], process = 'sand-casting', material = 'a356'): StudioDoc => {
-  const d: StudioDoc = { ...doc, process, mould: { version: 1, pull: [0, 0, 1] }, ...(gate ? { casting: { version: 1, gate } } : {}) };
+  // (O7c: the casting rules are the sample rows, loaded as the person loads them.)
+  const d: StudioDoc = withSampleRows({ ...doc, process, mould: { version: 1, pull: [0, 0, 1] }, ...(gate ? { casting: { version: 1, gate } } : {}) }, 'casting-rules');
   return withLook(d, bodiesOf(d)[0], { material });
 };
 const rules = async (d: StudioDoc) => { const r = await printability(d, bodiesOf(d), evaluate); return Object.fromEntries(r.rules.map(x => [x.id, x])); };
@@ -36,8 +38,17 @@ test('IM8c a plate 100 × 60 × 10: one hot spot on its mid-plane, r = 5 (within
   const s = solidification(bodiesOf(plate), [50, 30, 10]);
   assert.equal(s.hotSpots.length, 1, JSON.stringify(s.hotSpots));
   const hs = s.hotSpots[0];
-  assert.ok(Math.abs(hs.radiusMM - 5) <= s.grid.h / 2 && Math.abs(hs.at[2] - 5) <= s.grid.h && hs.shape === 'sheet' && Math.abs(hs.modulusMM - hs.radiusMM) <= 1e-3, JSON.stringify(hs));
+  assert.ok(Math.abs(hs.radius - 5) <= s.grid.h / 2 && Math.abs(hs.at[2] - 5) <= s.grid.h && hs.shape === 'sheet' && Math.abs(hs.modulus - hs.radius) <= 1e-3, JSON.stringify(hs));
   assert.equal(hs.fed, true);
+  const publicSolidification = JSON.parse(JSON.stringify(s)) as typeof s;
+  assert.deepEqual(publicSolidification, s);
+  assert.equal(Object.hasOwn(publicSolidification, 'maxRadius'), true);
+  assert.equal(Object.hasOwn(publicSolidification, 'maxRadiusMM'), false);
+  assert.ok(Math.abs(publicSolidification.maxRadius - 5) <= s.grid.h / 2);
+  for (const spot of publicSolidification.hotSpots) {
+    assert.equal(Object.hasOwn(spot, 'modulus'), true); assert.equal(Object.hasOwn(spot, 'modulusMM'), false);
+    assert.equal(Object.hasOwn(spot, 'modulusRange'), true); assert.equal(Object.hasOwn(spot, 'modulusRangeMM'), false);
+  }
   const r = await rules(cast(plate, [50, 30, 10]));
   assert.deepEqual([r['hot-spots'].status, r.feeding.status, r['section-change'].status], ['pass', 'pass', 'pass']);
   assert.ok(Math.abs(r['section-change'].value! - 1) <= 0.15, String(r['section-change'].value));
@@ -48,7 +59,7 @@ test('IM8c the L junction (walls 4): one hot spot r = t(2 − √2) = 2.343 on t
   const far = solidification(bodies, [60, 15, T / 2], { h }), near = solidification(bodies, [0, 15, R_L], { h });
   assert.equal(far.hotSpots.length, 1, JSON.stringify(far.hotSpots));
   const hs = far.hotSpots[0];
-  assert.ok(Math.abs(hs.radiusMM - R_L) <= h / 2, `r ${hs.radiusMM} vs ${R_L}`);
+  assert.ok(Math.abs(hs.radius - R_L) <= h / 2, `r ${hs.radius} vs ${R_L}`);
   assert.ok(Math.abs(hs.at[0] - hs.at[2]) <= h && Math.abs(hs.at[0] - R_L) <= h && Math.abs(hs.at[1] - 15) <= 2, JSON.stringify(hs.at));
   assert.deepEqual([far.hotSpots[0].fed, near.hotSpots[0].fed], [false, true]);
   // (The mutant: the walls' r = 2 is under the junction's 2.343 by less than one cell of 0.4 — a floor of r − h would let
@@ -65,7 +76,7 @@ test('IM8c a 20 mm block on a 4 mm plate: one hot spot in the block (r ≈ 10) �
   assert.equal(on.feeding.status, 'pass');
   assert.equal(far['section-change'].status, 'warn'); assert.ok(far['section-change'].value! >= 4, String(far['section-change'].value));
   assert.equal(far['section-change'].limit, 2); assert.match(far['section-change'].source!, /engineersedge\.com\/sand_cast\.htm/);
-  assert.equal(processProfile('sand-casting')!.thresholds.sectionRatioMax.page!.label, 'If a section change of over 2:1 thickness ratio is unavoidable … use a wedge form between the unequal sections.');
+  assert.equal(castingProfileOf(withSampleRows(emptyDoc(), 'casting-rules'), 'sand-casting')!.thresholds.sectionRatioMax.page!.label, 'If a section change of over 2:1 thickness ratio is unavoidable … use a wedge form between the unequal sections.');
 });
 
 test('IM8c the unknowns, said: no gate — feeding unknown; die casting — no section-change ratio read; set_casting\'s gate refused unless a point, set through the v2 action', async () => {
@@ -83,12 +94,12 @@ test('IM8c the unknowns, said: no gate — feeding unknown; die casting — no s
 test('IM8c the modulus from the hot spot\'s shape (O110): a plate 2r thick is a sheet, V/A ≈ r (the S0 plate 100 × 100 × 10: 4.17 against r = 5); a long round bar a line, ≈ r/2; a cube in a plate a point, ≈ r/3; always within [r/3, r], an estimate', async () => {
   const ext = (sketch: Record<string, unknown>, h: number) => withNode(withNode(emptyDoc(), sketch as never), { kind: 'extrude', sketch: 0, height: h });
   const plate = solidification(bodiesOf(ext({ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [100, 100] }, 10)), null).hotSpots[0];
-  assert.equal(plate.shape, 'sheet'); assert.equal(plate.modulusMM, plate.radiusMM);
-  assert.ok(Math.abs(plate.modulusMM - 100000 / 24000) <= 1, `${plate.modulusMM} against the plate's exact V/A 4.17`);
+  assert.equal(plate.shape, 'sheet'); assert.equal(plate.modulus, plate.radius);
+  assert.ok(Math.abs(plate.modulus - 100000 / 24000) <= 1, `${plate.modulus} against the plate's exact V/A 4.17`);
   const bar = solidification(bodiesOf(ext({ kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10 }, 200)), null).hotSpots[0];
-  assert.equal(bar.shape, 'line'); assert.ok(Math.abs(bar.modulusMM - bar.radiusMM / 2) <= 1e-3 && Math.abs(bar.radiusMM - 10) <= 1, JSON.stringify(bar));
+  assert.equal(bar.shape, 'line'); assert.ok(Math.abs(bar.modulus - bar.radius / 2) <= 1e-3 && Math.abs(bar.radius - 10) <= 1, JSON.stringify(bar));
   const cube = solidification(bodiesOf(await blockOnPlate()), null).hotSpots[0];
-  assert.equal(cube.shape, 'point'); assert.ok(Math.abs(cube.modulusMM - cube.radiusMM / 3) <= 1e-3, JSON.stringify(cube));
-  for (const hs of [plate, bar, cube]) assert.ok(hs.modulusRangeMM[0] <= hs.modulusMM + 1e-9 && hs.modulusMM <= hs.modulusRangeMM[1] + 1e-9 && Math.abs(hs.modulusRangeMM[0] - hs.radiusMM / 3) <= 1e-3);
+  assert.equal(cube.shape, 'point'); assert.ok(Math.abs(cube.modulus - cube.radius / 3) <= 1e-3, JSON.stringify(cube));
+  for (const hs of [plate, bar, cube]) assert.ok(hs.modulusRange[0] <= hs.modulus + 1e-9 && hs.modulus <= hs.modulusRange[1] + 1e-9 && Math.abs(hs.modulusRange[0] - hs.radius / 3) <= 1e-3);
   const L1 = solidification(bodiesOf(await L()), null, { h: 0.4 }).hotSpots[0]; assert.equal(L1.shape, 'line', 'the L junction runs along its corner');
 });

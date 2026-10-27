@@ -11,40 +11,19 @@
 import { meshClearance, symmetricEigen3 } from '@barocss/cad';
 import type { StudioDoc, DocPlane, ModelNode } from '../engine/doc';
 import { emptyDoc, withNode } from '../engine/doc';
-import { partBreps, placeBody, type BodyResult, type EvalResult } from '../engine/evaluate';
+import { partBreps, placeBody, type BodyResult } from '../engine/evaluate';
 import { measureChords, unmeasured, type DisplayMesh, type Vec3 } from '../engine/mesh';
-import { rotationMatrix } from '../assembly/mates';
+import { rotationMatrix } from '../engine/placement';
 import type { Mat3 } from '../robot/inertia';
 import { refOf } from '../app/bodyRef';
 import { bodyKeyFor } from '../engine/ids';
 import { stepLengthUnit } from '../engine/stepUnits';
+import { isVec3 as isV3 } from '../util/guards';
+import { nextFreeId } from '../util/ids';
+import { boundsOf } from '../engine/bounds';
+import { REFERENCE_CODES, type Evaluate, type Placement, type Reference, type Datum, type KeepoutShape, type Keepout, type ReferenceSet, type Verdict, type KeepoutResult } from '../engine/schema/references';
+import { isRefusal, refusal } from '../engine/refusal';
 
-type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
-export interface Placement { position: Vec3; rotation: Vec3 }
-export type ReferenceSource = { step: string } | { mesh: { positions: number[]; indices: number[] } };
-export interface Reference { id: string; name: string; source: ReferenceSource; at: Placement; /** Solids in a STEP file that holds several. */ solids?: number }
-/** A datum in its reference's own coordinates (or the part's, given explicitly): moved with the reference. */
-export interface Datum {
-  id: string; name: string; kind: 'plane' | 'axis' | 'point';
-  /** The face (or vertex) it was taken from; absent: given. */
-  of?: { reference: string; face?: string; vertex?: Vec3 };
-  origin: Vec3; normal?: Vec3; xAxis?: Vec3; direction?: Vec3; radius?: number;
-  /** The largest distance of the face's vertices from the fitted plane or cylinder (mm). */
-  residualMM?: number;
-}
-export type KeepoutShape = { kind: 'box'; size: Vec3 } | { kind: 'cylinder'; radius: number; height: number };
-export interface Keepout {
-  id: string; name: string;
-  /** Its frame (the part's coordinates): a box from the origin along xAxis, normal × xAxis and normal; a cylinder about the normal. */
-  frame: DocPlane; shape: KeepoutShape;
-  /** Made from a reference's envelope grown by an offset (kept to say so). */
-  around?: { reference: string; offset: number };
-  /** The clearance the part must keep from it (mm, 0: not enter). */
-  clearance: number;
-}
-export interface ReferenceSet { version: 1; references: Reference[]; datums: Datum[]; keepouts: Keepout[] }
-export type ReferenceCode = 'REFERENCE_LOCKED' | 'BAD_REFERENCE' | 'NO_REFERENCE' | 'DATUM_FIT' | 'BAD_KEEPOUT' | 'NOT_READ';
-export class ReferenceError extends Error { constructor(public code: ReferenceCode, message: string) { super(`[${code}] ${message}`); this.name = 'ReferenceError'; } }
 
 export const readReferences = (raw: unknown): ReferenceSet => {
   const r = raw as ReferenceSet | undefined;
@@ -54,7 +33,7 @@ export const readReferences = (raw: unknown): ReferenceSet => {
 export const REFERENCE_PREFIX = /^ref\d+[._]/;
 /** Whether a name is a reference's face, edge or body: no feature may use it (REFERENCE_LOCKED). */
 export const isReferenceName = (name: unknown) => typeof name === 'string' && (REFERENCE_PREFIX.test(name) || /^ref\d+$/.test(name));
-const nextId = (prefix: string, taken: readonly { id: string }[]) => { let k = 1; while (taken.some(x => x.id === `${prefix}${k}`)) k++; return `${prefix}${k}`; };
+const nextId = (prefix: string, taken: readonly { id: string }[]) => nextFreeId(prefix, new Set(taken.map(x => x.id)));
 
 // ——— evaluation
 /** The reference as a document of its own: one import (scaled to mm when the file says another unit) or one mesh node. */
@@ -62,7 +41,7 @@ export function referenceDoc(ref: Reference): StudioDoc {
   if ('step' in ref.source) {
     let d: StudioDoc = { ...emptyDoc(), nodes: [{ id: ref.id, kind: 'import', name: ref.name, step: ref.source.step, ...(ref.solids && ref.solids > 1 ? { solids: ref.solids } : {}) } as ModelNode] };
     const unit = stepLengthUnit(ref.source.step), n = ref.solids ?? 1;
-    if (unit.toMM !== 1) for (let k = 0; k < n; k++) d = withNode(d, { kind: 'scale', parent: { node: 0, side: n > 1 ? `part${k}` as const : 'solid' }, factor: unit.toMM, pivot: [0, 0, 0] });
+    if (unit.to !== 1) for (let k = 0; k < n; k++) d = withNode(d, { kind: 'scale', parent: { node: 0, side: n > 1 ? `part${k}` as const : 'solid' }, factor: unit.to, pivot: [0, 0, 0] });
     return d;
   }
   return { ...emptyDoc(), nodes: [{ id: ref.id, kind: 'mesh', name: ref.name, unit: 'mm', positions: ref.source.mesh.positions, indices: ref.source.mesh.indices, representation: 'facets' } as ModelNode] };
@@ -71,7 +50,7 @@ const matrixOf = (at: Placement) => rotationMatrix(at.rotation) as unknown as nu
 /** A reference's bodies in its own coordinates (unplaced), keyed by its id. */
 export async function referenceLocal(ref: Reference, evaluate: Evaluate): Promise<BodyResult[]> {
   const r = await evaluate(referenceDoc(ref));
-  if (!r?.ok) throw new ReferenceError('NOT_READ', `${ref.name} could not be read: ${r ? r.error.detail : 'no result'}`);
+  if (!r?.ok) throw refusal('NOT_READ', `${ref.name} could not be read: ${r ? r.error.detail : 'no result'}`);
   return r.bodies.map((b, j) => ({ ...b, key: r.bodies.length > 1 ? `${ref.id}_part${j}` : ref.id }));
 }
 /** A reference's bodies where it is placed (copies). */
@@ -160,24 +139,24 @@ export function datumFromFace(local: readonly BodyResult[], refId: string, face:
     if (!f) continue;
     if (kind === 'plane') {
       const fit = fitPlane(b.mesh, f.index);
-      if (fit.residual > FIT_TOLERANCE) throw new ReferenceError('DATUM_FIT', `${face} is not flat: its vertices are up to ${fit.residual.toPrecision(3)} mm off the best plane (at most ${FIT_TOLERANCE} mm)`);
-      return { id, name, kind, of: { reference: refId, face }, origin: fit.origin, normal: fit.normal, xAxis: xAxisFor(fit.normal), residualMM: fit.residual };
+      if (fit.residual > FIT_TOLERANCE) throw refusal('DATUM_FIT', `${face} is not flat: its vertices are up to ${fit.residual.toPrecision(3)} mm off the best plane (at most ${FIT_TOLERANCE} mm)`);
+      return { id, name, kind, of: { reference: refId, face }, origin: fit.origin, normal: fit.normal, xAxis: xAxisFor(fit.normal), residual: fit.residual };
     }
     if (kind === 'axis') {
-      if (f.kind !== 'curved') throw new ReferenceError('DATUM_FIT', `${face} is flat: an axis comes from a cylindrical face`);
+      if (f.kind !== 'curved') throw refusal('DATUM_FIT', `${face} is flat: an axis comes from a cylindrical face`);
       const fit = fitCylinder(b.mesh, f.index);
-      if (!(fit.residual <= FIT_TOLERANCE)) throw new ReferenceError('DATUM_FIT', `${face} is not a cylinder: its vertices are up to ${fit.residual.toPrecision(3)} mm off the best one (at most ${FIT_TOLERANCE} mm)`);
-      return { id, name, kind, of: { reference: refId, face }, origin: fit.origin, direction: fit.direction, radius: fit.radius, residualMM: fit.residual };
+      if (!(fit.residual <= FIT_TOLERANCE)) throw refusal('DATUM_FIT', `${face} is not a cylinder: its vertices are up to ${fit.residual.toPrecision(3)} mm off the best one (at most ${FIT_TOLERANCE} mm)`);
+      return { id, name, kind, of: { reference: refId, face }, origin: fit.origin, direction: fit.direction, radius: fit.radius, residual: fit.residual };
     }
     return { id, name, kind, of: { reference: refId, face }, origin: f.centroid.slice() as Vec3 };
   }
-  throw new ReferenceError('NO_REFERENCE', `${refId} has no face ${face}; its faces: ${local.flatMap(b => b.mesh.faces.map(x => x.name)).slice(0, 40).join(', ')}`);
+  throw refusal('NO_REFERENCE', `${refId} has no face ${face}; its faces: ${local.flatMap(b => b.mesh.faces.map(x => x.name)).slice(0, 40).join(', ')}`);
 }
 /** A point datum at a reference's vertex nearest a given point (its local coordinates), within 1 mm. */
 export function datumAtVertex(local: readonly BodyResult[], refId: string, near: Vec3, id: string, name: string): Datum {
   let best: Vec3 | null = null, d = Infinity;
   for (const b of local) for (const e of b.mesh.edges) for (const v of [e.a, e.b]) { const k = Math.hypot(v[0] - near[0], v[1] - near[1], v[2] - near[2]); if (k < d) { d = k; best = v.slice() as Vec3; } }
-  if (!best || d > 1) throw new ReferenceError('NO_REFERENCE', `no vertex of ${refId} within 1 mm of [${near.join(', ')}] (nearest ${d.toPrecision(3)} mm)`);
+  if (!best || d > 1) throw refusal('NO_REFERENCE', `no vertex of ${refId} within 1 mm of [${near.join(', ')}] (nearest ${d.toPrecision(3)} mm)`);
   return { id, name, kind: 'point', of: { reference: refId, vertex: best }, origin: best };
 }
 
@@ -197,8 +176,7 @@ export function withKeepout(doc: StudioDoc, k: Keepout): { doc: StudioDoc; node:
 }
 /** A reference's envelope (its local bounds, placed) grown by an offset: a box on the reference's frame, or a cylinder about its local Z. */
 export function envelopeOf(ref: Reference, local: readonly BodyResult[], offset: number, shape: 'box' | 'cylinder'): { frame: DocPlane; shape: KeepoutShape } {
-  const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
-  for (const b of local) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.mesh.bounds.min[k]); max[k] = Math.max(max[k], b.mesh.bounds.max[k]); }
+  const { min, max } = boundsOf(local);
   const m = matrixOf(ref.at), x = turn(m, [1, 0, 0]), z = turn(m, [0, 0, 1]);
   if (shape === 'box') {
     const corner = add(turn(m, [min[0] - offset, min[1] - offset, min[2] - offset]), ref.at.position);
@@ -229,7 +207,7 @@ export function chordOf(mesh: DisplayMesh): number {
   for (const f of mesh.faces) {
     if (f.kind !== 'curved' || f.facet) continue;
     if (f.analytic) curved[f.index] = 1;
-    else if (f.freeform && f.chordMM !== undefined) { curved[f.index] = 1; s = Math.max(s, f.chordMM); }
+    else if (f.freeform && f.chordDepth !== undefined) { curved[f.index] = 1; s = Math.max(s, f.chordDepth); }
     else s = Infinity;
   }
   // (A freeform face not yet measured: unbounded, and not kept, so measureChords can still decide it.)
@@ -266,8 +244,6 @@ function trianglePatchDepth(p: number, q: number, r: number): number {
   }
   return best;
 }
-export type Verdict = 'clear' | 'violated' | 'undecided';
-export interface KeepoutResult { keepout: string; body: string; verdict: Verdict; overlapMM3: number; clearanceMM: number | null; requiredMM: number; chordMM: number; why: string }
 /** The verdict for one keep-out against one body: overlap (exact) violates; else the mesh distance d against the required c within the chord δ. */
 export function verdictOf(overlap: number, d: number, required: number, chord: number): { verdict: Verdict; why: string } {
   if (overlap > 1e-6) return { verdict: 'violated', why: `it enters the keep-out: ${overlap.toPrecision(4)} mm³ overlap (exact, the kernel's intersection)` };
@@ -288,7 +264,7 @@ export async function checkKeepouts(doc: StudioDoc, bodies: readonly BodyResult[
     if (only?.keepout && k.id !== only.keepout) continue;
     const probe = withKeepout(doc, k), r = await evaluate(probe.doc);
     const kb = r?.ok ? r.bodies.find(b => b.key === bodyKeyFor(probe.doc.nodes, probe.node)) : undefined;
-    if (!kb) throw new ReferenceError('BAD_KEEPOUT', `${k.id}'s solid could not be made`);
+    if (!kb) throw refusal('BAD_KEEPOUT', `${k.id}'s solid could not be made`);
     const kIdx = Uint32Array.from(kb.mesh.indices);
     for (const b of bodies) {
       if (only?.body && b.key !== only.body) continue;
@@ -296,11 +272,11 @@ export async function checkKeepouts(doc: StudioDoc, bodies: readonly BodyResult[
       let overlap = 0;
       if (!apart) {
         const p2 = withNode(probe.doc, { kind: 'intersect', left: refOf(b), right: { node: probe.node, side: 'solid' } });
-        const r2 = await evaluate(p2); overlap = r2?.ok ? r2.bodies.find(x => x.key === bodyKeyFor(p2.nodes, p2.nodes.length - 1))?.volumeMM3 ?? 0 : 0;
+        const r2 = await evaluate(p2); overlap = r2?.ok ? r2.bodies.find(x => x.key === bodyKeyFor(p2.nodes, p2.nodes.length - 1))?.volume ?? 0 : 0;
       }
       measureBody(doc, b);
-      const d = overlap > 1e-6 ? 0 : meshClearance(b.mesh.positions, b.mesh.indices, kb.mesh.positions, kIdx).distanceMM, chord = chordOf(b.mesh) + chordOf(kb.mesh), v = verdictOf(overlap, d, k.clearance, chord);
-      out.push({ keepout: k.id, body: b.key, verdict: v.verdict, overlapMM3: overlap, clearanceMM: overlap > 1e-6 ? null : d, requiredMM: k.clearance, chordMM: chord, why: v.why });
+      const d = overlap > 1e-6 ? 0 : meshClearance(b.mesh.positions, b.mesh.indices, kb.mesh.positions, kIdx).distance, chord = chordOf(b.mesh) + chordOf(kb.mesh), v = verdictOf(overlap, d, k.clearance, chord);
+      out.push({ keepout: k.id, body: b.key, verdict: v.verdict, overlap: overlap, clearance: overlap > 1e-6 ? null : d, requiredMM: k.clearance, chordMM: chord, why: v.why });
     }
   }
   return out;
@@ -314,28 +290,28 @@ export const newKeepoutId = (set: ReferenceSet) => nextId('K', set.keepouts);
 // ——— datums as subjects: a datum against a part face (measure, requirements)
 /** A datum against a face of the part: the angle between them, and the distance (a plane's to a parallel flat face or
  * to a point; an axis's to a cylinder's axis — their concentricity — or to a point; a point's to a plane or a point). */
-export function datumToFace(d: Datum, mesh: DisplayMesh, face: number): { distanceMM: number; angleDeg: number | null; what: string } {
+export function datumToFace(d: Datum, mesh: DisplayMesh, face: number): { distance: number; angle: number | null; what: string } {
   const f = mesh.faces[face], deg = (c: number) => Math.acos(Math.min(1, Math.abs(c))) * 180 / Math.PI;
   if (d.kind === 'plane') {
-    if (f.kind === 'plane') { const fit = fitPlane(mesh, face), a = deg(dot(fit.normal, d.normal!)); return { distanceMM: Math.abs(dot(sub(fit.origin, d.origin), d.normal!)), angleDeg: a, what: a < 1e-6 ? 'the distance between the parallel planes' : 'the distance from the datum plane to the face\'s centre (not parallel)' }; }
-    return { distanceMM: Math.abs(dot(sub(f.centroid, d.origin), d.normal!)), angleDeg: null, what: 'the distance from the datum plane to the face\'s centre' };
+    if (f.kind === 'plane') { const fit = fitPlane(mesh, face), a = deg(dot(fit.normal, d.normal!)); return { distance: Math.abs(dot(sub(fit.origin, d.origin), d.normal!)), angle: a, what: a < 1e-6 ? 'the distance between the parallel planes' : 'the distance from the datum plane to the face\'s centre (not parallel)' }; }
+    return { distance: Math.abs(dot(sub(f.centroid, d.origin), d.normal!)), angle: null, what: 'the distance from the datum plane to the face\'s centre' };
   }
   if (d.kind === 'axis') {
     if (f.kind === 'curved') {
       const c = fitCylinder(mesh, face), a = deg(dot(c.direction, d.direction!)), w = sub(c.origin, d.origin), along = dot(w, d.direction!);
-      return { distanceMM: Math.hypot(w[0] - along * d.direction![0], w[1] - along * d.direction![1], w[2] - along * d.direction![2]), angleDeg: a, what: 'the offset between the axes (concentricity)' };
+      return { distance: Math.hypot(w[0] - along * d.direction![0], w[1] - along * d.direction![1], w[2] - along * d.direction![2]), angle: a, what: 'the offset between the axes (concentricity)' };
     }
     const w = sub(f.centroid, d.origin), along = dot(w, d.direction!);
-    return { distanceMM: Math.hypot(w[0] - along * d.direction![0], w[1] - along * d.direction![1], w[2] - along * d.direction![2]), angleDeg: null, what: 'the distance from the axis to the face\'s centre' };
+    return { distance: Math.hypot(w[0] - along * d.direction![0], w[1] - along * d.direction![1], w[2] - along * d.direction![2]), angle: null, what: 'the distance from the axis to the face\'s centre' };
   }
-  if (f.kind === 'plane') { const fit = fitPlane(mesh, face); return { distanceMM: Math.abs(dot(sub(d.origin, fit.origin), fit.normal)), angleDeg: null, what: 'the distance from the point to the face\'s plane' }; }
-  return { distanceMM: Math.hypot(...sub(d.origin, f.centroid)), angleDeg: null, what: 'the distance from the point to the face\'s centre' };
+  if (f.kind === 'plane') { const fit = fitPlane(mesh, face); return { distance: Math.abs(dot(sub(d.origin, fit.origin), fit.normal)), angle: null, what: 'the distance from the point to the face\'s plane' }; }
+  return { distance: Math.hypot(...sub(d.origin, f.centroid)), angle: null, what: 'the distance from the point to the face\'s centre' };
 }
 /** A datum plane as a sketch plane (the part's coordinates). */
 export function datumPlane(set: ReferenceSet, id: string): DocPlane {
   const d0 = set.datums.find(x => x.id === id);
-  if (!d0) throw new ReferenceError('NO_REFERENCE', `no datum ${id}; datums: ${set.datums.map(x => x.id).join(', ') || 'none'}`);
-  if (d0.kind !== 'plane') throw new ReferenceError('NO_REFERENCE', `${id} is a datum ${d0.kind}, not a plane`);
+  if (!d0) throw refusal('NO_REFERENCE', `no datum ${id}; datums: ${set.datums.map(x => x.id).join(', ') || 'none'}`);
+  if (d0.kind !== 'plane') throw refusal('NO_REFERENCE', `${id} is a datum ${d0.kind}, not a plane`);
   const d = datumWorld(set, d0);
   return { origin: d.origin, normal: d.normal!, xAxis: d.xAxis ?? xAxisFor(d.normal!) };
 }
@@ -376,7 +352,6 @@ export const REFERENCE_TOOLS = [
     input_schema: { type: 'object', properties: { keepout: { type: 'string' }, body: { type: 'string' } }, additionalProperties: false },
   },
 ];
-const isV3 = (v: unknown): v is Vec3 => Array.isArray(v) && v.length === 3 && v.every(x => typeof x === 'number' && Number.isFinite(x));
 const isUnit = (v: unknown): v is Vec3 => isV3(v) && Math.abs(Math.hypot(...v) - 1) < 1e-6;
 const r9 = (v: number) => Number(v.toPrecision(12)) + 0;
 const v9 = (v: readonly number[]) => v.map(r9);
@@ -390,14 +365,14 @@ export async function referencesReport(doc: StudioDoc, evaluate: Evaluate) {
   const set = readReferences(doc.references), refs = [];
   for (const r of set.references) {
     let faces: unknown[] = [], problem: string | undefined;
-    try { const local = await referenceLocal(r, evaluate); faces = local.flatMap(b => b.mesh.faces.slice(0, 80).map(f => ({ name: f.name, kind: f.kind, ...(f.radius ? { radius: r9(f.radius) } : {}), area_mm2: r9(f.areaMM2) }))); } catch (e) { problem = e instanceof Error ? e.message : String(e); }
+    try { const local = await referenceLocal(r, evaluate); faces = local.flatMap(b => b.mesh.faces.slice(0, 80).map(f => ({ name: f.name, kind: f.kind, ...(f.radius ? { radius: r9(f.radius) } : {}), area: r9(f.area) }))); } catch (e) { problem = e instanceof Error ? e.message : String(e); }
     refs.push({ id: r.id, name: r.name, kind: 'step' in r.source ? 'step' : 'mesh', at: r.at, faces, ...(problem ? { problem } : {}) });
   }
   const problems = await verifyDatums(set, evaluate);
   return {
     references: refs, ...(problems.length ? { problems } : {}),
-    datums: set.datums.map(d => { const w = datumWorld(set, d); return { id: d.id, name: d.name, kind: d.kind, ...(d.of ? { of: d.of } : {}), origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residualMM !== undefined ? { residual_mm: r9(d.residualMM) } : {}) }; }),
-    keepouts: set.keepouts.map(k => ({ id: k.id, name: k.name, frame: k.frame, shape: k.shape, clearance_mm: k.clearance, ...(k.around ? { around: k.around } : {}) })),
+    datums: set.datums.map(d => { const w = datumWorld(set, d); return { id: d.id, name: d.name, kind: d.kind, ...(d.of ? { of: d.of } : {}), origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residual !== undefined ? { residual: r9(d.residual) } : {}) }; }),
+    keepouts: set.keepouts.map(k => ({ id: k.id, name: k.name, frame: k.frame, shape: k.shape, clearance: k.clearance, ...(k.around ? { around: k.around } : {}) })),
   };
 }
 /** Runs a reference tool. */
@@ -410,7 +385,7 @@ export async function runReferenceTool(doc: StudioDoc, bodies: readonly BodyResu
       const res = await checkKeepouts(doc, bodies, evaluate, { ...(typeof args.keepout === 'string' ? { keepout: args.keepout } : {}), ...(typeof args.body === 'string' ? { body: args.body } : {}) });
       const n = (v: number | null) => (v === null || !Number.isFinite(v) ? null : r9(v));
       const counts = { clear: res.filter(r => r.verdict === 'clear').length, violated: res.filter(r => r.verdict === 'violated').length, undecided: res.filter(r => r.verdict === 'undecided').length };
-      return { doc, content: { results: res.map(r => ({ keepout: r.keepout, body: r.body, verdict: r.verdict, overlap_mm3: n(r.overlapMM3), clearance_mm: n(r.clearanceMM), required_mm: r.requiredMM, chord_tolerance_mm: n(r.chordMM), why: r.why })), ...counts }, changed: false, summary: `${counts.clear} clear, ${counts.violated} violated, ${counts.undecided} undecided` };
+      return { doc, content: { results: res.map(r => ({ keepout: r.keepout, body: r.body, verdict: r.verdict, overlap: n(r.overlap), clearance: n(r.clearance), requiredClearance: r.requiredMM, chordTolerance: n(r.chordMM), why: r.why })), ...counts }, changed: false, summary: `${counts.clear} clear, ${counts.violated} violated, ${counts.undecided} undecided` };
     }
     if (name === 'add_reference') {
       if (typeof args.name !== 'string' || !args.name.trim()) return { error: '[BAD_REFERENCE] a reference has a name.' };
@@ -443,7 +418,7 @@ export async function runReferenceTool(doc: StudioDoc, bodies: readonly BodyResu
         else return { error: '[BAD_REFERENCE] kind is plane, axis or point.' };
       }
       const w = datumWorld({ ...set, datums: [...set.datums, d] }, d);
-      return { doc: put({ ...set, datums: [...set.datums, d] }), content: { ok: true, id, kind: d.kind, origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residualMM !== undefined ? { residual_mm: r9(d.residualMM) } : {}) }, changed: true, summary: `datum ${id} (${d.kind})` };
+      return { doc: put({ ...set, datums: [...set.datums, d] }), content: { ok: true, id, kind: d.kind, origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residual !== undefined ? { residual: r9(d.residual) } : {}) }, changed: true, summary: `datum ${id} (${d.kind})` };
     }
     if (name === 'add_keepout') {
       const id = newKeepoutId(set), label = typeof args.name === 'string' && args.name.trim() ? args.name.trim() : id, clearance = args.clearance === undefined ? 0 : args.clearance;
@@ -467,7 +442,7 @@ export async function runReferenceTool(doc: StudioDoc, bodies: readonly BodyResu
         if (typeof c.radius !== 'number' || !(c.radius > 0) || typeof c.height !== 'number' || !(c.height > 0)) return { error: '[BAD_KEEPOUT] a cylinder has a radius and height above 0.' };
         k = { id, name: label, frame: f, shape: { kind: 'cylinder', radius: c.radius, height: c.height }, clearance };
       }
-      return { doc: put({ ...set, keepouts: [...set.keepouts, k] }), content: { ok: true, id, frame: k.frame, shape: k.shape, clearance_mm: k.clearance }, changed: true, summary: `keep-out ${id}` };
+      return { doc: put({ ...set, keepouts: [...set.keepouts, k] }), content: { ok: true, id, frame: k.frame, shape: k.shape, clearance: k.clearance }, changed: true, summary: `keep-out ${id}` };
     }
     // delete_reference_item
     const iid = args.id;
@@ -475,7 +450,7 @@ export async function runReferenceTool(doc: StudioDoc, bodies: readonly BodyResu
     if (!set.datums.some(d => d.id === iid) && !set.keepouts.some(k => k.id === iid)) return { error: `No datum or keep-out ${String(iid)}; datums: ${set.datums.map(d => d.id).join(', ') || 'none'}; keep-outs: ${set.keepouts.map(k => k.id).join(', ') || 'none'}.` };
     return { doc: put({ ...set, datums: set.datums.filter(d => d.id !== iid), keepouts: set.keepouts.filter(k => k.id !== iid) }), content: { ok: true, deleted: iid }, changed: true, summary: `deleted ${String(iid)}` };
   } catch (e) {
-    if (e instanceof ReferenceError) return { error: e.message };
+    if (isRefusal(e, ...REFERENCE_CODES)) return { error: e.message };
     throw e;
   }
 }

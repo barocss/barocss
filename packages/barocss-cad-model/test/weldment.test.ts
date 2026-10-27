@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluateDoc, evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, featureLabel, usesOf, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
-import { flattenAssembly } from '../src/assembly/flatten';
+import { flattenAssembly } from '../src/engine/flatten';
 import { dispatchTool, runTool, type ChatState } from '../src/chat/tools';
 
 // FRk1 (D165) in the studio: the Gusset and End cap commands on a frame's picked members, their nodes, notes and labels,
@@ -26,7 +26,7 @@ test('Gusset (FRk1): two members of a frame picked — the gusset in their corne
   assert.equal(featureLabel(node, 1, doc.nodes), 'Gusset 120 × 100 × 5 at point 1 of n0');
   const r = evaluateDoc(doc, 2); assert.ok(r.ok, r.ok ? '' : r.error.detail);
   const g = r.bodies.find(b => b.ref?.node === 1)!;
-  assert.ok(Math.abs(g.volumeMM3! - (120 * 100 - 225) / 2 * 5) < 1e-9, String(g.volumeMM3));
+  assert.ok(Math.abs(g.volume! - (120 * 100 - 225) / 2 * 5) < 1e-9, String(g.volume));
   assert.deepEqual(g.notes!.map(n => n.text), ['Gusset at point 1, between members 1 and 2 (90°): legs 120 and 100, corner clipped 15, 5 thick', 'Plate 5887.5 mm² × 5: 29437.5 mm³', 'Seams: 105 on member 1 (n0.m0.top), 85 on member 2 (n0.m1.top)']);
   assert.equal(r.bodies.length, 3, 'the members stay bodies of their own');
   const one = gusset.available(ctxOf(L(), [0]));
@@ -44,7 +44,7 @@ test('Gusset (FRk1) at a T: its along field, both ways; on round tubes refused w
   doc = gusset.build!({ ...ctx, doc }, { ...gusset.defaults!(ctx), clip: 0, along: '-1' });
   assert.deepEqual(doc.nodes.slice(1).map(n => n.kind === 'gusset' ? [n.point, n.members, n.along] : null), [[3, [1, 0], 1], [3, [1, 0], -1]]);
   const r = evaluateDoc(doc, 2); assert.ok(r.ok, r.ok ? '' : r.error.detail);
-  for (const k of [1, 2]) assert.ok(Math.abs(r.bodies.find(b => b.ref?.node === k)!.volumeMM3! - 100 * 100 / 2 * 5) < 1e-9);
+  for (const k of [1, 2]) assert.ok(Math.abs(r.bodies.find(b => b.ref?.node === k)!.volume! - 100 * 100 / 2 * 5) < 1e-9);
   const round = L({ kind: 'round-tube', diameter: 40, wall: 3 }), rc = ctxOf(round, [0, 1]);
   const bad = evaluateDoc(gusset.build!(rc, gusset.defaults!(rc)), 3);
   assert.ok(!bad.ok && bad.error.title === 'The gusset does not fit that corner' && /\[GUSSET_FIT\] member 0 has no flat face/.test(bad.error.detail), bad.ok ? 'built' : bad.error.detail);
@@ -62,7 +62,7 @@ test('End cap (FRk1): over a member\'s end, a plug in its start; volumes, notes,
   assert.deepEqual([featureLabel(doc.nodes[1], 1, doc.nodes), featureLabel(doc.nodes[2], 2, doc.nodes)], ['End cap over member 1\'s end, 4 thick', 'End cap in member 1\'s start, 6 thick']);
   const r = evaluateDoc(doc, 2); assert.ok(r.ok, r.ok ? '' : r.error.detail);
   const body = (k: number) => r.ok ? r.bodies.find(b => b.ref?.node === k)! : null!;
-  assert.ok(Math.abs(body(1).volumeMM3! - env * 4) < 1e-9 && Math.abs(body(2).volumeMM3! - bore * 6) < 1e-9);
+  assert.ok(Math.abs(body(1).volume! - env * 4) < 1e-9 && Math.abs(body(2).volume! - bore * 6) < 1e-9);
   assert.equal(body(1).notes![1].text, `Seam ${+(160 - 48 + 12 * Math.PI).toFixed(4)} mm round its outline (exact)`);
   const mitred = ctxOf(L(), [1]), bad = evaluateDoc(cap.build!(mitred, { end: 'start', fit: 'over', t: 4 }), 3);
   assert.ok(!bad.ok && bad.error.title === 'The end cap does not fit that end' && /\[CAP_END\] member 1's start is cut by a mitre/.test(bad.error.detail), bad.ok ? 'built' : bad.error.detail);

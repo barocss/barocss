@@ -4,15 +4,16 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { evaluatePart, placeBody, type BodyResult } from '../src/engine/evaluate';
 import type { StudioDoc } from '../src/engine/doc';
-import { rotationMatrix } from '../src/assembly/mates';
-import { solveDoc } from '../src/chat/assembly';
+import { rotationMatrix } from '../src/engine/placement';
+import { solveDoc } from '../src/assembly/edit';
 import { treeOfDoc } from '../src/chat/robot';
 import { applyTo, forwardKinematics } from '../src/robot/fk';
 import { convexHull } from '@barocss/cad';
 import { probeAt, toolProbe } from '../src/robot/ik';
 import { meshesMeet, partParent, sweepLinks } from '../src/robot/sweep';
-import { workspaceMap, WorkspaceError } from '../src/robot/workspace';
+import { workspaceMap } from '../src/robot/workspace';
 import type { Joint, JointTree } from '../src/robot/joints';
+import { isRefusal } from '../src/engine/refusal';
 
 // RM9b (O62): a workspace map. The planar 2R (l₁ 80, l₂ 50) against its annulus 30 ≤ r ≤ 130 — every occupied voxel
 // meets it, every voxel wholly inside it is occupied — and w = l₁ l₂ |sin θ₂|; the elbow limited to [0, π/2], its own
@@ -75,8 +76,8 @@ test('the elbow limited to [0, π/2]: its annulus √(80² + 50²) ≤ r ≤ 130
   console.log(`RM9b limited 2R: inside ${r.inside} ≤ occupied ${r.occupied} ≤ meeting ${r.meets}`);
   assert.deepEqual(map.ranges.j2, [0, Math.PI / 2]);
   const slide = twoR(); slide.joints[1] = { ...slide.joints[1], type: 'prismatic', axis: [1, 0, 0] };
-  assert.throws(() => workspaceMap(slide, { link: 'b', samples: 10, h: 5 }), (e: unknown) => e instanceof WorkspaceError && e.code === 'NO_RANGE');
-  assert.throws(() => workspaceMap(twoR(), { link: 'b', samples: 0, h: 5 }), (e: unknown) => e instanceof WorkspaceError && e.code === 'BAD_VALUES');
+  assert.throws(() => workspaceMap(slide, { link: 'b', samples: 10, h: 5 }), (e: unknown) => isRefusal(e) && e.code === 'NO_RANGE');
+  assert.throws(() => workspaceMap(twoR(), { link: 'b', samples: 0, h: 5 }), (e: unknown) => isRefusal(e) && e.code === 'BAD_VALUES');
 });
 
 async function arm6r() {

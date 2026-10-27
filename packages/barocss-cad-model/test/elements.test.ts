@@ -21,7 +21,7 @@ function run(doc: StudioDoc, id: string, pick: { bodies?: number[]; face?: strin
   assert.ok(ok.ok, ok.ok ? '' : `${id}: ${ok.reason}`);
   return c.build!(ctx, { ...c.defaults!(ctx), ...values });
 }
-const ROW = { id: 'r20', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3, source: 'the maker\'s sheet' };
+const ROW = { id: 'r20', shaftDiameter: 20, grooveDiameter: 19, grooveWidth: 1.3, source: 'the maker\'s sheet' };
 /** The shaft-parts scene: the default shaft (n0), a hub (n1, n2) with its keyway (n3), the key (n4), a ring on r20 (n5), a pin (n6). */
 function scene(withRow = true): StudioDoc {
   let doc = cmd('shaft').build!(blank, cmd('shaft').defaults!(blank));
@@ -37,7 +37,7 @@ function scene(withRow = true): StudioDoc {
 test('each element body keeps its kernel report as data; its line: our size text, the user\'s row, estimate and why, bought or made', () => {
   const doc = scene(), bodies = evaluated(doc);
   const key = bodies.find(b => b.element?.kind === 'key')!;
-  assert.equal(key.element!.kind === 'key' && key.element!.report.widthMM, 6);
+  assert.equal(key.element!.kind === 'key' && key.element!.report.width, 6);
   // (Plain data: what the engine worker posts to the page goes by structured clone — a function in a report would throw.)
   for (const b of bodies) if (b.element) assert.deepEqual(structuredClone(b.element), b.element);
   const lines = elementLines(doc, bodies), by = (kind: string) => lines.find(l => l.kind === kind)!;
@@ -45,7 +45,7 @@ test('each element body keeps its kernel report as data; its line: our size text
     ['shaft', '3 steps Ø20–Ø25 × 95', false, 'default'], ['keyway', '6 × 2.8 in Ø20', false, 'default'], ['key', '6 × 6 × 18', true, 'default'],
     ['retaining-ring', 'Ø19 / Ø24 × 1.2', true, 'default'], ['pin', 'Ø4 × 20', true, 'default']]);
   assert.deepEqual([by('retaining-ring').row, by('retaining-ring').estimate], [{ id: 'r20', source: 'the maker\'s sheet', estimate: false }, false]);
-  assert.deepEqual([by('key').row, by('key').estimate, by('pin').estimate], [null, false, false]);
+  assert.deepEqual([by('key').row, by('key').estimate, by('key').why, by('pin').estimate], [null, true, ['no key row: its sizes are an estimate'], false]);
   // Without a row the ring is an estimate, said.
   const bare = elementLines(scene(false), evaluated(scene(false))).find(l => l.kind === 'retaining-ring')!;
   assert.deepEqual([bare.row, bare.estimate, bare.why], [null, true, ['no ring row: its sizes are an estimate']]);
@@ -68,7 +68,7 @@ test('the BOM: 2 copies of the shaft part — the part ×2, and each bought elem
   const asm = (p: StudioDoc): StudioDoc => ({ ...emptyDoc(), instances: [0, 1].map(k => ({ id: `i${k}`, name: `shaft ${k}`, doc: p, position: [0, 60 * k, 0] as [number, number, number], rotation: [0, 0, 0] as [number, number, number] })) });
   const view = await bomView(asm(part), evaluate), bom = deriveBom(view);
   assert.deepEqual(bom.lines.map(l => [l.item, l.qty, l.kind ?? 'part', l.row ?? null, !!l.estimate]), [
-    ['shaft 0', 2, 'part', null, false], ['key 6 × 6 × 18', 2, 'key', null, false], ['retaining-ring Ø19 / Ø24 × 1.2', 2, 'retaining-ring', 'r20', false], ['pin Ø4 × 20', 2, 'pin', null, false]]);
+    ['shaft 0', 2, 'part', null, false], ['key 6 × 6 × 18', 2, 'key', null, true], ['retaining-ring Ø19 / Ø24 × 1.2', 2, 'retaining-ring', 'r20', false], ['pin Ø4 × 20', 2, 'pin', null, false]]);
   assert.deepEqual(bom.lines[1].parts, ['i0:n4', 'i1:n4']);
   assert.equal(bom.elementQty, 6); assert.deepEqual(checkBom(view, bom), []);
   // (An element left off, or on the wrong line, is found.)
@@ -86,8 +86,8 @@ test('the BOM: 2 copies of the shaft part — the part ×2, and each bought elem
 
 test('D160/D161 in the element lines and the BOM: a cam and pulleys made, a belt and a coupling bought — the coupling as its row says, its part number and supplier carried', async () => {
   const { editDriveRows } = await import('../src/engine/drives');
-  const FLAT = { kind: 'flat-belt', id: 'flat-a', widthMM: 40, thicknessMM: 3, estimate: true };
-  const COUPLING = { kind: 'coupling', id: 'sleeve-a', type: 'rigid sleeve', boreMM: [12, 14], outsideMM: 30, lengthMM: 40, boreStepMM: 18, partNumber: 'TEST-1', supplier: 'a test supplier', estimate: true };
+  const FLAT = { kind: 'flat-belt', id: 'flat-a', width: 40, thickness: 3, estimate: true };
+  const COUPLING = { kind: 'coupling', id: 'sleeve-a', type: 'rigid sleeve', bore: [12, 14], outside: 30, length: 40, boreStep: 18, partNumber: 'TEST-1', supplier: 'a test supplier', estimate: true };
   let doc = (editDriveRows(emptyDoc(), [FLAT, COUPLING]) as { doc: StudioDoc }).doc;
   const build = (d: StudioDoc, id: string, values: Record<string, string | number>, sel: number[] = []) => {
     const bodies = evaluated(d), ctx: Ctx = { doc: d, bodies, selection: { faces: [], edges: [], bodies: sel.map(n => bodies.findIndex(b => b.ref?.node === n)) } }, c = cmd(id);
@@ -109,7 +109,7 @@ test('D160/D161 in the element lines and the BOM: a cam and pulleys made, a belt
 test('D162 in the element lines and the BOM: a connector\'s opening made, its body bought — named from the user\'s row, the row cited', async () => {
   const { editConnectorRows } = await import('../src/engine/connectors');
   const { rectanglePart } = await import('../src/engine/doc');
-  const U1 = { id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, body: { shape: 'stadium', widthMM: 8.25, heightMM: 2.4, lengthMM: 6.51 }, keepOut: { marginMM: 1, depthMM: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' };
+  const U1 = { id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', width: 8.34, height: 2.56, depth: 6.2 }, body: { shape: 'stadium', width: 8.25, height: 2.4, length: 6.51 }, keepOut: { margin: 1, depth: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' };
   const plate = (editConnectorRows(rectanglePart(40, 20, 10), [U1]) as { doc: StudioDoc }).doc, r0 = evaluated(plate);
   const face = r0[0].mesh.faces.findIndex(f => f.name.endsWith('.top')), c = cmd('connector'), ctx: Ctx = { doc: plate, bodies: r0, selection: { faces: [{ body: 0, face }], edges: [], bodies: [] } };
   const doc = c.build!(ctx, { ...c.defaults!(ctx) }), bodies = evaluated(doc);

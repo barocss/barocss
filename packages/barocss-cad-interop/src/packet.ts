@@ -4,7 +4,7 @@ export interface CadPreviewPacket {
   surfaceId: string;
   revision: number;
   lengthUnit: 'mm';
-  coordinateSystem: 'right-handed-y-up';
+  coordinateSystem: 'right-handed-z-up';
   winding: 'ccw';
   positions: number[];
   normals: number[];
@@ -59,7 +59,7 @@ export function copyCadPreviewPacket(input: unknown): CadPreviewPacket {
     'surfaceId must be an ASCII identifier');
   check(typeof value.revision === 'number' && Number.isInteger(value.revision)
     && value.revision >= 0 && value.revision <= 2147483647, 'revision is out of range');
-  check(value.lengthUnit === 'mm' && value.coordinateSystem === 'right-handed-y-up' && value.winding === 'ccw',
+  check(value.lengthUnit === 'mm' && value.coordinateSystem === 'right-handed-z-up' && value.winding === 'ccw',
     'unsupported units, axes, or winding');
   const positions = numbers(value.positions, 12, 12288, 3, 'positions');
   const vertexCount = positions.length / 3;
@@ -101,7 +101,7 @@ export function copyCadPreviewPacket(input: unknown): CadPreviewPacket {
   }
   return {
     version: 0, surfaceId: value.surfaceId, revision: value.revision,
-    lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw',
+    lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', winding: 'ccw',
     positions, normals, indices, parameters, bounds: { min, max },
   };
 }

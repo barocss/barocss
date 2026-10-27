@@ -4,17 +4,12 @@
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { Vec3 } from '../engine/mesh';
-import { checkSpec, type Requirement } from '../chat/spec';
+import { checkSpec } from '../chat/spec';
+import type { Requirement } from '../engine/schema/spec';
 import type { Evaluate, Outcome } from './core';
+import { boundsOf } from '../engine/bounds';
 
-export const volumeOf = (bodies: readonly BodyResult[]) => bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0);
-/** The parts' box (the display meshes', to their single precision: 1e-4 mm on these sizes). */
-export function boxOf(bodies: readonly BodyResult[]): { min: Vec3; max: Vec3 } | null {
-  if (!bodies.length) return null;
-  const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
-  for (const b of bodies) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.mesh.bounds.min[k]); max[k] = Math.max(max[k], b.mesh.bounds.max[k]); }
-  return { min, max };
-}
+export const volumeOf = (bodies: readonly BodyResult[]) => bodies.reduce((s, b) => s + (b.volume ?? 0), 0);
 export interface Cylinder { c: Vec3; a: Vec3; r: number; zMin: number; zMax: number; body: number; face: number }
 /** Every exact cylindrical face (the B-rep's own, A6.3), with its extent along its axis from its mesh. */
 export function cylindersOf(bodies: readonly BodyResult[]): Cylinder[] {
@@ -66,7 +61,8 @@ export function near(id: string, measured: number | null, expected: number, tol:
 export function holds(id: string, ok: boolean, measured: unknown, expected: string, hard = true): Outcome { return { id, hard, pass: ok, measured, expected }; }
 /** The box against (x, y, z) from the origin: its size and its corner. */
 export function boxIs(id: string, bodies: readonly BodyResult[], size: readonly number[], corner: readonly number[] = [0, 0, 0], tol = 1e-4): Outcome {
-  const b = boxOf(bodies);
+  // (The parts' box: the display meshes', to their single precision, 1e-4 mm on these sizes.)
+  const b = bodies.length ? boundsOf(bodies) : null;
   const ok = !!b && [0, 1, 2].every(k => Math.abs(b.max[k] - b.min[k] - size[k]) <= tol && Math.abs(b.min[k] - corner[k]) <= tol);
   return { id, hard: true, pass: ok, measured: b ? { size: [0, 1, 2].map(k => +(b.max[k] - b.min[k]).toFixed(6)), min: b.min.map(v => +v.toFixed(6)) } : null, expected: `size ${size.join(' × ')} at ${corner.join(', ')} ± ${tol}` };
 }

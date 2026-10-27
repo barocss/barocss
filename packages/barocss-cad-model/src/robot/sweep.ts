@@ -11,8 +11,26 @@
 // kernel's exact `meshClearance`, K3).
 // Parent and child are not checked (they meet at their joint by design, as simulators do), nor pairs whose relative
 // pose the path does not change (said so if they touch).
+// O22: two links seated together by design are checked without that seat, as the clearance map's `designed` state
+// keeps a seat apart from a clash; anything else between them is still a contact.
+// - Meshing gears (a coupling): each gear's zone is its triangles inside its tip cylinder over its teeth's face width;
+//   zone against zone (the teeth) is the coupling's to hold, by its phase, and every other triangle pair is checked.
+//   Two bare gears have nothing else: the pair is left out, said so.
+// - A cam mate (O24 a): the follower's face rides the lobe by design — its triangles on that face against the lobe's
+//   within the face's slab along the cam's axis are the mate's to hold; a pushed part's face on its driver's the same.
+//   Every other triangle pair is checked (the follower's stem against the shaft, the valve against its guide).
+// - A running fit (PG-6): a concentric mate's two round faces, a piston in its bore, a shaft in its bearing — the display
+//   mesh's chords lie inside the true circle (0.135 mm at r 28, 8 segments a quarter turn), so a 0.1 mm fit would read as
+//   contact. Each part's triangles on its round face (its corners on the cylinder) against the other's are the fit's
+//   to hold; every other pair is checked. Two bare round parts have nothing else: left out, said so.
+// - A loop's pin (a closure) in a planar loop: every joint between the two links turns about an axis parallel to the
+//   pin's (or slides across it), so each point keeps its place along that axis. Two triangles whose extents along it
+//   meet at most at a plane can only touch, never cross: only the triangles within the slab both links fill are
+//   checked. Stacked links (a face shared, no slab) cannot meet and are left out, said so; a part of one reaching
+//   into the other's slab (a post) is checked as any other.
 import type { BodyResult } from '../engine/evaluate';
 import type { JointTree } from './joints';
+import { spurGearDimensions } from '@barocss/cad';
 import { forwardKinematics, type Motion } from './fk';
 import { convexDistance, meshClearance } from '@barocss/cad';
 
@@ -27,9 +45,167 @@ export interface SweepResult {
   samples: number;
   /** Pairs checked, and those left out (parent and child; no relative motion). */
   pairs: [string, string][]; skipped: { links: [string, string]; why: string }[];
+  /** O22: pairs checked without their designed seat (meshing gears' teeth, a loop pin's shared face), and how. */
+  designed: { links: [string, string]; why: string }[];
 }
 
 const TOL = 1e-6;
+type V3 = readonly [number, number, number];
+/**
+ * A designed seat between two links: the triangle sets (index triples) still checked against each other, the first
+ * of each pair on `first`; `probes`: a triangle of a link whose centre, inside the other link, is a contact too.
+ */
+interface Seat { why: string; first: string; checks: [Uint32Array, Uint32Array][]; probes: { link: string; tri: Uint32Array }[]; /** Tested for crossing at each step only (not a clearance: a graze is designed); the mask: the first set's edges left out (bit k: edge k → k+1), those lying in the seat's face. */ crossing?: [Uint32Array, Uint32Array, Uint8Array | undefined, number][] }
+/** The step's cap (of the path, in s) where a seat's sets are tested for crossing only: a cam's (O24 a). */
+export const CROSSING_STEP = 1 / 90;
+/** A crossing a seat's sets count: an edge whose ends are this far (mm) on either side of the triangle's plane — past the display mesh's single precision, so a face lying flat on another (a cam's flat on its follower) is a graze. */
+const CROSSING_DEPTH = 1e-4;
+
+/** A gear link's triangles split at its tip cylinder about the joint's axis, over the axial span its teeth have. */
+function splitGear(l: SweepLink, o: V3, n: V3, ra: number, rf: number): { zone: Uint32Array; rest: Uint32Array } {
+  const P = l.positions, I = l.indices, nv = P.length / 3, rho = new Float64Array(nv), h = new Float64Array(nv), tol = 1e-6 * Math.max(1, ra);
+  let lo = Infinity, hi = -Infinity;
+  for (let v = 0; v < nv; v++) {
+    const x = P[v * 3] - o[0], y = P[v * 3 + 1] - o[1], z = P[v * 3 + 2] - o[2], a = x * n[0] + y * n[1] + z * n[2];
+    h[v] = a; rho[v] = Math.hypot(x - a * n[0], y - a * n[1], z - a * n[2]);
+    if (rho[v] >= rf - tol && rho[v] <= ra + tol) { lo = Math.min(lo, a); hi = Math.max(hi, a); }
+  }
+  const zone: number[] = [], rest: number[] = [];
+  for (let k = 0; k < I.length; k += 3) {
+    let inZone = true;
+    for (let e = 0; e < 3; e++) { const v = I[k + e]; if (rho[v] > ra + tol || h[v] < lo - tol || h[v] > hi + tol) { inZone = false; break; } }
+    (inZone ? zone : rest).push(I[k], I[k + 1], I[k + 2]);
+  }
+  return { zone: Uint32Array.from(zone), rest: Uint32Array.from(rest) };
+}
+/** Each point's extent along n: [min, max]. */
+function extent(P: ArrayLike<number>, n: V3): [number, number] {
+  let lo = Infinity, hi = -Infinity;
+  for (let i = 0; i < P.length; i += 3) { const a = P[i] * n[0] + P[i + 1] * n[1] + P[i + 2] * n[2]; if (a < lo) lo = a; if (a > hi) hi = a; }
+  return [lo, hi];
+}
+/** A link's triangles reaching into the open slab (lo, hi) along n. */
+function inSlab(l: SweepLink, n: V3, lo: number, hi: number): Uint32Array {
+  const P = l.positions, I = l.indices, out: number[] = [];
+  for (let k = 0; k < I.length; k += 3) {
+    let a = Infinity, b = -Infinity;
+    for (let e = 0; e < 3; e++) { const v = I[k + e] * 3, h = P[v] * n[0] + P[v + 1] * n[1] + P[v + 2] * n[2]; if (h < a) a = h; if (h > b) b = h; }
+    if (b > lo + TOL && a < hi - TOL) out.push(I[k], I[k + 1], I[k + 2]);
+  }
+  return Uint32Array.from(out);
+}
+/** A link's triangles lying on the plane through p across n (within 1e-4 mm: the display mesh is single precision). */
+function onPlane(l: SweepLink, p: readonly number[], n: readonly number[]): Uint32Array {
+  const P = l.positions, I = l.indices, out: number[] = [];
+  for (let k = 0; k < I.length; k += 3) {
+    let on = true;
+    for (let e = 0; e < 3 && on; e++) { const v = I[k + e] * 3; on = Math.abs((P[v] - p[0]) * n[0] + (P[v + 1] - p[1]) * n[1] + (P[v + 2] - p[2]) * n[2]) <= 1e-4; }
+    if (on) out.push(I[k], I[k + 1], I[k + 2]);
+  }
+  return Uint32Array.from(out);
+}
+/** Each triangle's edges lying in the plane through p across n (within 1e-4 mm), as bits: edge k → k+1 is bit k. */
+function edgesOn(P: ArrayLike<number>, I: Uint32Array, p: readonly number[], n: readonly number[]): Uint8Array {
+  const out = new Uint8Array(I.length / 3), on = (v: number) => Math.abs((P[v * 3] - p[0]) * n[0] + (P[v * 3 + 1] - p[1]) * n[1] + (P[v * 3 + 2] - p[2]) * n[2]) <= 1e-4;
+  for (let t = 0; t < out.length; t++) for (let e = 0; e < 3; e++) if (on(I[t * 3 + e]) && on(I[t * 3 + (e + 1) % 3])) out[t] |= 1 << e;
+  return out;
+}
+/** A link's triangles with their corners on the cylinder through p along d of radius r (the display mesh's vertices are on the surface). */
+function onCylinder(l: SweepLink, p: readonly number[], d: readonly number[], r: number): Uint32Array {
+  const P = l.positions, I = l.indices, out: number[] = [], tol = 1e-4 + 1e-6 * r;
+  for (let k = 0; k < I.length; k += 3) {
+    let on = true;
+    for (let e = 0; e < 3 && on; e++) {
+      const v = I[k + e] * 3, x = P[v] - p[0], y = P[v + 1] - p[1], z = P[v + 2] - p[2], s = x * d[0] + y * d[1] + z * d[2];
+      on = Math.abs(Math.hypot(x - s * d[0], y - s * d[1], z - s * d[2]) - r) <= tol;
+    }
+    if (on) out.push(I[k], I[k + 1], I[k + 2]);
+  }
+  return Uint32Array.from(out);
+}
+/** A link's triangles not in `some` (both as index triples, in the link's order). */
+function complement(l: SweepLink, some: Uint32Array): Uint32Array {
+  const have = new Set<string>(); for (let k = 0; k < some.length; k += 3) have.add(`${some[k]},${some[k + 1]},${some[k + 2]}`);
+  const out: number[] = [], I = l.indices;
+  for (let k = 0; k < I.length; k += 3) if (!have.has(`${I[k]},${I[k + 1]},${I[k + 2]}`)) out.push(I[k], I[k + 1], I[k + 2]);
+  return Uint32Array.from(out);
+}
+/** Whether every joint between two links moves them in the plane across n: turns about axes along it, slides across it. */
+function planar(tree: JointTree, a: string, b: string, n: V3): boolean {
+  const pa = pathOf(tree, a), pb = pathOf(tree, b), common = new Set(pa.filter(k => pb.includes(k)));
+  for (const key of [...pa, ...pb]) {
+    if (common.has(key)) continue;
+    const j = tree.joints.find(x => x.key === key)!, d = Math.abs(j.axis[0] * n[0] + j.axis[1] * n[1] + j.axis[2] * n[2]);
+    if (j.type === 'fixed') continue;
+    if (j.type === 'prismatic' ? d > 1e-9 : Math.abs(d - 1) > 1e-9) return false;
+  }
+  return true;
+}
+/** O22: the designed seats between the links, by pair (`a|b`, both orders): meshing gears and planar loop pins; null: none to check. */
+function seatsOf(tree: JointTree, byId: ReadonlyMap<string, SweepLink>): Map<string, Seat | { why: string; skip: true }> {
+  const out = new Map<string, Seat | { why: string; skip: true }>();
+  for (const c of tree.couplings) {
+    const jl = tree.joints.find(j => j.key === c.leader), jf = tree.joints.find(j => j.key === c.follower), a = jl && byId.get(jl.child), b = jf && byId.get(jf.child);
+    if (!jl || !jf || !a || !b) continue;
+    const da = spurGearDimensions(c.g1.spec), db = spurGearDimensions(c.g2.spec), sa = splitGear(a, jl.origin, jl.axis, da.ra, da.rf), sb = splitGear(b, jf.origin, jf.axis, db.ra, db.rf);
+    const why = `meshing gears (${c.leader} drives ${c.follower}): their teeth are the coupling's to hold, by its phase`;
+    const seat = !sa.rest.length && !sb.rest.length ? { why: `${why}; nothing else on either`, skip: true as const }
+      : { why, first: a.link, checks: [[sa.rest, b.indices], [sa.zone, sb.rest]] as [Uint32Array, Uint32Array][], probes: [...(sa.rest.length ? [{ link: a.link, tri: sa.rest.subarray(0, 3) }] : []), ...(sb.rest.length ? [{ link: b.link, tri: sb.rest.subarray(0, 3) }] : [])] };
+    out.set(`${a.link}|${b.link}`, seat); out.set(`${b.link}|${a.link}`, seat);
+  }
+  for (const c of tree.cams ?? []) {
+    const s = c.seat, d = byId.get(s.driver), f = byId.get(s.follower);
+    if (!d || !f) continue;
+    // (The follower's triangles on its contact face; the driver's in its slab — a pushed part's: on the face it meets.)
+    const fz = onPlane(f, s.p, s.n), dz = s.axis && s.slab ? inSlab(d, s.axis, s.slab[0], s.slab[1]) : onPlane(d, s.p, s.n);
+    const why = `${c.kind === 'cam' ? 'a cam' : 'a push'} (${c.mate}): ${s.follower}'s face rides ${s.driver} by design`;
+    // (Certified: the whole follower against the driver outside the seat. Crossing only, at each step: the follower's other
+    // faces against the seat — they meet the driver where they meet its face, a graze, never a crossing unless they hit.)
+    const rest = complement(f, fz), seat: Seat = { why, first: f.link, checks: [[f.indices, complement(d, dz)]], probes: [], crossing: [[rest, dz, edgesOn(f.positions, rest, s.p, s.n), CROSSING_DEPTH]] };
+    out.set(`${f.link}|${d.link}`, seat); out.set(`${d.link}|${f.link}`, seat);
+  }
+  for (const fit of tree.fits ?? []) {
+    const a = byId.get(fit.a), b = byId.get(fit.b);
+    if (!a || !b || out.has(`${fit.a}|${fit.b}`)) continue;
+    const za = onCylinder(a, fit.pa, fit.da, fit.ra), zb = onCylinder(b, fit.pb, fit.db, fit.rb), ra = complement(a, za), rb = complement(b, zb);
+    const why = `a running fit (${fit.mate}): their round faces on one axis are the fit's`;
+    // (Certified: a whole against b off its round face; b's round face against a's rest crossing only past the chords'
+    // sag — the API lane's band, the sag at 8 segments a quarter turn plus 0.05 — so a part's own rim on its face grazes.)
+    const band = Math.max(fit.ra, fit.rb) * (1 - Math.cos(Math.PI / 32)) + 0.05;
+    const seat: Seat | { why: string; skip: true } = !ra.length && !rb.length ? { why: `${why}; nothing else on either`, skip: true }
+      : { why, first: fit.a, checks: [[a.indices, rb]], probes: [], crossing: [[ra, zb, undefined, band]] };
+    out.set(`${fit.a}|${fit.b}`, seat); out.set(`${fit.b}|${fit.a}`, seat);
+  }
+  for (const loop of tree.loops) {
+    const [x, y] = loop.parts, a = byId.get(x), b = byId.get(y), j = tree.joints.find(k => k.child === x);
+    if (!a || !b || !j || !planar(tree, x, y, j.axis)) continue;
+    const n = j.axis, [la, ha] = extent(a.positions, n), [lb, hb] = extent(b.positions, n), lo = Math.max(la, lb), hi = Math.min(ha, hb);
+    const ia = hi - lo > 2 * TOL ? inSlab(a, n, lo, hi) : new Uint32Array(), ib = hi - lo > 2 * TOL ? inSlab(b, n, lo, hi) : new Uint32Array();
+    const why = `a planar loop's pin (${loop.mates.join(', ')}): each keeps its place along the pin's axis`;
+    const seat = !ia.length || !ib.length ? { why: `${why}, and they share no slab along it (stacked), so they cannot meet`, skip: true as const }
+      : { why: `${why}: only what both fill along it checked`, first: x, checks: [[ia, ib]] as [Uint32Array, Uint32Array][], probes: [{ link: x, tri: ia.subarray(0, 3) }, { link: y, tri: ib.subarray(0, 3) }] };
+    out.set(`${x}|${y}`, seat); out.set(`${y}|${x}`, seat);
+  }
+  return out;
+}
+/** A seat's contact: an edge of one checked set through a triangle of the other, or a probe's centre inside the other link. */
+function seatMeets(seat: Seat, A: string, PA: Float64Array, IA: Uint32Array, PB: Float64Array, IB: Uint32Array): boolean {
+  const flip = seat.first !== A;
+  for (const [s1, s2] of seat.checks) if (flip ? piercesAny(PA, s2, PB, s1) : piercesAny(PA, s1, PB, s2)) return true;
+  for (const [s1, s2, mask, depth] of seat.crossing ?? []) if (flip ? piercesAny(PA, s2, PB, s1, depth, undefined, mask) : piercesAny(PA, s1, PB, s2, depth, mask)) return true;
+  for (const p of seat.probes) {
+    const mine = p.link === A, P = mine ? PA : PB, t = p.tri, cx = (P[t[0] * 3] + P[t[1] * 3] + P[t[2] * 3]) / 3, cy = (P[t[0] * 3 + 1] + P[t[1] * 3 + 1] + P[t[2] * 3 + 1]) / 3, cz = (P[t[0] * 3 + 2] + P[t[1] * 3 + 2] + P[t[2] * 3 + 2]) / 3;
+    if (mine ? inside(cx, cy, cz, PB, IB) : inside(cx, cy, cz, PA, IA)) return true;
+  }
+  return false;
+}
+/** A seat's clearance: the least over its checked sets. */
+function seatClearance(seat: Seat, A: string, PA: Float64Array, PB: Float64Array): number {
+  const flip = seat.first !== A;
+  let d = Infinity;
+  for (const [s1, s2] of seat.checks) { if (!s1.length || !s2.length) continue; const m = flip ? meshClearance(PA, s2, PB, s1).distance : meshClearance(PA, s1, PB, s2).distance; if (m < d) d = m; }
+  return d;
+}
 /** A pose's points: the home points moved (into `out`). */
 function moved(m: Motion, home: ArrayLike<number>, out: Float64Array): Float64Array {
   const R = m.R, t = m.t;
@@ -59,6 +235,12 @@ export function reaches(tree: JointTree, link: string, hull: ArrayLike<number>):
   return out;
 }
 
+/** How far a joint can move along the straight path: |Δq| for a free one, its leader's bound × its ratio for a follower. */
+function followerBound(tree: JointTree, j: JointTree['joints'][number], q0: Readonly<Record<string, number>>, q1: Readonly<Record<string, number>>): number {
+  let k = 1, cur: JointTree['joints'][number] | undefined = j;
+  for (let guard = 0; cur?.mimic && guard < tree.joints.length; guard++) { k *= cur.cam ? cur.cam.reach / Math.abs(cur.cam.uw) : Math.abs(cur.mimic.multiplier); const lead: string = cur.mimic.joint; cur = tree.joints.find(x => x.key === lead); }
+  return cur ? k * Math.abs((q1[cur.key] ?? 0) - (q0[cur.key] ?? 0)) : 0;
+}
 /** Sweeps the straight path from `from` to `to` (joint values by key; absent: 0). */
 /**
  * Options: `tolerance` (mm), the clearance counted as contact (RM6: 1e-6; RM9a's time of impact takes 1e-9). Each step keeps
@@ -69,14 +251,19 @@ export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Re
   const tol = o.tolerance ?? TOL;
   const byId = new Map(links.map(l => [l.link, l])), keys = tree.joints.filter(j => j.type !== 'fixed' && !j.mimic).map(j => j.key);
   const q0 = Object.fromEntries(keys.map(k => [k, from[k] ?? 0])), q1 = Object.fromEntries(keys.map(k => [k, to[k] ?? 0]));
-  // (A follower moves by its multiplier times its leader: its own |Δq| for the bound.)
+  // (A follower moves by its multiplier times its leader — a cam's by at most its lobe's reach per radian over u·w (O24 a)
+  // — its leaders' own bound in turn: its |Δq| for the bound.)
   const dq = new Map<string, number>();
-  for (const j of tree.joints) dq.set(j.key, j.mimic ? Math.abs(j.mimic.multiplier) * Math.abs((q1[j.mimic.joint] ?? 0) - (q0[j.mimic.joint] ?? 0)) : Math.abs((q1[j.key] ?? 0) - (q0[j.key] ?? 0)));
+  for (const j of tree.joints) dq.set(j.key, followerBound(tree, j, q0, q1));
   const parentOf = new Map(tree.joints.map(j => [j.child, j.parent])), pairs: [string, string][] = [], skipped: SweepResult['skipped'] = [], rate = new Map<string, number>();
   const ids = links.map(l => l.link), reach = new Map(ids.map(id => [id, reaches(tree, id, byId.get(id)!.hull)]));
+  const seats = seatsOf(tree, byId), designed: SweepResult['designed'] = [];
   for (let a = 0; a < ids.length; a++) for (let b = a + 1; b < ids.length; b++) {
     const A = ids[a], B = ids[b], pair: [string, string] = [A, B];
     if (partParent(parentOf, A) === B || partParent(parentOf, B) === A) { skipped.push({ links: pair, why: 'parent and child (they meet at their joint)' }); continue; }
+    const seat = seats.get(`${A}|${B}`);
+    if (seat && 'skip' in seat) { skipped.push({ links: pair, why: seat.why }); continue; }
+    if (seat) designed.push({ links: pair, why: seat.why });
     const pa = pathOf(tree, A), pb = pathOf(tree, B), common = new Set(pa.filter(k => pb.includes(k)));
     let r = 0;
     for (const k of pa) if (!common.has(k)) r += dq.get(k)! * reach.get(A)!.get(k)!;
@@ -85,6 +272,7 @@ export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Re
   }
   const at = (s: number) => Object.fromEntries(keys.map(k => [k, q0[k] + s * (q1[k] - q0[k])]));
   const posed = new Map(links.map(l => [l.link, { hull: new Float64Array(l.hull.length), mesh: new Float64Array(l.positions.length) }]));
+  const crossingCap = pairs.some(([A, B]) => { const x = seats.get(`${A}|${B}`); return !!x && !('skip' in x) && !!x.crossing?.length; });
   let s = 0, samples = 0, min: SweepResult['minClearance'] = null;
   const cap = o.maxSamples ?? 20000;
   for (;;) {
@@ -93,16 +281,17 @@ export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Re
     for (const l of links) { const m = fk.motions.get(l.link)!, p = posed.get(l.link)!; moved(m, l.hull, p.hull); moved(m, l.positions, p.mesh); }
     let step = Infinity, limiting: [string, string] | null = null, least = Infinity;
     for (const [A, B] of pairs) {
-      const pa = posed.get(A)!, pb = posed.get(B)!, r = rate.get(`${A}|${B}`)!;
+      const pa = posed.get(A)!, pb = posed.get(B)!, r = rate.get(`${A}|${B}`)!, seat = seats.get(`${A}|${B}`) as Seat | undefined;
       let d = convexDistance(pa.hull, pb.hull);
-      if (d <= tol) {
-        // (The hulls meet: the meshes decide — in contact, or their own least distance.)
+      // (A cam's seat rides its driver: their hulls all but meet throughout, so its own sets decide, not the hulls.)
+      if (d <= tol || seat?.crossing) {
+        // (The hulls meet: the meshes decide — in contact, or their own least distance; a gear seat without zone against zone.)
         const la = byId.get(A)!, lb = byId.get(B)!;
-        if (meshesMeet(pa.mesh, la.indices, pb.mesh, lb.indices)) {
+        if (seat ? seatMeets(seat, A, pa.mesh, la.indices, pb.mesh, lb.indices) : meshesMeet(pa.mesh, la.indices, pb.mesh, lb.indices)) {
           if (r === 0 && s === 0) { skipped.push({ links: [A, B], why: 'in contact where the path starts and not moved by it' }); rate.set(`${A}|${B}`, -1); continue; }
-          return { contact: { s, values: fk.values, links: [A, B] }, clear: false, minClearance: { mm: 0, s, links: [A, B] }, samples, pairs, skipped };
+          return { contact: { s, values: fk.values, links: [A, B] }, clear: false, minClearance: { mm: 0, s, links: [A, B] }, samples, pairs, skipped, designed };
         }
-        d = meshClearance(pa.mesh, la.indices, pb.mesh, lb.indices).distanceMM;
+        d = seat ? seatClearance(seat, A, pa.mesh, pb.mesh) : meshClearance(pa.mesh, la.indices, pb.mesh, lb.indices).distance;
       }
       if (r < 0) continue;
       if (!min || d < min.mm) min = { mm: d, s, links: [A, B] };
@@ -113,12 +302,12 @@ export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Re
     if (s >= 1) break;
     // (A step too small to make progress: the clearance is all but nothing — met, to the tolerance.)
     if (!(step > 1e-12) || samples >= cap) {
-      if (limiting) return { contact: { s, values: fk.values, links: limiting }, clear: false, minClearance: min, samples, pairs, skipped };
+      if (limiting) return { contact: { s, values: fk.values, links: limiting }, clear: false, minClearance: min, samples, pairs, skipped, designed };
       break;
     }
-    s = Math.min(1, s + step);
+    s = Math.min(1, s + (crossingCap ? Math.min(step, CROSSING_STEP) : step));
   }
-  return { clear: true, minClearance: min, samples, pairs, skipped };
+  return { clear: true, minClearance: min, samples, pairs, skipped, designed };
 }
 
 // ── Meshes: the exact contact test and the least distance (triangle against triangle, boxes first) ──
@@ -142,6 +331,10 @@ const boxApart = (a: Float64Array, b: Float64Array) => {
 };
 /** Whether two closed meshes interpenetrate: an edge of one through a triangle of the other, or one wholly inside the other. */
 export function meshesMeet(PA: ArrayLike<number>, IA: ArrayLike<number>, PB: ArrayLike<number>, IB: ArrayLike<number>): boolean {
+  return piercesAny(PA, IA, PB, IB) || inside(PA[0], PA[1], PA[2], PB, IB) || inside(PB[0], PB[1], PB[2], PA, IA);
+}
+/** Whether an edge of one set of triangles passes through the inside of a triangle of the other (`depth`: its ends at least that far either side of its plane). */
+function piercesAny(PA: ArrayLike<number>, IA: ArrayLike<number>, PB: ArrayLike<number>, IB: ArrayLike<number>, depth = 0, maskA?: Uint8Array, maskB?: Uint8Array): boolean {
   const na = IA.length / 3, nb = IB.length / 3;
   for (let i = 0; i < na; i++) {
     load(tA, PA, IA, i);
@@ -150,12 +343,28 @@ export function meshesMeet(PA: ArrayLike<number>, IA: ArrayLike<number>, PB: Arr
       if (boxApart(tA, tB)) continue;
       for (let e = 0; e < 3; e++) {
         const f = (e + 1) % 3;
-        if (pierces(tA[e * 3], tA[e * 3 + 1], tA[e * 3 + 2], tA[f * 3], tA[f * 3 + 1], tA[f * 3 + 2], tB)) return true;
-        if (pierces(tB[e * 3], tB[e * 3 + 1], tB[e * 3 + 2], tB[f * 3], tB[f * 3 + 1], tB[f * 3 + 2], tA)) return true;
+        if (!(maskA && maskA[i] & (1 << e)) && pierces(tA[e * 3], tA[e * 3 + 1], tA[e * 3 + 2], tA[f * 3], tA[f * 3 + 1], tA[f * 3 + 2], tB) && (!depth || deep(tA, e, f, tB, depth))) return true;
+        if (!(maskB && maskB[j] & (1 << e)) && pierces(tB[e * 3], tB[e * 3 + 1], tB[e * 3 + 2], tB[f * 3], tB[f * 3 + 1], tB[f * 3 + 2], tA) && (!depth || deep(tB, e, f, tA, depth))) return true;
       }
     }
   }
-  return inside(PA[0], PA[1], PA[2], PB, IB) || inside(PB[0], PB[1], PB[2], PA, IA);
+  return false;
+}
+/** Whether edge e–f of triangle s has its ends at least `depth` either side of triangle t's plane, through t at least `depth` inside its edges. */
+function deep(s: Float64Array, e: number, f: number, t: Float64Array, depth: number): boolean {
+  const ux = t[3] - t[0], uy = t[4] - t[1], uz = t[5] - t[2], vx = t[6] - t[0], vy = t[7] - t[1], vz = t[8] - t[2];
+  let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx; const l = Math.hypot(nx, ny, nz); if (!(l > 0)) return false;
+  nx /= l; ny /= l; nz /= l;
+  const d0 = (s[e * 3] - t[0]) * nx + (s[e * 3 + 1] - t[1]) * ny + (s[e * 3 + 2] - t[2]) * nz, d1 = (s[f * 3] - t[0]) * nx + (s[f * 3 + 1] - t[1]) * ny + (s[f * 3 + 2] - t[2]) * nz;
+  if (!(Math.abs(d0) >= depth && Math.abs(d1) >= depth)) return false;
+  // (Where it passes through the plane, and its distance in the plane from each of t's edges.)
+  const k = d0 / (d0 - d1), x = s[e * 3] + k * (s[f * 3] - s[e * 3]), y = s[e * 3 + 1] + k * (s[f * 3 + 1] - s[e * 3 + 1]), z = s[e * 3 + 2] + k * (s[f * 3 + 2] - s[e * 3 + 2]);
+  for (let i = 0; i < 3; i++) {
+    const a = i * 3, b = ((i + 1) % 3) * 3, ex = t[b] - t[a], ey = t[b + 1] - t[a + 1], ez = t[b + 2] - t[a + 2], px = x - t[a], py = y - t[a + 1], pz = z - t[a + 2];
+    const cx = ey * pz - ez * py, cy = ez * px - ex * pz, cz = ex * py - ey * px;
+    if (Math.hypot(cx, cy, cz) / Math.hypot(ex, ey, ez) < depth) return false;
+  }
+  return true;
 }
 /** A point inside a closed mesh, by the parity of a ray's crossings (an oblique ray, off every edge and corner). */
 function inside(x: number, y: number, z: number, P: ArrayLike<number>, I: ArrayLike<number>): boolean {

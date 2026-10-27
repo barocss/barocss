@@ -43,16 +43,16 @@
             ],
             "rows": [
               {
-                "thicknessMM": 2,
-                "radiusMM": 3,
-                "angleDegrees": 90,
-                "deductionMM": 4.2,
+                "thickness": 2,
+                "radius": 3,
+                "angle": 90,
+                "deduction": 4.2,
                 "source": "shop"
               },
               {
-                "thicknessMM": 2,
-                "radiusMM": 3,
-                "angleDegrees": 120,
+                "thickness": 2,
+                "radius": 3,
+                "angle": 120,
                 "kFactor": 0.42,
                 "source": "shop"
               }
@@ -64,7 +64,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "BEND_TABLE_MISS",
+      "category": "PARAMETER",
       "messageIncludes": "[BEND_TABLE_MISS] bend1: table shop-2mm has no rows round 2 mm, R 3 mm, 60°"
     }
   },

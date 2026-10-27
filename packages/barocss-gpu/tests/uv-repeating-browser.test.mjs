@@ -16,8 +16,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const bundle = path.resolve(here, '../dist/index.js'), cadDist = path.resolve(here, '../../barocss-cad/dist');
-const snippets = path.resolve(here, '../../../apps/library-docs/scripts/snippets');
+const gpuDist = path.resolve(here, '../dist'), cadDist = path.resolve(here, '../../barocss-cad/dist');
+const snippets = path.resolve(here, 'fixtures/shader-demos');
 const DEMOS = ['advanced-shader', 'caustics-shader', 'weave-shader', 'contour-shader', 'halftone-shader', 'reusable-shader'];
 const page = `<!doctype html><meta charset="utf-8"><script type="importmap">{"imports":{"@barocss/cad":"/cad/index.js"}}</script><style>body{margin:0}canvas{display:block;width:96px;height:96px}</style><canvas id="gl" width="96" height="96"></canvas><canvas id="gpu" width="96" height="96"></canvas><canvas id="view" width="96" height="96"></canvas>`;
 
@@ -28,7 +28,7 @@ test('G18.2 repeating UV demos: WGSL as the GLSL path draws them, the viewer wit
   const server = createServer(async (req, res) => {
     if (req.url === '/favicon.ico') { res.writeHead(204); res.end(); return; }
     if (req.url === '/') { res.writeHead(200, { 'content-type': 'text/html' }); res.end(page); return; }
-    if (req.url === '/gpu.js') { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(await readFile(bundle)); return; }
+    if (/^\/gpu\/[\w./-]+\.js$/.test(req.url) && !req.url.includes('..')) { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(await readFile(path.join(gpuDist, req.url.slice(5)))); return; }
     if (/^\/cad\/[\w./-]+\.js$/.test(req.url) && !req.url.includes('..')) { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(await readFile(path.join(cadDist, req.url.slice(5)))); return; }
     res.writeHead(404); res.end();
   });
@@ -41,7 +41,7 @@ test('G18.2 repeating UV demos: WGSL as the GLSL path draws them, the viewer wit
     await p.goto(`http://127.0.0.1:${server.address().port}/`);
     if (!await p.evaluate(async () => !!(await navigator.gpu?.requestAdapter()))) { t.skip('no WebGPU adapter'); return; }
     const r = await p.evaluate(async demos => {
-      const gpu = await import('/gpu.js'), N = 96;
+      const gpu = await import('/gpu/index.js'), N = 96;
       // The GLSL path: the docs host's program on WebGL2, read top row first.
       const gl = document.getElementById('gl').getContext('webgl2', { antialias: false, preserveDrawingBuffer: true });
       const compile = (type, text) => { const s = gl.createShader(type); gl.shaderSource(s, text); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };

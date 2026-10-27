@@ -10,12 +10,12 @@ import { drawingIssues, fixAll, issueContext } from '../src/drawing/issues';
 import { readDrawing, type ViewId } from '../src/drawing/types';
 import { inView } from '../src/drawing/dimensions';
 import { fromSheet } from '../src/drawing/views';
-import { sheetSvg } from '../src/drawing/svg';
-import { sheetPdf } from '../src/drawing/pdf';
-import { sheetDxf } from '../src/drawing/dxf';
+import { sheetSvg } from '../src/io/svg';
+import { sheetPdf } from '../src/io/pdf';
+import { sheetDxf } from '../src/io/dxf';
 import { weldList } from '../src/frames/welds';
 
-// FRd2 (O119): weld symbols in the views, our own glyphs — on the welded table every joint shown once (or said unshown),
+// FRd2 (O119): weld symbols in the views, our own glyphs — on the welded table every joint shown once (O173: all 16),
 // each arrow's tip on the midpoint of a visible edge of its joint's end face found by name in its view; the W-number, the
 // size and the rings in the SVG, PDF and DXF; after a parameter edit moves a mitred corner (w 300 → 400), the same joint's
 // arrow resolves by the same edge name and moves 100 along the view's x.
@@ -38,22 +38,24 @@ function onEdge(i: Exclude<ReturnType<typeof drawingInputs>, string>, layout: Re
   const pr = i.views[p.view], v = layout.views[p.view], at = fromSheet(v, p.tip);
   const e = pr.edges.find(x => x.name === p.edge && x.ends && Math.hypot(...(([0, 1] as const).map(k => (inView(pr, x.ends![0])[k] + inView(pr, x.ends![1])[k]) / 2 - at[k]) as [number, number])) < 1e-6);
   assert.ok(e, `${p.edge}: no such edge under the tip in ${p.view}`);
-  assert.ok(e!.pieces.some(q => q.visible), `${p.edge} visible`);
+  // (No pieces: wholly on visible ink, BrepProjection's contract — visible, another edge draws it; O173.)
+  assert.ok(!e!.pieces.length || e!.pieces.some(q => q.visible), `${p.edge} visible`);
   return at;
 }
 
 test('FRd2 the welded table\'s weld symbols on A3: every one of its 16 joints once (shown or said unshown), each arrow on the midpoint of a visible edge of its end face, found by name; W-numbers, sizes and rings in the SVG, PDF and DXF', async () => {
   const s = await table(), joints = weldList(s.doc, s.bodies).joints, { i, ctx } = sheetOf(s.doc), w = ctx.sheet.welds!;
   assert.equal(w.placed.length + w.unshown.length, 16);
-  // (W8 and W13–W16 lie behind other members in every view: said in the issue list, the weld list holds them.)
-  assert.deepEqual(w.unshown, ['W8', 'W13', 'W14', 'W15', 'W16']);
-  const issue = drawingIssues(ctx).find(x => x.code === 'WELD_NOT_SHOWN');
-  assert.ok(issue && issue.severity === 'warning' && /^Welds W8, W13, W14, W15, W16: no edge of the joint is visible/.test(issue.message), JSON.stringify(issue));
-  assert.equal(w.placed.length, 11, `${w.placed.length} shown; unshown ${w.unshown}`);
+  // (O173: every joint is shown. W8 and W13–W16 were said unshown, "behind other members": their seam edges lie on
+  // another member's visible outline — no pieces, wholly on visible ink — and a trimmed end face comes in pieces (#1),
+  // each the face's. Neither had been read as seen.)
+  assert.deepEqual(w.unshown, []);
+  assert.equal(drawingIssues(ctx).find(x => x.code === 'WELD_NOT_SHOWN'), undefined);
+  assert.equal(w.placed.length, 16, `${w.placed.length} shown; unshown ${w.unshown}`);
   assert.equal(new Set(w.placed.map(p => p.label)).size, w.placed.length, 'each joint once');
   for (const p of w.placed) {
     const j = joints[Number(p.label.slice(1)) - 1];
-    assert.equal(p.joint, j.id); assert.ok(p.edge.split('|').includes(j.face), `${p.edge} is an edge of ${j.face}`);
+    assert.equal(p.joint, j.id); assert.ok(p.edge.split('|').some(f => f.replace(/#\d+$/, '') === j.face), `${p.edge} is an edge of ${j.face}`);
     onEdge(i, ctx.layout, p);
   }
   const groups = ctx.sheet.groups.filter(g => g.role === 'weld');

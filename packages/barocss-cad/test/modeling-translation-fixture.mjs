@@ -108,7 +108,7 @@ function sourceObjects(face) {
 }
 export function proveTranslation(native, original, offset) {
   exactData(native.request.parent, original); assert.notEqual(native.request.parent, original);
-  exactData(native.request.offsetMM, offset); assert.equal(typeof native.request.prefix, 'string');
+  exactData(native.request.offset, offset); assert.equal(typeof native.request.prefix, 'string');
   const target = native.solid, lineage = native.lineage, parent = native.request.parent;
   assert.notEqual(target, original); assert.notEqual(target.request.options.solidId, original.request.options.solidId);
   exactData(target.certificate.volumeMM3, original.certificate.volumeMM3);
@@ -195,7 +195,7 @@ export function proveTranslation(native, original, offset) {
   }
   for (const link of lineage.vertices) {
     const before = parent.graph.vertices.find(v => v.id === link.original.vertexId), after = target.graph.vertices.find(v => v.id === link.translated.vertexId); assert.ok(before && after);
-    assert.notEqual(before.id, after.id); translatedPoint(after.pointMM, before.pointMM, offset, 'solid vertex');
+    assert.notEqual(before.id, after.id); translatedPoint(after.point, before.point, offset, 'solid vertex');
     exactData(sorted(after.members), sorted(before.members.map(member => mapped('localVertices', member))));
   }
   const mappedFace = (sourceId, faceId) => {
@@ -250,14 +250,14 @@ export function proveSnapshot(snapshot, parameters = DEFAULTS) {
   const volume = (parameters.width * parameters.height - parameters.height ** 2 / 6) * 8;
   proveConvex(left.native, volume, [6, 12, 8]); proveConvex(right.native, volume, [6, 12, 8]);
   const offset = [parameters.spacing, parameters.offsetY, parameters.offsetZ], translationProof = proveTranslation(translation, left.native, offset);
-  const bounds = solid => ({ min: [0, 1, 2].map(a => Math.min(...solid.graph.vertices.map(v => v.pointMM[a]))),
-    max: [0, 1, 2].map(a => Math.max(...solid.graph.vertices.map(v => v.pointMM[a]))) });
+  const bounds = solid => ({ min: [0, 1, 2].map(a => Math.min(...solid.graph.vertices.map(v => v.point[a]))),
+    max: [0, 1, 2].map(a => Math.max(...solid.graph.vertices.map(v => v.point[a]))) });
   const leftBounds = bounds(left.native), rightBounds = bounds(right.native);
   exactData(leftBounds, { min: [0, 0, 0], max: [parameters.width, parameters.height, 8] });
   exactData(rightBounds, { min: [parameters.spacing, parameters.offsetY === 0 ? 0 : parameters.offsetY, parameters.offsetZ],
     max: [parameters.width + parameters.spacing, parameters.height + parameters.offsetY, 8 + parameters.offsetZ] });
   deepFrozen(snapshot);
-  return { volumesMM3: { left: volume, right: volume }, boundsMM: { left: leftBounds, right: rightBounds },
+  return { volumesMM3: { left: volume, right: volume }, bounds: { left: leftBounds, right: rightBounds },
     sketch: sketchProof, translation: translationProof, authoredSHA256: sha256(snapshot.save()), bodiesSHA256: dataHash(snapshot.bodies),
     evidenceSHA256: dataHash(snapshot.evidence), snapshotSHA256: dataHash(snapshotData(snapshot)), deepFrozenInActualProcess: true };
 }

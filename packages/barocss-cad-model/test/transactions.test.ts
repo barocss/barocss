@@ -19,7 +19,7 @@ test('apply_ops: all or nothing, a dry run first, a retried batch not applied tw
   const dry = await runTool(s, 'apply_ops', { ops: OPS, dryRun: true }, evaluate), d = parse(dry.content);
   assert.ok(!dry.isError, dry.content); assert.equal(dry.changed, false); assert.equal(dry.state.doc, s.doc);
   assert.deepEqual(d.diff.added.map((a: { id: string }) => a.id), ['n2', 'n3']);
-  assert.ok(d.change.volume_mm3 < 0 && d.broken_references === undefined);
+  assert.ok(d.change.volume < 0 && d.broken_references === undefined);
   // Applied.
   const r = await runTool(s, 'apply_ops', { ops: OPS }, evaluate), out = parse(r.content);
   assert.ok(!r.isError, r.content); assert.equal(r.state.doc.nodes.length, 4);

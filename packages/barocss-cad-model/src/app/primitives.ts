@@ -4,6 +4,7 @@
 import { bevelGearDimensions, wormDimensions, wormWheelSpec, checkWormPair } from '@barocss/cad';
 import { withNode, type CamLawName, type LoopSegment, type ModelNode, type StudioDoc } from '../engine/doc';
 import type { Command, Ctx, HandleSpec, Values } from './commands';
+import { refusal } from '../engine/refusal';
 
 const ok = { ok: true as const };
 const r1 = (v: number) => Math.round(v * 10) / 10;
@@ -15,7 +16,7 @@ const upright = (v: Values) => ({ origin: [Number(v.x), Number(v.y), Number(v.z)
 /** A sketch drawn on the upright plane, turned a full turn about its Y axis (world Z through x, y). */
 function turned(doc: StudioDoc, sketch: ModelNode): StudioDoc {
   const d = withNode(doc, sketch);
-  return withNode(d, { kind: 'revolve', sketch: d.nodes.length - 1, axis: 'y', angleDegrees: 360 });
+  return withNode(d, { kind: 'revolve', sketch: d.nodes.length - 1, axis: 'y', angle: 360 });
 }
 /**
  * A regular torus cage (every vertex valence 4) of nu × nv quads standing on z, wound outward. Its radii are grown so
@@ -140,7 +141,7 @@ export const primitives: Command[] = [
     handles: (_, v) => { const [R, r, x, y, z] = n(v, 'R', 'r', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('R', [x + R + r, y, z + r], X, { min: 1 }), arrow('r', [x + R, y, z + 2 * r], Z, { scale: 0.5 })]; },
     build: (ctx, v) => {
       const R = Number(v.R), r = Number(v.r);
-      if (!(r < R)) throw new Error('The tube radius must be smaller than the ring radius.');
+      if (!(r < R)) throw refusal('PRIMITIVE_SIZE', 'The tube radius must be smaller than the ring radius.');
       return turned(ctx.doc, { kind: 'sketch', profile: 'circle', center: [R, r], radius: r, plane: upright(v) });
     },
   },
@@ -189,7 +190,7 @@ export const primitives: Command[] = [
     build: (ctx, v) => {
       const [m, z, zm, sigma, b, bore, x, y, zz, beta, rc] = n(v, 'm', 'teeth', 'mate', 'sigma', 'b', 'bore', 'x', 'y', 'z', 'spiral', 'rc');
       // (Standing on At Z: its apex below by the toe's lowest point, Ri cos(δ + θa), the teeth above it.)
-      const spec = { moduleMM: m, teeth: Math.round(z), mateTeeth: Math.round(zm), shaftAngleDeg: sigma, faceWidthMM: b }, g = bevelGearDimensions(spec), low = g.Ri * Math.cos(g.tipPolar);
+      const spec = { module: m, teeth: Math.round(z), mateTeeth: Math.round(zm), shaftAngle: sigma, faceWidth: b }, g = bevelGearDimensions(spec), low = g.Ri * Math.cos(g.tipPolar);
       // (A spiral one's cutter radius left 0: the mean cone distance, said to be an estimate.)
       const spiral = beta > 0 ? { angle: beta, hand: v.hand === 'right' ? 'right' as const : 'left' as const, cutterRadius: rc > 0 ? rc : +((g.Re + g.Ri) / 2).toFixed(3), ...(rc > 0 ? {} : { cutterEstimate: true }) } : undefined;
       return withNode(ctx.doc, { kind: 'bevel-gear', module: m, teeth: Math.round(z), mateTeeth: Math.round(zm), ...(sigma !== 90 ? { shaftAngle: sigma } : {}), faceWidth: b, ...(bore > 0 ? { bore } : {}), center: [x, y], from: zz - low, generator: 'bevel-gear@0', ...(spiral ? { spiral } : {}) });
@@ -212,8 +213,8 @@ export const primitives: Command[] = [
       const [m, z1, d1, z2, b, bore, wbore, x, y, zz] = n(v, 'm', 'starts', 'd1', 'z2', 'b', 'bore', 'wbore', 'x', 'y', 'z'), hand = v.hand === 'left' ? 'left' as const : 'right' as const, throated = v.wheel === 'throated', form = throated || v.form === 'ZA' ? 'ZA' as const : 'ZI' as const;
       // (The wheel: a helical gear at β = γ of the worm's hand, its normal module m_x cos γ. The worm long enough for the
       // mesh zone — where the wheel's tips reach its thread — and an axial pitch on either side.)
-      const worm = { axialModuleMM: m, starts: Math.round(z1), diameterMM: d1, hand, lengthMM: 1, form }, g = wormDimensions(worm), wh = wormWheelSpec(worm, { teeth: Math.round(z2), faceWidthMM: b });
-      const zone = checkWormPair(worm, wh, { mode: 'verdict', samples: 16 }).meshZoneHalfLengthMM, L = Math.ceil(2 * zone + 2 * Math.PI * m);
+      const worm = { axialModule: m, starts: Math.round(z1), diameter: d1, hand, length: 1, form }, g = wormDimensions(worm), wh = wormWheelSpec(worm, { teeth: Math.round(z2), faceWidth: b });
+      const zone = checkWormPair(worm, wh, { mode: 'verdict', samples: 16 }).meshZoneHalfLength, L = Math.ceil(2 * zone + 2 * Math.PI * m);
       // (The wheel's root schematic, spur-gear@0: a worm wheel is hobbed by a hob of the worm's own form, not cut by the
       // basic rack — whose generated root, at m_n, puts its fillet where an axial-module worm's crest reaches: a ZA worm
       // cuts it at no backlash, D136.)
@@ -289,7 +290,7 @@ export const primitives: Command[] = [
         const [z, dir, bore, shift] = n(v, 'teeth', 'dir', 'bore', 'shift');
         return withNode(ctx.doc, { kind: 'gear', module: ring.node.module, teeth: Math.round(z), faceWidth: ring.node.faceWidth, ...(shift ? { profileShift: shift } : {}), ...(bore > 0 ? { bore } : {}), ...(ring.node.thicknessReduction !== undefined ? { thicknessReduction: ring.node.thicknessReduction } : {}), center: [0, 0], mesh: { gear: ring.index, ...(dir ? { direction: dir } : {}) }, generator: 'spur-gear@1' });
       }
-      const g = gearPicked(ctx); if (!g) throw new Error('Select one spur gear or internal gear to mesh with.');
+      const g = gearPicked(ctx); if (!g) throw refusal('GEAR_PICK', 'Select one spur gear or internal gear to mesh with.');
       const [z, dir, bore, shift] = n(v, 'teeth', 'dir', 'bore', 'shift');
       return withNode(ctx.doc, { kind: 'gear', module: g.node.module, teeth: Math.round(z), faceWidth: g.node.faceWidth, ...(shift ? { profileShift: shift } : {}), ...(bore > 0 ? { bore } : {}), ...(g.node.thicknessReduction !== undefined ? { thicknessReduction: g.node.thicknessReduction } : {}), center: [0, 0], mesh: { gear: g.index, ...(dir ? { direction: dir } : {}) }, generator: 'spur-gear@1' });
     },
@@ -320,7 +321,7 @@ export const primitives: Command[] = [
     handles: (_, v) => { const [R, r, x, y, z] = n(v, 'R', 'r', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('R', [x + R + r, y, z + r], X, { min: 1 }), arrow('r', [x + R, y, z + 2 * r], Z, { scale: 0.5 })]; },
     build: (ctx, v) => {
       const [R, r] = n(v, 'R', 'r');
-      if (!(r < R)) throw new Error('The tube radius must be smaller than the ring radius.');
+      if (!(r < R)) throw refusal('PRIMITIVE_SIZE', 'The tube radius must be smaller than the ring radius.');
       return withNode(ctx.doc, { kind: 'subd', name: 'torus', cage: torusCage(R, r, Math.round(Number(v.nu)), Math.round(Number(v.nv)), n(v, 'x', 'y', 'z') as [number, number, number]) });
     },
   },
@@ -333,7 +334,7 @@ export const primitives: Command[] = [
     handles: (_, v) => { const [r, ri, h, x, y, z] = n(v, 'r', 'ri', 'h', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('r', [x + r, y, z + h / 2], X, { min: 1 }), arrow('ri', [x - ri, y, z + h], [-1, 0, 0], { min: 0.5 }), arrow('h', [x + (r + ri) / 2, y, z + h], Z, { min: 1 })]; },
     build: (ctx, v) => {
       const [r, ri, h] = n(v, 'r', 'ri', 'h');
-      if (!(ri < r)) throw new Error('The inner radius must be smaller than the outer one.');
+      if (!(ri < r)) throw refusal('PRIMITIVE_SIZE', 'The inner radius must be smaller than the outer one.');
       return withNode(ctx.doc, { kind: 'subd', name: 'tube', cage: tubeCage(r, ri, h, Math.round(Number(v.nu)), Math.round(Number(v.nh)), n(v, 'x', 'y', 'z') as [number, number, number]) });
     },
   },
@@ -358,7 +359,7 @@ export const primitives: Command[] = [
     handles: (_, v) => { const [r, ri, h, x, y, z] = n(v, 'r', 'ri', 'h', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('r', [x + r, y, z + h / 2], X, { min: 1 }), arrow('ri', [x - ri, y, z + h], [-1, 0, 0], { min: 0.1 }), arrow('h', [x + (r + ri) / 2, y, z + h], Z)]; },
     build: (ctx, v) => {
       const r = Number(v.r), ri = Number(v.ri), x = Number(v.x), y = Number(v.y), z = Number(v.z);
-      if (!(ri < r)) throw new Error('The inner radius must be smaller than the outer one.');
+      if (!(ri < r)) throw refusal('PRIMITIVE_SIZE', 'The inner radius must be smaller than the outer one.');
       const d = withNode(ctx.doc, { kind: 'sketch', profile: 'circle', center: [x, y], radius: r, holes: [circleLoop(x, y, ri)] });
       return withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height: Number(v.h), ...(z ? { from: z } : {}) });
     },

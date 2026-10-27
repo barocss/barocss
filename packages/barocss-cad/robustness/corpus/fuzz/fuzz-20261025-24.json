@@ -1,0 +1,178 @@
+{
+  "id": "fuzz-20261025-24",
+  "about": "L4 fuzz finding (seed 20261025, case 24), shrunk: a ball less a closed shelled box, the ball's face by its pole cut by two walls 0.046 and 0.168 mm off it — the quadrature gave up (its trims bowed far from their chords in (u, v)) and the tessellated mass was 148 e off (within its stated bound 0.508). Since D245: quadrature, within the oracle's e.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                -3.5
+              ]
+            },
+            {
+              "kind": "arc",
+              "start": [
+                0,
+                3.5
+              ],
+              "center": [
+                0,
+                0
+              ],
+              "direction": "cw"
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n1b",
+          "kind": "revolve",
+          "sketch": "n1s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angle": 360
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1b",
+          "offset": [
+            -2.5,
+            0.5,
+            1.5
+          ]
+        },
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            3.215,
+            7.473
+          ]
+        },
+        {
+          "id": "n2b",
+          "kind": "extrude",
+          "sketch": "n2s",
+          "height": 6.643
+        },
+        {
+          "id": "n2f",
+          "kind": "shell",
+          "target": "n2b",
+          "thickness": 0.284,
+          "open": []
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2f",
+          "offset": [
+            -2.952,
+            0.17,
+            -2.819
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "difference",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volume": {
+          "value": 165.4783954341042,
+          "relTol": 0.0001,
+          "absTol": 0.01654783954341042
+        },
+        "centroid": {
+          "value": [
+            -2.573514506019296,
+            0.43391604750973084,
+            1.4997522199238793
+          ],
+          "absTol": 0.0010643
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 512² lattice at 8 shifts, e 1.16e-3 mm³, centroid e 1.95e-5 mm",
+  "fuzz": {
+    "seed": 20261025,
+    "k": 24,
+    "status": "WRONG",
+    "tree": {
+      "op": "difference",
+      "a": {
+        "leaf": {
+          "kind": "sphere",
+          "r": 3.5,
+          "rot": [],
+          "move": [
+            -2.5,
+            0.5,
+            1.5
+          ]
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "hbox",
+          "w": 3.215,
+          "d": 7.473,
+          "h": 6.643,
+          "t": 0.284,
+          "open": false,
+          "rot": [],
+          "move": [
+            -2.952,
+            0.17,
+            -2.819
+          ]
+        }
+      }
+    }
+  }
+}

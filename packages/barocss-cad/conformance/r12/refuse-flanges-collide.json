@@ -38,7 +38,7 @@
           "kind": "sheet-flange",
           "target": "b",
           "edge": "b.side0|b.top",
-          "angleDegrees": 135,
+          "angle": 135,
           "length": 30
         },
         {
@@ -46,7 +46,7 @@
           "kind": "sheet-flange",
           "target": "f1",
           "edge": "b.side1|b.top",
-          "angleDegrees": 135,
+          "angle": 135,
           "length": 30
         }
       ]
@@ -54,7 +54,8 @@
   },
   "expect": {
     "error": {
-      "code": "GEOMETRY",
+      "code": "FLANGES_COLLIDE",
+      "category": "GEOMETRY",
       "messageIncludes": "[FLANGES_COLLIDE] the flange on b.side1|b.top runs into the sheet"
     }
   },

@@ -1,19 +1,26 @@
+import { flattenShopView, resolveShopTree } from './shopRows';
+import { refusal } from './refusal';
 // The studio document: plain data, one node per feature. Every command appends or edits nodes; the
 // worker evaluates it on the kernel's B-rep part model (a node is feature `id`, see part.ts and ids.ts).
 
 import type { BoundConstraint3D } from '../frames/sketch3d';
 import type { RobotSettings } from '../robot/joints';
-import type { BendTable } from '@barocss/cad';
-import type { Brief } from '../chat/brief';
-import type { QuestionLog } from '../chat/questions';
-import type { ReferenceSet } from '../chat/references';
-import type { DraftSet } from '../chat/drafts';
+import type { BendTable, LoftInput, LoftSectionFrame } from '@barocss/cad';
+import type { Brief } from './schema/brief';
+import type { QuestionLog } from './schema/questions';
+import type { ReferenceSet } from './schema/references';
+import type { DraftSet } from './schema/drafts';
 import type { Interfaces } from '../team/parts';
 import type { EcrLog } from '../team/ecr';
 import type { BaselineLog } from '../team/baseline';
+import type { BeadOwnership } from '../frames/beadOwnership';
+import type { BearingHousingRef } from './bearingContext';
+export type { BearingHousingRef } from './bearingContext';
 
 export type Axis = 'x' | 'y' | 'z';
 export type Dim = number | { parameter: string };
+/** A loft section: a legacy height or an explicit world-mm frame, never both. */
+export type LoftSection = { sketch: number } & ({ z: Dim; frame?: never } | { frame: LoftSectionFrame; z?: never });
 /** A cam's motion laws (R12c.6a, D160): closed forms, the kernel's. */
 export type CamLawName = 'uniform' | 'harmonic' | 'cycloidal' | 'polynomial-345' | 'modified-trapezoid';
 /**
@@ -28,7 +35,8 @@ export type MemberSection =
   | { kind: 'rect-tube'; width: Dim; height: Dim; wall: Dim; outerRadius: Dim; innerRadius?: Dim }
   | { kind: 'round-tube'; diameter: Dim; wall: Dim }
   | { kind: 'angle'; legX: Dim; legY: Dim; thickness: Dim; rootRadius: Dim; toeRadius: Dim }
-  | { kind: 'channel'; height: Dim; width: Dim; web: Dim; flange: Dim; rootRadius: Dim }
+  | { kind: 'channel'; height: Dim; width: Dim; web: Dim; flange: Dim; rootRadius: Dim; toeRadius?: Dim; flangeSlope?: Dim }
+  | { kind: 'i-beam'; height: Dim; width: Dim; web: Dim; flange: Dim; rootRadius: Dim; toeRadius: Dim; flangeSlope: Dim }
   | { kind: 'tslot'; size: Dim; cells: 1 | 2; openSlots?: number; opening: Dim; lip: Dim; undercut: Dim; depth: Dim; bore: Dim }
   | { kind: 'sketch'; sketch: number }
   /** FRc (O117): a row of the document's section library (`frames.sections`) by its id — resolved before the kernel. */
@@ -41,13 +49,17 @@ export interface FrameSectionRow { id: string; name?: string; section: InlineSec
  * A frame's corners (FR3a, D125; the kernel's `corners`): where exactly two members end at a point, `default` (mitre when
  * left out) finishes them — mitre, butt or none — and `at` sets a point apart (`through`: the member running on at a butt).
  */
+/** FRk5 cutter dimensions; offset is mm along cross(through axis, branch inward). */
+export type FrameNotch = { kind: 'holesaw'; diameter: Dim; offset?: Dim } | { kind: 'v'; depth: Dim; angle: Dim };
 export interface FrameCorners {
+  /** Full joint clearance in mm; a per-point zero overrides this default. */
+  gap?: Dim;
   default?: 'mitre' | 'butt' | 'none';
   /** Three or more members ending at a point (FR3b, D126): an ordered trim (`order`) or left square (`none`, the default). */
   multi?: 'order' | 'none';
   /** Members ending on another's length (T-joints, FR3b): butted on its face, coped to its envelope, or left (`none`, the default). */
   tee?: 'butt' | 'cope' | 'none';
-  at?: { point: number; kind: 'mitre' | 'butt' | 'cope' | 'order' | 'none'; through?: number; trim?: 'face' | 'envelope'; order?: number[] }[];
+  at?: { point: number; kind: 'mitre' | 'butt' | 'cope' | 'order' | 'none'; through?: number; trim?: 'face' | 'envelope'; order?: number[]; gap?: Dim; notch?: FrameNotch }[];
 }
 /** A member's end trimmed to a plane or an earlier body (FR3b, D126; the kernel's `trims`). */
 export type FrameTrim = { member: number; end: 'start' | 'end' } & ({ plane: { origin: [number, number, number]; normal: [number, number, number] } } | { body: BodyRef });
@@ -62,7 +74,7 @@ export interface BodyRef { node: number; side: Side }
 /** A stock row (CNC7b): a block's three sides, or a bar's diameter (and the longest length it comes in), with its source (the shop's own, a page …). */
 export type StockRow = { id: string; kind: 'block'; size: [number, number, number]; source: string } | { id: string; kind: 'bar'; diameter: number; maxLength?: number; source: string };
 /** A frame stock row (FRb, O116): a length bars come in, how many if limited, the section it is (a cut list's section text; unset: any), with its source. */
-export interface FrameStockRow { id: string; lengthMM: number; count?: number; section?: string; source: string }
+export interface FrameStockRow { id: string; length: number; count?: number; section?: string; source: string }
 export interface DocPlane { origin: [number, number, number]; normal: [number, number, number]; xAxis: [number, number, number] }
 /** A sheet's K (R12.4, D120): one K-factor, or a bend table (the shop's, loaded from a file) giving each bend's. */
 export type SheetK = { kFactor: number; bendTable?: undefined } | { bendTable: BendTable; kFactor?: undefined };
@@ -93,7 +105,11 @@ export interface Made { command: string; values: Record<string, number | string>
  * kernel's `sideTags`): the walls a body makes of it are named `side[<id>]` and keep their names as it is edited.
  * Left out (sketches written before), the walls are named by position (`side<k>`), as they were (D16).
  */
-type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef; construction?: unknown[]; sideTags?: { outer: string[]; regions?: string[][]; holes?: string[][] } };
+/** One explicit same-document planar face outline and its inward offset. */
+export interface PlanarFaceOutlineInsetAssociation {
+  kind: 'planar-face-outline-inset'; version: 1; source: BodyRef; sourceFeature: string; face: string; insetMM: number;
+}
+type OnPlane = { association?: PlanarFaceOutlineInsetAssociation; plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef; construction?: unknown[]; sideTags?: { outer: string[]; regions?: string[][]; holes?: string[][] } };
 export type SketchNode =
   | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim } & OnPlane)
@@ -121,28 +137,30 @@ type ModelNodeBase = SketchNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
   /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */
-  | { kind: 'revolve'; sketch: number; axis: 'x' | 'y'; origin?: [Dim, Dim]; angleDegrees: number; /** Any direction in the sketch plane (a picked edge), instead of its X or Y. */ dir?: [number, number]; made?: Made }
+  | { kind: 'revolve'; sketch: number; axis: 'x' | 'y'; origin?: [Dim, Dim]; angle: number; /** Any direction in the sketch plane (a picked edge), instead of its X or Y. */ dir?: [number, number]; made?: Made }
   | { kind: 'translate'; parent: BodyRef; offset: [Dim, Dim, Dim] }
   /** About the axis through `pivot` (none: the origin, as parts placed by rotation steps). */
-  | { kind: 'rotate'; parent: BodyRef; axis: Axis; angleDegrees: number; pivot?: [Dim, Dim, Dim]; made?: Made }
+  | { kind: 'rotate'; parent: BodyRef; axis: Axis; angle: number; pivot?: [Dim, Dim, Dim]; made?: Made }
   | { kind: 'mirror'; parent: BodyRef; plane: 'xy' | 'xz' | 'yz' }
   /** About `pivot` (none: the origin). */
   | { kind: 'scale'; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
+  /** Repeat a current difference's cut; spacing keeps the stored dimension reference. */
+  | { kind: 'linear-feature-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
   /** About `axis` through `pivot` (default the origin). */
-  | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angleDegrees: number; count: number; pivot?: [Dim, Dim, Dim] }
+  | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'union'; left: BodyRef; right: BodyRef; made?: Made }
   | { kind: 'intersect'; left: BodyRef; right: BodyRef }
-  | { kind: 'difference'; parent: BodyRef; tool: BodyRef }
+  | { kind: 'difference'; parent: BodyRef; tool: BodyRef; made?: Made }
   /** Across `axis` = at, or with `normal` across the plane normal·p = at (an oblique cut: x + y = at for [1, 1, 0]). */
   | { kind: 'split'; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] }
   /** The sketch swept along straight runs and bends (from the sketch plane up +Z). */
-  | { kind: 'sweep'; sketch: number; path: ({ kind: 'straight'; length: Dim } | { kind: 'bend'; radius: Dim; angleDegrees: number; toward: 'x' | '-x' | 'y' | '-y' })[] }
+  | { kind: 'sweep'; sketch: number; path: ({ kind: 'straight'; length: Dim } | { kind: 'bend'; radius: Dim; angle: number; toward: 'x' | '-x' | 'y' | '-y' })[] }
   /** The sketch's profile swept along a curve (a NURBS path in mm, copied from a direct curve `name`): faceted. */
-  | { kind: 'sweep-curve'; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[] } }
+  | { kind: 'sweep-curve'; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[] }; routeBundleMember?: { bundleId: string; memberId: string } }
   /** A ruled loft through sketches at increasing heights (each section's edges to the next one's). */
   /** `from`: the sketches the sections were carried over from, when they lay on offset planes (used by the loft). */
-  | { kind: 'loft'; sections: { sketch: number; z: Dim }[]; smooth?: boolean; from?: number[] }
+  | { kind: 'loft'; sections: LoftSection[]; smooth?: boolean; from?: number[]; /** World-mm seam controls, copied on authoring and passed to the kernel unchanged. */ guide?: LoftInput['guide'] }
   /** A body read from a STEP file (the file's text is kept in the document). */
   /** `solids`: how many solids the file holds when more than one; each is then its own body (side `part<k>`). */
   | { kind: 'import'; name: string; step: string; solids?: number }
@@ -176,7 +194,7 @@ type ModelNodeBase = SketchNode
    */
   /** A corner relief (R12.3b, D119; the kernel's `sheet-corner-relief`): the corner kept by its edge's name, as a flange's. */
   | { kind: 'sheet-corner-relief'; parent: BodyRef; edges: [string]; shape: 'square' | 'round'; size: Dim }
-  | { kind: 'sheet-flange'; parent: BodyRef; edges: [string]; length: Dim; angleDegrees?: number; bendRadius?: Dim; measure?: 'outer' | 'inner' | 'tangent'; position?: 'material-inside' | 'material-outside' | 'bend-outside'; offsets?: [Dim, Dim]; relief?: { kind: 'rectangular' | 'obround'; width: Dim; depth: Dim } | { kind: 'none' } }
+  | { kind: 'sheet-flange'; parent: BodyRef; edges: [string]; length: Dim; angle?: number; bendRadius?: Dim; measure?: 'outer' | 'inner' | 'tangent'; position?: 'material-inside' | 'material-outside' | 'bend-outside'; offsets?: [Dim, Dim]; relief?: { kind: 'rectangular' | 'obround'; width: Dim; depth: Dim } | { kind: 'none' } }
   /**
    * A structural member (FR1, D123; the kernel's `frame-member`): a `section` square to the line `start` → `end`, extruded
    * its length. Its `anchor` (default the centroid) on the line, the section moved by `offset`, its y along `up` (default
@@ -195,7 +213,7 @@ type ModelNodeBase = SketchNode
    * `follows` (FRf, O121): the frame's points and segments are a skeleton's, or a sketch's straight edges lifted by its
    * plane, read at every evaluation (its own `points`/`segments` then a copy, not read for geometry).
    */
-  | { kind: 'frame'; follows?: FrameFollows; points: [Dim, Dim, Dim][]; segments: [number, number][]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; corners?: FrameCorners; trims?: FrameTrim[]; estimates?: string[] }
+  | { kind: 'frame'; follows?: FrameFollows; points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[]; bends?: ModelFrameBend[]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; corners?: FrameCorners; trims?: FrameTrim[]; estimates?: string[] }
   | { kind: 'frame-member'; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; up?: [number, number, number]; estimates?: string[] }
   /** An open surface (copied from a direct surface `name`) thickened into a solid along its normal: faceted. */
   | { kind: 'thicken'; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }; thickness: Dim; side?: 'normal' | 'reverse' | 'both' }
@@ -341,7 +359,7 @@ type ModelNodeBase = SketchNode
    */
   | { kind: 'gusset'; frame: number; point: number; members?: [number, number]; along?: 1 | -1; legs: [number, number]; thickness: number; clip?: number; offset?: number }
   | { kind: 'end-cap'; frame: number; member: number; end: 'start' | 'end'; fit: 'over' | 'inset'; thickness: number }
-  | { kind: 'bearing'; row: string; shaft: number; step: number; against: 'start' | 'end'; housing?: number; shaftClass?: string; housingClass?: string }
+  | { kind: 'bearing'; row: string; shaft: number; step: number; against: 'start' | 'end'; housing?: number; housingRef?: BearingHousingRef; shaftClass?: string; housingClass?: string }
   | { kind: 'key'; shaft: number; keyseat: number; height: number; width?: number; length?: number; ends?: 'round' | 'square'; hub?: number }
   | { kind: 'keyway'; parent: BodyRef; face: string; width: number; depth: number; angle?: number }
   | { kind: 'retaining-ring'; shaft: number; groove: number; thickness: number; outerDiameter: number; /** The user's ring row it is checked against (O139); none: an estimate. */ row?: string }
@@ -359,7 +377,7 @@ type ModelNodeBase = SketchNode
   /** Direct surfaces (copied, by their names) sewn along their edges into one closed solid; edges `tolerance` mm apart still meet. */
   | { kind: 'sew'; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }[]; tolerance?: number }
   /** Draft on chosen side faces (by name) for a pull along +Z: each turned about its line on the body's bottom (positive: its top leans in). */
-  | { kind: 'draft'; parent: BodyRef; faces: string[]; angleDegrees: number }
+  | { kind: 'draft'; parent: BodyRef; faces: string[]; angle: number }
   /** IM7b (O113): a face split along its isocline n·d = 0 for the pull (the kernel's split-face, D149): its pieces `<face>#1` (the + side), `<face>#2` …, or `names`. */
   | { kind: 'split-face'; parent: BodyRef; face: string; pull: [number, number, number]; names?: string[] }
   /** `radii` (R10.5, D100): a varying radius, given at points of the edges; `radius` then the first point's. `section` (R10.5b, D103): a conic or G2 section (default a circle). */
@@ -375,6 +393,7 @@ type ModelNodeBase = SketchNode
   | { kind: 'decimate'; parent: BodyRef; ratio?: number; triangles?: number; maxError?: number; featureAngle?: number }
   /** `thread`: a tapped hole's cosmetic thread (the hole is its tap drill), e.g. "M6×1"; studio-only. */
   | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim; thread?: string; pattern?: HolePattern;
+    /** The command that made it with the steps before it (O14: a mount's last hole). */ made?: Made;
     /** The face it goes into, by name (D148): its depth and countersink from that face's plane, not the body's extreme. */ face?: string;
     /** A 90° countersink: its diameter at the face (the kernel cuts it with the hole). */ countersink?: number;
     /** (Older documents: a countersink's diameter for the callout only, its cone the three steps after the hole.) */ csk?: number };
@@ -399,13 +418,14 @@ import type { RenderSettings } from './render';
 import type { SketchRule } from '../sketch/terms';
 import type { DirectGeometry } from './direct';
 import type { DrawingSettings } from '../drawing/types';
-import { rotationMatrix, rotationSteps, type Mate } from '../assembly/mates';
-import { flattenAssembly } from '../assembly/flatten';
+import { type Mate } from '../assembly/mates';
+import { rotationMatrix, rotationSteps } from './placement';
+import { flattenAssembly } from './flatten';
 import { bodyKeyFor, nextSerial, nodeIndexOf as nodeIndexOfLocal, withIds } from './ids';
 import type { Sig } from './references';
-import type { Requirement } from '../chat/spec';
+import type { Requirement } from './schema/spec';
 import type { CadLibraryInterface, CadLibraryManifest, CadLibraryOrigin, CadPartFeature, MeshRepairReport, MeshRepairSteps } from '@barocss/cad';
-import type { HistoryEntry, Proposal } from '../chat/proposals';
+import type { HistoryEntry, Proposal } from './schema/proposals';
 
 /**
  * A mesh's repair as a recorded, reversible step (M3, D47): the steps asked, the arrays they gave (their own blobs:
@@ -416,10 +436,41 @@ export interface MeshRepairRecord { steps: MeshRepairSteps; result: { positions:
 
 /** A drawing's reference underlay (O68): polylines and texts in its plane's coordinates (mm). */
 export interface DocUnderlay { id: string; name: string; plane?: DocPlane; draft?: string; hidden?: boolean; polylines: [number, number][][]; texts: { at: [number, number]; text: string; height: number; angle: number }[]; counts: Record<string, number> }
+/** Saved print display controls. Omitted values remain omitted; they do not author a build direction. */
+export interface PrintPreviewSettings {
+  version: 1;
+  /** Zero-based layer index, independent of the current display's layer count. */
+  layer?: number;
+  /** The layer height, mm; absent keeps the existing 0.2 mm estimate. */
+  layerHeight?: number;
+  supports?: boolean;
+  printed?: boolean;
+}
+/** A fixed-topology route bound to one translated virtual tie, in world millimetres. */
+export interface RouteBundleMember {
+  id: string;
+  curveObjectId: string;
+  sourceKey: string;
+  geometryId: string;
+  handleKey: string;
+  sourceRevision: string;
+  sourceCanonical: string;
+  offsetMM: [number, number, number];
+  sweepFeatureId: string;
+  profileFeatureId: string;
+}
+export interface RouteBundle {
+  id: string;
+  version: 1;
+  kind: 'two-open-curves-one-translation-tie';
+  frame: 'world-mm';
+  tie: { id: string; anchorMM: [number, number, number] };
+  members: [RouteBundleMember, RouteBundleMember];
+}
 export interface StudioDoc {
   format: 'barocss-cad-model';
-  /** 3: bodies keyed by stable ids; 2: nodes carry stable ids (`id`, `nextId`); 1: a node was named by its index. */
-  schema: 1 | 2 | 3;
+  /** 4: explicit route bundles; 3: stable body keys; 2: stable feature ids; 1: index-based feature ids. */
+  schema: 1 | 2 | 3 | 4;
   /** The next feature serial to hand out (`n<nextId>`): ids are never used twice, see engine/ids.ts. */
   nextId?: number;
   units: 'mm';
@@ -428,6 +479,8 @@ export interface StudioDoc {
    * Libraries written for this document (LIB4, D64), by an agent or a person: data, checked on load like any other;
    * an agent's stays marked until a person confirms it (and only then may it be shared with the team).
    */
+  /** Conversation file evidence, separate from strict row source/estimate fields. */
+  rowSources?: { version: 1; rows: import('./rowSources').RowSupply[] };
   libraries?: { library: CadLibraryManifest; authoredBy: 'agent' | 'person'; confirmed?: boolean }[];
   /** The process the part is made by (R6b.7, D67): a process profile's id (injection, fdm, sla, sls, mjf) — its rules' thresholds. */
   process?: string;
@@ -435,15 +488,17 @@ export interface StudioDoc {
   printer?: string;
   /** How it lies in the printer (AM3–AM4): the build direction in the part's coordinates (up from the bed), chosen or given. */
   print?: { direction: [number, number, number] };
+  /** Print display state (G23), separate from the authored build direction. */
+  printPreview?: PrintPreviewSettings;
   /** How it is moulded (IM1, O77; versioned): the pull direction (the mould opens along it), the surface finish (an injection profile's finish id: its least draft) and the halves the person set (IM5). */
   mould?: { version: 1; pull?: [number, number, number]; finish?: string; /** IM5 (O81): the person's halves, by face name — they decide a wall along the pull or a straddling face. */ sides?: Record<string, '+' | '-'> };
   /**
    * How it is machined (CNC7b, O102; versioned): the shop's stock list — loaded by the user, none built in (D121's
    * pattern) — and the allowance per face (mm; unset, an estimate of 1 mm is taken and said).
    */
-  machining?: { version: 1; stock?: StockRow[]; allowanceMM?: number };
+  machining?: { version: 1; stock?: StockRow[]; allowance?: number };
   /** IM8b (O108): casting's pattern — the faces machined after casting (by name), and the user's own machining allowance (mm a face) and shrinkage (a ratio, mm/mm); unset, the table's. */
-  casting?: { version: 1; machined?: string[]; machiningAllowanceMM?: number; shrink?: number; /** IM8c (O109): where the metal comes in (a point on the part, mm), the person's: hot spots are fed from it. */ gate?: [number, number, number] };
+  casting?: { version: 1; machined?: string[]; machiningAllowance?: number; shrink?: number; /** IM8c (O109): where the metal comes in (a point on the part, mm), the person's: hot spots are fed from it. */ gate?: [number, number, number] };
   /** FRb (O116): how frames are cut — the shop's stock lengths (loaded by the user, none built in) and the saw's kerf (mm; unset, an estimate is taken and said). */
   /** R12c.2 (D155): fit tables the user loads (none built in), cylindrical faces' classes by face name, declared hole–shaft pairs (engine/fits.ts). */
   fits?: import('./fits').StudioFits;
@@ -457,9 +512,19 @@ export interface StudioDoc {
   connectors?: { version: 1; rows: import('@barocss/cad').ConnectorRow[] };
   /** The user's retaining-ring rows (O139): none built in. */
   rings?: { version: 1; rows: import('./rings').StudioRingRow[] };
-  frames?: { version: 1; stock?: FrameStockRow[]; kerfMM?: number; /** FRc (O117): the user's section library — none built in (D122); a frame's section may name a row. */ sections?: FrameSectionRow[]; /** FRd1 (O118): the person's welds, by joint id (frames/welds.ts) — kind, size (mm), all round, the bore welded or not (theirs alone), notes; unset, the rule's. */ welds?: { joint: string; kind?: 'fillet' | 'butt'; sizeMM?: number; allRound?: boolean; inner?: boolean; notes?: string }[] };
+  /** The person's fastener rows (F9): what a placed fastener is bought as; none built in. */
+  fasteners?: { version: 1; rows: import('./fastenerRows').StudioFastenerRow[] };
+  /** The person's fastener sizes (O7): how each thread size is drawn and holed, one row per size, from their file. */
+  fastenerSizes?: { version: 1; rows: import('./fastenerSizeRows').StudioFastenerSizeRow[] };
+  /** The person's casting rules (O7c): die and sand casting's limits and allowance tables, from their file. */
+  castingRules?: { version: 1; rows: import('./castingRuleRows').StudioCastingRuleRow[] };
+  /** The person's mount rows (O14): how a motor, servo or bearing unit fixes to a face, from their datasheet file. */
+  mounts?: { version: 1; rows: import('./mountRows').StudioMountRow[] };
+  frames?: { version: 1; stock?: FrameStockRow[]; kerf?: number; /** Shared material accounting, explicitly chosen; no automatic policy migration. */ beadOwnership?: BeadOwnership; /** FRc (O117): the user's section library — none built in (D122); a frame's section may name a row. */ sections?: FrameSectionRow[]; /** FRd1 (O118): the person's welds, by joint id (frames/welds.ts) — kind, size (mm), all round, the bore welded or not (theirs alone), notes; unset, the rule's. */ welds?: { joint: string; kind?: 'fillet' | 'butt'; size?: number; allRound?: boolean; inner?: boolean; notes?: string }[] };
   /** Saved sets of parameter values by name (a configuration applies its set). */
   configurations?: Record<string, Record<string, number>>;
+  /** O11: the assembly's inputs, their bindings and its variants (engine/schema/variability; assembly/variability). */
+  variability?: import('./schema/variability').Variability;
   /**
    * New revisions of placed parts waiting to be accepted, by part definition (PartInstance.part.id):
    * loaded on purpose, they change no instance until accepted.
@@ -471,6 +536,8 @@ export interface StudioDoc {
   render?: RenderSettings;
   /** NURBS curves and surfaces beside the model (imported CAD sources and what tools made of them). */
   direct?: DirectGeometry;
+  /** Explicit base-document route bindings; legacy copied sweeps have no field. */
+  routeBundles?: RouteBundle[];
   /** Other parts placed beside this one (a simple assembly). */
   instances?: PartInstance[];
   /** The 2D drawing of the part (the Drawing workspace); absent until first drawn. */
@@ -531,44 +598,22 @@ export interface PartInstance {
 
 /** An instance's part with its placement applied: every body rotated and moved by the part's own features. */
 /** An instance's part as placed at the origin (a sub-assembly's own instances folded in as features). */
-export function placedBase(inst: PartInstance): StudioDoc {
-  const flat = flattenAssembly(inst.doc);
+export function placedBase(inst: PartInstance, parent?: StudioDoc): StudioDoc {
+  if (inst.doc.nodes.some(n => n.kind === 'sketch' && n.association !== undefined)) throw refusal('BAD_REFERENCE', 'Associative sketch: placed part recipes are not supported.');
+  const resolved = resolveShopTree(inst.doc, parent, parent ? inst.id : undefined);
+  const flat = flattenAssembly(flattenShopView(resolved));
   return prefixDoc(flat, flat.nodes.length);
 }
-/**
- * An instance's placement as the kernel applies it to every body: the turns of `rotationSteps` in order
- * (quarter turns exactly), then the move — x' = m·x + t, m row-major.
- */
-export function placementOf(inst: PartInstance): { m: number[]; t: [number, number, number] } {
-  let m = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-  for (const { axis, angleDegrees } of rotationSteps(inst.rotation)) m = mul3(turnMatrix(axis, angleDegrees), m);
-  return { m, t: [inst.position[0], inst.position[1], inst.position[2]] };
-}
-/** A turn about an axis through the origin, as the kernel's rotate feature makes it. */
-function turnMatrix(axis: 'x' | 'y' | 'z', deg: number): number[] {
-  const k = Math.round(deg / 90);
-  if (k * 90 === deg) {
-    const turns = ((k % 4) + 4) % 4, c = [1, 0, -1, 0][turns], s = [0, 1, 0, -1][turns];
-    return axis === 'x' ? [1, 0, 0, 0, c, -s, 0, s, c] : axis === 'y' ? [c, 0, s, 0, 1, 0, -s, 0, c] : [c, -s, 0, s, c, 0, 0, 0, 1];
-  }
-  const r = deg * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r);
-  return axis === 'z' ? [c, -sn, 0, sn, c, 0, 0, 0, 1] : axis === 'x' ? [1, 0, 0, 0, c, -sn, 0, sn, c] : [c, 0, sn, 0, 1, 0, -sn, 0, c];
-}
-function mul3(a: readonly number[], b: readonly number[]): number[] {
-  const out = Array<number>(9);
-  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) out[3 * i + j] = a[3 * i] * b[j] + a[3 * i + 1] * b[3 + j] + a[3 * i + 2] * b[6 + j];
-  return out;
-}
 
-export function placedDoc(inst: PartInstance): StudioDoc {
+export function placedDoc(inst: PartInstance, parent?: StudioDoc): StudioDoc {
   // (A sub-assembly: its own instances folded in as features, see assembly/flatten.ts.)
-  const base = placedBase(inst);
+  const base = placedBase(inst, parent);
   let doc = base;
   for (const ref of Object.values(base.outputs)) {
     let at: BodyRef = ref;
     // (Any rotation: the kernel turns about X and Y by quarter turns only, see rotationSteps.)
-    rotationSteps(inst.rotation).forEach(({ axis, angleDegrees }) => {
-      doc = { ...doc, nodes: [...doc.nodes, { kind: 'rotate', parent: at, axis, angleDegrees }] };
+    rotationSteps(inst.rotation).forEach(({ axis, angle }) => {
+      doc = { ...doc, nodes: [...doc.nodes, { kind: 'rotate', parent: at, axis, angle }] };
       at = { node: doc.nodes.length - 1, side: 'solid' };
     });
     if (inst.position.some(v => v !== 0)) {
@@ -582,7 +627,7 @@ export function placedDoc(inst: PartInstance): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'drives', 'connectors'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'variability', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'routeBundles', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'printPreview', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'fasteners', 'fastenerSizes', 'castingRules', 'mounts', 'drives', 'connectors', 'rowSources'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);
@@ -622,7 +667,12 @@ export const usesOf = (node: ModelNode): number[] => node.kind === 'oring' ? [no
 
 export function parentsOf(node: ModelNode): number[] {
   switch (node.kind) {
-    case 'sketch': return [];
+    case 'sketch': {
+      if (node.association === undefined) return [];
+      const a = node.association;
+      if (!a || a.kind !== 'planar-face-outline-inset' || a.version !== 1 || !a.source || !Number.isInteger(a.source.node) || a.source.node < 0 || a.source.side !== 'solid' || Object.keys(a.source).some(k => k !== 'node' && k !== 'side') || typeof a.sourceFeature !== 'string' || !a.sourceFeature || typeof a.face !== 'string' || !a.face || a.face.includes('+') || !Number.isFinite(a.insetMM) || a.insetMM <= 0) throw refusal('BAD_REFERENCE', 'Associative sketch: the stored recipe is malformed.');
+      return [a.source.node];
+    }
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];
@@ -652,7 +702,12 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
     if (!isSolidNode(node) || consumed.has(String(index))) return;
     if (node.kind === 'split') (['negative', 'positive'] as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else if (node.kind === 'import' && (node.solids ?? 1) > 1) Array.from({ length: node.solids! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
-    else if (node.kind === 'frame' && frameSegmentCount(nodes, node) > 1) Array.from({ length: frameSegmentCount(nodes, node) }, (_, k) => k).forEach(k => { const side = `part${k}` as const; if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
+    else if (node.kind === 'frame') {
+      // (Its members, from the frame's geometry worked out once here — R4 C4: frameSegmentCount and this each worked it out.)
+      const indices = frameIndices(nodes, node);
+      if (node.bends !== undefined || indices.length > 1) indices.forEach(k => { const side = `part${k}` as const; if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
+      else refs.push({ node: index, side: 'solid' });
+    }
     else if (node.kind === 'mesh' && (node.pieces ?? 1) > 1) Array.from({ length: node.pieces! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else refs.push({ node: index, side: 'solid' });
   });
@@ -664,6 +719,9 @@ export function prefixDoc(doc: StudioDoc, marker: number): StudioDoc {
   // (Every node with its stable id first: a document built or read without them gets them here.)
   doc = withIds(doc);
   const nodes = doc.nodes.slice(0, marker);
+  if (nodes.length < doc.nodes.length && (Object.prototype.hasOwnProperty.call(doc, 'routeBundles') || doc.nodes.some(n => Object.prototype.hasOwnProperty.call(n, 'routeBundleMember')))) {
+    throw refusal('BAD_REFERENCE', 'Route bundle: rollback to a partial feature history is not supported. Detach the bundle first.');
+  }
   const outputs: Record<string, BodyRef> = {};
   leafBodies(nodes).forEach(ref => { outputs[bodyKey(ref, nodes)] = ref; });
   return { ...doc, nodes, outputs };
@@ -751,13 +809,13 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
       const kind = s && s.kind === 'sketch' && s.profile === 'circle' ? 'Cylinder' : 'Extrude';
       return `${kind} ${n(node.height)}${node.draft ? ` · ${node.draft}°` : ''}`;
     }
-    case 'revolve': return `Revolve ${node.angleDegrees}°`;
+    case 'revolve': return `Revolve ${node.angle}°`;
     case 'hole': return (node.thread ? `Tapped ${node.thread}` : `${node.countersink ? 'Countersunk' : 'Hole'} Ø${typeof node.radius === 'number' ? fmt(node.radius * 2) : node.radius.parameter}`) + (node.pattern && node.pattern.count > 1 ? ` × ${node.pattern.count}` : '');
     case 'chamfer': return `Chamfer ${n(node.distance)}`;
-    case 'draft': return `Draft ${fmt(node.angleDegrees)}° × ${node.faces.length}`;
+    case 'draft': return `Draft ${fmt(node.angle)}° × ${node.faces.length}`;
     case 'thicken': return `Thicken ${node.name} ${n(node.thickness)}`;
     case 'sheet-base': return `Sheet plate T${n(node.thickness)}`;
-    case 'sheet-flange': return `Flange ${n(node.length)} · ${fmt(node.angleDegrees ?? 90)}°`;
+    case 'sheet-flange': return `Flange ${n(node.length)} · ${fmt(node.angle ?? 90)}°`;
     case 'frame-member': return `Member ${sectionLabel(node.section, n)} · ${memberLength(node)}`;
     case 'frame': { const k = frameSegmentCount(nodes, node); return `Frame ${sectionLabel(node.section, n)} · ${k} member${k === 1 ? '' : 's'}${node.follows ? ` · on ${'part' in node.follows ? `${node.follows.part}'s sketch ${node.follows.sketch}` : 'skeleton' in node.follows ? `skeleton ${node.follows.skeleton + 1}` : `sketch ${node.follows.sketch + 1}`}` : ''}`; }
     case 'skeleton': return `Skeleton${node.name ? ` ${node.name}` : ''} · ${node.points.length} points, ${node.segments.length} segments`;
@@ -769,10 +827,11 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'intersect': return 'Intersect';
     case 'difference': return 'Subtract';
     case 'translate': return 'Move';
-    case 'rotate': return `Rotate ${node.angleDegrees}°`;
+    case 'rotate': return `Rotate ${node.angle}°`;
     case 'mirror': return `Mirror ${node.plane.toUpperCase()}`;
     case 'scale': return `Scale ×${node.factor}`;
     case 'linear-pattern': return `Pattern ×${node.count}`;
+    case 'linear-feature-pattern': return `Cut pattern ×${node.count}`;
     case 'circular-pattern': return `Circular ×${node.count}`;
     case 'split': return node.normal ? `Split ${planeText(node.normal)} = ${n(node.at)}` : `Split ${node.axis.toUpperCase()}=${n(node.at)}`;
     case 'separate': return 'Separate pieces';
@@ -872,7 +931,8 @@ export function sectionLabel(s: MemberSection, n: (v: Dim) => string): string {
     case 'rect-tube': return `RHS ${n(s.width)}×${n(s.height)}×${n(s.wall)}`;
     case 'round-tube': return `Tube Ø${n(s.diameter)}×${n(s.wall)}`;
     case 'angle': return `L ${n(s.legX)}×${n(s.legY)}×${n(s.thickness)}`;
-    case 'channel': return `C ${n(s.height)}×${n(s.width)}`;
+    case 'channel': return `C ${n(s.height)}×${n(s.width)}${s.flangeSlope !== undefined && s.flangeSlope !== 0 ? ` · slope ${n(s.flangeSlope)}` : ''}`;
+    case 'i-beam': return `I/H ${n(s.height)}×${n(s.width)}×${n(s.web)}×${n(s.flange)} · slope ${n(s.flangeSlope)}`;
     case 'tslot': return `T-slot ${n(s.size)}${s.cells === 2 ? `×${typeof s.size === 'number' ? fmt(2 * s.size) : '2a'}` : ''}`;
     case 'sketch': return `sketch ${s.sketch + 1}`;
     case 'library': return s.id;
@@ -886,13 +946,20 @@ function memberLength(node: Extract<ModelNode, { kind: 'frame-member' }>): strin
   return `${fmt(Math.hypot(d - a, e - b, f - c))} mm`;
 }
 
+/** FRk4: authored segment indices stay stable when two straight runs form one tangent bend. */
+export type ModelFrameSegment = [number, number] | { from: number; to: number; through: number } | { from: number; to: number; center: [Dim, Dim, Dim] };
+export interface ModelFrameBend { point: number; radius: Dim }
+export const frameSegmentEnds = (segment: ModelFrameSegment): [number, number] => Array.isArray(segment) ? segment : [segment.from, segment.to];
+
 type FrameNode = Extract<ModelNode, { kind: 'frame' }>;
+/** The refusals of a frame's following geometry. */
+export type FrameGeometryCode = 'FRAME_SKELETON_UNKNOWN' | 'FRAME_SKELETON_POINT' | 'FRAME_SKETCH_UNKNOWN' | 'FRAME_SKETCH_CURVED' | 'FRAME_PART_SCOPE' | 'FRAME_PART_UNKNOWN' | 'FRAME_PART_FEATURE_GONE';
 /**
  * FRf (O121): a frame's points and segments — its own, or those it follows: a skeleton's, or a sketch's straight edges
  * (a rectangle's four, a polygon's, an outline of lines) lifted by the sketch's plane, its parameters' values read now.
  * A source that is not there, not a skeleton or sketch, curved, or a segment naming no point: refused, typed.
  */
-export function frameGeometry(nodes: readonly ModelNode[], node: FrameNode, parameters: Readonly<Record<string, number>> = {}, parts?: readonly PartInstance[] | null): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: string; error: string } {
+export function frameGeometry(nodes: readonly ModelNode[], node: FrameNode, parameters: Readonly<Record<string, number>> = {}, parts?: readonly PartInstance[] | null): { points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[] } | { code: FrameGeometryCode; error: string } {
   if (!node.follows) return { points: node.points, segments: node.segments };
   if ('part' in node.follows) return partSketchGeometry(node.follows, parts);
   const at = followsIndex(node.follows)!, src = nodes[at];
@@ -910,7 +977,7 @@ export function frameGeometry(nodes: readonly ModelNode[], node: FrameNode, para
  * and placed by the instance's rotation and position now. `parts` null: the frame is inside a placed part, which follows
  * its own part's features only (a sibling's would need each part evaluated with its siblings: not built).
  */
-function partSketchGeometry(f: { part: string; sketch: string }, parts: readonly PartInstance[] | null | undefined): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: string; error: string } {
+function partSketchGeometry(f: { part: string; sketch: string }, parts: readonly PartInstance[] | null | undefined): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: FrameGeometryCode; error: string } {
   if (parts === null) return { code: 'FRAME_PART_SCOPE', error: `a placed part's frame follows only its own part's features, not ${f.part}'s sketch (that needs each part evaluated with its siblings)` };
   const inst = (parts ?? []).find(i => i.id === f.part);
   if (!inst) return { code: 'FRAME_PART_UNKNOWN', error: `the frame follows a sketch of part ${f.part}, which the assembly does not hold (parts: ${(parts ?? []).map(i => i.id).join(', ') || 'none'})` };
@@ -923,7 +990,7 @@ function partSketchGeometry(f: { part: string; sketch: string }, parts: readonly
   return { points, segments: g.segments };
 }
 /** A sketch's straight edges lifted by its plane: a rectangle's four, a polygon's, an outline of lines (FRf). */
-function sketchEdges(src: Extract<ModelNode, { kind: 'sketch' }>, at: number, parameters: Readonly<Record<string, number>>): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: string; error: string } {
+function sketchEdges(src: Extract<ModelNode, { kind: 'sketch' }>, at: number, parameters: Readonly<Record<string, number>>): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: FrameGeometryCode; error: string } {
   const v = (d: Dim) => typeof d === 'number' ? d : parameters[d.parameter] ?? NaN;
   let uv: [number, number][];
   if (src.profile === 'rectangle') { const [a, b] = [src.min.map(v), src.max.map(v)]; uv = [[a[0], a[1]], [b[0], a[1]], [b[0], b[1]], [a[0], b[1]]]; }
@@ -937,4 +1004,16 @@ function sketchEdges(src: Extract<ModelNode, { kind: 'sketch' }>, at: number, pa
   return { points, segments: points.map((_, k) => [k, (k + 1) % points.length] as [number, number]) };
 }
 /** How many members a frame has (its geometry's segments; refused, its own copy's). */
-export function frameSegmentCount(nodes: readonly ModelNode[], node: FrameNode): number { const g = frameGeometry(nodes, node); return 'segments' in g ? g.segments.length : node.segments.length; }
+export function frameMemberIndices(node: FrameNode, segments: readonly ModelFrameSegment[] = node.segments): number[] {
+  const used = new Set<number>(), retained = new Set(segments.map((_, i) => i));
+  for (const bend of node.bends ?? []) {
+    const incident = segments.flatMap((g, i) => frameSegmentEnds(g).includes(bend.point) ? [i] : []);
+    // Invalid data belongs to Kernel's typed refusal; counting must not repair or reinterpret it.
+    if (incident.length !== 2 || incident.some(i => used.has(i) || !Array.isArray(segments[i]))) return segments.map((_, i) => i);
+    incident.forEach(i => used.add(i)); retained.delete(incident[1]);
+  }
+  return [...retained].sort((a, b) => a - b);
+}
+/** A frame's member indices, from its geometry as followed now (default parameters, no placed parts). */
+function frameIndices(nodes: readonly ModelNode[], node: FrameNode): number[] { const g = frameGeometry(nodes, node); return frameMemberIndices(node, 'segments' in g ? g.segments : node.segments); }
+export function frameSegmentCount(nodes: readonly ModelNode[], node: FrameNode): number { return frameIndices(nodes, node).length; }

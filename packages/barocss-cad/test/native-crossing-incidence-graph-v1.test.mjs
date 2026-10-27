@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { constructNativeCrossingIncidenceGraphV1 as graph } from '../dist/native-crossing-incidence-graph-v1.js';
+import { constructNativeCrossingIncidenceGraphV1 as graph } from '../dist/exact-proof/native-crossing-incidence-graph-v1.js';
 const p = (x,y) => ({x,y});
 test('proper crossing creates exactly five exact vertices and four oriented subedges', () => {
  const result=graph('edgeA',p(0,0),p(4,4),'edgeB',p(0,4),p(4,0));

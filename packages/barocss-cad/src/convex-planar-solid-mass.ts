@@ -2,9 +2,9 @@ import { validateConvexPlanarSolid } from './convex-planar-solid.js';
 import type { ConvexPlanarSolidResult, ConvexPlanarSolidReport } from './convex-planar-solid.js';
 import type { SectionFraction, SectionRational } from './section-rational-internal.js';
 import type { Point } from './types.js';
-import { ConvexPlanarSolidMassError, MASS_LIMITS, MassLedger, SectionRationalContext, demand, fields, same, matrix, minors } from './convex-planar-solid-mass-internal.js';
-import type { RationalVector, RationalMatrix } from './convex-planar-solid-mass-internal.js';
-export { ConvexPlanarSolidMassError, ConvexPlanarSolidMassDiagnosticCode } from './convex-planar-solid-mass-internal.js';
+import { ConvexPlanarSolidMassError, MASS_LIMITS, MassLedger, SectionRationalContext, demand, fields, same, matrix, minors } from './planar-solids/convex-planar-solid-mass-internal.js';
+import type { RationalVector, RationalMatrix } from './planar-solids/convex-planar-solid-mass-internal.js';
+export { ConvexPlanarSolidMassError, ConvexPlanarSolidMassDiagnosticCode } from './planar-solids/convex-planar-solid-mass-internal.js';
 
 type Vector = [SectionFraction, SectionFraction, SectionFraction];
 type Matrix = [Vector, Vector, Vector];

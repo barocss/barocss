@@ -11,6 +11,7 @@ type V3 = [number, number, number];
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
 const r6 = (x: number) => Math.round(x * 1e6) / 1e6 || 0;
 import { refOf } from './bodyRef';
+import { refusal } from '../engine/refusal';
 
 /** v turned right-handed about coordinate axis k by deg (multiples of 90° come out exact). */
 export function turnAbout(v: readonly number[], k: 0 | 1 | 2, deg: number): V3 {
@@ -66,7 +67,7 @@ export const alignCommand: Command = {
     return next;
   },
   build: (ctx, v) => {
-    const s = source(ctx), body = s?.body ?? wholeBody(ctx); if (!body) throw new Error('Pick the face of the body to move.');
+    const s = source(ctx), body = s?.body ?? wholeBody(ctx); if (!body) throw refusal('ALIGN_PICK', 'Pick the face of the body to move.');
     const gap = Number(v.gap) || 0, { min, max } = body.mesh.bounds, pivot = [0, 1, 2].map(k => r6((min[k] + max[k]) / 2)) as V3;
     let parent = refOf(body), doc = ctx.doc, delta: V3;
     if (!s) {
@@ -74,12 +75,12 @@ export const alignCommand: Command = {
       delta = [0, 0, r6(gap - min[2])];
     } else {
       const t = v.target === 'floor' ? { normal: [0, 0, 1] as V3, centroid: [s.centroid[0], s.centroid[1], 0] as V3 } : target(v);
-      if (!t) throw new Error('Click the flat face of another body to put it on (or choose the floor).');
+      if (!t) throw refusal('ALIGN_PICK', 'Click the flat face of another body to put it on (or choose the floor).');
       const want: V3 = [-t.normal[0], -t.normal[1], -t.normal[2]], turn = turnOnto(s.normal, want);
-      if (turn === null) throw new Error('The faces must face along X, Y or Z for the body to be turned onto it: turn it first (Rotate).');
+      if (turn === null) throw refusal('ALIGN_TURN', 'The faces must face along X, Y or Z for the body to be turned onto it: turn it first (Rotate).');
       let c = s.centroid;
       if (turn !== 'none') {
-        doc = withNode(doc, { kind: 'rotate', parent, axis: 'xyz'[turn.axis] as Axis, angleDegrees: turn.deg, pivot } as ModelNode);
+        doc = withNode(doc, { kind: 'rotate', parent, axis: 'xyz'[turn.axis] as Axis, angle: turn.deg, pivot } as ModelNode);
         parent = { node: doc.nodes.length - 1, side: 'solid' };
         c = turnAbout([c[0] - pivot[0], c[1] - pivot[1], c[2] - pivot[2]], turn.axis, turn.deg).map((x, k) => x + pivot[k]) as V3;
       }
@@ -88,7 +89,7 @@ export const alignCommand: Command = {
         ? [0, 1, 2].map(k => r6(t.centroid[k] - c[k] + n[k] * gap)) as V3
         : [0, 1, 2].map(k => r6(n[k] * along)) as V3;
     }
-    if (delta.every(x => x === 0) && doc === ctx.doc) throw new Error('It is already there.');
+    if (delta.every(x => x === 0) && doc === ctx.doc) throw refusal('NO_CHANGE', 'It is already there.');
     return delta.every(x => x === 0) ? doc : withNode(doc, { kind: 'translate', parent, offset: delta });
   },
 };

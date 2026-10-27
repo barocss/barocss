@@ -1,11 +1,11 @@
 import { CadNumericPolicy } from './numeric-policy.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
-import { curveDomain, validateCurve } from './math.js';
-import { buildAffinePlaneAxes, mapAffinePlanePointToUV, admitConvexNativeLineLoop, directedUVDeterminant } from './own-affine-plane-loop-internal.js';
-import { ExactAffinePlane } from './exact-affine-plane-internal.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from './core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from './core/derivatives.js';
+import { curveDomain, validateCurve } from './core/math.js';
+import { buildAffinePlaneAxes, mapAffinePlanePointToUV, admitConvexNativeLineLoop, directedUVDeterminant } from './intersect/own-affine-plane-loop-internal.js';
+import { ExactAffinePlane } from './exact-proof/exact-affine-plane-internal.js';
 import { compileCadModel } from './model-compiler.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 
@@ -44,7 +44,7 @@ export interface ConvexPlanarFaceUVClassification {
   classification:'inside'|'boundary'|'outside'|'outside-domain';uv:[number,number];pointMM:Point|null;faceNormal:Point|null;
   halfspaces:number[];boundaries:ConvexPlanarFaceBoundaryClassification[];
 }
-const LABEL='Own convex planar Face',TOL=CadNumericPolicy.linearToleranceMM;
+const LABEL='Own convex planar Face',TOL=CadNumericPolicy.linearTolerance;
 function check(c:boolean,detail:string):asserts c {if(!c)throw new Error((LABEL+': '+detail).slice(0,1024));}
 function finite(n:number):number {check(Number.isFinite(n),'finite native homogeneous/Gram arithmetic required');return n;}
 function snapshot(input:unknown,results=false):unknown {
