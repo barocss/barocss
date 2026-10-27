@@ -27,8 +27,8 @@ Both Part APIs build and evaluate a model. Choose the document and workflow you 
 | Import | `@barocss/cad/api` | `@barocss/cad-model/api` |
 | Document returned by `.doc` | `CadPartDocument`, format `barocss-cad-part`, with `features` | `StudioDoc`, format `barocss-cad-model`, with `nodes` and `outputs` |
 | Use it when | You need the CAD kernel and its feature document in code. | You need the CAD model document, materials, configurations or drawing and manufacturing outputs. |
-| Shared modeling | Box, hole, fillet, Boolean operations, mass, meshes, STEP and STL | The same modeling interface and result methods, using the CAD model document |
-| Additional model operations | Supply a density for mass. | Set a material id; save configurations; generate drawings and manufacturing outputs. The model part also provides gear, spring and fastener commands. |
+| Shared modeling | Box, hole, fillet, Boolean operations, mass, meshes and STEP | These modeling and result methods use the CAD model document |
+| Additional operations | Supply a density for mass; export STL from this part API. | Set a material id; save configurations; generate drawings and manufacturing outputs. The model part also provides gear, spring and fastener commands. |
 
 The modeling calls can look the same, but the two `.doc` values have different formats:
 
@@ -48,7 +48,8 @@ commands into the document. Calling the facade does not control an open Studio s
 
 ## The shared rules
 
-- **Immutable objects.** Every method returns a new object, and leaves the one it was called on as it was.
+- **Immutable objects.** Modeling methods return a new object and leave the original unchanged. Result methods such as
+  `mass()` and `meshes()` return result data.
 - **One plain-JSON accessor.**
   - The two parts and the assembly have `.doc`, the document a person or the agent could have written by hand.
   - gpu's scene has `.data`.
