@@ -14470,3 +14470,52 @@ piece lying in it; a piece alone whose rings close is passed through as it is, w
 
 **Checks.** Kernel suite: the 28 baseline failures only. Model suite (1711): the two baseline solver failures only (D240's
 timing assertion failed once under load and passes alone).
+
+## D282 — Half circles stay whole at rounding; repeated face names keep their order; incremental stitch not landed (2026-10-28)
+
+**Owner, 2026-10-28**: find why the full rebuild makes one more vertex than the incremental stitch, make the two give
+the same topology, then apply the incremental stitch.
+
+**Cause of the extra vertex.** The curved arrangement splits an arc over half a turn in two (`halves`), so no piece
+starts and ends at one vertex. It split at exactly `|sweep| > π`. A boss's half circle on a rounded plate's top is read
+back from the stitched edge at every Boolean, and its sweep drifts in the last bits: after the sixth boss it came out
+−3.141592653589794, one ulp past π, and was split at its top (10, 11, 8). That vertex split the neighbouring cylinder's
+edge (`c0.side0#1|p.top` → `#1`, `#2`): one more edge and vertex on an edge no cut touched. The incremental stitch kept
+the face's input edge and never re-read it. **Fix**: `halves` splits only past π + 1e-12, the margin `simplify` already
+keeps arcs within.
+
+**A second fault found on the way.** Faces of one name (a cylinder's two halves, `c0.side0#1`, `#2`) are numbered by
+their points inside, compared exactly. The two halves' points have one x to within rounding (10 ± 4e-15), so the order
+was decided by the last bits and flipped from one Boolean to the next: in a row of bosses the first boss's lower half
+was `c0.side0#1` after b0, `#2` after b1, `#1` after b2. A reference to it changed meaning as later bosses were added.
+**Fix**: a coordinate within 100 tolerances counts as equal and the next decides (`keyOrder`); the name now stays at
+every step.
+
+**The incremental stitch, measured again.** With both fixes, the patch (far faces' loops and edges taken from the
+input, put in first) gives the full rebuild's topology on every bench case (counts, volume, centroid) and −13 % on the
+rounded plate + 48 bosses. But it puts edges and vertices in another order and at the input's points, not the rebuilt
+ones: a test that picks "the first straight edge at z = 10" (R10.1) got another edge, and byte-frozen outputs (flat DXF,
+drawing-table DXF, robot URDF/SDF/USD) changed in the last digits. Made to follow the full rebuild exactly — every
+piece through the vertex merge, the T-junction split and the edge search, only the edges a frozen face leaves whole
+taking their input curves, and frozen faces their input surfaces — it gives the same records as the rebuild at every
+step of the 12-boss chain, and **no gain** (48 bosses 514 → 518 ms, within noise): the time the patch saved was those
+steps. So it is not landed; the faster, order-changing version stays as
+`notes/patches/incremental-stitch-frozen-faces-2026-10-28.patch`. A real gain needs the stitch's per-step
+work (vertex merge, T-junction search, `checkBrep`, ~70 % of it) done only around the faces that changed, which changes
+what is compared, not only how fast.
+
+**Records.**
+- Shapes: the rounded-plate chains lose the spurious edge and vertex (12 bosses: 88 → 87 edges, 59 → 58 vertices; 24
+  and 48 bosses the same). Every other bench case: validity, counts, volume and centroid unchanged.
+- Names: repeated face names keep their numbering across Booleans where it flipped by rounding. One conformance case
+  names a face that had been numbered by rounding: the oblique groove's two top faces (`pe.top#1`, `#2`, one each side of
+  the groove, points inside at one x) swapped, the lower y now `#1`. Its input now names the same rim
+  (`c0.side0|pe.top#2#1`); its expected record is unchanged.
+- New test `boolean-boss-row.test.mjs`: 8 bosses on a rounded plate add 6 edges and 4 vertices each and the first boss's
+  `c0.side0#1` stays one half (fails on the old build at b1).
+- Checks: kernel suite (1958, before the new test, which passes alone): the 28 baseline failures only, plus the groove
+  case before its rename; model suite 1711: the two baseline solver failures
+  only. Bench: shapes unchanged except the rounded-plate chains above.
+
+**Also.** `scripts/code-shape.mjs` no longer counts a for-of's iterable or a for's initializer as inside the loop (they
+are evaluated once); the baseline is re-recorded lower (loop-spread 295 → 274, loop-literal 82 → 75).

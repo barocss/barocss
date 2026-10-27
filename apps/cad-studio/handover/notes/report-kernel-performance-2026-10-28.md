@@ -79,7 +79,7 @@ Each with the situation it fits, the check that kept results the same, and the t
    made from its edges' control points did *not* contain its region (0.03 mm off on a threaded shaft's end face); the
    box was then made from the region itself, the same way the point test samples it.
 4. **Shape check for changes judged within tolerance** (validity, counts, volume, centroid, projected lines). It caught
-   the incremental-stitch attempt changing topology by one edge (§5).
+   the incremental-stitch attempt changing topology by one edge, which led to two rounding faults in the full rebuild (§5).
 5. **Fixed-size direct-mapped cache instead of an unbounded Map** for a pure function of a double: key slot by a hash of
    the float's bits and an owner id; a collision only recomputes. Bounded memory, no GC pressure, cheaper lookups
    (Map keyed by doubles was 12.7 % of a profile, with 13.7 M entries alive). Only for pure functions: a stateful one
@@ -105,15 +105,33 @@ Each with the situation it fits, the check that kept results the same, and the t
 - Clustered union of coplanar groups, before D281's naming fix: merge cost spread over hundreds of small groups.
 - Ring culling in `regionInteriorPoint`'s line crossings and candidate distances: identical, no gain.
 
-## 5. Not landed: incremental stitch (patch kept)
+## 5. Incremental stitch: two faults found, no gain once results match (D282)
 
-Keeping far faces' input loops and edges in `stitch` (instead of rebuilding them) gave −28…−42 % on the rounded-plate
-boss chains and was valid with no fallback, but changed topology by one edge/vertex there: the full rebuild re-derives
-a vertex slightly off the input one and splits a neighbouring circle edge in two (`c0.side0#1|p.top#1/#2`); the frozen
-path keeps it one edge. That is arguably cleaner, but the acceptance rule was "topology the same", so it is not
-committed. The patch: [patches/incremental-stitch-frozen-faces-2026-10-28.patch](patches/incremental-stitch-frozen-faces-2026-10-28.patch)
-(applies to `b3485b5e9`). Deciding it needs either a relaxed rule (fewer spurious vertices accepted) or finding why the
-rebuild re-derives that vertex.
+Keeping far faces' input loops and edges in `stitch` first changed topology by one edge/vertex on the rounded-plate
+boss chains. Finding why turned up two faults in the full rebuild, both fixed:
+
+- **An arc split at exactly π.** The curved arrangement split any arc past `|sweep| > π`; a boss's half circle read
+  back from the stitched edge drifted to one ulp past π after the sixth Boolean and was split at its top, and that
+  vertex split the neighbouring cylinder's edge. Now past π + 1e-12, the margin `simplify` already used.
+- **Repeated face names numbered by an exact float order.** A cylinder's two halves have points inside with one x to
+  within 4e-15; their `#1`/`#2` flipped from one Boolean to the next. Now a coordinate within 100 tolerances counts as
+  equal.
+
+With both fixed, the patch matched the rebuild's topology and gave −13 % on the 48-boss chain, but put edges and
+vertices in another order and at the input's points (a test choosing an edge by order and byte-frozen exports changed).
+Made to follow the rebuild exactly, it gave identical records and **no gain**: the saved time had been exactly the
+steps that make the records the rebuild's. Not landed; the faster, order-changing version stays as
+[patches/incremental-stitch-frozen-faces-2026-10-28.patch](patches/incremental-stitch-frozen-faces-2026-10-28.patch)
+(applies to `b3485b5e9`; needs D282's two fixes to match topology). A real gain needs the stitch's per-step work (vertex merge,
+T-junction search, `checkBrep`) done only near the faces that changed.
+
+Traps worth reusing:
+- **A strict `>` against an exact constant (π, 0, 1) on a value re-derived each step will eventually flip on
+  rounding.** Compare with the margin the code uses elsewhere for that quantity.
+- **Sorting by raw float coordinates to number things** (names, ids) makes the numbering depend on the last bits when
+  two coordinates are equal in exact arithmetic. Compare with a tolerance and let the next coordinate decide.
+- **A speed-up that only reorders records is not free**: tests and exports that read records in order see it. Check
+  order and bytes, not only shape.
 
 ## 6. Checks and baselines
 
@@ -124,12 +142,14 @@ rebuild re-derives that vertex.
 - Docs: `api-inventory --check`, `check-docs`, `refusals --check`, `agent-tools --check` clean after P4.
 - Records changed on purpose by D281 only: `r12-s0`, three R12 conformance `faceNames`, flat-DXF fixtures (last-digit
   coordinates, ezdxf oracle re-run), one line of the O7 oracle.
+- D282 (two rounding faults): kernel and model suites as above, plus `boolean-boss-row.test.mjs`; one conformance input
+  renamed to the same rim (`r10/general-oblique-groove`).
 
 ## 7. Still open (where the time is now)
 
-- Boolean chains still grow with the body's size per step: stitch (~40 % of a chain), coplanar merge, interior points
-  and face set-up are linear in the whole body. The incremental-stitch patch (§5) and caching face analysis across
-  Booleans (faces kept verbatim would let `facesOf` and checks skip them) are the next lever.
+- Boolean chains still grow with the body's size per step: the stitch's vertex grid, T-junction search, shells and
+  checks, coplanar merge and face set-up are linear in the whole body. Doing that work only near changed faces (§5) is
+  the next lever; it changes record order, so it needs a rule for what may differ.
 - Face-fillet restore: ~2.6 s of surface-surface marching, mostly pairs that cross outside both faces.
 - Closest-point searches use 60 fixed golden-section steps (results identical); Newton would cut evaluations 3–5×
   but changes results within tolerance.
