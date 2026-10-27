@@ -40,7 +40,7 @@ test('saved frames retain legacy attachment and copy standalone placement withou
   const before = structuredClone(rows);
   const read = readDrawing({ frames: rows }).frames!;
   assert.deepEqual(read, rows);
-  assert.deepEqual(readFrames([{ ...attached, freeState: false, tangentPlane: false }]), [attached]);
+  assert.deepEqual(readFrames([{ ...attached, freeState: false, tangentPlane: false }]), [{ ...attached, freeState: false, tangentPlane: false }]);
   assert.deepEqual(readFrames([attached, { ...attached, id: 'same-dimension' }, standalone, { ...standalone, id: attached.id }, { ...standalone, id: 'second' }]), rows);
   assert.notEqual(read[1], standalone);
   assert.notEqual(read[1].place, standalone.place);

@@ -249,13 +249,13 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
       const placement = placementOf(layout, sheet, f.view), projection = projectionOf(ctx.views, sheet, f.view);
       if (!placement || !projection) out.push({ code: 'FRAME_VIEW_MISSING', severity: 'error', message: `A standalone ${f.characteristic} frame has no current ${viewName(f.view)}. The saved frame is retained.`, frames: [f.id], view: f.view });
       else if (placement.hidden) out.push({ code: 'VIEW_NEEDED', severity: 'warning', message: `A standalone ${f.characteristic} frame is in ${viewName(f.view)}, which is not shown.`, frames: [f.id], view: f.view });
-      const missing = f.datums.filter(l => !letters.has(l));
+      const missing = [...new Set([...f.datums, ...(f.composite?.datums ?? [])])].filter(l => !letters.has(l));
       if (missing.length) out.push({ code: 'DATUM_UNDEFINED', severity: 'error', message: `A standalone ${f.characteristic} frame refers to datum${missing.length > 1 ? 's' : ''} ${missing.join(', ')}, which the drawing does not have.`, frames: [f.id], view: f.view });
       continue;
     }
     const r = sheet.dimensions.find(x => x.dim.id === f.dim);
     if (!r?.ok) { out.push({ code: 'FRAME_LOST', severity: 'error', message: `A ${f.characteristic} frame (${f.characteristic === 'position' ? 'Ø' : ''}${f.value}) belongs to a dimension that is ${r ? 'lost' : 'gone'}.`, ...(r ? { dims: [f.dim] } : {}), fix: { kind: 'remove-frame', frame: f.id } }); continue; }
-    const missing = f.datums.filter(l => !letters.has(l));
+    const missing = [...new Set([...f.datums, ...(f.composite?.datums ?? [])])].filter(l => !letters.has(l));
     if (missing.length) out.push({ code: 'DATUM_UNDEFINED', severity: 'error', message: `The ${f.characteristic} frame on ${r.text} refers to datum${missing.length > 1 ? 's' : ''} ${missing.join(', ')}, which the drawing does not have.`, dims: [f.dim], view: r.dim.view });
   }
   for (const r of sheet.dimensions) {

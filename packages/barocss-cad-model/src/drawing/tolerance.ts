@@ -197,11 +197,16 @@ export function applySuggestion(settings: DrawingSettings, s: ToleranceSuggestio
     // (Set where there is none, tightened where a looser ± one is: never loosened.)
     case 'tolerances': return { ...settings, dimensions: settings.dimensions.map(d => c.dims.includes(d.id) && (!d.tol || (d.tol.kind === 'symmetric' && d.tol.value > c.value)) ? { ...d, tol: { kind: 'symmetric', value: c.value } } : d) };
     case 'datum': return { ...settings, datums: [...(settings.datums ?? []).filter(d => d.letter !== c.datum.letter), c.datum] };
-    case 'frame': return {
-      ...settings, frames: [...(settings.frames ?? []).filter(f => f.dim !== c.frame.dim), c.frame],
-      // (A basic dimension carries no tolerance of its own: the frame holds it.)
-      dimensions: settings.dimensions.map(d => { if (!c.basic.includes(d.id)) return d; const { tol: _t, ...rest } = d; void _t; return { ...rest, basic: true } as DrawingDimension; }),
-    };
+    case 'frame': {
+      const frames = settings.frames ?? [];
+      // A suggestion is offered only for a dimension without a frame. Recheck before applying it.
+      if (!settings.dimensions.some(d => d.id === c.frame.dim) || frames.some(f => f.dim === c.frame.dim || f.id === c.frame.id)) return settings;
+      return {
+        ...settings, frames: [...frames, c.frame],
+        // (A basic dimension carries no tolerance of its own: the frame holds it.)
+        dimensions: settings.dimensions.map(d => { if (!c.basic.includes(d.id)) return d; const { tol: _t, ...rest } = d; void _t; return { ...rest, basic: true } as DrawingDimension; }),
+      };
+    }
   }
 }
 

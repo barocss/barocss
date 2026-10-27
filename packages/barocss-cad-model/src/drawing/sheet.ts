@@ -927,6 +927,30 @@ export function frameMarks(under: Extract<Mark, { kind: 'text' }>, f: DrawingFra
 }
 /** A control frame's top-left corner in sheet mm; symbol sizes are independent of view scale. */
 function frameMarksAt([x0, y0]: XY, f: DrawingFrame): Mark[] {
+  if (f.composite) {
+    const { composite, ...upper } = f;
+    // The second row has its own value, datums and modifiers. Other modifiers belong to the first row.
+    const lower: DrawingFrame = { ...upper, value: composite.value, datums: composite.datums, diameter: composite.diameter, material: composite.material, datumModifiers: composite.datumModifiers, projected: undefined, freeState: undefined, tangentPlane: undefined };
+    const top = frameMarksAt([x0, y0], upper), bottom = frameMarksAt([x0, y0 + FRAME_H], lower);
+    const topBorder = top[0], bottomBorder = bottom[0];
+    if (topBorder.kind !== 'polyline' || bottomBorder.kind !== 'polyline') return [];
+    const right = Math.max(topBorder.points[1][0], bottomBorder.points[1][0]);
+    const topRight = topBorder.points[1][0], bottomRight = bottomBorder.points[1][0];
+    const symbolCount = characteristicMarks(f.characteristic, [0, 0]).length;
+    const withoutBorderAndSymbol = (marks: Mark[], datums: string[]) => {
+      const firstSymbol = 2 + datums.length;
+      return [...marks.slice(1, firstSymbol), ...marks.slice(firstSymbol + symbolCount)];
+    };
+    return [
+      { kind: 'polyline', points: [[x0, y0], [right, y0], [right, y0 + 2 * FRAME_H], [x0, y0 + 2 * FRAME_H], [x0, y0]], pen: 'thin', role: 'frame' },
+      { kind: 'line', a: [x0 + FRAME_SYMBOL, y0 + FRAME_H], b: [right, y0 + FRAME_H], pen: 'thin', role: 'frame' },
+      ...(topRight < right ? [{ kind: 'line' as const, a: [topRight, y0] as XY, b: [topRight, y0 + FRAME_H] as XY, pen: 'thin' as const, role: 'frame' as const }] : []),
+      ...(bottomRight < right ? [{ kind: 'line' as const, a: [bottomRight, y0 + FRAME_H] as XY, b: [bottomRight, y0 + 2 * FRAME_H] as XY, pen: 'thin' as const, role: 'frame' as const }] : []),
+      ...characteristicMarks(f.characteristic, [x0 + FRAME_SYMBOL / 2, y0 + FRAME_H]),
+      ...withoutBorderAndSymbol(top, upper.datums),
+      ...withoutBorderAndSymbol(bottom, lower.datums),
+    ];
+  }
   const value = `${(f.diameter ?? (f.characteristic === 'position')) ? 'Ø' : ''}${fmtMM(f.value)}`, base = textWidth(value, TEXT, false) + 2.5;
   const modifiers = [...(f.material ? [f.material === 'maximum' ? 'M' : 'L'] : []), ...(f.freeState ? ['F'] : []), ...(f.tangentPlane ? ['T'] : []), ...(f.projected ? ['P'] : [])];
   const height = f.projected ? fmtMM(f.projected) : '', heightWidth = height ? textWidth(height, TEXT, false) + 1 : 0;
