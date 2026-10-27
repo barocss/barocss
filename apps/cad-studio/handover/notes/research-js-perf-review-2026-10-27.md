@@ -173,3 +173,32 @@ face fillet/thread, full round, engine, handles and studio commands 264 of 266 (
 Against the original baseline of §5: face-fillet restore 23.1 → 6.4 s (−72 %), pin over a round 9.5 → 2.2 s (−77 %).
 Still open: the 48-box chain's quadratic growth (each Boolean re-merges and re-stitches the whole body), the restore's
 remaining 2.6 s of cut pairs and 0.7 s of cut clean-up, and the closest-point searches (Newton instead of 60 fixed steps).
+
+## 8. A Boolean chain's square growth (2026-10-28, measured; no code kept)
+
+The 48-box chain (1.5 s) per step: the cost grows with the whole body's face count, about 0.17 ms a face (50 faces
+~8 ms a step, 329 faces ~58 ms), in every phase alike: stitch 40 % (vertex sets, loops, shell volumes, its own check),
+merging coplanar pieces 23 %, classification 11 %, interior points 7 %, face set-up 5 %. Each step the tool cuts about 8
+faces and comes near (boxes meeting the tool's) about 40 of up to 325:
+
+| step | faces | cut | near the other operand's box |
+|---|---|---|---|
+| 10 | 84 | 6 | 24 |
+| 30 | 225 | 8 | 35 |
+| 47 | 325 | 8 | 43 |
+| whole chain | 8 437 | 348 | 1 450 |
+
+Tried and not kept: joining a coplanar group in clusters of meeting boxes (merging is spread over 659 small groups,
+0.24 s in all; no gain, results re-traced differently); classifying uncut faces outside the other operand's box without
+a ray (whole-face classification is ~5 % of the chain). Constant factors are spread too thinly to change the growth.
+
+What would change it: an incremental Boolean that keeps the faces far from the other operand as they are — their faces,
+loops, edges and vertices taken over from the input — and rebuilds only the near region, about a sixth of the work over
+this chain and roughly constant per step. Outline:
+1. Far faces: no cut, box apart from the other operand's (padded), not coplanar with a near piece, and no near piece's
+   vertex on their edges; anything else is near (grown until closed).
+2. Classify far faces by the box (outside the other operand), keep or drop them whole per the operation.
+3. Stitch the near pieces only, reusing the far faces' records along the shared edges; names of far faces kept, near
+   ones as now.
+4. Accept as before (shape, every test) and, beyond that, every face name the same as the full rebuild on the bench and
+   suites; edge/vertex ids would be renumbered.
