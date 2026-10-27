@@ -22,7 +22,7 @@ import { curvePiece, curveReversed } from '../nurbs/curves/curve-segment.js';
 import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, nurbsOf as surfaceOfFace, type Brep, type BrepFace } from './brep-core.js';
 import { facetPlane } from '../mesh/facet-patch.js';
 import { circleOf, polesOf, tessellateBrep } from './brep-tessellate.js';
-import { booleanCurveRegions, curveFaceRegions, intersectSegments, segmentsApart, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segDistance, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
+import { booleanCurveRegions, regionBox, curveFaceRegions, intersectSegments, segmentsApart, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segDistance, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { nameEdges } from '../features/prismatic-solid.js';
 import { baseName } from './polyhedral-boolean.js';
 import { evaluateCurve, evaluateSurface, curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator, validateCurve } from '../core/math.js';
@@ -1256,6 +1256,8 @@ function clearWhere(f: GFace, region: CurveRegion2, faces: readonly GFace[], tol
   }
   return null;
 }
+/** Whether a domain point lies outside a region's box by more than `pad`. */
+const outsideRegionBox = (region: CurveRegion2, q: XY, pad: number) => { const b = regionBox(region); return q[0] < b[0] - pad || q[0] > b[2] + pad || q[1] < b[1] - pad || q[1] > b[3] + pad; };
 const RAYS: P3[] = [[0.5377, 0.3138, 0.7832], [-0.2961, 0.8573, 0.4213], [0.6993, -0.5126, 0.4982], [-0.4436, -0.3714, 0.8155], [0.1172, 0.9563, -0.2677], [0.8811, 0.2219, -0.4175]].map(v => unit(v as P3));
 function classify(x: P3, normal: P3 | null, faces: readonly GFace[], tol: number): Where {
   if (normal) for (const g of faces) {
@@ -1286,7 +1288,8 @@ function classify(x: P3, normal: P3 | null, faces: readonly GFace[], tol: number
       }
       for (const t of hits) {
         if (t < -10 * tol) continue;
-        const where = locateInRegion(to2(g, add(x, scale(dir, t))), g.region, 10 * tol);
+        // (A hit outside the face's region box, by more than 20 tolerances, is out of the region as locateInRegion reads it.)
+        const q = to2(g, add(x, scale(dir, t))), where = outsideRegionBox(g.region, q, 20 * tol) ? 'out' : locateInRegion(q, g.region, 10 * tol);
         // A hit at the origin only matters inside the face (outside it, the ray just starts on its plane).
         if (t <= 10 * tol) { if (where !== 'out') bad = true; continue; }
         if (where === 'boundary') bad = true; else if (where === 'in') count++;

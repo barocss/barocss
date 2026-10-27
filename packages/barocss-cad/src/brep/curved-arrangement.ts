@@ -87,6 +87,41 @@ function denseSamples(s: CurveSegment2): XY[] {
   if (!r) { r = Array.from({ length: CURVE_SAMPLES * 2 + 1 }, (_, k) => segAt(s, k / (CURVE_SAMPLES * 2))); denseSampled.set(s, r); }
   return r;
 }
+/**
+ * A ring's box [x0, y0, x1, y1] as `locateInRegion` sees it: a line's ends, an arc's whole circle, a general curve's
+ * samples padded by their longest chord (`surelyOff`'s box). A point farther than the tolerance outside it is on none of
+ * its segments, and a horizontal line through it crosses the ring an even number of times beyond it (none, or all of them
+ * on a closed ring). Made once a ring.
+ */
+const ringBoxes = new WeakMap<readonly CurveSegment2[], readonly [number, number, number, number]>();
+function ringBox(ring: readonly CurveSegment2[]): readonly [number, number, number, number] {
+  let b = ringBoxes.get(ring);
+  if (!b) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const g of ring) {
+      let lo: readonly number[], hi: readonly number[];
+      if (g.kind === 'line') { lo = [Math.min(g.a[0], g.b[0]), Math.min(g.a[1], g.b[1])]; hi = [Math.max(g.a[0], g.b[0]), Math.max(g.a[1], g.b[1])]; }
+      else if (g.kind === 'arc') { lo = [g.c[0] - g.r, g.c[1] - g.r]; hi = [g.c[0] + g.r, g.c[1] + g.r]; }
+      else { const r = samples(g); lo = r.lo; hi = r.hi; }
+      if (lo[0] < x0) x0 = lo[0]; if (lo[1] < y0) y0 = lo[1]; if (hi[0] > x1) x1 = hi[0]; if (hi[1] > y1) y1 = hi[1];
+    }
+    b = [x0, y0, x1, y1]; ringBoxes.set(ring, b);
+  }
+  return b;
+}
+/** Whether p lies outside a box [x0, y0, x1, y1] by more than `pad` (NaN coordinates: not outside). */
+const outsideBy = (b: readonly number[], p: XY, pad: number) => p[0] < b[0] - pad || p[0] > b[2] + pad || p[1] < b[1] - pad || p[1] > b[3] + pad;
+/** A region's box: its rings' (as `ringBox`). Outside it by more than the tolerance, a point is 'out' for `locateInRegion`. */
+const regionBoxes = new WeakMap<CurveRegion2, readonly [number, number, number, number]>();
+export function regionBox(region: CurveRegion2): readonly [number, number, number, number] {
+  let b = regionBoxes.get(region);
+  if (!b) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const ring of [region.outer, ...region.holes]) { const r = ringBox(ring); if (r[0] < x0) x0 = r[0]; if (r[1] < y0) y0 = r[1]; if (r[2] > x1) x1 = r[2]; if (r[3] > y1) y1 = r[3]; }
+    b = [x0, y0, x1, y1]; regionBoxes.set(region, b);
+  }
+  return b;
+}
 /** Whether p is surely farther than eps from a general curve (outside its padded sample box). */
 const surelyOff = (s: CurveSegment2, p: XY, eps: number) => { if (s.kind !== 'curve') return false; const { lo, hi } = samples(s); return p[0] < lo[0] - eps || p[1] < lo[1] - eps || p[0] > hi[0] + eps || p[1] > hi[1] + eps; };
 const CURVE_SAMPLES = 64;
@@ -710,7 +745,11 @@ function arcCuts(g: Extract<CurveSegment2, { kind: 'arc' }>): number[] {
 }
 /** Whether p is inside the region (boundary points: `boundary`, decided by tolerance). */
 export function locateInRegion(p: XY, region: CurveRegion2, tolerance: number): 'in' | 'out' | 'boundary' {
-  const rings = [region.outer, ...region.holes];
+  // (Only the rings whose box holds p, within the tolerance: any other is on no side of it that changes the answer — see
+  // ringBox. A face with many holes is not every hole at every point.)
+  const rings: (readonly CurveSegment2[])[] = [];
+  if (!outsideBy(ringBox(region.outer), p, tolerance)) rings.push(region.outer);
+  for (const h of region.holes) if (!outsideBy(ringBox(h), p, tolerance)) rings.push(h);
   for (const ring of rings) for (const g of ring) if (!surelyOff(g, p, tolerance) && segDistance(g, p) <= tolerance) return 'boundary';
   return crossingsAt(rings, p[1]).filter(x => x > p[0]).length % 2 === 1 ? 'in' : 'out';
 }
