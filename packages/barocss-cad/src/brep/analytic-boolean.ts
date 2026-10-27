@@ -230,7 +230,7 @@ function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveS
     const breaks = k.kind === 'param' && k.src ? [...new Set(k.src.knots)].map(x => (x - t0) / (t1 - t0)).filter(u => u > 0 && u < 1) : [];
     return { kind: 'curve', f: tabulated(s, g, at3, t0, t1, breaks), t0, t1, src: at3, ...t, ...(k.kind !== 'param' || k.exact ? { exact: true } : {}), ...(k.kind === 'param' && k.src ? { srcCurve: k.src } : {}) } as CurveSegment2;
   }
-  if (k.kind === 'param') return { kind: 'curve', f: memo(x => to2(f, k.at(x))), t0: k.t0, t1: k.t1, src: k.at, ...t, ...(k.src ? { srcCurve: k.src } : {}) } as CurveSegment2;
+  if (k.kind === 'param') return { kind: 'curve', f: cached(x => to2(f, k.at(x))), t0: k.t0, t1: k.t1, src: k.at, ...t, ...(k.src ? { srcCurve: k.src } : {}) } as CurveSegment2;
   if (k.kind === 'line') {
     const a = to2(f, k.p), b = to2(f, k.q);
     if (s.kind === 'cylinder' && Math.abs(a[0] - b[0]) > Math.max(tol, 1e-9 * s.r)) throw new BrepError('GEOMETRY', 'analytic Boolean: a straight edge on a cylinder runs across its axis direction');
@@ -244,7 +244,7 @@ function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveS
     // off is refused. L4 fuzz 20261024 #112, D262.)
     if (Math.abs(Math.abs(turn) - 1) > 1e-9) {
       if (!arcNearPlane(k, s, 20 * tol)) throw new BrepError('GEOMETRY', 'analytic Boolean: an arc does not lie in its plane');
-      const at = (x: number) => arcAt(k, x); return { kind: 'curve', f: memo(x => to2(f, at(x))), t0: 0, t1: k.sweep, src: at, ...t } as CurveSegment2;
+      const at = (x: number) => arcAt(k, x); return { kind: 'curve', f: cached(x => to2(f, at(x))), t0: 0, t1: k.sweep, src: at, ...t } as CurveSegment2;
     }
     return { kind: 'arc', c: c2, r: k.r, t0: Math.atan2(a[1] - c2[1], a[0] - c2[0]), sweep: k.sweep * Math.sign(turn), ...t };
   }
@@ -252,7 +252,7 @@ function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveS
   // (An arc on the wall that is no cross-section — a short piece of a traced curve made an exact arc within the tolerance,
   // as any curve's is: a sphere's meeting with the cylinder, 0.06 mm of it — maps into the domain as a curve does.
   // L4 fuzz 176, D202.)
-  if (Math.abs(Math.abs(along) - 1) > 1e-9) { const at = (x: number) => arcAt(k, x); return { kind: 'curve', f: memo(x => to2(f, at(x))), t0: 0, t1: k.sweep, src: at, ...t } as CurveSegment2; }
+  if (Math.abs(Math.abs(along) - 1) > 1e-9) { const at = (x: number) => arcAt(k, x); return { kind: 'curve', f: cached(x => to2(f, at(x))), t0: 0, t1: k.sweep, src: at, ...t } as CurveSegment2; }
   const a = to2(f, start);
   return { kind: 'line', a, b: [a[0] + s.s * s.r * k.sweep * Math.sign(along), a[1]], ...t };
 }
@@ -377,6 +377,25 @@ function nearPoles(F: number[], isBreak: boolean[], poles: readonly { point: P3 
 function memo(g: (x: number) => XY): (x: number) => XY {
   const seen = new Map<number, XY>();
   return x => { let r = seen.get(x); if (!r) { r = g(x); if (seen.size < 1 << 16) seen.set(x, r); } return r; };
+}
+// One direct-mapped cache shared by every curve's analytic domain map (a pure function of the parameter): a slot holds
+// the curve's id, the parameter and the point. A fixed size, unlike a Map a curve, so a long Boolean keeps no millions
+// of entries alive; a slot taken by another (curve, parameter) only costs a recomputation of the same value.
+const CACHE_BITS = 16, cacheX = new Float64Array(1 << CACHE_BITS), cacheId = new Int32Array(1 << CACHE_BITS), cacheP: (XY | undefined)[] = new Array(1 << CACHE_BITS);
+const bitsF = new Float64Array(1), bitsU = new Uint32Array(bitsF.buffer);
+let cacheNext = 0;
+function cacheSlot(id: number, x: number): number {
+  bitsF[0] = x;
+  return Math.imul(bitsU[0] ^ Math.imul(bitsU[1], 0x85ebca6b) ^ Math.imul(id, 0xc2b2ae35), 0x9e3779b1) >>> (32 - CACHE_BITS);
+}
+/** g remembered in the shared cache (g pure: a recomputation gives the same point). */
+function cached(g: (x: number) => XY): (x: number) => XY {
+  const id = cacheNext = cacheNext === 0x7fffffff ? 1 : cacheNext + 1;
+  return x => {
+    const i = cacheSlot(id, x);
+    if (cacheId[i] === id && cacheX[i] === x) return cacheP[i]!;
+    const r = g(x); cacheId[i] = id; cacheX[i] = x; cacheP[i] = r; return r;
+  };
 }
 /** A 2D segment of a face's domain as a 3D curve. */
 function curve3Of(f: { surf: Surf }, g: CurveSegment2): Curve3 {
