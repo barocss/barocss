@@ -145,6 +145,8 @@ type ModelNodeBase = SketchNode
   /** About `pivot` (none: the origin). */
   | { kind: 'scale'; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
+  /** Repeat a current difference's cut; spacing keeps the stored dimension reference. */
+  | { kind: 'linear-feature-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
   /** About `axis` through `pivot` (default the origin). */
   | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'union'; left: BodyRef; right: BodyRef; made?: Made }
@@ -829,6 +831,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'mirror': return `Mirror ${node.plane.toUpperCase()}`;
     case 'scale': return `Scale ×${node.factor}`;
     case 'linear-pattern': return `Pattern ×${node.count}`;
+    case 'linear-feature-pattern': return `Cut pattern ×${node.count}`;
     case 'circular-pattern': return `Circular ×${node.count}`;
     case 'split': return node.normal ? `Split ${planeText(node.normal)} = ${n(node.at)}` : `Split ${node.axis.toUpperCase()}=${n(node.at)}`;
     case 'separate': return 'Separate pieces';
