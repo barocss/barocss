@@ -1,5 +1,69 @@
 # barocss CAD roadmap
 
+## 전체 실행 색인 — 2026-10-27
+
+이 번호는 기존 작업의 공통 색인이다. 새 작업 큐나 일괄 실행 승인이 아니다.
+실제 배정은 기존 단일 기록의 `roadmapExecution.tasks`만 사용한다.
+기존 CG·DR·K·O·R·RS·PB·V 및 이슈 ID는 그대로 유지한다.
+번호 순서가 모든 작업의 직렬 실행 순서를 뜻하지는 않는다. 독립 소스는 병렬로 만든다.
+같은 기능은 **Kernel/GPU/CAD → CAD Model·API → Studio/Viewer 실제 소비 → 제품 통합**까지 닫는다.
+잘못된 성공, 단위·좌표·참조 손실과 실제 오류는 해당 기능 안에서 먼저 해결한다.
+
+상태를 구분한다: **소스 완료 / 필요한 검사 완료 / 실제 화면·파일 완료 / 제품 완료**.
+이 네 상태를 합쳐 쓰지 않는다. 기존 유효한 PASS는 반복하지 않는다.
+현재 제품 코드의 한정 완료 기준은 CG1 `7a62d6df`, G15 `28a62d2e`, Studio UI5 `ca10a3a8`이다.
+제품 metadata HEAD `1a9eee92`는 새 기능 실행 결과가 아니다. 전체 로봇·전체 G15 품질·제조는 미완료다.
+
+### 현재 마감할 항목
+
+| 번호 | 작업·기존 ID | 현재 상태와 다음 행동 | 담당 | 완료 조건 |
+|---|---|---|---|---|
+| 01 | 독립 공차 프레임 — CG5 DR-6 | 기반 소스·교정 consumer/type/lint 완료. 실제 Add와 무관 재렌더, 숨김 뷰 보존을 확인 중이다. Move·stale 거부·실제 파일·SVG·삭제와 제품 통합을 마감한다. | Drawings → API | 같은 view/ID·view-mm 위치와 paper-mm 기호를 보존한다. 실제 Save/New/Open/SVG 뒤 정상 제품 통합. 원 5PASS/1FAIL과 교정 결과는 출처를 나눠 유지한다. |
+| 02 | 도면 사용 문서 연결 | 독립 프레임과 기존 point datum target의 실제 지원 범위를 현재 도면 문서에 연결한다. 전체 GD&T 완료로 쓰지 않는다. | Docs + Drawings | 뷰·위치·모호한 선택·없는/숨긴 참조·저장/출력 경계를 설명하고 01의 실제 결과와 맞춘다. 04의 같은 최종 문서 배치로 닫는다. |
+| 03 | 절삭 피처 선형 반복 — CG2 | Core `05d4315`, Model `50397c0`, Studio `9ee0fd2` 소스 완료. 공통/제품 미채택이며 새 합동 실행은 NOTRUN이다. | Kernel/Model + Outer + API | 원 절삭 도구만 반복한다. 60×30×10에서 4×4 관통 컷3개의 잔류17520mm³·외곽·참조를 보존한다. 필요한 최초 합동 배치 → 실제 Preview/Apply·치수 편집·거부·Undo/Redo·Save/Open → 제품. |
+| 04 | 실제 API 문서·그림·탐색 구조 | 실제 API3사례·원 JPEG3과 계층 메뉴를 작성했다. CAD → CAD Model → GPU → Studio → Viewer 및 Studio 안내6개의 최종 정상 소스는 공통 채택 대기다. | Docs + API | 기존 URL·앵커를 보존한다. 새 공개 목록을 의미 검토하고 최종 공통 SHA에서 check/site 한 배치와 필요한 desktop 페이지를 확인한다. 24-case gallery는 이3사례로 완료 처리하지 않는다. |
+| 05 | Viewer 제품 마감과 다음 리뷰 전달 | 기존 SDK/React 앱·조립·named views·원본 점 검사·아이콘 UI는 공통 채택, 제품은 미채택이다. 새 측정 표시 PNG는 구현/검증 중단 보고 뒤 상태 확인 중이다. | Viewer + API/Docs | 기존 정상 묶음은 04와 제품에 연결한다. 새 PNG는 실제 좌표/DPR·일반/측정 이미지·오류 시 accepted 보존을 확인한 별도 정상 commit으로 닫는다. 중단된 packaging/config/hook은 재개하지 않는다. |
+| 06 | GPU 소유 결과 인계와 다음 GPU 기능 | PT soft visibility `fe2637f4`는 새 emit/CPU/native/lint·자체 공개 PNG와 정리를 완료했다. RenderTarget `607f7d0`은 새 소스 후보이며 실행은 별도다. | GPU; 병합은 사용자가 지정한 다른 위치 | 최신 직접 지시대로 정상 commit·원 실패·PNG·한계를 인계한다. 이 root 제품에 자동 병합하지 않는다. 후보 소스 완료를 실행/품질 완료로 쓰지 않는다. 다음 항목은 승인된 GPU 소유 로드맵과 정확 범위로 이어간다. |
+
+현재 공유 실행 순서는 **01의 진행 중인 실제 흐름 마감 → 02·04와 기존05의 문서/제품 마감 → 03의 전체 기능 배치·실파일·제품**이다.
+05의 독립 소유 구현과06의 승인된 소유 작업은 병렬로 진행할 수 있다. native/build/generator heavy 실행은 한 창만 쓴다.
+01의 소스 핀을 사용할 때 공통 소스를 바꾸지 않는다. 번호화 문서 반영은 안전 checkpoint의 문서 전용 창으로 조정한다.
+
+### 남은 기능 묶음
+
+아래 항목은 기존 로드맵의 범위 색인이다. 실제 다음 한 기능은 선행 조건과 기존 승인 범위를 확인해 배정한다.
+이미 존재하는 기능은 다시 만들지 않는다. 기존의 한정 지원을 유지하면서 실제 공백만 확장한다.
+
+| 번호 | 작업·기존 ID | 남은 범위 | 담당·선행 조건 | 완료 조건 |
+|---|---|---|---|---|
+| 07 | 고급 모델링 — CG1 | 일반 가이드/다중 단면 로프트, 경계 표면, 가변/면 필렛, 드래프트, 리브, 문자·엠보싱·wrap, 나선/실제 나사의 남은 지원 범위. | Kernel → Model/API → Outer. 현재03 마감 뒤 정확 한 기능부터. | 지원 프로필·원공차·참조·독립 기대를 고정하고 편집·파일·제품까지 연결. 이미 완료된 bounded loft를 재구현하지 않는다. |
+| 08 | 피처 패턴·직접 편집·표면 — CG2 | 곡선/채우기 패턴, 면 이동·삭제·교체, thicken/offset/knit/trim/extend의 남은 범위. | Kernel/Model + Outer. 03과 기존 affine/Boolean/표면 provider 재사용. | body 복사와 feature 반복을 구분하고 원 이력·소실/모호 참조·실패 atomicity를 보존한다. |
+| 09 | 고급 스케치 — CG3 | spline 핸들·conic·문자·block과 진단/편집의 미완료 소비 경로. 치수 표현식은 기존 결정 조건을 유지한다. | Kernel/Model + Outer. 기본2D→3D·돌출 컷의 기존 완료 근거 재사용. | 실제 제약·DOF/충돌/비수렴을 구분한다. 원 입력·치수·좌표와 편집 후 파일 결과를 보존한다. |
+| 10 | 조립 확장 — CG4 | 유연한 하위 조립, 반복 occurrence 참조, 조립 피처, 승인된 motion/대형 조립 범위. | Model/Outer + Kernel/GPU. 같은 revision의 배치/관절 기반이 선행. | 계층·part-local/world/display 변환과 반복 인스턴스를 보존한다. pose 표시를 동역학 완료로 쓰지 않는다. |
+| 11 | 도면 확장 — CG5 DR-6/7/8 | 남은 GD&T/복합 프레임, ISO/ASME 스타일·인치 표시, 도면 세트. | Drawings. 01과 필요한 geometry/reference 기반이 선행. | 실제 sheet/SVG·파일·정상 제품을 닫는다. 한 프레임·기호 시험을 전체 규격 적합성이나 제조 수락으로 올리지 않는다. |
+| 12 | 파일·버전·협업 — CG6 | 기존 저장·분기·merge·linked part의 기능별 파일 흐름을 완성하고, 공유·댓글·동시 편집은 서버/계정/호스팅 결정 뒤에 진행한다. | Model/API + Outer; 필요한 인프라 소유·승인이 선행. | 실제 디스크/프로젝트 파일·revision·충돌/실패 복구를 확인한다. 기존 버전 기능을 새 구현으로 다시 배정하지 않는다. |
+| 13 | 교환과 손실 표시 — CG7 | STEP AP242 조립/PMI, glTF/USDZ 등 형식별 지원 프로필과 독립 읽기. Parasolid 읽기는 기존 사용자 결정 조건을 유지한다. | Kernel/API + 기존 교환 소유자. | 형상만 저장한 결과와 계층/반복 배치/PMI/이력 보존을 구분한다. 단위·scale·손실을 명시한다. 자체 writer/reader 일치만으로 독립 수락하지 않는다. |
+| 14 | 생산 기능 — CG8 | 생산 CAM/postprocessor·판금 DXF nesting은 현재 미리보기와 별개인 후속 계획이다. | 기존 Kernel/Model/제조 소유자; 별도 범위·입력·승인 조건. | NOT FOR PRODUCTION을 완료로 바꾸지 않는다. P2·PG11 조건을 이 번호로 해제하지 않는다. 새 구현 자동 착수 없음. |
+| 15 | 제품 사용성 — CG9 | 표시 단위, 한국어 UI, 접근성, 안내·desktop 구성의 남은 범위. | Outer/Viewer + 각 기반 소유자; 현재 기능 완료 뒤 좁은 소비 공백부터. | 긴 상시 설명을 줄이고 아이콘·짧은 툴팁·현재 값으로 기능을 구분한다. 단위·오류·필수 경고는 유지한다. 중단된 package/hook 작업을 우회하지 않는다. |
+| 16 | 정확도·강건성·API/참조 — CG10, R7, #2210/#2215 | 재현 가능한 잘못된 성공/손실, sketch 출력·revolve admission, SSI/pcurve·근사 오차·이름/참조 진화의 남은 범위. | Kernel/API/Model/GPU의 실제 producer·consumer 소유자. 결함은 해당 기능에서 우선 처리. | 원공차·입력·오차/지원 경계를 고정한다. 단위 변환은 한 경계에서만 한다. 기존 언어/DSL·GUI·공개 API가 같은 typed core를 소비한다. 새 DSL/solver 설치나 중단 K9 재개 승인이 아니다. |
+| 17 | 경로 묶음·가상 클립 — PB0–PB4 | 현재 두 경로/한 클립의 한정 구현과 파일/원자성 근거를 유지한다. 다중 클립·분기·굽힘/간격·길이의 공학 조건은 후속 범위다. | Model/API + GPU + Outer; 기존 stable handle·revision 계약 재사용. | 연관 sweep을 같은 후보로 재생성해 전부 성공할 때만 채택한다. Cancel·stale·한 멤버 실패 시 기존 전체 결과 보존. 자동 충돌 회피/케이블 동역학으로 확대하지 않는다. |
+| 18 | 관절·로봇 — J1/J2, R1/D1/R2, RS6/RS7/P4 | 같은2R 입력/리비전 연결 → 관절·한계/폐루프 → 제한 자유 진자 → 다링크·접촉·제어 → 독립 교환·제품. 기존6단계 계획을 따른다. | Kernel/Model/API/Outer/GPU; 자유동역학은 기존 Physics 소유·지원 프로필 확인이 선행. | 기구학·지정 재생·정적 토크·자유 동역학을 구분한다. 같은 질량/관성·프레임·단위·참조와 실제 파일을 사용한다. paused Physics/Motion 자동 재개 없음. |
+| 19 | 가상 실험·다물리·실측 — Stage0–6 | 기반 → 공통 실험 계약 → 제한 진자 → 기계/로봇/접촉/제어 → 구조·열 → 유체·전기 → 실측 피드백의 기존7단계. | 각 기존 기반/해석/실측 소유자. 미래 단계의 소유·입력·지원·승인을 먼저 정한다. | 입력/선언값/계산값/실측을 구분하고 독립 기대·보존/수렴·오차·파일로 확인한다. 현재 정적 결과·화면을 일반 solver 검증으로 올리지 않는다. 새 엔진/의존성·중단 작업 자동 착수 없음. |
+
+### 제품 완료와 인계의 공통 조건
+
+1. 기능의 입력·단위·좌표·참조·지원/거부 계약을 고정한다.
+2. 기존 기반을 재사용해 같은 기능의 전체 소스를 정상 commit한다.
+3. 필요한 영향 검사와 실제 소비/파일 흐름을 한 배치로 닫는다. 원 FAIL과 NOTRUN은 보존한다.
+4. 검토된 정확 delta만 제품에 통합하고 필수 제품 검사와 제한을 기록한다. 명시적 소유 인계 예외인06은 다른 통합 위치로 전달한다.
+5. 실제 Codex core 남음이5% 이하면 기존 조건부 중단·정상 인계 commit·허용된 feature branch push·원격 SHA 확인·cad PAUSED를 수행한다. reset/credits 소비나 force/main/develop rewrite는 하지 않는다.
+
+P2 HOLD·PG11 입력 미확정·PG12의 한정 positive는 서로 다른 조건이다. 일반 코드 작업 전체를 멈추는 조건은 아니다.
+optional G15d.4, 측정 후 보류한 LOD와 기존 BVH는 새 개발로 자동 배정하지 않는다.
+공유/댓글 인프라, 새 solver·runtime dependency, Physics/Motion 및 packaging/config/hook의 기존 중단은 유지한다.
+상세·옛 실행 기록은 아래에 보존한다. 이 색인과 단일 작업 기록의 최신 상태가 옛 진행형 문구보다 우선한다.
+
+
 Current as of 2026-10-27, after the scoped CAD integration checkpoints. This file is the one place for **what we do, in what order, and
 when each item is done**. It replaces Codex's continuation roadmap of 2026-10-22/23, which is at `0eabecf7f` and on
 `codex/cad-coordinator-handover-20261022`.
@@ -116,11 +180,11 @@ The next independent Kernel implementation is CG2 linear cut-feature repetition.
 solid, using the existing axis/count/mm parameter conventions and affine/Boolean operations.
 It does not copy the whole body or discard later features. Existing body patterns remain.
 The fixed reference is a60x30x10 box with three separate4x4 through cuts:17520mm3 remains,
-with unchanged outer bounds. Core normal source `05d4315` is closed and statically reviewed; runtime remains NOTRUN.
-Kernel now implements the same feature in Model doc/evaluate/parameter/codec/public consumers
-before one combined affected batch. It does not wait for isolated test checkpoints to write that source.
-Until a real Model node/evaluate/save contract is implemented, the shared Model facade must
-return typed UNAVAILABLE. Studio starts after that foundation contract and the pinned source.
+with unchanged outer bounds. Core `05d4315`, actual Model consumer `50397c0` and Studio History icon `9ee0fd2` are source-complete and statically reviewed. Runtime remains NOTRUN.
+The temporary Model facade guard is removed only in the completed normal50397c0 candidate. The current common/product cut does not yet contain these candidates.
+Adopt the whole exact source before one combined affected batch; do not treat source completion as runtime support.
+The real Model node/evaluate/save source contract is complete. Studio source consumes its existing generic command/HUD/editor and adds only the missing History icon.
+Unsupported current cuts retain their refusal behavior until the qualified feature is adopted. Actual Studio/file execution follows the pinned common source.
 
 Viewer's ten normal deltas through `df7d7fdd` are adopted in the aggregate; the app tree is
 exactly the owner's tested source. Only the stopped provider-build README section stays omitted.
