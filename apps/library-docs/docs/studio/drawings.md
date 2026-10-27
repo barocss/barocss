@@ -286,7 +286,32 @@ from the marks drawn on the sheet; an exported file alone does not establish tha
 
 ### Drawing files from code
 
-`drawingOf(doc)` from `@barocss/cad-model/api/outputs` returns the drawing synchronously:
+Use the `StudioPart` facade to set up a drawing and get its files. This example makes a pin with an 8 mm
+diameter and a 30 mm length:
+
+```ts
+import { part } from '@barocss/cad-model/api';
+
+const pin = part('pin')
+  .cylinder({ r: 4, h: 30 })
+  .material('steel')
+  .process('cnc-turning')
+  .drawingSettings({ title: 'pin', sheet: 'A4' })
+  .autoDimension();
+
+const drawing = pin.drawing();
+console.log(drawing.issues, drawing.pdfMissing);
+// drawing.svg and drawing.dxf are text; drawing.pdf is a Uint8Array.
+```
+
+`drawingSettings` and `autoDimension` return a new part. The default `autoDimension()` can choose the front
+view and change the sheet, scale and view layout to fit the dimensions. To keep the current sheet, scale and
+views, call `autoDimension({ layout: false })`. It adds dimensions to the current layout. Both options keep
+manually placed dimensions. Automatic component dimensioning is refused for assembly drawing scope with
+`DRAWING_SCOPE_AUTO`.
+
+`pin.drawing()` is synchronous and returns the same fields as `drawingOf(doc)` from
+`@barocss/cad-model/api/outputs`:
 
 | Field | Result |
 |---|---|

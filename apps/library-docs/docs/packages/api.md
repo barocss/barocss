@@ -172,6 +172,44 @@ ended by `.close()`.
 
 <<< @/../samples/cad-api.test.mjs#bodies
 
+#### Split a body and inspect each result
+
+Start with a 10 × 20 × 5 mm box at the origin. The plane `x = 4` cuts it into two bodies:
+
+```text
+        x = 0       x = 4               x = 10
+           |-----------|--------------------|
+             4 mm             6 mm
+               split1/0         split1/1
+```
+
+```js
+import { part } from '@barocss/cad/api';
+
+const divided = part('block')
+  .box({ w: 10, d: 20, h: 5 })
+  .split({ axis: 'x', at: 4 });
+
+const names = divided.bodies();
+// For this document: ['split1/0', 'split1/1']
+const results = names.map(name => ({
+  name,
+  mass: divided.body(name).mass({ density: 1 }),
+}));
+```
+
+For this box, the expected volumes from its dimensions are 400 mm³ and 600 mm³. At 1 g/cm³, the expected masses
+are 0.4 g and 0.6 g. These are calculated expectations, not a new captured API run. The sample test above checks
+the two volumes. Names use the split feature id and a side index; call `bodies()` to get the names for your own
+part. `body(name)` selects one result without changing the document. With two bodies and no selection, `mass()`
+and other single-body operations refuse with `BODY_AMBIGUOUS`. `meshes()` still returns all bodies, each with a
+`key`, so use the key to associate a display mesh with a body.
+
+You can also set an oblique plane with `split({ normal: [1, 1, 0], at: 10 })`: it is the plane `x + y = 10`.
+In general, the plane is `normal · [x, y, z] = at`; changing the scale of the normal changes that equation unless
+`at` is scaled by the same factor. The normal must be finite and have length greater than `1e-9`. A split plane
+that does not cross the target body is refused.
+
 <<< @/../samples/cad-api.test.mjs#finned
 
 Two separate parts aren't combined: merging two documents would renumber one's ids, and so its names.

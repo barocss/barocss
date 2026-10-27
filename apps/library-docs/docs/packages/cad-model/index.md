@@ -377,6 +377,40 @@ Use the `api/` facade's `assembly(...).robot()` to read an assembly as a robot. 
 two waypoints; `robot.motion(name)` reads a saved path. Joint inputs use degrees for turns and mm for slides.
 Velocity and acceleration limits use deg/s and deg/s², or mm/s and mm/s².
 
+### Checking assembly clearance
+
+Call `clearance()` on an existing assembly to read its current clearance map. The method is asynchronous:
+
+```js
+const result = await myAssembly.clearance({ near: 2 }); // mm
+console.log(result.map);
+console.log(result.files.find(file => file.path === 'clearance.json'));
+```
+
+Omit `near` to use 1 mm. A supplied value must be finite, greater than 0 and at most 10,000 mm;
+otherwise the call rejects with `OUTPUT_INPUT`. Evaluation failures also reject the call. It includes the
+base and visible placed parts; hidden placed parts are excluded.
+
+| Result | Meaning |
+|---|---|
+| `revision` | The document revision used for this output. |
+| `shopRows` | The resolved shop-row provenance for the assembly. |
+| `map` | The clearance map: its own `revision`, `near`, `pairs`, `pending` count and `timing`. The map revision identifies the pair poses; it is separate from the document revision. |
+| `files` | One `clearance.json` file with map fields, document revision and shop-row provenance. Its entry includes UTF-8 `text`, byte count and SHA-256 digest. The file's `revision` is the document revision: it replaces the map revision. Keep `result.map.revision` separately if you need the map revision. |
+
+The map measures the least gap on display meshes. It first selects candidates using bounding boxes expanded
+by the near distance. A candidate can have state `clear` when its measured gap is greater than `near`, so do
+not assume that every returned pair is within the band. Each pair identifies its bodies as `a` and `b` and
+includes `minGap` in mm, closest points in the respective body-local frames, face names and a pose key.
+
+`near` means the measured gap is positive and within the requested distance. `contact` means the mesh gap is
+zero, but it does not yet distinguish touching from a volume overlap. When exact solids are available,
+`overlap.pending` is `true` until a separate exact overlap check fills it; awaiting `clearance()` does not run
+that fill. If an exact solid is unavailable, `overlap.refused` explains why the distinction was not made.
+A `designed` pair identifies a declared seat or fit; it is not an approval of the assembly. Inspect both the
+pair states and pending or refused overlap fields. An empty pending count alone does not establish that an
+assembly has no interference.
+
 ### Reading pose and path results
 
 `poseAt(t)` returns joint inputs, not link placements. Pass that record to `robot.pose(...)` to obtain the pose.
