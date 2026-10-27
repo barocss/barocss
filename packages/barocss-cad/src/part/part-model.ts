@@ -15,7 +15,7 @@
 //                    by its two faces. Chamfers and fillets select edges by these names, so a selection
 //                    survives parameter edits that keep the topology.
 //   references       `id` (all parts of a feature) or `id/k` (part k: the sides of a split)
-import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, mergeBreps, nurbsOf, type Brep, type BrepCheckReport } from '../brep/brep-core.js';
+import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, mergeBreps, nurbsOf, type Brep, type BrepCheckReport, type BrepFace } from '../brep/brep-core.js';
 import { brepFromPrismatic, booleanPrismatic, prismaticExtrude, prismaticFromProfile, prismaticVolume, transformPrismatic, isPrismaticSolidError, type PrismaticSolid } from '../features/prismatic-solid.js';
 import { erodeSection } from '../features/section-offset.js';
 import { unitNamedField } from '../document/unit-named.js';
@@ -146,7 +146,8 @@ export type CadPartFeature = Base & (
   /**
    * A face fillet of constant `radius` between two planar faces that need not touch (a step, a chamfer or a groove
    * between them is replaced): the round tangent to both, along their planes' meeting line, over the length both run
-   * beside it. At an inside corner the round is joined, at an outside one cut. Each face must hold its tangent line
+   * beside it. A planar face and a whole cylinder square to it (a boss, a rim, a hole's edge) take the round revolved
+   * about the cylinder's axis; the plane must then hold the tangent circle and the cylinder the tangent height. At an inside corner the round is joined, at an outside one cut. Each face must hold its tangent line
    * there (its edges straight); the material joined or cut is checked. The round face is `<id>.round`.
    */
   | { readonly kind: 'face-fillet'; readonly target: string; readonly faces: readonly [string, string]; readonly radius: CadPartDim }
@@ -1648,12 +1649,19 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const source = target[0].solid;
         if (source.kind === 'brep' && source.brep.faces.some(isFacetFace)) fail('CAPABILITY', 'a face fillet on mesh faces is not supported yet');
         const brep = brepOf(target[0], at), points = new Map(brep.vertices.map(v => [v.id, v.point])), edges = new Map(brep.edges.map(e => [e.id, e])), coedges = new Map(brep.coedges.map(c => [c.id, c]));
+        // A plane and a cylinder square to it: the round revolved about the cylinder's axis.
+        const groups = (names as string[]).map(name => brep.faces.filter(x => x.name === name || (x.name ?? '').split('#')[0] === name));
+        const kinds = groups.map(g => g.length ? faceGeometry(g[0]).kind : null);
+        if (kinds.includes('cylinder') && kinds.includes('plane')) {
+          const k = kinds.indexOf('plane');
+          return one(planeCylinderFillet(brep, source, { name: (names as string[])[k], faces: groups[k] }, { name: (names as string[])[1 - k], faces: groups[1 - k] }, r, at, fail));
+        }
         // Each face by its name (pieces `#k` of one plane together): its plane and its loops as rings of points.
         const sides = (names as string[]).map(name => {
           const group = brep.faces.filter(x => x.name === name || (x.name ?? '').split('#')[0] === name);
           if (!group.length) return fail('REFERENCE', `no face ${name} on the target`);
           const g = faceGeometry(group[0]);
-          if (g.kind !== 'plane') return fail('CAPABILITY', `[FACE_FILLET_FACE] ${name} is not a planar face`);
+          if (g.kind !== 'plane') return fail('CAPABILITY', `[FACE_FILLET_FACE] ${name} is not a planar face (a face fillet takes two planes, or a plane and a cylinder square to it)`);
           const rings = group.flatMap(x => x.loops.map(id => brep.loops.find(l => l.id === id)!.coedges.map(cid => {
             const c = coedges.get(cid)!, e = edges.get(c.edge)!;
             if (e.curve.degree !== 1 || e.curve.controlPoints.length !== 2) fail('CAPABILITY', `[FACE_FILLET_FACE] ${name} has a curved edge`);
@@ -2058,6 +2066,69 @@ function splitFacets(s: Solid, n: Point, d: number, at: string): Solid[] {
   catch (cause) { if (cause instanceof BrepError || isFacetBooleanError(cause)) throw new CadPartError('GEOMETRY', at, cause.message.replace(/^B-rep: /, '')); throw cause; }
   if (!r.below || !r.above) throw new CadPartError('SELECTION', at, 'the split plane does not cross the target');
   return [{ kind: 'brep', brep: r.below }, { kind: 'brep', brep: r.above }];
+}
+
+/**
+ * A face fillet between a planar face and a whole cylindrical face square to it (a boss on a plate, a disc's rim, a
+ * hole's edge): in the half-plane through the axis the cylinder is a line, so the round's section (corner, tangent
+ * points, the near quarter arc) is revolved about the axis — joined at an inside corner, cut at an outside one. The
+ * plane must hold the tangent circle and the cylinder the tangent height; the volume is checked by Pappus.
+ */
+function planeCylinderFillet(brep: Brep, source: Solid, plane: { name: string; faces: readonly BrepFace[] }, round: { name: string; faces: readonly BrepFace[] }, r: number, at: string, fail: (code: CadPartErrorCode, detail: string) => never): Solid {
+  const g = faceGeometry(round.faces[0]), pg = faceGeometry(plane.faces[0]);
+  if (g.kind !== 'cylinder' || pg.kind !== 'plane') return fail('CAPABILITY', `[FACE_FILLET_FACE] ${round.name} and ${plane.name} are not a cylinder and a plane`);
+  const a = unit(g.a), R = g.r, n = unit(pg.n), points = new Map(brep.vertices.map(v => [v.id, v.point])), edges = new Map(brep.edges.map(e => [e.id, e]));
+  for (const x of round.faces.slice(1)) { const h = faceGeometry(x); if (h.kind !== 'cylinder' || Math.abs(h.r - R) > 1e-9 * Math.max(1, R) || Math.abs(Math.abs(dot(unit(h.a), a)) - 1) > 1e-12 || len(cross(sub(h.c, g.c), a)) > 1e-9 * Math.max(1, R)) fail('CAPABILITY', `[FACE_FILLET_FACE] the faces named ${round.name} are not one cylinder`); }
+  if (Math.abs(Math.abs(dot(n, a)) - 1) > 1e-9) fail('CAPABILITY', `[FACE_FILLET_FACE] ${plane.name} is not square to ${round.name}'s axis (a plane and a cylinder take a plane across the axis)`);
+  const hOf = (q: Point) => dot(sub(q, g.c), a), rhoOf = (q: Point) => len(sub(sub(q, g.c), scale(a, hOf(q))));
+  const hA = hOf(pg.o), size = Math.max(1, R, r), tol = 1e-9 * size;
+  // The cylinder: whole round (only end circles besides its seam) and its height range.
+  const loops = new Set(round.faces.flatMap(x => x.loops)), uses = new Map<string, number>();
+  for (const c of brep.coedges) if (loops.has(c.loop)) uses.set(c.edge, (uses.get(c.edge) ?? 0) + 1);
+  const hs = [...uses.keys()].flatMap(id => edges.get(id)!.vertices.map(v => hOf(points.get(v)!))), h0 = Math.min(...hs), h1 = Math.max(...hs);
+  const endOf = (h: number) => Math.abs(h - h0) <= tol ? 0 : Math.abs(h - h1) <= tol ? 1 : -1;
+  if ([...uses].some(([id, k]) => { if (k !== 1) return false; const [u, v] = edges.get(id)!.vertices.map(x => endOf(hOf(points.get(x)!))); return u < 0 || u !== v; })) fail('CAPABILITY', `[FACE_FILLET_FACE] ${round.name} is not a whole round face`);
+  // The plane's boundary: the edges of its pieces not shared between them (a revolved face's halves meet along seam
+  // lines), each sampled as a polyline (circles and lines alike).
+  const planeLoops = new Set(plane.faces.flatMap(x => x.loops)), planeUses = new Map<string, number>();
+  for (const c of brep.coedges) if (planeLoops.has(c.loop)) planeUses.set(c.edge, (planeUses.get(c.edge) ?? 0) + 1);
+  const rings = [...planeUses].filter(([, k]) => k === 1).map(([id]) => {
+    const e = edges.get(id)!, [t0, t1] = curveDomain(e.curve), N = e.curve.degree === 1 && e.curve.controlPoints.length === 2 ? 1 : 64;
+    return Array.from({ length: N + 1 }, (_, i) => evaluateCurve(e.curve, t0 + (t1 - t0) * i / N) as Point);
+  });
+  // Which side of the cylinder the plane lies on: where its boundary reaches clearly past the radius; a face bounded
+  // only on the radius (a disc's top, the rim its one edge) lies inside it.
+  const rhos = rings.flat().map(rhoOf), outward = rhos.some(x => x > R + 1e-7 * size), inward = rhos.some(x => x < R - 1e-7 * size);
+  const sA = outward && inward ? 0 : outward ? 1 : -1;
+  const sB = h0 >= hA - tol ? 1 : h1 <= hA + tol ? -1 : 0;
+  if (!sA || !sB) fail('CAPABILITY', `[FACE_FILLET_FACES] ${sA ? round.name : plane.name} lies on both sides of the corner with ${sA ? plane.name : round.name}`);
+  // Inside corner: the plane faces the cylinder's side and the cylinder the plane's.
+  const inPlane = dot(n, a) * sB > 0, inRound = g.out * sA > 0;
+  if (inPlane !== inRound) fail('CAPABILITY', `[FACE_FILLET_FACES] ${plane.name} and ${round.name} face neither into nor away from their corner`);
+  const inside = inPlane, rho = R + sA * r, ht = hA + sB * r;
+  if (!(rho > tol)) fail('GEOMETRY', `[FACE_FILLET_RADIUS] a ${r} mm round is wider than ${round.name}'s radius ${R}`);
+  if (!(ht >= h0 - tol && ht <= h1 + tol)) fail('GEOMETRY', `[FACE_FILLET_RADIUS] a ${r} mm round would not meet ${round.name} tangentially: it is ${+(h1 - h0).toPrecision(9)} mm long`);
+  // The plane holds the tangent circle: no boundary loop crosses it, and a point of it is inside.
+  const crossing = rings.some(edge => edge.some((q, i) => i > 0 && (rhoOf(edge[i - 1]) - rho) * (rhoOf(q) - rho) < -1e-14 * size * size));
+  const e1 = unit(Math.abs(a[0]) < 0.9 ? cross(a, [1, 0, 0]) : cross(a, [0, 1, 0])), e2 = cross(a, e1), flat = (q: Point): [number, number] => [dot(sub(q, g.c), e1), dot(sub(q, g.c), e2)];
+  const flats = rings.map(ring => ring.map(flat)), probe = (phi: number): [number, number] => [rho * Math.cos(phi), rho * Math.sin(phi)];
+  const away = (p: [number, number]) => Math.min(...flats.flat().map(q => Math.hypot(q[0] - p[0], q[1] - p[1])));
+  const best = Array.from({ length: 8 }, (_, i) => probe(i * Math.PI / 4)).reduce((m, p) => away(p) > away(m) ? p : m);
+  // (Even-odd over the boundary's segments, open polylines and all: their order does not matter.)
+  const inFace = flats.reduce((k, edge) => k + edge.filter((p, i) => { if (i === 0) return false; const q = edge[i - 1]; return (p[1] > best[1]) !== (q[1] > best[1]) && best[0] < p[0] + (best[1] - p[1]) * (q[0] - p[0]) / (q[1] - p[1]); }).length, 0) % 2 === 1;
+  if (crossing || !inFace) fail('GEOMETRY', `[FACE_FILLET_RADIUS] a ${r} mm round would not meet ${plane.name} tangentially: the face does not hold the circle ${+rho.toPrecision(9)} mm round the axis`);
+  // The section in the half-plane (x: radius, y: height along the axis), revolved about local Y.
+  const C: [number, number] = [R, hA], tA: [number, number] = [R + sA * r, hA], tB: [number, number] = [R, hA + sB * r];
+  const outer: ProfileSegmentInput[] = [{ kind: 'line', start: C }, { kind: 'arc', start: tA, center: [R + sA * r, hA + sB * r], direction: sA * sB > 0 ? 'cw' : 'ccw' }, { kind: 'line', start: tB }];
+  const Z = cross(e1, a), m: BrepAffine['matrix'] = [e1[0], a[0], Z[0], e1[1], a[1], Z[1], e1[2], a[2], Z[2]];
+  const made = revolveProfile({ id: at, profile: outer, axis: { origin: [0, 0], direction: [0, 1] }, angle: 360 });
+  const tool = affine({ kind: 'brep', brep: made }, m, g.c, x => x.startsWith(`${at}.side1`) ? `${at}.round${x.slice(`${at}.side1`.length)}` : x);
+  // Pappus: the section's area and its centroid's radius (the square r × r less the quarter disc).
+  const area = r * r - Math.PI * r * r / 4, off = (r * r * r / 2 - Math.PI * r * r / 4 * (r - 4 * r / (3 * Math.PI))) / area, V = 2 * Math.PI * (R + sA * off) * area;
+  const held = boolean(source, tool, 'intersection', at), was = empty(held) ? 0 : exactVolume(held), before = exactVolume(source);
+  const out = boolean(source, tool, inside ? 'union' : 'difference', at), change = exactVolume(out) - before, pieces = out.kind === 'brep' ? out.brep.bodies.length : 1, want = inside ? V - was : -was;
+  if (pieces !== 1 || Math.abs(change - want) > 1e-7 * Math.max(before, V) || !(Math.abs(want) > 1e-9 * V)) fail('GEOMETRY', `[FACE_FILLET_NOT_CLEAR] the round between ${plane.name} and ${round.name} would ${inside ? 'add' : 'take'} ${+Math.abs(change).toPrecision(9)} mm³ (${+Math.abs(want).toPrecision(9)} expected)${pieces !== 1 ? ` and leave ${pieces} bodies` : ''}`);
+  return out;
 }
 
 /**

@@ -342,14 +342,21 @@ export function buildDraft(ctx: Ctx, v: Values): StudioDoc {
     ...(v.pull !== undefined ? { pull } : {}), ...(hasNeutral ? { neutral: neutral! } : {}) });
 }
 
-/** The two flat faces picked for a face fillet (one body, not parallel), by name, or why not. */
+/** The two faces picked for a face fillet (one body): two flat ones, not parallel, or a flat one and a round one square to it; by name, or why not. */
 function faceFilletOf(ctx: Ctx): { body: BodyResult; faces: [string, string] } | string {
-  const picks = ctx.selection.faces; if (picks.length !== 2) return 'Pick two flat faces of one body to round between (Shift-click the second).';
+  const picks = ctx.selection.faces; if (picks.length !== 2) return 'Pick two faces of one body to round between (Shift-click the second): two flat ones, or a flat one and a round one.';
   if (picks[0].body !== picks[1].body) return 'Pick faces of one body.';
   const body = ctx.bodies[picks[0].body], f = picks.map(p => body?.mesh.faces[p.face]);
-  if (!body || f.some(x => !x || x.kind !== 'plane')) return 'A face fillet rounds between flat faces.';
-  const [a, b] = f as NonNullable<typeof f[number]>[], c = [a.normal[1] * b.normal[2] - a.normal[2] * b.normal[1], a.normal[2] * b.normal[0] - a.normal[0] * b.normal[2], a.normal[0] * b.normal[1] - a.normal[1] * b.normal[0]];
-  if (Math.hypot(...c) < 1e-6) return 'The two faces are parallel: their planes never meet (a full round takes a top between two sides).';
+  if (!body || f.some(x => !x)) return 'Pick two faces of one body to round between.';
+  const [a, b] = f as NonNullable<typeof f[number]>[], crossOf = (u: readonly number[], w: readonly number[]) => Math.hypot(u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]);
+  if (a.kind === 'plane' && b.kind === 'plane') {
+    if (crossOf(a.normal, b.normal) < 1e-6) return 'The two faces are parallel: their planes never meet (a full round takes a top between two sides).';
+  } else {
+    // A flat face and a round one (a boss, a disc's rim, a hole): the round one's axis square to the flat one.
+    const round = a.kind === 'plane' ? picks[1] : picks[0], flat = a.kind === 'plane' ? a : b, axis = roundFaceAxis(body.mesh, round.face);
+    if (flat.kind !== 'plane' || !axis) return 'A face fillet rounds between two flat faces, or a flat face and a round one.';
+    if (crossOf(axis.dir, flat.normal) > 1e-3) return 'The round face\'s axis must be square to the flat face.';
+  }
   const name = (x: typeof a) => x.name.split('+')[0].split('#')[0];
   if (name(a) === name(b)) return 'Pick two different faces.';
   return { body, faces: [name(a), name(b)] };
@@ -558,7 +565,7 @@ const allCommands: Command[] = [
     build: (ctx, v) => { const rest = { ...v }; delete rest.pull; return buildDraft(ctx, draftPullOf(v) === 'z' ? rest : { ...rest, pull: draftPullOf(v) }); },
   },
   {
-    id: 'face-fillet', label: 'Face fillet', icon: 'cad-face-fillet', hint: 'Round between two picked flat faces that need not touch: a chamfer, step or groove between them is replaced by one round tangent to both', group: 'modify', keywords: 'face fillet blend round corner between faces',
+    id: 'face-fillet', label: 'Face fillet', icon: 'cad-face-fillet', hint: 'Round between two picked faces that need not touch — two flat ones, or a flat one and a round one square to it (a boss on a plate, a rim, a hole\'s edge): a chamfer, step or groove between them is replaced by one round tangent to both', group: 'modify', keywords: 'face fillet blend round corner between faces',
     available: ctx => { const d = faceFilletOf(ctx); return typeof d === 'string' ? no(d) : ok; },
     fields: () => [{ key: 'r', label: 'Radius', kind: 'mm', min: 0.1 }],
     defaults: () => ({ r: 2 }),

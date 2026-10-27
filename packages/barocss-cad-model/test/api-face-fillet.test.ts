@@ -48,3 +48,26 @@ test('Studio face fillet: offered on two non-parallel flat faces, its radius edi
   assert.equal(ff.available(parallel).ok, false); assert.throws(() => ff.build!(parallel, v), /parallel/);
   assert.equal(ff.available(pick(f => f.kind === 'plane' && f.normal[2] > 0.99 && Math.abs(f.centroid[2] - 5) < 1e-6)).ok, false, 'one face is not enough');
 });
+
+// A boss (Ø20, z 4..25) joined to a 60 × 60 × 5 plate: the round in its base, revolved: Pappus, the r × r square less
+// the quarter disc, its centroid at radius 10 + off.
+const ring = (R: number, r: number) => { const A = r * r - Math.PI * r * r / 4, off = (r ** 3 / 2 - Math.PI * r * r / 4 * (r - 4 * r / (3 * Math.PI))) / A; return 2 * Math.PI * (R + off) * A; };
+const boss: StudioDoc = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
+  { kind: 'sketch', profile: 'rectangle', min: [-30, -30], max: [30, 30], id: 'n0' }, { kind: 'extrude', sketch: 0, height: 5, id: 'n1' },
+  { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, id: 'n2' }, { kind: 'extrude', sketch: 2, height: 21, from: 4, id: 'n3' },
+  { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' }, id: 'n4' }], outputs: { b4: { node: 4, side: 'solid' } }, nextId: 5 } as StudioDoc;
+
+test('face fillet: a flat face and a round one — a boss\'s base, through the API and the Studio command', () => {
+  const topAndBoss = (b: BodyQuery) => b.faces().where(f => (f.kind === 'plane' && f.normal[2] > 0.99 && Math.abs(f.centroid[2] - 5) < 1e-6) || f.kind === 'curved');
+  const made = part('boss', boss).faceFillet(b => topAndBoss(b), { radius: 4 }), node = made.doc.nodes.at(-1);
+  assert.ok(node?.kind === 'face-fillet' && node.faces.some(n => /^n3\.side0$/.test(n)), JSON.stringify(node));
+  close(volumeOf(made.doc), volumeOf(boss) + ring(10, 4));
+  const ff = commands.find(c => c.id === 'face-fillet')!, bodies = bodiesOf(boss);
+  const sel = bodies[0].mesh.faces.map((f, face) => ({ f, face })).filter(({ f }) => (f.kind === 'plane' && f.normal[2] > 0.99 && Math.abs(f.centroid[2] - 5) < 1e-6) || f.kind === 'curved').slice(0, 2);
+  const ctx: Ctx = { doc: boss, bodies, selection: { faces: sel.map(({ face }) => ({ body: 0, face })), edges: [], bodies: [] } };
+  assert.equal(ff.available(ctx).ok, true, JSON.stringify(ff.available(ctx)));
+  close(volumeOf(ff.build!(ctx, { r: 4 })), volumeOf(boss) + ring(10, 4));
+  // The boss's side and the plate's side (x = 30): the axis lies along that face, not square to it.
+  const side = bodies[0].mesh.faces.map((f, face) => ({ f, face })).filter(({ f }) => f.kind === 'curved' || (f.kind === 'plane' && f.normal[0] > 0.99)).slice(0, 2);
+  assert.equal(ff.available({ ...ctx, selection: { faces: side.map(({ face }) => ({ body: 0, face })), edges: [], bodies: [] } }).ok, false);
+});

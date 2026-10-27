@@ -68,6 +68,46 @@ test('face fillet: refused with the reason', () => {
   refused([...block, fillet(['b.side1', 'nope'], 4)], 'REFERENCE', /no face nope/);
   refused([...block, fillet(['b.side1', 'b.side1'], 4)], 'INPUT', /two different faces/);
   const disc = [{ id: 'c', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'b', kind: 'extrude', sketch: 'c', height: 10 }];
-  refused([...disc, fillet(['b.side0', 'b.bottom'], 1)], 'CAPABILITY', /\[FACE_FILLET_FACE\] b\.side0 is not a planar face/);
+  // Two cylinders are not taken (a plane and a cylinder are: the disc's bottom rim rounds).
+  const stepped = [{ id: 's', kind: 'sketch', profile: 'polygon', plane: XZ, points: [[0, 0], [10, 0], [10, 5], [5, 5], [5, 10], [0, 10]] }, { id: 'b', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }];
+  refused([...stepped, fillet(['b.side1', 'b.side3'], 1)], 'CAPABILITY', /\[FACE_FILLET_FACE\] b\.side1 is not a planar face \(a face fillet takes two planes, or a plane and a cylinder square to it\)/);
+  valid(out([...disc, fillet(['b.side0', 'b.bottom'], 1)], 'ff'));
   refused([...disc, fillet(['b.top', 'b.bottom'], 1)], 'CAPABILITY', /\[FACE_FILLET_FACE\] b\.top has a curved edge/);
+});
+
+// A plane and a cylinder square to it: the section revolved about the axis. Pappus: the r × r square less the quarter
+// disc, its centroid off − from the corner along each face, swept round at radius R ± off.
+const ring = (R, r, side) => { const A = r * r - Math.PI * r * r / 4, off = (r ** 3 / 2 - Math.PI * r * r / 4 * (r - 4 * r / (3 * Math.PI))) / A; return 2 * Math.PI * (R + side * off) * A; };
+const turned = (points) => [{ id: 's', kind: 'sketch', profile: 'polygon', plane: XZ, points }, { id: 'b', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }];
+const bossPlate = (h) => [{ id: 'ps', kind: 'sketch', profile: 'rectangle', min: [-30, -30], max: [30, 30] }, { id: 'p', kind: 'extrude', sketch: 'ps', height: 5 }, { id: 'cs', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10 }, { id: 'c', kind: 'extrude', sketch: 'cs', height: h - 4, from: 4 }, { id: 'b', kind: 'union', target: 'p', tool: 'c' }];
+
+test('face fillet: a boss on a plate across its base chamfer — the round revolved, filled', () => {
+  const boss = turned([[0, 0], [30, 0], [30, 5], [13, 5], [10, 8], [10, 25], [0, 25]]);
+  const o = out([...boss, fillet(['b.side2', 'b.side4'], 6)], 'ff'); valid(o);
+  // The chamfer's ring (its triangle 4.5 mm² at radius 11) is replaced by the round's.
+  near(massPropertiesOf(o).volume, volume(boss, 'b') + ring(10, 6, 1) - 2 * Math.PI * 11 * 4.5, 'filled');
+  assert.ok(o.brep.faces.some(f => /^ff\.round/.test(f.name)) && !o.brep.faces.some(f => /^b\.side3/.test(f.name)), 'the chamfer is replaced');
+  near(volume([...boss, fillet(['b.side4', 'b.side2'], 6)], 'ff'), massPropertiesOf(o).volume, 'order');
+  // A boss joined to a square plate (adjacent faces: the round in its base edge).
+  const sq = out([...bossPlate(25), { id: 'ff', kind: 'face-fillet', target: 'b', faces: ['p.top', 'c.side0'], radius: 4 }], 'ff'); valid(sq);
+  near(massPropertiesOf(sq).volume, volume(bossPlate(25), 'b') + ring(10, 4, 1), 'square plate');
+});
+
+test('face fillet: a disc\'s rim and a hole\'s edge — outside corners, the round revolved, cut', () => {
+  const disc = [{ id: 'ds', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 20 }, { id: 'b', kind: 'extrude', sketch: 'ds', height: 10 }];
+  const d = out([...disc, fillet(['b.top', 'b.side0'], 4)], 'ff'); valid(d);
+  near(massPropertiesOf(d).volume, Math.PI * 400 * 10 - ring(20, 4, -1), 'rim');
+  const holed = [{ id: 'ps', kind: 'sketch', profile: 'rectangle', min: [-30, -30], max: [30, 30] }, { id: 'p', kind: 'extrude', sketch: 'ps', height: 10 }, { id: 'h', kind: 'hole', target: 'p', center: [0, 0], radius: 5 }];
+  const h = out([...holed, { id: 'ff', kind: 'face-fillet', target: 'h', faces: ['p.top', 'h.side0'], radius: 2 }], 'ff'); valid(h);
+  near(massPropertiesOf(h).volume, 36000 - Math.PI * 25 * 10 - ring(5, 2, 1), 'hole edge');
+});
+
+test('face fillet: a plane and a cylinder refused with the reason', () => {
+  const tall = bossPlate(45), on = (faces, radius) => [...tall, { id: 'ff', kind: 'face-fillet', target: 'b', faces, radius }];
+  // The tangent circle at radius 31 runs off the 60 mm square plate.
+  refused(on(['p.top', 'c.side0'], 21), 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 21 mm round would not meet p\.top tangentially: the face does not hold the circle 31 mm round the axis/);
+  refused([...bossPlate(25), { id: 'ff', kind: 'face-fillet', target: 'b', faces: ['p.top', 'c.side0'], radius: 25 }], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] .*c\.side0 tangentially: it is 20 mm long/);
+  refused(on(['p.side0', 'c.side0'], 2), 'CAPABILITY', /\[FACE_FILLET_FACE\] p\.side0 is not square to c\.side0's axis/);
+  const disc = [{ id: 'ds', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'b', kind: 'extrude', sketch: 'ds', height: 10 }];
+  refused([...disc, fillet(['b.top', 'b.side0'], 6)], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 6 mm round is wider than b\.side0's radius/);
 });
