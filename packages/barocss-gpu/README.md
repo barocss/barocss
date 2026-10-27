@@ -453,7 +453,7 @@ again after restoring the device.
 Reading before the first render, using a disposed target, or rendering with a
 different viewer is refused. Calling `dispose()` more than once is safe.
 
-The 02.2 candidate adds `target.asTexture()` for a triangle surface's
+`target.asTexture()` supplies a triangle surface's
 `Material.map`. Render the source target with an opaque background first. Then
 assign its texture to a mesh in the same viewer:
 
@@ -479,8 +479,9 @@ target. A target map is not a normal, roughness, metallic, or environment map.
 Path tracing refuses a target map on a surface it would trace. An opaque source
 map does not make a consumer material with opacity below one opaque.
 
-The 02.2 candidate has not yet completed its new build, tests, lint, or browser
-validation. Its source and example do not establish product integration.
+The 02.2 owner branch passed a scoped build, the new WebGPU regression, lint
+and the synthetic public example on the tested Chrome/Apple Metal adapter.
+Product integration and broader device coverage remain separate.
 
 ## Generated SDF shader text
 
