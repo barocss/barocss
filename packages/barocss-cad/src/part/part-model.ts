@@ -136,12 +136,13 @@ export type CadPartFeature = Base & (
    * A modelled ISO metric thread (right hand, helical B-spline faces `<id>.thread#k`) cut on one whole cylindrical face
    * of the target, any axis: from the `end` ('+': the end further along the axis, its largest component positive;
    * default) over `length` (default the face). A hole is its tap drill: `diameter` (the nominal) is then required, the
-   * hole filled over the length and the thread cut, one pitch past an open end. A shaft's thread has the face's
+   * hole filled over the length and the thread cut, one pitch past an open end, its profile `clearance` (default
+   * 0.04 mm, a modelled nut's) clear of a bolt's of the same size. A shaft's thread has the face's
    * diameter: the face is cut to a core of d/2 − 0.8·pitch and the thread joined, ending `relief` (default one pitch)
    * short of an end that is not a flat free end (a shoulder, a chamfer, the face going on). Each step's volume is
    * checked, so material in the way (a thin wall, a key) refuses rather than builds.
    */
-  | { readonly kind: 'face-thread'; readonly target: string; readonly face: string; readonly pitch: CadPartDim; readonly diameter?: CadPartDim; readonly length?: CadPartDim; readonly end?: '+' | '-'; readonly relief?: CadPartDim }
+  | { readonly kind: 'face-thread'; readonly target: string; readonly face: string; readonly pitch: CadPartDim; readonly diameter?: CadPartDim; readonly length?: CadPartDim; readonly end?: '+' | '-'; readonly relief?: CadPartDim; readonly clearance?: CadPartDim }
   /**
    * A hole along `axis` (default z) through the target, or `depth` deep from its `side` (default max:
    * the top for z). `center` is in the other two coordinates in order: z → [x, y], x → [y, z], y → [x, z].
@@ -1543,10 +1544,11 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'face-thread': {
       const target = solids(f.target, 'target'), name = f.face, p = dim(f.pitch as CadPartDim, 'pitch', true);
       const nominal = f.diameter === undefined ? null : dim(f.diameter as CadPartDim, 'diameter', true), want = f.length === undefined ? null : dim(f.length as CadPartDim, 'length', true);
-      const end = f.end ?? '+', relief = f.relief === undefined ? p : dim(f.relief as CadPartDim, 'relief');
+      const end = f.end ?? '+', relief = f.relief === undefined ? p : dim(f.relief as CadPartDim, 'relief'), clearance = f.clearance === undefined ? null : dim(f.clearance as CadPartDim, 'clearance');
       if (typeof name !== 'string' || !name) fail('INPUT', 'face must name a cylindrical face');
       if (end !== '+' && end !== '-') fail('INPUT', "end must be '+' or '-'");
       if (!(relief >= 0)) fail('INPUT', 'relief must not be negative');
+      if (clearance !== null && !(clearance >= 0 && clearance < p / 4)) fail('INPUT', 'clearance must be at least 0 and below a quarter of the pitch');
       if (target.length !== 1) fail('REFERENCE', 'thread one part at a time (name it as id/k)');
       return () => {
         const source = target[0].solid;
@@ -1591,10 +1593,10 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const m: BrepAffine['matrix'] = [e1[0], e2[0], a[0], e1[1], e2[1], a[1], e1[2], e2[2], a[2]], o = [g.c[0], g.c[1], g.c[2]];
         const local = (s: Solid) => affine(s, m, o);
         const ring = (outer: number, inner: number | null, lo: number, hi: number, tag: string) => local({ kind: 'upright', solid: prismaticFromProfile({ outer: [{ kind: 'arc', start: [outer, 0], center: [0, 0], direction: 'ccw' }], ...(inner !== null ? { holes: [[{ kind: 'arc', start: [inner, 0], center: [0, 0], direction: 'ccw' }]] } : {}), height: hi - lo, from: lo, tag }) });
-        const rod = (d: number, lo: number, hi: number) => {
+        const rod = (d: number, lo: number, hi: number, clear = 0) => {
           if (!(hi - lo >= p - tol)) fail('PARAMETER', `[FACE_THREAD_SIZE] the thread would be ${+(hi - lo).toPrecision(9)} mm long: at least a pitch (${p}) is needed`);
           let made: Brep;
-          try { made = threadSolid({ id: at, diameter: d, pitch: p, center: [0, 0], seat: hi, length: hi - lo, form: 'helical' }); }
+          try { made = threadSolid({ id: at, diameter: d, pitch: p, center: [0, 0], seat: hi, length: hi - lo, form: 'helical', clearance: clear }); }
           catch (cause) { if (cause instanceof RangeError || isMeshBrepError(cause)) fail('PARAMETER', cause.message); throw cause; }
           const s = local({ kind: 'brep', brep: made! });
           return { solid: s, area: exactVolume(s) / (hi - lo) };
@@ -1608,11 +1610,12 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           // Fill the hole over the length (a plug a pitch wider, in the wall), then cut the thread.
           const filled = boolean(source, ring(d / 2 + p, null, r0, r1, `${at}.plug`), 'union', at), added = exactVolume(filled) - before;
           if (!close(added, Math.PI * R * R * span, before)) fail('GEOMETRY', `[FACE_THREAD_NOT_CLEAR] the wall round ${name} is thinner than the thread needs (${+(d / 2 + p - R).toPrecision(9)} mm past the hole)`);
-          const tap = rod(d, r0 - (ends[0].outward ? p : 0), r1 + (ends[1].outward ? p : 0));
+          const tap = rod(d, r0 - (ends[0].outward ? p : 0), r1 + (ends[1].outward ? p : 0), clearance ?? 0.04);
           const out = boolean(filled, tap.solid, 'difference', at), taken = exactVolume(filled) - exactVolume(out), pieces = out.kind === 'brep' ? out.brep.bodies.length : 1;
           if (pieces !== 1 || !close(taken, tap.area * span, before)) fail('GEOMETRY', `[FACE_THREAD_NOT_CLEAR] the thread in ${name} would take ${+taken.toPrecision(9)} mm³, not the ${+(tap.area * span).toPrecision(9)} its length holds: something stands past the hole's ends`);
           return one(out);
         }
+        if (clearance !== null) fail('INPUT', `the clearance goes in the hole: a shaft's thread (${name}) is the bolt's own`);
         if (nominal !== null && Math.abs(nominal - 2 * R) > tol) fail('PARAMETER', `[FACE_THREAD_SIZE] a thread on a ${+(2 * R).toPrecision(9)} mm shaft is M${+(2 * R).toPrecision(9)}, not M${nominal}`);
         const core = R - 0.8 * p;
         if (!(core > 0)) fail('PARAMETER', `[FACE_THREAD_SIZE] a ${p} mm pitch is too coarse for a ${+(2 * R).toPrecision(9)} mm shaft`);

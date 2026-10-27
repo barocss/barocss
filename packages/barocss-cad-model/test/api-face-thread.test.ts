@@ -12,6 +12,9 @@ import type { StudioDoc } from '../src/engine/doc';
 // threaded, ending a relief (one pitch) short of a shoulder or of the face going on; a hole is tapped whole.
 const close = (a: number, b: number) => assert.ok(Math.abs(a - b) <= 1e-7 * Math.max(1, Math.abs(b)), `${a} != ${b}`);
 const rodArea = (d: number, P: number) => massPropertiesOf(outputOf(evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: 'r', kind: 'thread', diameter: d, pitch: P, seat: 10, length: 10, form: 'helical' }] }), 'r')).volume / 10;
+const cadDoc = (features: unknown[]) => ({ format: 'barocss-cad-part' as const, version: 1 as const, units: 'mm' as const, parameters: {}, features }) as Parameters<typeof evaluateCadPart>[0];
+/** A modelled nut's thread section (0.04 mm clear of a bolt's): its hex prism less the nut, per height. */
+const nutArea = (d: number, P: number, s = 2 * d, h = 5) => (Math.sqrt(3) / 2 * s * s * h - massPropertiesOf(outputOf(evaluateCadPart(cadDoc([{ id: 'n', kind: 'thread', diameter: d, pitch: P, seat: 0, hex: { across: s, height: h, internal: true }, form: 'helical' }])), 'n')).volume) / h;
 const bodiesOf = (doc: StudioDoc): BodyResult[] => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.detail); return r.bodies; };
 const volumeOf = (doc: StudioDoc) => { const b = bodiesOf(doc); assert.equal(b.length, 1); assert.ok(b[0].volume !== null); return b[0].volume; };
 const round = (b: BodyQuery) => b.faces().curved().first();
@@ -26,9 +29,14 @@ test('public thread: a shaft threaded 12 from its top, stored by name, reopened 
   close(volumeOf(opened.doc), want);
 });
 
-test('public thread: a tapped through hole at its nominal size; refusals keep the part', () => {
+test('public thread: a tapped through hole at its nominal size, 0.04 mm clear of a bolt; refusals keep the part', () => {
   const base = part('plate').box({ w: 30, d: 30, h: 10 }).hole(b => b.faces().facing('+z'), { d: 5, x: 15, y: 15 });
-  close(volumeOf(base.thread(round, { pitch: 1, diameter: 6 }).doc), 9000 - rodArea(6, 1) * 10);
+  const tapped = base.thread(round, { pitch: 1, diameter: 6 }), node = tapped.doc.nodes.at(-1);
+  assert.ok(node?.kind === 'face-thread' && !Object.hasOwn(node, 'clearance'), 'the default is not written');
+  close(volumeOf(tapped.doc), 9000 - nutArea(6, 1) * 10);
+  const exact = base.thread(round, { pitch: 1, diameter: 6, clearance: 0 }), n0 = exact.doc.nodes.at(-1);
+  assert.ok(n0?.kind === 'face-thread' && n0.clearance === 0); close(volumeOf(exact.doc), 9000 - rodArea(6, 1) * 10);
+  assert.throws(() => part('shaft').cylinder({ r: 3, h: 30 }).thread(round, { pitch: 1, clearance: 0.04 }), e => e instanceof BarocssError && /clearance goes in the hole/.test(e.message));
   const before = structuredClone(base.doc);
   assert.throws(() => base.thread(round, { pitch: 1 }), e => e instanceof BarocssError && e.code === 'VALUE' && /nominal diameter/.test(e.message));
   assert.throws(() => base.thread(round, { pitch: 1, diameter: 5 }), e => e instanceof BarocssError && /FACE_THREAD_SIZE/.test(e.message));
@@ -53,9 +61,10 @@ test('Studio thread: offered on a round face, a shaft\'s fields without a nomina
   assert.ok(node.kind === 'face-thread' && !Object.hasOwn(node, 'length') && !Object.hasOwn(node, 'relief') && !Object.hasOwn(node, 'end'));
   close(volumeOf(whole), rodArea(6, 1) * 30);
   const plate = ctxOf(part('plate').box({ w: 30, d: 30, h: 10 }).hole(b => b.faces().facing('+z'), { d: 5, x: 15, y: 15 }).doc, f => f.kind === 'curved');
-  assert.equal(thread.available(plate).ok, true); assert.ok(thread.fields!(plate).some(f => f.key === 'd'));
-  const hv = thread.defaults!(plate); assert.equal(hv.d, 6, 'Ø5 drill + 1 pitch');
-  close(volumeOf(thread.build!(plate, hv)), 9000 - rodArea(6, 1) * 10);
+  assert.equal(thread.available(plate).ok, true); assert.deepEqual(thread.fields!(plate).map(f => f.key), ['pitch', 'd', 'clear', 'len', 'end']);
+  const hv = thread.defaults!(plate); assert.equal(hv.d, 6, 'Ø5 drill + 1 pitch'); assert.equal(hv.clear, 0.04);
+  assert.match(thread.steps!(plate, hv)[1].text, /internal, 0\.04 mm clear of a bolt/);
+  close(volumeOf(thread.build!(plate, hv)), 9000 - nutArea(6, 1) * 10);
   const flat = ctxOf(part('box').box({ w: 10, d: 10, h: 10 }).doc, f => f.kind === 'plane');
   assert.equal(thread.available(flat).ok, false); assert.throws(() => thread.build!(flat, v), /round face/);
 });

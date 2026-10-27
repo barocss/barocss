@@ -9,7 +9,7 @@
 // by those curves and the hex.
 import { assertValidBrep, buildBrep, lineCurve, type Brep, type BrepFaceInput } from '../brep/brep-core.js';
 import { evaluateCurve, curveDomain } from '../core/math.js';
-import { isoThreadRadius, type ThreadSolidRequest } from './thread-solid.js';
+import { clearanceOf, isoThreadRadius, type ThreadSolidRequest } from './thread-solid.js';
 import type { Curve, Surface } from '../types.js';
 import { lerp as lerp3 } from '../core/vec3.js';
 
@@ -103,7 +103,7 @@ export function helicalThreadSolid(req: ThreadSolidRequest): Brep {
   if (!(d > 0 && P > 0 && P < d / 2)) throw new RangeError('a thread needs a diameter and a pitch below half of it');
   if (hex && !(hex.across > d && hex.height > 0)) throw new RangeError('a hex must be wider across flats than the thread and have a height');
   if (!nut && !((req.length ?? 0) > 0)) throw new RangeError('a threaded rod or shank needs a length');
-  const clear = nut ? 0.04 : 0, z0 = nut ? seat : seat - req.length!, z1 = nut ? seat + hex!.height : seat, c0 = z0 / P, c1 = z1 / P;
+  const clear = clearanceOf(req, nut), z0 = nut ? seat : seat - req.length!, z1 = nut ? seat + hex!.height : seat, c0 = z0 / P, c1 = z1 / P;
   const radius = (f: number) => isoThreadRadius(d, P, f) + clear;
   const faces: FaceDraft[] = [], ends: Piece[] = [], tops: Piece[] = [];
   let nextCurve = 0, nextSurface = 0, nextThread = 0;
