@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "kind": "PORTABLE_SNAPSHOT_OF_EXISTING_AUTHORITY_NOT_SECOND_TASK_QUEUE",
-  "savedUTC": "2026-10-27T04:57:47.625667+00:00",
+  "savedUTC": "2026-10-27T05:05:25.393719+00:00",
   "paused": false,
   "pushed": false,
   "validatedProductCode": "4bff492c6742cd5c4931ff83f0b35a606ed12230",
@@ -30,7 +30,7 @@
     "Kernel": {
       "currentTask": "CAD-MODEL-DRAWING-SCHEMA5-CONTRACT-01",
       "nextTask": "CAD-CG1-SPRING-CLOSED-GROUND-BOOLEAN-01",
-      "nextCondition": "Schema5 normal source returned; current shared pin return and exact functional bundle adoption first. Spring minimal source41c remains separate, unrun.",
+      "nextCondition": "최신 reader/writer의 실제 데이터 보존을 현재3/route4 계약에서 완성한다. schema5 강제와 미출시 구버전 장기 호환 gate는 제외한다.",
       "nextAssignment": "CONFIRMED_CONDITIONAL",
       "updatedUTC": "2026-10-27T04:14:29.860770+00:00",
       "responsibility": "ModelAPI implementation; qualified009awaits exactUIconsumer. PriorCG1minimum2passedandreturned."
@@ -38,7 +38,7 @@
     "Outer": {
       "currentTask": "STUDIO-CG2-LINEAR-CUT-FEATURE-CONSUMER-01",
       "nextTask": "CAD-MODEL-DRAWING-SCHEMA5-CONTRACT-01",
-      "nextCondition": "현재03 최소수정/실제UI/파일 마감 뒤 정확 Model helper에 publish/recovery/templates를 연결.",
+      "nextCondition": "최신 reader/writer의 실제 데이터 보존을 현재3/route4 계약에서 완성한다. schema5 강제와 미출시 구버전 장기 호환 gate는 제외한다.",
       "nextAssignment": "CONFIRMED_CONDITIONAL",
       "updatedUTC": "2026-10-27T01:13:27.082201+00:00"
     },
@@ -52,7 +52,7 @@
     "Drawings": {
       "currentTask": "CAD-MODEL-DRAWING-SCHEMA5-CONTRACT-01",
       "nextTask": null,
-      "nextCondition": "Raw1a and real-producer tests f3 plus draft notice abac returned; no chat/drawing edits. Combined schema5 source adoption and necessary whole-feature batch next.",
+      "nextCondition": "최신 reader/writer의 실제 데이터 보존을 현재3/route4 계약에서 완성한다. schema5 강제와 미출시 구버전 장기 호환 gate는 제외한다.",
       "nextAssignment": null,
       "updatedUTC": "2026-10-27T04:14:29.860770+00:00"
     },
@@ -73,7 +73,7 @@
     }
   },
   "currentLimits": {
-    "quotaRemainingPercent": 9,
+    "quotaRemainingPercent": 8,
     "secondary": "UNAVAILABLE",
     "quotaPauseThresholdPercent": 5,
     "P2": "EXCLUDED_FROM_ACTIVE_TRACKING_HISTORICAL_HOLD_PRESERVED",
@@ -82,10 +82,10 @@
     "newViewerProduct": "NOT_ADOPTED",
     "newStudioUI": "PRODUCT_CODE_CA10A3_QUALIFIED",
     "newCG2": "PRODUCT_4BFF_CAD_BUILD_AND_13E9_DOCS_PASS; common433 actual UI/files; product browser NOT_RUN",
-    "newDrawing": "CURRENT_NATIVE_PUBLIC_FILE_STATUS_ROW_PASS; schema5standalone_forward_compatibility_base_required_before_product",
+    "newDrawing": "LATEST_READER_WRITER_RAW_FRAME_PRESERVATION_REQUIRED; schema5 not mandated",
     "newDocs": "NORMAL_CURRENT_CONTRACTS_COMMON_NEW_MODEL_PRIVATE_FIRST_FAILURES_PENDING",
     "GPU": "02.2 and 03.2 d4e2 owner-qualified synthetic public cases; GPU output remains other-integrator handoff, not product acceptance",
-    "newSchema5": "OWNER_SOURCE_IN_PROGRESS; automatic recovery deletion rejected, OPFS/log races and state acceptance unresolved; NOT_ADOPTED"
+    "newSchema5": "PRE_RELEASE_LATEST_ONLY; current3/general and4/route retained; exact latest reader/writer correction in progress; old schema5 candidate history preserved"
   },
   "pendingLocalRefs": {
     "ViewerDonorHead": "df7d7fdda284a07eb9b25675150d3a9a0da54c74",
@@ -156,6 +156,7 @@
     "basis": "Kernel/GPU/CAD/Model 기반 후 같은기능 Studio/Viewer/제품",
     "activeTasksAuthorityOnly": "/Users/user/.cache/barocss-preserved/2026-10-24-codex-integration/round3/coordinator-api-active-20261025.json",
     "sourceCheckPublicProductSeparate": true,
-    "P2": "EXCLUDED_FROM_ACTIVE_TRACKING_HISTORICAL_HOLD_PRESERVED"
+    "P2": "EXCLUDED_FROM_ACTIVE_TRACKING_HISTORICAL_HOLD_PRESERVED",
+    "preReleaseLatestOnly": "User: no releases yet; use current version. Do not make unreleased old binaries or long migration a requirement; preserve actual files, snapshots and active WIP."
   }
 }
