@@ -152,6 +152,8 @@ type ModelNodeBase = SketchNode
   | { kind: 'union'; left: BodyRef; right: BodyRef; made?: Made }
   | { kind: 'intersect'; left: BodyRef; right: BodyRef }
   | { kind: 'difference'; parent: BodyRef; tool: BodyRef; made?: Made }
+  /** Axis-aligned rectangular rib; the Kernel requires positive overlap and positive added material on one line-only upright solid. */
+  | { kind: 'rib'; parent: BodyRef; min: [Dim, Dim, Dim]; max: [Dim, Dim, Dim] }
   /** Across `axis` = at, or with `normal` across the plane normal·p = at (an oblique cut: x + y = at for [1, 1, 0]). */
   | { kind: 'split'; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] }
   /** The sketch swept along straight runs and bends (from the sketch plane up +Z). */
@@ -826,6 +828,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'union': return 'Union';
     case 'intersect': return 'Intersect';
     case 'difference': return 'Subtract';
+    case 'rib': return 'Rib';
     case 'translate': return 'Move';
     case 'rotate': return `Rotate ${node.angle}°`;
     case 'mirror': return `Mirror ${node.plane.toUpperCase()}`;

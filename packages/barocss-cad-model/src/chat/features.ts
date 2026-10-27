@@ -31,6 +31,7 @@ const SPECS: Record<string, Spec> = {
   union: { left: 'ref', right: 'ref' },
   intersect: { left: 'ref', right: 'ref' },
   difference: { parent: 'ref', tool: 'ref' },
+  rib: { parent: 'ref', min: 'dim3', max: 'dim3' },
   split: { parent: 'ref', at: 'dim', axis: 'enum:x|y|z' },
   shell: { parent: 'ref', thickness: 'dim', open: 'names' },
   draft: { parent: 'ref', faces: 'names1', angle: 'num', 'pull?': 'enum:x|y|z|-x|-y|-z', 'neutral?': 'dim' },

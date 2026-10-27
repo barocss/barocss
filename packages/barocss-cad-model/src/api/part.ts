@@ -16,6 +16,7 @@ import { studioBackend } from './studio';
 import { drawingDoc, drawingOf, manufacturabilityOf, outputOf, withCasting, withProcess, type CastingOptions } from './outputs';
 import { setBought } from '../bom/bom';
 import { withLibraryPart, type LibraryPartInput } from './library';
+import { refOf } from '../app/bodyRef';
 import { buildDraft, type Values } from '../app/commands';
 import { resolveNames } from '../chat/names';
 import { captureSignatures } from '../engine/references';
@@ -45,7 +46,41 @@ const libraryMaterial = (id: string) => {
 /** Public draft lengths are world mm; only the explicit neutral coordinate may bind to a parameter. */
 export interface StudioDraftOptions { readonly angle: number; readonly pull?: 'x' | 'y' | 'z' | '-x' | '-y' | '-z'; readonly neutral?: Dim }
 
+/** World-mm corners of a rectangular rib; dimensions may name existing parameters. */
+export interface StudioRibOptions { readonly min: readonly [Dim, Dim, Dim]; readonly max: readonly [Dim, Dim, Dim] }
+
 export class StudioPart extends Part<StudioDoc> {
+  /** Add material to one line-only upright solid with positive interior overlap; unsupported targets refuse. */
+  rib(options: StudioRibOptions): this {
+    if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).length !== 2 || !Object.hasOwn(options, 'min') || !Object.hasOwn(options, 'max')) throw refuse('VALUE', 'rib takes min and max world-mm corners');
+    let copied: StudioRibOptions;
+    try { copied = structuredClone(options); } catch { throw refuse('VALUE', 'rib corners must be plain copied values'); }
+    const doc = this.document, before = bodiesOf(doc), target = this.target(), body = before.find(b => b.key === target);
+    if (!body) throw refuse('NO_BODY', 'rib needs one selected body');
+    const dim = (value: unknown): Dim => {
+      if (typeof value === 'number') {
+        if (!Number.isFinite(value) || Math.abs(value) > 10000) throw refuse('VALUE', 'rib coordinates must be finite world-mm values within ±10000');
+        return value;
+      }
+      if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== 1 || !Object.hasOwn(value, 'parameter') || typeof (value as { parameter?: unknown }).parameter !== 'string') throw refuse('VALUE', 'rib coordinates are numbers or named parameters');
+      const parameter = (value as { parameter: string }).parameter;
+      if (!Object.hasOwn(doc.parameters, parameter)) throw refuse('PARAMETER_UNKNOWN', `no parameter ${parameter}`);
+      return { parameter };
+    };
+    const point = (value: unknown): [Dim, Dim, Dim] => {
+      if (!Array.isArray(value) || value.length !== 3) throw refuse('VALUE', 'rib corners each need three coordinates');
+      return [dim(value[0]), dim(value[1]), dim(value[2])];
+    };
+    const node: ModelNode = { kind: 'rib', parent: refOf(body), min: point(copied.min), max: point(copied.max) };
+    const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the rib: ${why}`);
+    const next = withNode(doc, node), after = bodiesOf(next).map(b => b.key);
+    if (this.focus === null) return this.next(next, null);
+    const made = after.filter(key => !before.some(b => b.key === key));
+    return this.next(next, after.includes(this.focus) ? this.focus : made.length === 1 ? made[0] : null);
+  }
+
+
   /** Draft selected planar side faces through the existing builder; refusal preserves this part and the caller values. */
   draft(faces: (body: BodyQuery) => FaceQuery, options: StudioDraftOptions): this {
     if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).some(k => k !== 'angle' && k !== 'pull' && k !== 'neutral')) throw refuse('VALUE', 'draft options are angle, pull and neutral');

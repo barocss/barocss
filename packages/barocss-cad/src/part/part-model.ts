@@ -120,6 +120,8 @@ export type CadPartFeature = Base & (
   /** About an axis in the sketch plane (through `origin`, along X or Y), by angle (default 360). */
   | { readonly kind: 'revolve'; readonly sketch: string; readonly axis: { readonly origin: CadPartPoint2; readonly direction: 'x' | 'y' | readonly [number, number] }; readonly angle?: number }
   | { readonly kind: 'union' | 'difference' | 'intersect'; readonly target: string; readonly tool: string }
+  /** Add a world-axis-aligned rectangular rib to one straight-sided upright solid; actual overlap and added material must both have positive volume. */
+  | { readonly kind: 'rib'; readonly target: string; readonly min: CadPartPoint3; readonly max: CadPartPoint3 }
   /**
    * A hole along `axis` (default z) through the target, or `depth` deep from its `side` (default max:
    * the top for z). `center` is in the other two coordinates in order: z → [x, y], x → [y, z], y → [x, z].
@@ -1415,6 +1417,28 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         // (A sheet's holes and cuts: still the sheet, its rules carried on; R12.2, D117.)
         const out = many(target.map(p => boolean(p.solid, joined, op, at)));
         return op === 'difference' ? carrySheet(out, target) : out;
+      };
+    }
+    case 'rib': {
+      const target = solids(f.target, 'target'), min = xyz(f.min as CadPartPoint3, 'min'), max = xyz(f.max as CadPartPoint3, 'max');
+      if (target.length !== 1) fail('REFERENCE', 'rib target must be one nonempty solid');
+      if (!min.every((v, k) => v < max[k])) fail('PARAMETER', 'rib min must be below max on every axis');
+      const source = target[0].solid, body = brepOf({ solid: source }, at);
+      if (body.bodies.length !== 1 || body.bodies[0].kind !== 'solid') fail('REFERENCE', 'rib target must be one nonempty solid');
+      // Stay in the existing straight-sided prismatic Boolean and volume path; no curved quadrature admission.
+      if (source.kind !== 'upright' || !lineOnly(source.solid)) fail('CAPABILITY', 'rib requires a straight-sided upright prismatic target');
+      return () => {
+        const rib = boxSolid(min, max, at);
+        const overlap = boolean(source, rib, 'intersection', at);
+        const overlapVolume = empty(overlap) ? 0 : exactVolume(overlap);
+        if (!(Number.isFinite(overlapVolume) && overlapVolume > 0)) fail('GEOMETRY', 'rib must have positive volume overlap with its target');
+        const added = boolean(rib, source, 'difference', at);
+        const addedVolume = empty(added) ? 0 : exactVolume(added);
+        if (!(Number.isFinite(addedVolume) && addedVolume > 0)) fail('GEOMETRY', 'rib must add positive volume outside its target');
+        const joined = boolean(source, rib, 'union', at), joinedBrep = brepOf({ solid: joined }, at);
+        const volume = empty(joined) ? 0 : exactVolume(joined);
+        if (joinedBrep.bodies.length !== 1 || joinedBrep.bodies[0].kind !== 'solid' || !(Number.isFinite(volume) && volume > 0)) fail('GEOMETRY', 'rib union must be one nonempty solid');
+        return one(joined);
       };
     }
     case 'hole': {

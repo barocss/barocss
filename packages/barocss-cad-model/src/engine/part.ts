@@ -111,6 +111,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'revolve': return { ...at, kind: 'revolve', sketch: id(node.sketch), axis: { origin: node.origin ?? [0, 0], direction: node.dir ?? node.axis }, angle: node.angle };
     case 'union': case 'intersect': return { ...at, kind: node.kind, target: ref(node.left), tool: ref(node.right) };
     case 'difference': return { ...at, kind: 'difference', target: ref(node.parent), tool: ref(node.tool) };
+    case 'rib': return { ...at, kind: 'rib', target: ref(node.parent), min: structuredClone(node.min), max: structuredClone(node.max) };
     case 'hole': return { ...at, kind: 'hole', target: ref(node.parent), center: node.center, radius: node.radius,
       ...(node.axis ? { axis: node.axis } : {}), ...(node.side ? { side: node.side } : {}), ...(node.depth === undefined ? {} : { depth: node.depth }), ...(node.countersink ? { countersink: node.countersink } : {}), ...(node.face ? { face: node.face } : {}) };
     case 'translate': return { ...at, kind: 'translate', target: ref(node.parent), offset: node.offset };
@@ -410,9 +411,9 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
       if (node.suppressed || ('from' in node && Array.isArray(node.from) && node.from.some(p => gone.has(p))) || ((node.kind === 'gear' || node.kind === 'rack' || node.kind === 'bevel-gear' || node.kind === 'worm') && node.mesh && gone.has(node.mesh.gear))) { gone.add(i); return; }
       features.push(...convert(node, i)); return;
     }
-    // An active cut pattern must reach kernel source admission even when its parent is gone.
+    // Active cut patterns and ribs must reach kernel source admission even when their parent is gone.
     // Suppressing the pattern itself keeps the ordinary parent pass-through below.
-    if (node.kind === 'linear-feature-pattern' && !node.suppressed) { features.push(...featuresOf(node, i)); return; }
+    if ((node.kind === 'linear-feature-pattern' || node.kind === 'rib') && !node.suppressed) { features.push(...featuresOf(node, i)); return; }
     const parent = (node as { parent: BodyRef }).parent;
     if (gone.has(parent.node)) { gone.add(i); return; }
     if (node.suppressed) { pass(i, parent); return; }
