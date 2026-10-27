@@ -1,11 +1,12 @@
 // How the Viewer draws: what it shows (surfaces, curves, points; colours, poses and materials) as
 // meshes of the @barocss/gpu viewer core. The Viewer keeps the CPU state, picking and measurement;
-// a drawing is rebuilt whole for each change (scenes are bounded to a few thousand vertices).
+// Geometry changes rebuild the drawing (scenes are bounded to a few thousand vertices).
 import { createViewer as createCore } from '@barocss/gpu/viewer';
 import type { Viewer as Core, Mesh, ShaderMaterial, Light, Environment } from '@barocss/gpu/viewer';
 import { bindingShader } from '@barocss/gpu';
 import type { MeshCamera, MeshLighting, PrimitiveSceneEntryV1, PrimitiveSceneEntryV2, PrimitiveSceneMaterial,
   ParticleLayerV0, ClothLayerV0 } from '@barocss/gpu';
+import type { ViewerDeviceEvent } from './index.js';
 
 type Vec3 = [number, number, number];
 /** A vector only read (gpu's readonly Vec3 passes as one, R7.3c). */
@@ -98,12 +99,69 @@ const DOT = {
 
 export class Presenter {
   private meshes: Mesh[] = [];
-  private constructor(readonly core: Core) {}
+  private disposed = false;
+  private watchedDevice: object | null = null;
+  private reportedLosses = 0;
+  private awaitingRecreation = false;
+  private constructor(readonly core: Core, private readonly onDeviceEvent?: (event: ViewerDeviceEvent) => void) {
+    if (!onDeviceEvent) return;
+    core.onRecover = () => {
+      if (this.disposed) return;
+      this.watchDevice();
+      if (this.awaitingRecreation) {
+        this.awaitingRecreation = false;
+        this.emitDeviceEvent({ type: 'recreated' });
+      }
+    };
+    core.onRecoverError = error => {
+      if (this.disposed) return;
+      this.awaitingRecreation = false;
+      this.emitDeviceEvent({ type: 'recovery-failed', message: error.message, cause: error.cause });
+    };
+    // A loss can occur before createCore resolves and this listener is attached.
+    if (core.stats.deviceLosses > 0) {
+      this.reportedLosses = core.stats.deviceLosses;
+      this.awaitingRecreation = true;
+      this.emitDeviceEvent({ type: 'lost' });
+      // (A recovery that already failed before this listener was attached: nothing is drawing.)
+      if (core.ready === false && core.recovery === null) this.emitDeviceEvent({ type: 'recovery-failed', message: 'The GPU device was lost and could not be recreated.', cause: null });
+    }
+    this.watchDevice();
+  }
 
-  static async create(canvas: HTMLCanvasElement, background: Vec3): Promise<Presenter> {
+  private emitDeviceEvent(event: ViewerDeviceEvent): void {
+    if (this.disposed) return;
+    try { this.onDeviceEvent?.(event); } catch { /* Host callbacks must not interrupt GPU recovery. */ }
+  }
+
+  private watchDevice(): void {
+    const device = this.core.computeDevice;
+    if (!device || device === this.watchedDevice) return;
+    this.watchedDevice = device;
+    const lost = (device as { lost?: PromiseLike<unknown> }).lost;
+    if (!lost || typeof lost.then !== 'function') return;
+    void Promise.resolve(lost).then(() => {
+      if (this.disposed || this.watchedDevice !== device) return;
+      const losses = this.core.stats.deviceLosses;
+      if (losses <= this.reportedLosses) return;
+      this.reportedLosses = losses;
+      this.awaitingRecreation = true;
+      this.emitDeviceEvent({ type: 'lost' });
+    }, () => { /* A rejected non-WebGPU promise is not a device-loss event. */ });
+  }
+
+  static async create(canvas: HTMLCanvasElement, background: Vec3,
+    onDeviceEvent?: (event: ViewerDeviceEvent) => void): Promise<Presenter> {
     const core = await createCore(canvas, { controls: false, autoResize: false, background, pixelRatio: 1 });
-    core.setSize(canvas.width, canvas.height);
-    return new Presenter(core);
+    try {
+      core.setSize(canvas.width, canvas.height);
+      return new Presenter(core, onDeviceEvent);
+    } catch (error) {
+      core.onRecover = null; core.onRecoverError = null;
+      try { core.dispose(); }
+      catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Viewer creation and cleanup failed'); }
+      throw error;
+    }
   }
 
   /** Replace what is drawn. */
@@ -147,6 +205,26 @@ export class Presenter {
     core.requestRender();
   }
 
+  /** Change only the existing core lights. Keep every mesh and camera object. */
+  setLighting(lighting: MeshLighting | null): void {
+    const candidate = lightsOf(lighting), core = this.core;
+    const previousLights = core.lights, previousEnvironment = core.environment;
+    try {
+      core.lights = candidate.lights;
+      core.environment = candidate.environment;
+      core.requestRender();
+    } catch (error) {
+      try {
+        core.lights = previousLights;
+        core.environment = previousEnvironment;
+        core.requestRender();
+      } catch (recoveryError) {
+        throw new AggregateError([error, recoveryError], 'Lighting update and recovery failed');
+      }
+      throw error;
+    }
+  }
+
   setSize(width: number, height: number): void { this.core.setSize(width, height); }
 
   /** The name of the drawn item under a canvas point (CSS pixels), if it was given one. */
@@ -158,5 +236,9 @@ export class Presenter {
   /** The drawn pixels, RGBA rows from the top. */
   async readPixels(): Promise<Uint8Array> { await this.core.frame(); return (await this.core.capture()).data; }
 
-  dispose(): void { this.meshes = []; this.core.dispose(); }
+  dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true; this.watchedDevice = null; this.core.onRecover = null; this.core.onRecoverError = null;
+    this.meshes = []; this.core.dispose();
+  }
 }

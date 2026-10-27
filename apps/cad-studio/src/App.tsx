@@ -513,6 +513,8 @@ export function App() {
   const [referenceLabelCache, setReferenceLabelCache] = useState<{ owner: ReferenceLabelOwner; labels: readonly DrawingReferenceLabel[] } | null>(null);
   useEffect(() => { setReferencePreview(null); }, [doc]);
   const [fileName, setFileName] = useState('Bracket-01');
+  // (Counts whole-document replacements: the drawing workspace's selection, drafts and notices belong to one document.)
+  const [docGeneration, setDocGeneration] = useState(0);
   const [dirty, setDirty] = useState(false);
   /** Unsaved work kept from an earlier visit, offered back once. */
   // (The copy offered is set aside until answered: this session's copies do not write over it, O-log flow-39 note.)
@@ -1856,7 +1858,7 @@ export function App() {
   // and face references into it, so they close first (U4).
   // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
   // (CG6: from anywhere but the project, the document is no longer its open one — `fromProject` keeps it so.)
-  const replaceDoc = (next: StudioDoc, fromProject = false) => { if (!fromProject) { project.detach(); setCompareBase(null); } cancel(); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null); commit(next, false, true); };
+  const replaceDoc = (next: StudioDoc, fromProject = false) => { if (!fromProject) { project.detach(); setCompareBase(null); } cancel(); setDocGeneration(g => g + 1); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null); commit(next, false, true); };
   // (A document with mesh blobs is saved as the container, else as plain JSON: engine/container.ts. Saved, the
   // recovery copy and its blobs go.)
   const writeFile = (d: StudioDoc, name: string) => {
@@ -3494,7 +3496,7 @@ export function App() {
 
       {browserPlacement === 'left' && browserPanel}
 
-      {drawing && <Suspense fallback={null}><DrawingWorkspace engine={engine} doc={{ ...evaluated, instances: doc.instances }} bodies={bodies} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} referencePreview={referencePreview} onReferenceLabels={receiveReferenceLabels} /></Suspense>}
+      {drawing && <Suspense fallback={null}><DrawingWorkspace key={docGeneration} engine={engine} doc={{ ...evaluated, instances: doc.instances }} bodies={bodies} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} referencePreview={referencePreview} onReferenceLabels={receiveReferenceLabels} /></Suspense>}
 
       {!dockDocked && hud}
 

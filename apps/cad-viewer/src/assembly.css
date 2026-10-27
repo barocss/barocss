@@ -1,0 +1,18 @@
+.assembly-roots, .assembly-children { list-style: none; padding: 0; margin: 0; }
+.assembly-tree { padding-top: 8px; }
+.assembly-children { margin-left: 13px; padding-left: 2px; border-left: 1px solid #35424c; }
+.assembly-row { gap: 2px; padding-left: 0; padding-right: 2px; }
+.assembly-expand, .assembly-spacer { flex: 0 0 18px; width: 18px; }
+button.assembly-expand { min-height: 24px; height: 24px; padding: 0; border: 0; background: transparent; color: #9aaebb; font-size: 17px; }
+.assembly-row .body-select { padding-left: 2px; }
+.assembly-point-form { display: grid; gap: 9px; }
+.assembly-point-form label { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; align-items: center; color: #9bafbc; }
+.assembly-point-form input { width: 100%; height: 28px; font-size: 11px; }
+.assembly-point-form button { justify-self: start; margin-top: 3px; }
+.assembly-point-result h4 { margin: 20px 0 8px; font-size: 11px; font-weight: 500; color: #a9bcc9; }
+.assembly-point-result h4 span { margin-left: 5px; color: #8199a9; font-size: 10px; }
+.assembly-coordinates { margin: 0; }
+.assembly-coordinates > div { display: grid; grid-template-columns: 20px minmax(0, 1fr); padding: 5px 0; gap: 8px; font-family: var(--viewer-mono); font-size: 10px; }
+.assembly-coordinates dt { color: #8199a9; }
+.assembly-coordinates dd { margin: 0; overflow-wrap: anywhere; }
+.assembly-admission-parent { color: #8199a9; font-size: 10px; }

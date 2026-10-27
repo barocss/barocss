@@ -2,12 +2,13 @@ import { resolveCadGeometryReference, validateCadAssemblyResult } from '@barocss
 import type { AdaptiveCurveSamplingResult, WideAdaptiveCurveSamplingResult,
   CadAssemblyResult, CadAssemblyMatrix, CadGeometryReferenceV0 } from '@barocss/cad';
 import { prepareBaroCadDocumentPrimitiveNativeRefsV2 } from '@barocss/cad-interop/document';
-import type { BaroCadParseOptions } from '@barocss/cad-interop/native';
+import type { BaroCadNativeCapacityV1, BaroCadParseOptions } from '@barocss/cad-interop/native';
 import type { NativeLoadOptions, ViewerNativeCurveLoadOptions, ViewerNativeCurveLoadOptionsV1,
   ViewerGeometryRef, ViewerGeometryDisplayPose, ViewerGeometryMotionState, ViewerPacket } from './index.js';
 
 export interface ViewerAssemblyLoadOptions {
-  native: NativeLoadOptions | ViewerNativeCurveLoadOptions | ViewerNativeCurveLoadOptionsV1;
+  native: (NativeLoadOptions | ViewerNativeCurveLoadOptions | ViewerNativeCurveLoadOptionsV1)
+    & { nativeCapacity?: BaroCadNativeCapacityV1 };
   basis: 'authored-xyz-matches-rhyup';
   instanceIds: string[];
 }

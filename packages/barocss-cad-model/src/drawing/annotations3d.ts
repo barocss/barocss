@@ -44,7 +44,7 @@ export interface ModelAnnotation {
   lines: Line3[]; arcs: Arc3[]; arrows: Head3[];
   dimension?: { measure: 'linear' | 'diameter' | 'radius' | 'pcd' | 'angle'; value: number; unit: 'mm' | 'deg'; text: string; tol?: Tolerance; basic?: true; count?: number };
   /** The frame's compartments in order (the symbol's, the zone and value, each datum), and its box in plane coordinates [u0, v0, u1, v1]. */
-  frame?: { characteristic: Characteristic; zone: 'diameter' | 'linear'; value: number; datums: string[]; dim: string; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; projected?: number; freeState?: boolean; tangentPlane?: boolean; cells: { text: string; symbol?: Characteristic }[]; box: [number, number, number, number] };
+  frame?: { characteristic: Characteristic; zone: 'diameter' | 'linear'; value: number; datums: string[]; dim: string; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; projected?: number; freeState?: boolean; tangentPlane?: boolean; cells: { text: string; symbol?: Characteristic }[]; composite?: { zone: 'diameter' | 'linear'; value: number; datums: string[]; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; cells: { text: string }[] }; box: [number, number, number, number] };
   datum?: { letter: string; targetNumber?: number };
   weld?: { joint: string; kind: 'fillet' | 'butt'; size: number | null; estimate: boolean; allRound: boolean; inner: boolean };
 }
@@ -74,6 +74,7 @@ export function modelAnnotations(i: AnnotationInputs): ModelAnnotations {
   }
   for (const r of i.sheet.dimensions) if (!r.ok) left.push({ id: r.dim.id, why: r.reason });
   for (const n of i.settings.notes ?? []) left.push({ id: n.id, why: 'a note is placed on the paper, not on the model' });
+  for (const f of i.settings.frames ?? []) if (f.dim === undefined) left.push({ id: f.id, why: 'a standalone frame has no attached model geometry' });
   for (const g of i.sheet.groups) {
     if (!g.id || !(g.role === 'dimension' || g.role === 'datum' || g.role === 'control' || g.role === 'weld')) continue;
     if (g.datumTarget && omittedTargets.has(g.id)) continue;
@@ -91,7 +92,7 @@ export function modelAnnotations(i: AnnotationInputs): ModelAnnotations {
 /** A frame's view: its dimension's. */
 function controlView(i: AnnotationInputs, g: MarkGroup): DimView | undefined {
   const f = i.settings.frames?.find(x => x.id === g.id);
-  return f ? i.settings.dimensions.find(d => d.id === f.dim)?.view : undefined;
+  return f?.dim !== undefined ? i.settings.dimensions.find(d => d.id === f.dim)?.view : undefined;
 }
 
 function itemOf(i: AnnotationInputs, g: MarkGroup, view: DimView, v: ViewPlacement, pr: BrepProjection): ModelAnnotation | null {
@@ -103,7 +104,7 @@ function itemOf(i: AnnotationInputs, g: MarkGroup, view: DimView, v: ViewPlaceme
     if (!r) return null;
     targets = targetsOf(r.dim);
     if (kind === 'dimension') extra = { dimension: { measure: r.kind, value: r.value, unit: r.kind === 'angle' ? 'deg' : 'mm', text: r.text, ...(r.dim.tol ? { tol: r.dim.tol } : {}), ...(r.dim.basic ? { basic: true as const } : {}), ...(r.dim.count ? { count: r.dim.count } : {}) } };
-    else if (f) extra = { frame: { characteristic: f.characteristic, zone: (f.diameter ?? (f.characteristic === 'position')) ? 'diameter' : 'linear', value: f.value, ...(f.material ? { material: f.material } : {}), ...(f.datumModifiers ? { datumModifiers: { ...f.datumModifiers } } : {}), ...(f.projected ? { projected: f.projected } : {}), ...(f.freeState ? { freeState: true } : {}), ...(f.tangentPlane ? { tangentPlane: true } : {}), datums: [...f.datums], dim: f.dim, cells: cellsOf(f), box: boxOf(g.marks, v) } };
+    else if (f?.dim !== undefined) extra = { frame: { characteristic: f.characteristic, zone: (f.diameter ?? (f.characteristic === 'position')) ? 'diameter' : 'linear', value: f.value, ...(f.material ? { material: f.material } : {}), ...(f.datumModifiers ? { datumModifiers: { ...f.datumModifiers } } : {}), ...(f.projected ? { projected: f.projected } : {}), ...(f.freeState ? { freeState: true } : {}), ...(f.tangentPlane ? { tangentPlane: true } : {}), datums: [...f.datums], dim: f.dim, cells: cellsOf(f), ...(f.composite ? { composite: { zone: (f.composite.diameter ?? true) ? 'diameter' as const : 'linear' as const, value: f.composite.value, datums: [...f.composite.datums], ...(f.composite.material ? { material: f.composite.material } : {}), ...(f.composite.datumModifiers ? { datumModifiers: { ...f.composite.datumModifiers } } : {}), cells: compositeCellsOf(f.composite) } } : {}), box: boxOf(g.marks, v) } };
   } else if (kind === 'datum') {
     if (g.datumTarget) {
       const d = i.settings.datumTargets?.find(x => x.id === g.id); if (!d) return null;
@@ -160,6 +161,11 @@ const cellsOf = (f: DrawingFrame): { text: string; symbol?: Characteristic }[] =
   { text: f.characteristic === 'position' ? '⌖' : f.characteristic, symbol: f.characteristic },
   { text: `${(f.diameter ?? (f.characteristic === 'position')) ? 'Ø' : ''}${fmtMM(f.value)}${f.material ? materialLetter(f.material) : ''}${f.freeState ? '(F)' : ''}${f.tangentPlane ? '(T)' : ''}${f.projected ? `(P)${fmtMM(f.projected)}` : ''}` },
   ...f.datums.map(d => ({ text: d + (f.datumModifiers?.[d] ? materialLetter(f.datumModifiers[d]) : '') })),
+];
+/** The lower row of a position composite frame, in order, without repeating the shared symbol. */
+const compositeCellsOf = (c: NonNullable<DrawingFrame['composite']>): { text: string }[] => [
+  { text: `${(c.diameter ?? true) ? 'Ø' : ''}${fmtMM(c.value)}${c.material ? materialLetter(c.material) : ''}` },
+  ...c.datums.map(d => ({ text: d + (c.datumModifiers?.[d] ? materialLetter(c.datumModifiers[d]) : '') })),
 ];
 /** A frame's box: its marks' extent, in plane coordinates. */
 function boxOf(marks: readonly Mark[], v: ViewPlacement): [number, number, number, number] {

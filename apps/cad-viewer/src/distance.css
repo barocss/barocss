@@ -1,0 +1,34 @@
+.distance-section { min-width: 0; }
+.viewport-actions #measure-tool[aria-pressed="true"] { color: #adf2fa; background-image: linear-gradient(#2a4651, #2a4651); box-shadow: inset 0 0 0 1px #47717e; }
+#viewport[data-measuring="true"] { cursor: crosshair; }
+.distance-heading { gap: 8px; margin-bottom: 13px; }
+.distance-mode { color: var(--muted); font-size: 10px; white-space: nowrap; }
+.distance-actions { display: flex; align-items: center; gap: 6px; }
+.distance-actions button { min-height: 25px; font-size: 11px; }
+.distance-instruction { min-height: 32px; margin: 12px 0; color: #a9bcc9; font-size: 11px; line-height: 1.5; }
+.distance-points { min-width: 0; }
+.distance-point { display: flex; align-items: flex-start; gap: 9px; min-width: 0; padding: 11px 0; border-top: 1px solid var(--line); }
+.distance-point-marker { display: grid; place-items: center; flex: 0 0 18px; height: 18px; border: 1px solid #4b717d; border-radius: 3px; color: var(--accent); font-size: 10px; font-weight: 600; }
+.distance-point-details { min-width: 0; flex: 1; }
+.distance-point-source { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.distance-point-label { color: #d0dee7; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.distance-point-kind { color: var(--muted); font-size: 10px; }
+.distance-point-parameter { margin: 7px 0 6px; color: #9fb2bf; font-family: var(--viewer-mono, monospace); font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
+.distance-coordinates { display: grid; gap: 3px; margin: 0; font-size: 10px; font-family: var(--viewer-mono, monospace); font-variant-numeric: tabular-nums; }
+.distance-coordinates > div { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 5px; }
+.distance-coordinates dt, .distance-coordinates dd { margin: 0; }
+.distance-coordinates dt { color: #8199a9; }
+.distance-coordinates dd { color: #c0d3df; overflow-wrap: anywhere; }
+.distance-coordinate-unit { display: block; margin-top: 4px; color: #8199a9; font-size: 10px; }
+.distance-result { display: flex; flex-direction: column; gap: 8px; padding-top: 13px; border-top: 1px solid var(--line); }
+.distance-result-label { color: #9bafbc; font-size: 11px; }
+.distance-result > div { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+#measure-distance, .assembly-measure-distance { color: #d3edf1; font-family: var(--viewer-mono, monospace); font-size: 20px; font-variant-numeric: tabular-nums; line-height: 1.3; overflow-wrap: anywhere; }
+.distance-unit { color: #9bafbc; font-size: 11px; }
+.distance-error { margin: 12px 0 0; color: var(--viewer-destructive, #e89585); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.distance-note { margin: 14px 0 0; color: #8199a9; font-size: 10px; line-height: 1.6; }
+.measurement-overlay { overflow: hidden; user-select: none; }
+.measurement-line-underlay { stroke: #0e1d25; stroke-width: 4; }
+.measurement-line { stroke: #8ce8f2; stroke-width: 1.5; }
+.measurement-point { fill: #b4f3fa; stroke: #14333f; stroke-width: 2; }
+.measurement-point-text { fill: #c9f7fb; stroke: #10232c; stroke-width: 3; paint-order: stroke; font-family: var(--viewer-sans, sans-serif); font-size: 12px; font-weight: 600; }
