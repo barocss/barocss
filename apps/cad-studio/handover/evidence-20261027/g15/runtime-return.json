@@ -1,0 +1,43 @@
+{
+  "timeUTC": "2026-10-26T23:53:14.702536+00:00",
+  "browserClose": {
+    "success": true,
+    "data": {
+      "closed": true
+    },
+    "error": null
+  },
+  "server": {
+    "expectedHEAD": "28a62d2ec02f334f5fb7613fbb096e2926fd5b20",
+    "observedHEAD": "28a62d2ec02f334f5fb7613fbb096e2926fd5b20",
+    "ownerPID": 66427,
+    "port": 60971,
+    "startedUTC": "2026-10-26T23:41:33.138995+00:00",
+    "gateExit": 0,
+    "argv": [
+      "/Users/user/.cache/barocss-toolchains/node-v22.23.3-darwin-arm64/bin/node",
+      "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-review-efbb2c/node_modules/vite/bin/vite.js",
+      "--config",
+      "/Users/user/Documents/Codex/2026-10-24/cad-gpu-20261024/outputs/g15-product-studio-20261027/product-vite.config.mjs",
+      "--configLoader",
+      "runner",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "60971",
+      "--strictPort"
+    ],
+    "serverPID": 66461,
+    "requestedSignal": 15,
+    "actualChildWaitExit": 143,
+    "releaseExit": 0,
+    "intentionalStop": true,
+    "endedUTC": "2026-10-26T23:52:40.365527+00:00"
+  },
+  "toolActualWaitExit": 0,
+  "ownSlotAbsent": true,
+  "portConnectCode": 61,
+  "portAbsent": true,
+  "postHEAD": "28a62d2ec02f334f5fb7613fbb096e2926fd5b20",
+  "descendants": "UNKNOWN"
+}

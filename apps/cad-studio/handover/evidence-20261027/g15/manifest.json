@@ -1,0 +1,126 @@
+{
+  "kind": "EXACT_COPIES_OF_ACTUAL_G15_FILES_NOT_RECONSTRUCTED",
+  "files": [
+    {
+      "file": "downloads/accepted-radii.bcad",
+      "bytes": 4775,
+      "sha256": "85998d8d038f4e22d7b6610279e96525c53f75714c138a47d707cdd788fa723b",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-light-shadow-browser-20261027/attempt-0001/downloads/accepted-radii.bcad"
+    },
+    {
+      "file": "downloads/baseline.bcad",
+      "bytes": 3127,
+      "sha256": "3499673cafea52f9c130c335d2c22c2d563a4ab37948b2b4f1c052d1f8d85db6",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-light-shadow-browser-20261027/attempt-0001/downloads/baseline.bcad"
+    },
+    {
+      "file": "downloads/disabled-radius.bcad",
+      "bytes": 4961,
+      "sha256": "10b05434a4bc74a310a8f7ab7a2b00b63a5d2ca4946f1717b48d31cdc25de4c6",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-light-shadow-browser-20261027/attempt-0001/downloads/disabled-radius.bcad"
+    },
+    {
+      "file": "downloads/final.bcad",
+      "bytes": 4959,
+      "sha256": "8ad81181a6d5ed5cccd3501c623eaba3304ec6046abea3dc2b97e85fa9a4f9b5",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-light-shadow-browser-20261027/attempt-0001/downloads/final.bcad"
+    },
+    {
+      "file": "downloads/focused-refusal.bcad",
+      "bytes": 4960,
+      "sha256": "d53fd3fc5660789080ef59e4b914c9c44f2bc50722afc2bcce26f02d775561a3",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-light-shadow-browser-20261027/attempt-0001/downloads/focused-refusal.bcad"
+    },
+    {
+      "file": "downloads/invalid-accepted.bcad",
+      "bytes": 4775,
+      "sha256": "85998d8d038f4e22d7b6610279e96525c53f75714c138a47d707cdd788fa723b",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-light-shadow-browser-20261027/attempt-0001/downloads/invalid-accepted.bcad"
+    },
+    {
+      "file": "downloads/pre-refusal.bcad",
+      "bytes": 4960,
+      "sha256": "d53fd3fc5660789080ef59e4b914c9c44f2bc50722afc2bcce26f02d775561a3",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-light-shadow-browser-20261027/attempt-0001/downloads/pre-refusal.bcad"
+    },
+    {
+      "file": "downloads/redo.bcad",
+      "bytes": 4959,
+      "sha256": "8ad81181a6d5ed5cccd3501c623eaba3304ec6046abea3dc2b97e85fa9a4f9b5",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-light-shadow-browser-20261027/attempt-0001/downloads/redo.bcad"
+    },
+    {
+      "file": "downloads/refused.bcad",
+      "bytes": 4960,
+      "sha256": "d53fd3fc5660789080ef59e4b914c9c44f2bc50722afc2bcce26f02d775561a3",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-light-shadow-browser-20261027/attempt-0001/downloads/refused.bcad"
+    },
+    {
+      "file": "downloads/reopened-render.png",
+      "bytes": 85279,
+      "sha256": "5e8e07f4d6b80650da3f6416d9fb60618ce9aeabc6cd557bd8b96b24ddac4228",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-light-shadow-browser-20261027/attempt-0001/downloads/reopened-render.png"
+    },
+    {
+      "file": "downloads/reopened.bcad",
+      "bytes": 4959,
+      "sha256": "fcbd3cfac8d0b5cba62239da5f508e76aa3ddf73bc497ea2dfae4f7f22d2bf35",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-light-shadow-browser-20261027/attempt-0001/downloads/reopened.bcad"
+    },
+    {
+      "file": "downloads/spot-zero-active.bcad",
+      "bytes": 4958,
+      "sha256": "ee3e602926e76256a01719a43255344d1eca7e7c87b25bf545655c204015291f",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-light-shadow-browser-20261027/attempt-0001/downloads/spot-zero-active.bcad"
+    },
+    {
+      "file": "downloads/suns-unset.bcad",
+      "bytes": 4349,
+      "sha256": "4b7523c8084a4d93b43ddf5cde19e3047c0bce5d1caba09c799d2e0af933bfcc",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-light-shadow-browser-20261027/attempt-0001/downloads/suns-unset.bcad"
+    },
+    {
+      "file": "downloads/undo.bcad",
+      "bytes": 4958,
+      "sha256": "ee3e602926e76256a01719a43255344d1eca7e7c87b25bf545655c204015291f",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-light-shadow-browser-20261027/attempt-0001/downloads/undo.bcad"
+    },
+    {
+      "file": "studio-lights-product.png",
+      "bytes": 131885,
+      "sha256": "5b3e08dd9384f67b5ca4c7644bf71e238a0fdc6bea4525c0ee10915de8d8a8c7",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-gpu-20261024/outputs/g15-product-studio-20261027/studio-lights-product.png"
+    },
+    {
+      "file": "studio-point-spot-product.png",
+      "bytes": 130543,
+      "sha256": "99aa243676e1f7dd67d4dea749ec1f81e033c017557a259f8637cb8761164833",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-gpu-20261024/outputs/g15-product-studio-20261027/studio-point-spot-product.png"
+    },
+    {
+      "file": "receipt.json",
+      "bytes": 5096,
+      "sha256": "4a8de54b9c45eff751fd24f97bbdd12bc087e731e2a01817fef6d8d1690fe098",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-gpu-20261024/outputs/g15-product-studio-20261027/receipt.json"
+    },
+    {
+      "file": "runtime-return.json",
+      "bytes": 1286,
+      "sha256": "b88aeed129dd421a893aca6db91d27f30ee7a340ce9881c7ce72ea8b139193cf",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-gpu-20261024/outputs/g15-product-studio-20261027/runtime-return.json"
+    },
+    {
+      "file": "served-source-binding.json",
+      "bytes": 9397,
+      "sha256": "047a760bba0a2741cfe0ee0e9983caab84d44bff1eb4c9104c8e503db0147d5b",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-gpu-20261024/outputs/g15-product-studio-20261027/served-source-binding.json"
+    },
+    {
+      "file": "refusal-visible.png",
+      "bytes": 137910,
+      "sha256": "886a615398f7640f4f29ca55c82cdc03d7ad16966802a947bbca75fd3c464c26",
+      "original": "/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/studio-g15-refusal-visibility-browser-20261027/attempt-0001/refusal-visible.png"
+    }
+  ],
+  "rawArchives": "Originalexternalraw/source/toolarchives are not copied. Historicalabsolute originalpaths are provenance, not remote-clone availability."
+}
