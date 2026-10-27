@@ -6,7 +6,7 @@
 //
 // Records live in flat id-keyed arrays so a B-rep is plain JSON. Tolerances are per entity
 // (CadNumericPolicy.linearTolerance of the body's scale by default), not one global constant.
-import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain, validateCurve, validateSurface } from '../core/math.js';
+import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain, validateCurve, validateSurface, curveEvaluator, surfaceEvaluator } from '../core/math.js';
 import { CadNumericPolicy } from '../numeric-policy.js';
 import type { Curve, FacetPatch, Point, Surface } from '../types.js';
 import { cross, dist as distance, dot, sub } from '../core/vec3.js';
@@ -74,8 +74,8 @@ export function nurbsOf(face: { readonly id: string; readonly surface: Surface |
 export const isFacetFace = (face: { readonly surface: Surface | FacetPatch }) => face.surface.kind === 'facets';
 /** ∂S/∂u × ∂S/∂v at the middle of the surface domain (central differences). */
 export function surfaceNormalAtCentre(surface: Surface): Point {
-  const { u, v } = surfaceDomain(surface), um = (u[0] + u[1]) / 2, vm = (v[0] + v[1]) / 2, hu = (u[1] - u[0]) * 1e-4, hv = (v[1] - v[0]) * 1e-4;
-  return cross(sub(evaluateSurface(surface, um + hu, vm), evaluateSurface(surface, um - hu, vm)), sub(evaluateSurface(surface, um, vm + hv), evaluateSurface(surface, um, vm - hv)));
+  const { u, v } = surfaceDomain(surface), um = (u[0] + u[1]) / 2, vm = (v[0] + v[1]) / 2, hu = (u[1] - u[0]) * 1e-4, hv = (v[1] - v[0]) * 1e-4, ev = surfaceEvaluator(surface);
+  return cross(sub(ev(um + hu, vm), ev(um - hu, vm)), sub(ev(um, vm + hv), ev(um, vm - hv)));
 }
 /** Vector area (½∮ p × dp) of a loop of directed curve uses: straight and polyline uses by their corners, others sampled 16 times. */
 export function loopVectorArea(uses: readonly { readonly curve: Curve; readonly sense: 'forward' | 'reversed' }[]): Point {
@@ -83,8 +83,8 @@ export function loopVectorArea(uses: readonly { readonly curve: Curve; readonly 
   for (const u of uses) {
     // (A straight or polyline edge: its own corners, exactly; a curve sampled 16 times.)
     if (u.curve.degree === 1) { const p = u.curve.controlPoints, n = p.length; for (let k = 0; k + 1 < n; k++) ring.push(p[u.sense === 'forward' ? k : n - 1 - k] as Point); continue; }
-    const [t0, t1] = curveDomain(u.curve);
-    for (let k = 0; k < 16; k++) { const f = k / 16; ring.push(evaluateCurve(u.curve, u.sense === 'forward' ? t0 + (t1 - t0) * f : t1 - (t1 - t0) * f)); }
+    const [t0, t1] = curveDomain(u.curve), ev = curveEvaluator(u.curve);
+    for (let k = 0; k < 16; k++) { const f = k / 16; ring.push(ev(u.sense === 'forward' ? t0 + (t1 - t0) * f : t1 - (t1 - t0) * f)); }
   }
   let area: Point = [0, 0, 0];
   for (let i = 0; i < ring.length; i++) { const c = cross(ring[i], ring[(i + 1) % ring.length]); area = [area[0] + c[0] / 2, area[1] + c[1] / 2, area[2] + c[2] / 2]; }
@@ -98,13 +98,13 @@ export function loopVectorArea(uses: readonly { readonly curve: Curve; readonly 
  */
 export function loopWindsInDomain(surface: Surface, uses: readonly { readonly curve: Curve; readonly sense: 'forward' | 'reversed' }[], reach: number): boolean | undefined {
   const { u: U, v: V } = surfaceDomain(surface), W = U[1] - U[0], H = V[1] - V[0];
-  const closedU = closesAlong(surface, U, V, 0, reach), closedV = closesAlong(surface, U, V, 1, reach);
+  const S = surfaceEvaluator(surface), closedU = closesAlong(S, U, V, 0, reach), closedV = closesAlong(S, U, V, 1, reach);
   let area = 0, u0 = 0, v0 = 0, pu = 0, pv = 0, n = 0, uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
   let grid: SurfaceSeedGrid | undefined;
   for (const use of uses) {
-    const c = use.curve, [t0, t1] = curveDomain(c), corners = c.degree === 1, m = corners ? c.controlPoints.length - 1 : 16;
+    const c = use.curve, [t0, t1] = curveDomain(c), corners = c.degree === 1, m = corners ? c.controlPoints.length - 1 : 16, ev = corners ? null : curveEvaluator(c);
     for (let k = 0; k < m; k++) {
-      const x = corners ? c.controlPoints[use.sense === 'forward' ? k : m - k] : evaluateCurve(c, use.sense === 'forward' ? t0 + (t1 - t0) * k / m : t1 - (t1 - t0) * k / m);
+      const x = corners ? c.controlPoints[use.sense === 'forward' ? k : m - k] : ev!(use.sense === 'forward' ? t0 + (t1 - t0) * k / m : t1 - (t1 - t0) * k / m);
       // (Each sample from the one before; past a seam, or at the first, from the seed grid, made once.)
       let q = n > 0 ? closestPointOnSurface(surface, x, { seed: [pu - (closedU ? W * Math.floor((pu - U[0]) / W) : 0), pv - (closedV ? H * Math.floor((pv - V[0]) / H) : 0)] }) : undefined;
       if (!q || !(q.distance <= reach)) q = closestPointOnSurface(surface, x, { grid: grid ??= surfaceSeedGrid(surface, 24) });
@@ -134,26 +134,26 @@ export function loopWindsInDomain(surface: Surface, uses: readonly { readonly cu
  * and its winding in the domain does (D257, D263).
  */
 export function wrapsWithoutPoles(surface: Surface, reach: number): boolean {
-  const { u: U, v: V } = surfaceDomain(surface), um = (U[0] + U[1]) / 2, vm = (V[0] + V[1]) / 2, c = normalAt(surface, U, V, um, vm);
-  if (!(dot(c, normalAt(surface, U, V, U[0], vm)) < 0 || dot(c, normalAt(surface, U, V, U[1], vm)) < 0 || dot(c, normalAt(surface, U, V, um, V[0])) < 0 || dot(c, normalAt(surface, U, V, um, V[1])) < 0)) return false;
+  const { u: U, v: V } = surfaceDomain(surface), um = (U[0] + U[1]) / 2, vm = (V[0] + V[1]) / 2, S = surfaceEvaluator(surface), c = normalAt(S, U, V, um, vm);
+  if (!(dot(c, normalAt(S, U, V, U[0], vm)) < 0 || dot(c, normalAt(S, U, V, U[1], vm)) < 0 || dot(c, normalAt(S, U, V, um, V[0])) < 0 || dot(c, normalAt(S, U, V, um, V[1])) < 0)) return false;
   for (let side = 0; side < 4; side++) {
     const along = side < 2 ? 0 : 1, at = side === 0 ? V[0] : side === 1 ? V[1] : side === 2 ? U[0] : U[1];
-    const a = along === 0 ? evaluateSurface(surface, U[0], at) : evaluateSurface(surface, at, V[0]), b = along === 0 ? evaluateSurface(surface, um, at) : evaluateSurface(surface, at, vm);
-    const e = along === 0 ? evaluateSurface(surface, U[1], at) : evaluateSurface(surface, at, V[1]);
+    const a = along === 0 ? S(U[0], at) : S(at, V[0]), b = along === 0 ? S(um, at) : S(at, vm);
+    const e = along === 0 ? S(U[1], at) : S(at, V[1]);
     if (distance(a, b) <= reach && distance(a, e) <= reach) return false;
   }
   return true;
 }
 /** ∂S/∂u × ∂S/∂v at (u, v) by differences taken inside the domain (unnormalized). */
-function normalAt(surface: Surface, U: readonly [number, number], V: readonly [number, number], u: number, v: number): Point {
+function normalAt(S: (u: number, v: number) => Point, U: readonly [number, number], V: readonly [number, number], u: number, v: number): Point {
   const hu = (U[1] - U[0]) * 1e-4, hv = (V[1] - V[0]) * 1e-4, u0 = Math.max(U[0], u - hu), u1 = Math.min(U[1], u + hu), v0 = Math.max(V[0], v - hv), v1 = Math.min(V[1], v + hv);
-  return cross(sub(evaluateSurface(surface, u1, v), evaluateSurface(surface, u0, v)), sub(evaluateSurface(surface, u, v1), evaluateSurface(surface, u, v0)));
+  return cross(sub(S(u1, v), S(u0, v)), sub(S(u, v1), S(u, v0)));
 }
 /** Whether `surface` closes on itself along u (`along` 0) or v (1): its two opposite domain edges meet at three points. */
-function closesAlong(surface: Surface, U: readonly [number, number], V: readonly [number, number], along: 0 | 1, reach: number): boolean {
+function closesAlong(S: (u: number, v: number) => Point, U: readonly [number, number], V: readonly [number, number], along: 0 | 1, reach: number): boolean {
   for (let k = 0; k <= 2; k++) {
     const t = along === 0 ? V[0] + (V[1] - V[0]) * k / 2 : U[0] + (U[1] - U[0]) * k / 2;
-    const a = along === 0 ? evaluateSurface(surface, U[0], t) : evaluateSurface(surface, t, V[0]), b = along === 0 ? evaluateSurface(surface, U[1], t) : evaluateSurface(surface, t, V[1]);
+    const a = along === 0 ? S(U[0], t) : S(t, V[0]), b = along === 0 ? S(U[1], t) : S(t, V[1]);
     if (distance(a, b) > reach) return false;
   }
   return true;

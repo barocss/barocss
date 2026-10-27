@@ -7,7 +7,7 @@
 // limit; its deviation from the true rolling-ball sections is measured at the stations between those it passes through.
 import { BrepError, buildBrep, type Brep } from '../brep/brep-core.js';
 import { faceGeometry } from '../brep/analytic-boolean.js';
-import { basis, curveDomain, evaluateCurve, surfaceDomain, surfaceEvaluator } from '../core/math.js';
+import { basis, curveDomain, curveEvaluator, evaluateCurve, surfaceDomain, surfaceEvaluator } from '../core/math.js';
 import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Curve, Point, Surface } from '../types.js';
 
@@ -453,16 +453,17 @@ function facesOut(S: Surface, near: Section, fillet = false): boolean {
 export interface ChainPath { readonly length: number; readonly starts: readonly number[]; at(s: number): { X: Point; t: Point } }
 export function chainPath(curves: readonly { curve: Curve; reversed: boolean }[], closed = true): ChainPath {
   // (A table of lengths by parameter, 2000 a curve; a point is the curve's own at the interpolated parameter.)
-  const K = 2000, rows: { s: number; k: number; t: number }[] = [], starts: number[] = [];
+  const K = 2000, rows: { s: number; k: number; t: number }[] = [], starts: number[] = [], evals = curves.map(c => curveEvaluator(c.curve));
   let s = 0;
   for (const [k, c] of curves.entries()) {
     starts.push(s);
     const [t0, t1] = curveDomain(c.curve), par = (i: number) => c.reversed ? t1 - (t1 - t0) * i / K : t0 + (t1 - t0) * i / K;
-    let prev = evaluateCurve(c.curve, par(0));
-    for (let i = 0; i < K; i++) { rows.push({ s, k, t: par(i) }); const p = evaluateCurve(c.curve, par(i + 1)); s += len(sub(p, prev)); prev = p; }
+    const ev = evals[k];
+    let prev = ev(par(0));
+    for (let i = 0; i < K; i++) { rows.push({ s, k, t: par(i) }); const p = ev(par(i + 1)); s += len(sub(p, prev)); prev = p; }
   }
   const total = s, ends = curves.map(c => { const [t0, t1] = curveDomain(c.curve); return c.reversed ? t0 : t1; });
-  const lastPoint = evaluateCurve(curves[curves.length - 1].curve, ends[ends.length - 1]);
+  const lastPoint = evals[curves.length - 1](ends[ends.length - 1]);
   const pointAt = (x: number): Point => {
     // (An open chain's end is its last curve's own end point, exactly: a cap there lies in the end face's plane.)
     if (!closed && x >= total) return lastPoint;
@@ -473,7 +474,7 @@ export function chainPath(curves: readonly { curve: Curve; reversed: boolean }[]
     while (hi - lo > 1) { const m = (lo + hi) >> 1; if (rows[m].s <= y) lo = m; else hi = m; }
     const a = rows[lo], b = rows[lo + 1] && rows[lo + 1].k === a.k ? rows[lo + 1] : { s: lo + 1 < rows.length ? rows[lo + 1].s : total, k: a.k, t: ends[a.k] };
     const f = b.s > a.s ? (y - a.s) / (b.s - a.s) : 0;
-    return evaluateCurve(curves[a.k].curve, a.t + (b.t - a.t) * f);
+    return evals[a.k](a.t + (b.t - a.t) * f);
   };
   const h = 1e-6 * total;
   if (closed) return { length: total, starts, at: x => ({ X: pointAt(x), t: unit(sub(pointAt(x + h), pointAt(x - h))) }) };

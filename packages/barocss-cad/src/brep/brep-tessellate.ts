@@ -18,7 +18,7 @@ import { BrepError, type Brep, type BrepCoedge, type BrepEdge } from './brep-cor
 import { evaluateCurve, curveDomain, evaluateSurface, surfaceDomain, surfaceEvaluator } from '../core/math.js';
 import type { Curve, FacetPatch, Point, Surface } from '../types.js';
 import { add as add3, cross, dot, scale as scale3, sub, unit } from '../core/vec3.js';
-import { evaluateSurfaceD1 } from '../core/derivatives.js';
+import { surfaceD1Evaluator } from '../core/derivatives.js';
 
 export interface BrepMeshFace { readonly faceId: string; readonly kind: 'planar' | 'ruled' | 'trimmed' | 'facet'; readonly vertexOffset: number; readonly vertexCount: number; readonly indexOffset: number; readonly indexCount: number }
 export interface BrepMeshEdge { readonly edgeId: string; readonly points: Float64Array }
@@ -440,8 +440,9 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
         // (A boundary point at a pole stands twice, its normal null at both: the boundary's points come before the interior's.)
         const poleTwice = exact.reduce((n, x) => x ? n : n + 1, 0) / 2, boundary = rings.reduce((n, r) => n + r.length, 0) + poleTwice;
         // (A point added there takes the surface's own normal, along Su × Sv, as the others have.)
+        let D1: ReturnType<typeof surfaceD1Evaluator> | undefined;
         for (let i = exact.length, n = splitTakenDiagonals(face.id, pts, uv, tris, domain, boundary, surfaceEvaluator(face.surface), segIndex, diagonals); n && i < pts.length; i++) {
-          const d = evaluateSurfaceD1(face.surface, uv[i][0], uv[i][1]), c = cross(d.du, d.dv);
+          const d = (D1 ??= surfaceD1Evaluator(face.surface))(uv[i][0], uv[i][1]), c = cross(d.du, d.dv);
           exact.push(Math.hypot(c[0], c[1], c[2]) > 0 ? unit(c) : null);
         }
         emit(face.id, 'trimmed', pts, tris, null, exact, sign);
