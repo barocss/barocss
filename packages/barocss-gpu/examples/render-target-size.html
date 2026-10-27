@@ -33,7 +33,7 @@
   <p id="status" role="status" aria-live="polite">Loading the viewer…</p>
   <p id="error" role="alert" hidden></p>
   <div class="images">
-    <figure><canvas id="view" width="240" height="240" aria-label="Live square canvas"></canvas><figcaption>Live canvas · 240 × 240</figcaption></figure>
+    <figure><canvas id="view" width="240" height="240" aria-label="Live square canvas"></canvas><figcaption>Live canvas</figcaption></figure>
     <figure><canvas id="landscape" width="480" height="240" aria-label="Wide target image"></canvas><figcaption id="landscape-caption">Wide target · not captured</figcaption></figure>
     <figure><canvas id="portrait" width="240" height="480" aria-label="Tall target image"></canvas><figcaption id="portrait-caption">Tall target · not captured</figcaption></figure>
   </div>
@@ -74,7 +74,7 @@
     }
     try {
       const { createViewer } = await import('../dist/viewer/index.js');
-      viewer = await createViewer(byId('view'), { controls: false, autoResize: false, antialias: false, pixelRatio: 1, background: '#20242b', lights: [], environment: base,
+      viewer = await createViewer(byId('view'), { controls: false, antialias: false, background: '#20242b', lights: [], environment: base,
         camera: { position: [0,0,6], target: [0,0,0], up: [0,1,0], projection: 'orthographic', fovY: 2 * Math.atan(2.5 / 6) * 180 / Math.PI },
         onError: reason => { if (!closed) showError(new Error(reason)); } });
       if (closed) { viewer.dispose(); throw new Error('The page closed before viewer creation completed.'); }
