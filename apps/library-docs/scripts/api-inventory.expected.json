@@ -8607,6 +8607,276 @@
     {
       "package": "@barocss/cad",
       "subpath": ".",
+      "exportName": "BezierCoonsBoundaries",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/bezier-coons-surface.ts",
+            "name": "BezierCoonsBoundaries",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "BezierCoonsBoundaries",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "bottom",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Curve"
+              },
+              {
+                "name": "left",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Curve"
+              },
+              {
+                "name": "right",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Curve"
+              },
+              {
+                "name": "top",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Curve"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "BezierCoonsSurfaceOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/bezier-coons-surface.ts",
+            "name": "BezierCoonsSurfaceOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "BezierCoonsSurfaceOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "surfaceId",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "BezierCoonsSurfaceReport",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/bezier-coons-surface.ts",
+            "name": "BezierCoonsSurfaceReport",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "BezierCoonsSurfaceReport",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "boundaryIds",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ bottom: string; top: string; left: string; right: string; }"
+              },
+              {
+                "name": "degreeU",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "degreeV",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "geometricValidity",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"not-certified\""
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"bezier-coons-surface\""
+              },
+              {
+                "name": "lengthUnit",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"mm\""
+              },
+              {
+                "name": "solid",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "false"
+              },
+              {
+                "name": "topologyCertified",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "false"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "BezierCoonsSurfaceResult",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/bezier-coons-surface.ts",
+            "name": "BezierCoonsSurfaceResult",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "BezierCoonsSurfaceResult",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "boundaries",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "BezierCoonsBoundaries"
+              },
+              {
+                "name": "model",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Model"
+              },
+              {
+                "name": "report",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "BezierCoonsSurfaceReport"
+              },
+              {
+                "name": "source",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "surface",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Surface"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
       "exportName": "BezierCurveAffinePlaneIntersectionOptions",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -191434,6 +191704,42 @@
             ],
             "callSignatures": [
               "(request: AxisRectangleExtrusionRequest) => AxisRectangleExtrusionResult"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "buildBezierCoonsSurface",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/bezier-coons-surface.ts",
+            "name": "buildBezierCoonsSurface",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(boundaries: BezierCoonsBoundaries, options: BezierCoonsSurfaceOptions) => BezierCoonsSurfaceResult",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(boundaries: BezierCoonsBoundaries, options: BezierCoonsSurfaceOptions) => BezierCoonsSurfaceResult"
             ]
           }
         }
