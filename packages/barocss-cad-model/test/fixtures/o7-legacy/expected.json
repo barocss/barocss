@@ -497,7 +497,7 @@
    {
     "id": "corners",
     "status": "unknown",
-    "message": "0 inside corners along a tool's axis; 4 sharp edges cut sharp (a face open to the tool's end); 4 angled"
+    "message": "0 inside corners along a tool's axis; 8 sharp edges cut sharp (a face open to the tool's end); 4 angled"
    },
    {
     "id": "pocket",

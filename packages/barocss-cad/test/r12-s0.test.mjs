@@ -170,9 +170,10 @@ test('R12 S0 today: a tray of four flanges with holes is exact, with or without 
   const t = tray({ holes: true }), o = out(t.feats);
   assert.equal(checkOutput(o).valid, true);
   assert.ok(Math.abs(massPropertiesOf(o).volume / t.V - 1) < 1e-11);
-  // The faces keep their extrusions' names, split where the Booleans cut them (`fe3.side3#1` … `#4`): a sheet's roles —
-  // which face is a bend, which skin — are not named anywhere.
-  assert.ok(o.brep.faces.some(f => f.name === 'fe3.side3#4') && !o.brep.faces.some(f => /bend|flange/.test(f.name ?? '')));
+  // The faces keep their extrusions' own names — coplanar faces apart from each other each their own (`fe3.side1`,
+  // `fe3.side3`; they were all renamed `fe3.side3#1` … `#4` after one of them before): a sheet's roles — which face is a
+  // bend, which skin — are not named anywhere.
+  assert.ok(o.brep.faces.some(f => f.name === 'fe3.side3') && o.brep.faces.some(f => f.name === 'fe3.side1') && !o.brep.faces.some(f => /bend|flange/.test(f.name ?? '')));
   // No gap: the neighbouring bends' ends meet only along the plate's corner edge, a reflex edge of a valid solid.
   for (const deg of [90, 60]) {
     const z = tray({ g: 0, deg }), oz = out(z.feats);

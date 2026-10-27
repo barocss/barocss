@@ -14443,3 +14443,30 @@ outer, API and docs lanes branch from it. Design: `notes/r73b-r77b` in the share
 - RB: no NEW, 2 TODOs. Properties pass. Fuzz 20261024: OK 193 / REFUSED 7 as before. Commutativity (corpus): SAME 29.
 - Not run here: cad-model, the studio, the docs samples. Their call sites move in the window (the break list goes to the
   coordinator).
+
+## D281 — Coplanar pieces apart keep their own names (2026-10-28)
+
+**Owner, 2026-10-28**: join coplanar pieces only where they meet; faces apart keep their own names ("이름이 바뀌는 것은
+허용": names may change).
+
+**Before.** The analytic Boolean's `mergePieces` joined every kept piece on one plane (or cylinder) facing one way into a
+single union, and every resulting face took the first piece's name. A row of bosses on a rounded plate had all its top
+faces renamed after one boss at every Boolean (`c3.top#1` … `#4` after the fourth), so a reference to an earlier boss's
+top moved with each new boss; and the union of all of them was rebuilt at every step.
+
+**Now.** Pieces of a coplanar group are clustered by their domain boxes (padded by 10 tolerances, meeting directly or
+through others). A cluster is joined (`booleanCurveRegions`, as before) and each face it makes takes the name of the first
+piece lying in it; a piece alone whose rings close is passed through as it is, with its own name. A row of bosses keeps
+`c0.top`, `c1.top`, ….
+
+**What changed in the records.**
+- Shapes: validity, bodies, faces, edges, vertices, volume and centroid identical on every bench case.
+- Kernel: `r12-s0` (the tray's `fe3.side1` … now their own), three R12 conformance cases' `faceNames` (names added, none
+  lost: `c.start`, `fl.leg.outer`, `c1.side1`, `f1.tip` …), the flat-DXF fixtures re-written with the oracle (the
+  outline's coordinates moved in the last digit: 1e-14).
+- Model: `o7-legacy/expected.json`, one message: the enclosure's CNC corner check counts sharp edges by their two
+  faces' names, and 8 edges that had been counted as 4 pairs (their faces shared a renamed name) are now 8. That one line
+  only; the rest of the oracle is unchanged.
+
+**Checks.** Kernel suite: the 28 baseline failures only. Model suite (1711): the two baseline solver failures only (D240's
+timing assertion failed once under load and passes alone).

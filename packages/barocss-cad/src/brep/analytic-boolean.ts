@@ -1750,8 +1750,52 @@ function splitFace(brep: Brep, ref: string, options: FaceSplitOptions, cutsOf: (
 /**
  * Pieces on one plane, or one cylinder, facing the same way become one face: their regions are joined
  * in a common domain (the first piece's; for a cylinder, centred so its seam falls in a gap between
- * the pieces). The joined face keeps the first piece's name. A full turn of pieces stays as it is.
+ * the pieces). Only pieces that meet are joined (their domain boxes, padded by 10 tolerances, meeting directly or
+ * through others): each joined face keeps the name of the first piece in it, and a piece apart from the rest keeps its
+ * own — the top faces of a row of bosses, one plane, stay each boss's own (they were all renamed after the first piece
+ * at every Boolean, and a union of all of them was made each time). A full turn of pieces stays as it is.
  */
+/**
+ * A domain box [x0, y0, x1, y1] of rings, padded by `pad`: a line's ends; an arc's ends and the extremes of its circle it
+ * passes; a general curve's samples (eighths) padded by its longest chord.
+ */
+function ringsBox(rings: readonly (readonly CurveSegment2[])[], pad: number): [number, number, number, number] {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const take = (q: readonly number[], r: number) => { if (q[0] - r < x0) x0 = q[0] - r; if (q[0] + r > x1) x1 = q[0] + r; if (q[1] - r < y0) y0 = q[1] - r; if (q[1] + r > y1) y1 = q[1] + r; };
+  for (const ring of rings) for (const g of ring) {
+    if (g.kind === 'line') { take(g.a, 0); take(g.b, 0); continue; }
+    if (g.kind === 'arc') {
+      take(segAtAny(g, 0), 0); take(segAtAny(g, 1), 0);
+      const lo = Math.min(g.t0, g.t0 + g.sweep), hi = Math.max(g.t0, g.t0 + g.sweep);
+      for (let k = Math.ceil(lo / (Math.PI / 2)); k * (Math.PI / 2) <= hi; k++) take([g.c[0] + g.r * Math.cos(k * Math.PI / 2), g.c[1] + g.r * Math.sin(k * Math.PI / 2)], 0);
+      continue;
+    }
+    let prev: XY | null = null, chord = 0; const qs: XY[] = [];
+    for (let i = 0; i <= 8; i++) { const q = segAtAny(g, i / 8); qs.push(q); if (prev) chord = Math.max(chord, Math.hypot(q[0] - prev[0], q[1] - prev[1])); prev = q; }
+    for (const q of qs) take(q, chord);
+  }
+  return [x0 - pad, y0 - pad, x1 + pad, y1 + pad];
+}
+/** Whether every ring of a region closes: each segment's end at the next one's start (to 1e-12 of their size). */
+function regionCloses(region: CurveRegion2): boolean {
+  for (const ring of [region.outer, ...region.holes]) for (let i = 0; i < ring.length; i++) {
+    const a = segAtAny(ring[i], 1), b = segAtAny(ring[(i + 1) % ring.length], 0);
+    if (!(Math.hypot(a[0] - b[0], a[1] - b[1]) <= 1e-12 * (1 + Math.abs(a[0]) + Math.abs(a[1])))) return false;
+  }
+  return true;
+}
+/** Index clusters of boxes that meet, directly or through others; each cluster ascending, clusters by their first index. */
+function clustersOf(boxes: readonly (readonly number[])[]): number[][] {
+  const n = boxes.length, up = boxes.map((_, i) => i), root = (i: number): number => { while (up[i] !== i) i = up[i] = up[up[i]]; return i; };
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+    const a = boxes[i], b = boxes[j];
+    // (Apart only when provably apart: a NaN coordinate keeps them together.)
+    if (!(a[2] < b[0] || b[2] < a[0] || a[3] < b[1] || b[3] < a[1])) { const x = root(i), y = root(j); if (x !== y) up[Math.max(x, y)] = Math.min(x, y); }
+  }
+  const byRoot = new Map<number, number[]>(), out: number[][] = [];
+  for (let i = 0; i < n; i++) { const r = root(i); let c = byRoot.get(r); if (!c) { c = []; byRoot.set(r, c); out.push(c); } c.push(i); }
+  return out;
+}
 /** A bucket key of four integers (collisions only cost a check). */
 const planeKey = (a: number, b: number, c: number, d: number) => (Math.imul(a, 73856093) ^ Math.imul(b, 19349663) ^ Math.imul(c, 83492791) ^ Math.imul(d, 2654435761)) >>> 0;
 function mergePieces(pieces: Piece[], tol: number): Piece[] {
@@ -1815,15 +1859,21 @@ function mergePieces(pieces: Piece[], tol: number): Piece[] {
     }
     // Rings in the host domain, made counter-clockwise (material left) for the union.
     const flipped = first.out < 0, orient = (r: CurveSegment2[]) => flipped ? [...r].reverse().map(segReverse) : r;
-    const rings = group.flatMap(p => [p.region.outer, ...p.region.holes].map(r => orient(r.map(g => curve2(host, curve3Of(p.face, g), tol)))));
+    const ringsOf = group.map(p => [p.region.outer, ...p.region.holes].map(r => orient(r.map(g => curve2(host, curve3Of(p.face, g), tol)))));
     // (The pieces' rings as `curveFaceRegions` made them: where it joined a cut's loose end, a few tolerances short of a
     // segment, a ring is closed to within that. The union closes them so, or drops the piece: L4 fuzz 20261026 #112, D252,
-    // a wall's piece inside the other copy's cavity, its ring 6.7e-6 open.)
-    const joined = booleanCurveRegions(rings, [], 'union', tol, true);
-    return joined.map(region => {
-      const back = flipped ? { outer: [...region.outer].reverse().map(segReverse), holes: region.holes.map(h => [...h].reverse().map(segReverse)) } : region;
-      const p2 = regionInteriorPoint(region) ?? [0, 0];
-      return { face: host, region: back, out: first.out, key: to3(host, p2) };
+    // a wall's piece inside the other copy's cavity, its ring 6.7e-6 open. A piece alone goes through it too.)
+    return clustersOf(ringsOf.map(rs => ringsBox(rs, 10 * tol))).flatMap(cluster => {
+      // (A piece apart from the rest whose rings close is its own face as it is; one left open goes through the union.)
+      if (cluster.length === 1 && regionCloses(group[cluster[0]].region)) return [group[cluster[0]]];
+      const joined = booleanCurveRegions(cluster.flatMap(i => ringsOf[i]), [], 'union', tol, true);
+      return joined.map(region => {
+        const back = flipped ? { outer: [...region.outer].reverse().map(segReverse), holes: region.holes.map(h => [...h].reverse().map(segReverse)) } : region;
+        const p2 = regionInteriorPoint(region) ?? [0, 0];
+        // (Named after the first piece lying in it: a cluster can join into more than one face.)
+        const own = cluster.length === 1 ? group[cluster[0]] : cluster.map(i => group[i]).find(p => locateInRegion(to2(host, p.key), region, 10 * tol) === 'in') ?? group[cluster[0]];
+        return { face: own.face.name === host.name ? host : { ...host, name: own.face.name }, region: back, out: first.out, key: to3(host, p2) };
+      });
     });
   });
 }
