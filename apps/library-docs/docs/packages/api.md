@@ -1,3 +1,15 @@
+<script setup>
+import { defineAsyncComponent } from 'vue';
+import apiResults from '../.vitepress/components/api-result-scenes.json';
+const ApiResultGallery = defineAsyncComponent(() => import('../.vitepress/components/ApiResultGallery.vue'));
+const resultNumber = new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 });
+function resultSummary(id) {
+  const item = apiResults.cases?.find(result => result.id === id);
+  if (!Number.isFinite(item?.mass?.volume) || !Number.isFinite(item?.mass?.mass)) return 'API run: NOT_RUN. Saved result values are unavailable.';
+  return `Returned volume: ${resultNumber.format(item.mass.volume)} mm³. Mass: ${resultNumber.format(item.mass.mass)} g at 2.7 g/cm³.`;
+}
+</script>
+
 # Object API
 
 Each of the three packages has an object facade over its own data-and-functions core:
@@ -43,6 +55,44 @@ The facades are for code. The agent keeps working through its JSON tools, and th
 - **The oracle.** Each package's tests check every method two ways: its `.doc` equals the hand-written document, and
   its results equal the core's on that document, byte for byte. cad-model's `.doc` also equals what the agent's tools
   write for the same calls.
+
+## See actual API results
+
+These three saved cases follow the public `@barocss/cad/api`: an 80 × 40 × 10 mm box, a through hole, then four
+rounded vertical edges. Each operation returns a new part. The earlier parts stay unchanged.
+
+The coordinates are Z-up, in mm. Mass uses a density of 2.7 g/cm³. The 3D view draws the actual Float32 tessellated
+mesh returned by the public API; the JPEGs show those saved meshes. Display triangles approximate curved surfaces
+and do not guarantee the kernel's geometric tolerance. This is a documentation view of fixed API results.
+
+Choose a case to read its executed code, inputs and returned mass properties. **Source bundle provenance** records
+the source and generation conditions. Missing result data is shown as `NOT_RUN`, not a successful API run.
+
+<ApiResultGallery />
+
+### 01 · Box
+
+Create the box with `box({ w: 80, d: 40, h: 10 })`.
+
+![Public API result: an 80 by 40 by 10 mm box, Z up](/shots/api-results/box.jpg)
+
+<p>{{ resultSummary('box') }}</p>
+
+### 02 · Through hole
+
+From the box, select the +Z face and make a diameter 8 mm through hole at face coordinates `(20, 20)`.
+
+![Public API result: the box after a diameter 8 mm through hole at 20, 20](/shots/api-results/holed.jpg)
+
+<p>{{ resultSummary('holed') }}</p>
+
+### 03 · Rounded vertical edges
+
+From the holed part, select its four vertical edges and apply a 2 mm fillet radius.
+
+![Public API result: the holed box after rounding four vertical edges with radius 2 mm](/shots/api-results/rounded.jpg)
+
+<p>{{ resultSummary('rounded') }}</p>
 
 ## Parts
 
