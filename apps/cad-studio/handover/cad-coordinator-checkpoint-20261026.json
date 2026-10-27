@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "kind": "PORTABLE_SNAPSHOT_OF_EXISTING_AUTHORITY_NOT_SECOND_TASK_QUEUE",
-  "savedUTC": "2026-10-27T04:14:29.860770+00:00",
+  "savedUTC": "2026-10-27T04:53:00.650061+00:00",
   "paused": false,
   "pushed": false,
-  "validatedProductCode": "ca10a3a8ea5ce1a60cb6850062dfb1eaec157828",
+  "validatedProductCode": "4bff492c6742cd5c4931ff83f0b35a606ed12230",
   "productBranch": "review/cad-gpu-engine-2026-10-14",
   "qualifiedG15Source": "8cddcd05fd3a388472d5a01b4a43e09cdf8a50aa",
   "aggregateHead": "433a035ae03a61e55b0e03b6a9b9897083774800",
@@ -73,7 +73,7 @@
     }
   },
   "currentLimits": {
-    "quotaRemainingPercent": 18,
+    "quotaRemainingPercent": 11,
     "secondary": "UNAVAILABLE",
     "quotaPauseThresholdPercent": 5,
     "P2": "EXCLUDED_FROM_ACTIVE_TRACKING_HISTORICAL_HOLD_PRESERVED",
@@ -81,11 +81,11 @@
     "fullG15Quality": "NOT_ACCEPTED",
     "newViewerProduct": "NOT_ADOPTED",
     "newStudioUI": "PRODUCT_CODE_CA10A3_QUALIFIED",
-    "newCG2": "CORE_MODEL_QUALIFIED; actualUIstalePreviewFAIL_normalAppfix433_type/lintPASS; remainingpublic/file/product",
+    "newCG2": "PRODUCT_4BFF_CAD_BUILD_AND_13E9_DOCS_PASS; common433 actual UI/files; product browser NOT_RUN",
     "newDrawing": "CURRENT_NATIVE_PUBLIC_FILE_STATUS_ROW_PASS; schema5standalone_forward_compatibility_base_required_before_product",
     "newDocs": "NORMAL_CURRENT_CONTRACTS_COMMON_NEW_MODEL_PRIVATE_FIRST_FAILURES_PENDING",
-    "GPU": "OWN_HANDOFF_ONLY_ROOT_AUTO_MERGE_FORBIDDEN",
-    "newSchema5": "MODEL448_CORRECTION3B8_DRAWING1A_F3_ABAC_NORMAL_SOURCE_READY_OUTER_WIRING_AND_RUNTIME_PENDING"
+    "GPU": "02.2 owner-qualified and returned; 03.2 29fd emit first FAIL MIME type; later stages NOT_RUN, owner repair ongoing; other integrator owns GPU merge",
+    "newSchema5": "OWNER_SOURCE_IN_PROGRESS; automatic recovery deletion rejected, OPFS/log races and state acceptance unresolved; NOT_ADOPTED"
   },
   "pendingLocalRefs": {
     "ViewerDonorHead": "df7d7fdda284a07eb9b25675150d3a9a0da54c74",
@@ -112,15 +112,19 @@
     "DrawingRealProducerTests": "f3c8ad0b611aba66782bfe422033f80aa9ad95ff",
     "DrawingDraftNotice": "abacf8df470d482d12eba8b877bc9ab366c2e797",
     "GpuTargetTexture": "2a35e9b665d9d86db6a95ce3047a8f4991ec8514",
-    "GpuGlbRepair": "5d8b77579fe65fff331e878d657e78e0fcbe7519"
+    "GpuGlbRepair": "5d8b77579fe65fff331e878d657e78e0fcbe7519",
+    "CG2ProductCode": "4bff492c6742cd5c4931ff83f0b35a606ed12230",
+    "CG2ApiInventory": "7ec61aff2d36855b038d40ce624216e7670d7dc8",
+    "CG2RefusalRepair": "13e9c835aa10b5d111a835046daf1e05b64200a7",
+    "ModelShortNames": "52ce8ba47693422bbae6cd45df2cff19a907e8f7",
+    "K07Source": "01bd6b35d5a05af0dca6b57f9dc40b5c6de6eb5e",
+    "GpuGlbTexture": "29fd01911049f98c0ea5a82258bf91c1284444f5"
   },
   "activeRuntime": {
-    "owner": "Outer",
-    "source": "433a035ae03a61e55b0e03b6a9b9897083774800",
-    "status": "PREVIEW_FIX_TYPE_LINT_ACTUAL_PASS_PUBLIC_D0_REPLAY_PENDING",
-    "toolPermissionFlag": "waitingOnApproval observed; exact technical blocker unconfirmed, owner clarification requested",
-    "oldChromeCLIFailure": "Preserved separately; officialIAB is actualpublicbrowser",
-    "remaining": "invalid/recovery/drag/ApplyUndoRedo/actualSaveNewOpen; no false complete"
+    "owner": "GPU",
+    "source": "29fd01911049f98c0ea5a82258bf91c1284444f5",
+    "status": "OWNER_FIRST_EMIT_FAIL_OWN_SLOT_RETURNED_WINDOW_RETAINED_MINIMUM_REPAIR",
+    "lease": "/Users/user/.cache/barocss-preserved/2026-10-24-codex-integration/round3/gpu-29fd-glb-texture-emit-cpu6-webgpu1-lint4-public-0001-lease-20261027.json"
   },
   "firstFailureToPreserve": {
     "Docs125": "Evidence guard mistook input imports for retained runtime external imports. API cases/JPEG/site NOTRUN. Wrapper-only normal correction is active; no retry on same source.",
@@ -131,7 +135,9 @@
       "spring": "GEOMETRY n0.wire/n0.ground0 boundary bracket",
       "CLI": "workspace/esbuild 경로 실패, 링크 복구 후 실제해결미확정",
       "runtimeGraph": "UNKNOWN"
-    }
+    },
+    "CG2ProductDocs": "7ec61 first docs failed due _refusals drift; 13e9 documentation-only fix and retry passed; original output retained locally.",
+    "GPU03_2": "29fd emit wait2/acquire0/command2/release0/wrapper2: MIME unknown to PNG/JPEG union TS2345/TS2322. Remaining CPU/WebGPU/lint/public NOT_RUN."
   },
   "remote": {
     "pushExecuted": false,

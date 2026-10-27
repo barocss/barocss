@@ -11,7 +11,7 @@
 
 상태를 구분한다: **소스 완료 / 필요한 검사 완료 / 실제 화면·파일 완료 / 제품 완료**.
 이 네 상태를 합쳐 쓰지 않는다. 기존 유효한 PASS는 반복하지 않는다.
-현재 제품 코드의 한정 완료 기준은 CG1 `7a62d6df`, G15 `28a62d2e`, Studio UI5 `ca10a3a8`이다.
+현재 제품 코드의 한정 완료 기준은 CG1 `7a62d6df`, G15 `28a62d2e`, Studio UI5 `ca10a3a8`, CG2 `4bff492c`이다. CG2 제품 build/docs는 통과했고 실제 UI·파일은 공통433에서 확인했다.
 제품의 문서 commit은 새 기능 실행 결과가 아니다. 전체 로봇·전체 G15 품질·제조는 미완료다.
 
 ### 현재 마감할 항목
@@ -20,12 +20,12 @@
 |---|---|---|---|---|
 | 01 | 독립 공차 프레임 — CG5 DR-6 | 기반·교정 검사와 실제 Add/편집/숨김/Move·Save/New/Open/SVG·삭제를 마쳤다. 전용 상태행의 안내/표제란 비중첩·실입력도87327에서 PASS·전반환했다. 구제품이 standalone을 버리는 저장 호환을 확인해 schema5 기반과 함께 제품에 연결한다. | Drawings → API | 같은 view/ID·view-mm 위치와 paper-mm 기호를 보존한다. 실제 Save/New/Open/SVG 뒤 정상 제품 통합. 원 5PASS/1FAIL과 교정 결과는 출처를 나눠 유지한다. |
 | 02 | 도면 사용 문서 연결 | 독립 프레임과 기존 point datum target 설명을 현재 도면 문서에 작성하고 공통 소스에 채택했다. 최종 문서 배치와 제품 연결을 마감한다. 전체 GD&T 완료로 쓰지 않는다. | Docs + Drawings | 뷰·위치·모호한 선택·없는/숨긴 참조·저장/출력 경계를 설명하고 01의 실제 결과와 맞춘다. 04의 같은 최종 문서 배치로 닫는다. |
-| 03 | 절삭 피처 선형 반복 — CG2 | 정상 Core/Model/Studio 소스를 채택하고, 원1c48의 CADbuild/CAD4/API4 및 교정87327의command2/type2/lint13을 실제 마쳤다. UI에서 invalidSpacing의 이전preview 잔류를 확인해 App1파일433a035를 채택했고 Studio type/lint1도 PASS했다. 수정 후 실제 남은 화면·파일·제품을 마감한다. | Kernel/Model + Outer + API | 원 절삭 도구만 반복한다. 60×30×10에서 4×4 관통 컷3개의 잔류17520mm³·외곽·참조를 보존한다. 필요한 최초 합동 배치 → 실제 Preview/Apply·치수 편집·거부·Undo/Redo·Save/Open → 제품. |
+| 03 | 절삭 피처 선형 반복 — CG2 | 공통433에서 invalid 거부·적용·Undo/Redo·실제 Save/New/Open을 확인했다. 정확 16경로는 제품 `4bff492c`에 no-ff 통합했다. 제품 CAD build와 수정 후 docs는 `13e9c835`에서 통과했다. 최초 stale preview와 문서 거부 코드 차이 실패는 보존한다. 별도 제품 브라우저는 NOT_RUN이다. | Kernel/Model + Outer + API | 원 절삭 도구만 반복한다. 60×30×10에서 4×4 관통 컷3개의 표시 잔류17520mm³·외곽·참조를 보존한다. 전체 기하·릴리스 수락으로 확대하지 않는다. |
 | 04 | 실제 API 문서·그림·탐색 구조 | 실제 Kernel API3사례·JPEG3와 메뉴/Studio6안내를 공통에 채택했다. 새 Model 기본 샘플/실제3결과·별도그림은 소유 후보f4→189다. 새8샘플/3producer는 PASS이나 전체164는159PASS/2FAIL/3CANCELLED다. spring은Kernel교정,CLI는별도환경확인으로 닫고 최종공개목록·docs/site·제품을 한 배치로 마감한다. | Docs + API | 기존 URL·앵커를 보존한다. 새 공개 목록을 의미 검토하고 최종 공통 SHA에서 check/site 한 배치와 필요한 desktop 페이지를 확인한다. 24-case gallery는 이3사례로 완료 처리하지 않는다. |
 | 05 | Viewer 제품 마감과 다음 리뷰 전달 | 기존 SDK/React 앱·조립·named views·원본 점 검사·아이콘 UI는 공통 채택, 제품은 미채택이다. 소유 워크는 키보드·작은 화면·파일 실패 보존, 조립품 거리·리뷰 저장/복원을 완료했다고 보고했다. 새 정상 commit과 실제 파일·자원 반환을 확인 중이며 제품 완료로 합치지 않는다. 제한 IGES와 파일 닫기는 남은 범위를 구분한다. | Viewer + API/Docs | 기존 정상 묶음은 04와 제품에 연결한다. 새 PNG는 실제 좌표/DPR·일반/측정 이미지·오류 시 accepted 보존을 확인한 별도 정상 commit으로 닫는다. 중단된 packaging/config/hook은 재개하지 않는다. |
-| 06 | GPU 소유 결과 인계와 다음 GPU 기능 | PT soft visibility `fe2637f4`, RenderTarget `607f7d0`, sized target `8de2f6ac`는 소유 새필수배치·공개PNG·정리를 마쳤다. sized target은 실제 Chrome DPR2 에뮬레이션도 별도 확인했다. GLB subset은 교정 `5d8b7757`에서 emit294/CPU18/lint3·합성 WebGPU 공개 사례를 마치고 전반환했다. target.asTexture `2a35e9b6`는 소스 완료·첫 실행 대기다. | GPU; 병합은 사용자가 지정한 다른 위치 | 최신 직접 지시대로 정상 commit·원 실패·PNG·한계를 인계한다. 이 root 제품에 자동 병합하지 않는다. 후보 소스 완료를 실행/품질 완료로 쓰지 않는다. 다음 항목은 승인된 GPU 소유 로드맵과 정확 범위로 이어간다. |
+| 06 | GPU 소유 결과 인계와 다음 GPU 기능 | PT soft visibility `fe2637f4`, RenderTarget `607f7d0`, sized target `8de2f6ac`는 소유 새필수배치·공개PNG·정리를 마쳤다. sized target은 실제 Chrome DPR2 에뮬레이션도 별도 확인했다. GLB subset은 교정 `5d8b7757`에서 emit294/CPU18/lint3·합성 WebGPU 공개 사례를 마치고 전반환했다. target.asTexture `2a35e9b6`는 소유 emit·새 WebGPU 회귀·lint5·합성 공개 예제와 자원 반환을 마쳤다. 초기 sandbox 실패는 보존한다. GLB 내장 텍스처 `29fd0191`의 첫 emit은 MIME 타입 오류2건으로 실패해 원자료를 보존했고, 담당이 최소 수정 중이다. | GPU; 병합은 사용자가 지정한 다른 위치 | 최신 직접 지시대로 정상 commit·원 실패·PNG·한계를 인계한다. 이 root 제품에 자동 병합하지 않는다. 후보 소스 완료를 실행/품질 완료로 쓰지 않는다. 다음 항목은 승인된 GPU 소유 로드맵과 정확 범위로 이어간다. |
 
-현재03의 기반과 필요한 교정 검사는 마쳤다. 수정 후 실제 화면·파일 흐름을 마감한다. Outer의 브라우저 도구는 승인 대기 표시이며 정확한 기술 사유는 확인 중이다. source433a035 핀은 실제 반환까지 유지한다. 01의 안내 확인은 완료했으며 저장 보호를11/16에 연결한다. 02·04·기존05는 최종 공통 공개 목록·문서·제품 배치로 닫는다. 완료한 흐름은 반복하지 않는다.
+03은 공통 실제 화면·파일과 제품 build/docs를 마쳤다. 독립 도면의 schema5 저장 보호를 다음 기능으로 연결한다. 02·04·기존05는 최종 공통 공개 목록·문서·제품 배치로 닫는다. 완료한 흐름은 반복하지 않는다.
 05의 독립 소유 구현과06의 승인된 소유 작업은 병렬로 진행할 수 있다. native/build/generator heavy 실행은 한 창만 쓴다.
 01의 소스 핀을 사용할 때 공통 소스를 바꾸지 않는다. 번호화 문서 반영은 안전 checkpoint의 문서 전용 창으로 조정한다.
 
@@ -36,7 +36,7 @@
 
 | 번호 | 작업·기존 ID | 남은 범위 | 담당·선행 조건 | 완료 조건 |
 |---|---|---|---|---|
-| 07 | 고급 모델링 — CG1 | 일반 가이드/다중 단면 로프트, 경계 표면, 가변/면 필렛, 드래프트, 리브, 문자·엠보싱·wrap, 나선/실제 나사의 남은 지원 범위. | Kernel → Model/API → Outer. K02 다중 단면 로프트 `0d2e1abc`, K03 Bezier Coons `51a59aaa`, K04 필렛 `65f1a678`, K05 드래프트 `b5b425c9`, K06 리브 `9c22d37f`는 정상 소스 완료·실행 NOTRUN이다. 공유 실행/통합은03 마감 뒤 정확 한 기능부터. | 지원 프로필·원공차·참조·독립 기대를 고정하고 편집·파일·제품까지 연결. 이미 완료된 bounded loft를 재구현하지 않는다. |
+| 07 | 고급 모델링 — CG1 | 일반 가이드/다중 단면 로프트, 경계 표면, 가변/면 필렛, 드래프트, 리브, 문자·엠보싱·wrap, 나선/실제 나사의 남은 지원 범위. | Kernel → Model/API → Outer. K02 다중 단면 로프트 `0d2e1abc`, K03 Bezier Coons `51a59aaa`, K04 필렛 `65f1a678`, K05 드래프트 `b5b425c9`, K06 리브 `9c22d37f`, K07 제한 직사각 양각/음각 `01bd6b35`는 정상 소스 완료·실행 NOTRUN이다. 공유 실행/통합은03 마감 뒤 정확 한 기능부터. | 지원 프로필·원공차·참조·독립 기대를 고정하고 편집·파일·제품까지 연결. 이미 완료된 bounded loft를 재구현하지 않는다. |
 | 08 | 피처 패턴·직접 편집·표면 — CG2 | 곡선/채우기 패턴, 면 이동·삭제·교체, thicken/offset/knit/trim/extend의 남은 범위. | Kernel/Model + Outer. 03과 기존 affine/Boolean/표면 provider 재사용. | body 복사와 feature 반복을 구분하고 원 이력·소실/모호 참조·실패 atomicity를 보존한다. |
 | 09 | 고급 스케치 — CG3 | spline 핸들·conic·문자·block과 진단/편집의 미완료 소비 경로. 치수 표현식은 기존 결정 조건을 유지한다. | Kernel/Model + Outer. 기본2D→3D·돌출 컷의 기존 완료 근거 재사용. | 실제 제약·DOF/충돌/비수렴을 구분한다. 원 입력·치수·좌표와 편집 후 파일 결과를 보존한다. |
 | 10 | 조립 확장 — CG4 | 유연한 하위 조립, 반복 occurrence 참조, 조립 피처, 승인된 motion/대형 조립 범위. | Model/Outer + Kernel/GPU. 같은 revision의 배치/관절 기반이 선행. | 계층·part-local/world/display 변환과 반복 인스턴스를 보존한다. pose 표시를 동역학 완료로 쓰지 않는다. |
