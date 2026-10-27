@@ -75,8 +75,7 @@ Use `part.bodies()` to obtain current body keys. With several bodies, first choo
 gives `BODY_AMBIGUOUS`, and an unknown key passed to `body(key)` gives `BODY_UNKNOWN`.
 
 ```ts
-import { Location } from '@barocss/cad/api';
-import type { StudioPart } from '@barocss/cad-model/api';
+import { Location, type StudioPart } from '@barocss/cad-model/api';
 
 function turnAndMove(part: StudioPart, bodyKey: string): StudioPart {
   return part.body(bodyKey).moved(Location.of({

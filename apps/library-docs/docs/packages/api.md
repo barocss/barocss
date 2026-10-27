@@ -12,6 +12,19 @@ function resultSummary(id) {
 
 # Object API
 
+## Start with the CAD model API
+
+For ordinary modeling, start with `@barocss/cad-model/api`. It builds the model document used for editing,
+materials, assemblies and drawings. The same API works in code without the Studio editor. This sample makes a
+bracket, then reads its mass, STEP and meshes:
+
+<<< @/../samples/cad-model-api.test.mjs#import
+
+<<< @/../samples/cad-model-api.test.mjs#bracket
+
+The kernel examples later on this page show its lower-level document and results. They are useful when working
+with the kernel directly; they are not the default entry point for the complete model document.
+
 Each of the three packages has an object facade over its own data-and-functions core:
 
 | Package | Entry | Over | For |
