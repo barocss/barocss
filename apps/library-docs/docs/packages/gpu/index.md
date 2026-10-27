@@ -11,6 +11,18 @@ This package supplies the low-level canvas renderer. For the `Viewer` SDK class 
 - **In code.** `@barocss/gpu/api` describes a scene as an immutable object: a part's meshes, their materials, lights
   and a camera view. `show(viewer, scene)` puts it in the viewer below. See [Object API](/packages/api#scenes).
 
+### Model meshes in a scene
+
+Pass a CAD part's or CAD Model assembly's `meshes()` to `scene().add()`. Use `{ lines: true }` to add
+its display edges. The meshes use the model's Z-up coordinates in mm. `Assembly.meshes()` includes the base
+and visible placed parts; it omits hidden instances. Its keys are `base/<body>` or `<instance id>/<body>`.
+An `explode` value offsets placed meshes for display only; it does not change the assembly's placements or mates.
+
+`Scene.add()` returns a new Scene but shares the supplied geometry arrays. Treat those arrays as read-only.
+A model change does not update an existing Scene or Viewer automatically. Get `meshes()` from the updated part
+or assembly, build a new Scene with the desired settings, and call `show(viewer, newScene)` to display it. The
+show operation clears the Viewer before adding the new meshes and fitting the view.
+
 ### Scene geometry input candidate
 
 The API source candidate proposes the following input contract. It has not been validated or integrated

@@ -2,10 +2,10 @@
 
 ## The .bcad document
 
-**Save** writes the part as a `.bcad` file. It holds the model's history, so it reopens editable. A part with no mesh
-bodies is written as plain JSON. A part with mesh bodies is written as a small binary container, `BCADPACK`, that
-holds the document and each mesh array. Each array is named by its SHA-256, and the name is checked when the file is
-read. Both kinds open.
+**Save** writes the part as a `.bcad` file. It holds the model's history, so it reopens editable. A document with no
+mesh blob references is written as plain JSON. This includes older documents with mesh arrays stored inline. When a
+document references mesh blobs, Save writes a binary container, `BCADPACK`, with the document and the referenced
+arrays. Each blob is named by its SHA-256, and the name is checked when the file is read. Both kinds open.
 
 The file reader converts supported older document schemas after checking the file. When **Open** fills older
 fields, **Opened an older model** lists the changes. The file stays unchanged until you save. A newer schema or

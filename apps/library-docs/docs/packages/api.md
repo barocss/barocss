@@ -54,8 +54,8 @@ commands into the document. Calling the facade does not control an open Studio s
   - The two parts and the assembly have `.doc`, the document a person or the agent could have written by hand.
   - gpu's scene has `.data`.
   - Typed arrays appear only in mesh data.
-- **Each method adds to the document** and calls the core, and computes no geometry of its own. Each package's facade
-  reaches its core through one adapter.
+- **Modeling methods** write changes to a new document and use the core to evaluate it. Query and result methods
+  read the document or return data; they do not add a feature.
 - **Modeling units.** Lengths are in millimetres, angles in degrees and density in g/cm³. Mass results use
   millimetres and grams. The confirmed R7 [robot contract](/studio/robots#robot-unit-boundaries) extends these units
   to public replies and stored joint settings. It uses N·mm for turning effort, mm/s² for gravity and seconds for
@@ -285,8 +285,8 @@ checks that all three ways give the same document, byte for byte.
 
 <<< @/../samples/cad-model-api.test.mjs#commands
 
-3. **The facade.** The same command names, the same value names, and selectors in place of the names. It runs the
-   studio's own command, as `run_command` does.
+3. **The facade.** For this bracket, it uses the same command names and value names, with selectors in place of
+   names. These calls run the studio's commands, as `run_command` does.
 
 <<< @/../samples/cad-model-api.test.mjs#bracket
 
@@ -302,8 +302,10 @@ checks that all three ways give the same document, byte for byte.
 
 ### The studio's own commands
 
-The CAD model part also runs commands the kernel has no feature for. Each writes what the agent's `run_command`
-writes, and the kernel part refuses them with `UNAVAILABLE`.
+The CAD model part provides these Studio commands as methods. For these calls, it writes what the agent's
+`run_command` writes. The kernel part has no `gear()`, `gearMesh()`, `spring()` or `fastener()` method. The CAD
+kernel also provides lower-level gear and spring functions through `@barocss/cad`; those functions have their own
+inputs and outputs.
 
 | Verb | v2 command | What it does |
 |---|---|---|
@@ -321,6 +323,8 @@ writes, and the kernel part refuses them with `UNAVAILABLE`.
 
 <<< @/../samples/cad-model-api.test.mjs#fastener
 
+The CAD model part also has `loft()` for a solid through closed sections. See [Solid lofts with a copied guide](/packages/cad-model/#solid-lofts-with-a-copied-guide) for its inputs, limits and example.
+
 ## Parameters, configurations and suppression
 
 A parameter is a named value in the document's `parameters`, and a dimension follows it as the documents' own
@@ -331,8 +335,9 @@ part writes the reference into its feature, and the CAD model part binds it as t
 
 - **`parameter(name, value)`** adds or sets a parameter. A name is a letter, then letters, digits and `_`, up to 32.
   `parameters()` lists them.
-- **`withParameters({ name: value })`** returns a new part at the new values. It's re-evaluated at its next result,
-  and its features keep the faces and edges they stored. `withParameters(doc, edits)` does the same to a plain document.
+- **`withParameters({ name: value })`** returns a new part at the new values. A document with features is
+  re-evaluated before the method returns; its features keep the faces and edges they stored. The separate
+  `withParameters(doc, edits)` function updates a plain document without evaluating it.
 - **Which options can follow a parameter.** Only one that lands as it is in one place in the document, the same rule
   as the studio's feature editor:
   - `box`: `w` and `d` while `x` and `y` are 0, and `h`;
@@ -366,6 +371,10 @@ part writes the reference into its feature, and the CAD model part binds it as t
 
 `assembly(name, base?)` is an immutable assembly over the CAD model document. The base part is fixed at the origin.
 Placed parts are instances, each with its own document, and mates relate their faces.
+
+A supplied base and each `addPart` argument must be a `StudioPart` instance from the same loaded
+`@barocss/cad-model/api` package. Create it with that package's `part()` function. A kernel part or a plain document
+is not accepted; the facade refuses it with `VALUE`. The base argument can be omitted.
 
 <<< @/../samples/cad-model-api.test.mjs#assembly
 
