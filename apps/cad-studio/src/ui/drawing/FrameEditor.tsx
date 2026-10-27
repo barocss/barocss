@@ -1,6 +1,6 @@
 // Edit one dimension-attached or explicitly selected standalone geometric control.
 import { useState } from 'react';
-import { CHARACTERISTICS, checkDrawingFrames, type DrawingFrame, type MaterialModifier } from '@barocss/cad-model/drawing/controls';
+import { CHARACTERISTICS, checkDrawingFrames, frameProblem, type DrawingFrame, type MaterialModifier } from '@barocss/cad-model/drawing/controls';
 import type { DrawingSettings } from '@barocss/cad-model/drawing/types';
 import { CONTROL, FIELD, TICK } from './sheetShared';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,8 @@ export function FrameEditor({ dim, frameId, settings, onChange, onRefused }: { d
   if (frameId && !frame) return null;
   const set = (next: DrawingFrame, committedDrafts: readonly string[] = []) => {
     const list = frameId ? frames.map(f => f === frame ? next : f) : [...frames.filter(f => f.dim === undefined || f.dim !== dim), next], why = checkDrawingFrames({ frames: list })[0];
-    if (why) { onRefused(committedDrafts.some(key => Object.hasOwn(draft, key)) ? `${why.message} This value was not applied; saving keeps the last accepted value.` : why.message); return; }
+    // (The editor names what is wrong with this frame; the list-wide contract message is for tools and agents.)
+    if (why) { const reason = frameProblem(next) ?? 'This change would make the frames invalid.'; onRefused(committedDrafts.some(key => Object.hasOwn(draft, key)) ? `${reason} Not applied; the frame keeps its last accepted value.` : reason); return; }
     onChange({ ...settings, frames: list });
     if (committedDrafts.length) setDraft(current => {
       const nextDraft = { ...current };

@@ -286,7 +286,7 @@
 | `[APPROVAL_IS_THE_USERS]` | `team` | …: only the user moves a baseline |
 | `[BAD_CONNECTOR]` | `print` | a connector needs d > 0, length > 0, 1–8 a cut, fit > 0 and wall ≥ 0 (d …, length …, count …, fit …, wall …) |
 | `[BAD_KEEPOUT]` | `chat` | …'s solid could not be made |
-| `[BAD_REFERENCE]` | `chat`, `engine` | Route bundle: merging linked route documents is not supported. |
+| `[BAD_REFERENCE]` | `app`, `chat`, `engine` | Select the current result of an unsuppressed subtract feature. |
 | `[BAD_TRANSITION]` | `team` | … is still …: a baseline follows a decided one |
 | `[BAD_VALUE]` | `chat` | … is a size above 0 mm |
 | `[BAD_VALUES]` | `chat`, `print`, `robot` | a wall t > 0, a voxel 0 < h ≤ t/2 and a drain Ø > 0 (t …, h …, drain …) |
@@ -337,7 +337,7 @@
 | `[DIRECT_KNOT]` | `engine` | That knot cannot come out without moving the curve more than … mm (or it has none inside). |
 | `[DIRECT_LOFT]` | `engine` | Loft through 2 to 15 curves. |
 | `[DIRECT_LOOP]` | `engine` | Pick four curves that meet end to end in a loop. |
-| `[DIRECT_PICK]` | `app`, `engine` | Choose an available guide or None. |
+| `[DIRECT_PICK]` | `app`, `engine` | Select one solid cut result, not a direct curve or surface. |
 | `[DIRECT_PLANE]` | `engine` | The curve lies in the plane … = …: it does not cross it. |
 | `[DIRECT_RANGE]` | `engine` | The curves run over different parameter ranges: trim or rebuild them to one range first. |
 | `[DIRECT_SOURCE]` | `engine` | This CAD source has no curves or surfaces. |
@@ -348,7 +348,7 @@
 | `[DRAWING_DETAIL_LETTER]` | `drawing` | Detail … has a section's letter: letters are unique among sections and details. |
 | `[DRAWING_DETAIL_PARENT]` | `drawing` | Detail … enlarges section …, which the drawing does not have. |
 | `[DRAWING_DETAIL_REFERENCES]` | `drawing` | A changed or removed detail has dimensions. Keep its view, centre and radius, or remove those dimensions explicitly first. |
-| `[DRAWING_OPTIONS]` | `chat`, `drawing` | Unknown drawing setting …. |
+| `[DRAWING_OPTIONS]` | `chat`, `drawing`, `engine` | Unknown drawing setting …. |
 | `[DRAWING_SCOPE]` | `drawing` | scope is {kind: part, part?: id} or {kind: assembly} |
 | `[DRAWING_SCOPE_AUTO]` | `chat` | automatic component dimensions belong to a part drawing; assembly annotations and BOM are retained |
 | `[DRAWING_SCOPE_REFERENCES]` | `drawing` | this sheet has manual model references; keep its scope or remove those references explicitly before changing scope |
@@ -464,7 +464,7 @@
 | `[NO_ROW]` | `standards` | … … has no field …; fields: … |
 | `[NO_RUN]` | `team` | … is not a run for … … |
 | `[NO_TABLE]` | `standards` | no table …; tables: … |
-| `[ONE_BODY]` | `print` | hollowing takes a part of one body; this one has … |
+| `[ONE_BODY]` | `app`, `print` | Select one cut result to repeat. |
 | `[ORING_ROW_UNKNOWN]` | `engine` | a gland names the O-ring row "…", which the document's O-ring rows do not hold (rows: …) |
 | `[OUTPUT_BUNDLE_INCOMPLETE]` | `chat` | … |
 | `[OUTPUT_BUNDLE_INVALID]` | `chat` | … |
@@ -513,11 +513,11 @@
 | `[TRIM_CURVE]` | `engine` | The curve does not close: trim by a closed curve (a loop). |
 | `[UNDRAINED]` | `print` | the lattice leaves empty regions undrained after … drains: take a larger cell or a finer voxel |
 | `[UNKNOWN_ARGUMENT]` | `chat` | … takes no …: its arguments are ….… |
-| `[VALUE]` | `api`, `assembly`, `chat/part`, `engine`, `robot` | …: a joint's value is a number (degrees, or mm for a slide), not … |
+| `[VALUE]` | `api`, `app`, `assembly`, `chat/part`, `engine`, `robot` | …: a joint's value is a number (degrees, or mm for a slide), not … |
 | `[VARIANT_UNKNOWN]` | `assembly`, `chat` | no variant … (variants: …) |
 | `[VERSION_INPUT]` | `versions` | the time a version is made is an ISO 8601 text (got …) |
 | `[VERSION_KEY_COLLISION]` | `versions` | two different documents have the content key …: the version is not kept |
-| `[VERSION_LOG]` | `versions` | not a version log (format barocss-versions, schema 1) |
+| `[VERSION_LOG]` | `engine`, `versions` | the raw snapshot does not match its canonical content key |
 | `[VERSION_NAME]` | `versions` | a version's name is 1 to … characters |
 | `[VERSION_NOT_LOADED]` | `versions` | the document of version … is not with this turn: it comes with the next one |
 | `[VERSION_NO_CHANGE]` | `versions` | the document is the same as the branch's last version… |

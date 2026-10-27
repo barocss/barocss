@@ -3672,6 +3672,8 @@ export function App() {
         onCheck={() => void checkRepair()} onApply={() => void applyRepair()}
         {...(repairAsk.diagnosis.closed ? { onAsIs: repairAsk.mode === 'import' ? () => void openMeshNode(repairAsk) : removeRepair } : {})}
         asIsLabel={repairAsk.mode === 'import' ? 'Open as it is' : 'Remove the repair'} onCancel={() => setRepairAsk(null)} />}
+      {/* (Notices stack in one column: an Open failure still shows while a recovery copy waits for its answer.) */}
+      <div className="toast-stack">
       {recovery && <div className="toast card recovery" role="dialog" aria-label="Recover unsaved work">
         <Icon name="history" className="accent" />
         <div><div className="toast-title">Unsaved work from {new Date(recovery.savedAt).toLocaleString()}</div>
@@ -3694,13 +3696,14 @@ export function App() {
             <button className="ghost" onClick={() => setCascade(null)}>Cancel</button>
           </div></div>
       </div>}
-      {toast && !cascade && !recovery && !meshAsk && !repairAsk && !stepAsk && !stlAsk && <div className="toast card" role="alert">
+      {toast && !cascade && !meshAsk && !repairAsk && !stepAsk && !stlAsk && <div className="toast card" role="alert">
         <Icon name="info" className="accent" />
         <div><div className="toast-title">{toast.title}</div><div className="toast-hint">{toast.hint}</div>
           {toast.detail && <details><summary>Details</summary><code>{toast.detail}</code></details>}
           {toast.action && <div className="row-actions"><button className="ghost" onClick={toast.action.run}>{toast.action.label}</button></div>}</div>
         <ToolIconButton aria-label="Dismiss" onClick={() => setToast(null)}><Icon name="close" small /></ToolIconButton>
       </div>}
+      </div>
       </div>
       <Dock width={layout.dockWidth} docked={dockDocked} sheet={layout.dockSheet} onSheet={layout.setDockSheet}>
         {browserPlacement === 'dock' && browserPanel}

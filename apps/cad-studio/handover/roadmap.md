@@ -11,21 +11,21 @@
 
 상태를 구분한다: **소스 완료 / 필요한 검사 완료 / 실제 화면·파일 완료 / 제품 완료**.
 이 네 상태를 합쳐 쓰지 않는다. 기존 유효한 PASS는 반복하지 않는다.
-현재 제품 코드의 한정 완료 기준은 CG1 `7a62d6df`, G15 `28a62d2e`, Studio UI5 `ca10a3a8`이다.
+현재 제품 코드의 한정 완료 기준은 CG1 `7a62d6df`, G15 `28a62d2e`, Studio UI5 `ca10a3a8`, CG2 `4bff492c`이다. CG2 제품 build/docs는 통과했고 실제 UI·파일은 공통433에서 확인했다.
 제품의 문서 commit은 새 기능 실행 결과가 아니다. 전체 로봇·전체 G15 품질·제조는 미완료다.
 
 ### 현재 마감할 항목
 
 | 번호 | 작업·기존 ID | 현재 상태와 다음 행동 | 담당 | 완료 조건 |
 |---|---|---|---|---|
-| 01 | 독립 공차 프레임 — CG5 DR-6 | 기반 소스·교정 consumer/type/lint와 실제 Add/편집/숨김/Move·Save/New/Open/SVG·삭제를 마쳤다. stale Move 거부는 동작하지만 안내 가시성은 FAIL이었다. 문구/CSS 두 줄을 정상 채택했고 해당 안내 1건과 제품 통합을 마감한다. | Drawings → API | 같은 view/ID·view-mm 위치와 paper-mm 기호를 보존한다. 실제 Save/New/Open/SVG 뒤 정상 제품 통합. 원 5PASS/1FAIL과 교정 결과는 출처를 나눠 유지한다. |
+| 01 | 독립 공차 프레임 — CG5 DR-6 | 기반·교정 검사와 실제 Add/편집/숨김/Move·Save/New/Open/SVG·삭제를 마쳤다. 전용 상태행의 안내/표제란 비중첩·실입력도87327에서 PASS·전반환했다. 기존 reader가 standalone을 버리는 문제를 확인했다. 최신 reader/writer의 필드 보존과 raw 입력 검사를 완성해 제품에 연결한다. | Drawings → API | 같은 view/ID·view-mm 위치와 paper-mm 기호를 보존한다. 실제 Save/New/Open/SVG 뒤 정상 제품 통합. 원 5PASS/1FAIL과 교정 결과는 출처를 나눠 유지한다. |
 | 02 | 도면 사용 문서 연결 | 독립 프레임과 기존 point datum target 설명을 현재 도면 문서에 작성하고 공통 소스에 채택했다. 최종 문서 배치와 제품 연결을 마감한다. 전체 GD&T 완료로 쓰지 않는다. | Docs + Drawings | 뷰·위치·모호한 선택·없는/숨긴 참조·저장/출력 경계를 설명하고 01의 실제 결과와 맞춘다. 04의 같은 최종 문서 배치로 닫는다. |
-| 03 | 절삭 피처 선형 반복 — CG2 | Core `05d4315`, Model `50397c0`, Studio `9ee0fd2` 소스 완료. 공통/제품 미채택이며 새 합동 실행은 NOTRUN이다. | Kernel/Model + Outer + API | 원 절삭 도구만 반복한다. 60×30×10에서 4×4 관통 컷3개의 잔류17520mm³·외곽·참조를 보존한다. 필요한 최초 합동 배치 → 실제 Preview/Apply·치수 편집·거부·Undo/Redo·Save/Open → 제품. |
-| 04 | 실제 API 문서·그림·탐색 구조 | 실제 API3사례·원 JPEG3, CAD → CAD Model → GPU → Studio → Viewer 계층과 Studio 안내6개를 공통 소스에 채택했다. kernel part/model part 구분과 기존 앵커도 반영했다. 첫 현행 공개 목록 검토와 최종 공통 check/site·페이지·제품은 대기다. | Docs + API | 기존 URL·앵커를 보존한다. 새 공개 목록을 의미 검토하고 최종 공통 SHA에서 check/site 한 배치와 필요한 desktop 페이지를 확인한다. 24-case gallery는 이3사례로 완료 처리하지 않는다. |
-| 05 | Viewer 제품 마감과 다음 리뷰 전달 | 기존 SDK/React 앱·조립·named views·원본 점 검사·아이콘 UI는 공통 채택, 제품은 미채택이다. 소유 워크는 새 로드맵2.2 키보드 조작 완료를 보고했고 2.3 작은 화면 배치를 구현 중이다. 새 정상 묶음과 근거를 받아 제품 상태를 따로 판단한다. | Viewer + API/Docs | 기존 정상 묶음은 04와 제품에 연결한다. 새 PNG는 실제 좌표/DPR·일반/측정 이미지·오류 시 accepted 보존을 확인한 별도 정상 commit으로 닫는다. 중단된 packaging/config/hook은 재개하지 않는다. |
-| 06 | GPU 소유 결과 인계와 다음 GPU 기능 | PT soft visibility `fe2637f4`와 RenderTarget `607f7d0`은 소유 워크의 새 필수 배치·실제 공개 PNG·자원 정리를 마쳤다. GLB의 좁은 subset `2b056677`은 소스 후보이며 새 실행은 대기다. | GPU; 병합은 사용자가 지정한 다른 위치 | 최신 직접 지시대로 정상 commit·원 실패·PNG·한계를 인계한다. 이 root 제품에 자동 병합하지 않는다. 후보 소스 완료를 실행/품질 완료로 쓰지 않는다. 다음 항목은 승인된 GPU 소유 로드맵과 정확 범위로 이어간다. |
+| 03 | 절삭 피처 선형 반복 — CG2 | 공통433에서 invalid 거부·적용·Undo/Redo·실제 Save/New/Open을 확인했다. 정확 16경로는 제품 `4bff492c`에 no-ff 통합했다. 제품 CAD build와 수정 후 docs는 `13e9c835`에서 통과했다. 최초 stale preview와 문서 거부 코드 차이 실패는 보존한다. 별도 제품 브라우저는 NOT_RUN이다. | Kernel/Model + Outer + API | 원 절삭 도구만 반복한다. 60×30×10에서 4×4 관통 컷3개의 표시 잔류17520mm³·외곽·참조를 보존한다. 전체 기하·릴리스 수락으로 확대하지 않는다. |
+| 04 | 실제 API 문서·그림·탐색 구조 | 실제 Kernel API3사례·JPEG3와 메뉴/Studio6안내를 공통에 채택했다. 새 Model 기본 샘플/실제3결과·별도그림은 소유 후보f4→189다. 새8샘플/3producer는 PASS이나 전체164는159PASS/2FAIL/3CANCELLED다. spring은Kernel교정,CLI는별도환경확인으로 닫고 최종공개목록·docs/site·제품을 한 배치로 마감한다. | Docs + API | 기존 URL·앵커를 보존한다. 새 공개 목록을 의미 검토하고 최종 공통 SHA에서 check/site 한 배치와 필요한 desktop 페이지를 확인한다. 24-case gallery는 이3사례로 완료 처리하지 않는다. |
+| 05 | Viewer 제품 마감과 다음 리뷰 전달 | 기존 SDK/React 앱·조립·named views·원본 점 검사·아이콘 UI는 공통 채택, 제품은 미채택이다. 소유 워크는 키보드·작은 화면·파일 실패 보존, 조립품 거리·리뷰 저장/복원을 완료했다고 보고했다. 새 정상 commit과 실제 파일·자원 반환을 확인 중이며 제품 완료로 합치지 않는다. 제한 IGES와 파일 닫기는 남은 범위를 구분한다. | Viewer + API/Docs | 기존 정상 묶음은 04와 제품에 연결한다. 새 PNG는 실제 좌표/DPR·일반/측정 이미지·오류 시 accepted 보존을 확인한 별도 정상 commit으로 닫는다. 중단된 packaging/config/hook은 재개하지 않는다. |
+| 06 | GPU 소유 결과 인계와 다음 GPU 기능 | PT soft visibility `fe2637f4`, RenderTarget `607f7d0`, sized target `8de2f6ac`는 소유 새필수배치·공개PNG·정리를 마쳤다. sized target은 실제 Chrome DPR2 에뮬레이션도 별도 확인했다. GLB subset은 교정 `5d8b7757`에서 emit294/CPU18/lint3·합성 WebGPU 공개 사례를 마치고 전반환했다. target.asTexture `2a35e9b6`는 소유 emit·새 WebGPU 회귀·lint5·합성 공개 예제와 자원 반환을 마쳤다. 초기 sandbox 실패는 보존한다. GLB 내장 텍스처는 `29fd0191`의 첫 emit 실패를 보존하고 교정 `d4e2c3ec`에서 새 검사와 합성 PNG/JPEG 공개 예제를 통과했다. 일반 glTF나 제품 통합 수락은 아니다. | GPU; 병합은 사용자가 지정한 다른 위치 | 최신 직접 지시대로 정상 commit·원 실패·PNG·한계를 인계한다. 이 root 제품에 자동 병합하지 않는다. 후보 소스 완료를 실행/품질 완료로 쓰지 않는다. 다음 항목은 승인된 GPU 소유 로드맵과 정확 범위로 이어간다. |
 
-현재 공유 실행 순서는 **01의 진행 중인 실제 흐름 마감 → 02·04와 기존05의 문서/제품 마감 → 03의 전체 기능 배치·실파일·제품**이다.
+03은 공통 실제 화면·파일과 제품 build/docs를 마쳤다. 독립 도면의 최신 reader/writer 저장 보호를 다음 기능으로 연결한다. 02·04·기존05는 최종 공통 공개 목록·문서·제품 배치로 닫는다. 완료한 흐름은 반복하지 않는다.
 05의 독립 소유 구현과06의 승인된 소유 작업은 병렬로 진행할 수 있다. native/build/generator heavy 실행은 한 창만 쓴다.
 01의 소스 핀을 사용할 때 공통 소스를 바꾸지 않는다. 번호화 문서 반영은 안전 checkpoint의 문서 전용 창으로 조정한다.
 
@@ -36,7 +36,7 @@
 
 | 번호 | 작업·기존 ID | 남은 범위 | 담당·선행 조건 | 완료 조건 |
 |---|---|---|---|---|
-| 07 | 고급 모델링 — CG1 | 일반 가이드/다중 단면 로프트, 경계 표면, 가변/면 필렛, 드래프트, 리브, 문자·엠보싱·wrap, 나선/실제 나사의 남은 지원 범위. | Kernel → Model/API → Outer. K02 다중 단면 로프트 `0d2e1abc`와 K03 Bezier Coons `51a59aaa`는 독립 소스 완료·실행 NOTRUN이다. 공유 실행/통합은03 마감 뒤 정확 한 기능부터. | 지원 프로필·원공차·참조·독립 기대를 고정하고 편집·파일·제품까지 연결. 이미 완료된 bounded loft를 재구현하지 않는다. |
+| 07 | 고급 모델링 — CG1 | 일반 가이드/다중 단면 로프트, 경계 표면, 가변/면 필렛, 드래프트, 리브, 문자·엠보싱·wrap, 나선/실제 나사의 남은 지원 범위. | Kernel → Model/API → Outer. K02 다중 단면 로프트 `0d2e1abc`, K03 Bezier Coons `51a59aaa`, K04 필렛 `65f1a678`, K05 드래프트 `b5b425c9`, K06 리브 `9c22d37f`, K07 제한 직사각 양각/음각 `01bd6b35`는 정상 소스 완료·실행 NOTRUN이다. 공유 실행/통합은03 마감 뒤 정확 한 기능부터. | 지원 프로필·원공차·참조·독립 기대를 고정하고 편집·파일·제품까지 연결. 이미 완료된 bounded loft를 재구현하지 않는다. |
 | 08 | 피처 패턴·직접 편집·표면 — CG2 | 곡선/채우기 패턴, 면 이동·삭제·교체, thicken/offset/knit/trim/extend의 남은 범위. | Kernel/Model + Outer. 03과 기존 affine/Boolean/표면 provider 재사용. | body 복사와 feature 반복을 구분하고 원 이력·소실/모호 참조·실패 atomicity를 보존한다. |
 | 09 | 고급 스케치 — CG3 | spline 핸들·conic·문자·block과 진단/편집의 미완료 소비 경로. 치수 표현식은 기존 결정 조건을 유지한다. | Kernel/Model + Outer. 기본2D→3D·돌출 컷의 기존 완료 근거 재사용. | 실제 제약·DOF/충돌/비수렴을 구분한다. 원 입력·치수·좌표와 편집 후 파일 결과를 보존한다. |
 | 10 | 조립 확장 — CG4 | 유연한 하위 조립, 반복 occurrence 참조, 조립 피처, 승인된 motion/대형 조립 범위. | Model/Outer + Kernel/GPU. 같은 revision의 배치/관절 기반이 선행. | 계층·part-local/world/display 변환과 반복 인스턴스를 보존한다. pose 표시를 동역학 완료로 쓰지 않는다. |
@@ -50,6 +50,10 @@
 | 18 | 관절·로봇 — J1/J2, R1/D1/R2, RS6/RS7/P4 | 같은2R 입력/리비전 연결 → 관절·한계/폐루프 → 제한 자유 진자 → 다링크·접촉·제어 → 독립 교환·제품. 기존6단계 계획을 따른다. | Kernel/Model/API/Outer/GPU; 자유동역학은 기존 Physics 소유·지원 프로필 확인이 선행. | 기구학·지정 재생·정적 토크·자유 동역학을 구분한다. 같은 질량/관성·프레임·단위·참조와 실제 파일을 사용한다. paused Physics/Motion 자동 재개 없음. |
 | 19 | 가상 실험·다물리·실측 — Stage0–6 | 기반 → 공통 실험 계약 → 제한 진자 → 기계/로봇/접촉/제어 → 구조·열 → 유체·전기 → 실측 피드백의 기존7단계. | 각 기존 기반/해석/실측 소유자. 미래 단계의 소유·입력·지원·승인을 먼저 정한다. | 입력/선언값/계산값/실측을 구분하고 독립 기대·보존/수렴·오차·파일로 확인한다. 현재 정적 결과·화면을 일반 solver 검증으로 올리지 않는다. 새 엔진/의존성·중단 작업 자동 착수 없음. |
 
+사용자 정정: 아직 릴리스가 없으므로 최신 reader/writer만 기준으로 삼는다. 구 미출시 바이너리 호환과 장기 migration을 위해 schema5를 강제하지 않는다. 현재 일반 schema3과 route schema4를 유지하고 standalone/composite의 raw 입력 검사와 필드 보존을 구현한다. 실제 사용자 파일과 snapshot key/id/parent/bytes는 보존한다. 기존 Model448→3b8 및 Drawing 후보 정상 commit은 이력으로 남기고 필요한 정확 delta만 새 계약에 맞춰 연결한다. Outer 저장·복구, 합동 실행·파일 흐름·제품은 아직 미완료다.
+
+공통16의 공개 API 방향은 [설계 기록](api-public-model-direction-20261027.md)에 있다. CAD Model을 사용자 편집 원본과 기본 Part/Assembly 진입점으로 삼고 커널은 독립 계산 계층으로 유지한다. 메서드별 계약/파일/API 호환 이행과 물리적 패키지 통합은 아직 완료·확정되지 않았다. 명칭 변경만으로 이 과제를 닫지 않는다.
+
 ### 제품 완료와 인계의 공통 조건
 
 1. 기능의 입력·단위·좌표·참조·지원/거부 계약을 고정한다.
@@ -58,7 +62,7 @@
 4. 검토된 정확 delta만 제품에 통합하고 필수 제품 검사와 제한을 기록한다. 명시적 소유 인계 예외인06은 다른 통합 위치로 전달한다.
 5. 실제 Codex core 남음이5% 이하면 기존 조건부 중단·정상 인계 commit·허용된 feature branch push·원격 SHA 확인·cad PAUSED를 수행한다. reset/credits 소비나 force/main/develop rewrite는 하지 않는다.
 
-P2 HOLD·PG11 입력 미확정·PG12의 한정 positive는 서로 다른 조건이다. 일반 코드 작업 전체를 멈추는 조건은 아니다.
+사용자 지시로 P2 제조인수는 활성 추적과 정기 보고에서 제외한다. 과거 HOLD·미수락·FAIL은 이력으로 보존하며 PASS로 바꾸지 않는다. PG11 입력과 PG12의 한정 positive도 새 기능 완료가 아니다.
 optional G15d.4, 측정 후 보류한 LOD와 기존 BVH는 새 개발로 자동 배정하지 않는다.
 공유/댓글 인프라, 새 solver·runtime dependency, Physics/Motion 및 packaging/config/hook의 기존 중단은 유지한다.
 상세·옛 실행 기록은 아래에 보존한다. 이 색인과 단일 작업 기록의 최신 상태가 옛 진행형 문구보다 우선한다.
@@ -1296,3 +1300,5 @@ parameter/reference source is adopted as `14bbc19f3`; the current compact
 History, DoF callback, STL quality and route admission code are preserved. Its
 new reference-review UI and parameter file flow still require their first
 affected checks. Reuse unchanged passing evidence; do not rerun old flows.
+
+2026-10-27 추적 범위 정정: 사용자 요청에 따라 P2 제조인수의 활성 추적과 정기 보고를 제외한다. 기존 미수락/HOLD와 실패 기록은 보존하며 PASS로 바꾸지 않는다.

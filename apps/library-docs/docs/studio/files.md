@@ -105,7 +105,7 @@ See [STEP mesh options and format limits](/packages/cad/formats#step) before cho
 | Situation | Choose or do this |
 |---|---|
 | You do not need a specific sampling setting | Use **Automatic**. It leaves the quality option unset. |
-| You need a specific setting for B-rep bodies | Use **Draft 8**, **Standard 16** or **Fine 32**. These set 8, 16 or 32 segments per quarter; they are not millimetre error limits. |
+| You need a specific setting for B-rep bodies | Use **Draft 8**, **Standard 16** or **Fine 32**. These set `segmentsPerQuarter` to 8, 16 or 32. They are dimensionless sampling settings, not millimetre error tolerances or guaranteed geometric error bounds. |
 | The output includes a mesh body | Use **Automatic**. An explicit quality is refused. |
 | Pieces touch only at an edge or point | Use **Automatic**. It splits the display mesh into one STL per piece. |
 | The document has visible placed instances | Open the part's own document before using an explicit quality. |
@@ -127,6 +127,7 @@ If dimensions read from an image or drawing remain unconfirmed, STEP and STL sti
 The message identifies the export as a draft and lists the open dimensions.
 
 For 3MF, pieces that touch only at an edge or point remain separate objects to avoid welding them in a reader.
+
 
 **Sources.** Each export names the document revision it was made from:
 

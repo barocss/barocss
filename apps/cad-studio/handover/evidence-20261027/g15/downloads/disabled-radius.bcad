@@ -1,0 +1,295 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "circle",
+      "center": [
+        0,
+        0
+      ],
+      "radius": 1,
+      "sideTags": {
+        "outer": [
+          "e1"
+        ]
+      },
+      "id": "n0"
+    },
+    {
+      "kind": "sketch",
+      "profile": "circle",
+      "center": [
+        0,
+        0
+      ],
+      "radius": 4,
+      "sideTags": {
+        "outer": [
+          "e1"
+        ]
+      },
+      "plane": {
+        "origin": [
+          0,
+          0,
+          3
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "xAxis": [
+          1,
+          0,
+          0
+        ]
+      },
+      "id": "n1"
+    },
+    {
+      "kind": "sketch",
+      "profile": "circle",
+      "center": [
+        0,
+        0
+      ],
+      "radius": 1,
+      "sideTags": {
+        "outer": [
+          "e1"
+        ]
+      },
+      "id": "n2"
+    },
+    {
+      "kind": "sketch",
+      "profile": "circle",
+      "center": [
+        0,
+        0
+      ],
+      "radius": 4,
+      "sideTags": {
+        "outer": [
+          "e1"
+        ]
+      },
+      "plane": {
+        "origin": [
+          0,
+          0,
+          3
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "xAxis": [
+          1,
+          0,
+          0
+        ]
+      },
+      "id": "n3"
+    },
+    {
+      "kind": "loft",
+      "sections": [
+        {
+          "sketch": 2,
+          "frame": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ],
+            "yAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "sketch": 3,
+          "frame": {
+            "origin": [
+              0,
+              0,
+              3
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ],
+            "yAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        }
+      ],
+      "from": [
+        0,
+        1
+      ],
+      "guide": {
+        "kind": "cubic-bezier",
+        "controlPoints": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            4,
+            0,
+            1
+          ],
+          [
+            2,
+            0,
+            2
+          ],
+          [
+            4,
+            0,
+            3
+          ]
+        ]
+      },
+      "id": "n4"
+    }
+  ],
+  "outputs": {
+    "b4": {
+      "node": 4,
+      "side": "solid"
+    }
+  },
+  "nextId": 5,
+  "direct": {
+    "sources": {
+      "src_1": "@model CG1_cubic_guide {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 3; knots: [0,0,0,0,1,1,1,1]; control-points: [[1,0,0],[4,0,1],[2,0,2],[4,0,3]]; weights: [1,1,1,1]; }\n}"
+    },
+    "objects": [
+      {
+        "id": "obj_1",
+        "name": "guide · c1",
+        "source": "src_1",
+        "geometry": "c1"
+      }
+    ]
+  },
+  "render": {
+    "version": 1,
+    "appearances": {},
+    "defaultAppearance": {
+      "color": "#bfc2c8",
+      "metallic": 0,
+      "roughness": 0.6,
+      "opacity": 1
+    },
+    "lights": [
+      {
+        "kind": "directional",
+        "direction": [
+          -0.45,
+          0.35,
+          -1
+        ],
+        "color": "#ffffff",
+        "intensity": 1.15,
+        "castShadow": true
+      },
+      {
+        "kind": "directional",
+        "direction": [
+          0.7,
+          -0.5,
+          -0.35
+        ],
+        "color": "#dfe8ff",
+        "intensity": 0.4,
+        "castShadow": true
+      },
+      {
+        "kind": "point",
+        "position": [
+          0,
+          0,
+          80
+        ],
+        "color": "#ffffff",
+        "intensity": 1,
+        "range": 0,
+        "castShadow": false,
+        "shadowRadius": 2.5
+      },
+      {
+        "kind": "spot",
+        "position": [
+          0,
+          -80,
+          80
+        ],
+        "direction": [
+          0,
+          0.7,
+          -0.7
+        ],
+        "color": "#ffffff",
+        "intensity": 1.5,
+        "range": 0,
+        "angle": 30,
+        "penumbra": 0.3,
+        "castShadow": true,
+        "shadowRadius": 4.25
+      },
+      {
+        "kind": "point",
+        "position": [
+          0,
+          0,
+          80
+        ],
+        "color": "#ffffff",
+        "intensity": 1,
+        "range": 0
+      }
+    ],
+    "environment": {
+      "top": "#3a3f47",
+      "bottom": "#15171a",
+      "ambient": 0.6,
+      "exposure": 1,
+      "toneMapping": "aces",
+      "occlusion": true,
+      "ground": true,
+      "grid": false,
+      "edges": false
+    },
+    "camera": null,
+    "materials": {},
+    "scene": "",
+    "sceneScale": 10,
+    "animation": {
+      "duration": 4,
+      "tracks": {},
+      "turntable": false
+    }
+  }
+}
