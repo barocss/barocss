@@ -66,3 +66,16 @@ Kernel·GPU·CAD·CAD Model 기반을 먼저 구현하고 같은 기능을 Studi
 - 공통 도면 작업은 기존 schema5 중간 이력을 가져오지 않고 `4e1dacc5c1b13a38b0fbaa4ef515db8086ead613`부터 `b0caf6bc75c97f09e6f317fdf4904a7dd7e7dcba`까지의 필요한 변경만 선택한다. 기존 공통 `drawing/issues.ts`의 충돌 보호를 보존하고 datum 검사 두 곳만 반영해야 한다. 다른 11경로의 공통 선행 파일 일치는 확인했다. 작업 ref는 로컬에만 있을 수 있으므로 원격 clone에 존재한다고 가정하지 않는다.
 - Outer는 공통 소스와 실행 자원 반환 뒤 복합 프레임 편집·Save/New/Open·잘못된 입력의 원본 보존을 실제 화면에서 확인한다. 아직 실행하지 않았다. 검증된 정확 소스만 제품에 통합한다.
 - 이번 갱신 때 사용량은 94% 사용, 유효 창 잔여 6%였다. secondary는 확인할 수 없다. 실제 중단 여부는 다음 도구 확인값으로 판단한다.
+
+## QUOTA_PAUSE — 2026-10-27
+
+Codex core primary는 95% 사용, 5% 남았다. secondary는 확인할 수 없다. 사용자 조건에 따라 여섯 담당에게 새 작업, 자동 다음 작업, 추가 쓰기와 신규 실행 중단을 전달했다. 검증하지 않은 후보는 제품에 합치지 않았다. 재개할 때 실제 사용량이 5%를 초과하고 사용자 지시와 자원 반환 상태를 확인한다.
+
+- Kernel: 개인 ref `codex/cad-current-drawing-contract-20261027`의 `95104906946c07c4c65ec2b00d00bd1498187721`, 부모 공통 `433a035ae03a61e55b0e03b6a9b9897083774800`. 기존 branch HEAD `ea838a312bcb8a1cc084ed56dd36213f08ac1361`, WIP 3개와 index 보존. source/runtime/slot/browser/archive 반환. 도면 source 결합 및 검사·제품 NOT_RUN.
+- Drawings: `codex/cad-drawing-datum-inputs-20261025`의 `b0caf6bc75c97f09e6f317fdf4904a7dd7e7dcba`, 부모 `47c2abe01800fae1ec44d60c85062674e8a20f14`. WIP 9개와 index 보존. 신규 runtime/slot/browser/source pin 없음. 정확한 공통 결합, 원본 검사·실제 파일·제품 NOT_RUN.
+- Outer: 정상 HEAD `dca48fc059fed996fd3de21ce61399e456dbdc8e`, 미커밋 11개는 `/Users/user/Documents/Codex/2026-10-24/cad-outer-20261024/work/outer-checkpoint-20261027/wip-inventory.json`과 일치. runtime/source pin 반환. 복합 프레임 브라우저·제품은 NOT_RUN. 복구 데이터 자동 삭제는 자동 승인 검토가 거부해 그대로 보존한다.
+- GPU: 별도 저장소 `/Users/user/Documents/Codex/2026-10-24/cad-gpu-20261024/work/gpu-readback-camera-20261026/check-out`, branch `codex/gpu-readback-camera-20261026`, HEAD `861ab440897db1759a783e0ce3ee3741007f59b3`, 부모 `4187210f948af23aedd6d1e21f7a2e0e5e3b4a33`. 복구 실패 전달·정리 소스이고 emit/CPU/WebGPU/lint/browser는 NOT_RUN. slot/process 없음. 검증 계획 `outputs/gpu-device-recovery-20261027/validation-plan.json` SHA256 `cc548f27f2e1596a61d8f05a616aaef10891c38713d635c05a35ad3b5fce6240`. GPU04.1 `133d29e9bbf640b035930b4210f9d6943917409e`도 별도 미검증 소스로 보존. GPU 통합은 사용자 지정 담당이 한다.
+- Docs: branch `codex/cad-docs-api-results-20261027`, HEAD `1036816497f5c6d625a7d610596e50d3d19f9c1f`. source clean, 실행 중인 소유 native/테스트 없음. 기존 서버 62039/62037/49260은 사용자 자원으로 보존. 공식 archive 반환은 미확인. 최종 공통 source/site/desktop 검사 NOT_RUN, docs heartbeat는 담당이 PAUSED.
+- Viewer: 별도 저장소 `/Users/user/Documents/Codex/2026-10-26/cad-viewer-20261026/viewer-sdk`의 branch `codex/viewer-sdk-20261026` HEAD `286e7646f1b9d34672b48afe70ad9f4bfac8a761`, clean. 크기 변경 오류 재시도 주입 단위검사 11개 PASS이며 실제 메모리 부족·브라우저 자동 재통지·제품은 미검증. 중단 및 소유 자원 반환의 최종 담당 확인은 아직 대기 중이다.
+
+공통 HEAD `433a035ae03a61e55b0e03b6a9b9897083774800`은 로컬에만 있을 수 있다. 검증된 최신 제품 코드는 `4bff492c6742cd5c4931ff83f0b35a606ed12230`이며 이후 문서 커밋은 새 제품 실행 PASS가 아니다. 원격 feature branch의 중단 직전 SHA는 `16eabdd8e55ff3bb8cb77bfa2769e1e7049be715`이고 이 SHA는 로컬 제품 HEAD의 조상임을 확인했다. 이 문서의 source-only refs와 외부 outputs는 자동으로 원격에 복사되지 않는다. 로컬 원본과 작업 디렉터리를 보존하고, 다른 컴퓨터에서 재개할 때는 해당 저장소와 원자료를 먼저 확보한다.
