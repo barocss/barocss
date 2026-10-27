@@ -49,7 +49,45 @@ export interface StudioDraftOptions { readonly angle: number; readonly pull?: 'x
 /** World-mm corners of a rectangular rib; dimensions may name existing parameters. */
 export interface StudioRibOptions { readonly min: readonly [Dim, Dim, Dim]; readonly max: readonly [Dim, Dim, Dim] }
 
+/** World-XY rectangular footprint and positive depth from a supported body's +Z top. */
+export interface StudioRectangularReliefOptions {
+  readonly min: readonly [Dim, Dim]; readonly max: readonly [Dim, Dim];
+  readonly depth: Dim; readonly mode: 'emboss' | 'engrave';
+}
+
 export class StudioPart extends Part<StudioDoc> {
+  /** One line-only upright slab only; no text, general faces or curved embossing. */
+  rectangularRelief(options: StudioRectangularReliefOptions): this {
+    const keys = ['min', 'max', 'depth', 'mode'];
+    if (!options || typeof options !== 'object' || Array.isArray(options) || Reflect.ownKeys(options).some(k => typeof k !== 'string' || !keys.includes(k)) || keys.some(k => !Object.hasOwn(options, k))) throw refuse('VALUE', 'rectangular relief takes min, max, depth and mode');
+    let copied: StudioRectangularReliefOptions;
+    try { copied = structuredClone(options); } catch { throw refuse('VALUE', 'rectangular relief options must be copied plain values'); }
+    if (copied.mode !== 'emboss' && copied.mode !== 'engrave') throw refuse('VALUE', 'rectangular relief mode is emboss or engrave');
+    const doc = this.document, before = bodiesOf(doc), target = this.target(), body = before.find(b => b.key === target);
+    if (!body) throw refuse('NO_BODY', 'rectangular relief needs one selected body');
+    const dim = (value: unknown): Dim => {
+      if (typeof value === 'number') {
+        if (!Number.isFinite(value) || Math.abs(value) > 10000) throw refuse('VALUE', 'rectangular relief values must be finite world-mm numbers within ±10000');
+        return value;
+      }
+      if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== 1 || !Object.hasOwn(value, 'parameter') || typeof (value as { parameter?: unknown }).parameter !== 'string') throw refuse('VALUE', 'rectangular relief dimensions are numbers or named parameters');
+      const parameter = (value as { parameter: string }).parameter;
+      if (!Object.hasOwn(doc.parameters, parameter)) throw refuse('PARAMETER_UNKNOWN', `no parameter ${parameter}`);
+      return { parameter };
+    };
+    const point = (value: unknown): [Dim, Dim] => {
+      if (!Array.isArray(value) || value.length !== 2) throw refuse('VALUE', 'rectangular relief footprint corners need two coordinates');
+      return [dim(value[0]), dim(value[1])];
+    };
+    const node: ModelNode = { kind: 'rectangular-relief', parent: refOf(body), min: point(copied.min), max: point(copied.max), depth: dim(copied.depth), mode: copied.mode };
+    const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the rectangular relief: ${why}`);
+    const next = withNode(doc, node), after = bodiesOf(next).map(b => b.key);
+    if (this.focus === null) return this.next(next, null);
+    const made = after.filter(key => !before.some(b => b.key === key));
+    return this.next(next, after.includes(this.focus) ? this.focus : made.length === 1 ? made[0] : null);
+  }
+
   /** Add material to one line-only upright solid with positive interior overlap; unsupported targets refuse. */
   rib(options: StudioRibOptions): this {
     if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).length !== 2 || !Object.hasOwn(options, 'min') || !Object.hasOwn(options, 'max')) throw refuse('VALUE', 'rib takes min and max world-mm corners');

@@ -122,6 +122,8 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'union' | 'difference' | 'intersect'; readonly target: string; readonly tool: string }
   /** Add a world-axis-aligned rectangular rib to one straight-sided upright solid; actual overlap and added material must both have positive volume. */
   | { readonly kind: 'rib'; readonly target: string; readonly min: CadPartPoint3; readonly max: CadPartPoint3 }
+  /** A supported XY rectangle raised above or recessed below the top of one straight-sided, single-slab upright solid. Depth is positive world mm, below the body's height. */
+  | { readonly kind: 'rectangular-relief'; readonly target: string; readonly min: CadPartPoint2; readonly max: CadPartPoint2; readonly depth: CadPartDim; readonly mode: 'emboss' | 'engrave' }
   /**
    * A hole along `axis` (default z) through the target, or `depth` deep from its `side` (default max:
    * the top for z). `center` is in the other two coordinates in order: z → [x, y], x → [y, z], y → [x, z].
@@ -1439,6 +1441,37 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const volume = empty(joined) ? 0 : exactVolume(joined);
         if (joinedBrep.bodies.length !== 1 || joinedBrep.bodies[0].kind !== 'solid' || !(Number.isFinite(volume) && volume > 0)) fail('GEOMETRY', 'rib union must be one nonempty solid');
         return one(joined);
+      };
+    }
+    case 'rectangular-relief': {
+      const target = solids(f.target, 'target'), min = xy(f.min as CadPartPoint2, 'min'), max = xy(f.max as CadPartPoint2, 'max'), depth = dim(f.depth as CadPartDim, 'depth', true), mode = f.mode;
+      if (mode !== 'emboss' && mode !== 'engrave') fail('INPUT', 'rectangular relief mode must be emboss or engrave');
+      if (!min.every((v, k) => v < max[k])) fail('PARAMETER', 'rectangular relief min must be below max on both axes');
+      if (target.length !== 1) fail('REFERENCE', 'rectangular relief target must be one nonempty solid');
+      const source = target[0].solid, body = brepOf({ solid: source }, at);
+      if (body.bodies.length !== 1 || body.bodies[0].kind !== 'solid') fail('REFERENCE', 'rectangular relief target must be one nonempty solid');
+      const prism = source.kind === 'upright' && lineOnly(source.solid) && source.solid.slabs.length === 1 ? source.solid : fail('CAPABILITY', 'rectangular relief requires one straight-sided upright slab with a planar top');
+      const slab = prism.slabs[0];
+      if (!(depth < slab.z1 - slab.z0)) fail('PARAMETER', 'rectangular relief depth must be below the target height');
+      const top = dim(slab.z1 + depth, 'relief tool top');
+      return () => {
+        // Full-height support tests the actual footprint, including holes and concavities, not its AABB.
+        const support = boxSolid([min[0], min[1], slab.z0], [max[0], max[1], slab.z1], `${at}.support`);
+        if (!empty(boolean(support, source, 'difference', at))) fail('GEOMETRY', 'rectangular relief footprint must be fully supported by the target top');
+        // Existing material seats the raised rectangle; the external portion adds exactly the authored depth.
+        const tool = boxSolid([min[0], min[1], slab.z1 - depth], [max[0], max[1], top], at);
+        const overlap = boolean(source, tool, 'intersection', at), removed = empty(overlap) ? 0 : exactVolume(overlap);
+        if (!(Number.isFinite(removed) && removed > 0)) fail('GEOMETRY', 'rectangular relief must overlap positive target volume');
+        if (mode === 'emboss') {
+          const extra = boolean(tool, source, 'difference', at), added = empty(extra) ? 0 : exactVolume(extra);
+          if (!(Number.isFinite(added) && added > 0)) fail('GEOMETRY', 'rectangular relief must add positive volume');
+        }
+        const result = boolean(source, tool, mode === 'emboss' ? 'union' : 'difference', at), resultBrep = brepOf({ solid: result }, at);
+        const volume = empty(result) ? 0 : exactVolume(result);
+        if (resultBrep.bodies.length !== 1 || resultBrep.bodies[0].kind !== 'solid' || !(Number.isFinite(volume) && volume > 0)) fail('GEOMETRY', 'rectangular relief result must be one nonempty solid');
+        const sourceVolume = exactVolume(source), change = mode === 'emboss' ? volume - sourceVolume : sourceVolume - volume;
+        if (!(Number.isFinite(change) && change > 0)) fail('GEOMETRY', 'rectangular relief must change positive target volume');
+        return one(result);
       };
     }
     case 'hole': {

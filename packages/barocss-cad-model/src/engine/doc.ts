@@ -154,6 +154,8 @@ type ModelNodeBase = SketchNode
   | { kind: 'difference'; parent: BodyRef; tool: BodyRef; made?: Made }
   /** Axis-aligned rectangular rib; the Kernel requires positive overlap and positive added material on one line-only upright solid. */
   | { kind: 'rib'; parent: BodyRef; min: [Dim, Dim, Dim]; max: [Dim, Dim, Dim] }
+  /** Rectangular +Z top relief on one straight-sided upright slab; not text or arbitrary-surface embossing. */
+  | { kind: 'rectangular-relief'; parent: BodyRef; min: [Dim, Dim]; max: [Dim, Dim]; depth: Dim; mode: 'emboss' | 'engrave' }
   /** Across `axis` = at, or with `normal` across the plane normal·p = at (an oblique cut: x + y = at for [1, 1, 0]). */
   | { kind: 'split'; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] }
   /** The sketch swept along straight runs and bends (from the sketch plane up +Z). */
@@ -829,6 +831,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'intersect': return 'Intersect';
     case 'difference': return 'Subtract';
     case 'rib': return 'Rib';
+    case 'rectangular-relief': return node.mode === 'emboss' ? 'Rectangular emboss' : 'Rectangular engrave';
     case 'translate': return 'Move';
     case 'rotate': return `Rotate ${node.angle}°`;
     case 'mirror': return `Mirror ${node.plane.toUpperCase()}`;
