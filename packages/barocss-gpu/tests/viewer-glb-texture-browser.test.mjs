@@ -73,6 +73,21 @@ test('embedded PNG and JPEG base colour: UV, colour, rejection and texture clean
             options: prepared.textures[0].options, opacity: row.material.opacity, pixels: samplePixels(frame), disposed: map.disposed };
         }
         const fixture = await textureSample('image/png');
+        // Uniform UVs outside the image distinguish address modes; a texel boundary distinguishes filters.
+        const samplerPixel = async (u,v,wrap,filter) => {
+          const json = structuredClone(fixture.json), bin = fixture.bin.slice(), data = new DataView(bin.buffer);
+          for (let i = 0; i < 4; i++) { data.setFloat32(108+i*8,u,true); data.setFloat32(112+i*8,v,true); }
+          Object.assign(json.samplers[0], { wrapS: wrap, wrapT: wrap, minFilter: filter, magFilter: filter });
+          const group = await api.materializeGlbTextures(viewer,api.prepareTexturedGlb(packTexturedGlb(json,bin))); groups.push(group);
+          const row = group.primitives[0], geometry = viewer.createGeometry(row.geometry);
+          const mesh = viewer.add(geometry,{ material: { ...row.material, unlit: true }, transform: row.transform });
+          try { return pixel(await viewer.capture(),48,48); }
+          finally { mesh.remove(); geometry.dispose(); group.dispose(); }
+        };
+        const samplerPixels = {
+          clamp: await samplerPixel(-0.25,0.25,33071,9728), repeat: await samplerPixel(-0.25,0.25,10497,9728),
+          nearest: await samplerPixel(0.5,0.25,33071,9728), linear: await samplerPixel(0.5,0.25,33071,9729),
+        };
         const parserFailures = [
           mutate(fixture,j => { delete j.meshes[0].primitives[0].attributes.TEXCOORD_0; }),
           mutate(fixture,j => { j.accessors[3].type = 'VEC3'; }),
@@ -131,8 +146,54 @@ test('embedded PNG and JPEG base colour: UV, colour, rejection and texture clean
         try { partialFailure = await failAsync(() => api.materializeGlbTextures(viewer,api.prepareTexturedGlb(packTexturedGlb(j,bin)))); }
         finally { delete viewer.createTexture; }
         const partialCleanup = { count: allocated.length, allDisposed: allocated.every(texture => texture.disposed) };
+        // A render callback can throw during disposal; both textures must still be offered cleanup.
+        const callbackCanvas = document.createElement('canvas'); callbackCanvas.width = callbackCanvas.height = 96; document.body.append(callbackCanvas);
+        let throwOnRequest = false, callbackThrows = 0;
+        const callbackViewer = await api.createViewer(callbackCanvas, { controls: false, autoResize: false, antialias: false, pixelRatio: 1, background: '#000000', lights: [],
+          onRequestRender: () => { if (throwOnRequest) { callbackThrows++; throw new Error('cleanup callback sentinel'); } }, onError: message => reports.push(message) });
+        const callbackTextures = [], callbackCreate = callbackViewer.createTexture;
+        callbackViewer.createTexture = function (...args) { const texture = Reflect.apply(callbackCreate,this,args); callbackTextures.push(texture); if (callbackTextures.length === 2) throwOnRequest = true; return texture; };
+        const callbackJson = structuredClone(j); callbackJson.textures.splice(1,0,structuredClone(callbackJson.textures[0]));
+        callbackJson.materials[1].pbrMetallicRoughness.baseColorTexture.index = 2;
+        let callbackFailure, callbackCleanup;
+        try {
+          callbackFailure = await failAsync(() => api.materializeGlbTextures(callbackViewer,api.prepareTexturedGlb(packTexturedGlb(callbackJson,bin))));
+          callbackCleanup = { count: callbackTextures.length, allDisposed: callbackTextures.every(texture => texture.disposed), callbackThrows };
+        } finally { throwOnRequest = false; delete callbackViewer.createTexture; callbackViewer.dispose(); }
+        // Hold only after native image decode has completed, then destroy this test viewer's device.
+        const lossCanvas = document.createElement('canvas'); lossCanvas.width = lossCanvas.height = 96; document.body.append(lossCanvas);
+        const lossReports = [];
+        const lossViewer = await api.createViewer(lossCanvas, { controls: false, autoResize: false, antialias: false, pixelRatio: 1, background: '#000000', lights: [],
+          onRequestRender: () => {}, onError: message => lossReports.push(message) });
+        const oldDevice = lossViewer.computeDevice, originalBitmap = Object.getOwnPropertyDescriptor(globalThis,'createImageBitmap');
+        const nativeBitmap = globalThis.createImageBitmap, nativeCreate = lossViewer.createTexture, lossTextures = [];
+        let releaseDecode, ready, rejectReady, bitmapCalls = 0;
+        const gate = new Promise(resolve => { releaseDecode = resolve; });
+        const decoded = new Promise((resolve,reject) => { ready = resolve; rejectReady = reject; });
+        lossViewer.createTexture = function (...args) { const texture = Reflect.apply(nativeCreate,this,args); lossTextures.push(texture); return texture; };
+        Object.defineProperty(globalThis,'createImageBitmap',{ configurable: true, writable: true, value: function (...args) {
+          const result = Reflect.apply(nativeBitmap,this,args); bitmapCalls++;
+          if (bitmapCalls !== 2) return result;
+          return result.then(bitmap => { ready({ width: bitmap.width, height: bitmap.height }); return gate.then(() => bitmap); }, error => { rejectReady(error); throw error; });
+        } });
+        let deviceLoss;
+        try {
+          const pendingLoss = failAsync(() => api.materializeGlbTextures(lossViewer,api.prepareTexturedGlb(pendingBytes)));
+          const nativeDecoded = await Promise.race([decoded, pendingLoss.then(result => { throw new Error(`Materialize ended before native decode gate: ${JSON.stringify(result)}`); }),
+            new Promise((_,reject) => setTimeout(() => reject(new Error('Native image decode did not reach the gate')),10000))]);
+          lossViewer.loseDeviceForTesting(); const lost = await oldDevice.lost;
+          if (lossViewer.recovery) await lossViewer.recovery;
+          const replaced = lossViewer.ready && lossViewer.computeDevice !== oldDevice;
+          releaseDecode(); const outcome = await pendingLoss;
+          deviceLoss = { nativeDecoded, bitmapCalls, lostReason: lost.reason, replaced, outcome,
+            created: lossTextures.length, allDisposed: lossTextures.every(texture => texture.disposed), reports: lossReports };
+        } finally {
+          releaseDecode();
+          if (originalBitmap) Object.defineProperty(globalThis,'createImageBitmap',originalBitmap); else delete globalThis.createImageBitmap;
+          delete lossViewer.createTexture; lossViewer.dispose();
+        }
         const validation = (await device.popErrorScope())?.message ?? null;
-        return { samples, parserFailures, alphaIgnored, sharing, snapshot, decodeFailure, alphaFailure, partialFailure, partialCleanup, validation, reports };
+        return { samples, samplerPixels, parserFailures, alphaIgnored, sharing, snapshot, decodeFailure, alphaFailure, partialFailure, partialCleanup, callbackFailure, callbackCleanup, deviceLoss, validation, reports };
       } finally { for (const group of groups) group.dispose(); viewer.dispose(); }
     });
     result.errors = errors; t.diagnostic(JSON.stringify(result));
@@ -145,6 +206,13 @@ test('embedded PNG and JPEG base colour: UV, colour, rejection and texture clean
       assert.deepEqual(item.options,{ srgb: true, mipmaps: false, wrap: 'clamp', filter: 'nearest' });
       item.pixels.forEach((p,i) => p.forEach((v,c) => assert.ok(Math.abs(v-expected[i][c]) <= tolerance, `${mime} pixel ${i} channel ${c}: ${v} != ${expected[i][c]}`)));
     }
+    const nearPixel = (actual,want,tolerance,label) => actual.forEach((v,c) => assert.ok(Math.abs(v-want[c]) <= tolerance, `${label} channel ${c}: ${v} != ${want[c]}`));
+    nearPixel(result.samplerPixels.clamp,expected[0],3,'clamp'); nearPixel(result.samplerPixels.repeat,expected[1],3,'repeat');
+    const decode = c => { const x = c / 255; return x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; };
+    const encode = x => Math.round(255 * (x <= 0.0031308 ? x * 12.92 : 1.055 * x ** (1 / 2.4) - 0.055));
+    const midpoint = [0,1,2].map(c => encode((decode(expected[0][c]) + decode(expected[1][c])) / 2)); midpoint.push(255);
+    nearPixel(result.samplerPixels.linear,midpoint,5,'linear boundary');
+    assert.ok([expected[0],expected[1]].some(color => result.samplerPixels.nearest.every((v,c) => Math.abs(v-color[c]) <= 3)),`nearest boundary: ${result.samplerPixels.nearest}`);
     assert.equal(result.alphaIgnored,1); assert.ok(result.parserFailures.every(e => e?.code === 'GEOMETRY_INVALID'),JSON.stringify(result.parserFailures));
     assert.deepEqual(result.sharing,{ primitiveCount: 2, textureCount: 1, sameMap: true, disposed: true });
     assert.deepEqual(result.snapshot.uv,[0,1,1,1,1,0,0,0]); assert.equal(result.snapshot.transformX,0);
@@ -154,6 +222,12 @@ test('embedded PNG and JPEG base colour: UV, colour, rejection and texture clean
     assert.equal(result.decodeFailure?.code,'TEXTURE_INVALID'); assert.equal(result.alphaFailure?.code,'TEXTURE_INVALID');
     assert.equal(result.partialFailure?.code,'TEXTURE_INVALID'); assert.equal(result.partialCleanup.count,1,JSON.stringify(result.partialCleanup));
     assert.equal(result.partialCleanup.allDisposed,true,JSON.stringify(result.partialCleanup));
+    assert.equal(result.callbackFailure?.code,'TEXTURE_INVALID'); assert.equal(result.callbackFailure?.message,result.partialFailure?.message);
+    assert.deepEqual(result.callbackCleanup,{ count: 2, allDisposed: true, callbackThrows: 2 });
+    assert.deepEqual(result.deviceLoss.nativeDecoded,{ width: 32, height: 32 }); assert.equal(result.deviceLoss.bitmapCalls,2);
+    assert.equal(result.deviceLoss.replaced,true); assert.equal(result.deviceLoss.outcome?.code,'DEVICE_LOST');
+    assert.equal(result.deviceLoss.created,1); assert.equal(result.deviceLoss.allDisposed,true);
+    assert.deepEqual(result.deviceLoss.reports,[]);
     assert.equal(result.validation,null); assert.deepEqual(result.reports,[]); assert.deepEqual(errors,[]);
   } catch (error) {
     if (evidence) {

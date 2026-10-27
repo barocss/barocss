@@ -83,7 +83,7 @@ export function glbTextures(gltf: Obj, bin: Uint8Array, bufferLength: number, vi
     if (texturePixels > 33_554_432 || textureBytes > 64 * 1024 * 1024) fail('texture instances exceed the resource limit');
     const sampler = texture.sampler === undefined ? {} : object(samplers[ref(texture.sampler, samplers, 'texture.sampler')], 'sampler');
     keys(sampler, ['wrapS', 'wrapT', 'minFilter', 'magFilter', 'name', 'extras'], 'sampler');
-    const wrapS = sampler.wrapS ?? 10497, wrapT = sampler.wrapT ?? 10497;
+    const wrapS = sampler.wrapS === undefined ? 10497 : sampler.wrapS, wrapT = sampler.wrapT === undefined ? 10497 : sampler.wrapT;
     if (wrapS !== wrapT || (wrapS !== 10497 && wrapS !== 33071)) fail('sampler wrapping is not supported by the viewer');
     const min = sampler.minFilter, mag = sampler.magFilter;
     if (min !== undefined && min !== 9728 && min !== 9729 && min !== 9984 && min !== 9987) fail('sampler minification is not supported by the viewer');

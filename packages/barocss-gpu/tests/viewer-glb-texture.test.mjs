@@ -1,7 +1,7 @@
 // Focused CPU tests for the 03.2 textured-GLB parser; no browser or GPU resources.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { prepareGlb, prepareTexturedGlb } from '../dist/viewer/index.js';
+import { materializeGlbTextures, prepareGlb, prepareTexturedGlb } from '../dist/viewer/index.js';
 import { glb, triangleFixture } from './viewer-glb-fixture.mjs';
 
 const invalid = error => error?.code === 'GEOMETRY_INVALID';
@@ -41,7 +41,7 @@ test('03.2 accepts represented nearest and linear sampling with matching U/V wra
 });
 
 test('03.2 rejects sampler combinations the viewer cannot represent', () => {
-  const edits = [s => { s.wrapS = 10497; }, s => { s.wrapS = s.wrapT = 33648; }, s => { s.magFilter = 9729; }, s => { s.minFilter = 9985; }, s => { s.minFilter = 9986; }];
+  const edits = [s => { s.wrapS = 10497; }, s => { s.wrapS = s.wrapT = 33648; }, s => { s.wrapS = null; }, s => { s.wrapT = null; }, s => { s.magFilter = 9729; }, s => { s.minFilter = 9985; }, s => { s.minFilter = 9986; }];
   for (const edit of edits) { const f = fixture(); edit(f.json.samplers[0]); assert.throws(() => prepareTexturedGlb(make(f)),invalid); }
 });
 
@@ -65,4 +65,18 @@ test('03.2 shares one texture index across primitives and keeps OPAQUE material 
   assert.equal(prepared.textures.length,1); assert.equal(prepared.primitives.length,2);
   assert.deepEqual(prepared.primitives.map(p => p.baseColorTexture),[0,0]);
   assert.deepEqual(prepared.primitives.map(p => p.material.opacity),[1,1]);
+});
+
+test('03.2 materialize rejects altered required geometry, indices and unsupported material fields', async () => {
+  const viewer = { ready: true, computeDevice: { limits: { maxTextureDimension2D: 4096 } } };
+  const mutations = [
+    p => { delete p.geometry.normals; }, p => { delete p.geometry.indices; },
+    p => { p.geometry.indices = new Uint16Array(); }, p => { p.geometry.indices = new Uint16Array([0,1]); },
+    p => { p.geometry.indices[2] = 3; }, p => { p.geometry.indices[2] = 65535; },
+    p => { p.material.shadowOnly = true; }, p => { p.material.emissive = 1; },
+  ];
+  for (const mutate of mutations) {
+    const prepared = prepareTexturedGlb(make(fixture())); mutate(prepared.primitives[0]);
+    await assert.rejects(materializeGlbTextures(viewer,prepared), error => error?.code === 'TEXTURE_INVALID');
+  }
 });

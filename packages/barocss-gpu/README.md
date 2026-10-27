@@ -150,19 +150,31 @@ to 4096 pixels per axis and 16,777,216 pixels. The total is limited to
 33,554,432 decoded pixels and 64 MiB of compressed image bytes. Texture
 references count separately towards both totals, even when they share an image.
 The viewer device's texture dimension limit also applies.
+The candidate maps supported mipmap options to the viewer's sampler. Actual
+minified rendering with mipmaps has not yet been verified.
+
+`materializeGlbTextures` accepts the material and geometry fields produced by
+`prepareTexturedGlb`. It refuses added fields outside that parser subset, missing
+normals or indices, and invalid indices with `TEXTURE_INVALID`. Apply other
+viewer material options, such as `unlit`, when adding the materialized mesh.
+The function copies its inputs before asynchronous image decoding.
 
 Invalid or unsupported GLB data is refused with `GEOMETRY_INVALID`; image decode
-failure and non-opaque pixels are refused with `TEXTURE_INVALID`. A failed
-materialization disposes textures it already created. Keep the returned scene
+failure and non-opaque pixels are refused with `TEXTURE_INVALID`. A device change
+or recovery during decoding returns `DEVICE_LOST`; viewer disposal returns
+`DISPOSED`. If a device limit no longer permits an image, it returns
+`TEXTURE_INVALID`. A failed materialization attempts to dispose every texture it
+already created and preserves the original failure if a render callback throws
+during cleanup. Keep the returned scene
 and its pixel sources alive until it is no longer used: the viewer needs them
 to restore textures after device loss. `scene.dispose()` is safe to repeat.
 It disposes the texture resources, but the current viewer can retain their CPU
 pixel sources in its texture collection until `viewer.dispose()`. Replacing
 scenes does not guarantee immediate release of that CPU memory.
 
-The 03.2 source candidate is complete. Its new build, tests, lint and browser
-validation have not yet run. This candidate is not product integration or
-external-asset acceptance.
+The 03.2 source candidate includes these follow-up fixes. Its new build, tests,
+lint and browser validation have not yet run. This candidate is not product
+integration or external-asset acceptance.
 
 The CSS-shaped scene language shows on it with one call: `showScene(viewer, source)` compiles a scene
 source (version 0 or 1), adds a mesh per object with its placement and colour (`view.meshes` by id, picks
