@@ -60,7 +60,8 @@ export function glbTextures(gltf: Obj, bin: Uint8Array, bufferLength: number, vi
   const decodedImages = images.map((entry, i) => {
     const image = object(entry, `image[${i}]`);
     keys(image, ['bufferView', 'mimeType', 'name', 'extras'], `image[${i}]`);
-    if (image.mimeType !== 'image/png' && image.mimeType !== 'image/jpeg') fail('only embedded PNG or JPEG images are supported');
+    const mimeType: PreparedGlbTexture['mimeType'] = image.mimeType === 'image/png' ? 'image/png'
+      : image.mimeType === 'image/jpeg' ? 'image/jpeg' : fail('only embedded PNG or JPEG images are supported');
     const view = object(views[ref(image.bufferView, views, 'image.bufferView')], 'image.bufferView');
     keys(view, ['buffer', 'byteOffset', 'byteLength', 'name', 'extras'], 'image.bufferView');
     if (view.buffer !== 0) fail('image.bufferView must use the GLB buffer');
@@ -69,10 +70,10 @@ export function glbTextures(gltf: Obj, bin: Uint8Array, bufferLength: number, vi
     if (!length || offset + length > bufferLength || !Number.isSafeInteger(offset + length)) fail('image bufferView exceeds the buffer');
     totalBytes += length;
     if (totalBytes > 64 * 1024 * 1024) fail('embedded images exceed the byte limit');
-    const bytes = new Uint8Array(bin.subarray(offset, offset + length)), size = glbImageSize(bytes, image.mimeType);
+    const bytes = new Uint8Array(bin.subarray(offset, offset + length)), size = glbImageSize(bytes, mimeType);
     totalPixels += size.width * size.height;
     if (totalPixels > 33_554_432) fail('embedded images exceed the pixel limit');
-    return { bytes, mimeType: image.mimeType, size };
+    return { bytes, mimeType, size };
   });
   let texturePixels = 0, textureBytes = 0;
   return textures.map((entry, i) => {
