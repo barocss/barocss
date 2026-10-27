@@ -39,6 +39,7 @@ type ViewModel = {
   startupState: 'starting' | 'available' | 'failed';
   startupFailure: string;
   deviceStatus: string;
+  deviceFailure: string;
   active: DocumentSummary | null;
   admitted: string[];
   state: ViewerState | null;
@@ -73,7 +74,7 @@ type ViewModel = {
 };
 
 const initialModel: ViewModel = {
-  ready: false, startupState: 'starting', startupFailure: '', deviceStatus: '', active: null, admitted: [], state: null, search: '',
+  ready: false, startupState: 'starting', startupFailure: '', deviceStatus: '', deviceFailure: '', active: null, admitted: [], state: null, search: '',
   candidate: null, admissionIds: [], admissionError: '', status: 'Starting Viewer…',
   statusError: false, exportStatus: '', exportBusy: false, reviewBusy: false, viewPreset: null, pickFilter: 'all',
   appearanceTarget: '', appearancePreset: 'default', appearanceNote: 'Load a Surface to change its appearance.',
@@ -441,6 +442,14 @@ export function App() {
                 : 'CAD model. Drag to orbit, Shift-drag to pan, and scroll to zoom.'} />
             {model.deviceStatus !== 'WebGPU device lost' && model.deviceStatus !== 'WebGPU recovery failed'
               && <MeasurementOverlay {...model.measurementOverlay} />}
+            {model.deviceStatus === 'WebGPU recovery failed' && <div id="device-failure" className="empty-state device-failure">
+              <div className="empty-content" role="alert">
+                <h2>The display stopped</h2>
+                <p>The graphics device was lost and could not be restarted. Your files are unchanged. Reload the page to view again.</p>
+                {model.deviceFailure && <p className="device-failure-reason">{model.deviceFailure}</p>}
+                <Button id="device-reload" className="button-primary" variant="default" size="sm" onClick={() => window.location.reload()}>Reload page</Button>
+              </div>
+            </div>}
             <div id="empty-state" className="empty-state" hidden={model.ready}>
               <div className="empty-content" role={model.startupState === 'failed' ? 'alert' : undefined}>
                 <svg className="empty-document-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M9 4h10l5 5v19H9V4Z" /><path d="M19 4v6h5M13 16h7m-7 5h7" /></svg>

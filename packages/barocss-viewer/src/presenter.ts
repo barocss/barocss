@@ -113,11 +113,18 @@ export class Presenter {
         this.emitDeviceEvent({ type: 'recreated' });
       }
     };
+    core.onRecoverError = error => {
+      if (this.disposed) return;
+      this.awaitingRecreation = false;
+      this.emitDeviceEvent({ type: 'recovery-failed', message: error.message, cause: error.cause });
+    };
     // A loss can occur before createCore resolves and this listener is attached.
     if (core.stats.deviceLosses > 0) {
       this.reportedLosses = core.stats.deviceLosses;
       this.awaitingRecreation = true;
       this.emitDeviceEvent({ type: 'lost' });
+      // (A recovery that already failed before this listener was attached: nothing is drawing.)
+      if (core.ready === false && core.recovery === null) this.emitDeviceEvent({ type: 'recovery-failed', message: 'The GPU device was lost and could not be recreated.', cause: null });
     }
     this.watchDevice();
   }
@@ -150,7 +157,7 @@ export class Presenter {
       core.setSize(canvas.width, canvas.height);
       return new Presenter(core, onDeviceEvent);
     } catch (error) {
-      core.onRecover = null;
+      core.onRecover = null; core.onRecoverError = null;
       try { core.dispose(); }
       catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Viewer creation and cleanup failed'); }
       throw error;
@@ -231,7 +238,7 @@ export class Presenter {
 
   dispose(): void {
     if (this.disposed) return;
-    this.disposed = true; this.watchedDevice = null; this.core.onRecover = null;
+    this.disposed = true; this.watchedDevice = null; this.core.onRecover = null; this.core.onRecoverError = null;
     this.meshes = []; this.core.dispose();
   }
 }

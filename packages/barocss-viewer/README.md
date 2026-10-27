@@ -89,8 +89,11 @@ and native Surface path.
 `{ type: 'lost' }` when a GPU device loss is observed, and
 `{ type: 'recreated' }` when the GPU core reports a replacement device. The
 replacement event does not confirm that a frame was drawn or pixels were
-restored. Device recreation may fail; there is no typed failure event in this
-contract. Applications should not infer success from the absence of an error.
+restored. When the core cannot replace the device it sends
+`{ type: 'recovery-failed', message, cause }`: `cause` is the core's original
+failure (from the GPU viewer's `onRecoverError`, a `DEVICE_LOST` error). The
+view then stays blank and `readPixels()` rejects; make a new viewer to draw
+again. Applications should not infer success from the absence of an error.
 
 The callback can run before `createViewer` resolves if a loss occurs during
 creation. When a loss and its completed recovery both precede listener setup,

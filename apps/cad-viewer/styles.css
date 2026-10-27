@@ -136,6 +136,9 @@ input.body-visibility:disabled { opacity: .35; cursor: default; }
 .empty-content h2 { margin: 0; color: #dce7ee; font-size: 18px; font-weight: 500; line-height: 1.5; letter-spacing: -.3px; }
 .empty-content h2 + button { margin-top: 20px; }
 .empty-content button { gap: 16px; min-height: 34px; padding: 0 13px; font-size: 12px; }
+.device-failure p { margin: 10px 0 0; color: #a9bac6; font-size: 13px; line-height: 1.5; }
+.device-failure .device-failure-reason { color: #7f95a4; font-size: 12px; overflow-wrap: anywhere; }
+.device-failure button { margin-top: 18px; }
 
 .inspector-panel { position: relative; display: flex; flex-direction: column; border-left: 1px solid var(--line); overflow: auto; scrollbar-width: thin; scrollbar-color: #46525c transparent; }
 .inspector-panel > .inspector-heading, .inspector-panel > .inspector-section { flex-shrink: 0; }

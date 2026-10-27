@@ -16,7 +16,7 @@ import type { BaroCadModelSetLoadOptions, BaroCadModelSetManifest,
 import { prepareMesh, validateMeshCamera, validatePreviewPacket, validateMeshMaterialBinding, prepareClothLayer,
   validateUniformCurvePreview, validateSelectedUniformCurvePreview, prepareMixedDepthFrame, resolveMixedDepthFrame,
   prepareQualifiedFaceScene, resolveQualifiedFaceScene, prepareBooleanShellBuffers } from '@barocss/gpu';
-import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1,
+import type { MeshCamera, MeshLighting, PreviewPacket,
   PrimitiveSceneEntryV2, MeshMaterialBinding, ParticleLayerV0, ClothLayerV0,
   UniformCurvePreview, SelectedUniformCurvePreview, QualifiedFaceSceneV0, BooleanShellSceneInputV0 } from '@barocss/gpu';
 import { Presenter, itemsOf, DEFAULT_LIGHTING } from './presenter.js';
@@ -75,8 +75,11 @@ type Vec3 = [number, number, number];
 /** A vector only read (gpu's readonly Vec3 passes as one, R7.3c). */
 type ReadVec3 = readonly [number, number, number];
 type Quat = [number, number, number, number];
-/** Device recreation does not establish that a frame or its pixels have been restored. */
-export type ViewerDeviceEvent = { type: 'lost' } | { type: 'recreated' };
+/**
+ * Device recreation does not establish that a frame or its pixels have been restored. `recovery-failed`: the GPU core
+ * could not replace a lost device; the view stays blank until the page makes a new viewer. `cause` is the core's failure.
+ */
+export type ViewerDeviceEvent = { type: 'lost' } | { type: 'recreated' } | { type: 'recovery-failed'; message: string; cause: unknown };
 export interface ViewerOptions {
   mmToSceneUnit: number;
   background: Vec3;

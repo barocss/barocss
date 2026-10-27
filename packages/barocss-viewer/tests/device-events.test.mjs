@@ -151,3 +151,27 @@ test('Viewer constructor and presenter disposal errors are both retained', async
     return true;
   });
 });
+
+test('a failed recovery is reported with the core error and its cause, and dispose detaches it', async () => {
+  const core = fakeCore(), events = [];
+  globalThis.__deviceEventCoreCreate = async () => core;
+  const viewer = await api.createViewer(new HTMLCanvasElement(), { ...config(), onDeviceEvent: event => events.push(event) });
+  core.computeDevice.lose(); await tick();
+  const cause = new Error('requestDevice refused');
+  core.onRecoverError(Object.assign(new Error('Device lost (test) and could not be recreated: requestDevice refused'), { code: 'DEVICE_LOST', cause }));
+  assert.deepEqual(events.map(e => e.type), ['lost', 'recovery-failed']);
+  assert.equal(events[1].message, 'Device lost (test) and could not be recreated: requestDevice refused');
+  assert.equal(events[1].cause, cause);
+  // (A replacement that never came is not reported as recreated.)
+  core.onRecover?.(); assert.deepEqual(events.map(e => e.type), ['lost', 'recovery-failed']);
+  viewer.dispose();
+  assert.equal(core.onRecoverError, null);
+});
+
+test('a recovery that failed before SDK creation is reported once after the loss', async () => {
+  const core = Object.assign(fakeCore(1), { ready: false, recovery: null }), events = [];
+  globalThis.__deviceEventCoreCreate = async () => core;
+  const viewer = await api.createViewer(new HTMLCanvasElement(), { ...config(), onDeviceEvent: event => events.push(event.type) });
+  assert.deepEqual(events, ['lost', 'recovery-failed']);
+  viewer.dispose();
+});

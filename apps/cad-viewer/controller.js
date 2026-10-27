@@ -70,7 +70,7 @@ function assemblyPointQuery(point) {
 /** Own the SDK lifetime and commands. React owns every screen element. */
 export function createViewerController({ canvas, stage, onChange }) {
   let viewer, active = null, candidate = null, admitted = [], admissionIds = [];
-  let startupState = 'starting', startupFailure = '', deviceStatus = '', disposed = false, startCalled = false, search = '';
+  let startupState = 'starting', startupFailure = '', deviceStatus = '', deviceFailure = '', disposed = false, startCalled = false, search = '';
   let documentEpoch = 0, reviewEpoch = 0, frameGeneration = 0, lastGuard;
   let png, pointerControls, keyboardControls, resizeObserver;
   let appearanceTarget = '', appearancePreset = 'default', appearanceBinding;
@@ -186,7 +186,7 @@ export function createViewerController({ canvas, stage, onChange }) {
           && view.up.every((value, index) => Math.abs(value - camera.up[index]) < 1e-6))?.[0] ?? null;
       }
     }
-    onChange({ ready: loaded(), startupState, startupFailure, deviceStatus, active: summary(active), admitted: [...admitted], state,
+    onChange({ ready: loaded(), startupState, startupFailure, deviceStatus, deviceFailure, active: summary(active), admitted: [...admitted], state,
       search, candidate: summary(candidate), admissionIds: [...admissionIds], admissionError,
       status, statusError, exportStatus, exportBusy, reviewBusy, viewPreset, appearanceTarget,
       appearancePreset, appearanceNote, lightingCapabilities: viewer?.getLightingCapabilities() ?? null,
@@ -355,9 +355,9 @@ export function createViewerController({ canvas, stage, onChange }) {
             if (event.type === 'lost') {
               if (deviceStatus !== 'WebGPU recovery failed') deviceStatus = 'WebGPU device lost';
             }
-            // Candidate event name; the GPU recovery-failure contract is not connected yet.
-            else if (event.type === 'recovery-failed') deviceStatus = 'WebGPU recovery failed';
-            else if (event.type === 'recreated') deviceStatus = 'WebGPU device recreated';
+            // The GPU core could not replace the device: nothing draws again until the page makes a new viewer.
+            else if (event.type === 'recovery-failed') { deviceStatus = 'WebGPU recovery failed'; deviceFailure = event.message || ''; }
+            else if (event.type === 'recreated') { deviceStatus = 'WebGPU device recreated'; deviceFailure = ''; }
             else return;
             refresh();
           } });
@@ -431,7 +431,7 @@ export function createViewerController({ canvas, stage, onChange }) {
         if (disposed) return;
         const failedViewer = viewer; viewer = undefined;
         startupState = 'failed';
-        deviceStatus = '';
+        deviceStatus = ''; deviceFailure = '';
         startupFailure = ['WEBGPU_UNAVAILABLE', 'NO_ADAPTER'].includes(error?.code)
           ? 'WebGPU unavailable' : 'Viewer could not start';
         message(startupFailure, true);

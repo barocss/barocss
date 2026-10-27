@@ -237,14 +237,16 @@ test('candidate recovery failure event preserves an accepted document, selection
     assert.equal(context.model.status, 'injected resize error');
     assert.deepEqual(snapshot(), before);
     notify({ type: 'lost' });
-    notify({ type: 'recovery-failed' });
+    notify({ type: 'recovery-failed', message: 'Device lost (injected) and could not be recreated: no adapter', cause: null });
     assert.equal(context.model.deviceStatus, 'WebGPU recovery failed');
+    assert.equal(context.model.deviceFailure, 'Device lost (injected) and could not be recreated: no adapter');
     assert.deepEqual(snapshot(), before);
     notify({ type: 'lost' });
     assert.equal(context.model.deviceStatus, 'WebGPU recovery failed');
     assert.deepEqual(snapshot(), before);
     notify({ type: 'recreated' });
     assert.equal(context.model.deviceStatus, 'WebGPU device recreated');
+    assert.equal(context.model.deviceFailure, '');
     assert.deepEqual(snapshot(), before);
     context.controller.dispose();
     notify({ type: 'recovery-failed' });
