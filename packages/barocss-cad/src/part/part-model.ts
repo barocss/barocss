@@ -135,6 +135,8 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'scale'; readonly target: string; readonly factor: number; readonly pivot?: CadPartPoint3 }
   /** `count` copies (the original included) joined into one body. */
   | { readonly kind: 'linear-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number }
+  /** Repeat the tool of the active difference producer; count includes the original cut. */
+  | { readonly kind: 'linear-feature-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number }
   /** Copies k·angle about the axis through `pivot` (about X or Y: multiples of 90°). */
   | { readonly kind: 'circular-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly angle: number; readonly count: number; readonly pivot?: CadPartPoint3 }
   /**
@@ -985,6 +987,21 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
       const used = consumed.get(id); if (part === null) consumed.set(id, 'all'); else if (used !== 'all') consumed.set(id, (used ?? new Set()).add(part));
       return picked.filter(p => !empty(p.solid));
     };
+    const cutSource: Tools['cutSource'] = r => {
+      const selected = ref(r, 'target'), author = doc.features.find(f => f.id === selected.id);
+      if (author?.kind !== 'difference') return fail('REFERENCE', 'linear feature pattern target must be a direct difference result');
+      if ('suppressed' in author && author.suppressed) return fail('REFERENCE', 'linear feature pattern target must be an unsuppressed difference');
+      const used = consumed.get(selected.id);
+      if (used === 'all' || used?.has(0)) return fail('REFERENCE', 'linear feature pattern target must still be active');
+      if (selected.result.kind !== 'solid' || selected.result.parts.length !== 1 || empty(selected.result.parts[0].solid)) return fail('REFERENCE', 'linear feature pattern target must be one nonempty solid');
+      // One Part may hold several B-rep bodies; count the existing representation without mutating the cached Part.
+      const selectedBrep = brepOf({ solid: selected.result.parts[0].solid }, selected.id);
+      if (selectedBrep.bodies.length !== 1 || selectedBrep.bodies[0].kind !== 'solid') return fail('REFERENCE', 'linear feature pattern target must be one nonempty solid');
+      // Resolve the original operands as dependencies; never replace or truncate their history.
+      const base = solids(author.target, 'difference target', true), tool = solids(author.tool, 'difference tool', true);
+      if (base.length !== 1) return fail('REFERENCE', 'linear feature pattern difference must have one base solid');
+      return { seed: solids(r, 'target')[0], tool };
+    };
 
     let result: Result;
     const f = feature as CadPartFeature & Record<string, unknown>;
@@ -1006,7 +1023,7 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
         result = lookup(key, []) ?? sketch;
         remember(key, [], result);
       } else {
-        const tools = { dim, xy, xyz, integer, axisOf, solids, ref, fail, at, endpointBead }, run = operation(f, tools);
+        const tools = { dim, xy, xyz, integer, axisOf, solids, ref, cutSource, fail, at, endpointBead }, run = operation(f, tools);
         // (O19: stored names checked against what they named before the feature builds on them, D277.)
         const expect = expectOf(f, fail), compute = expect ? expectedThen(f, tools, expect, run) : run;
         const key = JSON.stringify([f.kind, resolvedDefinition(f, doc.parameters), ...(isEndpointBead(f) ? [endpointContext(doc.features, f.frame, doc.parameters)] : [])]), inputs = deps.map(d => results.get(d)!);
@@ -1099,6 +1116,7 @@ export type Tools = {
   dim: (v: CadPartDim | undefined, what: string, positive?: boolean) => number; xy: (p: CadPartPoint2 | undefined, what: string) => XY; xyz: (p: CadPartPoint3 | undefined, what: string) => Point;
   integer: (v: unknown, what: string, lo: number, hi: number) => number; axisOf: (v: unknown) => CadPartAxis; solids: (r: unknown, what: string, allowEmpty?: boolean) => Part[];
   ref: (r: unknown, what: string) => { id: string; part: number | null; result: Result };
+  cutSource: (r: unknown) => { seed: Part; tool: Part[] };
   fail: (code: CadPartErrorCode, detail: string) => never; at: string;
   endpointBead: (f: EndpointBead, byMember: ReadonlyMap<number, Part>, frame: string) => Result;
 };
@@ -1478,6 +1496,21 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const copies = Array.from({ length: count }, (_, k) => { if (!k) return p.solid; const o: Point = [0, 0, 0]; o['xyz'.indexOf(axis)] = spacing * k; return affine(p.solid, [1, 0, 0, 0, 1, 0, 0, 0, 1], o, n => `${n}@${k}`); });
         return unionAll(copies, at);
       }));
+    }
+    case 'linear-feature-pattern': {
+      const { seed, tool } = t.cutSource(f.target), axis = axisOf(f.axis), spacing = dim(f.spacing as CadPartDim, 'spacing'), count = integer(f.count, 'count', 1, CadPartLimits.copies);
+      if (spacing === 0) fail('PARAMETER', 'spacing must not be zero');
+      return () => {
+        if (count === 1 || !tool.length) return { kind: 'solid', parts: [seed] };
+        const joined = tool.slice(1).reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), tool[0].solid);
+        // The seed already contains the original cut. Translate only its tool for the remaining cuts.
+        let cut = seed.solid;
+        for (let k = 1; k < count; k++) {
+          const offset: Point = [0, 0, 0]; offset['xyz'.indexOf(axis)] = spacing * k;
+          cut = boolean(cut, affine(joined, [1, 0, 0, 0, 1, 0, 0, 0, 1], offset, n => `${n}@${k}`), 'difference', at);
+        }
+        return one(cut);
+      };
     }
     case 'circular-pattern': {
       const target = solids(f.target, 'target', true), axis = axisOf(f.axis), deg = f.angle as number, count = integer(f.count, 'count', 1, CadPartLimits.copies);

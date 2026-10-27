@@ -146,6 +146,17 @@ function oneBody(ctx: Ctx) {
   return list.length === 1 ? ctx.bodies[list[0]] : null;
 }
 
+/** A cut pattern follows the active difference producer, never an older body or direct geometry. */
+function linearCutProblem(ctx: Ctx) {
+  if (ctx.direct?.length) return refusal('DIRECT_PICK', 'Select one solid cut result, not a direct curve or surface.');
+  const body = oneBody(ctx);
+  if (!body) return refusal('ONE_BODY', 'Select one cut result to repeat.');
+  const parent = refOf(body), node = ctx.doc.nodes[parent.node];
+  if (parent.side !== 'solid' || node?.kind !== 'difference' || node.suppressed || !leafBodies(ctx.doc.nodes).some(r => r.node === parent.node && r.side === parent.side))
+    return refusal('BAD_REFERENCE', 'Select the current result of an unsuppressed subtract feature.');
+  return null;
+}
+
 /** A body's box corner (least X, Y, Z), to 0.001 mm. */
 export function cornerOf(b: BodyResult | null | undefined): [number, number, number] {
   return b ? b.mesh.bounds.min.map(v => Math.round(v * 1000) / 1000) as [number, number, number] : [0, 0, 0];
@@ -611,6 +622,21 @@ const allCommands: Command[] = [
       return [{ key: 'dx', at: base, dir: [1, 0, 0], pair: { key: 'dy', dir: [0, 1, 0] } }, { key: 'dz', at: [base[0], base[1], b.mesh.bounds.max[2] + dz], dir: [0, 0, 1] }];
     },
     build: (ctx, v) => duplicateBody(ctx.doc, refOf(oneBody(ctx)!), [Number(v.dx), Number(v.dy), Number(v.dz)]).doc,
+  },
+  {
+    id: 'linear-feature-pattern', label: 'Linear cut pattern', icon: 'cad-pattern-linear', hint: 'Repeat the cut along an axis', group: 'pattern', keywords: 'feature cut repeat subtract',
+    available: ctx => { const why = linearCutProblem(ctx); return why ? no(why.message) : ok; },
+    fields: () => [{ key: 'axis', label: 'Direction', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
+      { key: 'spacing', label: 'Spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count', label: 'Count', kind: 'count', min: 2, max: 64 }],
+    defaults: () => ({ axis: 'x', spacing: 20, count: 3 }),
+    build: (ctx, v) => {
+      const why = linearCutProblem(ctx); if (why) throw why;
+      const axis = v.axis, spacing = Number(v.spacing), count = Number(v.count);
+      if (axis !== 'x' && axis !== 'y' && axis !== 'z') throw refusal('VALUE', 'Direction must be X, Y or Z.');
+      if (!Number.isFinite(spacing) || spacing <= 0 || spacing > 10000) throw refusal('VALUE', 'Spacing must be positive and at most 10000 mm.');
+      if (!Number.isInteger(count) || count < 2 || count > 64) throw refusal('VALUE', 'Count must be a whole number from 2 to 64, including the original cut.');
+      return withNode(ctx.doc, { kind: 'linear-feature-pattern', parent: refOf(oneBody(ctx)!), axis, spacing, count });
+    },
   },
   {
     id: 'linear-pattern', label: 'Linear pattern', icon: 'cad-pattern-linear', hint: 'Copies of a body in a row', shortcut: 'P', group: 'pattern', keywords: 'array repeat copy',

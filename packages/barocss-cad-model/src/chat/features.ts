@@ -26,6 +26,7 @@ const SPECS: Record<string, Spec> = {
   mirror: { parent: 'ref', plane: 'enum:xy|xz|yz' },
   scale: { parent: 'ref', factor: 'pos', 'pivot?': 'dim3' },
   'linear-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
+  'linear-feature-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
   'circular-pattern': { parent: 'ref', axis: 'enum:x|y|z', angle: 'num', count: 'count' },
   union: { left: 'ref', right: 'ref' },
   intersect: { left: 'ref', right: 'ref' },
@@ -124,6 +125,11 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
     if (v === undefined) { if (optional) continue; return `${kind}: "${key}" is required.`; }
     const why = checkValue(v, type, nodes, parameters, leaves);
     if (why) return `${kind}.${key}: ${why}`;
+  }
+  if (kind === 'linear-feature-pattern') {
+    const parent = node.parent as unknown as BodyRef, source = nodes[parent.node];
+    if (parent.side !== 'solid' || source?.kind !== 'difference' || source.suppressed === true) return '[BAD_REFERENCE] A linear feature pattern needs a current unsuppressed difference body.';
+    if ((node.count as number) > 64) return 'linear-feature-pattern.count: a whole number from 2 to 64';
   }
   // (FRf, O121: a frame follows a skeleton or a sketch, or has its own points and segments; a skeleton's segments name its points.)
   if (kind === 'frame' && node.follows === undefined && (node.points === undefined || node.segments === undefined)) return 'frame: give "points" and "segments", or "follows" {"skeleton": k} | {"sketch": k}.';

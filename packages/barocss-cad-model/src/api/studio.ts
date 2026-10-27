@@ -78,6 +78,7 @@ const BINDS: Record<string, Record<string, readonly [node: number, field: string
   chamfer: { distance: [0, 'd'] },
   shell: { t: [0, 't'] },
   'linear-pattern': { spacing: [0, 'spacing'], count: [0, 'count'] },
+  'linear-feature-pattern': { spacing: [0, 'spacing'] },
   scale: { factor: [0, 'k'] },
   split: { at: [0, 'at'] },
 };
