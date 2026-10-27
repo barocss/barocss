@@ -187,6 +187,7 @@ export function copyNamedViews(input, scene) {
     if (hasLighting) keys.push('lighting');
     const value = record(entry, keys, `Named view ${index + 1}`);
     const name = string(value.name, 'Named view name');
+    // eslint-disable-next-line no-control-regex -- the check is for control characters
     if (name.length < 1 || name.length > 64 || name.trim() !== name || /[\x00-\x1f\x7f-\x9f]/.test(name))
       refuse('Named view names require 1 to 64 trimmed characters without control characters.');
     if (names.has(name)) refuse('Named view names must be unique.');

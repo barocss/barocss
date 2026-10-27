@@ -43,7 +43,7 @@ function setup(bodyId = 'body_0_skip', input = wire) {
 }
 function withSkipCurve(curve) {
   const document = JSON.parse(wire);
-  document.assets[0].source = document.assets[0].source.replace(/@curve #skip_path_native \{[\s\S]*?\n  \}/, curve);
+  document.assets[0].source = document.assets[0].source.replace(/@curve #skip_path_native \{[\s\S]*?\n {2}\}/, curve);
   return JSON.stringify(document);
 }
 
