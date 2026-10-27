@@ -248,7 +248,7 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     if (f.dim === undefined) {
       const placement = placementOf(layout, sheet, f.view), projection = projectionOf(ctx.views, sheet, f.view);
       if (!placement || !projection) out.push({ code: 'FRAME_VIEW_MISSING', severity: 'error', message: `A standalone ${f.characteristic} frame has no current ${viewName(f.view)}. The saved frame is retained.`, frames: [f.id], view: f.view });
-      else if (placement.hidden) out.push({ code: 'VIEW_NEEDED', severity: 'warning', message: `A standalone ${f.characteristic} frame is in the ${viewName(f.view)}, which is not shown.`, frames: [f.id], view: f.view });
+      else if (placement.hidden) out.push({ code: 'VIEW_NEEDED', severity: 'warning', message: `A standalone ${f.characteristic} frame is in ${viewName(f.view)}, which is not shown.`, frames: [f.id], view: f.view });
       const missing = f.datums.filter(l => !letters.has(l));
       if (missing.length) out.push({ code: 'DATUM_UNDEFINED', severity: 'error', message: `A standalone ${f.characteristic} frame refers to datum${missing.length > 1 ? 's' : ''} ${missing.join(', ')}, which the drawing does not have.`, frames: [f.id], view: f.view });
       continue;
