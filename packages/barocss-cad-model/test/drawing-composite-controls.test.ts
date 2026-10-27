@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { checkDrawingFrames, checkSavedCompositeFrames, checkSavedDrawingFrames, frameOk, framesProperty, readFrames, type DrawingFrame } from '../src/drawing/controls';
+import { checkDrawingFrames, checkSavedCompositeFrames, checkSavedDrawingFrames, frameOk, frameProblem, framesProperty, readFrames, type DrawingFrame } from '../src/drawing/controls';
 import { defaultDrawing, readDrawing } from '../src/drawing/types';
 import { starterDoc } from '../src/engine/doc';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
@@ -170,4 +170,25 @@ test('free-state and tangent-plane flags retain independent mixed values', () =>
   assert.deepEqual(readFrames(frames), frames);
   assert.deepEqual(readDrawing({ frames }).frames, frames);
   assert.deepEqual(frames, before);
+});
+
+test('frameProblem gives one short reason exactly where the frame check refuses', () => {
+  assert.equal(frameProblem(legacy), null);
+  assert.equal(frameProblem(composite), null);
+  assert.equal(frameProblem({ ...composite, composite: { ...composite.composite!, value: 0 } }), 'Second segment: tolerance must be more than 0 and less than 100 mm.');
+  assert.equal(frameProblem({ ...legacy, value: 100 }), 'Tolerance must be more than 0 and less than 100 mm.');
+  assert.equal(frameProblem({ ...legacy, datums: ['I'] }), 'Datums are single letters A to Z, except I, O and Q.');
+  assert.equal(frameProblem({ ...legacy, datums: ['A', 'A'] }), 'Each datum can appear only once.');
+  assert.equal(frameProblem({ ...legacy, characteristic: 'flatness', composite: composite.composite }), 'Only a position frame can have a second segment.');
+  assert.equal(frameProblem({ ...legacy, projected: 0 }), 'Projected height must be more than 0 and at most 1000 mm.');
+  assert.equal(frameProblem({ ...legacy, view: 'front', place: [0, 0] }), 'A frame is attached to one dimension or placed in one view, not both.');
+  const lower = composite.composite!, sparse = new Array(1);
+  const rows: unknown[] = [null, {}, { value: 0.1 }, { value: Infinity, datums: [] }, { value: 0.1, datums: sparse }, { value: 0.1, datums: ['A', 'B', 'C', 'D'] },
+    { ...lower, diameter: 'yes' }, { ...lower, material: 'unknown' }, { ...lower, datumModifiers: { B: 'maximum' } }, { ...lower, future: true }];
+  const frames: unknown[] = [...rows.map(row => ({ ...composite, composite: row })), { ...legacy, freeState: 1 }, { ...legacy, future: true }, { ...legacy, id: '' }, { ...legacy, characteristic: 'roundness' }];
+  for (const f of frames) {
+    const reason = frameProblem(f), refused = checkDrawingFrames({ frames: [f] }).length > 0;
+    assert.equal(reason !== null, refused, JSON.stringify(f));
+    if (reason) assert.ok(reason.length <= 80, reason);
+  }
 });
