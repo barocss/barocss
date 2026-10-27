@@ -692,6 +692,35 @@ function edgeOnSurface(f: GFace, g: GFace, tol: number): boolean {
   }
   return false;
 }
+/** A face's domain box for marching (its boundary's samples, padded; a patch's clamped to its domain), made once a face. */
+const marchBoxes = new WeakMap<GFace, [XY, XY]>();
+/**
+ * Whether a patch keeps more than `gap` from a plane or an infinite cylinder: every control point (the patch lies in their
+ * hull, weights positive) on one side of the plane; or, about the cylinder's axis, every one inside it by `gap`, or every
+ * one beyond a line tangent to its section, pushed out by `gap`, square to their mean direction. Conservative: false
+ * whenever it cannot tell.
+ */
+function patchClearOf(n: Nurbs, s: Plane | Cylinder, gap: number): boolean {
+  const P = n.S.controlPoints, W = n.S.weights;
+  for (const row of W) for (const w of row) if (!(w > 0)) return false;
+  if (s.kind === 'plane') {
+    let above = 0, below = 0, count = 0;
+    for (const row of P) for (const q of row) { const d = dot(sub(q, s.o), s.n); count++; if (d > gap) above++; else if (d < -gap) below++; else return false; }
+    return above === count || below === count;
+  }
+  // Radial vectors of the control points (off the axis), their mean.
+  let inside = true, mx = 0, my = 0, mz = 0; const R: P3[] = [];
+  for (const row of P) for (const q of row) {
+    const d = sub(q, s.c), w = sub(d, scale(s.a, dot(d, s.a)));
+    R.push(w); mx += w[0]; my += w[1]; mz += w[2];
+    if (!(len(w) < s.r - gap)) inside = false;
+  }
+  if (inside) return true;
+  const m = Math.hypot(mx, my, mz); if (!(m > 0)) return false;
+  const h: P3 = [mx / m, my / m, mz / m];
+  for (const w of R) if (!(dot(w, h) > s.r + gap)) return false;
+  return true;
+}
 function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = false, touched: P3[] | null = null): void {
   // (Faces the caller says meet only along edges of one lying on the other — a fillet tool's contacts with the faces it
   // rounds, D89 — are cut there, and nothing is computed: their contact is tangent or along a face's own boundary.)
@@ -740,14 +769,18 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
   // General surfaces (and degenerate cylinder pairs): march the intersection over both faces' domain
   // boxes, then clip as any curve.
   const march = (): void => {
-    const box = (f: GFace): [XY, XY] => { const xs: number[] = [], ys: number[] = [];
+    // (Broad phase: a patch whose control points keep clear of the other surface — a plane, or the infinite cylinder —
+    // by 1000 tolerances lies clear of it (the patch lies in their hull), so nothing here can find a point on both: no
+    // edge on the other surface, no seed, no traced chain. The march is skipped.)
+    if ((A.kind === 'nurbs' && B.kind !== 'nurbs' && patchClearOf(A, B, 1000 * tol)) || (B.kind === 'nurbs' && A.kind !== 'nurbs' && patchClearOf(B, A, 1000 * tol))) return;
+    const box = (f: GFace): [XY, XY] => { const kept = marchBoxes.get(f); if (kept) return kept; const xs: number[] = [], ys: number[] = [];
       for (const ring of [f.region.outer, ...f.region.holes]) for (const g of ring) for (let i = 0; i <= 8; i++) { const q = segAtAny(g, i / 8); xs.push(q[0]); ys.push(q[1]); }
       const mx = (Math.max(...xs) - Math.min(...xs)) * 0.02 + tol, my = (Math.max(...ys) - Math.min(...ys)) * 0.02 + tol;
       const lo: XY = [Math.min(...xs) - mx, Math.min(...ys) - my], hi: XY = [Math.max(...xs) + mx, Math.max(...ys) + my], s = f.surf;
       // A patch ends at its domain: the march stops exactly there (its boundary is the face's edge).
       if (s.kind === 'nurbs') { const u = [s.U[0] * s.ku, s.U[1] * s.ku], v = [s.V[0] * s.kv, s.V[1] * s.kv];
         lo[0] = Math.max(lo[0], Math.min(...u)); hi[0] = Math.min(hi[0], Math.max(...u)); lo[1] = Math.max(lo[1], Math.min(...v)); hi[1] = Math.min(hi[1], Math.max(...v)); }
-      return [lo, hi]; };
+      const made: [XY, XY] = [lo, hi]; marchBoxes.set(f, made); return made; };
     const diag = Math.min(len(sub(fa.max, fa.min)), len(sub(fb.max, fb.min)));
     // Two general faces on one surface (a torus and its copy turned about its axis) meet everywhere they
     // overlap: each face's boundary, where it runs inside the other face, cuts that face; nothing is marched.
