@@ -27,7 +27,7 @@ export type PolyhedralBooleanOperation = 'union' | 'intersection' | 'difference'
 // ---- exact rationals ---------------------------------------------------------------------------
 type Q = { n: bigint; d: bigint };
 const babs = (a: bigint) => a < 0n ? -a : a;
-const bgcd = (a: bigint, b: bigint): bigint => { a = babs(a); b = babs(b); while (b) [a, b] = [b, a % b]; return a; };
+const bgcd = (a: bigint, b: bigint): bigint => { a = babs(a); b = babs(b); while (b) { const r = a % b; a = b; b = r; } return a; };
 const q = (n: bigint, d = 1n): Q => { if (d < 0n) { n = -n; d = -d; } const g = bgcd(n, d) || 1n; return { n: n / g, d: d / g }; };
 function qf(v: number): Q {
   if (!Number.isFinite(v)) throw new BrepError('INPUT', 'finite coordinates required');
@@ -35,7 +35,12 @@ function qf(v: number): Q {
 }
 const add = (a: Q, b: Q) => q(a.n * b.d + b.n * a.d, a.d * b.d), sub = (a: Q, b: Q) => q(a.n * b.d - b.n * a.d, a.d * b.d);
 const mul = (a: Q, b: Q) => q(a.n * b.n, a.d * b.d), div = (a: Q, b: Q) => q(a.n * b.d, a.d * b.n);
-const sgn = (a: Q) => a.n > 0n ? 1 : a.n < 0n ? -1 : 0, cmp = (a: Q, b: Q) => sgn(sub(a, b)), num = (a: Q) => Number(a.n) / Number(a.d);
+// (Every Q keeps a positive denominator: a comparison is the sign of a cross-product, no gcd.)
+const sgn = (a: Q) => a.n > 0n ? 1 : a.n < 0n ? -1 : 0, num = (a: Q) => Number(a.n) / Number(a.d);
+const cmp = (a: Q, b: Q) => { const x = a.n * b.d, y = b.n * a.d; return x > y ? 1 : x < y ? -1 : 0; };
+// Raw arithmetic for values only compared or signed, never kept: not reduced, the denominator still positive.
+const radd = (a: Q, b: Q): Q => ({ n: a.n * b.d + b.n * a.d, d: a.d * b.d }), rsub = (a: Q, b: Q): Q => ({ n: a.n * b.d - b.n * a.d, d: a.d * b.d });
+const rmul = (a: Q, b: Q): Q => ({ n: a.n * b.n, d: a.d * b.d }), rdiv = (a: Q, b: Q): Q => b.n < 0n ? { n: -(a.n * b.d), d: -(a.d * b.n) } : { n: a.n * b.d, d: a.d * b.n };
 const ZERO: Q = { n: 0n, d: 1n };
 type V = [Q, Q, Q];
 const vsub = (a: V, b: V): V => [sub(a[0], b[0]), sub(a[1], b[1]), sub(a[2], b[2])];
@@ -121,7 +126,7 @@ const fromH = (p: ExactPoint2): [Q, Q] => [q(p.x, p.w), q(p.y, p.w)];
 /** Parameter intervals of the line P0 + t·D inside face f (half-open crossing rule handles vertices on the line). */
 function intervals(f: PFace, P0: V, D: V): Q[] {
   const ts: Q[] = [], d2 = [D[f.i], D[f.j]], p2 = [P0[f.i], P0[f.j]];
-  const side = (p: V) => sgn(sub(mul(d2[0], sub(p[f.j], p2[1])), mul(d2[1], sub(p[f.i], p2[0]))));
+  const side = (p: V) => sgn(rsub(rmul(d2[0], rsub(p[f.j], p2[1])), rmul(d2[1], rsub(p[f.i], p2[0]))));
   for (const ring of f.rings) ring.forEach((a, k) => {
     const b = ring[(k + 1) % ring.length], sa = side(a) > 0, sb = side(b) > 0;
     if (sa === sb) return;
@@ -147,10 +152,10 @@ function pointInFace(f: PFace, p: V): number {
   for (const ring of f.rings) for (let k = 0; k < ring.length; k++) {
     const a = ring[k], b = ring[(k + 1) % ring.length], ax = a[f.i], ay = a[f.j], bx = b[f.i], by = b[f.j];
     // On the edge: collinear and inside its bounding box.
-    if (sub(mul(sub(bx, ax), sub(y, ay)), mul(sub(by, ay), sub(x, ax))).n === 0n
+    if (rsub(rmul(rsub(bx, ax), rsub(y, ay)), rmul(rsub(by, ay), rsub(x, ax))).n === 0n
       && cmp(x, lo(ax, bx)) >= 0 && cmp(x, hi(ax, bx)) <= 0 && cmp(y, lo(ay, by)) >= 0 && cmp(y, hi(ay, by)) <= 0) return 0;
     if ((cmp(ay, y) > 0) !== (cmp(by, y) > 0)) {
-      const xi = add(ax, div(mul(sub(bx, ax), sub(y, ay)), sub(by, ay)));
+      const xi = radd(ax, rdiv(rmul(rsub(bx, ax), rsub(y, ay)), rsub(by, ay)));
       if (cmp(x, xi) < 0) inside = !inside;
     }
   }
