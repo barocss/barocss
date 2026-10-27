@@ -68,9 +68,11 @@ test('face fillet: refused with the reason', () => {
   refused([...block, fillet(['b.side1', 'nope'], 4)], 'REFERENCE', /no face nope/);
   refused([...block, fillet(['b.side1', 'b.side1'], 4)], 'INPUT', /two different faces/);
   const disc = [{ id: 'c', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'b', kind: 'extrude', sketch: 'c', height: 10 }];
-  // Two cylinders are not taken (a plane and a cylinder are: the disc's bottom rim rounds).
+  // Two coaxial cylinders a step apart (heights 0–5 and 5–10) do not run side by side; a cone is not taken (a plane and a cylinder are: the disc's bottom rim rounds).
   const stepped = [{ id: 's', kind: 'sketch', profile: 'polygon', plane: XZ, points: [[0, 0], [10, 0], [10, 5], [5, 5], [5, 10], [0, 10]] }, { id: 'b', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }];
-  refused([...stepped, fillet(['b.side1', 'b.side3'], 1)], 'CAPABILITY', /\[FACE_FILLET_FACE\] b\.side1 is not a planar face \(a face fillet takes two planes, or a plane and a cylinder square to it\)/);
+  refused([...stepped, fillet(['b.side1', 'b.side3'], 1)], 'CAPABILITY', /\[FACE_FILLET_FACES\] b\.side1 and b\.side3 do not run side by side/);
+  const coned = [{ id: 's', kind: 'sketch', profile: 'polygon', plane: XZ, points: [[0, 0], [30, 0], [30, 5], [13, 5], [10, 8], [10, 25], [0, 25]] }, { id: 'b', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }];
+  refused([...coned, fillet(['b.side3', 'b.side2'], 1)], 'CAPABILITY', /\[FACE_FILLET_FACE\] b\.side3 is not a planar face \(a face fillet takes planes and cylinders/);
   valid(out([...disc, fillet(['b.side0', 'b.bottom'], 1)], 'ff'));
   refused([...disc, fillet(['b.top', 'b.bottom'], 1)], 'CAPABILITY', /\[FACE_FILLET_FACE\] b\.top has a curved edge/);
 });
@@ -107,7 +109,43 @@ test('face fillet: a plane and a cylinder refused with the reason', () => {
   // The tangent circle at radius 31 runs off the 60 mm square plate.
   refused(on(['p.top', 'c.side0'], 21), 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 21 mm round would not meet p\.top tangentially: the face does not hold the circle 31 mm round the axis/);
   refused([...bossPlate(25), { id: 'ff', kind: 'face-fillet', target: 'b', faces: ['p.top', 'c.side0'], radius: 25 }], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] .*c\.side0 tangentially: it is 20 mm long/);
-  refused(on(['p.side0', 'c.side0'], 2), 'CAPABILITY', /\[FACE_FILLET_FACE\] p\.side0 is not square to c\.side0's axis/);
+  // The plate's side (z 0–5) and the boss (above the plate) run along one axis but not beside each other.
+  refused(on(['p.side0', 'c.side0'], 2), 'CAPABILITY', /\[FACE_FILLET_FACES\] p\.side0 and c\.side0 do not run side by side/);
   const disc = [{ id: 'ds', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'b', kind: 'extrude', sketch: 'ds', height: 10 }];
   refused([...disc, fillet(['b.top', 'b.side0'], 6)], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 6 mm round is wider than b\.side0's radius/);
+});
+
+// Faces along one direction (a plane along a cylinder, two parallel cylinders): the round extruded. The oracle builds
+// each corner's section by hand — centre X where the curves pushed off by r meet, the tangent points, the corner where
+// the curves meet — and takes its area from a dense polygon (each arc 20000 chords), not the kernel's exact formula.
+const arcPts = (P, Q, M, n = 20000) => { const a0 = Math.atan2(P[1] - M[1], P[0] - M[0]); let da = Math.atan2(Q[1] - M[1], Q[0] - M[0]) - a0; if (da > Math.PI) da -= 2 * Math.PI; if (da < -Math.PI) da += 2 * Math.PI; const R = Math.hypot(P[0] - M[0], P[1] - M[1]); return Array.from({ length: n }, (_, i) => [M[0] + R * Math.cos(a0 + da * i / n), M[1] + R * Math.sin(a0 + da * i / n)]); };
+const polyArea = (pts) => Math.abs(pts.reduce((s, p, i) => { const q = pts[(i + 1) % pts.length]; return s + p[0] * q[1] - q[0] * p[1]; }, 0) / 2);
+const towards = (c, X, R) => { const w = [X[0] - c[0], X[1] - c[1]], l = Math.hypot(...w); return [c[0] + w[0] / l * R, c[1] + w[1] / l * R]; };
+
+test('face fillet: two parallel bosses joined — both inside corners filled, extruded', () => {
+  const eight = [{ id: 'a0', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 6 }, { id: 'a', kind: 'extrude', sketch: 'a0', height: 10 }, { id: 'b0', kind: 'sketch', profile: 'circle', center: [10, 0], radius: 6 }, { id: 'b', kind: 'extrude', sketch: 'b0', height: 10 }, { id: 'u', kind: 'union', target: 'a', tool: 'b' }];
+  const o = out([...eight, { id: 'ff', kind: 'face-fillet', target: 'u', faces: ['a.side0', 'b.side0'], radius: 2 }], 'ff'); valid(o);
+  // Centres 8 from both circle centres; corners where the circles cross.
+  const X = [5, Math.sqrt(64 - 25)], tA = towards([0, 0], X, 6), tB = towards([10, 0], X, 6), C = [5, Math.sqrt(36 - 25)];
+  const Q = polyArea([...arcPts(C, tA, [0, 0]), ...arcPts(tA, tB, X), ...arcPts(tB, C, [10, 0])]);
+  assert.ok(Math.abs(massPropertiesOf(o).volume - (volume(eight, 'u') + 2 * 10 * Q)) <= 1e-6 * volume(eight, 'u'), `${massPropertiesOf(o).volume} vs ${volume(eight, 'u') + 20 * Q}`);
+  assert.deepEqual(o.brep.faces.map(f => f.name).filter(n => n.startsWith('ff.')).sort(), ['ff.round', 'ff.round1']);
+});
+
+test('face fillet: a tube lying on a plate — its two weld corners filled; a D-shaft\'s flat — both edges cut', () => {
+  const XZ2 = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
+  const tube = [{ id: 'ps', kind: 'sketch', profile: 'rectangle', min: [-20, -30], max: [20, 0] }, { id: 'p', kind: 'extrude', sketch: 'ps', height: 5 }, { id: 'ts', kind: 'sketch', profile: 'circle', plane: XZ2, center: [0, 8], radius: 6 }, { id: 't', kind: 'extrude', sketch: 'ts', height: 30 }, { id: 'u', kind: 'union', target: 'p', tool: 't' }];
+  const o = out([...tube, { id: 'ff', kind: 'face-fillet', target: 'u', faces: ['p.top', 't.side0'], radius: 2 }], 'ff'); valid(o);
+  // In (x, z): the plate's top z 5, the tube's circle about (0, 8), radius 6.
+  const X = [Math.sqrt(64 - 1), 7], tA = [X[0], 5], tB = towards([0, 8], X, 6), C = [Math.sqrt(27), 5];
+  const Q = polyArea([C, tA, ...arcPts(tA, tB, X), ...arcPts(tB, C, [0, 8])]);
+  assert.ok(Math.abs(massPropertiesOf(o).volume - (volume(tube, 'u') + 2 * 30 * Q)) <= 1e-6 * volume(tube, 'u'), 'tube');
+  const dshaft = [{ id: 'cs', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'c', kind: 'extrude', sketch: 'cs', height: 20 }, { id: 'ks', kind: 'sketch', profile: 'rectangle', min: [3, -10], max: [10, 10] }, { id: 'k', kind: 'extrude', sketch: 'ks', height: 30, from: -5 }, { id: 'd', kind: 'difference', target: 'c', tool: 'k' }];
+  const dd = out([...dshaft, { id: 'ff', kind: 'face-fillet', target: 'd', faces: ['k.side3', 'c.side0'], radius: 1 }], 'ff'); valid(dd);
+  // The flat x 3 and the circle radius 5: the round's centre 1 inside both.
+  const Y = [2, Math.sqrt(16 - 4)], sA = [3, Y[1]], sB = towards([0, 0], Y, 5), D = [3, 4];
+  const P = polyArea([D, sA, ...arcPts(sA, sB, Y), ...arcPts(sB, D, [0, 0])]);
+  assert.ok(Math.abs(massPropertiesOf(dd).volume - (volume(dshaft, 'd') - 2 * 20 * P)) <= 1e-6 * volume(dshaft, 'd'), 'D-shaft');
+  // Too big a round for the flat's 8 mm width (its corners at y ±4).
+  refused([...dshaft, { id: 'ff', kind: 'face-fillet', target: 'd', faces: ['k.side3', 'c.side0'], radius: 6 }], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] no 6 mm round is tangent to both/);
 });

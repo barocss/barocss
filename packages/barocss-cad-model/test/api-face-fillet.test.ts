@@ -67,7 +67,31 @@ test('face fillet: a flat face and a round one — a boss\'s base, through the A
   const ctx: Ctx = { doc: boss, bodies, selection: { faces: sel.map(({ face }) => ({ body: 0, face })), edges: [], bodies: [] } };
   assert.equal(ff.available(ctx).ok, true, JSON.stringify(ff.available(ctx)));
   close(volumeOf(ff.build!(ctx, { r: 4 })), volumeOf(boss) + ring(10, 4));
-  // The boss's side and the plate's side (x = 30): the axis lies along that face, not square to it.
+  // The boss's side and the plate's side (x = 30): offered (the axis runs along that face), but the two do not run
+  // beside each other (the plate's side ends at z 5, the boss starts there), so the kernel refuses with the reason.
   const side = bodies[0].mesh.faces.map((f, face) => ({ f, face })).filter(({ f }) => f.kind === 'curved' || (f.kind === 'plane' && f.normal[0] > 0.99)).slice(0, 2);
-  assert.equal(ff.available({ ...ctx, selection: { faces: side.map(({ face }) => ({ body: 0, face })), edges: [], bodies: [] } }).ok, false);
+  const sideCtx: Ctx = { ...ctx, selection: { faces: side.map(({ face }) => ({ body: 0, face })), edges: [], bodies: [] } };
+  assert.equal(ff.available(sideCtx).ok, true);
+  const r = evaluateDoc(ff.build!(sideCtx, { r: 4 }), 1); assert.ok(!r.ok && /FACE_FILLET_FACES/.test(r.error.detail), r.ok ? 'built' : r.error.detail);
+});
+
+// Two bosses (radius 6, centres 10 apart, 10 tall) joined: both necks filled. The oracle: each corner's section from
+// its centre X (8 from both centres), tangent points and corner, its area from a dense polygon.
+const eight: StudioDoc = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
+  { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 6, id: 'n0' }, { kind: 'extrude', sketch: 0, height: 10, id: 'n1' },
+  { kind: 'sketch', profile: 'circle', center: [10, 0], radius: 6, id: 'n2' }, { kind: 'extrude', sketch: 2, height: 10, id: 'n3' },
+  { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' }, id: 'n4' }], outputs: { b4: { node: 4, side: 'solid' } }, nextId: 5 } as StudioDoc;
+const arcPts = (P: number[], Q: number[], M: number[], n = 20000) => { const a0 = Math.atan2(P[1] - M[1], P[0] - M[0]); let da = Math.atan2(Q[1] - M[1], Q[0] - M[0]) - a0; if (da > Math.PI) da -= 2 * Math.PI; if (da < -Math.PI) da += 2 * Math.PI; const R = Math.hypot(P[0] - M[0], P[1] - M[1]); return Array.from({ length: n }, (_, i) => [M[0] + R * Math.cos(a0 + da * i / n), M[1] + R * Math.sin(a0 + da * i / n)]); };
+
+test('face fillet: two parallel round faces — joined bosses, both necks filled, through the Studio command', () => {
+  const X = [5, Math.sqrt(39)], tA = [X[0] * 0.75, X[1] * 0.75], tB = [10 + (X[0] - 10) * 0.75, X[1] * 0.75], C = [5, Math.sqrt(11)];
+  const pts = [...arcPts(C, tA, [0, 0]), ...arcPts(tA, tB, X), ...arcPts(tB, C, [10, 0])], Q = Math.abs(pts.reduce((s, p, i) => { const q = pts[(i + 1) % pts.length]; return s + p[0] * q[1] - q[0] * p[1]; }, 0) / 2);
+  const ff = commands.find(c => c.id === 'face-fillet')!, bodies = bodiesOf(eight);
+  const rounds = bodies[0].mesh.faces.map((f, face) => ({ f, face })).filter(({ f }) => f.kind === 'curved');
+  // One face of each boss.
+  const pickA = rounds.find(({ f }) => f.name.startsWith('n1.'))!, pickB = rounds.find(({ f }) => f.name.startsWith('n3.'))!;
+  const ctx: Ctx = { doc: eight, bodies, selection: { faces: [pickA, pickB].map(({ face }) => ({ body: 0, face })), edges: [], bodies: [] } };
+  assert.equal(ff.available(ctx).ok, true, JSON.stringify(ff.available(ctx)));
+  const built = ff.build!(ctx, { r: 2 }), v = volumeOf(built), want = volumeOf(eight) + 2 * 10 * Q;
+  assert.ok(Math.abs(v - want) <= 1e-6 * want, `${v} vs ${want}`);
 });

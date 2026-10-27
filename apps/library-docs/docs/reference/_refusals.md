@@ -92,7 +92,7 @@
 | `[EXPRESSION]` | `core/error-codes.ts (declared)` | — |
 | `[EXTRUSION]` | `core/error-codes.ts (declared)` | — |
 | `[FACE]` | `core/error-codes.ts (declared)` | — |
-| `[FACE_FILLET_FACE]` | `part` | … is not a planar face (a face fillet takes two planes, or a plane and a cylinder square to it) |
+| `[FACE_FILLET_FACE]` | `part` | … is not a planar face (a face fillet takes planes and cylinders: two planes, a plane and a cylinder across or along its axis, or two parallel cylinders) |
 | `[FACE_FILLET_FACES]` | `part` | … crosses the line where its plane meets the other's |
 | `[FACE_FILLET_NOT_CLEAR]` | `part` | the round between … and … would … … mm³ (… expected)… |
 | `[FACE_FILLET_PARALLEL]` | `part` | … and … are parallel: their planes do not meet |
