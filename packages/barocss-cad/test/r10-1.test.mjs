@@ -50,6 +50,8 @@ function offRadius(brep, centreDistance, r) {
   }
   return worst;
 }
+// (By where it lies, not by its place in the B-rep's list: the junction at y = 5, not the plate's own edge at y = 20 on the
+// same top; the stitch's edge order is not part of the result, D283.)
 const straightEdge = (brep, test) => brep.edges.find(e => e.curve.degree === 1 && test(e.curve.controlPoints)).name;
 
 // The bodies.
@@ -66,7 +68,7 @@ const ringEdge = (features, a, b) => out(features).brep.edges.find(e => e.name.i
 
 test('R10.1 (a) translational: a rod on a plate (plane × cylinder, concave), a D shaft\'s flat (convex, the ball inside the rod) and two parallel rods (cylinder × cylinder) — exact sections extruded', () => {
   // The rod (radius 5, axis at z = 10) on the plate's top: the ball r above the top and 5 + r from the axis.
-  const junction = straightEdge(out(rodOnPlate).brep, p => p[0][1] > 0 && Math.abs(p[0][2] - 10) < 1e-9), v0 = vol(rodOnPlate);
+  const junction = straightEdge(out(rodOnPlate).brep, p => p[0][1] > 0 && p[0][1] < 10 && Math.abs(p[0][2] - 10) < 1e-9), v0 = vol(rodOnPlate);
   for (const r of [1, 2, 3]) {
     const yc = Math.sqrt((5 + r) ** 2 - r ** 2), X = [5, 10], T1 = [yc, 10], C = [yc, 10 + r], T2 = [5 * yc / (5 + r), 10 + 5 * r / (5 + r)];
     const { A } = moments([{ kind: 'line', start: X }, { kind: 'line', start: T1 }, arc(T1, C, T2), arc(T2, [0, 10], X)]);
@@ -131,7 +133,7 @@ test('R10.1 typed refusals: TANGENT_FACES, RADIUS_EXCEEDS_FACE (planes, translat
   refused([...once, fillet('g', [ringEdge(once, 'g.face', 'ce.top')], 1)], 'SELECTION', 'TANGENT_FACES');
   // Past the true reach: the plate's top beside the rod is 15 wide (a ball of r touches it √((5 + r)² − r²) − 5 out: 15 at
   // r = 37.5, 15.6 at 40); the stepped cone's slope is 10.77 long (a fillet of 17 sets back 11.5 on it).
-  const junction = straightEdge(out(rodOnPlate).brep, p => p[0][1] > 0 && Math.abs(p[0][2] - 10) < 1e-9);
+  const junction = straightEdge(out(rodOnPlate).brep, p => p[0][1] > 0 && p[0][1] < 10 && Math.abs(p[0][2] - 10) < 1e-9);
   assert.ok(checkOutput(out([...rodOnPlate, fillet('u', [junction], 37.5)])).valid, 'a ball of 37.5 touches the top at its far edge: the reach exactly');
   refused([...rodOnPlate, fillet('u', [junction], 40)], 'PARAMETER', 'RADIUS_EXCEEDS_FACE');
   refused([...steppedCone, fillet('r', [ringEdge(steppedCone, 'r.side2', 'r.side3#1')], 17)], 'PARAMETER', 'RADIUS_EXCEEDS_FACE');
@@ -145,14 +147,14 @@ test('R10.1 typed refusals: TANGENT_FACES, RADIUS_EXCEEDS_FACE (planes, translat
 });
 
 test('R10.1 names: the fillet face is f.face and every other face and edge keeps its name as the radius changes; a sketch-tagged rod keeps its tagged wall names', () => {
-  const junction = straightEdge(out(rodOnPlate).brep, p => p[0][1] > 0 && Math.abs(p[0][2] - 10) < 1e-9);
+  const junction = straightEdge(out(rodOnPlate).brep, p => p[0][1] > 0 && p[0][1] < 10 && Math.abs(p[0][2] - 10) < 1e-9);
   const names = r => { const b = out([...rodOnPlate, fillet('u', [junction], r)]).brep; return [b.faces.map(f => f.name).sort(), b.edges.map(e => e.name).sort()]; };
   const [f1, e1] = names(1);
   for (const r of [2, 3, 7.5]) assert.deepEqual(names(r), [f1, e1], `r ${r}`);
   assert.ok(f1.includes('f.face') && f1.includes('ce.side0') && f1.includes('pe.top#1') && f1.includes('pe.top#2'), f1.join(' '));
   // With R10a's tags on the rod's sketch: its wall is ce.side[w] before and after the fillet.
   const tagged = [...plate, { id: 'ces', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 5, plane: yz, sideTags: { outer: ['w'] } }, { id: 'ce', kind: 'extrude', sketch: 'ces', height: 40 }, { id: 'u', kind: 'union', target: 'pe', tool: 'ce' }];
-  const edge = straightEdge(out(tagged).brep, p => p[0][1] > 0 && Math.abs(p[0][2] - 10) < 1e-9);
+  const edge = straightEdge(out(tagged).brep, p => p[0][1] > 0 && p[0][1] < 10 && Math.abs(p[0][2] - 10) < 1e-9);
   assert.match(edge, /ce\.side\[w\]/);
   const after = out([...tagged, fillet('u', [edge], 2)]).brep.faces.map(f => f.name);
   assert.ok(after.includes('ce.side[w]') && after.includes('f.face'), after.join(' '));

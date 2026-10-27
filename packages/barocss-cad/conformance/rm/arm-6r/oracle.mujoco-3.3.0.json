@@ -1,6 +1,6 @@
 {
  "oracle": "mujoco 3.3.0",
- "worst": 4.41591208044656e-14,
+ "worst": 4.206357484548562e-14,
  "tol": 1e-06,
  "rows": [
   {
@@ -17,75 +17,75 @@
   },
   {
    "what": "l1 mass",
-   "diff": 0.0
+   "diff": 2.095545958979983e-15
   },
   {
    "what": "l1 com",
-   "diff": 0.0
+   "diff": 1.3877787807814457e-17
   },
   {
    "what": "l1 principal",
-   "diff": 0.0
+   "diff": 1.9285923769443714e-16
   },
   {
    "what": "l2 mass",
-   "diff": 0.0
+   "diff": 2.095545958979983e-15
   },
   {
    "what": "l2 com",
-   "diff": 0.0
+   "diff": 1.3877787807814457e-17
   },
   {
    "what": "l2 principal",
-   "diff": 0.0
+   "diff": 1.9285923769443714e-16
   },
   {
    "what": "l3 mass",
-   "diff": 0.0
+   "diff": 2.095545958979983e-15
   },
   {
    "what": "l3 com",
-   "diff": 0.0
+   "diff": 1.3877787807814457e-17
   },
   {
    "what": "l3 principal",
-   "diff": 0.0
+   "diff": 1.9285923769443714e-16
   },
   {
    "what": "l4 mass",
-   "diff": 0.0
+   "diff": 2.095545958979983e-15
   },
   {
    "what": "l4 com",
-   "diff": 0.0
+   "diff": 1.3877787807814457e-17
   },
   {
    "what": "l4 principal",
-   "diff": 0.0
+   "diff": 1.9285923769443714e-16
   },
   {
    "what": "l5 mass",
-   "diff": 0.0
+   "diff": 2.095545958979983e-15
   },
   {
    "what": "l5 com",
-   "diff": 0.0
+   "diff": 1.734723475976807e-17
   },
   {
    "what": "l5 principal",
-   "diff": 0.0
+   "diff": 1.9285923769443714e-16
   },
   {
    "what": "l6 mass",
-   "diff": 0.0
+   "diff": 2.095545958979983e-15
   },
   {
    "what": "l6 com",
-   "diff": 0.0
+   "diff": 1.3877787807814457e-17
   },
   {
    "what": "l6 principal",
-   "diff": 0.0
+   "diff": 1.9285923769443714e-16
   },
   {
    "what": "base position",
@@ -205,28 +205,28 @@
   },
   {
    "what": "gravity torques at {'base_to_l1': 0.3, 'l1_to_l2': -0.8, 'l2_to_l3': 1.2, 'l3_to_l4': 0.5, 'l4_to_l5': -1.4, 'l5_to_l6': 2}",
-   "diff": 4.41591208044656e-14
+   "diff": 4.206357484548562e-14
   }
  ],
  "hang": {
   "passive": {
-   "energy_start": 0.7271875815847195,
-   "energy_end": 0.7271875688021986,
-   "energy_drift": 1.0236765237708469e-06,
-   "energy_rise": 4.2840707902300466e-08,
-   "qvel_max": 74.45565556345203,
-   "com_height_start": 0.09997703912690178,
-   "com_height_end": 0.005156089278014372,
+   "energy_start": 0.7271875815847386,
+   "energy_end": 0.7271875796552728,
+   "energy_drift": 1.5088186472930624e-06,
+   "energy_rise": 2.2238945961687794e-07,
+   "qvel_max": 56.15387180067903,
+   "com_height_start": 0.09997703912690271,
+   "com_height_end": 0.009129904546646257,
    "warnings": 0
   },
   "damped": {
-   "energy_start": 0.7271875815847195,
-   "energy_end": -0.18909613825250818,
-   "energy_drift": 1.2600376340866848,
-   "energy_rise": 5.34357390663903e-16,
-   "qvel_max": 8.757707078832876e-13,
-   "com_height_start": 0.09997703912690178,
-   "com_height_end": -0.02599779271755141,
+   "energy_start": 0.7271875815847386,
+   "energy_end": -0.18909613825251353,
+   "energy_drift": 1.2600376340866852,
+   "energy_rise": 5.343573906638889e-16,
+   "qvel_max": 8.718898971189035e-13,
+   "com_height_start": 0.09997703912690271,
+   "com_height_end": -0.0259977927175517,
    "warnings": 0
   }
  },

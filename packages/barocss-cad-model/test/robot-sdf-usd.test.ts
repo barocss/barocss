@@ -77,7 +77,9 @@ test('arm-6r: SDF and USD read back to the same tree, and URDF, MJCF, SDF and US
     assert.deepEqual(s.axis, uj.axis); assert.deepEqual(us.axis.map(v => Math.abs(v)), uj.axis.map(v => Math.abs(v)));
     for (const k of ['lower', 'upper', 'effort', 'velocity'] as const) { if (uj.limit?.[k] === undefined) continue; assert.ok(Math.abs(s.limit![k]! - uj.limit[k]!) <= 1e-12 && Math.abs(us.limit![k]! - uj.limit[k]!) <= 1e-12 * Math.max(1, Math.abs(uj.limit[k]!)), `${n} ${k}`); }
   }
-  // (RM4/RM5's frozen files unchanged by RM9c.)
+  // (RM4/RM5's frozen files unchanged by RM9c. UPDATE_USD_CASE re-freezes the MJCF with the USD and SDF: the kernel's
+  // last digits moved once, D283.)
+  if (process.env.UPDATE_USD_CASE) writeFileSync(join(CASES, 'arm-6r', 'robot.xml'), m.xml);
   assert.equal(m.xml, readFileSync(join(CASES, 'arm-6r', 'robot.xml'), 'utf8'));
 });
 
