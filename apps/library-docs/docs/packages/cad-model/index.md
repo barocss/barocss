@@ -49,6 +49,21 @@ The package is public module by module. Import each module by its path; the pack
 | `util/` | Small shared helpers: unit factors, guards, ids, rounding, SHA-256 digests, the document revision |
 | `rb9/` | The AI scenario ladder: its rungs, a scripted agent, its measures and report |
 
+## Reading saved render settings
+
+Import `readRender` and `validateRenderShadowLights` from `@barocss/cad-model/engine/render`.
+`readRender(value)` returns `RenderSettings` with the reader's existing defaults and clamps.
+For a supplied `lights` array, it reads only the first 12 input entries,
+before skipping unknown light kinds. It then applies the shadow-field checks.
+Invalid shadow fields or caster counts throw `VALUE`.
+
+`validateRenderShadowLights(lights)` returns `void` without changing the supplied lights.
+It checks point/spot shadow fields and eligible caster counts.
+It does not validate GPU position, direction or range inputs.
+Invalid shadow fields or caster counts throw `VALUE`.
+See [Saved render light fields](/reference/document#saved-render-light-fields) for the stored fields,
+eligibility limits and radius rules.
+
 ## Transforming one body
 
 A studio part inherits `moved(location)` from the shared Part API. It returns a new part with transform features;

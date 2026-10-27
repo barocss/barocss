@@ -14,18 +14,28 @@ The site keeps the order CAD, CAD Model, GPU, Studio and Viewer. Existing page U
 
 | No. | Work | Completion condition | State |
 | --- | --- | --- | --- |
-| 01 | Reconcile the latest integrated Viewer and Drawing contracts with the documentation. | Check the actual public inputs, outputs, units and refusals. Update the affected pages or record that no change is needed. | In progress; select the common source. |
+| 01 | Keep integrated CAD, CAD Model, assembly, robot, Viewer, Drawing and shop-row contracts current. | Check public inputs, outputs, units and refusals. Reconcile the latest Viewer and Drawing changes first, then update affected pages or record that no change is needed. | In progress; select the common source. |
 | 02 | Validate the current site and navigation. | On the selected source, run the documentation check and site build. Check applicable samples and desktop pages, the nested menu, H2/H3 outline, Studio guides and three saved API figures. | Pending the selected source and execution window. |
-| 03 | Expand Studio task guidance. | Follow one part from sketch and feature through parameters and save. Describe inputs, results, refusals and the next action. Use existing images as existing examples; capture a new result before calling it a new run. | In progress; the source example is being written. |
-| 04 | Make long pages easier to use. | Separate distinct tasks in CAD Model, Object API, Boolean and GPU documentation. Keep old URLs and anchors working, and check links, components and sample imports after each split. | Queued; the new menu is the first step. |
-| 05 | Explain PBR data with numeric inputs and results. | Show the material values and linear texture channels, including byte normalization. Distinguish calculated material parameters from rendered pixel values. Add actual map-off and map-on captures when available. | Source-only numeric example reviewed; captures not run. |
-| 06 | Show point-shadow radius results. | Capture the same public scene with radius 0 and 0.4 scene world units. Record the unchanged light, camera and scene inputs, and label the two actual raster results. | Queued; actual capture not run. |
-| 07 | Show a guided solid loft from the public API. | Record the two sections and guide controls. Display the returned solid mesh and distinguish annotations from the actual mesh. | Queued; actual API run and capture not run. |
-| 08 | Document CAD Model render settings. | Explain the public readRender and shadow-light validator contracts, their refusal boundary and their relationship to the saved light fields. | Source-only candidate reviewed; final integration pending. |
-| 09 | Improve refusal and recovery guidance. | For common Studio tasks, name a source-supported refusal, identify the input to correct and state which accepted values remain. Link to the detailed contract. | Queued. |
-| 10 | Document the experiment input and result contract. | Describe identity, occurrence, revision, units, mass and inertia sources, missing inputs and stale results after the profile owner and contract are confirmed. | Conditional on that contract. |
-| 11 | Explain bounded physical experiments. | Document the pendulum only after its supported forward path exists. Distinguish inverse torque calculation from free motion under gravity. Treat structural, thermal, fluid and coupled experiments as separate later profiles. | On hold pending supported inputs and verified behavior. |
-| 12 | Finish the frozen 24-case CAD API gallery. | Preserve its six-file source and original failures. Generate and review the 25 expected assets only when its execution is assigned. | On hold; it is separate from the three completed Part API cases. |
+| 03 | Expand Studio task guidance. | Follow one part from sketch and feature through parameters and save. Describe inputs, results, refusals and the next action. Use existing images as existing examples; capture a new result before calling it a new run. | Source written; site validation pending. |
+| 04 | Audit public API documentation and examples. | Map CAD, CAD Model, GPU and Viewer operations to their documented inputs, outputs, examples and useful result visuals. Record missing cases and do not invent images for non-visual results. | In progress; GPU scene and Viewer control descriptions are written. Other gaps are being mapped. |
+| 05 | Make long pages easier to use. | Separate distinct tasks in CAD Model, Object API, Boolean and GPU documentation. Keep old URLs and anchors working, and check links, components and sample imports after each split. | Queued; the new menu is the first step. |
+| 06 | Explain PBR data with numeric inputs and results. | Show the material values and linear texture channels, including byte normalization. Distinguish calculated material parameters from rendered pixel values. Add actual map-off and map-on captures when available. | Numeric explanation written; actual captures not run. |
+| 07 | Show point-shadow radius results. | Capture the same public scene with radius 0 and 0.4 scene world units. Record the unchanged light, camera and scene inputs, and label the two actual raster results. | Queued; actual capture not run. |
+| 08 | Show a guided solid loft from the public API. | Record the two sections and guide controls. Display the returned solid mesh and distinguish annotations from the actual mesh. | Queued; actual API run and capture not run. |
+| 09 | Document CAD Model render settings. | Explain the public readRender and shadow-light validator contracts, their refusal boundary and their relationship to the saved light fields. | Source written; final site validation pending. |
+| 10 | Improve refusal and recovery guidance. | For common Studio tasks, name a source-supported refusal, identify the input to correct and state which accepted values remain. Link to the detailed contract. | Queued. |
+| 11 | Document the experiment input and result contract. | Describe identity, occurrence, revision, units, mass and inertia sources, missing inputs and stale results after the profile owner and contract are confirmed. | Conditional on that contract. |
+| 12 | Explain bounded physical experiments. | Document the pendulum only after its supported forward path exists. Distinguish inverse torque calculation from free motion under gravity. Treat structural, thermal, fluid and coupled experiments as separate later profiles. | On hold pending supported inputs and verified behavior. |
+| 13 | Finish the frozen 24-case CAD API gallery. | Preserve its six-file source and original failures. Generate and review the 25 expected assets only when its execution is assigned. | On hold; it is separate from the three completed Part API cases. |
+
+
+The first identified API gaps for item 04 are:
+
+- 04.1: Show a CAD split result, the returned body keys and selection before mass properties. Label expected values separately from actual API results.
+- 04.2: Explain CAD Model assembly clearance inputs and the returned map, including pending exact overlap.
+- 04.3: Explain the drawing facade result, issues and returned files. Use a returned SVG only after an actual run.
+- 04.4: Explain Viewer pointer and keyboard controls, focus and disposal. The source text is written; validate the site.
+- 04.5: Explain GPU scene creation and update failures. The source text is written; validate the site.
 
 If an item is waiting for an input, continue with a ready independent item. Record the exact source for each run.
 

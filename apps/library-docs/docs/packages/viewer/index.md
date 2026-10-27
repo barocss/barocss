@@ -76,6 +76,35 @@ The host writes the returned text to a file and supplies file text to `openRevie
 read/write errors and file-size limits. It also disposes the Viewer when finished. Loading and applying can throw;
 show the error and keep the review file for correction rather than treating a failed Open as a new accepted view.
 
+## Pointer and keyboard controls
+
+Call `viewer.attachPointerControls(options)` or `viewer.attachKeyboardControls(options)` on the existing Viewer.
+Each accepts an optional plain options object with only `onError?: (error: unknown) => void`.
+The methods return a `ViewerPointerControls` or `ViewerKeyboardControls` handle, respectively.
+Keep each handle and call its `dispose()` to remove the listeners it installed.
+See [Host lifetime](#host-lifetime) for the cleanup order.
+
+| Adapter | Input | Action |
+|---|---|---|
+| Pointer | Primary-button drag | Orbit the camera |
+| Pointer | Shift + primary-button drag | Pan the camera |
+| Pointer | Wheel | Zoom |
+| Keyboard | Unmodified F | Fit the currently visible displayed geometry |
+| Keyboard | Escape | Clear the current Surface or Curve selection |
+
+Keyboard controls listen only on the Viewer canvas. Give the canvas `tabIndex=0` and let the host or user focus it.
+The adapter does not set focus. It ignores modified, repeated and composing keys.
+
+Pointer controls capture one primary pointer and use canvas CSS pixels.
+The host owns the canvas's `touch-action` CSS and click-to-select behavior.
+After a successful drag moves more than 3 CSS pixels from its start, releasing the pointer suppresses the next click.
+A click without such a drag still reaches the host's selection handler.
+The pointer adapter does not select geometry or change native measurements or display poses.
+
+Unsupported options are refused when attaching a control.
+Event-handling failures go to the optional `onError` callback.
+A failed keyboard action does not prevent the browser's default action.
+
 ## Host lifetime
 
 The host owns the Viewer and any pointer or keyboard control handles it attaches. Before removing the canvas

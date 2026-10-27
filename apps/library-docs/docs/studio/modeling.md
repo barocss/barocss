@@ -14,6 +14,35 @@ Use parameters for shared sizes. Use a frame when the design needs separate stru
 - Sizes for the feature, and named parameters if sizes must change together.
 - For a frame, a skeleton and a typed section or section rows from your own file.
 
+## Example: one plate with a through hole
+
+Use the Box route for this example from [Getting started](/guide/getting-started#a-first-part).
+The later sections explain sketch-based features and frames as other construction choices.
+
+1. Choose New part, then press <kbd>B</kbd> for Box.
+   Set Width X to 64, Depth Y to 32 and Height Z to 8 mm.
+   Keep At X, At Y and At Z at 0, then press <kbd>Enter</kbd>.
+2. Choose Top in the view buttons, then click the plate's top face.
+3. Press <kbd>H</kbd>. Set Type to Through and Diameter to 8 mm.
+   Set Centre X to 32 and Centre Y to 16 mm.
+   Wait for the HUD to say preview, then press <kbd>Enter</kbd>.
+4. Open Parameters. Enter the name `T` and value `8`, then choose Add.
+5. Open the box feature in the history.
+   Select `T` from the Distance field's ƒ list, then choose Apply.
+   This binds the plate thickness to `T`; inspect the accepted result.
+6. Choose Save to keep the editable `.bcad` document.
+   With a project open, it is saved in that project. Otherwise, the browser downloads it.
+   See [Files and exports](/studio/files#the-bcad-document).
+
+![Existing Getting started image: the top-face hole preview and its input fields](/shots/guide/getting-started/hole-preview.jpg)
+
+This image is reused from Getting started. It is not a new run of these parameter and save steps.
+
+For the initial dimensions, the ideal box volume is `64 × 32 × 8 = 16,384 mm³`.
+A straight Ø8 through hole removes `π × 4² × 8 = 128π mm³`.
+The ideal remaining volume is about `15,981.876 mm³`.
+These are calculations from dimensions, not API results or measurements from a new Studio run.
+
 ## Work sequence
 
 ### 1. Draw and finish a profile

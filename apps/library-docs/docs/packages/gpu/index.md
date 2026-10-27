@@ -119,6 +119,17 @@ Y scale for the opposite convention. A missing or degenerate UV frame keeps the 
 The roughness map's green channel and metallic map's blue channel multiply their material values, so one
 packed texture can serve both roles. Set a map to `null` to remove it.
 
+For a uniform RGBA8 data texture `[255, 128, 64, 255]` created with `{ srgb: false }`, the green and blue
+samples are `128/255` and `64/255`. With material roughness `0.8` and metallic `0.6`, the parameters become:
+
+| Parameter | Calculation | Approximate result |
+| --- | --- | --- |
+| Roughness | `0.8 × (128/255)` | `0.401569` |
+| Metallic | `0.6 × (64/255)` | `0.150588` |
+
+These are parameter calculations before lighting, not final pixel RGB values or captured API results.
+Byte `128` is `128/255`, not exactly `0.5`. Filtering can mix samples from a non-uniform texture.
+
 Data maps require live textures and triangle geometry. They cannot be combined with a scalar-field
 `Mesh.colorMap`. A data map that is not a live `ImageTexture` with `srgb: false` refuses with `TEXTURE_INVALID`.
 A `normalScale` without exactly two finite f32 numbers refuses with `MATERIAL_INVALID`, as do data maps on
@@ -289,8 +300,15 @@ samples run in Node:
   - Anything it doesn't take is refused, with its line and column. Nothing is silently ignored.
 - **Materials.** An `@shader` material declares its uniforms and a fragment colour, and lowers to the WGSL the viewer
   draws with.
-- **Showing a scene.** On a viewer, `showScene(viewer, source)` adds a mesh per object, and `view.update(source)` shows
-  an edited source or returns its diagnostics.
+- **Showing a scene.** `showScene(viewer, source, options?)` returns a `SceneView`. If the first source fails to
+  compile, it throws `SceneViewError` with code `SCENE_VIEW` and its `diagnostics`.
+  `view.meshes` maps object IDs to meshes; `view.result` holds the last successful compile result.
+  `view.update(source)` returns `{ ok: true }` after showing a successfully compiled source. A compile failure
+  returns `{ ok: false, diagnostics }` and keeps the previous displayed scene, meshes and `result`.
+  This preservation applies to compile failure; it does not guarantee recovery from every rendering or GPU error.
+  `view.dispose()` removes its meshes and disposes its cached geometry; calling it again does nothing.
+  It does not dispose the viewer. After disposal, `view.update(source)` throws `SceneViewError` with code `SCENE_VIEW`
+  and a `STATE` diagnostic instead of returning `{ ok: false, diagnostics }`.
 
 The package README is the language's full reference.
 
