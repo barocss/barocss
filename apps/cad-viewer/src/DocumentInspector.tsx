@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
+import { GeometryMetrics } from './GeometryMetrics';
+import type { GeometryInspection, GeometryOptions } from './GeometryMetrics';
+import { ViewerIcon } from './components/ViewerIcon';
 
 export type NativePointQuery = { kind: 'curve'; parameter: number }
   | { kind: 'surface'; u: number; v: number };
@@ -26,9 +29,13 @@ function queryText(query: NativePointQuery) {
     : `u = ${numberText(query.u)}, v = ${numberText(query.v)}`;
 }
 
-export function DocumentInspector({ inspection, onInspect }: {
+export function DocumentInspector({ inspection, metrics, distanceActions, onInspect, onCalculate, onSetDistancePoint }: {
   inspection: DocumentInspection;
+  metrics: GeometryInspection;
+  distanceActions: { canSetA: boolean; canSetB: boolean; secondReason: string };
   onInspect: (query: NativePointQuery) => void;
+  onCalculate: (options: GeometryOptions) => void;
+  onSetDistancePoint: (endpoint: 'a' | 'b') => void;
 }) {
   const { bodyId, label, query, domain, result } = inspection;
   const first = query.kind === 'curve' ? query.parameter : query.u;
@@ -57,9 +64,11 @@ export function DocumentInspector({ inspection, onInspect }: {
       : { kind: 'surface', u: Number(values[0]), v: Number(values[1]) });
   }
 
-  return <section className="inspector-section document-inspection" aria-labelledby="document-point-heading">
-    <div className="section-heading"><h3 id="document-point-heading">Native point</h3></div>
+  return <section className="inspector-section document-inspection" aria-labelledby="document-geometry-heading">
+    <div className="section-heading"><h3 id="document-geometry-heading">Geometry</h3></div>
     <p className="native-point-source" title={label || bodyId}>{label || bodyId}</p>
+    <GeometryMetrics inspection={metrics} onCalculate={onCalculate} />
+    <h4 id="document-point-heading" className="native-point-heading">Native point</h4>
     <div className="native-point-domain" aria-label="Original native parameter domains">
       {fields.map(field => <p id={`document-domain-${field.label}`} key={field.label}>
         {field.range ? `${field.label}: [${numberText(field.range[0])}, ${numberText(field.range[1])}]`
@@ -83,7 +92,23 @@ export function DocumentInspector({ inspection, onInspect }: {
     </form>
     {error && <p id="document-point-error" className="native-point-error" role="alert">{error}</p>}
     {result && <div id="document-point-result" className="native-point-result" aria-live="polite" aria-atomic="true">
-      <p className="native-point-accepted">Evaluated {queryText(result.query)}</p>
+      <div className="native-point-accepted-row">
+        <p className="native-point-accepted">Evaluated {queryText(result.query)}</p>
+        <div className="native-point-distance-actions" role="group" aria-label="Distance endpoints">
+          <Button id="inspect-point-as-a" type="button" variant="outline" size="sm"
+            className="inspector-icon h-[30px] w-[30px] p-0 [&_svg]:size-[16px]"
+            aria-label="Set distance point A" disabled={!distanceActions.canSetA}
+            title={distanceActions.canSetA ? 'Use evaluated point as A'
+              : 'Use evaluated point as A. The evaluated point is unavailable.'}
+            onClick={() => onSetDistancePoint('a')}><ViewerIcon name="pointA" /></Button>
+          <Button id="inspect-point-as-b" type="button" variant="outline" size="sm"
+            className="inspector-icon h-[30px] w-[30px] p-0 [&_svg]:size-[16px]"
+            aria-label="Set distance point B" disabled={!distanceActions.canSetB}
+            title={distanceActions.canSetB ? 'Use evaluated point as B'
+              : `Use evaluated point as B. ${distanceActions.secondReason || 'Set point A first.'}`}
+            onClick={() => onSetDistancePoint('b')}><ViewerIcon name="pointB" /></Button>
+        </div>
+      </div>
       <h4>Original XYZ <span>mm</span></h4>
       <dl className="native-point-coordinates" aria-label="Original authored coordinates in millimetres">
         {['X', 'Y', 'Z'].map((axis, index) => <div key={axis}>

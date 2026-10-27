@@ -12,6 +12,11 @@ view cubes highlight their corresponding face. The screen keeps input ranges,
 evaluated parameters, coordinates, units and errors. Repeated help bars,
 viewport captions and long Inspector instructions are removed.
 
+On narrow or short screens, panel icons open the document tree or Properties
+over the viewport. Only one panel is open at a time. Escape closes an open panel
+and returns keyboard focus to its icon. The canvas and accepted review stay mounted
+while the screen size or panel changes.
+
 Tailwind CSS compiles the actual screen and component classes. Preflight is off,
 as in Studio. Workspace CSS is in the lower `legacy` layer. `tailwind.css` maps
 the shadcn color tokens to the Viewer palette. `components.json` records the
@@ -54,22 +59,45 @@ For a build check without opening a server port, run:
 node apps/cad-viewer/server.mjs --check
 ```
 
+## Viewer availability
+
+While the Viewer starts, the viewport shows **Starting Viewer**. If WebGPU or
+an adapter is unavailable, it shows **WebGPU unavailable**. Other startup errors
+show **Viewer could not start**. File actions are unavailable until startup succeeds.
+
+After startup, the status bar reports WebGPU device loss and device recreation.
+Device recreation reports that a device was created; it does not confirm that
+the canvas or its contents were restored. The app does not offer device recovery.
+
 ## Open a document
 
-1. Choose **Open document** and select a local `.cad-document.json` file. You can
-   also use **Open sample**.
+1. Choose **Open document** and select a local `.cad-document.json`, `.igs`,
+   or `.iges` file. You can also use **Open sample**.
 2. Choose 1 to 4 supported bodies in the admission dialog.
 3. Choose **Load bodies**. The app uses SDK admission to replace the scene.
+
+Use **Close CAD file** to clear the current scene and session views. An in-flight
+file read, review or image export cannot be applied after close. The Viewer keeps
+its lighting override when the scene is cleared.
 
 The reader uses the actual source-backed CAD document codec. It accepts the
 direct geometry profile, with millimetres, radians and the authored XYZ frame.
 Bodies reference native Surfaces or Curves. The native display profile also
-limits each selected source asset to 4 native objects. Unsupported body rows
+limits each selected source asset to 16 native objects in total, including
+objects that are not displayed. The app displays at most 4 bodies at once.
+Unsupported body rows
 remain visible with their refusal reason.
 
 The file read boundary is 2 MiB. The current CAD codec also applies source
 budgets. Detailed sampling can still refuse a chosen body. Invalid document
 data and unsupported body selections are rejected before acceptance.
+
+IGES input is limited to the CAD writer-compatible ASCII 5.3 profile: open
+type 126 Curves and type 128 Surfaces, in millimetres with scale 1 and no
+transform. It accepts up to 16 entities and 1 MiB. The app generates a new CAD
+document from the imported geometry; original author IDs, assembly structure
+and feature history are not recovered. The review binds both the original IGES
+bytes and the generated CAD source. This is not general IGES support.
 
 The sample comes from
 `packages/barocss-cad-interop/examples/document-gpu-v2.cad-document.json`.
@@ -83,7 +111,8 @@ document file. **Assembly sample** opens the existing original fixture at
 `examples/gpu-scene/fixtures/assembly-revision0.json`. Choose 1 to 4 existing
 instances, then choose **Load instances**. The complete source and hierarchy
 are retained. Unloaded parents remain metadata rows with expandable children.
-The parser does not create parts or placements. Display limits still apply.
+The parser does not create parts or placements. Each selected source asset can
+contain at most 16 native objects. At most 4 instances can be displayed at once.
 
 The Assembly list follows the authored parent hierarchy. Search keeps the
 ancestors of matching instances. Each occurrence has its own SDK display ref,
@@ -99,8 +128,15 @@ point inspection starts at the original parameter domain midpoint. Enter a
 Curve t or Surface u/v to evaluate the original native point. The SDK returns
 separate **Part local XYZ mm** and **Assembly XYZ mm**, including all authored
 parent placements. This query does not change the view or CAD source. A bad
-parameter retains the last accepted result and shows its reason. This is a
-point inspection, not a distance measurement.
+parameter retains the last accepted result and shows its reason. Use the A/B
+icons to keep points from visible instances. The Points panel shows their
+part-local and assembly coordinates and the straight-line distance in mm.
+The SDK evaluates each point again against the current assembly. The result is
+not a certified dimension. Hiding or removing an instance clears its point
+and the distance. A review file stores a completed pair and its distance;
+opening it re-evaluates both points against the current assembly before
+applying the review. A single unfinished point is not saved. Named views do
+not store assembly points or distance.
 
 Assembly mode disables the document distance tool and material changes. It
 does not reinterpret document native measurements as assembly distances.
@@ -156,6 +192,18 @@ The inspector shows its original document, body, asset, revision and geometry
 bindings. Drag to orbit, Shift-drag to pan and scroll to zoom. Press
 **F** to fit all visible geometry and **Escape** to clear selection.
 
+With the viewport focused, use arrow keys to orbit, Shift+arrow keys to pan,
+and +/− to zoom. F fits all visible geometry; Shift+F fits the selected body.
+Escape cancels active distance selection before it clears a selection.
+These keys do not intercept typing in the Inspector or search field.
+
+Use the plus icon on an unloaded supported body or instance to open the chooser
+at that item. If four items are already loaded, select the item to replace and
+choose Load. Cancel keeps the accepted scene and returns focus to the icon.
+Loading a new selection applies the existing admission reset rules. If display
+recovery after a failed load also fails, the app reports that failure.
+Unsupported items show their reason in the tree and to keyboard users.
+
 Choose **Fit selected**, or press **Shift+F** with the viewport focused, to fit
 the selected visible body or assembly occurrence in ISO. The app uses the
 SDK's `fitGeometry()` with the selected display reference and its authored
@@ -175,7 +223,7 @@ The pick filter belongs to the current session. Review files and saved views
 do not store or restore it. Successful source admission, including a changed
 loaded body or instance subset, resets the filter to **All**.
 
-Select a document body to open **Native point** in the Inspector. Enter Curve
+Select a document body to open **Geometry** in the Inspector. Enter Curve
 **t** or Surface **u/v**, then choose **Inspect point**. The displayed ranges
 come from the original parameter domains. The first result uses their midpoint.
 **Original XYZ** is in authored millimetres. It does not use sampled screen
@@ -191,6 +239,22 @@ Native point inspection changes no geometry, camera, selection, framebuffer
 or distance query cache. It is a point evaluation, not a distance measurement
 or a certified dimension. Review files and saved views do not store its draft
 or result. Assembly mode keeps its separate part/assembly point inspector.
+
+The Geometry panel also estimates the selected Curve's length or the selected
+Surface's area. Choose the calculation icon to run the existing public native
+CAD query over the complete original t or u/v domain. Absolute tolerance uses
+mm for length or mm² for area; relative tolerance is unitless. The app uses fixed
+bounded evaluation budgets. A rejected query keeps the previous result and its
+accepted tolerance targets. During the pending calculation, changing selection
+or accepting another source cancels the old inspection context.
+
+Results use an approximate sign and show the heuristic error estimate, source
+domain and accepted tolerance targets. The error is not a certified upper bound.
+Surface area counts the parameterized domain with multiplicity; it is not a
+trimmed, union or BRep area. These estimates are not certified dimensions.
+Calculation changes no Viewer state, display pixels, source or distance cache.
+The options and result are session inspection data and do not enter review files.
+Assembly mode retains its existing point inspection without these new metrics.
 
 The appearance controls apply or clear a temporary Surface material. Clear
 Surface selection before applying a material. Clear a bound material before
@@ -224,6 +288,15 @@ Different-asset and ambiguous picks keep A for another attempt. A missed pick
 also keeps the active tool. Finish or cancel point selection before saving a
 review. PNG images do not include the DOM measurement annotations.
 
+The **A** and **B** icons beside an inspected point use its last **Evaluated**
+parameters. Editing a draft does not change that accepted point. A starts a new
+pair and keeps the SDK's last successful distance cache. B completes the pair
+or replaces its second point. Select another visible loaded body in the same
+asset to use its original Curve or Surface point. A point outside the camera
+view can still be used; its overlay is omitted. A can also be followed by a
+viewport pick for B. A rejected endpoint keeps the current pair and distance.
+The completed result uses the existing review and saved-view formats.
+
 **Save review** writes compact app review JSON. It records the camera,
 visibility, selection, source revision pins and the completed A/B measurement.
 For supported Surface scenes it also records the accepted lighting override,
@@ -242,6 +315,11 @@ lighting and measurement restore together. A changed session
 also cancels an unfinished read or save. Restore recreates the A/B labels and
 reprojects them in the restored camera.
 
+If the source differs, the status bar asks for the original CAD file. If the
+loaded bodies or instances differ, it asks for the same selection used when the
+review was saved. The status message has a tooltip and can receive keyboard focus
+when it reports an error. A refused review keeps the current scene and saved views.
+
 Older raw SDK review files still open as view-only reviews. They have source
 revision pins but no content hash or saved measurement. Opening one clears the
 app measurement and latest native measurement cache. The SDK's original raw
@@ -253,5 +331,13 @@ current lighting when opened.
 the viewport pixels, without the app toolbar or inspector. It is a display
 snapshot, not a CAD geometry export.
 
-The app does not import STEP, IGES, STL or feature-based BRep files.
+**Export PNG with distance** adds the current completed measurement's projected
+A/B markers, connecting line and value in millimetres to a copy of the viewport.
+Points outside the camera view have no marker. Projection does not test occlusion.
+The value stays visible even when neither point is in view. The original PNG
+action remains available without annotations. A change to the view or measurement
+while capturing cancels the export.
+
+The app imports only the limited IGES profile described above. It does not
+import STEP, STL or feature-based BRep files.
 It does not add modelling or document authoring tools.

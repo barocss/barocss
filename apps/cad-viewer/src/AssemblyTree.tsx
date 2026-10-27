@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ViewerGeometryRef, ViewerState } from '@barocss/viewer';
 import { Button } from './components/ui/button';
+import { ViewerIcon } from './components/ViewerIcon';
 
 export type AssemblyRow = {
   id: string; name: string; kind: string; geometryId: string; assetId: string;
+  supported: boolean; reason?: string;
   parentId?: string | null; ancestors?: string[];
 };
 const sameRef = (a: ViewerGeometryRef, b: ViewerGeometryRef | null) => Boolean(b && a.kind === b.kind
@@ -11,10 +13,11 @@ const sameRef = (a: ViewerGeometryRef, b: ViewerGeometryRef | null) => Boolean(b
   === (b.kind === 'surface' ? b.surfaceId : b.curveId));
 
 /** Full authored hierarchy. Unloaded parents remain metadata rows with expandable children. */
-export function AssemblyTree({ catalog, state, search, onSelect, onVisibility }: {
+export function AssemblyTree({ catalog, state, search, onSelect, onVisibility, onChooseUnloaded }: {
   catalog: AssemblyRow[]; state: ViewerState; search: string;
   onSelect: (ref: ViewerGeometryRef) => void;
   onVisibility: (ref: ViewerGeometryRef, visible: boolean) => void;
+  onChooseUnloaded: (instanceId: string, origin: HTMLButtonElement) => void;
 }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const listRef = useRef<HTMLDivElement>(null);
@@ -48,13 +51,24 @@ export function AssemblyTree({ catalog, state, search, onSelect, onVisibility }:
             })}><span aria-hidden="true">{expanded ? '⌄' : '›'}</span></Button>
             : <span className="assembly-spacer" />}
           <input type="checkbox" className="body-visibility" checked={visible} disabled={!binding}
-            aria-label={`Show instance ${row.id}`} title={binding ? 'Show this occurrence' : 'Choose this instance to load it.'}
+            aria-label={`Show instance ${row.id}`} title={binding ? 'Show this occurrence'
+              : row.supported ? 'Choose this instance to load it.' : row.reason || 'This instance is unsupported.'}
             onChange={event => binding && onVisibility(binding.ref, event.target.checked)} />
-          <Button className="body-select block h-auto min-h-10 flex-1 justify-start whitespace-normal p-1 text-left"
-            variant="ghost" size="sm" disabled={!binding || !visible} aria-label={`Select instance ${row.id}`}
-            aria-pressed={selected} onClick={() => binding && onSelect(binding.ref)}>
-            <span>{row.id}</span><small>{binding ? row.geometryId : 'Not loaded'}</small>
-          </Button>
+          {binding ? <Button className="body-select block h-auto min-h-10 flex-1 justify-start whitespace-normal p-1 text-left"
+            variant="ghost" size="sm" disabled={!visible} aria-label={`Select instance ${row.id}`}
+            aria-pressed={selected} onClick={() => onSelect(binding.ref)}>
+            <span>{row.id}</span><small>{row.geometryId}</small>
+          </Button> : <>
+            <div className="body-select" title={!row.supported ? row.reason || 'This instance is unsupported.' : row.id}
+              role={!row.supported ? 'group' : undefined} tabIndex={!row.supported ? 0 : undefined}
+              aria-label={!row.supported ? `${row.id}: ${row.reason || 'This instance is unsupported.'}` : undefined}>
+              <span>{row.id}</span><small>{row.supported ? 'Not loaded' : row.reason || 'Unsupported instance'}</small>
+            </div>
+            {row.supported && <Button type="button" variant="ghost" size="sm"
+              className="inspector-icon h-[28px] w-[28px] p-0 [&_svg]:size-[16px]"
+              aria-label={`Choose instance ${row.id}`} title={`Choose instance ${row.id} to load`}
+              onClick={event => onChooseUnloaded(row.id, event.currentTarget)}><ViewerIcon name="plus" /></Button>}
+          </>}
         </div>
         {children && expanded && <ul className="assembly-children">{rows(row.id)}</ul>}
       </li>;

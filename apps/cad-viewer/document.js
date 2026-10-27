@@ -28,8 +28,8 @@ export function parseDocument(text, label = 'CAD document') {
     else if (document.nativeFrame !== 'authored-xyz-no-axis-conversion' ||
         asset.sourceFrame !== 'authored-xyz-no-axis-conversion')
       reason = 'This Viewer requires the authored XYZ frame.';
-    else if (compiled.model.objects.filter(value => ['surface', 'curve'].includes(value.kind)).length > 4)
-      reason = 'The source asset exceeds the current 4 native object limit.';
+    else if (compiled.model.objects.length > 16)
+      reason = 'The source asset exceeds the current 16 native object limit.';
     if (geometry && ['surface', 'curve'].includes(kind)) {
       try {
         const original = createCadGeometryReference(result, { bodyId: body.id });
@@ -85,6 +85,7 @@ export function loadOptions(bodyIds) {
     throw new RangeError('Choose 1 to 4 distinct supported bodies.');
   return {
     native: { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 1,
+      nativeCapacity: { version: 1, maximumObjects: 16 },
       curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } },
     basis: 'authored-xyz-matches-rhyup', bodyIds: [...bodyIds],
   };

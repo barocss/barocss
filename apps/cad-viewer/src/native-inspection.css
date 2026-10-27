@@ -9,6 +9,9 @@
 .native-point-error { margin: 12px 0 0; color: var(--viewer-destructive, #e89585); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
 .native-point-result { min-width: 0; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
 .native-point-accepted { margin: 0 0 10px; color: #a9bcc9; font-family: var(--viewer-mono, monospace); font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
+.native-point-accepted-row { display: flex; min-width: 0; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.native-point-accepted-row .native-point-accepted { flex: 1; min-width: 0; margin: 0; }
+.native-point-distance-actions { display: flex; flex-shrink: 0; gap: 4px; }
 .native-point-result h4 { margin: 0 0 6px; color: #a9bcc9; font-size: 11px; font-weight: 500; }
 .native-point-result h4 span { margin-left: 4px; color: #8199a9; font-size: 10px; }
 .native-point-coordinates { margin: 0; }

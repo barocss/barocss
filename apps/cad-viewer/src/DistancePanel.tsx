@@ -24,7 +24,7 @@ type DistancePanelProps = {
 function formatMM(value: number | undefined) {
   if (value === undefined || !Number.isFinite(value)) return '—';
   const fixed = value.toFixed(6);
-  const rounded = fixed.includes('.') ? fixed.replace(/0+$/, '').replace(/\.$/, '') : fixed;
+  const rounded = fixed.includes('.') && !fixed.includes('e') ? fixed.replace(/0+$/, '').replace(/\.$/, '') : fixed;
   return rounded === '-0' ? '0' : rounded;
 }
 

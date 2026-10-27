@@ -92,17 +92,11 @@ test('out-of-display world translations remain metadata and do not enter the def
   assert.equal(parsed.catalog.find(row => row.id === 'parent').supported, true);
 });
 
-test('source assets above the display object budget remain visible as refused metadata', () => {
+test('source assets above the 16 object budget are refused by the source codec', () => {
   const authored = original(), asset = authored.parts[0].assets[0];
-  const extras = [1, 2, 3].map(index => ` @curve #extra_${index} { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[0,0,0],[1,0,0]]; weights:[1,1]; }`).join('\n');
+  const extras = Array.from({ length: 15 }, (_, index) => ` @curve #extra_${index} { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[0,0,0],[1,0,0]]; weights:[1,1]; }`).join('\n');
   asset.source = asset.source.replace(/\n}\n$/, '\n' + extras + '\n}\n');
-  const parsed = api.parseAssembly(JSON.stringify(authored));
-  assert.equal(parsed.catalog.length, authored.instances.length);
-  for (const row of parsed.catalog.filter(row => row.assetId === 'asset_a')) {
-    assert.equal(row.supported, false); assert.match(row.reason, /4 native object limit/);
-  }
-  assert.equal(parsed.catalog.find(row => row.id === 'asset_b_instance').supported, true);
-  assert.deepEqual(parsed.defaultBodyIds, ['asset_b_instance']);
+  assert.throws(() => api.parseAssembly(JSON.stringify(authored)), /source0 compilation refused/);
 });
 
 test('input size, duplicate JSON fields and invalid assembly authority refuse before any app state exists', () => {
@@ -122,6 +116,7 @@ test('input size, duplicate JSON fields and invalid assembly authority refuse be
 test('assembly load options have exact public fields and copy a dense unique 1–4 instance choice', () => {
   const ids = ['child', 'surface_grandchild'], options = api.assemblyLoadOptions(ids);
   assert.deepEqual(options, { native: { sourceVersion: 0, countU: 8, countV: 8,
+    nativeCapacity: { version: 1, maximumObjects: 16 },
     curveDisplay: { version: 1, chordToleranceMM: .02, maxSegments: 512, maxDepth: 16 } },
   basis: 'authored-xyz-matches-rhyup', instanceIds: ids });
   assert.equal(Object.hasOwn(options.native, 'unitsPerMillimeter'), false);

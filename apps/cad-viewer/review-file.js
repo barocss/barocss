@@ -6,6 +6,15 @@ const CANDIDATE_SCHEMA = 'barocss-viewer-measured-review';
 const encoder = new TextEncoder();
 const forbiddenKeys = new Set(['__proto__', 'prototype', 'constructor']);
 
+/** Identifies a valid review that belongs to a different loaded CAD source. */
+export class ReviewSourceMismatchError extends RangeError {
+  constructor(code, message) {
+    super(message);
+    this.name = 'ReviewSourceMismatchError';
+    this.code = code;
+  }
+}
+
 function refuse(message) { throw new RangeError(message); }
 
 function record(input, keys, label) {
@@ -79,6 +88,48 @@ function copyMeasurement(input, sceneKind) {
   return { first: copyNativeInput(value.first, 'Measurement.first'),
     second: copyNativeInput(value.second, 'Measurement.second'), distanceMM: value.distanceMM,
     metric: value.metric, space: value.space, certification: value.certification };
+}
+
+function copyAssemblyPointQuery(input, scene, label) {
+  const value = record(input, ['assemblyId', 'assemblyRevision', 'instanceId', 'reference', 'query'], label);
+  string(value.assemblyId, `${label}.assemblyId`);
+  string(value.instanceId, `${label}.instanceId`);
+  if (!Number.isInteger(value.assemblyRevision) || value.assemblyRevision < 0 || value.assemblyRevision > 2147483647)
+    refuse(`${label}.assemblyRevision must be a valid revision.`);
+  if (value.assemblyId !== scene.id || value.assemblyRevision !== scene.revision)
+    refuse(`${label} must match the review assembly identity and revision.`);
+  const reference = record(value.reference, ['schema', 'version', 'documentId', 'documentRevision', 'bodyId',
+    'assetId', 'assetRevision', 'geometryId', 'geometryKind', 'sourceVersion', 'sourceFrame', 'lengthUnit'],
+  `${label}.reference`);
+  if (reference.schema !== 'barocss-cad-geometry-reference' || reference.version !== 0
+    || reference.sourceVersion !== 0 || reference.sourceFrame !== 'authored-xyz-no-axis-conversion'
+    || reference.lengthUnit !== 'mm' || !['curve', 'surface'].includes(reference.geometryKind))
+    refuse(`${label}.reference is unsupported.`);
+  for (const key of ['documentId', 'bodyId', 'assetId', 'geometryId']) string(reference[key], `${label}.reference.${key}`);
+  for (const key of ['documentRevision', 'assetRevision']) {
+    if (!Number.isInteger(reference[key]) || reference[key] < 0 || reference[key] > 2147483647)
+      refuse(`${label}.reference.${key} must be a valid revision.`);
+  }
+  const query = record(value.query, reference.geometryKind === 'curve' ? ['kind', 'parameter'] : ['kind', 'u', 'v'],
+    `${label}.query`);
+  if (query.kind !== reference.geometryKind) refuse(`${label}.query kind must match the reference.`);
+  for (const key of query.kind === 'curve' ? ['parameter'] : ['u', 'v']) finite(query[key], `${label}.query.${key}`);
+  return { assemblyId: value.assemblyId, assemblyRevision: value.assemblyRevision,
+    instanceId: value.instanceId, reference, query };
+}
+
+/** Copy file data only. The Viewer re-evaluates both points before admission. */
+function copyAssemblyMeasurement(input, scene) {
+  if (scene.kind !== 'assembly') refuse('Assembly measurements require an assembly review.');
+  if (input === null) return null;
+  const value = record(input, ['first', 'second', 'distanceMM', 'metric', 'space', 'certification'], 'Assembly measurement');
+  if (value.metric !== 'straight-line' || value.space !== 'assembly-space-xyz'
+    || value.certification !== 'not-certified') refuse('Unsupported assembly measurement metadata.');
+  if (finite(value.distanceMM, 'Assembly measurement.distanceMM') < 0)
+    refuse('Assembly measurement.distanceMM must not be negative.');
+  return { first: copyAssemblyPointQuery(value.first, scene, 'Assembly measurement.first'),
+    second: copyAssemblyPointQuery(value.second, scene, 'Assembly measurement.second'),
+    distanceMM: value.distanceMM, metric: value.metric, space: value.space, certification: value.certification };
 }
 
 function copyLighting(input) {
@@ -172,14 +223,60 @@ function copySource(input, ancestors = new Set(), depth = 0) {
   } finally { ancestors.delete(input); }
 }
 
-function sourceText(sourceDocument, sceneKind) {
+/** The caller computes the hash from the original IGES bytes before conversion. */
+function copyOrigin(input) {
+  const origin = record(input, ['format', 'sourceSHA256', 'mappings'], 'Review origin');
+  if (origin.format !== 'iges-5.3-126-128') refuse('Unsupported review origin format.');
+  if (typeof origin.sourceSHA256 !== 'string' || !/^[a-f0-9]{64}$/.test(origin.sourceSHA256))
+    refuse('The original IGES hash is invalid.');
+  const mappings = array(origin.mappings, 'Review origin mappings');
+  if (mappings.length < 1 || mappings.length > 16) refuse('Review origin requires 1 to 16 IGES mappings.');
+  const nativeIds = new Set(), bodyIds = new Set();
+  const copied = mappings.map((inputMapping, index) => {
+    const mapping = record(inputMapping, ['directoryPointer', 'nativeId', 'bodyId'], `Review origin mapping ${index + 1}`);
+    if (mapping.directoryPointer !== 2 * index + 1)
+      refuse('Review origin mappings require ordered IGES Directory pointers.');
+    for (const key of ['nativeId', 'bodyId']) {
+      if (typeof mapping[key] !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,47}$/.test(mapping[key]))
+        refuse(`Review origin mapping ${key} must be a bounded ASCII identifier.`);
+    }
+    if (nativeIds.has(mapping.nativeId) || bodyIds.has(mapping.bodyId))
+      refuse('Review origin mappings must have unique native and body IDs.');
+    nativeIds.add(mapping.nativeId); bodyIds.add(mapping.bodyId);
+    return mapping;
+  });
+  return { format: origin.format, sourceSHA256: origin.sourceSHA256, mappings: copied };
+}
+
+function checkOriginDocument(origin, sourceDocument, scene) {
+  if (scene.kind !== 'document') refuse('An IGES origin requires a document review.');
+  const source = copySource(sourceDocument);
+  if (source?.schema !== 'barocss-cad-document' || !Array.isArray(source.assets) || source.assets.length !== 1
+    || !Array.isArray(source.bodies) || source.bodies.length !== origin.mappings.length)
+    refuse('The IGES origin requires its generated CAD document.');
+  origin.mappings.forEach((mapping, index) => {
+    const body = source.bodies[index];
+    if (!body || body.id !== mapping.bodyId || body.geometryId !== mapping.nativeId
+      || body.assetId !== source.assets[0]?.id || body.kind !== 'direct-geometry-object')
+      refuse('The IGES origin mapping differs from its generated CAD document.');
+  });
+}
+
+function originMismatch() {
+  throw new ReviewSourceMismatchError('SOURCE_ORIGIN_MISMATCH', 'The review original source or IGES mapping differs.');
+}
+
+function sourceText(sourceDocument, sceneKind, classifyMismatch = false) {
   if (!sourceDocument || typeof sourceDocument !== 'object' || Array.isArray(sourceDocument))
     refuse('The loaded CAD source is required.');
   const source = copySource(sourceDocument);
   const expectedKind = source.schema === 'barocss-cad-assembly' ? 'assembly'
     : source.schema === 'barocss-cad-document' ? 'document' : null;
-  if (expectedKind !== null && sceneKind !== expectedKind)
-    refuse('The review scene kind differs from the loaded CAD source.');
+  if (expectedKind !== null && sceneKind !== expectedKind) {
+    const message = 'The review scene kind differs from the loaded CAD source.';
+    if (classifyMismatch) throw new ReviewSourceMismatchError('SOURCE_KIND_MISMATCH', message);
+    refuse(message);
+  }
   return JSON.stringify(source);
 }
 
@@ -194,12 +291,17 @@ async function sha256(text) {
 }
 
 /** Snapshot all inputs before hashing. The file contains no CAD source or derived point coordinates. */
-export async function createReviewFile(review, measurement, sourceDocument, lighting, namedViews) {
+export async function createReviewFile(review, measurement, sourceDocument, lighting, namedViews, assemblyMeasurement, origin) {
   const capturedReview = copyReview(review);
   const file = { schema: FILE_SCHEMA, version: 1, sourceSHA256: '0'.repeat(64),
     review: capturedReview, measurement: copyMeasurement(measurement, capturedReview.scene.kind) };
   if (lighting !== undefined) file.lighting = copyLighting(lighting);
   if (namedViews !== undefined) file.namedViews = copyNamedViews(namedViews, capturedReview.scene);
+  if (assemblyMeasurement !== undefined) file.assemblyMeasurement = copyAssemblyMeasurement(assemblyMeasurement, capturedReview.scene);
+  if (origin !== undefined) {
+    file.origin = copyOrigin(origin);
+    checkOriginDocument(file.origin, sourceDocument, capturedReview.scene);
+  }
   bounded(JSON.stringify(file));
   const capturedSource = sourceText(sourceDocument, capturedReview.scene.kind);
   file.sourceSHA256 = await sha256(capturedSource);
@@ -207,32 +309,44 @@ export async function createReviewFile(review, measurement, sourceDocument, ligh
 }
 
 /** Validate the file and source hash before returning a candidate for atomic SDK admission. */
-export async function readReviewFile(text, sourceDocument) {
+export async function readReviewFile(text, sourceDocument, expectedOrigin) {
   if (typeof text !== 'string') refuse('Review text is required.');
   bounded(text);
+  const capturedOrigin = expectedOrigin === undefined ? null : copyOrigin(expectedOrigin);
   let input;
   try { input = JSON.parse(text); }
   catch { refuse('The review file is not valid JSON.'); }
   if (input?.schema === REVIEW_SCHEMA) {
+    if (capturedOrigin) originMismatch();
     return { candidate: { schema: CANDIDATE_SCHEMA, version: 1,
       review: copyReview(input), measurement: null }, legacy: true };
   }
   const hasLighting = input !== null && typeof input === 'object' && Object.hasOwn(input, 'lighting');
   const hasNamedViews = input !== null && typeof input === 'object' && Object.hasOwn(input, 'namedViews');
+  const hasAssemblyMeasurement = input !== null && typeof input === 'object' && Object.hasOwn(input, 'assemblyMeasurement');
+  const hasOrigin = input !== null && typeof input === 'object' && Object.hasOwn(input, 'origin');
   const keys = ['schema', 'version', 'sourceSHA256', 'review', 'measurement'];
   if (hasLighting) keys.push('lighting');
   if (hasNamedViews) keys.push('namedViews');
+  if (hasAssemblyMeasurement) keys.push('assemblyMeasurement');
+  if (hasOrigin) keys.push('origin');
   const file = record(input, keys, 'Review file');
   if (file.schema !== FILE_SCHEMA || file.version !== 1) refuse('Unsupported CAD Viewer review file.');
   if (typeof file.sourceSHA256 !== 'string' || !/^[a-f0-9]{64}$/.test(file.sourceSHA256))
     refuse('The review source hash is invalid.');
   const capturedReview = copyReview(file.review);
+  const fileOrigin = hasOrigin ? copyOrigin(file.origin) : null;
+  if (Boolean(fileOrigin) !== Boolean(capturedOrigin)
+    || fileOrigin && JSON.stringify(fileOrigin) !== JSON.stringify(capturedOrigin)) originMismatch();
+  if (fileOrigin) checkOriginDocument(fileOrigin, sourceDocument, capturedReview.scene);
   const candidate = { schema: CANDIDATE_SCHEMA, version: 1,
     review: capturedReview, measurement: copyMeasurement(file.measurement, capturedReview.scene.kind) };
   if (hasLighting) candidate.lighting = copyLighting(file.lighting);
   const namedViews = hasNamedViews ? copyNamedViews(file.namedViews, capturedReview.scene) : undefined;
-  const capturedSource = sourceText(sourceDocument, capturedReview.scene.kind);
+  const assemblyMeasurement = hasAssemblyMeasurement ? copyAssemblyMeasurement(file.assemblyMeasurement, capturedReview.scene) : undefined;
+  const capturedSource = sourceText(sourceDocument, capturedReview.scene.kind, true);
   if (await sha256(capturedSource) !== file.sourceSHA256)
-    refuse('The review source differs from the loaded CAD source.');
-  return { candidate, legacy: false, ...(hasNamedViews ? { namedViews } : {}) };
+    throw new ReviewSourceMismatchError('SOURCE_HASH_MISMATCH', 'The review source differs from the loaded CAD source.');
+  return { candidate, legacy: false, ...(hasNamedViews ? { namedViews } : {}),
+    ...(hasAssemblyMeasurement ? { assemblyMeasurement } : {}) };
 }

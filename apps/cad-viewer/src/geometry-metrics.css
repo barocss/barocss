@@ -1,0 +1,24 @@
+.geometry-metrics { min-width: 0; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
+.geometry-metric-heading { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.geometry-metric-heading h4, .document-inspection > .native-point-heading { min-width: 0; margin: 0; color: #a9bcc9; font-size: 11px; font-weight: 500; }
+.geometry-metric-heading h4 span { margin-left: 4px; color: #8199a9; font-size: 10px; }
+.geometry-metric-heading button { flex-shrink: 0; }
+.geometry-metric-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; gap: 9px; }
+.geometry-metric-options label { display: grid; min-width: 0; gap: 6px; color: #9bafbc; font-size: 11px; }
+.geometry-metric-options label > span { min-width: 0; overflow-wrap: anywhere; }
+.geometry-metric-options small { margin-left: 3px; color: #8199a9; font-size: 10px; }
+.geometry-metric-options input { width: 100%; min-width: 0; height: 28px; font-family: var(--viewer-mono, monospace); font-size: 11px; font-variant-numeric: tabular-nums; }
+.geometry-metric-error { margin: 12px 0 0; color: var(--viewer-destructive, #e89585); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.geometry-metric-result { min-width: 0; margin-top: 14px; }
+.geometry-metric-value { margin: 0 0 10px; color: #d2dfe7; font-family: var(--viewer-mono, monospace); font-size: 16px; font-variant-numeric: tabular-nums; line-height: 1.5; overflow-wrap: anywhere; }
+.geometry-metric-value span { color: #9bafbc; font-size: 11px; }
+.geometry-metric-details { min-width: 0; margin: 0; }
+.geometry-metric-details > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-width: 0; align-items: start; gap: 8px; font-size: 10px; line-height: 1.5; }
+.geometry-metric-details dt { min-width: 0; color: #8199a9; overflow-wrap: anywhere; }
+.geometry-metric-details dd { min-width: 0; margin: 0; color: #a9bcc9; font-family: var(--viewer-mono, monospace); font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
+.geometry-metric-targets, .geometry-metric-domain { min-width: 0; margin: 8px 0 0; color: #8199a9; font-family: var(--viewer-mono, monospace); font-size: 10px; font-variant-numeric: tabular-nums; line-height: 1.5; overflow-wrap: anywhere; }
+.geometry-metric-domain { display: grid; gap: 3px; }
+.geometry-metric-domain p { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.geometry-metric-status { display: flex; flex-wrap: wrap; min-width: 0; gap: 6px; margin-top: 10px; }
+.geometry-metric-status span { min-width: 0; padding: 3px 5px; border: 1px solid var(--line); border-radius: 4px; color: #8199a9; font-size: 9px; line-height: 1.2; overflow-wrap: anywhere; }
+.document-inspection > .native-point-heading { margin-bottom: 12px; }

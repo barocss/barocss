@@ -6,7 +6,7 @@ import { createCadGeometryReference, curveDomain, evaluateCurve, evaluateSurface
 import type { AdaptiveCurveSamplingResult, WideAdaptiveCurveSamplingResult, CadAssemblyResult,
   CadAssemblyInstancePointQuery, CadAssemblyInstancePointResult } from '@barocss/cad';
 import { BaroCadLoadAbortError, loadBaroCadSource, parseBaroCadSource } from '@barocss/cad-interop/native';
-import type { BaroCadLoadTransportOptions, BaroCadNativeResult } from '@barocss/cad-interop/native';
+import type { BaroCadLoadTransportOptions, BaroCadNativeCapacityV1, BaroCadNativeResult } from '@barocss/cad-interop/native';
 import { loadBaroCadDocument, prepareBaroCadDocumentPrimitiveNativeRefsV2 } from '@barocss/cad-interop/document';
 import type { BaroCadDocumentPrimitiveBindingV2, BaroCadDocumentPrimitiveOptionsV2,
   CadDocumentResult } from '@barocss/cad-interop/document';
@@ -32,6 +32,14 @@ import type { ViewerAssemblyLoadOptions, ViewerAssemblyInstanceBinding } from '.
 export type { ViewerAssemblyLoadOptions, ViewerAssemblyInstanceBinding } from './assembly.js';
 export type ViewerAssemblyPointQuery = CadAssemblyInstancePointQuery;
 export type ViewerAssemblyPoint = CadAssemblyInstancePointResult;
+export interface ViewerAssemblyPointDistance {
+  first: ViewerAssemblyPoint;
+  second: ViewerAssemblyPoint;
+  distanceMM: number;
+  metric: 'straight-line';
+  space: 'assembly-space-xyz';
+  certification: 'not-certified';
+}
 
 import { prepareViewerShellGraph } from './shell-graph.js';
 import type { ViewerShellLoadOptions, ViewerShellState } from './shell-graph.js';
@@ -67,7 +75,14 @@ type Vec3 = [number, number, number];
 /** A vector only read (gpu's readonly Vec3 passes as one, R7.3c). */
 type ReadVec3 = readonly [number, number, number];
 type Quat = [number, number, number, number];
-export interface ViewerOptions { mmToSceneUnit: number; background: Vec3; lighting?: MeshLighting }
+/** Device recreation does not establish that a frame or its pixels have been restored. */
+export type ViewerDeviceEvent = { type: 'lost' } | { type: 'recreated' };
+export interface ViewerOptions {
+  mmToSceneUnit: number;
+  background: Vec3;
+  lighting?: MeshLighting;
+  onDeviceEvent?: (event: ViewerDeviceEvent) => void;
+}
 export interface ViewerLightingCapabilities {
   supported: boolean;
   reason: string | null;
@@ -383,12 +398,17 @@ function parseViewerOptions(input: unknown): ViewerOptions {
   check(input !== null && typeof input === 'object' && Object.getPrototypeOf(input) === Object.prototype,
     'Viewer options must be plain data');
   const hasLighting = Object.hasOwn(input, 'lighting');
-  const value = ownRecord(input, hasLighting
-    ? ['mmToSceneUnit', 'background', 'lighting'] : ['mmToSceneUnit', 'background'], 'Viewer options');
+  const hasDeviceEvent = Object.hasOwn(input, 'onDeviceEvent');
+  const keys = ['mmToSceneUnit', 'background'];
+  if (hasLighting) keys.push('lighting');
+  if (hasDeviceEvent) keys.push('onDeviceEvent');
+  const value = ownRecord(input, keys, 'Viewer options');
   const lighting = hasLighting ? parseLighting(value.lighting) : undefined;
+  check(!hasDeviceEvent || typeof value.onDeviceEvent === 'function', 'Viewer onDeviceEvent must be a function');
   return { mmToSceneUnit: finite(value.mmToSceneUnit, 'mmToSceneUnit', 1e-6, 1),
     background: vector(value.background, 'background', 0, 1),
-    ...(lighting ? { lighting } : {}) };
+    ...(lighting ? { lighting } : {}),
+    ...(hasDeviceEvent ? { onDeviceEvent: value.onDeviceEvent as (event: ViewerDeviceEvent) => void } : {}) };
 }
 function parseNativeOptions(input: unknown):
   NativeLoadOptions | ViewerNativeCurveLoadOptions | ViewerNativeCurveLoadOptionsV1 {
@@ -417,6 +437,23 @@ function parseNativeOptions(input: unknown):
   return { sourceVersion: 0, countU, countV,
     curveDisplay: wide ? { version: 1, chordToleranceMM, maxSegments, maxDepth }
       : { chordToleranceMM, maxSegments, maxDepth } };
+}
+/** Assembly may explicitly opt in to the Loader's complete-source capacity profile. */
+function parseAssemblyNativeOptions(input: unknown):
+  (NativeLoadOptions | ViewerNativeCurveLoadOptions | ViewerNativeCurveLoadOptionsV1)
+    & { nativeCapacity?: BaroCadNativeCapacityV1 } {
+  if (!input || typeof input !== 'object' || !Object.hasOwn(input, 'nativeCapacity'))
+    return parseNativeOptions(input);
+  const hasCurves = Object.hasOwn(input, 'curveDisplay');
+  const value = ownRecord(input, hasCurves
+    ? ['sourceVersion', 'countU', 'countV', 'curveDisplay', 'nativeCapacity']
+    : ['sourceVersion', 'countU', 'countV', 'nativeCapacity'], 'Assembly native options');
+  const capacity = ownRecord(value.nativeCapacity, ['version', 'maximumObjects'], 'Assembly native capacity');
+  check(capacity.version === 1 && capacity.maximumObjects === 16,
+    'Assembly native capacity requires version 1 and maximumObjects 16');
+  const base = { sourceVersion: value.sourceVersion, countU: value.countU, countV: value.countV,
+    ...(hasCurves ? { curveDisplay: value.curveDisplay } : {}) };
+  return { ...parseNativeOptions(base), nativeCapacity: { version: 1, maximumObjects: 16 } };
 }
 function parseRef(input: unknown): ViewerRef {
   const value = ownRecord(input, ['modelId', 'surfaceId'], 'Surface reference');
@@ -1221,7 +1258,7 @@ export class Viewer {
     const request = ownRecord(options, ['native', 'basis', 'instanceIds'], 'Assembly options');
     check(request.basis === 'authored-xyz-matches-rhyup',
       'Assembly authored XYZ/mm basis must explicitly match Viewer Y-up/mm');
-    const nativeOptions = parseNativeOptions(request.native);
+    const nativeOptions = parseAssemblyNativeOptions(request.native);
     const candidate = prepareViewerAssembly(input, request.instanceIds,
       { ...nativeOptions, unitsPerMillimeter: 1 });
     const packets = this.validatedPackets(candidate.packets, candidate.curves.length > 0,
@@ -1262,6 +1299,16 @@ export class Viewer {
     check(this.assemblyInstances.some(value => value.instanceId === query.instanceId),
       'Assembly point must reference an admitted instance');
     return queryCadAssemblyInstancePoint(this.assembly, input);
+  }
+  /** Evaluate both points against the current assembly without changing Viewer state. */
+  measureAssemblyPoints(firstInput: ViewerAssemblyPointQuery,
+    secondInput: ViewerAssemblyPointQuery): ViewerAssemblyPointDistance {
+    const first = this.queryAssemblyInstancePoint(firstInput);
+    const second = this.queryAssemblyInstancePoint(secondInput);
+    const distanceMM = Math.hypot(...subtract(first.assemblyPointMM, second.assemblyPointMM));
+    check(Number.isFinite(distanceMM), 'Assembly point distance is not finite');
+    return structuredClone({ first, second, distanceMM, metric: 'straight-line',
+      space: 'assembly-space-xyz', certification: 'not-certified' });
   }
   loadNative(source: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions
     | ViewerNativeCurveLoadOptionsV1): void {
@@ -2513,7 +2560,13 @@ export class Viewer {
 export async function createViewer(canvas: HTMLCanvasElement, options: ViewerOptions): Promise<Viewer> {
   check(canvas instanceof HTMLCanvasElement, 'Viewer requires an HTMLCanvasElement');
   const parsed = parseViewerOptions(options);
-  return new Viewer(canvas, parsed, await Presenter.create(canvas, parsed.background));
+  const presenter = await Presenter.create(canvas, parsed.background, parsed.onDeviceEvent);
+  try { return new Viewer(canvas, parsed, presenter); }
+  catch (error) {
+    try { presenter.dispose(); }
+    catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Viewer creation and cleanup failed'); }
+    throw error;
+  }
 }
 
 export { prepareViewerNativeSceneAppearance } from './native-scene-appearance.js';

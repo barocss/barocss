@@ -6,6 +6,7 @@ import type { Viewer as Core, Mesh, ShaderMaterial, Light, Environment } from '@
 import { bindingShader } from '@barocss/gpu';
 import type { MeshCamera, MeshLighting, PrimitiveSceneEntryV1, PrimitiveSceneEntryV2, PrimitiveSceneMaterial,
   ParticleLayerV0, ClothLayerV0 } from '@barocss/gpu';
+import type { ViewerDeviceEvent } from './index.js';
 
 type Vec3 = [number, number, number];
 /** A vector only read (gpu's readonly Vec3 passes as one, R7.3c). */
@@ -98,12 +99,62 @@ const DOT = {
 
 export class Presenter {
   private meshes: Mesh[] = [];
-  private constructor(readonly core: Core) {}
+  private disposed = false;
+  private watchedDevice: object | null = null;
+  private reportedLosses = 0;
+  private awaitingRecreation = false;
+  private constructor(readonly core: Core, private readonly onDeviceEvent?: (event: ViewerDeviceEvent) => void) {
+    if (!onDeviceEvent) return;
+    core.onRecover = () => {
+      if (this.disposed) return;
+      this.watchDevice();
+      if (this.awaitingRecreation) {
+        this.awaitingRecreation = false;
+        this.emitDeviceEvent({ type: 'recreated' });
+      }
+    };
+    // A loss can occur before createCore resolves and this listener is attached.
+    if (core.stats.deviceLosses > 0) {
+      this.reportedLosses = core.stats.deviceLosses;
+      this.awaitingRecreation = true;
+      this.emitDeviceEvent({ type: 'lost' });
+    }
+    this.watchDevice();
+  }
 
-  static async create(canvas: HTMLCanvasElement, background: Vec3): Promise<Presenter> {
+  private emitDeviceEvent(event: ViewerDeviceEvent): void {
+    if (this.disposed) return;
+    try { this.onDeviceEvent?.(event); } catch { /* Host callbacks must not interrupt GPU recovery. */ }
+  }
+
+  private watchDevice(): void {
+    const device = this.core.computeDevice;
+    if (!device || device === this.watchedDevice) return;
+    this.watchedDevice = device;
+    const lost = (device as { lost?: PromiseLike<unknown> }).lost;
+    if (!lost || typeof lost.then !== 'function') return;
+    void Promise.resolve(lost).then(() => {
+      if (this.disposed || this.watchedDevice !== device) return;
+      const losses = this.core.stats.deviceLosses;
+      if (losses <= this.reportedLosses) return;
+      this.reportedLosses = losses;
+      this.awaitingRecreation = true;
+      this.emitDeviceEvent({ type: 'lost' });
+    }, () => { /* A rejected non-WebGPU promise is not a device-loss event. */ });
+  }
+
+  static async create(canvas: HTMLCanvasElement, background: Vec3,
+    onDeviceEvent?: (event: ViewerDeviceEvent) => void): Promise<Presenter> {
     const core = await createCore(canvas, { controls: false, autoResize: false, background, pixelRatio: 1 });
-    core.setSize(canvas.width, canvas.height);
-    return new Presenter(core);
+    try {
+      core.setSize(canvas.width, canvas.height);
+      return new Presenter(core, onDeviceEvent);
+    } catch (error) {
+      core.onRecover = null;
+      try { core.dispose(); }
+      catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Viewer creation and cleanup failed'); }
+      throw error;
+    }
   }
 
   /** Replace what is drawn. */
@@ -178,5 +229,9 @@ export class Presenter {
   /** The drawn pixels, RGBA rows from the top. */
   async readPixels(): Promise<Uint8Array> { await this.core.frame(); return (await this.core.capture()).data; }
 
-  dispose(): void { this.meshes = []; this.core.dispose(); }
+  dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true; this.watchedDevice = null; this.core.onRecover = null;
+    this.meshes = []; this.core.dispose();
+  }
 }

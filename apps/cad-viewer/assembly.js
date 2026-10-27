@@ -36,8 +36,8 @@ export function parseAssembly(text, label = 'CAD assembly') {
     else if (document.nativeFrame !== 'authored-xyz-no-axis-conversion'
       || asset.sourceFrame !== 'authored-xyz-no-axis-conversion')
       reason = 'The original part must use the authored XYZ frame.';
-    else if (compiled.model.objects.length > 4)
-      reason = 'The source asset exceeds the current 4 native object limit.';
+    else if (compiled.model.objects.length > 16)
+      reason = 'The source asset exceeds the current 16 native object limit.';
     else if ([3, 7, 11].some(index => !Number.isFinite(instance.worldMatrix[index])
       || Math.abs(instance.worldMatrix[index]) > 10000))
       reason = 'The authored world translation exceeds the current ±10000 mm display limit.';
@@ -89,6 +89,7 @@ export function assemblyLoadOptions(instanceIds) {
   structuredClone(instanceIds);
   return {
     native: { sourceVersion: 0, countU: 8, countV: 8,
+      nativeCapacity: { version: 1, maximumObjects: 16 },
       curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } },
     basis: 'authored-xyz-matches-rhyup', instanceIds: ids,
   };

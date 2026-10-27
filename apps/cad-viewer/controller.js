@@ -2,9 +2,13 @@ import { createViewer } from '@barocss/viewer';
 import { compileMeshMaterial } from '@barocss/gpu';
 import { parseSource, readSource, admitSource } from './source.js';
 import { createPngExport } from './png-export.js';
-import { createReviewFile, readReviewFile, REVIEW_FILE_LIMIT } from './review-file.js';
+import { createReviewFile, readReviewFile, ReviewSourceMismatchError, REVIEW_FILE_LIMIT } from './review-file.js';
 import { addNamedReview, renameNamedReview, removeNamedReview, getNamedReview, namedReviewCandidate } from './named-reviews.js';
 import { inspectDocumentPoint } from './native-inspection.js';
+import { inspectDocumentGeometry, geometryInspectionDefaults } from './geometry-inspection.js';
+import { prepareInspectedDistancePoint, measureInspectedDistance } from './inspection-distance.js';
+import { handleCameraKey } from './keyboard-controls.js';
+import { prepareAssemblyPoint, retainVisibleAssemblyPoints, measureAssemblyPointPair } from './assembly-points.js';
 
 export const sameRef = (a, b) => a?.kind === b?.kind && a?.modelId === b?.modelId
   && (a?.surfaceId ?? a?.curveId) === (b?.surfaceId ?? b?.curveId);
@@ -26,43 +30,107 @@ const pointRef = input => input.kind === 'surface'
   ? { kind: input.kind, modelId: input.modelId, surfaceId: input.surfaceId }
   : { kind: input.kind, modelId: input.modelId, curveId: input.curveId };
 
+// File data is copied by the codec before this check. SDK validation remains the
+// authority for the complete review and is always run before applying a match.
+function checkReviewSceneForUser(saved, current) {
+  if (saved.kind !== current.kind || saved.id !== current.id || saved.revision !== current.revision
+    || saved.mmToSceneUnit !== current.mmToSceneUnit)
+    throw new Error('Review scene or scale differs. Open the original CAD file used for this review.');
+  if (saved.members.length !== current.members.length
+    || saved.members.some((member, index) => member !== current.members[index])) {
+    const target = current.kind === 'assembly' ? 'instances' : 'bodies';
+    throw new Error(`Loaded ${target} differ. Use Choose ${target} to load the same ${target} as the review.`);
+  }
+}
+
+// Validate against the target review visibility without changing the current scene.
+export function prepareAssemblyReviewMeasurement(viewer, measurement, visibleGeometry) {
+  if (measurement === null || measurement === undefined) return null;
+  const state = viewer.getState();
+  for (const input of [measurement.first, measurement.second]) {
+    const binding = state.assemblyInstances.find(value => value.instanceId === input.instanceId);
+    if (!binding || !visibleGeometry.some(ref => sameRef(ref, binding.ref)))
+      throw new Error('Review points must reference admitted and visible instances.');
+  }
+  const result = viewer.measureAssemblyPoints(measurement.first, measurement.second);
+  if (result.distanceMM !== measurement.distanceMM)
+    throw new Error('Review distance differs from the original assembly points.');
+  const point = value => ({ instanceId: value.instanceId, assemblyId: value.assemblyId,
+    assemblyRevision: value.assemblyRevision, reference: structuredClone(value.reference),
+    worldMatrix: [...value.worldMatrix], query: structuredClone(value.query),
+    originalLocalPointMM: [...value.originalLocalPointMM], assemblyPointMM: [...value.assemblyPointMM] });
+  return { points: [point(result.first), point(result.second)], distance: result.distanceMM };
+}
+
+function assemblyPointQuery(point) {
+  return { assemblyId: point.assemblyId, assemblyRevision: point.assemblyRevision,
+    instanceId: point.instanceId, reference: structuredClone(point.reference), query: structuredClone(point.query) };
+}
+
 /** Own the SDK lifetime and commands. React owns every screen element. */
 export function createViewerController({ canvas, stage, onChange }) {
   let viewer, active = null, candidate = null, admitted = [], admissionIds = [];
-  let starting = true, disposed = false, startCalled = false, search = '';
+  let startupState = 'starting', startupFailure = '', deviceStatus = '', disposed = false, startCalled = false, search = '';
   let documentEpoch = 0, reviewEpoch = 0, frameGeneration = 0, lastGuard;
   let png, pointerControls, keyboardControls, resizeObserver;
   let appearanceTarget = '', appearancePreset = 'default', appearanceBinding;
-  let admissionError = '', status = 'Starting Viewer…', statusError = false;
+  let admissionError = '', status = 'Starting Viewer…', statusError = false, statusVersion = 0;
+  let resizeFailed = false, resizeErrorVersion = -1;
   let exportStatus = '', exportBusy = false;
-  let reviewBusy = false;
+  let reviewBusy = false, reviewOperation = 0;
   let lightingError = '';
   let measurement = emptyMeasurement();
   let assemblyInspection = null;
+  let assemblyPoints = [null, null];
+  let assemblyDistance = null, assemblyDistanceError = '';
   let documentInspection = null;
-  let namedViews = [], namedGeneration = 0, namedBusy = false, namedViewError = '';
+  let geometryInspection = null;
+  let namedViews = [], namedGeneration = 0, namedOperation = 0, namedBusy = false, namedViewError = '';
   let pickFilter = 'all';
   const listeners = [];
   const reviewUrls = new Set();
-  const loaded = () => Boolean(active && viewer && !disposed);
-  const guard = () => JSON.stringify({ review: loaded() ? viewer.captureReviewState() : null,
-    materials: viewer?.getState().surfaceMaterials ?? [], lighting: viewer?.getState().lighting ?? null, measurement,
-    width: canvas.width, height: canvas.height });
+  const loaded = () => Boolean(active && viewer && startupState === 'available' && !disposed);
+  const guard = () => {
+    const rect = canvas.getBoundingClientRect();
+    return JSON.stringify({ review: loaded() ? viewer.captureReviewState() : null,
+      materials: viewer?.getState().surfaceMaterials ?? [], lighting: viewer?.getState().lighting ?? null, measurement,
+      assemblyPoints, assemblyDistance,
+      width: canvas.width, height: canvas.height, cssWidth: rect.width, cssHeight: rect.height });
+  };
   function recordFrame() {
     const current = guard();
     if (current !== lastGuard) { frameGeneration++; lastGuard = current; }
     return current;
   }
-  function message(text, error = false) { status = text; statusError = error; }
+  function message(text, error = false) { status = text; statusError = error; statusVersion++; }
+  function projectedMeasurement(rect) {
+    const overlay = { width: rect.width, height: rect.height, points: [] };
+    if (!viewer) return overlay;
+    measurement.points.forEach((point, index) => {
+      // Projection is a display annotation. It does not test occlusion or change the framebuffer.
+      try {
+        const projected = viewer.projectNativePoint(point.input);
+        if (projected) overlay.points.push({ label: index === 0 ? 'A' : 'B',
+          xCss: projected.xCss, yCss: projected.yCss });
+      } catch { /* A lost GPU context can make a display annotation unavailable. */ }
+    });
+    return overlay;
+  }
   function refresh() {
     if (disposed) return;
     const state = viewer?.getState() ?? null;
     let appearanceNote = 'Load a Surface to change its appearance.';
     let viewPreset = null;
     const rect = canvas.getBoundingClientRect();
-    const measurementOverlay = { width: rect.width, height: rect.height, points: [] };
+    let measurementOverlay = { width: rect.width, height: rect.height, points: [] };
+    let pointMeasurementActions = { canSetA: false, canSetB: false, secondReason: 'Set point A first.' };
     if (state) {
       recordFrame();
+      const retainedPoints = active?.kind === 'assembly' ? retainVisibleAssemblyPoints(assemblyPoints, state) : [null, null];
+      if (retainedPoints.some((point, index) => point !== assemblyPoints[index])) {
+        assemblyDistance = null; assemblyDistanceError = '';
+      }
+      assemblyPoints = retainedPoints;
       const instance = active?.kind === 'assembly'
         ? state.assemblyInstances.find(binding => sameRef(binding.ref, state.selectedGeometry)) : null;
       if (!instance) assemblyInspection = null;
@@ -72,23 +140,26 @@ export function createViewerController({ canvas, stage, onChange }) {
       }
       const body = active?.kind === 'document'
         ? state.documentBodies.find(entry => sameRef(entry.ref, state.selectedGeometry)) : null;
-      if (!body) documentInspection = null;
-      else if (documentInspection?.bodyId !== body.binding.bodyId) {
+      if (!body) { documentInspection = null; geometryInspection = null; }
+      else {
         const entry = active.catalog.find(row => row.id === body.binding.bodyId);
-        if (entry?.nativeQuery) inspectDocumentBodyPoint(body, entry.nativeQuery);
+        if (documentInspection?.bodyId !== body.binding.bodyId && entry?.nativeQuery)
+          inspectDocumentBodyPoint(body, entry.nativeQuery);
+        if (geometryInspection?.bodyId !== body.binding.bodyId)
+          geometryInspection = { bodyId: body.binding.bodyId, label: entry?.name ?? body.binding.bodyId,
+            kind: body.ref.kind, options: geometryInspectionDefaults(body.ref.kind), result: null, error: '', busy: false };
       }
       if (measurement.points.some(point => !state.visibleGeometry.some(ref => sameRef(ref, pointRef(point.input))))) {
         measurement = emptyMeasurement();
         message('Distance cleared because a measured body was hidden.');
       }
-      measurement.points.forEach((point, index) => {
-        // Projection is a display annotation. It does not test occlusion or change the framebuffer.
-        try {
-          const projected = viewer.projectNativePoint(point.input);
-          if (projected) measurementOverlay.points.push({ label: index === 0 ? 'A' : 'B',
-            xCss: projected.xCss, yCss: projected.yCss });
-        } catch { /* A lost GPU context can make a display annotation unavailable. */ }
-      });
+      const canSetA = Boolean(body && documentInspection?.bodyId === body.binding.bodyId
+        && documentInspection.result && state.visibleGeometry.some(ref => sameRef(ref, body.ref)));
+      const first = measurement.points[0];
+      const secondReason = !first ? 'Set point A first.' : first.input.modelId !== body?.ref.modelId
+        ? 'Choose a point in the same asset as point A.' : '';
+      pointMeasurementActions = { canSetA, canSetB: canSetA && !secondReason, secondReason };
+      measurementOverlay = projectedMeasurement(rect);
       if (!state.surfaces.some(ref => surfaceKey(ref) === appearanceTarget))
         appearanceTarget = state.surfaces[0] ? surfaceKey(state.surfaces[0]) : '';
       const ref = state.surfaces.find(ref => surfaceKey(ref) === appearanceTarget);
@@ -115,13 +186,17 @@ export function createViewerController({ canvas, stage, onChange }) {
           && view.up.every((value, index) => Math.abs(value - camera.up[index]) < 1e-6))?.[0] ?? null;
       }
     }
-    onChange({ ready: loaded(), starting, active: summary(active), admitted: [...admitted], state,
+    onChange({ ready: loaded(), startupState, startupFailure, deviceStatus, active: summary(active), admitted: [...admitted], state,
       search, candidate: summary(candidate), admissionIds: [...admissionIds], admissionError,
       status, statusError, exportStatus, exportBusy, reviewBusy, viewPreset, appearanceTarget,
       appearancePreset, appearanceNote, lightingCapabilities: viewer?.getLightingCapabilities() ?? null,
       lightingError, measurement: structuredClone(measurement), measurementOverlay,
+      pointMeasurementActions,
       assemblyInspection: assemblyInspection ? structuredClone(assemblyInspection) : null,
+      assemblyPoints: structuredClone(assemblyPoints),
+      assemblyDistance, assemblyDistanceError,
       documentInspection: documentInspection ? structuredClone(documentInspection) : null,
+      geometryInspection: geometryInspection ? structuredClone(geometryInspection) : null,
       namedViews: namedViews.map(entry => entry.name), namedBusy, namedViewError, pickFilter });
   }
   function inspectAssemblyPoint(binding, query) {
@@ -130,11 +205,18 @@ export function createViewerController({ canvas, stage, onChange }) {
         assemblyRevision: binding.assemblyRevision, instanceId: binding.instanceId,
         reference: binding.reference, query });
       assemblyInspection = { instanceId: binding.instanceId, query: { ...query }, result, error: '' };
+      if (assemblyDistanceError && assemblyPoints.every(Boolean)) updateAssemblyDistance();
     } catch (error) {
       const previous = assemblyInspection?.instanceId === binding.instanceId ? assemblyInspection : null;
       assemblyInspection = { instanceId: binding.instanceId, query: previous?.query ?? { ...query },
         result: previous?.result ?? null, error: error?.message || String(error) };
     }
+  }
+  function updateAssemblyDistance() {
+    assemblyDistance = null; assemblyDistanceError = '';
+    if (!assemblyPoints.every(Boolean)) return;
+    try { assemblyDistance = measureAssemblyPointPair(viewer, assemblyPoints); }
+    catch (error) { assemblyDistanceError = error?.message || String(error); }
   }
   function inspectDocumentBodyPoint(binding, query) {
     const bodyId = binding.binding.bodyId;
@@ -205,6 +287,13 @@ export function createViewerController({ canvas, stage, onChange }) {
     return { review: viewer.captureReviewState(), measurement: native,
       ...(viewer.getLightingCapabilities().supported ? { lighting: viewer.getState().lighting } : {}) };
   }
+  function captureAssemblyMeasurement(review) {
+    if (active.kind !== 'assembly' || assemblyDistance === null || !assemblyPoints.every(Boolean)) return null;
+    const measurement = { first: assemblyPointQuery(assemblyPoints[0]), second: assemblyPointQuery(assemblyPoints[1]),
+      distanceMM: assemblyDistance, metric: 'straight-line', space: 'assembly-space-xyz', certification: 'not-certified' };
+    prepareAssemblyReviewMeasurement(viewer, measurement, review.visibleGeometry);
+    return measurement;
+  }
   function applySnapshot(candidate) {
     const restored = viewer.applyMeasuredReviewState(candidate);
     lightingError = '';
@@ -215,22 +304,26 @@ export function createViewerController({ canvas, stage, onChange }) {
   async function changeNamedViews(action, text) {
     if (!loaded() || reviewBusy || namedBusy) return false;
     const source = active, epoch = reviewEpoch, before = recordFrame(), version = frameGeneration, listVersion = namedGeneration;
+    const operation = ++namedOperation;
     namedBusy = true; refresh();
     try {
       const snapshot = captureSnapshot(), next = action(snapshot);
       viewer.validateMeasuredReviewState(namedReviewCandidate(snapshot));
       // Use the actual file codec to check the complete list's snapshot and 32 KiB export budget.
-      const file = await createReviewFile(snapshot.review, snapshot.measurement, active.source, snapshot.lighting, next);
+      const file = await createReviewFile(snapshot.review, snapshot.measurement, active.source, snapshot.lighting,
+        next, undefined, active.origin);
       if (new TextEncoder().encode(JSON.stringify(file) + '\n').byteLength > REVIEW_FILE_LIMIT)
         throw new Error('Review files must be 32 KiB or smaller.');
-      if (disposed || source !== active || epoch !== reviewEpoch) return false;
+      if (disposed || source !== active || epoch !== reviewEpoch || operation !== namedOperation) return false;
       if (before !== recordFrame() || version !== frameGeneration || listVersion !== namedGeneration)
         throw new Error('The view or saved views changed. Try again.');
       namedViews = next; namedGeneration++; namedViewError = ''; message(text); return true;
     } catch (error) {
-      if (!disposed && source === active) { namedViewError = error?.message || String(error); message(namedViewError, true); }
+      if (!disposed && source === active && epoch === reviewEpoch && operation === namedOperation) {
+        namedViewError = error?.message || String(error); message(namedViewError, true);
+      }
       return false;
-    } finally { namedBusy = false; refresh(); }
+    } finally { if (operation === namedOperation) { namedBusy = false; refresh(); } }
   }
   function chooseBodies(next, defaults = next.defaultBodyIds) {
     candidate = next; admissionError = '';
@@ -254,13 +347,27 @@ export function createViewerController({ canvas, stage, onChange }) {
     async start() {
       if (startCalled || disposed) return;
       startCalled = true; refresh();
+      const listenerStart = listeners.length;
       try {
-        const created = await createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.026, 0.033, 0.045] });
+        const created = await createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.026, 0.033, 0.045],
+          onDeviceEvent(event) {
+            if (disposed || startupState === 'failed') return;
+            if (event.type === 'lost') {
+              if (deviceStatus !== 'WebGPU recovery failed') deviceStatus = 'WebGPU device lost';
+            }
+            // Candidate event name; the GPU recovery-failure contract is not connected yet.
+            else if (event.type === 'recovery-failed') deviceStatus = 'WebGPU recovery failed';
+            else if (event.type === 'recreated') deviceStatus = 'WebGPU device recreated';
+            else return;
+            refresh();
+          } });
         if (disposed) { created.dispose(); return; }
         viewer = created;
         const controlError = error => { message(error?.message || String(error), true); refresh(); };
         listen(window, 'keydown', event => {
-          if (event.target !== canvas || event.repeat || event.isComposing || event.altKey || event.ctrlKey || event.metaKey) return;
+          if (event.target !== canvas || event.isComposing || event.altKey || event.ctrlKey || event.metaKey) return;
+          if (handleCameraKey(event, { canvas, viewer, isLoaded: loaded, onError: controlError })) return;
+          if (event.repeat) return;
           if (event.shiftKey && event.key.toLowerCase() === 'f') {
             event.preventDefault(); event.stopPropagation(); api.fitSelected(); return;
           }
@@ -305,22 +412,44 @@ export function createViewerController({ canvas, stage, onChange }) {
             Math.sqrt(4194304 / (rect.width * rect.height)));
           const width = Math.max(1, Math.floor(rect.width * scale));
           const height = Math.max(1, Math.floor(rect.height * scale));
-          if (canvas.width === width && canvas.height === height) return;
-          try { viewer.resize(width, height); }
-          catch (error) { message(error?.message || String(error), true); }
+          if (!resizeFailed && canvas.width === width && canvas.height === height) return;
+          try {
+            viewer.resize(width, height);
+            resizeFailed = false;
+            if (statusVersion === resizeErrorVersion) message('Viewport resized.');
+          } catch (error) {
+            resizeFailed = true;
+            message(error?.message || String(error), true);
+            resizeErrorVersion = statusVersion;
+          }
           refresh();
         });
         resizeObserver.observe(stage);
         window.cadViewerEvidence = evidence;
-        starting = false; message('Open a CAD document to begin.'); refresh();
+        startupState = 'available'; message('Open a CAD document to begin.'); refresh();
       } catch (error) {
-        starting = false; message('Viewer could not start: ' + (error?.message || String(error)), true);
+        if (disposed) return;
+        const failedViewer = viewer; viewer = undefined;
+        startupState = 'failed';
+        deviceStatus = '';
+        startupFailure = ['WEBGPU_UNAVAILABLE', 'NO_ADAPTER'].includes(error?.code)
+          ? 'WebGPU unavailable' : 'Viewer could not start';
+        message(startupFailure, true);
+        // Startup may fail after only some controls, listeners, or observers exist.
+        for (const cleanup of [() => png?.dispose(), () => pointerControls?.dispose(),
+          () => keyboardControls?.dispose(), () => resizeObserver?.disconnect(),
+          ...listeners.splice(listenerStart), () => failedViewer?.dispose()]) {
+          try { cleanup(); } catch { /* Continue releasing the remaining resources. */ }
+        }
+        png = pointerControls = keyboardControls = resizeObserver = undefined;
+        if (window.cadViewerEvidence === evidence) delete window.cadViewerEvidence;
         console.error('CAD Viewer initialization:', error); refresh();
       }
     },
-    beginDocumentPick() { documentEpoch++; },
+    beginDocumentPick() { if (startupState === 'available') documentEpoch++; },
     cancelDocumentPick() { documentEpoch++; },
     async openDocument(file) {
+      if (startupState !== 'available') return;
       const request = ++documentEpoch;
       try {
         const next = await readSource(file);
@@ -331,6 +460,7 @@ export function createViewerController({ canvas, stage, onChange }) {
       } }
     },
     async openSample(kind = 'document') {
+      if (startupState !== 'available') return;
       const request = ++documentEpoch;
       try {
         const response = await fetch(kind === 'assembly' ? '/sample.cad-assembly.json' : '/sample.cad-document.json');
@@ -342,22 +472,72 @@ export function createViewerController({ canvas, stage, onChange }) {
     },
     openBodies() { if (loaded()) { documentEpoch++; chooseBodies(active, admitted); } },
     cancelCandidate,
+    closeDocument() {
+      if (!loaded()) return false;
+      let previous;
+      try { previous = viewer.captureReviewState(); viewer.clear(); }
+      catch (error) {
+        let detail = error?.message || String(error);
+        if (previous) {
+          try { viewer.applyReviewState(previous); }
+          catch (recoveryError) { detail += `. View recovery failed: ${recoveryError?.message || String(recoveryError)}`; }
+        }
+        message('Document not closed: ' + detail, true); refresh(); return false;
+      }
+      active = candidate = null; admitted = []; admissionIds = []; admissionError = '';
+      measurement = emptyMeasurement(); assemblyInspection = null; assemblyPoints = [null, null];
+      assemblyDistance = null; assemblyDistanceError = ''; documentInspection = null; geometryInspection = null;
+      namedViews = []; namedGeneration++; namedOperation++; namedBusy = false; namedViewError = '';
+      reviewBusy = false; reviewOperation++; documentEpoch++; reviewEpoch++; frameGeneration++;
+      appearanceTarget = ''; appearancePreset = 'default'; appearanceBinding = undefined;
+      lightingError = ''; pickFilter = 'all'; search = '';
+      png?.cancel();
+      exportStatus = '';
+      message('Document closed.'); refresh(); return true;
+    },
     toggleAdmission(id, checked) {
       if (!candidate?.catalog.some(body => body.id === id && body.supported)) return;
       if (checked && !admissionIds.includes(id) && admissionIds.length < 4) admissionIds = [...admissionIds, id];
       if (!checked) admissionIds = admissionIds.filter(value => value !== id);
       refresh();
     },
-    admit() {
+    /** @param {{ targetId: string, replacedId: string } | null} replacement */
+    admit(replacement = null) {
       if (!candidate || !viewer) return;
       try {
-        const ids = [...admissionIds];
-        admitSource(viewer, candidate, ids);
+        let ids = [...admissionIds];
+        if (replacement) {
+          const { targetId, replacedId } = replacement;
+          if (candidate !== active || ids.length !== 4 || admitted.length !== 4
+            || ids.some((id, index) => id !== admitted[index]) || !ids.includes(replacedId)
+            || ids.includes(targetId) || !candidate.catalog.some(row => row.id === targetId && row.supported))
+            throw new Error('The replacement is no longer available. Choose again.');
+          ids = ids.map(id => id === replacedId ? targetId : id);
+        }
+        const sameDocument = candidate === active;
+        const previous = replacement ? viewer.captureReviewState() : null;
+        try { admitSource(viewer, candidate, ids); }
+        catch (error) {
+          if (previous) {
+            try { viewer.applyReviewState(previous); }
+            catch (recoveryError) {
+              throw new Error(`Replacement failed: ${error?.message || String(error)}. View recovery failed: ${recoveryError?.message || String(recoveryError)}`);
+            }
+          }
+          throw error;
+        }
         active = candidate; admitted = ids; candidate = null; admissionIds = [];
         measurement = emptyMeasurement(); lightingError = '';
         assemblyInspection = null;
+        if (!sameDocument) { assemblyPoints = [null, null]; assemblyDistance = null; assemblyDistanceError = ''; }
+        else {
+          assemblyPoints = retainVisibleAssemblyPoints(assemblyPoints, viewer.getState());
+          updateAssemblyDistance();
+        }
         documentInspection = null;
-        namedViews = []; namedGeneration++; namedViewError = '';
+        geometryInspection = null;
+        namedViews = []; namedGeneration++; namedOperation++; namedBusy = false; namedViewError = '';
+        reviewBusy = false; reviewOperation++;
         pickFilter = 'all';
         documentEpoch++; reviewEpoch++; frameGeneration++;
         appearanceBinding = undefined; appearanceTarget = ''; search = '';
@@ -447,9 +627,24 @@ export function createViewerController({ canvas, stage, onChange }) {
       const binding = viewer.getState().assemblyInstances.find(value => sameRef(value.ref, viewer.getState().selectedGeometry));
       if (!binding) { message('Select a loaded assembly instance first.', true); refresh(); return; }
       inspectAssemblyPoint(binding, query);
-      message(assemblyInspection.error || 'Original native point inspected in part and assembly coordinates.', Boolean(assemblyInspection.error));
+      message(assemblyInspection.error || assemblyDistanceError || 'Original native point inspected in part and assembly coordinates.',
+        Boolean(assemblyInspection.error || assemblyDistanceError));
       refresh();
     },
+    setAssemblyPoint(endpoint) {
+      if (!loaded() || active.kind !== 'assembly' || !['a', 'b'].includes(endpoint)) return;
+      try {
+        const point = prepareAssemblyPoint(viewer, assemblyInspection);
+        assemblyPoints = assemblyPoints.map((old, index) => index === (endpoint === 'a' ? 0 : 1) ? point : old);
+        updateAssemblyDistance();
+        message(assemblyDistanceError || `Point ${endpoint.toUpperCase()} set.`, Boolean(assemblyDistanceError));
+      } catch (error) {
+        assemblyDistance = null; assemblyDistanceError = error?.message || String(error);
+        message(assemblyDistanceError, true);
+      }
+      refresh();
+    },
+    clearAssemblyPoints() { assemblyPoints = [null, null]; assemblyDistance = null; assemblyDistanceError = ''; refresh(); },
     inspectDocumentPoint(query) {
       if (!loaded() || active.kind !== 'document') return;
       const state = viewer.getState();
@@ -458,6 +653,51 @@ export function createViewerController({ canvas, stage, onChange }) {
       inspectDocumentBodyPoint(body, query);
       message(documentInspection?.error || 'Original native point inspected in authored millimetres.', Boolean(documentInspection?.error));
       refresh();
+    },
+    setInspectedMeasurementPoint(endpoint) {
+      if (!loaded() || active.kind !== 'document') return;
+      try {
+        if (endpoint === 'a') {
+          const point = prepareInspectedDistancePoint(active, viewer.getState(), documentInspection);
+          // Preparing A leaves the SDK's last successful distance cache intact.
+          measurement = { active: true, points: [measuredPoint(point.input, point.point)], result: null, error: '' };
+          message('Point A set from the evaluated native point. Choose point B.');
+        } else if (endpoint === 'b') {
+          const first = measurement.points[0];
+          if (!first) throw new Error('Set point A first.');
+          const { point, result } = measureInspectedDistance(viewer, active, documentInspection, first.input);
+          measurement = { active: false,
+            points: [measuredPoint(first.input, result.first), measuredPoint(point.input, result.second)],
+            result: { distanceMM: result.distanceMM }, error: '' };
+          message('Distance measured from evaluated native points.');
+        } else throw new Error('Choose distance point A or B.');
+      } catch (error) {
+        measurement = { ...measurement, error: error?.message || String(error) };
+        message(measurement.error, true);
+      }
+      refresh();
+    },
+    async calculateDocumentGeometry(input) {
+      if (!loaded() || active.kind !== 'document' || !geometryInspection || geometryInspection.busy) return;
+      const context = geometryInspection, source = active, ref = viewer.getState().selectedGeometry;
+      const options = { ...input };
+      context.busy = true; context.error = ''; refresh();
+      try {
+        // Give the busy state a rendering opportunity before the bounded synchronous CAD query.
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        if (disposed || active !== source || geometryInspection !== context
+          || !sameRef(viewer.getState().selectedGeometry, ref)) return;
+        const result = inspectDocumentGeometry(active, viewer.getState(), options);
+        context.result = result;
+        context.options = { absoluteTolerance: result.absoluteTolerance, relativeTolerance: result.relativeTolerance };
+        message(context.kind === 'curve' ? 'Original Curve length estimated.' : 'Original Surface area estimated.');
+      } catch (error) {
+        if (!disposed && active === source && geometryInspection === context) {
+          context.error = error?.message || String(error); message(context.error, true);
+        }
+      } finally {
+        if (!disposed && geometryInspection === context) { context.busy = false; refresh(); }
+      }
     },
     applyLighting(input) {
       if (!loaded()) return;
@@ -482,10 +722,13 @@ export function createViewerController({ canvas, stage, onChange }) {
       if (!loaded() || reviewBusy || namedBusy) return;
       if (measurement.active) { message('Finish or cancel point selection before saving.', true); refresh(); return; }
       const request = ++reviewEpoch, before = recordFrame(), version = frameGeneration, listVersion = namedGeneration;
+      const operation = ++reviewOperation;
       reviewBusy = true; refresh();
       try {
         const snapshot = captureSnapshot();
-        const file = await createReviewFile(snapshot.review, snapshot.measurement, active.source, snapshot.lighting, namedViews);
+        const assemblyMeasurement = captureAssemblyMeasurement(snapshot.review);
+        const file = await createReviewFile(snapshot.review, snapshot.measurement, active.source, snapshot.lighting, namedViews,
+          active.kind === 'assembly' ? assemblyMeasurement : undefined, active.origin);
         if (request !== reviewEpoch || disposed) return;
         if (before !== recordFrame() || version !== frameGeneration || listVersion !== namedGeneration)
           throw new Error('The view or saved views changed. Save the review again.');
@@ -497,7 +740,7 @@ export function createViewerController({ canvas, stage, onChange }) {
         setTimeout(() => { URL.revokeObjectURL(url); reviewUrls.delete(url); }, 1000);
         message('Review saved.');
       } catch (error) { if (request === reviewEpoch && !disposed) message('Review not saved: ' + error.message, true); }
-      finally { reviewBusy = false; refresh(); }
+      finally { if (operation === reviewOperation) { reviewBusy = false; refresh(); } }
     },
     beginReviewPick() { reviewEpoch++; },
     cancelReviewPick() { reviewEpoch++; },
@@ -509,23 +752,42 @@ export function createViewerController({ canvas, stage, onChange }) {
         if (file.size > REVIEW_FILE_LIMIT) throw new Error('Review files must be 32 KiB or smaller.');
         const text = await file.text();
         if (request !== reviewEpoch || disposed) return;
-        const read = await readReviewFile(text, active.source);
+        const read = await readReviewFile(text, active.source, active.origin);
         const { candidate, legacy } = read;
         if (request !== reviewEpoch || disposed) return;
         if (before !== recordFrame() || version !== frameGeneration || listVersion !== namedGeneration)
           throw new Error('The view or saved views changed. Open the review again.');
+        checkReviewSceneForUser(candidate.review.scene, viewer.captureReviewState().scene);
         viewer.validateMeasuredReviewState(candidate);
         if (Object.hasOwn(read, 'namedViews'))
           for (const entry of read.namedViews) viewer.validateMeasuredReviewState(namedReviewCandidate(entry));
+        const assemblyRestored = active.kind === 'assembly'
+          ? prepareAssemblyReviewMeasurement(viewer, read.assemblyMeasurement, candidate.review.visibleGeometry) : null;
         applySnapshot(candidate);
+        if (active.kind === 'assembly') {
+          assemblyPoints = assemblyRestored?.points ?? [null, null];
+          assemblyDistance = assemblyRestored?.distance ?? null; assemblyDistanceError = '';
+        }
         if (Object.hasOwn(read, 'namedViews')) { namedViews = read.namedViews; namedGeneration++; }
         namedViewError = '';
         message(legacy ? 'View restored. This file has no saved measurement.' : 'Review opened.'); refresh();
       } catch (error) { if (request === reviewEpoch && !disposed) {
-        message('Review not opened: ' + error.message, true); refresh();
+        const detail = error instanceof ReviewSourceMismatchError
+          && (error.code === 'SOURCE_KIND_MISMATCH' || error.code === 'SOURCE_HASH_MISMATCH' || error.code === 'SOURCE_ORIGIN_MISMATCH')
+          ? 'The CAD source differs. Open the original CAD file, then reopen this review.'
+          : error?.message || String(error);
+        message('Review not opened: ' + detail, true); refresh();
       } }
     },
-    exportImage() { return png?.exportImage(); },
+    exportImage(includeMeasurement = false) {
+      if (!loaded() || !png) return;
+      if (includeMeasurement && !measurement.result) {
+        message('Complete a distance measurement before exporting its annotation.', true); refresh(); return;
+      }
+      const overlay = includeMeasurement ? { ...projectedMeasurement(canvas.getBoundingClientRect()),
+        distanceMM: measurement.result.distanceMM } : undefined;
+      return png.exportImage({ overlay });
+    },
     dispose() {
       if (disposed) return;
       disposed = true; documentEpoch++; reviewEpoch++;

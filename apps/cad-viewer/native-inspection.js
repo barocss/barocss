@@ -27,8 +27,8 @@ function sameRef(left, right) {
   return sameData(left, right);
 }
 
-/** Inspect one current selected document body in original authored XYZ/mm. No display query is used. */
-export function inspectDocumentPoint(source, state, query) {
+/** Resolve one current visible document body to its exact original native binding. */
+export function resolveDocumentInspection(source, state) {
   if (field(source, 'kind', 'CAD source') !== 'document') refuse('Native point inspection requires a CAD document.');
   if (field(state, 'status', 'Viewer state') !== 'ready') refuse('Native point inspection requires a ready Viewer.');
   const sourceResult = field(source, 'result', 'CAD source');
@@ -77,5 +77,11 @@ export function inspectDocumentPoint(source, state, query) {
     || field(asset, 'revision', 'CAD asset') !== reference.assetRevision
     || field(asset, 'source', 'CAD asset') !== field(compiled, 'source', 'Compiled CAD asset'))
     refuse('The selected native body reference differs from the accepted document binding.');
-  return queryCadDocumentPoint(sourceResult, reference, query);
+  return { result: sourceResult, reference, geometry: original.geometry };
+}
+
+/** Inspect one current selected document body in original authored XYZ/mm. No display query is used. */
+export function inspectDocumentPoint(source, state, query) {
+  const { result, reference } = resolveDocumentInspection(source, state);
+  return queryCadDocumentPoint(result, reference, query);
 }

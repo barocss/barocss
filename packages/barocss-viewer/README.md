@@ -83,6 +83,22 @@ or a second canvas. The Surface is display geometry, not a certified fluid
 collision obstacle. `examples/viewer-fluid-scene` exercises the actual Physics
 and native Surface path.
 
+## Device events
+
+`createViewer` accepts an optional `onDeviceEvent` callback. It receives
+`{ type: 'lost' }` when a GPU device loss is observed, and
+`{ type: 'recreated' }` when the GPU core reports a replacement device. The
+replacement event does not confirm that a frame was drawn or pixels were
+restored. Device recreation may fail; there is no typed failure event in this
+contract. Applications should not infer success from the absence of an error.
+
+The callback can run before `createViewer` resolves if a loss occurs during
+creation. When a loss and its completed recovery both precede listener setup,
+the loss is reported, but the earlier recovery cannot be confirmed by this
+contract. Callback exceptions do not interrupt device recreation. Events are
+suppressed after Viewer disposal. This notification does not change the scene
+status returned by `getState()`.
+
 ## Selected native assembly instances
 
 `loadAssembly(result, options)` admits one complete validated public CAD
@@ -106,7 +122,28 @@ const point = viewer.queryAssemblyInstancePoint({
   query: { kind: 'curve', parameter: 2 }
 });
 // point.originalLocalPointMM and point.assemblyPointMM have separate meanings.
+const other = viewer.getState().assemblyInstances.find(item => item.instanceId === 'shared_root');
+const distance = viewer.measureAssemblyPoints(
+  { assemblyId: binding.assemblyId, assemblyRevision: binding.assemblyRevision,
+    instanceId: binding.instanceId, reference: binding.reference,
+    query: { kind: 'curve', parameter: 2 } },
+  { assemblyId: other.assemblyId, assemblyRevision: other.assemblyRevision,
+    instanceId: other.instanceId, reference: other.reference,
+    query: { kind: 'curve', parameter: 2 } }
+);
+// distance.distanceMM is the straight-line distance in assembly-space millimetres.
 ```
+
+Here `other` is another binding from `viewer.getState().assemblyInstances`. Both
+queries are evaluated against the current accepted assembly. Each must identify
+an admitted instance, current assembly ID and revision, its complete original
+part reference, and valid native parameters. The result includes both full point
+results and their original and assembly coordinates. Its metric is
+`straight-line`, its space is `assembly-space-xyz`, and its certification is
+`not-certified`. It is detached data. The method does not change the Viewer
+scene or measurement caches. As with single-point inspection, selection and
+visibility do not affect the query. It does not provide a saved measurement
+review or a screen projection.
 
 `ViewerAssemblyLoadOptions` has exactly the own data fields `native`, `basis`
 and `instanceIds`; accessors, symbols, extra or sparse entries refuse. Native
@@ -118,6 +155,16 @@ and revision, instance/parent/ancestors, full native reference, original local
 and world matrices, and derived display pose. Original native/modelSet/document
 fields become null, and documentBodies empty. The native result retains nested
 source strings; it does not retain the original Assembly JSON wire text.
+
+An assembly can opt in to the Loader's complete-source profile by adding
+`nativeCapacity: { version: 1, maximumObjects: 16 }` inside `native`. This
+allows up to sixteen original objects in a selected instance's source asset;
+it does not increase the one-to-four displayed instance limit. Omit the field
+to retain the existing source admission rules. The Loader still prepares the
+whole source asset, including objects not selected for display. Its aggregate
+Curve sampling and Surface grid limits remain in force. A source within the
+object count can therefore still be refused when it exceeds those limits.
+Invalid profiles and failed candidates leave the accepted Viewer state intact.
 
 Display refs use `assembly.` followed by two lowercase hexadecimal digits per
 instance ID character. Repeated parts keep original geometry IDs and distinct

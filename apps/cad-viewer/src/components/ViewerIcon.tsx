@@ -7,6 +7,9 @@ const paths = {
   save: 'M10 2.5v10m-3.5-3 3.5 3.5 3.5-3.5 M3 13v4h14v-4',
   upload: 'M10 13V3m-3.5 3.5L10 3l3.5 3.5 M3 13v4h14v-4',
   camera: 'M3 5h3l1.5-2h5L14 5h3v12H3V5Z',
+  cameraMeasure: 'M3 5h3l1.5-2h5L14 5h3v12H3V5Z M6 11h8M6 9v4m8-4v4',
+  panelLeft: 'M3 4h14v12H3V4Z M8 4v12',
+  panelRight: 'M3 4h14v12H3V4Z M12 4v12',
   search: 'm12.5 12.5 4 4',
   fit: 'M7 3H3v4m10-4h4v4M3 13v4h4m6 0h4v-4M7 7h6v6H7V7Z',
   focus: 'M7 3H3v4m10-4h4v4M3 13v4h4m6 0h4v-4M10 7v6m-3-3h6',
@@ -24,6 +27,8 @@ const paths = {
   trash: 'M3 5h14M7 5V3h6v2M5 5l1 12h8l1-12M8 8v6m4-6v6',
   check: 'm4 10 4 4 8-8',
   plus: 'M10 4v12M4 10h12',
+  pointA: 'M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Z M6.5 14 10 6l3.5 8M8 11h4',
+  pointB: 'M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Z M7.5 6v8H11a2 2 0 0 0 0-4H7.5 M7.5 6H11a2 2 0 0 1 0 4',
 };
 const cubePath = paths.cube;
 const viewFaces = {

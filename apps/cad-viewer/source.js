@@ -1,5 +1,6 @@
 import { parseDocument, loadOptions } from './document.js';
 import { parseAssembly, assemblyLoadOptions } from './assembly.js';
+import { readIgesSource } from './iges-source.js';
 
 const FILE_LIMIT = 2 * 1024 * 1024;
 
@@ -20,8 +21,10 @@ export function parseSource(text, label = 'CAD file') {
 }
 
 export async function readSource(file) {
-  if (!file || typeof file.text !== 'function' || !Number.isSafeInteger(file.size) || file.size < 0)
+  if (!file || !Number.isSafeInteger(file.size) || file.size < 0)
     throw new TypeError('Choose a CAD file.');
+  if (typeof file.name === 'string' && /\.(?:igs|iges)$/i.test(file.name)) return readIgesSource(file);
+  if (typeof file.text !== 'function') throw new TypeError('Choose a CAD file.');
   if (file.size > FILE_LIMIT) throw new RangeError('Choose a CAD file of 2 MiB or less.');
   return parseSource(await file.text(), file.name);
 }
