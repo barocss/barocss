@@ -236,14 +236,18 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
     // the normals are averaged with smooth neighbours' at shared points, so a silhouette crossing from
     // one face to the next meets itself there.
     const I = mesh.indices;
-    const key = (v: number) => `${X[v * 3]},${X[v * 3 + 1]},${X[v * 3 + 2]}`;
-    const together = new Map<string, number[]>();
-    for (let v = 0; v < X.length / 3; v++) { const k = key(v); together.set(k, [...(together.get(k) ?? []), v]); }
-    const smoothTurn = Math.cos(3 * Math.PI / 2 / perQuarter);
+    // (Each vertex's group of vertices at the same point, keyed once; the groups in vertex order.)
+    const together = new Map<string, number[]>(), groupOf: number[][] = [];
+    for (let v = 0; v < X.length / 3; v++) {
+      const k = `${X[v * 3]},${X[v * 3 + 1]},${X[v * 3 + 2]}`; let g = together.get(k);
+      if (!g) { g = []; together.set(k, g); }
+      g.push(v); groupOf.push(g);
+    }
+    const smoothTurn = Math.cos(3 * Math.PI / 2 / perQuarter), m: Point = [0, 0, 0];
     const smoothNormal = (v: number): Point => {
       const n: Point = [N[v * 3], N[v * 3 + 1], N[v * 3 + 2]], sum: Point = [0, 0, 0];
-      for (const u of together.get(key(v)) ?? [v]) {
-        const m: Point = [N[u * 3], N[u * 3 + 1], N[u * 3 + 2]];
+      for (const u of groupOf[v]) {
+        m[0] = N[u * 3]; m[1] = N[u * 3 + 1]; m[2] = N[u * 3 + 2];
         if (dot(m, n) >= smoothTurn * len(m) * len(n)) for (let k = 0; k < 3; k++) sum[k] += m[k];
       }
       return sum;
