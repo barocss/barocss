@@ -127,6 +127,26 @@ export function intersectPatches(A: Patch, B: Patch, options: {
   let budget = options.budget ?? 200000;
   if (!Number.isFinite(budget) || !(budget >= 0)) throw new SurfaceIntersectionError('budget must be a finite nonnegative number');
   const spend = () => { if (--budget < 0) throw new SurfaceIntersectionError('too many marching steps (the surfaces touch or overlap along a curve)'); };
+  type Hit = NonNullable<ReturnType<typeof onBoth>>;
+  const strictlyInside = (r: Hit) => inside(A, r.pa) && inside(B, r.pb);
+  // Recovery samples must satisfy the same prediction plane as well as both surfaces.
+  const onPredictionPlane = (r: Hit, o: Point, n: Point) => [A.at(r.pa), B.at(r.pb), r.x].every(p => {
+    const residual = dot(sub(p, o), n);
+    return Number.isFinite(residual) && Math.abs(residual) <= tol;
+  });
+  // Narrow only a valid inside/outside bracket; a failed correction is never an outside sample.
+  const boundary = (start: Hit, outside: Hit, t: Point, recovery = false): Hit => {
+    if (!strictlyInside(start) || strictlyInside(outside) || !withinTolerance(start) || !withinTolerance(outside)) throw new SurfaceIntersectionError('boundary bracket has no inside starting point');
+    let lo = 0, hi = 1, last = start;
+    for (let it = 0; it < 40; it++) {
+      spend();
+      const m = (lo + hi) / 2, g = add(start.x, scale(sub(outside.x, start.x), m)), r = onBoth(A, B, project(A, g, start.pa), project(B, g, start.pb), { o: g, n: t });
+      if (!r || !withinTolerance(r) || (recovery && !onPredictionPlane(r, g, t))) throw new SurfaceIntersectionError('boundary correction did not satisfy the intersection tolerance');
+      if (strictlyInside(r)) { lo = m; last = r; } else hi = m;
+    }
+    return last;
+  };
+
   for (const P of [A, B]) {
     const [[u0, v0], [u1, v1]] = P.box;
     if (![u0, v0, u1, v1].every(Number.isFinite) || u0 > u1 || v0 > v1) {
@@ -188,10 +208,31 @@ export function intersectPatches(A: Patch, B: Patch, options: {
       if (s && withinTolerance(s) && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9)) yield s;
     }
   }
-  for (const seed of seeds()) {
-    if (covered(seed.x) || options.skip?.(seed.x)) continue;
+  for (const initial of seeds()) {
+    if (covered(initial.x) || options.skip?.(initial.x)) continue;
+    let seed = initial;
     // Tangent contact (normals within about 0.006°, above the differencing noise at a domain edge): not traced.
     if (len(cross(normalOf(A, seed.pa), normalOf(B, seed.pb))) < 1e-4) continue;
+    if (!strictlyInside(seed)) {
+      // Seeds alone admit the existing 1e-9 UV slack. Marching needs a strict inside start:
+      // recover the actual boundary from a corrected inside point, rather than clamping UV or dropping the seed.
+      const tangent = unit(cross(normalOf(A, seed.pa), normalOf(B, seed.pb)));
+      let recovered: Hit | null = null;
+      for (const sign of [1, -1]) {
+        const t = scale(tangent, sign);
+        for (let tries = 0, step = h; tries < 6; tries++, step /= 2) {
+          spend();
+          const guess = add(seed.x, scale(t, step)), r = onBoth(A, B, project(A, guess, seed.pa), project(B, guess, seed.pb), { o: guess, n: t });
+          if (r && withinTolerance(r) && onPredictionPlane(r, guess, t) && strictlyInside(r) && len(sub(r.x, guess)) < step && dot(sub(r.x, seed.x), t) > 0) {
+            recovered = boundary(r, seed, t, true); break;
+          }
+        }
+        if (recovered) break;
+      }
+      if (!recovered) throw new SurfaceIntersectionError('boundary bracket has no inside starting point');
+      seed = recovered;
+      if (covered(seed.x) || options.skip?.(seed.x)) continue;
+    }
     const march = (dir: 1 | -1) => {
       const pts: Point[] = [seed.x], tans: Point[] = [], uvA: XY[] = [seed.pa], uvB: XY[] = [seed.pb], touched: Point[] = [];
       let closed = false, k = 0;
@@ -221,15 +262,7 @@ export function intersectPatches(A: Patch, B: Patch, options: {
         if (!next) throw new SurfaceIntersectionError('corrector did not converge within six attempts');
         // Leaving a box: cut the step at the box edge (bisection on the fraction of the step).
         if (!inside(A, next.pa) || !inside(B, next.pb)) {
-          if (!inside(A, pa) || !inside(B, pb)) throw new SurfaceIntersectionError('boundary bracket has no inside starting point');
-          let lo = 0, hi = 1, last = { pa, pb, x };
-          for (let it = 0; it < 40; it++) {
-            spend();
-            const m = (lo + hi) / 2, g = add(x, scale(sub(next.x, x), m)), r = onBoth(A, B, project(A, g, pa), project(B, g, pb), { o: g, n: t });
-            // A failed correction is not evidence of an outside point: preserve a valid bracket.
-            if (!r || !withinTolerance(r)) throw new SurfaceIntersectionError('boundary correction did not satisfy the intersection tolerance');
-            if (inside(A, r.pa) && inside(B, r.pb)) { lo = m; last = r; } else hi = m;
-          }
+          const last = boundary({ pa, pb, x }, next, t);
           // The end lies exactly on the edge: a point closer than the step tolerance replaces the last one.
           const endTan = scale(unit(cross(normalOf(A, last.pa), normalOf(B, last.pb))), sign);
           if (len(sub(last.x, x)) > tol) { pts.push(last.x); uvA.push(last.pa); uvB.push(last.pb); tans.push(endTan); }
