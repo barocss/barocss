@@ -16,4 +16,4 @@ export { identity, multiply, translation, rotation, lookAt, invert } from './mat
 export type { Mat3, Mat4, Vec3 } from '../core/geometry-types.js';
 export type { ViewerErrorCode } from './viewer-error.js';
 export type { PathTraceSession, PathTraceOptions, PathTraceImage } from './path-trace.js';
-export type { RenderTarget } from './render-target.js';
+export type { RenderTarget, RenderTargetOptions } from './render-target.js';

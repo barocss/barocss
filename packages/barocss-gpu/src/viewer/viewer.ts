@@ -5,7 +5,7 @@
 import { ATLAS_CELLS, ATLAS_SIZE, GLYPH_CELL, GlyphAtlas, layoutLabels, type LabelInput } from './glyphs.js';
 import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, growBox, screenRect, transformBox, type Box3 } from './bounds.js';
 import type { PathTraceSession, PathTraceOptions } from './path-trace.js';
-import { ViewerRenderTarget, type RenderTarget } from './render-target.js';
+import { ViewerRenderTarget, type RenderTarget, type RenderTargetOptions } from './render-target.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
 import { clippedRay, clippedRayFull, localPlane, nearestPoint, pointInstances, sceneNear, sceneRay, sceneTree, type SceneTree, prepareGeometry, scalarAt, segmentInstances, contourInstances, lineCount, nearestSegment, type ClippedHit, type GeometryInput } from './geometry.js';
@@ -1023,20 +1023,24 @@ export class Viewer {
     return new Promise(resolve => { this.waiters.push(resolve); this.requestRender(); });
   }
 
-  /** Make an independent output at the current canvas size. It must be disposed by its owner. */
-  createRenderTarget(): RenderTarget {
+  /** Make an independent output. Explicit dimensions are independent of later canvas resizing. */
+  createRenderTarget(options?: RenderTargetOptions): RenderTarget {
     this.alive();
     if (this.recovering) throw new ViewerError('DEVICE_LOST', 'The viewer is replacing its device');
-    const width = this.canvas.width, height = this.canvas.height, device = this.device;
+    if (options !== undefined && (options === null || typeof options !== 'object')) throw new ViewerError('SIZE_INVALID', 'Render target options need width and height');
+    const width = options === undefined ? this.canvas.width : options.width, height = options === undefined ? this.canvas.height : options.height, device = this.device;
     const maxDimension = device.limits.maxTextureDimension2D, maxBuffer = device.limits.maxBufferSize;
+    if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width < 1 || height < 1 || width > maxDimension || height > maxDimension) {
+      throw new ViewerError('SIZE_INVALID', 'The render target size is invalid or exceeds the device limits');
+    }
     const readBytes = Math.ceil(width * 4 / 256) * 256 * height;
-    if (!(width >= 1 && height >= 1) || width > maxDimension || height > maxDimension || readBytes > maxBuffer) {
-      throw new ViewerError('SIZE_INVALID', 'The canvas size exceeds the render target or readback device limits');
+    if (!Number.isSafeInteger(readBytes) || readBytes > maxBuffer) {
+      throw new ViewerError('SIZE_INVALID', 'The render target size is invalid or exceeds the device limits');
     }
     const target = new ViewerRenderTarget(this, device, this.format, width, height, () => {
       this.alive();
       if (this.recovering || this.device !== device) throw new ViewerError('DEVICE_LOST', 'The render target device was lost');
-      if (this.canvas.width !== width || this.canvas.height !== height) throw new ViewerError('SIZE_INVALID', 'The render target size differs from the canvas');
+      if (options === undefined && (this.canvas.width !== width || this.canvas.height !== height)) throw new ViewerError('SIZE_INVALID', 'The render target size differs from the canvas');
     }, released => this.renderTargets.delete(released));
     this.renderTargets.add(target);
     return target;
@@ -1049,7 +1053,8 @@ export class Viewer {
       if (!(target instanceof ViewerRenderTarget)) throw new ViewerError('TEXTURE_INVALID', 'The render target is not owned by this viewer');
       const output = target.outputFor(this), t0 = performance.now();
       if (!this.renderTargets.has(target)) throw new ViewerError('TEXTURE_INVALID', 'The render target is not owned by this viewer');
-      this.draw(null, output);
+      const camera = this.camera, near = camera.near, far = camera.far;
+      try { this.draw(null, output); } finally { camera.near = near; camera.far = far; }
       target.rendered();
       this.stats.cpuTime = performance.now() - t0;
       return;
@@ -1063,8 +1068,8 @@ export class Viewer {
     if (waiters.length) this.device.queue.onSubmittedWorkDone().then(() => waiters.forEach(f => f()), () => waiters.forEach(f => f()));
   }
 
-  private ensureTargets(): NonNullable<Viewer['targets']> {
-    const w = this.canvas.width, h = this.canvas.height, t = this.targets;
+  private ensureTargets(w: number, h: number): NonNullable<Viewer['targets']> {
+    const t = this.targets;
     if (t && t.width === w && t.height === h) return t;
     t?.msaa?.destroy(); t?.scene.destroy(); t?.depth.destroy(); t?.mask.destroy(); t?.maskDepth.destroy(); t?.capFront.destroy(); t?.capFrontSamples?.destroy();
     if (t) { this.releaseBloom(); this.releaseFocus(); }
@@ -1101,7 +1106,7 @@ export class Viewer {
   }
 
   /** One half-resolution gather from the resolved scene, before the existing tone map, grade and outlines. */
-  private drawFocus(enc: ReturnType<Device['createCommandEncoder']>, t: NonNullable<Viewer['targets']>, bloom: Texture): BindGroup {
+  private drawFocus(enc: ReturnType<Device['createCommandEncoder']>, t: NonNullable<Viewer['targets']>, bloom: Texture, aspect: number): BindGroup {
     if (!this.focusPipeline) {
       const module = this.device.createShaderModule({ code: depthOfFieldWGSL(this.options.antialias !== false), label: 'viewer depth of field' });
       this.focusPipeline = this.device.createRenderPipeline({ label: 'viewer depth of field', layout: 'auto', vertex: { module, entryPoint: 'vs' }, fragment: { module, entryPoint: 'fs', targets: [{ format: SCENE_FORMAT }] }, primitive: { topology: 'triangle-list' } });
@@ -1116,7 +1121,7 @@ export class Viewer {
     const f = this.focusPass;
     if (f.bloom !== bloom) { f.bloom = bloom; f.output = this.outputGroup(t.scene, t.mask, t.depth, bloom, f.color); }
     const cfg = this.environment.depthOfField;
-    this.focusParams.set(invert(this.camera.projectionMatrix(this.aspect)));
+    this.focusParams.set(invert(this.camera.projectionMatrix(aspect)));
     this.focusParams[16] = cfg ? cfg.focus : 1;
     this.focusParams[17] = cfg ? Math.max(0, Math.min(24, cfg.blur ?? 8)) * this.pixelRatio : 0;
     this.device.queue.writeBuffer(f.params, 0, this.focusParams);
@@ -1203,8 +1208,8 @@ export class Viewer {
   private oitDrawing = false;
   /** G11's targets: the accumulation and revealage (multisampled when the scene is) and their resolved copies, and the composite's bind group. */
   private oit: { width: number; height: number; accumMs: Texture | null; revealMs: Texture | null; accum: Texture; reveal: Texture; group: BindGroup; views: { accumMs: View | null; revealMs: View | null; accum: View; reveal: View } } | null = null;
-  private ensureOit(): NonNullable<Viewer['oit']> {
-    const w = this.canvas.width, h = this.canvas.height, o = this.oit;
+  private ensureOit(w: number, h: number): NonNullable<Viewer['oit']> {
+    const o = this.oit;
     if (o && o.width === w && o.height === h) return o;
     o?.accumMs?.destroy(); o?.revealMs?.destroy(); o?.accum.destroy(); o?.reveal.destroy();
     const samples = this.options.antialias === false ? 1 : SAMPLES, ms = samples > 1;
@@ -1372,9 +1377,9 @@ export class Viewer {
     return { cell, major: g.major ?? 10, fade: d * 6, height: g.height ?? 0, color: parseColor(g.color, [0.55, 0.56, 0.6]), opacity: g.opacity ?? 0.5 };
   }
 
-  private writeUniforms(viewProjection: Mat4, shadows: readonly (ShadowFrame | null)[] = []): void {
+  private writeUniforms(viewProjection: Mat4, shadows: readonly (ShadowFrame | null)[] = [], width = this.canvas.width, height = this.canvas.height): void {
     // (Into the frame block kept for it, G13.)
-    const vpt = frameViewport; vpt[0] = this.canvas.width; vpt[1] = this.canvas.height; vpt[2] = this.pixelRatio; const sb = this.sceneBounds(); vpt[3] = sb ? boxRadius(sb) : 0.866;
+    const vpt = frameViewport; vpt[0] = width; vpt[1] = height; vpt[2] = this.pixelRatio; const sb = this.sceneBounds(); vpt[3] = sb ? boxRadius(sb) : 0.866;
     const first = shadows.slice(0, MAX_DIRECTIONAL).find(frame => frame !== null) ?? null;
     this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, first, vpt, this.gridFrame(), this.clip, frameBlock, shadows));
     for (let i = 0; i < shadows.length; i++) {
@@ -1497,10 +1502,10 @@ export class Viewer {
    * solid where that first surface after it is the solid's back face. Only while the planes cap one; `scissor`: the
    * pick's pixel.
    */
-  private drawCapFront(enc: ReturnType<Device['createCommandEncoder']>, opaque: readonly Mesh[], transparent: readonly Mesh[], scissor: [number, number] | null): void {
+  private drawCapFront(enc: ReturnType<Device['createCommandEncoder']>, opaque: readonly Mesh[], transparent: readonly Mesh[], scissor: [number, number] | null, width: number, height: number): void {
     if (!this.clip || (!this.anyCapped(opaque) && !this.anyGhostCapped(transparent))) return;
     this.costPass = 'caps';
-    const t = this.ensureTargets();
+    const t = this.ensureTargets(width, height);
     if (!scissor) this.ensureCapSamples(t);
     // Keep the single-sample probe for picks and outline masks. Scene caps additionally read their
     // own sample's probe: a pixel-centre winner cannot describe both sides of a covered back-face edge.
@@ -1611,10 +1616,10 @@ export class Viewer {
    * Where the outlines can be this frame (device pixels): the outlined meshes' screen box, widened by the outline's
    * reach and a pixel, or null (anywhere) when one reaches behind the eye. The output pass searches the mask only there.
    */
-  private outlineRect(vp: Mat4): number[] | null {
+  private outlineRect(vp: Mat4, width: number, height: number): number[] | null {
     const boxes: Box3[] = [];
     for (const m of this.meshes) if (m.outlineSlot && m.visible && m.geometry.topology === 'triangles') { const b = m.bounds; if (!b) return null; boxes.push(b); }
-    const r = boxes.length ? screenRect(vp, boxes, this.canvas.width, this.canvas.height) : null;
+    const r = boxes.length ? screenRect(vp, boxes, width, height) : null;
     if (!r) return null;
     const reach = Math.ceil(this.outlineWidth * this.pixelRatio + 0.5) + 2;
     return [r[0] - reach, r[1] - reach, r[2] + reach, r[3] + reach];
@@ -1624,15 +1629,16 @@ export class Viewer {
     // (O10: the records kept, zeroed as a counted frame begins.)
     this.counting = this.costs;
     if (this.counting) for (const c of this.costRecords.values()) zeroCost(c);
-    try { this.drawFrame(capture, output); } finally { this.frameBox = null; this.counting = false; }
+    const width = output?.width ?? this.canvas.width, height = output?.height ?? this.canvas.height;
+    try { this.drawFrame(capture, output, width, height); } finally { this.frameBox = null; this.counting = false; }
   }
-  private drawFrame(capture: Buffer | null, output?: Texture): void {
+  private drawFrame(capture: Buffer | null, output: Texture | undefined, width: number, height: number): void {
     validateSpotShadowLights(this.lights);
     validatePointShadowLights(this.lights);
-    const vp = this.prepareCamera();
+    const aspect = width / Math.max(1, height), vp = this.prepareCamera(aspect);
     const { opaque, transparent, culled } = this.visibleMeshes(vp);
     const outlines = this.outlineColors();
-    const outlineArea = outlines.length ? this.outlineRect(vp) : null;
+    const outlineArea = outlines.length ? this.outlineRect(vp, width, height) : null;
     const shadows: (ShadowFrame | null)[] = Array(MAX_SHADOWS).fill(null);
     directionalLights(this.lights).forEach((light, i) => { if (light.castShadow) shadows[i] = this.shadowFrame(light); });
     const scene = this.sceneBounds(), depth = this.clip ? this.depthBounds() : null;
@@ -1654,10 +1660,10 @@ export class Viewer {
     }
     const env = this.environment.map instanceof ImageTexture && !this.environment.map.disposed ? this.environment.map : null;
     if (env !== this.boundEnv || (env && !env.gpu)) this.bindFrames();
-    this.writeUniforms(vp, shadows);
-    packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame(), outlineArea, outputBlock, this.contactFrame(), this.focusEnabled() ? { inverseProjection: invert(this.camera.projectionMatrix(this.aspect)), pixelRatio: this.pixelRatio } : null);
+    this.writeUniforms(vp, shadows, width, height);
+    packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame(aspect, height), outlineArea, outputBlock, this.contactFrame(aspect), this.focusEnabled() ? { inverseProjection: invert(this.camera.projectionMatrix(aspect)), pixelRatio: this.pixelRatio } : null);
     this.device.queue.writeBuffer(this.outputBuffer, 0, outputBytes);
-    const targets = this.ensureTargets(), out = output ?? this.context.getCurrentTexture(), sceneView = targets.views.scene;
+    const targets = this.ensureTargets(width, height), out = output ?? this.context.getCurrentTexture(), sceneView = targets.views.scene;
     const enc = this.device.createCommandEncoder();
     // (The shadow map is drawn again only when the light's view or a caster changed.)
     const casters = this.casterList; casters.length = 0;
@@ -1692,7 +1698,7 @@ export class Viewer {
       }
       sp.end();
     }
-    this.drawCapFront(enc, opaque, transparent, null);
+    this.drawCapFront(enc, opaque, transparent, null, width, height);
     // (G11: with a see-through surface in view, three passes — the opaque scene kept multisampled; the see-through
     // surfaces into the accumulation and revealage, in any order; their composite, then the see-through lines and points
     // over it. Without one, one pass as before.)
@@ -1720,7 +1726,7 @@ export class Viewer {
     if (!opaqueDone) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); }
     pass.end();
     if (oit) {
-      const o = this.ensureOit();
+      const o = this.ensureOit(width, height);
       const op = enc.beginRenderPass({ label: 'viewer oit',
         colorAttachments: [
           { view: o.views.accumMs ?? o.views.accum, resolveTarget: o.accumMs ? o.views.accum : undefined, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: o.accumMs ? 'discard' : 'store' },
@@ -1767,7 +1773,7 @@ export class Viewer {
       mask.setBindGroup(0, this.frameGroup);
       // (G13: only where the outline can be — the output reads the mask within that rectangle alone — so only the
       // meshes whose screen box meets it, scissored to it.)
-      const W = this.canvas.width, H = this.canvas.height, a = outlineArea;
+      const W = width, H = height, a = outlineArea;
       if (a) {
         const x0 = Math.max(0, Math.floor(a[0])), y0 = Math.max(0, Math.floor(a[1])), x1 = Math.min(W, Math.ceil(a[2]) + 1), y1 = Math.min(H, Math.ceil(a[3]) + 1);
         if (x1 > x0 && y1 > y0) mask.setScissorRect(x0, y0, x1 - x0, y1 - y0);
@@ -1786,7 +1792,7 @@ export class Viewer {
     // (G15d.2: the bloom from the resolved scene, read by the output pass.)
     const bloom = this.environment.bloom && (this.environment.bloom.strength ?? 0.05) > 0;
     let outputGroup = bloom ? this.drawBloom(enc, targets) : targets.output;
-    if (this.focusEnabled()) outputGroup = this.drawFocus(enc, targets, bloom ? this.bloomChain!.levels[0] : this.black);
+    if (this.focusEnabled()) outputGroup = this.drawFocus(enc, targets, bloom ? this.bloomChain!.levels[0] : this.black, aspect);
     else if (this.focusPass) this.releaseFocus();
     const show = enc.beginRenderPass({ label: 'viewer output', colorAttachments: [{ view: out.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] });
     show.setPipeline(this.pipelines.get('output')!);
@@ -1799,7 +1805,7 @@ export class Viewer {
   }
 
   /** G15b: the contact shadows' ray toward the shadow-casting light, in view space (none without one or when off). */
-  private contactFrame(): ContactFrame | null {
+  private contactFrame(aspect: number): ContactFrame | null {
     const c = this.environment.contactShadows, scene = this.sceneBounds(), light = c ? directionalLights(this.lights).find(l => l.castShadow) : undefined;
     if (!c || !scene || !light) return null;
     const v = this.camera.view(), l = normalize(light.direction), to: Vec3 = [-l[0], -l[1], -l[2]];
@@ -1807,20 +1813,20 @@ export class Viewer {
     // (A blocker is taken to be twice the ray's length thick: a solid seen from above shows only its top in the depth
     // buffer, so a point beside its wall finds that top well above the ray.)
     const length = c.length ?? boxRadius(scene) / 40;
-    const projection = this.camera.projectionMatrix(this.aspect);
+    const projection = this.camera.projectionMatrix(aspect);
     return { projection, inverseProjection: invert(projection), direction: dir, length, strength: c.strength ?? 0.6, thickness: length * 2 };
   }
 
-  private occlusionFrame() {
+  private occlusionFrame(aspect: number, height: number) {
     const ao = this.environment.ambientOcclusion, scene = this.sceneBounds();
     if (!ao || !scene) return null;
-    const proj = this.camera.projectionMatrix(this.aspect);
-    return { inverseProjection: invert(proj), radius: ao.radius ?? boxRadius(scene) / 12, pixelsPerUnit: proj[5] * this.canvas.height / 2, perspective: this.camera.projection === 'perspective' };
+    const proj = this.camera.projectionMatrix(aspect);
+    return { inverseProjection: invert(proj), radius: ao.radius ?? boxRadius(scene) / 12, pixelsPerUnit: proj[5] * height / 2, perspective: this.camera.projection === 'perspective' };
   }
 
-  private prepareCamera(): Mat4 {
+  private prepareCamera(aspect = this.aspect): Mat4 {
     this.clipCamera();
-    return this.camera.viewProjection(this.aspect);
+    return this.camera.viewProjection(aspect);
   }
 
   /** Clip planes around the scene, and out to the grid's fade distance when the grid shows. */
@@ -1899,7 +1905,7 @@ export class Viewer {
     const { opaque, transparent } = this.visibleMeshes(vp);
     this.writeUniforms(vp);
     const t = this.ensurePickTargets(), enc = this.device.createCommandEncoder();
-    this.drawCapFront(enc, opaque, transparent, [px, py]);
+    this.drawCapFront(enc, opaque, transparent, [px, py], width, height);
     const pass = enc.beginRenderPass({ label: 'viewer pick',
       colorAttachments: [
         { view: t.views.id, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },

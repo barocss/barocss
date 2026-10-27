@@ -1,7 +1,10 @@
 import { BufferUsage, MapMode, TextureUsage, type Device, type Texture } from './gpu.js';
 import { ViewerError } from './viewer-error.js';
 
-/** A viewer-owned output at the canvas size at creation. Its pixels are read as top-to-bottom RGBA. */
+/** The backing size in device pixels for a viewer-owned render target. */
+export interface RenderTargetOptions { width: number; height: number }
+
+/** A viewer-owned output. Its pixels are read as top-to-bottom RGBA. */
 export interface RenderTarget {
   readonly width: number;
   readonly height: number;

@@ -434,10 +434,11 @@ background unless `background: false`, fits the camera on first show unless
 
 ### Render to a target
 
-An output target belongs to the viewer that created it. It has the canvas size
-and output format at creation. Render into it before reading its top-to-bottom
-RGBA bytes. A target render leaves a scheduled canvas frame in place.
-Use an active viewer with a scene:
+An output target belongs to the viewer that created it. With no size option it
+uses the canvas size at creation; `{ width, height }` selects an independent
+pixel size. Both use the viewer output format. Render into the target before
+reading its top-to-bottom RGBA bytes. A target render leaves a scheduled canvas
+frame in place. Use an active viewer with a scene:
 
 ```js
 const target = viewer.createRenderTarget();
@@ -446,10 +447,12 @@ const image = await target.read(); // { width, height, data: Uint8Array }
 target.dispose();
 ```
 
-Create a new target after changing the canvas size or restoring the device.
+An explicitly sized target remains usable when the canvas changes size. Create
+a new default-sized target after changing the canvas size, and create all targets
+again after restoring the device.
 Reading before the first render, using a disposed target, or rendering with a
 different viewer is refused. Calling `dispose()` more than once is safe.
-Independent target sizes and using a target as a material texture are future work.
+Using a target as a material texture is future work.
 
 ## Generated SDF shader text
 
