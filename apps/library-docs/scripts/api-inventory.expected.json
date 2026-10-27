@@ -273980,6 +273980,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./drawing/controls",
+      "exportName": "frameProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/controls.ts",
+            "name": "frameProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(x: unknown) => string | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(x: unknown) => string | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/controls",
       "exportName": "framesProperty",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
