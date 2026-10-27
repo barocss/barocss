@@ -1350,8 +1350,16 @@ export function App() {
       if (missing) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: { title: 'Enter a value', hint: `${missing.label} is empty.`, detail: '' } }); return; }
       const values = active.values, cmd = active.cmd, ctx = active.ctx;
       const job = async (full = false) => {
+        if (!live) return;
         let candidate: StudioDoc;
-        try { candidate = cmd.build!(ctx, values); } catch (e) { setActive(a => a && { ...a, preview: 'error', error: { title: 'Invalid input', hint: String(e), detail: '' } }); return; }
+        try { candidate = cmd.build!(ctx, values); } catch (e) {
+          const current = activeStore.get();
+          if (live && current?.cmd === cmd && current.values === values) {
+            setPreviewBodies(null);
+            setActive(a => a && a.cmd === cmd && a.values === values ? { ...a, preview: 'error', error: { title: 'Invalid input', hint: String(e), detail: '' } } : a);
+          }
+          return;
+        }
         let shown = candidate, rolled = false;
         // A part it places as an instance (a fastener inserted as its own part) shows folded in as features.
         const placed = (candidate.instances ?? []).filter(i => !(ctx.doc.instances ?? []).some(j => j.id === i.id));
@@ -1365,8 +1373,9 @@ export function App() {
         const result = await engine.preview(shown, revision.current++);
         if (cmd.id === 'bearing' && ctx.bearingAssembly?.root !== bearingEditScope.current.doc) return;
         if (rolled && live) fullTimer.current = window.setTimeout(() => { if (!live) return; run.next = () => job(true); if (!run.busy) void pump(); }, 220);
-        // (A newer job is queued: its result supersedes this one, unless this command is gone.)
-        if (!live && !previewRun.current.next) return;
+        // A queued update can use an intermediate result, unless this command was replaced or refused.
+        const current = activeStore.get();
+        if (!live && (!previewRun.current.next || !current || current.cmd !== cmd || current.ctx !== ctx || current.preview === 'error')) return;
         const hd = handleDrag.current, hv = hd ? Number(values[hd.key]) : NaN;
         if (hd && Number.isFinite(hv)) {
           // (Only the whole part decides the wall: the part up to the feature may take what its later features refuse.)
