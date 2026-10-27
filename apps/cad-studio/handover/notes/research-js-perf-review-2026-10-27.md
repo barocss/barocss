@@ -140,3 +140,36 @@ reach out of the arrangement and stitch would make each step cost what it touche
 wholly inside or outside the other operand classified whole), closest-point searches by Newton instead of 60 fixed
 golden-section steps, and a floating-point filter in front of the polyhedral Boolean's exact predicates. Those need an
 acceptance rule other than bit-identical output (volumes and topology within tolerance, every test passing).
+
+## 7. Boolean broad phase (2026-10-28, owner: accept when volume and topology are the same within tolerance and every test passes)
+
+Measured first, per phase of the analytic Boolean (bench cases):
+
+| case | Boolean | largest phases |
+|---|---|---|
+| face-fillet restore (60° tee over an r 2 round) | 15.1 s | regions of cut faces 10.6 s; cut pairs 2.6 s (pairs ending with no cut 1.9 s); cut clean-up 0.7 s |
+| pin over a round | 5.3 s | regions 2.6 s; merge 1.1 s; cut pairs 0.7 s |
+| edge fillet tee | 0.7 s | cut pairs 0.43 s (0.41 s of it pairs ending with no cut) |
+| 48 tilted boxes | 1.5 s | stitch 0.6 s; merge 0.34 s; classify 0.17 s |
+
+Faces with no cut were already classified whole (one point each). The cost sat elsewhere:
+
+- **Cuts lying along each other** (`ad0e2f6e5`). In the restore, four of W's cylinder faces carried 55–65 curve cuts each
+  (the old round's contact curve, cut once from the face that made it and once from a coincident face's boundary):
+  151 of 2 855 curve pairs had one curve lying along the other and took 11.5 s, the polyline/Newton search finding
+  points all along each, each walked for a touch (15 862 walks, 28 touches) and then dropped by `overlapEnds`. A pair
+  where one segment's 65 samples all lie within eps of the other now returns the ends and `overlapEnds` at once; on the
+  real workloads the old search gave the same points on all 212 such pairs. Restore 16.2 → 6.7 s, pin over a round
+  6.4 → 2.3 s, hidden lines −7 to −12 %.
+- **Clear patches skip the march** (`e675ff065`): a patch whose control points keep 1000 tolerances clear of a plane or
+  of the infinite cylinder (inside it, or beyond a tangent line square to their mean radial direction) cannot meet it;
+  the march's domain box is made once a face. 0–5 %: it caught 64 of the edge fillet's 100 such pairs, the cheap ones;
+  the costly ones cross the other surface outside both faces, which only the trace itself shows.
+
+Both changes left every bench result bit-identical (beyond the shape check: validity, body/face/edge/vertex counts,
+volume, centroid, projected lines). Kernel full suite 1924 of 1958 (the 28 baseline failures); model tests of drawing,
+face fillet/thread, full round, engine, handles and studio commands 264 of 266 (the two baseline solver failures).
+
+Against the original baseline of §5: face-fillet restore 23.1 → 6.4 s (−72 %), pin over a round 9.5 → 2.2 s (−77 %).
+Still open: the 48-box chain's quadratic growth (each Boolean re-merges and re-stitches the whole body), the restore's
+remaining 2.6 s of cut pairs and 0.7 s of cut clean-up, and the closest-point searches (Newton instead of 60 fixed steps).
