@@ -114,3 +114,29 @@ Left for later (each needs its own measurement; none was required by the plan's 
   ceiling, not zero: 119 Math.max/min spreads, 32 push spreads, 291 loop spreads, 82 loop literals in the hot folders.
 - The golden-section searches keep 60 fixed steps (results identical); a tolerance stop would be faster but changes results.
 - F2 of the rolling-ball plan (the restore Boolean's cost) is the Boolean core's algorithmic work, outside this review.
+
+## 6. Algorithmic follow-ups that keep results identical (2026-10-28)
+
+Two candidates were taken on as "results bit-identical", each measured first:
+
+| candidate | measured | outcome |
+|---|---|---|
+| NURBS basis reused on grids | Grid evaluation (tessellation points, mass quadrature) is under 1 % of the kernel and bench profiles; the basis time (8–14 %) is the Boolean's domain maps evaluating traced curves at arbitrary parameters during the closest-point searches. A cached knot span in the buffered evaluators (identical: the span is unique) gave no change beyond noise (±3 %). | not kept |
+| Candidate pairs by sort-and-sweep | The arrangement's all-pairs box loop and the SSI seed pair loop are under 1 % on the fillet/thread cases. On many-face Booleans (24 and 48 tilted boxes, new bench case) the time was the **stitch's vertex grid** instead: 263 k lookups doing 3.9 M Map gets with keys built by `[0,1,2].map(...).join(',')`. | vertex grid fixed (`4081e262a`); sweep not kept |
+
+`4081e262a`: the 3D stitch grid and the 2D arrangement's vertex grid find a point's cell once and look in a neighbour
+cell only when the point lies within 2 eps of their shared side (cells are 16 eps / 64 eps wide, so other neighbours
+cannot hold a point within eps); keys built directly, cell lists grown in place. Same cells, same order: the same point is
+returned (differential run on 360 000 points crowded at cell sides). Tilted boxes 24: −29 %, 48: −28 %; others ±3 %.
+
+The sweep (`boxPairs`, pairs found along x and taken in (i, j) order so cuts arrive as before; differential run on 3 000
+box sets with NaN, inverted, infinite and degenerate boxes identical) changed nothing measurable: a face's arrangement
+holds few pieces. Kept out.
+
+Observed for later: 48 boxes take about 4× as long as 24 (two Booleans' worth of faces each step, every step re-stitches
+the whole body), so a chain of Booleans grows with the square of its face count. Keeping the faces a tool's box does not
+reach out of the arrangement and stitch would make each step cost what it touches; it changes how the B-rep is rebuilt
+(ids, splits), so it belongs with the candidates whose results change within tolerance: a Boolean broad phase (faces
+wholly inside or outside the other operand classified whole), closest-point searches by Newton instead of 60 fixed
+golden-section steps, and a floating-point filter in front of the polyhedral Boolean's exact predicates. Those need an
+acceptance rule other than bit-identical output (volumes and topology within tolerance, every test passing).
