@@ -9,6 +9,7 @@ import { checkDocumentPrintPreview } from './printPreview';
 import { checkDocumentBearingHousing } from './bearingContext';
 import { firstProblem } from './refusal';
 import { assertRouteBundleDocument } from './routeBundle';
+import { assertSavedDrawingDocument } from './savedDrawing';
 
 /**
  * 2: every feature has a stable id (engine/ids.ts); a schema-1 file's node i becomes `n<i>`, its names unchanged.
@@ -37,6 +38,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   const schema = o.schema === undefined ? 0 : Number(o.schema), notes: string[] = [];
   if (!Number.isInteger(schema) || schema < 0) return { error: `This model file has an unreadable schema (${String(o.schema)}).` };
   if (schema > MAX_READ_SCHEMA) return { error: `This model was saved by a newer cad-studio (schema ${schema}; this one reads up to ${MAX_READ_SCHEMA}). Open it there, or save it from there in an older form.` };
+  try { assertSavedDrawingDocument(o); }
+  catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
   try { assertRouteBundleDocument(o); }
   catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
   const unknown = [...new Set((o.nodes as Record<string, unknown>[]).map(n => String(n?.kind)).filter(k => !KINDS.has(k)))];

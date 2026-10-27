@@ -107,6 +107,10 @@ export const headOf = (log: VersionLog, branch?: string): Version => versionName
 export function readVersion(log: VersionLog, id: string): StudioDoc {
   const v = versionNamed(log, id), doc = log.snapshots[v.snapshot];
   if (!doc) throw refusal('VERSION_NOT_LOADED', `the document of version ${v.name ?? v.id} is not with this turn: it comes with the next one`, { ids: [v.id] });
+  // Check stored canonical identities before returning the original snapshot; do not normalize its fields.
+  if (snapshotKeyOf(doc) !== v.snapshot) throw refusal('VERSION_LOG', `the snapshot ${v.snapshot} does not match its content`);
+  if (revisionOf(doc) !== v.revision) throw refusal('VERSION_LOG', `the revision ${v.revision} is not its document's`);
+  if (idOf(v) !== v.id) throw refusal('VERSION_LOG', `the id ${v.id} is not made from the version's content`);
   return doc;
 }
 /**
