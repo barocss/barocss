@@ -89,6 +89,8 @@ function denseSamples(s: CurveSegment2): XY[] {
 /** Whether p is surely farther than eps from a general curve (outside its padded sample box). */
 const surelyOff = (s: CurveSegment2, p: XY, eps: number) => { if (s.kind !== 'curve') return false; const { lo, hi } = samples(s); return p[0] < lo[0] - eps || p[1] < lo[1] - eps || p[0] > hi[0] + eps || p[1] > hi[1] + eps; };
 const CURVE_SAMPLES = 64;
+/** The parameters crossingsAt reads a line and a general curve at (the curve's: those of its dense samples). */
+const LINE_US: readonly number[] = [0, 1], DENSE_US: readonly number[] = Array.from({ length: CURVE_SAMPLES * 2 + 1 }, (_, k) => k / (CURVE_SAMPLES * 2));
 /** Area contribution ½∮(x dy − y dx) of a segment. */
 export function segArea(s: CurveSegment2): number {
   if (s.kind === 'line') return (s.a[0] * s.b[1] - s.b[0] * s.a[1]) / 2;
@@ -105,15 +107,20 @@ export function sampleRing(ring: readonly CurveSegment2[], step = Math.PI / 36):
 /** Even–odd point in a polygon (sampled rings). */
 export const pointInPolygon = (p: XY, poly: readonly XY[]) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
 
+/** Squared distance from p to the segment's point at u. */
+function segD2(s: CurveSegment2, p: XY, u: number): number { const q = segAt(s, u); return (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2; }
+/** Golden-section search (60 steps) for the u in [lo, hi] nearest p: the middle of the last bracket. */
+function goldenNearest(s: CurveSegment2, p: XY, lo: number, hi: number): number {
+  for (let i = 0; i < 60; i++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (segD2(s, p, m1) < segD2(s, p, m2)) hi = m2; else lo = m1; }
+  return (lo + hi) / 2;
+}
 /** Parameter u ∈ [0, 1] of a point known to lie on the segment's carrier (line or circle). */
 export function paramOf(s: CurveSegment2, p: XY): number {
   if (s.kind === 'curve') {
     // Nearest polyline sample, then golden-section search on the squared distance around it.
-    const d2 = (u: number) => { const q = segAt(s, u); return (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2; };
     const ps = samplesOf(s);
     let best = 0, bd = Infinity; for (let k = 0; k <= CURVE_SAMPLES; k++) { const q = ps[k], v = (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2; if (v < bd) { bd = v; best = k; } }
-    let lo = Math.max(0, (best - 1) / CURVE_SAMPLES), hi = Math.min(1, (best + 1) / CURVE_SAMPLES);
-    for (let i = 0; i < 60; i++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (d2(m1) < d2(m2)) hi = m2; else lo = m1; }
+    const lo = Math.max(0, (best - 1) / CURVE_SAMPLES), hi = Math.min(1, (best + 1) / CURVE_SAMPLES);
     // (A point on a curve sampled sparsely against its turn — a plane's ellipse on a cylinder nearly along its axis, 25 mm
     // a sample — can lie nearer a sample of another of its branches, and the search beside that sample ends far off: a
     // crossing found exactly was taken for 6.7 mm off the curve. Then the spans of the chords nearer p than that are
@@ -121,13 +128,12 @@ export function paramOf(s: CurveSegment2, p: XY): number {
     // off the curve keeps the search beside its nearest sample, and so does a point by a closed curve's ends: there the
     // chord across from its nearest end is not searched — the arrangement takes such a point at the end it is nearest.
     // L4 fuzz 73, D197.)
-    const u0 = (lo + hi) / 2, d0 = d2(u0), on = 1e-6 * (1 + Math.abs(p[0]) + Math.abs(p[1])), N = CURVE_SAMPLES;
+    const u0 = goldenNearest(s, p, lo, hi), d0 = segD2(s, p, u0), on = 1e-6 * (1 + Math.abs(p[0]) + Math.abs(p[1])), N = CURVE_SAMPLES;
     const closed = Math.hypot(ps[0][0] - ps[N][0], ps[0][1] - ps[N][1]) <= on;
     if (d0 > on * on) for (const k of nearerChords(ps, p, d0)) {
       if (closed && ((best === N && k === 0) || (best === 0 && k === N - 1))) continue;
-      lo = Math.max(0, (k - 0.5) / CURVE_SAMPLES); hi = Math.min(1, (k + 1.5) / CURVE_SAMPLES);
-      for (let i = 0; i < 60; i++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (d2(m1) < d2(m2)) hi = m2; else lo = m1; }
-      if (d2((lo + hi) / 2) <= on * on) return (lo + hi) / 2;
+      const u = goldenNearest(s, p, Math.max(0, (k - 0.5) / CURVE_SAMPLES), Math.min(1, (k + 1.5) / CURVE_SAMPLES));
+      if (segD2(s, p, u) <= on * on) return u;
     }
     return u0;
   }
@@ -660,19 +666,18 @@ export function curveFaceRegions(rings: readonly (readonly CurveSegment2[])[], c
  */
 function crossingsAt(rings: readonly (readonly CurveSegment2[])[], y: number): number[] {
   const xs: number[] = [];
-  const near = 1e-12 * (1 + Math.abs(y)), above = (v: number) => v > y + near;
+  const yAbove = y + 1e-12 * (1 + Math.abs(y));
   for (const ring of rings) for (let si = 0; si < ring.length; si++) {
     const g = ring[si], start = segEnd(ring[(si - 1 + ring.length) % ring.length]);
     // The segment as points at parameters, its first point replaced by the shared vertex.
-    const us = g.kind === 'line' ? [0, 1] : g.kind === 'curve' ? Array.from({ length: CURVE_SAMPLES * 2 + 1 }, (_, k) => k / (CURVE_SAMPLES * 2)) : arcCuts(g);
+    const us = g.kind === 'line' ? LINE_US : g.kind === 'curve' ? DENSE_US : arcCuts(g);
     const dense = g.kind === 'curve' ? denseSamples(g) : null;
-    const at = (u: number, k: number): XY => u === 0 ? start : dense ? dense[k] : segAt(g, u);
     for (let k = 0; k + 1 < us.length; k++) {
-      let lo = us[k], hi = us[k + 1]; const a = at(lo, k), b = at(hi, k + 1);
-      if (above(a[1]) === above(b[1])) continue;
+      let lo = us[k], hi = us[k + 1]; const a = lo === 0 ? start : dense ? dense[k] : segAt(g, lo), b = hi === 0 ? start : dense ? dense[k + 1] : segAt(g, hi);
+      const aAbove = a[1] > yAbove;
+      if (aAbove === b[1] > yAbove) continue;
       if (g.kind === 'line') { xs.push(a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1])); continue; }
-      const aAbove = above(a[1]);
-      for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; if (above(segAt(g, m)[1]) === aAbove) lo = m; else hi = m; }
+      for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; if ((segAt(g, m)[1] > yAbove) === aAbove) lo = m; else hi = m; }
       xs.push(segAt(g, (lo + hi) / 2)[0]);
     }
   }
