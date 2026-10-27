@@ -341,6 +341,24 @@ export function buildDraft(ctx: Ctx, v: Values): StudioDoc {
     ...(v.pull !== undefined ? { pull } : {}), ...(hasNeutral ? { neutral: neutral! } : {}) });
 }
 
+/** The flat +Z tops picked for a full round (one body), by name, or why not. */
+function fullRoundOf(ctx: Ctx): { body: BodyResult; faces: string[] } | string {
+  const picks = ctx.selection.faces; if (!picks.length) return 'Pick the flat top face of a rib or wall (Shift-click for more).';
+  if (picks.some(f => f.body !== picks[0].body)) return 'Pick faces of one body.';
+  const body = ctx.bodies[picks[0].body], faces = picks.map(f => body?.mesh.faces[f.face]);
+  if (!body || faces.some(f => !f || f.kind !== 'plane' || Math.abs(f.normal[2] - 1) > 1e-6)) return 'A full round takes flat top faces, facing up (+Z).';
+  return { body, faces: faces.flatMap(f => f!.name.split('+')) };
+}
+const FULL_ROUND_ALONG = ['auto', 'x', 'y'] as const;
+
+/** A full round node of the picked tops; `along` auto leaves the axis to each face's longer side. */
+export function buildFullRound(ctx: Ctx, v: Values): StudioDoc {
+  const along = v.along === undefined ? 'auto' : v.along;
+  if (along !== 'auto' && along !== 'x' && along !== 'y') throw refusal('VALUE', 'Full round along is auto, x or y.');
+  const d = fullRoundOf(ctx); if (typeof d === 'string') throw refusal('FULL_ROUND_PICK', d);
+  return withNode(ctx.doc, { kind: 'full-round', parent: refOf(d.body), faces: d.faces, ...(along !== 'auto' ? { along } : {}) });
+}
+
 const allCommands: Command[] = [
   {
     id: 'sketch', label: 'Sketch', icon: 'cad-sketch', hint: 'Draw a profile on a plane or a flat face', shortcut: 'S', group: 'create', keywords: 'profile draw rectangle circle polygon',
@@ -486,6 +504,14 @@ const allCommands: Command[] = [
     },
     // (+Z is built as before, without a pull on the node.)
     build: (ctx, v) => { const rest = { ...v }; delete rest.pull; return buildDraft(ctx, draftPullOf(v) === 'z' ? rest : { ...rest, pull: draftPullOf(v) }); },
+  },
+  {
+    id: 'full-round', label: 'Full round', icon: 'cad-full-round', hint: 'Round the picked flat top of a rib or wall side to side: one half cylinder, its radius half the width', group: 'modify', keywords: 'face fillet round top rib',
+    available: ctx => { const d = fullRoundOf(ctx); return typeof d === 'string' ? no(d) : ok; },
+    fields: () => [{ key: 'along', label: 'Along', kind: 'choice', options: FULL_ROUND_ALONG.map(a => ({ value: a, label: a === 'auto' ? 'Longer side' : a.toUpperCase() })) }],
+    defaults: () => ({ along: 'auto' }),
+    steps: ctx => { const d = fullRoundOf(ctx); return typeof d === 'string' ? [{ label: 'Faces', text: d, done: false }] : [{ label: 'Faces', text: `${d.faces.length} top face${d.faces.length === 1 ? '' : 's'}, each rounded across its width`, done: true }]; },
+    build: buildFullRound,
   },
   {
     id: 'chamfer', label: 'Chamfer', icon: 'cad-chamfer', hint: 'Cut the picked edges at 45° (a picked face: all its edges)', shortcut: 'C', group: 'modify', keywords: 'bevel edge',

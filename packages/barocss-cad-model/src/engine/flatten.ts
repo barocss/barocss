@@ -54,7 +54,7 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
     case 'difference': return { ...node, parent: ref(node.parent), tool: ref(node.tool) };
     case 'chamfer': case 'fillet': return { ...node, parent: ref(node.parent), edges: node.edges.map(name) };
     case 'sheet-flange': case 'sheet-corner-relief': return { ...node, parent: ref(node.parent), edges: [name(node.edges[0])] };
-    case 'draft': return { ...node, parent: ref(node.parent), faces: node.faces.map(name) };
+    case 'draft': case 'full-round': return { ...node, parent: ref(node.parent), faces: node.faces.map(name) };
     case 'shell': return { ...node, parent: ref(node.parent), open: node.open.map(name) };
     default: return { ...node, parent: ref(node.parent) };
   }

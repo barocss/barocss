@@ -103,6 +103,8 @@
 | `[FLAT_OVERLAPS]` | `core/error-codes.ts (declared)` | — |
 | `[FORMAT]` | `core/error-codes.ts (declared)` | — |
 | `[FRAME]` | `core/error-codes.ts (declared)` | — |
+| `[FULL_ROUND_FACE]` | `part` | … is not a planar face facing +Z |
+| `[FULL_ROUND_NOT_CLEAR]` | `part` | the full round of … needs its sides open … mm down from it: material stands beside it |
 | `[FUNCTION_ARGUMENT]` | `core/error-codes.ts (declared)` | — |
 | `[FUNCTION_CAPTURE]` | `core/error-codes.ts (declared)` | — |
 | `[FUNCTION_RECURSION]` | `core/error-codes.ts (declared)` | — |
@@ -388,6 +390,7 @@
 | `[FRAME_SKELETON_PICK]` | `app` | Pick straight edges (of a layout box or sketch) for the skeleton, or choose a preset. |
 | `[FRAME_STOCK_ROW]` | `chat` | row …: an id and a source (where the length comes from: your shop, a page) are needed. |
 | `[FRAME_VALUE]` | `app` | … must be a finite number. |
+| `[FULL_ROUND_PICK]` | `app` | … |
 | `[GEAR_PICK]` | `app` | Select one spur gear or internal gear to mesh with. |
 | `[GONE]` | `chat` | …'s features are no longer in the part |
 | `[GRID_TOO_FINE]` | `print` | … nodes at h … mm, over …: take h ≥ … mm |

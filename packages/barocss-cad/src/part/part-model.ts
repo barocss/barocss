@@ -125,6 +125,13 @@ export type CadPartFeature = Base & (
   /** A supported XY rectangle raised above or recessed below the top of one straight-sided, single-slab upright solid. Depth is positive world mm, below the body's height. */
   | { readonly kind: 'rectangular-relief'; readonly target: string; readonly min: CadPartPoint2; readonly max: CadPartPoint2; readonly depth: CadPartDim; readonly mode: 'emboss' | 'engrave' }
   /**
+   * A full round (a face fillet): each named face — planar, facing +Z, an axis-aligned rectangle — becomes a half
+   * cylinder tangent to its two sides along `along` (default: each face's longer side), of radius half its width
+   * across. The sides must drop at least that radius and nothing may stand above the face: the material taken is
+   * checked against L·W²(4 − π)/8. The round faces are named `<id>.round<k>`.
+   */
+  | { readonly kind: 'full-round'; readonly target: string; readonly faces: readonly string[]; readonly along?: 'x' | 'y'; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
+  /**
    * A hole along `axis` (default z) through the target, or `depth` deep from its `side` (default max:
    * the top for z). `center` is in the other two coordinates in order: z → [x, y], x → [y, z], y → [x, z].
    * `face` (D148): the planar face it is drilled into, by name — the depth and the countersink measured from that face's
@@ -1472,6 +1479,54 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const sourceVolume = exactVolume(source), change = mode === 'emboss' ? volume - sourceVolume : sourceVolume - volume;
         if (!(Number.isFinite(change) && change > 0)) fail('GEOMETRY', 'rectangular relief must change positive target volume');
         return one(result);
+      };
+    }
+    case 'full-round': {
+      const target = solids(f.target, 'target'), names = f.faces as unknown, along = f.along as unknown;
+      if (!Array.isArray(names) || !names.length || names.length > CadPartLimits.edges || !names.every(x => typeof x === 'string') || new Set(names).size !== names.length) fail('INPUT', 'faces must list 1 to 64 distinct face names');
+      if (along !== undefined && along !== 'x' && along !== 'y') fail('INPUT', 'along must be x or y');
+      if (target.length !== 1) fail('REFERENCE', 'full round one part at a time (name it as id/k)');
+      return () => {
+        if (target[0].solid.kind === 'brep' && target[0].solid.brep.faces.some(isFacetFace)) fail('CAPABILITY', 'full round on mesh faces is not supported yet');
+        const brep = brepOf(target[0], at), edges = new Map(brep.edges.map(e => [e.id, e])), points = new Map(brep.vertices.map(v => [v.id, v.point])), coedges = new Map(brep.coedges.map(c => [c.id, c]));
+        // Each face's rectangle, read from the body as it was (before any round): its span along and across, and its height.
+        const rounds = (names as string[]).map(name => {
+          const face = brep.faces.find(x => x.name === name || (x.name ?? '').split('#')[0] === name);
+          if (!face) return fail('REFERENCE', `no face ${name} on the target`);
+          const g = faceGeometry(face);
+          if (g.kind !== 'plane' || Math.abs(g.n[2] - 1) > 1e-9) fail('CAPABILITY', `[FULL_ROUND_FACE] ${name} is not a planar face facing +Z`);
+          if (face.loops.length !== 1) fail('CAPABILITY', `[FULL_ROUND_FACE] ${name} has holes`);
+          const loop = brep.loops.find(l => l.id === face.loops[0])!;
+          const ring = loop.coedges.map(id => { const c = coedges.get(id)!, e = edges.get(c.edge)!; if (e.curve.degree !== 1 || e.curve.controlPoints.length !== 2) fail('CAPABILITY', `[FULL_ROUND_FACE] ${name} has a curved edge`); return points.get(c.sense === 'forward' ? e.vertices[0] : e.vertices[1])!; });
+          const xs = ring.map(q => q[0]), ys = ring.map(q => q[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), z = ring[0][2];
+          const tol = 1e-9 * Math.max(1, ...ring.flat().map(Math.abs));
+          const corner = (q: Point) => (Math.abs(q[0] - x0) <= tol || Math.abs(q[0] - x1) <= tol) && (Math.abs(q[1] - y0) <= tol || Math.abs(q[1] - y1) <= tol);
+          if (ring.length !== 4 || !ring.every(corner) || new Set(ring.map(q => `${Math.abs(q[0] - x0) <= tol}${Math.abs(q[1] - y0) <= tol}`)).size !== 4) fail('CAPABILITY', `[FULL_ROUND_FACE] ${name} is not an axis-aligned rectangle`);
+          const dir = along ?? (x1 - x0 >= y1 - y0 ? 'x' : 'y');
+          const [l0, l1, a0, a1] = dir === 'x' ? [x0, x1, y0, y1] : [y0, y1, x0, x1];
+          return { name, dir, l0, l1, a0, a1, z, r: (a1 - a0) / 2 };
+        });
+        let out = target[0].solid;
+        rounds.forEach((q, k) => {
+          // The corner material above the round, in (across, height), laid along the face: up one side, over the top,
+          // down the other and back over the half circle. X, Y, Z: the local axes' images (determinant +1).
+          const across = q.dir === 'x' ? [q.a0, q.a1] : [-q.a1, -q.a0], base = q.z - q.r, mid = (across[0] + across[1]) / 2;
+          const outer: ProfileSegmentInput[] = [{ kind: 'line', start: [across[0], base] }, { kind: 'line', start: [across[0], q.z + q.r] }, { kind: 'line', start: [across[1], q.z + q.r] }, { kind: 'arc', start: [across[1], base], center: [mid, base], direction: 'ccw' }];
+          const m: BrepAffine['matrix'] = q.dir === 'x' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : [-1, 0, 0, 0, 0, 1, 0, 1, 0];
+          const tool = affine({ kind: 'upright', solid: prismaticFromProfile({ outer, height: q.l1 - q.l0, from: 0, tag: `${at}.round${k}` }) }, m, q.dir === 'x' ? [q.l0, 0, 0] : [0, q.l0, 0], n => n === `${at}.round${k}.side3` ? `${at}.round${k}` : n);
+          // Open sides: no material just outside either side, a radius deep, from the round's foot to the top (a plate
+          // under the face, or a neighbour within the radius, would be grooved by the cut).
+          for (const [s0, s1] of [[q.a0 - q.r, q.a0], [q.a1, q.a1 + q.r]]) {
+            const strip = q.dir === 'x' ? boxSolid([q.l0, s0, base], [q.l1, s1, q.z], `${at}.clear${k}`) : boxSolid([s0, q.l0, base], [s1, q.l1, q.z], `${at}.clear${k}`);
+            const beside = boolean(out, strip, 'intersection', at);
+            if (!empty(beside) && exactVolume(beside) > 1e-9 * exactVolume(strip)) fail('GEOMETRY', `[FULL_ROUND_NOT_CLEAR] the full round of ${q.name} needs its sides open ${+q.r.toPrecision(9)} mm down from it: material stands beside it`);
+          }
+          const before = exactVolume(out), next = boolean(out, tool, 'difference', at), pieces = next.kind === 'brep' ? next.brep.bodies.length : 1;
+          const took = before - (empty(next) ? 0 : exactVolume(next)), want = (q.l1 - q.l0) * (q.a1 - q.a0) ** 2 * (4 - Math.PI) / 8;
+          if (pieces !== 1 || Math.abs(took - want) > 1e-8 * Math.max(want, before)) fail('GEOMETRY', `[FULL_ROUND_NOT_CLEAR] the full round of ${q.name} would take ${+took.toPrecision(9)} mm³, not the ${+want.toPrecision(9)} its top holds: its sides must drop at least ${+q.r.toPrecision(9)} mm and nothing may stand above it`);
+          out = next;
+        });
+        return one(out);
       };
     }
     case 'hole': {

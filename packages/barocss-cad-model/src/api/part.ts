@@ -17,7 +17,7 @@ import { drawingDoc, drawingOf, manufacturabilityOf, outputOf, withCasting, with
 import { setBought } from '../bom/bom';
 import { withLibraryPart, type LibraryPartInput } from './library';
 import { refOf } from '../app/bodyRef';
-import { buildDraft, type Values } from '../app/commands';
+import { buildDraft, buildFullRound, type Values } from '../app/commands';
 import { resolveNames } from '../chat/names';
 import { captureSignatures } from '../engine/references';
 import { bindParameter } from '../engine/parameters';
@@ -45,6 +45,9 @@ const libraryMaterial = (id: string) => {
 
 /** Public draft lengths are world mm; only the explicit neutral coordinate may bind to a parameter. */
 export interface StudioDraftOptions { readonly angle: number; readonly pull?: 'x' | 'y' | 'z' | '-x' | '-y' | '-z'; readonly neutral?: Dim }
+
+/** Full round options: the round's axis, x or y; left out, each face's longer side. */
+export interface StudioFullRoundOptions { readonly along?: 'x' | 'y' }
 
 /** World-mm corners of a rectangular rib; dimensions may name existing parameters. */
 export interface StudioRibOptions { readonly min: readonly [Dim, Dim, Dim]; readonly max: readonly [Dim, Dim, Dim] }
@@ -152,6 +155,27 @@ export class StudioPart extends Part<StudioDoc> {
     }
     next = captureSignatures(next, [body]);
     if (parameter !== undefined) next = bindParameter(next, { feature: next.nodes.length - 1, value: 'neutral', parameter });
+    const after = bodiesOf(next).map(b => b.key);
+    if (this.focus === null) return this.next(next, null);
+    const made = after.filter(key => !before.some(b => b.key === key));
+    return this.next(next, after.includes(this.focus) ? this.focus : made.length === 1 ? made[0] : null);
+  }
+
+  /** Full round the selected flat +Z rectangular tops (rib and wall tops) through the Studio builder; refusal preserves this part. */
+  fullRound(faces: (body: BodyQuery) => FaceQuery, options: StudioFullRoundOptions = {}): this {
+    if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).some(k => k !== 'along')) throw refuse('VALUE', 'full round options are along');
+    if (options.along !== undefined && options.along !== 'x' && options.along !== 'y') throw refuse('VALUE', 'full round along is x or y');
+    const doc = this.document, before = bodiesOf(doc), target = this.target(), body = before.find(b => b.key === target);
+    if (!body) throw refuse('NO_BODY', 'full round needs one selected body');
+    if (typeof faces !== 'function') throw refuse('VALUE', 'full round takes a face selector');
+    const picked = faces(this.select());
+    if (!picked.count) throw refuse('SELECTION_EMPTY', 'the selector picked no face to round');
+    const { selection, unknown } = resolveNames([body], { faces: picked.names() });
+    if (unknown.length) throw refuse('SELECTION_UNKNOWN', `no face named ${unknown.join(', ')} on the selected body`);
+    let next = buildFullRound({ doc, bodies: [body], selection }, { along: options.along ?? 'auto' });
+    const why = checkNode(next.nodes.at(-1), doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the full round: ${why}`);
+    next = captureSignatures(next, [body]);
     const after = bodiesOf(next).map(b => b.key);
     if (this.focus === null) return this.next(next, null);
     const made = after.filter(key => !before.some(b => b.key === key));

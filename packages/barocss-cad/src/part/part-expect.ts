@@ -31,7 +31,7 @@ const isVec = (v: unknown): v is [number, number, number] => Array.isArray(v) &&
 
 /** The names a feature stores, by kind: a fillet's or chamfer's edges, a shell's open faces, a draft's faces. */
 export function storedNames(f: { readonly kind: string } & Record<string, unknown>): { names: readonly string[]; edges: boolean } | null {
-  const list = f.kind === 'fillet' || f.kind === 'chamfer' ? f.edges : f.kind === 'shell' ? f.open : f.kind === 'draft' ? f.faces : undefined;
+  const list = f.kind === 'fillet' || f.kind === 'chamfer' ? f.edges : f.kind === 'shell' ? f.open : f.kind === 'draft' || f.kind === 'full-round' ? f.faces : undefined;
   if (list === undefined && f.kind !== 'shell') return null;
   return { names: Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string') : [], edges: f.kind === 'fillet' || f.kind === 'chamfer' };
 }
@@ -40,7 +40,7 @@ export function storedNames(f: { readonly kind: string } & Record<string, unknow
 export function expectOf(f: { readonly kind: string } & Record<string, unknown>, fail: (code: CadPartErrorCode, detail: string) => never): ReadonlyMap<string, Sig> | null {
   if (f.expect === undefined) return null;
   const stored = storedNames(f);
-  if (!stored) fail('INPUT', `expect is for a fillet's, chamfer's, shell's or draft's stored names, not a ${f.kind}'s`);
+  if (!stored) fail('INPUT', `expect is for a fillet's, chamfer's, shell's, draft's or full round's stored names, not a ${f.kind}'s`);
   if (typeof f.expect !== 'object' || f.expect === null || Array.isArray(f.expect)) fail('INPUT', 'expect must be { name: { kind, at, dir?, size, radius? } }');
   const out = new Map<string, Sig>(), used = new Set(stored.names);
   for (const [name, s] of Object.entries(f.expect as Record<string, unknown>)) {

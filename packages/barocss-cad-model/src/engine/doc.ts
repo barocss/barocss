@@ -382,6 +382,8 @@ type ModelNodeBase = SketchNode
   | { kind: 'sew'; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }[]; tolerance?: number }
   /** Draft on named side faces: angle in degrees, signed principal pull (default +Z), neutral world coordinate in mm (default the body's minimum for positive pull, maximum for negative pull). */
   | { kind: 'draft'; parent: BodyRef; faces: string[]; angle: number; pull?: Axis | '-x' | '-y' | '-z'; neutral?: Dim }
+  /** Full round (a face fillet) of named flat +Z rectangular tops: each a half cylinder across its width, along `along` (default its longer side). */
+  | { kind: 'full-round'; parent: BodyRef; faces: string[]; along?: 'x' | 'y' }
   /** IM7b (O113): a face split along its isocline n·d = 0 for the pull (the kernel's split-face, D149): its pieces `<face>#1` (the + side), `<face>#2` …, or `names`. */
   | { kind: 'split-face'; parent: BodyRef; face: string; pull: [number, number, number]; names?: string[] }
   /** `radii` (R10.5, D100): a varying radius, given at points of the edges; `radius` then the first point's. `atEnd`: the point is a chain end and follows it when earlier features move it. `section` (R10.5b, D103): a conic or G2 section (default a circle). */
@@ -817,6 +819,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'hole': return (node.thread ? `Tapped ${node.thread}` : `${node.countersink ? 'Countersunk' : 'Hole'} Ø${typeof node.radius === 'number' ? fmt(node.radius * 2) : node.radius.parameter}`) + (node.pattern && node.pattern.count > 1 ? ` × ${node.pattern.count}` : '');
     case 'chamfer': return `Chamfer ${n(node.distance)}`;
     case 'draft': return `Draft ${fmt(node.angle)}° × ${node.faces.length}`;
+    case 'full-round': return `Full round × ${node.faces.length}`;
     case 'thicken': return `Thicken ${node.name} ${n(node.thickness)}`;
     case 'sheet-base': return `Sheet plate T${n(node.thickness)}`;
     case 'sheet-flange': return `Flange ${n(node.length)} · ${fmt(node.angle ?? 90)}°`;
