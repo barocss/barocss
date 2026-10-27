@@ -353,15 +353,14 @@ function faceFilletOf(ctx: Ctx): { body: BodyResult; faces: [string, string] } |
     if (crossOf(a.normal, b.normal) < 1e-6) return 'The two faces are parallel: their planes never meet (a full round takes a top between two sides).';
   } else if (a.kind === 'plane' || b.kind === 'plane') {
     // A flat face and a round one: the round one's axis across the flat one (a boss, a rim, a hole) or along it (a tube on a plate, a flat on a shaft).
+    // (A curved face that is no cylinder — a cone — is left to the kernel, which takes it about the flat face's axis or says why not.)
     const round = a.kind === 'plane' ? picks[1] : picks[0], flat = a.kind === 'plane' ? a : b, axis = roundFaceAxis(body.mesh, round.face);
-    if (!axis) return 'A face fillet rounds between flat faces and round (cylindrical) ones.';
-    const along = Math.abs(axis.dir[0] * flat.normal[0] + axis.dir[1] * flat.normal[1] + axis.dir[2] * flat.normal[2]);
-    if (along > 1e-3 && crossOf(axis.dir, flat.normal) > 1e-3) return 'The round face\'s axis must run across the flat face or along it.';
+    const along = axis ? Math.abs(axis.dir[0] * flat.normal[0] + axis.dir[1] * flat.normal[1] + axis.dir[2] * flat.normal[2]) : 1;
+    if (axis && along > 1e-3 && crossOf(axis.dir, flat.normal) > 1e-3) return 'The round face\'s axis must run across the flat face or along it.';
   } else {
     // Two round faces: their axes parallel (two bosses joined, a boss against a bore).
     const [p, q] = picks.map(x => roundFaceAxis(body.mesh, x.face));
-    if (!p || !q) return 'A face fillet rounds between flat faces and round (cylindrical) ones.';
-    if (crossOf(p.dir, q.dir) > 1e-3) return 'Two round faces need parallel axes.';
+    if (p && q && crossOf(p.dir, q.dir) > 1e-3) return 'Two round faces need parallel axes.';
   }
   const name = (x: typeof a) => x.name.split('+')[0].split('#')[0];
   if (name(a) === name(b)) return 'Pick two different faces.';
@@ -571,7 +570,7 @@ const allCommands: Command[] = [
     build: (ctx, v) => { const rest = { ...v }; delete rest.pull; return buildDraft(ctx, draftPullOf(v) === 'z' ? rest : { ...rest, pull: draftPullOf(v) }); },
   },
   {
-    id: 'face-fillet', label: 'Face fillet', icon: 'cad-face-fillet', hint: 'Round between two picked faces that need not touch — two flat ones, a flat one and a round one across or along its axis (a boss on a plate, a rim, a hole\'s edge, a tube on a plate), or two parallel round ones: a chamfer, step or groove between them is replaced by one round tangent to both (at each corner they make)', group: 'modify', keywords: 'face fillet blend round corner between faces',
+    id: 'face-fillet', label: 'Face fillet', icon: 'cad-face-fillet', hint: 'Round between two picked faces that need not touch — two flat ones, a flat one and a round one across or along its axis (a boss on a plate, a rim, a hole\'s edge, a tube on a plate), two parallel round ones, or cones with planes and cylinders about one axis (a tapered boss, a countersink, a chamfer meeting a shaft): a chamfer, step or groove between them is replaced by one round tangent to both (at each corner they make)', group: 'modify', keywords: 'face fillet blend round corner between faces',
     available: ctx => { const d = faceFilletOf(ctx); return typeof d === 'string' ? no(d) : ok; },
     fields: () => [{ key: 'r', label: 'Radius', kind: 'mm', min: 0.1 }],
     defaults: () => ({ r: 2 }),

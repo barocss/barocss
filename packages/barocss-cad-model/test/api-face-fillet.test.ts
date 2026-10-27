@@ -95,3 +95,24 @@ test('face fillet: two parallel round faces — joined bosses, both necks filled
   const built = ff.build!(ctx, { r: 2 }), v = volumeOf(built), want = volumeOf(eight) + 2 * 10 * Q;
   assert.ok(Math.abs(v - want) <= 1e-6 * want, `${v} vs ${want}`);
 });
+
+// A tapered boss (its side a cone from radius 10 at the plate's top z 5 to 6 at z 25) turned on a plate of radius 30:
+// the round at its base, revolved. The oracle: the section built by hand in (radius, height), revolved as a dense polygon.
+const XZm = { origin: [0, 0, 0] as [number, number, number], normal: [0, -1, 0] as [number, number, number], xAxis: [1, 0, 0] as [number, number, number] };
+const taper: StudioDoc = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
+  { kind: 'sketch', profile: 'polygon', plane: XZm, points: [[0, 0], [30, 0], [30, 5], [10, 5], [6, 25], [0, 25]], id: 'n0' },
+  { kind: 'revolve', sketch: 0, axis: 'y', origin: [0, 0], angle: 360, id: 'n1' }], outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2 } as StudioDoc;
+
+test('face fillet: a cone and a plane — a tapered boss\'s base, through the Studio command', () => {
+  const g = Math.hypot(4, 20), dA = [1, 0], dB = [-4 / g, 20 / g], C = [10, 5], r = 3, th = Math.acos(dA[0] * dB[0] + dA[1] * dB[1]), a = r / Math.tan(th / 2), bis = [dA[0] + dB[0], dA[1] + dB[1]], bl = Math.hypot(bis[0], bis[1]);
+  const X = [C[0] + bis[0] / bl * r / Math.sin(th / 2), C[1] + bis[1] / bl * r / Math.sin(th / 2)], tA = [C[0] + a, C[1]], tB = [C[0] + dB[0] * a, C[1] + dB[1] * a];
+  const pts = [C, tA, ...arcPts(tA, tB, X)]; let mom = 0; pts.forEach((p, i) => { const q = pts[(i + 1) % pts.length]; mom += (p[0] + q[0]) * (p[0] * q[1] - q[0] * p[1]); });
+  const added = Math.abs(2 * Math.PI * mom / 6);
+  const ff = commands.find(c => c.id === 'face-fillet')!, bodies = bodiesOf(taper), faces = bodies[0].mesh.faces;
+  const top = faces.findIndex(f => f.kind === 'plane' && f.normal[2] > 0.99 && Math.abs(f.centroid[2] - 5) < 1e-6), cone = faces.findIndex(f => f.kind === 'curved' && f.centroid[2] > 6 && f.centroid[2] < 24);
+  assert.ok(top >= 0 && cone >= 0, faces.map(f => `${f.name}:${f.kind}`).join(' '));
+  const ctx: Ctx = { doc: taper, bodies, selection: { faces: [{ body: 0, face: top }, { body: 0, face: cone }], edges: [], bodies: [] } };
+  assert.equal(ff.available(ctx).ok, true, JSON.stringify(ff.available(ctx)));
+  const v = volumeOf(ff.build!(ctx, { r: 3 })), want = volumeOf(taper) + added;
+  assert.ok(Math.abs(v - want) <= 1e-6 * want, `${v} vs ${want}`);
+});

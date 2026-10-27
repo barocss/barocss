@@ -68,11 +68,11 @@ test('face fillet: refused with the reason', () => {
   refused([...block, fillet(['b.side1', 'nope'], 4)], 'REFERENCE', /no face nope/);
   refused([...block, fillet(['b.side1', 'b.side1'], 4)], 'INPUT', /two different faces/);
   const disc = [{ id: 'c', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'b', kind: 'extrude', sketch: 'c', height: 10 }];
-  // Two coaxial cylinders a step apart (heights 0–5 and 5–10) do not run side by side; a cone is not taken (a plane and a cylinder are: the disc's bottom rim rounds).
+  // Two coaxial cylinders a step apart (heights 0–5 and 5–10) do not run side by side; a torus (a round) is not taken (a plane and a cylinder are: the disc's bottom rim rounds).
   const stepped = [{ id: 's', kind: 'sketch', profile: 'polygon', plane: XZ, points: [[0, 0], [10, 0], [10, 5], [5, 5], [5, 10], [0, 10]] }, { id: 'b', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }];
   refused([...stepped, fillet(['b.side1', 'b.side3'], 1)], 'CAPABILITY', /\[FACE_FILLET_FACES\] b\.side1 and b\.side3 do not run side by side/);
-  const coned = [{ id: 's', kind: 'sketch', profile: 'polygon', plane: XZ, points: [[0, 0], [30, 0], [30, 5], [13, 5], [10, 8], [10, 25], [0, 25]] }, { id: 'b', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }];
-  refused([...coned, fillet(['b.side3', 'b.side2'], 1)], 'CAPABILITY', /\[FACE_FILLET_FACE\] b\.side3 is not a planar face \(a face fillet takes planes and cylinders/);
+  const rimmed = [{ id: 'ds', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 20 }, { id: 'b0', kind: 'extrude', sketch: 'ds', height: 10 }, { id: 'b', kind: 'face-fillet', target: 'b0', faces: ['b0.top', 'b0.side0'], radius: 4 }];
+  refused([...rimmed, fillet(['b.round', 'b0.bottom'], 1)], 'CAPABILITY', /\[FACE_FILLET_FACE\] b\.round is not a plane, cylinder or cone/);
   valid(out([...disc, fillet(['b.side0', 'b.bottom'], 1)], 'ff'));
   refused([...disc, fillet(['b.top', 'b.bottom'], 1)], 'CAPABILITY', /\[FACE_FILLET_FACE\] b\.top has a curved edge/);
 });
@@ -108,11 +108,13 @@ test('face fillet: a plane and a cylinder refused with the reason', () => {
   const tall = bossPlate(45), on = (faces, radius) => [...tall, { id: 'ff', kind: 'face-fillet', target: 'b', faces, radius }];
   // The tangent circle at radius 31 runs off the 60 mm square plate.
   refused(on(['p.top', 'c.side0'], 21), 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 21 mm round would not meet p\.top tangentially: the face does not hold the circle 31 mm round the axis/);
-  refused([...bossPlate(25), { id: 'ff', kind: 'face-fillet', target: 'b', faces: ['p.top', 'c.side0'], radius: 25 }], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] .*c\.side0 tangentially: it is 20 mm long/);
+  // A boss 10 above the plate: the plate holds a 12 mm round's circle (22 round), the boss does not reach it.
+  refused([...bossPlate(15), { id: 'ff', kind: 'face-fillet', target: 'b', faces: ['p.top', 'c.side0'], radius: 12 }], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] .*c\.side0 tangentially: it reaches 10 mm from the corner, the round 12/);
+  refused([...bossPlate(25), { id: 'ff', kind: 'face-fillet', target: 'b', faces: ['p.top', 'c.side0'], radius: 25 }], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] .*p\.top tangentially: the face does not hold the circle 35 mm/);
   // The plate's side (z 0–5) and the boss (above the plate) run along one axis but not beside each other.
   refused(on(['p.side0', 'c.side0'], 2), 'CAPABILITY', /\[FACE_FILLET_FACES\] p\.side0 and c\.side0 do not run side by side/);
   const disc = [{ id: 'ds', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'b', kind: 'extrude', sketch: 'ds', height: 10 }];
-  refused([...disc, fillet(['b.top', 'b.side0'], 6)], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 6 mm round is wider than b\.side0's radius/);
+  refused([...disc, fillet(['b.top', 'b.side0'], 6)], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 6 mm round would cross the axis/);
 });
 
 // Faces along one direction (a plane along a cylinder, two parallel cylinders): the round extruded. The oracle builds
@@ -148,4 +150,34 @@ test('face fillet: a tube lying on a plate — its two weld corners filled; a D-
   assert.ok(Math.abs(massPropertiesOf(dd).volume - (volume(dshaft, 'd') - 2 * 20 * P)) <= 1e-6 * volume(dshaft, 'd'), 'D-shaft');
   // Too big a round for the flat's 8 mm width (its corners at y ±4).
   refused([...dshaft, { id: 'ff', kind: 'face-fillet', target: 'd', faces: ['k.side3', 'c.side0'], radius: 6 }], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] no 6 mm round is tangent to both/);
+});
+
+// Cones (with planes and cylinders, turning about one axis): the round revolved. The oracle builds each section by hand
+// in the half-plane (radius, height) — corner C, the faces' directions from it, θ between them, a = r / tan(θ/2), the
+// centre on the bisector r / sin(θ/2) out — and revolves a dense polygon of it (Pappus by the polygon's first moment).
+const revolvedVolume = (pts) => { let m = 0; pts.forEach((p, i) => { const q = pts[(i + 1) % pts.length]; m += (p[0] + q[0]) * (p[0] * q[1] - q[0] * p[1]); }); return Math.abs(2 * Math.PI * m / 6); };
+const sectionVolume = (C, dA, dB, r) => {
+  const th = Math.acos(dA[0] * dB[0] + dA[1] * dB[1]), a = r / Math.tan(th / 2), b = [dA[0] + dB[0], dA[1] + dB[1]], bl = Math.hypot(...b);
+  const X = [C[0] + b[0] / bl * r / Math.sin(th / 2), C[1] + b[1] / bl * r / Math.sin(th / 2)], tA = [C[0] + dA[0] * a, C[1] + dA[1] * a], tB = [C[0] + dB[0] * a, C[1] + dB[1] * a];
+  return revolvedVolume([C, tA, ...arcPts(tA, tB, X)]);
+};
+const s2 = Math.SQRT1_2;
+
+test('face fillet: cones — a tapered boss\'s base filled, a chamfered shaft end and a countersink\'s rim cut', () => {
+  const g = Math.hypot(4, 20), taper = turned([[0, 0], [30, 0], [30, 5], [10, 5], [6, 25], [0, 25]]);
+  const o = out([...taper, fillet(['b.side2', 'b.side3'], 3)], 'ff'); valid(o);
+  near(massPropertiesOf(o).volume, volume(taper, 'b') + sectionVolume([10, 5], [1, 0], [-4 / g, 20 / g], 3), 'tapered boss (101°)');
+  // A shaft's end chamfered 1 × 45°: the chamfer's cone and the shaft (135°).
+  const shaft = turned([[0, 0], [5, 0], [5, 19], [4, 20], [0, 20]]);
+  const sh = out([...shaft, fillet(['b.side1', 'b.side2'], 2)], 'ff'); valid(sh);
+  near(massPropertiesOf(sh).volume, volume(shaft, 'b') - sectionVolume([5, 19], [0, -1], [-s2, s2], 2), 'chamfer to shaft');
+  // A countersunk Ø6 hole (Ø12 at the top, 90°) in a 10 mm plate: the plate's top and the countersink's cone.
+  const cs = [{ id: 'ps', kind: 'sketch', profile: 'rectangle', min: [-30, -30], max: [30, 30] }, { id: 'p', kind: 'extrude', sketch: 'ps', height: 10 }, { id: 'h', kind: 'hole', target: 'p', center: [0, 0], radius: 3, countersink: 12 }];
+  const c = out([...cs, { id: 'ff', kind: 'face-fillet', target: 'h', faces: ['p.top', 'h.countersink-side1'], radius: 1 }], 'ff'); valid(c);
+  near(massPropertiesOf(c).volume, volume(cs, 'h') - sectionVolume([6, 10], [1, 0], [-s2, -s2], 1), 'countersink rim');
+  // …and where the countersink meets the bore.
+  const cb = out([...cs, { id: 'ff', kind: 'face-fillet', target: 'h', faces: ['h.countersink-side1', 'h.side0'], radius: 0.5 }], 'ff'); valid(cb);
+  near(massPropertiesOf(cb).volume, volume(cs, 'h') - sectionVolume([3, 7], [s2, s2], [0, -1], 0.5), 'countersink to bore');
+  // The chamfer's 1.41 mm generator is too short for a round meeting it 3.4 mm from the corner.
+  refused([...shaft, fillet(['b.side1', 'b.side2'], 8)], 'GEOMETRY', /\[FACE_FILLET_RADIUS\] a 8 mm round would not meet b\.side2 tangentially/);
 });
