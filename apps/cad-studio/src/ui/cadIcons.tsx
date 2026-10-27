@@ -131,6 +131,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-hole': <>{block(0, 0, 0, 1, 1, 0.6)}<g transform="translate(0 3.4)">{ellipse([0.5, 0.5, 0.6], 0.24, { style: dark })}{ellipse([0.5, 0.5, 0.6], 0.24, { className: 'ac' })}</g></>,
   // A block with its front top edge rounded.
   'cad-fillet': <>{prism([[0, 0], [1, 0], ...arc([0.5, 0.5], 0.5, 0, 90), [0, 1]], 0, 1, { accent: i => i >= 2 && i < 10 })}{ac(isoPath(arc([0.5, 0.5], 0.5, 0, 90).map(p => [p[0], 1, p[1]] as V3), false))}</>,
+  // A rod with a helix wound round it.
+  'cad-thread': <>{prism([[0.3, 0], [0.7, 0], [0.7, 1], [0.3, 1]], 0, 1)}{ac(isoPath(Array.from({ length: 49 }, (_, i) => { const t = i / 48 * 6 * Math.PI; return [0.5 + 0.24 * Math.cos(t), 0.5 + 0.24 * Math.sin(t), 0.08 + 0.84 * i / 48] as V3; }), false))}</>,
   // A wall whose top is one half cylinder, side to side.
   'cad-full-round': <>{prism([[0.2, 0], [0.8, 0], ...arc([0.5, 0.7], 0.3, 0, 180), [0.2, 0.7]], 0, 1, { accent: i => i >= 2 && i < 10 })}{ac(isoPath(arc([0.5, 0.7], 0.3, 0, 180).map(p => [p[0], 1, p[1]] as V3), false))}</>,
   // A block with its front top edge cut at 45°.

@@ -75,6 +75,7 @@ import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import { encodeBinaryStl } from '../io/stl.js';
 import { gearOperation } from './part-gears.js';
 import { machineOperation } from './part-machine.js';
+import { threadSolid } from '../machine/thread-solid.js';
 import { finishOperation } from './part-finish.js';
 import { meshOperation } from './part-mesh.js';
 import { shellOperation } from './part-shell.js';
@@ -131,6 +132,16 @@ export type CadPartFeature = Base & (
    * checked against L·W²(4 − π)/8. The round faces are named `<id>.round<k>`.
    */
   | { readonly kind: 'full-round'; readonly target: string; readonly faces: readonly string[]; readonly along?: 'x' | 'y'; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
+  /**
+   * A modelled ISO metric thread (right hand, helical B-spline faces `<id>.thread#k`) cut on one whole cylindrical face
+   * of the target, any axis: from the `end` ('+': the end further along the axis, its largest component positive;
+   * default) over `length` (default the face). A hole is its tap drill: `diameter` (the nominal) is then required, the
+   * hole filled over the length and the thread cut, one pitch past an open end. A shaft's thread has the face's
+   * diameter: the face is cut to a core of d/2 − 0.8·pitch and the thread joined, ending `relief` (default one pitch)
+   * short of an end that is not a flat free end (a shoulder, a chamfer, the face going on). Each step's volume is
+   * checked, so material in the way (a thin wall, a key) refuses rather than builds.
+   */
+  | { readonly kind: 'face-thread'; readonly target: string; readonly face: string; readonly pitch: CadPartDim; readonly diameter?: CadPartDim; readonly length?: CadPartDim; readonly end?: '+' | '-'; readonly relief?: CadPartDim }
   /**
    * A hole along `axis` (default z) through the target, or `depth` deep from its `side` (default max:
    * the top for z). `center` is in the other two coordinates in order: z → [x, y], x → [y, z], y → [x, z].
@@ -1526,6 +1537,93 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           if (pieces !== 1 || Math.abs(took - want) > 1e-8 * Math.max(want, before)) fail('GEOMETRY', `[FULL_ROUND_NOT_CLEAR] the full round of ${q.name} would take ${+took.toPrecision(9)} mm³, not the ${+want.toPrecision(9)} its top holds: its sides must drop at least ${+q.r.toPrecision(9)} mm and nothing may stand above it`);
           out = next;
         });
+        return one(out);
+      };
+    }
+    case 'face-thread': {
+      const target = solids(f.target, 'target'), name = f.face, p = dim(f.pitch as CadPartDim, 'pitch', true);
+      const nominal = f.diameter === undefined ? null : dim(f.diameter as CadPartDim, 'diameter', true), want = f.length === undefined ? null : dim(f.length as CadPartDim, 'length', true);
+      const end = f.end ?? '+', relief = f.relief === undefined ? p : dim(f.relief as CadPartDim, 'relief');
+      if (typeof name !== 'string' || !name) fail('INPUT', 'face must name a cylindrical face');
+      if (end !== '+' && end !== '-') fail('INPUT', "end must be '+' or '-'");
+      if (!(relief >= 0)) fail('INPUT', 'relief must not be negative');
+      if (target.length !== 1) fail('REFERENCE', 'thread one part at a time (name it as id/k)');
+      return () => {
+        const source = target[0].solid;
+        if (source.kind === 'brep' && source.brep.faces.some(isFacetFace)) fail('CAPABILITY', 'a thread on mesh faces is not supported yet');
+        // The face by its name: a whole cylinder is often kept as its halves (`#1`, `#2`), one surface between them.
+        const brep = brepOf(target[0], at), group = brep.faces.filter(x => x.name === name || (x.name ?? '').split('#')[0] === name);
+        if (!group.length) return fail('REFERENCE', `no face ${name} on the target`);
+        const g = faceGeometry(group[0]);
+        if (g.kind !== 'cylinder') return fail('CAPABILITY', `[FACE_THREAD_FACE] ${name} is not a cylindrical face`);
+        for (const x of group.slice(1)) {
+          const h = faceGeometry(x);
+          if (h.kind !== 'cylinder' || Math.abs(h.r - g.r) > 1e-9 * Math.max(1, g.r) || Math.abs(Math.abs(dot(unit(h.a), unit(g.a))) - 1) > 1e-12 || len(cross(sub(h.c, g.c), unit(g.a))) > 1e-9 * Math.max(1, g.r) || h.out !== g.out) fail('CAPABILITY', `[FACE_THREAD_FACE] the faces named ${name} are not one cylinder`);
+        }
+        const inGroup = new Set(group.map(x => x.id)), loops = new Set(group.flatMap(x => x.loops));
+        // The axis, its largest component positive; t: the distance along it from the face's axis point.
+        const k0 = [0, 1, 2].reduce((m, k) => Math.abs(g.a[k]) > Math.abs(g.a[m]) ? k : m, 0), a = unit(g.a[k0] < 0 ? scale(g.a, -1) : g.a), R = g.r;
+        const points = new Map(brep.vertices.map(v => [v.id, v.point])), edges = new Map(brep.edges.map(e => [e.id, e])), loopFace = new Map(brep.loops.map(l => [l.id, l.face]));
+        const own = brep.coedges.filter(c => loops.has(c.loop)), uses = new Map<string, number>();
+        for (const c of own) uses.set(c.edge, (uses.get(c.edge) ?? 0) + 1);
+        const tOf = (q: Point) => dot(sub(q, g.c), a), radial = (q: Point) => len(sub(sub(q, g.c), scale(a, tOf(q))));
+        const ts = own.flatMap(c => edges.get(c.edge)!.vertices.map(v => tOf(points.get(v)!))), t0 = Math.min(...ts), t1 = Math.max(...ts), L = t1 - t0, tol = 1e-7 * Math.max(1, R, L);
+        // Whole round: every edge it does not share with itself (a seam) is a circle in one of its end planes.
+        const boundary = [...uses].filter(([, n]) => n === 1).map(([id]) => edges.get(id)!);
+        const atEnd = (t: number) => Math.abs(t - t0) <= tol ? 0 : Math.abs(t - t1) <= tol ? 1 : -1;
+        if (!(L > tol) || boundary.some(e => { const [u, v] = e.vertices.map(id => atEnd(tOf(points.get(id)!))); return u < 0 || u !== v; })) fail('CAPABILITY', `[FACE_THREAD_FACE] ${name} is not a whole round face between two end circles`);
+        // Each end: what lies beyond it, from the faces met there — outward (a shoulder, the plate a hole opens in),
+        // or not; flat: a plane square to the axis.
+        const beyond = [0, 1].map(side => {
+          const met = new Set(boundary.filter(e => atEnd(tOf(points.get(e.vertices[0])!)) === side).flatMap(e => brep.coedges.filter(c => c.edge === e.id).map(c => loopFace.get(c.loop)!)).filter(id => !inGroup.has(id)));
+          const faces = brep.faces.filter(x => met.has(x.id)), corners = faces.flatMap(x => faceVertices(brep, x.id));
+          const outward = corners.some(q => radial(q) > R + tol), flat = faces.length > 0 && faces.every(x => { const h = faceGeometry(x); return h.kind === 'plane' && Math.abs(Math.abs(dot(h.n, a)) - 1) <= 1e-9; });
+          return { outward, flat };
+        });
+        const span = want ?? L;
+        if (span > L + tol) fail('PARAMETER', `[FACE_THREAD_SIZE] the thread's length ${+span.toPrecision(9)} is longer than the face (${+L.toPrecision(9)})`);
+        const r0 = end === '+' ? t1 - span : t0, r1 = end === '+' ? t1 : t0 + span;
+        // A range end on a face end takes that end's kind; one inside the face meets the face going on (outward-free, not flat).
+        const kindAt = (t: number) => { const side = atEnd(t); return side < 0 ? { outward: false, flat: false } : beyond[side]; };
+        const ends = [kindAt(r0), kindAt(r1)], external = g.out === 1;
+        // Local frame: Z along the axis from its point g.c (identity for +Z, to keep upright tools upright).
+        const e1 = Math.abs(a[2] - 1) <= 1e-15 ? [1, 0, 0] as Point : unit(cross(Math.abs(a[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0], a)), e2 = cross(a, e1);
+        const m: BrepAffine['matrix'] = [e1[0], e2[0], a[0], e1[1], e2[1], a[1], e1[2], e2[2], a[2]], o = [g.c[0], g.c[1], g.c[2]];
+        const local = (s: Solid) => affine(s, m, o);
+        const ring = (outer: number, inner: number | null, lo: number, hi: number, tag: string) => local({ kind: 'upright', solid: prismaticFromProfile({ outer: [{ kind: 'arc', start: [outer, 0], center: [0, 0], direction: 'ccw' }], ...(inner !== null ? { holes: [[{ kind: 'arc', start: [inner, 0], center: [0, 0], direction: 'ccw' }]] } : {}), height: hi - lo, from: lo, tag }) });
+        const rod = (d: number, lo: number, hi: number) => {
+          if (!(hi - lo >= p - tol)) fail('PARAMETER', `[FACE_THREAD_SIZE] the thread would be ${+(hi - lo).toPrecision(9)} mm long: at least a pitch (${p}) is needed`);
+          let made: Brep;
+          try { made = threadSolid({ id: at, diameter: d, pitch: p, center: [0, 0], seat: hi, length: hi - lo, form: 'helical' }); }
+          catch (cause) { if (cause instanceof RangeError || isMeshBrepError(cause)) fail('PARAMETER', cause.message); throw cause; }
+          const s = local({ kind: 'brep', brep: made! });
+          return { solid: s, area: exactVolume(s) / (hi - lo) };
+        };
+        const close = (got: number, expected: number, scaleOf: number) => Math.abs(got - expected) <= 1e-7 * Math.max(expected, scaleOf);
+        const before = exactVolume(source);
+        if (!external) {
+          if (nominal === null) fail('INPUT', 'a thread in a hole needs its nominal diameter: the hole is its tap drill');
+          const d = nominal!;
+          if (!(d / 2 > R + tol)) fail('PARAMETER', `[FACE_THREAD_SIZE] an M${d} thread is no wider than the ${+(2 * R).toPrecision(9)} mm hole`);
+          // Fill the hole over the length (a plug a pitch wider, in the wall), then cut the thread.
+          const filled = boolean(source, ring(d / 2 + p, null, r0, r1, `${at}.plug`), 'union', at), added = exactVolume(filled) - before;
+          if (!close(added, Math.PI * R * R * span, before)) fail('GEOMETRY', `[FACE_THREAD_NOT_CLEAR] the wall round ${name} is thinner than the thread needs (${+(d / 2 + p - R).toPrecision(9)} mm past the hole)`);
+          const tap = rod(d, r0 - (ends[0].outward ? p : 0), r1 + (ends[1].outward ? p : 0));
+          const out = boolean(filled, tap.solid, 'difference', at), taken = exactVolume(filled) - exactVolume(out), pieces = out.kind === 'brep' ? out.brep.bodies.length : 1;
+          if (pieces !== 1 || !close(taken, tap.area * span, before)) fail('GEOMETRY', `[FACE_THREAD_NOT_CLEAR] the thread in ${name} would take ${+taken.toPrecision(9)} mm³, not the ${+(tap.area * span).toPrecision(9)} its length holds: something stands past the hole's ends`);
+          return one(out);
+        }
+        if (nominal !== null && Math.abs(nominal - 2 * R) > tol) fail('PARAMETER', `[FACE_THREAD_SIZE] a thread on a ${+(2 * R).toPrecision(9)} mm shaft is M${+(2 * R).toPrecision(9)}, not M${nominal}`);
+        const core = R - 0.8 * p;
+        if (!(core > 0)) fail('PARAMETER', `[FACE_THREAD_SIZE] a ${p} mm pitch is too coarse for a ${+(2 * R).toPrecision(9)} mm shaft`);
+        // A flat free end takes the thread to it; any other end leaves a relief groove at the core.
+        const free = ends.map(e => !e.outward && e.flat), w = free.map(x => x ? 0 : relief);
+        if (w.some((x, i) => !free[i] && !(x > 0))) fail('CAPABILITY', `[FACE_THREAD_RELIEF] the thread on ${name} ends at a shoulder or inside the face: it needs a relief groove (relief > 0)`);
+        const necked = boolean(source, ring(R + p, core, r0 - (free[0] ? p : 0), r1 + (free[1] ? p : 0), `${at}.neck`), 'difference', at), cut = before - exactVolume(necked);
+        if (!close(cut, Math.PI * (R * R - core * core) * span, before)) fail('GEOMETRY', `[FACE_THREAD_NOT_CLEAR] material stands round ${name} within ${+p.toPrecision(9)} mm of it: the thread has no room`);
+        const thread = rod(2 * R, r0 + w[0], r1 - w[1]), length = r1 - w[1] - r0 - w[0];
+        const out = boolean(necked, thread.solid, 'union', at), joined = exactVolume(out) - exactVolume(necked), pieces = out.kind === 'brep' ? out.brep.bodies.length : 1;
+        if (pieces !== 1 || !close(joined, (thread.area - Math.PI * core * core) * length, before)) fail('GEOMETRY', `[FACE_THREAD_NOT_CLEAR] the thread on ${name} did not join the shaft's core as one body`);
         return one(out);
       };
     }

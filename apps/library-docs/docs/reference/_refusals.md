@@ -92,6 +92,10 @@
 | `[EXPRESSION]` | `core/error-codes.ts (declared)` | — |
 | `[EXTRUSION]` | `core/error-codes.ts (declared)` | — |
 | `[FACE]` | `core/error-codes.ts (declared)` | — |
+| `[FACE_THREAD_FACE]` | `part` | … is not a cylindrical face |
+| `[FACE_THREAD_NOT_CLEAR]` | `part` | the wall round … is thinner than the thread needs (… mm past the hole) |
+| `[FACE_THREAD_RELIEF]` | `part` | the thread on … ends at a shoulder or inside the face: it needs a relief groove (relief > 0) |
+| `[FACE_THREAD_SIZE]` | `part` | the thread's length … is longer than the face (…) |
 | `[FIELD]` | `core/error-codes.ts (declared)` | — |
 | `[FILE]` | `core/error-codes.ts (declared)` | — |
 | `[FILL_RANGE]` | `core/error-codes.ts (declared)` | — |
@@ -512,6 +516,7 @@
 | `[STOCK_ALLOWANCE]` | `chat/part` | allowance is mm a face, 0 to 100. |
 | `[STOCK_ROW]` | `chat` | row …: an id and a source (where the size comes from: your shop, a page) are needed. |
 | `[SWEEP_PATH]` | `app` | … |
+| `[THREAD_PICK]` | `app` | … |
 | `[TOO_BIG_TWO_WAYS]` | `print` | no split along one axis makes …'s pieces: the part (… mm) is too big two ways |
 | `[TRIM_CURVE]` | `engine` | The curve does not close: trim by a closed curve (a loop). |
 | `[UNDRAINED]` | `print` | the lattice leaves empty regions undrained after … drains: take a larger cell or a finer voxel |

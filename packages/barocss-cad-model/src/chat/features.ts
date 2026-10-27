@@ -37,6 +37,7 @@ const SPECS: Record<string, Spec> = {
   shell: { parent: 'ref', thickness: 'dim', open: 'names' },
   draft: { parent: 'ref', faces: 'names1', angle: 'num', 'pull?': 'enum:x|y|z|-x|-y|-z', 'neutral?': 'dim' },
   'full-round': { parent: 'ref', faces: 'names1', 'along?': 'enum:x|y' },
+  'face-thread': { parent: 'ref', face: 'text', pitch: 'pos', 'diameter?': 'pos', 'length?': 'pos', 'end?': 'enum:+|-', 'relief?': 'num' },
   // (R9, D85: a mesh body simplified; its keep and bounds are values.)
   decimate: { parent: 'ref', 'ratio?': 'num', 'triangles?': 'count', 'maxError?': 'num', 'featureAngle?': 'num' },
   chamfer: { parent: 'ref', edges: 'names1', distance: 'dim' },
@@ -380,11 +381,11 @@ function renameNode(node: ModelNode, rename: (id: string) => string): ModelNode 
   if (node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief') return { ...node, edges: [r(node.edges[0])] };
   if (node.kind === 'shell') return { ...node, open: node.open.map(r) };
   if (node.kind === 'draft' || node.kind === 'full-round') return { ...node, faces: node.faces.map(r) };
-  if (node.kind === 'keyway' || node.kind === 'oring-gland' || node.kind === 'connector-opening') return { ...node, face: r(node.face) };
+  if (node.kind === 'keyway' || node.kind === 'oring-gland' || node.kind === 'connector-opening' || node.kind === 'face-thread') return { ...node, face: r(node.face) };
   return node;
 }
 /** The persistent names a node is built on. */
-const named = (n: ModelNode): readonly string[] => n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' || n.kind === 'full-round' ? n.faces : n.kind === 'keyway' || n.kind === 'oring-gland' || n.kind === 'connector-opening' ? [n.face] : [];
+const named = (n: ModelNode): readonly string[] => n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' || n.kind === 'full-round' ? n.faces : n.kind === 'keyway' || n.kind === 'oring-gland' || n.kind === 'connector-opening' || n.kind === 'face-thread' ? [n.face] : [];
 
 /** A drawing dimension's edge names, renamed (null when one of them is gone). */
 function renameDimension(d: DrawingDimension, rename: (name: string) => string | null): DrawingDimension | null {

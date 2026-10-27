@@ -20,6 +20,7 @@ import type { BodyResult } from '../engine/evaluate';
 import type { BearingAssemblyInput } from '../engine/bearingContext';
 import type { DisplayEdge } from '../engine/mesh';
 import { refOf } from './bodyRef';
+import { roundFaceAxis } from './measure';
 import { planBedSplit } from '../print/splitBed';
 import { planHollow } from '../print/hollow';
 import { isHollowed, planLattice } from '../print/lattice';
@@ -359,6 +360,33 @@ export function buildFullRound(ctx: Ctx, v: Values): StudioDoc {
   return withNode(ctx.doc, { kind: 'full-round', parent: refOf(d.body), faces: d.faces, ...(along !== 'auto' ? { along } : {}) });
 }
 
+/** The one round face picked for a thread, by name: a shaft's (external) or a hole's, its radius; or why not. */
+function threadFaceOf(ctx: Ctx): { body: BodyResult; face: string; radius: number; external: boolean } | string {
+  const picks = ctx.selection.faces; if (picks.length !== 1) return 'Pick one round face: a shaft, or a hole (its tap drill).';
+  const body = ctx.bodies[picks[0].body], f = body?.mesh.faces[picks[0].face];
+  const axis = body && f ? roundFaceAxis(body.mesh, picks[0].face) : null;
+  if (!body || !f || f.kind !== 'curved' || !f.radius || !axis) return 'A thread goes on a round face: a shaft, or a hole (its tap drill).';
+  // Outward (a shaft) when the face's normal points away from its axis.
+  const off = [0, 1, 2].map(k => f.centroid[k] - axis.point[k]), along = off[0] * axis.dir[0] + off[1] * axis.dir[1] + off[2] * axis.dir[2];
+  const radial = off.map((x, k) => x - along * axis.dir[k]), external = radial[0] * f.normal[0] + radial[1] * f.normal[1] + radial[2] * f.normal[2] > 0;
+  return { body, face: f.name.split('+')[0].split('#')[0], radius: f.radius, external };
+}
+/** The size row nearest a thread on a face (a shaft: its diameter; a hole: its tap drill), from the person's rows. */
+function threadSizeOf(ctx: Ctx, t: { radius: number; external: boolean }) {
+  const rows = Object.values(fastenerSizesOf(ctx.doc)), D = 2 * t.radius, near = (a: number, b: number) => Math.abs(a - b) <= 1e-6 * Math.max(1, b);
+  return t.external ? rows.find(s => near(s.d, D)) : rows.find(s => s.tap !== undefined && near(s.tap, D)) ?? rows.filter(s => s.d > D).sort((a, b) => a.d - b.d)[0];
+}
+
+/** A face-thread node of the picked round face (a hole's needs its nominal diameter `d`); `len` 0 is the whole face. */
+export function buildFaceThread(ctx: Ctx, v: Values): StudioDoc {
+  const t = threadFaceOf(ctx); if (typeof t === 'string') throw refusal('THREAD_PICK', t);
+  const pitch = Number(v.pitch), d = Number(v.d), length = Number(v.len ?? 0), relief = v.relief === undefined ? undefined : Number(v.relief), end = v.end === '-' ? '-' : '+';
+  if (!(Number.isFinite(pitch) && pitch > 0)) throw refusal('VALUE', 'A thread\'s pitch is a positive length.');
+  if (!t.external && !(Number.isFinite(d) && d > 0)) throw refusal('VALUE', 'A thread in a hole needs its nominal diameter.');
+  if (!(Number.isFinite(length) && length >= 0) || (relief !== undefined && !(Number.isFinite(relief) && relief >= 0))) throw refusal('VALUE', 'A thread\'s length and relief are not negative.');
+  return withNode(ctx.doc, { kind: 'face-thread', parent: refOf(t.body), face: t.face, pitch, ...(!t.external || (Number.isFinite(d) && Math.abs(d - 2 * t.radius) > 1e-9 * Math.max(1, d)) ? { diameter: d } : {}), ...(length > 0 ? { length } : {}), ...(end === '-' ? { end } : {}), ...(t.external && relief !== undefined && relief !== pitch ? { relief } : {}) });
+}
+
 const allCommands: Command[] = [
   {
     id: 'sketch', label: 'Sketch', icon: 'cad-sketch', hint: 'Draw a profile on a plane or a flat face', shortcut: 'S', group: 'create', keywords: 'profile draw rectangle circle polygon',
@@ -504,6 +532,25 @@ const allCommands: Command[] = [
     },
     // (+Z is built as before, without a pull on the node.)
     build: (ctx, v) => { const rest = { ...v }; delete rest.pull; return buildDraft(ctx, draftPullOf(v) === 'z' ? rest : { ...rest, pull: draftPullOf(v) }); },
+  },
+  {
+    id: 'face-thread', label: 'Thread', icon: 'cad-thread', hint: 'Cut a modelled ISO metric thread (right hand) on a picked round face: a shaft at its diameter, a hole (its tap drill) at the nominal size; a relief groove where a shaft\'s thread stops at a shoulder', group: 'modify', keywords: 'thread screw tap tapped helix modelled real external internal',
+    available: ctx => { const t = threadFaceOf(ctx); return typeof t === 'string' ? no(t) : ok; },
+    fields: ctx => { const t = threadFaceOf(ctx), external = typeof t !== 'string' && t.external;
+      return [{ key: 'pitch', label: 'Pitch', kind: 'mm', min: 0.2, step: 0.05 }, ...(external ? [] : [{ key: 'd', label: 'Nominal Ø', kind: 'mm' as const, min: 1 }]),
+        { key: 'len', label: 'Length (0: whole face)', kind: 'mm', min: 0 }, { key: 'end', label: 'From', kind: 'choice', options: [{ value: '+', label: 'The + end' }, { value: '-', label: 'The − end' }] },
+        ...(external ? [{ key: 'relief', label: 'Relief groove', kind: 'mm' as const, min: 0 }] : [])]; },
+    defaults: ctx => {
+      const t = threadFaceOf(ctx); if (typeof t === 'string') return { pitch: 1, d: 6, len: 0, end: '+', relief: 1 };
+      // The person's size row when one fits; else a 1 mm pitch, and a hole's nominal its drill plus a pitch (d − P ≈ the tap drill).
+      const s = threadSizeOf(ctx, t), pitch = s?.pitch ?? 1;
+      return { pitch, d: t.external ? 2 * t.radius : s?.d ?? +(2 * t.radius + pitch).toFixed(3), len: 0, end: '+', relief: pitch };
+    },
+    steps: (ctx, v) => { const t = threadFaceOf(ctx); if (typeof t === 'string') return [{ label: 'Face', text: t, done: false }];
+      const d = t.external ? 2 * t.radius : Number(v.d), s = threadSizeOf(ctx, t);
+      return [{ label: 'Face', text: `${t.external ? 'a shaft' : 'a hole'} Ø${+(2 * t.radius).toFixed(3)}`, done: true },
+        { label: 'Thread', text: `M${+d.toFixed(3)}×${v.pitch} right-hand, ${t.external ? 'external' : 'internal'}, modelled: ISO 68-1 basic profile as helical B-spline faces${s && Math.abs(s.pitch - Number(v.pitch)) > 1e-9 ? ` (the size row says ×${s.pitch})` : !s ? ' (no size row: the pitch is yours)' : ''}`, done: true }]; },
+    build: buildFaceThread,
   },
   {
     id: 'full-round', label: 'Full round', icon: 'cad-full-round', hint: 'Round the picked flat top of a rib or wall side to side: one half cylinder, its radius half the width', group: 'modify', keywords: 'face fillet round top rib',

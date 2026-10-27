@@ -17,7 +17,7 @@ import { drawingDoc, drawingOf, manufacturabilityOf, outputOf, withCasting, with
 import { setBought } from '../bom/bom';
 import { withLibraryPart, type LibraryPartInput } from './library';
 import { refOf } from '../app/bodyRef';
-import { buildDraft, buildFullRound, type Values } from '../app/commands';
+import { buildDraft, buildFaceThread, buildFullRound, type Values } from '../app/commands';
 import { resolveNames } from '../chat/names';
 import { captureSignatures } from '../engine/references';
 import { bindParameter } from '../engine/parameters';
@@ -45,6 +45,9 @@ const libraryMaterial = (id: string) => {
 
 /** Public draft lengths are world mm; only the explicit neutral coordinate may bind to a parameter. */
 export interface StudioDraftOptions { readonly angle: number; readonly pull?: 'x' | 'y' | 'z' | '-x' | '-y' | '-z'; readonly neutral?: Dim }
+
+/** Thread options: pitch; a hole's nominal diameter; length from the end (left out: the face), end + or −, a shaft's relief groove. */
+export interface StudioThreadOptions { readonly pitch: number; readonly diameter?: number; readonly length?: number; readonly end?: '+' | '-'; readonly relief?: number }
 
 /** Full round options: the round's axis, x or y; left out, each face's longer side. */
 export interface StudioFullRoundOptions { readonly along?: 'x' | 'y' }
@@ -155,6 +158,29 @@ export class StudioPart extends Part<StudioDoc> {
     }
     next = captureSignatures(next, [body]);
     if (parameter !== undefined) next = bindParameter(next, { feature: next.nodes.length - 1, value: 'neutral', parameter });
+    const after = bodiesOf(next).map(b => b.key);
+    if (this.focus === null) return this.next(next, null);
+    const made = after.filter(key => !before.some(b => b.key === key));
+    return this.next(next, after.includes(this.focus) ? this.focus : made.length === 1 ? made[0] : null);
+  }
+
+  /** A modelled thread on the selected round face (a shaft, or a hole at `diameter`) through the Studio builder; refusal preserves this part. */
+  thread(face: (body: BodyQuery) => FaceQuery, options: StudioThreadOptions): this {
+    const keys = ['pitch', 'diameter', 'length', 'end', 'relief'];
+    if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).some(k => !keys.includes(k))) throw refuse('VALUE', 'thread options are pitch, diameter, length, end and relief');
+    for (const k of ['pitch', 'diameter', 'length', 'relief'] as const) if (options[k] !== undefined && !(typeof options[k] === 'number' && Number.isFinite(options[k]))) throw refuse('VALUE', `thread ${k} is a finite number of mm`);
+    if (options.end !== undefined && options.end !== '+' && options.end !== '-') throw refuse('VALUE', 'thread end is + or -');
+    const doc = this.document, before = bodiesOf(doc), target = this.target(), body = before.find(b => b.key === target);
+    if (!body) throw refuse('NO_BODY', 'thread needs one selected body');
+    if (typeof face !== 'function') throw refuse('VALUE', 'thread takes a face selector');
+    const picked = face(this.select());
+    if (picked.count !== 1) throw refuse(picked.count ? 'VALUE' : 'SELECTION_EMPTY', picked.count ? 'thread one round face at a time' : 'the selector picked no face to thread');
+    const { selection, unknown } = resolveNames([body], { faces: picked.names() });
+    if (unknown.length) throw refuse('SELECTION_UNKNOWN', `no face named ${unknown.join(', ')} on the selected body`);
+    const values: Values = { pitch: options.pitch, len: options.length ?? 0, end: options.end ?? '+', ...(options.diameter !== undefined ? { d: options.diameter } : {}), ...(options.relief !== undefined ? { relief: options.relief } : {}) };
+    const next = buildFaceThread({ doc, bodies: [body], selection }, values), node = next.nodes.at(-1);
+    const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the thread: ${why}`);
     const after = bodiesOf(next).map(b => b.key);
     if (this.focus === null) return this.next(next, null);
     const made = after.filter(key => !before.some(b => b.key === key));
