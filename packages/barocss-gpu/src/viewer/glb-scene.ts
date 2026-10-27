@@ -1,5 +1,6 @@
 // A deliberately bounded GLB scene adapter. It does not allocate viewer or GPU resources.
 import { decodeGlb } from './glb-container.js';
+import { glbTextures, type PreparedGlbTexture } from './glb-texture-data.js';
 import type { GeometryInput } from './geometry.js';
 import { identity, multiply, normalMatrixInto, type Mat4, type Vec3 } from './math.js';
 import type { Material } from './scene.js';
@@ -11,6 +12,11 @@ export interface PreparedGlbPrimitive {
   material: Material;
   transform: Mat4;
 }
+
+/** A prepared primitive with an index into PreparedTexturedGlb.textures, or null. */
+export interface PreparedTexturedGlbPrimitive extends PreparedGlbPrimitive { baseColorTexture: number | null }
+/** Self-contained CPU inputs. No viewer or GPU resource is created. */
+export interface PreparedTexturedGlb { primitives: PreparedTexturedGlbPrimitive[]; textures: PreparedGlbTexture[] }
 
 type Obj = Record<string, unknown>;
 const fail = (message: string): never => { throw new ViewerError('GEOMETRY_INVALID', `GLB: ${message}`); };
@@ -51,14 +57,14 @@ const ref = (value: unknown, list: readonly unknown[], label: string): number =>
 };
 const srgb = (x: number): number => x === 1 ? 1 : x <= 0.0031308 ? x * 12.92 : 1.055 * Math.pow(x, 1 / 2.4) - 0.055;
 
-function materialOf(value: unknown): Material {
+function materialOf(value: unknown, textured = false): Material {
   const m = value === undefined ? {} : object(value, 'material');
   keys(m, ['name', 'extras', 'pbrMetallicRoughness', 'alphaMode', 'doubleSided', 'emissiveFactor'], 'material');
   if (m.alphaMode !== undefined && m.alphaMode !== 'OPAQUE') fail('only OPAQUE materials are supported');
   if (m.doubleSided !== undefined && typeof m.doubleSided !== 'boolean') fail('material.doubleSided must be boolean');
   if (m.emissiveFactor !== undefined && vector(m.emissiveFactor, 3, 'material.emissiveFactor').some(x => x !== 0)) fail('emissive materials are not supported');
   const p = m.pbrMetallicRoughness === undefined ? {} : object(m.pbrMetallicRoughness, 'pbrMetallicRoughness');
-  keys(p, ['baseColorFactor', 'metallicFactor', 'roughnessFactor'], 'pbrMetallicRoughness');
+  keys(p, textured ? ['baseColorFactor', 'metallicFactor', 'roughnessFactor', 'baseColorTexture'] : ['baseColorFactor', 'metallicFactor', 'roughnessFactor'], 'pbrMetallicRoughness');
   const base = p.baseColorFactor === undefined ? [1, 1, 1, 1] : vector(p.baseColorFactor, 4, 'baseColorFactor');
   base.forEach((x, i) => unit(x, `baseColorFactor[${i}]`));
   // glTF factors are linear. An OPAQUE material ignores base and vertex alpha.
@@ -115,8 +121,17 @@ function finiteF32Sum(a: number, b: number, c: number, d: number, label: string)
  * No GPU resources are created.
  */
 export function prepareGlb(source: ArrayBuffer | Uint8Array): PreparedGlbPrimitive[] {
+  return prepareGlbScene(source, false).primitives.map(({ geometry, material, transform }) => ({ geometry, material, transform }));
+}
+
+/** Prepare self-contained GLB scenes with embedded opaque PNG/JPEG base colour maps. */
+export function prepareTexturedGlb(source: ArrayBuffer | Uint8Array): PreparedTexturedGlb {
+  return prepareGlbScene(source, true);
+}
+
+function prepareGlbScene(source: ArrayBuffer | Uint8Array, textured: boolean): PreparedTexturedGlb {
   const { json, bin } = decodeGlb(source), gltf = object(json, 'root');
-  keys(gltf, ['asset', 'buffers', 'bufferViews', 'accessors', 'materials', 'meshes', 'nodes', 'scenes', 'scene', 'extras'], 'root');
+  keys(gltf, textured ? ['asset', 'buffers', 'bufferViews', 'accessors', 'materials', 'meshes', 'nodes', 'scenes', 'scene', 'extras', 'images', 'textures', 'samplers'] : ['asset', 'buffers', 'bufferViews', 'accessors', 'materials', 'meshes', 'nodes', 'scenes', 'scene', 'extras'], 'root');
   const asset = object(gltf.asset, 'asset');
   keys(asset, ['version', 'minVersion', 'generator', 'copyright', 'extras'], 'asset');
   if (asset.version !== '2.0' || (asset.minVersion !== undefined && asset.minVersion !== '2.0')) fail('only glTF 2.0 is supported');
@@ -132,16 +147,30 @@ export function prepareGlb(source: ArrayBuffer | Uint8Array): PreparedGlbPrimiti
   const nodes = array(gltf.nodes, 'nodes'), scenes = array(gltf.scenes, 'scenes');
   if (nodes.length > 4096 || meshes.length > 4096 || materials.length > 4096 || scenes.length > 4096 ||
       views.length > 16384 || accessors.length > 16384 || scenes.length === 0) fail('scene exceeds the supported collection limits or has no scene');
-  const preparedMaterials = materials.map(m => materialOf(m));
+  const textures = textured ? glbTextures(gltf, bin, bufferLength, views) : [];
+  const imageViews = new Set(textured ? optionalArray(gltf.images, 'images').map(image => ref(object(image, 'image').bufferView, views, 'image.bufferView')) : []);
+  const preparedMaterials = materials.map(entry => {
+    const material = materialOf(entry, textured), m = object(entry, 'material');
+    const p = m.pbrMetallicRoughness === undefined ? {} : object(m.pbrMetallicRoughness, 'pbrMetallicRoughness');
+    let texture: number | null = null;
+    if (p.baseColorTexture !== undefined) {
+      const info = object(p.baseColorTexture, 'baseColorTexture');
+      keys(info, ['index', 'texCoord', 'extras'], 'baseColorTexture');
+      if (info.texCoord !== undefined && info.texCoord !== 0) fail('only TEXCOORD_0 is supported');
+      texture = ref(info.index, textures, 'baseColorTexture.index');
+    }
+    return { material, texture };
+  });
   const data = new DataView(bin.buffer, bin.byteOffset, bin.byteLength);
   let decodedScalars = 0;
   const usedViews = new Map<number, { kind: 'attribute' | 'index'; accessor: number }>();
 
-  const readAccessor = (index: unknown, label: string, kind: 'position' | 'normal' | 'index' | 'color'): number[] => {
+  const readAccessor = (index: unknown, label: string, kind: 'position' | 'normal' | 'index' | 'color' | 'uv'): number[] => {
     const accessorIndex = ref(index, accessors, `${label} accessor`);
     const a = object(accessors[accessorIndex], `${label} accessor`);
     keys(a, ['bufferView', 'byteOffset', 'componentType', 'count', 'type', 'normalized', 'min', 'max', 'name', 'extras'], `${label} accessor`);
     const viewIndex = ref(a.bufferView, views, `${label}.bufferView`), usage = kind === 'index' ? 'index' : 'attribute';
+    if (imageViews.has(viewIndex)) fail(`${label} cannot share an image bufferView`);
     const previous = usedViews.get(viewIndex);
     if (previous && (previous.kind !== usage || (usage === 'attribute' && previous.accessor !== accessorIndex))) fail(`${label} shares an unsupported bufferView`);
     usedViews.set(viewIndex, { kind: usage, accessor: accessorIndex });
@@ -153,9 +182,9 @@ export function prepareGlb(source: ArrayBuffer | Uint8Array): PreparedGlbPrimiti
     if (viewOffset + viewLength > bufferLength) fail(`${label} bufferView exceeds the buffer`);
     if (view.target !== undefined && view.target !== 34962 && view.target !== 34963) fail(`${label} bufferView target is invalid`);
     const component = integer(a.componentType, `${label}.componentType`);
-    const components = kind === 'index' ? 1 : kind === 'color' && a.type === 'VEC4' ? 4 : 3;
-    if (a.type !== (kind === 'index' ? 'SCALAR' : components === 4 ? 'VEC4' : 'VEC3')) fail(`${label} accessor type is unsupported`);
-    if ((kind === 'position' || kind === 'normal') && component !== 5126) fail(`${label} must use FLOAT`);
+    const components = kind === 'index' ? 1 : kind === 'uv' ? 2 : kind === 'color' && a.type === 'VEC4' ? 4 : 3;
+    if (a.type !== (kind === 'index' ? 'SCALAR' : components === 2 ? 'VEC2' : components === 4 ? 'VEC4' : 'VEC3')) fail(`${label} accessor type is unsupported`);
+    if ((kind === 'position' || kind === 'normal' || kind === 'uv') && component !== 5126) fail(`${label} must use FLOAT`);
     if (kind === 'index' && component !== 5123) fail('indices must use UNSIGNED_SHORT');
     if (kind === 'color' && component !== 5126) fail('COLOR_0 must use FLOAT');
     if (a.normalized !== undefined && typeof a.normalized !== 'boolean') fail(`${label}.normalized must be boolean`);
@@ -189,7 +218,7 @@ export function prepareGlb(source: ArrayBuffer | Uint8Array): PreparedGlbPrimiti
       keys(p, ['attributes', 'indices', 'material', 'mode', 'extras'], 'primitive');
       if (p.mode !== undefined && p.mode !== 4) fail('only TRIANGLES primitives are supported');
       const attr = object(p.attributes, 'primitive.attributes');
-      keys(attr, ['POSITION', 'NORMAL', 'COLOR_0'], 'primitive.attributes');
+      keys(attr, textured ? ['POSITION', 'NORMAL', 'COLOR_0', 'TEXCOORD_0'] : ['POSITION', 'NORMAL', 'COLOR_0'], 'primitive.attributes');
       const positions = readAccessor(attr.POSITION, 'POSITION', 'position');
       const normals = readAccessor(attr.NORMAL, 'NORMAL', 'normal');
       const indices = readAccessor(p.indices, 'indices', 'index');
@@ -206,8 +235,11 @@ export function prepareGlb(source: ArrayBuffer | Uint8Array): PreparedGlbPrimiti
         colors = [];
         for (let i = 0; i < vertices; i++) colors.push(srgb(raw[i * components]), srgb(raw[i * components + 1]), srgb(raw[i * components + 2]));
       }
-      const material = p.material === undefined ? materialOf(undefined) : preparedMaterials[ref(p.material, preparedMaterials, 'primitive.material')];
-      return { positions, normals, indices, colors, material };
+      const selected = p.material === undefined ? { material: materialOf(undefined), texture: null } : preparedMaterials[ref(p.material, preparedMaterials, 'primitive.material')];
+      const uvs = attr.TEXCOORD_0 === undefined ? undefined : readAccessor(attr.TEXCOORD_0, 'TEXCOORD_0', 'uv');
+      if (uvs && uvs.length !== vertices * 2) fail('TEXCOORD_0 count must match POSITION');
+      if (selected.texture !== null && !uvs) fail('a base colour texture requires TEXCOORD_0');
+      return { positions, normals, indices, colors, uvs, material: selected.material, texture: selected.texture };
     });
   });
 
@@ -228,7 +260,7 @@ export function prepareGlb(source: ArrayBuffer | Uint8Array): PreparedGlbPrimiti
   });
   if (gltf.scene === undefined && parsedScenes.length !== 1) fail('a default scene is required when multiple scenes exist');
   const scene = gltf.scene === undefined ? 0 : ref(gltf.scene, parsedScenes, 'scene');
-  const output: PreparedGlbPrimitive[] = [], active = new Set<number>(), visited = new Set<number>();
+  const output: PreparedTexturedGlbPrimitive[] = [], active = new Set<number>(), visited = new Set<number>();
   let emittedVertices = 0, emittedIndices = 0;
   const visit = (index: number, parent: Mat4, depth: number): void => {
     if (depth > 1024 || active.has(index) || visited.has(index)) fail('scene has a cycle, repeated node, or exceeds the supported depth');
@@ -254,12 +286,12 @@ export function prepareGlb(source: ArrayBuffer | Uint8Array): PreparedGlbPrimiti
       const indices = Uint16Array.from(p.indices);
       // Mirrored transforms reverse front-facing winding; the viewer uses a fixed CCW pipeline.
       if (det < 0) for (let i = 0; i < indices.length; i += 3) { const x = indices[i + 1]; indices[i + 1] = indices[i + 2]; indices[i + 2] = x; }
-      output.push({ geometry: { positions: Float32Array.from(p.positions), normals: Float32Array.from(p.normals), indices, ...(p.colors ? { colors: [...p.colors] } : {}) },
-        material: { ...p.material, color: Array.isArray(p.material.color) ? [p.material.color[0], p.material.color[1], p.material.color[2]] as Vec3 : p.material.color }, transform: matrix.slice() });
+      output.push({ geometry: { positions: Float32Array.from(p.positions), normals: Float32Array.from(p.normals), indices, ...(p.colors ? { colors: [...p.colors] } : {}), ...(p.uvs ? { uvs: Float32Array.from(p.uvs) } : {}) },
+        material: { ...p.material, color: Array.isArray(p.material.color) ? [p.material.color[0], p.material.color[1], p.material.color[2]] as Vec3 : p.material.color }, transform: matrix.slice(), baseColorTexture: p.texture });
     }
     for (const child of node.children) visit(child, matrix, depth + 1);
     active.delete(index);
   };
   for (const root of parsedScenes[scene]) visit(root, identity(), 0);
-  return output;
+  return { primitives: output, textures };
 }

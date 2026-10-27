@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GLB texture viewer · BaroCSS GPU</title>
+  <style>
+    :root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; background: #17191d; color: #eceef2; }
+    body { max-width: 780px; margin: 32px auto; padding: 0 20px; }
+    h1 { font-size: 1.6rem; margin-bottom: 4px; }
+    p { color: #bbc1cb; }
+    .controls { display: flex; gap: 12px; margin: 20px 0; }
+    button { font: inherit; padding: 7px 14px; cursor: pointer; }
+    button:disabled { cursor: default; }
+    canvas { display: block; width: min(100%, 512px); height: auto; background: #20242b; border: 1px solid #414854; }
+    #error { color: #ffb4ad; white-space: pre-wrap; }
+    [hidden] { display: none; }
+  </style>
+  <script type="importmap">{"imports":{"@barocss/cad":"../../barocss-cad/dist/index.js"}}</script>
+</head>
+<body>
+  <h1>GLB texture viewer</h1>
+  <p>Load a self-contained GLB with an embedded PNG or JPEG base colour texture.</p>
+  <div class="controls" role="group" aria-label="Sample images">
+    <button id="png" type="button" disabled>Load PNG sample</button>
+    <button id="jpeg" type="button" disabled>Load JPEG sample</button>
+  </div>
+  <p id="status" role="status" aria-live="polite">Loading the viewer…</p>
+  <p id="error" role="alert" hidden></p>
+  <canvas id="view" width="256" height="256" aria-label="Imported textured GLB"></canvas>
+  <script type="module">
+    import { textureSample } from './glb-texture-sample.js';
+    const byId = id => document.getElementById(id), controls = [byId('png'),byId('jpeg')];
+    let viewer = null, api = null, current = null, closed = false, busy = false;
+    const release = group => { if (!group) return; for (const item of group.meshes) { item.mesh.remove(); item.geometry.dispose(); } group.materialized.dispose(); };
+    const showError = reason => { byId('error').textContent = `${reason.code ? `${reason.code}: ` : ''}${reason.message ?? String(reason)}`; byId('error').hidden = false; };
+    function cleanup() { closed = true; release(current); current = null; viewer?.dispose(); }
+    window.addEventListener('beforeunload', cleanup, { once: true });
+    async function load(mimeType) {
+      if (!viewer || busy || closed) return;
+      busy = true; controls.forEach(button => button.disabled = true); byId('error').hidden = true;
+      let materialized = null, meshes = [];
+      try {
+        const sample = await textureSample(mimeType), prepared = api.prepareTexturedGlb(sample.bytes);
+        materialized = await api.materializeGlbTextures(viewer, prepared);
+        if (closed) { materialized.dispose(); return; }
+        for (const row of materialized.primitives) {
+          const geometry = viewer.createGeometry(row.geometry), item = { geometry, mesh: null }; meshes.push(item);
+          item.mesh = viewer.add(geometry, { material: { ...row.material, unlit: true }, transform: row.transform });
+        }
+        release(current); current = { materialized, meshes }; materialized = null; meshes = [];
+        viewer.render(); byId('status').textContent = `${mimeType === 'image/png' ? 'PNG' : 'JPEG'} texture loaded.`;
+      } catch (reason) {
+        for (const item of meshes) { item.mesh?.remove(); item.geometry.dispose(); }
+        materialized?.dispose();
+        if (!closed) { showError(reason); byId('status').textContent = 'The textured GLB could not be loaded.'; }
+      } finally { busy = false; if (!closed) controls.forEach(button => button.disabled = false); }
+    }
+    try {
+      api = await import('../dist/viewer/index.js');
+      viewer = await api.createViewer(byId('view'), { controls: false, autoResize: false, pixelRatio: 1, antialias: false, background: '#20242b', lights: [],
+        camera: { position: [0,0,5], target: [0,0,0], up: [0,1,0], projection: 'orthographic', fovY: 2 * Math.atan(2 / 5) * 180 / Math.PI },
+        environment: { sky: '#000000', ground: '#000000', ambient: 0, toneMapping: 'none' }, onRequestRender: () => {},
+        onError: reason => { if (!closed) showError(new Error(reason)); } });
+      if (closed) { viewer.dispose(); throw new Error('The page closed before viewer creation completed.'); }
+      byId('png').addEventListener('click', () => void load('image/png'));
+      byId('jpeg').addEventListener('click', () => void load('image/jpeg'));
+      await load('image/png');
+    } catch (reason) { if (!closed) { showError(reason); byId('status').textContent = 'The viewer could not start.'; } cleanup(); }
+  </script>
+</body>
+</html>

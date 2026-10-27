@@ -103,6 +103,67 @@ refused with `GEOMETRY_INVALID`. Conservative f32 range checks can also refuse
 some transforms whose final mathematical result would be finite. Vertex colours
 use the viewer's existing linear RGBA8 precision.
 
+### Embedded base colour textures (03.2 candidate)
+
+The separate `prepareTexturedGlb` API accepts the same bounded scene subset
+with embedded PNG or JPEG base colour images and FLOAT VEC2 `TEXCOORD_0`.
+It returns `{ primitives, textures }` without creating GPU resources. Each
+primitive has a `baseColorTexture` index or `null`. Each texture holds copied
+image bytes, its MIME type and supported viewer sampling options. The original
+`prepareGlb` API continues to refuse textured files.
+
+Use `materializeGlbTextures` with an active viewer to decode the images and
+create the texture-backed materials. Then add the returned primitives:
+
+```js
+import { prepareTexturedGlb, materializeGlbTextures } from '@barocss/gpu/viewer';
+
+const prepared = prepareTexturedGlb(await file.arrayBuffer());
+const scene = await materializeGlbTextures(viewer, prepared);
+const meshes = [], geometries = [];
+try {
+  for (const row of scene.primitives) {
+    const geometry = viewer.createGeometry(row.geometry);
+    geometries.push(geometry);
+    meshes.push(viewer.add(geometry, { material: row.material, transform: row.transform }));
+  }
+} catch (error) {
+  for (const mesh of meshes) mesh.remove();
+  for (const geometry of geometries) geometry.dispose();
+  scene.dispose();
+  throw error;
+}
+
+// When the scene is no longer needed:
+for (const mesh of meshes) mesh.remove();
+for (const geometry of geometries) geometry.dispose();
+scene.dispose();
+```
+
+This candidate accepts opaque materials and images whose decoded alpha is 255
+for every pixel. Both texture axes must use the same wrap mode: repeat or clamp.
+Supported minification filters are 9728, 9729, 9984 and 9987. When both filters
+are specified, their nearest or linear modes must match. Other sampler choices,
+external resources, other texture roles, animation, skins, morphs, sparse or
+strided data, and extensions remain outside this subset. Each image is limited
+to 4096 pixels per axis and 16,777,216 pixels. The total is limited to
+33,554,432 decoded pixels and 64 MiB of compressed image bytes. Texture
+references count separately towards both totals, even when they share an image.
+The viewer device's texture dimension limit also applies.
+
+Invalid or unsupported GLB data is refused with `GEOMETRY_INVALID`; image decode
+failure and non-opaque pixels are refused with `TEXTURE_INVALID`. A failed
+materialization disposes textures it already created. Keep the returned scene
+and its pixel sources alive until it is no longer used: the viewer needs them
+to restore textures after device loss. `scene.dispose()` is safe to repeat.
+It disposes the texture resources, but the current viewer can retain their CPU
+pixel sources in its texture collection until `viewer.dispose()`. Replacing
+scenes does not guarantee immediate release of that CPU memory.
+
+The 03.2 source candidate is complete. Its new build, tests, lint and browser
+validation have not yet run. This candidate is not product integration or
+external-asset acceptance.
+
 The CSS-shaped scene language shows on it with one call: `showScene(viewer, source)` compiles a scene
 source (version 0 or 1), adds a mesh per object with its placement and colour (`view.meshes` by id, picks
 name the object), and `view.update(source)` shows an edited source, or returns its diagnostics and keeps
