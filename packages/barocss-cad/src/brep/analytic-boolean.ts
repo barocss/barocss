@@ -1357,6 +1357,19 @@ function rayMissesBox(lo: P3, hi: P3, x: P3, dir: P3, pad: number): boolean {
 
 // ---- the Boolean -------------------------------------------------------------------------------------
 interface Piece { face: GFace; region: CurveRegion2; out: 1 | -1; key: P3 }
+/** The box of a set of faces. */
+function facesBox(F: readonly GFace[]): { min: P3; max: P3 } {
+  const min: P3 = [Infinity, Infinity, Infinity], max: P3 = [-Infinity, -Infinity, -Infinity];
+  for (const f of F) for (let k = 0; k < 3; k++) { if (f.min[k] < min[k]) min[k] = f.min[k]; if (f.max[k] > max[k]) max[k] = f.max[k]; }
+  return { min, max };
+}
+/** Whether two boxes lie more than `gap` apart along some axis. */
+const boxesApart = (a: { min: P3; max: P3 }, b: { min: P3; max: P3 }, gap: number) => a.max[0] + gap < b.min[0] || b.max[0] + gap < a.min[0] || a.max[1] + gap < b.min[1] || b.max[1] + gap < a.min[1] || a.max[2] + gap < b.min[2] || b.max[2] + gap < a.min[2];
+/** A piece whose key — its face's point at an interior point of its region — is found on first read, then kept. */
+function lazyKeyed<T extends Omit<Piece, 'key'>>(p: T): T & Piece {
+  let key: P3 | null = null;
+  return Object.defineProperty(p, 'key', { get: () => key ??= to3(p.face, regionInteriorPoint(p.region) ?? [0, 0]), enumerable: true }) as T & Piece;
+}
 
 /**
  * The analytic form of a B-rep face's surface: a plane (point and outward normal), a circular
@@ -1415,7 +1428,16 @@ function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, 
   for (const f of [...A, ...B]) f.cuts = dedupeCuts(f.cuts, tol, f.surf.kind === 'plane');
   // 2–3. Pieces and their classes.
   const pieces: (Piece & { where: Where })[] = [], touches: { x: P3; n: P3 }[] = [];
+  const boxA = facesBox(A), boxB = facesBox(B);
   for (const f of [...A, ...B]) {
+    // (Broad phase: a face with no cut whose box lies 1000 tolerances clear of the other solid's box is outside it,
+    // whole: no ray is cast, and its point inside — the piece's key, wanted only to number repeated names or vote on a
+    // shell's sense — is found if it is asked for.)
+    if (!f.cuts.length && boxesApart(f, f.solid === 0 ? boxB : boxA, 1000 * tol)) {
+      if (Math.abs(regionArea(f.region)) <= tol * tol) continue;
+      pieces.push(lazyKeyed({ face: f, region: f.region, out: 1, where: 'out' as Where }));
+      continue;
+    }
     const regions = f.cuts.length ? curveFaceRegions([f.region.outer, ...f.region.holes], f.cuts, tol) : [f.region];
     for (const region of regions) {
       const p2 = regionInteriorPoint(region); if (!p2 || Math.abs(regionArea(region)) <= tol * tol) continue;
@@ -1440,7 +1462,9 @@ function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, 
   };
   const reverse = (ring: readonly CurveSegment2[]) => [...ring].reverse().map(segReverse);
   const kept: Piece[] = pieces.flatMap(p => { const k = keep(p); if (!k) return [];
-    return [{ face: p.face, out: k === 'flip' ? -1 : 1, key: p.key, region: k === 'flip' ? { outer: reverse(p.region.outer), holes: p.region.holes.map(reverse) } : p.region }]; });
+    // (The key passed on as it is, found when first read.)
+    const q = { face: p.face, out: (k === 'flip' ? -1 : 1) as 1 | -1, region: k === 'flip' ? { outer: reverse(p.region.outer), holes: p.region.holes.map(reverse) } : p.region } as Piece;
+    Object.defineProperty(q, 'key', { get: () => p.key, enumerable: true }); return [q]; });
   // (A tolerant input's — a fitted offset's, D110, D113 — pieces keep its tolerance: the result is tolerant as its worst.)
   const inputTol = Math.max(0, ...[a, b].flatMap(x => [...x.edges.map(e => e.tolerance), ...x.vertices.map(v => v.tolerance)]));
   const result = stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false, inputTol, undefined, edgeFit);
