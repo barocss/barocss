@@ -1,8 +1,9 @@
-// The site's structure, one place: the config reads it and scripts/check-docs.mjs checks every page in it exists.
-// Each page names the lane that writes it (W1); the coordinator owns the structure.
+// The site structure: config renders it and check-docs validates every linked page.
+// Every linked node keeps its writing lane, including parents with children.
 export const sidebar = [
   {
     text: 'Introduction',
+    collapsed: true,
     items: [
       { text: 'What BaroCSS CAD is', link: '/', lane: 'coordinator' },
       { text: 'Getting started', link: '/guide/getting-started', lane: 'outer' },
@@ -11,26 +12,58 @@ export const sidebar = [
   },
   {
     text: 'Studio',
+    collapsed: true,
     items: [
       { text: 'Tour of the studio', link: '/studio/tour', lane: 'GPU' },
-      { text: 'Sketches', link: '/studio/sketches', lane: 'outer' },
-      { text: 'Part features', link: '/studio/features', lane: 'outer' },
-      { text: 'Parameters and configurations', link: '/studio/parameters', lane: 'outer' },
-      { text: 'Assemblies and mates', link: '/studio/assemblies', lane: 'outer' },
-      { text: 'Drawings', link: '/studio/drawings', lane: 'outer' },
-      { text: 'BOM and quotes', link: '/studio/bom', lane: 'outer' },
-      { text: 'Manufacturing', link: '/studio/manufacturing', lane: 'outer' },
-      { text: 'Frames and weldments', link: '/studio/frames', lane: 'outer' },
-      { text: 'Robots', link: '/studio/robots', lane: 'outer' },
-      { text: 'Display, sections and analysis', link: '/studio/display', lane: 'GPU' },
-      { text: 'Rendering', link: '/studio/rendering', lane: 'outer' },
-      { text: 'Shop rows', link: '/studio/rows', lane: 'outer' },
-      { text: 'Files and exports', link: '/studio/files', lane: 'outer' },
-      { text: 'Projects and versions', link: '/studio/projects', lane: 'data' },
+      {
+        text: 'Modeling',
+        collapsed: true,
+        items: [
+          { text: 'Sketches', link: '/studio/sketches', lane: 'outer' },
+          { text: 'Part features', link: '/studio/features', lane: 'outer' },
+          { text: 'Parameters and configurations', link: '/studio/parameters', lane: 'outer' },
+          { text: 'Frames and weldments', link: '/studio/frames', lane: 'outer' },
+        ],
+      },
+      {
+        text: 'Assemblies and robots',
+        collapsed: true,
+        items: [
+          { text: 'Assemblies and mates', link: '/studio/assemblies', lane: 'outer' },
+          { text: 'Robots', link: '/studio/robots', lane: 'outer' },
+        ],
+      },
+      {
+        text: 'Drawings and manufacturing',
+        collapsed: true,
+        items: [
+          { text: 'Drawings', link: '/studio/drawings', lane: 'outer' },
+          { text: 'BOM and quotes', link: '/studio/bom', lane: 'outer' },
+          { text: 'Manufacturing', link: '/studio/manufacturing', lane: 'outer' },
+          { text: 'Shop rows', link: '/studio/rows', lane: 'outer' },
+        ],
+      },
+      {
+        text: 'Display and rendering',
+        collapsed: true,
+        items: [
+          { text: 'Display, sections and analysis', link: '/studio/display', lane: 'GPU' },
+          { text: 'Rendering', link: '/studio/rendering', lane: 'outer' },
+        ],
+      },
+      {
+        text: 'Files and projects',
+        collapsed: true,
+        items: [
+          { text: 'Files and exports', link: '/studio/files', lane: 'outer' },
+          { text: 'Projects and versions', link: '/studio/projects', lane: 'data' },
+        ],
+      },
     ],
   },
   {
     text: 'AI agent',
+    collapsed: true,
     items: [
       { text: 'Designing with the agent', link: '/agent/', lane: 'outer' },
       { text: 'Tools (v2 actions)', link: '/agent/tools', lane: 'outer' },
@@ -40,19 +73,81 @@ export const sidebar = [
   },
   {
     text: 'Packages',
+    collapsed: true,
     items: [
-      { text: '@barocss/cad (kernel)', link: '/packages/cad/', lane: 'kernel' },
-      { text: 'Modeling API', link: '/packages/cad/modeling', lane: 'kernel' },
-      { text: 'B-rep, robustness and refusals', link: '/packages/cad/robustness', lane: 'kernel' },
-      { text: 'Exchange formats', link: '/packages/cad/formats', lane: 'kernel' },
-      { text: '@barocss/cad-model', link: '/packages/cad-model/', lane: 'outer' },
-      { text: 'Object API', link: '/packages/api', lane: 'API' },
-      { text: '@barocss/gpu', link: '/packages/gpu/', lane: 'GPU' },
-      { text: '@barocss/viewer (SDK)', link: '/packages/viewer/', lane: 'GPU' },
+      {
+        text: 'Object API',
+        link: '/packages/api',
+        lane: 'API',
+        collapsed: true,
+        items: [
+          { text: 'Actual API results', link: '/packages/api#see-actual-api-results', lane: 'API' },
+          { text: 'Parts', link: '/packages/api#parts', lane: 'API' },
+          { text: 'Studio parts', link: '/packages/api#studio-parts', lane: 'API' },
+          { text: 'Parameters and configurations', link: '/packages/api#parameters-configurations-and-suppression', lane: 'API' },
+          { text: 'Assemblies', link: '/packages/api#assemblies', lane: 'API' },
+          { text: 'Manufacturing', link: '/packages/api#manufacturing-inputs-and-outputs', lane: 'API' },
+          { text: 'Scenes', link: '/packages/api#scenes', lane: 'API' },
+          { text: 'Errors', link: '/packages/api#errors', lane: 'API' },
+        ],
+      },
+      {
+        text: '@barocss/cad (kernel)',
+        link: '/packages/cad/',
+        lane: 'kernel',
+        collapsed: true,
+        items: [
+          { text: 'Modeling API', link: '/packages/cad/modeling', lane: 'kernel' },
+          { text: 'B-rep, robustness and refusals', link: '/packages/cad/robustness', lane: 'kernel' },
+          { text: 'Boolean operations in 3D', link: '/packages/cad/robustness#build-the-result-in-3d-one-stage-at-a-time', lane: 'kernel' },
+          { text: 'Exchange formats', link: '/packages/cad/formats', lane: 'kernel' },
+        ],
+      },
+      {
+        text: '@barocss/cad-model',
+        link: '/packages/cad-model/',
+        lane: 'outer',
+        collapsed: true,
+        items: [
+          { text: 'Body transforms', link: '/packages/cad-model/#transforming-one-body', lane: 'outer' },
+          { text: 'STL and source records', link: '/packages/cad-model/#stl-and-its-source-record', lane: 'outer' },
+          { text: 'Solid lofts', link: '/packages/cad-model/#solid-lofts-with-a-copied-guide', lane: 'outer' },
+          { text: 'Direct surfaces', link: '/packages/cad-model/#direct-sweep-and-loft-surfaces', lane: 'outer' },
+          { text: 'Route bundles', link: '/packages/cad-model/#route-bundles-in-code', lane: 'outer' },
+          { text: 'Assembly and robot motions', link: '/packages/cad-model/#assembly-and-robot-motions', lane: 'outer' },
+          { text: 'Studio document', link: '/packages/cad-model/#the-studio-document', lane: 'outer' },
+        ],
+      },
+      {
+        text: '@barocss/gpu',
+        link: '/packages/gpu/',
+        lane: 'GPU',
+        collapsed: true,
+        items: [
+          { text: 'PBR data maps', link: '/packages/gpu/#pbr-data-maps', lane: 'GPU' },
+          { text: 'Lights and shadows', link: '/packages/gpu/#light-and-shadow-limits', lane: 'GPU' },
+          { text: 'Capture and lifetime', link: '/packages/gpu/#capture-pixels-and-release-the-viewer', lane: 'GPU' },
+          { text: 'Progressive stills', link: '/packages/gpu/#progressive-still-images', lane: 'GPU' },
+          { text: 'Depth of field', link: '/packages/gpu/#depth-of-field', lane: 'GPU' },
+          { text: 'Errors', link: '/packages/gpu/#errors', lane: 'GPU' },
+          { text: 'WebGPU and WebGL2', link: '/packages/gpu/#webgpu-and-webgl2', lane: 'GPU' },
+        ],
+      },
+      {
+        text: '@barocss/viewer (SDK)',
+        link: '/packages/viewer/',
+        lane: 'GPU',
+        collapsed: true,
+        items: [
+          { text: 'Review files', link: '/packages/viewer/#capture-and-apply', lane: 'GPU' },
+          { text: 'Host lifetime', link: '/packages/viewer/#host-lifetime', lane: 'GPU' },
+        ],
+      },
     ],
   },
   {
     text: 'Reference',
+    collapsed: true,
     items: [
       { text: 'Refusal codes', link: '/reference/refusals', lane: 'outer' },
       { text: 'The .bcad document', link: '/reference/document', lane: 'outer' },

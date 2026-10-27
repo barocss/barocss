@@ -37,13 +37,21 @@ function filesUnder(dir, keep) {
 }
 const pagesUnder = dir => filesUnder(dir, name => name.endsWith('.md') && !name.startsWith('_'));
 
-const listed = new Set(), shown = new Set();
-for (const group of sidebar) for (const item of group.items) {
-  const f = item.link === '/' ? join(docs, 'index.md') : fileOf(item.link);
-  if (!f) problems.push(`sidebar: ${item.link} (${item.text}) has no page`);
-  else listed.add(f);
-  if (!item.lane) problems.push(`sidebar: ${item.link} names no lane`);
+const listed = new Set(), shown = new Set(), sidebarTargets = new Set();
+function checkSidebar(items) {
+  for (const item of items) {
+    if (item.link !== undefined) {
+      const f = item.link === '/' ? join(docs, 'index.md') : fileOf(item.link);
+      if (!f) problems.push(`sidebar: ${item.link} (${item.text}) has no page`);
+      else listed.add(f);
+      if (!item.lane) problems.push(`sidebar: ${item.link} names no lane`);
+      if (sidebarTargets.has(item.link)) problems.push(`sidebar: duplicate target ${item.link}`);
+      sidebarTargets.add(item.link);
+    }
+    if (item.items) checkSidebar(item.items);
+  }
 }
+checkSidebar(sidebar);
 for (const page of pagesUnder(docs)) {
   if (!listed.has(page)) problems.push(`${relative(docs, page)}: not in the sidebar`);
   const text = readFileSync(page, 'utf8');
