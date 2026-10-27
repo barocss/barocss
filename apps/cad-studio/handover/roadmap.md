@@ -44,11 +44,11 @@ repeated audits or new diagnostic tests into separate work streams. Preserve nec
 failures, reuse unchanged passing results, and finish the feature source before its one affected batch.
 
 Current order (2026-10-27): finish complete features, then integrate their reviewed normal commits.
-Local product code `7a62d6df` contains the bounded cubic loft foundation and its complete
-CAD Model/Studio copied-guide workflow, the qualified earlier G15 chain, and DR6 endpoint
-targets. Its required documentation check passed. Commit `5f0e1890` adds portable handoff
-files and actual CG1 downloads/PNGs without changing that product code. Existing CAD build,
-selected cubic-circle, GPU emit and consumer receipts retain their original scope; whole G15,
+Local product `ca10a3a8` includes the completed bounded CG1 copied-guide workflow, the
+G15 light-field/Studio/file-flow slice at `28a62d2e`, and the Studio guidance reduction at
+`1c80f8c1`. Their required product checks passed. Metadata `75123a0a` retains the portable
+handoff and actual G15 BCAD/PNG evidence; it is not a new execution result. Existing CAD build,
+selected cubic-circle and earlier GPU receipts retain their own scope. Whole G15 quality,
 robot, free-forward dynamics and manufacturing acceptance remain open.
 
 The current cut completes the copied-guide loft in CAD Model and Studio. Model source
@@ -82,7 +82,7 @@ Root source `2e1d4c04` passed Model5, Studio4, both types and production3 lint. 
 Studio type failure remains recorded; test-only child `8c0498c` corrected its array narrowing,
 and only the failed type check and never-run lint continued. Actual desktop independent SUN
 selection, point/spot radius, rejected drafts and second caster, Undo/Redo, real Save/Open
-and public PNG export completed. The 13 downloads preserve accepted values and non-render
+and public PNG export completed. The 13 saved BCAD files and exported PNG preserve accepted values and non-render
 document data. Reopened JSON is equal; its bytes differ only in the `render.camera` key order.
 Root viewed four actual PNGs. Whole shadow quality, performance and G15-accept remain open.
 
@@ -91,24 +91,51 @@ uses size squared times .05. False, zero, omission and current caster budgets ar
 Normal usage-doc child `1e7a9fb` was adopted at `c91c35de`. Its first external inventory adds
 one shared validator and changes four light-type exposures; the other6661 exposures, five
 other top fields and all367 raw compiler-symbol pairs stay identical. Only the five reviewed
-rows are synchronized. Next run the required docs/site batch, integrate this scoped feature
-into the product, run its first affected output/document checks, and capture one product scene.
+rows are synchronized. The first common docs/site batch and two actual documentation pages
+passed. Product `28a62d2e` emitted288 GPU files (144 JavaScript and144 declarations), retained
+240 older files separately, and passed its first required docs check. One actual product scene
+using the original reopened BCAD was captured; root viewed both native PNGs, and11 observed
+served source modules matched Git/disk. Errors and warnings were zero. The scoped slice is
+complete; it does not establish PCSS causality, general shadow quality or performance.
 Do not repeat the already valid Model/Studio/GPU or full browser checks.
+
+Studio guidance reduction is complete in product `ca10a3a8`: remove the persistent sketch
+hint bar and repeated help, keep tool names, units, errors and Apply/Cancel. The first affected
+Studio type/lint5 batch and one basic desktop Model/Sketch/HUD/Render flow passed; root viewed
+three actual PNGs. Product docs passed once. No geometry Apply, Save, export or G15 regression
+was repeated. Viewer icon-toolbar cleanup and native-point inspection have actual owner flows
+and root document/assembly PNG review; their source is adopted separately, product still pending.
+
+GPU's next active source work is `GPU-G15BC-PT-SOFT-SHADOW-01`: connect existing point/spot
+radius to the path tracer's bounded visibility filter. Preserve16-float light storage, R0 RNG,
+centre BRDF/falloff/cone and existing occlusion. This is not a full area-radiance integral.
+Native execution is not started. Optional G15d.4, LOD/BVH holds and existing budgets remain.
 
 The next independent Kernel implementation is CG2 linear cut-feature repetition. The public
 `linearFeaturePattern(options)` repeats the difference that directly produced the current
 solid, using the existing axis/count/mm parameter conventions and affine/Boolean operations.
 It does not copy the whole body or discard later features. Existing body patterns remain.
 The fixed reference is a60x30x10 box with three separate4x4 through cuts:17520mm3 remains,
-with unchanged outer bounds. Own source implementation has started; it is not yet qualified.
+with unchanged outer bounds. Core normal source `05d4315` is closed and statically reviewed; runtime remains NOTRUN.
+Kernel now implements the same feature in Model doc/evaluate/parameter/codec/public consumers
+before one combined affected batch. It does not wait for isolated test checkpoints to write that source.
 Until a real Model node/evaluate/save contract is implemented, the shared Model facade must
 return typed UNAVAILABLE. Studio starts after that foundation contract and the pinned source.
 
-Viewer's standalone app, assembly and named review views through `65a208b4` have scoped
-owner evidence and static root review; exact next-cut integration remains. Standalone drawing
-frames `d68d6e49` plus `ac53b888` have reviewed normal source, with first required runtime still
-pending clean root adoption. Preserve stopped packaging/config/hook work, the Viewer README
-boundary and the independent root dimension-clearance fix during integration.
+Viewer's ten normal deltas through `df7d7fdd` are adopted in the aggregate; the app tree is
+exactly the owner's tested source. Only the stopped provider-build README section stays omitted.
+First common public-surface documentation and product adoption remain. No packaging/config/hook
+work is resumed. Standalone drawing frames `d68d6e49` plus `ac53b888` are adopted at `b4261d23`,
+with the root dimension-clearance fix preserved. Its first native batch reached5 PASS/1 FAIL:
+a consumer fixture's exact radius/axis search found no circle. The starter defines the hole;
+its absence or a numerical cause is not established. The owner repairs only the same-hole/view
+fixture lookup. Later types/lint are NOTRUN; original assertions and product tolerances stay.
+
+Docs normal `2eff93c5` retains3 actual API mesh/mass cases and3 native JPEGs; the original
+input-metadata guard failure is preserved and corrected in `e27b4682`. Keep35 existing URLs
+and anchors while the owner finishes the approved sidebar hierarchy/H2-H3 outline. Adopt the
+final normal docs delta, review the new Viewer/Drawing public inventory, then run one common
+check/site batch and necessary desktop page flow. No geometry recalculation or mobile run.
 
 Reuse existing basic functions. Wider datum targets, auto-rematching, arbitrary assemblies,
 new renderers/solvers and manufacturing certification are not implied. Keep independent source
