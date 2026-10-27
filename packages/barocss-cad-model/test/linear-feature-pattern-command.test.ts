@@ -28,6 +28,10 @@ test('linear cut pattern command: the real registry builds one append with origi
   assert.equal(last.axis, 'x'); assert.equal(last.spacing, 16); assert.equal(last.count, 3);
   assert.equal(made.nodes.length, before.doc.nodes.length + 1);
   assert.deepEqual(made.nodes.slice(0, -1), before.doc.nodes);
+  const duplicate = { ...ctx, selection: { faces: [], edges: [], bodies: [0, 0] } }, duplicateBefore = structuredClone(duplicate);
+  assert.equal(cmd.available(duplicate).ok, true, 'duplicate picks name the same single body');
+  assert.deepEqual(cmd.build!(duplicate, { ...values }), made, 'deduplicated selection makes the same append');
+  assert.deepEqual(duplicate, duplicateBefore);
   const result = evaluateDoc(made, 2); assert.ok(result.ok, result.ok ? '' : result.error.detail);
   assert.equal(result.bodies.length, 1); assert.ok(result.bodies[0].volume !== null);
   assert.ok(Math.abs(result.bodies[0].volume - 17520) <= 1e-9 * 17520);
@@ -53,7 +57,9 @@ test('linear cut pattern command: invalid values and direct, missing, stale or s
   };
   reject({ ...ctx, direct: ['intentional-invalid-direct-pick'] }, 'DIRECT_PICK');
   reject({ ...ctx, selection: { faces: [], edges: [], bodies: [] } }, 'ONE_BODY');
-  reject({ ...ctx, selection: { faces: [], edges: [], bodies: [0, 0] } }, 'ONE_BODY');
+  const two = seed().box({ w: 4, d: 4, h: 10, x: 80 }), twoDoc = two.doc, twoResult = evaluateDoc(twoDoc, 1);
+  assert.ok(twoResult.ok, twoResult.ok ? '' : twoResult.error.detail); assert.equal(twoResult.bodies.length, 2);
+  reject({ doc: twoDoc, bodies: twoResult.bodies, selection: { faces: [], edges: [], bodies: [0, 1] } }, 'ONE_BODY');
   reject({ ...ctx, selection: { faces: [], edges: [], bodies: [99] } }, 'ONE_BODY');
   reject(context(part('non-cut').box({ w: 60, d: 30, h: 10 })), 'BAD_REFERENCE');
   const source = seed(), moved = source.moved(Location.at([0, 0, 1]));
