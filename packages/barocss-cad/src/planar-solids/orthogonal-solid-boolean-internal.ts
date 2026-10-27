@@ -11,6 +11,7 @@ import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
 import { KernelError } from '../core/barocss-error.js';
+import { EXACT_OWN_FIELDS_REQUIRED, OWN_RECORD_REQUIRED, hasExactOwnFields, isOwnRecord } from '../core/own-data.js';
 
 export const OrthogonalSolidBooleanDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOURCE: 'SOURCE', BINDING: 'BINDING', CONTACT: 'CONTACT', TOPOLOGY: 'TOPOLOGY', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type OrthogonalSolidBooleanDiagnosticCode = typeof OrthogonalSolidBooleanDiagnosticCode[keyof typeof OrthogonalSolidBooleanDiagnosticCode];
@@ -46,7 +47,7 @@ export type StepOptions = Pick<AxisBoxSolidBooleanOptions, 'operation' | 'evalua
 const CODE = OrthogonalSolidBooleanDiagnosticCode, CORNERS = [[0, 4, 6, 2], [1, 3, 7, 5], [0, 1, 5, 4], [2, 6, 7, 3], [0, 2, 3, 1], [4, 5, 7, 6]];
 export function check(condition: boolean, code: OrthogonalSolidBooleanDiagnosticCode, detail: string): asserts condition { if (!condition) throw new OrthogonalSolidBooleanError(code, detail); }
 function child<T>(action: () => T, code: OrthogonalSolidBooleanDiagnosticCode, detail: string): T { try { return action(); } catch (cause) { throw new OrthogonalSolidBooleanError(code, detail, cause); } }
-export function record(input: unknown, fields: string[], code: OrthogonalSolidBooleanDiagnosticCode = CODE.INPUT): Record<string, unknown> { check(input !== null && typeof input === 'object' && !Array.isArray(input), code, 'An own record is required'); const data = input as Record<string, unknown>; check(Object.keys(data).length === fields.length && fields.every(field => Object.hasOwn(data, field)), code, 'Exact own fields are required'); return data; }
+export function record(input: unknown, fields: string[], code: OrthogonalSolidBooleanDiagnosticCode = CODE.INPUT): Record<string, unknown> { check(isOwnRecord(input), code, OWN_RECORD_REQUIRED); check(hasExactOwnFields(input, fields), code, EXACT_OWN_FIELDS_REQUIRED); return input; }
 export function id(input: unknown, maximum = 48): string { check(typeof input === 'string' && input.length <= maximum && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(input), CODE.IDENTITY, 'A bounded ASCII ID is required'); return input; }
 export function snapshot(input: unknown, owned = false): unknown {
   const code = owned ? CODE.OWNED : CODE.INPUT; let remaining = 4194304, retainedBytes = 0; const ancestors = new Set<object>();

@@ -8,6 +8,7 @@ import type { SectionFraction, SectionRational } from '../section-rational-inter
 import type { Curve, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
 import { KernelError } from '../core/barocss-error.js';
+import { DENSE_BOUNDED_ARRAYS_REQUIRED, FINITE_REPRESENTED_OWN_NUMBERS_REQUIRED, type OwnSnapshotSpec, ownSnapshot } from '../core/own-data.js';
 
 export const SectionExactSurfaceBindingDiagnosticCode = Object.freeze({ INPUT:'INPUT', IDENTITY:'IDENTITY', BUDGET:'BUDGET', SECTION:'SECTION', SUPPORT:'SUPPORT', REPRESENTABILITY:'REPRESENTABILITY', BINDING:'BINDING', NATIVE:'NATIVE', OWNED:'OWNED' } as const);
 export type SectionExactSurfaceBindingDiagnosticCode = typeof SectionExactSurfaceBindingDiagnosticCode[keyof typeof SectionExactSurfaceBindingDiagnosticCode];
@@ -46,25 +47,8 @@ function record(input: unknown, fields: string[], code: SectionExactSurfaceBindi
   check(Object.keys(data).length === fields.length && fields.every(field => Object.hasOwn(data, field)), code, 'Exact own fields are required'); return data;
 }
 function id(input: unknown): string { check(typeof input === 'string' && input.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(input), CODE.IDENTITY, 'ASCII ID1..48 is required'); return input; }
-function snapshot(input: unknown, owned = false): unknown {
-  const code = owned ? CODE.OWNED : CODE.INPUT; let remaining = 1048576; const ancestors = new Set<object>();
-  const copy = (value: unknown, depth: number): unknown => {
-    check(--remaining >= 0 && depth <= 64, owned ? CODE.OWNED : CODE.BUDGET, 'Own value/depth budget exceeded');
-    if (value === null || typeof value === 'boolean') return value;
-    if (typeof value === 'number') { check(Number.isFinite(value), code, 'Finite represented own numbers are required'); return value; }
-    if (typeof value === 'string') { check(value.length <= 262144, owned ? CODE.OWNED : CODE.BUDGET, 'Own string budget exceeded'); return value; }
-    check(typeof value === 'object' && !ancestors.has(value), code, 'Acyclic own data is required');
-    const array = Array.isArray(value), prototype = Object.getPrototypeOf(value), keys = Reflect.ownKeys(value), descriptors = Object.getOwnPropertyDescriptors(value);
-    check(array ? prototype === Array.prototype : prototype === Object.prototype || prototype === null, code, 'Plain own-data prototypes are required');
-    check(keys.length <= (array ? 8193 : 64) && keys.every(key => typeof key === 'string' && key.length <= 128 && 'value' in descriptors[key] && (array && key === 'length' || descriptors[key].enumerable === true)), code, 'Bounded fields without getters/symbols/hidden data are required');
-    ancestors.add(value); let result: unknown;
-    if (array) { const length = descriptors.length.value as number; check(Number.isInteger(length) && length >= 0 && length <= 8192 && keys.length === length + 1, code, 'Dense bounded arrays are required');
-      result = Array.from({ length }, (_, index) => { check(Object.hasOwn(descriptors, String(index)), code, 'Sparse/extra array fields are refused'); return copy(descriptors[String(index)].value, depth + 1); });
-    } else result = Object.fromEntries((keys as string[]).map(key => [key, copy(descriptors[key].value, depth + 1)]));
-    ancestors.delete(value); return result;
-  };
-  try { return copy(input, 0); } catch (cause) { if (cause instanceof SectionExactSurfaceBindingError) throw cause; throw new SectionExactSurfaceBindingError(code, 'Own snapshot failed', cause); }
-}
+const OWN: OwnSnapshotSpec<SectionExactSurfaceBindingDiagnosticCode> = { input: CODE.INPUT, owned: CODE.OWNED, budget: CODE.BUDGET, fail: (code, detail) => { throw new SectionExactSurfaceBindingError(code, detail); }, wrap: (code, detail, cause) => { throw new SectionExactSurfaceBindingError(code, detail, cause); }, isRefusal: e => e instanceof SectionExactSurfaceBindingError, finite: FINITE_REPRESENTED_OWN_NUMBERS_REQUIRED, dense: DENSE_BOUNDED_ARRAYS_REQUIRED };
+function snapshot(input: unknown, owned = false): unknown { return ownSnapshot(input, owned, OWN); }
 /** Collect complete copied source/model/topology/child identity contexts, including split helper receipts. */
 function contexts(input: unknown): Set<string> {
   const result = new Set<string>(); const visit = (value: unknown, key = ''): void => {

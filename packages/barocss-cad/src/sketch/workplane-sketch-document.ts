@@ -7,6 +7,7 @@ import type { CadAffineMatrix3x4, AffineGeometryTransformResult } from '../featu
 import type { Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
 import { KernelError } from '../core/barocss-error.js';
+import { EXACT_OWN_FIELDS_REQUIRED, OWN_RECORD_REQUIRED, type OwnSnapshotSpec, hasExactOwnFields, isOwnRecord, ownSnapshot } from '../core/own-data.js';
 
 export const WorkplaneSketchDocumentDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', FRAME: 'FRAME', BINDING: 'BINDING', BUDGET: 'BUDGET', LOCAL: 'LOCAL', AFFINE: 'AFFINE', CODEC: 'CODEC', OWNED: 'OWNED' } as const);
 export type WorkplaneSketchDocumentDiagnosticCode = typeof WorkplaneSketchDocumentDiagnosticCode[keyof typeof WorkplaneSketchDocumentDiagnosticCode];
@@ -29,18 +30,9 @@ export interface WorkplaneSketchDocumentResult { request: { document: WorkplaneS
 const CODE = WorkplaneSketchDocumentDiagnosticCode;
 function check(condition: boolean, code: WorkplaneSketchDocumentDiagnosticCode, detail: string): asserts condition { if (!condition) throw new WorkplaneSketchDocumentError(code, detail); }
 function child<T>(action: () => T, code: WorkplaneSketchDocumentDiagnosticCode, detail: string): T { try { return action(); } catch (cause) { throw new WorkplaneSketchDocumentError(code, detail, cause); } }
-function record(input: unknown, fields: string[], code: WorkplaneSketchDocumentDiagnosticCode = CODE.INPUT): Record<string, unknown> { check(input !== null && typeof input === 'object' && !Array.isArray(input), code, 'An own record is required'); const data = input as Record<string, unknown>; check(Object.keys(data).length === fields.length && fields.every(field => Object.hasOwn(data, field)), code, 'Exact own fields are required'); return data; }
-function snapshot(input: unknown, owned = false): unknown {
-  const code = owned ? CODE.OWNED : CODE.INPUT; let remaining = 1048576; const ancestors = new Set<object>();
-  const copy = (value: unknown, depth: number): unknown => {
-    check(--remaining >= 0 && depth <= 64, owned ? CODE.OWNED : CODE.BUDGET, 'Own value/depth budget exceeded'); if (value === null || typeof value === 'boolean') return value;
-    if (typeof value === 'number') { check(Number.isFinite(value), code, 'Finite own numbers are required'); return value; } if (typeof value === 'string') { check(value.length <= 262144, owned ? CODE.OWNED : CODE.BUDGET, 'Own string budget exceeded'); return value; }
-    check(typeof value === 'object' && !ancestors.has(value), code, 'Acyclic own data is required'); const array = Array.isArray(value), prototype = Object.getPrototypeOf(value), keys = Reflect.ownKeys(value), descriptors = Object.getOwnPropertyDescriptors(value);
-    check(array ? prototype === Array.prototype : prototype === Object.prototype || prototype === null, code, 'Plain own-data prototypes are required'); check(keys.length <= (array ? 8193 : 64) && keys.every(key => typeof key === 'string' && key.length <= 128 && 'value' in descriptors[key] && (array && key === 'length' || descriptors[key].enumerable === true)), code, 'Bounded fields without getters/symbols/hidden data are required'); ancestors.add(value); let result: unknown;
-    if (array) { const length = descriptors.length.value as number; check(Number.isInteger(length) && length >= 0 && length <= 8192 && keys.length === length + 1, code, 'Dense bounded own arrays are required'); result = Array.from({ length }, (_, index) => { check(Object.hasOwn(descriptors, String(index)), code, 'Sparse/extra array fields are refused'); return copy(descriptors[String(index)].value, depth + 1); }); }
-    else result = Object.fromEntries((keys as string[]).map(key => [key, copy(descriptors[key].value, depth + 1)])); ancestors.delete(value); return result;
-  }; try { return copy(input, 0); } catch (cause) { if (cause instanceof WorkplaneSketchDocumentError) throw cause; throw new WorkplaneSketchDocumentError(code, 'Own snapshot failed', cause); }
-}
+function record(input: unknown, fields: string[], code: WorkplaneSketchDocumentDiagnosticCode = CODE.INPUT): Record<string, unknown> { check(isOwnRecord(input), code, OWN_RECORD_REQUIRED); check(hasExactOwnFields(input, fields), code, EXACT_OWN_FIELDS_REQUIRED); return input; }
+const OWN: OwnSnapshotSpec<WorkplaneSketchDocumentDiagnosticCode> = { input: CODE.INPUT, owned: CODE.OWNED, budget: CODE.BUDGET, fail: (code, detail) => { throw new WorkplaneSketchDocumentError(code, detail); }, wrap: (code, detail, cause) => { throw new WorkplaneSketchDocumentError(code, detail, cause); }, isRefusal: e => e instanceof WorkplaneSketchDocumentError };
+function snapshot(input: unknown, owned = false): unknown { return ownSnapshot(input, owned, OWN); }
 function bytes(text: string): number { let count = 0; for (let i = 0; i < text.length; i++) { const c = text.charCodeAt(i), next = text.charCodeAt(i + 1); if (c < 128) count++; else if (c < 2048) count += 2; else if (c >= 0xd800 && c <= 0xdbff && next >= 0xdc00 && next <= 0xdfff) { count += 4; i++; } else count += 3; } return count; }
 function identifier(value: unknown, maximum: number, code: WorkplaneSketchDocumentDiagnosticCode = CODE.IDENTITY): string { check(typeof value === 'string' && value.length <= maximum && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value), code, 'A bounded ASCII identifier is required'); return value; }
 function frame(input: WorkplaneSketchFrame): { plane: WorkplaneSketchFrame; report: FrameReport; matrix: CadAffineMatrix3x4 } { return admitWorkplaneSketchFrame(input, (code, detail) => { throw new WorkplaneSketchDocumentError(code, detail); }); }

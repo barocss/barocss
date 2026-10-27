@@ -4,6 +4,7 @@ import { copyCadData } from '../data-copy.js';
 import type { Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
 import { KernelError } from '../core/barocss-error.js';
+import { EXACT_OWN_FIELDS_REQUIRED, OWN_RECORD_REQUIRED, type OwnSnapshotSpec, SPARSE_OWN_ARRAY_FIELDS_REFUSED, hasExactOwnFields, isOwnRecord, ownSnapshot } from '../core/own-data.js';
 
 export const AxisBoxSolidPrincipalInertiaDiagnosticCode = Object.freeze({ INPUT: 'INPUT', BUDGET: 'BUDGET', MASS: 'MASS', SELECTION: 'SELECTION', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidPrincipalInertiaDiagnosticCode = typeof AxisBoxSolidPrincipalInertiaDiagnosticCode[keyof typeof AxisBoxSolidPrincipalInertiaDiagnosticCode];
@@ -53,23 +54,9 @@ function residual(a: Matrix, b: Matrix): number { return norm(matrix((row, colum
 function similarity(a: Matrix, vectors: Matrix): Matrix { return multiply(multiply(transpose(vectors), a), vectors); }
 function offDiagonal(a: Matrix): number { return finite(Math.hypot(a[0][1], a[0][2], a[1][2])); }
 function determinant(a: Matrix): number { return sum([product(a[0][0], finite(product(a[1][1], a[2][2]) - product(a[1][2], a[2][1]))), -product(a[0][1], finite(product(a[1][0], a[2][2]) - product(a[1][2], a[2][0]))), product(a[0][2], finite(product(a[1][0], a[2][1]) - product(a[1][1], a[2][0])))]); }
-function snapshot(input: unknown, owned = false): unknown {
-  const code = owned ? CODE.OWNED : CODE.INPUT; let remaining = 1048576; const ancestors = new Set<object>();
-  const copy = (value: unknown, depth: number): unknown => {
-    check(--remaining >= 0 && depth <= 64, owned ? CODE.OWNED : CODE.BUDGET, 'Own value/depth budget exceeded');
-    if (value === null || typeof value === 'boolean') return value;
-    if (typeof value === 'number') { check(Number.isFinite(value), code, 'Finite own numbers are required'); return value; }
-    if (typeof value === 'string') { check(value.length <= 262144, owned ? CODE.OWNED : CODE.BUDGET, 'Own string budget exceeded'); return value; }
-    check(typeof value === 'object' && !ancestors.has(value), code, 'Acyclic own data is required');
-    const array = Array.isArray(value), prototype = Object.getPrototypeOf(value), keys = Reflect.ownKeys(value), descriptors = Object.getOwnPropertyDescriptors(value);
-    check(array ? prototype === Array.prototype : prototype === Object.prototype || prototype === null, code, 'Plain own-data prototypes are required');
-    check(keys.length <= (array ? 8193 : 64) && keys.every(key => typeof key === 'string' && key.length <= 128 && 'value' in descriptors[key] && (array && key === 'length' || descriptors[key].enumerable === true)), code, 'Bounded fields without getters/symbols/hidden data are required');
-    ancestors.add(value); let result: unknown;
-    if (array) { const length = descriptors.length.value as number; check(Number.isInteger(length) && length >= 0 && length <= 8192 && keys.length === length + 1, code, 'Dense bounded own arrays are required'); result = Array.from({ length }, (_, index) => { check(Object.hasOwn(descriptors, String(index)), code, 'Sparse/extra own array fields are refused'); return copy(descriptors[String(index)].value, depth + 1); }); }
-    else result = Object.fromEntries((keys as string[]).map(key => [key, copy(descriptors[key].value, depth + 1)])); ancestors.delete(value); return result;
-  }; try { return copy(input, 0); } catch (cause) { if (cause instanceof AxisBoxSolidPrincipalInertiaError) throw cause; throw new AxisBoxSolidPrincipalInertiaError(code, 'Own snapshot failed', cause); }
-}
-function record(input: unknown, fields: string[], code: AxisBoxSolidPrincipalInertiaDiagnosticCode = CODE.INPUT): Record<string, unknown> { check(input !== null && typeof input === 'object' && !Array.isArray(input), code, 'An own record is required'); const data = input as Record<string, unknown>; check(Object.keys(data).length === fields.length && fields.every(field => Object.hasOwn(data, field)), code, 'Exact own fields are required'); return data; }
+const OWN: OwnSnapshotSpec<AxisBoxSolidPrincipalInertiaDiagnosticCode> = { input: CODE.INPUT, owned: CODE.OWNED, budget: CODE.BUDGET, fail: (code, detail) => { throw new AxisBoxSolidPrincipalInertiaError(code, detail); }, wrap: (code, detail, cause) => { throw new AxisBoxSolidPrincipalInertiaError(code, detail, cause); }, isRefusal: e => e instanceof AxisBoxSolidPrincipalInertiaError, sparse: SPARSE_OWN_ARRAY_FIELDS_REFUSED };
+function snapshot(input: unknown, owned = false): unknown { return ownSnapshot(input, owned, OWN); }
+function record(input: unknown, fields: string[], code: AxisBoxSolidPrincipalInertiaDiagnosticCode = CODE.INPUT): Record<string, unknown> { check(isOwnRecord(input), code, OWN_RECORD_REQUIRED); check(hasExactOwnFields(input, fields), code, EXACT_OWN_FIELDS_REQUIRED); return input; }
 
 /** Local static adaptation of the established bounded Jacobi method; no prism DTO or constructor is used. */
 function analyzeTensor(original: Matrix, scale: number, options: AxisBoxSolidPrincipalInertiaOptions): { principal: Principal; rotationTrace: Rotation[]; residuals: Residuals; clusters: Cluster[]; finalOffDiagonal: number } {
