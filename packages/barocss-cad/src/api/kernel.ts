@@ -58,8 +58,14 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
       const axis = AXES[k], side = face.normal[k] > 0 ? 'max' : 'min', { d, x, y, depth } = spec.values;
       return [{ id: nextId(doc, 'hole'), kind: 'hole', target: on.id, center: [x, y], radius: d / 2, ...(axis === 'z' ? {} : { axis }), ...(side === 'min' ? { side } : {}), face: face.name, ...(depth !== undefined ? { depth } : {}) }];
     }
-    case 'fillet':
-      return [{ id: nextId(doc, 'fillet'), kind: 'fillet', target: target(), edges: [...spec.edges], radius: spec.values.radius }];
+    case 'fillet': {
+      if (spec.values.endRadius === undefined) return [{ id: nextId(doc, 'fillet'), kind: 'fillet', target: target(), edges: [...spec.edges], radius: spec.values.radius }];
+      const on = output(doc, body!), edge = selectionOf(on).edges().list().find(e => e.names.includes(spec.edges[0]));
+      if (!edge) throw refuse('SELECTION_UNKNOWN', 'the variable fillet edge is no longer on the selected body');
+      return [{ id: nextId(doc, 'fillet'), kind: 'fillet', target: on.id, edges: [...spec.edges], radii: [
+        { at: [...edge.a], radius: spec.values.radius }, { at: [...edge.b], radius: spec.values.endRadius },
+      ] }];
+    }
     case 'chamfer':
       return [{ id: nextId(doc, 'chamfer'), kind: 'chamfer', target: target(), edges: [...spec.edges], distance: spec.values.distance }];
     case 'shell':
@@ -136,7 +142,9 @@ function withLeaf<T>(o: T, path: readonly (string | number)[], value: unknown): 
 // (Each option given as a parameter written as the reference in the one leaf that holds its number as it is — a box's
 // far corner is x + w, so its w binds only while x is 0 — or refused, naming the options that bind.)
 function bound(features: CadPartFeature[], spec: FeatureSpec): CadPartFeature[] {
-  const out = [...features], table = BINDS[spec.command] ?? {}, values = spec.values as unknown as Record<string, unknown>;
+  const out = [...features], table: Record<string, readonly [feature: number, path: readonly (string | number)[]]> = spec.command === 'fillet' && spec.values.endRadius !== undefined
+    ? { endRadius: [0, ['radii', 1, 'radius']] as const }
+    : BINDS[spec.command] ?? {}, values = spec.values as unknown as Record<string, unknown>;
   for (const { option, parameter } of spec.bound!) {
     const at = table[option];
     if (!at) throw refuse('PARAMETER_UNBINDABLE', `${spec.command}'s ${option} can't take a parameter in a CadPartDocument (its options that do are ${Object.keys(table).join(', ') || 'none'})`);

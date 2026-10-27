@@ -222167,7 +222167,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
-                "type": "{ readonly radius: number; }"
+                "type": "{ readonly radius: number; readonly endRadius?: number | undefined; }"
               },
               {
                 "name": "values",
@@ -222233,6 +222233,13 @@
               }
             ],
             "members": [
+              {
+                "name": "endRadius",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Dim | undefined"
+              },
               {
                 "name": "radius",
                 "kind": "property",
@@ -226165,14 +226172,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(edges: readonly string[], o: Resolved<FilletOptions>) => FeatureSpec",
+            "type": "(edges: readonly string[], o: Resolved<FilletOptions>, picked?: readonly EdgeInfo[] | undefined) => FeatureSpec",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(edges: readonly string[], o: Resolved<FilletOptions>) => FeatureSpec"
+              "(edges: readonly string[], o: Resolved<FilletOptions>, picked?: readonly EdgeInfo[] | undefined) => FeatureSpec"
             ]
           }
         }
@@ -230561,6 +230568,13 @@
               }
             ],
             "members": [
+              {
+                "name": "endRadius",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Dim | undefined"
+              },
               {
                 "name": "radius",
                 "kind": "property",
@@ -237365,6 +237379,13 @@
               }
             ],
             "members": [
+              {
+                "name": "endRadius",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Dim | undefined"
+              },
               {
                 "name": "radius",
                 "kind": "property",
