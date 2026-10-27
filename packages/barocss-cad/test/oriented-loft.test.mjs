@@ -176,7 +176,8 @@ test('legacy loft: CG12b shared ruled source checkpoint and unchanged product697
   const source = readFileSync(new URL('../src/features/loft.ts', import.meta.url), 'utf8');
   const start = source.indexOf('function legacyLoft('), end = source.indexOf('/**\n * A smooth loft:', start);
   const hash = s => createHash('sha256').update(s).digest('hex');
-  assert.equal(hash(source.slice(start, end)), '968b2f5c7eaaa8f71d43df74886cf73cfa3553e78ff4e123b07f5e73113c49b9');
+  // (Re-pinned after 05c8d5ceb deliberately extended the ruled builder for cubic Bezier guides.)
+  assert.equal(hash(source.slice(start, end)), '46f37882f372b5e0ad18fa1dc4b3bbf7a1b83491704823fd7aa8050a8976e864');
   assert.equal(hash(source.slice(source.indexOf('function smoothLoft('))), 'ca109102536dc48ede03cd709718611cce3baae13fe888c893ae6f0cf91368df');
 });
 
@@ -260,13 +261,13 @@ test('curved loft: unsupported encodings, seam phases and shape families never f
   rejected(() => conic(circleProfile(2), splitCircle), 'INPUT', /one full-circle/);
 });
 
-test('curved loft: nonparallel, reversed, smooth and four-section inputs remain refused', () => {
+test('curved loft: nonparallel, reversed, smooth and over-budget sections remain refused', () => {
   const e = ellipseProfile(2, 1);
   rejected(() => conic(e, e, tilted), 'INPUT', /identical xAxis/);
   rejected(() => conic(e, e, flat(0)), 'GEOMETRY', /positive plane separation/);
   rejected(() => conic(e, e, flat(-3)), 'GEOMETRY', /positive plane separation/);
   rejected(() => loftSolid({ ...input([section(flat(0), e), section(flat(3), e)]), smooth: true }), 'INPUT', /ruled/);
-  rejected(() => loftSolid(input([section(flat(0), e), section(flat(3), e), section(flat(6), e), section(flat(9), e)])), 'INPUT', /exactly two/);
+  rejected(() => loftSolid(input(Array.from({ length: 9 }, (_, i) => section(flat(3 * i), e)))), 'INPUT', /two to eight conic sections/);
 });
 
 test('curved loft: inline ellipse document agrees with direct loft and survives save/read', () => {
@@ -791,7 +792,10 @@ test('three conic sections: bounded admission rejects guides, smooth, mixed, pol
   for (const bad of [[flat(0), flat(0), flat(6)], [flat(0), flat(3), flat(2)]]) rejected(() => threeConics(profiles, bad), 'GEOMETRY', /positive plane separation/);
   const e = ellipseProfile(2, 1);
   rejected(() => threeConics([e, ellipseProfile(0, 1), e]), 'INPUT', /positive radii/);
-  rejected(() => loftSolid(input([0, 3, 6, 9].map(z => section(flat(z), e)))), 'INPUT', /exactly two/);
+  // (Four framed conic sections are admitted since K02; the nine-section refusal is covered with the curved-loft refusals.)
+  const four = loftSolid(input([0, 3, 6, 9].map(z => section(flat(z), e)))).brep, fourCheck = checkBrep(four, { strict: true });
+  assert.equal(fourCheck.valid, true, JSON.stringify(fourCheck.issues)); assert.equal(four.bodies.length, 1);
+  assert.equal(four.faces.length, 4 * 3 + 2);
   exactInput(() => loftSolid(input([{ profile: profiles[0], z: 0 }, section(flat(3), profiles[1]), section(flat(6), profiles[2])])), 'B-rep: loft: oriented sections require frame on all three sections and no z');
   exactInput(() => loftSolid(input([section(flat(0), e), { profile: e, z: 3 }, section(flat(6), e)])), 'B-rep: loft: oriented sections require frame on all three sections and no z');
 });

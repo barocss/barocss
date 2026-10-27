@@ -25,7 +25,7 @@ export interface LoftSectionFrame {
   readonly xAxis: readonly [number, number, number];
   readonly yAxis: readonly [number, number, number];
 }
-/** Polygon/arc loops keep their existing z path. Inline ellipses require an explicit frame. */
+/** Polygon/arc loops keep their existing z path. Two to eight conic sections can use explicit identical-axis parallel frames. */
 export type LoftSectionInput = ({ readonly profile: readonly ProfileSegmentInput[] } & (
   | { readonly z: number; readonly frame?: never }
   | { readonly frame: LoftSectionFrame; readonly z?: never }
@@ -40,7 +40,7 @@ export interface LoftInput {
   readonly name: string;
   /** Through three or more sections: one smooth (C1) side per edge instead of a ruled side per span. */
   readonly smooth?: boolean;
-  /** One world-space seam guide for two identical-axis parallel conic or admitted homothetic mixed-curve frames. */
+  /** One world-space seam guide for exactly two identical-axis parallel conic or admitted homothetic mixed-curve frames. */
   readonly guide?: {
     readonly kind: 'quadratic-bezier';
     readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]];

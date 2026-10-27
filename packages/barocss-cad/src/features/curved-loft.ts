@@ -1,4 +1,4 @@
-// Exact conic sections on two or three parallel, identically oriented frames. The same
+// Exact conic sections on two to eight parallel, identically oriented frames. The same
 // rational quarter-circle parameters and weights on both ends make each ruled side's
 // intermediate section an ellipse with positive linear radii. Its centre is linear without
 // a guide, or gains the admitted two-section guide's transverse Bezier displacement. Strictly ordered
@@ -48,9 +48,9 @@ function admit(profile: LoftSectionInput['profile']): Ellipse {
 /** Called after the shared explicit-frame admission. No curved support for the legacy z path. */
 export function curvedLoftSolid(input: LoftInput, frames: readonly Frame[]) {
   const count = input.sections.length, K = count - 1;
-  if ((count !== 2 && count !== 3) || frames.length !== count) return fail('currently support exactly two or three sections');
+  if (count < 2 || count > 8 || frames.length !== count) return fail('currently support two to eight sections');
   if (input.smooth) return fail('currently support ruled sides, not smooth interpolation');
-  if (count === 3 && input.guide !== undefined) return fail('three sections currently require no guide');
+  if (count > 2 && input.guide !== undefined) return fail(count === 3 ? 'three sections currently require no guide' : 'more than two sections currently require no guide');
   if (frames.slice(1).some(f => !frames[0].u.every((x, c) => x === f.u[c]) || !frames[0].v.every((x, c) => x === f.v[c]))) return fail(count === 2 ? 'currently require identical xAxis and yAxis on both frames' : 'currently require identical xAxis and yAxis on all frames');
   const planeSteps = frames.slice(1).map((f, k) => {
     const delta = f.origin.map((x, c) => x - frames[k].origin[c]) as Point;
