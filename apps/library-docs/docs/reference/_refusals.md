@@ -348,7 +348,7 @@
 | `[DRAWING_DETAIL_LETTER]` | `drawing` | Detail … has a section's letter: letters are unique among sections and details. |
 | `[DRAWING_DETAIL_PARENT]` | `drawing` | Detail … enlarges section …, which the drawing does not have. |
 | `[DRAWING_DETAIL_REFERENCES]` | `drawing` | A changed or removed detail has dimensions. Keep its view, centre and radius, or remove those dimensions explicitly first. |
-| `[DRAWING_OPTIONS]` | `chat`, `drawing` | Unknown drawing setting …. |
+| `[DRAWING_OPTIONS]` | `chat`, `drawing`, `engine` | Unknown drawing setting …. |
 | `[DRAWING_SCOPE]` | `drawing` | scope is {kind: part, part?: id} or {kind: assembly} |
 | `[DRAWING_SCOPE_AUTO]` | `chat` | automatic component dimensions belong to a part drawing; assembly annotations and BOM are retained |
 | `[DRAWING_SCOPE_REFERENCES]` | `drawing` | this sheet has manual model references; keep its scope or remove those references explicitly before changing scope |
@@ -517,7 +517,7 @@
 | `[VARIANT_UNKNOWN]` | `assembly`, `chat` | no variant … (variants: …) |
 | `[VERSION_INPUT]` | `versions` | the time a version is made is an ISO 8601 text (got …) |
 | `[VERSION_KEY_COLLISION]` | `versions` | two different documents have the content key …: the version is not kept |
-| `[VERSION_LOG]` | `versions` | not a version log (format barocss-versions, schema 1) |
+| `[VERSION_LOG]` | `engine`, `versions` | the raw snapshot does not match its canonical content key |
 | `[VERSION_NAME]` | `versions` | a version's name is 1 to … characters |
 | `[VERSION_NOT_LOADED]` | `versions` | the document of version … is not with this turn: it comes with the next one |
 | `[VERSION_NO_CHANGE]` | `versions` | the document is the same as the branch's last version… |
