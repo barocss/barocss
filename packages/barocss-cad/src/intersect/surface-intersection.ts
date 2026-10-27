@@ -99,6 +99,29 @@ function triangleCrossings(t1: Point[], t2: Point[]): Point[] {
 }
 
 /** All intersection chains of two patches within their boxes. `step` is the marching step in mm. */
+interface GridTriangle { readonly pts: Point[]; readonly uv: XY[]; readonly min: Point; readonly max: Point }
+/** A grid's triangles, two a cell (its first corner's diagonal), each with its corners, their parameters and its box. */
+function gridTriangles(G: readonly (readonly { p: XY; x: Point }[])[], n: number): GridTriangle[] {
+  const out: GridTriangle[] = [];
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+    const c00 = G[i][j], c10 = G[i + 1][j], c11 = G[i + 1][j + 1], c01 = G[i][j + 1];
+    out.push(gridTriangle(c00, c10, c11), gridTriangle(c00, c11, c01));
+  }
+  return out;
+}
+function gridTriangle(a: { p: XY; x: Point }, b: { p: XY; x: Point }, c: { p: XY; x: Point }): GridTriangle {
+  const A = a.x, B = b.x, C = c.x;
+  return { pts: [A, B, C], uv: [a.p, b.p, c.p], min: [Math.min(A[0], B[0], C[0]), Math.min(A[1], B[1], C[1]), Math.min(A[2], B[2], C[2])], max: [Math.max(A[0], B[0], C[0]), Math.max(A[1], B[1], C[1]), Math.max(A[2], B[2], C[2])] };
+}
+/** The box of all the triangles' boxes. */
+function boxOfTriangles(T: readonly GridTriangle[]): { min: Point; max: Point } {
+  const min: Point = [Infinity, Infinity, Infinity], max: Point = [-Infinity, -Infinity, -Infinity];
+  for (const t of T) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], t.min[k]); max[k] = Math.max(max[k], t.max[k]); }
+  return { min, max };
+}
+const boxesMeet = (t: { min: Point; max: Point }, b: { min: Point; max: Point }, tol: number) =>
+  t.max[0] >= b.min[0] - tol && t.min[0] <= b.max[0] + tol && t.max[1] >= b.min[1] - tol && t.min[1] <= b.max[1] + tol && t.max[2] >= b.min[2] - tol && t.min[2] <= b.max[2] + tol;
+
 export function intersectPatches(A: Patch, B: Patch, options: {
   readonly step: number; readonly tolerance: number; readonly grid?: number;
   /** Seeds to leave out (points of an intersection the caller already has). */
@@ -173,15 +196,9 @@ export function intersectPatches(A: Patch, B: Patch, options: {
   // No chain is longer than a few times both patches' size.
   const extent = (G: { x: Point }[][]) => { let m = 0; for (const row of G) for (const c of row) m = Math.max(m, len(sub(c.x, G[0][0].x))); return m; };
   const maxSteps = Math.min(20000, Math.ceil(8 * (extent(GA) + extent(GB)) / h) + 100);
-  const tris = (G: { p: XY; x: Point }[][]) => { const out: { pts: Point[]; uv: XY[]; min: Point; max: Point }[] = [];
-    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) for (const t of [[G[i][j], G[i + 1][j], G[i + 1][j + 1]], [G[i][j], G[i + 1][j + 1], G[i][j + 1]]]) {
-      const pts = t.map(c => c.x), min = [0, 1, 2].map(k => Math.min(...pts.map(p => p[k]))) as Point, max = [0, 1, 2].map(k => Math.max(...pts.map(p => p[k]))) as Point;
-      out.push({ pts, uv: t.map(c => c.p), min, max });
-    } return out; };
   // Only triangles within the other patch's box can cross it.
-  const boxOf = (T: { min: Point; max: Point }[]) => T.reduce((m, t) => ({ min: [0, 1, 2].map(k => Math.min(m.min[k], t.min[k])) as Point, max: [0, 1, 2].map(k => Math.max(m.max[k], t.max[k])) as Point }), { min: [Infinity, Infinity, Infinity] as Point, max: [-Infinity, -Infinity, -Infinity] as Point });
-  const within = (t: { min: Point; max: Point }, b: { min: Point; max: Point }) => [0, 1, 2].every(k => t.max[k] >= b.min[k] - tol && t.min[k] <= b.max[k] + tol);
-  const allA = tris(GA), allB = tris(GB), bA = boxOf(allA), bB = boxOf(allB), TA = allA.filter(t => within(t, bB)), TB = allB.filter(t => within(t, bA));
+  const allA = gridTriangles(GA, n), allB = gridTriangles(GB, n), bA = boxOfTriangles(allA), bB = boxOfTriangles(allB);
+  const TA = allA.filter(t => boxesMeet(t, bB, tol)), TB = allB.filter(t => boxesMeet(t, bA, tol));
   // Facet crossings, refined onto both surfaces only when reached (most lie on a chain traced by then).
   const raw: { x: Point; ua: XY; ub: XY }[] = [];
   for (const a of TA) for (const b of TB) {
