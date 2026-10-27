@@ -166,10 +166,11 @@ function offsetWall(body: Brep, t: number, id: string, label: string, open: Read
   // Each face's grid of cells, fitted within the target; a slab's two sheets on one grid (each refitted on the other's).
   let fits = faces.map(F => fitFace(F, t, target)), outs: FaceFit[] = [];
   if (slab) for (let round = 0; ; round++) {
-    outs = faces.map((F, i) => fitFace(F, -reach, target, fits[i]));
-    if (outs.every((o, i) => o.cu.length === fits[i].cu.length && o.cv.length === fits[i].cv.length)) break;
+    const fitsNow = fits, outsNow = faces.map((F, i) => fitFace(F, -reach, target, fitsNow[i]));
+    outs = outsNow;
+    if (outsNow.every((o, i) => o.cu.length === fitsNow[i].cu.length && o.cv.length === fitsNow[i].cv.length)) break;
     if (round === 4) refuse('[APPROX_TOLERANCE_NOT_MET] a slab\'s two sheets do not settle on one grid of cells');
-    fits = faces.map((F, i) => fitFace(F, t, target, outs[i]));
+    fits = faces.map((F, i) => fitFace(F, t, target, outsNow[i]));
   }
   thinCheck(body, faces, fits, t, slab ? [] : body.faces.filter(opened).map(f => patchOf(f, size)), exacts);
   // ---- Topology: the body's, its edges split where a face's grid line meets them ----
@@ -312,6 +313,7 @@ function offsetWall(body: Brep, t: number, id: string, label: string, open: Read
     for (const e of rim) {
       const keptUse = facesOfEdge.get(e.id)!.find(x => !opened(x.face))!, F = faces.find(x => x.face === keptUse.face), use = F ? sides.get(F)!.find(x => x.edge === e.id)! : null;
       const out = outer.piecesOf.get(e.id)!, inn = inner.piecesOf.get(e.id)!;
+      // eslint-disable-next-line no-loop-func -- run at once: each band's deviation is gathered into the slab's
       out.forEach((po, k) => {
         let band: { surface: Surface; deviation: number };
         if (F && use) { const sa = sideParam(F, use.side, po.from).s, sb = sideParam(F, use.side, po.to).s; band = fitBand(F, use.side, sa, sb, t, target, ident(`${id}_b_${e.id}_${k}`), -reach); }
@@ -415,7 +417,7 @@ function curvePiece(curve: Curve, a: number, b: number, id: string): Curve {
       for (let i = 0; i <= n + 1; i++) {
         if (i <= k - p) Q.push(P[i]);
         else if (i > k) Q.push(P[i - 1]);
-        else { const al = (x - K[i]) / (K[i + p] - K[i]); Q.push(P[i].map((c, j) => al * c + (1 - al) * P[i - 1][j])); }
+        else { const al = (x - K[i]) / (K[i + p] - K[i]), here = P[i], before = P[i - 1]; Q.push(here.map((c, j) => al * c + (1 - al) * before[j])); }
       }
       K = [...K.slice(0, k + 1), x, ...K.slice(k + 1)]; P = Q;
     }

@@ -198,7 +198,7 @@ export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonl
       const nIn = [M[1] - MA[1], MA[0] - M[0]], nOut = [MB[1] - M[1], M[0] - MB[0]], len = (v: number[]) => Math.hypot(v[0], v[1]) || 1;
       const probe: XY = [M[0] - (nIn[0] / len(nIn) + nOut[0] / len(nOut)) * 1e-9 * Math.sqrt(eps / 1e-12), M[1] - (nIn[1] / len(nIn) + nOut[1] / len(nOut)) * 1e-9 * Math.sqrt(eps / 1e-12)];
       const occurrences = ring.flatMap((v, k) => same(pts[v], M) ? [k] : []);
-      const k = occurrences.length === 1 ? occurrences[0] : occurrences.find(k => inWedge(pts[ring[(k - 1 + ring.length) % ring.length]], M, pts[ring[(k + 1) % ring.length]], probe));
+      const now = ring, k = occurrences.length === 1 ? occurrences[0] : occurrences.find(k => inWedge(pts[now[(k - 1 + now.length) % now.length]], M, pts[now[(k + 1) % now.length]], probe));
       if (k === undefined) continue;
       const r = rotate(j);
       ring = [...ring.slice(0, k + 1), ...r.slice(1), r[0], ...ring.slice(k + 1)];

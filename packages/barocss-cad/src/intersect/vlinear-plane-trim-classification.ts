@@ -80,7 +80,7 @@ export function classifyVLinearSurfacePlaneTrimUV(trimInput: VLinearSurfacePlane
   const initial = curve.controlPoints.map((point, index) => { const w = q.from(curve.weights[index]); return [q.mul(q.from(point[0]), w), q.mul(q.from(point[1]), w), w]; });
   const split = (poles: SectionRational[][]) => {
     let level = poles; const lower = [level[0]], upper = [level.at(-1)!];
-    while (level.length > 1) { level = level.slice(0, -1).map((pole, index) => pole.map((value, axis) => q.mul(half, q.add(value, level[index + 1][axis])))); lower.push(level[0]); upper.push(level.at(-1)!); }
+    while (level.length > 1) { const above = level; level = above.slice(0, -1).map((pole, index) => pole.map((value, axis) => q.mul(half, q.add(value, above[index + 1][axis])))); lower.push(level[0]); upper.push(level.at(-1)!); }
     return { lower, upper: upper.reverse(), midpoint: level[0] };
   };
   const proofQueries: QueryProof[] = [], classifications: Classification[] = [];

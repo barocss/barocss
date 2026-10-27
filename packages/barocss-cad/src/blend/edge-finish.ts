@@ -381,6 +381,7 @@ function finishEdges(body: Brep, names: readonly string[], size: number, kind: E
     // finished edge leaves the same vertex (a corner of a rounded box top), both tools run past it: with
     // one size, removing (or adding) both is exactly the mitre between the two finishes.
     const [E0, E1] = ends(e), sharedCorner = [false, false], blocked = [false, false], endPlanes: (EndClip | null)[] = [null, null], ends1 = [0, 0], endKind: ('ends' | 'wall' | null)[] = [null, null];
+    // eslint-disable-next-line no-loop-func -- run at once: an end squared at a cylinder is noted in usedCylinder
     const reach = [E0, E1].map((end, i) => {
       if (continues(e, end).some(o => chain.has(o.id))) return 0;
       const meeting = (atVertex.get(end.v) ?? []).filter(o => o.id !== e.id && chain.has(o.id) && facesOf(o).some(f => facesOf(e).includes(f)));

@@ -41,6 +41,15 @@ export default tseslint.config(
       ] }],
     },
   },
+  // P4 (2026-10-27, apps/cad-studio/handover/notes/research-js-perf-review-2026-10-27.md): in the kernel's hot folders a
+  // function made in a loop must not read a variable the loop changes. Bind the value to a const first, or mark a
+  // callback that runs at once and gathers into the variable with a reasoned disable comment.
+  {
+    files: ['packages/barocss-cad/src/{brep,intersect,core,blend,mesh}/**/*.ts'],
+    rules: {
+      'no-loop-func': 'error',
+    },
+  },
   {
     files: ['**/*.test.ts', '**/*.spec.ts'],
     rules: {

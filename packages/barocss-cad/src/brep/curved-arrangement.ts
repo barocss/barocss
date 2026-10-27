@@ -188,7 +188,8 @@ function leavesAwayFromEnds(s: CurveSegment2, t: CurveSegment2, e: XY, ue: numbe
     const x = from + (1 - from) * k / 64, q = segAt(s, ue + dir * x);
     if (segDistance(t, q) > eps) {
       const step = Math.hypot(q[0] - prev[0], q[1] - prev[1]) + eps;
-      return ![segStart(t), segEnd(t)].some(w => Math.hypot(w[0] - e[0], w[1] - e[1]) > eps && Math.hypot(w[0] - prev[0], w[1] - prev[1]) <= step);
+      const last = prev;
+      return ![segStart(t), segEnd(t)].some(w => Math.hypot(w[0] - e[0], w[1] - e[1]) > eps && Math.hypot(w[0] - last[0], w[1] - last[1]) <= step);
     }
     prev = q;
   }

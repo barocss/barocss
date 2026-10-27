@@ -591,7 +591,7 @@ function toPoles(chain: IntersectionChain, fa: GFace, fb: GFace, boxA: readonly 
       // 20261024 #154, D269.)
       // (Past it: the pole behind the last point, as the march ran.)
       let k = i;
-      const behind = (j: number, from: number) => dot(sub(points[j], points[from]), sub(pole.point, points[j])) < 0;
+      const march = points, behind = (j: number, from: number) => dot(sub(march[j], march[from]), sub(pole.point, march[j])) < 0;
       if (len(sub(x, pole.point)) <= 1000 * tol) { if (end) while (k > 1 && behind(k, k - 1)) k--; else while (k < points.length - 2 && behind(k, k + 1)) k++; }
       const own = (f === fa ? uvA : uvB)[k], at: XY = pole.along === 0 ? [own[0], pole.at] : [pole.at, own[1]], other = to2(g, pole.point);
       const [pa, pb] = f === fa ? [at, other] : [other, at];

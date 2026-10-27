@@ -175,7 +175,7 @@ function shapeAt(shape: Exclude<SectionShape, { kind: 'circular' }>, st: Station
 }
 /** The fillet's section curve at t (0 at T2, 1 at T1): the quartic of its poles, or the conic of mid and w. */
 function sectionAt(s: Section, t: number): Point {
-  if (s.poles) { let pts: Point[] = [s.corners[4], ...s.poles, s.corners[0]]; while (pts.length > 1) pts = pts.slice(1).map((q, i) => add(scale(pts[i], 1 - t), scale(q, t))); return pts[0]; }
+  if (s.poles) { let pts: Point[] = [s.corners[4], ...s.poles, s.corners[0]]; while (pts.length > 1) { const prev = pts; pts = prev.slice(1).map((q, i) => add(scale(prev[i], 1 - t), scale(q, t))); } return pts[0]; }
   const b0 = (1 - t) * (1 - t), b1 = 2 * t * (1 - t) * s.w, b2 = t * t, d = b0 + b1 + b2;
   return scale(add(add(scale(s.corners[4], b0), scale(s.mid, b1)), scale(s.corners[0], b2)), 1 / d);
 }
@@ -1226,24 +1226,25 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
       // edge going on from there (a rim's halves) with their faces: a new cliff span from where the old one stops holding,
       // by bisection.)
       const holds = (c: Cliff, bb: CliffBall | null) => { if (!bb) return false; const f2 = edgeNormals(c.F, c.F2, bb.foot, [undefined, undefined]); const [t0, t1] = curveDomain(c.edge), span = t1 - t0; return withinWedge(bb.m, f2.n1, f2.n2, sigma) && insideFace(c.S, bb.uvS) && bb.t > t0 + 1e-9 * span && bb.t < t1 - 1e-9 * span; };
+      const now = cl;
       const nextCfg = (): { c: Cliff; ball: CliffBall } | null => {
         // (The edge itself — the other contact across a seam — or one going on from an end of it.)
-        const list = cl!.c.side === 'B' ? As : Bs, [ta, tb] = curveDomain(cl!.c.edge), ends = [evaluateCurve(cl!.c.edge, ta), evaluateCurve(cl!.c.edge, tb)], pts = [b?.foot ?? cl!.last.foot];
+        const list = now.c.side === 'B' ? As : Bs, [ta, tb] = curveDomain(now.c.edge), ends = [evaluateCurve(now.c.edge, ta), evaluateCurve(now.c.edge, tb)], pts = [b?.foot ?? now.last.foot];
         const endOf = (e: Brep['edges'][number]) => { const [u0, u1] = curveDomain(e.curve); return [evaluateCurve(e.curve, u0), evaluateCurve(e.curve, u1)]; };
-        const edgesHere = body.edges.filter(e => !own.has(e.curve) && (e.curve === cl!.c.edge || endOf(e).some(q => ends.some(w => len(sub(q, w)) < 1e-6 * scaleMM))));
+        const edgesHere = body.edges.filter(e => !own.has(e.curve) && (e.curve === now.c.edge || endOf(e).some(q => ends.some(w => len(sub(q, w)) < 1e-6 * scaleMM))));
         for (const e of edgesHere) {
           const fs = (facesOfEdge.get(e.id) ?? []).map(id => byId.get(id)!);
           if (fs.length !== 2) continue;
           // (Compared where the two edges meet — or, the same edge, at the foot.)
-          const q = e.curve === cl!.c.edge ? pts[0] : endOf(e).find(w => ends.some(z => len(sub(w, z)) < 1e-6 * scaleMM))!;
+          const q = e.curve === now.c.edge ? pts[0] : endOf(e).find(w => ends.some(z => len(sub(w, z)) < 1e-6 * scaleMM))!;
           for (const [f1, f2] of [[fs[0], fs[1]], [fs[1], fs[0]]]) {
             // (The face standing for the old F: the one whose normal there is the old F's.)
             const s1 = sheetOf(f1.surface as Surface, f1.sense), s2 = sheetOf(f2.surface as Surface, f2.sense);
-            if (len(sub(normalOn(s1, ...invertOn(s1, q)), normalOn(cl!.c.F, ...invertOn(cl!.c.F, q)))) > 1e-6) continue;
+            if (len(sub(normalOn(s1, ...invertOn(s1, q)), normalOn(now.c.F, ...invertOn(now.c.F, q)))) > 1e-6) continue;
             for (const S of list) for (const dx of [0, 0.01 * sp.length / m]) {
               // (Just past where the edges meet too: there the foot sits at the end of both, and neither holds it inside.)
               const at = dx ? spanAt(P, hd, x + dx, sp.lo, sp.hi) : { X, t };
-              const bb = solveCliff(S.sheet, sigma, r, e.curve, at.X, at.t, invertOn(S.sheet, (b ?? cl!.last).pS), footOn(e.curve, (b ?? cl!.last).foot), scaleMM), c: Cliff = { side: cl!.c.side, S, edge: e.curve, F: s1, F2: s2, F2face: f2 };
+              const bb = solveCliff(S.sheet, sigma, r, e.curve, at.X, at.t, invertOn(S.sheet, (b ?? now.last).pS), footOn(e.curve, (b ?? now.last).foot), scaleMM), c: Cliff = { side: now.c.side, S, edge: e.curve, F: s1, F2: s2, F2face: f2 };
               if (holds(c, bb)) return { c, ball: bb! };
             }
           }
@@ -1271,7 +1272,8 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
         if (bm && fm && withinWedge(bm.m, fm.n1, fm.n2, sigma, 0)) { lo = mid; keep = bm; } else hi = mid;
       }
       parts.push({ kind: 'cliff', x0: cl.x0, x1: lo, lo: sp.lo, hi: sp.hi, rho: 0, length: lo - cl.x0, c: cl.c, first: cl.first, last: keep });
-      if (!Bs.some(sd => sd.face.id === cl!.c.F2face.id) && !As.some(sd => sd.face.id === cl!.c.F2face.id)) (cl.c.side === 'B' ? Bs : As).push(sideOf(body, cl.c.F2face, !closed, scaleMM));
+      const f2id = cl.c.F2face.id;
+      if (!Bs.some(sd => sd.face.id === f2id) && !As.some(sd => sd.face.id === f2id)) (cl.c.side === 'B' ? Bs : As).push(sideOf(body, cl.c.F2face, !closed, scaleMM));
       cur = { kind: 'edge', x0: lo, x1: sp.x1, lo: sp.lo, hi: sp.hi, rho: 0, length: sp.x1 - lo, extra: [...(sp.extra ?? []), cl.c.F2face] };
       const st0 = cornerStation(keep, cl.c.side, sigma, r, X, t);
       solver = solverOn(cur, { pA: st0.pA, pB: st0.pB }); cl = null;

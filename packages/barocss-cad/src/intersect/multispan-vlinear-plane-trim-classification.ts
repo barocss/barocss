@@ -81,7 +81,7 @@ export function classifyMultiSpanVLinearSurfacePlaneTrimUV(trimInput: MultiSpanV
   const spans = trim.section.proof.spans, spanQueryCounts = spans.map(span => ({ index: span.index, count: 0 }));
   const split = (poles: SectionRational[][]) => {
     let level = poles; const lower = [level[0]], upper = [level.at(-1)!];
-    while (level.length > 1) { level = level.slice(0, -1).map((pole, index) => pole.map((value, axis) => q.mul(half, q.add(value, level[index + 1][axis])))); lower.push(level[0]); upper.push(level.at(-1)!); }
+    while (level.length > 1) { const above = level; level = above.slice(0, -1).map((pole, index) => pole.map((value, axis) => q.mul(half, q.add(value, above[index + 1][axis])))); lower.push(level[0]); upper.push(level.at(-1)!); }
     return { lower, upper: upper.reverse(), midpoint: level[0] };
   };
   const proofQueries: QueryProof[] = [], classifications: Classification[] = [];

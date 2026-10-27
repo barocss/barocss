@@ -208,7 +208,7 @@ export function buildClosedExactPatchShell(assetsInput: ExactBoundaryFaceAdjacen
       check(incoming === 1 && outgoing === 1, CODE.INCIDENCE, 'Each vertex-link node requires one incoming and one outgoing arc, counting multiplicity'); return { edgeId, degree: incoming + outgoing, incoming, outgoing }; });
     const orientedCycleEdgeIds: string[] = [], orientedCycleArcIndices: number[] = [], seen = new Set<string>(); let current = incidentEdgeIds[0];
     for (let step = 0; step < incidentEdgeIds.length; step++) { check(!seen.has(current), CODE.INCIDENCE, 'A vertex link contains an early or disconnected cycle'); seen.add(current); orientedCycleEdgeIds.push(current);
-      const arcIndex = cornerArcs.findIndex(arc => arc.previousEdgeId === current); check(arcIndex >= 0, CODE.INCIDENCE, 'Complete oriented vertex-link continuation is required'); orientedCycleArcIndices.push(arcIndex); current = cornerArcs[arcIndex].nextEdgeId; }
+      const from = current, arcIndex = cornerArcs.findIndex(arc => arc.previousEdgeId === from); check(arcIndex >= 0, CODE.INCIDENCE, 'Complete oriented vertex-link continuation is required'); orientedCycleArcIndices.push(arcIndex); current = cornerArcs[arcIndex].nextEdgeId; }
     check(current === incidentEdgeIds[0] && seen.size === incidentEdgeIds.length && new Set(orientedCycleArcIndices).size === cornerArcs.length,
       CODE.INCIDENCE, 'Every node and actual corner arc must belong to one complete connected oriented vertex-link cycle');
     return { vertexClassId: vertex.id, incidentEdgeIds, cornerArcs, degrees, orientedCycleEdgeIds, orientedCycleArcIndices };
