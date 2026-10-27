@@ -80,6 +80,29 @@ is a quality bound on the approximation; a larger emitter radius cannot remove
 the search limit.
 Contact shadows retain the first casting directional light.
 
+### Self-contained GLB triangle scenes
+
+`prepareGlb` converts a bounded GLB 2.0 file into independent viewer inputs.
+It does not allocate GPU resources. Add the returned primitives to an active
+viewer and dispose their geometry when it is no longer needed:
+
+```js
+import { prepareGlb } from '@barocss/gpu/viewer';
+
+const primitives = prepareGlb(await file.arrayBuffer());
+const meshes = primitives.map(({ geometry, material, transform }) =>
+  viewer.add(geometry, { material, transform }));
+```
+
+This first subset accepts self-contained files up to 64 MiB, triangle primitives
+with FLOAT positions and normals, unsigned-short indices, optional FLOAT vertex
+colours, opaque base PBR factors and node transforms. Coordinates retain glTF
+metres and +Y up; no CAD unit or axis conversion is applied. Textures, external
+resources, animations, skins, morphs, sparse or strided data, and extensions are
+refused with `GEOMETRY_INVALID`. Conservative f32 range checks can also refuse
+some transforms whose final mathematical result would be finite. Vertex colours
+use the viewer's existing linear RGBA8 precision.
+
 The CSS-shaped scene language shows on it with one call: `showScene(viewer, source)` compiles a scene
 source (version 0 or 1), adds a mesh per object with its placement and colour (`view.meshes` by id, picks
 name the object), and `view.update(source)` shows an edited source, or returns its diagnostics and keeps
