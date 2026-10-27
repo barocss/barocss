@@ -167,6 +167,8 @@ function grownBox(a: XY, b: XY, c: XY, eps: number): [number, number, number, nu
   const pad = 1e-9 * (Math.abs(x0) + Math.abs(x1) + Math.abs(y0) + Math.abs(y1) + (x1 - x0) + (y1 - y0)) + 1e-300;
   return [x0 - pad, y0 - pad, x1 + pad, y1 + pad];
 }
+/** The largest x among a ring's points (Math.max of them). */
+function maxRight(pts: readonly (readonly number[])[], ring: readonly number[]): number { let r = -Infinity; for (const i of ring) { const x = pts[i][0]; if (x !== x) return NaN; if (x > r || (x === 0 && r === 0 && Object.is(r, -0))) r = x; } return r; }
 export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonly (readonly XY[])[], earCost?: (a: XY, b: XY, c: XY) => number): [number, number, number][] {
   const pts: XY[] = [...outer, ...holes.flat()];
   let ring = outer.map((_, i) => i), offset = outer.length;
@@ -180,7 +182,9 @@ export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonl
   // Holes, right to left. A hole sharing a point with the ring joins it there (the ring passes the
   // point twice); otherwise a bridge runs from the hole's rightmost vertex M to the nearest ring
   // vertex occurrence that M can see and whose interior wedge contains M.
-  holeRings.sort((a, b) => Math.max(...b.map(i => pts[i][0])) - Math.max(...a.map(i => pts[i][0])));
+  // (Each hole's rightmost x found once, not at every comparison.)
+  const rightOf = new Map<readonly number[], number>(); for (const h of holeRings) rightOf.set(h, maxRight(pts, h));
+  holeRings.sort((a, b) => rightOf.get(b)! - rightOf.get(a)!);
   // (The ring's points by position, kept as holes join it: a hole point shared with the ring is found
   // without a scan of the ring.)
   const onRing = new Set<string>(); for (const v of ring) onRing.add(`${pts[v][0]},${pts[v][1]}`);

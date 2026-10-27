@@ -32,11 +32,15 @@ import { triangulatePolygonWithHoles } from './brep-tessellate.js';
 import { linearToleranceMM } from '../numeric-policy.js';
 import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Curve, Point, Surface } from '../types.js';
+import { maxAt, minAt } from '../core/extent.js';
 
 export type AnalyticBooleanOperation = 'union' | 'intersection' | 'difference';
 
 type P3 = Point;
 const TWO_PI = 2 * Math.PI;
+// Fractions along a curve where it is checked (sample points, fixed).
+const AT_QUARTERS: readonly number[] = [0, 0.25, 0.5, 0.75, 1], AT_FIFTHS: readonly number[] = [0, 0.2, 0.4, 0.6, 0.8, 1], AT_TENTHS: readonly number[] = [0, 0.1, 0.3, 0.5, 0.7, 0.9, 1];
+const INNER_QUARTERS: readonly number[] = [0.25, 0.5, 0.75], INNER_3: readonly number[] = [0.2, 0.5, 0.8], INNER_TENTHS: readonly number[] = [0.1, 0.3, 0.5, 0.7, 0.9], NEAR_ENDS_3: readonly number[] = [0.1, 0.5, 0.9];
 
 // ---- surfaces and face domains ------------------------------------------------------------------
 type Plane = { kind: 'plane'; o: P3; n: P3; e1: P3; e2: P3 };
@@ -684,7 +688,7 @@ const contactCuts = new WeakMap<GFace, Set<unknown>>();
 function edgeOnSurface(f: GFace, g: GFace, tol: number): boolean {
   for (const ring of [f.region.outer, ...f.region.holes]) for (const seg of ring) {
     const k = curve3Of(f, seg);
-    if ([0, 0.25, 0.5, 0.75, 1].every(u => offSurface(g, pointOf(k, u), tol) <= tol)) return true;
+    if (AT_QUARTERS.every(u => offSurface(g, pointOf(k, u), tol) <= tol)) return true;
   }
   return false;
 }
@@ -697,12 +701,12 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
     for (const [f, g] of [[fa, fb], [fb, fa]] as const) for (const ring of [f.region.outer, ...f.region.holes]) for (const seg of ring) {
       const k = curve3Of(f, seg), key = (k.kind === 'param' && k.src) || null, seen = contactCuts.get(g) ?? new Set<unknown>();
       if (key && seen.has(key)) continue;
-      if (![0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(g, pointOf(k, u), tol) <= tol)) continue;
+      if (!AT_FIFTHS.every(u => offSurface(g, pointOf(k, u), tol) <= tol)) continue;
       // (Not where it lies wholly off a planar face: a tool's section edge in the plane of a face it ends beside — a lug's
       // end face, where the ball turns its corner, R10.3a — lies on that face's surface but off the face. Planes only:
       // on a curved face a contact's (u, v) can fall a period over, off the region as drawn.)
       const c2 = curve2(g, k, tol);
-      if (g.surf.kind === 'plane' && [0.2, 0.5, 0.8].every(u => locateInRegion(segAtAny(c2, u), g.region, 10 * tol) === 'out')) continue;
+      if (g.surf.kind === 'plane' && INNER_3.every(u => locateInRegion(segAtAny(c2, u), g.region, 10 * tol) === 'out')) continue;
       g.cuts.push(c2); if (key) { seen.add(key); contactCuts.set(g, seen); }
     }
     return;
@@ -763,8 +767,8 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
         for (const [g, into] of [[fb, fa], [fa, fb]] as const) for (const ring of [g.region.outer, ...g.region.holes]) for (const seg of ring) {
           // (A boundary only partly on it, or along that face's own boundary, adds nothing.)
           const k = curve3Of(g, seg);
-          if (![0, 0.1, 0.3, 0.5, 0.7, 0.9, 1].every(u => offSurface(into, pointOf(k, u), tol) <= tol)) continue;
-          if ([0.25, 0.5, 0.75].every(u => locateInRegion(to2(into, pointOf(k, u)), into.region, 10 * tol) === 'boundary')) continue;
+          if (!AT_TENTHS.every(u => offSurface(into, pointOf(k, u), tol) <= tol)) continue;
+          if (INNER_QUARTERS.every(u => locateInRegion(to2(into, pointOf(k, u)), into.region, 10 * tol) === 'boundary')) continue;
           into.cuts.push(curve2(into, k, tol));
         }
         return;
@@ -775,7 +779,7 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
     const along: Curve3[] = [];
     for (const [f, g] of [[fa, fb], [fb, fa]] as const) if (f.surf.kind === 'nurbs') for (const ring of [f.region.outer, ...f.region.holes]) for (const seg of ring) {
       const k = exactly(curve3Of(f, seg), tol);
-      if ([0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(g, pointOf(k, u), tol) <= tol)) { g.cuts.push(curve2(g, k, tol)); along.push(k); }
+      if (AT_FIFTHS.every(u => offSurface(g, pointOf(k, u), tol) <= tol)) { g.cuts.push(curve2(g, k, tol)); along.push(k); }
     }
     const alongWithin = (x: P3, r: number) => along.some(k => onCurve(k, x, r) !== null || len(sub(x, startOf(k))) <= r || len(sub(x, endOf(k))) <= r);
     const onAlong = (x: P3) => alongWithin(x, 10 * tol);
@@ -839,8 +843,8 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
     const edgesOn = (g: GFace, into: GFace) => {
       for (const ring of [g.region.outer, ...g.region.holes]) for (const seg of ring) {
         const k = exactly(curve3Of(g, seg), tol);
-        if (![0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(into, pointOf(k, u), tol) <= tol)) continue;
-        if ([0.25, 0.5, 0.75].every(u => locateInRegion(to2(into, pointOf(k, u)), into.region, 10 * tol) === 'boundary')) continue;
+        if (!AT_FIFTHS.every(u => offSurface(into, pointOf(k, u), tol) <= tol)) continue;
+        if (INNER_QUARTERS.every(u => locateInRegion(to2(into, pointOf(k, u)), into.region, 10 * tol) === 'boundary')) continue;
         into.cuts.push(curve2(into, k, tol));
       }
     };
@@ -1116,7 +1120,7 @@ function dedupeCuts(cuts: CurveSegment2[], tol: number, planar = false): CurveSe
   const apart = (g: CurveSegment2, h: CurveSegment2) => [0, 0.25, 0.5, 0.75, 1].every(u => curveDistance(h, at(g, u)) <= tol);
   return cuts.filter((g, i) => {
     if (g.kind === 'curve') {
-      if (exact.length && [0.1, 0.3, 0.5, 0.7, 0.9].every(u => { const p = at(g, u); return exact.some(e => cutDistance(e, p) <= eps); })) return false;
+      if (exact.length && INNER_TENTHS.every(u => { const p = at(g, u); return exact.some(e => cutDistance(e, p) <= eps); })) return false;
       // (Along a longer curve cut, end to end — a face's edge in the plane, copied whole as the coplanar face's boundary and
       // again up to where it leaves the other face — it is that cut again: two copies of one curve, apart by rounding
       // along it, would cross all along it, R10.B, D99.)
@@ -1124,7 +1128,7 @@ function dedupeCuts(cuts: CurveSegment2[], tol: number, planar = false): CurveSe
       // (On a plane, the same length and within rounding all along — one edge copied twice, the coplanar face's boundary
       // and that edge lying in the plane — one copy is kept, the most exact (an exact curve, then one with its own 3D curve, then
       // the earlier): the arrangement cut the two at every sample where they "crossed" and lost the cycles there.)
-      return !curves.some(h => h !== g && ((lengths.get(h)! > lg + eps && [0, 0.25, 0.5, 0.75, 1].every(u => curveDistance(h, at(g, u)) <= eps))
+      return !curves.some(h => h !== g && ((lengths.get(h)! > lg + eps && AT_QUARTERS.every(u => curveDistance(h, at(g, u)) <= eps))
         || (planar && Math.abs(lengths.get(h)! - lg) <= eps && (rank(h) > rank(g) || (rank(h) === rank(g) && cuts.indexOf(h) < i)) && apart(g, h))));
     }
     return !cuts.slice(0, i).some(h => h.kind !== 'curve' && same(h, g));
@@ -1655,7 +1659,7 @@ function seamGroups(brep: Brep, target: BrepFace, pieces: readonly Piece[], tol:
       for (const ring of [p.region.outer, ...p.region.holes]) for (const g of ring) {
         const k = curve3Of(p.face, g);
         seams.forEach((sk, si) => {
-          if (![0.1, 0.5, 0.9].every(u => nearestOn(sk, pointOf(k, u)).d <= 10 * tol)) return;
+          if (!NEAR_ENDS_3.every(u => nearestOn(sk, pointOf(k, u)).d <= 10 * tol)) return;
           const a = nearestOn(sk, pointOf(k, 0)).t, b = nearestOn(sk, pointOf(k, 1)).t;
           out.push({ seam: si, lo: Math.min(a, b), hi: Math.max(a, b) });
         });
@@ -1842,7 +1846,7 @@ const sampled = new WeakMap<Curve3, { ps: P3[]; min: P3; max: P3 }>();
 function sampledOf(k: Extract<Curve3, { kind: 'param' }>): { ps: P3[]; min: P3; max: P3 } {
   let pre = sampled.get(k);
   if (!pre) { const ps = Array.from({ length: 65 }, (_, i) => paramAt(k, i / 64)), pad = len(sub(ps[1], ps[0])) + len(sub(ps[64], ps[63]));
-    pre = { ps, min: [0, 1, 2].map(a => Math.min(...ps.map(p => p[a])) - pad) as P3, max: [0, 1, 2].map(a => Math.max(...ps.map(p => p[a])) + pad) as P3 }; sampled.set(k, pre); }
+    pre = { ps, min: [minAt(ps, 0) - pad, minAt(ps, 1) - pad, minAt(ps, 2) - pad], max: [maxAt(ps, 0) + pad, maxAt(ps, 1) + pad, maxAt(ps, 2) + pad] }; sampled.set(k, pre); }
   return pre;
 }
 function onCurve(k: Curve3, x: P3, eps: number): number | null {
@@ -1934,7 +1938,7 @@ function fitWith(k: Extract<Curve3, { kind: 'param' }>, id: string, p: P3, q: P3
     const curve: Curve = { kind: 'curve', id, degree: 3, knots, controlPoints: cp, weights: cp.map(() => 1) };
     const ev = curveEvaluator(curve);
     let err = strict ? Math.max(len(sub(p, paramAt(k, 0))), len(sub(q, paramAt(k, 1)))) : 0;
-    for (let i = 0; i < n; i++) for (const f of [0.25, 0.5, 0.75]) err = Math.max(err, len(sub(ev((i + f) / n), at((i + f) / n))));
+    for (let i = 0; i < n; i++) for (const f of INNER_QUARTERS) err = Math.max(err, len(sub(ev((i + f) / n), at((i + f) / n))));
     return { curve, error: err };
   }
 }

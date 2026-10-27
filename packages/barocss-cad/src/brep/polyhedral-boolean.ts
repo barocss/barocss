@@ -21,6 +21,12 @@ import { triangulatePolygonWithHoles } from './brep-tessellate.js';
 import { nameEdges } from '../features/prismatic-solid.js';
 import { binary64Dyadic } from '../core/dyadic.js';
 import type { Point, Surface } from '../types.js';
+import { maxAt, minAt } from '../core/extent.js';
+/** Twice the area of a triangle of exact points (in floating point), by index into `all`. */
+function triArea2(all: readonly ExactPoint2[], u: readonly [number, number, number]): number {
+  const p0 = exactToXY(all[u[0]]), p1 = exactToXY(all[u[1]]), p2 = exactToXY(all[u[2]]);
+  return Math.abs((p1[0] - p0[0]) * (p2[1] - p0[1]) - (p1[1] - p0[1]) * (p2[0] - p0[0]));
+}
 
 export type PolyhedralBooleanOperation = 'union' | 'intersection' | 'difference';
 
@@ -79,7 +85,7 @@ function facesOf(brep: Brep, solid: 0 | 1): PFace[] {
     if (normal === 'bent') throw new BrepError('GEOMETRY', `polyhedral Boolean: face ${f.id} is not planar`, undefined, 'NOT_PLANAR_WITHIN_FLOAT');
     const mag = normal.map(x => Math.abs(num(x))), axis = (mag[0] >= mag[1] && mag[0] >= mag[2] ? 0 : mag[1] >= mag[2] ? 1 : 2) as 0 | 1 | 2;
     let i = ((axis + 1) % 3) as 0 | 1 | 2, j = ((axis + 2) % 3) as 0 | 1 | 2; if (sgn(normal[axis]) < 0) [i, j] = [j, i];
-    const flat = rings.flat().map(vnum), min = [0, 1, 2].map(k => Math.min(...flat.map(p => p[k]))) as Point, max = [0, 1, 2].map(k => Math.max(...flat.map(p => p[k]))) as Point;
+    const flat = rings.flat().map(vnum), min: Point = [minAt(flat, 0), minAt(flat, 1), minAt(flat, 2)], max: Point = [maxAt(flat, 0), maxAt(flat, 1), maxAt(flat, 2)];
     const offset = vdot(normal, ring[0]);
     return { solid, rings, normal, offset, axis, i, j, min, max, cuts: [], coplanar: [], ...(f.name === undefined ? {} : { name: baseName(f.name) }), ...floatPlane(normal, offset, min, max) };
   });
@@ -254,7 +260,7 @@ export function booleanPolyhedra(a: Brep, b: Brep, operation: PolyhedralBooleanO
       const tris = triangulatePolygonWithHoles(outer, holes);
       // (A region of no area — a sliver where cuts meet at a corner — makes no face.)
       if (!tris.length) continue;
-      const big = tris.reduce((best, t) => { const ar = (u: [number, number, number]) => { const [p0, p1, p2] = u.map(k => exactToXY(all[k])); return Math.abs((p1[0] - p0[0]) * (p2[1] - p0[1]) - (p1[1] - p0[1]) * (p2[0] - p0[0])); }; return ar(t) > ar(best) ? t : best; }, tris[0]);
+      let big = tris[0]; for (const t of tris) if (triArea2(all, t) > triArea2(all, big)) big = t;
       const c = big.map(k => fromH(all[k])), third: Q = { n: 1n, d: 3n };
       const interior = lift(f, mul(add(add(c[0][0], c[1][0]), c[2][0]), third), mul(add(add(c[0][1], c[1][1]), c[2][1]), third));
       const where = classify(interior, f.normal, f.solid === 0 ? B : A);
@@ -398,7 +404,7 @@ function planeSurface(id: string, normal: V, points: Point[]): Surface {
   const c1: Point = [nz[1] * seed[2] - nz[2] * seed[1], nz[2] * seed[0] - nz[0] * seed[2], nz[0] * seed[1] - nz[1] * seed[0]], l1 = Math.hypot(...c1);
   const e1: Point = [c1[0] / l1, c1[1] / l1, c1[2] / l1], e2: Point = [nz[1] * e1[2] - nz[2] * e1[1], nz[2] * e1[0] - nz[0] * e1[2], nz[0] * e1[1] - nz[1] * e1[0]];
   const o = points[0], uv = points.map(p => { const d = [p[0] - o[0], p[1] - o[1], p[2] - o[2]]; return [d[0] * e1[0] + d[1] * e1[1] + d[2] * e1[2], d[0] * e2[0] + d[1] * e2[1] + d[2] * e2[2]]; });
-  const u0 = Math.min(...uv.map(x => x[0])), u1 = Math.max(...uv.map(x => x[0])), v0 = Math.min(...uv.map(x => x[1])), v1 = Math.max(...uv.map(x => x[1]));
+  const u0 = minAt(uv, 0), u1 = maxAt(uv, 0), v0 = minAt(uv, 1), v1 = maxAt(uv, 1);
   const at = (u: number, v: number): Point => [o[0] + e1[0] * u + e2[0] * v, o[1] + e1[1] * u + e2[1] * v, o[2] + e1[2] * u + e2[2] * v];
   return { kind: 'surface', id, degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: [[at(u0, v0), at(u0, v1)], [at(u1, v0), at(u1, v1)]], weights: [[1, 1], [1, 1]] };
 }

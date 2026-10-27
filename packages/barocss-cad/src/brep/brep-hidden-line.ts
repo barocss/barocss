@@ -121,7 +121,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
         const area = (q[1][0] - q[0][0]) * (q[2][1] - q[0][1]) - (q[2][0] - q[0][0]) * (q[1][1] - q[0][1]);
         if (Math.abs(area) <= 1e-12 * size * size) continue; // seen edge-on: covers nothing
         tris.push(q[0][0], q[0][1], D(v[0]), q[1][0], q[1][1], D(v[1]), q[2][0], q[2][1], D(v[2]));
-        triFace.push(fi); triAt.push(...[0, 1, 2].map(k => (v[0][k] + v[1][k] + v[2][k]) / 3));
+        triFace.push(fi); triAt.push((v[0][0] + v[1][0] + v[2][0]) / 3, (v[0][1] + v[1][1] + v[2][1]) / 3, (v[0][2] + v[1][2] + v[2][2]) / 3);
       }
       faceSag.push(sag); faceSpan.push(span);
     }
