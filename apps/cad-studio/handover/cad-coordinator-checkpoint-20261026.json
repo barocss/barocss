@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "kind": "PORTABLE_SNAPSHOT_OF_EXISTING_AUTHORITY_NOT_SECOND_TASK_QUEUE",
-  "savedUTC": "2026-10-27T04:53:00.650061+00:00",
+  "savedUTC": "2026-10-27T04:57:47.625667+00:00",
   "paused": false,
   "pushed": false,
   "validatedProductCode": "4bff492c6742cd5c4931ff83f0b35a606ed12230",
@@ -73,7 +73,7 @@
     }
   },
   "currentLimits": {
-    "quotaRemainingPercent": 11,
+    "quotaRemainingPercent": 9,
     "secondary": "UNAVAILABLE",
     "quotaPauseThresholdPercent": 5,
     "P2": "EXCLUDED_FROM_ACTIVE_TRACKING_HISTORICAL_HOLD_PRESERVED",
@@ -84,7 +84,7 @@
     "newCG2": "PRODUCT_4BFF_CAD_BUILD_AND_13E9_DOCS_PASS; common433 actual UI/files; product browser NOT_RUN",
     "newDrawing": "CURRENT_NATIVE_PUBLIC_FILE_STATUS_ROW_PASS; schema5standalone_forward_compatibility_base_required_before_product",
     "newDocs": "NORMAL_CURRENT_CONTRACTS_COMMON_NEW_MODEL_PRIVATE_FIRST_FAILURES_PENDING",
-    "GPU": "02.2 owner-qualified and returned; 03.2 29fd emit first FAIL MIME type; later stages NOT_RUN, owner repair ongoing; other integrator owns GPU merge",
+    "GPU": "02.2 and 03.2 d4e2 owner-qualified synthetic public cases; GPU output remains other-integrator handoff, not product acceptance",
     "newSchema5": "OWNER_SOURCE_IN_PROGRESS; automatic recovery deletion rejected, OPFS/log races and state acceptance unresolved; NOT_ADOPTED"
   },
   "pendingLocalRefs": {
@@ -118,13 +118,12 @@
     "CG2RefusalRepair": "13e9c835aa10b5d111a835046daf1e05b64200a7",
     "ModelShortNames": "52ce8ba47693422bbae6cd45df2cff19a907e8f7",
     "K07Source": "01bd6b35d5a05af0dca6b57f9dc40b5c6de6eb5e",
-    "GpuGlbTexture": "29fd01911049f98c0ea5a82258bf91c1284444f5"
+    "GpuGlbTexture": "d4e2c3ec7bfc89e3ab32907299a040738dc156cd"
   },
   "activeRuntime": {
-    "owner": "GPU",
-    "source": "29fd01911049f98c0ea5a82258bf91c1284444f5",
-    "status": "OWNER_FIRST_EMIT_FAIL_OWN_SLOT_RETURNED_WINDOW_RETAINED_MINIMUM_REPAIR",
-    "lease": "/Users/user/.cache/barocss-preserved/2026-10-24-codex-integration/round3/gpu-29fd-glb-texture-emit-cpu6-webgpu1-lint4-public-0001-lease-20261027.json"
+    "owner": "Viewer",
+    "status": "DEVICE_LOSS_BROWSER_START_SENT_ACTUAL_START_NOT_YET_CONFIRMED",
+    "reason": "GPU 03.2 own browser/server/slot returned"
   },
   "firstFailureToPreserve": {
     "Docs125": "Evidence guard mistook input imports for retained runtime external imports. API cases/JPEG/site NOTRUN. Wrapper-only normal correction is active; no retry on same source.",
