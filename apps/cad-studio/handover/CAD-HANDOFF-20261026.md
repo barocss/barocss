@@ -81,3 +81,15 @@ Codex core primary는 95% 사용, 5% 남았다. secondary는 확인할 수 없�
 공통 HEAD `433a035ae03a61e55b0e03b6a9b9897083774800`은 로컬에만 있을 수 있다. 검증된 최신 제품 코드는 `4bff492c6742cd5c4931ff83f0b35a606ed12230`이며 이후 문서 커밋은 새 제품 실행 PASS가 아니다. 원격 feature branch의 중단 직전 SHA는 `16eabdd8e55ff3bb8cb77bfa2769e1e7049be715`이고 이 SHA는 로컬 제품 HEAD의 조상임을 확인했다. 이 문서의 source-only refs와 외부 outputs는 자동으로 원격에 복사되지 않는다. 로컬 원본과 작업 디렉터리를 보존하고, 다른 컴퓨터에서 재개할 때는 해당 저장소와 원자료를 먼저 확보한다.
 
 중단 후 Viewer 담당 확인: 추가 작업과 검사를 시작하지 않았고 이번 작업에 새 브라우저나 서버를 실행하지 않았다. 기존 미리보기 서버는 유지한다. 로컬 `286e7646f1b9d34672b48afe70ad9f4bfac8a761`은 제품 미채택이며 실제 메모리 부족과 브라우저 자동 재통지는 미검증이다. slot과 archive의 별도 반환 증거는 확인하지 않았다. Kernel의 자동화 `automation`도 PAUSED로 전환했다. CAD·GPU·Outer·Docs 관련 확인된 자동화는 모두 PAUSED다.
+
+## CLAUDE_RESUME — 2026-10-27
+
+Codex 자동화는 멈춘 그대로 두고 Claude가 직접 이어서 진행했다. 시작 시 제품 로컬·원격 HEAD는 `7b6ed49833a8d7ef0dd784d0fd7e15845244c7cf`로 같았다. 아래 커밋은 모두 로컬이며 push하지 않았다.
+
+- 공통 기반 소스 브랜치 `claude/cad-drawing-current-20261027` (HEAD `d62aeb5d40f9154901266c5b08576ea0603c85da`, 부모 Model 후보 `95104906946c07c4c65ec2b00d00bd1498187721` → 공통 `433a035ae`). Drawings 최종 delta `4e1dacc5c..b0caf6bc7`만 적용하고 schema5 중간 이력은 가져오지 않았다. `drawing/issues.ts`는 공통의 충돌 보호를 유지하고 datum 두 줄만 반영했다. Viewer 후보 `286e7646f`의 donor `df7d7fdda` 이후 delta 50경로(충돌 없음)와 GPU 복구 후보 `4187210f9`/`861ab4408`의 이식(render target 없는 공통 viewer.ts에 맞춤)도 이 브랜치에 있다. 공통 aggregate 브랜치 자체는 바꾸지 않았다.
+- 제품 통합: `claude/drawing-viewer-product-20261027` (`f33f78464`, 부모 제품 `7b6ed4983`)를 no-ff 병합해 제품 `a2136eebc`. 병합 트리 = 검증 트리 `db9ca807`. 분기점 `1c80f8c18` 이후 제품이 건드리지 않은 100경로는 소스 그대로, `App.tsx`·`engine/migrate.ts`는 3-way(충돌 0). lockfile은 apps/cad-viewer importer 58줄만 추가(frozen install PASS). 후속 `31838a15d`는 API 목록·거부표 갱신.
+- 실행 결과(제품 트리): cad-model tsc, 도면/버전/컨테이너 시험 249 PASS, Studio tsc, CAD·GPU build, GPU 단위 63 + 실제 Chrome WebGPU 복구 실패 1 PASS, Viewer/cad-viewer tsc, Viewer 시험 177 PASS(브라우저 전용 2 skip), 변경 파일 lint PASS, api-inventory SCOPED_PASS, check-docs PASS(35/0/47/3755/819).
+- 첫 실패 보존: 공통 소스 cad-model tsc가 새 시험 6곳 TS7022/TS2739로 실패 → 시험 주석만 교정(`a90c2bd8e`). 제품 api-inventory 6666→6673 FAIL → 검토한 7추가/13변경 반영. check-docs `_refusals.md` drift → `refusals.mjs` 재생성.
+- 실제 Studio(공통·제품 트리 둘 다): standalone 복합 위치 프레임 편집, 공차 0 거부(문서 유지), Save(schema3, 두 번째 칸 `diameter:false`, 첫 칸 diameter 필드 부재 유지) → New → Open 왕복, 잘못된 composite 파일 거부("Your part is unchanged", 원본 바이트 동일), `freeState:false`/`tangentPlane:false`의 Open→Save 보존. 다운로드 대신 페이지 안에서 Save 바이트를 잡고 Open 입력에 넣었다. 이 과정에서 New/Open 뒤에도 이전 문서의 프레임 초안(거부된 0)과 거부 안내가 남는 결함을 찾아 수정했다(`b450d2041`).
+- 실제 Viewer: 문서 샘플을 WebGPU로 연 뒤 다음 어댑터 요청을 실패시키고 장치를 destroy하는 주입으로 복구 실패를 만들었다. 화면 중앙에 "The display stopped", 원인 `[DEVICE_LOST] … [NO_ADAPTER]`, Reload page 버튼이 보였고 처리되지 않은 오류는 0건. 실제 메모리 부족·자연 장치 손실·브라우저 자동 재통지는 NOT_RUN.
+- 남은 일: (1) 복구 안내(Recover unsaved work)가 떠 있는 동안 App이 모든 toast를 숨겨 Open 실패 안내가 안 보인다(`toast && … && !recovery`). (2) UI 편집 거부 문구가 DRAWING_OPTIONS 스키마 설명 전체라 너무 길다. (3) route(schema4) 문서의 실제 Studio 왕복은 시험으로만 확인. (4) GPU render target/텍스처/GPU04.1 라인과 공통 aggregate 반영은 담당 통합자 몫으로 남김. (5) 사용자 문서 페이지(도면 프레임, Viewer 장치 오류)는 Docs 범위로 미작성.
