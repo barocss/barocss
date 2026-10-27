@@ -33,10 +33,42 @@ const material = (x: unknown): x is MaterialModifier => x === 'maximum' || x ===
 const keys = ['id', 'dim', 'view', 'place', 'characteristic', 'value', 'datums', 'diameter', 'material', 'datumModifiers', 'projected', 'freeState', 'tangentPlane', 'composite'];
 const compositeKeys = ['value', 'datums', 'diameter', 'material', 'datumModifiers'];
 const placeOk = (x: unknown): x is XY => Array.isArray(x) && x.length === 2 && Object.hasOwn(x, 0) && Object.hasOwn(x, 1) && x.every(v => typeof v === 'number' && Number.isFinite(v));
-const rowOk = (x: Record<string, unknown>): boolean => typeof x.value === 'number' && Number.isFinite(x.value) && x.value > 0 && x.value < 100 &&
-  Array.isArray(x.datums) && x.datums.length <= 3 && [...x.datums].every(d => typeof d === 'string' && /^[A-HJ-NPR-Z]$/.test(d)) && new Set(x.datums).size === x.datums.length &&
-  (x.diameter === undefined || typeof x.diameter === 'boolean') && (x.material === undefined || material(x.material)) &&
-  (x.datumModifiers === undefined || (record(x.datumModifiers) && Object.entries(x.datumModifiers).every(([d, m]) => (x.datums as string[]).includes(d) && material(m))));
+/** The first thing wrong with one row (the frame's own or its second segment), in a person's words; null when it is valid. */
+function rowProblem(x: Record<string, unknown>): string | null {
+  if (typeof x.value !== 'number' || !Number.isFinite(x.value) || x.value <= 0 || x.value >= 100) return 'tolerance must be more than 0 and less than 100 mm';
+  if (!Array.isArray(x.datums)) return 'datums must be a list of letters';
+  if (x.datums.length > 3) return 'use at most three datums';
+  if (![...x.datums].every(d => typeof d === 'string' && /^[A-HJ-NPR-Z]$/.test(d))) return 'datums are single letters A to Z, except I, O and Q';
+  if (new Set(x.datums).size !== x.datums.length) return 'each datum can appear only once';
+  if (x.diameter !== undefined && typeof x.diameter !== 'boolean') return 'the diameter zone is on or off';
+  if (x.material !== undefined && !material(x.material)) return 'the material modifier is maximum or least';
+  if (x.datumModifiers !== undefined && !(record(x.datumModifiers) && Object.entries(x.datumModifiers).every(([d, m]) => (x.datums as string[]).includes(d) && material(m)))) return 'a datum modifier needs its datum in the list';
+  return null;
+}
+const rowOk = (x: Record<string, unknown>): boolean => rowProblem(x) === null;
+/**
+ * The first reason one frame is refused, short and in a person's words (for an editor's notice); null when it is valid.
+ * checkDrawingFrames keeps the full contract message for tools and agents. List-level rules (count, unique ids, one frame
+ * per dimension) are not checked here.
+ */
+export function frameProblem(x: unknown): string | null {
+  if (!record(x)) return 'A frame must be an object.';
+  if (!label(x.id)) return 'The frame needs an id of 1 to 120 characters.';
+  if (!CHARACTERISTICS.includes(x.characteristic as Characteristic)) return 'Choose a supported characteristic.';
+  const row = rowProblem(x);
+  if (row) return `${row[0].toUpperCase()}${row.slice(1)}.`;
+  if (!(label(x.dim) && !('view' in x) && !('place' in x)) && !(!('dim' in x) && isDimView(x.view) && placeOk(x.place))) return 'A frame is attached to one dimension or placed in one view, not both.';
+  if (x.composite !== undefined) {
+    if (x.characteristic !== 'position') return 'Only a position frame can have a second segment.';
+    if (!record(x.composite) || !Object.keys(x.composite).every(k => compositeKeys.includes(k))) return 'The second segment has unsupported fields.';
+    const second = rowProblem(x.composite);
+    if (second) return `Second segment: ${second}.`;
+  }
+  if (x.projected !== undefined && !(typeof x.projected === 'number' && Number.isFinite(x.projected) && x.projected > 0 && x.projected <= 1000)) return 'Projected height must be more than 0 and at most 1000 mm.';
+  if (!['freeState', 'tangentPlane'].every(k => x[k] === undefined || typeof x[k] === 'boolean')) return 'Free state and tangent plane are on or off.';
+  if (Object.keys(x).some(k => !keys.includes(k))) return 'The frame has unsupported fields.';
+  return null;
+}
 export function frameOk(x: unknown): x is DrawingFrame {
   if (!record(x) || !label(x.id) || !CHARACTERISTICS.includes(x.characteristic as Characteristic) || !rowOk(x)) return false;
   if (!(label(x.dim) && !('view' in x) && !('place' in x)) && !(!('dim' in x) && isDimView(x.view) && placeOk(x.place))) return false;
