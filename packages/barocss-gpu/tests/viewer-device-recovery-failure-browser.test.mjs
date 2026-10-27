@@ -127,9 +127,26 @@ test('recovery failure is reported and a device arriving after dispose is destro
             recoveryCleared: viewer.recovery === null, requests, recoverCalls, failureCalls, reports, unhandled };
         } finally { globalThis.removeEventListener('unhandledrejection',onUnhandled); armed = false; viewer.dispose(); c.remove(); }
       };
+      const disposeDuringRequest = async () => {
+        const c = canvas(), reports = [], unhandled = [];
+        let armed = false, requests = 0, recoverCalls = 0, failureCalls = 0, reached;
+        const requested = new Promise(resolve => { reached = resolve; });
+        const viewer = await createViewer(c,{ controls: false, autoResize: false, pixelRatio: 1,
+          onRequestRender: () => { if (armed) { requests++; reached(); viewer.dispose(); } }, onError: message => reports.push(message) });
+        viewer.onRecover = () => { recoverCalls++; }; viewer.onRecoverError = () => { failureCalls++; };
+        const onUnhandled = event => { unhandled.push(String(event.reason)); event.preventDefault(); };
+        globalThis.addEventListener('unhandledrejection',onUnhandled);
+        try {
+          const oldDevice = viewer.computeDevice; armed = true; viewer.loseDeviceForTesting();
+          await bound(oldDevice.lost,'original loss'); await bound(requested,'recovery render request');
+          await new Promise(resolve => setTimeout(resolve,100));
+          return { ready: viewer.ready, computeDeviceNull: viewer.computeDevice === null, requests, recoverCalls, failureCalls, reports, unhandled };
+        } finally { globalThis.removeEventListener('unhandledrejection',onUnhandled); armed = false; viewer.dispose(); c.remove(); }
+      };
       return { contextNull: await run('context-null'), lateDispose: await run('late-dispose'),
         synchronous: await syncFailure('none'), throwingOnError: await syncFailure('onError'), throwingOnRecoverError: await syncFailure('onRecoverError'),
-        throwingOnRequestRender: await successCallback('onRequestRender'), throwingOnRecover: await successCallback('onRecover') };
+        throwingOnRequestRender: await successCallback('onRequestRender'), throwingOnRecover: await successCallback('onRecover'),
+        disposeDuringRequest: await disposeDuringRequest() };
     });
     result.errors = errors; t.diagnostic(JSON.stringify(result));
     if (evidence) { await writeFile(join(evidence,'result.json'),JSON.stringify(result,null,2)+'\n'); await page.screenshot({ path: join(evidence,'result.png'), fullPage: true }); }
@@ -153,6 +170,7 @@ test('recovery failure is reported and a device arriving after dispose is destro
       assert.equal(item.requests,1,name); assert.equal(item.recoverCalls,1,name); assert.equal(item.failureCalls,0,name);
       assert.deepEqual(item.reports,[],name); assert.deepEqual(item.unhandled,[],name);
     }
+    assert.deepEqual(result.disposeDuringRequest,{ ready: false, computeDeviceNull: true, requests: 1, recoverCalls: 0, failureCalls: 0, reports: [], unhandled: [] });
     const unexpected = errors.filter(message => !message.includes('callback sentinel'));
     assert.deepEqual(unexpected,[]); assert.equal(errors.length,4,'all deliberately thrown callback errors are reported');
   } catch (error) {
