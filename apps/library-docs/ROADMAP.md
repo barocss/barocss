@@ -33,6 +33,19 @@ documentation only after profile ownership, supported inputs and output contract
 WASM and Physics package edits need their own decisions. Existing execution holds and frozen gallery assets
 remain in force.
 
+## Navigation and Studio guides (2026-10-27)
+
+The main documentation order is CAD, CAD Model, GPU, Studio and Viewer. Introduction, AI agent and Reference
+remain separate entries. The public URLs of the existing pages remain unchanged.
+
+Studio has an overview and five task guides: modeling, assemblies and robots, drawings and manufacturing,
+display and rendering, and files and projects. Each guide explains the inputs, steps and results, then links to
+the detailed controls. The sidebar uses at most three levels, and the page outline includes H2 and H3.
+
+The three fixed Part API examples have saved public meshes and native browser figures. They are separate from
+the held 24-case gallery above. Their success does not complete that gallery or establish product acceptance.
+The long Model, Object API, Boolean and GPU pages remain candidates for a later split that preserves old anchors.
+
 ## Historical planning and checkpoints
 
 The sections below preserve the original W1 plan and reports. Their page counts, sample counts, screenshot

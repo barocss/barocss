@@ -3,7 +3,7 @@ layout: home
 hero:
   name: BaroCSS CAD
   text: Design manufacturable products with an AI agent
-  tagline: A B-rep CAD kernel, a document model and a GPU studio — all in TypeScript, no WASM.
+  tagline: A CAD kernel, a document model, a GPU renderer, Studio and Viewer — all in TypeScript, no WASM.
   actions:
     - theme: brand
       text: Get started
@@ -12,14 +12,24 @@ hero:
       text: Concepts
       link: /guide/concepts
 features:
-  - title: The studio
-    details: Sketch, model, assemble, draw and check a part for manufacturing in the browser — WebGPU where the browser has it, WebGL2 otherwise.
-  - title: The agent
-    details: Describe what you need and the agent builds it with the same tools you use. Value edits apply directly; anything that changes the part's structure comes to you as a proposal to accept.
-  - title: Manufacturing first
-    details: Drawings, BOM, CNC, 3D printing, casting, moulding, sheet metal, frames and robots — with sizes from your own shop rows, never invented.
-  - title: Correct or refused
-    details: The kernel returns an exact, valid body or a typed refusal that says why. It never guesses.
+  - title: CAD
+    details: Build solids with the B-rep kernel. Read the modeling, Boolean, mass and exchange-format contracts.
+    link: /packages/cad/
+  - title: CAD Model
+    details: Work with editable documents, assemblies, drawings, materials and the agent's commands.
+    link: /packages/cad-model/
+  - title: GPU
+    details: Draw meshes and scenes with WebGPU and WebGL2. Check each renderer's material, shadow and analysis limits.
+    link: /packages/gpu/
+  - title: Studio
+    details: Sketch, model, assemble and prepare a design in the browser. Follow the guides for each task.
+    link: /studio/
+  - title: Viewer
+    details: Embed a CAD review interface in another app and manage its review state through the SDK.
+    link: /packages/viewer/
+  - title: AI agent
+    details: Describe a change through chat or the agent tools. Read how edits, proposals and autonomy work.
+    link: /agent/
 ---
 
 ![The studio with the starter plate](/shots/home/studio.jpg)
@@ -28,12 +38,12 @@ features:
 
 | | |
 |---|---|
-| [The studio](/studio/tour) | The browser app (`apps/cad-studio`): the model, the viewport, drawings, manufacturing checks and the chat. |
-| [The agent](/agent/) | An AI that designs with the studio's own tools, through the chat or as an MCP server and a command line. |
-| [`@barocss/cad`](/packages/cad/) | The kernel: exact B-rep and NURBS geometry, Booleans, fillets, offsets, mass properties, STEP, IGES, STL and DXF. |
-| [`@barocss/cad-model`](/packages/cad-model/) | The document model above the kernel: parts, assemblies, drawings, BOM, processes, robots and the agent's tools. |
-| [`@barocss/gpu`](/packages/gpu/) | The canvas renderer the studio draws with: WebGPU scenes, materials, compute analyses and frame costs. |
-| [`@barocss/viewer`](/packages/viewer/) | The Viewer SDK class for embedding a CAD viewer and managing its review state. |
+| [CAD](/packages/cad/) | `@barocss/cad`: the B-rep and NURBS kernel, with Booleans, fillets, offsets, mass properties and exchange formats. |
+| [CAD Model](/packages/cad-model/) | `@barocss/cad-model`: the editable document above the kernel, with parts, assemblies, drawings, BOMs, processes and robots. |
+| [GPU](/packages/gpu/) | `@barocss/gpu`: the renderer for WebGPU scenes, materials, shadows and supported compute analyses. |
+| [Studio](/studio/) | The browser app (`apps/cad-studio`): modeling, the viewport, drawings, manufacturing checks and chat. |
+| [Viewer](/packages/viewer/) | `@barocss/viewer`: the SDK for embedding a CAD viewer and managing its review state. |
+| [AI agent](/agent/) | The studio's tools through chat, an MCP server or a command line. |
 
 ## From design to experiments
 

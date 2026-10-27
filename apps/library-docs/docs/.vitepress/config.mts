@@ -31,9 +31,12 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/guide/getting-started' },
-      { text: 'Studio', link: '/studio/tour' },
+      { text: 'CAD', link: '/packages/cad/' },
+      { text: 'CAD Model', link: '/packages/cad-model/' },
+      { text: 'GPU', link: '/packages/gpu/' },
+      { text: 'Studio', link: '/studio/' },
+      { text: 'Viewer', link: '/packages/viewer/' },
       { text: 'Agent', link: '/agent/' },
-      { text: 'Packages', link: '/packages/cad/' },
       { text: 'Reference', link: '/reference/refusals' },
     ],
     sidebar: sidebar.map(navigationItem),
