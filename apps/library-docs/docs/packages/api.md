@@ -17,10 +17,34 @@ Each of the three packages has an object facade over its own data-and-functions 
 | Package | Entry | Over | For |
 |---|---|---|---|
 | @barocss/cad | `@barocss/cad/api` | The kernel's `CadPartDocument` and `evaluateCadPart` | Using the kernel on its own. It replaces the older `createCadModel()` |
-| @barocss/cad-model | `@barocss/cad-model/api` | The studio document, its evaluation, mass, STEP and assemblies | Anything the studio opens: materials by id, assemblies, variants and frames |
+| @barocss/cad-model | `@barocss/cad-model/api` | The CAD model document, its evaluation, mass, STEP and assemblies | Materials by id, assemblies, variants and frames, in code or in Studio |
 | @barocss/gpu | `@barocss/gpu/api` | The `Viewer` and its geometry and material data | Putting parts on screen |
 
-The facades are for code. The agent keeps working through its JSON tools, and the studio uses the cores directly.
+Both Part APIs build and evaluate a model. Choose the document and workflow you need:
+
+| | CAD kernel part | CAD model part |
+|---|---|---|
+| Import | `@barocss/cad/api` | `@barocss/cad-model/api` |
+| Document returned by `.doc` | `CadPartDocument`, format `barocss-cad-part`, with `features` | `StudioDoc`, format `barocss-cad-model`, with `nodes` and `outputs` |
+| Use it when | You need the CAD kernel and its feature document in code. | You need the CAD model document, materials, configurations or drawing and manufacturing outputs. |
+| Shared modeling | Box, hole, fillet, Boolean operations, mass, meshes, STEP and STL | The same modeling interface and result methods, using the CAD model document |
+| Additional model operations | Supply a density for mass. | Set a material id; save configurations; generate drawings and manufacturing outputs. The model part also provides gear, spring and fastener commands. |
+
+The modeling calls can look the same, but the two `.doc` values have different formats:
+
+```js
+import { part as kernelPart } from '@barocss/cad/api';
+import { part as modelPart } from '@barocss/cad-model/api';
+
+const kernel = kernelPart('plate').box({ w: 80, d: 40, h: 10 });
+const model = modelPart('plate').box({ w: 80, d: 40, h: 10 });
+console.log(kernel.doc.format); // 'barocss-cad-part'
+console.log(model.doc.format); // 'barocss-cad-model'
+```
+
+Each facade is an API for code. CAD Model's document type is named `StudioDoc` in the source. It is a data model that
+code can use independently; Studio is an editor that also uses that model and its core. The CAD model part facade writes
+commands into the document. Calling the facade does not control an open Studio screen. The agent works through its JSON tools.
 
 ## The shared rules
 
@@ -94,11 +118,11 @@ From the holed part, select its four vertical edges and apply a 2 mm fillet radi
 
 <p>{{ resultSummary('rounded') }}</p>
 
-## Parts
+## CAD kernel part {#parts}
 
 <<< @/../samples/cad-api.test.mjs#import
 
-A kernel part is an immutable object over a `CadPartDocument`:
+A CAD kernel part is an immutable object over a `CadPartDocument`. Use it to work with the CAD kernel in code:
 
 <<< @/../samples/cad-api.test.mjs#bracket
 
@@ -240,12 +264,13 @@ Two separate parts aren't combined: merging two documents would renumber one's i
 
 <<< @/../samples/cad-model-api.test.mjs#select
 
-## Studio parts
+## CAD model part {#studio-parts}
 
 <<< @/../samples/cad-model-api.test.mjs#import
 
-`@barocss/cad-model/api`'s `part()` is the same part, over the studio document. The same bracket can be written three
-ways, and all three give one document, byte for byte. The sample checks each against the others.
+`@barocss/cad-model/api`'s `part()` builds a CAD model part over a `StudioDoc`. It shares the modeling interface with the
+CAD kernel part and adds document, material, drawing and manufacturing features. The same bracket can be written three ways as a CAD model document. The sample
+checks that all three ways give the same document, byte for byte.
 
 1. **The document**, as the studio's commands write it. Besides the shape, it keeps:
    - the box's values (`made`), so picking it in the studio edits them again;
@@ -276,7 +301,7 @@ ways, and all three give one document, byte for byte. The sample checks each aga
 
 ### The studio's own commands
 
-The studio part also runs studio commands the kernel has no feature for. Each writes what the agent's `run_command`
+The CAD model part also runs commands the kernel has no feature for. Each writes what the agent's `run_command`
 writes, and the kernel part refuses them with `UNAVAILABLE`.
 
 | Verb | v2 command | What it does |
@@ -299,7 +324,7 @@ writes, and the kernel part refuses them with `UNAVAILABLE`.
 
 A parameter is a named value in the document's `parameters`, and a dimension follows it as the documents' own
 reference, `{ parameter: 'W' }`. `param('W')` writes one. Both parts write the document a person would make: the kernel
-part writes the reference into its feature, and the studio part binds it as the studio's feature editor does.
+part writes the reference into its feature, and the CAD model part binds it as the studio's feature editor does.
 
 <<< @/../samples/cad-api.test.mjs#kernel-parameters
 
@@ -313,7 +338,7 @@ part writes the reference into its feature, and the studio part binds it as the 
   - `cylinder`: `x`, `y` and `h` (not `r`: the studio's editor edits the diameter);
   - `extrude`: `h`; `hole`: `x` and `y` (not `d`: the hole is stored by its radius);
   - `fillet`: `radius`; `chamfer`: `distance`; `shell`: `t`; `linearPattern`: `spacing`; `split`: `at`;
-  - in the studio part also `revolve`'s `deg`, `linearPattern`'s `count` and `scale`'s `factor`, which a kernel
+  - in the CAD model part also `revolve`'s `deg`, `linearPattern`'s `count` and `scale`'s `factor`, which a kernel
     document holds as plain numbers.
 
   Any other option given a parameter is refused with `PARAMETER_UNBINDABLE`, naming the ones that bind. A number is
@@ -321,7 +346,7 @@ part writes the reference into its feature, and the studio part binds it as the 
 
 <<< @/../samples/cad-model-api.test.mjs#parameters
 
-- **Configurations** are the studio part's saved sets of parameter values. `configuration(name)` saves the current
+- **Configurations** are the CAD model part's saved sets of parameter values. `configuration(name)` saves the current
   values, as the Parameters panel's Save; `withConfiguration(name)` applies them, as its Apply; `configurations()` lists
   them.
 
@@ -329,7 +354,7 @@ part writes the reference into its feature, and the studio part binds it as the 
 
 - **Features and suppression.** `features()` lists each feature's `{ id, kind, label }`, the last one being the feature
   the last verb added. `suppressed(id)` switches a feature off and `suppressed(id, false)` back on, as the History
-  panel's toggle does. A sketch, a split or a separate can't be switched off. It's the studio part's: the kernel
+  panel's toggle does. A sketch, a split or a separate can't be switched off. It's the CAD model part's: the kernel
   document has no suppression yet, so the kernel part refuses it with `UNAVAILABLE`.
 
 <<< @/../samples/cad-model-api.test.mjs#suppression
@@ -338,7 +363,7 @@ part writes the reference into its feature, and the studio part binds it as the 
 
 ## Assemblies
 
-`assembly(name, base?)` is an immutable assembly over the studio document. The base part is fixed at the origin.
+`assembly(name, base?)` is an immutable assembly over the CAD model document. The base part is fixed at the origin.
 Placed parts are instances, each with its own document, and mates relate their faces.
 
 <<< @/../samples/cad-model-api.test.mjs#assembly
@@ -374,7 +399,7 @@ ends give `MATE_BOTH_FIXED`; ends on the same part give `MATE_SAME_PART`. `place
   - `variant(values)`: an assembly with those input values, the master unchanged;
   - `framePoses()`: each frame's world pose, as `position` and `rotation`;
   - `meshes()`: `base/<body>` and `<part>/<body>`, each part where it stands;
-  - `part(name)`: a placed part as a studio part, in its own coordinates.
+  - `part(name)`: a placed part as a CAD model part, in its own coordinates.
 - **`robot()`** gives the assembly's joints, kinematics, motion checks and robot exports. See [Robots](/studio/robots)
   for the supported joints and motion limits.
 - **Not yet in the facade:** editing a placed part in place; deleting or editing parts and mates; library parts;
@@ -382,7 +407,7 @@ ends give `MATE_BOTH_FIXED`; ends on the same part give `MATE_SAME_PART`. `place
 
 ## Manufacturing inputs and outputs
 
-The studio part can set its manufacturing inputs and produce the same outputs as the agent's tools. These methods
+The CAD model part can set its manufacturing inputs and produce the same outputs as the agent's tools. These methods
 call the studio core. They keep its typed refusals.
 
 | Method | What it writes or returns |
@@ -438,7 +463,7 @@ these outputs need.
   - the part: `NO_BODY`, `BODY_AMBIGUOUS`, `BODY_UNKNOWN`, `SELECTION_EMPTY`, `SELECTION_ONE` (a hole's selector picked
     more than one face, or a tool callback added more than one body), `FACE_NOT_FLAT`, `VALUE` (a value out of its
     range or type), `DENSITY`, `PARAMETER_NAME`, `PARAMETER_UNKNOWN`, `PARAMETER_UNBINDABLE` and `FEATURE_UNKNOWN`;
-  - the studio part: `SELECTION_UNKNOWN` (a name not on the part), `UNAVAILABLE` (the studio's command can't run here),
+  - the CAD model part: `SELECTION_UNKNOWN` (a name not on the part), `UNAVAILABLE` (the studio's command can't run here),
     `MATERIAL_UNKNOWN`, `MASS_UNKNOWN` and `CONFIGURATION_UNKNOWN`;
   - the assembly: `NAME_TAKEN` and `PART_UNKNOWN`.
 - **The core's refusals pass through** with their own code and words. A kernel refusal keeps the feature it came from

@@ -27,8 +27,8 @@ export const sidebar = [
         collapsed: true,
         items: [
           { text: 'Actual API results', link: '/packages/api#see-actual-api-results', lane: 'API' },
-          { text: 'Parts', link: '/packages/api#parts', lane: 'API' },
-          { text: 'Studio parts', link: '/packages/api#studio-parts', lane: 'API' },
+          { text: 'CAD kernel part', link: '/packages/api#parts', lane: 'API' },
+          { text: 'CAD model part', link: '/packages/api#studio-parts', lane: 'API' },
           { text: 'Parameters and configurations', link: '/packages/api#parameters-configurations-and-suppression', lane: 'API' },
           { text: 'Assemblies', link: '/packages/api#assemblies', lane: 'API' },
           { text: 'Manufacturing', link: '/packages/api#manufacturing-inputs-and-outputs', lane: 'API' },
