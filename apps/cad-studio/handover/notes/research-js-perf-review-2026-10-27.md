@@ -1,6 +1,6 @@
 # JavaScript performance and code-shape review of `@barocss/cad` and `@barocss/cad-model` (2026-10-27)
 
-Review only; no code changed. At `local/cad-dev` `682af3f1a`. Two sources:
+Review at `local/cad-dev` `682af3f1a` (no code changed by it); the refactors it planned, P1–P4, and their measurements are in §5. Two sources:
 
 - **A static survey** of every `.ts`/`.tsx` under `packages/barocss-cad/src` (410 files, 102.8k lines) and
   `packages/barocss-cad-model/src` (333 files, 48.3k lines), parsed with the TypeScript compiler API (script and raw
@@ -83,3 +83,34 @@ Built-ins (JSON, Map) do not show separately; they are inside their callers' sel
 
 Not in scope here: algorithmic changes (fewer projections per Boolean, the face-fillet restore's cost) — those are the
 Boolean core's own work (see `research-rolling-ball-face-fillet-2026-10-27.md` §7).
+
+## 5. Results (2026-10-27, P1–P4 built on `local/cad-dev`)
+
+Measured with a bench of nine kernel workloads (session scratchpad, not committed): each result's JSON hashed (sha256), so
+"same" means bit-identical output; times are medians of 3 runs (1 for the long case), A/B against the previous commit.
+Every step kept every result bit-identical.
+
+| step | commit | what | measured |
+|---|---|---|---|
+| P1.1 | `de8463047` | SSI seed grid: module functions, scalar min/max, one mutable box | fillets −14 to −21 %, thread −31 %, hidden lines −22 % |
+| P1.2 | `0457891e8` | polyhedral rationals: cross-product compare, raw ops for values only compared, swap without an array | model `drawing-manufacturing` test 16.2 s → 6.7 s |
+| P1.3 | `a6b0d006c` | curved arrangement: one parameter table, no per-segment closures (the 60 fixed steps kept) | threads −15 to −17 %, face fillet −9 % |
+| P1.4 | `5d98989ef` | domain maps on planes/cylinders: one direct-mapped cache of 65 536 slots instead of a Map a curve (measured first: 75 M calls, 51 % hits, 13.7 M entries alive; dropping the memo made traced cases +16 %) | tee over a round −26 %, hidden lines −19 %; small cases ±2 % |
+| P1.5 | `2d49446e7` | buffered evaluators where hot loops called `evaluateCurve`/`evaluateSurface` (measured first: ~1.5 % of the profile) | 0–4 % |
+| P1.6 | `29c323346` | hidden lines: coincident-vertex groups found once | projection alone 9 → 8 ms |
+| P1.7 | `538ff825c` | NURBS evaluators sum in scalars; finite checks written out; D1 quotient without a closure | −3 to −6 %; projection −27 % |
+| P2 | `bc6a7ff67` | `core/extent.ts` (Math.min/max without spreading, the same NaN/−0 results); per-element boxes, sort keys, check fractions hoisted | ±3 % (hygiene) |
+| P3 | `a2473c263` | `core/own-data.ts`: one own-data copier and record check, messages as constants; 18 of 55 snapshot copies (the most common structure) and 26 record helpers moved | refusals unchanged: differential run on 20 020 inputs identical |
+| P4 | `e001b12c7` | ESLint `no-loop-func` in `brep/ intersect/ core/ blend/ mesh/` (18 findings fixed); `scripts/code-shape.mjs` in the package lint, counts may not grow | lint clean; probe files fail as they should |
+
+P1–P4 against the original baseline (same results): edge fillet tee −26 %, face fillet tee −27 %, pin over a round −34 %,
+shaft thread −40 %, tapped hole −18 %, polyhedral boxes −35 %, hidden lines −38 %, tee over a round (face fillet restore)
+23.1 → 16.1 s (−30 %); 24 tilted boxes unchanged (±5 %). The GC share of the fresh profile was 19 % before P1.7.
+
+Left for later (each needs its own measurement; none was required by the plan's done-when):
+- The other 37 snapshot copies (19 structural variants: checks split, budgets coded differently) and the other record
+  forms; moving them needs each variant's order of checks kept, as the differential run did for the first group.
+- `no-loop-func` outside the hot folders (55 findings in the rest of the kernel and the model); code-shape counts are a
+  ceiling, not zero: 119 Math.max/min spreads, 32 push spreads, 291 loop spreads, 82 loop literals in the hot folders.
+- The golden-section searches keep 60 fixed steps (results identical); a tolerance stop would be faster but changes results.
+- F2 of the rolling-ball plan (the restore Boolean's cost) is the Boolean core's algorithmic work, outside this review.
