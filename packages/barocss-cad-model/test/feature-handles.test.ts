@@ -114,7 +114,9 @@ test('Draft: one side face turned about its bottom; every side of an extrusion i
   const draft = cmd('draft'), doc = rectanglePart(20, 20, 10), bodies = bodiesOf(doc), mesh = bodies[0].mesh;
   const faceOf = (name: string) => ({ body: 0, face: mesh.faces.find(f => f.name === name)!.index });
   const ctx = (names: string[]): Ctx => ({ doc, bodies, selection: { faces: names.map(faceOf), edges: [], bodies: [] } });
-  assert.match((draft.available({ ...ctx(['n1.top']) }) as { reason: string }).reason, /square to Z/);
+  // (The top face is square to X and Y, not Z: offered with the first pull that takes it; +Z is still refused.)
+  assert.equal(draft.available(ctx(['n1.top'])).ok, true); assert.equal(draft.defaults!(ctx(['n1.top'])).pull, 'x');
+  assert.throws(() => draft.build!(ctx(['n1.top']), { deg: 10 }), /square to Z/);
   const t = Math.tan(10 * Math.PI / 180);
   const one = draft.build!(ctx(['n1.side0']), { deg: 10 });
   assert.equal(featureLabel(one.nodes.at(-1)!, one.nodes.length - 1, one.nodes), 'Draft 10° × 1');

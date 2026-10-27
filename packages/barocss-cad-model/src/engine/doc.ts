@@ -376,8 +376,8 @@ type ModelNodeBase = SketchNode
   | { kind: 'subd'; name: string; cage: { positions: number[]; faces: number[][]; creases?: [number, number][] }; mirror?: 'x' | 'y' | 'z' }
   /** Direct surfaces (copied, by their names) sewn along their edges into one closed solid; edges `tolerance` mm apart still meet. */
   | { kind: 'sew'; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }[]; tolerance?: number }
-  /** Draft on chosen side faces (by name) for a pull along +Z: each turned about its line on the body's bottom (positive: its top leans in). */
-  | { kind: 'draft'; parent: BodyRef; faces: string[]; angle: number }
+  /** Draft on named side faces: angle in degrees, signed principal pull (default +Z), neutral world coordinate in mm (default the body's minimum for positive pull, maximum for negative pull). */
+  | { kind: 'draft'; parent: BodyRef; faces: string[]; angle: number; pull?: Axis | '-x' | '-y' | '-z'; neutral?: Dim }
   /** IM7b (O113): a face split along its isocline n·d = 0 for the pull (the kernel's split-face, D149): its pieces `<face>#1` (the + side), `<face>#2` …, or `names`. */
   | { kind: 'split-face'; parent: BodyRef; face: string; pull: [number, number, number]; names?: string[] }
   /** `radii` (R10.5, D100): a varying radius, given at points of the edges; `radius` then the first point's. `section` (R10.5b, D103): a conic or G2 section (default a circle). */

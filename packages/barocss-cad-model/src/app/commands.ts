@@ -310,16 +310,35 @@ function splitNormal(v: Values): [number, number, number] | null {
 }
 
 /** The side faces picked for a draft (one body, flat, square to Z), and the extrusion they all are the sides of, if so. */
-function draftOf(ctx: Ctx): { body: BodyResult; faces: string[]; extrude: number | null } | string {
+function draftOf(ctx: Ctx, pull: 'x' | 'y' | 'z' | '-x' | '-y' | '-z' = 'z', legacy = true): { body: BodyResult; faces: string[]; extrude: number | null } | string {
   const picks = ctx.selection.faces; if (!picks.length) return 'Pick side faces of one body to draft (Shift-click for more).';
   if (picks.some(f => f.body !== picks[0].body)) return 'Pick faces of one body.';
-  const body = ctx.bodies[picks[0].body], faces = picks.map(f => body.mesh.faces[f.face]);
-  if (faces.some(f => f.kind !== 'plane' || Math.abs(f.normal[2]) > 1e-6)) return 'A draft takes flat side faces, square to Z (the pull).';
+  const body = ctx.bodies[picks[0].body]; if (!body) return 'Pick side faces of one body to draft (Shift-click for more).';
+  const faces = picks.map(f => body.mesh.faces[f.face]), axis = 'xyz'.indexOf(pull.slice(-1));
+  if (faces.some(f => !f || f.kind !== 'plane' || Math.abs(f.normal[axis]) > 1e-6)) return `A draft takes flat side faces, square to ${pull.toUpperCase()} (the pull).`;
   const names = faces.flatMap(f => f.name.split('+'));
   // Every side of the extrusion that is the body (nothing after it): that extrusion's own draft.
   const top = refOf(body).node, ex = ctx.doc.nodes[top], sides = body.mesh.faces.filter(f => new RegExp(`^${featureId(ctx.doc.nodes, top)}\\.side(\\d+|\\[[A-Za-z0-9_-]+\\])$`).test(f.name)).map(f => f.name);
-  if (ex?.kind === 'extrude' && !ex.draft && sides.length && sides.length === names.length && sides.every(n => names.includes(n))) return { body, faces: names, extrude: top };
+  if (legacy && ex?.kind === 'extrude' && !ex.draft && sides.length && sides.length === names.length && sides.every(n => names.includes(n))) return { body, faces: names, extrude: top };
   return { body, faces: names, extrude: null };
+}
+
+/** The pull axes a Studio draft offers, +Z first (the default and the old command's only one). */
+const DRAFT_PULLS = ['z', '-z', 'x', '-x', 'y', '-y'] as const;
+type DraftPull = typeof DRAFT_PULLS[number];
+const draftPullOf = (v: Values): DraftPull => (DRAFT_PULLS as readonly string[]).includes(String(v.pull)) ? v.pull as DraftPull : 'z';
+
+/** The real draft builder shared by the legacy Z command and explicit public draft options. */
+export function buildDraft(ctx: Ctx, v: Values): StudioDoc {
+  const pull = v.pull === undefined ? 'z' : v.pull;
+  if (pull !== 'x' && pull !== 'y' && pull !== 'z' && pull !== '-x' && pull !== '-y' && pull !== '-z') throw refusal('VALUE', 'Draft pull is x, y, z, -x, -y or -z.');
+  const hasNeutral = v.neutral !== undefined, neutral = hasNeutral ? Number(v.neutral) : undefined;
+  if (hasNeutral && (!Number.isFinite(neutral) || Math.abs(neutral!) > 10000)) throw refusal('VALUE', 'Draft neutral must be a finite coordinate within ±10000 mm.');
+  const d = draftOf(ctx, pull, v.pull === undefined && !hasNeutral); if (typeof d === 'string') throw refusal('DRAFT_PICK', d);
+  const deg = Number(v.deg); if (!(Number.isFinite(deg) && deg !== 0 && Math.abs(deg) < 45)) throw refusal('DRAFT_ANGLE', 'A draft angle is not 0 and below 45° in size.');
+  if (d.extrude !== null) return { ...ctx.doc, nodes: ctx.doc.nodes.map((n, i) => i === d.extrude && n.kind === 'extrude' ? { ...n, draft: deg } : n) };
+  return withNode(ctx.doc, { kind: 'draft', parent: refOf(d.body), faces: d.faces, angle: deg,
+    ...(v.pull !== undefined ? { pull } : {}), ...(hasNeutral ? { neutral: neutral! } : {}) });
 }
 
 const allCommands: Command[] = [
@@ -455,17 +474,18 @@ const allCommands: Command[] = [
     },
   },
   {
-    id: 'draft', label: 'Draft', icon: 'cad-draft', hint: 'Taper the picked side faces for a pull along Z: each turns about its bottom edge (every side of an extrusion: its own draft)', group: 'modify', keywords: 'taper draft angle mould mold release pull',
-    available: ctx => { const d = draftOf(ctx); return typeof d === 'string' ? no(d) : ok; },
-    fields: () => [{ key: 'deg', label: 'Angle', kind: 'deg', min: -44, max: 44, step: 1 }],
-    defaults: () => ({ deg: 5 }),
-    steps: ctx => { const d = draftOf(ctx); return typeof d === 'string' ? [] : [{ label: 'Faces', text: d.extrude !== null ? `every side of its extrusion: the extrusion's own draft (exact)` : `${d.faces.length} side face${d.faces.length === 1 ? '' : 's'}, turned about the body's bottom`, done: true }]; },
-    build: (ctx, v) => {
-      const d = draftOf(ctx); if (typeof d === 'string') throw refusal('DRAFT_PICK', d);
-      const deg = Number(v.deg); if (!(deg !== 0 && Math.abs(deg) < 45)) throw refusal('DRAFT_ANGLE', 'A draft angle is not 0 and below 45° in size.');
-      if (d.extrude !== null) return { ...ctx.doc, nodes: ctx.doc.nodes.map((n, i) => i === d.extrude && n.kind === 'extrude' ? { ...n, draft: deg } : n) };
-      return withNode(ctx.doc, { kind: 'draft', parent: refOf(d.body), faces: d.faces, angle: deg });
+    id: 'draft', label: 'Draft', icon: 'cad-draft', hint: 'Taper the picked side faces for a pull along an axis (+Z unless you choose another): each turns about the body\'s end facing away from the pull (every side of an extrusion, pulled along +Z: its own draft)', group: 'modify', keywords: 'taper draft angle mould mold release pull',
+    // (A face square to some pull axis can be drafted; +Z, the default, keeps the extrusion's own draft and the old node.)
+    available: ctx => { const d = draftOf(ctx); return typeof d !== 'string' || DRAFT_PULLS.some(p => typeof draftOf(ctx, p, false) !== 'string') ? ok : no(d); },
+    fields: () => [{ key: 'deg', label: 'Angle', kind: 'deg', min: -44, max: 44, step: 1 },
+      { key: 'pull', label: 'Pull', kind: 'choice', options: DRAFT_PULLS.map(p => ({ value: p, label: p.startsWith('-') ? `−${p.slice(1).toUpperCase()}` : `+${p.toUpperCase()}` })) }],
+    defaults: ctx => ({ deg: 5, pull: DRAFT_PULLS.find(p => typeof draftOf(ctx, p, false) !== 'string') ?? 'z' }),
+    steps: (ctx, v) => {
+      const pull = draftPullOf(v), d = draftOf(ctx, pull, pull === 'z');
+      return typeof d === 'string' ? [{ label: 'Faces', text: d, done: false }] : [{ label: 'Faces', text: d.extrude !== null ? `every side of its extrusion: the extrusion's own draft (exact)` : `${d.faces.length} side face${d.faces.length === 1 ? '' : 's'}, turned about the body's ${pull.startsWith('-') ? 'top' : 'bottom'} along the pull`, done: true }];
     },
+    // (+Z is built as before, without a pull on the node.)
+    build: (ctx, v) => { const rest = { ...v }; delete rest.pull; return buildDraft(ctx, draftPullOf(v) === 'z' ? rest : { ...rest, pull: draftPullOf(v) }); },
   },
   {
     id: 'chamfer', label: 'Chamfer', icon: 'cad-chamfer', hint: 'Cut the picked edges at 45° (a picked face: all its edges)', shortcut: 'C', group: 'modify', keywords: 'bevel edge',

@@ -271,7 +271,9 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       return { ...at, kind: 'spur-gear', ...modules, teeth: node.teeth, faceWidth: node.faceWidth, generator: node.generator, ...own, ...(node.toolTipRadius !== undefined ? { toolTipRadius: node.toolTipRadius } : {}), ...(node.profileShift ? { profileShift: node.profileShift } : {}), ...(node.bore !== undefined ? { bore: node.bore } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
     }
     case 'sew': return { ...at, kind: 'sew', surfaces: node.surfaces, ...(node.tolerance !== undefined ? { tolerance: node.tolerance } : {}) };
-    case 'draft': return { ...at, kind: 'draft', target: ref(node.parent), faces: node.faces, angle: node.angle, ...expectOf(node, node.faces) };
+    case 'draft': return { ...at, kind: 'draft', target: ref(node.parent), faces: node.faces, angle: node.angle,
+      ...(Object.hasOwn(node, 'pull') ? { pull: structuredClone(node.pull) } : {}),
+      ...(Object.hasOwn(node, 'neutral') ? { neutral: structuredClone(node.neutral) } : {}), ...expectOf(node, node.faces) };
     case 'split-face': return { ...at, kind: 'split-face', target: ref(node.parent), face: node.face, pull: node.pull, ...(node.names ? { names: node.names } : {}) } as CadPartFeature;
     case 'fillet': return { ...at, kind: 'fillet', target: ref(node.parent), edges: node.edges, ...(node.radii ? { radii: node.radii.map(p => ({ at: p.at, radius: p.radius })) } : { radius: node.radius }), ...(node.section ? { section: node.section } : {}), ...expectOf(node, node.edges) };
   }
