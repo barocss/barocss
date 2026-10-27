@@ -726,18 +726,25 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         <button className="tool" aria-label="Fit sheet" title="Fit the sheet" onClick={() => setBox(null)}><Icon name="fit_screen" /></button>
       </nav>
 
-      <div className="dw-paper">
-        {layout && <svg ref={svg} viewBox={viewBox.join(' ')} className={drag && 'pan' in drag ? 'dw-pan' : ''} aria-label="Drawing sheet" data-scale={layout.scale}
-          onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={() => setHover(null)} onWheel={onWheel}>
-          <rect className="dw-sheet" x={0} y={0} width={W} height={H} fill="#fff" />
-          <g fill="none" stroke="#000" strokeLinecap="round" strokeLinejoin="round" fontFamily="Helvetica, Arial, sans-serif" dangerouslySetInnerHTML={{ __html: shownMarkup }} />
-          <g dangerouslySetInnerHTML={{ __html: overlay }} />
-          {selectedTarget && !(drag && 'target' in drag) && sheet?.groups.filter(g => g.datumTarget && g.id === selectedTarget).length === 1 && <g className="dw-hover" pointerEvents="none" aria-label="Selected point datum target" dangerouslySetInnerHTML={{ __html: marksSvg(sheet.groups.find(g => g.datumTarget && g.id === selectedTarget)!.marks) }} />}
-          {selectedFrame && sheet?.groups.filter(g => g.standaloneFrame && g.id === selectedFrame).length === 1 && <g className="dw-hover" pointerEvents="none" aria-label="Selected standalone frame" dangerouslySetInnerHTML={{ __html: marksSvg(sheet.groups.find(g => g.standaloneFrame && g.id === selectedFrame)!.marks) }} />}
-          {referenceInspection?.markup && <g className="dw-hover" pointerEvents="none" aria-label="Reference candidate preview" dangerouslySetInnerHTML={{ __html: referenceInspection.markup }} />}
-        </svg>}
-        {busy && !views && <div className="dw-busy">Projecting views…</div>}
-        {!busy && !views && <div className="dw-busy">{error ?? 'Nothing to draw.'}</div>}
+      <div className="dw-canvas">
+        <div className="dw-paper">
+          {layout && <svg ref={svg} viewBox={viewBox.join(' ')} className={drag && 'pan' in drag ? 'dw-pan' : ''} aria-label="Drawing sheet" data-scale={layout.scale}
+            onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={() => setHover(null)} onWheel={onWheel}>
+            <rect className="dw-sheet" x={0} y={0} width={W} height={H} fill="#fff" />
+            <g fill="none" stroke="#000" strokeLinecap="round" strokeLinejoin="round" fontFamily="Helvetica, Arial, sans-serif" dangerouslySetInnerHTML={{ __html: shownMarkup }} />
+            <g dangerouslySetInnerHTML={{ __html: overlay }} />
+            {selectedTarget && !(drag && 'target' in drag) && sheet?.groups.filter(g => g.datumTarget && g.id === selectedTarget).length === 1 && <g className="dw-hover" pointerEvents="none" aria-label="Selected point datum target" dangerouslySetInnerHTML={{ __html: marksSvg(sheet.groups.find(g => g.datumTarget && g.id === selectedTarget)!.marks) }} />}
+            {selectedFrame && sheet?.groups.filter(g => g.standaloneFrame && g.id === selectedFrame).length === 1 && <g className="dw-hover" pointerEvents="none" aria-label="Selected standalone frame" dangerouslySetInnerHTML={{ __html: marksSvg(sheet.groups.find(g => g.standaloneFrame && g.id === selectedFrame)!.marks) }} />}
+            {referenceInspection?.markup && <g className="dw-hover" pointerEvents="none" aria-label="Reference candidate preview" dangerouslySetInnerHTML={{ __html: referenceInspection.markup }} />}
+          </svg>}
+          {busy && !views && <div className="dw-busy">Projecting views…</div>}
+          {!busy && !views && <div className="dw-busy">{error ?? 'Nothing to draw.'}</div>}
+        </div>
+        <div className={'card dw-hint' + (message ? ' warn' : '')} role="status">
+          <span>{hint}</span>
+          {(selected || selectedTarget || selectedFrame) && <span><Kbd>Del</Kbd> remove</span>}
+          <span><Kbd>V</Kbd> <Kbd>D</Kbd> <Kbd>O</Kbd> <Kbd>R</Kbd> <Kbd>A</Kbd> <Kbd>N</Kbd> <Kbd>E</Kbd> <Kbd>T</Kbd> tools</span>
+        </div>
       </div>
 
       <aside className="card dw-panel" aria-label="Drawing settings">
@@ -775,12 +782,6 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
 
         <ExportActions sheet={sheet} layout={layout} views={views} cuts={cuts} settings={settings} dxfVersion={dxfVersion} setDxfVersion={setDxfVersion} dxfCut={dxfCut} setDxfSection={setDxfSection} exportSvg={exportSvg} exportPdf={exportPdf} exportDxf={exportDxf} exportSectionDxf={exportSectionDxf} />
       </aside>
-
-      <div className={'card dw-hint' + (message ? ' warn' : '')} role="status">
-        <span>{hint}</span>
-        {(selected || selectedTarget || selectedFrame) && <span><Kbd>Del</Kbd> remove</span>}
-        <span><Kbd>V</Kbd> <Kbd>D</Kbd> <Kbd>O</Kbd> <Kbd>R</Kbd> <Kbd>A</Kbd> <Kbd>N</Kbd> <Kbd>E</Kbd> <Kbd>T</Kbd> tools</span>
-      </div>
     </div>
   );
 }
