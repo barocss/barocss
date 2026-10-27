@@ -3682,7 +3682,9 @@ export function App() {
             <button className="primary" onClick={async () => {
               const missing = await loadRecoveryBlobs(recovery.doc);
               if (missing.length) { setToast({ title: 'Could not restore', hint: `The copy's mesh data is gone from this browser (${missing.length} array${missing.length > 1 ? 's' : ''}). Open the mesh file again.`, detail: '' }); clearRecovery(); setRecovery(null); return; }
-              commit(recovery.doc); setFileName(recovery.fileName); settleRecovery(); setRecovery(null); setTimeout(() => viewport.current?.fit(), 300);
+              // (A whole document replaced, as New and Open do: a running command, its preview and the picks of the
+              // document shown before do not carry into the restored one. The project link is kept, as before.)
+              replaceDoc(recovery.doc, true); setFileName(recovery.fileName); settleRecovery(); setRecovery(null); setTimeout(() => viewport.current?.fit(), 300);
             }}>Restore</button>
             <button className="ghost" onClick={() => { settleRecovery(); setRecovery(null); void collectRecoveryBlobs(dirty ? doc : null); }}>Discard</button>
           </div></div>
