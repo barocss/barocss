@@ -119,10 +119,11 @@ boss chains. Finding why turned up two faults in the full rebuild, both fixed:
 
 With both fixed, the patch matched the rebuild's topology and gave −13 % on the 48-boss chain, but put edges and
 vertices in another order and at the input's points (a test choosing an edge by order and byte-frozen exports changed).
-Made to follow the rebuild exactly, it gave identical records and **no gain**: the saved time had been exactly the
-steps that make the records the rebuild's. Not landed; the faster, order-changing version stays as
-[patches/incremental-stitch-frozen-faces-2026-10-28.patch](patches/incremental-stitch-frozen-faces-2026-10-28.patch)
-(applies to `b3485b5e9`; needs D282's two fixes to match topology). A real gain needs the stitch's per-step work (vertex merge,
+Made to follow the rebuild exactly, it gave identical records and no gain: the saved time had been exactly the steps
+that make the records the rebuild's. **The owner then chose the faster version (D283)**: frozen faces keep their input
+loops, edges, vertices and surfaces; record order and last digits may change. Landed with the R10.1 edge pick made
+order-independent and the frozen exports and their oracle readings (ezdxf, usd-core, MuJoCo) re-made. Gain: rounded
+plate + 12 / 24 / 48 bosses −13 / −10 / −12 %. A larger gain needs the stitch's remaining per-step work (vertex merge,
 T-junction search, `checkBrep`) done only near the faces that changed.
 
 Traps worth reusing:

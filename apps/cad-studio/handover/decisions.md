@@ -14519,3 +14519,39 @@ what is compared, not only how fast.
 
 **Also.** `scripts/code-shape.mjs` no longer counts a for-of's iterable or a for's initializer as inside the loop (they
 are evaluated once); the baseline is re-recorded lower (loop-spread 295 → 274, loop-literal 82 → 75).
+
+## D283 — Incremental stitch: far faces keep their input loops; record order may change (2026-10-28)
+
+**Owner, 2026-10-28**: apply the faster incremental stitch (D282's measured −13 %), accepting that edge and vertex
+order and last-digit coordinates change; update the tests and frozen files that read them.
+
+**Change.** In the analytic Boolean, a face kept whole and far from the other solid (no cut, 1000 tolerances clear of
+its box; not a NURBS face through a pole) is *frozen*: the stitch takes its loops, edges, vertices and surface from its
+input B-rep instead of rebuilding them, and puts its edges in first; neighbours find them as they find a copy of a
+curve. A face is frozen only where its rebuilt boundary would be its input loops one for one (no curve dropped, halved
+or fitted in pieces), so its edges are the ones the rebuild would make. Any `BrepError` rebuilds the whole as before.
+D282's two fixes (arcs past π + 1e-12; repeated names ordered with a tolerance) are what make the topology the same.
+
+**What changes and what does not.**
+- Same: validity, bodies, faces, edges, vertices, volume and centroid on every bench case; edge names (as a set) at all
+  13 steps of the rounded plate + 12 bosses. No fallback on the bench.
+- Different: the order of edges and vertices in the B-rep, an edge's direction where the input's is kept, and the last
+  digits of frozen faces' points (the input's, not re-derived).
+- Time (median of 5, best of two rounds): rounded plate + 12 / 24 / 48 bosses −13 / −10 / −12 %; tilted boxes 48 −4 %;
+  the rest within noise.
+
+**Records updated.**
+- `test/r10-1.test.mjs`: the rod-on-plate junction was picked as "the first straight edge at z = 10 with y > 0", which
+  the plate's own edge at y = 20 also is; now y < 10 too (by where it lies, not its place in the list).
+- Kernel `conformance/r12/flat-dxf/*`: re-written with the ezdxf oracle (`flat-dxf-fixtures.mjs`); coordinates move in
+  the last digit (24.178318229274428 → …424).
+- `conformance/r14/tables/bends`: the drawing-table DXF re-frozen (`UPDATE_DXF_FIXTURES`) and read again by ezdxf
+  (`dxf-oracle.py`): the same 107 entities; 17 lines run the other way and the order differs.
+- `conformance/rm/arm-6r`: `robot.sdf`, `robot.usda` (`UPDATE_USD_CASE`) and `robot.xml` (the same switch now also
+  re-freezes the MJCF, `test/robot-sdf-usd.test.ts`): poses and inertia in the last digits (0.040000000000000015 →
+  0.04), the USD mesh's triangulation. usd-core 26.8 read the new stage: its reading file is unchanged. MuJoCo 3.3.0
+  re-run (`mjcf-oracle.py`, meshes from `cad-cli mjcf`): every check passes; static values move by ≤ 2e-15, the
+  undamped 5 s hang's chaotic end values (`qvel_max` 74.5 → 56.2, `com_height_end`) by more. four-bar unchanged.
+- `cad-model/test/fixtures/robot-frozen-boundary.json` (the frozen arm's byte pin, test `robot-frozen-mass`): its three
+  non-inertial hashes and 54 refreshed inertia values re-pinned to the new files; the S0 `before` values unchanged.
+- The patch file `notes/patches/incremental-stitch-frozen-faces-2026-10-28.patch` (D282) is removed: it is in the source now.
