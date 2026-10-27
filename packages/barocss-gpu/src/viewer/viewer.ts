@@ -181,6 +181,8 @@ export class Viewer {
   shadowMapSize = 2048;
   /** Called after a lost device has been replaced and the scene re-uploaded. */
   onRecover: (() => void) | null = null;
+  /** Called when device recovery fails; the original failure is available as cause. */
+  onRecoverError: ((error: ViewerError & { cause: unknown }) => void) | null = null;
   private clip: ClipFrame | null = null;
   /**
    * The clip plane (G2), or null: the meshes it clips are drawn, shadowed, picked and ray-cast only on its kept side. Read:
@@ -304,8 +306,9 @@ export class Viewer {
   private waiters: { resolve: () => void; reject: (error: unknown) => void }[] = [];
   private disposed = false;
   /** The device, for compute passes beside the drawing (G25, experimental): null before it is ready or once disposed. */
-  get computeDevice(): object | null { return this.disposed ? null : this.device ?? null; }
+  get computeDevice(): object | null { return this.ready ? this.device ?? null : null; }
   private recovering: Promise<void> | null = null;
+  private recoveryFailure: (ViewerError & { cause: unknown }) | null = null;
   private resizeObserver: ResizeObserver | null = null;
   private background: Background;
   private pixelRatio: number;
@@ -342,47 +345,61 @@ export class Viewer {
     const gpu = gpuOf();
     if (!gpu) throw new ViewerError('WEBGPU_UNAVAILABLE', 'WebGPU is not available in this browser');
     const adapter = await gpu.requestAdapter({ powerPreference: 'high-performance' });
+    this.alive();
     if (!adapter) throw new ViewerError('NO_ADAPTER', 'No WebGPU adapter');
     const device = await adapter.requestDevice();
-    const context = this.canvas.getContext('webgpu') as unknown as CanvasContext | null;
-    if (!context) throw new ViewerError('NO_CONTEXT', 'The canvas has no WebGPU context (is it used by another context?)');
-    this.device = device; this.context = context; this.format = gpu.getPreferredCanvasFormat();
-    device.onuncapturederror = e => this.report(e.error.message);
-    context.configure({ device, format: this.format, alphaMode: this.background ? 'opaque' : 'premultiplied', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.COPY_SRC });
-    await this.createPipelines();
-    this.outputBuffer = device.createBuffer({ size: OUTPUT_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer output' });
-    this.frameBuffer = device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer frame' });
-    this.shadowFrameBuffers = Array.from({ length: MAX_SHADOWS }, (_, i) => device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: `viewer shadow frame ${i}` }));
-    this.shadowSampler = (device as unknown as { createSampler(d: object): object }).createSampler({ compare: 'less', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
-    this.mipSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear' });
-    this.rampSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
-    this.atlasSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
-    this.mipPipelines.clear();
-    this.envPipelines.clear(); this.bloomPipelines.clear(); this.focusPipeline = null; this.releaseFocus();
-    this.envSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', mipmapFilter: 'linear', addressModeU: 'repeat', addressModeV: 'clamp-to-edge' });
-    const white = device.createTexture({ size: [1, 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer white' });
-    device.queue.writeTexture({ texture: white }, new Uint8Array([255, 255, 255, 255]), { bytesPerRow: 4 }, [1, 1]);
-    this.black = device.createTexture({ size: [1, 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer black' });
-    device.queue.writeTexture({ texture: this.black }, new Uint8Array([0, 0, 0, 0]), { bytesPerRow: 4 }, [1, 1]);
-    this.bloomChain = null;
-    this.zeroParams = device.createBuffer({ size: 64, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer no params' });
-    this.white = { texture: white, group: device.createBindGroup({ layout: this.materialLayout, entries: this.materialEntries(white, this.mipSampler, this.zeroParams, undefined, white) }) };
-    this.identityInstance = device.createBuffer({ size: INSTANCE_STRIDE, usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label: 'viewer identity instance' });
-    device.queue.writeBuffer(this.identityInstance, 0, new Uint8Array(packInstances({ transforms: identity() }).data));
-    this.emptyShadow = device.createTexture({ size: [1, 1], format: 'depth32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no shadow' });
-    this.emptyFront = device.createTexture({ size: [1, 1], format: 'rg32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer no caps probe' });
-    this.emptyFrontSamples = device.createTexture({ size: [1, 1], format: CAP_SAMPLES_FORMAT, sampleCount: SAMPLES, usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no caps samples' });
-    this.brdfLut = device.createTexture({ size: [BRDF_LUT_SIZE, BRDF_LUT_SIZE], format: 'rg16float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer BRDF table' });
-    this.envPass('fsLut', this.white.texture, this.brdfLut, 0, 'rg16float', [0, 0, 1, 0]);
-    this.shadowMap = null; this.shadowLayers = 0; this.shadowMask = 0; this.lightProbe = null;
-    this.shadowFrameGroups = []; this.shadowCapGroups = [];
-    for (const cache of this.shadowCache) cache.length = -1;
-    // (The targets were the lost device's: made again, and bound, when next drawn.)
-    this.targets = null; this.pickTargets = null; this.oit = null; this.atlasGpu = null;
-    this.bindFrames();
-    this.objectCapacity = 0; this.growObjects(Math.max(64, this.nextSlot));
-    for (const m of this.meshes) m.dirty = true;
-    device.lost.then(info => { if (!this.disposed && this.device === device) this.lose(info.message); });
+    let context: CanvasContext | null = null, configured = false;
+    try {
+      this.alive();
+      context = this.canvas.getContext('webgpu') as unknown as CanvasContext | null;
+      if (!context) throw new ViewerError('NO_CONTEXT', 'The canvas has no WebGPU context (is it used by another context?)');
+      this.device = device; this.context = context; this.format = gpu.getPreferredCanvasFormat();
+      device.onuncapturederror = e => this.report(e.error.message);
+      context.configure({ device, format: this.format, alphaMode: this.background ? 'opaque' : 'premultiplied', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.COPY_SRC });
+      configured = true;
+      await this.createPipelines();
+      this.alive();
+      this.outputBuffer = device.createBuffer({ size: OUTPUT_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer output' });
+      this.frameBuffer = device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer frame' });
+      this.shadowFrameBuffers = Array.from({ length: MAX_SHADOWS }, (_, i) => device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: `viewer shadow frame ${i}` }));
+      this.shadowSampler = (device as unknown as { createSampler(d: object): object }).createSampler({ compare: 'less', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
+      this.mipSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear' });
+      this.rampSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
+      this.atlasSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
+      this.mipPipelines.clear();
+      this.envPipelines.clear(); this.bloomPipelines.clear(); this.focusPipeline = null; this.releaseFocus();
+      this.envSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', mipmapFilter: 'linear', addressModeU: 'repeat', addressModeV: 'clamp-to-edge' });
+      const white = device.createTexture({ size: [1, 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer white' });
+      device.queue.writeTexture({ texture: white }, new Uint8Array([255, 255, 255, 255]), { bytesPerRow: 4 }, [1, 1]);
+      this.black = device.createTexture({ size: [1, 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer black' });
+      device.queue.writeTexture({ texture: this.black }, new Uint8Array([0, 0, 0, 0]), { bytesPerRow: 4 }, [1, 1]);
+      this.bloomChain = null;
+      this.zeroParams = device.createBuffer({ size: 64, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer no params' });
+      this.white = { texture: white, group: device.createBindGroup({ layout: this.materialLayout, entries: this.materialEntries(white, this.mipSampler, this.zeroParams, undefined, white) }) };
+      this.identityInstance = device.createBuffer({ size: INSTANCE_STRIDE, usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label: 'viewer identity instance' });
+      device.queue.writeBuffer(this.identityInstance, 0, new Uint8Array(packInstances({ transforms: identity() }).data));
+      this.emptyShadow = device.createTexture({ size: [1, 1], format: 'depth32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no shadow' });
+      this.emptyFront = device.createTexture({ size: [1, 1], format: 'rg32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer no caps probe' });
+      this.emptyFrontSamples = device.createTexture({ size: [1, 1], format: CAP_SAMPLES_FORMAT, sampleCount: SAMPLES, usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no caps samples' });
+      this.brdfLut = device.createTexture({ size: [BRDF_LUT_SIZE, BRDF_LUT_SIZE], format: 'rg16float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer BRDF table' });
+      this.envPass('fsLut', this.white.texture, this.brdfLut, 0, 'rg16float', [0, 0, 1, 0]);
+      this.shadowMap = null; this.shadowLayers = 0; this.shadowMask = 0; this.lightProbe = null;
+      this.shadowFrameGroups = []; this.shadowCapGroups = [];
+      for (const cache of this.shadowCache) cache.length = -1;
+      // (The targets were the lost device's: made again, and bound, when next drawn.)
+      this.targets = null; this.pickTargets = null; this.oit = null; this.atlasGpu = null;
+      this.bindFrames();
+      this.objectCapacity = 0; this.growObjects(Math.max(64, this.nextSlot));
+      for (const m of this.meshes) m.dirty = true;
+      device.lost.then(info => { if (!this.disposed && this.device === device) this.lose(info.message); });
+    } catch (error) {
+      // dispose() may already have released a device published before an asynchronous pipeline wait.
+      if (!this.disposed || this.device !== device) {
+        if (configured) try { context?.unconfigure(); } catch { /* Keep the initial error. */ }
+        try { device.destroy(); } catch { /* Keep the initial error. */ }
+      }
+      throw error;
+    }
   }
 
   /** The frame bind groups: the scene's samples the shadow map; the shadow pass's must not. */
@@ -1009,14 +1026,14 @@ export class Viewer {
     this.requestRender();
   }
 
-  /** Whether the viewer can draw: not disposed and not replacing a lost device. */
-  get ready(): boolean { return !this.disposed && !this.recovering; }
+  /** Whether the viewer can draw: false while disposed, recovering, or after recovery fails. */
+  get ready(): boolean { return !this.disposed && !this.recovering && !this.recoveryFailure; }
 
   /** The frame callback, made once (not a closure a request; PERF3 C17). */
   private readonly scheduledRun = (): void => { this.scheduled = 0; this.renderCanvas(true); };
   /** Draw on the next animation frame (several requests make one frame). */
   requestRender(): void {
-    if (this.disposed) return;
+    if (this.disposed || this.recoveryFailure) return;
     if (this.options.onRequestRender) { this.options.onRequestRender(); return; }
     if (this.scheduled) return;
     const raf = (globalThis as { requestAnimationFrame?: (f: () => void) => number }).requestAnimationFrame;
@@ -1033,13 +1050,14 @@ export class Viewer {
   /** Resolves once the next frame has been drawn and the GPU has finished it.
    * Rejects if a render target map is no longer valid. */
   frame(): Promise<void> {
+    if (this.disposed) return Promise.reject(new ViewerError('DISPOSED', 'The viewer has been disposed'));
+    if (this.recoveryFailure) return Promise.reject(this.recoveryFailure);
     return new Promise((resolve, reject) => { this.waiters.push({ resolve, reject }); this.requestRender(); });
   }
 
   /** Make an independent output. Explicit dimensions are independent of later canvas resizing. */
   createRenderTarget(options?: RenderTargetOptions): RenderTarget {
-    this.alive();
-    if (this.recovering) throw new ViewerError('DEVICE_LOST', 'The viewer is replacing its device');
+    this.requireDevice();
     if (options !== undefined && (options === null || typeof options !== 'object')) throw new ViewerError('SIZE_INVALID', 'Render target options need width and height');
     const width = options === undefined ? this.canvas.width : options.width, height = options === undefined ? this.canvas.height : options.height, device = this.device;
     const maxDimension = device.limits.maxTextureDimension2D, maxBuffer = device.limits.maxBufferSize;
@@ -1087,7 +1105,7 @@ export class Viewer {
   }
 
   private renderCanvas(scheduled: boolean): void {
-    if (this.disposed || this.recovering) return;
+    if (this.disposed || this.recovering || this.recoveryFailure) return;
     try { this.validateTargetMaps(); } catch (error) {
       this.cancelScheduled();
       for (const waiter of this.waiters.splice(0)) waiter.reject(error);
@@ -1884,7 +1902,7 @@ export class Viewer {
    * (bloom, DOF, SSAO, contact shadows, outlines) are excluded. Section caps and custom shaders are explicitly refused.
    */
   async createPathTrace(options: PathTraceOptions = {}): Promise<PathTraceSession> {
-    this.alive();
+    this.requireDevice();
     for (const mesh of this.meshes) if (mesh.visible && mesh.bounded && !mesh.geometry.disposed && mesh.geometry.topology === 'triangles' && mesh.material.colorWrite !== false && !mesh.material.shadowOnly && mesh.material.map instanceof RenderTargetTexture) throw new ViewerError('PATH_TRACE_UNSUPPORTED', 'Path tracing cannot sample a render target');
     this.prepareCamera();
     const device = this.device;
@@ -1899,7 +1917,7 @@ export class Viewer {
 
   /** Draw a frame and read it back: RGBA bytes, rows top to bottom. */
   async capture(): Promise<{ width: number; height: number; data: Uint8Array }> {
-    this.alive();
+    this.requireDevice();
     this.validateTargetMaps();
     const w = this.canvas.width, h = this.canvas.height, row = Math.ceil((w * 4) / 256) * 256;
     const buf = this.device.createBuffer({ size: row * h, usage: BufferUsage.MAP_READ | BufferUsage.COPY_DST, label: 'viewer capture' });
@@ -1929,7 +1947,7 @@ export class Viewer {
   private picking: Promise<unknown> = Promise.resolve();
 
   private async pickNow(x: number, y: number): Promise<PickHit | null> {
-    this.alive();
+    this.requireDevice();
     const px = Math.floor((x / Math.max(1, this.canvas.clientWidth || this.canvas.width)) * this.canvas.width);
     const py = Math.floor((y / Math.max(1, this.canvas.clientHeight || this.canvas.height)) * this.canvas.height);
     if (px < 0 || py < 0 || px >= this.canvas.width || py >= this.canvas.height) return null;
@@ -2222,17 +2240,27 @@ export class Viewer {
     for (const session of this.pathTraces) session.dispose();
     this.pathTraces.clear();
     for (const g of this.geometries) g.gpu = null;
-    this.recovering = (async () => {
+    // Defer recovery work until after the promise is assigned, even if unconfigure throws synchronously.
+    this.recovering = Promise.resolve().then(async () => {
+      if (this.disposed) { this.recovering = null; return; }
       try {
         this.context.unconfigure();
         await this.start();
-      } catch (e) {
-        this.report(`Device lost (${message}) and could not be recreated: ${(e as Error).message}`);
+      } catch (cause) {
+        if (this.disposed) return;
+        const detail = `Device lost (${message}) and could not be recreated: ${cause instanceof Error ? cause.message : String(cause)}`;
+        const error = Object.assign(new ViewerError('DEVICE_LOST', detail), { cause });
+        this.recoveryFailure = error;
+        this.cancelScheduled();
+        for (const waiter of this.waiters.splice(0)) waiter.reject(error);
+        try { this.report(detail); } catch (callbackError) { this.reportCallbackError('onError', callbackError); }
+        if (!this.disposed) try { this.onRecoverError?.(error); } catch (callbackError) { this.reportCallbackError('onRecoverError', callbackError); }
         return;
       } finally { this.recovering = null; }
-      this.requestRender();
-      this.onRecover?.();
-    })();
+      if (this.disposed) return;
+      try { this.requestRender(); } catch (callbackError) { this.reportCallbackError('onRequestRender', callbackError); }
+      if (!this.disposed) try { this.onRecover?.(); } catch (callbackError) { this.reportCallbackError('onRecover', callbackError); }
+    });
   }
 
   /** @internal For tests: wait for a device-loss recovery in progress. */
@@ -2245,7 +2273,17 @@ export class Viewer {
     else console.error('[barocss viewer]', message); // eslint-disable-line no-console
   }
 
+  private reportCallbackError(callback: string, error: unknown): void {
+    // A host callback must not turn a reported recovery failure into an unhandled rejection.
+    try { console.error(`[barocss viewer] ${callback} callback failed`, error); } catch { /* The host's logger may also throw. */ } // eslint-disable-line no-console
+  }
+
   private alive(): void { if (this.disposed) throw new ViewerError('DISPOSED', 'The viewer has been disposed'); }
+  private requireDevice(): void {
+    this.alive();
+    if (this.recoveryFailure) throw this.recoveryFailure;
+    if (this.recovering) throw new ViewerError('DEVICE_LOST', 'The viewer is replacing its device');
+  }
 
   /** Release the device, every buffer and texture, and the canvas listeners. */
   dispose(): void {
@@ -2271,9 +2309,11 @@ export class Viewer {
     this.releaseBloom(); this.releaseFocus(); this.black?.destroy();
     for (const t of this.textures) t.dispose();
     this.textures.clear();
-    this.context?.unconfigure();
-    this.device?.destroy();
+    let cleanupError: unknown, cleanupFailed = false;
+    try { this.context?.unconfigure(); } catch (error) { cleanupError = error; cleanupFailed = true; }
+    try { this.device?.destroy(); } catch (error) { if (!cleanupFailed) { cleanupError = error; cleanupFailed = true; } }
     for (const waiter of this.waiters.splice(0)) waiter.resolve();
+    if (cleanupFailed) throw cleanupError;
   }
 }
 
