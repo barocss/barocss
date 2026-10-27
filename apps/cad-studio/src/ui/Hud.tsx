@@ -6,7 +6,7 @@ import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
-import { Icon, Kbd } from './atoms';
+import { Icon } from './atoms';
 
 /** The HUD's field box: 26 px, the studio's mono type, the accent ring when focused. */
 const FIELD = 'h-[26px]! w-full px-1.5! text-xs! font-medium [font-family:var(--mono)] bg-[var(--bg)] focus-visible:ring-1 focus-visible:ring-primary';
@@ -53,7 +53,6 @@ export function Hud({ store, onChange, onApply, onCancel }: Props) {
         {active.error.detail && <details><summary onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }}>Kernel detail</summary><code>{active.error.detail}</code></details>}
       </div>}
       <div className="hud-actions">
-        <span className="muted"><Kbd>Tab</Kbd> next <Kbd>Enter</Kbd> apply <Kbd>⇧Enter</Kbd> again <Kbd>Esc</Kbd> cancel</span>
         <span className="grow" />
         {/* Keep native button activation from also reaching the window's Apply shortcut. */}
         <Button variant="ghost" onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }} onClick={onCancel}>Cancel</Button>

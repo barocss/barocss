@@ -16,7 +16,7 @@ export const ToolButton = memo(function ToolButton({ c, ok, reason, on, onStart,
   onDragEnd(c: Command, e: React.DragEvent): void;
 }) {
   return <ToolIconButton state={on ? 'on' : ok ? 'idle' : 'off'} aria-label={c.label}
-    data-tip={c.label} data-tip-key={c.shortcut ?? ''} data-tip-desc={c.hint ?? ''} data-tip-off={reason} onClick={() => onStart(c)}
+    data-tip={c.label} data-tip-key={c.shortcut ?? ''} data-tip-off={reason} onClick={() => onStart(c)}
     {...(c.place && ok ? { draggable: true, onDragStart: (e: React.DragEvent) => onDragStart(c, e), onDragEnd: (e: React.DragEvent) => onDragEnd(c, e) } : {})}><Icon name={commandIconName(c.id, c.icon)} /></ToolIconButton>;
 });
 

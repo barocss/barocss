@@ -38,7 +38,7 @@ export function Timeline({ animation, time, playing, bodyKey, bodyLabel, onTime,
       <Input className={'dur ' + NUM} type="number" aria-label="Duration" min={0.1} step={0.5} value={animation.duration}
         onChange={e => { const v = Number(e.target.value); if (v >= 0.1) onChange({ ...animation, duration: v }); }} /><span className="mono">s</span>
       <label className="check-inline"><input type="checkbox" aria-label="Turntable" checked={animation.turntable} onChange={e => onChange({ ...animation, turntable: e.target.checked })} />Turntable</label>
-      {onExportVideo && <Button variant="ghost" aria-label="Export animation video" disabled={exporting} title="A WebM video of the animation over its duration (30 frames a second)" onClick={onExportVideo}>{exporting ? 'Recording…' : 'Video'}</Button>}
+      {onExportVideo && <Button variant="ghost" aria-label="Export animation video" disabled={exporting} title="A WebM video of the animation over its duration (30 frames a second)" onClick={onExportVideo}>{exporting ? 'Recording…' : 'Export video'}</Button>}
       <div className="sep" />
       {bodyKey ? <>
         <span className="muted small">{bodyLabel}</span>
@@ -47,7 +47,7 @@ export function Timeline({ animation, time, playing, bodyKey, bodyLabel, onTime,
         <Button variant="ghost" onClick={setKey}>Set key</Button>
         {keys.map(k => <span key={k.t} className="key-chip"><button className="link" title="Go to this key" onClick={() => onTime(k.t)}>{k.t}s</button>
           <button className="link" aria-label={`Remove key at ${k.t}s`} onClick={() => removeKey(k.t)}>×</button></span>)}
-      </> : <span className="muted small">{animated ? `${animated} animated bod${animated > 1 ? 'ies' : 'y'} · ` : ''}Select a body to key its position.</span>}
+      </> : <span className="muted small">{animated ? `${animated} animated bod${animated > 1 ? 'ies' : 'y'} · ` : ''}No body selected.</span>}
     </div>
   );
 }
