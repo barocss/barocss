@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCurve, evaluateSurface, curveEvaluator, surfaceEvaluator } from '../dist/core/math.js';
 import { segmentCurve, extrudedSurface } from '../dist/features/extruded-profile-solid.js';
-import { certifyNativeCurveD0, certifyNativeSurfaceD0, isNativeD0Error } from '../dist/core/native-d0-bound.js';
+import { certifyNativeCurveD0, certifyNativeSurfaceD0, certifyNativeD0Family, isNativeD0Error } from '../dist/core/native-d0-bound.js';
+import { brepFromPrismatic, prismaticFromProfile } from '../dist/features/prismatic-solid.js';
+import { buildCylindricalWrapAssembly } from '../dist/features/cylindrical-wrap-assembly.js';
 
 // Independent exact Bernstein oracle. It imports neither the certificate's arithmetic nor
 // SectionRationalContext. Finite sample comparisons are regression evidence only; the
@@ -180,4 +182,163 @@ test('one ledger preserves exact/direct limits and requested error budgets witho
   refusedCurve(source, 'SUPPORT', { errorBudgetL1: Number.MIN_VALUE }); refusedSurface(surface(2), 'BUDGET', { maxOperations: 1 });
   const exactConstant = curve(1); exactConstant.controlPoints = [[-0, 2, 3], [-0, 2, 3]];
   const tight = certifyNativeCurveD0(exactConstant, { errorBudgetL1: Number.MIN_VALUE }); proof(tight); assert.equal(tight.l1.upper, 0);
+});
+
+function adjacentNumber(value, direction) {
+  if (value === 0) return direction < 0 ? -Number.MIN_VALUE : Number.MIN_VALUE;
+  storage.setFloat64(0, value, false); const bits = storage.getBigUint64(0, false), step = BigInt(value > 0 ? direction : -direction);
+  storage.setBigUint64(0, bits + step, false); return storage.getFloat64(0, false);
+}
+function twoSpanCurve(id = 'two_span', a = 0) {
+  return { kind: 'curve', id, degree: 2, knots: [a, a, a, a + 0.5, a + 0.5, a + 1, a + 1, a + 1],
+    controlPoints: [[10, 0, -5], [10, 10, -5], [0, 10, -5], [-10, 10, -5], [-10, 0, -5]],
+    weights: [1, Math.SQRT1_2, 1, adjacentNumber(Math.SQRT1_2, -1), 1] };
+}
+function twoSpanSurface(id = 'two_surface', a = 0) {
+  const source = twoSpanCurve('basis', a), patch = extrudedSurface(source, -5, 25, id); return patch;
+}
+function piecewiseCurve(source, t) {
+  if (source.degree !== 2 || source.controlPoints.length !== 5) return exactCurve(source, t);
+  // This oracle chooses a polynomial Bernstein span directly. It does not call basisInto,
+  // a native split helper, a native evaluator or any certificate implementation.
+  const middle = source.knots[3], start = t < middle ? 0 : 2, left = start === 0 ? source.knots[2] : middle, right = start === 0 ? middle : source.knots[5];
+  const span = { ...source, knots: [left, left, left, right, right, right], controlPoints: source.controlPoints.slice(start, start + 3), weights: source.weights.slice(start, start + 3) };
+  return exactCurve(span, t);
+}
+function piecewiseSurface(source, u, v) {
+  if (source.degreeU !== 2 || source.controlPoints.length !== 5) return exactSurface(source, u, v);
+  const middle = source.knotsU[3], start = u < middle ? 0 : 2, left = start === 0 ? source.knotsU[2] : middle, right = start === 0 ? middle : source.knotsU[5];
+  const span = { ...source, knotsU: [left, left, left, right, right, right], controlPoints: source.controlPoints.slice(start, start + 3), weights: source.weights.slice(start, start + 3) };
+  return exactSurface(span, u, v);
+}
+function familyProof(receipt) {
+  assert.equal(receipt.authority, 'existing-native-basis-ordered-sum-projection'); assert.equal(receipt.globalTemplate, 'degree3-by1-count8-no-constant-axis-shortcut');
+  assert.deepEqual(receipt.constantAxes, [false, false, false]); assert.equal(receipt.meaning.nativeD0Certified, true);
+  for (const key of ['evaluatorReplacement', 'derivatives', 'pcurveBinding', 'topology', 'mass']) assert.equal(receipt.meaning[key], false);
+  assert.equal(receipt.counts.totalOperations, receipt.counts.operations + receipt.counts.directOperations);
+  assert.ok(receipt.counts.totalOperations <= receipt.limits.operations && receipt.limits.operations <= 200000);
+  assert.ok(receipt.counts.work <= 1048576 && receipt.counts.maximumObservedBits <= 8192 && receipt.counts.maximumDirectBits <= 8192);
+  assert.ok(receipt.family.structuralWork > 0 && receipt.family.structuralWork <= receipt.counts.work);
+  assert.equal(receipt.counts.work, receipt.counts.operations + receipt.counts.gcdSteps + receipt.counts.floatSearchSteps + receipt.counts.directOperations + receipt.family.structuralWork);
+  assert.equal(receipt.family.objects, receipt.curves.length + receipt.surfaces.length); assert.ok(receipt.family.objects <= 64 && receipt.family.storedPoles <= 512);
+  assert.ok(Object.isFrozen(receipt) && Object.isFrozen(receipt.curves) && Object.isFrozen(receipt.surfaces));
+  for (const bound of [...receipt.axes, receipt.l1]) assert.ok(compare(fromReceipt(bound.exact), fromNumber(bound.upper)) <= 0);
+  assert.ok(compare(fromReceipt(receipt.l1.exact), fromNumber(receipt.errorBudgetL1)) <= 0);
+  for (let i = 0; i < receipt.curves.length; i++) { assert.equal(receipt.curves[i].index, i); assert.ok(Object.isFrozen(receipt.curves[i].source)); }
+  for (let i = 0; i < receipt.surfaces.length; i++) { assert.equal(receipt.surfaces[i].index, i); assert.ok(Object.isFrozen(receipt.surfaces[i].source)); }
+}
+function refusedFamily(input, code, options) { assert.throws(() => certifyNativeD0Family(input, options), error => isNativeD0Error(error) && error.code === code); }
+function familyFromBrep(brep) {
+  const curves = [], surfaces = [];
+  for (const edge of brep.edges) curves.push(edge.curve);
+  for (const coedge of brep.coedges) { assert.ok(coedge.pcurve); curves.push(coedge.pcurve); }
+  for (const face of brep.faces) surfaces.push(face.surface);
+  return { curves, surfaces };
+}
+function originalCylinder() {
+  const solid = prismaticFromProfile({ outer: [{ kind: 'arc', start: [10, 0], center: [0, 0], direction: 'ccw' }], height: 30, from: -5, tag: 'post' });
+  return { solid: { kind: 'upright', solid }, brep: brepFromPrismatic(solid, { id: 'post' }) };
+}
+
+test('one family covers actual original half-walls, edges, cap pcurves and new cubic sides with their original IDs', () => {
+  const part = originalCylinder(), original = structuredClone(part);
+  const assembly = buildCylindricalWrapAssembly(part, [{ outer: [[0.125, 0.25], [0.375, 0.25], [0.375, 0.75], [0.125, 0.75]], holes: [] }], { id: 'family_pad', height: 10 });
+  const input = familyFromBrep(assembly.brep), before = structuredClone(input), receipt = certifyNativeD0Family(input); familyProof(receipt);
+  let halfWalls = 0, halfCurves = 0, capSurfaces = 0, cubicSides = 0, positiveWeight, negativeWeight;
+  for (const member of receipt.curves) {
+    assert.deepEqual(member.source, input.curves[member.index]);
+    if (member.source.degree === 2 && member.source.controlPoints.length === 5) { halfCurves++; assert.equal(member.template, 'quadratic-two-half-spans-five-poles'); }
+    const source = member.source, a = member.domain[0], b = member.domain[1], fast = curveEvaluator(source), selected = [a, b, a + (b - a) / 3];
+    if (member.spans.length === 2) selected.push(member.spans[0][1], adjacentNumber(member.spans[0][1], -1), adjacentNumber(member.spans[0][1], 1));
+    if (a === 0) selected.push(Number.MIN_VALUE);
+    for (const t of selected) { const point = evaluateCurve(source, t); assert.deepEqual(fast(t), point); enclosed(point, piecewiseCurve(source, t), receipt); }
+  }
+  for (const member of receipt.surfaces) {
+    assert.deepEqual(member.source, input.surfaces[member.index]); const source = member.source;
+    if (source.controlPoints.length === 5) {
+      halfWalls++; assert.equal(member.template, 'quadratic-two-half-spans-five-by-two-poles');
+      if (source.controlPoints[1][0][1] > 0) positiveWeight = source.weights[1][0]; else negativeWeight = source.weights[1][0];
+    }
+    if (source.degreeU === 1 && source.degreeV === 1) capSurfaces++;
+    if (source.degreeU === 3 && source.degreeV === 1) cubicSides++;
+    const u0 = member.domain.u[0], u1 = member.domain.u[1], v0 = member.domain.v[0], v1 = member.domain.v[1], fast = surfaceEvaluator(source);
+    const selected = [[u0, v0], [u1, v1], [u0 + (u1 - u0) / 3, v0 + (v1 - v0) / 3]];
+    if (member.spansU.length === 2) for (const u of [adjacentNumber(member.spansU[0][1], -1), member.spansU[0][1], adjacentNumber(member.spansU[0][1], 1)]) selected.push([u, 0.5]);
+    for (const [u, v] of selected) { const point = evaluateSurface(source, u, v); assert.deepEqual(fast(u, v), point); enclosed(point, piecewiseSurface(source, u, v), receipt); }
+  }
+  assert.equal(halfWalls, 2); assert.ok(halfCurves >= 4); assert.equal(capSurfaces, 2); assert.equal(cubicSides, 4); assert.notEqual(positiveWeight, negativeWeight);
+  assert.deepEqual(part, original); assert.deepEqual(input, before); assert.ok(receipt.family.objects <= 64);
+  // This is a D0 family receipt; the assembly's separate physical/mass qualifications stay false.
+  assert.equal(assembly.proof.solidQualified, false);
+});
+
+test('two half-spans cover the repeated-knot right branch, endpoints and neighboring binary64 parameters', () => {
+  const curves = [twoSpanCurve('positive'), twoSpanCurve('negative', -1), twoSpanCurve('zero_middle', -0.5)], surfaces = [twoSpanSurface('wall'), twoSpanSurface('other_wall', -0.5)];
+  const receipt = certifyNativeD0Family({ curves, surfaces }); familyProof(receipt);
+  for (const member of receipt.curves) {
+    const middle = member.spans[0][1], fast = curveEvaluator(member.source);
+    for (const t of [member.domain[0], adjacentNumber(middle, -1), middle, adjacentNumber(middle, 1), member.domain[1]]) enclosed(fast(t), piecewiseCurve(member.source, t), receipt);
+    // Standalone admission deliberately remains narrow.
+    refusedCurve(member.source, 'SUPPORT');
+  }
+  for (const member of receipt.surfaces) {
+    const middle = member.spansU[0][1], fast = surfaceEvaluator(member.source);
+    for (const u of [member.domain.u[0], adjacentNumber(middle, -1), middle, adjacentNumber(middle, 1), member.domain.u[1]]) enclosed(fast(u, 1 / 3), piecewiseSurface(member.source, u, 1 / 3), receipt);
+    refusedSurface(member.source, 'SUPPORT');
+  }
+});
+
+test('global envelopes come only from actual slots and conservatively cover lower-degree standalone errors', () => {
+  const a = curve(1), b = curve(3), patch = surface(2); a.id = b.id = patch.id = 'repeated';
+  const input = { curves: [a, b], surfaces: [patch] }, receipt = certifyNativeD0Family(input); familyProof(receipt);
+  assert.deepEqual(receipt.envelope, { minimumWeight: 0.5, maximumWeight: 1, coordinateAbs: [10000, 48.5, 10000] });
+  assert.deepEqual(receipt.curves[0].source, a); assert.deepEqual(receipt.curves[1].source, b); assert.deepEqual(receipt.surfaces[0].source, patch);
+  assert.equal(receipt.curves[0].source.id, receipt.curves[1].source.id); assert.notDeepEqual(receipt.curves[0].source.controlPoints, receipt.curves[1].source.controlPoints);
+  for (const member of receipt.curves) for (const t of [0, Number.MIN_VALUE, 0.1, 0.5, 1]) enclosed(evaluateCurve(member.source, t), exactCurve(member.source, t), receipt);
+  const standalone = certifyNativeCurveD0(a); for (let axis = 0; axis < 3; axis++) assert.ok(compare(fromReceipt(standalone.axes[axis].exact), fromReceipt(receipt.axes[axis].exact)) <= 0);
+  const constant = curve(1); constant.controlPoints = [[-0, 1, 2], [-0, 1, 2]];
+  const constantFamily = certifyNativeD0Family({ curves: [constant], surfaces: [] }); assert.deepEqual(constantFamily.constantAxes, [false, false, false]); assert.ok(constantFamily.l1.upper > 0);
+});
+
+test('repeated pcurve IDs with different geometry preserve kind and original slot mapping without aliasing', () => {
+  const a = curve(1), b = curve(2), patch = surface(1); a.id = b.id = patch.id = 'pcurve';
+  const input = { curves: [a, b], surfaces: [patch] }, before = structuredClone(input), receipt = certifyNativeD0Family(input); familyProof(receipt);
+  assert.deepEqual(receipt.curves[0].source, before.curves[0]); assert.deepEqual(receipt.curves[1].source, before.curves[1]); assert.deepEqual(receipt.surfaces[0].source, before.surfaces[0]);
+  assert.notEqual(receipt.curves[0].source, receipt.curves[1].source); assert.notEqual(receipt.curves[0].source.controlPoints, a.controlPoints);
+  a.controlPoints[0][0] = 123; b.weights[0] = 0.75; patch.controlPoints[0][0][0] = -123;
+  assert.deepEqual(receipt.curves[0].source, before.curves[0]); assert.deepEqual(receipt.curves[1].source, before.curves[1]); assert.deepEqual(receipt.surfaces[0].source, before.surfaces[0]);
+  assert.throws(() => { receipt.curves[1].source.weights[0] = 1; }, TypeError); assert.throws(() => { receipt.curves[1].index = 0; }, TypeError);
+  const json = JSON.parse(JSON.stringify(receipt)); assert.deepEqual(json.curves[1].source, before.curves[1]); assert.deepEqual(json.counts, receipt.counts); assert.equal(json.curves[1].index, 1);
+});
+
+test('family caps count every slot and every stored pole even when geometry and IDs repeat', () => {
+  const sixtyFour = [];
+  for (let i = 0; i < 64; i++) sixtyFour.push(curve(1));
+  const boundary = certifyNativeD0Family({ curves: sixtyFour, surfaces: [] }); familyProof(boundary); assert.equal(boundary.family.objects, 64); assert.equal(boundary.family.storedPoles, 128);
+  sixtyFour.push(curve(1)); refusedFamily({ curves: sixtyFour, surfaces: [] }, 'BUDGET');
+  const patches = []; for (let i = 0; i < 51; i++) patches.push(twoSpanSurface());
+  const atPoles = certifyNativeD0Family({ curves: [curve(1)], surfaces: patches }); familyProof(atPoles); assert.equal(atPoles.family.storedPoles, 512);
+  patches.push(twoSpanSurface()); refusedFamily({ curves: [], surfaces: patches }, 'BUDGET');
+});
+
+test('family rejects unsupported knots and any malformed slot without accepting a partial family', () => {
+  refusedFamily({ curves: [], surfaces: [] }, 'INPUT'); refusedFamily({ curves: [curve(1)], surfaces: [], template: 'trusted' }, 'INPUT');
+  const uneven = twoSpanCurve(); uneven.knots[3] = uneven.knots[4] = 0.25; refusedFamily({ curves: [curve(1), uneven], surfaces: [] }, 'SUPPORT');
+  const simpleKnot = curve(2); simpleKnot.controlPoints.push([1, 2, 3]); simpleKnot.weights.push(1); simpleKnot.knots = [0, 0, 0, 0.5, 1, 1, 1]; refusedFamily({ curves: [simpleKnot], surfaces: [] }, 'SUPPORT');
+  const shifted = twoSpanSurface('shifted', 1); refusedFamily({ curves: [], surfaces: [shifted] }, 'SUPPORT');
+  const extra = curve(1); extra.version = 1; refusedFamily({ curves: [curve(1), extra], surfaces: [] }, 'INPUT');
+  const invalid = surface(1); invalid.weights[1][0] = 0; refusedFamily({ curves: [curve(1)], surfaces: [invalid] }, 'INPUT');
+  const light = curve(1); light.weights[0] = 0.49; refusedFamily({ curves: [light], surfaces: [] }, 'SUPPORT');
+  const longId = curve(1); longId.id = 'x'.repeat(210000); refusedFamily({ curves: [longId, longId, longId, longId, longId], surfaces: [] }, 'BUDGET');
+  let reads = 0; const accessor = curve(1); Object.defineProperty(accessor, 'weights', { enumerable: true, get() { reads++; return [1, 1]; } }); refusedFamily({ curves: [accessor], surfaces: [] }, 'INPUT'); assert.equal(reads, 0);
+  const sparse = { curves: [curve(1)], surfaces: [] }; delete sparse.curves[0]; refusedFamily(sparse, 'INPUT');
+});
+
+test('one global family ledger tightens budget and leaves standalone serialized results and counts unchanged', () => {
+  const source = curve(2), patch = surface(2), curveBefore = certifyNativeCurveD0(source), surfaceBefore = certifyNativeSurfaceD0(patch), input = { curves: [source, twoSpanCurve()], surfaces: [patch, twoSpanSurface()] };
+  const receipt = certifyNativeD0Family(input); familyProof(receipt);
+  refusedFamily(input, 'BUDGET', { maxOperations: receipt.counts.totalOperations - 1 }); refusedFamily(input, 'BUDGET', { maxOperations: 1 });
+  refusedFamily(input, 'SUPPORT', { errorBudgetL1: Number.MIN_VALUE }); refusedFamily(input, 'INPUT', { maxOperations: 200001 });
+  assert.deepEqual(certifyNativeCurveD0(source), curveBefore); assert.deepEqual(certifyNativeSurfaceD0(patch), surfaceBefore);
+  assert.equal(JSON.stringify(certifyNativeCurveD0(source)), JSON.stringify(curveBefore)); assert.equal(JSON.stringify(certifyNativeSurfaceD0(patch)), JSON.stringify(surfaceBefore));
 });

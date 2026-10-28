@@ -47,6 +47,28 @@ export interface NativeSurfaceD0Certificate extends NativeD0Common {
   readonly template: 'single-clamped-bezier-surface-degreeU1-to3-degreeV1';
   readonly domain: { readonly u: readonly [number, number]; readonly v: readonly [number, number] };
 }
+export interface NativeD0FamilyInput { readonly curves: readonly Curve[]; readonly surfaces: readonly Surface[] }
+export interface NativeD0FamilyCurve {
+  readonly index: number;
+  readonly source: Curve;
+  readonly template: NativeCurveD0Certificate['template'] | 'quadratic-two-half-spans-five-poles';
+  readonly domain: readonly [number, number];
+  readonly spans: readonly (readonly [number, number])[];
+}
+export interface NativeD0FamilySurface {
+  readonly index: number;
+  readonly source: Surface;
+  readonly template: NativeSurfaceD0Certificate['template'] | 'quadratic-two-half-spans-five-by-two-poles';
+  readonly domain: NativeSurfaceD0Certificate['domain'];
+  readonly spansU: readonly (readonly [number, number])[];
+}
+export interface NativeD0FamilyCertificate extends NativeD0Common {
+  readonly curves: readonly NativeD0FamilyCurve[];
+  readonly surfaces: readonly NativeD0FamilySurface[];
+  readonly globalTemplate: 'degree3-by1-count8-no-constant-axis-shortcut';
+  readonly envelope: { readonly minimumWeight: number; readonly maximumWeight: number; readonly coordinateAbs: readonly [number, number, number] };
+  readonly family: { readonly objects: number; readonly storedPoles: number; readonly maximumObjects: 64; readonly maximumStoredPoles: 512; readonly structuralWork: number };
+}
 const MAX_OPERATIONS = 200000, MAX_BITS = 8192, MAX_WORK = 1048576;
 const SCALE = 1n << 128n;
 const CURVE_FIELDS = ['kind', 'id', 'degree', 'knots', 'controlPoints', 'weights'];
@@ -81,11 +103,16 @@ class Context {
   readonly eta = this.q.rat(1n, 1n << 1074n);
   directOperations = 0;
   maximumDirectBits = 0;
+  private structuralWork = 0;
   constructor(readonly maximum: number) { this.check(); }
   check(): void {
     const counts = this.q.counts();
     if (counts.operations + this.directOperations > this.maximum) fail('BUDGET', 'the shared exact/direct operation budget was exceeded');
-    if (counts.operations + counts.gcdSteps + counts.floatSearchSteps + this.directOperations > MAX_WORK) fail('BUDGET', 'the shared arithmetic work budget was exceeded');
+    if (counts.operations + counts.gcdSteps + counts.floatSearchSteps + this.directOperations + this.structuralWork > MAX_WORK) fail('BUDGET', 'the shared arithmetic work budget was exceeded');
+  }
+  chargeWork(amount: number): void {
+    if (!Number.isSafeInteger(amount) || amount < 0) fail('BUDGET', 'a structural work charge must be a bounded nonnegative integer');
+    this.structuralWork += amount; this.check();
   }
   integer(value: bigint): bigint {
     this.directOperations++;
@@ -116,7 +143,7 @@ class Context {
   counts(): NativeD0Common['counts'] {
     this.check(); const value = this.q.counts();
     return { ...value, directOperations: this.directOperations, totalOperations: value.operations + this.directOperations,
-      work: value.operations + value.gcdSteps + value.floatSearchSteps + this.directOperations, maximumDirectBits: this.maximumDirectBits };
+      work: value.operations + value.gcdSteps + value.floatSearchSteps + this.directOperations + this.structuralWork, maximumDirectBits: this.maximumDirectBits };
   }
 }
 function freeze<T>(value: T): T {
@@ -223,4 +250,85 @@ export function certifyNativeSurfaceD0(input: Surface, given: NativeD0Options = 
   const result = finish(points.length, basis, ranges(points, weights, ctx), settings, ctx);
   return freeze({ ...result, source, template: 'single-clamped-bezier-surface-degreeU1-to3-degreeV1',
     domain: { u: [source.knotsU[source.degreeU], source.knotsU[source.degreeU + 1]], v: [source.knotsV[1], source.knotsV[2]] } } as NativeSurfaceD0Certificate);
+}
+
+// The standalone entrypoints above retain their original templates, output and ledger order.
+// Family admission/structural charges below are used only by the family entrypoint.
+function familyRecord(input: unknown, fields: readonly string[]): Record<string, unknown> {
+  if (!input || typeof input !== 'object' || Array.isArray(input) || !hasExactOwnFields(input as Record<string, unknown>, fields)) fail('INPUT', 'family sources must have exactly the current fields');
+  return input as Record<string, unknown>;
+}
+/** Charge the bounded own snapshot, structural walk and native validation conservatively. */
+function familyStructure(input: unknown, ctx: Context): number {
+  const cost = 4 + (typeof input === 'string' ? input.length : 0);
+  ctx.chargeWork(cost); let charged = cost;
+  if (input !== null && typeof input === 'object') for (const value of Object.values(input)) charged += familyStructure(value, ctx);
+  return charged;
+}
+function familySpans(knots: number[], degree: number, count: number, ctx: Context): [number, number][] {
+  if (count === degree + 1 && degree <= 3) return [domain(knots, degree, ctx)];
+  if (degree !== 2 || count !== 5 || knots.length !== 8 || knots[3] !== knots[4]) fail('SUPPORT', 'the family admits one Bezier span or exactly two quadratic half-spans');
+  const a = knots[2], middle = knots[3], b = knots[5];
+  if (Math.abs(a) > 1 || Math.abs(b) > 1) fail('SUPPORT', 'the family basis scale must stay exactly one');
+  const q = ctx.q, half = q.rat(1n, 2n), left = q.sub(q.from(middle), q.from(a)), right = q.sub(q.from(b), q.from(middle));
+  if (q.compare(left, half) !== 0 || q.compare(right, half) !== 0) fail('SUPPORT', 'both exact quadratic span widths must be 0.5');
+  ctx.check(); return [[a, middle], [middle, b]];
+}
+function familyCurve(input: unknown, index: number, ctx: Context): NativeD0FamilyCurve {
+  const source = familyRecord(input, CURVE_FIELDS) as unknown as Curve;
+  try { validateCurve(source); } catch { fail('INPUT', 'a family Curve must contain valid current native data'); }
+  const spans = familySpans(source.knots, source.degree, source.controlPoints.length, ctx);
+  return { index, source, template: spans.length === 1 ? 'single-clamped-bezier-curve-degree1-to3' : 'quadratic-two-half-spans-five-poles',
+    domain: [spans[0][0], spans[spans.length - 1][1]], spans };
+}
+function familySurface(input: unknown, index: number, ctx: Context): NativeD0FamilySurface {
+  const source = familyRecord(input, SURFACE_FIELDS) as unknown as Surface;
+  try { validateSurface(source); } catch { fail('INPUT', 'a family Surface must contain valid current native data'); }
+  if (source.degreeV !== 1 || source.controlPoints[0].length !== 2) fail('SUPPORT', 'the family surface V direction must be one linear span');
+  const spansU = familySpans(source.knotsU, source.degreeU, source.controlPoints.length, ctx), v = domain(source.knotsV, 1, ctx);
+  return { index, source, template: spansU.length === 1 ? 'single-clamped-bezier-surface-degreeU1-to3-degreeV1' : 'quadratic-two-half-spans-five-by-two-poles',
+    domain: { u: [spansU[0][0], spansU[spansU.length - 1][1]], v }, spansU };
+}
+function familyPole(point: Point, weight: number, points: Point[], weights: number[]): void {
+  if (points.length >= 512) fail('BUDGET', 'the family exceeds 512 stored poles'); points.push(point); weights.push(weight);
+}
+function familyEnvelope(points: readonly Point[], weights: readonly number[]): NativeD0FamilyCertificate['envelope'] {
+  let minimumWeight = 1, maximumWeight = 0; const coordinateAbs: [number, number, number] = [0, 0, 0];
+  for (let i = 0; i < points.length; i++) {
+    minimumWeight = Math.min(minimumWeight, weights[i]); maximumWeight = Math.max(maximumWeight, weights[i]);
+    for (let axis = 0; axis < 3; axis++) coordinateAbs[axis] = Math.max(coordinateAbs[axis], Math.abs(points[i][axis]));
+  }
+  return { minimumWeight, maximumWeight, coordinateAbs };
+}
+/**
+ * One common bound for actual, immutable family snapshots. All recurrences are nonnegative
+ * and monotone in degree, term count, maximum weight/coordinate and inverse minimum weight.
+ * Degree3x1 with eight terms therefore bounds curves with <=4 active poles and every admitted
+ * surface with <=4x2 active poles. Constant-axis restoration can only reduce their D0 errors.
+ *
+ * For the explicit degree2 two-span template, basisInto selects three active poles on either
+ * half-span. At the repeated middle knot its binary span search selects the right span; at the
+ * final endpoint it selects that same final span. Every fraction denominator is still 0.5,
+ * scale is1, and the same global fraction/basis recurrence covers both endpoint branches.
+ */
+export function certifyNativeD0Family(input: NativeD0FamilyInput, given: NativeD0Options = {}): NativeD0FamilyCertificate {
+  const settings = options(given), ctx = new Context(settings.maxOperations), data = record(input, ['curves', 'surfaces']);
+  if (!Array.isArray(data.curves) || !Array.isArray(data.surfaces)) fail('INPUT', 'family curves and surfaces must be dense own arrays');
+  const count = data.curves.length + data.surfaces.length;
+  if (count === 0) fail('INPUT', 'a native D0 family must contain at least one object');
+  if (count > 64) fail('BUDGET', 'the family exceeds 64 source objects');
+  const structuralWork = familyStructure(data, ctx), curves: NativeD0FamilyCurve[] = [], surfaces: NativeD0FamilySurface[] = [], points: Point[] = [], weights: number[] = [];
+  for (let index = 0; index < data.curves.length; index++) {
+    const item = familyCurve(data.curves[index], index, ctx); curves.push(item);
+    for (let i = 0; i < item.source.controlPoints.length; i++) familyPole(item.source.controlPoints[i], item.source.weights[i], points, weights);
+  }
+  for (let index = 0; index < data.surfaces.length; index++) {
+    const item = familySurface(data.surfaces[index], index, ctx); surfaces.push(item);
+    for (let i = 0; i < item.source.controlPoints.length; i++) for (let j = 0; j < 2; j++) familyPole(item.source.controlPoints[i][j], item.source.weights[i][j], points, weights);
+  }
+  const range = ranges(points, weights, ctx); range.constant = [false, false, false];
+  const fraction = fractionError(ctx), basis = tensorError(basisError(3, fraction, ctx), basisError(1, fraction, ctx), ctx), envelope = familyEnvelope(points, weights);
+  const result = finish(8, basis, range, settings, ctx);
+  return freeze({ ...result, curves, surfaces, globalTemplate: 'degree3-by1-count8-no-constant-axis-shortcut', envelope,
+    family: { objects: count, storedPoles: points.length, maximumObjects: 64, maximumStoredPoles: 512, structuralWork } } as NativeD0FamilyCertificate);
 }
