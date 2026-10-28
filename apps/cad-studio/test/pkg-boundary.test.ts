@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import type { BlobArray, BlobStore, BlobType } from '@barocss/cad-model/engine/blobs';
 import { libraries, libraryById, loadUserLibraries, registerLibrary, setLibraryStore, unregisterLibrary } from '@barocss/cad-model/library/libraries';
 
 // PKG-b (O92): the four blockers cut in place, kept cut — the model's code (sketch/, assembly/drag, library/, the CLI)
@@ -55,9 +56,9 @@ test('PKG-g2 the recovery blobs go to the BlobStore the app sets: none — kept 
   const blobs = await import('@barocss/cad-model/engine/blobs'), { emptyDoc, withNode } = await import('@barocss/cad-model/engine/doc');
   const node = await blobs.meshNodeBlobs({ kind: 'mesh', name: 'tet', unit: 'mm', representation: 'facets' }, [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [0, 1, 2, 0, 1, 3, 0, 2, 3, 1, 2, 3]);
   const doc = withNode(emptyDoc(), node as never);
-  const kept = new Map<string, { type: 'f64' | 'f32' | 'u32' | 'i32'; data: Float64Array | Float32Array | Uint32Array | Int32Array }>();
-  const store = { keys: async () => new Set(kept.keys()), get: async (hs: readonly string[]) => new Map(hs.flatMap(h => kept.has(h) ? [[h, kept.get(h)!] as const] : [])),
-    put: async (es: readonly { hash: string; type: 'f64' | 'f32' | 'u32' | 'i32'; data: Float64Array | Float32Array | Uint32Array | Int32Array }[]) => { for (const e of es) kept.set(e.hash, { type: e.type, data: e.data }); return true; },
+  const kept = new Map<string, { type: BlobType; data: BlobArray }>();
+  const store: BlobStore = { keys: async () => new Set(kept.keys()), get: async (hs: readonly string[]) => new Map(hs.flatMap(h => kept.has(h) ? [[h, kept.get(h)!] as const] : [])),
+    put: async (es: readonly { hash: string; type: BlobType; data: BlobArray }[]) => { for (const e of es) kept.set(e.hash, { type: e.type, data: e.data }); return true; },
     delete: async (hs: readonly string[]) => { for (const h of hs) kept.delete(h); } };
   try {
     blobs.setBlobStore(null);

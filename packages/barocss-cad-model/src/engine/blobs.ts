@@ -9,9 +9,9 @@
 // the worker's wire told (`onBlobsEvicted`). A dropped blob asked for again is logged as an error: a missed holder.
 import type { ModelNode, StudioDoc } from './doc';
 
-export type BlobArray = Float64Array | Float32Array | Uint32Array | Int32Array;
-export type BlobType = 'f64' | 'f32' | 'u32' | 'i32';
-export const blobTypeOf = (a: BlobArray): BlobType => a instanceof Float64Array ? 'f64' : a instanceof Float32Array ? 'f32' : a instanceof Int32Array ? 'i32' : 'u32';
+export type BlobArray = Float64Array | Float32Array | Uint32Array | Int32Array | Uint8Array;
+export type BlobType = 'f64' | 'f32' | 'u32' | 'i32' | 'u8';
+export const blobTypeOf = (a: BlobArray): BlobType => a instanceof Float64Array ? 'f64' : a instanceof Float32Array ? 'f32' : a instanceof Int32Array ? 'i32' : a instanceof Uint8Array ? 'u8' : 'u32';
 /** Positions at their own precision (D45): single precision when every value is one, else double. */
 export function positionsArray(p: ArrayLike<number>): Float64Array | Float32Array {
   for (let i = 0; i < p.length; i++) if (Math.fround(p[i]) !== p[i]) return Float64Array.from(p);
@@ -29,7 +29,7 @@ export const blobStats = { sweeps: 0, lastFreed: 0, freed: 0, lastDropped: 0, ev
 const keep = (h: string, a: BlobArray) => { if (!store.has(h)) { store.set(h, a); fresh.add(h); evicted.delete(h); } };
 
 /** The SHA-256 of an array's bytes, hex. */
-export async function sha256(a: BlobArray | Uint8Array): Promise<string> {
+export async function sha256(a: BlobArray): Promise<string> {
   const view = new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
   // (WebCrypto takes a copy only when the view is not the whole buffer.)
   const bytes = view.byteOffset === 0 && view.byteLength === view.buffer.byteLength ? view : view.slice();
@@ -55,7 +55,7 @@ export function getBlob(hash: string): BlobArray | undefined {
   return a;
 }
 /** An array of the type over the bytes. */
-export const arrayOf = (dtype: BlobType, buffer: ArrayBuffer): BlobArray => dtype === 'f64' ? new Float64Array(buffer) : dtype === 'f32' ? new Float32Array(buffer) : dtype === 'i32' ? new Int32Array(buffer) : new Uint32Array(buffer);
+export const arrayOf = (dtype: BlobType, buffer: ArrayBuffer): BlobArray => dtype === 'f64' ? new Float64Array(buffer) : dtype === 'f32' ? new Float32Array(buffer) : dtype === 'i32' ? new Int32Array(buffer) : dtype === 'u8' ? new Uint8Array(buffer) : new Uint32Array(buffer);
 export const hasBlob = (hash: string): boolean => store.has(hash);
 
 /** A mesh node (without inline arrays) with its arrays stored as blobs and named. */
