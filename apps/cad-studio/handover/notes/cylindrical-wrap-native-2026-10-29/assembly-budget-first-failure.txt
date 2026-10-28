@@ -1,0 +1,235 @@
+TAP version 13
+# Subtest: rectilinear ring and separate stroke form one strict diagnostic shell with the independent incidence oracle
+not ok 1 - rectilinear ring and separate stroke form one strict diagnostic shell with the independent incidence oracle
+  ---
+  duration_ms: 45.755541
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:58:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap assembly: the aggregate exact-operation budget was exceeded'
+  code: 'BUDGET'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:15:11)
+    Context.check (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:40:9)
+    Context.countHelpers (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:38:66)
+    buildRing (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:424:13)
+    buildCylindricalWrapAssembly (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:514:9)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:59:125)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+  ...
+# Subtest: all original caps, opposite-half bits, IDs, names, pcurves and tolerances remain protected
+not ok 2 - all original caps, opposite-half bits, IDs, names, pcurves and tolerances remain protected
+  ---
+  duration_ms: 23.964667
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:76:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap assembly: the aggregate exact-operation budget was exceeded'
+  code: 'BUDGET'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:15:11)
+    Context.check (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:40:9)
+    Context.countHelpers (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:38:66)
+    buildRing (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:424:13)
+    buildCylindricalWrapAssembly (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:514:9)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:79:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: counter basal face and pcurve winding independently preserve the exact UV ink identity
+not ok 3 - counter basal face and pcurve winding independently preserve the exact UV ink identity
+  ---
+  duration_ms: 20.982209
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:96:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap assembly: the aggregate exact-operation budget was exceeded'
+  code: 'BUDGET'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:15:11)
+    Context.check (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:40:9)
+    Context.countHelpers (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:38:66)
+    buildRing (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:424:13)
+    buildCylindricalWrapAssembly (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:514:9)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:97:35)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: canonical edge/pcurve direction, shared endpoints, exact homothety and side rows agree independently
+not ok 4 - canonical edge/pcurve direction, shared endpoints, exact homothety and side rows agree independently
+  ---
+  duration_ms: 19.452916
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:110:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap assembly: the aggregate exact-operation budget was exceeded'
+  code: 'BUDGET'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:15:11)
+    Context.check (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:40:9)
+    Context.countHelpers (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:38:66)
+    buildRing (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:424:13)
+    buildCylindricalWrapAssembly (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:514:9)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:111:35)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: nonzero Z and opposite authored ring winding keep the same rectilinear diagnostic contract
+not ok 5 - nonzero Z and opposite authored ring winding keep the same rectilinear diagnostic contract
+  ---
+  duration_ms: 19.251875
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:144:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap assembly: the aggregate exact-operation budget was exceeded'
+  code: 'BUDGET'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:15:11)
+    Context.check (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:40:9)
+    Context.countHelpers (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:38:66)
+    buildRing (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:424:13)
+    buildCylindricalWrapAssembly (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:514:9)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:146:43)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: diagonal, touching, cap/seam contact, degenerate and nested ink refuse atomically
+ok 6 - diagonal, touching, cap/seam contact, degenerate and nested ink refuse atomically
+  ---
+  duration_ms: 103.267333
+  type: 'test'
+  ...
+# Subtest: wrong height, malformed records, arrays and work exhaustion have typed refusal boundaries
+ok 7 - wrong height, malformed records, arrays and work exhaustion have typed refusal boundaries
+  ---
+  duration_ms: 79.247083
+  type: 'test'
+  ...
+# Subtest: inconsistent source, range overflow and persistent-name collisions cannot change the accepted source
+not ok 8 - inconsistent source, range overflow and persistent-name collisions cannot change the accepted source
+  ---
+  duration_ms: 9.439125
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:181:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    BarocssError: Cylindrical wrap assembly: Cylindrical wrap map: The fixed256-interval inverse cannot prove the requested chart tolerance
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    refused (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:54:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:183:31)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: native circle-extrusion source agrees with actual Part output and keeps the original +Y quarter
+ok 9 - native circle-extrusion source agrees with actual Part output and keeps the original +Y quarter
+  ---
+  duration_ms: 46.094459
+  type: 'test'
+  ...
+# Subtest: the other original semicircle retains its distinct weight bit and every protected original record
+ok 10 - the other original semicircle retains its distinct weight bit and every protected original record
+  ---
+  duration_ms: 16.691916
+  type: 'test'
+  ...
+# Subtest: source, cached B-rep, options and returned data do not alias caller data
+ok 11 - source, cached B-rep, options and returned data do not alias caller data
+  ---
+  duration_ms: 16.292041
+  type: 'test'
+  ...
+# Subtest: the original Z slab may be above or below zero without replacing its wall domains
+not ok 12 - the original Z slab may be above or below zero without replacing its wall domains
+  ---
+  duration_ms: 42.816708
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:64:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap map: Exact rational operation budget exceeded'
+  code: 'BUDGET'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-map.js:11:37)
+    SectionRationalContext.exactFailure [as fail] (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-map.js:14:46)
+    SectionRationalContext.work (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/section-rational-internal.js:14:14)
+    SectionRationalContext.multiply (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/section-rational-internal.js:23:27)
+    SectionRationalContext.add (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/section-rational-internal.js:84:41)
+    evaluate (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-map.js:150:25)
+    node (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-map.js:216:85)
+    buildCylindricalWrapMap (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-map.js:244:24)
+    buildCylindricalWrapSource (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:200:17)
+  ...
+# Subtest: every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused
+ok 13 - every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused
+  ---
+  duration_ms: 24.679959
+  type: 'test'
+  ...
+# Subtest: hollow, cut, multi-slab, displaced and non-native source families refuse atomically
+not ok 14 - hollow, cut, multi-slab, displaced and non-native source families refuse atomically
+  ---
+  duration_ms: 4.520209
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:91:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot assign to read only property '0' of object '[object Array]'"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    part.solid.kind (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:96:66)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:100:55)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a radius label or B-rep provenance string alone cannot replace its native source geometry
+ok 15 - a radius label or B-rep provenance string alone cannot replace its native source geometry
+  ---
+  duration_ms: 6.015667
+  type: 'test'
+  ...
+# Subtest: plain own data and bounded extraction options are required without invoking getters
+ok 16 - plain own data and bounded extraction options are required without invoking getters
+  ---
+  duration_ms: 1.817208
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 8
+# fail 8
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 551.963666

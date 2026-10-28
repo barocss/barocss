@@ -1,0 +1,8 @@
+{"name":"synthetic1","equalIncludingCounts":true,"status":"PASS"}
+{"name":"synthetic10","equalIncludingCounts":true,"status":"BUDGET"}
+{"name":"synthetic100","equalIncludingCounts":true,"status":"PASS"}
+{"name":"native1","equalIncludingCounts":true,"status":"PASS"}
+{"name":"native10","equalIncludingCounts":true,"status":"PASS"}
+{"name":"native100Budget","equalIncludingCounts":true,"status":"BUDGET"}
+{"name":"tightBudget","equalIncludingCounts":true,"status":"BUDGET"}
+Selected full-map receipts and typed refusals are identical to739978a27, including all rational/integer counts. No timing or all-input equivalence claim.

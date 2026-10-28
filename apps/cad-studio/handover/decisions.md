@@ -15275,3 +15275,36 @@ validity/volume assertions in the connection test concern only the original cyli
 observations, not production admission proofs. Model/Studio/browser are NOT RUN for D297; D296's results
 remain attached to runtime62069bbd1. Performance is NOT RUN and no speedup is claimed. No push, PR or release.
 Next decision: **D298**, bounded native wrapped-solid provider and its independent topology/mass proof.
+
+
+## D298 — Private native cylinder diagnostics and added-band moment bounds (2026-10-29)
+
+**Decision.** Adopt internal source/assembly/moment helpers on runtime `0edecf9d5`. They do not add a native
+Part feature, Model/API/Studio command or qualified physical wrap. Native single-slab source and every cached
+B-rep field/bit must match the existing producer; its real second half-turn parameters and original negative-Y
+weight are retained. Historical producer authenticity is false. The separate coefficient-only UV source skips
+unused inverse work; selected complete full-map receipts/counts/refusals match739978a27. A native R100 inverse
+at tolerance0.01 still refuses BUDGET; UV coefficient admission does not satisfy that inverse request.
+
+The assembly is original-native-UV rectilinear, strictly separated, factor2 XY only (height=radius), with
+counter basal faces and protected original records. XY-projection templates, exact affine Z, direct unit-weight
+vertical cubics, exact dyadic angular coefficients, canonical pcurve directions, shared edges/endpoints and
+repeated-ray reuse retain the whole-span stored-model bounds. Native tolerance is unchanged. The ring+stroke
+strict diagnostic has V28/E42/F19/L22/coedges84, one body/shell, genus0, and185431 aggregate operations under
+200000. `solidQualified`, represented-volume, general-text and global-evaluator flags remain false.
+
+A separate helper encloses ten scale2 added-band raw moments over at most8 explicit disjoint parameter
+rectangles. Exact native-domain normalization, signed Z integration, outward128-bit Leibniz/quotient derivative
+bounds and the Simpson fourth-derivative theorem cover remainder/rounding. Raw homogeneous integer node
+fractions match selected prior receipts exactly and preserve200k/8192-bit limits. An actual native rectangle at
+panels8 has added V2192.3394307508997 +/-1.9005899585893957 using180216 operations. This is neither full source
+nor assembled B-rep mass; the width does not establish native geometry precision. No combined assembly+mass
+request, arbitrary ring cover, centroid/inertia propagation or general glyph embedding is qualified.
+
+Node22.19.0 build/changed lint and49/49 focused pass. Whole kernel2049 total/2043 pass/0 fail/6 existing skips
+passes (248547.438375 ms). Tools/refusals and unchanged six-rule API inventory pass. Earlier assumptions,
+TS2322, frozen fixture, propagated map-BUDGET and actual work-budget failures are retained unchanged in
+`notes/cylindrical-wrap-native-2026-10-29/README.md`. Successful checks qualify only the final source.
+Model/Studio are NOT RUN for D298; their previous1824/1824 and365/365 belong to76a5d5c59's text-relief rematch
+correction. Browser/performance benchmark are NOT RUN. No latency/stable-speedup claim, push, PR or release.
+Next decision: **D299**, diagonal embedding and the complete native error/mass contract before product wiring.

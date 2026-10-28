@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-29",
+  "runtimeCommit": "0edecf9d5e01ecd702fea493700b8a1554d14c66",
+  "node": "22.19.0",
+  "scope": "private native-source consistency, rectilinear native-UV factor2 shell diagnostics and separate added-band raw-moment enclosures",
+  "build": "PASS",
+  "changedSourceAndTestLint": "PASS",
+  "focused": {
+    "total": 49,
+    "passed": 49,
+    "failed": 0,
+    "duration": 700.520834
+  },
+  "kernel": {
+    "total": 2049,
+    "passed": 2043,
+    "failed": 0,
+    "skipped": 6,
+    "duration": 248547.438375
+  },
+  "generated": {
+    "agentTools": "PASS",
+    "refusals": "PASS",
+    "apiInventory": "SCOPED_PASS",
+    "docs": {
+      "pages": 68,
+      "shots": 53,
+      "shotKB": 4488,
+      "labels": 852
+    }
+  },
+  "assemblyExample": {
+    "strictValid": true,
+    "bodies": 1,
+    "shells": 1,
+    "vertices": 28,
+    "edges": 42,
+    "faces": 19,
+    "loops": 22,
+    "coedges": 84,
+    "genus": 0,
+    "aggregateOperations": 185431,
+    "limit": 200000
+  },
+  "momentExample": {
+    "scope": "a separate request for scale2 added band only; no assembled B-rep or source mass",
+    "panels": 8,
+    "volumeEstimate": 2192.3394307508997,
+    "volumeErrorUpper": 1.9005899585893957,
+    "aggregateOperations": 180216,
+    "limit": 200000
+  },
+  "qualification": {
+    "historicalProducerProvenance": false,
+    "physicalWrappedSolid": false,
+    "representedBrepVolume": false,
+    "globalNativeEvaluatorError": false,
+    "generalText": false,
+    "partFeature": false,
+    "modelApiStudio": false
+  },
+  "notRun": [
+    "new Model suite for D298",
+    "new Studio suite for D298",
+    "D298 browser flow",
+    "performance benchmark",
+    "centroid/inertia propagation",
+    "combined assembly-plus-mass request"
+  ],
+  "lastModelStudioEvidence": {
+    "runtimeCommit": "76a5d5c59",
+    "modelPassed": 1824,
+    "studioPassed": 365,
+    "newD298Evidence": false
+  },
+  "remote": {
+    "push": false,
+    "pullRequest": false,
+    "release": false
+  }
+}

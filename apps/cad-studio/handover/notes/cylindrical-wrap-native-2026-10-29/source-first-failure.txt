@@ -1,0 +1,174 @@
+TAP version 13
+# Subtest: native circle-extrusion source agrees with actual Part output and keeps the original +Y quarter
+not ok 1 - native circle-extrusion source agrees with actual Part output and keeps the original +Y quarter
+  ---
+  duration_ms: 14.511416
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:21:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap source: the source must retain its complete two positive half-turns'
+  code: 'SUPPORT'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:11:11)
+    circleRegion (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:83:13)
+    sourceSnapshot (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:111:24)
+    buildCylindricalWrapSource (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:162:40)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:28:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: the other original semicircle retains its distinct weight bit and every protected original record
+not ok 2 - the other original semicircle retains its distinct weight bit and every protected original record
+  ---
+  duration_ms: 2.48975
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:45:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap source: the source must retain its complete two positive half-turns'
+  code: 'SUPPORT'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:11:11)
+    circleRegion (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:83:13)
+    sourceSnapshot (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:111:24)
+    buildCylindricalWrapSource (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:162:40)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:48:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+  ...
+# Subtest: source, cached B-rep, options and returned data do not alias caller data
+not ok 3 - source, cached B-rep, options and returned data do not alias caller data
+  ---
+  duration_ms: 2.016125
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:53:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap source: the source must retain its complete two positive half-turns'
+  code: 'SUPPORT'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:11:11)
+    circleRegion (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:83:13)
+    sourceSnapshot (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:111:24)
+    buildCylindricalWrapSource (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:162:40)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:54:94)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+  ...
+# Subtest: the original Z slab may be above or below zero without replacing its wall domains
+not ok 4 - the original Z slab may be above or below zero without replacing its wall domains
+  ---
+  duration_ms: 2.511875
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:64:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap source: the source must retain its complete two positive half-turns'
+  code: 'SUPPORT'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:11:11)
+    circleRegion (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:83:13)
+    sourceSnapshot (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:111:24)
+    buildCylindricalWrapSource (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-source.js:162:40)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:66:55)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+  ...
+# Subtest: every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused
+not ok 5 - every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused
+  ---
+  duration_ms: 1.976792
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:73:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    BarocssError: Cylindrical wrap source: the source must retain its complete two positive half-turns
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    refused (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:13:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:88:74)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hollow, cut, multi-slab, displaced and non-native source families refuse atomically
+not ok 6 - hollow, cut, multi-slab, displaced and non-native source families refuse atomically
+  ---
+  duration_ms: 5.795167
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:91:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot assign to read only property '0' of object '[object Array]'"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    part.solid.kind (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:96:66)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:100:55)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a radius label or B-rep provenance string alone cannot replace its native source geometry
+not ok 7 - a radius label or B-rep provenance string alone cannot replace its native source geometry
+  ---
+  duration_ms: 1.36675
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:105:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    BarocssError: Cylindrical wrap source: the source must retain its complete two positive half-turns
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    refused (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:13:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:106:69)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: plain own data and bounded extraction options are required without invoking getters
+ok 8 - plain own data and bounded extraction options are required without invoking getters
+  ---
+  duration_ms: 2.043041
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 1
+# fail 7
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 266.746583

@@ -1,0 +1,8 @@
+{"name":"affine","receiptsIdentical":true,"beforeOperations":22673,"afterOperations":22533}
+{"name":"nonlinear","receiptsIdentical":true,"beforeOperations":31582,"afterOperations":31236}
+{"name":"tiles","receiptsIdentical":true,"beforeOperations":27338,"afterOperations":27086}
+{"name":"native","receiptsIdentical":true,"beforeOperations":163094,"afterOperations":148818}
+{"name":"nonunit","receiptsIdentical":true,"beforeOperations":22956,"afterOperations":22804}
+{"name":"negativeZ","receiptsIdentical":true,"beforeOperations":24653,"afterOperations":24513}
+{"name":"nativePanels8","before":"BUDGET","after":"PASS","volume":{"estimate":2192.3394307508997,"lower":{"numerator":"372683856670182029005533239686852490565355","denominator":"170141183460469231731687303715884105728"},"upper":{"numerator":"93332648479959235540752143511045495648693","denominator":"42535295865117307932921825928971026432"},"estimateError":{"exact":{"numerator":"323368624827483965093768803780642728213","denominator":"170141183460469231731687303715884105728"},"upper":1.9005899585893957},"roundingWidth":{"numerator":"23","denominator":"170141183460469231731687303715884105728"},"remainderRadius":{"numerator":"323368624827456578737667178664746014697","denominator":"170141183460469231731687303715884105728"}},"counts":{"operations":178380,"gcdSteps":143494,"floatSearchSteps":1260,"floatConversions":20,"maximumObservedBits":1153,"directWork":1836,"totalOperations":180216,"nodes":9},"solidQualified":false}
+Selected node intervals and final moment receipts are identical. New panels8 support remains added-band diagnostic only. No timing, full-solid mass or all-input equivalence claim.

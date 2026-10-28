@@ -1,0 +1,9 @@
+# Preserve original test assertion output byte for byte.
+source-first-failure.txt -whitespace
+assembly-build-first-failure.txt -whitespace
+assembly-budget-first-failure.txt -whitespace
+moments-first-failure.txt -whitespace
+integration-first-failure.txt -whitespace
+integration-second-failure.txt -whitespace
+integration-third-failure.txt -whitespace
+assembly-fourth-failure.txt -whitespace

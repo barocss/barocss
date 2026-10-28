@@ -1,0 +1,201 @@
+TAP version 13
+# Subtest: cylindrical wrap map: synthetic quarter node0/.5/1 has independent 0/pi4/pi2 enclosures and a full secant proof
+ok 1 - cylindrical wrap map: synthetic quarter node0/.5/1 has independent 0/pi4/pi2 enclosures and a full secant proof
+  ---
+  duration_ms: 7.307917
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: multiple radii/tolerances preserve analytic bounds; samples are regression observations only
+ok 2 - cylindrical wrap map: multiple radii/tolerances preserve analytic bounds; samples are regression observations only
+  ---
+  duration_ms: 13.504042
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: original knot domain is retained and derivative proof is not scaled twice
+ok 3 - cylindrical wrap map: original knot domain is retained and derivative proof is not scaled twice
+  ---
+  duration_ms: 7.32075
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: stored native weight defect, angular positivity and arclength drift are separate exact quantities
+ok 4 - cylindrical wrap map: stored native weight defect, angular positivity and arclength drift are separate exact quantities
+  ---
+  duration_ms: 3.139417
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: actual native half-to-quarter direct-copy extraction retains near-cardinal source coefficients
+ok 5 - cylindrical wrap map: actual native half-to-quarter direct-copy extraction retains near-cardinal source coefficients
+  ---
+  duration_ms: 10.699166
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: degenerate, foreign, reversed, wrong-plane and non-native quarter inputs refuse with typed errors
+ok 6 - cylindrical wrap map: degenerate, foreign, reversed, wrong-plane and non-native quarter inputs refuse with typed errors
+  ---
+  duration_ms: 4.047291
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: invalid/huge values, unattainable fixed-grid accuracy and collapsed native domains refuse atomically
+ok 7 - cylindrical wrap map: invalid/huge values, unattainable fixed-grid accuracy and collapsed native domains refuse atomically
+  ---
+  duration_ms: 3.753083
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: arclength output is a length residual, not an actual-arclength-domain or offset certificate
+ok 8 - cylindrical wrap map: arclength output is a length residual, not an actual-arclength-domain or offset certificate
+  ---
+  duration_ms: 5.531708
+  type: 'test'
+  ...
+# Subtest: carrier-only certification keeps the same exact source coefficients, original domain and radial bound without an inverse
+ok 9 - carrier-only certification keeps the same exact source coefficients, original domain and radial bound without an inverse
+  ---
+  duration_ms: 12.031542
+  type: 'test'
+  ...
+# Subtest: carrier-only certification neither accepts a chart tolerance nor changes an unattainable full-map refusal
+ok 10 - carrier-only certification neither accepts a chart tolerance nor changes an unattainable full-map refusal
+  ---
+  duration_ms: 3.454625
+  type: 'test'
+  ...
+# Subtest: affine synthetic carrier matches all ten independent triangular-band moments without a cylinder claim
+ok 11 - affine synthetic carrier matches all ten independent triangular-band moments without a cylinder claim
+  ---
+  duration_ms: 4.898916
+  type: 'test'
+  ...
+# Subtest: non-affine polynomial carrier encloses independent exact degree-six moments and proves fourth-order remainder
+ok 12 - non-affine polynomial carrier encloses independent exact degree-six moments and proves fourth-order remainder
+  ---
+  duration_ms: 6.857
+  type: 'test'
+  ...
+# Subtest: disjoint tiles share one request/node cache and keep the independent addition oracle
+ok 13 - disjoint tiles share one request/node cache and keep the independent addition oracle
+  ---
+  duration_ms: 1.743583
+  type: 'test'
+  ...
+# Subtest: native semicircle direct-copy quarter retains source coefficients/native domains as diagnostic authority
+not ok 14 - native semicircle direct-copy quarter retains source coefficients/native domains as diagnostic authority
+  ---
+  duration_ms: 22.753833
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-moments.test.mjs:55:1'
+  failureType: 'testCodeFailure'
+  error: 'Wrap moments: Exact rational operation budget exceeded'
+  code: 'BUDGET'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-moments.js:11:37)
+    SectionRationalContext.exactFailure [as fail] (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-moments.js:19:46)
+    SectionRationalContext.work (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/section-rational-internal.js:14:14)
+    SectionRationalContext.gcd (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/section-rational-internal.js:28:18)
+    SectionRationalContext.rat (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/section-rational-internal.js:49:30)
+    SectionRationalContext.mul (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/section-rational-internal.js:91:21)
+    SectionRationalContext.div (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/section-rational-internal.js:97:21)
+    fourthDerivative (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-moments.js:110:23)
+    prepare (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-moments.js:135:21)
+  ...
+# Subtest: invalid product source, overlap, malformed cells and unsupported limits refuse atomically
+ok 15 - invalid product source, overlap, malformed cells and unsupported limits refuse atomically
+  ---
+  duration_ms: 1.359625
+  type: 'test'
+  ...
+# Subtest: output receipt owns snapshots and does not certify B-rep topology or arbitrary ring coverage
+ok 16 - output receipt owns snapshots and does not certify B-rep topology or arbitrary ring coverage
+  ---
+  duration_ms: 1.827375
+  type: 'test'
+  ...
+# Subtest: native nonunit U/V domains preserve the partial added-band volume without span multipliers
+ok 17 - native nonunit U/V domains preserve the partial added-band volume without span multipliers
+  ---
+  duration_ms: 1.992375
+  type: 'test'
+  ...
+# Subtest: negative source Z preserves signed added-band first moments and positive second moments
+ok 18 - negative source Z preserves signed added-band first moments and positive second moments
+  ---
+  duration_ms: 2.36275
+  type: 'test'
+  ...
+# Subtest: native circle-extrusion source agrees with actual Part output and keeps the original +Y quarter
+ok 19 - native circle-extrusion source agrees with actual Part output and keeps the original +Y quarter
+  ---
+  duration_ms: 46.307667
+  type: 'test'
+  ...
+# Subtest: the other original semicircle retains its distinct weight bit and every protected original record
+ok 20 - the other original semicircle retains its distinct weight bit and every protected original record
+  ---
+  duration_ms: 16.887
+  type: 'test'
+  ...
+# Subtest: source, cached B-rep, options and returned data do not alias caller data
+ok 21 - source, cached B-rep, options and returned data do not alias caller data
+  ---
+  duration_ms: 16.037958
+  type: 'test'
+  ...
+# Subtest: the original Z slab may be above or below zero without replacing its wall domains
+not ok 22 - the original Z slab may be above or below zero without replacing its wall domains
+  ---
+  duration_ms: 43.534166
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:64:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    BarocssError: Cylindrical wrap map: Exact rational operation budget exceeded
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    refused (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:13:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:72:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused
+ok 23 - every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused
+  ---
+  duration_ms: 24.468875
+  type: 'test'
+  ...
+# Subtest: hollow, cut, multi-slab, displaced and non-native source families refuse atomically
+ok 24 - hollow, cut, multi-slab, displaced and non-native source families refuse atomically
+  ---
+  duration_ms: 10.043125
+  type: 'test'
+  ...
+# Subtest: a radius label or B-rep provenance string alone cannot replace its native source geometry
+ok 25 - a radius label or B-rep provenance string alone cannot replace its native source geometry
+  ---
+  duration_ms: 5.295875
+  type: 'test'
+  ...
+# Subtest: plain own data and bounded extraction options are required without invoking getters
+ok 26 - plain own data and bounded extraction options are required without invoking getters
+  ---
+  duration_ms: 1.884792
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 24
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 398.864667

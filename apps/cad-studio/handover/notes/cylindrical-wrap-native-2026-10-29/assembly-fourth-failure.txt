@@ -1,0 +1,191 @@
+TAP version 13
+# Subtest: rectilinear ring and separate stroke form one strict diagnostic shell with the independent incidence oracle
+not ok 1 - rectilinear ring and separate stroke form one strict diagnostic shell with the independent incidence oracle
+  ---
+  duration_ms: 42.960666
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:102:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap assembly: the aggregate exact-operation budget was exceeded'
+  code: 'BUDGET'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:15:11)
+    Context.check (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:59:9)
+    buildCylindricalWrapAssembly (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:758:9)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:103:125)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: all original caps, opposite-half bits, IDs, names, pcurves and tolerances remain protected
+not ok 2 - all original caps, opposite-half bits, IDs, names, pcurves and tolerances remain protected
+  ---
+  duration_ms: 20.440417
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:125:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap assembly: the aggregate exact-operation budget was exceeded'
+  code: 'BUDGET'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:15:11)
+    Context.check (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:59:9)
+    buildCylindricalWrapAssembly (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:758:9)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:128:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: counter basal face and pcurve winding independently preserve the exact UV ink identity
+not ok 3 - counter basal face and pcurve winding independently preserve the exact UV ink identity
+  ---
+  duration_ms: 17.734625
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:145:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap assembly: the aggregate exact-operation budget was exceeded'
+  code: 'BUDGET'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:15:11)
+    Context.check (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:59:9)
+    buildCylindricalWrapAssembly (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:758:9)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:146:35)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: canonical edge/pcurve direction, shared endpoints, exact homothety and side rows agree independently
+not ok 4 - canonical edge/pcurve direction, shared endpoints, exact homothety and side rows agree independently
+  ---
+  duration_ms: 15.781666
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:159:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap assembly: the aggregate exact-operation budget was exceeded'
+  code: 'BUDGET'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:15:11)
+    Context.check (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:59:9)
+    buildCylindricalWrapAssembly (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:758:9)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:160:35)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: nonzero Z and opposite authored ring winding keep the same rectilinear diagnostic contract
+not ok 5 - nonzero Z and opposite authored ring winding keep the same rectilinear diagnostic contract
+  ---
+  duration_ms: 15.969875
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:199:1'
+  failureType: 'testCodeFailure'
+  error: 'Cylindrical wrap assembly: the aggregate exact-operation budget was exceeded'
+  code: 'BUDGET'
+  name: 'BarocssError'
+  stack: |-
+    kernelRefusal (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/barocss-error.js:42:15)
+    fail (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:15:11)
+    Context.check (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:59:9)
+    buildCylindricalWrapAssembly (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/features/cylindrical-wrap-assembly.js:758:9)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-assembly.test.mjs:201:43)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: diagonal, touching, cap/seam contact, degenerate and nested ink refuse atomically
+ok 6 - diagonal, touching, cap/seam contact, degenerate and nested ink refuse atomically
+  ---
+  duration_ms: 39.4605
+  type: 'test'
+  ...
+# Subtest: wrong height, malformed records, arrays and work exhaustion have typed refusal boundaries
+ok 7 - wrong height, malformed records, arrays and work exhaustion have typed refusal boundaries
+  ---
+  duration_ms: 40.684
+  type: 'test'
+  ...
+# Subtest: inconsistent source, range overflow and persistent-name collisions cannot change the accepted source
+ok 8 - inconsistent source, range overflow and persistent-name collisions cannot change the accepted source
+  ---
+  duration_ms: 17.85275
+  type: 'test'
+  ...
+# Subtest: native circle-extrusion source agrees with actual Part output and keeps the original +Y quarter
+ok 9 - native circle-extrusion source agrees with actual Part output and keeps the original +Y quarter
+  ---
+  duration_ms: 47.531916
+  type: 'test'
+  ...
+# Subtest: the other original semicircle retains its distinct weight bit and every protected original record
+ok 10 - the other original semicircle retains its distinct weight bit and every protected original record
+  ---
+  duration_ms: 17.041625
+  type: 'test'
+  ...
+# Subtest: source, cached B-rep, options and returned data do not alias caller data
+ok 11 - source, cached B-rep, options and returned data do not alias caller data
+  ---
+  duration_ms: 16.468625
+  type: 'test'
+  ...
+# Subtest: the original Z slab may be above or below zero without replacing its wall domains
+ok 12 - the original Z slab may be above or below zero without replacing its wall domains
+  ---
+  duration_ms: 43.284959
+  type: 'test'
+  ...
+# Subtest: every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused
+ok 13 - every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused
+  ---
+  duration_ms: 25.384709
+  type: 'test'
+  ...
+# Subtest: hollow, cut, multi-slab, displaced and non-native source families refuse atomically
+ok 14 - hollow, cut, multi-slab, displaced and non-native source families refuse atomically
+  ---
+  duration_ms: 9.167375
+  type: 'test'
+  ...
+# Subtest: a radius label or B-rep provenance string alone cannot replace its native source geometry
+ok 15 - a radius label or B-rep provenance string alone cannot replace its native source geometry
+  ---
+  duration_ms: 5.801
+  type: 'test'
+  ...
+# Subtest: plain own data and bounded extraction options are required without invoking getters
+ok 16 - plain own data and bounded extraction options are required without invoking getters
+  ---
+  duration_ms: 1.875833
+  type: 'test'
+  ...
+# Subtest: native-UV admission owns an original carrier certificate without satisfying a full inverse request
+ok 17 - native-UV admission owns an original carrier certificate without satisfying a full inverse request
+  ---
+  duration_ms: 22.698333
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 12
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 440.328917
