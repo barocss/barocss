@@ -272,6 +272,7 @@
 | `[UNKNOWN_LAYER]` | `core/error-codes.ts (declared)` | — |
 | `[UNKNOWN_LINETYPE]` | `core/error-codes.ts (declared)` | — |
 | `[UNKNOWN_STYLE]` | `core/error-codes.ts (declared)` | — |
+| `[UNRESOLVED]` | `core/error-codes.ts (declared)` | — |
 | `[UNSUPPORTED]` | `core/error-codes.ts (declared)` | — |
 | `[UNSUPPORTED_GEAR_KIND]` | `core/error-codes.ts (declared)` | — |
 | `[UNSUPPORTED_PROFILE_SHIFT]` | `core/error-codes.ts (declared)` | — |
