@@ -26,7 +26,7 @@ import { signaturesOf, type Signature } from '@barocss/cad-model/engine/rematch'
 import type { DrawingReferenceLabel, DrawingReferencePreview } from './ui/DrawingWorkspace';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
-import { carrySelection, commands, patchValues, refOf, selectedBodies, shownFields, subdNodeOf, type Command, type Ctx, type Selection, type Values } from '@barocss/cad-model/app/commands';
+import { carrySelection, commands, patchValues, refOf, selectedBodies, shownFields, subdNodeOf, type Command, type Ctx, type Field, type Selection, type Values } from '@barocss/cad-model/app/commands';
 import { measureBetween, measureItem, pointInBody, type MeasurePick } from '@barocss/cad-model/app/measure';
 import { editFields } from '@barocss/cad-model/app/editFields';
 import { DRAG_TYPE, snapshotInstanceIsolation, type FeatureHandle, type Spot, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
@@ -160,7 +160,8 @@ import { directNow, loadDirect } from '@barocss/cad-model/engine/directModule';
 import { stepLengthUnit } from '@barocss/cad-model/engine/stepUnits';
 import { FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES, MESH_UNITS, meshInMM, readMeshFile, type MeshUnit } from '@barocss/cad-model/engine/meshImport';
 import { circleCurve, curvesSource, edgeCurve, outlineCurve } from '@barocss/cad-model/engine/curveSource';
-import { BUILT_IN, removeTemplate, saveTemplate, savedTemplates } from './app/templates';
+import { BUILT_IN, fontTemplateProblem, removeTemplate, saveTemplate, savedTemplates } from './app/templates';
+import { FontUpload } from './app/fontUpload';
 import { ROBOT_SAMPLES, robotSampleFile } from './app/samples';
 import { bodyMass, combined, inertiaAbout, sig3 } from '@barocss/cad-model/app/mass';
 import { boundsOf } from '@barocss/cad-model/engine/bounds';
@@ -285,7 +286,17 @@ const PREVIEW_TINT = '#7fb2f0';
 const whenOf = (at: string) => { const d = new Date(at); return Number.isNaN(d.getTime()) ? at : d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }); };
 
 /** `placing`: a new shape that follows the pointer until a click (or a drop from the rail) stands it there. */
-interface Active { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean }
+function missingCommandField(fields: readonly Field[], values: Values): Field | undefined {
+  for (const field of fields) {
+    const value = values[field.key];
+    if (field.kind === 'text' || field.kind === 'file') {
+      if (typeof value !== 'string' || !value.trim() || value.length > field.maxLength) return field;
+    } else if (field.kind !== 'choice' && (value === '' || !Number.isFinite(Number(value)))) return field;
+  }
+  return undefined;
+}
+
+interface Active { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean; upload?: 'busy' | 'error' }
 /** Stable numbers for objects (a command's context, its values), for the App's subscription key. */
 const objectIds = new WeakMap<object, number>();
 let nextObjectId = 0;
@@ -399,6 +410,13 @@ export function App() {
   const [pick, setPick] = useState<Vec3 | null>(null);
   // (R1d: the running command outside React state — see activeKey. The HUD subscribes to all of it.)
   const activeStore = useMemo(() => createValueStore<Active | null>(null), []), setActive = activeStore.set;
+  const fontUpload = useMemo(() => new FontUpload(), []);
+  useEffect(() => {
+    const sync = () => fontUpload.sync(activeStore.get()?.ctx ?? null);
+    sync();
+    const unsubscribe = activeStore.subscribe(sync);
+    return () => { unsubscribe(); fontUpload.sync(null); };
+  }, [activeStore, fontUpload]);
   const hudValues = useRef<Values | null>(null);
   useSyncExternalStore(activeStore.subscribe, () => activeKey(activeStore.get(), hudValues.current));
   const active = activeStore.get();
@@ -1341,14 +1359,14 @@ export function App() {
     // into the HUD or placed by the pointer.)
     let seen: Values | undefined, stop: (() => void) | undefined;
     const evaluate = (active: Active | null): (() => void) | undefined => {
-      if (!active?.cmd.build) return;
+      if (!active?.cmd.build || active.upload) return;
       if (!bearingRootCurrent) {
         setPreviewBodies(null);
         setActive(a => a && { ...a, preview: 'error', error: { title: 'Assembly changed', hint: 'Start Bearing again to use the current housing geometry.', detail: '' } });
         return;
       }
       let live = true;
-      const missing = shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values).find(f => f.kind !== 'choice' && (active.values[f.key] === '' || !Number.isFinite(Number(active.values[f.key]))));
+      const missing = missingCommandField(shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values), active.values);
       if (missing) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: { title: 'Enter a value', hint: `${missing.label} is empty.`, detail: '' } }); return; }
       const values = active.values, cmd = active.cmd, ctx = active.ctx;
       const job = async (full = false) => {
@@ -1377,6 +1395,8 @@ export function App() {
         if (rolled && live) fullTimer.current = window.setTimeout(() => { if (!live) return; run.next = () => job(true); if (!run.busy) void pump(); }, 220);
         // A queued update can use an intermediate result, unless this command was replaced or refused.
         const current = activeStore.get();
+        // A replaced font invalidates every old ghost, including after the new upload finishes.
+        if (current?.upload || current?.values.font !== values.font) return;
         if (!live && (!previewRun.current.next || !current || current.cmd !== cmd || current.ctx !== ctx || current.preview === 'error')) return;
         const hd = handleDrag.current, hv = hd ? Number(values[hd.key]) : NaN;
         if (hd && Number.isFinite(hv)) {
@@ -1412,6 +1432,7 @@ export function App() {
     // (R1d: the command as it is now, its values and preview state — the App may not have rendered since they changed.)
     const active = activeStore.get();
     if (!active?.cmd.build) return;
+    if (active.upload) { applyWhenReady.current = null; return; }
     if (!bearingRootCurrent) { applyWhenReady.current = null; return; }
     if (active.preview === 'busy') { applyWhenReady.current = active.cmd; return; }
     applyWhenReady.current = null;
@@ -1423,6 +1444,32 @@ export function App() {
     if (previewBodies && (next.instances?.length ?? 0) === (active.ctx.doc.instances?.length ?? 0)) { setBodies(previewBodies); claimBodies.current = true; }
     commit(next); setActive(null); setPreviewBodies(null); setSketch(null);
   }, [activeStore, commit, previewBodies, bearingRootCurrent, setSketch]);
+  const uploadFont = useCallback(async (key: string, file: File) => {
+    const captured = activeStore.get();
+    if (!captured || key !== 'font') return;
+    const { cmd, ctx } = captured;
+    applyWhenReady.current = null;
+    lastTyped.current = Date.now(); handleDrag.current = null;
+    setPreviewBodies(null);
+    setActive(a => {
+      if (!a || a.cmd !== cmd || a.ctx !== ctx) return a;
+      const values = { ...a.values, [key]: '' }; hudValues.current = values;
+      return { ...a, values, upload: 'busy', preview: 'busy', error: undefined };
+    });
+    try {
+      const source = await fontUpload.load(ctx, file);
+      if (!source) return;
+      setActive(a => {
+        if (!a || a.cmd !== cmd || a.ctx !== ctx) return a;
+        const values = patchValues(a.cmd, a.ctx, a.values, { [key]: JSON.stringify(source) }); hudValues.current = values;
+        return { ...a, values, upload: undefined, preview: 'busy', error: undefined };
+      });
+    } catch (error) {
+      setActive(a => a && a.cmd === cmd && a.ctx === ctx ? { ...a, upload: 'error', preview: 'error', error: {
+        title: 'Could not read the font', hint: error instanceof Error ? error.message : String(error), detail: '',
+      } } : a);
+    }
+  }, [activeStore, fontUpload]);
   // (Only for the command it was asked for: cancelled or replaced, it is forgotten. R1d: looked at after each render — a
   // preview's result renders the App with its bodies — and as the preview's state settles without one, an error.)
   useEffect(() => {
@@ -1485,6 +1532,23 @@ export function App() {
       : cmd.id === 'loft' ? { ...ctx, doc: { ...ctx.doc, direct: shownDoc.direct } } : ctx;
     setActive({ cmd, values: cmd.defaults?.(startCtx) ?? {}, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
   }, [ctx, selection, bodies, engine, commit, evaluated.nodes, shownDoc.direct, variants.showing, setSketch]);
+
+  const openHistoryFeature = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    const raw = event.currentTarget.dataset.nodeIndex;
+    if (raw === undefined) return;
+    const index = Number(raw), node = doc.nodes[index];
+    if (!Number.isInteger(index) || index < 0 || !node) return;
+    setInstanceSel([]); setDirectSel([]); assembly.cancel();
+    if (node.kind === 'text') {
+      const command = editCommand(index, doc.nodes, doc);
+      if (command) {
+        // Roll forward before the deferred start, so editing retains all later authored features.
+        setMarker(null); setEditNode(null); setActive(null); setPreviewBodies(null); setRestart(command);
+        return;
+      }
+    }
+    setEditNode(index);
+  }, [doc, assembly]);
 
   // Shift-Enter: once the part has its new bodies (and the selection followed them), the command again.
   useEffect(() => { if (restart && !active) { setRestart(null); start(commands.find(c => c.id === restart.id) ?? restart); } }, [restart, active, start]);
@@ -2399,6 +2463,7 @@ export function App() {
   }, []);
   {
     const onKey = (e: KeyboardEvent) => {
+      if (e.isComposing) return;
       if (cageEd.onKey(e)) return;
       if (skel.onKey(e)) return;
       const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement;
@@ -2424,7 +2489,7 @@ export function App() {
       if (e.key === 'Escape' && routePanelOpen && !active && !sketch && !assembly.draft && !measure && !cageEd.session && !skel.session) { e.preventDefault(); discardRouteRef.current(); return; }
       if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else { setSelection(emptySel); setInstanceSel([]); setDirectSel([]); } return; }
       // Enter applies; Shift-Enter applies and starts the same command again (another hole, another shape).
-      if (e.key === 'Enter' && !palette) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); if (e.shiftKey && active.cmd.id !== 'edit') again.current = active.cmd; apply(); } return; }
+      if (e.key === 'Enter' && !palette && !(e.target instanceof HTMLInputElement && e.target.type === 'file')) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); if (e.shiftKey && active.cmd.id !== 'edit') again.current = active.cmd; apply(); } return; }
       // A sketch tool key still works from a number box (letters are no numbers): it leaves the box.
       const numberBox = e.target instanceof HTMLInputElement && e.target.type === 'number' && !e.target.classList.contains('dim-edit');
       if (palette || (typing && !(sketch && numberBox && !e.metaKey && !e.ctrlKey && !e.altKey && /^[a-z]$/i.test(e.key)))) return;
@@ -3379,7 +3444,7 @@ export function App() {
   );
   // (R1d: the HUD subscribes to the command; the values it types are noted, so the App does not render for them.)
   const hud = active && <Hud store={activeStore} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null;
-    setActive(a => { if (!a) return a; const values = patchValues(a.cmd, a.ctx, a.values, { [key]: value }); hudValues.current = values; return { ...a, values, preview: 'busy' }; }); }} onApply={apply} onCancel={cancel} />;
+    setActive(a => { if (!a) return a; const values = patchValues(a.cmd, a.ctx, a.values, { [key]: value }); hudValues.current = values; return { ...a, values, preview: a.upload === 'error' ? 'error' : 'busy' }; }); }} onFile={uploadFont} onApply={apply} onCancel={cancel} />;
   return (
     <div className={'studio' + (historyShown ? ' has-history' : '') + (bottomRow.stacked ? ' history-stacked' : '') + (bottomRow.cramped ? ' stage-cramped' : '')} style={{ '--history-left': (browserPlacement === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT) + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px' } as CSSProperties}>
       {/* (G12b: the top bar across the centre and the dock — the window less the chat column — the dock under it.) */}
@@ -3419,7 +3484,7 @@ export function App() {
                 onClick={() => { setTemplatesOpen(false); void robotSampleFile(r).then(open, e => setToast({ title: 'Could not open the sample', hint: e instanceof Error ? e.message : String(e), detail: '' })); }}>{r.title}</Button>
             </div>)}
             <div className="tpl-row add"><Input className="kv-input" aria-label="Template name" placeholder="Keep this part as…" value={templateName} onChange={e => setTemplateName(e.target.value)} onKeyDown={e => e.stopPropagation()} />
-              <Button variant="ghost" size="sm" aria-label="Save as a template" disabled={!templateName.trim()} onClick={() => { if (saveTemplate(templateName.trim(), doc)) setToast({ title: 'Template saved', hint: `“${templateName.trim()}” is in Templates, in this browser.`, detail: '' }); else setToast({ title: 'Could not save the template', hint: 'This browser would not keep it (private mode or no room).', detail: '' }); setTemplateName(''); setTemplatesOpen(false); }}>Save</Button></div>
+              <Button variant="ghost" size="sm" aria-label="Save as a template" disabled={!templateName.trim()} onClick={() => { if (saveTemplate(templateName.trim(), doc)) setToast({ title: 'Template saved', hint: `“${templateName.trim()}” is in Templates, in this browser.`, detail: '' }); else setToast({ title: 'Could not save the template', hint: fontTemplateProblem(doc) ?? 'This browser would not keep it (private mode or no room).', detail: '' }); setTemplateName(''); setTemplatesOpen(false); }}>Save</Button></div>
           </div>}</span>,
           <ToolIconButton key="tool5" state={libraryOpen ? 'on' : 'idle'} aria-label="Library" data-tip="Library" data-tip-desc="Catalogue parts from libraries (built-in, team, yours): insert them, snap them by their interfaces" onClick={() => setLibraryOpen(v => !v)} hidden={rendering || drawing}><Icon name="menu_book" /></ToolIconButton>,
           <ToolIconButton key="tool6" state={paramsOpen ? 'on' : 'idle'} aria-label="Parameters" data-tip="Parameters" data-tip-desc="Named sizes the part depends on, and saved sets of them (configurations)" onClick={() => setParamsOpen(v => !v)} hidden={rendering || drawing}><Icon name="function" /></ToolIconButton>,
@@ -3515,8 +3580,8 @@ export function App() {
             onClick={e => { pickProfile(i, e.shiftKey); setEditNode(i); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}
             onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i }); }}>
             <Icon name="cad-sketch" small />{historyLabels && <span className="hs-label">{featureLabel(n, i, doc.nodes)}</span>}</button>) : null) : (
-          <button key={i} aria-label={featureLabel(n, i, doc.nodes)} className={'hs' + (i >= markerAt ? ' rolled' : '') + (editNode === i ? ' edit' : '') + (n.suppressed ? ' suppressed' : '') + (n.rematched || n.held ? ' rematched' : '')} title={`${featureLabel(n, i, doc.nodes)}${n.held ? ` (held: ${n.held})` : n.suppressed ? ' (suppressed)' : ''}${n.rematched ? ` · matched again: ${Object.entries(n.rematched).map(([now, was]) => `${was} → ${now}`).join(', ')}` : ''} · click to edit · double-click to roll back here`}
-            onClick={() => { setEditNode(i); setInstanceSel([]); setDirectSel([]); assembly.cancel(); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}
+          <button key={i} data-node-index={i} aria-label={featureLabel(n, i, doc.nodes)} className={'hs' + (i >= markerAt ? ' rolled' : '') + (editNode === i ? ' edit' : '') + (n.suppressed ? ' suppressed' : '') + (n.rematched || n.held ? ' rematched' : '')} title={`${featureLabel(n, i, doc.nodes)}${n.held ? ` (held: ${n.held})` : n.suppressed ? ' (suppressed)' : ''}${n.rematched ? ` · matched again: ${Object.entries(n.rematched).map(([now, was]) => `${was} → ${now}`).join(', ')}` : ''} · click to edit · double-click to roll back here`}
+            onClick={openHistoryFeature} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}
             onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i }); }}>
             <Icon name={iconFor(n)} small />{historyLabels && <span className="hs-label">{featureLabel(n, i, doc.nodes)}</span>}</button>))}
         {(historyHidden > 0 || historyRows) && <button className="hs-more" aria-label={historyRows ? 'Fewer history steps' : `${historyHidden} more history steps`} aria-expanded={historyRows}
@@ -3771,7 +3836,7 @@ export function App() {
 /** A feature's icon in the history: the CAD icon of the command that makes it (a shape's own). */
 function iconFor(n: ModelNode) {
   if ('made' in n && n.made) return 'cad-' + n.made.command;
-  return ({ extrude: 'cad-extrude', revolve: 'cad-revolve', shell: 'cad-shell', import: 'file_open', sweep: 'cad-sweep', loft: 'cad-loft', hole: 'cad-hole', chamfer: 'cad-chamfer', fillet: 'cad-fillet', 'full-round': 'cad-full-round', 'face-thread': 'cad-thread', 'face-fillet': 'cad-face-fillet', union: 'cad-union', difference: 'cad-subtract', intersect: 'cad-intersect',
+  return ({ text: 'text_fields', extrude: 'cad-extrude', revolve: 'cad-revolve', shell: 'cad-shell', import: 'file_open', sweep: 'cad-sweep', loft: 'cad-loft', hole: 'cad-hole', chamfer: 'cad-chamfer', fillet: 'cad-fillet', 'full-round': 'cad-full-round', 'face-thread': 'cad-thread', 'face-fillet': 'cad-face-fillet', union: 'cad-union', difference: 'cad-subtract', intersect: 'cad-intersect',
     translate: 'cad-move', rotate: 'cad-rotate', mirror: 'cad-mirror', scale: 'cad-scale', 'linear-pattern': 'cad-pattern-linear', 'linear-feature-pattern': 'cad-pattern-linear', 'circular-pattern': 'cad-pattern-circular', split: 'cad-split', sketch: 'cad-sketch', 'sheet-base': 'cad-sheet-plate', 'sheet-contour': 'cad-sheet-profile', 'sheet-flange': 'cad-sheet-flange', 'sheet-corner-relief': 'cad-sheet-corner', 'frame-member': 'cad-frame-member', frame: 'cad-frame' } as Record<string, string>)[n.kind] ?? 'category';
 }
 

@@ -5,7 +5,7 @@
 // The viewport draws with WebGPU when the browser has it; FLOW_RENDERER=webgl2 runs the WebGL2 fallback.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createServer as createNetServer } from 'node:net';
@@ -105,6 +105,15 @@ async function openModel(file, nodes, timeout = 30000) {
   await page.evaluate(() => { window.__flowLastDoc = window.__studioDoc; });
   await page.setInputFiles('input[aria-label="Model file"]', file);
   await page.waitForFunction(n => window.__studioDoc !== window.__flowLastDoc && window.__studioDoc.nodes.length === n && window.__studioFresh === true, nodes, { timeout });
+}
+async function textReady(text, nodes, expected = null) {
+  await page.waitForFunction(({ text, nodes, expected }) => {
+    const state = window.__studioBodies?.(), document = window.__studioDoc;
+    if (document?.nodes.length !== nodes || document.nodes[0]?.text !== text || !state?.fresh || state.massReady !== true) return false;
+    let body;
+    for (const candidate of state.bodies) if (candidate.key === 'b0') body = candidate;
+    return !!body && (expected === null ? body.volume > 0 : Math.abs(body.volume - expected) < 1e-7);
+  }, { text, nodes, expected }, { timeout: 30000 });
 }
 const history = () => page.locator('.history').innerText().catch(() => '');
 // (O18: and the bodies' masses, which the worker posts after its reply — every step that reads a volume waits here.)
@@ -854,6 +863,81 @@ try {
     await page.click('[aria-label="New part"]'); await openModel(file, 4); await idle();
     assert.deepEqual((await doc()).nodes, JSON.parse(JSON.stringify(accepted.nodes))); assert.equal(await bodyVolume(), 7999);
     await iso(); await snap('polynomial-replacement-reopened');
+  });
+
+  await check('CG1 text: original font upload, native chooser, editing, undo and portable Save/Open', async () => {
+    const font = join(root, 'test/fixtures/fonts/abeezee/ABeeZee-Regular.ttf'), aVolume = 148797 * 0.01 ** 2 * 2;
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0 && window.__studioFresh === true); await idle();
+    await press(' '); await page.locator('.palette input').fill('Text'); await press('Enter'); await hudReady();
+    await field('Text').fill(' A '); await field('Font file').setInputFiles(font); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+    assert.match(await page.locator('.hud').innerText(), /ABeeZee-Regular.ttf/);
+    assert.doesNotMatch(await page.locator('.hud').innerText(), /"blob"|[a-f0-9]{64}/);
+    // Native file-input Enter may open a chooser; it must never Apply the prepared text.
+    const chooserPromise = page.waitForEvent('filechooser', { timeout: 1000 }).catch(() => null);
+    await field('Font file').press('Enter'); const chooser = await chooserPromise;
+    assert.equal((await doc()).nodes.length, 0);
+    if (chooser) { await chooser.setFiles(font); await hudReady(); }
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+    await field('Text').evaluate(input => input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, isComposing: true })));
+    assert.equal((await doc()).nodes.length, 0, 'an injected composing Enter leaves the HUD open');
+    await field('Font file').setInputFiles({ name: 'broken.ttf', mimeType: 'font/ttf', buffer: Buffer.from([0, 1, 2, 3]) });
+    await page.waitForFunction(() => /Could not read the font/.test(document.querySelector('.hud .hud-error')?.textContent ?? ''));
+    await field('Em size').fill('11'); await field('Em size').blur(); await page.waitForTimeout(200);
+    assert.equal(await page.locator('.hud .status').innerText(), 'refused');
+    assert.ok(await page.locator('.hud button', { hasText: 'Apply' }).isDisabled()); assert.equal((await doc()).nodes.length, 0);
+    await field('Em size').fill('10'); await field('Font file').setInputFiles(font); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview'); await iso(); await snap('text-preview');
+    await page.locator('.hud button', { hasText: 'Apply' }).click(); await textReady(' A ', 1, aVolume); await idle();
+    const original = await doc(); assert.equal(original.nodes[0].kind, 'text'); assert.equal(original.nodes[0].font.filename, 'ABeeZee-Regular.ttf');
+    await iso(); await snap('text-applied');
+    // Keep later authored features while changing this earlier recipe in the History.
+    await press('Escape'); await press('b'); await hudReady();
+    await field('Width X').fill('2'); await field('Depth Y').fill('2'); await field('Height Z').fill('1');
+    await field('At X').fill('30'); await field('At Y').fill('0'); await field('At Z').fill('0'); await field('At Z').blur(); await hudReady();
+    await page.locator('.hud button', { hasText: 'Apply' }).click(); await textReady(' A ', 3, aVolume); await idle();
+    const withBox = await doc(); await press('Escape');
+    await page.locator('.history button[data-node-index="0"]').click();
+    await page.waitForSelector('.hud[aria-label="Edit Text"]'); await field('Text').fill(' AA '); await field('Text').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+    await page.locator('.hud button', { hasText: 'Apply' }).click(); await textReady(' AA ', 3, 2 * aVolume); await idle();
+    const edited = await doc(); assert.equal(edited.nodes[0].id, original.nodes[0].id);
+    assert.deepEqual(edited.nodes[0].font, original.nodes[0].font); assert.deepEqual(edited.nodes.slice(1), JSON.parse(JSON.stringify(withBox.nodes.slice(1))));
+    await press('Escape'); await press('Meta+z'); await textReady(' A ', 3, aVolume); await idle();
+    await press('Meta+Shift+z'); await textReady(' AA ', 3, 2 * aVolume); await idle();
+    const [download] = await Promise.all([page.waitForEvent('download'), page.click('[aria-label="Save"]')]);
+    const saved = join(out, 'text-original-font-saved.bcad'); await download.saveAs(saved);
+    assert.equal(readFileSync(saved).subarray(0, 8).toString(), 'BCADPACK');
+    await page.click('[aria-label="New part"]'); await openModel(saved, 3); await textReady(' AA ', 3, 2 * aVolume); await idle();
+    assert.deepEqual((await doc()).nodes, JSON.parse(JSON.stringify(edited.nodes)));
+    await page.locator('.history button[data-node-index="0"]').click(); await page.waitForSelector('.hud[aria-label="Edit Text"]');
+    await field('Text').fill(' A '); await field('Text').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+    await page.locator('.hud button', { hasText: 'Apply' }).click(); await textReady(' A ', 3, aVolume); await idle();
+    await page.click('[aria-label="New from a template"]'); await page.locator('input[aria-label="Template name"]').fill('Font source stays portable');
+    await page.click('[aria-label="Save as a template"]');
+    await page.waitForFunction(() => /font files/.test(document.querySelector('[role="status"]')?.textContent ?? '') || /font files/.test(document.body.textContent ?? ''));
+    assert.equal((await doc()).nodes[0].text, ' A '); await iso(); await snap('text-reopened-edited');
+  });
+
+  await check('CG1 text Korean: both selected Korean originals create and reopen the same scalar text', async () => {
+    for (const filename of ['nanum-gothic/NanumGothic-Regular.ttf', 'nanum-myeongjo/NanumMyeongjo-Regular.ttf']) {
+      await page.click('[aria-label="New part"]');
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 0 && window.__studioFresh === true); await idle();
+      await press(' '); await page.locator('.palette input').fill('Text'); await press('Enter'); await hudReady();
+      await field('Text').fill('가한'); await field('Em size').fill('20'); await field('Curve tolerance').fill('0.002');
+      await field('Font file').setInputFiles(join(root, 'test/fixtures/fonts', filename)); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+      await page.locator('.hud button', { hasText: 'Apply' }).click(); await textReady('가한', 1); await idle();
+      const accepted = await doc(); assert.equal(accepted.nodes[0].font.filename, filename.split('/').at(-1));
+      const [download] = await Promise.all([page.waitForEvent('download'), page.click('[aria-label="Save"]')]);
+      const saved = join(out, filename.startsWith('nanum-gothic') ? 'text-korean-gothic.bcad' : 'text-korean-myeongjo.bcad'); await download.saveAs(saved);
+      assert.equal(readFileSync(saved).subarray(0, 8).toString(), 'BCADPACK');
+      await page.click('[aria-label="New part"]'); await openModel(saved, 1); await textReady('가한', 1); await idle();
+      assert.deepEqual((await doc()).nodes, JSON.parse(JSON.stringify(accepted.nodes)));
+      await iso(); await snap(filename.startsWith('nanum-gothic') ? 'text-korean-gothic-reopened' : 'text-korean-myeongjo-reopened');
+    }
   });
 
   await check('fillet a box top edge from the palette', async () => {

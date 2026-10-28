@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { dropBlobs, evictBlobs, getBlob } from '@barocss/cad-model/engine/blobs';
+import { dropBlobs, evictBlobs, getBlob, hasBlob, sha256 } from '@barocss/cad-model/engine/blobs';
 import { isTrueTypeError } from '@barocss/cad-model/engine/font/trueType';
 import { FontUpload, type FontFile } from '../src/app/fontUpload';
 
@@ -24,7 +24,7 @@ test('a newer font upload wins even when the older read finishes later', async (
     first.finish(); assert.equal(await older, null);
     // An active HUD is not a document root. Its font remains pinned across both sweeps.
     evictBlobs([]); evictBlobs([]); assert.ok(getBlob(source.blob));
-    upload.sync(null); evictBlobs([]); assert.equal(getBlob(source.blob), undefined);
+    upload.sync(null); evictBlobs([]); assert.equal(hasBlob(source.blob), false);
   } finally { upload.sync(null); if (source) dropBlobs([source.blob]); }
 });
 test('Cancel and a different command session suppress stale reads and stale errors', async () => {
@@ -41,4 +41,17 @@ test('current font errors remain visible and an oversized file is refused before
   const invalid: FontFile = { name: 'bad.ttf', size: 0, arrayBuffer: async () => new ArrayBuffer(0) };
   await assert.rejects(upload.load(session, invalid), error => isTrueTypeError(error) && error.code === 'TTF_MALFORMED');
   upload.sync(null);
+});
+
+test('ending the HUD after its native read completes never pins a late font import', async () => {
+  const upload = new FontUpload(), session = {}, file = deferredFile('late-import.ttf');
+  const pending = upload.load(session, file.file);
+  file.finish();
+  // Let the resolved read request its content-key work before ending the HUD session.
+  await Promise.resolve(); upload.sync(null);
+  assert.equal(await pending, null);
+  const hash = await sha256(new Uint8Array(original()));
+  evictBlobs([]); evictBlobs([]);
+  assert.equal(hasBlob(hash), false);
+  dropBlobs([hash]);
 });

@@ -1,7 +1,7 @@
 // R7 (cad-model's facade): the one part (@barocss/cad/api's Part) over the studio document, with its studio backend
 // (./studio), with studio-only authoring and a material by its library id for mass. `.doc` is the StudioDoc the
 // agent's tools, the studio, save/open and the fingerprints use. Assemblies, variants and rows come as the layer grows.
-import { BarocssError, Part, Sketch, bracketedCode, refuse, studioSpec, type BodyQuery, type Density, type FaceQuery, type Vec3, type Dim } from '@barocss/cad/api';
+import { BarocssError, Part, Sketch, bracketedCode, refuse, studioSpec, type BodyQuery, type Density, type FaceQuery, type Vec3, type Dim, type PlaneData } from '@barocss/cad/api';
 import { sha256Hex } from '../util/digest';
 import { loadPersonRows } from '../chat/rows';
 import { receivePersonRowFiles } from '../engine/rowFiles';
@@ -21,6 +21,7 @@ import { buildDraft, buildFaceFillet, buildFaceThread, buildFullRound, type Valu
 import { resolveNames } from '../chat/names';
 import { captureSignatures } from '../engine/references';
 import { bindParameter } from '../engine/parameters';
+import { fontSourceError, type FontSource } from '../engine/font/source';
 
 /** A closed sketch at a legacy height or in an explicit world-mm section frame, never both. */
 export type StudioLoftSection = { readonly sketch: Sketch } & (
@@ -64,7 +65,38 @@ export interface StudioRectangularReliefOptions {
   readonly depth: Dim; readonly mode: 'emboss' | 'engrave';
 }
 
+/** A standalone text extrusion: em size, positive height, chord tolerance and optional scalar spacing/plane. */
+export interface StudioTextOptions {
+  readonly size: Dim;
+  readonly h: Dim;
+  readonly tolerance?: number;
+  readonly tracking?: Dim;
+  readonly plane?: PlaneData;
+}
+const TEXT_OPTIONS = new Set(['size', 'h', 'tolerance', 'tracking', 'plane']);
+
 export class StudioPart extends Part<StudioDoc> {
+  /** One authored output from original font bytes; separated glyph components may remain several physical bodies. */
+  text(font: FontSource, text: string, options: StudioTextOptions): this {
+    if (!options || typeof options !== 'object' || Array.isArray(options) || !Object.hasOwn(options, 'size') || !Object.hasOwn(options, 'h')) throw refuse('VALUE', 'text takes required size and h options');
+    for (const key of Reflect.ownKeys(options)) if (typeof key !== 'string' || !TEXT_OPTIONS.has(key)) throw refuse('VALUE', 'text options are size, h, tolerance, tracking and plane');
+    const sourceProblem = fontSourceError(font);
+    if (sourceProblem) throw refuse('VALUE', `the text font: ${sourceProblem}`);
+    let copied: { font: FontSource; options: StudioTextOptions };
+    try { copied = structuredClone({ font, options }); }
+    catch { throw refuse('VALUE', 'text source and options must be copied plain values'); }
+    const given = copied.options, doc = this.document;
+    const node = { kind: 'text', text, font: copied.font, size: given.size, height: given.h,
+      tolerance: given.tolerance === undefined ? 0.01 : given.tolerance,
+      ...(given.tracking === undefined ? {} : { tracking: given.tracking }),
+      ...(given.plane === undefined ? {} : { plane: given.plane }) };
+    const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the text: ${why}`);
+    const index = doc.nodes.length, next = withNode(doc, node as ModelNode);
+    bodiesOf(next);
+    return this.next(next, bodyKey({ node: index, side: 'solid' }, next.nodes));
+  }
+
   /** One line-only upright slab only; no text, general faces or curved embossing. */
   rectangularRelief(options: StudioRectangularReliefOptions): this {
     const keys = ['min', 'max', 'depth', 'mode'];

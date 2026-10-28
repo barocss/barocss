@@ -2,7 +2,7 @@ import { documentConnectorError } from '../assembly/connectors';
 // Reading a saved .bcad file: its format and schema checked, an older one brought up to the current
 // schema with what was filled in said, one from a newer studio or with unknown features refused — the
 // file itself is left as it is until it is saved again.
-import { prefixDoc, type StudioDoc } from './doc';
+import { textDocumentProblem, prefixDoc, type StudioDoc } from './doc';
 import { bodyKeyFor, withIds } from './ids';
 import { documentBeadOwnershipError } from '../frames/beadOwnership';
 import { checkDocumentPrintPreview } from './printPreview';
@@ -19,7 +19,7 @@ import { assertSavedDrawingDocument } from './savedDrawing';
 // Legacy documents still migrate to 3; explicit route bundles require reader support for 4.
 export const SCHEMA = 3;
 const MAX_READ_SCHEMA = 4;
-const KINDS = new Set(['sketch', 'extrude', 'revolve', 'decimate', 'translate', 'rotate', 'mirror', 'scale', 'linear-pattern', 'linear-feature-pattern', 'circular-pattern', 'union', 'intersect', 'difference', 'rib', 'rectangular-relief', 'split', 'separate', 'sweep', 'sweep-curve', 'loft', 'import', 'mesh', 'thread', 'shell', 'chamfer', 'fillet', 'draft', 'full-round', 'face-fillet', 'face-thread', 'thicken', 'sew', 'subd', 'gear', 'internal-gear', 'bevel-gear', 'worm', 'worm-wheel', 'spring', 'cam', 'sprocket', 'pulley', 'belt', 'coupling', 'connector-opening', 'connector-body', 'gusset', 'end-cap', 'shaft', 'key', 'keyway', 'retaining-ring', 'pin', 'bearing', 'oring-gland', 'oring', 'rack', 'library', 'hole', 'sheet-base', 'sheet-contour', 'sheet-flange', 'sheet-corner-relief', 'frame-member', 'frame']);
+const KINDS = new Set(['text', 'sketch', 'extrude', 'revolve', 'decimate', 'translate', 'rotate', 'mirror', 'scale', 'linear-pattern', 'linear-feature-pattern', 'circular-pattern', 'union', 'intersect', 'difference', 'rib', 'rectangular-relief', 'split', 'separate', 'sweep', 'sweep-curve', 'loft', 'import', 'mesh', 'thread', 'shell', 'chamfer', 'fillet', 'draft', 'full-round', 'face-fillet', 'face-thread', 'thicken', 'sew', 'subd', 'gear', 'internal-gear', 'bevel-gear', 'worm', 'worm-wheel', 'spring', 'cam', 'sprocket', 'pulley', 'belt', 'coupling', 'connector-opening', 'connector-body', 'gusset', 'end-cap', 'shaft', 'key', 'keyway', 'retaining-ring', 'pin', 'bearing', 'oring-gland', 'oring', 'rack', 'library', 'hole', 'sheet-base', 'sheet-contour', 'sheet-flange', 'sheet-corner-relief', 'frame-member', 'frame']);
 
 export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] } | { error: string } {
   let raw: unknown;
@@ -53,6 +53,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   if (bad.length) return { error: `Parameters without a number: ${bad.join(', ')}.` };
   // (Stable ids: a schema-1 file named node i `n<i>`, which is the id it now keeps, so no stored name changes.)
   if (schema < 2) notes.push('features given stable ids (their names stay as they were)');
+  const textProblem = textDocumentProblem({ ...o, parameters });
+  if (textProblem) return { error: textProblem };
   let doc: StudioDoc = withIds({ ...(o as unknown as StudioDoc), format: 'barocss-cad-model' as const, schema: schema === 4 ? 4 : SCHEMA, units: 'mm' as const, parameters });
   if (schema === 2) {
     const moved = indexKeysToIds(doc);

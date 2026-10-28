@@ -5,7 +5,7 @@
 // (engine/ids.ts), so they stay as they are.
 import { type BoundConstraint3D, type V3 } from '../frames/sketch3d';
 import { boundConstraints, boundRefusal, followersOf, SKELETON_CODES } from '../frames/skeleton';
-import { frameGeometry, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
+import { frameGeometry, textNodeProblem, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
 import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
@@ -16,6 +16,7 @@ import { isObj, isVec3 } from '../util/guards';
 type Spec = Record<string, string>;
 /** `?` marks an optional field. */
 const SPECS: Record<string, Spec> = {
+  text: { text: 'text', font: 'any', size: 'dim', height: 'dim', tolerance: 'num', 'tracking?': 'dim', 'plane?': 'plane' },
   bearing: { row: 'text', shaft: 'shaft-node', step: 'positive-index', against: 'enum:start|end', 'housing?': 'body-node', 'housingRef?': 'housing-ref', 'shaftClass?': 'text', 'housingClass?': 'text' },
   extrude: { sketch: 'sketch', height: 'dim', 'from?': 'dim', 'draft?': 'num' },
   revolve: { sketch: 'sketch', axis: 'enum:x|y', 'origin?': 'dim2', angle: 'num' },
@@ -132,6 +133,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
     const why = checkValue(v, type, nodes, parameters, leaves);
     if (why) return `${kind}.${key}: ${why}`;
   }
+  if (kind === 'text') return textNodeProblem(node, parameters);
   if (kind === 'linear-feature-pattern') {
     const parent = node.parent as unknown as BodyRef, source = nodes[parent.node];
     if (parent.side !== 'solid' || source?.kind !== 'difference' || source.suppressed === true) return '[BAD_REFERENCE] A linear feature pattern needs a current unsuppressed difference body.';

@@ -33,6 +33,7 @@ export const CHAT_COMMANDS = commands.filter(c => c.build && c.id !== 'loft' && 
 
 /** What each command needs selected and what its values mean. */
 export const COMMAND_DOCS: Record<string, { selection: string; values: Record<string, string> }> = {
+  text: { selection: 'none: creates a standalone solid', values: { text: 'one scalar run, without shaping or kerning', font: 'JSON FontSource descriptor of an already loaded static TTF, prepared by fontFromBytes or the Studio font chooser', size: 'em height in model units', height: 'positive extrusion height', tolerance: 'explicit quadratic-to-chord deviation', tracking: 'extra spacing between scalars' } },
   extrude: { selection: 'none: the newest finished sketch no feature uses yet', values: { h: 'distance along the sketch normal', draft: 'wall draft degrees (0: straight)', op: 'join | new | cut (only for a sketch drawn on a body face)', depth: 'distance | through (a cut only)' } },
   revolve: { selection: 'none: the newest finished sketch no feature uses yet', values: { axis: 'y | x: the sketch axis to turn about', deg: 'angle, up to 360', op: 'join | new | cut (sketch on a body face)' } },
   pipe: { selection: 'none: the newest finished sketch no feature uses yet', values: { h: 'straight run before and after the bend', bend: 'bend radius', bendAngle: 'bend angle', toward: 'x | -x | y | -y', op: 'join | new | cut (sketch on a body face)' } },
@@ -156,7 +157,8 @@ async function runCommandTool(state: ChatState, args: Record<string, unknown>, e
   // (A command's own refusal — its build throws it — comes back as the tool's, the part unchanged; O14's typed ones among them.)
   let next: StudioDoc;
   try { next = cmd.build(ctx, values); } catch (e) { return fail(state, `${cmd.label}: ${e instanceof Error ? e.message : String(e)}`); }
-  const shown = Object.fromEntries(shownFields(fields, values).map(f => [f.key, values[f.key]]));
+  const shown: Values = {};
+  for (const field of shownFields(fields, values)) shown[field.key] = field.kind === 'file' ? field.filename(values[field.key]) ?? 'Font file' : values[field.key];
   // (O14: a mount reports its row's source and its output axis — for a concentric mate, or set_frames as it is.)
   if (cmd.id === 'mount') {
     const row = mountRowsOf(state.doc).get(String(values.row))!, f = selection.faces[0], face = state.bodies[f.body].mesh.faces[f.face], k = [0, 1, 2].find(i => Math.abs(Math.abs(face.normal[i]) - 1) < 1e-6)!;

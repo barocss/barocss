@@ -10,6 +10,7 @@ import { glandCommands } from './glandCommands';
 import { driveCommands } from './driveCommands';
 import { connectorCommands } from './connectorCommands';
 import { weldmentCommands } from './weldmentCommands';
+import { textCommand } from './textCommand';
 import { alignCommand } from './alignCommand';
 import { fastenerCommand } from './fasteners';
 import { mountCommand } from './mounts';
@@ -40,6 +41,8 @@ export type Values = Record<string, number | string>;
 /** `when`: shown (and required) only for these values. */
 export type Field = (
   | { key: string; label: string; kind: 'mm' | 'count' | 'deg' | 'ratio' | 'number'; min?: number; max?: number; step?: number }
+  | { key: string; label: string; kind: 'text'; maxLength: number }
+  | { key: string; label: string; kind: 'file'; accept: string; maxLength: number; filename(value: number | string): string | null }
   | { key: string; label: string; kind: 'choice'; options: { value: string; label: string }[]; /** Why there is nothing to choose, when the options are none (O7: no rows loaded). */ empty?: string;
       /** Why a value is none of them, when that has a typed refusal of its own (O14: no such row). */ unknown?: (value: string) => string }
 ) & { when?: (values: Values) => boolean };
@@ -435,6 +438,7 @@ const allCommands: Command[] = [
   ...driveCommands,
   ...connectorCommands,
   ...weldmentCommands,
+  textCommand,
   {
     id: 'box', label: 'Box', icon: 'cad-box', hint: 'A block by width, depth and height', shortcut: 'B', group: 'create', keywords: 'cube block plate',
     available: () => ok,

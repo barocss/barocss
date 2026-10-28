@@ -17,6 +17,7 @@ import { nextSerial, serialOf, withIds } from '../engine/ids';
 import { BASE, type MateRef } from '../assembly/mates';
 import { renameIds } from '../chat/remap';
 import { canonical, revisionOf } from '../util/revision';
+import { isObj } from '../util/guards';
 import { refusal, type VersionCode } from './codes';
 import { idFormOf, indexForm, namedIdsOf, nodeKey, serialRefsOf } from './idForm';
 import { ancestorsOf, branchOf, checkAt, checkBy, checkName, findBase, isUnsaved, keep, readVersion, versionNamed, versionOf, type Version, type VersionLog } from './log';
@@ -41,6 +42,14 @@ const MADE = new Set(['format', 'schema', 'units', 'nodes', 'outputs', 'nextId']
 
 const same = (a: unknown, b: unknown) => canonical(a ?? null) === canonical(b ?? null);
 const nodeSame = (a: ModelNode | undefined, b: ModelNode | undefined) => a === undefined || b === undefined ? a === b : nodeKey(a) === nodeKey(b);
+
+/** Opaque text and font metadata do not establish persistent-name dependencies. */
+function referenceNames(node: ModelNode): string[] {
+  const value = node as unknown as Record<string, unknown>;
+  if (value.kind !== 'text' || typeof value.text !== 'string' || !isObj(value.font)) return namedIdsOf(node);
+  const out = { ...value }; delete out.text; delete out.font;
+  return namedIdsOf(out);
+}
 
 /** A mate's face reference renamed when it is on the base part (a placed part's names are its own). */
 const renameRef = (r: MateRef, ids: ReadonlyMap<string, string>): MateRef => r.part === BASE ? renameIds(r, ids) : r;
@@ -184,7 +193,7 @@ export function mergeDocs(base: StudioDoc, ours: StudioDoc, theirs: StudioDoc, o
     changed = false;
     for (const [id, node] of [...kept]) {
       if (!kept.has(id)) continue;
-      const names = [...serialRefsOf(node).filter(s => s >= 0).map(s => `n${s}`), ...namedIdsOf(node)];
+      const names = [...serialRefsOf(node).filter(s => s >= 0).map(s => `n${s}`), ...referenceNames(node)];
       for (const r of names) {
         if (kept.has(r) || r === id) continue;
         // (A text that only looks like a name: no feature of any side has that id.)
@@ -193,7 +202,7 @@ export function mergeDocs(base: StudioDoc, ours: StudioDoc, theirs: StudioDoc, o
         if (has && ans === has) {
           const n = (has === 'ours' ? on : tn)!;
           kept.set(r, n); source.set(r, has); changed = true;
-          for (const s of [...serialRefsOf(n).filter(k => k >= 0).map(k => `n${k}`), ...namedIdsOf(n)]) if (!inherited.has(s)) inherited.set(s, has);
+          for (const s of [...serialRefsOf(n).filter(k => k >= 0).map(k => `n${k}`), ...referenceNames(n)]) if (!inherited.has(s)) inherited.set(s, has);
           continue;
         }
         if (has && ans === undefined) {
