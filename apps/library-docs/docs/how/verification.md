@@ -112,7 +112,7 @@ ezdxf, usd-core and MuJoCo were run again on the new files.
 A property test needs no expected value: it checks a relation that holds for any correct answer.
 `scripts/rb/property.mjs` has its own small harness. A seeded generator (mulberry32) draws the cases, so a seed always
 gives the same ones. A failure is shrunk: each smaller candidate that still fails replaces it, until none does. The
-eleven properties include:
+twelve properties include:
 
 - inclusion–exclusion, |A ∪ B| + |A ∩ B| = |A| + |B|, and |A − B| + |A ∩ B| = |A|;
 - commutativity of the volume of ∪ and ∩;
@@ -122,6 +122,9 @@ eleven properties include:
 - a fillet's volume falls as its radius grows, and no faster than its edges allow;
 - fillets against closed-form sections and Pappus, and the exact oracles above;
 - mass by quadrature agrees with mass from finer and finer tessellations.
+- names keep their meaning along a chain of bosses and pockets: a face the next feature does not come near keeps its
+  name, area and centre (added after D282; on the build before D282 it fails at once, a boss's lower and upper wall
+  halves trading `#1` and `#2`).
 
 `pnpm rb:props` runs about 200 cases a property with seed 20261018. Known failures are listed in
 `robustness/properties-todo.json` (empty now), and any other failure exits 1.
