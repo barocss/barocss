@@ -1,0 +1,43 @@
+{
+  "source": "21510468ff3f267d3c55d8c146d5e0480e862866",
+  "node": "22.19.0",
+  "build": "PASS",
+  "lintAndCodeShape": "PASS",
+  "focused": {
+    "tests": 42.0,
+    "pass": 42.0,
+    "fail": 0.0,
+    "skipped": 0.0,
+    "duration_ms": 503.31425
+  },
+  "kernel": {
+    "tests": 2143.0,
+    "pass": 2137.0,
+    "fail": 0.0,
+    "skipped": 6.0,
+    "duration_ms": 246165.733042
+  },
+  "tools": "PASS",
+  "refusals": "PASS",
+  "apiInventory": "unchanged SCOPED_PASS",
+  "docs": {
+    "pages": 68,
+    "beingWritten": 0,
+    "shots": 53,
+    "shotKB": 4488,
+    "labels": 852
+  },
+  "standardRequest": {
+    "exactOperations": 179831,
+    "rationalOperations": 56827,
+    "integerOperations": 172,
+    "helperOperations": 122832,
+    "work": 362233,
+    "maximumBits": 1187
+  },
+  "differential": "PASS, all proof fields except 13 explicit ledger fields unchanged",
+  "performance": "7-run final median25->25ms; intermediate26ms; no stable speedup",
+  "modelStudioTypesBrowser": "NOT_RUN; last whole consumer suites/types D299901b4ce45",
+  "physicalMassProductWrap": "NOT_QUALIFIED",
+  "pushPrRelease": "NOT_RUN"
+}

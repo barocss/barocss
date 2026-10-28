@@ -15499,3 +15499,29 @@ Model/Studio/browser/performance NOT RUN; last product whole/types remain D29990
 test, dependency/tolerance increase, speedup, push, PR or release. Next:D305 measured exact duplicate proof-
 work reduction with perf-bench and complete shape/numeric invariance, then closed-reference/formal mass and
 Part/Model/API/Studio integration. Owner07->08->09 remains unchanged.
+
+
+## D305 — Native proof budget headroom with unchanged bounds (2026-10-29)
+
+**Decision.** Runtime21510468f skips exact zero coordinate residuals only after finite/owned
+admission, preserving normalized independent endpoint results. Family-only fixed128-to-Number
+conversion uses bounded nearest power-of-two scaling, exact comparison and at most one positive
+IEEE successor. Generic standalone paths and full coefficients/bounds/tolerances stay unchanged.
+Independent review found five uncharged comparisons per bound; final code includes all20.
+No cap or tolerance increases, new dependency, public export or source-checksum unit pin.
+
+The required existing perf-bench has a fresh fixed one-pad workload. RUNS7 medians25ms before,
+26ms intermediate and25ms final establish no stable speedup. Actual B-rep fingerprint, strict
+shape/names/counts/diagnostic volume/centroid and complete64-bit Number result fields match.
+Only13 explicit proof ledger fields differ; six complete legacy outcomes/counters, five
+standalone D0 receipts/counters and full family output except counts match prior-build data.
+Benchmark197043->179287 exact operations,386199->363775 work. The distinct D304 standard
+fixture196857->179831 leaves20169 of200000; future reference/mass fit is not established.
+
+Final build/lint/code-shape, focused42/42, whole2137pass/0fail/6existing skips (2143total),
+tools/refusals/unchanged API SCOPED_PASS/docs68pages/53shots/4488KiB/852labels pass. Setup
+shell/patch failures are recorded separately. Model/Studio/types/browser NOT RUN; latest
+whole consumer suites/types remain D299901b4ce45. Evidence: notes/native-position-proof-budget-2026-10-29/README.md.
+Actual global closure, closed-reference transfer, physical solid/mass and product wrap remain
+open. No push/PR/release. Next D306: private formal reference mass with explicit scalar error
+budgets and complete work ledger, then actual closed-reference/product integration. Owner07->08->09 unchanged.

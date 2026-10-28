@@ -1,0 +1,129 @@
+{
+  "status": "PASS",
+  "scope": "selected complete prior-build runtime output differential, each native result Number encoded by all binary64 bits including signed zero; no source checksum test",
+  "brepBits": "SAME",
+  "proofExceptExplicitLedgerFields": "SAME",
+  "changedLedgerFields": [
+    {
+      "path": ".nativeBinding.evaluator.counts.operations.$float64",
+      "before": 55995.0,
+      "after": 52507.0
+    },
+    {
+      "path": ".nativeBinding.evaluator.counts.floatSearchSteps.$float64",
+      "before": 252.0,
+      "after": 0.0
+    },
+    {
+      "path": ".nativeBinding.evaluator.counts.floatConversions.$float64",
+      "before": 4.0,
+      "after": 0.0
+    },
+    {
+      "path": ".nativeBinding.evaluator.counts.maximumObservedBits.$float64",
+      "before": 1152.0,
+      "after": 1075.0
+    },
+    {
+      "path": ".nativeBinding.evaluator.counts.directOperations.$float64",
+      "before": 1300.0,
+      "after": 1408.0
+    },
+    {
+      "path": ".nativeBinding.evaluator.counts.totalOperations.$float64",
+      "before": 57295.0,
+      "after": 53915.0
+    },
+    {
+      "path": ".nativeBinding.evaluator.counts.work.$float64",
+      "before": 109499.0,
+      "after": 105867.0
+    },
+    {
+      "path": ".nativeBinding.phases.evaluator.exactOperations.$float64",
+      "before": 57295.0,
+      "after": 53915.0
+    },
+    {
+      "path": ".nativeBinding.phases.evaluator.work.$float64",
+      "before": 109499.0,
+      "after": 105867.0
+    },
+    {
+      "path": ".nativeBinding.counts.exactOperations.$float64",
+      "before": 197043.0,
+      "after": 179287.0
+    },
+    {
+      "path": ".nativeBinding.counts.rationalOperations.$float64",
+      "before": 71269.0,
+      "after": 56893.0
+    },
+    {
+      "path": ".nativeBinding.counts.helperOperations.$float64",
+      "before": 125601.0,
+      "after": 122221.0
+    },
+    {
+      "path": ".nativeBinding.counts.work.$float64",
+      "before": 386199.0,
+      "after": 363775.0
+    }
+  ],
+  "shape": "SAME",
+  "legacySixCompleteOutcomesAndCounts": "SAME",
+  "fiveStandaloneCompleteOutcomesAndCounts": "SAME",
+  "familyCompleteOutputExceptCounts": "SAME",
+  "familyCounts": {
+    "before": {
+      "operations": 56049,
+      "gcdSteps": 42717,
+      "floatSearchSteps": 252,
+      "floatConversions": 4,
+      "maximumObservedBits": 1152,
+      "directOperations": 1300,
+      "totalOperations": 57349,
+      "work": 109361,
+      "maximumDirectBits": 1155
+    },
+    "after": {
+      "operations": 52537,
+      "gcdSteps": 42717,
+      "floatSearchSteps": 0,
+      "floatConversions": 0,
+      "maximumObservedBits": 1075,
+      "directOperations": 1394,
+      "totalOperations": 53931,
+      "work": 105691,
+      "maximumDirectBits": 1155
+    }
+  },
+  "fullRequestCounts": {
+    "before": {
+      "exactOperations": 197043,
+      "rationalOperations": 71269,
+      "integerOperations": 173,
+      "helperOperations": 125601,
+      "work": 386199,
+      "maximumBits": 1178
+    },
+    "after": {
+      "exactOperations": 179287,
+      "rationalOperations": 56893,
+      "integerOperations": 173,
+      "helperOperations": 122221,
+      "work": 363775,
+      "maximumBits": 1178
+    }
+  },
+  "timing": {
+    "runs": 7,
+    "beforeMedianMs": 25,
+    "intermediateMedianMs": 26,
+    "finalMedianMs": 25,
+    "finalChangePercent": 0,
+    "geometryFingerprint": "37a018051624ef8e",
+    "stableSpeedupEstablished": false
+  },
+  "physicalMassOrProductQualification": false
+}
