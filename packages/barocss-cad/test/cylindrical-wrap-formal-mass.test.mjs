@@ -5,6 +5,7 @@ import { certifyCylindricalWrapFormalPadMass, isFormalPadMassError } from '../di
 import { isCylindricalWrapSourceError } from '../dist/features/cylindrical-wrap-source.js';
 import { isCylindricalWrapMapError } from '../dist/features/cylindrical-wrap-map.js';
 import { readNativeSIInertia } from '../dist/internal/native-si-mass-state.js';
+import { SectionRationalContext } from '../dist/section-rational-internal.js';
 
 const rectangle = { u: [0.1, 0.4], v: [0.2, 0.7] };
 const budgets = { volume: 1e-8, mass: 1e-10, centroid: [1e-10, 1e-10, 1e-10], inertia: [1e-7, 1e-7, 1e-7, 1e-7, 1e-7, 1e-7] };
@@ -251,4 +252,29 @@ test('tiny valid source refuses the overflowing existing native SI density inter
   // MMGS can remain finite at this geometric scale. This helper does not repair the global SI reader.
   refused(() => certifyCylindricalWrapFormalPadMass(part, rectangle, selected), 'SUPPORT');
   assert.deepEqual(part, before); assert.equal(selected.density, 1e306);
+});
+
+
+function referenceFailure(code, detail) { assert.fail(`${code}: ${detail}`); }
+function midpointReference(value, q) {
+  const lower = q.rat(BigInt(value.lower.numerator), BigInt(value.lower.denominator));
+  const upper = q.rat(BigInt(value.upper.numerator), BigInt(value.upper.denominator));
+  return q.nearest(q.div(q.add(lower, upper), q.integer(2)));
+}
+test('all returned raw midpoint Number bits equal generic nearest on positive, negative and zero moments', () => {
+  const fixtures = [
+    {part:native(), rectangle:{u:[1/16,5/16],v:[1/4,3/4]}},
+    {part:native(10,-7), rectangle},
+    {part:native(20,-10), rectangle:{u:[0.24,0.26],v:[0.1,0.45]}},
+  ];
+  let negative = 0, zero = 0, positive = 0;
+  for (const fixture of fixtures) {
+    const result = certifyCylindricalWrapFormalPadMass(fixture.part,fixture.rectangle,options());
+    const q = new SectionRationalContext(referenceFailure);
+    for (const moment of result.moments) {
+      assert.ok(Object.is(moment.estimate,midpointReference(moment,q)));
+      if(moment.estimate<0)negative++;else if(moment.estimate>0)positive++;else{zero++;assert.ok(Object.is(moment.estimate,0));}
+    }
+  }
+  assert.ok(negative>0 && zero>0 && positive>0);
 });

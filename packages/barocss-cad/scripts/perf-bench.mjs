@@ -11,6 +11,7 @@ import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 const D = new URL('../dist', import.meta.url).pathname;
 const K = await import(`${D}/index.js`);
 const { buildCylindricalWrapNativeBoundAssembly } = await import(`${D}/features/cylindrical-wrap-assembly.js`);
+const { certifyCylindricalWrapFormalPadMass } = await import(`${D}/features/cylindrical-wrap-formal-mass.js`);
 const doc = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
 const fp = x => createHash('sha256').update(JSON.stringify(x, (k, v) => (v instanceof Float32Array || v instanceof Float64Array || v instanceof Uint32Array) ? Array.from(v) : v)).digest('hex').slice(0, 16);
 const out = (f, id) => K.outputOf(K.evaluateCadPart(doc(f)), id);
@@ -55,7 +56,17 @@ function nativeBoundPad() {
   const part = { solid: { kind: 'upright', solid }, brep: K.brepFromPrismatic(solid, { id: 'post' }) };
   return buildCylindricalWrapNativeBoundAssembly(part, [{ outer: [[0.125, 0.25], [0.375, 0.25], [0.375, 0.75], [0.125, 0.75]], holes: [] }], { id: 'native_pad', height: 10 }).assembly.brep;
 }
+// Time the complete fresh request; the harness fingerprint covers only mass-property Number output.
+// Compare full binary64 receipts separately, excluding only final counts. Generic shape mode is not applicable.
+function formalPadMass() {
+  const solid = K.prismaticFromProfile({ outer: [{ kind: 'arc', start: [10, 0], center: [0, 0], direction: 'ccw' }], height: 30, from: -7, tag: 'post' });
+  const part = { solid: { kind: 'upright', solid }, brep: K.brepFromPrismatic(solid, { id: 'post' }) };
+  return certifyCylindricalWrapFormalPadMass(part, { u: [0.1, 0.4], v: [0.2, 0.7] }, {
+    id: 'formal_pad', density: 7.85, budgets: { volume: 1e-8, mass: 1e-10, centroid: [1e-10, 1e-10, 1e-10], inertia: [1e-7, 1e-7, 1e-7, 1e-7, 1e-7, 1e-7] },
+  }).properties;
+}
 const CASES = {
+  'formal-pad-mass': formalPadMass,
   'native-bound-pad': nativeBoundPad,
   'profile-relief-emboss': () => reliefCase('emboss'),
   'profile-relief-engrave': () => reliefCase('engrave'),

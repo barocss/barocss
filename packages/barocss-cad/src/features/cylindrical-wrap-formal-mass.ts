@@ -42,6 +42,10 @@ export type FormalPadMassCode = 'INPUT' | 'SUPPORT' | 'BUDGET' | 'REPRESENTABILI
 export type FormalPadMassError = KernelError & { readonly code: FormalPadMassCode };
 const SOURCE = 'cylindrical-wrap-formal-mass';
 const SCALE = 1n << 128n;
+// Exact represented powers of two; the fast path never changes interval precision.
+const MIDPOINT_DENOMINATOR = Number(SCALE << 1n);
+const MIDPOINT_MINIMUM = 1 / MIDPOINT_DENOMINATOR;
+const MIDPOINT_MAXIMUM = Number(1n << 127n);
 const ORDER = ['V', 'X', 'Y', 'Z', 'XX', 'YY', 'ZZ', 'XY', 'XZ', 'YZ'] as const;
 const LIMITS = Object.freeze({ operations: 200000, integerBits: 8192, work: 1048576, fractionBits: 128, atanTerms: 24, ratioReductions: 3 } as const);
 function fail(code: FormalPadMassCode, detail: string): never { throw kernelRefusal(SOURCE, code, `Formal pad mass: ${detail}`) as FormalPadMassError; }
@@ -181,7 +185,28 @@ function audit(value: number, target: Interval, budget: number | undefined, ctx:
   if (budget !== undefined && ctx.compare(error, ctx.from(budget)) > 0) fail('REPRESENTABILITY', 'an absolute public mass-property budget was exceeded');
   return { estimate: value, ...intervalReceipt(target, ctx), error: ctx.text(error) };
 }
-function midpoint(value: Interval, ctx: Context): number { return ctx.nearest(ctx.rat(ctx.addInteger(value.lo, value.hi), 2n * SCALE)); }
+function midpointDirect(ctx: Context, amount: number): void { ctx.direct += amount; ctx.check(); }
+/**
+ * For 0<abs(n)<2^256 and d=2^129, Number(n)/d stays normal and finite.
+ * Exact power-of-two scaling preserves the nearest/ties-to-even rounding lattice.
+ * Only the ten raw fixed128 interval midpoints use this path; zCenter stays generic.
+ */
+function midpoint(value: Interval, ctx: Context): number {
+  const numerator = ctx.addInteger(value.lo, value.hi);
+  midpointDirect(ctx, 1);
+  if (numerator === 0n) return 0;
+  midpointDirect(ctx, 1);
+  const negative = numerator < 0n, magnitude = ctx.integer(negative ? -numerator : numerator);
+  const high = ctx.integer(magnitude >> 256n);
+  midpointDirect(ctx, 1);
+  if (high !== 0n) fail('REPRESENTABILITY', 'the raw midpoint numerator exceeds the proved 256-bit conversion range');
+  const result = Number(numerator) / MIDPOINT_DENOMINATOR;
+  midpointDirect(ctx, 2);
+  const absolute = Math.abs(result); midpointDirect(ctx, 1);
+  midpointDirect(ctx, 3);
+  if (!Number.isFinite(result) || absolute < MIDPOINT_MINIMUM || absolute > MIDPOINT_MAXIMUM) fail('REPRESENTABILITY', 'the raw midpoint conversion must remain in its proved finite normal range');
+  return result;
+}
 
 /** Exact24 alternating terms plus a positive x^49/49 remainder, with signed outward rounding. */
 function atanSmall(value: R, ctx: Context): Interval {
