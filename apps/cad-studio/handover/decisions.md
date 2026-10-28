@@ -14665,3 +14665,31 @@ scrolling: 70 of the How it works formulas were wider than the box.
 **Records.** `packages/barocss-cad/src/intersect/surface-intersection.ts` (`touchOnSide`), `src/core/error-codes.ts`,
 `test/error-codes.test.mjs`; `apps/library-docs/docs/.vitepress/components/algorithms/{AlgoFigure,FilletSection}.vue`.
 Of D285's four left, the L-plate's three pass; `native-split-reference-replay` (a demo pinned to Node 22.23.3) remains.
+
+## D287 — A whole turn of one cylinder's pieces is joined in two halves (2026-10-28)
+
+**Owner, 2026-10-28**: after the corner restore, join the pieces of one cylinder and split them only at the seam, so
+the face fillet's result matches the bare tee's.
+
+**Before.** The analytic Boolean's `mergePieces` joins kept pieces on one plane or cylinder. For a cylinder it puts the
+joined face's seam in the widest angle the pieces leave uncovered; when they cover the whole turn there is none, and
+the pieces were kept as they were. The face fillet's corner restore (F1, `restoreCorner`: body − W) left the 60° tee's
+main pipe in 8 pieces and the branch in 5 (the bare tee: 2 each), so the edge fillet after it ran on 20 faces (1.64 s
+instead of 0.89 s) and the r 4 round across an r 2 one came out in 56 faces, not the bare tee's 45 (same volume).
+
+**Decision.** A group of one cylinder's pieces covering the whole turn is cut at two seams half a turn apart — the
+widest piece's start and its opposite — each piece in its own domain and only where a seam falls strictly inside its
+span (10 tolerances in); the halves are joined as before, each with its seam in the half the other leaves. A piece no
+seam crosses is kept as the same piece. When a cut leaves no region, the group stays as it was. Each half is named after
+the first piece lying in it, as any join is.
+
+**Results.** `tee60-over-round`: 45 faces, 124 edges, 82 vertices, the bare tee's r 4 round's face and edge names
+exactly, volume to 12 digits, centroid 3e-13 apart; 6.1 → 5.2–5.4 s. `pin-face-fillet-over-round`: 27 faces as the
+bare pin's, one edge more (71, 70), volume to 1e-10. The other 17 bench cases have the same shape (validity, counts,
+names, volume, centroid); 7 of them differ in their bits. `conformance r10-translational-rod-across-disc`: the two
+faces of R10.1's cap cylinder that lay on the plate's rim (`f_cyl.side0`, `f_cyl.side1`) are now pieces of the rim
+`pe.side0`: its face names updated, volume and centroid as before. Kernel 1961: 1954 pass and the one above, its names updated, passes on its own (the rest skipped); cad-model 1711/1711,
+studio 351/351.
+
+**Records.** `packages/barocss-cad/src/brep/analytic-boolean.ts` (`joinPieces`, `seamHalves`);
+`conformance/r10/translational-rod-across-disc.json`; `apps/library-docs/docs/how/naming.md` §4; research note §8.

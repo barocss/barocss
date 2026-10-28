@@ -126,3 +126,6 @@ body's fragmentation: `m.side0` in 8 pieces and `b.side0` in 5 (the bare tee: 2 
 takes 1.64 s instead of 0.89 s and the result has 56 faces instead of 45. The Boolean's `mergePieces` does not join
 pieces of a whole cylinder (no gap is left for the seam). Joining them — pieces on one surface split only at its seam —
 is the next lever, and would make the result the bare tee's.
+
+**Done (D287, same day).** The pieces of a whole turn are cut at two seams and joined in halves: `tee60-over-round`
+now gives the bare tee's r 4 round exactly in faces, edges and names (45, 124, 82), volume to 12 digits, 5.2–5.4 s.

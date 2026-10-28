@@ -1871,48 +1871,78 @@ function mergePieces(pieces: Piece[], tol: number): Piece[] {
     if (list) list.push(groups.length); else planes.set(k, [groups.length]);
     groups.push([p]);
   }
-  return groups.flatMap(group => {
-    if (group.length === 1) return group;
-    const first = group[0], s0 = first.face.surf;
-    let host: GFace = { ...first.face, cuts: [] };
-    if (s0.kind === 'cylinder') {
-      // Angular coverage: each piece's θ interval (exact in its own domain), joined around the circle;
-      // the domain's seam goes in the middle of the largest uncovered gap.
-      const spans = group.map(p => {
-        const sf = p.face.surf as Cylinder, us: number[] = [];
-        for (const ring of [p.region.outer, ...p.region.holes]) for (const g of ring) for (let i = 0; i <= 16; i++) { const q = segAtAny(g, i / 16); us.push(q[0]); }
-        const a = Math.min(...us) / (sf.s * sf.r), b = Math.max(...us) / (sf.s * sf.r);
-        return [Math.min(a, b), Math.max(a, b)] as [number, number];
-      });
-      if (spans.some(([a, b]) => b - a >= TWO_PI - 1e-9)) return group;
-      const norm = spans.map(([a, b]) => { const a0 = ((a % TWO_PI) + TWO_PI) % TWO_PI; return [a0, a0 + (b - a)] as [number, number]; }).sort((x, y) => x[0] - y[0]);
-      const merged: [number, number][] = [];
-      for (const iv of norm) { const last = merged[merged.length - 1]; if (last && iv[0] <= last[1] + 1e-9) last[1] = Math.max(last[1], iv[1]); else merged.push([...iv]); }
-      if (merged.length > 1 && merged[merged.length - 1][1] >= merged[0][0] + TWO_PI - 1e-9) { const lastIv = merged.pop()!; merged[0] = [lastIv[0] - TWO_PI, Math.max(merged[0][1], lastIv[1] - TWO_PI)]; }
-      let gap = 0, at = 0;
-      for (let i = 0; i < merged.length; i++) { const next = i + 1 < merged.length ? merged[i + 1][0] : merged[0][0] + TWO_PI, g = next - merged[i][1]; if (g > gap) { gap = g; at = merged[i][1] + g / 2; } }
-      if (gap < 1e-6) return group;
-      host = { ...host, surf: { ...s0, ref: at + Math.PI } };
-    }
-    // Rings in the host domain, made counter-clockwise (material left) for the union.
-    const flipped = first.out < 0, orient = (r: CurveSegment2[]) => flipped ? [...r].reverse().map(segReverse) : r;
-    const ringsOf = group.map(p => [p.region.outer, ...p.region.holes].map(r => orient(r.map(g => curve2(host, curve3Of(p.face, g), tol)))));
-    // (The pieces' rings as `curveFaceRegions` made them: where it joined a cut's loose end, a few tolerances short of a
-    // segment, a ring is closed to within that. The union closes them so, or drops the piece: L4 fuzz 20261026 #112, D252,
-    // a wall's piece inside the other copy's cavity, its ring 6.7e-6 open. A piece alone goes through it too.)
-    return clustersOf(ringsOf.map(rs => ringsBox(rs, 10 * tol))).flatMap(cluster => {
-      // (A piece apart from the rest whose rings close is its own face as it is; one left open goes through the union.)
-      if (cluster.length === 1 && regionCloses(group[cluster[0]].region)) return [group[cluster[0]]];
-      const joined = booleanCurveRegions(cluster.flatMap(i => ringsOf[i]), [], 'union', tol, true);
-      return joined.map(region => {
-        const back = flipped ? { outer: [...region.outer].reverse().map(segReverse), holes: region.holes.map(h => [...h].reverse().map(segReverse)) } : region;
-        const p2 = regionInteriorPoint(region) ?? [0, 0];
-        // (Named after the first piece lying in it: a cluster can join into more than one face.)
-        const own = cluster.length === 1 ? group[cluster[0]] : cluster.map(i => group[i]).find(p => locateInRegion(to2(host, p.key), region, 10 * tol) === 'in') ?? group[cluster[0]];
-        return { face: own.face.name === host.name ? host : { ...host, name: own.face.name }, region: back, out: first.out, key: to3(host, p2) };
-      });
+  return groups.flatMap(group => joinPieces(group, tol, true));
+}
+/** One group's pieces (one plane or cylinder) joined into as few faces as their union makes. */
+function joinPieces(group: Piece[], tol: number, split: boolean): Piece[] {
+  if (group.length === 1) return group;
+  const first = group[0], s0 = first.face.surf;
+  let host: GFace = { ...first.face, cuts: [] };
+  if (s0.kind === 'cylinder') {
+    // Angular coverage: each piece's θ interval (exact in its own domain), joined around the circle;
+    // the domain's seam goes in the middle of the largest uncovered gap.
+    const spans = group.map(p => {
+      const sf = p.face.surf as Cylinder, us: number[] = [];
+      for (const ring of [p.region.outer, ...p.region.holes]) for (const g of ring) for (let i = 0; i <= 16; i++) { const q = segAtAny(g, i / 16); us.push(q[0]); }
+      const a = Math.min(...us) / (sf.s * sf.r), b = Math.max(...us) / (sf.s * sf.r);
+      return [Math.min(a, b), Math.max(a, b)] as [number, number];
+    });
+    if (spans.some(([a, b]) => b - a >= TWO_PI - 1e-9)) return group;
+    const norm = spans.map(([a, b]) => { const a0 = ((a % TWO_PI) + TWO_PI) % TWO_PI; return [a0, a0 + (b - a)] as [number, number]; }).sort((x, y) => x[0] - y[0]);
+    const merged: [number, number][] = [];
+    for (const iv of norm) { const last = merged[merged.length - 1]; if (last && iv[0] <= last[1] + 1e-9) last[1] = Math.max(last[1], iv[1]); else merged.push([...iv]); }
+    if (merged.length > 1 && merged[merged.length - 1][1] >= merged[0][0] + TWO_PI - 1e-9) { const lastIv = merged.pop()!; merged[0] = [lastIv[0] - TWO_PI, Math.max(merged[0][1], lastIv[1] - TWO_PI)]; }
+    let gap = 0, at = 0;
+    for (let i = 0; i < merged.length; i++) { const next = i + 1 < merged.length ? merged[i + 1][0] : merged[0][0] + TWO_PI, g = next - merged[i][1]; if (g > gap) { gap = g; at = merged[i][1] + g / 2; } }
+    // (Round the whole turn — a pipe's wall in a restored corner's pieces, F2, D287 — there is no gap for one face's
+    // seam: the pieces are cut at two seams half a turn apart, the widest piece's start and its opposite, and each half
+    // joined on its own, as an extruded circle's wall is two faces.)
+    if (gap < 1e-6) { const halves = split ? seamHalves(group, spans, tol) : null; return halves ? halves.flatMap(h => joinPieces(h, tol, false)) : group; }
+    host = { ...host, surf: { ...s0, ref: at + Math.PI } };
+  }
+  // Rings in the host domain, made counter-clockwise (material left) for the union.
+  const flipped = first.out < 0, orient = (r: CurveSegment2[]) => flipped ? [...r].reverse().map(segReverse) : r;
+  const ringsOf = group.map(p => [p.region.outer, ...p.region.holes].map(r => orient(r.map(g => curve2(host, curve3Of(p.face, g), tol)))));
+  // (The pieces' rings as `curveFaceRegions` made them: where it joined a cut's loose end, a few tolerances short of a
+  // segment, a ring is closed to within that. The union closes them so, or drops the piece: L4 fuzz 20261026 #112, D252,
+  // a wall's piece inside the other copy's cavity, its ring 6.7e-6 open. A piece alone goes through it too.)
+  return clustersOf(ringsOf.map(rs => ringsBox(rs, 10 * tol))).flatMap(cluster => {
+    // (A piece apart from the rest whose rings close is its own face as it is; one left open goes through the union.)
+    if (cluster.length === 1 && regionCloses(group[cluster[0]].region)) return [group[cluster[0]]];
+    const joined = booleanCurveRegions(cluster.flatMap(i => ringsOf[i]), [], 'union', tol, true);
+    return joined.map(region => {
+      const back = flipped ? { outer: [...region.outer].reverse().map(segReverse), holes: region.holes.map(h => [...h].reverse().map(segReverse)) } : region;
+      const p2 = regionInteriorPoint(region) ?? [0, 0];
+      // (Named after the first piece lying in it: a cluster can join into more than one face.)
+      const own = cluster.length === 1 ? group[cluster[0]] : cluster.map(i => group[i]).find(p => locateInRegion(to2(host, p.key), region, 10 * tol) === 'in') ?? group[cluster[0]];
+      return { face: own.face.name === host.name ? host : { ...host, name: own.face.name }, region: back, out: first.out, key: to3(host, p2) };
     });
   });
+}
+/**
+ * A whole turn's pieces of one cylinder in two halves, cut at the widest piece's start and half a turn on (each piece in
+ * its own domain, only where a seam crosses it); null when a cut leaves nothing, the pieces then kept as they are.
+ */
+function seamHalves(group: readonly Piece[], spans: readonly (readonly [number, number])[], tol: number): Piece[][] | null {
+  let w = 0; for (let i = 1; i < spans.length; i++) if (spans[i][1] - spans[i][0] > spans[w][1] - spans[w][0]) w = i;
+  const sw = group[w].face.surf as Cylinder, a0 = spans[w][0], dir = add(scale(sw.e1, Math.cos(a0)), scale(sw.e2, Math.sin(a0))), axis = sw.a;
+  const halves: Piece[][] = [[], []];
+  const sideOf = (p: Piece) => { const sf = p.face.surf as Cylinder, d = sub(p.key, sf.c); return dot(cross(dir, d), axis) >= 0 ? 0 : 1; };
+  for (let i = 0; i < group.length; i++) {
+    const p = group[i], sf = p.face.surf as Cylinder, [a, b] = spans[i], margin = 10 * tol / sf.r, cuts: CurveSegment2[] = [];
+    let v0 = Infinity, v1 = -Infinity;
+    for (const ring of [p.region.outer, ...p.region.holes]) for (const g of ring) for (let k = 0; k <= 8; k++) { const q = segAtAny(g, k / 8); v0 = Math.min(v0, q[1]); v1 = Math.max(v1, q[1]); }
+    // The two seams' angles in this piece's own frame, each where it falls strictly inside the piece's span.
+    for (const sgn of [1, -1]) {
+      const d = scale(dir, sgn), phi = Math.atan2(dot(d, sf.e2), dot(d, sf.e1));
+      for (let k = -2; k <= 2; k++) { const t = phi + k * TWO_PI; if (t > a + margin && t < b - margin) { const U = sf.s * sf.r * t; cuts.push({ kind: 'line', a: [U, v0 - 1], b: [U, v1 + 1] }); } }
+    }
+    if (!cuts.length) { halves[sideOf(p)].push(p); continue; }
+    const regions = curveFaceRegions([p.region.outer, ...p.region.holes], cuts, tol).filter(r => regionInteriorPoint(r) !== null && Math.abs(regionArea(r)) > tol * tol);
+    if (!regions.length) return null;
+    for (const region of regions) { const q: Piece = { face: p.face, region, out: p.out, key: to3(p.face, regionInteriorPoint(region)!) }; halves[sideOf(q)].push(q); }
+  }
+  return halves.filter(h => h.length);
 }
 
 // ---- stitching ---------------------------------------------------------------------------------------

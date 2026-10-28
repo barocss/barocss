@@ -69,6 +69,11 @@ inputs (at least 1). It is 10⁻⁶ mm for any part within 10 m.
 After a Boolean, kept pieces on one plane (or one cylinder) facing one way may be joined into one face. Before D281 they
 were all joined, and all took one name. Now only pieces that meet are joined.
 
+A cylinder's face needs a seam, so pieces that go all the way round cannot become one face. Since D287 they are cut
+at two seams half a turn apart and become two faces, the way an extruded circle's wall is two faces. Each half takes
+the name of the first piece lying in it. Restoring a corner left a pipe's wall in eight pieces; now it is two, under
+the pipe's own name.
+
 <NamingCoplanar />
 
 ## 5. Through fillets and rounds
