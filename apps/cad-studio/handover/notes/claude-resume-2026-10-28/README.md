@@ -31,6 +31,27 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   pin). A full kernel run should show 0 failures; anything failing is new. (Last full run: before `bbc921cf7`.)
 - Push, PR and release only when the owner asks (memory `no-push-for-now`, `local-batch-then-merge`).
 
+### 0.1 Pushed and going into develop (owner, 2026-10-28: "push", then "develop 에 머지 해줘")
+
+- `local/cad-dev` is pushed. The remote branch had been deleted when #2225 merged (the repository deletes merged head
+  branches), so the push created it again; nothing was overwritten.
+- PR [barocss/barocss#2226](https://github.com/barocss/barocss/pull/2226) → develop holds the commits above plus this
+  note and `6908675ca`, a merge of `origin/develop` into the branch (develop requires an up-to-date branch; it only
+  brought #2225's merge commit, a zero-line diff). **Auto-merge is on (merge commit)**: GitHub merges it when the
+  required "Test and Build" check passes. At the time of writing CI was still running — it was **not merged yet**.
+- **First thing on resume:** `gh pr view 2226 --json state,mergedAt,statusCheckRollup`.
+  - Merged: switch to develop (or keep `local/cad-dev` and merge develop into it), then continue §1.
+  - A failed check: read its log (`gh run view --log-failed`), fix on `local/cad-dev` with new commits (no amend,
+    rebase or force push), push; auto-merge stays on. After a merge, a later push to `local/cad-dev` creates the branch
+    again; open a new PR for the next batch.
+- **What develop then contains that is not finished:** the CG1.3 WIP commit `bbc921cf7`. The kernel side is done and
+  tested; the Studio Loft command still cannot use a nurbs guide (it builds framed sections, which refuse it). Existing
+  Bézier guides behave as before. Nothing user-facing claims the new guide works in Studio.
+- **Not run on the WIP commit:** the kernel full suite, cad-model and studio suites (their last full pass is
+  `f7120e8bf`), and the docs table checks (`agent-tools.mjs --check`, `refusals.mjs --check`). Only
+  `loft-nurbs-guide.test.mjs` 6/6, kernel and cad-model tsc and eslint ran. CI's "Test and Build" is the first full
+  run; if it fails there, that is where to start.
+
 ## 1. In progress: CG1.3 general loft guide (roadmap 07, "일반 가이드 로프트")
 
 **Done in the kernel** (`packages/barocss-cad/src/features/loft-nurbs-guide.ts`, `loft.ts`, `part/part-model.ts`):
