@@ -23,6 +23,7 @@ import { booleanCurveRegions, curveTolerance, regionMoments, locateInRegion, sam
 import { booleanPolyhedra } from '../brep/polyhedral-boolean.js';
 import { booleanAnalytic, faceGeometry, splitFaceAlongCurve, splitFaceAlongIsocline, type FaceGeometry } from '../brep/analytic-boolean.js';
 import { faceReach, finishBrepEdges } from '../blend/edge-finish.js';
+import { polynomialFaceFillet } from '../blend/polynomial-face-fillet.js';
 import { draftedExtrusion } from '../features/drafted-extrusion.js';
 import { stepTessellatedChars } from '../io/step.js';
 import { brepFromTriangles, isMeshBrepError } from '../mesh/mesh-brep.js';
@@ -1734,7 +1735,18 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           if (!shared.length) {
             // F1: apart — restore the corner between them (what lies there removed or filled), then the same.
             const restored = restoreCorner(brepOf(part, at), part.solid, (names as string[]).map(name => ({ name, faces: brepOf(part, at).faces.filter(x => x.name === name || (x.name ?? '').split('#')[0] === name) })), r, at, fail);
-            if (!restored) throw cause;
+            if (!restored) {
+              // A bounded convex polynomial corner can replace its old strip directly. Analytic restores keep priority.
+              try {
+                const made = polynomialFaceFillet(brepOf(part, at), names as [string, string], r, at);
+                if (made) return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, fillet: [made.report] }] };
+              } catch (error) {
+                const refusal = error instanceof BrepError ? /^B-rep: (SELECTION|CAPABILITY|PARAMETER): (.*)$/s.exec(error.message) : null;
+                if (refusal) fail(refusal[1] as CadPartErrorCode, refusal[2]);
+                throw error;
+              }
+              throw cause;
+            }
             part = { solid: restored }; shared = sharedEdges(brepOf(part, at), names as string[]);
             if (!shared.length) fail('GEOMETRY', `[FACE_FILLET_NOT_CLEAR] ${(names as string[]).join(' and ')} do not meet once the corner between them is restored`);
           }

@@ -101,12 +101,12 @@ test('face fillet on a quintic guided loft follows the independent swept-corner 
   }
 });
 
-test('polynomial face fillet radius survives native save/open and retains typed non-adjacent refusal', () => {
+test('polynomial face fillet radius survives native save/open and retains typed two-curved-face refusal', () => {
   const input = doc([...base, fillet(0.25)]), opened = loadCadPart(saveCadPart(evaluateCadPart(input)));
   assert.deepEqual(opened.document, input);
   const output = outputOf(opened, 'f');
   assert.equal(checkOutput(output).valid, true); close(massPropertiesOf(output).volume, expectedVolume(0.25));
   assert.throws(() => evaluateCadPart(doc([...input.features,
-    { id: 'g', kind: 'face-fillet', target: 'f', faces: ['L.side0', 'L.side3'], radius: 0.5 },
+    { id: 'g', kind: 'face-fillet', target: 'f', faces: ['L.side1', 'L.side3'], radius: 0.5 },
   ])), error => error instanceof CadPartError && error.code === 'FACE_FILLET_FACE');
 });

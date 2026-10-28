@@ -50,3 +50,19 @@ test('polynomial face fillet: the Studio command accepts the curved face and use
   const node = built.nodes.at(-1); assert.ok(node?.kind === 'face-fillet');
   assert.deepEqual([...node.faces].sort(), ['n1.side0', 'n1.side3']); verify(built);
 });
+
+
+test('polynomial face fillet: a larger round replaces the old round through API and Save/Open', async () => {
+  const base = part('guided loft', source);
+  const small = base.faceFillet(body => body.faces().where(face => face.name === 'n1.side0' || face.name === 'n1.side3'), { radius: 0.25 });
+  const before = structuredClone(small.doc);
+  const larger = small.faceFillet(body => body.faces().where(face => face.name === 'n1.side0' || face.name === 'n1.side3'), { radius: 0.5 });
+  const node = larger.doc.nodes.at(-1);
+  assert.ok(node?.kind === 'face-fillet');
+  assert.deepEqual([...node.faces].sort(), ['n1.side0', 'n1.side3']); assert.equal(node.radius, 0.5);
+  assert.ok(node.faces.every(name => node.sigs?.[name])); verify(larger.doc);
+  const opened = await readStudioFile(encodeStudioFile(larger.doc));
+  assert.ok('doc' in opened, JSON.stringify(opened));
+  assert.deepEqual(opened.doc, JSON.parse(JSON.stringify(larger.doc))); verify(opened.doc);
+  assert.deepEqual(small.doc, before);
+});
