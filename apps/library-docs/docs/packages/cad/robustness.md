@@ -200,6 +200,7 @@ arcs, including holes.
 Circular boundaries stay circular. Their intersections can be irrational numbers, so the 2D arrangement uses
 binary64 arithmetic and the scale-dependent numeric tolerance. This reduction avoids a general 3D surface-intersection
 search; it does not make every coordinate calculation rational or error-free.
+Step by step, with figures: [Booleans of upright extrusions](/how/prismatic).
 
 ### 2. Planar polyhedra: split, classify and stitch with rational arithmetic
 
@@ -267,7 +268,8 @@ For a mesh target with a native tool, the mixed algorithm limits the expensive f
    them; the rim against the mesh remains a polyline with recorded chord-deviation tolerances.
 
 This path preserves the mesh representation of the input. It does not turn a scanned surface into an exact smooth
-surface. The nearby-triangle limit and the facet-expansion limit above apply to different stages.
+surface. The nearby-triangle limit and the facet-expansion limit above apply to different stages. Step by step, with
+figures: [Meshes, native tools and the BVH](/how/mesh-boolean).
 
 ### More complex shapes: what changes
 

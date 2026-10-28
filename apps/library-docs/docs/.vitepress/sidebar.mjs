@@ -166,6 +166,8 @@ export const sidebar = [
       { text: 'Hidden lines for drawings', link: '/how/hidden-lines', lane: 'kernel' },
       { text: 'Solving sketch constraints', link: '/how/sketch-solver', lane: 'kernel' },
       { text: 'Names that survive edits', link: '/how/naming', lane: 'kernel' },
+      { text: 'Booleans of upright extrusions', link: '/how/prismatic', lane: 'kernel' },
+      { text: 'Meshes, native tools and the BVH', link: '/how/mesh-boolean', lane: 'kernel' },
       { text: 'Closest points on curves and surfaces', link: '/how/closest-point', lane: 'kernel' },
       { text: 'Where a curve meets a plane', link: '/how/curve-roots', lane: 'kernel' },
     ],

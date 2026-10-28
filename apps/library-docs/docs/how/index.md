@@ -18,5 +18,7 @@ turned on in your system, each step is shown still.
 | [Hidden lines for drawings](/how/hidden-lines) | Candidate curves, exact projection, silhouettes, visibility by sampling and bisection |
 | [Solving sketch constraints](/how/sketch-solver) | Constraints as residuals, damped Newton steps, degrees of freedom, arcs |
 | [Names that survive edits](/how/naming) | Face and edge names, #k numbering, references and their refusals |
+| [Booleans of upright extrusions](/how/prismatic) | Height intervals, section Booleans, merging slabs, rebuilding walls and caps |
+| [Meshes, native tools and the BVH](/how/mesh-boolean) | The mixed mesh/native Boolean, T-junction mending, the triangle hierarchy and its queries |
 | [Closest points on curves and surfaces](/how/closest-point) | Gauss–Newton projection onto surfaces, golden-section search on curves, the Boolean's projections |
 | [Where a curve meets a plane](/how/curve-roots) | Distance as a Bernstein polynomial, hull test, turning points and bisection, tangent refusals, spans |
