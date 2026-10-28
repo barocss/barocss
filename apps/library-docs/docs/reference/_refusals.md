@@ -166,6 +166,7 @@
 | `[NON_NORMAL_CUT]` | `core/error-codes.ts (declared)` | — |
 | `[NORMAL]` | `core/error-codes.ts (declared)` | — |
 | `[NOTCH_CUTTER]` | `core/error-codes.ts (declared)`, `part` | notch cutters on curved frames are not supported |
+| `[NOT_ANALYTIC_PAIR]` | `core/error-codes.ts (declared)` | — |
 | `[NOT_A_MEMBER]` | `core/error-codes.ts (declared)`, `frame-sheet` | … is not a frame member |
 | `[NOT_A_SHEET]` | `core/error-codes.ts (declared)`, `part` | the target is not sheet metal: made by a sheet feature (its holes and cuts carry it; moves, patterns and unions do not) |
 | `[NOT_FINITE]` | `core/error-codes.ts (declared)` | — |
@@ -192,6 +193,7 @@
 | `[QUERY]` | `core/error-codes.ts (declared)` | — |
 | `[R12_NEEDS_TOLERANCE]` | `core/error-codes.ts (declared)` | — |
 | `[R12_UNSUPPORTED]` | `core/error-codes.ts (declared)` | — |
+| `[RADIUS_EXCEEDS_CURVATURE]` | `core/error-codes.ts (declared)` | — |
 | `[RADIUS_EXCEEDS_FACE]` | `core/error-codes.ts (declared)`, `part` | edge …: … … mm is too large for walls of … and … mm |
 | `[RANGE]` | `core/error-codes.ts (declared)` | — |
 | `[RECIPE]` | `core/error-codes.ts (declared)` | — |

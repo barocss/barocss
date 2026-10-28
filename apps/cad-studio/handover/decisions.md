@@ -14636,3 +14636,32 @@ asserts Node 22.23.3 (the recorded run's), this machine has 22.19.0; no kernel c
 **Records.** `packages/barocss-cad/src/intersect/surface-intersection.ts`, `src/core/error-codes.ts`,
 `src/part/part-model.ts`; tests `face-fillet`, `face-thread`, `full-round`. Kernel 1961: 1951 pass, 4 fail (the four
 above), none new; cad-model 1711/1711, studio 351/351.
+
+## D286 — A chain ending at a tangent touch on a box's side ends at the touch; two more refusal codes listed (2026-10-28)
+
+**Owner, 2026-10-28**: fix the L-plate mitre (D285's "left"): find the chain end at a tangent touch on a patch edge as
+such, so the stitch joins it.
+
+**Before.** An L-plate's six top edges rounded 2 (`r10-3a`, `conformance r10-corner-l-plate-top`, `D101`): at each outer
+corner the two edges' tool cylinders (r 2, axes at z 8, square to each other) meet in two ellipses that cross at their
+tops, (38, 18, 10) and its mirror, where the cylinders touch, tangent to the top face — on a side of one tool patch's
+box. The march's step left the box there; the bisection's corrections landed on one ellipse or the other (n₁ × n₂ about
+1e-6) and its end came 4e-5 from the touch. The stitch found an edge used once.
+
+**Decision.** When the bisection's end has |n₁ × n₂| < 1e-3, the side of the box the step left by (of either patch) is
+searched for the point nearest the other surface: golden section along that side, over the bisection's end and the
+step's outside point widened by their distance either way, each sample projected onto the other surface. The point is
+taken when it lies on both surfaces within the tolerance, inside the other patch's box (1e-9 slack) and no farther from
+the end than the outside point; the chain's end tangent there is the step's own (the normals' cross has no direction).
+Otherwise the bisection's end stands. Transversal ends (|n₁ × n₂| ≥ 1e-3) are unchanged, so no other result moved:
+kernel names of passing tests the same before and after.
+
+**Also.** `FilletRefusal`'s `RADIUS_EXCEEDS_CURVATURE` and `NOT_ANALYTIC_PAIR` are bracketed at run time (`[${code}]`)
+and were missing from `CAD_REFUSAL_CODES`, so a refusal carried its category, not its code; the R7.3a test now also
+reads the members of `*Refusal` string unions. `conformance/r10/refuse-radius-exceeds-curvature.json` expects the code
+and the category as the other refusal cases do. The docs figure's formula box wraps (`white-space: normal`) instead of
+scrolling: 70 of the How it works formulas were wider than the box.
+
+**Records.** `packages/barocss-cad/src/intersect/surface-intersection.ts` (`touchOnSide`), `src/core/error-codes.ts`,
+`test/error-codes.test.mjs`; `apps/library-docs/docs/.vitepress/components/algorithms/{AlgoFigure,FilletSection}.vue`.
+Of D285's four left, the L-plate's three pass; `native-split-reference-replay` (a demo pinned to Node 22.23.3) remains.

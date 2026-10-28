@@ -17,6 +17,10 @@ test('R7.3a: CAD_REFUSAL_CODES is every bracketed code the kernel\'s string lite
     ts.forEachChild(sf, function visit(n) {
       const text = ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n) ? n.text : ts.isTemplateExpression(n) ? [n.head.text, ...n.templateSpans.map(s => s.literal.text)].join('…') : null;
       if (text !== null) for (const m of text.matchAll(/\[([A-Z][A-Z0-9_]+)\]/g)) found.add(m[1]);
+      // (A refusal type's members, bracketed at run time by its helper: `[${code}]` in refuseFillet.)
+      if (ts.isTypeAliasDeclaration(n) && /Refusal$/.test(n.name.text) && ts.isUnionTypeNode(n.type)) {
+        for (const t of n.type.types) if (ts.isLiteralTypeNode(t) && ts.isStringLiteral(t.literal)) found.add(t.literal.text);
+      }
       ts.forEachChild(n, visit);
     });
   }
