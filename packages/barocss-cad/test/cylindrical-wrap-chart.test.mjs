@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ChartContext, prepareChartCurve, splitChartNode, chartBox, chartCompareRatios, isCylindricalWrapChartError } from '../dist/features/cylindrical-wrap-chart.js';
+import { ChartContext, createChartLoopContext, prepareChartCurve, splitChartNode, chartBox, chartCompareRatios, isCylindricalWrapChartError } from '../dist/features/cylindrical-wrap-chart.js';
 
 function curve() {
   return { kind: 'curve', id: 'edge', degree: 3, knots: [0, 0, 0, 0, 1, 1, 1, 1], controlPoints: [[4, 1, -2], [4, 2, -1], [4, 4, 1], [4, 8, 3]], weights: [1, 0.5, 0.75, 1] };
@@ -159,4 +159,97 @@ test('the shared node cap refuses before another child pair and preserves all ad
   assert.equal(ctx.counts().nodes, 255); assert.equal(row[0].depth, 7);
   const before = structuredClone(row[0].controls); refuse(() => splitChartNode(row[0], ctx), 'BUDGET');
   assert.deepEqual(row[0].controls, before); assert.equal(ctx.counts().nodes, 255);
+});
+
+
+test('the loop factory directly creates a fresh frozen fixed profile without upgrading pair contexts', () => {
+  const pair = new ChartContext(), loop = createChartLoopContext(), another = createChartLoopContext.call(pair);
+  assert.ok(loop instanceof ChartContext); assert.equal(Object.getPrototypeOf(loop), ChartContext.prototype);
+  assert.notEqual(loop, pair); assert.notEqual(loop, another); assert.notEqual(loop.q, pair.q); assert.notEqual(loop.q, another.q);
+  assert.equal(pair.limits.curves, 2); assert.equal(loop.limits.curves, 32); assert.equal(another.limits.curves, 32);
+  assert.deepEqual(loop.limits, { operations: 200000, integerBits: 8192, work: 1048576, curves: 32, nodes: 256, depth: 8 });
+  assert.equal(loop.maxOperations, 200000); assert.equal(loop.maxDepth, 8);
+  assert.deepEqual(loop.counts(), pair.counts());
+  for (const ctx of [pair, loop, another]) {
+    assert.ok(Object.isFrozen(ctx) && Object.isFrozen(ctx.limits));
+    assert.deepEqual(Object.keys(ctx), ['q', 'maxOperations', 'maxDepth', 'limits']);
+    for (const key of ['q', 'maxOperations', 'maxDepth', 'limits']) {
+      const descriptor = Object.getOwnPropertyDescriptor(ctx, key);
+      assert.ok(descriptor && 'value' in descriptor && descriptor.enumerable && !descriptor.writable && !descriptor.configurable);
+    }
+    assert.throws(() => { ctx.limits = { ...ctx.limits, curves: 100 }; }, TypeError);
+    assert.throws(() => { ctx.limits.curves = 100; }, TypeError);
+  }
+  const copied = Object.create(ChartContext.prototype);
+  refuse(() => copied.counts(), 'INPUT');
+  assert.equal(pair.limits.curves, 2); assert.deepEqual(pair.counts(), another.counts());
+});
+
+test('only the fixed loop profile admits32 original curves and refuses33 without changing admitted data', () => {
+  const pair = new ChartContext(), loop = createChartLoopContext(), inputs = [], admitted = [];
+  for (let i = 0; i < 32; i++) {
+    const input = curve(); input.id = `edge_${i}`; inputs.push(input);
+    admitted.push(prepareChartCurve(input, loop));
+    if (i < 2) prepareChartCurve(input, pair);
+  }
+  const before = loop.counts(), original = structuredClone(inputs), extra = curve(); extra.id = 'edge_32';
+  assert.equal(before.curves, 32); assert.equal(before.nodes, 32); assert.ok(before.totalOperations <= 200000);
+  assert.equal(pair.counts().curves, 2); refuse(() => prepareChartCurve(extra, pair), 'BUDGET');
+  refuse(() => prepareChartCurve(extra, loop), 'BUDGET');
+  assert.equal(loop.counts().curves, 32); assert.equal(loop.counts().nodes, 32);
+  assert.equal(loop.counts().totalOperations, before.totalOperations);
+  assert.deepEqual(inputs, original);
+  for (let i = 0; i < 32; i++) {
+    assert.deepEqual(admitted[i].source, original[i]); assert.notEqual(admitted[i].source, inputs[i]);
+    assert.ok(Object.isFrozen(admitted[i]) && Object.isFrozen(admitted[i].root.controls));
+  }
+  const foreign = createChartLoopContext(), first = admitted[0];
+  refuse(() => foreign.requireCurve(first), 'INPUT'); refuse(() => foreign.requireNode(first.root), 'INPUT');
+  refuse(() => pair.requireCurve(first), 'INPUT'); refuse(() => loop.requireCurve({ ...first }), 'INPUT');
+  refuse(() => chartBox({ ...first.root }, loop), 'INPUT');
+  inputs[0].controlPoints[0][2] = 99; assert.deepEqual(first.source, original[0]);
+});
+
+test('loop and pair profiles preserve identical prefix receipts while the loop keeps one exact operation ledger', () => {
+  const pair = new ChartContext(), loop = createChartLoopContext(), input = curve(), other = curve(); other.id = 'other';
+  const a = prepareChartCurve(input, pair), b = prepareChartCurve(input, loop);
+  assert.deepEqual(a, b); assert.deepEqual(pair.counts(), loop.counts());
+  chartBox(a.root, pair); chartBox(b.root, loop);
+  splitChartNode(a.root, pair); splitChartNode(b.root, loop);
+  assert.deepEqual(pair.counts(), loop.counts());
+  prepareChartCurve(other, pair); prepareChartCurve(other, loop);
+  assert.deepEqual(pair.counts(), loop.counts());
+  const maximum = loop.counts().totalOperations, tight = createChartLoopContext({ maxOperations: maximum });
+  const prepared = prepareChartCurve(input, tight); chartBox(prepared.root, tight); splitChartNode(prepared.root, tight); prepareChartCurve(other, tight);
+  assert.equal(tight.counts().totalOperations, maximum); assert.equal(tight.counts().curves, 2);
+  refuse(() => tight.add(1n, 2n), 'BUDGET');
+  refuse(() => tight.requireCurve(a), 'INPUT'); refuse(() => tight.requireNode(a.root), 'INPUT');
+  assert.equal(tight.counts().curves, 2);
+  refuse(() => prepareChartCurve(curve(), createChartLoopContext({ maxOperations: 1 })), 'BUDGET');
+  const independent = createChartLoopContext(); assert.equal(independent.counts().totalOperations, 0);
+});
+
+test('loop ownership retains the global256 nodes and the same depth bit and work ceilings', () => {
+  const ctx = createChartLoopContext(), pending = [];
+  for (let i = 0; i < 32; i++) { const input = curve(); input.id = `edge_${i}`; pending.push(prepareChartCurve(input, ctx).root); }
+  let index = 0;
+  while (ctx.counts().nodes < 256) pending.push(...splitChartNode(pending[index++], ctx));
+  assert.equal(ctx.counts().nodes, 256);
+  const next = pending[index], before = structuredClone(next.controls);
+  refuse(() => splitChartNode(next, ctx), 'BUDGET'); assert.equal(ctx.counts().nodes, 256); assert.deepEqual(next.controls, before);
+  const depth = createChartLoopContext({ maxDepth: 0 }), prepared = prepareChartCurve(curve(), depth);
+  refuse(() => splitChartNode(prepared.root, depth), 'UNRESOLVED');
+  const bits = createChartLoopContext(); refuse(() => bits.integer(1n << 8192n), 'BUDGET');
+  const work = createChartLoopContext(); refuse(() => work.charge(1048577), 'BUDGET');
+});
+
+test('loop options share strict own-data validation and expose no profile or maxCurves knob', () => {
+  let called = 0; const getter = {};
+  Object.defineProperty(getter, 'maxOperations', { enumerable: true, get() { called++; return 200000; } });
+  refuse(() => createChartLoopContext(getter), 'INPUT'); assert.equal(called, 0);
+  for (const options of [{ maxCurves: 32 }, { curves: 32 }, { profile: 'loop' }, { maxOperations: 0 }, { maxOperations: 200001 }, { maxOperations: 2.5 }, { maxDepth: 9 }, { maxDepth: -1 }]) refuse(() => createChartLoopContext(options), 'INPUT');
+  refuse(() => createChartLoopContext(Object.create({ maxDepth: 0 })), 'INPUT');
+  const tight = createChartLoopContext({ maxOperations: 10000, maxDepth: 3 });
+  assert.equal(tight.maxOperations, 10000); assert.equal(tight.maxDepth, 3); assert.equal(tight.limits.curves, 32);
+  const pair = new ChartContext({}, { curves: 32 }); assert.equal(pair.limits.curves, 2);
 });

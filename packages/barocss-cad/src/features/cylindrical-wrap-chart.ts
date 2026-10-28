@@ -30,6 +30,8 @@ export interface ChartCurve {
   readonly progress: ChartProgress;
 }
 export const CHART_LIMITS = Object.freeze({ operations: 200000, integerBits: 8192, work: 1048576, curves: 2, nodes: 256, depth: 8 } as const);
+const LOOP_CHART_LIMITS = Object.freeze({ ...CHART_LIMITS, curves: 32 } as const);
+type ChartLimits = typeof CHART_LIMITS | typeof LOOP_CHART_LIMITS;
 const SOURCE = 'cylindrical-wrap-chart';
 const CURVE_FIELDS = ['kind', 'id', 'degree', 'knots', 'controlPoints', 'weights'];
 const CUBIC = [1, 3, 3, 1], QUADRATIC = [1, 2, 1], QUINTIC = [1, 5, 10, 10, 5, 1];
@@ -41,6 +43,7 @@ function wrap(code: ChartCode, detail: string): never { return chartFailure(code
 function rationalFailure(kind: 'BUDGET' | 'REPRESENTABILITY', detail: string): never { return chartFailure(kind === 'BUDGET' ? 'BUDGET' : 'UNRESOLVED', detail); }
 const OWN: OwnSnapshotSpec<ChartCode> = { input: 'INPUT', owned: 'INPUT', budget: 'BUDGET', fail: chartFailure, wrap, isRefusal: isCylindricalWrapChartError };
 interface State {
+  readonly limits: ChartLimits;
   directOperations: number; work: number; maximumDirectBits: number;
   readonly curves: Set<ChartCurve>; readonly nodes: Set<ChartNode>;
   readonly splits: Map<ChartNode, readonly [ChartNode, ChartNode]>; readonly boxes: Map<ChartNode, ChartBox>;
@@ -55,27 +58,35 @@ function bigint(value: bigint): void { if (typeof value !== 'bigint') chartFailu
 function direct(ctx: ChartContext): State {
   const state = stateOf(ctx); state.directOperations++; state.work++; ctx.check(); return state;
 }
-/** One ledger for both admitted curves and every child/pair/cone operation in this request. */
+/** Initialize one fresh context directly with a module-private fixed profile. */
+function initializeContext(ctx: ChartContext, options: ChartOptions, limits: ChartLimits): void {
+  const q = new SectionRationalContext(rationalFailure);
+  const copied = ownSnapshot(options, false, OWN);
+  if (!copied || typeof copied !== 'object' || Array.isArray(copied)) chartFailure('INPUT', 'plain own chart options are required');
+  for (const key of Object.keys(copied)) if (key !== 'maxOperations' && key !== 'maxDepth') chartFailure('INPUT', 'unknown chart option');
+  const data = copied as Record<string, unknown>, maximum = data.maxOperations === undefined ? CHART_LIMITS.operations : data.maxOperations, depth = data.maxDepth === undefined ? CHART_LIMITS.depth : data.maxDepth;
+  if (typeof maximum !== 'number' || !Number.isSafeInteger(maximum) || maximum < 1 || maximum > CHART_LIMITS.operations) chartFailure('INPUT', 'the exact operation limit may only tighten200000');
+  if (typeof depth !== 'number' || !Number.isSafeInteger(depth) || depth < 0 || depth > CHART_LIMITS.depth) chartFailure('INPUT', 'the subdivision depth may only tighten0..8');
+  Object.defineProperties(ctx, {
+    q: { value: q, enumerable: true },
+    maxOperations: { value: maximum, enumerable: true },
+    maxDepth: { value: depth, enumerable: true },
+    limits: { value: limits, enumerable: true },
+  });
+  STATES.set(ctx, { limits, directOperations: 0, work: 0, maximumDirectBits: 0, curves: new Set(), nodes: new Set(), splits: new Map(), boxes: new Map() });
+  Object.freeze(ctx);
+}
+/** One ledger for all admitted curves and every child/pair/cone operation in this request. */
 export class ChartContext {
-  readonly q = new SectionRationalContext(rationalFailure);
-  readonly maxOperations: number;
-  readonly maxDepth: number;
-  readonly limits = CHART_LIMITS;
-  constructor(options: ChartOptions = {}) {
-    const copied = ownSnapshot(options, false, OWN);
-    if (!copied || typeof copied !== 'object' || Array.isArray(copied)) chartFailure('INPUT', 'plain own chart options are required');
-    for (const key of Object.keys(copied)) if (key !== 'maxOperations' && key !== 'maxDepth') chartFailure('INPUT', 'unknown chart option');
-    const data = copied as Record<string, unknown>, maximum = data.maxOperations === undefined ? CHART_LIMITS.operations : data.maxOperations, depth = data.maxDepth === undefined ? CHART_LIMITS.depth : data.maxDepth;
-    if (typeof maximum !== 'number' || !Number.isSafeInteger(maximum) || maximum < 1 || maximum > CHART_LIMITS.operations) chartFailure('INPUT', 'the exact operation limit may only tighten200000');
-    if (typeof depth !== 'number' || !Number.isSafeInteger(depth) || depth < 0 || depth > CHART_LIMITS.depth) chartFailure('INPUT', 'the subdivision depth may only tighten0..8');
-    this.maxOperations = maximum; this.maxDepth = depth;
-    STATES.set(this, { directOperations: 0, work: 0, maximumDirectBits: 0, curves: new Set(), nodes: new Set(), splits: new Map(), boxes: new Map() });
-    Object.freeze(this);
-  }
+  declare readonly q: SectionRationalContext;
+  declare readonly maxOperations: number;
+  declare readonly maxDepth: number;
+  declare readonly limits: ChartLimits;
+  constructor(options: ChartOptions = {}) { initializeContext(this, options, CHART_LIMITS); }
   check(): void {
     const state = stateOf(this);
     if (this.q.counts().operations + state.directOperations > this.maxOperations) chartFailure('BUDGET', 'the shared rational/direct operation budget was exceeded');
-    if (state.work > CHART_LIMITS.work) chartFailure('BUDGET', 'the shared chart work budget was exceeded');
+    if (state.work > state.limits.work) chartFailure('BUDGET', 'the shared chart work budget was exceeded');
   }
   charge(amount = 1): void {
     if (!Number.isSafeInteger(amount) || amount < 0) chartFailure('INPUT', 'bounded nonnegative work is required');
@@ -114,6 +125,12 @@ export class ChartContext {
     const state = stateOf(this), rational = this.q.counts();
     return { rational, directOperations: state.directOperations, totalOperations: rational.operations + state.directOperations, work: state.work, maximumDirectBits: state.maximumDirectBits, curves: state.curves.size, nodes: state.nodes.size };
   }
+}
+/** Private loop-family ledger. The ordinary constructor remains fixed at two curves. */
+export function createChartLoopContext(options: ChartOptions = {}): ChartContext {
+  const ctx = Object.create(ChartContext.prototype) as ChartContext;
+  initializeContext(ctx, options, LOOP_CHART_LIMITS);
+  return ctx;
 }
 function freezeData(value: unknown): void {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return;
@@ -185,7 +202,7 @@ function makeNode(controls: ChartHomogeneousCubic, curve: number, depth: number,
 /** Private projection data and one-coordinate progress only; no cylinder, B-rep, volume or Number-evaluator authority. */
 export function prepareChartCurve(input: Curve, ctx: ChartContext): ChartCurve {
   const state = stateOf(ctx); ctx.charge();
-  if (state.curves.size >= CHART_LIMITS.curves) chartFailure('BUDGET', 'this shared chart request admits at most two curves');
+  if (state.curves.size >= ctx.limits.curves) chartFailure('BUDGET', ctx.limits.curves === 2 ? 'this shared chart request admits at most two curves' : 'this shared loop chart request admits at most 32 curves');
   const source = sourceSnapshot(input), { controls, denominator } = commonControls(source, ctx);
   const angular = strictProgress(derivativeNumerator(controls, 0, 1, ctx), 'slope', ctx);
   const progress = angular ?? strictProgress(derivativeNumerator(controls, 3, 2, ctx), 'height', ctx);
