@@ -47,6 +47,13 @@ type Code = 'INPUT' | 'SUPPORT' | 'BUDGET' | 'UNRESOLVED';
 function fail(code: Code, detail: string): never { return chartFailure(code, `Component: ${detail}`); }
 function wrap(code: Code, detail: string): never { return fail(code, detail); }
 const OWN: OwnSnapshotSpec<Code> = { input: 'INPUT', owned: 'INPUT', budget: 'BUDGET', fail, wrap, isRefusal: isCylindricalWrapChartError };
+const COMPONENT_CONTEXTS = new WeakMap<ChartComponentResult, ChartContext>();
+/** Private continuation capability. Frozen copied receipts are not authority to extend a proof request. */
+export function chartComponentContext(result: ChartComponentResult): ChartContext {
+  const context = COMPONENT_CONTEXTS.get(result);
+  if (!context) fail('INPUT', 'an original certified component from this module is required');
+  return context;
+}
 function record(input: unknown, fields: readonly string[], label: string): Record<string, unknown> {
   if (!input || typeof input !== 'object' || Array.isArray(input) || !hasExactOwnFields(input as Record<string, unknown>, [...fields])) fail('INPUT', `exact ${label} fields are required`);
   return input as Record<string, unknown>;
@@ -147,7 +154,8 @@ export function certifyCylindricalWrapChartComponent(input: ChartComponentInput,
   }
   ctx.check(); freezeData(original);
   const counts = ctx.counts(); Object.freeze(counts.rational); Object.freeze(counts);
-  return Object.freeze({ original, pairs: Object.freeze(pairs), winding: Object.freeze(winding),
+  const result = Object.freeze({ original, pairs: Object.freeze(pairs), winding: Object.freeze(winding),
     cover: Object.freeze({ curves: n, rings: rings.length, adjacent, disjoint, totalPairs, complete: true }),
     counts, limits: ctx.limits, budget: Object.freeze({ maxOperations: ctx.maxOperations, maxDepth: ctx.maxDepth }), meaning: MEANING });
+  COMPONENT_CONTEXTS.set(result, ctx); return result;
 }
