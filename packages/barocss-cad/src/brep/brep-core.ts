@@ -249,7 +249,9 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
     if (!shells.get(shellOfCoedge(list[0]) ?? '')?.closed) continue;
     const seen = new Set<string>(); let c: BrepCoedge | undefined = list[0];
     while (c && !seen.has(c.id) && seen.size <= list.length) { seen.add(c.id); const out = coedges.get(c.next); c = out?.twin ? coedges.get(out.twin) : undefined; }
-    if (seen.size !== list.length) add('topology', `vertex ${v} is not manifold (${seen.size} of ${list.length} incoming coedges in one cycle)`);
+    // (The walk may run on past this vertex's coedges on a broken B-rep, one step beyond the count to show it: the
+    // message counts only this vertex's own.)
+    if (seen.size !== list.length) add('topology', `vertex ${v} is not manifold (${list.filter(x => seen.has(x.id)).length} of ${list.length} incoming coedges in one cycle)`);
   }
 
   // Pcurves: S(pcurve(t)) lies on the edge curve at the same parameter.
