@@ -90,3 +90,5 @@ the file to the slicer; exported bodies and orientation do not certify the print
 This package is for injection moulding. It can contain open items, including missing request inputs, failed or
 unknown rules, or a failed STEP export. Read the package's `open` list and `complete` flag; a downloaded zip alone
 does not mean the request is complete.
+
+How these checks are computed, step by step: [Machining, printing and moulding checks](/how/manufacturing-previews).

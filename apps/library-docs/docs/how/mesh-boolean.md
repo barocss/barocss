@@ -254,3 +254,5 @@ Paths under `packages/barocss-cad/src/`:
 - **Approximate**: the rim is a polyline on the exact surface, its chord error recorded as its edges' tolerance; the
   mesh faces stay the triangles they were.
 - **The hierarchy is static.** It is built once over a mesh; a changed mesh needs a new tree.
+
+Simplifying, repairing and offsetting meshes: [Mesh processing](/how/mesh-processing).

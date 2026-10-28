@@ -26,3 +26,11 @@ turned on in your system, each step is shown still.
 | [Threads, gears and springs](/how/threads-gears) | Involute flanks fitted to tolerance, gear pairs and contact ratio, helical threads, springs |
 | [Subdivision surfaces as exact B-splines](/how/subd) | Catmull–Clark rules, the cage as a bicubic net, phantom points, G1 caps at extraordinary vertices |
 | [Sheet metal: bends and the flat pattern](/how/sheet-metal) | Neutral layer and K-factor, bend allowance, bend tables, unfolding a B-rep, reliefs, DXF |
+| [Mesh processing: simplify, repair, offset](/how/mesh-processing) | Quadric decimation, repair and hole filling, shells and voxel offsets, distance and clearance |
+| [Tolerances and numbers](/how/tolerance) | Binary64 spacing, the numeric policy, the Boolean's multiples of ε, vertex merging, recorded tolerances |
+| [What makes a B-rep valid](/how/validity) | B-rep records, Euler–Poincaré, topological and strict geometric checks, refusals |
+| [Reading STEP and IGES](/how/import) | Part 21 records and the walk to a B-rep, seams, orientation flags, units, IGES columns and pointers |
+| [How results are checked](/how/verification) | Conformance cases, independent oracles, property and fuzz tests, fingerprints and differential runs |
+| [Rendering a model on the GPU](/how/gpu) | Buffers, the pass sequence, GGX/Smith/Schlick shading, shadow maps, section caps, picking, compute analyses |
+| [Assemblies, robots and drawings](/how/cad-model) | Mates as directions and rows, joint trees, damped IK, loop closure, auto-dimension and auto layout |
+| [Machining, printing and moulding checks](/how/manufacturing-previews) | Draft from exact normals, undercuts and parting lines, overhangs and support, wall rays, 3-axis access, casting |
