@@ -162,6 +162,12 @@ export const sidebar = [
       { text: 'Tessellating a B-rep for display', link: '/how/tessellation', lane: 'kernel' },
       { text: 'Volume, centroid and inertia', link: '/how/mass-properties', lane: 'kernel' },
       { text: 'Fillets: the rolling ball', link: '/how/fillets', lane: 'kernel' },
+      { text: 'Exact arithmetic for planar solids', link: '/how/exact-boolean', lane: 'kernel' },
+      { text: 'Hidden lines for drawings', link: '/how/hidden-lines', lane: 'kernel' },
+      { text: 'Solving sketch constraints', link: '/how/sketch-solver', lane: 'kernel' },
+      { text: 'Names that survive edits', link: '/how/naming', lane: 'kernel' },
+      { text: 'Closest points on curves and surfaces', link: '/how/closest-point', lane: 'kernel' },
+      { text: 'Where a curve meets a plane', link: '/how/curve-roots', lane: 'kernel' },
     ],
   },
   {

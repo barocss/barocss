@@ -28,7 +28,8 @@ methods, the formulas and the constants are the kernel's, in `packages/barocss-c
 | 5. Merge | Kept pieces on one plane or cylinder that touch, joined into one face | `brep/analytic-boolean.ts` (`mergePieces`) |
 | 6. Stitch | Vertices, edges, loops, shells and bodies of the result, then a strict check | `brep/analytic-boolean.ts` (`stitch`) |
 
-Every length test uses one tolerance, ε = max(10⁻⁷ mm, 10⁻¹¹ × the size of the coordinates), and multiples of it.
+Every length test uses one tolerance and multiples of it: in the analytic Boolean, ε = 10 × max(10⁻⁷ mm, 10⁻¹¹ × S),
+S the largest coordinate of the two inputs' vertices (at least 1), so 10⁻⁶ mm for parts up to 10 m.
 
 ## 1. Where two surfaces meet
 

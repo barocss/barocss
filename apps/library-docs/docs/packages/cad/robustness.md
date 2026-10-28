@@ -216,7 +216,8 @@ This path works on planar faces bounded by straight edges, including non-convex 
 
 Coordinates enter as their exact binary64 values, converted to integer fractions with `BigInt`. The polyhedral path
 uses exact rational predicates and intersections for those values. Results return to stored numeric coordinates;
-this does not recover precision already lost before the operation.
+this does not recover precision already lost before the operation. Step by step, with figures:
+[Exact arithmetic for planar solids](/how/exact-boolean).
 
 A nominally planar face rotated in floating-point arithmetic can have corners that are no longer exactly coplanar.
 Only the `NOT_PLANAR_WITHIN_FLOAT` failure retries the pair through the analytic path. Other polyhedral failures are
@@ -251,6 +252,7 @@ an oppositely oriented contact on A is handled separately. Tangencies need addit
 The surface remains a native surface, but a general intersection edge can be a fitted cubic Bézier chain. The path
 uses binary64 calculations, Newton iteration and numeric tolerances; it is not an exact-arithmetic solution for every
 NURBS pair. A tighter requested edge fit is checked and can refuse the result; it does not relax topology tolerances.
+Step by step, with figures: [Booleans of curved solids](/how/boolean).
 
 ### 4. Mesh with a native tool: process the nearby mesh
 

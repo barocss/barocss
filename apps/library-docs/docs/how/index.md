@@ -14,3 +14,9 @@ turned on in your system, each step is shown still.
 | [Tessellating a B-rep for display](/how/tessellation) | Shared edge samples, density, ear clipping, curved faces |
 | [Volume, centroid and inertia](/how/mass-properties) | Divergence theorem, Green and Pappus closed forms, Gauss–Legendre on patches and trimmed faces, principal axes |
 | [Fillets: the rolling ball](/how/fillets) | Closed-form sections, the rolling ball, lofting the tool, refusals |
+| [Exact arithmetic for planar solids](/how/exact-boolean) | Binary64 as exact fractions, orientation signs, cutting faces, ray classification, the planar retry |
+| [Hidden lines for drawings](/how/hidden-lines) | Candidate curves, exact projection, silhouettes, visibility by sampling and bisection |
+| [Solving sketch constraints](/how/sketch-solver) | Constraints as residuals, damped Newton steps, degrees of freedom, arcs |
+| [Names that survive edits](/how/naming) | Face and edge names, #k numbering, references and their refusals |
+| [Closest points on curves and surfaces](/how/closest-point) | Gauss–Newton projection onto surfaces, golden-section search on curves, the Boolean's projections |
+| [Where a curve meets a plane](/how/curve-roots) | Distance as a Bernstein polynomial, hull test, turning points and bisection, tangent refusals, spans |

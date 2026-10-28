@@ -149,7 +149,8 @@ const windingShown = computed(() => s.step.value > 6 ? 3 : s.step.value === 6 ? 
         <span v-html="rule[op]" />
       </div>
       <template #note>The geometry is fixed and worked out in closed form for the picture; the kernel runs the same steps on
-        any lines, arcs and traced curves, with ε = max(10⁻⁷ mm, 10⁻¹¹ × the coordinates' size).</template>
+        any lines, arcs and traced curves. ε is the caller's: max(10⁻⁷ mm, 10⁻¹¹ × the coordinates' size) on its own,
+        ten times that inside the analytic Boolean.</template>
     </AlgoFigure>
   </div>
 </template>
