@@ -37,6 +37,7 @@ export default defineConfig({
       { text: 'Studio', link: '/studio/' },
       { text: 'Viewer', link: '/packages/viewer/' },
       { text: 'Agent', link: '/agent/' },
+      { text: 'How it works', link: '/how/' },
       { text: 'Reference', link: '/reference/refusals' },
     ],
     sidebar: sidebar.map(navigationItem),

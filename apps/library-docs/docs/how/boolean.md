@@ -1,13 +1,13 @@
 <script setup>
-import AlgoHull from '../../.vitepress/components/algorithms/AlgoHull.vue';
-import AlgoMarch from '../../.vitepress/components/algorithms/AlgoMarch.vue';
-import AlgoArrangement from '../../.vitepress/components/algorithms/AlgoArrangement.vue';
-import AlgoPointInRegion from '../../.vitepress/components/algorithms/AlgoPointInRegion.vue';
-import AlgoClassify from '../../.vitepress/components/algorithms/AlgoClassify.vue';
-import AlgoStitch from '../../.vitepress/components/algorithms/AlgoStitch.vue';
+import AlgoHull from '../.vitepress/components/algorithms/AlgoHull.vue';
+import AlgoMarch from '../.vitepress/components/algorithms/AlgoMarch.vue';
+import AlgoArrangement from '../.vitepress/components/algorithms/AlgoArrangement.vue';
+import AlgoPointInRegion from '../.vitepress/components/algorithms/AlgoPointInRegion.vue';
+import AlgoClassify from '../.vitepress/components/algorithms/AlgoClassify.vue';
+import AlgoStitch from '../.vitepress/components/algorithms/AlgoStitch.vue';
 </script>
 
-# How the kernel computes
+# Booleans of curved solids
 
 This page opens up the Boolean of two curved B-reps — the path [B-rep, robustness and refusals](/packages/cad/robustness#_3-curved-b-reps-intersect-the-surfaces-and-trim-their-face-domains)
 names *intersect the surfaces and trim their face domains*. Each stage has a figure that plays its steps as you reach it.

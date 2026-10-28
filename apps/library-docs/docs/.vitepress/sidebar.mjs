@@ -19,7 +19,6 @@ export const sidebar = [
       { text: 'Modeling API', link: '/packages/cad/modeling', lane: 'kernel' },
       { text: 'B-rep, robustness and refusals', link: '/packages/cad/robustness', lane: 'kernel' },
       { text: 'Boolean operations in 3D', link: '/packages/cad/robustness#build-the-result-in-3d-one-stage-at-a-time', lane: 'kernel' },
-      { text: 'How the kernel computes', link: '/packages/cad/algorithms', lane: 'kernel' },
       { text: 'Exchange formats', link: '/packages/cad/formats', lane: 'kernel' },
       {
         text: 'Object API',
@@ -150,6 +149,19 @@ export const sidebar = [
       { text: 'Tools (v2 actions)', link: '/agent/tools', lane: 'outer' },
       { text: 'cad-mcp and cad-cli', link: '/agent/cli', lane: 'outer' },
       { text: 'Proposals and autonomy', link: '/agent/proposals', lane: 'outer' },
+    ],
+  },
+  {
+    text: 'How it works',
+    link: '/how/',
+    lane: 'kernel',
+    collapsed: true,
+    items: [
+      { text: 'Booleans of curved solids', link: '/how/boolean', lane: 'kernel' },
+      { text: 'NURBS curves and surfaces', link: '/how/nurbs', lane: 'kernel' },
+      { text: 'Tessellating a B-rep for display', link: '/how/tessellation', lane: 'kernel' },
+      { text: 'Volume, centroid and inertia', link: '/how/mass-properties', lane: 'kernel' },
+      { text: 'Fillets: the rolling ball', link: '/how/fillets', lane: 'kernel' },
     ],
   },
   {
