@@ -14983,3 +14983,114 @@ is unchanged. Review artifacts remain under `/tmp/barocss-d291-d292-api-inventor
 **Not implemented.** Font asset persistence/worker transfer/recovery, text profiles, normalization/shaping/kerning/
 bidi, flattening and nonzero-fill classification, model-coordinate conversion, emboss/wrap and Studio text input.
 Font coverage is not equivalent to this reader's admitted composite profile. No push, PR or release.
+
+## D293 — Carry original byte assets through the existing blob paths (2026-10-28)
+
+**Decision.** Add `Uint8Array`/`u8` to BlobArray, the blob store and the current BCADPACK codec. Byte chunks use
+width 1 and bounded integer counts. Base64, worker data, recovery and container Save/Open reuse the existing
+paths. Container version stays 1; document schema handling is unchanged. No top-level font registry, dtype hash namespace,
+runtime dependency or WASM is added. Existing raw-byte content addressing is unchanged.
+
+**Font ownership.** `engine/font/source.ts` admits only the explicit descriptor `{blob,filename,source?,license?}`.
+`fontFromBytes` copies and validates input bytes and metadata before its first await, stores the original bytes,
+then checks the stored byte view. `readFontSource` always reads an explicit Uint8Array view, even when a same-byte
+cache entry has another array class; the TrueType reader makes its own snapshot. Metadata is preserved as
+supplied. It does not establish a license or glyph coverage.
+
+**References.** `fontRefs` and `blobRefs` share traversal of nodes, instances, pending parts and open proposals.
+The precise prepared `run_command`/`text` font-JSON boundary is collected through existing nested apply_ops/propose
+paths. JSON is bounded to 512KiB in UTF-8; malformed values are skipped without breaking collection. This is
+conservative asset retention, not text admission. Accepted/rejected proposals do not retain assets alone. Undo
+documents, base64/recovery and native Save/Open keep referenced font bytes. Templates explicitly refuse such
+documents because their current path cannot carry fonts; existing raw stored template entries are preserved.
+
+**Evidence.** Checkpoint `0f836e8f2` includes focused Model 63/63 and Studio 15/15 for the integrated text boundary.
+Synthetic u8 chunk tests exercise the codec without claiming a font workflow. Actual font workflow evidence is
+recorded in D295. The initial upload fixture path failed with 1 pass/2 fail:
+`ENOENT: no such file or directory, open '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-rqXat6/fixtures/fonts/abeezee/ABeeZee-Regular.ttf'`.
+Using the test source cwd fixed the path: 3/3 then 4/4 with the later upload boundary case. The original log remains
+in `/tmp/barocss-font-upload-focused.log`. No source/original-font checksum pin is used as a glyph test;
+content-address integrity remains required. Final combined verification passes: kernel1981/0/6 skips (1987 total), Model1792/1792, Studio364/364;
+generated tools/refusals and whole docs pass (68 pages,51 shots,838 labels). See D295 for source and inventory scope.
+
+## D294 — Build bounded line profiles from original TrueType quadratics (2026-10-28)
+
+**Decision.** `engine/font/profiles.ts` converts a scalar run using explicit em size, tracking and chord tolerance.
+The original input string and font stay authoritative. Implied on-curve points and recursive quadratic subdivision
+produce native line profiles; the bound includes arithmetic uncertainty. Tolerance is never enlarged. Size means
+em height in mm, not ink bounds; tracking is added between scalars only. Browser glyph rendering is not used.
+
+**Topology and limits.** Separation/control-hull checks precede the kernel nonzero-fill arrangement. Each glyph
+occurrence returns components with their own outer boundary and holes, so an island inside a hole survives as a
+separate component. Profiles are not globally unioned here. The run admits at most 256 printable Unicode scalars,
+4096 contours, 65536 raw points per glyph, 4096 flattened glyph segments, 8192 run segments, 1048576 pair-work steps
+and 20 subdivision levels. Native loops are bounded to 1024 segments and edges at least 1e-4 mm; coordinates stay
+within 10000 mm. Tolerance must be finite, at least 1e-7 mm and no greater than size/8. Unsupported topology,
+uncertain boundary proximity and excess work are typed refusals, not permission to relax tolerance.
+
+**Evidence.** Profile checkpoint `8dbd9103d` passed Model tsc/lint, eight profile tests and ten reader tests
+(18/18 combined). Limited independent
+fontTools4.67.0 metrics/area/topology observations complement authored boundary fixtures and native geometry
+checks. These observations cover selected glyphs, not all glyphs in ABeeZee/Nanum Gothic/Nanum Myeongjo or arbitrary
+fonts. No glyph coordinate tables or original-file checksum baselines are embedded in runtime code. The original
+fonts/OFL remain unchanged in `9fe4be221`. Shaping, kerning, bidi, normalization and hinting are not implemented.
+Final combined verification passes: kernel1981/0/6 skips (1987 total), Model1792/1792, Studio364/364;
+generated tools/refusals and whole docs pass (68 pages,51 shots,838 labels). See D295 for source and inventory scope.
+
+## D295 — Keep standalone Text editable from its source after Save/Open (2026-10-28)
+
+**Decision.** The current-schema standalone `kind:'text'` node stores text, FontSource, em `size`, positive `height`,
+explicit `tolerance`, optional `tracking` and optional `plane`. Existing NodeExtras and Dim bindings are preserved.
+No parent/Made authority, new schema or container version is introduced. Component sketches and positive extrusions
+feed the existing union contract; one component uses an identity placement. The final native ID is the authored
+Text ID. Generated glyph-occurrence/component IDs map internal names back to that authored feature. One authored
+output can contain several separate physical bodies. Complete-part 512-feature, coordinates, plane, loop and hole
+budgets are checked before evaluation. Empty/space-only runs and zero drawable components are refused.
+
+**Consumers.** `StudioPart.text(font,text,{size,h,tolerance?,tracking?,plane?})` creates a fresh output and keeps
+existing bodies. The Text command/upload/HUD, source editing, parameter bindings, ID/remap/merge/assembly/flatten,
+proposal/blob retention and save/recovery paths consume the recipe. Font metadata remains supplied data. The HUD
+omits numeric edits for bound dimensions; use Parameters. Templates refuse font sources explicitly. No fallback
+font, normalization, shaping, kerning, bidi, text emboss/engrave or wrap is claimed.
+
+**Focused and browser evidence.** Implementation checkpoint `0f836e8f2`: Model 63/63, Studio 15/15. Actual desktop
+Chrome/WebGPU at 1440x900/DPR1 passes startup and flows 34/35. ABeeZee ` A ` at default em 10/h 2 gives volume 29.7594;
+editing to ` AA ` gives 59.5188, keeps the later Box, and passes Undo/Redo. Raw-TTF BCADPACK Save/Open keeps the source and
+allows editing again. Nanum Gothic and Nanum Myeongjo `가한` at em 20/tolerance 0.002/h 2 both create and reopen.
+The unchanged public shot is `/shots/studio/features/text-applied.png` (178171 bytes). The 261007-byte Myeongjo
+reopened original exceeds the public shot cap and is preserved under `notes/text-solid-2026-10-28/` instead.
+These are automated browser actions, not human-input acceptance or full-font certification. Composition Enter
+guards use synthetic events; native OS IME input is **NOT RUN**.
+
+**First failures.** Model type checking initially reported the following errors:
+
+```text
+src/engine/part.ts(469,137): error TS2345: Argument of type 'number' is not assignable to parameter of type '512'.
+test/text-solid.test.ts(49,115): error TS2769: No overload matches this call.
+```
+
+Explicit numeric allowance and a defined assertion message fixed them. Lint reported `'_tracking' is assigned a value but never used  @typescript-eslint/no-unused-vars`;
+the unused binding was removed. Initial focused execution had 41 pass/1 file fail:
+`TypeError: Cannot read properties of undefined (reading 'values')`.
+The missing `text` COMMAND_DOCS entry caused tool-definition boot failure; adding it fixed the integration.
+Original logs remain under `/tmp/barocss-text-recipe-{types-first,lint-second,focused-third}.log`.
+
+**Final verification.** The serial Node22 window on `0f836e8f2` passes kernel build and whole kernel lint;
+1987 kernel tests give1981 pass,0 fail,6 existing skips. Model tsc and1792/1792 pass; Studio tsc and364/364 pass.
+Changed Model/Studio source lint, including the final edit guard, passes. Browser flows above used the same frozen
+runtime source; only documentation and generated artifacts changed after the implementation checkpoint.
+Generated agent-tools/refusals checks and whole docs pass:68 pages,51 shots,4035KiB of shots,838 labels.
+Logs use `/tmp/barocss-text-final-{kernel,model,studio}*` and `/tmp/barocss-text-{tools,refusals,docs}-final.log`.
+
+**Generated review.** Agent-tools was current. The refusal check first reported
+`docs/reference/_refusals.md differs from the sources: run node scripts/refusals.mjs`; regeneration adds engine
+use of BAD_VALUE and the engine LIMIT row, with no other catalogue change. API inventory6697→6729 adds exactly32
+expected exports, removes none and changes19 fields across10 existing rows for intentional Text/Field/u8/helper
+contracts. The six changed member arrays retain all618 old records and add30. There is no notation-only drift,
+unclassified difference or unrelated semantic change. The artifact review's169 checks are metadata comparison,
+not runtime tests. The package export maps and inventory generator are unchanged. See the persistent review under
+`notes/text-solid-2026-10-28/api-inventory-review.md`; scratch baseline/candidate/script paths remain in that report.
+
+**Not run and remaining.** Full browser suite, WebGL2/mobile/GPU fault matrix, RB/fuzz, native OS IME and arbitrary
+fonts/all glyphs are not qualified here. Text emboss/engrave and wrap are not implemented in this checkpoint.
+No push, new PR or release. Next decision: **D296**.

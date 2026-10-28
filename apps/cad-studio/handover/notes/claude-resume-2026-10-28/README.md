@@ -40,10 +40,23 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   lint and1729/1729, Studio tsc and352/352. Generated-tools/refusals/docs pass:67 pages,50 shots,829 labels, after
   the reviewed inventory refresh (eight new reader exposures;446 equivalent notation fields). See D291/D292 for
   exact proof boundaries.
-- Next: finish roadmap07's text geometry and font asset/recipe/UI path, then emboss/wrap,08,09. Original fonts are
-  ready. u8 transport and world-space profile generation are only `/tmp` candidates until the next integration.
-  General free-form pairs, concave corners and rational/multi-span end extension remain outside D291's admission.
-  The next decision is D293.
+- Latest Text implementation checkpoint: `0f836e8f2`. D293 carries original u8 font bytes through existing blob,
+  worker/recovery/proposal and BCADPACK paths. D294 adds bounded line profiles from original quadratic outlines;
+  D295 connects standalone editable Text recipes, the public API and Studio upload/HUD. No new document/container
+  version or top-level font registry is added. One authored output may contain several physical bodies.
+- Latest focused verification: Model 63/63 and Studio 15/15. Actual desktop Chrome/WebGPU 1440x900/DPR1 startup and
+  flows 34/35 pass. ABeeZee ` A `→` AA ` changes volume 29.7594→59.5188, preserves the later Box, passes Undo/Redo and
+  raw-TTF BCADPACK Save/Open/re-edit. Gothic/Myeongjo `가한` at em 20/tolerance 0.002/h 2 create and reopen. Original
+  browser evidence and its limits are in `../text-solid-2026-10-28/README.md`; the public Latin shot is unchanged.
+  Synthetic composition-Enter guards passed; native OS IME is NOT RUN. No arbitrary-font/all-glyph certification.
+- Latest whole qualification on `0f836e8f2`: kernel build/lint and1981 pass/0 fail/6 existing skips (1987 total),
+  Model tsc and1792/1792, Studio tsc and364/364. Changed-source lint, generated tools/refusals and docs pass:68 pages,
+  51 shots,838 labels. Reviewed inventory6697→6729 adds32 and changes19 fields intentionally; no removals or unexpected
+  differences. Original upload ENOENT, Model type/lint and COMMAND_DOCS boot failures remain recorded in D293/D295.
+- Next: continue roadmap 07's remaining bounded text emboss/wrap and general face-fillet/thread ranges, then 08,09.
+  Shaping, kerning, bidi and normalization are not implemented. General free-form pairs, concave corners and
+  rational/multi-span end extension remain outside D291's admission. No feature push, new PR or release.
+  The next decision is D296.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -52,7 +65,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D288**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D296**).
 
 ## 0. State at the stop
 

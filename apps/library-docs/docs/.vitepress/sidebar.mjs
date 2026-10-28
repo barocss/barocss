@@ -172,6 +172,7 @@ export const sidebar = [
       { text: 'Where a curve meets a plane', link: '/how/curve-roots', lane: 'kernel' },
       { text: 'Lofts, sweeps and revolves', link: '/how/loft-sweep', lane: 'kernel' },
       { text: 'Threads, gears and springs', link: '/how/threads-gears', lane: 'kernel' },
+      { text: 'Text from font outlines', link: '/how/text', lane: 'outer' },
       { text: 'Subdivision surfaces as exact B-splines', link: '/how/subd', lane: 'kernel' },
       { text: 'Sheet metal: bends and the flat pattern', link: '/how/sheet-metal', lane: 'kernel' },
       { text: 'Mesh processing: simplify, repair, offset', link: '/how/mesh-processing', lane: 'kernel' },

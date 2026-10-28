@@ -22,11 +22,14 @@ The package is public module by module. Import each module by its path; the pack
 - **Data files.** JSON data is imported by path too, such as `@barocss/cad-model/library/builtin/materials.json`, and
   the shipped sample rows are under `@barocss/cad-model/samples/rows/`.
 
-The `engine/font/trueType` data reader takes a copied, bounded static TTF input and returns font metrics and
-unhinted quadratic contour points in font design units. It admits Unicode cmap4/12 and a limited XY-composite
-profile; unsupported flags, malformed extents, missing glyphs and expansion budgets have typed errors. This data
-layer does not yet add a font registry to the document, text placement, an emboss feature or a Studio text command.
-The original font files used for verification are test inputs, not built-in runtime fonts.
+The `engine/font/trueType` reader takes a copied, bounded static TTF input and returns metrics and unhinted
+quadratic contours. `engine/font/source` stores original bytes with supplied filename/source/license metadata;
+`engine/font/profiles` converts admitted glyphs to component profiles at an explicit chord tolerance. The
+`kind: 'text'` recipe and `part().text()` build an independent native solid that stays editable after Save/Open.
+One authored output can hold several physical bodies. No top-level font registry or new document/container
+version is added. Studio supplies font upload and the Text HUD; the original test fonts are not runtime defaults.
+Shaping, kerning, bidi, normalization and text emboss/wrap remain outside this feature. See
+[Text from font outlines](/how/text) and the [Text API example](/packages/api#text-from-a-font-file).
 
 | Module | What it holds |
 |---|---|

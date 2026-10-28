@@ -5,19 +5,21 @@ and writes it (`@barocss/cad-model/engine/doc` and `engine/container`).
 
 ## The file
 
-- **Plain JSON.** A document with no mesh data is written as JSON.
-- **The `BCADPACK` container.** A document with mesh data, such as an imported STL or scan, is written as a small
+- **Plain JSON.** A document with no referenced binary blobs is written as JSON.
+- **The `BCADPACK` container.** A document with binary blobs, such as an imported mesh or original Text font, is written as a small
   binary container, all little-endian:
   - the 8 bytes `BCADPACK`, a `u32` version (1) and a `u32` chunk count;
   - then each chunk: a `u32` header length, a `u32` payload length, the header as UTF-8 JSON, then the payload, each
     padded to a multiple of 8 bytes;
-  - chunk 0 is the document's JSON (`{"kind":"document"}`), which names its mesh arrays by hash;
-  - each further chunk is one array (`{"kind":"blob","sha256":…,"dtype":"f64"|"f32"|"u32","count":…}`).
+  - chunk 0 is the document's JSON (`{"kind":"document"}`), which names its binary blobs by hash;
+  - each further chunk is one array (`{"kind":"blob","sha256":…,"dtype":"f64"|"f32"|"u32"|"i32"|"u8","count":…}`).
 
-  Reading checks each array's SHA-256 against its name before using it.
+  Reading checks each array's SHA-256 against its name before using it. Font imports supply `u8` arrays.
+  Identical bytes may share an older stored array class; font readers use its raw byte view. The current chunk
+  data types are extended without changing container version 1.
 - **Both open.** Either kind opens. A plain JSON file's inline mesh arrays are read as they are.
 - **What isn't opened.** A container that can't be trusted is refused, with its code in front:
-  - `[CONTAINER_DAMAGED]` for a file cut short, a malformed mesh chunk, a chunk that doesn't match its hash, or no
+  - `[CONTAINER_DAMAGED]` for a file cut short, a malformed blob chunk, a chunk that doesn't match its hash, or no
     document, for example `[CONTAINER_DAMAGED] This model file could not be read: the file is cut short.`;
   - `[CONTAINER_NEWER]` for a container version newer than this cad-studio reads.
 
@@ -59,6 +61,23 @@ Only `format`, `schema`, `units`, `parameters`, `nodes` and `outputs` are always
 | `underlays` | Imported drawings' outlines and text, to trace over. They are never geometry |
 | `drafts` | Features made from an image or a drawing, and their dimensions still to confirm |
 | `render` | The Render workspace's settings: appearances, lights, environment, camera, props, animation |
+
+### Text recipe and font source
+
+A standalone Text node keeps its authoritative inputs as `kind: 'text'`, `text`, `font`, `size`, `height`,
+`tolerance`, optional `tracking` and optional `plane`, plus the existing feature metadata. `size`, `height` and
+`tracking` are dimensions or parameter bindings. `plane` stores `origin`, `normal` and `xAxis`. No new document
+schema or top-level `fonts` registry is added.
+
+`font` contains `{ blob, filename, source?, license? }`. `blob` is the original byte content key. Supplied metadata
+and the original Unicode scalar sequence are kept unchanged. Derived line profiles are regenerated from those
+bytes at the explicit tolerance; they do not replace the recipe. One Text output can contain multiple physical
+bodies. Font sources in instances, pending parts and open prepared Text proposals use the existing blob collection,
+worker, recovery and container paths. Closed proposals do not keep an asset alive by themselves.
+
+Container/content-address integrity checks protect saved bytes. They are separate from functional glyph and
+geometry tests. The descriptor carries supplied metadata; supported glyphs are checked separately.
+See [Text from font outlines](/how/text).
 
 ### Saved render light fields
 

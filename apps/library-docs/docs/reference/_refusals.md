@@ -301,7 +301,7 @@
 | `[BAD_KEEPOUT]` | `chat` | …'s solid could not be made |
 | `[BAD_REFERENCE]` | `app`, `chat`, `engine` | Select the current result of an unsuppressed subtract feature. |
 | `[BAD_TRANSITION]` | `team` | … is still …: a baseline follows a decided one |
-| `[BAD_VALUE]` | `chat` | … is a size above 0 mm |
+| `[BAD_VALUE]` | `chat`, `engine` | … is a size above 0 mm |
 | `[BAD_VALUES]` | `chat`, `print`, `robot` | a wall t > 0, a voxel 0 < h ≤ t/2 and a drain Ø > 0 (t …, h …, drain …) |
 | `[BASELINE_FROZEN]` | `team` | … is …: it is never changed; draft a new baseline with … as its parent |
 | `[BEAD_ACCOUNTING_INCOMPLETE]` | `frames` | no complete welded-part quantity: … |
@@ -426,6 +426,7 @@
 | `[JOINT_UNKNOWN]` | `robot` | waypoint …: no moving joint … (joints: …) |
 | `[LIBRARY_ID]` | `library` | … is a built-in library: give yours another id |
 | `[LIBRARY_UNKNOWN]` | `library` | No library … (libraries: …) |
+| `[LIMIT]` | `engine` | Text solid: a component boundary exceeds the native loop budget. |
 | `[LIMITS_BAD]` | `api`, `robot` | motion limits are a record of joint rate settings |
 | `[LIMITS_MISSING]` | `robot` | joint … has no … limits above 0 |
 | `[LOFT_SECTIONS]` | `app` | … |

@@ -230689,6 +230689,118 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./api",
+      "exportName": "FontSource",
+      "space": "type",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/source.ts",
+            "name": "FontSource",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "FontSource",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "blob",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "filename",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "license",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              },
+              {
+                "name": "source",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api",
+      "exportName": "FontSourceMetadata",
+      "space": "type",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/source.ts",
+            "name": "FontSourceMetadata",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "{ readonly source?: string | undefined; readonly filename: string; readonly license?: string | undefined; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "Omit<FontSource, \"blob\">"
+              }
+            ],
+            "members": [
+              {
+                "name": "filename",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "license",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              },
+              {
+                "name": "source",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api",
       "exportName": "FrameOptions",
       "space": "type",
       "observedRole": "facade-exposure; immutability NOT_PROVEN",
@@ -232728,6 +232840,13 @@
                 "type": "(id: string, suppressed?: boolean) => StudioPart"
               },
               {
+                "name": "text",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(font: FontSource, text: string, options: StudioTextOptions) => StudioPart"
+              },
+              {
                 "name": "thread",
                 "kind": "method",
                 "optional": false,
@@ -232766,6 +232885,72 @@
             "staticMembers": [],
             "abstract": false,
             "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api",
+      "exportName": "StudioTextOptions",
+      "space": "type",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/part.ts",
+            "name": "StudioTextOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "StudioTextOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "h",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "Dim"
+              },
+              {
+                "name": "plane",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "PlaneData | undefined"
+              },
+              {
+                "name": "size",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "Dim"
+              },
+              {
+                "name": "tolerance",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "number | undefined"
+              },
+              {
+                "name": "tracking",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "Dim | undefined"
+              }
+            ],
+            "indexSignatures": []
           }
         }
       ]
@@ -233188,6 +233373,37 @@
             ],
             "callSignatures": [
               "(name?: string, base?: StudioPart | undefined) => Assembly"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api",
+      "exportName": "fontFromBytes",
+      "space": "value",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/source.ts",
+            "name": "fontFromBytes",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(bytes: Uint8Array<ArrayBufferLike>, metadata: FontSourceMetadata) => Promise<FontSource>",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(bytes: Uint8Array<ArrayBufferLike>, metadata: FontSourceMetadata) => Promise<FontSource>"
             ]
           }
         }
@@ -237542,6 +237758,118 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./api/index",
+      "exportName": "FontSource",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/source.ts",
+            "name": "FontSource",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "FontSource",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "blob",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "filename",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "license",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              },
+              {
+                "name": "source",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/index",
+      "exportName": "FontSourceMetadata",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/source.ts",
+            "name": "FontSourceMetadata",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "{ readonly source?: string | undefined; readonly filename: string; readonly license?: string | undefined; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "Omit<FontSource, \"blob\">"
+              }
+            ],
+            "members": [
+              {
+                "name": "filename",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "license",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              },
+              {
+                "name": "source",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/index",
       "exportName": "FrameOptions",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -239581,6 +239909,13 @@
                 "type": "(id: string, suppressed?: boolean) => StudioPart"
               },
               {
+                "name": "text",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(font: FontSource, text: string, options: StudioTextOptions) => StudioPart"
+              },
+              {
                 "name": "thread",
                 "kind": "method",
                 "optional": false,
@@ -239619,6 +239954,72 @@
             "staticMembers": [],
             "abstract": false,
             "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/index",
+      "exportName": "StudioTextOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/part.ts",
+            "name": "StudioTextOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "StudioTextOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "h",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "Dim"
+              },
+              {
+                "name": "plane",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "PlaneData | undefined"
+              },
+              {
+                "name": "size",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "Dim"
+              },
+              {
+                "name": "tolerance",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "number | undefined"
+              },
+              {
+                "name": "tracking",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "Dim | undefined"
+              }
+            ],
+            "indexSignatures": []
           }
         }
       ]
@@ -240041,6 +240442,37 @@
             ],
             "callSignatures": [
               "(name?: string, base?: StudioPart | undefined) => Assembly"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/index",
+      "exportName": "fontFromBytes",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/source.ts",
+            "name": "fontFromBytes",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(bytes: Uint8Array<ArrayBufferLike>, metadata: FontSourceMetadata) => Promise<FontSource>",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(bytes: Uint8Array<ArrayBufferLike>, metadata: FontSourceMetadata) => Promise<FontSource>"
             ]
           }
         }
@@ -241302,6 +241734,13 @@
                 "type": "(id: string, suppressed?: boolean) => StudioPart"
               },
               {
+                "name": "text",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(font: FontSource, text: string, options: StudioTextOptions) => StudioPart"
+              },
+              {
                 "name": "thread",
                 "kind": "method",
                 "optional": false,
@@ -241441,6 +241880,72 @@
                 "optional": false,
                 "readonly": true,
                 "type": "readonly [Dim, Dim, Dim]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/part",
+      "exportName": "StudioTextOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/part.ts",
+            "name": "StudioTextOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "StudioTextOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "h",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "Dim"
+              },
+              {
+                "name": "plane",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "PlaneData | undefined"
+              },
+              {
+                "name": "size",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "Dim"
+              },
+              {
+                "name": "tolerance",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "number | undefined"
+              },
+              {
+                "name": "tracking",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "Dim | undefined"
               }
             ],
             "indexSignatures": []
@@ -245414,20 +245919,34 @@
             "kind": "type"
           },
           "shape": {
-            "type": "({ key: string; label: string; kind: \"number\" | \"mm\" | \"count\" | \"deg\" | \"ratio\"; min?: number | undefined; max?: number | undefined; step?: number | undefined; } | { key: string; label: string; kind: \"choice\"; options: { value: string; label: string; }[]; empty?: string | undefined; unknown?: ((value: string) => string) | undefined; }) & { when?: ((values: Values) => boolean) | undefined; }",
+            "type": "({ key: string; label: string; kind: \"number\" | \"mm\" | \"count\" | \"deg\" | \"ratio\"; min?: number | undefined; max?: number | undefined; step?: number | undefined; } | { key: string; label: string; kind: \"text\"; maxLength: number; } | { key: string; label: string; kind: \"file\"; accept: string; maxLength: number; filename(value: string | number): string | null; } | { key: string; label: string; kind: \"choice\"; options: { value: string; label: string; }[]; empty?: string | undefined; unknown?: ((value: string) => string) | undefined; }) & { when?: ((values: Values) => boolean) | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "({\n    key: string;\n    label: string;\n    kind: \"mm\" | \"count\" | \"deg\" | \"ratio\" | \"number\";\n    min?: number;\n    max?: number;\n    step?: number;\n} | {\n    key: string;\n    label: string;\n    kind: \"choice\";\n    options: {\n        value: string;\n        label: string;\n    }[];\n    empty?: string;\n    unknown?: (value: string) => string;\n}) & {\n    when?: (values: Values) => boolean;\n}"
+                "definition": "({\n    key: string;\n    label: string;\n    kind: \"mm\" | \"count\" | \"deg\" | \"ratio\" | \"number\";\n    min?: number;\n    max?: number;\n    step?: number;\n} | {\n    key: string;\n    label: string;\n    kind: \"text\";\n    maxLength: number;\n} | {\n    key: string;\n    label: string;\n    kind: \"file\";\n    accept: string;\n    maxLength: number;\n    filename(value: number | string): string | null;\n} | {\n    key: string;\n    label: string;\n    kind: \"choice\";\n    options: {\n        value: string;\n        label: string;\n    }[];\n    empty?: string;\n    unknown?: (value: string) => string;\n}) & {\n    when?: (values: Values) => boolean;\n}"
               }
             ],
             "members": [
+              {
+                "name": "accept",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
               {
                 "name": "empty",
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
                 "type": "string | undefined"
+              },
+              {
+                "name": "filename",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(value: string | number) => string | null"
               },
               {
                 "name": "key",
@@ -245448,7 +245967,21 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
+                "type": "\"file\""
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
                 "type": "\"number\" | \"mm\" | \"count\" | \"deg\" | \"ratio\""
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"text\""
               },
               {
                 "name": "label",
@@ -245463,6 +245996,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "number | undefined"
+              },
+              {
+                "name": "maxLength",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
               },
               {
                 "name": "min",
@@ -250115,6 +250655,65 @@
               {
                 "kind": "VariableDeclaration"
               }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./app/textCommand",
+      "exportName": "textCommand",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/app/textCommand.ts",
+            "name": "textCommand",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "Command",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./app/textCommand",
+      "exportName": "textEditCommand",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/app/textCommand.ts",
+            "name": "textEditCommand",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(index: number, node: TextNode & NodeExtras) => Command",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(index: number, node: TextNode & NodeExtras) => Command"
             ]
           }
         }
@@ -293890,11 +294489,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "Float64Array<ArrayBufferLike> | Float32Array<ArrayBufferLike> | Uint32Array<ArrayBufferLike> | Int32Array<ArrayBufferLike>",
+            "type": "Float64Array<ArrayBufferLike> | Float32Array<ArrayBufferLike> | Uint32Array<ArrayBufferLike> | Int32Array<ArrayBufferLike> | Uint8Array<ArrayBufferLike>",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "Float64Array | Float32Array | Uint32Array | Int32Array"
+                "definition": "Float64Array | Float32Array | Uint32Array | Int32Array | Uint8Array"
               }
             ],
             "members": [
@@ -293939,6 +294538,13 @@
                 "optional": false,
                 "readonly": true,
                 "type": "\"Uint32Array\""
+              },
+              {
+                "name": "__@toStringTag@24",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"Uint8Array\""
               },
               {
                 "name": "at",
@@ -293997,6 +294603,13 @@
                 "type": "(target: number, start: number, end?: number | undefined) => Uint32Array<ArrayBufferLike>"
               },
               {
+                "name": "copyWithin",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(target: number, start: number, end?: number | undefined) => Uint8Array<ArrayBufferLike>"
+              },
+              {
                 "name": "entries",
                 "kind": "method",
                 "optional": false,
@@ -294032,6 +294645,13 @@
                 "type": "(predicate: (value: number, index: number, array: Uint32Array<ArrayBufferLike>) => unknown, thisArg?: any) => boolean"
               },
               {
+                "name": "every",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(predicate: (value: number, index: number, array: Uint8Array<ArrayBufferLike>) => unknown, thisArg?: any) => boolean"
+              },
+              {
                 "name": "fill",
                 "kind": "method",
                 "optional": false,
@@ -294058,6 +294678,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(value: number, start?: number | undefined, end?: number | undefined) => Uint32Array<ArrayBufferLike>"
+              },
+              {
+                "name": "fill",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(value: number, start?: number | undefined, end?: number | undefined) => Uint8Array<ArrayBufferLike>"
               },
               {
                 "name": "filter",
@@ -294088,6 +294715,13 @@
                 "type": "(predicate: (value: number, index: number, array: Uint32Array<ArrayBufferLike>) => any, thisArg?: any) => Uint32Array<ArrayBuffer>"
               },
               {
+                "name": "filter",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(predicate: (value: number, index: number, array: Uint8Array<ArrayBufferLike>) => any, thisArg?: any) => Uint8Array<ArrayBuffer>"
+              },
+              {
                 "name": "find",
                 "kind": "method",
                 "optional": false,
@@ -294114,6 +294748,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(predicate: (value: number, index: number, obj: Uint32Array<ArrayBufferLike>) => boolean, thisArg?: any) => number | undefined"
+              },
+              {
+                "name": "find",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(predicate: (value: number, index: number, obj: Uint8Array<ArrayBufferLike>) => boolean, thisArg?: any) => number | undefined"
               },
               {
                 "name": "findIndex",
@@ -294144,6 +294785,13 @@
                 "type": "(predicate: (value: number, index: number, obj: Uint32Array<ArrayBufferLike>) => boolean, thisArg?: any) => number"
               },
               {
+                "name": "findIndex",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(predicate: (value: number, index: number, obj: Uint8Array<ArrayBufferLike>) => boolean, thisArg?: any) => number"
+              },
+              {
                 "name": "forEach",
                 "kind": "method",
                 "optional": false,
@@ -294170,6 +294818,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(callbackfn: (value: number, index: number, array: Uint32Array<ArrayBufferLike>) => void, thisArg?: any) => void"
+              },
+              {
+                "name": "forEach",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(callbackfn: (value: number, index: number, array: Uint8Array<ArrayBufferLike>) => void, thisArg?: any) => void"
               },
               {
                 "name": "includes",
@@ -294242,6 +294897,13 @@
                 "type": "(callbackfn: (value: number, index: number, array: Uint32Array<ArrayBufferLike>) => number, thisArg?: any) => Uint32Array<ArrayBuffer>"
               },
               {
+                "name": "map",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(callbackfn: (value: number, index: number, array: Uint8Array<ArrayBufferLike>) => number, thisArg?: any) => Uint8Array<ArrayBuffer>"
+              },
+              {
                 "name": "reduce",
                 "kind": "method",
                 "optional": false,
@@ -294270,6 +294932,13 @@
                 "type": "{ (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint32Array<ArrayBufferLike>) => number): number; (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint32Array<ArrayBufferLike>) => number, initialValue: number): number; <U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: Uint32Array<ArrayBufferLike>) => U, initialValue: U): U; }"
               },
               {
+                "name": "reduce",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array<ArrayBufferLike>) => number): number; (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array<ArrayBufferLike>) => number, initialValue: number): number; <U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: Uint8Array<ArrayBufferLike>) => U, initialValue: U): U; }"
+              },
+              {
                 "name": "reduceRight",
                 "kind": "method",
                 "optional": false,
@@ -294296,6 +294965,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "{ (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint32Array<ArrayBufferLike>) => number): number; (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint32Array<ArrayBufferLike>) => number, initialValue: number): number; <U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: Uint32Array<ArrayBufferLike>) => U, initialValue: U): U; }"
+              },
+              {
+                "name": "reduceRight",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array<ArrayBufferLike>) => number): number; (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array<ArrayBufferLike>) => number, initialValue: number): number; <U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: Uint8Array<ArrayBufferLike>) => U, initialValue: U): U; }"
               },
               {
                 "name": "reverse",
@@ -294324,6 +295000,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "() => Uint32Array<ArrayBufferLike>"
+              },
+              {
+                "name": "reverse",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Uint8Array<ArrayBufferLike>"
               },
               {
                 "name": "set",
@@ -294361,6 +295044,13 @@
                 "type": "(start?: number | undefined, end?: number | undefined) => Uint32Array<ArrayBuffer>"
               },
               {
+                "name": "slice",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start?: number | undefined, end?: number | undefined) => Uint8Array<ArrayBuffer>"
+              },
+              {
                 "name": "some",
                 "kind": "method",
                 "optional": false,
@@ -294387,6 +295077,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(predicate: (value: number, index: number, array: Uint32Array<ArrayBufferLike>) => unknown, thisArg?: any) => boolean"
+              },
+              {
+                "name": "some",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(predicate: (value: number, index: number, array: Uint8Array<ArrayBufferLike>) => unknown, thisArg?: any) => boolean"
               },
               {
                 "name": "sort",
@@ -294417,6 +295114,13 @@
                 "type": "(compareFn?: ((a: number, b: number) => number) | undefined) => Uint32Array<ArrayBufferLike>"
               },
               {
+                "name": "sort",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(compareFn?: ((a: number, b: number) => number) | undefined) => Uint8Array<ArrayBufferLike>"
+              },
+              {
                 "name": "subarray",
                 "kind": "method",
                 "optional": false,
@@ -294443,6 +295147,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(begin?: number | undefined, end?: number | undefined) => Uint32Array<ArrayBufferLike>"
+              },
+              {
+                "name": "subarray",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(begin?: number | undefined, end?: number | undefined) => Uint8Array<ArrayBufferLike>"
               },
               {
                 "name": "toLocaleString",
@@ -294485,6 +295196,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "() => Uint32Array<ArrayBufferLike>"
+              },
+              {
+                "name": "valueOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Uint8Array<ArrayBufferLike>"
               },
               {
                 "name": "values",
@@ -294583,11 +295301,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"f64\" | \"f32\" | \"u32\" | \"i32\"",
+            "type": "\"f64\" | \"f32\" | \"u32\" | \"i32\" | \"u8\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"f64\" | \"f32\" | \"u32\" | \"i32\""
+                "definition": "\"f64\" | \"f32\" | \"u32\" | \"i32\" | \"u8\""
               }
             ],
             "members": [
@@ -295330,6 +296048,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./engine/blobs",
+      "exportName": "fontRefs",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/blobs.ts",
+            "name": "fontRefs",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, out?: Set<string>) => Set<string>",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, out?: Set<string>) => Set<string>"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/blobs",
       "exportName": "getBlob",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -295782,14 +296531,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(a: Uint8Array<ArrayBufferLike> | BlobArray) => Promise<string>",
+            "type": "(a: BlobArray) => Promise<string>",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(a: Uint8Array<ArrayBufferLike> | BlobArray) => Promise<string>"
+              "(a: BlobArray) => Promise<string>"
             ]
           }
         }
@@ -302610,6 +303359,13 @@
                 "type": "FrameFollows | undefined"
               },
               {
+                "name": "font",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "FontSource"
+              },
+              {
                 "name": "form",
                 "kind": "property",
                 "optional": false,
@@ -303385,6 +304141,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "\"sweep-curve\""
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"text\""
               },
               {
                 "name": "kind",
@@ -304374,6 +305137,13 @@
                 "type": "number | undefined"
               },
               {
+                "name": "text",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
                 "name": "thickness",
                 "kind": "property",
                 "optional": false,
@@ -304411,6 +305181,13 @@
               {
                 "name": "tolerance",
                 "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "tolerance",
+                "kind": "property",
                 "optional": true,
                 "readonly": false,
                 "type": "number | undefined"
@@ -304424,6 +305201,13 @@
               },
               {
                 "name": "toolTipRadius",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Dim | undefined"
+              },
+              {
+                "name": "tracking",
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
@@ -306288,6 +307072,93 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./engine/doc",
+      "exportName": "TextNode",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/doc.ts",
+            "name": "TextNode",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "TextNode",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "font",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "FontSource"
+              },
+              {
+                "name": "height",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Dim"
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"text\""
+              },
+              {
+                "name": "plane",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "DocPlane | undefined"
+              },
+              {
+                "name": "size",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Dim"
+              },
+              {
+                "name": "text",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "tolerance",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "tracking",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Dim | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/doc",
       "exportName": "_docFieldsComplete",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -306824,14 +307695,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(node: ModelNode) => node is ({ kind: \"extrude\"; sketch: number; height: Dim; from?: Dim | undefined; draft?: number | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"revolve\"; sketch: number; axis: \"x\" | \"y\"; origin?: [Dim, Dim] | undefined; angle: number; dir?: [number, number] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"translate\"; parent: BodyRef; offset: [Dim, Dim, Dim]; } & NodeExtras) | ({ kind: \"rotate\"; parent: BodyRef; axis: Axis; angle: number; pivot?: [Dim, Dim, Dim] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"mirror\"; parent: BodyRef; plane: \"xy\" | \"xz\" | \"yz\"; } & NodeExtras) | ({ kind: \"scale\"; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"linear-pattern\"; parent: BodyRef; axis: Axis; spacing: Dim; count: number; } & NodeExtras) | ({ kind: \"linear-feature-pattern\"; parent: BodyRef; axis: Axis; spacing: Dim; count: number; } & NodeExtras) | ({ kind: \"circular-pattern\"; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"union\"; left: BodyRef; right: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"intersect\"; left: BodyRef; right: BodyRef; } & NodeExtras) | ({ kind: \"difference\"; parent: BodyRef; tool: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"rib\"; parent: BodyRef; min: [Dim, Dim, Dim]; max: [Dim, Dim, Dim]; } & NodeExtras) | ({ kind: \"rectangular-relief\"; parent: BodyRef; min: [Dim, Dim]; max: [Dim, Dim]; depth: Dim; mode: \"emboss\" | \"engrave\"; } & NodeExtras) | ({ kind: \"split\"; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] | undefined; } & NodeExtras) | ({ kind: \"sweep\"; sketch: number; path: ({ kind: \"straight\"; length: Dim; } | { kind: \"bend\"; radius: Dim; angle: number; toward: \"x\" | \"y\" | \"-x\" | \"-y\"; })[]; } & NodeExtras) | ({ kind: \"sweep-curve\"; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[]; }; routeBundleMember?: { bundleId: string; memberId: string; } | undefined; } & NodeExtras) | ({ kind: \"loft\"; sections: LoftSection[]; smooth?: boolean | undefined; from?: number[] | undefined; guide?: LoftNurbsGuideInput | { readonly kind: \"quadratic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | { readonly kind: \"cubic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | undefined; } & NodeExtras) | ({ kind: \"import\"; name: string; step: string; solids?: number | undefined; } & NodeExtras) | ({ kind: \"mesh\"; name: string; unit: string; positions?: number[] | undefined; indices?: number[] | undefined; blob?: { positions: string; indices: string; } | undefined; representation?: \"facets\" | undefined; pieces?: number | undefined; repair?: MeshRepairRecord | undefined; crossings?: { count: number; at: [number, number, number][]; } | undefined; role?: \"infill\" | undefined; } & NodeExtras) | ({ kind: \"thread\"; diameter: number; pitch: number; center: [number, number]; seat: number; length?: number | undefined; hex?: { across: number; height: number; internal?: true | undefined; } | undefined; form?: \"faceted\" | \"helical\" | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"shell\"; parent: BodyRef; thickness: Dim; open: string[]; } & NodeExtras) | ({ kind: \"chamfer\"; parent: BodyRef; edges: string[]; distance: Dim; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-corner-relief\"; parent: BodyRef; edges: [string]; shape: \"square\" | \"round\"; size: Dim; } & NodeExtras) | ({ kind: \"sheet-flange\"; parent: BodyRef; edges: [string]; length: Dim; angle?: number | undefined; bendRadius?: Dim | undefined; measure?: \"outer\" | \"inner\" | \"tangent\" | undefined; position?: \"material-inside\" | \"material-outside\" | \"bend-outside\" | undefined; offsets?: [Dim, Dim] | undefined; relief?: { kind: \"rectangular\" | \"obround\"; width: Dim; depth: Dim; } | { kind: \"none\"; } | undefined; } & NodeExtras) | ({ kind: \"frame\"; follows?: FrameFollows | undefined; points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[]; bends?: ModelFrameBend[] | undefined; section: MemberSection; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; mirror?: boolean | undefined; up?: [number, number, number] | undefined; overrides?: FrameOverride[] | undefined; corners?: FrameCorners | undefined; trims?: FrameTrim[] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"frame-member\"; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; up?: [number, number, number] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"thicken\"; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }; thickness: Dim; side?: \"reverse\" | \"normal\" | \"both\" | undefined; } & NodeExtras) | ({ kind: \"library\"; name: string; library: CadLibraryOrigin; prefix: string; features: CadPartFeature[]; outputs: string[]; interfaces: CadLibraryInterface[]; warnings: string[]; placement?: { rotation: [number, number, number]; position: [number, number, number]; } | undefined; addTo?: BodyRef | undefined; on?: { face: string; point: [number, number, number]; } | undefined; context?: Record<string, number> | undefined; cut?: boolean | undefined; } & NodeExtras) | ({ kind: \"rack\"; module: Dim; teeth: number; faceWidth: Dim; height: Dim; thicknessReduction?: Dim | undefined; origin: [number, number]; angle?: number | undefined; from?: number | undefined; mesh?: RackMesh | undefined; generator: \"spur-rack@0\" | \"spur-rack@1\"; rootFillet?: Dim | undefined; } & NodeExtras) | ({ kind: \"internal-gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; rim: Dim; profileShift?: number | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"internal-gear@0\" | \"internal-gear@1\"; shiftDefault?: boolean | undefined; cutter?: { teeth: number; shift?: number | undefined; tipRadius?: Dim | undefined; } | undefined; } & NodeExtras) | ({ kind: \"bevel-gear\"; module: Dim; teeth: number; mateTeeth: number; shaftAngle?: number | undefined; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: BevelMesh | undefined; generator: \"bevel-gear@0\"; spiral?: { angle: number; hand: \"left\" | \"right\"; cutterRadius: Dim; cutterEstimate?: boolean | undefined; } | undefined; } & NodeExtras) | ({ kind: \"worm-wheel\"; module: Dim; starts: number; diameter: Dim; hand: \"left\" | \"right\"; teeth: number; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"worm-wheel@0\"; } & NodeExtras) | ({ kind: \"spring\"; type?: \"extension\" | \"torsion\" | undefined; wire: Dim; diameter: Dim; activeCoils: number; pitch?: Dim | undefined; freeLength?: Dim | undefined; hand: \"left\" | \"right\"; ends?: \"closed\" | \"open\" | \"closed-ground\" | undefined; shearModulus?: number | undefined; shearModulusEstimate?: boolean | undefined; load?: number | undefined; hooks?: \"machine-loop\" | \"crossover\" | undefined; initialTension?: number | undefined; legLengths?: [number, number] | undefined; youngsModulus?: number | undefined; youngsModulusEstimate?: boolean | undefined; moment?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"spring@0\"; } & NodeExtras) | ({ kind: \"cam\"; follower: \"flat\" | \"roller\"; motion?: \"translating\" | \"oscillating\" | undefined; base: number; roller?: number | undefined; offset?: number | undefined; pivotDistance?: number | undefined; armLength?: number | undefined; faceOffset?: number | undefined; segments: { angle: number; to?: number | undefined; law?: CamLawName | undefined; }[]; thickness: number; bore?: number | undefined; pressureAngleLimit?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"cam@0\"; } & NodeExtras) | ({ kind: \"sprocket\"; row: string; teeth: number; tip: number; width: number; seat?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"sprocket@0\"; } & NodeExtras) | ({ kind: \"pulley\"; row: string; teeth?: number | undefined; diameter?: number | undefined; grooves?: number | undefined; width?: number | undefined; crown?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"pulley@0\"; } & NodeExtras) | ({ kind: \"belt\"; row: string; wheels: [number, number]; rounding?: \"whole\" | \"even\" | undefined; generator: \"belt@0\"; } & NodeExtras) | ({ kind: \"coupling\"; row: string; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"coupling@0\"; } & NodeExtras) | ({ kind: \"shaft\"; steps: { diameter: Dim; length: Dim; fillet?: number | undefined; undercut?: { width: number; depth: number; } | undefined; grooves?: { diameter: number; width: number; at: number; }[] | undefined; keyseats?: { width: number; depth: number; length: number; offset: number; ends?: \"square\" | \"end-mill\" | \"disc\" | undefined; cutterRadius?: number | undefined; angle?: number | undefined; }[] | undefined; }[]; chamfers?: [number, number] | undefined; holes?: { diameter: number; at: number; angle?: number | undefined; }[] | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"shaft@0\"; } & NodeExtras) | ({ kind: \"oring-gland\"; parent: BodyRef; face: string; gland: \"face\" | \"piston\" | \"rod\"; ring: string; diameter: number; width: number; at?: number | undefined; depth?: number | undefined; center?: [number, number, number] | undefined; seal?: number | undefined; sealClass?: string | undefined; grooveClass?: string | undefined; } & NodeExtras) | ({ kind: \"oring\"; gland: number; } & NodeExtras) | ({ kind: \"connector-opening\"; parent: BodyRef; face: string; row: string; center: [number, number, number]; rotation?: number | undefined; } & NodeExtras) | ({ kind: \"connector-body\"; opening: number; } & NodeExtras) | ({ kind: \"gusset\"; frame: number; point: number; members?: [number, number] | undefined; along?: 1 | -1 | undefined; legs: [number, number]; thickness: number; clip?: number | undefined; offset?: number | undefined; } & NodeExtras) | ({ kind: \"end-cap\"; frame: number; member: number; end: \"start\" | \"end\"; fit: \"over\" | \"inset\"; thickness: number; } & NodeExtras) | ({ kind: \"bearing\"; row: string; shaft: number; step: number; against: \"start\" | \"end\"; housing?: number | undefined; housingRef?: BearingHousingRef | undefined; shaftClass?: string | undefined; housingClass?: string | undefined; } & NodeExtras) | ({ kind: \"key\"; shaft: number; keyseat: number; height: number; width?: number | undefined; length?: number | undefined; ends?: \"square\" | \"round\" | undefined; hub?: number | undefined; } & NodeExtras) | ({ kind: \"keyway\"; parent: BodyRef; face: string; width: number; depth: number; angle?: number | undefined; } & NodeExtras) | ({ kind: \"retaining-ring\"; shaft: number; groove: number; thickness: number; outerDiameter: number; row?: string | undefined; } & NodeExtras) | ({ kind: \"pin\"; shaft: number; hole: number; diameter?: number | undefined; length?: number | undefined; fit?: boolean | undefined; } & NodeExtras) | ({ kind: \"worm\"; starts: number; form: \"ZI\" | \"ZA\"; length: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; mesh: BevelMesh; generator: \"worm@0\"; } & NodeExtras) | ({ kind: \"gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; profileShift?: number | undefined; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: GearMesh | undefined; generator: \"spur-gear@0\" | \"spur-gear@1\"; toolTipRadius?: Dim | undefined; } & NodeExtras) | ({ kind: \"subd\"; name: string; cage: { positions: number[]; faces: number[][]; creases?: [number, number][] | undefined; }; mirror?: \"x\" | \"z\" | \"y\" | undefined; } & NodeExtras) | ({ kind: \"sew\"; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }[]; tolerance?: number | undefined; } & NodeExtras) | ({ kind: \"draft\"; parent: BodyRef; faces: string[]; angle: number; pull?: \"-x\" | \"-y\" | \"-z\" | Axis | undefined; neutral?: Dim | undefined; } & NodeExtras) | ({ kind: \"full-round\"; parent: BodyRef; faces: string[]; along?: \"x\" | \"y\" | undefined; } & NodeExtras) | ({ kind: \"face-fillet\"; parent: BodyRef; faces: [string, string]; radius: Dim; } & NodeExtras) | ({ kind: \"face-thread\"; parent: BodyRef; face: string; pitch: number; diameter?: number | undefined; length?: number | undefined; end?: \"+\" | \"-\" | undefined; relief?: number | undefined; clearance?: number | undefined; hand?: \"left\" | undefined; } & NodeExtras) | ({ kind: \"split-face\"; parent: BodyRef; face: string; pull: [number, number, number]; names?: string[] | undefined; } & NodeExtras) | ({ kind: \"fillet\"; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim; atEnd?: true | undefined; }[] | undefined; section?: FilletSection | undefined; } & NodeExtras) | ({ kind: \"separate\"; parent: BodyRef; } & NodeExtras) | ({ kind: \"decimate\"; parent: BodyRef; ratio?: number | undefined; triangles?: number | undefined; maxError?: number | undefined; featureAngle?: number | undefined; } & NodeExtras) | ({ kind: \"hole\"; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis | undefined; side?: \"min\" | \"max\" | undefined; depth?: Dim | undefined; thread?: string | undefined; pattern?: HolePattern | undefined; made?: Made | undefined; face?: string | undefined; countersink?: number | undefined; csk?: number | undefined; } & NodeExtras)",
+            "type": "(node: ModelNode) => node is (TextNode & NodeExtras) | ({ kind: \"extrude\"; sketch: number; height: Dim; from?: Dim | undefined; draft?: number | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"revolve\"; sketch: number; axis: \"x\" | \"y\"; origin?: [Dim, Dim] | undefined; angle: number; dir?: [number, number] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"translate\"; parent: BodyRef; offset: [Dim, Dim, Dim]; } & NodeExtras) | ({ kind: \"rotate\"; parent: BodyRef; axis: Axis; angle: number; pivot?: [Dim, Dim, Dim] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"mirror\"; parent: BodyRef; plane: \"xy\" | \"xz\" | \"yz\"; } & NodeExtras) | ({ kind: \"scale\"; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"linear-pattern\"; parent: BodyRef; axis: Axis; spacing: Dim; count: number; } & NodeExtras) | ({ kind: \"linear-feature-pattern\"; parent: BodyRef; axis: Axis; spacing: Dim; count: number; } & NodeExtras) | ({ kind: \"circular-pattern\"; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"union\"; left: BodyRef; right: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"intersect\"; left: BodyRef; right: BodyRef; } & NodeExtras) | ({ kind: \"difference\"; parent: BodyRef; tool: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"rib\"; parent: BodyRef; min: [Dim, Dim, Dim]; max: [Dim, Dim, Dim]; } & NodeExtras) | ({ kind: \"rectangular-relief\"; parent: BodyRef; min: [Dim, Dim]; max: [Dim, Dim]; depth: Dim; mode: \"emboss\" | \"engrave\"; } & NodeExtras) | ({ kind: \"split\"; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] | undefined; } & NodeExtras) | ({ kind: \"sweep\"; sketch: number; path: ({ kind: \"straight\"; length: Dim; } | { kind: \"bend\"; radius: Dim; angle: number; toward: \"x\" | \"y\" | \"-x\" | \"-y\"; })[]; } & NodeExtras) | ({ kind: \"sweep-curve\"; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[]; }; routeBundleMember?: { bundleId: string; memberId: string; } | undefined; } & NodeExtras) | ({ kind: \"loft\"; sections: LoftSection[]; smooth?: boolean | undefined; from?: number[] | undefined; guide?: LoftNurbsGuideInput | { readonly kind: \"quadratic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | { readonly kind: \"cubic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | undefined; } & NodeExtras) | ({ kind: \"import\"; name: string; step: string; solids?: number | undefined; } & NodeExtras) | ({ kind: \"mesh\"; name: string; unit: string; positions?: number[] | undefined; indices?: number[] | undefined; blob?: { positions: string; indices: string; } | undefined; representation?: \"facets\" | undefined; pieces?: number | undefined; repair?: MeshRepairRecord | undefined; crossings?: { count: number; at: [number, number, number][]; } | undefined; role?: \"infill\" | undefined; } & NodeExtras) | ({ kind: \"thread\"; diameter: number; pitch: number; center: [number, number]; seat: number; length?: number | undefined; hex?: { across: number; height: number; internal?: true | undefined; } | undefined; form?: \"faceted\" | \"helical\" | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"shell\"; parent: BodyRef; thickness: Dim; open: string[]; } & NodeExtras) | ({ kind: \"chamfer\"; parent: BodyRef; edges: string[]; distance: Dim; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-corner-relief\"; parent: BodyRef; edges: [string]; shape: \"square\" | \"round\"; size: Dim; } & NodeExtras) | ({ kind: \"sheet-flange\"; parent: BodyRef; edges: [string]; length: Dim; angle?: number | undefined; bendRadius?: Dim | undefined; measure?: \"outer\" | \"inner\" | \"tangent\" | undefined; position?: \"material-inside\" | \"material-outside\" | \"bend-outside\" | undefined; offsets?: [Dim, Dim] | undefined; relief?: { kind: \"rectangular\" | \"obround\"; width: Dim; depth: Dim; } | { kind: \"none\"; } | undefined; } & NodeExtras) | ({ kind: \"frame\"; follows?: FrameFollows | undefined; points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[]; bends?: ModelFrameBend[] | undefined; section: MemberSection; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; mirror?: boolean | undefined; up?: [number, number, number] | undefined; overrides?: FrameOverride[] | undefined; corners?: FrameCorners | undefined; trims?: FrameTrim[] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"frame-member\"; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; up?: [number, number, number] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"thicken\"; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }; thickness: Dim; side?: \"reverse\" | \"normal\" | \"both\" | undefined; } & NodeExtras) | ({ kind: \"library\"; name: string; library: CadLibraryOrigin; prefix: string; features: CadPartFeature[]; outputs: string[]; interfaces: CadLibraryInterface[]; warnings: string[]; placement?: { rotation: [number, number, number]; position: [number, number, number]; } | undefined; addTo?: BodyRef | undefined; on?: { face: string; point: [number, number, number]; } | undefined; context?: Record<string, number> | undefined; cut?: boolean | undefined; } & NodeExtras) | ({ kind: \"rack\"; module: Dim; teeth: number; faceWidth: Dim; height: Dim; thicknessReduction?: Dim | undefined; origin: [number, number]; angle?: number | undefined; from?: number | undefined; mesh?: RackMesh | undefined; generator: \"spur-rack@0\" | \"spur-rack@1\"; rootFillet?: Dim | undefined; } & NodeExtras) | ({ kind: \"internal-gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; rim: Dim; profileShift?: number | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"internal-gear@0\" | \"internal-gear@1\"; shiftDefault?: boolean | undefined; cutter?: { teeth: number; shift?: number | undefined; tipRadius?: Dim | undefined; } | undefined; } & NodeExtras) | ({ kind: \"bevel-gear\"; module: Dim; teeth: number; mateTeeth: number; shaftAngle?: number | undefined; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: BevelMesh | undefined; generator: \"bevel-gear@0\"; spiral?: { angle: number; hand: \"left\" | \"right\"; cutterRadius: Dim; cutterEstimate?: boolean | undefined; } | undefined; } & NodeExtras) | ({ kind: \"worm-wheel\"; module: Dim; starts: number; diameter: Dim; hand: \"left\" | \"right\"; teeth: number; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"worm-wheel@0\"; } & NodeExtras) | ({ kind: \"spring\"; type?: \"extension\" | \"torsion\" | undefined; wire: Dim; diameter: Dim; activeCoils: number; pitch?: Dim | undefined; freeLength?: Dim | undefined; hand: \"left\" | \"right\"; ends?: \"closed\" | \"open\" | \"closed-ground\" | undefined; shearModulus?: number | undefined; shearModulusEstimate?: boolean | undefined; load?: number | undefined; hooks?: \"machine-loop\" | \"crossover\" | undefined; initialTension?: number | undefined; legLengths?: [number, number] | undefined; youngsModulus?: number | undefined; youngsModulusEstimate?: boolean | undefined; moment?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"spring@0\"; } & NodeExtras) | ({ kind: \"cam\"; follower: \"flat\" | \"roller\"; motion?: \"translating\" | \"oscillating\" | undefined; base: number; roller?: number | undefined; offset?: number | undefined; pivotDistance?: number | undefined; armLength?: number | undefined; faceOffset?: number | undefined; segments: { angle: number; to?: number | undefined; law?: CamLawName | undefined; }[]; thickness: number; bore?: number | undefined; pressureAngleLimit?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"cam@0\"; } & NodeExtras) | ({ kind: \"sprocket\"; row: string; teeth: number; tip: number; width: number; seat?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"sprocket@0\"; } & NodeExtras) | ({ kind: \"pulley\"; row: string; teeth?: number | undefined; diameter?: number | undefined; grooves?: number | undefined; width?: number | undefined; crown?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"pulley@0\"; } & NodeExtras) | ({ kind: \"belt\"; row: string; wheels: [number, number]; rounding?: \"whole\" | \"even\" | undefined; generator: \"belt@0\"; } & NodeExtras) | ({ kind: \"coupling\"; row: string; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"coupling@0\"; } & NodeExtras) | ({ kind: \"shaft\"; steps: { diameter: Dim; length: Dim; fillet?: number | undefined; undercut?: { width: number; depth: number; } | undefined; grooves?: { diameter: number; width: number; at: number; }[] | undefined; keyseats?: { width: number; depth: number; length: number; offset: number; ends?: \"square\" | \"end-mill\" | \"disc\" | undefined; cutterRadius?: number | undefined; angle?: number | undefined; }[] | undefined; }[]; chamfers?: [number, number] | undefined; holes?: { diameter: number; at: number; angle?: number | undefined; }[] | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"shaft@0\"; } & NodeExtras) | ({ kind: \"oring-gland\"; parent: BodyRef; face: string; gland: \"face\" | \"piston\" | \"rod\"; ring: string; diameter: number; width: number; at?: number | undefined; depth?: number | undefined; center?: [number, number, number] | undefined; seal?: number | undefined; sealClass?: string | undefined; grooveClass?: string | undefined; } & NodeExtras) | ({ kind: \"oring\"; gland: number; } & NodeExtras) | ({ kind: \"connector-opening\"; parent: BodyRef; face: string; row: string; center: [number, number, number]; rotation?: number | undefined; } & NodeExtras) | ({ kind: \"connector-body\"; opening: number; } & NodeExtras) | ({ kind: \"gusset\"; frame: number; point: number; members?: [number, number] | undefined; along?: 1 | -1 | undefined; legs: [number, number]; thickness: number; clip?: number | undefined; offset?: number | undefined; } & NodeExtras) | ({ kind: \"end-cap\"; frame: number; member: number; end: \"start\" | \"end\"; fit: \"over\" | \"inset\"; thickness: number; } & NodeExtras) | ({ kind: \"bearing\"; row: string; shaft: number; step: number; against: \"start\" | \"end\"; housing?: number | undefined; housingRef?: BearingHousingRef | undefined; shaftClass?: string | undefined; housingClass?: string | undefined; } & NodeExtras) | ({ kind: \"key\"; shaft: number; keyseat: number; height: number; width?: number | undefined; length?: number | undefined; ends?: \"square\" | \"round\" | undefined; hub?: number | undefined; } & NodeExtras) | ({ kind: \"keyway\"; parent: BodyRef; face: string; width: number; depth: number; angle?: number | undefined; } & NodeExtras) | ({ kind: \"retaining-ring\"; shaft: number; groove: number; thickness: number; outerDiameter: number; row?: string | undefined; } & NodeExtras) | ({ kind: \"pin\"; shaft: number; hole: number; diameter?: number | undefined; length?: number | undefined; fit?: boolean | undefined; } & NodeExtras) | ({ kind: \"worm\"; starts: number; form: \"ZI\" | \"ZA\"; length: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; mesh: BevelMesh; generator: \"worm@0\"; } & NodeExtras) | ({ kind: \"gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; profileShift?: number | undefined; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: GearMesh | undefined; generator: \"spur-gear@0\" | \"spur-gear@1\"; toolTipRadius?: Dim | undefined; } & NodeExtras) | ({ kind: \"subd\"; name: string; cage: { positions: number[]; faces: number[][]; creases?: [number, number][] | undefined; }; mirror?: \"x\" | \"z\" | \"y\" | undefined; } & NodeExtras) | ({ kind: \"sew\"; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }[]; tolerance?: number | undefined; } & NodeExtras) | ({ kind: \"draft\"; parent: BodyRef; faces: string[]; angle: number; pull?: \"-x\" | \"-y\" | \"-z\" | Axis | undefined; neutral?: Dim | undefined; } & NodeExtras) | ({ kind: \"full-round\"; parent: BodyRef; faces: string[]; along?: \"x\" | \"y\" | undefined; } & NodeExtras) | ({ kind: \"face-fillet\"; parent: BodyRef; faces: [string, string]; radius: Dim; } & NodeExtras) | ({ kind: \"face-thread\"; parent: BodyRef; face: string; pitch: number; diameter?: number | undefined; length?: number | undefined; end?: \"+\" | \"-\" | undefined; relief?: number | undefined; clearance?: number | undefined; hand?: \"left\" | undefined; } & NodeExtras) | ({ kind: \"split-face\"; parent: BodyRef; face: string; pull: [number, number, number]; names?: string[] | undefined; } & NodeExtras) | ({ kind: \"fillet\"; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim; atEnd?: true | undefined; }[] | undefined; section?: FilletSection | undefined; } & NodeExtras) | ({ kind: \"separate\"; parent: BodyRef; } & NodeExtras) | ({ kind: \"decimate\"; parent: BodyRef; ratio?: number | undefined; triangles?: number | undefined; maxError?: number | undefined; featureAngle?: number | undefined; } & NodeExtras) | ({ kind: \"hole\"; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis | undefined; side?: \"min\" | \"max\" | undefined; depth?: Dim | undefined; thread?: string | undefined; pattern?: HolePattern | undefined; made?: Made | undefined; face?: string | undefined; countersink?: number | undefined; csk?: number | undefined; } & NodeExtras)",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
               }
             ],
             "callSignatures": [
-              "(node: ModelNode) => node is ({ kind: \"extrude\"; sketch: number; height: Dim; from?: Dim | undefined; draft?: number | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"revolve\"; sketch: number; axis: \"x\" | \"y\"; origin?: [Dim, Dim] | undefined; angle: number; dir?: [number, number] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"translate\"; parent: BodyRef; offset: [Dim, Dim, Dim]; } & NodeExtras) | ({ kind: \"rotate\"; parent: BodyRef; axis: Axis; angle: number; pivot?: [Dim, Dim, Dim] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"mirror\"; parent: BodyRef; plane: \"xy\" | \"xz\" | \"yz\"; } & NodeExtras) | ({ kind: \"scale\"; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"linear-pattern\"; parent: BodyRef; axis: Axis; spacing: Dim; count: number; } & NodeExtras) | ({ kind: \"linear-feature-pattern\"; parent: BodyRef; axis: Axis; spacing: Dim; count: number; } & NodeExtras) | ({ kind: \"circular-pattern\"; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"union\"; left: BodyRef; right: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"intersect\"; left: BodyRef; right: BodyRef; } & NodeExtras) | ({ kind: \"difference\"; parent: BodyRef; tool: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"rib\"; parent: BodyRef; min: [Dim, Dim, Dim]; max: [Dim, Dim, Dim]; } & NodeExtras) | ({ kind: \"rectangular-relief\"; parent: BodyRef; min: [Dim, Dim]; max: [Dim, Dim]; depth: Dim; mode: \"emboss\" | \"engrave\"; } & NodeExtras) | ({ kind: \"split\"; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] | undefined; } & NodeExtras) | ({ kind: \"sweep\"; sketch: number; path: ({ kind: \"straight\"; length: Dim; } | { kind: \"bend\"; radius: Dim; angle: number; toward: \"x\" | \"y\" | \"-x\" | \"-y\"; })[]; } & NodeExtras) | ({ kind: \"sweep-curve\"; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[]; }; routeBundleMember?: { bundleId: string; memberId: string; } | undefined; } & NodeExtras) | ({ kind: \"loft\"; sections: LoftSection[]; smooth?: boolean | undefined; from?: number[] | undefined; guide?: LoftNurbsGuideInput | { readonly kind: \"quadratic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | { readonly kind: \"cubic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | undefined; } & NodeExtras) | ({ kind: \"import\"; name: string; step: string; solids?: number | undefined; } & NodeExtras) | ({ kind: \"mesh\"; name: string; unit: string; positions?: number[] | undefined; indices?: number[] | undefined; blob?: { positions: string; indices: string; } | undefined; representation?: \"facets\" | undefined; pieces?: number | undefined; repair?: MeshRepairRecord | undefined; crossings?: { count: number; at: [number, number, number][]; } | undefined; role?: \"infill\" | undefined; } & NodeExtras) | ({ kind: \"thread\"; diameter: number; pitch: number; center: [number, number]; seat: number; length?: number | undefined; hex?: { across: number; height: number; internal?: true | undefined; } | undefined; form?: \"faceted\" | \"helical\" | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"shell\"; parent: BodyRef; thickness: Dim; open: string[]; } & NodeExtras) | ({ kind: \"chamfer\"; parent: BodyRef; edges: string[]; distance: Dim; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-corner-relief\"; parent: BodyRef; edges: [string]; shape: \"square\" | \"round\"; size: Dim; } & NodeExtras) | ({ kind: \"sheet-flange\"; parent: BodyRef; edges: [string]; length: Dim; angle?: number | undefined; bendRadius?: Dim | undefined; measure?: \"outer\" | \"inner\" | \"tangent\" | undefined; position?: \"material-inside\" | \"material-outside\" | \"bend-outside\" | undefined; offsets?: [Dim, Dim] | undefined; relief?: { kind: \"rectangular\" | \"obround\"; width: Dim; depth: Dim; } | { kind: \"none\"; } | undefined; } & NodeExtras) | ({ kind: \"frame\"; follows?: FrameFollows | undefined; points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[]; bends?: ModelFrameBend[] | undefined; section: MemberSection; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; mirror?: boolean | undefined; up?: [number, number, number] | undefined; overrides?: FrameOverride[] | undefined; corners?: FrameCorners | undefined; trims?: FrameTrim[] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"frame-member\"; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; up?: [number, number, number] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"thicken\"; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }; thickness: Dim; side?: \"reverse\" | \"normal\" | \"both\" | undefined; } & NodeExtras) | ({ kind: \"library\"; name: string; library: CadLibraryOrigin; prefix: string; features: CadPartFeature[]; outputs: string[]; interfaces: CadLibraryInterface[]; warnings: string[]; placement?: { rotation: [number, number, number]; position: [number, number, number]; } | undefined; addTo?: BodyRef | undefined; on?: { face: string; point: [number, number, number]; } | undefined; context?: Record<string, number> | undefined; cut?: boolean | undefined; } & NodeExtras) | ({ kind: \"rack\"; module: Dim; teeth: number; faceWidth: Dim; height: Dim; thicknessReduction?: Dim | undefined; origin: [number, number]; angle?: number | undefined; from?: number | undefined; mesh?: RackMesh | undefined; generator: \"spur-rack@0\" | \"spur-rack@1\"; rootFillet?: Dim | undefined; } & NodeExtras) | ({ kind: \"internal-gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; rim: Dim; profileShift?: number | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"internal-gear@0\" | \"internal-gear@1\"; shiftDefault?: boolean | undefined; cutter?: { teeth: number; shift?: number | undefined; tipRadius?: Dim | undefined; } | undefined; } & NodeExtras) | ({ kind: \"bevel-gear\"; module: Dim; teeth: number; mateTeeth: number; shaftAngle?: number | undefined; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: BevelMesh | undefined; generator: \"bevel-gear@0\"; spiral?: { angle: number; hand: \"left\" | \"right\"; cutterRadius: Dim; cutterEstimate?: boolean | undefined; } | undefined; } & NodeExtras) | ({ kind: \"worm-wheel\"; module: Dim; starts: number; diameter: Dim; hand: \"left\" | \"right\"; teeth: number; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"worm-wheel@0\"; } & NodeExtras) | ({ kind: \"spring\"; type?: \"extension\" | \"torsion\" | undefined; wire: Dim; diameter: Dim; activeCoils: number; pitch?: Dim | undefined; freeLength?: Dim | undefined; hand: \"left\" | \"right\"; ends?: \"closed\" | \"open\" | \"closed-ground\" | undefined; shearModulus?: number | undefined; shearModulusEstimate?: boolean | undefined; load?: number | undefined; hooks?: \"machine-loop\" | \"crossover\" | undefined; initialTension?: number | undefined; legLengths?: [number, number] | undefined; youngsModulus?: number | undefined; youngsModulusEstimate?: boolean | undefined; moment?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"spring@0\"; } & NodeExtras) | ({ kind: \"cam\"; follower: \"flat\" | \"roller\"; motion?: \"translating\" | \"oscillating\" | undefined; base: number; roller?: number | undefined; offset?: number | undefined; pivotDistance?: number | undefined; armLength?: number | undefined; faceOffset?: number | undefined; segments: { angle: number; to?: number | undefined; law?: CamLawName | undefined; }[]; thickness: number; bore?: number | undefined; pressureAngleLimit?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"cam@0\"; } & NodeExtras) | ({ kind: \"sprocket\"; row: string; teeth: number; tip: number; width: number; seat?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"sprocket@0\"; } & NodeExtras) | ({ kind: \"pulley\"; row: string; teeth?: number | undefined; diameter?: number | undefined; grooves?: number | undefined; width?: number | undefined; crown?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"pulley@0\"; } & NodeExtras) | ({ kind: \"belt\"; row: string; wheels: [number, number]; rounding?: \"whole\" | \"even\" | undefined; generator: \"belt@0\"; } & NodeExtras) | ({ kind: \"coupling\"; row: string; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"coupling@0\"; } & NodeExtras) | ({ kind: \"shaft\"; steps: { diameter: Dim; length: Dim; fillet?: number | undefined; undercut?: { width: number; depth: number; } | undefined; grooves?: { diameter: number; width: number; at: number; }[] | undefined; keyseats?: { width: number; depth: number; length: number; offset: number; ends?: \"square\" | \"end-mill\" | \"disc\" | undefined; cutterRadius?: number | undefined; angle?: number | undefined; }[] | undefined; }[]; chamfers?: [number, number] | undefined; holes?: { diameter: number; at: number; angle?: number | undefined; }[] | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"shaft@0\"; } & NodeExtras) | ({ kind: \"oring-gland\"; parent: BodyRef; face: string; gland: \"face\" | \"piston\" | \"rod\"; ring: string; diameter: number; width: number; at?: number | undefined; depth?: number | undefined; center?: [number, number, number] | undefined; seal?: number | undefined; sealClass?: string | undefined; grooveClass?: string | undefined; } & NodeExtras) | ({ kind: \"oring\"; gland: number; } & NodeExtras) | ({ kind: \"connector-opening\"; parent: BodyRef; face: string; row: string; center: [number, number, number]; rotation?: number | undefined; } & NodeExtras) | ({ kind: \"connector-body\"; opening: number; } & NodeExtras) | ({ kind: \"gusset\"; frame: number; point: number; members?: [number, number] | undefined; along?: 1 | -1 | undefined; legs: [number, number]; thickness: number; clip?: number | undefined; offset?: number | undefined; } & NodeExtras) | ({ kind: \"end-cap\"; frame: number; member: number; end: \"start\" | \"end\"; fit: \"over\" | \"inset\"; thickness: number; } & NodeExtras) | ({ kind: \"bearing\"; row: string; shaft: number; step: number; against: \"start\" | \"end\"; housing?: number | undefined; housingRef?: BearingHousingRef | undefined; shaftClass?: string | undefined; housingClass?: string | undefined; } & NodeExtras) | ({ kind: \"key\"; shaft: number; keyseat: number; height: number; width?: number | undefined; length?: number | undefined; ends?: \"square\" | \"round\" | undefined; hub?: number | undefined; } & NodeExtras) | ({ kind: \"keyway\"; parent: BodyRef; face: string; width: number; depth: number; angle?: number | undefined; } & NodeExtras) | ({ kind: \"retaining-ring\"; shaft: number; groove: number; thickness: number; outerDiameter: number; row?: string | undefined; } & NodeExtras) | ({ kind: \"pin\"; shaft: number; hole: number; diameter?: number | undefined; length?: number | undefined; fit?: boolean | undefined; } & NodeExtras) | ({ kind: \"worm\"; starts: number; form: \"ZI\" | \"ZA\"; length: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; mesh: BevelMesh; generator: \"worm@0\"; } & NodeExtras) | ({ kind: \"gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; profileShift?: number | undefined; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: GearMesh | undefined; generator: \"spur-gear@0\" | \"spur-gear@1\"; toolTipRadius?: Dim | undefined; } & NodeExtras) | ({ kind: \"subd\"; name: string; cage: { positions: number[]; faces: number[][]; creases?: [number, number][] | undefined; }; mirror?: \"x\" | \"z\" | \"y\" | undefined; } & NodeExtras) | ({ kind: \"sew\"; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }[]; tolerance?: number | undefined; } & NodeExtras) | ({ kind: \"draft\"; parent: BodyRef; faces: string[]; angle: number; pull?: \"-x\" | \"-y\" | \"-z\" | Axis | undefined; neutral?: Dim | undefined; } & NodeExtras) | ({ kind: \"full-round\"; parent: BodyRef; faces: string[]; along?: \"x\" | \"y\" | undefined; } & NodeExtras) | ({ kind: \"face-fillet\"; parent: BodyRef; faces: [string, string]; radius: Dim; } & NodeExtras) | ({ kind: \"face-thread\"; parent: BodyRef; face: string; pitch: number; diameter?: number | undefined; length?: number | undefined; end?: \"+\" | \"-\" | undefined; relief?: number | undefined; clearance?: number | undefined; hand?: \"left\" | undefined; } & NodeExtras) | ({ kind: \"split-face\"; parent: BodyRef; face: string; pull: [number, number, number]; names?: string[] | undefined; } & NodeExtras) | ({ kind: \"fillet\"; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim; atEnd?: true | undefined; }[] | undefined; section?: FilletSection | undefined; } & NodeExtras) | ({ kind: \"separate\"; parent: BodyRef; } & NodeExtras) | ({ kind: \"decimate\"; parent: BodyRef; ratio?: number | undefined; triangles?: number | undefined; maxError?: number | undefined; featureAngle?: number | undefined; } & NodeExtras) | ({ kind: \"hole\"; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis | undefined; side?: \"min\" | \"max\" | undefined; depth?: Dim | undefined; thread?: string | undefined; pattern?: HolePattern | undefined; made?: Made | undefined; face?: string | undefined; countersink?: number | undefined; csk?: number | undefined; } & NodeExtras)"
+              "(node: ModelNode) => node is (TextNode & NodeExtras) | ({ kind: \"extrude\"; sketch: number; height: Dim; from?: Dim | undefined; draft?: number | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"revolve\"; sketch: number; axis: \"x\" | \"y\"; origin?: [Dim, Dim] | undefined; angle: number; dir?: [number, number] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"translate\"; parent: BodyRef; offset: [Dim, Dim, Dim]; } & NodeExtras) | ({ kind: \"rotate\"; parent: BodyRef; axis: Axis; angle: number; pivot?: [Dim, Dim, Dim] | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"mirror\"; parent: BodyRef; plane: \"xy\" | \"xz\" | \"yz\"; } & NodeExtras) | ({ kind: \"scale\"; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"linear-pattern\"; parent: BodyRef; axis: Axis; spacing: Dim; count: number; } & NodeExtras) | ({ kind: \"linear-feature-pattern\"; parent: BodyRef; axis: Axis; spacing: Dim; count: number; } & NodeExtras) | ({ kind: \"circular-pattern\"; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim] | undefined; } & NodeExtras) | ({ kind: \"union\"; left: BodyRef; right: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"intersect\"; left: BodyRef; right: BodyRef; } & NodeExtras) | ({ kind: \"difference\"; parent: BodyRef; tool: BodyRef; made?: Made | undefined; } & NodeExtras) | ({ kind: \"rib\"; parent: BodyRef; min: [Dim, Dim, Dim]; max: [Dim, Dim, Dim]; } & NodeExtras) | ({ kind: \"rectangular-relief\"; parent: BodyRef; min: [Dim, Dim]; max: [Dim, Dim]; depth: Dim; mode: \"emboss\" | \"engrave\"; } & NodeExtras) | ({ kind: \"split\"; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] | undefined; } & NodeExtras) | ({ kind: \"sweep\"; sketch: number; path: ({ kind: \"straight\"; length: Dim; } | { kind: \"bend\"; radius: Dim; angle: number; toward: \"x\" | \"y\" | \"-x\" | \"-y\"; })[]; } & NodeExtras) | ({ kind: \"sweep-curve\"; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[]; }; routeBundleMember?: { bundleId: string; memberId: string; } | undefined; } & NodeExtras) | ({ kind: \"loft\"; sections: LoftSection[]; smooth?: boolean | undefined; from?: number[] | undefined; guide?: LoftNurbsGuideInput | { readonly kind: \"quadratic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | { readonly kind: \"cubic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | undefined; } & NodeExtras) | ({ kind: \"import\"; name: string; step: string; solids?: number | undefined; } & NodeExtras) | ({ kind: \"mesh\"; name: string; unit: string; positions?: number[] | undefined; indices?: number[] | undefined; blob?: { positions: string; indices: string; } | undefined; representation?: \"facets\" | undefined; pieces?: number | undefined; repair?: MeshRepairRecord | undefined; crossings?: { count: number; at: [number, number, number][]; } | undefined; role?: \"infill\" | undefined; } & NodeExtras) | ({ kind: \"thread\"; diameter: number; pitch: number; center: [number, number]; seat: number; length?: number | undefined; hex?: { across: number; height: number; internal?: true | undefined; } | undefined; form?: \"faceted\" | \"helical\" | undefined; made?: Made | undefined; } & NodeExtras) | ({ kind: \"shell\"; parent: BodyRef; thickness: Dim; open: string[]; } & NodeExtras) | ({ kind: \"chamfer\"; parent: BodyRef; edges: string[]; distance: Dim; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-base\"; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean | undefined; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { kFactor: number; bendTable?: undefined; } & NodeExtras) | ({ kind: \"sheet-contour\"; path: [Dim, Dim][]; plane?: DocPlane | undefined; side: \"left\" | \"right\"; width: Dim; thickness: Dim; bendRadius: Dim; } & { bendTable: BendTable; kFactor?: undefined; } & NodeExtras) | ({ kind: \"sheet-corner-relief\"; parent: BodyRef; edges: [string]; shape: \"square\" | \"round\"; size: Dim; } & NodeExtras) | ({ kind: \"sheet-flange\"; parent: BodyRef; edges: [string]; length: Dim; angle?: number | undefined; bendRadius?: Dim | undefined; measure?: \"outer\" | \"inner\" | \"tangent\" | undefined; position?: \"material-inside\" | \"material-outside\" | \"bend-outside\" | undefined; offsets?: [Dim, Dim] | undefined; relief?: { kind: \"rectangular\" | \"obround\"; width: Dim; depth: Dim; } | { kind: \"none\"; } | undefined; } & NodeExtras) | ({ kind: \"frame\"; follows?: FrameFollows | undefined; points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[]; bends?: ModelFrameBend[] | undefined; section: MemberSection; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; mirror?: boolean | undefined; up?: [number, number, number] | undefined; overrides?: FrameOverride[] | undefined; corners?: FrameCorners | undefined; trims?: FrameTrim[] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"frame-member\"; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor | undefined; offset?: [Dim, Dim] | undefined; roll?: number | undefined; up?: [number, number, number] | undefined; estimates?: string[] | undefined; } & NodeExtras) | ({ kind: \"thicken\"; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }; thickness: Dim; side?: \"reverse\" | \"normal\" | \"both\" | undefined; } & NodeExtras) | ({ kind: \"library\"; name: string; library: CadLibraryOrigin; prefix: string; features: CadPartFeature[]; outputs: string[]; interfaces: CadLibraryInterface[]; warnings: string[]; placement?: { rotation: [number, number, number]; position: [number, number, number]; } | undefined; addTo?: BodyRef | undefined; on?: { face: string; point: [number, number, number]; } | undefined; context?: Record<string, number> | undefined; cut?: boolean | undefined; } & NodeExtras) | ({ kind: \"rack\"; module: Dim; teeth: number; faceWidth: Dim; height: Dim; thicknessReduction?: Dim | undefined; origin: [number, number]; angle?: number | undefined; from?: number | undefined; mesh?: RackMesh | undefined; generator: \"spur-rack@0\" | \"spur-rack@1\"; rootFillet?: Dim | undefined; } & NodeExtras) | ({ kind: \"internal-gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; rim: Dim; profileShift?: number | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"internal-gear@0\" | \"internal-gear@1\"; shiftDefault?: boolean | undefined; cutter?: { teeth: number; shift?: number | undefined; tipRadius?: Dim | undefined; } | undefined; } & NodeExtras) | ({ kind: \"bevel-gear\"; module: Dim; teeth: number; mateTeeth: number; shaftAngle?: number | undefined; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: BevelMesh | undefined; generator: \"bevel-gear@0\"; spiral?: { angle: number; hand: \"left\" | \"right\"; cutterRadius: Dim; cutterEstimate?: boolean | undefined; } | undefined; } & NodeExtras) | ({ kind: \"worm-wheel\"; module: Dim; starts: number; diameter: Dim; hand: \"left\" | \"right\"; teeth: number; faceWidth: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"worm-wheel@0\"; } & NodeExtras) | ({ kind: \"spring\"; type?: \"extension\" | \"torsion\" | undefined; wire: Dim; diameter: Dim; activeCoils: number; pitch?: Dim | undefined; freeLength?: Dim | undefined; hand: \"left\" | \"right\"; ends?: \"closed\" | \"open\" | \"closed-ground\" | undefined; shearModulus?: number | undefined; shearModulusEstimate?: boolean | undefined; load?: number | undefined; hooks?: \"machine-loop\" | \"crossover\" | undefined; initialTension?: number | undefined; legLengths?: [number, number] | undefined; youngsModulus?: number | undefined; youngsModulusEstimate?: boolean | undefined; moment?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"spring@0\"; } & NodeExtras) | ({ kind: \"cam\"; follower: \"flat\" | \"roller\"; motion?: \"translating\" | \"oscillating\" | undefined; base: number; roller?: number | undefined; offset?: number | undefined; pivotDistance?: number | undefined; armLength?: number | undefined; faceOffset?: number | undefined; segments: { angle: number; to?: number | undefined; law?: CamLawName | undefined; }[]; thickness: number; bore?: number | undefined; pressureAngleLimit?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"cam@0\"; } & NodeExtras) | ({ kind: \"sprocket\"; row: string; teeth: number; tip: number; width: number; seat?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"sprocket@0\"; } & NodeExtras) | ({ kind: \"pulley\"; row: string; teeth?: number | undefined; diameter?: number | undefined; grooves?: number | undefined; width?: number | undefined; crown?: number | undefined; bore?: number | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"pulley@0\"; } & NodeExtras) | ({ kind: \"belt\"; row: string; wheels: [number, number]; rounding?: \"whole\" | \"even\" | undefined; generator: \"belt@0\"; } & NodeExtras) | ({ kind: \"coupling\"; row: string; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"coupling@0\"; } & NodeExtras) | ({ kind: \"shaft\"; steps: { diameter: Dim; length: Dim; fillet?: number | undefined; undercut?: { width: number; depth: number; } | undefined; grooves?: { diameter: number; width: number; at: number; }[] | undefined; keyseats?: { width: number; depth: number; length: number; offset: number; ends?: \"square\" | \"end-mill\" | \"disc\" | undefined; cutterRadius?: number | undefined; angle?: number | undefined; }[] | undefined; }[]; chamfers?: [number, number] | undefined; holes?: { diameter: number; at: number; angle?: number | undefined; }[] | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; generator: \"shaft@0\"; } & NodeExtras) | ({ kind: \"oring-gland\"; parent: BodyRef; face: string; gland: \"face\" | \"piston\" | \"rod\"; ring: string; diameter: number; width: number; at?: number | undefined; depth?: number | undefined; center?: [number, number, number] | undefined; seal?: number | undefined; sealClass?: string | undefined; grooveClass?: string | undefined; } & NodeExtras) | ({ kind: \"oring\"; gland: number; } & NodeExtras) | ({ kind: \"connector-opening\"; parent: BodyRef; face: string; row: string; center: [number, number, number]; rotation?: number | undefined; } & NodeExtras) | ({ kind: \"connector-body\"; opening: number; } & NodeExtras) | ({ kind: \"gusset\"; frame: number; point: number; members?: [number, number] | undefined; along?: 1 | -1 | undefined; legs: [number, number]; thickness: number; clip?: number | undefined; offset?: number | undefined; } & NodeExtras) | ({ kind: \"end-cap\"; frame: number; member: number; end: \"start\" | \"end\"; fit: \"over\" | \"inset\"; thickness: number; } & NodeExtras) | ({ kind: \"bearing\"; row: string; shaft: number; step: number; against: \"start\" | \"end\"; housing?: number | undefined; housingRef?: BearingHousingRef | undefined; shaftClass?: string | undefined; housingClass?: string | undefined; } & NodeExtras) | ({ kind: \"key\"; shaft: number; keyseat: number; height: number; width?: number | undefined; length?: number | undefined; ends?: \"square\" | \"round\" | undefined; hub?: number | undefined; } & NodeExtras) | ({ kind: \"keyway\"; parent: BodyRef; face: string; width: number; depth: number; angle?: number | undefined; } & NodeExtras) | ({ kind: \"retaining-ring\"; shaft: number; groove: number; thickness: number; outerDiameter: number; row?: string | undefined; } & NodeExtras) | ({ kind: \"pin\"; shaft: number; hole: number; diameter?: number | undefined; length?: number | undefined; fit?: boolean | undefined; } & NodeExtras) | ({ kind: \"worm\"; starts: number; form: \"ZI\" | \"ZA\"; length: Dim; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; mesh: BevelMesh; generator: \"worm@0\"; } & NodeExtras) | ({ kind: \"gear\"; module: Dim; helixAngle?: number | undefined; hand?: \"left\" | \"right\" | undefined; teeth: number; faceWidth: Dim; profileShift?: number | undefined; bore?: Dim | undefined; thicknessReduction?: Dim | undefined; center: [number, number]; from?: number | undefined; rotation?: number | undefined; mesh?: GearMesh | undefined; generator: \"spur-gear@0\" | \"spur-gear@1\"; toolTipRadius?: Dim | undefined; } & NodeExtras) | ({ kind: \"subd\"; name: string; cage: { positions: number[]; faces: number[][]; creases?: [number, number][] | undefined; }; mirror?: \"x\" | \"z\" | \"y\" | undefined; } & NodeExtras) | ({ kind: \"sew\"; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }[]; tolerance?: number | undefined; } & NodeExtras) | ({ kind: \"draft\"; parent: BodyRef; faces: string[]; angle: number; pull?: \"-x\" | \"-y\" | \"-z\" | Axis | undefined; neutral?: Dim | undefined; } & NodeExtras) | ({ kind: \"full-round\"; parent: BodyRef; faces: string[]; along?: \"x\" | \"y\" | undefined; } & NodeExtras) | ({ kind: \"face-fillet\"; parent: BodyRef; faces: [string, string]; radius: Dim; } & NodeExtras) | ({ kind: \"face-thread\"; parent: BodyRef; face: string; pitch: number; diameter?: number | undefined; length?: number | undefined; end?: \"+\" | \"-\" | undefined; relief?: number | undefined; clearance?: number | undefined; hand?: \"left\" | undefined; } & NodeExtras) | ({ kind: \"split-face\"; parent: BodyRef; face: string; pull: [number, number, number]; names?: string[] | undefined; } & NodeExtras) | ({ kind: \"fillet\"; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim; atEnd?: true | undefined; }[] | undefined; section?: FilletSection | undefined; } & NodeExtras) | ({ kind: \"separate\"; parent: BodyRef; } & NodeExtras) | ({ kind: \"decimate\"; parent: BodyRef; ratio?: number | undefined; triangles?: number | undefined; maxError?: number | undefined; featureAngle?: number | undefined; } & NodeExtras) | ({ kind: \"hole\"; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis | undefined; side?: \"min\" | \"max\" | undefined; depth?: Dim | undefined; thread?: string | undefined; pattern?: HolePattern | undefined; made?: Made | undefined; face?: string | undefined; countersink?: number | undefined; csk?: number | undefined; } & NodeExtras)"
             ]
           }
         }
@@ -307173,6 +308044,68 @@
             ],
             "callSignatures": [
               "() => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/doc",
+      "exportName": "textDocumentProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/doc.ts",
+            "name": "textDocumentProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(input: unknown) => string | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(input: unknown) => string | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/doc",
+      "exportName": "textNodeProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/doc.ts",
+            "name": "textNodeProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(input: unknown, parameters: Readonly<Record<string, number>>) => string | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(input: unknown, parameters: Readonly<Record<string, number>>) => string | null"
             ]
           }
         }
@@ -311678,6 +312611,1513 @@
     },
     {
       "package": "@barocss/cad-model",
+      "subpath": "./engine/font/profiles",
+      "exportName": "FontProfileComponent",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/profiles.ts",
+            "name": "FontProfileComponent",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "FontProfileComponent",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "holes",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "FontProfileLine[][]"
+              },
+              {
+                "name": "outer",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "FontProfileLine[]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/profiles",
+      "exportName": "FontProfileError",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/profiles.ts",
+            "name": "FontProfileError",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "BarocssError & { readonly code: FontProfileErrorCode; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "BarocssError & {\n    readonly code: FontProfileErrorCode;\n}"
+              }
+            ],
+            "members": [
+              {
+                "name": "cause",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "unknown",
+                "notProven": "any/unknown property; JSON and callability are not certified"
+              },
+              {
+                "name": "code",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "FontProfileErrorCode"
+              },
+              {
+                "name": "code",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "details",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "Record<string, unknown> | undefined"
+              },
+              {
+                "name": "message",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "stack",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "where",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/profiles",
+      "exportName": "FontProfileErrorCode",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/profiles.ts",
+            "name": "FontProfileErrorCode",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "\"FONT_PROFILE_INPUT\" | \"FONT_PROFILE_BUDGET\" | \"FONT_PROFILE_GEOMETRY\" | \"FONT_PROFILE_TOPOLOGY\"",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "\"FONT_PROFILE_INPUT\" | \"FONT_PROFILE_BUDGET\" | \"FONT_PROFILE_GEOMETRY\" | \"FONT_PROFILE_TOPOLOGY\""
+              }
+            ],
+            "members": [
+              {
+                "name": "__@iterator@36",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => StringIterator<string>"
+              },
+              {
+                "name": "anchor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => string"
+              },
+              {
+                "name": "at",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => string | undefined"
+              },
+              {
+                "name": "big",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "blink",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "bold",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "charAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => string"
+              },
+              {
+                "name": "charCodeAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => number"
+              },
+              {
+                "name": "codePointAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => number | undefined"
+              },
+              {
+                "name": "concat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(...strings: string[]) => string"
+              },
+              {
+                "name": "endsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, endPosition?: number | undefined) => boolean"
+              },
+              {
+                "name": "fixed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "fontcolor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(color: string) => string"
+              },
+              {
+                "name": "fontsize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (size: number): string; (size: string): string; }"
+              },
+              {
+                "name": "includes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "indexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "italics",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "lastIndexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "length",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "link",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(url: string) => string"
+              },
+              {
+                "name": "localeCompare",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (that: string): number; (that: string, locales?: string | string[] | undefined, options?: CollatorOptions | undefined): number; (that: string, locales?: LocalesArgument, options?: CollatorOptions | undefined): number; }"
+              },
+              {
+                "name": "match",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): RegExpMatchArray | null; (matcher: { [Symbol.match](string: string): RegExpMatchArray | null; }): RegExpMatchArray | null; }"
+              },
+              {
+                "name": "matchAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(regexp: RegExp) => RegExpStringIterator<RegExpExecArray>"
+              },
+              {
+                "name": "normalize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (form: \"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\"): string; (form?: string | undefined): string; }"
+              },
+              {
+                "name": "padEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "padStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "repeat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(count: number) => string"
+              },
+              {
+                "name": "replace",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; (searchValue: { [Symbol.replace](string: string, replaceValue: string): string; }, replaceValue: string): string; (searchValue: { [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string; }, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "replaceAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "search",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): number; (searcher: { [Symbol.search](string: string): number; }): number; }"
+              },
+              {
+                "name": "slice",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start?: number | undefined, end?: number | undefined) => string"
+              },
+              {
+                "name": "small",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (separator: string | RegExp, limit?: number | undefined): string[]; (splitter: { [Symbol.split](string: string, limit?: number | undefined): string[]; }, limit?: number | undefined): string[]; }"
+              },
+              {
+                "name": "startsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "strike",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "sub",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "substr",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(from: number, length?: number | undefined) => string"
+              },
+              {
+                "name": "substring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start: number, end?: number | undefined) => string"
+              },
+              {
+                "name": "sup",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toLocaleLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLocaleUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toString",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trim",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimLeft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimRight",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "valueOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              }
+            ],
+            "indexSignatures": [
+              {
+                "key": "number",
+                "type": "string",
+                "readonly": true,
+                "callable": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/profiles",
+      "exportName": "FontProfileGlyph",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/profiles.ts",
+            "name": "FontProfileGlyph",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "FontProfileGlyph",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "advance",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "codePoint",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "components",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "FontProfileComponent[]"
+              },
+              {
+                "name": "glyphId",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "origin",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "[number, number]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/profiles",
+      "exportName": "FontProfileLine",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/profiles.ts",
+            "name": "FontProfileLine",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "FontProfileLine",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"line\""
+              },
+              {
+                "name": "start",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "[number, number]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/profiles",
+      "exportName": "FontProfileOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/profiles.ts",
+            "name": "FontProfileOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "FontProfileOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "size",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "tolerance",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "tracking",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "number | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/profiles",
+      "exportName": "FontProfileRun",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/profiles.ts",
+            "name": "FontProfileRun",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "FontProfileRun",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "advance",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "glyphs",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "FontProfileGlyph[]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/profiles",
+      "exportName": "buildFontProfiles",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/profiles.ts",
+            "name": "buildFontProfiles",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(font: TrueTypeFont, text: string, options: FontProfileOptions) => FontProfileRun",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(font: TrueTypeFont, text: string, options: FontProfileOptions) => FontProfileRun"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/profiles",
+      "exportName": "isFontProfileError",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/profiles.ts",
+            "name": "isFontProfileError",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(error: unknown) => error is FontProfileError",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(error: unknown) => error is FontProfileError"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/source",
+      "exportName": "FontSource",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/source.ts",
+            "name": "FontSource",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "FontSource",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "blob",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "filename",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "license",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              },
+              {
+                "name": "source",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/source",
+      "exportName": "FontSourceError",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/source.ts",
+            "name": "FontSourceError",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "BarocssError & { readonly code: FontSourceErrorCode; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "BarocssError & {\n    readonly code: FontSourceErrorCode;\n}"
+              }
+            ],
+            "members": [
+              {
+                "name": "cause",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "unknown",
+                "notProven": "any/unknown property; JSON and callability are not certified"
+              },
+              {
+                "name": "code",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "FontSourceErrorCode"
+              },
+              {
+                "name": "code",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "details",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "Record<string, unknown> | undefined"
+              },
+              {
+                "name": "message",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "stack",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "where",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/source",
+      "exportName": "FontSourceErrorCode",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/source.ts",
+            "name": "FontSourceErrorCode",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "\"FONT_SOURCE_INPUT\" | \"FONT_SOURCE_MISSING\" | \"FONT_SOURCE_CONFLICT\"",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "\"FONT_SOURCE_INPUT\" | \"FONT_SOURCE_MISSING\" | \"FONT_SOURCE_CONFLICT\""
+              }
+            ],
+            "members": [
+              {
+                "name": "__@iterator@36",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => StringIterator<string>"
+              },
+              {
+                "name": "anchor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => string"
+              },
+              {
+                "name": "at",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => string | undefined"
+              },
+              {
+                "name": "big",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "blink",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "bold",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "charAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => string"
+              },
+              {
+                "name": "charCodeAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => number"
+              },
+              {
+                "name": "codePointAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => number | undefined"
+              },
+              {
+                "name": "concat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(...strings: string[]) => string"
+              },
+              {
+                "name": "endsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, endPosition?: number | undefined) => boolean"
+              },
+              {
+                "name": "fixed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "fontcolor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(color: string) => string"
+              },
+              {
+                "name": "fontsize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (size: number): string; (size: string): string; }"
+              },
+              {
+                "name": "includes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "indexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "italics",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "lastIndexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "length",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "link",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(url: string) => string"
+              },
+              {
+                "name": "localeCompare",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (that: string): number; (that: string, locales?: string | string[] | undefined, options?: CollatorOptions | undefined): number; (that: string, locales?: LocalesArgument, options?: CollatorOptions | undefined): number; }"
+              },
+              {
+                "name": "match",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): RegExpMatchArray | null; (matcher: { [Symbol.match](string: string): RegExpMatchArray | null; }): RegExpMatchArray | null; }"
+              },
+              {
+                "name": "matchAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(regexp: RegExp) => RegExpStringIterator<RegExpExecArray>"
+              },
+              {
+                "name": "normalize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (form: \"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\"): string; (form?: string | undefined): string; }"
+              },
+              {
+                "name": "padEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "padStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "repeat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(count: number) => string"
+              },
+              {
+                "name": "replace",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; (searchValue: { [Symbol.replace](string: string, replaceValue: string): string; }, replaceValue: string): string; (searchValue: { [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string; }, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "replaceAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "search",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): number; (searcher: { [Symbol.search](string: string): number; }): number; }"
+              },
+              {
+                "name": "slice",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start?: number | undefined, end?: number | undefined) => string"
+              },
+              {
+                "name": "small",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (separator: string | RegExp, limit?: number | undefined): string[]; (splitter: { [Symbol.split](string: string, limit?: number | undefined): string[]; }, limit?: number | undefined): string[]; }"
+              },
+              {
+                "name": "startsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "strike",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "sub",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "substr",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(from: number, length?: number | undefined) => string"
+              },
+              {
+                "name": "substring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start: number, end?: number | undefined) => string"
+              },
+              {
+                "name": "sup",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toLocaleLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLocaleUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toString",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trim",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimLeft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimRight",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "valueOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              }
+            ],
+            "indexSignatures": [
+              {
+                "key": "number",
+                "type": "string",
+                "readonly": true,
+                "callable": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/source",
+      "exportName": "FontSourceMetadata",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/source.ts",
+            "name": "FontSourceMetadata",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "{ readonly source?: string | undefined; readonly filename: string; readonly license?: string | undefined; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "Omit<FontSource, \"blob\">"
+              }
+            ],
+            "members": [
+              {
+                "name": "filename",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "license",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              },
+              {
+                "name": "source",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/source",
+      "exportName": "fontFromBytes",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/source.ts",
+            "name": "fontFromBytes",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(bytes: Uint8Array<ArrayBufferLike>, metadata: FontSourceMetadata) => Promise<FontSource>",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(bytes: Uint8Array<ArrayBufferLike>, metadata: FontSourceMetadata) => Promise<FontSource>"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/source",
+      "exportName": "fontSourceError",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/source.ts",
+            "name": "fontSourceError",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(value: unknown) => string | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(value: unknown) => string | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/source",
+      "exportName": "isFontSourceError",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/source.ts",
+            "name": "isFontSourceError",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(error: unknown) => error is FontSourceError",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(error: unknown) => error is FontSourceError"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/source",
+      "exportName": "readFontSource",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/source.ts",
+            "name": "readFontSource",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(source: FontSource) => TrueTypeFont",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(source: FontSource) => TrueTypeFont"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
       "subpath": "./engine/font/trueType",
       "exportName": "TrueTypeError",
       "space": "type",
@@ -312732,14 +315172,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(name: string, id: string) => boolean",
+            "type": "(name: string, id: string, nodes?: readonly ModelNode[] | undefined) => boolean",
             "declarationSignatures": [
               {
-                "kind": "VariableDeclaration"
+                "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(name: string, id: string) => boolean"
+              "(name: string, id: string, nodes?: readonly ModelNode[] | undefined) => boolean"
             ]
           }
         }

@@ -313,6 +313,31 @@ checks that all three ways give the same document, byte for byte.
 
 <<< @/../samples/cad-model-api.test.mjs#material
 
+### Text from a font file
+
+`StudioPart.text(font, text, options)` creates a new independent output. `size` is the em height in mm and `h` is
+a positive extrusion height. `tolerance` is the explicit outline chord bound (default 0.01 mm). Optional `tracking`
+adds mm between scalars; optional `plane` supplies `origin`, `normal` and `xAxis`. Size, height and tracking can use
+the existing `Dim` parameter binding. Separate glyph components can remain several physical bodies in one output.
+
+```js
+import { readFile } from 'node:fs/promises';
+import { fontFromBytes, part } from '@barocss/cad-model/api';
+
+const bytes = new Uint8Array(await readFile('./font.ttf'));
+const font = await fontFromBytes(bytes, { filename: 'font.ttf' });
+const label = part('label').text(font, 'A', {
+  size: 10, h: 2, tolerance: 0.002, tracking: 0.2,
+});
+const doc = label.doc;
+```
+
+Supply an admitted static TrueType original. Optional `source` and `license` metadata are preserved as supplied;
+they are not inferred. The recipe keeps the original string, source and dimensions, while the blob store keeps
+the original bytes for the existing `.bcad` container path. There is no OS font lookup or fallback substitution.
+This call does not join existing bodies. Shaping, kerning, bidi, normalization and text emboss/wrap are not
+implemented. See [Text from font outlines](/how/text) for input limits and refusals.
+
 ### The studio's own commands
 
 The CAD model part provides these Studio commands as methods. For these calls, it writes what the agent's

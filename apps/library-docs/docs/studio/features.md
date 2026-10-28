@@ -9,6 +9,21 @@ from the **Tools** rail or from the command palette (<kbd>Space</kbd>).
 **Box**, **Cylinder**, **Sphere**, **Cone**, **Torus**, **Tube**, **Wedge** and **Polygon prism** make a body from
 their sizes. The HUD shows the fields, and the viewport shows handles you can drag.
 
+## Text
+
+**Text** creates an independent solid from an original static `.ttf` file. Enter **Text**, load **Font file**, then
+set **Em size**, positive **Height**, **Curve tolerance** and **Tracking**. Preview the result and choose **Apply**.
+Em size is the font em height, not its visible letter height. One history feature/output can contain separate
+physical bodies, such as letters, dots and Korean components.
+
+Edit the Text feature in history to change the original string or dimensions. Bound dimensions stay bound;
+change their numbers in **Parameters**. Undo/Redo and `.bcad` Save/Open keep the recipe and original font bytes,
+so reopened text remains editable. Font-bearing templates are currently refused; use a `.bcad` file.
+
+The selected Latin and precomposed Korean examples use outline data, not browser-rendered glyphs. Shaping,
+kerning, bidi, Unicode normalization, text embossing and text wrapping are not implemented. Missing glyphs and
+unsupported font/profile cases are refused. See [Text from font outlines](/how/text) for the admitted range.
+
 ## From a sketch
 
 | Command | What it makes |
