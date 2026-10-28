@@ -22,6 +22,12 @@ The package is public module by module. Import each module by its path; the pack
 - **Data files.** JSON data is imported by path too, such as `@barocss/cad-model/library/builtin/materials.json`, and
   the shipped sample rows are under `@barocss/cad-model/samples/rows/`.
 
+The `engine/font/trueType` data reader takes a copied, bounded static TTF input and returns font metrics and
+unhinted quadratic contour points in font design units. It admits Unicode cmap4/12 and a limited XY-composite
+profile; unsupported flags, malformed extents, missing glyphs and expansion budgets have typed errors. This data
+layer does not yet add a font registry to the document, text placement, an emboss feature or a Studio text command.
+The original font files used for verification are test inputs, not built-in runtime fonts.
+
 | Module | What it holds |
 |---|---|
 | `api/` | The object facade over the data-and-functions core, imported as `@barocss/cad-model/api`. `part()` makes an immutable studio part and `assembly()` an immutable assembly, each method returning a new one, with typed edge and face selectors, `.doc`, plain results and one error class, `BarocssError`. See [Object API](/packages/api) |

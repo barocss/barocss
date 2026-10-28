@@ -987,7 +987,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"MATRIX\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"MATRIX\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -1759,7 +1759,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -4183,7 +4183,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"BINDING\" | \"BOOLEAN\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"BOOLEAN\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -4318,7 +4318,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"SELECTION\" | \"MASS\" | \"OWNED\" | \"POSE\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"BUDGET\" | \"SELECTION\" | \"REPRESENTABILITY\" | \"MASS\" | \"OWNED\" | \"POSE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -5210,7 +5210,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"SELECTION\" | \"MASS\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"BUDGET\" | \"SELECTION\" | \"REPRESENTABILITY\" | \"MASS\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -6714,7 +6714,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -10278,7 +10278,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"PARAMETER\" | \"DEPENDENCY\" | \"IDENTITY\" | \"JSON\" | \"OWNED\" | \"REPRESENTABILITY\" | \"REVISION\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"PARAMETER\" | \"REPRESENTABILITY\" | \"DEPENDENCY\" | \"IDENTITY\" | \"JSON\" | \"OWNED\" | \"REVISION\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -12431,7 +12431,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -13923,14 +13923,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -14196,7 +14196,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"HIERARCHY\" | \"IDENTITY\" | \"JSON\" | \"OWNED\" | \"PLACEMENT\" | \"QUERY\" | \"REPRESENTABILITY\" | \"REVISION\" | \"STALE\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"REFERENCE\" | \"VERSION\" | \"HIERARCHY\" | \"IDENTITY\" | \"JSON\" | \"OWNED\" | \"PLACEMENT\" | \"QUERY\" | \"REVISION\" | \"STALE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -14899,14 +14899,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -16339,7 +16339,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -17182,7 +17182,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REFERENCE\" | \"BINDING\" | \"INTERVAL\" | \"OWNED\" | \"REPRESENTABILITY\" | \"STALE\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"REFERENCE\" | \"BINDING\" | \"INTERVAL\" | \"OWNED\" | \"STALE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -21234,7 +21234,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"CONTINUITY\" | \"ARITHMETIC\" | \"NATIVE\" | \"TOPOLOGY\" | \"GEOMETRY\" | \"CURVED_ARRANGEMENT\" | \"BUDGET\" | \"SELF_INTERSECTION\" | \"PRISMATIC_SOLID\" | \"PLANAR_ARRANGEMENT\" | \"SURFACE_INTERSECTION\" | \"SOLID_MASS\" | \"TANGENT_FACES\" | \"RADIUS_EXCEEDS_FACE\" | \"RADIUS_EXCEEDS_CURVATURE\" | \"NOT_ANALYTIC_PAIR\" | \"CONTACT_LEAVES_FACE\" | \"APPROX_TOLERANCE_NOT_MET\" | \"SELECTION\" | \"CAPABILITY\" | \"PARAMETER\" | \"MESH_BREP\" | \"INVALID_INPUT\" | \"UNSUPPORTED_PROFILE_SHIFT\" | \"UNSUPPORTED_GEAR_KIND\" | \"PROFILE_BUDGET_EXCEEDED\" | \"ROOT_TRANSITION_UNVALIDATED\" | \"BORE_INTERSECTION\" | \"MATE_INCOMPATIBLE\" | \"UNDERCUT\" | \"INVOLUTE_INTERFERENCE\" | \"TROCHOID_INTERFERENCE\" | \"TRIMMING_INTERFERENCE\" | \"RIM_INTERSECTION\" | \"IDEAL_MODEL\" | \"FIT_TABLE\" | \"FIT_TABLE_MISS\" | \"FIT_FACE\" | \"FIT_PAIR\" | \"GLAND_DIMENSIONS\" | \"SQUEEZE_RANGE\" | \"FILL_RANGE\" | \"STRETCH_RANGE\" | \"SHAFT_STEPS\" | \"KEYSEAT_DIMENSIONS\" | \"GROOVE_DIMENSIONS\" | \"HOLE_DIMENSIONS\" | \"KEY_FIT\" | \"RING_FIT\" | \"PIN_FIT\" | \"SEAT_ABUTMENT\" | \"SEAT_FIT\" | \"UNSUPPORTED_TOOTH_FORM\" | \"TOOTH_FORM\" | \"BELT_GEOMETRY\" | \"SECTION_DIMENSIONS\" | \"CONNECTOR_PLACEMENT\" | \"CONNECTOR_FIT\" | \"CAM_UNDERCUT\" | \"COILS_OVERLAP\" | \"UNSUPPORTED_SPRING_KIND\" | \"LEG_OVERLAP\" | \"LIMIT\" | \"SYNTAX\" | \"FUNCTION_ARGUMENT\" | \"VALUE\" | \"UNIT\" | \"CYCLE\" | \"DEGREE\" | \"DIMENSION\" | \"DIVISION_ZERO\" | \"DUPLICATE\" | \"FIELD\" | \"FUNCTION_CAPTURE\" | \"FUNCTION_RECURSION\" | \"FUNCTION_REFERENCE\" | \"FUNCTION_TYPE\" | \"KIND\" | \"KNOTS\" | \"REFERENCE\" | \"TYPE\" | \"VERSION\" | \"WEIGHTS\" | \"DERIVATIVE\" | \"REGULARITY\" | \"NOT_FINITE\" | \"BAD_ENTITY\" | \"BAD_NAME\" | \"DUPLICATE_NAME\" | \"UNKNOWN_LAYER\" | \"UNKNOWN_LINETYPE\" | \"UNKNOWN_STYLE\" | \"UNKNOWN_BLOCK\" | \"BLOCK_CYCLE\" | \"BAD_TEXT\" | \"TEXT_TOO_LONG\" | \"R12_UNSUPPORTED\" | \"R12_NEEDS_TOLERANCE\" | \"ARC\" | \"SOLID\" | \"SECTION\" | \"NOT_A_SHEET\" | \"NON_NORMAL_CUT\" | \"BEND_NOT_CYLINDRICAL\" | \"FLAT_OVERLAPS\" | \"CUT_ACROSS_BEND\" | \"BEND_TABLE_MISS\" | \"FORMAT\" | \"SEW\" | \"ARC_MEMBER\" | \"BEAD_ANGLE\" | \"BEAD_KIND\" | \"BEAD_SEAM_NOT_PLANAR\" | \"BEAD_SHARED_UNSUPPORTED\" | \"BEAD_SIZE\" | \"BEND_ANGLE\" | \"BEND_DOES_NOT_FIT\" | \"BEND_RADIUS\" | \"BEND_TABLE\" | \"BUTT_NOT_ON_A_FACE\" | \"BUTT_ON_CURVED_MEMBER\" | \"BUTT_ON_OPEN_SIDE\" | \"CAP_END\" | \"CONE_TOP_CHAMFER_SCOPE\" | \"CONE_TOP_CHAMFER_SIZE\" | \"CORNER_ANGLE\" | \"CORNER_NOT_A_JOINT\" | \"CORNER_NOT_CLEAR\" | \"CORNER_NOT_SQUARE\" | \"DENSITY\" | \"EDGE_NOT_SHEET\" | \"FACE_FILLET_FACE\" | \"FACE_FILLET_FACES\" | \"FACE_FILLET_NOT_CLEAR\" | \"FACE_FILLET_PARALLEL\" | \"FACE_FILLET_RADIUS\" | \"FACE_THREAD_FACE\" | \"FACE_THREAD_NOT_CLEAR\" | \"FACE_THREAD_RELIEF\" | \"FACE_THREAD_SIZE\" | \"FLANGES_COLLIDE\" | \"FULL_ROUND_FACE\" | \"FULL_ROUND_NOT_CLEAR\" | \"GAP_SIZE\" | \"GUSSET_FIT\" | \"MEMBERS_CLASH\" | \"MEMBER_DUPLICATE\" | \"MESH_WALL_THIN\" | \"MITRE_SECTIONS_DIFFER\" | \"NOTCH_CUTTER\" | \"NOT_A_MEMBER\" | \"OBSTRUCTED_ABOVE\" | \"OFFSET_FOLDS\" | \"OPENING_AT_A_VERTEX\" | \"REFERENCE_MOVED\" | \"RELIEF_REQUIRED\" | \"SECTION_TABLE\" | \"SECTION_TABLE_MISS\" | \"SEGMENT_ZERO_LENGTH\" | \"SHEET_CROSSES_ITSELF\" | \"SHEET_IN_PIECES\" | \"SHELL_FACE_KIND\" | \"SHELL_MESH_NOT_CLOSED\" | \"SHELL_NOT_CLOSED\" | \"SHELL_OPENING_NOT_PLANAR\" | \"SHELL_PLANE_NOT_BOUNDING\" | \"SHELL_REGIONS_SHARP\" | \"SHELL_VARIABLE_RADIUS\" | \"SHELL_WALL_UNION\" | \"SKELETON_OVERLAP\" | \"TRIM_EMPTY\" | \"TRIM_LEAVES_PIECES\" | \"TRIM_MISSES\" | \"TRIM_PARALLEL\" | \"VERTEX_BLEND_UNSUPPORTED\" | \"WALL_NEAR_RADIUS\" | \"WALL_TOO_THIN\" | \"AFFINE\" | \"ASSOCIATION\" | \"AXIS\" | \"BAND\" | \"BASIS\" | \"BINDING\" | \"BODY\" | \"BOOLEAN\" | \"BOUNDARY\" | \"BRANCH\" | \"BREP_EULER\" | \"CAP\" | \"CHART\" | \"CLOSURE\" | \"CODEC\" | \"COLLAPSE\" | \"COMPILATION\" | \"CONDITION\" | \"CONDITIONING\" | \"CONFLICT\" | \"CONNECTED\" | \"CONSTRUCTION\" | \"CONTACT\" | \"CONVEXITY\" | \"COVERAGE\" | \"CROSSING\" | \"CUT\" | \"CUT_LIST\" | \"DEGENERATE\" | \"DEGENERATE_GEOMETRY\" | \"DEPENDENCY\" | \"DIRECTORY\" | \"DISTANCE\" | \"DOMAIN\" | \"EMBEDDING\" | \"EXPRESSION\" | \"EXTRUSION\" | \"FACE\" | \"FILE\" | \"FRAME\" | \"GLOBAL\" | \"GRAPH\" | \"HIERARCHY\" | \"IDENTITY\" | \"INCIDENCE\" | \"INSERTION\" | \"INTERVAL\" | \"INVALID_DOCUMENT\" | \"ISO\" | \"JSON\" | \"LOCAL\" | \"LOCALITY\" | \"LOFT\" | \"MASS\" | \"MATERIAL\" | \"MATRIX\" | \"MESH\" | \"METRIC\" | \"NATIVE_CAPACITY\" | \"NESTING\" | \"NONCONVERGENCE\" | \"NORMAL\" | \"NUMBER\" | \"NUMERICAL\" | \"OBSERVATION\" | \"ORIENTATION\" | \"OWNED\" | \"OWNERSHIP\" | \"PAIR\" | \"PARENT\" | \"PARTITION\" | \"PLACEMENT\" | \"POSE\" | \"PROFILE\" | \"QUERY\" | \"RANGE\" | \"RECIPE\" | \"RECORD\" | \"REGION\" | \"REPRESENTABILITY\" | \"REQUEST\" | \"REVISION\" | \"RULED\" | \"SHELL\" | \"SLAB\" | \"SOLVER\" | \"SOURCE\" | \"SPAN\" | \"STAGNATION\" | \"STALE\" | \"STATIONS\" | \"STRUCTURE\" | \"SUPPORT\" | \"TANGENCY\" | \"TARGET\" | \"TOO_FEW\" | \"TRANSLATION\" | \"TRIANGULATION\" | \"TRIM\" | \"UNCERTAINTY\" | \"UNSUPPORTED\" | \"UV\" | \"VOLUME\" | \"WIDTH\" | \"WORK\" | \"XY_AFFINE_SKETCH_PRISM\"",
+            "type": "\"INPUT\" | \"CONTINUITY\" | \"ARITHMETIC\" | \"NATIVE\" | \"TOPOLOGY\" | \"GEOMETRY\" | \"CURVED_ARRANGEMENT\" | \"BUDGET\" | \"SELF_INTERSECTION\" | \"PRISMATIC_SOLID\" | \"PLANAR_ARRANGEMENT\" | \"SURFACE_INTERSECTION\" | \"SOLID_MASS\" | \"TANGENT_FACES\" | \"RADIUS_EXCEEDS_FACE\" | \"RADIUS_EXCEEDS_CURVATURE\" | \"NOT_ANALYTIC_PAIR\" | \"CONTACT_LEAVES_FACE\" | \"APPROX_TOLERANCE_NOT_MET\" | \"SELECTION\" | \"CAPABILITY\" | \"PARAMETER\" | \"REPRESENTABILITY\" | \"MESH_BREP\" | \"INVALID_INPUT\" | \"UNSUPPORTED_PROFILE_SHIFT\" | \"UNSUPPORTED_GEAR_KIND\" | \"PROFILE_BUDGET_EXCEEDED\" | \"ROOT_TRANSITION_UNVALIDATED\" | \"BORE_INTERSECTION\" | \"MATE_INCOMPATIBLE\" | \"UNDERCUT\" | \"INVOLUTE_INTERFERENCE\" | \"TROCHOID_INTERFERENCE\" | \"TRIMMING_INTERFERENCE\" | \"RIM_INTERSECTION\" | \"IDEAL_MODEL\" | \"FIT_TABLE\" | \"FIT_TABLE_MISS\" | \"FIT_FACE\" | \"FIT_PAIR\" | \"GLAND_DIMENSIONS\" | \"SQUEEZE_RANGE\" | \"FILL_RANGE\" | \"STRETCH_RANGE\" | \"SHAFT_STEPS\" | \"KEYSEAT_DIMENSIONS\" | \"GROOVE_DIMENSIONS\" | \"HOLE_DIMENSIONS\" | \"KEY_FIT\" | \"RING_FIT\" | \"PIN_FIT\" | \"SEAT_ABUTMENT\" | \"SEAT_FIT\" | \"UNSUPPORTED_TOOTH_FORM\" | \"TOOTH_FORM\" | \"BELT_GEOMETRY\" | \"SECTION_DIMENSIONS\" | \"CONNECTOR_PLACEMENT\" | \"CONNECTOR_FIT\" | \"CAM_UNDERCUT\" | \"COILS_OVERLAP\" | \"UNSUPPORTED_SPRING_KIND\" | \"LEG_OVERLAP\" | \"LIMIT\" | \"SYNTAX\" | \"FUNCTION_ARGUMENT\" | \"VALUE\" | \"UNIT\" | \"CYCLE\" | \"DEGREE\" | \"DIMENSION\" | \"DIVISION_ZERO\" | \"DUPLICATE\" | \"FIELD\" | \"FUNCTION_CAPTURE\" | \"FUNCTION_RECURSION\" | \"FUNCTION_REFERENCE\" | \"FUNCTION_TYPE\" | \"KIND\" | \"KNOTS\" | \"REFERENCE\" | \"TYPE\" | \"VERSION\" | \"WEIGHTS\" | \"DERIVATIVE\" | \"REGULARITY\" | \"NOT_FINITE\" | \"BAD_ENTITY\" | \"BAD_NAME\" | \"DUPLICATE_NAME\" | \"UNKNOWN_LAYER\" | \"UNKNOWN_LINETYPE\" | \"UNKNOWN_STYLE\" | \"UNKNOWN_BLOCK\" | \"BLOCK_CYCLE\" | \"BAD_TEXT\" | \"TEXT_TOO_LONG\" | \"R12_UNSUPPORTED\" | \"R12_NEEDS_TOLERANCE\" | \"ARC\" | \"SOLID\" | \"SECTION\" | \"NOT_A_SHEET\" | \"NON_NORMAL_CUT\" | \"BEND_NOT_CYLINDRICAL\" | \"FLAT_OVERLAPS\" | \"CUT_ACROSS_BEND\" | \"BEND_TABLE_MISS\" | \"FORMAT\" | \"SEW\" | \"ARC_MEMBER\" | \"BEAD_ANGLE\" | \"BEAD_KIND\" | \"BEAD_SEAM_NOT_PLANAR\" | \"BEAD_SHARED_UNSUPPORTED\" | \"BEAD_SIZE\" | \"BEND_ANGLE\" | \"BEND_DOES_NOT_FIT\" | \"BEND_RADIUS\" | \"BEND_TABLE\" | \"BUTT_NOT_ON_A_FACE\" | \"BUTT_ON_CURVED_MEMBER\" | \"BUTT_ON_OPEN_SIDE\" | \"CAP_END\" | \"CONE_TOP_CHAMFER_SCOPE\" | \"CONE_TOP_CHAMFER_SIZE\" | \"CORNER_ANGLE\" | \"CORNER_NOT_A_JOINT\" | \"CORNER_NOT_CLEAR\" | \"CORNER_NOT_SQUARE\" | \"DENSITY\" | \"EDGE_NOT_SHEET\" | \"FACE_FILLET_FACE\" | \"FACE_FILLET_FACES\" | \"FACE_FILLET_NOT_CLEAR\" | \"FACE_FILLET_PARALLEL\" | \"FACE_FILLET_RADIUS\" | \"FACE_THREAD_FACE\" | \"FACE_THREAD_NOT_CLEAR\" | \"FACE_THREAD_RELIEF\" | \"FACE_THREAD_SIZE\" | \"FLANGES_COLLIDE\" | \"FULL_ROUND_FACE\" | \"FULL_ROUND_NOT_CLEAR\" | \"GAP_SIZE\" | \"GUSSET_FIT\" | \"MEMBERS_CLASH\" | \"MEMBER_DUPLICATE\" | \"MESH_WALL_THIN\" | \"MITRE_SECTIONS_DIFFER\" | \"NOTCH_CUTTER\" | \"NOT_A_MEMBER\" | \"OBSTRUCTED_ABOVE\" | \"OFFSET_FOLDS\" | \"OPENING_AT_A_VERTEX\" | \"REFERENCE_MOVED\" | \"RELIEF_REQUIRED\" | \"SECTION_TABLE\" | \"SECTION_TABLE_MISS\" | \"SEGMENT_ZERO_LENGTH\" | \"SHEET_CROSSES_ITSELF\" | \"SHEET_IN_PIECES\" | \"SHELL_FACE_KIND\" | \"SHELL_MESH_NOT_CLOSED\" | \"SHELL_NOT_CLOSED\" | \"SHELL_OPENING_NOT_PLANAR\" | \"SHELL_PLANE_NOT_BOUNDING\" | \"SHELL_REGIONS_SHARP\" | \"SHELL_VARIABLE_RADIUS\" | \"SHELL_WALL_UNION\" | \"SKELETON_OVERLAP\" | \"TRIM_EMPTY\" | \"TRIM_LEAVES_PIECES\" | \"TRIM_MISSES\" | \"TRIM_PARALLEL\" | \"VERTEX_BLEND_UNSUPPORTED\" | \"WALL_NEAR_RADIUS\" | \"WALL_TOO_THIN\" | \"AFFINE\" | \"ASSOCIATION\" | \"AXIS\" | \"BAND\" | \"BASIS\" | \"BINDING\" | \"BODY\" | \"BOOLEAN\" | \"BOUNDARY\" | \"BRANCH\" | \"BREP_EULER\" | \"CAP\" | \"CHART\" | \"CLOSURE\" | \"CODEC\" | \"COLLAPSE\" | \"COMPILATION\" | \"CONDITION\" | \"CONDITIONING\" | \"CONFLICT\" | \"CONNECTED\" | \"CONSTRUCTION\" | \"CONTACT\" | \"CONVEXITY\" | \"COVERAGE\" | \"CROSSING\" | \"CUT\" | \"CUT_LIST\" | \"DEGENERATE\" | \"DEGENERATE_GEOMETRY\" | \"DEPENDENCY\" | \"DIRECTORY\" | \"DISTANCE\" | \"DOMAIN\" | \"EMBEDDING\" | \"EXPRESSION\" | \"EXTRUSION\" | \"FACE\" | \"FILE\" | \"FRAME\" | \"GLOBAL\" | \"GRAPH\" | \"HIERARCHY\" | \"IDENTITY\" | \"INCIDENCE\" | \"INSERTION\" | \"INTERVAL\" | \"INVALID_DOCUMENT\" | \"ISO\" | \"JSON\" | \"LOCAL\" | \"LOCALITY\" | \"LOFT\" | \"MASS\" | \"MATERIAL\" | \"MATRIX\" | \"MESH\" | \"METRIC\" | \"NATIVE_CAPACITY\" | \"NESTING\" | \"NONCONVERGENCE\" | \"NORMAL\" | \"NUMBER\" | \"NUMERICAL\" | \"OBSERVATION\" | \"ORIENTATION\" | \"OWNED\" | \"OWNERSHIP\" | \"PAIR\" | \"PARENT\" | \"PARTITION\" | \"PLACEMENT\" | \"POSE\" | \"PROFILE\" | \"QUERY\" | \"RANGE\" | \"RECIPE\" | \"RECORD\" | \"REGION\" | \"REQUEST\" | \"REVISION\" | \"RULED\" | \"SHELL\" | \"SLAB\" | \"SOLVER\" | \"SOURCE\" | \"SPAN\" | \"STAGNATION\" | \"STALE\" | \"STATIONS\" | \"STRUCTURE\" | \"SUPPORT\" | \"TANGENCY\" | \"TARGET\" | \"TOO_FEW\" | \"TRANSLATION\" | \"TRIANGULATION\" | \"TRIM\" | \"UNCERTAINTY\" | \"UNSUPPORTED\" | \"UV\" | \"VOLUME\" | \"WIDTH\" | \"WORK\" | \"XY_AFFINE_SKETCH_PRISM\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -21243,7 +21243,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -23041,7 +23041,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -24675,7 +24675,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -26231,7 +26231,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -26951,7 +26951,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -29929,14 +29929,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -30723,7 +30723,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
-                "type": "\"planar\" | \"upright\" | \"faceted\" | \"curved\""
+                "type": "\"planar\" | \"curved\" | \"upright\" | \"faceted\""
               },
               {
                 "name": "ring",
@@ -31407,14 +31407,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<CadDimension>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -31626,7 +31626,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -32076,7 +32076,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"REFERENCE\" | \"VERSION\" | \"BINDING\" | \"FRAME\" | \"OWNED\" | \"QUERY\" | \"REPRESENTABILITY\" | \"STALE\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"REPRESENTABILITY\" | \"REFERENCE\" | \"VERSION\" | \"BINDING\" | \"FRAME\" | \"OWNED\" | \"QUERY\" | \"STALE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -32417,7 +32417,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -33533,7 +33533,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REFERENCE\" | \"BINDING\" | \"OWNED\" | \"REGION\" | \"REPRESENTABILITY\" | \"STALE\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"REFERENCE\" | \"BINDING\" | \"OWNED\" | \"REGION\" | \"STALE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -34355,7 +34355,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -34749,7 +34749,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -35637,7 +35637,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -36114,7 +36114,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -37897,7 +37897,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -41680,7 +41680,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"BINDING\" | \"DISTANCE\" | \"FACE\" | \"FILE\" | \"IDENTITY\" | \"OWNED\" | \"PARENT\" | \"PROFILE\" | \"REPRESENTABILITY\" | \"RULED\" | \"SHELL\" | \"SOURCE\"",
+            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"DISTANCE\" | \"FACE\" | \"FILE\" | \"IDENTITY\" | \"OWNED\" | \"PARENT\" | \"PROFILE\" | \"RULED\" | \"SHELL\" | \"SOURCE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -44539,7 +44539,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -45187,7 +45187,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -46659,7 +46659,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -47165,7 +47165,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"DEGENERATE\" | \"IDENTITY\" | \"INCIDENCE\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SLAB\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"DEGENERATE\" | \"IDENTITY\" | \"INCIDENCE\" | \"OWNED\" | \"SLAB\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -47174,7 +47174,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -48434,7 +48434,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"SELECTION\" | \"BINDING\" | \"DEGENERATE\" | \"IDENTITY\" | \"INCIDENCE\" | \"LOCALITY\" | \"METRIC\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"SELECTION\" | \"REPRESENTABILITY\" | \"BINDING\" | \"DEGENERATE\" | \"IDENTITY\" | \"INCIDENCE\" | \"LOCALITY\" | \"METRIC\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -48443,7 +48443,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -49266,7 +49266,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"CONVEXITY\" | \"COVERAGE\" | \"DEGENERATE\" | \"IDENTITY\" | \"INCIDENCE\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"CONVEXITY\" | \"COVERAGE\" | \"DEGENERATE\" | \"IDENTITY\" | \"INCIDENCE\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -49515,7 +49515,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"DEGENERATE\" | \"IDENTITY\" | \"INCIDENCE\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"DEGENERATE\" | \"IDENTITY\" | \"INCIDENCE\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -49524,7 +49524,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -50591,7 +50591,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"BINDING\" | \"OWNED\" | \"PARENT\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"OWNED\" | \"PARENT\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -51235,7 +51235,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"BINDING\" | \"OWNED\" | \"PARENT\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"OWNED\" | \"PARENT\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -51244,7 +51244,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -52723,7 +52723,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"DEGENERATE\" | \"IDENTITY\" | \"INCIDENCE\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"DEGENERATE\" | \"IDENTITY\" | \"INCIDENCE\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -52732,7 +52732,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -54561,7 +54561,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"CONTACT\" | \"IDENTITY\" | \"INCIDENCE\" | \"NESTING\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"UNCERTAINTY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"CONTACT\" | \"IDENTITY\" | \"INCIDENCE\" | \"NESTING\" | \"OWNED\" | \"SUPPORT\" | \"UNCERTAINTY\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -54795,7 +54795,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"INCIDENCE\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"INCIDENCE\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -55374,7 +55374,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -55869,7 +55869,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"COVERAGE\" | \"IDENTITY\" | \"INCIDENCE\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"COVERAGE\" | \"IDENTITY\" | \"INCIDENCE\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -57245,7 +57245,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -58741,7 +58741,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"COVERAGE\" | \"IDENTITY\" | \"INCIDENCE\" | \"OWNED\" | \"REPRESENTABILITY\" | \"TRIANGULATION\" | \"UNCERTAINTY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"COVERAGE\" | \"IDENTITY\" | \"INCIDENCE\" | \"OWNED\" | \"TRIANGULATION\" | \"UNCERTAINTY\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -60301,7 +60301,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -61880,7 +61880,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SPAN\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SPAN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -62476,7 +62476,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -63954,7 +63954,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"CONDITIONING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"CONDITIONING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -64656,7 +64656,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"INTERVAL\" | \"NATIVE_CAPACITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"INTERVAL\" | \"NATIVE_CAPACITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -67903,7 +67903,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"CONDITIONING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"CONDITIONING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -68047,7 +68047,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -70287,7 +70287,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -70788,7 +70788,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BINDING\" | \"DOMAIN\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"REPRESENTABILITY\" | \"BINDING\" | \"DOMAIN\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -73480,7 +73480,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -76678,7 +76678,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -77072,7 +77072,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -77466,7 +77466,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -78045,14 +78045,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -78264,7 +78264,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -80018,7 +80018,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BAND\" | \"BINDING\" | \"EMBEDDING\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"REPRESENTABILITY\" | \"SUPPORT\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BAND\" | \"BINDING\" | \"EMBEDDING\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"SUPPORT\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -80717,7 +80717,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"EMBEDDING\" | \"IDENTITY\" | \"OWNED\" | \"PARENT\" | \"REPRESENTABILITY\" | \"SUPPORT\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"EMBEDDING\" | \"IDENTITY\" | \"OWNED\" | \"PARENT\" | \"SUPPORT\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -82818,7 +82818,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -84336,7 +84336,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -85946,7 +85946,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -87120,7 +87120,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -87723,14 +87723,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<T>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -88005,7 +88005,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -89177,7 +89177,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -89656,7 +89656,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -92630,7 +92630,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -95002,7 +95002,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -95517,7 +95517,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -96006,7 +96006,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -96400,7 +96400,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -96967,7 +96967,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -98074,14 +98074,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -99107,7 +99107,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -100299,7 +100299,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BASIS\" | \"BINDING\" | \"CONDITIONING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BASIS\" | \"BINDING\" | \"CONDITIONING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -101217,7 +101217,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"CHART\" | \"CROSSING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SOURCE\" | \"SUPPORT\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"CHART\" | \"CROSSING\" | \"IDENTITY\" | \"OWNED\" | \"SOURCE\" | \"SUPPORT\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -101810,7 +101810,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"SECTION\" | \"BINDING\" | \"IDENTITY\" | \"INTERVAL\" | \"OWNED\" | \"REPRESENTABILITY\" | \"UV\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SECTION\" | \"BINDING\" | \"IDENTITY\" | \"INTERVAL\" | \"OWNED\" | \"UV\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -102113,7 +102113,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "Record<\"pcurve\" | \"world\" | \"support\", { evaluated: number; refused: number; }>"
+                "type": "Record<\"pcurve\" | \"support\" | \"world\", { evaluated: number; refused: number; }>"
               },
               {
                 "name": "directCounts",
@@ -103546,7 +103546,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"BASIS\" | \"CODEC\" | \"DEPENDENCY\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"REVISION\" | \"SOURCE\" | \"STATIONS\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"REFERENCE\" | \"VERSION\" | \"BASIS\" | \"CODEC\" | \"DEPENDENCY\" | \"IDENTITY\" | \"OWNED\" | \"REVISION\" | \"SOURCE\" | \"STATIONS\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -108505,7 +108505,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"SECTION\" | \"BASIS\" | \"BINDING\" | \"GRAPH\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SECTION\" | \"BASIS\" | \"BINDING\" | \"GRAPH\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -112864,7 +112864,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BASIS\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SOURCE\" | \"STATIONS\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BASIS\" | \"IDENTITY\" | \"OWNED\" | \"SOURCE\" | \"STATIONS\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -114940,14 +114940,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -115222,7 +115222,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -115729,7 +115729,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -117059,14 +117059,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -117391,7 +117391,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -117898,7 +117898,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -119104,14 +119104,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -119597,7 +119597,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"BINDING\" | \"COLLAPSE\" | \"FILE\" | \"IDENTITY\" | \"MESH\" | \"NORMAL\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"COLLAPSE\" | \"FILE\" | \"IDENTITY\" | \"MESH\" | \"NORMAL\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -120212,7 +120212,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"MATERIAL\" | \"ORIENTATION\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"REPRESENTABILITY\" | \"SOURCE\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"MATERIAL\" | \"ORIENTATION\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"SOURCE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -120432,7 +120432,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"BUDGET\" | \"BODY\" | \"FILE\" | \"ORIENTATION\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SOURCE\" | \"UV\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BODY\" | \"FILE\" | \"ORIENTATION\" | \"OWNED\" | \"SOURCE\" | \"UV\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -121687,7 +121687,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -123507,7 +123507,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"SECTION\" | \"BINDING\" | \"CAP\" | \"CONSTRUCTION\" | \"DISTANCE\" | \"FILE\" | \"IDENTITY\" | \"MATERIAL\" | \"OWNED\" | \"PARENT\" | \"PROFILE\" | \"REPRESENTABILITY\" | \"RULED\"",
+            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SECTION\" | \"BINDING\" | \"CAP\" | \"CONSTRUCTION\" | \"DISTANCE\" | \"FILE\" | \"IDENTITY\" | \"MATERIAL\" | \"OWNED\" | \"PARENT\" | \"PROFILE\" | \"RULED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -124138,7 +124138,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -125364,7 +125364,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"SECTION\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SUPPORT\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SECTION\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SUPPORT\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -126794,7 +126794,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -127310,7 +127310,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -128016,7 +128016,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -130946,7 +130946,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REFERENCE\" | \"BINDING\" | \"FILE\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SOURCE\" | \"SPAN\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"REFERENCE\" | \"BINDING\" | \"FILE\" | \"IDENTITY\" | \"OWNED\" | \"SOURCE\" | \"SPAN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -132169,7 +132169,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"DEGREE\" | \"VERSION\" | \"BASIS\" | \"BINDING\" | \"FILE\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SOURCE\" | \"TARGET\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"DEGREE\" | \"VERSION\" | \"BASIS\" | \"BINDING\" | \"FILE\" | \"IDENTITY\" | \"OWNED\" | \"SOURCE\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -132763,7 +132763,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"VERSION\" | \"BINDING\" | \"FILE\" | \"IDENTITY\" | \"INTERVAL\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SOURCE\" | \"TARGET\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"VERSION\" | \"BINDING\" | \"FILE\" | \"IDENTITY\" | \"INTERVAL\" | \"OWNED\" | \"SOURCE\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -133378,7 +133378,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"VERSION\" | \"BINDING\" | \"FILE\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"REQUEST\" | \"SOURCE\" | \"TARGET\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"VERSION\" | \"BINDING\" | \"FILE\" | \"IDENTITY\" | \"OWNED\" | \"REQUEST\" | \"SOURCE\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -133972,7 +133972,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"VERSION\" | \"BASIS\" | \"BINDING\" | \"FILE\" | \"IDENTITY\" | \"INSERTION\" | \"LOFT\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SOURCE\" | \"STATIONS\" | \"TARGET\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"VERSION\" | \"BASIS\" | \"BINDING\" | \"FILE\" | \"IDENTITY\" | \"INSERTION\" | \"LOFT\" | \"OWNED\" | \"SOURCE\" | \"STATIONS\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -134566,7 +134566,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"BASIS\" | \"BINDING\" | \"CODEC\" | \"FILE\" | \"IDENTITY\" | \"INSERTION\" | \"LOFT\" | \"OWNED\" | \"REPRESENTABILITY\" | \"REQUEST\" | \"REVISION\" | \"SOURCE\" | \"STATIONS\" | \"TARGET\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"REFERENCE\" | \"VERSION\" | \"BASIS\" | \"BINDING\" | \"CODEC\" | \"FILE\" | \"IDENTITY\" | \"INSERTION\" | \"LOFT\" | \"OWNED\" | \"REQUEST\" | \"REVISION\" | \"SOURCE\" | \"STATIONS\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -136500,7 +136500,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"VERSION\" | \"BINDING\" | \"BOUNDARY\" | \"FACE\" | \"FILE\" | \"IDENTITY\" | \"OWNED\" | \"PROFILE\" | \"REPRESENTABILITY\" | \"RULED\" | \"SOURCE\" | \"TARGET\" | \"WIDTH\"",
+            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"VERSION\" | \"BINDING\" | \"BOUNDARY\" | \"FACE\" | \"FILE\" | \"IDENTITY\" | \"OWNED\" | \"PROFILE\" | \"RULED\" | \"SOURCE\" | \"TARGET\" | \"WIDTH\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -139416,7 +139416,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"VERSION\" | \"BASIS\" | \"BINDING\" | \"FILE\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SOURCE\" | \"TARGET\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"VERSION\" | \"BASIS\" | \"BINDING\" | \"FILE\" | \"IDENTITY\" | \"OWNED\" | \"SOURCE\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -140038,7 +140038,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"VERSION\" | \"BINDING\" | \"FILE\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"REQUEST\" | \"SOURCE\" | \"TARGET\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"VERSION\" | \"BINDING\" | \"FILE\" | \"IDENTITY\" | \"OWNED\" | \"REQUEST\" | \"SOURCE\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -140733,7 +140733,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -145300,7 +145300,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"AXIS\" | \"BINDING\" | \"DOMAIN\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"REPRESENTABILITY\" | \"AXIS\" | \"BINDING\" | \"DOMAIN\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -146600,7 +146600,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -147687,7 +147687,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"CONDITIONING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"CONDITIONING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -150419,7 +150419,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -150947,7 +150947,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"INTERVAL\" | \"NATIVE_CAPACITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"INTERVAL\" | \"NATIVE_CAPACITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -152458,7 +152458,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BASIS\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BASIS\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -153470,7 +153470,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"BINDING\" | \"CONSTRUCTION\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"REPRESENTABILITY\" | \"SUPPORT\"",
+            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"CONSTRUCTION\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"SUPPORT\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -154675,7 +154675,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"TRANSLATION\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"SUPPORT\" | \"TRANSLATION\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -155466,7 +155466,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"TRANSLATION\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"SUPPORT\" | \"TRANSLATION\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -156003,7 +156003,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"TRANSLATION\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"SUPPORT\" | \"TRANSLATION\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -156681,7 +156681,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PARENT\" | \"REPRESENTABILITY\" | \"SUPPORT\"",
+            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PARENT\" | \"SUPPORT\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -157233,7 +157233,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -158203,14 +158203,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -158646,7 +158646,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"CHART\" | \"CROSSING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SOURCE\" | \"SUPPORT\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"CHART\" | \"CROSSING\" | \"IDENTITY\" | \"OWNED\" | \"SOURCE\" | \"SUPPORT\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -159197,7 +159197,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"SECTION\" | \"BINDING\" | \"IDENTITY\" | \"INTERVAL\" | \"OWNED\" | \"REPRESENTABILITY\" | \"UV\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SECTION\" | \"BINDING\" | \"IDENTITY\" | \"INTERVAL\" | \"OWNED\" | \"UV\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -160489,14 +160489,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -160835,14 +160835,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -161108,7 +161108,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"CONDITIONING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"CONDITIONING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -162070,7 +162070,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SPAN\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SPAN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -163030,7 +163030,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SPAN\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SPAN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -163680,7 +163680,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"SPAN\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SPAN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -164713,14 +164713,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -165101,7 +165101,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"NATIVE_CAPACITY\" | \"OWNED\" | \"REPRESENTABILITY\" | \"REQUEST\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"NATIVE_CAPACITY\" | \"OWNED\" | \"REQUEST\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -165908,7 +165908,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"DOMAIN\" | \"IDENTITY\" | \"OWNED\" | \"REPRESENTABILITY\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"DOMAIN\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -167353,14 +167353,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -168036,7 +168036,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -170409,7 +170409,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"BUDGET\" | \"LIMIT\" | \"REFERENCE\" | \"COMPILATION\" | \"CONFLICT\" | \"DEGENERATE_GEOMETRY\" | \"INVALID_DOCUMENT\" | \"OWNED\" | \"REPRESENTABILITY\" | \"UNSUPPORTED\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"LIMIT\" | \"REFERENCE\" | \"COMPILATION\" | \"CONFLICT\" | \"DEGENERATE_GEOMETRY\" | \"INVALID_DOCUMENT\" | \"OWNED\" | \"UNSUPPORTED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -172002,7 +172002,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -180990,14 +180990,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -184472,7 +184472,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -188851,7 +188851,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -219157,7 +219157,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -219706,7 +219706,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -220100,14 +220100,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<{ readonly option: string; readonly parameter: string; }>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -220718,7 +220718,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -221360,7 +221360,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -223779,7 +223779,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -224726,7 +224726,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -225123,7 +225123,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -225517,14 +225517,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -225736,14 +225736,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -227006,14 +227006,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<readonly [number, number, number]>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -227225,7 +227225,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -228374,7 +228374,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -229329,7 +229329,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -230039,7 +230039,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -231499,7 +231499,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -232800,7 +232800,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -235227,7 +235227,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -236182,7 +236182,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -236892,7 +236892,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -238352,7 +238352,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -239653,7 +239653,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -241679,7 +241679,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -242068,7 +242068,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -243355,7 +243355,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -243796,7 +243796,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -246977,7 +246977,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -252574,7 +252574,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -253133,14 +253133,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -255340,7 +255340,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -255977,7 +255977,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -258108,7 +258108,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -260029,7 +260029,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -260425,7 +260425,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -265713,7 +265713,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -266357,21 +266357,21 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<Value>"
               },
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => StringIterator<string>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -270153,14 +270153,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -272129,14 +272129,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -273841,7 +273841,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -274447,7 +274447,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -275112,7 +275112,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -276101,7 +276101,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -278451,7 +278451,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -279103,14 +279103,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<XY>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -280426,7 +280426,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -282111,7 +282111,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -282843,7 +282843,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -285379,7 +285379,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -285841,7 +285841,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -287582,7 +287582,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -288051,7 +288051,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -288530,7 +288530,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -288919,7 +288919,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -289416,7 +289416,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -289914,14 +289914,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -290191,7 +290191,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -290611,14 +290611,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -291564,7 +291564,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -292622,7 +292622,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -293906,35 +293906,35 @@
                 "type": "number"
               },
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@toStringTag@23",
+                "name": "__@toStringTag@24",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
                 "type": "\"Float32Array\""
               },
               {
-                "name": "__@toStringTag@23",
+                "name": "__@toStringTag@24",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
                 "type": "\"Float64Array\""
               },
               {
-                "name": "__@toStringTag@23",
+                "name": "__@toStringTag@24",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
                 "type": "\"Int32Array\""
               },
               {
-                "name": "__@toStringTag@23",
+                "name": "__@toStringTag@24",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -294592,7 +294592,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -298343,7 +298343,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -298954,7 +298954,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -299623,7 +299623,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -300145,7 +300145,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -301780,14 +301780,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -305202,7 +305202,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -307662,7 +307662,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -309230,7 +309230,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -310505,7 +310505,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -311678,6 +311678,796 @@
     },
     {
       "package": "@barocss/cad-model",
+      "subpath": "./engine/font/trueType",
+      "exportName": "TrueTypeError",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/trueType.ts",
+            "name": "TrueTypeError",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "BarocssError & { readonly code: TrueTypeErrorCode; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "BarocssError & {\n    readonly code: TrueTypeErrorCode;\n}"
+              }
+            ],
+            "members": [
+              {
+                "name": "cause",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "unknown",
+                "notProven": "any/unknown property; JSON and callability are not certified"
+              },
+              {
+                "name": "code",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "TrueTypeErrorCode"
+              },
+              {
+                "name": "code",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "details",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "Record<string, unknown> | undefined"
+              },
+              {
+                "name": "message",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "stack",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "where",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/trueType",
+      "exportName": "TrueTypeErrorCode",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/trueType.ts",
+            "name": "TrueTypeErrorCode",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "\"TTF_INPUT\" | \"TTF_UNSUPPORTED\" | \"TTF_MALFORMED\" | \"TTF_MISSING_GLYPH\" | \"TTF_BUDGET\" | \"TTF_CYCLE\"",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "\"TTF_INPUT\" | \"TTF_UNSUPPORTED\" | \"TTF_MALFORMED\" | \"TTF_MISSING_GLYPH\" | \"TTF_BUDGET\" | \"TTF_CYCLE\""
+              }
+            ],
+            "members": [
+              {
+                "name": "__@iterator@36",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => StringIterator<string>"
+              },
+              {
+                "name": "anchor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => string"
+              },
+              {
+                "name": "at",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => string | undefined"
+              },
+              {
+                "name": "big",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "blink",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "bold",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "charAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => string"
+              },
+              {
+                "name": "charCodeAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => number"
+              },
+              {
+                "name": "codePointAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => number | undefined"
+              },
+              {
+                "name": "concat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(...strings: string[]) => string"
+              },
+              {
+                "name": "endsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, endPosition?: number | undefined) => boolean"
+              },
+              {
+                "name": "fixed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "fontcolor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(color: string) => string"
+              },
+              {
+                "name": "fontsize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (size: number): string; (size: string): string; }"
+              },
+              {
+                "name": "includes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "indexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "italics",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "lastIndexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "length",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "link",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(url: string) => string"
+              },
+              {
+                "name": "localeCompare",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (that: string): number; (that: string, locales?: string | string[] | undefined, options?: CollatorOptions | undefined): number; (that: string, locales?: LocalesArgument, options?: CollatorOptions | undefined): number; }"
+              },
+              {
+                "name": "match",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): RegExpMatchArray | null; (matcher: { [Symbol.match](string: string): RegExpMatchArray | null; }): RegExpMatchArray | null; }"
+              },
+              {
+                "name": "matchAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(regexp: RegExp) => RegExpStringIterator<RegExpExecArray>"
+              },
+              {
+                "name": "normalize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (form: \"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\"): string; (form?: string | undefined): string; }"
+              },
+              {
+                "name": "padEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "padStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "repeat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(count: number) => string"
+              },
+              {
+                "name": "replace",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; (searchValue: { [Symbol.replace](string: string, replaceValue: string): string; }, replaceValue: string): string; (searchValue: { [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string; }, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "replaceAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "search",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): number; (searcher: { [Symbol.search](string: string): number; }): number; }"
+              },
+              {
+                "name": "slice",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start?: number | undefined, end?: number | undefined) => string"
+              },
+              {
+                "name": "small",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (separator: string | RegExp, limit?: number | undefined): string[]; (splitter: { [Symbol.split](string: string, limit?: number | undefined): string[]; }, limit?: number | undefined): string[]; }"
+              },
+              {
+                "name": "startsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "strike",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "sub",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "substr",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(from: number, length?: number | undefined) => string"
+              },
+              {
+                "name": "substring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start: number, end?: number | undefined) => string"
+              },
+              {
+                "name": "sup",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toLocaleLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLocaleUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toString",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trim",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimLeft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimRight",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "valueOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              }
+            ],
+            "indexSignatures": [
+              {
+                "key": "number",
+                "type": "string",
+                "readonly": true,
+                "callable": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/trueType",
+      "exportName": "TrueTypeFont",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/trueType.ts",
+            "name": "TrueTypeFont",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "TrueTypeFont",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "copyBytes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Uint8Array<ArrayBufferLike>"
+              },
+              {
+                "name": "glyph",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(codePoint: number) => TrueTypeGlyph"
+              },
+              {
+                "name": "metrics",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "TrueTypeFontMetrics"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/trueType",
+      "exportName": "TrueTypeFontMetrics",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/trueType.ts",
+            "name": "TrueTypeFontMetrics",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "TrueTypeFontMetrics",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "ascender",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "descender",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "glyphCount",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "lineGap",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "unitsPerEm",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/trueType",
+      "exportName": "TrueTypeGlyph",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/trueType.ts",
+            "name": "TrueTypeGlyph",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "TrueTypeGlyph",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "advance",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "codePoint",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "composite",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "boolean"
+              },
+              {
+                "name": "contours",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly (readonly TrueTypePoint[])[]"
+              },
+              {
+                "name": "glyphId",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "leftSideBearing",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "overlap",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "boolean"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/trueType",
+      "exportName": "TrueTypePoint",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/trueType.ts",
+            "name": "TrueTypePoint",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "TrueTypePoint",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "onCurve",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "boolean"
+              },
+              {
+                "name": "x",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "y",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/trueType",
+      "exportName": "isTrueTypeError",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/trueType.ts",
+            "name": "isTrueTypeError",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(error: unknown) => error is TrueTypeError",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(error: unknown) => error is TrueTypeError"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/font/trueType",
+      "exportName": "readTrueTypeFont",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/font/trueType.ts",
+            "name": "readTrueTypeFont",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(input: Uint8Array<ArrayBufferLike>) => TrueTypeFont",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(input: Uint8Array<ArrayBufferLike>) => TrueTypeFont"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
       "subpath": "./engine/geom2",
       "exportName": "insideRing",
       "space": "value",
@@ -312664,14 +313454,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -313304,7 +314094,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -313845,7 +314635,7 @@
             ],
             "members": [
               {
-                "name": "__@toStringTag@23",
+                "name": "__@toStringTag@24",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -314432,7 +315222,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -316379,14 +317169,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -317731,7 +318521,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -318917,7 +319707,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -319306,7 +320096,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -320361,7 +321151,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -321548,7 +322338,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -322442,7 +323232,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -323607,7 +324397,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -324097,7 +324887,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -324531,7 +325321,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -325136,7 +325926,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -326319,7 +327109,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -326767,7 +327557,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -327894,7 +328684,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -328388,7 +329178,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -329924,7 +330714,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -330313,7 +331103,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -330855,7 +331645,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -332036,14 +332826,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -334370,7 +335160,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -335183,7 +335973,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -335572,14 +336362,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -336135,7 +336925,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -337581,7 +338371,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -338756,7 +339546,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -339246,7 +340036,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -341677,7 +342467,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -343081,7 +343871,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -343913,7 +344703,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -344427,7 +345217,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -345309,7 +346099,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -345958,7 +346748,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -346986,7 +347776,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -348556,7 +349346,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -349558,7 +350348,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -351337,14 +352127,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -351826,7 +352616,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -352381,7 +353171,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -358568,7 +359358,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -359400,7 +360190,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -360308,7 +361098,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -360791,14 +361581,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -361068,14 +361858,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -362019,7 +362809,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -362547,7 +363337,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -363498,7 +364288,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -365990,7 +366780,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -366594,7 +367384,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -367308,7 +368098,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -370430,7 +371220,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -372593,7 +373383,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -373688,7 +374478,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -375561,7 +376351,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -376321,7 +377111,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -377193,14 +377983,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -377631,14 +378421,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -378769,7 +379559,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -381162,7 +381952,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -381946,7 +382736,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -382363,7 +383153,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -382892,7 +383682,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -383708,7 +384498,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -384097,7 +384887,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -385267,7 +386057,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -386419,7 +387209,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -386853,7 +387643,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -388273,7 +389063,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -388662,7 +389452,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -389254,7 +390044,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -390849,7 +391639,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -391867,7 +392657,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "\"stale\" | \"current\" | \"unresolved\""
+                "type": "\"current\" | \"stale\" | \"unresolved\""
               },
               {
                 "name": "unresolved",
@@ -391909,7 +392699,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -392442,7 +393232,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -392831,7 +393621,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -394253,7 +395043,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -395225,7 +396015,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -396085,7 +396875,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -396707,7 +397497,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -397127,7 +397917,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -397523,7 +398313,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -398881,7 +399671,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -399481,7 +400271,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -399898,7 +400688,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -400516,7 +401306,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -400944,7 +401734,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -401689,7 +402479,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -403264,7 +404054,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -403767,7 +404557,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -404838,7 +405628,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -405741,7 +406531,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -406313,7 +407103,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -409172,7 +409962,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -410528,7 +411318,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -411204,21 +411994,21 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => StringIterator<string>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -412991,21 +413781,21 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => StringIterator<string>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -421405,7 +422195,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -422607,7 +423397,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -423171,7 +423961,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -424271,7 +425061,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -425788,14 +426578,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -426014,14 +426804,14 @@
                 "type": "number"
               },
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@toStringTag@23",
+                "name": "__@toStringTag@24",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -427343,7 +428133,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -428574,7 +429364,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -429473,7 +430263,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -430960,7 +431750,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -432298,7 +433088,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -433428,7 +434218,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -438548,7 +439338,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -439420,7 +440210,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -439878,7 +440668,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -440490,14 +441280,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -442269,7 +443059,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -444122,7 +444912,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -444587,7 +445377,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -448390,7 +449180,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -448990,14 +449780,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -449706,7 +450496,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -455452,7 +456242,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -455995,7 +456785,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -456623,7 +457413,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -457930,7 +458720,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -458606,21 +459396,21 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => StringIterator<string>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -460393,21 +461183,21 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => StringIterator<string>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -468807,7 +469597,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -470009,7 +470799,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -470573,7 +471363,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -471673,7 +472463,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -473190,14 +473980,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -473416,14 +474206,14 @@
                 "type": "number"
               },
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@toStringTag@23",
+                "name": "__@toStringTag@24",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -474745,7 +475535,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -475976,7 +476766,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -476875,7 +477665,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -478362,7 +479152,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -479700,7 +480490,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -480830,7 +481620,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -485950,7 +486740,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -486822,7 +487612,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -487280,7 +488070,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -487892,14 +488682,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -489671,7 +490461,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -491524,7 +492314,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -491989,7 +492779,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -495792,7 +496582,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -496392,14 +497182,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -497108,7 +497898,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -502722,21 +503512,21 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => StringIterator<string>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -503704,21 +504494,21 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => StringIterator<string>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -504666,7 +505456,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -505804,14 +506594,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -506030,14 +506820,14 @@
                 "type": "number"
               },
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@toStringTag@23",
+                "name": "__@toStringTag@24",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -507484,7 +508274,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -508167,7 +508957,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -508632,7 +509422,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -511795,14 +512585,14 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
                 "type": "() => ArrayIterator<number>"
               },
               {
-                "name": "__@unscopables@37",
+                "name": "__@unscopables@38",
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
@@ -512511,7 +513301,7 @@
             ],
             "members": [
               {
-                "name": "__@iterator@35",
+                "name": "__@iterator@36",
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
@@ -513888,7 +514678,7 @@
           "kind": "property",
           "optional": false,
           "readonly": true,
-          "type": "\"planar\" | \"upright\" | \"faceted\" | \"curved\""
+          "type": "\"planar\" | \"curved\" | \"upright\" | \"faceted\""
         },
         {
           "name": "ring",

@@ -20,25 +20,30 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
 - D289 adds the exact end run for an adjacent polynomial Bezier face (degree2–5, one clamped span). The quintic
   loft case passes an independent swept-corner volume oracle, Model/API/codec and actual Studio preview/apply/
   Undo/Redo/Save/Open. Final whole checks: kernel1968 pass/0 fail/6 skip, Model1718/1718, Studio352/352; docs pass.
-  Non-adjacent free-form replacement and multi-span/rational end extension are still open.
+  D291 below adds one bounded non-adjacent replacement. General pairs and multi-span/rational end extension remain open.
 - The owner delegated choosing several open-source fonts. Unmodified ABeeZee, Nanum Gothic and Nanum Myeongjo TTFs
   plus their OFL originals are saved in apps/cad-studio/test/fixtures/fonts, commit `9fe4be221`. Fixed upstream URLs and binary
-  metadata are recorded there. No parser, text shaping, emboss or wrap support is implied.
+  metadata are recorded there. Font originals alone do not imply shaping, emboss or wrap support.
 - D290 adopts one cached-boundary early return. Paired median7 runs improve the two fixed thread workloads12–14%;
   B-rep fingerprints, shape/names/counts and every mass-property bit stay unchanged. Whole kernel1968 pass/0 fail/
   6 skip; focused Model23/23; docs pass. The earlier whole Model/Studio/browser results above retain D289's scope.
-- Next: roadmap07's non-adjacent free-form face fillet needs conservative Boolean face provenance before acceptance.
-  Internal Boolean face-source tracing is preserved as WIP after build/lint and16 focused passes (including the
-  ordinary/traced geometry comparison and cavity IDs). It is not yet whole-qualified or public feature support.
-  The bounded plane/Bezier replacement is now preserved as WIP: exact support admission, complete conservative
-  source tracing, disk-strip checks, original protected vertex representatives and strict post-checks. Kernel focused
-  19/19, Model3/3 and actual Studio preview/apply/Undo/Redo/Save/Open pass. Whole qualification is still pending.
+- D291 qualifies the bounded plane/Bezier corner replacement from WIP `37da7011f`/`f6e265886`: exact support
+  admission, complete conservative Boolean sources, disk-strip checks, protected representative coordinates and
+  strict post-checks. Kernel focused19/19, Model3/3 and desktop Chrome/WebGPU preview/apply/Undo/Redo/Save/Open pass.
   The first candidate missed the high-order planar support; the second found a4.3e-14 representative drift while
   surface/curves were unchanged. Exact incidence matching and existing-bound coordinate restoration resolve it.
-  The bounded static TrueType reader is also preserved as WIP in cad-model engine/font/trueType.ts: types/lint
-  and10 independent-oracle/malformed/recursion/budget tests pass. It reads font units only; no Doc/font asset,
-  text profile, API facade or Studio text command is connected. Whole qualification is pending with D291. Then text/wrap, 08, 09. Font originals are ready, but font parsing and CAD text are not.
-  The next decision is D291.
+- D292 qualifies WIP `cf3d02151`'s static TrueType data reader in engine/font/trueType.ts. Independent fontTools
+  observations and authored malformed/recursion/budget fixtures pass10/10. Coordinates remain in font units;
+  the existing export wildcard exposes the engine module, but no Doc/font asset, text profile or Studio text
+  command is connected.
+- Combined final whole window: kernel build/lint,1981 pass/0 fail/6 existing skips (1987 total), Model tsc/changed
+  lint and1729/1729, Studio tsc and352/352. Generated-tools/refusals/docs pass:67 pages,50 shots,829 labels, after
+  the reviewed inventory refresh (eight new reader exposures;446 equivalent notation fields). See D291/D292 for
+  exact proof boundaries.
+- Next: finish roadmap07's text geometry and font asset/recipe/UI path, then emboss/wrap,08,09. Original fonts are
+  ready. u8 transport and world-space profile generation are only `/tmp` candidates until the next integration.
+  General free-form pairs, concave corners and rational/multi-span end extension remain outside D291's admission.
+  The next decision is D293.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 

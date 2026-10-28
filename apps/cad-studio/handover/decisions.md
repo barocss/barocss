@@ -14864,3 +14864,122 @@ pure early return; existing geometry, mass, thread, bounds and STEP tests plus e
 whole Model1718/1718, Studio352/352 and browser flow keep that earlier scope. Other performance cases, the old upper
 thread timing range, Studio latency, WebGL2/mobile/GPU, RB/fuzz and release were not measured or qualified here.
 No push, PR or release.
+
+
+## D291 — Replace a bounded polynomial corner strip with a larger round (2026-10-28)
+
+**Problem and scope.** D289's adjacent quintic round worked, but r0.5 across its existing r0.25 round still returned
+`FACE_FILLET_FACE`. The new path handles one planar face and one polynomial translational face, one face piece each,
+a convex square corner, an open regular guide, and exactly two planar end caps normal to its end tangents. The
+curved chart is linear across and has one clamped polynomial span of degree2–5 along the guide. Existing analytic
+corner restoration keeps priority. This does not close general free-form face fillets.
+
+**Exact admission.** The helper recognises planarity from all represented poles and proves parameter-normal
+orientation for regular polynomial translational charts. This includes the quintic fixture's planar side that
+`faceGeometry` currently classifies as `other`; the global classifier is unchanged. Row differences must be the
+same translation, parallel to the plane normal, with common positive weights. The projected intersection row is
+exactly a stored endpoint row, so its guide is copied without another rounding. Derivative-pole projection proves
+regular monotone progress. Exact Bernstein half-space signs keep the guide from re-entering either end cap.
+Input and result must be closed solid bodies.
+
+**Replacement proof boundary.** The old bridge must be one connected hole-free disk strip: Euler1, one boundary,
+no branching/seam edge, and exactly one chain per selected side/end cap in cyclic side-cap-side-cap order. The
+rolling ball starts with one face on each side; its returned non-deduplicated side list must still have length2.
+Complete, conservative Boolean provenance must exclude every old bridge face. New faces must come only from the
+tool's round faces and form the same strip against the selected sides/caps. Unrelated faces must each retain one
+singleton source, the same surface/sense/name and exact oriented curve/pcurve trim correspondence. A positive
+volume change above the existing body-relative floor and the kernel's strict checks are also required. These
+checks retain the kernel's sampling and fit limits; they are not a global mathematical solid certificate.
+
+**Provenance implementation.** WIP `37da7011f` adds an internal traced entrypoint; public options, package entrypoint
+and B-rep JSON are unchanged. A request-local WeakMap tracks original operand+face IDs through pieces, merging and
+cylinder seam splitting. Merged clusters retain a conservative source union. Every new Piece must inherit a receipt
+explicitly; missing data is incomplete. Final body/shell/face IDs are checked against build order. Only the final
+accepted result's receipt is returned. Source presence does not prove positive area contribution; source absence
+is the conservative removal check. Tests cover identical A/B IDs, split/reversed sources, plane/cylinder merging,
+freeze settings, cavity shells, empty results and an existing tangent fixture. They do not instrument a real
+freeze-fallback/rejudge branch count.
+
+**Protected representatives.** The first exact-trim attempt refused the fixture because one shared representative
+x moved19.999999999999957→19.999999999999915 while surface/curve/knots/pcurves were identical. Before any restoration,
+raw strict validity and complete sources are required. Unique cyclic curve correspondence builds global bijective
+edge/vertex ID maps. Exact squared distance must fit the minimum of source tolerance, result tolerance and the
+existing scale-aware linear limit. Only those proven corresponding representative coordinates are copied from the
+source into new vertex records; result IDs/tolerances stay intact. Both operands/raw result remain unchanged. Full
+strict surface/trim/vertex checks, strip checks and strict result validity run again. No tolerance is increased.
+
+**Evidence so far.** WIP `f6e265886`: build/lint, focused kernel19/19, Model3/3 and desktop Chrome/WebGPU pass. The
+independent oracle is D289's swept-square corner: `8000−r²(1−π/4)*20.06333624702397`; expected r0.5 volume
+`7998.923592798254`. Face pick order, native/API Save/Open, source immutability, exact protected coordinates,
+equal/smaller-round refusal, cap holes and sheet metadata are covered. Real Studio uses the existing named-face
+hook for the first pick and Shift-click for the visible second: preview/apply, Undo/Redo and Save/Open pass; visible
+volume7999, Undo to the smaller round8000. This is synthetic browser execution, not person-input acceptance.
+
+**First failures.** Initial kernel candidate:18 total,14 pass/4 fail with `FACE_FILLET_FACE` and `assert.ok(output)`:
+the exact plane check was gated on the narrower global classifier. After coefficient admission:19 total,16 pass/
+3 fail with `[FACE_FILLET_NOT_CLEAR] an unrelated face or its oriented trim changed during polynomial corner
+replacement`. Inspection found the representative drift above. The protected-coordinate restoration makes19/19
+pass. The Model replacement baseline similarly began2 pass/1 `FACE_FILLET_FACE` failure, then passed3/3.
+
+**Final verification.** The serial Node22 window on the combined WIP source at `cf3d02151` passes kernel build,
+whole kernel lint and1987 tests:1981 pass,0 fail,6 existing skips. Model tsc, changed-file lint and1729/1729 pass;
+Studio tsc and352/352 pass. The earlier focused desktop Chrome/WebGPU startup+replacement flow used the same
+unchanged replacement source; its saved reopened image was inspected. Full browser, WebGL2/mobile/GPU, RB/fuzz
+and release were not repeated. Final generated-tools/refusals and whole docs results are recorded with D292.
+
+**Remaining.** General pairs, concave corners, multiple pieces per support, rational/multi-span guides, cap/side
+holes, other contacted faces, ambiguous provenance and protected reparameterisation remain refused. No feature
+push, PR or release.
+
+## D292 — Read bounded static TrueType data from the selected font originals (2026-10-28)
+
+**Decision.** `engine/font/trueType.ts` reads an independent copied Uint8Array snapshot and returns metrics plus one
+Unicode scalar's glyph ID, advance, bearing and unhinted on/off quadratic contour points in font design units.
+`copyBytes` and every glyph query return independent data. Metrics are frozen. The existing BarocssError class
+carries local TTF codes and `details.source='true-type'`. The package export map is unchanged; its existing wildcard
+exposes this engine module's six type declarations and two functions. No document schema or UI is changed.
+
+**Profile.** One static sfnt with head/maxp/hhea/hmtx/cmap4-or12/short-or-long-loca/glyf; format12 has priority.
+Simple delta/repeated flags and limited XY composites with affine transforms are supported. Nonidentity transform
+plus nonzero offset needs an explicit offset policy. Instructions are bounded and skipped. No missing-glyph
+substitution occurs; mapped space can remain empty. WOFF/CFF/TTC/variable fonts, point attachment, ROUND_XY_TO_GRID,
+USE_MY_METRICS, conflicting/reserved flags, malformed extents, cycles and budget excess are explicitly refused.
+Overlap flags are reported; their absence does not certify disjoint contours.
+
+Budgets:8MiB input,64 tables/encoding records,65536 cmap12 groups/expanded points,4096 contours,256 components,
+512 glyph visits and16 component levels per query; finite coordinates within2^31 design units. Source length uses
+an intrinsic typed-array getter before allocation; detached/proxy/prototype-disguised input is typed as TTF_INPUT.
+No runtime dependency, WASM, built-in glyph data or copied standards table is added.
+
+**Originals and oracle.** The owner delegated selecting open-source fonts. Unmodified ABeeZee Regular, Nanum Gothic
+Regular and Nanum Myeongjo Regular plus OFL originals are in fixture commit `9fe4be221`, pinned to Google Fonts
+commit133ccbee9a8b408eb71f31a36ccb9116f5c695ad. Their glyphCount/unitsPerEm are268/1000,13297/1000,14695/1024.
+Independent fontTools4.67.0 was already present in a local uv cache; it was used read-only, with no installation or
+candidate import, to extract limited real-font observations. Small expectations cover Latin, space, precomposed
+Korean and a supported XY composite; ABeeZee's USE_MY_METRICS composite is an explicit refusal. Authored format4/12,
+loca, delta/repeat, transform, snapshot, malformed/cycle/budget fixtures cover parser boundaries. No source or font
+checksum pin is used as a functional glyph test. Original extraction notes/data remain in the session scratchpad.
+
+**Evidence so far.** WIP `cf3d02151`: Model tsc/lint and10/10 focused tests pass. The parser lives under the engine
+implementation rather than opening a top-level text module before recipe integration.
+
+**Final verification.** The shared serial Node22 window passes kernel build/lint and1981 pass/0 fail/6 existing
+skips (1987 total), Model tsc/changed-file lint and1729/1729, Studio tsc and352/352. This data reader adds no Studio
+flow; the earlier browser result belongs to D291's replacement feature. Generated-tools/refusals and whole docs
+checks pass after the reviewed inventory refresh:67 pages,50 shots,829 labels. The original IV001 output remains
+in `/tmp/barocss-d291-d292-docs.log`; final logs use the `-final.log` suffix. No new full browser, actual font
+asset/file workflow, WebGL2/mobile/GPU, RB/fuzz or release validation is implied.
+
+**Inventory review.** The first docs check reported IV001, `Canonical public inventory differs`, at
+`$.coreResultChecks[0].directMembers[30].type`: expected `"planar" | "upright" | "faceted" | "curved"`, actual
+`"planar" | "curved" | "upright" | "faceted"`. The regenerated inventory changes6689→6697 exposures: the reader's
+six types/two functions, no removals. Existing374 rows have445 textual fields changed;78 are union order and367
+are TypeScript's escaped well-known-symbol IDs (iterator308, unscopables51, toStringTag8). The core-result union
+adds one more notation field. A separate TypeScript AST comparison preserves nested structure and all tokens
+except direct union-child order; all446 notation differences are equivalent. Existing calls/returns/members,
+readonly/optional flags, declarations, conditions, roles and targets have no other change. The generator itself
+is unchanged. Review artifacts remain under `/tmp/barocss-d291-d292-api-inventory-review.*`.
+
+**Not implemented.** Font asset persistence/worker transfer/recovery, text profiles, normalization/shaping/kerning/
+bidi, flattening and nonzero-fill classification, model-coordinate conversion, emboss/wrap and Studio text input.
+Font coverage is not equivalent to this reader's admitted composite profile. No push, PR or release.
