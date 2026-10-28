@@ -9,6 +9,8 @@ export type LoopSegment = { kind: 'line'; start: P2 } | { kind: 'arc'; start: P2
 
 const sub = (a: P2, b: P2): P2 => [a[0] - b[0], a[1] - b[1]];
 const cross = (a: P2, b: P2) => a[0] * b[1] - a[1] * b[0];
+/** v on the 1e-6 mm grid (never −0). */
+const snap = (v: number) => Math.round(v * 1e6) / 1e6 || 0;
 
 /** Bulge of the arc from a to b that passes through p; 0 when p is (nearly) on the chord line. */
 export function bulgeThrough(a: P2, b: P2, p: P2): number {
@@ -188,18 +190,29 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
     }),
     ...extra.constraints,
   ];
-  const result = solveXYNumericalSketchPoints({
+  const solveFrom = (seed: { id: string; position: P2 }[]) => solveXYNumericalSketchPoints({
     format: 'barocss-xy-numerical-sketch', version: 0, profile: 'bounded-length-angle-v1', id: 'studio_sketch', lengthUnit: 'mm', angleUnit: 'rad',
-    points: [...points.map((position, i) => ({ id: 'p' + i, position })), ...arcs.map(i => ({ id: 'c' + i, position: centres.get(i)! })), ...extra.points],
-    segments, constraints, branchGuards: [],
+    points: seed, segments, constraints, branchGuards: [],
   });
+  let result = solveFrom([...points.map((position, i) => ({ id: 'p' + i, position })), ...arcs.map(i => ({ id: 'c' + i, position: centres.get(i)! })), ...extra.points]);
+  // (The solver stops once every residual is within its tolerance, a few 1e-8 mm off the exact answer: a width of 60
+  // came back 59.999999964 and a typed rectangle no longer read as one. The solution on the 1e-6 mm grid is taken
+  // instead when the solver's own check accepts it as it is — a solve from it takes no step — and the solver's own
+  // values are kept otherwise: an off-grid anchor or a driving 10.0000004 is never moved. CAD review 2215, D284.)
+  if (result.ok) {
+    const first = result.solution.points, snapped = first.map(p => ({ id: p.id, position: [snap(p.position[0]), snap(p.position[1])] as P2 }));
+    if (snapped.some((p, i) => p.position[0] !== first[i].position[0] || p.position[1] !== first[i].position[1])) {
+      const again = solveFrom(snapped);
+      if (again.ok && again.report.iterations === 0) result = again;
+    }
+  }
   if (!result.ok) {
     const code = result.diagnostics[0]?.code;
     return { ok: false, reason: code === 'LIMIT' || code === 'BUDGET' ? 'The sketch is too large for the solver (at most 128 constraints)'
       : code === 'DEGENERATE_GEOMETRY' ? 'These constraints would collapse an edge to a point' : result.diagnostics[0]?.message ?? 'The solver refused this sketch' };
   }
   const byId = new Map(result.solution.points.map(p => [p.id, p.position]));
-  // Preserve the coefficients accepted by the solver's final residual check.
+  // The coefficients accepted by the solver's final residual check (snapped only where it accepted them so).
   const solved = points.map((_, i) => { const p = byId.get('p' + i)!; return [p[0], p[1]] as P2; });
   // Rebuild each bulge from the solved ends and centre, keeping the arc's turning direction.
   const solvedBulges = bulges.map((b, i) => {
