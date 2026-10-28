@@ -15308,3 +15308,30 @@ TS2322, frozen fixture, propagated map-BUDGET and actual work-budget failures ar
 Model/Studio are NOT RUN for D298; their previous1824/1824 and365/365 belong to76a5d5c59's text-relief rematch
 correction. Browser/performance benchmark are NOT RUN. No latency/stable-speedup claim, push, PR or release.
 Next decision: **D299**, diagonal embedding and the complete native error/mass contract before product wiring.
+
+
+## D299 — Private exact stored projected curve-pair certificates (2026-10-29)
+
+**Decision.** Runtime901b4ce45 adds private exact psi=(Y/X,Z/W) curve preparation, complete nonadjacent
+parameter-product separation and shared-endpoint Bernstein cone proofs. Stored clamped cubics, positive X/Y,
+weights[0.5,1], strict K or L progress, context-owned frozen graphs and uniform-scale exact halves retain
+original coefficients/domain. One200000-operation/8192-bit/1m-work ledger covers both preparations and proofs;
+2 curves/256 nodes/depth8 and tighter-only options remain fixed. Strict complete boxes or opposite exact
+factored cone signs admit; rounded normal candidates/samples never admit. Contact/uncertainty refuses.
+The wrapper preserves explicit0/false, original canonical direction and independent immutable copies.
+
+Actual original-quarter diagonal fixtures certify selected disjoint/shared pairs at3917/4649 operations,
+excluding source/composition/other pairs. Loop embedding, carrier/native trim binding, topology, physical
+solid, represented volume, native evaluator error and general text flags remain false. No wrap Part/Model/
+public API/Studio command is added. Complete component orientation/containment is a separate obligation.
+
+Node22.19.0 build/changed lint/focused34 pass. Whole kernel2080 total/2074 pass/0 fail/6 existing skips
+(247892.975667 ms), Model types and1824/1824 (220054.057208 ms), Studio types and365/365 (23170.923708 ms)
+pass. Initial TS2551, prefer-const, missing error registry entry, generated refusal and inventory failures
+are retained unchanged in notes/cylindrical-wrap-chart-2026-10-29/README.md. The existing registry test is
+unchanged; UNRESOLVED is declared. Reviewed API baseline changes only CAD_ERROR_CODES and derived CadErrorCode
+shape.type, adding that member284->285; all6737 exposures and every other field remain unchanged. Generated
+tools/refusals and six-rule source-inventory SCOPED_PASS pass. Independent mathematical source reviews find
+no material false acceptance within their scope. Browser/performance are NOT RUN; no product/speed claim.
+No push, PR or release. Next decision: **D300**, complete projected component cycles/pair coverage/winding
+and hole containment under one ledger, then native trim/error/mass binding before product wiring.

@@ -1,0 +1,45 @@
+{
+  "source": "901b4ce45eec7cf8348f93d84db194698030e4b2",
+  "node": "22.19.0",
+  "build": "PASS",
+  "changedLint": "PASS",
+  "focused": {
+    "pass": 34,
+    "fail": 0
+  },
+  "whole": {
+    "kernel": {
+      "tests": 2080.0,
+      "pass": 2074.0,
+      "fail": 0.0,
+      "skipped": 6.0,
+      "duration_ms": 247892.975667
+    },
+    "model": {
+      "tests": 1824.0,
+      "pass": 1824.0,
+      "fail": 0.0,
+      "skipped": 0.0,
+      "duration_ms": 220054.057208
+    },
+    "studio": {
+      "tests": 365.0,
+      "pass": 365.0,
+      "fail": 0.0,
+      "skipped": 0.0,
+      "duration_ms": 23170.923708
+    }
+  },
+  "modelTypes": "PASS",
+  "studioTypes": "PASS",
+  "tools": "PASS",
+  "refusals": "PASS",
+  "api": "SCOPED_PASS; existing tuple/derived union add UNRESOLVED only",
+  "browser": "NOT_RUN",
+  "performanceBenchmark": "NOT_RUN",
+  "physicalSolid": "NOT_QUALIFIED",
+  "productWrap": "NOT_IMPLEMENTED",
+  "push": "NOT_RUN",
+  "pr": "NOT_RUN",
+  "release": "NOT_RUN"
+}

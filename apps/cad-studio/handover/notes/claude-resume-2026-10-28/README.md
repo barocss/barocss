@@ -89,9 +89,15 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   See `../cylindrical-wrap-native-2026-10-29/README.md` for unchanged original failures and moment width limits.
   The original inverse is not loosened: nativeR100/tolerance0.01 remainsBUDGET. D299 must address diagonal
   projected-chart embedding and complete native error/mass before product wiring.
+- D299 runtime`901b4ce45` (2026-10-29) qualifies private stored projected curve pairs: exact complete
+  nonadjacent box cover/shared-endpoint cones, one unchanged200k/8192-bit ledger, frozen original data.
+  Focused34/34, kernel2074 pass/0 fail/6 existing skips, Model1824/1824 and Studio365/365 plus types/lint/generated
+  checks pass. UNRESOLVED is registered; the reviewed existing tuple/derived-union baseline is the only API
+  inventory change. Full loops/native trims/solid/mass remain unqualified. Original failures and boundaries:
+  `../cylindrical-wrap-chart-2026-10-29/README.md`. Next D300: whole projected components before native wiring.
 - Next: roadmap07's remaining wrap provider and broader face-fillet/thread ranges, then08,09. General/curved,
   rational/smooth wrapping, shaping, kerning, bidi and normalization remain unimplemented. D291's broader
-  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D299.
+  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D300.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -100,7 +106,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D299**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D300**).
 
 ## 0. State at the stop
 

@@ -1,0 +1,1 @@
+docs/reference/_refusals.md differs from the sources: run node scripts/refusals.mjs
