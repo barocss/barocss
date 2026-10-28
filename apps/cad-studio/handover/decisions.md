@@ -15619,3 +15619,38 @@ counts both fresh child source executions on one owned frozen input and passes o
 remaining operations to the formal child, then applies saved source-global/closure work before
 consumer wiring. Existing Part.mass/makeOutput/massPropertiesOf route is source evidence only.
 Owner07->08->09 unchanged.
+
+
+## D309 — Actual fresh native/formal bound-reference request (2026-10-29)
+
+**Decision.** Runtime343cbf976 owns/freezes Part/components/options before two synchronous
+fresh child calls. Native validates the fixed4-corner/no-hole/height==R profile. Original
+Number extrema and four unique corner pairs bind its region to the formal rectangle.
+Native full nativeBinding.counts, formal full counts(including its own source) and63 outer
+direct operations are each counted once. Only actual remaining operations reach formal;
+no new200k allowance, source subtraction, copied certificate flag or shared-prefix brand.
+Aggregate accepted ops/work/maxbits meet requested<=200k/1m/8192. Child contexts remain
+separate; existing Number reconstruction and bounded refusal checkpoint limits are explicit.
+
+Actual Z0/U[1/16,5/16]/V[1/4,3/4]/density1 request193290ops=160132+33095+63, work395157,
+bits1187; native/formal reservations199983/39805. Centered Z-5/U[.125,.375]/V[.25,.75]/
+density7.85 request192736ops, work393834,bits1178; formal reservation40349. Both formal
+children retain11544 source ops. Z-7/U[.1,.4]/V[.2,.7]/density7.85 refuses BUDGET in formal
+at the unchanged cap; original data/message are retained. No generic-offset guarantee.
+
+First focused23pass/1fail exposed ORDER global mutation: first formal result freeze visited
+10 previously unfrozen string children, subsequent call skipped them (work60100/60090).
+ORDER is now frozen at module declaration; mathematical/operator/Number outputs stay equal.
+The full comparison assertion remains. Original failing TAP is preserved unmodified. Native
+complete bit/count receipt stays equal; formal first work60142->60132 is the only old receipt
+difference, second formal including counters stays equal. Final build/lint/focused24/24,
+whole2158pass/0fail/6existing skips (2164total), generated/unchanged API/docs pass.
+
+Formal fixed perf RUNS7 median9->10ms, fingerprint4ee49b3a32aa9a46 SAME: no speedup or stable
+regression claim; coupled timing NOT RUN. Evidence: notes/cylindrical-wrap-bound-reference-2026-10-29/README.md.
+Parent preserves all child false flags and adds no closed-reference/physical B-rep/retained
+face/represented mass/Part/provider/product qualification. Model/Studio/types/browser NOT RUN;
+latest whole consumers/types D299901b4ce45. No source-checksum test/dependency/schema change
+or push/PR/release. Next D310 uses actual fresh formal.source to certify the preserved4-span
+wall radial graph/winding/radial error under remaining budget, then cap/shell/reference mass
+transfer before product/general text wrap. Owner07->08->09 remains unchanged.

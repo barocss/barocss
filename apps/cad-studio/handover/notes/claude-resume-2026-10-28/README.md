@@ -162,9 +162,20 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   See `../native-d0-common-work-2026-10-29/README.md`. Next D309 owns/freezes one common input,
   calls both fresh children and forwards only remaining operations; no source-prefix subtraction.
   Global source/cap/shell/reference mass/Part/product wrap remain open.
+- D309 runtime`343cbf976` actually couples two fresh source/native/formal calls on one owned
+  frozen Part/ring/options. Both complete source costs stay included; only remaining operations
+  reach formal. Std193290ops/work395157,bits1187; centered192736. Costlier asymmetric request
+  remains formal BUDGET. First focused23/1 exposed ORDER first-call global freeze work10;
+  production constant initialization fixes it without weakening the comparison. Final build/
+  lint/focused24/24, kernel2158/0/6 and generated/API/docs pass. Native complete bits/counts
+  stay equal; formal numerical/source/error bits stay equal with only first work -10.
+  Formal perf9->10ms one pair, no speedup/stable regression; coupled timing NOT RUN.
+  Model/Studio/types/browser NOT RUN; all closed-reference/physical/Part/product flags false.
+  See `../cylindrical-wrap-bound-reference-2026-10-29/README.md`. Next D310 consumes fresh
+  formal.source for4-span wall radial graph/winding/error, then cap/shell/reference transfer.
 - Next: roadmap07's remaining wrap provider and broader face-fillet/thread ranges, then08,09. General/curved,
   rational/smooth wrapping, shaping, kerning, bidi and normalization remain unimplemented. D291's broader
-  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D309.
+  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D310.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -173,7 +184,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D309**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D310**).
 
 ## 0. State at the stop
 

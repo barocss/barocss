@@ -1,0 +1,3891 @@
+TAP version 13
+# Subtest: one bound reference contains both complete actual child results under one final ledger
+not ok 1 - one bound reference contains both complete actual child results under one final ledger
+  ---
+  duration_ms: 116.781583
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-bound-reference.test.mjs:86:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        angles: {
+          alpha: {
+            lower: {
+              denominator: '340282366920938463463374607431768211456',
+    ...
+          totalOperations: 33085,
+    +     work: 60100
+    -     work: 60090
+        },
+        frame: {
+          coordinates: 'x-y-z-minus-source-midheight',
+          zCenter: {
+            denominator: '1',
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    source:
+      brep:
+        format: 'barocss-brep'
+        version: 0
+        lengthUnit: 'mm'
+        source:
+          family: 'prismatic-solid'
+          id: 'post'
+        bodies:
+          0:
+            id: 'post_b0'
+            kind: 'solid'
+            shells:
+              0: 'post_b0/post_b0_s0'
+        shells:
+          0:
+            id: 'post_b0/post_b0_s0'
+            body: 'post_b0'
+            faces:
+              0: 'post_b0/post_b0_s0/post_w0_0_0_0'
+              1: 'post_b0/post_b0_s0/post_w0_0_0_1'
+              2: 'post_b0/post_b0_s0/post_d0_0'
+              3: 'post_b0/post_b0_s0/post_u1_0'
+            closed: true
+        faces:
+          0:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_0'
+            shell: 'post_b0/post_b0_s0'
+            surface:
+              kind: 'surface'
+              id: 'post_w0_0_0_0'
+              degreeU: 2
+              degreeV: 1
+              knotsU:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              knotsV:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0:
+                    0: 10
+                    1: 0
+                    2: -5
+                  1:
+                    0: 10
+                    1: 0
+                    2: 25
+                1:
+                  0:
+                    0: 10
+                    1: 9.999999999999998
+                    2: -5
+                  1:
+                    0: 10
+                    1: 9.999999999999998
+                    2: 25
+                2:
+                  0:
+                    0: 6.123233995736766e-16
+                    1: 10
+                    2: -5
+                  1:
+                    0: 6.123233995736766e-16
+                    1: 10
+                    2: 25
+                3:
+                  0:
+                    0: -9.999999999999998
+                    1: 10
+                    2: -5
+                  1:
+                    0: -9.999999999999998
+                    1: 10
+                    2: 25
+                4:
+                  0:
+                    0: -10
+                    1: 1.2246467991473533e-15
+                    2: -5
+                  1:
+                    0: -10
+                    1: 1.2246467991473533e-15
+                    2: 25
+              weights:
+                0:
+                  0: 1
+                  1: 1
+                1:
+                  0: 0.7071067811865476
+                  1: 0.7071067811865476
+                2:
+                  0: 1
+                  1: 1
+                3:
+                  0: 0.7071067811865476
+                  1: 0.7071067811865476
+                4:
+                  0: 1
+                  1: 1
+            sense: 'forward'
+            loops:
+              0: 'post_b0/post_b0_s0/post_w0_0_0_0/l0'
+            name: 'post.side0#2'
+          1:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_1'
+            shell: 'post_b0/post_b0_s0'
+            surface:
+              kind: 'surface'
+              id: 'post_w0_0_0_1'
+              degreeU: 2
+              degreeV: 1
+              knotsU:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              knotsV:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0:
+                    0: 10
+                    1: 0
+                    2: -5
+                  1:
+                    0: 10
+                    1: 0
+                    2: 25
+                1:
+                  0:
+                    0: 9.999999999999995
+                    1: -10
+                    2: -5
+                  1:
+                    0: 9.999999999999995
+                    1: -10
+                    2: 25
+                2:
+                  0:
+                    0: -1.8369701987210296e-15
+                    1: -10
+                    2: -5
+                  1:
+                    0: -1.8369701987210296e-15
+                    1: -10
+                    2: 25
+                3:
+                  0:
+                    0: -10
+                    1: -9.999999999999996
+                    2: -5
+                  1:
+                    0: -10
+                    1: -9.999999999999996
+                    2: 25
+                4:
+                  0:
+                    0: -10
+                    1: 1.2246467991473533e-15
+                    2: -5
+                  1:
+                    0: -10
+                    1: 1.2246467991473533e-15
+                    2: 25
+              weights:
+                0:
+                  0: 1
+                  1: 1
+                1:
+                  0: 0.7071067811865477
+                  1: 0.7071067811865477
+                2:
+                  0: 1
+                  1: 1
+                3:
+                  0: 0.7071067811865477
+                  1: 0.7071067811865477
+                4:
+                  0: 1
+                  1: 1
+            sense: 'reversed'
+            loops:
+              0: 'post_b0/post_b0_s0/post_w0_0_0_1/l0'
+            name: 'post.side0#1'
+          2:
+            id: 'post_b0/post_b0_s0/post_d0_0'
+            shell: 'post_b0/post_b0_s0'
+            surface:
+              kind: 'surface'
+              id: 'post_d0_0'
+              degreeU: 1
+              degreeV: 1
+              knotsU:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              knotsV:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0:
+                    0: -10
+                    1: -10
+                    2: -5
+                  1:
+                    0: 10
+                    1: -10
+                    2: -5
+                1:
+                  0:
+                    0: -10
+                    1: 10
+                    2: -5
+                  1:
+                    0: 10
+                    1: 10
+                    2: -5
+              weights:
+                0:
+                  0: 1
+                  1: 1
+                1:
+                  0: 1
+                  1: 1
+            sense: 'forward'
+            loops:
+              0: 'post_b0/post_b0_s0/post_d0_0/l0'
+            name: 'post.bottom'
+          3:
+            id: 'post_b0/post_b0_s0/post_u1_0'
+            shell: 'post_b0/post_b0_s0'
+            surface:
+              kind: 'surface'
+              id: 'post_u1_0'
+              degreeU: 1
+              degreeV: 1
+              knotsU:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              knotsV:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0:
+                    0: -10
+                    1: -10
+                    2: 25
+                  1:
+                    0: -10
+                    1: 10
+                    2: 25
+                1:
+                  0:
+                    0: 10
+                    1: -10
+                    2: 25
+                  1:
+                    0: 10
+                    1: 10
+                    2: 25
+              weights:
+                0:
+                  0: 1
+                  1: 1
+                1:
+                  0: 1
+                  1: 1
+            sense: 'forward'
+            loops:
+              0: 'post_b0/post_b0_s0/post_u1_0/l0'
+            name: 'post.top'
+        loops:
+          0:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_0/l0'
+            face: 'post_b0/post_b0_s0/post_w0_0_0_0'
+            kind: 'outer'
+            coedges:
+              0: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c0'
+              1: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c1'
+              2: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c2'
+              3: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c3'
+          1:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_1/l0'
+            face: 'post_b0/post_b0_s0/post_w0_0_0_1'
+            kind: 'outer'
+            coedges:
+              0: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c0'
+              1: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c1'
+              2: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c2'
+              3: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c3'
+          2:
+            id: 'post_b0/post_b0_s0/post_d0_0/l0'
+            face: 'post_b0/post_b0_s0/post_d0_0'
+            kind: 'outer'
+            coedges:
+              0: 'post_b0/post_b0_s0/post_d0_0/l0/c0'
+              1: 'post_b0/post_b0_s0/post_d0_0/l0/c1'
+          3:
+            id: 'post_b0/post_b0_s0/post_u1_0/l0'
+            face: 'post_b0/post_b0_s0/post_u1_0'
+            kind: 'outer'
+            coedges:
+              0: 'post_b0/post_b0_s0/post_u1_0/l0/c0'
+              1: 'post_b0/post_b0_s0/post_u1_0/l0/c1'
+        coedges:
+          0:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c0'
+            edge: 'post_e0'
+            sense: 'forward'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_0/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c1'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c3'
+            twin: 'post_b0/post_b0_s0/post_d0_0/l0/c1'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 0
+                  1: 0
+                  2: 0
+                1:
+                  0: 1
+                  1: 0
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          1:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c1'
+            edge: 'post_e1'
+            sense: 'forward'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_0/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c2'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c0'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c3'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 1
+                  1: 0
+                  2: 0
+                1:
+                  0: 1
+                  1: 1
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          2:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c2'
+            edge: 'post_e2'
+            sense: 'reversed'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_0/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c3'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c1'
+            twin: 'post_b0/post_b0_s0/post_u1_0/l0/c0'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 0
+                  1: 1
+                  2: 0
+                1:
+                  0: 1
+                  1: 1
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          3:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c3'
+            edge: 'post_e3'
+            sense: 'reversed'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_0/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c0'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c2'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c1'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 0
+                  1: 0
+                  2: 0
+                1:
+                  0: 0
+                  1: 1
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          4:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c0'
+            edge: 'post_e4'
+            sense: 'reversed'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_1/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c1'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c3'
+            twin: 'post_b0/post_b0_s0/post_d0_0/l0/c0'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 0
+                  1: 0
+                  2: 0
+                1:
+                  0: 1
+                  1: 0
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          5:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c1'
+            edge: 'post_e3'
+            sense: 'forward'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_1/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c2'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c0'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c3'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 0
+                  1: 0
+                  2: 0
+                1:
+                  0: 0
+                  1: 1
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          6:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c2'
+            edge: 'post_e5'
+            sense: 'forward'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_1/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c3'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c1'
+            twin: 'post_b0/post_b0_s0/post_u1_0/l0/c1'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 0
+                  1: 1
+                  2: 0
+                1:
+                  0: 1
+                  1: 1
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          7:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c3'
+            edge: 'post_e1'
+            sense: 'reversed'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_1/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c0'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c2'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c1'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 1
+                  1: 0
+                  2: 0
+                1:
+                  0: 1
+                  1: 1
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          8:
+            id: 'post_b0/post_b0_s0/post_d0_0/l0/c0'
+            edge: 'post_e4'
+            sense: 'forward'
+            loop: 'post_b0/post_b0_s0/post_d0_0/l0'
+            next: 'post_b0/post_b0_s0/post_d0_0/l0/c1'
+            prev: 'post_b0/post_b0_s0/post_d0_0/l0/c1'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c0'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 0.5
+                  1: 1
+                  2: 0
+                1:
+                  0: 0
+                  1: 0.9999999999999997
+                  2: 0
+                2:
+                  0: 0
+                  1: 0.4999999999999999
+                  2: 0
+                3:
+                  0: 1.7763568394002506e-16
+                  1: 0
+                  2: 0
+                4:
+                  0: 0.5000000000000001
+                  1: 0
+                  2: 0
+              weights:
+                0: 1
+                1: 0.7071067811865477
+                2: 1
+                3: 0.7071067811865477
+                4: 1
+          9:
+            id: 'post_b0/post_b0_s0/post_d0_0/l0/c1'
+            edge: 'post_e0'
+            sense: 'reversed'
+            loop: 'post_b0/post_b0_s0/post_d0_0/l0'
+            next: 'post_b0/post_b0_s0/post_d0_0/l0/c0'
+            prev: 'post_b0/post_b0_s0/post_d0_0/l0/c0'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c0'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 0.5
+                  1: 1
+                  2: 0
+                1:
+                  0: 1
+                  1: 1
+                  2: 0
+                2:
+                  0: 1
+                  1: 0.5
+                  2: 0
+                3:
+                  0: 1
+                  1: 8.881784197001253e-17
+                  2: 0
+                4:
+                  0: 0.5000000000000001
+                  1: 0
+                  2: 0
+              weights:
+                0: 1
+                1: 0.7071067811865476
+                2: 1
+                3: 0.7071067811865476
+                4: 1
+          10:
+            id: 'post_b0/post_b0_s0/post_u1_0/l0/c0'
+            edge: 'post_e2'
+            sense: 'forward'
+            loop: 'post_b0/post_b0_s0/post_u1_0/l0'
+            next: 'post_b0/post_b0_s0/post_u1_0/l0/c1'
+            prev: 'post_b0/post_b0_s0/post_u1_0/l0/c1'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c2'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 1
+                  1: 0.5
+                  2: 0
+                1:
+                  0: 1
+                  1: 1
+                  2: 0
+                2:
+                  0: 0.5
+                  1: 1
+                  2: 0
+                3:
+                  0: 8.881784197001253e-17
+                  1: 1
+                  2: 0
+                4:
+                  0: 0
+                  1: 0.5000000000000001
+                  2: 0
+              weights:
+                0: 1
+                1: 0.7071067811865476
+                2: 1
+                3: 0.7071067811865476
+                4: 1
+          11:
+            id: 'post_b0/post_b0_s0/post_u1_0/l0/c1'
+            edge: 'post_e5'
+            sense: 'reversed'
+            loop: 'post_b0/post_b0_s0/post_u1_0/l0'
+            next: 'post_b0/post_b0_s0/post_u1_0/l0/c0'
+            prev: 'post_b0/post_b0_s0/post_u1_0/l0/c0'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c2'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 1
+                  1: 0.5
+                  2: 0
+                1:
+                  0: 0.9999999999999997
+                  1: 0
+                  2: 0
+                2:
+                  0: 0.4999999999999999
+                  1: 0
+                  2: 0
+                3:
+                  0: 0
+                  1: 1.7763568394002506e-16
+                  2: 0
+                4:
+                  0: 0
+                  1: 0.5000000000000001
+                  2: 0
+              weights:
+                0: 1
+                1: 0.7071067811865477
+                2: 1
+                3: 0.7071067811865477
+                4: 1
+        edges:
+          0:
+            id: 'post_e0'
+            curve:
+              kind: 'curve'
+              id: 'post_e0'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 10
+                  1: 0
+                  2: -5
+                1:
+                  0: 10
+                  1: 9.999999999999998
+                  2: -5
+                2:
+                  0: 6.123233995736766e-16
+                  1: 10
+                  2: -5
+                3:
+                  0: -9.999999999999998
+                  1: 10
+                  2: -5
+                4:
+                  0: -10
+                  1: 1.2246467991473533e-15
+                  2: -5
+              weights:
+                0: 1
+                1: 0.7071067811865476
+                2: 1
+                3: 0.7071067811865476
+                4: 1
+            vertices:
+              0: 'post_v0'
+              1: 'post_v1'
+            tolerance: 1e-7
+            name: 'post.bottom|post.side0#2'
+          1:
+            id: 'post_e1'
+            curve:
+              kind: 'curve'
+              id: 'post_e1'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: -10
+                  1: 1.2246467991473533e-15
+                  2: -5
+                1:
+                  0: -10
+                  1: 1.2246467991473533e-15
+                  2: 25
+              weights:
+                0: 1
+                1: 1
+            vertices:
+              0: 'post_v1'
+              1: 'post_v2'
+            tolerance: 1e-7
+            name: 'post.side0#1|post.side0#2#1'
+          2:
+            id: 'post_e2'
+            curve:
+              kind: 'curve'
+              id: 'post_e2'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 10
+                  1: 0
+                  2: 25
+                1:
+                  0: 10
+                  1: 9.999999999999998
+                  2: 25
+                2:
+                  0: 6.123233995736766e-16
+                  1: 10
+                  2: 25
+                3:
+                  0: -9.999999999999998
+                  1: 10
+                  2: 25
+                4:
+                  0: -10
+                  1: 1.2246467991473533e-15
+                  2: 25
+              weights:
+                0: 1
+                1: 0.7071067811865476
+                2: 1
+                3: 0.7071067811865476
+                4: 1
+            vertices:
+              0: 'post_v3'
+              1: 'post_v2'
+            tolerance: 1e-7
+            name: 'post.side0#2|post.top'
+          3:
+            id: 'post_e3'
+            curve:
+              kind: 'curve'
+              id: 'post_e3'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 10
+                  1: 0
+                  2: -5
+                1:
+                  0: 10
+                  1: 0
+                  2: 25
+              weights:
+                0: 1
+                1: 1
+            vertices:
+              0: 'post_v0'
+              1: 'post_v3'
+            tolerance: 1e-7
+            name: 'post.side0#1|post.side0#2#2'
+          4:
+            id: 'post_e4'
+            curve:
+              kind: 'curve'
+              id: 'post_e4'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 10
+                  1: 0
+                  2: -5
+                1:
+                  0: 9.999999999999995
+                  1: -10
+                  2: -5
+                2:
+                  0: -1.8369701987210296e-15
+                  1: -10
+                  2: -5
+                3:
+                  0: -10
+                  1: -9.999999999999996
+                  2: -5
+                4:
+                  0: -10
+                  1: 1.2246467991473533e-15
+                  2: -5
+              weights:
+                0: 1
+                1: 0.7071067811865477
+                2: 1
+                3: 0.7071067811865477
+                4: 1
+            vertices:
+              0: 'post_v0'
+              1: 'post_v1'
+            tolerance: 1e-7
+            name: 'post.bottom|post.side0#1'
+          5:
+            id: 'post_e5'
+            curve:
+              kind: 'curve'
+              id: 'post_e5'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 10
+                  1: 0
+                  2: 25
+                1:
+                  0: 9.999999999999995
+                  1: -10
+                  2: 25
+                2:
+                  0: -1.8369701987210296e-15
+                  1: -10
+                  2: 25
+                3:
+                  0: -10
+                  1: -9.999999999999996
+                  2: 25
+                4:
+                  0: -10
+                  1: 1.2246467991473533e-15
+                  2: 25
+              weights:
+                0: 1
+                1: 0.7071067811865477
+                2: 1
+                3: 0.7071067811865477
+                4: 1
+            vertices:
+              0: 'post_v3'
+              1: 'post_v2'
+            tolerance: 1e-7
+            name: 'post.side0#1|post.top'
+        vertices:
+          0:
+            id: 'post_v0'
+            point:
+              0: 10
+              1: 0
+              2: -5
+            tolerance: 1e-7
+          1:
+            id: 'post_v1'
+            point:
+              0: -10
+              1: 1.2246467991473533e-15
+              2: -5
+            tolerance: 1e-7
+          2:
+            id: 'post_v2'
+            point:
+              0: -10
+              1: 1.2246467991473533e-15
+              2: 25
+            tolerance: 1e-7
+          3:
+            id: 'post_v3'
+            point:
+              0: 10
+              1: 0
+              2: 25
+            tolerance: 1e-7
+      prismatic:
+        kind: 'prismatic-solid'
+        slabs:
+          0:
+            z0: -5
+            z1: 25
+            regions:
+              0:
+                outer:
+                  0:
+                    kind: 'arc'
+                    c:
+                      0: 0
+                      1: 0
+                    r: 10
+                    t0: 0
+                    sweep: 3.141592653589793
+                    tag: 'post.side0'
+                  1:
+                    kind: 'arc'
+                    c:
+                      0: 0
+                      1: 0
+                    r: 10
+                    t0: 3.1415926535897936
+                    sweep: 3.1415926535897927
+                    tag: 'post.side0'
+                holes:
+        caps:
+          0:
+            z: -5
+            regions:
+              0:
+                outer:
+                  0:
+                    kind: 'arc'
+                    c:
+                      0: 0
+                      1: 0
+                    r: 10
+                    t0: 0
+                    sweep: 3.141592653589793
+                    tag: 'post.side0'
+                  1:
+                    kind: 'arc'
+                    c:
+                      0: 0
+                      1: 0
+                    r: 10
+                    t0: 3.1415926535897936
+                    sweep: 3.1415926535897927
+                    tag: 'post.side0'
+                holes:
+            tag: 'post.bottom'
+          1:
+            z: 25
+            regions:
+              0:
+                outer:
+                  0:
+                    kind: 'arc'
+                    c:
+                      0: 0
+                      1: 0
+                    r: 10
+                    t0: 0
+                    sweep: 3.141592653589793
+                    tag: 'post.side0'
+                  1:
+                    kind: 'arc'
+                    c:
+                      0: 0
+                      1: 0
+                    r: 10
+                    t0: 3.1415926535897936
+                    sweep: 3.1415926535897927
+                    tag: 'post.side0'
+                holes:
+            tag: 'post.top'
+      face: <Circular>
+      quarter:
+        kind: 'surface'
+        id: 'bound_ref_quarter'
+        degreeU: 2
+        degreeV: 1
+        knotsU:
+          0: 0
+          1: 0
+          2: 0
+          3: 0.5
+          4: 0.5
+          5: 0.5
+        knotsV:
+          0: 0
+          1: 0
+          2: 1
+          3: 1
+        controlPoints:
+          0:
+            0:
+              0: 10
+              1: 0
+              2: -5
+            1:
+              0: 10
+              1: 0
+              2: 25
+          1:
+            0:
+              0: 10
+              1: 9.999999999999998
+              2: -5
+            1:
+              0: 10
+              1: 9.999999999999998
+              2: 25
+          2:
+            0:
+              0: 6.123233995736766e-16
+              1: 10
+              2: -5
+            1:
+              0: 6.123233995736766e-16
+              1: 10
+              2: 25
+        weights:
+          0:
+            0: 1
+            1: 1
+          1:
+            0: 0.7071067811865476
+            1: 0.7071067811865476
+          2:
+            0: 1
+            1: 1
+      boundary:
+        kind: 'curve'
+        id: 'bound_ref_boundary'
+        degree: 2
+        knots:
+          0: 0
+          1: 0
+          2: 0
+          3: 0.5
+          4: 0.5
+          5: 0.5
+        controlPoints:
+          0:
+            0: 10
+            1: 0
+            2: -5
+          1:
+            0: 10
+            1: 9.999999999999998
+            2: -5
+          2:
+            0: 6.123233995736766e-16
+            1: 10
+            2: -5
+        weights:
+          0: 1
+          1: 0.7071067811865476
+          2: 1
+      radius: 10
+      z:
+        0: -5
+        1: 25
+      proof:
+        authority: 'native-prismatic-source-and-full-stored-brep-consistency'
+        comparison: 'all-own-fields-with-binary64-bits-and-array-order'
+        sourceId: 'post'
+        sourceBody: 'post_b0'
+        sourceShell: 'post_b0/post_b0_s0'
+        nativeSourceConsistency: true
+        historicalProducerProvenance: false
+        strictSourceValid: true
+        fullNativeExterior: true
+        extraction: 'direct-copy'
+        insertedKnots: 0
+        originalDomain:
+          0: 0
+          1: 0.5
+        wrappedSolid: false
+      carrier:
+        source:
+          kind: 'curve'
+          id: 'bound_ref_boundary'
+          degree: 2
+          knots:
+            0: 0
+            1: 0
+            2: 0
+            3: 0.5
+            4: 0.5
+            5: 0.5
+          controlPoints:
+            0:
+              0: 10
+              1: 0
+              2: -5
+            1:
+              0: 10
+              1: 9.999999999999998
+              2: -5
+            2:
+              0: 6.123233995736766e-16
+              1: 10
+              2: -5
+          weights:
+            0: 1
+            1: 0.7071067811865476
+            2: 1
+        options:
+          radius: 10
+        domain:
+          0: 0
+          1: 0.5
+        bounds:
+          radial:
+            exact:
+              numerator: '694394206438535'
+              denominator: '421818510868978023516923232256'
+            upper: 1.6461918776585467e-15
+        proof:
+          denominator:
+            0:
+              numerator: '1'
+              denominator: '1'
+            1:
+              numerator: '6369051672525773'
+              denominator: '9007199254740992'
+            2:
+              numerator: '1'
+              denominator: '1'
+          squaredRadiusNumerator:
+            0:
+              numerator: '100'
+              denominator: '1'
+            1:
+              numerator: '159226291813144325'
+              denominator: '2251799813685248'
+            2:
+              numerator: '2571100870814384414376210823735471644315532232051566197379834409'
+              denominator: '38566513062215766613007090216187902460532871850787028047233024'
+            3:
+              numerator: '3229492870224761428170604021607909602230993942025'
+              denominator: '45671926166590716193865151022383844364247891968'
+            4:
+              numerator: '10284403483257537763468557390983479216478931303154959412651824721'
+              denominator: '102844034832575377634685573909834406561420991602098741459288064'
+          angularNumerator:
+            0:
+              numerator: '179272867119315628149434011079935'
+              denominator: '1267650600228229401496703205376'
+            1:
+              numerator: '144267662388320502816258217385045'
+              denominator: '1267650600228229401496703205376'
+            2:
+              numerator: '8778287463363746373470756879173089511525515864387453376674869557'
+              denominator: '77133026124431533226014180432375804921065743701574056094466048'
+            3:
+              numerator: '3636085721734977491736478183681369183454466284282516303710466357'
+              denominator: '25711008708143844408671393477458601640355247900524685364822016'
+          circleResidual:
+            0:
+              numerator: '0'
+              denominator: '1'
+            1:
+              numerator: '0'
+              denominator: '1'
+            2:
+              numerator: '-202246464448361179733353926583488549569549163991'
+              denominator: '38566513062215766613007090216187902460532871850787028047233024'
+            3:
+              numerator: '-375923769462312449726997868317175'
+              denominator: '45671926166590716193865151022383844364247891968'
+            4:
+              numerator: '38560336832142945085266723018321'
+              denominator: '102844034832575377634685573909834406561420991602098741459288064'
+          denominatorMinimum:
+            numerator: '6369051672525773'
+            denominator: '9007199254740992'
+          squaredRadiusMinimum:
+            numerator: '2571100870814384414376210823735471644315532232051566197379834409'
+            denominator: '38566513062215766613007090216187902460532871850787028047233024'
+          angularMinimum:
+            numerator: '144267662388320502816258217385045'
+            denominator: '1267650600228229401496703205376'
+        counts:
+          rational:
+            operations: 11544
+            gcdSteps: 8094
+            floatSearchSteps: 63
+            floatConversions: 1
+            maximumObservedBits: 1123
+          integerOperations: 0
+          integerMaximumBits: 0
+          work: 23
+        limits:
+          work: 1048576
+          rationalOperations: 200000
+          rationalGcdSteps: 200000
+          rationalIntegerBits: 8192
+          fractionCharacters: 5000
+          floatSearchStepsPerConversion: 64
+        meaning:
+          guarantee: 'analytic-original-carrier-coefficients-only'
+          parameter: 'original-native-domain-no-inverse-map'
+          derivatives: 'normalized-original-full-span'
+          source: 'copied-original-binary64-poles-weights-and-knots'
+          family: 'quantified-near-quarter-caller-retains-native-provenance'
+          chart: false
+          inverse: false
+          nodes: false
+          composition: false
+          surfaceBinding: false
+          trim: false
+          solid: false
+          globalNativeEvaluationError: false
+    rectangle:
+      u:
+        0: 0.125
+        1: 0.375
+      v:
+        0: 0.25
+        1: 0.75
+    options:
+      id: 'bound_ref'
+      density: 7.85
+      budgets:
+        volume: 1e-8
+        mass: 1e-10
+        centroid:
+          0: 1e-10
+          1: 1e-10
+          2: 1e-10
+        inertia:
+          0: 1e-7
+          1: 1e-7
+          2: 1e-7
+          3: 1e-7
+          4: 1e-7
+          5: 1e-7
+      maxOperations: 40349
+    authority: 'formal-native-cylinder-union-ideal-scale2-annular-sector'
+    method: 'closed-reference-angle-intervals-and-returned-number-audit'
+    order:
+      0: 'V'
+      1: 'X'
+      2: 'Y'
+      3: 'Z'
+      4: 'XX'
+      5: 'YY'
+      6: 'ZZ'
+      7: 'XY'
+      8: 'XZ'
+      9: 'YZ'
+    frame:
+      zCenter:
+        numerator: '10'
+        denominator: '1'
+      coordinates: 'x-y-z-minus-source-midheight'
+    angles:
+      alpha:
+        lower:
+          numerator: '128272508082244099528379667691148697591'
+          denominator: '340282366920938463463374607431768211456'
+        upper:
+          numerator: '64136254041122049764189833845574349017'
+          denominator: '170141183460469231731687303715884105728'
+      beta:
+        lower:
+          numerator: '406241783950239238251261656044213016863'
+          denominator: '340282366920938463463374607431768211456'
+        upper:
+          numerator: '101560445987559809562815414011053255169'
+          denominator: '85070591730234615865843651857942052864'
+      width:
+        lower:
+          numerator: '277969275867995138722881988353064318829'
+          denominator: '340282366920938463463374607431768211456'
+        upper:
+          numerator: '277969275867995138722881988353064323085'
+          denominator: '340282366920938463463374607431768211456'
+      pi:
+        lower:
+          numerator: '267257146016241686964920093290467694255'
+          denominator: '85070591730234615865843651857942052864'
+        upper:
+          numerator: '66814286504060421741230023322616923985'
+          denominator: '21267647932558653966460912964485513216'
+    sourceMoments:
+      0:
+        lower:
+          numerator: '100221429756090632611845034983925385345625'
+          denominator: '10633823966279326983230456482242756608'
+        upper:
+          numerator: '25055357439022658152961258745981346494375'
+          denominator: '2658455991569831745807614120560689152'
+      1:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+      2:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+      3:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+      4:
+        lower:
+          numerator: '2505535743902265815296125874598134633640625'
+          denominator: '10633823966279326983230456482242756608'
+        upper:
+          numerator: '626383935975566453824031468649533662359375'
+          denominator: '2658455991569831745807614120560689152'
+      5:
+        lower:
+          numerator: '2505535743902265815296125874598134633640625'
+          denominator: '10633823966279326983230456482242756608'
+        upper:
+          numerator: '626383935975566453824031468649533662359375'
+          denominator: '2658455991569831745807614120560689152'
+      6:
+        lower:
+          numerator: '7516607231706797445888377623794403900921875'
+          denominator: '10633823966279326983230456482242756608'
+        upper:
+          numerator: '1879151807926699361472094405948600987078125'
+          denominator: '2658455991569831745807614120560689152'
+      7:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+      8:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+      9:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+    padMoments:
+      0:
+        lower:
+          numerator: '312715435351494531063242236897197358682625'
+          denominator: '170141183460469231731687303715884105728'
+        upper:
+          numerator: '312715435351494531063242236897197363470625'
+          denominator: '170141183460469231731687303715884105728'
+      1:
+        lower:
+          numerator: '104526638562572433304411185959613274949375'
+          denominator: '5316911983139663491615228241121378304'
+        upper:
+          numerator: '418106554250289733217644743838453099801875'
+          denominator: '21267647932558653966460912964485513216'
+      2:
+        lower:
+          numerator: '836213108500579377599448719478339481364375'
+          denominator: '42535295865117307932921825928971026432'
+        upper:
+          numerator: '836213108500579377599448719478339481373125'
+          denominator: '42535295865117307932921825928971026432'
+      3:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+      4:
+        lower:
+          numerator: '19544714709468410044464704463461993851359375'
+          denominator: '85070591730234615865843651857942052864'
+        upper:
+          numerator: '9772357354734205022232352231730997075515625'
+          denominator: '42535295865117307932921825928971026432'
+      5:
+        lower:
+          numerator: '19544714709468406338440575148687675983546875'
+          denominator: '85070591730234615865843651857942052864'
+        upper:
+          numerator: '9772357354734203169220287574343838141609375'
+          denominator: '42535295865117307932921825928971026432'
+      6:
+        lower:
+          numerator: '11726828825681044914871583883644900950598437'
+          denominator: '340282366920938463463374607431768211456'
+        upper:
+          numerator: '5863414412840522457435791941822450565074219'
+          denominator: '170141183460469231731687303715884105728'
+      7:
+        lower:
+          numerator: '4360607625472388925502752586981566296859375'
+          denominator: '21267647932558653966460912964485513216'
+        upper:
+          numerator: '17442430501889555702011010347926265187859375'
+          denominator: '85070591730234615865843651857942052864'
+      8:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+      9:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+    moments:
+      0:
+        estimate: 11262.75409912245
+        lower:
+          numerator: '1916258311448944652852762796640003524212625'
+          denominator: '170141183460469231731687303715884105728'
+        upper:
+          numerator: '1916258311448944652852762796640003539110625'
+          denominator: '170141183460469231731687303715884105728'
+        error:
+          numerator: '63910470992362197568112751'
+          denominator: '170141183460469231731687303715884105728'
+      1:
+        estimate: 19659.275702519513
+        lower:
+          numerator: '104526638562572433304411185959613274949375'
+          denominator: '5316911983139663491615228241121378304'
+        upper:
+          numerator: '418106554250289733217644743838453099801875'
+          denominator: '21267647932558653966460912964485513216'
+        error:
+          numerator: '26893549004152138593086739'
+          denominator: '21267647932558653966460912964485513216'
+      2:
+        estimate: 19659.275702519513
+        lower:
+          numerator: '836213108500579377599448719478339481364375'
+          denominator: '42535295865117307932921825928971026432'
+        upper:
+          numerator: '836213108500579377599448719478339481373125'
+          denominator: '42535295865117307932921825928971026432'
+        error:
+          numerator: '35048742759894289532065897'
+          denominator: '42535295865117307932921825928971026432'
+      3:
+        estimate: 0
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+        error:
+          numerator: '0'
+          denominator: '1'
+      4:
+        estimate: 465366.4663133683
+        lower:
+          numerator: '39589000660686536566833711460247070920484375'
+          denominator: '85070591730234615865843651857942052864'
+        upper:
+          numerator: '19794500330343268283416855730123535673265625'
+          denominator: '42535295865117307932921825928971026432'
+        error:
+          numerator: '1017538371093508276238749145'
+          denominator: '42535295865117307932921825928971026432'
+      5:
+        estimate: 465366.4663133683
+        lower:
+          numerator: '39589000660686532860809582145472753052671875'
+          denominator: '85070591730234615865843651857942052864'
+        upper:
+          numerator: '19794500330343266430404791072736376739359375'
+          denominator: '42535295865117307932921825928971026432'
+        error:
+          numerator: '1670947387127757765816361085'
+          denominator: '85070591730234615865843651857942052864'
+      6:
+        estimate: 741320.3996518236
+        lower:
+          numerator: '252258260240298563183299667845065825780098437'
+          denominator: '340282366920938463463374607431768211456'
+        upper:
+          numerator: '126129130120149281591649833922532913738074219'
+          denominator: '170141183460469231731687303715884105728'
+        error:
+          numerator: '5642683599756949335430011515'
+          denominator: '340282366920938463463374607431768211456'
+      7:
+        estimate: 205034.7851958153
+        lower:
+          numerator: '4360607625472388925502752586981566296859375'
+          denominator: '21267647932558653966460912964485513216'
+        upper:
+          numerator: '17442430501889555702011010347926265187859375'
+          denominator: '85070591730234615865843651857942052864'
+        error:
+          numerator: '680097753474875316986248111'
+          denominator: '85070591730234615865843651857942052864'
+      8:
+        estimate: 0
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+        error:
+          numerator: '0'
+          denominator: '1'
+      9:
+        estimate: 0
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+        error:
+          numerator: '0'
+          denominator: '1'
+    positiveAddedVolume: true
+    properties:
+      volume: 11262.75409912245
+      mass: 88.41261967811124
+      centroid:
+        0: 1.7455122902888633
+        1: 1.7455122902888633
+        2: 10
+      method: 'closed-form'
+      inertia:
+        0:
+          0: 9203.115165074894
+          1: -1340.1463310352885
+          2: -0
+        1:
+          0: -1340.1463310352885
+          1: 9203.115165074894
+          2: -0
+        2:
+          0: -0
+          1: -0
+          2: 6767.5000556161585
+    audit:
+      volume:
+        estimate: 11262.75409912245
+        lower:
+          numerator: '1916258311448944652852762796640003524212625'
+          denominator: '170141183460469231731687303715884105728'
+        upper:
+          numerator: '1916258311448944652852762796640003539110625'
+          denominator: '170141183460469231731687303715884105728'
+        error:
+          numerator: '63910470992362197568112751'
+          denominator: '170141183460469231731687303715884105728'
+      mass:
+        estimate: 88.41261967811124
+        lower:
+          numerator: '30085255489748429688204952867284810119081'
+          denominator: '340282366920938463463374607431768211456'
+        upper:
+          numerator: '7521313872437107422051238216821202588245'
+          denominator: '85070591730234615865843651857942052864'
+        error:
+          numerator: '4005248369673178611271767'
+          denominator: '340282366920938463463374607431768211456'
+      centroid:
+        0:
+          estimate: 1.7455122902888633
+          lower:
+            numerator: '593967053629082734463771318362108308483'
+            denominator: '340282366920938463463374607431768211456'
+          upper:
+            numerator: '148491763407270683615942829590527078277'
+            denominator: '85070591730234615865843651857942052864'
+          error:
+            numerator: '21431561533103080206213'
+            denominator: '85070591730234615865843651857942052864'
+        1:
+          estimate: 1.7455122902888633
+          lower:
+            numerator: '296983526814541335681577453439331001117'
+            denominator: '170141183460469231731687303715884105728'
+          upper:
+            numerator: '593967053629082671363154906878662006859'
+            denominator: '340282366920938463463374607431768211456'
+          error:
+            numerator: '22625629720928874518603'
+            denominator: '340282366920938463463374607431768211456'
+        2:
+          estimate: 10
+          lower:
+            numerator: '10'
+            denominator: '1'
+          upper:
+            numerator: '10'
+            denominator: '1'
+          error:
+            numerator: '0'
+            denominator: '1'
+      inertia:
+        0:
+          estimate: 9203.115165074894
+          lower:
+            numerator: '3131657811417668177107409800174872600997873'
+            denominator: '340282366920938463463374607431768211456'
+          upper:
+            numerator: '1565828905708834088553704900087436314202151'
+            denominator: '170141183460469231731687303715884105728'
+          error:
+            numerator: '168894397111915858035773455'
+            denominator: '340282366920938463463374607431768211456'
+        1:
+          estimate: 9203.115165074894
+          lower:
+            numerator: '391457226427208534250065318081497101342865'
+            denominator: '42535295865117307932921825928971026432'
+          upper:
+            numerator: '3131657811417668274000522544651976838149349'
+            denominator: '340282366920938463463374607431768211456'
+          error:
+            numerator: '9000160545929844228253551'
+            denominator: '42535295865117307932921825928971026432'
+        2:
+          estimate: 6767.5000556161585
+          lower:
+            numerator: '1151430468531324594185200954442182372001337'
+            denominator: '170141183460469231731687303715884105728'
+          upper:
+            numerator: '2302860937062649188370401908884364772187547'
+            denominator: '340282366920938463463374607431768211456'
+          error:
+            numerator: '71995742816042383535971739'
+            denominator: '340282366920938463463374607431768211456'
+        3:
+          estimate: -1340.1463310352885
+          lower:
+            numerator: '-228014082772549742343258033213235061148933'
+            denominator: '170141183460469231731687303715884105728'
+          upper:
+            numerator: '-456028165545099484686516066426470121570055'
+            denominator: '340282366920938463463374607431768211456'
+          error:
+            numerator: '32143938568097785570689273'
+            denominator: '340282366920938463463374607431768211456'
+        4:
+          estimate: -0
+          lower:
+            numerator: '0'
+            denominator: '1'
+          upper:
+            numerator: '0'
+            denominator: '1'
+          error:
+            numerator: '0'
+            denominator: '1'
+        5:
+          estimate: -0
+          lower:
+            numerator: '0'
+            denominator: '1'
+          upper:
+            numerator: '0'
+            denominator: '1'
+          error:
+            numerator: '0'
+            denominator: '1'
+    representation:
+      selectedQuarterRadial:
+        numerator: '694394206438535'
+        denominator: '421818510868978023516923232256'
+      selectedQuarterOuterRadial:
+        numerator: '694394206438535'
+        denominator: '210909255434489011758461616128'
+      includedInMassError: false
+    limits:
+      operations: 200000
+      integerBits: 8192
+      work: 1048576
+      fractionBits: 128
+      atanTerms: 24
+      ratioReductions: 3
+    meaning:
+      actualEndpointRays: true
+      originalSourceUnchanged: true
+      literalStoredBrepMass: false
+      wrappedSolid: false
+      nativeBinding: false
+      surfaceArea: false
+      partMassProvider: false
+      nativeSIAccuracy: false
+    solidQualified: false
+    counts:
+      sourceOperations: 11544
+      rationalOperations: 18448
+      directOperations: 3093
+      totalOperations: 33085
+      gcdSteps: 21548
+      maximumBits: 1123
+      work: 60090
+  actual:
+    source:
+      brep:
+        format: 'barocss-brep'
+        version: 0
+        lengthUnit: 'mm'
+        source:
+          family: 'prismatic-solid'
+          id: 'post'
+        bodies:
+          0:
+            id: 'post_b0'
+            kind: 'solid'
+            shells:
+              0: 'post_b0/post_b0_s0'
+        shells:
+          0:
+            id: 'post_b0/post_b0_s0'
+            body: 'post_b0'
+            faces:
+              0: 'post_b0/post_b0_s0/post_w0_0_0_0'
+              1: 'post_b0/post_b0_s0/post_w0_0_0_1'
+              2: 'post_b0/post_b0_s0/post_d0_0'
+              3: 'post_b0/post_b0_s0/post_u1_0'
+            closed: true
+        faces:
+          0:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_0'
+            shell: 'post_b0/post_b0_s0'
+            surface:
+              kind: 'surface'
+              id: 'post_w0_0_0_0'
+              degreeU: 2
+              degreeV: 1
+              knotsU:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              knotsV:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0:
+                    0: 10
+                    1: 0
+                    2: -5
+                  1:
+                    0: 10
+                    1: 0
+                    2: 25
+                1:
+                  0:
+                    0: 10
+                    1: 9.999999999999998
+                    2: -5
+                  1:
+                    0: 10
+                    1: 9.999999999999998
+                    2: 25
+                2:
+                  0:
+                    0: 6.123233995736766e-16
+                    1: 10
+                    2: -5
+                  1:
+                    0: 6.123233995736766e-16
+                    1: 10
+                    2: 25
+                3:
+                  0:
+                    0: -9.999999999999998
+                    1: 10
+                    2: -5
+                  1:
+                    0: -9.999999999999998
+                    1: 10
+                    2: 25
+                4:
+                  0:
+                    0: -10
+                    1: 1.2246467991473533e-15
+                    2: -5
+                  1:
+                    0: -10
+                    1: 1.2246467991473533e-15
+                    2: 25
+              weights:
+                0:
+                  0: 1
+                  1: 1
+                1:
+                  0: 0.7071067811865476
+                  1: 0.7071067811865476
+                2:
+                  0: 1
+                  1: 1
+                3:
+                  0: 0.7071067811865476
+                  1: 0.7071067811865476
+                4:
+                  0: 1
+                  1: 1
+            sense: 'forward'
+            loops:
+              0: 'post_b0/post_b0_s0/post_w0_0_0_0/l0'
+            name: 'post.side0#2'
+          1:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_1'
+            shell: 'post_b0/post_b0_s0'
+            surface:
+              kind: 'surface'
+              id: 'post_w0_0_0_1'
+              degreeU: 2
+              degreeV: 1
+              knotsU:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              knotsV:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0:
+                    0: 10
+                    1: 0
+                    2: -5
+                  1:
+                    0: 10
+                    1: 0
+                    2: 25
+                1:
+                  0:
+                    0: 9.999999999999995
+                    1: -10
+                    2: -5
+                  1:
+                    0: 9.999999999999995
+                    1: -10
+                    2: 25
+                2:
+                  0:
+                    0: -1.8369701987210296e-15
+                    1: -10
+                    2: -5
+                  1:
+                    0: -1.8369701987210296e-15
+                    1: -10
+                    2: 25
+                3:
+                  0:
+                    0: -10
+                    1: -9.999999999999996
+                    2: -5
+                  1:
+                    0: -10
+                    1: -9.999999999999996
+                    2: 25
+                4:
+                  0:
+                    0: -10
+                    1: 1.2246467991473533e-15
+                    2: -5
+                  1:
+                    0: -10
+                    1: 1.2246467991473533e-15
+                    2: 25
+              weights:
+                0:
+                  0: 1
+                  1: 1
+                1:
+                  0: 0.7071067811865477
+                  1: 0.7071067811865477
+                2:
+                  0: 1
+                  1: 1
+                3:
+                  0: 0.7071067811865477
+                  1: 0.7071067811865477
+                4:
+                  0: 1
+                  1: 1
+            sense: 'reversed'
+            loops:
+              0: 'post_b0/post_b0_s0/post_w0_0_0_1/l0'
+            name: 'post.side0#1'
+          2:
+            id: 'post_b0/post_b0_s0/post_d0_0'
+            shell: 'post_b0/post_b0_s0'
+            surface:
+              kind: 'surface'
+              id: 'post_d0_0'
+              degreeU: 1
+              degreeV: 1
+              knotsU:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              knotsV:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0:
+                    0: -10
+                    1: -10
+                    2: -5
+                  1:
+                    0: 10
+                    1: -10
+                    2: -5
+                1:
+                  0:
+                    0: -10
+                    1: 10
+                    2: -5
+                  1:
+                    0: 10
+                    1: 10
+                    2: -5
+              weights:
+                0:
+                  0: 1
+                  1: 1
+                1:
+                  0: 1
+                  1: 1
+            sense: 'forward'
+            loops:
+              0: 'post_b0/post_b0_s0/post_d0_0/l0'
+            name: 'post.bottom'
+          3:
+            id: 'post_b0/post_b0_s0/post_u1_0'
+            shell: 'post_b0/post_b0_s0'
+            surface:
+              kind: 'surface'
+              id: 'post_u1_0'
+              degreeU: 1
+              degreeV: 1
+              knotsU:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              knotsV:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0:
+                    0: -10
+                    1: -10
+                    2: 25
+                  1:
+                    0: -10
+                    1: 10
+                    2: 25
+                1:
+                  0:
+                    0: 10
+                    1: -10
+                    2: 25
+                  1:
+                    0: 10
+                    1: 10
+                    2: 25
+              weights:
+                0:
+                  0: 1
+                  1: 1
+                1:
+                  0: 1
+                  1: 1
+            sense: 'forward'
+            loops:
+              0: 'post_b0/post_b0_s0/post_u1_0/l0'
+            name: 'post.top'
+        loops:
+          0:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_0/l0'
+            face: 'post_b0/post_b0_s0/post_w0_0_0_0'
+            kind: 'outer'
+            coedges:
+              0: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c0'
+              1: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c1'
+              2: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c2'
+              3: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c3'
+          1:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_1/l0'
+            face: 'post_b0/post_b0_s0/post_w0_0_0_1'
+            kind: 'outer'
+            coedges:
+              0: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c0'
+              1: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c1'
+              2: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c2'
+              3: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c3'
+          2:
+            id: 'post_b0/post_b0_s0/post_d0_0/l0'
+            face: 'post_b0/post_b0_s0/post_d0_0'
+            kind: 'outer'
+            coedges:
+              0: 'post_b0/post_b0_s0/post_d0_0/l0/c0'
+              1: 'post_b0/post_b0_s0/post_d0_0/l0/c1'
+          3:
+            id: 'post_b0/post_b0_s0/post_u1_0/l0'
+            face: 'post_b0/post_b0_s0/post_u1_0'
+            kind: 'outer'
+            coedges:
+              0: 'post_b0/post_b0_s0/post_u1_0/l0/c0'
+              1: 'post_b0/post_b0_s0/post_u1_0/l0/c1'
+        coedges:
+          0:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c0'
+            edge: 'post_e0'
+            sense: 'forward'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_0/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c1'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c3'
+            twin: 'post_b0/post_b0_s0/post_d0_0/l0/c1'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 0
+                  1: 0
+                  2: 0
+                1:
+                  0: 1
+                  1: 0
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          1:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c1'
+            edge: 'post_e1'
+            sense: 'forward'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_0/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c2'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c0'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c3'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 1
+                  1: 0
+                  2: 0
+                1:
+                  0: 1
+                  1: 1
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          2:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c2'
+            edge: 'post_e2'
+            sense: 'reversed'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_0/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c3'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c1'
+            twin: 'post_b0/post_b0_s0/post_u1_0/l0/c0'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 0
+                  1: 1
+                  2: 0
+                1:
+                  0: 1
+                  1: 1
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          3:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c3'
+            edge: 'post_e3'
+            sense: 'reversed'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_0/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c0'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c2'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c1'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 0
+                  1: 0
+                  2: 0
+                1:
+                  0: 0
+                  1: 1
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          4:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c0'
+            edge: 'post_e4'
+            sense: 'reversed'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_1/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c1'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c3'
+            twin: 'post_b0/post_b0_s0/post_d0_0/l0/c0'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 0
+                  1: 0
+                  2: 0
+                1:
+                  0: 1
+                  1: 0
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          5:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c1'
+            edge: 'post_e3'
+            sense: 'forward'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_1/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c2'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c0'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c3'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 0
+                  1: 0
+                  2: 0
+                1:
+                  0: 0
+                  1: 1
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          6:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c2'
+            edge: 'post_e5'
+            sense: 'forward'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_1/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c3'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c1'
+            twin: 'post_b0/post_b0_s0/post_u1_0/l0/c1'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 0
+                  1: 1
+                  2: 0
+                1:
+                  0: 1
+                  1: 1
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          7:
+            id: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c3'
+            edge: 'post_e1'
+            sense: 'reversed'
+            loop: 'post_b0/post_b0_s0/post_w0_0_0_1/l0'
+            next: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c0'
+            prev: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c2'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c1'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 1
+                  1: 0
+                  2: 0
+                1:
+                  0: 1
+                  1: 1
+                  2: 0
+              weights:
+                0: 1
+                1: 1
+          8:
+            id: 'post_b0/post_b0_s0/post_d0_0/l0/c0'
+            edge: 'post_e4'
+            sense: 'forward'
+            loop: 'post_b0/post_b0_s0/post_d0_0/l0'
+            next: 'post_b0/post_b0_s0/post_d0_0/l0/c1'
+            prev: 'post_b0/post_b0_s0/post_d0_0/l0/c1'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c0'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 0.5
+                  1: 1
+                  2: 0
+                1:
+                  0: 0
+                  1: 0.9999999999999997
+                  2: 0
+                2:
+                  0: 0
+                  1: 0.4999999999999999
+                  2: 0
+                3:
+                  0: 1.7763568394002506e-16
+                  1: 0
+                  2: 0
+                4:
+                  0: 0.5000000000000001
+                  1: 0
+                  2: 0
+              weights:
+                0: 1
+                1: 0.7071067811865477
+                2: 1
+                3: 0.7071067811865477
+                4: 1
+          9:
+            id: 'post_b0/post_b0_s0/post_d0_0/l0/c1'
+            edge: 'post_e0'
+            sense: 'reversed'
+            loop: 'post_b0/post_b0_s0/post_d0_0/l0'
+            next: 'post_b0/post_b0_s0/post_d0_0/l0/c0'
+            prev: 'post_b0/post_b0_s0/post_d0_0/l0/c0'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c0'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 0.5
+                  1: 1
+                  2: 0
+                1:
+                  0: 1
+                  1: 1
+                  2: 0
+                2:
+                  0: 1
+                  1: 0.5
+                  2: 0
+                3:
+                  0: 1
+                  1: 8.881784197001253e-17
+                  2: 0
+                4:
+                  0: 0.5000000000000001
+                  1: 0
+                  2: 0
+              weights:
+                0: 1
+                1: 0.7071067811865476
+                2: 1
+                3: 0.7071067811865476
+                4: 1
+          10:
+            id: 'post_b0/post_b0_s0/post_u1_0/l0/c0'
+            edge: 'post_e2'
+            sense: 'forward'
+            loop: 'post_b0/post_b0_s0/post_u1_0/l0'
+            next: 'post_b0/post_b0_s0/post_u1_0/l0/c1'
+            prev: 'post_b0/post_b0_s0/post_u1_0/l0/c1'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_0/l0/c2'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 1
+                  1: 0.5
+                  2: 0
+                1:
+                  0: 1
+                  1: 1
+                  2: 0
+                2:
+                  0: 0.5
+                  1: 1
+                  2: 0
+                3:
+                  0: 8.881784197001253e-17
+                  1: 1
+                  2: 0
+                4:
+                  0: 0
+                  1: 0.5000000000000001
+                  2: 0
+              weights:
+                0: 1
+                1: 0.7071067811865476
+                2: 1
+                3: 0.7071067811865476
+                4: 1
+          11:
+            id: 'post_b0/post_b0_s0/post_u1_0/l0/c1'
+            edge: 'post_e5'
+            sense: 'reversed'
+            loop: 'post_b0/post_b0_s0/post_u1_0/l0'
+            next: 'post_b0/post_b0_s0/post_u1_0/l0/c0'
+            prev: 'post_b0/post_b0_s0/post_u1_0/l0/c0'
+            twin: 'post_b0/post_b0_s0/post_w0_0_0_1/l0/c2'
+            pcurve:
+              kind: 'curve'
+              id: 'pcurve'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 1
+                  1: 0.5
+                  2: 0
+                1:
+                  0: 0.9999999999999997
+                  1: 0
+                  2: 0
+                2:
+                  0: 0.4999999999999999
+                  1: 0
+                  2: 0
+                3:
+                  0: 0
+                  1: 1.7763568394002506e-16
+                  2: 0
+                4:
+                  0: 0
+                  1: 0.5000000000000001
+                  2: 0
+              weights:
+                0: 1
+                1: 0.7071067811865477
+                2: 1
+                3: 0.7071067811865477
+                4: 1
+        edges:
+          0:
+            id: 'post_e0'
+            curve:
+              kind: 'curve'
+              id: 'post_e0'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 10
+                  1: 0
+                  2: -5
+                1:
+                  0: 10
+                  1: 9.999999999999998
+                  2: -5
+                2:
+                  0: 6.123233995736766e-16
+                  1: 10
+                  2: -5
+                3:
+                  0: -9.999999999999998
+                  1: 10
+                  2: -5
+                4:
+                  0: -10
+                  1: 1.2246467991473533e-15
+                  2: -5
+              weights:
+                0: 1
+                1: 0.7071067811865476
+                2: 1
+                3: 0.7071067811865476
+                4: 1
+            vertices:
+              0: 'post_v0'
+              1: 'post_v1'
+            tolerance: 1e-7
+            name: 'post.bottom|post.side0#2'
+          1:
+            id: 'post_e1'
+            curve:
+              kind: 'curve'
+              id: 'post_e1'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: -10
+                  1: 1.2246467991473533e-15
+                  2: -5
+                1:
+                  0: -10
+                  1: 1.2246467991473533e-15
+                  2: 25
+              weights:
+                0: 1
+                1: 1
+            vertices:
+              0: 'post_v1'
+              1: 'post_v2'
+            tolerance: 1e-7
+            name: 'post.side0#1|post.side0#2#1'
+          2:
+            id: 'post_e2'
+            curve:
+              kind: 'curve'
+              id: 'post_e2'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 10
+                  1: 0
+                  2: 25
+                1:
+                  0: 10
+                  1: 9.999999999999998
+                  2: 25
+                2:
+                  0: 6.123233995736766e-16
+                  1: 10
+                  2: 25
+                3:
+                  0: -9.999999999999998
+                  1: 10
+                  2: 25
+                4:
+                  0: -10
+                  1: 1.2246467991473533e-15
+                  2: 25
+              weights:
+                0: 1
+                1: 0.7071067811865476
+                2: 1
+                3: 0.7071067811865476
+                4: 1
+            vertices:
+              0: 'post_v3'
+              1: 'post_v2'
+            tolerance: 1e-7
+            name: 'post.side0#2|post.top'
+          3:
+            id: 'post_e3'
+            curve:
+              kind: 'curve'
+              id: 'post_e3'
+              degree: 1
+              knots:
+                0: 0
+                1: 0
+                2: 1
+                3: 1
+              controlPoints:
+                0:
+                  0: 10
+                  1: 0
+                  2: -5
+                1:
+                  0: 10
+                  1: 0
+                  2: 25
+              weights:
+                0: 1
+                1: 1
+            vertices:
+              0: 'post_v0'
+              1: 'post_v3'
+            tolerance: 1e-7
+            name: 'post.side0#1|post.side0#2#2'
+          4:
+            id: 'post_e4'
+            curve:
+              kind: 'curve'
+              id: 'post_e4'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 10
+                  1: 0
+                  2: -5
+                1:
+                  0: 9.999999999999995
+                  1: -10
+                  2: -5
+                2:
+                  0: -1.8369701987210296e-15
+                  1: -10
+                  2: -5
+                3:
+                  0: -10
+                  1: -9.999999999999996
+                  2: -5
+                4:
+                  0: -10
+                  1: 1.2246467991473533e-15
+                  2: -5
+              weights:
+                0: 1
+                1: 0.7071067811865477
+                2: 1
+                3: 0.7071067811865477
+                4: 1
+            vertices:
+              0: 'post_v0'
+              1: 'post_v1'
+            tolerance: 1e-7
+            name: 'post.bottom|post.side0#1'
+          5:
+            id: 'post_e5'
+            curve:
+              kind: 'curve'
+              id: 'post_e5'
+              degree: 2
+              knots:
+                0: 0
+                1: 0
+                2: 0
+                3: 0.5
+                4: 0.5
+                5: 1
+                6: 1
+                7: 1
+              controlPoints:
+                0:
+                  0: 10
+                  1: 0
+                  2: 25
+                1:
+                  0: 9.999999999999995
+                  1: -10
+                  2: 25
+                2:
+                  0: -1.8369701987210296e-15
+                  1: -10
+                  2: 25
+                3:
+                  0: -10
+                  1: -9.999999999999996
+                  2: 25
+                4:
+                  0: -10
+                  1: 1.2246467991473533e-15
+                  2: 25
+              weights:
+                0: 1
+                1: 0.7071067811865477
+                2: 1
+                3: 0.7071067811865477
+                4: 1
+            vertices:
+              0: 'post_v3'
+              1: 'post_v2'
+            tolerance: 1e-7
+            name: 'post.side0#1|post.top'
+        vertices:
+          0:
+            id: 'post_v0'
+            point:
+              0: 10
+              1: 0
+              2: -5
+            tolerance: 1e-7
+          1:
+            id: 'post_v1'
+            point:
+              0: -10
+              1: 1.2246467991473533e-15
+              2: -5
+            tolerance: 1e-7
+          2:
+            id: 'post_v2'
+            point:
+              0: -10
+              1: 1.2246467991473533e-15
+              2: 25
+            tolerance: 1e-7
+          3:
+            id: 'post_v3'
+            point:
+              0: 10
+              1: 0
+              2: 25
+            tolerance: 1e-7
+      prismatic:
+        kind: 'prismatic-solid'
+        slabs:
+          0:
+            z0: -5
+            z1: 25
+            regions:
+              0:
+                outer:
+                  0:
+                    kind: 'arc'
+                    c:
+                      0: 0
+                      1: 0
+                    r: 10
+                    t0: 0
+                    sweep: 3.141592653589793
+                    tag: 'post.side0'
+                  1:
+                    kind: 'arc'
+                    c:
+                      0: 0
+                      1: 0
+                    r: 10
+                    t0: 3.1415926535897936
+                    sweep: 3.1415926535897927
+                    tag: 'post.side0'
+                holes:
+        caps:
+          0:
+            z: -5
+            regions:
+              0:
+                outer:
+                  0:
+                    kind: 'arc'
+                    c:
+                      0: 0
+                      1: 0
+                    r: 10
+                    t0: 0
+                    sweep: 3.141592653589793
+                    tag: 'post.side0'
+                  1:
+                    kind: 'arc'
+                    c:
+                      0: 0
+                      1: 0
+                    r: 10
+                    t0: 3.1415926535897936
+                    sweep: 3.1415926535897927
+                    tag: 'post.side0'
+                holes:
+            tag: 'post.bottom'
+          1:
+            z: 25
+            regions:
+              0:
+                outer:
+                  0:
+                    kind: 'arc'
+                    c:
+                      0: 0
+                      1: 0
+                    r: 10
+                    t0: 0
+                    sweep: 3.141592653589793
+                    tag: 'post.side0'
+                  1:
+                    kind: 'arc'
+                    c:
+                      0: 0
+                      1: 0
+                    r: 10
+                    t0: 3.1415926535897936
+                    sweep: 3.1415926535897927
+                    tag: 'post.side0'
+                holes:
+            tag: 'post.top'
+      face: <Circular>
+      quarter:
+        kind: 'surface'
+        id: 'bound_ref_quarter'
+        degreeU: 2
+        degreeV: 1
+        knotsU:
+          0: 0
+          1: 0
+          2: 0
+          3: 0.5
+          4: 0.5
+          5: 0.5
+        knotsV:
+          0: 0
+          1: 0
+          2: 1
+          3: 1
+        controlPoints:
+          0:
+            0:
+              0: 10
+              1: 0
+              2: -5
+            1:
+              0: 10
+              1: 0
+              2: 25
+          1:
+            0:
+              0: 10
+              1: 9.999999999999998
+              2: -5
+            1:
+              0: 10
+              1: 9.999999999999998
+              2: 25
+          2:
+            0:
+              0: 6.123233995736766e-16
+              1: 10
+              2: -5
+            1:
+              0: 6.123233995736766e-16
+              1: 10
+              2: 25
+        weights:
+          0:
+            0: 1
+            1: 1
+          1:
+            0: 0.7071067811865476
+            1: 0.7071067811865476
+          2:
+            0: 1
+            1: 1
+      boundary:
+        kind: 'curve'
+        id: 'bound_ref_boundary'
+        degree: 2
+        knots:
+          0: 0
+          1: 0
+          2: 0
+          3: 0.5
+          4: 0.5
+          5: 0.5
+        controlPoints:
+          0:
+            0: 10
+            1: 0
+            2: -5
+          1:
+            0: 10
+            1: 9.999999999999998
+            2: -5
+          2:
+            0: 6.123233995736766e-16
+            1: 10
+            2: -5
+        weights:
+          0: 1
+          1: 0.7071067811865476
+          2: 1
+      radius: 10
+      z:
+        0: -5
+        1: 25
+      proof:
+        authority: 'native-prismatic-source-and-full-stored-brep-consistency'
+        comparison: 'all-own-fields-with-binary64-bits-and-array-order'
+        sourceId: 'post'
+        sourceBody: 'post_b0'
+        sourceShell: 'post_b0/post_b0_s0'
+        nativeSourceConsistency: true
+        historicalProducerProvenance: false
+        strictSourceValid: true
+        fullNativeExterior: true
+        extraction: 'direct-copy'
+        insertedKnots: 0
+        originalDomain:
+          0: 0
+          1: 0.5
+        wrappedSolid: false
+      carrier:
+        source:
+          kind: 'curve'
+          id: 'bound_ref_boundary'
+          degree: 2
+          knots:
+            0: 0
+            1: 0
+            2: 0
+            3: 0.5
+            4: 0.5
+            5: 0.5
+          controlPoints:
+            0:
+              0: 10
+              1: 0
+              2: -5
+            1:
+              0: 10
+              1: 9.999999999999998
+              2: -5
+            2:
+              0: 6.123233995736766e-16
+              1: 10
+              2: -5
+          weights:
+            0: 1
+            1: 0.7071067811865476
+            2: 1
+        options:
+          radius: 10
+        domain:
+          0: 0
+          1: 0.5
+        bounds:
+          radial:
+            exact:
+              numerator: '694394206438535'
+              denominator: '421818510868978023516923232256'
+            upper: 1.6461918776585467e-15
+        proof:
+          denominator:
+            0:
+              numerator: '1'
+              denominator: '1'
+            1:
+              numerator: '6369051672525773'
+              denominator: '9007199254740992'
+            2:
+              numerator: '1'
+              denominator: '1'
+          squaredRadiusNumerator:
+            0:
+              numerator: '100'
+              denominator: '1'
+            1:
+              numerator: '159226291813144325'
+              denominator: '2251799813685248'
+            2:
+              numerator: '2571100870814384414376210823735471644315532232051566197379834409'
+              denominator: '38566513062215766613007090216187902460532871850787028047233024'
+            3:
+              numerator: '3229492870224761428170604021607909602230993942025'
+              denominator: '45671926166590716193865151022383844364247891968'
+            4:
+              numerator: '10284403483257537763468557390983479216478931303154959412651824721'
+              denominator: '102844034832575377634685573909834406561420991602098741459288064'
+          angularNumerator:
+            0:
+              numerator: '179272867119315628149434011079935'
+              denominator: '1267650600228229401496703205376'
+            1:
+              numerator: '144267662388320502816258217385045'
+              denominator: '1267650600228229401496703205376'
+            2:
+              numerator: '8778287463363746373470756879173089511525515864387453376674869557'
+              denominator: '77133026124431533226014180432375804921065743701574056094466048'
+            3:
+              numerator: '3636085721734977491736478183681369183454466284282516303710466357'
+              denominator: '25711008708143844408671393477458601640355247900524685364822016'
+          circleResidual:
+            0:
+              numerator: '0'
+              denominator: '1'
+            1:
+              numerator: '0'
+              denominator: '1'
+            2:
+              numerator: '-202246464448361179733353926583488549569549163991'
+              denominator: '38566513062215766613007090216187902460532871850787028047233024'
+            3:
+              numerator: '-375923769462312449726997868317175'
+              denominator: '45671926166590716193865151022383844364247891968'
+            4:
+              numerator: '38560336832142945085266723018321'
+              denominator: '102844034832575377634685573909834406561420991602098741459288064'
+          denominatorMinimum:
+            numerator: '6369051672525773'
+            denominator: '9007199254740992'
+          squaredRadiusMinimum:
+            numerator: '2571100870814384414376210823735471644315532232051566197379834409'
+            denominator: '38566513062215766613007090216187902460532871850787028047233024'
+          angularMinimum:
+            numerator: '144267662388320502816258217385045'
+            denominator: '1267650600228229401496703205376'
+        counts:
+          rational:
+            operations: 11544
+            gcdSteps: 8094
+            floatSearchSteps: 63
+            floatConversions: 1
+            maximumObservedBits: 1123
+          integerOperations: 0
+          integerMaximumBits: 0
+          work: 23
+        limits:
+          work: 1048576
+          rationalOperations: 200000
+          rationalGcdSteps: 200000
+          rationalIntegerBits: 8192
+          fractionCharacters: 5000
+          floatSearchStepsPerConversion: 64
+        meaning:
+          guarantee: 'analytic-original-carrier-coefficients-only'
+          parameter: 'original-native-domain-no-inverse-map'
+          derivatives: 'normalized-original-full-span'
+          source: 'copied-original-binary64-poles-weights-and-knots'
+          family: 'quantified-near-quarter-caller-retains-native-provenance'
+          chart: false
+          inverse: false
+          nodes: false
+          composition: false
+          surfaceBinding: false
+          trim: false
+          solid: false
+          globalNativeEvaluationError: false
+    rectangle:
+      u:
+        0: 0.125
+        1: 0.375
+      v:
+        0: 0.25
+        1: 0.75
+    options:
+      id: 'bound_ref'
+      density: 7.85
+      budgets:
+        volume: 1e-8
+        mass: 1e-10
+        centroid:
+          0: 1e-10
+          1: 1e-10
+          2: 1e-10
+        inertia:
+          0: 1e-7
+          1: 1e-7
+          2: 1e-7
+          3: 1e-7
+          4: 1e-7
+          5: 1e-7
+      maxOperations: 40349
+    authority: 'formal-native-cylinder-union-ideal-scale2-annular-sector'
+    method: 'closed-reference-angle-intervals-and-returned-number-audit'
+    order:
+      0: 'V'
+      1: 'X'
+      2: 'Y'
+      3: 'Z'
+      4: 'XX'
+      5: 'YY'
+      6: 'ZZ'
+      7: 'XY'
+      8: 'XZ'
+      9: 'YZ'
+    frame:
+      zCenter:
+        numerator: '10'
+        denominator: '1'
+      coordinates: 'x-y-z-minus-source-midheight'
+    angles:
+      alpha:
+        lower:
+          numerator: '128272508082244099528379667691148697591'
+          denominator: '340282366920938463463374607431768211456'
+        upper:
+          numerator: '64136254041122049764189833845574349017'
+          denominator: '170141183460469231731687303715884105728'
+      beta:
+        lower:
+          numerator: '406241783950239238251261656044213016863'
+          denominator: '340282366920938463463374607431768211456'
+        upper:
+          numerator: '101560445987559809562815414011053255169'
+          denominator: '85070591730234615865843651857942052864'
+      width:
+        lower:
+          numerator: '277969275867995138722881988353064318829'
+          denominator: '340282366920938463463374607431768211456'
+        upper:
+          numerator: '277969275867995138722881988353064323085'
+          denominator: '340282366920938463463374607431768211456'
+      pi:
+        lower:
+          numerator: '267257146016241686964920093290467694255'
+          denominator: '85070591730234615865843651857942052864'
+        upper:
+          numerator: '66814286504060421741230023322616923985'
+          denominator: '21267647932558653966460912964485513216'
+    sourceMoments:
+      0:
+        lower:
+          numerator: '100221429756090632611845034983925385345625'
+          denominator: '10633823966279326983230456482242756608'
+        upper:
+          numerator: '25055357439022658152961258745981346494375'
+          denominator: '2658455991569831745807614120560689152'
+      1:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+      2:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+      3:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+      4:
+        lower:
+          numerator: '2505535743902265815296125874598134633640625'
+          denominator: '10633823966279326983230456482242756608'
+        upper:
+          numerator: '626383935975566453824031468649533662359375'
+          denominator: '2658455991569831745807614120560689152'
+      5:
+        lower:
+          numerator: '2505535743902265815296125874598134633640625'
+          denominator: '10633823966279326983230456482242756608'
+        upper:
+          numerator: '626383935975566453824031468649533662359375'
+          denominator: '2658455991569831745807614120560689152'
+      6:
+        lower:
+          numerator: '7516607231706797445888377623794403900921875'
+          denominator: '10633823966279326983230456482242756608'
+        upper:
+          numerator: '1879151807926699361472094405948600987078125'
+          denominator: '2658455991569831745807614120560689152'
+      7:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+      8:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+      9:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+    padMoments:
+      0:
+        lower:
+          numerator: '312715435351494531063242236897197358682625'
+          denominator: '170141183460469231731687303715884105728'
+        upper:
+          numerator: '312715435351494531063242236897197363470625'
+          denominator: '170141183460469231731687303715884105728'
+      1:
+        lower:
+          numerator: '104526638562572433304411185959613274949375'
+          denominator: '5316911983139663491615228241121378304'
+        upper:
+          numerator: '418106554250289733217644743838453099801875'
+          denominator: '21267647932558653966460912964485513216'
+      2:
+        lower:
+          numerator: '836213108500579377599448719478339481364375'
+          denominator: '42535295865117307932921825928971026432'
+        upper:
+          numerator: '836213108500579377599448719478339481373125'
+          denominator: '42535295865117307932921825928971026432'
+      3:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+      4:
+        lower:
+          numerator: '19544714709468410044464704463461993851359375'
+          denominator: '85070591730234615865843651857942052864'
+        upper:
+          numerator: '9772357354734205022232352231730997075515625'
+          denominator: '42535295865117307932921825928971026432'
+      5:
+        lower:
+          numerator: '19544714709468406338440575148687675983546875'
+          denominator: '85070591730234615865843651857942052864'
+        upper:
+          numerator: '9772357354734203169220287574343838141609375'
+          denominator: '42535295865117307932921825928971026432'
+      6:
+        lower:
+          numerator: '11726828825681044914871583883644900950598437'
+          denominator: '340282366920938463463374607431768211456'
+        upper:
+          numerator: '5863414412840522457435791941822450565074219'
+          denominator: '170141183460469231731687303715884105728'
+      7:
+        lower:
+          numerator: '4360607625472388925502752586981566296859375'
+          denominator: '21267647932558653966460912964485513216'
+        upper:
+          numerator: '17442430501889555702011010347926265187859375'
+          denominator: '85070591730234615865843651857942052864'
+      8:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+      9:
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+    moments:
+      0:
+        estimate: 11262.75409912245
+        lower:
+          numerator: '1916258311448944652852762796640003524212625'
+          denominator: '170141183460469231731687303715884105728'
+        upper:
+          numerator: '1916258311448944652852762796640003539110625'
+          denominator: '170141183460469231731687303715884105728'
+        error:
+          numerator: '63910470992362197568112751'
+          denominator: '170141183460469231731687303715884105728'
+      1:
+        estimate: 19659.275702519513
+        lower:
+          numerator: '104526638562572433304411185959613274949375'
+          denominator: '5316911983139663491615228241121378304'
+        upper:
+          numerator: '418106554250289733217644743838453099801875'
+          denominator: '21267647932558653966460912964485513216'
+        error:
+          numerator: '26893549004152138593086739'
+          denominator: '21267647932558653966460912964485513216'
+      2:
+        estimate: 19659.275702519513
+        lower:
+          numerator: '836213108500579377599448719478339481364375'
+          denominator: '42535295865117307932921825928971026432'
+        upper:
+          numerator: '836213108500579377599448719478339481373125'
+          denominator: '42535295865117307932921825928971026432'
+        error:
+          numerator: '35048742759894289532065897'
+          denominator: '42535295865117307932921825928971026432'
+      3:
+        estimate: 0
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+        error:
+          numerator: '0'
+          denominator: '1'
+      4:
+        estimate: 465366.4663133683
+        lower:
+          numerator: '39589000660686536566833711460247070920484375'
+          denominator: '85070591730234615865843651857942052864'
+        upper:
+          numerator: '19794500330343268283416855730123535673265625'
+          denominator: '42535295865117307932921825928971026432'
+        error:
+          numerator: '1017538371093508276238749145'
+          denominator: '42535295865117307932921825928971026432'
+      5:
+        estimate: 465366.4663133683
+        lower:
+          numerator: '39589000660686532860809582145472753052671875'
+          denominator: '85070591730234615865843651857942052864'
+        upper:
+          numerator: '19794500330343266430404791072736376739359375'
+          denominator: '42535295865117307932921825928971026432'
+        error:
+          numerator: '1670947387127757765816361085'
+          denominator: '85070591730234615865843651857942052864'
+      6:
+        estimate: 741320.3996518236
+        lower:
+          numerator: '252258260240298563183299667845065825780098437'
+          denominator: '340282366920938463463374607431768211456'
+        upper:
+          numerator: '126129130120149281591649833922532913738074219'
+          denominator: '170141183460469231731687303715884105728'
+        error:
+          numerator: '5642683599756949335430011515'
+          denominator: '340282366920938463463374607431768211456'
+      7:
+        estimate: 205034.7851958153
+        lower:
+          numerator: '4360607625472388925502752586981566296859375'
+          denominator: '21267647932558653966460912964485513216'
+        upper:
+          numerator: '17442430501889555702011010347926265187859375'
+          denominator: '85070591730234615865843651857942052864'
+        error:
+          numerator: '680097753474875316986248111'
+          denominator: '85070591730234615865843651857942052864'
+      8:
+        estimate: 0
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+        error:
+          numerator: '0'
+          denominator: '1'
+      9:
+        estimate: 0
+        lower:
+          numerator: '0'
+          denominator: '1'
+        upper:
+          numerator: '0'
+          denominator: '1'
+        error:
+          numerator: '0'
+          denominator: '1'
+    positiveAddedVolume: true
+    properties:
+      volume: 11262.75409912245
+      mass: 88.41261967811124
+      centroid:
+        0: 1.7455122902888633
+        1: 1.7455122902888633
+        2: 10
+      method: 'closed-form'
+      inertia:
+        0:
+          0: 9203.115165074894
+          1: -1340.1463310352885
+          2: -0
+        1:
+          0: -1340.1463310352885
+          1: 9203.115165074894
+          2: -0
+        2:
+          0: -0
+          1: -0
+          2: 6767.5000556161585
+    audit:
+      volume:
+        estimate: 11262.75409912245
+        lower:
+          numerator: '1916258311448944652852762796640003524212625'
+          denominator: '170141183460469231731687303715884105728'
+        upper:
+          numerator: '1916258311448944652852762796640003539110625'
+          denominator: '170141183460469231731687303715884105728'
+        error:
+          numerator: '63910470992362197568112751'
+          denominator: '170141183460469231731687303715884105728'
+      mass:
+        estimate: 88.41261967811124
+        lower:
+          numerator: '30085255489748429688204952867284810119081'
+          denominator: '340282366920938463463374607431768211456'
+        upper:
+          numerator: '7521313872437107422051238216821202588245'
+          denominator: '85070591730234615865843651857942052864'
+        error:
+          numerator: '4005248369673178611271767'
+          denominator: '340282366920938463463374607431768211456'
+      centroid:
+        0:
+          estimate: 1.7455122902888633
+          lower:
+            numerator: '593967053629082734463771318362108308483'
+            denominator: '340282366920938463463374607431768211456'
+          upper:
+            numerator: '148491763407270683615942829590527078277'
+            denominator: '85070591730234615865843651857942052864'
+          error:
+            numerator: '21431561533103080206213'
+            denominator: '85070591730234615865843651857942052864'
+        1:
+          estimate: 1.7455122902888633
+          lower:
+            numerator: '296983526814541335681577453439331001117'
+            denominator: '170141183460469231731687303715884105728'
+          upper:
+            numerator: '593967053629082671363154906878662006859'
+            denominator: '340282366920938463463374607431768211456'
+          error:
+            numerator: '22625629720928874518603'
+            denominator: '340282366920938463463374607431768211456'
+        2:
+          estimate: 10
+          lower:
+            numerator: '10'
+            denominator: '1'
+          upper:
+            numerator: '10'
+            denominator: '1'
+          error:
+            numerator: '0'
+            denominator: '1'
+      inertia:
+        0:
+          estimate: 9203.115165074894
+          lower:
+            numerator: '3131657811417668177107409800174872600997873'
+            denominator: '340282366920938463463374607431768211456'
+          upper:
+            numerator: '1565828905708834088553704900087436314202151'
+            denominator: '170141183460469231731687303715884105728'
+          error:
+            numerator: '168894397111915858035773455'
+            denominator: '340282366920938463463374607431768211456'
+        1:
+          estimate: 9203.115165074894
+          lower:
+            numerator: '391457226427208534250065318081497101342865'
+            denominator: '42535295865117307932921825928971026432'
+          upper:
+            numerator: '3131657811417668274000522544651976838149349'
+            denominator: '340282366920938463463374607431768211456'
+          error:
+            numerator: '9000160545929844228253551'
+            denominator: '42535295865117307932921825928971026432'
+        2:
+          estimate: 6767.5000556161585
+          lower:
+            numerator: '1151430468531324594185200954442182372001337'
+            denominator: '170141183460469231731687303715884105728'
+          upper:
+            numerator: '2302860937062649188370401908884364772187547'
+            denominator: '340282366920938463463374607431768211456'
+          error:
+            numerator: '71995742816042383535971739'
+            denominator: '340282366920938463463374607431768211456'
+        3:
+          estimate: -1340.1463310352885
+          lower:
+            numerator: '-228014082772549742343258033213235061148933'
+            denominator: '170141183460469231731687303715884105728'
+          upper:
+            numerator: '-456028165545099484686516066426470121570055'
+            denominator: '340282366920938463463374607431768211456'
+          error:
+            numerator: '32143938568097785570689273'
+            denominator: '340282366920938463463374607431768211456'
+        4:
+          estimate: -0
+          lower:
+            numerator: '0'
+            denominator: '1'
+          upper:
+            numerator: '0'
+            denominator: '1'
+          error:
+            numerator: '0'
+            denominator: '1'
+        5:
+          estimate: -0
+          lower:
+            numerator: '0'
+            denominator: '1'
+          upper:
+            numerator: '0'
+            denominator: '1'
+          error:
+            numerator: '0'
+            denominator: '1'
+    representation:
+      selectedQuarterRadial:
+        numerator: '694394206438535'
+        denominator: '421818510868978023516923232256'
+      selectedQuarterOuterRadial:
+        numerator: '694394206438535'
+        denominator: '210909255434489011758461616128'
+      includedInMassError: false
+    limits:
+      operations: 200000
+      integerBits: 8192
+      work: 1048576
+      fractionBits: 128
+      atanTerms: 24
+      ratioReductions: 3
+    meaning:
+      actualEndpointRays: true
+      originalSourceUnchanged: true
+      literalStoredBrepMass: false
+      wrappedSolid: false
+      nativeBinding: false
+      surfaceArea: false
+      partMassProvider: false
+      nativeSIAccuracy: false
+    solidQualified: false
+    counts:
+      sourceOperations: 11544
+      rationalOperations: 18448
+      directOperations: 3093
+      totalOperations: 33085
+      gcdSteps: 21548
+      maximumBits: 1123
+      work: 60100
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-bound-reference.test.mjs:97:57)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: clockwise and rotated starts derive actual rectangle min/max without assuming native ID rotation
+ok 2 - clockwise and rotated starts derive actual rectangle min/max without assuming native ID rotation
+  ---
+  duration_ms: 90.536542
+  type: 'test'
+  ...
+# Subtest: exact total reservation succeeds and total minus one refuses without changing caller data
+ok 3 - exact total reservation succeeds and total minus one refuses without changing caller data
+  ---
+  duration_ms: 111.086209
+  type: 'test'
+  ...
+# Subtest: owned frozen results do not freeze or alias the original Part, ring or options
+ok 4 - owned frozen results do not freeze or alias the original Part, ring or options
+  ---
+  duration_ms: 31.558917
+  type: 'test'
+  ...
+# Subtest: fresh source checking refuses changed coefficients and metadata after an earlier successful request
+ok 5 - fresh source checking refuses changed coefficients and metadata after an earlier successful request
+  ---
+  duration_ms: 32.270375
+  type: 'test'
+  ...
+# Subtest: getters, inherited options and caller authority flags cannot supply wrapper inputs
+ok 6 - getters, inherited options and caller authority flags cannot supply wrapper inputs
+  ---
+  duration_ms: 8.218416
+  type: 'test'
+  ...
+# Subtest: original native and formal refusals propagate with their namespace and wording
+ok 7 - original native and formal refusals propagate with their namespace and wording
+  ---
+  duration_ms: 40.437666
+  type: 'test'
+  ...
+# Subtest: the separately measured Z0 reference pad accepts both complete source checks without a prefix deduction
+ok 8 - the separately measured Z0 reference pad accepts both complete source checks without a prefix deduction
+  ---
+  duration_ms: 25.878083
+  type: 'test'
+  ...
+# Subtest: actual native rays and all ten source/pad/raw moments enclose an independent complex-polar oracle
+ok 9 - actual native rays and all ten source/pad/raw moments enclose an independent complex-polar oracle
+  ---
+  duration_ms: 36.194334
+  type: 'test'
+  ...
+# Subtest: public MMGS values are audited against exact represented density divided by1000
+ok 10 - public MMGS values are audited against exact represented density divided by1000
+  ---
+  duration_ms: 49.157375
+  type: 'test'
+  ...
+# Subtest: negative source Z and asymmetric V preserve signed mixed moments and central inertia
+ok 11 - negative source Z and asymmetric V preserve signed mixed moments and central inertia
+  ---
+  duration_ms: 17.475333
+  type: 'test'
+  ...
+# Subtest: centered axial pad retains exact zero Z/XZ/YZ and nonzero angular moments
+ok 12 - centered axial pad retains exact zero Z/XZ/YZ and nonzero angular moments
+  ---
+  duration_ms: 7.491458
+  type: 'test'
+  ...
+# Subtest: aggregate limits only tighten, and impossible scalar precision is not widened
+ok 13 - aggregate limits only tighten, and impossible scalar precision is not widened
+  ---
+  duration_ms: 27.107833
+  type: 'test'
+  ...
+# Subtest: overflow, underflow, nonfinite input, invalid ranges, and radius overrides refuse
+ok 14 - overflow, underflow, nonfinite input, invalid ranges, and radius overrides refuse
+  ---
+  duration_ms: 32.096417
+  type: 'test'
+  ...
+# Subtest: all scalar budgets must be explicit positive finite values
+ok 15 - all scalar budgets must be explicit positive finite values
+  ---
+  duration_ms: 13.272084
+  type: 'test'
+  ...
+# Subtest: getters never supply authority and input/output snapshots do not alias
+ok 16 - getters never supply authority and input/output snapshots do not alias
+  ---
+  duration_ms: 8.88375
+  type: 'test'
+  ...
+# Subtest: actual rays around the diagonal exercise the bounded three-step angle reduction
+ok 17 - actual rays around the diagonal exercise the bounded three-step angle reduction
+  ---
+  duration_ms: 8.200792
+  type: 'test'
+  ...
+# Subtest: changed actual source coefficients or native metadata cannot borrow formal-circle authority
+ok 18 - changed actual source coefficients or native metadata cannot borrow formal-circle authority
+  ---
+  duration_ms: 7.135458
+  type: 'test'
+  ...
+# Subtest: tiny valid source refuses the overflowing existing native SI density intermediate
+ok 19 - tiny valid source refuses the overflowing existing native SI density intermediate
+  ---
+  duration_ms: 1.874
+  type: 'test'
+  ...
+# Subtest: all returned raw midpoint Number bits equal generic nearest on positive, negative and zero moments
+ok 20 - all returned raw midpoint Number bits equal generic nearest on positive, negative and zero moments
+  ---
+  duration_ms: 21.390417
+  type: 'test'
+  ...
+# Subtest: fresh one-pad native binding covers actual63 slots all36 coedges and all36 stronger vertex relations
+ok 21 - fresh one-pad native binding covers actual63 slots all36 coedges and all36 stronger vertex relations
+  ---
+  duration_ms: 70.004167
+  type: 'test'
+  ...
+# Subtest: legacy geometry exact-operation receipts and returned mutability survive private-run factoring
+ok 22 - legacy geometry exact-operation receipts and returned mutability survive private-run factoring
+  ---
+  duration_ms: 47.037792
+  type: 'test'
+  ...
+# Subtest: only the fresh fixed profile is accepted and caller data never becomes a receipt authority
+ok 23 - only the fresh fixed profile is accepted and caller data never becomes a receipt authority
+  ---
+  duration_ms: 13.230667
+  type: 'test'
+  ...
+# Subtest: one complete request honors fresh aggregate reservations and a final-bound refusal is atomic
+ok 24 - one complete request honors fresh aggregate reservations and a final-bound refusal is atomic
+  ---
+  duration_ms: 73.471208
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 23
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 717.0475
