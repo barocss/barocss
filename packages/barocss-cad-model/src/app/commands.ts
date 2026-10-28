@@ -390,10 +390,16 @@ function threadFaceOf(ctx: Ctx): { body: BodyResult; face: string; radius: numbe
   const body = ctx.bodies[picks[0].body], f = body?.mesh.faces[picks[0].face];
   const axis = body && f ? roundFaceAxis(body.mesh, picks[0].face) : null;
   if (!body || !f || f.kind !== 'curved' || !f.radius || !axis) return 'A thread goes on a round face: a shaft, or a hole (its tap drill).';
-  // Outward (a shaft) when the face's normal points away from its axis.
-  const off = [0, 1, 2].map(k => f.centroid[k] - axis.point[k]), along = off[0] * axis.dir[0] + off[1] * axis.dir[1] + off[2] * axis.dir[2];
-  const radial = off.map((x, k) => x - along * axis.dir[k]), external = radial[0] * f.normal[0] + radial[1] * f.normal[1] + radial[2] * f.normal[2] > 0;
-  return { body, face: f.name.split('+')[0].split('#')[0], radius: f.radius, external };
+  // Outward (a shaft) when the face's normals point away from its axis: summed over its vertices. (A whole round face's
+  // centroid lies on its axis and its mean normal is next to nothing: read from those, a tube's bore and its outside
+  // were told apart by rounding, the bore offered a shaft's relief groove and the outside a hole's clearance.)
+  const m = body.mesh, P = m.positions, N = m.normals; let out = 0;
+  for (let v = 0; v < m.faceOfVertex.length; v++) {
+    if (m.faceOfVertex[v] !== picks[0].face) continue;
+    const off = [0, 1, 2].map(k => P[3 * v + k] - axis.point[k]), along = off[0] * axis.dir[0] + off[1] * axis.dir[1] + off[2] * axis.dir[2];
+    out += [0, 1, 2].reduce((acc, k) => acc + (off[k] - along * axis.dir[k]) * N[3 * v + k], 0);
+  }
+  return { body, face: f.name.split('+')[0].split('#')[0], radius: f.radius, external: out > 0 };
 }
 /** The size row nearest a thread on a face (a shaft: its diameter; a hole: its tap drill), from the person's rows. */
 function threadSizeOf(ctx: Ctx, t: { radius: number; external: boolean }) {

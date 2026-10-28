@@ -23,6 +23,7 @@ import { defaultRender } from '@barocss/cad-model/engine/render';
 import { defaultDrawing } from '@barocss/cad-model/drawing/types';
 import { receivePersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
 import { loadPersonRows } from '@barocss/cad-model/chat/rows';
+import { part, Location } from '@barocss/cad-model/api';
 import SAMPLE_FASTENER_SIZES from '@barocss/cad-model/samples/rows/fastener-sizes.json';
 import SAMPLE_MOUNTS_JSON from '@barocss/cad-model/samples/rows/mounts.json';
 const SAMPLE_MOUNTS = SAMPLE_MOUNTS_JSON as unknown as { rows: import('@barocss/cad-model/engine/mountRows').StudioMountRow[] };
@@ -70,6 +71,9 @@ test('tool schemas: every buildable command is exposed and documented with the H
     union: sel({ bodies: [0, 1] }), difference: sel({ bodies: [0, 1] }), intersect: sel({ bodies: [0, 1] }),
     draft: sel({ faces: [{ body: 0, face: s.bodies[0].mesh.faces.find(f => f.name === 'n1.side0')!.index }] }),
     'offset-face': sel({ faces: [{ body: 0, face: top.index }] }),
+    // (A face fillet takes two flat faces of one body, not parallel; a full round the flat top of a wall.)
+    'face-fillet': sel({ faces: [{ body: 0, face: top.index }, { body: 0, face: s.bodies[0].mesh.faces.find(f => f.name === 'n1.side0')!.index }] }),
+    'full-round': sel({ faces: [{ body: 0, face: top.index }] }),
   };
   // The profile commands take the newest finished sketch: one drawn on the plate's top.
   const sketched = withNode(s.doc, { kind: 'sketch', profile: 'circle', center: [20, 16], radius: 4, plane: { origin: [0, 0, 8], normal: [0, 0, 1], xAxis: [1, 0, 0] }, on: { node: 1, side: 'solid' } });
@@ -135,6 +139,30 @@ test('tool schemas: every buildable command is exposed and documented with the H
     if (id === 'sprocket' || id === 'pulley' || id === 'coupling' || id === 'belt-drive') {
       const ctx: Ctx = { doc: chained.doc, bodies: chained.bodies, selection: id === 'belt-drive' ? sel({ bodies: [0, 1] }) : sel({}) }, cmd = commandById(id)!;
       assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
+    if (id === 'face-thread') {
+      // (A thread takes one round face: a shaft (the fit pair's pin) or a hole (its bore). Each shows its own values —
+      // a hole's nominal Ø and clearance, a shaft's relief groove — and the documented keys are the two together.)
+      const cmd = commandById(id)!, keys = new Set<string>();
+      const hole = faceOf('n1.hole0.side0');
+      for (const face of [faceOf('n3.side0'), hole, faceOf('n1.side0')]) {
+        const ctx: Ctx = { doc: fitted.doc, bodies: fitted.bodies, selection: sel({ faces: [face] }) };
+        assert.ok(cmd.available(ctx).ok, id);
+        const own = cmd.fields!(ctx).map(f => f.key);
+        // (The tube's bore is a hole; the pin and the tube's outside are shafts.)
+        assert.equal(own.includes('clear'), face === hole, `${id}: hole values on the bore only`);
+        for (const k of own) keys.add(k);
+      }
+      assert.deepEqual(keys, new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
+    if (id === 'linear-feature-pattern') {
+      // (A linear cut pattern takes the current result of a subtract: a plate with one slot cut.)
+      const cut = await stateOf(part('slotted').box({ w: 60, d: 30, h: 10 }).subtract(p => p.box({ w: 4, d: 4, h: 10, x: 0, y: 8 }).moved(Location.at([8, 0, 0]))).doc);
+      const ctx: Ctx = { doc: cut.doc, bodies: cut.bodies, selection: sel({ bodies: [0] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, `${id}: ${JSON.stringify(cmd.available(ctx))}`);
       assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
       continue;
     }
