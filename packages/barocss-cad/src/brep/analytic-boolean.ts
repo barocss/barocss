@@ -1357,6 +1357,68 @@ function rayMissesBox(lo: P3, hi: P3, x: P3, dir: P3, pad: number): boolean {
 
 // ---- the Boolean -------------------------------------------------------------------------------------
 interface Piece { face: GFace; region: CurveRegion2; out: 1 | -1; key: P3 }
+interface BooleanFaceSource { readonly operand: 0 | 1; readonly faceId: string }
+/** Exhaustive possible sources, not an exact area attribution after coplanar/cylindrical merging. */
+interface BooleanFaceSourceSet { readonly sources: readonly BooleanFaceSource[]; readonly complete: boolean }
+interface BooleanFaceSourceReceipt {
+  readonly faceSources: ReadonlyMap<string, BooleanFaceSourceSet>;
+  readonly complete: boolean;
+}
+interface BooleanFaceSourceTrace {
+  readonly inputs: WeakMap<GFace, BooleanFaceSourceSet>;
+  readonly pieces: WeakMap<Piece, BooleanFaceSourceSet>;
+  readonly results: WeakMap<Brep, BooleanFaceSourceReceipt>;
+  readonly unknown: BooleanFaceSourceSet;
+}
+interface SourceShell { readonly members: readonly number[] }
+interface SourceBody { readonly outer: SourceShell; readonly cavities: readonly SourceShell[] }
+function faceSourceTrace(a: Brep, b: Brep): BooleanFaceSourceTrace {
+  const all: BooleanFaceSource[] = [];
+  for (const face of a.faces) all.push({ operand: 0, faceId: face.id });
+  for (const face of b.faces) all.push({ operand: 1, faceId: face.id });
+  return { inputs: new WeakMap(), pieces: new WeakMap(), results: new WeakMap(), unknown: { sources: all, complete: false } };
+}
+function registerFaceSources(faces: readonly GFace[], trace: BooleanFaceSourceTrace): void {
+  for (const face of faces) trace.inputs.set(face, { sources: [{ operand: face.solid, faceId: face.id }], complete: true });
+}
+function sourcesOfPiece(piece: Piece, trace: BooleanFaceSourceTrace): BooleanFaceSourceSet {
+  // Every new Piece must inherit a receipt explicitly; shared GFace identity alone does not prove provenance.
+  return trace.pieces.get(piece) ?? trace.unknown;
+}
+function sourcesOfCluster(group: readonly Piece[], cluster: readonly number[], trace: BooleanFaceSourceTrace): BooleanFaceSourceSet {
+  const sources: BooleanFaceSource[] = [], a = new Set<string>(), b = new Set<string>();
+  let complete = true;
+  for (const index of cluster) {
+    const set = sourcesOfPiece(group[index], trace);
+    if (!set.complete) complete = false;
+    for (const source of set.sources) {
+      const seen = source.operand === 0 ? a : b;
+      if (seen.has(source.faceId)) continue;
+      seen.add(source.faceId); sources.push(source);
+    }
+  }
+  return { sources, complete };
+}
+function recordFaceSources(result: Brep, pieces: readonly Piece[], bodies: readonly SourceBody[], id: string, trace: BooleanFaceSourceTrace): void {
+  const faceSources = new Map<string, BooleanFaceSourceSet>();
+  let at = 0, complete = true;
+  // Check the body/shell/face ids supplied to buildBrep as well as its visitation order.
+  for (let body = 0; body < bodies.length; body++) {
+    const group = bodies[body];
+    for (let shell = 0; shell <= group.cavities.length; shell++) {
+      const own = shell === 0 ? group.outer : group.cavities[shell - 1];
+      for (const member of own.members) {
+        const face = result.faces[at++], expected = `${id}_body${body}/s${shell}/f${member}`;
+        const sources = face?.id === expected ? sourcesOfPiece(pieces[member], trace) : trace.unknown;
+        if (!face || !sources.complete) complete = false;
+        if (face) faceSources.set(face.id, sources);
+      }
+    }
+  }
+  if (at !== result.faces.length || faceSources.size !== result.faces.length) complete = false;
+  for (const face of result.faces) if (!faceSources.has(face.id)) faceSources.set(face.id, trace.unknown);
+  trace.results.set(result, { faceSources, complete });
+}
 /** Whether far faces kept whole are frozen in the stitch (D283). A switch for the differential test against the full
  * rebuild (test/incremental-stitch-differential.test.mjs) only; not exported from the package. */
 export const stitchFreezing = { on: true };
@@ -1408,7 +1470,22 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
   return analyticBoolean(a, b, operation, options, true);
 }
 type AnalyticOptions = { readonly id?: string; readonly exactEdges?: boolean; /** A tighter fit for newly created parametric boundary edges only; topology tolerances stay unchanged. */ readonly edgeFitTolerance?: number; /** b's faces (ids) that meet a's faces named in `contactWith` (base names) only along their own edges lying on them (a fillet tool's contact faces and the faces it rounds, D89). */ readonly contactFaces?: readonly string[]; readonly contactWith?: readonly string[] };
-function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: AnalyticOptions, rejudge: boolean): Brep {
+/**
+ * INTERNAL: the ordinary Boolean plus exhaustive possible input-face sources for each returned face.
+ * Not exported from the package entrypoint or stored in B-rep JSON. A merged face may list extra sources from its
+ * merge cluster; source presence does not prove full-face preservation. A consumer must reject incomplete receipts.
+ * Only the final returned B-rep's receipt is published, including after a rejudge or frozen-stitch retry.
+ */
+export function booleanAnalyticTraced(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: AnalyticOptions = {}): { readonly brep: Brep; readonly faceSources: ReadonlyMap<string, BooleanFaceSourceSet>; readonly complete: boolean } {
+  const trace = faceSourceTrace(a, b), brep = analyticBoolean(a, b, operation, options, true, trace);
+  const receipt = trace.results.get(brep);
+  if (receipt) return { brep, faceSources: receipt.faceSources, complete: receipt.complete };
+  // A future shortcut that does not pass through stitch cannot silently claim complete provenance.
+  const faceSources = new Map<string, BooleanFaceSourceSet>();
+  for (const face of brep.faces) faceSources.set(face.id, trace.unknown);
+  return { brep, faceSources, complete: false };
+}
+function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: AnalyticOptions, rejudge: boolean, trace?: BooleanFaceSourceTrace): Brep {
   // (An operation not named exactly is refused: it would otherwise fall through to another one's selection.)
   if (operation !== 'union' && operation !== 'intersection' && operation !== 'difference') throw new BrepError('INPUT', `analytic Boolean: operation must be union, intersection or difference, not ${String(operation)}`);
   const id = options.id ?? `analytic-${operation}`;
@@ -1418,6 +1495,7 @@ function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, 
   if (options.edgeFitTolerance !== undefined && !(Number.isFinite(options.edgeFitTolerance) && options.edgeFitTolerance > 0)) throw new BrepError('INPUT', 'analytic Boolean: edge fit tolerance must be positive and finite');
   const edgeFit = options.edgeFitTolerance === undefined ? undefined : Math.min(tol / 4, options.edgeFitTolerance);
   const A = facesOf(a, 0, tol), B = facesOf(b, 1, tol);
+  if (trace) { registerFaceSources(A, trace); registerFaceSources(B, trace); }
   // 1. Cuts.
   const contact = new Set(options.contactFaces ?? []), rounded = new Set((options.contactWith ?? []).map(baseName));
   const touchedAt: P3[] = [];
@@ -1472,12 +1550,13 @@ function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, 
     // (The key passed on as it is, found when first read.)
     const q = { face: p.face, out: (k === 'flip' ? -1 : 1) as 1 | -1, region: k === 'flip' ? { outer: reverse(p.region.outer), holes: p.region.holes.map(reverse) } : p.region } as Piece;
     Object.defineProperty(q, 'key', { get: () => p.key, enumerable: true });
+    if (trace) trace.pieces.set(q, trace.inputs.get(p.face) ?? trace.unknown);
     // (A far face kept as it is is frozen: stitch takes its loops and edges from its input; not one through a pole.)
     if (k === 'keep' && stitchFreezing.on && far.has(p) && !(p.face.surf.kind === 'nurbs' && p.face.surf.poles.length)) { const src = p.face.solid === 0 ? a : b, face = faceById(src).get(p.face.id); if (face) frozen.set(q, { face, brep: src }); }
     return [q]; });
   // (A tolerant input's — a fitted offset's, D110, D113 — pieces keep its tolerance: the result is tolerant as its worst.)
   const inputTol = Math.max(0, ...[a, b].flatMap(x => [...x.edges.map(e => e.tolerance), ...x.vertices.map(v => v.tolerance)]));
-  const result = stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false, inputTol, undefined, edgeFit, frozen);
+  const result = stitch(mergePieces(kept, tol, trace), id, tol, options.exactEdges !== false, inputTol, undefined, edgeFit, frozen, trace);
   if (!touches.length) return touchChecked(result, touchedAt);
   // (A piece re-judged where a surface only touches it leaves the result's boundary touching there. Two lumps meeting
   // there are two bodies, as D204 has them; one lump touching itself — empty on both sides of the touch, or the same
@@ -1487,7 +1566,7 @@ function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, 
     const self = selfTouch(result, t.x, t.n, tol);
     if (self) throw new Refused(`the result's boundary touches itself at (${t.x.map(v => +v.toFixed(4)).join(', ')}), where one surface only touches another: not a manifold solid (the inputs touch along an edge or at a vertex)`);
   }
-  if (!checkBrep(result, { strict: true }).valid || openByBody(result)) return analyticBoolean(a, b, operation, options, false);
+  if (!checkBrep(result, { strict: true }).valid || openByBody(result)) return analyticBoolean(a, b, operation, options, false, trace);
   return touchChecked(result, touchedAt);
 }
 /**
@@ -1835,7 +1914,7 @@ function clustersOf(boxes: readonly (readonly number[])[]): number[][] {
 }
 /** A bucket key of four integers (collisions only cost a check). */
 const planeKey = (a: number, b: number, c: number, d: number) => (Math.imul(a, 73856093) ^ Math.imul(b, 19349663) ^ Math.imul(c, 83492791) ^ Math.imul(d, 2654435761)) >>> 0;
-function mergePieces(pieces: Piece[], tol: number): Piece[] {
+function mergePieces(pieces: Piece[], tol: number, trace?: BooleanFaceSourceTrace): Piece[] {
   const facing = (p: Piece): P3 => { const s = p.face.surf; return s.kind === 'plane' ? scale(s.n, p.out) : s.kind === 'cylinder' ? scale(s.a, s.s * p.out) : [0, 0, 0]; };
   const same = (a: Piece, b: Piece) => {
     const A = a.face.surf, B = b.face.surf;
@@ -1871,10 +1950,10 @@ function mergePieces(pieces: Piece[], tol: number): Piece[] {
     if (list) list.push(groups.length); else planes.set(k, [groups.length]);
     groups.push([p]);
   }
-  return groups.flatMap(group => joinPieces(group, tol, true));
+  return groups.flatMap(group => joinPieces(group, tol, true, trace));
 }
 /** One group's pieces (one plane or cylinder) joined into as few faces as their union makes. */
-function joinPieces(group: Piece[], tol: number, split: boolean): Piece[] {
+function joinPieces(group: Piece[], tol: number, split: boolean, trace?: BooleanFaceSourceTrace): Piece[] {
   if (group.length === 1) return group;
   const first = group[0], s0 = first.face.surf;
   let host: GFace = { ...first.face, cuts: [] };
@@ -1897,7 +1976,7 @@ function joinPieces(group: Piece[], tol: number, split: boolean): Piece[] {
     // (Round the whole turn — a pipe's wall in a restored corner's pieces, F2, D287 — there is no gap for one face's
     // seam: the pieces are cut at two seams half a turn apart, the widest piece's start and its opposite, and each half
     // joined on its own, as an extruded circle's wall is two faces.)
-    if (gap < 1e-6) { const halves = split ? seamHalves(group, spans, tol) : null; return halves ? halves.flatMap(h => joinPieces(h, tol, false)) : group; }
+    if (gap < 1e-6) { const halves = split ? seamHalves(group, spans, tol, trace) : null; return halves ? halves.flatMap(h => joinPieces(h, tol, false, trace)) : group; }
     host = { ...host, surf: { ...s0, ref: at + Math.PI } };
   }
   // Rings in the host domain, made counter-clockwise (material left) for the union.
@@ -1910,12 +1989,16 @@ function joinPieces(group: Piece[], tol: number, split: boolean): Piece[] {
     // (A piece apart from the rest whose rings close is its own face as it is; one left open goes through the union.)
     if (cluster.length === 1 && regionCloses(group[cluster[0]].region)) return [group[cluster[0]]];
     const joined = booleanCurveRegions(cluster.flatMap(i => ringsOf[i]), [], 'union', tol, true);
+    // One cluster can yield several regions. Its source union is a conservative bound for every returned region.
+    const sources = trace ? sourcesOfCluster(group, cluster, trace) : null;
     return joined.map(region => {
       const back = flipped ? { outer: [...region.outer].reverse().map(segReverse), holes: region.holes.map(h => [...h].reverse().map(segReverse)) } : region;
       const p2 = regionInteriorPoint(region) ?? [0, 0];
       // (Named after the first piece lying in it: a cluster can join into more than one face.)
       const own = cluster.length === 1 ? group[cluster[0]] : cluster.map(i => group[i]).find(p => locateInRegion(to2(host, p.key), region, 10 * tol) === 'in') ?? group[cluster[0]];
-      return { face: own.face.name === host.name ? host : { ...host, name: own.face.name }, region: back, out: first.out, key: to3(host, p2) };
+      const piece: Piece = { face: own.face.name === host.name ? host : { ...host, name: own.face.name }, region: back, out: first.out, key: to3(host, p2) };
+      if (trace && sources) trace.pieces.set(piece, sources);
+      return piece;
     });
   });
 }
@@ -1923,7 +2006,7 @@ function joinPieces(group: Piece[], tol: number, split: boolean): Piece[] {
  * A whole turn's pieces of one cylinder in two halves, cut at the widest piece's start and half a turn on (each piece in
  * its own domain, only where a seam crosses it); null when a cut leaves nothing, the pieces then kept as they are.
  */
-function seamHalves(group: readonly Piece[], spans: readonly (readonly [number, number])[], tol: number): Piece[][] | null {
+function seamHalves(group: readonly Piece[], spans: readonly (readonly [number, number])[], tol: number, trace?: BooleanFaceSourceTrace): Piece[][] | null {
   let w = 0; for (let i = 1; i < spans.length; i++) if (spans[i][1] - spans[i][0] > spans[w][1] - spans[w][0]) w = i;
   const sw = group[w].face.surf as Cylinder, a0 = spans[w][0], dir = add(scale(sw.e1, Math.cos(a0)), scale(sw.e2, Math.sin(a0))), axis = sw.a;
   const halves: Piece[][] = [[], []];
@@ -1940,7 +2023,11 @@ function seamHalves(group: readonly Piece[], spans: readonly (readonly [number, 
     if (!cuts.length) { halves[sideOf(p)].push(p); continue; }
     const regions = curveFaceRegions([p.region.outer, ...p.region.holes], cuts, tol).filter(r => regionInteriorPoint(r) !== null && Math.abs(regionArea(r)) > tol * tol);
     if (!regions.length) return null;
-    for (const region of regions) { const q: Piece = { face: p.face, region, out: p.out, key: to3(p.face, regionInteriorPoint(region)!) }; halves[sideOf(q)].push(q); }
+    for (const region of regions) {
+      const q: Piece = { face: p.face, region, out: p.out, key: to3(p.face, regionInteriorPoint(region)!) };
+      if (trace) trace.pieces.set(q, sourcesOfPiece(p, trace));
+      halves[sideOf(q)].push(q);
+    }
   }
   return halves.filter(h => h.length);
 }
@@ -2183,13 +2270,13 @@ function keyOrder(a: P3, b: P3, eps: number): number {
 /** A kept piece that is an input face as it was (`frozen`): its loops and edges are taken from its B-rep, not rebuilt. */
 interface FrozenFace { readonly face: BrepFaceRecord; readonly brep: Brep }
 type BrepFaceRecord = Brep['faces'][number];
-function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0, names?: readonly (string | undefined)[], edgeFitTolerance?: number, frozen?: ReadonlyMap<Piece, FrozenFace>): Brep {
+function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0, names?: readonly (string | undefined)[], edgeFitTolerance?: number, frozen?: ReadonlyMap<Piece, FrozenFace>, trace?: BooleanFaceSourceTrace): Brep {
   // (Frozen faces — far from the other operand, kept whole — keep their input loops; their edges are put in first, and a
   // neighbour's boundary along one finds it as a copy of a curve is found. If that does not close up, the whole is rebuilt.)
-  if (frozen?.size) { try { return stitchWith(pieces, id, tol, exactEdges, inputTol, names, edgeFitTolerance, frozen); } catch (e) { if (!(e instanceof BrepError)) throw e; } }
-  return stitchWith(pieces, id, tol, exactEdges, inputTol, names, edgeFitTolerance);
+  if (frozen?.size) { try { return stitchWith(pieces, id, tol, exactEdges, inputTol, names, edgeFitTolerance, frozen, trace); } catch (e) { if (!(e instanceof BrepError)) throw e; } }
+  return stitchWith(pieces, id, tol, exactEdges, inputTol, names, edgeFitTolerance, undefined, trace);
 }
-function stitchWith(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0, names?: readonly (string | undefined)[], edgeFitTolerance?: number, frozen?: ReadonlyMap<Piece, FrozenFace>): Brep {
+function stitchWith(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0, names?: readonly (string | undefined)[], edgeFitTolerance?: number, frozen?: ReadonlyMap<Piece, FrozenFace>, trace?: BooleanFaceSourceTrace): Brep {
   const frozenAt = pieces.map(p => frozen?.get(p) ?? null);
   // Vertices merge a little more loosely than curves are fitted: an edge meeting a surface it touches
   // (a double root, as where a fillet meets a sloping side) lands within √ε of its true point.
@@ -2423,5 +2510,6 @@ function stitchWith(pieces: Piece[], id: string, tol: number, exactEdges = false
     const strict = checkBrep(result, { strict: true });
     if (!strict.valid) throw new BrepError('GEOMETRY', `analytic Boolean: the inputs graze within ${+(20 * tol).toPrecision(3)} mm (the merge radius) and the sliver between them cannot be built: ${strict.issues[0]}`, strict);
   }
+  if (trace) recordFaceSources(result, pieces, bodies, id, trace);
   return result;
 }

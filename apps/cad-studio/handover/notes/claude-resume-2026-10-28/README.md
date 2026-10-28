@@ -28,8 +28,9 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   B-rep fingerprints, shape/names/counts and every mass-property bit stay unchanged. Whole kernel1968 pass/0 fail/
   6 skip; focused Model23/23; docs pass. The earlier whole Model/Studio/browser results above retain D289's scope.
 - Next: roadmap07's non-adjacent free-form face fillet needs conservative Boolean face provenance before acceptance.
-  An unadopted internal tracing candidate and a bounded plane/Bezier corner candidate are being prepared in /tmp;
-  neither is product support. Then text/wrap, 08, 09. Font originals are ready, but font parsing and CAD text are not.
+  Internal Boolean face-source tracing is preserved as WIP after build/lint and16 focused passes (including the
+  ordinary/traced geometry comparison and cavity IDs). It is not yet whole-qualified or public feature support.
+  A bounded plane/Bezier corner candidate is being prepared in /tmp and is not adopted. Then text/wrap, 08, 09. Font originals are ready, but font parsing and CAD text are not.
   The next decision is D291.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
