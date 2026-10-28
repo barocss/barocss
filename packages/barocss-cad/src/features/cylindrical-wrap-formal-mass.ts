@@ -46,7 +46,7 @@ const SCALE = 1n << 128n;
 const MIDPOINT_DENOMINATOR = Number(SCALE << 1n);
 const MIDPOINT_MINIMUM = 1 / MIDPOINT_DENOMINATOR;
 const MIDPOINT_MAXIMUM = Number(1n << 127n);
-const ORDER = ['V', 'X', 'Y', 'Z', 'XX', 'YY', 'ZZ', 'XY', 'XZ', 'YZ'] as const;
+const ORDER = Object.freeze(['V', 'X', 'Y', 'Z', 'XX', 'YY', 'ZZ', 'XY', 'XZ', 'YZ'] as const);
 const LIMITS = Object.freeze({ operations: 200000, integerBits: 8192, work: 1048576, fractionBits: 128, atanTerms: 24, ratioReductions: 3 } as const);
 function fail(code: FormalPadMassCode, detail: string): never { throw kernelRefusal(SOURCE, code, `Formal pad mass: ${detail}`) as FormalPadMassError; }
 export function isFormalPadMassError(error: unknown): error is FormalPadMassError { try { return isFrom<FormalPadMassCode>(error, SOURCE); } catch { return false; } }
