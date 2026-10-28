@@ -75,6 +75,17 @@ export interface StudioTextOptions {
 }
 const TEXT_OPTIONS = new Set(['size', 'h', 'tolerance', 'tracking', 'plane']);
 
+/** World-XY baseline on one supported +Z top; the selected solid is embossed or engraved. */
+export interface StudioTextReliefOptions {
+  readonly size: Dim;
+  readonly depth: Dim;
+  readonly at: readonly [Dim, Dim];
+  readonly mode: 'emboss' | 'engrave';
+  readonly tolerance?: number;
+  readonly tracking?: Dim;
+}
+const TEXT_RELIEF_OPTIONS = new Set(['size', 'depth', 'at', 'mode', 'tolerance', 'tracking']);
+
 export class StudioPart extends Part<StudioDoc> {
   /** One authored output from original font bytes; separated glyph components may remain several physical bodies. */
   text(font: FontSource, text: string, options: StudioTextOptions): this {
@@ -93,6 +104,37 @@ export class StudioPart extends Part<StudioDoc> {
     const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
     if (why) throw refuse('VALUE', `the text: ${why}`);
     const index = doc.nodes.length, next = withNode(doc, node as ModelNode);
+    bodiesOf(next);
+    return this.next(next, bodyKey({ node: index, side: 'solid' }, next.nodes));
+  }
+
+  /** Modify one selected +Z top from original outlines; the bounded native profile contract rejects unsupported targets. */
+  textRelief(faces: (body: BodyQuery) => FaceQuery, font: FontSource, text: string, options: StudioTextReliefOptions): this {
+    if (!options || typeof options !== 'object' || Array.isArray(options) || !Object.hasOwn(options, 'size') || !Object.hasOwn(options, 'depth') || !Object.hasOwn(options, 'at') || !Object.hasOwn(options, 'mode')) throw refuse('VALUE', 'text relief takes required size, depth, at and mode options');
+    for (const key of Reflect.ownKeys(options)) if (typeof key !== 'string' || !TEXT_RELIEF_OPTIONS.has(key)) throw refuse('VALUE', 'text relief options are size, depth, at, mode, tolerance and tracking');
+    const sourceProblem = fontSourceError(font);
+    if (sourceProblem) throw refuse('VALUE', `the text relief font: ${sourceProblem}`);
+    let copied: { font: FontSource; options: StudioTextReliefOptions };
+    try { copied = structuredClone({ font, options }); }
+    catch { throw refuse('VALUE', 'text relief source and options must be copied plain values'); }
+    const given = copied.options, doc = this.document, before = bodiesOf(doc), target = this.target(), body = before.find(b => b.key === target);
+    if (!body) throw refuse('NO_BODY', 'text relief needs one selected body');
+    if (typeof faces !== 'function') throw refuse('VALUE', 'text relief takes a face selector');
+    const picked = faces(this.select());
+    if (!picked || typeof picked.names !== 'function') throw refuse('VALUE', 'text relief takes a face query from the selected body');
+    if (picked.count !== 1) throw refuse(picked.count ? 'VALUE' : 'SELECTION_EMPTY', 'text relief needs exactly one face');
+    const names = picked.names(), name = names[0];
+    if (names.length !== 1 || typeof name !== 'string' || name.includes('+')) throw refuse('VALUE', 'text relief needs one exact individual face name');
+    if (body.mesh.faces.filter(face => face.name === name).length !== 1) throw refuse('SELECTION_UNKNOWN', `no exact individual face named ${name} on the selected body`);
+    const { unknown } = resolveNames([body], { faces: [name] });
+    if (unknown.length) throw refuse('SELECTION_UNKNOWN', `no face named ${unknown.join(', ')} on the selected body`);
+    const node = { kind: 'text-relief', parent: refOf(body), faces: [name] as [string], text, font: copied.font,
+      size: given.size, at: given.at, depth: given.depth, mode: given.mode,
+      tolerance: given.tolerance === undefined ? 0.01 : given.tolerance,
+      ...(given.tracking === undefined ? {} : { tracking: given.tracking }) };
+    const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the text relief: ${why}`);
+    const index = doc.nodes.length, next = captureSignatures(withNode(doc, node as ModelNode), [body]);
     bodiesOf(next);
     return this.next(next, bodyKey({ node: index, side: 'solid' }, next.nodes));
   }

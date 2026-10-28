@@ -23,7 +23,7 @@ import { defaultRender } from '@barocss/cad-model/engine/render';
 import { defaultDrawing } from '@barocss/cad-model/drawing/types';
 import { receivePersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
 import { loadPersonRows } from '@barocss/cad-model/chat/rows';
-import { part, Location } from '@barocss/cad-model/api';
+import { part, Location, fontFromBytes } from '@barocss/cad-model/api';
 import SAMPLE_FASTENER_SIZES from '@barocss/cad-model/samples/rows/fastener-sizes.json';
 import SAMPLE_MOUNTS_JSON from '@barocss/cad-model/samples/rows/mounts.json';
 const SAMPLE_MOUNTS = SAMPLE_MOUNTS_JSON as unknown as { rows: import('@barocss/cad-model/engine/mountRows').StudioMountRow[] };
@@ -74,6 +74,7 @@ test('tool schemas: every buildable command is exposed and documented with the H
     // (A face fillet takes two flat faces of one body, not parallel; a full round the flat top of a wall.)
     'face-fillet': sel({ faces: [{ body: 0, face: top.index }, { body: 0, face: s.bodies[0].mesh.faces.find(f => f.name === 'n1.side0')!.index }] }),
     'full-round': sel({ faces: [{ body: 0, face: top.index }] }),
+    'text-relief': sel({ faces: [{ body: 0, face: top.index }] }),
   };
   // The profile commands take the newest finished sketch: one drawn on the plate's top.
   const sketched = withNode(s.doc, { kind: 'sketch', profile: 'circle', center: [20, 16], radius: 4, plane: { origin: [0, 0, 8], normal: [0, 0, 1], xAxis: [1, 0, 0] }, on: { node: 1, side: 'solid' } });
@@ -186,6 +187,22 @@ test('tool schemas: every buildable command is exposed and documented with the H
     assert.ok(cmd.available(ctx).ok, id);
     assert.deepEqual(new Set((cmd.fields?.(ctx) ?? []).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
   }
+});
+
+test('run_command text relief preserves the prepared original and atomically refuses unsupported placement', async () => {
+  const source = await fontFromBytes(new Uint8Array(readFileSync(join(process.cwd(), 'test/fixtures/fonts/abeezee/ABeeZee-Regular.ttf'))), { filename: 'ABeeZee-Regular.ttf', license: 'OFL-1.1' });
+  const base = await stateOf(rectanglePart(40, 30, 10)), before = structuredClone(base.doc);
+  const values = { text: 'A', font: JSON.stringify(source), size: 10, depth: 2, tolerance: 0.002, x: 5, y: 5, mode: 'emboss' };
+  const made = await runTool(base, 'run_command', { command: 'text-relief', faces: ['n1.top'], values }, evaluate);
+  assert.ok(!made.isError, made.content); assert.equal(made.changed, true);
+  const node = made.state.doc.nodes.at(-1); assert.ok(node?.kind === 'text-relief');
+  assert.equal(node.text, 'A'); assert.deepEqual(node.font, source); assert.deepEqual(node.faces, ['n1.top']); assert.ok(node.sigs?.['n1.top']);
+  assert.ok(Math.abs(volume(made.state) - 12029.7594) < 1e-8); assert.deepEqual(base.doc, before);
+  const bad = await runTool(base, 'run_command', { command: 'text-relief', faces: ['n1.top'], values: { ...values, x: 39 } }, evaluate);
+  assert.ok(bad.isError); assert.equal(bad.changed, false); assert.equal(bad.state, base); assert.deepEqual(base.doc, before);
+  assert.doesNotMatch(parse(bad.content).error, new RegExp(source.blob));
+  const side = await runTool(base, 'run_command', { command: 'text-relief', faces: ['n1.side0'], values }, evaluate);
+  assert.ok(side.isError); assert.equal(side.state, base);
 });
 
 test('run_command applies the UI’s rules: availability reasons, value keys and ranges, names, kernel refusals', async () => {

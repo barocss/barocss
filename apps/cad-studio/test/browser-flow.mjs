@@ -115,6 +115,13 @@ async function textReady(text, nodes, expected = null) {
     return !!body && (expected === null ? body.volume > 0 : Math.abs(body.volume - expected) < 1e-7);
   }, { text, nodes, expected }, { timeout: 30000 });
 }
+async function reliefReady(text, mode, expected) {
+  await page.waitForFunction(({ text, mode, expected }) => {
+    const state = window.__studioBodies?.(), node = window.__studioDoc?.nodes[2];
+    if (node?.kind !== 'text-relief' || node.text !== text || node.mode !== mode || !state?.fresh || state.massReady !== true || state.bodies.length !== 1) return false;
+    return state.bodies[0].key === 'b2' && (expected === null ? state.bodies[0].volume > 0 : Math.abs(state.bodies[0].volume - expected) < 1e-7);
+  }, { text, mode, expected }, { timeout: 30000 });
+}
 const history = () => page.locator('.history').innerText().catch(() => '');
 // (O18: and the bodies' masses, which the worker posts after its reply — every step that reads a volume waits here.)
 const idle = () => page.waitForFunction(() => !/Computing/.test(document.querySelector('.corner-left')?.textContent ?? '') && window.__studioBodies?.().massReady !== false, null, { timeout: 30000 });
@@ -937,6 +944,77 @@ try {
       await page.click('[aria-label="New part"]'); await openModel(saved, 1); await textReady('가한', 1); await idle();
       assert.deepEqual((await doc()).nodes, JSON.parse(JSON.stringify(accepted.nodes)));
       await iso(); await snap(filename.startsWith('nanum-gothic') ? 'text-korean-gothic-reopened' : 'text-korean-myeongjo-reopened');
+    }
+  });
+
+  await check('CG1 text relief: supported emboss, refused outside stroke, history edit, undo and portable Save/Open', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('40'); await field('Depth Y').fill('30'); await field('Height Z').fill('10');
+    await field('At X').fill('0'); await field('At Y').fill('0'); await field('At Z').fill('0'); await field('At Z').blur(); await hudReady();
+    await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioFresh === true); await idle();
+    const base = await doc(); await press('Escape');
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await press(' '); await page.locator('.palette input').fill('Text relief'); await press('Enter'); await hudReady();
+    await field('Text').fill('A'); await field('Em size').fill('10'); await field('Depth').fill('2');
+    await field('Curve tolerance').fill('0.002'); await field('Baseline X').fill('5'); await field('Baseline Y').fill('5');
+    await field('Font file').setInputFiles(join(root, 'test/fixtures/fonts/abeezee/ABeeZee-Regular.ttf')); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    assert.doesNotMatch(await page.locator('.hud').innerText(), /"blob"|[a-f0-9]{64}/);
+    // One outside stroke must refuse the whole candidate, preserving the accepted base.
+    await field('Baseline X').fill('39'); await field('Baseline X').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'refused');
+    assert.ok(await page.locator('.hud button', { hasText: 'Apply' }).isDisabled()); assert.deepEqual((await doc()).nodes, base.nodes);
+    await field('Baseline X').fill('5'); await field('Baseline X').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview'); await iso(); await snap('text-relief-emboss-preview');
+    await page.locator('.hud button', { hasText: 'Apply' }).click(); await reliefReady('A', 'emboss', 12029.7594); await idle();
+    const embossed = await doc(); assert.equal(embossed.nodes[2].sigs['n1.top'].k, 'plane');
+    assert.deepEqual(embossed.nodes[2].faces, ['n1.top']); await iso(); await snap('text-relief-emboss-applied');
+    await press('Escape'); await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioFresh === true); await idle(); assert.deepEqual((await doc()).nodes, base.nodes);
+    await press('Meta+Shift+z'); await reliefReady('A', 'emboss', 12029.7594); await idle();
+    await press('Escape'); await page.locator('.history button[data-node-index="2"]').click(); await page.waitForSelector('.hud[aria-label="Edit Text relief"]');
+    await field('Operation').selectOption('engrave'); await field('Depth').fill('1.5'); await field('Depth').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+    await page.locator('.hud button', { hasText: 'Apply' }).click(); await reliefReady('A', 'engrave', 11977.68045); await idle();
+    const engraved = await doc(); assert.equal(engraved.nodes[2].id, embossed.nodes[2].id); assert.deepEqual(engraved.nodes[2].font, embossed.nodes[2].font);
+    assert.deepEqual(engraved.nodes[2].sigs, embossed.nodes[2].sigs); await iso(); await snap('text-relief-engrave-applied');
+    const [download] = await Promise.all([page.waitForEvent('download'), page.click('[aria-label="Save"]')]);
+    const saved = join(out, 'text-relief-original-font-saved.bcad'); await download.saveAs(saved); assert.equal(readFileSync(saved).subarray(0, 8).toString(), 'BCADPACK');
+    await page.click('[aria-label="New part"]'); await openModel(saved, 3); await reliefReady('A', 'engrave', 11977.68045); await idle();
+    assert.deepEqual((await doc()).nodes, JSON.parse(JSON.stringify(engraved.nodes)));
+    await page.locator('.history button[data-node-index="2"]').click(); await page.waitForSelector('.hud[aria-label="Edit Text relief"]');
+    assert.equal(await field('Font file').inputValue(), ''); assert.match(await page.locator('.hud').innerText(), /ABeeZee-Regular.ttf/);
+    await field('Depth').fill('2'); await field('Depth').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+    await page.locator('.hud button', { hasText: 'Apply' }).click(); await reliefReady('A', 'engrave', 11970.2406); await idle(); await iso(); await snap('text-relief-reopened-edited');
+  });
+
+  await check('CG1 text relief Korean: both selected originals preserve separated strokes and counters through engrave and reopen', async () => {
+    for (const font of ['nanum-gothic/NanumGothic-Regular.ttf', 'nanum-myeongjo/NanumMyeongjo-Regular.ttf']) {
+      await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+      await field('Width X').fill('40'); await field('Depth Y').fill('30'); await field('Height Z').fill('10');
+      await field('At X').fill('0'); await field('At Y').fill('0'); await field('At Z').fill('0'); await field('At Z').blur(); await hudReady();
+      await page.locator('.hud button', { hasText: 'Apply' }).click();
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioFresh === true); await idle(); await press('Escape');
+      assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+      await press(' '); await page.locator('.palette input').fill('Text relief'); await press('Enter'); await hudReady();
+      await field('Text').fill('가한'); await field('Em size').fill('10'); await field('Depth').fill('2');
+      await field('Curve tolerance').fill('0.01'); await field('Baseline X').fill('5'); await field('Baseline Y').fill('5');
+      await field('Font file').setInputFiles(join(root, 'test/fixtures/fonts', font)); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+      await page.locator('.hud button', { hasText: 'Apply' }).click(); await reliefReady('가한', 'emboss', null); await idle();
+      const raised = await page.evaluate(() => window.__studioBodies().bodies[0].volume); assert.ok(raised > 12000);
+      const original = await doc(); await iso(); await snap(font.startsWith('nanum-gothic') ? 'text-relief-gothic-emboss' : 'text-relief-myeongjo-emboss');
+      await press('Escape'); await page.locator('.history button[data-node-index="2"]').click(); await page.waitForSelector('.hud[aria-label="Edit Text relief"]');
+      await field('Operation').selectOption('engrave'); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+      await page.locator('.hud button', { hasText: 'Apply' }).click(); await reliefReady('가한', 'engrave', 24000 - raised); await idle();
+      const accepted = await doc(); assert.deepEqual(accepted.nodes[2].font, original.nodes[2].font);
+      const [download] = await Promise.all([page.waitForEvent('download'), page.click('[aria-label="Save"]')]);
+      const saved = join(out, font.startsWith('nanum-gothic') ? 'text-relief-gothic.bcad' : 'text-relief-myeongjo.bcad'); await download.saveAs(saved);
+      await page.click('[aria-label="New part"]'); await openModel(saved, 3); await reliefReady('가한', 'engrave', 24000 - raised); await idle();
+      assert.deepEqual((await doc()).nodes, JSON.parse(JSON.stringify(accepted.nodes))); await iso(); await snap(font.startsWith('nanum-gothic') ? 'text-relief-gothic-reopened' : 'text-relief-myeongjo-reopened');
     }
   });
 

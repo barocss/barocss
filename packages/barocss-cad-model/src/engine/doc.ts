@@ -80,6 +80,8 @@ export interface FrameStockRow { id: string; length: number; count?: number; sec
 export interface DocPlane { origin: [number, number, number]; normal: [number, number, number]; xAxis: [number, number, number] }
 /** A standalone solid from a scalar run. Size is em height; tolerance is an explicit chord-error bound. */
 export interface TextNode { kind: 'text'; text: string; font: FontSource; size: Dim; height: Dim; tolerance: number; tracking?: Dim; plane?: DocPlane }
+/** Bounded +Z cap text modifier. The kernel derives the current top level from the selected parent face. */
+export interface TextReliefNode { kind: 'text-relief'; parent: BodyRef; faces: [string]; text: string; font: FontSource; size: Dim; at: [Dim, Dim]; depth: Dim; mode: 'emboss' | 'engrave'; tolerance: number; tracking?: Dim }
 
 function textRecord(value: unknown): value is Record<string, unknown> { return !!value && typeof value === 'object' && !Array.isArray(value); }
 function textDimension(value: unknown, parameters: Readonly<Record<string, number>>): number | null {
@@ -93,23 +95,33 @@ function textVector(value: unknown, bound: boolean): value is [number, number, n
   for (let i = 0; i < 3; i++) if (typeof value[i] !== 'number' || !Number.isFinite(value[i]) || bound && Math.abs(value[i]) > CadPartLimits.length) return false;
   return true;
 }
+function textSourceProblem(input: Record<string, unknown>, label: string): string | null {
+  if (typeof input.text !== 'string' || input.text.length > 512 || !input.text.trim()) return `${label}: a nonempty printable scalar run of at most 256 scalars is required.`;
+  let count = 0;
+  for (const scalar of input.text) {
+    const code = scalar.codePointAt(0)!;
+    if (++count > 256 || code >= 0xd800 && code <= 0xdfff || code < 0x20 || code >= 0x7f && code <= 0x9f) return `${label}: only 1 to 256 printable Unicode scalars are accepted.`;
+  }
+  const sourceProblem = fontSourceError(input.font);
+  if (sourceProblem) return `${label}: ${sourceProblem}`;
+  return null;
+}
+function textSizingProblem(input: Record<string, unknown>, parameters: Readonly<Record<string, number>>, size: number, label: string): string | null {
+  if (typeof input.tolerance !== 'number' || !Number.isFinite(input.tolerance) || input.tolerance < CadNumericPolicy.linearTolerance || input.tolerance > size / 8) return `${label}: tolerance must be at least the CAD linear floor and at most one eighth of the em size.`;
+  if (input.tracking !== undefined && textDimension(input.tracking, parameters) === null) return `${label}: tracking must resolve to a finite native length.`;
+  return null;
+}
 /** Current text-node admission only; no missing fields are filled and no source data is rewritten. */
 export function textNodeProblem(input: unknown, parameters: Readonly<Record<string, number>>): string | null {
   if (!textRecord(input) || input.kind !== 'text') return 'Text solid: a text recipe object is required.';
   const allowed = new Set(['kind', 'text', 'font', 'size', 'height', 'tolerance', 'tracking', 'plane', ...NODE_EXTRA_FIELDS]);
   for (const key of Object.keys(input)) if (!allowed.has(key)) return `Text solid: unknown field ${key}.`;
-  if (typeof input.text !== 'string' || input.text.length > 512 || !input.text.trim()) return 'Text solid: a nonempty printable scalar run of at most 256 scalars is required.';
-  let count = 0;
-  for (const scalar of input.text) {
-    const code = scalar.codePointAt(0)!;
-    if (++count > 256 || code >= 0xd800 && code <= 0xdfff || code < 0x20 || code >= 0x7f && code <= 0x9f) return 'Text solid: only 1 to 256 printable Unicode scalars are accepted.';
-  }
-  const sourceProblem = fontSourceError(input.font);
-  if (sourceProblem) return `Text solid: ${sourceProblem}`;
+  const sourceProblem = textSourceProblem(input, 'Text solid');
+  if (sourceProblem) return sourceProblem;
   const size = textDimension(input.size, parameters), height = textDimension(input.height, parameters);
   if (size === null || size <= 0 || height === null || height <= 0) return 'Text solid: size and height must resolve to positive native lengths.';
-  if (typeof input.tolerance !== 'number' || !Number.isFinite(input.tolerance) || input.tolerance < CadNumericPolicy.linearTolerance || input.tolerance > size / 8) return 'Text solid: tolerance must be at least the CAD linear floor and at most one eighth of the em size.';
-  if (input.tracking !== undefined && textDimension(input.tracking, parameters) === null) return 'Text solid: tracking must resolve to a finite native length.';
+  const sizingProblem = textSizingProblem(input, parameters, size, 'Text solid');
+  if (sizingProblem) return sizingProblem;
   if (input.id !== undefined && (typeof input.id !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(input.id))) return 'Text solid: the authored feature id is invalid.';
   if (input.suppressed !== undefined && input.suppressed !== true) return 'Text solid: suppressed, when present, must be true.';
   if (input.bought !== undefined && typeof input.bought !== 'boolean') return 'Text solid: bought must be boolean.';
@@ -123,6 +135,44 @@ export function textNodeProblem(input: unknown, parameters: Readonly<Record<stri
   }
   return null;
 }
+function reliefSignatureProblem(value: unknown): boolean {
+  if (!textRecord(value)) return true;
+  for (const key of Object.keys(value)) if (key !== 'k' && key !== 'p' && key !== 'd' && key !== 's' && key !== 'r' && key !== 'n') return true;
+  if (value.k !== 'plane' || !textVector(value.p, true) || !textVector(value.d, false) || Math.hypot(...value.d) <= 1e-12 || !Number.isFinite(Math.hypot(...value.d))) return true;
+  if (typeof value.s !== 'number' || !Number.isFinite(value.s) || value.s < 0) return true;
+  if (value.r !== undefined && (typeof value.r !== 'number' || !Number.isFinite(value.r) || value.r < 0)) return true;
+  return value.n !== undefined && value.n !== 1;
+}
+/** Structural admission only. An omitted selected-face signature is refused later at native expansion. */
+export function textReliefNodeProblem(input: unknown, parameters: Readonly<Record<string, number>>): string | null {
+  if (!textRecord(input) || input.kind !== 'text-relief') return 'Text relief: a text recipe modifier is required.';
+  const allowed = new Set(['kind', 'parent', 'faces', 'text', 'font', 'size', 'at', 'depth', 'mode', 'tolerance', 'tracking', ...NODE_EXTRA_FIELDS]);
+  for (const key of Object.keys(input)) if (!allowed.has(key)) return `Text relief: unknown field ${key}.`;
+  const sourceProblem = textSourceProblem(input, 'Text relief');
+  if (sourceProblem) return sourceProblem;
+  const size = textDimension(input.size, parameters), depth = textDimension(input.depth, parameters);
+  if (size === null || size <= 0 || depth === null || depth <= 0) return 'Text relief: size and depth must resolve to positive native lengths.';
+  const sizingProblem = textSizingProblem(input, parameters, size, 'Text relief');
+  if (sizingProblem) return sizingProblem;
+  if (!Array.isArray(input.at) || input.at.length !== 2 || textDimension(input.at[0], parameters) === null || textDimension(input.at[1], parameters) === null) return 'Text relief: at must contain two finite native dimensions.';
+  const parent = input.parent;
+  if (!textRecord(parent) || Object.keys(parent).sort().join(',') !== 'node,side' || !Number.isSafeInteger(parent.node) || (parent.node as number) < 0 || typeof parent.side !== 'string' || !/^(solid|negative|positive|instance[123]|part(0|[1-9]\d*))$/.test(parent.side)) return 'Text relief: a valid parent body reference is required.';
+  if (!Array.isArray(input.faces) || input.faces.length !== 1 || typeof input.faces[0] !== 'string' || !input.faces[0].trim() || input.faces[0].includes('+') || input.faces[0].includes('\0')) return 'Text relief: exactly one unmerged persistent face name is required.';
+  if (input.mode !== 'emboss' && input.mode !== 'engrave') return 'Text relief: mode must be emboss or engrave.';
+  if (input.id !== undefined && (typeof input.id !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(input.id))) return 'Text relief: the authored feature id is invalid.';
+  if (input.suppressed !== undefined && input.suppressed !== true) return 'Text relief: suppressed, when present, must be true.';
+  if (input.bought !== undefined && typeof input.bought !== 'boolean') return 'Text relief: bought must be boolean.';
+  if (input.held !== undefined && typeof input.held !== 'string') return 'Text relief: held must be a string.';
+  if (input.rematched !== undefined) {
+    if (!textRecord(input.rematched)) return 'Text relief: rematched values must be persistent names.';
+    for (const name of Object.values(input.rematched)) if (typeof name !== 'string') return 'Text relief: rematched values must be persistent names.';
+  }
+  if (input.sigs !== undefined) {
+    if (!textRecord(input.sigs)) return 'Text relief: sigs must be a signature record.';
+    for (const signature of Object.values(input.sigs)) if (reliefSignatureProblem(signature)) return 'Text relief: face signatures must be individual finite plane signatures.';
+  }
+  return null;
+}
 /** Validate text recipes in saved part trees without loading fonts or evaluating geometry. */
 export function textDocumentProblem(input: unknown): string | null {
   const stack: unknown[] = [input], seen = new Set<object>();
@@ -132,7 +182,13 @@ export function textDocumentProblem(input: unknown): string | null {
     seen.add(value);
     if (seen.size > 2048) return 'Text solid: the part tree exceeds its fixed document budget.';
     const parameters = textRecord(value.parameters) ? value.parameters as Record<string, number> : {};
-    if (Array.isArray(value.nodes)) for (const node of value.nodes) if (textRecord(node) && node.kind === 'text') { const why = textNodeProblem(node, parameters); if (why) return why; }
+    if (Array.isArray(value.nodes)) for (let i = 0; i < value.nodes.length; i++) {
+      const node = value.nodes[i];
+      if (!textRecord(node) || node.kind !== 'text' && node.kind !== 'text-relief') continue;
+      const why = node.kind === 'text' ? textNodeProblem(node, parameters) : textReliefNodeProblem(node, parameters);
+      if (why) return why;
+      if (node.kind === 'text-relief' && (node.parent as BodyRef).node >= i) return 'Text relief: the parent must precede its modifier.';
+    }
     if (Array.isArray(value.instances)) for (const instance of value.instances) if (textRecord(instance)) stack.push(instance.doc);
     if (textRecord(value.pendingParts)) for (const pending of Object.values(value.pendingParts)) if (textRecord(pending)) stack.push(pending.doc);
   }
@@ -195,7 +251,7 @@ export type NodeExtras = { suppressed?: true; id?: string; rematched?: Record<st
  */
 export const NODE_EXTRA_FIELDS = ['suppressed', 'id', 'rematched', 'sigs', 'held', 'bought'] as const satisfies readonly (keyof NodeExtras)[];
 export const _nodeFieldsComplete: [Exclude<keyof NodeExtras, typeof NODE_EXTRA_FIELDS[number]>] extends [never] ? true : never = true;
-type ModelNodeBase = SketchNode | TextNode
+type ModelNodeBase = SketchNode | TextNode | TextReliefNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
   /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */
@@ -876,6 +932,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
   if ('made' in node && node.made) return shapeLabel(node.made);
   switch (node.kind) {
     case 'text': return `Text · ${node.text}`;
+    case 'text-relief': return `${node.mode === 'emboss' ? 'Text emboss' : 'Text engrave'} · ${node.text}`;
     case 'sketch': return `Sketch · ${node.profile === 'loop' ? 'outline' : node.profile}`;
     case 'extrude': {
       const s = nodes[node.sketch];

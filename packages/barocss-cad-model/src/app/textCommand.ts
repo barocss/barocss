@@ -12,7 +12,7 @@ const DIMENSION_KEYS: readonly DimensionKey[] = ['size', 'height', 'tracking'];
 const VALUE_KEYS = new Set(['text', 'font', 'size', 'height', 'tolerance', 'tracking']);
 const OK = { ok: true } as const;
 
-function fontValue(value: number | string | undefined, load: boolean): FontSource {
+export function readTextFontValue(value: number | string | undefined, load: boolean): FontSource {
   if (typeof value !== 'string' || !value.trim() || value.length > MAX_FONT_VALUE || fontValueEncoder.encode(value).byteLength > MAX_FONT_VALUE) throw refusal('VALUE', 'Choose a prepared TrueType font file.');
   let decoded: unknown;
   try { decoded = JSON.parse(value); } catch { throw refusal('VALUE', 'Choose a prepared TrueType font file.'); }
@@ -23,7 +23,7 @@ function fontValue(value: number | string | undefined, load: boolean): FontSourc
   return source;
 }
 function filename(value: number | string): string | null {
-  try { const font = fontValue(value, false); return hasBlob(font.blob) ? font.filename : null; } catch { return null; }
+  try { const font = readTextFontValue(value, false); return hasBlob(font.blob) ? font.filename : null; } catch { return null; }
 }
 const TEXT_FIELDS: readonly Field[] = [
   { key: 'text', label: 'Text', kind: 'text', maxLength: 512 },
@@ -52,7 +52,7 @@ function checked(node: TextNode, doc: StudioDoc): TextNode {
 }
 function build(ctx: Ctx, values: Values): StudioDoc {
   const node: TextNode = {
-    kind: 'text', text: textValue(values.text), font: fontValue(values.font, true),
+    kind: 'text', text: textValue(values.text), font: readTextFontValue(values.font, true),
     size: numberValue(values.size, 'Em size'), height: numberValue(values.height, 'Height'),
     tolerance: numberValue(values.tolerance, 'Curve tolerance'), tracking: numberValue(values.tracking, 'Tracking'),
   };
@@ -91,7 +91,7 @@ function editedNode(before: TextNode, values: Values, doc: StudioDoc): TextNode 
   }
   let node: TextNode = { ...before };
   if ('text' in values) node = { ...node, text: textValue(values.text) };
-  if ('font' in values) node = { ...node, font: fontValue(values.font, true) };
+  if ('font' in values) node = { ...node, font: readTextFontValue(values.font, true) };
   if ('tolerance' in values) node = { ...node, tolerance: numberValue(values.tolerance, 'Curve tolerance') };
   for (let i = 0; i < DIMENSION_KEYS.length; i++) {
     const key = DIMENSION_KEYS[i];

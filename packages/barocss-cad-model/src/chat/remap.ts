@@ -32,9 +32,9 @@ export function renameIds<T>(v: T, ids: ReadonlyMap<string, string>): T {
     if (typeof x === 'string') return str(x);
     if (Array.isArray(x)) { const out: unknown[] = []; for (const item of x) out.push(walk(item)); return out; }
     if (isObj(x)) {
-      const out: Record<string, unknown> = {}, textNode = x.kind === 'text' && typeof x.text === 'string' && isObj(x.font);
+      const out: Record<string, unknown> = {}, textNode = (x.kind === 'text' || x.kind === 'text-relief') && typeof x.text === 'string' && isObj(x.font);
       const args = isObj(x.args) ? x.args : undefined;
-      const textCommand = x.tool === 'run_command' && args?.command === 'text' && isObj(args.values);
+      const textCommand = x.tool === 'run_command' && (args?.command === 'text' || args?.command === 'text-relief') && isObj(args.values);
       for (const [k, y] of Object.entries(x)) {
         if ((textNode || context === 'text-command-values') && (k === 'text' || k === 'font')) out[k] = copyOpaque(y);
         else if (textCommand && k === 'args') out[str(k)] = walk(y, 'text-command-args');

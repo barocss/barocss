@@ -55,6 +55,7 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
     case 'chamfer': case 'fillet': return { ...node, parent: ref(node.parent), edges: node.edges.map(name) };
     case 'sheet-flange': case 'sheet-corner-relief': return { ...node, parent: ref(node.parent), edges: [name(node.edges[0])] };
     case 'draft': case 'full-round': return { ...node, parent: ref(node.parent), faces: node.faces.map(name) };
+    case 'text-relief': return { ...node, parent: ref(node.parent), faces: [name(node.faces[0])] };
     case 'face-fillet': return { ...node, parent: ref(node.parent), faces: [name(node.faces[0]), name(node.faces[1])] };
     case 'face-thread': return { ...node, parent: ref(node.parent), face: name(node.face) };
     case 'shell': return { ...node, parent: ref(node.parent), open: node.open.map(name) };
@@ -64,7 +65,9 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
 
 /** Parameter references replaced by their values (the parts' parameters may share names). */
 function inlineParameters(node: ModelNode, parameters: Record<string, number>): ModelNode {
+  const font = node.kind === 'text' || node.kind === 'text-relief' ? node.font : undefined;
   const walk = (v: unknown): unknown => {
+    if (font && v === font) return v;
     if (Array.isArray(v)) return v.map(walk);
     if (v && typeof v === 'object') {
       const keys = Object.keys(v);

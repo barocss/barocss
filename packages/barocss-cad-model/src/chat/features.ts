@@ -5,7 +5,7 @@
 // (engine/ids.ts), so they stay as they are.
 import { type BoundConstraint3D, type V3 } from '../frames/sketch3d';
 import { boundConstraints, boundRefusal, followersOf, SKELETON_CODES } from '../frames/skeleton';
-import { frameGeometry, textNodeProblem, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
+import { frameGeometry, textNodeProblem, textReliefNodeProblem, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
 import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
@@ -34,6 +34,7 @@ const SPECS: Record<string, Spec> = {
   difference: { parent: 'ref', tool: 'ref' },
   rib: { parent: 'ref', min: 'dim3', max: 'dim3' },
   'rectangular-relief': { parent: 'ref', min: 'dim2', max: 'dim2', depth: 'dim', mode: 'enum:emboss|engrave' },
+  'text-relief': { parent: 'ref', faces: 'names1', text: 'text', font: 'any', size: 'dim', depth: 'dim', at: 'dim2', mode: 'enum:emboss|engrave', tolerance: 'num', 'tracking?': 'dim' },
   split: { parent: 'ref', at: 'dim', axis: 'enum:x|y|z' },
   shell: { parent: 'ref', thickness: 'dim', open: 'names' },
   draft: { parent: 'ref', faces: 'names1', angle: 'num', 'pull?': 'enum:x|y|z|-x|-y|-z', 'neutral?': 'dim' },
@@ -134,6 +135,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
     if (why) return `${kind}.${key}: ${why}`;
   }
   if (kind === 'text') return textNodeProblem(node, parameters);
+  if (kind === 'text-relief') return textReliefNodeProblem(node, parameters);
   if (kind === 'linear-feature-pattern') {
     const parent = node.parent as unknown as BodyRef, source = nodes[parent.node];
     if (parent.side !== 'solid' || source?.kind !== 'difference' || source.suppressed === true) return '[BAD_REFERENCE] A linear feature pattern needs a current unsuppressed difference body.';

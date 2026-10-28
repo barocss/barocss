@@ -41,6 +41,9 @@ export function withIds<T extends Pick<StudioDoc, 'nodes' | 'nextId'>>(doc: T): 
 const indexCache = new WeakMap<readonly ModelNode[], Map<string, number>>();
 const TEXT_INTERNAL = /^(.+)_g(0|[1-9]\d*)_c(0|[1-9]\d*)_(sketch|extrude|union)$/;
 function textOwner(id: string): string | null { return TEXT_INTERNAL.exec(id)?.[1] ?? null; }
+function textInternalOwner(node: ModelNode, id: string): boolean {
+  return node.kind === 'text' || node.kind === 'text-relief' && TEXT_INTERNAL.exec(id)?.[4] === 'sketch';
+}
 
 /** The authored node of an exact id, a patterned hole, or a strictly formed text component id. */
 export function nodeIndexOf(nodes: readonly ModelNode[], id: string): number {
@@ -49,7 +52,7 @@ export function nodeIndexOf(nodes: readonly ModelNode[], id: string): number {
   const direct = map.get(id) ?? map.get(id.replace(/_p\d+$/, ''));
   if (direct !== undefined) return direct;
   const owner = textOwner(id), index = owner === null ? undefined : map.get(owner);
-  return index !== undefined && nodes[index].kind === 'text' ? index : -1;
+  return index !== undefined && textInternalOwner(nodes[index], id) ? index : -1;
 }
 
 /**
@@ -75,7 +78,7 @@ export function fromFeature(name: string, id: string, nodes?: readonly ModelNode
     if (feature === id || feature.replace(/_p\d+$/, '') === id) return true;
     if (!nodes || textOwner(feature) !== id) continue;
     const owner = nodeIndexOf(nodes, id);
-    if (owner >= 0 && nodes[owner].kind === 'text' && nodeIndexOf(nodes, feature) === owner) return true;
+    if (owner >= 0 && textInternalOwner(nodes[owner], feature) && nodeIndexOf(nodes, feature) === owner) return true;
   }
   return false;
 }

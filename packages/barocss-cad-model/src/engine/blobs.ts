@@ -75,7 +75,7 @@ function fontHash(value: unknown): string | null {
   return typeof blob === 'string' && FONT_HASH.test(blob) ? blob : null;
 }
 function preparedFontHash(operation: Record<string, unknown>): string | null {
-  if (operation.tool !== 'run_command' || !refRecord(operation.args) || operation.args.command !== 'text' || !refRecord(operation.args.values)) return null;
+  if (operation.tool !== 'run_command' || !refRecord(operation.args) || operation.args.command !== 'text' && operation.args.command !== 'text-relief' || !refRecord(operation.args.values)) return null;
   const json = operation.args.values.font;
   if (typeof json !== 'string' || json.length > FONT_JSON_LIMIT || fontJsonEncoder.encode(json).byteLength > FONT_JSON_LIMIT) return null;
   try { return fontHash(JSON.parse(json)); }
@@ -103,11 +103,11 @@ function opRefs(v: unknown, out: Set<string>, fontsOnly: boolean): void {
   const o = v as Record<string, unknown>;
   const prepared = preparedFontHash(o);
   if (prepared) out.add(prepared);
-  if (o.kind === 'mesh' || o.kind === 'text') addRefs(o as unknown as ModelNode, out, fontsOnly);
+  if (o.kind === 'mesh' || o.kind === 'text' || o.kind === 'text-relief') addRefs(o as unknown as ModelNode, out, fontsOnly);
   for (const x of Object.values(o)) if (x && typeof x === 'object') opRefs(x, out, fontsOnly);
 }
 function addRefs(n: ModelNode, out: Set<string>, fontsOnly: boolean): void {
-  if (n.kind === 'text') { const hash = fontHash(n.font); if (hash) out.add(hash); }
+  if (n.kind === 'text' || n.kind === 'text-relief') { const hash = fontHash(n.font); if (hash) out.add(hash); }
   if (fontsOnly) return;
   if (n.kind === 'mesh' && n.blob) { out.add(n.blob.positions); out.add(n.blob.indices); }
   // (A repair's result: its own blobs, the original kept beside them, D47.)

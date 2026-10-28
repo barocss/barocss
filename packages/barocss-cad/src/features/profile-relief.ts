@@ -1,11 +1,12 @@
 import { checkBrep, type Brep, type BrepFace, type BrepVertex, type BrepEdge, type BrepCoedge, type BrepLoop } from '../brep/brep-core.js';
-import { booleanPolygons, isPlanarArrangementError, type PolygonWithHoles } from '../brep/planar-arrangement.js';
-import { type CurveRegion2, type CurveSegment2, type XY } from '../brep/curved-arrangement.js';
+import { booleanPolygons, exactOrient2, exactPoint2FromXY, isPlanarArrangementError, type ExactPoint2, type PolygonWithHoles } from '../brep/planar-arrangement.js';
+import { booleanCurveRegions, curveTolerance, type CurveRegion2, type CurveSegment2, type XY } from '../brep/curved-arrangement.js';
 import { prismaticMassProperties } from '../brep/solid-mass.js';
 import { CadNumericPolicy, linearToleranceMM } from '../numeric-policy.js';
+import { binary64Dyadic } from '../core/dyadic.js';
 import { SectionRationalContext, type SectionRational } from '../section-rational-internal.js';
 import { buildProfileLoop, ExtrudedProfileLimits, type ProfileSegmentInput } from './extruded-profile-solid.js';
-import { booleanPrismatic, brepFromPrismatic, prismaticFromProfile, prismaticVolume, type PrismaticSolid } from './prismatic-solid.js';
+import { brepFromPrismatic, prismaticFromProfile, prismaticVolume, type PrismaticCapSource, type PrismaticSolid } from './prismatic-solid.js';
 import type { Point } from '../types.js';
 import type { CadPartErrorCode } from '../part/part-model.js';
 
@@ -20,6 +21,10 @@ type Fail = (code: CadPartErrorCode, detail: string) => never;
 type Line = Extract<CurveSegment2, { kind: 'line' }>;
 type R = SectionRational;
 type RV = readonly [R, R, R];
+type IV = readonly [bigint, bigint, bigint];
+interface IntegerFrame { denominator: bigint; points: WeakMap<readonly number[], IV> }
+interface BoundaryLine { a: XY; b: XY }
+interface Interval { lo: number; hi: number }
 interface Component { polygon: PolygonWithHoles; outer: ProfileSegmentInput[]; holes: ProfileSegmentInput[][]; area: R }
 interface Audit { volume: R; reported: number; error: R }
 interface BrepIndex { vertices: Map<string, BrepVertex>; edges: Map<string, BrepEdge>; coedges: Map<string, BrepCoedge>; loops: Map<string, BrepLoop> }
@@ -30,6 +35,7 @@ const IDENTITY = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 class Context {
   edges = 0; work = 0; exactWork = 0;
   readonly breps = new WeakMap<Brep, BrepIndex>();
+  readonly points = new WeakMap<XY, ExactPoint2>();
   readonly q: SectionRationalContext;
   readonly exactFailure = (kind: 'BUDGET' | 'REPRESENTABILITY', detail: string): never => this.fail(kind === 'BUDGET' ? 'INPUT' : 'GEOMETRY', `profile relief: ${detail}`);
   constructor(readonly fail: Fail) { this.q = new SectionRationalContext(this.exactFailure); }
@@ -48,16 +54,25 @@ function copied(point: readonly number[], ctx: Context): XY {
   if (point.length !== 2 || !Number.isFinite(point[0]) || !Number.isFinite(point[1]) || Math.abs(point[0]) > CadNumericPolicy.coordinateAbs || Math.abs(point[1]) > CadNumericPolicy.coordinateAbs) ctx.fail('INPUT', 'profile relief needs finite XY coordinates within the CAD range');
   return [point[0], point[1]];
 }
-function area(q: SectionRationalContext, polygon: PolygonWithHoles): R {
-  let result = q.integer(0);
-  for (const ring of lines(polygon)) for (let i = 0; i < ring.length; i++) {
-    const a = ring[i], b = ring[(i + 1) % ring.length];
-    result = q.add(result, q.sub(q.mul(q.from(a[0]), q.from(b[1])), q.mul(q.from(b[0]), q.from(a[1]))));
+function area(q: SectionRationalContext, polygon: PolygonWithHoles, ctx: Context): R {
+  // Binary64 points have power-of-two homogeneous denominators. Sum at one scale,
+  // then reduce once, preserving the exact signed area without repeated rational GCDs.
+  let denominator = 1n, sum = 0n;
+  for (const ring of lines(polygon)) for (const point of ring) {
+    ctx.charge(1);
+    const p = exactPoint(point, ctx); if (p.w > denominator) denominator = p.w;
   }
-  return q.div(result, q.integer(2));
+  for (const ring of lines(polygon)) for (let i = 0; i < ring.length; i++) {
+    ctx.charge(1);
+    const a = exactPoint(ring[i], ctx), b = exactPoint(ring[(i + 1) % ring.length], ctx);
+    const scaleA = denominator / a.w, scaleB = denominator / b.w;
+    sum += (a.x * b.y - b.x * a.y) * scaleA * scaleB;
+  }
+  return q.rat(sum, 2n * denominator * denominator);
 }
+
 function reverseIf(ring: XY[], positive: boolean, ctx: Context): XY[] {
-  const signed = area(ctx.q, { outer: ring, holes: [] });
+  const signed = area(ctx.q, { outer: ring, holes: [] }, ctx);
   if (signed.n === 0n) ctx.fail('GEOMETRY', 'profile relief boundary encloses no area');
   return (signed.n > 0n) === positive ? ring : [...ring].reverse();
 }
@@ -82,7 +97,7 @@ function arrangementInput(polygons: readonly PolygonWithHoles[], ctx: Context): 
   for (const polygon of polygons) for (const ring of lines(polygon)) {
     let signed = 0;
     for (let i = 0; i < ring.length; i++) { const a = ring[i], b = ring[(i + 1) % ring.length]; signed += a[0] * b[1] - b[0] * a[1]; }
-    const exact = area(ctx.q, { outer: ring, holes: [] });
+    const exact = area(ctx.q, { outer: ring, holes: [] }, ctx);
     if (!Number.isFinite(signed) || signed === 0 || (signed > 0) !== (exact.n > 0n)) ctx.fail('GEOMETRY', 'profile relief cannot preserve arrangement winding at the stored coordinate scale');
   }
 }
@@ -95,16 +110,24 @@ function exactBoolean(a: readonly PolygonWithHoles[], b: readonly PolygonWithHol
 }
 function xyVector(q: SectionRationalContext, a: XY, b: XY): readonly [R, R] { return [q.sub(q.from(b[0]), q.from(a[0])), q.sub(q.from(b[1]), q.from(a[1]))]; }
 function dot2(q: SectionRationalContext, a: readonly [R, R], b: readonly [R, R]): R { return q.add(q.mul(a[0], b[0]), q.mul(a[1], b[1])); }
-function orient(q: SectionRationalContext, a: XY, b: XY, c: XY): number {
-  const u = xyVector(q, a, b), v = xyVector(q, a, c), value = q.sub(q.mul(u[0], v[1]), q.mul(u[1], v[0]));
-  return value.n < 0n ? -1 : value.n > 0n ? 1 : 0;
+function exactPoint(point: XY, ctx: Context): ExactPoint2 {
+  let value = ctx.points.get(point);
+  if (!value) { value = exactPoint2FromXY(point); ctx.points.set(point, value); }
+  return value;
 }
+function orient(ctx: Context, a: XY, b: XY, c: XY): number {
+  // Reuse the arrangement's exact homogeneous predicate under the boundary-work budget.
+  // Finite admitted binary64 coordinates bound each cached integer and its fixed-size determinant.
+  ctx.charge(1);
+  return exactOrient2(exactPoint(a, ctx), exactPoint(b, ctx), exactPoint(c, ctx));
+}
+
 function inRing(point: XY, ring: readonly XY[], ctx: Context): boolean {
   let winding = 0;
   for (let i = 0; i < ring.length; i++) {
     const a = ring[i], b = ring[(i + 1) % ring.length]; ctx.charge(1);
-    if (a[1] <= point[1] && b[1] > point[1] && orient(ctx.q, a, b, point) > 0) winding++;
-    else if (b[1] <= point[1] && a[1] > point[1] && orient(ctx.q, a, b, point) < 0) winding--;
+    if (a[1] <= point[1] && b[1] > point[1] && orient(ctx, a, b, point) > 0) winding++;
+    else if (b[1] <= point[1] && a[1] > point[1] && orient(ctx, a, b, point) < 0) winding--;
   }
   return winding !== 0;
 }
@@ -134,7 +157,7 @@ function separated(a: XY, b: XY, c: XY, d: XY, margin: number, ctx: Context): bo
   const pad = margin + ROUND * scale;
   if (Math.min(a[0], b[0]) - Math.max(c[0], d[0]) > pad || Math.min(c[0], d[0]) - Math.max(a[0], b[0]) > pad
     || Math.min(a[1], b[1]) - Math.max(c[1], d[1]) > pad || Math.min(c[1], d[1]) - Math.max(a[1], b[1]) > pad) return true;
-  const q = ctx.q, crossing = orient(q, a, b, c) * orient(q, a, b, d) <= 0 && orient(q, c, d, a) * orient(q, c, d, b) <= 0;
+  const q = ctx.q, crossing = orient(ctx, a, b, c) * orient(ctx, a, b, d) <= 0 && orient(ctx, c, d, a) * orient(ctx, c, d, b) <= 0;
   const disjointBox = Math.max(a[0], b[0]) < Math.min(c[0], d[0]) || Math.max(c[0], d[0]) < Math.min(a[0], b[0])
     || Math.max(a[1], b[1]) < Math.min(c[1], d[1]) || Math.max(c[1], d[1]) < Math.min(a[1], b[1]);
   if (crossing && !disjointBox) return false;
@@ -151,8 +174,10 @@ function simple(ring: XY[], tolerance: number, ctx: Context): void {
   for (let i = 0; i < ring.length; i++) {
     const a = ring[i], b = ring[(i + 1) % ring.length], c = ring[(i + 2) % ring.length];
     if (Math.hypot(a[0] - b[0], a[1] - b[1]) < ExtrudedProfileLimits.minimumLengthMM) ctx.fail('GEOMETRY', 'profile relief has a short native edge');
-    const ab = xyVector(ctx.q, b, a), cb = xyVector(ctx.q, b, c);
-    if (orient(ctx.q, a, b, c) === 0 && dot2(ctx.q, ab, cb).n >= 0n) ctx.fail('GEOMETRY', 'profile relief has a retracing adjacent boundary');
+    if (orient(ctx, a, b, c) === 0) {
+      const ab = xyVector(ctx.q, b, a), cb = xyVector(ctx.q, b, c);
+      if (dot2(ctx.q, ab, cb).n >= 0n) ctx.fail('GEOMETRY', 'profile relief has a retracing adjacent boundary');
+    }
     for (let j = i + 2; j < ring.length; j++) {
       if (i === 0 && j === ring.length - 1) continue;
       if (!separated(a, b, ring[j], ring[(j + 1) % ring.length], tolerance, ctx)) ctx.fail('GEOMETRY', 'profile relief has a crossing, touching or unresolved profile boundary');
@@ -191,26 +216,29 @@ function component(sketch: ReliefSketch, tolerance: number, ctx: Context): Compo
     for (const prior of holes) if (exactBoolean([polygon], [{ outer: prior, holes: [] }], 'intersection', ctx).length || !boundariesApart(polygon, { outer: prior, holes: [] }, tolerance, ctx) || inRing(polygon.outer[0], prior, ctx) || inRing(prior[0], polygon.outer, ctx)) ctx.fail('GEOMETRY', 'profile relief holes must not overlap, nest or touch');
     holes.push(hole.ring); holeSegments.push(hole.segments);
   }
-  const polygon = { outer: outer.ring, holes }, value = area(ctx.q, polygon);
+  const polygon = { outer: outer.ring, holes }, value = area(ctx.q, polygon, ctx);
   if (value.n <= 0n) ctx.fail('GEOMETRY', 'profile relief needs positive material area in every component');
   return { polygon, outer: outer.segments, holes: holeSegments, area: value };
 }
 function vector(q: SectionRationalContext, p: readonly number[]): RV { return [q.from(p[0]), q.from(p[1]), q.from(p[2])]; }
 function subtract(q: SectionRationalContext, a: RV, b: RV): RV { return [q.sub(a[0], b[0]), q.sub(a[1], b[1]), q.sub(a[2], b[2])]; }
 function cross(q: SectionRationalContext, a: RV, b: RV): RV { return [q.sub(q.mul(a[1], b[2]), q.mul(a[2], b[1])), q.sub(q.mul(a[2], b[0]), q.mul(a[0], b[2])), q.sub(q.mul(a[0], b[1]), q.mul(a[1], b[0]))]; }
-function dot(q: SectionRationalContext, a: RV, b: RV): R { return q.add(q.add(q.mul(a[0], b[0]), q.mul(a[1], b[1])), q.mul(a[2], b[2])); }
 function zero(a: RV): boolean { return a[0].n === 0n && a[1].n === 0n && a[2].n === 0n; }
-function facePlane(face: BrepFace, q: SectionRationalContext, ctx: Context): { origin: RV; normal: RV } {
+function affineSurface(face: BrepFace, ctx: Context): Exclude<BrepFace['surface'], { kind: 'facets' }> {
   const surface = face.surface;
   if (surface.kind !== 'surface' || surface.degreeU !== 1 || surface.degreeV !== 1 || surface.controlPoints.length !== 2 || surface.controlPoints[0].length !== 2 || surface.controlPoints[1].length !== 2) ctx.fail('CAPABILITY', 'profile relief requires represented affine planar boundary faces');
-  const s = surface as Exclude<BrepFace['surface'], { kind: 'facets' }>, a = vector(q, s.controlPoints[0][0]), u = subtract(q, vector(q, s.controlPoints[1][0]), a), v = subtract(q, vector(q, s.controlPoints[0][1]), a);
-  const normal = cross(q, u, v), corner = vector(q, s.controlPoints[1][1]);
-  if (zero(normal)) ctx.fail('GEOMETRY', 'profile relief boundary support has zero rank');
-  for (let i = 0; i < 3; i++) if (q.compare(corner[i], q.add(q.add(a[i], u[i]), v[i])) !== 0) ctx.fail('CAPABILITY', 'profile relief cannot prove an exact affine boundary support');
+  const s = surface as Exclude<BrepFace['surface'], { kind: 'facets' }>;
   if (s.weights) {
     const weight = s.weights[0]?.[0];
     for (const row of s.weights) for (const item of row) if (!(Number.isFinite(item) && item > 0 && item === weight)) ctx.fail('CAPABILITY', 'profile relief requires constant planar support weights');
   }
+  return s;
+}
+function facePlane(face: BrepFace, q: SectionRationalContext, ctx: Context): { origin: RV; normal: RV } {
+  const s = affineSurface(face, ctx), a = vector(q, s.controlPoints[0][0]), u = subtract(q, vector(q, s.controlPoints[1][0]), a), v = subtract(q, vector(q, s.controlPoints[0][1]), a);
+  const normal = cross(q, u, v), corner = vector(q, s.controlPoints[1][1]);
+  if (zero(normal)) ctx.fail('GEOMETRY', 'profile relief boundary support has zero rank');
+  for (let i = 0; i < 3; i++) if (q.compare(corner[i], q.add(q.add(a[i], u[i]), v[i])) !== 0) ctx.fail('CAPABILITY', 'profile relief cannot prove an exact affine boundary support');
   return { origin: a, normal };
 }
 function indexOf(brep: Brep, ctx: Context): BrepIndex {
@@ -276,25 +304,49 @@ function volume(q: SectionRationalContext, solid: PrismaticSolid, ctx: Context):
         count += ring.length; if (count > 3 * MAX_EDGES) ctx.fail('INPUT', 'profile relief result exceeds its mass-boundary budget');
         rings.push(ring);
       }
-      value = q.add(value, q.mul(area(q, { outer: rings[0], holes: rings.slice(1) }), height));
+      value = q.add(value, q.mul(area(q, { outer: rings[0], holes: rings.slice(1) }, ctx), height));
     }
   }
   return value;
 }
+function denominator3(point: readonly number[], denominator: bigint, ctx: Context): bigint {
+  ctx.charge(1);
+  for (let k = 0; k < 3; k++) { const d = 1n << BigInt(binary64Dyadic(point[k]).k); if (d > denominator) denominator = d; }
+  return denominator;
+}
+function integerPoint(frame: IntegerFrame, point: readonly number[], ctx: Context): IV {
+  let found = frame.points.get(point);
+  if (!found) {
+    ctx.charge(1);
+    const a = binary64Dyadic(point[0]), b = binary64Dyadic(point[1]), c = binary64Dyadic(point[2]);
+    found = [a.m * (frame.denominator >> BigInt(a.k)), b.m * (frame.denominator >> BigInt(b.k)), c.m * (frame.denominator >> BigInt(c.k))];
+    frame.points.set(point, found);
+  }
+  return found;
+}
+function integerSub(a: IV, b: IV): IV { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+function integerCross(a: IV, b: IV): IV { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+function integerDot(a: IV, b: IV): bigint { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
 function boundaryVolume(q: SectionRationalContext, brep: Brep, ctx: Context): R {
-  let value = q.integer(0);
+  let denominator = 1n;
+  for (const vertex of brep.vertices) denominator = denominator3(vertex.point, denominator, ctx);
+  for (const face of brep.faces) for (const row of affineSurface(face, ctx).controlPoints) for (const point of row) denominator = denominator3(point, denominator, ctx);
+  const frame: IntegerFrame = { denominator, points: new WeakMap() };
+  let sum = 0n;
+  // Finite binary64 inputs bound fixed-degree integer determinants; existing work/bit guards stay in force.
   for (const face of brep.faces) {
-    const plane = facePlane(face, q, ctx);
+    ctx.charge(1);
+    const s = affineSurface(face, ctx), a = integerPoint(frame, s.controlPoints[0][0], ctx), u = integerSub(integerPoint(frame, s.controlPoints[1][0], ctx), a), v = integerSub(integerPoint(frame, s.controlPoints[0][1], ctx), a);
+    const normal = integerCross(u, v), corner = integerPoint(frame, s.controlPoints[1][1], ctx);
+    if (normal[0] === 0n && normal[1] === 0n && normal[2] === 0n) ctx.fail('GEOMETRY', 'profile relief boundary support has zero rank');
+    for (let k = 0; k < 3; k++) if (corner[k] !== a[k] + u[k] + v[k]) ctx.fail('CAPABILITY', 'profile relief cannot prove an exact affine boundary support');
     for (const lid of face.loops) {
-      const points = loopPoints(brep, lid, ctx), first = vector(q, points[0]);
-      for (const point of points) if (dot(q, plane.normal, subtract(q, vector(q, point), plane.origin)).n !== 0n) ctx.fail('CAPABILITY', 'profile relief cannot prove boundary vertices on their affine support');
-      for (let i = 1; i + 1 < points.length; i++) value = q.add(value, q.div(dot(q, first, cross(q, vector(q, points[i]), vector(q, points[i + 1]))), q.integer(6)));
+      const points = loopPoints(brep, lid, ctx), first = integerPoint(frame, points[0], ctx);
+      for (const point of points) { ctx.charge(1); if (integerDot(normal, integerSub(integerPoint(frame, point, ctx), a)) !== 0n) ctx.fail('CAPABILITY', 'profile relief cannot prove boundary vertices on their affine support'); }
+      for (let i = 1; i + 1 < points.length; i++) { ctx.charge(1); sum += integerDot(first, integerCross(integerPoint(frame, points[i], ctx), integerPoint(frame, points[i + 1], ctx))); }
     }
   }
-  return value;
-}
-function exactVolume(solid: PrismaticSolid, ctx: Context): R {
-  const q = new SectionRationalContext(ctx.exactFailure), value = volume(q, solid, ctx); ctx.finish(q); return value;
+  return q.rat(sum, 6n * denominator * denominator * denominator);
 }
 function audit(solid: PrismaticSolid, brep: Brep, ctx: Context): Audit {
   const q = new SectionRationalContext(ctx.exactFailure), value = volume(q, solid, ctx), boundary = boundaryVolume(q, brep, ctx);
@@ -304,12 +356,81 @@ function audit(solid: PrismaticSolid, brep: Brep, ctx: Context): Audit {
   const error = q.max(q.abs(q.sub(q.from(reported), value)), q.abs(q.sub(q.from(simple), value)));
   ctx.finish(q); return { volume: value, reported, error };
 }
-function nativeBoolean(a: PrismaticSolid, b: PrismaticSolid, operation: 'union' | 'intersection' | 'difference', ctx: Context): PrismaticSolid {
-  let edges = 0; for (const solid of [a, b]) for (const slab of solid.slabs) for (const region of slab.regions) { edges += region.outer.length; for (const hole of region.holes) edges += hole.length; }
-  ctx.charge(16 * edges * edges);
-  return booleanPrismatic(a, b, operation);
+function pocketRegions(material: readonly CurveRegion2[], ink: readonly CurveRegion2[], ctx: Context): CurveRegion2[] {
+  const a: (readonly CurveSegment2[])[] = [], b: (readonly CurveSegment2[])[] = [];
+  let edges = 0;
+  for (const region of material) { a.push(region.outer); edges += region.outer.length; for (const hole of region.holes) { a.push(hole); edges += hole.length; } }
+  for (const region of ink) { b.push(region.outer); edges += region.outer.length; for (const hole of region.holes) { b.push(hole); edges += hole.length; } }
+  ctx.charge(edges * edges);
+  return booleanCurveRegions(a, b, 'difference', curveTolerance([...a, ...b]));
 }
 
+function boundaryLines(polygons: readonly PolygonWithHoles[], reversed = false): BoundaryLine[] {
+  const result: BoundaryLine[] = [];
+  for (const polygon of polygons) for (const ring of lines(polygon)) for (let i = 0; i < ring.length; i++) {
+    const a = ring[i], b = ring[(i + 1) % ring.length]; result.push(reversed ? { a: b, b: a } : { a, b });
+  }
+  return result;
+}
+function compareIntervals(a: Interval, b: Interval): number { return a.lo < b.lo ? -1 : a.lo > b.lo ? 1 : a.hi < b.hi ? -1 : a.hi > b.hi ? 1 : 0; }
+function covered(line: BoundaryLine, others: readonly BoundaryLine[], ctx: Context): boolean {
+  const axis = line.a[0] !== line.b[0] ? 0 : 1, start = line.a[axis], end = line.b[axis], lo = Math.min(start, end), hi = Math.max(start, end), intervals: Interval[] = [];
+  if (lo === hi) return false;
+  for (const other of others) {
+    ctx.charge(1);
+    if (Math.max(line.a[0], line.b[0]) < Math.min(other.a[0], other.b[0]) || Math.max(other.a[0], other.b[0]) < Math.min(line.a[0], line.b[0])
+      || Math.max(line.a[1], line.b[1]) < Math.min(other.a[1], other.b[1]) || Math.max(other.a[1], other.b[1]) < Math.min(line.a[1], line.b[1])) continue;
+    if (orient(ctx, line.a, line.b, other.a) !== 0 || orient(ctx, line.a, line.b, other.b) !== 0 || (end > start) !== (other.b[axis] > other.a[axis])) continue;
+    const left = Math.max(lo, Math.min(other.a[axis], other.b[axis])), right = Math.min(hi, Math.max(other.a[axis], other.b[axis]));
+    if (left < right) intervals.push({ lo: left, hi: right });
+  }
+  intervals.sort(compareIntervals);
+  let next = lo;
+  for (const interval of intervals) { if (interval.lo !== next) return false; next = interval.hi; }
+  return next === hi;
+}
+function sameLineMultiset(a: readonly BoundaryLine[], b: readonly BoundaryLine[], ctx: Context): boolean {
+  if (a.length !== b.length) return false;
+  const counts = new Map<string, number>();
+  for (const line of a) {
+    ctx.charge(1);
+    if (line.a[0] === line.b[0] && line.a[1] === line.b[1]) return false;
+    const key = `${line.a[0]},${line.a[1]};${line.b[0]},${line.b[1]}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  for (const line of b) {
+    ctx.charge(1);
+    if (line.a[0] === line.b[0] && line.a[1] === line.b[1]) return false;
+    const key = `${line.a[0]},${line.a[1]};${line.b[0]},${line.b[1]}`, count = counts.get(key);
+    if (!count) return false;
+    if (count === 1) counts.delete(key); else counts.set(key, count - 1);
+  }
+  return counts.size === 0;
+}
+function sameBoundary(a: readonly BoundaryLine[], b: readonly BoundaryLine[], ctx: Context): boolean {
+  if (!a.length || !b.length) return false;
+  // Exact directed endpoints, with multiplicity, prove the usual unchanged-boundary case in linear work.
+  if (sameLineMultiset(a, b, ctx)) return true;
+  for (const line of a) if (!covered(line, b, ctx)) return false;
+  for (const line of b) if (!covered(line, a, ctx)) return false;
+  return true;
+}
+function sectionBoundary(regions: readonly CurveRegion2[], ctx: Context): BoundaryLine[] {
+  let count = 0;
+  const result: BoundaryLine[] = [];
+  for (const region of regions) for (const loop of [region.outer, ...region.holes]) {
+    if (loop.length < 3 || loop.length > MAX_LOOP) ctx.fail('INPUT', 'profile relief frontier exceeds native loop admission');
+    for (let i = 0; i < loop.length; i++) {
+      if (++count > 3 * MAX_EDGES) ctx.fail('INPUT', 'profile relief frontier exceeds its result-boundary budget');
+      const edge = loop[i], next = loop[(i + 1) % loop.length];
+      if (edge.kind !== 'line' || next.kind !== 'line') ctx.fail('CAPABILITY', 'profile relief frontier left its line-only scope');
+      const line = edge as Line, following = next as Line;
+      if (line.b[0] !== following.a[0] || line.b[1] !== following.a[1]) ctx.fail('GEOMETRY', 'profile relief frontier is not exactly closed');
+      result.push({ a: copied(line.a, ctx), b: copied(line.b, ctx) });
+    }
+  }
+  return result;
+}
 /** Bounded support on one selected cap. `requested` is additional clearance above native policy, default zero. */
 export function profileRelief(source: PrismaticSolid, sourceBrep: Brep, face: string, sketches: readonly ReliefSketch[], depth: number, mode: 'emboss' | 'engrave', requested: number | undefined, id: string, fail: Fail): PrismaticSolid {
   const ctx = new Context(fail), q = ctx.q;
@@ -344,16 +465,30 @@ export function profileRelief(source: PrismaticSolid, sourceBrep: Brep, face: st
     totalArea = q.add(totalArea, part.area); components.push(part);
   }
   const before = audit(source, sourceBrep, ctx), effective = mode === 'emboss' ? q.sub(q.from(top), q.from(slab.z1)) : q.sub(q.from(slab.z1), q.from(bottom));
-  let result = source, previous = before.volume;
+  const polygons: PolygonWithHoles[] = []; for (const part of components) polygons.push(part.polygon);
+  const regions: CurveRegion2[] = [], caps: PrismaticCapSource[] = [];
   for (let i = 0; i < components.length; i++) {
     const part = components[i], tool = prismaticFromProfile({ outer: part.outer, holes: part.holes, from: bottom, height: top - bottom, tag: `${id}.component${i}` });
-    if (tool.slabs.length !== 1 || tool.slabs[0].z0 !== bottom || tool.slabs[0].z1 !== top) fail('GEOMETRY', 'profile relief cannot represent the requested tool levels');
-    const overlap = nativeBoolean(source, tool, 'intersection', ctx), overlapVolume = exactVolume(overlap, ctx), wantOverlap = q.mul(part.area, q.sub(q.from(slab.z1), q.from(bottom)));
-    if (overlapVolume.n <= 0n || q.compare(overlapVolume, wantOverlap) !== 0) fail('GEOMETRY', 'profile relief requires complete positive basal overlap for every component');
-    result = nativeBoolean(result, tool, mode === 'emboss' ? 'union' : 'difference', ctx);
-    const next = exactVolume(result, ctx), change = mode === 'emboss' ? q.sub(next, previous) : q.sub(previous, next);
-    if (change.n <= 0n || q.compare(change, q.mul(part.area, effective)) !== 0) fail('GEOMETRY', 'profile relief cannot prove the requested material change for every component');
-    previous = next;
+    if (tool.slabs.length !== 1 || tool.slabs[0].z0 !== bottom || tool.slabs[0].z1 !== top || tool.slabs[0].regions.length !== 1) fail('GEOMETRY', 'profile relief cannot represent one component at the requested tool levels');
+    const actual = sectionBoundary(tool.slabs[0].regions, ctx);
+    if (!sameBoundary(boundaryLines([part.polygon]), actual, ctx)) fail('GEOMETRY', 'profile relief component construction changed an oriented boundary');
+    // Containment and disjointness already prove complete source seating for this exact carried component.
+    const overlap = q.mul(part.area, q.sub(q.from(slab.z1), q.from(bottom))), change = q.mul(part.area, effective);
+    if (overlap.n <= 0n || change.n <= 0n) fail('GEOMETRY', 'profile relief requires complete positive overlap and material change for every component');
+    for (const region of tool.slabs[0].regions) regions.push(region);
+    for (const sourceCap of tool.caps ?? []) caps.push(sourceCap);
+  }
+  let result: PrismaticSolid;
+  if (mode === 'emboss') {
+    // Each admitted region is carried directly above the unchanged source; no growing union can lose a stroke.
+    result = { kind: 'prismatic-solid', slabs: [slab, { z0: slab.z1, z1: top, regions }], caps: [...(source.caps ?? []), ...caps] };
+  } else {
+    const cut = pocketRegions(slab.regions, regions, ctx);
+    result = { kind: 'prismatic-solid', slabs: [{ z0: slab.z0, z1: bottom, regions: slab.regions }, { z0: bottom, z1: slab.z1, regions: cut }], caps: [...(source.caps ?? []), ...caps] };
+    if (result.slabs.length !== 2 || result.slabs[0].z0 !== slab.z0 || result.slabs[0].z1 !== bottom || result.slabs[1].z0 !== bottom || result.slabs[1].z1 !== slab.z1) fail('GEOMETRY', 'profile relief pocket changed the proved slab frontier');
+    const original = boundaryLines(material), expected = [...original, ...boundaryLines(polygons, true)];
+    // With strictly interior disjoint ink, boundary(M\I) is boundary(M) plus reversed boundary(I).
+    if (!sameBoundary(expected, sectionBoundary(result.slabs[1].regions, ctx), ctx)) fail('GEOMETRY', 'profile relief pocket frontier lost or changed material, a component or a counter');
   }
   const brep = brepFromPrismatic(result, { id });
   closed(brep, ctx);

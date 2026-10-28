@@ -46,7 +46,7 @@ const nodeSame = (a: ModelNode | undefined, b: ModelNode | undefined) => a === u
 /** Opaque text and font metadata do not establish persistent-name dependencies. */
 function referenceNames(node: ModelNode): string[] {
   const value = node as unknown as Record<string, unknown>;
-  if (value.kind !== 'text' || typeof value.text !== 'string' || !isObj(value.font)) return namedIdsOf(node);
+  if ((value.kind !== 'text' && value.kind !== 'text-relief') || typeof value.text !== 'string' || !isObj(value.font)) return namedIdsOf(node);
   const out = { ...value }; delete out.text; delete out.font;
   return namedIdsOf(out);
 }

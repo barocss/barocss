@@ -116,7 +116,7 @@ export function captureOp(before: StudioDoc, after: StudioDoc, tool: string, arg
 /** Text and font source records are authored literals, not feature or parameter references. */
 function referenceData(node: ModelNode): ModelNode | Record<string, unknown> {
   const value = node as unknown as Record<string, unknown>;
-  if (value.kind !== 'text' || typeof value.text !== 'string' || !isObj(value.font)) return node;
+  if ((value.kind !== 'text' && value.kind !== 'text-relief') || typeof value.text !== 'string' || !isObj(value.font)) return node;
   const out = { ...value }; delete out.text; delete out.font;
   return out;
 }
@@ -140,7 +140,9 @@ function names(node: ModelNode, param: string): boolean {
   if (data === node) return walk(node);
   // A text node's kind, id and stored reference metadata are not parameter expressions either.
   const fields = data as Record<string, unknown>;
-  return walk({ size: fields.size, height: fields.height, tracking: fields.tracking, plane: fields.plane });
+  return fields.kind === 'text-relief'
+    ? walk({ size: fields.size, depth: fields.depth, tracking: fields.tracking, at: fields.at })
+    : walk({ size: fields.size, height: fields.height, tracking: fields.tracking, plane: fields.plane });
 }
 
 /** The part being merged: features in id form, in order, and the rest of the document. */

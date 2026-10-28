@@ -11,6 +11,7 @@ import { driveCommands } from './driveCommands';
 import { connectorCommands } from './connectorCommands';
 import { weldmentCommands } from './weldmentCommands';
 import { textCommand } from './textCommand';
+import { textReliefCommand } from './textReliefCommand';
 import { alignCommand } from './alignCommand';
 import { fastenerCommand } from './fasteners';
 import { mountCommand } from './mounts';
@@ -439,6 +440,7 @@ const allCommands: Command[] = [
   ...connectorCommands,
   ...weldmentCommands,
   textCommand,
+  textReliefCommand,
   {
     id: 'box', label: 'Box', icon: 'cad-box', hint: 'A block by width, depth and height', shortcut: 'B', group: 'create', keywords: 'cube block plate',
     available: () => ok,

@@ -171,11 +171,16 @@ test('profile relief: dimensions, references, descriptors and typed arrays have 
   shape(snapshot, 'emboss');
 });
 
-test('profile relief: component and aggregate work budgets refuse generic large requests', () => {
+test('profile relief: 64 separated components fit direct construction; count and aggregate work limits still refuse', () => {
   const names = [], sketches = [];
   for (let i = 0; i < 65; i++) { const id = `ink${i}`; names.push(id); sketches.push(rect(id, [2 + i % 8, 2 + Math.floor(i / 8)], [2.4 + i % 8, 2.4 + Math.floor(i / 8)])); }
   refused(document('emboss', [...base(), ...sketches, { ...relief('emboss'), sketches: names }]), 'INPUT', /1..64/);
-  refused(document('emboss', [...base(), ...sketches.slice(0, 64), { ...relief('emboss'), sketches: names.slice(0, 64), clearance: 0.01 }]), 'INPUT', /budget/);
+  const admitted = outputOf(evaluateCadPart(document('emboss', [...base(), ...sketches.slice(0, 64), { ...relief('emboss'), sketches: names.slice(0, 64), clearance: 0.01 }])), 'relief');
+  assert.equal(admitted.brep.bodies.length, 1); assert.equal(checkBrep(admitted.brep, { strict: true }).valid, true);
+  close(massPropertiesOf(admitted, 1).volume, 11680 + 64 * 0.4 * 0.4 * 3);
+  const many = [];
+  for (let i = 0; i < 1024; i++) { const angle = 2 * Math.PI * i / 1024; many.push([5 + Math.cos(angle), 5 + Math.sin(angle)]); }
+  refused(document('emboss', [...base(), { id: 'many', kind: 'sketch', profile: 'loop', segments: lineLoop(many) }, { ...relief('emboss'), sketches: ['many'], clearance: 0.01 }]), 'INPUT', /budget/);
 });
 
 

@@ -76,12 +76,12 @@ const PART_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'run_command',
-    description: `Runs one studio command, exactly as the toolbar and its HUD would: the same availability rules, value ranges and defaults (omitted values take the HUD default). Faces, edges and bodies are selected by name; the command applies to that selection. Commands:\n${commandDoc}\nThe result has the bodies after evaluation (volume, bounds, face and edge names) or the refusal reason; nothing changes on a refusal.`,
+    description: `Runs one studio command, exactly as the toolbar and its HUD would: the same availability rules, value ranges and defaults (omitted values take the HUD default). Faces, edges and bodies are selected by name; the command applies to that selection. Commands:\n${commandDoc}\nText relief uses one exact individual +Z top face of a supported upright solid, raw scalar text and prepared FontSource JSON; x/y place its world-XY baseline, depth is positive, and mode is emboss or engrave. No fallback font, shaping or curved-face wrapping is provided. The result has the bodies after evaluation (volume, bounds, face and edge names) or the refusal reason; nothing changes on a refusal.`,
     input_schema: {
       type: 'object',
       properties: {
         command: { type: 'string', enum: CHAT_COMMANDS },
-        values: { type: 'object', description: 'Command values by key (numbers in mm or degrees; choices as strings).', additionalProperties: { type: ['number', 'string'] } },
+        values: { type: 'object', description: 'Command values by key (numbers in mm or degrees; choices as strings; text is the original scalar string and font is prepared FontSource JSON for text commands).', additionalProperties: { type: ['number', 'string'] } },
         faces: selectorList('Faces to select'),
         edges: selectorList('Edges to select'),
         bodies: { ...nameList, description: 'Body keys to select (e.g. "b1").' },
@@ -94,6 +94,7 @@ const PART_TOOLS: ToolDefinition[] = [
     name: 'add_features',
     description: `Appends raw feature nodes for what no command covers: sketched profiles and the solids made from them (polygon or line/arc outlines, sketches on other planes, extrudes with draft or a start Z, revolves, sweeps, lofts), blind holes, or feature-level control. Nodes are checked, appended in order (each new node gets the next index) and evaluated together; on any error nothing is added. Node kinds (dimensions in mm; Dim = number or {"parameter": name}):
 - {"kind":"sketch","profile":"rectangle","min":[x,y],"max":[x,y]} | {"kind":"sketch","profile":"circle","center":[x,y],"radius":r} | {"kind":"sketch","profile":"polygon","points":[[x,y],...]} | {"kind":"sketch","profile":"loop","segments":[{"kind":"line","start":[x,y]} | {"kind":"arc","start":[x,y],"center":[x,y],"direction":"ccw"|"cw"}, ...]}; optional "plane":{origin,normal,xAxis} (default XY at Z 0), "regions" (more loops), "holes" (loops cut out; straight extrudes only)
+- {"kind":"text-relief","parent":Ref,"faces":[one exact individual face name],"text":original string,"font":{"blob":loaded original TTF hash,"filename":original filename,"source"?:supplied string,"license"?:supplied string},"size":Dim,"at":[Dim,Dim],"depth":Dim,"mode":"emboss"|"engrave","tolerance":number,"tracking"?:Dim} — modifies one supported upright closed solid on its flat +Z top. at is the world-XY baseline; size is em height. Positive depth, explicit chord tolerance and stored face signatures are required; no plane, fallback font, shaping or wrap. Component footprints must stay inside the selected face; unsupported native profiles/targets are refused.
 - {"kind":"extrude","sketch":i,"height":h,"from"?:z,"draft"?:deg}
 - {"kind":"revolve","sketch":i,"axis":"x"|"y","origin"?:[a,b],"angleDegrees":deg} (about the sketch's own axis)
 - {"kind":"sweep","sketch":i,"path":[{"kind":"straight","length":l} | {"kind":"bend","radius":r,"angleDegrees":deg,"toward":"x"|"-x"|"y"|"-y"}]} (from the sketch plane up +Z)

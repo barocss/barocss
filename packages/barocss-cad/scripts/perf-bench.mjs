@@ -41,7 +41,15 @@ const roundedPlateBosses = n => { const f = [{ id: 's', kind: 'sketch', profile:
   const e = out(f, 'p').brep.edges.map(x => x.name).filter(x => x && /top/.test(x))[0]; f.push({ id: 'r', kind: 'fillet', target: 'p', edges: [e], radius: 2 }); let last = 'r';
   for (let k = 0; k < n; k++) { f.push({ id: `c${k}s`, kind: 'sketch', profile: 'circle', plane: { origin: [0, 0, 8], normal: [0, 0, 1], xAxis: [1, 0, 0] }, center: [10 + 10 * Math.floor(k / 2), k % 2 ? 22 : 8], radius: 3 }, { id: `c${k}`, kind: 'extrude', sketch: `c${k}s`, height: 6 }, { id: `b${k}`, kind: 'union', target: last, tool: `c${k}` }); last = `b${k}`; }
   return [f, last]; };
+const reliefCase = mode => out([
+  { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] },
+  { id: 'p', kind: 'extrude', sketch: 's', height: 10 },
+  { id: 'ink', kind: 'sketch', profile: 'rectangle', min: [10, 10], max: [30, 20] },
+  { id: 'r', kind: 'profile-relief', target: 'p', faces: ['p.top'], sketches: ['ink'], depth: 3, mode, clearance: 0.25 },
+], 'r').brep;
 const CASES = {
+  'profile-relief-emboss': () => reliefCase('emboss'),
+  'profile-relief-engrave': () => reliefCase('engrave'),
   'plate-holes-24': () => { const [f, last] = plateHoles(24); return out(f, last).brep; },
   'plate-holes-48': () => { const [f, last] = plateHoles(48); return out(f, last).brep; },
   'plate-bosses-24': () => { const [f, last] = plateCyl(24, 'union'); return out(f, last).brep; },
@@ -65,7 +73,7 @@ const CASES = {
 // Shape of a result, for changes judged within tolerance: validity, counts, volume and centroid (B-rep), or the lines'
 // count and total length (a projection).
 const shapeOf = r => {
-  if (r && r.format === 'barocss-brep') { const m = K.brepMassProperties(r, 1); return { valid: K.checkBrep(r, { strict: true }).valid, bodies: r.bodies.length, faces: r.faces.length, edges: r.edges.length, vertices: r.vertices.length, volume: m.volume, centroid: m.centroid }; }
+  if (r && r.format === 'barocss-brep') { const m = K.brepMassProperties(r, 1); return { valid: K.checkBrep(r, { strict: true }).valid, bodies: r.bodies.length, faces: r.faces.length, edges: r.edges.length, vertices: r.vertices.length, volume: m.volume, centroid: m.centroid, names: r.faces.map(f => f.name ?? '').sort().join(',') + '|' + r.edges.map(e => e.name ?? '').sort().join(',') }; }
   const pieces = r.edges.flatMap(e => e.pieces);
   return { lines: r.edges.length, pieces: pieces.length, visible: pieces.filter(p => p.visible).length, names: r.edges.map(e => e.name).sort().join(',') };
 };
