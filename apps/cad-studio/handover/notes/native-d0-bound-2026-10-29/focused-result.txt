@@ -1,0 +1,145 @@
+TAP version 13
+# Subtest: R7.3a: CAD_REFUSAL_CODES is every bracketed code the kernel's string literals carry, and only those
+ok 1 - R7.3a: CAD_REFUSAL_CODES is every bracketed code the kernel's string literals carry, and only those
+  ---
+  duration_ms: 942.566292
+  type: 'test'
+  ...
+# Subtest: R7.3a: CAD_ERROR_CODES holds every code a kernel error class can carry
+ok 2 - R7.3a: CAD_ERROR_CODES holds every code a kernel error class can carry
+  ---
+  duration_ms: 1819.986125
+  type: 'test'
+  ...
+# Subtest: R7.3a batch 2: a part-model refusal carries its message's specific code, its category in details
+ok 3 - R7.3a batch 2: a part-model refusal carries its message's specific code, its category in details
+  ---
+  duration_ms: 1.885708
+  type: 'test'
+  ...
+# analytic circle: 129 samples, maximum radius deviation 3.552713678800501e-15 mm
+# analytic cylinder: 323 samples, maximum deviation 7.105427357601002e-15 mm
+# analytic asymmetric patch: 81 samples, maximum point deviation 8.881784197001252e-16 mm
+# Subtest: rational quarter circle, endpoints, radius and uniform weight scaling
+ok 4 - rational quarter circle, endpoints, radius and uniform weight scaling
+  ---
+  duration_ms: 3.052
+  type: 'test'
+  ...
+# Subtest: quarter cylinder uses U rows and V columns
+ok 5 - quarter cylinder uses U rows and V columns
+  ---
+  duration_ms: 2.469417
+  type: 'test'
+  ...
+# Subtest: asymmetric bilinear patch has independent analytic interpolation
+ok 6 - asymmetric bilinear patch has independent analytic interpolation
+  ---
+  duration_ms: 0.714417
+  type: 'test'
+  ...
+# Subtest: nonuniform linear spans and quadratic repeated knots
+ok 7 - nonuniform linear spans and quadratic repeated knots
+  ---
+  duration_ms: 0.138417
+  type: 'test'
+  ...
+# Subtest: curve bounds and malformed geometry reject before evaluation
+ok 8 - curve bounds and malformed geometry reject before evaluation
+  ---
+  duration_ms: 0.34925
+  type: 'test'
+  ...
+# Subtest: finite tiny and large knot domains avoid intermediate overflow
+ok 9 - finite tiny and large knot domains avoid intermediate overflow
+  ---
+  duration_ms: 0.065667
+  type: 'test'
+  ...
+# Subtest: surface, model and sample bounds reject invalid data
+ok 10 - surface, model and sample bounds reject invalid data
+  ---
+  duration_ms: 11.745291
+  type: 'test'
+  ...
+# Subtest: planar and weighted nonplanar patches match independent bilinear controls
+ok 11 - planar and weighted nonplanar patches match independent bilinear controls
+  ---
+  duration_ms: 0.936917
+  type: 'test'
+  ...
+# Subtest: maximum pole/degree/weight/coordinate bounds are accepted
+ok 12 - maximum pole/degree/weight/coordinate bounds are accepted
+  ---
+  duration_ms: 0.653333
+  type: 'test'
+  ...
+# Subtest: degree1..3 native curves are enclosed against independent exact Bernstein values
+ok 13 - degree1..3 native curves are enclosed against independent exact Bernstein values
+  ---
+  duration_ms: 46.49625
+  type: 'test'
+  ...
+# Subtest: degreeU1..3 by V1 native tensors include cached repeated parameter paths
+ok 14 - degreeU1..3 by V1 native tensors include cached repeated parameter paths
+  ---
+  duration_ms: 24.145167
+  type: 'test'
+  ...
+# Subtest: actual native quarter coefficients and nonzero source Z remain unchanged
+ok 15 - actual native quarter coefficients and nonzero source Z remain unchanged
+  ---
+  duration_ms: 7.126042
+  type: 'test'
+  ...
+# Subtest: reversed stored poles and negative-domain parameters retain the independent bound
+ok 16 - reversed stored poles and negative-domain parameters retain the independent bound
+  ---
+  duration_ms: 8.989833
+  type: 'test'
+  ...
+# Subtest: authored Object.is constant axes restore exact negative zero; mixed zeros are not classified constant
+ok 17 - authored Object.is constant axes restore exact negative zero; mixed zeros are not classified constant
+  ---
+  duration_ms: 8.1135
+  type: 'test'
+  ...
+# Subtest: subnormal coordinates and parameters are covered without a relative-only assumption
+ok 18 - subnormal coordinates and parameters are covered without a relative-only assumption
+  ---
+  duration_ms: 1.114875
+  type: 'test'
+  ...
+# Subtest: snapshots are deeply frozen and do not alias inputs or option data
+ok 19 - snapshots are deeply frozen and do not alias inputs or option data
+  ---
+  duration_ms: 3.941875
+  type: 'test'
+  ...
+# Subtest: valid native curves or surfaces outside the narrow arithmetic templates refuse SUPPORT
+ok 20 - valid native curves or surfaces outside the narrow arithmetic templates refuse SUPPORT
+  ---
+  duration_ms: 1.079584
+  type: 'test'
+  ...
+# Subtest: current own fields, finite native data and nonexecuted getters are enforced
+ok 21 - current own fields, finite native data and nonexecuted getters are enforced
+  ---
+  duration_ms: 0.513833
+  type: 'test'
+  ...
+# Subtest: one ledger preserves exact/direct limits and requested error budgets without automatic relaxation
+ok 22 - one ledger preserves exact/direct limits and requested error budgets without automatic relaxation
+  ---
+  duration_ms: 7.526292
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3108.717833

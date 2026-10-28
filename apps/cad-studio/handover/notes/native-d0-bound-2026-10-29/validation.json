@@ -1,0 +1,39 @@
+{
+  "source": "2f727cdd6f724b67584cf24d9b73e23bd6261f1d",
+  "node": "22.19.0",
+  "firstBuild": "PASS",
+  "firstChangedLint": "PASS",
+  "focused": {
+    "pass": 22,
+    "fail": 0,
+    "duration_ms": 3108.717833
+  },
+  "kernel": {
+    "tests": 2119.0,
+    "pass": 2113.0,
+    "fail": 0.0,
+    "skipped": 6.0,
+    "duration_ms": 247123.052458
+  },
+  "codeShape": "PASS",
+  "tools": "PASS",
+  "refusals": "PASS",
+  "apiInventory": "unchanged six-rule SCOPED_PASS",
+  "docs": {
+    "pages": 68,
+    "shots": 53,
+    "shotKB": 4488,
+    "labels": 852
+  },
+  "nativeD0": "whole-domain certified for stated one-span templates",
+  "pcurveBinding": "NOT_CERTIFIED",
+  "topologyMass": "NOT_CERTIFIED",
+  "productWrap": "NOT_IMPLEMENTED",
+  "model": "NOT_RUN; last D2991824/1824 plus types",
+  "studio": "NOT_RUN; last D299365/365 plus types",
+  "browser": "NOT_RUN",
+  "performanceBenchmark": "NOT_RUN",
+  "push": "NOT_RUN",
+  "pr": "NOT_RUN",
+  "release": "NOT_RUN"
+}

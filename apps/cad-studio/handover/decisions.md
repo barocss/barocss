@@ -15398,3 +15398,34 @@ Model/Studio/browser/performance are NOT RUN; last product suites/types remain D
 source checksum test, new runtime dependency, tolerance increase, push, PR or release. Next decision:D302,
 whole-domain unchanged-native D0 evaluator bounds, then actual coedge/source closure and a complete chosen
 source/added-band mass authority before Part/Model/API/Studio wiring. Owner07->08->09 remains unchanged.
+
+
+## D302 — Whole-domain unchanged-native D0 error bounds (2026-10-29)
+
+**Decision.** Runtime2f727cdd6 certifies actual core/math position evaluation for one clamped Bezier
+curve degree1..3 and tensor degreeU1..3 by V1, exact spans0.5/1 within[-1,1], weights[0.5,1] and coordinates
+within10000. The existing evaluator is unchanged. The actual distance/fraction/saved-basis/tensor/factor/
+ordered-sum/projection path is bounded using rho(B)=2^-53*B+2^-1074, outward128 positive arithmetic and exact
+positive denominator lower differences. Finite-range and minimumWeight/2 guards precede any constant-axis
+Object.is shortcut. Each admitted binary64 parameter in the closed stored domain is covered; regression
+samples are not the global proof. Original two-span half-walls remain unsupported in this standalone slice.
+
+One200k rational/direct,8192-bit,1m-work ledger includes quantization and outward Number conversion. Options
+only tighten the existing linear-floor1e-7 admission budget or operation limit. Owned frozen source, exact/
+outward axis/L1 bounds and counts retain target and unit semantics. Pcurve numeric error is in parameter
+coordinate units and requires exact carrier Lipschitz/range/residual binding before a world tolerance can be
+claimed. Derivatives, pcurve binding, topology/mass and full wrapped product remain uncertified.
+
+Node22.19.0 first build/changed lint/focused22/22 pass (3108.717833 ms); whole kernel2119 total/2113 pass/
+0 fail/6 existing skips passes (247123.052458 ms). Code-shape/generated tools/refusals and unchanged six-rule
+API SCOPED_PASS pass; docs68 pages/53 shots/4488 KiB/852 labels. Independent exact Bernstein oracles exercise
+unchanged evaluate/cached paths including MIN_VALUE/negative-zero/native quarter/extreme inputs. Static
+arithmetic review finds no material false acceptance within scope. Actual R10/H30 quarter L1<=9.381302440636469e-12
+uses43306 operations; native diagonal cubic<=5.924682966381498e-12 uses41492. The extreme3x1 tensor bound
+2.0843327064320024e-8 uses55289. Each is a separate request, excluding source/composition/assembly/moments.
+Evidence: notes/native-d0-bound-2026-10-29/README.md. No source checksum test or evaluator/tolerance changes.
+
+Model/Studio/browser/performance NOT RUN; their last whole/types remain D299901b4ce45. No speedup, push, PR
+or release. Next:D303 one actual-native family envelope with explicit two-span half-wall support and preserved
+repeated pcurve IDs by slot/full data, then coedge/source/closed-reference/mass integration before product wiring.
+Owner07->08->09 remains unchanged.

@@ -108,9 +108,15 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   Actual native4-side proof10669 operations excludes its earlier67093-operation assembly. D300 selected
   receipts/counts stay unchanged. Model/Studio/browser/performance NOT RUN. See
   `../cylindrical-wrap-side-family-2026-10-29/README.md`; next D302 is the unchanged native D0 bound.
+- D302 runtime`2f727cdd6` (2026-10-29) certifies existing native D0 whole-domain error for explicit
+  one-span degree1..3 Curve /degreeU1..3 by V1 Surface templates. Existing math evaluator is unchanged.
+  First build/lint/focused22/22, kernel2113/0/6 existing skips and code-shape/generated checks pass. Actual
+  quarter bound9.39e-12 uses43306 operations separately; no full wrap/pcurve binding/mass proof.
+  Model/Studio/browser/performance NOT RUN. See `../native-d0-bound-2026-10-29/README.md`. Next D303:
+  one actual-native family envelope/two-span support, then complete coedge/reference/mass integration.
 - Next: roadmap07's remaining wrap provider and broader face-fillet/thread ranges, then08,09. General/curved,
   rational/smooth wrapping, shaping, kerning, bidi and normalization remain unimplemented. D291's broader
-  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D302.
+  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D303.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -119,7 +125,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D302**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D303**).
 
 ## 0. State at the stop
 

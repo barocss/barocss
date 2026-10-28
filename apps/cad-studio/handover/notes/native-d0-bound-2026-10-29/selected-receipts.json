@@ -1,0 +1,672 @@
+{
+  "scope": "D0 forward-error proof per admitted source only; source/composition costs, pcurve domain/binding, topology/mass and complete construction excluded; pcurve bounds are in parameter coordinate units",
+  "cases": [
+    {
+      "label": "actual-native-R10-H30-original-quarter",
+      "certificate": {
+        "authority": "existing-native-basis-ordered-sum-projection",
+        "axes": [
+          {
+            "exact": {
+              "numerator": "638458359860190849123918443",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            "upper": 1.876260488127294e-12
+          },
+          {
+            "exact": {
+              "numerator": "638458359860190849123918443",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            "upper": 1.876260488127294e-12
+          },
+          {
+            "exact": {
+              "numerator": "1915375079580572547371755255",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            "upper": 5.628781464381882e-12
+          }
+        ],
+        "l1": {
+          "exact": {
+            "numerator": "3192291799300954245619592141",
+            "denominator": "340282366920938463463374607431768211456"
+          },
+          "upper": 9.381302440636469e-12
+        },
+        "constantAxes": [
+          false,
+          false,
+          false
+        ],
+        "errorBudgetL1": 1e-7,
+        "fractionBits": 128,
+        "counts": {
+          "operations": 42255,
+          "gcdSteps": 33220,
+          "floatSearchSteps": 252,
+          "floatConversions": 4,
+          "maximumObservedBits": 1152,
+          "directOperations": 1051,
+          "totalOperations": 43306,
+          "work": 76778,
+          "maximumDirectBits": 1155
+        },
+        "limits": {
+          "operations": 200000,
+          "integerBits": 8192,
+          "work": 1048576
+        },
+        "meaning": {
+          "nativeD0Certified": true,
+          "parameterAuthority": "finite-binary64-inside-exact-stored-domain",
+          "exactTarget": "rational-evaluation-of-unchanged-stored-coefficients",
+          "rounding": "binary64-nearest-with-absolute-subnormal-allowance",
+          "boundArithmetic": "single-ledger-positive-outward-fixed128",
+          "evaluatorReplacement": false,
+          "derivatives": false,
+          "pcurveBinding": false,
+          "topology": false,
+          "mass": false
+        },
+        "source": {
+          "kind": "surface",
+          "id": "wrap_quarter",
+          "degreeU": 2,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                10,
+                0,
+                0
+              ],
+              [
+                10,
+                0,
+                30
+              ]
+            ],
+            [
+              [
+                10,
+                9.999999999999998,
+                0
+              ],
+              [
+                10,
+                9.999999999999998,
+                30
+              ]
+            ],
+            [
+              [
+                6.123233995736766e-16,
+                10,
+                0
+              ],
+              [
+                6.123233995736766e-16,
+                10,
+                30
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              0.7071067811865476,
+              0.7071067811865476
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "template": "single-clamped-bezier-surface-degreeU1-to3-degreeV1",
+        "domain": {
+          "u": [
+            0,
+            0.5
+          ],
+          "v": [
+            0,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "label": "actual-native-composed-diagonal-cubic",
+      "certificate": {
+        "authority": "existing-native-basis-ordered-sum-projection",
+        "axes": [
+          {
+            "exact": {
+              "numerator": "556010804659881341598353021",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            "upper": 1.6339688996846125e-12
+          },
+          {
+            "exact": {
+              "numerator": "399834093269620234625384725",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            "upper": 1.1750067947614755e-12
+          },
+          {
+            "exact": {
+              "numerator": "132527530640870163062277583",
+              "denominator": "42535295865117307932921825928971026432"
+            },
+            "upper": 3.11570727193541e-12
+          }
+        ],
+        "l1": {
+          "exact": {
+            "numerator": "1008032571528231440360979205",
+            "denominator": "170141183460469231731687303715884105728"
+          },
+          "upper": 5.924682966381498e-12
+        },
+        "constantAxes": [
+          false,
+          false,
+          false
+        ],
+        "errorBudgetL1": 1e-7,
+        "fractionBits": 128,
+        "counts": {
+          "operations": 40661,
+          "gcdSteps": 32804,
+          "floatSearchSteps": 252,
+          "floatConversions": 4,
+          "maximumObservedBits": 1152,
+          "directOperations": 831,
+          "totalOperations": 41492,
+          "work": 74548,
+          "maximumDirectBits": 1154
+        },
+        "limits": {
+          "operations": 200000,
+          "integerBits": 8192,
+          "work": 1048576
+        },
+        "meaning": {
+          "nativeD0Certified": true,
+          "parameterAuthority": "finite-binary64-inside-exact-stored-domain",
+          "exactTarget": "rational-evaluation-of-unchanged-stored-coefficients",
+          "rounding": "binary64-nearest-with-absolute-subnormal-allowance",
+          "boundArithmetic": "single-ledger-positive-outward-fixed128",
+          "evaluatorReplacement": false,
+          "derivatives": false,
+          "pcurveBinding": false,
+          "topology": false,
+          "mass": false
+        },
+        "source": {
+          "kind": "curve",
+          "id": "native_diagonal",
+          "degree": 3,
+          "knots": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              9.833053684165744,
+              1.819630524121447,
+              7.5
+            ],
+            [
+              9.467941491252718,
+              3.7926507312817197,
+              11.483754493836114
+            ],
+            [
+              8.535533905932738,
+              5.606601717798212,
+              15
+            ],
+            [
+              7.0710678118654755,
+              7.071067811865475,
+              18.75
+            ]
+          ],
+          "weights": [
+            0.9359296083845573,
+            0.8810121298570349,
+            0.8535533905932737,
+            0.8535533905932737
+          ]
+        },
+        "template": "single-clamped-bezier-curve-degree1-to3",
+        "domain": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "label": "actual-native-affine-pcurve-in-parameter-coordinate-units",
+      "certificate": {
+        "authority": "existing-native-basis-ordered-sum-projection",
+        "axes": [
+          {
+            "exact": {
+              "numerator": "1010586427334111012061231",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            "upper": 2.9698465908723143e-15
+          },
+          {
+            "exact": {
+              "numerator": "631616517083819382538265",
+              "denominator": "85070591730234615865843651857942052864"
+            },
+            "upper": 7.424616477180786e-15
+          },
+          {
+            "exact": {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            "upper": 0
+          }
+        ],
+        "l1": {
+          "exact": {
+            "numerator": "3537052495669388542214291",
+            "denominator": "340282366920938463463374607431768211456"
+          },
+          "upper": 1.03944630680531e-14
+        },
+        "constantAxes": [
+          false,
+          false,
+          true
+        ],
+        "errorBudgetL1": 1e-7,
+        "fractionBits": 128,
+        "counts": {
+          "operations": 18277,
+          "gcdSteps": 12759,
+          "floatSearchSteps": 189,
+          "floatConversions": 3,
+          "maximumObservedBits": 1152,
+          "directOperations": 527,
+          "totalOperations": 18804,
+          "work": 31752,
+          "maximumDirectBits": 1151
+        },
+        "limits": {
+          "operations": 200000,
+          "integerBits": 8192,
+          "work": 1048576
+        },
+        "meaning": {
+          "nativeD0Certified": true,
+          "parameterAuthority": "finite-binary64-inside-exact-stored-domain",
+          "exactTarget": "rational-evaluation-of-unchanged-stored-coefficients",
+          "rounding": "binary64-nearest-with-absolute-subnormal-allowance",
+          "boundArithmetic": "single-ledger-positive-outward-fixed128",
+          "evaluatorReplacement": false,
+          "derivatives": false,
+          "pcurveBinding": false,
+          "topology": false,
+          "mass": false
+        },
+        "source": {
+          "kind": "curve",
+          "id": "native_diagonal_uv",
+          "degree": 1,
+          "knots": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              0.0625,
+              0.25,
+              0
+            ],
+            [
+              0.25,
+              0.625,
+              0
+            ]
+          ],
+          "weights": [
+            1,
+            1
+          ]
+        },
+        "template": "single-clamped-bezier-curve-degree1-to3",
+        "domain": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "label": "allowed-extreme-mixed-sign-cubic",
+      "certificate": {
+        "authority": "existing-native-basis-ordered-sum-projection",
+        "axes": [
+          {
+            "exact": {
+              "numerator": "1031364839858889503119806904517",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            "upper": 3.0309088572271447e-9
+          },
+          {
+            "exact": {
+              "numerator": "1031364839858889503119806904517",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            "upper": 3.0309088572271447e-9
+          },
+          {
+            "exact": {
+              "numerator": "1031364839858889503119806904517",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            "upper": 3.0309088572271447e-9
+          }
+        ],
+        "l1": {
+          "exact": {
+            "numerator": "3094094519576668509359420713551",
+            "denominator": "340282366920938463463374607431768211456"
+          },
+          "upper": 9.092726571681435e-9
+        },
+        "constantAxes": [
+          false,
+          false,
+          false
+        ],
+        "errorBudgetL1": 1e-7,
+        "fractionBits": 128,
+        "counts": {
+          "operations": 34795,
+          "gcdSteps": 26938,
+          "floatSearchSteps": 252,
+          "floatConversions": 4,
+          "maximumObservedBits": 1152,
+          "directOperations": 818,
+          "totalOperations": 35613,
+          "work": 62803,
+          "maximumDirectBits": 1164
+        },
+        "limits": {
+          "operations": 200000,
+          "integerBits": 8192,
+          "work": 1048576
+        },
+        "meaning": {
+          "nativeD0Certified": true,
+          "parameterAuthority": "finite-binary64-inside-exact-stored-domain",
+          "exactTarget": "rational-evaluation-of-unchanged-stored-coefficients",
+          "rounding": "binary64-nearest-with-absolute-subnormal-allowance",
+          "boundArithmetic": "single-ledger-positive-outward-fixed128",
+          "evaluatorReplacement": false,
+          "derivatives": false,
+          "pcurveBinding": false,
+          "topology": false,
+          "mass": false
+        },
+        "source": {
+          "kind": "curve",
+          "id": "worst",
+          "degree": 3,
+          "knots": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "weights": [
+            0.5,
+            1,
+            0.5,
+            1
+          ],
+          "controlPoints": [
+            [
+              -10000,
+              10000,
+              -10000
+            ],
+            [
+              10000,
+              -10000,
+              10000
+            ],
+            [
+              -10000,
+              10000,
+              10000
+            ],
+            [
+              10000,
+              -10000,
+              -10000
+            ]
+          ]
+        },
+        "template": "single-clamped-bezier-curve-degree1-to3",
+        "domain": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "label": "allowed-extreme-mixed-sign-3x1-tensor",
+      "certificate": {
+        "authority": "existing-native-basis-ordered-sum-projection",
+        "axes": [
+          {
+            "exact": {
+              "numerator": "2364205555984691219304370212737",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            "upper": 6.947775688106675e-9
+          },
+          {
+            "exact": {
+              "numerator": "2364205555984691219304370212737",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            "upper": 6.947775688106675e-9
+          },
+          {
+            "exact": {
+              "numerator": "2364205555984691219304370212737",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            "upper": 6.947775688106675e-9
+          }
+        ],
+        "l1": {
+          "exact": {
+            "numerator": "7092616667954073657913110638211",
+            "denominator": "340282366920938463463374607431768211456"
+          },
+          "upper": 2.0843327064320024e-8
+        },
+        "constantAxes": [
+          false,
+          false,
+          false
+        ],
+        "errorBudgetL1": 1e-7,
+        "fractionBits": 128,
+        "counts": {
+          "operations": 53989,
+          "gcdSteps": 43742,
+          "floatSearchSteps": 252,
+          "floatConversions": 4,
+          "maximumObservedBits": 1152,
+          "directOperations": 1300,
+          "totalOperations": 55289,
+          "work": 99283,
+          "maximumDirectBits": 1164
+        },
+        "limits": {
+          "operations": 200000,
+          "integerBits": 8192,
+          "work": 1048576
+        },
+        "meaning": {
+          "nativeD0Certified": true,
+          "parameterAuthority": "finite-binary64-inside-exact-stored-domain",
+          "exactTarget": "rational-evaluation-of-unchanged-stored-coefficients",
+          "rounding": "binary64-nearest-with-absolute-subnormal-allowance",
+          "boundArithmetic": "single-ledger-positive-outward-fixed128",
+          "evaluatorReplacement": false,
+          "derivatives": false,
+          "pcurveBinding": false,
+          "topology": false,
+          "mass": false
+        },
+        "source": {
+          "kind": "surface",
+          "id": "worst_surface",
+          "degreeU": 3,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                -10000,
+                10000,
+                -10000
+              ],
+              [
+                10000,
+                -10000,
+                10000
+              ]
+            ],
+            [
+              [
+                10000,
+                -10000,
+                10000
+              ],
+              [
+                -10000,
+                10000,
+                10000
+              ]
+            ],
+            [
+              [
+                -10000,
+                10000,
+                10000
+              ],
+              [
+                10000,
+                -10000,
+                -10000
+              ]
+            ],
+            [
+              [
+                10000,
+                -10000,
+                -10000
+              ],
+              [
+                -10000,
+                10000,
+                -10000
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              0.5,
+              1
+            ],
+            [
+              1,
+              0.5
+            ],
+            [
+              0.5,
+              1
+            ],
+            [
+              1,
+              0.5
+            ]
+          ]
+        },
+        "template": "single-clamped-bezier-surface-degreeU1-to3-degreeV1",
+        "domain": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        }
+      }
+    }
+  ]
+}
