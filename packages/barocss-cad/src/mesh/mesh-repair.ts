@@ -12,8 +12,8 @@
 //               smoothing of the new vertices, the rim fixed); the patches are reported so they can be shown
 //   floaters    closed pieces under a share of the largest one's volume, dropped
 //
-// Self-intersections (two triangles of the mesh crossing, not sharing a corner) are found through a BVH and
-// reported with where they are; repair does not fix them (D46).
+// Self-intersections (two triangles of the mesh crossing, not sharing a corner) are found through a uniform grid over
+// the triangles' boxes and reported with where they are; repair does not fix them (D46).
 import { triangulatePolygonWithHoles } from '../brep/brep-tessellate.js';
 import { weldVertices } from './facet-brep.js';
 import { meshBrepError } from './mesh-brep.js';
