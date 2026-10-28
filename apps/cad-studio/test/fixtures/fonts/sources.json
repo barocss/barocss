@@ -1,0 +1,42 @@
+{
+  "repository": "https://github.com/google/fonts",
+  "commit": "133ccbee9a8b408eb71f31a36ccb9116f5c695ad",
+  "fonts": [
+    {
+      "file": "abeezee/ABeeZee-Regular.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/133ccbee9a8b408eb71f31a36ccb9116f5c695ad/ofl/abeezee/ABeeZee-Regular.ttf",
+      "licenseFile": "abeezee/OFL.txt",
+      "licenseSource": "https://raw.githubusercontent.com/google/fonts/133ccbee9a8b408eb71f31a36ccb9116f5c695ad/ofl/abeezee/OFL.txt",
+      "license": "OFL-1.1",
+      "format": "static TrueType glyf",
+      "coverage": "Latin",
+      "bytes": 46016,
+      "glyphs": 268,
+      "unitsPerEm": 1000
+    },
+    {
+      "file": "nanum-gothic/NanumGothic-Regular.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/133ccbee9a8b408eb71f31a36ccb9116f5c695ad/ofl/nanumgothic/NanumGothic-Regular.ttf",
+      "licenseFile": "nanum-gothic/OFL.txt",
+      "licenseSource": "https://raw.githubusercontent.com/google/fonts/133ccbee9a8b408eb71f31a36ccb9116f5c695ad/ofl/nanumgothic/OFL.txt",
+      "license": "OFL-1.1",
+      "format": "static TrueType glyf",
+      "coverage": "Korean and Latin",
+      "bytes": 2054744,
+      "glyphs": 13297,
+      "unitsPerEm": 1000
+    },
+    {
+      "file": "nanum-myeongjo/NanumMyeongjo-Regular.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/133ccbee9a8b408eb71f31a36ccb9116f5c695ad/ofl/nanummyeongjo/NanumMyeongjo-Regular.ttf",
+      "licenseFile": "nanum-myeongjo/OFL.txt",
+      "licenseSource": "https://raw.githubusercontent.com/google/fonts/133ccbee9a8b408eb71f31a36ccb9116f5c695ad/ofl/nanummyeongjo/OFL.txt",
+      "license": "OFL-1.1",
+      "format": "static TrueType glyf",
+      "coverage": "Korean and Latin",
+      "bytes": 3058408,
+      "glyphs": 14695,
+      "unitsPerEm": 1024
+    }
+  ]
+}
