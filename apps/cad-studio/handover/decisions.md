@@ -14693,3 +14693,82 @@ studio 351/351.
 
 **Records.** `packages/barocss-cad/src/brep/analytic-boolean.ts` (`joinPieces`, `seamHalves`);
 `conformance/r10/translational-rod-across-disc.json`; `apps/library-docs/docs/how/naming.md` §4; research note §8.
+
+## D288 — One polynomial B-spline guide reaches Studio Loft (2026-10-28)
+
+**Result.** CG1.3's kernel WIP `bbc921cf7` now reaches Model/API, chat and the Studio Loft command. One copied
+polynomial guide takes 2–8 ruled height sections. Degree is 1–5, with at most 64 controls, clamped knots and exactly
+equal positive source weights. Controls must rise along the section normal. The guide must meet a vertex of each
+section. Two guides, smooth guided sections, general guides on explicit frames and rational guides remain open.
+
+**Model and Studio.** `copyLoftGuide` keeps the existing encoding of a single quadratic or cubic Bezier span. Other
+polynomial curves copy degree, knots and controls as `nurbs`. Arrays are independent snapshots. Loft uses height
+sections for a nurbs guide, sorted along the sketches' common normal. Existing Bezier guides keep their framed path.
+The HUD states the vertex condition. Chat documents the same guide fields. Raw height sections refer to sketches on
+one common plane; the HUD carries picked sketches onto that plane.
+
+**A kernel error found in the WIP.** Its section interpolation used parameter λ while height used Gz(λ). A taper
+therefore changed with the guide's height parameterization. The failing independent frustum oracle reported:
+`volume 2.7333333333333347 != 2.3333333333333335`. Rulings now use normalized height
+h(λ) = (Gz(λ) − Gz(0)) / (Gz(1) − Gz(0)), in both the control net and mass integration. Its basis coefficients are
+the normalized control heights. Each slice is the corresponding ruled slice translated by the guide minus its chord.
+The moment integrands, including dz, have degree at most 5p−1. The Gauss rule now uses
+max(2p + 2, ceil(5p / 2)) points per knot interval: 13 at degree 5, where 12 did not cover degree 24.
+
+**Independent oracles.**
+- The inherited six kernel guide cases use Cavalieri volume, independent de Boor/midpoint centroid integration,
+  strict B-rep validity, watertight triangles and typed refusals.
+- A square taper from width 1 at z=0 to width 2 at z=1, under a straight quadratic guide with nonlinear height:
+  V=7/3, centroid (45/56,45/56,17/28), exact rational inertia, and a native side point obeying x=1+z.
+- A degree-5 bow, x controls (0,−10000,10000,−10000,10000,0), z controls (0,.001,.002,.003,.004,1): independently
+  integrated rational power polynomials give its centroid and inertia. The wide bow exposes insufficient quadrature.
+- Two and three translated 10 × 10 squares under a two-span quadratic: V=2000, centroid (9,5,10), to 1e-9.
+- Public API, codec reopen, independent copied arrays and degree-1/4/5 copy cases. The taper's displayed Float32
+  vertices satisfy the six frustum planes and interior bounds. Its allowance is four Float32 ulps at unit scale.
+  An initial assertion on display face `kind` was discarded: representation labels do not prove geometric planarity.
+  No existing numeric tolerance or geometric expectation was loosened.
+
+**Source checksum tests retired (owner, 2026-10-28).** The owner questioned their need for this work. The two source
+pins in one `oriented-loft.test.mjs` case were removed. A source hash is not a geometry oracle. The first full run
+had 1960 pass, one obsolete source-pin failure and six skips (1967 tests). The corrected full run had 1963 pass,
+zero failures and six skips (1969 tests), including that source-only case. After its removal, 84 targeted tests
+(guide, oriented loft, NURBS demos and two native Split consumers) passed with filesystem-write diagnosis enabled.
+The pure source-read case was not removed by changing a geometric tolerance. No extra full run was made just for
+its deletion. Five one-time before/after B-rep + mass fingerprints stayed identical: plain square taper, smooth,
+circle frustum, quadratic framed guide and cubic framed guide. They are observations, not new frozen hash tests.
+
+**Browser.** Real Chrome, WebGPU, desktop 1440 × 900, DPR 1. An authored fixture loads through the file control.
+Loft selects its direct guide, previews, applies, undoes/redoes and reopens its saved file. Saved nodes equal the
+applied nodes; visible volume is 2000 and centre of mass is (9,5,10). This is browser execution on synthetic input,
+not person-input acceptance. The legacy rectangle-to-circle flow also passes. Stale runner selectors were corrected:
+the plane heading includes the tool name, the offset input must lose focus before C, History may be collapsed, and
+Static gravity precedes BODY. First failures: `page.waitForFunction: Timeout 30000ms exceeded.`, `NaN !== 2000`, and
+`page.waitForFunction: Timeout 20000ms exceeded.` Only failed steps and their startup prerequisite were rerun.
+
+**Environment and source restoration.** PR #2226 failed IV001 (`Canonical public inventory differs`). Reviewed
+regeneration changed 14 values for D285/D286's refusal types and the inherited guide type. Only fix `111b7d58c` was
+pushed under the owner's CI-fix permission. Checks passed; #2226 merged as `a780578a2`, then local/cad-dev fast-forwarded.
+The guide source returned to inherited content three times. The owner confirmed no other writer or open editor tab.
+The writer was not identified. A temporary manifest comparison was removed from normal verification. A Node write
+trace over the 84 targeted tests recorded only a TypeScript read. It does not establish the cause elsewhere.
+WIP commit `89fb7bf76` preserves the correction. After reapplying with the file-edit tool, the current-source geometry
+checks and final full checks passed; no further source reversion was observed in that verification window.
+No feature push, new PR or release.
+
+**Checks.** Node 22.19.0, through the heavy gate, one run at a time.
+- Kernel: `node scripts/tool.mjs build`, `node scripts/tool.mjs lint`, then
+  `node --test --test-concurrency=4 test/*.test.mjs`: 1963 pass, 0 fail, 6 skip, as qualified above.
+- Model: `TEST_CONCURRENCY=4 node scripts/test.mjs`: 1716/1716. Focused loft-guide 16/16 after the final geometry
+  assertions; tsc passes; src/test lint has 0 errors and 20 warnings.
+- Studio: `TEST_CONCURRENCY=4 node scripts/test.mjs`: 352/352. Chat focused 22/22; tsc passes; chat-test lint has
+  0 errors and 32 warnings on lines preceding the new block.
+- Current-source API guide test: 6/6 after the full runs. The final model/Studio run uses a temporary Node filesystem-call trace;
+  it records writes to the one source path and leaves arguments and return values unchanged.
+- Docs: `node apps/library-docs/scripts/agent-tools.mjs --check`, `refusals.mjs --check`, `check-docs.mjs`: pass (67 pages, 50 shots, 828 labels).
+- Browser: `CAD_STUDIO_CHAT_PORT=52591 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright FLOW_ONLY='CG1.3' node test/browser-flow.mjs <scratch>`.
+  Legacy Loft was rerun separately with `FLOW_ONLY='loft a rectangle'`.
+
+**Not run.** Full Studio browser suite, WebGL2 flow, mobile checks, GPU package suite, RB/fuzz/commutativity, and a
+performance A/B run. This is a guide correctness change; it makes no speed claim. Images and raw logs remain in the
+session scratchpad. No evidence files, local .claude settings or lockfile are committed.

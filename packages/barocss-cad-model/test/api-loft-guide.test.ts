@@ -183,5 +183,14 @@ test('public loft: polynomial multi-span guide on height sections keeps volume, 
 test('public loft: a tapered section follows nonlinear guide height and keeps the closed-form frustum on reopen', async () => {
   const made = part('height parameter').loft([{ sketch: sketch().rectangle({ w: 1, d: 1 }), z: 0 }, { sketch: sketch().rectangle({ w: 2, d: 2 }), z: 1 }], { guide: { kind: 'nurbs', degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [[0, 0, 0], [0, 0, 0.1], [0, 0, 1]] } });
   massOracle(made, 7 / 3, [45 / 56, 45 / 56, 17 / 28]);
+  const result = evaluateDoc(made.doc, 7); assert.ok(result.ok, result.ok ? '' : result.error.detail);
+  assert.equal(result.bodies[0].mesh.faces.length, 6);
+  // Display kind describes the patch representation. Check the actual Float32 vertices against the six planes.
+  const positions = result.bodies[0].mesh.positions, error = 4 * 2 ** -23;
+  for (let i = 0; i < positions.length; i += 3) {
+    const x = positions[i], y = positions[i + 1], z = positions[i + 2];
+    assert.ok(z >= -error && z <= 1 + error && x >= -error && y >= -error && x <= 1 + z + error && y <= 1 + z + error, `vertex ${x},${y},${z} is outside the frustum`);
+    assert.ok(Math.min(Math.abs(z), Math.abs(z - 1), Math.abs(x), Math.abs(y), Math.abs(x - 1 - z), Math.abs(y - 1 - z)) <= error, `vertex ${x},${y},${z} is off the frustum planes`);
+  }
   await reopened(made, 7 / 3, [45 / 56, 45 / 56, 17 / 28]);
 });

@@ -3,6 +3,25 @@
 The owner asked: "지금까지 하던거 멈추고 인수인계 할 수 있도록 해줘". This note lets the next session continue the
 kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-10-27 to 2026-10-28.
 
+## Latest resume checkpoint — Codex, 2026-10-28
+
+- PR #2226 merged as `a780578a2` after the reviewed API-inventory fix `111b7d58c`. Only that CI fix was pushed.
+- `local/cad-dev` fast-forwarded to develop in this worktree. The main checkout was not changed.
+- CG1.3, one polynomial guide on ruled height sections, is complete through Model/API/chat/Studio. See D288.
+  Implementation checkpoint: `89fb7bf76`; the following completion commit adds the final geometry check and records.
+- Verification: full kernel 1963 pass / 0 fail / 6 skip before retiring its one source-only hash test; 84 targeted
+  tests pass after retirement. Final model 1716/1716, Studio 352/352, current-source guide 6/6; docs pass.
+  Desktop Chrome/WebGPU: guided preview, Apply, Undo/Redo, Save/Open; legacy unguided Loft also passes.
+- The guide source returned to inherited content three times. The writer is not identified. The owner confirmed no
+  other writer or open editor tab. The current source was reapplied with the file-edit tool; no recurrence was
+  observed during final full verification. D288 records the diagnostic limits. Do not replace geometry oracles with
+  source checksum pins.
+- No feature push, new PR or release. Local `.claude/` remains untracked.
+- Next: roadmap 07's free-form face fillet, then thread evaluation time. Ask the owner for the font source before
+  text/wrap. Continue 08, then 09.
+
+The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
+
 **Read first:**
 1. this note;
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
