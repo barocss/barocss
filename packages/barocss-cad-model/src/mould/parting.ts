@@ -3,9 +3,9 @@
 // (n·d 0 throughout) goes where the person says, else to −; any face where the person says. The line runs along every
 // edge between the halves — each display edge segment judged at its middle, a straddling face's side there by its
 // exact normal — and across every straddling face along its isocline n·d = 0, traced by marching its triangles (each
-// mesh edge's crossing bisected on the exact normal). Its pieces are chained into loops. A straddling face would need
-// splitting along that isocline to mould as two halves: a face split by a curve, a kernel operation not built — said,
-// not done; the person can instead put the whole face in one half.
+// mesh edge's crossing bisected on the exact normal). Its pieces are chained into loops. A straddling face is split
+// along that isocline to mould as two halves by `splitStraddles` (tooling.ts: a `split-face` node, the kernel's D149);
+// here it is only reported, and the person can instead put the whole face in one half.
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';

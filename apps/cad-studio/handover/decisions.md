@@ -1644,6 +1644,9 @@ at that size with a 2M-triangle export (101.6 MB). Node figures are fresh proces
   - kernel: 65 MiB opens, past 128 MiB refused;
   - browser flow: the cup padded to 33 MiB and to 65 MiB opens, to 129 MiB is refused, and the part stays.
 
+*Correction (2026-10-28):* the tessellated cap is now 128 MiB (`CadPartLimits.stepTessellatedBytes = 128 << 20`,
+`part/part-model.ts`, "the owner's 128 MiB, D49"); the 64 MiB above is the cap as first decided.
+
 ## D50 — F1: a facet body split by a plane on its own triangles, each side closed by an exact planar cap; oblique splits of planar bodies fixed (2026-10-18, R4)
 
 Before, a split of a mesh body went through F0's explode, to the planar per-triangle B-rep. It was refused past
@@ -5084,6 +5087,9 @@ D105's verdict for R11.2: a closed body whose faces meet smoothly needs no slab,
 - **Not done:** opened faces (R11.2b). Bodies with sharp edges and freeform faces (region slabs) are R11.2b and R11.2c. Creased SubD bodies have sharp edges and are not on this route.
 - Checks: lint and type-check clean; kernel 1157/1162 (only the env-only Split test fails; r11-s0's two S0 records read then and now); conformance with the 4 new cases; studio 453/453; full flow 151/151 on 52f800a48 plus this step (every R14 and A5 step passing). RB rows in the next commit.
 
+*Correction (2026-10-28):* the smooth-edge test in `blend/offset-cavity.ts` is `SMOOTH = 1e-4` rad, not 1e-6 as
+written above.
+
 ## D111 — R11.2b: a smooth closed freeform body shelled with faces opened (2026-10-20)
 
 D110 refused a shell that opens faces of a smooth freeform body. A shell's wall is the union of its kept faces' normal bands. So opening a face only takes its band away, and this step builds the opened shell from D110's cavity with no Boolean.
@@ -7791,6 +7797,8 @@ Track K's second step (the PKG design note's G4–G6; the coordinator's 2026-10-
 - `@barocss/cad-model` lint and type-check clean.
 - Studio: tsc clean; eslint on the changed tests 0 errors; the suite 756/758 with the known `todo` (O80) and one failure, `hollow`'s sphere cavity test on its "refused at once" (< 1000 ms) wall-clock assert under the full suite's load — `print/hollow.ts` uses none of the changed code, and it passed alone twice and in the suite's next full run.
 - The flow and RB not run (no studio-visible behaviour changed; the coordinator's verify worktree runs the flow).
+
+*Correction (2026-10-28):* the hierarchy lives in `src/mesh/triangle-bvh.ts` (moved into the mesh folder by D229).
 
 ## D142 — K3: the exact clearance between two meshes, one point–triangle (2026-10-21)
 

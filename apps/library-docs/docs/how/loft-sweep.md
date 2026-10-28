@@ -222,9 +222,10 @@ All paths are under `packages/barocss-cad/src/`.
 | `packages/barocss-cad-model/test/api-multi-conic-loft.test.ts`, `api-loft-guide.test.ts` | The same through the studio's API |
 | `packages/barocss-cad/test/k7b-fit-plain.test.mjs` | `buildInterpolatingCurve` against a plain fit |
 
-The NURBS-section surface builders have no test file of their own: they are run by the demos in `examples/cad-nurbs/`
-(`section-knot-alignment-demo.mjs`, `multi-section-loft-demo.mjs`, …) and check every result themselves when they build
-it.
+The NURBS-section surface builders have no test file of their own: their checks are the assertions in their demos in
+`examples/cad-nurbs/`, and `packages/barocss-cad/test/nurbs-demos.test.mjs` runs the ones that run in a fresh checkout
+(compatible, degree-matched and rational ruled surfaces, the piecewise loft, section knot alignment). The multi- and
+three-section loft demos import the TypeScript sources directly and do not run there.
 
 ## Limits
 

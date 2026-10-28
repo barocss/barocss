@@ -230,11 +230,11 @@ options and compares every field.
   report the tolerance used; coplanar curve and line intersections scale the same way and find both points.
 - `packages/barocss-cad/test/numeric-policy-range.test.mjs`: the degree-2 intersection works at 5 × 10⁵ mm and refuses
   beyond the geometry range.
-- Example scripts with assertions, run with node: `examples/cad-nurbs/cubic-curve-plane-intersection-demo.mjs` (among
-  others, a triple root and an interior tangent are refused), `own-curve-plane-intersection-demo.mjs`,
-  `own-multispan-curve-plane-demo.mjs`, `curve-wide-plane-intersection-demo.mjs`,
-  `curve-wide-cubic-plane-intersection-demo.mjs`, `own-curve-line-intersection-demo.mjs` and
-  `multispan-vlinear-plane-section-demo.mjs`.
+- Example scripts with assertions in `examples/cad-nurbs/`: `own-curve-plane-intersection-demo.mjs`,
+  `own-multispan-curve-plane-demo.mjs`, `own-curve-line-intersection-demo.mjs`, `vlinear-plane-section-demo.mjs` and
+  `multispan-vlinear-plane-section-demo.mjs` run in `packages/barocss-cad/test/nurbs-demos.test.mjs`;
+  `cubic-curve-plane-intersection-demo.mjs` (a triple root and an interior tangent refused, among others) and the
+  `curve-wide-*` demos compare against a build kept on another machine and are not run there.
 
 ## Limits
 
