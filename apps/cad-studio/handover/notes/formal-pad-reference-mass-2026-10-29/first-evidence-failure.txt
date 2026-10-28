@@ -1,0 +1,11 @@
+node:fs:2422
+      path = getValidatedPath(path);
+             ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string or an instance of Buffer or URL. Received undefined
+    at writeFileSync (node:fs:2422:14)
+    at file:///private/tmp/barocss-native-binding-d305-measure.mjs:26:1 {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v22.19.0

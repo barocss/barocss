@@ -1,0 +1,32 @@
+{
+  "source": "2ab2f6a67b2ce03f0c993fa0cb257703c0341f98",
+  "node": "22.19.0",
+  "firstBuildLintCodeShape": "PASS",
+  "firstFocused": {
+    "pass": 24,
+    "fail": 0,
+    "duration_ms": 446.519541
+  },
+  "kernel": {
+    "tests": 2154.0,
+    "pass": 2148.0,
+    "fail": 0.0,
+    "skipped": 6.0,
+    "duration_ms": 248076.145209
+  },
+  "tools": "PASS",
+  "refusals": "PASS",
+  "apiInventory": "unchanged SCOPED_PASS",
+  "docs": {
+    "pages": 68,
+    "beingWritten": 0,
+    "shots": 53,
+    "shotKB": 4488,
+    "labels": 852
+  },
+  "D305FullNativeResultIncluding64BitNumbersAndCounts": "SAME",
+  "formalMassOnly": true,
+  "literalBrepMassPhysicalSolidPartMassProduct": "NOT_QUALIFIED",
+  "modelStudioTypesBrowserPerformance": "NOT_RUN; last whole consumers/types D299901b4ce45",
+  "pushPrRelease": "NOT_RUN"
+}

@@ -136,9 +136,16 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   kernel2137/0/6 and generated/unchanged API/docs pass. Model/Studio/types/browser NOT RUN.
   See `../native-position-proof-budget-2026-10-29/README.md`. Next D306 validates the private
   formal reference mass; actual closed-reference/physical-solid/product integration stays open.
+- D306 runtime`2ab2f6a67` validates private formal cylinder+one-pad mass, all10 moments and actual
+  returned scalar errors with mandatory budgets. Source is fresh; quarter-only representation
+  bounds stay excluded from reference mass error. Independent oracle, build/lint/focused24/24,
+  kernel2148/0/6 and generated/unchanged API/docs pass. Standard separate mass40919ops includes
+  source11544; a combined native179831+local29375 would exceed200k. No cumulative approval,
+  literal B-rep mass, global closure or product wrap. Model/Studio/types/browser/perf NOT RUN.
+  See `../formal-pad-reference-mass-2026-10-29/README.md`. Next D307 measures midpoint conversion.
 - Next: roadmap07's remaining wrap provider and broader face-fillet/thread ranges, then08,09. General/curved,
   rational/smooth wrapping, shaping, kerning, bidi and normalization remain unimplemented. D291's broader
-  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D306.
+  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D307.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -147,7 +154,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D306**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D307**).
 
 ## 0. State at the stop
 

@@ -15525,3 +15525,36 @@ whole consumer suites/types remain D299901b4ce45. Evidence: notes/native-positio
 Actual global closure, closed-reference transfer, physical solid/mass and product wrap remain
 open. No push/PR/release. Next D306: private formal reference mass with explicit scalar error
 budgets and complete work ledger, then actual closed-reference/product integration. Owner07->08->09 unchanged.
+
+
+## D306 — Private formal native-cylinder plus one-pad mass (2026-10-29)
+
+**Decision.** Runtime2ab2f6a67 derives fresh actual source data and a strict original-UV rectangle
+to calculate the formal circle cylinder union an ideal scale2 annular sector. Actual endpoint
+rays, exact affineZ, signed fixed128 intervals,24-term bounded atan/Machin constants and guarded
+integer-square-root normalization enclose all10 raw moments; added volume lower>0. Existing
+Number solidMassFromIntegrals plus translated centroid and retained native basis supply actual
+returned properties. Exact density/1000 target audits every volume/mass/centroid/inertia Number
+under mandatory absolute scalar budgets. Underflow/nonfinite values and overflowing existing
+SI density intermediate refuse. selectedQuarterRadial/Outer metadata is not a global bound,
+and its representation error is excluded from the formal-reference evaluation error.
+
+One200k/8192/1048576 ledger imports source q/direct operations and fully normalized work once;
+local GCD/float-search/direct/structural work are included in one totalWork used by admission
+and output. Original source reconstruction/checker Number work has its existing declared
+accounting boundary. Independent review found the draft work omissions and quarter naming
+ambiguity; both were fixed before the first build. No native tolerance or cap increases.
+
+Independent256-bit/160-term atan, distinct pi identity, generic Bernstein and complex Laurent
+angular oracle verify all10 source/pad/total moments and final scalar errors. First build/lint/
+focused24/24, whole2148pass/0fail/6existing skips (2154total), generated/unchanged API/docs pass.
+D305 full native result/counts/64-bit values remain identical. Standard separate mass request
+40919ops=11544source+26369q+3006direct,69733work,1153bits; asymmetric negativeZ/density7.85 case
+52029ops/89192work. Those are separate requests, not combined native binding/mass approval.
+
+Evidence: notes/formal-pad-reference-mass-2026-10-29/README.md, including original evidence
+script missing-destination failure. Model/Studio/types/browser/performance NOT RUN; latest whole
+consumers/types remain D299901b4ce45. Literal stored-B-rep mass/global closure/physical solid/
+Part provider/product wrap/native SI accuracy remain unqualified. No source-checksum test,
+dependency, push/PR/release. Next D307 measures midpoint conversion reduction with exact full
+receipt preservation, then closed-reference/global source and cumulative integration. Owner07->08->09 unchanged.
