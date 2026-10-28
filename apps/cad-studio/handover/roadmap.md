@@ -57,6 +57,28 @@
 
 공통16의 공개 API 방향은 [설계 기록](api-public-model-direction-20261027.md)에 있다. CAD Model을 사용자 편집 원본과 기본 Part/Assembly 진입점으로 삼고 커널은 독립 계산 계층으로 유지한다. 메서드별 계약/파일/API 호환 이행과 물리적 패키지 통합은 아직 완료·확정되지 않았다. 명칭 변경만으로 이 과제를 닫지 않는다.
 
+### Static engine-audit follow-ups — 2026-10-29
+
+The fixed-source audit at `06c33222a` supplies 15 **NOT_REPRODUCED** candidates, not 15 product failures.
+They are attached to existing areas below; no duplicate issues or task queue are created. D297 `739978a27`
+and current wrap/text-relief-rematch WIP retain separate ownership and evidence. The owner's **07 → 08 → 09**
+order is unchanged; wrap remains active. Candidate priority controls their later reproduction order only.
+
+| Existing area / task | Attached audit candidates | Scope and acceptance |
+| --- | --- | --- |
+| 09 advanced sketch + 12 files | A01 | Actual skeleton Save/fresh Open with IDs, references and evaluation preserved. |
+| 12 CG6 + O9 revision/recovery ownership | A02, A04, A05, A06 | Delayed Save/Open generations, canonical snapshot codec and worker-sender disposal; preserve newer recovery and accepted state. |
+| 05 Viewer + V1/V2 lifecycle/camera/inspect | A03, A08, A09 | Stable live geometry/buffers, consistent near/far picks, and bounded internal-display rollback investigation. |
+| 06 GPU + existing pick/display contracts, R2 | A07, A16 | Stale instance readback and admitted degenerate-normal policy. |
+| 16 CG10 + existing RB5–RB8 and R7.3d | A10, A14, A15 | Explicit execution/skip evidence, honest mass-fallback diagnostics and selected public-family consumers/support. |
+| 22 remaining own-data + R5/R2 | A11 | Consolidate only equal contracts; preserve errors, limits, signed zero, omission, order and ownership. |
+| 16 R7 + R4 Model/R1 Studio ownership | A12 | Stable public/internal contracts and actual consumer/runtime boundaries; file splitting alone is insufficient. |
+
+A10 counts remain separate: GPU default45/83, three-command union64/83, all83, unregistered19; these are
+static file-registration counts, not executions. A13 is excluded by the public immutable-array contract.
+[Full intake and exact acceptance scopes](notes/engine-audit-intake-2026-10-29.md) preserve the audit limits,
+existing-task deduplication and deferred reproduction order. This registration runs no product checks.
+
 ### 제품 완료와 인계의 공통 조건
 
 1. 기능의 입력·단위·좌표·참조·지원/거부 계약을 고정한다.

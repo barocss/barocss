@@ -76,6 +76,11 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   focused34/34 and whole2022 total/2016 pass/0 fail/6 existing skips pass; generated checks pass. No wrapped
   solid/Part/Model/API/Studio feature or new browser evidence. Original failure/reviews are preserved in
   `../cylindrical-wrap-foundation-2026-10-29/README.md`. Next is D298 native topology/mass provider.
+- D296 follow-up (2026-10-29) registers text-relief in edit-time face rematching. Both new matcher tests
+  fail before the one-line fix; final focused53/53, Model types/lint and whole Model1824/1824/Studio365/365
+  pass. These do not add a new browser/native-renaming flow or qualify concurrent wrap WIP. See
+  `../text-relief-rematch-2026-10-29/README.md`. The static audit's15 NOT_REPRODUCED candidates are attached
+  to existing roadmap areas; original07→08→09 order and active wrap work remain unchanged.
 - Next: roadmap07's remaining wrap provider and broader face-fillet/thread ranges, then08,09. General/curved,
   rational/smooth wrapping, shaping, kerning, bidi and normalization remain unimplemented. D291's broader
   free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D298.

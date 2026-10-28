@@ -15236,6 +15236,17 @@ is not in the studio's sources`; the actual separate labels resolve it. Original
 are preserved in `notes/text-relief-2026-10-28/`. No push, PR or release. Next decision: **D297**.
 
 
+### D296 follow-up — edit-time face registry (2026-10-29)
+
+`text-relief` was missing from `engine/rematch.ts`'s named-face registry even though capture/open references
+were registered. Add the existing kind. Two new bounded matcher tests first fail0/2 (`0 !== 2` and
+`error: 'ambiguous'`); after the one-line fix focused53/53, Model types/changed lint and complete
+Model1824/1824 (225281.689292 ms)/Studio365/365 (23673.303125 ms) pass on Node22.19.0. Authored replacement
+names on an actual box qualify registry dispatch, unique/ambiguous/gone matching and source immutability;
+they do not qualify an actual native topology-renaming browser flow. No new browser or kernel-geometry run
+for this Model-only fix. Source base739978a27; unrelated private wrap WIP is outside these results.
+Original failure/output boundaries: `notes/text-relief-rematch-2026-10-29/README.md`. No push, PR or release.
+
 ## D297 — Private cylindrical inverse map and rational trim composition (2026-10-29)
 
 **Decision.** Adopt the private foundations in `features/cylindrical-wrap-map.ts` and
