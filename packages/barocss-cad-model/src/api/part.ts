@@ -235,8 +235,8 @@ export class StudioPart extends Part<StudioDoc> {
 
   /**
    * A loft through closed sketches, choosing its new body. Section frames and guide controls are copied snapshots
-   * in world mm; later edits to the source curve or caller's arrays do not drive this feature. A guide requires
-   * explicit frames. The Kernel evaluates its exact endpoints, cap fractions and supported shape combinations.
+   * in world mm; later edits to the source curve or caller's arrays do not drive this feature. A Bézier guide requires
+   * explicit frames; a `nurbs` guide (any polynomial B-spline through a vertex of each section) takes sections by z. The Kernel evaluates its exact endpoints, cap fractions and supported shape combinations.
    * Only a successfully evaluated document is returned; a refusal leaves this part and the inputs unchanged.
    */
   loft(sections: readonly StudioLoftSection[], options: StudioLoftOptions = {}): this {
