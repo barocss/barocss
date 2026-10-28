@@ -2,8 +2,8 @@
 // chain the ball of radius r touching both faces is solved (its centre c = S_A + σ_A r n_A = S_B + σ_B r n_B, in the plane
 // through the station square to the chain: four equations in the contacts' (u, v), by Newton); each station's section
 // — the contacts, the faces' lines grown g outside the corner, their corner and the fillet arc — lies in the ball's
-// plane through both contacts. The tool is lofted through the sections: cubic Hermite along the chain (tangents by a
-// five-point stencil, so O(h⁴)), the arc rational quadratic in homogeneous coordinates, in patches within the 16-pole
+// plane through both contacts. The tool is lofted through the sections: a C² cubic B-spline along the chain through the
+// lofted stations (its end tangents by a five-point stencil, so O(h⁴)), the arc rational quadratic in homogeneous coordinates, in patches within the 16-pole
 // limit; its deviation from the true rolling-ball sections is measured at the stations between those it passes through.
 import { BrepError, buildBrep, type Brep } from '../brep/brep-core.js';
 import { faceGeometry } from '../brep/analytic-boolean.js';

@@ -450,7 +450,7 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
           exact.push(Math.hypot(c[0], c[1], c[2]) > 0 ? unit(c) : null);
         }
         emit(face.id, 'trimmed', pts, tris, null, exact, sign);
-        // (Its triangles on a boundary chord, tilted from the surface's normals at their corners by more than 1.5 steps.)
+        // (Its triangles on a boundary chord, tilted from the surface's normals at their corners by more than one step.)
         const cosTilt = Math.cos(Math.PI / 2 / perQuarter);
         for (const [a, b, c] of tris) {
           const na = exact[a], nb = exact[b], nc = exact[c]; if (!na || !nb || !nc) continue;
