@@ -22,3 +22,7 @@ turned on in your system, each step is shown still.
 | [Meshes, native tools and the BVH](/how/mesh-boolean) | The mixed mesh/native Boolean, T-junction mending, the triangle hierarchy and its queries |
 | [Closest points on curves and surfaces](/how/closest-point) | Gauss–Newton projection onto surfaces, golden-section search on curves, the Boolean's projections |
 | [Where a curve meets a plane](/how/curve-roots) | Distance as a Bernstein polynomial, hull test, turning points and bisection, tangent refusals, spans |
+| [Lofts, sweeps and revolves](/how/loft-sweep) | Revolve on rational arcs, draft, sweeps with rotation-minimising frames, lofts |
+| [Threads, gears and springs](/how/threads-gears) | Involute flanks fitted to tolerance, gear pairs and contact ratio, helical threads, springs |
+| [Subdivision surfaces as exact B-splines](/how/subd) | Catmull–Clark rules, the cage as a bicubic net, phantom points, G1 caps at extraordinary vertices |
+| [Sheet metal: bends and the flat pattern](/how/sheet-metal) | Neutral layer and K-factor, bend allowance, bend tables, unfolding a B-rep, reliefs, DXF |

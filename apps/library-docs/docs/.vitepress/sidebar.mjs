@@ -170,6 +170,10 @@ export const sidebar = [
       { text: 'Meshes, native tools and the BVH', link: '/how/mesh-boolean', lane: 'kernel' },
       { text: 'Closest points on curves and surfaces', link: '/how/closest-point', lane: 'kernel' },
       { text: 'Where a curve meets a plane', link: '/how/curve-roots', lane: 'kernel' },
+      { text: 'Lofts, sweeps and revolves', link: '/how/loft-sweep', lane: 'kernel' },
+      { text: 'Threads, gears and springs', link: '/how/threads-gears', lane: 'kernel' },
+      { text: 'Subdivision surfaces as exact B-splines', link: '/how/subd', lane: 'kernel' },
+      { text: 'Sheet metal: bends and the flat pattern', link: '/how/sheet-metal', lane: 'kernel' },
     ],
   },
   {
