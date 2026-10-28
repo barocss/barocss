@@ -25,6 +25,7 @@ import { booleanAnalytic, faceGeometry, splitFaceAlongCurve, splitFaceAlongIsocl
 import { faceReach, finishBrepEdges } from '../blend/edge-finish.js';
 import { polynomialFaceFillet } from '../blend/polynomial-face-fillet.js';
 import { draftedExtrusion } from '../features/drafted-extrusion.js';
+import { profileRelief, type ReliefSketch } from '../features/profile-relief.js';
 import { stepTessellatedChars } from '../io/step.js';
 import { brepFromTriangles, isMeshBrepError } from '../mesh/mesh-brep.js';
 import { facetBrepFromTriangles, weldVertices } from '../mesh/facet-brep.js';
@@ -127,6 +128,8 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'rib'; readonly target: string; readonly min: CadPartPoint3; readonly max: CadPartPoint3 }
   /** A supported XY rectangle raised above or recessed below the top of one straight-sided, single-slab upright solid. Depth is positive world mm, below the body's height. */
   | { readonly kind: 'rectangular-relief'; readonly target: string; readonly min: CadPartPoint2; readonly max: CadPartPoint2; readonly depth: CadPartDim; readonly mode: 'emboss' | 'engrave' }
+  /** Line-only XY components strictly inside exactly one +Z cap in `faces`. `clearance` adds to the existing linear policy (default 0); only engrave depth must remain below slab thickness. */
+  | { readonly kind: 'profile-relief'; readonly target: string; readonly faces: readonly string[]; readonly sketches: readonly string[]; readonly depth: CadPartDim; readonly mode: 'emboss' | 'engrave'; readonly clearance?: number; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
   /**
    * A full round (a face fillet): each named face — planar, facing +Z, an axis-aligned rectangle — becomes a half
    * cylinder tangent to its two sides along `along` (default: each face's longer side), of radius half its width
@@ -1482,6 +1485,26 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         if (joinedBrep.bodies.length !== 1 || joinedBrep.bodies[0].kind !== 'solid' || !(Number.isFinite(volume) && volume > 0)) fail('GEOMETRY', 'rib union must be one nonempty solid');
         return one(joined);
       };
+    }
+    case 'profile-relief': {
+      const target = solids(f.target, 'target'), names = f.sketches as unknown, selected = f.faces as unknown, depth = dim(f.depth as CadPartDim, 'depth', true), mode = f.mode;
+      if (mode !== 'emboss' && mode !== 'engrave') fail('INPUT', 'profile relief mode must be emboss or engrave');
+      if (!Array.isArray(selected) || selected.length !== 1 || typeof selected[0] !== 'string' || !selected[0] || selected[0].includes('+')) fail('INPUT', 'profile relief faces must contain exactly one exact cap face name');
+      const face = (selected as string[])[0];
+      if (f.clearance !== undefined && (typeof f.clearance !== 'number' || !Number.isFinite(f.clearance) || f.clearance < 0 || f.clearance > CadPartLimits.length)) fail('INPUT', 'profile relief clearance must be a finite nonnegative native length');
+      if (!Array.isArray(names) || !names.length || names.length > CadPartLimits.edges) fail('INPUT', 'profile relief needs 1..64 distinct component sketch references');
+      if (target.length !== 1) fail('REFERENCE', 'profile relief target must be one nonempty solid');
+      const source = target[0].solid;
+      if (source.kind !== 'upright' || !lineOnly(source.solid) || source.solid.slabs.length !== 1) fail('CAPABILITY', 'profile relief requires one line-only upright slab');
+      const seen = new Set<string>(), sketches: ReliefSketch[] = [];
+      for (const name of names as unknown[]) {
+        if (typeof name !== 'string' || !name || seen.has(name)) fail('INPUT', 'profile relief needs distinct component sketch names');
+        seen.add(name as string);
+        const sketch = ref(name, 'component sketch').result;
+        if (sketch.kind !== 'sketch') fail('REFERENCE', 'profile relief component references must name sketches');
+        sketches.push(sketch as Extract<Result, { kind: 'sketch' }>);
+      }
+      return () => one({ kind: 'upright', solid: profileRelief((source as Extract<Solid, { kind: 'upright' }>).solid, brepOf(target[0], at), face as string, sketches, depth, mode as 'emboss' | 'engrave', f.clearance as number | undefined, at, fail) });
     }
     case 'rectangular-relief': {
       const target = solids(f.target, 'target'), min = xy(f.min as CadPartPoint2, 'min'), max = xy(f.max as CadPartPoint2, 'max'), depth = dim(f.depth as CadPartDim, 'depth', true), mode = f.mode;
