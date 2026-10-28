@@ -19,6 +19,7 @@ export const sidebar = [
       { text: 'Modeling API', link: '/packages/cad/modeling', lane: 'kernel' },
       { text: 'B-rep, robustness and refusals', link: '/packages/cad/robustness', lane: 'kernel' },
       { text: 'Boolean operations in 3D', link: '/packages/cad/robustness#build-the-result-in-3d-one-stage-at-a-time', lane: 'kernel' },
+      { text: 'How the kernel computes', link: '/packages/cad/algorithms', lane: 'kernel' },
       { text: 'Exchange formats', link: '/packages/cad/formats', lane: 'kernel' },
       {
         text: 'Object API',
