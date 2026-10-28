@@ -148,6 +148,22 @@ edges are the same curve. If a weight in the cubic turns zero or negative, which
 apart for the tangents, the loft is refused. On the figure's sections the kernel gives 1490.49 mm³ smooth and
 1480.41 mm³ ruled.
 
+### One polynomial guide on height sections
+
+Two to eight ruled sections may take `guide: {kind: 'nurbs', degree, knots, controlPoints}`. The degree is 1–5,
+with 2–64 control points (at least degree + 1), clamped non-decreasing knots and no rational weights. Each control
+point must rise along the sections' common normal. The guide must pass through a vertex of every section and end
+on the last section. The sections turn to start at those vertices.
+
+Each slice is the ruled slice translated by the guide's departure from its chord at that height. The guide is cut
+where it crosses each inner section. A side's control net uses the guide's normalized height coefficients in its own basis, so a nonlinear height
+parameter does not change a taper. Mass uses max(2p + 2, ceil(5p / 2)) Gauss points per knot interval (13 for degree 5). A translated slice keeps its area, so the volume matches the unguided loft.
+
+In Studio, **Loft** copies a polynomial direct curve selected in **Guide (copied)**. It sorts the picked parallel
+sketches by height. Later edits of the direct curve do not change the loft. A single quadratic or cubic Bézier span
+keeps the existing framed guide path below. Two guides, smooth guided sections, rational guides and general guides
+on explicit frames remain unsupported.
+
 ### Sections on frames, twist and guides
 
 A section can be placed on an explicit frame instead of a height: an origin and two unit, perpendicular axes (checked to
@@ -199,6 +215,7 @@ All paths are under `packages/barocss-cad/src/`.
 | `brep/brep-glue.ts` | `glueAtSharedFace`: two bodies joined along a shared section |
 | `features/loft.ts` | `loftSolid`: pieces, turn, degree match, ruled sides (`legacyLoft`), smooth sides (`smoothLoft`), their mass integrals |
 | `features/oriented-loft.ts`, `features/curved-loft.ts`, `features/framed-mixed-loft.ts` | Lofts on frames: polygons with their fold certificates, conics, mixed loops |
+| `features/loft-nurbs-guide.ts` | Polynomial guide admission, section crossings, chord elevation and per-span mass integrals |
 | `features/loft-guide.ts` | `admitLoftGuide`: the quadratic and cubic seam guides and their offsets |
 | `nurbs/surfaces/compatible-ruled-surface.ts`, `nurbs/surfaces/rational-ruled-surface.ts` | Ruled surfaces between two compatible sections |
 | `features/section-knot-alignment.ts` | `buildAlignedRationalRuledSurface`: knot union, insertion, ruled |
@@ -218,6 +235,7 @@ All paths are under `packages/barocss-cad/src/`.
 | `packages/barocss-cad/test/sweep-solid.test.mjs` | `sweep-curve`: a bent rod within 1 % of Pappus, its start cap on the path's start, a tube with its bore, the closed-path and bad-curve refusals |
 | `packages/barocss-cad/test/interpolated-hole-sweep-regression.test.mjs` | An interpolated space curve as the path of a holed sweep, saved and read back; mismatched weights refused |
 | `packages/barocss-cad/test/oriented-loft.test.mjs` | Lofts on frames: prisms between unparallel caps, a twist, the half-turn refusal, non-affine polygons, circles and ellipses, mixed loops, every typed refusal |
+| `packages/barocss-cad/test/loft-nurbs-guide.test.mjs` | Polynomial guide: Cavalieri volume, independent de Boor centroid integration, knot and section crossings, strict B-rep and watertight mesh, typed refusals |
 | `packages/barocss-cad/test/loft-multi-conic.test.mjs`, `loft-cubic-guide.test.mjs` | Four and eight conic sections; the cubic seam guide; their refusals |
 | `packages/barocss-cad-model/test/api-multi-conic-loft.test.ts`, `api-loft-guide.test.ts` | The same through the studio's API |
 | `packages/barocss-cad/test/k7b-fit-plain.test.mjs` | `buildInterpolatingCurve` against a plain fit |

@@ -199,18 +199,19 @@ function legacyLoft(input: LoftInput, guideFactory?: LoftGuideFactory, nurbsGuid
 /**
  * A span under a general guide (CG1.3) into the volume integrals: the slice at λ is the ruled one moved by the guide's
  * departure from its chord, at the guide's height, so dz = rise(λ) dλ. Between the guide's knots each moment is a
- * polynomial in λ of degree at most 4p (p the guide's degree): Gauss with 2p + 2 points is exact there.
+ * polynomial in λ of degree at most 5p - 1, including dz (p is the guide degree). The Gauss rule
+ * therefore needs at least ceil(5p / 2) points; retain the previous rule where it already suffices.
  */
 function guidedSpanMoments(I: number[], lo: Bezier, hi: Bezier, g: LoftNurbsGuideSpan): void {
-  const G = gaussFor(2 * g.degree + 2);
+  const G = gaussFor(Math.max(2 * g.degree + 2, Math.ceil(5 * g.degree / 2)));
   for (let c = 0; c + 1 < g.breaks.length; c++) {
     const c0 = g.breaks[c], c1 = g.breaks[c + 1], d = c1 - c0;
     for (let a = 0; a < G.x.length; a++) {
-      const l = c0 + G.x[a] * d, zz = g.height(l), wl = G.w[a] * d * g.rise(l), offset = g.offset(l);
+      const l = c0 + G.x[a] * d, zz = g.height(l), wl = G.w[a] * d * g.rise(l), offset = g.offset(l), fraction = (zz - g.start[2]) / (g.end[2] - g.start[2]);
       let A = 0, Sx = 0, Sy = 0, Sxx = 0, Syy = 0, Sxy = 0;
       for (let b = 0; b < G24.x.length; b++) {
         const s = G24.x[b], [p0, d0] = at(lo, s), [p1, d1] = at(hi, s), ws = G24.w[b];
-        const x = (1 - l) * p0[0] + l * p1[0] + offset[0], y = (1 - l) * p0[1] + l * p1[1] + offset[1], dx = (1 - l) * d0[0] + l * d1[0], dy = (1 - l) * d0[1] + l * d1[1];
+        const x = (1 - fraction) * p0[0] + fraction * p1[0] + offset[0], y = (1 - fraction) * p0[1] + fraction * p1[1] + offset[1], dx = (1 - fraction) * d0[0] + fraction * d1[0], dy = (1 - fraction) * d0[1] + fraction * d1[1];
         A += ws * x * dy; Sx += ws * x * x / 2 * dy; Sy -= ws * y * y / 2 * dx; Sxx += ws * x ** 3 / 3 * dy; Syy -= ws * y ** 3 / 3 * dx; Sxy += ws * x * x * y / 2 * dy;
       }
       I[0] += wl * A; I[1] += wl * Sx; I[2] += wl * Sy; I[3] += wl * zz * A; I[4] += wl * Sxx; I[5] += wl * Syy; I[6] += wl * zz * zz * A; I[7] += wl * Sxy; I[8] += wl * zz * Sx; I[9] += wl * zz * Sy;

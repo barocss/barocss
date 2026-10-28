@@ -7,7 +7,7 @@ export type LoftGuideCopy =
   | { ok: true; name: string; guide: Guide }
   | { ok: false; name?: string; reason: string };
 
-/** Copy one exact polynomial Bezier span; section/endpoint admission stays with the Kernel. */
+/** Copy a polynomial B-spline; retain the existing single-span Bezier encoding. */
 export function copyLoftGuide(doc: Pick<StudioDoc, 'direct'>, objectId: string): LoftGuideCopy {
   let name: string | undefined;
   const no = (reason: string): LoftGuideCopy => ({ ok: false, ...(name === undefined ? {} : { name }), reason });
@@ -30,18 +30,26 @@ export function copyLoftGuide(doc: Pick<StudioDoc, 'direct'>, objectId: string):
     const curve = direct.geometryOf(d, object);
     if (curve.kind !== 'curve') return no('Choose a direct curve, not a surface.');
     if (Object.keys(curve).some(key => !['kind', 'id', 'degree', 'knots', 'controlPoints', 'weights'].includes(key))) return no('The curve has unsupported metadata or a transform. Its world-mm controls cannot be inferred.');
-    if (curve.degree !== 2 && curve.degree !== 3) return no('A loft guide must be one quadratic or cubic Bezier span (degree 2 or 3).');
-    const count = curve.degree + 1, points = curve.controlPoints, knots = curve.knots, weights = curve.weights;
-    if (!Array.isArray(points) || points.length !== count || !Array.from(points).every(point =>
-      Array.isArray(point) && point.length === 3 && Array.from(point).every(value => typeof value === 'number' && Number.isFinite(value)))) return no('The guide needs exactly three or four finite world-mm control points.');
-    if (!Array.isArray(knots) || knots.length !== 2 * count || !Array.from(knots).every(value => typeof value === 'number' && Number.isFinite(value))) return no('Only one finite clamped Bezier span is supported; internal or additional knots are not supported.');
+    const degree = curve.degree, points = curve.controlPoints, knots = curve.knots, weights = curve.weights;
+    if (!Number.isInteger(degree) || degree < 1 || degree > 5) return no('A loft guide needs a degree from 1 to 5.');
+    if (!Array.isArray(points) || points.length < degree + 1 || points.length > 64 || !Array.from(points).every(finitePoint)) return no(`The guide needs ${degree + 1} to 64 finite world-mm control points.`);
+    const count = points.length;
+    if (!Array.isArray(knots) || knots.length !== count + degree + 1 || !Array.from(knots).every(finiteNumber)) return no('The guide needs finite knots: control points plus degree plus one.');
     const start = knots[0], end = knots[count];
-    if (!(start < end) || !knots.every((value, index) => value === (index < count ? start : end))) return no('The guide knots must be two exact clamped blocks with a positive parameter interval and no internal knots.');
-    if (!Array.isArray(weights) || weights.length !== count || !Array.from(weights).every(value =>
-      typeof value === 'number' && Number.isFinite(value) && value > 0 && value === weights[0])) return no('Only finite positive exactly equal weights are supported; nonconstant rational guides are not supported.');
-    // Equal weights and an affine knot interval describe the same polynomial Bezier controls.
+    if (!(start < end)) return no('The guide knots must span a positive parameter interval.');
+    for (let i = 1; i < knots.length; i++) if (knots[i] < knots[i - 1]) return no('The guide knots must not decrease.');
+    for (let i = 0; i <= degree; i++) if (knots[i] !== start || knots[knots.length - 1 - i] !== end) return no('The guide knots must be clamped at both ends.');
+    let repeats = 0;
+    for (let i = degree + 1; i < count; i++) {
+      repeats = i > degree + 1 && knots[i] === knots[i - 1] ? repeats + 1 : 1;
+      if (!(knots[i] > start && knots[i] < end) || repeats > degree) return no('Interior guide knots must lie between the ends and repeat at most degree times.');
+    }
+    if (!Array.isArray(weights) || weights.length !== count) return no('The guide needs one equal weight per control point.');
+    for (const weight of weights) if (!finiteNumber(weight) || weight <= 0 || weight !== weights[0]) return no('Only finite positive exactly equal weights are supported; nonconstant rational guides are not supported.');
+    // Equal weights describe a polynomial curve; keep its authored knot interval and controls.
     // Existing direct transforms are already baked by directOps.transform; never apply a matrix here.
-    const copied = points.map(point => [point[0], point[1], point[2]] as [number, number, number]);
+    const copied = points.map(copyPoint);
+    if (count !== degree + 1 || (degree !== 2 && degree !== 3)) return { ok: true, name, guide: { kind: 'nurbs', degree, knots: [...knots], controlPoints: copied } };
     return curve.degree === 2
       ? { ok: true, name, guide: { kind: 'quadratic-bezier', controlPoints: [copied[0], copied[1], copied[2]] } }
       : { ok: true, name, guide: { kind: 'cubic-bezier', controlPoints: [copied[0], copied[1], copied[2], copied[3]] } };
@@ -49,3 +57,7 @@ export function copyLoftGuide(doc: Pick<StudioDoc, 'direct'>, objectId: string):
     return no(error && typeof error === 'object' && 'message' in error ? String(error.message) : String(error));
   }
 }
+
+function finiteNumber(value: unknown): value is number { return typeof value === 'number' && Number.isFinite(value); }
+function finitePoint(value: unknown): boolean { return Array.isArray(value) && value.length === 3 && Array.from(value).every(finiteNumber); }
+function copyPoint(point: readonly number[]): [number, number, number] { return [point[0], point[1], point[2]]; }

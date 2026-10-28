@@ -184,10 +184,11 @@ export const loftCommand: Command = {
   steps: (ctx, values) => {
     if (values.guide !== undefined && values.guide !== '') {
       const guide = typeof values.guide === 'string' ? copyLoftGuide(ctx.doc, values.guide) : { ok: false as const, reason: 'Choose an available guide or None.' };
-      const sections = framedLoftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);
+      const general = guide.ok && guide.guide.kind === 'nurbs';
+      const sections = general ? loftSections(ctx.doc.nodes, ctx.selection.sketches ?? []) : framedLoftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);
       return [
-        { label: 'Sections', text: 'error' in sections ? sections.error : sections.sections.map(section => `Sketch ${section.source + 1}`).join(' → ') + ' (picked order)', done: !('error' in sections) },
-        { label: 'Guide', text: guide.ok ? `${guide.name}. Copied world-mm values; later curve edits do not update this loft.` : guide.reason, done: guide.ok },
+        { label: 'Sections', text: 'error' in sections ? sections.error : sections.sections.map(section => `Sketch ${section.source + 1}`).join(' → ') + (general ? ' (height order)' : ' (picked order)'), done: !('error' in sections) },
+        { label: 'Guide', text: guide.ok ? `${guide.name}. Copied world-mm values; later curve edits do not update this loft.${general ? ' The guide must pass through a vertex of each section.' : ''}` : guide.reason, done: guide.ok },
       ];
     }
     return [
@@ -200,6 +201,13 @@ export const loftCommand: Command = {
       if (typeof v.guide !== 'string') throw refusal('DIRECT_PICK', 'Choose an available guide or None.');
       const guide = copyLoftGuide(ctx.doc, v.guide);
       if (!guide.ok) throw refusal('DIRECT_PICK', guide.reason);
+      if (guide.guide.kind === 'nurbs') {
+        const sections = loftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);
+        if ('error' in sections) throw refusal('LOFT_SECTIONS', sections.error);
+        let doc = ctx.doc; const at: number[] = [];
+        for (const section of sections.sections) { doc = withNode(doc, section.node); at.push(doc.nodes.length - 1); }
+        return withNode(doc, { kind: 'loft', sections: sections.sections.map((section, index) => ({ sketch: at[index], z: section.z })), from: sections.sections.map(section => section.source), guide: guide.guide });
+      }
       const sections = framedLoftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);
       if ('error' in sections) throw refusal('LOFT_SECTIONS', sections.error);
       let doc = ctx.doc; const at: number[] = [];

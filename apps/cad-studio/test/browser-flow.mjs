@@ -87,11 +87,12 @@ const preview = async mode => { const b = page.locator(`[aria-label="Preview: ${
 /** The first body's volume from its properties (a click on its row selects it, or takes it out of the selection: until the body's panel shows). */
 // (The inspector and the context panels are read as `.props:not([aria-label$=" panel"])`: the first .props card that is not
 // a toolbar card left open across steps — the Variants, Rebuild, BOM, Library and Parameters panels, each "… panel".)
+// Static gravity can precede BODY: find the volume across the visible inspector cards.
 async function bodyVolume() {
   for (let k = 0; k < 3; k++) {
     await page.locator('.outliner .ol').first().click();
     // (O18: read in the same check that sees it, the masses there — "Volume …" is a state of its own while they come.)
-    try { const got = await page.waitForFunction(() => { const m = /Volume\s*([\d,]+) mm³/.exec(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''); return m && window.__studioBodies?.().massReady !== false ? m[1] : false; }, null, { timeout: 15000 }); return Number((await got.jsonValue()).replace(/,/g, '')); } catch { /* clicked off: again */ }
+    try { const got = await page.waitForFunction(() => { const m = /Volume\s*([\d,]+) mm³/.exec([...document.querySelectorAll('.props:not([aria-label$=" panel"])')].map(panel => panel.textContent ?? '').join('\n')); return m && window.__studioBodies?.().massReady !== false ? m[1] : false; }, null, { timeout: 15000 }); return Number((await got.jsonValue()).replace(/,/g, '')); } catch { /* clicked off: again */ }
   }
   return NaN;
 }
@@ -738,7 +739,8 @@ try {
     await clickAt(cx - 60, cy - 60); await clickAt(cx + 60, cy + 60); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 1, null, { timeout: 5000 });
     await press('s'); await page.fill('[aria-label="Plane offset"]', '20');
-    await page.waitForFunction(() => /SKETCH · Z 20/.test(document.querySelector('.sk-panel')?.textContent ?? ''));
+    await page.waitForFunction(() => /SKETCH · .+ · Z 20/.test(document.querySelector('.sk-panel')?.textContent ?? ''));
+    await page.locator('[aria-label="Plane offset"]').blur();
     await press('c'); [cx, cy] = await canvasCenter();
     await clickAt(cx, cy); await page.mouse.move(cx + 30, cy); await page.mouse.move(cx + 40, cy); await page.mouse.click(cx + 40, cy); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2, null, { timeout: 5000 });
@@ -747,8 +749,42 @@ try {
     await page.waitForFunction(() => document.querySelectorAll('.history .hs.sketch.picked').length === 2, null, { timeout: 5000 });
     await press(' '); await page.locator('.palette input').fill('loft'); await press('Enter'); await hudReady(); await page.waitForTimeout(300);
     await page.locator('.hud button', { hasText: 'Apply' }).click();
-    await page.waitForFunction(() => /Loft 2 sections/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 20000 });
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'loft' && /Loft 2 sections/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
     const d = await doc(), last = d.nodes.at(-1); assert.equal(last.kind, 'loft'); assert.deepEqual(last.sections.map(x => x.z), [0, 20]); assert.deepEqual(last.from, [0, 1]); await iso();
+  });
+
+  await check('CG1.3: Loft with a copied multi-span guide previews, applies, undoes and reopens', async () => {
+    // Authored fixture input; the command, worker, rendering and file controls run in the real Studio.
+    const source = `@model guided { version: 0; length-unit: mm;
+      @curve #g { type: nurbs; degree: 2; knots: [0,0,0,0.5,1,1,1];
+        control-points: [[0,0,0],[6,0,5],[6,0,15],[0,0,20]]; weights: [1,1,1,1]; }
+    }`;
+    const nodes = [[0, 0], [6, 10], [0, 20]].map(([x, z], i) => ({ id: `n${i}`, kind: 'sketch', profile: 'rectangle', min: [x, 0], max: [x + 10, 10], plane: { origin: [0, 0, z], normal: [0, 0, 1], xAxis: [1, 0, 0] } }));
+    const input = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes, outputs: {}, nextId: 3,
+      direct: { sources: { src_0: source }, objects: [{ id: 'obj_0', name: 'Bowed guide', source: 'src_0', geometry: 'g' }] } };
+    const fixture = join(out, 'cg13-input.bcad'); writeFileSync(fixture, JSON.stringify(input));
+    await openModel(fixture, 3); await idle();
+    for (const i of [0, 1, 2]) await page.locator('.history .hs.sketch').nth(i).click({ modifiers: i ? ['Shift'] : [] });
+    await page.waitForFunction(() => document.querySelectorAll('.history .hs.sketch.picked').length === 3);
+    await press(' '); await page.locator('.palette input').fill('loft'); await press('Enter'); await hudReady();
+    await field('Guide (copied)').selectOption('obj_0'); await hudReady();
+    assert.match(await page.locator('.hud').innerText(), /must pass through a vertex of each section/);
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
+    await snap('cg13-preview'); await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'loft' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    const accepted = await doc(), node = accepted.nodes.at(-1);
+    assert.equal(node.guide.kind, 'nurbs'); assert.deepEqual(node.sections.map(section => section.z), [0, 10, 20]);
+    assert.deepEqual(node.from, [0, 1, 2]); assert.equal(await bodyVolume(), 2000);
+    await iso(); await snap('cg13-applied');
+    await press('Escape'); await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 3, null, { timeout: 10000 });
+    await press('Meta+Shift+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'loft', null, { timeout: 10000 }); await idle();
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 10000 }), page.click('[aria-label="Save"]')]);
+    const file = join(out, 'cg13-saved.bcad'); await saved.saveAs(file);
+    await page.click('[aria-label="New part"]'); await openModel(file, accepted.nodes.length); await idle();
+    assert.deepEqual((await doc()).nodes, accepted.nodes); assert.equal(await bodyVolume(), 2000);
+    await iso(); await snap('cg13-reopened');
   });
 
   await check('fillet a box top edge from the palette', async () => {

@@ -6,10 +6,11 @@ import { directOps, emptyDirect, geometryOf, importSource } from '../src/engine/
 import { loadDirect } from '../src/engine/directModule';
 import { loftCommand } from '../src/app/profileCommands';
 import { framedLoftSections } from '../src/app/profiles';
+import { evaluateDoc } from '../src/engine/evaluate';
 import { copyLoftGuide } from '../src/app/loftGuides';
 import type { Ctx, Values } from '../src/app/commands';
 
-// Command authoring only: no solid evaluation, native loft oracle, mass, codec, or browser flow.
+// Command authoring and one polynomial guide evaluation; the public API tests cover mass and codec.
 // The circle profiles and quadratic/cubic controls reuse the fixed public CG1 inputs.
 type Point = [number, number, number];
 type Loft = Extract<ModelNode, { kind: 'loft' }>;
@@ -165,9 +166,7 @@ test('affine knot intervals and common positive weights keep the controls; baked
 test('unsupported direct geometry returns explicit reasons without changing the document or silently choosing another curve', () => {
   const doc = document(), ctx = context(doc), before = JSON.stringify(doc);
   for (const [geometry, reason] of [
-    ['line', /degree 2 or 3|quadratic|cubic/i],
     ['rational', /equal weights|nonconstant rational/i],
-    ['multi', /control points|clamped|internal|additional knots/i],
     ['panel', /curve.*surface|not a surface/i],
   ] as const) {
     const id = objectId(doc, geometry), result = copyLoftGuide(doc, id);
@@ -185,11 +184,11 @@ test('Guide choice lists only supported snapshots and its steps describe the cho
   const field = fields.find(value => value.key === 'guide');
   assert.ok(field?.kind === 'choice');
   assert.equal(field.label, 'Guide (copied)');
-  assert.deepEqual(field.options.map(option => option.value), ['', objectId(doc, 'quadratic'), objectId(doc, 'cubic'), objectId(doc, 'affine')]);
+  assert.deepEqual(field.options.map(option => option.value), ['', objectId(doc, 'quadratic'), objectId(doc, 'cubic'), objectId(doc, 'affine'), objectId(doc, 'line'), objectId(doc, 'multi')]);
   assert.match(field.options[0].label, /None/i);
   assert.ok(fields.some(value => value.key === 'smooth'));
   const noneSteps = loftCommand.steps?.(ctx, { smooth: 'no', guide: '' }) ?? [];
-  for (const geometry of ['line', 'rational', 'multi', 'panel']) {
+  for (const geometry of ['rational', 'panel']) {
     const name = doc.direct!.objects.find(value => value.id === objectId(doc, geometry))!.name;
     assert.ok(noneSteps.some(step => !step.done && /Unavailable guide/i.test(step.label) && step.text.includes(name)));
   }
@@ -228,4 +227,58 @@ test('a deleted guide or invalid saved choice is refused without falling back to
   }
   assert.throws(() => build(context(original), { smooth: 'no', guide: 0 }), { code: 'DIRECT_PICK', message: /Choose an available guide or None\./ });
   assert.equal(JSON.stringify(original), originalBefore);
+});
+
+
+test('general guide snapshots retain knots and independent controls; the command authors height sections through each vertex', () => {
+  const doc = document(), before = structuredClone(doc);
+  for (const geometry of ['line', 'multi']) {
+    const id = objectId(doc, geometry), copied = copyLoftGuide(doc, id);
+    assert.ok(copied.ok && copied.guide.kind === 'nurbs');
+    const object = doc.direct!.objects.find(value => value.id === id)!;
+    const curve = geometryOf(doc.direct!, object); assert.ok(curve.kind === 'curve');
+    assert.deepEqual(copied.guide, { kind: 'nurbs', degree: curve.degree, knots: curve.knots, controlPoints: curve.controlPoints });
+    copied.guide.knots[0] = -100; copied.guide.controlPoints[0][0] = 100;
+    assert.notEqual(curve.knots[0], -100); assert.notEqual(curve.controlPoints[0][0], 100);
+    assert.equal(Reflect.set(curve, 'unexpectedMetadata', true), true);
+    assert.equal(copyLoftGuide(doc, id).ok, false);
+    Reflect.deleteProperty(curve, 'unexpectedMetadata');
+    const next = build(context(doc, [1, 0]), { guide: id, smooth: 'yes' });
+    const node = loft(next); assert.equal(node.guide?.kind, 'nurbs');
+    assert.deepEqual(node.sections, [{ sketch: 2, z: 0 }, { sketch: 3, z: 3 }]);
+    assert.deepEqual(node.from, [0, 1]); assert.equal(node.smooth, undefined);
+    const steps = loftCommand.steps!(context(doc), { guide: id });
+    assert.match(steps.find(step => step.label === 'Guide')!.text, /must pass through a vertex of each section/);
+    assert.match(steps.find(step => step.label === 'Sections')!.text, /height order/);
+  }
+  assert.deepEqual(doc, before);
+});
+
+test('a multi-span guide on three parallel sketches evaluates to the fixed translated-square oracle', () => {
+  const source = `@model guide { version: 0; length-unit: mm;
+    @curve #g { type: nurbs; degree: 2; knots: [0,0,0,0.5,1,1,1];
+      control-points: [[0,0,0],[6,0,5],[6,0,15],[0,0,20]]; weights: [2,2,2,2]; }
+  }`;
+  let doc = emptyDoc();
+  for (const [x, z] of [[0, 0], [6, 10], [0, 20]]) doc = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [x, 0], max: [x + 10, 10], plane: { origin: [0, 0, z], normal: [0, 0, 1], xAxis: [1, 0, 0] } });
+  doc = { ...doc, direct: importSource(emptyDirect(), source, 'bowed guide') };
+  const next = build(context(doc, [2, 0, 1]), { guide: objectId(doc, 'g') }), node = loft(next);
+  assert.deepEqual(node.sections, [{ sketch: 3, z: 0 }, { sketch: 4, z: 10 }, { sketch: 5, z: 20 }]);
+  assert.deepEqual(node.from, [0, 1, 2]);
+  const result = evaluateDoc(next, 1); assert.ok(result.ok, result.ok ? '' : result.error.detail);
+  assert.equal(result.bodies.length, 1); assert.ok(Math.abs(result.bodies[0].volume! - 2000) < 1e-9);
+});
+
+
+test('quartic and quintic single spans copy as general guides with their authored knot interval', () => {
+  for (const degree of [4, 5]) {
+    const points = Array.from({ length: degree + 1 }, (_, i) => [1 + i, 0, i]);
+    const knots = [...Array(degree + 1).fill(2), ...Array(degree + 1).fill(5)];
+    const source = `@model high { version: 0; length-unit: mm; @curve #g { type: nurbs;
+      degree: ${degree}; knots: ${JSON.stringify(knots)}; control-points: ${JSON.stringify(points)};
+      weights: ${JSON.stringify(Array(degree + 1).fill(3))}; } }`;
+    const doc = { direct: importSource(emptyDirect(), source, 'high degree') }, copied = copyLoftGuide(doc, doc.direct.objects[0].id);
+    assert.ok(copied.ok);
+    assert.deepEqual(copied.guide, { kind: 'nurbs', degree, knots, controlPoints: points });
+  }
 });

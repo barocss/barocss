@@ -774,3 +774,27 @@ test('mesh blobs reach the chat server once a conversation: later turns name the
     assert.equal(bad.status, 400);
   } finally { await srv.close(); }
 });
+
+
+test('general loft guide: chat feature admission and the HUD keep the polynomial guide contract', async () => {
+  const description = TOOLS.find(tool => tool.name === 'add_features')!.description;
+  assert.match(description, /"kind":"nurbs"/); assert.match(description, /vertex of each section/);
+  const guide = { kind: 'nurbs' as const, degree: 2, knots: [0, 0, 0, 0.5, 1, 1, 1], controlPoints: [[0, 0, 0], [6, 0, 5], [6, 0, 15], [0, 0, 20]] };
+  let doc = emptyDoc();
+  for (const x of [0, 6, 0]) doc = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [x, 0], max: [x + 10, 10] });
+  const state = await stateOf(doc), before = structuredClone(doc);
+  const node = { kind: 'loft', sections: [{ sketch: 0, z: 0 }, { sketch: 1, z: 10 }, { sketch: 2, z: 20 }], guide };
+  assert.equal(checkNode(node, doc.nodes, {}), null);
+  const result = await runTool(state, 'add_features', { features: [node] }, evaluate);
+  assert.equal(result.isError, false, result.content); assert.equal(result.state.bodies.length, 1);
+  assert.ok(Math.abs(volume(result.state) - 2000) < 1e-9); assert.deepEqual(doc, before);
+  for (const bad of [{ ...guide, degree: 6 }, { ...guide, weights: [1, 1, 1, 1] }, { ...guide, knots: [0, 1] }]) {
+    const refused = await runTool(state, 'add_features', { features: [{ ...node, guide: bad }] }, evaluate);
+    assert.equal(refused.isError, true); assert.equal(refused.state, state);
+  }
+  const hudDoc: StudioDoc = { ...doc, nodes: doc.nodes.map((node, index) => ({ ...node, plane: { origin: [0, 0, index * 10], normal: [0, 0, 1], xAxis: [1, 0, 0] } } as typeof node)) };
+  const cmd = commandById('loft')!, ctx: Ctx = { doc: hudDoc, bodies: [], selection: { faces: [], edges: [], bodies: [], sketches: [0, 1, 2] } };
+  assert.ok(cmd.available(ctx).ok);
+  assert.deepEqual(cmd.fields!(ctx).map(field => field.key), ['guide', 'smooth']);
+  assert.equal(CHAT_COMMANDS.includes('loft'), false, 'chat uses explicit feature sections; the HUD uses picked sketches');
+});

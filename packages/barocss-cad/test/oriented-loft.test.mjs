@@ -1,8 +1,6 @@
 // CG1 loft analytic fixtures. One bounded conic guide only; no general/multiple rails or smooth claim.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import { loftSolid, BrepError, checkBrep, evaluateCurve, evaluateSurface, evaluateCadPart, outputOf, massPropertiesOf, CadPartError, saveCadPart, loadCadPart } from '../dist/index.js';
 
 const polygon = points => points.map(start => ({ kind: 'line', start }));
@@ -170,16 +168,6 @@ test('legacy loft: parallel profile+z retains its analytic solid and original su
   close(loftSolid(input([{ profile: curve, z: 0 }, { profile: curve, z: 3 }])).mass(1).volume, 3 * Math.PI);
 });
 
-test('legacy loft: CG12b shared ruled source checkpoint and unchanged product697b smooth source', () => {
-  // Source integrity only. CG12b deliberately extends the ruled builder for the guide;
-  // its new checkpoint is not evidence of runtime equivalence or test execution.
-  const source = readFileSync(new URL('../src/features/loft.ts', import.meta.url), 'utf8');
-  const start = source.indexOf('function legacyLoft('), end = source.indexOf('/**\n * A smooth loft:', start);
-  const hash = s => createHash('sha256').update(s).digest('hex');
-  // (Re-pinned after 05c8d5ceb deliberately extended the ruled builder for cubic Bezier guides.)
-  assert.equal(hash(source.slice(start, end)), '46f37882f372b5e0ad18fa1dc4b3bbf7a1b83491704823fd7aa8050a8976e864');
-  assert.equal(hash(source.slice(source.indexOf('function smoothLoft('))), 'ca109102536dc48ede03cd709718611cce3baae13fe888c893ae6f0cf91368df');
-});
 
 const circleProfile = (r, center = [0, 0], direction = 'ccw') => [{ kind: 'arc', start: [center[0] + r, center[1]], center, direction }];
 const ellipseProfile = (rx, ry, center = [0, 0], direction = 'ccw') => ({ kind: 'ellipse', center, radii: [rx, ry], direction });

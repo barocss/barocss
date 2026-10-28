@@ -1,12 +1,9 @@
-// CG1.3: a seam guide that is any polynomial B-spline (degree 1 to 5) through a vertex of each of two to eight sections
-// on parallel planes (the ruled z path). On the span between sections k and k + 1 each side is the plain ruled side plus
-// the guide's departure from its straight chord:
-//   S(u, λ) = (1 − λ) a(u) + λ b(u) + G(λ) − (1 − λ) G(0) − λ G(1),
-// with G the guide's piece between the two section heights, reparametrized onto λ in [0, 1]. The straight part is raised
-// into the guide's basis by its Greville abscissae (linear precision), so the side is that sum exactly. The guide's
-// height must rise strictly with its parameter — its control points' z strictly increasing, which bounds its
-// derivative's — so every slice is a plane section of the ruled loft translated, the slices at distinct heights: the
-// solid is as simple as the ruled loft it is built on.
+// CG1.3: one polynomial B-spline seam guide on two to eight parallel height sections.
+// Let h(λ) = (Gz(λ) - Gz(0)) / (Gz(1) - Gz(0)). Then
+//   S(u, λ) = (1 - h(λ)) a(u) + h(λ) b(u) + G(λ) - (1 - h(λ)) G(0) - h(λ) G(1).
+// Height is a linear combination of the guide's basis functions. Its control values therefore lift the ruled
+// chord into that same basis exactly, even when the guide's height is not linear in its parameter. Strictly
+// increasing control heights keep distinct translated ruled slices at distinct heights.
 import { BrepError } from '../brep/brep-core.js';
 import { evaluateCurve, validateCurve } from '../core/math.js';
 import { evaluateCurveD1 } from '../core/derivatives.js';
@@ -110,15 +107,28 @@ function spanOf(c: Curve, t0: number, t1: number): LoftNurbsGuideSpan {
   const p = c.degree, d = t1 - t0, knots = c.knots.map((x, i) => (i <= p ? 0 : i >= c.knots.length - 1 - p ? 1 : (x - t0) / d));
   const Q = c.controlPoints as Point[], m = Q.length, unit: Curve = { kind: 'curve', id: 'guide-span', degree: p, knots, controlPoints: Q, weights: Array(m).fill(1) };
   const start = Q[0], end = Q[m - 1];
-  // Greville abscissae: where the straight part's control points sit (Σ Nᵢ λᵢ = λ).
-  const lam = Array.from({ length: m }, (_, i) => { let s = 0; for (let j = 1; j <= p; j++) s += knots[i + j]; return s / p; });
-  lam[0] = 0; lam[m - 1] = 1;
   return {
     degree: p, knots, start, end,
-    controls: (lo, hi) => Q.map((q, i) => i === 0 ? lo : i === m - 1 ? hi : [0, 1, 2].map(k => q[k] + (1 - lam[i]) * (lo[k] - start[k]) + lam[i] * (hi[k] - end[k])) as Point),
-    offset: l => { const x = evaluateCurve(unit, l); return [0, 1, 2].map(k => x[k] - (1 - l) * start[k] - l * end[k]) as Point; },
+    controls: (lo, hi) => controlsAtHeight(Q, start, end, lo, hi),
+    offset: l => offsetAtHeight(unit, start, end, l),
     height: l => evaluateCurve(unit, l)[2],
     rise: l => evaluateCurveD1(unit, l).derivative[2],
     breaks: [...new Set(knots)],
   };
+}
+
+/** Lift a ruling with the guide's height coefficients, without per-control callback allocation. */
+function controlsAtHeight(points: readonly Point[], start: Point, end: Point, lo: Point, hi: Point): Point[] {
+  const result: Point[] = [], height = end[2] - start[2];
+  for (let i = 0; i < points.length; i++) {
+    if (i === 0) { result.push(lo); continue; }
+    if (i === points.length - 1) { result.push(hi); continue; }
+    const q = points[i], a = (q[2] - start[2]) / height, b = 1 - a;
+    result.push([q[0] + b * (lo[0] - start[0]) + a * (hi[0] - end[0]), q[1] + b * (lo[1] - start[1]) + a * (hi[1] - end[1]), q[2] + b * (lo[2] - start[2]) + a * (hi[2] - end[2])]);
+  }
+  return result;
+}
+function offsetAtHeight(curve: Curve, start: Point, end: Point, parameter: number): Point {
+  const q = evaluateCurve(curve, parameter), a = (q[2] - start[2]) / (end[2] - start[2]), b = 1 - a;
+  return [q[0] - b * start[0] - a * end[0], q[1] - b * start[1] - a * end[1], 0];
 }

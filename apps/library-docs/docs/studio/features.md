@@ -19,9 +19,10 @@ their sizes. The HUD shows the fields, and the viewport shows handles you can dr
 | **Pipe** | Carries a finished sketch along a run, a bend and a run |
 | **Loft** | A solid through two or more sketches on parallel planes (<kbd>Shift</kbd>-click to pick them) |
 
-The CAD document format also supports one quadratic guide for a bounded circle or ellipse loft. This option requires
-exactly two explicit section frames with identical axes. See [Guided conic lofts](/packages/cad/robustness#guided-conic-lofts)
-for the input rules.
+In **Loft**, **Guide (copied)** selects one polynomial direct curve. A general B-spline guide (degree 1–5) takes
+2–8 ruled sections on parallel planes and must pass through a vertex of each section. The guide is copied; later
+curve edits do not update the loft. A single quadratic or cubic Bézier span keeps the two-frame path.
+See [Lofts and guides](/how/loft-sweep#one-polynomial-guide-on-height-sections) for the input rules and limits.
 
 ## Route bundles
 

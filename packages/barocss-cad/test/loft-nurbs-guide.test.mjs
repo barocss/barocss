@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { checkBrep, tessellateBrep, evaluateCadPart, massPropertiesOf, checkOutput } from '../dist/index.js';
+import { checkBrep, tessellateBrep, evaluateCadPart, massPropertiesOf, checkOutput, evaluateSurface } from '../dist/index.js';
 import { loftSolid } from '../dist/features/loft.js';
 
 // CG1.3: a general (polynomial B-spline) seam guide on a ruled loft of parallel sections. Each slice is the ruled one
@@ -99,4 +99,31 @@ test('CG1.3 the part model: a guide in world coordinates on sketches stacked alo
   assert.ok(Math.abs(m.volume - 2000) < 1e-9, `${m.volume}`);
   const lc = [5 + alongGuide({ ...g, controlPoints: local }, q => q[0]) / 20, 5 + alongGuide({ ...g, controlPoints: local }, q => q[1]) / 20, 10], wc = world(lc);
   assert.ok(Math.hypot(...m.centroid.map((x, k) => x - wc[k])) < 1e-8, `${m.centroid} vs ${wc}`);
+});
+
+
+test('CG1.3 nonuniform guide height on a tapered square keeps the frustum geometry and moments', () => {
+  const { m, brep } = solid({ id: 'frustum', name: 'frustum', sections: [{ profile: sq(0, 0, 1), z: 0 }, { profile: sq(0, 0, 2), z: 1 }], guide: { kind: 'nurbs', degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [[0, 0, 0], [0, 0, 0.1], [0, 0, 1]] } });
+  // At height z, width = 1 + z. Integrate A = (1 + z)^2 and its section moments on 0 <= z <= 1.
+  assert.ok(Math.abs(m.volume - 7 / 3) < 1e-9, `volume ${m.volume} != ${7 / 3}`);
+  for (const [i, x] of [45 / 56, 45 / 56, 17 / 28].entries()) assert.ok(Math.abs(m.centroid[i] - x) < 1e-9, `${m.centroid}`);
+  const expected = [[4927 / 6720, -97 / 2240, -97 / 1120], [-97 / 2240, 4927 / 6720, -97 / 1120], [-97 / 1120, -97 / 1120, 3763 / 3360]];
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) assert.ok(Math.abs(m.inertia[i][j] - expected[i][j] / 1000) < 1e-12, `${m.inertia}`);
+  const side = brep.faces.find(f => f.name === 'frustum.side1').surface;
+  const point = evaluateSurface(side, 0.5, 0.5);
+  assert.ok(Math.abs(point[0] - (1 + point[2])) < 1e-9, `point ${point}: x must be 1+z`);
+});
+
+test('CG1.3 quintic nonuniform height and a wide bow retain independently integrated polynomial moments', () => {
+  const result = loftSolid({ id: 'quintic', name: 'quintic', sections: [{ profile: sq(0, 0, 1), z: 0 }, { profile: sq(0, 0, 2), z: 1 }], guide: { kind: 'nurbs', degree: 5, knots: [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1], controlPoints: [[0, 0, 0], [-10000, 0, 0.001], [10000, 0, 0.002], [-10000, 0, 0.003], [10000, 0, 0.004], [0, 0, 1]] } });
+  assert.equal(checkBrep(result.brep, { strict: true }).valid, true);
+  // Independent exact rational power-polynomial integration of the Bernstein inputs:
+  // w=1+z, A=w², cx=gx+w/2, cy=w/2. Integrate A, A*cx, A*cy, A*z,
+  // A*(gx²+gx*w+w²/3), A*w²/3, A*z² and the three products against z'(t).
+  // Maximum degree is 24; the wide bow makes an insufficient 12-point Gauss rule observable.
+  const expected = {"volume": 2.3333333333333335, "centroid": [1762.4248352229533, 0.8035714285714286, 0.6071428571428571], "inertia": [[0.0007331845238095238, 0.08610675203523183, 0.17221350407046365], [0.08610675203523183, 1830.6672563683599, -8.660714285714286e-05], [0.17221350407046365, -8.660714285714286e-05, 1830.6676431243122]]};
+  const m = result.mass(1);
+  assert.ok(Math.abs(m.volume - expected.volume) < 1e-9, `${m.volume}`);
+  for (let i = 0; i < 3; i++) assert.ok(Math.abs(m.centroid[i] - expected.centroid[i]) < 1e-8, `${m.centroid}`);
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) assert.ok(Math.abs(m.inertia[i][j] - expected.inertia[i][j]) < 1e-8, `inertia ${i},${j}: ${m.inertia[i][j]} != ${expected.inertia[i][j]}`);
 });

@@ -154,3 +154,34 @@ test('public loft: frame editing, draft depth and chat admission preserve the ex
     assert.deepEqual(doc, before); assert.deepEqual(made.doc, original);
   }
 });
+
+
+test('public loft: polynomial multi-span guide on height sections keeps volume, centroid and file values', async () => {
+  // The two quadratic spans have linear height and x = 12u - 6u², then 6 - 6u².
+  // Their mean x is 4. Every slice is a translated 10 × 10 square: V = 2000, COM = (9, 5, 10).
+  const guide = { kind: 'nurbs' as const, degree: 2, knots: [0, 0, 0, 0.5, 1, 1, 1], controlPoints: [[0, 0, 0], [6, 0, 5], [6, 0, 15], [0, 0, 20]] as Point[] };
+  const square = (x: number) => sketch().rectangle({ w: 10, d: 10, x, y: 0 });
+  const base = part('general loft'), before = base.doc, options = { guide }, original = structuredClone(options);
+  for (const input of [
+    [{ sketch: square(0), z: 0 }, { sketch: square(0), z: 20 }],
+    [{ sketch: square(0), z: 0 }, { sketch: square(6), z: 10 }, { sketch: square(0), z: 20 }],
+  ]) {
+    const made = base.loft(input, options), node = made.doc.nodes.at(-1);
+    assert.ok(node?.kind === 'loft'); assert.deepEqual(node.guide, guide);
+    assert.equal(checkNode(node, made.doc.nodes, made.doc.parameters), null);
+    massOracle(made, 2000, [9, 5, 10]); await reopened(made, 2000, [9, 5, 10]);
+    const copy = made.doc, stored = copy.nodes.at(-1); assert.ok(stored?.kind === 'loft' && stored.guide?.kind === 'nurbs');
+    Reflect.set(stored.guide.knots, 0, -10); Reflect.set(stored.guide.controlPoints[0], 0, 50);
+    assert.deepEqual(made.doc.nodes.at(-1), node);
+  }
+  const accepted = base.loft([{ sketch: square(0), z: 0 }, { sketch: square(0), z: 20 }], options), acceptedBefore = accepted.doc;
+  assert.throws(() => accepted.loft([{ sketch: square(0), z: 0 }, { sketch: square(5), z: 10 }, { sketch: square(0), z: 20 }], options), /guide must pass through a vertex of section 1/);
+  assert.deepEqual(accepted.doc, acceptedBefore); assert.deepEqual(base.doc, before); assert.deepEqual(options, original);
+});
+
+
+test('public loft: a tapered section follows nonlinear guide height and keeps the closed-form frustum on reopen', async () => {
+  const made = part('height parameter').loft([{ sketch: sketch().rectangle({ w: 1, d: 1 }), z: 0 }, { sketch: sketch().rectangle({ w: 2, d: 2 }), z: 1 }], { guide: { kind: 'nurbs', degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [[0, 0, 0], [0, 0, 0.1], [0, 0, 1]] } });
+  massOracle(made, 7 / 3, [45 / 56, 45 / 56, 17 / 28]);
+  await reopened(made, 7 / 3, [45 / 56, 45 / 56, 17 / 28]);
+});
