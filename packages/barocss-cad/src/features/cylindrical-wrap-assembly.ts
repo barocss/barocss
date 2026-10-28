@@ -11,6 +11,12 @@ import { composeCylindricalWrapCurve, isCylindricalWrapCurveError, type Cylindri
 import { isCylindricalWrapMapError } from './cylindrical-wrap-map.js';
 import { buildCylindricalWrapUVSource, isCylindricalWrapSourceError, type CylindricalWrapUVSource } from './cylindrical-wrap-source.js';
 
+import { certifyNativeD0Family, isNativeD0Error, type NativeD0FamilyCertificate } from '../core/native-d0-bound.js';
+import { certifyCylindricalWrapChartComponent } from './cylindrical-wrap-chart-component.js';
+import { isCylindricalWrapChartError } from './cylindrical-wrap-chart.js';
+import { certifyCylindricalWrapSideFamily, type CylindricalWrapSideFamilyResult } from './cylindrical-wrap-side-family.js';
+import { prepareNativePositionFace, requireNativePcurveRange, nativePositionInflation, checkedNativePositionBound, nativeEndpointPositionBound, nativeAffineCapResidual, isNativePositionError, type NativePositionFace } from './cylindrical-wrap-native-position.js';
+
 type UV = [number, number];
 type R = SectionRational;
 type MutableCoedge = { -readonly [K in keyof BrepCoedge]: BrepCoedge[K] };
@@ -66,6 +72,43 @@ export interface CylindricalWrapAssemblyResult {
   };
 }
 
+export interface CylindricalWrapNativeBoundOptions extends CylindricalWrapAssemblyOptions { readonly maxOperations?: number }
+export interface NativeAssemblyCounts {
+  readonly exactOperations: number; readonly rationalOperations: number; readonly integerOperations: number;
+  readonly helperOperations: number; readonly work: number; readonly maximumBits: number;
+}
+interface NativeCoedgeBound {
+  readonly coedge: string; readonly edge: string; readonly face: string; readonly curveSlot: number; readonly pcurveSlot: number; readonly surfaceSlot: number;
+  readonly kind: 'wall' | 'cap' | 'base' | 'outer' | 'side'; readonly modelError: SectionFraction; readonly bound: SectionFraction; readonly tolerance: number;
+}
+interface NativeEndpointBound { readonly edge: string; readonly endpoint: 0 | 1; readonly vertex: string; readonly bound: SectionFraction; readonly tolerance: number }
+export interface CylindricalWrapNativeBoundResult {
+  readonly assembly: CylindricalWrapAssemblyResult;
+  readonly nativeBinding: {
+    readonly coverage: { readonly edges: 18; readonly coedges: 36; readonly vertices: 12; readonly endpointRelations: 36; readonly familySlots: 63; readonly complete: true; readonly classes: Readonly<Record<NativeCoedgeBound['kind'], number>> };
+    readonly coedges: readonly NativeCoedgeBound[]; readonly endpoints: readonly NativeEndpointBound[];
+    readonly faces: readonly { readonly face: string; readonly lipschitz: { readonly u: SectionFraction; readonly v: SectionFraction }; readonly inflation: SectionFraction }[];
+    readonly evaluator: NativeD0FamilyCertificate; readonly sideFamily: CylindricalWrapSideFamilyResult;
+    readonly phases: { readonly assembly: NativeAssemblyCounts; readonly side: { readonly exactOperations: number; readonly work: number }; readonly evaluator: { readonly exactOperations: number; readonly work: number } };
+    readonly counts: NativeAssemblyCounts;
+    readonly limits: { readonly exactOperations: number; readonly hardExactOperations: 200000; readonly integerBits: 8192; readonly work: 1048576; readonly components: 1; readonly edges: 4; readonly holes: 0 };
+    readonly meaning: {
+      readonly nativePositionBindingCertified: true; readonly allCoedgesCertified: true; readonly allEdgeEndpointsCertified: true;
+      readonly vertexToleranceRule: 'actual-vertex-tolerance-stronger-than-checker-max'; readonly distance: 'exact-L1-between-native-position-outputs';
+      readonly uvRule: 'actual-rounded-slack-and-nonexpansive-clamp'; readonly sourceGlobalCertified: false; readonly closedReferenceCertified: false;
+      readonly retainedFaceClosureCertified: false; readonly mathHypotCertified: false; readonly orientationCertified: false; readonly physicalBrepCertified: false;
+      readonly solidQualified: false; readonly representedVolumeCertified: false; readonly generalTextSupported: false; readonly productFeature: false;
+      readonly surfaceEndpointVertexBindingCertified: false;
+    };
+  };
+}
+interface NativePieceEvidence {
+  readonly baseId: string; readonly outerId: string; readonly sideId: string; readonly start: Corner; readonly end: Corner;
+  readonly base: Curve; readonly outer: Curve; readonly basePcurve: Curve; readonly outerPcurve: Curve; readonly baseError: R; readonly outerError: R;
+  side?: Surface;
+}
+interface AssemblyRun { readonly publicResult: CylindricalWrapAssemblyResult; readonly source: CylindricalWrapUVSource; readonly context: Context; readonly assembly: Assembly }
+
 interface Corner { uv: UV; base: string; outer: string; radial: string; point: Point | null; raised: Point | null }
 interface Piece { base: string; outer: string; side: string; basePcurve: Curve; outerPcurve: Curve }
 interface Ring { component: number; index: number; points: UV[]; corners: Corner[]; pieces: Piece[] }
@@ -97,8 +140,27 @@ class Context {
   integerOperations = 0;
   integerMaximumBits = 0;
   edges = 0;
+  private helperWork = 0;
+  private helperMaximumBits = 0;
+  constructor(readonly maximum = MAX_EXACT, readonly native = false) {}
+  totalWork(): number { const c = this.q.counts(); return this.native ? this.work + this.helperWork + c.operations + c.gcdSteps + c.floatSearchSteps : this.work; }
+  addHelperWork(amount: number, maximumBits: number): void {
+    if (!this.native) return;
+    if (!Number.isSafeInteger(amount) || amount < 0 || !Number.isSafeInteger(maximumBits) || maximumBits < 0 || maximumBits > LIMITS.integerBits) fail('BUDGET', 'invalid imported native helper work or integer size');
+    this.helperWork += amount; this.helperMaximumBits = Math.max(this.helperMaximumBits, maximumBits); this.check();
+  }
+  importHelper(operations: number, work: number, maximumBits: number): void {
+    if (!Number.isSafeInteger(operations) || operations < 0) fail('BUDGET', 'invalid imported native exact-operation count');
+    this.helperOperations += operations; this.addHelperWork(work, maximumBits); this.check();
+  }
+  counts(): NativeAssemblyCounts {
+    this.check(); const c = this.q.counts();
+    return { exactOperations: this.helperOperations + c.operations + this.integerOperations, rationalOperations: c.operations, integerOperations: this.integerOperations,
+      helperOperations: this.helperOperations, work: this.totalWork(), maximumBits: Math.max(c.maximumObservedBits, this.integerMaximumBits, this.helperMaximumBits) };
+  }
   charge(amount = 1): void {
     if (!Number.isSafeInteger(amount) || amount < 0 || (this.work += amount) > MAX_WORK) fail('BUDGET', 'the assembly work budget was exceeded');
+    if (this.native) this.check();
   }
   countHelpers(amount: number): void { this.helperOperations += amount; this.check(); }
   countInteger(): void { this.integerOperations++; this.charge(); this.check(); }
@@ -109,11 +171,14 @@ class Context {
     this.integerMaximumBits = Math.max(this.integerMaximumBits, bits); return value;
   }
   remaining(): number {
-    this.check(); const remaining = MAX_EXACT - this.helperOperations - this.q.counts().operations - this.integerOperations;
+    this.check(); const remaining = this.maximum - this.helperOperations - this.q.counts().operations - this.integerOperations;
     if (remaining < 1) fail('BUDGET', 'no aggregate exact-operation budget remains for composition');
     return remaining;
   }
-  check(): void { if (this.helperOperations + this.q.counts().operations + this.integerOperations > MAX_EXACT) fail('BUDGET', 'the aggregate exact-operation budget was exceeded'); }
+  check(): void {
+    if (this.helperOperations + this.q.counts().operations + this.integerOperations > this.maximum) fail('BUDGET', 'the aggregate exact-operation budget was exceeded');
+    if (this.native && this.totalWork() > MAX_WORK) fail('BUDGET', 'the complete native request work budget was exceeded');
+  }
 }
 function record(value: unknown, fields: readonly string[]): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value) || !hasExactOwnFields(value as Record<string, unknown>, fields)) fail('INPUT', 'exact plain own fields are required');
@@ -147,7 +212,14 @@ function exactPoint(p: UV, ctx: Context): ExactPoint2 {
   if (!found) { found = exactPoint2FromXY(p); ctx.exactPoints.set(p, found); }
   return found;
 }
-function orient(a: UV, b: UV, c: UV, ctx: Context): number { ctx.charge(); return exactOrient2(exactPoint(a, ctx), exactPoint(b, ctx), exactPoint(c, ctx)); }
+function orient(a: UV, b: UV, c: UV, ctx: Context): number {
+  ctx.charge();
+  if (ctx.native) {
+    const q = ctx.q, abx = q.sub(q.from(b[0]), q.from(a[0])), aby = q.sub(q.from(b[1]), q.from(a[1])), acx = q.sub(q.from(c[0]), q.from(a[0])), acy = q.sub(q.from(c[1]), q.from(a[1]));
+    const value = q.sub(q.mul(abx, acy), q.mul(aby, acx)); ctx.check(); return value.n > 0n ? 1 : value.n < 0n ? -1 : 0;
+  }
+  return exactOrient2(exactPoint(a, ctx), exactPoint(b, ctx), exactPoint(c, ctx));
+}
 function area(points: readonly UV[], ctx: Context): R {
   const q = ctx.q; let out = q.integer(0);
   for (let i = 0; i < points.length; i++) {
@@ -344,11 +416,13 @@ class Assembly {
   readonly horizontal = new Map<string, HorizontalTemplate>();
   readonly axial = new Map<number, AxialValue>();
   readonly radial = new Map<number, RadialValue>();
+  readonly nativeEvidence: NativePieceEvidence[] | null;
   verticalCurves = 0;
   readonly outer: Surface;
   readonly horizontalSource: Surface;
   serial = 0;
   constructor(readonly source: CylindricalWrapUVSource, readonly id: string, readonly tolerance: number, readonly ctx: Context) {
+    this.nativeEvidence = ctx.native ? [] : null;
     const b = source.brep;
     this.vertices = [...b.vertices]; this.edges = [...b.edges]; this.loops = [...b.loops]; this.faces = [...b.faces];
     for (const list of [b.bodies, b.shells, b.faces, b.loops, b.coedges, b.edges, b.vertices]) for (const item of list) this.ids.add(item.id);
@@ -375,6 +449,7 @@ class Assembly {
     }
     this.horizontalSource = { ...original, id: this.key('projection'), controlPoints: projected };
     validateSurface(this.horizontalSource);
+    if (ctx.native) { nativeStructure(this.outer, ctx); nativeStructure(this.horizontalSource, ctx); freezeNativeData(this.outer); freezeNativeData(this.horizontalSource); }
   }
   key(role: string): string {
     const key = `${this.id}_wa_${role}${this.serial++}`;
@@ -458,6 +533,7 @@ function horizontalBase(start: Corner, end: Corner, curveId: string, pcurveId: s
     const composedBase = composed(a.horizontalSource, [start.uv[0], v], [end.uv[0], v], { curveId, pcurveId, errorBudget: budget,
       endpoints: [projectPointToXY(start.point), projectPointToXY(end.point)], maxOperations: a.ctx.remaining() });
     a.ctx.countHelpers(composedBase.proof.counts.operations);
+    if (a.ctx.native) { const c = composedBase.proof.counts; a.ctx.addHelperWork(c.operations + c.gcdSteps + c.floatSearchSteps, c.maximumObservedBits); }
     template = { start: start.uv[0], end: end.uv[0], curve: composedBase.curve, error: [fraction(composedBase.proof.axisError[0], q), fraction(composedBase.proof.axisError[1], q)] };
     a.horizontal.set(key, template);
   }
@@ -488,7 +564,9 @@ function admittedBase(start: Corner, end: Corner, budget: number, a: Assembly): 
   const curveId = a.key('curve'), pcurveId = a.key('pcurve');
   const base = start.uv[1] === end.uv[1] ? horizontalBase(start, end, curveId, pcurveId, budget, a) : verticalBase(start, end, curveId, pcurveId, a);
   if (a.ctx.q.compare(base.error, a.ctx.q.from(budget)) > 0) fail('BINDING', 'the base whole-span binding residual exceeds its unchanged budget');
-  validateCurve(base.curve); validateCurve(base.pcurve); a.ctx.check(); return base;
+  validateCurve(base.curve); validateCurve(base.pcurve);
+  if (a.ctx.native) { nativeStructure(base.curve, a.ctx); nativeStructure(base.pcurve, a.ctx); freezeNativeData(base.curve); freezeNativeData(base.pcurve); Object.freeze(base.error); }
+  a.ctx.check(); return base;
 }
 function outerClone(base: Curve, pcurve: Curve, a: Assembly): { curve: Curve; pcurve: Curve } {
   const controlPoints: Point[] = [], pcurvePoints: Point[] = [];
@@ -501,7 +579,9 @@ function outerClone(base: Curve, pcurve: Curve, a: Assembly): { curve: Curve; pc
   for (const p of pcurve.controlPoints) pcurvePoints.push([p[0], p[1], p[2]]);
   const curve: Curve = { ...base, id: a.key('curve'), knots: [...base.knots], controlPoints, weights: [...base.weights] };
   const native: Curve = { ...pcurve, id: a.key('pcurve'), knots: [...pcurve.knots], controlPoints: pcurvePoints, weights: [...pcurve.weights] };
-  validateCurve(curve); validateCurve(native); return { curve, pcurve: native };
+  validateCurve(curve); validateCurve(native);
+  if (a.ctx.native) { nativeStructure(curve, a.ctx); nativeStructure(native, a.ctx); freezeNativeData(curve); freezeNativeData(native); }
+  return { curve, pcurve: native };
 }
 function buildRing(ring: Ring, a: Assembly): void {
   const ctx = a.ctx;
@@ -518,6 +598,7 @@ function buildRing(ring: Ring, a: Assembly): void {
     const regularity = guard(base.curve, outer.curve, start.uv, end.uv, ctx), prefix = `c${ring.component}.r${ring.index}.e${i}`;
     a.edges.push({ id: baseId, curve: base.curve, vertices: [start.base, end.base], tolerance: a.tolerance, name: a.name(`base.${prefix}`) }, { id: outerId, curve: outer.curve, vertices: [start.outer, end.outer], tolerance: a.tolerance, name: a.name(`outer.${prefix}`) });
     a.newCurves.set(baseId, base.curve); a.newCurves.set(outerId, outer.curve);
+    if (a.nativeEvidence) a.nativeEvidence.push({ baseId, outerId, sideId: side, start, end, base: base.curve, outer: outer.curve, basePcurve: base.pcurve, outerPcurve: outer.pcurve, baseError: Object.freeze({ ...base.error }), outerError: Object.freeze({ ...outerError }) });
     ring.pieces.push({ base: baseId, outer: outerId, side, basePcurve: base.pcurve, outerPcurve: outer.pcurve });
     a.pieces.push({ component: ring.component, ring: ring.index, index: i, start: [...start.uv], end: [...end.uv], baseEdge: baseId, outerEdge: outerId, sideFace: side,
       binding: { baseError: ctx.q.text(base.error), outerError: ctx.q.text(outerError), baseBudget, outerBudget, baseAuthority: base.authority, outerAuthority: 'exact-diag-2-2-1-of-admitted-base' }, guard: regularity }); ctx.charge();
@@ -535,6 +616,12 @@ function buildRing(ring: Ring, a: Assembly): void {
     for (let k = 0; k < 4; k++) { controlPoints.push([base.controlPoints[k], outer.controlPoints[k]]); weights.push([base.weights[k], base.weights[k]]); }
     const surface: Surface = { kind: 'surface', id: a.key('surface'), degreeU: 3, degreeV: 1, knotsU: [...base.knots], knotsV: [0, 0, 1, 1], controlPoints, weights };
     validateSurface(surface);
+    if (a.nativeEvidence) {
+      let evidence: NativePieceEvidence | undefined;
+      for (const item of a.nativeEvidence) if (item.sideId === piece.side) { evidence = item; break; }
+      if (!evidence) fail('BINDING', 'a native side has no fresh producer evidence');
+      nativeStructure(surface, ctx); freezeNativeData(surface); evidence.side = surface;
+    }
     const loop = a.loop(piece.side, 'outer', [
       { edge: piece.base, sense: 'forward', pcurve: a.pcurve([0, 0, 0], [1, 0, 0]) },
       { edge: end.radial, sense: 'forward', pcurve: a.pcurve([1, 0, 0], [1, 1, 0]) },
@@ -578,14 +665,20 @@ function protect(original: Brep, result: Brep, selected: BrepFace, addedLoops: r
 }
 
 /** Private rectilinear UV topology diagnostic. It never qualifies a physical wrapped solid or text. */
-export function buildCylindricalWrapAssembly(part: Part, input: readonly CylindricalWrapAssemblyComponent[], options: CylindricalWrapAssemblyOptions): CylindricalWrapAssemblyResult {
+function runAssembly(part: Part, input: readonly CylindricalWrapAssemblyComponent[], options: CylindricalWrapAssemblyOptions, native = false, maximum = MAX_EXACT): AssemblyRun {
   const settings = optionsSnapshot(options), source = sourceOf(part, settings);
   if (settings.height !== source.radius) fail('SUPPORT', 'only height equal to the actual source radius is supported (exact factor2 homothety)');
   let tolerance: number = CadNumericPolicy.linearTolerance;
   for (const edge of source.brep.edges) tolerance = Math.min(tolerance, edge.tolerance);
   for (const vertex of source.brep.vertices) tolerance = Math.min(tolerance, vertex.tolerance);
   if (!(tolerance > 0 && Number.isFinite(tolerance))) fail('BINDING', 'a positive unchanged native tolerance budget is required');
-  const ctx = new Context(); ctx.countHelpers(source.carrier.counts.rational.operations); ctx.charge(source.carrier.counts.work);
+  const ctx = new Context(maximum, native); ctx.countHelpers(source.carrier.counts.rational.operations); ctx.charge(source.carrier.counts.work);
+  let protectedSource = source.brep;
+  if (native) {
+    const c = source.carrier.counts;
+    ctx.countHelpers(c.integerOperations); ctx.addHelperWork(c.rational.operations + c.rational.gcdSteps + c.rational.floatSearchSteps + c.integerOperations, Math.max(c.rational.maximumObservedBits, c.integerMaximumBits));
+    protectedSource = ownSnapshot(source.brep, false, SNAPSHOT) as Brep; nativeStructure(protectedSource, ctx); freezeNativeData(protectedSource); freezeNativeData(source);
+  }
   const components = componentsSnapshot(input, source, tolerance, ctx), assembly = new Assembly(source, settings.id, tolerance, ctx), addedLoops: string[] = [];
   let counters = 0;
   for (const component of components) {
@@ -615,15 +708,234 @@ export function buildCylindricalWrapAssembly(part: Part, input: readonly Cylindr
   const n = ctx.edges, c = components.length, original = source.brep;
   const added = { vertices: brep.vertices.length - original.vertices.length, edges: brep.edges.length - original.edges.length, faces: brep.faces.length - original.faces.length, loops: brep.loops.length - original.loops.length, coedges: brep.coedges.length - original.coedges.length, counters };
   if (added.vertices !== 2 * n || added.edges !== 3 * n || added.faces !== n + c + counters || added.loops !== n + 2 * (c + counters) || added.coedges !== 6 * n) fail('TOPOLOGY', 'the exact assembly incidence counts disagree');
-  protect(original, brep, source.face, addedLoops, addedFaces);
+  protect(protectedSource, brep, source.face, addedLoops, addedFaces);
   for (const edge of assembly.edges) validateCurve(edge.curve);
   ctx.charge(300 * brep.faces.length + 16 * brep.coedges.length); ctx.check();
   const checked = checkBrep(brep, { strict: true });
   if (!checked.valid || checked.topology.length !== 1 || checked.topology[0].genus !== 0 || brep.bodies.length !== 1 || brep.shells.length !== 1 || !brep.shells[0].closed) fail('TOPOLOGY', `the strict diagnostic B-rep failed: ${checked.issues.join('; ')}`);
   const copiedComponents: CylindricalWrapAssemblyComponent[] = [];
   for (const component of components) { const holes: UV[][] = []; for (const hole of component.holes) holes.push(hole.points); copiedComponents.push({ outer: component.outer.points, holes }); }
-  return { brep, check: checked, proof: { diagnosticOnly: true, solidQualified: false, coordinateFrame: 'original-native-uv', factor: 2,
+  const publicResult: CylindricalWrapAssemblyResult = { brep, check: checked, proof: { diagnosticOnly: true, solidQualified: false, coordinateFrame: 'original-native-uv', factor: 2,
     sourceFace: source.face.id, sourceName: source.face.name ?? null, sourceConsistency: true, historicalProducerProvenance: false, protectedOriginals: true, fullSpanRegularity: true,
     representedVolumeCertified: false, globalEvaluatorErrorCertified: false, generalTextSupported: false, source: source.proof, components: copiedComponents, pieces: assembly.pieces, vertices: assembly.table, added, tolerance,
     counts: { exactOperations: ctx.helperOperations + ctx.q.counts().operations + ctx.integerOperations, helperOperations: ctx.helperOperations, rationalOperations: ctx.q.counts().operations, integerOperations: ctx.integerOperations, integerMaximumBits: ctx.integerMaximumBits, work: ctx.work, horizontalCompositions: assembly.horizontal.size, angularCertificates: ctx.angularGuards.size, verticalCurves: assembly.verticalCurves, outerClones: assembly.pieces.length }, limits: LIMITS } };
+  if (native) { nativeStructure(assembly.nativeEvidence, ctx); freezeNativeData(assembly.nativeEvidence); nativeStructure(publicResult, ctx); freezeNativeData(publicResult); }
+  return { publicResult, source, context: ctx, assembly };
+}
+
+
+/** Existing private rectilinear diagnostic. The legacy path keeps its original policy and receipts. */
+export function buildCylindricalWrapAssembly(part: Part, input: readonly CylindricalWrapAssemblyComponent[], options: CylindricalWrapAssemblyOptions): CylindricalWrapAssemblyResult {
+  return runAssembly(part, input, options).publicResult;
+}
+
+function freezeNativeData(value: unknown): void {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return;
+  Object.freeze(value); for (const child of Object.values(value)) freezeNativeData(child);
+}
+function nativeStructure(value: unknown, ctx: Context): void {
+  ctx.charge(4 + (typeof value === 'string' ? value.length : 0));
+  if (value && typeof value === 'object') for (const child of Object.values(value)) nativeStructure(child, ctx);
+}
+function nativeEqual(a: unknown, b: unknown, ctx: Context): boolean {
+  ctx.charge(); if (Object.is(a, b)) return true;
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object' || Array.isArray(a) !== Array.isArray(b)) return false;
+  const keys = Object.keys(a); if (keys.length !== Object.keys(b).length) return false;
+  for (const key of keys) if (!Object.hasOwn(b, key) || !nativeEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key], ctx)) return false;
+  return true;
+}
+function requireNativeEqual(a: unknown, b: unknown, ctx: Context): void { if (!nativeEqual(a, b, ctx)) fail('BINDING', 'fresh native evidence differs from the complete installed coefficient fields'); }
+function requireNativeLine(curve: Curve, start: Point, end: Point, ctx: Context): void {
+  ctx.charge(2); if (curve.kind !== 'curve' || curve.degree !== 1) fail('BINDING', 'a canonical native affine line is required');
+  requireNativeEqual(curve.knots, [0, 0, 1, 1], ctx); requireNativeEqual(curve.weights, [1, 1], ctx); requireNativeEqual(curve.controlPoints, [start, end], ctx);
+}
+function nativePointResidual(actual: readonly Point[], target: readonly Point[], ctx: Context): R {
+  if (actual.length !== target.length) fail('BINDING', 'native coefficient residual arrays differ in length');
+  const q = ctx.q; let maximum = q.integer(0);
+  for (let i = 0; i < actual.length; i++) {
+    ctx.charge(); let total = q.integer(0);
+    for (let axis = 0; axis < 3; axis++) total = q.add(total, q.abs(q.sub(q.from(actual[i][axis]), q.from(target[i][axis]))));
+    maximum = q.max(maximum, total); ctx.check();
+  }
+  return maximum;
+}
+function nativeWallResidual(world: Curve, pc: Curve, surface: Surface, ctx: Context): R {
+  if (surface.degreeU !== 2 || surface.degreeV !== 1 || surface.controlPoints.length !== 5) fail('BINDING', 'the original wall must retain its actual two quadratic half-spans');
+  requireNativeEqual(surface.knotsU, [0, 0, 0, 0.5, 0.5, 1, 1, 1], ctx); requireNativeEqual(surface.knotsV, [0, 0, 1, 1], ctx);
+  for (const row of surface.weights) requireNativeEqual(row, [row[0], row[0]], ctx);
+  if (world.degree === 2 && world.controlPoints.length === 5) {
+    const v = pc.controlPoints[0][1]; if (!Object.is(v, 0) && !Object.is(v, 1)) fail('BINDING', 'a source horizontal edge requires an exact boundary V');
+    requireNativeLine(pc, [0, v, 0], [1, v, 0], ctx); requireNativeEqual(world.knots, surface.knotsU, ctx);
+    const target: Point[] = [], weights: number[] = [];
+    for (let i = 0; i < 5; i++) { target.push(surface.controlPoints[i][v]); weights.push(surface.weights[i][v]); }
+    requireNativeEqual(world.weights, weights, ctx); return nativePointResidual(world.controlPoints, target, ctx);
+  }
+  if (world.degree === 1 && world.controlPoints.length === 2) {
+    const u = pc.controlPoints[0][0]; if (!Object.is(u, 0) && !Object.is(u, 1)) fail('BINDING', 'a source strut requires an exact boundary U');
+    requireNativeLine(pc, [u, 0, 0], [u, 1, 0], ctx); requireNativeEqual(world.knots, [0, 0, 1, 1], ctx); requireNativeEqual(world.weights, [1, 1], ctx);
+    return nativePointResidual(world.controlPoints, surface.controlPoints[u === 0 ? 0 : 4], ctx);
+  }
+  return fail('BINDING', 'an original wall use has no admitted isocurve classification');
+}
+interface NativeModelMaps {
+  readonly originalEdges: Map<string, BrepEdge>; readonly originalFaces: Map<string, BrepFace>;
+  readonly bases: Map<string, NativePieceEvidence>; readonly outers: Map<string, NativePieceEvidence>; readonly sides: Map<string, NativePieceEvidence>;
+}
+function nativeMaps(run: AssemblyRun): NativeModelMaps {
+  const ctx = run.context, originalEdges = new Map<string, BrepEdge>(), originalFaces = new Map<string, BrepFace>(), bases = new Map<string, NativePieceEvidence>(), outers = new Map<string, NativePieceEvidence>(), sides = new Map<string, NativePieceEvidence>();
+  for (const edge of run.source.brep.edges) { ctx.charge(); originalEdges.set(edge.id, edge); }
+  for (const face of run.source.brep.faces) { ctx.charge(); originalFaces.set(face.id, face); }
+  for (const piece of run.assembly.nativeEvidence ?? []) { ctx.charge(); bases.set(piece.baseId, piece); outers.set(piece.outerId, piece); sides.set(piece.sideId, piece); }
+  return { originalEdges, originalFaces, bases, outers, sides };
+}
+function nativeModel(coedge: BrepCoedge, edge: BrepEdge, face: BrepFace, run: AssemblyRun, maps: NativeModelMaps): { kind: NativeCoedgeBound['kind']; error: R } {
+  const ctx = run.context, surface = face.surface;
+  if (!coedge.pcurve || surface.kind === 'facets') fail('BINDING', 'every native position use needs its actual NURBS pcurve and Surface');
+  const pc = coedge.pcurve, sourceEdge = maps.originalEdges.get(edge.id), sourceFace = maps.originalFaces.get(face.id);
+  if (sourceEdge) {
+    requireNativeEqual(edge, sourceEdge, ctx);
+    if (!sourceFace || sourceFace.surface.kind === 'facets') fail('BINDING', 'an original edge has an unexpected retained face');
+    requireNativeEqual(surface, sourceFace.surface, ctx);
+    if (surface.degreeU === 1 && surface.degreeV === 1) return { kind: 'cap', error: nativeAffineCapResidual(edge.curve, pc, surface, ctx) };
+    return { kind: 'wall', error: nativeWallResidual(edge.curve, pc, surface, ctx) };
+  }
+  const side = maps.sides.get(face.id);
+  if (side) {
+    if (!side.side) fail('BINDING', 'an actual side Surface is missing from fresh evidence');
+    requireNativeEqual(surface, side.side, ctx);
+    if (edge.id === side.baseId) {
+      requireNativeEqual(edge.curve, side.base, ctx); requireNativeLine(pc, [0, 0, 0], [1, 0, 0], ctx);
+      for (let i = 0; i < 4; i++) { requireNativeEqual(surface.controlPoints[i][0], side.base.controlPoints[i], ctx); requireNativeEqual(surface.weights[i][0], side.base.weights[i], ctx); }
+      return { kind: 'side', error: ctx.q.integer(0) };
+    }
+    if (edge.id === side.outerId) {
+      requireNativeEqual(edge.curve, side.outer, ctx); requireNativeLine(pc, [0, 1, 0], [1, 1, 0], ctx);
+      for (let i = 0; i < 4; i++) { requireNativeEqual(surface.controlPoints[i][1], side.outer.controlPoints[i], ctx); requireNativeEqual(surface.weights[i][1], side.outer.weights[i], ctx); }
+      return { kind: 'side', error: ctx.q.integer(0) };
+    }
+    const at = edge.id === side.start.radial ? 0 : edge.id === side.end.radial ? 1 : -1;
+    if (at < 0) fail('BINDING', 'an actual side use has no prescribed boundary edge');
+    requireNativeLine(pc, [at, 0, 0], [at, 1, 0], ctx);
+    if (edge.curve.degree !== 1) fail('BINDING', 'a native radial edge must remain affine');
+    requireNativeEqual(edge.curve.knots, [0, 0, 1, 1], ctx); requireNativeEqual(edge.curve.weights, [1, 1], ctx);
+    const row = at === 0 ? 0 : 3; requireNativeEqual(surface.weights[row], [surface.weights[row][0], surface.weights[row][0]], ctx);
+    return { kind: 'side', error: nativePointResidual(edge.curve.controlPoints, surface.controlPoints[row], ctx) };
+  }
+  const base = maps.bases.get(edge.id);
+  if (base && face.id === run.source.face.id) {
+    requireNativeEqual(edge.curve, base.base, ctx); requireNativeEqual(pc, base.basePcurve, ctx); requireNativeEqual(surface, run.source.face.surface, ctx);
+    if (surface.kind !== 'surface' || surface.controlPoints.length !== 5) fail('BINDING', 'the retained original wall is missing');
+    requireNativeEqual(surface.knotsU, [0, 0, 0, 0.5, 0.5, 1, 1, 1], ctx);
+    requireNativeEqual(run.source.quarter.knotsU, [0, 0, 0, 0.5, 0.5, 0.5], ctx);
+    requireNativeEqual(surface.controlPoints.slice(0, 3), run.source.quarter.controlPoints, ctx); requireNativeEqual(surface.weights.slice(0, 3), run.source.quarter.weights, ctx); requireNativeEqual(surface.knotsV, run.source.quarter.knotsV, ctx);
+    return { kind: 'base', error: base.baseError };
+  }
+  const outer = maps.outers.get(edge.id);
+  if (outer) {
+    requireNativeEqual(edge.curve, outer.outer, ctx); requireNativeEqual(pc, outer.outerPcurve, ctx); requireNativeEqual(surface, run.assembly.outer, ctx);
+    return { kind: 'outer', error: outer.outerError };
+  }
+  return fail('BINDING', 'an actual coedge is outside the fixed native position classifier');
+}
+function nativeOptions(input: CylindricalWrapNativeBoundOptions): { options: CylindricalWrapAssemblyOptions; maximum: number } {
+  const data = ownSnapshot(input, false, SNAPSHOT);
+  if (!data || typeof data !== 'object' || Array.isArray(data)) fail('INPUT', 'plain native assembly options are required');
+  const fields = data as Record<string, unknown>;
+  for (const key of Object.keys(fields)) if (key !== 'id' && key !== 'height' && key !== 'maxOperations') fail('INPUT', 'unsupported native assembly option');
+  const maximum = fields.maxOperations === undefined ? MAX_EXACT : fields.maxOperations;
+  if (typeof maximum !== 'number' || !Number.isSafeInteger(maximum) || maximum < 1 || maximum > MAX_EXACT) fail('INPUT', 'the native request operation limit may only tighten200000');
+  return { options: optionsSnapshot({ id: fields.id, height: fields.height }), maximum };
+}
+function onePad(input: readonly CylindricalWrapAssemblyComponent[]): readonly CylindricalWrapAssemblyComponent[] {
+  const data = ownSnapshot(input, false, SNAPSHOT);
+  if (!Array.isArray(data) || data.length !== 1) fail('SUPPORT', 'native binding admits exactly one four-edge pad');
+  const value = record(data[0], ['outer', 'holes']);
+  if (!Array.isArray(value.outer) || value.outer.length !== 4 || !Array.isArray(value.holes) || value.holes.length !== 0) fail('SUPPORT', 'native binding admits four outer edges and no holes');
+  return data as unknown as readonly CylindricalWrapAssemblyComponent[];
+}
+function nativeSidePhase(run: AssemblyRun): CylindricalWrapSideFamilyResult {
+  const ctx = run.context, evidence = run.assembly.nativeEvidence;
+  if (!evidence || evidence.length !== 4) fail('BINDING', 'four fresh side operands are required');
+  const curves: Curve[] = [], uses: { curve: string; sense: 'forward' }[] = [], pieces: { base: Curve; outer: Curve; side: Surface }[] = [], hint: Point = [0, 0, 0];
+  for (const piece of evidence) {
+    if (!piece.side) fail('BINDING', 'a fresh radial side is missing');
+    curves.push(piece.base); uses.push({ curve: piece.base.id, sense: 'forward' }); pieces.push({ base: piece.base, outer: piece.outer, side: piece.side });
+    for (let axis = 0; axis < 3; axis++) hint[axis] += piece.base.controlPoints[0][axis] / 4;
+    ctx.charge(6);
+  }
+  // Only a candidate. Exact D300 winding establishes its individual-ring interior role.
+  const component = certifyCylindricalWrapChartComponent({ curves, outer: { uses, interiorHint: hint }, holes: [] }, { maxOperations: ctx.remaining() });
+  const result = certifyCylindricalWrapSideFamily(component, pieces), counts = result.counts;
+  ctx.importHelper(counts.totalOperations, counts.work + counts.rational.operations + counts.rational.gcdSteps + counts.rational.floatSearchSteps, Math.max(counts.maximumDirectBits, counts.rational.maximumObservedBits));
+  for (let i = 0; i < pieces.length; i++) requireNativeEqual(result.original[i], pieces[i], ctx);
+  return result;
+}
+function nativeFamilyPhase(run: AssemblyRun): NativeD0FamilyCertificate {
+  const ctx = run.context, brep = run.publicResult.brep, curves: Curve[] = [], surfaces: Surface[] = [];
+  for (const edge of brep.edges) { ctx.charge(); curves.push(edge.curve); }
+  for (const coedge of brep.coedges) { ctx.charge(); if (!coedge.pcurve) fail('BINDING', 'every actual coedge needs its native pcurve slot'); curves.push(coedge.pcurve); }
+  for (const face of brep.faces) { ctx.charge(); if (face.surface.kind === 'facets') fail('SUPPORT', 'native binding admits only actual NURBS faces'); surfaces.push(face.surface); }
+  if (curves.length !== 54 || surfaces.length !== 9) fail('BINDING', 'the actual one-pad family must contain all63 geometry slots');
+  const result = certifyNativeD0Family({ curves, surfaces }, { maxOperations: ctx.remaining() }), counts = result.counts;
+  ctx.importHelper(counts.totalOperations, counts.work, Math.max(counts.maximumDirectBits, counts.maximumObservedBits));
+  for (let i = 0; i < curves.length; i++) requireNativeEqual(result.curves[i].source, curves[i], ctx);
+  for (let i = 0; i < surfaces.length; i++) requireNativeEqual(result.surfaces[i].source, surfaces[i], ctx);
+  return result;
+}
+function finishNativeAssembly(run: AssemblyRun, assemblyCounts: NativeAssemblyCounts): CylindricalWrapNativeBoundResult {
+  const ctx = run.context, brep = run.publicResult.brep;
+  if (brep.edges.length !== 18 || brep.coedges.length !== 36 || brep.faces.length !== 9 || brep.vertices.length !== 12) fail('BINDING', 'the actual native topology is outside the fixed one-pad profile');
+  const sideFamily = nativeSidePhase(run), evaluator = nativeFamilyPhase(run), eL1 = fraction(evaluator.l1.exact, ctx.q), eU = fraction(evaluator.axes[0].exact, ctx.q), eV = fraction(evaluator.axes[1].exact, ctx.q);
+  ctx.check();
+  const edges = new Map<string, { value: BrepEdge; index: number }>(), loops = new Map<string, BrepLoop>(), vertices = new Map<string, BrepVertex>();
+  const faces = new Map<string, { value: BrepFace; index: number; proof: NativePositionFace; inflation: R }>(), faceBounds: { face: string; lipschitz: { u: SectionFraction; v: SectionFraction }; inflation: SectionFraction }[] = [];
+  for (let i = 0; i < brep.edges.length; i++) { ctx.charge(); edges.set(brep.edges[i].id, { value: brep.edges[i], index: i }); }
+  for (const loop of brep.loops) { ctx.charge(); loops.set(loop.id, loop); }
+  for (const vertex of brep.vertices) { ctx.charge(); vertices.set(vertex.id, vertex); }
+  for (let i = 0; i < brep.faces.length; i++) {
+    const value = brep.faces[i]; if (value.surface.kind === 'facets') fail('BINDING', 'a native face changed its surface kind');
+    const proof = prepareNativePositionFace(value.surface, ctx); requireNativeEqual(proof.surface, value.surface, ctx);
+    const inflation = nativePositionInflation(proof, eL1, eU, eV, ctx); faces.set(value.id, { value, index: i, proof, inflation });
+    faceBounds.push({ face: value.id, lipschitz: { u: ctx.q.text(proof.lipschitz.u), v: ctx.q.text(proof.lipschitz.v) }, inflation: ctx.q.text(inflation) }); ctx.check();
+  }
+  const models = nativeMaps(run), coedges: NativeCoedgeBound[] = [], classes = { wall: 0, cap: 0, base: 0, outer: 0, side: 0 }, seen = new Set<string>();
+  for (let i = 0; i < brep.coedges.length; i++) {
+    const coedge = brep.coedges[i], edge = edges.get(coedge.edge), loop = loops.get(coedge.loop), face = loop && faces.get(loop.face);
+    ctx.charge(); if (!edge || !loop || !face || !coedge.pcurve || seen.has(coedge.id)) fail('BINDING', 'every native coedge must have exactly one actual owner relation'); seen.add(coedge.id);
+    const pc = coedge.pcurve, curve = edge.value.curve;
+    requireNativeEqual([pc.knots[pc.degree], pc.knots[pc.controlPoints.length]], [curve.knots[curve.degree], curve.knots[curve.controlPoints.length]], ctx);
+    requireNativeEqual([curve.knots[curve.degree], curve.knots[curve.controlPoints.length]], [0, 1], ctx);
+    requireNativePcurveRange(pc, face.proof, eU, eV, ctx);
+    const model = nativeModel(coedge, edge.value, face.value, run, models), bound = checkedNativePositionBound(model.error, face.inflation, edge.value.tolerance, ctx); classes[model.kind]++;
+    coedges.push({ coedge: coedge.id, edge: edge.value.id, face: face.value.id, curveSlot: edge.index, pcurveSlot: brep.edges.length + i, surfaceSlot: face.index, kind: model.kind,
+      modelError: ctx.q.text(model.error), bound: ctx.q.text(bound), tolerance: edge.value.tolerance }); ctx.check();
+  }
+  requireNativeEqual(classes, { wall: 8, cap: 4, base: 4, outer: 4, side: 16 }, ctx);
+  const endpoints: NativeEndpointBound[] = [];
+  for (const edge of brep.edges) for (const at of [0, 1] as const) {
+    ctx.charge(); const vertex = vertices.get(edge.vertices[at]); if (!vertex) fail('BINDING', 'a native edge endpoint has no actual vertex');
+    const pole = edge.curve.controlPoints[at === 0 ? 0 : edge.curve.controlPoints.length - 1];
+    const bound = nativeEndpointPositionBound(pole, vertex.point, eL1, vertex.tolerance, ctx);
+    endpoints.push({ edge: edge.id, endpoint: at, vertex: vertex.id, bound: ctx.q.text(bound), tolerance: vertex.tolerance }); ctx.check();
+  }
+  if (coedges.length !== 36 || endpoints.length !== 36) fail('BINDING', 'complete native coedge and endpoint coverage is required');
+  const result: CylindricalWrapNativeBoundResult = { assembly: run.publicResult, nativeBinding: {
+    coverage: { edges: 18, coedges: 36, vertices: 12, endpointRelations: 36, familySlots: 63, complete: true, classes }, coedges, endpoints, faces: faceBounds, evaluator, sideFamily,
+    phases: { assembly: assemblyCounts, side: { exactOperations: sideFamily.counts.totalOperations, work: sideFamily.counts.work + sideFamily.counts.rational.operations + sideFamily.counts.rational.gcdSteps + sideFamily.counts.rational.floatSearchSteps }, evaluator: { exactOperations: evaluator.counts.totalOperations, work: evaluator.counts.work } },
+    counts: ctx.counts(), limits: { exactOperations: ctx.maximum, hardExactOperations: 200000, integerBits: 8192, work: 1048576, components: 1, edges: 4, holes: 0 },
+    meaning: { nativePositionBindingCertified: true, allCoedgesCertified: true, allEdgeEndpointsCertified: true, vertexToleranceRule: 'actual-vertex-tolerance-stronger-than-checker-max', distance: 'exact-L1-between-native-position-outputs',
+      uvRule: 'actual-rounded-slack-and-nonexpansive-clamp', sourceGlobalCertified: false, closedReferenceCertified: false, retainedFaceClosureCertified: false, mathHypotCertified: false, orientationCertified: false,
+      physicalBrepCertified: false, solidQualified: false, representedVolumeCertified: false, generalTextSupported: false, productFeature: false, surfaceEndpointVertexBindingCertified: false } } };
+  freezeNativeData(result); return result;
+}
+/** Fresh fixed-profile native position proof. No external receipt or flags are accepted as authority. */
+export function buildCylindricalWrapNativeBoundAssembly(part: Part, input: readonly CylindricalWrapAssemblyComponent[], options: CylindricalWrapNativeBoundOptions): CylindricalWrapNativeBoundResult {
+  try {
+    const selected = nativeOptions(options), components = onePad(input), run = runAssembly(part, components, selected.options, true, selected.maximum);
+    return finishNativeAssembly(run, run.context.counts());
+  } catch (error) {
+    if (isCylindricalWrapAssemblyError(error)) throw error;
+    if (isNativeD0Error(error) || isNativePositionError(error) || isCylindricalWrapChartError(error)) fail(error.code === 'BUDGET' ? 'BUDGET' : 'BINDING', error.message);
+    return fail('INPUT', 'the native position request could not be admitted');
+  }
 }
