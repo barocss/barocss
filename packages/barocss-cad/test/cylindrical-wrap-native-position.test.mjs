@@ -173,3 +173,11 @@ test('all helper exact and structural work shares the supplied native ledger and
   const huge = { n: 1n << 8192n, d: 1n }; refused(() => nativePositionInflation(face, huge, e, e, ctx), 'BUDGET');
   assert.equal(ctx.q.counts().floatConversions, 0); assert.ok(ctx.q.counts().operations <= 200000 && ctx.q.counts().maximumObservedBits <= 8192);
 });
+
+
+test('identical finite endpoint axes retain a fresh normalized bound without caller aliasing', () => {
+  const ctx = new Host(), supplied = {n: 2n, d: 4n};
+  const result = nativeEndpointPositionBound([1, -0, 3], [1, -0, 3], supplied, 1, ctx);
+  assert.deepEqual(result, {n: 1n, d: 2n}); assert.notEqual(result, supplied);
+  supplied.n = 10n; supplied.d = 1n; assert.deepEqual(result, {n: 1n, d: 2n});
+});

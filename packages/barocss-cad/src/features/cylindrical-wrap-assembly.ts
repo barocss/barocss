@@ -754,7 +754,12 @@ function nativePointResidual(actual: readonly Point[], target: readonly Point[],
   const q = ctx.q; let maximum = q.integer(0);
   for (let i = 0; i < actual.length; i++) {
     ctx.charge(); let total = q.integer(0);
-    for (let axis = 0; axis < 3; axis++) total = q.add(total, q.abs(q.sub(q.from(actual[i][axis]), q.from(target[i][axis]))));
+    for (let axis = 0; axis < 3; axis++) {
+      ctx.charge();
+      // Both coefficient arrays were already admitted from the frozen actual native family.
+      if (Object.is(actual[i][axis], target[i][axis])) continue;
+      total = q.add(total, q.abs(q.sub(q.from(actual[i][axis]), q.from(target[i][axis]))));
+    }
     maximum = q.max(maximum, total); ctx.check();
   }
   return maximum;

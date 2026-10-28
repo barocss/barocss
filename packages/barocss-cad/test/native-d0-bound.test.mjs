@@ -5,6 +5,7 @@ import { segmentCurve, extrudedSurface } from '../dist/features/extruded-profile
 import { certifyNativeCurveD0, certifyNativeSurfaceD0, certifyNativeD0Family, isNativeD0Error } from '../dist/core/native-d0-bound.js';
 import { brepFromPrismatic, prismaticFromProfile } from '../dist/features/prismatic-solid.js';
 import { buildCylindricalWrapAssembly } from '../dist/features/cylindrical-wrap-assembly.js';
+import { SectionRationalContext } from '../dist/section-rational-internal.js';
 
 // Independent exact Bernstein oracle. It imports neither the certificate's arithmetic nor
 // SectionRationalContext. Finite sample comparisons are regression evidence only; the
@@ -341,4 +342,25 @@ test('one global family ledger tightens budget and leaves standalone serialized 
   refusedFamily(input, 'SUPPORT', { errorBudgetL1: Number.MIN_VALUE }); refusedFamily(input, 'INPUT', { maxOperations: 200001 });
   assert.deepEqual(certifyNativeCurveD0(source), curveBefore); assert.deepEqual(certifyNativeSurfaceD0(patch), surfaceBefore);
   assert.equal(JSON.stringify(certifyNativeCurveD0(source)), JSON.stringify(curveBefore)); assert.equal(JSON.stringify(certifyNativeSurfaceD0(patch)), JSON.stringify(surfaceBefore));
+});
+
+function referenceFailure(code, detail) { assert.fail(`${code}: ${detail}`); }
+function leastUpper(bound) {
+  const value = fromReceipt(bound.exact), reference = new SectionRationalContext(referenceFailure), generic = reference.bound(reference.rat(value.n, value.d));
+  assert.deepEqual(bound.exact, generic.exact); assert.ok(Object.is(bound.upper, generic.upper));
+  assert.ok(compare(value, fromNumber(bound.upper)) <= 0);
+  if (bound.upper === 0) { assert.equal(value.n, 0n); return; }
+  storage.setFloat64(0, bound.upper, false); const bits = storage.getBigUint64(0, false); storage.setBigUint64(0, bits - 1n, false);
+  assert.ok(compare(fromNumber(storage.getFloat64(0, false)), value) < 0, 'the preceding binary64 must be strictly below the exact value');
+}
+test('family fixed128 output matches generic bound and the independent positive predecessor criterion', () => {
+  for (const scale of [0, 1e-100, 0.01, 1, 20, 9999]) {
+    const source = curve(3);
+    for (const point of source.controlPoints) for (let axis = 0; axis < 3; axis++) point[axis] *= scale / 10000;
+    const receipt = certifyNativeD0Family({ curves: [source], surfaces: [] }); familyProof(receipt);
+    for (const bound of [...receipt.axes, receipt.l1]) leastUpper(bound);
+    assert.equal(receipt.counts.floatSearchSteps, 0); assert.equal(receipt.counts.floatConversions, 0);
+  }
+  // External before/after D303 receipts remain mandatory; this same-build reference
+  // check is regression evidence and does not establish performance or integration.
 });

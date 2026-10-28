@@ -165,8 +165,15 @@ export function checkedNativePositionBound(model: R, inflation: R, limit: number
 }
 export function nativeEndpointPositionBound(input: Point, vertexInput: Point, eL1: R, limit: number, ctx: NativePositionContext): R {
   try {
-    scalar(eL1, ctx); const p = point(input, ctx), vertex = point(vertexInput, ctx), q = ctx.q, tau = tolerance(limit, ctx); let result = eL1;
-    for (let axis = 0; axis < 3; axis++) result = q.add(result, q.abs(q.sub(q.from(p[axis]), q.from(vertex[axis]))));
+    scalar(eL1, ctx); const p = point(input, ctx), vertex = point(vertexInput, ctx), q = ctx.q, tau = tolerance(limit, ctx); let result = eL1, addedResidual = false;
+    for (let axis = 0; axis < 3; axis++) {
+      ctx.charge();
+      // The owned point copies are finite; identical represented coordinates have exactly zero gap.
+      if (Object.is(p[axis], vertex[axis])) continue;
+      result = q.add(result, q.abs(q.sub(q.from(p[axis]), q.from(vertex[axis])))); addedResidual = true;
+    }
+    // Preserve the former fresh normalized result even when the caller supplied an unreduced bound.
+    if (!addedResidual) result = q.rat(eL1.n, eL1.d);
     if (q.compare(result, tau) > 0) fail('SUPPORT', 'the native endpoint error exceeds the supplied unchanged entity tolerance');
     ctx.check(); return result;
   } catch (error) { return rethrow(error); }

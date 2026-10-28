@@ -300,6 +300,55 @@ function familyEnvelope(points: readonly Point[], weights: readonly number[]): N
   }
   return { minimumWeight, maximumWeight, coordinateAbs };
 }
+const FAMILY_FLOAT = new DataView(new ArrayBuffer(8));
+const FAMILY_MINIMUM = 2 ** -128;
+function familyDirect(ctx: Context, amount: number): void { ctx.directOperations += amount; ctx.check(); }
+function familyNextUp(value: number, ctx: Context): number {
+  FAMILY_FLOAT.setFloat64(0, value, false); familyDirect(ctx, 1);
+  const bits = ctx.integer(FAMILY_FLOAT.getBigUint64(0, false));
+  familyDirect(ctx, 2);
+  if (!(value > 0) || bits >= 0x7fefffffffffffffn) fail('SUPPORT', 'the family upper-bound successor must remain positive and finite');
+  const next = ctx.integer(bits + 1n); FAMILY_FLOAT.setBigUint64(0, next, false); familyDirect(ctx, 1);
+  const result = FAMILY_FLOAT.getFloat64(0, false); familyDirect(ctx, 1); return result;
+}
+/**
+ * Family errors are fixed128 dyadics in [0,1e-7]. Number(n) is nearest; Number(d)
+ * is an exact power of two, and scaling stays normal. Thus candidate is nearest
+ * to n/d. An exact q comparison and at most one positive IEEE successor yield
+ * the same least representable upper value as generic SectionRationalContext.bound.
+ * The standalone finish/bound path above is deliberately unchanged.
+ */
+function familyBound(value: R, ctx: Context): NativeD0Bound {
+  // Conservatively include both sign guards, four fixed128 guards and the zero test.
+  familyDirect(ctx, 7);
+  if (value.n < 0n || value.d <= 0n) fail('SUPPORT', 'a family error bound must be nonnegative with a positive denominator');
+  ctx.integer(value.n); ctx.integer(value.d);
+  const numeratorHigh = ctx.integer(value.n >> 128n), denominatorHigh = ctx.integer(value.d - SCALE), before = ctx.integer(value.d - 1n);
+  const mask = ctx.integer(value.d & before), remainder = ctx.integer(SCALE % value.d);
+  if (numeratorHigh !== 0n || denominatorHigh > 0n || mask !== 0n || remainder !== 0n) fail('SUPPORT', 'the family converter requires a fixed128 dyadic with a bounded numerator');
+  if (ctx.q.compare(value, ctx.q.from(CadNumericPolicy.linearTolerance)) > 0) fail('SUPPORT', 'the family converter may not exceed the existing native error floor');
+  const exact = ctx.q.text(value); ctx.check();
+  if (value.n === 0n) return { exact, upper: 0 };
+  const numerator = Number(value.n), denominator = Number(value.d), candidate = numerator / denominator; familyDirect(ctx, 3);
+  familyDirect(ctx, 3);
+  if (!Number.isFinite(candidate) || candidate < FAMILY_MINIMUM || candidate > CadNumericPolicy.linearTolerance) fail('SUPPORT', 'the family nearest conversion must remain in its proved normal range');
+  const comparison = ctx.q.compare(ctx.q.from(candidate), value); ctx.check();
+  const upper = comparison < 0 ? familyNextUp(candidate, ctx) : candidate;
+  if (comparison < 0 && ctx.q.compare(ctx.q.from(upper), value) < 0) fail('SUPPORT', 'the family successor did not enclose its exact error bound');
+  ctx.check(); return { exact, upper };
+}
+/** Same exact recurrence and budget test as finish, with family-only output conversion. */
+function finishFamily(count: number, basis: R, range: Ranges, settings: Required<NativeD0Options>, ctx: Context): NativeD0Common {
+  ctx.atMost(basis, ctx.one, 'the native basis finite-range proof was not established');
+  const errors: [R, R, R] = [axisError(count, basis, range, 0, ctx), axisError(count, basis, range, 1, ctx), axisError(count, basis, range, 2, ctx)];
+  const l1 = ctx.add(ctx.add(errors[0], errors[1]), errors[2]);
+  if (ctx.q.compare(l1, ctx.q.from(settings.errorBudgetL1)) > 0) fail('SUPPORT', 'the rigorous native L1 error exceeds the unchanged requested budget');
+  const axes: [NativeD0Bound, NativeD0Bound, NativeD0Bound] = [familyBound(errors[0], ctx), familyBound(errors[1], ctx), familyBound(errors[2], ctx)], bound = familyBound(l1, ctx);
+  return { authority: 'existing-native-basis-ordered-sum-projection', axes, l1: bound, constantAxes: range.constant, errorBudgetL1: settings.errorBudgetL1, fractionBits: 128,
+    counts: ctx.counts(), limits: { operations: settings.maxOperations, integerBits: MAX_BITS, work: MAX_WORK },
+    meaning: { nativeD0Certified: true, parameterAuthority: 'finite-binary64-inside-exact-stored-domain', exactTarget: 'rational-evaluation-of-unchanged-stored-coefficients',
+      rounding: 'binary64-nearest-with-absolute-subnormal-allowance', boundArithmetic: 'single-ledger-positive-outward-fixed128', evaluatorReplacement: false, derivatives: false, pcurveBinding: false, topology: false, mass: false } };
+}
 /**
  * One common bound for actual, immutable family snapshots. All recurrences are nonnegative
  * and monotone in degree, term count, maximum weight/coordinate and inverse minimum weight.
@@ -328,7 +377,7 @@ export function certifyNativeD0Family(input: NativeD0FamilyInput, given: NativeD
   }
   const range = ranges(points, weights, ctx); range.constant = [false, false, false];
   const fraction = fractionError(ctx), basis = tensorError(basisError(3, fraction, ctx), basisError(1, fraction, ctx), ctx), envelope = familyEnvelope(points, weights);
-  const result = finish(8, basis, range, settings, ctx);
+  const result = finishFamily(8, basis, range, settings, ctx);
   return freeze({ ...result, curves, surfaces, globalTemplate: 'degree3-by1-count8-no-constant-axis-shortcut', envelope,
     family: { objects: count, storedPoles: points.length, maximumObjects: 64, maximumStoredPoles: 512, structuralWork } } as NativeD0FamilyCertificate);
 }
