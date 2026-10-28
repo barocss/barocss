@@ -35,7 +35,9 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   19/19, Model3/3 and actual Studio preview/apply/Undo/Redo/Save/Open pass. Whole qualification is still pending.
   The first candidate missed the high-order planar support; the second found a4.3e-14 representative drift while
   surface/curves were unchanged. Exact incidence matching and existing-bound coordinate restoration resolve it.
-  A static TrueType outline reader candidate is in /tmp only; it is not yet integrated or verified by execution. Then text/wrap, 08, 09. Font originals are ready, but font parsing and CAD text are not.
+  The bounded static TrueType reader is also preserved as WIP in cad-model engine/font/trueType.ts: types/lint
+  and10 independent-oracle/malformed/recursion/budget tests pass. It reads font units only; no Doc/font asset,
+  text profile, API facade or Studio text command is connected. Whole qualification is pending with D291. Then text/wrap, 08, 09. Font originals are ready, but font parsing and CAD text are not.
   The next decision is D291.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
