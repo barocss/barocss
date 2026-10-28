@@ -787,6 +787,40 @@ try {
     await iso(); await snap('cg13-reopened');
   });
 
+  await check('CG1 freeform: Face fillet on a quintic guided loft previews, applies and reopens', async () => {
+    const input = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [20, 20] },
+      { id: 'n1', kind: 'loft', from: [0, 0], sections: [{ sketch: 0, z: 0 }, { sketch: 0, z: 20 }],
+        guide: { kind: 'nurbs', degree: 5, knots: [0,0,0,0,0,0,1,1,1,1,1,1],
+          controlPoints: [[0,0,0],[0,0,4],[2,0,8],[-2,0,12],[0,0,16],[0,0,20]] } },
+    ], outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2 };
+    const fixture = join(out, 'polynomial-face-fillet-input.bcad'); writeFileSync(fixture, JSON.stringify(input));
+    await openModel(fixture, 2); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.side1')));
+    await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(400);
+    const front = await page.evaluate(() => window.__studioScreenOf([10, 0, 10]));
+    await page.keyboard.down('Shift'); await page.mouse.click(...front); await page.keyboard.up('Shift');
+    await press(' '); await page.locator('.palette input').fill('face fillet'); await press('Enter'); await hudReady();
+    await field('Radius').fill('0.5'); await field('Radius').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await snap('polynomial-face-fillet-preview'); await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'face-fillet' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    const accepted = await doc(), node = accepted.nodes.at(-1);
+    assert.deepEqual([...node.faces].sort(), ['n1.side0', 'n1.side1']); assert.equal(node.radius, 0.5);
+    assert.ok(node.faces.every(name => node.sigs?.[name])); assert.equal(await bodyVolume(), 7999);
+    await iso(); await snap('polynomial-face-fillet-applied');
+    await press('Escape'); await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2, null, { timeout: 10000 }); await idle();
+    assert.equal(await bodyVolume(), 8000);
+    await press('Meta+Shift+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'face-fillet', null, { timeout: 30000 }); await idle();
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 10000 }), page.click('[aria-label="Save"]')]);
+    const file = join(out, 'polynomial-face-fillet-saved.bcad'); await saved.saveAs(file);
+    await page.click('[aria-label="New part"]'); await openModel(file, 3); await idle();
+    assert.deepEqual((await doc()).nodes, JSON.parse(JSON.stringify(accepted.nodes))); assert.equal(await bodyVolume(), 7999);
+    await iso(); await snap('polynomial-face-fillet-reopened');
+  });
+
   await check('fillet a box top edge from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });

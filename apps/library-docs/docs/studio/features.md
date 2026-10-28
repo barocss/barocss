@@ -79,6 +79,7 @@ fastener sizes you have loaded; without them they are refused with `[FASTENER_SI
 | Command | What it does |
 |---|---|
 | **Fillet** (<kbd>Shift</kbd> <kbd>F</kbd>), **Chamfer** (<kbd>C</kbd>) | Round or bevel the picked edges; a picked face takes all its edges |
+| **Face fillet** | Round between two picked faces. Meeting polynomial Bezier sides of a guided loft can use the rolling ball; unsupported free-form pairs are refused. See [Face fillets](/how/fillets) |
 | **Shell** | Hollows a body, leaving the picked faces open |
 | **Draft** | Tapers the picked side faces for a pull along Z |
 | **Offset face** | Moves a flat face along its normal, adding or taking off material |

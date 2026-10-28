@@ -14772,3 +14772,63 @@ No feature push, new PR or release.
 **Not run.** Full Studio browser suite, WebGL2 flow, mobile checks, GPU package suite, RB/fuzz/commutativity, and a
 performance A/B run. This is a guide correctness change; it makes no speed claim. Images and raw logs remain in the
 session scratchpad. No evidence files, local .claude settings or lockfile are committed.
+
+## D289 — Open fillets can run past a single polynomial Bezier face end (2026-10-28)
+
+**Problem.** On the quintic guided square loft used below, the plane and its neighbouring curved side meet along
+an open spatial curve. The rolling ball reached the body's end, but its solve surface stopped at the polynomial
+face's knot domain. A radius 0.5 face fillet failed with `CONTACT_LEAVES_FACE` near `(0, 0, 0)`.
+
+**Decision.** For the open-chain solve only, carry a degree 2–5, single clamped polynomial Bezier direction one
+quarter of its parameter range past each end. Two de Casteljau splits compute the controls of exactly the same
+polynomial on the wider interval; the knots move with them. Equal weights along that direction are required.
+Closed, multi-span and rational directions keep their existing treatment. The existing linear run and cylinder
+whole-turn paths remain. The body's source surfaces and trim loops are not replaced. Inside-trim allowance uses
+the original face domain, so widening the solve domain does not widen it. Contact/section fit tolerances and the
+4096-station ceiling are unchanged. Helpers live at module scope, with no new loop closures or dependencies.
+
+**Independent expectation.** A 20×20 square translated along
+`C(t) = (20t²(1−t)²(1−2t), 0, 20t)`, 0≤t≤1, has volume 8000. Its plane/curved-side corner is square. The round
+removes `r²(1−π/4) L`; the integrated signed-curvature term vanishes because both end tangents are vertical, and
+the end planes are normal to those tangents. Simpson integration of
+`sqrt(400 + (40t−240t²+400t³−200t⁴)²)` gives `L = 20.06333624702397` (4096/16384/65536 intervals agree at the
+shown precision). At r=0.5, expected volume is `7998.923592798254`, kernel output `7998.923592765548`.
+This expectation does not use kernel surface evaluation, fitted fillet controls or mass quadrature. The tests
+also cover either face order, r=0.25, native save/open, Model/API names and signatures, and Studio command admission.
+
+**Research boundary.** A scratch prototype that extended all polynomial spans preserved sampled source points
+within `9e-15`, but the multi-span fillet failed `APPROX_TOLERANCE_NOT_MET` at 4096 stations. It is not adopted.
+A direct ball tool on the non-adjacent quintic pair (over a smaller round) also succeeded in scratch, but the public
+feature still refuses that pair: a general, bounded corner-replacement contract and guide construction are not
+implemented. This decision does not close free-form face fillets as a whole or roadmap 07.
+
+**First failures preserved.** The new native-codec test initially passed a document where `saveCadPart` requires
+an evaluated snapshot: `error: 'malformed JSON'`, `code: 'FORMAT'`. It now follows the existing snapshot API.
+Model and browser save/open comparisons first found `+ 0` / `- -0` in computed face signatures. They now compare
+against JSON-normalised saved data; authored face names, radius and geometry checks remain. Kernel lint first
+reported `src/blend/polynomial-run.ts: loop-spread 0 → 2`; explicit three-coordinate copies remove both patterns.
+
+**Review corrections.** A small offset knot domain (`[1, 1+5*EPSILON]`) rounds the requested quarter-domain
+extension. Control computation now uses the actual represented new knots; the old ideal factors changed the endpoint
+by about 0.0357. A regression checks the original polynomial on that domain. A second regression covers a valid
+surface at the 1e6 geometry-coordinate boundary: an extrapolated control outside the existing limit makes the helper
+keep the original surface rather than causing `Coordinates must be finite and within 1e6 mm`. Unrepresentable end
+margins are also skipped. An independent read-only review found no further actionable defect after these fixes.
+
+**Verification.** Node 22.19.0, heavy gate, serial runs on the final source:
+- Kernel build and whole-source lint pass. Whole suite: 1974 total, 1968 pass, 0 fail, 6 existing skips. Six new
+  polynomial tests include the independent volume, codec, original-parameter preservation and domain/range guards.
+- Model: tsc and the new test's lint pass; whole suite 1718/1718. Studio: tsc and whole suite 352/352.
+- Real desktop Chrome/WebGPU, 1440×900 DPR1: an authored quintic loft fixture is opened; one face is selected by the
+  existing named-face test hook and the visible second face by Shift-click. Face fillet r0.5 previews and applies;
+  named faces and signatures are stored. Visible volume is 7999, Undo restores 8000, Redo and Save/Open restore the
+  accepted node and 7999. The rounded front corner is visible in the saved screenshot. This is synthetic browser
+  execution, not person-input acceptance. Only this flow and its startup prerequisite ran.
+- Agent tools/refusals checks pass without regeneration. Full docs pass: 67 pages, 50 shots, 829 labels. The first
+  docs run reported `studio/features.md: broken link /how/fillets/#5-face-fillets`; the link now uses `/how/fillets`.
+- One validation attempt used a package-relative path from the package directory, producing `FileNotFoundError`.
+  Its own test PID and children were stopped, then the corrected source was rebuilt and the final whole run passed.
+
+**Not run.** Full Studio browser suite, WebGL2/mobile flows, GPU package suite, RB/fuzz/commutativity, and a fillet
+performance A/B. This change makes no speed claim. The next thread work has only a fresh baseline/profile so far.
+No feature push, new PR or release; no screenshot/log/checksum manifests, local .claude files or lockfile are committed.

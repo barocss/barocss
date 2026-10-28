@@ -17,8 +17,16 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   observed during final full verification. D288 records the diagnostic limits. Do not replace geometry oracles with
   source checksum pins.
 - No feature push, new PR or release. Local `.claude/` remains untracked.
-- Next: roadmap 07's free-form face fillet, then thread evaluation time. Ask the owner for the font source before
-  text/wrap. Continue 08, then 09.
+- D289 adds the exact end run for an adjacent polynomial Bezier face (degree2–5, one clamped span). The quintic
+  loft case passes an independent swept-corner volume oracle, Model/API/codec and actual Studio preview/apply/
+  Undo/Redo/Save/Open. Final whole checks: kernel1968 pass/0 fail/6 skip, Model1718/1718, Studio352/352; docs pass.
+  Non-adjacent free-form replacement and multi-span/rational end extension are still open.
+- The owner delegated choosing several open-source fonts. Unmodified ABeeZee, Nanum Gothic and Nanum Myeongjo TTFs
+  plus their OFL originals are saved in test/fixtures/fonts, commit `9fe4be221`. Fixed upstream URLs and binary
+  metadata are recorded there. No parser, text shaping, emboss or wrap support is implied.
+- Next: roadmap07's non-adjacent free-form face fillet needs conservative Boolean face provenance before acceptance.
+  Thread speed baseline (median5, same local Node): shaft628ms, tapped hole609ms. A profile identifies repeated cached
+  boundary-distance scans; no speed change has been adopted yet. Then text/wrap, 08, 09. The next decision is D290.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 

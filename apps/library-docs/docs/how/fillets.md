@@ -127,6 +127,13 @@ and tori about one axis are revolved; a plane along a cylinder and two parallel 
 sections takes goes to the rolling ball of the sections above: faces that meet, by every edge they share; faces apart, once the corner
 between them has been restored (what lies there removed or filled).
 
+An open rolling-ball chain can also run past a polynomial Bezier face end (degree 2–5, one clamped span in that
+direction). Its solve surface carries the same polynomial one quarter of the parameter range beyond each end;
+the body's original surfaces and trims stay intact, and the trim/contact tolerances do not grow. A quintic guided
+loft's meeting plane and curved side are covered, including native and Studio save/open. This does not admit every
+free-form pair: non-adjacent free-form corner restoration, rational end extension, multi-span end extension and
+rolling onto a neighbouring face remain outside this extension. Existing typed solve/fit refusals still apply.
+
 ## Where it is in the code
 
 | File | Responsibility |
