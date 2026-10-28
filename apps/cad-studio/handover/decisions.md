@@ -15588,3 +15588,34 @@ reference-to-B-rep mass transfer/Part provider/product wrap remain open. No depe
 migration/push/PR/release. Next D308 measures family-only direct exact fixed128 recurrence work
 with unchanged bounds and standalone receipts, then applies the preserved global-source plan
 under the same complete request before consumer integration. Owner07->08->09 unchanged.
+
+
+## D308 — Reuse common family denominator and equal-axis error work (2026-10-29)
+
+**Decision.** Runtime5a8f839c2 retains existing Context/exact arithmetic/standalone axisError/finish
+and rounds at the same points. Family factor/denominator error/half-minimum guard/positive lower
+are axis-independent and computed once. Axis numerator/residual/projection work is reused only
+for an equal exact magnitude envelope and equal constant flag. L1 still adds all3 axis bounds.
+Private R sharing is read-only; output records remain separately owned/frozen. Flag comparisons
+and exact q.compare use the same ledger. No new arithmetic Context/module, cap/tolerance change.
+
+Mandatory native-bound-pad RUNS7 median26->25ms, actual B-rep fingerprint37a018051624ef8e SAME;
+one rounded local pair is not stable/Studio speedup. Full native binary64-bit result/shape/all
+proof fields match except10 explicit ledger fields. Full family except counts, five serialized
+standalone receipts/counts and two formal full-bit receipts/counts match. Benchmark179287->159588
+ops/work363775->327381; D0 family53915->34216ops. Distinct standard native179831->160132ops.
+Formal33095 includes its own fresh source11544: full separate-child sum193227 leaves6773 before
+outer work, but no combined execution or shared-prefix authority has yet been implemented.
+
+Independent expanded fractions/ceil128 recompute the entire old recurrence for30 envelopes,
+including zero/tiny/MIN_VALUE/10000-neighbor/10000, every equal-pair and unique axes. Actual63
+slots/54 curves/pcurves/9 Surfaces and both half-wall weight variants retain source semantics.
+Complete family total reservation passes; total-1 refuses. Build/lint/focused35/35/whole2150pass/
+0fail/6existing skips (2156total), generated/unchanged API/docs pass. No new validation failure.
+Evidence: notes/native-d0-common-work-2026-10-29/README.md. Model/Studio/types/browser NOT RUN;
+latest whole consumers/types D299901b4ce45. No source pin/dependency/schema change/push/PR/release.
+Actual global source/cap/shell/reference mass/Part/product wrap remain unqualified. Next D309
+counts both fresh child source executions on one owned frozen input and passes only actual
+remaining operations to the formal child, then applies saved source-global/closure work before
+consumer wiring. Existing Part.mass/makeOutput/massPropertiesOf route is source evidence only.
+Owner07->08->09 unchanged.

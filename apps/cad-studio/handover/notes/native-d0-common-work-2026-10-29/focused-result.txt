@@ -1,0 +1,220 @@
+TAP version 13
+# Subtest: fresh one-pad native binding covers actual63 slots all36 coedges and all36 stronger vertex relations
+ok 1 - fresh one-pad native binding covers actual63 slots all36 coedges and all36 stronger vertex relations
+  ---
+  duration_ms: 67.5885
+  type: 'test'
+  ...
+# Subtest: legacy geometry exact-operation receipts and returned mutability survive private-run factoring
+ok 2 - legacy geometry exact-operation receipts and returned mutability survive private-run factoring
+  ---
+  duration_ms: 46.806875
+  type: 'test'
+  ...
+# Subtest: only the fresh fixed profile is accepted and caller data never becomes a receipt authority
+ok 3 - only the fresh fixed profile is accepted and caller data never becomes a receipt authority
+  ---
+  duration_ms: 13.242125
+  type: 'test'
+  ...
+# Subtest: one complete request honors fresh aggregate reservations and a final-bound refusal is atomic
+ok 4 - one complete request honors fresh aggregate reservations and a final-bound refusal is atomic
+  ---
+  duration_ms: 73.88075
+  type: 'test'
+  ...
+# Subtest: exact per-face quotient bounds cover independent tensor derivatives without a native D1 call
+ok 5 - exact per-face quotient bounds cover independent tensor derivatives without a native D1 call
+  ---
+  duration_ms: 8.04375
+  type: 'test'
+  ...
+# Subtest: both actual native five-row half-walls retain full-domain Lipschitz bounds across the repeated knot
+ok 6 - both actual native five-row half-walls retain full-domain Lipschitz bounds across the repeated knot
+  ---
+  duration_ms: 13.715625
+  type: 'test'
+  ...
+# Subtest: native cap residual matches an independent exact affine oracle for top and swapped bottom bases
+ok 7 - native cap residual matches an independent exact affine oracle for top and swapped bottom bases
+  ---
+  duration_ms: 6.629125
+  type: 'test'
+  ...
+# Subtest: affine residual is maximum per-pole L1 and unchanged exact canonical basis is mandatory
+ok 8 - affine residual is maximum per-pole L1 and unchanged exact canonical basis is mandatory
+  ---
+  duration_ms: 0.765375
+  type: 'test'
+  ...
+# Subtest: pcurve range uses exact hulls, actual rounded slack endpoints and exact zero Z
+ok 9 - pcurve range uses exact hulls, actual rounded slack endpoints and exact zero Z
+  ---
+  duration_ms: 0.370125
+  type: 'test'
+  ...
+# Subtest: slack alone cannot forgive the exact outside-domain clamp counterexample
+ok 10 - slack alone cannot forgive the exact outside-domain clamp counterexample
+  ---
+  duration_ms: 0.255791
+  type: 'test'
+  ...
+# Subtest: inflation includes both independent D0 terms and exact UV-to-world propagation once
+ok 11 - inflation includes both independent D0 terms and exact UV-to-world propagation once
+  ---
+  duration_ms: 0.259667
+  type: 'test'
+  ...
+# Subtest: endpoint point gaps honor the exact supplied entity tolerance including tiny equality
+ok 12 - endpoint point gaps honor the exact supplied entity tolerance including tiny equality
+  ---
+  duration_ms: 0.254083
+  type: 'test'
+  ...
+# Subtest: prepared faces are owned by one host context and inputs or error rationals stay immutable
+ok 13 - prepared faces are owned by one host context and inputs or error rationals stay immutable
+  ---
+  duration_ms: 0.6205
+  type: 'test'
+  ...
+# Subtest: unsupported source nets, affine violations and malformed own data refuse explicitly
+ok 14 - unsupported source nets, affine violations and malformed own data refuse explicitly
+  ---
+  duration_ms: 0.8875
+  type: 'test'
+  ...
+# Subtest: all helper exact and structural work shares the supplied native ledger and existing budgets
+ok 15 - all helper exact and structural work shares the supplied native ledger and existing budgets
+  ---
+  duration_ms: 0.342375
+  type: 'test'
+  ...
+# Subtest: identical finite endpoint axes retain a fresh normalized bound without caller aliasing
+ok 16 - identical finite endpoint axes retain a fresh normalized bound without caller aliasing
+  ---
+  duration_ms: 0.066167
+  type: 'test'
+  ...
+# Subtest: degree1..3 native curves are enclosed against independent exact Bernstein values
+ok 17 - degree1..3 native curves are enclosed against independent exact Bernstein values
+  ---
+  duration_ms: 45.513292
+  type: 'test'
+  ...
+# Subtest: degreeU1..3 by V1 native tensors include cached repeated parameter paths
+ok 18 - degreeU1..3 by V1 native tensors include cached repeated parameter paths
+  ---
+  duration_ms: 23.773417
+  type: 'test'
+  ...
+# Subtest: actual native quarter coefficients and nonzero source Z remain unchanged
+ok 19 - actual native quarter coefficients and nonzero source Z remain unchanged
+  ---
+  duration_ms: 6.703167
+  type: 'test'
+  ...
+# Subtest: reversed stored poles and negative-domain parameters retain the independent bound
+ok 20 - reversed stored poles and negative-domain parameters retain the independent bound
+  ---
+  duration_ms: 9.188084
+  type: 'test'
+  ...
+# Subtest: authored Object.is constant axes restore exact negative zero; mixed zeros are not classified constant
+ok 21 - authored Object.is constant axes restore exact negative zero; mixed zeros are not classified constant
+  ---
+  duration_ms: 8.215833
+  type: 'test'
+  ...
+# Subtest: subnormal coordinates and parameters are covered without a relative-only assumption
+ok 22 - subnormal coordinates and parameters are covered without a relative-only assumption
+  ---
+  duration_ms: 1.084166
+  type: 'test'
+  ...
+# Subtest: snapshots are deeply frozen and do not alias inputs or option data
+ok 23 - snapshots are deeply frozen and do not alias inputs or option data
+  ---
+  duration_ms: 3.945083
+  type: 'test'
+  ...
+# Subtest: valid native curves or surfaces outside the narrow arithmetic templates refuse SUPPORT
+ok 24 - valid native curves or surfaces outside the narrow arithmetic templates refuse SUPPORT
+  ---
+  duration_ms: 1.139917
+  type: 'test'
+  ...
+# Subtest: current own fields, finite native data and nonexecuted getters are enforced
+ok 25 - current own fields, finite native data and nonexecuted getters are enforced
+  ---
+  duration_ms: 0.526625
+  type: 'test'
+  ...
+# Subtest: one ledger preserves exact/direct limits and requested error budgets without automatic relaxation
+ok 26 - one ledger preserves exact/direct limits and requested error budgets without automatic relaxation
+  ---
+  duration_ms: 6.966625
+  type: 'test'
+  ...
+# Subtest: one family covers actual original half-walls, edges, cap pcurves and new cubic sides with their original IDs
+ok 27 - one family covers actual original half-walls, edges, cap pcurves and new cubic sides with their original IDs
+  ---
+  duration_ms: 121.662292
+  type: 'test'
+  ...
+# Subtest: two half-spans cover the repeated-knot right branch, endpoints and neighboring binary64 parameters
+ok 28 - two half-spans cover the repeated-knot right branch, endpoints and neighboring binary64 parameters
+  ---
+  duration_ms: 11.801458
+  type: 'test'
+  ...
+# Subtest: global envelopes come only from actual slots and conservatively cover lower-degree standalone errors
+ok 29 - global envelopes come only from actual slots and conservatively cover lower-degree standalone errors
+  ---
+  duration_ms: 8.055417
+  type: 'test'
+  ...
+# Subtest: repeated pcurve IDs with different geometry preserve kind and original slot mapping without aliasing
+ok 30 - repeated pcurve IDs with different geometry preserve kind and original slot mapping without aliasing
+  ---
+  duration_ms: 2.9215
+  type: 'test'
+  ...
+# Subtest: family caps count every slot and every stored pole even when geometry and IDs repeat
+ok 31 - family caps count every slot and every stored pole even when geometry and IDs repeat
+  ---
+  duration_ms: 9.923917
+  type: 'test'
+  ...
+# Subtest: family rejects unsupported knots and any malformed slot without accepting a partial family
+ok 32 - family rejects unsupported knots and any malformed slot without accepting a partial family
+  ---
+  duration_ms: 0.460709
+  type: 'test'
+  ...
+# Subtest: one global family ledger tightens budget and leaves standalone serialized results and counts unchanged
+ok 33 - one global family ledger tightens budget and leaves standalone serialized results and counts unchanged
+  ---
+  duration_ms: 18.301375
+  type: 'test'
+  ...
+# Subtest: family fixed128 output matches generic bound and the independent positive predecessor criterion
+ok 34 - family fixed128 output matches generic bound and the independent positive predecessor criterion
+  ---
+  duration_ms: 13.100875
+  type: 'test'
+  ...
+# Subtest: family common-term and equal-axis reuse preserve the full generic recurrence for actual envelope tuples
+ok 35 - family common-term and equal-axis reuse preserve the full generic recurrence for actual envelope tuples
+  ---
+  duration_ms: 111.414583
+  type: 'test'
+  ...
+1..35
+# tests 35
+# suites 0
+# pass 35
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 484.428875
