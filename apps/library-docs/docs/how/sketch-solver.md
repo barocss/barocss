@@ -92,6 +92,15 @@ rows − rank and:
 A constraint that contradicts the others, such as |s₁| = 30 mm on the fully defined quad above, leaves residuals the
 loop cannot bring within tolerance. The kernel returns `NONCONVERGENCE`, the studio shows that reason and keeps the
 previous shape.
+The studio puts the constraint's label in front, as in `Length of edge 3 = 50: XY numerical sketch: Bounded local solve
+did not meet fixed residual tolerances; this is not an inconsistency proof`. It does not say the constraints conflict:
+a local solve that does not converge has not proved that (CAD review 2215).
+
+The loop stops as soon as every residual is within its tolerance, a few 10⁻⁸ mm from the exact answer (a width of 60
+can come back 59.999999964). The studio then tries the same solution on the 10⁻⁶ mm grid: it solves again from the
+snapped points and takes them only if that solve accepts them without a single step, that is, if the kernel's own
+check passes on them as they are. A drawing in whole or short decimal millimetres comes out exact; an off-grid anchor
+or a driving 10.0000004 mm fails the check when snapped, and the solver's own values are kept (D284).
 
 ## 4. Arcs and circles in the studio
 
@@ -222,8 +231,9 @@ rigid motions.
 |---|---|
 | `packages/barocss-cad/test/xy-numerical-sketch-equal-length.test.mjs` | equal-length keeps an arc end on its circle with one DOF left; a slot of lines, centres and radii with ±90° tangency fully defined from a rough seed; the equal-length Jacobian against central differences; refusals and the 16-segment limit; the -v1 profile's larger limits |
 | `packages/barocss-cad/test/r7-consumer-dependencies.test.mjs` | both the line and the circular solver solve a length and a right angle, rebuild to the same result, and refuse old field names |
-| `packages/barocss-cad-model/test/sketch-profile-precision.test.ts` | solved coordinates kept unrounded (driving lengths, arcs, radii, angles); a non-converging edit keeps the previous shape with the kernel's message |
-| `apps/cad-studio/test/constraints.test.ts` | DOF counts as constraints are added and removed; an implied constraint refused as over-defining; dimensions; symmetric (two DOF less); tangent to a circle; concentric arcs and circles |
+| `packages/barocss-cad-model/test/sketch-profile-precision.test.ts` | off-grid anchors and driving values kept as solved, not snapped (lengths, arcs, radii, angles); a non-converging edit keeps the previous shape with the kernel's message |
+| `packages/barocss-cad-model/test/engine.test.ts` | a locked rectangle and a tangent semicircle come out on exact values (the grid solution accepted) |
+| `apps/cad-studio/test/constraints.test.ts` | DOF counts as constraints are added and removed; an implied constraint refused as over-defining; a contradicting one refused with the solver's own reason; dimensions; symmetric (two DOF less); tangent to a circle; concentric arcs and circles |
 | `packages/barocss-cad-model/test/sketch3d.test.ts` | the 3D solver on a tetrahedron and a tilted rectangle; freedoms counted; diagnosis of a conflict and of a redundant length |
 
 ## Limits

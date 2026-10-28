@@ -14555,3 +14555,36 @@ D282's two fixes (arcs past π + 1e-12; repeated names ordered with a tolerance)
 - `cad-model/test/fixtures/robot-frozen-boundary.json` (the frozen arm's byte pin, test `robot-frozen-mass`): its three
   non-inertial hashes and 54 refreshed inertia values re-pinned to the new files; the S0 `before` values unchanged.
 - The patch file `notes/patches/incremental-stitch-frozen-faces-2026-10-28.patch` (D282) is removed: it is in the source now.
+
+## D284 — Sketch results on the 1e-6 mm grid when the solver accepts them; a non-converging edit keeps its own reason (2026-10-28)
+
+**Owner, 2026-10-28**: fix the studio sketch-solver mismatch — decide whether results snap to exact values and what a
+conflict shows — and make `apps/cad-studio/test/constraints.test.ts` and the two cad-model solver tests pass.
+
+**Before.** `d62571d69` (CAD review 2215, P0 "sketch output": preserve solver-approved coefficients, keep display
+rounding separate, preserve the meaning of NONCONVERGENCE) removed `solveOutline`'s rounding of every solved point to
+1e-6 mm and its mapping of NONCONVERGENCE to "These constraints conflict with each other or with the H/V edges". Its own
+regressions (`sketch-profile-precision.test.ts`) were added; the older expectations were not updated. The kernel's
+solver stops once every residual is within tolerance (1e-7 mm, 1e-9 rad), so results came back a few 1e-8 mm off:
+a width of 60 as 59.999999964, a fixed-point neighbour as 36.0000000027. Seven of the studio test's 24 and both
+cad-model solver tests failed on exact values, and a typed rectangle no longer read as a rectangle (`shapeNode`, the
+QA S3/K29 case). Four studio tests expected the old "conflict" wording.
+
+**Decision.**
+1. *Snap only what the solver accepts.* After a successful solve, `solveOutline` rounds every solution point (outline
+   points, arc centres, rule points) to the 1e-6 mm grid and solves again from them. If that solve succeeds without a
+   step (`iterations === 0`: the kernel's own residual check passes on the snapped points as they are), the snapped
+   solution is the result; otherwise the solver's values are kept. Ordinary designs in whole or short decimal mm come
+   out exact; 2215's cases — an off-grid anchor, a driving 10.0000004, an off-grid circle centre — fail the check when
+   snapped and stay as solved, so no accepted geometry is moved off its constraints. The cost is one extra solve that
+   takes no step. The kernel is unchanged.
+2. *A non-converging edit says only what the solver knows.* The studio keeps the kernel's diagnostic after the
+   constraint's label ("Length of edge 3 = 50: XY numerical sketch: Bounded local solve did not meet fixed residual
+   tolerances; this is not an inconsistency proof"), as 2215 requires: a local solve that does not converge has not
+   proved the constraints contradict each other. The old wording claimed that.
+
+**Records.** `packages/barocss-cad-model/src/sketch/profile.ts` (`solveOutline`, `snap`). `apps/cad-studio/test/
+constraints.test.ts`: four expectations of "conflict" now expect the label and the solver's diagnostic (`NOT_SOLVED`),
+because the old expectation was the wording 2215 withdrew; no numeric expectation was loosened. The two cad-model
+solver tests (`engine.test.ts`) and `sketch-profile-precision.test.ts` pass unchanged. Docs:
+`apps/library-docs/docs/how/sketch-solver.md`.
