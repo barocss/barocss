@@ -226,6 +226,8 @@ Paths under `packages/barocss-cad/src/`:
 
 ## How it is checked
 
+- `apps/library-docs/samples/how-ports.test.mjs`: the figure's 2D build against the kernel's `triangleBvh` (z = 0) on its
+  ring and 30 triangle soups: the same order, nodes and boxes.
 - `packages/barocss-cad/test/facet-boolean.test.mjs`:
   - *a facet cube with a cylinder and a sphere*: a through hole, a blind hole, a boss, a sphere bite and an
     intersection, each valid, each volume within 10⁻⁹ of the closed form, relative (the bite within 1.5 × 10⁻⁵), an exact face

@@ -8,7 +8,7 @@
 import { computed, ref } from 'vue';
 import AlgoFigure from './AlgoFigure.vue';
 import { ease, num, useSteps } from './useSteps.mjs';
-import { sci, solveTrace } from './SketchSolve.vue';
+import { sci, solveTrace } from './ports/sketch-solver.mjs';
 
 const root = ref(null);
 const DRAWN = [[0, -6], [36, -6], [37, 7], [1, 6]], BULGE = [0, 1.05, 0, 0.95];

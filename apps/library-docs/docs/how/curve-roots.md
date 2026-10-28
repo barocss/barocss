@@ -220,6 +220,8 @@ options and compares every field.
 
 ## How it is checked
 
+- `apps/library-docs/samples/how-ports.test.mjs`: the figures' copy of the cubic solver against the kernel's on 3,000
+  random cubics: the same roots and halving counts wherever the kernel solves.
 - `packages/barocss-cad/test/own-bernstein-roots-bracket.test.mjs`: a crossing just inside t = 0 or t = 1 is found,
   not lost to rounding; in 4000 random quadratics with coefficients over 18 orders of magnitude, every sign change between
   the ends gives a bracketed root no wider than 10⁻¹² whose ends differ in sign (or a refusal naming a tangent); fixed

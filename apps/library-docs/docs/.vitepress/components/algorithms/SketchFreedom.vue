@@ -6,7 +6,7 @@
 import { computed, ref } from 'vue';
 import AlgoFigure from './AlgoFigure.vue';
 import { ease, useSteps } from './useSteps.mjs';
-import { evaluate, solveTrace } from './SketchSolve.vue';
+import { evaluate, solveTrace } from './ports/sketch-solver.mjs';
 
 const root = ref(null);
 const DEG = Math.PI / 180;

@@ -235,6 +235,7 @@ rigid motions.
 | `packages/barocss-cad-model/test/engine.test.ts` | a locked rectangle and a tangent semicircle come out on exact values (the grid solution accepted) |
 | `apps/cad-studio/test/constraints.test.ts` | DOF counts as constraints are added and removed; an implied constraint refused as over-defining; a contradicting one refused with the solver's own reason; dimensions; symmetric (two DOF less); tangent to a circle; concentric arcs and circles |
 | `packages/barocss-cad-model/test/sketch3d.test.ts` | the 3D solver on a tetrahedron and a tilted rectangle; freedoms counted; diagnosis of a conflict and of a redundant length |
+| `apps/library-docs/samples/how-ports.test.mjs` | the figures' copy of the solver loop against the kernel's on 41 drawings: the same points bit for bit, the same iterations and rank |
 
 ## Limits
 
