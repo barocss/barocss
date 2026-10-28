@@ -268,14 +268,22 @@ test('one family covers actual original half-walls, edges, cap pcurves and new c
     for (const [u, v] of selected) { const point = evaluateSurface(source, u, v); assert.deepEqual(fast(u, v), point); enclosed(point, piecewiseSurface(source, u, v), receipt); }
   }
   assert.equal(halfWalls, 2); assert.ok(halfCurves >= 4); assert.equal(capSurfaces, 2); assert.equal(cubicSides, 4); assert.notEqual(positiveWeight, negativeWeight);
-  assert.deepEqual(part, original); assert.deepEqual(input, before); assert.ok(receipt.family.objects <= 64);
+  assert.deepEqual(part, original); assert.deepEqual(input, before);
+  assert.equal(receipt.family.objects, 63); assert.equal(receipt.curves.length, 54); assert.equal(receipt.surfaces.length, 9);
+  familyOracleAssert(receipt, input);
+  // Reserve the complete actual family cost, including final conversion and serialization.
+  const total = receipt.counts.totalOperations, atLimit = certifyNativeD0Family(input, { maxOperations: total });
+  familyProof(atLimit); assert.equal(atLimit.counts.totalOperations, total); assert.equal(atLimit.limits.operations, total);
+  assert.deepEqual({ ...atLimit, limits: receipt.limits }, receipt);
+  refusedFamily(input, 'BUDGET', { maxOperations: total - 1 });
+  assert.deepEqual(input, before); assert.deepEqual(part, original);
   // This is a D0 family receipt; the assembly's separate physical/mass qualifications stay false.
   assert.equal(assembly.proof.solidQualified, false);
 });
 
 test('two half-spans cover the repeated-knot right branch, endpoints and neighboring binary64 parameters', () => {
   const curves = [twoSpanCurve('positive'), twoSpanCurve('negative', -1), twoSpanCurve('zero_middle', -0.5)], surfaces = [twoSpanSurface('wall'), twoSpanSurface('other_wall', -0.5)];
-  const receipt = certifyNativeD0Family({ curves, surfaces }); familyProof(receipt);
+  const input = { curves, surfaces }, receipt = certifyNativeD0Family(input); familyProof(receipt); familyOracleAssert(receipt, input);
   for (const member of receipt.curves) {
     const middle = member.spans[0][1], fast = curveEvaluator(member.source);
     for (const t of [member.domain[0], adjacentNumber(middle, -1), middle, adjacentNumber(middle, 1), member.domain[1]]) enclosed(fast(t), piecewiseCurve(member.source, t), receipt);
@@ -363,4 +371,117 @@ test('family fixed128 output matches generic bound and the independent positive 
   }
   // External before/after D303 receipts remain mandatory; this same-build reference
   // check is regression evidence and does not establish performance or integration.
+});
+
+// Independent old-recurrence oracle: expanded generic fractions and a separate
+// ceil128 operation. It neither imports familyErrors nor shares its common/axis caches.
+// This checks semantic preservation, not a new global-bound or performance claim.
+function familyOracleUpper(value) {
+  assert.ok(value.n >= 0n && value.d > 0n);
+  const scale = 1n << 128n, numerator = value.n * scale;
+  return rational((numerator + value.d - 1n) / value.d, scale);
+}
+function familyOracleAdd(a, b) { return familyOracleUpper(add(a, b)); }
+function familyOracleMul(a, b) { return familyOracleUpper(multiply(a, b)); }
+function familyOracleDiv(a, b) { assert.ok(b.n > 0n); return familyOracleUpper(divide(a, b)); }
+function familyOracleRho(value) {
+  return familyOracleAdd(familyOracleMul(rational(1n, 1n << 53n), value), rational(1n, 1n << 1074n));
+}
+function familyOracleFraction() {
+  const one = rational(1n), two = rational(2n), ed = familyOracleRho(one), twice = familyOracleMul(two, ed);
+  const sum = familyOracleAdd(twice, familyOracleRho(familyOracleAdd(one, twice)));
+  const lower = subtract(rational(1n, 2n), sum); assert.ok(lower.n > 0n);
+  return familyOracleAdd(familyOracleDiv(familyOracleAdd(ed, sum), lower), familyOracleRho(familyOracleDiv(familyOracleAdd(one, ed), lower)));
+}
+function familyOracleBasis(degree, fraction) {
+  let error = rational(0n);
+  for (let level = 0; level < degree; level++) {
+    const oneError = familyOracleAdd(rational(1n), error), oneFraction = familyOracleAdd(rational(1n), fraction);
+    const product = familyOracleAdd(familyOracleAdd(error, familyOracleMul(fraction, oneError)), familyOracleRho(familyOracleMul(oneFraction, oneError)));
+    const twice = familyOracleMul(rational(2n), product);
+    error = familyOracleAdd(twice, familyOracleRho(familyOracleAdd(rational(2n), twice)));
+  }
+  return error;
+}
+function familyOracleTensor(a, b) {
+  return familyOracleAdd(familyOracleAdd(familyOracleAdd(a, b), familyOracleMul(a, b)),
+    familyOracleRho(familyOracleMul(familyOracleAdd(rational(1n), a), familyOracleAdd(rational(1n), b))));
+}
+function familyOracleAccumulated(count, term, magnitude) {
+  let error = rational(0n);
+  for (let i = 0; i < count; i++) {
+    const input = familyOracleAdd(error, term);
+    error = familyOracleAdd(input, familyOracleRho(familyOracleAdd(magnitude, input)));
+  }
+  return error;
+}
+function familyOracleAxis(basis, a, minimum, maximum) {
+  // Deliberately recompute every common term for every axis, as the former path did.
+  const factor = familyOracleAdd(familyOracleMul(maximum, basis), familyOracleRho(familyOracleMul(maximum, familyOracleAdd(rational(1n), basis))));
+  const denominatorError = familyOracleAccumulated(8, factor, maximum);
+  assert.ok(compare(denominatorError, divide(minimum, rational(2n))) <= 0);
+  const lower = subtract(minimum, denominatorError); assert.ok(lower.n > 0n);
+  const term = familyOracleAdd(familyOracleMul(a, factor), familyOracleRho(familyOracleMul(a, familyOracleAdd(maximum, factor))));
+  const numeratorError = familyOracleAccumulated(8, term, familyOracleMul(a, maximum));
+  const residual = familyOracleDiv(familyOracleAdd(numeratorError, familyOracleMul(a, denominatorError)), lower);
+  const projection = familyOracleRho(familyOracleDiv(familyOracleAdd(familyOracleMul(a, maximum), numeratorError), lower));
+  return familyOracleAdd(residual, projection);
+}
+function familyOraclePole(point, weight, envelope) {
+  envelope.minimumWeight = Math.min(envelope.minimumWeight, weight);
+  envelope.maximumWeight = Math.max(envelope.maximumWeight, weight);
+  for (let axis = 0; axis < 3; axis++) envelope.coordinateAbs[axis] = Math.max(envelope.coordinateAbs[axis], Math.abs(point[axis]));
+}
+function familyOracleEnvelope(input) {
+  const result = { minimumWeight: 1, maximumWeight: 0, coordinateAbs: [0, 0, 0] };
+  for (const item of input.curves) for (let i = 0; i < item.controlPoints.length; i++) familyOraclePole(item.controlPoints[i], item.weights[i], result);
+  for (const item of input.surfaces) for (let i = 0; i < item.controlPoints.length; i++) for (let j = 0; j < item.controlPoints[i].length; j++) familyOraclePole(item.controlPoints[i][j], item.weights[i][j], result);
+  return result;
+}
+function familyOracleExactText(value) { return { numerator: value.n.toString(), denominator: value.d.toString() }; }
+function familyOracleAssert(receipt, input) {
+  const envelope = familyOracleEnvelope(input), fraction = familyOracleFraction();
+  const basis = familyOracleTensor(familyOracleBasis(3, fraction), familyOracleBasis(1, fraction)), errors = [];
+  for (let axis = 0; axis < 3; axis++) errors.push(familyOracleAxis(basis, fromNumber(envelope.coordinateAbs[axis]), fromNumber(envelope.minimumWeight), fromNumber(envelope.maximumWeight)));
+  const l1 = familyOracleAdd(familyOracleAdd(errors[0], errors[1]), errors[2]);
+  assert.deepEqual(receipt.envelope, envelope);
+  for (let axis = 0; axis < 3; axis++) {
+    assert.deepEqual(receipt.axes[axis].exact, familyOracleExactText(errors[axis]));
+    leastUpper(receipt.axes[axis]);
+  }
+  assert.deepEqual(receipt.l1.exact, familyOracleExactText(l1)); leastUpper(receipt.l1);
+}
+function familyEnvelopeFixture(axes) {
+  const [a, b, c] = axes, source = { kind: 'curve', id: 'envelope_curve', degree: 3, knots: [0, 0, 0, 0, 1, 1, 1, 1],
+    controlPoints: [[a, b, c], [-a, -b, -c], [0, 0, 0], [a, -b, c]], weights: [0.5, 1, Math.SQRT1_2, 1] };
+  const controlPoints = [], weights = [];
+  for (const point of source.controlPoints) {
+    controlPoints.push([[...point], [-point[0], point[1], -point[2]]]); weights.push([0.5, 1]);
+  }
+  const patch = { kind: 'surface', id: 'envelope_surface', degreeU: 3, degreeV: 1, knotsU: [0, 0, 0, 0, 1, 1, 1, 1], knotsV: [0, 0, 1, 1], controlPoints, weights };
+  return { curves: [source], surfaces: [patch] };
+}
+
+test('family common-term and equal-axis reuse preserve the full generic recurrence for actual envelope tuples', () => {
+  for (const magnitude of [0, 1e-100, Number.MIN_VALUE, adjacentNumber(10000, -1), 10000]) {
+    // Include all-unique, every equal-pair location and all-equal axes.
+    // Store the requested magnitude directly: multiplying MIN_VALUE by a scale ratio would erase it.
+    const tuples = [[magnitude, magnitude / 2, 0], [0, magnitude / 2, magnitude],
+      [magnitude, magnitude, 0], [magnitude, 0, magnitude], [0, magnitude, magnitude], [magnitude, magnitude, magnitude]];
+    for (const axes of tuples) {
+      const input = familyEnvelopeFixture(axes), before = structuredClone(input), receipt = certifyNativeD0Family(input);
+      familyProof(receipt); familyOracleAssert(receipt, input);
+      assert.deepEqual(receipt.envelope.coordinateAbs, axes);
+      assert.deepEqual(receipt.curves[0].source, before.curves[0]); assert.deepEqual(receipt.surfaces[0].source, before.surfaces[0]);
+      assert.deepEqual(input, before); assert.deepEqual(receipt.constantAxes, [false, false, false]);
+      assert.ok(receipt.l1.upper > 0, 'absolute underflow allowance remains even for an all-zero envelope');
+      if (magnitude === Number.MIN_VALUE && axes[0] === magnitude) assert.equal(receipt.curves[0].source.controlPoints[0][0], Number.MIN_VALUE);
+      for (let axis = 0; axis < 3; axis++) for (let other = axis + 1; other < 3; other++) {
+        if (axes[axis] === axes[other]) {
+          assert.deepEqual(receipt.axes[axis].exact, receipt.axes[other].exact);
+          assert.ok(Object.is(receipt.axes[axis].upper, receipt.axes[other].upper));
+        }
+      }
+    }
+  }
 });

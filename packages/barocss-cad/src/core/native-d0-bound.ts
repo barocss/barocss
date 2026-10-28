@@ -337,10 +337,36 @@ function familyBound(value: R, ctx: Context): NativeD0Bound {
   if (comparison < 0 && ctx.q.compare(ctx.q.from(upper), value) < 0) fail('SUPPORT', 'the family successor did not enclose its exact error bound');
   ctx.check(); return { exact, upper };
 }
+/** Denominator arithmetic depends only on the common basis and weight envelope. */
+function familyErrors(count: number, basis: R, range: Ranges, ctx: Context): [R, R, R] {
+  const maximum = range.maximum, m = range.minimum;
+  const factor = ctx.add(ctx.mul(maximum, basis), ctx.rho(ctx.mul(maximum, ctx.add(ctx.one, basis))));
+  const denominatorError = accumulated(count, factor, maximum, ctx);
+  ctx.atMost(denominatorError, ctx.q.div(m, ctx.two), 'the native projected denominator must retain at least half its exact minimum');
+  const lower = ctx.lowerDifference(m, denominatorError), errors: [R, R, R] = [ctx.zero, ctx.zero, ctx.zero];
+  for (let axis = 0; axis < 3; axis++) {
+    let shared = -1;
+    for (let prior = 0; prior < axis; prior++) {
+      familyDirect(ctx, 1);
+      if (range.constant[axis] !== range.constant[prior]) continue;
+      const equal = ctx.q.compare(range.axes[axis], range.axes[prior]) === 0; ctx.check();
+      if (equal) { shared = prior; break; }
+    }
+    if (shared >= 0) { errors[axis] = errors[shared]; continue; }
+    const a = range.axes[axis];
+    const term = ctx.add(ctx.mul(a, factor), ctx.rho(ctx.mul(a, ctx.add(maximum, factor))));
+    const numeratorError = accumulated(count, term, ctx.mul(a, maximum), ctx);
+    const residual = ctx.div(ctx.add(numeratorError, ctx.mul(a, denominatorError)), lower);
+    const projection = ctx.rho(ctx.div(ctx.add(ctx.mul(a, maximum), numeratorError), lower));
+    const result = ctx.add(residual, projection);
+    errors[axis] = range.constant[axis] ? ctx.zero : result;
+  }
+  ctx.check(); return errors;
+}
 /** Same exact recurrence and budget test as finish, with family-only output conversion. */
 function finishFamily(count: number, basis: R, range: Ranges, settings: Required<NativeD0Options>, ctx: Context): NativeD0Common {
   ctx.atMost(basis, ctx.one, 'the native basis finite-range proof was not established');
-  const errors: [R, R, R] = [axisError(count, basis, range, 0, ctx), axisError(count, basis, range, 1, ctx), axisError(count, basis, range, 2, ctx)];
+  const errors = familyErrors(count, basis, range, ctx);
   const l1 = ctx.add(ctx.add(errors[0], errors[1]), errors[2]);
   if (ctx.q.compare(l1, ctx.q.from(settings.errorBudgetL1)) > 0) fail('SUPPORT', 'the rigorous native L1 error exceeds the unchanged requested budget');
   const axes: [NativeD0Bound, NativeD0Bound, NativeD0Bound] = [familyBound(errors[0], ctx), familyBound(errors[1], ctx), familyBound(errors[2], ctx)], bound = familyBound(l1, ctx);
