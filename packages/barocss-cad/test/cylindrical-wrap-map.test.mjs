@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCurve, segmentCurve, extrudedSurface, splitSurfaceAtParameter, extractSurfaceIsoCurve } from '../dist/index.js';
-import { buildCylindricalWrapMap, isCylindricalWrapMapError } from '../dist/features/cylindrical-wrap-map.js';
+import { buildCylindricalWrapMap, certifyCylindricalWrapCarrier, isCylindricalWrapMapError } from '../dist/features/cylindrical-wrap-map.js';
 
 const quarter = (radius = 8, domain = [0, 1]) => ({ kind: 'curve', id: 'quarter', degree: 2, knots: [domain[0], domain[0], domain[0], domain[1], domain[1], domain[1]], controlPoints: [[radius, 0, 0], [radius, radius, 0], [0, radius, 0]], weights: [1, Math.SQRT1_2, 1] });
 const options = (radius = 8, tolerance = 0.05) => ({ radius, tolerance });
@@ -175,4 +175,44 @@ test('cylindrical wrap map: arclength output is a length residual, not an actual
   assert.equal(map.meaning.solid, false); assert.deepEqual(before.weights, map.source.weights);
   // A slightly shrunken source's actual total length can be below the nominal sEnd. No such inverse is returned.
   assert.equal('evaluate' in map, false); assert.equal('actualArclengthDomain' in map, false);
+});
+
+
+test('carrier-only certification keeps the same exact source coefficients, original domain and radial bound without an inverse', () => {
+  for (const domain of [[0, 0.5], [2, 4], [-0, 1]]) {
+    const source = quarter(8, domain), before = structuredClone(source), given = { radius: 8 };
+    const certificate = certifyCylindricalWrapCarrier(source, given), map = buildCylindricalWrapMap(source, options());
+    assert.deepEqual(certificate.source, source); assert.notEqual(certificate.source, source); assert.deepEqual(source, before);
+    assert.deepEqual(certificate.domain, map.domain); assert.deepEqual(certificate.bounds.radial, map.bounds.radial);
+    for (const key of ['denominator', 'squaredRadiusNumerator', 'angularNumerator', 'circleResidual', 'denominatorMinimum', 'squaredRadiusMinimum', 'angularMinimum']) assert.deepEqual(certificate.proof[key], map.proof[key]);
+    for (const key of ['secondNumerator', 'radialDerivative', 'piHalf']) {
+      assert.equal(Object.hasOwn(certificate.proof, key), false);
+      assert.equal(Object.hasOwn(map.proof, key), true);
+    }
+    for (const key of ['secondDerivative', 'arclengthDrift', 'actualLengthResidual']) assert.equal(Object.hasOwn(certificate.bounds, key), false);
+    assert.equal(certificate.meaning.guarantee, 'analytic-original-carrier-coefficients-only');
+    assert.equal(certificate.meaning.parameter, 'original-native-domain-no-inverse-map');
+    for (const key of ['chart', 'inverse', 'nodes', 'composition', 'surfaceBinding', 'trim', 'solid', 'globalNativeEvaluationError']) assert.equal(certificate.meaning[key], false);
+    for (const key of ['nodes', 'intervals', 'chartDomain', 'evaluate']) assert.equal(Object.hasOwn(certificate, key), false);
+    assert.deepEqual(Object.keys(certificate.bounds), ['radial']); assert.deepEqual(certificate.options, { radius: 8 });
+    assert.ok(certificate.counts.rational.operations <= map.counts.rational.operations);
+    assert.equal(certificate.limits.rationalOperations, 200000); assert.equal(certificate.limits.rationalGcdSteps, 200000);
+    assert.equal(certificate.limits.rationalIntegerBits, 8192); assert.equal(certificate.limits.work, 1048576);
+    assert.ok(Object.isFrozen(certificate) && Object.isFrozen(certificate.source.controlPoints[1]));
+    assert.deepEqual(given, { radius: 8 });
+  }
+});
+
+test('carrier-only certification neither accepts a chart tolerance nor changes an unattainable full-map refusal', () => {
+  const source = quarter(), before = structuredClone(source), tight = options(8, 1e-20);
+  refused(source, tight, 'BUDGET');
+  const certificate = certifyCylindricalWrapCarrier(source, { radius: 8 });
+  assert.equal(certificate.meaning.inverse, false); assert.equal(certificate.meaning.chart, false);
+  assert.equal(Object.hasOwn(certificate.options, 'tolerance'), false);
+  assert.throws(() => certifyCylindricalWrapCarrier(source, tight), error => isCylindricalWrapMapError(error) && error.code === 'INPUT');
+  refused(source, tight, 'BUDGET');
+  assert.deepEqual(source, before); assert.deepEqual(tight, options(8, 1e-20));
+  const wrong = quarter(); wrong.controlPoints[0][1] = 1e-8;
+  assert.throws(() => certifyCylindricalWrapCarrier(wrong, { radius: 8 }), error => isCylindricalWrapMapError(error) && error.code === 'SUPPORT');
+  assert.throws(() => certifyCylindricalWrapCarrier(source, { radius: 0 }), error => isCylindricalWrapMapError(error) && error.code === 'INPUT');
 });

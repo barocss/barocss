@@ -78,14 +78,44 @@ export interface CylindricalWrapMap {
   };
 }
 
+export interface CylindricalWrapCarrierOptions { readonly radius: number }
+/** Original-coefficient certificate only. No nominal chart, arclength nodes or inverse is constructed. */
+export interface CylindricalWrapCarrierCertificate {
+  readonly source: Curve;
+  readonly options: CylindricalWrapCarrierOptions;
+  readonly domain: readonly [number, number];
+  readonly bounds: { readonly radial: WrapMapBound };
+  readonly proof: Pick<CylindricalWrapMap['proof'], 'denominator' | 'squaredRadiusNumerator' | 'angularNumerator' | 'circleResidual' | 'denominatorMinimum' | 'squaredRadiusMinimum' | 'angularMinimum'>;
+  readonly counts: CylindricalWrapMap['counts'];
+  readonly limits: Pick<CylindricalWrapMap['limits'], 'work' | 'rationalOperations' | 'rationalGcdSteps' | 'rationalIntegerBits' | 'fractionCharacters' | 'floatSearchStepsPerConversion'>;
+  readonly meaning: {
+    readonly guarantee: 'analytic-original-carrier-coefficients-only';
+    readonly parameter: 'original-native-domain-no-inverse-map';
+    readonly derivatives: 'normalized-original-full-span';
+    readonly source: 'copied-original-binary64-poles-weights-and-knots';
+    readonly family: 'quantified-near-quarter-caller-retains-native-provenance';
+    readonly chart: false;
+    readonly inverse: false;
+    readonly nodes: false;
+    readonly composition: false;
+    readonly surfaceBinding: false;
+    readonly trim: false;
+    readonly solid: false;
+    readonly globalNativeEvaluationError: false;
+  };
+}
+
 type R = SectionRational;
 type Polynomial = R[];
 interface FixedInterval { lo: bigint; hi: bigint }
 interface InternalNode { share: number; u: number; s: number; angle: FixedInterval; error: R }
+interface SourceGeometry { x: Polynomial; y: Polynomial; w: Polynomial; d: Polynomial; k: Polynomial; residual: Polynomial; radius: number; r: R; r2: R }
+interface CarrierProof extends SourceGeometry { mW: R; mD: R; mK: R; residualMax: R; mW2: R; radial: R }
 interface SourceProof { x: Polynomial; y: Polynomial; w: Polynomial; d: Polynomial; k: Polynomial; residual: Polynomial; second: Polynomial; mW: R; mD: R; mK: R; radial: R; radialDerivative: R; arclength: R; secondBound: R }
 const SCALE = 1n << 128n;
 const TERMS = 24, MAX_INTERVALS = 256, MAX_WORK = 1048576;
 const LIMITS = Object.freeze({ intervals: 256, depth: 8, taylorTerms: 24, intervalBits: 128, work: 1048576, rationalOperations: 200000, rationalGcdSteps: 200000, rationalIntegerBits: 8192, fractionCharacters: 5000, floatSearchStepsPerConversion: 64 } as const);
+const CARRIER_LIMITS = Object.freeze({ work: LIMITS.work, rationalOperations: LIMITS.rationalOperations, rationalGcdSteps: LIMITS.rationalGcdSteps, rationalIntegerBits: LIMITS.rationalIntegerBits, fractionCharacters: LIMITS.fractionCharacters, floatSearchStepsPerConversion: LIMITS.floatSearchStepsPerConversion });
 const CURVE_FIELDS = ['kind', 'id', 'degree', 'knots', 'controlPoints', 'weights'];
 const OPTION_FIELDS = ['radius', 'tolerance'];
 function fail(code: CylindricalWrapMapCode, detail: string): never { throw kernelRefusal('cylindrical-wrap-map', code, ('Cylindrical wrap map: ' + detail).slice(0, 1024)) as CylindricalWrapMapError; }
@@ -97,19 +127,23 @@ function record(value: unknown, fields: readonly string[]): Record<string, unkno
   if (!value || typeof value !== 'object' || Array.isArray(value) || !hasExactOwnFields(value as Record<string, unknown>, fields)) fail('INPUT', 'Exact plain own fields are required');
   return value as Record<string, unknown>;
 }
-class Context {
+class CoefficientContext {
   readonly q = new SectionRationalContext(exactFailure);
   work = 0; integerOperations = 0; integerMaximumBits = 0;
+  charge(amount = 1): void { if (!Number.isSafeInteger(amount) || amount < 0 || (this.work += amount) > MAX_WORK) fail('BUDGET', 'Fixed interval/coefficient work budget exceeded'); }
+}
+class Context extends CoefficientContext {
   readonly nodes = new Map<number, InternalNode>();
   readonly atanHalf: FixedInterval;
   readonly piHalf: FixedInterval;
   constructor() {
+    super();
     this.atanHalf = atanSmall(1n, 2n, this);
     const third = atanSmall(1n, 3n, this);
     this.piHalf = { lo: checked(2n * (this.atanHalf.lo + third.lo), this), hi: checked(2n * (this.atanHalf.hi + third.hi), this) };
   }
-  charge(amount = 1): void { if (!Number.isSafeInteger(amount) || amount < 0 || (this.work += amount) > MAX_WORK) fail('BUDGET', 'Fixed interval/coefficient work budget exceeded'); }
 }
+
 function checked(value: bigint, ctx: Context): bigint {
   ctx.charge(); ctx.integerOperations++;
   const bits = (value < 0n ? -value : value).toString(2).length;
@@ -153,7 +187,7 @@ function angle(x: R, y: R, ctx: Context): FixedInterval {
   return { lo: checked(ctx.piHalf.lo - reversed.hi, ctx), hi: checked(ctx.piHalf.hi - reversed.lo, ctx) };
 }
 function choose(n: number, k: number): number { let value = 1; for (let i = 1; i <= k; i++) value = value * (n - i + 1) / i; return value; }
-function product(a: Polynomial, b: Polynomial, ctx: Context): Polynomial {
+function product(a: Polynomial, b: Polynomial, ctx: CoefficientContext): Polynomial {
   const q = ctx.q, m = a.length - 1, n = b.length - 1, result: R[] = [];
   if (m + n > 8) fail('BUDGET', 'Private polynomial degree exceeds8');
   for (let k = 0; k <= m + n; k++) {
@@ -163,7 +197,7 @@ function product(a: Polynomial, b: Polynomial, ctx: Context): Polynomial {
   }
   return result;
 }
-function elevate(input: Polynomial, degree: number, ctx: Context): Polynomial {
+function elevate(input: Polynomial, degree: number, ctx: CoefficientContext): Polynomial {
   const q = ctx.q; let result = input;
   while (result.length - 1 < degree) {
     const n = result.length, next: R[] = [result[0]];
@@ -172,20 +206,20 @@ function elevate(input: Polynomial, degree: number, ctx: Context): Polynomial {
   }
   return result;
 }
-function add(a: Polynomial, b: Polynomial, subtract: boolean, ctx: Context): Polynomial {
+function add(a: Polynomial, b: Polynomial, subtract: boolean, ctx: CoefficientContext): Polynomial {
   const q = ctx.q, degree = Math.max(a.length, b.length) - 1, x = elevate(a, degree, ctx), y = elevate(b, degree, ctx), result: R[] = [];
   for (let i = 0; i <= degree; i++) result.push(subtract ? q.sub(x[i], y[i]) : q.add(x[i], y[i]));
   return result;
 }
-function derivative(a: Polynomial, ctx: Context): Polynomial {
+function derivative(a: Polynomial, ctx: CoefficientContext): Polynomial {
   const q = ctx.q, n = a.length - 1, result: R[] = [];
   for (let i = 0; i < n; i++) result.push(q.mul(q.integer(n), q.sub(a[i + 1], a[i])));
   return result.length ? result : [q.integer(0)];
 }
-function scaled(a: Polynomial, value: R, ctx: Context): Polynomial { const result: R[] = []; for (const item of a) result.push(ctx.q.mul(item, value)); return result; }
-function minimum(a: Polynomial, ctx: Context): R { let result = a[0]; for (const item of a) if (ctx.q.compare(item, result) < 0) result = item; return result; }
-function maximumAbs(a: Polynomial, ctx: Context): R { let result = ctx.q.integer(0); for (const item of a) result = ctx.q.max(result, ctx.q.abs(item)); return result; }
-function evaluate(a: Polynomial, share: R, ctx: Context): R {
+function scaled(a: Polynomial, value: R, ctx: CoefficientContext): Polynomial { const result: R[] = []; for (const item of a) result.push(ctx.q.mul(item, value)); return result; }
+function minimum(a: Polynomial, ctx: CoefficientContext): R { let result = a[0]; for (const item of a) if (ctx.q.compare(item, result) < 0) result = item; return result; }
+function maximumAbs(a: Polynomial, ctx: CoefficientContext): R { let result = ctx.q.integer(0); for (const item of a) result = ctx.q.max(result, ctx.q.abs(item)); return result; }
+function evaluate(a: Polynomial, share: R, ctx: CoefficientContext): R {
   const q = ctx.q, other = q.sub(q.integer(1), share); let row = a;
   while (row.length > 1) {
     const next: R[] = []; for (let i = 0; i + 1 < row.length; i++) next.push(q.add(q.mul(other, row[i]), q.mul(share, row[i + 1]))); row = next;
@@ -197,7 +231,7 @@ function freezeData(value: unknown): void {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return;
   Object.freeze(value); for (const item of Object.values(value)) freezeData(item);
 }
-function admit(source: Curve, options: CylindricalWrapMapOptions, ctx: Context): void {
+function admit(source: Curve, options: CylindricalWrapMapOptions, ctx: CoefficientContext): void {
   if (typeof options.radius !== 'number' || !Number.isFinite(options.radius) || options.radius < 0.01 || options.radius > CadNumericPolicy.coordinateAbs || typeof options.tolerance !== 'number' || !Number.isFinite(options.tolerance) || options.tolerance <= 0 || options.tolerance > CadNumericPolicy.coordinateAbs) fail('INPUT', 'Radius0.01..10000 and positive chart tolerance at most10000 are required');
   try { validateCurve(source); } catch (error) { fail('SUPPORT', error instanceof Error ? error.message : 'Invalid native source curve'); }
   if (source.id.length > 64 || source.degree !== 2 || source.controlPoints.length !== 3 || source.knots.length !== 6 || source.weights[0] !== 1 || source.weights[1] !== Math.SQRT1_2 || source.weights[2] !== 1) fail('SUPPORT', 'One rational quadratic quarter with native weight bits[1,sqrt(1/2),1] is required');
@@ -211,19 +245,31 @@ function admit(source: Curve, options: CylindricalWrapMapOptions, ctx: Context):
   }
   if (q.compare(radius, zero) <= 0 || Math.abs(points[0][2]) > CadNumericPolicy.coordinateAbs) fail('SUPPORT', 'The original quarter exceeds the authored coordinate range');
 }
-function sourceProof(source: Curve, radius: number, ctx: Context): SourceProof {
+function sourceGeometry(source: Curve, radius: number, ctx: CoefficientContext): SourceGeometry {
   const q = ctx.q, x: R[] = [], y: R[] = [], w: R[] = [];
   for (let i = 0; i < 3; i++) { const weight = q.from(source.weights[i]); w.push(weight); x.push(q.mul(q.from(source.controlPoints[i][0]), weight)); y.push(q.mul(q.from(source.controlPoints[i][1]), weight)); }
   const d = add(product(x, x, ctx), product(y, y, ctx), false, ctx), k = add(product(x, derivative(y, ctx), ctx), product(y, derivative(x, ctx), ctx), true, ctx);
   const r = q.from(radius), r2 = q.mul(r, r), residual = add(d, scaled(product(w, w, ctx), r2, ctx), true, ctx);
-  const second = add(product(derivative(k, ctx), d, ctx), product(k, derivative(d, ctx), ctx), true, ctx), mW = minimum(w, ctx), mD = minimum(d, ctx), mK = minimum(k, ctx);
+  return { x, y, w, d, k, residual, radius, r, r2 };
+}
+function admittedCarrier(geometry: SourceGeometry, ctx: CoefficientContext): CarrierProof {
+  const q = ctx.q, { w, d, k, residual, radius, r, r2 } = geometry;
+  const mW = minimum(w, ctx), mD = minimum(d, ctx), mK = minimum(k, ctx);
   if (mW.n <= 0n || mD.n <= 0n || mK.n <= 0n) fail('SUPPORT', 'Global positive denominator, radius and increasing angle must follow from original Bernstein coefficients');
   const residualMax = maximumAbs(residual, ctx), mW2 = q.mul(mW, mW), radial = q.div(residualMax, q.mul(r, mW2));
   if (q.compare(radial, q.from(linearToleranceMM(radius))) > 0 || q.compare(q.div(residualMax, mW2), q.mul(q.rat(3n, 4n), r2)) > 0) fail('SUPPORT', 'Original coefficient circle defect exceeds native policy or cannot prove radius at least R/2');
+  return { ...geometry, mW, mD, mK, residualMax, mW2, radial };
+}
+function sourceProof(source: Curve, radius: number, ctx: Context): SourceProof {
+  const q = ctx.q, geometry = sourceGeometry(source, radius, ctx), { x, y, w, d, k, residual, r } = geometry;
+  // Keep the full-map proof's original operation order: second numerator precedes source admission.
+  const second = add(product(derivative(k, ctx), d, ctx), product(k, derivative(d, ctx), ctx), true, ctx);
+  const { mW, mD, mK, residualMax, mW2, radial } = admittedCarrier(geometry, ctx);
   const radialDerivative = q.div(q.add(q.div(maximumAbs(derivative(residual, ctx), ctx), mW2), q.div(q.mul(q.integer(2), q.mul(residualMax, maximumAbs(derivative(w, ctx), ctx))), q.mul(mW2, mW))), r);
   const arclength = q.add(radialDerivative, q.mul(radial, q.rat(ctx.piHalf.hi, SCALE))), secondBound = q.div(maximumAbs(second, ctx), q.mul(mD, mD));
   return { x, y, w, d, k, residual, second, mW, mD, mK, radial, radialDerivative, arclength, secondBound };
 }
+
 function node(share: number, source: Curve, radius: number, proof: SourceProof, ctx: Context): InternalNode {
   const cached = ctx.nodes.get(share); if (cached) return cached;
   ctx.charge();
@@ -234,6 +280,21 @@ function node(share: number, source: Curve, radius: number, proof: SourceProof, 
   const candidate = a + (b - a) * share;
   const u = share === 0 ? a : share === 1 ? b : Number.isFinite(candidate) && q.compare(q.from(candidate), exact) === 0 ? candidate : q.exactFloat(exact);
   const result: InternalNode = { share, u, s, angle: interval, error }; ctx.nodes.set(share, result); return result;
+}
+
+/** Private original-carrier proof for native-UV consumers; no arclength/inverse work is requested. */
+export function certifyCylindricalWrapCarrier(sourceInput: Curve, optionsInput: CylindricalWrapCarrierOptions): CylindricalWrapCarrierCertificate {
+  const copied = record(ownSnapshot({ source: sourceInput, options: optionsInput }, false, OWN), ['source', 'options']);
+  const source = record(copied.source, CURVE_FIELDS) as unknown as Curve, options = record(copied.options, ['radius']) as unknown as CylindricalWrapCarrierOptions, ctx = new CoefficientContext(), q = ctx.q;
+  // The source admission is unchanged. Its chart-tolerance field is unused by this coefficient-only request.
+  admit(source, { radius: options.radius, tolerance: CadNumericPolicy.linearTolerance }, ctx);
+  const proof = admittedCarrier(sourceGeometry(source, options.radius, ctx), ctx);
+  const bounds = { radial: q.bound(proof.radial) };
+  const recorded = { denominator: fractions(proof.w, q), squaredRadiusNumerator: fractions(proof.d, q), angularNumerator: fractions(proof.k, q), circleResidual: fractions(proof.residual, q), denominatorMinimum: q.text(proof.mW), squaredRadiusMinimum: q.text(proof.mD), angularMinimum: q.text(proof.mK) };
+  const result: CylindricalWrapCarrierCertificate = { source, options, domain: [source.knots[0], source.knots[5]], bounds, proof: recorded,
+    counts: { rational: q.counts(), integerOperations: ctx.integerOperations, integerMaximumBits: ctx.integerMaximumBits, work: ctx.work }, limits: CARRIER_LIMITS,
+    meaning: { guarantee: 'analytic-original-carrier-coefficients-only', parameter: 'original-native-domain-no-inverse-map', derivatives: 'normalized-original-full-span', source: 'copied-original-binary64-poles-weights-and-knots', family: 'quantified-near-quarter-caller-retains-native-provenance', chart: false, inverse: false, nodes: false, composition: false, surfaceBinding: false, trim: false, solid: false, globalNativeEvaluationError: false } };
+  freezeData(result); return result;
 }
 
 /** Private proof/data for a later cubic composition. No Curve, Surface, glyph, B-rep or part is generated. */
