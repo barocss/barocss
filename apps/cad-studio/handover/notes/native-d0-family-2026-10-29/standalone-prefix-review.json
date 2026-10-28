@@ -1,0 +1,6 @@
+{
+  "status": "PASS",
+  "cases": 5,
+  "selectedCompleteStandaloneReceiptsAndCountsUnchanged": true,
+  "scope": "selected D302 results only; not all-input or timing equivalence"
+}

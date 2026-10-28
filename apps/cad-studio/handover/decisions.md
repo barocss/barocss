@@ -15429,3 +15429,37 @@ Model/Studio/browser/performance NOT RUN; their last whole/types remain D299901b
 or release. Next:D303 one actual-native family envelope with explicit two-span half-wall support and preserved
 repeated pcurve IDs by slot/full data, then coedge/source/closed-reference/mass integration before product wiring.
 Owner07->08->09 remains unchanged.
+
+
+## D303 — One bounded actual-native D0 family envelope (2026-10-29)
+
+**Decision.** Runtime4e8516b78 adds a private family entrypoint with64 objects/512 stored poles. It
+preserves D302 standalone policy/results/counts and adds explicit quadratic5-pole/5x2 two-half-span templates
+with exact widths0.5, scale1, original full domain[a,b] and actual repeated-knot right-span selection. All
+poles/weight bits and original IDs are copied unchanged. Repeated pcurve IDs are normal; ordered kind/index
+slots and full snapshots establish coverage, never ID dedup/rename or caller-certified flags.
+
+One actual-global min/max-weight/axis-absolute envelope feeds the monotone degree3x1/count8 positive
+outward128 recurrence, conservatively dominating every supported curve/tensor branch. Family constant axes
+are always false; a local active-span constant cannot masquerade as a full-source Object.is invariant.
+One200k exact/direct,8192-bit,1m-work ledger covers admission/domain/envelope/bound/conversion, with separate
+weighted structuralWork included in work and never mislabeled as exact operations. No fresh allowance per
+source. Source snapshots, slots and bounds are independently owned and deeply frozen. World/UV share only a
+numeric envelope; each bound retains its own coordinate units. Pcurve binding/topology/mass remain false.
+
+Node22.19.0 first build/changed lint/focused29/29 pass (3356.215125 ms). Whole kernel2126 total/2120 pass/
+0 fail/6 existing skips passes (246978.425 ms). Code-shape/generated tools/refusals and unchanged six-rule
+API SCOPED_PASS pass; docs68 pages/53 shots/4488 KiB/852 labels. Exact piecewise Bernstein fixtures cover both
+spans, m-ulp/m/m+ulp, full-domain/cap/index/ID/work/tight-budget boundaries. Five selected complete D302
+receipts/counts equal the preserved earlier-version runtime, beyond same-version noninterference tests.
+Independent design/source reviews find no material defect in scope. Draft structural charging was corrected
+before first execution; no failed runtime result is omitted.
+
+Actual one-pad BRep family:63 objects/214 poles,52 unique IDs retained across all slots, L1<=3.438973512255934e-11,
+57349 exact/direct operations and109361 work including9043 structural work. Its earlier67093-operation
+assembly, source/composition, separate side proof, coedge range/Lipschitz/residual and mass are excluded.
+Evidence: notes/native-d0-family-2026-10-29/README.md. No complete wrap/closed-solid or combined construction
+acceptance follows from these separate receipts. Model/Studio/browser/performance NOT RUN; last product
+whole/types remain D299901b4ce45. No source checksum test, dependency/tolerance change, speedup, push, PR or
+release. Next:D304 complete actual coedge/vertex native binding with original tolerances/clamp path and
+remaining-budget accounting, then closed-reference/mass/Part/Model/API/Studio integration. Owner07->08->09 unchanged.
