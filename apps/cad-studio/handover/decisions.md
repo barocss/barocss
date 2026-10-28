@@ -15335,3 +15335,37 @@ tools/refusals and six-rule source-inventory SCOPED_PASS pass. Independent mathe
 no material false acceptance within their scope. Browser/performance are NOT RUN; no product/speed claim.
 No push, PR or release. Next decision: **D300**, complete projected component cycles/pair coverage/winding
 and hole containment under one ledger, then native trim/error/mass binding before product wiring.
+
+
+## D300 — Complete private stored projected component certificates (2026-10-29)
+
+**Decision.** Runtime225005fd57cccf90e788e460bc63d6e7b2562a04 certifies complete bounded components in exact stored psi=(Y/X,Z/W),
+without a native wrap Part/Model/API/Studio feature. Canonical Curve data is used once with explicit sense;
+Object.is endpoints close every cycle, including signed zeros. Rings require at least3 uses. All N(N-1)/2
+pairs are proved: N adjacent whole-interval cones and every remaining original-domain strict separation.
+Together with individual progress this proves disjoint Jordan rings in the projection only.
+
+The ordinary pair constructor remains fixed2; a separate private factory directly initializes a fresh fixed32
+family context. Both retain200000 rational/direct operations,8192 bits,1m work,256 global nodes/depth8 and
+only tighter options. All preparation, pairs and winding share that one ledger and cached geometry. Height
+fallback must prove exact constant q; otherwise winding refuses SUPPORT. Exact upward-ray winding uses
+minimum-inclusive/maximum-exclusive q ranges and minus the oriented delta-q sign above the query. Vertex
+and vertical boundaries are checked first; unique roots use exact dyadic brackets/hulls, never rounded roots.
+Equality/depth uncertainty remains UNRESOLVED and resource exhaustion BUDGET.
+
+Outer/hole candidate winding must be+1/-1. After full pair separation, one deterministic owned hole vertex
+proves outer containment; each hole pair needs mutual representative winding0. Connected Jordan-ring
+separation makes that one-vertex rule sufficient. Hints certify individual ring orientation/interior only,
+never material placement; an outer hint may lie in a hole. Results and owned originals are frozen. Only
+projected embedding/containment become true. Native source/UV binding, physical B-rep/solid, represented mass,
+global Number evaluator, general text and combined construction-budget flags stay false.
+
+Node22.19.0 first build/changed lint/focused57/57 pass (3124.599 ms). Whole kernel2103 total/2097 pass/0 fail/
+6 existing skips passes (249990.372709 ms). Code-shape/generated tools/refusals and unchanged six-rule API
+SCOPED_PASS pass; docs68 pages/53 shots/4488 KiB/852 labels. Independent static reviews find no concrete
+false acceptance; a closing-pair receipt order ambiguity was fixed before first build. Exact receipts and
+review boundaries are in notes/cylindrical-wrap-component-2026-10-29/README.md. No source checksum test,
+tolerance relaxation or new runtime dependency is added. Model/Studio/browser/performance are NOT RUN for
+D300; previous1824/1824 and365/365 plus types belong to D299901b4ce45, not a new wrap product flow.
+No speedup claim, push, PR or release. Next decision: **D301**, original-native trim/error binding, radial-side
+transfer/physical assembly and full source/added-band mass contract before product wiring. Owner07->08->09 unchanged.
