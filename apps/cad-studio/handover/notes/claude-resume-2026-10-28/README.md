@@ -173,9 +173,22 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   Model/Studio/types/browser NOT RUN; all closed-reference/physical/Part/product flags false.
   See `../cylindrical-wrap-bound-reference-2026-10-29/README.md`. Next D310 consumes fresh
   formal.source for4-span wall radial graph/winding/error, then cap/shell/reference transfer.
+- D310 runtime`db529cb77` consumes actual fresh D309 formal.source and certifies all4 original
+  wall spans: exact closed winding1/radial graph, positive affine extrusion, piecewise outward
+  face orientation and exact original bottom/top world-edge/pcurve/vertex ownership. Source
+  arrays stay unchanged, including the distinct lower weight. Std198489ops/work410309 and
+  centered197935 fit the complete200k cap; max radial8/1061508612087629 covers both full walls.
+  First general-rational candidate refused budget; counted exact common dyadic arithmetic
+  fits without widening caps or weakening independent Bernstein oracle tests. Final build/lint/
+  focused36/36/kernel2165pass/0fail/6existing skips/generated/API/docs pass. Actual fresh D309
+  prefix and retained serialized receipts match. Premature read FileNotFoundError is recorded.
+  Model/Studio/types/browser/performance NOT RUN. Cap/source-shell/retained-face closure,
+  reference mass transfer/Part/product flags remain false; no native radial or D1 claim.
+  See `../cylindrical-wrap-source-walls-2026-10-29/README.md`. Next D311 cap/reference and source
+  closure, then wrapped retained-face/mass; standard remaining allowance1511, no fit promise.
 - Next: roadmap07's remaining wrap provider and broader face-fillet/thread ranges, then08,09. General/curved,
   rational/smooth wrapping, shaping, kerning, bidi and normalization remain unimplemented. D291's broader
-  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D310.
+  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D311.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -184,7 +197,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D310**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D311**).
 
 ## 0. State at the stop
 

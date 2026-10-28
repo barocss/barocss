@@ -1,0 +1,6 @@
+Receipt inspection ran before the final build/measurement command had produced its file. The command was read-only. A later read of the completed output passed. This is not a geometry or test failure.
+
+Original tool output:
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/barocss-source-walls-final-receipts.json'

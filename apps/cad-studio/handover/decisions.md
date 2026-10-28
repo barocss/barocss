@@ -15654,3 +15654,43 @@ latest whole consumers/types D299901b4ce45. No source-checksum test/dependency/s
 or push/PR/release. Next D310 uses actual fresh formal.source to certify the preserved4-span
 wall radial graph/winding/radial error under remaining budget, then cap/shell/reference mass
 transfer before product/general text wrap. Owner07->08->09 remains unchanged.
+
+
+## D310 — Complete original wall radial graph and outward span orientation (2026-10-29)
+
+**Decision.** Runtime db529cb77 adds a private continuation from the actual fresh D309
+formal.source, retaining both complete source/native/formal costs. Both original wall
+Surfaces retain their five-row/two-half-span structure, affine positive Z, exact top/bottom
+edge and pcurve coefficients, original vertex ownership and actual face/use senses. Four
+directed coefficient windows join one bit-exact cycle; no arrays, weights, IDs or tolerances
+change. In particular lower0.7071067811865477 is not replaced by upper0.7071067811865476.
+
+Exact dyadic homogeneous alignment and bounded integer products compute degree4 circle
+defect and degree2 directed angular coefficients. All W and oriented K coefficients are
+positive; one open half-plane contains each complete span. Its increase is in(0,pi), so the
+complete four-span positive cycle has winding1. The XY radial graph is simple; common
+positive affine Z proves embedded source walls with piecewise outward actual face sense.
+No C1 seam/native D1 proof is claimed. Whole-wall max radial is8/1061508612087629 for R10;
+this is an exact stored-rational coefficient bound, not a native evaluator radial claim.
+
+First general-rational implementation refused the unchanged200k cap in both standard
+requests. Actual common-denominator arithmetic removes repeated intermediate reductions,
+with integer/bit/limb/predicate work counted; fractions are reduced at the receipt boundary.
+Final std198489ops=193290 full reference+3399 rational+1800 direct, work410309/local15152,
+bits1187. Centered197935/work408986/bits1178. Asymmetric case retains original formal BUDGET.
+No budget/tolerance/precision/test weakening or source-cost deduction. Existing constructors
+are unchanged; direct actual child equality and retained serialized receipts match D309.
+
+Independent generic Bernstein products/derivatives/elevation check all coefficients/margins/
+radial bounds at six actual radii; negative topology/orientation/perturbation and aggregate
+exact-total/total-1 tests pass. Build/lint/focused36/36, whole2171total/2165pass/0fail/6existing
+skips, generated/unchanged API SCOPED_PASS/docs pass. First candidate refusals and a premature
+read-only receipt FileNotFoundError are retained; no unit/build/lint failure. Evidence:
+notes/cylindrical-wrap-source-walls-2026-10-29/README.md.
+
+Model/Studio/types/browser/performance NOT RUN; latest whole consumers/types D299901b4ce45.
+No timing claim, source-checksum test, dependency/schema/public API change, push/PR/release.
+Cap trim embedding/source-shell/retained-face closure/reference mass transfer/Part/product
+remain false, and radial error is not included in mass. Next D311 must cover actual cap and
+source reference closure, then complete wrapped reference/mass. Std allowance left1511;
+no next-proof fit guarantee. Broader07 fillet/thread/glyph ranges precede08->09 as before.

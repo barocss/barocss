@@ -1,0 +1,14 @@
+[
+  {
+    "label": "Z0-reference-standard",
+    "serializedReferenceEqual": true
+  },
+  {
+    "label": "centered-negative-Z-density",
+    "serializedReferenceEqual": true
+  },
+  {
+    "label": "asymmetric-negative-Z-budget-frontier",
+    "completeRefusalEqual": true
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "scope": "two actual fresh source/native/formal child requests with aggregate reservations; closed reference/physical mass/Part/product unqualified",
+  "results": [
+    {
+      "label": "Z0-reference-standard",
+      "status": "refused",
+      "code": "BUDGET",
+      "source": "cylindrical-wrap-source-walls",
+      "message": "Cylindrical wrap source walls: the complete reference and original-wall proof budget was exceeded"
+    },
+    {
+      "label": "centered-negative-Z-density",
+      "status": "refused",
+      "code": "BUDGET",
+      "source": "cylindrical-wrap-source-walls",
+      "message": "Cylindrical wrap source walls: the complete reference and original-wall proof budget was exceeded"
+    },
+    {
+      "label": "asymmetric-negative-Z-budget-frontier",
+      "status": "refused",
+      "code": "BUDGET",
+      "source": "cylindrical-wrap-formal-mass",
+      "message": "Formal pad mass: the aggregate source, rational, direct, or work limit was exceeded"
+    }
+  ]
+}
