@@ -14555,6 +14555,9 @@ D282's two fixes (arcs past π + 1e-12; repeated names ordered with a tolerance)
 - `cad-model/test/fixtures/robot-frozen-boundary.json` (the frozen arm's byte pin, test `robot-frozen-mass`): its three
   non-inertial hashes and 54 refreshed inertia values re-pinned to the new files; the S0 `before` values unchanged.
 - The patch file `notes/patches/incremental-stitch-frozen-faces-2026-10-28.patch` (D282) is removed: it is in the source now.
+- Kept checked (2026-10-28): `test/incremental-stitch-differential.test.mjs` evaluates 15 chains (random rounded-plate
+  boss/pocket rows, 12 bosses, two tilted-box rows) with the frozen path on and off (`stitchFreezing`, a module switch
+  not exported from the package) and requires the same validity, counts, face and edge names, volume and centroid.
 
 ## D284 — Sketch results on the 1e-6 mm grid when the solver accepts them; a non-converging edit keeps its own reason (2026-10-28)
 

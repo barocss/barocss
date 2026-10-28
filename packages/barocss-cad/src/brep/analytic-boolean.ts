@@ -1357,6 +1357,9 @@ function rayMissesBox(lo: P3, hi: P3, x: P3, dir: P3, pad: number): boolean {
 
 // ---- the Boolean -------------------------------------------------------------------------------------
 interface Piece { face: GFace; region: CurveRegion2; out: 1 | -1; key: P3 }
+/** Whether far faces kept whole are frozen in the stitch (D283). A switch for the differential test against the full
+ * rebuild (test/incremental-stitch-differential.test.mjs) only; not exported from the package. */
+export const stitchFreezing = { on: true };
 /** A B-rep's faces by id (made once a B-rep). */
 const faceMaps = new WeakMap<Brep, Map<string, Brep['faces'][number]>>();
 function faceById(b: Brep): Map<string, Brep['faces'][number]> { let m = faceMaps.get(b); if (!m) { m = new Map(b.faces.map(f => [f.id, f])); faceMaps.set(b, m); } return m; }
@@ -1470,7 +1473,7 @@ function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, 
     const q = { face: p.face, out: (k === 'flip' ? -1 : 1) as 1 | -1, region: k === 'flip' ? { outer: reverse(p.region.outer), holes: p.region.holes.map(reverse) } : p.region } as Piece;
     Object.defineProperty(q, 'key', { get: () => p.key, enumerable: true });
     // (A far face kept as it is is frozen: stitch takes its loops and edges from its input; not one through a pole.)
-    if (k === 'keep' && far.has(p) && !(p.face.surf.kind === 'nurbs' && p.face.surf.poles.length)) { const src = p.face.solid === 0 ? a : b, face = faceById(src).get(p.face.id); if (face) frozen.set(q, { face, brep: src }); }
+    if (k === 'keep' && stitchFreezing.on && far.has(p) && !(p.face.surf.kind === 'nurbs' && p.face.surf.poles.length)) { const src = p.face.solid === 0 ? a : b, face = faceById(src).get(p.face.id); if (face) frozen.set(q, { face, brep: src }); }
     return [q]; });
   // (A tolerant input's — a fitted offset's, D110, D113 — pieces keep its tolerance: the result is tolerant as its worst.)
   const inputTol = Math.max(0, ...[a, b].flatMap(x => [...x.edges.map(e => e.tolerance), ...x.vertices.map(v => v.tolerance)]));
