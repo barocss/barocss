@@ -693,6 +693,7 @@ function nearBoundary(at: (u: number, v: number) => Point, U: readonly number[],
   let side = 0, best = 0, bestD = Infinity;
   for (let k = 0; k < 4; k++) for (let i = 0; i <= ISO_SAMPLES; i++) {
     const s = sides[k], d = Math.hypot(s[3 * i] - p[0], s[3 * i + 1] - p[1], s[3 * i + 2] - p[2]);
+    if (d <= near) return true;
     if (d < bestD) { bestD = d; side = k; best = i; }
   }
   if (bestD <= near) return true;

@@ -14832,3 +14832,35 @@ margins are also skipped. An independent read-only review found no further actio
 **Not run.** Full Studio browser suite, WebGL2/mobile flows, GPU package suite, RB/fuzz/commutativity, and a fillet
 performance A/B. This change makes no speed claim. The next thread work has only a fresh baseline/profile so far.
 No feature push, new PR or release; no screenshot/log/checksum manifests, local .claude files or lockfile are committed.
+
+
+## D290 — Stop a cached boundary scan once a sample is close enough (2026-10-28)
+
+**Decision.** `nearBoundary` in `brep-mass-quadrature.ts` returns true immediately when an existing cached sample's
+unchanged `Math.hypot` distance satisfies the unchanged `d <= near`. Previously all4×65 samples were scanned before
+returning the same result. When none qualifies, nearest-sample selection, strict-`<` tie handling and golden-section
+refinement remain unchanged. The loop reads cached arrays and never calls the surface evaluator; early success
+therefore preserves evaluator state too. No allocation, approximation, tolerance or dependency is added. The whole
+patch test, including all other boundary samples and perimeter checks, still runs as before. STEP bounds uses the
+same predicate. Independent read-only review found no semantic change.
+
+**Measurements.** Existing `perf-bench.mjs` cases, Node22.19.0, same local host, serial heavy gate. Two A/B series,
+median7 in fresh Node processes: shaft641→559ms (−12.8%) and674→581ms (−13.8%); tapped hole662→576ms (−13.0%)
+and649→572ms (−11.9%). External host load was not controlled. Separate V8 profiles show the intended scan's self
+sample time about0.42→0.21s. See [the conditions, full table and interpretation](notes/report-thread-boundary-early-hit-2026-10-28.md).
+
+**Acceptance.** Both series retain the existing whole-B-rep JSON fingerprints. Shape records retain validity,
+body/face/edge/vertex counts, volume and centroid. A separate snapshot retains every face/edge ID and name and all
+mass-property binary64 bit strings, including signed zero and inertia. The temporary snapshot's first assertion
+failed only because its readable JSON value wrote −0 as0; normalising that readable value on both sides while
+retaining every explicit bit string makes the comparison pass. No source checksum pin is added to the test suite.
+
+**Verification.** Build and whole kernel lint pass. Whole kernel:1974 total,1968 pass,0 fail,6 existing skips.
+Model `node scripts/test.mjs api-face-thread threads fasteners hole-thread-depth`:23/23. Agent-tools/refusals and
+whole docs checks pass (67 pages,50 shots,829 labels). No new implementation-mirroring unit test is needed for this
+pure early return; existing geometry, mass, thread, bounds and STEP tests plus exact result comparison cover it.
+
+**Not run.** Whole Model/Studio and browser flows were not repeated for this one-line optimisation; D289's earlier
+whole Model1718/1718, Studio352/352 and browser flow keep that earlier scope. Other performance cases, the old upper
+thread timing range, Studio latency, WebGL2/mobile/GPU, RB/fuzz and release were not measured or qualified here.
+No push, PR or release.

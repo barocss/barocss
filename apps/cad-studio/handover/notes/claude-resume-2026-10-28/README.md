@@ -22,11 +22,15 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   Undo/Redo/Save/Open. Final whole checks: kernel1968 pass/0 fail/6 skip, Model1718/1718, Studio352/352; docs pass.
   Non-adjacent free-form replacement and multi-span/rational end extension are still open.
 - The owner delegated choosing several open-source fonts. Unmodified ABeeZee, Nanum Gothic and Nanum Myeongjo TTFs
-  plus their OFL originals are saved in test/fixtures/fonts, commit `9fe4be221`. Fixed upstream URLs and binary
+  plus their OFL originals are saved in apps/cad-studio/test/fixtures/fonts, commit `9fe4be221`. Fixed upstream URLs and binary
   metadata are recorded there. No parser, text shaping, emboss or wrap support is implied.
+- D290 adopts one cached-boundary early return. Paired median7 runs improve the two fixed thread workloads12–14%;
+  B-rep fingerprints, shape/names/counts and every mass-property bit stay unchanged. Whole kernel1968 pass/0 fail/
+  6 skip; focused Model23/23; docs pass. The earlier whole Model/Studio/browser results above retain D289's scope.
 - Next: roadmap07's non-adjacent free-form face fillet needs conservative Boolean face provenance before acceptance.
-  Thread speed baseline (median5, same local Node): shaft628ms, tapped hole609ms. A profile identifies repeated cached
-  boundary-distance scans; no speed change has been adopted yet. Then text/wrap, 08, 09. The next decision is D290.
+  An unadopted internal tracing candidate and a bounded plane/Bezier corner candidate are being prepared in /tmp;
+  neither is product support. Then text/wrap, 08, 09. Font originals are ready, but font parsing and CAD text are not.
+  The next decision is D291.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
