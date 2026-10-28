@@ -99,6 +99,29 @@ function triangleCrossings(t1: Point[], t2: Point[]): Point[] {
 }
 
 /** All intersection chains of two patches within their boxes. `step` is the marching step in mm. */
+interface GridTriangle { readonly pts: Point[]; readonly uv: XY[]; readonly min: Point; readonly max: Point }
+/** A grid's triangles, two a cell (its first corner's diagonal), each with its corners, their parameters and its box. */
+function gridTriangles(G: readonly (readonly { p: XY; x: Point }[])[], n: number): GridTriangle[] {
+  const out: GridTriangle[] = [];
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+    const c00 = G[i][j], c10 = G[i + 1][j], c11 = G[i + 1][j + 1], c01 = G[i][j + 1];
+    out.push(gridTriangle(c00, c10, c11), gridTriangle(c00, c11, c01));
+  }
+  return out;
+}
+function gridTriangle(a: { p: XY; x: Point }, b: { p: XY; x: Point }, c: { p: XY; x: Point }): GridTriangle {
+  const A = a.x, B = b.x, C = c.x;
+  return { pts: [A, B, C], uv: [a.p, b.p, c.p], min: [Math.min(A[0], B[0], C[0]), Math.min(A[1], B[1], C[1]), Math.min(A[2], B[2], C[2])], max: [Math.max(A[0], B[0], C[0]), Math.max(A[1], B[1], C[1]), Math.max(A[2], B[2], C[2])] };
+}
+/** The box of all the triangles' boxes. */
+function boxOfTriangles(T: readonly GridTriangle[]): { min: Point; max: Point } {
+  const min: Point = [Infinity, Infinity, Infinity], max: Point = [-Infinity, -Infinity, -Infinity];
+  for (const t of T) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], t.min[k]); max[k] = Math.max(max[k], t.max[k]); }
+  return { min, max };
+}
+const boxesMeet = (t: { min: Point; max: Point }, b: { min: Point; max: Point }, tol: number) =>
+  t.max[0] >= b.min[0] - tol && t.min[0] <= b.max[0] + tol && t.max[1] >= b.min[1] - tol && t.min[1] <= b.max[1] + tol && t.max[2] >= b.min[2] - tol && t.min[2] <= b.max[2] + tol;
+
 export function intersectPatches(A: Patch, B: Patch, options: {
   readonly step: number; readonly tolerance: number; readonly grid?: number;
   /** Seeds to leave out (points of an intersection the caller already has). */
@@ -127,6 +150,26 @@ export function intersectPatches(A: Patch, B: Patch, options: {
   let budget = options.budget ?? 200000;
   if (!Number.isFinite(budget) || !(budget >= 0)) throw new SurfaceIntersectionError('budget must be a finite nonnegative number');
   const spend = () => { if (--budget < 0) throw new SurfaceIntersectionError('too many marching steps (the surfaces touch or overlap along a curve)'); };
+  type Hit = NonNullable<ReturnType<typeof onBoth>>;
+  const strictlyInside = (r: Hit) => inside(A, r.pa) && inside(B, r.pb);
+  // Recovery samples must satisfy the same prediction plane as well as both surfaces.
+  const onPredictionPlane = (r: Hit, o: Point, n: Point) => [A.at(r.pa), B.at(r.pb), r.x].every(p => {
+    const residual = dot(sub(p, o), n);
+    return Number.isFinite(residual) && Math.abs(residual) <= tol;
+  });
+  // Narrow only a valid inside/outside bracket; a failed correction is never an outside sample.
+  const boundary = (start: Hit, outside: Hit, t: Point, recovery = false): Hit => {
+    if (!strictlyInside(start) || strictlyInside(outside) || !withinTolerance(start) || !withinTolerance(outside)) throw new SurfaceIntersectionError('boundary bracket has no inside starting point');
+    let lo = 0, hi = 1, last = start;
+    for (let it = 0; it < 40; it++) {
+      spend();
+      const m = (lo + hi) / 2, g = add(start.x, scale(sub(outside.x, start.x), m)), r = onBoth(A, B, project(A, g, start.pa), project(B, g, start.pb), { o: g, n: t });
+      if (!r || !withinTolerance(r) || (recovery && !onPredictionPlane(r, g, t))) throw new SurfaceIntersectionError('boundary correction did not satisfy the intersection tolerance');
+      if (strictlyInside(r)) { lo = m; last = r; } else hi = m;
+    }
+    return last;
+  };
+
   for (const P of [A, B]) {
     const [[u0, v0], [u1, v1]] = P.box;
     if (![u0, v0, u1, v1].every(Number.isFinite) || u0 > u1 || v0 > v1) {
@@ -153,15 +196,9 @@ export function intersectPatches(A: Patch, B: Patch, options: {
   // No chain is longer than a few times both patches' size.
   const extent = (G: { x: Point }[][]) => { let m = 0; for (const row of G) for (const c of row) m = Math.max(m, len(sub(c.x, G[0][0].x))); return m; };
   const maxSteps = Math.min(20000, Math.ceil(8 * (extent(GA) + extent(GB)) / h) + 100);
-  const tris = (G: { p: XY; x: Point }[][]) => { const out: { pts: Point[]; uv: XY[]; min: Point; max: Point }[] = [];
-    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) for (const t of [[G[i][j], G[i + 1][j], G[i + 1][j + 1]], [G[i][j], G[i + 1][j + 1], G[i][j + 1]]]) {
-      const pts = t.map(c => c.x), min = [0, 1, 2].map(k => Math.min(...pts.map(p => p[k]))) as Point, max = [0, 1, 2].map(k => Math.max(...pts.map(p => p[k]))) as Point;
-      out.push({ pts, uv: t.map(c => c.p), min, max });
-    } return out; };
   // Only triangles within the other patch's box can cross it.
-  const boxOf = (T: { min: Point; max: Point }[]) => T.reduce((m, t) => ({ min: [0, 1, 2].map(k => Math.min(m.min[k], t.min[k])) as Point, max: [0, 1, 2].map(k => Math.max(m.max[k], t.max[k])) as Point }), { min: [Infinity, Infinity, Infinity] as Point, max: [-Infinity, -Infinity, -Infinity] as Point });
-  const within = (t: { min: Point; max: Point }, b: { min: Point; max: Point }) => [0, 1, 2].every(k => t.max[k] >= b.min[k] - tol && t.min[k] <= b.max[k] + tol);
-  const allA = tris(GA), allB = tris(GB), bA = boxOf(allA), bB = boxOf(allB), TA = allA.filter(t => within(t, bB)), TB = allB.filter(t => within(t, bA));
+  const allA = gridTriangles(GA, n), allB = gridTriangles(GB, n), bA = boxOfTriangles(allA), bB = boxOfTriangles(allB);
+  const TA = allA.filter(t => boxesMeet(t, bB, tol)), TB = allB.filter(t => boxesMeet(t, bA, tol));
   // Facet crossings, refined onto both surfaces only when reached (most lie on a chain traced by then).
   const raw: { x: Point; ua: XY; ub: XY }[] = [];
   for (const a of TA) for (const b of TB) {
@@ -188,10 +225,31 @@ export function intersectPatches(A: Patch, B: Patch, options: {
       if (s && withinTolerance(s) && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9)) yield s;
     }
   }
-  for (const seed of seeds()) {
-    if (covered(seed.x) || options.skip?.(seed.x)) continue;
+  for (const initial of seeds()) {
+    if (covered(initial.x) || options.skip?.(initial.x)) continue;
+    let seed = initial;
     // Tangent contact (normals within about 0.006°, above the differencing noise at a domain edge): not traced.
     if (len(cross(normalOf(A, seed.pa), normalOf(B, seed.pb))) < 1e-4) continue;
+    if (!strictlyInside(seed)) {
+      // Seeds alone admit the existing 1e-9 UV slack. Marching needs a strict inside start:
+      // recover the actual boundary from a corrected inside point, rather than clamping UV or dropping the seed.
+      const tangent = unit(cross(normalOf(A, seed.pa), normalOf(B, seed.pb)));
+      let recovered: Hit | null = null;
+      for (const sign of [1, -1]) {
+        const t = scale(tangent, sign);
+        for (let tries = 0, step = h; tries < 6; tries++, step /= 2) {
+          spend();
+          const guess = add(seed.x, scale(t, step)), r = onBoth(A, B, project(A, guess, seed.pa), project(B, guess, seed.pb), { o: guess, n: t });
+          if (r && withinTolerance(r) && onPredictionPlane(r, guess, t) && strictlyInside(r) && len(sub(r.x, guess)) < step && dot(sub(r.x, seed.x), t) > 0) {
+            recovered = boundary(r, seed, t, true); break;
+          }
+        }
+        if (recovered) break;
+      }
+      if (!recovered) throw new SurfaceIntersectionError('boundary bracket has no inside starting point');
+      seed = recovered;
+      if (covered(seed.x) || options.skip?.(seed.x)) continue;
+    }
     const march = (dir: 1 | -1) => {
       const pts: Point[] = [seed.x], tans: Point[] = [], uvA: XY[] = [seed.pa], uvB: XY[] = [seed.pb], touched: Point[] = [];
       let closed = false, k = 0;
@@ -221,15 +279,7 @@ export function intersectPatches(A: Patch, B: Patch, options: {
         if (!next) throw new SurfaceIntersectionError('corrector did not converge within six attempts');
         // Leaving a box: cut the step at the box edge (bisection on the fraction of the step).
         if (!inside(A, next.pa) || !inside(B, next.pb)) {
-          if (!inside(A, pa) || !inside(B, pb)) throw new SurfaceIntersectionError('boundary bracket has no inside starting point');
-          let lo = 0, hi = 1, last = { pa, pb, x };
-          for (let it = 0; it < 40; it++) {
-            spend();
-            const m = (lo + hi) / 2, g = add(x, scale(sub(next.x, x), m)), r = onBoth(A, B, project(A, g, pa), project(B, g, pb), { o: g, n: t });
-            // A failed correction is not evidence of an outside point: preserve a valid bracket.
-            if (!r || !withinTolerance(r)) throw new SurfaceIntersectionError('boundary correction did not satisfy the intersection tolerance');
-            if (inside(A, r.pa) && inside(B, r.pb)) { lo = m; last = r; } else hi = m;
-          }
+          const last = boundary({ pa, pb, x }, next, t);
           // The end lies exactly on the edge: a point closer than the step tolerance replaces the last one.
           const endTan = scale(unit(cross(normalOf(A, last.pa), normalOf(B, last.pb))), sign);
           if (len(sub(last.x, x)) > tol) { pts.push(last.x); uvA.push(last.pa); uvB.push(last.pb); tans.push(endTan); }

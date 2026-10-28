@@ -74,7 +74,7 @@ const BINDS: Record<string, Record<string, readonly [node: number, field: string
   extrude: { h: [1, 'h'] },
   revolve: { deg: [1, 'deg'] },
   hole: { x: [0, 'c0'], y: [0, 'c1'] },
-  fillet: { radius: [0, 'r'] },
+  fillet: { radius: [0, 'r'], endRadius: [0, 'r1'] },
   chamfer: { distance: [0, 'd'] },
   shell: { t: [0, 't'] },
   'linear-pattern': { spacing: [0, 'spacing'], count: [0, 'count'] },

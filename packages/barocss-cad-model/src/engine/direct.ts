@@ -3,7 +3,7 @@
 // sources and objects; an operation that makes new objects hides the ones it was made from (so they
 // can be shown again), one that refines an object's own source (poles, knots, degree, interval) moves the
 // object to the refined source.
-import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine } from '@barocss/cad';
+import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildBezierCoonsSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine } from '@barocss/cad';
 import { curvesSource, surfacesSource } from './curveSource';
 import { keptAt, projectLoop, trimmedMesh, type TrimLoop } from './trim';
 import { nextFreeId } from '../util/ids';
@@ -179,8 +179,9 @@ export const directOps = {
   },
   /**
    * A surface filling a loop of four curves (a Coons patch: each pair of opposite sides blended, less the
-   * corners' bilinear part), sampled and interpolated as a bicubic B-spline. The curves must meet end to
-   * end, in any order and either way round.
+   * corners' bilinear part). The curves must meet end to end, in any order and either way round. Four
+   * single-span polynomial Bezier sides (degree 1..3, opposite degrees equal, corners exactly shared) give
+   * the exact patch (K03); any other loop is sampled and interpolated as a bicubic B-spline.
    */
   fill(d: DirectGeometry, ids: string[]) {
     if (ids.length !== 4) throw refusal('DIRECT_LOOP', 'Pick four curves that meet end to end in a loop.');
@@ -196,6 +197,8 @@ export const directOps = {
       const c = left.splice(k, 1)[0]; loop.push({ c, flip: gap(end(c, 0), tip) >= tol });
     }
     if (gap(end(loop[3].c, loop[3].flip ? 0 : 1), end(loop[0].c, 0)) >= tol) throw refusal('DIRECT_LOOP', 'The curves do not close into a loop.');
+    const exact = exactFill(d, loop);
+    if (exact) return exact;
     const side = (k: number) => (s: number) => at(loop[k].c, loop[k].flip ? 1 - s : s);
     // Bottom C0(u) = side 0, right D1(v) = side 1, top C2(u) = side 2 backwards, left D0(v) = side 3 backwards.
     const C0 = side(0), D1 = side(1), C2 = (u: number) => side(2)(1 - u), D0 = (v: number) => side(3)(1 - v);
@@ -377,6 +380,24 @@ export function surfaceIntersection(d: DirectGeometry, a: string, b: string): { 
   const text = `@model meet {\n  version: 0;\n  length-unit: mm;\n${curves.join('\n')}\n}`;
   const direct = importSource(d, text, `${nameOf(d, a)} × ${nameOf(d, b)}`);
   return { direct, count: curves.length };
+}
+
+/** A Bezier side as the loop runs it: reversed, its poles (and weights) in the other order; its [0,1] knots are symmetric. */
+function runAs(c: Curve, flip: boolean): Curve {
+  return flip ? { ...c, controlPoints: [...c.controlPoints].reverse(), weights: [...c.weights].reverse() } : c;
+}
+/**
+ * The exact Coons patch of a chained loop when all four sides are polynomial Bezier spans the kernel admits, or null
+ * (then the caller samples). Bottom = side 0, right = side 1, top = side 2 and left = side 3, the last two run backwards.
+ */
+function exactFill(d: DirectGeometry, loop: readonly { c: Curve; flip: boolean }[]): DirectGeometry | null {
+  const used = usedIds(d), surfaceId = fresh(used, 'fill');
+  let made: ReturnType<typeof buildBezierCoonsSurface>;
+  try {
+    made = buildBezierCoonsSurface({ bottom: runAs(loop[0].c, loop[0].flip), right: runAs(loop[1].c, loop[1].flip),
+      top: runAs(loop[2].c, !loop[2].flip), left: runAs(loop[3].c, !loop[3].flip) }, { surfaceId });
+  } catch { return null; }
+  return add(d, [], made.source, [{ geometry: made.surface.id, name: 'Filled surface' }]);
 }
 
 /** A short prefix none of whose role names is taken (the operations derive helper ids from it). */

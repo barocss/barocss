@@ -152,6 +152,10 @@ type ModelNodeBase = SketchNode
   | { kind: 'union'; left: BodyRef; right: BodyRef; made?: Made }
   | { kind: 'intersect'; left: BodyRef; right: BodyRef }
   | { kind: 'difference'; parent: BodyRef; tool: BodyRef; made?: Made }
+  /** Axis-aligned rectangular rib; the Kernel requires positive overlap and positive added material on one line-only upright solid. */
+  | { kind: 'rib'; parent: BodyRef; min: [Dim, Dim, Dim]; max: [Dim, Dim, Dim] }
+  /** Rectangular +Z top relief on one straight-sided upright slab; not text or arbitrary-surface embossing. */
+  | { kind: 'rectangular-relief'; parent: BodyRef; min: [Dim, Dim]; max: [Dim, Dim]; depth: Dim; mode: 'emboss' | 'engrave' }
   /** Across `axis` = at, or with `normal` across the plane normal·p = at (an oblique cut: x + y = at for [1, 1, 0]). */
   | { kind: 'split'; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] }
   /** The sketch swept along straight runs and bends (from the sketch plane up +Z). */
@@ -376,12 +380,18 @@ type ModelNodeBase = SketchNode
   | { kind: 'subd'; name: string; cage: { positions: number[]; faces: number[][]; creases?: [number, number][] }; mirror?: 'x' | 'y' | 'z' }
   /** Direct surfaces (copied, by their names) sewn along their edges into one closed solid; edges `tolerance` mm apart still meet. */
   | { kind: 'sew'; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }[]; tolerance?: number }
-  /** Draft on chosen side faces (by name) for a pull along +Z: each turned about its line on the body's bottom (positive: its top leans in). */
-  | { kind: 'draft'; parent: BodyRef; faces: string[]; angle: number }
+  /** Draft on named side faces: angle in degrees, signed principal pull (default +Z), neutral world coordinate in mm (default the body's minimum for positive pull, maximum for negative pull). */
+  | { kind: 'draft'; parent: BodyRef; faces: string[]; angle: number; pull?: Axis | '-x' | '-y' | '-z'; neutral?: Dim }
+  /** Full round (a face fillet) of named flat +Z rectangular tops: each a half cylinder across its width, along `along` (default its longer side). */
+  | { kind: 'full-round'; parent: BodyRef; faces: string[]; along?: 'x' | 'y' }
+  /** A face fillet of `radius` between two faces that need not touch — two planes, a plane and a cylinder across or along its axis, two parallel cylinders, cones, spheres and tori with planes and cylinders about one axis, faces at any angle by the rolling ball: the round tangent to both, filled at an inside corner, cut at an outside one. */
+  | { kind: 'face-fillet'; parent: BodyRef; faces: [string, string]; radius: Dim }
+  /** A modelled ISO metric thread on one whole cylindrical face: a shaft's at its diameter, a hole's (its tap drill) at `diameter`, `clearance` (default 0.04 mm) clear of a bolt's; from `end` over `length` (default the face), `relief` short of a shoulder; right hand unless `hand` is left. */
+  | { kind: 'face-thread'; parent: BodyRef; face: string; pitch: number; diameter?: number; length?: number; end?: '+' | '-'; relief?: number; clearance?: number; hand?: 'left' }
   /** IM7b (O113): a face split along its isocline n·d = 0 for the pull (the kernel's split-face, D149): its pieces `<face>#1` (the + side), `<face>#2` …, or `names`. */
   | { kind: 'split-face'; parent: BodyRef; face: string; pull: [number, number, number]; names?: string[] }
-  /** `radii` (R10.5, D100): a varying radius, given at points of the edges; `radius` then the first point's. `section` (R10.5b, D103): a conic or G2 section (default a circle). */
-  | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim }[]; section?: FilletSection }
+  /** `radii` (R10.5, D100): a varying radius, given at points of the edges; `radius` then the first point's. `atEnd`: the point is a chain end and follows it when earlier features move it. `section` (R10.5b, D103): a conic or G2 section (default a circle). */
+  | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim; atEnd?: true }[]; section?: FilletSection }
   /** Along `axis` (default z) through the body; `side` is the face it was picked on (default max). */
   /** A body in several pieces made bodies of their own (`b<i>_part<k>`). */
   | { kind: 'separate'; parent: BodyRef }
@@ -813,6 +823,9 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'hole': return (node.thread ? `Tapped ${node.thread}` : `${node.countersink ? 'Countersunk' : 'Hole'} Ø${typeof node.radius === 'number' ? fmt(node.radius * 2) : node.radius.parameter}`) + (node.pattern && node.pattern.count > 1 ? ` × ${node.pattern.count}` : '');
     case 'chamfer': return `Chamfer ${n(node.distance)}`;
     case 'draft': return `Draft ${fmt(node.angle)}° × ${node.faces.length}`;
+    case 'full-round': return `Full round × ${node.faces.length}`;
+    case 'face-fillet': return `Face fillet ${n(node.radius)}`;
+    case 'face-thread': return (node.diameter !== undefined ? `Thread M${fmt(node.diameter)}×${fmt(node.pitch)}` : `Thread ×${fmt(node.pitch)}`) + (node.hand === 'left' ? ' LH' : '');
     case 'thicken': return `Thicken ${node.name} ${n(node.thickness)}`;
     case 'sheet-base': return `Sheet plate T${n(node.thickness)}`;
     case 'sheet-flange': return `Flange ${n(node.length)} · ${fmt(node.angle ?? 90)}°`;
@@ -826,6 +839,8 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'union': return 'Union';
     case 'intersect': return 'Intersect';
     case 'difference': return 'Subtract';
+    case 'rib': return 'Rib';
+    case 'rectangular-relief': return node.mode === 'emboss' ? 'Rectangular emboss' : 'Rectangular engrave';
     case 'translate': return 'Move';
     case 'rotate': return `Rotate ${node.angle}°`;
     case 'mirror': return `Mirror ${node.plane.toUpperCase()}`;

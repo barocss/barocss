@@ -4,7 +4,7 @@
 // certificate, not a sampled mesh-intersection test. CG1.1b also admits non-affine polygons on
 // frames with identical axes: every intermediate polygon must remain strictly convex, certified
 // by all edge/vertex orientation quadratics. The strictly ordered parallel planes cannot meet.
-// Circle/ellipse pairs use the separate exact conic path; general curves and more than two planes stay out.
+// Circle/ellipse pairs use the separate exact conic path; general curves stay out; two to eight identical-axis conic sections share the ruled path.
 import { BrepError, buildBrep, lineCurve, type BrepFaceInput } from '../brep/brep-core.js';
 import { solidMassFromIntegrals } from '../brep/solid-mass.js';
 import { gauss } from '../core/quadrature.js';
@@ -45,19 +45,19 @@ function frame(input: LoftSectionFrame | undefined): Basis {
 }
 
 export function orientedLoftSolid(input: LoftInput, legacy: LoftLegacyBuilder) {
-  if (input.sections.length === 3) {
+  if (input.sections.length >= 3 && input.sections.length <= 8) {
     if (input.smooth) return fail('currently support ruled sides, not smooth interpolation');
-    if (input.guide !== undefined) return fail('three-section conics do not support a guide');
+    if (input.guide !== undefined) return fail(input.sections.length === 3 ? 'three-section conics do not support a guide' : 'more than two conic sections do not support a guide');
     const S = input.sections;
-    if (S.some(s => s.z !== undefined || s.frame === undefined)) return fail('require frame on all three sections and no z');
+    if (S.some(s => s.z !== undefined || s.frame === undefined)) return fail(S.length === 3 ? 'require frame on all three sections and no z' : 'require frame on every section and no z');
     if (!S.every(s => {
       const p = s.profile;
       return Array.isArray(p) ? p.length === 1 && p[0]?.kind === 'arc'
         : p !== null && typeof p === 'object' && 'kind' in p && p.kind === 'ellipse';
-    })) return fail('three sections require one full-circle arc or one inline ellipse on each end');
+    })) return fail(S.length === 3 ? 'three sections require one full-circle arc or one inline ellipse on each end' : 'each section requires one full-circle arc or one inline ellipse');
     return curvedLoftSolid(input, S.map(s => frame(s.frame)));
   }
-  if (input.sections.length !== 2) return fail('currently support exactly two sections');
+  if (input.sections.length !== 2) return fail('currently support two to eight conic sections');
   if (input.smooth) return fail('currently support ruled sides, not smooth interpolation');
   const S = input.sections;
   if (S.some(s => s.z !== undefined || s.frame === undefined)) return fail('require frame on both sections and no z');

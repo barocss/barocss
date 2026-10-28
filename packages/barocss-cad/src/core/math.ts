@@ -158,7 +158,14 @@ function basisInto(knots: number[], degree: number, count: number, parameter: nu
 function project(sum: Point, weight: number): Point {
   requireValue(Number.isFinite(weight) && weight > 0, 'Rational denominator must be positive and finite');
   const point: Point = [sum[0] / weight, sum[1] / weight, sum[2] / weight];
-  requireValue(point.every(Number.isFinite), 'Evaluated coordinates must be finite');
+  requireValue(Number.isFinite(point[0]) && Number.isFinite(point[1]) && Number.isFinite(point[2]), 'Evaluated coordinates must be finite');
+  return point;
+}
+/** project() of a sum held in three numbers (the evaluators' form: no sum array). */
+function projectXYZ(x: number, y: number, z: number, weight: number): Point {
+  requireValue(Number.isFinite(weight) && weight > 0, 'Rational denominator must be positive and finite');
+  const point: Point = [x / weight, y / weight, z / weight];
+  requireValue(Number.isFinite(point[0]) && Number.isFinite(point[1]) && Number.isFinite(point[2]), 'Evaluated coordinates must be finite');
   return point;
 }
 
@@ -222,10 +229,10 @@ export function curveEvaluator(curve: Curve): (t: number) => Point {
   // The same arithmetic as evaluateCurve (bit-identical points), without its per-call allocation and
   // its per-call look at every pole for a constant coordinate.
   return t => {
-    const s = basisInto(curve.knots, p, n, t, b, l, r), sum: Point = [0, 0, 0];
-    let weight = 0;
-    for (let i = 0; i <= p; i++) { const factor = b[i] * W[s + i], pole = P[s + i]; weight += factor; sum[0] += factor * pole[0]; sum[1] += factor * pole[1]; sum[2] += factor * pole[2]; }
-    const point = project(sum, weight);
+    const s = basisInto(curve.knots, p, n, t, b, l, r);
+    let weight = 0, x = 0, y = 0, z = 0;
+    for (let i = 0; i <= p; i++) { const factor = b[i] * W[s + i], pole = P[s + i]; weight += factor; x += factor * pole[0]; y += factor * pole[1]; z += factor * pole[2]; }
+    const point = projectXYZ(x, y, z, weight);
     for (let axis = 0; axis < 3; axis++) if (constant[axis]) point[axis] = P[0][axis];
     return point;
   };
@@ -245,14 +252,13 @@ export function surfaceEvaluator(surface: Surface): (u: number, v: number) => Po
     if (!keptU || !Object.is(u, lastU)) { keptU = false; startU = basisInto(surface.knotsU, du, nu, u, bu, lu, ru); lastU = u; keptU = true; }
     if (!keptV || !Object.is(v, lastV)) { keptV = false; startV = basisInto(surface.knotsV, dv, nv, v, bv, lv, rv); lastV = v; keptV = true; }
     const su = startU, sv = startV;
-    const sum: Point = [0, 0, 0];
-    let weight = 0;
+    let weight = 0, x = 0, y = 0, z = 0;
     for (let i = 0; i <= du; i++) for (let j = 0; j <= dv; j++) {
       const row = su + i, column = sv + j, factor = bu[i] * bv[j] * W[row][column], pole = P[row][column];
       weight += factor;
-      sum[0] += factor * pole[0]; sum[1] += factor * pole[1]; sum[2] += factor * pole[2];
+      x += factor * pole[0]; y += factor * pole[1]; z += factor * pole[2];
     }
-    const point = project(sum, weight);
+    const point = projectXYZ(x, y, z, weight);
     for (let axis = 0; axis < 3; axis++) if (constant[axis]) point[axis] = P[0][0][axis];
     return point;
   };

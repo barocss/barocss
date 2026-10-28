@@ -85,6 +85,7 @@
           "fl.bend.inner",
           "fl.bend.outer",
           "fl.leg.inner",
+          "fl.leg.outer",
           "fl.tip",
           "fl.trim.side1",
           "fl.trim.side2",

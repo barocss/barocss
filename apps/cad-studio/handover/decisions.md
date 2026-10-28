@@ -1644,6 +1644,9 @@ at that size with a 2M-triangle export (101.6 MB). Node figures are fresh proces
   - kernel: 65 MiB opens, past 128 MiB refused;
   - browser flow: the cup padded to 33 MiB and to 65 MiB opens, to 129 MiB is refused, and the part stays.
 
+*Correction (2026-10-28):* the tessellated cap is now 128 MiB (`CadPartLimits.stepTessellatedBytes = 128 << 20`,
+`part/part-model.ts`, "the owner's 128 MiB, D49"); the 64 MiB above is the cap as first decided.
+
 ## D50 — F1: a facet body split by a plane on its own triangles, each side closed by an exact planar cap; oblique splits of planar bodies fixed (2026-10-18, R4)
 
 Before, a split of a mesh body went through F0's explode, to the planar per-triangle B-rep. It was refused past
@@ -5084,6 +5087,9 @@ D105's verdict for R11.2: a closed body whose faces meet smoothly needs no slab,
 - **Not done:** opened faces (R11.2b). Bodies with sharp edges and freeform faces (region slabs) are R11.2b and R11.2c. Creased SubD bodies have sharp edges and are not on this route.
 - Checks: lint and type-check clean; kernel 1157/1162 (only the env-only Split test fails; r11-s0's two S0 records read then and now); conformance with the 4 new cases; studio 453/453; full flow 151/151 on 52f800a48 plus this step (every R14 and A5 step passing). RB rows in the next commit.
 
+*Correction (2026-10-28):* the smooth-edge test in `blend/offset-cavity.ts` is `SMOOTH = 1e-4` rad, not 1e-6 as
+written above.
+
 ## D111 — R11.2b: a smooth closed freeform body shelled with faces opened (2026-10-20)
 
 D110 refused a shell that opens faces of a smooth freeform body. A shell's wall is the union of its kept faces' normal bands. So opening a face only takes its band away, and this step builds the opened shell from D110's cavity with no Boolean.
@@ -7791,6 +7797,8 @@ Track K's second step (the PKG design note's G4–G6; the coordinator's 2026-10-
 - `@barocss/cad-model` lint and type-check clean.
 - Studio: tsc clean; eslint on the changed tests 0 errors; the suite 756/758 with the known `todo` (O80) and one failure, `hollow`'s sphere cavity test on its "refused at once" (< 1000 ms) wall-clock assert under the full suite's load — `print/hollow.ts` uses none of the changed code, and it passed alone twice and in the suite's next full run.
 - The flow and RB not run (no studio-visible behaviour changed; the coordinator's verify worktree runs the flow).
+
+*Correction (2026-10-28):* the hierarchy lives in `src/mesh/triangle-bvh.ts` (moved into the mesh folder by D229).
 
 ## D142 — K3: the exact clearance between two meshes, one point–triangle (2026-10-21)
 
@@ -14443,3 +14451,151 @@ outer, API and docs lanes branch from it. Design: `notes/r73b-r77b` in the share
 - RB: no NEW, 2 TODOs. Properties pass. Fuzz 20261024: OK 193 / REFUSED 7 as before. Commutativity (corpus): SAME 29.
 - Not run here: cad-model, the studio, the docs samples. Their call sites move in the window (the break list goes to the
   coordinator).
+
+## D281 — Coplanar pieces apart keep their own names (2026-10-28)
+
+**Owner, 2026-10-28**: join coplanar pieces only where they meet; faces apart keep their own names ("이름이 바뀌는 것은
+허용": names may change).
+
+**Before.** The analytic Boolean's `mergePieces` joined every kept piece on one plane (or cylinder) facing one way into a
+single union, and every resulting face took the first piece's name. A row of bosses on a rounded plate had all its top
+faces renamed after one boss at every Boolean (`c3.top#1` … `#4` after the fourth), so a reference to an earlier boss's
+top moved with each new boss; and the union of all of them was rebuilt at every step.
+
+**Now.** Pieces of a coplanar group are clustered by their domain boxes (padded by 10 tolerances, meeting directly or
+through others). A cluster is joined (`booleanCurveRegions`, as before) and each face it makes takes the name of the first
+piece lying in it; a piece alone whose rings close is passed through as it is, with its own name. A row of bosses keeps
+`c0.top`, `c1.top`, ….
+
+**What changed in the records.**
+- Shapes: validity, bodies, faces, edges, vertices, volume and centroid identical on every bench case.
+- Kernel: `r12-s0` (the tray's `fe3.side1` … now their own), three R12 conformance cases' `faceNames` (names added, none
+  lost: `c.start`, `fl.leg.outer`, `c1.side1`, `f1.tip` …), the flat-DXF fixtures re-written with the oracle (the
+  outline's coordinates moved in the last digit: 1e-14).
+- Model: `o7-legacy/expected.json`, one message: the enclosure's CNC corner check counts sharp edges by their two
+  faces' names, and 8 edges that had been counted as 4 pairs (their faces shared a renamed name) are now 8. That one line
+  only; the rest of the oracle is unchanged.
+
+**Checks.** Kernel suite: the 28 baseline failures only. Model suite (1711): the two baseline solver failures only (D240's
+timing assertion failed once under load and passes alone).
+
+## D282 — Half circles stay whole at rounding; repeated face names keep their order; incremental stitch not landed (2026-10-28)
+
+**Owner, 2026-10-28**: find why the full rebuild makes one more vertex than the incremental stitch, make the two give
+the same topology, then apply the incremental stitch.
+
+**Cause of the extra vertex.** The curved arrangement splits an arc over half a turn in two (`halves`), so no piece
+starts and ends at one vertex. It split at exactly `|sweep| > π`. A boss's half circle on a rounded plate's top is read
+back from the stitched edge at every Boolean, and its sweep drifts in the last bits: after the sixth boss it came out
+−3.141592653589794, one ulp past π, and was split at its top (10, 11, 8). That vertex split the neighbouring cylinder's
+edge (`c0.side0#1|p.top` → `#1`, `#2`): one more edge and vertex on an edge no cut touched. The incremental stitch kept
+the face's input edge and never re-read it. **Fix**: `halves` splits only past π + 1e-12, the margin `simplify` already
+keeps arcs within.
+
+**A second fault found on the way.** Faces of one name (a cylinder's two halves, `c0.side0#1`, `#2`) are numbered by
+their points inside, compared exactly. The two halves' points have one x to within rounding (10 ± 4e-15), so the order
+was decided by the last bits and flipped from one Boolean to the next: in a row of bosses the first boss's lower half
+was `c0.side0#1` after b0, `#2` after b1, `#1` after b2. A reference to it changed meaning as later bosses were added.
+**Fix**: a coordinate within 100 tolerances counts as equal and the next decides (`keyOrder`); the name now stays at
+every step.
+
+**The incremental stitch, measured again.** With both fixes, the patch (far faces' loops and edges taken from the
+input, put in first) gives the full rebuild's topology on every bench case (counts, volume, centroid) and −13 % on the
+rounded plate + 48 bosses. But it puts edges and vertices in another order and at the input's points, not the rebuilt
+ones: a test that picks "the first straight edge at z = 10" (R10.1) got another edge, and byte-frozen outputs (flat DXF,
+drawing-table DXF, robot URDF/SDF/USD) changed in the last digits. Made to follow the full rebuild exactly — every
+piece through the vertex merge, the T-junction split and the edge search, only the edges a frozen face leaves whole
+taking their input curves, and frozen faces their input surfaces — it gives the same records as the rebuild at every
+step of the 12-boss chain, and **no gain** (48 bosses 514 → 518 ms, within noise): the time the patch saved was those
+steps. So it is not landed; the faster, order-changing version stays as
+`notes/patches/incremental-stitch-frozen-faces-2026-10-28.patch`. A real gain needs the stitch's per-step
+work (vertex merge, T-junction search, `checkBrep`, ~70 % of it) done only around the faces that changed, which changes
+what is compared, not only how fast.
+
+**Records.**
+- Shapes: the rounded-plate chains lose the spurious edge and vertex (12 bosses: 88 → 87 edges, 59 → 58 vertices; 24
+  and 48 bosses the same). Every other bench case: validity, counts, volume and centroid unchanged.
+- Names: repeated face names keep their numbering across Booleans where it flipped by rounding. One conformance case
+  names a face that had been numbered by rounding: the oblique groove's two top faces (`pe.top#1`, `#2`, one each side of
+  the groove, points inside at one x) swapped, the lower y now `#1`. Its input now names the same rim
+  (`c0.side0|pe.top#2#1`); its expected record is unchanged.
+- New test `boolean-boss-row.test.mjs`: 8 bosses on a rounded plate add 6 edges and 4 vertices each and the first boss's
+  `c0.side0#1` stays one half (fails on the old build at b1).
+- Checks: kernel suite (1958, before the new test, which passes alone): the 28 baseline failures only, plus the groove
+  case before its rename; model suite 1711: the two baseline solver failures
+  only. Bench: shapes unchanged except the rounded-plate chains above.
+
+**Also.** `scripts/code-shape.mjs` no longer counts a for-of's iterable or a for's initializer as inside the loop (they
+are evaluated once); the baseline is re-recorded lower (loop-spread 295 → 274, loop-literal 82 → 75).
+
+## D283 — Incremental stitch: far faces keep their input loops; record order may change (2026-10-28)
+
+**Owner, 2026-10-28**: apply the faster incremental stitch (D282's measured −13 %), accepting that edge and vertex
+order and last-digit coordinates change; update the tests and frozen files that read them.
+
+**Change.** In the analytic Boolean, a face kept whole and far from the other solid (no cut, 1000 tolerances clear of
+its box; not a NURBS face through a pole) is *frozen*: the stitch takes its loops, edges, vertices and surface from its
+input B-rep instead of rebuilding them, and puts its edges in first; neighbours find them as they find a copy of a
+curve. A face is frozen only where its rebuilt boundary would be its input loops one for one (no curve dropped, halved
+or fitted in pieces), so its edges are the ones the rebuild would make. Any `BrepError` rebuilds the whole as before.
+D282's two fixes (arcs past π + 1e-12; repeated names ordered with a tolerance) are what make the topology the same.
+
+**What changes and what does not.**
+- Same: validity, bodies, faces, edges, vertices, volume and centroid on every bench case; edge names (as a set) at all
+  13 steps of the rounded plate + 12 bosses. No fallback on the bench.
+- Different: the order of edges and vertices in the B-rep, an edge's direction where the input's is kept, and the last
+  digits of frozen faces' points (the input's, not re-derived).
+- Time (median of 5, best of two rounds): rounded plate + 12 / 24 / 48 bosses −13 / −10 / −12 %; tilted boxes 48 −4 %;
+  the rest within noise.
+
+**Records updated.**
+- `test/r10-1.test.mjs`: the rod-on-plate junction was picked as "the first straight edge at z = 10 with y > 0", which
+  the plate's own edge at y = 20 also is; now y < 10 too (by where it lies, not its place in the list).
+- Kernel `conformance/r12/flat-dxf/*`: re-written with the ezdxf oracle (`flat-dxf-fixtures.mjs`); coordinates move in
+  the last digit (24.178318229274428 → …424).
+- `conformance/r14/tables/bends`: the drawing-table DXF re-frozen (`UPDATE_DXF_FIXTURES`) and read again by ezdxf
+  (`dxf-oracle.py`): the same 107 entities; 17 lines run the other way and the order differs.
+- `conformance/rm/arm-6r`: `robot.sdf`, `robot.usda` (`UPDATE_USD_CASE`) and `robot.xml` (the same switch now also
+  re-freezes the MJCF, `test/robot-sdf-usd.test.ts`): poses and inertia in the last digits (0.040000000000000015 →
+  0.04), the USD mesh's triangulation. usd-core 26.8 read the new stage: its reading file is unchanged. MuJoCo 3.3.0
+  re-run (`mjcf-oracle.py`, meshes from `cad-cli mjcf`): every check passes; static values move by ≤ 2e-15, the
+  undamped 5 s hang's chaotic end values (`qvel_max` 74.5 → 56.2, `com_height_end`) by more. four-bar unchanged.
+- `cad-model/test/fixtures/robot-frozen-boundary.json` (the frozen arm's byte pin, test `robot-frozen-mass`): its three
+  non-inertial hashes and 54 refreshed inertia values re-pinned to the new files; the S0 `before` values unchanged.
+- The patch file `notes/patches/incremental-stitch-frozen-faces-2026-10-28.patch` (D282) is removed: it is in the source now.
+- Kept checked (2026-10-28): `test/incremental-stitch-differential.test.mjs` evaluates 15 chains (random rounded-plate
+  boss/pocket rows, 12 bosses, two tilted-box rows) with the frozen path on and off (`stitchFreezing`, a module switch
+  not exported from the package) and requires the same validity, counts, face and edge names, volume and centroid.
+
+## D284 — Sketch results on the 1e-6 mm grid when the solver accepts them; a non-converging edit keeps its own reason (2026-10-28)
+
+**Owner, 2026-10-28**: fix the studio sketch-solver mismatch — decide whether results snap to exact values and what a
+conflict shows — and make `apps/cad-studio/test/constraints.test.ts` and the two cad-model solver tests pass.
+
+**Before.** `d62571d69` (CAD review 2215, P0 "sketch output": preserve solver-approved coefficients, keep display
+rounding separate, preserve the meaning of NONCONVERGENCE) removed `solveOutline`'s rounding of every solved point to
+1e-6 mm and its mapping of NONCONVERGENCE to "These constraints conflict with each other or with the H/V edges". Its own
+regressions (`sketch-profile-precision.test.ts`) were added; the older expectations were not updated. The kernel's
+solver stops once every residual is within tolerance (1e-7 mm, 1e-9 rad), so results came back a few 1e-8 mm off:
+a width of 60 as 59.999999964, a fixed-point neighbour as 36.0000000027. Seven of the studio test's 24 and both
+cad-model solver tests failed on exact values, and a typed rectangle no longer read as a rectangle (`shapeNode`, the
+QA S3/K29 case). Four studio tests expected the old "conflict" wording.
+
+**Decision.**
+1. *Snap only what the solver accepts.* After a successful solve, `solveOutline` rounds every solution point (outline
+   points, arc centres, rule points) to the 1e-6 mm grid and solves again from them. If that solve succeeds without a
+   step (`iterations === 0`: the kernel's own residual check passes on the snapped points as they are), the snapped
+   solution is the result; otherwise the solver's values are kept. Ordinary designs in whole or short decimal mm come
+   out exact; 2215's cases — an off-grid anchor, a driving 10.0000004, an off-grid circle centre — fail the check when
+   snapped and stay as solved, so no accepted geometry is moved off its constraints. The cost is one extra solve that
+   takes no step. The kernel is unchanged.
+2. *A non-converging edit says only what the solver knows.* The studio keeps the kernel's diagnostic after the
+   constraint's label ("Length of edge 3 = 50: XY numerical sketch: Bounded local solve did not meet fixed residual
+   tolerances; this is not an inconsistency proof"), as 2215 requires: a local solve that does not converge has not
+   proved the constraints contradict each other. The old wording claimed that.
+
+**Records.** `packages/barocss-cad-model/src/sketch/profile.ts` (`solveOutline`, `snap`). `apps/cad-studio/test/
+constraints.test.ts`: four expectations of "conflict" now expect the label and the solver's diagnostic (`NOT_SOLVED`),
+because the old expectation was the wording 2215 withdrew; no numeric expectation was loosened. The two cad-model
+solver tests (`engine.test.ts`) and `sketch-profile-precision.test.ts` pass unchanged. Docs:
+`apps/library-docs/docs/how/sketch-solver.md`.

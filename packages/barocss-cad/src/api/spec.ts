@@ -6,7 +6,7 @@
 // backend's argument beside it.
 import { refuse } from './refusal.js';
 import { Sketch, type SketchData } from './sketch.js';
-import type { AxisName } from './select.js';
+import type { AxisName, EdgeInfo } from './select.js';
 
 export type BooleanCommand = 'union' | 'difference' | 'intersect';
 
@@ -30,7 +30,7 @@ type BaseSpec =
   | { readonly command: 'extrude'; readonly sketch: SketchData; readonly values: { readonly h: number; readonly draft: number } }
   | { readonly command: 'revolve'; readonly sketch: SketchData; readonly values: { readonly axis: 'x' | 'y'; readonly deg: number } }
   | { readonly command: 'hole'; readonly face: string; readonly values: { readonly type: 'through' | 'blind'; readonly d: number; readonly x: number; readonly y: number; readonly depth?: number } }
-  | { readonly command: 'fillet'; readonly edges: readonly string[]; readonly values: { readonly radius: number } }
+  | { readonly command: 'fillet'; readonly edges: readonly string[]; readonly values: { readonly radius: number; readonly endRadius?: number } }
   | { readonly command: 'chamfer'; readonly edges: readonly string[]; readonly values: { readonly distance: number } }
   | { readonly command: 'shell'; readonly faces: readonly string[]; readonly values: { readonly t: number } }
   | { readonly command: BooleanCommand; readonly tool: string; readonly values: Record<string, never> }
@@ -61,8 +61,11 @@ export interface ExtrudeOptions { h: Dim; draft?: Dim }
 export interface RevolveOptions { axis?: 'x' | 'y'; deg?: Dim }
 /** `hole`: into the face a selector picks; `x`, `y` on that face's plane (a Z face: X and Y), as the command takes them. */
 export interface HoleOptions { d: Dim; x: Dim; y: Dim; type?: 'through' | 'blind'; depth?: Dim }
-/** `fillet`: on the edges a selector picks. */
-export interface FilletOptions { radius: Dim }
+/** `fillet`: on the selected edges; endRadius explicitly selects one straight open edge, from a to b.
+ * Both explicit endpoint radii are at least 0.1 mm. Near-equal distinct radii are refused at the existing
+ * Studio 1e-9 boundary. Equal numeric radii use the constant path; only a varying endRadius can bind.
+ */
+export interface FilletOptions { radius: Dim; endRadius?: Dim }
 /** `chamfer`: on the edges a selector picks, at 45°. */
 export interface ChamferOptions { distance: Dim }
 /** `shell`: walls t thick, the faces a selector picks left open (none: a closed hollow). */
@@ -126,8 +129,19 @@ export function holeSpec(face: string, o: Resolved<HoleOptions>): FeatureSpec {
   return { command: 'hole', face, values: { type, d: positive('d', o.d), x: finite('x', o.x), y: finite('y', o.y), ...(type === 'blind' ? { depth: positive('depth', o.depth!) } : {}) } };
 }
 
-export function filletSpec(edges: readonly string[], o: Resolved<FilletOptions>): FeatureSpec {
-  return { command: 'fillet', edges: edgesOf(edges, 'fillet'), values: { radius: positive('radius', o.radius) } };
+export function filletSpec(edges: readonly string[], o: Resolved<FilletOptions>, picked?: readonly EdgeInfo[]): FeatureSpec {
+  const names = edgesOf(edges, 'fillet'), radius = positive('radius', o.radius);
+  if (o.endRadius === undefined) return { command: 'fillet', edges: names, values: { radius } };
+  const endRadius = finite('endRadius', o.endRadius);
+  if (radius < 0.1 || endRadius < 0.1) throw refuse('VALUE', 'explicit fillet endpoint radii must be at least 0.1 mm');
+  if (picked?.length !== 1) throw refuse('SELECTION_ONE', 'an endRadius takes exactly one straight open edge with one name');
+  const edge = picked[0];
+  if (!edge.straight || edge.a.length !== 3 || edge.b.length !== 3 || ![...edge.a, ...edge.b].every(Number.isFinite)
+    || edge.a.map(x => Math.round(x * 1e4)).join(',') === edge.b.map(x => Math.round(x * 1e4)).join(',')) throw refuse('VALUE', 'an endRadius takes one straight open edge with distinct endpoints');
+  if (names.length !== 1) throw refuse('SELECTION_ONE', 'an endRadius takes exactly one straight open edge with one name');
+  // Preserve the existing Studio command threshold without silently dropping a distinct end radius.
+  if (endRadius !== radius && Math.abs(endRadius - radius) <= 1e-9) throw refuse('VALUE', 'distinct fillet endpoint radii must differ by more than 1e-9 mm');
+  return { command: 'fillet', edges: names, values: { radius, ...(endRadius !== radius ? { endRadius } : {}) } };
 }
 
 export function chamferSpec(edges: readonly string[], o: Resolved<ChamferOptions>): FeatureSpec {

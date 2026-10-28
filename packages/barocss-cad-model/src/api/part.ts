@@ -1,7 +1,7 @@
 // R7 (cad-model's facade): the one part (@barocss/cad/api's Part) over the studio document, with its studio backend
 // (./studio), with studio-only authoring and a material by its library id for mass. `.doc` is the StudioDoc the
 // agent's tools, the studio, save/open and the fingerprints use. Assemblies, variants and rows come as the layer grows.
-import { BarocssError, Part, Sketch, bracketedCode, refuse, studioSpec, type BodyQuery, type Density, type FaceQuery, type Vec3 } from '@barocss/cad/api';
+import { BarocssError, Part, Sketch, bracketedCode, refuse, studioSpec, type BodyQuery, type Density, type FaceQuery, type Vec3, type Dim } from '@barocss/cad/api';
 import { sha256Hex } from '../util/digest';
 import { loadPersonRows } from '../chat/rows';
 import { receivePersonRowFiles } from '../engine/rowFiles';
@@ -16,6 +16,11 @@ import { studioBackend } from './studio';
 import { drawingDoc, drawingOf, manufacturabilityOf, outputOf, withCasting, withProcess, type CastingOptions } from './outputs';
 import { setBought } from '../bom/bom';
 import { withLibraryPart, type LibraryPartInput } from './library';
+import { refOf } from '../app/bodyRef';
+import { buildDraft, buildFaceFillet, buildFaceThread, buildFullRound, type Values } from '../app/commands';
+import { resolveNames } from '../chat/names';
+import { captureSignatures } from '../engine/references';
+import { bindParameter } from '../engine/parameters';
 
 /** A closed sketch at a legacy height or in an explicit world-mm section frame, never both. */
 export type StudioLoftSection = { readonly sketch: Sketch } & (
@@ -38,7 +43,196 @@ const libraryMaterial = (id: string) => {
   return m;
 };
 
+/** Public draft lengths are world mm; only the explicit neutral coordinate may bind to a parameter. */
+export interface StudioDraftOptions { readonly angle: number; readonly pull?: 'x' | 'y' | 'z' | '-x' | '-y' | '-z'; readonly neutral?: Dim }
+
+/** Face fillet options: the round's radius (world mm). */
+export interface StudioFaceFilletOptions { readonly radius: number }
+
+/** Thread options: pitch; a hole's nominal diameter and clearance on a bolt (default 0.04 mm); length from the end (left out: the face), end + or −, a shaft's relief groove. */
+export interface StudioThreadOptions { readonly pitch: number; readonly diameter?: number; readonly length?: number; readonly end?: '+' | '-'; readonly relief?: number; readonly clearance?: number; readonly hand?: 'right' | 'left' }
+
+/** Full round options: the round's axis, x or y; left out, each face's longer side. */
+export interface StudioFullRoundOptions { readonly along?: 'x' | 'y' }
+
+/** World-mm corners of a rectangular rib; dimensions may name existing parameters. */
+export interface StudioRibOptions { readonly min: readonly [Dim, Dim, Dim]; readonly max: readonly [Dim, Dim, Dim] }
+
+/** World-XY rectangular footprint and positive depth from a supported body's +Z top. */
+export interface StudioRectangularReliefOptions {
+  readonly min: readonly [Dim, Dim]; readonly max: readonly [Dim, Dim];
+  readonly depth: Dim; readonly mode: 'emboss' | 'engrave';
+}
+
 export class StudioPart extends Part<StudioDoc> {
+  /** One line-only upright slab only; no text, general faces or curved embossing. */
+  rectangularRelief(options: StudioRectangularReliefOptions): this {
+    const keys = ['min', 'max', 'depth', 'mode'];
+    if (!options || typeof options !== 'object' || Array.isArray(options) || Reflect.ownKeys(options).some(k => typeof k !== 'string' || !keys.includes(k)) || keys.some(k => !Object.hasOwn(options, k))) throw refuse('VALUE', 'rectangular relief takes min, max, depth and mode');
+    let copied: StudioRectangularReliefOptions;
+    try { copied = structuredClone(options); } catch { throw refuse('VALUE', 'rectangular relief options must be copied plain values'); }
+    if (copied.mode !== 'emboss' && copied.mode !== 'engrave') throw refuse('VALUE', 'rectangular relief mode is emboss or engrave');
+    const doc = this.document, before = bodiesOf(doc), target = this.target(), body = before.find(b => b.key === target);
+    if (!body) throw refuse('NO_BODY', 'rectangular relief needs one selected body');
+    const dim = (value: unknown): Dim => {
+      if (typeof value === 'number') {
+        if (!Number.isFinite(value) || Math.abs(value) > 10000) throw refuse('VALUE', 'rectangular relief values must be finite world-mm numbers within ±10000');
+        return value;
+      }
+      if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== 1 || !Object.hasOwn(value, 'parameter') || typeof (value as { parameter?: unknown }).parameter !== 'string') throw refuse('VALUE', 'rectangular relief dimensions are numbers or named parameters');
+      const parameter = (value as { parameter: string }).parameter;
+      if (!Object.hasOwn(doc.parameters, parameter)) throw refuse('PARAMETER_UNKNOWN', `no parameter ${parameter}`);
+      return { parameter };
+    };
+    const point = (value: unknown): [Dim, Dim] => {
+      if (!Array.isArray(value) || value.length !== 2) throw refuse('VALUE', 'rectangular relief footprint corners need two coordinates');
+      return [dim(value[0]), dim(value[1])];
+    };
+    const node: ModelNode = { kind: 'rectangular-relief', parent: refOf(body), min: point(copied.min), max: point(copied.max), depth: dim(copied.depth), mode: copied.mode };
+    const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the rectangular relief: ${why}`);
+    const next = withNode(doc, node), after = bodiesOf(next).map(b => b.key);
+    if (this.focus === null) return this.next(next, null);
+    const made = after.filter(key => !before.some(b => b.key === key));
+    return this.next(next, after.includes(this.focus) ? this.focus : made.length === 1 ? made[0] : null);
+  }
+
+  /** Add material to one line-only upright solid with positive interior overlap; unsupported targets refuse. */
+  rib(options: StudioRibOptions): this {
+    if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).length !== 2 || !Object.hasOwn(options, 'min') || !Object.hasOwn(options, 'max')) throw refuse('VALUE', 'rib takes min and max world-mm corners');
+    let copied: StudioRibOptions;
+    try { copied = structuredClone(options); } catch { throw refuse('VALUE', 'rib corners must be plain copied values'); }
+    const doc = this.document, before = bodiesOf(doc), target = this.target(), body = before.find(b => b.key === target);
+    if (!body) throw refuse('NO_BODY', 'rib needs one selected body');
+    const dim = (value: unknown): Dim => {
+      if (typeof value === 'number') {
+        if (!Number.isFinite(value) || Math.abs(value) > 10000) throw refuse('VALUE', 'rib coordinates must be finite world-mm values within ±10000');
+        return value;
+      }
+      if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== 1 || !Object.hasOwn(value, 'parameter') || typeof (value as { parameter?: unknown }).parameter !== 'string') throw refuse('VALUE', 'rib coordinates are numbers or named parameters');
+      const parameter = (value as { parameter: string }).parameter;
+      if (!Object.hasOwn(doc.parameters, parameter)) throw refuse('PARAMETER_UNKNOWN', `no parameter ${parameter}`);
+      return { parameter };
+    };
+    const point = (value: unknown): [Dim, Dim, Dim] => {
+      if (!Array.isArray(value) || value.length !== 3) throw refuse('VALUE', 'rib corners each need three coordinates');
+      return [dim(value[0]), dim(value[1]), dim(value[2])];
+    };
+    const node: ModelNode = { kind: 'rib', parent: refOf(body), min: point(copied.min), max: point(copied.max) };
+    const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the rib: ${why}`);
+    const next = withNode(doc, node), after = bodiesOf(next).map(b => b.key);
+    if (this.focus === null) return this.next(next, null);
+    const made = after.filter(key => !before.some(b => b.key === key));
+    return this.next(next, after.includes(this.focus) ? this.focus : made.length === 1 ? made[0] : null);
+  }
+
+
+  /** Draft selected planar side faces through the existing builder; refusal preserves this part and the caller values. */
+  draft(faces: (body: BodyQuery) => FaceQuery, options: StudioDraftOptions): this {
+    if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).some(k => k !== 'angle' && k !== 'pull' && k !== 'neutral')) throw refuse('VALUE', 'draft options are angle, pull and neutral');
+    let copied: StudioDraftOptions;
+    try { copied = structuredClone(options); } catch { throw refuse('VALUE', 'draft options must be plain copied values'); }
+    if (typeof copied.angle !== 'number' || !Number.isFinite(copied.angle)) throw refuse('VALUE', 'draft angle must be a finite number of degrees');
+    if (copied.pull !== undefined && !['x', 'y', 'z', '-x', '-y', '-z'].includes(copied.pull)) throw refuse('VALUE', 'draft pull is x, y, z, -x, -y or -z');
+    const doc = this.document, before = bodiesOf(doc), target = this.target(), body = before.find(b => b.key === target);
+    if (!body) throw refuse('NO_BODY', 'draft needs one selected body');
+    if (typeof faces !== 'function') throw refuse('VALUE', 'draft takes a face selector');
+    const picked = faces(this.select());
+    if (!picked.count) throw refuse('SELECTION_EMPTY', 'the selector picked no face to draft');
+    const { selection, unknown } = resolveNames([body], { faces: picked.names() });
+    if (unknown.length) throw refuse('SELECTION_UNKNOWN', `no face named ${unknown.join(', ')} on the selected body`);
+    const values: Values = { deg: copied.angle, ...(copied.pull !== undefined ? { pull: copied.pull } : {}) };
+    let parameter: string | undefined;
+    if (copied.neutral !== undefined) {
+      const value = copied.neutral;
+      if (typeof value === 'number') values.neutral = value;
+      else {
+        if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== 1 || typeof value.parameter !== 'string') throw refuse('VALUE', 'draft neutral is a number or a named parameter');
+        parameter = value.parameter;
+        if (!Object.hasOwn(doc.parameters, parameter)) throw refuse('PARAMETER_UNKNOWN', `no parameter ${parameter}`);
+        values.neutral = doc.parameters[parameter];
+      }
+    }
+    let next = buildDraft({ doc, bodies: [body], selection }, values);
+    if (next.nodes.length > doc.nodes.length) {
+      const why = checkNode(next.nodes.at(-1), doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+      if (why) throw refuse('VALUE', `the draft: ${why}`);
+    }
+    next = captureSignatures(next, [body]);
+    if (parameter !== undefined) next = bindParameter(next, { feature: next.nodes.length - 1, value: 'neutral', parameter });
+    const after = bodiesOf(next).map(b => b.key);
+    if (this.focus === null) return this.next(next, null);
+    const made = after.filter(key => !before.some(b => b.key === key));
+    return this.next(next, after.includes(this.focus) ? this.focus : made.length === 1 ? made[0] : null);
+  }
+
+  /** A face fillet between the two selected flat faces (they need not touch) through the Studio builder; refusal preserves this part. */
+  faceFillet(faces: (body: BodyQuery) => FaceQuery, options: StudioFaceFilletOptions): this {
+    if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).some(k => k !== 'radius')) throw refuse('VALUE', 'face fillet options are radius');
+    if (!(typeof options.radius === 'number' && Number.isFinite(options.radius))) throw refuse('VALUE', 'face fillet radius is a finite number of mm');
+    const doc = this.document, before = bodiesOf(doc), target = this.target(), body = before.find(b => b.key === target);
+    if (!body) throw refuse('NO_BODY', 'face fillet needs one selected body');
+    if (typeof faces !== 'function') throw refuse('VALUE', 'face fillet takes a face selector');
+    const picked = faces(this.select());
+    if (!picked.count) throw refuse('SELECTION_EMPTY', 'the selector picked no face to round between');
+    const { selection, unknown } = resolveNames([body], { faces: picked.names() });
+    if (unknown.length) throw refuse('SELECTION_UNKNOWN', `no face named ${unknown.join(', ')} on the selected body`);
+    let next = buildFaceFillet({ doc, bodies: [body], selection }, { r: options.radius });
+    const why = checkNode(next.nodes.at(-1), doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the face fillet: ${why}`);
+    next = captureSignatures(next, [body]);
+    const after = bodiesOf(next).map(b => b.key);
+    if (this.focus === null) return this.next(next, null);
+    const made = after.filter(key => !before.some(b => b.key === key));
+    return this.next(next, after.includes(this.focus) ? this.focus : made.length === 1 ? made[0] : null);
+  }
+
+  /** A modelled thread on the selected round face (a shaft, or a hole at `diameter`) through the Studio builder; refusal preserves this part. */
+  thread(face: (body: BodyQuery) => FaceQuery, options: StudioThreadOptions): this {
+    const keys = ['pitch', 'diameter', 'length', 'end', 'relief', 'clearance', 'hand'];
+    if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).some(k => !keys.includes(k))) throw refuse('VALUE', 'thread options are pitch, diameter, length, end, relief, clearance and hand');
+    for (const k of ['pitch', 'diameter', 'length', 'relief', 'clearance'] as const) if (options[k] !== undefined && !(typeof options[k] === 'number' && Number.isFinite(options[k]))) throw refuse('VALUE', `thread ${k} is a finite number of mm`);
+    if (options.end !== undefined && options.end !== '+' && options.end !== '-') throw refuse('VALUE', 'thread end is + or -');
+    if (options.hand !== undefined && options.hand !== 'right' && options.hand !== 'left') throw refuse('VALUE', 'thread hand is right or left');
+    const doc = this.document, before = bodiesOf(doc), target = this.target(), body = before.find(b => b.key === target);
+    if (!body) throw refuse('NO_BODY', 'thread needs one selected body');
+    if (typeof face !== 'function') throw refuse('VALUE', 'thread takes a face selector');
+    const picked = face(this.select());
+    if (picked.count !== 1) throw refuse(picked.count ? 'VALUE' : 'SELECTION_EMPTY', picked.count ? 'thread one round face at a time' : 'the selector picked no face to thread');
+    const { selection, unknown } = resolveNames([body], { faces: picked.names() });
+    if (unknown.length) throw refuse('SELECTION_UNKNOWN', `no face named ${unknown.join(', ')} on the selected body`);
+    const values: Values = { pitch: options.pitch, len: options.length ?? 0, end: options.end ?? '+', ...(options.diameter !== undefined ? { d: options.diameter } : {}), ...(options.relief !== undefined ? { relief: options.relief } : {}), ...(options.clearance !== undefined ? { clear: options.clearance } : {}), ...(options.hand !== undefined ? { hand: options.hand } : {}) };
+    const next = buildFaceThread({ doc, bodies: [body], selection }, values), node = next.nodes.at(-1);
+    const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the thread: ${why}`);
+    const after = bodiesOf(next).map(b => b.key);
+    if (this.focus === null) return this.next(next, null);
+    const made = after.filter(key => !before.some(b => b.key === key));
+    return this.next(next, after.includes(this.focus) ? this.focus : made.length === 1 ? made[0] : null);
+  }
+
+  /** Full round the selected flat +Z rectangular tops (rib and wall tops) through the Studio builder; refusal preserves this part. */
+  fullRound(faces: (body: BodyQuery) => FaceQuery, options: StudioFullRoundOptions = {}): this {
+    if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).some(k => k !== 'along')) throw refuse('VALUE', 'full round options are along');
+    if (options.along !== undefined && options.along !== 'x' && options.along !== 'y') throw refuse('VALUE', 'full round along is x or y');
+    const doc = this.document, before = bodiesOf(doc), target = this.target(), body = before.find(b => b.key === target);
+    if (!body) throw refuse('NO_BODY', 'full round needs one selected body');
+    if (typeof faces !== 'function') throw refuse('VALUE', 'full round takes a face selector');
+    const picked = faces(this.select());
+    if (!picked.count) throw refuse('SELECTION_EMPTY', 'the selector picked no face to round');
+    const { selection, unknown } = resolveNames([body], { faces: picked.names() });
+    if (unknown.length) throw refuse('SELECTION_UNKNOWN', `no face named ${unknown.join(', ')} on the selected body`);
+    let next = buildFullRound({ doc, bodies: [body], selection }, { along: options.along ?? 'auto' });
+    const why = checkNode(next.nodes.at(-1), doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the full round: ${why}`);
+    next = captureSignatures(next, [body]);
+    const after = bodiesOf(next).map(b => b.key);
+    if (this.focus === null) return this.next(next, null);
+    const made = after.filter(key => !before.some(b => b.key === key));
+    return this.next(next, after.includes(this.focus) ? this.focus : made.length === 1 ? made[0] : null);
+  }
+
   /**
    * A loft through closed sketches, choosing its new body. Section frames and guide controls are copied snapshots
    * in world mm; later edits to the source curve or caller's arrays do not drive this feature. A guide requires

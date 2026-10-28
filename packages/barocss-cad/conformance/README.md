@@ -20,9 +20,9 @@ Every roadmap step (R… / RB…) adds its cases under a folder named after it, 
   "expect": {
     // Either the outputs (in order), or the error the document is refused with.
     "outputs": [{
-      "volumeMM3": { "value": 1000, "relTol": 1e-9 },     // optional "absTol" (mm³): a floor for tiny volumes
-      "centroidMM": { "value": [5, 5, 5], "absTol": 1e-9 },
-      "areaMM2": { "value": 600, "relTol": 1e-9 },  // optional: the surface area over the exact surfaces
+      "volume": { "value": 1000, "relTol": 1e-9 },         // optional "absTol" (mm³): a floor for tiny volumes
+      "centroid": { "value": [5, 5, 5], "absTol": 1e-9 },
+      "area": { "value": 600, "relTol": 1e-9 },     // optional: the surface area over the exact surfaces
       "bodies": 1,                                  // separate solid bodies in this output
       "topology": [{ "shells": 1, "genus": 0 }],    // per body: closed shells and genus (Euler–Poincaré)
       "faceNames": ["s.surface0", "..."],           // optional: distinct face names, "#k" numbering removed, sorted
@@ -30,23 +30,28 @@ Every roadmap step (R… / RB…) adds its cases under a folder named after it, 
       "tessellation": { "segmentsPerQuarter": 8, "watertight": true },  // optional: every edge in exactly two triangles, by exact position
       "decimate": { "trianglesAtMost": 12, "hausdorffMMAtMost": 1e-9 },  // optional: a decimated mesh's report (R9): its triangles, its measured distance both ways
       // optional: a sheet-metal body's rules and its bends in order (R12): names, angles and allowances θ(R + K·T) to absTol
-      "sheet": { "thicknessMM": 2, "bendRadiusMM": 3, "kFactor": 0.4, "absTol": 1e-9, "bends": [{ "name": "c.bend1", "angleDegrees": 90, "allowanceMM": 5.969 }] },
-      // optional: a structural member's report (FR1): its section's area and centroid, length, the section's x and y (and the up fallback), to absTol
+      "sheet": { "thickness": 2, "bendRadius": 3, "kFactor": 0.4, "absTol": 1e-9, "bends": [{ "name": "c.bend1", "angle": 90, "allowance": 5.969 }] },
+      // optional: a structural member's report (FR1): its section's area and centroid, length, the section's x and y (and "upFallback"), to absTol
       // ("derived": the dimensions derived by a geometric rule and how, or null for none — a tube's concentric bore radius)
       // ("ends": a frame member's ends at its corners in order — end, kind, point, and the cut's angle from square, FR3a)
-      "member": { "areaMM2": 420.82, "lengthMM": 394.46, "centroid": [0, 0], "xAxis": [0, 1, 0], "yAxis": [0, 0, 1], "derived": { "innerRadius": "concentric: ro − t" }, "ends": [{ "end": "start", "kind": "mitre", "point": 0, "angleDegrees": 45 }], "absTol": 1e-9 },
+      "member": { "area": 420.82, "length": 394.46, "centroid": [0, 0], "xAxis": [0, 1, 0], "yAxis": [0, 0, 1], "derived": { "innerRadius": "concentric: ro − t" }, "ends": [{ "end": "start", "kind": "mitre", "point": 0, "angle": 45 }], "absTol": 1e-9 },
+      // optional: a weldment plate's report (FRk1): a gusset's or an end cap's area and its seam lengths ("seams") or seam ("seam"), to absTol
+      "plate": { "kind": "gusset", "area": 5887.5, "seams": [105, 85], "absTol": 1e-9 },
+      // optional: a weld bead's report (FRk2): its leg, seam length, the part of it flush, the members it meets, to absTol
+      "bead": { "leg": 3, "seam": 160, "flush": 0, "meets": [0], "absTol": 1e-9 },
       // optional: its flat pattern (R12.2): area, box, loops, bends (sorted by name) — or `error` {code, messageIncludes};
-      // `options` as flatPattern takes them (with `thicknessMM`: the kernel's flatPattern of a body made without the rules)
-      "flat": { "areaMM2": { "value": 2308.65, "relTol": 1e-9 }, "box": { "value": [94.36, 25], "absTol": 1e-9 }, "loops": 2, "bends": [{ "name": "c.bend1", "direction": "down", "angleDegrees": 90 }] }
+      // `options` as flatPattern takes them (with `thickness`: the kernel's flatPattern of a body made without the rules)
+      "flat": { "area": { "value": 2308.65, "relTol": 1e-9 }, "box": { "value": [94.36, 25], "absTol": 1e-9 }, "loops": 2, "bends": [{ "name": "c.bend1", "direction": "down", "angle": 90 }] }
     }],
     "error": { "code": "GEOMETRY", "messageIncludes": "not closed" },
     // Optional: a frame's cut list over its member outputs (FR4a): rows in order (quantity, pieces, axis length, long
     // point, from volume or not, each end's kind with its mitre and bevel angles, mass each) and totals, at a density.
-    "cutList": { "densityKgPerM3": 7850, "absTol": 1e-9, "rows": [{ "quantity": 2, "pieces": ["f/0", "f/2"], "axisLengthMM": 600, "longPointMM": 640, "fromVolume": false, "ends": [{ "kind": "mitre", "mitreDegrees": 45, "bevelDegrees": 0 }], "massKG": 1.97 }], "totals": { "quantity": 4, "axisLengthMM": 2000, "massKG": 6.97 } },
+    // (MMGS: density in g/cm³, mass in g.)
+    "cutList": { "density": 7.85, "absTol": 1e-9, "rows": [{ "quantity": 2, "pieces": ["f/0", "f/2"], "axisLength": 600, "longPoint": 640, "fromVolume": false, "ends": [{ "kind": "mitre", "mitre": 45, "bevel": 0 }], "mass": 1970 }], "totals": { "quantity": 4, "axisLength": 2000, "mass": 6970 } },
     // Optional: fits between outputs (R12c.2): the tables (the user's rows, as fitTableProblem takes them), a hole face and a
     // shaft face { output, face, class } — the kind, clearance [least, greatest] µm, the overlap at MMC and LMC (mm³) to
     // absTol, contradicted or not; or `error` {code, messageIncludes}.
-    "fitChecks": [{ "tables": [{ "id": "t", "sources": [{ "id": "S", "label": "…" }], "rows": [{ "class": "H7", "overMM": 30, "upToMM": 50, "upperUM": 25, "lowerUM": 0, "source": "S" }] }], "hole": { "output": "r", "face": "bore.side0#1", "class": "H7" }, "shaft": { "output": "s", "face": "s.side0#1", "class": "k6" }, "kind": "transition", "clearanceUM": [-18, 23], "mmcOverlapMM3": 28.2794, "lmcOverlapMM3": 0, "contradicted": false, "absTol": 1e-6 }],
+    "fitChecks": [{ "tables": [{ "id": "t", "sources": [{ "id": "S", "label": "…" }], "rows": [{ "class": "H7", "over": 30, "upTo": 50, "upper": 0.025, "lower": 0, "source": "S" }] }], "hole": { "output": "r", "face": "bore.side0#1", "class": "H7" }, "shaft": { "output": "s", "face": "s.side0#1", "class": "k6" }, "kind": "transition", "clearanceUM": [-18, 23], "mmcOverlapMM3": 28.2794, "lmcOverlapMM3": 0, "contradicted": false, "absTol": 1e-6 }],
     // Optional: all outputs written to one STEP file and read back are strictly valid (names unique) and
     // keep their total volume and area to relTol.
     "stepRoundTrip": { "relTol": 1e-6 },

@@ -21,13 +21,19 @@ import { triangulatePolygonWithHoles } from './brep-tessellate.js';
 import { nameEdges } from '../features/prismatic-solid.js';
 import { binary64Dyadic } from '../core/dyadic.js';
 import type { Point, Surface } from '../types.js';
+import { maxAt, minAt } from '../core/extent.js';
+/** Twice the area of a triangle of exact points (in floating point), by index into `all`. */
+function triArea2(all: readonly ExactPoint2[], u: readonly [number, number, number]): number {
+  const p0 = exactToXY(all[u[0]]), p1 = exactToXY(all[u[1]]), p2 = exactToXY(all[u[2]]);
+  return Math.abs((p1[0] - p0[0]) * (p2[1] - p0[1]) - (p1[1] - p0[1]) * (p2[0] - p0[0]));
+}
 
 export type PolyhedralBooleanOperation = 'union' | 'intersection' | 'difference';
 
 // ---- exact rationals ---------------------------------------------------------------------------
 type Q = { n: bigint; d: bigint };
 const babs = (a: bigint) => a < 0n ? -a : a;
-const bgcd = (a: bigint, b: bigint): bigint => { a = babs(a); b = babs(b); while (b) [a, b] = [b, a % b]; return a; };
+const bgcd = (a: bigint, b: bigint): bigint => { a = babs(a); b = babs(b); while (b) { const r = a % b; a = b; b = r; } return a; };
 const q = (n: bigint, d = 1n): Q => { if (d < 0n) { n = -n; d = -d; } const g = bgcd(n, d) || 1n; return { n: n / g, d: d / g }; };
 function qf(v: number): Q {
   if (!Number.isFinite(v)) throw new BrepError('INPUT', 'finite coordinates required');
@@ -35,7 +41,12 @@ function qf(v: number): Q {
 }
 const add = (a: Q, b: Q) => q(a.n * b.d + b.n * a.d, a.d * b.d), sub = (a: Q, b: Q) => q(a.n * b.d - b.n * a.d, a.d * b.d);
 const mul = (a: Q, b: Q) => q(a.n * b.n, a.d * b.d), div = (a: Q, b: Q) => q(a.n * b.d, a.d * b.n);
-const sgn = (a: Q) => a.n > 0n ? 1 : a.n < 0n ? -1 : 0, cmp = (a: Q, b: Q) => sgn(sub(a, b)), num = (a: Q) => Number(a.n) / Number(a.d);
+// (Every Q keeps a positive denominator: a comparison is the sign of a cross-product, no gcd.)
+const sgn = (a: Q) => a.n > 0n ? 1 : a.n < 0n ? -1 : 0, num = (a: Q) => Number(a.n) / Number(a.d);
+const cmp = (a: Q, b: Q) => { const x = a.n * b.d, y = b.n * a.d; return x > y ? 1 : x < y ? -1 : 0; };
+// Raw arithmetic for values only compared or signed, never kept: not reduced, the denominator still positive.
+const radd = (a: Q, b: Q): Q => ({ n: a.n * b.d + b.n * a.d, d: a.d * b.d }), rsub = (a: Q, b: Q): Q => ({ n: a.n * b.d - b.n * a.d, d: a.d * b.d });
+const rmul = (a: Q, b: Q): Q => ({ n: a.n * b.n, d: a.d * b.d }), rdiv = (a: Q, b: Q): Q => b.n < 0n ? { n: -(a.n * b.d), d: -(a.d * b.n) } : { n: a.n * b.d, d: a.d * b.n };
 const ZERO: Q = { n: 0n, d: 1n };
 type V = [Q, Q, Q];
 const vsub = (a: V, b: V): V => [sub(a[0], b[0]), sub(a[1], b[1]), sub(a[2], b[2])];
@@ -74,7 +85,7 @@ function facesOf(brep: Brep, solid: 0 | 1): PFace[] {
     if (normal === 'bent') throw new BrepError('GEOMETRY', `polyhedral Boolean: face ${f.id} is not planar`, undefined, 'NOT_PLANAR_WITHIN_FLOAT');
     const mag = normal.map(x => Math.abs(num(x))), axis = (mag[0] >= mag[1] && mag[0] >= mag[2] ? 0 : mag[1] >= mag[2] ? 1 : 2) as 0 | 1 | 2;
     let i = ((axis + 1) % 3) as 0 | 1 | 2, j = ((axis + 2) % 3) as 0 | 1 | 2; if (sgn(normal[axis]) < 0) [i, j] = [j, i];
-    const flat = rings.flat().map(vnum), min = [0, 1, 2].map(k => Math.min(...flat.map(p => p[k]))) as Point, max = [0, 1, 2].map(k => Math.max(...flat.map(p => p[k]))) as Point;
+    const flat = rings.flat().map(vnum), min: Point = [minAt(flat, 0), minAt(flat, 1), minAt(flat, 2)], max: Point = [maxAt(flat, 0), maxAt(flat, 1), maxAt(flat, 2)];
     const offset = vdot(normal, ring[0]);
     return { solid, rings, normal, offset, axis, i, j, min, max, cuts: [], coplanar: [], ...(f.name === undefined ? {} : { name: baseName(f.name) }), ...floatPlane(normal, offset, min, max) };
   });
@@ -121,7 +132,7 @@ const fromH = (p: ExactPoint2): [Q, Q] => [q(p.x, p.w), q(p.y, p.w)];
 /** Parameter intervals of the line P0 + t·D inside face f (half-open crossing rule handles vertices on the line). */
 function intervals(f: PFace, P0: V, D: V): Q[] {
   const ts: Q[] = [], d2 = [D[f.i], D[f.j]], p2 = [P0[f.i], P0[f.j]];
-  const side = (p: V) => sgn(sub(mul(d2[0], sub(p[f.j], p2[1])), mul(d2[1], sub(p[f.i], p2[0]))));
+  const side = (p: V) => sgn(rsub(rmul(d2[0], rsub(p[f.j], p2[1])), rmul(d2[1], rsub(p[f.i], p2[0]))));
   for (const ring of f.rings) ring.forEach((a, k) => {
     const b = ring[(k + 1) % ring.length], sa = side(a) > 0, sb = side(b) > 0;
     if (sa === sb) return;
@@ -147,10 +158,10 @@ function pointInFace(f: PFace, p: V): number {
   for (const ring of f.rings) for (let k = 0; k < ring.length; k++) {
     const a = ring[k], b = ring[(k + 1) % ring.length], ax = a[f.i], ay = a[f.j], bx = b[f.i], by = b[f.j];
     // On the edge: collinear and inside its bounding box.
-    if (sub(mul(sub(bx, ax), sub(y, ay)), mul(sub(by, ay), sub(x, ax))).n === 0n
+    if (rsub(rmul(rsub(bx, ax), rsub(y, ay)), rmul(rsub(by, ay), rsub(x, ax))).n === 0n
       && cmp(x, lo(ax, bx)) >= 0 && cmp(x, hi(ax, bx)) <= 0 && cmp(y, lo(ay, by)) >= 0 && cmp(y, hi(ay, by)) <= 0) return 0;
     if ((cmp(ay, y) > 0) !== (cmp(by, y) > 0)) {
-      const xi = add(ax, div(mul(sub(bx, ax), sub(y, ay)), sub(by, ay)));
+      const xi = radd(ax, rdiv(rmul(rsub(bx, ax), rsub(y, ay)), rsub(by, ay)));
       if (cmp(x, xi) < 0) inside = !inside;
     }
   }
@@ -249,7 +260,7 @@ export function booleanPolyhedra(a: Brep, b: Brep, operation: PolyhedralBooleanO
       const tris = triangulatePolygonWithHoles(outer, holes);
       // (A region of no area — a sliver where cuts meet at a corner — makes no face.)
       if (!tris.length) continue;
-      const big = tris.reduce((best, t) => { const ar = (u: [number, number, number]) => { const [p0, p1, p2] = u.map(k => exactToXY(all[k])); return Math.abs((p1[0] - p0[0]) * (p2[1] - p0[1]) - (p1[1] - p0[1]) * (p2[0] - p0[0])); }; return ar(t) > ar(best) ? t : best; }, tris[0]);
+      let big = tris[0]; for (const t of tris) if (triArea2(all, t) > triArea2(all, big)) big = t;
       const c = big.map(k => fromH(all[k])), third: Q = { n: 1n, d: 3n };
       const interior = lift(f, mul(add(add(c[0][0], c[1][0]), c[2][0]), third), mul(add(add(c[0][1], c[1][1]), c[2][1]), third));
       const where = classify(interior, f.normal, f.solid === 0 ? B : A);
@@ -393,7 +404,7 @@ function planeSurface(id: string, normal: V, points: Point[]): Surface {
   const c1: Point = [nz[1] * seed[2] - nz[2] * seed[1], nz[2] * seed[0] - nz[0] * seed[2], nz[0] * seed[1] - nz[1] * seed[0]], l1 = Math.hypot(...c1);
   const e1: Point = [c1[0] / l1, c1[1] / l1, c1[2] / l1], e2: Point = [nz[1] * e1[2] - nz[2] * e1[1], nz[2] * e1[0] - nz[0] * e1[2], nz[0] * e1[1] - nz[1] * e1[0]];
   const o = points[0], uv = points.map(p => { const d = [p[0] - o[0], p[1] - o[1], p[2] - o[2]]; return [d[0] * e1[0] + d[1] * e1[1] + d[2] * e1[2], d[0] * e2[0] + d[1] * e2[1] + d[2] * e2[2]]; });
-  const u0 = Math.min(...uv.map(x => x[0])), u1 = Math.max(...uv.map(x => x[0])), v0 = Math.min(...uv.map(x => x[1])), v1 = Math.max(...uv.map(x => x[1]));
+  const u0 = minAt(uv, 0), u1 = maxAt(uv, 0), v0 = minAt(uv, 1), v1 = maxAt(uv, 1);
   const at = (u: number, v: number): Point => [o[0] + e1[0] * u + e2[0] * v, o[1] + e1[1] * u + e2[1] * v, o[2] + e1[2] * u + e2[2] * v];
   return { kind: 'surface', id, degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: [[at(u0, v0), at(u0, v1)], [at(u1, v0), at(u1, v1)]], weights: [[1, 1], [1, 1]] };
 }

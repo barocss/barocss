@@ -81,7 +81,10 @@ function project(sum: Point, weight: number): Point {
   return [finite(sum[0] / weight), finite(sum[1] / weight), finite(sum[2] / weight)];
 }
 function quotient(sum: Point, weightD1: number, point: Point, weight: number): Point {
-  return [0, 1, 2].map(axis => finite(finite(sum[axis] - finite(weightD1 * point[axis])) / weight)) as Point;
+  return [quotientAxis(sum, weightD1, point, weight, 0), quotientAxis(sum, weightD1, point, weight, 1), quotientAxis(sum, weightD1, point, weight, 2)];
+}
+function quotientAxis(sum: Point, weightD1: number, point: Point, weight: number, axis: number): number {
+  return finite(finite(sum[axis] - finite(weightD1 * point[axis])) / weight);
 }
 
 /** Endpoints use the interior span; exact C0 knots reject. Zero tangents are valid. */

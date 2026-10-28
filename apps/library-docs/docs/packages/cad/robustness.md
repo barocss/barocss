@@ -200,6 +200,7 @@ arcs, including holes.
 Circular boundaries stay circular. Their intersections can be irrational numbers, so the 2D arrangement uses
 binary64 arithmetic and the scale-dependent numeric tolerance. This reduction avoids a general 3D surface-intersection
 search; it does not make every coordinate calculation rational or error-free.
+Step by step, with figures: [Booleans of upright extrusions](/how/prismatic).
 
 ### 2. Planar polyhedra: split, classify and stitch with rational arithmetic
 
@@ -216,7 +217,8 @@ This path works on planar faces bounded by straight edges, including non-convex 
 
 Coordinates enter as their exact binary64 values, converted to integer fractions with `BigInt`. The polyhedral path
 uses exact rational predicates and intersections for those values. Results return to stored numeric coordinates;
-this does not recover precision already lost before the operation.
+this does not recover precision already lost before the operation. Step by step, with figures:
+[Exact arithmetic for planar solids](/how/exact-boolean).
 
 A nominally planar face rotated in floating-point arithmetic can have corners that are no longer exactly coplanar.
 Only the `NOT_PLANAR_WITHIN_FLOAT` failure retries the pair through the analytic path. Other polyhedral failures are
@@ -251,6 +253,7 @@ an oppositely oriented contact on A is handled separately. Tangencies need addit
 The surface remains a native surface, but a general intersection edge can be a fitted cubic Bézier chain. The path
 uses binary64 calculations, Newton iteration and numeric tolerances; it is not an exact-arithmetic solution for every
 NURBS pair. A tighter requested edge fit is checked and can refuse the result; it does not relax topology tolerances.
+Step by step, with figures: [Booleans of curved solids](/how/boolean).
 
 ### 4. Mesh with a native tool: process the nearby mesh
 
@@ -265,7 +268,8 @@ For a mesh target with a native tool, the mixed algorithm limits the expensive f
    them; the rim against the mesh remains a polyline with recorded chord-deviation tolerances.
 
 This path preserves the mesh representation of the input. It does not turn a scanned surface into an exact smooth
-surface. The nearby-triangle limit and the facet-expansion limit above apply to different stages.
+surface. The nearby-triangle limit and the facet-expansion limit above apply to different stages. Step by step, with
+figures: [Meshes, native tools and the BVH](/how/mesh-boolean).
 
 ### More complex shapes: what changes
 

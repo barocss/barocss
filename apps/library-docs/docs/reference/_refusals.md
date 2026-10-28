@@ -92,6 +92,15 @@
 | `[EXPRESSION]` | `core/error-codes.ts (declared)` | — |
 | `[EXTRUSION]` | `core/error-codes.ts (declared)` | — |
 | `[FACE]` | `core/error-codes.ts (declared)` | — |
+| `[FACE_FILLET_FACE]` | `part` | … is not a planar face (a face fillet takes planes and cylinders: two planes, a plane and a cylinder across or along its axis, or two parallel cylinders) |
+| `[FACE_FILLET_FACES]` | `part` | … crosses the line where its plane meets the other's |
+| `[FACE_FILLET_NOT_CLEAR]` | `part` | the round between … and … would … … mm³ (… expected)… |
+| `[FACE_FILLET_PARALLEL]` | `part` | … and … are parallel: their planes do not meet |
+| `[FACE_FILLET_RADIUS]` | `part` | a … mm round would not meet … tangentially: the face stops before … mm from the corner |
+| `[FACE_THREAD_FACE]` | `part` | … is not a cylindrical face |
+| `[FACE_THREAD_NOT_CLEAR]` | `part` | the wall round … is thinner than the thread needs (… mm past the hole) |
+| `[FACE_THREAD_RELIEF]` | `part` | the thread on … ends at a shoulder or inside the face: it needs a relief groove (relief > 0) |
+| `[FACE_THREAD_SIZE]` | `part` | the thread's length … is longer than the face (…) |
 | `[FIELD]` | `core/error-codes.ts (declared)` | — |
 | `[FILE]` | `core/error-codes.ts (declared)` | — |
 | `[FILL_RANGE]` | `core/error-codes.ts (declared)` | — |
@@ -103,6 +112,8 @@
 | `[FLAT_OVERLAPS]` | `core/error-codes.ts (declared)` | — |
 | `[FORMAT]` | `core/error-codes.ts (declared)` | — |
 | `[FRAME]` | `core/error-codes.ts (declared)` | — |
+| `[FULL_ROUND_FACE]` | `part` | … is not a planar face facing +Z |
+| `[FULL_ROUND_NOT_CLEAR]` | `part` | the full round of … needs its sides open … mm down from it: material stands beside it |
 | `[FUNCTION_ARGUMENT]` | `core/error-codes.ts (declared)` | — |
 | `[FUNCTION_CAPTURE]` | `core/error-codes.ts (declared)` | — |
 | `[FUNCTION_RECURSION]` | `core/error-codes.ts (declared)` | — |
@@ -362,6 +373,7 @@
 | `[DXF_OPEN]` | `sketch` | the profile is not closed at (…, …) mm: an edge ends there with nothing joining it… |
 | `[DXF_UNSUPPORTED]` | `sketch` | $INSUNITS …: only inches, feet, millimetres, centimetres and metres are read |
 | `[FACE_DISTANCE]` | `app` | Give the face a distance to move: out (+) or in (−). |
+| `[FACE_FILLET_PICK]` | `app` | … |
 | `[FASTENER_GRIP]` | `app` | Give the joint its grip: the thickness the bolt clamps (mm). |
 | `[FASTENER_LENGTH]` | `app` | … … come …–… mm long (…). |
 | `[FASTENER_POSITION]` | `app` | Give the fastener a position (X, Y and Z in mm). |
@@ -388,6 +400,7 @@
 | `[FRAME_SKELETON_PICK]` | `app` | Pick straight edges (of a layout box or sketch) for the skeleton, or choose a preset. |
 | `[FRAME_STOCK_ROW]` | `chat` | row …: an id and a source (where the length comes from: your shop, a page) are needed. |
 | `[FRAME_VALUE]` | `app` | … must be a finite number. |
+| `[FULL_ROUND_PICK]` | `app` | … |
 | `[GEAR_PICK]` | `app` | Select one spur gear or internal gear to mesh with. |
 | `[GONE]` | `chat` | …'s features are no longer in the part |
 | `[GRID_TOO_FINE]` | `print` | … nodes at h … mm, over …: take h ≥ … mm |
@@ -509,6 +522,7 @@
 | `[STOCK_ALLOWANCE]` | `chat/part` | allowance is mm a face, 0 to 100. |
 | `[STOCK_ROW]` | `chat` | row …: an id and a source (where the size comes from: your shop, a page) are needed. |
 | `[SWEEP_PATH]` | `app` | … |
+| `[THREAD_PICK]` | `app` | … |
 | `[TOO_BIG_TWO_WAYS]` | `print` | no split along one axis makes …'s pieces: the part (… mm) is too big two ways |
 | `[TRIM_CURVE]` | `engine` | The curve does not close: trim by a closed curve (a loop). |
 | `[UNDRAINED]` | `print` | the lattice leaves empty regions undrained after … drains: take a larger cell or a finer voxel |

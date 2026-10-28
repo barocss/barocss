@@ -172,6 +172,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       if (node.section?.kind === 'conic') number('rho', 'Rho', undefined, n => ((n as typeof node).section as { rho: number }).rho, (n, v) => ({ ...(n as typeof node), section: { kind: 'conic', rho: v } }));
       if (node.section?.kind === 'g2') number('tension', 'Tension', undefined, n => ((n as typeof node).section as { tension?: number }).tension ?? 0.5, (n, v) => ({ ...(n as typeof node), section: { kind: 'g2', tension: v } }));
       break;
+    case 'face-fillet': number('r', 'Radius', 'mm', n => num((n as typeof node).radius), (n, v) => ({ ...(n as typeof node), radius: v })); break;
     case 'chamfer': number('d', 'Distance', 'mm', n => num((n as typeof node).distance), (n, v) => ({ ...(n as typeof node), distance: v })); break;
     case 'rack': {
       const k = (n: ModelNode) => n as typeof node;
@@ -526,7 +527,10 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
     }
     case 'thicken': number('t', 'Thickness', 'mm', n => num((n as typeof node).thickness), (n, v) => ({ ...(n as typeof node), thickness: v })); break;
     case 'sew': number('tol', 'Tolerance', 'mm', n => (n as typeof node).tolerance ?? 0, (n, v) => { const next = { ...(n as typeof node) }; if (v > 0) next.tolerance = Math.min(1, v); else delete next.tolerance; return next; }); break;
-    case 'draft': number('deg', 'Angle', '°', n => (n as typeof node).angle, (n, v) => ({ ...(n as typeof node), angle: v })); break;
+    case 'draft':
+      number('deg', 'Angle', '°', n => (n as typeof node).angle, (n, v) => ({ ...(n as typeof node), angle: v }));
+      if (node.neutral !== undefined) number('neutral', 'Neutral coordinate', 'mm', n => num((n as typeof node).neutral!), (n, v) => ({ ...(n as typeof node), neutral: v }));
+      break;
     case 'decimate': {
       // (R9, D85: the keep as a per cent of the triangles; a bound or crease angle of 0 is none.)
       type D = Extract<ModelNode, { kind: 'decimate' }>;

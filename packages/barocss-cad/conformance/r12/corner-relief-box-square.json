@@ -123,8 +123,12 @@
           "b.top",
           "c0.side1",
           "c0.side2",
+          "c1.side1",
           "c1.side2",
+          "c2.side1",
           "c2.side2",
+          "c3.side1",
+          "c3.side2",
           "f0.bend.inner",
           "f0.bend.outer",
           "f0.leg.inner",
@@ -134,14 +138,17 @@
           "f1.bend.outer",
           "f1.leg.inner",
           "f1.leg.outer",
+          "f1.tip",
           "f2.bend.inner",
           "f2.bend.outer",
           "f2.leg.inner",
           "f2.leg.outer",
+          "f2.tip",
           "f3.bend.inner",
           "f3.bend.outer",
           "f3.leg.inner",
-          "f3.leg.outer"
+          "f3.leg.outer",
+          "f3.tip"
         ],
         "flat": {
           "area": {

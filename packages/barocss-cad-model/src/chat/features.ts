@@ -31,8 +31,14 @@ const SPECS: Record<string, Spec> = {
   union: { left: 'ref', right: 'ref' },
   intersect: { left: 'ref', right: 'ref' },
   difference: { parent: 'ref', tool: 'ref' },
+  rib: { parent: 'ref', min: 'dim3', max: 'dim3' },
+  'rectangular-relief': { parent: 'ref', min: 'dim2', max: 'dim2', depth: 'dim', mode: 'enum:emboss|engrave' },
   split: { parent: 'ref', at: 'dim', axis: 'enum:x|y|z' },
   shell: { parent: 'ref', thickness: 'dim', open: 'names' },
+  draft: { parent: 'ref', faces: 'names1', angle: 'num', 'pull?': 'enum:x|y|z|-x|-y|-z', 'neutral?': 'dim' },
+  'full-round': { parent: 'ref', faces: 'names1', 'along?': 'enum:x|y' },
+  'face-fillet': { parent: 'ref', faces: 'names1', radius: 'dim' },
+  'face-thread': { parent: 'ref', face: 'text', pitch: 'pos', 'diameter?': 'pos', 'length?': 'pos', 'end?': 'enum:+|-', 'relief?': 'num', 'clearance?': 'num', 'hand?': 'enum:left' },
   // (R9, D85: a mesh body simplified; its keep and bounds are values.)
   decimate: { parent: 'ref', 'ratio?': 'num', 'triangles?': 'count', 'maxError?': 'num', 'featureAngle?': 'num' },
   chamfer: { parent: 'ref', edges: 'names1', distance: 'dim' },
@@ -196,7 +202,7 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
     case 'plane': {
       return isObj(v) && isVec3(v.origin) && isVec3(v.normal) && isVec3(v.xAxis) ? null : 'a plane {origin, normal, xAxis}, each [x, y, z]';
     }
-    case 'radii': return Array.isArray(v) && v.length >= 2 && v.length <= 16 && v.every(p => isObj(p) && Array.isArray(p.at) && p.at.length === 3 && p.at.every(x => typeof x === 'number' && Number.isFinite(x)) && dim(p.radius)) ? null : '2 to 16 points {"at": [x, y, z] on the edges, "radius": r}';
+    case 'radii': return Array.isArray(v) && v.length >= 2 && v.length <= 16 && v.every(p => isObj(p) && Array.isArray(p.at) && p.at.length === 3 && p.at.every(x => typeof x === 'number' && Number.isFinite(x)) && dim(p.radius) && (p.atEnd === undefined || p.atEnd === true)) ? null : '2 to 16 points {"at": [x, y, z] on the edges, "radius": r, "atEnd"?: true}';
     case 'section': {
       const frac = (x: unknown) => typeof x === 'number' && x > 0 && x < 1;
       if (isObj(v) && v.kind === 'conic' && frac(v.rho) && Object.keys(v).every(k => k === 'kind' || k === 'rho')) return null;
@@ -375,12 +381,13 @@ function renameNode(node: ModelNode, rename: (id: string) => string): ModelNode 
   if (node.kind === 'fillet' || node.kind === 'chamfer') return { ...node, edges: node.edges.map(r) };
   if (node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief') return { ...node, edges: [r(node.edges[0])] };
   if (node.kind === 'shell') return { ...node, open: node.open.map(r) };
-  if (node.kind === 'draft') return { ...node, faces: node.faces.map(r) };
-  if (node.kind === 'keyway' || node.kind === 'oring-gland' || node.kind === 'connector-opening') return { ...node, face: r(node.face) };
+  if (node.kind === 'draft' || node.kind === 'full-round') return { ...node, faces: node.faces.map(r) };
+  if (node.kind === 'face-fillet') return { ...node, faces: [r(node.faces[0]), r(node.faces[1])] };
+  if (node.kind === 'keyway' || node.kind === 'oring-gland' || node.kind === 'connector-opening' || node.kind === 'face-thread') return { ...node, face: r(node.face) };
   return node;
 }
 /** The persistent names a node is built on. */
-const named = (n: ModelNode): readonly string[] => n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' ? n.faces : n.kind === 'keyway' || n.kind === 'oring-gland' || n.kind === 'connector-opening' ? [n.face] : [];
+const named = (n: ModelNode): readonly string[] => n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' || n.kind === 'full-round' || n.kind === 'face-fillet' ? n.faces : n.kind === 'keyway' || n.kind === 'oring-gland' || n.kind === 'connector-opening' || n.kind === 'face-thread' ? [n.face] : [];
 
 /** A drawing dimension's edge names, renamed (null when one of them is gone). */
 function renameDimension(d: DrawingDimension, rename: (name: string) => string | null): DrawingDimension | null {

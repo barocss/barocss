@@ -88,8 +88,10 @@ export function solveCubicBernsteinRoots(originalInput: number[], parameterWidth
       const complement = finite(1 - parameter, 'Bernstein complement overflow');
       let row: number[] = normalizedCoefficients.slice();
       // Scalar Bernstein recurrence only; no native point evaluator or power-basis cubic formula.
-      for (let degree = 3; degree > 0; degree--) row = row.slice(0, degree).map((left, i) =>
-        finite(product(complement, left) + product(parameter, row[i + 1]), 'cubic Bernstein sum overflow'));
+      for (let degree = 3; degree > 0; degree--) {
+        const prev = row;
+        row = prev.slice(0, degree).map((left, i) => finite(product(complement, left) + product(parameter, prev[i + 1]), 'cubic Bernstein sum overflow'));
+      }
       value = row[0];
     }
     scalarEvaluations.push({ parameter, value, arithmeticGuard }); return value;

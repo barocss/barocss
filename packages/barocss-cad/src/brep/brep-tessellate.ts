@@ -18,7 +18,7 @@ import { BrepError, type Brep, type BrepCoedge, type BrepEdge } from './brep-cor
 import { evaluateCurve, curveDomain, evaluateSurface, surfaceDomain, surfaceEvaluator } from '../core/math.js';
 import type { Curve, FacetPatch, Point, Surface } from '../types.js';
 import { add as add3, cross, dot, scale as scale3, sub, unit } from '../core/vec3.js';
-import { evaluateSurfaceD1 } from '../core/derivatives.js';
+import { surfaceD1Evaluator } from '../core/derivatives.js';
 
 export interface BrepMeshFace { readonly faceId: string; readonly kind: 'planar' | 'ruled' | 'trimmed' | 'facet'; readonly vertexOffset: number; readonly vertexCount: number; readonly indexOffset: number; readonly indexCount: number }
 export interface BrepMeshEdge { readonly edgeId: string; readonly points: Float64Array }
@@ -167,6 +167,8 @@ function grownBox(a: XY, b: XY, c: XY, eps: number): [number, number, number, nu
   const pad = 1e-9 * (Math.abs(x0) + Math.abs(x1) + Math.abs(y0) + Math.abs(y1) + (x1 - x0) + (y1 - y0)) + 1e-300;
   return [x0 - pad, y0 - pad, x1 + pad, y1 + pad];
 }
+/** The largest x among a ring's points (Math.max of them). */
+function maxRight(pts: readonly (readonly number[])[], ring: readonly number[]): number { let r = -Infinity; for (const i of ring) { const x = pts[i][0]; if (x !== x) return NaN; if (x > r || (x === 0 && r === 0 && Object.is(r, -0))) r = x; } return r; }
 export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonly (readonly XY[])[], earCost?: (a: XY, b: XY, c: XY) => number): [number, number, number][] {
   const pts: XY[] = [...outer, ...holes.flat()];
   let ring = outer.map((_, i) => i), offset = outer.length;
@@ -180,7 +182,9 @@ export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonl
   // Holes, right to left. A hole sharing a point with the ring joins it there (the ring passes the
   // point twice); otherwise a bridge runs from the hole's rightmost vertex M to the nearest ring
   // vertex occurrence that M can see and whose interior wedge contains M.
-  holeRings.sort((a, b) => Math.max(...b.map(i => pts[i][0])) - Math.max(...a.map(i => pts[i][0])));
+  // (Each hole's rightmost x found once, not at every comparison.)
+  const rightOf = new Map<readonly number[], number>(); for (const h of holeRings) rightOf.set(h, maxRight(pts, h));
+  holeRings.sort((a, b) => rightOf.get(b)! - rightOf.get(a)!);
   // (The ring's points by position, kept as holes join it: a hole point shared with the ring is found
   // without a scan of the ring.)
   const onRing = new Set<string>(); for (const v of ring) onRing.add(`${pts[v][0]},${pts[v][1]}`);
@@ -194,7 +198,7 @@ export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonl
       const nIn = [M[1] - MA[1], MA[0] - M[0]], nOut = [MB[1] - M[1], M[0] - MB[0]], len = (v: number[]) => Math.hypot(v[0], v[1]) || 1;
       const probe: XY = [M[0] - (nIn[0] / len(nIn) + nOut[0] / len(nOut)) * 1e-9 * Math.sqrt(eps / 1e-12), M[1] - (nIn[1] / len(nIn) + nOut[1] / len(nOut)) * 1e-9 * Math.sqrt(eps / 1e-12)];
       const occurrences = ring.flatMap((v, k) => same(pts[v], M) ? [k] : []);
-      const k = occurrences.length === 1 ? occurrences[0] : occurrences.find(k => inWedge(pts[ring[(k - 1 + ring.length) % ring.length]], M, pts[ring[(k + 1) % ring.length]], probe));
+      const now = ring, k = occurrences.length === 1 ? occurrences[0] : occurrences.find(k => inWedge(pts[now[(k - 1 + now.length) % now.length]], M, pts[now[(k + 1) % now.length]], probe));
       if (k === undefined) continue;
       const r = rotate(j);
       ring = [...ring.slice(0, k + 1), ...r.slice(1), r[0], ...ring.slice(k + 1)];
@@ -440,12 +444,13 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
         // (A boundary point at a pole stands twice, its normal null at both: the boundary's points come before the interior's.)
         const poleTwice = exact.reduce((n, x) => x ? n : n + 1, 0) / 2, boundary = rings.reduce((n, r) => n + r.length, 0) + poleTwice;
         // (A point added there takes the surface's own normal, along Su × Sv, as the others have.)
+        let D1: ReturnType<typeof surfaceD1Evaluator> | undefined;
         for (let i = exact.length, n = splitTakenDiagonals(face.id, pts, uv, tris, domain, boundary, surfaceEvaluator(face.surface), segIndex, diagonals); n && i < pts.length; i++) {
-          const d = evaluateSurfaceD1(face.surface, uv[i][0], uv[i][1]), c = cross(d.du, d.dv);
+          const d = (D1 ??= surfaceD1Evaluator(face.surface))(uv[i][0], uv[i][1]), c = cross(d.du, d.dv);
           exact.push(Math.hypot(c[0], c[1], c[2]) > 0 ? unit(c) : null);
         }
         emit(face.id, 'trimmed', pts, tris, null, exact, sign);
-        // (Its triangles on a boundary chord, tilted from the surface's normals at their corners by more than 1.5 steps.)
+        // (Its triangles on a boundary chord, tilted from the surface's normals at their corners by more than one step.)
         const cosTilt = Math.cos(Math.PI / 2 / perQuarter);
         for (const [a, b, c] of tris) {
           const na = exact[a], nb = exact[b], nc = exact[c]; if (!na || !nb || !nc) continue;

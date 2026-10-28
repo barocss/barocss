@@ -414,3 +414,5 @@ M-series machine in headless Chrome, with other work running. The scenes ranged 
 
 The full tables are in `apps/cad-studio/handover/notes/g11-scene-profile.md`. Times depend on the machine. Only the
 counts are the same everywhere.
+
+How the viewer renders, step by step: [Rendering a model on the GPU](/how/gpu).

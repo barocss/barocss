@@ -108,6 +108,8 @@ export type { SurfaceBezierAxisDegreeElevationOptions, SurfaceBezierAxisEndpoint
 export { buildRationalRuledSurface } from './nurbs/surfaces/rational-ruled-surface.js';
 export type { RationalRuledSurfaceOptions, RationalRuledSurfaceConstruction, RationalRuledSurfaceObservation, RationalRuledCurveD1Evaluation, RationalRuledSurfaceD1Evaluation, RationalRuledSurfaceD1Observation, RationalRuledSurfaceReport, RationalRuledSurfaceResult } from './nurbs/surfaces/rational-ruled-surface.js';
 export { buildDegreeMatchedBezierRuledSurface } from './nurbs/surfaces/degree-matched-bezier-ruled.js';
+export { buildBezierCoonsSurface } from './nurbs/surfaces/bezier-coons-surface.js';
+export type { BezierCoonsBoundaries, BezierCoonsSurfaceOptions, BezierCoonsSurfaceReport, BezierCoonsSurfaceResult } from './nurbs/surfaces/bezier-coons-surface.js';
 export type { DegreeMatchedBezierRuledOptions, DegreeMatchedBezierSectionProvenance, DegreeMatchedBezierRuledProvenance, DegreeMatchedBezierPointObservation, DegreeMatchedBezierD1Evaluation, DegreeMatchedBezierD1Observation, DegreeMatchedBezierSectionReport, DegreeMatchedBezierRuledReport, DegreeMatchedBezierRuledResult } from './nurbs/surfaces/degree-matched-bezier-ruled.js';
 export { buildOwnPlateCircularHole, validateOwnPlateCircularHoleBundle } from './own-plate-circular-hole.js';
 export type { OwnPlateCircularHoleRequest, OwnPlateCircularHoleUse, OwnPlateCircularHoleLoop, OwnPlateCircularHoleFace, OwnPlateCircularHoleEdge, OwnPlateCircularHoleBundle, OwnPlateCircularHoleReport, OwnPlateCircularHoleResult } from './own-plate-circular-hole.js';

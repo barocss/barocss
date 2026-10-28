@@ -20,6 +20,9 @@ const ok = (r: ReturnType<typeof applyConstraint>) => { assert.ok(r.ok, !r.ok ? 
 const dir = (s: Polygon, i: number): P2 => { const a = s.points[i], b = s.points[(i + 1) % s.points.length]; return [b[0] - a[0], b[1] - a[1]]; };
 const len = (s: Polygon, i: number) => Math.hypot(...dir(s, i));
 const dof = (s: Polygon) => { const r = solveShape(s); assert.ok(r.ok); return r.dof; };
+// A refusal where the solver did not converge carries the solver's own diagnostic, after the constraint's label: it is
+// not a proof that the constraints conflict (CAD review 2215, D284).
+const NOT_SOLVED = /XY numerical sketch: Bounded local solve did not meet fixed residual tolerances; this is not an inconsistency proof$/;
 
 // A quadrilateral with only its bottom edge drawn horizontal.
 const quad = () => close([[0, 0], [40, 0], [36, 21], [3, 23]]);
@@ -62,10 +65,11 @@ test('a constraint the others already imply is refused as over-defining; a confl
   const redundant = applyConstraint(s, [E(2)], 'horizontal');
   assert.equal(redundant.ok, false);
   assert.match(!redundant.ok ? redundant.reason : '', /Horizontal edge 3 is already implied by the other constraints — adding it would over-define the sketch/);
-  // Perpendicular to a parallel pair cannot hold.
+  // Perpendicular to a parallel pair cannot hold: the solver does not converge, and says only that.
   const conflict = applyConstraint(s, [E(0), E(2)], 'perpendicular');
   assert.equal(conflict.ok, false);
-  assert.match(!conflict.ok ? conflict.reason : '', /conflict/);
+  assert.match(!conflict.ok ? conflict.reason : '', /^Perpendicular edge 1 and edge 3: /);
+  assert.match(!conflict.ok ? conflict.reason : '', NOT_SOLVED);
   // A horizontal edge cannot also be made vertical.
   const rect = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
   const clash = applyConstraint(rect, [E(0)], 'vertical');
@@ -106,11 +110,12 @@ test('dimensions: edge lengths, point distances, redundant and conflicting value
   // Editing the same distance replaces it.
   const again = commitDimension(s, 'dist0_2', 61); assert.ok(again.ok); assert.ok(Math.abs(len(again.shape, 1) - 11) < 1e-6);
   assert.equal(again.shape.rules?.length, 1);
-  // Fully defined: one more length (even the current one) over-defines; a different one conflicts.
+  // Fully defined: one more length (even the current one) over-defines; a different one cannot be solved.
   const extra = commitDimension(s, 'len1', 25);
   assert.match(!extra.ok ? extra.reason : '', /over-define/);
   const wrong = commitDimension(s, 'len2', 50);
-  assert.match(!wrong.ok ? wrong.reason : '', /Length of edge 3 = 50: These constraints conflict/);
+  assert.match(!wrong.ok ? wrong.reason : '', /^Length of edge 3 = 50: /);
+  assert.match(!wrong.ok ? wrong.reason : '', NOT_SOLVED);
   assert.match((commitDimension(s, 'len0', 0) as { reason: string }).reason, /greater than 0/);
 });
 
@@ -366,8 +371,8 @@ test('a circle is placed from the outline: picked from the sketch, centre distan
   const d = commitDimension(s, 'cdia0', 8); assert.ok(d.ok); s = d.shape; assert.equal(s.circles![0].r, 4);
   assert.deepEqual(constraintEntries(s).filter(c => c.id.startsWith('rule')).map(c => c.label + ' ' + c.detail),
     ['Horizontal distance point 1 – circle 1 = 10', 'Vertical distance point 1 – circle 1 = 6']);
-  // A distance the plate cannot give conflicts; dimensioning the centre again over-defines.
-  assert.match((commitDimension(s, 'cdist0_0', 50) as { reason: string }).reason, /conflict/);
+  // A distance the plate cannot give is not solved; dimensioning the centre again over-defines.
+  assert.match((commitDimension(s, 'cdist0_0', 50) as { reason: string }).reason, NOT_SOLVED);
   // The profile: the plate with the circle as its hole, and the outline keeps the circle and its rules.
   const r = profileOf([s]); assert.ok('node' in r);
   assert.equal(r.node.holes?.length, 1); assert.deepEqual(r.node.outline?.circles, [{ c: [10, 6], r: 4 }]);
@@ -412,8 +417,10 @@ test('circles are placed from horizontal / vertical edges and from each other', 
   r = commitDimension(s, 'ccdx0_1', 25); assert.ok(r.ok, !r.ok ? r.reason : ''); s = r.shape;
   r = commitDimension(s, 'ccdy0_1', 12); assert.ok(r.ok, !r.ok ? r.reason : ''); s = r.shape;
   assert.deepEqual(s.circles![1].c, [40, 20]); assert.equal(dof(s), 0);
-  // One more is refused: over-defined, or past the solver's 64 points / 64 segments / 128 constraints with a clear reason.
-  assert.match((commitDimension(s, 'ccdist0_1', 30) as { reason: string }).reason, /over-define|conflict|Too many points/);
+  // One more is refused: over-defined, not solved (30 against the 27.73 that 25 and 12 give), or past the solver's
+  // 64 points / 64 segments / 128 constraints with a clear reason.
+  const more = (commitDimension(s, 'ccdist0_1', 30) as { reason: string }).reason;
+  assert.ok(/over-define|Too many points/.test(more) || NOT_SOLVED.test(more), more);
   assert.deepEqual(constraintEntries(s).filter(c => c.id.startsWith('rule')).map(c => c.label + ' ' + c.detail), [
     'Distance edge 1 – circle 1 = 8', 'Distance edge 4 – circle 1 = 15', 'Horizontal distance circle 1 – circle 2 = 25', 'Vertical distance circle 1 – circle 2 = 12']);
   // The Dimension tool: an edge then a circle, a circle then a circle.

@@ -158,7 +158,13 @@ export class Part<D> {
   }
 
   /** `fillet`: rounds the edges a selector picks. */
-  fillet(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions): this { return this.#act(this.#spec(options, o => filletSpec(edges(this.select()).names(), o))); }
+  fillet(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions): this {
+    return this.#act(this.#spec(options, o => {
+      const picked = edges(this.select()), spec = filletSpec(picked.names(), o, picked.list());
+      if (o.endRadius !== undefined && (isParam(options.radius) || (o.endRadius === o.radius && isParam(options.endRadius)))) throw refuse('PARAMETER_UNBINDABLE', 'an explicit fillet endRadius can bind only while varying; its start radius must be numeric');
+      return spec;
+    }));
+  }
 
   /** `chamfer`: cuts the edges a selector picks at 45°. */
   chamfer(edges: (body: BodyQuery) => EdgeQuery, options: ChamferOptions): this { return this.#act(this.#spec(options, o => chamferSpec(edges(this.select()).names(), o))); }

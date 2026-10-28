@@ -20,6 +20,7 @@ import type { BodyResult } from '../engine/evaluate';
 import type { BearingAssemblyInput } from '../engine/bearingContext';
 import type { DisplayEdge } from '../engine/mesh';
 import { refOf } from './bodyRef';
+import { roundFaceAxis } from './measure';
 import { planBedSplit } from '../print/splitBed';
 import { planHollow } from '../print/hollow';
 import { isHollowed, planLattice } from '../print/lattice';
@@ -310,16 +311,114 @@ function splitNormal(v: Values): [number, number, number] | null {
 }
 
 /** The side faces picked for a draft (one body, flat, square to Z), and the extrusion they all are the sides of, if so. */
-function draftOf(ctx: Ctx): { body: BodyResult; faces: string[]; extrude: number | null } | string {
+function draftOf(ctx: Ctx, pull: 'x' | 'y' | 'z' | '-x' | '-y' | '-z' = 'z', legacy = true): { body: BodyResult; faces: string[]; extrude: number | null } | string {
   const picks = ctx.selection.faces; if (!picks.length) return 'Pick side faces of one body to draft (Shift-click for more).';
   if (picks.some(f => f.body !== picks[0].body)) return 'Pick faces of one body.';
-  const body = ctx.bodies[picks[0].body], faces = picks.map(f => body.mesh.faces[f.face]);
-  if (faces.some(f => f.kind !== 'plane' || Math.abs(f.normal[2]) > 1e-6)) return 'A draft takes flat side faces, square to Z (the pull).';
+  const body = ctx.bodies[picks[0].body]; if (!body) return 'Pick side faces of one body to draft (Shift-click for more).';
+  const faces = picks.map(f => body.mesh.faces[f.face]), axis = 'xyz'.indexOf(pull.slice(-1));
+  if (faces.some(f => !f || f.kind !== 'plane' || Math.abs(f.normal[axis]) > 1e-6)) return `A draft takes flat side faces, square to ${pull.toUpperCase()} (the pull).`;
   const names = faces.flatMap(f => f.name.split('+'));
   // Every side of the extrusion that is the body (nothing after it): that extrusion's own draft.
   const top = refOf(body).node, ex = ctx.doc.nodes[top], sides = body.mesh.faces.filter(f => new RegExp(`^${featureId(ctx.doc.nodes, top)}\\.side(\\d+|\\[[A-Za-z0-9_-]+\\])$`).test(f.name)).map(f => f.name);
-  if (ex?.kind === 'extrude' && !ex.draft && sides.length && sides.length === names.length && sides.every(n => names.includes(n))) return { body, faces: names, extrude: top };
+  if (legacy && ex?.kind === 'extrude' && !ex.draft && sides.length && sides.length === names.length && sides.every(n => names.includes(n))) return { body, faces: names, extrude: top };
   return { body, faces: names, extrude: null };
+}
+
+/** The pull axes a Studio draft offers, +Z first (the default and the old command's only one). */
+const DRAFT_PULLS = ['z', '-z', 'x', '-x', 'y', '-y'] as const;
+type DraftPull = typeof DRAFT_PULLS[number];
+const draftPullOf = (v: Values): DraftPull => (DRAFT_PULLS as readonly string[]).includes(String(v.pull)) ? v.pull as DraftPull : 'z';
+
+/** The real draft builder shared by the legacy Z command and explicit public draft options. */
+export function buildDraft(ctx: Ctx, v: Values): StudioDoc {
+  const pull = v.pull === undefined ? 'z' : v.pull;
+  if (pull !== 'x' && pull !== 'y' && pull !== 'z' && pull !== '-x' && pull !== '-y' && pull !== '-z') throw refusal('VALUE', 'Draft pull is x, y, z, -x, -y or -z.');
+  const hasNeutral = v.neutral !== undefined, neutral = hasNeutral ? Number(v.neutral) : undefined;
+  if (hasNeutral && (!Number.isFinite(neutral) || Math.abs(neutral!) > 10000)) throw refusal('VALUE', 'Draft neutral must be a finite coordinate within ±10000 mm.');
+  const d = draftOf(ctx, pull, v.pull === undefined && !hasNeutral); if (typeof d === 'string') throw refusal('DRAFT_PICK', d);
+  const deg = Number(v.deg); if (!(Number.isFinite(deg) && deg !== 0 && Math.abs(deg) < 45)) throw refusal('DRAFT_ANGLE', 'A draft angle is not 0 and below 45° in size.');
+  if (d.extrude !== null) return { ...ctx.doc, nodes: ctx.doc.nodes.map((n, i) => i === d.extrude && n.kind === 'extrude' ? { ...n, draft: deg } : n) };
+  return withNode(ctx.doc, { kind: 'draft', parent: refOf(d.body), faces: d.faces, angle: deg,
+    ...(v.pull !== undefined ? { pull } : {}), ...(hasNeutral ? { neutral: neutral! } : {}) });
+}
+
+/** The two faces picked for a face fillet (one body): two flat ones not parallel, or any with a curved one (the kernel takes them or says why not). By name, or why not. */
+function faceFilletOf(ctx: Ctx): { body: BodyResult; faces: [string, string] } | string {
+  const picks = ctx.selection.faces; if (picks.length !== 2) return 'Pick two faces of one body to round between (Shift-click the second): two flat ones, or a flat one and a round one.';
+  if (picks[0].body !== picks[1].body) return 'Pick faces of one body.';
+  const body = ctx.bodies[picks[0].body], f = picks.map(p => body?.mesh.faces[p.face]);
+  if (!body || f.some(x => !x)) return 'Pick two faces of one body to round between.';
+  const [a, b] = f as NonNullable<typeof f[number]>[], crossOf = (u: readonly number[], w: readonly number[]) => Math.hypot(u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]);
+  if (a.kind === 'plane' && b.kind === 'plane') {
+    if (crossOf(a.normal, b.normal) < 1e-6) return 'The two faces are parallel: their planes never meet (a full round takes a top between two sides).';
+  }
+  // (Curved faces at any angle are the kernel's to take — by a section extruded or revolved, else the rolling ball — or
+  // to refuse with the reason.)
+  const name = (x: typeof a) => x.name.split('+')[0].split('#')[0];
+  if (name(a) === name(b)) return 'Pick two different faces.';
+  return { body, faces: [name(a), name(b)] };
+}
+
+/** A face fillet node of the two picked faces at radius `r`. */
+export function buildFaceFillet(ctx: Ctx, v: Values): StudioDoc {
+  const d = faceFilletOf(ctx); if (typeof d === 'string') throw refusal('FACE_FILLET_PICK', d);
+  const r = Number(v.r); if (!(Number.isFinite(r) && r > 0)) throw refusal('VALUE', 'A face fillet\'s radius is a positive length.');
+  return withNode(ctx.doc, { kind: 'face-fillet', parent: refOf(d.body), faces: d.faces, radius: r });
+}
+
+/** The flat +Z tops picked for a full round (one body), by name, or why not. */
+function fullRoundOf(ctx: Ctx): { body: BodyResult; faces: string[] } | string {
+  const picks = ctx.selection.faces; if (!picks.length) return 'Pick the flat top face of a rib or wall (Shift-click for more).';
+  if (picks.some(f => f.body !== picks[0].body)) return 'Pick faces of one body.';
+  const body = ctx.bodies[picks[0].body], faces = picks.map(f => body?.mesh.faces[f.face]);
+  if (!body || faces.some(f => !f || f.kind !== 'plane' || Math.abs(f.normal[2] - 1) > 1e-6)) return 'A full round takes flat top faces, facing up (+Z).';
+  return { body, faces: faces.flatMap(f => f!.name.split('+')) };
+}
+const FULL_ROUND_ALONG = ['auto', 'x', 'y'] as const;
+
+/** A full round node of the picked tops; `along` auto leaves the axis to each face's longer side. */
+export function buildFullRound(ctx: Ctx, v: Values): StudioDoc {
+  const along = v.along === undefined ? 'auto' : v.along;
+  if (along !== 'auto' && along !== 'x' && along !== 'y') throw refusal('VALUE', 'Full round along is auto, x or y.');
+  const d = fullRoundOf(ctx); if (typeof d === 'string') throw refusal('FULL_ROUND_PICK', d);
+  return withNode(ctx.doc, { kind: 'full-round', parent: refOf(d.body), faces: d.faces, ...(along !== 'auto' ? { along } : {}) });
+}
+
+/** The one round face picked for a thread, by name: a shaft's (external) or a hole's, its radius; or why not. */
+function threadFaceOf(ctx: Ctx): { body: BodyResult; face: string; radius: number; external: boolean } | string {
+  const picks = ctx.selection.faces; if (picks.length !== 1) return 'Pick one round face: a shaft, or a hole (its tap drill).';
+  const body = ctx.bodies[picks[0].body], f = body?.mesh.faces[picks[0].face];
+  const axis = body && f ? roundFaceAxis(body.mesh, picks[0].face) : null;
+  if (!body || !f || f.kind !== 'curved' || !f.radius || !axis) return 'A thread goes on a round face: a shaft, or a hole (its tap drill).';
+  // Outward (a shaft) when the face's normals point away from its axis: summed over its vertices. (A whole round face's
+  // centroid lies on its axis and its mean normal is next to nothing: read from those, a tube's bore and its outside
+  // were told apart by rounding, the bore offered a shaft's relief groove and the outside a hole's clearance.)
+  const m = body.mesh, P = m.positions, N = m.normals; let out = 0;
+  for (let v = 0; v < m.faceOfVertex.length; v++) {
+    if (m.faceOfVertex[v] !== picks[0].face) continue;
+    const off = [0, 1, 2].map(k => P[3 * v + k] - axis.point[k]), along = off[0] * axis.dir[0] + off[1] * axis.dir[1] + off[2] * axis.dir[2];
+    out += [0, 1, 2].reduce((acc, k) => acc + (off[k] - along * axis.dir[k]) * N[3 * v + k], 0);
+  }
+  return { body, face: f.name.split('+')[0].split('#')[0], radius: f.radius, external: out > 0 };
+}
+/** The size row nearest a thread on a face (a shaft: its diameter; a hole: its tap drill), from the person's rows. */
+function threadSizeOf(ctx: Ctx, t: { radius: number; external: boolean }) {
+  const rows = Object.values(fastenerSizesOf(ctx.doc)), D = 2 * t.radius, near = (a: number, b: number) => Math.abs(a - b) <= 1e-6 * Math.max(1, b);
+  return t.external ? rows.find(s => near(s.d, D)) : rows.find(s => s.tap !== undefined && near(s.tap, D)) ?? rows.filter(s => s.d > D).sort((a, b) => a.d - b.d)[0];
+}
+
+/** A tapped hole's clearance on a bolt's thread, as a modelled nut's (mm). */
+const THREAD_CLEARANCE = 0.04;
+
+/** A face-thread node of the picked round face (a hole's needs its nominal diameter `d`); `len` 0 is the whole face. */
+export function buildFaceThread(ctx: Ctx, v: Values): StudioDoc {
+  const t = threadFaceOf(ctx); if (typeof t === 'string') throw refusal('THREAD_PICK', t);
+  const pitch = Number(v.pitch), d = Number(v.d), length = Number(v.len ?? 0), relief = v.relief === undefined ? undefined : Number(v.relief), clear = v.clear === undefined ? THREAD_CLEARANCE : Number(v.clear), end = v.end === '-' ? '-' : '+', hand = v.hand === undefined ? 'right' : v.hand;
+  if (!(Number.isFinite(pitch) && pitch > 0)) throw refusal('VALUE', 'A thread\'s pitch is a positive length.');
+  if (!t.external && !(Number.isFinite(d) && d > 0)) throw refusal('VALUE', 'A thread in a hole needs its nominal diameter.');
+  if (hand !== 'right' && hand !== 'left') throw refusal('VALUE', 'A thread\'s hand is right or left.');
+  if (!(Number.isFinite(length) && length >= 0) || (relief !== undefined && !(Number.isFinite(relief) && relief >= 0)) || !(Number.isFinite(clear) && clear >= 0)) throw refusal('VALUE', 'A thread\'s length, relief and clearance are not negative.');
+  return withNode(ctx.doc, { kind: 'face-thread', parent: refOf(t.body), face: t.face, pitch, ...(!t.external || (Number.isFinite(d) && Math.abs(d - 2 * t.radius) > 1e-9 * Math.max(1, d)) ? { diameter: d } : {}), ...(length > 0 ? { length } : {}), ...(end === '-' ? { end } : {}), ...(t.external && relief !== undefined && relief !== pitch ? { relief } : {}), ...((!t.external && clear !== THREAD_CLEARANCE) || (t.external && v.clear !== undefined) ? { clearance: clear } : {}), ...(hand === 'left' ? { hand: 'left' as const } : {}) });
 }
 
 const allCommands: Command[] = [
@@ -455,17 +554,54 @@ const allCommands: Command[] = [
     },
   },
   {
-    id: 'draft', label: 'Draft', icon: 'cad-draft', hint: 'Taper the picked side faces for a pull along Z: each turns about its bottom edge (every side of an extrusion: its own draft)', group: 'modify', keywords: 'taper draft angle mould mold release pull',
-    available: ctx => { const d = draftOf(ctx); return typeof d === 'string' ? no(d) : ok; },
-    fields: () => [{ key: 'deg', label: 'Angle', kind: 'deg', min: -44, max: 44, step: 1 }],
-    defaults: () => ({ deg: 5 }),
-    steps: ctx => { const d = draftOf(ctx); return typeof d === 'string' ? [] : [{ label: 'Faces', text: d.extrude !== null ? `every side of its extrusion: the extrusion's own draft (exact)` : `${d.faces.length} side face${d.faces.length === 1 ? '' : 's'}, turned about the body's bottom`, done: true }]; },
-    build: (ctx, v) => {
-      const d = draftOf(ctx); if (typeof d === 'string') throw refusal('DRAFT_PICK', d);
-      const deg = Number(v.deg); if (!(deg !== 0 && Math.abs(deg) < 45)) throw refusal('DRAFT_ANGLE', 'A draft angle is not 0 and below 45° in size.');
-      if (d.extrude !== null) return { ...ctx.doc, nodes: ctx.doc.nodes.map((n, i) => i === d.extrude && n.kind === 'extrude' ? { ...n, draft: deg } : n) };
-      return withNode(ctx.doc, { kind: 'draft', parent: refOf(d.body), faces: d.faces, angle: deg });
+    id: 'draft', label: 'Draft', icon: 'cad-draft', hint: 'Taper the picked side faces for a pull along an axis (+Z unless you choose another): each turns about the body\'s end facing away from the pull (every side of an extrusion, pulled along +Z: its own draft)', group: 'modify', keywords: 'taper draft angle mould mold release pull',
+    // (A face square to some pull axis can be drafted; +Z, the default, keeps the extrusion's own draft and the old node.)
+    available: ctx => { const d = draftOf(ctx); return typeof d !== 'string' || DRAFT_PULLS.some(p => typeof draftOf(ctx, p, false) !== 'string') ? ok : no(d); },
+    fields: () => [{ key: 'deg', label: 'Angle', kind: 'deg', min: -44, max: 44, step: 1 },
+      { key: 'pull', label: 'Pull', kind: 'choice', options: DRAFT_PULLS.map(p => ({ value: p, label: p.startsWith('-') ? `−${p.slice(1).toUpperCase()}` : `+${p.toUpperCase()}` })) }],
+    defaults: ctx => ({ deg: 5, pull: DRAFT_PULLS.find(p => typeof draftOf(ctx, p, false) !== 'string') ?? 'z' }),
+    steps: (ctx, v) => {
+      const pull = draftPullOf(v), d = draftOf(ctx, pull, pull === 'z');
+      return typeof d === 'string' ? [{ label: 'Faces', text: d, done: false }] : [{ label: 'Faces', text: d.extrude !== null ? `every side of its extrusion: the extrusion's own draft (exact)` : `${d.faces.length} side face${d.faces.length === 1 ? '' : 's'}, turned about the body's ${pull.startsWith('-') ? 'top' : 'bottom'} along the pull`, done: true }];
     },
+    // (+Z is built as before, without a pull on the node.)
+    build: (ctx, v) => { const rest = { ...v }; delete rest.pull; return buildDraft(ctx, draftPullOf(v) === 'z' ? rest : { ...rest, pull: draftPullOf(v) }); },
+  },
+  {
+    id: 'face-fillet', label: 'Face fillet', icon: 'cad-face-fillet', hint: 'Round between two picked faces that need not touch — two flat ones, a flat one and a round one across or along its axis (a boss on a plate, a rim, a hole\'s edge, a tube on a plate), two parallel round ones, cones, spheres and tori about one axis (a tapered boss, a countersink, a ball on a stem, a dome, a bead), or round faces at an angle (a pipe tee, a tilted pin or hole, by the rolling ball): a chamfer, step or groove between them is replaced by one round tangent to both (at each corner they make)', group: 'modify', keywords: 'face fillet blend round corner between faces',
+    available: ctx => { const d = faceFilletOf(ctx); return typeof d === 'string' ? no(d) : ok; },
+    fields: () => [{ key: 'r', label: 'Radius', kind: 'mm', min: 0.1 }],
+    defaults: () => ({ r: 2 }),
+    steps: ctx => { const d = faceFilletOf(ctx); return typeof d === 'string' ? [{ label: 'Faces', text: d, done: false }] : [{ label: 'Faces', text: `${d.faces[0]} and ${d.faces[1]}: the round tangent to both, filled at an inside corner, cut at an outside one`, done: true }]; },
+    build: buildFaceFillet,
+  },
+  {
+    id: 'face-thread', label: 'Thread', icon: 'cad-thread', hint: 'Cut a modelled ISO metric thread (right or left hand) on a picked round face: a shaft at its diameter, a hole (its tap drill) at the nominal size, 0.04 mm clear of a bolt like a modelled nut; a relief groove where a shaft\'s thread stops at a shoulder', group: 'modify', keywords: 'thread screw tap tapped helix modelled real external internal',
+    available: ctx => { const t = threadFaceOf(ctx); return typeof t === 'string' ? no(t) : ok; },
+    fields: ctx => { const t = threadFaceOf(ctx), external = typeof t !== 'string' && t.external;
+      return [{ key: 'pitch', label: 'Pitch', kind: 'mm', min: 0.2, step: 0.05 }, ...(external ? [] : [{ key: 'd', label: 'Nominal Ø', kind: 'mm' as const, min: 1 }, { key: 'clear', label: 'Clearance on a bolt', kind: 'mm' as const, min: 0, step: 0.01 }]),
+        { key: 'hand', label: 'Hand', kind: 'choice', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }] },
+        { key: 'len', label: 'Length (0: whole face)', kind: 'mm', min: 0 }, { key: 'end', label: 'From', kind: 'choice', options: [{ value: '+', label: 'The + end' }, { value: '-', label: 'The − end' }] },
+        ...(external ? [{ key: 'relief', label: 'Relief groove', kind: 'mm' as const, min: 0 }] : [])]; },
+    defaults: ctx => {
+      const t = threadFaceOf(ctx); if (typeof t === 'string') return { pitch: 1, d: 6, len: 0, end: '+', relief: 1, clear: THREAD_CLEARANCE, hand: 'right' };
+      // The person's size row when one fits; else a 1 mm pitch, and a hole's nominal its drill plus a pitch (d − P ≈ the tap drill).
+      const s = threadSizeOf(ctx, t), pitch = s?.pitch ?? 1;
+      return { pitch, d: t.external ? 2 * t.radius : s?.d ?? +(2 * t.radius + pitch).toFixed(3), len: 0, end: '+', relief: pitch, hand: 'right', ...(t.external ? {} : { clear: THREAD_CLEARANCE }) };
+    },
+    steps: (ctx, v) => { const t = threadFaceOf(ctx); if (typeof t === 'string') return [{ label: 'Face', text: t, done: false }];
+      const d = t.external ? 2 * t.radius : Number(v.d), s = threadSizeOf(ctx, t);
+      return [{ label: 'Face', text: `${t.external ? 'a shaft' : 'a hole'} Ø${+(2 * t.radius).toFixed(3)}`, done: true },
+        { label: 'Thread', text: `M${+d.toFixed(3)}×${v.pitch} ${v.hand === 'left' ? 'left' : 'right'}-hand, ${t.external ? 'external' : `internal, ${v.clear ?? THREAD_CLEARANCE} mm clear of a bolt`}, modelled: ISO 68-1 basic profile as helical B-spline faces${s && Math.abs(s.pitch - Number(v.pitch)) > 1e-9 ? ` (the size row says ×${s.pitch})` : !s ? ' (no size row: the pitch is yours)' : ''}`, done: true }]; },
+    build: buildFaceThread,
+  },
+  {
+    id: 'full-round', label: 'Full round', icon: 'cad-full-round', hint: 'Round the picked flat top of a rib or wall side to side: one half cylinder, its radius half the width', group: 'modify', keywords: 'face fillet round top rib',
+    available: ctx => { const d = fullRoundOf(ctx); return typeof d === 'string' ? no(d) : ok; },
+    fields: () => [{ key: 'along', label: 'Along', kind: 'choice', options: FULL_ROUND_ALONG.map(a => ({ value: a, label: a === 'auto' ? 'Longer side' : a.toUpperCase() })) }],
+    defaults: () => ({ along: 'auto' }),
+    steps: ctx => { const d = fullRoundOf(ctx); return typeof d === 'string' ? [{ label: 'Faces', text: d, done: false }] : [{ label: 'Faces', text: `${d.faces.length} top face${d.faces.length === 1 ? '' : 's'}, each rounded across its width`, done: true }]; },
+    build: buildFullRound,
   },
   {
     id: 'chamfer', label: 'Chamfer', icon: 'cad-chamfer', hint: 'Cut the picked edges at 45° (a picked face: all its edges)', shortcut: 'C', group: 'modify', keywords: 'bevel edge',
@@ -505,7 +641,7 @@ const allCommands: Command[] = [
       if (r1 > 0 && Math.abs(r1 - r) > 1e-9) {
         const ends = chainEnds(edges);
         if (!ends) throw refusal('FILLET_CHAIN', 'A varying radius needs the picked edges to form one open chain: its two ends take the two radii.');
-        return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r, radii: [{ at: ends[0], radius: r }, { at: ends[1], radius: r1 }], ...shaped });
+        return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r, radii: [{ at: ends[0], radius: r, atEnd: true }, { at: ends[1], radius: r1, atEnd: true }], ...shaped });
       }
       return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r, ...shaped });
     },

@@ -111,6 +111,8 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'revolve': return { ...at, kind: 'revolve', sketch: id(node.sketch), axis: { origin: node.origin ?? [0, 0], direction: node.dir ?? node.axis }, angle: node.angle };
     case 'union': case 'intersect': return { ...at, kind: node.kind, target: ref(node.left), tool: ref(node.right) };
     case 'difference': return { ...at, kind: 'difference', target: ref(node.parent), tool: ref(node.tool) };
+    case 'rib': return { ...at, kind: 'rib', target: ref(node.parent), min: structuredClone(node.min), max: structuredClone(node.max) };
+    case 'rectangular-relief': return { ...at, kind: 'rectangular-relief', target: ref(node.parent), min: structuredClone(node.min), max: structuredClone(node.max), depth: structuredClone(node.depth), mode: node.mode };
     case 'hole': return { ...at, kind: 'hole', target: ref(node.parent), center: node.center, radius: node.radius,
       ...(node.axis ? { axis: node.axis } : {}), ...(node.side ? { side: node.side } : {}), ...(node.depth === undefined ? {} : { depth: node.depth }), ...(node.countersink ? { countersink: node.countersink } : {}), ...(node.face ? { face: node.face } : {}) };
     case 'translate': return { ...at, kind: 'translate', target: ref(node.parent), offset: node.offset };
@@ -271,9 +273,15 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       return { ...at, kind: 'spur-gear', ...modules, teeth: node.teeth, faceWidth: node.faceWidth, generator: node.generator, ...own, ...(node.toolTipRadius !== undefined ? { toolTipRadius: node.toolTipRadius } : {}), ...(node.profileShift ? { profileShift: node.profileShift } : {}), ...(node.bore !== undefined ? { bore: node.bore } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
     }
     case 'sew': return { ...at, kind: 'sew', surfaces: node.surfaces, ...(node.tolerance !== undefined ? { tolerance: node.tolerance } : {}) };
-    case 'draft': return { ...at, kind: 'draft', target: ref(node.parent), faces: node.faces, angle: node.angle, ...expectOf(node, node.faces) };
+    case 'draft': return { ...at, kind: 'draft', target: ref(node.parent), faces: node.faces, angle: node.angle,
+      ...(Object.hasOwn(node, 'pull') ? { pull: structuredClone(node.pull) } : {}),
+      ...(Object.hasOwn(node, 'neutral') ? { neutral: structuredClone(node.neutral) } : {}), ...expectOf(node, node.faces) };
+    case 'face-thread': return { ...at, kind: 'face-thread', target: ref(node.parent), face: node.face, pitch: node.pitch, ...(node.diameter !== undefined ? { diameter: node.diameter } : {}),
+      ...(node.length !== undefined ? { length: node.length } : {}), ...(node.end ? { end: node.end } : {}), ...(node.relief !== undefined ? { relief: node.relief } : {}), ...(node.clearance !== undefined ? { clearance: node.clearance } : {}), ...(node.hand ? { hand: node.hand } : {}) };
+    case 'face-fillet': return { ...at, kind: 'face-fillet', target: ref(node.parent), faces: [node.faces[0], node.faces[1]], radius: node.radius, ...expectOf(node, node.faces) };
+    case 'full-round': return { ...at, kind: 'full-round', target: ref(node.parent), faces: node.faces, ...(node.along ? { along: node.along } : {}), ...expectOf(node, node.faces) };
     case 'split-face': return { ...at, kind: 'split-face', target: ref(node.parent), face: node.face, pull: node.pull, ...(node.names ? { names: node.names } : {}) } as CadPartFeature;
-    case 'fillet': return { ...at, kind: 'fillet', target: ref(node.parent), edges: node.edges, ...(node.radii ? { radii: node.radii.map(p => ({ at: p.at, radius: p.radius })) } : { radius: node.radius }), ...(node.section ? { section: node.section } : {}), ...expectOf(node, node.edges) };
+    case 'fillet': return { ...at, kind: 'fillet', target: ref(node.parent), edges: node.edges, ...(node.radii ? { radii: node.radii.map(p => ({ at: p.at, radius: p.radius, ...(p.atEnd ? { atEnd: true as const } : {}) })) } : { radius: node.radius }), ...(node.section ? { section: node.section } : {}), ...expectOf(node, node.edges) };
   }
 }
 
@@ -408,9 +416,9 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
       if (node.suppressed || ('from' in node && Array.isArray(node.from) && node.from.some(p => gone.has(p))) || ((node.kind === 'gear' || node.kind === 'rack' || node.kind === 'bevel-gear' || node.kind === 'worm') && node.mesh && gone.has(node.mesh.gear))) { gone.add(i); return; }
       features.push(...convert(node, i)); return;
     }
-    // An active cut pattern must reach kernel source admission even when its parent is gone.
+    // Active cut patterns, ribs and reliefs must reach kernel source admission even when their parent is gone.
     // Suppressing the pattern itself keeps the ordinary parent pass-through below.
-    if (node.kind === 'linear-feature-pattern' && !node.suppressed) { features.push(...featuresOf(node, i)); return; }
+    if ((node.kind === 'linear-feature-pattern' || node.kind === 'rib' || node.kind === 'rectangular-relief') && !node.suppressed) { features.push(...featuresOf(node, i)); return; }
     const parent = (node as { parent: BodyRef }).parent;
     if (gone.has(parent.node)) { gone.add(i); return; }
     if (node.suppressed) { pass(i, parent); return; }

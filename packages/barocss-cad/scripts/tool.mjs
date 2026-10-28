@@ -13,6 +13,8 @@ if (mode === 'build:fast') {
   buildSync({ entryPoints: files, outdir: resolve(import.meta.dirname, '../dist'), outbase: src, format: 'esm', platform: 'node', target: 'es2022', bundle: false, logLevel: 'warning' });
 } else if (mode === 'lint') {
   execFileSync(process.execPath, [resolve(dirname(require.resolve('eslint/package.json')), 'bin/eslint.js'), 'src'], { stdio: 'inherit' });
+  // (The hot folders' code-shape counts may not grow: scripts/code-shape.mjs, P4.)
+  execFileSync(process.execPath, [resolve(import.meta.dirname, 'code-shape.mjs'), '--check'], { stdio: 'inherit' });
 } else {
   if (mode === 'build') rmSync(resolve(import.meta.dirname, '../dist'), {recursive:true,force:true});
   execFileSync(process.execPath, [require.resolve('typescript/bin/tsc'), '-p', 'tsconfig.json', ...(mode === 'type-check' ? ['--noEmit'] : [])], { stdio: 'inherit' });

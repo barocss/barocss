@@ -18,6 +18,11 @@ export interface ThreadSolidRequest {
   readonly length?: number;
   /** A hex head above the seat (bolt), or a hex nut above the seat with the thread through it (internal). */
   readonly hex?: { readonly across: number; readonly height: number; readonly internal?: boolean };
+  /**
+   * The profile pushed out by this many mm (radially, every phase): the clearance a nut or a tapped hole leaves
+   * on a bolt's thread. Default 0.04 for a nut, 0 for a rod or bolt.
+   */
+  readonly clearance?: number;
   /** Steps round a turn (a multiple of 12, default 48) and along a pitch (default 12). */
   readonly around?: number; readonly along?: number;
   /**
@@ -36,6 +41,13 @@ export function isoThreadRadius(d: number, pitch: number, phase: number): number
   return a <= crest ? rMaj : a <= crest + flank ? rMaj - (rMaj - rMin) * (a - crest) / flank : rMin;
 }
 
+/** The radial clearance a thread's profile is pushed out by (a nut's 0.04 mm by default). */
+export function clearanceOf(req: ThreadSolidRequest, nut: boolean): number {
+  const c = req.clearance ?? (nut ? 0.04 : 0);
+  if (!(Number.isFinite(c) && c >= 0 && c < req.pitch / 4)) throw new RangeError('a thread\'s clearance is at least 0 and below a quarter of its pitch');
+  return c;
+}
+
 export function threadSolid(req: ThreadSolidRequest): Brep {
   if ((req.form ?? 'helical') === 'helical') return helicalThreadSolid(req);
   const d = req.diameter, P = req.pitch, [cx, cy] = req.center ?? [0, 0], seat = req.seat ?? 0, N = req.around ?? 48, K = req.along ?? 12;
@@ -45,7 +57,7 @@ export function threadSolid(req: ThreadSolidRequest): Brep {
   if (hex && !(hex.across > d && hex.height > 0)) throw new RangeError('a hex must be wider across flats than the thread and have a height');
   if (!nut && !((req.length ?? 0) > 0)) throw new RangeError('a threaded rod or shank needs a length');
   // (A nut's thread leaves a little clearance on the bolt's.)
-  const clear = nut ? 0.04 : 0;
+  const clear = clearanceOf(req, nut);
   const z0 = nut ? seat : seat - req.length!, z1 = nut ? seat + hex!.height : seat;
   const M = Math.max(1, Math.ceil((z1 - z0) / (P / K))), zs = Array.from({ length: M + 1 }, (_, j) => j === M ? z1 : z0 + (z1 - z0) * j / M);
   const P3: number[] = [], I: number[] = [], vertex = (x: number, y: number, z: number) => { P3.push(x, y, z); return P3.length / 3 - 1; };

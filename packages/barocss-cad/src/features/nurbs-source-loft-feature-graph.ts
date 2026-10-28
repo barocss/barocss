@@ -7,6 +7,7 @@ import { compileCadModel } from '../model-compiler.js';
 import { parseCadDocumentOwnJson, cadDocumentOwnUtf8Bytes } from '../cad-document.js';
 import type { Model, Curve } from '../types.js';
 import { KernelError } from '../core/barocss-error.js';
+import { EXACT_OWN_FIELDS_REQUIRED, OWN_RECORD_REQUIRED, hasExactOwnFields, isOwnRecord } from '../core/own-data.js';
 
 export const NurbsSourceLoftFeatureGraphDiagnosticCode = Object.freeze({INPUT:'INPUT',VERSION:'VERSION',IDENTITY:'IDENTITY',REVISION:'REVISION',BUDGET:'BUDGET',SOURCE:'SOURCE',REFERENCE:'REFERENCE',DEPENDENCY:'DEPENDENCY',BASIS:'BASIS',STATIONS:'STATIONS',NATIVE:'NATIVE',REPRESENTABILITY:'REPRESENTABILITY',CODEC:'CODEC',OWNED:'OWNED'} as const);
 export type NurbsSourceLoftFeatureGraphDiagnosticCode = typeof NurbsSourceLoftFeatureGraphDiagnosticCode[keyof typeof NurbsSourceLoftFeatureGraphDiagnosticCode];
@@ -122,7 +123,7 @@ export interface NurbsSourceLoftFeatureGraphUpdateResult {
 const CODE=NurbsSourceLoftFeatureGraphDiagnosticCode;
 const LIMITS:NurbsSourceLoftFeatureGraphReport['limits']={maximumSources:3,maximumSourceEdits:3,maximumNodes:4,maximumLoftSections:3,maximumSelectedUDegree:5,maximumSelectedUPoles:16,maximumRevision:1000000000,maximumAggregateOriginalSourceUTF16:262144,maximumAggregateOriginalSourceUTF8:262144,maximumSourceUTF16:262144,maximumSourceUTF8:262144,maximumModelObjects:16,maximumAuthoredFileUTF16:1048576,maximumAuthoredFileUTF8:1048576,maximumResultFileUTF16:2097152,maximumResultFileUTF8:2097152,maximumWrapperPoleEdits:192,maximumWrapperRequestedFields:768,ownValues:1048576,ownDepth:64,arrayElements:8192,recordFields:64,keyCharacters:128,stringCharacters:262144,authoredCodecDepth:12,authoredCodecValues:65536,authoredCodecRecordFields:16,authoredCodecDecodedStringCharacters:262144};
 function check(condition:boolean,code:NurbsSourceLoftFeatureGraphDiagnosticCode,detail:string):asserts condition {if(!condition)throw new NurbsSourceLoftFeatureGraphError(code,detail);}
-function record(input:unknown,fields:string[],code:NurbsSourceLoftFeatureGraphDiagnosticCode=CODE.INPUT):Record<string,unknown> {check(input!==null&&typeof input==='object'&&!Array.isArray(input),code,'An own record is required');const data=input as Record<string,unknown>;check(Object.keys(data).length===fields.length&&fields.every(field=>Object.hasOwn(data,field)),code,'Exact own fields are required');return data;}
+function record(input: unknown, fields: string[], code: NurbsSourceLoftFeatureGraphDiagnosticCode = CODE.INPUT): Record<string, unknown> { check(isOwnRecord(input), code, OWN_RECORD_REQUIRED); check(hasExactOwnFields(input, fields), code, EXACT_OWN_FIELDS_REQUIRED); return input; }
 function id(input:unknown):string {check(typeof input==='string'&&input.length<=48&&/^[A-Za-z_][A-Za-z0-9_-]*$/.test(input),CODE.IDENTITY,'ASCII identity1..48 is required');return input;}
 function revision(input:unknown):number {check(typeof input==='number'&&Number.isInteger(input)&&input>=0&&input<=1000000000&&!Object.is(input,-0),CODE.REVISION,'Revision must be an integer0..1e9 without negative zero');return input;}
 function snapshot(input:unknown,owned=false):unknown {

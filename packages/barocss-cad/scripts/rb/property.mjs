@@ -200,8 +200,68 @@ export function properties(cad) {
       }
       return true;
     } },
+    { name: 'names keep their meaning along a chain: a face the next feature does not come near keeps its name, area and centre (D282)', ...chains, prop: v => {
+      const steps = chainSteps(v); let prev = null;
+      for (let k = 0; k < steps.length; k++) {
+        let out; try { out = cad.outputOf(cad.evaluateCadPart(D(steps[k].features)), steps[k].id); } catch (cause) { if (cause?.code) return 'skip'; throw cause; }
+        const faces = namedFaces(cad, out.brep);
+        if (prev) for (const [name, f] of prev) {
+          if (!apart(f.box, steps[k].tool, 1)) continue;
+          const g = faces.get(name);
+          if (!g) return { step: k, name, lost: true };
+          if (!close(g.area, f.area, f.area, 1e-6) || Math.hypot(...g.centre.map((x, i) => x - f.centre[i])) > 1e-6) return { step: k, name, was: f, now: { area: g.area, centre: g.centre } };
+        }
+        prev = faces;
+      }
+      return true;
+    } },
   ];
 }
+
+// ---- name stability (D282) -------------------------------------------------------------------------------
+/** A plate (its first top edge rounded half the time: a B-rep from then on) and a row of bosses and pockets, each
+ * one feature, at grid places 10 mm apart: what each Boolean's tool comes near, and what it does not, is known. */
+export const chains = {
+  gen: rnd => ({ round: rnd() < 0.5, items: Array.from({ length: 3 + Math.floor(rnd() * 5) }, () => ({ r: num(rnd, 1.5, 3.5), h: num(rnd, 2, 6), cut: rnd() < 0.4 })) }),
+  shrink: v => [...v.items.map((_, i) => ({ ...v, items: v.items.filter((__, j) => j !== i) })).filter(x => x.items.length >= 2), ...(v.round ? [{ ...v, round: false }] : []),
+    ...v.items.map((it, i) => ({ ...v, items: v.items.map((x, j) => j === i ? { ...x, r: Math.round(x.r), h: Math.round(x.h) } : x) })).filter(x => JSON.stringify(x) !== JSON.stringify(v))],
+};
+/** The chain's documents, one a Boolean: its features so far, its output's id and the new tool's box. */
+function chainSteps(v) {
+  const n = v.items.length, w = 10 * Math.ceil(n / 2) + 10;
+  const f = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [w, 30] }, { id: 'p', kind: 'extrude', sketch: 's', height: 8 }];
+  if (v.round) f.push({ id: 'r', kind: 'fillet', target: 'p', edges: ['p.side0|p.top'], radius: 2 });
+  let last = v.round ? 'r' : 'p';
+  const steps = [{ features: f.slice(), id: last, tool: null }];
+  v.items.forEach((it, k) => {
+    const cx = 10 + 10 * Math.floor(k / 2), cy = k % 2 ? 22 : 8, z0 = it.cut ? 8 - it.h / 2 : 8, z1 = z0 + it.h;
+    f.push({ id: `c${k}s`, kind: 'sketch', profile: 'circle', plane: { origin: [0, 0, z0], normal: [0, 0, 1], xAxis: [1, 0, 0] }, center: [cx, cy], radius: it.r },
+      { id: `c${k}`, kind: 'extrude', sketch: `c${k}s`, height: it.h }, { id: `b${k}`, kind: it.cut ? 'difference' : 'union', target: last, tool: `c${k}` });
+    last = `b${k}`;
+    steps.push({ features: f.slice(), id: last, tool: { min: [cx - it.r, cy - it.r, z0], max: [cx + it.r, cy + it.r, z1] } });
+  });
+  return steps;
+}
+/** Per face name (a name used twice, as by a split face's two pieces, counts as one): area, area centre and box, from
+ * the display tessellation (the same at every step, so equal faces measure equal). */
+function namedFaces(cad, brep) {
+  const mesh = cad.tessellateBrep(brep, { segmentsPerQuarter: 8 }), P = mesh.positions, I = mesh.indices, nameOf = new Map(brep.faces.map(f => [f.id, f.name ?? f.id])), out = new Map();
+  for (const mf of mesh.faces) {
+    const name = nameOf.get(mf.faceId), acc = out.get(name) ?? { area: 0, m: [0, 0, 0], box: { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] } };
+    for (let t = mf.indexOffset; t < mf.indexOffset + mf.indexCount; t += 3) {
+      const a = 3 * I[t], b = 3 * I[t + 1], c = 3 * I[t + 2], u = [0, 1, 2].map(k => P[b + k] - P[a + k]), w = [0, 1, 2].map(k => P[c + k] - P[a + k]);
+      const area = Math.hypot(u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]) / 2;
+      acc.area += area;
+      for (let k = 0; k < 3; k++) acc.m[k] += area * (P[a + k] + P[b + k] + P[c + k]) / 3;
+      for (const q of [a, b, c]) for (let k = 0; k < 3; k++) { acc.box.min[k] = Math.min(acc.box.min[k], P[q + k]); acc.box.max[k] = Math.max(acc.box.max[k], P[q + k]); }
+    }
+    out.set(name, acc);
+  }
+  for (const acc of out.values()) acc.centre = acc.m.map(x => x / acc.area);
+  return out;
+}
+/** Whether two boxes are more than `gap` apart on some axis. */
+const apart = (a, b, gap) => [0, 1, 2].some(k => a.max[k] + gap < b.min[k] || b.max[k] + gap < a.min[k]);
 
 /** The short arc from `start` about `center` (to the next segment's start). */
 const arcTo = (start, center, end) => ({ kind: 'arc', start, center, direction: ((start[0] - center[0]) * (end[1] - center[1]) - (start[1] - center[1]) * (end[0] - center[0])) > 0 ? 'ccw' : 'cw' });

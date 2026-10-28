@@ -11,6 +11,7 @@ import type { CurveD1Result, SurfaceD1Result } from './core/derivatives.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 import { same } from './core/structural-equality.js';
 import { KernelError } from './core/barocss-error.js';
+import { EXACT_OWN_FIELDS_REQUIRED, OWN_RECORD_REQUIRED, hasExactOwnFields, isOwnRecord } from './core/own-data.js';
 
 export const AxisBoxSolidBooleanDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOURCE: 'SOURCE', BINDING: 'BINDING', CONTACT: 'CONTACT', TOPOLOGY: 'TOPOLOGY', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidBooleanDiagnosticCode = typeof AxisBoxSolidBooleanDiagnosticCode[keyof typeof AxisBoxSolidBooleanDiagnosticCode];
@@ -57,7 +58,7 @@ export interface AxisBoxSolidBooleanResult { a: AxisBoxSolidBooleanAsset; b: Axi
 const CODE = AxisBoxSolidBooleanDiagnosticCode, CORNERS = [[0, 4, 6, 2], [1, 3, 7, 5], [0, 1, 5, 4], [2, 6, 7, 3], [0, 2, 3, 1], [4, 5, 7, 6]];
 function check(condition: boolean, code: AxisBoxSolidBooleanDiagnosticCode, detail: string): asserts condition { if (!condition) throw new AxisBoxSolidBooleanError(code, detail); }
 function child<T>(action: () => T, code: AxisBoxSolidBooleanDiagnosticCode, detail: string): T { try { return action(); } catch (cause) { throw new AxisBoxSolidBooleanError(code, detail, cause); } }
-function record(input: unknown, fields: string[], code: AxisBoxSolidBooleanDiagnosticCode = CODE.INPUT): Record<string, unknown> { check(input !== null && typeof input === 'object' && !Array.isArray(input), code, 'An own record is required'); const data = input as Record<string, unknown>; check(Object.keys(data).length === fields.length && fields.every(field => Object.hasOwn(data, field)), code, 'Exact own fields are required'); return data; }
+function record(input: unknown, fields: string[], code: AxisBoxSolidBooleanDiagnosticCode = CODE.INPUT): Record<string, unknown> { check(isOwnRecord(input), code, OWN_RECORD_REQUIRED); check(hasExactOwnFields(input, fields), code, EXACT_OWN_FIELDS_REQUIRED); return input; }
 function id(input: unknown, maximum = 48): string { check(typeof input === 'string' && input.length <= maximum && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(input), CODE.IDENTITY, 'A bounded ASCII ID is required'); return input; }
 function snapshot(input: unknown, owned = false): unknown {
   const code = owned ? CODE.OWNED : CODE.INPUT; let remaining = 1048576; const ancestors = new Set<object>();

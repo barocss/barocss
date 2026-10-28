@@ -160,7 +160,7 @@ function check(name, sections, parametersV, degreeV, surfaceId, pointWitness = n
     assert.deepEqual(mapping.surfacePole, [i, j]); assert.equal(mapping.rowCurveId, rowIds[i]); assert.equal(mapping.rowCurvePoleIndex, j);
     assert.equal(mapping.origin, endpoint ? 'original-endpoint-bit-copy' : 'row-interpolation-solved');
     assert.equal(mapping.originalSectionIndex, endpoint ? j : null); assert.equal(mapping.originalPoleIndex, endpoint ? i : null);
-    assert.deepEqual(mapping.pointMM, surface.controlPoints[i][j]);
+    assert.deepEqual(mapping.point, surface.controlPoints[i][j]);
     assert.deepEqual(provenance.weightMappings[index], {surfacePole: [i, j], origin: 'common-u-weight-bit-copy',
       originalSectionIndex: 0, originalPoleIndex: i, weight: first.weights[i]});
   }
@@ -197,8 +197,8 @@ function check(name, sections, parametersV, degreeV, surfaceId, pointWitness = n
     assert.ok(Object.is(observation.v, parametersV[j])); assert.equal(observation.representativeVStateIndex, j);
     const key = sampled.values.findIndex(value => Object.is(value, u)) + ':' + j; assert.ok(!pairs.has(key)); pairs.add(key);
     const original = evaluateCurve(sections[j], u), actual = evaluateSurface(surface, u, parametersV[j]);
-    assert.deepEqual(observation.originalPointMM, original); assert.deepEqual(observation.actualPointMM, actual);
-    const residual = difference(original, actual); assert.equal(observation.differenceMM, residual); assert.ok(residual <= 1e-7);
+    assert.deepEqual(observation.originalPoint, original); assert.deepEqual(observation.actualPoint, actual);
+    const residual = difference(original, actual); assert.equal(observation.difference, residual); assert.ok(residual <= 1e-7);
     maximumDifference = Math.max(maximumDifference, residual);
     const originalD1 = state(() => evaluateCurveD1(sections[j], u)), surfaceD1 = state(() => evaluateSurfaceD1(surface, u, parametersV[j]));
     assert.deepEqual(observation.originalD1, originalD1); assert.deepEqual(observation.surfaceD1, surfaceD1);
@@ -215,7 +215,7 @@ function check(name, sections, parametersV, degreeV, surfaceId, pointWitness = n
   assert.equal(pairs.size, planned.observations); assert.equal(report.derivativeComparisonCount, comparisonCount); assert.equal(report.derivativeRefusalCount, refusalCount);
   assert.deepEqual(report.derivativeSourceRefusalCounts, {originalU: originalRefusalCount,
     representativeV: report.representativeVStates.filter(entry => entry.state.status === 'native-refused').length, surface: surfaceRefusalCount});
-  assert.equal(report.maximumPointDifferenceMM, maximumDifference); assert.equal(report.maximumRelativeDuDifference, comparisonCount ? maximumRelative : null);
+  assert.equal(report.maximumPointDifference, maximumDifference); assert.equal(report.maximumRelativeDuDifference, comparisonCount ? maximumRelative : null);
   const guards = sampled.values.filter(value => value > domains.u[0] && value < domains.u[1] && first.knots.filter(knot => knot === value).length >= first.degree);
   assert.deepEqual(report.guardedParameters, {u: guards, v: []});
   const analytic = [];
