@@ -52,8 +52,8 @@
 | `[COMPILATION]` | `core/error-codes.ts (declared)` | — |
 | `[CONDITION]` | `core/error-codes.ts (declared)` | — |
 | `[CONDITIONING]` | `core/error-codes.ts (declared)` | — |
-| `[CONE_TOP_CHAMFER_SCOPE]` | `blend` | edge …: only a convex full-circle small-cap rim of one solid conical frustum is supported |
-| `[CONE_TOP_CHAMFER_SIZE]` | `blend` | edge …: the distance must stay strictly inside both faces and away from the axis |
+| `[CONE_TOP_CHAMFER_SCOPE]` | `blend`, `core/error-codes.ts (declared)` | edge …: only a convex full-circle small-cap rim of one solid conical frustum is supported |
+| `[CONE_TOP_CHAMFER_SIZE]` | `blend`, `core/error-codes.ts (declared)` | edge …: the distance must stay strictly inside both faces and away from the axis |
 | `[CONFLICT]` | `core/error-codes.ts (declared)` | — |
 | `[CONNECTED]` | `core/error-codes.ts (declared)` | — |
 | `[CONNECTOR_FIT]` | `core/error-codes.ts (declared)` | — |
@@ -92,15 +92,15 @@
 | `[EXPRESSION]` | `core/error-codes.ts (declared)` | — |
 | `[EXTRUSION]` | `core/error-codes.ts (declared)` | — |
 | `[FACE]` | `core/error-codes.ts (declared)` | — |
-| `[FACE_FILLET_FACE]` | `part` | … is not a planar face (a face fillet takes planes and cylinders: two planes, a plane and a cylinder across or along its axis, or two parallel cylinders) |
-| `[FACE_FILLET_FACES]` | `part` | … crosses the line where its plane meets the other's |
-| `[FACE_FILLET_NOT_CLEAR]` | `part` | the round between … and … would … … mm³ (… expected)… |
-| `[FACE_FILLET_PARALLEL]` | `part` | … and … are parallel: their planes do not meet |
-| `[FACE_FILLET_RADIUS]` | `part` | a … mm round would not meet … tangentially: the face stops before … mm from the corner |
-| `[FACE_THREAD_FACE]` | `part` | … is not a cylindrical face |
-| `[FACE_THREAD_NOT_CLEAR]` | `part` | the wall round … is thinner than the thread needs (… mm past the hole) |
-| `[FACE_THREAD_RELIEF]` | `part` | the thread on … ends at a shoulder or inside the face: it needs a relief groove (relief > 0) |
-| `[FACE_THREAD_SIZE]` | `part` | the thread's length … is longer than the face (…) |
+| `[FACE_FILLET_FACE]` | `core/error-codes.ts (declared)`, `part` | … is not a planar face (a face fillet takes planes and cylinders: two planes, a plane and a cylinder across or along its axis, or two parallel cylinders) |
+| `[FACE_FILLET_FACES]` | `core/error-codes.ts (declared)`, `part` | … crosses the line where its plane meets the other's |
+| `[FACE_FILLET_NOT_CLEAR]` | `core/error-codes.ts (declared)`, `part` | the round between … and … would … … mm³ (… expected)… |
+| `[FACE_FILLET_PARALLEL]` | `core/error-codes.ts (declared)`, `part` | … and … are parallel: their planes do not meet |
+| `[FACE_FILLET_RADIUS]` | `core/error-codes.ts (declared)`, `part` | a … mm round would not meet … tangentially: the face stops before … mm from the corner |
+| `[FACE_THREAD_FACE]` | `core/error-codes.ts (declared)`, `part` | … is not a cylindrical face |
+| `[FACE_THREAD_NOT_CLEAR]` | `core/error-codes.ts (declared)`, `part` | the wall round … is thinner than the thread needs (… mm past the hole) |
+| `[FACE_THREAD_RELIEF]` | `core/error-codes.ts (declared)`, `part` | the thread on … ends at a shoulder or inside the face: it needs a relief groove (relief > 0) |
+| `[FACE_THREAD_SIZE]` | `core/error-codes.ts (declared)`, `part` | the thread's length … is longer than the face (…) |
 | `[FIELD]` | `core/error-codes.ts (declared)` | — |
 | `[FILE]` | `core/error-codes.ts (declared)` | — |
 | `[FILL_RANGE]` | `core/error-codes.ts (declared)` | — |
@@ -112,8 +112,8 @@
 | `[FLAT_OVERLAPS]` | `core/error-codes.ts (declared)` | — |
 | `[FORMAT]` | `core/error-codes.ts (declared)` | — |
 | `[FRAME]` | `core/error-codes.ts (declared)` | — |
-| `[FULL_ROUND_FACE]` | `part` | … is not a planar face facing +Z |
-| `[FULL_ROUND_NOT_CLEAR]` | `part` | the full round of … needs its sides open … mm down from it: material stands beside it |
+| `[FULL_ROUND_FACE]` | `core/error-codes.ts (declared)`, `part` | … is not a planar face facing +Z |
+| `[FULL_ROUND_NOT_CLEAR]` | `core/error-codes.ts (declared)`, `part` | the full round of … needs its sides open … mm down from it: material stands beside it |
 | `[FUNCTION_ARGUMENT]` | `core/error-codes.ts (declared)` | — |
 | `[FUNCTION_CAPTURE]` | `core/error-codes.ts (declared)` | — |
 | `[FUNCTION_RECURSION]` | `core/error-codes.ts (declared)` | — |

@@ -8,7 +8,7 @@ const doc = (features, parameters = {}) => ({ format: 'barocss-cad-part', versio
 const taken = (L, W) => L * W * W * (4 - Math.PI) / 8;
 const plate = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'p', kind: 'extrude', sketch: 's', height: 4 }];
 const volumeOf = (features, id, parameters) => massPropertiesOf(outputOf(evaluateCadPart(doc(features, parameters)), id)).volume;
-const refused = (features, code, pattern) => assert.throws(() => evaluateCadPart(doc(features)), e => e instanceof CadPartError && e.code === code && pattern.test(e.message));
+const refused = (features, code, pattern) => assert.throws(() => evaluateCadPart(doc(features)), e => e instanceof CadPartError && (e.details?.category ?? e.code) === code && pattern.test(e.message));
 
 test('full round: a standalone wall\'s top becomes a half cylinder, its volume exact and its B-rep valid', () => {
   const wall = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 6] }, { id: 'w', kind: 'extrude', sketch: 's', height: 20 }];

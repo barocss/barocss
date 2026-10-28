@@ -9,7 +9,7 @@ const doc = (features, parameters = {}) => ({ format: 'barocss-cad-part', versio
 const out = (features, id, parameters) => outputOf(evaluateCadPart(doc(features, parameters)), id);
 const volume = (features, id, parameters) => massPropertiesOf(out(features, id, parameters)).volume;
 const near = (a, b, what) => assert.ok(Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b)), `${what}: ${a} vs ${b}`);
-const refused = (features, code, pattern) => assert.throws(() => evaluateCadPart(doc(features)), e => e instanceof CadPartError && e.code === code && pattern.test(e.message), String(pattern));
+const refused = (features, code, pattern) => assert.throws(() => evaluateCadPart(doc(features)), e => e instanceof CadPartError && (e.details?.category ?? e.code) === code && pattern.test(e.message), String(pattern));
 const section = (r, theta) => { const a = r / Math.tan(theta / 2); return a * r - r * r * (Math.PI - theta) / 2; };
 const XZ = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] }; // sketch (x, y) = world (x, z), 20 deep along −Y
 const prism = (points) => [{ id: 's', kind: 'sketch', profile: 'polygon', plane: XZ, points }, { id: 'b', kind: 'extrude', sketch: 's', height: 20 }];

@@ -14599,3 +14599,40 @@ constraints.test.ts`: four expectations of "conflict" now expect the label and t
 because the old expectation was the wording 2215 withdrew; no numeric expectation was loosened. The two cad-model
 solver tests (`engine.test.ts`) and `sketch-profile-precision.test.ts` pass unchanged. Docs:
 `apps/library-docs/docs/how/sketch-solver.md`.
+
+## D285 — The surface march refuses only what it cannot place; the new refusal codes listed (2026-10-28)
+
+**Owner, 2026-10-28**: sort the 28 kernel failures kept as the baseline into causes, then fix them.
+
+**Before.** `59a6c0201` ("refuse incomplete surface intersection chains") made `intersectPatches` throw where it had
+ended a chain: a seed off a box by the 1e-9 slack, a bisection sample the corrector did not place, a step no halving
+corrected. `36191ee28` (spring41c) recovered the first from 72 failures to 28. Of the 28: 22 were the same refusals
+(R10.2–R10.4 fillets, the D97/R10.B steps, freeform tori and cones, five L4 fuzz cases), 1 the kernel's refusal-code
+list missing 13 codes (`R7.3a`), 1 a Node version pinned by a demo, and 4 one L-plate case (below). Each geometric case
+was checked against `59a6c0201^`'s marcher: all passed there, to their closed forms or oracles.
+
+**Decision.**
+1. *A curve that only passes a box's corner has no piece there.* A seed off the boxes whose every recovery step (both
+   ways, down to 1/32 of a step) corrects onto the curve and lies outside is skipped, not refused (a boss's foot fillet
+   wall at its upright edge, `[[u1, v1]]` of the wall's box). A recovery step that does not correct is refused as before.
+2. *A failed correction in the bisection is neither inside nor outside.* The end is sought short of it (`hi = m`); the
+   end kept is always a corrected inside point. Before a cone's apex or a ball's pole corrections fail within a few
+   1e-6 of it, and D208/D269 carry the curve on to the point.
+3. *No step corrected: the chain ends at its last point* (each point still checked on both surfaces), its loose end
+   the stitch's to close or refuse (R10.4b's pipe tee, where the ball goes over onto the branch's rim). The budget, the
+   per-direction step limit and the per-point check of `59a6c0201` stay.
+4. *The refusal codes.* `CAD_REFUSAL_CODES` and `CAD_ERROR_CODES` gain the face fillet, face thread, full round and cone
+   top chamfer codes. A `CadPartError` then carries the specific code (D278), so the face fillet's fallback to the
+   rolling ball (`part-model.ts`) and three tests read the category from `details.category`. Docs refusal table
+   regenerated.
+
+**Left.** 4 of 28. The L-plate's six top edges (`r10-3a`, `conformance r10-corner-l-plate-top`, and `D101`, which
+evaluates it): two convex rounds meet in a mitre whose two tool cylinders touch tangentially at a patch's edge, where
+their two curves cross. The bisection hops between the branches and ends 4e-5 from the touch point; the stitch leaves
+an edge used once. `59a6c0201^` ended it 7e-8 away because its march started 1e-14 elsewhere: both depend on the
+rounding. A fix needs the end at a tangent touch found as such. And `native-split-reference-replay`: the demo it runs
+asserts Node 22.23.3 (the recorded run's), this machine has 22.19.0; no kernel change.
+
+**Records.** `packages/barocss-cad/src/intersect/surface-intersection.ts`, `src/core/error-codes.ts`,
+`src/part/part-model.ts`; tests `face-fillet`, `face-thread`, `full-round`. Kernel 1961: 1951 pass, 4 fail (the four
+above), none new; cad-model 1711/1711, studio 351/351.

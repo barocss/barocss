@@ -1722,7 +1722,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         try { return built(); }
         catch (cause) {
           // (Only a pair of kinds the sections do not take: parallel faces never meet, the ball cannot help them.)
-          if (!(cause instanceof CadPartError) || cause.code !== 'CAPABILITY' || !/\[FACE_FILLET_FACE\]/.test(cause.message)) throw cause;
+          if (!(cause instanceof CadPartError) || cause.details.category !== 'CAPABILITY' || !/\[FACE_FILLET_FACE\]/.test(cause.message)) throw cause;
           let part: Part = target[0], shared = sharedEdges(brepOf(part, at), names as string[]);
           if (!shared.length) {
             // F1: apart — restore the corner between them (what lies there removed or filled), then the same.
