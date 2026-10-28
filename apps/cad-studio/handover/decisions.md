@@ -15369,3 +15369,32 @@ tolerance relaxation or new runtime dependency is added. Model/Studio/browser/pe
 D300; previous1824/1824 and365/365 plus types belong to D299901b4ce45, not a new wrap product flow.
 No speedup claim, push, PR or release. Next decision: **D301**, original-native trim/error binding, radial-side
 transfer/physical assembly and full source/added-band mass contract before product wiring. Owner07->08->09 unchanged.
+
+
+## D301 — Exact stored radial side-family continuation (2026-10-29)
+
+**Decision.** Runtime8ecc692bc binds actual base/outer/side coefficients to an authentic complete D300
+component through a private result-identity WeakMap. Copied flags are not authority. Every certified base
+matches once by all field/number bits. Actual outer basis/weights are unchanged with exact(2x,2y,z) poles;
+actual degree(3,1) Surface has the original U knots, radial[0,0,1,1] and all duplicated-weight[base,outer] rows.
+This proves H(t,r)=((1+r)Bx,(1+r)By,Bz). Positive X and D300 projected embedding imply regular/injective
+patches, nonadjacent disjointness and exactly the prescribed shared radial segments for adjacent sides.
+
+The original live context covers prior D300 work and this continuation under200k/8192-bit/1m limits. Old
+componentCounts is a cumulative prefix; startedCounts includes earlier attempts and final counts is
+ authoritative. Failed/repeated calls never reset budget. Own inputs and returned geometry are independent
+and deeply frozen. Source/carrier/native-UV/retained-face closure, B-rep incidence/physical solid, represented
+mass, global evaluator, general text and combined full construction-budget flags remain false.
+
+Node22.19.0 first build/changed lint/focused63/63 pass (3405.949208 ms). Whole kernel2109 total/2103 pass/
+0 fail/6 existing skips passes (247350.96925 ms). Code-shape/generated tools/refusals and unchanged six-rule
+API SCOPED_PASS pass; docs68 pages/53 shots/4488 KiB/852 labels. Four selected complete D300 receipts/counts
+are unchanged. Independent homogeneous/tensor oracles and actual D298 installed sides are covered. The
+native4-side example uses9933 component-prefix and10669 final operations, excluding the earlier67093-operation
+assembly. Full construction is not qualified by summing separate receipts. Evidence and independent reviews:
+notes/cylindrical-wrap-side-family-2026-10-29/README.md. Adjacent future plans are read-only proposals.
+
+Model/Studio/browser/performance are NOT RUN; last product suites/types remain D299901b4ce45. No speedup,
+source checksum test, new runtime dependency, tolerance increase, push, PR or release. Next decision:D302,
+whole-domain unchanged-native D0 evaluator bounds, then actual coedge/source closure and a complete chosen
+source/added-band mass authority before Part/Model/API/Studio wiring. Owner07->08->09 remains unchanged.
