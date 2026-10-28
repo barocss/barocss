@@ -143,9 +143,18 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   source11544; a combined native179831+local29375 would exceed200k. No cumulative approval,
   literal B-rep mass, global closure or product wrap. Model/Studio/types/browser/perf NOT RUN.
   See `../formal-pad-reference-mass-2026-10-29/README.md`. Next D307 measures midpoint conversion.
+- D307 runtime`5eea67247` reduces only10 formal raw midpoint conversions with guarded exact
+  power2 scaling. Full two-receipt64-bit differential matches except counts; raw/public/error
+  values and source geometry stay equal. Standard40919->33095ops, asymmetric52029->40804;
+  RUNS7 median9->9ms gives no stable speedup. Build/lint/focused25/25, kernel2149/0/6 and
+  generated/unchanged API/docs pass. Model/Studio/types/browser NOT RUN. Native179831 plus
+  local21551=201382 still exceeds200k before new reference work; physical/product wrap stays
+  unqualified. See `../formal-pad-midpoint-2026-10-29/README.md` and its preserved next-family
+  proof-work plan. Next D308 first measures family-only exact recurrence reduction, then
+  consumes the full-source/global closure plan on one complete request before consumers.
 - Next: roadmap07's remaining wrap provider and broader face-fillet/thread ranges, then08,09. General/curved,
   rational/smooth wrapping, shaping, kerning, bidi and normalization remain unimplemented. D291's broader
-  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D307.
+  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D308.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -154,7 +163,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D307**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D308**).
 
 ## 0. State at the stop
 

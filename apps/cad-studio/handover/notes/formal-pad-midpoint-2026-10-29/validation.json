@@ -1,0 +1,42 @@
+{
+  "source": "5eea67247866f310c988e3625afd8ad1ca96d3ce",
+  "node": "22.19.0",
+  "buildLintCodeShape": "PASS",
+  "focused": {
+    "pass": 25,
+    "fail": 0,
+    "duration_ms": 527.998834
+  },
+  "kernel": {
+    "tests": 2155.0,
+    "pass": 2149.0,
+    "fail": 0.0,
+    "skipped": 6.0,
+    "duration_ms": 248759.209709
+  },
+  "tools": "PASS",
+  "refusals": "PASS",
+  "apiInventory": "unchanged SCOPED_PASS",
+  "docs": {
+    "pages": 68,
+    "beingWritten": 0,
+    "shots": 53,
+    "shotKB": 4488,
+    "labels": 852
+  },
+  "twoCompletePriorBuildReceiptsExceptFinalCounts": "SAME all binary64 bits including signed zero",
+  "performance": {
+    "runs": 7,
+    "beforeMedianMs": 9,
+    "afterMedianMs": 9,
+    "stableSpeedup": false
+  },
+  "standardFormalMassOperations": {
+    "before": 40919,
+    "after": 33095,
+    "unchangedSource": 11544
+  },
+  "combinedNativeReferencePhysicalProduct": "NOT_QUALIFIED",
+  "modelStudioTypesBrowser": "NOT_RUN; last whole consumers/types D299901b4ce45",
+  "pushPrRelease": "NOT_RUN"
+}

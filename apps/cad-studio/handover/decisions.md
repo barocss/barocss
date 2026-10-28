@@ -15558,3 +15558,33 @@ consumers/types remain D299901b4ce45. Literal stored-B-rep mass/global closure/p
 Part provider/product wrap/native SI accuracy remain unqualified. No source-checksum test,
 dependency, push/PR/release. Next D307 measures midpoint conversion reduction with exact full
 receipt preservation, then closed-reference/global source and cumulative integration. Owner07->08->09 unchanged.
+
+
+## D307 — Bounded bit-identical formal raw midpoint conversion (2026-10-29)
+
+**Decision.** Runtime5eea67247 replaces only10 raw fixed128 generic nearest searches by a
+guarded Number(n)/2^129 conversion. Exact charged n=lo+hi is either zero(+0) or abs(n)<2^256;
+normal-range exact power2 scaling preserves signed nearest/ties-even including binade edges.
+Success charges12 direct primitives, zero2. zCenter, source, interval formulas, mandatory
+budgets, scalar audits, basis transfer and false qualification flags are unchanged.
+Independent review finds no mathematical/accounting defect. No cap/tolerance increase.
+
+Mandatory existing perf-bench fixed fresh negativeZ/density7.85 workload RUNS7 median9->9ms,
+mass-property fingerprint4ee49b3a32aa9a46 unchanged: no stable/Studio speedup. Two complete
+prior-build receipts encode every Number by all64bits and match except final counts, including
+actual source geometry, exact intervals/errors, raw/public Number outputs and metadata. Generic
+nearest regression covers actual positive/negative/zero moments. No source-checksum unit pin.
+Standard formal40919->33095ops,69733->60142work; asymmetric52029->40804ops,89192->75385work.
+Source11544 is unchanged; standard local21551 plus native179831=201382 still exceeds200k
+before additional reference work. These are separate requests, not cumulative approval.
+
+Build/lint/code-shape, focused25/25, whole2149pass/0fail/6existing skips (2155total), generated/
+unchanged API/docs68pages/53shots/4488KiB/852labels pass. No new validation failure. Evidence:
+notes/formal-pad-midpoint-2026-10-29/README.md. Model/Studio/types/browser NOT RUN; latest whole
+consumers/types D299901b4ce45. Hidden SI basis is not separately serialized by the differential;
+unchanged deterministic estimate/density inputs/provider path and existing basis tests remain
+separate from native SI accuracy, which stays false. Actual global source/cap/whole-shell closure,
+reference-to-B-rep mass transfer/Part provider/product wrap remain open. No dependency/schema
+migration/push/PR/release. Next D308 measures family-only direct exact fixed128 recurrence work
+with unchanged bounds and standalone receipts, then applies the preserved global-source plan
+under the same complete request before consumer integration. Owner07->08->09 unchanged.

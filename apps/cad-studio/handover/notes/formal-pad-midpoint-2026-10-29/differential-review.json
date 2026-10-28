@@ -1,0 +1,57 @@
+{
+  "status": "PASS",
+  "scope": "two complete prior-build formal mass receipts, all Number bits including signed zero; only final counts excluded",
+  "allOtherFields": "SAME",
+  "counts": [
+    {
+      "label": "D304-standard-formal-reference",
+      "before": {
+        "sourceOperations": 11544,
+        "rationalOperations": 26369,
+        "directOperations": 3006,
+        "totalOperations": 40919,
+        "gcdSteps": 22909,
+        "maximumBits": 1153,
+        "work": 69733
+      },
+      "after": {
+        "sourceOperations": 11544,
+        "rationalOperations": 18465,
+        "directOperations": 3086,
+        "totalOperations": 33095,
+        "gcdSteps": 21583,
+        "maximumBits": 1123,
+        "work": 60142
+      }
+    },
+    {
+      "label": "negative-Z-asymmetric-density",
+      "before": {
+        "sourceOperations": 11544,
+        "rationalOperations": 37437,
+        "directOperations": 3048,
+        "totalOperations": 52029,
+        "gcdSteps": 31079,
+        "maximumBits": 1153,
+        "work": 89192
+      },
+      "after": {
+        "sourceOperations": 11544,
+        "rationalOperations": 26102,
+        "directOperations": 3158,
+        "totalOperations": 40804,
+        "gcdSteps": 29127,
+        "maximumBits": 1123,
+        "work": 75385
+      }
+    }
+  ],
+  "performance": {
+    "runs": 7,
+    "beforeMedianMs": 9,
+    "afterMedianMs": 9,
+    "fingerprint": "4ee49b3a32aa9a46",
+    "stableSpeedupEstablished": false
+  },
+  "combinedNativeReferencePhysicalProduct": "NOT_QUALIFIED"
+}
