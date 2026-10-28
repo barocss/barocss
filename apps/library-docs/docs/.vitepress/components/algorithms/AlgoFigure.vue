@@ -49,7 +49,7 @@ button:focus-visible { outline: 2px solid var(--vp-c-brand-1); outline-offset: 2
 .text { padding: 10px 16px 14px; min-height: 150px; }
 .text strong { font-size: 14px; }
 .text p { margin: 6px 0 10px; font-size: 14px; line-height: 1.7; }
-.formula { font-family: var(--vp-font-family-mono); font-size: 13px; line-height: 1.9; background: var(--vp-c-bg-soft); border: 1px solid var(--vp-c-divider); border-radius: 6px; padding: 8px 12px; overflow-x: auto; white-space: nowrap; }
+.formula { font-family: var(--vp-font-family-mono); font-size: 13px; line-height: 1.9; background: var(--vp-c-bg-soft); border: 1px solid var(--vp-c-divider); border-radius: 6px; padding: 8px 12px; overflow-x: auto; white-space: normal; overflow-wrap: break-word; }
 .progress { height: 3px; background: var(--vp-c-divider); }
 .progress span { display: block; height: 100%; background: var(--vp-c-brand-1); }
 footer { padding: 10px 16px; font-size: 12px; line-height: 1.65; color: var(--vp-c-text-2); border-top: 1px solid var(--vp-c-divider); }

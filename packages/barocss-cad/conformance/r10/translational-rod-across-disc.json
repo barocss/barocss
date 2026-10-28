@@ -2,7 +2,8 @@
   "id": "r10-translational-rod-across-disc",
   "step": "R10",
   "decisions": [
-    "D94"
+    "D94",
+    "D287"
   ],
   "about": "R10.3c: a rod (radius 4, its axis at the top) lying across a round plate (radius 20) at 45°, both feet filleted 1 mm — R10.1's translational tools ending at the plate's rim (a cylinder across the edge): run past and cut by it near each end (they stopped square before, 1.7 % over).",
   "input": {
@@ -120,8 +121,6 @@
           "c0.side0",
           "c0.top",
           "f.face",
-          "f_cyl.side0",
-          "f_cyl.side1",
           "pe.bottom",
           "pe.side0",
           "pe.top"

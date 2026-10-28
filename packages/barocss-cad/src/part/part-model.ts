@@ -1330,6 +1330,13 @@ const carrySheet = (r: Result, from: readonly Part[]): Result => r.kind === 'sol
 /** A sheet feature's result: its one part carrying the sheet's report. */
 const withSheet = (r: Result, sheet: SheetReport): Result => r.kind === 'solid' ? { kind: 'solid', parts: r.parts.map(p => ({ ...p, sheet })) } : r;
 /** A result built on a sketch's own XY, moved onto its plane. */
+/** A guide given in world coordinates, into a sketch frame's (z along its normal); left as given when it is not well formed (the loft refuses it). */
+function guideInFrame(g: Record<string, unknown>, frame: Frame | undefined): Record<string, unknown> {
+  const P = g.controlPoints;
+  if (!frame || !Array.isArray(P) || !P.every(q => Array.isArray(q) && q.length === 3 && q.every(x => typeof x === 'number' && Number.isFinite(x)))) return g;
+  const m = frame.m, o = frame.o;
+  return { ...g, controlPoints: (P as number[][]).map(q => { const d = [q[0] - o[0], q[1] - o[1], q[2] - o[2]]; return [0, 1, 2].map(k => m[k] * d[0] + m[3 + k] * d[1] + m[6 + k] * d[2]); }) };
+}
 const placed = (frame: Frame | undefined, compute: () => Result): (() => Result) =>
   !frame ? compute : () => { const r = compute(); return r.kind === 'solid' ? moveAll(r.parts, frame.m, frame.o) : r; };
 
@@ -1722,7 +1729,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         try { return built(); }
         catch (cause) {
           // (Only a pair of kinds the sections do not take: parallel faces never meet, the ball cannot help them.)
-          if (!(cause instanceof CadPartError) || cause.code !== 'CAPABILITY' || !/\[FACE_FILLET_FACE\]/.test(cause.message)) throw cause;
+          if (!(cause instanceof CadPartError) || cause.details.category !== 'CAPABILITY' || !/\[FACE_FILLET_FACE\]/.test(cause.message)) throw cause;
           let part: Part = target[0], shared = sharedEdges(brepOf(part, at), names as string[]);
           if (!shared.length) {
             // F1: apart — restore the corner between them (what lies there removed or filled), then the same.
@@ -1867,7 +1874,10 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'loft': {
       const list = f.sections as unknown;
       if (!Array.isArray(list) || list.length < 2 || list.length > CadPartLimits.copies) fail('INPUT', 'sections must list 2 to 64 sections');
-      if (f.guide !== undefined || (list as unknown[]).some(sec => isRecord(sec) && (sec.frame !== undefined || Object.hasOwn(sec, 'profile')))) {
+      const framedSections = (list as unknown[]).some(sec => isRecord(sec) && (sec.frame !== undefined || Object.hasOwn(sec, 'profile')));
+      // (CG1.3: a general guide — kind nurbs — on sketches stacked along their plane's normal takes the z path.)
+      const nurbsGuide = isRecord(f.guide) && (f.guide as { kind?: unknown }).kind === 'nurbs' && !framedSections;
+      if ((f.guide !== undefined && !nurbsGuide) || framedSections) {
         if (f.smooth !== undefined && typeof f.smooth !== 'boolean') fail('INPUT', 'smooth must be true or false');
         const framed = (list as unknown[]).map((sec, i) => {
           if (!isRecord(sec) || sec.frame === undefined || sec.z !== undefined) return fail('INPUT', `sections[${i}] need an explicit frame without z`);
@@ -1899,7 +1909,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (sections.some(x => JSON.stringify(x.frame) !== JSON.stringify(frame))) fail('INPUT', 'loft sections must be sketched on the same plane');
       sections.forEach((s, i) => { if (i && !(s.z > sections[i - 1].z)) fail('PARAMETER', `sections[${i}] must lie above sections[${i - 1}] (z ${s.z} ≤ ${sections[i - 1].z})`); });
       if (f.smooth !== undefined && typeof f.smooth !== 'boolean') fail('INPUT', 'smooth must be true or false');
-      return placed(frame, () => { const { brep, mass } = loftSolid({ id: at, name: at, sections: sections.map(({ profile, z }) => ({ profile, z })), smooth: f.smooth === true, ...(sections[0].tags ? { sideTags: sections[0].tags.outer } : {}) }); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] }; });
+      const guide = nurbsGuide ? { guide: guideInFrame(f.guide as Record<string, unknown>, frame) as LoftInput['guide'] } : {};
+      return placed(frame, () => { const { brep, mass } = loftSolid({ id: at, name: at, sections: sections.map(({ profile, z }) => ({ profile, z })), smooth: f.smooth === true, ...guide, ...(sections[0].tags ? { sideTags: sections[0].tags.outer } : {}) }); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] }; });
     }
     case 'import': case 'subd': case 'sew': case 'mesh': case 'decimate': case 'separate': return meshOperation(f, t, HELPERS);
     case 'draft': {

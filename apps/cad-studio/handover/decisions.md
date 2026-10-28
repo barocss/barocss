@@ -14599,3 +14599,97 @@ constraints.test.ts`: four expectations of "conflict" now expect the label and t
 because the old expectation was the wording 2215 withdrew; no numeric expectation was loosened. The two cad-model
 solver tests (`engine.test.ts`) and `sketch-profile-precision.test.ts` pass unchanged. Docs:
 `apps/library-docs/docs/how/sketch-solver.md`.
+
+## D285 — The surface march refuses only what it cannot place; the new refusal codes listed (2026-10-28)
+
+**Owner, 2026-10-28**: sort the 28 kernel failures kept as the baseline into causes, then fix them.
+
+**Before.** `59a6c0201` ("refuse incomplete surface intersection chains") made `intersectPatches` throw where it had
+ended a chain: a seed off a box by the 1e-9 slack, a bisection sample the corrector did not place, a step no halving
+corrected. `36191ee28` (spring41c) recovered the first from 72 failures to 28. Of the 28: 22 were the same refusals
+(R10.2–R10.4 fillets, the D97/R10.B steps, freeform tori and cones, five L4 fuzz cases), 1 the kernel's refusal-code
+list missing 13 codes (`R7.3a`), 1 a Node version pinned by a demo, and 4 one L-plate case (below). Each geometric case
+was checked against `59a6c0201^`'s marcher: all passed there, to their closed forms or oracles.
+
+**Decision.**
+1. *A curve that only passes a box's corner has no piece there.* A seed off the boxes whose every recovery step (both
+   ways, down to 1/32 of a step) corrects onto the curve and lies outside is skipped, not refused (a boss's foot fillet
+   wall at its upright edge, `[[u1, v1]]` of the wall's box). A recovery step that does not correct is refused as before.
+2. *A failed correction in the bisection is neither inside nor outside.* The end is sought short of it (`hi = m`); the
+   end kept is always a corrected inside point. Before a cone's apex or a ball's pole corrections fail within a few
+   1e-6 of it, and D208/D269 carry the curve on to the point.
+3. *No step corrected: the chain ends at its last point* (each point still checked on both surfaces), its loose end
+   the stitch's to close or refuse (R10.4b's pipe tee, where the ball goes over onto the branch's rim). The budget, the
+   per-direction step limit and the per-point check of `59a6c0201` stay.
+4. *The refusal codes.* `CAD_REFUSAL_CODES` and `CAD_ERROR_CODES` gain the face fillet, face thread, full round and cone
+   top chamfer codes. A `CadPartError` then carries the specific code (D278), so the face fillet's fallback to the
+   rolling ball (`part-model.ts`) and three tests read the category from `details.category`. Docs refusal table
+   regenerated.
+
+**Left.** 4 of 28. The L-plate's six top edges (`r10-3a`, `conformance r10-corner-l-plate-top`, and `D101`, which
+evaluates it): two convex rounds meet in a mitre whose two tool cylinders touch tangentially at a patch's edge, where
+their two curves cross. The bisection hops between the branches and ends 4e-5 from the touch point; the stitch leaves
+an edge used once. `59a6c0201^` ended it 7e-8 away because its march started 1e-14 elsewhere: both depend on the
+rounding. A fix needs the end at a tangent touch found as such. And `native-split-reference-replay`: the demo it runs
+asserts Node 22.23.3 (the recorded run's), this machine has 22.19.0; no kernel change.
+
+**Records.** `packages/barocss-cad/src/intersect/surface-intersection.ts`, `src/core/error-codes.ts`,
+`src/part/part-model.ts`; tests `face-fillet`, `face-thread`, `full-round`. Kernel 1961: 1951 pass, 4 fail (the four
+above), none new; cad-model 1711/1711, studio 351/351.
+
+## D286 — A chain ending at a tangent touch on a box's side ends at the touch; two more refusal codes listed (2026-10-28)
+
+**Owner, 2026-10-28**: fix the L-plate mitre (D285's "left"): find the chain end at a tangent touch on a patch edge as
+such, so the stitch joins it.
+
+**Before.** An L-plate's six top edges rounded 2 (`r10-3a`, `conformance r10-corner-l-plate-top`, `D101`): at each outer
+corner the two edges' tool cylinders (r 2, axes at z 8, square to each other) meet in two ellipses that cross at their
+tops, (38, 18, 10) and its mirror, where the cylinders touch, tangent to the top face — on a side of one tool patch's
+box. The march's step left the box there; the bisection's corrections landed on one ellipse or the other (n₁ × n₂ about
+1e-6) and its end came 4e-5 from the touch. The stitch found an edge used once.
+
+**Decision.** When the bisection's end has |n₁ × n₂| < 1e-3, the side of the box the step left by (of either patch) is
+searched for the point nearest the other surface: golden section along that side, over the bisection's end and the
+step's outside point widened by their distance either way, each sample projected onto the other surface. The point is
+taken when it lies on both surfaces within the tolerance, inside the other patch's box (1e-9 slack) and no farther from
+the end than the outside point; the chain's end tangent there is the step's own (the normals' cross has no direction).
+Otherwise the bisection's end stands. Transversal ends (|n₁ × n₂| ≥ 1e-3) are unchanged, so no other result moved:
+kernel names of passing tests the same before and after.
+
+**Also.** `FilletRefusal`'s `RADIUS_EXCEEDS_CURVATURE` and `NOT_ANALYTIC_PAIR` are bracketed at run time (`[${code}]`)
+and were missing from `CAD_REFUSAL_CODES`, so a refusal carried its category, not its code; the R7.3a test now also
+reads the members of `*Refusal` string unions. `conformance/r10/refuse-radius-exceeds-curvature.json` expects the code
+and the category as the other refusal cases do. The docs figure's formula box wraps (`white-space: normal`) instead of
+scrolling: 70 of the How it works formulas were wider than the box.
+
+**Records.** `packages/barocss-cad/src/intersect/surface-intersection.ts` (`touchOnSide`), `src/core/error-codes.ts`,
+`test/error-codes.test.mjs`; `apps/library-docs/docs/.vitepress/components/algorithms/{AlgoFigure,FilletSection}.vue`.
+Of D285's four left, the L-plate's three pass; `native-split-reference-replay` (a demo pinned to Node 22.23.3) remains.
+
+## D287 — A whole turn of one cylinder's pieces is joined in two halves (2026-10-28)
+
+**Owner, 2026-10-28**: after the corner restore, join the pieces of one cylinder and split them only at the seam, so
+the face fillet's result matches the bare tee's.
+
+**Before.** The analytic Boolean's `mergePieces` joins kept pieces on one plane or cylinder. For a cylinder it puts the
+joined face's seam in the widest angle the pieces leave uncovered; when they cover the whole turn there is none, and
+the pieces were kept as they were. The face fillet's corner restore (F1, `restoreCorner`: body − W) left the 60° tee's
+main pipe in 8 pieces and the branch in 5 (the bare tee: 2 each), so the edge fillet after it ran on 20 faces (1.64 s
+instead of 0.89 s) and the r 4 round across an r 2 one came out in 56 faces, not the bare tee's 45 (same volume).
+
+**Decision.** A group of one cylinder's pieces covering the whole turn is cut at two seams half a turn apart — the
+widest piece's start and its opposite — each piece in its own domain and only where a seam falls strictly inside its
+span (10 tolerances in); the halves are joined as before, each with its seam in the half the other leaves. A piece no
+seam crosses is kept as the same piece. When a cut leaves no region, the group stays as it was. Each half is named after
+the first piece lying in it, as any join is.
+
+**Results.** `tee60-over-round`: 45 faces, 124 edges, 82 vertices, the bare tee's r 4 round's face and edge names
+exactly, volume to 12 digits, centroid 3e-13 apart; 6.1 → 5.2–5.4 s. `pin-face-fillet-over-round`: 27 faces as the
+bare pin's, one edge more (71, 70), volume to 1e-10. The other 17 bench cases have the same shape (validity, counts,
+names, volume, centroid); 7 of them differ in their bits. `conformance r10-translational-rod-across-disc`: the two
+faces of R10.1's cap cylinder that lay on the plate's rim (`f_cyl.side0`, `f_cyl.side1`) are now pieces of the rim
+`pe.side0`: its face names updated, volume and centroid as before. Kernel 1961: 1954 pass and the one above, its names updated, passes on its own (the rest skipped); cad-model 1711/1711,
+studio 351/351.
+
+**Records.** `packages/barocss-cad/src/brep/analytic-boolean.ts` (`joinPieces`, `seamHalves`);
+`conformance/r10/translational-rod-across-disc.json`; `apps/library-docs/docs/how/naming.md` §4; research note §8.

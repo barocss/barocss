@@ -164,10 +164,39 @@ export function intersectPatches(A: Patch, B: Patch, options: {
     for (let it = 0; it < 40; it++) {
       spend();
       const m = (lo + hi) / 2, g = add(start.x, scale(sub(outside.x, start.x), m)), r = onBoth(A, B, project(A, g, start.pa), project(B, g, start.pb), { o: g, n: t });
-      if (!r || !withinTolerance(r) || (recovery && !onPredictionPlane(r, g, t))) throw new SurfaceIntersectionError('boundary correction did not satisfy the intersection tolerance');
+      // A correction that fails is not taken as a point, inside or outside: the end is sought short of it, between the
+      // last inside point and it. (Before a cone's apex or a ball's pole — on a domain's side, the normal undefined —
+      // corrections fail within a few 1e-6 of it; the end lands there and D208/D269 carry the curve on to the point.)
+      if (!r || !withinTolerance(r) || (recovery && !onPredictionPlane(r, g, t))) { hi = m; continue; }
       if (strictlyInside(r)) { lo = m; last = r; } else hi = m;
     }
     return last;
+  };
+  // An end where the surfaces touch (n₁ × n₂ next to nothing) on the side of a box the step left by: two convex rounds'
+  // tools meeting in a mitre, tangent at their tops where a patch ends. Two curves cross there and the bisection's
+  // corrections land on either: its end came 4e-5 short. The touch is where that side of the box, a curve on its patch,
+  // comes nearest the other surface: found by golden section along the side, about the bisection's end.
+  const touchOnSide = (last: Hit, outside: Hit): Hit | null => {
+    for (let s = 0; s < 2; s++) {
+      const P = s ? B : A, Q = s ? A : B, p = s ? last.pb : last.pa, o = s ? outside.pb : outside.pa, q0 = s ? last.pa : last.pb;
+      const [[u0, v0], [u1, v1]] = P.box;
+      const k = o[0] < u0 || o[0] > u1 ? 0 : o[1] < v0 || o[1] > v1 ? 1 : -1;
+      if (k < 0) continue;
+      const at = k === 0 ? (o[0] < u0 ? u0 : u1) : (o[1] < v0 ? v0 : v1), j = 1 - k, d = Math.abs(o[j] - p[j]);
+      let a = Math.max(P.box[0][j], Math.min(p[j], o[j]) - d), b = Math.min(P.box[1][j], Math.max(p[j], o[j]) + d);
+      const g = 0.5 * (Math.sqrt(5) - 1), pt = (w: number): XY => k === 0 ? [at, w] : [w, at];
+      let c = b - g * (b - a), e = a + g * (b - a), xc = P.at(pt(c)), xe = P.at(pt(e));
+      let fc = len(sub(xc, Q.at(project(Q, xc, q0)))), fe = len(sub(xe, Q.at(project(Q, xe, q0))));
+      for (let it = 0; it < 80 && b - a > 1e-15 * (1 + Math.abs(a)); it++) {
+        spend();
+        if (fc < fe) { b = e; e = c; fe = fc; c = b - g * (b - a); xc = P.at(pt(c)); fc = len(sub(xc, Q.at(project(Q, xc, q0)))); }
+        else { a = c; c = e; fc = fe; e = a + g * (b - a); xe = P.at(pt(e)); fe = len(sub(xe, Q.at(project(Q, xe, q0)))); }
+      }
+      const w = fc < fe ? c : e, pp = pt(w), x = P.at(pp), qq = project(Q, x, q0);
+      const r: Hit = s ? { pa: qq, pb: pp, x: scale(add(Q.at(qq), x), 0.5) } : { pa: pp, pb: qq, x: scale(add(x, Q.at(qq)), 0.5) };
+      if (withinTolerance(r) && inside(Q, qq, 1e-9) && len(sub(r.x, last.x)) <= len(sub(outside.x, last.x))) return r;
+    }
+    return null;
   };
 
   for (const P of [A, B]) {
@@ -234,18 +263,22 @@ export function intersectPatches(A: Patch, B: Patch, options: {
       // Seeds alone admit the existing 1e-9 UV slack. Marching needs a strict inside start:
       // recover the actual boundary from a corrected inside point, rather than clamping UV or dropping the seed.
       const tangent = unit(cross(normalOf(A, seed.pa), normalOf(B, seed.pb)));
-      let recovered: Hit | null = null;
+      let recovered: Hit | null = null, passesBy = true;
       for (const sign of [1, -1]) {
         const t = scale(tangent, sign);
         for (let tries = 0, step = h; tries < 6; tries++, step /= 2) {
           spend();
           const guess = add(seed.x, scale(t, step)), r = onBoth(A, B, project(A, guess, seed.pa), project(B, guess, seed.pb), { o: guess, n: t });
-          if (r && withinTolerance(r) && onPredictionPlane(r, guess, t) && strictlyInside(r) && len(sub(r.x, guess)) < step && dot(sub(r.x, seed.x), t) > 0) {
-            recovered = boundary(r, seed, t, true); break;
-          }
+          const onCurve = !!r && withinTolerance(r) && onPredictionPlane(r, guess, t) && len(sub(r.x, guess)) < step && dot(sub(r.x, seed.x), t) > 0;
+          if (onCurve && strictlyInside(r)) { recovered = boundary(r, seed, t, true); break; }
+          if (!onCurve) passesBy = false;
         }
         if (recovered) break;
       }
+      // Every step both ways, down to 1/32 of one, corrected onto the curve and outside a box: the curve crosses the boxes
+      // at the seed alone (through a corner of a domain, a fillet's wall at a boss's upright edge) and has no piece here.
+      // (A correction that failed is no evidence of that: refused as before.)
+      if (!recovered && passesBy) continue;
       if (!recovered) throw new SurfaceIntersectionError('boundary bracket has no inside starting point');
       seed = recovered;
       if (covered(seed.x) || options.skip?.(seed.x)) continue;
@@ -276,12 +309,17 @@ export function intersectPatches(A: Patch, B: Patch, options: {
           const r = onBoth(A, B, project(A, guess, pa), project(B, guess, pb), { o: guess, n: t });
           if (r && len(sub(r.x, guess)) < step && withinTolerance(r)) { next = r; taken = step; }
         }
-        if (!next) throw new SurfaceIntersectionError('corrector did not converge within six attempts');
+        // No step down to 1/32 corrects onto both surfaces: the chain ends at its last point, each of which is on both
+        // (checked below). Its loose end is the stitch's to close or refuse (a pipe tee's fillet tool where the ball goes
+        // over onto the branch's rim, R10.4b: the march from the other side meets it there).
+        if (!next) break;
         // Leaving a box: cut the step at the box edge (bisection on the fraction of the step).
         if (!inside(A, next.pa) || !inside(B, next.pb)) {
-          const last = boundary({ pa, pb, x }, next, t);
-          // The end lies exactly on the edge: a point closer than the step tolerance replaces the last one.
-          const endTan = scale(unit(cross(normalOf(A, last.pa), normalOf(B, last.pb))), sign);
+          let last = boundary({ pa, pb, x }, next, t), touch = false;
+          if (len(cross(normalOf(A, last.pa), normalOf(B, last.pb))) < 1e-3) { const r = touchOnSide(last, next); if (r) { last = r; touch = true; } }
+          // The end lies exactly on the edge: a point closer than the step tolerance replaces the last one. (At a touch the
+          // normals' cross has no direction: the step's own.)
+          const endTan = touch ? t : scale(unit(cross(normalOf(A, last.pa), normalOf(B, last.pb))), sign);
           if (len(sub(last.x, x)) > tol) { pts.push(last.x); uvA.push(last.pa); uvB.push(last.pb); tans.push(endTan); }
           else if (last.x !== x) { pts[pts.length - 1] = last.x; uvA[uvA.length - 1] = last.pa; uvB[uvB.length - 1] = last.pb; tans[tans.length - 1] = endTan; }
           break;

@@ -12,6 +12,7 @@ import { solidMassFromIntegrals, type MassProperties } from '../brep/solid-mass.
 import type { Curve, Point, Surface } from '../types.js';
 import { gauss } from '../core/quadrature.js';
 import type { LoftGuideFactory } from './loft-guide.js';
+import { admitNurbsGuide, type LoftNurbsGuideInput, type LoftNurbsGuideSpan } from './loft-nurbs-guide.js';
 import { orientedLoftSolid } from './oriented-loft.js';
 
 type XY = [number, number];
@@ -47,7 +48,7 @@ export interface LoftInput {
   } | {
     readonly kind: 'cubic-bezier';
     readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]];
-  };
+  } | LoftNurbsGuideInput;
   /**
    * The first section's segment tags (R10a, D86): each side named `side[t]` by the segment of the first section it
    * runs from (several from one segment numbered `#k`), instead of by position.
@@ -81,12 +82,15 @@ function at(b: Bezier, s: number): [XY, XY] {
 }
 
 export function loftSolid(input: LoftInput): { brep: Brep; mass: (density: number) => MassProperties } {
-  if (input.guide !== undefined || input.sections.some(s => s.frame !== undefined || !Array.isArray(s.profile))) return orientedLoftSolid(input, legacyLoft);
+  const zPath = !input.sections.some(s => s.frame !== undefined || !Array.isArray(s.profile));
+  // (CG1.3: a general guide on sections stacked along z, ruled; the Bézier guides keep their framed paths.)
+  if (input.guide?.kind === 'nurbs' && zPath) return legacyLoft({ ...input, guide: undefined }, undefined, input.guide);
+  if (input.guide !== undefined || !zPath) return orientedLoftSolid(input, legacyLoft);
   return legacyLoft(input);
 }
 
 /** Shared ruled builder; the optional guide factory is internal to admitted framed mixed lofts. */
-function legacyLoft(input: LoftInput, guideFactory?: LoftGuideFactory): ReturnType<typeof loftSolid> {
+function legacyLoft(input: LoftInput, guideFactory?: LoftGuideFactory, nurbsGuide?: LoftNurbsGuideInput): ReturnType<typeof loftSolid> {
   const fail = (detail: string): never => { throw new BrepError('INPUT', `loft: ${detail}`); };
   const S = input.sections as readonly { readonly profile: readonly ProfileSegmentInput[]; readonly z: number }[];
   if (S.length < 2) fail('needs at least two sections');
@@ -107,7 +111,7 @@ function legacyLoft(input: LoftInput, guideFactory?: LoftGuideFactory): ReturnTy
   const tagged = taggedSides(src0, input.sideTags);
   // Turn each section to start nearest the previous one's start (directions about the centroids).
   const shape = (p: Piece[]) => { const pts = p.map(startOf), c = pts.reduce((m, q) => [m[0] + q[0] / n, m[1] + q[1] / n], [0, 0]), rms = Math.sqrt(pts.reduce((m, q) => m + (q[0] - c[0]) ** 2 + (q[1] - c[1]) ** 2, 0) / n) || 1; return pts.map(q => [(q[0] - c[0]) / rms, (q[1] - c[1]) / rms]); };
-  for (let k = 1; !guideFactory && k < sections.length; k++) {
+  for (let k = 1; !guideFactory && !nurbsGuide && k < sections.length; k++) {
     const a = shape(sections[k - 1]), b = shape(sections[k]);
     let best = 0, cost = Infinity;
     for (let sh = 0; sh < n; sh++) { const c = a.reduce((m, q, i) => m + (q[0] - b[(i + sh) % n][0]) ** 2 + (q[1] - b[(i + sh) % n][1]) ** 2, 0); if (c < cost - 1e-12) { cost = c; best = sh; } }
@@ -117,22 +121,37 @@ function legacyLoft(input: LoftInput, guideFactory?: LoftGuideFactory): ReturnTy
   const K = sections.length - 1, z = S.map(s => s.z), id = input.id, nm = input.name;
   const scale = Math.max(1, ...sections.flat().map(q => Math.max(...startOf(q).map(Math.abs))), ...z.map(Math.abs)), tol = 1e-9 * scale;
   // Each piece as a Bézier ending exactly where the next one starts (its vertex).
+  // CG1.3: each section turned to start at the vertex the guide passes through (it runs along the first edge's start).
+  let nurbsSpans: LoftNurbsGuideSpan[] | null = null;
+  if (nurbsGuide) {
+    if (input.smooth && K >= 2) fail('a guide takes ruled sections (not smooth)');
+    const { spans, through } = admitNurbsGuide(nurbsGuide, z, tol);
+    sections.forEach((p, k) => {
+      const at = p.findIndex(q => { const v = startOf(q); return Math.hypot(v[0] - through[k][0], v[1] - through[k][1]) <= tol; });
+      if (at < 0) fail(`guide must pass through a vertex of section ${k} (it crosses it at ${through[k].map(x => +x.toPrecision(9)).join(', ')})`);
+      sections[k] = [...p.slice(at), ...p.slice(0, at)];
+      if (k === 0) src0.splice(0, src0.length, ...src0.slice(at), ...src0.slice(0, at));
+    });
+    nurbsSpans = spans;
+  }
   const piece = (k: number, i: number): Bezier => { const b = bezier(sections[k][i]); return { p: [...b.p.slice(0, -1), startOf(sections[k][(i + 1) % n])], w: b.w }; };
   if (input.smooth && K >= 2) return smoothLoft(sections.map((p, k) => p.map((_, i) => piece(k, i))), z, id, nm, tagged);
   const sideName = (k: number, i: number) => K === 1 ? `${nm}.${tagged ? tagged[i] : `side${i}`}` : `${nm}.s${k}.${tagged ? tagged[i] : `side${i}`}`;
   const vid = (k: number, i: number) => `v${k}_${i % n}`, rid = (k: number, i: number) => `r${k}_${i % n}`, lid = (k: number, i: number) => `l${k}_${i % n}`;
   const vertices = sections.flatMap((p, k) => p.map((q, i) => ({ id: vid(k, i), point: [...startOf(q), z[k]] as Point })));
-  const guide = guideFactory?.(vertices[0].point, vertices[n].point);
+  const guide1 = guideFactory?.(vertices[0].point, vertices[n].point), guideOf = (k: number): Pick<LoftNurbsGuideSpan, 'degree' | 'knots' | 'controls'> | undefined => nurbsSpans ? nurbsSpans[k] : guide1;
   const edges: { id: string; curve: Curve; vertices: [string, string]; name?: string }[] = [];
   sections.forEach((p, k) => p.forEach((q, i) => {
     const below = k > 0 ? sideName(k - 1, i) : `${nm}.bottom`, above = k < K ? sideName(k, i) : `${nm}.top`;
     edges.push({ id: rid(k, i), curve: curve3(piece(k, i), z[k], rid(k, i)), vertices: [vid(k, i), vid(k, i + 1)], name: [below, above].sort().join('|') });
-    if (k < K) edges.push({ id: lid(k, i), curve: guide ? { kind: 'curve', id: lid(k, i), degree: guide.degree, knots: [...guide.knots], controlPoints: guide.controls(vertices[i].point, vertices[n + i].point), weights: Array(guide.degree + 1).fill(1) } : lineCurve(lid(k, i), [...startOf(q), z[k]], [...startOf(sections[k + 1][i]), z[k + 1]]), vertices: [vid(k, i), vid(k + 1, i)], name: [sideName(k, (i + n - 1) % n), sideName(k, i)].sort().join('|') });
+    const guide = k < K ? guideOf(k) : undefined;
+    if (k < K) edges.push({ id: lid(k, i), curve: guide ? { kind: 'curve', id: lid(k, i), degree: guide.degree, knots: [...guide.knots], controlPoints: guide.controls(vertices[k * n + i].point, vertices[(k + 1) * n + i].point), weights: Array(guide.knots.length - guide.degree - 1).fill(1) } : lineCurve(lid(k, i), [...startOf(q), z[k]], [...startOf(sections[k + 1][i]), z[k + 1]]), vertices: [vid(k, i), vid(k + 1, i)], name: [sideName(k, (i + n - 1) % n), sideName(k, i)].sort().join('|') });
   }));
 
   // The sides: each a patch between a section's edge and the next one's, with the curves the mass uses.
-  const faces: BrepFaceInput[] = [], spans: { lo: Bezier; hi: Bezier; z0: number; z1: number }[] = [];
+  const faces: BrepFaceInput[] = [], spans: { lo: Bezier; hi: Bezier; z0: number; z1: number; nurbs?: LoftNurbsGuideSpan }[] = [];
   for (let k = 0; k < K; k++) for (let i = 0; i < n; i++) {
+    const guide = guideOf(k);
     let lo = piece(k, i), hi = piece(k + 1, i);
     if (lo.p.length !== hi.p.length) { const w = (lo.p.length === 3 ? lo : hi).w[1]; lo = quadratic(lo, w); hi = quadratic(hi, w); }
     else if (lo.p.length === 2) {
@@ -143,9 +162,9 @@ function legacyLoft(input: LoftInput, guideFactory?: LoftGuideFactory): ReturnTy
       if (Math.abs(nx * d[0] + ny * d[1] + nz * d[2]) / nl > tol) { lo = quadratic(lo, 1); hi = quadratic(hi, 1); }
     }
     if (guide && lo.w.some((w, j) => w !== hi.w[j])) fail('guided mixed curves need identical rational weights');
-    spans.push({ lo, hi, z0: z[k], z1: z[k + 1] });
+    spans.push({ lo, hi, z0: z[k], z1: z[k + 1], ...(nurbsSpans ? { nurbs: nurbsSpans[k] } : {}) });
     const surface: Surface = { kind: 'surface', id: `f${k}_${i}`, degreeU: lo.p.length - 1, degreeV: guide ? guide.degree : 1, knotsU: lo.p.length === 2 ? [0, 0, 1, 1] : [0, 0, 0, 1, 1, 1], knotsV: guide ? [...guide.knots] : [0, 0, 1, 1],
-      controlPoints: lo.p.map((p, j) => { const a: Point = [p[0], p[1], z[k]], b: Point = [hi.p[j][0], hi.p[j][1], z[k + 1]]; return guide ? guide.controls(a, b) : [a, b]; }), weights: lo.w.map((w, j) => guide ? Array(guide.degree + 1).fill(w) : [w, hi.w[j]]) };
+      controlPoints: lo.p.map((p, j) => { const a: Point = [p[0], p[1], z[k]], b: Point = [hi.p[j][0], hi.p[j][1], z[k + 1]]; return guide ? guide.controls(a, b) : [a, b]; }), weights: lo.w.map((w, j) => guide ? Array(guide.knots.length - guide.degree - 1).fill(w) : [w, hi.w[j]]) };
     faces.push({ id: `f${k}_${i}`, surface, sense: 'forward', name: sideName(k, i), loops: [{ kind: 'outer', uses: [
       { edge: rid(k, i), sense: 'forward' }, { edge: lid(k, i + 1), sense: 'forward' }, { edge: rid(k + 1, i), sense: 'reversed' }, { edge: lid(k, i), sense: 'reversed' }] }] });
   }
@@ -156,13 +175,14 @@ function legacyLoft(input: LoftInput, guideFactory?: LoftGuideFactory): ReturnTy
 
   // Volume integrals [V, ∫x, ∫y, ∫z, ∫x², ∫y², ∫z², ∫xy, ∫xz, ∫yz] by sections (Green's theorem along them).
   const I = Array(10).fill(0) as number[];
-  for (const { lo, hi, z0, z1 } of spans) {
+  for (const { lo, hi, z0, z1, nurbs } of spans) {
+    if (nurbs) { guidedSpanMoments(I, lo, hi, nurbs); continue; }
     const h = z1 - z0;
     // Quadratic translation gives degree at most seven in l; cubic gives at most ten.
     // The no-guide path keeps the original Gauss(3) arithmetic.
-    const G = guide ? (guide.degree === 3 ? G6 : G4) : G3;
+    const G = guide1 ? (guide1.degree === 3 ? G6 : G4) : G3;
     G.x.forEach((l, a) => {
-      const zz = z0 + l * h, wl = G.w[a] * h, offset = guide?.offset(l);
+      const zz = z0 + l * h, wl = G.w[a] * h, offset = guide1?.offset(l);
       let A = 0, Sx = 0, Sy = 0, Sxx = 0, Syy = 0, Sxy = 0;
       G24.x.forEach((s, b) => {
         const [p0, d0] = at(lo, s), [p1, d1] = at(hi, s), ws = G24.w[b];
@@ -175,6 +195,30 @@ function legacyLoft(input: LoftInput, guideFactory?: LoftGuideFactory): ReturnTy
   }
   return { brep, mass: density => solidMassFromIntegrals(I, density, 'quadrature') };
 }
+
+/**
+ * A span under a general guide (CG1.3) into the volume integrals: the slice at λ is the ruled one moved by the guide's
+ * departure from its chord, at the guide's height, so dz = rise(λ) dλ. Between the guide's knots each moment is a
+ * polynomial in λ of degree at most 4p (p the guide's degree): Gauss with 2p + 2 points is exact there.
+ */
+function guidedSpanMoments(I: number[], lo: Bezier, hi: Bezier, g: LoftNurbsGuideSpan): void {
+  const G = gaussFor(2 * g.degree + 2);
+  for (let c = 0; c + 1 < g.breaks.length; c++) {
+    const c0 = g.breaks[c], c1 = g.breaks[c + 1], d = c1 - c0;
+    for (let a = 0; a < G.x.length; a++) {
+      const l = c0 + G.x[a] * d, zz = g.height(l), wl = G.w[a] * d * g.rise(l), offset = g.offset(l);
+      let A = 0, Sx = 0, Sy = 0, Sxx = 0, Syy = 0, Sxy = 0;
+      for (let b = 0; b < G24.x.length; b++) {
+        const s = G24.x[b], [p0, d0] = at(lo, s), [p1, d1] = at(hi, s), ws = G24.w[b];
+        const x = (1 - l) * p0[0] + l * p1[0] + offset[0], y = (1 - l) * p0[1] + l * p1[1] + offset[1], dx = (1 - l) * d0[0] + l * d1[0], dy = (1 - l) * d0[1] + l * d1[1];
+        A += ws * x * dy; Sx += ws * x * x / 2 * dy; Sy -= ws * y * y / 2 * dx; Sxx += ws * x ** 3 / 3 * dy; Syy -= ws * y ** 3 / 3 * dx; Sxy += ws * x * x * y / 2 * dy;
+      }
+      I[0] += wl * A; I[1] += wl * Sx; I[2] += wl * Sy; I[3] += wl * zz * A; I[4] += wl * Sxx; I[5] += wl * Syy; I[6] += wl * zz * zz * A; I[7] += wl * Sxy; I[8] += wl * zz * Sx; I[9] += wl * zz * Sy;
+    }
+  }
+}
+const gaussRules = new Map<number, { x: number[]; w: number[] }>();
+const gaussFor = (n: number) => { let r = gaussRules.get(n); if (!r) gaussRules.set(n, r = gauss(n)); return r; };
 
 /**
  * A smooth loft: each edge's pieces through the sections joined by a cubic in v, C1 — non-uniform

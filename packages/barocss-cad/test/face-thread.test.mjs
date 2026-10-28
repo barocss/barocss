@@ -9,7 +9,7 @@ const doc = (features, parameters = {}) => ({ format: 'barocss-cad-part', versio
 const out = (features, id, parameters) => outputOf(evaluateCadPart(doc(features, parameters)), id);
 const volume = (features, id, parameters) => massPropertiesOf(out(features, id, parameters)).volume;
 const near = (a, b, what) => assert.ok(Math.abs(a - b) <= 1e-7 * Math.max(1, Math.abs(b)), `${what}: ${a} vs ${b}`);
-const refused = (features, code, pattern) => assert.throws(() => evaluateCadPart(doc(features)), e => e instanceof CadPartError && e.code === code && pattern.test(e.message), String(pattern));
+const refused = (features, code, pattern) => assert.throws(() => evaluateCadPart(doc(features)), e => e instanceof CadPartError && (e.details?.category ?? e.code) === code && pattern.test(e.message), String(pattern));
 /** The kernel's own rod: its section area (volume per length). */
 const rodArea = (d, P) => volume([{ id: 'r', kind: 'thread', diameter: d, pitch: P, seat: 10, length: 10, form: 'helical' }], 'r') / 10;
 /** A modelled nut's thread section (its profile 0.04 mm clear of a bolt's): the hex prism less the nut, per height. */

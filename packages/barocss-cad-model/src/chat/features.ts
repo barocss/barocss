@@ -311,7 +311,16 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
       return nodes[v as number].kind === 'sketch' ? null : `feature ${v} is a ${nodes[v as number].kind}, not a sketch`;
     }
     case 'loft-guide': {
-      if (!isObj(v) || Object.keys(v).length !== 2 || !Object.hasOwn(v, 'kind') || !Object.hasOwn(v, 'controlPoints') || (v.kind !== 'quadratic-bezier' && v.kind !== 'cubic-bezier')) return 'an explicit quadratic-bezier or cubic-bezier guide with controlPoints';
+      // (CG1.3: a general guide, a polynomial B-spline on sections stacked by z; its knots and shape are the kernel's to admit.)
+      if (isObj(v) && v.kind === 'nurbs') {
+        if (Object.keys(v).sort().join(',') !== 'controlPoints,degree,kind,knots') return 'a nurbs guide is {kind, degree, knots, controlPoints}';
+        const p = v.degree;
+        if (typeof p !== 'number' || !Number.isInteger(p) || p < 1 || p > 5) return 'a nurbs guide degree from 1 to 5';
+        if (!Array.isArray(v.controlPoints) || v.controlPoints.length < p + 1 || v.controlPoints.length > 64 || !Array.from(v.controlPoints).every(q => Array.isArray(q) && q.length === 3 && [0, 1, 2].every(i => typeof q[i] === 'number' && Number.isFinite(q[i])))) return `${p + 1} to 64 finite world-mm control points`;
+        if (!Array.isArray(v.knots) || v.knots.length !== v.controlPoints.length + p + 1 || !Array.from(v.knots).every(x => typeof x === 'number' && Number.isFinite(x))) return 'finite knots, as many as the control points plus the degree plus one';
+        return null;
+      }
+      if (!isObj(v) || Object.keys(v).length !== 2 || !Object.hasOwn(v, 'kind') || !Object.hasOwn(v, 'controlPoints') || (v.kind !== 'quadratic-bezier' && v.kind !== 'cubic-bezier')) return 'an explicit quadratic-bezier, cubic-bezier or nurbs guide';
       const count = v.kind === 'quadratic-bezier' ? 3 : 4;
       if (!Array.isArray(v.controlPoints) || v.controlPoints.length !== count || !Array.from(v.controlPoints).every(p => Array.isArray(p) && p.length === 3 && [0, 1, 2].every(i => typeof p[i] === 'number' && Number.isFinite(p[i])))) return `exactly ${count} finite world-mm control points`;
       return null;

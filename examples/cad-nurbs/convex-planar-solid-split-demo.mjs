@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Session } from 'node:inspector';
 const [mode, directory] = process.argv.slice(2);
 assert.ok(['--source', '--emitted', '--cold'].includes(mode) && directory, 'Usage: node convex-planar-solid-split-demo.mjs --source|--emitted|--cold output-directory');
-assert.equal(process.versions.node, '22.23.3');
+assert.equal(process.versions.node.split('.')[0], '22', `Node 22 required, got ${process.versions.node}`);
 const repo = resolve(fileURLToPath(new URL('../../', import.meta.url))), output = resolve(directory);
 mkdirSync(output, { recursive: true });
 const require = createRequire(resolve(process.env.REPO_DEPS_ROOT ?? repo, 'package.json'));

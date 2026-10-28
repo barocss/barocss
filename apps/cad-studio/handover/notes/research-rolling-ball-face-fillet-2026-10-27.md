@@ -95,3 +95,37 @@ performance); F3, F4 small.
 | F2 | Not met (target < 3 s). CPU profile of the tee case (25 s): the analytic Boolean's curve-to-domain maps onto general patches 23 %, NURBS basis 18 %, GC 15 %, the curved 2D arrangement ~15 % — the old round's 33 lofted faces, each edge projected onto W's surfaces where they touch along the contacts. No feature-level shortcut found; next options: (a) delete the faces between and extend A and B to their intersection (a local B-rep operation, no Boolean), (b) a Boolean broad phase that keeps faces wholly inside the other operand without splitting them. Planar or chamfer faces between are cheaper (7–9 s). |
 | F3 | Built. Studio's Face fillet no longer refuses round faces at an angle (the kernel takes them or says why); texts updated. Browser: the 60° tee, both pipes picked, r 2: 20460 mm³ (kernel 20459.61), 1.3 s, Undo/Redo, Save writing both names and signatures, no console errors. |
 | F4 | Built. The revolved fillet recognises cones, spheres and tori by `revolutionOf` (axis checked against the corner's, the meridian mapped into its half-plane, every sample on it); its own circle/line fitting is gone. All earlier revolved cases unchanged. |
+
+## 8. F2 re-measured (2026-10-28, after the kernel performance work)
+
+Bench case `tee60-over-round` (`scripts/perf-bench.mjs`: the 60° tee, r 2 face fillet, then r 4 across it), this
+machine, Node 22.19:
+
+| part | time |
+|---|---|
+| the r 2 round (`f1`) | 1.26 s |
+| restore: W = shell ∩ shell | 0.13 s |
+| restore: body − W (40 faces − 8) | 2.1–2.3 s |
+| the edge fillet on the restored body (20 faces) | 1.64 s |
+| whole case | 6.0–6.1 s (r 4 on the bare tee: 1.39 s) |
+
+**F2's target — the restore under 3 s, the same volume — is met** (2.3–2.5 s; 17.9 s at the plan, 23.1 → 5.8 s for the
+whole face fillet in the performance report). Volume 20537.057287 mm³, as the r 4 round on the bare tee.
+
+Tried on top, each measured with `perf-bench.mjs compare` and not landed (≤ 5 %):
+- W's cylinder shells as extruded tubes, so the Boolean reads their walls as cylinders, not general patches: body − W
+  2.33 → 2.20 s, and the edge fillet after it then refused (`APPROX_TOLERANCE_NOT_MET`): the restored faces came in more
+  pieces (`m.side0` 10, `b.side0` 7).
+- The old round's faces passed to the Boolean as meeting W only along their own edges (cut there, no tracing; a mirror
+  of `contactFaces`): bit-identical, −2.4 % on the case, −4.1 % on `pin-face-fillet-over-round`.
+- Pruning `intersectSegments`' chord pairs by boxes in blocks of eight: bit-identical on all 19 cases, −1.3 %.
+
+What is left is spread over many paths (surface evaluation and projection onto the round's lofted faces, the region
+arrangement, `offBoundary`); no one of them is over 10 % of the restore. The larger remaining cost is the restored
+body's fragmentation: `m.side0` in 8 pieces and `b.side0` in 5 (the bare tee: 2 each), so the edge fillet after it
+takes 1.64 s instead of 0.89 s and the result has 56 faces instead of 45. The Boolean's `mergePieces` does not join
+pieces of a whole cylinder (no gap is left for the seam). Joining them — pieces on one surface split only at its seam —
+is the next lever, and would make the result the bare tee's.
+
+**Done (D287, same day).** The pieces of a whole turn are cut at two seams and joined in halves: `tee60-over-round`
+now gives the bare tee's r 4 round exactly in faces, edges and names (45, 124, 82), volume to 12 digits, 5.2–5.4 s.
