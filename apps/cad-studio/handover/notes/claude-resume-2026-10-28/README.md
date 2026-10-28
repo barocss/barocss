@@ -121,9 +121,17 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   coedge range/Lipschitz/residual/mass work. Five old standalone full receipts/counts stay equal.
   Model/Studio/browser/performance NOT RUN. See `../native-d0-family-2026-10-29/README.md`. Next D304:
   actual coedge/vertex native binding, then closed reference/mass/product integration.
+- D304 runtime`d1980e892` (2026-10-29) certifies all63 native slots/36 coedges/36 edge-endpoint
+  relations on a fresh fixed4-edge/no-hole pad at original entity tolerances. Old legacy outputs/counts and
+  mutability are preserved in six prior-version outcomes. One actual request196857 operations/work383279
+  includes assembly/side/D0/allposition binding, leaving3143 operations. Production build/lint/focused49/49
+  and kernel2135/0/6 existing skips plus generated/docs pass; two original test lint failures are retained.
+  Source-global/closed reference/physical solid/mass/product remain unqualified. Model/Studio/browser/perf
+  NOT RUN. See `../native-position-binding-2026-10-29/README.md`. Next D305: measured duplicate proof-work
+  reduction, then complete reference/mass/Part/Model/API/Studio integration.
 - Next: roadmap07's remaining wrap provider and broader face-fillet/thread ranges, then08,09. General/curved,
   rational/smooth wrapping, shaping, kerning, bidi and normalization remain unimplemented. D291's broader
-  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D304.
+  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D305.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -132,7 +140,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D304**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D305**).
 
 ## 0. State at the stop
 

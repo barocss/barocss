@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "cases": 6,
+  "returned": 5,
+  "refused": 1,
+  "completeLegacyResultsAndCountersAndTypedRefusalsEqual": true,
+  "signedZeroBigIntUndefinedPreserved": true,
+  "scope": "selected results only; not source checksum, all-input equivalence or performance"
+}

@@ -1,0 +1,51 @@
+{
+  "source": "d1980e892124c2c945a8e53dee1b5edb44e33ed1",
+  "node": "22.19.0",
+  "productionBuild": "PASS first run",
+  "changedLint": "PASS third; two original test lint failures retained",
+  "focused": {
+    "pass": 49,
+    "fail": 0,
+    "duration_ms": 3334.894916
+  },
+  "kernel": {
+    "tests": 2141.0,
+    "pass": 2135.0,
+    "fail": 0.0,
+    "skipped": 6.0,
+    "duration_ms": 247910.000417
+  },
+  "legacyDifferential": "six selected full outcomes/counters equal including signed zero",
+  "codeShape": "PASS",
+  "tools": "PASS",
+  "refusals": "PASS",
+  "apiInventory": "unchanged six-rule SCOPED_PASS",
+  "docs": {
+    "pages": 68,
+    "shots": 53,
+    "shotKB": 4488,
+    "labels": 852
+  },
+  "completeRequest": {
+    "exactOperations": 196857,
+    "rationalOperations": 70435,
+    "integerOperations": 172,
+    "helperOperations": 126250,
+    "work": 383279,
+    "maximumBits": 1187
+  },
+  "positionCoverage": {
+    "coedges": 36,
+    "edgeEndpoints": 36,
+    "geometrySlots": 63
+  },
+  "physicalClosedReferenceMass": "NOT_CERTIFIED",
+  "productWrap": "NOT_IMPLEMENTED",
+  "model": "NOT_RUN; lastD2991824/1824 plus types",
+  "studio": "NOT_RUN; lastD299365/365 plus types",
+  "browser": "NOT_RUN",
+  "performanceBenchmark": "NOT_RUN",
+  "push": "NOT_RUN",
+  "pr": "NOT_RUN",
+  "release": "NOT_RUN"
+}

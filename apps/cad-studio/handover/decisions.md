@@ -15463,3 +15463,39 @@ acceptance follows from these separate receipts. Model/Studio/browser/performanc
 whole/types remain D299901b4ce45. No source checksum test, dependency/tolerance change, speedup, push, PR or
 release. Next:D304 complete actual coedge/vertex native binding with original tolerances/clamp path and
 remaining-budget accounting, then closed-reference/mass/Part/Model/API/Studio integration. Owner07->08->09 unchanged.
+
+
+## D304 — Fresh complete one-pad native position binding (2026-10-29)
+
+**Decision.** Runtimed1980e892 adds a fixed one-four-edge/no-hole, height==radius wrapper around a
+private assembly run. Fresh private operands/residuals are consumed before exposure; caller receipts or
+flags are not accepted. Only the new path captures a detached source baseline, freezes exact operands and
+meters UV determinants through q. The old builder retains policy, full selected results/refusals/counts and
+mutability. Six prior-version outcomes match exactly with signed-zero/BigInt/undefined preserved.
+
+All63 actual geometry slots feed one D303 envelope. Complete installed side coefficients feed one D300/D301
+proof whose final count includes its component prefix. All36 actual coedges are classified (8 wall/4 cap/
+4 base/4 outer/16 side) and bound by stored residual+2*D0L1+LU*eU+LV*eV <= actual edge tolerance. Affine cap
+lift retains rounded inverse residuals; actual source half-spans/weights, canonical pcurves and original
+UV domains are preserved. Exact pcurve hulls lie in-domain and hull+D0 stays inside actual rounded1e-9
+checker thresholds; subsequent clamp is nonexpansive. All36 edge-end/vertex relations separately meet the
+actual vertex tolerance, stronger than the old checker max rule. Native D1, Math.hypot, surface endpoint/
+vertex72 relations, source-global/retained-face closure, closed reference, physical solid/mass and product
+flags stay false. Position output L1 is the precise true guarantee.
+
+One complete native request meters source/carrier/composition/assembly, side final, D0 final, all binding/
+Lipschitz/range/endpoint math and conservative GCD/float-search/structural work under200k/8192-bit/1m. Actual
+R10/H30 one-pad uses196857 operations (70435 host rational+172 integer+126250 helpers), work383279, bits1187.
+Native assembly prefix67783, side/component10752 and D0 family57349 are each counted once. Max coedge bound
+is approximately1.5839180270766223e-8 and endpoint approximately3.438973512255934e-11 versus unchanged1e-7
+entity tolerances; exact fractions are recorded. Only3143 operations remain for additional proof on this input.
+
+Node22.19.0 first build passes. Original missing-parenthesis and constant-logical-expression test lint
+failures are retained unchanged. After oracle fixes lint and49/49 focused pass (3334.894916 ms). Whole kernel
+2141 total/2135 pass/0 fail/6 existing skips passes (247910.000417 ms); code-shape/generated tools/refusals/
+unchanged six-rule API SCOPED_PASS and docs68 pages/53 shots/4488 KiB/852 labels pass. Independent reviews
+find no material false acceptance in scope. Evidence: notes/native-position-binding-2026-10-29/README.md.
+Model/Studio/browser/performance NOT RUN; last product whole/types remain D299901b4ce45. No source checksum
+test, dependency/tolerance increase, speedup, push, PR or release. Next:D305 measured exact duplicate proof-
+work reduction with perf-bench and complete shape/numeric invariance, then closed-reference/formal mass and
+Part/Model/API/Studio integration. Owner07->08->09 remains unchanged.
