@@ -15234,3 +15234,33 @@ speedup or Studio latency improvement. Final logs: `/tmp/barocss-text-relief-per
 regeneration added TEXT_RELIEF_PICK. First docs check failed with `studio/features.md: the label **Baseline X/Y**
 is not in the studio's sources`; the actual separate labels resolve it. Original failure blocks and screenshots
 are preserved in `notes/text-relief-2026-10-28/`. No push, PR or release. Next decision: **D297**.
+
+
+## D297 — Private cylindrical inverse map and rational trim composition (2026-10-29)
+
+**Decision.** Adopt the private foundations in `features/cylindrical-wrap-map.ts` and
+`features/cylindrical-wrap-curve.ts`, with the native carrier connection fixture. The map certifies exact
+Bernstein/atan interval bounds on the original stored near-quarter, its radial/length defect and nominal
+piecewise-affine arclength approximation; exactly representable native U values retain the original domain.
+The composer normalizes native UV only in exact rational arithmetic, builds a degree-three homogeneous
+curve and certifies its stored coefficient cross-residual, including shared endpoint overrides. The edge
+and original-UV pcurve retain the same canonical parameter direction. Original coefficients and existing
+linear/exact/work budgets are not changed. These modules are not exported through the public index.
+
+The native fixture keeps the actual positive-Y semicircle's direct-copy quarter U=[0,0.5]. Both native
+semicircles start at +X; the first fixture selected the negative-Y carrier with its one-ulp-different
+middle weight. First focused result33/34 reported unchanged SUPPORT:
+`Cylindrical wrap map: One rational quadratic quarter with native weight bits[1,sqrt(1/2),1] is required`.
+Selecting the geometrically intended original positive-Y carrier repairs the fixture without widening
+admission or regenerating any poles. Final focused34/34 and whole2022 total/2016 pass/0 fail/6 existing
+skips pass (272290.539416 ms), after Node22.19.0 build/changed lint. Generated tools/refusals pass and the
+unchanged inventory returns its six-rule SCOPED_PASS. Original outputs and independent read-only reviews:
+`notes/cylindrical-wrap-foundation-2026-10-29/README.md`.
+
+This is not a wrapped B-rep, physical solid, native Part feature, Model/API or Studio implementation.
+The exact affine/stored-rational receipts do not certify global Number evaluation, source producer
+provenance, trim embedding, side Jacobian, topology, aggregate glyph work or mass properties. Source-body
+validity/volume assertions in the connection test concern only the original cylinder. Samples are regression
+observations, not production admission proofs. Model/Studio/browser are NOT RUN for D297; D296's results
+remain attached to runtime62069bbd1. Performance is NOT RUN and no speedup is claimed. No push, PR or release.
+Next decision: **D298**, bounded native wrapped-solid provider and its independent topology/mass proof.

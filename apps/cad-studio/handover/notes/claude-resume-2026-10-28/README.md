@@ -72,9 +72,13 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   one top-level kind addition,847 prior members+9,212 checks pass. Failures/path mistake remain in D296.
   Evidence: `../text-relief-2026-10-28/README.md`; separate paired performance report includes limits.
 - Read-only next-provider design: `../research-text-wrap-2026-10-28.md`. No wrap code/test is adopted by D296.
+- D297 private cylindrical map/curve foundations (2026-10-29) keep original native U and stored poles. Build/lint,
+  focused34/34 and whole2022 total/2016 pass/0 fail/6 existing skips pass; generated checks pass. No wrapped
+  solid/Part/Model/API/Studio feature or new browser evidence. Original failure/reviews are preserved in
+  `../cylindrical-wrap-foundation-2026-10-29/README.md`. Next is D298 native topology/mass provider.
 - Next: roadmap07's remaining wrap provider and broader face-fillet/thread ranges, then08,09. General/curved,
   rational/smooth wrapping, shaping, kerning, bidi and normalization remain unimplemented. D291's broader
-  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D297.
+  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D298.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -83,7 +87,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D297**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D298**).
 
 ## 0. State at the stop
 

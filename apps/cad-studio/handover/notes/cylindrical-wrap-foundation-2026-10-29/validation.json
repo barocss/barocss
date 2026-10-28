@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-29",
+  "baseCommit": "06c33222a",
+  "node": "22.19.0",
+  "scope": "private inverse map, rational curve composition and original native carrier connection; no wrapped solid",
+  "build": "PASS",
+  "changedSourceLint": "PASS",
+  "focused": {
+    "total": 34,
+    "passed": 34,
+    "failed": 0,
+    "duration": 2204.682834
+  },
+  "kernel": {
+    "total": 2022,
+    "passed": 2016,
+    "failed": 0,
+    "skipped": 6,
+    "duration": 272290.539416
+  },
+  "generated": {
+    "agentTools": "PASS",
+    "refusals": "PASS",
+    "apiInventory": "SCOPED_PASS",
+    "docs": {
+      "pages": 68,
+      "shots": 53,
+      "shotKB": 4488,
+      "labels": 852
+    }
+  },
+  "notRun": [
+    "Model suite for D297",
+    "Studio suite for D297",
+    "D297 browser flow",
+    "wrapped B-rep/solid",
+    "performance comparison"
+  ],
+  "previousProductEvidence": {
+    "decision": "D296",
+    "runtimeCommit": "62069bbd1",
+    "modelPassed": 1822,
+    "studioPassed": 365,
+    "newD297Evidence": false
+  },
+  "firstFailure": {
+    "focusedPassed": 33,
+    "focusedTotal": 34,
+    "code": "SUPPORT",
+    "cause": "Fixture selected negative-Y native semicircle with a different original middle-weight bit; both native semicircles start at +X.",
+    "repair": "Select the actual positive-Y original carrier; no source coefficient or admission policy changes."
+  }
+}
