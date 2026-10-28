@@ -1,0 +1,4 @@
+profile-relief-emboss              6 ms 09a6c59c60709781
+profile-relief-engrave             6 ms e00ff354203f64ff
+SAME profile-relief-emboss              7 →       6 ms (-14.3%)
+SAME profile-relief-engrave             6 →       6 ms (0.0%)

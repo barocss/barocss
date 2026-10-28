@@ -1,0 +1,11 @@
+{
+  "capturedAt": "2026-10-28T14:10:32.459Z",
+  "node": "v22.19.0",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "osRelease": "24.6.0",
+  "cpu": "Apple M3 Max",
+  "logicalCpus": 14,
+  "totalMemory": 38654705664,
+  "note": "Captured after the benchmark, during serial whole-suite validation; this is not simultaneous load telemetry."
+}

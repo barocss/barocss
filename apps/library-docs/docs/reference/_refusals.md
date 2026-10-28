@@ -525,6 +525,7 @@
 | `[STOCK_ALLOWANCE]` | `chat/part` | allowance is mm a face, 0 to 100. |
 | `[STOCK_ROW]` | `chat` | row …: an id and a source (where the size comes from: your shop, a page) are needed. |
 | `[SWEEP_PATH]` | `app` | … |
+| `[TEXT_RELIEF_PICK]` | `app` | … |
 | `[THREAD_PICK]` | `app` | … |
 | `[TOO_BIG_TWO_WAYS]` | `print` | no split along one axis makes …'s pieces: the part (… mm) is too big two ways |
 | `[TRIM_CURVE]` | `engine` | The curve does not close: trim by a closed curve (a loop). |

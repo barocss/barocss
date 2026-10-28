@@ -28,7 +28,9 @@ quadratic contours. `engine/font/source` stores original bytes with supplied fil
 `kind: 'text'` recipe and `part().text()` build an independent native solid that stays editable after Save/Open.
 One authored output can hold several physical bodies. No top-level font registry or new document/container
 version is added. Studio supplies font upload and the Text HUD; the original test fonts are not runtime defaults.
-Shaping, kerning, bidi, normalization and text emboss/wrap remain outside this feature. See
+The separate `text-relief` modifier and `part().textRelief()` share the source/profile path for bounded +Z cap
+emboss or engrave; they retain one physical target solid and require actual material/selected-face containment.
+Shaping, kerning, bidi, normalization, general/curved face relief and text wrap remain unsupported. See
 [Text from font outlines](/how/text) and the [Text API example](/packages/api#text-from-a-font-file).
 
 | Module | What it holds |

@@ -15094,3 +15094,143 @@ not runtime tests. The package export maps and inventory generator are unchanged
 **Not run and remaining.** Full browser suite, WebGL2/mobile/GPU fault matrix, RB/fuzz, native OS IME and arbitrary
 fonts/all glyphs are not qualified here. Text emboss/engrave and wrap are not implemented in this checkpoint.
 No push, new PR or release. Next decision: **D296**.
+
+## D296 — Bound text emboss/engrave to one supported +Z cap (2026-10-28)
+
+**Decision.** Add native `profile-relief` over existing component sketches, and Model `kind:'text-relief'` over the
+original scalar/font source. The authored modifier stores parent, exactly one exact unmerged faces name,
+text/FontSource/em size/flatness/tracking, world-XY baseline at, positive depth, mode and existing NodeExtras/sigs.
+There is no plane, copied top Z, Made authority, font registry, schema/container version bump or runtime dependency.
+The default font is still absent. Existing standalone Text expansion, IDs and disconnected-body semantics stay
+separate; relief requires one physical solid before and after.
+
+**Native support and checks.** One native line-only upright slab with a closed strict-valid B-rep is admitted.
+The selected exact face must be a +Z plane at its current top. Its outer/inner oriented loops define F; the actual
+slab material including holes/concavities defines M. For every filled component C, exact finite-polygon checks
+require C minus M and C minus F empty. Full polygons are used, not a bounding box or only vertex containment.
+Requested font flatness is additional clearance above the existing scale-aware native linear policy; the exact
+sum is rounded upward. Native tolerance is not enlarged. Pair separation accounts for both component bounds.
+Overlapping/touching/near components and partial/floating support are refused before any temporary operation.
+
+Emboss requires a represented positive raised height and basal seat. Engrave depth stays below the slab thickness
+and leaves a bottom web above native linear policy. All levels and coordinates must be representable and bounded.
+Each component needs full positive basal overlap and the intended signed area-times-represented-depth change.
+Direct emboss slabs or one batched 2D engraving difference commit only after one closed physical result and strict checks. Rational slab/straight-B-rep
+volume agreement and bounded reported mass error are audited; this is not full set equivalence or a universal
+geometry certificate. A caller forcing mutation through readonly output types is not protected by runtime freezing.
+The split-coplanar-cap regression exercises the internal helper, not an independently authored public native document.
+
+**Remove duplicate work without raising limits.** Exact orientation reuses the existing homogeneous predicate and
+request-local point cache. Dyadic area sums integer crosses at one common power-of-two denominator and calls rat
+once. Directed-endpoint multisets provide a linear boundary fast path, with exact split/merge coverage fallback.
+Emboss constructs supported slabs without Boolean calls; engrave performs one batched planar difference. Exact
+oriented frontier equality checks the complete source-minus-component boundary, including counters; a dyadic 3D
+audit checks the straight B-rep volume. Existing numeric policies and work/count/bit limits stay unchanged.
+
+**Model and consumers.** The shared original-font/profile pipeline retains component-local holes. Relief emits one
+default-XY/Z0 sketch per translated component and one final profile-relief with clearance=tolerance and individual
+expect, within 64-component/512-native-feature and existing profile/coordinate budgets. Generated sketch IDs map to
+the authored modifier only in the proper node context, with exact authored IDs first. A missing selected signature
+is structurally readable but native expansion refuses BAD_REFERENCE; editor/API capture before evaluation.
+Reference signatures identify the authored selected face, not fixed geometry: an ordinary source-height edit can
+track its new top. Parent/uses/output/suppression/active-orphan, flatten/remap, current reader, source refs/proposals,
+worker/recovery/container and parameter paths consume the recipe. Text/font remain opaque during remapping.
+
+The public call is `.textRelief(b=>b.faces().facing('+z'),font,text,{size,depth,at:[x,y],mode,tolerance?,tracking?})`.
+Studio provides Text relief with original font/text, em size, depth, flatness, tracking, baseline X/Y and operation.
+Bound dimensions are edited through Parameters. Font metadata remains supplied values. Full fonts/glyphs, curved or
+general faces, rational/smooth wrapping, shaping, kerning, bidi, normalization and hinting are not qualified.
+
+**Final runtime evidence.** Runtime source is fixed at `62069bbd1`. Kernel build/lint and 19/19 related tests
+pass. The final whole run has 2000 total/1994 pass/0 fail/6 existing skips (256904.582958 ms). Model tsc and
+1822/1822 complete tests pass (239424.624417 ms); Studio tsc and365/365 complete tests pass (24200.915291 ms).
+Focused Model75/75 and Studio35/35 pass. Changed-source lint has zero errors; 32 pre-existing chat.test.ts any
+warnings remain, with no new test any added. The earlier initial kernel1994/0/6 run predates the final helper.
+
+Actual desktop Chrome/WebGPU1440x900/DPR1 (canvas1140x900) startup and flows36/37 pass. Latin A at tolerance0.002
+covers supported emboss, outside-stroke refusal preserving the base, History mode/depth edit, Undo/Redo,
+BCADPACK Save/Open and re-edit with the original font. Both Korean originals cover 가한 emboss/engrave at
+explicit tolerance0.01 and Save/Open. Later-node preservation is a Model fixture; these new browser flows do
+not exercise an additional later independent body. Unmodified original screenshots are saved in the evidence
+folder and docs/public. Native OS IME, full browser/GPU matrices and arbitrary fonts/all glyphs are NOT RUN.
+Generated tools/refusals/inventory checks pass. Docs pass:68 pages/53 shots/4488 KiB/852 labels.
+
+The independent ABeeZee A area is 148797 design units squared at unitsPerEm 1000. On 40x30x10 at [5,5], em 10/depth 2,
+fixed reference volumes are 12029.7594 emboss /11970.2406 engrave, one physical solid. Native/API/codec/refs A checks
+pass in the focused Model set. Both selected Korean fonts pass `가한` emboss/engrave at em 10/at [5,5]/depth 2 and
+the explicit default tolerance 0.01. Myeongjo engraving at 0.002 remains an INPUT work-budget refusal with the node
+tolerance 0.002 unchanged. The 75-test set includes this refusal. No automatic flatness relaxation occurred.
+
+The reviewed public inventory has 6737 keys: 8 new, 0 removals/duplicates. Existing 36 rows change 53 fields: 12 intended
+semantic changes and 41 union-order AST notation differences; the top-level kind addition is one separate change.
+All 847 prior members remain and 9 are added. The 212 contract checks pass. This inventory review is not browser or
+geometry evidence. D295 standalone browser flows do not qualify relief. No push, PR or release.
+
+**First failures.** The first focused run could not load `test/profile-relief.test.mjs:196`: an authored join string
+contained an unintended newline. The original output was:
+
+```text
+# SyntaxError: Invalid or unexpected token
+```
+
+After fixing the string, 12/13 passed. The circle/arc capability case was classified as INPUT before CAPABILITY,
+and the assertion reported:
+
+```text
+The validation function is expected to return "true". Received false
+
+Caught error:
+
+CadPartError: relief: profile relief needs 3..1024 line edges per loop
+```
+
+Checking unsupported curves before line-count admission fixes the typed refusal order; focused 13/13 then pass.
+Original logs: `/tmp/barocss-text-relief-kernel-focused-{first,second,third}.log`; related 19/19:
+`/tmp/barocss-text-relief-kernel-related.log`. The first Model type check then reported:
+
+```text
+src/app/textReliefCommand.ts(50,46): error TS2345: Argument of type '"TEXT_RELIEF_PICK"' is not assignable to parameter of type 'CadModelCode'.
+test/text-relief-command.test.ts(77,229): error TS2345: Argument of type '{ mode: string; depth?: undefined; x?: undefined; y?: undefined; text?: undefined; font?: undefined; } | { depth: number; mode?: undefined; x?: undefined; y?: undefined; text?: undefined; font?: undefined; } | { ...; } | { ...; } | { ...; } | { ...; }' is not assignable to parameter of type 'Values'.
+  Type '{ mode: string; depth?: undefined; x?: undefined; y?: undefined; text?: undefined; font?: undefined; }' is not assignable to type 'Values'.
+    Property 'depth' is incompatible with index signature.
+      Type 'undefined' is not assignable to type 'string | number'.
+```
+
+Root registered TEXT_RELIEF_PICK in the existing CadModelCode union and annotated the invalid command fixture
+array as Values[]. Those fixes are applied; the second Model type check passes. Original output:
+`/tmp/barocss-text-relief-model-types-first.log`. **Integration attempts and retained limit.** Focused Model runs first–fifth each had 74 tests, 73 pass/1 fail on
+the original tighter Korean request. First/second failed exact arithmetic; third reached repeated native Boolean
+work, fourth exact coverage work, and fifth pocketRegions work. Their original error outputs were:
+
+```text
+error: 'n2: profile relief: Exact rational operation budget exceeded'
+code: 'INPUT'
+```
+
+```text
+error: 'n2: profile relief exceeds its boundary/Boolean work budget'
+code: 'INPUT'
+```
+
+The first two logs identify orient/inRing and area respectively; the next three identify nativeBoolean, covered/
+sameBoundary and pocketRegions. A wrong local edit path left the old test unchanged before the sixth run, which
+repeated 73/74 rather than testing the intended update. The original edit error was `FileNotFoundError: [Errno 2] No such file or directory: 'packages/barocss-cad-model/test/text-relief-engine.test.ts'`;
+the sixth native failure remains in its original log. The seventh run explicitly changes the admitted Korean
+fixture to 0.01 and adds a separate 0.002 unchanged-tolerance refusal: 75/75 pass. It does not turn 0.002 into success.
+Original logs: `/tmp/barocss-text-relief-model-focused-{first,second,third,fourth,fifth,sixth,seventh}.log`.
+
+The batch kernel candidate first passed 18/19 with `Missing expected exception.`: 64 small components no longer
+exhausted redundant work. The replacement positive fixture proves 64 components, volume 11710.72, strict validity
+and one physical body; 65 components still refuse, and a separate 1024-edge request still refuses the work budget.
+After separating count/work admission from the old duplication-dependent expectation, 19/19 pass. Original logs:
+`/tmp/barocss-text-relief-kernel-focused-batch{,-second}.log`.
+
+The performance report is `notes/report-text-relief-performance-2026-10-28.md`. One paired RUNS=7 comparison gives
+emboss 7→6 ms (-14.3% from rounded medians) and engrave 6→6 ms. Both B-rep fingerprints remain
+09a6c59c60709781/e00ff354203f64ff. Strict validity, one physical body, face/edge/vertex counts, sorted face/edge names,
+volume and centroid shape records are SAME. This single pair and integer-ms rounding do not establish a stable
+speedup or Studio latency improvement. Final logs: `/tmp/barocss-text-relief-perf-final.log` and
+`/tmp/barocss-text-relief-shape-final.log`. Final runtime evidence above qualifies the fixed source; earlier failures remain separate observations. Final generated checks pass: tools/refusals/inventory; docs68 pages/53 shots/4488 KiB/852 labels. Refusal
+regeneration added TEXT_RELIEF_PICK. First docs check failed with `studio/features.md: the label **Baseline X/Y**
+is not in the studio's sources`; the actual separate labels resolve it. Original failure blocks and screenshots
+are preserved in `notes/text-relief-2026-10-28/`. No push, PR or release. Next decision: **D297**.

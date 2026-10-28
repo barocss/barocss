@@ -21,8 +21,25 @@ change their numbers in **Parameters**. Undo/Redo and `.bcad` Save/Open keep the
 so reopened text remains editable. Font-bearing templates are currently refused; use a `.bcad` file.
 
 The selected Latin and precomposed Korean examples use outline data, not browser-rendered glyphs. Shaping,
-kerning, bidi, Unicode normalization, text embossing and text wrapping are not implemented. Missing glyphs and
+kerning, bidi, Unicode normalization and text wrapping are not implemented. The separate bounded **Text relief**
+modifier below embosses or engraves a supported top face. Missing glyphs and
 unsupported font/profile cases are refused. See [Text from font outlines](/how/text) for the admitted range.
+
+### Text relief
+
+Pick one flat, uniquely named top face facing +Z and choose **Text relief**. Set the original font and text,
+**Em size**, positive **Depth**, **Curve tolerance**, **Tracking**, **Baseline X** and **Baseline Y** and **Operation**: **Emboss**
+or **Engrave**. Baseline X/Y are world XY coordinates in the part. Preview the candidate, then **Apply** or **Cancel**.
+
+The source must be one physical solid with one straight-sided native upright slab. Every stroke must fit in the
+actual material and selected face, clear of outer edges and holes by the required margin. Components that overlap
+or touch are refused. Engrave must leave a bottom web; both operations keep one physical solid. The source top is
+derived again after an ordinary height edit, rather than stored as an absolute Z coordinate.
+
+Edit the relief in history to change its original recipe. Change bound dimension numbers in **Parameters**.
+Font source, selected face/signature and dimensions use the existing Undo/Redo and `.bcad` paths.
+A smaller curve tolerance can exceed the fixed work budget and be refused. It is never automatically increased. Curved, tilted
+or side-face relief and text wrap remain unsupported. See [Text relief](/how/text#emboss-or-engrave-a-top-face).
 
 ## From a sketch
 

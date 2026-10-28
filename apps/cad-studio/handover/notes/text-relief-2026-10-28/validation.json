@@ -1,0 +1,93 @@
+{
+  "runtimeCommit": "62069bbd1",
+  "node": "22.19.0",
+  "kernel": {
+    "total": 2000,
+    "passed": 1994,
+    "failed": 0,
+    "skipped": 6,
+    "duration": 256904.582958
+  },
+  "model": {
+    "passed": 1822,
+    "failed": 0,
+    "duration": 239424.624417
+  },
+  "studio": {
+    "passed": 365,
+    "failed": 0,
+    "duration": 24200.915291
+  },
+  "focused": {
+    "kernel": 19,
+    "model": 75,
+    "studio": 35
+  },
+  "browser": {
+    "engine": "Google Chrome/WebGPU",
+    "fullPage": [
+      1440,
+      900
+    ],
+    "canvas": [
+      1140,
+      900
+    ],
+    "dpr": 1,
+    "passed": [
+      1,
+      36,
+      37
+    ],
+    "fullBrowserSuite": false,
+    "nativeOsIme": false
+  },
+  "inventory": {
+    "exposures": 6737,
+    "added": 8,
+    "removed": 0,
+    "duplicates": 0,
+    "auditChecks": 212
+  },
+  "screenshots": [
+    {
+      "path": "apps/library-docs/docs/public/shots/studio/features/text-relief-engrave.png",
+      "source": "/tmp/barocss-text-relief-browser/36a-text-relief-engrave-applied.png",
+      "bytes": 225561,
+      "sha256": "d64c0abbd8e1fc9fa65baf6de81a5a7afd76f0843a02972248153a9f3f730e90",
+      "transformed": false
+    },
+    {
+      "path": "apps/library-docs/docs/public/shots/studio/features/text-relief-korean.png",
+      "source": "/tmp/barocss-text-relief-browser/37a-text-relief-myeongjo-reopened.png",
+      "bytes": 237721,
+      "sha256": "ce5f1d2d90c593ae0f5c6208e9fe6096a1a558eb38d1e44b8f5f6b100b0ba1ea",
+      "transformed": false
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/text-relief-2026-10-28/text-relief-emboss-applied.png",
+      "source": "/tmp/barocss-text-relief-browser/36a-text-relief-emboss-applied.png",
+      "bytes": 273151,
+      "sha256": "d83dd9a2cab624958536fcd8f167fc61f3adedb6791e9fccd02e242d5f2f869c",
+      "transformed": false
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/text-relief-2026-10-28/text-relief-gothic-reopened.png",
+      "source": "/tmp/barocss-text-relief-browser/37a-text-relief-gothic-reopened.png",
+      "bytes": 238879,
+      "sha256": "19ae5f8afb3a373c8bb683d328606e05e179af0b8a5560c57c02ed2e91f13ee6",
+      "transformed": false
+    }
+  ],
+  "generatedDocsChecks": {
+    "tools": "PASS",
+    "refusals": "PASS",
+    "inventory": "SCOPED_PASS",
+    "docs": {
+      "pages": 68,
+      "shots": 53,
+      "shotKB": 4488,
+      "labels": 852
+    }
+  }
+}

@@ -53,10 +53,28 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   Model tsc and1792/1792, Studio tsc and364/364. Changed-source lint, generated tools/refusals and docs pass:68 pages,
   51 shots,838 labels. Reviewed inventory6697→6729 adds32 and changes19 fields intentionally; no removals or unexpected
   differences. Original upload ENOENT, Model type/lint and COMMAND_DOCS boot failures remain recorded in D293/D295.
-- Next: continue roadmap 07's remaining bounded text emboss/wrap and general face-fillet/thread ranges, then 08,09.
-  Shaping, kerning, bidi and normalization are not implemented. General free-form pairs, concave corners and
-  rational/multi-span end extension remain outside D291's admission. No feature push, new PR or release.
-  The next decision is D296.
+- D296 is the current bounded +Z Text relief integration. Initial kernel WIP `acead9d16` build/lint,13/13 focused,
+  19/19 related and whole 1994 pass/0 fail/6 existing skips predate the final helper. Final helper uses cached exact
+  orientation, one-scale dyadic area/3D audit, directed-endpoint boundary fast path/exact fallback, direct emboss
+  slabs and one batched engraving difference with complete oriented-frontier proof. No numeric/work limit rises.
+- Current focused results: final kernel 19/19, Model tsc second pass+75/75, Studio tsc+35/35. Both Korean fonts'
+  가한 emboss/engrave fixtures use em 10/at [5,5]/depth 2/tolerance 0.01. The tighter Myeongjo engrave0.002 is explicitly
+  refused by the existing 1m work budget and retains node tolerance 0.002. No automatic relaxation or tighter-case
+  success is claimed. Raw missing signatures still refuse BAD_REFERENCE at expansion; source-height edits may
+  track the same authored cap at its new top.
+- Runtime source is `62069bbd1`; final kernel build/lint and2000 total/1994 pass/0 fail/6 existing skips,
+  Model1822/1822 and Studio365/365 pass. Model/Studio types and changed lint pass with0 errors; existing chat any
+  warnings32 remain. Actual Chrome/WebGPU startup+Latin36 at0.002 and Korean37 at0.01 pass, including preview/apply,
+  History edit/Undo/Redo and original-font Save/Open. New public shots and evidence are unchanged actual captures.
+  Generated tools/refusals/inventory and docs pass:68 pages/53 shots/4488 KiB/852 labels. One paired RUNS7 perf gives emboss7→6ms/engrave6→6ms, B-rep fingerprints
+  and strict shape/name/count/volume/centroid SAME; rounded medians do not establish stable/Studio speedup.
+  Inventory6737 keys is reviewed:8 new/0 removals/duplicates,53 existing-row fields(12 semantic+41 union notation),
+  one top-level kind addition,847 prior members+9,212 checks pass. Failures/path mistake remain in D296.
+  Evidence: `../text-relief-2026-10-28/README.md`; separate paired performance report includes limits.
+- Read-only next-provider design: `../research-text-wrap-2026-10-28.md`. No wrap code/test is adopted by D296.
+- Next: roadmap07's remaining wrap provider and broader face-fillet/thread ranges, then08,09. General/curved,
+  rational/smooth wrapping, shaping, kerning, bidi and normalization remain unimplemented. D291's broader
+  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D297.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -65,7 +83,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D296**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D297**).
 
 ## 0. State at the stop
 

@@ -73,7 +73,21 @@ schema or top-level `fonts` registry is added.
 and the original Unicode scalar sequence are kept unchanged. Derived line profiles are regenerated from those
 bytes at the explicit tolerance; they do not replace the recipe. One Text output can contain multiple physical
 bodies. Font sources in instances, pending parts and open prepared Text proposals use the existing blob collection,
-worker, recovery and container paths. Closed proposals do not keep an asset alive by themselves.
+worker, recovery and container paths. The same paths collect Text relief nodes and prepared `text-relief`
+commands. Closed proposals do not keep an asset alive by themselves.
+
+A Text relief modifier keeps `kind:'text-relief'`, `parent:BodyRef`, exactly one persistent `faces` name,
+original `text`/`font`, em `size`, `at:[x,y]`, positive `depth`, `mode:'emboss'|'engrave'`, explicit `tolerance` and
+optional `tracking`, plus the existing feature metadata and `sigs`. Size/depth/baseline/tracking can retain Dim
+parameter bindings. It has no plane or generated-profile authority. The current parent cap supplies its top Z,
+so an ordinary source-height edit can keep the same authored face. Supplied source metadata stays opaque.
+
+A raw relief recipe without its selected-face signature can be read structurally, but native expansion refuses
+it with `BAD_REFERENCE`. Creating a modifier through the editor/API captures an individual signature before
+evaluation. A merged face signature does not silently become an unchecked selection. General face admission and
+actual material/trim support are recomputed by the native feature. A work-budget refusal keeps the requested
+tolerance unchanged; a later admitted result at a different explicit tolerance is a different request.
+No schema/container version is added.
 
 Container/content-address integrity checks protect saved bytes. They are separate from functional glyph and
 geometry tests. The descriptor carries supplied metadata; supported glyphs are checked separately.

@@ -1,0 +1,32 @@
+{
+ "profile-relief-emboss": {
+  "valid": true,
+  "bodies": 1,
+  "faces": 11,
+  "edges": 24,
+  "vertices": 16,
+  "volume": 12600,
+  "centroid": [
+   20,
+   15,
+   5.309523809523809
+  ],
+  "names": "p.bottom,p.side0,p.side1,p.side2,p.side3,p.top,r.component0.side0,r.component0.side1,r.component0.side2,r.component0.side3,r.component0.top|p.bottom|p.side0,p.bottom|p.side1,p.bottom|p.side2,p.bottom|p.side3,p.side0|p.side1,p.side0|p.side3,p.side0|p.top,p.side1|p.side2,p.side1|p.top,p.side2|p.side3,p.side2|p.top,p.side3|p.top,p.top|r.component0.side0,p.top|r.component0.side1,p.top|r.component0.side2,p.top|r.component0.side3,r.component0.side0|r.component0.side1,r.component0.side0|r.component0.side3,r.component0.side0|r.component0.top,r.component0.side1|r.component0.side2,r.component0.side1|r.component0.top,r.component0.side2|r.component0.side3,r.component0.side2|r.component0.top,r.component0.side3|r.component0.top",
+  "ms": 30
+ },
+ "profile-relief-engrave": {
+  "valid": true,
+  "bodies": 1,
+  "faces": 11,
+  "edges": 24,
+  "vertices": 16,
+  "volume": 11400,
+  "centroid": [
+   20,
+   15,
+   4.815789473684211
+  ],
+  "names": "p.bottom,p.side0,p.side1,p.side2,p.side3,p.top,r.component0.bottom,r.component0.side0,r.component0.side1,r.component0.side2,r.component0.side3|p.bottom|p.side0,p.bottom|p.side1,p.bottom|p.side2,p.bottom|p.side3,p.side0|p.side1,p.side0|p.side3,p.side0|p.top,p.side1|p.side2,p.side1|p.top,p.side2|p.side3,p.side2|p.top,p.side3|p.top,p.top|r.component0.side0,p.top|r.component0.side1,p.top|r.component0.side2,p.top|r.component0.side3,r.component0.bottom|r.component0.side0,r.component0.bottom|r.component0.side1,r.component0.bottom|r.component0.side2,r.component0.bottom|r.component0.side3,r.component0.side0|r.component0.side1,r.component0.side0|r.component0.side3,r.component0.side1|r.component0.side2,r.component0.side2|r.component0.side3",
+  "ms": 12
+ }
+}

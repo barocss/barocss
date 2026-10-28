@@ -8,6 +8,9 @@ text, font bytes and dimensions. Editing the feature rebuilds its geometry from 
 This is one authored feature and one output. Separate letters, dots and Korean components can remain separate
 physical bodies within that output. Text does not join an existing body automatically.
 
+**Text relief** is a separate modifier. It embosses or engraves the same source outlines on one supported +Z
+planar top face, and requires one physical solid before and after the operation.
+
 ## Supply the original font
 
 In Studio, choose **Text** and load a `.ttf` file in **Font file**. There is no built-in font or operating-system
@@ -74,15 +77,103 @@ prepared text proposals keep referenced font blobs through the existing asset pa
 Studio templates currently refuse documents that contain font sources, including an open prepared Text proposal.
 Use `.bcad` Save and Open for this workflow. Existing stored template entries are preserved.
 
+## Emboss or engrave a top face
+
+![Original-font text engraved into a selected top face](/shots/studio/features/text-relief-engrave.png)
+
+![Nanum Myeongjo text after engraving and portable Save/Open](/shots/studio/features/text-relief-korean.png)
+
+Choose one uniquely named flat top face facing +Z, then start **Text relief**. Load the original **Font file**,
+enter **Text**, **Em size**, **Depth**, **Curve tolerance**, **Tracking**, **Baseline X** and **Baseline Y**. Choose
+**Emboss** or **Engrave** under **Operation**. Changes update the candidate preview; use **Apply** or **Cancel**.
+The baseline values are world XY coordinates in the part, not distances from the picked face's corner.
+
+The supported target is one closed, strict-valid physical solid with one native upright Z slab and line-only
+boundaries. Its material may have holes or concave boundaries. The selected face must be one exact unmerged
+name at the current slab top. Side, bottom, tilted and curved faces, several physical bodies and multi-slab
+sources are refused. A second relief on the first relief's multi-slab result is outside this initial profile.
+
+Em size, tracking and font conversion follow the standalone Text rules above. Depth is positive. Emboss raises
+material by that depth above the current top and requires a positive, representable seat. Engrave removes that
+depth below the top; it must leave a bottom web thicker than the existing native linear tolerance. Tool levels
+must remain representable and inside the CAD coordinate bounds. The selected cap follows an ordinary upstream
+height edit when it keeps the same authored face; the recipe does not store an absolute top Z.
+
+In code, select the top face with the existing face query:
+
+```js
+import { readFile } from 'node:fs/promises';
+import { fontFromBytes, part } from '@barocss/cad-model/api';
+
+const font = await fontFromBytes(new Uint8Array(await readFile('./ABeeZee-Regular.ttf')), {
+  filename: 'ABeeZee-Regular.ttf',
+});
+const plate = part('label plate').box({ w: 40, d: 30, h: 10 });
+const raised = plate.textRelief(b => b.faces().facing('+z'), font, 'A', {
+  size: 10, depth: 2, at: [5, 5], mode: 'emboss', tolerance: 0.002,
+});
+const pocket = plate.textRelief(b => b.faces().facing('+z'), font, 'A', {
+  size: 10, depth: 2, at: [5, 5], mode: 'engrave', tolerance: 0.002,
+});
+```
+
+Both operations use the unchanged `plate`. For this fixed ABeeZee A, the independent straight-outline area is
+148797 design units squared at units-per-em 1000. The reference volumes are 12029.7594 mm³ for emboss and
+11970.2406 mm³ for engrave: `40*30*10 ± 148797*(10/1000)^2*2`. These values describe this supplied font and input.
+They do not certify arbitrary glyphs or placements. See [the API options](/packages/api#text-relief-on-a-top-face).
+
+### Every stroke must fit
+
+The kernel checks the complete filled polygon of every component, including its local holes, against both the
+actual slab material and the selected B-rep face's oriented trim. An outer bounding box, sampled points or total
+tool overlap cannot establish support. A target hole inside a letter's stroke is a refusal even when all outer
+stroke vertices fit inside the plate.
+
+Each component needs a boundary clearance above the requested outline flatness plus the existing native linear
+policy. The sum is rounded upward; native vertex tolerance is not increased to the outline tolerance. Pair checks
+allow for both component approximation bounds. Distinct components that overlap, touch or are too close are
+refused. This can include a glyph with unsupported component contact or a tracking value that makes letters meet.
+
+All support checks run against the original target before constructing a result. Each component must have
+complete positive support and the intended positive material change. Emboss builds the admitted slabs directly;
+engrave uses one batched planar difference. The resulting oriented pocket frontier must match the source
+boundary minus all component boundaries, including counters, before it is accepted. The result must remain one
+closed physical solid and pass strict B-rep checks. Exact polygon/slab/B-rep volume audits and bounded reported
+mass error check the signed change. These are finite-input checks; volume agreement alone is not a set-equivalence
+proof or a universal geometry certificate.
+
+The current Model fixture admits Nanum Gothic and Nanum Myeongjo `가한` in both modes at em size 10,
+baseline `[5,5]`, depth 2 and tolerance **0.01 mm**. This is the default tolerance. The tighter Nanum Myeongjo
+engrave fixture at **0.002 mm** is explicitly refused with `INPUT` when it exceeds the unchanged boundary/Boolean
+work budget. The recipe retains `0.002`; no tolerance is automatically increased. A tighter request is not
+guaranteed to succeed, and the 0.01 result does not qualify the 0.002 stress case.
+
+The relief accepts at most 64 components and uses one generated sketch per component plus one native relief
+feature within the part's 512-feature budget. Original scalar/font/profile work and coordinate limits still apply.
+The recipe retains text, font source, dimensions, selected face and its signature. Save/Open, edits and parameter
+bindings reuse the Text asset paths. Missing selected-face signatures are structurally readable but refused with
+`BAD_REFERENCE` when evaluated; the editor/API captures the signature when creating a modifier.
+
 ## Current scope and evidence
 
 This is scalar layout without shaping, kerning, bidi processing, Unicode normalization or hinting. Use
 precomposed Korean syllables when testing Korean. Combining sequences are not composed or reordered. Browser
-font rendering is not a source of CAD geometry. Embossing, engraving and wrapping text onto a face are not part
-of this Text feature.
+font rendering is not a source of CAD geometry. The bounded +Z Text relief modifier is described above. Relief
+on general or curved faces, rational/smooth surface wrapping and text wrap are not implemented.
 
 The selected originals are ABeeZee Regular, Nanum Gothic Regular and Nanum Myeongjo Regular. Focused tests use
 independent font observations and native geometry checks. Actual desktop Chrome/WebGPU flows created and
 reopened Latin and precomposed Korean Text. Latin source editing was also checked. These checks cover selected strings and
 glyphs, not every glyph or arbitrary fonts. Composition-Enter guards were checked with synthetic events;
 native operating-system IME input was not run.
+
+Runtime checkpoint `62069bbd1` passes the full kernel suite (1994 pass/0 fail/6 existing skips), Model1822/1822,
+Studio365/365, both type checks and changed-source lint. Focused kernel19/19, Model75/75 and Studio35/35 pass.
+Actual desktop Chrome/WebGPU relief flows check Latin A emboss/engrave, refused outside placement, History edit,
+Undo/Redo, original-font Save/Open and re-edit. Both Korean originals check 가한 emboss/engrave and Save/Open at
+explicit default tolerance0.01. A tighter Myeongjo pocket at0.002 remains an explicit work-budget refusal and keeps
+its original tolerance. The earlier standalone Text flows remain separate evidence.
+
+One local kernel benchmark pair preserves both fixed-case B-rep fingerprints and shape checks. Rounded medians
+are7→6ms for emboss and6→6ms for engrave. This pair does not establish a stable speedup or Studio latency change.
+Native OS IME, the full browser/GPU matrix and arbitrary fonts/all glyphs are not qualified.
