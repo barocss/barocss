@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "phase": "public grid Auto-dimension preserves each independent hole position",
+  "output": "/tmp/d331/native-first",
+  "cleanup": {
+    "context": "CLOSED",
+    "browser": "CLOSED",
+    "server": "CLOSED",
+    "priorContexts": [
+      "CLOSED",
+      "CLOSED",
+      "CLOSED"
+    ]
+  }
+}

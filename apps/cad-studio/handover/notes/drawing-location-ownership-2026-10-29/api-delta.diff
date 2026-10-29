@@ -1,0 +1,60 @@
+--- ('@barocss/cad-model', './drawing/auto', 'autoDimensions', 'value') old
+
++++ ('@barocss/cad-model', './drawing/auto', 'autoDimensions', 'value') new
+
+@@ -16,14 +16,14 @@
+
+         "kind": "function"
+       },
+       "shape": {
+-        "type": "(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null, elements?: readonly PartElement[], sections?: readonly SheetSection[]) => { dimensions: DrawingDimension[]; report: AutoDimensionReport; }",
++        "type": "(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null, elements?: readonly PartElement[], sections?: readonly SheetSection[], locationOwner?: ((edge: string) => string | null) | undefined) => { dimensions: DrawingDimension[]; report: AutoDimensionReport; }",
+         "declarationSignatures": [
+           {
+             "kind": "FunctionDeclaration"
+           }
+         ],
+         "callSignatures": [
+-          "(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null, elements?: readonly PartElement[], sections?: readonly SheetSection[]) => { dimensions: DrawingDimension[]; report: AutoDimensionReport; }"
++          "(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null, elements?: readonly PartElement[], sections?: readonly SheetSection[], locationOwner?: ((edge: string) => string | null) | undefined) => { dimensions: DrawingDimension[]; report: AutoDimensionReport; }"
+         ]
+       }
+     }
+--- ('@barocss/cad-model', './drawing/issues', 'IssueContext', 'type') old
+
++++ ('@barocss/cad-model', './drawing/issues', 'IssueContext', 'type') new
+
+@@ -66,6 +66,13 @@
+
+             "type": "SheetLayout"
+           },
+           {
++            "name": "locationOwner",
++            "kind": "callback",
++            "optional": true,
++            "readonly": false,
++            "type": "((edge: string) => string | null) | undefined"
++          },
++          {
+             "name": "rebuild",
+             "kind": "callback",
+             "optional": true,
+--- ('@barocss/cad-model', './drawing/issues', 'SheetInputs', 'type') old
+
++++ ('@barocss/cad-model', './drawing/issues', 'SheetInputs', 'type') new
+
+@@ -59,6 +59,13 @@
+
+             "type": "readonly string[] | undefined"
+           },
+           {
++            "name": "locationOwner",
++            "kind": "callback",
++            "optional": true,
++            "readonly": false,
++            "type": "((edge: string) => string | null) | undefined"
++          },
++          {
+             "name": "meta",
+             "kind": "property",
+             "optional": false,

@@ -1,0 +1,1 @@
+GATE: go after 1 s (load 7.10, slot 1 of 3)

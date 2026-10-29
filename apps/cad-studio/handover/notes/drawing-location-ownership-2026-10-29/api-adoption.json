@@ -1,0 +1,8 @@
+{
+  "addedExports": 4,
+  "changedOptionalContracts": 3,
+  "removed": 0,
+  "otherChanges": 0,
+  "review": "Root inspected exact signatures and optional owner fields; no unrelated inventory changes",
+  "candidateSHA256": "7f7e3917ccc94a38d0704ba84edf9098262baaaf0ec92f3e1442ab209c2b6f42"
+}

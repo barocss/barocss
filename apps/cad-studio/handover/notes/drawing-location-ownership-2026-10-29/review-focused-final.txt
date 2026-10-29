@@ -1,0 +1,388 @@
+TAP version 13
+# Subtest: conformance r14-bolt-circle: six holes evenly on a Ø40 circle (R14.5): their pitch circle Ø40 PCD · 6× EQ SP and its centre located, not each hole; one callout
+ok 1 - conformance r14-bolt-circle: six holes evenly on a Ø40 circle (R14.5): their pitch circle Ø40 PCD · 6× EQ SP and its centre located, not each hole; one callout
+  ---
+  duration_ms: 172.433
+  type: 'test'
+  ...
+# Subtest: conformance r14-bolt-circle-a3: the bolt-circle plate on A3: the same dimensions
+ok 2 - conformance r14-bolt-circle-a3: the bolt-circle plate on A3: the same dimensions
+  ---
+  duration_ms: 96.477166
+  type: 'test'
+  ...
+# Subtest: conformance r14-counterbore: a counterbored hole: one callout for both circles, located once
+ok 3 - conformance r14-counterbore: a counterbored hole: one callout for both circles, located once
+  ---
+  duration_ms: 63.7275
+  type: 'test'
+  ...
+# Subtest: conformance r14-hole-row: a row of four clearance holes at one pitch (the first located, then 3× 20) and a tapped blind hole above the first
+ok 4 - conformance r14-hole-row: a row of four clearance holes at one pitch (the first located, then 3× 20) and a tapped blind hole above the first
+  ---
+  duration_ms: 56.582584
+  type: 'test'
+  ...
+# Subtest: conformance r14-l-plate: an L-shaped plate: its steps across and along in the top view, from the left and front edges
+ok 5 - conformance r14-l-plate: an L-shaped plate: its steps across and along in the top view, from the left and front edges
+  ---
+  duration_ms: 4.814
+  type: 'test'
+  ...
+# Subtest: conformance r14-pcd-flange: a flange: four holes evenly round a Ø20 bore (R14.5) — their pitch circle Ø60 PCD · 4× EQ SP, located by the bore’s own position
+ok 6 - conformance r14-pcd-flange: a flange: four holes evenly round a Ø20 bore (R14.5) — their pitch circle Ø60 PCD · 4× EQ SP, located by the bore’s own position
+  ---
+  duration_ms: 51.264333
+  type: 'test'
+  ...
+# Subtest: conformance r14-pcd-square-grid: four holes at a square’s corners (R14.5): a grid, located by their positions, not a pitch circle
+ok 7 - conformance r14-pcd-square-grid: four holes at a square’s corners (R14.5): a grid, located by their positions, not a pitch circle
+  ---
+  duration_ms: 35.250666
+  type: 'test'
+  ...
+# Subtest: conformance r14-pcd-three: three holes at 120° on a Ø40 circle (R14.5), one on the vertical centre line: the pitch circle and its centre, nothing left out
+ok 8 - conformance r14-pcd-three: three holes at 120° on a Ø40 circle (R14.5), one on the vertical centre line: the pitch circle and its centre, nothing left out
+  ---
+  duration_ms: 27.402833
+  type: 'test'
+  ...
+# Subtest: conformance r14-pcd-turned: six holes on a Ø40 circle turned 15° (R14.5): the pitch circle and its centre; its angular position listed as not placed (no hole on a centre line)
+ok 9 - conformance r14-pcd-turned: six holes on a Ø40 circle turned 15° (R14.5): the pitch circle and its centre; its angular position listed as not placed (no hole on a centre line)
+  ---
+  duration_ms: 54.063333
+  type: 'test'
+  ...
+# Subtest: conformance r14-starter-plate: the starter plate: overall sizes in the front and top views, the hole located from the left and front edges, its callout
+ok 10 - conformance r14-starter-plate: the starter plate: overall sizes in the front and top views, the hole located from the left and front edges, its callout
+  ---
+  duration_ms: 11.415833
+  type: 'test'
+  ...
+# Subtest: the cases cover the parts (UPDATE_R14_FIXTURES=1 writes them)
+ok 11 - the cases cover the parts (UPDATE_R14_FIXTURES=1 writes them)
+  ---
+  duration_ms: 0.272125
+  type: 'test'
+  ...
+# Subtest: auto dimensions measure the design values and follow the part; hand-placed ones are kept, its own replaced
+ok 12 - auto dimensions measure the design values and follow the part; hand-placed ones are kept, its own replaced
+  ---
+  duration_ms: 77.270459
+  type: 'test'
+  ...
+# Subtest: a pattern copy’s hole reads its callout (copies are named n<k>_p<j>)
+ok 13 - a pattern copy’s hole reads its callout (copies are named n<k>_p<j>)
+  ---
+  duration_ms: 0.183
+  type: 'test'
+  ...
+# Subtest: conformance r14-layout-bolt-circle: the bolt-circle plate: its pitch circle and centre (R14.5); A4, clean, its Ø6 holes 3 mm on paper at the scale chosen
+ok 14 - conformance r14-layout-bolt-circle: the bolt-circle plate: its pitch circle and centre (R14.5); A4, clean, its Ø6 holes 3 mm on paper at the scale chosen
+  ---
+  duration_ms: 285.731167
+  type: 'test'
+  ...
+# Subtest: conformance r14-layout-cross-hole: a block with a hole along X: the right view shows it round and stays; the hole located and called out there
+ok 15 - conformance r14-layout-cross-hole: a block with a hole along X: the right view shows it round and stays; the hole located and called out there
+  ---
+  duration_ms: 49.905875
+  type: 'test'
+  ...
+# Subtest: conformance r14-layout-hand-in-right: the starter plate with a dimension placed by hand in the right view: the right view stays, the dimension kept
+ok 16 - conformance r14-layout-hand-in-right: the starter plate with a dimension placed by hand in the right view: the right view stays, the dimension kept
+  ---
+  duration_ms: 14.335416
+  type: 'test'
+  ...
+# Subtest: conformance r14-layout-long-plate: a 240 × 120 plate with a row of Ø8 holes: 1:5 on A4 would put them at 1.6 mm, so A3 at 1:2
+ok 17 - conformance r14-layout-long-plate: a 240 × 120 plate with a row of Ø8 holes: 1:5 on A4 would put them at 1.6 mm, so A3 at 1:2
+  ---
+  duration_ms: 118.801792
+  type: 'test'
+  ...
+# Subtest: conformance r14-layout-plate: the starter plate: the right view shows nothing the others do and is left out; A4 at 1:1, clean
+ok 18 - conformance r14-layout-plate: the starter plate: the right view shows nothing the others do and is left out; A4 at 1:1, clean
+  ---
+  duration_ms: 15.264542
+  type: 'test'
+  ...
+# Subtest: the layout cases cover the parts (UPDATE_R14_FIXTURES=1 writes them)
+ok 19 - the layout cases cover the parts (UPDATE_R14_FIXTURES=1 writes them)
+  ---
+  duration_ms: 0.4865
+  type: 'test'
+  ...
+# Subtest: room widens the gaps only where it is more than they give; without it the layout is as before
+ok 20 - room widens the gaps only where it is more than they give; without it the layout is as before
+  ---
+  duration_ms: 28.606333
+  type: 'test'
+  ...
+# Subtest: the right view adds nothing on a plate, something with a hole along X; a dimension in a hidden view is listed
+ok 21 - the right view adds nothing on a plate, something with a hole along X; a dimension in a hidden view is listed
+  ---
+  duration_ms: 53.205083
+  type: 'test'
+  ...
+# Subtest: independent cross-view hole locations with equal values are retained; missing target remains diagnosed
+ok 22 - independent cross-view hole locations with equal values are retained; missing target remains diagnosed
+  ---
+  duration_ms: 375.298583
+  type: 'test'
+  ...
+# Subtest: public edit changes only the second hole location from 15 to 17; both targets remain independently covered
+ok 23 - public edit changes only the second hole location from 15 to 17; both targets remain independently covered
+  ---
+  duration_ms: 242.128375
+  type: 'test'
+  ...
+# Subtest: manual first-hole location does not suppress automatic location of an independent equal-value target
+ok 24 - manual first-hole location does not suppress automatic location of an independent equal-value target
+  ---
+  duration_ms: 78.073958
+  type: 'test'
+  ...
+# Subtest: a later repeat of the second target is found after an independent target with the same span
+ok 25 - a later repeat of the second target is found after an independent target with the same span
+  ---
+  duration_ms: 73.125292
+  type: 'test'
+  ...
+# Subtest: independently authored square-grid holes each retain two target-owned locations and distinct placement rows
+ok 26 - independently authored square-grid holes each retain two target-owned locations and distinct placement rows
+  ---
+  duration_ms: 144.967375
+  type: 'test'
+  ...
+# Subtest: same-target orthographic repeat keeps manual reference and removes its automatic repeat
+ok 27 - same-target orthographic repeat keeps manual reference and removes its automatic repeat
+  ---
+  duration_ms: 67.402375
+  type: 'test'
+  ...
+# Subtest: a common hole target does not merge measurements from two independent coincident datum features
+ok 28 - a common hole target does not merge measurements from two independent coincident datum features
+  ---
+  duration_ms: 68.253167
+  type: 'test'
+  ...
+# Subtest: reversing a counted pitch changes its extension direction and does not offer a duplicate removal
+ok 29 - reversing a counted pitch changes its extension direction and does not offer a duplicate removal
+  ---
+  duration_ms: 72.241667
+  type: 'test'
+  ...
+# Subtest: same-owner endpoint pitches keep direction and count; a same-direction repeat prefers the manual dimension
+ok 30 - same-owner endpoint pitches keep direction and count; a same-direction repeat prefers the manual dimension
+  ---
+  duration_ms: 136.013875
+  type: 'test'
+  ...
+# Subtest: a manual endpoint count does not suppress a generated overall size with a different count or direction
+ok 31 - a manual endpoint count does not suppress a generated overall size with a different count or direction
+  ---
+  duration_ms: 68.629
+  type: 'test'
+  ...
+# Subtest: actual independent compound stacks keep different location owners despite equal text and coaxial circles
+ok 32 - actual independent compound stacks keep different location owners despite equal text and coaxial circles
+  ---
+  duration_ms: 34.518708
+  type: 'test'
+  ...
+# Subtest: compound location owners retain instance paths and exact pattern-copy identity; invalid dependent cuts do not bind
+ok 33 - compound location owners retain instance paths and exact pattern-copy identity; invalid dependent cuts do not bind
+  ---
+  duration_ms: 0.140417
+  type: 'test'
+  ...
+# Subtest: assembly ownership resolves actual instance features rather than colliding base ids
+ok 34 - assembly ownership resolves actual instance features rather than colliding base ids
+  ---
+  duration_ms: 51.354666
+  type: 'test'
+  ...
+# Subtest: conformance r14-issues-auto-clean: the starter plate auto-dimensioned: no issue
+ok 35 - conformance r14-issues-auto-clean: the starter plate auto-dimensioned: no issue
+  ---
+  duration_ms: 73.125791
+  type: 'test'
+  ...
+# Subtest: conformance r14-issues-crowded-a4: the bolt-circle plate auto-dimensioned on A4 at 1:1: a callout over lines (moved clear) and the top view’s name pushed into the front view (left: it needs room, R14.3)
+ok 36 - conformance r14-issues-crowded-a4: the bolt-circle plate auto-dimensioned on A4 at 1:1: a callout over lines (moved clear) and the top view’s name pushed into the front view (left: it needs room, R14.3)
+  ---
+  duration_ms: 116.185791
+  type: 'test'
+  ...
+# Subtest: conformance r14-issues-scale-too-big: the plate at a fixed 10:1: the views do not fit; the fix goes back to an automatic scale
+ok 37 - conformance r14-issues-scale-too-big: the plate at a fixed 10:1: the views do not fit; the fix goes back to an automatic scale
+  ---
+  duration_ms: 118.226125
+  type: 'test'
+  ...
+# Subtest: conformance r14-issues-undimensioned: the starter plate with no dimensions: a hole without size or position, the overall sizes missing; Auto-dimension fixes them all
+ok 38 - conformance r14-issues-undimensioned: the starter plate with no dimensions: a hole without size or position, the overall sizes missing; Auto-dimension fixes them all
+  ---
+  duration_ms: 23.349917
+  type: 'test'
+  ...
+# Subtest: conformance r14-issues-wrong-on-sheet: a lost dimension, the width given again three times by hand (in the top view, two of them on one spot, and in the front view off the sheet), a re-matched reference: each found, each fixed
+ok 39 - conformance r14-issues-wrong-on-sheet: a lost dimension, the width given again three times by hand (in the top view, two of them on one spot, and in the front view off the sheet), a re-matched reference: each found, each fixed
+  ---
+  duration_ms: 21.987208
+  type: 'test'
+  ...
+# Subtest: the issue cases cover the drawings (UPDATE_R14_FIXTURES=1 writes them)
+ok 40 - the issue cases cover the drawings (UPDATE_R14_FIXTURES=1 writes them)
+  ---
+  duration_ms: 0.208459
+  type: 'test'
+  ...
+# Subtest: each issue on the wrong sheet, with its fix
+ok 41 - each issue on the wrong sheet, with its fix
+  ---
+  duration_ms: 47.408666
+  type: 'test'
+  ...
+# Subtest: text boxes and lines: overlap by the separating-axis test, a segment through a turned box
+ok 42 - text boxes and lines: overlap by the separating-axis test, a segment through a turned box
+  ---
+  duration_ms: 0.164417
+  type: 'test'
+  ...
+# Subtest: Auto-dimension leaves no issue on the R14.1 parts it does not report crowded
+ok 43 - Auto-dimension leaves no issue on the R14.1 parts it does not report crowded
+  ---
+  duration_ms: 570.264917
+  type: 'test'
+  ...
+# Subtest: O174: the shaft's drawing without its bought key and bearing — none of their edges in its views; after Auto-dimension and Fix, no issue
+ok 44 - O174: the shaft's drawing without its bought key and bearing — none of their edges in its views; after Auto-dimension and Fix, no issue
+  ---
+  duration_ms: 4493.725041
+  type: 'test'
+  ...
+# Subtest: O174: the cover — its Ø22 bore and its gland concentric with its round outline, located by it; the bought O-ring not drawn; no issue
+ok 45 - O174: the cover — its Ø22 bore and its gland concentric with its round outline, located by it; the bought O-ring not drawn; no issue
+  ---
+  duration_ms: 1141.8025
+  type: 'test'
+  ...
+# Subtest: O175: the shaft and its bought key on a part sheet with balloons — the key drawn, both balloons on their items' edges
+ok 46 - O175: the shaft and its bought key on a part sheet with balloons — the key drawn, both balloons on their items' edges
+  ---
+  duration_ms: 1260.658375
+  type: 'test'
+  ...
+# Subtest: a parameter-bound blind-hole depth draws the same callout as its literal five-mm value
+ok 47 - a parameter-bound blind-hole depth draws the same callout as its literal five-mm value
+  ---
+  duration_ms: 156.498084
+  type: 'test'
+  ...
+# Subtest: a parameter-bound tap-drill radius retains the nominal callout and three-decimal depth rounding
+ok 48 - a parameter-bound tap-drill radius retains the nominal callout and three-decimal depth rounding
+  ---
+  duration_ms: 115.290084
+  type: 'test'
+  ...
+# Subtest: Hole command plain and tapped depth choices survive Save/Open with their callouts
+ok 49 - Hole command plain and tapped depth choices survive Save/Open with their callouts
+  ---
+  duration_ms: 29.3365
+  type: 'test'
+  ...
+# Subtest: legacy plain and tapped holes keep omitted depth as through after migration and Save/Open
+ok 50 - legacy plain and tapped holes keep omitted depth as through after migration and Save/Open
+  ---
+  duration_ms: 0.514791
+  type: 'test'
+  ...
+# Subtest: a saved tapped blind hole keeps model mm and callout text when the sheet scale changes
+ok 51 - a saved tapped blind hole keeps model mm and callout text when the sheet scale changes
+  ---
+  duration_ms: 104.555
+  type: 'test'
+  ...
+# Subtest: countersunk hole: a 90° cone from Ø csd down to the hole, on the top and on a side
+ok 52 - countersunk hole: a 90° cone from Ø csd down to the hole, on the top and on a side
+  ---
+  duration_ms: 381.259625
+  type: 'test'
+  ...
+# Subtest: tapped hole: the tap drill of its thread, the thread noted on the feature
+ok 53 - tapped hole: the tap drill of its thread, the thread noted on the feature
+  ---
+  duration_ms: 12.041708
+  type: 'test'
+  ...
+# Subtest: hole patterns: a row and a bolt circle, one history step each; the count edits later
+ok 54 - hole patterns: a row and a bolt circle, one history step each; the count edits later
+  ---
+  duration_ms: 98.197459
+  type: 'test'
+  ...
+# Subtest: hole callouts: count, size or thread, through or deep, counterbore and countersink
+ok 55 - hole callouts: count, size or thread, through or deep, counterbore and countersink
+  ---
+  duration_ms: 0.7585
+  type: 'test'
+  ...
+# Subtest: X2: with B–B through the keyseat, Auto-dimension puts b 6 and d − t1 16.5 on the section, every end visible (d + t2 22.8 there too: from the top its bore end is under the Ø25 step); DIM_ON_HIDDEN gone; drawn there, clean; in the SVG and DXF
+ok 56 - X2: with B–B through the keyseat, Auto-dimension puts b 6 and d − t1 16.5 on the section, every end visible (d + t2 22.8 there too: from the top its bore end is under the Ø25 step); DIM_ON_HIDDEN gone; drawn there, clean; in the SVG and DXF
+  ---
+  duration_ms: 1680.583
+  type: 'test'
+  ...
+# Subtest: X2: a dimension on a section the sheet lacks is lost (DIMENSION_LOST, named by its section)
+ok 57 - X2: a dimension on a section the sheet lacks is lost (DIMENSION_LOST, named by its section)
+  ---
+  duration_ms: 493.037292
+  type: 'test'
+  ...
+# Subtest: queue 3: a section's dimensions carried through a reorient — B–B (square to Z) turned to a front from +X and from +Y: its dimensions stay on it and read 6 and 16.5 again; a section across the new front still refused
+ok 58 - queue 3: a section's dimensions carried through a reorient — B–B (square to Z) turned to a front from +X and from +Y: its dimensions stay on it and read 6 and 16.5 again; a section across the new front still refused
+  ---
+  duration_ms: 3399.0735
+  type: 'test'
+  ...
+# Subtest: X2: the flow's shaft-and-hub model file is this scene
+ok 59 - X2: the flow's shaft-and-hub model file is this scene
+  ---
+  duration_ms: 16.770167
+  type: 'test'
+  ...
+# Subtest: X3: DIM_ON_HIDDEN on d − t1 carries add-section B–B square to the top view at the keyseat's middle (Z 15); applied, Auto-dimension moves b and d − t1 onto it and the warnings are gone; with the section there, the fix is Auto-dimension
+ok 60 - X3: DIM_ON_HIDDEN on d − t1 carries add-section B–B square to the top view at the keyseat's middle (Z 15); applied, Auto-dimension moves b and d − t1 onto it and the warnings are gone; with the section there, the fix is Auto-dimension
+  ---
+  duration_ms: 911.384959
+  type: 'test'
+  ...
+# Subtest: O178: a keyway on a tilted bore — an aligned section square to its axis is the fix; cut, hatched and seen along it; its cutting plane in the right view
+ok 61 - O178: a keyway on a tilted bore — an aligned section square to its axis is the fix; cut, hatched and seen along it; its cutting plane in the right view
+  ---
+  duration_ms: 193.774833
+  type: 'test'
+  ...
+# Subtest: a section through the shaft, its key and its hub: each body hatched at its own angle (45°, 135°, 30° by body), the same in the SVG, PDF and DXF; one body alone at 45° as before
+ok 62 - a section through the shaft, its key and its hub: each body hatched at its own angle (45°, 135°, 30° by body), the same in the SVG, PDF and DXF; one body alone at 45° as before
+  ---
+  duration_ms: 1987.691125
+  type: 'test'
+  ...
+# Subtest: item 4: an unrelated body before the shaft, suppressed — the outputs shift, B–B's dimensions read 6 and 16.5 as before, none lost or re-matched
+ok 63 - item 4: an unrelated body before the shaft, suppressed — the outputs shift, B–B's dimensions read 6 and 16.5 as before, none lost or re-matched
+  ---
+  duration_ms: 1175.062916
+  type: 'test'
+  ...
+1..63
+# tests 63
+# suites 0
+# pass 63
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10008.703792

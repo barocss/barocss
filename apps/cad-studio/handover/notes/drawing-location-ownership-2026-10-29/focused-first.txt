@@ -1,0 +1,683 @@
+TAP version 13
+# Subtest: conformance r14-bolt-circle: six holes evenly on a Ø40 circle (R14.5): their pitch circle Ø40 PCD · 6× EQ SP and its centre located, not each hole; one callout
+ok 1 - conformance r14-bolt-circle: six holes evenly on a Ø40 circle (R14.5): their pitch circle Ø40 PCD · 6× EQ SP and its centre located, not each hole; one callout
+  ---
+  duration_ms: 117.733
+  type: 'test'
+  ...
+# Subtest: conformance r14-bolt-circle-a3: the bolt-circle plate on A3: the same dimensions
+ok 2 - conformance r14-bolt-circle-a3: the bolt-circle plate on A3: the same dimensions
+  ---
+  duration_ms: 68.535542
+  type: 'test'
+  ...
+# Subtest: conformance r14-counterbore: a counterbored hole: one callout for both circles, located once
+not ok 3 - conformance r14-counterbore: a counterbored hole: one callout for both circles, located once
+  ---
+  duration_ms: 27.815542
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-EQcWSv/auto-dimension.test.mjs:49611:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      [
+        {
+          kind: 'linear',
+          orient: 'horizontal',
+          text: '50',
+    ...
+          kind: 'linear',
+    +     orient: 'horizontal',
+    +     text: '25',
+    +     view: 'top'
+    +   },
+    +   {
+    +     kind: 'linear',
+          orient: 'vertical',
+          text: '25',
+          view: 'top'
+        },
+        {
+          kind: 'linear',
+          orient: 'vertical',
+    +     text: '25',
+    +     view: 'top'
+    +   },
+    +   {
+    +     kind: 'linear',
+    +     orient: 'vertical',
+          text: '50',
+          view: 'top'
+        }
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      view: 'front'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '50'
+    1:
+      view: 'front'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '12'
+    2:
+      view: 'top'
+      kind: 'diameter'
+      text: 'Ø6.6 THRU  CBORE Ø11 × 6.5 DEEP'
+    3:
+      view: 'top'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '25'
+    4:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '25'
+    5:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '50'
+  actual:
+    0:
+      view: 'front'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '50'
+    1:
+      view: 'front'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '12'
+    2:
+      view: 'top'
+      kind: 'diameter'
+      text: 'Ø6.6 THRU  CBORE Ø11 × 6.5 DEEP'
+    3:
+      view: 'top'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '25'
+    4:
+      view: 'top'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '25'
+    5:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '25'
+    6:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '25'
+    7:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '50'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-EQcWSv/auto-dimension.test.mjs:49614:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: conformance r14-hole-row: a row of four clearance holes at one pitch (the first located, then 3× 20) and a tapped blind hole above the first
+not ok 4 - conformance r14-hole-row: a row of four clearance holes at one pitch (the first located, then 3× 20) and a tapped blind hole above the first
+  ---
+  duration_ms: 36.040833
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-EQcWSv/auto-dimension.test.mjs:49611:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      [
+        {
+          kind: 'linear',
+          orient: 'horizontal',
+          text: '100',
+    ...
+          orient: 'horizontal',
+    +     text: '20',
+    +     view: 'top'
+    +   },
+    +   {
+    +     kind: 'linear',
+    +     orient: 'horizontal',
+          text: '3× 20',
+          view: 'top'
+        },
+        {
+          kind: 'linear',
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      view: 'front'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '100'
+    1:
+      view: 'front'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '10'
+    2:
+      view: 'top'
+      kind: 'diameter'
+      text: '4× Ø6.6 THRU'
+    3:
+      view: 'top'
+      kind: 'diameter'
+      text: 'M6×1 × 12 DEEP'
+    4:
+      view: 'top'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '20'
+    5:
+      view: 'top'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '3× 20'
+    6:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '12'
+    7:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '30'
+    8:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '40'
+  actual:
+    0:
+      view: 'front'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '100'
+    1:
+      view: 'front'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '10'
+    2:
+      view: 'top'
+      kind: 'diameter'
+      text: '4× Ø6.6 THRU'
+    3:
+      view: 'top'
+      kind: 'diameter'
+      text: 'M6×1 × 12 DEEP'
+    4:
+      view: 'top'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '20'
+    5:
+      view: 'top'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '20'
+    6:
+      view: 'top'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '3× 20'
+    7:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '12'
+    8:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '30'
+    9:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '40'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-EQcWSv/auto-dimension.test.mjs:49614:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: conformance r14-l-plate: an L-shaped plate: its steps across and along in the top view, from the left and front edges
+ok 5 - conformance r14-l-plate: an L-shaped plate: its steps across and along in the top view, from the left and front edges
+  ---
+  duration_ms: 3.782708
+  type: 'test'
+  ...
+# Subtest: conformance r14-pcd-flange: a flange: four holes evenly round a Ø20 bore (R14.5) — their pitch circle Ø60 PCD · 4× EQ SP, located by the bore’s own position
+ok 6 - conformance r14-pcd-flange: a flange: four holes evenly round a Ø20 bore (R14.5) — their pitch circle Ø60 PCD · 4× EQ SP, located by the bore’s own position
+  ---
+  duration_ms: 37.239792
+  type: 'test'
+  ...
+# Subtest: conformance r14-pcd-square-grid: four holes at a square’s corners (R14.5): a grid, located by their positions, not a pitch circle
+not ok 7 - conformance r14-pcd-square-grid: four holes at a square’s corners (R14.5): a grid, located by their positions, not a pitch circle
+  ---
+  duration_ms: 33.185166
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-EQcWSv/auto-dimension.test.mjs:49611:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      [
+        {
+          kind: 'linear',
+          orient: 'horizontal',
+          text: '60',
+    ...
+          orient: 'horizontal',
+    +     text: '15',
+    +     view: 'top'
+    +   },
+    +   {
+    +     kind: 'linear',
+    +     orient: 'horizontal',
+          text: '45',
+          view: 'top'
+        },
+        {
+          kind: 'linear',
+    +     orient: 'horizontal',
+    +     text: '45',
+    +     view: 'top'
+    +   },
+    +   {
+    +     kind: 'linear',
+          orient: 'vertical',
+          text: '15',
+          view: 'top'
+        },
+        {
+          kind: 'linear',
+          orient: 'vertical',
+    +     text: '15',
+    +     view: 'top'
+    +   },
+    +   {
+    +     kind: 'linear',
+    +     orient: 'vertical',
+          text: '45',
+          view: 'top'
+        },
+        {
+          kind: 'linear',
+          orient: 'vertical',
+    +     text: '45',
+    +     view: 'top'
+    +   },
+    +   {
+    +     kind: 'linear',
+    +     orient: 'vertical',
+          text: '60',
+          view: 'top'
+        }
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      view: 'front'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '60'
+    1:
+      view: 'front'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '8'
+    2:
+      view: 'top'
+      kind: 'diameter'
+      text: '4× Ø6 THRU'
+    3:
+      view: 'top'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '15'
+    4:
+      view: 'top'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '45'
+    5:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '15'
+    6:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '45'
+    7:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '60'
+  actual:
+    0:
+      view: 'front'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '60'
+    1:
+      view: 'front'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '8'
+    2:
+      view: 'top'
+      kind: 'diameter'
+      text: '4× Ø6 THRU'
+    3:
+      view: 'top'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '15'
+    4:
+      view: 'top'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '15'
+    5:
+      view: 'top'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '45'
+    6:
+      view: 'top'
+      kind: 'linear'
+      orient: 'horizontal'
+      text: '45'
+    7:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '15'
+    8:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '15'
+    9:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '45'
+    10:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '45'
+    11:
+      view: 'top'
+      kind: 'linear'
+      orient: 'vertical'
+      text: '60'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-EQcWSv/auto-dimension.test.mjs:49614:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: conformance r14-pcd-three: three holes at 120° on a Ø40 circle (R14.5), one on the vertical centre line: the pitch circle and its centre, nothing left out
+ok 8 - conformance r14-pcd-three: three holes at 120° on a Ø40 circle (R14.5), one on the vertical centre line: the pitch circle and its centre, nothing left out
+  ---
+  duration_ms: 25.461292
+  type: 'test'
+  ...
+# Subtest: conformance r14-pcd-turned: six holes on a Ø40 circle turned 15° (R14.5): the pitch circle and its centre; its angular position listed as not placed (no hole on a centre line)
+ok 9 - conformance r14-pcd-turned: six holes on a Ø40 circle turned 15° (R14.5): the pitch circle and its centre; its angular position listed as not placed (no hole on a centre line)
+  ---
+  duration_ms: 48.685
+  type: 'test'
+  ...
+# Subtest: conformance r14-starter-plate: the starter plate: overall sizes in the front and top views, the hole located from the left and front edges, its callout
+ok 10 - conformance r14-starter-plate: the starter plate: overall sizes in the front and top views, the hole located from the left and front edges, its callout
+  ---
+  duration_ms: 10.024458
+  type: 'test'
+  ...
+# Subtest: the cases cover the parts (UPDATE_R14_FIXTURES=1 writes them)
+ok 11 - the cases cover the parts (UPDATE_R14_FIXTURES=1 writes them)
+  ---
+  duration_ms: 0.280042
+  type: 'test'
+  ...
+# Subtest: auto dimensions measure the design values and follow the part; hand-placed ones are kept, its own replaced
+ok 12 - auto dimensions measure the design values and follow the part; hand-placed ones are kept, its own replaced
+  ---
+  duration_ms: 76.1105
+  type: 'test'
+  ...
+# Subtest: a pattern copy’s hole reads its callout (copies are named n<k>_p<j>)
+ok 13 - a pattern copy’s hole reads its callout (copies are named n<k>_p<j>)
+  ---
+  duration_ms: 0.213709
+  type: 'test'
+  ...
+# Subtest: independent cross-view hole locations with equal values are retained; missing target remains diagnosed
+ok 14 - independent cross-view hole locations with equal values are retained; missing target remains diagnosed
+  ---
+  duration_ms: 297.389667
+  type: 'test'
+  ...
+# Subtest: public edit changes only the second hole location from15 to17; both targets remain independently covered
+ok 15 - public edit changes only the second hole location from15 to17; both targets remain independently covered
+  ---
+  duration_ms: 250.704417
+  type: 'test'
+  ...
+# Subtest: manual first-hole location does not suppress automatic location of an independent equal-value target
+ok 16 - manual first-hole location does not suppress automatic location of an independent equal-value target
+  ---
+  duration_ms: 77.935875
+  type: 'test'
+  ...
+# Subtest: a later repeat of the second target is found after an independent target with the same span
+ok 17 - a later repeat of the second target is found after an independent target with the same span
+  ---
+  duration_ms: 73.162625
+  type: 'test'
+  ...
+# Subtest: conformance r14-issues-auto-clean: the starter plate auto-dimensioned: no issue
+ok 18 - conformance r14-issues-auto-clean: the starter plate auto-dimensioned: no issue
+  ---
+  duration_ms: 59.758458
+  type: 'test'
+  ...
+# Subtest: conformance r14-issues-crowded-a4: the bolt-circle plate auto-dimensioned on A4 at 1:1: a callout over lines (moved clear) and the top view’s name pushed into the front view (left: it needs room, R14.3)
+not ok 19 - conformance r14-issues-crowded-a4: the bolt-circle plate auto-dimensioned on A4 at 1:1: a callout over lines (moved clear) and the top view’s name pushed into the front view (left: it needs room, R14.3)
+  ---
+  duration_ms: 71.182584
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-EQcWSv/drawing-issues.test.mjs:50123:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   'HOLE_NOT_LOCATED',
+        'TEXT_OVER_LINES',
+        'TEXT_OVER_LINES'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'TEXT_OVER_LINES'
+    1: 'TEXT_OVER_LINES'
+  actual:
+    0: 'HOLE_NOT_LOCATED'
+    1: 'TEXT_OVER_LINES'
+    2: 'TEXT_OVER_LINES'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-EQcWSv/drawing-issues.test.mjs:50125:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: conformance r14-issues-scale-too-big: the plate at a fixed 10:1: the views do not fit; the fix goes back to an automatic scale
+ok 20 - conformance r14-issues-scale-too-big: the plate at a fixed 10:1: the views do not fit; the fix goes back to an automatic scale
+  ---
+  duration_ms: 70.479125
+  type: 'test'
+  ...
+# Subtest: conformance r14-issues-undimensioned: the starter plate with no dimensions: a hole without size or position, the overall sizes missing; Auto-dimension fixes them all
+ok 21 - conformance r14-issues-undimensioned: the starter plate with no dimensions: a hole without size or position, the overall sizes missing; Auto-dimension fixes them all
+  ---
+  duration_ms: 19.632917
+  type: 'test'
+  ...
+# Subtest: conformance r14-issues-wrong-on-sheet: a lost dimension, the width given again three times by hand (in the top view, two of them on one spot, and in the front view off the sheet), a re-matched reference: each found, each fixed
+ok 22 - conformance r14-issues-wrong-on-sheet: a lost dimension, the width given again three times by hand (in the top view, two of them on one spot, and in the front view off the sheet), a re-matched reference: each found, each fixed
+  ---
+  duration_ms: 15.129125
+  type: 'test'
+  ...
+# Subtest: the issue cases cover the drawings (UPDATE_R14_FIXTURES=1 writes them)
+ok 23 - the issue cases cover the drawings (UPDATE_R14_FIXTURES=1 writes them)
+  ---
+  duration_ms: 0.196583
+  type: 'test'
+  ...
+# Subtest: each issue on the wrong sheet, with its fix
+ok 24 - each issue on the wrong sheet, with its fix
+  ---
+  duration_ms: 36.876542
+  type: 'test'
+  ...
+# Subtest: text boxes and lines: overlap by the separating-axis test, a segment through a turned box
+ok 25 - text boxes and lines: overlap by the separating-axis test, a segment through a turned box
+  ---
+  duration_ms: 0.190666
+  type: 'test'
+  ...
+# Subtest: Auto-dimension leaves no issue on the R14.1 parts it does not report crowded
+ok 26 - Auto-dimension leaves no issue on the R14.1 parts it does not report crowded
+  ---
+  duration_ms: 540.989083
+  type: 'test'
+  ...
+# Subtest: O174: the shaft's drawing without its bought key and bearing — none of their edges in its views; after Auto-dimension and Fix, no issue
+ok 27 - O174: the shaft's drawing without its bought key and bearing — none of their edges in its views; after Auto-dimension and Fix, no issue
+  ---
+  duration_ms: 4271.895125
+  type: 'test'
+  ...
+# Subtest: O174: the cover — its Ø22 bore and its gland concentric with its round outline, located by it; the bought O-ring not drawn; no issue
+ok 28 - O174: the cover — its Ø22 bore and its gland concentric with its round outline, located by it; the bought O-ring not drawn; no issue
+  ---
+  duration_ms: 1177.630417
+  type: 'test'
+  ...
+# Subtest: O175: the shaft and its bought key on a part sheet with balloons — the key drawn, both balloons on their items' edges
+ok 29 - O175: the shaft and its bought key on a part sheet with balloons — the key drawn, both balloons on their items' edges
+  ---
+  duration_ms: 1292.3875
+  type: 'test'
+  ...
+# Subtest: X2: with B–B through the keyseat, Auto-dimension puts b 6 and d − t1 16.5 on the section, every end visible (d + t2 22.8 there too: from the top its bore end is under the Ø25 step); DIM_ON_HIDDEN gone; drawn there, clean; in the SVG and DXF
+ok 30 - X2: with B–B through the keyseat, Auto-dimension puts b 6 and d − t1 16.5 on the section, every end visible (d + t2 22.8 there too: from the top its bore end is under the Ø25 step); DIM_ON_HIDDEN gone; drawn there, clean; in the SVG and DXF
+  ---
+  duration_ms: 1527.55375
+  type: 'test'
+  ...
+# Subtest: X2: a dimension on a section the sheet lacks is lost (DIMENSION_LOST, named by its section)
+ok 31 - X2: a dimension on a section the sheet lacks is lost (DIMENSION_LOST, named by its section)
+  ---
+  duration_ms: 484.278625
+  type: 'test'
+  ...
+# Subtest: queue 3: a section's dimensions carried through a reorient — B–B (square to Z) turned to a front from +X and from +Y: its dimensions stay on it and read 6 and 16.5 again; a section across the new front still refused
+ok 32 - queue 3: a section's dimensions carried through a reorient — B–B (square to Z) turned to a front from +X and from +Y: its dimensions stay on it and read 6 and 16.5 again; a section across the new front still refused
+  ---
+  duration_ms: 3489.970166
+  type: 'test'
+  ...
+# Subtest: X2: the flow's shaft-and-hub model file is this scene
+ok 33 - X2: the flow's shaft-and-hub model file is this scene
+  ---
+  duration_ms: 18.154708
+  type: 'test'
+  ...
+# Subtest: X3: DIM_ON_HIDDEN on d − t1 carries add-section B–B square to the top view at the keyseat's middle (Z 15); applied, Auto-dimension moves b and d − t1 onto it and the warnings are gone; with the section there, the fix is Auto-dimension
+ok 34 - X3: DIM_ON_HIDDEN on d − t1 carries add-section B–B square to the top view at the keyseat's middle (Z 15); applied, Auto-dimension moves b and d − t1 onto it and the warnings are gone; with the section there, the fix is Auto-dimension
+  ---
+  duration_ms: 882.414417
+  type: 'test'
+  ...
+# Subtest: O178: a keyway on a tilted bore — an aligned section square to its axis is the fix; cut, hatched and seen along it; its cutting plane in the right view
+ok 35 - O178: a keyway on a tilted bore — an aligned section square to its axis is the fix; cut, hatched and seen along it; its cutting plane in the right view
+  ---
+  duration_ms: 192.199709
+  type: 'test'
+  ...
+# Subtest: a section through the shaft, its key and its hub: each body hatched at its own angle (45°, 135°, 30° by body), the same in the SVG, PDF and DXF; one body alone at 45° as before
+ok 36 - a section through the shaft, its key and its hub: each body hatched at its own angle (45°, 135°, 30° by body), the same in the SVG, PDF and DXF; one body alone at 45° as before
+  ---
+  duration_ms: 2057.078584
+  type: 'test'
+  ...
+# Subtest: item 4: an unrelated body before the shaft, suppressed — the outputs shift, B–B's dimensions read 6 and 16.5 as before, none lost or re-matched
+ok 37 - item 4: an unrelated body before the shaft, suppressed — the outputs shift, B–B's dimensions read 6 and 16.5 as before, none lost or re-matched
+  ---
+  duration_ms: 1246.499709
+  type: 'test'
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 33
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10028.976334

@@ -1,0 +1,6 @@
+
+/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/scripts/test.mjs
+  13:22  warning  Unexpected console statement  no-console
+
+✖ 1 problem (0 errors, 1 warning)
+

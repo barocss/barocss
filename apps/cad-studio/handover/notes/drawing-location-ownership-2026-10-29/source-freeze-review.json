@@ -1,0 +1,63 @@
+{
+  "baseHEAD": "2084eeb99c39b9c27518f401f89c789f03dd94f1",
+  "supersedes": "source-freeze.json first candidate retained",
+  "ownedFiles": {
+    "packages/barocss-cad-model/src/drawing/auto.ts": "25e1cdfbb2ef960062c60d835b7868f7afd319b0a1fa761b2c66014c1a44e6fc",
+    "packages/barocss-cad-model/src/drawing/issues.ts": "ec7e077ac0d07e546cee291b7920889f917b1b98336a1bf82abb34a9e5b2e7ae",
+    "packages/barocss-cad-model/src/drawing/measurement.ts": "193b3fc9bdcc01b77991f385dd65bd6c8604bdb512dced385d9bf8329b011d21",
+    "packages/barocss-cad-model/src/drawing/callout.ts": "fdef87e9915d085e3506d6c425430a015b3a64e5ba41f3c0c8e90493cb44ecac",
+    "packages/barocss-cad-model/src/drawing/layout.ts": "f7a4499d90a2873bcfa8340c1e29d9d45d5694173e92f4dae81bc2dc15d8daae",
+    "packages/barocss-cad-model/src/chat/drawing.ts": "8edb682363afc5800b2b3d60ba660235ea40149806ebd8d94cbd8dfa197ccbb2",
+    "packages/barocss-cad-model/test/drawing-independent-locations.test.ts": "acec80df6a45510929769ecadcd589982bc6fd0befa59cdf122ab99b205fba67",
+    "packages/barocss-cad-model/test/auto-dimension.test.ts": "9e05ee5ac5495a2b970597fc431563c0732c8cb68e555124a3d24253b88fff11",
+    "packages/barocss-cad-model/test/drawing-issues.test.ts": "27980b6e0d8c51d3510dc27cfbad6a5fc3788fe0cba1e2925a61f1d27bda66fc",
+    "packages/barocss-cad-model/test/auto-layout.test.ts": "63fffc7fd6766bc49dd5e9f2ff82006e92b3b175e62b84e7f627dff1b193c913",
+    "packages/barocss-cad/conformance/r14/hole-row/case.json": "efc839241610d181470c8c20a85f5e29dc75ce1abe520b841a94f17a2096077e",
+    "packages/barocss-cad/conformance/r14/pcd-square-grid/case.json": "c18050fd1441a88402eacd153a1965e157b9b466f00a79c4cf299d5ddc204db6"
+  },
+  "checks": {
+    "reviewRegressionBaseline": {
+      "tests": 10,
+      "pass": 8,
+      "fail": 2,
+      "exit": 1,
+      "raw": "review-baseline.txt"
+    },
+    "reviewFocusedFinal": {
+      "tests": 63,
+      "pass": 63,
+      "fail": 0,
+      "skip": 0,
+      "exit": 0,
+      "raw": "review-focused-final.txt"
+    },
+    "ModelTypecheck": {
+      "exit": 0,
+      "raw": "review-types-final.txt"
+    },
+    "changedModelLint": {
+      "exit": 0,
+      "raw": "review-lint-final.txt"
+    },
+    "gateRelease": {
+      "exit": 0
+    }
+  },
+  "APIChanges": [
+    "new export holeCalloutOwner(nodes: readonly ModelNode[], edge: string, parameters: Readonly<Record<string, number>> = {}): string | null",
+    "new export holeCalloutOwnerOf(doc: StudioDoc, edge: string): string | null",
+    "new measurement export samePointDependency(a, av, b, bv, axis, locationOwner?, countedPattern = false): boolean",
+    "new measurement export sameLinearDependency(a, av, b, bv, axis, locationOwner?): boolean",
+    "autoDimensions adds optional seventh locationOwner?: (edge: string) => string | null",
+    "SheetInputs and IssueContext add optional locationOwner?: (edge: string) => string | null"
+  ],
+  "ownershipContract": "Actual parent-linked inner/outer source association shared by formatter and owner resolver; optional owner callback required for distinct-owner compound equivalence; prefix/copy identity retained; doc-aware resolution uses actual placedDoc and rejects unknown/mixed/hidden/unresolved prefixes. Equal rendered text supplies no identity.",
+  "countContract": "Both endpoints compare their current measured-axis coordinates and dependencies; counted dimension direction is retained; auto.sameAs checks linear count and endpoint direction before suppressing generation.",
+  "limits": [
+    "No commit/push by this agent",
+    "No Studio/browser run by this agent",
+    "Root owns broader boundaries and actual browser evidence",
+    "Actual compound tests validate owner association and point-dependency comparisons; they do not accept a full assembly coverage/manufacturing matrix",
+    "Initial invalid harness expansion and all earlier failures remain in retained logs/setup-limits.md"
+  ]
+}

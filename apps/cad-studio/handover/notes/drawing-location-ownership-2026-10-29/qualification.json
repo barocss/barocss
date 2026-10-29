@@ -1,0 +1,146 @@
+{
+  "status": "QUALIFIED_BOUNDED_DA_DUP_1",
+  "runtimeCommit": "ccbdf285e357f53a9bb070f119d6e625e6cd3070",
+  "change": "Preserve independent drawing measurement dependencies through duplicate diagnostics, coverage, auto generation and manual suppression. Explicit compound owner flows through Model/API and Studio.",
+  "tolerancesChanged": false,
+  "schemaOrDependencyChanges": false,
+  "model": {
+    "relatedDrawing": {
+      "pass": 248,
+      "fail": 0,
+      "skip": 0
+    },
+    "focused": {
+      "pass": 63,
+      "fail": 0,
+      "skip": 0
+    },
+    "overlap": "Focused and broader results overlap; do not add totals",
+    "typesExit": 0,
+    "lintExit": 0
+  },
+  "studio": {
+    "relatedChatSection": {
+      "pass": 28,
+      "fail": 0,
+      "skip": 0
+    },
+    "typesExit": 0,
+    "buildExit": 0
+  },
+  "api": {
+    "addedExports": 4,
+    "updatedOptionalContracts": 3,
+    "removed": 0,
+    "unrelatedChanges": 0,
+    "policyStatus": "SCOPED_PASS",
+    "scope": "Six inventory rules only; exact reviewed delta in api-delta.json/diff"
+  },
+  "generated": {
+    "agentToolsExit": 0,
+    "refusalsExit": 0
+  },
+  "native": {
+    "newDriver": "PASS",
+    "profiles": 2,
+    "captures": 10,
+    "rendererObserved": "webgpu",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "sourceChangesObserved": 0,
+    "cleanup": "Context/browser/server CLOSED and prior contexts CLOSED",
+    "existingFirst": {
+      "selectedPass": 1,
+      "selectedFail": 2,
+      "starterPass": 1,
+      "exit": 1,
+      "failure": "R14.1/R14.2 old History text wait timed out before drawing logic; preserved screenshots show fresh Box; R14.5 passed"
+    },
+    "existingRetry": {
+      "firstRetake": {
+        "selectedPass": 0,
+        "selectedFail": 2,
+        "starterPass": 1,
+        "exit": 1,
+        "failure": "Ambiguous first .props selector timed out although selected FACE is visible; preserve original output and captures"
+      },
+      "finalRetake": {
+        "selectedPass": 2,
+        "selectedFail": 0,
+        "starterPass": 1,
+        "exit": 0
+      },
+      "change": "Only selected R14.1/R14.2 setup observations replaced: exact authored and fresh analytic Box/hole state, plus explicit aria-label Selection. Drawing assertions unchanged."
+    },
+    "qualifiedScope": {
+      "newProfiles": 2,
+      "uniqueExistingCases": 3,
+      "starterSeparate": true,
+      "wholeBrowserSuite": false
+    }
+  },
+  "review": {
+    "final": "NO REQUIRED FINDINGS",
+    "scope": "Nine source files matched final source profile; valid lightweight controls, not full runtime/browser proof",
+    "receipts": "review-final/"
+  },
+  "setupFailures": {
+    "emptySelection": {
+      "rawEntries": 365,
+      "pass": 2,
+      "importResolutionFail": 363,
+      "validFullSuite": false
+    },
+    "guard": "Model runner now refuses empty selection before bundling/discovery; explicit unmatched-name exit1 is expected",
+    "studioWrongSelection": "first-studio-drawing.txt: no test file matches drawing; no tests executed. Final chat/section result separate",
+    "source": "setup-limits.md",
+    "guardPositive": {
+      "pass": 13,
+      "fail": 0,
+      "skip": 0,
+      "overlapsFocused": true
+    },
+    "rootSelectorPatch": "Initial root string replacement asserted zero matches and aborted before writes; corrected targeted replacement. Tool transcript only, not a stored raw log."
+  },
+  "notQualified": [
+    "Full Model/Studio/Kernel/GPU/Viewer or full browser suites",
+    "Whole drawing/manufacturing correctness or independent numerical tolerance accuracy",
+    "Full assembly/section/pattern ownership matrix",
+    "PDF/external reader/live AI/remote CI/release",
+    "Performance/heap/RSS/VRAM; placedDoc reconstruction cost not benchmarked",
+    "Clean whole-screen acceptance: captured transient toasts can cover paper"
+  ],
+  "artifacts": "manifest.json",
+  "parentBaseline": {
+    "validOriginalSource": {
+      "pass": 2,
+      "fail": 6,
+      "skip": 0,
+      "exit": 1
+    },
+    "firstCandidateReviewRegression": {
+      "pass": 8,
+      "fail": 2,
+      "skip": 0,
+      "exit": 1
+    },
+    "initialInvalidManualFixture": "baseline.txt: 1 PASS/3 FAIL included auto:false typing errors; corrected valid baseline is separate"
+  },
+  "baselineCommit": "2084eeb99c39b9c27518f401f89c789f03dd94f1",
+  "observationCommit": "5907c3931cce980f9beb99bfc857ede6654ee2e5",
+  "sourceWatch": {
+    "observations": 256,
+    "allMatch": true,
+    "listedFiles": 64,
+    "scope": "Four serial invocations; planned driver and runner observation changes between runs retained as separate profiles. Not full dependency graph."
+  },
+  "docs": {
+    "exit": 0,
+    "pages": 68,
+    "beingWritten": 0,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 860,
+    "boundary": "Collected after note/decision/roadmap assembly, before adding this receipt and manifest"
+  }
+}

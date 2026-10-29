@@ -1,0 +1,1498 @@
+TAP version 13
+# Subtest: conformance r14-bolt-circle: six holes evenly on a Ø40 circle (R14.5): their pitch circle Ø40 PCD · 6× EQ SP and its centre located, not each hole; one callout
+ok 1 - conformance r14-bolt-circle: six holes evenly on a Ø40 circle (R14.5): their pitch circle Ø40 PCD · 6× EQ SP and its centre located, not each hole; one callout
+  ---
+  duration_ms: 157.069083
+  type: 'test'
+  ...
+# Subtest: conformance r14-bolt-circle-a3: the bolt-circle plate on A3: the same dimensions
+ok 2 - conformance r14-bolt-circle-a3: the bolt-circle plate on A3: the same dimensions
+  ---
+  duration_ms: 113.945375
+  type: 'test'
+  ...
+# Subtest: conformance r14-counterbore: a counterbored hole: one callout for both circles, located once
+ok 3 - conformance r14-counterbore: a counterbored hole: one callout for both circles, located once
+  ---
+  duration_ms: 38.5325
+  type: 'test'
+  ...
+# Subtest: conformance r14-hole-row: a row of four clearance holes at one pitch (the first located, then 3× 20) and a tapped blind hole above the first
+ok 4 - conformance r14-hole-row: a row of four clearance holes at one pitch (the first located, then 3× 20) and a tapped blind hole above the first
+  ---
+  duration_ms: 55.605792
+  type: 'test'
+  ...
+# Subtest: conformance r14-l-plate: an L-shaped plate: its steps across and along in the top view, from the left and front edges
+ok 5 - conformance r14-l-plate: an L-shaped plate: its steps across and along in the top view, from the left and front edges
+  ---
+  duration_ms: 4.390417
+  type: 'test'
+  ...
+# Subtest: conformance r14-pcd-flange: a flange: four holes evenly round a Ø20 bore (R14.5) — their pitch circle Ø60 PCD · 4× EQ SP, located by the bore’s own position
+ok 6 - conformance r14-pcd-flange: a flange: four holes evenly round a Ø20 bore (R14.5) — their pitch circle Ø60 PCD · 4× EQ SP, located by the bore’s own position
+  ---
+  duration_ms: 55.175417
+  type: 'test'
+  ...
+# Subtest: conformance r14-pcd-square-grid: four holes at a square’s corners (R14.5): a grid, located by their positions, not a pitch circle
+ok 7 - conformance r14-pcd-square-grid: four holes at a square’s corners (R14.5): a grid, located by their positions, not a pitch circle
+  ---
+  duration_ms: 39.674375
+  type: 'test'
+  ...
+# Subtest: conformance r14-pcd-three: three holes at 120° on a Ø40 circle (R14.5), one on the vertical centre line: the pitch circle and its centre, nothing left out
+ok 8 - conformance r14-pcd-three: three holes at 120° on a Ø40 circle (R14.5), one on the vertical centre line: the pitch circle and its centre, nothing left out
+  ---
+  duration_ms: 26.595625
+  type: 'test'
+  ...
+# Subtest: conformance r14-pcd-turned: six holes on a Ø40 circle turned 15° (R14.5): the pitch circle and its centre; its angular position listed as not placed (no hole on a centre line)
+ok 9 - conformance r14-pcd-turned: six holes on a Ø40 circle turned 15° (R14.5): the pitch circle and its centre; its angular position listed as not placed (no hole on a centre line)
+  ---
+  duration_ms: 76.272875
+  type: 'test'
+  ...
+# Subtest: conformance r14-starter-plate: the starter plate: overall sizes in the front and top views, the hole located from the left and front edges, its callout
+ok 10 - conformance r14-starter-plate: the starter plate: overall sizes in the front and top views, the hole located from the left and front edges, its callout
+  ---
+  duration_ms: 25.272959
+  type: 'test'
+  ...
+# Subtest: the cases cover the parts (UPDATE_R14_FIXTURES=1 writes them)
+ok 11 - the cases cover the parts (UPDATE_R14_FIXTURES=1 writes them)
+  ---
+  duration_ms: 0.228542
+  type: 'test'
+  ...
+# Subtest: auto dimensions measure the design values and follow the part; hand-placed ones are kept, its own replaced
+ok 12 - auto dimensions measure the design values and follow the part; hand-placed ones are kept, its own replaced
+  ---
+  duration_ms: 122.644917
+  type: 'test'
+  ...
+# Subtest: a pattern copy’s hole reads its callout (copies are named n<k>_p<j>)
+ok 13 - a pattern copy’s hole reads its callout (copies are named n<k>_p<j>)
+  ---
+  duration_ms: 0.178541
+  type: 'test'
+  ...
+# Subtest: conformance r14-layout-bolt-circle: the bolt-circle plate: its pitch circle and centre (R14.5); A4, clean, its Ø6 holes 3 mm on paper at the scale chosen
+ok 14 - conformance r14-layout-bolt-circle: the bolt-circle plate: its pitch circle and centre (R14.5); A4, clean, its Ø6 holes 3 mm on paper at the scale chosen
+  ---
+  duration_ms: 280.648792
+  type: 'test'
+  ...
+# Subtest: conformance r14-layout-cross-hole: a block with a hole along X: the right view shows it round and stays; the hole located and called out there
+ok 15 - conformance r14-layout-cross-hole: a block with a hole along X: the right view shows it round and stays; the hole located and called out there
+  ---
+  duration_ms: 85.281958
+  type: 'test'
+  ...
+# Subtest: conformance r14-layout-hand-in-right: the starter plate with a dimension placed by hand in the right view: the right view stays, the dimension kept
+ok 16 - conformance r14-layout-hand-in-right: the starter plate with a dimension placed by hand in the right view: the right view stays, the dimension kept
+  ---
+  duration_ms: 17.874084
+  type: 'test'
+  ...
+# Subtest: conformance r14-layout-long-plate: a 240 × 120 plate with a row of Ø8 holes: 1:5 on A4 would put them at 1.6 mm, so A3 at 1:2
+ok 17 - conformance r14-layout-long-plate: a 240 × 120 plate with a row of Ø8 holes: 1:5 on A4 would put them at 1.6 mm, so A3 at 1:2
+  ---
+  duration_ms: 117.603917
+  type: 'test'
+  ...
+# Subtest: conformance r14-layout-plate: the starter plate: the right view shows nothing the others do and is left out; A4 at 1:1, clean
+ok 18 - conformance r14-layout-plate: the starter plate: the right view shows nothing the others do and is left out; A4 at 1:1, clean
+  ---
+  duration_ms: 11.745917
+  type: 'test'
+  ...
+# Subtest: the layout cases cover the parts (UPDATE_R14_FIXTURES=1 writes them)
+ok 19 - the layout cases cover the parts (UPDATE_R14_FIXTURES=1 writes them)
+  ---
+  duration_ms: 0.202125
+  type: 'test'
+  ...
+# Subtest: room widens the gaps only where it is more than they give; without it the layout is as before
+ok 20 - room widens the gaps only where it is more than they give; without it the layout is as before
+  ---
+  duration_ms: 23.119042
+  type: 'test'
+  ...
+# Subtest: the right view adds nothing on a plate, something with a hole along X; a dimension in a hidden view is listed
+ok 21 - the right view adds nothing on a plate, something with a hole along X; a dimension in a hidden view is listed
+  ---
+  duration_ms: 84.263291
+  type: 'test'
+  ...
+# Subtest: the drawing tools are offered, with schemas
+ok 22 - the drawing tools are offered, with schemas
+  ---
+  duration_ms: 0.37825
+  type: 'test'
+  ...
+# Subtest: drawing_issues and tolerance_suggestions read the drawing and change nothing
+ok 23 - drawing_issues and tolerance_suggestions read the drawing and change nothing
+  ---
+  duration_ms: 241.617583
+  type: 'test'
+  ...
+# Subtest: a drawing change is the user’s: refused made directly, made as a proposal, accepted only by the user
+ok 24 - a drawing change is the user’s: refused made directly, made as a proposal, accepted only by the user
+  ---
+  duration_ms: 955.712791
+  type: 'test'
+  ...
+# Subtest: the change tools through dispatch (what a proposal replays): layout off, fixes by code, suggestions by id, settings
+ok 25 - the change tools through dispatch (what a proposal replays): layout off, fixes by code, suggestions by id, settings
+  ---
+  duration_ms: 317.551792
+  type: 'test'
+  ...
+# Subtest: CNC5 the pages: every drawing item names its page — https, read 2026-10-21, the page's own words
+ok 26 - CNC5 the pages: every drawing item names its page — https, read 2026-10-21, the page's own words
+  ---
+  duration_ms: 0.452459
+  type: 'test'
+  ...
+# Subtest: CNC5 no drawing: a plain block holds the standard ±0.125 — passes; with an M6 tapped hole a drawing is needed — failed (the mutant: the thread taken off — passes again)
+ok 27 - CNC5 no drawing: a plain block holds the standard ±0.125 — passes; with an M6 tapped hole a drawing is needed — failed (the mutant: the thread taken off — passes again)
+  ---
+  duration_ms: 698.930334
+  type: 'test'
+  ...
+# Subtest: CNC5 a drawing made complete — Auto-dimension, the iso view, a title, the general note and the material — every item passes; each taken away, only it warned
+ok 28 - CNC5 a drawing made complete — Auto-dimension, the iso view, a title, the general note and the material — every item passes; each taken away, only it warned
+  ---
+  duration_ms: 741.575708
+  type: 'test'
+  ...
+# Subtest: CNC5 the finish: the brief states one — the drawing without it warned; a note naming it passes; no material set — material undecided
+ok 29 - CNC5 the finish: the brief states one — the drawing without it warned; a note naming it passes; no material set — material undecided
+  ---
+  duration_ms: 121.256875
+  type: 'test'
+  ...
+# Subtest: Drawing consumes the current linked inset boundary and cut depth without rewriting its saved cache
+ok 30 - Drawing consumes the current linked inset boundary and cut depth without rewriting its saved cache
+  ---
+  duration_ms: 125.605
+  type: 'test'
+  ...
+# Subtest: Drawing keeps the legacy copied inset at x38 and x40 despite the same sixty-mm outer bounds
+ok 31 - Drawing keeps the legacy copied inset at x38 and x40 despite the same sixty-mm outer bounds
+  ---
+  duration_ms: 21.954708
+  type: 'test'
+  ...
+# Subtest: a coordinate through breaks: shifted back past a band less its gap, the band squeezed to the gap, and back again
+ok 32 - a coordinate through breaks: shifted back past a band less its gap, the band squeezed to the gap, and back again
+  ---
+  duration_ms: 4.39675
+  type: 'test'
+  ...
+# Subtest: curves outside a band: a line split at the band’s sides; a circle’s arcs at ±π/3 and ±2π/3 in closed form; rings split in two
+ok 33 - curves outside a band: a line split at the band’s sides; a circle’s arcs at ±π/3 and ±2π/3 in closed form; rings split in two
+  ---
+  duration_ms: 1.310209
+  type: 'test'
+  ...
+# Subtest: saved breaks kept when valid; set_drawing’s check refuses a reversed or overlapping one
+ok 34 - saved breaks kept when valid; set_drawing’s check refuses a reversed or overlapping one
+  ---
+  duration_ms: 0.969792
+  type: 'test'
+  ...
+# Subtest: the bar broken from X 100 to 400 at 1:2: the front and top views 106 mm long and in projection, the right view whole; the hole at 0.5·(450 − 300) + 6
+ok 35 - the bar broken from X 100 to 400 at 1:2: the front and top views 106 mm long and in projection, the right view whole; the hole at 0.5·(450 − 300) + 6
+  ---
+  duration_ms: 106.301375
+  type: 'test'
+  ...
+# Subtest: a dimension across the break reads 500 and is drawn 106 long; the break lets Auto take 1:1 where the whole bar takes 1:5
+ok 36 - a dimension across the break reads 500 and is drawn 106 long; the break lets Auto take 1:1 where the whole bar takes 1:5
+  ---
+  duration_ms: 29.060833
+  type: 'test'
+  ...
+# Subtest: a section of the broken front is broken too: its cut face in two parts, in projection with the view
+ok 37 - a section of the broken front is broken too: its cut face in two parts, in projection with the view
+  ---
+  duration_ms: 34.372667
+  type: 'test'
+  ...
+# Subtest: a break that misses the part is a warning whose fix removes it; the agent adds one, and an overlapping one is refused
+ok 38 - a break that misses the part is a warning whose fix removes it; the agent adds one, and an overlapping one is refused
+  ---
+  duration_ms: 65.658834
+  type: 'test'
+  ...
+# Subtest: written: the broken front’s edge pieces read back by ezdxf at their shifted places
+ok 39 - written: the broken front’s edge pieces read back by ezdxf at their shifted places
+  ---
+  duration_ms: 1893.408542
+  type: 'test'
+  ...
+# Subtest: composite position frames accept two independently validated rows and copy the lower row
+ok 40 - composite position frames accept two independently validated rows and copy the lower row
+  ---
+  duration_ms: 2.126583
+  type: 'test'
+  ...
+# Subtest: invalid lower rows and non-position composites are rejected without partial changes
+ok 41 - invalid lower rows and non-position composites are rejected without partial changes
+  ---
+  duration_ms: 1.374458
+  type: 'test'
+  ...
+# Subtest: drawing.set and file codec preserve legacy and composite frames
+ok 42 - drawing.set and file codec preserve legacy and composite frames
+  ---
+  duration_ms: 216.607917
+  type: 'test'
+  ...
+# Subtest: saved composite checks refuse malformed or unsupported rows without changing input
+ok 43 - saved composite checks refuse malformed or unsupported rows without changing input
+  ---
+  duration_ms: 0.356208
+  type: 'test'
+  ...
+# Subtest: saved composite checks catch duplicate ids and attached dimensions in either order
+ok 44 - saved composite checks catch duplicate ids and attached dimensions in either order
+  ---
+  duration_ms: 0.116125
+  type: 'test'
+  ...
+# Subtest: saved standalone and composite frames are validated before normalization
+ok 45 - saved standalone and composite frames are validated before normalization
+  ---
+  duration_ms: 0.368084
+  type: 'test'
+  ...
+# Subtest: explicit false, true and absent frame flags survive the file codec and drawing normalization
+ok 46 - explicit false, true and absent frame flags survive the file codec and drawing normalization
+  ---
+  duration_ms: 1.6665
+  type: 'test'
+  ...
+# Subtest: free-state and tangent-plane flags retain independent mixed values
+ok 47 - free-state and tangent-plane flags retain independent mixed values
+  ---
+  duration_ms: 0.111084
+  type: 'test'
+  ...
+# Subtest: frameProblem gives one short reason exactly where the frame check refuses
+ok 48 - frameProblem gives one short reason exactly where the frame check refuses
+  ---
+  duration_ms: 0.4865
+  type: 'test'
+  ...
+# Subtest: composite frame has one full-height characteristic cell and two independently sized rows
+ok 49 - composite frame has one full-height characteristic cell and two independently sized rows
+  ---
+  duration_ms: 3.574041
+  type: 'test'
+  ...
+# Subtest: attached and standalone composite frames keep both rows through the file codec, sheet, SVG and attached PMI at two scales
+ok 50 - attached and standalone composite frames keep both rows through the file codec, sheet, SVG and attached PMI at two scales
+  ---
+  duration_ms: 239.620083
+  type: 'test'
+  ...
+# Subtest: composite frames report missing datums from both rows without changing the frame
+ok 51 - composite frames report missing datums from both rows without changing the frame
+  ---
+  duration_ms: 92.406
+  type: 'test'
+  ...
+# Subtest: a stale suggestion cannot replace an authored composite or make its location dimension basic
+ok 52 - a stale suggestion cannot replace an authored composite or make its location dimension basic
+  ---
+  duration_ms: 0.911708
+  type: 'test'
+  ...
+# Subtest: a colliding frame ID cannot replace a standalone or another attached frame
+ok 53 - a colliding frame ID cannot replace a standalone or another attached frame
+  ---
+  duration_ms: 0.2835
+  type: 'test'
+  ...
+# Subtest: a suggestion for a deleted dimension leaves all other settings intact
+ok 54 - a suggestion for a deleted dimension leaves all other settings intact
+  ---
+  duration_ms: 0.072875
+  type: 'test'
+  ...
+# Subtest: a valid suggestion still adds its frame and makes the requested dimension basic
+ok 55 - a valid suggestion still adds its frame and makes the requested dimension basic
+  ---
+  duration_ms: 0.128792
+  type: 'test'
+  ...
+# Subtest: vector characteristics: circle radii, position cross, flatness area, half-circle profiles and parallel lines
+ok 56 - vector characteristics: circle radii, position cross, flatness area, half-circle profiles and parallel lines
+  ---
+  duration_ms: 1.286292
+  type: 'test'
+  ...
+# Subtest: frame cells: position keeps its diameter default; other characteristics are linear; modifier text stays inside the border
+ok 57 - frame cells: position keeps its diameter default; other characteristics are linear; modifier text stays inside the border
+  ---
+  duration_ms: 0.72325
+  type: 'test'
+  ...
+# Subtest: frames round-trip through saved JSON; invalid and duplicate references are dropped without sharing input objects
+ok 58 - frames round-trip through saved JSON; invalid and duplicate references are dropped without sharing input objects
+  ---
+  duration_ms: 0.765375
+  type: 'test'
+  ...
+# Subtest: bad frame inputs refuse atomically; empty frames clear, omitted keeps; absent dimensions/datums stay visible as issues
+ok 59 - bad frame inputs refuse atomically; empty frames clear, omitted keeps; absent dimensions/datums stay visible as issues
+  ---
+  duration_ms: 178.312042
+  type: 'test'
+  ...
+# Subtest: v2 drawing.set and describe expose controls without extra per-turn tools; invalid proposals remain atomic
+ok 60 - v2 drawing.set and describe expose controls without extra per-turn tools; invalid proposals remain atomic
+  ---
+  duration_ms: 95.137125
+  type: 'test'
+  ...
+# Subtest: 3D annotations preserve a linear zone, the selected characteristic and all authored modifiers
+ok 61 - 3D annotations preserve a linear zone, the selected characteristic and all authored modifiers
+  ---
+  duration_ms: 25.966041
+  type: 'test'
+  ...
+# Subtest: saved edge datums retain ids, signatures, previous names and duplicate-letter diagnostics
+ok 62 - saved edge datums retain ids, signatures, previous names and duplicate-letter diagnostics
+  ---
+  duration_ms: 44.419292
+  type: 'test'
+  ...
+# Subtest: authored face and edge datums share schema metadata, refuse atomically, keep omitted data and clear explicitly
+ok 63 - authored face and edge datums share schema metadata, refuse atomically, keep omitted data and clear explicitly
+  ---
+  duration_ms: 153.448958
+  type: 'test'
+  ...
+# Subtest: face anchors keep exact occurrence prefixes and current plate vertices; missing, ambiguous and empty faces stay unresolved
+ok 64 - face anchors keep exact occurrence prefixes and current plate vertices; missing, ambiguous and empty faces stay unresolved
+  ---
+  duration_ms: 33.691958
+  type: 'test'
+  ...
+# Subtest: current drawing contract: public file writer and readers preserve supported standalone and composite frame information in schema3
+ok 65 - current drawing contract: public file writer and readers preserve supported standalone and composite frame information in schema3
+  ---
+  duration_ms: 2.927833
+  type: 'test'
+  ...
+# Subtest: current drawing contract: malformed new frame data refuses before normalization can discard it
+ok 66 - current drawing contract: malformed new frame data refuses before normalization can discard it
+  ---
+  duration_ms: 1.971375
+  type: 'test'
+  ...
+# Subtest: current drawing contract: actual route selects schema4 and authored detach selects schema3 without changing frame data or snapshots
+ok 67 - current drawing contract: actual route selects schema4 and authored detach selects schema3 without changing frame data or snapshots
+  ---
+  duration_ms: 24.671
+  type: 'test'
+  ...
+# Subtest: current drawing contract: file bytes and existing snapshot identities survive codec and version operations
+ok 68 - current drawing contract: file bytes and existing snapshot identities survive codec and version operations
+  ---
+  duration_ms: 9.713209
+  type: 'test'
+  ...
+# Subtest: DR6 endpoint targets: schema and authored input refuse atomically; legacy and saved duplicate evidence remain
+ok 69 - DR6 endpoint targets: schema and authored input refuse atomically; legacy and saved duplicate evidence remain
+  ---
+  duration_ms: 226.101583
+  type: 'test'
+  ...
+# Subtest: DR6 endpoint targets: signed endpoint identity never switches after translation, width changes or edge ID reuse
+ok 70 - DR6 endpoint targets: signed endpoint identity never switches after translation, width changes or edge ID reuse
+  ---
+  duration_ms: 3.406542
+  type: 'test'
+  ...
+# Subtest: DR6 endpoint targets: a scope change cannot silently retarget a sheet with a saved point target
+ok 71 - DR6 endpoint targets: a scope change cannot silently retarget a sheet with a saved point target
+  ---
+  duration_ms: 0.265166
+  type: 'test'
+  ...
+# Subtest: DR6 endpoint targets: drawing.set and the real file codec preserve sheet/PMI identity; lost and duplicate targets remain visible as diagnostics
+ok 72 - DR6 endpoint targets: drawing.set and the real file codec preserve sheet/PMI identity; lost and duplicate targets remain visible as diagnostics
+  ---
+  duration_ms: 161.257042
+  type: 'test'
+  ...
+# Subtest: a segment against a circle: its inside interval from the quadratic, a tangent and a miss give none
+ok 73 - a segment against a circle: its inside interval from the quadratic, a tangent and a miss give none
+  ---
+  duration_ms: 6.308125
+  type: 'test'
+  ...
+# Subtest: a circular arc against a circle: the crossing at π/3 in closed form; an ellipse’s four crossings at acos(±√(5/12)) to the last digits
+ok 74 - a circular arc against a circle: the crossing at π/3 in closed form; an ellipse’s four crossings at acos(±√(5/12)) to the last digits
+  ---
+  duration_ms: 7.48175
+  type: 'test'
+  ...
+# Subtest: a polyline against a circle: its inside runs, each cut at the crossings
+ok 75 - a polyline against a circle: its inside runs, each cut at the crossings
+  ---
+  duration_ms: 0.20775
+  type: 'test'
+  ...
+# Subtest: rings clipped to a circle: a square larger than it becomes the inscribed 512-gon, its area (N/2)·r²·sin(2π/N); holes kept by index
+ok 76 - rings clipped to a circle: a square larger than it becomes the inscribed 512-gon, its area (N/2)·r²·sin(2π/N); holes kept by index
+  ---
+  duration_ms: 20.381625
+  type: 'test'
+  ...
+# Subtest: the default detail scale: the smallest standard scale at least twice the sheet’s
+ok 77 - the default detail scale: the smallest standard scale at least twice the sheet’s
+  ---
+  duration_ms: 0.183584
+  type: 'test'
+  ...
+# Subtest: a detail of the plate’s front view: the top edge from 32 to 40 and the hole’s hidden line from Z 4 to 8, exactly, at 5:1
+ok 78 - a detail of the plate’s front view: the top edge from 32 to 40 and the hole’s hidden line from Z 4 to 8, exactly, at 5:1
+  ---
+  duration_ms: 115.422417
+  type: 'test'
+  ...
+# Subtest: a detail of the top view: the Ø8 hole alone, a diameter dimension on it reads 8 and is drawn 40 mm across
+ok 79 - a detail of the top view: the Ø8 hole alone, a diameter dimension on it reads 8 and is drawn 40 mm across
+  ---
+  duration_ms: 53.203583
+  type: 'test'
+  ...
+# Subtest: a detail of a section: the cut faces clipped and hatched; its parent removed, the detail is an issue with a fix that takes it and its dimensions away
+ok 80 - a detail of a section: the cut faces clipped and hatched; its parent removed, the detail is an issue with a fix that takes it and its dimensions away
+  ---
+  duration_ms: 34.42925
+  type: 'test'
+  ...
+# Subtest: an empty circle is a warning; a detail with no room is an error
+ok 81 - an empty circle is a warning; a detail with no room is an error
+  ---
+  duration_ms: 49.877083
+  type: 'test'
+  ...
+# Subtest: saved and offered details: kept when valid; set_drawing refuses bad ones, a letter a section has, a missing parent section, and changing one with dimensions
+ok 82 - saved and offered details: kept when valid; set_drawing refuses bad ones, a letter a section has, a missing parent section, and changing one with dimensions
+  ---
+  duration_ms: 1.685166
+  type: 'test'
+  ...
+# Subtest: the agent’s set_drawing adds a detail and reads it back on the sheet; a bad one is refused with its code
+ok 83 - the agent’s set_drawing adds a detail and reads it back on the sheet; a bad one is refused with its code
+  ---
+  duration_ms: 69.675541
+  type: 'test'
+  ...
+# Subtest: turning the drawing to a front from +X: a detail on the front view goes with its view, its centre and dimension carried, the value kept
+ok 84 - turning the drawing to a front from +X: a detail on the front view goes with its view, its centre and dimension carried, the value kept
+  ---
+  duration_ms: 27.811625
+  type: 'test'
+  ...
+# Subtest: written: the detail in the SVG and the PDF; the DXF read back by ezdxf — its circle, the clipped lines at 5:1 and the dimension’s text
+ok 85 - written: the detail in the SVG and the PDF; the DXF read back by ezdxf — its circle, the clipped lines at 5:1 and the dimension’s text
+  ---
+  duration_ms: 1542.242167
+  type: 'test'
+  ...
+# Subtest: O172: one Fix on the shaft keeps the keyseat's dimension, on its section B; it dimensions again only in its first round and after the section
+ok 86 - O172: one Fix on the shaft keeps the keyseat's dimension, on its section B; it dimensions again only in its first round and after the section
+  ---
+  duration_ms: 6646.566417
+  type: 'test'
+  ...
+# Subtest: O172: where two edges meet one place on the view, the snap point is the visible edge's, whichever was found first
+ok 87 - O172: where two edges meet one place on the view, the snap point is the visible edge's, whichever was found first
+  ---
+  duration_ms: 0.425666
+  type: 'test'
+  ...
+# Subtest: O170: one Fix on the shaft leaves no TEXT_OVERLAP — a second applies nothing
+ok 88 - O170: one Fix on the shaft leaves no TEXT_OVERLAP — a second applies nothing
+  ---
+  duration_ms: 7913.085417
+  type: 'test'
+  ...
+# Subtest: O175: Fix all round by round, as the studio runs it — the chat's result; a single pass leaves what the next round clears
+ok 89 - O175: Fix all round by round, as the studio runs it — the chat's result; a single pass leaves what the next round clears
+  ---
+  duration_ms: 5025.745666
+  type: 'test'
+  ...
+# Subtest: independent cross-view hole locations with equal values are retained; missing target remains diagnosed
+ok 90 - independent cross-view hole locations with equal values are retained; missing target remains diagnosed
+  ---
+  duration_ms: 473.70925
+  type: 'test'
+  ...
+# Subtest: public edit changes only the second hole location from 15 to 17; both targets remain independently covered
+ok 91 - public edit changes only the second hole location from 15 to 17; both targets remain independently covered
+  ---
+  duration_ms: 408.961083
+  type: 'test'
+  ...
+# Subtest: manual first-hole location does not suppress automatic location of an independent equal-value target
+ok 92 - manual first-hole location does not suppress automatic location of an independent equal-value target
+  ---
+  duration_ms: 241.998834
+  type: 'test'
+  ...
+# Subtest: a later repeat of the second target is found after an independent target with the same span
+ok 93 - a later repeat of the second target is found after an independent target with the same span
+  ---
+  duration_ms: 228.734333
+  type: 'test'
+  ...
+# Subtest: independently authored square-grid holes each retain two target-owned locations and distinct placement rows
+ok 94 - independently authored square-grid holes each retain two target-owned locations and distinct placement rows
+  ---
+  duration_ms: 330.992459
+  type: 'test'
+  ...
+# Subtest: same-target orthographic repeat keeps manual reference and removes its automatic repeat
+ok 95 - same-target orthographic repeat keeps manual reference and removes its automatic repeat
+  ---
+  duration_ms: 190.920833
+  type: 'test'
+  ...
+# Subtest: a common hole target does not merge measurements from two independent coincident datum features
+ok 96 - a common hole target does not merge measurements from two independent coincident datum features
+  ---
+  duration_ms: 108.065875
+  type: 'test'
+  ...
+# Subtest: reversing a counted pitch changes its extension direction and does not offer a duplicate removal
+ok 97 - reversing a counted pitch changes its extension direction and does not offer a duplicate removal
+  ---
+  duration_ms: 188.801458
+  type: 'test'
+  ...
+# Subtest: same-owner endpoint pitches keep direction and count; a same-direction repeat prefers the manual dimension
+ok 98 - same-owner endpoint pitches keep direction and count; a same-direction repeat prefers the manual dimension
+  ---
+  duration_ms: 300.234625
+  type: 'test'
+  ...
+# Subtest: a manual endpoint count does not suppress a generated overall size with a different count or direction
+ok 99 - a manual endpoint count does not suppress a generated overall size with a different count or direction
+  ---
+  duration_ms: 91.357333
+  type: 'test'
+  ...
+# Subtest: actual independent compound stacks keep different location owners despite equal text and coaxial circles
+ok 100 - actual independent compound stacks keep different location owners despite equal text and coaxial circles
+  ---
+  duration_ms: 99.330459
+  type: 'test'
+  ...
+# Subtest: compound location owners retain instance paths and exact pattern-copy identity; invalid dependent cuts do not bind
+ok 101 - compound location owners retain instance paths and exact pattern-copy identity; invalid dependent cuts do not bind
+  ---
+  duration_ms: 0.158292
+  type: 'test'
+  ...
+# Subtest: assembly ownership resolves actual instance features rather than colliding base ids
+ok 102 - assembly ownership resolves actual instance features rather than colliding base ids
+  ---
+  duration_ms: 76.229917
+  type: 'test'
+  ...
+# Subtest: conformance r14-issues-auto-clean: the starter plate auto-dimensioned: no issue
+ok 103 - conformance r14-issues-auto-clean: the starter plate auto-dimensioned: no issue
+  ---
+  duration_ms: 94.120458
+  type: 'test'
+  ...
+# Subtest: conformance r14-issues-crowded-a4: the bolt-circle plate auto-dimensioned on A4 at 1:1: a callout over lines (moved clear) and the top view’s name pushed into the front view (left: it needs room, R14.3)
+ok 104 - conformance r14-issues-crowded-a4: the bolt-circle plate auto-dimensioned on A4 at 1:1: a callout over lines (moved clear) and the top view’s name pushed into the front view (left: it needs room, R14.3)
+  ---
+  duration_ms: 109.335833
+  type: 'test'
+  ...
+# Subtest: conformance r14-issues-scale-too-big: the plate at a fixed 10:1: the views do not fit; the fix goes back to an automatic scale
+ok 105 - conformance r14-issues-scale-too-big: the plate at a fixed 10:1: the views do not fit; the fix goes back to an automatic scale
+  ---
+  duration_ms: 139.53325
+  type: 'test'
+  ...
+# Subtest: conformance r14-issues-undimensioned: the starter plate with no dimensions: a hole without size or position, the overall sizes missing; Auto-dimension fixes them all
+ok 106 - conformance r14-issues-undimensioned: the starter plate with no dimensions: a hole without size or position, the overall sizes missing; Auto-dimension fixes them all
+  ---
+  duration_ms: 22.746667
+  type: 'test'
+  ...
+# Subtest: conformance r14-issues-wrong-on-sheet: a lost dimension, the width given again three times by hand (in the top view, two of them on one spot, and in the front view off the sheet), a re-matched reference: each found, each fixed
+ok 107 - conformance r14-issues-wrong-on-sheet: a lost dimension, the width given again three times by hand (in the top view, two of them on one spot, and in the front view off the sheet), a re-matched reference: each found, each fixed
+  ---
+  duration_ms: 22.447209
+  type: 'test'
+  ...
+# Subtest: the issue cases cover the drawings (UPDATE_R14_FIXTURES=1 writes them)
+ok 108 - the issue cases cover the drawings (UPDATE_R14_FIXTURES=1 writes them)
+  ---
+  duration_ms: 0.197917
+  type: 'test'
+  ...
+# Subtest: each issue on the wrong sheet, with its fix
+ok 109 - each issue on the wrong sheet, with its fix
+  ---
+  duration_ms: 66.446792
+  type: 'test'
+  ...
+# Subtest: text boxes and lines: overlap by the separating-axis test, a segment through a turned box
+ok 110 - text boxes and lines: overlap by the separating-axis test, a segment through a turned box
+  ---
+  duration_ms: 0.165458
+  type: 'test'
+  ...
+# Subtest: Auto-dimension leaves no issue on the R14.1 parts it does not report crowded
+ok 111 - Auto-dimension leaves no issue on the R14.1 parts it does not report crowded
+  ---
+  duration_ms: 1032.975708
+  type: 'test'
+  ...
+# Subtest: O174: the shaft's drawing without its bought key and bearing — none of their edges in its views; after Auto-dimension and Fix, no issue
+ok 112 - O174: the shaft's drawing without its bought key and bearing — none of their edges in its views; after Auto-dimension and Fix, no issue
+  ---
+  duration_ms: 6668.873666
+  type: 'test'
+  ...
+# Subtest: O174: the cover — its Ø22 bore and its gland concentric with its round outline, located by it; the bought O-ring not drawn; no issue
+ok 113 - O174: the cover — its Ø22 bore and its gland concentric with its round outline, located by it; the bought O-ring not drawn; no issue
+  ---
+  duration_ms: 1169.600208
+  type: 'test'
+  ...
+# Subtest: O175: the shaft and its bought key on a part sheet with balloons — the key drawn, both balloons on their items' edges
+ok 114 - O175: the shaft and its bought key on a part sheet with balloons — the key drawn, both balloons on their items' edges
+  ---
+  duration_ms: 1269.917541
+  type: 'test'
+  ...
+# Subtest: A9-4 production worker consumes scoped manufacturing sections from actual set result
+ok 115 - A9-4 production worker consumes scoped manufacturing sections from actual set result
+  ---
+  duration_ms: 2624.626792
+  type: 'test'
+  ...
+# Subtest: A9-4 v2 drawing.set and batch require user approval; actual proposal replay supplies symbols, source tables, sections and exports
+ok 116 - A9-4 v2 drawing.set and batch require user approval; actual proposal replay supplies symbols, source tables, sections and exports
+  ---
+  duration_ms: 3404.255958
+  type: 'test'
+  ...
+# Subtest: A9-4 strict nested/unknown inputs refuse atomically in dispatch, batch and proposal; no model or drawing bytes change
+ok 117 - A9-4 strict nested/unknown inputs refuse atomically in dispatch, batch and proposal; no model or drawing bytes change
+  ---
+  duration_ms: 2263.544792
+  type: 'test'
+  ...
+# Subtest: A9-4 section canonical storage, reference preservation, explicit assembly and omitted option retention
+ok 118 - A9-4 section canonical storage, reference preservation, explicit assembly and omitted option retention
+  ---
+  duration_ms: 1360.843292
+  type: 'test'
+  ...
+# Subtest: basic preserves the original drawing; extended reserves exactly 120 × 50 and draws six cells inside it
+ok 119 - basic preserves the original drawing; extended reserves exactly 120 × 50 and draws six cells inside it
+  ---
+  duration_ms: 146.237375
+  type: 'test'
+  ...
+# Subtest: long metadata fits each field and switching templates retains authored values
+ok 120 - long metadata fits each field and switching templates retains authored values
+  ---
+  duration_ms: 33.267583
+  type: 'test'
+  ...
+# Subtest: saved-file readers drop malformed fields and duplicate records without copying unknown keys
+ok 121 - saved-file readers drop malformed fields and duplicate records without copying unknown keys
+  ---
+  duration_ms: 0.18625
+  type: 'test'
+  ...
+# Subtest: invalid metadata is refused atomically by drawing.set; lists replace or clear and inputs are copied
+ok 122 - invalid metadata is refused atomically by drawing.set; lists replace or clear and inputs are copied
+  ---
+  duration_ms: 50.126334
+  type: 'test'
+  ...
+# Subtest: revision table rows retain input order and content, use existing room/issue checks, and reach SVG and DXF
+ok 123 - revision table rows retain input order and content, use existing room/issue checks, and reach SVG and DXF
+  ---
+  duration_ms: 63.530166
+  type: 'test'
+  ...
+# Subtest: the agent discovers metadata through describe and sets it through v2; invalid batch and proposal inputs are atomic
+ok 124 - the agent discovers metadata through describe and sets it through v2; invalid batch and proposal inputs are atomic
+  ---
+  duration_ms: 57.826958
+  type: 'test'
+  ...
+# Subtest: a parameter-bound blind-hole depth draws the same callout as its literal five-mm value
+ok 125 - a parameter-bound blind-hole depth draws the same callout as its literal five-mm value
+  ---
+  duration_ms: 162.049292
+  type: 'test'
+  ...
+# Subtest: a parameter-bound tap-drill radius retains the nominal callout and three-decimal depth rounding
+ok 126 - a parameter-bound tap-drill radius retains the nominal callout and three-decimal depth rounding
+  ---
+  duration_ms: 97.601542
+  type: 'test'
+  ...
+# Subtest: R7 local kernel boundary: 10 mm cube at density 2.7 gives 1000 mm³, 2.7 g and 45 g·mm²; tessellation uses positions
+ok 127 - R7 local kernel boundary: 10 mm cube at density 2.7 gives 1000 mm³, 2.7 g and 45 g·mm²; tessellation uses positions
+  ---
+  duration_ms: 24.720125
+  type: 'test'
+  ...
+# Subtest: R7 drawing compression table: unchanged lengths and k = 80000·2⁴/(8·20³·8) = 2.5 N/mm
+ok 128 - R7 drawing compression table: unchanged lengths and k = 80000·2⁴/(8·20³·8) = 2.5 N/mm
+  ---
+  duration_ms: 30.811791
+  type: 'test'
+  ...
+# Subtest: R7 drawing torsion table: Ed⁴/(64Dn)·π/180 is displayed in N·mm/degree; no per-radian twin
+ok 129 - R7 drawing torsion table: Ed⁴/(64Dn)·π/180 is displayed in N·mm/degree; no per-radian twin
+  ---
+  duration_ms: 169.278
+  type: 'test'
+  ...
+# Subtest: R7 section free-function and mesh consumers retain the starter plate cut at Z 4
+ok 130 - R7 section free-function and mesh consumers retain the starter plate cut at Z 4
+  ---
+  duration_ms: 151.325291
+  type: 'test'
+  ...
+# Subtest: production drawing worker isolates base and local part sheets while assembly retains placed part prefixes
+ok 131 - production drawing worker isolates base and local part sheets while assembly retains placed part prefixes
+  ---
+  duration_ms: 1150.982958
+  type: 'test'
+  ...
+# Subtest: A9-13 base frame projection and automatic dimensions exclude cover60/shaft20; common exports retain one scoped sheet
+ok 132 - A9-13 base frame projection and automatic dimensions exclude cover60/shaft20; common exports retain one scoped sheet
+  ---
+  duration_ms: 434.606667
+  type: 'test'
+  ...
+# Subtest: A9-13 selected part local projection and auto dimensions ignore placement and unrelated components
+ok 133 - A9-13 selected part local projection and auto dimensions ignore placement and unrelated components
+  ---
+  duration_ms: 237.593833
+  type: 'test'
+  ...
+# Subtest: A9-13 legacy assembly BOM and balloon identity are preserved; assembly Auto and fixes do not generate component dimensions
+ok 134 - A9-13 legacy assembly BOM and balloon identity are preserved; assembly Auto and fixes do not generate component dimensions
+  ---
+  duration_ms: 516.291542
+  type: 'test'
+  ...
+# Subtest: A9-13 v2 scope selection survives real file Save/Open; missing/invalid scopes refuse without fallback
+ok 135 - A9-13 v2 scope selection survives real file Save/Open; missing/invalid scopes refuse without fallback
+  ---
+  duration_ms: 118.1245
+  type: 'test'
+  ...
+# Subtest: A9-13 scope changes never delete or retarget manual dimensions; automatic-only sheets may regenerate
+ok 136 - A9-13 scope changes never delete or retarget manual dimensions; automatic-only sheets may regenerate
+  ---
+  duration_ms: 13.725667
+  type: 'test'
+  ...
+# Subtest: A9-13 base frame following a part sketch still reads its authored source before projection excludes instances
+ok 137 - A9-13 base frame following a part sketch still reads its authored source before projection excludes instances
+  ---
+  duration_ms: 36.114042
+  type: 'test'
+  ...
+# Subtest: A9-13 sections and manual references remain local across Save/Open and Auto re-edit
+ok 138 - A9-13 sections and manual references remain local across Save/Open and Auto re-edit
+  ---
+  duration_ms: 186.9775
+  type: 'test'
+  ...
+# Subtest: A9-13 assembly fix-all retains non-auto scale correction while skipping component dimension generation
+ok 139 - A9-13 assembly fix-all retains non-auto scale correction while skipping component dimension generation
+  ---
+  duration_ms: 382.977708
+  type: 'test'
+  ...
+# Subtest: the cut face alone: the bar at X 50 — its eight outline lines exactly, no far-side edge, no silhouette
+ok 140 - the cut face alone: the bar at X 50 — its eight outline lines exactly, no far-side edge, no silhouette
+  ---
+  duration_ms: 141.882416
+  type: 'test'
+  ...
+# Subtest: the plate’s cut face at Z 4: the rectangle and the Ø8 circle exact (arcs about (32, 16), radius 4, a whole turn)
+ok 141 - the plate’s cut face at Z 4: the rectangle and the Ø8 circle exact (arcs about (32, 16), radius 4, a whole turn)
+  ---
+  duration_ms: 35.522875
+  type: 'test'
+  ...
+# Subtest: removed at 2:1 at (300, 60) on A3: the circle centred there, radius 8; its box; its name with the scale; the cutting line at Z 4 in the front view; a dimension reads 64 drawn 128
+ok 142 - removed at 2:1 at (300, 60) on A3: the circle centred there, radius 8; its box; its name with the scale; the cutting line at Z 4 in the front view; a dimension reads 64 drawn 128
+  ---
+  duration_ms: 251.049042
+  type: 'test'
+  ...
+# Subtest: revolved: the bar’s X 50 section turned onto the front view, its faces at u 45–47 and 53–55 by z 0–20, a centreline along X 50
+ok 143 - revolved: the bar’s X 50 section turned onto the front view, its faces at u 45–47 and 53–55 by z 0–20, a centreline along X 50
+  ---
+  duration_ms: 69.261583
+  type: 'test'
+  ...
+# Subtest: saved, offered and refused forms; SECTION_NO_ROOM; turning refused (SECTION_KIND); the agent sets a removed section
+ok 144 - saved, offered and refused forms; SECTION_NO_ROOM; turning refused (SECTION_KIND); the agent sets a removed section
+  ---
+  duration_ms: 203.64525
+  type: 'test'
+  ...
+# Subtest: written: the removed section in the SVG; the DXF read back by ezdxf — its circle r 8 at (300, 60), its outline, two hatch loops, its name
+ok 145 - written: the removed section in the SVG; the DXF read back by ezdxf — its circle r 8 at (300, 60), its outline, two hatch loops, its name
+  ---
+  duration_ms: 1193.295375
+  type: 'test'
+  ...
+# Subtest: the oracle planes alone: Y 10 cuts the Ø6 hole, Y 30 the Ø8
+ok 146 - the oracle planes alone: Y 10 cuts the Ø6 hole, Y 30 the Ø8
+  ---
+  duration_ms: 202.007125
+  type: 'test'
+  ...
+# Subtest: an offset section stepped at X 30 from Y 10 to Y 30: both holes cut in one section, no line at the step
+ok 147 - an offset section stepped at X 30 from Y 10 to Y 30: both holes cut in one section, no line at the step
+  ---
+  duration_ms: 313.841333
+  type: 'test'
+  ...
+# Subtest: a half section of the plate at X 32, cut right: the cut face 36–64 only; the wall at X 36 visible, the one at 28 hidden; a centreline at 32
+ok 148 - a half section of the plate at X 32, cut right: the cut face 36–64 only; the wall at X 36 visible, the one at 28 hidden; a centreline at 32
+  ---
+  duration_ms: 103.669458
+  type: 'test'
+  ...
+# Subtest: saved and offered half and offset sections; refused: on an aligned section, both at once, steps out of order; turning the drawing refused with SECTION_KIND
+ok 149 - saved and offered half and offset sections; refused: on an aligned section, both at once, steps out of order; turning the drawing refused with SECTION_KIND
+  ---
+  duration_ms: 119.070875
+  type: 'test'
+  ...
+# Subtest: written: the offset section’s four cut faces as HATCH loops read back by ezdxf
+ok 150 - written: the offset section’s four cut faces as HATCH loops read back by ezdxf
+  ---
+  duration_ms: 1116.454875
+  type: 'test'
+  ...
+# Subtest: standalone frame: real file codec reaches sheet and SVG at view-mm place while attached geometry and PMI remain attached
+ok 151 - standalone frame: real file codec reaches sheet and SVG at view-mm place while attached geometry and PMI remain attached
+  ---
+  duration_ms: 132.1265
+  type: 'test'
+  ...
+# Subtest: standalone frame: hidden or missing views and missing datums are explicit diagnostics without retarget or deletion
+ok 152 - standalone frame: hidden or missing views and missing datums are explicit diagnostics without retarget or deletion
+  ---
+  duration_ms: 64.2565
+  type: 'test'
+  ...
+# Subtest: standalone frame: reorient follows explicit view axes and keeps missing parents; tolerance suggestions preserve standalone IDs
+ok 153 - standalone frame: reorient follows explicit view axes and keeps missing parents; tolerance suggestions preserve standalone IDs
+  ---
+  duration_ms: 58.727708
+  type: 'test'
+  ...
+# Subtest: standalone frames share the existing view contract and keep attachment exclusive
+ok 154 - standalone frames share the existing view contract and keep attachment exclusive
+  ---
+  duration_ms: 1.75025
+  type: 'test'
+  ...
+# Subtest: saved frames retain legacy attachment and copy standalone placement without dimension deduplication
+ok 155 - saved frames retain legacy attachment and copy standalone placement without dimension deduplication
+  ---
+  duration_ms: 0.682833
+  type: 'test'
+  ...
+# Subtest: drawing.set atomically preserves, replaces and clears mixed frames through the real file codec
+ok 156 - drawing.set atomically preserves, replaces and clears mixed frames through the real file codec
+  ---
+  duration_ms: 304.702542
+  type: 'test'
+  ...
+# Subtest: layout: widths from the texts, the box from the rows; any corner on the anchor; numbers to their digits, null a dash
+ok 157 - layout: widths from the texts, the box from the rows; any corner on the anchor; numbers to their digits, null a dash
+  ---
+  duration_ms: 1.917875
+  type: 'test'
+  ...
+# Subtest: the bend table on R12's L-bracket: BA = θ(R + K·T), BD = 2(R + T)tan(θ/2) − BA; a shop table's row deduction (4.2) and its row named
+ok 158 - the bend table on R12's L-bracket: BA = θ(R + K·T), BD = 2(R + T)tan(θ/2) − BA; a shop table's row deduction (4.2) and its row named
+  ---
+  duration_ms: 240.987625
+  type: 'test'
+  ...
+# Subtest: on the sheet: auto-placed above the title block and clean; over a view, a note, the title block: each issue and its fix; a source's refusal TABLE_SOURCE, drawn with its reason
+ok 159 - on the sheet: auto-placed above the title block and clean; over a view, a note, the title block: each issue and its fix; a source's refusal TABLE_SOURCE, drawn with its reason
+  ---
+  duration_ms: 790.753375
+  type: 'test'
+  ...
+# Subtest: no room for a table: A3 at the same scale, else a smaller standard scale — each built again and clear; nothing fits, said so
+ok 160 - no room for a table: A3 at the same scale, else a smaller standard scale — each built again and clear; nothing fits, said so
+  ---
+  duration_ms: 525.139708
+  type: 'test'
+  ...
+# Subtest: written: the table in the SVG, the PDF and the DXF (TEXT and LINE entities, through the R11b writer); the DXF frozen and read by ezdxf (audit clean)
+ok 161 - written: the table in the SVG, the PDF and the DXF (TEXT and LINE entities, through the R11b writer); the DXF frozen and read by ezdxf (audit clean)
+  ---
+  duration_ms: 97.004625
+  type: 'test'
+  ...
+# Subtest: the standard views of the plate: outline visible, the hole hidden in the front and right views, round from the top
+ok 162 - the standard views of the plate: outline visible, the hole hidden in the front and right views, round from the top
+  ---
+  duration_ms: 84.226166
+  type: 'test'
+  ...
+# Subtest: third angle puts the top view above the front and the right view to its right, in projection; first angle mirrors it
+ok 163 - third angle puts the top view above the front and the right view to its right, in projection; first angle mirrors it
+  ---
+  duration_ms: 28.078375
+  type: 'test'
+  ...
+# Subtest: dimensions read the model in mm and follow the part when it changes
+ok 164 - dimensions read the model in mm and follow the part when it changes
+  ---
+  duration_ms: 44.0305
+  type: 'test'
+  ...
+# Subtest: a linear dimension orients by where it is placed
+ok 165 - a linear dimension orients by where it is placed
+  ---
+  duration_ms: 0.114541
+  type: 'test'
+  ...
+# Subtest: the SVG sheet: true size in mm, exact arcs, dashed hidden lines, the title block and the dimensions
+ok 166 - the SVG sheet: true size in mm, exact arcs, dashed hidden lines, the title block and the dimensions
+  ---
+  duration_ms: 134.004083
+  type: 'test'
+  ...
+# Subtest: an SVG arc of a projected circle: principal axes from conjugate semi-diameters
+ok 167 - an SVG arc of a projected circle: principal axes from conjugate semi-diameters
+  ---
+  duration_ms: 0.186125
+  type: 'test'
+  ...
+# Subtest: the PDF sheet: one vector page at true size, Helvetica text with Ø, a valid cross-reference table
+ok 168 - the PDF sheet: one vector page at true size, Helvetica text with Ø, a valid cross-reference table
+  ---
+  duration_ms: 36.514959
+  type: 'test'
+  ...
+# Subtest: drawing settings read back from a file keep what is valid
+ok 169 - drawing settings read back from a file keep what is valid
+  ---
+  duration_ms: 0.579667
+  type: 'test'
+  ...
+# Subtest: centre marks: a cross on the hole seen round, a centreline along it seen from the side, none on a fillet corner
+ok 170 - centre marks: a cross on the hole seen round, a centreline along it seen from the side, none on a fillet corner
+  ---
+  duration_ms: 120.177916
+  type: 'test'
+  ...
+# Subtest: placed instances are drawn too, their edges named under the instance id
+ok 171 - placed instances are drawn too, their edges named under the instance id
+  ---
+  duration_ms: 44.966
+  type: 'test'
+  ...
+# Subtest: an angle between two lines reads the sector it is placed in
+ok 172 - an angle between two lines reads the sector it is placed in
+  ---
+  duration_ms: 0.330959
+  type: 'test'
+  ...
+# Subtest: an angle dimension on a triangular prism reads its corner from the model and draws an arc
+ok 173 - an angle dimension on a triangular prism reads its corner from the model and draws an arc
+  ---
+  duration_ms: 2.937541
+  type: 'test'
+  ...
+# Subtest: tangent edges show as thin lines when asked for, and the setting reads back
+ok 174 - tangent edges show as thin lines when asked for, and the setting reads back
+  ---
+  duration_ms: 24.226541
+  type: 'test'
+  ...
+# Subtest: section A–A: the plate cut through its hole, the cut faces hatched, the cutting plane in the top view
+ok 175 - section A–A: the plate cut through its hole, the cut faces hatched, the cutting plane in the top view
+  ---
+  duration_ms: 55.493833
+  type: 'test'
+  ...
+# Subtest: hatching stays inside a ring and out of its hole
+ok 176 - hatching stays inside a ring and out of its hole
+  ---
+  duration_ms: 0.264125
+  type: 'test'
+  ...
+# Subtest: an empty part has nothing to draw, and that is not an error
+ok 177 - an empty part has nothing to draw, and that is not an error
+  ---
+  duration_ms: 0.053958
+  type: 'test'
+  ...
+# Subtest: title block fields stay in their cells: a long title shrinks, then ends in an ellipsis
+ok 178 - title block fields stay in their cells: a long title shrinks, then ends in an ellipsis
+  ---
+  duration_ms: 65.427333
+  type: 'test'
+  ...
+# Subtest: tolerances: ± and fits follow the value, deviations stack after it; they print in SVG and PDF
+ok 179 - tolerances: ± and fits follow the value, deviations stack after it; they print in SVG and PDF
+  ---
+  duration_ms: 26.056542
+  type: 'test'
+  ...
+# Subtest: notes: lines of text on the sheet, a leader that follows its view, kept in the file
+ok 180 - notes: lines of text on the sheet, a leader that follows its view, kept in the file
+  ---
+  duration_ms: 32.34975
+  type: 'test'
+  ...
+# Subtest: drawing revision: the next one after A, Z, 01 and none; the REV cell shows it
+ok 181 - drawing revision: the next one after A, Z, 01 and none; the REV cell shows it
+  ---
+  duration_ms: 0.280959
+  type: 'test'
+  ...
+# Subtest: cosmetic threads on the drawing (ISO 6410): a tapped hole’s crest hidden along it and a ¾ circle seen end on; a bolt’s root thin
+ok 182 - cosmetic threads on the drawing (ISO 6410): a tapped hole’s crest hidden along it and a ¾ circle seen end on; a bolt’s root thin
+  ---
+  duration_ms: 45.349541
+  type: 'test'
+  ...
+# Subtest: section A–A of a mesh body past the explode limit: cut on its own triangles (F1, D50), its cut faces two rings to hatch
+ok 183 - section A–A of a mesh body past the explode limit: cut on its own triangles (F1, D50), its cut faces two rings to hatch
+  ---
+  duration_ms: 432.87025
+  type: 'test'
+  ...
+# Subtest: D155 callouts: a face's class alone Ø12 H7 (+0.018/0) (est.); a declared pair Ø12 H7/g6 (+0.018/0, -0.006/-0.017) (est.); the deviations as drawings write them; a face with no class, none
+ok 184 - D155 callouts: a face's class alone Ø12 H7 (+0.018/0) (est.); a declared pair Ø12 H7/g6 (+0.018/0, -0.006/-0.017) (est.); the deviations as drawings write them; a face with no class, none
+  ---
+  duration_ms: 2.566083
+  type: 'test'
+  ...
+# Subtest: D155 on the sheet: the bore's auto diameter reads its fit; a class with no row for the size (H8, none loaded) — its class alone and FIT_ROW_MISSING in the issue list, saying what to load
+ok 185 - D155 on the sheet: the bore's auto diameter reads its fit; a class with no row for the size (H8, none loaded) — its class alone and FIT_ROW_MISSING in the issue list, saying what to load
+  ---
+  duration_ms: 373.380916
+  type: 'test'
+  ...
+# Subtest: D155 fit_clearance: the faces — clearance, 6 to 35 µm, both rows estimates, clear at MMC and LMC; the classes at Ø12 — the same limits; at Ø30 — FIT_TABLE_MISS; the pin 0.01 off the axis — contradicted at MMC
+ok 186 - D155 fit_clearance: the faces — clearance, 6 to 35 µm, both rows estimates, clear at MMC and LMC; the classes at Ø12 — the same limits; at Ø30 — FIT_TABLE_MISS; the pin 0.01 off the axis — contradicted at MMC
+  ---
+  duration_ms: 53.768625
+  type: 'test'
+  ...
+# Subtest: R7 fit units: ezdxf reads 12 mm and signed millimetre deviations at sheet scales 1 and 2
+ok 187 - R7 fit units: ezdxf reads 12 mm and signed millimetre deviations at sheet scales 1 and 2
+  ---
+  duration_ms: 1268.749375
+  type: 'test'
+  ...
+# Subtest: sections retain independent dir, half, steps and removed snapshots after caller mutation
+ok 188 - sections retain independent dir, half, steps and removed snapshots after caller mutation
+  ---
+  duration_ms: 1.453167
+  type: 'test'
+  ...
+# Subtest: half, step and removed unknown fields follow the offered schema and refuse atomically
+ok 189 - half, step and removed unknown fields follow the offered schema and refuse atomically
+  ---
+  duration_ms: 1.465208
+  type: 'test'
+  ...
+# Subtest: dense section options remain accepted while sparse steps and supplied coordinates refuse atomically
+ok 190 - dense section options remain accepted while sparse steps and supplied coordinates refuse atomically
+  ---
+  duration_ms: 0.806542
+  type: 'test'
+  ...
+# Subtest: readDatums snapshots signature objects and p/d arrays without changing saved identity
+ok 191 - readDatums snapshots signature objects and p/d arrays without changing saved identity
+  ---
+  duration_ms: 0.182125
+  type: 'test'
+  ...
+# Subtest: saved legacy edge ids, names, was, metadata and duplicate rows keep their reader acceptance
+ok 192 - saved legacy edge ids, names, was, metadata and duplicate rows keep their reader acceptance
+  ---
+  duration_ms: 0.180166
+  type: 'test'
+  ...
+# Subtest: strict authored datum lists and tuples reject sparse slots without applying any change
+ok 193 - strict authored datum lists and tuples reject sparse slots without applying any change
+  ---
+  duration_ms: 1.449
+  type: 'test'
+  ...
+# Subtest: authored edge/face exclusion and nested unknown rules preserve the established schema
+ok 194 - authored edge/face exclusion and nested unknown rules preserve the established schema
+  ---
+  duration_ms: 0.5085
+  type: 'test'
+  ...
+# Subtest: omitted datum and section options keep data; explicit empty lists clear only their stored fields
+ok 195 - omitted datum and section options keep data; explicit empty lists clear only their stored fields
+  ---
+  duration_ms: 0.13775
+  type: 'test'
+  ...
+# Subtest: saved missing face identity remains explicit as DATUM_LOST with the existing removal fix
+ok 196 - saved missing face identity remains explicit as DATUM_LOST with the existing removal fix
+  ---
+  duration_ms: 3.981542
+  type: 'test'
+  ...
+# Subtest: datum option copying preserves existing balloon warning numbers and selected views
+ok 197 - datum option copying preserves existing balloon warning numbers and selected views
+  ---
+  duration_ms: 0.556583
+  type: 'test'
+  ...
+# Subtest: P2 2.11, scale 1, horizontal: real text moves clear of the iso name
+ok 198 - P2 2.11, scale 1, horizontal: real text moves clear of the iso name
+  ---
+  duration_ms: 7.032875
+  type: 'test'
+  ...
+# Subtest: P2 2.11, scale 1, vertical: real text moves clear of the iso name
+ok 199 - P2 2.11, scale 1, vertical: real text moves clear of the iso name
+  ---
+  duration_ms: 2.898708
+  type: 'test'
+  ...
+# Subtest: P2 2.11, scale 0.5, horizontal: real text moves clear of the iso name
+ok 200 - P2 2.11, scale 0.5, horizontal: real text moves clear of the iso name
+  ---
+  duration_ms: 1.775917
+  type: 'test'
+  ...
+# Subtest: P2 2.11, scale 0.5, vertical: real text moves clear of the iso name
+ok 201 - P2 2.11, scale 0.5, vertical: real text moves clear of the iso name
+  ---
+  duration_ms: 3.449292
+  type: 'test'
+  ...
+# Subtest: P2 2.16, scale 1, horizontal: real text moves clear of the iso name
+ok 202 - P2 2.16, scale 1, horizontal: real text moves clear of the iso name
+  ---
+  duration_ms: 4.651167
+  type: 'test'
+  ...
+# Subtest: P2 2.16, scale 1, vertical: real text moves clear of the iso name
+ok 203 - P2 2.16, scale 1, vertical: real text moves clear of the iso name
+  ---
+  duration_ms: 4.70525
+  type: 'test'
+  ...
+# Subtest: P2 2.16, scale 0.5, horizontal: real text moves clear of the iso name
+ok 204 - P2 2.16, scale 0.5, horizontal: real text moves clear of the iso name
+  ---
+  duration_ms: 0.688875
+  type: 'test'
+  ...
+# Subtest: P2 2.16, scale 0.5, vertical: real text moves clear of the iso name
+ok 205 - P2 2.16, scale 0.5, vertical: real text moves clear of the iso name
+  ---
+  duration_ms: 2.214417
+  type: 'test'
+  ...
+# Subtest: P2 0.17, scale 1, horizontal: real text moves clear of the iso name
+ok 206 - P2 0.17, scale 1, horizontal: real text moves clear of the iso name
+  ---
+  duration_ms: 7.131167
+  type: 'test'
+  ...
+# Subtest: P2 0.17, scale 1, vertical: real text moves clear of the iso name
+ok 207 - P2 0.17, scale 1, vertical: real text moves clear of the iso name
+  ---
+  duration_ms: 3.403291
+  type: 'test'
+  ...
+# Subtest: P2 0.17, scale 0.5, horizontal: real text moves clear of the iso name
+ok 208 - P2 0.17, scale 0.5, horizontal: real text moves clear of the iso name
+  ---
+  duration_ms: 1.061791
+  type: 'test'
+  ...
+# Subtest: P2 0.17, scale 0.5, vertical: real text moves clear of the iso name
+ok 209 - P2 0.17, scale 0.5, vertical: real text moves clear of the iso name
+  ---
+  duration_ms: 0.582333
+  type: 'test'
+  ...
+# Subtest: a body line through the initial text requires a real clear candidate
+ok 210 - a body line through the initial text requires a real clear candidate
+  ---
+  duration_ms: 1.342333
+  type: 'test'
+  ...
+# Subtest: insufficient space preserves the required dimension and its unresolved collision
+ok 211 - insufficient space preserves the required dimension and its unresolved collision
+  ---
+  duration_ms: 32.933333
+  type: 'test'
+  ...
+# Subtest: a collision revealed by sheet rebuild rejects the candidate
+ok 212 - a collision revealed by sheet rebuild rejects the candidate
+  ---
+  duration_ms: 1.205875
+  type: 'test'
+  ...
+# Subtest: a manual dimension is not moved or removed
+ok 213 - a manual dimension is not moved or removed
+  ---
+  duration_ms: 0.1785
+  type: 'test'
+  ...
+# Subtest: radius: a real leader candidate clears the fixed text
+ok 214 - radius: a real leader candidate clears the fixed text
+  ---
+  duration_ms: 1.8735
+  type: 'test'
+  ...
+# Subtest: diameter: a real leader candidate clears the fixed text
+ok 215 - diameter: a real leader candidate clears the fixed text
+  ---
+  duration_ms: 0.867791
+  type: 'test'
+  ...
+# Subtest: public Move rejects a new extension through an unchanged dimension six
+ok 216 - public Move rejects a new extension through an unchanged dimension six
+  ---
+  duration_ms: 1.010833
+  type: 'test'
+  ...
+# Subtest: public Move finds a 2 mm normal gap missed by all six 8 mm rows
+ok 217 - public Move finds a 2 mm normal gap missed by all six 8 mm rows
+  ---
+  duration_ms: 0.798666
+  type: 'test'
+  ...
+# Subtest: public Move searches beyond six rows when the nearer normal positions are blocked
+ok 218 - public Move searches beyond six rows when the nearer normal positions are blocked
+  ---
+  duration_ms: 0.55775
+  type: 'test'
+  ...
+# Subtest: an authored history containing one empty slot is refused instead of clearing stored history
+ok 219 - an authored history containing one empty slot is refused instead of clearing stored history
+  ---
+  duration_ms: 1.746834
+  type: 'test'
+  ...
+# Subtest: an authored history with a hole at index 0 refuses the whole update
+ok 220 - an authored history with a hole at index 0 refuses the whole update
+  ---
+  duration_ms: 0.248666
+  type: 'test'
+  ...
+# Subtest: an authored history with a hole at index 1 refuses the whole update
+ok 221 - an authored history with a hole at index 1 refuses the whole update
+  ---
+  duration_ms: 1.183125
+  type: 'test'
+  ...
+# Subtest: an authored history with a hole at index 2 refuses the whole update
+ok 222 - an authored history with a hole at index 2 refuses the whole update
+  ---
+  duration_ms: 0.18725
+  type: 'test'
+  ...
+# Subtest: valid dense history remains copied, omission keeps it and an empty list clears only history
+ok 223 - valid dense history remains copied, omission keeps it and an empty list clears only history
+  ---
+  duration_ms: 0.401625
+  type: 'test'
+  ...
+# Subtest: the saved reader still filters sparse, malformed and duplicate rows without adding authored strictness
+ok 224 - the saved reader still filters sparse, malformed and duplicate rows without adding authored strictness
+  ---
+  duration_ms: 0.109458
+  type: 'test'
+  ...
+# Subtest: existing dates, duplicate labels, unknown fields and record-count limits retain their input rules
+ok 225 - existing dates, duplicate labels, unknown fields and record-count limits retain their input rules
+  ---
+  duration_ms: 0.211167
+  type: 'test'
+  ...
+# Subtest: same part scope snapshots the caller target while retaining manual references unchanged
+ok 226 - same part scope snapshots the caller target while retaining manual references unchanged
+  ---
+  duration_ms: 1.254
+  type: 'test'
+  ...
+# Subtest: same scope snapshots even when the requested object is already stored in the input settings
+ok 227 - same scope snapshots even when the requested object is already stored in the input settings
+  ---
+  duration_ms: 0.148542
+  type: 'test'
+  ...
+# Subtest: scope snapshots retain supported inherited kind and part values without changing validation
+ok 228 - scope snapshots retain supported inherited kind and part values without changing validation
+  ---
+  duration_ms: 0.154417
+  type: 'test'
+  ...
+# Subtest: same assembly scope snapshots the kind without weakening manual-reference protection
+ok 229 - same assembly scope snapshots the kind without weakening manual-reference protection
+  ---
+  duration_ms: 0.087042
+  type: 'test'
+  ...
+# Subtest: a changed part target snapshots its id and still clears automatic dimensions only in the result
+ok 230 - a changed part target snapshots its id and still clears automatic dimensions only in the result
+  ---
+  duration_ms: 0.137625
+  type: 'test'
+  ...
+# Subtest: a changed assembly scope snapshots its kind and leaves caller objects mutable
+ok 231 - a changed assembly scope snapshots its kind and leaves caller objects mutable
+  ---
+  duration_ms: 0.055458
+  type: 'test'
+  ...
+# Subtest: each existing manual-reference category still refuses a different scope atomically
+ok 232 - each existing manual-reference category still refuses a different scope atomically
+  ---
+  duration_ms: 0.200125
+  type: 'test'
+  ...
+# Subtest: implicit part and legacy BOM assembly meanings keep their existing same-scope behavior
+ok 233 - implicit part and legacy BOM assembly meanings keep their existing same-scope behavior
+  ---
+  duration_ms: 0.116083
+  type: 'test'
+  ...
+# Subtest: invalid scope values retain the existing typed refusal and never change settings
+ok 234 - invalid scope values retain the existing typed refusal and never change settings
+  ---
+  duration_ms: 0.577959
+  type: 'test'
+  ...
+# Subtest: finite saved table cells retain finite text when default decimal scaling would overflow
+ok 235 - finite saved table cells retain finite text when default decimal scaling would overflow
+  ---
+  duration_ms: 1.109458
+  type: 'test'
+  ...
+# Subtest: a table with large finite values keeps finite sheet geometry and the actual cell text
+ok 236 - a table with large finite values keeps finite sheet geometry and the actual cell text
+  ---
+  duration_ms: 0.541167
+  type: 'test'
+  ...
+# Subtest: ordinary rounding, explicit digits, strings, null and negative zero keep their existing display
+ok 237 - ordinary rounding, explicit digits, strings, null and negative zero keep their existing display
+  ---
+  duration_ms: 0.082834
+  type: 'test'
+  ...
+# Subtest: saved NaN and infinities remain invalid rather than becoming accepted finite values
+ok 238 - saved NaN and infinities remain invalid rather than becoming accepted finite values
+  ---
+  duration_ms: 0.259542
+  type: 'test'
+  ...
+# Subtest: table layout preserves caller input and snapshots text, units, values and anchor coordinates
+ok 239 - table layout preserves caller input and snapshots text, units, values and anchor coordinates
+  ---
+  duration_ms: 0.350333
+  type: 'test'
+  ...
+# Subtest: X2: with B–B through the keyseat, Auto-dimension puts b 6 and d − t1 16.5 on the section, every end visible (d + t2 22.8 there too: from the top its bore end is under the Ø25 step); DIM_ON_HIDDEN gone; drawn there, clean; in the SVG and DXF
+ok 240 - X2: with B–B through the keyseat, Auto-dimension puts b 6 and d − t1 16.5 on the section, every end visible (d + t2 22.8 there too: from the top its bore end is under the Ø25 step); DIM_ON_HIDDEN gone; drawn there, clean; in the SVG and DXF
+  ---
+  duration_ms: 1977.661
+  type: 'test'
+  ...
+# Subtest: X2: a dimension on a section the sheet lacks is lost (DIMENSION_LOST, named by its section)
+ok 241 - X2: a dimension on a section the sheet lacks is lost (DIMENSION_LOST, named by its section)
+  ---
+  duration_ms: 643.761084
+  type: 'test'
+  ...
+# Subtest: queue 3: a section's dimensions carried through a reorient — B–B (square to Z) turned to a front from +X and from +Y: its dimensions stay on it and read 6 and 16.5 again; a section across the new front still refused
+ok 242 - queue 3: a section's dimensions carried through a reorient — B–B (square to Z) turned to a front from +X and from +Y: its dimensions stay on it and read 6 and 16.5 again; a section across the new front still refused
+  ---
+  duration_ms: 3521.964667
+  type: 'test'
+  ...
+# Subtest: X2: the flow's shaft-and-hub model file is this scene
+ok 243 - X2: the flow's shaft-and-hub model file is this scene
+  ---
+  duration_ms: 18.71025
+  type: 'test'
+  ...
+# Subtest: X3: DIM_ON_HIDDEN on d − t1 carries add-section B–B square to the top view at the keyseat's middle (Z 15); applied, Auto-dimension moves b and d − t1 onto it and the warnings are gone; with the section there, the fix is Auto-dimension
+ok 244 - X3: DIM_ON_HIDDEN on d − t1 carries add-section B–B square to the top view at the keyseat's middle (Z 15); applied, Auto-dimension moves b and d − t1 onto it and the warnings are gone; with the section there, the fix is Auto-dimension
+  ---
+  duration_ms: 874.718333
+  type: 'test'
+  ...
+# Subtest: O178: a keyway on a tilted bore — an aligned section square to its axis is the fix; cut, hatched and seen along it; its cutting plane in the right view
+ok 245 - O178: a keyway on a tilted bore — an aligned section square to its axis is the fix; cut, hatched and seen along it; its cutting plane in the right view
+  ---
+  duration_ms: 196.2735
+  type: 'test'
+  ...
+# Subtest: a section through the shaft, its key and its hub: each body hatched at its own angle (45°, 135°, 30° by body), the same in the SVG, PDF and DXF; one body alone at 45° as before
+ok 246 - a section through the shaft, its key and its hub: each body hatched at its own angle (45°, 135°, 30° by body), the same in the SVG, PDF and DXF; one body alone at 45° as before
+  ---
+  duration_ms: 2084.628875
+  type: 'test'
+  ...
+# Subtest: item 4: an unrelated body before the shaft, suppressed — the outputs shift, B–B's dimensions read 6 and 16.5 as before, none lost or re-matched
+ok 247 - item 4: an unrelated body before the shaft, suppressed — the outputs shift, B–B's dimensions read 6 and 16.5 as before, none lost or re-matched
+  ---
+  duration_ms: 1215.735625
+  type: 'test'
+  ...
+# Subtest: O171: the welded table frame's drawing — after Auto-dimension and one Fix, no error; no dimension to a member's bore; the overall 400, 300 and 320 given
+ok 248 - O171: the welded table frame's drawing — after Auto-dimension and one Fix, no error; no dimension to a member's bore; the overall 400, 300 and 320 given
+  ---
+  duration_ms: 2406.868375
+  type: 'test'
+  ...
+1..248
+# tests 248
+# suites 0
+# pass 248
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 14353.725791

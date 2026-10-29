@@ -16425,3 +16425,35 @@ does not freeze the full dependency graph. Evidence: notes/worker-wire-lifetime-
 qualification.json and manifest.json. No StrictMode, natural crash, OOM, heap/performance, full
 kernel/GPU/Viewer/browser or remote CI acceptance. Wider A05/A06 paths need their own evidence.
 No PR or release.
+
+
+## D331 — Preserve independent drawing location dependencies (2026-10-29)
+
+Fix existing DA-DUP-1/#2243 from2084eeb99. A shared stock feature or equal coordinate/value is not
+an authored locating relationship. Duplicate buckets retain independent groups; manual suppression
+and coverage compare actual targets and both endpoints. Auto generation retains each independent
+hole position. Explicit pattern/PCD/count relations, counted direction, opposite rims and structurally
+associated compound holes retain their contracts. Compound identity comes from actual parent/center/
+radius/depth association, with doc-aware instance resolution and conservative unknown-prefix refusal,
+never formatted CBORE text. Model/API and actual Studio issue/fix/auto paths share this callback.
+No tolerance, schema, runtime dependency or kernel algorithm change. Hole-row expected positions3→4,
+grid4→8 (total8→12); authored fixture inputs unchanged. Four helper exposures and three optional owner
+contracts are intentionally reviewed under wildcard exports; API policy remains six-rule SCOPED_PASS.
+
+Sol High implementation and independent review resolve two additional synthetic findings. Final
+related Model drawing248, focused63 (overlap), Studio chat/section28, types/build/lint/generated pass.
+Valid original-source baseline2PASS/6FAIL, earlier invalid auto:false fixture/type errors, review red
+8PASS/2FAIL and first candidate runs remain. Empty selection accidentally discovered365 raw entries
+(2PASS/363 import failures), an invalid harness expansion; runner now exits before build/discovery.
+Its final positive13 and expected negative exit1 are separate overlapping controls.
+
+Actual serial WebGPU new driver passes two profiles including public Open/Fix all/Save/fresh Open,
+missing d9/Undo/Redo/Auto and independent grid. Existing selected3 and starter pass across retained
+runs; first stale History timeouts and first retake ambiguous panel timeouts remain. Final failed-only
+retake changes setup observations, preserves drawing assertions and passes2 plus starter. Four runs
+watch64 listed inputs (256 matching observations), with planned driver/guard changes between runs;
+not full served graph or product checksum tests. Grid reserve top-below remains; no actual grid
+placement issue observed, but snapshots may retain transient toasts. No whole-screen/manufacturing,
+full assembly matrix, full suites, remoteCI or performance acceptance. Runtimeccbdf285e; driver/guard
+followup5907c3931. Evidence: notes/drawing-location-ownership-2026-10-29/qualification.json.
+Normal feature push authorized; no PR/release. Next direct D332 selection visibility, then08→09.

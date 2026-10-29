@@ -1,0 +1,92 @@
+{
+  "baseHEAD": "2084eeb99c39b9c27518f401f89c789f03dd94f1",
+  "files": {
+    "packages/barocss-cad-model/src/drawing/auto.ts": "35ae9a930bdb76097cd55307608f47502410ea86fa1930ce73292c146bb6692f",
+    "packages/barocss-cad-model/src/drawing/issues.ts": "ef2f099c5af84035f3eb60a0749bd84aa8facad99bbf828aed15b9a06ea4cd6d",
+    "packages/barocss-cad-model/src/drawing/measurement.ts": "37f0e942ebc79d0108aa207b3ef01f35dbe0390e6157943d1c24feab825db98b",
+    "packages/barocss-cad-model/test/drawing-independent-locations.test.ts": "5cf75df320cf91109a19b4e715649ad168b99bb0a87b590caae89c88a9f0c68b",
+    "packages/barocss-cad/conformance/r14/hole-row/case.json": "efc839241610d181470c8c20a85f5e29dc75ce1abe520b841a94f17a2096077e",
+    "packages/barocss-cad/conformance/r14/pcd-square-grid/case.json": "c18050fd1441a88402eacd153a1965e157b9b466f00a79c4cf299d5ddc204db6"
+  },
+  "checks": {
+    "validOriginalSourceBaseline": {
+      "pass": 2,
+      "fail": 6,
+      "exit": 1
+    },
+    "focused": {
+      "pass": 41,
+      "fail": 0,
+      "skip": 0,
+      "exit": 0
+    },
+    "types": {
+      "exit": 0
+    },
+    "lint": {
+      "exit": 0
+    },
+    "gateRelease": {
+      "exit": 0
+    }
+  },
+  "fixtureChanges": [
+    {
+      "fixture": "hole-row",
+      "authoredInputUnchanged": true,
+      "oldDimensionCount": 9,
+      "newDimensionCount": 10,
+      "oldAdded": {
+        "overall": 3,
+        "levels": 0,
+        "holePositions": 3,
+        "pitches": 1,
+        "callouts": 2
+      },
+      "newAdded": {
+        "overall": 3,
+        "levels": 0,
+        "holePositions": 4,
+        "pitches": 1,
+        "callouts": 2
+      },
+      "oldCrowded": [],
+      "newCrowded": []
+    },
+    {
+      "fixture": "pcd-square-grid",
+      "authoredInputUnchanged": true,
+      "oldDimensionCount": 8,
+      "newDimensionCount": 12,
+      "oldAdded": {
+        "overall": 3,
+        "levels": 0,
+        "holePositions": 4,
+        "pitches": 0,
+        "callouts": 1
+      },
+      "newAdded": {
+        "overall": 3,
+        "levels": 0,
+        "holePositions": 8,
+        "pitches": 0,
+        "callouts": 1
+      },
+      "oldCrowded": [],
+      "newCrowded": [
+        "top below"
+      ]
+    }
+  ],
+  "publicWildcardHelperExports": [
+    "samePointDependency(a: DimPoint, av: BrepProjection, b: DimPoint, bv: BrepProjection, axis: string, callout?: Callout, countedPattern = false): boolean",
+    "sameLinearDependency(a: Linear, av: BrepProjection, b: Linear, bv: BrepProjection, axis: string, callout?: Callout): boolean"
+  ],
+  "limits": [
+    "No Studio/browser run by this agent",
+    "No valid full Model/kernel suite; initial empty-selection setup accidentally triggered raw node:test autodiscovery (365 entries,2PASS/363 import-resolution FAIL)",
+    "No commit or push",
+    "No independent numerical/manufacturing acceptance",
+    "Initial invalid auto:false test input and setup attempts retained separately; valid-source baseline is different corrected test bytes"
+  ]
+}

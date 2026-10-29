@@ -2,8 +2,12 @@
 
 ## Current execution index — 2026-10-29
 
-The owner's order for `local/cad-dev` in this worktree is **07 → 08 → 09**, one qualified
-feature at a time. D313's bounded cylindrical wrap is locally complete at `f29df9217`.
+The delivered07 profiles are complete at their recorded limits; do not restart them. The next
+direct owner request is **D332: clearer Studio point/edge/face/body selection**, followed by the
+next regular08 feature and then09. Optional general07 extensions remain separately scoped.
+Confirmed urgent correctness defects still take precedence. D331 closes the selected DA-DUP-1
+drawing dependency defect; see the qualification entry below. D313's bounded cylindrical wrap
+is complete at `f29df9217`.
 D314 runtime`bb92da70b` qualifies the measured thread-quadrature slice. D315 runtime`dbfe93216` repairs the17/64-control polynomial-guide Surface/temporary Curve mismatch.
 D316 adds the certified raw explicit-frame polynomial-guide path while preserving the existing
 non-XY height route. See [qualification](notes/framed-polynomial-guide-2026-10-29/qualification.json).
@@ -26,7 +30,7 @@ actual existing CG6 project selected1+separate starter, generated/API/docs pass.
 [Evidence](notes/canonical-version-snapshot-2026-10-29/qualification.json). D324 qualifies selected
 A07/#2237 readback ownership under06/R2: GPU emit/types, normal CPU357 incl new15, native selected1/6groups,
 lint/generated/API/docs pass. [Evidence](notes/gpu-pick-instance-ownership-2026-10-29/qualification.json).
-D325 qualifies A08/#2239 closed SDK display/CPU/GPU clipping under05/V1/V2 with native selected1/12SDK observations and exact-far GPU ownership. [Evidence](notes/viewer-clipping-contract-2026-10-29/qualification.json). D326 now qualifies selected project/serialized-document Open ownership under12/O9: Studio423, focused29 and actual5 pass. [Evidence](notes/project-open-ownership-2026-10-29/qualification.json). D327/D328 complete the selected App decomposition. D329 qualifies the selected nonserialized import/stage A05 ownership. D330 qualifies normal-root Worker retirement, explicit Retry and WireSender disposal under12/O9 A06; see [evidence](notes/worker-wire-lifetime-2026-10-29/qualification.json). Wider ownership matrices remain open. Next: reproduce the existing confirmed DA-DUP-1/#2243 drawing duplicate/location diagnostic defect on current source before optional07 extensions. Preserve other owners and HOLD boundaries.
+D325 qualifies A08/#2239 closed SDK display/CPU/GPU clipping under05/V1/V2 with native selected1/12SDK observations and exact-far GPU ownership. [Evidence](notes/viewer-clipping-contract-2026-10-29/qualification.json). D326 now qualifies selected project/serialized-document Open ownership under12/O9: Studio423, focused29 and actual5 pass. [Evidence](notes/project-open-ownership-2026-10-29/qualification.json). D327/D328 complete the selected App decomposition. D329 qualifies the selected nonserialized import/stage A05 ownership. D330 qualifies normal-root Worker retirement, explicit Retry and WireSender disposal under12/O9 A06; see [evidence](notes/worker-wire-lifetime-2026-10-29/qualification.json). Wider ownership matrices remain open. D331 qualifies the selected DA-DUP-1/#2243 drawing duplicate/location repair. Next direct owner request: D332 selection visibility, then regular08→09. Preserve other owners and HOLD boundaries.
 The research reconciliation below attaches
 existing GitHub investigations to these numbered scopes; it creates no second implementation queue.
 
@@ -73,7 +77,7 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 | 번호 | 작업·기존 ID | 남은 범위 | 담당·선행 조건 | 완료 조건 |
 |---|---|---|---|---|
 | 07 | Advanced modeling — CG1 | **DELIVERED for the recorded bounded profiles (D288–D316); do not restart these features.** Guided polynomial loft, supported face fillets, original-font editable Text/+Z relief, modeled threads, measured thread optimization and one rectangular cylindrical wrap are implemented and qualified at their recorded limits. See the status ledger below. | Optional/general extensions remain separately scoped: uncertified/multiple/rational guide frames, general multi-span/rational fillets, arbitrary-depth/outline/glyph/curved wrap and text shaping. Preserve existing refusal boundaries; these are not missing implementations of the delivered profiles. | A new extension needs its own bounded input, original tolerances, geometry/mass oracle and actual editable Studio/file proof. No whole-family or release acceptance is implied by the delivered profiles. |
-| 08 | Feature patterns, direct editing and surfaces — CG2 | Remaining curve/fill feature patterns and current move/delete/replace/thicken/offset/knit/trim/extend gaps. Reuse03 and existing body-copy/affine/Boolean/surface consumers; the research mapping attaches #2227/#2215 and #2032/#2036 controls. | Kernel/Model → actual Studio, after the selected07 closures. Inspect the current producer/consumer before implementing another surface command. | Distinguish body copies from repeated cut tools. Preserve source/history, dual-UV/trim ownership, exact names, ambiguous/missing references and atomic refusal; verify actual edit/file results. |
+| 08 | Feature patterns, direct editing and surfaces — CG2 | Remaining curve/fill feature patterns and current move/delete/replace/thicken/offset/knit/trim/extend gaps. Reuse03 and existing body-copy/affine/Boolean/surface consumers; the research mapping attaches #2227/#2215 and #2032/#2036 controls. | Kernel/Model → actual Studio after delivered07 and the direct D332 request. Next selected candidate: bounded rectangular two-axis cut feature pattern, reusing the existing linear cut-tool producer; confirm its exact profile before implementation. | Distinguish body copies from repeated cut tools. Preserve source/history, dual-UV/trim ownership, exact names, ambiguous/missing references and atomic refusal; verify actual edit/file results. |
 | 09 | Advanced sketch — CG3 | Remaining spline handles, conics, text/blocks and diagnostic/edit consumers. Reuse existing solver and corrected sketch adapter; attach #2210/#2215 and #2033/#2038 controls.  D318 supplies skeleton raw admission/ID preservation with Model41/Studio7 affected checks, both types/lint and actual fresh-context edit/Undo/file proof; see [qualification](notes/skeleton-file-admission-2026-10-29/qualification.json). | Kernel/Model → actual Studio after08. Existing2D→3D/extrude-cut and dimension-expression decisions remain. | Returned geometry meets the original residual limits. Distinguish DOF, conflict, redundancy and nonconvergence; preserve authored coordinates/dimensions/references through actual constraint edit, downstream feature and Save/fresh Open. |
 | 10 | 조립 확장 — CG4 | 유연한 하위 조립, 반복 occurrence 참조, 조립 피처, 승인된 motion/대형 조립 범위. | Model/Outer + Kernel/GPU. 같은 revision의 배치/관절 기반이 선행. | 계층·part-local/world/display 변환과 반복 인스턴스를 보존한다. pose 표시를 동역학 완료로 쓰지 않는다. |
 | 11 | 도면 확장 — CG5 DR-6/7/8 | 남은 GD&T/복합 프레임, ISO/ASME 스타일·인치 표시, 도면 세트. | Drawings. 01과 필요한 geometry/reference 기반이 선행. | 실제 sheet/SVG·파일·정상 제품을 닫는다. 한 프레임·기호 시험을 전체 규격 적합성이나 제조 수락으로 올리지 않는다. |
@@ -125,7 +129,7 @@ The remote research baselines predate local D313; reproduce a current gap before
 
 | Existing scope | Research inputs and deduplicated action | Required result |
 |---|---|---|
-| 07 → 08 → 09 | Reuse the bounded modeling/loft/fillet/Text/thread/wrap results. Reuse qualified D314/D315/D316; after the selected correctness gate, select one remaining07 profile before08 patterns/direct surfaces, then09 sketch consumers. #2227/#2215 supply regression contracts; #2032/#2033/#2036/#2038 are design targets. | Kernel → Part/API/Model → actual Studio edit/Undo/file proof for the exact profile. Preserve unsupported ranges, independent geometry/mass oracles and reference/refusal semantics. Existing surface commands and body-copy patterns are not missing features. |
+| 07 → 08 → 09 | Reuse the bounded modeling/loft/fillet/Text/thread/wrap results. Reuse qualified D314/D315/D316; after the selected correctness/direct-owner gates, continue08 patterns/direct surfaces, then09 sketch consumers. General07 extensions do not reopen its delivered profiles. #2227/#2215 supply regression contracts; #2032/#2033/#2036/#2038 are design targets. | Kernel → Part/API/Model → actual Studio edit/Undo/file proof for the exact profile. Preserve unsupported ranges, independent geometry/mass oracles and reference/refusal semantics. Existing surface commands and body-copy patterns are not missing features. |
 | 16 CG10/R7 | One result-acceptance ledger for [#2205](https://github.com/barocss/barocss/issues/2205), [#2210](https://github.com/barocss/barocss/issues/2210), [#2215](https://github.com/barocss/barocss/issues/2215), [#2227](https://github.com/barocss/barocss/issues/2227) and [#2228](https://github.com/barocss/barocss/issues/2228). Attach controls to the feature that owns the seam. | Distinguish existing test definitions, retained runs, reproduced gaps and inapplicable cases. Keep false-success, uncertainty/SSI/dual-UV, units and reference-evolution evidence explicit. The inventory's six-rule SCOPED_PASS is not whole API acceptance. |
 | 22 +20 | [#2188](https://github.com/barocss/barocss/issues/2188) supplies workload/async measurements; #2213 supplies GPU measurement boundaries. D314's qualified quadrature change remains a bounded measured slice. | Same inputs and original tolerances; before/after timings plus actual output equivalence. Feedback/queue/compute/validation/export and CPU/GPU/driver memory remain distinct. Reject an ineffective optimization. |
 | 12 files/recovery | #2217/#2181/#2184/#2208/#2220/#2228 share revision-bound candidate, accepted-state and resource ownership. Reuse the current implementation before selecting a missing control. | Real Save/fresh Open/re-edit and stale/cancel/failure preservation at the same source/revision. Report semantic equality and raw-byte identity separately. Current schema and existing asset-dependent JSON/package branches remain authoritative. |
@@ -2165,3 +2169,30 @@ Next selected existing confirmed defect: DA-DUP-1/#2243 under01/16. Reproduce cu
 duplicate and independent-hole location diagnostics before repair; keep numerical tolerances and
 legitimate orthographic duplicate controls. Incoming GPU2107/2144 and explicit-frame recovery reports
 remain intake at their existing owner/priority. Resume07→08→09 after urgent correctness work.
+
+
+### D331 independent drawing location ownership — qualified (2026-10-29)
+
+[Evidence and retained failures](notes/drawing-location-ownership-2026-10-29/README.md) closes the
+selected DA-DUP-1/#2243 repair: keep independent15/15 hole targets, actual15→17 Model edit, missing
+location diagnostics, manual preservation, counted direction and real compound-owner identity.
+Model/API and actual Studio issue/fix/fix-all/auto consumers use the same owner resolver.
+Final Model drawing248 and focused63 (overlap), Studio related28, types/build/scoped lint and generated
+checks pass. Exact API review records four added exports and three optional owner additions; six-rule
+SCOPED_PASS is bounded. New actual serial driver passes two profiles including Save/fresh Open/Undo/
+Redo and independent grid8locations/12dimensions. Existing selected3 plus separate starter pass across
+source-preserved runs; original stale History and ambiguous panel-selector timeouts remain. No whole
+package/browser, manufacturing, full assembly matrix, remoteCI or performance acceptance.
+A guard now rejects empty Model test selection before raw Node discovery; preserve the original invalid
+365-entry expansion and all earlier baseline/review failures. Normal feature push follows.
+
+### Direct owner priority: selection visibility — D332, 2026-10-29
+
+The owner asks why points/edges/faces/bodies use yellow and requests a more visible color. Existing
+yellow comes from the shared Studio accent, not a geometry requirement; no separate design reason was
+found. Select a dedicated cyan palette, stronger face tint and body outline, distinct point hover/
+selection markers, and consistent base/direct/instance routes across WebGPU/WebGL2 and dark/light.
+Keep general tool/section/mould accent semantics. Reuse current rendering mechanisms; no new GPU engine.
+Source inspection is complete; implementation and actual visibility checks are NOT_RUN at this entry.
+After this direct request, advance08 with the bounded rectangular two-axis cut feature grid candidate,
+then09; retain general07 extensions and the source-backed curve-pattern family separately.
