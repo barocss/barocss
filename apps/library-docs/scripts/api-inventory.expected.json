@@ -337261,6 +337261,13 @@
             ],
             "members": [
               {
+                "name": "dispose",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => void"
+              },
+              {
                 "name": "forget",
                 "kind": "method",
                 "optional": false,

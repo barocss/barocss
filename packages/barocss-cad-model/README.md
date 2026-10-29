@@ -48,3 +48,11 @@ Version `0.0.0-experimental`. The API may change between versions: there is no c
 package is configured for public scoped-package access. Publishing goes through the repository's release process,
 when the owner asks. Before a real publish, the exports, which point at the `.ts` sources, need a build step to
 JavaScript and `.d.ts` files.
+
+
+### Worker wire lifetime
+
+`WireSender` owns a blob-eviction subscription and retains the nodes and blob identifiers it has sent.
+Call `dispose()` when that sender is retired. Disposal is idempotent, releases the subscription and
+retained tables, and leaves the shared blob store unchanged. A disposed sender rejects `pack()`;
+late `forget()` calls are harmless. Use a new sender for a new worker protocol session.

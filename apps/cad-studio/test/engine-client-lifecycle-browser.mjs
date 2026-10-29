@@ -37,7 +37,7 @@ test('A06 real App committed mount/unmount releases its owned native engine Work
     context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 }); await context.addInitScript(observeWorkers);
     page = await context.newPage(); page.on('pageerror', error => report.errors.push(String(error)));
     await page.goto(server.resolvedUrls.local[0]);
-    const ready = () => page.waitForFunction(() => { const state = window.__studioBodies?.(); return state?.fresh && state.massReady && state.bodies.length > 0; }, null, { timeout: 30000 });
+    const ready = () => page.waitForFunction(() => { const state = window.__studioBodies?.(); return document.getElementById('root')?.childElementCount > 0 && document.querySelector('.viewport')?.dataset.renderer === 'webgpu' && window.__nativeEngineWorkers().filter(row => row.terminations === 0).length === 1 && state?.fresh && state.massReady && state.bodies.length > 0; }, null, { timeout: 30000 });
     const snapshot = async label => {
       const state = await page.evaluate(() => ({ workers: window.__nativeEngineWorkers(), doc: window.__studioDoc, bodies: window.__studioBodies?.(), rootEmpty: document.getElementById('root').childElementCount === 0 }));
       report.states.push({ label, ...state }); await persist(); await page.screenshot({ path: path.join(output, `${label}.png`) }); return state;
@@ -64,6 +64,13 @@ test('A06 real App committed mount/unmount releases its owned native engine Work
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     assert.equal((await snapshot('normal-unmount-no-revival')).workers.length, 3);
     await page.evaluate(() => window.__engineLifecycle.mount()); await ready();
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+    await page.keyboard.press('b'); await page.locator('.hud').waitFor();
+    for (const [label, value] of [['Width X', '8'], ['Depth Y', '9'], ['Height Z', '11']]) await page.locator('.hud .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input').fill(value);
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+    await page.locator('.hud button:text-is("Apply")').click(); await ready();
+    await page.locator('.doc-tab input').fill('A06-current');
+    await page.waitForFunction(() => localStorage.getItem('studio.recovery')?.includes('A06-current'));
     const beforeFailure = await snapshot('before-controlled-error');
     await page.evaluate(() => window.__failOwnedEngine());
     await page.getByRole('button', { name: 'Retry engine', exact: true }).waitFor();
@@ -76,6 +83,11 @@ test('A06 real App committed mount/unmount releases its owned native engine Work
     const retried = await snapshot('after-public-retry');
     assert.deepEqual(retried.doc, beforeFailure.doc); assert.equal(retried.workers.length, 5);
     assert.equal(retried.workers.filter(row => row.terminations === 0).length, 1);
+    assert.ok(Math.abs(retried.bodies.bodies[0].volume - 792) < 1e-8);
+    await page.keyboard.press('Meta+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0 && window.__studioBodies?.().fresh && window.__studioBodies?.().massReady);
+    await page.keyboard.press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 2); await ready();
+    assert.deepEqual(await page.evaluate(() => window.__studioDoc), beforeFailure.doc, 'public retry preserves the original Undo/Redo entry');
+    report.publicUndoRedo = 'PRESERVED';
     await page.evaluate(() => window.__engineLifecycle.unmount());
     const final = await snapshot('final-no-revival');
     assert.ok(final.rootEmpty); assert.ok(final.workers.every(row => row.terminations === 1));
