@@ -158,6 +158,15 @@
         "root/refusals.log"
       ],
       "boundary": "Coordinator --check receipts; no generated source edit."
+    },
+    "diffWhitespace": {
+      "sourceAndDocuments": "PASS",
+      "sourceAndDocumentsExit": 0,
+      "sourceLog": "root/source-docs-diff-check.log",
+      "rawEvidence": "FAIL_RAW_OUTPUT_WHITESPACE_PRESERVED",
+      "rawExit": 2,
+      "rawLog": "root/raw-evidence-diff-check.log.gz",
+      "boundary": "Node assertion and ANSI build logs contain original trailing spaces. The raw output is preserved exactly; product source and prose pass after excluding these logs."
     }
   },
   "retainedFirstFailures": {

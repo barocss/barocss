@@ -3,8 +3,8 @@
   "files": [
     {
       "path": "README.md",
-      "bytes": 7835,
-      "sha256": "9f8155b729001127a123dfc110a68e57393a390ad66b67889a7410f453e16000"
+      "bytes": 8128,
+      "sha256": "852db556606ed0610f7a6222d7722ac47801c264c971b1acacfb0b4c7e08582f"
     },
     {
       "path": "browser-driver/thicken-snapshot-browser.mjs",
@@ -203,8 +203,8 @@
     },
     {
       "path": "qualification.json",
-      "bytes": 9877,
-      "sha256": "ae70686d492ce9a4501be1ff5d430c5e55f315c48692d7a4c2ff99e6a6aef796"
+      "bytes": 10353,
+      "sha256": "36466176d32e6d8055d1949ccd7ad2ef9a07d9d20d9371c973e6690b754d19f6"
     },
     {
       "path": "report.ko.md",
@@ -297,6 +297,16 @@
       "sha256": "b3a2ee101e14627348b443b6a3ee67ed6bd4864a70551f75504504fd812ea112"
     },
     {
+      "path": "root/raw-evidence-diff-check.exit",
+      "bytes": 2,
+      "sha256": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3"
+    },
+    {
+      "path": "root/raw-evidence-diff-check.log.gz",
+      "bytes": 513,
+      "sha256": "327a95a4a34776b2c7218dae1dd67adfc95d024311fce93da8fc0cf1e0c355ec"
+    },
+    {
       "path": "root/refusals.exit",
       "bytes": 2,
       "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
@@ -310,6 +320,16 @@
       "path": "root/review-freeze-check.json",
       "bytes": 120,
       "sha256": "0b9d2ad61b8ff8bbe04e881d38113a56374852ae1855d7789a4a9f37f1956767"
+    },
+    {
+      "path": "root/source-docs-diff-check.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "root/source-docs-diff-check.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
       "path": "root/studio-build.exit",
@@ -333,8 +353,8 @@
     },
     {
       "path": "source-provenance.json",
-      "bytes": 73336,
-      "sha256": "f422e8612180d7b72bc2c85ca4af718ec27b0401ef6bdccc6e0b5a401fdbe938"
+      "bytes": 74877,
+      "sha256": "ece88b383ca728c54d7a6d0a314938b1890fbb0a49d6e7bb9c229a34c9a15037"
     },
     {
       "path": "studio/preparation.md",
@@ -962,6 +982,6 @@
       "sha256": "b1a15431a23067ddfc4b9210ca70609e877c90f89b347fa3d9e81c2be29d3af7"
     }
   ],
-  "fileCount": 192,
-  "totalBytes": 17209171
+  "fileCount": 196,
+  "totalBytes": 17211998
 }
