@@ -1031,9 +1031,9 @@ export function App() {
     // (R1d: the command as it is now, its values and preview state — the App may not have rendered since they changed.)
     const active = activeStore.get();
     if (!active?.cmd.build || !canChangeDocument()) return;
-    if ((active.cmd.id === 'thicken' || active.cmd.id === 'sew') && active.ctx.doc !== commandDoc) {
+    if ((active.cmd.id === 'thicken' || active.cmd.id === 'sew' || active.cmd.id === 'offset-face') && active.ctx.doc !== commandDoc) {
       applyWhenReady.current = null;
-      setToast({ title: 'Source changed', hint: `Start ${active.cmd.label} again to copy the current surfaces.`, detail: '' });
+      setToast({ title: 'Source changed', hint: active.cmd.id === 'offset-face' ? 'Start Offset face again on the current body and face.' : `Start ${active.cmd.label} again to copy the current surfaces.`, detail: '' });
       return;
     }
     if (active.upload) { applyWhenReady.current = null; return; }
@@ -1046,6 +1046,7 @@ export function App() {
     const next = active.cmd.build(active.ctx, active.values);
     // (Not when it places an instance: those bodies are the instance's, shown once it is evaluated.)
     if (!commit(next)) return;
+    if (active.cmd.id === 'offset-face') setSelection(emptySel);
     if (active.cmd.id === 'thicken' || active.cmd.id === 'sew') setDirectSel([]);
     if (previewBodies && Object.keys(next.outputs).length && (next.instances?.length ?? 0) === (active.ctx.doc.instances?.length ?? 0)) { setBodies(previewBodies); claimBodies.current = true; }
     setActive(null); setPreviewBodies(null); setSketch(null);

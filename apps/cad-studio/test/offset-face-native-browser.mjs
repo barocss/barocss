@@ -20,6 +20,7 @@ const report={status:'RUNNING',qualification:'NATIVE_NUMERIC_AND_ACTUAL_UI_FLOW'
  'Signed other caps, repeated command closure and generic drafted/curved continuation are separate focused-test scopes.',
  'Integer cylinder is an existing support control with rounded analytic pi, not exact rational circle mass or a generic curved certificate.',
  'The added profile is an owned native snapshot under existing node semantics; original parameter binding is retained, no live face association is claimed.',
+ 'Successful Offset Apply clears geometry picks; Undo/Redo proves exact recipes and records selection without claiming restoration of the original face pick.',
  'Native geometry success does not replace root screenshot review.']};
 let phase='public seed preparation',server,browser,context,page,inspectorBundle;
 const persist=()=>writeFile(join(output,'receipt.json'),JSON.stringify({...report,phase},null,2));
@@ -116,8 +117,18 @@ async function isoSnapshot(label){await page.getByRole('group',{name:'Views',exa
 async function acceptedPreview(original,label){
  await page.waitForFunction(()=>document.querySelector('.hud .status')?.textContent==='preview',null,{timeout:60000});assert.deepEqual(await doc(),original,'Preview leaves accepted recipe unchanged');assert.equal(await hud().getByRole('button',{name:'Apply',exact:true}).isDisabled(),false);await snapshot(label);
 }
+async function acceptedOffsetSelection(label){
+ const record={label,witnessKey:report.witness.key,policy:'Successful Offset Apply clears old geometry indices; it does not remap a face onto reordered bodies'};report.acceptedSelections??=[];report.acceptedSelections.push(record);
+ try{await page.waitForFunction(()=>{const s=window.__studioSelection?.selection;return s&&['faces','edges','bodies','vertices'].every(key=>(s[key]?.length??0)===0);},null,{timeout:10000});}
+ finally{
+  const observed=await page.evaluate(()=>({selection:window.__studioSelection?.selection,bodyOrder:window.__studioBodies?.().bodies.map(b=>b.key)??[]}));
+  record.actual=observed;record.picks=Object.fromEntries(['faces','edges','bodies','vertices'].map(key=>[key,observed.selection?.[key]??[]]));
+  const indices=[...record.picks.bodies,...['faces','edges','vertices'].flatMap(key=>record.picks[key].map(pick=>pick.body))];record.selectedBodyKeys=indices.map(index=>observed.bodyOrder[index]??null);record.witnessAliased=record.selectedBodyKeys.includes(report.witness.key);record.pass=!!observed.selection&&Object.values(record.picks).every(picks=>picks.length===0)&&!record.witnessAliased;await persist();
+ }
+ assert.ok(record.pass,'Accepted Offset clears faces/edges/bodies/vertices and cannot alias the witness after body reordering');
+}
 async function applyOffset(original,label){
- phase=`actual Apply ${label}`;await hud().getByRole('button',{name:'Apply',exact:true}).click();await changed(original);await hud().waitFor({state:'hidden'});const after=await doc();assert.deepEqual(after.nodes.slice(0,original.nodes.length),original.nodes,'Existing source and bindings are an unchanged recipe prefix');assert.deepEqual(after.parameters,original.parameters);assert.equal(after.nodes.length,original.nodes.length+3);assert.equal(after.nodes[original.nodes.length].kind,'sketch');assert.equal(after.nodes[original.nodes.length+1].kind,'extrude');await snapshot(label);return after;
+ phase=`actual Apply ${label}`;await hud().getByRole('button',{name:'Apply',exact:true}).click();await changed(original);await hud().waitFor({state:'hidden'});await acceptedOffsetSelection(label);const after=await doc();assert.deepEqual(after.nodes.slice(0,original.nodes.length),original.nodes,'Existing source and bindings are an unchanged recipe prefix');assert.deepEqual(after.parameters,original.parameters);assert.equal(after.nodes.length,original.nodes.length+3);assert.equal(after.nodes[original.nodes.length].kind,'sketch');assert.equal(after.nodes[original.nodes.length+1].kind,'extrude');await snapshot(label);return after;
 }
 async function editDistance(index,value,parameter=null){
  phase=`existing extrusion editor ${value}`;await page.locator(`.history .hs[data-node-index="${index}"]`).click();await editor().waitFor();const before=await doc();
