@@ -1,0 +1,146 @@
+{
+  "label": "09-fresh-open-thin",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "circle",
+        "center": [
+          0,
+          0
+        ],
+        "radius": 3,
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 5.00009,
+        "id": "n1",
+        "made": {
+          "command": "cylinder",
+          "values": {
+            "r": 3,
+            "h": 5.00009,
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "kind": "translate",
+        "parent": {
+          "node": 1,
+          "side": "solid"
+        },
+        "offset": [
+          0.1234567,
+          -0.2345678,
+          0.3456789
+        ],
+        "id": "n2"
+      },
+      {
+        "kind": "sketch",
+        "profile": "loop",
+        "segments": [
+          {
+            "kind": "arc",
+            "start": [
+              3.1234567,
+              -0.23456780000000022
+            ],
+            "center": [
+              0.1234567000000002,
+              -0.23456780000000022
+            ],
+            "direction": "ccw"
+          }
+        ],
+        "plane": {
+          "origin": [
+            0,
+            0,
+            5.3457689
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ]
+        },
+        "on": {
+          "node": 2,
+          "side": "solid"
+        },
+        "id": "n3"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 3,
+        "height": 5.00009,
+        "from": -5.00009,
+        "id": "n4"
+      },
+      {
+        "kind": "difference",
+        "parent": {
+          "node": 2,
+          "side": "solid"
+        },
+        "tool": {
+          "node": 4,
+          "side": "solid"
+        },
+        "id": "n5"
+      }
+    ],
+    "outputs": {
+      "b5": {
+        "node": 5,
+        "side": "solid"
+      }
+    },
+    "nextId": 6
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b5",
+        "volume": 6.278163296415537e-15,
+        "centroid": [
+          0.12345670000000004,
+          -0.23456779999999983,
+          0.3456789000000001
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "hud": null,
+  "notices": []
+}

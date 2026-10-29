@@ -1,0 +1,13 @@
+{
+  "input-brep.json": "d9ca158a6c6dfb5d91d900af55ad5b39b0decd1b7c4b78aa06be240a7ccc5ce6",
+  "baseline.json": "34564b3aa874136aaf02286a1947106b1fe49603c419b957b958be0d1a1d4a37",
+  "oracle.py": "188142b5b76b0f4b723fb9c1558900925cd7a28c7b8c1640f05adf54757a874d",
+  "oracle-results.json": "a0d853261804b684ae6581536009be7a0abd10b4ef5ee28f1f52a8b66a91ecc5",
+  "oracle-observed.log": "8ebe7060e9a9f3534dda2c4318b6169c95542ef9a4d1b86b39e816eccaa8ef4a",
+  "quadrature-original.ts": "8ecf18b6338a403b9b541bd04716f9a9168bd45fc9a4ceeb00141e72cc9798a6",
+  "quadrature-instrumented.ts": "2a135d1d1dfbde7b3391d00c4138b7cf9e13ab5f0efb63de8806559b2328dd23",
+  "probe.ts": "16cb56380290b9a5d4cfdae99565c611cd0966ba4b18a43a5c34cc7aebb81f9b",
+  "build-probe.mjs": "e091dc46e74d217f610d062e2d306e47beec0a8d5f563856b72abdb05a1302af",
+  "probe-metafile.json": "84cb7ad1a16439af893f899755d968c53dc8ca545cab7decdff5f08034fcfafc",
+  "diagnosis.md": "e36c1e5bacbc55937b2a6f2bc85f1e4dad56d3b9fca5809af35fcec17c1c47a2"
+}

@@ -1,0 +1,5 @@
+{
+  "packages/barocss-cad/src/brep/brep-mass-quadrature.ts": "8ecf18b6338a403b9b541bd04716f9a9168bd45fc9a4ceeb00141e72cc9798a6",
+  "packages/barocss-cad/src/brep/solid-mass.ts": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac",
+  "packages/barocss-cad/scripts/perf-bench.mjs": "04a74e4a283d89eec554cb8847d42d7de2fb027785fd61c6f0cbc2906b3c6685"
+}

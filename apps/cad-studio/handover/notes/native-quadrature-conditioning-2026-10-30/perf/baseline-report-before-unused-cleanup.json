@@ -1,0 +1,457 @@
+{
+  "status": "BASELINE_CAPTURED_CANDIDATE_NOT_RUN",
+  "publishedBase": "c0fea1174f71fc4f9e83ac4f53978d09884e0ef1",
+  "heavyGate": "RELEASED; holder none observed",
+  "node": "v22.19.0",
+  "cpu": "Apple M3 Max",
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t15.6.1\nBuildVersion:\t\t24G90",
+  "conditions": {
+    "runs": 7,
+    "warmup": 3,
+    "batch": 32,
+    "unit": "ms",
+    "density": 1,
+    "quadratureSegments": 8,
+    "uncachedQueriesPerMeasuredBatch": 32,
+    "uncachedMeasuredQueriesPerCase": 224,
+    "warmupFreshQueriesPerCase": 96,
+    "timed": "map of first mass calls, result-array allocation and one receipt WeakMap store",
+    "untimed": "fixture construction, clones, fingerprint, strict geometry classification and references",
+    "perQuery": "batch median /32; not individually timed queries",
+    "broadPerformanceClaim": false
+  },
+  "timing": {
+    "native-cylinder-ordinary-first-mass": {
+      "ms": 13,
+      "fp": "3a40ea461ce69d67",
+      "rawDuration": [
+        12.866540999999984,
+        12.93633299999999,
+        13.095000000000027,
+        12.586666999999977,
+        12.833957999999996,
+        13.004334000000028,
+        15.438207999999975
+      ],
+      "median": 12.93633299999999,
+      "perQuery": 0.4042604062499997,
+      "unit": "ms",
+      "batch": 32,
+      "warmup": 3,
+      "runs": 7
+    },
+    "native-cylinder-tiny-first-mass": {
+      "ms": 12,
+      "fp": "329559d045fae174",
+      "rawDuration": [
+        13.083082999999988,
+        12.05562500000002,
+        11.705291999999986,
+        12.671207999999979,
+        12.158999999999992,
+        10.385500000000036,
+        13.356250000000045
+      ],
+      "median": 12.158999999999992,
+      "perQuery": 0.37996874999999974,
+      "unit": "ms",
+      "batch": 32,
+      "warmup": 3,
+      "runs": 7
+    }
+  },
+  "geometry": {
+    "ordinary": {
+      "sourceRecipe": {
+        "radius": 3,
+        "height": 5.00009,
+        "centerXY": [
+          0.1234567,
+          -0.2345678
+        ],
+        "zOffset": 0.3456789
+      },
+      "geometry": {
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 4,
+          "loops": 4,
+          "coedges": 12,
+          "edges": 6,
+          "vertices": 4
+        },
+        "closed": [
+          true
+        ],
+        "bodyKinds": [
+          "solid"
+        ],
+        "faceNames": [
+          "cylinder.side0#2",
+          "cylinder.side0#1",
+          "cylinder.bottom",
+          "cylinder.top"
+        ],
+        "edgeNames": [
+          "cylinder.bottom|cylinder.side0#2",
+          "cylinder.side0#1|cylinder.side0#2#1",
+          "cylinder.side0#2|cylinder.top",
+          "cylinder.side0#1|cylinder.side0#2#2",
+          "cylinder.bottom|cylinder.side0#1",
+          "cylinder.side0#1|cylinder.top"
+        ],
+        "bounds": [
+          [
+            -2.8765433,
+            3.1234567
+          ],
+          [
+            -3.2345677999999998,
+            2.7654322000000002
+          ],
+          [
+            0.3456789,
+            5.3457689
+          ]
+        ],
+        "planarCaps": [
+          "cylinder_b0/cylinder_b0_s0/cylinder_d0_0",
+          "cylinder_b0/cylinder_b0_s0/cylinder_u1_0"
+        ],
+        "curvedWholePatches": [
+          "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_0",
+          "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_1"
+        ],
+        "allWholePatchTestFaces": [
+          "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_0",
+          "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_1"
+        ]
+      },
+      "fullInputSha256": "d357376add4c1f4f87c3c8bba34f10c1a17293a64e7dc8e2c942c0ff31a11920",
+      "inputUnchangedAfterMassAreaValidity": true,
+      "strictCheck": {
+        "valid": true,
+        "issues": [],
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 4,
+          "loops": 4,
+          "coedges": 12,
+          "edges": 6,
+          "vertices": 4
+        },
+        "topology": [
+          {
+            "body": "cylinder_b0",
+            "vertices": 4,
+            "edges": 6,
+            "faces": 4,
+            "loops": 4,
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "maximumVertexGap": 0,
+        "maximumPcurveGap": 4.440892098500626e-16,
+        "maximumEdgeSurfaceGap": 8.881784197001252e-16
+      },
+      "nativeMass": {
+        "volume": 141.37421410159007,
+        "mass": 0.14137421410159007,
+        "centroid": [
+          0.12345669999999984,
+          -0.23456779999999974,
+          2.8457239
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            0.6126321976016964,
+            -2.6645352591003758e-18,
+            7.105427357601002e-18
+          ],
+          [
+            -2.6645352591003758e-18,
+            0.6126321976016964,
+            1.4210854715202004e-17
+          ],
+          [
+            7.105427357601002e-18,
+            1.4210854715202004e-17,
+            0.6361839634571307
+          ]
+        ]
+      },
+      "area": 150.79814383234284,
+      "prismaticContext": {
+        "volume": 141.3742141015901,
+        "mass": 0.1413742141015901,
+        "centroid": [
+          0.12345670000000004,
+          -0.2345677999999999,
+          2.8457239000000003
+        ],
+        "method": "closed-form",
+        "inertia": [
+          [
+            0.612632197601709,
+            8.881784197001253e-18,
+            0
+          ],
+          [
+            8.881784197001253e-18,
+            0.612632197601709,
+            0
+          ],
+          [
+            0,
+            0,
+            0.6361839634571554
+          ]
+        ]
+      },
+      "actualD343FullByteEqual": false,
+      "scope": "Baseline wrong native mass is observed, not accepted as accuracy oracle; exact same input fixture must be used for candidate"
+    },
+    "tiny": {
+      "sourceRecipe": {
+        "radius": 3,
+        "height": 2.220446049250313e-16,
+        "centerXY": [
+          0.1234567,
+          -0.2345678
+        ],
+        "zOffset": 0.3456789
+      },
+      "geometry": {
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 4,
+          "loops": 4,
+          "coedges": 12,
+          "edges": 6,
+          "vertices": 4
+        },
+        "closed": [
+          true
+        ],
+        "bodyKinds": [
+          "solid"
+        ],
+        "faceNames": [
+          "cylinder.side0#2",
+          "cylinder.side0#1",
+          "cylinder.bottom",
+          "cylinder.top"
+        ],
+        "edgeNames": [
+          "cylinder.bottom|cylinder.side0#2",
+          "cylinder.side0#1|cylinder.side0#2#1",
+          "cylinder.side0#2|cylinder.top",
+          "cylinder.side0#1|cylinder.side0#2#2",
+          "cylinder.bottom|cylinder.side0#1",
+          "cylinder.side0#1|cylinder.top"
+        ],
+        "bounds": [
+          [
+            -2.8765433,
+            3.1234567
+          ],
+          [
+            -3.2345677999999998,
+            2.7654322000000002
+          ],
+          [
+            0.3456789,
+            0.34567890000000023
+          ]
+        ],
+        "planarCaps": [
+          "cylinder_b0/cylinder_b0_s0/cylinder_d0_0",
+          "cylinder_b0/cylinder_b0_s0/cylinder_u1_0"
+        ],
+        "curvedWholePatches": [
+          "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_0",
+          "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_1"
+        ],
+        "allWholePatchTestFaces": [
+          "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_0",
+          "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_1"
+        ]
+      },
+      "fullInputSha256": "d6974fffc67a62fd0216be91de21b326433237063045316fe3d4a63c8205d892",
+      "inputUnchangedAfterMassAreaValidity": true,
+      "strictCheck": {
+        "valid": true,
+        "issues": [],
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 4,
+          "loops": 4,
+          "coedges": 12,
+          "edges": 6,
+          "vertices": 4
+        },
+        "topology": [
+          {
+            "body": "cylinder_b0",
+            "vertices": 4,
+            "edges": 6,
+            "faces": 4,
+            "loops": 4,
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "maximumVertexGap": 0,
+        "maximumPcurveGap": 4.440892098500626e-16,
+        "maximumEdgeSurfaceGap": 1.1443916996305594e-16
+      },
+      "nativeMass": {
+        "volume": 6.180191251439208e-15,
+        "mass": 6.180191251439208e-18,
+        "centroid": [
+          0.10042170557247179,
+          -0.26839177431837347,
+          0.3456789000000001
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            1.3779584638173598e-17,
+            -2.984199179341948e-20,
+            7.395570986446986e-35
+          ],
+          [
+            -2.984199179341948e-20,
+            1.409014833576738e-17,
+            0
+          ],
+          [
+            7.395570986446986e-35,
+            0,
+            2.786973297394098e-17
+          ]
+        ]
+      },
+      "area": 56.54866776461627,
+      "prismaticContext": {
+        "volume": 6.278163296415536e-15,
+        "mass": 6.2781632964155365e-18,
+        "centroid": [
+          0.12345670000000006,
+          -0.23456779999999994,
+          0.3456789000000001
+        ],
+        "method": "closed-form",
+        "inertia": [
+          [
+            1.4125867416934958e-17,
+            3.6977854932234927e-34,
+            0
+          ],
+          [
+            3.6977854932234927e-34,
+            1.4125867416934958e-17,
+            0
+          ],
+          [
+            0,
+            0,
+            2.8251734833869917e-17
+          ]
+        ]
+      },
+      "actualD343FullByteEqual": false,
+      "scope": "Baseline wrong native mass is observed, not accepted as accuracy oracle; exact same input fixture must be used for candidate"
+    }
+  },
+  "actualD343Comparison": {
+    "facesGeometryExactIgnoringIdsNames": true,
+    "edgesGeometryExactIgnoringIdsNames": true,
+    "verticesGeometryExactIgnoringIdsNames": true
+  },
+  "independentContext": {
+    "ordinary": {
+      "representedSpan": {
+        "numerator": "22518403460818945",
+        "denominator": "4503599627370496"
+      },
+      "representedMidpoint": {
+        "numerator": "25632002191278631",
+        "denominator": "9007199254740992"
+      },
+      "roundedNormalMidpoint": 2.8457239000000003,
+      "normalCentroidWithinStoredInterval": true,
+      "tangentCenterInput": [
+        0.1234567,
+        -0.2345678
+      ],
+      "nativeTangentCenterObserved": [
+        0.12345669999999984,
+        -0.23456779999999974
+      ],
+      "roundedPiVolumeGuide": 141.3742141015901,
+      "nativeVolumeObserved": 141.37421410159007,
+      "nativeRelativeDifferenceFromRoundedGuide": -2.220446049250313e-16,
+      "guideScope": "Python stdlib Fraction endpoints and rounded math.pi circle volume guide; not exact rational-native-circle integration"
+    },
+    "tiny": {
+      "representedSpan": {
+        "numerator": "1",
+        "denominator": "4503599627370496"
+      },
+      "representedMidpoint": {
+        "numerator": "3113598730459687",
+        "denominator": "9007199254740992"
+      },
+      "roundedNormalMidpoint": 0.3456789000000001,
+      "normalCentroidWithinStoredInterval": true,
+      "tangentCenterInput": [
+        0.1234567,
+        -0.2345678
+      ],
+      "nativeTangentCenterObserved": [
+        0.10042170557247179,
+        -0.26839177431837347
+      ],
+      "roundedPiVolumeGuide": 6.278163296415537e-15,
+      "nativeVolumeObserved": 6.180191251439208e-15,
+      "nativeRelativeDifferenceFromRoundedGuide": -0.015605208139817806,
+      "guideScope": "Python stdlib Fraction endpoints and rounded math.pi circle volume guide; not exact rational-native-circle integration"
+    }
+  },
+  "sourceHashes": {
+    "packages/barocss-cad/scripts/perf-bench.mjs": "37d81a207f097d7cb35d859200db64f716d0c38d30ed8a79b3d79e60ab4c39a9",
+    "packages/barocss-cad/src/brep/brep-mass-quadrature.ts": "8ecf18b6338a403b9b541bd04716f9a9168bd45fc9a4ceeb00141e72cc9798a6",
+    "packages/barocss-cad/src/brep/solid-mass.ts": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac",
+    "packages/barocss-cad/src/features/prismatic-solid.ts": "17f2b70b5ecbe0b1ab7912636d780fa1594469804f4af7fb48365212bc802f5a",
+    "packages/barocss-cad/dist/brep/brep-mass-quadrature.js": "a2545b5f87adda0ead54d9b81cddd27f5fef9e1eb6766145923666a735f8978b",
+    "packages/barocss-cad/dist/brep/solid-mass.js": "5a45147aa0980a88a456e17226cc8c0f18dcc482e69fc1e8401af3d62af6dbe2"
+  },
+  "measuredBenchmarkSha256": "90611fd3eb6b003ce26b9469ebeccea042c600df5409fbbc19d1310f89dc1630",
+  "finalBenchmarkDifference": "Only pre-existing unused XZ constant removed after measurement to repair narrow lint; timed function, fixtures and runner unchanged. Root may reuse this receipt or rerun before candidate if exact script-byte matching is required.",
+  "checks": {
+    "syntax": "PASS",
+    "narrowLint": "PASS 0 errors, 5 existing console warnings",
+    "newRuntimeCases": "2 completed",
+    "geometryStrictValid": "both",
+    "existingCasesRuntime": "NOT_RUN",
+    "fullKernel": "NOT_RUN by this lane",
+    "candidate": "NOT_RUN"
+  },
+  "preservedFailures": [
+    {
+      "phase": "initial syntax command",
+      "classification": "wrong duplicated package-relative path; MODULE_NOT_FOUND; command corrected, no product failure"
+    },
+    {
+      "phase": "first narrow lint",
+      "classification": "pre-existing unused XZ error and 5 console warnings; unused constant removed, final lint exit0"
+    }
+  ]
+}

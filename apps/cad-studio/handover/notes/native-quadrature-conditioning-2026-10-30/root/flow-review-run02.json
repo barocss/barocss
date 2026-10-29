@@ -1,0 +1,190 @@
+{
+  "status": "SCOPED_VISUAL_AND_DEFAULT_STEP_PRODUCT_PASS",
+  "checkpoint": "28a80e8695a92e92e5e50f6a5d34c569a02c0e5f",
+  "imagesViewed": [
+    {
+      "path": "studio/run-02/02-original-step.png",
+      "sha256": "e99c22c94b7b9c70b3f58c63fe6ae515caad69c8e5cb223cf748c4bc46376462"
+    },
+    {
+      "path": "studio/run-02/04-offset-preview.png",
+      "sha256": "62d54f3613932f2f982544338c579169f5d9047e2ec8e36ff31f559730ab41cf"
+    },
+    {
+      "path": "studio/run-02/06-thin-step.png",
+      "sha256": "566cd2ef2c2b35e423f6114807a2ef17760916a2d36459cc51a1bfd93e1778a9"
+    },
+    {
+      "path": "studio/run-02/10-fresh-open-step.png",
+      "sha256": "ddc94212c0db8e19b5725bc17bf31a2066ec16644f46cc1f9335ad3d4424acea"
+    }
+  ],
+  "visualObservations": [
+    "Ordinary cylinder remains rendered after actual STEP export.",
+    "Exact Offset literal is accepted in preview; applied tiny disc remains visible with cleared selection.",
+    "Fresh native Open retains visible target and a subsequent actual STEP export."
+  ],
+  "visualBoundary": "Images and rounded zero mass/bounds labels cannot prove four-ULP thickness or raw native mass; independent downloaded scalar and strict native readback checks are separate authority.",
+  "chromeProcesses": 1,
+  "serialContexts": 2,
+  "observations": 10,
+  "nativeReads": 4,
+  "stepExports": 3,
+  "actualMousePicks": 1,
+  "allDownloads": 4,
+  "nativeFiles": 1,
+  "sourceBeforeSubset": 14,
+  "sourceFrozen": 978,
+  "sourceAfter": 978,
+  "sourceAfterCleanup": 978,
+  "errors": 0,
+  "consoleErrors": 0,
+  "watchedChanges": 0,
+  "cleanup": [
+    "CONTEXT_CLOSED",
+    "CONTEXT_CLOSED",
+    "BROWSER_CLOSED",
+    "SERVER_CLOSED"
+  ],
+  "fileChecks": [
+    {
+      "label": "02-original-step-readback",
+      "metadata": {
+        "volume": 141.37421410159004,
+        "area": 150.79814383234287,
+        "centroid": [
+          0.12345670000000014,
+          -0.23456780000000016,
+          2.8457239000000003
+        ],
+        "box": {
+          "min": [
+            -2.8765433000000002,
+            -3.2345677999999998,
+            0.3456789
+          ],
+          "max": [
+            3.1234567000000006,
+            2.7654322000000007,
+            5.345768900000001
+          ]
+        }
+      },
+      "nativeInputLevels": [
+        0.3456789,
+        5.3457689
+      ],
+      "importedLevels": [
+        0.3456789,
+        5.3457689
+      ],
+      "nativeNames": [
+        "n1.side0#2",
+        "n1.side0#1",
+        "n1.bottom",
+        "n1.top"
+      ],
+      "importedNames": [
+        "n1.bottom",
+        "n1.side0#1",
+        "n1.side0#2",
+        "n1.top"
+      ],
+      "strictImportedValid": true,
+      "importedProviderScope": "Separate imported-geometry provider observation; not the export metadata oracle"
+    },
+    {
+      "label": "06-thin-step-readback",
+      "metadata": {
+        "volume": 6.278163296415527e-15,
+        "area": 56.5486677646163,
+        "centroid": [
+          0.12345670000000014,
+          -0.23456779999999966,
+          0.3456789000000001
+        ],
+        "box": {
+          "min": [
+            -2.8765433000000002,
+            -3.2345677999999998,
+            0.3456789
+          ],
+          "max": [
+            3.1234567000000006,
+            2.7654322000000007,
+            0.3456789000000003
+          ]
+        }
+      },
+      "nativeInputLevels": [
+        0.3456789,
+        0.34567890000000023
+      ],
+      "importedLevels": [
+        0.3456789,
+        0.34567890000000023
+      ],
+      "nativeNames": [
+        "n1.side0#2",
+        "n1.side0#1",
+        "n1.bottom",
+        "n4.bottom"
+      ],
+      "importedNames": [
+        "n1.bottom",
+        "n1.side0#1",
+        "n1.side0#2",
+        "n4.bottom"
+      ],
+      "strictImportedValid": true,
+      "importedProviderScope": "Separate imported-geometry provider observation; not the export metadata oracle"
+    },
+    {
+      "label": "10-fresh-open-step-readback",
+      "metadata": {
+        "volume": 6.278163296415527e-15,
+        "area": 56.5486677646163,
+        "centroid": [
+          0.12345670000000014,
+          -0.23456779999999966,
+          0.3456789000000001
+        ],
+        "box": {
+          "min": [
+            -2.8765433000000002,
+            -3.2345677999999998,
+            0.3456789
+          ],
+          "max": [
+            3.1234567000000006,
+            2.7654322000000007,
+            0.3456789000000003
+          ]
+        }
+      },
+      "nativeInputLevels": [
+        0.3456789,
+        0.34567890000000023
+      ],
+      "importedLevels": [
+        0.3456789,
+        0.34567890000000023
+      ],
+      "nativeNames": [
+        "n1.side0#2",
+        "n1.side0#1",
+        "n1.bottom",
+        "n4.bottom"
+      ],
+      "importedNames": [
+        "n1.bottom",
+        "n1.side0#1",
+        "n1.side0#2",
+        "n4.bottom"
+      ],
+      "strictImportedValid": true,
+      "importedProviderScope": "Separate imported-geometry provider observation; not the export metadata oracle"
+    }
+  ],
+  "freshOpenMetadataSemanticEquality": true
+}

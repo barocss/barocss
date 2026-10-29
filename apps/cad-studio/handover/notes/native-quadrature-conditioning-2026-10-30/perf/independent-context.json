@@ -1,0 +1,57 @@
+{
+  "references": {
+    "ordinary": {
+      "representedSpan": {
+        "numerator": "22518403460818945",
+        "denominator": "4503599627370496"
+      },
+      "representedMidpoint": {
+        "numerator": "25632002191278631",
+        "denominator": "9007199254740992"
+      },
+      "roundedNormalMidpoint": 2.8457239000000003,
+      "normalCentroidWithinStoredInterval": true,
+      "tangentCenterInput": [
+        0.1234567,
+        -0.2345678
+      ],
+      "nativeTangentCenterObserved": [
+        0.12345669999999984,
+        -0.23456779999999974
+      ],
+      "roundedPiVolumeGuide": 141.3742141015901,
+      "nativeVolumeObserved": 141.37421410159007,
+      "nativeRelativeDifferenceFromRoundedGuide": -2.220446049250313e-16,
+      "guideScope": "Python stdlib Fraction endpoints and rounded math.pi circle volume guide; not exact rational-native-circle integration"
+    },
+    "tiny": {
+      "representedSpan": {
+        "numerator": "1",
+        "denominator": "4503599627370496"
+      },
+      "representedMidpoint": {
+        "numerator": "3113598730459687",
+        "denominator": "9007199254740992"
+      },
+      "roundedNormalMidpoint": 0.3456789000000001,
+      "normalCentroidWithinStoredInterval": true,
+      "tangentCenterInput": [
+        0.1234567,
+        -0.2345678
+      ],
+      "nativeTangentCenterObserved": [
+        0.10042170557247179,
+        -0.26839177431837347
+      ],
+      "roundedPiVolumeGuide": 6.278163296415537e-15,
+      "nativeVolumeObserved": 6.180191251439208e-15,
+      "nativeRelativeDifferenceFromRoundedGuide": -0.015605208139817806,
+      "guideScope": "Python stdlib Fraction endpoints and rounded math.pi circle volume guide; not exact rational-native-circle integration"
+    }
+  },
+  "actualD343Comparison": {
+    "facesGeometryExactIgnoringIdsNames": true,
+    "edgesGeometryExactIgnoringIdsNames": true,
+    "verticesGeometryExactIgnoringIdsNames": true
+  }
+}

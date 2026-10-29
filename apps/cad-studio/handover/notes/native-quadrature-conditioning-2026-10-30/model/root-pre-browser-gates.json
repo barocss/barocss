@@ -1,0 +1,21 @@
+{
+  "status": "RUNTIME_GATES_PASS_SOURCE_REVIEW_PENDING",
+  "kernelFull": {
+    "pass": 2336,
+    "fail": 0,
+    "skip": 6,
+    "total": 2342,
+    "durationMs": 253810.84675
+  },
+  "modelAffected": 25,
+  "modelStudioTypesBuildLint": "PASS",
+  "apiGenerated": "PASS",
+  "sourceHashes": {
+    "packages/barocss-cad/src/brep/brep-mass-quadrature.ts": "696ec924bc4f1d7b74862533676af5e4c0b8a2a284a8a249ea7007dade4c8ed5",
+    "packages/barocss-cad/scripts/perf-bench.mjs": "37d81a207f097d7cb35d859200db64f716d0c38d30ed8a79b3d79e60ab4c39a9",
+    "packages/barocss-cad-model/test/native-quadrature-step.test.ts": "233d899441bb53850bcc5ffca42c666ed54cec7734c53d8f71b8dec014dbdf78",
+    "apps/cad-studio/test/native-quadrature-step-browser.mjs": "7286429630f31b3daa966c0dce86f2c443d8097b0b3a8b47a2ba7f1e48ab3a09"
+  },
+  "browser": "NOT_RUN",
+  "independentImplementationReview": "PENDING"
+}

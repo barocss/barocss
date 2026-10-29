@@ -1,0 +1,19 @@
+{
+  "status": "BROWSER_FAIL_OVERSTRICT_METADATA_BOX_ORACLE",
+  "checkpoint": "fbf8a7afb555ee7302bd3c6a6ed9e034a9a8b51a",
+  "imageViewed": "studio/run-01/failure.png",
+  "failure": "AssertionError [ERR_ASSERTION]: node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 5.345768900000001\n- 5.3457689\n           ^\n\n    at file:///private/tmp/d344-studio/run-01/inspector.mjs:50345:11\n    at ModuleJob.run (node:internal/modules/esm/module_job:345:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:651:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: 5.345768900000001,\n  expected: 5.3457689,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.19.0\n\n\n1 !== 0\n\n    at inspect (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/native-quadrature-step-browser.mjs:81:10)\n    at async exportStep (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/native-quadrature-step-browser.mjs:89:96)\n    at async file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/native-quadrature-step-browser.mjs:135:3",
+  "actualBoxUpper": 5.345768900000001,
+  "nativeCapUpper": 5.3457689,
+  "classification": "Metadata bounding enclosure differs outward by one ulp. Exact native/file/import cap geometry is retained; reviewed source/data establishes overstrict test equality, not a product geometry repair.",
+  "independentProof": "step-box/result.json and review/step-box-review.md",
+  "notReached": "Actual tiny Offset/STEP/save/fresh Open tail",
+  "errors": [],
+  "consoleErrors": [],
+  "changes": [],
+  "cleanup": [
+    "CONTEXT_CLOSED",
+    "BROWSER_CLOSED",
+    "SERVER_CLOSED"
+  ]
+}

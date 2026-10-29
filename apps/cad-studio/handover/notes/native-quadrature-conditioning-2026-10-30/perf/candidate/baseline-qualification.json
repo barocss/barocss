@@ -1,0 +1,310 @@
+{
+  "ordinary": {
+    "sourceRecipe": {
+      "radius": 3,
+      "height": 5.00009,
+      "centerXY": [
+        0.1234567,
+        -0.2345678
+      ],
+      "zOffset": 0.3456789
+    },
+    "geometry": {
+      "counts": {
+        "bodies": 1,
+        "shells": 1,
+        "faces": 4,
+        "loops": 4,
+        "coedges": 12,
+        "edges": 6,
+        "vertices": 4
+      },
+      "closed": [
+        true
+      ],
+      "bodyKinds": [
+        "solid"
+      ],
+      "faceNames": [
+        "cylinder.side0#2",
+        "cylinder.side0#1",
+        "cylinder.bottom",
+        "cylinder.top"
+      ],
+      "edgeNames": [
+        "cylinder.bottom|cylinder.side0#2",
+        "cylinder.side0#1|cylinder.side0#2#1",
+        "cylinder.side0#2|cylinder.top",
+        "cylinder.side0#1|cylinder.side0#2#2",
+        "cylinder.bottom|cylinder.side0#1",
+        "cylinder.side0#1|cylinder.top"
+      ],
+      "bounds": [
+        [
+          -2.8765433,
+          3.1234567
+        ],
+        [
+          -3.2345677999999998,
+          2.7654322000000002
+        ],
+        [
+          0.3456789,
+          5.3457689
+        ]
+      ],
+      "planarCaps": [
+        "cylinder_b0/cylinder_b0_s0/cylinder_d0_0",
+        "cylinder_b0/cylinder_b0_s0/cylinder_u1_0"
+      ],
+      "curvedWholePatches": [
+        "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_0",
+        "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_1"
+      ],
+      "allWholePatchTestFaces": [
+        "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_0",
+        "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_1"
+      ]
+    },
+    "fullInputSha256": "d357376add4c1f4f87c3c8bba34f10c1a17293a64e7dc8e2c942c0ff31a11920",
+    "inputUnchangedAfterMassAreaValidity": true,
+    "strictCheck": {
+      "valid": true,
+      "issues": [],
+      "counts": {
+        "bodies": 1,
+        "shells": 1,
+        "faces": 4,
+        "loops": 4,
+        "coedges": 12,
+        "edges": 6,
+        "vertices": 4
+      },
+      "topology": [
+        {
+          "body": "cylinder_b0",
+          "vertices": 4,
+          "edges": 6,
+          "faces": 4,
+          "loops": 4,
+          "shells": 1,
+          "genus": 0
+        }
+      ],
+      "maximumVertexGap": 0,
+      "maximumPcurveGap": 4.440892098500626e-16,
+      "maximumEdgeSurfaceGap": 8.881784197001252e-16
+    },
+    "nativeMass": {
+      "volume": 141.37421410159007,
+      "mass": 0.14137421410159007,
+      "centroid": [
+        0.12345669999999996,
+        -0.23456779999999985,
+        2.8457239
+      ],
+      "method": "quadrature",
+      "inertia": [
+        [
+          0.6126321976016964,
+          -2.4868995751603507e-17,
+          0
+        ],
+        [
+          -2.4868995751603507e-17,
+          0.6126321976016964,
+          0
+        ],
+        [
+          0,
+          0,
+          0.6361839634571307
+        ]
+      ]
+    },
+    "area": 150.79814383234284,
+    "prismaticContext": {
+      "volume": 141.3742141015901,
+      "mass": 0.1413742141015901,
+      "centroid": [
+        0.12345670000000004,
+        -0.2345677999999999,
+        2.8457239000000003
+      ],
+      "method": "closed-form",
+      "inertia": [
+        [
+          0.612632197601709,
+          8.881784197001253e-18,
+          0
+        ],
+        [
+          8.881784197001253e-18,
+          0.612632197601709,
+          0
+        ],
+        [
+          0,
+          0,
+          0.6361839634571554
+        ]
+      ]
+    },
+    "actualD343FullByteEqual": false,
+    "scope": "Baseline wrong native mass is observed, not accepted as accuracy oracle; exact same input fixture must be used for candidate"
+  },
+  "tiny": {
+    "sourceRecipe": {
+      "radius": 3,
+      "height": 2.220446049250313e-16,
+      "centerXY": [
+        0.1234567,
+        -0.2345678
+      ],
+      "zOffset": 0.3456789
+    },
+    "geometry": {
+      "counts": {
+        "bodies": 1,
+        "shells": 1,
+        "faces": 4,
+        "loops": 4,
+        "coedges": 12,
+        "edges": 6,
+        "vertices": 4
+      },
+      "closed": [
+        true
+      ],
+      "bodyKinds": [
+        "solid"
+      ],
+      "faceNames": [
+        "cylinder.side0#2",
+        "cylinder.side0#1",
+        "cylinder.bottom",
+        "cylinder.top"
+      ],
+      "edgeNames": [
+        "cylinder.bottom|cylinder.side0#2",
+        "cylinder.side0#1|cylinder.side0#2#1",
+        "cylinder.side0#2|cylinder.top",
+        "cylinder.side0#1|cylinder.side0#2#2",
+        "cylinder.bottom|cylinder.side0#1",
+        "cylinder.side0#1|cylinder.top"
+      ],
+      "bounds": [
+        [
+          -2.8765433,
+          3.1234567
+        ],
+        [
+          -3.2345677999999998,
+          2.7654322000000002
+        ],
+        [
+          0.3456789,
+          0.34567890000000023
+        ]
+      ],
+      "planarCaps": [
+        "cylinder_b0/cylinder_b0_s0/cylinder_d0_0",
+        "cylinder_b0/cylinder_b0_s0/cylinder_u1_0"
+      ],
+      "curvedWholePatches": [
+        "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_0",
+        "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_1"
+      ],
+      "allWholePatchTestFaces": [
+        "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_0",
+        "cylinder_b0/cylinder_b0_s0/cylinder_w0_0_0_1"
+      ]
+    },
+    "fullInputSha256": "d6974fffc67a62fd0216be91de21b326433237063045316fe3d4a63c8205d892",
+    "inputUnchangedAfterMassAreaValidity": true,
+    "strictCheck": {
+      "valid": true,
+      "issues": [],
+      "counts": {
+        "bodies": 1,
+        "shells": 1,
+        "faces": 4,
+        "loops": 4,
+        "coedges": 12,
+        "edges": 6,
+        "vertices": 4
+      },
+      "topology": [
+        {
+          "body": "cylinder_b0",
+          "vertices": 4,
+          "edges": 6,
+          "faces": 4,
+          "loops": 4,
+          "shells": 1,
+          "genus": 0
+        }
+      ],
+      "maximumVertexGap": 0,
+      "maximumPcurveGap": 4.440892098500626e-16,
+      "maximumEdgeSurfaceGap": 1.1443916996305594e-16
+    },
+    "nativeMass": {
+      "volume": 6.278163296415527e-15,
+      "mass": 6.278163296415527e-18,
+      "centroid": [
+        0.12345669999999997,
+        -0.23456779999999938,
+        0.3456789000000001
+      ],
+      "method": "quadrature",
+      "inertia": [
+        [
+          1.4125867416934425e-17,
+          -6.656013887802287e-34,
+          0
+        ],
+        [
+          -6.656013887802287e-34,
+          1.4125867416934413e-17,
+          -9.860761315262648e-35
+        ],
+        [
+          0,
+          -9.860761315262648e-35,
+          2.825173483386884e-17
+        ]
+      ]
+    },
+    "area": 56.54866776461627,
+    "prismaticContext": {
+      "volume": 6.278163296415536e-15,
+      "mass": 6.2781632964155365e-18,
+      "centroid": [
+        0.12345670000000006,
+        -0.23456779999999994,
+        0.3456789000000001
+      ],
+      "method": "closed-form",
+      "inertia": [
+        [
+          1.4125867416934958e-17,
+          3.6977854932234927e-34,
+          0
+        ],
+        [
+          3.6977854932234927e-34,
+          1.4125867416934958e-17,
+          0
+        ],
+        [
+          0,
+          0,
+          2.8251734833869917e-17
+        ]
+      ]
+    },
+    "actualD343FullByteEqual": false,
+    "scope": "Baseline wrong native mass is observed, not accepted as accuracy oracle; exact same input fixture must be used for candidate"
+  }
+}

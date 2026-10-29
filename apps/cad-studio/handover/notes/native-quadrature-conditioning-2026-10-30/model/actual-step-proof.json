@@ -1,0 +1,198 @@
+[
+  {
+    "source": "c99f8e2424e5d5ed",
+    "properties": {
+      "volume": 6.278163296415527e-15,
+      "area": 56.54866776461627,
+      "centroid": [
+        0.12345669999999997,
+        -0.23456779999999938,
+        0.3456789000000001
+      ],
+      "box": {
+        "min": [
+          -2.8765433000000002,
+          -3.2345677999999998,
+          0.3456789
+        ],
+        "max": [
+          3.1234567000000006,
+          2.7654322000000007,
+          0.34567890000000023
+        ]
+      }
+    },
+    "nativeMass": {
+      "volume": 6.278163296415527e-15,
+      "mass": 6.278163296415527e-18,
+      "centroid": [
+        0.12345669999999997,
+        -0.23456779999999938,
+        0.3456789000000001
+      ],
+      "method": "quadrature",
+      "inertia": [
+        [
+          1.4125867416934425e-17,
+          -6.656013887802287e-34,
+          0
+        ],
+        [
+          -6.656013887802287e-34,
+          1.4125867416934413e-17,
+          -9.860761315262648e-35
+        ],
+        [
+          0,
+          -9.860761315262648e-35,
+          2.825173483386884e-17
+        ]
+      ]
+    },
+    "importedProvider": {
+      "mass": {
+        "volume": 6.278163296415527e-15,
+        "mass": 6.278163296415527e-18,
+        "centroid": [
+          0.12345670000000018,
+          -0.23456779999999963,
+          0.3456789000000001
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            1.4125867416934425e-17,
+            -2.391234618951192e-33,
+            0
+          ],
+          [
+            -2.391234618951192e-33,
+            1.412586741693442e-17,
+            -9.860761315262648e-35
+          ],
+          [
+            0,
+            -9.860761315262648e-35,
+            2.8251734833868844e-17
+          ]
+        ]
+      },
+      "wholePatchFaces": [
+        "n1.side0#2",
+        "n1.side0#1"
+      ],
+      "relativeVolumeDifferenceToRoundedCircleGuide": -1.6653345369377348e-15,
+      "scope": "Separate imported-geometry provider observation; no claim that D344 repairs every trimmed/fallback mass route"
+    },
+    "nativeLevels": [
+      0.3456789,
+      0.34567890000000023
+    ],
+    "readbackLevels": [
+      0.3456789,
+      0.34567890000000023
+    ],
+    "nativeFaces": 4,
+    "readbackFaces": 4,
+    "referenceNodes": 572,
+    "scope": "Target-only default STEP metadata and strict native readback; no material mass or UI-pixel claim"
+  },
+  {
+    "source": "f9969761a7f43e64",
+    "properties": {
+      "volume": 141.37421410159007,
+      "area": 150.79814383234284,
+      "centroid": [
+        0.12345669999999996,
+        -0.23456779999999985,
+        2.8457239
+      ],
+      "box": {
+        "min": [
+          -2.8765433000000002,
+          -3.2345677999999998,
+          0.3456789
+        ],
+        "max": [
+          3.1234567000000006,
+          2.7654322000000007,
+          5.3457689
+        ]
+      }
+    },
+    "nativeMass": {
+      "volume": 141.37421410159007,
+      "mass": 0.14137421410159007,
+      "centroid": [
+        0.12345669999999996,
+        -0.23456779999999985,
+        2.8457239
+      ],
+      "method": "quadrature",
+      "inertia": [
+        [
+          0.6126321976016964,
+          -2.4868995751603507e-17,
+          0
+        ],
+        [
+          -2.4868995751603507e-17,
+          0.6126321976016964,
+          0
+        ],
+        [
+          0,
+          0,
+          0.6361839634571307
+        ]
+      ]
+    },
+    "importedProvider": {
+      "mass": {
+        "volume": 141.37421410159007,
+        "mass": 0.14137421410159007,
+        "centroid": [
+          0.12345670000000014,
+          -0.23456779999999972,
+          2.8457238999999994
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            0.6126321976016966,
+            -5.95079541199084e-17,
+            0
+          ],
+          [
+            -5.95079541199084e-17,
+            0.6126321976016966,
+            0
+          ],
+          [
+            0,
+            0,
+            0.6361839634571307
+          ]
+        ]
+      },
+      "wholePatchFaces": [
+        "n1.side0#2",
+        "n1.side0#1"
+      ],
+      "relativeVolumeDifferenceToRoundedCircleGuide": -2.220446049250313e-16,
+      "scope": "Separate imported-geometry provider observation; no claim that D344 repairs every trimmed/fallback mass route"
+    },
+    "nativeLevels": [
+      0.3456789,
+      5.3457689
+    ],
+    "readbackLevels": [
+      0.3456789,
+      5.3457689
+    ],
+    "nativeFaces": 4,
+    "readbackFaces": 4,
+    "referenceNodes": 572,
+    "scope": "Target-only default STEP metadata and strict native readback; no material mass or UI-pixel claim"
+  }
+]

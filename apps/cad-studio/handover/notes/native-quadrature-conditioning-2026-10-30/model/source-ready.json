@@ -1,0 +1,12 @@
+{
+  "status": "SOURCE_READY_RUNTIME_NOT_RUN",
+  "browserSyntax": "PASS",
+  "modelTests": "NOT_RUN",
+  "typesLintBuild": "NOT_RUN",
+  "browser": "NOT_RUN",
+  "hashes": {
+    "packages/barocss-cad-model/test/native-quadrature-step.test.ts": "e9773733ea16420e7b62c0ecc166dcd5aa4a8e9b5faee1a94a81491153dd5fb0",
+    "apps/cad-studio/test/native-quadrature-step-browser.mjs": "7286429630f31b3daa966c0dce86f2c443d8097b0b3a8b47a2ba7f1e48ab3a09"
+  },
+  "changedSrcFiles": []
+}

@@ -1,0 +1,84 @@
+[
+  {
+    "name": "n1.bottom|n1.side0#2",
+    "differences": [],
+    "knotsEqual": true,
+    "weightsEqual": true
+  },
+  {
+    "name": "n1.side0#2|n1.top",
+    "differences": [],
+    "knotsEqual": true,
+    "weightsEqual": true
+  },
+  {
+    "name": "n1.bottom|n1.side0#1",
+    "differences": [
+      {
+        "pole": 1,
+        "axis": 0,
+        "source": 3.123456699999998,
+        "imported": 3.1234566999999993,
+        "difference": 1.3322676295501878e-15
+      },
+      {
+        "pole": 1,
+        "axis": 1,
+        "source": -3.2345677999999998,
+        "imported": -3.2345678000000007,
+        "difference": -8.881784197001252e-16
+      },
+      {
+        "pole": 3,
+        "axis": 0,
+        "source": -2.8765432999999985,
+        "imported": -2.8765432999999994,
+        "difference": -8.881784197001252e-16
+      },
+      {
+        "pole": 3,
+        "axis": 1,
+        "source": -3.234567799999999,
+        "imported": -3.2345677999999998,
+        "difference": -8.881784197001252e-16
+      }
+    ],
+    "knotsEqual": true,
+    "weightsEqual": false
+  },
+  {
+    "name": "n1.side0#1|n1.top",
+    "differences": [
+      {
+        "pole": 1,
+        "axis": 0,
+        "source": 3.123456699999998,
+        "imported": 3.1234566999999993,
+        "difference": 1.3322676295501878e-15
+      },
+      {
+        "pole": 1,
+        "axis": 1,
+        "source": -3.2345677999999998,
+        "imported": -3.2345678000000007,
+        "difference": -8.881784197001252e-16
+      },
+      {
+        "pole": 3,
+        "axis": 0,
+        "source": -2.8765432999999985,
+        "imported": -2.8765432999999994,
+        "difference": -8.881784197001252e-16
+      },
+      {
+        "pole": 3,
+        "axis": 1,
+        "source": -3.234567799999999,
+        "imported": -3.2345677999999998,
+        "difference": -8.881784197001252e-16
+      }
+    ],
+    "knotsEqual": true,
+    "weightsEqual": false
+  }
+]

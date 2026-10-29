@@ -1,5 +1,14 @@
 # Hand-over (2026-10-28)
 
+## Latest D344 checkpoint — 2026-10-30
+
+- Source `28a80e8695a92e92e5e50f6a5d34c569a02c0e5f`, initial `fbf8a7afb555ee7302bd3c6a6ed9e034a9a8b51a`; seven distinct implementation paths. [Qualification](../native-quadrature-conditioning-2026-10-30/qualification.json). Body-global centering now precedes wholePatch homogeneous weighting; rules/classification/fallback/native geometry/names/API/schema stay unchanged.
+- 572 actual side-node observations and independent native/observed arithmetic isolate the old pre-quotient loss. Old tests6PASS/5FAIL; candidate11PASS/related81PASS; root full2336PASS/6existingSKIP; Model25PASS, types/lint/Studio build/API/generated checks pass. CPU medians ordinary−0.15%, tiny+6.02% over seven batches are observations, not a significant performance claim.
+- Actual run02: one Chrome/two sequential contexts, three target-only STEP exports, actual Offset/Undo/Redo/native save/fresh Open and strict four-face readback retain exact four-ULP caps/names and corrected native volume/center. Four images prove UI presence only. Frozen978/after/cleanup match after an initial14-file subset; errors0/all resources close.
+- Preserve run01 metadata-box equality FAIL. Sampled box growth is one ulp outward; exact cap geometry is unchanged. Test-only correction uses existing1e-7 enclosure while keeping cap/mass checks strict. No global inertia/all11fields/extreme/universal quadrature/fullModelStudio/remoteCI/release claim.
+- Continue remaining08 with the [source-only hole-mask plan](../native-quadrature-conditioning-2026-10-30/next-plan/plan.md), then09;07delivered/Electron15queued. Next decision is D345. Documentation/publication state remains in qualification.json.
+
+
 ## Latest D343 checkpoint — 2026-10-30
 
 - Bounded prismatic longitudinal mass and actual Offset result/cap identity qualification: source `e1ff873c4e0de4dca628c6486c5e99e7b8bcc591`; initial `f9c17c1461ad7814f89d6fefef0e358aac473596`, circle correction `3177950c40077de5b91c9965376636769417d830`. [Qualification](../prismatic-mass-stability-2026-10-30/qualification.json).14 distinct implementation paths; no schema/dependency/tolerance change.

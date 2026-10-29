@@ -1,0 +1,499 @@
+{
+  "delivery": "D344",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": {
+    "publishedHead": "c0fea1174f71fc4f9e83ac4f53978d09884e0ef1"
+  },
+  "sourceCheckpoint": {
+    "initial": "fbf8a7afb555ee7302bd3c6a6ed9e034a9a8b51a",
+    "bboxContractFollowup": "28a80e8695a92e92e5e50f6a5d34c569a02c0e5f",
+    "initialPaths": 7,
+    "followupOverlappingVerificationPaths": 2,
+    "distinctImplementationPaths": 7,
+    "localCommitted": true,
+    "pushed": false
+  },
+  "publication": {
+    "documentationGate": {
+      "status": "PASS",
+      "command": "node apps/library-docs/scripts/check-docs.mjs",
+      "log": "root/check-docs-final.log.gz",
+      "metrics": {
+        "pages": 68,
+        "beingWritten": 0,
+        "shots": 55,
+        "shotKB": 4811,
+        "labels": 861
+      },
+      "scope": "Library structural checks; handover provenance/manifest/staged whitespace separately verified."
+    },
+    "documentationCommit": "THIS_DOCUMENT_COMMIT_AFTER_STAGED_CHECK",
+    "push": "NORMAL_PUSH_REQUESTED_AFTER_THIS_DOCUMENT_COMMIT",
+    "exactRemoteVerification": "ROOT_VERIFIES_AFTER_PUSH; NOTE_CANNOT_EMBED_OWN_COMMIT_HASH",
+    "remoteCI": "NOT_RUN",
+    "release": "NOT_RUN"
+  },
+  "geometry": {
+    "source": "accepted D343 run03 native cylinder",
+    "radius": 3,
+    "sourceHeight": 5.00009,
+    "translation": [
+      0.1234567,
+      -0.2345678,
+      0.3456789
+    ],
+    "actualOffset": -5.00009,
+    "normalInterval": [
+      0.3456789,
+      0.34567890000000023
+    ],
+    "nativeSolids": 1,
+    "closedShells": 1,
+    "faces": 4,
+    "edges": 6,
+    "vertices": 4,
+    "wholePatchSides": 2,
+    "planarCaps": 2,
+    "meshed": false,
+    "sideGaussNodes": 572,
+    "inputUnchanged": true,
+    "nativeCPWeightsKnotsNamesTopologyMeshUnchanged": true
+  },
+  "causalEvidence": {
+    "status": "CAPTURED_FIXTURE_CAUSE_CONFIRMED",
+    "independentExactNativeBasisVolume": 6.2781632964155324e-15,
+    "observedBasisExactNativeProductsVolume": 6.2781632964155324e-15,
+    "observedWorldProductsExactRemainingVolume": 6.382222331984455e-15,
+    "observedWorldColumnsExactRemainingVolume": 6.180191251439208e-15,
+    "maxObservedRelativeNormalDerivativeError": 0.2796108,
+    "scope": "Pre-accumulation world homogeneous products and column-sum conditioning for captured wholePatch fixture; not a universal NURBS diagnosis"
+  },
+  "nativeMass": {
+    "baseline": {
+      "volume": 6.180191251439208e-15,
+      "centroid": [
+        0.10042170557247179,
+        -0.26839177431837347,
+        0.3456789000000001
+      ]
+    },
+    "candidate": {
+      "volume": 6.278163296415527e-15,
+      "centroid": [
+        0.12345669999999997,
+        -0.23456779999999938,
+        0.3456789000000001
+      ],
+      "method": "quadrature"
+    },
+    "actualDownloadedSTEP": {
+      "volume": 6.278163296415527e-15,
+      "centroid": [
+        0.12345670000000014,
+        -0.23456779999999966,
+        0.3456789000000001
+      ],
+      "scope": "Actual exported and fresh-Open exported metadata; not bit-identical centroid claim across all providers/engines"
+    }
+  },
+  "algorithm": {
+    "bodyGlobalOriginBeforeWeightedPoles": true,
+    "projectedLocalPointDirectField": true,
+    "sameOriginForOtherWorldCallers": true,
+    "perFaceOriginFormula": false,
+    "geometryRewrite": false,
+    "newToleranceOrMinimum": false,
+    "centroidClampOrVolumeFactor": false,
+    "preserved": [
+      "native data",
+      "quadrature nodes",
+      "rules",
+      "degree",
+      "basis",
+      "classifiers",
+      "geometric policy",
+      "fallback",
+      "method",
+      "density",
+      "units",
+      "errors",
+      "cache",
+      "API shape",
+      "schema",
+      "dependencies"
+    ],
+    "capturedNoRestClosedTotalFromCentreOnce": true,
+    "legacyMeshedRestGroupConversionsUnchanged": true,
+    "allPathsSingleCallClaim": false
+  },
+  "gates": {
+    "oldRegistered": {
+      "total": 11,
+      "passed": 6,
+      "failed": 5,
+      "status": "EXPECTED_BASELINE_FAILURES_PRESERVED"
+    },
+    "candidateRegistered": {
+      "total": 11,
+      "passed": 11,
+      "failed": 0
+    },
+    "candidateRelatedKernel": {
+      "passed": 81,
+      "failed": 0,
+      "parts": {
+        "massArea": 65,
+        "explicitSIBoundary": 16
+      }
+    },
+    "rootFullKernel": {
+      "total": 2342,
+      "passed": 2336,
+      "failed": 0,
+      "existingSkipped": 6,
+      "duration": 253810.84675,
+      "unit": "ms",
+      "exit": 0,
+      "log": "kernel/full-root-first.log.gz"
+    },
+    "kernelBuild": "PASS",
+    "kernelTypes": "PASS",
+    "kernelNarrowLint": "PASS",
+    "kernelCodeShape": "PASS",
+    "newModelSTEP": {
+      "passed": 2,
+      "failed": 0
+    },
+    "relatedExistingModel": {
+      "passed": 23,
+      "failed": 0
+    },
+    "modelScopedTotal": 25,
+    "modelFullTypes": "PASS",
+    "newModelTestLint": {
+      "status": "PASS",
+      "warnings": 0
+    },
+    "studioTypes": "PASS",
+    "studioVite": {
+      "status": "PASS",
+      "existingWarnings": true
+    },
+    "driverLint": {
+      "status": "PASS",
+      "errors": 0,
+      "consoleWarnings": 1
+    },
+    "apiInventory": "PASS_ROOT_REPORTED",
+    "agentTools": "PASS_ROOT_REPORTED",
+    "refusals": "PASS_ROOT_REPORTED",
+    "countsOverlap": "Focused and related Kernel counts overlap full suite and are not additive",
+    "fullModel": "NOT_RUN",
+    "broadStudioSuite": "NOT_RUN",
+    "bboxFollowup": {
+      "focusedStepPassed": 2,
+      "failed": 0,
+      "modelFullTypes": "PASS",
+      "newTestLint": "PASS",
+      "driverSyntax": "PASS",
+      "driverLint": "PASS_0_ERRORS_1_CONSOLE_WARNING",
+      "scopedModelTotalStill": 25,
+      "countsNote": "Fresh2 replace the previous2 within25; do not add into27"
+    },
+    "generatedAPIRefusals": "PASS_ROOT_REPORTED",
+    "sourceGateReuse": {
+      "status": "VALID_FOR_UNCHANGED_PRODUCT_SOURCE",
+      "receipts": [
+        "Kernel full",
+        "Studio types",
+        "Studio Vite",
+        "API inventory/generated/agenttools/refusals"
+      ],
+      "basis": "Follow-up changes only two verification files; quad696ec and benchmark37d81 remain frozen. Fresh Model types and focused/narrow checks completed."
+    }
+  },
+  "review": {
+    "diagnosisNumericalSource": {
+      "status": "PASS_BOUNDED",
+      "runtime": "NOT_RUN",
+      "stage": "pre-implementation old-source diagnosis and shared-origin contract",
+      "path": "review/numerical-scope-review.md"
+    },
+    "finalImplementationReview": {
+      "status": "PASS_NO_BLOCKING_FINDING",
+      "path": "review/implementation-review.md",
+      "sha256": "5096b7a60ab4a29f4ca48c12b904600f89746011545d3ffe169d0c9e1afb57fa",
+      "source": "696ec924bc4f1d7b74862533676af5e4c0b8a2a284a8a249ea7007dade4c8ed5",
+      "scope": "Frozen implementation and independent test/oracle source review; no all-integral or universal accuracy guarantee"
+    },
+    "stepBoxContract": {
+      "status": "PASS_OVERSTRICT_ORACLE_CLASSIFIED",
+      "path": "review/step-box-review.md",
+      "sha256": "cd2e06c28ac84bcf02e300a2dedff11186b9439a411e29398f9ab84bfc2f583e",
+      "actualFileProof": "step-box/result.json",
+      "finding": "Metadata evaluated extrema may expand outward by one floating step while actual cap/curve/surface coefficients and imported geometry remain exact",
+      "contract": "Finite ordered box; strict all-native-vertex and normal-endpoint enclosure; normal outward expansion <= existing CadNumericPolicy.linearTolerance (1e-7)",
+      "unchangedAssertions": [
+        "exact actual native/import cap levels",
+        "positive four-ULP interval",
+        "strict validity and closure",
+        "face counts and names",
+        "independent volume reference",
+        "strict normal centroid interval",
+        "tangent centroid",
+        "source ownership"
+      ],
+      "productChangesFromContractFix": false,
+      "generalRigorousBoundsCertificate": false
+    }
+  },
+  "apiShape": {
+    "added": 0,
+    "removed": 0,
+    "existingChanges": 0,
+    "note": "Private arithmetic intentionally changes numeric results; zero API shape changes does not mean zero behavior change"
+  },
+  "stepConsumer": {
+    "route": "Studio Export STEP -> engine.step worker -> exportStudioStep -> exportStep default geometric validation properties",
+    "nativeProviderUsed": true,
+    "uprightOverride": false,
+    "nativeMassWireOverride": false,
+    "targetOnly": true,
+    "units": {
+      "length": "mm",
+      "area": "mm^2",
+      "volume": "mm^3"
+    },
+    "nodeMetadataReference": "Independent rational stored-node native Gauss V/X/Y plus separate rounded-pi guide",
+    "nodeStrictImport": {
+      "status": "PASS",
+      "closedSolidCount": 1,
+      "faces": 4,
+      "exactCapLevelsPreserved": true,
+      "namesPreserved": true
+    },
+    "importedMassScope": "Separate observation; these fixtures use wholePatch quadrature; no general trimmed/fallback or STEP migration claim",
+    "actualBrowser": "SCOPED_PASS",
+    "tinyFreshMetadataSemanticEquality": true
+  },
+  "performance": {
+    "status": "LOCAL_PAIR_CAPTURED_NO_SIGNIFICANCE_OR_SPEED_CLAIM",
+    "node": "22.19.0",
+    "warmupBatches": 3,
+    "measuredBatches": 7,
+    "freshBRepsPerBatch": 32,
+    "density": 1,
+    "quadratureSegments": 8,
+    "unit": "ms",
+    "ordinary": {
+      "baselinePerQuery": 0.37814715624999984,
+      "candidatePerQuery": 0.37758593750000014,
+      "relativeMedianChange": -0.0014841279134958363
+    },
+    "tiny": {
+      "baselinePerQuery": 0.32841275000000003,
+      "candidatePerQuery": 0.3481745000000007,
+      "relativeMedianChange": 0.06017351640580548
+    },
+    "inputBytesEqual": true,
+    "sameBenchmarkBytes": true,
+    "timed": "first mass call loop, output array and one receipt store",
+    "untimed": "fixture construction and fresh clones",
+    "perQueryDefinition": "batch median /32, not individual query samples",
+    "limits": [
+      "7 sample local pair",
+      "no statistical significance",
+      "no performance acceptance threshold",
+      "no UI latency",
+      "no tail SLO",
+      "accuracy priority"
+    ],
+    "rawEvidence": "perf/comparison.json"
+  },
+  "actualBrowser": {
+    "status": "PASS_RUN02_SCOPED",
+    "run": "/tmp/d344-studio/run-02",
+    "numericVerdict": "TARGET_ONLY_DEFAULT_STEP_METADATA_AND_STRICT_NATIVE_READBACK_PASS",
+    "visualVerdict": "ROOT_4_IMAGES_SCOPED_UI_PRESENCE_PASS",
+    "rootFlowReview": "root/flow-review-run02.json",
+    "imagesViewed": [
+      {
+        "path": "studio/run-02/02-original-step.png",
+        "sha256": "e99c22c94b7b9c70b3f58c63fe6ae515caad69c8e5cb223cf748c4bc46376462"
+      },
+      {
+        "path": "studio/run-02/04-offset-preview.png",
+        "sha256": "62d54f3613932f2f982544338c579169f5d9047e2ec8e36ff31f559730ab41cf"
+      },
+      {
+        "path": "studio/run-02/06-thin-step.png",
+        "sha256": "566cd2ef2c2b35e423f6114807a2ef17760916a2d36459cc51a1bfd93e1778a9"
+      },
+      {
+        "path": "studio/run-02/10-fresh-open-step.png",
+        "sha256": "ddc94212c0db8e19b5725bc17bf31a2066ec16644f46cc1f9335ad3d4424acea"
+      }
+    ],
+    "visualBoundary": "Images and rounded zero mass/bounds labels cannot prove four-ULP thickness or raw native mass; independent downloaded scalar and strict native readback checks are separate authority.",
+    "observations": {
+      "chromeProcesses": 1,
+      "serialContexts": 2,
+      "observations": 10,
+      "nativeReads": 4,
+      "actualSTEPExports": 3,
+      "nativeSaveDownloads": 1,
+      "allDownloads": 4,
+      "actualMousePicks": 1,
+      "actualOffsetCommands": 1,
+      "nativeFiles": 1,
+      "undoRedo": true,
+      "freshNativeOpen": true,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "watchedChanges": 0,
+      "initialSubsetSources": 14,
+      "frozenSources": 978,
+      "afterSources": 978,
+      "cleanupSources": 978
+    },
+    "countsAreTests": false,
+    "sourceHashesMatch": true,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "sourceCheckpoint": "28a80e8695a92e92e5e50f6a5d34c569a02c0e5f",
+    "tinyFreshMetadataSemanticEquality": true,
+    "nativeImportedNormalLevelsExact": [
+      0.3456789,
+      0.34567890000000023
+    ],
+    "strictNativeReadbackFaces": 4,
+    "namesStable": true,
+    "tinyMetadata": {
+      "volume": 6.278163296415527e-15,
+      "area": 56.5486677646163,
+      "centroid": [
+        0.12345670000000014,
+        -0.23456779999999966,
+        0.3456789000000001
+      ],
+      "box": {
+        "min": [
+          -2.8765433000000002,
+          -3.2345677999999998,
+          0.3456789
+        ],
+        "max": [
+          3.1234567000000006,
+          2.7654322000000007,
+          0.3456789000000003
+        ]
+      }
+    },
+    "bboxMaximumIsNotCapPlane": true,
+    "firstRun": {
+      "status": "FAIL",
+      "run": "/tmp/d344-studio/run-01",
+      "phase": "native and STEP observation 02-original-step-readback",
+      "failure": {
+        "assertion": "Exact ordinary STEP metadata box maximum Z equals native vertex maximum Z",
+        "actual": 5.345768900000001,
+        "expected": 5.3457689,
+        "classification": "OVERSTRICT_METADATA_BOX_EQUALS_AUTHORED_CAP_ORACLE"
+      },
+      "ordinarySTEPDownloaded": true,
+      "strictImportReached": false,
+      "actualTinyOffsetReached": false,
+      "actualTinySTEPReached": false,
+      "numericVerdict": "FAIL_AT_FIRST_ORDINARY_METADATA_ASSERTION",
+      "visualVerdict": "ROOT_VIEWED_FAILURE_IMAGE; no tiny UI/numeric qualification",
+      "observations": {
+        "chromeProcesses": 1,
+        "contexts": 1,
+        "states": 2,
+        "nativeReads": 1,
+        "exports": 1,
+        "downloads": 1,
+        "mousePicks": 0,
+        "nativeSaves": 0,
+        "pageErrors": 0,
+        "consoleErrors": 0,
+        "watchChanges": 0,
+        "initialSubsetSources": 14,
+        "frozenSources": 978,
+        "cleanupSources": 978
+      },
+      "countsAreTests": false,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "gate": "RELEASED",
+      "sourceUnchanged": true,
+      "sourceCheckpoint": "fbf8a7afb555ee7302bd3c6a6ed9e034a9a8b51a",
+      "partialOutputUsedAsPass": false
+    },
+    "cleanFirstRunPass": false
+  },
+  "sourceHashes": {
+    "quadrature": "696ec924bc4f1d7b74862533676af5e4c0b8a2a284a8a249ea7007dade4c8ed5",
+    "solidMassUnchanged": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac",
+    "capProducerUnchanged": "17f2b70b5ecbe0b1ab7912636d780fa1594469804f4af7fb48365212bc802f5a",
+    "benchmark": "37d81a207f097d7cb35d859200db64f716d0c38d30ed8a79b3d79e60ab4c39a9",
+    "modelTest": "d40272434fcd89d614387937f07a6fda69bb5255d7e7a5235fdecf1bc9352af0",
+    "browserDriver": "f2d24cc98e7832ae2cbb7b0ffd3674ca0688acbbb30ecc8905dd295ab7b0a038"
+  },
+  "retainedHistory": [
+    "Old registered 6 PASS /5 FAIL",
+    "First build wrong working directory; no tests executed",
+    "Typed-array versus JSON representation comparison mismatch; corrected data comparison retained",
+    "Nonexistent named SI test provided no coverage; explicit existing SI/boundary files ran16 PASS",
+    "Initial perf syntax duplicated package path",
+    "Existing unused XZ lint error repaired",
+    "Final exact-byte benchmark baseline rerun before candidate comparison",
+    "No first runtime failure in final Node STEP stage",
+    "Actual browser run-01 first failure and run-02 scoped PASS retained",
+    "Actual run-01 ordinary box equality failure preserved. High actual-file probe and independent review classify overstrict metadata oracle. Test-only contract fix; actual run-02 later passes. No Core/STEP/quad change.",
+    "Exact source checkpoint fbf8a7\u2026 preserved; verification-only follow-up28a80e\u2026 and matching source runtime run02 retained; no clean first-run PASS"
+  ],
+  "limits": [
+    "No exact pi theorem",
+    "No exact integration theorem",
+    "No all-11-integrals certificate",
+    "No central-inertia accuracy certificate",
+    "No all-finite-input guarantee",
+    "No all-fallback or all-trimmed provider guarantee",
+    "No general STEP migration",
+    "No entire item16 completion",
+    "No remote CI or release claim"
+  ],
+  "next": {
+    "status": "SOURCE_ONLY_NEXT_PLAN_NOT_IMPLEMENTED",
+    "candidate": "ordinary remaining08",
+    "plan": "/tmp/d345-plan",
+    "action": "Determine actual remaining hole-mask gap from source and preserved evidence",
+    "wholeItem16Completed": false,
+    "remaining09": "AFTER_08",
+    "electron15": "QUEUED"
+  },
+  "ownership": {
+    "thisDraftOnly": [
+      "README.md",
+      "report.ko.md",
+      "qualification.json"
+    ],
+    "root": [
+      "assembler",
+      "repository documents",
+      "roadmap",
+      "D344 decision",
+      "browser final review",
+      "document gate",
+      "publication"
+    ]
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "status": "SUPERSEDED_BY_EXECUTED_BASELINE_REPORT",
+  "runtime": "BASELINE_COMPLETED_CANDIDATE_NOT_RUN",
+  "repositoryEdits": [],
+  "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "publishedBase": "c0fea1174f71fc4f9e83ac4f53978d09884e0ef1",
+  "node": "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node",
+  "existingTool": {
+    "path": "packages/barocss-cad/scripts/perf-bench.mjs",
+    "sha256": "04a74e4a283d89eec554cb8847d42d7de2fb027785fd61c6f0cbc2906b3c6685",
+    "modes": [
+      "run",
+      "save",
+      "compare",
+      "shape-save",
+      "shape-compare"
+    ],
+    "caseFilter": "exact-name CSV",
+    "runsDefault": 3,
+    "warmupSupported": false,
+    "rawSamplesSupported": false,
+    "timeOutput": "rounded integer median ms",
+    "reads": "built dist; rebuild each source before measurement"
+  },
+  "cache": {
+    "key": "BRep object identity and quadratureSegments",
+    "implementation": "WeakMap<Brep,Map<number,integrals|null>>",
+    "defaultQuadratureSegments": 8,
+    "densityInvalidates": false,
+    "massAndAreaShareIntegrals": true
+  },
+  "existingControl": {
+    "case": "direct-thread-long-construction-first-mass",
+    "runs": 5,
+    "timed": "fresh thread construction + first mass",
+    "pureWholePatchMass": false,
+    "subtractConstructionMedian": false
+  },
+  "proposal": {
+    "requiresRootApproval": true,
+    "onlyRepoFile": "packages/barocss-cad/scripts/perf-bench.mjs",
+    "cases": [
+      "native-cylinder-ordinary-first-mass",
+      "native-cylinder-tiny-first-mass"
+    ],
+    "density": 1,
+    "quadratureSegments": 8,
+    "warmupBatches": 3,
+    "measuredBatches": 11,
+    "freshBRepsPerBatch": 32,
+    "prepareUntimed": [
+      "public producer fixture",
+      "fresh clone pool",
+      "geometry qualification"
+    ],
+    "timed": "one first brepMassProperties call per fresh BRep, batch loop",
+    "postTimed": [
+      "receipt",
+      "JSON",
+      "hash",
+      "independent reference"
+    ],
+    "fixtureQualification": "actual D343 native geometry structure and wholePatch route must be checked, not assumed",
+    "ordinary": {
+      "radius": 3,
+      "centerXY": [
+        0.1234567,
+        -0.2345678
+      ],
+      "z0": 0.3456789,
+      "height": 5
+    },
+    "tiny": {
+      "radius": 3,
+      "centerXY": [
+        0.1234567,
+        -0.2345678
+      ],
+      "lo": 0.3456789,
+      "hi": 0.34567890000000023
+    },
+    "pilotPolicy": "if batches too short, fix batch 128 before final baseline and use same setting for candidate"
+  },
+  "separateQualification": [
+    "strict validity",
+    "actual body/shell closure and topology counts",
+    "names",
+    "exact input native geometry JSON and CP/weights/knots/domain",
+    "wholePatch classification on separate object",
+    "method",
+    "input unchanged after query",
+    "independent represented-endpoint midpoint/span",
+    "circle symmetry and independent volume integration",
+    "rounded pi guide only"
+  ],
+  "limits": [
+    "wrong baseline native volume and tangent centroid are not accuracy references",
+    "mass fingerprint may intentionally change",
+    "shape-compare volume must not enforce known wrong baseline",
+    "no timed checksum oracle",
+    "no performance claim from accuracy probe",
+    "no runtime before root permission and High heavy release"
+  ],
+  "sourceObserved": {
+    "solid-mass.ts": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac",
+    "brep-mass-quadrature.ts": "8ecf18b6338a403b9b541bd04716f9a9168bd45fc9a4ceeb00141e72cc9798a6"
+  },
+  "currentReceipt": "/tmp/d344-perf/baseline-report.json"
+}

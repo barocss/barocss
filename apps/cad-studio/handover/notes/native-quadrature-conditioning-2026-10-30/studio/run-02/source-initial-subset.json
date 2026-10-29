@@ -1,0 +1,19 @@
+{
+  "count": 14,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "fe299d25d6fe83b7063b6a9399162cdfa79bba22d6bb038b6edcc8bdbf215a69",
+    "apps/cad-studio/src/engine/client.ts": "9bb19fdca69b58951f80bf9809a0b86d048f19d427e2a525eeef1c484ce27b12",
+    "apps/cad-studio/src/engine/engine.worker.ts": "d9b99c51fbe2bf98bf32f4d6e97afea551ff6c316b038fbfdad0f2af7130b9df",
+    "apps/cad-studio/src/files/useModelExports.ts": "d6792a33289aa85b8430b9b9b92fa3d0760be995604c8bafe093a9bb00276e96",
+    "apps/cad-studio/test/native-quadrature-step-browser.mjs": "f2d24cc98e7832ae2cbb7b0ffd3674ca0688acbbb30ecc8905dd295ab7b0a038",
+    "packages/barocss-cad-model/src/app/nativeOffsetFace.ts": "2112393a89e38f9ff02e6fc3aaa2be6446e9bca31e87f1b2d4129c83b083c847",
+    "packages/barocss-cad-model/src/app/profileCommands.ts": "8a1fdc9adb080cae39edc1ed34c1c591e5e87095b79e79cc53e48df94be231fd",
+    "packages/barocss-cad-model/src/engine/evaluate.ts": "e19916805fca12e41bca23acba3bcf6878efcc636d600e372a3c2320c37b1c59",
+    "packages/barocss-cad-model/src/engine/nativeMassWire.ts": "200c63f5608c01948f5e34dc8c594847918206c537757f080b4aaa3b04085e7c",
+    "packages/barocss-cad/src/brep/brep-mass-quadrature.ts": "696ec924bc4f1d7b74862533676af5e4c0b8a2a284a8a249ea7007dade4c8ed5",
+    "packages/barocss-cad/src/brep/solid-mass.ts": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac",
+    "packages/barocss-cad/src/io/step-import.ts": "be6de1945a86e37a64b058714cae993cfa9072bc9b0ca0b2d2da6e2c6e986a1d",
+    "packages/barocss-cad/src/io/step.ts": "4f175e4293ae4310100f017c1b978bb70baa401fedf4d1380e811a6bf4970db8",
+    "packages/barocss-cad/test/helpers/native-quadrature-oracle.mjs": "240bdab4bc858bec60d2bb97a991f3224403bfcb2a66424f42a34a99582d4a81"
+  }
+}

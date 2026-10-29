@@ -1,0 +1,11 @@
+{
+  "head": "c0fea1174f71fc4f9e83ac4f53978d09884e0ef1",
+  "hashes": {
+    "packages/barocss-cad/src/brep/brep-mass-quadrature.ts": "8ecf18b6338a403b9b541bd04716f9a9168bd45fc9a4ceeb00141e72cc9798a6",
+    "packages/barocss-cad/src/brep/solid-mass.ts": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac",
+    "packages/barocss-cad/src/features/prismatic-solid.ts": "17f2b70b5ecbe0b1ab7912636d780fa1594469804f4af7fb48365212bc802f5a",
+    "packages/barocss-cad/dist/brep/brep-mass-quadrature.js": "a2545b5f87adda0ead54d9b81cddd27f5fef9e1eb6766145923666a735f8978b",
+    "packages/barocss-cad/dist/brep/solid-mass.js": "5a45147aa0980a88a456e17226cc8c0f18dcc482e69fc1e8401af3d62af6dbe2",
+    "packages/barocss-cad/dist/features/prismatic-solid.js": "66db82c485ad2ab7efbe622bed018bc3f6a211fab84ff333c0eee0ab11643d39"
+  }
+}
