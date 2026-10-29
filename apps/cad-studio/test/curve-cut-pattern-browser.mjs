@@ -1,5 +1,6 @@
 // D334: one serial WebGPU profile. Public controls edit; development hooks only observe.
 // PW_DIR=/absolute/playwright CHROME=/absolute/chrome node test/curve-cut-pattern-browser.mjs /absolute/artifacts
+// D334_RESUME_FILE=/absolute/edited.bcad runs only the live-path tail of the retained count-four prefix.
 import assert from 'node:assert/strict';
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
@@ -8,6 +9,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { createServer } from 'vite';
+import { compileCadModel } from '../../../packages/barocss-cad/dist/index.js';
 
 assert.ok(process.env.PW_DIR && process.env.CHROME && process.argv[2], 'PW_DIR, CHROME and artifact directory are required');
 const app = resolve(import.meta.dirname, '..'), output = resolve(process.argv[2]);
@@ -23,6 +25,9 @@ const seed = part('Path cut seed').box({w:60,d:40,h:10})
   .subtract(p => p.box({w:4,d:2,h:10,x:0,y:8}).moved(Location.at([8,0,0])));
 assert.ok(Math.abs(seed.mass({density:1}).volume - 23920) < 1e-7);
 writeFileSync(process.argv[2], JSON.stringify(seed.doc,null,2)+'\\n');`;
+const resumeFile = process.env.D334_RESUME_FILE;
+if (resumeFile) assert.equal(resolve(resumeFile), resumeFile, 'D334_RESUME_FILE must be absolute');
+report.mode = resumeFile ? 'RESUME_LIVE_PATH_TAIL' : 'FULL_FLOW';
 const hud = () => page.getByRole('dialog', { name: 'Path cut pattern', exact: true });
 // Independent stock-minus-prisms first moments, fixed asymmetric 4×2×10 cutter orientation.
 function centroid(minima) {
@@ -37,9 +42,12 @@ function authoredCurve(doc, objectId) {
   const object = doc.direct.objects.find(object => object.id === objectId);
   assert.ok(object, 'the same live path object exists');
   const source = doc.direct.sources[object.source];
-  assert.equal((source.match(/@curve\s+#/g) ?? []).length, 1, 'one authored curve');
-  const field = name => { const value = source.match(new RegExp(`${name}\\s*:\\s*(.*?);`, 's'))?.[1]; assert.ok(value, name); return JSON.parse(value); };
-  return { degree: field('degree'), knots: field('knots'), points: field('control-points'), weights: field('weights') };
+  const result = compileCadModel(source, { sourceVersion: 0 });
+  assert.ok(result.ok, JSON.stringify(result.diagnostics));
+  const curves = result.model.objects.filter(geometry => geometry.id === object.geometry);
+  assert.equal(curves.length, 1, 'one current object geometry');
+  const curve = curves[0]; assert.equal(curve.kind, 'curve');
+  return { degree: curve.degree, knots: curve.knots, points: curve.controlPoints, weights: curve.weights };
 }
 function closePoints(actual, expected) {
   assert.equal(actual.length, expected.length);
@@ -118,18 +126,32 @@ async function editCount(count, volume, locations) {
   assert.deepEqual(after.nodes.at(-1).path, before.nodes.at(-1).path); assert.deepEqual(after.nodes.slice(0, -1), before.nodes.slice(0, -1));
 }
 try {
+  let pathObject;
+  const seedFile = join(output, 'seed.bcad');
+  if (!resumeFile) {
   const built = await build({ stdin: { contents: generator, resolveDir: app, sourcefile: 'path-cut-seed.ts', loader: 'ts' }, bundle: true, platform: 'node', format: 'esm', target: 'node22', write: false, metafile: true });
-  const bundle = join(output, 'seed-generator.mjs'), seedFile = join(output, 'seed.bcad');
+  const bundle = join(output, 'seed-generator.mjs');
   await writeFile(join(output, 'seed-generator.ts'), generator); await writeFile(bundle, built.outputFiles[0].contents);
   await writeFile(join(output, 'seed-metafile.json'), JSON.stringify(built.metafile, null, 2));
   const run = spawnSync(process.execPath, [bundle, seedFile], { encoding: 'utf8' });
   await writeFile(join(output, 'seed.stdout.txt'), run.stdout ?? ''); await writeFile(join(output, 'seed.stderr.txt'), run.stderr ?? ''); assert.equal(run.status, 0, run.stderr);
   report.seed = { file: seedFile, sha256: hash(await readFile(seedFile)), generatorSHA256: hash(generator), bundleSHA256: hash(built.outputFiles[0].contents) };
+  }
   phase = 'actual Studio start';
   server = await createServer({ root: app, configFile: join(app, 'vite.config.ts'), server: { host: '127.0.0.1', port: 0 }, logLevel: 'error' });
   server.watcher.on('change', file => report.changes.push(file)); await server.listen();
   const { chromium } = createRequire(join(process.env.PW_DIR, 'package.json'))('playwright');
   browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true, args: ['--enable-unsafe-webgpu'] });
+  if (resumeFile) {
+    phase = 'public Open accepted count-four prefix for live-path tail';
+    const bytes = await readFile(resumeFile), doc = JSON.parse(bytes), node = doc.nodes.at(-1);
+    assert.equal(node.kind, 'curve-feature-pattern'); assert.equal(node.count, 4); assert.equal(node.spacing, 8);
+    assert.ok(node.path.objectId); pathObject = doc.direct.objects.find(object => object.id === node.path.objectId); assert.ok(pathObject);
+    report.resume = { file: resumeFile, sha256: hash(bytes), prefix: 'NOT_RERUN: original creation/edit/file receipt retained separately' };
+    await freshPage(); await page.setInputFiles('input[aria-label="Model file"]', resumeFile);
+    await sameDocAndMass(doc, 23680, minima.slice(0, 4)); await snapshot('resume-count4-prefix');
+    closePoints(authoredCurve(doc, pathObject.id).points, [[0, 0, 0], [8, 0, 0], [16, 0, 0], [16, 8, 0], [16, 16, 0]]);
+  } else {
   await freshPage(); await page.setInputFiles('input[aria-label="Model file"]', seedFile); await ready(23920); await snapshot('01-seed');
   phase = 'public sketch and Make curves'; await command('Sketch'); await page.getByRole('complementary', { name: 'Sketch', exact: true }).waitFor();
   await page.getByRole('button', { name: 'Line', exact: true }).click();
@@ -142,7 +164,7 @@ try {
   await page.getByRole('button', { name: 'Make curves', exact: true }).click();
   await page.waitForFunction(() => window.__studioDoc.direct?.objects.length === 1);
   await ready(23920);
-  const pathState = await snapshot('02-made-path'), pathObject = pathState.doc.direct?.objects.at(-1); assert.ok(pathObject);
+  const pathState = await snapshot('02-made-path'); pathObject = pathState.doc.direct?.objects.at(-1); assert.ok(pathObject);
   report.pathObjectId = pathObject.id;
   const madeCurve = authoredCurve(pathState.doc, pathObject.id);
   assert.equal(madeCurve.degree, 2); assert.deepEqual(madeCurve.knots, [0, 0, 0, 1, 1, 2, 2, 2]);
@@ -172,6 +194,7 @@ try {
   await editCount(4, 23680, minima.slice(0, 4)); await snapshot('09-count-edit');
   const edited = await save('edited'); await freshPage(); await page.setInputFiles('input[aria-label="Model file"]', edited.file); await ready(23680, centroid(minima.slice(0, 4)));
   assert.deepEqual(await page.evaluate(() => window.__studioDoc), edited.doc); await snapshot('10-edited-fresh-open');
+  }
   phase = 'consumed path Move candidate';
   const moved = await movePath(pathObject.id, [3, 4, 0], 23680, minima.slice(0, 4));
   await snapshot('11-consumed-path-move');
