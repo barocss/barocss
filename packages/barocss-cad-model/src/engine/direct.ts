@@ -76,7 +76,24 @@ export function importIGESFile(d: DirectGeometry, text: string, label: string): 
 
 const object = (d: DirectGeometry, id: string) => { const o = d.objects.find(x => x.id === id); if (!o) throw refusal('DIRECT_PICK', 'No such object.'); return o; };
 const curveOf = (d: DirectGeometry, id: string) => { const g = geometryOf(d, object(d, id)); if (g.kind !== 'curve') throw refusal('DIRECT_PICK', 'Pick a curve.'); return g; };
+const selectedSurface = (d: DirectGeometry, id: string) => {
+  const o = object(d, id), surface = geometryOf(d, o);
+  if (surface.kind !== 'surface') throw refusal('DIRECT_PICK', 'Pick a surface.');
+  return { object: o, surface };
+};
 const surfaceOf = (d: DirectGeometry, id: string) => { const g = geometryOf(d, object(d, id)); if (g.kind !== 'surface') throw refusal('DIRECT_PICK', 'Pick a surface.'); return g; };
+
+/** Refuse consumers that use only the support surface and cannot carry its trims. */
+function requireWholeSurface(o: DirectObject, operation: string, code: 'DIRECT_VALUE' | 'DIRECT_INTERSECT' | 'IGES_EXPORT'): void {
+  if (o.trims !== undefined && (!Array.isArray(o.trims) || o.trims.length > 0)) {
+    throw refusal(code, `This operation does not preserve surface trims (${operation}). Use Untrim first only if you want to remove the trims.`);
+  }
+}
+function wholeSurfaceOf(d: DirectGeometry, id: string, operation: string): Surface {
+  const picked = selectedSurface(d, id);
+  requireWholeSurface(picked.object, operation, 'DIRECT_VALUE');
+  return picked.surface;
+}
 
 /** Add a result source with new objects; hide the objects they came from. */
 function add(d: DirectGeometry, from: string[], text: string, made: { geometry: string; name: string }[]): DirectGeometry {
@@ -129,11 +146,11 @@ export const directOps = {
     return refine(d, id, r.source);
   },
   splitSurface(d: DirectGeometry, id: string, axis: 'u' | 'v', p: number) {
-    const used = usedIds(d), r = splitSurfaceAtParameter(surfaceOf(d, id), { axis, parameter: p, lowerSurfaceId: fresh(used, 'lower'), upperSurfaceId: fresh(used, 'upper') });
+    const s = wholeSurfaceOf(d, id, 'Split surface'), used = usedIds(d), r = splitSurfaceAtParameter(s, { axis, parameter: p, lowerSurfaceId: fresh(used, 'lower'), upperSurfaceId: fresh(used, 'upper') });
     return add(d, [id], r.source, [{ geometry: r.lower.id, name: `${nameOf(d, id)} · ${axis} lower` }, { geometry: r.upper.id, name: `${nameOf(d, id)} · ${axis} upper` }]);
   },
   surfaceRegion(d: DirectGeometry, id: string, u: [number, number], v: [number, number]) {
-    const used = usedIds(d), r = extractSurfaceRegion(surfaceOf(d, id), { surfaceId: fresh(used, 'region'), uInterval: u, vInterval: v, resultIdPrefix: freshPrefix(used, 'rg') });
+    const s = wholeSurfaceOf(d, id, 'Extract region'), used = usedIds(d), r = extractSurfaceRegion(s, { surfaceId: fresh(used, 'region'), uInterval: u, vInterval: v, resultIdPrefix: freshPrefix(used, 'rg') });
     return add(d, [id], r.source, [{ geometry: r.surface.id, name: `${nameOf(d, id)} · region` }]);
   },
   isoCurve(d: DirectGeometry, id: string, axis: 'u' | 'v', p: number) {
@@ -142,7 +159,7 @@ export const directOps = {
     return add(d, [], r.source, [{ geometry: r.curve.id, name: `${nameOf(d, id)} · ${axis} = ${p}` }]);
   },
   reverseSurface(d: DirectGeometry, id: string, axis: 'u' | 'v') {
-    const used = usedIds(d), r = reverseSurfaceAxis(surfaceOf(d, id), { surfaceId: fresh(used, 'reversed'), axis, resultIdPrefix: freshPrefix(used, 'sr') });
+    const s = wholeSurfaceOf(d, id, 'Reverse surface'), used = usedIds(d), r = reverseSurfaceAxis(s, { surfaceId: fresh(used, 'reversed'), axis, resultIdPrefix: freshPrefix(used, 'sr') });
     return add(d, [id], r.source, [{ geometry: r.surface.id, name: `${nameOf(d, id)} · ${axis} reversed` }]);
   },
   insertSurfaceKnot(d: DirectGeometry, id: string, axis: 'u' | 'v', knot: number) {
@@ -215,7 +232,7 @@ export const directOps = {
   extendSurface(d: DirectGeometry, id: string, edge: 'u-min' | 'u-max' | 'v-min' | 'v-max', distance: number) {
     if (!(distance > 0)) throw refusal('DIRECT_VALUE', 'Extend by a positive distance.');
     // (12 rows of the surface and 4 beyond it, 16 across: the most poles a surface takes each way.)
-    const s = surfaceOf(d, id), dom = surfaceDomain(s), n = 11, across = 15, extra = 4, alongU = edge.startsWith('u'), atMax = edge.endsWith('max');
+    const s = wholeSurfaceOf(d, id, 'Extend surface'), dom = surfaceDomain(s), n = 11, across = 15, extra = 4, alongU = edge.startsWith('u'), atMax = edge.endsWith('max');
     const [a0, a1] = alongU ? dom.u : dom.v, [b0, b1] = alongU ? dom.v : dom.u;
     const S = (a: number, b: number) => alongU ? evaluateSurface(s, a, b) : evaluateSurface(s, b, a);
     // Rows across the extended direction: the surface's own, then straight on along the unit tangent at the edge.
@@ -354,7 +371,10 @@ export function curvePlaneCrossings(d: DirectGeometry, id: string, axis: 'x' | '
  * why not: none where they do not meet, refused where they touch or overlap along a curve.
  */
 export function surfaceIntersection(d: DirectGeometry, a: string, b: string): { direct: DirectGeometry; count: number } {
-  const A = surfaceOf(d, a), B = surfaceOf(d, b), da = surfaceDomain(A), db = surfaceDomain(B);
+  const first = selectedSurface(d, a), second = selectedSurface(d, b);
+  requireWholeSurface(first.object, 'Intersect surfaces', 'DIRECT_INTERSECT');
+  requireWholeSurface(second.object, 'Intersect surfaces', 'DIRECT_INTERSECT');
+  const A = first.surface, B = second.surface, da = surfaceDomain(A), db = surfaceDomain(B);
   // Past its domain a patch runs on along its tangent plane (so the marcher's corrections converge at an edge).
   const patch = (s: Surface, dom: { u: [number, number]; v: [number, number] }) => ({
     at: (p: [number, number]) => {
@@ -509,7 +529,12 @@ export function directIGES(d: DirectGeometry, name = 'barocss_part'): string {
   const visible = d.objects.filter(o => !o.hidden);
   if (!visible.length) throw refusal('IGES_EXPORT', 'There are no visible curves or surfaces to export.');
   if (visible.length > 16) throw refusal('IGES_EXPORT', 'IGES export takes at most 16 curves and surfaces: hide some first.');
-  const objects = visible.map(o => ({ ...geometryOf(d, o), id: o.id }));
+  const objects: (Curve | Surface)[] = [];
+  for (const o of visible) {
+    const g = geometryOf(d, o);
+    if (g.kind === 'surface') requireWholeSurface(o, 'Export IGES', 'IGES_EXPORT');
+    objects.push({ ...g, id: o.id });
+  }
   const model: Model = { name: name.replace(/[^A-Za-z0-9_]/g, '_').replace(/^[^A-Za-z_]/, '_').slice(0, 64) || 'part', version: 0, lengthUnit: 'mm', objects };
   return exportIGES(model, objects.map(o => o.id)).iges;
 }
