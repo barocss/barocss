@@ -14,7 +14,35 @@ const { buildCylindricalWrapNativeBoundAssembly } = await import(`${D}/features/
 const { certifyCylindricalWrapFormalPadMass } = await import(`${D}/features/cylindrical-wrap-formal-mass.js`);
 const { buildCylindricalWrapClosedReference } = await import(`${D}/features/cylindrical-wrap-closed-reference.js`);
 const doc = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
-const fp = x => createHash('sha256').update(JSON.stringify(x, (k, v) => (v instanceof Float32Array || v instanceof Float64Array || v instanceof Uint32Array) ? Array.from(v) : v)).digest('hex').slice(0, 16);
+const fp = x => createHash('sha256').update(JSON.stringify(threadFingerprint(x), (k, v) => (v instanceof Float32Array || v instanceof Float64Array || v instanceof Uint32Array) ? Array.from(v) : v)).digest('hex').slice(0, 16);
+// New thread cases still return actual B-reps, so shape-save/compare retain their existing meaning.
+// Construction-only cases calculate their acceptance mass after the runner stops its timer, in fp().
+// The first-mass case computes it inside its timer on a freshly constructed B-rep: construction + first mass,
+// never cached mass alone. Do not subtract the two case medians to claim a pure mass time.
+const threadMassReceipts = new WeakMap();
+function threadBenchmark(brep, includeFirstMass = false) {
+  threadMassReceipts.set(brep, includeFirstMass ? K.brepMassProperties(brep, 1) : null);
+  return brep;
+}
+function binary64(value) {
+  const bytes = Buffer.allocUnsafe(8);
+  bytes.writeDoubleBE(value);
+  return bytes.toString('hex');
+}
+function threadFingerprint(brep) {
+  if (!threadMassReceipts.has(brep)) return brep;
+  const mass = threadMassReceipts.get(brep) ?? K.brepMassProperties(brep, 1);
+  return { brep, mass, massBits: {
+    volume: binary64(mass.volume), mass: binary64(mass.mass),
+    centroid: mass.centroid.map(binary64), inertia: mass.inertia.map(row => row.map(binary64)),
+    ...(mass.volumeBound === undefined ? {} : { volumeBound: binary64(mass.volumeBound) }),
+  } };
+}
+function directLongThread() {
+  return K.threadSolid({ id: 'th', diameter: 6, pitch: 1, seat: 60, length: 60, form: 'helical' });
+}
+function directLongThreadConstruction() { return threadBenchmark(directLongThread()); }
+function directLongThreadConstructionFirstMass() { return threadBenchmark(directLongThread(), true); }
 const out = (f, id) => K.outputOf(K.evaluateCadPart(doc(f)), id);
 const XZ = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
 const tee = (tilt) => { const t = tilt * Math.PI / 180, n = [Math.cos(t), 0, Math.sin(t)]; return [{ id: 'ms', kind: 'sketch', profile: 'circle', plane: { origin: [-30, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] }, center: [0, 0], radius: 10 }, { id: 'm', kind: 'extrude', sketch: 'ms', height: 60 }, { id: 'bs', kind: 'sketch', profile: 'circle', plane: { origin: [0, 0, 0], normal: n, xAxis: [0, 1, 0] }, center: [0, 0], radius: 6 }, { id: 'b', kind: 'extrude', sketch: 'bs', height: 25 }, { id: 'u', kind: 'union', target: 'm', tool: 'b' }]; };
@@ -104,6 +132,10 @@ const CASES = {
   'pin-face-fillet-over-round': () => out([...pin(), ff('f1', 'u', ['p.top', 'c.side0'], 1), ff('ff', 'f1', ['p.top', 'c.side0'], 2)], 'ff').brep,
   'shaft-thread': () => out([{ id: 'c', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 3 }, { id: 'sh', kind: 'extrude', sketch: 'c', height: 30 }, { id: 'th', kind: 'face-thread', target: 'sh', face: 'sh.side0', pitch: 1, length: 12 }], 'th').brep,
   'tapped-hole': () => out([{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 30] }, { id: 'p', kind: 'extrude', sketch: 's', height: 10 }, { id: 'h', kind: 'hole', target: 'p', center: [15, 15], radius: 2.5 }, { id: 'th', kind: 'face-thread', target: 'h', face: 'h.side0', pitch: 1, diameter: 6 }], 'th').brep,
+  'shaft-thread-long': () => threadBenchmark(out([{ id: 'c', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 3 }, { id: 'sh', kind: 'extrude', sketch: 'c', height: 90 }, { id: 'th', kind: 'face-thread', target: 'sh', face: 'sh.side0', pitch: 1, length: 60 }], 'th').brep),
+  'tapped-hole-long': () => threadBenchmark(out([{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 30] }, { id: 'p', kind: 'extrude', sketch: 's', height: 40 }, { id: 'h', kind: 'hole', target: 'p', center: [15, 15], radius: 2.5 }, { id: 'th', kind: 'face-thread', target: 'h', face: 'h.side0', pitch: 1, diameter: 6 }], 'th').brep),
+  'direct-thread-long-construction': directLongThreadConstruction,
+  'direct-thread-long-construction-first-mass': directLongThreadConstructionFirstMass,
   'tilted-boxes-polyhedral': () => { const [f, last] = boxes(); return out(f, last).brep; },
   'hidden-lines-tee': () => { const b = out([...tee(60), ff('ff', 'u', ['m.side0', 'b.side0'], 2)], 'ff').brep; return K.projectBrepHiddenLines([b], { toward: [1, -1, -0.6], up: [0, 0, 1] }); },
   'hidden-lines-only': () => { const b = (globalThis.__hlBrep ??= out([...tee(60), ff('ff', 'u', ['m.side0', 'b.side0'], 2)], 'ff').brep); return K.projectBrepHiddenLines([b], { toward: [1, -1, -0.6], up: [0, 0, 1] }); },

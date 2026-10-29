@@ -692,7 +692,10 @@ function sidePoint(at: (u: number, v: number) => Point, U: readonly number[], V:
 function nearBoundary(at: (u: number, v: number) => Point, U: readonly number[], V: readonly number[], sides: Float64Array[], p: Point, near: number): boolean {
   let side = 0, best = 0, bestD = Infinity;
   for (let k = 0; k < 4; k++) for (let i = 0; i <= ISO_SAMPLES; i++) {
-    const s = sides[k], d = Math.hypot(s[3 * i] - p[0], s[3 * i + 1] - p[1], s[3 * i + 2] - p[2]);
+    const s = sides[k], dx = s[3 * i] - p[0], dy = s[3 * i + 1] - p[1], dz = s[3 * i + 2] - p[2];
+    // A norm cannot be smaller than a component. bestD is still above near, or an earlier sample returned.
+    if (Math.abs(dx) > bestD || Math.abs(dy) > bestD || Math.abs(dz) > bestD) continue;
+    const d = Math.hypot(dx, dy, dz);
     if (d <= near) return true;
     if (d < bestD) { bestD = d; side = k; best = i; }
   }
