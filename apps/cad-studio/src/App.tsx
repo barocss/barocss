@@ -1046,7 +1046,7 @@ export function App() {
     const next = active.cmd.build(active.ctx, active.values);
     // (Not when it places an instance: those bodies are the instance's, shown once it is evaluated.)
     if (!commit(next)) return;
-    if (active.cmd.id === 'offset-face') setSelection(emptySel);
+    if (active.cmd.id === 'offset-face' || active.cmd.id === 'fill-feature-pattern') setSelection(emptySel);
     if (active.cmd.id === 'thicken' || active.cmd.id === 'sew') setDirectSel([]);
     if (previewBodies && Object.keys(next.outputs).length && (next.instances?.length ?? 0) === (active.ctx.doc.instances?.length ?? 0)) { setBodies(previewBodies); claimBodies.current = true; }
     setActive(null); setPreviewBodies(null); setSketch(null);
