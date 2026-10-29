@@ -1,13 +1,19 @@
 # barocss CAD roadmap
 
-## 전체 실행 색인 — 2026-10-27
+## Current execution index — 2026-10-29
 
-이 번호는 기존 작업의 공통 색인이다. 새 작업 큐나 일괄 실행 승인이 아니다.
-실제 배정은 기존 단일 기록의 `roadmapExecution.tasks`만 사용한다.
-기존 CG·DR·K·O·R·RS·PB·V 및 이슈 ID는 그대로 유지한다.
-번호 순서가 모든 작업의 직렬 실행 순서를 뜻하지는 않는다. 독립 소스는 병렬로 만든다.
-같은 기능은 **Kernel/GPU/CAD → CAD Model·API → Studio/Viewer 실제 소비 → 제품 통합**까지 닫는다.
-잘못된 성공, 단위·좌표·참조 손실과 실제 오류는 해당 기능 안에서 먼저 해결한다.
+The owner's order for `local/cad-dev` in this worktree is **07 → 08 → 09**, one qualified
+feature at a time. D313's bounded cylindrical wrap is locally complete at `f29df9217`.
+D314 measures thread quadrature performance next. The research reconciliation below attaches
+existing GitHub investigations to these numbered scopes; it creates no second implementation queue.
+
+Keep existing CG/DR/K/O/R/RS/PB/V and issue IDs. Earlier lane assignments, stop/resume statements
+and time-sensitive next steps below are historical. The owner's current instructions control
+this worktree. Remote publication requires a new direct owner instruction.
+
+Complete each feature through **Kernel/GPU/CAD → Model/API → actual Studio/Viewer consumer**,
+with its source, required checks and file flow recorded separately. Fix reproduced false success,
+unit/coordinate/reference loss and actual errors within the affected feature first.
 
 상태를 구분한다: **소스 완료 / 필요한 검사 완료 / 실제 화면·파일 완료 / 제품 완료**.
 이 네 상태를 합쳐 쓰지 않는다. 기존 유효한 PASS는 반복하지 않는다.
@@ -37,8 +43,8 @@
 | 번호 | 작업·기존 ID | 남은 범위 | 담당·선행 조건 | 완료 조건 |
 |---|---|---|---|---|
 | 07 | Advanced modeling — CG1 | D313 runtime`f29df9217` connects one original-native-UV rectangular cylindrical pad through Part/API/Model/agent/Studio. Full kernel2187pass/0fail/6existing skips, Model1833/1833, Studio365/365, types, actual Chrome/WebGPU create/edit/Undo/Redo/Save/Open and generated/docs pass. Closed-reference mass is qualified; literal rounded-shell closure/mass and native SI remain unqualified. [Current scope and evidence](notes/cylindrical-wrap-product-2026-10-29/README.md). Next: D314 measured thread quadrature performance, then remaining07 before08→09. | Kernel → Model/API → Studio. Existing bounded guided loft, Coons, variable/full-round/analytic and polynomial face fillets, draft, rib, original-font Text, +Z text relief, modeled threads and rectangular wrap are preserved (D288–D313). Remaining: polynomial guides on explicit frames; two/rational guides and smooth guided sections; general free-form/multi-span/rational face fillets; arbitrary-depth/outline/glyph/curved wrap and text shaping. Reuse existing source and selected fonts; no new runtime dependency. | One admitted feature at a time: preserve original coordinates, tolerances, references and refusal atomicity; independent geometry/mass oracles, actual public consumer and editable file flow. Performance needs measured before/after and unchanged bits or accepted shape evidence. Bounded completion does not close general families. |
-| 08 | 피처 패턴·직접 편집·표면 — CG2 | 곡선/채우기 패턴, 면 이동·삭제·교체, thicken/offset/knit/trim/extend의 남은 범위. | Kernel/Model + Outer. 03과 기존 affine/Boolean/표면 provider 재사용. | body 복사와 feature 반복을 구분하고 원 이력·소실/모호 참조·실패 atomicity를 보존한다. |
-| 09 | 고급 스케치 — CG3 | spline 핸들·conic·문자·block과 진단/편집의 미완료 소비 경로. 치수 표현식은 기존 결정 조건을 유지한다. | Kernel/Model + Outer. 기본2D→3D·돌출 컷의 기존 완료 근거 재사용. | 실제 제약·DOF/충돌/비수렴을 구분한다. 원 입력·치수·좌표와 편집 후 파일 결과를 보존한다. |
+| 08 | Feature patterns, direct editing and surfaces — CG2 | Remaining curve/fill feature patterns and current move/delete/replace/thicken/offset/knit/trim/extend gaps. Reuse03 and existing body-copy/affine/Boolean/surface consumers; the research mapping attaches #2227/#2215 and #2032/#2036 controls. | Kernel/Model → actual Studio, after the selected07 closures. Inspect the current producer/consumer before implementing another surface command. | Distinguish body copies from repeated cut tools. Preserve source/history, dual-UV/trim ownership, exact names, ambiguous/missing references and atomic refusal; verify actual edit/file results. |
+| 09 | Advanced sketch — CG3 | Remaining spline handles, conics, text/blocks and diagnostic/edit consumers. Reuse existing solver and corrected sketch adapter; attach #2210/#2215 and #2033/#2038 controls. | Kernel/Model → actual Studio after08. Existing2D→3D/extrude-cut and dimension-expression decisions remain. | Returned geometry meets the original residual limits. Distinguish DOF, conflict, redundancy and nonconvergence; preserve authored coordinates/dimensions/references through actual constraint edit, downstream feature and Save/fresh Open. |
 | 10 | 조립 확장 — CG4 | 유연한 하위 조립, 반복 occurrence 참조, 조립 피처, 승인된 motion/대형 조립 범위. | Model/Outer + Kernel/GPU. 같은 revision의 배치/관절 기반이 선행. | 계층·part-local/world/display 변환과 반복 인스턴스를 보존한다. pose 표시를 동역학 완료로 쓰지 않는다. |
 | 11 | 도면 확장 — CG5 DR-6/7/8 | 남은 GD&T/복합 프레임, ISO/ASME 스타일·인치 표시, 도면 세트. | Drawings. 01과 필요한 geometry/reference 기반이 선행. | 실제 sheet/SVG·파일·정상 제품을 닫는다. 한 프레임·기호 시험을 전체 규격 적합성이나 제조 수락으로 올리지 않는다. |
 | 12 | 파일·버전·협업 — CG6 | 기존 저장·분기·merge·linked part의 기능별 파일 흐름을 완성하고, 공유·댓글·동시 편집은 서버/계정/호스팅 결정 뒤에 진행한다. | Model/API + Outer; 필요한 인프라 소유·승인이 선행. | 실제 디스크/프로젝트 파일·revision·충돌/실패 복구를 확인한다. 기존 버전 기능을 새 구현으로 다시 배정하지 않는다. |
@@ -56,6 +62,32 @@
 사용자 정정: 아직 릴리스가 없으므로 최신 reader/writer만 기준으로 삼는다. 구 미출시 바이너리 호환과 장기 migration을 위해 schema5를 강제하지 않는다. 현재 일반 schema3과 route schema4를 유지하고 standalone/composite의 raw 입력 검사와 필드 보존을 구현한다. 실제 사용자 파일과 snapshot key/id/parent/bytes는 보존한다. 기존 Model448→3b8 및 Drawing 후보 정상 commit은 이력으로 남기고 필요한 정확 delta만 새 계약에 맞춰 연결한다. Outer 저장·복구, 합동 실행·파일 흐름·제품은 아직 미완료다.
 
 공통16의 공개 API 방향은 [설계 기록](api-public-model-direction-20261027.md)에 있다. CAD Model을 사용자 편집 원본과 기본 Part/Assembly 진입점으로 삼고 커널은 독립 계산 계층으로 유지한다. 메서드별 계약/파일/API 호환 이행과 물리적 패키지 통합은 아직 완료·확정되지 않았다. 명칭 변경만으로 이 과제를 닫지 않는다.
+
+### GitHub research reconciliation — 2026-10-29
+
+[Research-to-roadmap mapping](notes/github-research-roadmap-2026-10-29.md) and its
+[source/state index](notes/github-research-roadmap-2026-10-29.sources.json) retain the source links.
+The title-research search enumerated114 issues across100+14 results with no incomplete result.
+The selected CAD-family set contains73 full bodies and24 comments across7 issues:68 issues OPEN,
+5 CLOSED at retrieval. The other66 research-title bodies were outside this CAD-family review.
+Issue state, research completion, local source, executed product flow and release are separate.
+The remote research baselines predate local D313; reproduce a current gap before adding code.
+
+| Existing scope | Research inputs and deduplicated action | Required result |
+|---|---|---|
+| 07 → 08 → 09 | Reuse the bounded modeling/loft/fillet/Text/thread/wrap results. After measured D314, continue one remaining07 profile before08 patterns/direct surfaces, then09 sketch consumers. #2227/#2215 supply regression contracts; #2032/#2033/#2036/#2038 are design targets. | Kernel → Part/API/Model → actual Studio edit/Undo/file proof for the exact profile. Preserve unsupported ranges, independent geometry/mass oracles and reference/refusal semantics. Existing surface commands and body-copy patterns are not missing features. |
+| 16 CG10/R7 | One result-acceptance ledger for [#2205](https://github.com/barocss/barocss/issues/2205), [#2210](https://github.com/barocss/barocss/issues/2210), [#2215](https://github.com/barocss/barocss/issues/2215), [#2227](https://github.com/barocss/barocss/issues/2227) and [#2228](https://github.com/barocss/barocss/issues/2228). Attach controls to the feature that owns the seam. | Distinguish existing test definitions, retained runs, reproduced gaps and inapplicable cases. Keep false-success, uncertainty/SSI/dual-UV, units and reference-evolution evidence explicit. The inventory's six-rule SCOPED_PASS is not whole API acceptance. |
+| 22 +20 | [#2188](https://github.com/barocss/barocss/issues/2188) supplies workload/async measurements; #2213 supplies GPU measurement boundaries. D314's quadrature experiment remains a bounded measured slice. | Same inputs and original tolerances; before/after timings plus actual output equivalence. Feedback/queue/compute/validation/export and CPU/GPU/driver memory remain distinct. Reject an ineffective optimization. |
+| 12 files/recovery | #2217/#2181/#2184/#2208/#2220/#2228 share revision-bound candidate, accepted-state and resource ownership. Reuse the current implementation before selecting a missing control. | Real Save/fresh Open/re-edit and stale/cancel/failure preservation at the same source/revision. Report semantic equality and raw-byte identity separately. Current schema and existing asset-dependent JSON/package branches remain authoritative. |
+| 04 +11 +13 | #2187/#2207 attach one-way SVG/dimensions to existing exporters; #2217/#2227 attach entity/units/pcurve/loss controls. #527 remains OPEN/BLOCKED strict research despite later STEP functionality. | Actual bytes/units/view/provenance and selected independent read-back. Preserve #527's three proof blockers separately; current export success does not retroactively satisfy them. No new first-STEP-writer or generic format rewrite task. |
+| 20 +21 UI | #2165/#2171/#2175/#2118/#2122 inform existing selection, Inspector, preview, notification, toolbar/history and feedback work. Reuse D313's visible-limit/history-route correction. | Reproduce one current interaction, measure feedback and compute/frame timing, preserve the correct candidate, and inspect Cancel/Undo/file and smaller-window behavior. Design PNGs remain reference images. |
+| 06/18/19 +14 | #2214 indexes #2211/#2212/#2213; robotics/SimReady/analysis/material/manufacturing proposals stay with their existing scopes and holds. #745's closed review is separate from its later migration/retirement/Physics issues. | Reuse existing providers and loss/unknown/provenance gates. Keep source, numeric, browser/file and physical acceptance separate. A research link does not select a new engine, WASM/dependency, hardware control or paused lane. |
+| Later AI/capture/design | Keep #2193–#2204 under #2192, plus #2224/#2178 and the existing full capture/render0–21 group. The note maps every selected design/research issue without adding duplicate epics. | Preserve #2192's actual isolated partial experiments and its latest failed p9 fit/prior retained model. Do not label the whole pipeline unrun or complete. Optional depth/mesh remains optional; general photo fidelity, physical scale and product integration need their own evidence. |
+
+Closed #1652 is a retained-fixture comparison ledger; #514/#518/#520 are RESEARCH_ONLY.
+Reuse their bounded evidence instead of rebuilding current B-rep foundations. This reconciliation
+changes local planning documentation and no GitHub issue, comment or remote state. It does not
+count as a new product test run.
 
 ### Static engine-audit follow-ups — 2026-10-29
 
@@ -85,13 +117,19 @@ existing-task deduplication and deferred reproduction order. This registration r
 2. 기존 기반을 재사용해 같은 기능의 전체 소스를 정상 commit한다.
 3. 필요한 영향 검사와 실제 소비/파일 흐름을 한 배치로 닫는다. 원 FAIL과 NOTRUN은 보존한다.
 4. 검토된 정확 delta만 제품에 통합하고 필수 제품 검사와 제한을 기록한다. 명시적 소유 인계 예외인06은 다른 통합 위치로 전달한다.
-5. 실제 Codex core 남음이5% 이하면 기존 조건부 중단·정상 인계 commit·허용된 feature branch push·원격 SHA 확인·cad PAUSED를 수행한다. reset/credits 소비나 force/main/develop rewrite는 하지 않는다.
+5. At an actual usage stop, preserve a local checkpoint, original failures and the exact resume condition. Remote publication still requires the owner's current direct instruction; an older conditional handoff rule supplies no new authorization.
 
 사용자 지시로 P2 제조인수는 활성 추적과 정기 보고에서 제외한다. 과거 HOLD·미수락·FAIL은 이력으로 보존하며 PASS로 바꾸지 않는다. PG11 입력과 PG12의 한정 positive도 새 기능 완료가 아니다.
 optional G15d.4, 측정 후 보류한 LOD와 기존 BVH는 새 개발로 자동 배정하지 않는다.
 공유/댓글 인프라, 새 solver·runtime dependency, Physics/Motion 및 packaging/config/hook의 기존 중단은 유지한다.
 상세·옛 실행 기록은 아래에 보존한다. 이 색인과 단일 작업 기록의 최신 상태가 옛 진행형 문구보다 우선한다.
 
+
+## Historical contracts and execution records
+
+The sections below retain earlier technical contracts, evidence and decisions. Their dated
+lane assignments and next-step orders are records. Use the current index above and the latest
+owner instruction for execution; reuse the technical acceptance criteria where they still apply.
 
 Current as of 2026-10-27, after the scoped CAD integration checkpoints. This file is the one place for **what we do, in what order, and
 when each item is done**. It replaces Codex's continuation roadmap of 2026-10-22/23, which is at `0eabecf7f` and on

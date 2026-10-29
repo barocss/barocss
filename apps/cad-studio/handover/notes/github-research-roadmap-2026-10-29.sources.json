@@ -1,0 +1,1654 @@
+{
+  "retrievedDate": "2026-10-29",
+  "repository": "barocss/barocss",
+  "executionSource": "f29df9217cf913cc1493f122a808075e5218d411",
+  "researchTitleEnumeration": {
+    "query": "repo:barocss/barocss is:issue research in:title",
+    "total": 114,
+    "incomplete": false,
+    "pages": [
+      100,
+      14
+    ],
+    "issues": [
+      {
+        "number": 2228,
+        "title": "research(cad): smlibpy WASM·Three.js 참고 — 선택 identity·Worker 복구·좌표·수명 계약",
+        "state": "open",
+        "updated_at": "2026-10-28T23:57:34Z",
+        "url": "https://github.com/barocss/barocss/issues/2228"
+      },
+      {
+        "number": 2227,
+        "title": "research(cad): NativeCAD v0.26.0 참조 — Boolean 결과·단위·STEP pcurve·loft 회귀 계약",
+        "state": "open",
+        "updated_at": "2026-10-28T09:49:44Z",
+        "url": "https://github.com/barocss/barocss/issues/2227"
+      },
+      {
+        "number": 2224,
+        "title": "research(cad-ai): BerriaCraft 참고 — 원본 scan 보존·재구성/출력 품질 분리와 mesh 검증 계약",
+        "state": "open",
+        "updated_at": "2026-10-28T03:00:22Z",
+        "url": "https://github.com/barocss/barocss/issues/2224"
+      },
+      {
+        "number": 2222,
+        "title": "research(cad-ai): blender-skills 참고 — 선택적 skill routing과 bounded 단계별 시각 QA",
+        "state": "open",
+        "updated_at": "2026-10-27T07:10:42Z",
+        "url": "https://github.com/barocss/barocss/issues/2222"
+      },
+      {
+        "number": 2220,
+        "title": "research(cad-ai): Atech AI CAD 참조 — 생성·검증 상태 분리와 revision-bound 진단 산출물",
+        "state": "open",
+        "updated_at": "2026-10-27T06:34:36Z",
+        "url": "https://github.com/barocss/barocss/issues/2220"
+      },
+      {
+        "number": 2219,
+        "title": "research(cad): HeyPCB materials 참고 — 재료·공정·적층·제조 역량과 검증 근거 분리",
+        "state": "open",
+        "updated_at": "2026-10-27T06:31:12Z",
+        "url": "https://github.com/barocss/barocss/issues/2219"
+      },
+      {
+        "number": 2218,
+        "title": "research(bim): NativeBIM 참조 — IFC 의미 계층과 revision-bound preview·apply·undo 계약",
+        "state": "open",
+        "updated_at": "2026-10-27T06:29:56Z",
+        "url": "https://github.com/barocss/barocss/issues/2218"
+      },
+      {
+        "number": 2217,
+        "title": "research(cad): OpenCADStudio 참조 — 포맷·entity 보존 행렬과 verified save 계약",
+        "state": "open",
+        "updated_at": "2026-10-27T06:27:58Z",
+        "url": "https://github.com/barocss/barocss/issues/2217"
+      },
+      {
+        "number": 2216,
+        "title": "research(cad): LeatherPatternMaker 참고 — 공통 2D 기하와 가죽 패턴 제작 규칙 분리",
+        "state": "open",
+        "updated_at": "2026-10-26T10:42:56Z",
+        "url": "https://github.com/barocss/barocss/issues/2216"
+      },
+      {
+        "number": 2214,
+        "title": "research: CAD·로봇·모션·GPU 보강 기술 인덱스와 단계별 검증 우선순위",
+        "state": "open",
+        "updated_at": "2026-10-26T02:22:08Z",
+        "url": "https://github.com/barocss/barocss/issues/2214"
+      },
+      {
+        "number": 2213,
+        "title": "research(gpu): 기존 가속·LOD 결정 위의 revision-aware readback·정확도·측정 게이트",
+        "state": "open",
+        "updated_at": "2026-10-26T02:20:24Z",
+        "url": "https://github.com/barocss/barocss/issues/2213"
+      },
+      {
+        "number": 2212,
+        "title": "research(motion): 강체·스킨 분리와 WASM skeletal playback·foot planting 검증",
+        "state": "open",
+        "updated_at": "2026-10-26T02:19:21Z",
+        "url": "https://github.com/barocss/barocss/issues/2212"
+      },
+      {
+        "number": 2211,
+        "title": "research(robotics): 기존 로봇 모델의 독립 oracle·온라인 궤적·WASM 실행 검증 경계",
+        "state": "open",
+        "updated_at": "2026-10-26T02:18:55Z",
+        "url": "https://github.com/barocss/barocss/issues/2211"
+      },
+      {
+        "number": 2210,
+        "title": "research(cad): 자체 커널 검증 보강 — 공차·조립 교환·위상 참조·제약 진단 비교",
+        "state": "open",
+        "updated_at": "2026-10-26T02:18:22Z",
+        "url": "https://github.com/barocss/barocss/issues/2210"
+      },
+      {
+        "number": 2209,
+        "title": "research(robotics): Intrinsic Core 참고 — CAD→SimReady 계약과 선택적 런타임 어댑터",
+        "state": "open",
+        "updated_at": "2026-10-26T02:07:36Z",
+        "url": "https://github.com/barocss/barocss/issues/2209"
+      },
+      {
+        "number": 2208,
+        "title": "research(cad-ai): SOMA 참고 — 선택·계측·파라미터·revision 기반 에이전트 수정 계약",
+        "state": "open",
+        "updated_at": "2026-10-25T13:11:40Z",
+        "url": "https://github.com/barocss/barocss/issues/2208"
+      },
+      {
+        "number": 2207,
+        "title": "research(cad): dimensional-drawing 참고 — CAD 파생 SVG의 치수·상세도 표현",
+        "state": "open",
+        "updated_at": "2026-10-25T11:32:25Z",
+        "url": "https://github.com/barocss/barocss/issues/2207"
+      },
+      {
+        "number": 2206,
+        "title": "research(cad-ai): print3d 참고 — 사진 근거·검증 피드백·CAD-to-print 통합 설계",
+        "state": "open",
+        "updated_at": "2026-10-25T02:14:50Z",
+        "url": "https://github.com/barocss/barocss/issues/2206"
+      },
+      {
+        "number": 2205,
+        "title": "research(cad): 최신 BaroCSS와 SolidCraft v0.21.0 코드 비교·검증 격차 (2026-10-24)",
+        "state": "open",
+        "updated_at": "2026-10-24T11:40:48Z",
+        "url": "https://github.com/barocss/barocss/issues/2205"
+      },
+      {
+        "number": 2192,
+        "title": "research(cad): 3d-model-anything 참고 — 도면에서 편집 가능한 CAD 연산 생성·검증",
+        "state": "open",
+        "updated_at": "2026-10-24T05:32:40Z",
+        "url": "https://github.com/barocss/barocss/issues/2192"
+      },
+      {
+        "number": 2191,
+        "title": "research(assets): SimReady Central USD 검색·에셋 가져오기와 Physics 매핑 검증",
+        "state": "open",
+        "updated_at": "2026-10-23T22:45:30Z",
+        "url": "https://github.com/barocss/barocss/issues/2191"
+      },
+      {
+        "number": 2190,
+        "title": "research(cad): Peopoly Giga 800 참고 — 제조용 3MF/STL 출력·공정 보정·검증 계획",
+        "state": "open",
+        "updated_at": "2026-10-23T11:11:21Z",
+        "url": "https://github.com/barocss/barocss/issues/2190"
+      },
+      {
+        "number": 2189,
+        "title": "research(cad): 로봇용 편집 가능한 조립·관절·기구학과 URDF 전달 계획",
+        "state": "open",
+        "updated_at": "2026-10-23T06:29:14Z",
+        "url": "https://github.com/barocss/barocss/issues/2189"
+      },
+      {
+        "number": 2188,
+        "title": "research(cad): SOLIDWORKS 2027 참고 — 파라미터 변형·비동기 재계산·성능 진단",
+        "state": "open",
+        "updated_at": "2026-10-23T05:38:42Z",
+        "url": "https://github.com/barocss/barocss/issues/2188"
+      },
+      {
+        "number": 2184,
+        "title": "research(studios): Loopcut의 후보 workspace·ownership merge·검증·복구 계약 참고",
+        "state": "open",
+        "updated_at": "2026-10-21T00:52:48Z",
+        "url": "https://github.com/barocss/barocss/issues/2184"
+      },
+      {
+        "number": 2183,
+        "title": "research(gpu): SDF.R 참고 — implicit field 편집·GPU preview·MC/DC mesh 정합성",
+        "state": "open",
+        "updated_at": "2026-10-21T00:35:55Z",
+        "url": "https://github.com/barocss/barocss/issues/2183"
+      },
+      {
+        "number": 2182,
+        "title": "research(cad): Seamless CAD 참고 — 파라메트릭 이력·미리보기 분리·렌더 갱신 계약",
+        "state": "open",
+        "updated_at": "2026-10-21T00:32:27Z",
+        "url": "https://github.com/barocss/barocss/issues/2182"
+      },
+      {
+        "number": 2181,
+        "title": "research(cad): Quartz 참고 — AI-native CAD 후보 격리·검증·승인 계약",
+        "state": "open",
+        "updated_at": "2026-10-20T23:28:41Z",
+        "url": "https://github.com/barocss/barocss/issues/2181"
+      },
+      {
+        "number": 2180,
+        "title": "research(cad): iCAD SX 참고 — 조립 문맥 편집·BOM/도면 일관성·작업별 성능",
+        "state": "open",
+        "updated_at": "2026-10-20T17:36:34Z",
+        "url": "https://github.com/barocss/barocss/issues/2180"
+      },
+      {
+        "number": 2179,
+        "title": "research(studios): Solvaix 태양광 CAD 데모의 절차적 배치·2D/3D 동기화·검증 경계",
+        "state": "open",
+        "updated_at": "2026-10-20T03:43:03Z",
+        "url": "https://github.com/barocss/barocss/issues/2179"
+      },
+      {
+        "number": 2178,
+        "title": "research(cad): SKY-001 계층적 생성 연구와 실행 가능한 CAD 계획·검증 계약",
+        "state": "open",
+        "updated_at": "2026-10-20T03:24:12Z",
+        "url": "https://github.com/barocss/barocss/issues/2178"
+      },
+      {
+        "number": 2177,
+        "title": "research(toolchain): CAD–CAE–PLM 연결과 부품 리비전·해석 추적·변경 승인 계약",
+        "state": "open",
+        "updated_at": "2026-10-20T01:36:12Z",
+        "url": "https://github.com/barocss/barocss/issues/2177"
+      },
+      {
+        "number": 2176,
+        "title": "research(studios): img2interior의 실내 저작·PBR 베이크·Rendering/World 적용 경계",
+        "state": "open",
+        "updated_at": "2026-10-20T00:03:22Z",
+        "url": "https://github.com/barocss/barocss/issues/2176"
+      },
+      {
+        "number": 2175,
+        "title": "research(studios): STEVE Studio의 AI 파라메트릭 편집·조립 Inspector·표현 상태 분리 참고",
+        "state": "open",
+        "updated_at": "2026-10-19T01:58:32Z",
+        "url": "https://github.com/barocss/barocss/issues/2175"
+      },
+      {
+        "number": 2174,
+        "title": "research(rendering): normalMagic의 corner normals·sharp 경계·표면 삽입 적용 검토",
+        "state": "open",
+        "updated_at": "2026-10-19T00:55:25Z",
+        "url": "https://github.com/barocss/barocss/issues/2174"
+      },
+      {
+        "number": 2173,
+        "title": "research(cad): IntelliCAD·ODA Teigha의 플랫폼·DWG·WASM 적용 경계 조사",
+        "state": "open",
+        "updated_at": "2026-10-18T23:25:33Z",
+        "url": "https://github.com/barocss/barocss/issues/2173"
+      },
+      {
+        "number": 2172,
+        "title": "research(mesh): CM2 MeshTools의 수리·리메시·Boolean 및 CAD→메시 적용 검토",
+        "state": "open",
+        "updated_at": "2026-10-18T23:10:53Z",
+        "url": "https://github.com/barocss/barocss/issues/2172"
+      },
+      {
+        "number": 2171,
+        "title": "research(cad): ZW3D WuKong 참고 — 재생성·조립·단면 계측·Rendering identity",
+        "state": "open",
+        "updated_at": "2026-10-18T10:10:41Z",
+        "url": "https://github.com/barocss/barocss/issues/2171"
+      },
+      {
+        "number": 2165,
+        "title": "research(studios): Enclose의 선택 기반 AI 편집·viewport 검증·복구 계약 참고",
+        "state": "open",
+        "updated_at": "2026-10-18T01:31:53Z",
+        "url": "https://github.com/barocss/barocss/issues/2165"
+      },
+      {
+        "number": 2122,
+        "title": "research(studios): OrcaSlicer의 CAD 입력·검사·미리보기 설계 참고",
+        "state": "open",
+        "updated_at": "2026-10-17T09:58:59Z",
+        "url": "https://github.com/barocss/barocss/issues/2122"
+      },
+      {
+        "number": 2118,
+        "title": "research(studios): CadXStudio의 CAD 편집·Rendering 흐름과 검증 기준 정리",
+        "state": "open",
+        "updated_at": "2026-10-17T09:02:06Z",
+        "url": "https://github.com/barocss/barocss/issues/2118"
+      },
+      {
+        "number": 2110,
+        "title": "research(cad): text-to-cad 기반 AI 편집 문맥·산출물 검증 계약 검토",
+        "state": "open",
+        "updated_at": "2026-10-17T06:49:48Z",
+        "url": "https://github.com/barocss/barocss/issues/2110"
+      },
+      {
+        "number": 2094,
+        "title": "research(cad): solidcore 표준부품·나사산 기능 조사와 단계별 fastener 제안",
+        "state": "open",
+        "updated_at": "2026-10-16T14:03:00Z",
+        "url": "https://github.com/barocss/barocss/issues/2094"
+      },
+      {
+        "number": 1652,
+        "title": "research(cad): qualify usd-brep lessons with a bounded native-fixture comparison",
+        "state": "closed",
+        "updated_at": "2026-10-12T23:51:33Z",
+        "url": "https://github.com/barocss/barocss/issues/1652"
+      },
+      {
+        "number": 1560,
+        "title": "research(manual): compare keyword retrieval with a bounded EmbeddingGemma2 pilot",
+        "state": "open",
+        "updated_at": "2026-10-11T12:32:35Z",
+        "url": "https://github.com/barocss/barocss/issues/1560"
+      },
+      {
+        "number": 1354,
+        "title": "research(render): qualify server compiled JSX native UI and local state",
+        "state": "closed",
+        "updated_at": "2026-10-10T17:29:38Z",
+        "url": "https://github.com/barocss/barocss/issues/1354"
+      },
+      {
+        "number": 1352,
+        "title": "research(render): qualify Fetch host reuse before stream package extraction",
+        "state": "closed",
+        "updated_at": "2026-10-10T17:29:35Z",
+        "url": "https://github.com/barocss/barocss/issues/1352"
+      },
+      {
+        "number": 1350,
+        "title": "research(render): qualify server-compiled view streaming and package boundaries",
+        "state": "closed",
+        "updated_at": "2026-10-10T17:29:32Z",
+        "url": "https://github.com/barocss/barocss/issues/1350"
+      },
+      {
+        "number": 1206,
+        "title": "research(render): observe five Codex UI displays with a pinned model catalog",
+        "state": "open",
+        "updated_at": "2026-10-10T14:43:52Z",
+        "url": "https://github.com/barocss/barocss/issues/1206"
+      },
+      {
+        "number": 495,
+        "title": "research: observe actual Codex UI generation across five displays",
+        "state": "closed",
+        "updated_at": "2026-10-10T07:55:56Z",
+        "url": "https://github.com/barocss/barocss/issues/495"
+      },
+      {
+        "number": 745,
+        "title": "research(motion): review product need and actual consumers before expansion",
+        "state": "closed",
+        "updated_at": "2026-10-08T10:52:52Z",
+        "url": "https://github.com/barocss/barocss/issues/745"
+      },
+      {
+        "number": 527,
+        "title": "research(cad): original bounded axis-box STEP bytes and shared topology readback",
+        "state": "open",
+        "updated_at": "2026-10-06T05:29:59Z",
+        "url": "https://github.com/barocss/barocss/issues/527"
+      },
+      {
+        "number": 520,
+        "title": "research(cad): exact six-face axis-box closure and solid validity",
+        "state": "closed",
+        "updated_at": "2026-10-06T03:30:17Z",
+        "url": "https://github.com/barocss/barocss/issues/520"
+      },
+      {
+        "number": 518,
+        "title": "research(cad): exact orthogonal rectangle common-edge feasibility",
+        "state": "closed",
+        "updated_at": "2026-10-06T02:47:51Z",
+        "url": "https://github.com/barocss/barocss/issues/518"
+      },
+      {
+        "number": 514,
+        "title": "research(cad): executable restricted face validity and shared-edge feasibility",
+        "state": "closed",
+        "updated_at": "2026-10-06T01:52:57Z",
+        "url": "https://github.com/barocss/barocss/issues/514"
+      },
+      {
+        "number": 497,
+        "title": "research: assess AG-UI event protocol for the BaroCSS AI UI host",
+        "state": "closed",
+        "updated_at": "2026-10-01T06:08:49Z",
+        "url": "https://github.com/barocss/barocss/issues/497"
+      },
+      {
+        "number": 494,
+        "title": "research: prepare a runnable Codex browser experiment and correlated evidence",
+        "state": "closed",
+        "updated_at": "2026-10-01T03:31:50Z",
+        "url": "https://github.com/barocss/barocss/issues/494"
+      },
+      {
+        "number": 491,
+        "title": "research: prepare bounded Codex validation of repeated UI interactions",
+        "state": "closed",
+        "updated_at": "2026-10-01T03:13:41Z",
+        "url": "https://github.com/barocss/barocss/issues/491"
+      },
+      {
+        "number": 469,
+        "title": "research: run accepted Codex UI packet and record data lineage",
+        "state": "closed",
+        "updated_at": "2026-09-30T07:53:36Z",
+        "url": "https://github.com/barocss/barocss/issues/469"
+      },
+      {
+        "number": 468,
+        "title": "research: handle native global rate-limit metadata",
+        "state": "closed",
+        "updated_at": "2026-09-30T06:28:43Z",
+        "url": "https://github.com/barocss/barocss/issues/468"
+      },
+      {
+        "number": 467,
+        "title": "research: align startup protocol guards with captured native events",
+        "state": "closed",
+        "updated_at": "2026-09-30T05:57:53Z",
+        "url": "https://github.com/barocss/barocss/issues/467"
+      },
+      {
+        "number": 466,
+        "title": "research: run the approved corrected Codex UI experiment",
+        "state": "closed",
+        "updated_at": "2026-09-30T05:11:35Z",
+        "url": "https://github.com/barocss/barocss/issues/466"
+      },
+      {
+        "number": 465,
+        "title": "research: fix native Codex MCP override key compatibility",
+        "state": "closed",
+        "updated_at": "2026-09-30T04:51:53Z",
+        "url": "https://github.com/barocss/barocss/issues/465"
+      },
+      {
+        "number": 464,
+        "title": "research: run the approved current-host Codex UI experiment",
+        "state": "closed",
+        "updated_at": "2026-09-30T04:19:30Z",
+        "url": "https://github.com/barocss/barocss/issues/464"
+      },
+      {
+        "number": 463,
+        "title": "research: configuration-only proof for the existing Codex host",
+        "state": "closed",
+        "updated_at": "2026-09-30T03:22:54Z",
+        "url": "https://github.com/barocss/barocss/issues/463"
+      },
+      {
+        "number": 462,
+        "title": "research: executable bounded Codex app-server experiment",
+        "state": "closed",
+        "updated_at": "2026-09-30T02:52:35Z",
+        "url": "https://github.com/barocss/barocss/issues/462"
+      },
+      {
+        "number": 461,
+        "title": "research: progressive Codex UI delivery with existing stream helpers",
+        "state": "closed",
+        "updated_at": "2026-09-30T01:47:44Z",
+        "url": "https://github.com/barocss/barocss/issues/461"
+      },
+      {
+        "number": 458,
+        "title": "research: saved real Codex JSON corpus and renderer comparison",
+        "state": "closed",
+        "updated_at": "2026-09-28T04:12:49Z",
+        "url": "https://github.com/barocss/barocss/issues/458"
+      },
+      {
+        "number": 460,
+        "title": "feat(research): local Codex-driven UI action and next-screen loop",
+        "state": "closed",
+        "updated_at": "2026-09-28T03:23:29Z",
+        "url": "https://github.com/barocss/barocss/issues/460"
+      },
+      {
+        "number": 459,
+        "title": "research: local BaroCSS renderer prototype and json-render comparison",
+        "state": "closed",
+        "updated_at": "2026-09-28T02:09:54Z",
+        "url": "https://github.com/barocss/barocss/issues/459"
+      },
+      {
+        "number": 457,
+        "title": "research: bounded CSS variables versus runtime classes for json-render edits",
+        "state": "closed",
+        "updated_at": "2026-09-27T14:29:17Z",
+        "url": "https://github.com/barocss/barocss/issues/457"
+      },
+      {
+        "number": 438,
+        "title": "research: design ceiling — do high-end visual techniques render identically at runtime?",
+        "state": "closed",
+        "updated_at": "2026-09-27T11:40:02Z",
+        "url": "https://github.com/barocss/barocss/issues/438"
+      },
+      {
+        "number": 431,
+        "title": "research: long-running AI chat — does runtime memory and rule count stay bounded?",
+        "state": "closed",
+        "updated_at": "2026-09-27T11:02:15Z",
+        "url": "https://github.com/barocss/barocss/issues/431"
+      },
+      {
+        "number": 447,
+        "title": "research: prepare controlled live-model UI editing study after #446",
+        "state": "closed",
+        "updated_at": "2026-09-27T09:55:40Z",
+        "url": "https://github.com/barocss/barocss/issues/447"
+      },
+      {
+        "number": 446,
+        "title": "research: json-render multi-turn UI — measure BaroCSS value across styling freedom levels",
+        "state": "closed",
+        "updated_at": "2026-09-27T06:49:43Z",
+        "url": "https://github.com/barocss/barocss/issues/446"
+      },
+      {
+        "number": 415,
+        "title": "research: token-streamed AI HTML — partial class names, junk rules, flicker",
+        "state": "closed",
+        "updated_at": "2026-09-27T03:51:42Z",
+        "url": "https://github.com/barocss/barocss/issues/415"
+      },
+      {
+        "number": 430,
+        "title": "research: does UnoCSS runtime (presetWind4) already cover BaroCSS's scenarios?",
+        "state": "closed",
+        "updated_at": "2026-09-27T03:32:33Z",
+        "url": "https://github.com/barocss/barocss/issues/430"
+      },
+      {
+        "number": 426,
+        "title": "research: how often do AI-generated classes resolve to nothing, and can agents detect it today?",
+        "state": "closed",
+        "updated_at": "2026-09-27T02:42:26Z",
+        "url": "https://github.com/barocss/barocss/issues/426"
+      },
+      {
+        "number": 385,
+        "title": "research (O7): how often does AI UI leave the design system, and does a BaroCSS report beat theme-reset + lint?",
+        "state": "closed",
+        "updated_at": "2026-09-26T14:09:58Z",
+        "url": "https://github.com/barocss/barocss/issues/385"
+      },
+      {
+        "number": 376,
+        "title": "research (Vision): is there a gap json-render / A2UI leave that a BaroCSS-native UI layer should fill?",
+        "state": "closed",
+        "updated_at": "2026-09-26T14:00:22Z",
+        "url": "https://github.com/barocss/barocss/issues/376"
+      },
+      {
+        "number": 377,
+        "title": "research (Vision): re-map the AI UI loop beyond styling and rank the next candidate outcomes",
+        "state": "closed",
+        "updated_at": "2026-09-26T13:48:00Z",
+        "url": "https://github.com/barocss/barocss/issues/377"
+      },
+      {
+        "number": 374,
+        "title": "research: do the O4/O5 guarantees hold in Firefox and WebKit (not only Chromium)?",
+        "state": "closed",
+        "updated_at": "2026-09-26T13:44:54Z",
+        "url": "https://github.com/barocss/barocss/issues/374"
+      },
+      {
+        "number": 375,
+        "title": "research (O6): how much of a Tailwind build's config can BaroCSS infer from the page's built CSS?",
+        "state": "closed",
+        "updated_at": "2026-09-26T13:18:32Z",
+        "url": "https://github.com/barocss/barocss/issues/375"
+      },
+      {
+        "number": 364,
+        "title": "research (O5): real embedded AI widget with published 0.10.0 — Shadow DOM + strict CSP + model UI + adversarial classes",
+        "state": "closed",
+        "updated_at": "2026-09-26T12:43:35Z",
+        "url": "https://github.com/barocss/barocss/issues/364"
+      },
+      {
+        "number": 319,
+        "title": "research (O5): fuzz class input for invalid, unscoped or unbounded output (repeatable harness)",
+        "state": "closed",
+        "updated_at": "2026-09-26T09:50:18Z",
+        "url": "https://github.com/barocss/barocss/issues/319"
+      },
+      {
+        "number": 320,
+        "title": "research (O5): does BaroCSS work for AI widgets embedded in a host page (Shadow DOM, scoped containers)?",
+        "state": "closed",
+        "updated_at": "2026-09-26T09:45:38Z",
+        "url": "https://github.com/barocss/barocss/issues/320"
+      },
+      {
+        "number": 289,
+        "title": "research (O4): rerun the real-starter adoption test on 0.7.0 (valid budget)",
+        "state": "closed",
+        "updated_at": "2026-09-26T08:07:35Z",
+        "url": "https://github.com/barocss/barocss/issues/289"
+      },
+      {
+        "number": 290,
+        "title": "research (O4): do streamed SSR (RSC Suspense, server islands) and static generation keep first-paint styling?",
+        "state": "closed",
+        "updated_at": "2026-09-26T07:51:07Z",
+        "url": "https://github.com/barocss/barocss/issues/290"
+      },
+      {
+        "number": 271,
+        "title": "research (O4): do Twind, UnoCSS or Tailwind's own compile() already serve SSR + CMS classes? (before #268)",
+        "state": "closed",
+        "updated_at": "2026-09-26T07:50:39Z",
+        "url": "https://github.com/barocss/barocss/issues/271"
+      },
+      {
+        "number": 237,
+        "title": "research: do we need Tailwind's @property fallback block (browsers without @property)?",
+        "state": "closed",
+        "updated_at": "2026-09-26T07:50:24Z",
+        "url": "https://github.com/barocss/barocss/issues/237"
+      },
+      {
+        "number": 239,
+        "title": "research: can an AI agent set up companion mode in a shadcn app from the docs alone?",
+        "state": "closed",
+        "updated_at": "2026-09-26T07:50:22Z",
+        "url": "https://github.com/barocss/barocss/issues/239"
+      },
+      {
+        "number": 243,
+        "title": "research: does 100% parity hold on a held-out corpus of real AI UI output?",
+        "state": "closed",
+        "updated_at": "2026-09-26T07:50:14Z",
+        "url": "https://github.com/barocss/barocss/issues/243"
+      },
+      {
+        "number": 249,
+        "title": "research: do models default to the Tailwind Play CDN for single-file HTML, and could BaroCSS be its production drop-in?",
+        "state": "closed",
+        "updated_at": "2026-09-26T07:50:04Z",
+        "url": "https://github.com/barocss/barocss/issues/249"
+      },
+      {
+        "number": 250,
+        "title": "research: does AI-generated HTML email need anything from BaroCSS beyond existing inliners?",
+        "state": "closed",
+        "updated_at": "2026-09-26T07:50:02Z",
+        "url": "https://github.com/barocss/barocss/issues/250"
+      },
+      {
+        "number": 252,
+        "title": "research: where else do unseen Tailwind classes reach production at runtime? (next adoption targets)",
+        "state": "closed",
+        "updated_at": "2026-09-26T07:49:59Z",
+        "url": "https://github.com/barocss/barocss/issues/252"
+      },
+      {
+        "number": 253,
+        "title": "research: end-to-end, does companion mode generalise to AI-written CMS content in a built site?",
+        "state": "closed",
+        "updated_at": "2026-09-26T07:49:57Z",
+        "url": "https://github.com/barocss/barocss/issues/253"
+      },
+      {
+        "number": 255,
+        "title": "research: does companion mode handle a site's own @theme tokens in AI-written content?",
+        "state": "closed",
+        "updated_at": "2026-09-26T07:49:53Z",
+        "url": "https://github.com/barocss/barocss/issues/255"
+      },
+      {
+        "number": 264,
+        "title": "research (O4): how much real-world demand is there for runtime Tailwind classes in production?",
+        "state": "closed",
+        "updated_at": "2026-09-26T07:49:45Z",
+        "url": "https://github.com/barocss/barocss/issues/264"
+      },
+      {
+        "number": 265,
+        "title": "research (O4): companion runtime cost at scale (1k-20k classes, long sessions) vs @tailwindcss/browser",
+        "state": "closed",
+        "updated_at": "2026-09-26T07:49:43Z",
+        "url": "https://github.com/barocss/barocss/issues/265"
+      },
+      {
+        "number": 266,
+        "title": "research (O4): do SSR pages with runtime classes flash unstyled, and can @barocss/server fix it at request time?",
+        "state": "closed",
+        "updated_at": "2026-09-26T07:49:40Z",
+        "url": "https://github.com/barocss/barocss/issues/266"
+      },
+      {
+        "number": 283,
+        "title": "research (O4): does companion mode match CSS-side Tailwind config (@custom-variant dark, @utility, prefix)?",
+        "state": "closed",
+        "updated_at": "2026-09-26T07:49:25Z",
+        "url": "https://github.com/barocss/barocss/issues/283"
+      },
+      {
+        "number": 282,
+        "title": "research (O4): can an agent adopt published 0.6.0 in a real CMS starter from the docs alone?",
+        "state": "closed",
+        "updated_at": "2026-09-26T06:55:22Z",
+        "url": "https://github.com/barocss/barocss/issues/282"
+      },
+      {
+        "number": 231,
+        "title": "research: end-to-end, does companion mode make real model-generated specs render right first try?",
+        "state": "closed",
+        "updated_at": "2026-09-26T01:28:43Z",
+        "url": "https://github.com/barocss/barocss/issues/231"
+      },
+      {
+        "number": 219,
+        "title": "research: does the BaroCSS runtime use the app's own theme (shadcn tokens) like the build does?",
+        "state": "closed",
+        "updated_at": "2026-09-25T16:15:15Z",
+        "url": "https://github.com/barocss/barocss/issues/219"
+      },
+      {
+        "number": 218,
+        "title": "research: can a built app pre-generate AI classes (@source inline) instead of needing a runtime?",
+        "state": "closed",
+        "updated_at": "2026-09-25T16:10:07Z",
+        "url": "https://github.com/barocss/barocss/issues/218"
+      },
+      {
+        "number": 193,
+        "title": "research: streamed AI UI - first styled frame and partial class tokens under the runtime",
+        "state": "closed",
+        "updated_at": "2026-09-25T16:06:22Z",
+        "url": "https://github.com/barocss/barocss/issues/193"
+      },
+      {
+        "number": 194,
+        "title": "research: can untrusted model-generated class strings make BaroCSS emit harmful CSS?",
+        "state": "closed",
+        "updated_at": "2026-09-25T16:05:17Z",
+        "url": "https://github.com/barocss/barocss/issues/194"
+      },
+      {
+        "number": 209,
+        "title": "research: do real MCP App servers ask for Tailwind classes, and what do models emit when they do?",
+        "state": "closed",
+        "updated_at": "2026-09-25T15:53:25Z",
+        "url": "https://github.com/barocss/barocss/issues/209"
+      },
+      {
+        "number": 199,
+        "title": "research: what do real models emit when asked for an MCP App HTML UI?",
+        "state": "closed",
+        "updated_at": "2026-09-25T15:39:22Z",
+        "url": "https://github.com/barocss/barocss/issues/199"
+      },
+      {
+        "number": 206,
+        "title": "research: which real MCP Apps hosts block inline styles (does strict-CSP delivery matter)?",
+        "state": "closed",
+        "updated_at": "2026-09-25T15:36:53Z",
+        "url": "https://github.com/barocss/barocss/issues/206"
+      },
+      {
+        "number": 202,
+        "title": "research: does BaroCSS have a role when AI-generated UI targets a mobile app?",
+        "state": "closed",
+        "updated_at": "2026-09-25T15:31:45Z",
+        "url": "https://github.com/barocss/barocss/issues/202"
+      },
+      {
+        "number": 198,
+        "title": "research: BaroCSS vs @tailwindcss/browser for model-emitted no-build HTML (MCP Apps rawHtml)",
+        "state": "closed",
+        "updated_at": "2026-09-25T15:28:47Z",
+        "url": "https://github.com/barocss/barocss/issues/198"
+      },
+      {
+        "number": 192,
+        "title": "research: map today's AI UI systems and how each delivers styling",
+        "state": "closed",
+        "updated_at": "2026-09-25T15:03:56Z",
+        "url": "https://github.com/barocss/barocss/issues/192"
+      },
+      {
+        "number": 196,
+        "title": "research: does the parity target move from Tailwind 4.1.13 to 4.3.3?",
+        "state": "closed",
+        "updated_at": "2026-09-25T15:01:16Z",
+        "url": "https://github.com/barocss/barocss/issues/196"
+      }
+    ]
+  },
+  "additionalPlans": {
+    "query": "repo:barocss/barocss is:issue \"plan(cad-ai)\" in:title",
+    "total": 12,
+    "incomplete": false
+  },
+  "selectedCount": 73,
+  "selectedStates": {
+    "open": 68,
+    "closed": 5
+  },
+  "selectedIssues": [
+    {
+      "number": 2228,
+      "title": "research(cad): smlibpy WASM·Three.js 참고 — 선택 identity·Worker 복구·좌표·수명 계약",
+      "url": "https://github.com/barocss/barocss/issues/2228",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-28T23:57:34Z",
+      "comments": 0
+    },
+    {
+      "number": 2227,
+      "title": "research(cad): NativeCAD v0.26.0 참조 — Boolean 결과·단위·STEP pcurve·loft 회귀 계약",
+      "url": "https://github.com/barocss/barocss/issues/2227",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-28T09:49:44Z",
+      "comments": 0
+    },
+    {
+      "number": 2224,
+      "title": "research(cad-ai): BerriaCraft 참고 — 원본 scan 보존·재구성/출력 품질 분리와 mesh 검증 계약",
+      "url": "https://github.com/barocss/barocss/issues/2224",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-28T03:00:22Z",
+      "comments": 0
+    },
+    {
+      "number": 2222,
+      "title": "research(cad-ai): blender-skills 참고 — 선택적 skill routing과 bounded 단계별 시각 QA",
+      "url": "https://github.com/barocss/barocss/issues/2222",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-27T07:10:42Z",
+      "comments": 0
+    },
+    {
+      "number": 2220,
+      "title": "research(cad-ai): Atech AI CAD 참조 — 생성·검증 상태 분리와 revision-bound 진단 산출물",
+      "url": "https://github.com/barocss/barocss/issues/2220",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-27T06:34:36Z",
+      "comments": 0
+    },
+    {
+      "number": 2219,
+      "title": "research(cad): HeyPCB materials 참고 — 재료·공정·적층·제조 역량과 검증 근거 분리",
+      "url": "https://github.com/barocss/barocss/issues/2219",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-27T06:31:12Z",
+      "comments": 0
+    },
+    {
+      "number": 2218,
+      "title": "research(bim): NativeBIM 참조 — IFC 의미 계층과 revision-bound preview·apply·undo 계약",
+      "url": "https://github.com/barocss/barocss/issues/2218",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-27T06:29:56Z",
+      "comments": 0
+    },
+    {
+      "number": 2217,
+      "title": "research(cad): OpenCADStudio 참조 — 포맷·entity 보존 행렬과 verified save 계약",
+      "url": "https://github.com/barocss/barocss/issues/2217",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-27T06:27:58Z",
+      "comments": 0
+    },
+    {
+      "number": 2216,
+      "title": "research(cad): LeatherPatternMaker 참고 — 공통 2D 기하와 가죽 패턴 제작 규칙 분리",
+      "url": "https://github.com/barocss/barocss/issues/2216",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-26T10:42:56Z",
+      "comments": 0
+    },
+    {
+      "number": 2215,
+      "title": "review(cad): 실제 기하 알고리즘·지원 범위·결과 수용 계약 기술 감사",
+      "url": "https://github.com/barocss/barocss/issues/2215",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-26T03:13:30Z",
+      "comments": 0
+    },
+    {
+      "number": 2214,
+      "title": "research: CAD·로봇·모션·GPU 보강 기술 인덱스와 단계별 검증 우선순위",
+      "url": "https://github.com/barocss/barocss/issues/2214",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-26T02:22:08Z",
+      "comments": 0
+    },
+    {
+      "number": 2213,
+      "title": "research(gpu): 기존 가속·LOD 결정 위의 revision-aware readback·정확도·측정 게이트",
+      "url": "https://github.com/barocss/barocss/issues/2213",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-26T02:20:24Z",
+      "comments": 0
+    },
+    {
+      "number": 2212,
+      "title": "research(motion): 강체·스킨 분리와 WASM skeletal playback·foot planting 검증",
+      "url": "https://github.com/barocss/barocss/issues/2212",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-26T02:19:21Z",
+      "comments": 0
+    },
+    {
+      "number": 2211,
+      "title": "research(robotics): 기존 로봇 모델의 독립 oracle·온라인 궤적·WASM 실행 검증 경계",
+      "url": "https://github.com/barocss/barocss/issues/2211",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-26T02:18:55Z",
+      "comments": 0
+    },
+    {
+      "number": 2210,
+      "title": "research(cad): 자체 커널 검증 보강 — 공차·조립 교환·위상 참조·제약 진단 비교",
+      "url": "https://github.com/barocss/barocss/issues/2210",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-26T02:18:22Z",
+      "comments": 0
+    },
+    {
+      "number": 2209,
+      "title": "research(robotics): Intrinsic Core 참고 — CAD→SimReady 계약과 선택적 런타임 어댑터",
+      "url": "https://github.com/barocss/barocss/issues/2209",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-26T02:07:36Z",
+      "comments": 0
+    },
+    {
+      "number": 2208,
+      "title": "research(cad-ai): SOMA 참고 — 선택·계측·파라미터·revision 기반 에이전트 수정 계약",
+      "url": "https://github.com/barocss/barocss/issues/2208",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-25T13:11:40Z",
+      "comments": 0
+    },
+    {
+      "number": 2207,
+      "title": "research(cad): dimensional-drawing 참고 — CAD 파생 SVG의 치수·상세도 표현",
+      "url": "https://github.com/barocss/barocss/issues/2207",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-25T11:32:25Z",
+      "comments": 0
+    },
+    {
+      "number": 2206,
+      "title": "research(cad-ai): print3d 참고 — 사진 근거·검증 피드백·CAD-to-print 통합 설계",
+      "url": "https://github.com/barocss/barocss/issues/2206",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-25T02:14:50Z",
+      "comments": 0
+    },
+    {
+      "number": 2205,
+      "title": "research(cad): 최신 BaroCSS와 SolidCraft v0.21.0 코드 비교·검증 격차 (2026-10-24)",
+      "url": "https://github.com/barocss/barocss/issues/2205",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-24T11:40:48Z",
+      "comments": 0
+    },
+    {
+      "number": 2204,
+      "title": "plan(cad-ai): 실사진→편집 CAD 단계별 평가와 직접·3D 경유 비교",
+      "url": "https://github.com/barocss/barocss/issues/2204",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-24T00:48:41Z",
+      "comments": 0
+    },
+    {
+      "number": 2203,
+      "title": "plan(cad-ai): 동일 CAD revision의 exact STEP·SVG 파생 출력 검증",
+      "url": "https://github.com/barocss/barocss/issues/2203",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-24T00:48:37Z",
+      "comments": 0
+    },
+    {
+      "number": 2202,
+      "title": "plan(cad-ai): AI·직접 편집의 동일 native 원본과 Save/Open·Undo 검증",
+      "url": "https://github.com/barocss/barocss/issues/2202",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-24T00:48:31Z",
+      "comments": 0
+    },
+    {
+      "number": 2201,
+      "title": "plan(cad-ai): 후보 실행·독립 형상 검사·예산 제한 AI 수정 루프",
+      "url": "https://github.com/barocss/barocss/issues/2201",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-24T00:48:22Z",
+      "comments": 0
+    },
+    {
+      "number": 2200,
+      "title": "plan(cad-ai): 증거 기반 CAD 연산 계획과 기존 native 도구 adapter",
+      "url": "https://github.com/barocss/barocss/issues/2200",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-24T00:48:17Z",
+      "comments": 0
+    },
+    {
+      "number": 2199,
+      "title": "plan(cad-ai): 실측·설계 의도·미확정 치수와 최소 질문 계약",
+      "url": "https://github.com/barocss/barocss/issues/2199",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-24T00:48:13Z",
+      "comments": 0
+    },
+    {
+      "number": 2198,
+      "title": "plan(cad-ai): 선택적 이미지→3D 메시 가설과 CAD 재구성 비교",
+      "url": "https://github.com/barocss/barocss/issues/2198",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-24T00:48:07Z",
+      "comments": 0
+    },
+    {
+      "number": 2197,
+      "title": "plan(cad-ai): 선택적 깊이·카메라·다중시점 증거와 metric scale 분리",
+      "url": "https://github.com/barocss/barocss/issues/2197",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-24T00:48:03Z",
+      "comments": 0
+    },
+    {
+      "number": 2196,
+      "title": "plan(cad-ai): 부품 의미·관계와 도면 치수 OCR의 근거 연결",
+      "url": "https://github.com/barocss/barocss/issues/2196",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-24T00:48:00Z",
+      "comments": 0
+    },
+    {
+      "number": 2195,
+      "title": "plan(cad-ai): 사물 탐지·분할과 원본 좌표에 연결된 region 증거",
+      "url": "https://github.com/barocss/barocss/issues/2195",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-24T00:47:55Z",
+      "comments": 0
+    },
+    {
+      "number": 2194,
+      "title": "plan(cad-ai): 실사진 입력·출처·평가 정답 분리와 첫 벤치마크 준비",
+      "url": "https://github.com/barocss/barocss/issues/2194",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-24T00:47:51Z",
+      "comments": 0
+    },
+    {
+      "number": 2193,
+      "title": "plan(cad-ai): 이미지→CAD 공통 artifact·ID·좌표·revision 계약",
+      "url": "https://github.com/barocss/barocss/issues/2193",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-24T00:49:44Z",
+      "comments": 0
+    },
+    {
+      "number": 2192,
+      "title": "research(cad): 3d-model-anything 참고 — 도면에서 편집 가능한 CAD 연산 생성·검증",
+      "url": "https://github.com/barocss/barocss/issues/2192",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-24T05:32:40Z",
+      "comments": 11
+    },
+    {
+      "number": 2191,
+      "title": "research(assets): SimReady Central USD 검색·에셋 가져오기와 Physics 매핑 검증",
+      "url": "https://github.com/barocss/barocss/issues/2191",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-23T22:45:30Z",
+      "comments": 0
+    },
+    {
+      "number": 2190,
+      "title": "research(cad): Peopoly Giga 800 참고 — 제조용 3MF/STL 출력·공정 보정·검증 계획",
+      "url": "https://github.com/barocss/barocss/issues/2190",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-23T11:11:21Z",
+      "comments": 0
+    },
+    {
+      "number": 2189,
+      "title": "research(cad): 로봇용 편집 가능한 조립·관절·기구학과 URDF 전달 계획",
+      "url": "https://github.com/barocss/barocss/issues/2189",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-23T06:29:14Z",
+      "comments": 0
+    },
+    {
+      "number": 2188,
+      "title": "research(cad): SOLIDWORKS 2027 참고 — 파라미터 변형·비동기 재계산·성능 진단",
+      "url": "https://github.com/barocss/barocss/issues/2188",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-23T05:38:42Z",
+      "comments": 0
+    },
+    {
+      "number": 2187,
+      "title": "plan(cad): CAD 원본 기반 단방향 SVG 벡터 출력 범위와 검증 기준",
+      "url": "https://github.com/barocss/barocss/issues/2187",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-23T02:27:04Z",
+      "comments": 0
+    },
+    {
+      "number": 2184,
+      "title": "research(studios): Loopcut의 후보 workspace·ownership merge·검증·복구 계약 참고",
+      "url": "https://github.com/barocss/barocss/issues/2184",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-21T00:52:48Z",
+      "comments": 0
+    },
+    {
+      "number": 2183,
+      "title": "research(gpu): SDF.R 참고 — implicit field 편집·GPU preview·MC/DC mesh 정합성",
+      "url": "https://github.com/barocss/barocss/issues/2183",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-21T00:35:55Z",
+      "comments": 0
+    },
+    {
+      "number": 2182,
+      "title": "research(cad): Seamless CAD 참고 — 파라메트릭 이력·미리보기 분리·렌더 갱신 계약",
+      "url": "https://github.com/barocss/barocss/issues/2182",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-21T00:32:27Z",
+      "comments": 0
+    },
+    {
+      "number": 2181,
+      "title": "research(cad): Quartz 참고 — AI-native CAD 후보 격리·검증·승인 계약",
+      "url": "https://github.com/barocss/barocss/issues/2181",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-20T23:28:41Z",
+      "comments": 0
+    },
+    {
+      "number": 2180,
+      "title": "research(cad): iCAD SX 참고 — 조립 문맥 편집·BOM/도면 일관성·작업별 성능",
+      "url": "https://github.com/barocss/barocss/issues/2180",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-20T17:36:34Z",
+      "comments": 0
+    },
+    {
+      "number": 2179,
+      "title": "research(studios): Solvaix 태양광 CAD 데모의 절차적 배치·2D/3D 동기화·검증 경계",
+      "url": "https://github.com/barocss/barocss/issues/2179",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-20T03:43:03Z",
+      "comments": 0
+    },
+    {
+      "number": 2178,
+      "title": "research(cad): SKY-001 계층적 생성 연구와 실행 가능한 CAD 계획·검증 계약",
+      "url": "https://github.com/barocss/barocss/issues/2178",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-20T03:24:12Z",
+      "comments": 0
+    },
+    {
+      "number": 2177,
+      "title": "research(toolchain): CAD–CAE–PLM 연결과 부품 리비전·해석 추적·변경 승인 계약",
+      "url": "https://github.com/barocss/barocss/issues/2177",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-20T01:36:12Z",
+      "comments": 0
+    },
+    {
+      "number": 2176,
+      "title": "research(studios): img2interior의 실내 저작·PBR 베이크·Rendering/World 적용 경계",
+      "url": "https://github.com/barocss/barocss/issues/2176",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-20T00:03:22Z",
+      "comments": 0
+    },
+    {
+      "number": 2175,
+      "title": "research(studios): STEVE Studio의 AI 파라메트릭 편집·조립 Inspector·표현 상태 분리 참고",
+      "url": "https://github.com/barocss/barocss/issues/2175",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-19T01:58:32Z",
+      "comments": 0
+    },
+    {
+      "number": 2173,
+      "title": "research(cad): IntelliCAD·ODA Teigha의 플랫폼·DWG·WASM 적용 경계 조사",
+      "url": "https://github.com/barocss/barocss/issues/2173",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-18T23:25:33Z",
+      "comments": 0
+    },
+    {
+      "number": 2172,
+      "title": "research(mesh): CM2 MeshTools의 수리·리메시·Boolean 및 CAD→메시 적용 검토",
+      "url": "https://github.com/barocss/barocss/issues/2172",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-18T23:10:53Z",
+      "comments": 0
+    },
+    {
+      "number": 2171,
+      "title": "research(cad): ZW3D WuKong 참고 — 재생성·조립·단면 계측·Rendering identity",
+      "url": "https://github.com/barocss/barocss/issues/2171",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-18T10:10:41Z",
+      "comments": 0
+    },
+    {
+      "number": 2167,
+      "title": "design(cad): 인벌류트 평기어 파라미터 생성기와 치합 검증 제안 (도해 포함)",
+      "url": "https://github.com/barocss/barocss/issues/2167",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-18T01:41:39Z",
+      "comments": 0
+    },
+    {
+      "number": 2165,
+      "title": "research(studios): Enclose의 선택 기반 AI 편집·viewport 검증·복구 계약 참고",
+      "url": "https://github.com/barocss/barocss/issues/2165",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-18T01:31:53Z",
+      "comments": 0
+    },
+    {
+      "number": 2122,
+      "title": "research(studios): OrcaSlicer의 CAD 입력·검사·미리보기 설계 참고",
+      "url": "https://github.com/barocss/barocss/issues/2122",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-17T09:58:59Z",
+      "comments": 0
+    },
+    {
+      "number": 2118,
+      "title": "research(studios): CadXStudio의 CAD 편집·Rendering 흐름과 검증 기준 정리",
+      "url": "https://github.com/barocss/barocss/issues/2118",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-17T09:02:06Z",
+      "comments": 0
+    },
+    {
+      "number": 2110,
+      "title": "research(cad): text-to-cad 기반 AI 편집 문맥·산출물 검증 계약 검토",
+      "url": "https://github.com/barocss/barocss/issues/2110",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-17T06:49:48Z",
+      "comments": 0
+    },
+    {
+      "number": 2094,
+      "title": "research(cad): solidcore 표준부품·나사산 기능 조사와 단계별 fastener 제안",
+      "url": "https://github.com/barocss/barocss/issues/2094",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-16T14:03:00Z",
+      "comments": 0
+    },
+    {
+      "number": 2084,
+      "title": "design(cad): gallery55 — bearing pedestal and V-groove pulley workflows",
+      "url": "https://github.com/barocss/barocss/issues/2084",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-16T09:31:09Z",
+      "comments": 0
+    },
+    {
+      "number": 2074,
+      "title": "design(cad): gallery45 — paired World/UV intersection and complementary curved Faces",
+      "url": "https://github.com/barocss/barocss/issues/2074",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-16T06:54:53Z",
+      "comments": 0
+    },
+    {
+      "number": 2038,
+      "title": "design(cad): CAD 갤러리 10 — 단면 곡선·분해 조립·Trim",
+      "url": "https://github.com/barocss/barocss/issues/2038",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-16T02:40:45Z",
+      "comments": 0
+    },
+    {
+      "number": 2037,
+      "title": "design(cad): CAD 갤러리 09 — Draft·Face offset·Hole variants와 잔여 coverage",
+      "url": "https://github.com/barocss/barocss/issues/2037",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-16T11:05:22Z",
+      "comments": 0
+    },
+    {
+      "number": 2036,
+      "title": "design(cad): CAD 스타일 갤러리 08 — 선택 범위·의존 feature 편집",
+      "url": "https://github.com/barocss/barocss/issues/2036",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-16T02:15:42Z",
+      "comments": 0
+    },
+    {
+      "number": 2035,
+      "title": "design(cad): CAD 스타일 갤러리 07 — 브래킷·하우징·단차축 연속 workflow",
+      "url": "https://github.com/barocss/barocss/issues/2035",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-16T02:11:29Z",
+      "comments": 0
+    },
+    {
+      "number": 2034,
+      "title": "design(cad): CAD 스타일 컨셉 갤러리 06 — Drawing views, Geometry exchange 및 17개 보드 인덱스",
+      "url": "https://github.com/barocss/barocss/issues/2034",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-16T01:53:33Z",
+      "comments": 0
+    },
+    {
+      "number": 2033,
+      "title": "design(cad): CAD 스타일 컨셉 갤러리 05 — Sketch constraints, Assembly mates, Surface analysis",
+      "url": "https://github.com/barocss/barocss/issues/2033",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-16T02:11:25Z",
+      "comments": 0
+    },
+    {
+      "number": 2032,
+      "title": "design(cad): CAD 스타일 컨셉 갤러리 04 — NURBS, Pattern, Mirror 및 첫 pass 인덱스",
+      "url": "https://github.com/barocss/barocss/issues/2032",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-16T11:05:15Z",
+      "comments": 0
+    },
+    {
+      "number": 2029,
+      "title": "design(cad): CAD 스타일 기능별 컨셉 — Split, Chamfer, Extrude",
+      "url": "https://github.com/barocss/barocss/issues/2029",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-16T01:25:58Z",
+      "comments": 0
+    },
+    {
+      "number": 1652,
+      "title": "research(cad): qualify usd-brep lessons with a bounded native-fixture comparison",
+      "url": "https://github.com/barocss/barocss/issues/1652",
+      "state": "closed",
+      "stateReason": "completed",
+      "updatedAt": "2026-10-12T23:51:33Z",
+      "comments": 1
+    },
+    {
+      "number": 745,
+      "title": "research(motion): review product need and actual consumers before expansion",
+      "url": "https://github.com/barocss/barocss/issues/745",
+      "state": "closed",
+      "stateReason": "completed",
+      "updatedAt": "2026-10-08T10:52:52Z",
+      "comments": 3
+    },
+    {
+      "number": 527,
+      "title": "research(cad): original bounded axis-box STEP bytes and shared topology readback",
+      "url": "https://github.com/barocss/barocss/issues/527",
+      "state": "open",
+      "stateReason": null,
+      "updatedAt": "2026-10-06T05:29:59Z",
+      "comments": 3
+    },
+    {
+      "number": 520,
+      "title": "research(cad): exact six-face axis-box closure and solid validity",
+      "url": "https://github.com/barocss/barocss/issues/520",
+      "state": "closed",
+      "stateReason": "completed",
+      "updatedAt": "2026-10-06T03:30:17Z",
+      "comments": 2
+    },
+    {
+      "number": 518,
+      "title": "research(cad): exact orthogonal rectangle common-edge feasibility",
+      "url": "https://github.com/barocss/barocss/issues/518",
+      "state": "closed",
+      "stateReason": "completed",
+      "updatedAt": "2026-10-06T02:47:51Z",
+      "comments": 2
+    },
+    {
+      "number": 514,
+      "title": "research(cad): executable restricted face validity and shared-edge feasibility",
+      "url": "https://github.com/barocss/barocss/issues/514",
+      "state": "closed",
+      "stateReason": "completed",
+      "updatedAt": "2026-10-06T01:52:57Z",
+      "comments": 2
+    }
+  ],
+  "commentSources": [
+    {
+      "issue": 2192,
+      "count": 11,
+      "comments": [
+        {
+          "id": 6376792420,
+          "url": "https://github.com/barocss/barocss/issues/2192#issuecomment-6376792420",
+          "updatedAt": "2026-10-23T23:28:54Z"
+        },
+        {
+          "id": 6376888682,
+          "url": "https://github.com/barocss/barocss/issues/2192#issuecomment-6376888682",
+          "updatedAt": "2026-10-23T23:36:42Z"
+        },
+        {
+          "id": 6377099388,
+          "url": "https://github.com/barocss/barocss/issues/2192#issuecomment-6377099388",
+          "updatedAt": "2026-10-23T23:53:14Z"
+        },
+        {
+          "id": 6377750684,
+          "url": "https://github.com/barocss/barocss/issues/2192#issuecomment-6377750684",
+          "updatedAt": "2026-10-24T00:49:27Z"
+        },
+        {
+          "id": 6377902288,
+          "url": "https://github.com/barocss/barocss/issues/2192#issuecomment-6377902288",
+          "updatedAt": "2026-10-24T01:03:16Z"
+        },
+        {
+          "id": 6378102047,
+          "url": "https://github.com/barocss/barocss/issues/2192#issuecomment-6378102047",
+          "updatedAt": "2026-10-24T01:21:55Z"
+        },
+        {
+          "id": 6378359474,
+          "url": "https://github.com/barocss/barocss/issues/2192#issuecomment-6378359474",
+          "updatedAt": "2026-10-24T01:46:57Z"
+        },
+        {
+          "id": 6378940798,
+          "url": "https://github.com/barocss/barocss/issues/2192#issuecomment-6378940798",
+          "updatedAt": "2026-10-24T02:48:43Z"
+        },
+        {
+          "id": 6379519692,
+          "url": "https://github.com/barocss/barocss/issues/2192#issuecomment-6379519692",
+          "updatedAt": "2026-10-24T03:51:53Z"
+        },
+        {
+          "id": 6380217421,
+          "url": "https://github.com/barocss/barocss/issues/2192#issuecomment-6380217421",
+          "updatedAt": "2026-10-24T05:10:05Z"
+        },
+        {
+          "id": 6380420438,
+          "url": "https://github.com/barocss/barocss/issues/2192#issuecomment-6380420438",
+          "updatedAt": "2026-10-24T05:32:40Z"
+        }
+      ]
+    },
+    {
+      "issue": 1652,
+      "count": 1,
+      "comments": [
+        {
+          "id": 6134821020,
+          "url": "https://github.com/barocss/barocss/issues/1652#issuecomment-6134821020",
+          "updatedAt": "2026-10-12T23:50:51Z"
+        }
+      ]
+    },
+    {
+      "issue": 745,
+      "count": 3,
+      "comments": [
+        {
+          "id": 6057387993,
+          "url": "https://github.com/barocss/barocss/issues/745#issuecomment-6057387993",
+          "updatedAt": "2026-10-08T09:59:25Z"
+        },
+        {
+          "id": 6057737195,
+          "url": "https://github.com/barocss/barocss/issues/745#issuecomment-6057737195",
+          "updatedAt": "2026-10-08T10:19:57Z"
+        },
+        {
+          "id": 6058274327,
+          "url": "https://github.com/barocss/barocss/issues/745#issuecomment-6058274327",
+          "updatedAt": "2026-10-08T10:52:52Z"
+        }
+      ]
+    },
+    {
+      "issue": 527,
+      "count": 3,
+      "comments": [
+        {
+          "id": 6009352560,
+          "url": "https://github.com/barocss/barocss/issues/527#issuecomment-6009352560",
+          "updatedAt": "2026-10-06T04:29:29Z"
+        },
+        {
+          "id": 6009653472,
+          "url": "https://github.com/barocss/barocss/issues/527#issuecomment-6009653472",
+          "updatedAt": "2026-10-06T04:59:10Z"
+        },
+        {
+          "id": 6010018034,
+          "url": "https://github.com/barocss/barocss/issues/527#issuecomment-6010018034",
+          "updatedAt": "2026-10-06T05:29:57Z"
+        }
+      ]
+    },
+    {
+      "issue": 520,
+      "count": 2,
+      "comments": [
+        {
+          "id": 6008553298,
+          "url": "https://github.com/barocss/barocss/issues/520#issuecomment-6008553298",
+          "updatedAt": "2026-10-06T03:11:23Z"
+        },
+        {
+          "id": 6008751020,
+          "url": "https://github.com/barocss/barocss/issues/520#issuecomment-6008751020",
+          "updatedAt": "2026-10-06T03:30:13Z"
+        }
+      ]
+    },
+    {
+      "issue": 518,
+      "count": 2,
+      "comments": [
+        {
+          "id": 6008144630,
+          "url": "https://github.com/barocss/barocss/issues/518#issuecomment-6008144630",
+          "updatedAt": "2026-10-06T02:33:19Z"
+        },
+        {
+          "id": 6008299854,
+          "url": "https://github.com/barocss/barocss/issues/518#issuecomment-6008299854",
+          "updatedAt": "2026-10-06T02:47:47Z"
+        }
+      ]
+    },
+    {
+      "issue": 514,
+      "count": 2,
+      "comments": [
+        {
+          "id": 6007543331,
+          "url": "https://github.com/barocss/barocss/issues/514#issuecomment-6007543331",
+          "updatedAt": "2026-10-06T01:37:33Z"
+        },
+        {
+          "id": 6007703829,
+          "url": "https://github.com/barocss/barocss/issues/514#issuecomment-6007703829",
+          "updatedAt": "2026-10-06T01:52:54Z"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "114 title-research results completely enumerated, not every issue body mentioning research.",
+    "73 selected CAD-family/review/plan/design bodies read; unrelated historical UI research excluded.",
+    "24 comments across all seven selected issues with comments read.",
+    "Remote states are observations, not product acceptance or authorization to close issues.",
+    "No external tool or library benchmark was executed for this reconciliation."
+  ]
+}

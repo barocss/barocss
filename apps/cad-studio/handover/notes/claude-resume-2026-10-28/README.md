@@ -218,8 +218,12 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   affine cap is proved without changing original coefficients or budgets. Live reference mass is
   qualified; literal stored-coefficient closure/mass, native SI and general glyph/depth wrapping
   remain unqualified. Original failures and exact limits: `../cylindrical-wrap-product-2026-10-29/README.md`.
-- Next: D314 measured thread quadrature performance, GitHub investigation-issue reconciliation,
-  then remaining07 before08,09. General/curved/rational/smooth wrapping, shaping/kerning/bidi/
+- GitHub research reconciliation is recorded in `../github-research-roadmap-2026-10-29.md` and
+  its source/state index:114 title-research issues enumerated;73 selected bodies and24comments
+  mapped to existing scopes,68OPEN/5CLOSED. Existing local results, partial/failed experiments
+  and research-only closures stay distinct. Roadmap07 is compacted; old contracts are retained
+  as historical records, with current07->08->09 order explicit. No GitHub write was made.
+- Next: D314 measured thread quadrature performance, then remaining07 before08,09. General/curved/rational/smooth wrapping, shaping/kerning/bidi/
   normalization and D291's broader free-form/concave/multi-span ranges remain open. No feature
   push, new PR or release. Next decision:D314.
 
