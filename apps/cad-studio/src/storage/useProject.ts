@@ -12,6 +12,7 @@ import { clearAutosave, partsOf, readAutosave, readPart, readVersions, writeAuto
 import type { ProjectStore, StoreEntry } from './store';
 import type { DirHandle } from './handleStore';
 import { linkedRevisions, type Linked } from './linked';
+import { acceptSaveReceipt } from '../state/saveOwnership';
 
 export interface ProjectView {
   store: ProjectStore | null;
@@ -40,12 +41,14 @@ export function useProject(cb: ProjectCallbacks) {
   const [recent, setRecent] = useState<DirHandle | null>(null);
   // (The tags read with — not shown, so not state — and the view as the async actions see it.)
   const tags = useRef<{ part: string | null; log: string | null }>({ part: null, log: null });
+  const saves = useRef({ path: null as string | null, next: 0, success: 0 });
   const live = useRef(view); live.current = view;
   const call = useRef(cb); call.current = cb;
   // (The versions a turn's call asked for and did not have: sent with the next turn, DA-9.)
   const wanted = useRef<string[]>([]);
 
   const actions = useMemo(() => {
+    const invalidateSaves = (path: string | null = null) => { saves.current = { path, next: saves.current.next, success: 0 }; };
     const set = (next: Partial<ProjectView>) => { live.current = { ...live.current, ...next }; setView(live.current); };
     const fail = (title: string, e: unknown) => { call.current.onError(title, say(e)); return false; };
     const refresh = async (store: ProjectStore) => set({ parts: await partsOf(store) });
@@ -56,6 +59,7 @@ export function useProject(cb: ProjectCallbacks) {
     };
     const use = async (store: ProjectStore | null) => {
       if (!store) return;
+      invalidateSaves();
       tags.current = { part: null, log: null };
       set({ ...EMPTY, store });
       await refresh(store).catch(e => fail('The project could not be read', e));
@@ -73,12 +77,13 @@ export function useProject(cb: ProjectCallbacks) {
       async openFolder() { try { await use(await pickFolder()); } catch (e) { fail('The folder could not be opened', e); } },
       async reopen() { if (!recent) return; try { const s = await reopenFolder(recent); if (s) await use(s); else call.current.onError('No access to the folder', 'The browser did not allow it. Open the folder again.'); } catch (e) { fail('The folder could not be opened', e); } },
       async openInBrowser(name: string) { try { await use(await browserProject(name)); } catch (e) { fail('The project could not be opened', e); } },
-      close() { tags.current = { part: null, log: null }; set(EMPTY); },
+      close() { invalidateSaves(); tags.current = { part: null, log: null }; set(EMPTY); },
       /** The document no longer the open one of the project (a new part, another file): the project stays open, the next save is a new file in it. */
-      detach() { if (!live.current.part && !live.current.log) return; tags.current = { part: null, log: null }; set({ part: null, log: null, offered: null }); },
+      detach() { invalidateSaves(); if (!live.current.part && !live.current.log) return; tags.current = { part: null, log: null }; set({ part: null, log: null, offered: null }); },
       /** A document of the project opened, its versions read, its autosaved work offered when there is some. */
       async openPart(path: string) {
         const store = live.current.store; if (!store) return false;
+        invalidateSaves(path);
         try {
           const r = await readPart(store, path);
           if ('error' in r) return fail(`Could not open ${path}`, new Error(r.error));
@@ -92,18 +97,35 @@ export function useProject(cb: ProjectCallbacks) {
         } catch (e) { return fail(`Could not open ${path}`, e); }
       },
       /** Saved into the project: over the file it was read from (its tag expected), or as `name` when new there. */
-      async save(doc: StudioDoc, name: string) {
+      async save(doc: StudioDoc, name: string, onCurrent?: () => void) {
         const store = live.current.store; if (!store) return false;
-        const path = live.current.part ?? partPathOf(name);
+        const part = live.current.part, path = part ?? partPathOf(name);
+        if (saves.current.path !== path) invalidateSaves(path);
+        const owner = saves.current, order = ++owner.next;
+        const current = () => saves.current === owner && live.current.store === store && (live.current.part === part || live.current.part === path);
+        const currentSuccess = () => current() && owner.success === order;
         try {
-          tags.current.part = (await writePart(store, path, doc, { expect: live.current.part ? tags.current.part : null })).tag;
-          if (!live.current.part) await loadLog(store, path);
+          const written = await writePart(store, path, doc, { expect: part ? tags.current.part : null });
+          if (!current() || !acceptSaveReceipt(owner, order)) return false;
+          // A newer document edit must not leave this file's tag behind its own successful write.
+          tags.current.part = written.tag;
           set({ part: path, offered: null });
-          await clearAutosave(store, path).catch(() => {});
-          await refresh(store);
+          if (!part) {
+            const r = await readVersions(store, path);
+            if (!currentSuccess()) return false;
+            if (r && 'error' in r) { call.current.onError('The versions could not be read', `${r.error} The document itself is unchanged.`); tags.current.log = null; set({ log: null }); }
+            else { tags.current.log = r?.tag ?? null; set({ log: r?.log ?? null }); }
+          }
+          const parts = await partsOf(store);
+          if (!currentSuccess()) return false;
+          set({ parts });
+          // Keep one checkpoint per path. readAutosave hides saved-equal bytes without racing a newer write/remove.
+          if (!currentSuccess()) return false;
+          onCurrent?.();
           return true;
         } catch (e) {
-          if (e instanceof BarocssError && e.code === 'STORAGE_CHANGED') return fail(`${path} changed elsewhere`, new Error(live.current.part ? 'Another window or program saved it since it was opened. Open it again, or save under another name.' : `The project already has ${path}. Save under another name.`));
+          if (!current() || order < owner.success) return false;
+          if (e instanceof BarocssError && e.code === 'STORAGE_CHANGED') return fail(`${path} changed elsewhere`, new Error(part ? 'Another window or program saved it since it was opened. Open it again, or save under another name.' : `The project already has ${path}. Save under another name.`));
           return fail('Could not save', e);
         }
       },

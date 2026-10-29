@@ -1,0 +1,134 @@
+{
+  "status": "SELECTED_ACTUAL_PASS",
+  "runtimeProfile": "final-run/source-profile.json",
+  "runtimeHashesRecheckedAfterRun": true,
+  "browser": "Chrome156.0.8078.48",
+  "renderer": "WebGPU",
+  "devicePixelRatio": 1,
+  "d322": {
+    "selected": 3,
+    "pass": 3,
+    "fail": 0,
+    "skip": 0,
+    "exit": 0,
+    "duration": 29064.115208,
+    "timeUnit": "ms",
+    "cases": {
+      "same-document": {
+        "status": "SAFE_CONTRACT_PASS",
+        "observed": {
+          "liveDocEqualsNewer": true,
+          "savedDocEqualsA": true,
+          "dirtyAfter": true,
+          "newerAutosavePresent": true,
+          "recoveryBefore": null,
+          "recoveryAfter": null,
+          "projectPartUIBefore": "D322-owned.bcad",
+          "projectPartUIAfter": "D322-owned.bcad",
+          "projectTagRef": "NOT_EXPOSED; native file tags are retained",
+          "baselineBugObserved": false
+        },
+        "nativeCompletion": {
+          "nativeCloseReturn": 22,
+          "returnedTagRead": 23,
+          "projectRefreshComplete": 28
+        },
+        "normalSaveB": {
+          "completed": true,
+          "dirty": false,
+          "nativeTag": "1695-1793255309953",
+          "savedDocEqualsB": true
+        },
+        "pageErrors": [],
+        "cleanup": {
+          "projectClose": "cleanup-only, after measured case",
+          "namespace": "REMOVED_AND_ABSENT",
+          "context": "CLOSED",
+          "browser": "CLOSED",
+          "server": "CLOSED"
+        }
+      },
+      "new-document": {
+        "status": "SAFE_CONTRACT_PASS",
+        "observed": {
+          "liveDocEqualsNewer": true,
+          "savedDocEqualsA": true,
+          "dirtyAfter": true,
+          "newerAutosavePresent": false,
+          "recoveryBefore": "{\"fileName\":\"D322-new-document\",\"savedAt\":1793255319431,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[12,13],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":14,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":12,\"d\":13,\"h\":14,\"x\":0,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"}},\"nextId\":2}}",
+          "recoveryAfter": "{\"fileName\":\"D322-new-document\",\"savedAt\":1793255319431,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[12,13],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":14,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":12,\"d\":13,\"h\":14,\"x\":0,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"}},\"nextId\":2}}",
+          "projectPartUIBefore": null,
+          "projectPartUIAfter": null,
+          "projectTagRef": "NOT_EXPOSED; native file tags are retained",
+          "baselineBugObserved": false
+        },
+        "nativeCompletion": {
+          "nativeCloseReturn": 17,
+          "returnedTagRead": 18,
+          "projectRefreshComplete": null
+        },
+        "normalSaveB": null,
+        "pageErrors": [],
+        "cleanup": {
+          "projectClose": "cleanup-only, after measured case",
+          "namespace": "REMOVED_AND_ABSENT",
+          "context": "CLOSED",
+          "browser": "CLOSED",
+          "server": "CLOSED"
+        }
+      },
+      "closed-project": {
+        "status": "SAFE_CONTRACT_PASS",
+        "observed": {
+          "liveDocEqualsNewer": true,
+          "savedDocEqualsA": true,
+          "dirtyAfter": true,
+          "newerAutosavePresent": false,
+          "recoveryBefore": null,
+          "recoveryAfter": null,
+          "projectPartUIBefore": null,
+          "projectPartUIAfter": null,
+          "projectTagRef": "NOT_EXPOSED; native file tags are retained",
+          "baselineBugObserved": false
+        },
+        "nativeCompletion": {
+          "nativeCloseReturn": 17,
+          "returnedTagRead": 18,
+          "projectRefreshComplete": null
+        },
+        "normalSaveB": null,
+        "pageErrors": [],
+        "cleanup": {
+          "projectClose": "cleanup-only, after measured case",
+          "namespace": "REMOVED_AND_ABSENT",
+          "context": "CLOSED",
+          "browser": "CLOSED",
+          "server": "CLOSED"
+        }
+      }
+    }
+  },
+  "affectedStopRegression": {
+    "selected": 1,
+    "pass": 1,
+    "fail": 0,
+    "starterSmokePass": 1,
+    "exit": 0,
+    "scope": "Existing D321 selected Stop direct-setter flow on identical frozen runtime; not new unique test coverage."
+  },
+  "cleanup": "All three own namespaces removed/absence verified; contexts/browser/server closed; target processes absent; heavy gate holder:none after exit.",
+  "notRun": [
+    "New Open file/switch project while Save held",
+    "Other tabs/processes/external folders/crash/real user-file loss",
+    "Full Model/Kernel/Studio/browser suites",
+    "D318 regression"
+  ],
+  "notExposed": [
+    "Private useProject tag ref"
+  ],
+  "directImageReview": [
+    "same-document/normal-save-B.png",
+    "new-document/after-release.png",
+    "closed-project/after-release.png"
+  ]
+}

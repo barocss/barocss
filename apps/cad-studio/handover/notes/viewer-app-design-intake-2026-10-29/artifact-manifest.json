@@ -1,0 +1,26 @@
+{
+  "README.md": {
+    "bytes": 3152,
+    "sha256": "203f693ee3da159fcf608ac99cf2e3b6f5f096c8679e473b15689c95f008b58f"
+  },
+  "brief.md": {
+    "bytes": 7575,
+    "sha256": "fe90c6554ae76ef37c41d50040a02bdf4908009621e771ce69bacc5785a1132a"
+  },
+  "concept.html": {
+    "bytes": 45850,
+    "sha256": "def73380d19dd49d1ca353e35ac212f5931cbd3a647efb05e10e943474a2a34d"
+  },
+  "review-and-design.md": {
+    "bytes": 8821,
+    "sha256": "7ba56bff37bad34c834e25d4d2f818281e0350e54df2fceec07fbf8d022bc5c5"
+  },
+  "source-bindings.json": {
+    "bytes": 1087,
+    "sha256": "2cdacf2ddc04c78b57f9da48fe3ba62805e7afc53672b23c14a1fa9e4b54c93b"
+  },
+  "verification.json": {
+    "bytes": 5572,
+    "sha256": "4c8a2a9d01a16d722b2dbe5d41bfd4e9c704cc33b2ceb795ef5248a0d36c7d0a"
+  }
+}

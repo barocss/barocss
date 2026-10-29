@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: document receipts preserve dirty/recovery for ABA, old render, mismatched document and renamed file
+ok 1 - document receipts preserve dirty/recovery for ABA, old render, mismatched document and renamed file
+  ---
+  duration_ms: 0.758333
+  type: 'test'
+  ...
+# Subtest: out-of-order success cannot move a current file tag backwards
+ok 2 - out-of-order success cannot move a current file tag backwards
+  ---
+  duration_ms: 0.132916
+  type: 'test'
+  ...
+# Subtest: actual hook: late Save retains newer recovery, advances its tag, and keeps saved-equal checkpoint hidden
+ok 3 - actual hook: late Save retains newer recovery, advances its tag, and keeps saved-equal checkpoint hidden
+  ---
+  duration_ms: 5.153917
+  type: 'test'
+  ...
+# Subtest: actual hook: close invalidates a held Save receipt and preserves the next file binding
+ok 4 - actual hook: close invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 1.235083
+  type: 'test'
+  ...
+# Subtest: actual hook: detach invalidates a held Save receipt and preserves the next file binding
+ok 5 - actual hook: detach invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 1.001583
+  type: 'test'
+  ...
+# Subtest: actual hook: use invalidates a held Save receipt and preserves the next file binding
+ok 6 - actual hook: use invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 1.204292
+  type: 'test'
+  ...
+# Subtest: actual hook: openPart invalidates a held Save receipt and preserves the next file binding
+ok 7 - actual hook: openPart invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 0.978042
+  type: 'test'
+  ...
+# Subtest: actual hook: session change during versions read suppresses stale log errors and completion
+ok 8 - actual hook: session change during versions read suppresses stale log errors and completion
+  ---
+  duration_ms: 0.395625
+  type: 'test'
+  ...
+# Subtest: actual hook: detach during parts refresh suppresses stale completion and permits the next Save
+ok 9 - actual hook: detach during parts refresh suppresses stale completion and permits the next Save
+  ---
+  duration_ms: 0.900959
+  type: 'test'
+  ...
+# Subtest: /var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-emNvf6/late-save-ownership.test.mjs
+not ok 1 - /var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-emNvf6/late-save-ownership.test.mjs
+  ---
+  duration_ms: 40893.332208
+  type: 'test'
+  location: '/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-emNvf6/late-save-ownership.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: ~
+  signal: 'SIGTERM'
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 9
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 40898.462541

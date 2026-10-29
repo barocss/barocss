@@ -3,6 +3,13 @@
 The owner asked: "지금까지 하던거 멈추고 인수인계 할 수 있도록 해줘". This note lets the next session continue the
 kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-10-27 to 2026-10-28.
 
+## Latest D322 checkpoint — 2026-10-29
+
+- Native late Save baseline is reproduced and repaired: exact rendered Doc token/identity/name + project session/path/successful receipt ownership. Current same-file tags advance; Save retains a saved-equal hidden checkpoint instead of deleting newer autosave.
+- Focused9/9 clean exit, final Studio398/398/0skip, types/lint, actual Chrome/WebGPU Save3/3 plus same-source D321 selected1/separate starter and generated/API/docs pass. [Qualification](../late-save-ownership-2026-10-29/qualification.json) separates original product/harness failures and wider NOT_RUN limits.
+- Incoming Viewer review/design is read and registered under existing05/V/app scopes; draft/static illustration/final-browser gaps remain. Current sequence is preserved.
+- Next D323: A04/#2236 canonical version snapshot codec under12/CG6, then remaining correctness gates before07→08→09. Normal per-feature push authorized; no PR/release.
+
 ## Latest D321 checkpoint — 2026-10-29
 
 - Policy B refuses unsupported independent document edits before acceptance during main computation. Stop replays only its originating accepted transition; synchronous Redo snapshot and worker-session invalidation preserve the selected flow.
@@ -304,7 +311,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D322**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D323**).
 
 ## 0. State at the stop
 

@@ -1,0 +1,99 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+        0,
+        0
+      ],
+      "max": [
+        10,
+        10
+      ],
+      "id": "n0"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 10,
+      "id": "n1",
+      "made": {
+        "command": "box",
+        "values": {
+          "w": 10,
+          "d": 10,
+          "h": 10,
+          "x": 0,
+          "y": 0,
+          "z": 0
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "b1": {
+      "node": 1,
+      "side": "solid"
+    }
+  },
+  "nextId": 2,
+  "render": {
+    "version": 1,
+    "appearances": {},
+    "defaultAppearance": {
+      "color": "#bfc2c8",
+      "metallic": 0,
+      "roughness": 0.6,
+      "opacity": 1
+    },
+    "lights": [
+      {
+        "kind": "directional",
+        "direction": [
+          -0.45,
+          0.35,
+          -1
+        ],
+        "color": "#ffffff",
+        "intensity": 1.15,
+        "castShadow": true
+      },
+      {
+        "kind": "directional",
+        "direction": [
+          0.7,
+          -0.5,
+          -0.35
+        ],
+        "color": "#dfe8ff",
+        "intensity": 0.4,
+        "castShadow": false
+      }
+    ],
+    "environment": {
+      "top": "#3a3f47",
+      "bottom": "#15171a",
+      "ambient": 0.6,
+      "exposure": 1,
+      "toneMapping": "aces",
+      "occlusion": true,
+      "ground": true,
+      "grid": true,
+      "edges": false
+    },
+    "camera": null,
+    "materials": {},
+    "scene": "",
+    "sceneScale": 10,
+    "animation": {
+      "duration": 4,
+      "tracks": {},
+      "turntable": false
+    }
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "work_id": "viewer-app-design-20261029",
+  "artifact_type": "design_verification",
+  "status": "draft",
+  "owner_role": "designer",
+  "source_request": "Viewer app design rethink",
+  "last_updated": "2026-10-29",
+  "htmlSHA256": "def73380d19dd49d1ca353e35ac212f5931cbd3a647efb05e10e943474a2a34d",
+  "proofBoundary": "Standalone static HTML/SVG design concept only. No native CAD loading, geometry queries, actual export, product source integration or device recovery. The bracket and 8 mm value are static illustrative data.",
+  "browser": "Own isolated Playwright CLI session viewer-design-20261029-1517; Chromium process 73724; Node22 existing cached CLI. No user browser contexts or tabs accessed.",
+  "initialAttempts": [
+    {
+      "surface": "CUA iab",
+      "result": "Browser is not available: iab",
+      "userTabsRead": false
+    },
+    {
+      "surface": "cached Playwright CLI with default Node18",
+      "result": "TypeError getDefaultAutoSelectFamilyAttemptTimeout is not a function; switched to existing Node22; no install"
+    },
+    {
+      "surface": "initial desktop render",
+      "result": "PASS visual render; favicon 404 observed and resolved by data favicon before guarded interaction pass",
+      "gate": "Initial light preview was opened before parent required heavy lease for static design preview."
+    }
+  ],
+  "guardedInteractionRun": {
+    "gate": "GATE: go after 0 s (load 19.53, slot 1 of 2)\n",
+    "passedChecks": [
+      "tree selection updates inspector",
+      "tree selection updates illustration",
+      "curve selection updates type",
+      "curve parameter remains available",
+      "measure toggle hides annotation",
+      "export menu opens",
+      "export Escape restores focus",
+      "saved view menu changes orientation",
+      "desktop structure collapses",
+      "desktop inspector collapses with distance visible",
+      "dark theme toggles",
+      "desktop header is 56px",
+      "desktop has no page overflow",
+      "compact has no page overflow",
+      "compact distance visible without scroll",
+      "compact inspection drawer opens",
+      "only inspector accessible",
+      "drawer Escape restores focus",
+      "compact structure drawer opens"
+    ],
+    "firstFailure": "search filters tree",
+    "notReachedChecks": [
+      "structure Escape restores focus",
+      "reduced motion removes layout transition",
+      "no page or console errors"
+    ],
+    "log": "assets/preview-check.log",
+    "shellExit": 1,
+    "browserAndLeaseReleased": true
+  },
+  "correction": {
+    "cause": "SVG symbol IDs search/fit/orbit collided with button/input IDs; querySelector bound handlers to symbols.",
+    "change": "Prefix all SVG symbol IDs and references with glyph-.",
+    "duplicateDOMIDs": [],
+    "javascriptSyntaxExit": 0,
+    "staticOnly": true,
+    "finalBrowserRecheck": "NOT_RUN"
+  },
+  "recheckAttempt": {
+    "gate": "GATE: waiting \u2014 running: ; load 78.00; 1 queued\nGATE: gave up after 30 s, nothing ran. Running: ; load 89.94. Run it with run_in_background so it can wait its turn.\n",
+    "exit": 75,
+    "browserStarted": false,
+    "retriedOrBypassed": false
+  },
+  "screenshots": [
+    {
+      "path": "desktop.png",
+      "viewport": [
+        1440,
+        900
+      ],
+      "sha256": "c68a1828999cd81404e0f5538367fd89ad67d6e66c15d9bd73477db14592af58",
+      "boundary": "Rendered before final nonvisual SVG ID correction."
+    },
+    {
+      "path": "desktop-dark.png",
+      "viewport": [
+        1440,
+        900
+      ],
+      "sha256": "9944a31eb83d4830c385dec8c6492a1f7ad8e98fd1dae926aa02e8d36f786cd6",
+      "boundary": "Rendered before final nonvisual SVG ID correction."
+    },
+    {
+      "path": "compact.png",
+      "viewport": [
+        720,
+        700
+      ],
+      "sha256": "8b92538d961e9bdedc808b1cb6e4b390224c39a6e0f9a3dd4f690c264955a582",
+      "boundary": "Rendered before final nonvisual SVG ID correction."
+    },
+    {
+      "path": "compact-inspection.png",
+      "viewport": [
+        720,
+        700
+      ],
+      "sha256": "7b52a8f5a927ab4ae7b1b75952e5ea470eabec4c9c90f1a11eaddb56d4c4e593",
+      "boundary": "Rendered before final nonvisual SVG ID correction."
+    }
+  ],
+  "visualReview": "Desktop/light, desktop/dark, compact viewport and compact inspection screenshots viewed. Measurement is above the fold in both sizes. Native details are collapsed. Concept/example label is visible. No product integration claim.",
+  "layoutChecks": "56px header and no page overflow at 1440x900/720x700 passed in guarded run. Compact distance-summary bounds fit above the footer.",
+  "cleanup": {
+    "previewServerSession": 79665,
+    "previewURL": "http://127.0.0.1:53117/concept.html",
+    "serverStopped": true,
+    "ownBrowserClosed": true,
+    "leaseReleased": true,
+    "userProcessesPreserved": true,
+    "portListenerCheck": "lsof -nP -iTCP:53117 -sTCP:LISTEN returned no listeners, exit 1"
+  },
+  "knownLimits": [
+    "Final glyph-ID correction is static verified; browser recheck NOT_RUN because gate refused at high load.",
+    "Initial search assertion failed; preserved in raw log.",
+    "The prototype does not evaluate geometry, load a real CAD file or save a file.",
+    "A/B detailed point identity and loading/refusal/recovery designs remain product implementation requirements in brief.md.",
+    "Camera mode buttons change prototype mode state; the illustration has no interactive 3D orbit/pan engine.",
+    "SVG section geometry is a design illustration, not evidence of CAD solids support."
+  ],
+  "rawBrowserEvidence": "assets/cli-evidence"
+}

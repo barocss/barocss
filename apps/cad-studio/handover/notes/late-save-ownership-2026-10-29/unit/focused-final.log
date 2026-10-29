@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: document receipts preserve dirty/recovery for ABA, old render, mismatched document and renamed file
+ok 1 - document receipts preserve dirty/recovery for ABA, old render, mismatched document and renamed file
+  ---
+  duration_ms: 0.799333
+  type: 'test'
+  ...
+# Subtest: out-of-order success cannot move a current file tag backwards
+ok 2 - out-of-order success cannot move a current file tag backwards
+  ---
+  duration_ms: 0.125084
+  type: 'test'
+  ...
+# Subtest: actual hook: late Save retains newer recovery, advances its tag, and keeps saved-equal checkpoint hidden
+ok 3 - actual hook: late Save retains newer recovery, advances its tag, and keeps saved-equal checkpoint hidden
+  ---
+  duration_ms: 5.2145
+  type: 'test'
+  ...
+# Subtest: actual hook: close invalidates a held Save receipt and preserves the next file binding
+ok 4 - actual hook: close invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 0.70625
+  type: 'test'
+  ...
+# Subtest: actual hook: detach invalidates a held Save receipt and preserves the next file binding
+ok 5 - actual hook: detach invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 0.762875
+  type: 'test'
+  ...
+# Subtest: actual hook: use invalidates a held Save receipt and preserves the next file binding
+ok 6 - actual hook: use invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 1.079792
+  type: 'test'
+  ...
+# Subtest: actual hook: openPart invalidates a held Save receipt and preserves the next file binding
+ok 7 - actual hook: openPart invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 0.920958
+  type: 'test'
+  ...
+# Subtest: actual hook: session change during versions read suppresses stale log errors and completion
+ok 8 - actual hook: session change during versions read suppresses stale log errors and completion
+  ---
+  duration_ms: 0.393209
+  type: 'test'
+  ...
+# Subtest: actual hook: detach during parts refresh suppresses stale completion and permits the next Save
+ok 9 - actual hook: detach during parts refresh suppresses stale completion and permits the next Save
+  ---
+  duration_ms: 0.938958
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 91.833958

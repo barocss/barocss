@@ -1,0 +1,4 @@
+3408486cb5ba46cb87091c9916be0c99ceee09ce7662779d6742adfe982ded35  apps/cad-studio/src/App.tsx
+b137e624895a31f76527efd7183913aec72161d07121cd2ecf3f0000d89ed94a  apps/cad-studio/src/storage/useProject.ts
+da2146866d24cefa4ca2caedfaf0784ffc785968d6b8016dda0f5236774003bd  apps/cad-studio/src/state/saveOwnership.ts
+85348ff269daf7bb28638c3a41b74c7cba904fba7dcc40b61c5d475a5b26fc47  apps/cad-studio/test/late-save-ownership.test.ts

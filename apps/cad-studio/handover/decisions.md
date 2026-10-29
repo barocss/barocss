@@ -16179,3 +16179,28 @@ Evidence: notes/stop-work-ownership-2026-10-29/qualification.json. Exact complet
 initial/variant/parameter/async-image full matrix, all restart paths, full Undo depth and exact viewport
 provenance remain NOT_RUN. No performance claim. Normal per-feature push authorized, no PR/release.
 Next:D322 existing A02/P1 late Save ownership reproduction, still source-only; no duplicate issue.
+
+
+## D322 — Preserve current work across late project Save completion (2026-10-29)
+
+The selected A02/P1 native OPFS baseline reproduces old Save A clearing newer B's dirty flag and
+completed autosave while live B/saved A remain. Separate initial async-poll harness failure is kept.
+Bind App clean/recovery to its render-bound document acceptance token, savedDoc identity and filename.
+Dispatch invalidates tokens, including history/Stop/system/no-op, independently of evaluation. Keep
+functional React updater semantics. Bind project Save to session/path and ordered successful receipts;
+current same-file success advances its tag after edits. Close/detach/use/openPart invalidate; guard
+selected version/list reads after await and final synchronous callback. Retain one checkpoint instead
+of physical Save remove; existing saved-equal filtering hides it. No library API/schema/dependency or
+generalized Open coordination is added.
+
+Focused9 and final Studio398/398/0skip, types/lint, actual Chrome/WebGPU/DPR1 Save3/3 and same-source
+D321 selected1 plus separate starter pass. Same-doc next Save B succeeds; New V2184/fresh/mass with
+exact local recovery stays detached; Close stays closed. Root views baseline2/final3 PNGs. First SSR
+browser renderer leaves MessageChannel; owned PID termination/file failure stays, test-only edge import
+allows clean focused exit. Reuse unchanged production checks; overlapping results are not aggregated.
+Generated/API/docs pass. Evidence: notes/late-save-ownership-2026-10-29/qualification.json.
+
+Actual project/path-switch/Open/ABA timing matrix, generic A05 ownership, tabs/external folders/crash/
+permanent loss and full Model/Kernel/Viewer/browser/performance remain unqualified. Incoming Viewer
+source/design draft is read and attached to existing05/V scopes, not executed as current priority.
+Normal per-feature push authorized; no PR/release. Next:D323 A04/#2236 canonical snapshot codec.

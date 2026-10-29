@@ -2,6 +2,7 @@ import { revokePersonRowFiles, isPersonRowFiles, type PersonRowFiles } from '@ba
 import { Fragment, Profiler, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { EngineClient, type ProposalOverlay } from './engine/client';
 import { beginWork, createWorkOwnership, finishWork, invalidateWork, reserveAcceptedChange, settleWorkReservation, stopOwnedWork, workEditRefusal, type WorkHistory } from './state/workOwnership';
+import { currentDocumentSave } from './state/saveOwnership';
 import { PROPOSAL_ADDED, PROPOSAL_REMOVED, type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { multiply } from '@barocss/gpu/viewer';
 import { resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
@@ -374,11 +375,20 @@ export function App() {
   // (The bottom row: the view bar measured, the history bar beside it or stacked above it.)
   const cornerRight = useRef<HTMLDivElement>(null), [stripWidth, setStripWidth] = useState(0), [historyNatural, setHistoryNatural] = useState(0);
   const bottomRow = useBottomRow(cornerRight, stripWidth, BROWSER_PLACEMENT === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT, historyNatural);
-  const [doc, setDocState] = useState<StudioDoc>(starterDoc);
+  const [doc, setDocStateRaw] = useState<StudioDoc>(starterDoc);
   // (O11: one guard where every edit of the document lands. While a variant is shown, a change of anything but the
   // document's variability is refused — said as start() says it — and the undo entry it asked for dropped; a whole
   // document (opened, new) is always taken. Undo, redo and the system's own updates write the state directly.)
   const docNow = useRef(doc); docNow.current = doc;
+  // Save completion belongs to a document dispatch, independently of evaluation/Stop ownership.
+  // Even a no-op dispatch invalidates an older receipt; functional updates retain React's queued semantics.
+  const saveDocumentToken = useRef<object>({});
+  const saveAcceptanceScope = saveDocumentToken.current;
+  const setDocState = useCallback((update: StudioDoc | ((previous: StudioDoc) => StudioDoc)) => {
+    saveDocumentToken.current = {};
+    if (typeof update === 'function') setDocStateRaw(update);
+    else { docNow.current = update; setDocStateRaw(update); }
+  }, []);
   const discardRouteRef = useRef<() => void>(() => {});
   const routeAcceptedHandoff = useRef<{ doc: StudioDoc; identity: string; evaluatedIdentity: string; revision: number; result: Extract<EvalResult, { ok: true }> } | null>(null);
   const workOwnership = useRef(createWorkOwnership<StudioDoc, StudioDoc>());
@@ -551,7 +561,9 @@ export function App() {
   const [referencePreview, setReferencePreview] = useState<DrawingReferencePreview | null>(null);
   const [referenceLabelCache, setReferenceLabelCache] = useState<{ owner: ReferenceLabelOwner; labels: readonly DrawingReferenceLabel[] } | null>(null);
   useEffect(() => { setReferencePreview(null); }, [doc]);
-  const [fileName, setFileName] = useState('Bracket-01');
+  const [fileName, setFileNameRaw] = useState('Bracket-01');
+  const fileNameNow = useRef(fileName); fileNameNow.current = fileName;
+  const setFileName = useCallback((next: string) => { fileNameNow.current = next; setFileNameRaw(next); }, []);
   // (Counts whole-document replacements: the drawing workspace's selection, drafts and notices belong to one document.)
   const [docGeneration, setDocGeneration] = useState(0);
   const [dirty, setDirty] = useState(false);
@@ -2015,7 +2027,14 @@ export function App() {
   // (A copy still offered keeps its blobs: Restore can still bring it back.)
   const save = () => {
     // (CG6: into the open project — over the file it was read from, its tag expected — else downloaded, as before.)
-    if (project.view.store) { void project.save(doc, fileName).then(ok => { if (ok) { setDirty(false); clearRecovery(); } }); return; }
+    if (project.view.store) {
+      const savedDoc = doc, owner = { token: saveAcceptanceScope, doc: savedDoc, name: fileNameNow.current };
+      void project.save(savedDoc, owner.name, () => {
+        if (!currentDocumentSave(owner, saveDocumentToken.current, docNow.current, fileNameNow.current)) return;
+        setDirty(false); clearRecovery();
+      });
+      return;
+    }
     if (!writeFile(doc, `${fileName}.bcad`)) return; setDirty(false); clearRecovery(); void collectRecoveryBlobs(recovery?.doc ?? null);
   };
   /** A copy to share: without the design history, nor the proposals' prompts and plans (chat/proposals.ts). */

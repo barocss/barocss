@@ -1,0 +1,110 @@
+{
+  "workId": "D322",
+  "status": "SCOPED_PASS",
+  "baseline": "a386c8705beda2c72d215da61a55fd6119351ca2",
+  "runtime": "Node22.19.0",
+  "scope": "Late project Save completion: exact rendered document acceptance, filename, project session/path and successful receipt order; preserve newer autosave/recovery",
+  "baselineActual": {
+    "status": "REPRODUCED_PRODUCT_FAIL second run",
+    "liveDocument": "B retained",
+    "nativeSavedFile": "A retained",
+    "dirtyAfter": false,
+    "completedNewerNativeAutosave": "deleted",
+    "log": "consumers/baseline-second-product-failure.txt",
+    "sourceAndBytes": "consumers/second-run/",
+    "limits": "Controlled native-close Promise return hold; not crash/permanent loss or other sessions"
+  },
+  "implementation": {
+    "document": "Render-bound token AND savedDoc identity AND filename; dispatch invalidates token including history/Stop/system/no-op; functional updater forwarded unchanged",
+    "project": "Invalidate session on use/close/detach/openPart, retain first null-to-path transition, guard metadata/errors after await, monotonic successful file-tag receipts",
+    "completion": "Current successful owner check and private onCurrent callback in one synchronous interval",
+    "checkpoint": "Save omits physical remove; one checkpoint per path remains, saved-equal bytes hidden by existing readAutosave; explicit discard unchanged",
+    "publicLibraryApiSchemaDependencies": "Unchanged"
+  },
+  "focused": {
+    "uniqueTests": 9,
+    "pureDecisions": 2,
+    "actualHookWithDirectoryStandIn": 7,
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0,
+    "exit": 0,
+    "scope": "React server hook actions with real handleStore and in-memory DirHandle; not UI/native OPFS or App wiring",
+    "receipt": "unit/report.md"
+  },
+  "rootFullStudio": {
+    "tests": 398,
+    "passed": 398,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 35114.6045,
+    "timeUnit": "ms",
+    "exit": 0,
+    "log": "root-studio-full.txt",
+    "overlap": "Includes focused9; do not aggregate"
+  },
+  "types": "PASS final production, reused after test-only renderer import correction",
+  "changedLint": "PASS; consumer driver syntax checked after final test-only edits",
+  "sourceReview": "Sol High final review required fixes resolved; source-review.md, no independent execution",
+  "actualStudio": {
+    "browser": "Chrome156.0.8078.48/WebGPU/DPR1",
+    "d322Selected": 3,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "cases": [
+      "same-document B dirty/native autosave preserved after A; next normal Save B clean and native B without conflict",
+      "New12x13x14Box V2184/fresh/massReady/new name/exact local recovery retained; old part remains inactive list entry",
+      "Close project retains no active part/project/list metadata; stale Save does not refresh"
+    ],
+    "stopRegression": {
+      "selected": 1,
+      "pass": 1,
+      "starterSmoke": 1,
+      "scope": "Existing D321 on identical frozen runtime, affected direct-setter regression; not unique new coverage"
+    },
+    "raw": "consumers/final-validation.json",
+    "rootVisual": "Baseline before/after PNG2 and final after-release PNG3 directly viewed",
+    "cleanup": "All three owned namespaces removed/absence verified, owned context/browser/server closed, heavy gates released"
+  },
+  "firstFailures": {
+    "firstBrowser": "SETUP_OR_SCHEDULE_FAILURE: async wait predicate Promise was not awaited by installed Playwright; actual newer autosave not established; old Save never released; exact source/raw retained",
+    "secondBrowser": "SAFE_OWNERSHIP_CONTRACT_FAILURE: late Save A must not mark newer Render edit B clean; false !== true",
+    "firstFocused": "9 assertions pass but server.browser MessageChannel prevents Node exit; own test PID terminated/SIGTERM, file-level failure retained. Test-only server.edge import fixes lifetime; final clean exit9/9"
+  },
+  "docs": {
+    "status": "PASS",
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 860,
+    "generatedAgentTools": "PASS via check-docs child",
+    "generatedRefusals": "PASS via check-docs child",
+    "apiInventory": "PASS unchanged six-rule scoped inventory",
+    "log": "root-docs-check.txt"
+  },
+  "notRun": [
+    "whole Kernel/Model/Viewer suites and whole browser suite",
+    "actual Open-file or project/path switch while Save held (selected hook tests cover corresponding boundaries)",
+    "full actual ABA/old-render/no-op dispatch UI timing matrix",
+    "other tabs/processes/external folders/real crash or permanent user-file-loss proof",
+    "all generic Open/version/loadLog/refresh async ownership including A05",
+    "performance benchmark or speedup"
+  ],
+  "notExposed": [
+    "Private hook tag ref; native tags and next successful Save are observed"
+  ],
+  "incomingViewer": "Read four supplied draft/review sources and register under existing05/V scopes; no task switch or independent runtime/design acceptance",
+  "nextPriority": "D323: existing A04/#2236 canonical version snapshot codec under12/CG6; then remaining correctness gates before07\u219208\u219209",
+  "sourceHashes": {
+    "apps/cad-studio/src/App.tsx": "3408486cb5ba46cb87091c9916be0c99ceee09ce7662779d6742adfe982ded35",
+    "apps/cad-studio/src/storage/useProject.ts": "b137e624895a31f76527efd7183913aec72161d07121cd2ecf3f0000d89ed94a",
+    "apps/cad-studio/src/state/saveOwnership.ts": "da2146866d24cefa4ca2caedfaf0784ffc785968d6b8016dda0f5236774003bd",
+    "apps/cad-studio/test/late-save-ownership.test.ts": "85348ff269daf7bb28638c3a41b74c7cba904fba7dcc40b61c5d475a5b26fc47",
+    "apps/cad-studio/test/late-save-ownership-browser.test.mjs": "e3a00e5ac1616cfa0d24279bfec08f99a25d8bf77391014af6b1d56e57984a98",
+    "apps/cad-studio/test/late-save-native-scheduler.mjs": "3c2d6fb751cdb30577214a71ec95f12471044d7040a23e0c77eb187897802f21",
+    "apps/library-docs/docs/studio/projects.md": "997b630e4637588e817334be1c07c172395235810a5854c5ee193f24ba5e9dc4"
+  },
+  "hashMeaning": "Artifact/source provenance only, not checksum acceptance tests",
+  "publication": "Normal per-feature push authorized; no PR/release"
+}

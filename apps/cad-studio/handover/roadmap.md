@@ -18,8 +18,11 @@ selected1/5groups. [Evidence](notes/opfs-write-ownership-2026-10-29/qualificatio
 instances/tabs/remove-race/tag collisions and actual Studio save scheduling remain unqualified.
 D321 qualifies originating-work Stop #2242 underO9/12/16: final Studio389/389, types/lint,
 actual selected Stop/Redo and same-source skeleton file regression, generated/API/docs pass.
-[Evidence](notes/stop-work-ownership-2026-10-29/qualification.json). Next priority is existing
-A02/P1 delayed Save completion reproduction, then remaining correctness gates before07→08→09 extensions.
+[Evidence](notes/stop-work-ownership-2026-10-29/qualification.json). D322 now qualifies the selected
+A02/P1 late Save ownership repair with final Studio398/398, actual Save3 and affected Stop1 plus
+separate starter, types/lint/generated/API/docs. [Evidence](notes/late-save-ownership-2026-10-29/qualification.json).
+Next D323 is A04/#2236 canonical version snapshot loss under12/CG6, then remaining correctness
+gates before07→08→09 extensions.
 The research reconciliation below attaches
 existing GitHub investigations to these numbered scopes; it creates no second implementation queue.
 
@@ -65,7 +68,7 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 
 | 번호 | 작업·기존 ID | 남은 범위 | 담당·선행 조건 | 완료 조건 |
 |---|---|---|---|---|
-| 07 | Advanced modeling — CG1 | D313 runtime`f29df9217` connects one original-native-UV rectangular cylindrical pad through Part/API/Model/agent/Studio. Full kernel2187pass/0fail/6existing skips, Model1833/1833, Studio365/365, types, actual Chrome/WebGPU create/edit/Undo/Redo/Save/Open and generated/docs pass. Closed-reference mass is qualified; literal rounded-shell closure/mass and native SI remain unqualified. [Current scope and evidence](notes/cylindrical-wrap-product-2026-10-29/README.md). D314 runtime`bb92da70b` adds measured long-thread boundary-distance pruning: kernel2192pass/0fail/6existing skips, Model1833/1833, Studio365/365 and generated/docs pass; geometry/mass bits match. D315 runtime`dbfe93216` repairs17/64-control native surfaces and64-control inner-section cuts under unchanged caps. Related Kernel94/94, Model19, actual17/64 Studio flows and final kernel2197pass/0fail/6existing skips pass; docs/API checks pass. [Repair and evidence](notes/loft-guide-control-range-2026-10-29/README.md). D316 certified raw frames pass related Kernel102/102, Model4/4/types/lint and actual17/64-control Studio edit/Undo/file flows; final whole-Kernel/docs evidence is in [qualification](notes/framed-polynomial-guide-2026-10-29/qualification.json). D317 closes the selected STEP SI unit-loss admission (#2240) with actual Studio proof. D318 supplies skeleton Save/Open/re-edit identity #2235. D319 supplies Presenter Geometry lifetime #2238 with actual SDK WebGPU proof. D320 supplies same-store/path write ownership #2241 with actual native OPFS proof. D321 supplies origin-bound Stop/refusal/Redo with actual Studio evidence. Next: A02/P1 delayed Save completion reproduction, then remaining correctness gates before07→08→09. | Kernel → Model/API → Studio. Existing bounded guided loft, Coons, variable/full-round/analytic and polynomial face fillets, draft, rib, original-font Text, +Z text relief, modeled threads and rectangular wrap are preserved (D288–D313). Remaining: polynomial guides on different/uncertified frames; two/rational guides and smooth guided sections; general free-form/multi-span/rational face fillets; arbitrary-depth/outline/glyph/curved wrap and text shaping. Reuse existing source and selected fonts; no new runtime dependency. | One admitted feature at a time: preserve original coordinates, tolerances, references and refusal atomicity; independent geometry/mass oracles, actual public consumer and editable file flow. Performance needs measured before/after and unchanged bits or accepted shape evidence. Bounded completion does not close general families. |
+| 07 | Advanced modeling — CG1 | D313 runtime`f29df9217` connects one original-native-UV rectangular cylindrical pad through Part/API/Model/agent/Studio. Full kernel2187pass/0fail/6existing skips, Model1833/1833, Studio365/365, types, actual Chrome/WebGPU create/edit/Undo/Redo/Save/Open and generated/docs pass. Closed-reference mass is qualified; literal rounded-shell closure/mass and native SI remain unqualified. [Current scope and evidence](notes/cylindrical-wrap-product-2026-10-29/README.md). D314 runtime`bb92da70b` adds measured long-thread boundary-distance pruning: kernel2192pass/0fail/6existing skips, Model1833/1833, Studio365/365 and generated/docs pass; geometry/mass bits match. D315 runtime`dbfe93216` repairs17/64-control native surfaces and64-control inner-section cuts under unchanged caps. Related Kernel94/94, Model19, actual17/64 Studio flows and final kernel2197pass/0fail/6existing skips pass; docs/API checks pass. [Repair and evidence](notes/loft-guide-control-range-2026-10-29/README.md). D316 certified raw frames pass related Kernel102/102, Model4/4/types/lint and actual17/64-control Studio edit/Undo/file flows; final whole-Kernel/docs evidence is in [qualification](notes/framed-polynomial-guide-2026-10-29/qualification.json). D317 closes the selected STEP SI unit-loss admission (#2240) with actual Studio proof. D318 supplies skeleton Save/Open/re-edit identity #2235. D319 supplies Presenter Geometry lifetime #2238 with actual SDK WebGPU proof. D320 supplies same-store/path write ownership #2241 with actual native OPFS proof. D321 supplies origin-bound Stop/refusal/Redo with actual Studio evidence. D322 supplies late Save document/session/receipt ownership with actual3-case evidence. Next: A04/#2236 canonical version snapshot loss, then remaining correctness gates before07→08→09. | Kernel → Model/API → Studio. Existing bounded guided loft, Coons, variable/full-round/analytic and polynomial face fillets, draft, rib, original-font Text, +Z text relief, modeled threads and rectangular wrap are preserved (D288–D313). Remaining: polynomial guides on different/uncertified frames; two/rational guides and smooth guided sections; general free-form/multi-span/rational face fillets; arbitrary-depth/outline/glyph/curved wrap and text shaping. Reuse existing source and selected fonts; no new runtime dependency. | One admitted feature at a time: preserve original coordinates, tolerances, references and refusal atomicity; independent geometry/mass oracles, actual public consumer and editable file flow. Performance needs measured before/after and unchanged bits or accepted shape evidence. Bounded completion does not close general families. |
 | 08 | Feature patterns, direct editing and surfaces — CG2 | Remaining curve/fill feature patterns and current move/delete/replace/thicken/offset/knit/trim/extend gaps. Reuse03 and existing body-copy/affine/Boolean/surface consumers; the research mapping attaches #2227/#2215 and #2032/#2036 controls. | Kernel/Model → actual Studio, after the selected07 closures. Inspect the current producer/consumer before implementing another surface command. | Distinguish body copies from repeated cut tools. Preserve source/history, dual-UV/trim ownership, exact names, ambiguous/missing references and atomic refusal; verify actual edit/file results. |
 | 09 | Advanced sketch — CG3 | Remaining spline handles, conics, text/blocks and diagnostic/edit consumers. Reuse existing solver and corrected sketch adapter; attach #2210/#2215 and #2033/#2038 controls.  D318 supplies skeleton raw admission/ID preservation with Model41/Studio7 affected checks, both types/lint and actual fresh-context edit/Undo/file proof; see [qualification](notes/skeleton-file-admission-2026-10-29/qualification.json). | Kernel/Model → actual Studio after08. Existing2D→3D/extrude-cut and dimension-expression decisions remain. | Returned geometry meets the original residual limits. Distinguish DOF, conflict, redundancy and nonconvergence; preserve authored coordinates/dimensions/references through actual constraint edit, downstream feature and Save/fresh Open. |
 | 10 | 조립 확장 — CG4 | 유연한 하위 조립, 반복 occurrence 참조, 조립 피처, 승인된 motion/대형 조립 범위. | Model/Outer + Kernel/GPU. 같은 revision의 배치/관절 기반이 선행. | 계층·part-local/world/display 변환과 반복 인스턴스를 보존한다. pose 표시를 동역학 완료로 쓰지 않는다. |
@@ -1532,3 +1535,42 @@ Next selected priority: existing EA-20261029/A02 P1 under12/CG6/O9. Current App 
 save continuation have source-only late-owner concerns. First reproduce delayed Save across edits/New/project/
 path changes; do not claim data loss or implementation acceptance from source alone. Preserve newer recovery/
 autosave and bind clean/metadata changes to the captured saved owner. No new queue or issue is created.
+
+D322 baseline update: actual Chrome156 native OPFS at a386c8705 reproduces the selected same-document
+case. Save A commits with its native close return held; public Grid edit B completes a native autosave.
+After release, live B/saved A remain, but dirty becomes false and B autosave is removed. Original safe
+assertion fails; first async-poll setup failure stays separate. Root views before/after PNGs. This is
+reversible in-memory state plus lost autosave, not permanent file/crash loss or New/Close/switch proof.
+See [current evidence](notes/late-save-ownership-2026-10-29/README.md). Bounded repair and final acceptance
+are in progress; the other original defect scopes remain queued.
+
+### Viewer app review and design proposal intake — 2026-10-29
+
+[Read report, draft and exact source bindings](notes/viewer-app-design-intake-2026-10-29/README.md)
+attach incoming Viewer proposals to existing05/V1/V2/V3/V5 and the app ROADMAP, without switching
+from D322 or creating issues. Proposed56px/model-first/collapsible-tree/task-inspector composition
+must keep value/unit/A/B visible at1440x900 and720x700 with keyboard/Escape/focus states. Assembly
+A/B overlay+actual measured PNG (app1.1/3.2/3.4) and review identity/revision/ordered-subset guidance
+(app1.3/2.1) have separate acceptance. Assembly t/u/v range/error UX (app3.1/2.2) is source-only.
+Retain customer-file/display-limit/recovery/section gates; section/pick maps to existing2239.
+
+External pinned a386 CPU133/build581source0dist and actual8mm/sqrt234mm/review/PNG/compact/error
+flows remain their author's bounded receipts, not new root executions. No new corruption defect
+was established. Root reads four supplied sources and retains them; no visual/browser rerun here.
+Standalone static SVG/8mm draft is not CAD functionality or final design acceptance. Its original
+19 checks precede search failure; final ID correction is static-only and browser recheck gate75
+means NOT_RUN. Required A/B detailed identity/loading/refusal/recovery/API states remain. Incoming
+proposal priority does not supersede the confirmed Save correctness gate or other urgent defects.
+
+### D322 late Save ownership qualification — 2026-10-29
+
+[Final qualification](notes/late-save-ownership-2026-10-29/qualification.json): focused9/9, final
+Studio398/398/0skip, types/lint, actual native-OPFS Studio Save3 and identical-source D321 selected1
+plus separate starter, generated/API/docs pass. New edits retain dirty/autosave; normal next Save
+advances its own tag; New retains new local recovery without old-part attachment; Close stays closed.
+Native original Save bytes may complete. Saved-equal checkpoint remains hidden; Save no longer races
+new checkpoints with remove. Initial browser-poll and unit-renderer lifetime failures stay distinct
+from actual product baseline and final PASS. No full Model/Kernel/Viewer/browser/crash/tab proof.
+A05/wider Open ownership remains. Next selected D323: existing A04/#2236 canonical snapshot codec;
+remaining GPU stale readback2237 and clipping2239 retain their original ownership/evidence limits.
+Viewer proposals above are registered follow-ups, not a priority switch or design/product acceptance.

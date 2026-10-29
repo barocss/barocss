@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: D322 late project Save must retain newer dirty state and native autosave
+not ok 1 - D322 late project Save must retain newer dirty state and native autosave
+  ---
+  duration_ms: 9327.758708
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/late-save-ownership-browser.test.mjs:16:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    late Save A must not mark newer Render edit B clean
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/late-save-ownership-browser.test.mjs:121:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9493.238458

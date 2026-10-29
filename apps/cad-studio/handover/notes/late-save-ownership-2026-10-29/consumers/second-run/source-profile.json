@@ -1,0 +1,48 @@
+{
+  "profile": "D322 second baseline, native-record polling awaited in Node",
+  "fixedGitBaseline": "a386c8705beda2c72d215da61a55fd6119351ca2",
+  "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "runtimeFiles": [
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "sha256": "fe99a2a25719148774ee15e69c9493c743c3e88226289cf1dcb89333a3149a1b",
+      "matchesFixedGitBaseline": true
+    },
+    {
+      "path": "apps/cad-studio/src/storage/useProject.ts",
+      "sha256": "fae6eeba29e379e2fcd0dfea39cda8ddff0292946fdeb4976349caee4fcf3e63",
+      "matchesFixedGitBaseline": true
+    },
+    {
+      "path": "apps/cad-studio/src/storage/project.ts",
+      "sha256": "df2fefe53a8dc9d5be5fc5d2193583c2b87f3fc58e87fc4788d1b23d7a30ebd1",
+      "matchesFixedGitBaseline": true
+    },
+    {
+      "path": "apps/cad-studio/src/storage/handleStore.ts",
+      "sha256": "73e879642071ec3db0597189946edb952804c523fc4159c0d7b584263b46c2a5",
+      "matchesFixedGitBaseline": true
+    },
+    {
+      "path": "apps/cad-studio/src/app/recovery.ts",
+      "sha256": "56ee708fe832d00f73117e4e9829575b9899ec0a3c011db7a8d2f12ff40de989",
+      "matchesFixedGitBaseline": true
+    }
+  ],
+  "drivers": [
+    {
+      "path": "apps/cad-studio/test/late-save-ownership-browser.test.mjs",
+      "sha256": "72506c89d2b7da96278492e50736f3ff296875cf41309fe2609edd7ff2a63e99",
+      "bytes": 13753,
+      "gzip": "late-save-ownership-browser.test.mjs.gz",
+      "gzipSHA256": "e53681c16cba417bac19bf20e46c3db1e757229975d8c124ce2ba71f66cb0e0d"
+    },
+    {
+      "path": "apps/cad-studio/test/late-save-native-scheduler.mjs",
+      "sha256": "3c2d6fb751cdb30577214a71ec95f12471044d7040a23e0c77eb187897802f21",
+      "bytes": 5064,
+      "gzip": "late-save-native-scheduler.mjs.gz",
+      "gzipSHA256": "9a6540306ccf728def18a099c957ffe27bbc4e25012609e10db9415ade8383cd"
+    }
+  ]
+}

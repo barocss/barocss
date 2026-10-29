@@ -1,0 +1,13 @@
+{
+  "baseline": "a386c8705beda2c72d215da61a55fd6119351ca2",
+  "candidate": "EA-20261029/A02 P1 under12/CG6/O9",
+  "status": "SOURCE_CANDIDATE_ACTUAL_NOT_RUN",
+  "files": {
+    "apps/cad-studio/src/App.tsx": "fe99a2a25719148774ee15e69c9493c743c3e88226289cf1dcb89333a3149a1b",
+    "apps/cad-studio/src/storage/useProject.ts": "fae6eeba29e379e2fcd0dfea39cda8ddff0292946fdeb4976349caee4fcf3e63",
+    "apps/cad-studio/src/storage/project.ts": "df2fefe53a8dc9d5be5fc5d2193583c2b87f3fc58e87fc4788d1b23d7a30ebd1",
+    "apps/cad-studio/src/storage/handleStore.ts": "73e879642071ec3db0597189946edb952804c523fc4159c0d7b584263b46c2a5",
+    "apps/cad-studio/src/app/recovery.ts": "56ee708fe832d00f73117e4e9829575b9899ec0a3c011db7a8d2f12ff40de989"
+  },
+  "limits": "No data-loss or runtime reproduction claim; hashes identify baseline provenance only."
+}

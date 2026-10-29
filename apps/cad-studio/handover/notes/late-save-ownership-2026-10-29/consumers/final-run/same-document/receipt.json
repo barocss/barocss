@@ -1,0 +1,2745 @@
+{
+  "status": "SAFE_CONTRACT_PASS",
+  "scenario": "same-document",
+  "baseline": "a386c8705beda2c72d215da61a55fd6119351ca2",
+  "projectName": "d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+  "namespace": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/",
+  "target": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+  "states": [
+    {
+      "label": "initial-saved",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2
+      },
+      "body": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 1000.0000000000001,
+            "centroid": [
+              4.999999999999999,
+              4.999999999999999,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "dirty": false,
+      "recovery": null,
+      "name": "D322-owned",
+      "projectUI": "d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7 · in this browserClose",
+      "activePartUI": "D322-owned.bcad",
+      "documentsUI": "D322-owned.bcad",
+      "versionsUI": "PROJECT & VERSIONSd322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7expand_lessd322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7 · in this browserCloseDOCUMENTS · 1D322-owned.bcadVERSIONSMake versionNo versions yet: Make version saves the document and keeps this state.",
+      "nativeSaved": {
+        "path": "D322-owned.bcad",
+        "size": 657,
+        "lastModified": 1793255307137,
+        "tag": "657-1793255307137",
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                10,
+                10
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 10,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 10,
+                  "d": 10,
+                  "h": 10,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2
+        },
+        "bytesFile": "initial-saved-nativeSaved.bcad"
+      },
+      "nativeAutosave": null,
+      "trace": {
+        "namespace": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/",
+        "armed": null,
+        "claimed": null,
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 4830.399999856949,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 1,
+            "time": 4909.699999809265,
+            "kind": "native-createWritable-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "arguments": 0,
+            "streamType": "FileSystemWritableFileStream",
+            "observedMode": "siloed"
+          },
+          {
+            "sequence": 2,
+            "time": 4911.599999904633,
+            "kind": "native-close-committed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 3,
+            "time": 4912.099999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 4,
+            "time": 4963.399999856949,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 5,
+            "time": 4963.399999856949,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 6,
+            "time": 5017.599999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 657,
+            "tag": "657-1793255307137"
+          }
+        ]
+      },
+      "feedback": []
+    },
+    {
+      "label": "before-save",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2,
+        "render": {
+          "version": 1,
+          "appearances": {},
+          "defaultAppearance": {
+            "color": "#bfc2c8",
+            "metallic": 0,
+            "roughness": 0.6,
+            "opacity": 1
+          },
+          "lights": [
+            {
+              "kind": "directional",
+              "direction": [
+                -0.45,
+                0.35,
+                -1
+              ],
+              "color": "#ffffff",
+              "intensity": 1.15,
+              "castShadow": true
+            },
+            {
+              "kind": "directional",
+              "direction": [
+                0.7,
+                -0.5,
+                -0.35
+              ],
+              "color": "#dfe8ff",
+              "intensity": 0.4,
+              "castShadow": false
+            }
+          ],
+          "environment": {
+            "top": "#3a3f47",
+            "bottom": "#15171a",
+            "ambient": 0.6,
+            "exposure": 1,
+            "toneMapping": "aces",
+            "occlusion": true,
+            "ground": true,
+            "grid": true,
+            "edges": false
+          },
+          "camera": null,
+          "materials": {},
+          "scene": "",
+          "sceneScale": 10,
+          "animation": {
+            "duration": 4,
+            "tracks": {},
+            "turntable": false
+          }
+        }
+      },
+      "body": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 1000.0000000000001,
+            "centroid": [
+              4.999999999999999,
+              4.999999999999999,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "dirty": true,
+      "recovery": null,
+      "name": "D322-owned",
+      "projectUI": "d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7 · in this browserClose",
+      "activePartUI": "D322-owned.bcad",
+      "documentsUI": "D322-owned.bcad",
+      "versionsUI": "PROJECT & VERSIONSd322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7expand_lessd322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7 · in this browserCloseDOCUMENTS · 1D322-owned.bcadVERSIONSMake versionNo versions yet: Make version saves the document and keeps this state.",
+      "nativeSaved": {
+        "path": "D322-owned.bcad",
+        "size": 657,
+        "lastModified": 1793255307137,
+        "tag": "657-1793255307137",
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                10,
+                10
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 10,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 10,
+                  "d": 10,
+                  "h": 10,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2
+        },
+        "bytesFile": "before-save-nativeSaved.bcad"
+      },
+      "nativeAutosave": null,
+      "trace": {
+        "namespace": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/",
+        "armed": null,
+        "claimed": null,
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 4830.399999856949,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 1,
+            "time": 4909.699999809265,
+            "kind": "native-createWritable-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "arguments": 0,
+            "streamType": "FileSystemWritableFileStream",
+            "observedMode": "siloed"
+          },
+          {
+            "sequence": 2,
+            "time": 4911.599999904633,
+            "kind": "native-close-committed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 3,
+            "time": 4912.099999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 4,
+            "time": 4963.399999856949,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 5,
+            "time": 4963.399999856949,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 6,
+            "time": 5017.599999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 7,
+            "time": 6160.199999809265,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 657,
+            "tag": "657-1793255307137"
+          }
+        ]
+      },
+      "feedback": []
+    },
+    {
+      "label": "held-save",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2,
+        "render": {
+          "version": 1,
+          "appearances": {},
+          "defaultAppearance": {
+            "color": "#bfc2c8",
+            "metallic": 0,
+            "roughness": 0.6,
+            "opacity": 1
+          },
+          "lights": [
+            {
+              "kind": "directional",
+              "direction": [
+                -0.45,
+                0.35,
+                -1
+              ],
+              "color": "#ffffff",
+              "intensity": 1.15,
+              "castShadow": true
+            },
+            {
+              "kind": "directional",
+              "direction": [
+                0.7,
+                -0.5,
+                -0.35
+              ],
+              "color": "#dfe8ff",
+              "intensity": 0.4,
+              "castShadow": false
+            }
+          ],
+          "environment": {
+            "top": "#3a3f47",
+            "bottom": "#15171a",
+            "ambient": 0.6,
+            "exposure": 1,
+            "toneMapping": "aces",
+            "occlusion": true,
+            "ground": true,
+            "grid": true,
+            "edges": false
+          },
+          "camera": null,
+          "materials": {},
+          "scene": "",
+          "sceneScale": 10,
+          "animation": {
+            "duration": 4,
+            "tracks": {},
+            "turntable": false
+          }
+        }
+      },
+      "body": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 1000.0000000000001,
+            "centroid": [
+              4.999999999999999,
+              4.999999999999999,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "dirty": true,
+      "recovery": null,
+      "name": "D322-owned",
+      "projectUI": "d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7 · in this browserClose",
+      "activePartUI": "D322-owned.bcad",
+      "documentsUI": "D322-owned.bcad",
+      "versionsUI": "PROJECT & VERSIONSd322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7expand_lessd322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7 · in this browserCloseDOCUMENTS · 1D322-owned.bcadVERSIONSMake versionNo versions yet: Make version saves the document and keeps this state.",
+      "nativeSaved": {
+        "path": "D322-owned.bcad",
+        "size": 1694,
+        "lastModified": 1793255308503,
+        "tag": "1694-1793255308503",
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                10,
+                10
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 10,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 10,
+                  "d": 10,
+                  "h": 10,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2,
+          "render": {
+            "version": 1,
+            "appearances": {},
+            "defaultAppearance": {
+              "color": "#bfc2c8",
+              "metallic": 0,
+              "roughness": 0.6,
+              "opacity": 1
+            },
+            "lights": [
+              {
+                "kind": "directional",
+                "direction": [
+                  -0.45,
+                  0.35,
+                  -1
+                ],
+                "color": "#ffffff",
+                "intensity": 1.15,
+                "castShadow": true
+              },
+              {
+                "kind": "directional",
+                "direction": [
+                  0.7,
+                  -0.5,
+                  -0.35
+                ],
+                "color": "#dfe8ff",
+                "intensity": 0.4,
+                "castShadow": false
+              }
+            ],
+            "environment": {
+              "top": "#3a3f47",
+              "bottom": "#15171a",
+              "ambient": 0.6,
+              "exposure": 1,
+              "toneMapping": "aces",
+              "occlusion": true,
+              "ground": true,
+              "grid": true,
+              "edges": false
+            },
+            "camera": null,
+            "materials": {},
+            "scene": "",
+            "sceneScale": 10,
+            "animation": {
+              "duration": 4,
+              "tracks": {},
+              "turntable": false
+            }
+          }
+        },
+        "bytesFile": "held-save-nativeSaved.bcad"
+      },
+      "nativeAutosave": null,
+      "trace": {
+        "namespace": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/",
+        "armed": null,
+        "claimed": {
+          "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+          "closedNative": true,
+          "returnedToCaller": false
+        },
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 4830.399999856949,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 1,
+            "time": 4909.699999809265,
+            "kind": "native-createWritable-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "arguments": 0,
+            "streamType": "FileSystemWritableFileStream",
+            "observedMode": "siloed"
+          },
+          {
+            "sequence": 2,
+            "time": 4911.599999904633,
+            "kind": "native-close-committed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 3,
+            "time": 4912.099999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 4,
+            "time": 4963.399999856949,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 5,
+            "time": 4963.399999856949,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 6,
+            "time": 5017.599999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 7,
+            "time": 6160.199999809265,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 8,
+            "time": 6224.5,
+            "kind": "arm",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 9,
+            "time": 6275,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 10,
+            "time": 6275.599999904633,
+            "kind": "native-createWritable-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "arguments": 0,
+            "streamType": "FileSystemWritableFileStream",
+            "observedMode": "siloed"
+          },
+          {
+            "sequence": 11,
+            "time": 6275.599999904633,
+            "kind": "claimed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 12,
+            "time": 6276.199999809265,
+            "kind": "native-close-committed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 13,
+            "time": 6276.199999809265,
+            "kind": "native-close-return-held",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 14,
+            "time": 6292.599999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1694,
+            "tag": "1694-1793255308503"
+          }
+        ]
+      },
+      "feedback": []
+    },
+    {
+      "label": "newer-edit-autosaved",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2,
+        "render": {
+          "version": 1,
+          "appearances": {},
+          "defaultAppearance": {
+            "color": "#bfc2c8",
+            "metallic": 0,
+            "roughness": 0.6,
+            "opacity": 1
+          },
+          "lights": [
+            {
+              "kind": "directional",
+              "direction": [
+                -0.45,
+                0.35,
+                -1
+              ],
+              "color": "#ffffff",
+              "intensity": 1.15,
+              "castShadow": true
+            },
+            {
+              "kind": "directional",
+              "direction": [
+                0.7,
+                -0.5,
+                -0.35
+              ],
+              "color": "#dfe8ff",
+              "intensity": 0.4,
+              "castShadow": false
+            }
+          ],
+          "environment": {
+            "top": "#3a3f47",
+            "bottom": "#15171a",
+            "ambient": 0.6,
+            "exposure": 1,
+            "toneMapping": "aces",
+            "occlusion": true,
+            "ground": true,
+            "grid": false,
+            "edges": false
+          },
+          "camera": null,
+          "materials": {},
+          "scene": "",
+          "sceneScale": 10,
+          "animation": {
+            "duration": 4,
+            "tracks": {},
+            "turntable": false
+          }
+        }
+      },
+      "body": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 1000.0000000000001,
+            "centroid": [
+              4.999999999999999,
+              4.999999999999999,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "dirty": true,
+      "recovery": null,
+      "name": "D322-owned",
+      "projectUI": "d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7 · in this browserClose",
+      "activePartUI": "D322-owned.bcad",
+      "documentsUI": "D322-owned.bcad",
+      "versionsUI": "PROJECT & VERSIONSd322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7expand_lessd322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7 · in this browserCloseDOCUMENTS · 1D322-owned.bcadVERSIONSMake versionNo versions yet: Make version saves the document and keeps this state.",
+      "nativeSaved": {
+        "path": "D322-owned.bcad",
+        "size": 1694,
+        "lastModified": 1793255308503,
+        "tag": "1694-1793255308503",
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                10,
+                10
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 10,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 10,
+                  "d": 10,
+                  "h": 10,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2,
+          "render": {
+            "version": 1,
+            "appearances": {},
+            "defaultAppearance": {
+              "color": "#bfc2c8",
+              "metallic": 0,
+              "roughness": 0.6,
+              "opacity": 1
+            },
+            "lights": [
+              {
+                "kind": "directional",
+                "direction": [
+                  -0.45,
+                  0.35,
+                  -1
+                ],
+                "color": "#ffffff",
+                "intensity": 1.15,
+                "castShadow": true
+              },
+              {
+                "kind": "directional",
+                "direction": [
+                  0.7,
+                  -0.5,
+                  -0.35
+                ],
+                "color": "#dfe8ff",
+                "intensity": 0.4,
+                "castShadow": false
+              }
+            ],
+            "environment": {
+              "top": "#3a3f47",
+              "bottom": "#15171a",
+              "ambient": 0.6,
+              "exposure": 1,
+              "toneMapping": "aces",
+              "occlusion": true,
+              "ground": true,
+              "grid": true,
+              "edges": false
+            },
+            "camera": null,
+            "materials": {},
+            "scene": "",
+            "sceneScale": 10,
+            "animation": {
+              "duration": 4,
+              "tracks": {},
+              "turntable": false
+            }
+          }
+        },
+        "bytesFile": "newer-edit-autosaved-nativeSaved.bcad"
+      },
+      "nativeAutosave": {
+        "path": ".barocss/autosave/D322-owned.bcad",
+        "size": 1695,
+        "lastModified": 1793255309562,
+        "tag": "1695-1793255309562",
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                10,
+                10
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 10,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 10,
+                  "d": 10,
+                  "h": 10,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2,
+          "render": {
+            "version": 1,
+            "appearances": {},
+            "defaultAppearance": {
+              "color": "#bfc2c8",
+              "metallic": 0,
+              "roughness": 0.6,
+              "opacity": 1
+            },
+            "lights": [
+              {
+                "kind": "directional",
+                "direction": [
+                  -0.45,
+                  0.35,
+                  -1
+                ],
+                "color": "#ffffff",
+                "intensity": 1.15,
+                "castShadow": true
+              },
+              {
+                "kind": "directional",
+                "direction": [
+                  0.7,
+                  -0.5,
+                  -0.35
+                ],
+                "color": "#dfe8ff",
+                "intensity": 0.4,
+                "castShadow": false
+              }
+            ],
+            "environment": {
+              "top": "#3a3f47",
+              "bottom": "#15171a",
+              "ambient": 0.6,
+              "exposure": 1,
+              "toneMapping": "aces",
+              "occlusion": true,
+              "ground": true,
+              "grid": false,
+              "edges": false
+            },
+            "camera": null,
+            "materials": {},
+            "scene": "",
+            "sceneScale": 10,
+            "animation": {
+              "duration": 4,
+              "tracks": {},
+              "turntable": false
+            }
+          }
+        },
+        "bytesFile": "newer-edit-autosaved-nativeAutosave.bcad"
+      },
+      "trace": {
+        "namespace": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/",
+        "armed": null,
+        "claimed": {
+          "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+          "closedNative": true,
+          "returnedToCaller": false
+        },
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 4830.399999856949,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 1,
+            "time": 4909.699999809265,
+            "kind": "native-createWritable-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "arguments": 0,
+            "streamType": "FileSystemWritableFileStream",
+            "observedMode": "siloed"
+          },
+          {
+            "sequence": 2,
+            "time": 4911.599999904633,
+            "kind": "native-close-committed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 3,
+            "time": 4912.099999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 4,
+            "time": 4963.399999856949,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 5,
+            "time": 4963.399999856949,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 6,
+            "time": 5017.599999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 7,
+            "time": 6160.199999809265,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 8,
+            "time": 6224.5,
+            "kind": "arm",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 9,
+            "time": 6275,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 10,
+            "time": 6275.599999904633,
+            "kind": "native-createWritable-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "arguments": 0,
+            "streamType": "FileSystemWritableFileStream",
+            "observedMode": "siloed"
+          },
+          {
+            "sequence": 11,
+            "time": 6275.599999904633,
+            "kind": "claimed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 12,
+            "time": 6276.199999809265,
+            "kind": "native-close-committed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 13,
+            "time": 6276.199999809265,
+            "kind": "native-close-return-held",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 14,
+            "time": 6292.599999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1694,
+            "tag": "1694-1793255308503"
+          },
+          {
+            "sequence": 15,
+            "time": 7334.399999856949,
+            "kind": "native-createWritable-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "arguments": 0,
+            "streamType": "FileSystemWritableFileStream",
+            "observedMode": "siloed"
+          },
+          {
+            "sequence": 16,
+            "time": 7334.799999952316,
+            "kind": "native-close-committed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad"
+          },
+          {
+            "sequence": 17,
+            "time": 7335,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "production",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          },
+          {
+            "sequence": 18,
+            "time": 7339,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          },
+          {
+            "sequence": 19,
+            "time": 7427.799999952316,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1694,
+            "tag": "1694-1793255308503"
+          },
+          {
+            "sequence": 20,
+            "time": 7428.399999856949,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          }
+        ]
+      },
+      "feedback": []
+    },
+    {
+      "label": "after-release",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2,
+        "render": {
+          "version": 1,
+          "appearances": {},
+          "defaultAppearance": {
+            "color": "#bfc2c8",
+            "metallic": 0,
+            "roughness": 0.6,
+            "opacity": 1
+          },
+          "lights": [
+            {
+              "kind": "directional",
+              "direction": [
+                -0.45,
+                0.35,
+                -1
+              ],
+              "color": "#ffffff",
+              "intensity": 1.15,
+              "castShadow": true
+            },
+            {
+              "kind": "directional",
+              "direction": [
+                0.7,
+                -0.5,
+                -0.35
+              ],
+              "color": "#dfe8ff",
+              "intensity": 0.4,
+              "castShadow": false
+            }
+          ],
+          "environment": {
+            "top": "#3a3f47",
+            "bottom": "#15171a",
+            "ambient": 0.6,
+            "exposure": 1,
+            "toneMapping": "aces",
+            "occlusion": true,
+            "ground": true,
+            "grid": false,
+            "edges": false
+          },
+          "camera": null,
+          "materials": {},
+          "scene": "",
+          "sceneScale": 10,
+          "animation": {
+            "duration": 4,
+            "tracks": {},
+            "turntable": false
+          }
+        }
+      },
+      "body": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 1000.0000000000001,
+            "centroid": [
+              4.999999999999999,
+              4.999999999999999,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "dirty": true,
+      "recovery": null,
+      "name": "D322-owned",
+      "projectUI": "d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7 · in this browserClose",
+      "activePartUI": "D322-owned.bcad",
+      "documentsUI": "D322-owned.bcad",
+      "versionsUI": "PROJECT & VERSIONSd322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7expand_lessd322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7 · in this browserCloseDOCUMENTS · 1D322-owned.bcadVERSIONSMake versionNo versions yet: Make version saves the document and keeps this state.",
+      "nativeSaved": {
+        "path": "D322-owned.bcad",
+        "size": 1694,
+        "lastModified": 1793255308503,
+        "tag": "1694-1793255308503",
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                10,
+                10
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 10,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 10,
+                  "d": 10,
+                  "h": 10,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2,
+          "render": {
+            "version": 1,
+            "appearances": {},
+            "defaultAppearance": {
+              "color": "#bfc2c8",
+              "metallic": 0,
+              "roughness": 0.6,
+              "opacity": 1
+            },
+            "lights": [
+              {
+                "kind": "directional",
+                "direction": [
+                  -0.45,
+                  0.35,
+                  -1
+                ],
+                "color": "#ffffff",
+                "intensity": 1.15,
+                "castShadow": true
+              },
+              {
+                "kind": "directional",
+                "direction": [
+                  0.7,
+                  -0.5,
+                  -0.35
+                ],
+                "color": "#dfe8ff",
+                "intensity": 0.4,
+                "castShadow": false
+              }
+            ],
+            "environment": {
+              "top": "#3a3f47",
+              "bottom": "#15171a",
+              "ambient": 0.6,
+              "exposure": 1,
+              "toneMapping": "aces",
+              "occlusion": true,
+              "ground": true,
+              "grid": true,
+              "edges": false
+            },
+            "camera": null,
+            "materials": {},
+            "scene": "",
+            "sceneScale": 10,
+            "animation": {
+              "duration": 4,
+              "tracks": {},
+              "turntable": false
+            }
+          }
+        },
+        "bytesFile": "after-release-nativeSaved.bcad"
+      },
+      "nativeAutosave": {
+        "path": ".barocss/autosave/D322-owned.bcad",
+        "size": 1695,
+        "lastModified": 1793255309562,
+        "tag": "1695-1793255309562",
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                10,
+                10
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 10,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 10,
+                  "d": 10,
+                  "h": 10,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2,
+          "render": {
+            "version": 1,
+            "appearances": {},
+            "defaultAppearance": {
+              "color": "#bfc2c8",
+              "metallic": 0,
+              "roughness": 0.6,
+              "opacity": 1
+            },
+            "lights": [
+              {
+                "kind": "directional",
+                "direction": [
+                  -0.45,
+                  0.35,
+                  -1
+                ],
+                "color": "#ffffff",
+                "intensity": 1.15,
+                "castShadow": true
+              },
+              {
+                "kind": "directional",
+                "direction": [
+                  0.7,
+                  -0.5,
+                  -0.35
+                ],
+                "color": "#dfe8ff",
+                "intensity": 0.4,
+                "castShadow": false
+              }
+            ],
+            "environment": {
+              "top": "#3a3f47",
+              "bottom": "#15171a",
+              "ambient": 0.6,
+              "exposure": 1,
+              "toneMapping": "aces",
+              "occlusion": true,
+              "ground": true,
+              "grid": false,
+              "edges": false
+            },
+            "camera": null,
+            "materials": {},
+            "scene": "",
+            "sceneScale": 10,
+            "animation": {
+              "duration": 4,
+              "tracks": {},
+              "turntable": false
+            }
+          }
+        },
+        "bytesFile": "after-release-nativeAutosave.bcad"
+      },
+      "trace": {
+        "namespace": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/",
+        "armed": null,
+        "claimed": {
+          "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+          "closedNative": true,
+          "returnedToCaller": true
+        },
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 4830.399999856949,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 1,
+            "time": 4909.699999809265,
+            "kind": "native-createWritable-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "arguments": 0,
+            "streamType": "FileSystemWritableFileStream",
+            "observedMode": "siloed"
+          },
+          {
+            "sequence": 2,
+            "time": 4911.599999904633,
+            "kind": "native-close-committed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 3,
+            "time": 4912.099999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 4,
+            "time": 4963.399999856949,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 5,
+            "time": 4963.399999856949,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 6,
+            "time": 5017.599999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 7,
+            "time": 6160.199999809265,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 8,
+            "time": 6224.5,
+            "kind": "arm",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 9,
+            "time": 6275,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 10,
+            "time": 6275.599999904633,
+            "kind": "native-createWritable-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "arguments": 0,
+            "streamType": "FileSystemWritableFileStream",
+            "observedMode": "siloed"
+          },
+          {
+            "sequence": 11,
+            "time": 6275.599999904633,
+            "kind": "claimed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 12,
+            "time": 6276.199999809265,
+            "kind": "native-close-committed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 13,
+            "time": 6276.199999809265,
+            "kind": "native-close-return-held",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 14,
+            "time": 6292.599999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1694,
+            "tag": "1694-1793255308503"
+          },
+          {
+            "sequence": 15,
+            "time": 7334.399999856949,
+            "kind": "native-createWritable-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "arguments": 0,
+            "streamType": "FileSystemWritableFileStream",
+            "observedMode": "siloed"
+          },
+          {
+            "sequence": 16,
+            "time": 7334.799999952316,
+            "kind": "native-close-committed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad"
+          },
+          {
+            "sequence": 17,
+            "time": 7335,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "production",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          },
+          {
+            "sequence": 18,
+            "time": 7339,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          },
+          {
+            "sequence": 19,
+            "time": 7427.799999952316,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1694,
+            "tag": "1694-1793255308503"
+          },
+          {
+            "sequence": 20,
+            "time": 7428.399999856949,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          },
+          {
+            "sequence": 21,
+            "time": 7511.899999856949,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 22,
+            "time": 7511.899999856949,
+            "kind": "native-close-return-released",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 23,
+            "time": 7512,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 1694,
+            "tag": "1694-1793255308503"
+          },
+          {
+            "sequence": 24,
+            "time": 7536.5,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 1694,
+            "tag": "1694-1793255308503"
+          },
+          {
+            "sequence": 25,
+            "time": 7537,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "production",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          },
+          {
+            "sequence": 26,
+            "time": 7537,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave",
+            "scope": "production"
+          },
+          {
+            "sequence": 27,
+            "time": 7537,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss",
+            "scope": "production"
+          },
+          {
+            "sequence": 28,
+            "time": 7537,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 29,
+            "time": 7592.699999809265,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1694,
+            "tag": "1694-1793255308503"
+          },
+          {
+            "sequence": 30,
+            "time": 7593.5,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          }
+        ]
+      },
+      "feedback": []
+    },
+    {
+      "label": "normal-save-B",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2,
+        "render": {
+          "version": 1,
+          "appearances": {},
+          "defaultAppearance": {
+            "color": "#bfc2c8",
+            "metallic": 0,
+            "roughness": 0.6,
+            "opacity": 1
+          },
+          "lights": [
+            {
+              "kind": "directional",
+              "direction": [
+                -0.45,
+                0.35,
+                -1
+              ],
+              "color": "#ffffff",
+              "intensity": 1.15,
+              "castShadow": true
+            },
+            {
+              "kind": "directional",
+              "direction": [
+                0.7,
+                -0.5,
+                -0.35
+              ],
+              "color": "#dfe8ff",
+              "intensity": 0.4,
+              "castShadow": false
+            }
+          ],
+          "environment": {
+            "top": "#3a3f47",
+            "bottom": "#15171a",
+            "ambient": 0.6,
+            "exposure": 1,
+            "toneMapping": "aces",
+            "occlusion": true,
+            "ground": true,
+            "grid": false,
+            "edges": false
+          },
+          "camera": null,
+          "materials": {},
+          "scene": "",
+          "sceneScale": 10,
+          "animation": {
+            "duration": 4,
+            "tracks": {},
+            "turntable": false
+          }
+        }
+      },
+      "body": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 1000.0000000000001,
+            "centroid": [
+              4.999999999999999,
+              4.999999999999999,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "dirty": false,
+      "recovery": null,
+      "name": "D322-owned",
+      "projectUI": "d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7 · in this browserClose",
+      "activePartUI": "D322-owned.bcad",
+      "documentsUI": "D322-owned.bcad",
+      "versionsUI": "PROJECT & VERSIONSd322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7expand_lessd322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7 · in this browserCloseDOCUMENTS · 1D322-owned.bcadVERSIONSMake versionNo versions yet: Make version saves the document and keeps this state.",
+      "nativeSaved": {
+        "path": "D322-owned.bcad",
+        "size": 1695,
+        "lastModified": 1793255309953,
+        "tag": "1695-1793255309953",
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                10,
+                10
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 10,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 10,
+                  "d": 10,
+                  "h": 10,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2,
+          "render": {
+            "version": 1,
+            "appearances": {},
+            "defaultAppearance": {
+              "color": "#bfc2c8",
+              "metallic": 0,
+              "roughness": 0.6,
+              "opacity": 1
+            },
+            "lights": [
+              {
+                "kind": "directional",
+                "direction": [
+                  -0.45,
+                  0.35,
+                  -1
+                ],
+                "color": "#ffffff",
+                "intensity": 1.15,
+                "castShadow": true
+              },
+              {
+                "kind": "directional",
+                "direction": [
+                  0.7,
+                  -0.5,
+                  -0.35
+                ],
+                "color": "#dfe8ff",
+                "intensity": 0.4,
+                "castShadow": false
+              }
+            ],
+            "environment": {
+              "top": "#3a3f47",
+              "bottom": "#15171a",
+              "ambient": 0.6,
+              "exposure": 1,
+              "toneMapping": "aces",
+              "occlusion": true,
+              "ground": true,
+              "grid": false,
+              "edges": false
+            },
+            "camera": null,
+            "materials": {},
+            "scene": "",
+            "sceneScale": 10,
+            "animation": {
+              "duration": 4,
+              "tracks": {},
+              "turntable": false
+            }
+          }
+        },
+        "bytesFile": "normal-save-B-nativeSaved.bcad"
+      },
+      "nativeAutosave": {
+        "path": ".barocss/autosave/D322-owned.bcad",
+        "size": 1695,
+        "lastModified": 1793255309562,
+        "tag": "1695-1793255309562",
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                10,
+                10
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 10,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 10,
+                  "d": 10,
+                  "h": 10,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2,
+          "render": {
+            "version": 1,
+            "appearances": {},
+            "defaultAppearance": {
+              "color": "#bfc2c8",
+              "metallic": 0,
+              "roughness": 0.6,
+              "opacity": 1
+            },
+            "lights": [
+              {
+                "kind": "directional",
+                "direction": [
+                  -0.45,
+                  0.35,
+                  -1
+                ],
+                "color": "#ffffff",
+                "intensity": 1.15,
+                "castShadow": true
+              },
+              {
+                "kind": "directional",
+                "direction": [
+                  0.7,
+                  -0.5,
+                  -0.35
+                ],
+                "color": "#dfe8ff",
+                "intensity": 0.4,
+                "castShadow": false
+              }
+            ],
+            "environment": {
+              "top": "#3a3f47",
+              "bottom": "#15171a",
+              "ambient": 0.6,
+              "exposure": 1,
+              "toneMapping": "aces",
+              "occlusion": true,
+              "ground": true,
+              "grid": false,
+              "edges": false
+            },
+            "camera": null,
+            "materials": {},
+            "scene": "",
+            "sceneScale": 10,
+            "animation": {
+              "duration": 4,
+              "tracks": {},
+              "turntable": false
+            }
+          }
+        },
+        "bytesFile": "normal-save-B-nativeAutosave.bcad"
+      },
+      "trace": {
+        "namespace": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/",
+        "armed": null,
+        "claimed": {
+          "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+          "closedNative": true,
+          "returnedToCaller": true
+        },
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 4830.399999856949,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 1,
+            "time": 4909.699999809265,
+            "kind": "native-createWritable-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "arguments": 0,
+            "streamType": "FileSystemWritableFileStream",
+            "observedMode": "siloed"
+          },
+          {
+            "sequence": 2,
+            "time": 4911.599999904633,
+            "kind": "native-close-committed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 3,
+            "time": 4912.099999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 4,
+            "time": 4963.399999856949,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 5,
+            "time": 4963.399999856949,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 6,
+            "time": 5017.599999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 7,
+            "time": 6160.199999809265,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 8,
+            "time": 6224.5,
+            "kind": "arm",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 9,
+            "time": 6275,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 657,
+            "tag": "657-1793255307137"
+          },
+          {
+            "sequence": 10,
+            "time": 6275.599999904633,
+            "kind": "native-createWritable-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "arguments": 0,
+            "streamType": "FileSystemWritableFileStream",
+            "observedMode": "siloed"
+          },
+          {
+            "sequence": 11,
+            "time": 6275.599999904633,
+            "kind": "claimed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 12,
+            "time": 6276.199999809265,
+            "kind": "native-close-committed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 13,
+            "time": 6276.199999809265,
+            "kind": "native-close-return-held",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 14,
+            "time": 6292.599999904633,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1694,
+            "tag": "1694-1793255308503"
+          },
+          {
+            "sequence": 15,
+            "time": 7334.399999856949,
+            "kind": "native-createWritable-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "arguments": 0,
+            "streamType": "FileSystemWritableFileStream",
+            "observedMode": "siloed"
+          },
+          {
+            "sequence": 16,
+            "time": 7334.799999952316,
+            "kind": "native-close-committed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad"
+          },
+          {
+            "sequence": 17,
+            "time": 7335,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "production",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          },
+          {
+            "sequence": 18,
+            "time": 7339,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          },
+          {
+            "sequence": 19,
+            "time": 7427.799999952316,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1694,
+            "tag": "1694-1793255308503"
+          },
+          {
+            "sequence": 20,
+            "time": 7428.399999856949,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          },
+          {
+            "sequence": 21,
+            "time": 7511.899999856949,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 22,
+            "time": 7511.899999856949,
+            "kind": "native-close-return-released",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 23,
+            "time": 7512,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 1694,
+            "tag": "1694-1793255308503"
+          },
+          {
+            "sequence": 24,
+            "time": 7536.5,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 1694,
+            "tag": "1694-1793255308503"
+          },
+          {
+            "sequence": 25,
+            "time": 7537,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "production",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          },
+          {
+            "sequence": 26,
+            "time": 7537,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave",
+            "scope": "production"
+          },
+          {
+            "sequence": 27,
+            "time": 7537,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss",
+            "scope": "production"
+          },
+          {
+            "sequence": 28,
+            "time": 7537,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 29,
+            "time": 7592.699999809265,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1694,
+            "tag": "1694-1793255308503"
+          },
+          {
+            "sequence": 30,
+            "time": 7593.5,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          },
+          {
+            "sequence": 31,
+            "time": 7725,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 1694,
+            "tag": "1694-1793255308503"
+          },
+          {
+            "sequence": 32,
+            "time": 7725.299999952316,
+            "kind": "native-createWritable-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "arguments": 0,
+            "streamType": "FileSystemWritableFileStream",
+            "observedMode": "siloed"
+          },
+          {
+            "sequence": 33,
+            "time": 7725.699999809265,
+            "kind": "native-close-committed",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad"
+          },
+          {
+            "sequence": 34,
+            "time": 7725.799999952316,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 1695,
+            "tag": "1695-1793255309953"
+          },
+          {
+            "sequence": 35,
+            "time": 7751.5,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "production",
+            "size": 1695,
+            "tag": "1695-1793255309953"
+          },
+          {
+            "sequence": 36,
+            "time": 7752,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "production",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          },
+          {
+            "sequence": 37,
+            "time": 7752,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave",
+            "scope": "production"
+          },
+          {
+            "sequence": 38,
+            "time": 7752,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss",
+            "scope": "production"
+          },
+          {
+            "sequence": 39,
+            "time": 7752,
+            "kind": "native-entries-complete",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7",
+            "scope": "production"
+          },
+          {
+            "sequence": 40,
+            "time": 7781.199999809265,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1695,
+            "tag": "1695-1793255309953"
+          },
+          {
+            "sequence": 41,
+            "time": 7782,
+            "kind": "native-getFile-return",
+            "path": "projects/d322-late-save-9a1f2f0e-a707-4bdd-8e39-8a1423061ca7/.barocss/autosave/D322-owned.bcad",
+            "scope": "inspection",
+            "size": 1695,
+            "tag": "1695-1793255309562"
+          }
+        ]
+      },
+      "feedback": []
+    }
+  ],
+  "errors": [],
+  "newerAutosaveObservation": {
+    "polls": 4,
+    "last": {
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2,
+        "render": {
+          "version": 1,
+          "appearances": {},
+          "defaultAppearance": {
+            "color": "#bfc2c8",
+            "metallic": 0,
+            "roughness": 0.6,
+            "opacity": 1
+          },
+          "lights": [
+            {
+              "kind": "directional",
+              "direction": [
+                -0.45,
+                0.35,
+                -1
+              ],
+              "color": "#ffffff",
+              "intensity": 1.15,
+              "castShadow": true
+            },
+            {
+              "kind": "directional",
+              "direction": [
+                0.7,
+                -0.5,
+                -0.35
+              ],
+              "color": "#dfe8ff",
+              "intensity": 0.4,
+              "castShadow": false
+            }
+          ],
+          "environment": {
+            "top": "#3a3f47",
+            "bottom": "#15171a",
+            "ambient": 0.6,
+            "exposure": 1,
+            "toneMapping": "aces",
+            "occlusion": true,
+            "ground": true,
+            "grid": false,
+            "edges": false
+          },
+          "camera": null,
+          "materials": {},
+          "scene": "",
+          "sceneScale": 10,
+          "animation": {
+            "duration": 4,
+            "tracks": {},
+            "turntable": false
+          }
+        }
+      },
+      "size": 1695,
+      "tag": "1695-1793255309562"
+    }
+  },
+  "nativeCompletion": {
+    "nativeCloseReturn": 22,
+    "returnedTagRead": 23,
+    "projectRefreshComplete": 28
+  },
+  "observed": {
+    "liveDocEqualsNewer": true,
+    "savedDocEqualsA": true,
+    "dirtyAfter": true,
+    "newerAutosavePresent": true,
+    "recoveryBefore": null,
+    "recoveryAfter": null,
+    "projectPartUIBefore": "D322-owned.bcad",
+    "projectPartUIAfter": "D322-owned.bcad",
+    "projectTagRef": "NOT_EXPOSED; native file tags are retained",
+    "baselineBugObserved": false
+  },
+  "browserVersion": "156.0.8078.48",
+  "normalSaveB": {
+    "completed": true,
+    "dirty": false,
+    "nativeTag": "1695-1793255309953",
+    "savedDocEqualsB": true
+  },
+  "phase": "normal public Save B after original late-Save safety assertions"
+}

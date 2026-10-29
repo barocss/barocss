@@ -1,0 +1,26 @@
+{
+  "status": "SOURCE_PREPARED_ACTUAL_NOT_RUN",
+  "selectedCases": [
+    "same-document",
+    "new-document",
+    "closed-project"
+  ],
+  "driverSyntax": 0,
+  "helperSyntax": 0,
+  "lint": 0,
+  "sources": [
+    {
+      "path": "apps/cad-studio/test/late-save-ownership-browser.test.mjs",
+      "sha256": "1acb9bef11aa12e5346dc45b2b697274db8589a79ae96e6027fb1e57cd3bc908",
+      "capsule": "late-save-ownership-browser.test.mjs.gz",
+      "gzipSha256": "a4bbe26a8a860b632cb6e14ed4b1413a7f2b95ac3611c3286292d6b316401377"
+    },
+    {
+      "path": "apps/cad-studio/test/late-save-native-scheduler.mjs",
+      "sha256": "3c2d6fb751cdb30577214a71ec95f12471044d7040a23e0c77eb187897802f21",
+      "capsule": "late-save-native-scheduler.mjs.gz",
+      "gzipSha256": "9a6540306ccf728def18a099c957ffe27bbc4e25012609e10db9415ade8383cd"
+    }
+  ],
+  "productionBinding": "Pending producer final source/hash and root freeze approval; no runtime source profile claimed by this preparation receipt."
+}
