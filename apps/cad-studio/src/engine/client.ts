@@ -10,6 +10,7 @@ export interface ProposalOverlay {
   method: 'boolean' | 'faces';
   why: string | null;
 }
+import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { DrawingResult } from '@barocss/cad-model/drawing/project';
 import type { DrawingSection } from '@barocss/cad-model/drawing/types';
@@ -25,7 +26,9 @@ function remembered(doc: StudioDoc, r: EvalResult): void { if (r.ok && r.faceTab
 
 /** One worker; the newest evaluation wins and stale replies are dropped. */
 export class EngineClient {
-  private worker!: Worker;
+  private worker: Worker | null = null;
+  private state: 'idle' | 'active' | 'failed' | 'disposed' = 'idle';
+  private failure: FriendlyError | null = null;
   private next = 1;
   private epoch = 0;
   private nativeSources = new Map<number, NativeMassSource>();
@@ -35,7 +38,7 @@ export class EngineClient {
   private progress = new Map<number, (stage: string) => void>();
   private latestEval = 0;
   /** Every request's document goes through this, in the order the worker receives them. */
-  private wire = new WireSender();
+  private wire: WireSender | null = null;
   /** Replies' meshes by slot (the worker sends only those it has not sent there last time, PERF3 B12), and each evaluation's slot. */
   private meshesIn = new MeshReceiver();
   private slots = new Map<number, string>();
@@ -44,54 +47,114 @@ export class EngineClient {
   /** O18: who hears the masses the worker posts after an evaluation's reply (by mass ref, unplaced). */
   private massListeners = new Set<(masses: MassReply['masses']) => void>();
 
-  constructor() { this.start(); }
-  private start() {
+  private failureListeners = new Set<(error: FriendlyError) => void>();
+
+  /** Construction has no worker or global subscription. A committed caller acquires them on its first request. */
+  private start(): boolean {
+    if (this.state === 'active') return true;
+    if (this.state === 'failed' || this.state === 'disposed') return false;
     const epoch = ++this.epoch;
-    this.worker = new Worker(new URL('./engine.worker.ts', import.meta.url), { type: 'module' });
-    this.worker.onmessage = (event: MessageEvent<{ id: number; progress?: string; result?: WireResult; nativeMass?: unknown[] } | MassReply>) => {
-      if (epoch !== this.epoch) return;
-      if ('masses' in event.data) {
-        const source = this.massSource;
-        const current = source ? event.data.masses.filter(m => receiveNativeMassPatch(m.fields, m.ref, m.nativeMass, source)) : [];
-        if (current.length) for (const listen of this.massListeners) listen(current);
-        return;
-      }
-      if (event.data.progress !== undefined) { this.progress.get(event.data.id)?.(event.data.progress); return; }
-      this.progress.delete(event.data.id);
-      // (Every evaluation reply, stale ones too, in the order posted: the held meshes follow the worker's.)
-      const slot = this.slots.get(event.data.id);
-      if (slot !== undefined && event.data.result) {
-        this.slots.delete(event.data.id);
-        try { (event.data as { result: EvalResult }).result = this.meshesIn.unpack(slot, event.data.result); }
-        catch (e) { (event.data as { result: EvalResult }).result = { ok: false, revision: 0, error: { title: 'Evaluation lost', hint: 'Evaluate again.', detail: e instanceof Error ? e.message : String(e) }, wallTime: 0 }; }
-      }
-      const source = this.nativeSources.get(event.data.id);
-      this.nativeSources.delete(event.data.id);
-      const result = event.data.result as EvalResult | undefined;
-      if (source && result?.ok && result.revision === source.revision && (source.slot !== 'evaluate' || source.requestId === this.latestEval)) {
-        const envelopes = event.data.nativeMass;
-        if (Array.isArray(envelopes) && envelopes.length === result.bodies.length) {
-          for (let i = 0; i < result.bodies.length; i++) receiveNativeMass(result.bodies[i], envelopes[i], source);
+    try {
+      this.worker = new Worker(new URL('./engine.worker.ts', import.meta.url), { type: 'module' });
+      this.wire = new WireSender(); this.state = 'active';
+      this.worker.onerror = event => { if (epoch === this.epoch) { event.preventDefault(); this.fail(new Error(event.message || 'The engine worker failed.')); } };
+      this.worker.onmessageerror = () => { if (epoch === this.epoch) this.fail(new Error('The engine worker reply could not be read.')); };
+      this.worker.onmessage = (event: MessageEvent<{ id: number; progress?: string; result?: WireResult; nativeMass?: unknown[] } | MassReply>) => {
+        if (epoch !== this.epoch) return;
+        if ('masses' in event.data) {
+          const source = this.massSource;
+          const current = source ? event.data.masses.filter(m => receiveNativeMassPatch(m.fields, m.ref, m.nativeMass, source)) : [];
+          if (current.length) for (const listen of this.massListeners) listen(current);
+          return;
         }
-      }
-      const resolve = this.pending.get(event.data.id);
-      this.pending.delete(event.data.id);
-      resolve?.(event.data);
-    };
+        if (event.data.progress !== undefined) { this.progress.get(event.data.id)?.(event.data.progress); return; }
+        this.progress.delete(event.data.id);
+        // (Every evaluation reply, stale ones too, in the order posted: the held meshes follow the worker's.)
+        const slot = this.slots.get(event.data.id);
+        this.slots.delete(event.data.id);
+        if (slot !== undefined && event.data.result) {
+          try { (event.data as { result: EvalResult }).result = this.meshesIn.unpack(slot, event.data.result); }
+          catch (e) { (event.data as { result: EvalResult }).result = { ok: false, revision: 0, error: { title: 'Evaluation lost', hint: 'Evaluate again.', detail: e instanceof Error ? e.message : String(e) }, wallTime: 0 }; }
+        }
+        const source = this.nativeSources.get(event.data.id);
+        this.nativeSources.delete(event.data.id);
+        const result = event.data.result as EvalResult | undefined;
+        if (source && result?.ok && result.revision === source.revision && (source.slot !== 'evaluate' || source.requestId === this.latestEval)) {
+          const envelopes = event.data.nativeMass;
+          if (Array.isArray(envelopes) && envelopes.length === result.bodies.length) {
+            for (let i = 0; i < result.bodies.length; i++) receiveNativeMass(result.bodies[i], envelopes[i], source);
+          }
+        }
+        const resolve = this.pending.get(event.data.id);
+        this.pending.delete(event.data.id);
+        resolve?.(event.data);
+      };
+      return true;
+    } catch (error) { this.fail(error); return false; }
   }
   /**
    * Stops whatever the worker is computing (a long Boolean on a mesh, D42): the worker is ended and a new one
    * started (its caches empty); every request waiting gets a refusal ("Stopped").
    */
-  restart(): void {
-    this.worker.terminate();
-    const error = { title: 'Stopped', hint: 'The computation was stopped.', detail: '' };
-    const cancelled = { result: { ok: false, revision: 0, error, wallTime: 0 }, step: { error: 'cancelled' }, drawing: { ok: false, error }, bytes: null, error: 'stopped', why: 'stopped' };
-    this.progress.clear();
-    for (const resolve of this.pending.values()) resolve(cancelled);
-    // (The lanes are kept: a request waiting on one comes back as the refusal above, "Stopped", as before O9.)
-    this.pending.clear(); this.latestEval = 0; this.wire = new WireSender(); this.meshesIn = new MeshReceiver(); this.slots.clear(); this.nativeSources.clear(); this.massSource = null;
-    this.start();
+  restart(): boolean {
+    if (this.state === 'disposed') return false;
+    const teardown = this.retire('idle');
+    if (teardown) { this.fail(teardown); return false; }
+    this.failure = null; return this.start();
+  }
+
+  /** Final release. A disposed client cannot restart or acquire another worker. */
+  dispose(): void {
+    if (this.state === 'disposed') return;
+    this.retire('disposed'); this.massListeners.clear(); this.failureListeners.clear(); this.lanes = new Lanes();
+  }
+
+  /** Worker failure is terminal until an explicit host restart. It does not silently change the host's worker session. */
+  onFailure(listen: (error: FriendlyError) => void): () => void {
+    if (this.state === 'disposed') return () => {};
+    this.failureListeners.add(listen); return () => { this.failureListeners.delete(listen); };
+  }
+
+  private refusal(error: FriendlyError = { title: 'Stopped', hint: 'The computation was stopped.', detail: '' }) {
+    return { result: { ok: false as const, revision: 0, error, wallTime: 0 }, step: { error: 'cancelled' }, drawing: { ok: false, error }, bytes: null, error: 'stopped', why: 'stopped', cancelledEvaluation: this.latestEval };
+  }
+
+  private retire(state: 'idle' | 'failed' | 'disposed', error?: FriendlyError): Error | null {
+    const cancelled = this.refusal(error), pending = this.pending, worker = this.worker, wire = this.wire;
+    this.epoch++; this.state = state;
+    this.worker = null; this.wire = null; this.meshesIn = new MeshReceiver();
+    this.pending = new Map(); this.progress.clear(); this.slots.clear(); this.nativeSources.clear(); this.massSource = null; this.latestEval = 0;
+    let teardown: Error | null = null;
+    const record = (cause: unknown) => { teardown ??= cause instanceof Error ? cause : new Error(String(cause)); };
+    try {
+      if (worker) {
+        try { worker.onmessage = null; worker.onerror = null; worker.onmessageerror = null; } catch (cause) { record(cause); }
+        try { worker.terminate(); } catch (cause) { record(cause); }
+      }
+    } finally {
+      try { wire?.dispose(); } finally {
+        try { for (const resolve of pending.values()) resolve(cancelled); } finally { pending.clear(); }
+      }
+    }
+    return teardown;
+  }
+
+  private fail(cause: unknown): void {
+    if (this.state === 'disposed' || this.state === 'failed') return;
+    const error = { title: 'Engine worker failed', hint: 'Your document is unchanged. Retry to start the engine again.', detail: cause instanceof Error ? cause.message : String(cause) };
+    this.failure = error; this.retire('failed', error);
+    for (const listen of this.failureListeners) listen(error);
+  }
+
+  /** Prepare and post together: a failed pack must never leave a sender available for another request. */
+  private post(id: number, prepare: () => unknown): void {
+    if (!this.start()) {
+      const cancelled = this.refusal(this.failure ?? undefined), resolve = this.pending.get(id);
+      this.pending.delete(id); this.progress.delete(id); this.slots.delete(id); this.nativeSources.delete(id);
+      if (this.latestEval === id) { this.latestEval = 0; this.massSource = null; }
+      resolve?.(cancelled); return;
+    }
+    try { this.worker!.postMessage(prepare()); } catch (error) { this.fail(error); }
   }
 
   /**
@@ -100,18 +163,20 @@ export class EngineClient {
    * per thing a result replaces: 'preview', `section:<view>`, `drawing:<part>`, `placed:<instance>` …
    */
   /** O18: the deferred masses as the worker works them out (each a body's, by its `massRef`); the returned function stops listening. */
-  onMasses(listen: (masses: MassReply['masses']) => void): () => void { this.massListeners.add(listen); return () => { this.massListeners.delete(listen); }; }
+  onMasses(listen: (masses: MassReply['masses']) => void): () => void { if (this.state === 'disposed') return () => {}; this.massListeners.add(listen); return () => { this.massListeners.delete(listen); }; }
 
-  latest<T>(lane: string, asked: { revision: number; source: string }, request: () => Promise<T>): Promise<LaneReply<T>> { return this.lanes.run(lane, asked, request); }
+  latest<T>(lane: string, asked: { revision: number; source: string }, request: () => Promise<T>): Promise<LaneReply<T>> { return this.state === 'disposed' ? Promise.resolve({ stale: true, lane, revision: asked.revision }) : this.lanes.run(lane, asked, request); }
 
   evaluate(doc: StudioDoc, revision: number): Promise<EvalResult | null> {
     const id = this.next++; this.latestEval = id;
-    const nativeSource = { epoch: this.epoch, requestId: id, revision, slot: 'evaluate' };
-    this.nativeSources.set(id, nativeSource); this.massSource = nativeSource;
     return new Promise(resolve => {
-      this.pending.set(id, data => { const r = (data as { result: EvalResult }).result; remembered(doc, r); resolve(id === this.latestEval ? r : null); });
+      this.pending.set(id, data => { const r = (data as { result: EvalResult }).result; remembered(doc, r); resolve(id === this.latestEval || (data as { cancelledEvaluation?: number }).cancelledEvaluation === id ? r : null); });
       this.slots.set(id, 'evaluate');
-      this.worker.postMessage({ type: 'evaluate', id, doc: this.wire.pack(doc), revision, nativeSource });
+      this.post(id, () => {
+        const nativeSource = { epoch: this.epoch, requestId: id, revision, slot: 'evaluate' };
+        this.nativeSources.set(id, nativeSource); this.massSource = nativeSource;
+        return { type: 'evaluate', id, doc: this.wire!.pack(doc), revision, nativeSource };
+      });
     });
   }
 
@@ -121,7 +186,7 @@ export class EngineClient {
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
       this.slots.set(id, 'preview');
-      this.worker.postMessage({ type: 'preview', id, doc: this.wire.pack(doc), revision });
+      this.post(id, () => ({ type: 'preview', id, doc: this.wire!.pack(doc), revision }));
     });
   }
 
@@ -131,7 +196,7 @@ export class EngineClient {
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
       this.slots.set(id, 'section');
-      this.worker.postMessage({ type: 'section', id, doc: this.wire.pack(doc), revision });
+      this.post(id, () => ({ type: 'section', id, doc: this.wire!.pack(doc), revision }));
     });
   }
 
@@ -150,7 +215,7 @@ export class EngineClient {
         resolve({ pull: d.mould.pull, loops: d.mould.loops, why: d.mould.why, plus: bodies.slice(0, d.mould.plus), minus: bodies.slice(d.mould.plus) });
       });
       this.slots.set(id, 'mould');
-      this.worker.postMessage({ type: 'mould', id, doc: this.wire.pack(doc), revision, halves, mould: doc.mould });
+      this.post(id, () => ({ type: 'mould', id, doc: this.wire!.pack(doc), revision, halves, mould: doc.mould }));
     });
   }
 
@@ -160,12 +225,14 @@ export class EngineClient {
    */
   part(doc: StudioDoc, revision: number, slot: PartSlot = 'part'): Promise<EvalResult> {
     const id = this.next++;
-    const nativeSource = { epoch: this.epoch, requestId: id, revision, slot: `part:${slot}` };
-    this.nativeSources.set(id, nativeSource);
     return new Promise(resolve => {
       this.pending.set(id, data => { const r = (data as { result: EvalResult }).result; remembered(doc, r); resolve(r); });
       this.slots.set(id, `part:${slot}`);
-      this.worker.postMessage({ type: 'part', id, doc: this.wire.pack(doc), revision, slot, nativeSource });
+      this.post(id, () => {
+        const nativeSource = { epoch: this.epoch, requestId: id, revision, slot: `part:${slot}` };
+        this.nativeSources.set(id, nativeSource);
+        return { type: 'part', id, doc: this.wire!.pack(doc), revision, slot, nativeSource };
+      });
     });
   }
 
@@ -184,8 +251,10 @@ export class EngineClient {
       });
       this.slots.set(id, 'proposalDiff');
       // (The base, then the proposal: the worker unpacks them in that order.)
-      const baseWire = this.wire.pack(base), proposedWire = this.wire.pack(proposed);
-      this.worker.postMessage({ type: 'proposalDiff', id, doc: baseWire, proposed: proposedWire, revision, key });
+      this.post(id, () => {
+        const baseWire = this.wire!.pack(base), proposedWire = this.wire!.pack(proposed);
+        return { type: 'proposalDiff', id, doc: baseWire, proposed: proposedWire, revision, key };
+      });
     });
   }
 
@@ -194,19 +263,21 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { volumes?: { ok: true; volumes: { key: string; volume: number | null }[] } }).volumes ?? { ok: false, error: 'stopped' }));
-      this.worker.postMessage({ type: 'volumes', id, doc: this.wire.pack(doc) });
+      this.post(id, () => ({ type: 'volumes', id, doc: this.wire!.pack(doc) }));
     });
   }
 
   /** A placed part's display bodies (copies of one part share its tessellation): never dropped as stale. */
   placed(doc: StudioDoc, base: StudioDoc, place: { m: number[]; t: [number, number, number] }, revision: number): Promise<EvalResult> {
     const id = this.next++;
-    const nativeSource = { epoch: this.epoch, requestId: id, revision, slot: 'placed' };
-    this.nativeSources.set(id, nativeSource);
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
       this.slots.set(id, 'placed');
-      this.worker.postMessage({ type: 'placed', id, doc: this.wire.pack(doc), base: this.wire.pack(base), place, revision, nativeSource });
+      this.post(id, () => {
+        const nativeSource = { epoch: this.epoch, requestId: id, revision, slot: 'placed' };
+        this.nativeSources.set(id, nativeSource);
+        return { type: 'placed', id, doc: this.wire!.pack(doc), base: this.wire!.pack(base), place, revision, nativeSource };
+      });
     });
   }
 
@@ -215,7 +286,7 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => { const d = data as { meshes?: { name: string; positions: Float64Array; indices: Uint32Array }[] | null; error?: string }; resolve(d.error ? { error: d.error } : d.meshes ?? null); });
-      this.worker.postMessage({ type: 'stepMeshes', id, step });
+      this.post(id, () => ({ type: 'stepMeshes', id, step }));
     });
   }
   /** What is wrong with a mesh (M3), worked out in the worker. */
@@ -223,7 +294,7 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => { const d = data as { diagnosis?: MeshDiagnosis; error?: string }; resolve(d.diagnosis ?? { error: d.error ?? 'stopped' }); });
-      this.worker.postMessage({ type: 'diagnose', id, positions, indices });
+      this.post(id, () => ({ type: 'diagnose', id, positions, indices }));
     });
   }
   /** A mesh repaired by the steps in the worker, its stages told as it goes; stopped by `restart`. */
@@ -232,7 +303,7 @@ export class EngineClient {
     return new Promise(resolve => {
       this.progress.set(id, onStage);
       this.pending.set(id, data => { const d = data as { repair?: MeshRepairResult; error?: string }; resolve(d.repair ?? { error: d.error ?? 'stopped' }); });
-      this.worker.postMessage({ type: 'repair', id, positions, indices, steps });
+      this.post(id, () => ({ type: 'repair', id, positions, indices, steps }));
     });
   }
 
@@ -240,7 +311,7 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { step: { text: string; omitted?: string[] } | { error: string } }).step));
-      this.worker.postMessage({ type: 'step', id, doc: this.wire.pack(doc), name, ...(meshes ? { meshes } : {}) });
+      this.post(id, () => ({ type: 'step', id, doc: this.wire!.pack(doc), name, ...(meshes ? { meshes } : {}) }));
     });
   }
 
@@ -250,7 +321,7 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { drawing: DrawingResult }).drawing));
-      this.worker.postMessage({ type: 'drawing', id, doc: this.wire.pack(doc), options });
+      this.post(id, () => ({ type: 'drawing', id, doc: this.wire!.pack(doc), options }));
     });
   }
 
@@ -261,7 +332,7 @@ export class EngineClient {
         const d = data as { bytes?: Uint8Array | null; error?: string };
         resolve(typeof d.error === 'string' ? { error: d.error } : d.bytes ?? null);
       });
-      this.worker.postMessage({ type: 'stl', id, doc: this.wire.pack(doc), key, ...(options ? { options } : {}) });
+      this.post(id, () => ({ type: 'stl', id, doc: this.wire!.pack(doc), key, ...(options ? { options } : {}) }));
     });
   }
 }

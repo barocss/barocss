@@ -194,6 +194,11 @@ const OPEN_READS = 'Open reads models (.bcad, .json), STEP (.step, .stp), STL, O
 export function App() {
   countRender('App');
   const engine = useMemo(() => new EngineClient(), []);
+  const workerFailureHandler = useRef<((error: FriendlyError) => void) | null>(null);
+  useEffect(() => {
+    const unsubscribe = engine.onFailure(error => workerFailureHandler.current?.(error));
+    return () => { unsubscribe(); engine.dispose(); };
+  }, [engine]);
   const viewport = useRef<ViewportHandle>(null);
   // (The bottom row: the view bar measured, the history bar beside it or stacked above it.)
   const cornerRight = useRef<HTMLDivElement>(null), [stripWidth, setStripWidth] = useState(0), [historyNatural, setHistoryNatural] = useState(0);
@@ -369,7 +374,8 @@ export function App() {
   const cursorSink = useRef<((p: Vec3 | null) => void) | null>(null);
   const onCursor = useCallback((p: Vec3 | null) => cursorSink.current?.(p), []);
   // (`action`: one button on the toast, e.g. Undo after the agent applied a change directly, D41.)
-  const [toast, setToast] = useState<(FriendlyError & { action?: { label: string; run(): void } }) | null>(null);
+  const [workerFailure, setWorkerFailure] = useState<FriendlyError | null>(null);
+  const [notice, setToast] = useState<(FriendlyError & { action?: { label: string; run(): void } }) | null>(null);
   // References an opened file stores that could not be told (engine/references.ts), and the candidates on show.
   const [refProblems, setRefProblems] = useState<RefProblem[]>([]);
   const [refChoices, setRefChoices] = useState<{ index: number; names: string[] } | null>(null);
@@ -1162,14 +1168,28 @@ export function App() {
     if (parameterMass.current && !parameterMass.current.target) parameterMass.current = null;
     setBusy(false);
   };
-  // Every restart revokes import completions and clears results from the previous worker session.
-  const restartDocumentWorker = () => {
+  // A failed or restarted worker cannot supply current caches or finish an older import.
+  const invalidateWorkerResults = () => {
     // A content match cannot carry worker provenance across restart. Keep old pixels stale until recomputed.
     acceptedEvaluation.current = null; parameterHandoff.current = null; routeAcceptedHandoff.current = null; parameterMass.current = null;
     claimBodies.current = false; setBodiesFor(null); discardRouteRef.current();
     setInstanceBodies(new Map()); workerSessionNow.current++; setWorkerSession(workerSessionNow.current);
-    engine.restart(); setBusy(false); setSlow(false); setPreviewBodies(null);
+    setBusy(false); setSlow(false); setPreviewBodies(null);
   };
+  const restartDocumentWorker = () => {
+    invalidateWorkerResults();
+    const ready = engine.restart();
+    if (ready) setWorkerFailure(null);
+    return ready;
+  };
+  workerFailureHandler.current = error => {
+    beginOpenIntent(); invalidateDocumentWork(); invalidateWorkerResults(); setWorkerFailure(error);
+  };
+  const retryWorker = () => {
+    beginOpenIntent(); invalidateDocumentWork();
+    if (restartDocumentWorker()) { setToast(null); setImportWorkerRecovery(value => value + 1); }
+  };
+  const toast = workerFailure ? { ...workerFailure, action: { label: 'Retry engine', run: retryWorker } } : notice;
   const cancelWork = () => {
     if (!workOwnership.current.run) { setBusy(false); setSlow(false); return; }
     const stopped = stopOwnedWork(workOwnership.current, docNow.current, evaluatedRef.current, undo[undo.length - 1]);
@@ -1315,7 +1335,7 @@ export function App() {
     setFileName(name); setDirty(true); fitImportedLater(); return true;
   };
   const meshImport = useMeshImport({ doc, engine, captureOwner: captureImportOwner,
-    onStop: () => { beginOpenIntent(); invalidateDocumentWork(); restartDocumentWorker(); setImportWorkerRecovery(value => value + 1); },
+    onStop: () => { beginOpenIntent(); invalidateDocumentWork(); if (restartDocumentWorker()) setImportWorkerRecovery(value => value + 1); },
     nextRevision: () => revision.current++, onNotice: setToast, onOpened: openedImport, onCommit: commit });
   const { meshAsk, setMeshAsk, stage, repairAsk, setRepairAsk, stopStage } = meshImport;
   const editRepair = (index: number) => { beginOpenIntent(); setMeshAsk(null); setRepairAsk(null); return meshImport.editRepair(index); };
@@ -1992,7 +2012,7 @@ export function App() {
 
       {cutListView && (() => { const list = partCutList(doc, bodies, material); return list ? <CutListDialog list={list} nesting={nestCutList(doc, list)} name={fileName.replace(/[^\w.-]+/g, '_')} onClose={() => setCutListView(false)} /> : null; })()}
       {flatView && (() => { const fb = bodies.find(x => x.key === flatView); return fb?.flat ? <FlatPatternDialog flat={fb.flat} name={`${fileName}-${bodyName(doc, fb)}`.replace(/[^\w.-]+/g, '_')} onClose={() => setFlatView(null)} /> : null; })()}
-      <MeshFileDialogs controller={meshImport}><ModelExportDialogs controller={modelExports} /></MeshFileDialogs>
+      {!workerFailure && <MeshFileDialogs controller={meshImport}><ModelExportDialogs controller={modelExports} /></MeshFileDialogs>}
       {/* (Notices stack in one column: an Open failure still shows while a recovery copy waits for its answer.) */}
       <div className="toast-stack">
       {recovery && <div className="toast card recovery" role="dialog" aria-label="Recover unsaved work">
@@ -2019,12 +2039,12 @@ export function App() {
             <button className="ghost" onClick={() => setCascade(null)}>Cancel</button>
           </div></div>
       </div>}
-      {toast && !cascade && !meshAsk && !repairAsk && !stepAsk && !stlAsk && <div className="toast card" role="alert">
+      {toast && (workerFailure || (!cascade && !meshAsk && !repairAsk && !stepAsk && !stlAsk)) && <div className="toast card" role="alert">
         <Icon name="info" className="accent" />
         <div><div className="toast-title">{toast.title}</div><div className="toast-hint">{toast.hint}</div>
           {toast.detail && <details><summary>Details</summary><code>{toast.detail}</code></details>}
           {toast.action && <div className="row-actions"><button className="ghost" onClick={toast.action.run}>{toast.action.label}</button></div>}</div>
-        <ToolIconButton aria-label="Dismiss" onClick={() => setToast(null)}><Icon name="close" small /></ToolIconButton>
+        {!workerFailure && <ToolIconButton aria-label="Dismiss" onClick={() => setToast(null)}><Icon name="close" small /></ToolIconButton>}
       </div>}
       </div>
       </div>

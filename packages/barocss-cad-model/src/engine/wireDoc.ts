@@ -68,10 +68,19 @@ export class WireSender {
   private sentBlobs = new Set<string>();
   /** Dropped by a sweep since the last pack: forgotten as sent (a blob put back is sent again), and told the worker. */
   private dropped: string[] = [];
-  constructor() { onBlobsEvicted(h => this.forget(h)); }
+  private unsubscribe: (() => void) | null;
+  private disposed = false;
+  constructor() { this.unsubscribe = onBlobsEvicted(h => this.forget(h)); }
+  /** Release this sender's subscription and retained nodes. The shared blob store is unchanged. */
+  dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true; this.unsubscribe?.(); this.unsubscribe = null;
+    this.ids.clear(); this.used.clear(); this.sentBlobs.clear(); this.dropped = [];
+  }
   /** These blobs are gone from the store: not sent any more, and the worker told with the next document. */
-  forget(hashes: readonly string[]): void { for (const h of hashes) if (this.sentBlobs.delete(h)) this.dropped.push(h); }
+  forget(hashes: readonly string[]): void { if (this.disposed) return; for (const h of hashes) if (this.sentBlobs.delete(h)) this.dropped.push(h); }
   pack(doc: StudioDoc): WireDoc {
+    if (this.disposed) throw new Error('The wire sender is disposed.');
     const evaluated = evaluatedPart(doc), context = evaluated.nodes.some(n => !n.suppressed && bearingHousingRef(n)) ? bearingContextOf(evaluated) : undefined;
     const seq = ++this.seq, ids: number[] = [], added: [number, ModelNode][] = [];
     for (const node of doc.nodes) {
