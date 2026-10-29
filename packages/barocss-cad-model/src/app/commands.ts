@@ -809,9 +809,9 @@ const allCommands: Command[] = [
     },
   },
   {
-    id: 'curve-feature-pattern', label: 'Path cut pattern', icon: 'cad-pattern-linear', hint: 'Repeat a cut on an open polyline with fixed orientation', group: 'pattern', keywords: 'curve path feature cut repeat subtract',
+    id: 'curve-feature-pattern', label: 'Path cut pattern', icon: 'cad-pattern-linear', hint: 'Repeat a cut on an open polyline or one planar quadratic span with fixed orientation', group: 'pattern', keywords: 'curve path feature cut repeat subtract',
     available: ctx => { const why = linearCutProblem(ctx); return why ? no(why.message) : ok; },
-    fields: ctx => [...(ctx.curvePatternPath ? [] : [{ key: 'path', label: 'Path', kind: 'choice' as const, options: eligibleCurvePatternPaths(ctx.doc), empty: 'Add an open polyline or straight quadratic path.' }]),
+    fields: ctx => [...(ctx.curvePatternPath ? [] : [{ key: 'path', label: 'Path', kind: 'choice' as const, options: eligibleCurvePatternPaths(ctx.doc), empty: 'Add an open polyline, straight quadratic path, or one planar quadratic span.' }]),
       { key: 'spacing', label: 'Spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count', label: 'Count', kind: 'count', min: 1, max: 64 }],
     defaults: ctx => ({ path: eligibleCurvePatternPaths(ctx.doc)[0]?.value ?? '', spacing: 8, count: 3 }),
     build: (ctx, v) => {

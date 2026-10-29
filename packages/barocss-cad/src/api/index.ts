@@ -13,3 +13,5 @@ export { Plane, Location, Sketch, SketchStart, SketchPath, sketch, type PlaneDat
 export type { MassResult, MeshData } from './core.js';
 export { BodyQuery, EdgeQuery, FaceQuery, brepSelection, brepLines, type AxisName, type Direction, type EdgeInfo, type FaceInfo, type Vec3 } from './select.js';
 export { BarocssError, bracketedCode, refuse, type FacadeCode, type RefusalWhere } from './refusal.js';
+
+export { planCurveFeaturePatternPath, type CurveFeaturePatternPathPlan } from './curve-feature-pattern-plan.js';

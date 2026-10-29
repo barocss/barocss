@@ -1,7 +1,7 @@
-import type { CurveFeaturePatternPath, RawNurbsPath } from '@barocss/cad/api';
+import { planCurveFeaturePatternPath, type CurveFeaturePatternPath, type RawNurbsPath } from '@barocss/cad/api';
 import { modelOf } from './direct';
 import { leafBodies, NODE_EXTRA_FIELDS, type ModelNode, type StudioDoc } from './doc';
-import { refusal } from './refusal';
+import { BarocssError, refusal } from './refusal';
 
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 // Error-free TwoSum: bounded coordinates cannot overflow and doubling is exact.
@@ -13,7 +13,7 @@ function exactMidpoint(a: number, middle: number, b: number): boolean {
 const fail = (message: string): never => { throw refusal('VALUE', `Path cut pattern: ${message}`); };
 
 /** Admit the bounded straight-span path contract without changing authored coordinates or units. */
-export function curvePatternPathLength(value: unknown): number {
+function legacyCurvePatternPathLength(value: unknown): number {
   if (!record(value) || Object.keys(value).sort().join(',') !== 'controlPoints,degree,knots,weights') return fail('use exactly one raw path or one objectId reference.');
   const { degree, knots, controlPoints: points, weights } = value;
   if (degree !== 1 && degree !== 2) return fail('only degree 1 polylines and straight degree 2 spans are supported.');
@@ -49,14 +49,79 @@ export function curvePatternPathLength(value: unknown): number {
   return length;
 }
 
+function ownData(object: object, key: string): unknown {
+  const descriptor = Object.getOwnPropertyDescriptor(object, key);
+  if (!descriptor || !('value' in descriptor)) return fail('path fields must be owned data.');
+  return descriptor.value;
+}
+
+function ownArrayLength(input: unknown, maximum: number, exact?: number): number {
+  if (!Array.isArray(input)) return fail('path arrays must be owned data.');
+  const length = ownData(input, 'length');
+  if (typeof length !== 'number' || length > maximum || (exact !== undefined && length !== exact)) return fail('path arrays exceed the input budget or have invalid cardinality.');
+  if (Reflect.ownKeys(input).length !== length + 1) return fail('path arrays must be dense owned data.');
+  return length;
+}
+
+function copyOwnArray(input: unknown[], length: number): number[] {
+  const output: number[] = [];
+  for (let i = 0; i < length; i++) output.push(ownData(input, String(i)) as number);
+  return output;
+}
+
+/** Copy bounded data descriptors only, so path admission never invokes authored accessors. */
+function ownRawPath(value: unknown): RawNurbsPath {
+  if (!record(value)) return fail('a raw path is required.');
+  const keys = Reflect.ownKeys(value);
+  if (keys.length !== 4) return fail('use exactly one raw path or one objectId reference.');
+  for (const key of keys) if (key !== 'controlPoints' && key !== 'degree' && key !== 'knots' && key !== 'weights') return fail('use exactly one raw path or one objectId reference.');
+  const degree = ownData(value, 'degree');
+  const points = ownData(value, 'controlPoints'), weights = ownData(value, 'weights'), knots = ownData(value, 'knots');
+  const pointCount = ownArrayLength(points, 64), weightCount = ownArrayLength(weights, 64), knotCount = ownArrayLength(knots, 67);
+  if ((degree !== 1 && degree !== 2) || pointCount < degree + 1 || weightCount !== pointCount || knotCount !== pointCount + degree + 1) return fail('the degree or path array cardinality is invalid.');
+  const controlPoints: [number, number, number][] = [];
+  for (let i = 0; i < pointCount; i++) {
+    const point = ownData(points as unknown[], String(i));
+    ownArrayLength(point, 3, 3);
+    controlPoints.push([ownData(point as unknown[], '0') as number, ownData(point as unknown[], '1') as number, ownData(point as unknown[], '2') as number]);
+  }
+  return { degree, knots: copyOwnArray(knots as unknown[], knotCount), controlPoints, weights: copyOwnArray(weights as unknown[], weightCount) };
+}
+
+function ownObjectId(path: Record<string, unknown>): string {
+  const keys = Reflect.ownKeys(path);
+  if (keys.length !== 1 || keys[0] !== 'objectId') return fail('use exactly one objectId reference.');
+  const id = ownData(path, 'objectId');
+  if (typeof id !== 'string' || !id.trim()) return fail('use exactly one objectId reference.');
+  return id;
+}
+
+const singleQuadratic = (raw: RawNurbsPath): boolean => raw.degree === 2 && raw.controlPoints.length === 3;
+
+/** The public query maps known Core input/capability/parameter refusals to VALUE. */
+function sharedPathPlan(raw: RawNurbsPath, spacing: number, count: number): ReturnType<typeof planCurveFeaturePatternPath> {
+  try { return planCurveFeaturePatternPath(raw, spacing, count); }
+  catch (error) {
+    if (error instanceof BarocssError && error.code === 'VALUE') return fail(error.message.replace(/^\[VALUE\]\s*/, ''));
+    throw error;
+  }
+}
+
+
+/** The Number facade is informational. Curved placement admission uses the complete shared plan. */
+export function curvePatternPathLength(value: unknown): number {
+  const raw = ownRawPath(value);
+  return singleQuadratic(raw) ? sharedPathPlan(raw, 1, 1).length.estimate : legacyCurvePatternPathLength(raw);
+}
+
 /** Resolve a live base-document object on every build. Hidden and renamed objects retain their identity. */
-export function resolveCurveFeaturePatternPath(doc: Pick<StudioDoc, 'direct'>, path: unknown): RawNurbsPath {
+function resolveCurveFeaturePatternPathData(doc: Pick<StudioDoc, 'direct'>, path: unknown): RawNurbsPath {
   if (!record(path)) return fail('a path is required.');
-  if (!('objectId' in path)) { curvePatternPathLength(path); return path as unknown as RawNurbsPath; }
-  if (Object.keys(path).length !== 1 || typeof path.objectId !== 'string' || !path.objectId.trim()) return fail('use exactly one objectId reference.');
+  if (!('objectId' in path)) return ownRawPath(path);
+  const objectId = ownObjectId(path);
   const direct = doc.direct;
   if (!direct || Object.keys(direct).some(k => k !== 'sources' && k !== 'objects')) return fail('the direct geometry is missing or has unsupported metadata.');
-  const matches = direct.objects.filter(o => o.id === path.objectId);
+  const matches = direct.objects.filter(o => o.id === objectId);
   if (matches.length !== 1) return fail('the path object is missing or ambiguous.');
   const object = matches[0];
   if (Object.keys(object).some(k => !['id', 'name', 'source', 'geometry', 'hidden'].includes(k))) return fail('trimmed or transformed path objects are unsupported.');
@@ -69,7 +134,13 @@ export function resolveCurveFeaturePatternPath(doc: Pick<StudioDoc, 'direct'>, p
   const curve = geometries[0];
   if (Object.keys(curve).some(k => !['kind', 'id', 'degree', 'knots', 'controlPoints', 'weights'].includes(k))) return fail('the curve has unsupported metadata.');
   const raw = { degree: curve.degree, knots: curve.knots, controlPoints: curve.controlPoints, weights: curve.weights };
-  curvePatternPathLength(raw);
+  return ownRawPath(raw);
+}
+
+export function resolveCurveFeaturePatternPath(doc: Pick<StudioDoc, 'direct'>, path: unknown): RawNurbsPath {
+  const raw = resolveCurveFeaturePatternPathData(doc, path);
+  if (singleQuadratic(raw)) sharedPathPlan(raw, 1, 1);
+  else legacyCurvePatternPathLength(raw);
   return raw;
 }
 
@@ -93,11 +164,15 @@ export function curveFeaturePatternProblem(node: Record<string, unknown>, nodes:
     const source = nodes[parent.node as number];
     if (source?.kind !== 'difference' || source.suppressed || !leafBodies(nodes).some(r => r.node === parent.node && r.side === 'solid')) return '[BAD_REFERENCE] Path cut pattern needs a current unsuppressed difference body.';
     if (record(node.path) && 'objectId' in node.path && !doc) {
-      if (Object.keys(node.path).length !== 1 || typeof node.path.objectId !== 'string' || !node.path.objectId.trim()) return fail('use exactly one objectId reference.');
+      ownObjectId(node.path);
       return null; // Chat structural admission; complete document admission resolves the current source.
     }
-    const raw = resolveCurveFeaturePatternPath(doc ?? {}, node.path);
-    if ((node.count - 1) * spacing > curvePatternPathLength(raw)) return fail('the requested distance exceeds the path length.');
+    const raw = resolveCurveFeaturePatternPathData(doc ?? {}, node.path);
+    if (singleQuadratic(raw)) {
+      sharedPathPlan(raw, spacing, node.count);
+      return null;
+    }
+    if ((node.count - 1) * spacing > legacyCurvePatternPathLength(raw)) return fail('the requested distance exceeds the path length.');
     let segment = raw.degree, segmentStart = 0;
     const points = raw.controlPoints, origin = points[0];
     for (let k = 1; k < node.count; k++) {
@@ -116,7 +191,10 @@ export function curveFeaturePatternProblem(node: Record<string, unknown>, nodes:
       }
     }
     return null;
-  } catch (error) { return error instanceof Error ? error.message : String(error); }
+  } catch (error) {
+    if (error instanceof BarocssError) return error.message;
+    throw error;
+  }
 }
 
 /** Validate saved, nested and pending documents before native conversion. Live paths are base-document only. */

@@ -17,7 +17,7 @@ const { certifyCylindricalWrapFormalPadMass } = await import(`${D}/features/cyli
 const { buildCylindricalWrapClosedReference } = await import(`${D}/features/cylindrical-wrap-closed-reference.js`);
 const doc = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
 const fp = x => createHash('sha256').update(JSON.stringify(nativeMassReceipts.has(x) ? { brep: x, masses: nativeMassReceipts.get(x) } : threadFingerprint(x), (k, v) => (v instanceof Float32Array || v instanceof Float64Array || v instanceof Uint32Array) ? Array.from(v) : v)).digest('hex').slice(0, 16);
-// Only these two cases prepare outside the timer. Every query receives a fresh B-rep identity,
+// These native mass cases prepare outside the timer. Every query receives a fresh B-rep identity,
 // so neither the quadrature WeakMap nor a preceding area query can supply its integrals.
 const nativeMassReceipts = new WeakMap();
 function nativeCylinderFirstMass(height) {
@@ -132,7 +132,33 @@ function closedReferencePad(z = -5, u = [0.125, 0.375], v = [0.25, 0.75]) {
   }).walls.reference.native.assembly.brep;
 }
 function closedReferenceAsymmetricPad() { return closedReferencePad(-7, [0.1, 0.4], [0.2, 0.7]); }
+// These cases time complete feature evaluation and native B-rep construction, including CUT Booleans.
+// Fresh authored fixtures are prepared outside each timer; they do not measure the planner alone.
+function quadraticPathCutFixture() {
+  return doc([
+    { id: 'stockSketch', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] },
+    { id: 'stock', kind: 'extrude', sketch: 'stockSketch', height: 10 },
+    { id: 'toolSketch', kind: 'sketch', profile: 'rectangle', min: [7, 6], max: [10, 11] },
+    { id: 'tool', kind: 'extrude', sketch: 'toolSketch', height: 10 },
+    { id: 'seed', kind: 'difference', target: 'stock', tool: 'tool' },
+    { id: 'pattern', kind: 'curve-feature-pattern', target: 'seed', spacing: 10, count: 3,
+      path: { degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [[0, 0, 0], [20, 0, 0], [20, 20, 0]], weights: [1, 1, 1] } },
+  ]);
+}
+function straightPathCutFixture() {
+  const input = quadraticPathCutFixture();
+  input.features[input.features.length - 1].path.controlPoints[1] = [10, 10, 0];
+  return input;
+}
+function quadraticPathCutBrep(input) { return K.outputOf(K.evaluateCadPart(input), 'pattern').brep; }
+function straightPathCutBrep(input) { return K.outputOf(K.evaluateCadPart(input), 'pattern').brep; }
+quadraticPathCutBrep.prepare = quadraticPathCutFixture;
+straightPathCutBrep.prepare = straightPathCutFixture;
+quadraticPathCutBrep.batch = straightPathCutBrep.batch = 1;
+quadraticPathCutBrep.warmup = straightPathCutBrep.warmup = 3;
 const CASES = {
+  'quadratic-path-cut-3': quadraticPathCutBrep,
+  'straight-path-cut-3': straightPathCutBrep,
   'native-cylinder-ordinary-first-mass': nativeCylinderFirstMass(5.00009),
   'native-cylinder-tiny-first-mass': nativeCylinderFirstMass(.34567890000000023 - .3456789),
   'closed-reference-asymmetric-pad': closedReferenceAsymmetricPad,

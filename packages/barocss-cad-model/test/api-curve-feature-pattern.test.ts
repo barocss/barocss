@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { checkBrep } from '@barocss/cad';
 import { part, param, Location, type RawNurbsPath } from '../src/api';
+import { BarocssError } from '@barocss/cad/api';
 import { partBreps } from '../src/engine/evaluate';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { evaluatedPart, WireSender, WireReceiver } from '../src/engine/wireDoc';
@@ -132,8 +133,8 @@ test('placement helpers refuse live references before dropping their source cont
 
 test('quadratic midpoint admission is exact for rounded sums, cancellation and subnormals', () => {
   const quadratic = (a: number, m: number, b: number) => ({ degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [[a, 0, 0], [m, 0, 0], [b, 0, 0]], weights: [1, 1, 1] });
-  assert.throws(() => curvePatternPathLength(quadratic(1, 1, 1 + Number.EPSILON)), /exact endpoint midpoint/);
+  assert.throws(() => curvePatternPathLength(quadratic(1, 1, 1 + Number.EPSILON)), error => error instanceof BarocssError && error.code === 'VALUE' && /noncollinear XY control triangle without a cusp/.test(error.message));
   assert.equal(curvePatternPathLength(quadratic(-1, 0, 1)), 2);
   assert.equal(curvePatternPathLength(quadratic(0, Number.MIN_VALUE, 2 * Number.MIN_VALUE)), 2 * Number.MIN_VALUE);
-  assert.throws(() => curvePatternPathLength(quadratic(0, 0, Number.MIN_VALUE)), /exact endpoint midpoint/);
+  assert.throws(() => curvePatternPathLength(quadratic(0, 0, Number.MIN_VALUE)), error => error instanceof BarocssError && error.code === 'VALUE' && /noncollinear XY control triangle without a cusp/.test(error.message));
 });
