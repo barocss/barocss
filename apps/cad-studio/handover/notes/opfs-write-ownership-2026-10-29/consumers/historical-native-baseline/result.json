@@ -1,0 +1,306 @@
+{
+  "status": "OBSERVED",
+  "namespace": "cad-audit-model005-0df27eb3-ab3a-478a-b451-fc47ced78743",
+  "scope": "Actual OPFS only; native FileSystemWritableFileStreams. No external folder.",
+  "secureContext": true,
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+  "policy": {
+    "createWritableArguments": [],
+    "options": "omitted; browser default not inferred",
+    "explicitSiloed": "NOT_RUN",
+    "explicitExclusive": "NOT_RUN"
+  },
+  "events": [
+    {
+      "sequence": 0,
+      "milliseconds": 96.60000014305115,
+      "op": "getFile",
+      "size": 8,
+      "lastModified": 1793248486694,
+      "tag": "8-1793248486694"
+    },
+    {
+      "sequence": 1,
+      "milliseconds": 97.20000004768372,
+      "op": "getFile",
+      "size": 8,
+      "lastModified": 1793248486694,
+      "tag": "8-1793248486694"
+    },
+    {
+      "sequence": 2,
+      "milliseconds": 97.30000019073486,
+      "op": "getFile",
+      "size": 8,
+      "lastModified": 1793248486694,
+      "tag": "8-1793248486694"
+    },
+    {
+      "sequence": 3,
+      "milliseconds": 97.70000004768372,
+      "op": "createWritable-call",
+      "index": 0,
+      "argumentCount": 0
+    },
+    {
+      "sequence": 4,
+      "milliseconds": 97.80000019073486,
+      "op": "createWritable-call",
+      "index": 1,
+      "argumentCount": 0
+    },
+    {
+      "sequence": 5,
+      "milliseconds": 98.10000014305115,
+      "op": "createWritable-admitted",
+      "index": 0,
+      "constructor": "FileSystemWritableFileStream",
+      "modeProperty": "siloed",
+      "locked": false
+    },
+    {
+      "sequence": 6,
+      "milliseconds": 98.20000004768372,
+      "op": "createWritable-admitted",
+      "index": 1,
+      "constructor": "FileSystemWritableFileStream",
+      "modeProperty": "siloed",
+      "locked": false
+    },
+    {
+      "sequence": 7,
+      "milliseconds": 98.20000004768372,
+      "op": "write-call",
+      "index": 0,
+      "bytes": [
+        119,
+        114,
+        105,
+        116,
+        101,
+        114,
+        45,
+        65
+      ]
+    },
+    {
+      "sequence": 8,
+      "milliseconds": 98.60000014305115,
+      "op": "write-fulfilled",
+      "index": 0
+    },
+    {
+      "sequence": 9,
+      "milliseconds": 98.60000014305115,
+      "op": "close-call",
+      "index": 0
+    },
+    {
+      "sequence": 10,
+      "milliseconds": 98.70000004768372,
+      "op": "close-fulfilled",
+      "index": 0
+    },
+    {
+      "sequence": 11,
+      "milliseconds": 98.90000009536743,
+      "op": "getFile",
+      "size": 8,
+      "lastModified": 1793248486697,
+      "tag": "8-1793248486697"
+    },
+    {
+      "sequence": 12,
+      "milliseconds": 99.10000014305115,
+      "op": "getFile",
+      "size": 8,
+      "lastModified": 1793248486697,
+      "tag": "8-1793248486697"
+    },
+    {
+      "sequence": 13,
+      "milliseconds": 99.20000004768372,
+      "op": "write-call",
+      "index": 1,
+      "bytes": [
+        119,
+        114,
+        105,
+        116,
+        101,
+        114,
+        45,
+        66,
+        45,
+        108,
+        97,
+        116,
+        101,
+        114
+      ]
+    },
+    {
+      "sequence": 14,
+      "milliseconds": 99.5,
+      "op": "write-fulfilled",
+      "index": 1
+    },
+    {
+      "sequence": 15,
+      "milliseconds": 99.5,
+      "op": "close-call",
+      "index": 1
+    },
+    {
+      "sequence": 16,
+      "milliseconds": 99.80000019073486,
+      "op": "close-fulfilled",
+      "index": 1
+    },
+    {
+      "sequence": 17,
+      "milliseconds": 100,
+      "op": "getFile",
+      "size": 14,
+      "lastModified": 1793248486697,
+      "tag": "14-1793248486697"
+    },
+    {
+      "sequence": 18,
+      "milliseconds": 100.40000009536743,
+      "op": "getFile",
+      "size": 14,
+      "lastModified": 1793248486697,
+      "tag": "14-1793248486697"
+    }
+  ],
+  "control": {
+    "original": {
+      "tag": "8-1793248486687",
+      "bytes": [
+        111,
+        114,
+        105,
+        103,
+        105,
+        110,
+        97,
+        108
+      ],
+      "text": "original"
+    },
+    "first": {
+      "status": "fulfilled",
+      "value": {
+        "tag": "19-1793248486692"
+      }
+    },
+    "stale": {
+      "status": "rejected",
+      "reason": {
+        "name": "BarocssError",
+        "message": "[STORAGE_CHANGED] part.bcad changed since it was read",
+        "code": "STORAGE_CHANGED",
+        "stack": "BarocssError: [STORAGE_CHANGED] part.bcad changed since it was read\n    at refusal (http://127.0.0.1:54145/browser.mjs:19250:34)\n    at Object.write (http://127.0.0.1:54145/browser.mjs:19328:37)\n    at async settle (http://127.0.0.1:54145/browser.mjs:19379:42)\n    at async window.runModelBrowserOverlap (http://127.0.0.1:54145/browser.mjs:19417:19)\n    at async <anonymous>:337:30"
+      }
+    },
+    "final": {
+      "tag": "19-1793248486692",
+      "bytes": [
+        115,
+        101,
+        114,
+        105,
+        97,
+        108,
+        45,
+        102,
+        105,
+        114,
+        115,
+        116,
+        45,
+        108,
+        111,
+        110,
+        103,
+        101,
+        114
+      ],
+      "text": "serial-first-longer"
+    },
+    "status": "PASS"
+  },
+  "overlap": {
+    "before": {
+      "tag": "8-1793248486694",
+      "bytes": [
+        111,
+        114,
+        105,
+        103,
+        105,
+        110,
+        97,
+        108
+      ],
+      "text": "original"
+    },
+    "bothAdmissionsSettledBeforeRelease": true,
+    "a": {
+      "status": "fulfilled",
+      "value": {
+        "tag": "8-1793248486697"
+      }
+    },
+    "afterA": {
+      "tag": "8-1793248486697",
+      "bytes": [
+        119,
+        114,
+        105,
+        116,
+        101,
+        114,
+        45,
+        65
+      ],
+      "text": "writer-A"
+    },
+    "b": {
+      "status": "fulfilled",
+      "value": {
+        "tag": "14-1793248486697"
+      }
+    },
+    "final": {
+      "tag": "14-1793248486697",
+      "bytes": [
+        119,
+        114,
+        105,
+        116,
+        101,
+        114,
+        45,
+        66,
+        45,
+        108,
+        97,
+        116,
+        101,
+        114
+      ],
+      "text": "writer-B-later"
+    },
+    "classification": "BOTH_FULFILLED_B_REPLACED_A"
+  },
+  "browserVersion": "156.0.8078.48",
+  "pageErrors": [],
+  "consoleEvents": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ]
+}

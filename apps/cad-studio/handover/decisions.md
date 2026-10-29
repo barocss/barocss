@@ -16123,3 +16123,35 @@ claimed for this resource-correctness repair. GPU Core sources remain unchanged.
 authorized; no PR/release. Incoming Stop2242 is roadmap-only and archived after transfer; independent
 original skeleton reader proof is a D318 supplement, not another implementation. Next priority:
 D320/#2241 per-store/path conditional-write ownership, then2242 originating-work Stop. Next ID:D320.
+
+
+## D320 — Hold same-path write ownership through the returned tag (2026-10-29)
+
+The native OPFS report showed two writes passing the same expected-tag check, then both
+committing. Add a nonrejecting completion-token queue local to one handleStore instance and
+exact validated path. Reserve before waiting, check the captured expect inside ownership,
+and retain it through lookup, native write/close and final returned-tag getFile. Unconditional
+writes use the same queue; other paths remain independent. Finally removes only its latest tail
+and releases successors after both success and errors. No new API/dependency/schema/mode/
+timeout/global root-name lock or tag format is added. Caller remove, separate instances/tabs,
+external programs and indistinguishable size/time tag collisions remain outside this guarantee.
+
+Baseline9 tests have3pass/6fail. Final10/10, Studio types and changed-file lint pass. The extra
+three-writer test checks tail ownership; original failing logs remain. Write/close/abort failure
+and post-commit tag-read failure release the queue. The latter can reject after bytes commit;
+no rollback success is claimed, and stale/fresh recovery controls remain. Original errors persist.
+
+Actual Chrome156 secure-context native OPFS selected1 test/5 groups/0skip passes. A same-tag
+write commits; B refuses STORAGE_CHANGED and native A bytes stay. Other-path progress, seed
+read before A commits, fresh-tag/serial-stale/expected-absent creates, unconditional order and
+returned tag snapshots pass. Genuine native abort rejects undefined in this Chrome; the first
+formatter's error.code access failed. Optional recording repairs only the test and preserves
+native IO/reason/assertions. Native11 streams use zero-argument createWritable and observe siloed
+in this run. Named namespace removal/absence and owned context/browser/server cleanup pass.
+
+Evidence: notes/opfs-write-ownership-2026-10-29/qualification.json and separate lanes. The test
+dashboard is native IO evidence, not Studio UI. Current bundle156 inputs stay in the worktree
+product boundary. Generated/API/docs pass; whole suites, actual Studio save scheduling, wider
+coordination, physical user-file loss and performance are NOT_RUN. Normal push is authorized;
+no PR/release. Next D321/#2242: explicit unsupported-edit refusal before history acceptance and
+origin-bound Stop, preserving normal/candidate/initial/variant and dirty/recovery distinctions.

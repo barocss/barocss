@@ -28,3 +28,9 @@ No successful D317 test was repeated for this acknowledgement.
 
 Fresh GitHub verification confirms issue2241 CLOSED after transfer, original body unchanged,
 no body/comment writes. See closure.json. This is not a defect-fix completion.
+
+## Later D320 repair
+
+[Final qualification](../opfs-write-ownership-2026-10-29/qualification.json) supplies same-instance/
+exact-path queue ownership and actual native OPFS proof. Wider instance/tab/remove/CAS and
+actual Studio scheduling remain unqualified. Original transfer closure is not the fix receipt.

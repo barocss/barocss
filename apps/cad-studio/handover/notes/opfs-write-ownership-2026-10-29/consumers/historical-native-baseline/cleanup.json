@@ -1,0 +1,21 @@
+{
+  "runnerPid": 83998,
+  "namespace": "cad-audit-model005-0df27eb3-ab3a-478a-b451-fc47ced78743",
+  "server": "in-process loopback listener",
+  "browser": "Playwright-owned child; browser.close only",
+  "cleanup": [
+    {
+      "removed": "cad-audit-model005-0df27eb3-ab3a-478a-b451-fc47ced78743"
+    },
+    {
+      "contextClosed": true
+    },
+    {
+      "ownedBrowserClosed": true
+    },
+    {
+      "ownedServerClosed": true
+    }
+  ],
+  "url": "http://127.0.0.1:54145"
+}

@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: D320 native OPFS serializes same-adapter exact-path write ownership through returned tag read
+ok 1 - D320 native OPFS serializes same-adapter exact-path write ownership through returned tag read
+  ---
+  duration_ms: 5153.519417
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6444.795041

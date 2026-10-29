@@ -1,0 +1,389 @@
+{
+  "browserVersion": "156.0.8078.48",
+  "errors": [],
+  "result": {
+    "status": "PASS",
+    "secureContext": true,
+    "origin": "http://127.0.0.1:54925",
+    "namespace": "d320-native-write-ownership",
+    "checks": [
+      {
+        "name": "same-path-overlap",
+        "a": {
+          "ok": true,
+          "value": {
+            "tag": "18-1793250663270"
+          }
+        },
+        "b": {
+          "ok": false,
+          "code": "STORAGE_CHANGED",
+          "name": "BarocssError",
+          "message": "[STORAGE_CHANGED] overlap changed since it was read",
+          "reasonType": "object"
+        },
+        "original": {
+          "tag": "4-1793250663266"
+        },
+        "after": {
+          "bytes": "writer-A-is-longer",
+          "tag": "18-1793250663270",
+          "size": 18
+        },
+        "independent": {
+          "tag": "16-1793250663272"
+        },
+        "readWhileUncommitted": "seed"
+      },
+      {
+        "name": "fresh-and-serial-stale",
+        "follow": {
+          "tag": "29-1793250663280"
+        },
+        "followed": {
+          "bytes": "fresh-followup-is-even-longer",
+          "tag": "29-1793250663280",
+          "size": 29
+        },
+        "stale": {
+          "ok": false,
+          "code": "STORAGE_CHANGED",
+          "name": "BarocssError",
+          "message": "[STORAGE_CHANGED] overlap changed since it was read",
+          "reasonType": "object"
+        }
+      },
+      {
+        "name": "expect-null-create",
+        "a": {
+          "ok": true,
+          "value": {
+            "tag": "13-1793250663284"
+          }
+        },
+        "b": {
+          "ok": false,
+          "code": "STORAGE_CHANGED",
+          "name": "BarocssError",
+          "message": "[STORAGE_CHANGED] created changed since it was read",
+          "reasonType": "object"
+        }
+      },
+      {
+        "name": "unconditional-and-returned-tag",
+        "a": {
+          "ok": true,
+          "value": {
+            "tag": "17-1793250663292"
+          }
+        },
+        "b": {
+          "ok": true,
+          "value": {
+            "tag": "25-1793250663310"
+          }
+        },
+        "nativeA": {
+          "bytes": "tag-writer-A-long",
+          "tag": "17-1793250663292",
+          "size": 17
+        },
+        "nativeB": {
+          "bytes": "unconditional-B-is-longer",
+          "tag": "25-1793250663310",
+          "size": 25
+        }
+      },
+      {
+        "name": "native-error-then-progress",
+        "failed": {
+          "ok": false,
+          "code": null,
+          "name": null,
+          "message": "undefined",
+          "reasonType": "undefined"
+        },
+        "resumed": {
+          "tag": "18-1793250663316"
+        },
+        "recovered": {
+          "bytes": "after-native-error",
+          "tag": "18-1793250663316",
+          "size": 18
+        }
+      }
+    ],
+    "events": [
+      {
+        "type": "native-stream-admitted",
+        "path": "overlap",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "overlap",
+        "size": 4
+      },
+      {
+        "type": "native-close",
+        "path": "overlap"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "overlap",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "independent",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "independent",
+        "size": 16
+      },
+      {
+        "type": "native-close",
+        "path": "independent"
+      },
+      {
+        "type": "native-write",
+        "path": "overlap",
+        "size": 18
+      },
+      {
+        "type": "native-close",
+        "path": "overlap"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "overlap",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "overlap",
+        "size": 29
+      },
+      {
+        "type": "native-close",
+        "path": "overlap"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "created",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "created",
+        "size": 13
+      },
+      {
+        "type": "native-close",
+        "path": "created"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "returned-tag",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "returned-tag",
+        "size": 8
+      },
+      {
+        "type": "native-close",
+        "path": "returned-tag"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "returned-tag",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "returned-tag",
+        "size": 17
+      },
+      {
+        "type": "native-close",
+        "path": "returned-tag"
+      },
+      {
+        "type": "returned-tag-read-held",
+        "path": "returned-tag"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "other",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "other",
+        "size": 14
+      },
+      {
+        "type": "native-close",
+        "path": "other"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "returned-tag",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "returned-tag",
+        "size": 25
+      },
+      {
+        "type": "native-close",
+        "path": "returned-tag"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "native-error",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-aborted-before-write",
+        "path": "native-error"
+      },
+      {
+        "type": "native-write",
+        "path": "native-error",
+        "size": 20
+      },
+      {
+        "type": "native-abort",
+        "path": "native-error"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "native-error",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "native-error",
+        "size": 18
+      },
+      {
+        "type": "native-close",
+        "path": "native-error"
+      }
+    ],
+    "snapshots": [
+      {
+        "path": "overlap",
+        "tag": "4-1793250663266",
+        "size": 4
+      },
+      {
+        "path": "overlap",
+        "tag": "4-1793250663266",
+        "size": 4
+      },
+      {
+        "path": "independent",
+        "tag": "16-1793250663272",
+        "size": 16
+      },
+      {
+        "path": "overlap",
+        "tag": "4-1793250663266",
+        "size": 4
+      },
+      {
+        "path": "overlap",
+        "tag": "18-1793250663270",
+        "size": 18
+      },
+      {
+        "path": "overlap",
+        "tag": "18-1793250663270",
+        "size": 18
+      },
+      {
+        "path": "overlap",
+        "tag": "18-1793250663270",
+        "size": 18
+      },
+      {
+        "path": "overlap",
+        "tag": "29-1793250663280",
+        "size": 29
+      },
+      {
+        "path": "overlap",
+        "tag": "29-1793250663280",
+        "size": 29
+      },
+      {
+        "path": "created",
+        "tag": "13-1793250663284",
+        "size": 13
+      },
+      {
+        "path": "created",
+        "tag": "13-1793250663284",
+        "size": 13
+      },
+      {
+        "path": "returned-tag",
+        "tag": "8-1793250663290",
+        "size": 8
+      },
+      {
+        "path": "other",
+        "tag": "14-1793250663295",
+        "size": 14
+      },
+      {
+        "path": "returned-tag",
+        "tag": "17-1793250663292",
+        "size": 17
+      },
+      {
+        "path": "returned-tag",
+        "tag": "25-1793250663310",
+        "size": 25
+      },
+      {
+        "path": "native-error",
+        "tag": "18-1793250663316",
+        "size": 18
+      }
+    ],
+    "cleanup": {
+      "namespace": "REMOVED",
+      "absenceVerified": true
+    }
+  }
+}

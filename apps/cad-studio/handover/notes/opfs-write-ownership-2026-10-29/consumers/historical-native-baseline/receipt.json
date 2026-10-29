@@ -1,0 +1,32 @@
+{
+  "recordedAt": "2026-10-29T04:34:49.760Z",
+  "exitCodes": {
+    "gate": 0,
+    "build": 0,
+    "probe": 0,
+    "release": 0
+  },
+  "hashes": {
+    "browser.mjs": "b4a4e17b41f494886f8324da108d7897f8c7431fda8f316ad7f628b09e48da6f",
+    "build-resolution.json": "5cbf3f772c3ca5650b12bbbc64a6d4d360becc92125f0389f69d3610129f84ec",
+    "build.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "build.log": "546a90d61082cc2870b44d7642fe951fffbeffd459c65243a099d47bac4cc870",
+    "build.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cleanup.json": "9d4a189d5cb24177117947b3a8de646f1645edd53f6c6a93c30f87b082f764ef",
+    "gate.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "gate.log": "d6079cded97fb6fa7c0db5329e20abc1a185f913f78548768e1bedceb8b0a258",
+    "metafile.json": "50f75de108e669caba136f7fd1e8ac25655c1f7f98e7304a80ef8bef2cc6bea1",
+    "next-command.txt": "c2aa7f86c6a19cc67dcf7f8a5822a264193dbf5c7b71809549ca3c74152173bc",
+    "notes.md": "7ca52978c68ebf03d1f43ff1199b5806b348966e089453ec5ee6882d39a1c465",
+    "owner.log": "d71f4e219e87a2a58ff44f6b7ba8b8675dd5014584ae433bca495fe94d3dda86",
+    "preparation.json": "6ec7b693186d23b1f555b3d2f281c301eaaaf6b4e1aff936daf79ffc6ecb94cd",
+    "probe.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "probe.log": "2d784eae02b8f8085f4ea77bbe56f4be18c82c49d3b1b50986143be2a1ef8345",
+    "probe.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "release.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "release.log": "51d50cd4e75c1f56b14f92bd4d00016097fc57013a8faa47c3df3a33871e993b",
+    "result.json": "2d784eae02b8f8085f4ea77bbe56f4be18c82c49d3b1b50986143be2a1ef8345",
+    "source-verification.json": "ff38a580d19a7f401d21dba1264bc8cb86afb0d75112c5994a13a0e72868f63c"
+  },
+  "scope": "Actual OPFS only. Browser outcome requires result.json review; exit0 alone is not commercial acceptance."
+}

@@ -1,0 +1,112 @@
+{
+  "workId": "D320-opfs-write-ownership-consumers",
+  "status": "scoped_pass",
+  "updatedAt": "2026-10-29T05:12:32.717299+00:00",
+  "sourceBaseline": "9916bda9f4d8b74e2d34f14cfabb6822e412b93e plus scoped D320 change",
+  "execution": {
+    "node": "22.19.0",
+    "browser": "156.0.8078.48",
+    "origin": "http://127.0.0.1:54925",
+    "secureContext": true,
+    "newEphemeralBrowserContext": true,
+    "selectedTests": 1,
+    "pass": 1,
+    "fail": 0,
+    "skip": 0,
+    "groups": 5,
+    "duration": 6444.795041,
+    "testDuration": 5153.519417,
+    "timeUnit": "ms",
+    "browserExit": 0,
+    "syntaxExit": 0,
+    "changedHarnessLintExit": 0,
+    "errors": [],
+    "rawReceipt": "final-run/receipt.json",
+    "cleanup": "final-run/cleanup.json",
+    "gateReturned": true
+  },
+  "source": {
+    "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+    "inputs": 156,
+    "outsideProductInput": 0,
+    "handleStoreSHA256": "73e879642071ec3db0597189946edb952804c523fc4159c0d7b584263b46c2a5",
+    "harnessSHA256": "e9f22102ff8cc6601804f980274375b9b5b16d22bc5c5ead1bcd643aa1028b5c",
+    "metafile": "final-run/metafile.json",
+    "inputHashes": "final-run/source-inputs.json",
+    "historicalNativeBaseline": "historical-native-baseline/receipt.json"
+  },
+  "checks": {
+    "samePathOverlap": {
+      "status": "PASS",
+      "firstNativeStreamOnlyHeld": true,
+      "secondAdmissionWaited": false,
+      "secondStartedBeforeFirstReleased": true,
+      "a": "success",
+      "b": "STORAGE_CHANGED",
+      "finalNativeBytes": "writer-A-is-longer",
+      "seedLength": 4,
+      "aLength": 18,
+      "returnedTagMatchesDirectNativeFile": true
+    },
+    "otherPathIndependent": "PASS while A held",
+    "readWhileUncommitted": "seed",
+    "freshTagFollowup": "PASS",
+    "serialStalePreservesNativeBytes": "PASS",
+    "expectNullCreators": "one success, one STORAGE_CHANGED",
+    "unconditionalAndReturnedTag": {
+      "status": "PASS",
+      "hold": "post-close returned-tag getFile before native snapshot",
+      "laterUnconditionalWriterExcludedThroughReturnedTagRead": true,
+      "eachReturnedTagMatchesNativeFileSnapshot": true,
+      "finalBytes": "unconditional-B-is-longer"
+    },
+    "nativeErrorThenProgress": {
+      "status": "PASS",
+      "fault": "Genuine native stream abort before production write; native write rejects with undefined reason in this Chrome run",
+      "originalReasonType": "undefined",
+      "followingSamePathNativeBytes": "after-native-error"
+    },
+    "nativeStreamCalls": {
+      "count": 11,
+      "createWritableArgumentCount": 0,
+      "streamType": "FileSystemWritableFileStream",
+      "observedMode": "siloed",
+      "scope": "Observed property on Chrome156 only; not a portable default assertion"
+    },
+    "cleanup": {
+      "namespace": "REMOVED",
+      "absenceVerified": true
+    },
+    "dashboardPNG": "final-run/native-opfs-harness.png",
+    "visualReview": "Consumer agent inspected actual test dashboard; explicitly not Studio UI."
+  },
+  "firstFailure": {
+    "status": "FAIL",
+    "log": "browser-first-failure.txt",
+    "receipt": "first-run/receipt.json",
+    "reason": "Harness outcome formatter assumed every native rejection was an object; native aborted write rejected with undefined, causing error.code TypeError.",
+    "repair": "Only optional access/explicit reasonType recording in test formatter. Native rejection remains undefined, no production or I/O/assertion change.",
+    "wholeTestPassClaim": false,
+    "cleanup": "first-run/cleanup.json"
+  },
+  "proofBoundary": {
+    "ownership": "One handleStore instance and one validated exact path. Unconditional writes share that scope; different paths remain independent.",
+    "nativeIO": "Real OPFS directory/file handles and native zero-argument writable streams; wrappers preserve native receivers and alter only scheduling. Native abort is explicit real-state fault injection.",
+    "tag": "Existing size/time tag; different A length guarantees changed tag here. Same-size/same-time collision limitation remains.",
+    "callerFiles": "Only named test namespace in fresh context; no user files accessed.",
+    "notStudioUI": "Direct actual adapter browser harness, not actual Studio UI or two tabs.",
+    "originalAudit": "Copied historical native result is unchanged. Original two-stream-admission schedule was not reused as a queue regression; correct queue prevents B admission."
+  },
+  "notRun": [
+    "full unit or browser suites",
+    "separate adapter instances",
+    "two tabs or cross-process coordination",
+    "external folder or external-program conflicts",
+    "actual Studio UI concurrent saves",
+    "public caller cancellation API",
+    "size/time same-length collision repair",
+    "performance/OOM",
+    "user-file loss",
+    "remote acceptance/release"
+  ]
+}

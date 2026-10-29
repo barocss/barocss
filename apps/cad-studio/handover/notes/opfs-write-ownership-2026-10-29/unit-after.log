@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: same-path stale writers validate only after the preceding native stream and tag read finish
+ok 1 - same-path stale writers validate only after the preceding native stream and tag read finish
+  ---
+  duration_ms: 2.9935
+  type: 'test'
+  ...
+# Subtest: two expected-absent creates admit one owner; stale serial writes refuse and a fresh returned tag remains usable
+ok 2 - two expected-absent creates admit one owner; stale serial writes refuse and a fresh returned tag remains usable
+  ---
+  duration_ms: 0.602667
+  type: 'test'
+  ...
+# Subtest: unconditional writes share the same exclusion (conditional first)
+ok 3 - unconditional writes share the same exclusion (conditional first)
+  ---
+  duration_ms: 0.755541
+  type: 'test'
+  ...
+# Subtest: unconditional writes share the same exclusion (unconditional first)
+ok 4 - unconditional writes share the same exclusion (unconditional first)
+  ---
+  duration_ms: 0.461959
+  type: 'test'
+  ...
+# Subtest: different paths remain independent while one native write is held
+ok 5 - different paths remain independent while one native write is held
+  ---
+  duration_ms: 0.717958
+  type: 'test'
+  ...
+# Subtest: the returned tag belongs to its own commit even when an unconditional writer is already waiting
+ok 6 - the returned tag belongs to its own commit even when an unconditional writer is already waiting
+  ---
+  duration_ms: 0.43125
+  type: 'test'
+  ...
+# Subtest: an earlier completion does not remove a newer same-path queue tail
+ok 7 - an earlier completion does not remove a newer same-path queue tail
+  ---
+  duration_ms: 0.546833
+  type: 'test'
+  ...
+# Subtest: write failure aborts its stream and releases later requests
+ok 8 - write failure aborts its stream and releases later requests
+  ---
+  duration_ms: 0.3385
+  type: 'test'
+  ...
+# Subtest: close failure aborts its stream and releases later requests
+ok 9 - close failure aborts its stream and releases later requests
+  ---
+  duration_ms: 0.432542
+  type: 'test'
+  ...
+# Subtest: post-commit tag-read failure releases ownership without claiming rollback
+ok 10 - post-commit tag-read failure releases ownership without claiming rollback
+  ---
+  duration_ms: 0.5255
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 70.985834

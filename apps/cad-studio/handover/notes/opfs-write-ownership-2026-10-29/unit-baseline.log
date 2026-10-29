@@ -1,0 +1,164 @@
+TAP version 13
+# Subtest: same-path stale writers validate only after the preceding native stream and tag read finish
+not ok 1 - same-path stale writers validate only after the preceding native stream and tag read finish
+  ---
+  duration_ms: 3.050916
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-9EanM2/handle-store-concurrency.test.mjs:19440:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-9EanM2/handle-store-concurrency.test.mjs:19460:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: two expected-absent creates admit one owner; stale serial writes refuse and a fresh returned tag remains usable
+not ok 2 - two expected-absent creates admit one owner; stale serial writes refuse and a fresh returned tag remains usable
+  ---
+  duration_ms: 0.570583
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-9EanM2/handle-store-concurrency.test.mjs:19470:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'fulfilled'
+    - 'rejected'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'rejected'
+  actual: 'fulfilled'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-9EanM2/handle-store-concurrency.test.mjs:19474:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unconditional writes share the same exclusion (conditional first)
+not ok 3 - unconditional writes share the same exclusion (conditional first)
+  ---
+  duration_ms: 0.7375
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-9EanM2/handle-store-concurrency.test.mjs:19483:47'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-9EanM2/handle-store-concurrency.test.mjs:19501:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unconditional writes share the same exclusion (unconditional first)
+not ok 4 - unconditional writes share the same exclusion (unconditional first)
+  ---
+  duration_ms: 0.462542
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-9EanM2/handle-store-concurrency.test.mjs:19483:47'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-9EanM2/handle-store-concurrency.test.mjs:19501:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: different paths remain independent while one native write is held
+ok 5 - different paths remain independent while one native write is held
+  ---
+  duration_ms: 0.60375
+  type: 'test'
+  ...
+# Subtest: the returned tag belongs to its own commit even when an unconditional writer is already waiting
+not ok 6 - the returned tag belongs to its own commit even when an unconditional writer is already waiting
+  ---
+  duration_ms: 0.294625
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-9EanM2/handle-store-concurrency.test.mjs:19535:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-9EanM2/handle-store-concurrency.test.mjs:19551:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: write failure aborts its stream and releases later requests
+ok 7 - write failure aborts its stream and releases later requests
+  ---
+  duration_ms: 0.353167
+  type: 'test'
+  ...
+# Subtest: close failure aborts its stream and releases later requests
+ok 8 - close failure aborts its stream and releases later requests
+  ---
+  duration_ms: 0.156209
+  type: 'test'
+  ...
+# Subtest: post-commit tag-read failure releases ownership without claiming rollback
+not ok 9 - post-commit tag-read failure releases ownership without claiming rollback
+  ---
+  duration_ms: 0.457541
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-9EanM2/handle-store-concurrency.test.mjs:19577:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'fulfilled'
+    - 'rejected'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'rejected'
+  actual: 'fulfilled'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-9EanM2/handle-store-concurrency.test.mjs:19588:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 3
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 70.652792

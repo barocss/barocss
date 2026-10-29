@@ -20,10 +20,15 @@ anywhere.
 - The card lists the project's documents, and **Open** opens one.
 - **Work since the last save.** It's kept in the project a moment after each change, in place of the browser's
   recovery copy. When you open the document again, it is offered back: **Restore** or **Discard**.
-- **A file changed elsewhere.** If the file changed since you opened it, in another window or another program, it
-  isn't written over: Save is refused as *file* **changed elsewhere**. Open it again, or save under another name.
+- **A file changed elsewhere.** When Save detects a different file version, it refuses the write as *file*
+  **changed elsewhere**. Open it again, or save under another name.
 - **A new document.** **New part**, opening a file, a template or a sample starts a document that isn't the project's
   yet. The card's versions clear, and Save writes it as a new file in the project; a name already taken is refused.
+
+Within one open project session, overlapping writes to the same file wait their turn. Each checks its expected
+file version after the previous write finishes, and keeps ownership until its result is read. A stale request
+leaves the first successful bytes intact. Different file paths can progress independently. Coordination across
+separate project sessions, browser tabs or external programs remains outside this qualified overlap protection.
 
 ## What the folder holds
 

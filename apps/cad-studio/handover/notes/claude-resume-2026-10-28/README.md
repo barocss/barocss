@@ -3,6 +3,13 @@
 The owner asked: "지금까지 하던거 멈추고 인수인계 할 수 있도록 해줘". This note lets the next session continue the
 kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-10-27 to 2026-10-28.
 
+## Latest D320 checkpoint — 2026-10-29
+
+- Same handleStore/exact-path writes are owned through expect validation, native commit and returned-tag read. Unconditional writes share the queue; other paths progress. Latest-tail cleanup and original failure semantics remain.
+- Unit10/10, Studio types/lint and actual Chrome156 native OPFS selected1/5groups/0skip pass. A succeeds/B STORAGE_CHANGED/native Abytes stay; fresh/serial/create/unconditional/return-tag and real abort-error recovery pass. Original undefined native rejection and first formatter failure remain in raw logs.
+- [Qualification](../opfs-write-ownership-2026-10-29/qualification.json) separates native adapter proof/test dashboard from actual Studio UI. Cleanup is verified. Generated/API/docs pass; no whole suite repeats. Separate instances/tabs/remove ordering/external programs and same-size/time tags remain unqualified.
+- Next D321/#2242: policyB rejects unsupported independent document changes before acceptance, with origin-bound Stop and explicit initial/variant/candidate ownership. High has source-only minimal wiring plan; implementation awaits this feature boundary. Normal per-feature push authorized; no PR/release.
+
 ## Latest D319 checkpoint — 2026-10-29
 
 - Presenter now releases only its owned Geometry on drawing replacement/empty clear and add failure. Shared Core Geometry/material/texture contracts remain. No identity cache, numeric/camera change or new telemetry/API is added.
@@ -291,7 +298,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D320**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D321**).
 
 ## 0. State at the stop
 

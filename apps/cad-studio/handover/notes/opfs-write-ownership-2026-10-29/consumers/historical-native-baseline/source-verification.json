@@ -1,0 +1,22 @@
+{
+  "verifiedAt": "2026-10-29T04:34:44.657685+00:00",
+  "authorHead": "73c6085171f7d9b6931c395917742211f0266cbb",
+  "baseline": "5463dbf32af5dd10670badd0d334c68504615292",
+  "files": [
+    {
+      "path": "apps/cad-studio/src/storage/handleStore.ts",
+      "baselineBlob": "62472c0e915f02d9876c46159ec0baacfac47d9d",
+      "headBlob": "62472c0e915f02d9876c46159ec0baacfac47d9d",
+      "snapshotSHA256": "1abfc52d75e89904d5aba3050a235c73e72d664b4a81544aee90354beeb2de9a",
+      "authorWorkingSHA256": "1abfc52d75e89904d5aba3050a235c73e72d664b4a81544aee90354beeb2de9a"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/store.ts",
+      "baselineBlob": "8307f3a2b86cafa2162e8e808da19f7cd2a32e65",
+      "headBlob": "8307f3a2b86cafa2162e8e808da19f7cd2a32e65",
+      "snapshotSHA256": "96d7a58236ed932a285e5249a149f42cc3770ee70b97f4cf2478e032139454bf",
+      "authorWorkingSHA256": "96d7a58236ed932a285e5249a149f42cc3770ee70b97f4cf2478e032139454bf"
+    }
+  ],
+  "dirtyDiff": ""
+}
